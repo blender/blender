@@ -259,8 +259,6 @@ class Instance : public DrawEngine {
     const RenderEngineType *type = render_engine->type;
     type->view_draw(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
 
-    GPU_bgl_end();
-
     GPU_matrix_pop();
     GPU_matrix_pop_projection();
 
@@ -362,7 +360,6 @@ class Instance : public DrawEngine {
     GPU_matrix_pop_projection();
 
     blender::draw::command::StateSet::set();
-    GPU_bgl_end();
 
     RE_engine_draw_release(re);
   }

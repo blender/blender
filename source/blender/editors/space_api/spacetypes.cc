@@ -263,9 +263,6 @@ static void ed_region_draw_cb_draw(const bContext *C, ARegion *region, ARegionTy
   LISTBASE_FOREACH_MUTABLE (RegionDrawCB *, rdc, &art->drawcalls) {
     if (rdc->type == type) {
       rdc->draw(C, region, rdc->customdata);
-
-      /* This is needed until we get rid of BGL which can change the states we are tracking. */
-      GPU_bgl_end();
     }
   }
 }

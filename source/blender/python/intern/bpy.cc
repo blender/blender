@@ -709,8 +709,6 @@ static PyObject *bpy_import_test(const char *modname)
 {
   PyObject *mod = PyImport_ImportModuleLevel(modname, nullptr, nullptr, nullptr, 0);
 
-  GPU_bgl_end();
-
   if (mod) {
     Py_DECREF(mod);
   }

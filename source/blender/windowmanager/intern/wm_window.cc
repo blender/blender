@@ -2134,12 +2134,6 @@ static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, 
   messages->label(message1, ICON_NONE);
   messages->label(message2, ICON_NONE);
   messages->label(message3, ICON_NONE);
-  if (G.opengl_deprecation_usage_filename) {
-    char location[1024];
-    SNPRINTF(
-        location, "%s:%d", G.opengl_deprecation_usage_filename, G.opengl_deprecation_usage_lineno);
-    messages->label(location, ICON_NONE);
-  }
   messages->label(message4, ICON_NONE);
 
   col->separator(0.5f, LayoutSeparatorType::Space);
@@ -2147,44 +2141,6 @@ static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, 
   UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
 
   return block;
-}
-
-void wm_test_opengl_deprecation_warning(bContext *C)
-{
-  static bool message_shown = false;
-
-  /* Exit when no failure detected. */
-  if (!G.opengl_deprecation_usage_detected) {
-    return;
-  }
-
-  /* Have we already shown a message during this Blender session. `bgl` calls are done in a draw
-   * handler that will run many times. */
-  if (message_shown) {
-    return;
-  }
-
-  wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win = static_cast<wmWindow *>((wm->winactive) ? wm->winactive : wm->windows.first);
-
-  BKE_report(&wm->runtime->reports,
-             RPT_ERROR,
-             "One of the add-ons or scripts is using OpenGL and will not work correct on Metal. "
-             "Please contact the developer of the add-on to migrate to use 'gpu' module");
-
-  if (win) {
-    /* We want this warning on the Main window, not a child window even if active. See #118765. */
-    if (win->parent) {
-      win = win->parent;
-    }
-
-    wmWindow *prevwin = CTX_wm_window(C);
-    CTX_wm_window_set(C, win);
-    UI_popup_block_invoke(C, block_create_opengl_usage_warning, nullptr, nullptr);
-    CTX_wm_window_set(C, prevwin);
-  }
-
-  message_shown = true;
 }
 
 static uiBlock *block_create_gpu_backend_fallback(bContext *C, ARegion *region, void * /*arg1*/)
