@@ -629,7 +629,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeViewer";
       case CMP_NODE_RGB:
         return "CompositorNodeRGB";
-      case CMP_NODE_VALUE:
+      case CMP_NODE_VALUE_DEPRECATED:
         return "CompositorNodeValue";
       case CMP_NODE_MIX_RGB:
         return "CompositorNodeMixRGB";

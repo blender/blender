@@ -148,7 +148,7 @@
 /* NOTE: types are needed to restore callbacks, don't change values. */
 #define CMP_NODE_VIEWER 201
 #define CMP_NODE_RGB 202
-#define CMP_NODE_VALUE 203
+#define CMP_NODE_VALUE_DEPRECATED 203
 #define CMP_NODE_MIX_RGB 204
 #define CMP_NODE_VALTORGB 205
 #define CMP_NODE_RGBTOBW 206

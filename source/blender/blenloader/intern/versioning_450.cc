@@ -191,7 +191,7 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
 {
   LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
     switch (node->type_legacy) {
-      case CMP_NODE_VALUE:
+      case CMP_NODE_VALUE_DEPRECATED:
         node->type_legacy = SH_NODE_VALUE;
         STRNCPY(node->idname, "ShaderNodeValue");
         break;
