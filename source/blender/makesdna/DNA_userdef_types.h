@@ -216,7 +216,7 @@ typedef struct UserDef_Experimental {
   char use_all_linked_data_direct;
   char use_extensions_debug;
   char use_recompute_usercount_on_save_debug;
-  char write_large_blend_file_blocks;
+  char write_legacy_blend_file_format;
   char use_attribute_storage_write;
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
