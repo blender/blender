@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-06-09 12:55+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -34166,12 +34166,12 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Show/Hide"
-msgstr "Hiện/Ẩn Giấu"
-
-
 msgid "Clean Up"
 msgstr "Dọn Dẹp"
+
+
+msgid "Show/Hide"
+msgstr "Hiện/Ẩn Giấu"
 
 
 msgid "Special Characters"
@@ -34196,6 +34196,10 @@ msgstr "Tên"
 
 msgid "Bone Roll"
 msgstr "Lăn Xương"
+
+
+msgid "Merge"
+msgstr "Hợp Nhất"
 
 
 msgid "Pivot Point"
@@ -34252,10 +34256,6 @@ msgstr "Mối Quan Hệ"
 
 msgid "Add Image"
 msgstr "Thêm Hình Ảnh"
-
-
-msgid "Merge"
-msgstr "Hợp Nhất"
 
 
 msgid "Light Probe"
@@ -132460,18 +132460,6 @@ msgid "Delete selected objects?"
 msgstr "Xóa các đối tượng đã chọn nhé?"
 
 
-msgid "None of the objects are compatible of conversion to"
-msgstr "Không có đối tượng nào tương thích với việc chuyển đổi sang"
-
-
-msgid "The selection included"
-msgstr "Lựa chọn bao gồm"
-
-
-msgid "object(s) types which don't support conversion to"
-msgstr "thể loại đối tượng không hỗ trợ việc chuyển đổi sang"
-
-
 msgid "SoundTrack"
 msgstr "RãnhÂmThanh"
 
@@ -133594,10 +133582,6 @@ msgid ""
 msgstr ""
 "Cảnh Báo: Nhiều đối tượng sử dụng chung cùng một dữ liệu.\n"
 "Hãy tạo đơn người dùng và sau đó áp dụng các phép biến hóa nhé?"
-
-
-msgid "have non-invertable transformation matrix, not applying transform."
-msgstr "có ma trận biến đổi bất khả nghịch đảo, không áp dụng phép biến hóa được."
 
 
 msgid "Objects have no data to transform"

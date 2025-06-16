@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:40+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8605,6 +8605,10 @@ msgid "Bone Roll"
 msgstr "Ролна костију"
 
 
+msgid "Merge"
+msgstr "Сједини"
+
+
 msgid "Snap"
 msgstr "Лепљење"
 
@@ -8615,10 +8619,6 @@ msgstr "Удице"
 
 msgid "Relations"
 msgstr "Односи"
-
-
-msgid "Merge"
-msgstr "Сједини"
 
 
 msgid "Light"

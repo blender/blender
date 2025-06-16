@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-05-17 17:56+0000\n"
 "Last-Translator: Ugur Saglam <saglamugur556@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -29266,12 +29266,12 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
 msgid "Clean Up"
 msgstr "Temizle"
+
+
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
 
 
 msgid "Special Characters"
@@ -29296,6 +29296,10 @@ msgstr "Adlar"
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
+
+
+msgid "Merge"
+msgstr "Birleştir"
 
 
 msgid "Pivot Point"
@@ -29352,10 +29356,6 @@ msgstr "İlişkiler"
 
 msgid "Add Image"
 msgstr "Resim Ekle"
-
-
-msgid "Merge"
-msgstr "Birleştir"
 
 
 msgid "Light Probe"

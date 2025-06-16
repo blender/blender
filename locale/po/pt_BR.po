@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21444,12 +21444,12 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
 msgid "Clean Up"
 msgstr "Limpeza"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
 
 
 msgid "Special Characters"
@@ -21470,6 +21470,10 @@ msgstr "Nomes"
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
+
+
+msgid "Merge"
+msgstr "Fundir"
 
 
 msgid "Pivot Point"
@@ -21498,10 +21502,6 @@ msgstr "Relações"
 
 msgid "Add Image"
 msgstr "Adicionar Imagem"
-
-
-msgid "Merge"
-msgstr "Fundir"
 
 
 msgid "Light Probe"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
-"PO-Revision-Date: 2025-06-11 04:59+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"PO-Revision-Date: 2025-06-13 01:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -8280,6 +8280,10 @@ msgid "Target Z"
 msgstr "Z Obiettivo"
 
 
+msgid "Target's Z axis, not World Z axis, will constrain the Up direction"
+msgstr "L'asse Z del target, non l'asse Z del Mondo, vincolerá la direzione verso l'Alto"
+
+
 msgid "Transform Cache Constraint"
 msgstr "Cache Vincolo Trasformazione"
 
@@ -15325,6 +15329,10 @@ msgid "Use this brush in Grease Pencil vertex color mode"
 msgstr "Utilizza questo pennello in modalità colorazione vertici di Grease Pencil"
 
 
+msgid "Value Jitter"
+msgstr "Tremolio del Valore"
+
+
 msgid "Vertex weight when brush is applied"
 msgstr "Peso vertici quando viene applicato il pennello"
 
@@ -15454,6 +15462,18 @@ msgstr "Distanza di taglio iniziale della camera (non mostra ciò che è più vi
 
 msgid "Use internal text data-block"
 msgstr "Utilizza un blocco-dati testo interno"
+
+
+msgid "Use external file"
+msgstr "Utilizza file esterno"
+
+
+msgid "Custom Shader"
+msgstr "Ombreggiatore Personalizzato"
+
+
+msgid "Cycles Custom Camera Settings"
+msgstr "Impostazioni Camera Personalizzata Cycles"
 
 
 msgid "Apparent size of the Camera object in the 3D View"
@@ -17033,6 +17053,14 @@ msgid "Specular Factor"
 msgstr "Fattore Speculare"
 
 
+msgid "Temperature Color"
+msgstr "Colore della Temperatura"
+
+
+msgid "Color from Temperature"
+msgstr "Colore dalla Temperatura"
+
+
 msgid "Transmission Factor"
 msgstr "Fattore Trasmissione"
 
@@ -17088,6 +17116,11 @@ msgstr "Attenuazione Personalizzata"
 
 msgid "Use shader nodes to render the light"
 msgstr "Utilizza nodi shader per renderizzare la luce"
+
+
+msgctxt "Light"
+msgid "Use Temperature"
+msgstr "Utilizza Temperatura"
 
 
 msgid "Volume Factor"
@@ -18944,6 +18977,10 @@ msgstr "Distribuzione"
 
 msgid "How to distribute particles on selected element"
 msgstr "Come distribuire le particelle sull'elemento selezionato"
+
+
+msgid "Jittered"
+msgstr "Tremolante"
 
 
 msgid "Amount of air drag"
@@ -24614,12 +24651,12 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
 msgid "Clean Up"
 msgstr "Ripulisci"
+
+
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
 
 
 msgid "Special Characters"
@@ -24644,6 +24681,10 @@ msgstr "Nomi"
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
+
+
+msgid "Merge"
+msgstr "Unisci"
 
 
 msgid "Pivot Point"
@@ -24700,10 +24741,6 @@ msgstr "Relazioni"
 
 msgid "Add Image"
 msgstr "Aggiungi Immagine"
-
-
-msgid "Merge"
-msgstr "Unisci"
 
 
 msgid "Light Probe"
@@ -25129,6 +25166,10 @@ msgid "Physics"
 msgstr "Fisica"
 
 
+msgid "ID Data"
+msgstr "Dati ID"
+
+
 msgid "Particle Specials"
 msgstr "Speciali Particella"
 
@@ -25188,6 +25229,10 @@ msgstr "Seleziona Canale"
 
 msgid "Select Handle"
 msgstr "Seleziona Maniglia"
+
+
+msgid "Change Effect Type"
+msgstr "Cambia Tipo di Effetto"
 
 
 msgid "Inputs"
@@ -25539,6 +25584,10 @@ msgstr "Raggio della pelle"
 
 msgid "Root"
 msgstr "Radice"
+
+
+msgid "Mesh Skin Vertex Layer"
+msgstr "Livello Vertici della Pelle Mesh"
 
 
 msgid "Name of skin layer"
@@ -25977,6 +26026,10 @@ msgid "Wave"
 msgstr "Onda"
 
 
+msgid "Smooth Grease Pencil strokes"
+msgstr "Leviga tratti Grease Pencil"
+
+
 msgid "Dynamic Paint"
 msgstr "Pittura Dinamica"
 
@@ -26169,6 +26222,10 @@ msgid "Merge vertices in adjacent duplicates"
 msgstr "Unisce i vertici dei duplicati adiacenti"
 
 
+msgid "Merge End Vertices"
+msgstr "Unisci Vertici Estremi"
+
+
 msgid "Merge vertices in first and last duplicates"
 msgstr "Unisce i vertici del primo e dell'ultimo duplicato"
 
@@ -26261,6 +26318,10 @@ msgid "Mark Sharp"
 msgstr "Segna come Netto"
 
 
+msgid "Mark beveled edges as sharp"
+msgstr "Contrassegna gli spigoli smussati come netti"
+
+
 msgid "Material index of generated faces, -1 for automatic"
 msgstr "Indice materiale per le facce generate, -1 per automatico"
 
@@ -26275,6 +26336,10 @@ msgstr "Arco"
 
 msgid "Patch"
 msgstr "Toppa"
+
+
+msgid "Width Type"
+msgstr "Tipo Larghezza"
 
 
 msgid "What distance Width measures"
@@ -26399,6 +26464,10 @@ msgstr "Combina mesh in modo sottrattivo"
 
 msgid "Exact"
 msgstr "Esatto"
+
+
+msgid "Manifold"
+msgstr "Manifold"
 
 
 msgid "Self Intersection"
@@ -30905,6 +30974,11 @@ msgstr "Gaussiano"
 
 
 msgctxt "NodeTree"
+msgid "Fast Gaussian"
+msgstr "Gaussiano Veloce"
+
+
+msgctxt "NodeTree"
 msgid "Catrom"
 msgstr "Catrom"
 
@@ -30950,8 +31024,16 @@ msgid "Rounding"
 msgstr "Arrotondamento"
 
 
+msgid "Lens Shift"
+msgstr "Spostamento Lente"
+
+
 msgid "Box Mask"
 msgstr "Maschera Box"
+
+
+msgid "Mask Type"
+msgstr "Tipo Maschera"
 
 
 msgid "Not"
@@ -31223,6 +31305,18 @@ msgstr "A"
 
 msgid "Interpolation method"
 msgstr "Modo Interpolazione"
+
+
+msgid "Use Nearest interpolation"
+msgstr "Utilizza Interpolazione più vicina"
+
+
+msgid "Use Bilinear interpolation"
+msgstr "Utilizza Interpolazione bilineare"
+
+
+msgid "Use Cubic B-Spline interpolation"
+msgstr "Utilizza Interpolazione Cubica B-Spline"
 
 
 msgid "Anisotropic"
@@ -60351,6 +60445,11 @@ msgstr "Utilizza Mouse"
 msgctxt "WindowManager"
 msgid "Change Offset"
 msgstr "Cambia Offset"
+
+
+msgctxt "WindowManager"
+msgid "Change Affect Type"
+msgstr "Cambia Tipo di Influenza"
 
 
 msgctxt "WindowManager"
