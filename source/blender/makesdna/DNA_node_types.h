@@ -1169,14 +1169,20 @@ typedef struct NodeImageLayer {
 } NodeImageLayer;
 
 typedef struct NodeBlurData {
-  short sizex, sizey;
-  short samples, maxspeed, minspeed, relative, aspect;
-  short curved;
-  float fac, percentx, percenty;
+  short sizex DNA_DEPRECATED;
+  short sizey DNA_DEPRECATED;
+  short samples DNA_DEPRECATED;
+  short maxspeed DNA_DEPRECATED;
+  short minspeed DNA_DEPRECATED;
+  short relative DNA_DEPRECATED;
+  short aspect DNA_DEPRECATED;
+  short curved DNA_DEPRECATED;
+  float fac DNA_DEPRECATED;
+  float percentx DNA_DEPRECATED;
+  float percenty DNA_DEPRECATED;
   short filtertype;
-  char bokeh, gamma;
-  /** Needed for absolute/relative conversions. */
-  int image_in_width, image_in_height;
+  char bokeh DNA_DEPRECATED;
+  char gamma DNA_DEPRECATED;
 } NodeBlurData;
 
 typedef struct NodeDBlurData {
@@ -1215,7 +1221,9 @@ typedef struct NodeAntiAliasingData {
 
 /** \note Only for do-version code. */
 typedef struct NodeHueSat {
-  float hue, sat, val;
+  float hue DNA_DEPRECATED;
+  float sat DNA_DEPRECATED;
+  float val DNA_DEPRECATED;
 } NodeHueSat;
 
 typedef struct NodeImageFile {
@@ -1266,18 +1274,19 @@ typedef struct NodeChroma {
 } NodeChroma;
 
 typedef struct NodeTwoXYs {
-  short x1;
-  short x2;
-  short y1;
-  short y2;
-  float fac_x1;
-  float fac_x2;
-  float fac_y1;
-  float fac_y2;
+  short x1 DNA_DEPRECATED;
+  short x2 DNA_DEPRECATED;
+  short y1 DNA_DEPRECATED;
+  short y2 DNA_DEPRECATED;
+  float fac_x1 DNA_DEPRECATED;
+  float fac_x2 DNA_DEPRECATED;
+  float fac_y1 DNA_DEPRECATED;
+  float fac_y2 DNA_DEPRECATED;
 } NodeTwoXYs;
 
 typedef struct NodeTwoFloats {
-  float x, y;
+  float x DNA_DEPRECATED;
+  float y DNA_DEPRECATED;
 } NodeTwoFloats;
 
 typedef struct NodeVertexCol {
@@ -1292,11 +1301,14 @@ typedef struct NodeCMPCombSepColor {
 
 /** Defocus blur node. */
 typedef struct NodeDefocus {
-  char bktype, _pad0, preview, gamco;
-  short samples, no_zbuf;
-  float fstop, maxblur, bthresh, scale;
+  char bktype;
+  char gamco DNA_DEPRECATED;
+  char no_zbuf;
+  char _pad0;
+  float fstop;
+  float maxblur;
+  float scale;
   float rotation;
-  char _pad1[4];
 } NodeDefocus;
 
 typedef struct NodeScriptDict {
@@ -1569,7 +1581,7 @@ typedef struct NodeTrackPosData {
 
 typedef struct NodeTranslateData {
   char wrap_axis;
-  char relative;
+  char relative DNA_DEPRECATED;
   short interpolation;
 } NodeTranslateData;
 
@@ -2892,11 +2904,6 @@ typedef enum CMPNodeTranslateRepeatAxis {
 } CMPNodeTranslateRepeatAxis;
 
 #define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
-
-/* image */
-enum {
-  CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT = 1,
-};
 
 /* viewer and composite output. */
 enum {

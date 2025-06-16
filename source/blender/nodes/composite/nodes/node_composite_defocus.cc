@@ -49,8 +49,6 @@ static void node_composit_init_defocus(bNodeTree * /*ntree*/, bNode *node)
   NodeDefocus *nbd = MEM_callocN<NodeDefocus>(__func__);
   nbd->bktype = 0;
   nbd->rotation = 0.0f;
-  nbd->gamco = 0;
-  nbd->samples = 16;
   nbd->fstop = 128.0f;
   nbd->maxblur = 16;
   nbd->scale = 1.0f;
