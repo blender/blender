@@ -304,7 +304,7 @@ BLI_NOINLINE static void process_leaf_node(const mf::MultiFunction &fn,
           /* The input does not have this leaf node, so just get the value that's used for the
            * entire leaf. The leaf may be in a tile or is inactive in which case the background
            * value is used. */
-          const auto single_value = tree.getValue(any_voxel_in_leaf);
+          const auto &single_value = tree.getValue(any_voxel_in_leaf);
           params.add_readonly_single_input(GPointer(param_cpp_type, &single_value));
         }
       });
