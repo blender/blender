@@ -187,15 +187,11 @@ void CPUDevice::const_copy_to(const char *name, void *host, const size_t size)
   if (strcmp(name, "data") == 0) {
     assert(size <= sizeof(KernelData));
 
-    // Update scene handle (since it is different for each device on multi devices)
+    /* Update scene handle (since it is different for each device on multi devices).
+     * This must be a raw pointer copy since at some points during scene update this
+     * pointer may be invalid. */
     KernelData *const data = (KernelData *)host;
-    data->device_bvh =
-#  if RTC_VERSION >= 40400
-        rtcGetSceneTraversable(embree_scene)
-#  else
-        embree_scene
-#  endif
-        ;
+    data->device_bvh = embree_traversable;
   }
 #endif
   kernel_const_copy(&kernel_globals, name, host, size);
@@ -272,7 +268,11 @@ void CPUDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
     }
 
     if (bvh->params.top_level) {
-      embree_scene = bvh_embree->scene;
+#  if RTC_VERSION >= 40400
+      embree_traversable = rtcGetSceneTraversable(bvh_embree->scene);
+#  else
+      embree_traversable = bvh_embree->scene;
+#  endif
     }
   }
   else

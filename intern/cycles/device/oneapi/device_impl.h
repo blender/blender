@@ -23,7 +23,11 @@ class OneapiDevice : public GPUDevice {
   SyclQueue *device_queue_ = nullptr;
 #  ifdef WITH_EMBREE_GPU
   RTCDevice embree_device = nullptr;
-  RTCScene embree_scene = nullptr;
+#    if RTC_VERSION >= 40400
+  RTCTraversable embree_traversable = nullptr;
+#    else
+  RTCScene embree_traversable = nullptr;
+#    endif
 #    if RTC_VERSION >= 40302
   thread_mutex scene_data_mutex;
   vector<RTCScene> all_embree_scenes;
