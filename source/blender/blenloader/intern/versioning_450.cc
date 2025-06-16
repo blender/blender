@@ -3392,6 +3392,14 @@ static void do_version_alpha_over_remove_premultiply(bNodeTree *node_tree)
 
     blender::bke::node_remove_link(node_tree, *link);
   }
+
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    if (node->type_legacy == CMP_NODE_ALPHAOVER) {
+      NodeTwoFloats *storage = static_cast<NodeTwoFloats *>(node->storage);
+      MEM_freeN(storage);
+      node->storage = nullptr;
+    }
+  }
 }
 
 /* The options were converted into inputs. */
