@@ -300,6 +300,23 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(tui.panel_sub_back);
   }
 
+  if (!USER_VERSION_ATLEAST(500, 12)) {
+    FROM_DEFAULT_V4_UCHAR(space_node.syntaxs);
+    FROM_DEFAULT_V4_UCHAR(space_node.syntaxb);
+    FROM_DEFAULT_V4_UCHAR(space_node.syntaxn);
+    FROM_DEFAULT_V4_UCHAR(space_node.syntaxv);
+    FROM_DEFAULT_V4_UCHAR(space_node.syntaxc);
+    FROM_DEFAULT_V4_UCHAR(space_node.syntaxd);
+    FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_attribute);
+    FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_filter);
+    FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_geometry);
+    FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_output);
+    FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_script);
+    FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_shader);
+    FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_texture);
+    FROM_DEFAULT_V4_UCHAR(space_node.nodeclass_vector);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
