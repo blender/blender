@@ -119,7 +119,7 @@ static void rna_SceneRender_get_frame_path(RenderData *rd,
   else {
     const char *relbase = BKE_main_blendfile_path(bmain);
     const blender::bke::path_templates::VariableMap template_variables =
-        BKE_build_template_variables_for_render_path(relbase, rd);
+        BKE_build_template_variables_for_render_path(rd);
 
     const blender::Vector<blender::bke::path_templates::Error> errors =
         BKE_image_path_from_imformat(filepath,
