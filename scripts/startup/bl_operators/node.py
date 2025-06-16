@@ -660,7 +660,7 @@ class NODE_OT_viewer_shortcut_set(Operator):
             bpy.ops.node.activate_viewer()
 
         viewer_node.ui_shortcut = self.viewer_index
-        self.report({'INFO'}, "Assigned shortcut {:d} to {:s}".format(self.viewer_index, viewer_node.name))
+        self.report({'INFO'}, rpt_("Assigned shortcut {:d} to {:s}").format(self.viewer_index, viewer_node.name))
 
         return {'FINISHED'}
 
@@ -696,7 +696,7 @@ class NODE_OT_viewer_shortcut_get(Operator):
                 viewer_node = n
 
         if not viewer_node:
-            self.report({'INFO'}, "Shortcut {:d} is not assigned to a Viewer node yet".format(self.viewer_index))
+            self.report({'INFO'}, rpt_("Shortcut {:d} is not assigned to a Viewer node yet").format(self.viewer_index))
             return {'CANCELLED'}
 
         with bpy.context.temp_override(node=viewer_node):

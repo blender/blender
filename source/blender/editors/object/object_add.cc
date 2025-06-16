@@ -4224,18 +4224,16 @@ static wmOperatorStatus object_convert_exec(bContext *C, wmOperator *op)
     if (incompatible_count == selected_editable_bases.size()) {
       BKE_reportf(op->reports,
                   RPT_INFO,
-                  "%s \"%s\"",
-                  RPT_("None of the objects are compatible of conversion to"),
-                  IFACE_(target_type_name));
+                  "None of the objects are compatible with a conversion to \"%s\"",
+                  RPT_(target_type_name));
     }
     else {
-      BKE_reportf(op->reports,
-                  RPT_INFO,
-                  "%s %d %s \"%s\"",
-                  RPT_("The selection included"),
-                  incompatible_count,
-                  RPT_("object(s) types which don't support conversion to"),
-                  IFACE_(target_type_name));
+      BKE_reportf(
+          op->reports,
+          RPT_INFO,
+          "The selection included %d object type(s) which do not support conversion to \"%s\"",
+          incompatible_count,
+          RPT_(target_type_name));
     }
   }
 

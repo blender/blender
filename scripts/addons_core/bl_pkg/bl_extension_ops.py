@@ -36,7 +36,6 @@ from bpy.app.translations import (
     pgettext_iface as iface_,
     pgettext_tip as tip_,
     pgettext_rpt as rpt_,
-
 )
 
 from . import (
@@ -1916,10 +1915,10 @@ class EXTENSIONS_OT_repo_unlock(Operator):
 
         repo_name, repo_directory, _lock_age, _lock_error = self._repo_vars
         if (error := bl_extension_utils.repo_lock_directory_force_unlock(repo_directory)):
-            self.report({'ERROR'}, "Force unlock failed: {:s}".format(error))
+            self.report({'ERROR'}, rpt_("Force unlock failed: {:s}").format(error))
             return {'CANCELLED'}
 
-        self.report({'INFO'}, "Unlocked: {:s}".format(repo_name))
+        self.report({'INFO'}, rpt_("Unlocked: {:s}").format(repo_name))
         return {'FINISHED'}
 
     def draw(self, _context):
@@ -2815,7 +2814,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
                 return {'CANCELLED'}
 
             if isinstance(result := pkg_manifest_dict_from_archive_or_error(filepath), str):
-                self.report({'ERROR'}, "Error in manifest {:s}".format(result))
+                self.report({'ERROR'}, rpt_("Error in manifest {:s}").format(result))
                 return {'CANCELLED'}
 
             pkg_id = result["id"]
@@ -3157,7 +3156,7 @@ class EXTENSIONS_OT_package_install(Operator, _ExtCmdMixIn):
                     if python_version
                 ],
         ), str):
-            self.report({'ERROR'}, iface_("The extension is incompatible with this system:\n{:s}").format(error))
+            self.report({'ERROR'}, rpt_("The extension is incompatible with this system:\n{:s}").format(error))
             return {'CANCELLED'}
         del error
 
@@ -3852,7 +3851,7 @@ class EXTENSIONS_OT_repo_lock_all(Operator):
             lock_handle.release()
             return {'CANCELLED'}
 
-        self.report({'INFO'}, "Locked {:d} repos(s)".format(len(lock_result)))
+        self.report({'INFO'}, rpt_("Locked {:d} repos(s)").format(len(lock_result)))
         EXTENSIONS_OT_repo_lock_all.lock = lock_handle
         return {'FINISHED'}
 
@@ -3876,7 +3875,7 @@ class EXTENSIONS_OT_repo_unlock_all(Operator):
             # This isn't canceled, but there were issues unlocking.
             return {'FINISHED'}
 
-        self.report({'INFO'}, "Unlocked {:d} repos(s)".format(len(lock_result)))
+        self.report({'INFO'}, rpt_("Unlocked {:d} repos(s)").format(len(lock_result)))
         return {'FINISHED'}
 
 

@@ -274,6 +274,10 @@ int RNA_enum_bitflag_identifiers(const EnumPropertyItem *item,
                                  int value,
                                  const char **r_identifier);
 bool RNA_enum_name(const EnumPropertyItem *item, int value, const char **r_name);
+bool RNA_enum_name_gettexted(const EnumPropertyItem *item,
+                             int value,
+                             const char *translation_context,
+                             const char **r_name);
 bool RNA_enum_description(const EnumPropertyItem *item, int value, const char **r_description);
 int RNA_enum_from_value(const EnumPropertyItem *item, int value);
 int RNA_enum_from_identifier(const EnumPropertyItem *item, const char *identifier);
