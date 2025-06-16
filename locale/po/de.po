@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:14+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18839,12 +18839,12 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
 msgid "Clean Up"
 msgstr "Aufräumen"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
 
 
 msgid "Special Characters"
@@ -18865,6 +18865,10 @@ msgstr "Metaball"
 
 msgid "Names"
 msgstr "Namen"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
 
 
 msgid "Pivot Point"
@@ -18901,10 +18905,6 @@ msgstr "Beziehungen"
 
 msgid "Add Image"
 msgstr "Bild hinzufügen"
-
-
-msgid "Merge"
-msgstr "Zusammenführen"
 
 
 msgid "Light Probe"

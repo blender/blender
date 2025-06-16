@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-06-08 16:59+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -24393,12 +24393,12 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Show/Hide"
-msgstr "Pokaži / skrij"
-
-
 msgid "Clean Up"
 msgstr "Počisti"
+
+
+msgid "Show/Hide"
+msgstr "Pokaži / skrij"
 
 
 msgid "Special Characters"
@@ -24423,6 +24423,10 @@ msgstr "Imena"
 
 msgid "Bone Roll"
 msgstr "Zasukaj kost"
+
+
+msgid "Merge"
+msgstr "Združi"
 
 
 msgid "Pivot Point"
@@ -24467,10 +24471,6 @@ msgstr "Razmerja"
 
 msgid "Add Image"
 msgstr "Dodaj sliko"
-
-
-msgid "Merge"
-msgstr "Združi"
 
 
 msgid "Light Probe"
@@ -69768,10 +69768,6 @@ msgid "Delete selected objects?"
 msgstr "Naj izbrišem izbrane objekte?"
 
 
-msgid "The selection included"
-msgstr "Izbor je vseboval"
-
-
 msgid "SoundTrack"
 msgstr "ZvočnaSled"
 
@@ -69883,14 +69879,6 @@ msgstr "Suzana"
 msgctxt "GPencil"
 msgid "LineArt"
 msgstr "LineArt"
-
-
-msgid "%s \"%s\""
-msgstr "%s \"%s\""
-
-
-msgid "%s %d %s \"%s\""
-msgstr "%s %d %s \"%s\""
 
 
 msgid "Remove exporter?"

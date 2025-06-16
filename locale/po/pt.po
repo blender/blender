@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
-"PO-Revision-Date: 2025-06-06 17:20+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"PO-Revision-Date: 2025-06-13 23:59+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -5537,6 +5537,14 @@ msgstr "Camada activa"
 
 msgid "Only edit the active layer of the object"
 msgstr "Editar apenas a camada activa do objecto"
+
+
+msgid "Auto-Remove Fill Guides"
+msgstr "Remover Automaticamente Guias de Preenchimento"
+
+
+msgid "Automatically remove fill guide strokes after fill operation"
+msgstr "Remover automaticamente traços guias após operação de de preenchimento"
 
 
 msgid "Strokes Collision"
@@ -19506,6 +19514,14 @@ msgid "Affectable height of brush (i.e. the layer height for the layer tool)"
 msgstr "Altura afectável do pincel (i.e. altura da camada para a ferramenta de camada)"
 
 
+msgid "Hue Jitter"
+msgstr "Tremulação de Tonalidade"
+
+
+msgid "Color jitter effect on hue"
+msgstr "Efeito de tremulação da cor na tonalidade"
+
+
 msgid "Brush Icon Filepath"
 msgstr "Caminho de ícone de pincel"
 
@@ -19815,6 +19831,14 @@ msgstr "Taxa"
 
 msgid "Interval between paints for Airbrush"
 msgstr "Uma proporção para o intervalo entre as pinturas durante o uso do aerógrafo."
+
+
+msgid "Saturation Jitter"
+msgstr "Tremulação de Saturação"
+
+
+msgid "Color jitter effect on saturation"
+msgstr "Efeito de tremulação da cor na saturação"
 
 
 msgid "Sculpt Plane"
@@ -20332,6 +20356,14 @@ msgid "Handle each pixel color as individual vector for displacement (area plane
 msgstr "Interpretar a cor de cada pixel como um vector individual para deslocamento (apenas para mapeamento de plano de área)"
 
 
+msgid "Use Color Jitter"
+msgstr "Usar Tremulação de Cor"
+
+
+msgid "Jitter brush color"
+msgstr "Tremular cor do pincel"
+
+
 msgid "Connected Only"
 msgstr "Apenas Conectados"
 
@@ -20690,6 +20722,14 @@ msgstr "Usar Pressão para Persistência Húmida"
 
 msgid "Use pressure to modulate wet persistence"
 msgstr "Usar pressão para modular persistência húmida"
+
+
+msgid "Value Jitter"
+msgstr "Tremulação de Valor"
+
+
+msgid "Color jitter effect on value"
+msgstr "Efeito de tremulação da cor no valor"
 
 
 msgid "Vertex weight when brush is applied"
@@ -34591,12 +34631,12 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
 msgid "Clean Up"
 msgstr "Limpeza"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
 
 
 msgid "Special Characters"
@@ -34621,6 +34661,10 @@ msgstr "Nomes"
 
 msgid "Bone Roll"
 msgstr "Rolagem do osso"
+
+
+msgid "Merge"
+msgstr "Fundir"
 
 
 msgid "Pivot Point"
@@ -34677,10 +34721,6 @@ msgstr "Relações"
 
 msgid "Add Image"
 msgstr "Adicionar Imagem"
-
-
-msgid "Merge"
-msgstr "Fundir"
 
 
 msgid "Light Probe"
@@ -35286,6 +35326,10 @@ msgstr "Seleccionar Canal"
 
 msgid "Select Handle"
 msgstr "Seleccionar Manípulos"
+
+
+msgid "Change Effect Type"
+msgstr "Alterar tipo de efeito"
 
 
 msgid "Inputs"
@@ -44130,8 +44174,48 @@ msgid "Active track in this tracking data object. Deprecated, use objects[name].
 msgstr "Faixa activa neste objecto de dados de rastreamento Descontinuado, usar objects[name].tracks.active"
 
 
+msgid "NDOF Motion Data"
+msgstr "Dados de Movimento NDOF"
+
+
+msgid "NDOF motion data for window manager events"
+msgstr "Dados de movimento NDOF para eventos do gestor de janelas"
+
+
+msgid "Progress"
+msgstr "Progresso"
+
+
+msgid "Indicates the gesture phase"
+msgstr "Indica a fase do gesto"
+
+
 msgid "Starting"
 msgstr "Iniciando"
+
+
+msgid "In progress"
+msgstr "Em progresso"
+
+
+msgid "Finishing"
+msgstr "Terminando"
+
+
+msgid "Axis-angle rotation of this motion event. The vector magnitude is the angle where 1.0 represents 360 degrees. The angle is typically scaled by the time-delta before use."
+msgstr "Rotação eixo-ângulo deste evento de movimento. A magnitude vectorial é o ângulo onde 1.0 representa 360 graus. O ângulo é tipicamente redimensionado pelo delta de tempo antes de uso."
+
+
+msgid "Time Delta"
+msgstr "Delta de Tempo"
+
+
+msgid "Time since previous motion event (in seconds)"
+msgstr "Tempo desde último evento de movimento (em segundos)"
+
+
+msgid "The translation of this motion event. The range on each axis is [-1 to 1], before being multiplied by the sensitivity preference. This is typically scaled by the time-delta before use."
+msgstr "A translação deste evento de movimento. O intervalo em cada eixo é [-1 a 1], antes de multiplicar pela preferência de sensibilidade. É tipicamente redimensionado pelo delta de tempo antes de uso."
 
 
 msgid "NLA Strip"
@@ -44607,6 +44691,10 @@ msgid "Aspect Correction"
 msgstr "Correção de aspecto"
 
 
+msgid "Type of aspect correction to use. (Deprecated: Unused.)"
+msgstr "Tipo de correcção de proporção (Descontinuado: Não usado)"
+
+
 msgid "(Deprecated: Unused.)"
 msgstr "(Descontinuado: Não usado)"
 
@@ -44668,6 +44756,10 @@ msgid "Bokeh"
 msgstr "Flocagem"
 
 
+msgid "Use circular filter (slower). (Deprecated: Use Separable input instead.)"
+msgstr "Usar filtro circular (mais lento). (Descontinuado: usar entrada de Separável)"
+
+
 msgid "Extend Bounds"
 msgstr "Estender as extremidades"
 
@@ -44678,6 +44770,10 @@ msgstr "Prolongar limites da imagem de entrada para preencher completamente a im
 
 msgid "Apply filter on gamma corrected values. (Deprecated: Unused. Use Gamma node instead.)"
 msgstr "Aplicar filtro nos valores de gama corrigido (Descontinuado: Não usado, usar nó gama)"
+
+
+msgid "Use relative (percent) values to define blur radius. (Deprecated: Unused.)"
+msgstr "Usa valores relativos (percentagem) para definir o raio de desfoque. (Descontinuado: Não usado)"
 
 
 msgid "Variable Size"
@@ -45317,6 +45413,10 @@ msgstr "Escala de mapa de transbordo vermelho (Descontinuado: usar entrada de Fo
 
 msgid "Unspill"
 msgstr "Desfazer derramamento"
+
+
+msgid "Compensate all channels (differently) by hand. (Deprecated: Use \"Use Spill Strength\" input instead.)"
+msgstr "Compensar todos os canais (independentemente) à mão (Descontinuado: usar entrada de Usar Força de Transbordo)"
 
 
 msgid "Combine HSVA (Legacy)"
@@ -46052,6 +46152,10 @@ msgid "Flip an image along a defined axis"
 msgstr "Inverter imagem ao longo de um eixo definido"
 
 
+msgid "(Deprecated: Use Flip X and Flip Y inputs instead.)"
+msgstr "(Descontinuado: Usar entrada de Inverter X e Inverter Y)"
+
+
 msgid "Flip X"
 msgstr "Inverter X"
 
@@ -46230,6 +46334,14 @@ msgstr "Inverter Cor"
 
 msgid "Invert colors, producing a negative"
 msgstr "Inverter cores produzindo um negativo"
+
+
+msgid "(Deprecated: Use Invert Alpha input instead.)"
+msgstr "(Descontinuado: Usar entrada Inverter Alfa)"
+
+
+msgid "(Deprecated: Use Invert Color input instead.)"
+msgstr "(Descontinuado: Usar entrada Inverter Cor)"
 
 
 msgid "Perform both chroma keying (to remove the backdrop) and despill (to correct color cast from the backdrop)"
@@ -47568,6 +47680,10 @@ msgstr "Combinar Z"
 
 msgid "Combine two images using depth maps"
 msgstr "Combinar duas imagens usando mapas de profundidade"
+
+
+msgid "Take alpha channel into account when doing the Z operation. (Deprecated: Use \"Use Alpha\" input instead.)"
+msgstr "Ter em conta canal Alfa ao fazer a operação Z. (Descontinuado: Usar a entrada de Usar Alfa)"
 
 
 msgid "Anti-Alias Z"
@@ -52634,6 +52750,14 @@ msgid "Entry-wise absolute"
 msgstr "Absoluto por Entrada"
 
 
+msgid "Entry-wise power"
+msgstr "Potência por entrada"
+
+
+msgid "Entry-wise sign"
+msgstr "Sinal por entrada"
+
+
 msgid "Entry-wise minimum"
 msgstr "Mínimo por entrada"
 
@@ -53207,6 +53331,22 @@ msgid "Unique identifier for mapping sockets"
 msgstr "Identificador único para mapeamento de conectores."
 
 
+msgid "Icon Visible"
+msgstr "Ícone Visível"
+
+
+msgid "Socket is drawn as interactive icon in the node editor"
+msgstr "Conector é representado como ícone interactivo no editor de nós"
+
+
+msgid "Inactive"
+msgstr "Inactiva"
+
+
+msgid "Socket is grayed out because it has been detected to not have any effect on the output"
+msgstr "O conector está desvanecido porque se detectou que não tem efeito no resultado"
+
+
 msgid "Linked"
 msgstr "Vinculando"
 
@@ -53595,6 +53735,14 @@ msgid "Single Value"
 msgstr "Valor Único"
 
 
+msgid ""
+"Only allow single value inputs rather than field.\n"
+"Deprecated. Will be remove in 5.0."
+msgstr ""
+"Permitir apenas valores únicos em vez de uma instrução.\n"
+"(Descontinuado. Será removido no 5.0)."
+
+
 msgid "Hide in Modifier"
 msgstr "Esconder no Modificador"
 
@@ -53657,6 +53805,34 @@ msgstr "Representar o conector de menu como um menu suspenso expandido"
 
 msgid "Type of the socket generated by this interface item"
 msgstr "Tipo de conector gerado por este item de interface"
+
+
+msgid "Structure Type"
+msgstr "Tipo de Estrutura"
+
+
+msgid "What kind of higher order types are expected to flow through this socket"
+msgstr "Que género de tipos de ordens superiores se espera que fluam por este conector"
+
+
+msgid "Automatically detect a good structure type based on how the socket is used"
+msgstr "Detectar automaticamente um tipo de estrutura adequado com base em como o conector é usado"
+
+
+msgid "Socket expects a single value"
+msgstr "Conector espera um valor único"
+
+
+msgid "Socket can work with different kinds of structures"
+msgstr "Conector pode trabalhar com diferentes estruturas"
+
+
+msgid "Socket expects a field"
+msgstr "Conector espera uma instrução"
+
+
+msgid "Socket expects a grid"
+msgstr "Conector espera uma grelha"
 
 
 msgid "Boolean Node Socket Interface"
@@ -53745,6 +53921,10 @@ msgstr "Interface de Conector de Nó Tipo Textura"
 
 msgid "Vector Node Socket Interface"
 msgstr "Interface de conector de nó de vector"
+
+
+msgid "Dimensions of the vector socket"
+msgstr "Dimensões do conector de vector"
 
 
 msgid "Node Tree Path"
@@ -59241,6 +59421,11 @@ msgstr "Marcar como Recurso Individual"
 
 msgid "Enable easier reuse of a data-block through the Asset Browser, with the help of customizable metadata (like previews, descriptions and tags)"
 msgstr "Permitir fácil reutilização de um bloco-de-dado através do Navegador de Recursos, com a ajuda de meta-informação personalizável (como pré visualizações, descrições e etiquetas)"
+
+
+msgctxt "Operator"
+msgid "Capture Screenshot Preview"
+msgstr "Capturar Pré-Visualização de Captura de Ecrã"
 
 
 msgid "Capture a screenshot to use as a preview for the selected asset"
@@ -66132,6 +66317,19 @@ msgstr "Número de pontos para considerar traço como solto"
 
 
 msgctxt "Operator"
+msgid "Convert Curve Type"
+msgstr "Converter Tipo de Curva"
+
+
+msgid "Convert type of selected curves"
+msgstr "Converter tipo das curvas seleccionadas"
+
+
+msgid "The distance that the resulting points are allowed to be within"
+msgstr "A distância a que os pontos resultantes se permite que estejam"
+
+
+msgctxt "Operator"
 msgid "Copy Strokes"
 msgstr "Copiar traços"
 
@@ -66883,6 +67081,23 @@ msgstr "Camada Grease Pencil Alvo"
 
 
 msgctxt "Operator"
+msgid "Outline"
+msgstr "Contorno"
+
+
+msgid "Convert selected strokes to perimeter"
+msgstr "Converter os traços seleccionados em perímetro"
+
+
+msgid "Corner Subdivisions"
+msgstr "Subdivisões de Esquinas"
+
+
+msgid "Projection Mode"
+msgstr "Modo de Projecção"
+
+
+msgctxt "Operator"
 msgid "Strokes Paint Mode Toggle"
 msgstr "Alternar Modo de Pintura de Traços"
 
@@ -67008,6 +67223,15 @@ msgstr "Acima"
 
 msgid "Below"
 msgstr "Abaixo"
+
+
+msgctxt "Operator"
+msgid "Remove Fill Guides"
+msgstr "Remover Guias de Preenchimento"
+
+
+msgid "Remove all the strokes that were created from the fill tool as guides"
+msgstr "Remover todos os traços que foram criados pela ferramenta de preenchimento como guias"
 
 
 msgctxt "Operator"
@@ -69867,6 +70091,14 @@ msgstr "Dissolver arestas"
 
 msgid "Dissolve edges, merging faces"
 msgstr "Dissolve as arestas, fundindo as faces."
+
+
+msgid "Angle Threshold"
+msgstr "Limite de Ângulo"
+
+
+msgid "Remaining vertices which separate edge pairs are preserved if their edge angle exceeds this threshold."
+msgstr "Vértices restantes que separam pares de arestas são preservados se a seu ângulo de aresta excede este limite."
 
 
 msgid "Dissolve Vertices"

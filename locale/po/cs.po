@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:12+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13585,12 +13585,12 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
 msgid "Clean Up"
 msgstr "Vyčistit"
+
+
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
 
 
 msgid "Special Characters"
@@ -13613,6 +13613,10 @@ msgid "Bone Roll"
 msgstr "Kost"
 
 
+msgid "Merge"
+msgstr "Sloučit"
+
+
 msgid "Pivot Point"
 msgstr "Bod pro pivot"
 
@@ -13631,10 +13635,6 @@ msgstr "Háky"
 
 msgid "Relations"
 msgstr "Vztahy"
-
-
-msgid "Merge"
-msgstr "Sloučit"
 
 
 msgid "Face Data"
