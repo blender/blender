@@ -1336,6 +1336,13 @@ typedef struct NodeGlare {
   char _pad1[4];
 } NodeGlare;
 
+/* Glare Node. Stored in NodeGlare.quality. */
+typedef enum CMPNodeGlareQuality {
+  CMP_NODE_GLARE_QUALITY_HIGH = 0,
+  CMP_NODE_GLARE_QUALITY_MEDIUM = 1,
+  CMP_NODE_GLARE_QUALITY_LOW = 2,
+} CMPNodeGlareQuality;
+
 /** Tone-map node. */
 typedef struct NodeTonemap {
   float key DNA_DEPRECATED;

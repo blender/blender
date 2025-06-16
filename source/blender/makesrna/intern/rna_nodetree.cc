@@ -7410,9 +7410,9 @@ static void def_cmp_glare(BlenderRNA * /*brna*/, StructRNA *srna)
   };
 
   static const EnumPropertyItem quality_items[] = {
-      {0, "HIGH", 0, "High", ""},
-      {1, "MEDIUM", 0, "Medium", ""},
-      {2, "LOW", 0, "Low", ""},
+      {CMP_NODE_GLARE_QUALITY_HIGH, "HIGH", 0, "High", ""},
+      {CMP_NODE_GLARE_QUALITY_MEDIUM, "MEDIUM", 0, "Medium", ""},
+      {CMP_NODE_GLARE_QUALITY_LOW, "LOW", 0, "Low", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
