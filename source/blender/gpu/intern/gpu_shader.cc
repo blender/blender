@@ -819,7 +819,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     GPU_debug_group_begin(GPU_DEBUG_SHADER_COMPILATION_GROUP);
     GPU_debug_group_begin(info.name_.c_str());
   }
-  else {
+  else if (G.profile_gpu) {
     start_time = Clock::now();
   }
 
@@ -975,7 +975,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     GPU_debug_group_end();
     GPU_debug_group_end();
   }
-  else {
+  else if (G.profile_gpu) {
     TimePoint end_time = Clock::now();
     /* Note: Used by the vulkan backend. Use the same time_since_epoch as process_frame_timings. */
     ProfileReport::get().add_group_cpu(GPU_DEBUG_SHADER_COMPILATION_GROUP,
