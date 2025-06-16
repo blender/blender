@@ -295,9 +295,9 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
   }
 
   if (!USER_VERSION_ATLEAST(500, 9)) {
-    copy_v4_v4_uchar(btheme->tui.panel_header, U_theme_default.tui.panel_header);
-    copy_v4_v4_uchar(btheme->tui.panel_back, U_theme_default.tui.panel_back);
-    copy_v4_v4_uchar(btheme->tui.panel_sub_back, U_theme_default.tui.panel_sub_back);
+    FROM_DEFAULT_V4_UCHAR(tui.panel_header);
+    FROM_DEFAULT_V4_UCHAR(tui.panel_back);
+    FROM_DEFAULT_V4_UCHAR(tui.panel_sub_back);
   }
 
   /**
