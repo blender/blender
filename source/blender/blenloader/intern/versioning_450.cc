@@ -242,7 +242,7 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
 
         break;
       }
-      case CMP_NODE_MIX_RGB: {
+      case CMP_NODE_MIX_RGB_DEPRECATED: {
         node->type_legacy = SH_NODE_MIX;
         STRNCPY(node->idname, "ShaderNodeMix");
 

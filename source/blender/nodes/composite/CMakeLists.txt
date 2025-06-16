@@ -79,7 +79,6 @@ set(SRC
   nodes/node_composite_map_value.cc
   nodes/node_composite_mask.cc
   nodes/node_composite_math.cc
-  nodes/node_composite_mixrgb.cc
   nodes/node_composite_movieclip.cc
   nodes/node_composite_moviedistortion.cc
   nodes/node_composite_normal.cc
