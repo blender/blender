@@ -12,6 +12,7 @@ from bpy.app.translations import (
     pgettext_iface as iface_,
     contexts as i18n_contexts,
 )
+from bl_ui import anim
 from bl_ui.utils import PresetPanel
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
@@ -1120,6 +1121,37 @@ class NODE_PT_node_tree_properties(Panel):
                 col.prop(group, "is_tool")
 
 
+class NODE_PT_node_tree_animation(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Group"
+    bl_label = "Animation"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        if snode is None:
+            return False
+        group = snode.edit_tree
+        if group is None:
+            return False
+        if group.is_embedded_data:
+            return False
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        snode = context.space_data
+        group = snode.edit_tree
+
+        col = layout.column(align=True)
+        anim.draw_action_and_slot_selector_for_id(col, group)
+
+
 # Grease Pencil properties
 class NODE_PT_annotation(AnnotationDataPanel, Panel):
     bl_space_type = 'NODE_EDITOR'
@@ -1175,6 +1207,7 @@ classes = (
     NODE_MT_node_tree_interface_context_menu,
     NODE_PT_node_tree_interface,
     NODE_PT_node_tree_interface_panel_toggle,
+    NODE_PT_node_tree_animation,
     NODE_PT_active_node_generic,
     NODE_PT_active_node_color,
     NODE_PT_texture_mapping,

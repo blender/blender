@@ -101,7 +101,8 @@ void VolumeModule::object_sync(const ObjectHandle &ob_handle)
 
 bool VolumeModule::will_enable() const
 {
-  return inst_.world.has_volume() || !current_objects_.is_empty();
+  return inst_.world.has_volume() || !current_objects_.is_empty() ||
+         inst_.film.get_data().volume_light_id != -1;
 }
 
 void VolumeModule::end_sync()
