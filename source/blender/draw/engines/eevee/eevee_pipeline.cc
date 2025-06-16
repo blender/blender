@@ -1174,13 +1174,12 @@ VolumeObjectBounds::VolumeObjectBounds(const Camera &camera, Object *ob)
 
   const Bounds<float3> bounds = BKE_object_boundbox_get(ob).value_or(Bounds(float3(0.0f)));
 
-  BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
+  const std::array<float3, 8> corners = bounds::corners(bounds);
 
   screen_bounds = std::nullopt;
   z_range = std::nullopt;
 
-  for (float3 l_corner : bb.vec) {
+  for (const float3 &l_corner : corners) {
     float3 ws_corner = math::transform_point(ob->object_to_world(), l_corner);
     /* Split view and projection for precision. */
     float3 vs_corner = math::transform_point(view_matrix, ws_corner);

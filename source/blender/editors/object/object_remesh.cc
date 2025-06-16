@@ -14,6 +14,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_string_utf8.h"
@@ -455,8 +456,7 @@ static wmOperatorStatus voxel_size_edit_invoke(bContext *C, wmOperator *op, cons
 
   /* Select the front facing face of the mesh bounding box. */
   const Bounds<float3> bounds = *mesh->bounds_min_max();
-  BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
+  const std::array<float3, 8> bounds_box = bounds::corners(bounds);
 
   /* Indices of the Bounding Box faces. */
   const int BB_faces[6][4] = {
@@ -468,10 +468,10 @@ static wmOperatorStatus voxel_size_edit_invoke(bContext *C, wmOperator *op, cons
       {2, 3, 7, 6},
   };
 
-  copy_v3_v3(cd->preview_plane[0], bb.vec[BB_faces[0][0]]);
-  copy_v3_v3(cd->preview_plane[1], bb.vec[BB_faces[0][1]]);
-  copy_v3_v3(cd->preview_plane[2], bb.vec[BB_faces[0][2]]);
-  copy_v3_v3(cd->preview_plane[3], bb.vec[BB_faces[0][3]]);
+  copy_v3_v3(cd->preview_plane[0], bounds_box[BB_faces[0][0]]);
+  copy_v3_v3(cd->preview_plane[1], bounds_box[BB_faces[0][1]]);
+  copy_v3_v3(cd->preview_plane[2], bounds_box[BB_faces[0][2]]);
+  copy_v3_v3(cd->preview_plane[3], bounds_box[BB_faces[0][3]]);
 
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
@@ -495,16 +495,18 @@ static wmOperatorStatus voxel_size_edit_invoke(bContext *C, wmOperator *op, cons
 
   /* Check if there is a face that is more aligned towards the view. */
   for (int i = 0; i < 6; i++) {
-    normal_tri_v3(
-        current_normal, bb.vec[BB_faces[i][0]], bb.vec[BB_faces[i][1]], bb.vec[BB_faces[i][2]]);
+    normal_tri_v3(current_normal,
+                  bounds_box[BB_faces[i][0]],
+                  bounds_box[BB_faces[i][1]],
+                  bounds_box[BB_faces[i][2]]);
     current_dot = dot_v3v3(current_normal, view_normal);
 
     if (current_dot < min_dot) {
       min_dot = current_dot;
-      copy_v3_v3(cd->preview_plane[0], bb.vec[BB_faces[i][0]]);
-      copy_v3_v3(cd->preview_plane[1], bb.vec[BB_faces[i][1]]);
-      copy_v3_v3(cd->preview_plane[2], bb.vec[BB_faces[i][2]]);
-      copy_v3_v3(cd->preview_plane[3], bb.vec[BB_faces[i][3]]);
+      copy_v3_v3(cd->preview_plane[0], bounds_box[BB_faces[i][0]]);
+      copy_v3_v3(cd->preview_plane[1], bounds_box[BB_faces[i][1]]);
+      copy_v3_v3(cd->preview_plane[2], bounds_box[BB_faces[i][2]]);
+      copy_v3_v3(cd->preview_plane[3], bounds_box[BB_faces[i][3]]);
     }
   }
 

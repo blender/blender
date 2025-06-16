@@ -6,6 +6,7 @@
  * \ingroup edtransform
  */
 
+#include "BLI_bounds.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -1475,15 +1476,14 @@ static void snap_source_closest_fn(TransInfo *t)
 
           /* Use bound-box if possible. */
           if (bounds) {
-            BoundBox bb;
-            BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
+            const std::array<float3, 8> bounds_corners = bounds::corners(*bounds);
             int j;
 
             for (j = 0; j < 8; j++) {
               float loc[3];
               float dist;
 
-              copy_v3_v3(loc, bb.vec[j]);
+              copy_v3_v3(loc, bounds_corners[j]);
               mul_m4_v3(td->ext->obmat, loc);
 
               dist = t->mode_info->snap_distance_fn(t, loc, t->tsnap.snap_target);

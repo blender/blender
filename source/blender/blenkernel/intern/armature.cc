@@ -17,6 +17,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_bounds.hh"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
@@ -3172,9 +3173,9 @@ void BKE_pchan_minmax(const Object *ob,
                  pchan->custom_translation[1],
                  pchan->custom_translation[2]);
     mul_m4_series(mat.ptr(), tmp.ptr(), rmat.ptr(), smat.ptr());
-    BoundBox bb;
-    BKE_boundbox_init_from_minmax(&bb, bb_custom->min, bb_custom->max);
-    BKE_boundbox_minmax(bb, mat, r_min, r_max);
+    const Bounds tranformed_bounds = bounds::transform_bounds(mat, *bb_custom);
+    r_min = math::min(tranformed_bounds.min, r_min);
+    r_max = math::max(tranformed_bounds.max, r_max);
   }
   else {
     minmax_v3v3_v3(r_min, r_max, pchan_tx->pose_head);
