@@ -178,7 +178,7 @@ bool SyncModule::sync_sculpt(Object *ob, ObjectHandle &ob_handle, const ObjectRe
     return false;
   }
 
-  ResourceHandle res_handle = inst_.manager->unique_handle(ob_ref);
+  ResourceHandle res_handle = inst_.manager->unique_handle_for_sculpt(ob_ref);
 
   bool has_motion = false;
   MaterialArray &material_array = inst_.materials.material_array_get(ob, has_motion);
@@ -234,13 +234,6 @@ bool SyncModule::sync_sculpt(Object *ob, ObjectHandle &ob_handle, const ObjectRe
   if (has_volume) {
     inst_.volume.object_sync(ob_handle);
   }
-
-  /* Use a valid bounding box. The pbvh::Tree module already does its own culling, but a valid */
-  /* bounding box is still needed for directional shadow tile-map bounds computation. */
-  const Bounds<float3> bounds = bke::pbvh::bounds_get(*bke::object::pbvh_get(*ob_ref.object));
-  const float3 center = math::midpoint(bounds.min, bounds.max);
-  const float3 half_extent = bounds.max - center + inflate_bounds;
-  inst_.manager->update_handle_bounds(res_handle, center, half_extent);
 
   inst_.manager->extract_object_attributes(res_handle, ob_ref, material_array.gpu_materials);
 

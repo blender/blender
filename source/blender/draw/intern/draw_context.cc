@@ -674,22 +674,13 @@ void DupliCacheManager::extract_all(ExtractionGraph &extraction)
 namespace blender::draw {
 
 ObjectRef::ObjectRef(DEGObjectIterData &iter_data, Object *ob)
+    : dupli_object_(iter_data.dupli_object_current),
+      dupli_parent_(iter_data.dupli_parent),
+      object(ob)
 {
-  this->dupli_parent_ = iter_data.dupli_parent;
-  this->dupli_object_ = iter_data.dupli_object_current;
-  this->object = ob;
-  /* Set by the first draw-call. */
-  this->handle = ResourceHandle(0);
 }
 
-ObjectRef::ObjectRef(Object *ob)
-{
-  this->dupli_parent_ = nullptr;
-  this->dupli_object_ = nullptr;
-  this->object = ob;
-  /* Set by the first draw-call. */
-  this->handle = ResourceHandle(0);
-}
+ObjectRef::ObjectRef(Object *ob) : object(ob) {}
 
 }  // namespace blender::draw
 

@@ -172,14 +172,19 @@ uint64_t Manager::fingerprint_get()
   return sync_counter_ | (uint64_t(resource_len_) << 32);
 }
 
-ResourceHandleRange Manager::resource_handle_for_sculpt(const ObjectRef &ref)
+ResourceHandleRange Manager::unique_handle_for_sculpt(const ObjectRef &ref)
 {
-  /* TODO(fclem): Deduplicate with other engine. */
+  if (ref.sculpt_handle_.handle_first.raw != 0) {
+    return ref.sculpt_handle_;
+  }
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*ref.object);
   const blender::Bounds<float3> bounds = bke::pbvh::bounds_get(pbvh);
   const float3 center = math::midpoint(bounds.min, bounds.max);
   const float3 half_extent = bounds.max - center;
-  return resource_handle(ref, nullptr, &center, &half_extent);
+  /* WORKAROUND: Instead of breaking const correctness everywhere, we only break it for this. */
+  const_cast<ObjectRef &>(ref).sculpt_handle_ = resource_handle(
+      ref, nullptr, &center, &half_extent);
+  return ref.sculpt_handle_;
 }
 
 void Manager::compute_visibility(View &view)

@@ -123,7 +123,7 @@ class Prepass {
 
   void sculpt_sync(Manager &manager, const ObjectRef &ob_ref)
   {
-    ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
+    ResourceHandle handle = manager.unique_handle_for_sculpt(ob_ref);
 
     for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {
       mesh_ps_->draw(batch.batch, handle);

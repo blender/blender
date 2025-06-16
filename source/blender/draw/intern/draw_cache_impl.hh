@@ -39,7 +39,7 @@ enum eMeshBatchDirtyMode : int8_t;
 
 namespace blender::draw {
 
-struct ObjectRef;
+class ObjectRef;
 
 /* -------------------------------------------------------------------- */
 /** \name Expose via BKE callbacks

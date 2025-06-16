@@ -38,7 +38,7 @@ struct GPULayerAttr;
 
 namespace blender::draw {
 
-struct ObjectRef;
+class ObjectRef;
 
 }  // namespace blender::draw
 
