@@ -1717,6 +1717,16 @@ static void direct_link_node_socket_default_value(BlendDataReader *reader, bNode
     return;
   }
 
+  if (sock->type == SOCK_CUSTOM) {
+    /* There are some files around that have non-null default value for custom sockets. See e.g.
+     * #140083.
+     *
+     * It is unclear how this could happen, but for now simply systematically set this pointer to
+     * null. */
+    sock->default_value = nullptr;
+    return;
+  }
+
   if (BLO_read_fileversion_get(reader) >=
       versioning_internal::MIN_BLENDFILE_VERSION_FOR_MODERN_NODE_SOCKET_DEFAULT_VALUE_READING)
   {
