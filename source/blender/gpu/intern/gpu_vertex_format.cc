@@ -370,9 +370,9 @@ static uchar copy_attr_name(GPUVertFormat *format, const StringRef name)
   const int64_t chars_to_copy = std::min(name.size(), available);
 
   name.substr(0, available).copy_unsafe(format->names + name_offset);
+  BLI_assert((format->name_offset + chars_to_copy + 1) <= GPU_VERT_ATTR_NAMES_BUF_LEN);
   format->name_offset += chars_to_copy + 1;
 
-  BLI_assert(format->name_offset <= GPU_VERT_ATTR_NAMES_BUF_LEN);
   return name_offset;
 }
 

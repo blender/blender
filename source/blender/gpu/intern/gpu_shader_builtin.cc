@@ -147,7 +147,6 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
                                                      eGPUShaderConfig sh_cfg)
 {
   BLI_assert(shader < GPU_SHADER_BUILTIN_LEN);
-  BLI_assert(sh_cfg < GPU_SHADER_CFG_LEN);
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic push
@@ -200,7 +199,6 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
 static void gpu_shader_warm_builtin_shader_async(eGPUBuiltinShader shader, eGPUShaderConfig sh_cfg)
 {
   BLI_assert(shader < GPU_SHADER_BUILTIN_LEN);
-  BLI_assert(sh_cfg < GPU_SHADER_CFG_LEN);
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic push
