@@ -12,7 +12,6 @@
 #include "BLI_utildefines.h"
 
 #include <cstdarg>
-#include <optional>
 
 #include "bmesh_class.hh"
 
@@ -240,15 +239,6 @@ union eBMOpSlotSubType_Union {
   eBMOpSlotSubType_Int intg;
 };
 
-enum eBMOpSlotFlag : uint8_t {
-  /**
-   * This flag is set when the operators value has been set.
-   * Use this so it's possible to have non-zero defaults for properties.
-   */
-  BMO_OP_SLOT_FLAG_IS_SET = (1 << 0),
-};
-ENUM_OPERATORS(eBMOpSlotFlag, BMO_OP_SLOT_FLAG_IS_SET)
-
 struct BMO_FlagSet {
   int value;
   const char *identifier;
@@ -262,8 +252,8 @@ struct BMOpSlot {
   eBMOpSlotType slot_type;
   eBMOpSlotSubType_Union slot_subtype;
 
-  eBMOpSlotFlag flag;
   int len;
+  //  int flag;  /* UNUSED */
   //  int index; /* index within slot array */  /* UNUSED */
   union {
     int i;
@@ -559,16 +549,10 @@ void BMO_op_flag_disable(BMesh *bm, BMOperator *op, int op_flag);
 
 void BMO_slot_float_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, float f);
 float BMO_slot_float_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
-std::optional<float> BMO_slot_float_get_optional(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
-                                                 const char *slot_name);
 void BMO_slot_int_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, int i);
 int BMO_slot_int_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
-std::optional<int> BMO_slot_int_get_optional(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
-                                             const char *slot_name);
 void BMO_slot_bool_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, bool i);
 bool BMO_slot_bool_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
-std::optional<bool> BMO_slot_bool_get_optional(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
-                                               const char *slot_name);
 /**
  * Return a copy of the element buffer.
  */
