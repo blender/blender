@@ -46,15 +46,7 @@ static void queue_error_cb(const char *message, void *user_ptr)
 }
 
 OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
-    : GPUDevice(info, stats, profiler, headless),
-      device_queue_(nullptr),
-#  ifdef WITH_EMBREE_GPU
-      embree_device(nullptr),
-      embree_scene(nullptr),
-#  endif
-      kg_memory_(nullptr),
-      kg_memory_device_(nullptr),
-      kg_memory_size_(0)
+    : GPUDevice(info, stats, profiler, headless)
 {
   /* Verify that base class types can be used with specific backend types */
   static_assert(sizeof(texMemObject) ==
