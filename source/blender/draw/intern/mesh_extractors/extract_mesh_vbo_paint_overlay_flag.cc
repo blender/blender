@@ -131,10 +131,8 @@ gpu::VertBufPtr extract_paint_overlay_flags_subdiv(const MeshRenderData &mr,
 {
   gpu::VertBufPtr flags = gpu::VertBufPtr(GPU_vertbuf_create_on_device(
       get_paint_overlay_flag_format(), subdiv_full_vbo_size(mr, subdiv_cache)));
-  gpu::VertBufPtr subdiv_corner_verts = gpu::VertBufPtr(draw_subdiv_build_origindex_buffer(
-      subdiv_cache.subdiv_loop_subdiv_vert_index, subdiv_cache.num_subdiv_loops));
 
-  draw_subdiv_build_paint_overlay_flag_buffer(subdiv_cache, *subdiv_corner_verts, *flags);
+  draw_subdiv_build_paint_overlay_flag_buffer(subdiv_cache, *flags);
 
   update_loose_flags(mr, subdiv_cache, *flags);
   return flags;

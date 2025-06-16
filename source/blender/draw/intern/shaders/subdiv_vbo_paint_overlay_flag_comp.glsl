@@ -42,8 +42,6 @@ void main()
   uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(quad_index,
                                                                     shader_data.coarse_face_count);
   for (int i = 0; i < 4; i++) {
-    uint subdiv_vert_index = vert_loop_map[start_loop_index + i];
-
     int origindex = input_vert_origindex[start_loop_index + i];
     int flag = get_loop_flag(coarse_quad_index, origindex);
 
