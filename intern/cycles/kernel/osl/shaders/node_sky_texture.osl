@@ -22,88 +22,6 @@ vector sky_spherical_coordinates(vector dir)
   return vector(acos(dir[2]), atan2(dir[0], dir[1]), 0);
 }
 
-/* Preetham */
-float sky_perez_function(float lam[9], float theta, float gamma)
-{
-  float ctheta = cos(theta);
-  float cgamma = cos(gamma);
-
-  return (1.0 + lam[0] * exp(lam[1] / ctheta)) *
-         (1.0 + lam[2] * exp(lam[3] * gamma) + lam[4] * cgamma * cgamma);
-}
-
-color sky_radiance_preetham(normal dir,
-                            float sunphi,
-                            float suntheta,
-                            color radiance,
-                            float config_x[9],
-                            float config_y[9],
-                            float config_z[9])
-{
-  /* convert vector to spherical coordinates */
-  vector spherical = sky_spherical_coordinates(dir);
-  float theta = spherical[0];
-  float phi = spherical[1];
-
-  /* angle between sun direction and dir */
-  float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
-
-  /* clamp theta to horizon */
-  theta = min(theta, M_PI_2 - 0.001);
-
-  /* compute xyY color space values */
-  float x = radiance[1] * sky_perez_function(config_y, theta, gamma);
-  float y = radiance[2] * sky_perez_function(config_z, theta, gamma);
-  float Y = radiance[0] * sky_perez_function(config_x, theta, gamma);
-
-  /* convert to RGB */
-  color xyz = xyY_to_xyz(x, y, Y);
-  return xyz_to_rgb(xyz[0], xyz[1], xyz[2]);
-}
-
-/* Hosek / Wilkie */
-float sky_radiance_internal(float config[9], float theta, float gamma)
-{
-  float ctheta = cos(theta);
-  float cgamma = cos(gamma);
-
-  float expM = exp(config[4] * gamma);
-  float rayM = cgamma * cgamma;
-  float mieM = (1.0 + rayM) / pow((1.0 + config[8] * config[8] - 2.0 * config[8] * cgamma), 1.5);
-  float zenith = sqrt(ctheta);
-
-  return (1.0 + config[0] * exp(config[1] / (ctheta + 0.01))) *
-         (config[2] + config[3] * expM + config[5] * rayM + config[6] * mieM + config[7] * zenith);
-}
-
-color sky_radiance_hosek(normal dir,
-                         float sunphi,
-                         float suntheta,
-                         color radiance,
-                         float config_x[9],
-                         float config_y[9],
-                         float config_z[9])
-{
-  /* convert vector to spherical coordinates */
-  vector spherical = sky_spherical_coordinates(dir);
-  float theta = spherical[0];
-  float phi = spherical[1];
-
-  /* angle between sun direction and dir */
-  float gamma = sky_angle_between(theta, phi, suntheta, sunphi);
-
-  /* clamp theta to horizon */
-  theta = min(theta, M_PI_2 - 0.001);
-
-  /* compute xyz color space values */
-  float x = sky_radiance_internal(config_x, theta, gamma) * radiance[0];
-  float y = sky_radiance_internal(config_y, theta, gamma) * radiance[1];
-  float z = sky_radiance_internal(config_z, theta, gamma) * radiance[2];
-
-  /* convert to RGB and adjust strength */
-  return xyz_to_rgb(x, y, z) * (M_2PI / 683);
-}
-
 /* Nishita improved */
 vector geographical_to_direction(float lat, float lon)
 {
@@ -201,7 +119,7 @@ shader node_sky_texture(
     int use_mapping = 0,
     matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
     vector Vector = P,
-    string sky_type = "hosek_wilkie",
+    string sky_type = "nishita_improved",
     float theta = 0.0,
     float phi = 0.0,
     string filename = "",
@@ -217,10 +135,5 @@ shader node_sky_texture(
   if (use_mapping)
     p = transform(mapping, p);
 
-  if (sky_type == "nishita_improved")
-    Color = sky_radiance_nishita(p, nishita_data, filename);
-  if (sky_type == "hosek_wilkie")
-    Color = sky_radiance_hosek(p, phi, theta, radiance, config_x, config_y, config_z);
-  if (sky_type == "preetham")
-    Color = sky_radiance_preetham(p, phi, theta, radiance, config_x, config_y, config_z);
+  Color = sky_radiance_nishita(p, nishita_data, filename);
 }

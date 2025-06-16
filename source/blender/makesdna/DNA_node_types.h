@@ -1419,9 +1419,6 @@ typedef struct NodeTexBase {
 typedef struct NodeTexSky {
   NodeTexBase base;
   int sky_model;
-  float sun_direction[3];
-  float turbidity;
-  float ground_albedo;
   float sun_size;
   float sun_intensity;
   float sun_elevation;
@@ -1431,7 +1428,7 @@ typedef struct NodeTexSky {
   float dust_density;
   float ozone_density;
   char sun_disc;
-  char _pad[7];
+  char _pad[11];
 } NodeTexSky;
 
 typedef struct NodeTexImage {
@@ -2611,11 +2608,7 @@ enum {
 };
 
 /* sky texture */
-enum {
-  SHD_SKY_PREETHAM = 0,
-  SHD_SKY_HOSEK = 1,
-  SHD_SKY_NISHITA = 2,
-};
+enum { SHD_SKY_NISHITA = 0 };
 
 /* environment texture */
 enum {

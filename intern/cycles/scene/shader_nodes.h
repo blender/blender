@@ -153,9 +153,6 @@ class SkyTextureNode : public TextureNode {
   SHADER_NODE_CLASS(SkyTextureNode)
 
   NODE_SOCKET_API(NodeSkyType, sky_type)
-  NODE_SOCKET_API(float3, sun_direction)
-  NODE_SOCKET_API(float, turbidity)
-  NODE_SOCKET_API(float, ground_albedo)
   NODE_SOCKET_API(bool, sun_disc)
   NODE_SOCKET_API(float, sun_size)
   NODE_SOCKET_API(float, sun_intensity)
