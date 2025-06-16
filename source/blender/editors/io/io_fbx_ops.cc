@@ -96,7 +96,7 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
     col->prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "use_custom_props", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayout &subcol = col->column(false);
-    uiLayoutSetActive(&subcol, RNA_boolean_get(ptr, "use_custom_props"));
+    subcol.active_set(RNA_boolean_get(ptr, "use_custom_props"));
     subcol.prop(ptr, "use_custom_props_enum_as_string", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
