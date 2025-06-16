@@ -1598,7 +1598,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   col = &layout->column(false);
-  uiLayoutSetEnabled(col, !is_bound);
+  col->enabled_set(!is_bound);
   col->active_set(!is_bound && RNA_string_length(ptr, "vertex_group") != 0);
   col->prop(ptr, "use_sparse_bind", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

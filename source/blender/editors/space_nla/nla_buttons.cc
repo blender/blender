@@ -561,7 +561,7 @@ static void nla_panel_evaluation(const bContext *C, Panel *panel)
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetEnabled(layout, RNA_boolean_get(&strip_ptr, "use_animated_influence"));
+  layout->enabled_set(RNA_boolean_get(&strip_ptr, "use_animated_influence"));
   layout->prop(&strip_ptr, "influence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
@@ -599,7 +599,7 @@ static void nla_panel_animated_strip_time(const bContext *C, Panel *panel)
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetEnabled(layout, RNA_boolean_get(&strip_ptr, "use_animated_time"));
+  layout->enabled_set(RNA_boolean_get(&strip_ptr, "use_animated_time"));
   layout->prop(&strip_ptr, "strip_time", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 

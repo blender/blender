@@ -553,7 +553,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
 
       uiLayout *col2 = &col->column(true);
       uiLayoutSetPropSep(col2, true);
-      uiLayoutSetEnabled(col2, textures_mode == USD_TEX_EXPORT_NEW_PATH);
+      col2->enabled_set(textures_mode == USD_TEX_EXPORT_NEW_PATH);
       col2->prop(ptr, "overwrite_textures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       col2->prop(ptr, "usdz_downscale_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       if (RNA_enum_get(ptr, "usdz_downscale_size") == USD_TEXTURE_SIZE_CUSTOM) {
@@ -1160,11 +1160,11 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
 
     col->prop(ptr, "import_all_materials", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "import_usd_preview", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
+    col->enabled_set(RNA_boolean_get(ptr, "import_materials"));
 
     uiLayout *row = &col->row(true);
     row->prop(ptr, "set_material_blend", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayoutSetEnabled(row, RNA_boolean_get(ptr, "import_usd_preview"));
+    row->enabled_set(RNA_boolean_get(ptr, "import_usd_preview"));
     col->prop(ptr, "mtl_name_collision_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
@@ -1176,11 +1176,11 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
 
     uiLayout *row = &col->row(true);
     row->prop(ptr, "import_textures_dir", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayoutSetEnabled(row, copy_textures);
+    row->enabled_set(copy_textures);
     row = &col->row(true);
     row->prop(ptr, "tex_name_collision_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayoutSetEnabled(row, copy_textures);
-    uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
+    row->enabled_set(copy_textures);
+    col->enabled_set(RNA_boolean_get(ptr, "import_materials"));
   }
 
   if (uiLayout *panel = layout->panel(

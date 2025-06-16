@@ -172,7 +172,7 @@ static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
     return;
   }
   if (!WM_operator_check_ui_enabled(C, op->type->name)) {
-    uiLayoutSetEnabled(panel->layout, false);
+    panel->layout->enabled_set(false);
   }
   uiLayout *col = &panel->layout->column(false);
   uiTemplateOperatorRedoProperties(col, C);

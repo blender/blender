@@ -1506,7 +1506,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
           xco += x;
 
           row = &split->row(true);
-          uiLayoutSetEnabled(row, !locked);
+          row->enabled_set(!locked);
 
           /* The weight group value */
           /* To be reworked still */

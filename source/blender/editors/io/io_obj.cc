@@ -164,7 +164,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
     col->prop(ptr, "export_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
     col->prop(ptr, "export_smooth_groups", UI_ITEM_NONE, IFACE_("Smooth Groups"), ICON_NONE);
     col = &col->column(false);
-    uiLayoutSetEnabled(col, export_smooth_groups);
+    col->enabled_set(export_smooth_groups);
     col->prop(
         ptr, "smooth_group_bitflags", UI_ITEM_NONE, IFACE_("Smooth Group Bitflags"), ICON_NONE);
   }
@@ -176,7 +176,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   panel.header->label(IFACE_("Materials"), ICON_NONE);
   if (panel.body) {
     uiLayout *col = &panel.body->column(false);
-    uiLayoutSetEnabled(col, export_materials);
+    col->enabled_set(export_materials);
 
     col->prop(ptr, "export_pbr_extensions", UI_ITEM_NONE, IFACE_("PBR Extensions"), ICON_NONE);
     col->prop(ptr, "path_mode", UI_ITEM_NONE, IFACE_("Path Mode"), ICON_NONE);
@@ -189,7 +189,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   panel.header->label(IFACE_("Animation"), ICON_NONE);
   if (panel.body) {
     uiLayout *col = &panel.body->column(false);
-    uiLayoutSetEnabled(col, export_animation);
+    col->enabled_set(export_animation);
 
     col->prop(ptr, "start_frame", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
     col->prop(ptr, "end_frame", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);

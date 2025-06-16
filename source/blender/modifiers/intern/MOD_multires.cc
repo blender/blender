@@ -323,7 +323,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetEnabled(layout, RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
+  layout->enabled_set(RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
 
   MultiresModifierData *mmd = (MultiresModifierData *)ptr->data;
 
@@ -377,7 +377,7 @@ static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetEnabled(layout, RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
+  layout->enabled_set(RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
 
   row = &layout->row(false);
   row->op("OBJECT_OT_multires_reshape", IFACE_("Reshape"), ICON_NONE);

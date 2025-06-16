@@ -1436,7 +1436,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
 
   if (op == WM_operator_last_redo(C)) {
     if (!WM_operator_check_ui_enabled(C, op->type->name)) {
-      uiLayoutSetEnabled(layout, false);
+      layout->enabled_set(false);
     }
   }
 

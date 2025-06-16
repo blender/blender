@@ -832,7 +832,7 @@ void uiTemplateImage(uiLayout *layout,
   }
 
   layout = &layout->column(false);
-  uiLayoutSetEnabled(layout, !is_dirty);
+  layout->enabled_set(!is_dirty);
   uiLayoutSetPropDecorate(layout, false);
 
   /* Image source */
@@ -858,7 +858,7 @@ void uiTemplateImage(uiLayout *layout,
     }
 
     row = &row->row(true);
-    uiLayoutSetEnabled(row, is_packed == false);
+    row->enabled_set(is_packed == false);
 
     prop = RNA_struct_find_property(&imaptr, "filepath");
     uiDefAutoButR(block, &imaptr, prop, -1, "", ICON_NONE, 0, 0, 200, UI_UNIT_Y);

@@ -346,7 +346,7 @@ static void node_buts_image_user(uiLayout *layout,
 
     /* Avoid losing changes image is painted. */
     if (BKE_image_is_dirty((Image *)imaptr->data)) {
-      uiLayoutSetEnabled(split, false);
+      split->enabled_set(false);
     }
   }
 }

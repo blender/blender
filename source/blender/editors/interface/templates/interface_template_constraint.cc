@@ -76,7 +76,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
                    UI_ITEM_NONE);
   RNA_int_set(&op_ptr, "index", 0);
   if (!con->prev) {
-    uiLayoutSetEnabled(row, false);
+    row->enabled_set(false);
   }
 
   /* Move to last. */
@@ -90,7 +90,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
       ob, con, nullptr);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(constraint_list) - 1);
   if (!con->next) {
-    uiLayoutSetEnabled(row, false);
+    row->enabled_set(false);
   }
 }
 

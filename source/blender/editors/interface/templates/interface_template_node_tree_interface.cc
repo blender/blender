@@ -101,7 +101,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
   void build_row(uiLayout &row) override
   {
     if (ID_IS_LINKED(&nodetree_)) {
-      uiLayoutSetEnabled(&row, false);
+      row.enabled_set(false);
     }
 
     uiLayoutSetPropDecorate(&row, false);
@@ -191,7 +191,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
   void build_row(uiLayout &row) override
   {
     if (ID_IS_LINKED(&nodetree_)) {
-      uiLayoutSetEnabled(&row, false);
+      row.enabled_set(false);
     }
     /* Add boolean socket if panel has a toggle. */
     if (toggle_ != nullptr) {

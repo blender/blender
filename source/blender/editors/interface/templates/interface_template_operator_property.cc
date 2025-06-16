@@ -447,7 +447,7 @@ void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
 
   col = &layout->column(true);
   col->op("COLLECTION_OT_export_all", std::nullopt, ICON_EXPORT);
-  uiLayoutSetEnabled(col, !BLI_listbase_is_empty(exporters));
+  col->enabled_set(!BLI_listbase_is_empty(exporters));
 
   /* Draw the active exporter. */
   CollectionExport *data = (CollectionExport *)BLI_findlink(exporters, index);

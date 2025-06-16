@@ -418,14 +418,14 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
                                     ELEM(type, PROP_STRING, PROP_INT, PROP_FLOAT));
 
     if (use_activate_init) {
-      uiLayoutSetActivateInit(col, true);
+      col->activate_init_set(true);
     }
 
     col->prop(ptr, prop, -1, 0, compact ? UI_ITEM_R_COMPACT : UI_ITEM_NONE, name, ICON_NONE);
     return_info &= ~UI_PROP_BUTS_NONE_ADDED;
 
     if (use_activate_init) {
-      uiLayoutSetActivateInit(col, false);
+      col->activate_init_set(false);
     }
   }
   RNA_STRUCT_END;

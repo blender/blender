@@ -245,7 +245,7 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
     }
     const bool is_active = (us == wm->undo_stack->step_active);
     uiLayout *row = &column->row(false);
-    uiLayoutSetEnabled(row, !is_active);
+    row->enabled_set(!is_active);
     PointerRNA op_ptr = row->op("ED_OT_undo_history",
                                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, us->name),
                                 is_active ? ICON_LAYER_ACTIVE : ICON_NONE);

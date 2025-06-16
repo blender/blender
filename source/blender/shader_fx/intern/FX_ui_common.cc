@@ -136,7 +136,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
                    UI_ITEM_NONE);
   RNA_int_set(&op_ptr, "index", 0);
   if (!fx->prev) {
-    uiLayoutSetEnabled(row, false);
+    row->enabled_set(false);
   }
 
   /* Move to last. */
@@ -148,7 +148,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
                    UI_ITEM_NONE);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->shader_fx) - 1);
   if (!fx->next) {
-    uiLayoutSetEnabled(row, false);
+    row->enabled_set(false);
   }
 }
 

@@ -228,7 +228,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
 
   uiLayoutSetPropSep(layout, true);
-  uiLayoutSetEnabled(layout, !is_baked);
+  layout->enabled_set(!is_baked);
 
   if (!is_first_lineart(*static_cast<const GreasePencilLineartModifierData *>(ptr->data))) {
     layout->prop(ptr, "use_cache", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -278,7 +278,7 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
   const bool has_light = RNA_pointer_get(ptr, "light_contour_object").data != nullptr;
 
-  uiLayoutSetEnabled(layout, !is_baked);
+  layout->enabled_set(!is_baked);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -359,7 +359,7 @@ static void options_light_reference_draw(const bContext * /*C*/, Panel *panel)
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
 
   uiLayoutSetPropSep(layout, true);
-  uiLayoutSetEnabled(layout, !is_baked);
+  layout->enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
     layout->label(RPT_("Cached from the first Line Art modifier."), ICON_INFO);
@@ -390,7 +390,7 @@ static void options_panel_draw(const bContext * /*C*/, Panel *panel)
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
 
   uiLayoutSetPropSep(layout, true);
-  uiLayoutSetEnabled(layout, !is_baked);
+  layout->enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
     layout->label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
@@ -428,7 +428,7 @@ static void occlusion_panel_draw(const bContext * /*C*/, Panel *panel)
   const bool show_in_front = RNA_boolean_get(&ob_ptr, "show_in_front");
 
   uiLayoutSetPropSep(layout, true);
-  uiLayoutSetEnabled(layout, !is_baked);
+  layout->enabled_set(!is_baked);
 
   if (!show_in_front) {
     layout->label(TIP_("Object is not in front"), ICON_INFO);
@@ -469,7 +469,7 @@ static void material_mask_panel_draw_header(const bContext * /*C*/, Panel *panel
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
   const bool show_in_front = RNA_boolean_get(&ob_ptr, "show_in_front");
 
-  uiLayoutSetEnabled(layout, !is_baked);
+  layout->enabled_set(!is_baked);
   layout->active_set(show_in_front && anything_showing_through(ptr));
 
   layout->prop(ptr, "use_material_mask", UI_ITEM_NONE, IFACE_("Material Mask"), ICON_NONE);
@@ -481,12 +481,12 @@ static void material_mask_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
-  uiLayoutSetEnabled(layout, !is_baked);
+  layout->enabled_set(!is_baked);
   layout->active_set(anything_showing_through(ptr));
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetEnabled(layout, RNA_boolean_get(ptr, "use_material_mask"));
+  layout->enabled_set(RNA_boolean_get(ptr, "use_material_mask"));
 
   uiLayout *col = &layout->column(true);
   uiLayout *sub = &col->row(true, IFACE_("Masks"));
@@ -508,7 +508,7 @@ static void intersection_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
-  uiLayoutSetEnabled(layout, !is_baked);
+  layout->enabled_set(!is_baked);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -540,7 +540,7 @@ static void face_mark_panel_draw_header(const bContext * /*C*/, Panel *panel)
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
 
   if (!use_cache || is_first) {
-    uiLayoutSetEnabled(layout, !is_baked);
+    layout->enabled_set(!is_baked);
     layout->prop(ptr, "use_face_mark", UI_ITEM_NONE, IFACE_("Face Mark Filtering"), ICON_NONE);
   }
   else {
@@ -560,7 +560,7 @@ static void face_mark_panel_draw(const bContext * /*C*/, Panel *panel)
   const bool is_first = is_first_lineart(
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
 
-  uiLayoutSetEnabled(layout, !is_baked);
+  layout->enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
     layout->label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
@@ -590,7 +590,7 @@ static void chaining_panel_draw(const bContext * /*C*/, Panel *panel)
   const bool is_geom = RNA_boolean_get(ptr, "use_geometry_space_chain");
 
   uiLayoutSetPropSep(layout, true);
-  uiLayoutSetEnabled(layout, !is_baked);
+  layout->enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
     layout->label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
@@ -630,7 +630,7 @@ static void vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
 
   uiLayoutSetPropSep(layout, true);
-  uiLayoutSetEnabled(layout, !is_baked);
+  layout->enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
     layout->label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
@@ -667,7 +667,7 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   uiLayout *col = &layout->column(false);
-  uiLayoutSetEnabled(col, !is_baked);
+  col->enabled_set(!is_baked);
   col->op("OBJECT_OT_lineart_bake_strokes", std::nullopt, ICON_NONE);
   PointerRNA op_ptr = col->op("OBJECT_OT_lineart_bake_strokes", IFACE_("Bake All"), ICON_NONE);
   RNA_boolean_set(&op_ptr, "bake_all", true);

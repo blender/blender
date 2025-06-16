@@ -121,7 +121,7 @@ static void file_panel_execution_execute_button(uiLayout *layout, const char *ti
   row->scale_x_set(0.8f);
   uiLayoutSetFixedSize(row, true);
   /* Just a display hint. */
-  uiLayoutSetActiveDefault(row, true);
+  row->active_default_set(true);
   row->op("FILE_OT_execute", title, ICON_NONE);
 }
 

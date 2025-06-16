@@ -90,11 +90,11 @@ void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerR
   const bool use_prefetch = RNA_boolean_get(fileptr, "use_prefetch");
 
   row = &layout->row(false);
-  uiLayoutSetEnabled(row, use_render_procedural);
+  row->enabled_set(use_render_procedural);
   row->prop(fileptr, "use_prefetch", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   sub = &layout->row(false);
-  uiLayoutSetEnabled(sub, use_prefetch && use_render_procedural);
+  sub->enabled_set(use_prefetch && use_render_procedural);
   sub->prop(fileptr, "prefetch_cache_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
