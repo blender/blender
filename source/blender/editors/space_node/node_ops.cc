@@ -112,6 +112,8 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_cryptomatte_layer_add);
   WM_operatortype_append(NODE_OT_cryptomatte_layer_remove);
 
+  WM_operatortype_append(NODE_OT_sockets_sync);
+
   for (bke::bNodeType *ntype : bke::node_types_get()) {
     if (ntype->register_operators) {
       ntype->register_operators();

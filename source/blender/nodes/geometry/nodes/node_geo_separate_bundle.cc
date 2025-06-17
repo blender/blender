@@ -4,7 +4,7 @@
 
 #include "node_geometry_util.hh"
 
-#include "BKE_compute_context_cache.hh"
+#include "ED_screen.hh"
 
 #include "NOD_geo_bundle.hh"
 #include "NOD_socket_items_blend.hh"
@@ -79,6 +79,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *node_ptr)
   bNode &node = *static_cast<bNode *>(node_ptr->data);
 
   if (uiLayout *panel = layout->panel(C, "bundle_items", false, TIP_("Bundle Items"))) {
+    panel->op("node.sockets_sync", "Sync", ICON_FILE_REFRESH);
+
     socket_items::ui::draw_items_list_with_operators<SeparateBundleItemsAccessor>(
         C, panel, ntree, node);
     socket_items::ui::draw_active_item_props<SeparateBundleItemsAccessor>(
@@ -137,43 +139,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_default_remaining_outputs();
 }
 
-static void try_initialize_separate_bundle_from_origin_socket(SpaceNode &snode,
-                                                              bNode &separate_bundle_node)
-{
-  snode.edittree->ensure_topology_cache();
-  bNodeSocket &bundle_socket = separate_bundle_node.input_socket(0);
-
-  bke::ComputeContextCache compute_context_cache;
-  const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
-      snode, compute_context_cache, bundle_socket);
-  if (!current_context) {
-    /* The current tree does not have a known context, e.g. it is pinned but the modifier has been
-     * removed. */
-    return;
-  }
-  const Vector<const bNode *> combine_bundle_nodes =
-      ed::space_node::gather_linked_combine_bundle_nodes(
-          current_context, bundle_socket, compute_context_cache);
-  if (combine_bundle_nodes.is_empty()) {
-    return;
-  }
-
-  Set<StringRef> added_names;
-  for (const bNode *combine_bundle_node : combine_bundle_nodes) {
-    const NodeGeometryCombineBundle &combine_bundle_storage =
-        *static_cast<const NodeGeometryCombineBundle *>(combine_bundle_node->storage);
-    for (const int i : IndexRange(combine_bundle_storage.items_num)) {
-      const NodeGeometryCombineBundleItem &item = combine_bundle_storage.items[i];
-      if (!added_names.add(item.name)) {
-        continue;
-      }
-      socket_items::add_item_with_socket_type_and_name<SeparateBundleItemsAccessor>(
-          separate_bundle_node, eNodeSocketDatatype(item.socket_type), item.name);
-    }
-  }
-  BKE_ntree_update_tag_node_property(snode.edittree, &separate_bundle_node);
-}
-
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeSocket &other_socket = params.other_socket();
@@ -189,7 +154,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     params.connect_available_socket(node, "Bundle");
 
     SpaceNode &snode = *CTX_wm_space_node(&params.C);
-    try_initialize_separate_bundle_from_origin_socket(snode, node);
+    ed::space_node::sync_sockets_separate_bundle(snode, node, nullptr);
   });
 }
 

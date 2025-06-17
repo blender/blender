@@ -442,4 +442,8 @@ MenuType add_catalog_assets_menu_type();
 MenuType add_unassigned_assets_menu_type();
 MenuType add_root_catalogs_menu_type();
 
+/* `node_sync_sockets.cc` */
+
+void NODE_OT_sockets_sync(wmOperatorType *ot);
+
 }  // namespace blender::ed::space_node
