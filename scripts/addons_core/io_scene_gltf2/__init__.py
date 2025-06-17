@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 5, 39),
+    "version": (4, 5, 40),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -2216,6 +2216,8 @@ def unregister():
     blender_ui.unregister()
     if bpy.context.preferences.addons['io_scene_gltf2'].preferences.KHR_materials_variants_ui is True:
         blender_ui.variant_unregister()
+    if bpy.context.preferences.addons['io_scene_gltf2'].preferences.animation_ui is True:
+        blender_ui.anim_ui_unregister()
 
     for c in classes:
         bpy.utils.unregister_class(c)
