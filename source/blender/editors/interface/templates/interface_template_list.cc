@@ -313,11 +313,6 @@ bool UI_list_item_index_is_filtered_visible(const uiList *ui_list, const int ite
     return false;
   }
 
-  if (ui_list->filter_byname[0] == '\0') {
-    /* Show all elements when search string is empty. */
-    return true;
-  }
-
   return (dyn_data->items_filter_flags[item_idx] & UILST_FLT_ITEM);
 }
 
