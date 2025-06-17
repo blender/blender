@@ -278,7 +278,11 @@ static void file_refresh(const bContext *C, ScrArea *area)
   }
 
   filelist_sort(sfile->files);
-  filelist_filter(sfile->files);
+
+  if (filelist_needs_filtering(sfile->files)) {
+    filelist_filter(sfile->files);
+    params->active_file = -1;
+  }
 
   if (params->display == FILE_IMGDISPLAY) {
     filelist_cache_previews_set(sfile->files, true);
