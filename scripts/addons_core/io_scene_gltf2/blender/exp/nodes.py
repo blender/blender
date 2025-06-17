@@ -311,11 +311,11 @@ def __gather_mesh(vnode, blender_object, export_settings):
                 # so no need to copy them in that case, because overwriting them will crash
                 if len(blender_mesh.keys()) == 0:
                     # Copy custom properties
-                    for prop in [p for p in blender_object.data.keys() if p not in BLACK_LIST]:
+                    for prop in [p for p in blender_object.data.keys() if ((p not in BLACK_LIST) or p.startswith("gltf"))]:
                         blender_mesh[prop] = blender_object.data[prop]
                 else:
                     # But we need to remove some properties that are not needed
-                    for prop in [p for p in blender_object.data.keys() if p in BLACK_LIST]:
+                    for prop in [p for p in blender_object.data.keys() if (p in BLACK_LIST and not p.startswith("gltf"))]:
                         del blender_mesh[prop]
                 # Store that this evaluated mesh has been created by the exporter, and is not a GN instance mesh
                 blender_mesh['gltf2_mesh_applied'] = True
