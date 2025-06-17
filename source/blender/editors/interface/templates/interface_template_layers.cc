@@ -89,7 +89,7 @@ void uiTemplateLayers(uiLayout *layout,
 
     for (int row = 0; row < 2; row++) {
       uiLayout *uRow = &uCol->row(true);
-      uiBlock *block = uiLayoutGetBlock(uRow);
+      uiBlock *block = uRow->block();
       int layer = groups * cols_per_group * row + cols_per_group * group;
 
       /* add layers as toggle buts */

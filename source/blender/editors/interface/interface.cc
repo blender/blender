@@ -4286,7 +4286,7 @@ uiBut *ui_but_change_type(uiBut *but, eButType new_type)
     const bool found_layout = ui_layout_replace_but_ptr(but->layout, old_but_ptr.get(), but);
     BLI_assert(found_layout);
     UNUSED_VARS_NDEBUG(found_layout);
-    ui_button_group_replace_but_ptr(uiLayoutGetBlock(but->layout), old_but_ptr.get(), but);
+    ui_button_group_replace_but_ptr(but->layout->block(), old_but_ptr.get(), but);
   }
 #ifdef WITH_PYTHON
   if (UI_editsource_enable_check()) {
@@ -4473,7 +4473,7 @@ void ui_def_but_icon_clear(uiBut *but)
 
 static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
 {
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   uiPopupBlockHandle *handle = block->handle;
   uiBut *but = (uiBut *)but_p;
   const int current_value = RNA_property_enum_get(&but->rnapoin, but->rnaprop);

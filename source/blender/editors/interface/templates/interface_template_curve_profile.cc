@@ -207,7 +207,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
   CurveProfile *profile = static_cast<CurveProfile *>(ptr->data);
   uiBut *bt;
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
@@ -520,7 +520,7 @@ void uiTemplateCurveProfile(uiLayout *layout, PointerRNA *ptr, const StringRefNu
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   if (!prop) {
     RNA_warning("Curve Profile property not found: %s.%s",

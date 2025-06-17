@@ -101,7 +101,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
 static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *con)
 {
   /* unless button has its own callback, it adds this callback to button */
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   UI_block_func_set(block, constraint_active_func, ob, con);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
@@ -160,7 +160,7 @@ void uiTemplateConstraintHeader(uiLayout *layout, PointerRNA *ptr)
     return;
   }
 
-  UI_block_lock_set(uiLayoutGetBlock(layout), (ob && !ID_IS_EDITABLE(ob)), ERROR_LIBDATA_MESSAGE);
+  UI_block_lock_set(layout->block(), (ob && !ID_IS_EDITABLE(ob)), ERROR_LIBDATA_MESSAGE);
 
   draw_constraint_header(layout, ob, con);
 }

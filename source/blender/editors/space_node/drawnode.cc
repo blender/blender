@@ -1059,7 +1059,7 @@ static void node_file_output_socket_draw(bContext *C,
     PropertyRNA *imtype_prop = RNA_struct_find_property(&imfptr, "file_format");
     RNA_property_enum_name(
         C, &imfptr, imtype_prop, RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
-    block = uiLayoutGetBlock(row);
+    block = row->block();
     UI_block_emboss_set(block, blender::ui::EmbossType::Pulldown);
     row->label(imtype_name, ICON_NONE);
     UI_block_emboss_set(block, blender::ui::EmbossType::None);

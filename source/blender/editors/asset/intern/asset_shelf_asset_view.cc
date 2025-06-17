@@ -208,7 +208,7 @@ void AssetViewItem::build_grid_tile(const bContext & /*C*/, uiLayout &layout) co
 
   PointerRNA asset_ptr = RNA_pointer_create_discrete(nullptr, &RNA_AssetRepresentation, &asset_);
   UI_but_context_ptr_set(
-      uiLayoutGetBlock(&layout), reinterpret_cast<uiBut *>(view_item_but_), "asset", &asset_ptr);
+      layout.block(), reinterpret_cast<uiBut *>(view_item_but_), "asset", &asset_ptr);
 
   uiBut *item_but = reinterpret_cast<uiBut *>(this->view_item_button());
   if (std::optional<wmOperatorCallParams> activate_op = create_activate_operator_params(
@@ -342,7 +342,7 @@ void build_asset_view(uiLayout &layout,
   asset_view->set_catalog_filter(catalog_filter_from_shelf_settings(shelf.settings, *library));
   asset_view->set_tile_size(tile_width, tile_height);
 
-  uiBlock *block = uiLayoutGetBlock(&layout);
+  uiBlock *block = layout.block();
   ui::AbstractGridView *grid_view = UI_block_add_view(
       *block, "asset shelf asset view", std::move(asset_view));
   grid_view->set_context_menu_title("Asset Shelf");

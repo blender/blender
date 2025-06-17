@@ -705,7 +705,7 @@ static void ui_template_list_layout_draw(const bContext *C,
   int rnaicon = ICON_NONE, icon = ICON_NONE;
   uiBut *but;
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   /* get icon */
   if (input_data->dataptr.data && input_data->prop) {
@@ -738,7 +738,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           void *dyntip_data;
           const int org_i = items->item_vec[i].org_idx;
           const int flt_flag = items->item_vec[i].flt_flag;
-          uiBlock *subblock = uiLayoutGetBlock(col);
+          uiBlock *subblock = col->block();
 
           overlap = &col->overlap();
 
@@ -901,7 +901,7 @@ static void ui_template_list_layout_draw(const bContext *C,
             subrow = &col->row(false);
           }
 
-          uiBlock *subblock = uiLayoutGetBlock(subrow);
+          uiBlock *subblock = subrow->block();
           overlap = &subrow->overlap();
 
           UI_block_flag_enable(subblock, UI_BLOCK_LIST_ITEM);
@@ -1006,7 +1006,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           overlap = &grid->overlap();
           col = &overlap->column(false);
 
-          uiBlock *subblock = uiLayoutGetBlock(col);
+          uiBlock *subblock = col->block();
           UI_block_flag_enable(subblock, UI_BLOCK_LIST_ITEM);
 
           but = uiDefButR_prop(subblock,
@@ -1093,7 +1093,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                        (dyn_data->visual_height - ui_list->list_grip) * UI_UNIT_Y;
 
     row = &glob->row(true);
-    uiBlock *subblock = uiLayoutGetBlock(row);
+    uiBlock *subblock = row->block();
     UI_block_emboss_set(subblock, blender::ui::EmbossType::None);
 
     if (ui_list->filter_flag & UILST_FLT_SHOW) {
@@ -1131,7 +1131,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       UI_block_emboss_set(subblock, blender::ui::EmbossType::Emboss);
 
       col = &glob->column(false);
-      subblock = uiLayoutGetBlock(col);
+      subblock = col->block();
       uiDefBut(subblock,
                UI_BTYPE_SEPR,
                0,

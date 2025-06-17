@@ -544,7 +544,7 @@ void uiTemplateNodeTreeInterface(uiLayout *layout, bContext *C, PointerRNA *ptr)
   bNodeTree &nodetree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNodeTreeInterface &interface = *static_cast<bNodeTreeInterface *>(ptr->data);
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   blender::ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,

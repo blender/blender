@@ -289,7 +289,7 @@ class CollectionViewItem : public BasicTreeViewItem {
 
   void build_state_button(uiLayout &row)
   {
-    uiBlock *block = uiLayoutGetBlock(&row);
+    uiBlock *block = row.block();
     const int icon = get_state_icon();
 
     PointerRNA collection_light_linking_ptr = RNA_pointer_create_discrete(
@@ -398,7 +398,7 @@ void uiTemplateLightLinkingCollection(uiLayout *layout,
 
   Collection *collection = static_cast<Collection *>(collection_ptr.data);
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   blender::ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,

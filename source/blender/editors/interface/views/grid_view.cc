@@ -379,9 +379,7 @@ class GridViewLayoutBuilder {
   uiLayout *current_layout() const;
 };
 
-GridViewLayoutBuilder::GridViewLayoutBuilder(uiLayout &layout) : block_(*uiLayoutGetBlock(&layout))
-{
-}
+GridViewLayoutBuilder::GridViewLayoutBuilder(uiLayout &layout) : block_(*layout.block()) {}
 
 void GridViewLayoutBuilder::build_grid_tile(const bContext &C,
                                             uiLayout &grid_layout,
@@ -456,7 +454,7 @@ void GridViewBuilder::build_grid_view(const bContext &C,
                                       uiLayout &layout,
                                       std::optional<StringRef> search_string)
 {
-  uiBlock &block = *uiLayoutGetBlock(&layout);
+  uiBlock &block = *layout.block();
 
   const ARegion *region = CTX_wm_region_popup(&C) ? CTX_wm_region_popup(&C) : CTX_wm_region(&C);
   ui_block_view_persistent_state_restore(*region, block, grid_view);
@@ -484,7 +482,7 @@ void PreviewGridItem::build_grid_tile_button(uiLayout &layout,
                                              BIFIconID override_preview_icon_id) const
 {
   const GridViewStyle &style = this->get_view().get_style();
-  uiBlock *block = uiLayoutGetBlock(&layout);
+  uiBlock *block = layout.block();
 
   UI_but_func_quick_tooltip_set(this->view_item_button(),
                                 [this](const uiBut * /*but*/) { return label; });

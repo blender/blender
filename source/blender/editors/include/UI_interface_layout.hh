@@ -127,6 +127,8 @@ struct uiLayout : uiItem {
    */
   void activate_init_set(bool activate_init);
 
+  uiBlock *block() const;
+
   bool enabled() const;
   /**
    * Sets the enabled state of the layout and its items.
@@ -554,8 +556,6 @@ void UI_block_layout_free(uiBlock *block);
  * \note Must not be run after #UI_block_layout_resolve.
  */
 bool UI_block_apply_search_filter(uiBlock *block, const char *search_filter);
-
-uiBlock *uiLayoutGetBlock(uiLayout *layout);
 
 void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, blender::StringRef name, PointerRNA *ptr);

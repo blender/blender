@@ -467,7 +467,7 @@ void uiTemplateBoneCollectionTree(uiLayout *layout, bContext *C)
   }
   BLI_assert(GS(armature->id.name) == ID_AR);
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,

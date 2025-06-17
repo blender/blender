@@ -1056,7 +1056,7 @@ PointerRNA rna_uiTemplatePopupConfirm(uiLayout *layout,
   if (opname[0] ? (!ot || !ot->srna) : false) {
     RNA_warning("%s '%s'", ot ? "operator missing srna" : "unknown operator", opname);
   }
-  else if (!UI_popup_block_template_confirm_is_supported(uiLayoutGetBlock(layout))) {
+  else if (!UI_popup_block_template_confirm_is_supported(layout->block())) {
     BKE_reportf(reports, RPT_ERROR, "template_popup_confirm used outside of a popup");
   }
   else {

@@ -341,7 +341,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   const float dx = UI_UNIT_X;
   eButGradientType bg = UI_GRAD_NONE;
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
@@ -770,7 +770,7 @@ void uiTemplateCurveMapping(uiLayout *layout,
                             bool tone)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   if (!prop) {
     RNA_warning(

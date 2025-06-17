@@ -306,7 +306,7 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
 
   // adt = adt_ptr.data;
 
-  block = uiLayoutGetBlock(layout);
+  block = layout->block();
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -370,7 +370,7 @@ static void nla_panel_stripname(const bContext *C, Panel *panel)
     return;
   }
 
-  block = uiLayoutGetBlock(layout);
+  block = layout->block();
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
   /* Strip Properties ------------------------------------- */
@@ -409,7 +409,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
     return;
   }
 
-  block = uiLayoutGetBlock(layout);
+  block = layout->block();
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
   /* Strip Properties ------------------------------------- */
@@ -477,7 +477,7 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
     return;
   }
 
-  block = uiLayoutGetBlock(layout);
+  block = layout->block();
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, true);
@@ -538,7 +538,7 @@ static void nla_panel_animated_influence_header(const bContext *C, Panel *panel)
     return;
   }
 
-  block = uiLayoutGetBlock(layout);
+  block = layout->block();
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
   col = &layout->column(true);
@@ -557,7 +557,7 @@ static void nla_panel_evaluation(const bContext *C, Panel *panel)
     return;
   }
 
-  block = uiLayoutGetBlock(layout);
+  block = layout->block();
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
   uiLayoutSetPropSep(layout, true);
 
@@ -577,7 +577,7 @@ static void nla_panel_animated_strip_time_header(const bContext *C, Panel *panel
     return;
   }
 
-  block = uiLayoutGetBlock(layout);
+  block = layout->block();
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
   col = &layout->column(true);
@@ -595,7 +595,7 @@ static void nla_panel_animated_strip_time(const bContext *C, Panel *panel)
     return;
   }
 
-  block = uiLayoutGetBlock(layout);
+  block = layout->block();
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
   uiLayoutSetPropSep(layout, true);
 
@@ -626,13 +626,13 @@ static void nla_panel_modifiers(const bContext *C, Panel *panel)
   }
   NlaStrip *strip = static_cast<NlaStrip *>(strip_ptr.data);
 
-  block = uiLayoutGetBlock(panel->layout);
+  block = panel->layout->block();
   UI_block_func_handle_set(block, do_nla_region_buttons, nullptr);
 
   /* 'add modifier' button at top of panel */
   {
     row = &panel->layout->row(false);
-    block = uiLayoutGetBlock(row);
+    block = row->block();
 
     /* FIXME: we need to set the only-active property so that this
      * will only add modifiers for the active strip (not all selected). */

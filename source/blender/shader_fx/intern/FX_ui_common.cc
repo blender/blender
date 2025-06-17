@@ -163,7 +163,7 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
 
   const ShaderFxTypeInfo *fxti = BKE_shaderfx_get_info(ShaderFxType(fx->type));
 
-  UI_block_lock_set(uiLayoutGetBlock(layout), (ob && !ID_IS_EDITABLE(ob)), ERROR_LIBDATA_MESSAGE);
+  UI_block_lock_set(layout->block(), (ob && !ID_IS_EDITABLE(ob)), ERROR_LIBDATA_MESSAGE);
 
   /* Effect type icon. */
   uiLayout *row = &layout->row(false);
