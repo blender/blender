@@ -1056,23 +1056,6 @@ bGPDlayer *BKE_gpencil_layer_named_get(bGPdata *gpd, const char *name)
   return static_cast<bGPDlayer *>(BLI_findstring(&gpd->layers, name, offsetof(bGPDlayer, info)));
 }
 
-static int gpencil_cb_sort_masks(const void *arg1, const void *arg2)
-{
-  /* sort is inverted as layer list. */
-  const bGPDlayer_Mask *mask1 = static_cast<const bGPDlayer_Mask *>(arg1);
-  const bGPDlayer_Mask *mask2 = static_cast<const bGPDlayer_Mask *>(arg2);
-  int val = 0;
-
-  if (mask1->sort_index < mask2->sort_index) {
-    val = 1;
-  }
-  else if (mask1->sort_index > mask2->sort_index) {
-    val = -1;
-  }
-
-  return val;
-}
-
 static int gpencil_cb_cmp_frame(void *thunk, const void *a, const void *b)
 {
   const bGPDframe *frame_a = static_cast<const bGPDframe *>(a);
