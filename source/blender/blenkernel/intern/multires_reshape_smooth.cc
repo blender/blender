@@ -694,9 +694,7 @@ static void foreach_vertex_of_loose_edge(
       static_cast<MultiresReshapeSmoothContext *>(foreach_context->user_data);
   Vertex *vertex = &reshape_smooth_context->geometry.vertices[vertex_index];
 
-  if (!vertex->grid_coords.is_empty()) {
-    vertex->is_infinite_sharp = true;
-  }
+  vertex->is_infinite_sharp = !vertex->grid_coords.is_empty();
 }
 
 static void store_edge(MultiresReshapeSmoothContext *reshape_smooth_context,
