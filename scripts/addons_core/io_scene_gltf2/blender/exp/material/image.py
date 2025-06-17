@@ -60,6 +60,10 @@ def gather_image(
 
     buffer_view, factor_buffer_view = __gather_buffer_view(export_image, mime_type, name, export_settings)
 
+    # If something is wrong with the image data, we don't want to export it
+    if buffer_view is None and image_data is None:
+        return None, None, None, None
+
     factor = factor_uri if image_data is not None else factor_buffer_view
 
     image = __make_image(
@@ -116,6 +120,9 @@ def __filter_image(sockets, export_settings):
 def __gather_buffer_view(image_data, mime_type, name, export_settings):
     if export_settings['gltf_format'] != 'GLTF_SEPARATE':
         data, factor = image_data.encode(mime_type, export_settings)
+        if len(data) == 0:
+            export_settings['log'].warning("Image data is empty, not exporting image")
+            return None, None
         return gltf2_io_binary_data.BinaryData(data=data), factor
     return None, None
 
@@ -204,6 +211,9 @@ def __gather_uri(image_data, mime_type, name, export_settings):
     if export_settings['gltf_format'] == 'GLTF_SEPARATE':
         # as usual we just store the data in place instead of already resolving the references
         data, factor = image_data.encode(mime_type, export_settings)
+        if len(data) == 0:
+            export_settings['log'].warning("Image data is empty, not exporting image")
+            return None, None
         image =  gltf2_io_image_data.ImageData(
             data=data,
             mime_type=mime_type,

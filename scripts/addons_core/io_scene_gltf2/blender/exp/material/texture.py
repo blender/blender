@@ -97,6 +97,9 @@ def __gather_extensions(blender_shader_sockets, source, webp_image, image_data, 
 
         new_mime_type = "image/webp"
         new_data, _ = image_data.encode(new_mime_type, export_settings)
+        if len(new_data) == 0:
+            export_settings['log'].warning("Image data is empty, not exporting image")
+            return None, False
 
         if export_settings['gltf_format'] == 'GLTF_SEPARATE':
 
@@ -220,6 +223,7 @@ def __gather_source(blender_shader_sockets, use_tile, export_settings):
 
             new_mime_type = "image/png"
             new_data, _ = image_data.encode(new_mime_type, export_settings)
+            # We should not have empty data here, as we are calculating fallback, so the real image should be ok already
 
             if export_settings['gltf_format'] == 'GLTF_SEPARATE':
                 buffer_view = None
@@ -242,5 +246,3 @@ def __gather_source(blender_shader_sockets, use_tile, export_settings):
         # We inverted the png & WebP image, to have the png as main source
         return png_image, source, image_data, factor, udim_image
     return source, None, image_data, factor, udim_image
-
-# Helpers
