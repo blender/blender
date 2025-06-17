@@ -2015,6 +2015,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 #endif /* USE_FRAME_CACHE_LIMIT */
 
           STRNCPY(ibuf->filepath, ps.picture->filepath);
+          ibuf->fileframe = ps.picture->frame;
         }
 
         while (pupdate_time()) {
