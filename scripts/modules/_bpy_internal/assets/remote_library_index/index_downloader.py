@@ -265,6 +265,10 @@ class RemoteAssetListingDownloader:
     def on_timer_event(self) -> float:
         try:
             self._bg_downloader.update()
+        except http_dl.BackgroundProcessNotRunningError:
+            logger.error("Background downloader subprocess died, aborting.")
+            self.shutdown()
+            return 0  # Deactivate the timer.
         except Exception:
             logger.exception(
                 "Unexpected error downloading remote asset library ilisting from %s to %s",

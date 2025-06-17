@@ -470,6 +470,10 @@ class BackgroundDownloader:
     def is_shutdown_complete(self) -> bool:
         return self._shutdown_complete_event.is_set()
 
+    @property
+    def is_subprocess_alive(self) -> bool:
+        return bool(self._downloader_process and self._downloader_process.is_alive())
+
     def shutdown(self) -> None:
         """Cancel any pending downloads and shut down the background process.
 
@@ -512,8 +516,8 @@ class BackgroundDownloader:
         The reports will be sent to all registered reporters, in the same
         process that calls this method.
         """
-        if not (self._downloader_process and self._downloader_process.is_alive()):
-            raise RuntimeError("start the download process first")
+        if not self.is_subprocess_alive:
+            raise BackgroundProcessNotRunningError()
         self._handle_incoming_messages()
 
     def _handle_incoming_messages(self) -> None:
@@ -1109,6 +1113,14 @@ class DownloadCancelled(HTTPRequestDownloadError):
     def __init__(self, http_req_desc: RequestDescription) -> None:
         # This __init__ method is necessary to be able to (un)pickle instances.
         super().__init__(http_req_desc)
+
+
+class BackgroundProcessNotRunningError(Exception):
+    """The BackgroundDownloader process is not (yet) running.
+
+    Raised when BackgroundDownloader.update() is called, but the background
+    process is not yet running or has died unexpectedly.
+    """
 
 
 def http_session() -> requests.Session:
