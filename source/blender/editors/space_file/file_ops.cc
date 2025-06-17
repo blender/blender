@@ -1059,12 +1059,15 @@ static wmOperatorStatus file_view_selected_exec(bContext *C, wmOperator * /*op*/
   }
 
   /* Extend the selection area with the active file, as it may not be selected but still is
-   * important to have in view. */
-  if (sel.first == -1 || params->active_file < sel.first) {
-    sel.first = params->active_file;
-  }
-  if (sel.last == -1 || params->active_file > sel.last) {
-    sel.last = params->active_file;
+   * important to have in view. NOTE: active_file gets -1 after a search has been cleared/updated.
+   */
+  if (params->active_file != -1) {
+    if (sel.first == -1 || params->active_file < sel.first) {
+      sel.first = params->active_file;
+    }
+    if (sel.last == -1 || params->active_file > sel.last) {
+      sel.last = params->active_file;
+    }
   }
 
   ScrArea *area = CTX_wm_area(C);
