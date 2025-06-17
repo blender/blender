@@ -233,11 +233,11 @@ class GRAPH_MT_select(Menu):
 
         layout.separator()
 
-        layout.operator("graph.select_box")
+        layout.operator("graph.select_box", text="Box Select (Include Handles)")
         props = layout.operator("graph.select_box", text="Box Select (Axis Range)")
         props.axis_range = True
-        props = layout.operator("graph.select_box", text="Box Select (Include Handles)")
-        props.include_handles = True
+        props = layout.operator("graph.select_box")
+        props.include_handles = False
         layout.operator("graph.select_circle")
         layout.operator_menu_enum("graph.select_lasso", "mode")
 
