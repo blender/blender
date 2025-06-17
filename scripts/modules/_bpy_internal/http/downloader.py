@@ -205,6 +205,7 @@ class ConditionalDownloader:
         # Requests' automatic decompression, use the raw byte stream, and
         # decompress ourselves.
         content_encoding: str = stream.headers.get("Content-Encoding") or ""
+        decoder: zlib._Decompress | None
         match content_encoding:
             case "gzip":
                 wbits = 16 + zlib.MAX_WBITS
@@ -1050,7 +1051,7 @@ class HTTPRequestDownloadError(RuntimeError):
 
     http_req_desc: RequestDescription
 
-    def __init__(self, http_req_desc: RequestDescription, *args) -> None:
+    def __init__(self, http_req_desc: RequestDescription, *args: object) -> None:
         # NOTE: passing http_req_desc here is necessary for these exceptions to be pickleable.
         # See https://stackoverflow.com/a/28335286/875379 for an explanation.
         super().__init__(http_req_desc, *args)
