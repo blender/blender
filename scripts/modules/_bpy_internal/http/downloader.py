@@ -108,9 +108,8 @@ class ConditionalDownloader:
     def _download_to_file(self, http_req_descr: RequestDescription, local_path: Path) -> None:
         """Same as download_to_file(), but without the exception handling."""
 
-        self._reporter.download_starts(http_req_descr)
-
         http_meta = self._metadata_if_valid(http_req_descr, local_path)
+        self._reporter.download_starts(http_req_descr)
 
         # Download to a temporary file first.
         temp_path = local_path.with_suffix(local_path.suffix + "~")
