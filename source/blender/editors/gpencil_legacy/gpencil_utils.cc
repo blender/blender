@@ -289,23 +289,6 @@ static void gpencil_stroke_convertcoords(ARegion *region,
   }
 }
 
-void ED_gpencil_tpoint_to_point(ARegion *region,
-                                float origin[3],
-                                const tGPspoint *tpt,
-                                bGPDspoint *pt)
-{
-  float p3d[3];
-  /* conversion to 3d format */
-  gpencil_stroke_convertcoords(region, tpt, origin, p3d);
-  copy_v3_v3(&pt->x, p3d);
-  zero_v4(pt->vert_color);
-
-  pt->pressure = tpt->pressure;
-  pt->strength = tpt->strength;
-  pt->uv_fac = tpt->uv_fac;
-  pt->uv_rot = tpt->uv_rot;
-}
-
 tGPspoint *ED_gpencil_sbuffer_ensure(tGPspoint *buffer_array,
                                      int *buffer_size,
                                      int *buffer_used,

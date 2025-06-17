@@ -4550,7 +4550,6 @@ static int click_select_channel_gplayer(bContext *C,
                             ANIMTYPE_GPLAYER);
     /* update other layer status */
     BKE_gpencil_layer_active_set(gpd, gpl);
-    BKE_gpencil_layer_autolock_set(gpd, false);
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
   }
 
