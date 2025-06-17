@@ -1432,7 +1432,8 @@ ImBuf *MOV_decode_frame(MovieReader *anim,
 #endif
 
   if (ibuf) {
-    SNPRINTF(ibuf->filepath, "%s.%04d", anim->filepath, anim->cur_position + 1);
+    STRNCPY(ibuf->filepath, anim->filepath);
+    ibuf->fileframe = anim->cur_position + 1;
   }
   return ibuf;
 }

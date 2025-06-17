@@ -464,6 +464,7 @@ struct UndoImageBuf {
   UndoImageBuf *post;
 
   char ibuf_filepath[IMB_FILEPATH_SIZE];
+  int ibuf_fileframe;
 
   UndoImageTile **tiles;
 
@@ -495,6 +496,7 @@ static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
       MEM_callocN(sizeof(*ubuf->tiles) * ubuf->tiles_len, __func__));
 
   STRNCPY(ubuf->ibuf_filepath, ibuf->filepath);
+  ubuf->ibuf_fileframe = ibuf->fileframe;
   ubuf->image_state.source = image->source;
   ubuf->image_state.use_float = ibuf->float_buffer.data != nullptr;
 
@@ -661,10 +663,11 @@ static void uhandle_free_list(ListBase *undo_handles)
 
 static UndoImageBuf *uhandle_lookup_ubuf(UndoImageHandle *uh,
                                          const Image * /*image*/,
-                                         const char *ibuf_filepath)
+                                         const char *ibuf_filepath,
+                                         const int ibuf_fileframe)
 {
   LISTBASE_FOREACH (UndoImageBuf *, ubuf, &uh->buffers) {
-    if (STREQ(ubuf->ibuf_filepath, ibuf_filepath)) {
+    if (STREQ(ubuf->ibuf_filepath, ibuf_filepath) && ubuf->ibuf_fileframe == ibuf_fileframe) {
       return ubuf;
     }
   }
@@ -673,7 +676,7 @@ static UndoImageBuf *uhandle_lookup_ubuf(UndoImageHandle *uh,
 
 static UndoImageBuf *uhandle_add_ubuf(UndoImageHandle *uh, Image *image, ImBuf *ibuf)
 {
-  BLI_assert(uhandle_lookup_ubuf(uh, image, ibuf->filepath) == nullptr);
+  BLI_assert(uhandle_lookup_ubuf(uh, image, ibuf->filepath, ibuf->fileframe) == nullptr);
   UndoImageBuf *ubuf = ubuf_from_image_no_tiles(image, ibuf);
   BLI_addtail(&uh->buffers, ubuf);
 
@@ -684,7 +687,7 @@ static UndoImageBuf *uhandle_add_ubuf(UndoImageHandle *uh, Image *image, ImBuf *
 
 static UndoImageBuf *uhandle_ensure_ubuf(UndoImageHandle *uh, Image *image, ImBuf *ibuf)
 {
-  UndoImageBuf *ubuf = uhandle_lookup_ubuf(uh, image, ibuf->filepath);
+  UndoImageBuf *ubuf = uhandle_lookup_ubuf(uh, image, ibuf->filepath, ibuf->fileframe);
   if (ubuf == nullptr) {
     ubuf = uhandle_add_ubuf(uh, image, ibuf);
   }
@@ -767,7 +770,8 @@ static UndoImageBuf *ubuf_lookup_from_reference(ImageUndoStep *us_prev,
   /* Use name lookup because the pointer is cleared for previous steps. */
   UndoImageHandle *uh_prev = uhandle_lookup_by_name(&us_prev->handles, image, tile_number);
   if (uh_prev != nullptr) {
-    UndoImageBuf *ubuf_reference = uhandle_lookup_ubuf(uh_prev, image, ubuf->ibuf_filepath);
+    UndoImageBuf *ubuf_reference = uhandle_lookup_ubuf(
+        uh_prev, image, ubuf->ibuf_filepath, ubuf->ibuf_fileframe);
     if (ubuf_reference) {
       ubuf_reference = ubuf_reference->post;
       if ((ubuf_reference->image_dims[0] == ubuf->image_dims[0]) &&
