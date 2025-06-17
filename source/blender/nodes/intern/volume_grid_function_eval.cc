@@ -631,9 +631,11 @@ BLI_NOINLINE static void process_background(const mf::MultiFunction &fn,
 
     if (const openvdb::GridBase *grid_base = input_grids[input_i]) {
       to_typed_grid(*grid_base, [&](const auto &grid) {
+#  ifndef NDEBUG
         using GridT = std::decay_t<decltype(grid)>;
         using ValueType = typename GridT::ValueType;
         BLI_assert(param_cpp_type.size == sizeof(ValueType));
+#  endif
         const auto &tree = grid.tree();
         params.add_readonly_single_input(GPointer(param_cpp_type, &tree.background()));
       });
