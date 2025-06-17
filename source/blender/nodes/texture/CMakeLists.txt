@@ -21,10 +21,8 @@ set(SRC
   nodes/node_texture_checker.cc
   nodes/node_texture_combine_color.cc
   nodes/node_texture_common.cc
-  nodes/node_texture_compose.cc
   nodes/node_texture_coord.cc
   nodes/node_texture_curves.cc
-  nodes/node_texture_decompose.cc
   nodes/node_texture_distance.cc
   nodes/node_texture_hueSatVal.cc
   nodes/node_texture_image.cc

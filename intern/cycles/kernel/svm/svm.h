@@ -64,7 +64,6 @@
 #include "kernel/svm/normal.h"
 #include "kernel/svm/ramp.h"
 #include "kernel/svm/sepcomb_color.h"
-#include "kernel/svm/sepcomb_hsv.h"
 #include "kernel/svm/sepcomb_vector.h"
 #include "kernel/svm/sky.h"
 #include "kernel/svm/tex_coord.h"
@@ -422,12 +421,6 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       break;
       SVM_CASE(NODE_COMBINE_VECTOR)
       svm_node_combine_vector(stack, node.y, node.z, node.w);
-      break;
-      SVM_CASE(NODE_SEPARATE_HSV)
-      offset = svm_node_separate_hsv(kg, stack, node.y, node.z, node.w, offset);
-      break;
-      SVM_CASE(NODE_COMBINE_HSV)
-      offset = svm_node_combine_hsv(kg, stack, node.y, node.z, node.w, offset);
       break;
       SVM_CASE(NODE_VECTOR_ROTATE)
       svm_node_vector_rotate(stack, node.y, node.z, node.w);

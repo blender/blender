@@ -16,11 +16,9 @@ void register_texture_nodes()
   register_node_type_tex_bricks();
   register_node_type_tex_checker();
   register_node_type_tex_combine_color();
-  register_node_type_tex_compose();
   register_node_type_tex_coord();
   register_node_type_tex_curve_rgb();
   register_node_type_tex_curve_time();
-  register_node_type_tex_decompose();
   register_node_type_tex_distance();
   register_node_type_tex_hue_sat();
   register_node_type_tex_image();
