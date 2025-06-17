@@ -2187,6 +2187,11 @@ static bool get_new_constraint_target(
       only_ob = true;
       add = false;
       break;
+
+    /* Armature only. */
+    case CONSTRAINT_TYPE_ARMATURE:
+      add = false;
+      break;
   }
 
   /* if the active Object is Armature, and we can search for bones, do so... */
@@ -2335,6 +2340,18 @@ static wmOperatorStatus constraint_add_exec(
 
     /* get the target objects, adding them as need be */
     if (get_new_constraint_target(C, type, &tar_ob, &tar_pchan, true)) {
+
+      /* Armature constraints dont have a target by default, add one. */
+      if (type == CONSTRAINT_TYPE_ARMATURE) {
+        bArmatureConstraint *acon = static_cast<bArmatureConstraint *>(con->data);
+        bConstraintTarget *ct = MEM_callocN<bConstraintTarget>("Constraint Target");
+
+        ct->weight = 1.0f;
+        BLI_addtail(&acon->targets, ct);
+
+        constraint_dependency_tag_update(bmain, ob, con);
+      }
+
       /* Method of setting target depends on the type of target we've got - by default,
        * just set the first target (distinction here is only for multiple-targeted constraints).
        */
