@@ -249,7 +249,7 @@ static bool material_slot_remove_poll(bContext *C)
   return true;
 }
 
-static wmOperatorStatus material_slot_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus material_slot_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = blender::ed::object::context_object(C);
 
