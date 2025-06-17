@@ -639,7 +639,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeRGBToBW";
       case CMP_NODE_NORMAL:
         return "CompositorNodeNormal";
-      case CMP_NODE_CURVE_VEC:
+      case CMP_NODE_CURVE_VEC_DEPRECATED:
         return "CompositorNodeCurveVec";
       case CMP_NODE_CURVE_RGB:
         return "CompositorNodeCurveRGB";

@@ -10639,7 +10639,6 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeCryptomatte", def_cmp_cryptomatte_legacy);
   define("CompositorNode", "CompositorNodeCryptomatteV2", def_cmp_cryptomatte);
   define("CompositorNode", "CompositorNodeCurveRGB", def_rgb_curve);
-  define("CompositorNode", "CompositorNodeCurveVec", def_vector_curve);
   define("CompositorNode", "CompositorNodeDBlur");
   define("CompositorNode", "CompositorNodeDefocus", def_cmp_defocus);
   define("CompositorNode", "CompositorNodeDenoise", def_cmp_denoise);

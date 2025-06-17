@@ -207,7 +207,7 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
         node->type_legacy = SH_NODE_SEPXYZ;
         STRNCPY(node->idname, "ShaderNodeSeparateXYZ");
         break;
-      case CMP_NODE_CURVE_VEC:
+      case CMP_NODE_CURVE_VEC_DEPRECATED:
         node->type_legacy = SH_NODE_CURVE_VEC;
         STRNCPY(node->idname, "ShaderNodeVectorCurve");
         break;
