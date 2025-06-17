@@ -29,12 +29,11 @@ def cli_main(arguments_raw: argparse.Namespace) -> None:
     # Parse CLI arguments.
     arguments = _parse_cli_args(arguments_raw)
 
-    base_url = arguments.url
     base_path = Path(".").resolve() / "_asset_download_location"  # TODO: be sensible.
 
     is_done = False
 
-    def on_done_callback(_) -> None:
+    def on_done_callback(_: index_downloader.RemoteAssetListingDownloader) -> None:
         nonlocal is_done
 
         is_done = True

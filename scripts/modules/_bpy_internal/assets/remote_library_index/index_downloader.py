@@ -68,7 +68,7 @@ class RemoteAssetListingDownloader:
         self._num_asset_pages_pending = 0
 
         # Work around a limitation of Blender, see bug report #139720 for details.
-        self.on_timer_event = self.on_timer_event
+        self.on_timer_event = self.on_timer_event  # type: ignore[method-assign]
 
         self._http_metadata_provider = http_metadata.ExtraFileMetadataProvider(
             http_dl.MetadataProviderFilesystem(
@@ -315,13 +315,7 @@ class RemoteAssetListingDownloader:
             # Regardless of whether the shutdown had some issues, the timer has
             # been unregistered, so there will be no more message handling, and
             # so for all intents and purposes, the downloader is done.
-            self._call_on_done_callback()
-
-    def _call_on_done_callback(self) -> None:
-        """Call the on-done callback function, if there is one."""
-        if not self._on_done_callback:
-            return
-        self._on_done_callback(self)
+            self._on_done_callback(self)
 
     def on_timer_event(self) -> float:
         try:
