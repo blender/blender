@@ -10629,7 +10629,6 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeColorSpill", def_cmp_color_spill);
   define("CompositorNode", "CompositorNodeCombHSVA");
   define("CompositorNode", "CompositorNodeCombineColor", def_cmp_combsep_color);
-  define("CompositorNode", "CompositorNodeCombineXYZ");
   define("CompositorNode", "CompositorNodeCombRGBA");
   define("CompositorNode", "CompositorNodeCombYCCA", def_cmp_ycc);
   define("CompositorNode", "CompositorNodeCombYUVA");
@@ -10690,7 +10689,6 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeScale", def_cmp_scale);
   define("CompositorNode", "CompositorNodeSceneTime");
   define("CompositorNode", "CompositorNodeSeparateColor", def_cmp_combsep_color);
-  define("CompositorNode", "CompositorNodeSeparateXYZ");
   define("CompositorNode", "CompositorNodeSepHSVA");
   define("CompositorNode", "CompositorNodeSepRGBA");
   define("CompositorNode", "CompositorNodeSepYCCA", def_cmp_ycc);
