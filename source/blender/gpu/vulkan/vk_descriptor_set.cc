@@ -54,6 +54,7 @@ void VKDescriptorSetTracker::upload_descriptor_sets()
   else {
     descriptor_sets.upload_descriptor_sets();
   }
+  vk_descriptor_set_layout_ = VK_NULL_HANDLE;
 }
 
 /* -------------------------------------------------------------------- */
