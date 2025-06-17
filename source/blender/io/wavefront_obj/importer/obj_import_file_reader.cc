@@ -850,6 +850,10 @@ MTLParser::MTLParser(StringRefNull mtl_library, StringRefNull obj_filepath)
   char obj_file_dir[FILE_MAXDIR];
   BLI_path_split_dir_part(obj_filepath.data(), obj_file_dir, FILE_MAXDIR);
   BLI_path_join(mtl_file_path_, FILE_MAX, obj_file_dir, mtl_library.data());
+
+  /* Normalize the path to handle different paths pointing to the same file */
+  BLI_path_normalize(mtl_file_path_);
+
   BLI_path_split_dir_part(mtl_file_path_, mtl_dir_path_, FILE_MAXDIR);
 }
 
@@ -875,13 +879,9 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
 
     if (parse_keyword(p, end, "newmtl")) {
       StringRef mat_name = StringRef(p, end).trim();
-      if (r_materials.contains(mat_name)) {
-        material = nullptr;
-      }
-      else {
-        material =
-            r_materials.lookup_or_add(string(mat_name), std::make_unique<MTLMaterial>()).get();
-      }
+      /* Always try to get or create the material, even if it already exists */
+      material =
+          r_materials.lookup_or_add(string(mat_name), std::make_unique<MTLMaterial>()).get();
     }
     else if (material != nullptr) {
       if (parse_keyword(p, end, "Ns")) {
