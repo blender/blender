@@ -657,10 +657,14 @@ static EditBone *get_nearest_editbonepoint(
   result_bias.base = nullptr;
   result_bias.ebone = nullptr;
 
-  /* find the bone after the current active bone, so as to bump up its chances in selection.
-   * this way overlapping bones will cycle selection state as with objects. */
+  /* Find the bone after the current (selected) active bone, so as to bump up its chances in
+   * selection. this way overlapping bones will cycle selection state as with objects. */
   Object *obedit_orig = vc->obedit;
   EditBone *ebone_active_orig = static_cast<bArmature *>(obedit_orig->data)->act_edbone;
+  if ((ebone_active_orig->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) == 0) {
+    ebone_active_orig = nullptr;
+  }
+
   if (ebone_active_orig == nullptr) {
     use_cycle = false;
   }
@@ -813,6 +817,7 @@ cache_end:
           if (bias > bias_max) {
             bias_max = bias;
 
+            min_depth = hit_result.depth;
             result_bias.select_id = select_id;
             result_bias.base = base;
             result_bias.ebone = ebone;
