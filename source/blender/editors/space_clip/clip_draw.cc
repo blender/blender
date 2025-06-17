@@ -147,6 +147,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
 
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* track */
   if (tracking_object->active_track || tracking_object->active_plane_track) {
