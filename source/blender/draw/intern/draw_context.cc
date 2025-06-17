@@ -106,11 +106,6 @@
 
 thread_local DRWContext *DRWContext::g_context = nullptr;
 
-DRWContext &drw_get()
-{
-  return DRWContext::get_active();
-}
-
 DRWContext::DRWContext(Mode mode_,
                        Depsgraph *depsgraph,
                        const int2 size,
@@ -368,18 +363,6 @@ bool DRW_object_is_visible_psys_in_active_context(const Object *object, const Pa
     }
   }
   return true;
-}
-
-template<> Mesh &DRW_object_get_data_for_drawing(const Object &object)
-{
-  /* For drawing we want either the base mesh if GPU subdivision is enabled, or the
-   * tessellated mesh if GPU subdivision is disabled. */
-  BLI_assert(object.type == OB_MESH);
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
-  if (BKE_subsurf_modifier_has_gpu_subdiv(&mesh)) {
-    return mesh;
-  }
-  return *BKE_mesh_wrapper_ensure_subdivision(&mesh);
 }
 
 const Mesh *DRW_object_get_editmesh_cage_for_drawing(const Object &object)

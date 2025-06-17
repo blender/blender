@@ -5,6 +5,7 @@
 #include "BKE_context.hh"
 
 #include "DNA_camera_types.h"
+#include "DNA_material_types.h"
 #include "DRW_render.hh"
 #include "GPU_shader.hh"
 #include "draw_manager.hh"
@@ -110,15 +111,35 @@ struct Material {
   /* Packed data into a int. Decoded in the shader. */
   uint packed_data = 0;
 
-  Material();
-  Material(float3 color);
+  Material() = default;
+  Material(float3 color) : base_color(color), packed_data(Material::pack_data(0.0f, 0.4f, 1.0f)) {}
+
   Material(::Object &ob, bool random = false);
-  Material(::Material &mat);
+  Material(::Material &mat)
+      : base_color(&mat.r), packed_data(Material::pack_data(mat.metallic, mat.roughness, mat.a))
+  {
+  }
 
   static uint32_t pack_data(float metallic, float roughness, float alpha);
 
   bool is_transparent();
 };
+
+inline bool Material::is_transparent()
+{
+  uint32_t full_alpha_ref = 0x00ff0000;
+  return (packed_data & full_alpha_ref) != full_alpha_ref;
+}
+
+inline uint32_t Material::pack_data(float metallic, float roughness, float alpha)
+{
+  /* Remap to Disney roughness. */
+  roughness = sqrtf(roughness);
+  uint32_t packed_roughness = unit_float_to_uchar_clamp(roughness);
+  uint32_t packed_metallic = unit_float_to_uchar_clamp(metallic);
+  uint32_t packed_alpha = unit_float_to_uchar_clamp(alpha);
+  return (packed_alpha << 16u) | (packed_roughness << 8u) | packed_metallic;
+}
 
 ImageGPUTextures get_material_texture(GPUSamplerState &sampler_state);
 

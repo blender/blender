@@ -18,6 +18,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_mesh.hh"
+#include "BKE_object.hh"
 
 #include "bmesh.hh"
 
@@ -120,7 +121,17 @@ struct MeshRenderData {
   const char *default_color_name;
 };
 
-const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh);
+inline const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh)
+{
+  if (mesh.runtime->edit_mesh != nullptr) {
+    if (const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(&object)) {
+      return *editmesh_eval_final;
+    }
+  }
+
+  return mesh;
+}
+
 const CustomData &mesh_cd_vdata_get_from_mesh(const Mesh &mesh);
 const CustomData &mesh_cd_edata_get_from_mesh(const Mesh &mesh);
 const CustomData &mesh_cd_pdata_get_from_mesh(const Mesh &mesh);

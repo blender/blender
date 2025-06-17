@@ -74,7 +74,10 @@ struct DRWData {
  * \{ */
 
 /* Get thread local draw context. */
-DRWContext &drw_get();
+inline DRWContext &drw_get()
+{
+  return DRWContext::get_active();
+}
 
 namespace blender::draw {
 
