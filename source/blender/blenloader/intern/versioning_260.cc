@@ -649,7 +649,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeBlur";
       case CMP_NODE_FILTER:
         return "CompositorNodeFilter";
-      case CMP_NODE_MAP_VALUE:
+      case CMP_NODE_MAP_VALUE_DEPRECATED:
         return "CompositorNodeMapValue";
       case CMP_NODE_MAP_RANGE_DEPRECATED:
         return "CompositorNodeMapRange";

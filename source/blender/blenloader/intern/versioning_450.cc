@@ -421,6 +421,9 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
       blender::bke::node_remove_link(node_tree, *link);
     }
 
+    MEM_freeN(&texture_mapping);
+    node->storage = nullptr;
+
     blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
 
     version_socket_update_is_used(node_tree);
@@ -528,6 +531,9 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
     blender::bke::node_remove_link(node_tree, *link);
   }
 
+  MEM_freeN(&texture_mapping);
+  node->storage = nullptr;
+
   blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
 
   version_socket_update_is_used(node_tree);
@@ -568,7 +574,7 @@ static void do_version_convert_to_generic_nodes_after_linking(Main *bmain,
 
         break;
       }
-      case CMP_NODE_MAP_VALUE: {
+      case CMP_NODE_MAP_VALUE_DEPRECATED: {
         do_version_map_value_node(node_tree, node);
         break;
       }
