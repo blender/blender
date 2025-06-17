@@ -260,7 +260,6 @@ void gpencil_point_to_xy(
   }
 }
 
-
 tGPspoint *ED_gpencil_sbuffer_ensure(tGPspoint *buffer_array,
                                      int *buffer_size,
                                      int *buffer_used,
