@@ -249,6 +249,8 @@ struct ImBuf {
   ImbFormatOptions foptions;
   /** The absolute file path associated with this image. */
   char filepath[IMB_FILEPATH_SIZE];
+  /* For movie files, the frame number loaded from the file. */
+  int fileframe;
 
   /* memory cache limiter */
   /** reference counter for multiple users */

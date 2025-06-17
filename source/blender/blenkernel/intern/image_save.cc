@@ -146,6 +146,15 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
      * by the image saving code itself. */
     BKE_image_user_file_path_ex(bmain, iuser, ima, opts->filepath, false, false);
 
+    /* For movies, replace extension and add the frame number to avoid writing over the movie file
+     * itself and provide a good default file path. */
+    if (ima->source == IMA_SRC_MOVIE) {
+      BLI_path_extension_strip(opts->filepath);
+      SNPRINTF(opts->filepath, "%s_%.*d", opts->filepath, 4, ibuf->fileframe);
+      BKE_image_path_ext_from_imformat_ensure(
+          opts->filepath, sizeof(opts->filepath), &opts->im_format);
+    }
+
     /* sanitize all settings */
 
     /* unlikely but just in case */
