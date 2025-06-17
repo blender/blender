@@ -195,7 +195,7 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
         node->type_legacy = SH_NODE_VALUE;
         STRNCPY(node->idname, "ShaderNodeValue");
         break;
-      case CMP_NODE_MATH:
+      case CMP_NODE_MATH_DEPRECATED:
         node->type_legacy = SH_NODE_MATH;
         STRNCPY(node->idname, "ShaderNodeMath");
         break;

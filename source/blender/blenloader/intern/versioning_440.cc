@@ -381,7 +381,7 @@ static void do_version_color_to_float_conversion(bNodeTree *node_tree)
                -1.0f);
 
     /* Add a hidden multiply node. */
-    bNode *multiply_node = blender::bke::node_add_static_node(nullptr, *node_tree, CMP_NODE_MATH);
+    bNode *multiply_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
     multiply_node->custom1 = NODE_MATH_MULTIPLY;
     multiply_node->flag |= NODE_HIDDEN;
     multiply_node->location[0] = dot_product_node->location[0] + dot_product_node->width + 10.0f;

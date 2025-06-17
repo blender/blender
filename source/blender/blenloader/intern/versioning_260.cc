@@ -723,7 +723,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeDisplace";
       case CMP_NODE_COMBHSVA_LEGACY:
         return "CompositorNodeCombHSVA";
-      case CMP_NODE_MATH:
+      case CMP_NODE_MATH_DEPRECATED:
         return "CompositorNodeMath";
       case CMP_NODE_LUMA_MATTE:
         return "CompositorNodeLumaMatte";

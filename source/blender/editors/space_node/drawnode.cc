@@ -639,9 +639,6 @@ static void node_composit_set_butfunc(blender::bke::bNodeType *ntype)
     case CMP_NODE_TEXTURE:
       ntype->draw_buttons = node_buts_texture;
       break;
-    case CMP_NODE_MATH:
-      ntype->draw_buttons = node_buts_math;
-      break;
     case CMP_NODE_HUECORRECT:
       ntype->draw_buttons = node_composit_buts_huecorrect;
       break;
