@@ -149,8 +149,10 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
     /* For movies, replace extension and add the frame number to avoid writing over the movie file
      * itself and provide a good default file path. */
     if (ima->source == IMA_SRC_MOVIE) {
-      BLI_path_extension_strip(opts->filepath);
-      SNPRINTF(opts->filepath, "%s_%.*d", opts->filepath, 4, ibuf->fileframe);
+      char filepath_no_ext[FILE_MAX];
+      STRNCPY(filepath_no_ext, opts->filepath);
+      BLI_path_extension_strip(filepath_no_ext);
+      SNPRINTF(opts->filepath, "%s_%.*d", filepath_no_ext, 4, ibuf->fileframe);
       BKE_image_path_ext_from_imformat_ensure(
           opts->filepath, sizeof(opts->filepath), &opts->im_format);
     }
