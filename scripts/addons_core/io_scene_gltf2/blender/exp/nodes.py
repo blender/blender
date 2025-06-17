@@ -211,8 +211,10 @@ def __gather_extensions(vnode, export_settings):
         blender_lamp = blender_object.data
 
     if blender_lamp is not None:
+        world_matrix = blender_object.matrix_world.copy().freeze()
         light = gltf2_blender_gather_lights.gather_lights_punctual(
             blender_lamp,
+            world_matrix,
             export_settings
         )
         if light is not None:
