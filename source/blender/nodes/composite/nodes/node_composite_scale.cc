@@ -120,7 +120,7 @@ class ScaleOperation : public NodeOperation {
 
   void execute_variable_size_gpu()
   {
-    GPUShader *shader = this->context().get_shader(this->get_realization_shader_name());
+    GPUShader *shader = this->context().get_shader(this->get_shader_name());
     GPU_shader_bind(shader);
 
     Result &input = get_input("Image");
@@ -190,7 +190,7 @@ class ScaleOperation : public NodeOperation {
     });
   }
 
-  const char *get_realization_shader_name() const
+  const char *get_shader_name() const
   {
     if (this->get_interpolation() == Interpolation::Bicubic) {
       return "compositor_scale_variable_bicubic";
