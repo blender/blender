@@ -282,7 +282,7 @@ class RayTraceModule {
 
   bool use_fast_gi() const
   {
-    return use_raytracing() && ray_tracing_options_.trace_max_roughness >= 1.0f;
+    return use_raytracing() && ray_tracing_options_.trace_max_roughness < 1.0f;
   }
 
  private:
