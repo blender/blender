@@ -161,7 +161,7 @@ static void test_storage_buffer_copy_from_vertex_buffer()
 
     /* Validate content of SSBO. */
     GPU_storagebuf_read(ssbo, read_data.data());
-    EXPECT_EQ_SPAN<float>(expected_data, read_data);
+    EXPECT_EQ_SPAN<float>(expected_data, read_data.as_span().slice(IndexRange(24)));
     for (int i : IndexRange(24, SIZE - 24)) {
       EXPECT_EQ(0.0, read_data[i]);
     }
