@@ -212,18 +212,27 @@ class SCENE_OT_gltf2_assign_to_variant(bpy.types.Operator):
         for mat_slot_idx, s in enumerate(obj.material_slots):
             # Check if there is already data for this slot
             found = False
+            variant_found = False
             for i in obj.data.gltf2_variant_mesh_data:
                 if i.material_slot_index == mat_slot_idx and i.material == s.material:
                     found = True
                     variant_primitive = i
+                elif i.material_slot_index == mat_slot_idx and bpy.data.scenes[0].gltf2_active_variant in [
+                        v.variant.variant_idx for v in i.variants]:
+                    # User changed the material, so store the new one (replace instead of add)
+                    found = True
+                    variant_found = True
+                    variant_primitive = i
+                    i.material = s.material
 
             if found is False:
                 variant_primitive = obj.data.gltf2_variant_mesh_data.add()
                 variant_primitive.material_slot_index = mat_slot_idx
                 variant_primitive.material = s.material
 
-            vari = variant_primitive.variants.add()
-            vari.variant.variant_idx = bpy.data.scenes[0].gltf2_active_variant
+            if variant_found is False:
+                vari = variant_primitive.variants.add()
+                vari.variant.variant_idx = bpy.data.scenes[0].gltf2_active_variant
 
         return {'FINISHED'}
 
