@@ -4944,7 +4944,10 @@ static int rna_raw_access(ReportList *reports,
   PropertyRNA *itemprop, *iprop;
   PropertyType itemtype = PropertyType(0);
   RawArray in;
-  int itemlen = 0;
+  /* Actual array length. Will always be `0` for non-array properties. */
+  int array_len = 0;
+  /* Item length. Will always be `1` for non-array properties. */
+  int item_len = 0;
 
   /* initialize in array, stride assumed 0 in following code */
   in.array = inarray;
@@ -4971,7 +4974,7 @@ static int rna_raw_access(ReportList *reports,
     }
 
     /* check item array */
-    itemlen = RNA_property_array_length(&itemptr_base, itemprop);
+    array_len = RNA_property_array_length(&itemptr_base, itemprop);
 
     /* dynamic array? need to get length per item */
     if (itemprop->getlength) {
@@ -4979,12 +4982,12 @@ static int rna_raw_access(ReportList *reports,
     }
     /* try to access as raw array */
     else if (RNA_property_collection_raw_array(ptr, prop, itemprop, set, &out)) {
-      int arraylen = (itemlen == 0) ? 1 : itemlen;
-      if (in.len != arraylen * out.len) {
+      item_len = (array_len == 0) ? 1 : array_len;
+      if (in.len != item_len * out.len) {
         BKE_reportf(reports,
                     RPT_ERROR,
                     "Array length mismatch (expected %d, got %d)",
-                    out.len * arraylen,
+                    out.len * item_len,
                     in.len);
         return 0;
       }
@@ -4995,7 +4998,7 @@ static int rna_raw_access(ReportList *reports,
         void *outp = out.array;
         size_t size;
 
-        size = RNA_raw_type_sizeof(out.type) * arraylen;
+        size = RNA_raw_type_sizeof(out.type) * item_len;
 
         if (size == out.stride) {
           /* The property is stored contiguously so the entire array can be copied at once. */
@@ -5026,7 +5029,7 @@ static int rna_raw_access(ReportList *reports,
       /* Could also be faster with non-matching types,
        * for now we just do slower loop. */
     }
-    BLI_assert_msg(itemlen == 0 || itemtype != PROP_ENUM,
+    BLI_assert_msg(array_len == 0 || itemtype != PROP_ENUM,
                    "Enum array properties should not exist");
   }
 
@@ -5056,7 +5059,7 @@ static int rna_raw_access(ReportList *reports,
           iprop = RNA_struct_find_property(&itemptr, propname);
 
           if (iprop) {
-            itemlen = rna_property_array_length_all_dimensions(&itemptr, iprop);
+            array_len = rna_property_array_length_all_dimensions(&itemptr, iprop);
             itemtype = RNA_property_type(iprop);
           }
           else {
@@ -5071,20 +5074,20 @@ static int rna_raw_access(ReportList *reports,
             err = 1;
             break;
           }
-          BLI_assert_msg(itemlen == 0 || itemtype != PROP_ENUM,
+          BLI_assert_msg(array_len == 0 || itemtype != PROP_ENUM,
                          "Enum array properties should not exist");
         }
 
         /* editable check */
         if (!set || RNA_property_editable(&itemptr, iprop)) {
-          if (a + itemlen > in.len) {
+          if (a + array_len > in.len) {
             BKE_reportf(
                 reports, RPT_ERROR, "Array length mismatch (got %d, expected more)", in.len);
             err = 1;
             break;
           }
 
-          if (itemlen == 0) {
+          if (array_len == 0) {
             /* handle conversions */
             if (set) {
               switch (itemtype) {
@@ -5148,13 +5151,13 @@ static int rna_raw_access(ReportList *reports,
           }
           else if (needconv == 1) {
             /* allocate temporary array if needed */
-            if (tmparray && tmplen != itemlen) {
+            if (tmparray && tmplen != array_len) {
               MEM_freeN(tmparray);
               tmparray = nullptr;
             }
             if (!tmparray) {
-              tmparray = MEM_calloc_arrayN<float>(itemlen, "RNA tmparray");
-              tmplen = itemlen;
+              tmparray = MEM_calloc_arrayN<float>(array_len, "RNA tmparray");
+              tmplen = array_len;
             }
 
             /* handle conversions */
@@ -5162,7 +5165,7 @@ static int rna_raw_access(ReportList *reports,
               switch (itemtype) {
                 case PROP_BOOLEAN: {
                   bool *array = static_cast<bool *>(tmparray);
-                  for (j = 0; j < itemlen; j++, a++) {
+                  for (j = 0; j < array_len; j++, a++) {
                     RAW_GET(bool, array[j], in, a);
                   }
                   RNA_property_boolean_set_array(&itemptr, iprop, array);
@@ -5170,7 +5173,7 @@ static int rna_raw_access(ReportList *reports,
                 }
                 case PROP_INT: {
                   int *array = static_cast<int *>(tmparray);
-                  for (j = 0; j < itemlen; j++, a++) {
+                  for (j = 0; j < array_len; j++, a++) {
                     RAW_GET(int, array[j], in, a);
                   }
                   RNA_property_int_set_array(&itemptr, iprop, array);
@@ -5178,7 +5181,7 @@ static int rna_raw_access(ReportList *reports,
                 }
                 case PROP_FLOAT: {
                   float *array = static_cast<float *>(tmparray);
-                  for (j = 0; j < itemlen; j++, a++) {
+                  for (j = 0; j < array_len; j++, a++) {
                     RAW_GET(float, array[j], in, a);
                   }
                   RNA_property_float_set_array(&itemptr, iprop, array);
@@ -5194,7 +5197,7 @@ static int rna_raw_access(ReportList *reports,
                 case PROP_BOOLEAN: {
                   bool *array = static_cast<bool *>(tmparray);
                   RNA_property_boolean_get_array(&itemptr, iprop, array);
-                  for (j = 0; j < itemlen; j++, a++) {
+                  for (j = 0; j < array_len; j++, a++) {
                     RAW_SET(int, in, a, ((bool *)tmparray)[j]);
                   }
                   break;
@@ -5202,7 +5205,7 @@ static int rna_raw_access(ReportList *reports,
                 case PROP_INT: {
                   int *array = static_cast<int *>(tmparray);
                   RNA_property_int_get_array(&itemptr, iprop, array);
-                  for (j = 0; j < itemlen; j++, a++) {
+                  for (j = 0; j < array_len; j++, a++) {
                     RAW_SET(int, in, a, array[j]);
                   }
                   break;
@@ -5210,7 +5213,7 @@ static int rna_raw_access(ReportList *reports,
                 case PROP_FLOAT: {
                   float *array = static_cast<float *>(tmparray);
                   RNA_property_float_get_array(&itemptr, iprop, array);
-                  for (j = 0; j < itemlen; j++, a++) {
+                  for (j = 0; j < array_len; j++, a++) {
                     RAW_SET(float, in, a, array[j]);
                   }
                   break;
@@ -5226,17 +5229,17 @@ static int rna_raw_access(ReportList *reports,
               switch (itemtype) {
                 case PROP_BOOLEAN: {
                   RNA_property_boolean_set_array(&itemptr, iprop, &((bool *)in.array)[a]);
-                  a += itemlen;
+                  a += array_len;
                   break;
                 }
                 case PROP_INT: {
                   RNA_property_int_set_array(&itemptr, iprop, &((int *)in.array)[a]);
-                  a += itemlen;
+                  a += array_len;
                   break;
                 }
                 case PROP_FLOAT: {
                   RNA_property_float_set_array(&itemptr, iprop, &((float *)in.array)[a]);
-                  a += itemlen;
+                  a += array_len;
                   break;
                 }
                 default:
@@ -5248,17 +5251,17 @@ static int rna_raw_access(ReportList *reports,
               switch (itemtype) {
                 case PROP_BOOLEAN: {
                   RNA_property_boolean_get_array(&itemptr, iprop, &((bool *)in.array)[a]);
-                  a += itemlen;
+                  a += array_len;
                   break;
                 }
                 case PROP_INT: {
                   RNA_property_int_get_array(&itemptr, iprop, &((int *)in.array)[a]);
-                  a += itemlen;
+                  a += array_len;
                   break;
                 }
                 case PROP_FLOAT: {
                   RNA_property_float_get_array(&itemptr, iprop, &((float *)in.array)[a]);
-                  a += itemlen;
+                  a += array_len;
                   break;
                 }
                 default:
