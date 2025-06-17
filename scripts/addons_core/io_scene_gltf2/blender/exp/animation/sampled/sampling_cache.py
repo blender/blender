@@ -39,7 +39,7 @@ def get_cache_data(path: str,
                      if n.blender_type not in [VExportNode.BONE]]
 
     # For TRACK mode, we reset cache after each track export, so we don't need to keep others objects
-    if export_settings['gltf_animation_mode'] in "NLA_TRACKS":
+    if export_settings['gltf_animation_mode'] in ["NLA_TRACKS"]:
         # If object is not in vtree, this is a material or light for pointers
         obj_uuids = [blender_obj_uuid] if blender_obj_uuid in export_settings['vtree'].nodes.keys() else []
 
