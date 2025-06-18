@@ -205,6 +205,8 @@ typedef struct ThemeUI {
   unsigned char panel_header[4];
   unsigned char panel_back[4];
   unsigned char panel_sub_back[4];
+  unsigned char panel_outline[4];
+  char _pad2[4];
 
 } ThemeUI;
 

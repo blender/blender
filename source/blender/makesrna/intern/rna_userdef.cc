@@ -1983,6 +1983,10 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Sub-Panel Background", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  prop = RNA_def_property(srna, "panel_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_ui_text(prop, "Panel Outline", "Color of the outline of top-level panels");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   /* Transparent Grid */
   prop = RNA_def_property(srna, "transparent_checker_primary", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, nullptr, "transparent_checker_primary");
