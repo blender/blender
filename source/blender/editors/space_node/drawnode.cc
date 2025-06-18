@@ -546,11 +546,6 @@ static void node_composit_buts_huecorrect(uiLayout *layout, bContext * /*C*/, Po
   uiTemplateCurveMapping(layout, ptr, "mapping", 'h', false, false, false, false);
 }
 
-static void node_composit_buts_ycc(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
 static void node_composit_buts_combsep_color(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   bNode *node = (bNode *)ptr->data;
@@ -645,10 +640,6 @@ static void node_composit_set_butfunc(blender::bke::bNodeType *ntype)
     case CMP_NODE_COMBINE_COLOR:
     case CMP_NODE_SEPARATE_COLOR:
       ntype->draw_buttons = node_composit_buts_combsep_color;
-      break;
-    case CMP_NODE_COMBYCCA_LEGACY:
-    case CMP_NODE_SEPYCCA_LEGACY:
-      ntype->draw_buttons = node_composit_buts_ycc;
       break;
     case CMP_NODE_CRYPTOMATTE:
       ntype->draw_buttons = node_composit_buts_cryptomatte;
