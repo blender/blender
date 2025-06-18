@@ -29,7 +29,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   const eNodeSocketDatatype data_type = eNodeSocketDatatype(node->custom1);
 
-  b.add_input(data_type, "Grid").hide_value();
+  b.add_input(data_type, "Grid").hide_value().structure_type(StructureType::Grid);
 
   b.add_output<decl::Matrix>("Transform")
       .description("Transform from grid index space to object space");

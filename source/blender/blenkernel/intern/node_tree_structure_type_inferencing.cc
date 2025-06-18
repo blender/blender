@@ -259,18 +259,19 @@ static ZoneInOutChange simulation_zone_requirements_propagate(
   ZoneInOutChange change = ZoneInOutChange::None;
   for (const int i : output_node.output_sockets().index_range()) {
     /* First input node output is Delta Time which does not appear in the output node outputs. */
-    const bNodeSocket &socket_input = input_node.input_socket(i);
-    const bNodeSocket &socket_output = output_node.output_socket(i);
+    const bNodeSocket &input_of_input_node = input_node.input_socket(i);
+    const bNodeSocket &output_of_output_node = output_node.output_socket(i);
+    const bNodeSocket &input_of_output_node = output_node.input_socket(i + 1);
     const DataRequirement new_value = merge(
-        input_requirements[socket_input.index_in_all_inputs()],
-        calc_output_socket_requirement(socket_output, input_requirements));
-    if (input_requirements[socket_input.index_in_all_inputs()] != new_value) {
-      input_requirements[socket_input.index_in_all_inputs()] = new_value;
+        input_requirements[input_of_input_node.index_in_all_inputs()],
+        calc_output_socket_requirement(output_of_output_node, input_requirements));
+    if (input_requirements[input_of_input_node.index_in_all_inputs()] != new_value) {
+      input_requirements[input_of_input_node.index_in_all_inputs()] = new_value;
       change |= ZoneInOutChange::In;
     }
-    if (input_requirements[socket_input.index_in_all_inputs()] != new_value) {
-      input_requirements[socket_input.index_in_all_inputs()] = new_value;
-      change |= ZoneInOutChange::In;
+    if (input_requirements[input_of_output_node.index_in_all_inputs()] != new_value) {
+      input_requirements[input_of_output_node.index_in_all_inputs()] = new_value;
+      change |= ZoneInOutChange::Out;
     }
   }
   return change;
@@ -283,18 +284,19 @@ static ZoneInOutChange repeat_zone_requirements_propagate(
 {
   ZoneInOutChange change = ZoneInOutChange::None;
   for (const int i : output_node.output_sockets().index_range()) {
-    const bNodeSocket &socket_input = input_node.input_socket(i + 1);
-    const bNodeSocket &socket_output = output_node.output_socket(i);
+    const bNodeSocket &input_of_input_node = input_node.input_socket(i + 1);
+    const bNodeSocket &output_of_output_node = output_node.output_socket(i);
+    const bNodeSocket &input_of_output_node = output_node.input_socket(i);
     const DataRequirement new_value = merge(
-        input_requirements[socket_input.index_in_all_inputs()],
-        calc_output_socket_requirement(socket_output, input_requirements));
-    if (input_requirements[socket_input.index_in_all_inputs()] != new_value) {
-      input_requirements[socket_input.index_in_all_inputs()] = new_value;
+        input_requirements[input_of_input_node.index_in_all_inputs()],
+        calc_output_socket_requirement(output_of_output_node, input_requirements));
+    if (input_requirements[input_of_input_node.index_in_all_inputs()] != new_value) {
+      input_requirements[input_of_input_node.index_in_all_inputs()] = new_value;
       change |= ZoneInOutChange::In;
     }
-    if (input_requirements[socket_input.index_in_all_inputs()] != new_value) {
-      input_requirements[socket_input.index_in_all_inputs()] = new_value;
-      change |= ZoneInOutChange::In;
+    if (input_requirements[input_of_output_node.index_in_all_inputs()] != new_value) {
+      input_requirements[input_of_output_node.index_in_all_inputs()] = new_value;
+      change |= ZoneInOutChange::Out;
     }
   }
   return change;
@@ -382,23 +384,41 @@ static void propagate_right_to_left(const bNodeTree &tree,
                                      input_requirements[socket->index_in_all_inputs()]);
         }
 
-        /* When a data requirement could be provided by multiple node inputs (i.e. only a single
-         * node input involved in a math operation has to be a volume grid for the output to be a
-         * grid), it's better to not propagate the data requirement than incorrectly saying that
-         * all of the inputs have it. */
-        Vector<int, 8> inputs_with_links;
-        for (const int input : node_interface.outputs[output].linked_inputs) {
-          const bNodeSocket &input_socket = *input_sockets[input];
-          if (input_socket.is_directly_linked()) {
-            inputs_with_links.append(input_socket.index_in_all_inputs());
+        switch (output_requirement) {
+          case DataRequirement::Invalid:
+          case DataRequirement::None: {
+            break;
           }
-        }
-        if (inputs_with_links.size() == 1) {
-          input_requirements[inputs_with_links.first()] = output_requirement;
-        }
-        else {
-          for (const int input : inputs_with_links) {
-            input_requirements[input] = DataRequirement::None;
+          case DataRequirement::Single: {
+            /* If the output is a single, all inputs must be singles. */
+            for (const int input : node_interface.outputs[output].linked_inputs) {
+              const bNodeSocket &input_socket = *input_sockets[input];
+              input_requirements[input_socket.index_in_all_inputs()] = DataRequirement::Single;
+            }
+            break;
+          }
+          case DataRequirement::Field:
+          case DataRequirement::Grid: {
+            /* When a data requirement could be provided by multiple node inputs (i.e. only a
+             * single node input involved in a math operation has to be a volume grid for the
+             * output to be a grid), it's better to not propagate the data requirement than
+             * incorrectly saying that all of the inputs have it. */
+            Vector<int, 8> inputs_with_links;
+            for (const int input : node_interface.outputs[output].linked_inputs) {
+              const bNodeSocket &input_socket = *input_sockets[input];
+              if (input_socket.is_directly_linked()) {
+                inputs_with_links.append(input_socket.index_in_all_inputs());
+              }
+            }
+            if (inputs_with_links.size() == 1) {
+              input_requirements[inputs_with_links.first()] = output_requirement;
+            }
+            else {
+              for (const int input : inputs_with_links) {
+                input_requirements[input] = DataRequirement::None;
+              }
+            }
+            break;
           }
         }
       }
@@ -428,7 +448,7 @@ static StructureType left_to_right_merge(const StructureType a, const StructureT
   if ((a == StructureType::Dynamic && b == StructureType::Field) ||
       (a == StructureType::Field && b == StructureType::Dynamic))
   {
-    return StructureType::Field;
+    return StructureType::Dynamic;
   }
   if ((a == StructureType::Dynamic && b == StructureType::Grid) ||
       (a == StructureType::Grid && b == StructureType::Dynamic))
@@ -483,16 +503,17 @@ static ZoneInOutChange repeat_zone_status_propagate(const bNode &input_node,
 {
   ZoneInOutChange change = ZoneInOutChange::None;
   for (const int i : output_node.output_sockets().index_range()) {
-    const bNodeSocket &input = input_node.output_socket(i + 1);
-    const bNodeSocket &output = output_node.output_socket(i);
-    const StructureType new_value = left_to_right_merge(structure_types[input.index_in_tree()],
-                                                        structure_types[output.index_in_tree()]);
-    if (structure_types[input.index_in_tree()] != new_value) {
-      structure_types[input.index_in_tree()] = new_value;
+    const bNodeSocket &input_of_input_node = input_node.output_socket(i + 1);
+    const bNodeSocket &output_of_output_node = output_node.output_socket(i);
+    const StructureType new_value = left_to_right_merge(
+        structure_types[input_of_input_node.index_in_tree()],
+        structure_types[output_of_output_node.index_in_tree()]);
+    if (structure_types[input_of_input_node.index_in_tree()] != new_value) {
+      structure_types[input_of_input_node.index_in_tree()] = new_value;
       change |= ZoneInOutChange::In;
     }
-    if (structure_types[output.index_in_tree()] != new_value) {
-      structure_types[output.index_in_tree()] = new_value;
+    if (structure_types[output_of_output_node.index_in_tree()] != new_value) {
+      structure_types[output_of_output_node.index_in_tree()] = new_value;
       change |= ZoneInOutChange::Out;
     }
   }
@@ -583,6 +604,16 @@ static void propagate_left_to_right(const bNodeTree &tree,
       }
     }
   }
+
+  /* Outputs of these nodes have dynamic structure type but should start out as single values. */
+  for (const StringRefNull idname : {"GeometryNodeRepeatInput", "GeometryNodeRepeatOutput"}) {
+    for (const bNode *node : tree.nodes_by_type(idname)) {
+      for (const bNodeSocket *socket : node->output_sockets()) {
+        structure_types[socket->index_in_tree()] = StructureType::Single;
+      }
+    }
+  }
+
   while (true) {
     bool need_update = false;
     for (const bNode *node : tree.toposort_left_to_right()) {
