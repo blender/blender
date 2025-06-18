@@ -105,7 +105,10 @@ void HIPDeviceGraphicsInterop::free()
     hip_graphics_resource_ = nullptr;
   }
 
-  hip_external_memory_ptr_ = 0;
+  if (hip_external_memory_ptr_) {
+    hip_device_assert(device_, hipFree(hip_external_memory_ptr_));
+    hip_external_memory_ptr_ = 0;
+  }
 
   buffer_size_ = 0;
 
