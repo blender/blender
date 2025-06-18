@@ -309,10 +309,6 @@ const bTheme U_theme_default = {
     .button_text_hi = RGBA(0xffffffff),
     .navigation_bar = RGBA(0x1d1d1dff),
     .execution_buts = RGBA(0x303030ff),
-    .asset_shelf = {
-      .header_back = RGBA(0x1d1d1dff),
-      .back = RGBA(0x303030ff),
-    },
     .grid = RGBA(0x54545480),
     .wire = RGBA(0x000000ff),
     .wire_edit = RGBA(0x000000ff),
@@ -676,10 +672,6 @@ const bTheme U_theme_default = {
     .button_text_hi = RGBA(0xffffffff),
     .navigation_bar = RGBA(0x1d1d1dff),
     .execution_buts = RGBA(0x303030ff),
-    .asset_shelf = {
-      .header_back = RGBA(0x1d1d1dff),
-      .back = RGBA(0x303030ff),
-    },
     .grid = RGBA(0x303030ff),
     .wire_edit = RGBA(0xc0c0c0ff),
     .vertex_select = RGBA(0xff8500ff),
@@ -993,6 +985,10 @@ const bTheme U_theme_default = {
     .active_object = RGBA(0xffaf29ff),
     .edited_object = RGBA(0x00806266),
     .row_alternate = RGBA(0xffffff04),
+  },
+  .asset_shelf = {
+    .header_back = RGBA(0x1d1d1dff),
+    .back = RGBA(0x303030ff),
   },
   .tarm = {
     {

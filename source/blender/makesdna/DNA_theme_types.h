@@ -263,8 +263,6 @@ typedef struct ThemeSpace {
   /** Region background. */
   unsigned char execution_buts[4];
 
-  ThemeAssetShelf asset_shelf;
-
   unsigned char shade1[4];
   unsigned char shade2[4];
 
@@ -520,6 +518,8 @@ typedef struct bTheme {
   ThemeSpace space_topbar;
   ThemeSpace space_statusbar;
   ThemeSpace space_spreadsheet;
+
+  ThemeAssetShelf asset_shelf;
 
   /* 20 sets of bone colors for this theme */
   ThemeWireColor tarm[20];

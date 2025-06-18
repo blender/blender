@@ -485,13 +485,6 @@
             </gradients>
           </ThemeSpaceGradient>
         </space>
-        <asset_shelf>
-          <ThemeAssetShelf
-            header_back="#adadadff"
-            back="#999999ff"
-            >
-          </ThemeAssetShelf>
-        </asset_shelf>
       </ThemeView3D>
     </view_3d>
     <graph_editor>
@@ -774,13 +767,6 @@
             >
           </ThemeSpaceGeneric>
         </space>
-        <asset_shelf>
-          <ThemeAssetShelf
-            header_back="#1d1d1dff"
-            back="#303030ff"
-            >
-          </ThemeAssetShelf>
-        </asset_shelf>
       </ThemeImageEditor>
     </image_editor>
     <sequence_editor>
@@ -1244,6 +1230,13 @@
         </space_list>
       </ThemeSpreadsheet>
     </spreadsheet>
+    <asset_shelf>
+      <ThemeAssetShelf
+        header_back="#adadadff"
+        back="#999999ff"
+        >
+      </ThemeAssetShelf>
+    </asset_shelf>
     <bone_color_sets>
       <ThemeBoneColorSet
         normal="#9a0000"

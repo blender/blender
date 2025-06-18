@@ -182,10 +182,10 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
             cp = ts->execution_buts;
           }
           else if (g_theme_state.regionid == RGN_TYPE_ASSET_SHELF) {
-            cp = ts->asset_shelf.back;
+            cp = btheme->asset_shelf.back;
           }
           else if (g_theme_state.regionid == RGN_TYPE_ASSET_SHELF_HEADER) {
-            cp = ts->asset_shelf.header_back;
+            cp = btheme->asset_shelf.header_back;
           }
           else {
             cp = ts->button;
