@@ -60,12 +60,7 @@ class gltf2_KHR_materials_variants_variant(bpy.types.PropertyGroup):
 
 class SCENE_UL_gltf2_variants(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(item, "name", text="", emboss=False)
-
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
+        layout.prop(item, "name", text="", emboss=False)
 
 
 class SCENE_PT_gltf2_variants(bpy.types.Panel):
@@ -320,12 +315,8 @@ class MESH_UL_gltf2_mesh_variants(bpy.types.UIList):
 
         vari = item.variant
         layout.context_pointer_set("id", vari)
-
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(bpy.data.scenes[0].gltf2_KHR_materials_variants_variants[vari.variant_idx],
-                        "name", text="", emboss=False)
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
+        layout.prop(bpy.data.scenes[0].gltf2_KHR_materials_variants_variants[vari.variant_idx],
+                    "name", text="", emboss=False)
 
 
 class MESH_PT_gltf2_mesh_variants(bpy.types.Panel):
@@ -502,16 +493,11 @@ class gltf2_animation_NLATrackNames(bpy.types.PropertyGroup):
 
 class SCENE_UL_gltf2_animation_track(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row()
-            icon = 'SOLO_ON' if index == bpy.data.scenes[0].gltf2_animation_applied else 'SOLO_OFF'
-            row.prop(item, "name", text="", emboss=False)
-            op = row.operator("scene.gltf2_animation_apply", text='', icon=icon)
-            op.index = index
-
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
+        row = layout.row()
+        icon = 'SOLO_ON' if index == bpy.data.scenes[0].gltf2_animation_applied else 'SOLO_OFF'
+        row.prop(item, "name", text="", emboss=False)
+        op = row.operator("scene.gltf2_animation_apply", text='', icon=icon)
+        op.index = index
 
 
 class SCENE_OT_gltf2_animation_apply(bpy.types.Operator):
@@ -642,13 +628,8 @@ class SCENE_UL_gltf2_filter_action(bpy.types.UIList):
 
         action = item.action
         layout.context_pointer_set("id", action)
-
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.split().prop(item.action, "name", text="", emboss=False)
-            layout.split().prop(item, "keep", text="", emboss=True)
-
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
+        layout.split().prop(item.action, "name", text="", emboss=False)
+        layout.split().prop(item, "keep", text="", emboss=True)
 
 
 def export_panel_animation_action_filter(layout, operator):

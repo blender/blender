@@ -134,28 +134,23 @@ class PARTICLE_UL_particle_systems(UIList):
         ob = data
         psys = item
 
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            md = find_modifier(ob, psys)
-            row = layout.row(align=True)
+        md = find_modifier(ob, psys)
+        row = layout.row(align=True)
 
-            row.prop(psys, "name", text="", emboss=False, icon_value=icon)
-            if md:
-                row.prop(
-                    md,
-                    "show_viewport",
-                    emboss=False,
-                    icon_only=True,
-                )
-                row.prop(
-                    md,
-                    "show_render",
-                    emboss=False,
-                    icon_only=True,
-                )
-
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+        row.prop(psys, "name", text="", emboss=False, icon_value=icon)
+        if md:
+            row.prop(
+                md,
+                "show_viewport",
+                emboss=False,
+                icon_only=True,
+            )
+            row.prop(
+                md,
+                "show_render",
+                emboss=False,
+                icon_only=True,
+            )
 
 
 class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):

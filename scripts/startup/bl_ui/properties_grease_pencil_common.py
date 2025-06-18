@@ -247,23 +247,18 @@ class GPENCIL_UL_annotation_layer(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
         gpl = item
+        if gpl.lock:
+            layout.active = False
 
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            if gpl.lock:
-                layout.active = False
+        split = layout.split(factor=0.2)
+        split.prop(gpl, "color", text="", emboss=True)
+        split.prop(gpl, "info", text="", emboss=False)
 
-            split = layout.split(factor=0.2)
-            split.prop(gpl, "color", text="", emboss=True)
-            split.prop(gpl, "info", text="", emboss=False)
+        row = layout.row(align=True)
 
-            row = layout.row(align=True)
+        row.prop(gpl, "show_in_front", text="", icon='XRAY' if gpl.show_in_front else 'FACESEL', emboss=False)
 
-            row.prop(gpl, "show_in_front", text="", icon='XRAY' if gpl.show_in_front else 'FACESEL', emboss=False)
-
-            row.prop(gpl, "annotation_hide", text="", emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+        row.prop(gpl, "annotation_hide", text="", emboss=False)
 
 
 class AnnotationDataPanel:
@@ -510,40 +505,32 @@ class GPENCIL_UL_layer(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
         gpl = item
+        if gpl.lock:
+            layout.active = False
 
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            if gpl.lock:
-                layout.active = False
+        row = layout.row(align=True)
+        row.label(
+            text="",
+            icon='BONE_DATA' if gpl.is_parented else 'BLANK1',
+        )
+        row.prop(gpl, "info", text="", emboss=False)
 
-            row = layout.row(align=True)
-            row.label(
-                text="",
-                icon='BONE_DATA' if gpl.is_parented else 'BLANK1',
-            )
-            row.prop(gpl, "info", text="", emboss=False)
+        row = layout.row(align=True)
 
-            row = layout.row(align=True)
+        icon_mask = 'CLIPUV_DEHLT' if gpl.use_mask_layer else 'CLIPUV_HLT'
 
-            icon_mask = 'CLIPUV_DEHLT' if gpl.use_mask_layer else 'CLIPUV_HLT'
+        row.prop(gpl, "use_mask_layer", text="", icon=icon_mask, emboss=False)
 
-            row.prop(gpl, "use_mask_layer", text="", icon=icon_mask, emboss=False)
-
-            subrow = row.row(align=True)
-            subrow.prop(
-                gpl,
-                "use_onion_skinning",
-                text="",
-                icon='ONIONSKIN_ON' if gpl.use_onion_skinning else 'ONIONSKIN_OFF',
-                emboss=False,
-            )
-            row.prop(gpl, "hide", text="", emboss=False)
-            row.prop(gpl, "lock", text="", emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(
-                text="",
-                icon_value=icon,
-            )
+        subrow = row.row(align=True)
+        subrow.prop(
+            gpl,
+            "use_onion_skinning",
+            text="",
+            icon='ONIONSKIN_ON' if gpl.use_onion_skinning else 'ONIONSKIN_OFF',
+            emboss=False,
+        )
+        row.prop(gpl, "hide", text="", emboss=False)
+        row.prop(gpl, "lock", text="", emboss=False)
 
 
 class GreasePencilSimplifyPanel:
@@ -617,14 +604,10 @@ class GreasePencilLayerAdjustmentsPanel:
 class GPENCIL_UL_masks(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         mask = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row(align=True)
-            row.prop(mask, "name", text="", emboss=False, icon_value=icon)
-            row.prop(mask, "invert", text="", emboss=False)
-            row.prop(mask, "hide", text="", emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.prop(mask, "name", text="", emboss=False, icon_value=icon)
+        row = layout.row(align=True)
+        row.prop(mask, "name", text="", emboss=False, icon_value=icon)
+        row.prop(mask, "invert", text="", emboss=False)
+        row.prop(mask, "hide", text="", emboss=False)
 
 
 class GreasePencilLayerRelationsPanel:

@@ -14,12 +14,7 @@ class MESH_UL_mylist(bpy.types.UIList):
 
     # Called for each drawn item.
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index, flt_flag):
-        # 'DEFAULT' and 'COMPACT' layout types should usually use the same draw code.
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            pass
-        # 'GRID' layout type should be as compact as possible (typically a single icon!).
-        elif self.layout_type == 'GRID':
-            pass
+        pass
 
     # Called once to draw filtering/reordering options.
     def draw_filter(self, context, layout):

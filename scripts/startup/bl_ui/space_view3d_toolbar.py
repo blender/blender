@@ -265,11 +265,7 @@ class TEXTURE_UL_texpaintslots(UIList):
         if ima is not None and ima.is_editable:
             layout.enabled = False
 
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=item.name, icon_value=item.icon_value)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="")
+        layout.label(text=item.name, icon_value=item.icon_value)
 
 
 class View3DPaintPanel(View3DPanel, UnifiedPaintPanel):
