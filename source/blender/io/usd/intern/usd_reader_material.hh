@@ -130,7 +130,9 @@ class USDMaterialReader {
 
  protected:
   /** Create the Principled BSDF shader node network. */
-  void import_usd_preview_nodes(Material *mtl, const pxr::UsdShadeShader &usd_shader) const;
+  void import_usd_preview_nodes(Material *mtl,
+                                const pxr::UsdShadeMaterial &usd_material,
+                                const pxr::UsdShadeShader &usd_shader) const;
 
   void set_principled_node_inputs(bNode *principled_node,
                                   bNodeTree *ntree,

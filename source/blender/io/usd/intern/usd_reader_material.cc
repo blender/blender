@@ -477,12 +477,13 @@ void USDMaterialReader::import_usd_preview(Material *mtl,
 
     /* Optionally, create shader nodes to represent a UsdPreviewSurface. */
     if (params_.import_usd_preview) {
-      import_usd_preview_nodes(mtl, usd_preview);
+      import_usd_preview_nodes(mtl, usd_material, usd_preview);
     }
   }
 }
 
 void USDMaterialReader::import_usd_preview_nodes(Material *mtl,
+                                                 const pxr::UsdShadeMaterial &usd_material,
                                                  const pxr::UsdShadeShader &usd_shader) const
 {
   if (!(mtl && usd_shader)) {
@@ -509,8 +510,11 @@ void USDMaterialReader::import_usd_preview_nodes(Material *mtl,
   /* Recursively create the principled shader input networks. */
   set_principled_node_inputs(principled, ntree, usd_shader);
 
-  if (set_displacement_node_inputs(ntree, output, usd_shader)) {
-    mtl->displacement_method = MA_DISPLACEMENT_BOTH;
+  /* Process displacement if we have a valid displacement source. */
+  if (pxr::UsdShadeShader disp_shader = usd_material.ComputeDisplacementSource()) {
+    if (set_displacement_node_inputs(ntree, output, disp_shader)) {
+      mtl->displacement_method = MA_DISPLACEMENT_BOTH;
+    }
   }
 
   blender::bke::node_set_active(*ntree, *output);
