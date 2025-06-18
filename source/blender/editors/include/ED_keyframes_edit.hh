@@ -137,7 +137,11 @@ enum eKeyframeVertOk {
 
 /* Flags for use during iteration */
 enum eKeyframeIterFlags {
-  /* consider handles in addition to key itself */
+  /* Consider handles in addition to key itself. Used in #keyframe_ok_checks, #select_bezier_add,
+   * #select_bezier_subtract. If set, treat key and handles separately (e.g (de)select them
+   * individually, and do additional visibility checks on the handles if necessary), otherwise
+   * always treat key and handles the same (e.g. (de)select all of them).
+   */
   KEYFRAME_ITER_INCL_HANDLES = (1 << 0),
 
   /* Perform NLA time remapping (global -> strip) for the "f1" parameter
@@ -152,7 +156,11 @@ enum eKeyframeIterFlags {
    * get the actual visibility state. E.g. in some cases handles are only drawn if either a handle
    * or their control point is selected. The selection state will have to be checked in the
    * iterator callbacks then. */
+  /* Represents "Only Selected Keyframes" option (SIPO_SELVHANDLESONLY). */
   KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE = (1 << 3),
+
+  /* Represents "Show Handles" option (SIPO_NOHANDLES). */
+  KEYFRAME_ITER_HANDLES_INVISIBLE = (1 << 4),
 };
 ENUM_OPERATORS(eKeyframeIterFlags, KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE)
 
