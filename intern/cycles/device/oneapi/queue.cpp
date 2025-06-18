@@ -42,9 +42,14 @@ int OneapiDeviceQueue::num_concurrent_busy_states(const size_t /*state_size*/) c
   return 4 * max(8 * max_num_threads, 65536);
 }
 
-int OneapiDeviceQueue::num_sort_partition_elements() const
+int OneapiDeviceQueue::num_sort_partitions(int max_num_paths, uint /*max_scene_shaders*/) const
 {
-  return (oneapi_device_->get_max_num_threads_per_multiprocessor() >= 128) ? 65536 : 8192;
+  int sort_partition_elements = (oneapi_device_->get_max_num_threads_per_multiprocessor() >= 128) ?
+                                    65536 :
+                                    8192;
+  /* Sort partitioning with local sorting on Intel GPUs is currently the most effective solution no
+   * matter the number of shaders. */
+  return max(max_num_paths / sort_partition_elements, 1);
 }
 
 void OneapiDeviceQueue::init_execution()

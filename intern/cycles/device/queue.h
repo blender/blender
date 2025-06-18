@@ -99,11 +99,20 @@ class DeviceQueue {
    * value. */
   virtual int num_concurrent_busy_states(const size_t state_size) const = 0;
 
-  /* Number of elements in a partition of sorted shaders, that improves memory locality of
+  /* Number of partitions of sorted shaders, that improves memory locality of
    * integrator state fetch at the cost of decreased coherence for shader kernel execution. */
-  virtual int num_sort_partition_elements() const
+  virtual int num_sort_partitions(int max_num_paths, uint max_scene_shaders) const
   {
-    return 65536;
+    /* Sort partitioning becomes less effective when more shaders are in the wavefront. In lieu of
+     * a more sophisticated heuristic we simply disable sort partitioning if the shader count is
+     * high.
+     */
+    if (max_scene_shaders < 300) {
+      return max(max_num_paths / 65536, 1);
+    }
+    else {
+      return 1;
+    }
   }
 
   /* Does device support local atomic sorting kernels (INTEGRATOR_SORT_BUCKET_PASS and
