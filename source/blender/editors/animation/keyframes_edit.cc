@@ -561,6 +561,18 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 
 /* ------------------------ */
 
+static bool handles_visible(KeyframeEditData *ked, BezTriple *bezt)
+{
+  const bool handles_shown = (ked->iterflags & KEYFRAME_ITER_HANDLES_INVISIBLE) == 0;
+  if (!handles_shown) {
+    return false;
+  }
+  const bool handles_shown_only_selected = ked->iterflags &
+                                           KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE;
+
+  return handles_shown_only_selected ? BEZT_ISSEL_ANY(bezt) : true;
+}
+
 static short keyframe_ok_checks(
     KeyframeEditData *ked,
     BezTriple *bezt,
@@ -572,10 +584,7 @@ static short keyframe_ok_checks(
   }
   if (ked && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES))
   { /* Only act on visible items, so check handle visibility state. */
-    const bool handles_visible = ((ked->iterflags & KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE) ?
-                                      BEZT_ISSEL_ANY(bezt) :
-                                      true);
-    if (handles_visible) {
+    if (handles_visible(ked, bezt)) {
       if (check(ked, bezt, 0)) {
         ok |= KEYFRAME_OK_H1;
       }
@@ -1594,12 +1603,8 @@ KeyframeEditFunc ANIM_editkeyframes_easing(short mode)
 static short select_bezier_add(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* Only act on visible items, so check handle visibility state. */
-  const bool handles_visible = ked && ((ked->iterflags & KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE) ?
-                                           BEZT_ISSEL_ANY(bezt) :
-                                           true);
-
   /* if we've got info on what to select, use it, otherwise select all */
-  if ((ked) && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES) && handles_visible) {
+  if ((ked) && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES) && handles_visible(ked, bezt)) {
     if (ked->curflags & KEYFRAME_OK_KEY) {
       bezt->f2 |= SELECT;
     }
@@ -1620,12 +1625,8 @@ static short select_bezier_add(KeyframeEditData *ked, BezTriple *bezt)
 static short select_bezier_subtract(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* Only act on visible items, so check handle visibility state. */
-  const bool handles_visible = ked && ((ked->iterflags & KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE) ?
-                                           BEZT_ISSEL_ANY(bezt) :
-                                           true);
-
   /* if we've got info on what to deselect, use it, otherwise deselect all */
-  if ((ked) && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES) && handles_visible) {
+  if ((ked) && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES) && handles_visible(ked, bezt)) {
     if (ked->curflags & KEYFRAME_OK_KEY) {
       bezt->f2 &= ~SELECT;
     }
