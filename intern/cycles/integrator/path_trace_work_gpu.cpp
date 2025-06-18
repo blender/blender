@@ -241,17 +241,8 @@ void PathTraceWorkGPU::alloc_integrator_queue()
 
 void PathTraceWorkGPU::alloc_integrator_sorting()
 {
-  /* Compute sort partitions, to balance between memory locality and coherence.
-   * Sort partitioning becomes less effective when more shaders are in the wavefront. In lieu of a
-   * more sophisticated heuristic we simply disable sort partitioning if the shader count is high.
-   */
-  num_sort_partitions_ = 1;
-  if (device_scene_->data.max_shaders < 300) {
-    const int num_elements = queue_->num_sort_partition_elements();
-    if (num_elements) {
-      num_sort_partitions_ = max(max_num_paths_ / num_elements, 1);
-    }
-  }
+  num_sort_partitions_ = queue_->num_sort_partitions(max_num_paths_,
+                                                     device_scene_->data.max_shaders);
 
   integrator_state_gpu_.sort_partition_divisor = (int)divide_up(max_num_paths_,
                                                                 num_sort_partitions_);
