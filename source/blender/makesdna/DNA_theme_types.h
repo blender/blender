@@ -257,12 +257,6 @@ typedef struct ThemeSpace {
   unsigned char list_text[4];
   unsigned char list_text_hi[4];
 
-  /* navigation bar regions */
-  /** Region background. */
-  unsigned char navigation_bar[4];
-  /** Region background. */
-  unsigned char execution_buts[4];
-
   unsigned char shade1[4];
   unsigned char shade2[4];
 
