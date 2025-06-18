@@ -1347,14 +1347,14 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
      * this panel is getting spawned from, so that things like the "Open Drivers Editor"
      * button will work.
      */
-    uiLayoutSetContextFromBut(layout, but);
+    layout->context_set_from_but(but);
 
     /* Populate Panel - With a combination of the contents of the Driven and Driver panels */
     if (fcu && fcu->driver) {
       ID *id = ptr.owner_id;
 
       PointerRNA ptr_fcurve = RNA_pointer_create_discrete(id, &RNA_FCurve, fcu);
-      uiLayoutSetContextPointer(layout, "active_editable_fcurve", &ptr_fcurve);
+      layout->context_ptr_set("active_editable_fcurve", &ptr_fcurve);
 
       /* Driven Property Settings */
       layout->label(IFACE_("Driven Property:"), ICON_NONE);

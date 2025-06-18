@@ -46,7 +46,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
   Object *ob = blender::ed::object::context_active_object(C);
 
   PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
-  uiLayoutSetContextPointer(layout, "constraint", &ptr);
+  layout->context_ptr_set("constraint", &ptr);
   layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
 
   layout->ui_units_x_set(4.0f);
@@ -110,7 +110,7 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
     UI_panel_context_pointer_set(block->panel, "constraint", &ptr);
   }
   else {
-    uiLayoutSetContextPointer(layout, "constraint", &ptr);
+    layout->context_ptr_set("constraint", &ptr);
   }
 
   /* Constraint type icon. */

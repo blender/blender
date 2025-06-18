@@ -792,7 +792,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
           /* Items should be able to set context pointers for the layout. But the list-row button
            * swallows events, so it needs the context storage too for handlers to see it. */
-          but->context = uiLayoutGetContextStore(sub);
+          but->context = sub->context_store();
 
           /* If we are "drawing" active item, set all labels as active. */
           if (i == items->active_item_idx) {
@@ -1041,7 +1041,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
           /* Items should be able to set context pointers for the layout. But the list-row button
            * swallows events, so it needs the context storage too for handlers to see it. */
-          but->context = uiLayoutGetContextStore(col);
+          but->context = col->context_store();
 
           /* If we are "drawing" active item, set all labels as active. */
           if (i == items->active_item_idx) {

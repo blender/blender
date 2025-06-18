@@ -356,7 +356,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
   PointerRNA imaptr = RNA_pointer_get(ptr, "image");
   PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 
-  uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+  layout->context_ptr_set("image_user", &iuserptr);
   uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
   layout->prop(ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
   layout->prop(ptr, "projection", DEFAULT_FLAGS, "", ICON_NONE);
@@ -384,7 +384,7 @@ static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, Poin
   PointerRNA imaptr = RNA_pointer_get(ptr, "image");
   PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 
-  uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+  layout->context_ptr_set("image_user", &iuserptr);
   uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
 
   layout->prop(ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
@@ -508,7 +508,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
   bNode *node = (bNode *)ptr->data;
 
   PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_ImageUser, node->storage);
-  uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+  layout->context_ptr_set("image_user", &iuserptr);
   uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
   if (!node->id) {
     return;
@@ -526,7 +526,7 @@ static void node_composit_buts_image_ex(uiLayout *layout, bContext *C, PointerRN
   bNode *node = (bNode *)ptr->data;
 
   PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_ImageUser, node->storage);
-  uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+  layout->context_ptr_set("image_user", &iuserptr);
   uiTemplateImage(layout, C, ptr, "image", &iuserptr, false, true);
 }
 
@@ -603,7 +603,7 @@ static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, Pointe
     PointerRNA imaptr = RNA_pointer_get(ptr, "image");
     PointerRNA iuserptr = RNA_pointer_create_discrete(
         ptr->owner_id, &RNA_ImageUser, &crypto->iuser);
-    uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+    layout->context_ptr_set("image_user", &iuserptr);
 
     node_buts_image_user(col, C, ptr, &imaptr, &iuserptr, false, false);
     node_buts_image_views(col, C, ptr, &imaptr);

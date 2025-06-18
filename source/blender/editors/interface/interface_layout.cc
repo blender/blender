@@ -1345,7 +1345,7 @@ static void ui_item_menu_hold(bContext *C, ARegion *butregion, uiBut *but)
   const char *menu_id = static_cast<const char *>(but->hold_argN);
   MenuType *mt = WM_menutype_find(menu_id, true);
   if (mt) {
-    uiLayoutSetContextFromBut(layout, but);
+    layout->context_set_from_but(but);
     UI_menutype_draw(C, mt, layout);
   }
   else {
@@ -5851,33 +5851,53 @@ bool UI_block_layout_needs_resolving(const uiBlock *block)
   return !BLI_listbase_is_empty(&block->layouts);
 }
 
-void uiLayoutSetContextPointer(uiLayout *layout, StringRef name, PointerRNA *ptr)
+const PointerRNA *uiLayout::context_ptr_get(const blender::StringRef name,
+                                            const StructRNA *type) const
 {
-  uiBlock *block = layout->block();
-  layout->context_ = CTX_store_add(block->contexts, name, ptr);
+  if (!context_) {
+    return nullptr;
+  }
+  return CTX_store_ptr_lookup(context_, name, type);
 }
 
-void uiLayoutSetContextString(uiLayout *layout, StringRef name, blender::StringRef value)
+void uiLayout::context_ptr_set(StringRef name, const PointerRNA *ptr)
 {
-  uiBlock *block = layout->block();
-  layout->context_ = CTX_store_add(block->contexts, name, value);
+  uiBlock *block = this->block();
+  context_ = CTX_store_add(block->contexts, name, ptr);
+}
+std::optional<blender::StringRefNull> uiLayout::context_string_get(
+    const blender::StringRef name) const
+{
+  if (!context_) {
+    return std::nullopt;
+  }
+  return CTX_store_string_lookup(context_, name);
 }
 
-void uiLayoutSetContextInt(uiLayout *layout, StringRef name, int64_t value)
+void uiLayout::context_string_set(StringRef name, blender::StringRef value)
 {
-  uiBlock *block = layout->block();
-  layout->context_ = CTX_store_add(block->contexts, name, value);
+  uiBlock *block = this->block();
+  context_ = CTX_store_add(block->contexts, name, value);
 }
 
-bContextStore *uiLayoutGetContextStore(uiLayout *layout)
+std::optional<int64_t> uiLayout::context_int_get(const blender::StringRef name) const
 {
-  return layout->context_;
+  if (!context_) {
+    return std::nullopt;
+  }
+  return CTX_store_int_lookup(context_, name);
 }
 
-void uiLayoutContextCopy(uiLayout *layout, const bContextStore *context)
+void uiLayout::context_int_set(blender::StringRef name, int64_t value)
 {
-  uiBlock *block = layout->block();
-  layout->context_ = CTX_store_add_all(block->contexts, context);
+  uiBlock *block = this->block();
+  context_ = CTX_store_add(block->contexts, name, value);
+}
+
+void uiLayout::context_copy(const bContextStore *context)
+{
+  uiBlock *block = this->block();
+  context_ = CTX_store_add_all(block->contexts, context);
 }
 
 void uiLayoutSetTooltipFunc(uiLayout *layout,
@@ -5915,17 +5935,17 @@ void uiLayoutSetTooltipFunc(uiLayout *layout,
   }
 }
 
-void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but)
+void uiLayout::context_set_from_but(const uiBut *but)
 {
   if (but->opptr) {
-    uiLayoutSetContextPointer(layout, "button_operator", but->opptr);
+    this->context_ptr_set("button_operator", but->opptr);
   }
 
   if (but->rnapoin.data && but->rnaprop) {
     /* TODO: index could be supported as well */
     PointerRNA ptr_prop = RNA_pointer_create_discrete(nullptr, &RNA_Property, but->rnaprop);
-    uiLayoutSetContextPointer(layout, "button_prop", &ptr_prop);
-    uiLayoutSetContextPointer(layout, "button_pointer", &but->rnapoin);
+    this->context_ptr_set("button_prop", &ptr_prop);
+    this->context_ptr_set("button_pointer", &but->rnapoin);
   }
 }
 

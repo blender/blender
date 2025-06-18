@@ -2699,8 +2699,8 @@ static void ui_panel_custom_data_set_recursive(Panel *panel, PointerRNA *custom_
 
 void UI_panel_context_pointer_set(Panel *panel, const char *name, PointerRNA *ptr)
 {
-  uiLayoutSetContextPointer(panel->layout, name, ptr);
-  panel->runtime->context = uiLayoutGetContextStore(panel->layout);
+  panel->layout->context_ptr_set(name, ptr);
+  panel->runtime->context = panel->layout->context_store();
 }
 
 void UI_panel_custom_data_set(Panel *panel, PointerRNA *custom_data)

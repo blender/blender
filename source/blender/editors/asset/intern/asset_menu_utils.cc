@@ -140,7 +140,7 @@ void draw_menu_for_catalog(const asset_system::AssetCatalogTreeItem &item,
                            uiLayout &layout)
 {
   uiLayout *col = &layout.column(false);
-  uiLayoutSetContextString(col, "asset_catalog_path", item.catalog_path().c_str());
+  col->context_string_set("asset_catalog_path", item.catalog_path().c_str());
   col->menu(menu_name, IFACE_(item.get_name()), ICON_NONE);
 }
 

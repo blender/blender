@@ -238,7 +238,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   bScreen *screen = CTX_wm_screen(C);
   PointerRNA library_ref_ptr = RNA_pointer_create_discrete(
       &screen->id, &RNA_AssetLibraryReference, &shelf->settings.asset_library_reference);
-  uiLayoutSetContextPointer(layout, "asset_library_reference", &library_ref_ptr);
+  layout->context_ptr_set("asset_library_reference", &library_ref_ptr);
 
   uiLayout *row = &layout->row(false);
   uiLayout *catalogs_col = &row->column(false);

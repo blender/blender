@@ -129,6 +129,22 @@ struct uiLayout : uiItem {
 
   uiBlock *block() const;
 
+  void context_copy(const bContextStore *context);
+
+  const PointerRNA *context_ptr_get(const blender::StringRef name, const StructRNA *type) const;
+  void context_ptr_set(blender::StringRef name, const PointerRNA *ptr);
+
+  std::optional<blender::StringRefNull> context_string_get(const blender::StringRef name) const;
+  void context_string_set(blender::StringRef name, blender::StringRef value);
+
+  std::optional<int64_t> context_int_get(const blender::StringRef name) const;
+  void context_int_set(blender::StringRef name, int64_t value);
+
+  /** Only for convenience. */
+  void context_set_from_but(const uiBut *but);
+
+  bContextStore *context_store() const;
+
   bool enabled() const;
   /**
    * Sets the enabled state of the layout and its items.
@@ -426,6 +442,11 @@ inline void uiLayout::activate_init_set(bool activate_init)
   activate_init_ = activate_init;
 }
 
+inline bContextStore *uiLayout::context_store() const
+{
+  return context_;
+}
+
 inline bool uiLayout::enabled() const
 {
   return enabled_;
@@ -558,11 +579,6 @@ void UI_block_layout_free(uiBlock *block);
 bool UI_block_apply_search_filter(uiBlock *block, const char *search_filter);
 
 void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
-void uiLayoutSetContextPointer(uiLayout *layout, blender::StringRef name, PointerRNA *ptr);
-void uiLayoutSetContextString(uiLayout *layout, blender::StringRef name, blender::StringRef value);
-void uiLayoutSetContextInt(uiLayout *layout, blender::StringRef name, int64_t value);
-bContextStore *uiLayoutGetContextStore(uiLayout *layout);
-void uiLayoutContextCopy(uiLayout *layout, const bContextStore *context);
 
 /**
  * Set tooltip function for all buttons in the layout.
@@ -587,9 +603,6 @@ void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout);
  * Used for popup panels only.
  */
 void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout);
-
-/* Only for convenience. */
-void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but);
 
 void uiLayoutSetRedAlert(uiLayout *layout, bool redalert);
 void uiLayoutSetAlignment(uiLayout *layout, char alignment);

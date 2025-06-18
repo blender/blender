@@ -238,8 +238,8 @@ class CollectionViewItem : public BasicTreeViewItem {
       PointerRNA id_ptr = RNA_id_pointer_create(&id_);
       PointerRNA collection_ptr = RNA_id_pointer_create(&collection_.id);
 
-      uiLayoutSetContextPointer(&context_layout_, "id", &id_ptr);
-      uiLayoutSetContextPointer(&context_layout_, "collection", &collection_ptr);
+      context_layout_.context_ptr_set("id", &id_ptr);
+      context_layout_.context_ptr_set("collection", &collection_ptr);
     }
 
     add_label(row);

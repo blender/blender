@@ -772,8 +772,8 @@ void uiTemplateImage(uiLayout *layout,
   Scene *scene = CTX_data_scene(C);
   BKE_image_user_frame_calc(ima, iuser, scene->r.cfra);
 
-  uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
-  uiLayoutSetContextPointer(layout, "edit_image_user", userptr);
+  layout->context_ptr_set("edit_image", &imaptr);
+  layout->context_ptr_set("edit_image_user", userptr);
 
   SpaceImage *space_image = CTX_wm_space_image(C);
   if (!compact && (space_image == nullptr || iuser != &space_image->iuser)) {

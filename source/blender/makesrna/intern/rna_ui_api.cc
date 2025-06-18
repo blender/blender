@@ -543,6 +543,16 @@ static void rna_uiItemSeparator(uiLayout *layout, float factor, int type)
   layout->separator(factor, LayoutSeparatorType(type));
 }
 
+static void rna_uiLayoutContextPointerSet(uiLayout *layout, const char *name, PointerRNA *ptr)
+{
+  layout->context_ptr_set(name, ptr);
+}
+
+static void rna_uiLayoutContextStringSet(uiLayout *layout, const char *name, const char *value)
+{
+  layout->context_string_set(name, value);
+}
+
 static void rna_uiTemplateID(uiLayout *layout,
                              bContext *C,
                              PointerRNA *ptr,
@@ -1604,13 +1614,13 @@ void RNA_api_ui_layout(StructRNA *srna)
                "The type of progress indicator");
 
   /* context */
-  func = RNA_def_function(srna, "context_pointer_set", "uiLayoutSetContextPointer");
+  func = RNA_def_function(srna, "context_pointer_set", "rna_uiLayoutContextPointerSet");
   parm = RNA_def_string(func, "name", nullptr, 0, "Name", "Name of entry in the context");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "data", "AnyType", "", "Pointer to put in context");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
 
-  func = RNA_def_function(srna, "context_string_set", "uiLayoutSetContextString");
+  func = RNA_def_function(srna, "context_string_set", "rna_uiLayoutContextStringSet");
   parm = RNA_def_string(func, "name", nullptr, 0, "Name", "Name of entry in the context");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_string(func, "value", nullptr, 0, "Value", "String to put in context");
