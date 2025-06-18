@@ -157,6 +157,10 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname)
   /* memarena, used for operator's slot buffers */
   op->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
   BLI_memarena_use_calloc(op->arena);
+
+  if (bmo_opdefines[opcode]->init) {
+    bmo_opdefines[opcode]->init(op);
+  }
 }
 
 void BMO_op_exec(BMesh *bm, BMOperator *op)
