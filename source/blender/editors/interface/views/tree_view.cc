@@ -166,7 +166,8 @@ std::optional<uiViewState> AbstractTreeView::persistent_state() const
 void AbstractTreeView::persistent_state_apply(const uiViewState &state)
 {
   if (state.custom_height) {
-    set_default_rows(round_fl_to_int(state.custom_height * UI_SCALE_FAC) / padded_item_height());
+    set_default_rows(std::max(
+        MIN_ROWS, round_fl_to_int(state.custom_height * UI_SCALE_FAC) / padded_item_height()));
   }
   if (state.scroll_offset) {
     scroll_value_ = std::make_shared<int>(state.scroll_offset);
