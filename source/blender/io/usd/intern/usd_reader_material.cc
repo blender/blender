@@ -918,6 +918,33 @@ static void configure_displacement(const pxr::UsdShadeShader &usd_shader, bNode 
   ((bNodeSocketValueFloat *)sock_scale->default_value)->value = scale_avg;
 }
 
+static pxr::UsdShadeShader node_graph_output_source(const pxr::UsdShadeNodeGraph &node_graph,
+                                                    const pxr::TfToken &output_name)
+{
+  // Check that we have a legit output
+  pxr::UsdShadeOutput output = node_graph.GetOutput(output_name);
+  if (!output) {
+    return pxr::UsdShadeShader();
+  }
+
+  pxr::UsdShadeAttributeVector attrs = pxr::UsdShadeUtils::GetValueProducingAttributes(output);
+  if (attrs.empty()) {
+    return pxr::UsdShadeShader();
+  }
+
+  pxr::UsdAttribute attr = attrs[0];
+
+  std::pair<pxr::TfToken, pxr::UsdShadeAttributeType> name_and_type =
+      pxr::UsdShadeUtils::GetBaseNameAndType(attr.GetName());
+
+  pxr::UsdShadeShader shader(attr.GetPrim());
+  if (name_and_type.second != pxr::UsdShadeAttributeType::Output || !shader) {
+    return pxr::UsdShadeShader();
+  }
+
+  return shader;
+}
+
 bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
                                           bNode *dest_node,
                                           const StringRefNull dest_socket_name,
@@ -936,11 +963,19 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
 
   usd_input.GetConnectedSource(&source, &source_name, &source_type);
 
-  if (!(source && source.GetPrim().IsA<pxr::UsdShadeShader>())) {
+  if (!source) {
     return false;
   }
 
-  pxr::UsdShadeShader source_shader(source.GetPrim());
+  const pxr::UsdPrim source_prim = source.GetPrim();
+  pxr::UsdShadeShader source_shader;
+  if (source_prim.IsA<pxr::UsdShadeShader>()) {
+    source_shader = pxr::UsdShadeShader(source_prim);
+  }
+  else if (source_prim.IsA<pxr::UsdShadeNodeGraph>()) {
+    pxr::UsdShadeNodeGraph node_graph(source_prim);
+    source_shader = node_graph_output_source(node_graph, source_name);
+  }
 
   if (!source_shader) {
     return false;
@@ -948,9 +983,9 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
 
   pxr::TfToken shader_id;
   if (!source_shader.GetShaderId(&shader_id)) {
-    CLOG_ERROR(&LOG,
-               "Couldn't get shader id for source shader %s",
-               source_shader.GetPath().GetAsString().c_str());
+    CLOG_WARN(&LOG,
+              "Couldn't get shader id for source shader %s",
+              source_shader.GetPath().GetAsString().c_str());
     return false;
   }
 

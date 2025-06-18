@@ -533,6 +533,17 @@ class USDImportTest(AbstractUSDTest):
         assert_attribute(mat, "f_vec", "Vector", "Normal")
         assert_attribute(mat, "f_float", "Fac", "Roughness")
 
+    def test_import_material_node_graph(self):
+        """Verify we can follow connections through NodeGraph defs."""
+
+        testfile = str(self.testdir / "usd_materials_node_graph.usda")
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res)
+
+        # If NodeGraph traversal is missing or broken, the Image Texture and UV Map nodes will be missing
+        mat = bpy.data.materials["Material"]
+        self.assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Material Output"])
+
     def test_import_shader_varname_with_connection(self):
         """Test importing USD shader where uv primvar is a connection"""
 
