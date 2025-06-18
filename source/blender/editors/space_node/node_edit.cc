@@ -297,10 +297,6 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   bNodeTree *ntree = cj->localtree;
   Scene *scene = DEG_get_evaluated_scene(cj->compositor_depsgraph);
 
-  if (scene->use_nodes == false) {
-    return;
-  }
-
   cj->stop = &worker_status->stop;
   cj->do_update = &worker_status->do_update;
   cj->progress = &worker_status->progress;

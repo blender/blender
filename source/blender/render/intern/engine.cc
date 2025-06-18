@@ -856,7 +856,7 @@ static bool possibly_using_gpu_compositor(const Render *re)
   }
 
   const Scene *scene = re->pipeline_scene_eval;
-  return (scene->compositing_node_group && scene->use_nodes && (scene->r.scemode & R_DOCOMP));
+  return (scene->compositing_node_group && (scene->r.scemode & R_DOCOMP));
 }
 
 static void engine_render_view_layer(Render *re,

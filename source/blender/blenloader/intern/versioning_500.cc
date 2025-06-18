@@ -330,6 +330,21 @@ static void versioning_replace_legacy_combined_and_separate_color_nodes(bNodeTre
   }
 }
 
+/* "Use Nodes" was removed. */
+static void do_version_scene_remove_use_nodes(Scene *scene)
+{
+  if (scene->nodetree == nullptr && scene->compositing_node_group == nullptr) {
+    /* scene->use_nodes is set to false by default. Files saved without compositing node trees
+     * should not disable compositing. */
+    return;
+  }
+  else if (scene->use_nodes == false && scene->r.scemode & R_DOCOMP) {
+    /* A compositing node tree exists but users explicitly disabled compositing. */
+    scene->r.scemode &= ~R_DOCOMP;
+  }
+  /* Ignore use_nodes otherwise. */
+}
+
 void do_versions_after_linking_500(FileData * /*fd*/, Main * /*bmain*/)
 {
   /**
@@ -449,6 +464,12 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 17)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      do_version_scene_remove_use_nodes(scene);
+    }
   }
 
   /**
