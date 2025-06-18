@@ -16,6 +16,7 @@
 
 import os
 import re
+import textwrap
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(CURRENT_DIR, "..", ".."))))
@@ -163,20 +164,22 @@ def main():
             l = l.replace("{", "(")
             l = l.replace("}", ")")
 
-            if l.startswith("/*"):
-                l = l.replace("/*", "'''own <")
-            else:
-                # NOTE: `inline <...>` aren't used anymore, all doc-string comments require their own line.
-                l = l.replace("/*", "'''inline <")
-            l = l.replace("*/", ">''',")
-
-            # exec func. eg: bmo_rotate_edges_exec,
-            if l.startswith("bmo_") and l.endswith("_exec,"):
+            # Skip `exec` & `init` functions. eg: `/*exec*/ bmo_rotate_edges_exec`,
+            if l.startswith("/*exec*/ "):
                 l = "None,"
+            elif l.startswith("/*init*/ "):
+                l = "None,"
+            else:
+                if l.startswith("/*"):
+                    l = l.replace("/*", "'''own <")
+                else:
+                    # NOTE: `inline <...>` aren't used anymore, all doc-string comments require their own line.
+                    l = l.replace("/*", "'''inline <")
+                l = l.replace("*/", ">''',")
 
-            # enums
-            if l.startswith("static BMO_FlagSet "):
-                is_enum = True
+                # enums
+                if l.startswith("static BMO_FlagSet "):
+                    is_enum = True
 
             b[i] = l
 
@@ -263,6 +266,12 @@ def main():
                     if type(args[i - 1]) == str:
                         if args[i - 1].startswith("own <"):
                             comment = args[i - 1][5:-1].strip()  # strip `our <...>`
+                            if "\n" in comment:
+                                # Remove leading "*" of comment blocks.
+                                comment = "\n".join([
+                                    "" if l.strip() == "*" else l.lstrip().removeprefix("* ")
+                                    for l in comment.split("\n")
+                                ])
                     else:
                         comment = ""
 
@@ -397,7 +406,8 @@ def main():
             if comment == "":
                 comment = "Undocumented."
 
-            fw("   :arg {:s}: {:s}\n".format(name, comment))
+            # Indent a block to support multiple lines.
+            fw("   :arg {:s}:\n{:s}\n".format(name, textwrap.indent(comment, "      ")))
             fw("   :type {:s}: {:s}\n".format(name, tp))
 
         if args_out_wash:
@@ -406,7 +416,7 @@ def main():
             for (name, _, tp, comment) in args_out_wash:
                 assert name.endswith(".out")
                 name = name[:-4]
-                fw("      - ``{:s}``: {:s}\n\n".format(name, comment))
+                fw("      - ``{:s}``:\n{:s}\n\n".format(name, textwrap.indent(comment, "        ")))
                 fw("        **type** {:s}\n".format(tp))
 
             fw("\n")

@@ -374,6 +374,12 @@ static BMVert *bmo_find_end_of_chain(BMEdge *e, BMVert *v)
   return v;
 }
 
+void bmo_dissolve_edges_init(BMOperator *op)
+{
+  /* Set the default not to limit dissolving at all. */
+  BMO_slot_float_set(op->slots_in, "angle_threshold", M_PI);
+}
+
 void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 {
   // BMOperator fop;

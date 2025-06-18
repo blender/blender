@@ -166,7 +166,8 @@ static BMOpDefine bmo_smooth_vert_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_smooth_vert_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_smooth_vert_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -198,7 +199,8 @@ static BMOpDefine bmo_smooth_laplacian_vert_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_smooth_laplacian_vert_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_smooth_laplacian_vert_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -217,7 +219,8 @@ static BMOpDefine bmo_recalc_face_normals_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_recalc_face_normals_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_recalc_face_normals_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -244,7 +247,8 @@ static BMOpDefine bmo_planar_faces_def = {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_planar_faces_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_planar_faces_exec,
     (BMO_OPTYPE_FLAG_SELECT_FLUSH | BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
 
@@ -278,7 +282,8 @@ static BMOpDefine bmo_region_extend_def = {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_region_extend_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_region_extend_exec,
     (BMO_OPTYPE_FLAG_SELECT_FLUSH | BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
 
@@ -304,7 +309,8 @@ static BMOpDefine bmo_rotate_edges_def = {
         {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         {{'\0'}},
     },
-    bmo_rotate_edges_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_rotate_edges_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -327,7 +333,8 @@ static BMOpDefine bmo_reverse_faces_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_reverse_faces_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_reverse_faces_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -346,7 +353,8 @@ static BMOpDefine bmo_flip_quad_tessellation_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_flip_quad_tessellation_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_flip_quad_tessellation_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -375,7 +383,8 @@ static BMOpDefine bmo_bisect_edges_def = {
         {"geom_split.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_bisect_edges_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_bisect_edges_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -418,7 +427,8 @@ static BMOpDefine bmo_mirror_def = {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_mirror_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_mirror_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -451,7 +461,8 @@ static BMOpDefine bmo_find_doubles_def = {
          {eBMOpSlotSubType_Elem(BMO_OP_SLOT_SUBTYPE_MAP_ELEM)}},
         {{'\0'}},
     },
-    bmo_find_doubles_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_find_doubles_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -474,7 +485,8 @@ static BMOpDefine bmo_remove_doubles_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_remove_doubles_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_remove_doubles_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -496,7 +508,8 @@ static BMOpDefine bmo_collapse_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_collapse_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_collapse_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -518,7 +531,8 @@ static BMOpDefine bmo_pointmerge_facedata_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_pointmerge_facedata_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_pointmerge_facedata_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -539,7 +553,8 @@ static BMOpDefine bmo_average_vert_facedata_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_average_vert_facedata_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_average_vert_facedata_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -560,7 +575,8 @@ static BMOpDefine bmo_pointmerge_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_pointmerge_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_pointmerge_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -580,7 +596,8 @@ static BMOpDefine bmo_collapse_uvs_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_collapse_uvs_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_collapse_uvs_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -601,7 +618,8 @@ static BMOpDefine bmo_weld_verts_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_weld_verts_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_weld_verts_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -626,7 +644,8 @@ static BMOpDefine bmo_create_vert_def = {
         {"vert.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
         {{'\0'}},
     },
-    bmo_create_vert_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_create_vert_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -673,7 +692,8 @@ static BMOpDefine bmo_join_triangles_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_join_triangles_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_join_triangles_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -712,7 +732,8 @@ static BMOpDefine bmo_contextual_create_def = {
         {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         {{'\0'}},
     },
-    bmo_contextual_create_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_contextual_create_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -744,7 +765,8 @@ static BMOpDefine bmo_bridge_loops_def = {
         {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         {{'\0'}},
     },
-    bmo_bridge_loops_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_bridge_loops_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -778,7 +800,8 @@ static BMOpDefine bmo_grid_fill_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_grid_fill_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_grid_fill_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -803,7 +826,8 @@ static BMOpDefine bmo_holes_fill_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_holes_fill_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_holes_fill_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -830,7 +854,8 @@ static BMOpDefine bmo_face_attribute_fill_def = {
         {"faces_fail.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_face_attribute_fill_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_face_attribute_fill_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -860,7 +885,8 @@ static BMOpDefine bmo_edgeloop_fill_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_edgeloop_fill_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_edgeloop_fill_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -889,7 +915,8 @@ static BMOpDefine bmo_edgenet_fill_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_edgenet_fill_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_edgenet_fill_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -917,7 +944,8 @@ static BMOpDefine bmo_edgenet_prepare_def = {
         {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         {{'\0'}},
     },
-    bmo_edgenet_prepare_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_edgenet_prepare_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -944,7 +972,8 @@ static BMOpDefine bmo_rotate_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_rotate_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_rotate_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -969,7 +998,8 @@ static BMOpDefine bmo_translate_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_translate_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_translate_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -994,7 +1024,8 @@ static BMOpDefine bmo_scale_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_scale_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_scale_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -1020,7 +1051,8 @@ static BMOpDefine bmo_transform_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_transform_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_transform_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -1043,7 +1075,8 @@ static BMOpDefine bmo_object_load_bmesh_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_object_load_bmesh_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_object_load_bmesh_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -1065,7 +1098,8 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_bmesh_to_mesh_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_bmesh_to_mesh_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -1089,7 +1123,8 @@ static BMOpDefine bmo_mesh_to_bmesh_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_mesh_to_bmesh_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_mesh_to_bmesh_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -1116,7 +1151,8 @@ static BMOpDefine bmo_extrude_discrete_faces_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_extrude_discrete_faces_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_extrude_discrete_faces_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -1144,7 +1180,8 @@ static BMOpDefine bmo_extrude_edge_only_def = {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_extrude_edge_only_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_extrude_edge_only_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -1171,7 +1208,8 @@ static BMOpDefine bmo_extrude_vert_indiv_def = {
         {"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
         {{'\0'}},
     },
-    bmo_extrude_vert_indiv_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_extrude_vert_indiv_exec,
     (BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -1197,7 +1235,8 @@ static BMOpDefine bmo_connect_verts_def = {
         {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         {{'\0'}},
     },
-    bmo_connect_verts_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_connect_verts_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -1220,7 +1259,8 @@ static BMOpDefine bmo_connect_verts_concave_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_connect_verts_concave_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_connect_verts_concave_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -1245,7 +1285,8 @@ static BMOpDefine bmo_connect_verts_nonplanar_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_connect_verts_nonplanar_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_connect_verts_nonplanar_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -1271,7 +1312,8 @@ static BMOpDefine bmo_connect_vert_pair_def = {
         {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         {{'\0'}},
     },
-    bmo_connect_vert_pair_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_connect_vert_pair_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -1305,7 +1347,8 @@ static BMOpDefine bmo_extrude_face_region_def = {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_extrude_face_region_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_extrude_face_region_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
 
@@ -1326,7 +1369,8 @@ static BMOpDefine bmo_dissolve_verts_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_dissolve_verts_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_dissolve_verts_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -1344,7 +1388,8 @@ static BMOpDefine bmo_dissolve_edges_def = {
         {"use_verts", BMO_OP_SLOT_BOOL},
         /* Split off face corners to maintain surrounding geometry. */
         {"use_face_split", BMO_OP_SLOT_BOOL},
-        /* Do not dissolve verts between 2 edges when their angle exceeds this threshold. */
+        /* Do not dissolve verts between 2 edges when their angle exceeds this threshold.
+         * Disabled by default. */
         {"angle_threshold", BMO_OP_SLOT_FLT},
         {{'\0'}},
     },
@@ -1353,7 +1398,8 @@ static BMOpDefine bmo_dissolve_edges_def = {
         {"region.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_dissolve_edges_exec,
+    /*init*/ bmo_dissolve_edges_init,
+    /*exec*/ bmo_dissolve_edges_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -1376,7 +1422,8 @@ static BMOpDefine bmo_dissolve_faces_def = {
         {"region.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_dissolve_faces_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_dissolve_faces_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -1419,7 +1466,8 @@ static BMOpDefine bmo_dissolve_limit_def = {
         {"region.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_dissolve_limit_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_dissolve_limit_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -1441,7 +1489,8 @@ static BMOpDefine bmo_dissolve_degenerate_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_dissolve_degenerate_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_dissolve_degenerate_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -1495,7 +1544,8 @@ static BMOpDefine bmo_triangulate_def = {
          {eBMOpSlotSubType_Elem(BMO_OP_SLOT_SUBTYPE_MAP_ELEM)}},
         {{'\0'}},
     },
-    bmo_triangulate_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_triangulate_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -1516,7 +1566,8 @@ static BMOpDefine bmo_unsubdivide_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_unsubdivide_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_unsubdivide_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -1587,7 +1638,8 @@ static BMOpDefine bmo_subdivide_edges_def = {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_subdivide_edges_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_subdivide_edges_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -1634,7 +1686,8 @@ static BMOpDefine bmo_subdivide_edgering_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_subdivide_edgering_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_subdivide_edgering_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -1672,7 +1725,8 @@ static BMOpDefine bmo_bisect_plane_def = {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_bisect_plane_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_bisect_plane_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -1708,7 +1762,8 @@ static BMOpDefine bmo_delete_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_delete_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_delete_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -1756,7 +1811,8 @@ static BMOpDefine bmo_duplicate_def = {
          {eBMOpSlotSubType_Elem(BMO_OP_SLOT_SUBTYPE_MAP_ELEM)}},
         {{'\0'}},
     },
-    bmo_duplicate_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_duplicate_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -1789,7 +1845,8 @@ static BMOpDefine bmo_split_def = {
          {eBMOpSlotSubType_Elem(BMO_OP_SLOT_SUBTYPE_MAP_ELEM)}},
         {{'\0'}},
     },
-    bmo_split_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_split_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -1831,7 +1888,8 @@ static BMOpDefine bmo_spin_def = {
         {"geom_last.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_spin_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_spin_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -1852,7 +1910,8 @@ static BMOpDefine bmo_rotate_uvs_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_rotate_uvs_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_rotate_uvs_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -1871,7 +1930,8 @@ static BMOpDefine bmo_reverse_uvs_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_reverse_uvs_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_reverse_uvs_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -1894,7 +1954,8 @@ static BMOpDefine bmo_rotate_colors_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_rotate_colors_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_rotate_colors_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -1915,7 +1976,8 @@ static BMOpDefine bmo_reverse_colors_def = {
     },
     /*slot_types_out*/
     {{{'\0'}}},
-    bmo_reverse_colors_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_reverse_colors_exec,
     (BMO_OPTYPE_FLAG_NOP),
 };
 
@@ -1946,7 +2008,8 @@ static BMOpDefine bmo_split_edges_def = {
         {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         {{'\0'}},
     },
-    bmo_split_edges_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_split_edges_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -1977,7 +2040,8 @@ static BMOpDefine bmo_create_grid_def = {
         {"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
         {{'\0'}},
     },
-    bmo_create_grid_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_create_grid_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -2008,7 +2072,8 @@ static BMOpDefine bmo_create_uvsphere_def = {
         {"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
         {{'\0'}},
     },
-    bmo_create_uvsphere_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_create_uvsphere_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -2037,7 +2102,8 @@ static BMOpDefine bmo_create_icosphere_def = {
         {"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
         {{'\0'}},
     },
-    bmo_create_icosphere_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_create_icosphere_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -2062,7 +2128,8 @@ static BMOpDefine bmo_create_monkey_def = {
         {"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
         {{'\0'}},
     },
-    bmo_create_monkey_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_create_monkey_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -2099,7 +2166,8 @@ static BMOpDefine bmo_create_cone_def = {
         {"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
         {{'\0'}},
     },
-    bmo_create_cone_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_create_cone_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -2130,7 +2198,8 @@ static BMOpDefine bmo_create_circle_def = {
         {"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
         {{'\0'}},
     },
-    bmo_create_circle_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_create_circle_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -2157,7 +2226,8 @@ static BMOpDefine bmo_create_cube_def = {
         {"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
         {{'\0'}},
     },
-    bmo_create_cube_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_create_cube_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -2284,7 +2354,8 @@ static BMOpDefine bmo_bevel_def = {
         {{'\0'}},
     },
 
-    bmo_bevel_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_bevel_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -2324,7 +2395,8 @@ static BMOpDefine bmo_beautify_fill_def = {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_beautify_fill_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_beautify_fill_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -2354,7 +2426,8 @@ static BMOpDefine bmo_triangle_fill_def = {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_triangle_fill_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_triangle_fill_exec,
     (BMO_OPTYPE_FLAG_UNTAN_MULTIRES | BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -2378,7 +2451,8 @@ static BMOpDefine bmo_solidify_def = {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_solidify_face_region_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_solidify_face_region_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -2411,7 +2485,8 @@ static BMOpDefine bmo_inset_individual_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_inset_individual_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_inset_individual_exec,
     /* Caller needs to handle BMO_OPTYPE_FLAG_SELECT_FLUSH. */
     (BMO_OPTYPE_FLAG_NORMALS_CALC),
 };
@@ -2453,7 +2528,8 @@ static BMOpDefine bmo_inset_region_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_inset_region_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_inset_region_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -2478,7 +2554,8 @@ static BMOpDefine bmo_offset_edgeloops_def = {
         {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
         {{'\0'}},
     },
-    bmo_offset_edgeloops_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_offset_edgeloops_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
@@ -2519,7 +2596,8 @@ static BMOpDefine bmo_wireframe_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_wireframe_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_wireframe_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -2561,7 +2639,8 @@ static BMOpDefine bmo_poke_def = {
         {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
         {{'\0'}},
     },
-    bmo_poke_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_poke_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -2600,7 +2679,8 @@ static BMOpDefine bmo_convex_hull_def = {
         {"geom_holes.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_convex_hull_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_convex_hull_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
@@ -2638,7 +2718,8 @@ static BMOpDefine bmo_symmetrize_def = {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
         {{'\0'}},
     },
-    bmo_symmetrize_exec,
+    /*init*/ nullptr,
+    /*exec*/ bmo_symmetrize_exec,
     (BMO_OPTYPE_FLAG_NORMALS_CALC | BMO_OPTYPE_FLAG_SELECT_FLUSH |
      BMO_OPTYPE_FLAG_SELECT_VALIDATE),
 };
