@@ -193,8 +193,7 @@ static const ImplicitSharingInfo *get_vertex_group_sharing_info(const Mesh &mesh
  * explicitly compare it.
  */
 class MeshState {
-  VectorSet<const ImplicitSharingInfo *> sharing_infos_;
-  const ImplicitSharingInfo *vertex_group_sharing_info_ = nullptr;
+  VectorSet<ImplicitSharingPtr<>> sharing_infos_;
 
  public:
   MeshState(const Mesh &mesh)
@@ -218,18 +217,8 @@ class MeshState {
 
   void freeze_shared_state(const ImplicitSharingInfo &sharing_info)
   {
-    if (sharing_infos_.add(&sharing_info)) {
+    if (sharing_infos_.add(ImplicitSharingPtr<>{&sharing_info})) {
       sharing_info.add_user();
-    }
-  }
-
-  ~MeshState()
-  {
-    for (const ImplicitSharingInfo *sharing_info : sharing_infos_) {
-      sharing_info->remove_user_and_delete_if_last();
-    }
-    if (vertex_group_sharing_info_) {
-      vertex_group_sharing_info_->remove_user_and_delete_if_last();
     }
   }
 };
