@@ -174,7 +174,7 @@ std::optional<blender::bke::path_templates::VariableMap> BKE_build_template_vari
  * \see BLI_path_abs()
  */
 blender::bke::path_templates::VariableMap BKE_build_template_variables_for_render_path(
-    const char *blend_file_path, const RenderData *render_data);
+    const RenderData *render_data);
 
 /**
  * Check if a path contains any templating syntax at all.

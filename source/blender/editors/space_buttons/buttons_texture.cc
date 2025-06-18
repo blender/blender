@@ -492,7 +492,7 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*a
   /* callback when opening texture user selection menu, to create buttons. */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   ButsContextTexture *ct = static_cast<ButsContextTexture *>(sbuts->texuser);
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   const char *last_category = nullptr;
 
   LISTBASE_FOREACH (ButsTextureUser *, user, &ct->users) {
@@ -553,7 +553,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
    * display the current item. */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   ButsContextTexture *ct = (sbuts) ? static_cast<ButsContextTexture *>(sbuts->texuser) : nullptr;
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   uiBut *but;
   ButsTextureUser *user;
   char name[UI_MAX_NAME_STR];
@@ -695,7 +695,7 @@ void uiTemplateTextureShow(uiLayout *layout, const bContext *C, PointerRNA *ptr,
   }
 
   /* Draw button (disabled if we cannot find a Properties Editor to display this in). */
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   uiBut *but;
   but = uiDefIconBut(block,
                      UI_BTYPE_BUT,

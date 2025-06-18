@@ -116,12 +116,8 @@ class ViewLayerFreestyleLinestyleStrokesSubPanel(ViewLayerFreestyleLineStyle):
 class VIEWLAYER_UL_linesets(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, index):
         lineset = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(lineset, "name", text="", emboss=False, icon_value=icon)
-            layout.prop(lineset, "show_render", text="", index=index)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+        layout.prop(lineset, "name", text="", emboss=False, icon_value=icon)
+        layout.prop(lineset, "show_render", text="", index=index)
 
 
 class RENDER_MT_lineset_context_menu(Menu):

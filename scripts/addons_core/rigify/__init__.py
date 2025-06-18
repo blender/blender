@@ -167,29 +167,26 @@ class RIGIFY_UL_FeatureSets(bpy.types.UIList):
         # feature_sets = rigify_prefs.rigify_feature_sets
         # active_set: RigifyFeatureSets = feature_sets[rigify_prefs.active_feature_set_index]
         feature_set_entry: RigifyFeatureSets = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row()
+        row = layout.row()
 
-            name = feature_set_entry.name
-            icon = "BLANK1"
+        name = feature_set_entry.name
+        icon = "BLANK1"
 
-            if not feature_set_entry.module_name:
-                name += iface_(" (not installed)")
-                icon = "URL"
-            elif feature_set_entry.has_errors or feature_set_entry.has_exceptions:
-                icon = "ERROR"
-                row.alert = True
+        if not feature_set_entry.module_name:
+            name += iface_(" (not installed)")
+            icon = "URL"
+        elif feature_set_entry.has_errors or feature_set_entry.has_exceptions:
+            icon = "ERROR"
+            row.alert = True
 
-            row.label(text=name, icon=icon, translate=False)
+        row.label(text=name, icon=icon, translate=False)
 
-            if feature_set_entry.module_name:
-                icon = 'CHECKBOX_HLT' if feature_set_entry.enabled else 'CHECKBOX_DEHLT'
-                row.enabled = feature_set_entry.enabled
-                layout.prop(feature_set_entry, 'enabled', text="", icon=icon, emboss=False)
-            else:
-                row.enabled = False
-        elif self.layout_type in {'GRID'}:
-            pass
+        if feature_set_entry.module_name:
+            icon = 'CHECKBOX_HLT' if feature_set_entry.enabled else 'CHECKBOX_DEHLT'
+            row.enabled = feature_set_entry.enabled
+            layout.prop(feature_set_entry, 'enabled', text="", icon=icon, emboss=False)
+        else:
+            row.enabled = False
 
 
 class RigifyPreferences(AddonPreferences):

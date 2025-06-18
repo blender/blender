@@ -5,6 +5,7 @@
 #include "BLI_cpp_type.hh"
 
 #include "NOD_geometry_nodes_bundle.hh"
+#include "NOD_geometry_nodes_bundle_signature.hh"
 
 namespace blender::nodes {
 
@@ -32,6 +33,36 @@ bool SocketInterfaceKey::matches(const SocketInterfaceKey &other) const
     }
   }
   return false;
+}
+
+bool SocketInterfaceKey::matches_exactly(const SocketInterfaceKey &other) const
+{
+  for (const std::string &identifier : identifiers_) {
+    if (std::none_of(
+            other.identifiers_.begin(),
+            other.identifiers_.end(),
+            [&](const std::string &other_identifier) { return other_identifier == identifier; }))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool BundleSignature::matches_exactly(const BundleSignature &other) const
+{
+  if (items.size() != other.items.size()) {
+    return false;
+  }
+  for (const Item &item : items) {
+    if (std::none_of(other.items.begin(), other.items.end(), [&](const Item &other_item) {
+          return item.key.matches_exactly(other_item.key);
+        }))
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 Bundle::Bundle() = default;

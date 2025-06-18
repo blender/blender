@@ -441,7 +441,7 @@ static bool node_update_basis_buttons(const bContext &C,
     layout->active_set(false);
   }
 
-  uiLayoutSetContextPointer(layout, "node", &nodeptr);
+  layout->context_ptr_set("node", &nodeptr);
 
   draw_buttons(layout, (bContext *)&C, &nodeptr);
 
@@ -526,12 +526,12 @@ static bool node_update_basis_socket(const bContext &C,
 
   uiLayout *row = &layout->row(true);
   PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
-  uiLayoutSetContextPointer(row, "node", &nodeptr);
+  row->context_ptr_set("node", &nodeptr);
 
   if (input_socket) {
     /* Context pointers for current node and socket. */
     PointerRNA sockptr = RNA_pointer_create_discrete(&ntree.id, &RNA_NodeSocket, input_socket);
-    uiLayoutSetContextPointer(row, "socket", &sockptr);
+    row->context_ptr_set("socket", &sockptr);
 
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
 
@@ -541,7 +541,7 @@ static bool node_update_basis_socket(const bContext &C,
   else {
     /* Context pointers for current node and socket. */
     PointerRNA sockptr = RNA_pointer_create_discrete(&ntree.id, &RNA_NodeSocket, output_socket);
-    uiLayoutSetContextPointer(row, "socket", &sockptr);
+    row->context_ptr_set("socket", &sockptr);
 
     /* Align output buttons to the right. */
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
@@ -1157,7 +1157,7 @@ static void node_update_basis_from_declaration(
               layout->active_set(false);
             }
             PointerRNA node_ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
-            uiLayoutSetContextPointer(layout, "node", &node_ptr);
+            layout->context_ptr_set("node", &node_ptr);
             decl.draw(layout, const_cast<bContext *>(&C), &node_ptr);
             UI_block_align_end(&block);
             int buty;
@@ -3487,7 +3487,7 @@ static void node_draw_basis(const bContext &C,
       UI_GetThemeColorBlend4f(TH_BACK, color_id, 0.1f, color_header);
     }
     else {
-      UI_GetThemeColorBlend4f(TH_NODE, color_id, 0.4f, color_header);
+      UI_GetThemeColor4fv(color_id, color_header);
     }
 
     UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
@@ -3869,7 +3869,7 @@ static void node_draw_hidden(const bContext &C,
       rgba_float_args_set(color, node.color[0], node.color[1], node.color[2], 1.0f);
     }
     else {
-      UI_GetThemeColorBlend4f(TH_NODE, color_id, 0.4f, color);
+      UI_GetThemeColor4fv(color_id, color);
     }
 
     /* Draw selected nodes fully opaque. */

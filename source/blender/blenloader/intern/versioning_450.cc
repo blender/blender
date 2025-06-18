@@ -195,19 +195,19 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
         node->type_legacy = SH_NODE_VALUE;
         STRNCPY(node->idname, "ShaderNodeValue");
         break;
-      case CMP_NODE_MATH:
+      case CMP_NODE_MATH_DEPRECATED:
         node->type_legacy = SH_NODE_MATH;
         STRNCPY(node->idname, "ShaderNodeMath");
         break;
-      case CMP_NODE_COMBINE_XYZ:
+      case CMP_NODE_COMBINE_XYZ_DEPRECATED:
         node->type_legacy = SH_NODE_COMBXYZ;
         STRNCPY(node->idname, "ShaderNodeCombineXYZ");
         break;
-      case CMP_NODE_SEPARATE_XYZ:
+      case CMP_NODE_SEPARATE_XYZ_DEPRECATED:
         node->type_legacy = SH_NODE_SEPXYZ;
         STRNCPY(node->idname, "ShaderNodeSeparateXYZ");
         break;
-      case CMP_NODE_CURVE_VEC:
+      case CMP_NODE_CURVE_VEC_DEPRECATED:
         node->type_legacy = SH_NODE_CURVE_VEC;
         STRNCPY(node->idname, "ShaderNodeVectorCurve");
         break;
@@ -223,7 +223,7 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
 
         break;
       }
-      case CMP_NODE_MAP_RANGE: {
+      case CMP_NODE_MAP_RANGE_DEPRECATED: {
         node->type_legacy = SH_NODE_MAP_RANGE;
         STRNCPY(node->idname, "ShaderNodeMapRange");
 
@@ -421,6 +421,9 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
       blender::bke::node_remove_link(node_tree, *link);
     }
 
+    MEM_freeN(&texture_mapping);
+    node->storage = nullptr;
+
     blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
 
     version_socket_update_is_used(node_tree);
@@ -528,6 +531,9 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
     blender::bke::node_remove_link(node_tree, *link);
   }
 
+  MEM_freeN(&texture_mapping);
+  node->storage = nullptr;
+
   blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
 
   version_socket_update_is_used(node_tree);
@@ -568,7 +574,7 @@ static void do_version_convert_to_generic_nodes_after_linking(Main *bmain,
 
         break;
       }
-      case CMP_NODE_MAP_VALUE: {
+      case CMP_NODE_MAP_VALUE_DEPRECATED: {
         do_version_map_value_node(node_tree, node);
         break;
       }

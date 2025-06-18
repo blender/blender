@@ -41,7 +41,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const StringRefNull 
   }
 
   uiLayout *col = &layout->column(true);
-  uiBlock *block = uiLayoutGetBlock(col);
+  uiBlock *block = col->block();
 
   uiDefBut(block, UI_BTYPE_HISTOGRAM, 0, "", 0, 0, UI_UNIT_X * 10, hist->height, hist, 0, 0, "");
 
@@ -81,7 +81,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const StringRefNull p
   Scopes *scopes = (Scopes *)cptr.data;
 
   uiLayout *col = &layout->column(true);
-  uiBlock *block = uiLayoutGetBlock(col);
+  uiBlock *block = col->block();
 
   if (scopes->wavefrm_height < UI_UNIT_Y) {
     scopes->wavefrm_height = UI_UNIT_Y;
@@ -146,7 +146,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const StringRefNul
   }
 
   uiLayout *col = &layout->column(true);
-  uiBlock *block = uiLayoutGetBlock(col);
+  uiBlock *block = col->block();
 
   uiDefBut(block,
            UI_BTYPE_VECTORSCOPE,

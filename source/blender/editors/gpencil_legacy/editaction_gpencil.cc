@@ -221,7 +221,6 @@ void ED_gpencil_set_active_channel(bGPdata *gpd, bGPDlayer *gpl)
   /* Update other layer status. */
   if (BKE_gpencil_layer_active_get(gpd) != gpl) {
     BKE_gpencil_layer_active_set(gpd, gpl);
-    BKE_gpencil_layer_autolock_set(gpd, false);
     WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 }

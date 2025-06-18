@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (5, 0, 2),
+    "version": (5, 0, 13),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1167,8 +1167,12 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         else:
             export_settings['gltf_vertex_color_name'] = ""
 
-        export_settings['gltf_unused_textures'] = self.export_unused_textures
-        export_settings['gltf_unused_images'] = self.export_unused_images
+        if self.export_materials == "EXPORT":
+            export_settings['gltf_unused_textures'] = self.export_unused_textures
+            export_settings['gltf_unused_images'] = self.export_unused_images
+        else:
+            export_settings['gltf_unused_textures'] = False
+            export_settings['gltf_unused_images'] = False
 
         export_settings['gltf_visible'] = self.use_visible
         export_settings['gltf_renderable'] = self.use_renderable
@@ -1540,7 +1544,9 @@ def export_panel_data_material(layout, operator):
 
         header, sub_body = body.panel("GLTF_export_data_material_unused", default_closed=True)
         header.label(text="Unused Textures & Images")
+        header.active = operator.export_materials == "EXPORT"
         if sub_body:
+            sub_body.active = operator.export_materials == "EXPORT"
             row = sub_body.row()
             row.prop(operator, 'export_unused_images')
             row = sub_body.row()
@@ -1956,6 +1962,12 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         default=True,
     )
 
+    import_merge_material_slots: BoolProperty(
+        name='Merge Material Slot when possible',
+        description='Merge material slots when possible',
+        default=True,
+    )
+
     def draw(self, context):
         operator = self
         layout = self.layout
@@ -1963,9 +1975,9 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        layout.prop(self, 'merge_vertices')
         layout.prop(self, 'import_shading')
         layout.prop(self, 'export_import_convert_lighting_mode')
+        import_mesh_panel(layout, operator)
         import_texture_panel(layout, operator)
         import_bone_panel(layout, operator)
         import_ux_panel(layout, operator)
@@ -2055,6 +2067,13 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
             self.report({'ERROR'}, e.args[0])
             return {'CANCELLED'}
 
+
+def import_mesh_panel(layout, operator):
+    header, body = layout.panel("GLTF_import_mesh", default_closed=False)
+    header.label(text="Mesh")
+    if body:
+        body.prop(operator, 'merge_vertices')
+        body.prop(operator, 'import_merge_material_slots')
 
 def import_bone_panel(layout, operator):
     header, body = layout.panel("GLTF_import_bone", default_closed=False)
@@ -2210,6 +2229,8 @@ def unregister():
     blender_ui.unregister()
     if bpy.context.preferences.addons['io_scene_gltf2'].preferences.KHR_materials_variants_ui is True:
         blender_ui.variant_unregister()
+    if bpy.context.preferences.addons['io_scene_gltf2'].preferences.animation_ui is True:
+        blender_ui.anim_ui_unregister()
 
     for c in classes:
         bpy.utils.unregister_class(c)

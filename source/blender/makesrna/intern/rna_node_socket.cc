@@ -275,6 +275,19 @@ static void rna_NodeSocket_type_set(PointerRNA *ptr, int value)
   blender::bke::node_modify_socket_type_static(ntree, &node, sock, value, 0);
 }
 
+static int rna_NodeSocket_inferred_structure_type_get(PointerRNA *ptr)
+{
+  bNodeTree *tree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
+  bNodeSocket *socket = ptr->data_as<bNodeSocket>();
+  tree->ensure_topology_cache();
+  if (tree->runtime->inferred_structure_types.size() != tree->all_sockets().size()) {
+    /* This cache is outdated or not available on this tree type. */
+    return int(blender::nodes::StructureType::Dynamic);
+  }
+  const int index = socket->index_in_tree();
+  return int(tree->runtime->inferred_structure_types[index]);
+}
+
 static void rna_NodeSocket_bl_idname_get(PointerRNA *ptr, char *value)
 {
   const bNodeSocket *node = static_cast<const bNodeSocket *>(ptr->data);
@@ -806,6 +819,16 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_property_enum_default(prop, SOCK_DISPLAY_SHAPE_CIRCLE);
   RNA_def_property_ui_text(prop, "Shape", "Socket shape");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocket_update");
+
+  prop = RNA_def_property(srna, "inferred_structure_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_node_socket_structure_type_items);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_enum_funcs(
+      prop, "rna_NodeSocket_inferred_structure_type_get", nullptr, nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Inferred Structure Type",
+                           "Best known structure type of the socket. This may not match the "
+                           "socket shape, e.g. for unlinked input sockets");
 
   /* registration */
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);

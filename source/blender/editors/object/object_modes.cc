@@ -408,11 +408,50 @@ static void object_transfer_mode_reposition_view_pivot(ARegion *region,
   ups->last_stroke_valid = true;
 }
 
+constexpr float mode_transfer_flash_length = 0.55f;
+
+static auto &mode_transfer_overlay_start_times()
+{
+  static Map<std::string, double> map;
+  return map;
+}
+
+static float alpha_from_time_get(const float anim_time)
+{
+  if (anim_time < 0.0f) {
+    return 0.0f;
+  }
+  return (1.0f - (anim_time / mode_transfer_flash_length));
+}
+
+Map<std::string, float, 1> mode_transfer_overlay_current_state()
+{
+  const double now = BLI_time_now_seconds();
+
+  /* Protect against possible concurrent access from multiple renderers or viewports. */
+  static Mutex mutex;
+  std::scoped_lock lock(mutex);
+
+  /* Remove finished animations form the global map. */
+  Map<std::string, double> &start_times = mode_transfer_overlay_start_times();
+  start_times.remove_if(
+      [&](const auto &item) { return (now - item.value) > mode_transfer_flash_length; });
+
+  Map<std::string, float, 1> factors;
+  for (const auto &item : start_times.items()) {
+    const float alpha = alpha_from_time_get(now - item.value);
+    if (alpha > 0.0f) {
+      factors.add_new(item.key, alpha);
+    }
+  }
+  return factors;
+}
+
 static void object_overlay_mode_transfer_animation_start(bContext *C, Object *ob_dst)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob_dst_eval = DEG_get_evaluated(depsgraph, ob_dst);
-  ob_dst_eval->runtime->overlay_mode_transfer_start_time = BLI_time_now_seconds();
+  mode_transfer_overlay_start_times().add_as(ob_dst_eval->id.name, BLI_time_now_seconds());
 }
 
 static bool object_transfer_mode_to_base(bContext *C,

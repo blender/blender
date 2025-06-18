@@ -106,11 +106,13 @@ set(SRC
   NOD_geometry_exec.hh
   NOD_geometry_nodes_bundle.hh
   NOD_geometry_nodes_bundle_fwd.hh
+  NOD_geometry_nodes_bundle_signature.hh
   NOD_geometry_nodes_caller_ui.hh
   NOD_geometry_nodes_closure.hh
   NOD_geometry_nodes_closure_eval.hh
   NOD_geometry_nodes_closure_fwd.hh
   NOD_geometry_nodes_closure_location.hh
+  NOD_geometry_nodes_closure_signature.hh
   NOD_geometry_nodes_dependencies.hh
   NOD_geometry_nodes_execute.hh
   NOD_geometry_nodes_gizmos.hh

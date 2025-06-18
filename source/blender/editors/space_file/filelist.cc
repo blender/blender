@@ -953,6 +953,11 @@ void filelist_tag_needs_filtering(FileList *filelist)
   filelist->flags |= FL_NEED_FILTERING;
 }
 
+bool filelist_needs_filtering(FileList *filelist)
+{
+  return (filelist->flags & FL_NEED_FILTERING);
+}
+
 void filelist_filter(FileList *filelist)
 {
   int num_filtered = 0;

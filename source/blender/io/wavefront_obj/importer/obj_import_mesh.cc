@@ -89,7 +89,12 @@ Object *MeshFromGeometry::create_mesh_object(
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name.c_str());
   obj->data = BKE_object_obdata_add_from_type(bmain, OB_MESH, ob_name.c_str());
 
-  this->create_materials(bmain, materials, created_materials, obj, import_params.relative_paths);
+  this->create_materials(bmain,
+                         materials,
+                         created_materials,
+                         obj,
+                         import_params.relative_paths,
+                         import_params.mtl_name_collision_mode);
 
   BKE_mesh_nomain_to_mesh(mesh, static_cast<Mesh *>(obj->data), obj);
 
@@ -355,19 +360,30 @@ static Material *get_or_create_material(Main *bmain,
                                         const std::string &name,
                                         Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                                         Map<std::string, Material *> &created_materials,
-                                        bool relative_paths)
+                                        bool relative_paths,
+                                        eOBJMtlNameCollisionMode mtl_name_collision_mode)
 {
-  /* Have we created this material already? */
+  /* Have we created this material already in this import session? */
   Material **found_mat = created_materials.lookup_ptr(name);
   if (found_mat != nullptr) {
     return *found_mat;
   }
 
-  /* We have not, will have to create it. Create a new default
-   * MTLMaterial too, in case the OBJ file tries to use a material
-   * that was not in the MTL file. */
+  /* Check if a material with this name already exists in the main database */
+  Material *existing_mat = (Material *)BKE_libblock_find_name(bmain, ID_MA, name.c_str());
+  if (existing_mat != nullptr &&
+      mtl_name_collision_mode == OBJ_MTL_NAME_COLLISION_REFERENCE_EXISTING)
+  {
+    /* If the collision mode is set to reference existing materials, use the existing one */
+    created_materials.add_new(name, existing_mat);
+    return existing_mat;
+  }
+
+  /* We need to create a new material */
   const MTLMaterial &mtl = *materials.lookup_or_add(name, std::make_unique<MTLMaterial>());
 
+  /* If we're in MAKE_UNIQUE mode and a material with this name already exists,
+   * BKE_material_add will automatically create a unique name */
   Material *mat = BKE_material_add(bmain, name.c_str());
   id_us_min(&mat->id);
 
@@ -383,11 +399,12 @@ void MeshFromGeometry::create_materials(Main *bmain,
                                         Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                                         Map<std::string, Material *> &created_materials,
                                         Object *obj,
-                                        bool relative_paths)
+                                        bool relative_paths,
+                                        eOBJMtlNameCollisionMode mtl_name_collision_mode)
 {
   for (const std::string &name : mesh_geometry_.material_order_) {
     Material *mat = get_or_create_material(
-        bmain, name, materials, created_materials, relative_paths);
+        bmain, name, materials, created_materials, relative_paths, mtl_name_collision_mode);
     if (mat == nullptr) {
       continue;
     }

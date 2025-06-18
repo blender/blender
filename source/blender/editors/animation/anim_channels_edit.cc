@@ -2942,7 +2942,22 @@ static wmOperatorStatus animchannels_delete_exec(bContext *C, wmOperator * /*op*
         /* try to free F-Curve */
         BLI_assert_msg((fcu->driver != nullptr) == (ac.datatype == ANIMCONT_DRIVERS),
                        "Expecting only driver F-Curves in the drivers editor");
-        blender::animrig::animdata_fcurve_delete(adt, fcu);
+        if (ale->fcurve_owner_id && GS(ale->fcurve_owner_id->name) == ID_AC) {
+          /* F-Curves can be owned by Actions assigned to NLA strips, which
+           * `animrig::animdata_fcurve_delete()` (below) cannot handle. */
+          BLI_assert_msg(!fcu->driver, "Drivers are not expected to be owned by Actions");
+          blender::animrig::Action &action =
+              reinterpret_cast<bAction *>(ale->fcurve_owner_id)->wrap();
+          BLI_assert(!action.is_action_legacy());
+          action_fcurve_remove(action, *fcu);
+        }
+        else if (fcu->driver || adt->action) {
+          /* This function only works for drivers & directly-assigned Actions: */
+          blender::animrig::animdata_fcurve_delete(adt, fcu);
+        }
+        else {
+          BLI_assert_unreachable();
+        }
         tag_update_animation_element(ale);
         break;
       }
@@ -4550,7 +4565,6 @@ static int click_select_channel_gplayer(bContext *C,
                             ANIMTYPE_GPLAYER);
     /* update other layer status */
     BKE_gpencil_layer_active_set(gpd, gpl);
-    BKE_gpencil_layer_autolock_set(gpd, false);
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
   }
 

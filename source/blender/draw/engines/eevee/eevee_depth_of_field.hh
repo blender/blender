@@ -176,6 +176,11 @@ class DepthOfField {
     return fx_radius_ > 0.0f;
   }
 
+  bool enabled() const
+  {
+    return enabled_;
+  }
+
  private:
   void bokeh_lut_pass_sync();
   void setup_pass_sync();

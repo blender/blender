@@ -235,7 +235,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
   name_row->label(socket.name ? IFACE_(socket.name) : "", ICON_NONE);
   uiLayout *prop_row = &split->row(true);
 
-  uiBlock *block = uiLayoutGetBlock(prop_row);
+  uiBlock *block = prop_row->block();
   uiBut *but = uiDefIconTextButR(block,
                                  UI_BTYPE_SEARCH_MENU,
                                  0,
@@ -355,7 +355,7 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
     return;
   }
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   uiBut *but = uiDefIconTextButR(block,
                                  UI_BTYPE_SEARCH_MENU,
                                  0,

@@ -149,7 +149,7 @@ static void average_construct_tangent_matrix(Subdiv &subdiv,
                                              const int corner,
                                              const float u,
                                              const float v,
-                                             float r_tangent_matrix[3][3])
+                                             float3x3 &r_tangent_matrix)
 {
   const bool is_quad = num_corners == 4;
   const int quad_corner = is_quad ? corner : 0;
@@ -185,14 +185,14 @@ static void average_read_displacement_object(const MultiresDisplacementData &dat
   average_convert_grid_coord_to_ptex(num_corners, corner_index, grid_u, grid_v, u, v);
   /* Construct tangent matrix which corresponds to partial derivatives
    * calculated for the other PTEX face. */
-  float tangent_matrix[3][3];
+  float3x3 tangent_matrix;
   average_construct_tangent_matrix(
       *data.subdiv, num_corners, ptex_face_index, corner_index, u, v, tangent_matrix);
   /* Read displacement from other grid in a tangent space. */
   float tangent_D[3];
   average_read_displacement_tangent(data, displacement_grid, grid_u, grid_v, tangent_D);
   /* Convert displacement to object space. */
-  mul_v3_m3v3(r_D, tangent_matrix, tangent_D);
+  mul_v3_m3v3(r_D, tangent_matrix.ptr(), tangent_D);
 }
 
 static void average_get_other_ptex_and_corner(const MultiresDisplacementData &data,
@@ -348,9 +348,9 @@ static void eval_displacement(Displacement *displacement,
   const AverageWith average_with = read_displacement_grid(
       *displacement_grid, grid_size, grid_u, grid_v, tangent_D);
   /* Convert it to the object space. */
-  float tangent_matrix[3][3];
+  float3x3 tangent_matrix;
   BKE_multires_construct_tangent_matrix(tangent_matrix, dPdu, dPdv, corner_of_quad);
-  mul_v3_m3v3(r_D, tangent_matrix, tangent_D);
+  mul_v3_m3v3(r_D, tangent_matrix.ptr(), tangent_D);
   /* For the boundary points of grid average two (or all) neighbor grids. */
   const int corner = displacement_get_face_corner(data, ptex_face_index, u, v);
   average_displacement(*displacement, average_with, ptex_face_index, corner, grid_u, grid_v, r_D);

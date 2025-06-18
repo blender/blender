@@ -358,17 +358,6 @@ const SortedFaceData &mesh_render_data_faces_sorted_ensure(const MeshRenderData 
 /** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
  * \{ */
 
-const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh)
-{
-  if (mesh.runtime->edit_mesh != nullptr) {
-    if (const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(&object)) {
-      return *editmesh_eval_final;
-    }
-  }
-
-  return mesh;
-}
-
 const CustomData &mesh_cd_ldata_get_from_mesh(const Mesh &mesh)
 {
   switch (mesh.runtime->wrapper_type) {

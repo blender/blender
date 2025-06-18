@@ -67,7 +67,9 @@ class SyncModule {
 };
 
 using HairHandleCallback = FunctionRef<void(ObjectHandle, ModifierData &, ParticleSystem &)>;
-void foreach_hair_particle_handle(Object *ob, ObjectHandle ob_handle, HairHandleCallback callback);
+void foreach_hair_particle_handle(ObjectRef &ob_ref,
+                                  ObjectHandle ob_handle,
+                                  HairHandleCallback callback);
 
 /** \} */
 

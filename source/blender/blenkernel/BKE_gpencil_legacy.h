@@ -222,41 +222,6 @@ void BKE_gpencil_layer_active_set(struct bGPdata *gpd, struct bGPDlayer *active)
  */
 void BKE_gpencil_layer_delete(struct bGPdata *gpd, struct bGPDlayer *gpl);
 /**
- * Set locked layers for autolock mode.
- * \param gpd: Grease pencil data-block
- * \param unlock: Unlock flag
- */
-void BKE_gpencil_layer_autolock_set(struct bGPdata *gpd, bool unlock);
-
-/**
- * Remove grease pencil mask layer.
- * \param gpl: Grease pencil layer
- * \param mask: Grease pencil mask layer
- */
-void BKE_gpencil_layer_mask_remove(struct bGPDlayer *gpl, struct bGPDlayer_Mask *mask);
-/**
- * Remove any reference to mask layer.
- * \param gpd: Grease pencil data-block
- * \param name: Name of the mask layer
- */
-void BKE_gpencil_layer_mask_remove_ref(struct bGPdata *gpd, const char *name);
-/**
- * Sort grease pencil mask layers.
- * \param gpd: Grease pencil data-block
- * \param gpl: Grease pencil layer
- */
-void BKE_gpencil_layer_mask_sort(struct bGPdata *gpd, struct bGPDlayer *gpl);
-/**
- * Sort all grease pencil mask layer.
- * \param gpd: Grease pencil data-block
- */
-void BKE_gpencil_layer_mask_sort_all(struct bGPdata *gpd);
-/**
- * Make a copy of a given gpencil mask layers.
- */
-void BKE_gpencil_layer_mask_copy(const struct bGPDlayer *gpl_src, struct bGPDlayer *gpl_dst);
-
-/**
  * Sort grease pencil frames.
  * \param gpl: Grease pencil layer
  * \param r_has_duplicate_frames: Duplicated frames flag

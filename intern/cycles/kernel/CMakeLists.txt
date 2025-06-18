@@ -210,7 +210,6 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/ramp.h
   svm/ramp_util.h
   svm/sepcomb_color.h
-  svm/sepcomb_hsv.h
   svm/sepcomb_vector.h
   svm/sky.h
   svm/tex_coord.h

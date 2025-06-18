@@ -374,6 +374,12 @@ static BMVert *bmo_find_end_of_chain(BMEdge *e, BMVert *v)
   return v;
 }
 
+void bmo_dissolve_edges_init(BMOperator *op)
+{
+  /* Set the default not to limit dissolving at all. */
+  BMO_slot_float_set(op->slots_in, "angle_threshold", M_PI);
+}
+
 void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 {
   // BMOperator fop;
@@ -387,9 +393,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
    * This lets the test ignore that tiny bit of math error so users won't notice. */
   const float angle_epsilon = RAD2DEGF(0.0001f);
 
-  /* When unset, don't limit dissolving vertices at all. */
-  const float angle_threshold =
-      BMO_slot_float_get_optional(op->slots_in, "angle_threshold").value_or(M_PI);
+  const float angle_threshold = BMO_slot_float_get(op->slots_in, "angle_threshold");
 
   /* Use verts when told to... except, do *not* use verts when angle_threshold is 0.0. */
   const bool use_verts = BMO_slot_bool_get(op->slots_in, "use_verts") &&

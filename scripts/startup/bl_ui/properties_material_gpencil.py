@@ -48,33 +48,28 @@ class GPENCIL_UL_matslots(UIList):
         slot = item
         ma = slot.material
 
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row(align=True)
-            row.label(text="", icon_value=icon)
+        row = layout.row(align=True)
+        row.label(text="", icon_value=icon)
 
-            if ma is None:
-                return
+        if ma is None:
+            return
 
-            if (gpcolor := ma.grease_pencil) is None:
-                return
+        if (gpcolor := ma.grease_pencil) is None:
+            return
 
-            row = layout.row(align=True)
-            row.enabled = not gpcolor.lock
-            row.prop(ma, "name", text="", emboss=False, icon='NONE')
+        row = layout.row(align=True)
+        row.enabled = not gpcolor.lock
+        row.prop(ma, "name", text="", emboss=False, icon='NONE')
 
-            row = layout.row(align=True)
+        row = layout.row(align=True)
 
-            if gpcolor.ghost is True:
-                icon = 'ONIONSKIN_OFF'
-            else:
-                icon = 'ONIONSKIN_ON'
-            row.prop(gpcolor, "ghost", text="", icon=icon, emboss=False)
-            row.prop(gpcolor, "hide", text="", emboss=False)
-            row.prop(gpcolor, "lock", text="", emboss=False)
-
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+        if gpcolor.ghost is True:
+            icon = 'ONIONSKIN_OFF'
+        else:
+            icon = 'ONIONSKIN_ON'
+        row.prop(gpcolor, "ghost", text="", icon=icon, emboss=False)
+        row.prop(gpcolor, "hide", text="", emboss=False)
+        row.prop(gpcolor, "lock", text="", emboss=False)
 
 
 class GPMaterialButtonsPanel:

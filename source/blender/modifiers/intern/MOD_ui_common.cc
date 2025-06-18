@@ -114,7 +114,7 @@ PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
     *r_ob_ptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_Object, ptr->owner_id);
   }
 
-  uiBlock *block = uiLayoutGetBlock(panel->layout);
+  uiBlock *block = panel->layout->block();
   UI_block_lock_set(block, !ID_IS_EDITABLE((Object *)ptr->owner_id), ERROR_LIBDATA_MESSAGE);
 
   UI_panel_context_pointer_set(panel, "modifier", ptr);
@@ -215,7 +215,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
 
   Object *ob = blender::ed::object::context_active_object(C);
   PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Modifier, md);
-  uiLayoutSetContextPointer(layout, "modifier", &ptr);
+  layout->context_ptr_set("modifier", &ptr);
   layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
 
   layout->ui_units_x_set(4.0f);
@@ -354,7 +354,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
     if (md->type == eModifierType_Smooth) {
       /* Add button (appearing to be OFF) and add tip why this can't be changed. */
       sub = &row->row(true);
-      uiBlock *block = uiLayoutGetBlock(sub);
+      uiBlock *block = sub->block();
       static int apply_on_spline_always_off_hack = 0;
       uiBut *but = uiDefIconButBitI(block,
                                     UI_BTYPE_TOGGLE,
@@ -378,7 +378,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
     {
       /* Add button (appearing to be ON) and add tip why this can't be changed. */
       sub = &row->row(true);
-      uiBlock *block = uiLayoutGetBlock(sub);
+      uiBlock *block = sub->block();
       static int apply_on_spline_always_on_hack = eModifierMode_ApplyOnSpline;
       uiBut *but = uiDefIconButBitI(block,
                                     UI_BTYPE_TOGGLE,

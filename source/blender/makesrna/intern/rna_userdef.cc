@@ -2333,14 +2333,6 @@ static void rna_def_userdef_theme_asset_shelf(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 }
 
-static void rna_def_userdef_theme_spaces_asset_shelf_main(StructRNA *srna)
-{
-  PropertyRNA *prop = RNA_def_property(srna, "asset_shelf", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_NEVER_NULL);
-  RNA_def_property_struct_type(prop, "ThemeAssetShelf");
-  RNA_def_property_ui_text(prop, "Asset Shelf", "Settings for asset shelf");
-}
-
 static void rna_def_userdef_theme_spaces_vertex(StructRNA *srna, const bool has_vertex_active)
 {
   PropertyRNA *prop;
@@ -2880,8 +2872,6 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Object Origin Size", "Diameter in pixels for object/light origin display");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  rna_def_userdef_theme_spaces_asset_shelf_main(srna);
 }
 
 static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
@@ -3282,7 +3272,6 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Theme Node Editor", "Theme settings for the Node Editor");
 
   rna_def_userdef_theme_spaces_main(srna);
-  rna_def_userdef_theme_spaces_list_main(srna);
 
   prop = RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
@@ -3620,8 +3609,6 @@ static void rna_def_userdef_theme_space_image(BlenderRNA *brna)
   rna_def_userdef_theme_spaces_curves(srna, false, false, false, true);
 
   rna_def_userdef_theme_spaces_paint_curves(srna);
-
-  rna_def_userdef_theme_spaces_asset_shelf_main(srna);
 }
 
 static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
@@ -4485,7 +4472,6 @@ static void rna_def_userdef_theme_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   rna_def_userdef_theme_spaces_main(srna);
-  rna_def_userdef_theme_spaces_list_main(srna);
 }
 
 static void rna_def_userdef_themes(BlenderRNA *brna)
@@ -4496,6 +4482,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
   static const EnumPropertyItem active_theme_area[] = {
       {0, "USER_INTERFACE", ICON_WORKSPACE, "User Interface", ""},
       {19, "STYLE", ICON_FONTPREVIEW, "Text Style", ""},
+      {24, "ASSET_SHELF", ICON_ASSET_MANAGER, "Asset Shelf", ""},
       {1, "VIEW_3D", ICON_VIEW3D, "3D Viewport", ""},
       {4, "DOPESHEET_EDITOR", ICON_ACTION, "Dope Sheet/Timeline", ""},
       {16, "FILE_BROWSER", ICON_FILEBROWSER, "File/Asset Browser", ""},
@@ -4658,6 +4645,11 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "ThemeSpreadsheet");
   RNA_def_property_ui_text(prop, "Spreadsheet", "");
   /* end space types */
+
+  prop = RNA_def_property(srna, "asset_shelf", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "ThemeAssetShelf");
+  RNA_def_property_ui_text(prop, "Asset Shelf", "Settings for asset shelf");
 
   prop = RNA_def_property(srna, "bone_color_sets", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -4876,7 +4868,6 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
   rna_def_userdef_theme_space_generic(brna);
   rna_def_userdef_theme_space_gradient(brna);
   rna_def_userdef_theme_space_list_generic(brna);
-  rna_def_userdef_theme_asset_shelf(brna);
 
   rna_def_userdef_theme_space_view3d(brna);
   rna_def_userdef_theme_space_graph(brna);
@@ -4896,6 +4887,7 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
   rna_def_userdef_theme_space_topbar(brna);
   rna_def_userdef_theme_space_statusbar(brna);
   rna_def_userdef_theme_space_spreadsheet(brna);
+  rna_def_userdef_theme_asset_shelf(brna);
   rna_def_userdef_theme_colorset(brna);
   rna_def_userdef_theme_collection_color(brna);
   rna_def_userdef_theme_strip_color(brna);

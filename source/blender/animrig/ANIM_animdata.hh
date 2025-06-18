@@ -33,6 +33,8 @@ bAction *id_action_ensure(Main *bmain, ID *id);
 /**
  * Delete the F-Curve from the given AnimData block (if possible),
  * as appropriate according to animation context.
+ *
+ * \note This function cannot be used to delete F-Curves from an NLA strip's Action.
  */
 void animdata_fcurve_delete(AnimData *adt, FCurve *fcu);
 

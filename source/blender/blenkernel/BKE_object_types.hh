@@ -56,9 +56,6 @@ struct ObjectRuntime {
    */
   char is_data_eval_owned = false;
 
-  /** Start time of the mode transfer overlay animation. */
-  double overlay_mode_transfer_start_time = 0.0f;
-
   /**
    * The bounding box of the object's evaluated geometry in the active dependency graph. The bounds
    * are copied back to the original object for the RNA API and for display in the interface.

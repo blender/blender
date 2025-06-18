@@ -70,6 +70,7 @@ void filelist_set_asset_catalog_filter_options(
     FileList *filelist,
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,
     const bUUID *catalog_id);
+bool filelist_needs_filtering(FileList *filelist);
 void filelist_tag_needs_filtering(FileList *filelist);
 void filelist_filter(FileList *filelist);
 /**

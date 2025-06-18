@@ -1038,9 +1038,9 @@ static void template_ID(const bContext *C,
   // lb = template_ui->idlb;
 
   /* Allow operators to take the ID from context. */
-  uiLayoutSetContextPointer(layout, "id", &idptr);
+  layout->context_ptr_set("id", &idptr);
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   UI_block_align_begin(block);
 
   if (idptr.type) {
@@ -1440,7 +1440,7 @@ static void template_ID_tabs(const bContext *C,
 
   const int but_height = UI_UNIT_Y * 1.1;
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   const uiStyle *style = UI_style_get_dpi();
 
   for (ID *id : BKE_id_ordered_list(template_id.idlb)) {

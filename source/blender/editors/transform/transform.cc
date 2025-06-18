@@ -1090,7 +1090,7 @@ wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *eve
           if (t->state == TRANS_CANCEL) {
             resetTransModal(t);
             t->state = TRANS_STARTING;
-            transform_mode_init(t, nullptr, TFM_VERT_SLIDE);
+            transform_mode_init(t, op, TFM_VERT_SLIDE);
           }
           /* Vert Slide can fail on unconnected vertices (rare but possible). */
           if (t->state == TRANS_CANCEL) {

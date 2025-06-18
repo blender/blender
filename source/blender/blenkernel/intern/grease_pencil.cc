@@ -4317,13 +4317,14 @@ static void write_drawing_array(GreasePencil &grease_pencil,
     GreasePencilDrawingBase *drawing_base = grease_pencil.drawing_array[i];
     switch (GreasePencilDrawingType(drawing_base->type)) {
       case GP_DRAWING: {
-        GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-        bke::CurvesGeometry &curves = drawing->wrap().strokes_for_write();
+        GreasePencilDrawing drawing_copy = *reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+        bke::CurvesGeometry &curves = drawing_copy.geometry.wrap();
 
         bke::CurvesGeometry::BlendWriteData write_data(scope);
         curves.blend_write_prepare(write_data);
+        drawing_copy.runtime = nullptr;
 
-        BLO_write_struct(writer, GreasePencilDrawing, drawing);
+        BLO_write_struct_at_address(writer, GreasePencilDrawing, drawing_base, &drawing_copy);
         curves.blend_write(*writer, grease_pencil.id, write_data);
         break;
       }

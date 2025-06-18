@@ -299,7 +299,7 @@ class AbstractHierarchyIterator {
   void export_graph_clear();
 
   void visit_object(Object *object, Object *export_parent, bool weak_export);
-  void visit_dupli_object(DupliObject *dupli_object,
+  void visit_dupli_object(const DupliObject *dupli_object,
                           Object *duplicator,
                           const DupliParentFinder &dupli_parent_finder);
 
@@ -320,7 +320,7 @@ class AbstractHierarchyIterator {
   HierarchyContext context_for_object_data(const HierarchyContext *object_context) const;
 
   /* Convenience wrappers around get_id_name(). */
-  std::string get_object_name(const Object *object);
+  std::string get_object_name(const Object *object) const;
   std::string get_object_name(const Object *object, const Object *parent);
   std::string get_object_data_name(const Object *object) const;
 
@@ -330,7 +330,7 @@ class AbstractHierarchyIterator {
    *
    * The create_func function should be one of the create_XXXX_writer(context) functions declared
    * below. */
-  EnsuredWriter ensure_writer(HierarchyContext *context, create_writer_func create_func);
+  EnsuredWriter ensure_writer(const HierarchyContext *context, create_writer_func create_func);
 
  protected:
   /* Construct a valid path for the export file format. This class concatenates by using '/' as a

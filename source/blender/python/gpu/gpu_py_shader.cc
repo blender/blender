@@ -106,14 +106,6 @@ static int pygpu_shader_uniform_location_get(GPUShader *shader,
 /** \name Shader Type
  * \{ */
 
-static std::optional<blender::StringRefNull> c_str_to_stringref_opt(const char *str)
-{
-  if (!str) {
-    return std::nullopt;
-  }
-  return blender::StringRefNull(str);
-}
-
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_shader_bind_doc,

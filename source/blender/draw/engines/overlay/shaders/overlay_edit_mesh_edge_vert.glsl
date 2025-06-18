@@ -29,6 +29,9 @@ VertIn input_assembly(uint in_vertex_id)
   if (gpu_attr_1.x == 1) {
     vert_in.lN = gpu_attr_load_uint_1010102_snorm(vnor, gpu_attr_1, v_i).xyz;
   }
+  else if (gpu_attr_1.x == 2) {
+    vert_in.lN = gpu_attr_load_short4_snorm(vnor, gpu_attr_1, v_i).xyz;
+  }
   else {
     vert_in.lN.x = uintBitsToFloat(vnor[gpu_attr_load_index(v_i, gpu_attr_1) + 0]);
     vert_in.lN.y = uintBitsToFloat(vnor[gpu_attr_load_index(v_i, gpu_attr_1) + 1]);

@@ -120,12 +120,6 @@ bool BKE_subsurf_modifier_can_do_gpu_subdiv(const SubsurfModifierData *smd, cons
          !BKE_subsurf_modifier_has_split_normals(smd, mesh);
 }
 
-bool BKE_subsurf_modifier_has_gpu_subdiv(const Mesh *mesh)
-{
-  SubsurfRuntimeData *runtime_data = mesh->runtime->subsurf_runtime_data;
-  return runtime_data && runtime_data->has_gpu_subdiv;
-}
-
 void (*BKE_subsurf_modifier_free_gpu_cache_cb)(subdiv::Subdiv *subdiv) = nullptr;
 
 subdiv::Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(SubsurfRuntimeData *runtime_data,

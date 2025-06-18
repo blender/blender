@@ -32,7 +32,7 @@ static void cmp_node_levels_declare(NodeDeclarationBuilder &b)
       .default_value({0.0f, 0.0f, 0.0f, 1.0f})
       .compositor_domain_priority(0);
   b.add_output<decl::Float>("Mean");
-  b.add_output<decl::Float>("Std Dev");
+  b.add_output<decl::Float>("Standard Deviation");
 }
 
 static void node_composit_init_view_levels(bNodeTree * /*ntree*/, bNode *node)
@@ -69,7 +69,7 @@ class LevelsOperation : public NodeOperation {
       mean_result.set_single_value(mean);
     }
 
-    Result &standard_deviation_result = get_result("Std Dev");
+    Result &standard_deviation_result = get_result("Standard Deviation");
     if (standard_deviation_result.should_compute()) {
       const float standard_deviation = compute_standard_deviation(mean);
       standard_deviation_result.allocate_single_value();
@@ -79,7 +79,7 @@ class LevelsOperation : public NodeOperation {
 
   void execute_single_value()
   {
-    Result &standard_deviation_result = get_result("Std Dev");
+    Result &standard_deviation_result = get_result("Standard Deviation");
     if (standard_deviation_result.should_compute()) {
       standard_deviation_result.allocate_single_value();
       standard_deviation_result.set_single_value(0.0f);

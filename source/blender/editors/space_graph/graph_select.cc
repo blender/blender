@@ -560,12 +560,18 @@ static void initialize_box_select_key_editing_data(const bool incl_handles,
       r_ked->data = scaled_rectf;
       break;
   }
-  SpaceGraph *sipo = (SpaceGraph *)ac->sl;
-  if (sipo->flag & SIPO_SELVHANDLESONLY) {
+  SpaceGraph *sgraph = (SpaceGraph *)ac->sl;
+
+  if (sgraph->flag & SIPO_NOHANDLES) {
+    r_ked->iterflags |= KEYFRAME_ITER_HANDLES_INVISIBLE;
+  }
+
+  if (sgraph->flag & SIPO_SELVHANDLESONLY) {
     r_ked->iterflags |= KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE;
   }
 
-  /* Enable handles selection. (used in keyframes_edit.cc > keyframe_ok_checks function) */
+  /* Consider handles selection. Used in #keyframe_ok_checks, #select_bezier_add,
+   * #select_bezier_subtract. */
   if (incl_handles) {
     r_ked->iterflags |= KEYFRAME_ITER_INCL_HANDLES;
     *r_mapping_flag = 0;
@@ -580,7 +586,7 @@ static void initialize_box_select_key_editing_data(const bool incl_handles,
 /**
  * Box Select only selects keyframes, as overshooting handles often get caught too,
  * which means that they may be inadvertently moved as well. However, incl_handles overrides
- * this, and allow handles to be considered independently too.
+ * this, and allow handles to be considered independently too (default since b037ba2665f4).
  * Also, for convenience, handles should get same status as keyframe (if it was within bounds).
  *
  * This function returns true if there was any change in the selection of a key (selecting or
@@ -620,7 +626,7 @@ static bool box_select_graphkeys(bAnimContext *ac,
      * guess when a callback might use something different.
      */
     ANIM_nla_mapping_apply_if_needed_fcurve(
-        ale, static_cast<FCurve *>(ale->key_data), false, incl_handles == 0);
+        ale, static_cast<FCurve *>(ale->key_data), false, (mapping_flag & ANIM_UNITCONV_ONLYKEYS));
 
     scaled_rectf.xmin = rectf.xmin;
     scaled_rectf.xmax = rectf.xmax;
@@ -657,7 +663,7 @@ static bool box_select_graphkeys(bAnimContext *ac,
 
     /* Un-apply NLA mapping from all the keyframes. */
     ANIM_nla_mapping_apply_if_needed_fcurve(
-        ale, static_cast<FCurve *>(ale->key_data), true, incl_handles == 0);
+        ale, static_cast<FCurve *>(ale->key_data), true, (mapping_flag & ANIM_UNITCONV_ONLYKEYS));
   }
 
   /* Cleanup. */
@@ -858,7 +864,7 @@ static wmOperatorStatus graphkeys_box_select_exec(bContext *C, wmOperator *op)
   }
 
   /* 'include_handles' from the operator specifies whether to include handles in the selection. */
-  const bool incl_handles = RNA_boolean_get(op->ptr, "include_handles");
+  bool incl_handles = RNA_boolean_get(op->ptr, "include_handles");
 
   /* Get settings from operator. */
   WM_operator_properties_border_to_rcti(op, &rect);
@@ -921,11 +927,13 @@ void GRAPH_OT_select_box(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
   PropertyRNA *prop;
-  prop = RNA_def_boolean(ot->srna,
-                         "include_handles",
-                         true,
-                         "Include Handles",
-                         "Are handles tested individually against the selection criteria");
+  prop = RNA_def_boolean(
+      ot->srna,
+      "include_handles",
+      true,
+      "Include Handles",
+      "Are handles tested individually against the selection criteria, independently from their "
+      "keys. When unchecked, handles are (de)selected in unison with their keys");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(
@@ -975,9 +983,10 @@ static wmOperatorStatus graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
   BLI_lasso_boundbox(&rect, data_lasso.mcoords);
   BLI_rctf_rcti_copy(&rect_fl, &rect);
 
+  /* 'include_handles' from the operator specifies whether to consider handles in the selection. */
+  const bool incl_handles = RNA_boolean_get(op->ptr, "include_handles");
+
   /* Apply box_select action. */
-  SpaceGraph *sgraph = reinterpret_cast<SpaceGraph *>(ac.sl);
-  const bool incl_handles = (sgraph->flag & SIPO_NOHANDLES) == 0;
   const bool any_key_selection_changed = box_select_graphkeys(
       &ac, &rect_fl, BEZT_OK_REGION_LASSO, selectmode, incl_handles, &data_lasso);
   const bool use_curve_selection = RNA_boolean_get(op->ptr, "use_curve_selection");
@@ -1012,7 +1021,18 @@ void GRAPH_OT_select_lasso(wmOperatorType *ot)
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
   WM_operator_properties_select_operation_simple(ot);
-  PropertyRNA *prop = RNA_def_boolean(
+
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(
+      ot->srna,
+      "include_handles",
+      true,
+      "Include Handles",
+      "Are handles tested individually against the selection criteria, independently from their "
+      "keys. When unchecked, handles are (de)selected in unison with their keys");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(
       ot->srna,
       "use_curve_selection",
       true,
@@ -1057,9 +1077,10 @@ static wmOperatorStatus graph_circle_select_exec(bContext *C, wmOperator *op)
   rect_fl.ymin = y - radius;
   rect_fl.ymax = y + radius;
 
+  /* 'include_handles' from the operator specifies whether to consider handles in the selection. */
+  const bool incl_handles = RNA_boolean_get(op->ptr, "include_handles");
+
   /* Apply box_select action. */
-  SpaceGraph *sgraph = reinterpret_cast<SpaceGraph *>(ac.sl);
-  const bool incl_handles = (sgraph->flag & SIPO_NOHANDLES) == 0;
   const bool any_key_selection_changed = box_select_graphkeys(
       &ac, &rect_fl, BEZT_OK_REGION_CIRCLE, selectmode, incl_handles, &data);
   if (any_key_selection_changed) {
@@ -1098,7 +1119,18 @@ void GRAPH_OT_select_circle(wmOperatorType *ot)
   /* properties */
   WM_operator_properties_gesture_circle(ot);
   WM_operator_properties_select_operation_simple(ot);
-  PropertyRNA *prop = RNA_def_boolean(
+
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(
+      ot->srna,
+      "include_handles",
+      true,
+      "Include Handles",
+      "Are handles tested individually against the selection criteria, independently from their "
+      "keys. When unchecked, handles are (de)selected in unison with their keys");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(
       ot->srna,
       "use_curve_selection",
       true,

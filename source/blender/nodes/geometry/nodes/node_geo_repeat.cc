@@ -94,6 +94,8 @@ static void node_declare(NodeDeclarationBuilder &b)
           input_decl.supports_field();
           output_decl.dependent_field({input_decl.index()});
         }
+        input_decl.structure_type(StructureType::Dynamic);
+        output_decl.structure_type(StructureType::Dynamic);
       }
     }
   }
@@ -176,6 +178,8 @@ static void node_declare(NodeDeclarationBuilder &b)
         input_decl.supports_field();
         output_decl.dependent_field({input_decl.index()});
       }
+      input_decl.structure_type(StructureType::Dynamic);
+      output_decl.structure_type(StructureType::Dynamic);
     }
   }
   b.add_input<decl::Extend>("", "__extend__").structure_type(StructureType::Dynamic);

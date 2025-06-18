@@ -60,7 +60,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
   }
 
   uiLayout *ui_abs = &layout->absolute(false);
-  uiBlock *block = uiLayoutGetBlock(ui_abs);
+  uiBlock *block = ui_abs->block();
   blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
 
   uchar report_icon_color[4];
@@ -423,7 +423,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
       row->emboss_set(blender::ui::EmbossType::None);
       /* This operator also works fine for blocked extensions. */
       row->op("EXTENSIONS_OT_userpref_show_for_update", "", ICON_ERROR);
-      uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
+      uiBut *but = layout->block()->buttons.last().get();
       uchar color[4];
       UI_GetThemeColor4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
@@ -448,7 +448,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
       else {
         row->emboss_set(blender::ui::EmbossType::None);
         row->op("EXTENSIONS_OT_userpref_show_online", "", ICON_INTERNET_OFFLINE);
-        uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
+        uiBut *but = layout->block()->buttons.last().get();
         uchar color[4];
         UI_GetThemeColor4ubv(TH_TEXT, color);
         copy_v4_v4_uchar(but->col, color);
@@ -472,7 +472,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
       }
       row->emboss_set(blender::ui::EmbossType::None);
       row->op("EXTENSIONS_OT_userpref_show_for_update", "", icon);
-      uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
+      uiBut *but = layout->block()->buttons.last().get();
       uchar color[4];
       UI_GetThemeColor4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
@@ -519,7 +519,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
 
   const uiStyle *style = UI_style_get();
   uiLayout *ui_abs = &layout->absolute(false);
-  uiBlock *block = uiLayoutGetBlock(ui_abs);
+  uiBlock *block = ui_abs->block();
   blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
 
   UI_fontstyle_set(&style->widget);

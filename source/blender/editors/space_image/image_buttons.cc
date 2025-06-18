@@ -71,7 +71,7 @@ ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 
 static void ui_imageuser_slot_menu(bContext *C, uiLayout *layout, void *image_p)
 {
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   Image *image = static_cast<Image *>(image_p);
 
   /* The scene isn't expected to be null, check since it's not a requirement
@@ -174,7 +174,7 @@ static ImageUI_Data *ui_imageuser_data_copy(const ImageUI_Data *rnd_pt_src)
 static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rnd_pt)
 {
   ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
   Scene *scene = iuser->scene;
@@ -241,7 +241,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
 static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd_pt)
 {
   ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
   /* (rpass_index == -1) means composite result */
@@ -317,7 +317,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd
 static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *rnd_pt)
 {
   ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
   RenderResult *rr;
@@ -374,7 +374,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *
 static void ui_imageuser_view_menu_multiview(bContext * /*C*/, uiLayout *layout, void *rnd_pt)
 {
   ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
   int nr;
@@ -568,7 +568,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
                                        const short *render_slot)
 {
   ImageUI_Data rnd_pt_local, *rnd_pt = nullptr;
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   uiBut *but;
   RenderLayer *rl = nullptr;
   int wmenu1, wmenu2, wmenu3, wmenu4;
@@ -763,7 +763,7 @@ void uiTemplateImage(uiLayout *layout,
     return;
   }
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   PointerRNA imaptr = RNA_property_pointer_get(ptr, prop);
   Image *ima = static_cast<Image *>(imaptr.data);
@@ -772,8 +772,8 @@ void uiTemplateImage(uiLayout *layout,
   Scene *scene = CTX_data_scene(C);
   BKE_image_user_frame_calc(ima, iuser, scene->r.cfra);
 
-  uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
-  uiLayoutSetContextPointer(layout, "edit_image_user", userptr);
+  layout->context_ptr_set("edit_image", &imaptr);
+  layout->context_ptr_set("edit_image_user", userptr);
 
   SpaceImage *space_image = CTX_wm_space_image(C);
   if (!compact && (space_image == nullptr || iuser != &space_image->iuser)) {
@@ -832,7 +832,7 @@ void uiTemplateImage(uiLayout *layout,
   }
 
   layout = &layout->column(false);
-  uiLayoutSetEnabled(layout, !is_dirty);
+  layout->enabled_set(!is_dirty);
   uiLayoutSetPropDecorate(layout, false);
 
   /* Image source */
@@ -858,7 +858,7 @@ void uiTemplateImage(uiLayout *layout,
     }
 
     row = &row->row(true);
-    uiLayoutSetEnabled(row, is_packed == false);
+    row->enabled_set(is_packed == false);
 
     prop = RNA_struct_find_property(&imaptr, "filepath");
     uiDefAutoButR(block, &imaptr, prop, -1, "", ICON_NONE, 0, 0, 200, UI_UNIT_Y);

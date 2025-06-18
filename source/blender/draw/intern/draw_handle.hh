@@ -115,7 +115,7 @@ class ObjectRef {
   Object *const object;
 
   ObjectRef(DEGObjectIterData &iter_data, Object *ob);
-  ObjectRef(Object *ob);
+  explicit ObjectRef(Object *ob);
 
   /* Is the object coming from a Dupli system. */
   bool is_dupli() const

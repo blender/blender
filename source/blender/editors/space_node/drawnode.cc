@@ -346,7 +346,7 @@ static void node_buts_image_user(uiLayout *layout,
 
     /* Avoid losing changes image is painted. */
     if (BKE_image_is_dirty((Image *)imaptr->data)) {
-      uiLayoutSetEnabled(split, false);
+      split->enabled_set(false);
     }
   }
 }
@@ -356,7 +356,7 @@ static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA
   PointerRNA imaptr = RNA_pointer_get(ptr, "image");
   PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 
-  uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+  layout->context_ptr_set("image_user", &iuserptr);
   uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
   layout->prop(ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
   layout->prop(ptr, "projection", DEFAULT_FLAGS, "", ICON_NONE);
@@ -384,7 +384,7 @@ static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, Poin
   PointerRNA imaptr = RNA_pointer_get(ptr, "image");
   PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
 
-  uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+  layout->context_ptr_set("image_user", &iuserptr);
   uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
 
   layout->prop(ptr, "interpolation", DEFAULT_FLAGS, "", ICON_NONE);
@@ -508,7 +508,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
   bNode *node = (bNode *)ptr->data;
 
   PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_ImageUser, node->storage);
-  uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+  layout->context_ptr_set("image_user", &iuserptr);
   uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
   if (!node->id) {
     return;
@@ -526,7 +526,7 @@ static void node_composit_buts_image_ex(uiLayout *layout, bContext *C, PointerRN
   bNode *node = (bNode *)ptr->data;
 
   PointerRNA iuserptr = RNA_pointer_create_discrete(ptr->owner_id, &RNA_ImageUser, node->storage);
-  uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+  layout->context_ptr_set("image_user", &iuserptr);
   uiTemplateImage(layout, C, ptr, "image", &iuserptr, false, true);
 }
 
@@ -544,11 +544,6 @@ static void node_composit_buts_huecorrect(uiLayout *layout, bContext * /*C*/, Po
   }
 
   uiTemplateCurveMapping(layout, ptr, "mapping", 'h', false, false, false, false);
-}
-
-static void node_composit_buts_ycc(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
 static void node_composit_buts_combsep_color(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -603,7 +598,7 @@ static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, Pointe
     PointerRNA imaptr = RNA_pointer_get(ptr, "image");
     PointerRNA iuserptr = RNA_pointer_create_discrete(
         ptr->owner_id, &RNA_ImageUser, &crypto->iuser);
-    uiLayoutSetContextPointer(layout, "image_user", &iuserptr);
+    layout->context_ptr_set("image_user", &iuserptr);
 
     node_buts_image_user(col, C, ptr, &imaptr, &iuserptr, false, false);
     node_buts_image_views(col, C, ptr, &imaptr);
@@ -639,19 +634,12 @@ static void node_composit_set_butfunc(blender::bke::bNodeType *ntype)
     case CMP_NODE_TEXTURE:
       ntype->draw_buttons = node_buts_texture;
       break;
-    case CMP_NODE_MATH:
-      ntype->draw_buttons = node_buts_math;
-      break;
     case CMP_NODE_HUECORRECT:
       ntype->draw_buttons = node_composit_buts_huecorrect;
       break;
     case CMP_NODE_COMBINE_COLOR:
     case CMP_NODE_SEPARATE_COLOR:
       ntype->draw_buttons = node_composit_buts_combsep_color;
-      break;
-    case CMP_NODE_COMBYCCA_LEGACY:
-    case CMP_NODE_SEPYCCA_LEGACY:
-      ntype->draw_buttons = node_composit_buts_ycc;
       break;
     case CMP_NODE_CRYPTOMATTE:
       ntype->draw_buttons = node_composit_buts_cryptomatte;
@@ -1062,7 +1050,7 @@ static void node_file_output_socket_draw(bContext *C,
     PropertyRNA *imtype_prop = RNA_struct_find_property(&imfptr, "file_format");
     RNA_property_enum_name(
         C, &imfptr, imtype_prop, RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
-    block = uiLayoutGetBlock(row);
+    block = row->block();
     UI_block_emboss_set(block, blender::ui::EmbossType::Pulldown);
     row->label(imtype_name, ICON_NONE);
     UI_block_emboss_set(block, blender::ui::EmbossType::None);

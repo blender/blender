@@ -262,6 +262,11 @@ add_blender_test(
 )
 
 add_blender_test(
+  script_pyapi_bmesh
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_bmesh.py
+)
+
+add_blender_test(
   script_pyapi_grease_pencil
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_grease_pencil.py
 )
@@ -571,6 +576,13 @@ if(TEST_SRC_DIR_EXISTS)
   add_blender_test(
     bl_node_field_type_inference
     --python ${CMAKE_CURRENT_LIST_DIR}/bl_node_field_type_inference.py
+    --
+    --testdir "${TEST_SRC_DIR}/node_group"
+  )
+
+  add_blender_test(
+    bl_node_structure_type_inference
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_node_structure_type_inference.py
     --
     --testdir "${TEST_SRC_DIR}/node_group"
   )

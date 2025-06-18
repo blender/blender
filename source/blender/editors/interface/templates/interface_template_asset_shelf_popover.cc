@@ -36,13 +36,13 @@ void template_asset_shelf_popover(uiLayout &layout,
   }
 
   const ARegion *region = CTX_wm_region(&C);
-  uiBlock *block = uiLayoutGetBlock(&layout);
+  uiBlock *block = layout.block();
 
   uiLayout *row = &layout.row(true);
   const bool use_big_size = !RGN_TYPE_IS_HEADER_ANY(region->regiontype);
   const bool use_preview_icon = use_big_size;
 
-  uiLayoutSetContextString(row, "asset_shelf_idname", asset_shelf_id);
+  row->context_string_set("asset_shelf_idname", asset_shelf_id);
   if (use_big_size) {
     row->scale_x_set(6);
     row->scale_y_set(6);
@@ -86,7 +86,7 @@ bool asset_shelf_popover_invoke(bContext &C, StringRef asset_shelf_idname, Repor
       nullptr,
       nullptr,
       [asset_shelf_id_str](bContext *C, uiLayout *layout, void *arg_pt) {
-        uiLayoutSetContextString(layout, "asset_shelf_idname", asset_shelf_id_str);
+        layout->context_string_set("asset_shelf_idname", asset_shelf_id_str);
         ui_item_paneltype_func(C, layout, arg_pt);
       },
       pt);

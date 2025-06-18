@@ -4866,7 +4866,10 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_look_dev", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "overlay.flag", V3D_OVERLAY_LOOK_DEV);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(prop, "HDRI Preview", "Show HDRI preview spheres");
+  RNA_def_property_ui_text(prop,
+                           "Reference Spheres",
+                           "Show reference spheres with neutral shading that react to lighting to "
+                           "assist in look development");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, nullptr);
 
   prop = RNA_def_property(srna, "show_wireframes", PROP_BOOLEAN, PROP_NONE);
@@ -8417,10 +8420,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_graph_tracks_motion", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SC_SHOW_GRAPH_TRACKS_MOTION);
   RNA_def_property_ui_text(
-      prop,
-      "Show Tracks Motion",
-      "Display the speed curves (in \"x\" direction red, in \"y\" direction green) "
-      "for the selected tracks");
+      prop, "Show Tracks Motion", "Display speed curves for the selected tracks");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, nullptr);
 
   /* show graph tracks motion */

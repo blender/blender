@@ -109,25 +109,17 @@ class MESH_UL_vgroups(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data_, _active_propname, _index):
         # assert(isinstance(item, bpy.types.VertexGroup))
         vgroup = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
-            icon = 'LOCKED' if vgroup.lock_weight else 'UNLOCKED'
-            layout.prop(vgroup, "lock_weight", text="", icon=icon, emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+        layout.prop(vgroup, "name", text="", emboss=False, icon_value=icon)
+        icon = 'LOCKED' if vgroup.lock_weight else 'UNLOCKED'
+        layout.prop(vgroup, "lock_weight", text="", icon=icon, emboss=False)
 
 
 class MESH_UL_uvmaps(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer)))
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(item, "name", text="", emboss=False, icon='GROUP_UVS')
-            icon = 'RESTRICT_RENDER_OFF' if item.active_render else 'RESTRICT_RENDER_ON'
-            layout.prop(item, "active_render", text="", icon=icon, emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+        layout.prop(item, "name", text="", emboss=False, icon='GROUP_UVS')
+        icon = 'RESTRICT_RENDER_OFF' if item.active_render else 'RESTRICT_RENDER_ON'
+        layout.prop(item, "active_render", text="", icon=icon, emboss=False)
 
 
 class MeshButtonsPanel:

@@ -96,11 +96,11 @@ class DisplaceOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    GPUShader *shader = context().get_shader(this->get_shader_name());
+    const Interpolation interpolation = this->get_interpolation();
+    GPUShader *shader = context().get_shader(this->get_shader_name(interpolation));
     GPU_shader_bind(shader);
 
     const Result &input_image = get_input("Image");
-    const Interpolation interpolation = this->get_interpolation();
     if (interpolation == Interpolation::Anisotropic) {
       GPU_texture_anisotropic_filter(input_image, true);
       GPU_texture_mipmap_mode(input_image, true, true);
@@ -274,11 +274,18 @@ class DisplaceOperation : public NodeOperation {
     return coordinates - displacement;
   }
 
-  const char *get_shader_name() const
+  const char *get_shader_name(const Interpolation &interpolation) const
   {
-    if (this->get_interpolation() == Interpolation::Anisotropic) {
-      return "compositor_displace_anisotropic";
+    switch (interpolation) {
+      case Interpolation::Anisotropic:
+        return "compositor_displace_anisotropic";
+      case Interpolation::Bicubic:
+        return "compositor_displace_bicubic";
+      case Interpolation::Bilinear:
+      case Interpolation::Nearest:
+        return "compositor_displace";
     }
+    BLI_assert_unreachable();
     return "compositor_displace";
   }
 

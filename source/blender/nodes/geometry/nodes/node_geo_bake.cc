@@ -510,11 +510,11 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
     return;
   }
   layout->active_set(ctx.is_bakeable_in_current_context);
-  uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
+  layout->enabled_set(ID_IS_EDITABLE(ctx.object));
   uiLayout *col = &layout->column(false);
   {
     uiLayout *row = &col->row(true);
-    uiLayoutSetEnabled(row, !ctx.is_baked);
+    row->enabled_set(!ctx.is_baked);
     row->prop(&ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
   }
   draw_bake_button_row(ctx, col);
@@ -531,13 +531,13 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   }
 
   layout->active_set(ctx.is_bakeable_in_current_context);
-  uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
+  layout->enabled_set(ID_IS_EDITABLE(ctx.object));
 
   {
     uiLayout *col = &layout->column(false);
     {
       uiLayout *row = &col->row(true);
-      uiLayoutSetEnabled(row, !ctx.is_baked);
+      row->enabled_set(!ctx.is_baked);
       row->prop(&ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
     }
 

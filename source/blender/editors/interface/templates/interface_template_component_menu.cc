@@ -57,7 +57,7 @@ void uiTemplateComponentMenu(uiLayout *layout,
   args->ptr = *ptr;
   STRNCPY(args->propname, propname.c_str());
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   UI_block_align_begin(block);
 
   uiBut *but = uiDefBlockButN(block,

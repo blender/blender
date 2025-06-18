@@ -1436,7 +1436,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
 
   if (op == WM_operator_last_redo(C)) {
     if (!WM_operator_check_ui_enabled(C, op->type->name)) {
-      uiLayoutSetEnabled(layout, false);
+      layout->enabled_set(false);
     }
   }
 
@@ -1603,10 +1603,10 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
 
   /* Check there are no active default buttons, allowing a dialog to define its own
    * confirmation buttons which are shown instead of these, see: #124098. */
-  if (!UI_block_has_active_default_button(uiLayoutGetBlock(layout))) {
+  if (!UI_block_has_active_default_button(layout->block())) {
     /* New column so as not to interfere with custom layouts, see: #26436. */
     uiLayout *col = &layout->column(false);
-    uiBlock *col_block = uiLayoutGetBlock(col);
+    uiBlock *col_block = col->block();
     uiBut *confirm_but;
     uiBut *cancel_but;
 

@@ -19,18 +19,11 @@ class PHYSICS_UL_dynapaint_surfaces(UIList):
         surf = item
         sticon = layout.enum_item_icon(surf, "surface_type", surf.surface_type)
 
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row(align=True)
-            row.label(text="", icon_value=icon)
-            row.prop(surf, "name", text="", emboss=False, icon_value=sticon)
-            row = layout.row(align=True)
-            row.prop(surf, "is_active", text="")
-
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            row = layout.row(align=True)
-            row.label(text="", icon_value=icon)
-            row.label(text="", icon_value=sticon)
+        row = layout.row(align=True)
+        row.label(text="", icon_value=icon)
+        row.prop(surf, "name", text="", emboss=False, icon_value=sticon)
+        row = layout.row(align=True)
+        row.prop(surf, "is_active", text="")
 
 
 class PhysicButtonsPanel:

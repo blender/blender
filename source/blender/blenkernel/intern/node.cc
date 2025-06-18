@@ -808,7 +808,7 @@ static void node_blend_write_storage(BlendWriter *writer, bNodeTree *ntree, bNod
            SH_NODE_CURVE_RGB,
            SH_NODE_CURVE_FLOAT,
            CMP_NODE_TIME,
-           CMP_NODE_CURVE_VEC,
+           CMP_NODE_CURVE_VEC_DEPRECATED,
            CMP_NODE_CURVE_RGB,
            CMP_NODE_HUECORRECT,
            TEX_NODE_CURVE_RGB,
@@ -1093,6 +1093,16 @@ static void direct_link_node_socket_legacy_data_version_do(
 static void direct_link_node_socket_default_value(BlendDataReader *reader, bNodeSocket *sock)
 {
   if (sock->default_value == nullptr) {
+    return;
+  }
+
+  if (sock->type == SOCK_CUSTOM) {
+    /* There are some files around that have non-null default value for custom sockets. See e.g.
+     * #140083.
+     *
+     * It is unclear how this could happen, but for now simply systematically set this pointer to
+     * null. */
+    sock->default_value = nullptr;
     return;
   }
 
@@ -1448,7 +1458,7 @@ static void node_blend_read_data_storage(BlendDataReader *reader, bNodeTree *ntr
     case SH_NODE_CURVE_RGB:
     case SH_NODE_CURVE_FLOAT:
     case CMP_NODE_TIME:
-    case CMP_NODE_CURVE_VEC:
+    case CMP_NODE_CURVE_VEC_DEPRECATED:
     case CMP_NODE_CURVE_RGB:
     case CMP_NODE_HUECORRECT:
     case TEX_NODE_CURVE_RGB:

@@ -37,7 +37,7 @@ void uiTemplateCacheFileVelocity(uiLayout *layout, PointerRNA *fileptr)
   }
 
   /* Ensure that the context has a CacheFile as this may not be set inside of modifiers panels. */
-  uiLayoutSetContextPointer(layout, "edit_cachefile", fileptr);
+  layout->context_ptr_set("edit_cachefile", fileptr);
 
   layout->prop(fileptr, "velocity_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(fileptr, "velocity_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -50,7 +50,7 @@ void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerR
   }
 
   /* Ensure that the context has a CacheFile as this may not be set inside of modifiers panels. */
-  uiLayoutSetContextPointer(layout, "edit_cachefile", fileptr);
+  layout->context_ptr_set("edit_cachefile", fileptr);
 
   uiLayout *row, *sub;
 
@@ -90,11 +90,11 @@ void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerR
   const bool use_prefetch = RNA_boolean_get(fileptr, "use_prefetch");
 
   row = &layout->row(false);
-  uiLayoutSetEnabled(row, use_render_procedural);
+  row->enabled_set(use_render_procedural);
   row->prop(fileptr, "use_prefetch", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   sub = &layout->row(false);
-  uiLayoutSetEnabled(sub, use_prefetch && use_render_procedural);
+  sub->enabled_set(use_prefetch && use_render_procedural);
   sub->prop(fileptr, "prefetch_cache_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
@@ -105,7 +105,7 @@ void uiTemplateCacheFileTimeSettings(uiLayout *layout, PointerRNA *fileptr)
   }
 
   /* Ensure that the context has a CacheFile as this may not be set inside of modifiers panels. */
-  uiLayoutSetContextPointer(layout, "edit_cachefile", fileptr);
+  layout->context_ptr_set("edit_cachefile", fileptr);
 
   uiLayout *row, *sub, *subsub;
 
@@ -159,7 +159,7 @@ void uiTemplateCacheFileLayers(uiLayout *layout, const bContext *C, PointerRNA *
   }
 
   /* Ensure that the context has a CacheFile as this may not be set inside of modifiers panels. */
-  uiLayoutSetContextPointer(layout, "edit_cachefile", fileptr);
+  layout->context_ptr_set("edit_cachefile", fileptr);
 
   uiLayout *row = &layout->row(false);
   uiLayout *col = &row->column(true);
@@ -233,7 +233,7 @@ void uiTemplateCacheFile(uiLayout *layout,
 
   CacheFile *file = static_cast<CacheFile *>(fileptr.data);
 
-  uiLayoutSetContextPointer(layout, "edit_cachefile", &fileptr);
+  layout->context_ptr_set("edit_cachefile", &fileptr);
 
   uiTemplateID(layout, C, ptr, propname, nullptr, "CACHEFILE_OT_open", nullptr);
 

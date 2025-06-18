@@ -317,6 +317,69 @@ class TestPropArrayDynamicArg(unittest.TestCase):
         self.assertEqual(tuple([1.0] * self.dims), tuple([vg.weight(i) for i in range(self.dims)]))
 
 
+class TestPropArrayInvalidForeachGetSet(unittest.TestCase):
+    """
+    Test proper detection of invalid usages of foreach_get/foreach_set.
+    """
+
+    dims = 8
+
+    def setUp(self):
+        self.me = bpy.data.meshes.new("")
+        self.me.vertices.add(self.dims)
+        self.ob = bpy.data.objects.new("", self.me)
+
+    def tearDown(self):
+        bpy.data.objects.remove(self.ob)
+        bpy.data.meshes.remove(self.me)
+        self.me = None
+        self.ob = None
+
+    def test_foreach_valid(self):
+        me = self.me
+
+        # Non-array (scalar) data access.
+        valid_1b_list = [False] * len(me.vertices)
+        me.vertices.foreach_get("select", valid_1b_list)
+        self.assertEqual(tuple([True] * self.dims), tuple(valid_1b_list))
+
+        valid_1b_list = [False] * len(me.vertices)
+        me.vertices.foreach_set("select", valid_1b_list)
+        for v in me.vertices:
+            self.assertFalse(v.select)
+
+        # Array (vector) data access.
+        valid_3f_list = [1.0] * (len(me.vertices) * 3)
+        me.vertices.foreach_get("co", valid_3f_list)
+        self.assertEqual(tuple([0.0] * self.dims * 3), tuple(valid_3f_list))
+
+        valid_3f_list = [1.0] * (len(me.vertices) * 3)
+        me.vertices.foreach_set("co", valid_3f_list)
+        for v in me.vertices:
+            self.assertEqual(tuple(v.co), (1.0, 1.0, 1.0))
+
+    def test_foreach_invalid_smaller_array(self):
+        me = self.me
+
+        # Non-array (scalar) data access.
+        invalid_1b_list = [False] * (len(me.vertices) - 1)
+        with self.assertRaises(RuntimeError):
+            me.vertices.foreach_get("select", invalid_1b_list)
+
+        invalid_1b_list = [False] * (len(me.vertices) - 1)
+        with self.assertRaises(RuntimeError):
+            me.vertices.foreach_set("select", invalid_1b_list)
+
+        # Array (vector) data access.
+        invalid_3f_list = [1.0] * (len(me.vertices) * 3 - 1)
+        with self.assertRaises(RuntimeError):
+            me.vertices.foreach_get("co", invalid_3f_list)
+
+        invalid_3f_list = [1.0] * (len(me.vertices) * 3 - 1)
+        with self.assertRaises(RuntimeError):
+            me.vertices.foreach_set("co", invalid_3f_list)
+
+
 if __name__ == '__main__':
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])

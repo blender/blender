@@ -64,7 +64,7 @@ static void file_panel_operator(const bContext *C, Panel *panel)
   SpaceFile *sfile = CTX_wm_space_file(C);
   wmOperator *op = sfile->op;
 
-  UI_block_func_set(uiLayoutGetBlock(panel->layout), file_draw_check_cb, nullptr, nullptr);
+  UI_block_func_set(panel->layout->block(), file_draw_check_cb, nullptr, nullptr);
 
   /* Hack: temporary hide. */
   const char *hide[] = {"filepath", "files", "directory", "filename"};
@@ -89,7 +89,7 @@ static void file_panel_operator(const bContext *C, Panel *panel)
     }
   }
 
-  UI_block_func_set(uiLayoutGetBlock(panel->layout), nullptr, nullptr, nullptr);
+  UI_block_func_set(panel->layout->block(), nullptr, nullptr, nullptr);
 }
 
 void file_tool_props_region_panels_register(ARegionType *art)
@@ -121,7 +121,7 @@ static void file_panel_execution_execute_button(uiLayout *layout, const char *ti
   row->scale_x_set(0.8f);
   uiLayoutSetFixedSize(row, true);
   /* Just a display hint. */
-  uiLayoutSetActiveDefault(row, true);
+  row->active_default_set(true);
   row->op("FILE_OT_execute", title, ICON_NONE);
 }
 
@@ -130,7 +130,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
   bScreen *screen = CTX_wm_screen(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  uiBlock *block = uiLayoutGetBlock(panel->layout);
+  uiBlock *block = panel->layout->block();
   uiBut *but;
   uiLayout *row;
   PointerRNA *but_extra_rna_ptr;

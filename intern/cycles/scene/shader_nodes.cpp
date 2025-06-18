@@ -5357,52 +5357,6 @@ void CombineColorNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_combine_color");
 }
 
-/* Combine RGB */
-
-NODE_DEFINE(CombineRGBNode)
-{
-  NodeType *type = NodeType::add("combine_rgb", create, NodeType::SHADER);
-
-  SOCKET_IN_FLOAT(r, "R", 0.0f);
-  SOCKET_IN_FLOAT(g, "G", 0.0f);
-  SOCKET_IN_FLOAT(b, "B", 0.0f);
-
-  SOCKET_OUT_COLOR(image, "Image");
-
-  return type;
-}
-
-CombineRGBNode::CombineRGBNode() : ShaderNode(get_node_type()) {}
-
-void CombineRGBNode::constant_fold(const ConstantFolder &folder)
-{
-  if (folder.all_inputs_constant()) {
-    folder.make_constant(make_float3(r, g, b));
-  }
-}
-
-void CombineRGBNode::compile(SVMCompiler &compiler)
-{
-  ShaderInput *red_in = input("R");
-  ShaderInput *green_in = input("G");
-  ShaderInput *blue_in = input("B");
-  ShaderOutput *color_out = output("Image");
-
-  compiler.add_node(
-      NODE_COMBINE_VECTOR, compiler.stack_assign(red_in), 0, compiler.stack_assign(color_out));
-
-  compiler.add_node(
-      NODE_COMBINE_VECTOR, compiler.stack_assign(green_in), 1, compiler.stack_assign(color_out));
-
-  compiler.add_node(
-      NODE_COMBINE_VECTOR, compiler.stack_assign(blue_in), 2, compiler.stack_assign(color_out));
-}
-
-void CombineRGBNode::compile(OSLCompiler &compiler)
-{
-  compiler.add(this, "node_combine_rgb");
-}
-
 /* Combine XYZ */
 
 NODE_DEFINE(CombineXYZNode)
@@ -5447,49 +5401,6 @@ void CombineXYZNode::compile(SVMCompiler &compiler)
 void CombineXYZNode::compile(OSLCompiler &compiler)
 {
   compiler.add(this, "node_combine_xyz");
-}
-
-/* Combine HSV */
-
-NODE_DEFINE(CombineHSVNode)
-{
-  NodeType *type = NodeType::add("combine_hsv", create, NodeType::SHADER);
-
-  SOCKET_IN_FLOAT(h, "H", 0.0f);
-  SOCKET_IN_FLOAT(s, "S", 0.0f);
-  SOCKET_IN_FLOAT(v, "V", 0.0f);
-
-  SOCKET_OUT_COLOR(color, "Color");
-
-  return type;
-}
-
-CombineHSVNode::CombineHSVNode() : ShaderNode(get_node_type()) {}
-
-void CombineHSVNode::constant_fold(const ConstantFolder &folder)
-{
-  if (folder.all_inputs_constant()) {
-    folder.make_constant(hsv_to_rgb(make_float3(h, s, v)));
-  }
-}
-
-void CombineHSVNode::compile(SVMCompiler &compiler)
-{
-  ShaderInput *hue_in = input("H");
-  ShaderInput *saturation_in = input("S");
-  ShaderInput *value_in = input("V");
-  ShaderOutput *color_out = output("Color");
-
-  compiler.add_node(NODE_COMBINE_HSV,
-                    compiler.stack_assign(hue_in),
-                    compiler.stack_assign(saturation_in),
-                    compiler.stack_assign(value_in));
-  compiler.add_node(NODE_COMBINE_HSV, compiler.stack_assign(color_out));
-}
-
-void CombineHSVNode::compile(OSLCompiler &compiler)
-{
-  compiler.add(this, "node_combine_hsv");
 }
 
 /* Gamma */
@@ -5649,57 +5560,6 @@ void SeparateColorNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_separate_color");
 }
 
-/* Separate RGB */
-
-NODE_DEFINE(SeparateRGBNode)
-{
-  NodeType *type = NodeType::add("separate_rgb", create, NodeType::SHADER);
-
-  SOCKET_IN_COLOR(color, "Image", zero_float3());
-
-  SOCKET_OUT_FLOAT(r, "R");
-  SOCKET_OUT_FLOAT(g, "G");
-  SOCKET_OUT_FLOAT(b, "B");
-
-  return type;
-}
-
-SeparateRGBNode::SeparateRGBNode() : ShaderNode(get_node_type()) {}
-
-void SeparateRGBNode::constant_fold(const ConstantFolder &folder)
-{
-  if (folder.all_inputs_constant()) {
-    for (int channel = 0; channel < 3; channel++) {
-      if (outputs[channel] == folder.output) {
-        folder.make_constant(color[channel]);
-        return;
-      }
-    }
-  }
-}
-
-void SeparateRGBNode::compile(SVMCompiler &compiler)
-{
-  ShaderInput *color_in = input("Image");
-  ShaderOutput *red_out = output("R");
-  ShaderOutput *green_out = output("G");
-  ShaderOutput *blue_out = output("B");
-
-  compiler.add_node(
-      NODE_SEPARATE_VECTOR, compiler.stack_assign(color_in), 0, compiler.stack_assign(red_out));
-
-  compiler.add_node(
-      NODE_SEPARATE_VECTOR, compiler.stack_assign(color_in), 1, compiler.stack_assign(green_out));
-
-  compiler.add_node(
-      NODE_SEPARATE_VECTOR, compiler.stack_assign(color_in), 2, compiler.stack_assign(blue_out));
-}
-
-void SeparateRGBNode::compile(OSLCompiler &compiler)
-{
-  compiler.add(this, "node_separate_rgb");
-}
-
 /* Separate XYZ */
 
 NODE_DEFINE(SeparateXYZNode)
@@ -5749,56 +5609,6 @@ void SeparateXYZNode::compile(SVMCompiler &compiler)
 void SeparateXYZNode::compile(OSLCompiler &compiler)
 {
   compiler.add(this, "node_separate_xyz");
-}
-
-/* Separate HSV */
-
-NODE_DEFINE(SeparateHSVNode)
-{
-  NodeType *type = NodeType::add("separate_hsv", create, NodeType::SHADER);
-
-  SOCKET_IN_COLOR(color, "Color", zero_float3());
-
-  SOCKET_OUT_FLOAT(h, "H");
-  SOCKET_OUT_FLOAT(s, "S");
-  SOCKET_OUT_FLOAT(v, "V");
-
-  return type;
-}
-
-SeparateHSVNode::SeparateHSVNode() : ShaderNode(get_node_type()) {}
-
-void SeparateHSVNode::constant_fold(const ConstantFolder &folder)
-{
-  if (folder.all_inputs_constant()) {
-    float3 hsv = rgb_to_hsv(color);
-
-    for (int channel = 0; channel < 3; channel++) {
-      if (outputs[channel] == folder.output) {
-        folder.make_constant(hsv[channel]);
-        return;
-      }
-    }
-  }
-}
-
-void SeparateHSVNode::compile(SVMCompiler &compiler)
-{
-  ShaderInput *color_in = input("Color");
-  ShaderOutput *hue_out = output("H");
-  ShaderOutput *saturation_out = output("S");
-  ShaderOutput *value_out = output("V");
-
-  compiler.add_node(NODE_SEPARATE_HSV,
-                    compiler.stack_assign(color_in),
-                    compiler.stack_assign(hue_out),
-                    compiler.stack_assign(saturation_out));
-  compiler.add_node(NODE_SEPARATE_HSV, compiler.stack_assign(value_out));
-}
-
-void SeparateHSVNode::compile(OSLCompiler &compiler)
-{
-  compiler.add(this, "node_separate_hsv");
 }
 
 /* Hue/Saturation/Value */

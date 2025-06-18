@@ -86,7 +86,7 @@ static void step_object_sync_render(Instance &inst, ObjectRef &ob_ref)
       inst.velocity.step_object_sync(
           hair_handle.object_key, ob_ref, hair_handle.recalc, resource_handle, &md, &particle_sys);
     };
-    foreach_hair_particle_handle(ob_ref.object, ob_handle, sync_hair);
+    foreach_hair_particle_handle(ob_ref, ob_handle, sync_hair);
   };
 
   if (object_is_visible) {

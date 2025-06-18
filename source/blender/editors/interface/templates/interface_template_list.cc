@@ -250,14 +250,15 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
           dyn_data->items_filter_flags[i] = UILST_FLT_ITEM_NEVER_SHOW;
         }
         else if (filter_result == UI_LIST_ITEM_FILTER_MATCHES) {
-          dyn_data->items_filter_flags[i] = UILST_FLT_ITEM;
           if (!filter_exclude) {
+            dyn_data->items_filter_flags[i] = UILST_FLT_ITEM;
             dyn_data->items_shown++;
             do_order = order_by_name;
           }
           // printf("%s: '%s' matches '%s'\n", __func__, name, filter);
         }
         else if (filter_exclude) {
+          dyn_data->items_filter_flags[i] = UILST_FLT_ITEM;
           dyn_data->items_shown++;
           do_order = order_by_name;
         }
@@ -311,11 +312,6 @@ bool UI_list_item_index_is_filtered_visible(const uiList *ui_list, const int ite
 
   if (dyn_data->items_filter_flags[item_idx] & UILST_FLT_ITEM_NEVER_SHOW) {
     return false;
-  }
-
-  if (ui_list->filter_byname[0] == '\0') {
-    /* Show all elements when search string is empty. */
-    return true;
   }
 
   return (dyn_data->items_filter_flags[item_idx] & UILST_FLT_ITEM);
@@ -710,7 +706,7 @@ static void ui_template_list_layout_draw(const bContext *C,
   int rnaicon = ICON_NONE, icon = ICON_NONE;
   uiBut *but;
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   /* get icon */
   if (input_data->dataptr.data && input_data->prop) {
@@ -743,7 +739,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           void *dyntip_data;
           const int org_i = items->item_vec[i].org_idx;
           const int flt_flag = items->item_vec[i].flt_flag;
-          uiBlock *subblock = uiLayoutGetBlock(col);
+          uiBlock *subblock = col->block();
 
           overlap = &col->overlap();
 
@@ -797,7 +793,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
           /* Items should be able to set context pointers for the layout. But the list-row button
            * swallows events, so it needs the context storage too for handlers to see it. */
-          but->context = uiLayoutGetContextStore(sub);
+          but->context = sub->context_store();
 
           /* If we are "drawing" active item, set all labels as active. */
           if (i == items->active_item_idx) {
@@ -906,7 +902,7 @@ static void ui_template_list_layout_draw(const bContext *C,
             subrow = &col->row(false);
           }
 
-          uiBlock *subblock = uiLayoutGetBlock(subrow);
+          uiBlock *subblock = subrow->block();
           overlap = &subrow->overlap();
 
           UI_block_flag_enable(subblock, UI_BLOCK_LIST_ITEM);
@@ -1011,7 +1007,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           overlap = &grid->overlap();
           col = &overlap->column(false);
 
-          uiBlock *subblock = uiLayoutGetBlock(col);
+          uiBlock *subblock = col->block();
           UI_block_flag_enable(subblock, UI_BLOCK_LIST_ITEM);
 
           but = uiDefButR_prop(subblock,
@@ -1046,7 +1042,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
           /* Items should be able to set context pointers for the layout. But the list-row button
            * swallows events, so it needs the context storage too for handlers to see it. */
-          but->context = uiLayoutGetContextStore(col);
+          but->context = col->context_store();
 
           /* If we are "drawing" active item, set all labels as active. */
           if (i == items->active_item_idx) {
@@ -1098,7 +1094,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                        (dyn_data->visual_height - ui_list->list_grip) * UI_UNIT_Y;
 
     row = &glob->row(true);
-    uiBlock *subblock = uiLayoutGetBlock(row);
+    uiBlock *subblock = row->block();
     UI_block_emboss_set(subblock, blender::ui::EmbossType::None);
 
     if (ui_list->filter_flag & UILST_FLT_SHOW) {
@@ -1136,7 +1132,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       UI_block_emboss_set(subblock, blender::ui::EmbossType::Emboss);
 
       col = &glob->column(false);
-      subblock = uiLayoutGetBlock(col);
+      subblock = col->block();
       uiDefBut(subblock,
                UI_BTYPE_SEPR,
                0,

@@ -108,7 +108,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
   const char *op_name = nullptr;
   const char *op_description = nullptr;
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   UI_block_layout_set_current(block, layout);
 
   UI_block_func_handle_set(block, do_running_jobs, nullptr);
@@ -222,7 +222,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
     const bool active = !(G.is_break || WM_jobs_is_stopped(wm, owner));
 
     uiLayout *row = &layout->row(false);
-    block = uiLayoutGetBlock(row);
+    block = row->block();
 
     /* get percentage done and set it as the UI text */
     const float progress = WM_jobs_progress(wm, owner);
@@ -264,7 +264,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
     /* stick progress bar and cancel button together */
     row = &layout->row(true);
     row->active_set(active);
-    block = uiLayoutGetBlock(row);
+    block = row->block();
 
     {
       ProgressTooltip_Store *tip_arg = static_cast<ProgressTooltip_Store *>(

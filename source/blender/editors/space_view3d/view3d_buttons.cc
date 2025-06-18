@@ -1506,7 +1506,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
           xco += x;
 
           row = &split->row(true);
-          uiLayoutSetEnabled(row, !locked);
+          row->enabled_set(!locked);
 
           /* The weight group value */
           /* To be reworked still */
@@ -1833,7 +1833,7 @@ static void view3d_panel_transform(const bContext *C, Panel *panel)
   Object *obedit = OBEDIT_FROM_OBACT(ob);
   uiLayout *col;
 
-  block = uiLayoutGetBlock(panel->layout);
+  block = panel->layout->block();
   UI_block_func_handle_set(block, do_view3d_region_buttons, nullptr);
 
   col = &panel->layout->column(false);

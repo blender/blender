@@ -323,7 +323,7 @@ void ui_template_node_asset_menu_items(uiLayout &layout,
     return;
   }
   uiLayout *col = &layout.column(false);
-  uiLayoutSetContextString(col, "asset_catalog_path", item->catalog_path().str());
+  col->context_string_set("asset_catalog_path", item->catalog_path().str());
   uiItemMContents(col, "NODE_MT_node_add_catalog_assets");
 }
 

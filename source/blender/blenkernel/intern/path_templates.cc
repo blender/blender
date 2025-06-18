@@ -161,8 +161,7 @@ std::optional<VariableMap> BKE_build_template_variables_for_prop(const bContext 
         render_data = scene ? &scene->r : nullptr;
       }
 
-      return BKE_build_template_variables_for_render_path(BKE_main_blendfile_path_from_global(),
-                                                          render_data);
+      return BKE_build_template_variables_for_render_path(render_data);
     }
   }
 
@@ -173,13 +172,13 @@ std::optional<VariableMap> BKE_build_template_variables_for_prop(const bContext 
   return std::nullopt;
 }
 
-VariableMap BKE_build_template_variables_for_render_path(const char *blend_file_path,
-                                                         const RenderData *render_data)
+VariableMap BKE_build_template_variables_for_render_path(const RenderData *render_data)
 {
   VariableMap variables;
 
-  /* Blend file name. */
-  if (blend_file_path) {
+  /* Blend file name of the currently open blend file. */
+  {
+    const char *blend_file_path = BKE_main_blendfile_path_from_global();
     const char *file_name = BLI_path_basename(blend_file_path);
     const char *file_name_end = BLI_path_extension_or_end(file_name);
     if (file_name[0] == '\0') {

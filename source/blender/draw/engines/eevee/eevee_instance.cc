@@ -212,7 +212,7 @@ void Instance::init(const int2 &output_res,
   ShaderGroups shader_request = DEFERRED_LIGHTING_SHADERS | SHADOW_SHADERS | FILM_SHADERS |
                                 HIZ_SHADERS | SPHERE_PROBE_SHADERS | VOLUME_PROBE_SHADERS |
                                 LIGHT_CULLING_SHADERS;
-  SET_FLAG_FROM_TEST(shader_request, depth_of_field.postfx_enabled(), DEPTH_OF_FIELD_SHADERS);
+  SET_FLAG_FROM_TEST(shader_request, depth_of_field.enabled(), DEPTH_OF_FIELD_SHADERS);
   SET_FLAG_FROM_TEST(shader_request, needs_planar_probe_passes(), DEFERRED_PLANAR_SHADERS);
   SET_FLAG_FROM_TEST(shader_request, needs_lightprobe_sphere_passes(), DEFERRED_CAPTURE_SHADERS);
   SET_FLAG_FROM_TEST(shader_request, motion_blur.postfx_enabled(), MOTION_BLUR_SHADERS);
@@ -394,7 +394,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager & /*manager*/)
                                                                          ob->object_to_world());
           sync.sync_curves(ob, hair_handle, ob_ref, _res_handle, &md, &particle_sys);
         };
-    foreach_hair_particle_handle(ob, ob_handle, sync_hair);
+    foreach_hair_particle_handle(ob_ref, ob_handle, sync_hair);
   }
 
   if (object_is_visible) {

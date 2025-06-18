@@ -639,7 +639,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeRGBToBW";
       case CMP_NODE_NORMAL:
         return "CompositorNodeNormal";
-      case CMP_NODE_CURVE_VEC:
+      case CMP_NODE_CURVE_VEC_DEPRECATED:
         return "CompositorNodeCurveVec";
       case CMP_NODE_CURVE_RGB:
         return "CompositorNodeCurveRGB";
@@ -649,9 +649,9 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeBlur";
       case CMP_NODE_FILTER:
         return "CompositorNodeFilter";
-      case CMP_NODE_MAP_VALUE:
+      case CMP_NODE_MAP_VALUE_DEPRECATED:
         return "CompositorNodeMapValue";
-      case CMP_NODE_MAP_RANGE:
+      case CMP_NODE_MAP_RANGE_DEPRECATED:
         return "CompositorNodeMapRange";
       case CMP_NODE_TIME:
         return "CompositorNodeTime";
@@ -723,7 +723,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeDisplace";
       case CMP_NODE_COMBHSVA_LEGACY:
         return "CompositorNodeCombHSVA";
-      case CMP_NODE_MATH:
+      case CMP_NODE_MATH_DEPRECATED:
         return "CompositorNodeMath";
       case CMP_NODE_LUMA_MATTE:
         return "CompositorNodeLumaMatte";

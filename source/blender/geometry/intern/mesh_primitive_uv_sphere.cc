@@ -298,7 +298,7 @@ static Bounds<float3> calculate_bounds_uv_sphere(const float radius,
 Mesh *create_uv_sphere_mesh(const float radius,
                             const int segments,
                             const int rings,
-                            const std::optional<StringRef> &uv_map_id)
+                            const std::optional<StringRef> uv_map_id)
 {
   Mesh *mesh = BKE_mesh_new_nomain(sphere_vert_total(segments, rings),
                                    sphere_edge_total(segments, rings),

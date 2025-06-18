@@ -57,7 +57,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
 
     if (is_set) {
       /* unset operator */
-      uiBlock *block = uiLayoutGetBlock(row);
+      uiBlock *block = row->block();
       UI_block_emboss_set(block, blender::ui::EmbossType::None);
       but = uiDefIconButO(block,
                           UI_BTYPE_BUT,
@@ -82,8 +82,8 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
   PointerRNA propptr = RNA_pointer_get(ptr, "properties");
 
   if (propptr.data) {
-    uiBlock *block = uiLayoutGetBlock(layout);
-    int i = uiLayoutGetBlock(layout)->buttons.size() - 1;
+    uiBlock *block = layout->block();
+    int i = layout->block()->buttons.size() - 1;
 
     WM_operator_properties_sanitize(&propptr, false);
     template_keymap_item_properties(layout, nullptr, &propptr);

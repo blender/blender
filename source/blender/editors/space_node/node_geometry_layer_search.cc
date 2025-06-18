@@ -181,7 +181,7 @@ void node_geometry_add_layer_search_button(const bContext & /*C*/,
                                            uiLayout &layout,
                                            const StringRef placeholder)
 {
-  uiBlock *block = uiLayoutGetBlock(&layout);
+  uiBlock *block = layout.block();
   uiBut *but = uiDefIconTextButR(block,
                                  UI_BTYPE_SEARCH_MENU,
                                  0,

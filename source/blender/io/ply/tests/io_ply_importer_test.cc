@@ -56,10 +56,8 @@ TEST(ply_import, BufferRefillTest)
                                      {5, 4},
                                      {0, 4},
                                      {5, 1}};
-  EXPECT_EQ(12, data_a->edges.size());
-  EXPECT_EQ(12, data_b->edges.size());
-  EXPECT_EQ_ARRAY(exp_edges, data_a->edges.data(), 12);
-  EXPECT_EQ_ARRAY(exp_edges, data_b->edges.data(), 12);
+  EXPECT_EQ_SPAN<std::pair<int, int>>(Span(exp_edges, 12), data_a->edges);
+  EXPECT_EQ_SPAN<std::pair<int, int>>(Span(exp_edges, 12), data_b->edges);
 }
 
 //@TODO: now we put vertex color attribute first, maybe put position first?

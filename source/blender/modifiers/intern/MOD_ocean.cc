@@ -638,7 +638,7 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
   layout->prop(ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = &layout->column(true);
-  uiLayoutSetEnabled(col, !is_cached);
+  col->enabled_set(!is_cached);
   col->prop(ptr, "frame_start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
   col->prop(ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
 

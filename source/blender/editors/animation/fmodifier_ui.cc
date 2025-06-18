@@ -302,7 +302,7 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
   FModifier *fcm = static_cast<FModifier *>(ptr->data);
   const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   uiLayout *sub = &layout->row(true);
 
@@ -684,7 +684,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
   /* Control points list. */
 
   row = &layout->row(false);
-  uiBlock *block = uiLayoutGetBlock(row);
+  uiBlock *block = row->block();
 
   uiBut *but = uiDefBut(block,
                         UI_BTYPE_BUT,
@@ -710,7 +710,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
 
     /* get a new row to operate on */
     row = &col->row(true);
-    block = uiLayoutGetBlock(row);
+    block = row->block();
 
     row->prop(&ctrl_ptr, "frame", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     row->prop(&ctrl_ptr, "min", UI_ITEM_NONE, IFACE_("Min"), ICON_NONE);

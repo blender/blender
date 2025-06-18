@@ -137,7 +137,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
     void build_row(uiLayout &row) override
     {
       AssetCatalogSelectorTree &tree = dynamic_cast<AssetCatalogSelectorTree &>(get_tree_view());
-      uiBlock *block = uiLayoutGetBlock(&row);
+      uiBlock *block = row.block();
 
       row.emboss_set(blender::ui::EmbossType::Emboss);
 
@@ -212,7 +212,7 @@ static void catalog_selector_panel_draw(const bContext *C, Panel *panel)
     return;
   }
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "asset catalog tree view",

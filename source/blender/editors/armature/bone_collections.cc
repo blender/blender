@@ -1133,7 +1133,7 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
     /* Avoid assigning/moving to a linked bone collection. */
     if (!ANIM_armature_bonecoll_is_editable(arm, bcoll)) {
       uiLayout *sub = &layout->row(false);
-      uiLayoutSetEnabled(sub, false);
+      sub->enabled_set(false);
 
       menu_add_item_for_move_assign_unassign(sub, arm, bcoll, index, is_move_operation);
       continue;

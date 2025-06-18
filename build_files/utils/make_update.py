@@ -159,6 +159,23 @@ def ensure_git_lfs(args: argparse.Namespace) -> None:
     call((args.git_command, "lfs", "install", "--skip-repo"), exit_on_error=True)
 
 
+def switch_blender_git_remotes(args: argparse.Namespace) -> None:
+    """
+    Switch remote URLs from projects.blender.org to git.blender.org
+    """
+    remotes = make_utils.git_get_remotes(args.git_command)
+
+    for remote in remotes:
+        url = make_utils.git_get_remote_url(args.git_command, remote)
+        new_url = url.replace("git@projects.blender.org", "git@git.blender.org")
+
+        if new_url == url:
+            continue
+
+        print(f"Replacing {remote} URL from {url} to {new_url}")
+        make_utils.git_set_config(args.git_command, f"remote.{remote}.url", new_url)
+
+
 def prune_stale_files(args: argparse.Namespace) -> None:
     """
     Ensure files from previous Git configurations do not exist anymore
@@ -558,11 +575,14 @@ def add_submodule_push_url(args: argparse.Namespace) -> None:
 
         push_url = check_output((args.git_command, "config", "--file", str(config),
                                 "--get", "remote.origin.pushURL"), exit_on_error=False)
-        if push_url and push_url != "git@projects.blender.org:blender/lib-darwin_arm64.git":
-            # Ignore modules which have pushURL configured.
-            # Keep special exception, as some debug code sneaked into the production for a short
-            # while.
-            continue
+
+        # Don't modify PushURL if it is set.
+        if push_url:
+            if "projects.blender.org" in push_url:
+                # Allow the code below to replace projects.blender.org with git.blender.org
+                pass
+            else:
+                continue
 
         url = make_utils.git_get_config(args.git_command, "remote.origin.url", str(config))
         if not url.startswith("https:"):
@@ -570,7 +590,12 @@ def add_submodule_push_url(args: argparse.Namespace) -> None:
             continue
 
         url_parts = urlsplit(url)
-        push_url = f"git@{url_parts.netloc}:{url_parts.path[1:]}"
+
+        host = url_parts.hostname
+        if host == "projects.blender.org":
+            host = "git.blender.org"
+
+        push_url = f"git@{host}:{url_parts.path[1:]}"
 
         print(f"Setting pushURL to {push_url} for {submodule_path}")
         make_utils.git_set_config(args.git_command, "remote.origin.pushURL", push_url, str(config))
@@ -643,6 +668,8 @@ def main() -> int:
 
     # Submodules and precompiled libraries require Git LFS.
     ensure_git_lfs(args)
+
+    switch_blender_git_remotes(args)
 
     if args.prune_destructive:
         prune_stale_files(args)
