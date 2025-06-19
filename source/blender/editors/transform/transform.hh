@@ -717,6 +717,21 @@ struct TransDataContainer {
   };
 
   TransCustomDataContainer custom;
+
+  /**
+   * Array of indices for the `data`, `data_ext`, and `data_2d` arrays.
+   *
+   * When using this index map to traverse the arrays, they will be sorted primarily by selection
+   * state (selected before unselected). Depending on the sort function used (see below),
+   * unselected items are then sorted by their "distance" for proportional editing.
+   *
+   * NOTE: this is set to `nullptr` by default; use one of the sorting functions below to
+   * initialize the array.
+   *
+   * \see #sort_trans_data_selected_first Sorts only by selection state.
+   * \see #sort_trans_data_dist Sorts by selection state and distance.
+   */
+  int *sorted_index_map;
 };
 
 struct TransInfo {
