@@ -62,30 +62,53 @@ ccl_device_inline float bsdf_get_roughness_pass_squared(const ccl_private Shader
  * by Alejandro Conty Estevez, Pascal Lecocq, and Clifford Stein. It preserves detail
  * close to the shadow terminator, and doesn't "wash out" intermediate bumps using a
  * Cook-Torrance GGX function for shading. */
-ccl_device_inline float bump_shadowing_term(const int shader_flag,
-                                            float3 Ng,
-                                            const float3 N,
-                                            float3 I)
+ccl_device_inline float bump_shadowing_term(const ccl_private ShaderData *sd,
+                                            const ccl_private ShaderClosure *sc,
+                                            const float3 I,
+                                            const bool is_eval)
 {
-  const float cosNgI = dot(Ng, I);
-  const float cosNgN = dot(Ng, N);
-  const float cosNI = dot(N, I);
-
-  /* dot(Ng, I) * dot(Ng, N) tells us if I and N are on the same side of the actual geometry.
-   * If incoming(I) and normal(N) are on the same side we reject refractions, dot(N, I) < 0.
-   * If they are on different sides we reject reflections, dot(N, I) > 0. */
-  if (cosNgI * cosNgN * cosNI < 0.0f) {
-    return 0.0f;
-  }
-
-  /* When bump map correction is not used do skip the smoothing. */
-  if ((shader_flag & SD_USE_BUMP_MAP_CORRECTION) == 0) {
+  if (isequal(sc->N, sd->N)) {
     return 1.0f;
   }
 
-  /* Get absolute incoming and shader normal deviation from geometric normal, then clamp. */
-  const float cos_i = fabsf(cosNgI);
-  const float cos_d = fabsf(cosNgN);
+  /* Smoothing doesn't apply to curve geometry. */
+  if (sd->type & PRIMITIVE_CURVE) {
+    return 1.0f;
+  }
+
+  /* In order to avoid artifacts at the shadow terminator when using smooth normals,
+   * the BSDF evaluation functions allow for light leaking through the actual geometry
+   * and only checks that the directions are in the correct hemisphere w.r.t. the
+   * shading normal.
+   * However, when using bump/normal mapping, this can lead to light leaking not just
+   * "around" the shadow terminator, but to the rear side of supposedly opaque geometry.
+   * In order to detect this case, we can ensure that the direction is also valid w.r.t.
+   * the smoothed (but non-bump-mapped) normal sd->N (or Ns for short below).
+   *
+   * dot(Ns, I) * dot(Ns, N) tells us if I and N are on the same side of the smoothed geometry.
+   * If incoming(I) and normal(N) are on the same side we reject refractions, dot(N, I) < 0.
+   * If they are on different sides we reject reflections, dot(N, I) > 0. */
+  const float cosNsI = dot(sd->N, I);
+  const float cosNsN = dot(sd->N, sc->N);
+  const float cosNI = dot(sc->N, I);
+  const bool is_diffuse = CLOSURE_IS_BSDF_DIFFUSE(sc->type);
+  if (cosNsI * cosNsN * cosNI < 0.0f && (is_eval || is_diffuse)) {
+    return 0.0f;
+  }
+
+  /* The above test applies to all closures, but the softening only applies to diffuse ones. */
+  if (!is_diffuse) {
+    return 1.0f;
+  }
+
+  /* When bump map correction is not used do skip the smoothing. */
+  if ((sd->flag & SD_USE_BUMP_MAP_CORRECTION) == 0) {
+    return 1.0f;
+  }
+
+  /* Get absolute incoming and shader normal deviation from smoothed normal, then clamp. */
+  const float cos_i = fabsf(cosNsI);
+  const float cos_d = fabsf(cosNsN);
   if (cos_d >= 1.0f || cos_i >= 1.0f) {
     return 1.0f;
   }
@@ -260,11 +283,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
       const float cosNO = dot(*wo, sc->N);
       *eval *= shift_cos_in(cosNO, frequency_multiplier);
     }
-    if (label & LABEL_DIFFUSE) {
-      if (!isequal(sc->N, sd->N)) {
-        *eval *= bump_shadowing_term(sd->flag, sd->N, sc->N, *wo);
-      }
-    }
+    *eval *= bump_shadowing_term(sd, sc, *wo, false);
   }
 
 #ifdef WITH_CYCLES_DEBUG
@@ -499,6 +518,11 @@ ccl_device_inline
   Spectrum eval = zero_spectrum();
   *pdf = 0.f;
 
+  const float bump_shadowing = bump_shadowing_term(sd, sc, wo, true);
+  if (bump_shadowing == 0.0f) {
+    return zero_spectrum();
+  }
+
   switch (sc->type) {
     case CLOSURE_BSDF_DIFFUSE_ID:
       eval = bsdf_diffuse_eval(sc, sd->wi, wo, pdf);
@@ -571,11 +595,7 @@ ccl_device_inline
       break;
   }
 
-  if (CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
-    if (!isequal(sc->N, sd->N)) {
-      eval *= bump_shadowing_term(sd->flag, sd->N, sc->N, wo);
-    }
-  }
+  eval *= bump_shadowing;
 
   /* Shadow terminator offset. */
   const float frequency_multiplier =
