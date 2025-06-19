@@ -140,7 +140,6 @@ class StateManager {
  public:
   GPUState state;
   GPUStateMutable mutable_state;
-  bool use_bgl = false;
 
   StateManager();
   virtual ~StateManager() = default;
