@@ -352,7 +352,7 @@ class RemoteAssetListingDownloader:
         http_req_descr: http_dl.RequestDescription,
         local_file: Path,
     ) -> None:
-        logger.info("Download unnecessary, file already downloaded: %s", http_req_descr.url)
+        logger.debug("Download unnecessary, file already downloaded: %s", http_req_descr.url)
 
     def download_error(
         self,
