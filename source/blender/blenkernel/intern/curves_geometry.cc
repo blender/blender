@@ -1926,10 +1926,7 @@ CurvesGeometry::BlendWriteData::BlendWriteData(ResourceScope &scope)
 
 void CurvesGeometry::blend_write_prepare(CurvesGeometry::BlendWriteData &write_data)
 {
-  attribute_storage_blend_write_prepare(this->attribute_storage.wrap(),
-                                        {{AttrDomain::Point, &write_data.point_layers},
-                                         {AttrDomain::Curve, &write_data.curve_layers}},
-                                        write_data.attribute_data);
+  attribute_storage_blend_write_prepare(this->attribute_storage.wrap(), write_data.attribute_data);
   CustomData_blend_write_prepare(this->point_data,
                                  AttrDomain::Point,
                                  this->points_num(),

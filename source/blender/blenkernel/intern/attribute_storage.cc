@@ -528,52 +528,10 @@ static void write_array_data(BlendWriter &writer,
   }
 }
 
-void attribute_storage_blend_write_prepare(
-    AttributeStorage &data,
-    const Map<AttrDomain, Vector<CustomDataLayer, 16> *> &layers_to_write,
-    AttributeStorage::BlendWriteData &write_data)
+void attribute_storage_blend_write_prepare(AttributeStorage &data,
+                                           AttributeStorage::BlendWriteData &write_data)
 {
-  Set<std::string, 16> all_names_written;
-  for (Vector<CustomDataLayer, 16> *const layers : layers_to_write.values()) {
-    for (const CustomDataLayer &layer : *layers) {
-      all_names_written.add(layer.name);
-    }
-  }
   data.foreach([&](Attribute &attr) {
-    if (!U.experimental.use_attribute_storage_write && !layers_to_write.is_empty()) {
-      /* In version 4.5, all attribute data is written in the #CustomData format (at least when the
-       * debug option is not enabled), so the #Attribute needs to be converted to a
-       * #CustomDataLayer in the proper list. This is only relevant when #AttributeStorage is
-       * actually used at runtime.
-       *
-       * When removing this option to always write the new format in 5.0, #BLENDER_FILE_MIN_VERSION
-       * must be increased. */
-      if (const std::optional data_type = attr_type_to_custom_data_type(attr.data_type())) {
-        if (const auto *array_data = std::get_if<Attribute::ArrayData>(&attr.data())) {
-          CustomDataLayer layer{};
-          layer.type = *data_type;
-          layer.data = array_data->data;
-          layer.sharing_info = array_data->sharing_info.get();
-
-          /* Because the #Attribute::name_ `std::string` has no length limit (unlike
-           * #CustomDataLayer::name), we have to manually make the name unique in case it exceeds
-           * the limit. */
-          BLI_uniquename_cb(
-              [&](const StringRefNull name) { return all_names_written.contains(name); },
-              attr.name().c_str(),
-              '.',
-              layer.name,
-              MAX_CUSTOMDATA_LAYER_NAME);
-          all_names_written.add(layer.name);
-
-          layers_to_write.lookup(attr.domain())->append(layer);
-        }
-      }
-      return;
-    }
-
-    /* Names within an AttributeStorage are unique. */
-    all_names_written.add(attr.name());
     ::Attribute attribute_dna{};
     attribute_dna.name = attr.name().c_str();
     attribute_dna.data_type = int16_t(attr.data_type());

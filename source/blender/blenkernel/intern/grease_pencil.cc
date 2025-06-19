@@ -272,9 +272,7 @@ static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *i
 
   blender::Vector<CustomDataLayer, 16> layers_data_layers;
   blender::bke::AttributeStorage::BlendWriteData attribute_data{scope};
-  attribute_storage_blend_write_prepare(grease_pencil->attribute_storage.wrap(),
-                                        {{AttrDomain::Layer, &layers_data_layers}},
-                                        attribute_data);
+  attribute_storage_blend_write_prepare(grease_pencil->attribute_storage.wrap(), attribute_data);
   CustomData_blend_write_prepare(grease_pencil->layers_data,
                                  AttrDomain::Layer,
                                  grease_pencil->layers().size(),
