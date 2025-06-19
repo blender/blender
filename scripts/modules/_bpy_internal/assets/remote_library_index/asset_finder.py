@@ -66,7 +66,7 @@ def list_assets(blendfile: Path, asset_library_root: Path) -> list[api_models.As
         # are also deleted. All thumbnails are going to be re-written anyway.
         log.debug("thumbnails will be exported to %s", thumbnail_dir)
         assert thumbnail_dir
-        if thumbnail_dir.root == thumbnail_dir:
+        if Path(thumbnail_dir.root) == thumbnail_dir:
             raise RuntimeError(f"Refusing to remove a root directory: {thumbnail_dir}")
         if thumbnail_dir.exists():
             shutil.rmtree(thumbnail_dir)

@@ -11,7 +11,7 @@ except ImportError:
     import itertools
 
     # According to the itertools documentation, this code is equivalent:
-    def batched(iterable, n):
+    def batched(iterable, n):  # type: ignore
         if n < 1:
             raise ValueError('n must be at least one')
         iterator = iter(iterable)
