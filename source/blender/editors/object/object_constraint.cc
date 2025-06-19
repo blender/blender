@@ -2341,7 +2341,7 @@ static wmOperatorStatus constraint_add_exec(
     /* get the target objects, adding them as need be */
     if (get_new_constraint_target(C, type, &tar_ob, &tar_pchan, true)) {
 
-      /* Armature constraints dont have a target by default, add one. */
+      /* Armature constraints don't have a target by default, add one. */
       if (type == CONSTRAINT_TYPE_ARMATURE) {
         bArmatureConstraint *acon = static_cast<bArmatureConstraint *>(con->data);
         bConstraintTarget *ct = MEM_callocN<bConstraintTarget>("Constraint Target");
