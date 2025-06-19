@@ -2610,7 +2610,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                     row.label(text=addon_module_name, translate=False)
 
 
-
 # -----------------------------------------------------------------------------
 # Asset Panels
 
@@ -2618,6 +2617,7 @@ class AssetsPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
     bl_context = "assets"
+
 
 class USERPREF_PT_assets(AssetsPanel, Panel):
     bl_label = "Assets"
@@ -2727,7 +2727,6 @@ class USERPREF_UL_asset_libraries(UIList):
 
         icon = 'INTERNET' if asset_library.use_remote_url else 'DISK_DRIVE'
         layout.prop(asset_library, "name", text="", icon=icon, emboss=False)
-
 
 
 # -----------------------------------------------------------------------------
