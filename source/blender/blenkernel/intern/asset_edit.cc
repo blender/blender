@@ -125,6 +125,11 @@ static std::string asset_blendfile_path_for_save(const bUserAssetLibrary &user_l
               std::min(sizeof(base_name_filesafe), size_t(base_name.size() + 1)));
   BLI_path_make_safe_filename(base_name_filesafe);
 
+  /* FIXME: MAX_ID_NAME & FILE_MAXFILE
+   *
+   * This already does not respect the FILE_MAXFILE max length of filenames for the final filepath
+   * it seems?
+   */
   {
     const std::string filepath = root_path + SEP + base_name_filesafe + BLENDER_ASSET_FILE_SUFFIX;
     if (!BLI_is_file(filepath.c_str())) {

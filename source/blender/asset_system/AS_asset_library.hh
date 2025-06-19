@@ -299,7 +299,7 @@ void AS_asset_library_remap_ids(const blender::bke::id::IDRemapper &mappings);
  * \param r_name: Returns the ID name on success. Optional (passing null is allowed).
  */
 void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_reference,
-                                              char r_path_buffer[1090 /* FILE_MAX_LIBEXTRA */],
+                                              char r_path_buffer[1282 /* FILE_MAX_LIBEXTRA */],
                                               char **r_dir,
                                               char **r_group,
                                               char **r_name);

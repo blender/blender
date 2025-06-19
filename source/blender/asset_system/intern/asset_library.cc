@@ -103,7 +103,7 @@ void AS_asset_library_remap_ids(const bke::id::IDRemapper &mappings)
 }
 
 void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_reference,
-                                              char r_path_buffer[1090 /* FILE_MAX_LIBEXTRA */],
+                                              char r_path_buffer[1282 /* FILE_MAX_LIBEXTRA */],
                                               char **r_dir,
                                               char **r_group,
                                               char **r_name)
@@ -129,7 +129,7 @@ void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_re
   BLI_assert(!exploded->group_component.is_empty());
   BLI_assert(!exploded->name_component.is_empty());
 
-  BLI_strncpy(r_path_buffer, exploded->full_path->c_str(), 1090 /* #FILE_MAX_LIBEXTRA. */);
+  BLI_strncpy(r_path_buffer, exploded->full_path->c_str(), 1282 /* #FILE_MAX_LIBEXTRA. */);
 
   if (!exploded->dir_component.is_empty()) {
     r_path_buffer[exploded->dir_component.size()] = '\0';

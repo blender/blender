@@ -441,7 +441,7 @@ typedef struct NlaStrip {
    * \note Most code should not write to this field directly, but use functions from
    * `blender::animrig::nla` instead, see ANIM_nla.hh.
    */
-  char last_slot_identifier[66]; /* MAX_ID_NAME */
+  char last_slot_identifier[/* MAX_ID_NAME */ 258];
   char _pad0[2];
 
   /** F-Curves for controlling this strip's influence and timing */ /* TODO: move out? */
@@ -677,7 +677,7 @@ typedef struct AnimData {
    *
    * \see #ActionSlot::name
    */
-  char last_slot_identifier[66]; /* MAX_ID_NAME */
+  char last_slot_identifier[/* MAX_ID_NAME */ 258];
   uint8_t _pad0[2];
 
   /**
@@ -686,7 +686,7 @@ typedef struct AnimData {
    */
   bAction *tmpact;
   int32_t tmp_slot_handle;
-  char tmp_last_slot_identifier[66]; /* MAX_ID_NAME */
+  char tmp_last_slot_identifier[/* MAX_ID_NAME */ 258];
   uint8_t _pad1[2];
 
   /* nla-tracks */

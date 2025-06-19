@@ -1130,14 +1130,25 @@ TEST_F(ActionLayersTest, conversion_to_layered)
   ASSERT_TRUE(bag->fcurve_array[0]->modifiers.first == nullptr);
   ASSERT_TRUE(bag->fcurve_array[1]->modifiers.first != nullptr);
 
-  Action *long_name_action = BKE_id_new<Action>(
-      bmain, "name_for_an_action_that_is_exactly_64_chars_which_is_MAX_ID_NAME");
+  constexpr char id_name_max[] =
+      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
+      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
+      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
+      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3_____";
+  BLI_STATIC_ASSERT(std::string::traits_type::length(id_name_max) == MAX_ID_NAME - 2 - 1,
+                    "Wrong 'max length' name");
+  Action *long_name_action = BKE_id_new<Action>(bmain, id_name_max);
   action_fcurve_ensure_legacy(bmain, long_name_action, "Long", nullptr, {"location", 0});
+  /* The long name is shortened to make space for "_layered". */
+  constexpr char id_name_max_converted[] =
+      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
+      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
+      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAME-3______"
+      "name_for_an_action_that_is_exactly_255_bytes_MAX_ID_NAM_layered";
+  BLI_STATIC_ASSERT(std::string::traits_type::length(id_name_max_converted) == MAX_ID_NAME - 2 - 1,
+                    "Wrong 'max length' name");
   converted = convert_to_layered_action(*bmain, *long_name_action);
-  /* AC gets added automatically by Blender, the long name is shortened to make space for
-   * "_layered". */
-  EXPECT_STREQ(converted->id.name,
-               "ACname_for_an_action_that_is_exactly_64_chars_which_is_MA_layered");
+  EXPECT_STREQ(BKE_id_name(converted->id), id_name_max_converted);
 }
 
 TEST_F(ActionLayersTest, conversion_to_layered_action_groups)

@@ -396,10 +396,10 @@ typedef struct FileSelectParams {
   /**
    * Directory.
    *
-   * \note #FILE_MAX_LIBEXTRA == `1024 + 66`, this is for extreme case when 1023 length path
+   * \note #FILE_MAX_LIBEXTRA == `1024 + 258`, this is for extreme case when 1023 length path
    * needs to be linked in, where `foo.blend/Armature` need adding.
    */
-  char dir[/*FILE_MAX_LIBEXTRA*/ 1090];
+  char dir[/*FILE_MAX_LIBEXTRA*/ 1282];
   char file[/*FILE_MAXFILE*/ 256];
 
   char renamefile[/*FILE_MAXFILE*/ 256];

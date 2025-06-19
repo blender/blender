@@ -135,7 +135,7 @@
       -0.210 0.000 0.978 0.000
     - props: int:MaxHandle=3
   - anim act:Take 001 slot:OBArmature blend:REPLACE drivers:0
-- Obj 'Box_With_A_Long_Name_To_Test_Importer_Handling_Of_Names_That_A' MESH data:'Mesh.002' par:'Armature'
+- Obj 'Box_With_A_Long_Name_To_Test_Importer_Handling_Of_Names_That_Are_Too_Long_To_Fit_Box_With_A_Long_Name_To_Test_Importer_Handling_Of_Names_That_Are_Too_Long_To_Fit_Box_With_A_Long_Name_To_Test_Importer_Handling_Of_Names_That_Are_Too_Long_To_Fit_Box_With_A_' MESH data:'Mesh.002' par:'Armature'
   - pos 0.679, 0.000, 15.811
   - rot -1.571, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
@@ -144,7 +144,7 @@
   - 1 modifiers
     - ARMATURE 'Armature'
   - props: int:MaxHandle=10
-- Obj 'Box_With_A_Long_Name_To_Test_Importer_Handling_Of_Names_That_Ar' MESH data:'Mesh' par:'Armature'
+- Obj 'Box_With_A_Long_Name_To_Test_Importer_Handling_Of_Names_That_Are_Too_Long_To_Fit_Box_With_A_Long_Name_To_Test_Importer_Handling_Of_Names_That_Are_Too_Long_To_Fit_Box_With_A_Long_Name_To_Test_Importer_Handling_Of_Names_That_Are_Too_Long_To_Fit_Box_With_A_L' MESH data:'Mesh' par:'Armature'
   - pos 0.679, 0.000, -0.945
   - rot -1.571, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000
@@ -153,17 +153,17 @@
   - 1 modifiers
     - ARMATURE 'Armature'
   - props: int:MaxHandle=2
-- Obj 'Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_Se' MESH data:'Mesh.003'
+- Obj 'Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Ye' MESH data:'Mesh.003'
   - pos -0.261, -0.829, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 0.025, 0.025, 0.025
-  - anim act:Take 001 slot:OBBox_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_Se blend:REPLACE drivers:0
+  - anim act:Take 001 slot:OBBox_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Ye blend:REPLACE drivers:0
   - props: int:MaxHandle=14
-- Obj 'Point_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_' LIGHT data:'Light'
+- Obj 'Point_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_Name_Here_Point_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_Name_Here_Point_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_Name_Here_Point_Light_Object_Color_Blue_Light_' LIGHT data:'Light'
   - pos 0.567, -0.741, 0.000
   - rot 0.000, 0.000, 0.000 (XYZ)
   - scl 0.025, 0.025, 0.025
-  - anim act:Take 001 slot:OBPoint_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_ blend:REPLACE drivers:0
+  - anim act:Take 001 slot:OBPoint_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_Name_Here_Point_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_Name_Here_Point_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_Name_Here_Point_Light_Object_Color_Blue_Light_ blend:REPLACE drivers:0
   - props: int:MaxHandle=15
 - Obj 'Sphere_Parented_To_Bone' MESH data:'Mesh.001' par:'Armature' par_type:BONE par_bone:'Likewise_Here_Is_A_Bone_With_A_Long_Name_To_See_What_Happen.002'
   - pos 6.099, -21.143, 2.790
@@ -224,7 +224,7 @@
   - fcu 'pose.bones["Likewise_Here_Is_A_Bone_With_A_Long_Name_To_See_What_Happen.003"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Likewise_Here_Is_A_Bone_With_A_Long_Name_To_See_What_Happen.003'
     - (1.000, 0.000) lh:(-0.667, 0.000 AUTO_CLAMPED) rh:(2.667, 0.000 AUTO_CLAMPED)
     - (6.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
- - Channelbag slot 'OBBox_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_Se' curves:9
+ - Channelbag slot 'OBBox_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_See_What_Happens_Here_Box_Ye' curves:9
   - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_Se'
     - (1.000, -0.261) lh:(0.000, -0.261 AUTO_CLAMPED) rh:(2.000, -0.261 AUTO_CLAMPED)
     - (4.000, 0.211) lh:(3.000, 0.211 AUTO_CLAMPED) rh:(5.000, 0.211 AUTO_CLAMPED)
@@ -252,7 +252,7 @@
   - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Box_Yellow_That_Is_Animated_And_Also_With_A_Long_Name_Let_Us_Se'
     - (1.000, 0.025) lh:(0.000, 0.025 AUTO_CLAMPED) rh:(2.000, 0.025 AUTO_CLAMPED)
     - (4.000, 0.025) lh:(3.000, 0.025 AUTO_CLAMPED) rh:(5.000, 0.025 AUTO_CLAMPED)
- - Channelbag slot 'OBPoint_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_' curves:9
+ - Channelbag slot 'OBPoint_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_Name_Here_Point_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_Name_Here_Point_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_Name_Here_Point_Light_Object_Color_Blue_Light_' curves:9
   - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Point_Light_Object_Color_Blue_Light_Color_Animated_With_A_Long_'
     - (1.000, 0.567) lh:(-0.667, 0.567 AUTO_CLAMPED) rh:(2.667, 0.567 AUTO_CLAMPED)
     - (6.000, 1.148) lh:(4.333, 1.148 AUTO_CLAMPED) rh:(7.667, 1.148 AUTO_CLAMPED)

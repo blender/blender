@@ -1,5 +1,5 @@
 ==== Meshes: 1
-- Mesh 'ObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLon' vtx:3 face:1 loop:3 edge:3
+- Mesh 'ObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLongerThanBlenderCanHandleObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLongerThanBlenderCanHandleObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLongerThanBlenderCanHan' vtx:3 face:1 loop:3 edge:3
     - 0 1 2 
     - 0/2 0/1 1/2 
   - attr 'position' FLOAT_VECTOR POINT
@@ -22,7 +22,7 @@
     - (1.000, 0.750)
 
 ==== Objects: 1
-- Obj 'ObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLon' MESH data:'ObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLon'
+- Obj 'ObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLongerThanBlenderCanHandleObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLongerThanBlenderCanHandleObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLongerThanBlenderCanHan' MESH data:'ObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLongerThanBlenderCanHandleObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLongerThanBlenderCanHandleObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLongerThanBlenderCanHan'
   - pos 0.000, 0.000, 0.000
   - rot 1.571, 0.000, 0.000 (XYZ)
   - scl 1.000, 1.000, 1.000

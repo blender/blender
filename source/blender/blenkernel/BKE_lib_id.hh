@@ -788,8 +788,8 @@ void BKE_main_lib_objects_recalc_all(Main *bmain);
  */
 void BKE_main_id_repair_duplicate_names_listbase(Main *bmain, ListBase *lb);
 
-#define MAX_ID_FULL_NAME (64 + 64 + 3 + 1)         /* 64 is MAX_ID_NAME - 2 */
-#define MAX_ID_FULL_NAME_UI (MAX_ID_FULL_NAME + 3) /* Adds `keycode` two letters at beginning. */
+#define MAX_ID_FULL_NAME (256 + 256 + 3 + 1)       /* 256 is MAX_ID_NAME - 2 */
+#define MAX_ID_FULL_NAME_UI (MAX_ID_FULL_NAME + 3) /* Adds 'keycode' two letters at beginning. */
 /**
  * Generate full name of the data-block (without ID code, but with library if any).
  *

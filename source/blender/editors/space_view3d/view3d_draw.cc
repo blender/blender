@@ -1364,6 +1364,17 @@ static void draw_selected_name(
     char frame[16];
   } info_buffers;
 
+  /* Info can contain:
+   * - 1 frame number `(7 + 2)`.
+   * - 1 collection name `(MAX_ID_NAME - 2 + 3)`.
+   * - 1 object name `(MAX_ID_NAME - 2)`.
+   * - 1 object data name `(MAX_ID_NAME - 2)`.
+   * - 2 non-ID data names (bones, shapekeys...) `(MAX_NAME * 2)`.
+   * - 2 BREAD_CRUMB_SEPARATOR(s) `(6)`.
+   * - 1 SHAPE_KEY_PINNED marker and a trailing '\0' `(9+1)` - translated, so give some room!
+   * - 1 marker name `(MAX_NAME + 3)`.
+   */
+
   SNPRINTF(info_buffers.frame, "(%d)", cfra);
   info_array[i++] = info_buffers.frame;
 
@@ -1376,15 +1387,6 @@ static void draw_selected_name(
       info_array[i++] = " |";
     }
   }
-
-  /* Info can contain:
-   * - A frame `(7 + 2)`.
-   * - A collection name `(MAX_NAME + 3)`.
-   * - 3 object names `(MAX_NAME)`.
-   * - 2 BREAD_CRUMB_SEPARATOR(s) `(6)`.
-   * - A SHAPE_KEY_PINNED marker and a trailing '\0' `(9+1)` - translated, so give some room!
-   * - A marker name `(MAX_NAME + 3)`.
-   */
 
   /* get name of marker on current frame (if available) */
   const char *markern = BKE_scene_find_marker_name(scene, cfra);
@@ -1477,9 +1479,12 @@ static void draw_selected_name(
   }
 
   BLI_assert(i < int(ARRAY_SIZE(info_array)));
-  char info[300];
-  /* It's expected there will be enough room for the buffer (if not, increase it). */
+
+  char info[MAX_ID_NAME * 4];
+  /* It's expected there will be enough room for the whole string in the the buffer. If not,
+   * increase it. */
   BLI_assert(BLI_string_len_array(info_array, i) < sizeof(info));
+
   BLI_string_join_array(info, sizeof(info), info_array, i);
 
   *yoffset -= VIEW3D_OVERLAY_LINEHEIGHT;
