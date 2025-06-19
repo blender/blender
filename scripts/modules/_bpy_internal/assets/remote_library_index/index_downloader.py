@@ -39,6 +39,13 @@ class RemoteAssetListingDownloader:
     Blender process and the background download process.
     """
 
+    _referenced_local_files: list[Path]
+    """Paths of actually-referenced index page files.
+
+    This makes it possible to delete once-downloaded index pages that now no
+    longer exist.
+    """
+
     def __init__(
         self,
         remote_url: str,
@@ -66,6 +73,7 @@ class RemoteAssetListingDownloader:
         self._on_done_callback = on_done_callback
 
         self._num_asset_pages_pending = 0
+        self._referenced_local_files = []
 
         # Work around a limitation of Blender, see bug report #139720 for details.
         self.on_timer_event = self.on_timer_event  # type: ignore[method-assign]
@@ -176,7 +184,6 @@ class RemoteAssetListingDownloader:
 
         # Download the asset pages.
         self._num_asset_pages_pending = len(page_urls)
-        referenced_local_files: list[Path] = []
         for page_index, page_url in enumerate(page_urls):
             # These URLs may be absolute or they may be relative. In any case,
             # do not assume that they can be used direclty as local filesystem path.
@@ -186,16 +193,7 @@ class RemoteAssetListingDownloader:
                 http_metadata.safe_to_unsafe_filename(local_path),
                 self.on_asset_page_downloaded)
 
-            referenced_local_files.append(download_to)
-
-        # Remove any dangling pages of assets (downloaded before, no longer referenced).
-        asset_page_dir = self._local_path / index_common.API_VERSIONED_SUBDIR
-        # TODO: when upgrading to Python 3.12+, add `case_sensitive=False` to the glob() call.
-        for asset_page_file in asset_page_dir.glob("assets-*.json"):
-            abs_path = http_metadata.safe_to_unsafe_filename(asset_page_dir / asset_page_file)
-            if abs_path in referenced_local_files:
-                continue
-            abs_path.unlink()
+            self._referenced_local_files.append(http_metadata.unsafe_to_safe_filename(download_to))
 
     def on_asset_page_downloaded(self,
                                  http_req_descr: http_dl.RequestDescription,
@@ -219,6 +217,15 @@ class RemoteAssetListingDownloader:
                 "Asset library index page downloaded; needs {:d} more".format(
                     self._num_asset_pages_pending))
             return
+
+        # Remove any dangling pages of assets (downloaded before, no longer referenced).
+        asset_page_dir = self._local_path / index_common.API_VERSIONED_SUBDIR
+        # TODO: when upgrading to Python 3.12+, add `case_sensitive=False` to the glob() call.
+        for asset_page_file in asset_page_dir.glob("assets-*.json"):
+            abs_path = asset_page_dir / asset_page_file
+            if abs_path in self._referenced_local_files:
+                continue
+            abs_path.unlink()
 
         self.report({'INFO'}, "Asset library index downloaded")
         self.shutdown()
