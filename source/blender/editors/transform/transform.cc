@@ -1948,7 +1948,14 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   if (t->flag & T_PROP_EDIT) {
     bool has_selected_any = false;
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      if (tc->data->flag & TD_SELECTED) {
+      if (tc->data_len == 0) {
+        continue;
+      }
+
+      BLI_assert(tc->sorted_index_map);
+      const int first_selected_index = tc->sorted_index_map[0];
+      TransData *td = &tc->data[first_selected_index];
+      if (td->flag & TD_SELECTED) {
         has_selected_any = true;
         break;
       }
