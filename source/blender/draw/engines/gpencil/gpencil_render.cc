@@ -110,7 +110,7 @@ static void render_init_buffers(const DRWContext *draw_ctx,
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
                              GPU_TEXTURE_USAGE_HOST_READ;
     inst.render_depth_tx.ensure_2d(
-        GPU_DEPTH_COMPONENT24, int2(size), usage, do_region ? nullptr : pix_z);
+        GPU_DEPTH_COMPONENT32F, int2(size), usage, do_region ? nullptr : pix_z);
   }
   if (inst.render_color_tx.is_valid() && !do_clear_col) {
     GPU_texture_update(inst.render_color_tx, GPU_DATA_FLOAT, pix_col);
