@@ -4319,7 +4319,8 @@ static void write_drawing_array(GreasePencil &grease_pencil,
     GreasePencilDrawingBase *drawing_base = grease_pencil.drawing_array[i];
     switch (GreasePencilDrawingType(drawing_base->type)) {
       case GP_DRAWING: {
-        GreasePencilDrawing drawing_copy = *reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+        GreasePencilDrawing &drawing_copy = scope.construct<GreasePencilDrawing>();
+        drawing_copy = *reinterpret_cast<GreasePencilDrawing *>(drawing_base);
         bke::CurvesGeometry &curves = drawing_copy.geometry.wrap();
 
         bke::CurvesGeometry::BlendWriteData write_data(scope);
