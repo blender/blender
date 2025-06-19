@@ -2429,23 +2429,15 @@ static ViewDepths *view3d_depths_create(ARegion *region)
 {
   ViewDepths *d = MEM_callocN<ViewDepths>("ViewDepths");
 
-  {
-    GPUViewport *viewport = WM_draw_region_get_viewport(region);
-    GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
-    uint32_t *int_depths = static_cast<uint32_t *>(
-        GPU_texture_read(depth_tx, GPU_DATA_UINT_24_8, 0));
-    d->w = GPU_texture_width(depth_tx);
-    d->h = GPU_texture_height(depth_tx);
-    d->depths = (float *)int_depths;
-    /* Convert in-place. */
-    int pixel_count = d->w * d->h;
-    for (int i = 0; i < pixel_count; i++) {
-      d->depths[i] = (int_depths[i] >> 8u) / float(0xFFFFFF);
-    }
-    /* Assumed to be this as they are never changed. */
-    d->depth_range[0] = 0.0;
-    d->depth_range[1] = 1.0;
-  }
+  GPUViewport *viewport = WM_draw_region_get_viewport(region);
+  GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
+  d->w = GPU_texture_width(depth_tx);
+  d->h = GPU_texture_height(depth_tx);
+  d->depths = static_cast<float *>(GPU_texture_read(depth_tx, GPU_DATA_FLOAT, 0));
+  /* Assumed to be this as they are never changed. */
+  d->depth_range[0] = 0.0;
+  d->depth_range[1] = 1.0;
+
   return d;
 }
 
