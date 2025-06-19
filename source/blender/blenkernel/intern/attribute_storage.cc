@@ -520,6 +520,11 @@ static void write_shared_array(BlendWriter &writer,
   });
 }
 
+AttributeStorage::BlendWriteData::BlendWriteData(ResourceScope &scope)
+    : scope(scope), attributes(scope.construct<Vector<::Attribute, 16>>())
+{
+}
+
 void AttributeStorage::blend_write(BlendWriter &writer,
                                    const AttributeStorage::BlendWriteData &write_data)
 {
