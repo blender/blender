@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "gpu_shader_bicubic_sampler_lib.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()
@@ -10,7 +11,7 @@ void main()
 
   float2 uv_coordinates = texture_load(uv_tx, texel).xy;
 
-  float4 sampled_color = texture(input_tx, uv_coordinates);
+  float4 sampled_color = SAMPLER_FUNCTION(input_tx, uv_coordinates);
 
   /* The UV texture is assumed to contain an alpha channel as its third channel, since the UV
    * coordinates might be defined in only a subset area of the UV texture as mentioned. In that
