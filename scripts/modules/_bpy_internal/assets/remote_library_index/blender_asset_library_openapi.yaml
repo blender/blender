@@ -105,14 +105,10 @@ components:
             to their respective index files.
           additionalProperties:
             type: string
-            # Setting this to "uri" will cause issues with the
-            # Pydantic-generated code, as it doesn't allow relative, path-only
-            # URLs:
-            format: string
+            format: url
           patternProperties:
             "^v[0-9]+$":
               type: string
-              format: string
         "name":
           type: string
           description: Name of this asset library.
