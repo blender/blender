@@ -94,7 +94,6 @@ struct uiLayout : uiItem {
   bool activate_init_;
   bool enabled_;
   bool redalert_;
-  bool keepaspect_;
   /** For layouts inside grid-flow, they and their items shall never have a fixed maximal size. */
   bool variable_size_;
   blender::ui::LayoutAlign alignment_;
@@ -622,7 +621,6 @@ void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout);
 
 void uiLayoutSetRedAlert(uiLayout *layout, bool redalert);
 void uiLayoutSetFixedSize(uiLayout *layout, bool fixed_size);
-void uiLayoutSetKeepAspect(uiLayout *layout, bool keepaspect);
 void uiLayoutSetPropSep(uiLayout *layout, bool is_sep);
 void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep);
 int uiLayoutGetLocalDir(const uiLayout *layout);
@@ -630,7 +628,6 @@ void uiLayoutSetSearchWeight(uiLayout *layout, float weight);
 
 bool uiLayoutGetRedAlert(uiLayout *layout);
 bool uiLayoutGetFixedSize(uiLayout *layout);
-bool uiLayoutGetKeepAspect(uiLayout *layout);
 int uiLayoutGetWidth(uiLayout *layout);
 bool uiLayoutGetPropSep(uiLayout *layout);
 bool uiLayoutGetPropDecorate(uiLayout *layout);
