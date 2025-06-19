@@ -68,6 +68,14 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
+  /* footer */
+  region = BKE_area_region_new();
+
+  BLI_addtail(&snla->regionbase, region);
+  region->regiontype = RGN_TYPE_FOOTER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+  region->flag = RGN_FLAG_HIDDEN;
+
   /* track list region */
   region = BKE_area_region_new();
   BLI_addtail(&snla->regionbase, region);
@@ -323,6 +331,28 @@ static void nla_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 static void nla_header_region_draw(const bContext *C, ARegion *region)
 {
   ED_region_header(C, region);
+}
+
+static void nla_footer_region_listener(const wmRegionListenerParams *params)
+{
+  ARegion *region = params->region;
+  const wmNotifier *wmn = params->notifier;
+
+  /* context changes */
+  switch (wmn->category) {
+    case NC_SCREEN:
+      if (wmn->data == ND_ANIMPLAY) {
+        ED_region_tag_redraw(region);
+      }
+      break;
+    case NC_SCENE:
+      switch (wmn->data) {
+        case ND_FRAME:
+          ED_region_tag_redraw(region);
+          break;
+      }
+      break;
+  }
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -661,6 +691,18 @@ void ED_spacetype_nla()
 
   art->init = nla_header_region_init;
   art->draw = nla_header_region_draw;
+
+  BLI_addhead(&st->regiontypes, art);
+
+  /* regions: footer */
+  art = MEM_callocN<ARegionType>("spacetype nla region");
+  art->regionid = RGN_TYPE_FOOTER;
+  art->prefsizey = HEADERY;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
+
+  art->init = nla_header_region_init;
+  art->draw = nla_header_region_draw;
+  art->listener = nla_footer_region_listener;
 
   BLI_addhead(&st->regiontypes, art);
 

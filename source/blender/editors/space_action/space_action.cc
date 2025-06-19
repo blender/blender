@@ -78,6 +78,14 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
+  /* footer */
+  region = BKE_area_region_new();
+
+  BLI_addtail(&saction->regionbase, region);
+  region->regiontype = RGN_TYPE_FOOTER;
+  region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM;
+  region->flag = RGN_FLAG_HIDDEN;
+
   /* channel list region */
   region = BKE_area_region_new();
   BLI_addtail(&saction->regionbase, region);
@@ -758,6 +766,28 @@ static void action_header_region_listener(const wmRegionListenerParams *params)
   }
 }
 
+static void action_footer_region_listener(const wmRegionListenerParams *params)
+{
+  ARegion *region = params->region;
+  const wmNotifier *wmn = params->notifier;
+
+  /* context changes */
+  switch (wmn->category) {
+    case NC_SCREEN:
+      if (wmn->data == ND_ANIMPLAY) {
+        ED_region_tag_redraw(region);
+      }
+      break;
+    case NC_SCENE:
+      switch (wmn->data) {
+        case ND_FRAME:
+          ED_region_tag_redraw(region);
+          break;
+      }
+      break;
+  }
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void action_buttons_area_init(wmWindowManager *wm, ARegion *region)
 {
@@ -975,6 +1005,17 @@ void ED_spacetype_action()
   art->init = action_header_region_init;
   art->draw = action_header_region_draw;
   art->listener = action_header_region_listener;
+
+  BLI_addhead(&st->regiontypes, art);
+
+  /* regions: footer */
+  art = MEM_callocN<ARegionType>("spacetype action region");
+  art->regionid = RGN_TYPE_FOOTER;
+  art->prefsizey = HEADERY;
+  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
+  art->init = action_header_region_init;
+  art->draw = action_header_region_draw;
+  art->listener = action_footer_region_listener;
 
   BLI_addhead(&st->regiontypes, art);
 

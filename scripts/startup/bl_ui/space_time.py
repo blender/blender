@@ -7,67 +7,82 @@ from bpy.types import Menu, Panel
 from bpy.app.translations import contexts as i18n_contexts
 
 
-# Header buttons for timeline header (play, etc.)
-class TIME_HT_editor_buttons:
+def playback_controls(layout, context):
+    scene = context.scene
+    tool_settings = context.tool_settings
+    screen = context.screen
+    st = context.space_data
+    is_graph_editor = st.type == 'GRAPH_EDITOR'
 
-    @staticmethod
-    def draw_header(context, layout):
-        scene = context.scene
-        tool_settings = context.tool_settings
-        screen = context.screen
+    row = layout.row(align=True)
+    row.popover(
+        panel="TIME_PT_playback",
+        text="Playback",
+    )
+    row.popover(
+        panel="TIME_PT_keyframing_settings",
+        text="Keying",
+        text_ctxt=i18n_contexts.id_windowmanager,
+    )
 
-        layout.separator_spacer()
+    layout.separator_spacer()
 
-        row = layout.row(align=True)
-        row.prop(tool_settings, "use_keyframe_insert_auto", text="", toggle=True)
-        sub = row.row(align=True)
-        sub.active = tool_settings.use_keyframe_insert_auto
-        sub.popover(
-            panel="TIME_PT_auto_keyframing",
-            text="",
-        )
+    row = layout.row(align=True)
+    row.prop(tool_settings, "use_keyframe_insert_auto", text="", toggle=True)
+    sub = row.row(align=True)
+    sub.active = tool_settings.use_keyframe_insert_auto
+    sub.popover(
+        panel="TIME_PT_auto_keyframing",
+        text="",
+    )
 
-        row = layout.row(align=True)
-        row.operator("screen.frame_jump", text="", icon='REW').end = False
-        row.operator("screen.keyframe_jump", text="", icon='PREV_KEYFRAME').next = False
-        if not screen.is_animation_playing:
-            # if using JACK and A/V sync:
-            #   hide the play-reversed button
-            #   since JACK transport doesn't support reversed playback
-            if scene.sync_mode == 'AUDIO_SYNC' and context.preferences.system.audio_device == 'JACK':
-                row.scale_x = 2
-                row.operator("screen.animation_play", text="", icon='PLAY')
-                row.scale_x = 1
-            else:
-                row.operator("screen.animation_play", text="", icon='PLAY_REVERSE').reverse = True
-                row.operator("screen.animation_play", text="", icon='PLAY')
-        else:
+    row = layout.row(align=True)
+    row.operator("screen.frame_jump", text="", icon='REW').end = False
+    row.operator("screen.keyframe_jump", text="", icon='PREV_KEYFRAME').next = False
+
+    if not screen.is_animation_playing:
+        # if using JACK and A/V sync:
+        #   hide the play-reversed button
+        #   since JACK transport doesn't support reversed playback
+        if scene.sync_mode == 'AUDIO_SYNC' and context.preferences.system.audio_device == 'JACK':
             row.scale_x = 2
-            row.operator("screen.animation_play", text="", icon='PAUSE')
+            row.operator("screen.animation_play", text="", icon='PLAY')
             row.scale_x = 1
+        else:
+            row.operator("screen.animation_play", text="", icon='PLAY_REVERSE').reverse = True
+            row.operator("screen.animation_play", text="", icon='PLAY')
+    else:
+        row.scale_x = 2
+        row.operator("screen.animation_play", text="", icon='PAUSE')
+        row.scale_x = 1
+
+    if is_graph_editor:
+        row.operator("graph.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
+    else:
         row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
-        row.operator("screen.frame_jump", text="", icon='FF').end = True
 
-        layout.separator_spacer()
+    row.operator("screen.frame_jump", text="", icon='FF').end = True
 
-        row = layout.row()
-        if scene.show_subframe:
-            row.scale_x = 1.15
-            row.prop(scene, "frame_float", text="")
-        else:
-            row.scale_x = 0.95
-            row.prop(scene, "frame_current", text="")
+    layout.separator_spacer()
 
-        row = layout.row(align=True)
-        row.prop(scene, "use_preview_range", text="", toggle=True)
-        sub = row.row(align=True)
-        sub.scale_x = 0.8
-        if not scene.use_preview_range:
-            sub.prop(scene, "frame_start", text="Start")
-            sub.prop(scene, "frame_end", text="End")
-        else:
-            sub.prop(scene, "frame_preview_start", text="Start")
-            sub.prop(scene, "frame_preview_end", text="End")
+    row = layout.row()
+    if scene.show_subframe:
+        row.scale_x = 1.15
+        row.prop(scene, "frame_float", text="")
+    else:
+        row.scale_x = 0.95
+        row.prop(scene, "frame_current", text="")
+
+    row = layout.row(align=True)
+    row.prop(scene, "use_preview_range", text="", toggle=True)
+    sub = row.row(align=True)
+    sub.scale_x = 0.8
+    if not scene.use_preview_range:
+        sub.prop(scene, "frame_start", text="Start")
+        sub.prop(scene, "frame_end", text="End")
+    else:
+        sub.prop(scene, "frame_preview_start", text="Start")
+        sub.prop(scene, "frame_preview_end", text="End")
 
 
 class TIME_MT_editor_menus(Menu):
@@ -83,22 +98,6 @@ class TIME_MT_editor_menus(Menu):
             sub = row.row(align=True)
         else:
             sub = layout
-
-        sub.popover(
-            panel="TIME_PT_playback",
-            text="Playback",
-        )
-        sub.popover(
-            panel="TIME_PT_keyframing_settings",
-            text="Keying",
-            text_ctxt=i18n_contexts.id_windowmanager,
-        )
-
-        # Add a separator to keep the popover button from aligning with the menu button.
-        sub.separator(factor=0.4)
-
-        if horizontal:
-            sub = row.row(align=True)
 
         sub.menu("TIME_MT_view")
         if st.show_markers:
@@ -224,10 +223,6 @@ class TimelinePanelButtons:
     bl_space_type = 'DOPESHEET_EDITOR'
     bl_region_type = 'UI'
 
-    @staticmethod
-    def has_timeline(context):
-        return context.space_data.mode == 'TIMELINE'
-
 
 class TIME_PT_playback(TimelinePanelButtons, Panel):
     bl_label = "Playback"
@@ -277,11 +272,6 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
     bl_options = {'HIDE_HEADER'}
     bl_region_type = 'HEADER'
 
-    @classmethod
-    def poll(cls, context):
-        # only for timeline editor
-        return cls.has_timeline(context)
-
     def draw(self, context):
         layout = self.layout
 
@@ -307,11 +297,6 @@ class TIME_PT_auto_keyframing(TimelinePanelButtons, Panel):
     bl_options = {'HIDE_HEADER'}
     bl_region_type = 'HEADER'
     bl_ui_units_x = 9
-
-    @classmethod
-    def poll(cls, context):
-        # Only for timeline editor.
-        return cls.has_timeline(context)
 
     def draw(self, context):
         layout = self.layout
