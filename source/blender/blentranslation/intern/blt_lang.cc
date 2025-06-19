@@ -150,8 +150,8 @@ static void fill_locales()
               /* Keep this tip in sync with the one in rna_userdef
                * (rna_enum_language_default_items). */
               locales_menu[idx].description = BLI_strdup(
-                  "Automatically choose system's defined language "
-                  "if available, or fall-back to English");
+                  "Automatically choose the system-defined language if available, or fall-back to "
+                  "English (US)");
             }
             /* Menu "label", not to be stored in locales!
              * NOTE: Not used since Blender 4.5. */
