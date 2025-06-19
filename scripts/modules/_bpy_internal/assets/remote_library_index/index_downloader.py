@@ -203,12 +203,14 @@ class RemoteAssetListingDownloader:
 
         # The file passed validation, so can be marked safe.
         if used_unsafe_file:
-            self._rename_to_safe(unsafe_local_file)
+            local_file = self._rename_to_safe(unsafe_local_file)
+        else:
+            local_file = http_metadata.unsafe_to_safe_filename(unsafe_local_file)
 
         self._num_asset_pages_pending -= 1
         assert self._num_asset_pages_pending >= 0
 
-        logger.info("Asset index page downloaded: %s", unsafe_local_file)
+        logger.info("Asset index page downloaded: %s", local_file)
 
         if self._num_asset_pages_pending > 0:
             # Wait until all files have downloaded.
@@ -262,7 +264,7 @@ class RemoteAssetListingDownloader:
         parsed_data = api_model.model_validate_json(json_data)
         return parsed_data, used_unsafe_file
 
-    def _rename_to_safe(self, unsafe_filepath: Path) -> None:
+    def _rename_to_safe(self, unsafe_filepath: Path) -> Path:
         safe_filepath = http_metadata.unsafe_to_safe_filename(unsafe_filepath)
 
         if safe_filepath == unsafe_filepath:
@@ -271,6 +273,7 @@ class RemoteAssetListingDownloader:
         # AFAIK on Windows you cannot atomically overwrite a file by renaming.
         safe_filepath.unlink(missing_ok=True)
         unsafe_filepath.rename(safe_filepath)
+        return safe_filepath
 
     def _on_callback_error(
             self,
