@@ -210,7 +210,7 @@ class RemoteAssetListingDownloader:
         self._num_asset_pages_pending -= 1
         assert self._num_asset_pages_pending >= 0
 
-        logger.info("Asset index page downloaded: %s", local_file)
+        logger.debug("Asset index page downloaded: %s", local_file)
 
         if self._num_asset_pages_pending > 0:
             # Wait until all files have downloaded.
@@ -257,7 +257,6 @@ class RemoteAssetListingDownloader:
                     unsafe_local_file, safe_local_file))
             path_to_load = safe_local_file
             used_unsafe_file = False
-            logger.info("Unsafe file does not exist, safe one should: %s", safe_local_file)
 
         logger.info("Parsing %s", path_to_load)
         json_data = path_to_load.read_bytes()
