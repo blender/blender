@@ -150,7 +150,7 @@ def init_vnodes(gltf):
     # Create needed scenes
     for idx_scene, scene in enumerate(gltf.data.scenes or []):
         # Create a new scene for all not default scenes
-        if idx_scene != gltf.data.scene:
+        if idx_scene != (gltf.data.scene or 0):
             new_scene = bpy.data.scenes.new(name=scene.name or "Scene %d" % idx_scene)
             gltf.blender_scenes[idx_scene] = new_scene
         else:
@@ -161,7 +161,7 @@ def init_vnodes(gltf):
     # If we have multiple scenes, we create a collection for each scene (as child of active collection)
     # And if some nodes are orphan, we create a collection for them too
     if len(gltf.data.scenes) == 1:
-        gltf.blender_collections[gltf.data.scene] = bpy.context.collection
+        gltf.blender_collections[gltf.data.scene or 0] = bpy.context.collection
     elif len(gltf.data.scenes) > 1:
         for idx_scene, scene in enumerate(gltf.data.scenes or []):
             if gltf.import_settings['import_scene_as_collection'] is True:
