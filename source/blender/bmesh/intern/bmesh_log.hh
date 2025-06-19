@@ -36,9 +36,6 @@ BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);
  */
 void BM_log_free(BMLog *log);
 
-/** Apply a consistent ordering to BMesh vertices and faces. */
-void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log);
-
 /**
  * Start a new log entry and update the log entry list.
  *

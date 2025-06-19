@@ -42,7 +42,7 @@ set(DPCPP_EXTRA_ARGS
   -DBOOST_MP11_SOURCE_DIR=${BUILD_DIR}/mp11/src/external_mp11/
   -DLEVEL_ZERO_LIBRARY=${LIBDIR}/level-zero/lib/${LIBPREFIX}ze_loader${SHAREDLIBEXT}
   -DLEVEL_ZERO_INCLUDE_DIR=${LIBDIR}/level-zero/include/level_zero
-  -DLLVM_EXTERNAL_SPIRV_HEADERS_SOURCE_DIR=${BUILD_DIR}/spirvheaders/src/external_spirvheaders/
+  -DLLVM_EXTERNAL_SPIRV_HEADERS_SOURCE_DIR=${BUILD_DIR}/dpcpp_spirvheaders/src/external_dpcpp_spirvheaders/
   -DSYCL_UR_USE_FETCH_CONTENT=OFF
   -DSYCL_UR_SOURCE_DIR=${BUILD_DIR}/unifiedruntime/src/external_unifiedruntime/
   -DFETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK=${BUILD_DIR}/unifiedmemoryframework/src/external_unifiedmemoryframework/
@@ -50,6 +50,7 @@ set(DPCPP_EXTRA_ARGS
   -DUMF_DISABLE_HWLOC=ON
   -DUMF_BUILD_SHARED_LIBRARY=OFF
   -DSYCL_ENABLE_XPTI_TRACING=OFF
+  -DSYCL_INCLUDE_TESTS=OFF
   -DUR_ENABLE_TRACING=OFF
   -DUR_BUILD_TOOLS=OFF
   # Below here is copied from an invocation of buildbot/config.py
@@ -68,7 +69,6 @@ set(DPCPP_EXTRA_ARGS
   -DSYCL_BUILD_PI_HIP_PLATFORM=AMD
   -DLLVM_BUILD_TOOLS=ON
   -DSYCL_ENABLE_WERROR=OFF
-  -DSYCL_INCLUDE_TESTS=ON
   -DLLVM_ENABLE_DOXYGEN=OFF
   -DLLVM_ENABLE_SPHINX=OFF
   -DBUILD_SHARED_LIBS=OFF
@@ -138,7 +138,7 @@ add_dependencies(
   external_icdloader
   external_mp11
   external_level-zero
-  external_spirvheaders
+  external_dpcpp_spirvheaders
   external_unifiedruntime
   external_unifiedmemoryframework
   external_zstd

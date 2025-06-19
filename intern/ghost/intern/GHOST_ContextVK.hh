@@ -62,23 +62,11 @@ struct GHOST_FrameDiscard {
   std::vector<VkSwapchainKHR> swapchains;
   std::vector<VkSemaphore> semaphores;
 
-  void destroy(VkDevice vk_device)
-  {
-    while (!swapchains.empty()) {
-      VkSwapchainKHR vk_swapchain = swapchains.back();
-      swapchains.pop_back();
-      vkDestroySwapchainKHR(vk_device, vk_swapchain, nullptr);
-    }
-    while (!semaphores.empty()) {
-      VkSemaphore vk_semaphore = semaphores.back();
-      semaphores.pop_back();
-      vkDestroySemaphore(vk_device, vk_semaphore, nullptr);
-    }
-  }
+  void destroy(VkDevice vk_device);
 };
 
 struct GHOST_SwapchainImage {
-  /** Swapchain image (owned by the swapchain). */
+  /** Swap-chain image (owned by the swapchain). */
   VkImage vk_image = VK_NULL_HANDLE;
 
   /**
@@ -86,12 +74,7 @@ struct GHOST_SwapchainImage {
    */
   VkSemaphore present_semaphore = VK_NULL_HANDLE;
 
-  void destroy(VkDevice vk_device)
-  {
-    vkDestroySemaphore(vk_device, present_semaphore, nullptr);
-    present_semaphore = VK_NULL_HANDLE;
-    vk_image = VK_NULL_HANDLE;
-  }
+  void destroy(VkDevice vk_device);
 };
 
 struct GHOST_Frame {
@@ -105,14 +88,7 @@ struct GHOST_Frame {
 
   GHOST_FrameDiscard discard_pile;
 
-  void destroy(VkDevice vk_device)
-  {
-    vkDestroyFence(vk_device, submission_fence, nullptr);
-    submission_fence = VK_NULL_HANDLE;
-    vkDestroySemaphore(vk_device, acquire_semaphore, nullptr);
-    acquire_semaphore = VK_NULL_HANDLE;
-    discard_pile.destroy(vk_device);
-  }
+  void destroy(VkDevice vk_device);
 };
 
 /**
@@ -122,7 +98,7 @@ struct GHOST_Frame {
  * Vulkan backend. Notably, VKThreadData::resource_pools_count must
  * match this value.
  */
-constexpr static uint32_t GHOST_FRAMES_IN_FLIGHT = 4;
+constexpr static uint32_t GHOST_FRAMES_IN_FLIGHT = 5;
 
 class GHOST_ContextVK : public GHOST_Context {
   friend class GHOST_XrGraphicsBindingVulkan;

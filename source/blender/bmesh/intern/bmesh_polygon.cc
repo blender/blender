@@ -485,7 +485,7 @@ void BM_face_calc_tangent_from_edge_pair(const BMFace *f, float r_tangent[3])
 
     /* Edges may not be opposite side of the ngon,
      * this could cause problems for ngons with multiple-aligned edges of the same length.
-     * Fallback to longest edge. */
+     * Fall back to longest edge. */
     if (UNLIKELY(normalize_v3(r_tangent) == 0.0f)) {
       normalize_v3_v3(r_tangent, vec_a);
     }

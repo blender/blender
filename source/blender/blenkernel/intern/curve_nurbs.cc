@@ -32,30 +32,63 @@ bool check_valid_num_and_order(const int points_num,
   return true;
 }
 
+static int calc_nonzero_knot_spans(const int points_num,
+                                   const KnotsMode mode,
+                                   const int8_t order,
+                                   const bool cyclic)
+{
+  const bool is_bezier = ELEM(mode, NURBS_KNOT_MODE_BEZIER, NURBS_KNOT_MODE_ENDPOINT_BEZIER);
+  const bool is_end_point = ELEM(mode, NURBS_KNOT_MODE_ENDPOINT, NURBS_KNOT_MODE_ENDPOINT_BEZIER);
+  /* Inner knots are always repeated once except on Bezier case. */
+  const int repeat_inner = is_bezier ? order - 1 : 1;
+  /* For non endpoint Bezier repeated knots are shifted by one. */
+  const int knots_before_geometry = order + int(is_bezier && !is_end_point && order > 2);
+  const int knots_after_geometry = order - 1 +
+                                   (cyclic && mode == NURBS_KNOT_MODE_ENDPOINT ? order - 2 : 0);
+
+  const int knots_total = knots_num(points_num, order, cyclic);
+  /* On these knots as parameters actual geometry is generated. */
+  const int geometry_knots = knots_total - knots_before_geometry - knots_after_geometry;
+  /* `repeat_inner - 1` is added to `ceil`. */
+  const int non_zero_knots = (geometry_knots + repeat_inner - 1) / repeat_inner;
+  return non_zero_knots;
+}
+
+static int count_nonzero_knot_spans(const int points_num,
+                                    const int order,
+                                    const bool cyclic,
+                                    const Span<float> knots)
+{
+  BLI_assert(points_num > 0);
+  const int degree = order - 1;
+  int span_num = 0;
+  for (const int knot_span : IndexRange::from_begin_end(cyclic ? 0 : degree, points_num)) {
+    span_num += (knots[knot_span + 1] - knots[knot_span]) > 0.0f;
+  }
+  return span_num;
+}
+
 int calculate_evaluated_num(const int points_num,
                             const int8_t order,
                             const bool cyclic,
                             const int resolution,
-                            const KnotsMode knots_mode)
+                            const KnotsMode knots_mode,
+                            const Span<float> knots)
 {
   if (!check_valid_num_and_order(points_num, order, cyclic, knots_mode)) {
     return points_num;
   }
-  return resolution * segments_num(points_num, cyclic);
+  const int nonzero_span_num = knots_mode == KnotsMode::NURBS_KNOT_MODE_CUSTOM &&
+                                       !knots.is_empty() ?
+                                   count_nonzero_knot_spans(points_num, order, cyclic, knots) :
+                                   calc_nonzero_knot_spans(points_num, knots_mode, order, cyclic);
+  return resolution * nonzero_span_num + int(!cyclic);
 }
 
-int knots_num(const int points_num, const int8_t order, const bool cyclic)
-{
-  if (cyclic) {
-    return points_num + order * 2 - 1;
-  }
-  return points_num + order;
-}
-
-void copy_custom_knots(const int8_t order,
-                       const bool cyclic,
-                       const Span<float> custom_knots,
-                       MutableSpan<float> knots)
+static void copy_custom_knots(const int8_t order,
+                              const bool cyclic,
+                              const Span<float> custom_knots,
+                              MutableSpan<float> knots)
 {
   knots.slice(0, custom_knots.size()).copy_from(custom_knots);
   if (cyclic) {
@@ -110,6 +143,44 @@ void calculate_knots(const int points_num,
   for (const int i : IndexRange(tail)) {
     knots[tail_index + i] = current + (knots[i] - knots[0]);
   }
+}
+
+void load_curve_knots(const KnotsMode mode,
+                      const int points_num,
+                      const int8_t order,
+                      const bool cyclic,
+                      const IndexRange curve_knots,
+                      const Span<float> custom_knots,
+                      MutableSpan<float> knots)
+{
+  if (mode == NURBS_KNOT_MODE_CUSTOM) {
+    BLI_assert(!custom_knots.is_empty());
+    BLI_assert(!curve_knots.is_empty());
+    copy_custom_knots(order, cyclic, custom_knots.slice(curve_knots), knots);
+  }
+  else {
+    calculate_knots(points_num, mode, order, cyclic, knots);
+  }
+}
+
+Vector<int> calculate_multiplicity_sequence(const Span<float> knots)
+{
+  Vector<int> multiplicity;
+  multiplicity.reserve(knots.size());
+
+  int m = 1;
+  for (const int64_t i : knots.index_range().drop_front(1)) {
+    /* Only consider multiplicity for exact matching values. */
+    if (knots[i - 1] == knots[i]) {
+      m++;
+    }
+    else {
+      multiplicity.append(m);
+      m = 1;
+    }
+  }
+  multiplicity.append(m);
+  return multiplicity;
 }
 
 static void calculate_basis_for_point(const float parameter,
@@ -168,6 +239,7 @@ static void calculate_basis_for_point(const float parameter,
 void calculate_basis_cache(const int points_num,
                            const int evaluated_num,
                            const int8_t order,
+                           const int resolution,
                            const bool cyclic,
                            const Span<float> knots,
                            BasisCache &basis_cache)
@@ -186,20 +258,35 @@ void calculate_basis_cache(const int points_num,
   MutableSpan<float> basis_weights(basis_cache.weights);
   MutableSpan<int> basis_start_indices(basis_cache.start_indices);
 
-  const int last_control_point_index = cyclic ? points_num + degree : points_num;
-  const int evaluated_segment_num = segments_num(evaluated_num, cyclic);
+  const int last_control_point_index = control_points_num(points_num, order, cyclic);
 
-  const float start = knots[degree];
-  const float end = knots[last_control_point_index];
-  const float step = (end - start) / evaluated_segment_num;
-  for (const int i : IndexRange(evaluated_num)) {
-    /* Clamp parameter due to floating point inaccuracy. */
-    const float parameter = std::clamp(start + step * i, knots[0], knots[points_num + degree]);
+  int eval_point = 0;
 
-    MutableSpan<float> point_weights = basis_weights.slice(i * order, order);
-
-    calculate_basis_for_point(
-        parameter, last_control_point_index, degree, knots, point_weights, basis_start_indices[i]);
+  for (const int knot_span : IndexRange::from_begin_end(degree, last_control_point_index)) {
+    const float start = knots[knot_span];
+    const float end = knots[knot_span + 1];
+    if (start == end) {
+      continue;
+    }
+    const float step_width = (end - start) / resolution;
+    for (const int step : IndexRange::from_begin_size(0, resolution)) {
+      const float parameter = start + step * step_width;
+      calculate_basis_for_point(parameter,
+                                last_control_point_index,
+                                degree,
+                                knots,
+                                basis_weights.slice(eval_point * order, order),
+                                basis_start_indices[eval_point]);
+      eval_point++;
+    }
+  }
+  if (!cyclic) {
+    calculate_basis_for_point(knots[last_control_point_index],
+                              last_control_point_index,
+                              degree,
+                              knots,
+                              basis_weights.slice(eval_point * order, order),
+                              basis_start_indices[eval_point]);
   }
 }
 

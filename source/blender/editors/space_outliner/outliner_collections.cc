@@ -107,6 +107,21 @@ TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void 
   return TRAVERSE_CONTINUE;
 }
 
+static TreeTraversalAction outliner_collect_selected_parent_collections(TreeElement *te,
+                                                                        void *customdata)
+{
+  IDsSelectedData *data = static_cast<IDsSelectedData *>(customdata);
+  /* If collection is already selected, skip iterating their children. */
+  if (outliner_is_collection_tree_element(te)) {
+    if (ELEM(te->store_elem->type, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
+      return TRAVERSE_CONTINUE;
+    }
+    BLI_addtail(&data->selected_array, BLI_genericNodeN(te));
+    return TRAVERSE_SKIP_CHILDS;
+  }
+  return TRAVERSE_CONTINUE;
+}
+
 TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *customdata)
 {
   IDsSelectedData *data = static_cast<IDsSelectedData *>(customdata);
@@ -381,7 +396,7 @@ void outliner_collection_delete(
           skip = true;
         }
         else {
-          LISTBASE_FOREACH (CollectionParent *, cparent, &collection->runtime.parents) {
+          LISTBASE_FOREACH (CollectionParent *, cparent, &collection->runtime->parents) {
             Collection *parent = cparent->collection;
             if (!ID_IS_EDITABLE(parent) || ID_IS_OVERRIDE_LIBRARY(parent)) {
               skip = true;
@@ -613,59 +628,68 @@ static TreeElement *outliner_active_collection(bContext *C)
 static wmOperatorStatus collection_duplicate_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  TreeElement *te = outliner_active_collection(C);
   const bool linked = strstr(op->idname, "linked") != nullptr;
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+
+  IDsSelectedData selected_collections{};
+  outliner_tree_traverse(space_outliner,
+                         &space_outliner->tree,
+                         0,
+                         TSE_SELECTED,
+                         outliner_collect_selected_parent_collections,
+                         &selected_collections);
 
   /* Can happen when calling from a key binding. */
-  if (te == nullptr) {
+  if (BLI_listbase_is_empty(&selected_collections.selected_array)) {
     BKE_report(op->reports, RPT_ERROR, "No active collection");
     return OPERATOR_CANCELLED;
   }
 
-  Collection *collection = outliner_collection_from_tree_element(te);
-  Collection *parent = (te->parent) ? outliner_collection_from_tree_element(te->parent) : nullptr;
-  CollectionChild *child = BKE_collection_child_find(parent, collection);
+  LISTBASE_FOREACH (LinkData *, link, &selected_collections.selected_array) {
+    TreeElement *te = static_cast<TreeElement *>(link->data);
+    Collection *collection = outliner_collection_from_tree_element(te);
+    Collection *parent = (te->parent) ? outliner_collection_from_tree_element(te->parent) :
+                                        nullptr;
+    CollectionChild *child = BKE_collection_child_find(parent, collection);
 
-  /* We are allowed to duplicated linked collections (they will become local IDs then),
-   * but we should not allow its parent to be a linked ID, ever.
-   * This can happen when a whole scene is linked e.g. */
-  if (parent != nullptr && (!ID_IS_EDITABLE(parent) || ID_IS_OVERRIDE_LIBRARY(parent))) {
-    Scene *scene = CTX_data_scene(C);
-    parent = (!ID_IS_EDITABLE(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) ? nullptr :
-                                                                         scene->master_collection;
-  }
-  else if (parent != nullptr && (parent->flag & COLLECTION_IS_MASTER) != 0) {
-    BLI_assert(parent->id.flag & ID_FLAG_EMBEDDED_DATA);
-
-    Scene *scene_owner = reinterpret_cast<Scene *>(BKE_id_owner_get(&parent->id));
-    BLI_assert(scene_owner != nullptr);
-    BLI_assert(GS(scene_owner->id.name) == ID_SCE);
-
-    if (!ID_IS_EDITABLE(scene_owner) || ID_IS_OVERRIDE_LIBRARY(scene_owner)) {
-      scene_owner = CTX_data_scene(C);
-      parent = (!ID_IS_EDITABLE(scene_owner) || ID_IS_OVERRIDE_LIBRARY(scene_owner)) ?
+    /* We are allowed to duplicated linked collections (they will become local IDs then),
+     * but we should not allow its parent to be a linked ID, ever.
+     * This can happen when a whole scene is linked e.g. */
+    if (parent != nullptr && (!ID_IS_EDITABLE(parent) || ID_IS_OVERRIDE_LIBRARY(parent))) {
+      Scene *scene = CTX_data_scene(C);
+      parent = (!ID_IS_EDITABLE(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) ?
                    nullptr :
-                   scene_owner->master_collection;
+                   scene->master_collection;
     }
+    else if (parent != nullptr && (parent->flag & COLLECTION_IS_MASTER) != 0) {
+      BLI_assert(parent->id.flag & ID_FLAG_EMBEDDED_DATA);
+
+      Scene *scene_owner = reinterpret_cast<Scene *>(BKE_id_owner_get(&parent->id));
+      BLI_assert(scene_owner != nullptr);
+      BLI_assert(GS(scene_owner->id.name) == ID_SCE);
+
+      if (!ID_IS_EDITABLE(scene_owner) || ID_IS_OVERRIDE_LIBRARY(scene_owner)) {
+        scene_owner = CTX_data_scene(C);
+        parent = (!ID_IS_EDITABLE(scene_owner) || ID_IS_OVERRIDE_LIBRARY(scene_owner)) ?
+                     nullptr :
+                     scene_owner->master_collection;
+      }
+    }
+
+    if (parent == nullptr) {
+      BKE_report(op->reports,
+                 RPT_WARNING,
+                 "Could not find a valid parent collection for the new duplicate, "
+                 "it won't be linked to any view layer");
+    }
+
+    const eDupli_ID_Flags dupli_flags = (eDupli_ID_Flags)(USER_DUP_OBJECT |
+                                                          (linked ? 0 : U.dupflag));
+    BKE_collection_duplicate(
+        bmain, parent, child, collection, dupli_flags, LIB_ID_DUPLICATE_IS_ROOT_ID);
   }
 
-  if (collection->flag & COLLECTION_IS_MASTER) {
-    BKE_report(op->reports, RPT_ERROR, "Can't duplicate the master collection");
-    return OPERATOR_CANCELLED;
-  }
-
-  if (parent == nullptr) {
-    BKE_report(op->reports,
-               RPT_WARNING,
-               "Could not find a valid parent collection for the new duplicate, "
-               "it won't be linked to any view layer");
-  }
-
-  const eDupli_ID_Flags dupli_flags = (eDupli_ID_Flags)(USER_DUP_OBJECT |
-                                                        (linked ? 0 : U.dupflag));
-  BKE_collection_duplicate(
-      bmain, parent, child, collection, dupli_flags, LIB_ID_DUPLICATE_IS_ROOT_ID);
-
+  BLI_freelistN(&selected_collections.selected_array);
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_SCENE | ND_LAYER, CTX_data_scene(C));
   ED_outliner_select_sync_from_object_tag(C);

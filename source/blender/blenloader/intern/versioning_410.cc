@@ -935,7 +935,7 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
       SceneEEVEE default_eevee = *DNA_struct_default_get(SceneEEVEE);
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.gtao_thickness = default_eevee.gtao_thickness;
-        scene->eevee.gtao_focus = default_eevee.gtao_focus;
+        scene->eevee.fast_gi_bias = default_eevee.fast_gi_bias;
       }
     }
 

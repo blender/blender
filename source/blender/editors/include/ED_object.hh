@@ -11,6 +11,7 @@
 #include <string>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -66,6 +67,14 @@ void collection_hide_menu_draw(const bContext *C, uiLayout *layout);
  */
 blender::Vector<Object *> objects_in_mode_or_selected(
     bContext *C, bool (*filter_fn)(const Object *ob, void *user_data), void *filter_user_data);
+
+/**
+ * Set the active material by index.
+ *
+ * \param index: A zero based index. This will be clamped to the valid range.
+ * \return true if the material index changed.
+ */
+bool material_active_index_set(Object *ob, int index);
 
 /* `object_shapekey.cc` */
 
@@ -448,6 +457,13 @@ Object *object_in_mode_from_index(const Scene *scene,
                                   ViewLayer *view_layer,
                                   eObjectMode mode,
                                   int index);
+
+/**
+ * Retrieve the alpha factors of the currently active mode transfer overlay animations. The key is
+ * the object ID name to prevent possible storage of stale pointers and because the #session_uid
+ * isn't available on evaluated objects.
+ */
+Map<std::string, float, 1> mode_transfer_overlay_current_state();
 
 /* `object_modifier.cc` */
 

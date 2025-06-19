@@ -9,7 +9,6 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline int svm_node_normal(KernelGlobals kg,
-                                        ccl_private ShaderData *sd,
                                         ccl_private float *stack,
                                         const uint in_normal_offset,
                                         const uint out_normal_offset,

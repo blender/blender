@@ -182,12 +182,11 @@ bool ShadowPass::ShadowView::debug_object_culling(Object *ob)
 {
   printf("Test %s\n", ob->id.name);
   const Bounds<float3> bounds = *BKE_object_boundbox_get(ob);
-  BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
+  const std::array<float3, 8> corners = bounds::corners(bounds);
   for (int p : IndexRange(extruded_frustum_.planes_count)) {
     float4 plane = extruded_frustum_.planes[p];
     bool separating_axis = true;
-    for (float3 corner : bb.vec) {
+    for (float3 corner : corners) {
       corner = math::transform_point(ob->object_to_world(), corner);
       float signed_distance = math::dot(corner, float3(plane)) - plane.w;
       if (signed_distance <= 0) {

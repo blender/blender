@@ -796,13 +796,6 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    /* texture filter */
-    LISTBASE_FOREACH (Tex *, tex, &bmain->textures) {
-      if (tex->afmax == 0) {
-        tex->afmax = 8;
-      }
-    }
-
     LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
       ToolSettings *ts = sce->toolsettings;
       if (!ts->uv_selectmode || ts->vgroup_weight == 0.0f) {

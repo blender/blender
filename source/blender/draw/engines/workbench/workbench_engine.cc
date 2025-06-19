@@ -182,16 +182,12 @@ class Instance : public DrawEngine {
 
     if (is_object_data_visible) {
       if (object_state.sculpt_pbvh) {
-        const Bounds<float3> bounds = bke::pbvh::bounds_get(
-            *bke::object::pbvh_get(*ob_ref.object));
-        const float3 center = math::midpoint(bounds.min, bounds.max);
-        const float3 half_extent = bounds.max - center;
-        ResourceHandle handle = manager.resource_handle(ob_ref, nullptr, &center, &half_extent);
+        ResourceHandle handle = manager.unique_handle_for_sculpt(ob_ref);
         this->sculpt_sync(ob_ref, handle, object_state);
         emitter_handle = handle;
       }
       else if (ob->type == OB_MESH) {
-        ResourceHandle handle = manager.resource_handle(ob_ref);
+        ResourceHandle handle = manager.unique_handle(ob_ref);
         this->mesh_sync(ob_ref, handle, object_state);
         emitter_handle = handle;
       }
@@ -381,7 +377,7 @@ class Instance : public DrawEngine {
 
   void pointcloud_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
   {
-    ResourceHandle handle = manager.resource_handle(ob_ref);
+    ResourceHandle handle = manager.unique_handle(ob_ref);
 
     Material mat = this->get_material(ob_ref, object_state.color_type);
     resources_.material_buf.append(mat);
@@ -402,8 +398,8 @@ class Instance : public DrawEngine {
                  ParticleSystem *psys,
                  ModifierData *md)
   {
-    /* Skip frustum culling. */
-    ResourceHandle handle = manager.resource_handle(ob_ref.object->object_to_world());
+    ResourceHandle handle = manager.resource_handle_for_psys(ob_ref,
+                                                             ob_ref.object->object_to_world());
 
     Material mat = this->get_material(ob_ref, object_state.color_type, psys->part->omat - 1);
     MaterialTexture texture;
@@ -424,8 +420,7 @@ class Instance : public DrawEngine {
 
   void curves_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
   {
-    /* Skip frustum culling. */
-    ResourceHandle handle = manager.resource_handle(ob_ref.object->object_to_world());
+    ResourceHandle handle = manager.unique_handle(ob_ref);
 
     Material mat = this->get_material(ob_ref, object_state.color_type);
     resources_.material_buf.append(mat);
@@ -594,9 +589,9 @@ static bool workbench_render_framebuffers_init(const DRWContext *draw_ctx)
     dtxl->color = GPU_texture_create_2d(
         "txl.color", size.x, size.y, 1, GPU_RGBA16F, usage, nullptr);
     dtxl->depth = GPU_texture_create_2d(
-        "txl.depth", size.x, size.y, 1, GPU_DEPTH24_STENCIL8, usage, nullptr);
+        "txl.depth", size.x, size.y, 1, GPU_DEPTH32F_STENCIL8, usage, nullptr);
     dtxl->depth_in_front = GPU_texture_create_2d(
-        "txl.depth_in_front", size.x, size.y, 1, GPU_DEPTH24_STENCIL8, usage, nullptr);
+        "txl.depth_in_front", size.x, size.y, 1, GPU_DEPTH32F_STENCIL8, usage, nullptr);
   }
 
   if (!(dtxl->depth && dtxl->color && dtxl->depth_in_front)) {

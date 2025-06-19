@@ -143,6 +143,7 @@ static void change_node_socket_name(ListBase *sockets, const char *old_name, con
 
 bool version_node_socket_is_used(bNodeSocket *sock)
 {
+  BLI_assert(sock != nullptr);
   return sock->flag & SOCK_IS_LINKED;
 }
 
@@ -204,7 +205,6 @@ void version_node_output_socket_name(bNodeTree *ntree,
   }
 }
 
-/* Find the base socket name for an idname that may include a subtype. */
 StringRef legacy_socket_idname_to_socket_type(StringRef idname)
 {
   using string_pair = std::pair<const char *, const char *>;
@@ -282,8 +282,7 @@ bNodeSocket &version_node_add_socket(bNodeTree &ntree,
     BLI_addtail(&node.outputs, socket);
   }
 
-  node_socket_init_default_value_data(
-      eNodeSocketDatatype(stype->type), stype->subtype, &socket->default_value);
+  node_socket_init_default_value_data(stype->type, stype->subtype, &socket->default_value);
 
   BKE_ntree_update_tag_socket_new(&ntree, socket);
   return *socket;
@@ -738,5 +737,25 @@ void do_versions_after_setup(Main *new_bmain,
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 403, 3)) {
     /* Convert all the legacy grease pencil objects. This does not touch annotations. */
     blender::bke::greasepencil::convert::legacy_main(*new_bmain, lapp_context, *reports);
+  }
+
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 500, 4)) {
+    LISTBASE_FOREACH (Scene *, scene, &new_bmain->scenes) {
+      bNodeTree *ntree = scene->nodetree;
+      if (!ntree) {
+        continue;
+      }
+      ntree->id.flag &= ~ID_FLAG_EMBEDDED_DATA;
+      ntree->owner_id = nullptr;
+      ntree->id.tag |= ID_TAG_NO_MAIN;
+
+      scene->compositing_node_group = ntree;
+      scene->nodetree = nullptr;
+
+      BKE_libblock_management_main_add(new_bmain, ntree);
+
+      /* Note: The user count remains zero at this point. It will get automatically updated after
+       * blend file reading is done.*/
+    }
   }
 }

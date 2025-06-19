@@ -22,8 +22,8 @@ namespace blender {
  *
  * VectorList can be used when:
  *
- * 1) Don't know up front the number of elements that will be added to the list. Use array or
- * vector.reserve when known up front.
+ * 1) Don't know up front the number of elements that will be added to the list.
+ * Use `array` or `vector.reserve` when known up front.
  *
  * 2) Number of reads/writes doesn't require sequential access
  * of the whole list. A vector ensures memory is sequential which is fast when reading, writing can
@@ -43,11 +43,11 @@ template<typename T, int64_t CapacityStart = 32, int64_t CapacityMax = 4096> cla
   static_assert(is_power_of_2(CapacityMax));
   static_assert(CapacityStart <= CapacityMax);
 
-  /* Contains the individual vectors. There must always be at least one vector. */
+  /** Contains the individual vectors. There must always be at least one vector. */
   Vector<VectorT> vectors_;
-  /* Number of vectors in use. */
+  /** Number of vectors in use. */
   int64_t used_vectors_ = 0;
-  /* Total element count accross all vectors_. */
+  /** Total element count across all vectors_. */
   int64_t size_ = 0;
 
  public:
@@ -70,19 +70,19 @@ template<typename T, int64_t CapacityStart = 32, int64_t CapacityMax = 4096> cla
     return move_assign_container(*this, std::move(other));
   }
 
-  /* Insert a new element at the end of the VectorList. */
+  /** Insert a new element at the end of the VectorList. */
   void append(const T &value)
   {
     this->append_as(value);
   }
 
-  /* Insert a new element at the end of the VectorList. */
+  /** Insert a new element at the end of the VectorList. */
   void append(T &&value)
   {
     this->append_as(std::move(value));
   }
 
-  /* This is similar to `std::vector::emplace_back`. */
+  /** This is similar to `std::vector::emplace_back`. */
   template<typename ForwardT> void append_as(ForwardT &&value)
   {
     VectorT &vector = this->ensure_space_for_one();
@@ -110,7 +110,7 @@ template<typename T, int64_t CapacityStart = 32, int64_t CapacityMax = 4096> cla
     return vectors_[used_vectors_ - 1].last();
   }
 
-  /* Return how many values are currently stored in the VectorList. */
+  /** Return how many values are currently stored in the VectorList. */
   int64_t size() const
   {
     return size_;
@@ -126,7 +126,7 @@ template<typename T, int64_t CapacityStart = 32, int64_t CapacityMax = 4096> cla
     return size_ == 0;
   }
 
-  /* Afterwards the VectorList has 0 elements, but will still have memory to be refilled again. */
+  /** Afterwards the VectorList has 0 elements, but will still have memory to be refilled again. */
   void clear()
   {
     for (VectorT &vector : vectors_) {
@@ -136,7 +136,7 @@ template<typename T, int64_t CapacityStart = 32, int64_t CapacityMax = 4096> cla
     size_ = 0;
   }
 
-  /* Afterwards the VectorList has 0 elements and the Vectors allocated memory will be freed. */
+  /** Afterwards the VectorList has 0 elements and the Vectors allocated memory will be freed. */
   void clear_and_shrink()
   {
     vectors_.clear();
@@ -250,7 +250,7 @@ template<typename T, int64_t CapacityStart = 32, int64_t CapacityMax = 4096> cla
     Iterator &operator++()
     {
       if (vector_list.vectors_[index_a].size() == index_b + 1) {
-        if (index_a + 1 == vector_list.vectors_.size()) {
+        if (index_a + 1 == vector_list.used_vectors_) {
           /* Reached the end. */
           index_b++;
         }

@@ -173,7 +173,7 @@ static constexpr auto PROP_PROPORTIONAL_DESCR = "";
 static constexpr auto PROP_TEXTEDIT_UPDATE_DESCR = "";
 static constexpr auto PROP_PATH_OUTPUT_DESCR = "";
 static constexpr auto PROP_PATH_RELATIVE_DESCR =
-    "This path supports relative prefix \"//\" which is expanded the the directory "
+    "This path supports relative prefix \"//\" which is expanded the directory "
     "where the current \".blend\" file is located.";
 static constexpr auto PROP_PATH_SUPPORTS_TEMPLATES_DESCR =
     "This path supports the \"{variable_name}\" template syntax, which substitutes the "

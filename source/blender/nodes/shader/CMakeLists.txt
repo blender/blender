@@ -77,8 +77,6 @@ set(SRC
   nodes/node_shader_rgb_to_bw.cc
   nodes/node_shader_script.cc
   nodes/node_shader_sepcomb_color.cc
-  nodes/node_shader_sepcomb_hsv.cc
-  nodes/node_shader_sepcomb_rgb.cc
   nodes/node_shader_sepcomb_xyz.cc
   nodes/node_shader_shader_to_rgb.cc
   nodes/node_shader_squeeze.cc
@@ -93,7 +91,6 @@ set(SRC
   nodes/node_shader_tex_image.cc
   nodes/node_shader_tex_magic.cc
   nodes/node_shader_tex_noise.cc
-  nodes/node_shader_tex_pointdensity.cc
   nodes/node_shader_tex_sky.cc
   nodes/node_shader_tex_voronoi.cc
   nodes/node_shader_tex_wave.cc
@@ -107,10 +104,10 @@ set(SRC
   nodes/node_shader_vector_transform.cc
   nodes/node_shader_vertex_color.cc
   nodes/node_shader_volume_absorption.cc
+  nodes/node_shader_volume_coefficients.cc
   nodes/node_shader_volume_info.cc
   nodes/node_shader_volume_principled.cc
   nodes/node_shader_volume_scatter.cc
-  nodes/node_shader_volume_coefficients.cc
   nodes/node_shader_wavelength.cc
   nodes/node_shader_wireframe.cc
 

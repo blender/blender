@@ -7,10 +7,6 @@
  */
 
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
-
-#include "UI_interface.hh"
-#include "UI_resources.hh"
 
 #include "GPU_shader.hh"
 
@@ -25,15 +21,11 @@ namespace blender::nodes::node_composite_flip_cc {
 
 static void cmp_node_flip_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_output<decl::Color>("Image");
-}
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Bool>("Flip X").default_value(false).compositor_expects_single_value();
+  b.add_input<decl::Bool>("Flip Y").default_value(false).compositor_expects_single_value();
 
-static void node_composit_buts_flip(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  b.add_output<decl::Color>("Image");
 }
 
 using namespace blender::compositor;
@@ -45,7 +37,7 @@ class FlipOperation : public NodeOperation {
   void execute() override
   {
     const Result &input = this->get_input("Image");
-    if (input.is_single_value()) {
+    if (input.is_single_value() || (!this->get_flip_x() && !this->get_flip_y())) {
       Result &output = this->get_result("Image");
       output.share_data(input);
       return;
@@ -64,10 +56,8 @@ class FlipOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_flip");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1b(
-        shader, "flip_x", ELEM(get_flip_mode(), CMP_NODE_FLIP_X, CMP_NODE_FLIP_X_Y));
-    GPU_shader_uniform_1b(
-        shader, "flip_y", ELEM(get_flip_mode(), CMP_NODE_FLIP_Y, CMP_NODE_FLIP_X_Y));
+    GPU_shader_uniform_1b(shader, "flip_x", this->get_flip_x());
+    GPU_shader_uniform_1b(shader, "flip_y", this->get_flip_y());
 
     Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
@@ -86,8 +76,8 @@ class FlipOperation : public NodeOperation {
 
   void execute_cpu()
   {
-    const bool flip_x = ELEM(get_flip_mode(), CMP_NODE_FLIP_X, CMP_NODE_FLIP_X_Y);
-    const bool flip_y = ELEM(get_flip_mode(), CMP_NODE_FLIP_Y, CMP_NODE_FLIP_X_Y);
+    const bool flip_x = this->get_flip_x();
+    const bool flip_y = this->get_flip_y();
 
     Result &input = get_input("Image");
 
@@ -108,9 +98,14 @@ class FlipOperation : public NodeOperation {
     });
   }
 
-  CMPNodeFlipMode get_flip_mode()
+  bool get_flip_x()
   {
-    return static_cast<CMPNodeFlipMode>(bnode().custom1);
+    return this->get_input("Flip X").get_single_value_default(false);
+  }
+
+  bool get_flip_y()
+  {
+    return this->get_input("Flip Y").get_single_value_default(false);
   }
 };
 
@@ -133,7 +128,6 @@ static void register_node_type_cmp_flip()
   ntype.enum_name_legacy = "FLIP";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_flip_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_flip;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);

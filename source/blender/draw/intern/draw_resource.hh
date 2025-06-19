@@ -11,6 +11,7 @@
  * Each of them are reference by resource index (#ResourceHandle).
  */
 
+#include "BLI_bounds.hh"
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.hh"
 
@@ -75,8 +76,7 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
   object_attrs_offset = 0;
   light_and_shadow_set_membership = 0;
 
-  LightLinking *light_linking = (ref.dupli_parent) != nullptr ? ref.dupli_parent->light_linking :
-                                                                ref.object->light_linking;
+  LightLinking *light_linking = ref.light_linking();
   if (light_linking) {
     light_and_shadow_set_membership |= light_linking->runtime.receiver_light_set;
     light_and_shadow_set_membership |= light_linking->runtime.blocker_shadow_set << 8;
@@ -109,15 +109,7 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
     shadow_terminator_normal_offset = 0.0f;
   }
 
-  if (ref.dupli_object == nullptr) {
-    /* TODO(fclem): this is rather costly to do at draw time. Maybe we can
-     * put it in ob->runtime and make depsgraph ensure it is up to date. */
-    random = BLI_hash_int_2d(BLI_hash_string(ref.object->id.name + 2), 0) *
-             (1.0f / (float)0xFFFFFFFF);
-  }
-  else {
-    random = ref.dupli_object->random_id * (1.0f / (float)0xFFFFFFFF);
-  }
+  random = ref.random();
 
   if (ref.object->data == nullptr) {
     orco_add = float3(0.0f);
@@ -214,12 +206,11 @@ inline void ObjectBounds::sync(const Object &ob, float inflate_bounds)
     bounding_sphere.w = -1.0f; /* Disable test. */
     return;
   }
-  BoundBox bbox;
-  BKE_boundbox_init_from_minmax(&bbox, bounds->min, bounds->max);
-  *reinterpret_cast<float3 *>(&bounding_corners[0]) = bbox.vec[0];
-  *reinterpret_cast<float3 *>(&bounding_corners[1]) = bbox.vec[4];
-  *reinterpret_cast<float3 *>(&bounding_corners[2]) = bbox.vec[3];
-  *reinterpret_cast<float3 *>(&bounding_corners[3]) = bbox.vec[1];
+  const std::array<float3, 8> corners = blender::bounds::corners(*bounds);
+  *reinterpret_cast<float3 *>(&bounding_corners[0]) = corners[0];
+  *reinterpret_cast<float3 *>(&bounding_corners[1]) = corners[4];
+  *reinterpret_cast<float3 *>(&bounding_corners[2]) = corners[3];
+  *reinterpret_cast<float3 *>(&bounding_corners[3]) = corners[1];
   bounding_sphere.w = 0.0f; /* Enable test. */
 
   if (inflate_bounds != 0.0f) {

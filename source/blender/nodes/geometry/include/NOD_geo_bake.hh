@@ -27,14 +27,13 @@ namespace blender::nodes {
  * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) for index
  * bake node items.
  */
-struct BakeItemsAccessor {
+struct BakeItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometryBakeItem;
   static StructRNA *item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeBake";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_bake_node_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_bake_node_item_remove";
@@ -112,6 +111,7 @@ struct BakeDrawContext {
   bool bake_still;
   bool is_baked;
   std::optional<NodesModifierBakeTarget> bake_target;
+  bool is_bakeable_in_current_context;
 };
 
 [[nodiscard]] bool get_bake_draw_context(const bContext *C,

@@ -122,9 +122,10 @@ static void transform_instances(bke::Instances &instances, const float4x4 &trans
   });
 }
 
-static bool transform_volume(Volume &volume, const float4x4 &transform)
+static void transform_volume(Volume &volume,
+                             const float4x4 &transform,
+                             TransformGeometryErrors &r_errors)
 {
-  bool found_too_small_scale = false;
 #ifdef WITH_OPENVDB
   openvdb::Mat4s vdb_matrix;
   memcpy(vdb_matrix.asPointer(), &transform, sizeof(float[4][4]));
@@ -138,7 +139,7 @@ static bool transform_volume(Volume &volume, const float4x4 &transform)
     grid_matrix = transform * grid_matrix;
     const float determinant = math::determinant(grid_matrix);
     if (!BKE_volume_grid_determinant_valid(determinant)) {
-      found_too_small_scale = true;
+      r_errors.volume_too_small = true;
       /* Clear the tree because it is too small. */
       bke::volume_grid::clear_tree(*volume_grid);
       if (determinant == 0) {
@@ -154,18 +155,23 @@ static bool transform_volume(Volume &volume, const float4x4 &transform)
         grid_matrix.z_axis() = math::normalize(grid_matrix.z_axis());
       }
     }
-    bke::volume_grid::set_transform_matrix(*volume_grid, grid_matrix);
+    try {
+      bke::volume_grid::set_transform_matrix(*volume_grid, grid_matrix);
+    }
+    catch (...) {
+      r_errors.bad_volume_transform = true;
+    }
   }
 
 #else
-  UNUSED_VARS(volume, transform);
+  UNUSED_VARS(volume, transform, r_errors);
 #endif
-  return found_too_small_scale;
 }
 
 static void translate_volume(Volume &volume, const float3 translation)
 {
-  transform_volume(volume, math::from_location<float4x4>(translation));
+  TransformGeometryErrors errors;
+  transform_volume(volume, math::from_location<float4x4>(translation), errors);
 }
 
 static void transform_curve_edit_hints(bke::CurvesEditHints &edit_hints, const float4x4 &transform)
@@ -287,7 +293,7 @@ std::optional<TransformGeometryErrors> transform_geometry(bke::GeometrySet &geom
     transform_greasepencil(*grease_pencil, transform);
   }
   if (Volume *volume = geometry.get_volume_for_write()) {
-    errors.volume_too_small = transform_volume(*volume, transform);
+    transform_volume(*volume, transform, errors);
   }
   if (bke::Instances *instances = geometry.get_instances_for_write()) {
     transform_instances(*instances, transform);

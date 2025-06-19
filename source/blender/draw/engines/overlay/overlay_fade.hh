@@ -97,7 +97,7 @@ class Fade : Overlay {
                                        !state.is_image_render;
 
           if (use_sculpt_pbvh) {
-            ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
+            ResourceHandle handle = manager.unique_handle_for_sculpt(ob_ref);
 
             for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {
               sub.draw(batch.batch, handle);

@@ -33,6 +33,7 @@
 namespace blender::ui {
 
 #define UI_TREEVIEW_INDENT short(0.7f * UI_UNIT_X)
+#define MIN_ROWS 4
 
 static int unpadded_item_height()
 {
@@ -138,6 +139,9 @@ AbstractTreeViewItem *AbstractTreeView::find_hovered(const ARegion &region, cons
 
 void AbstractTreeView::set_default_rows(int default_rows)
 {
+  BLI_assert_msg(default_rows >= MIN_ROWS,
+                 "Default value is smaller than the minimum rows. Limit is required to prevent "
+                 "resizing below specific height.");
   custom_height_ = std::make_unique<int>(default_rows * padded_item_height());
 }
 
@@ -162,7 +166,8 @@ std::optional<uiViewState> AbstractTreeView::persistent_state() const
 void AbstractTreeView::persistent_state_apply(const uiViewState &state)
 {
   if (state.custom_height) {
-    set_default_rows(round_fl_to_int(state.custom_height * UI_SCALE_FAC) / padded_item_height());
+    set_default_rows(std::max(
+        MIN_ROWS, round_fl_to_int(state.custom_height * UI_SCALE_FAC) / padded_item_height()));
   }
   if (state.scroll_offset) {
     scroll_value_ = std::make_shared<int>(state.scroll_offset);
@@ -284,7 +289,7 @@ void AbstractTreeView::draw_hierarchy_lines(const ARegion &region, const uiBlock
   }
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorAlpha(TH_TEXT, 0.2f);
 
@@ -364,10 +369,9 @@ std::optional<int> AbstractTreeView::tot_visible_row_count() const
   if (!custom_height_) {
     return {};
   }
-  if (*custom_height_ < UI_UNIT_Y) {
-    return 1;
-  }
-  return round_fl_to_int(float(*custom_height_) / padded_item_height());
+  const int calculate_rows = round_fl_to_int(float(*custom_height_) / padded_item_height());
+  /* Clamp value to prevent resizing below minimum number of rows. */
+  return math::max(MIN_ROWS, calculate_rows);
 }
 
 bool AbstractTreeView::supports_scrolling() const
@@ -480,7 +484,7 @@ int AbstractTreeViewItem::indent_width() const
 
 void AbstractTreeViewItem::add_indent(uiLayout &row) const
 {
-  uiBlock *block = uiLayoutGetBlock(&row);
+  uiBlock *block = row.block();
   uiLayout *subrow = &row.row(true);
   uiLayoutSetFixedSize(subrow, true);
 
@@ -546,7 +550,7 @@ void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
 
 void AbstractTreeViewItem::add_rename_button(uiLayout &row)
 {
-  uiBlock *block = uiLayoutGetBlock(&row);
+  uiBlock *block = row.block();
   blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
 
   row.row(false);
@@ -795,9 +799,7 @@ class TreeViewLayoutBuilder {
   TreeViewLayoutBuilder(uiLayout &layout);
 };
 
-TreeViewLayoutBuilder::TreeViewLayoutBuilder(uiLayout &layout) : block_(*uiLayoutGetBlock(&layout))
-{
-}
+TreeViewLayoutBuilder::TreeViewLayoutBuilder(uiLayout &layout) : block_(*layout.block()) {}
 
 static int count_visible_items(AbstractTreeView &tree_view)
 {
@@ -811,7 +813,7 @@ static int count_visible_items(AbstractTreeView &tree_view)
 void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
 {
   uiLayout &parent_layout = this->current_layout();
-  uiBlock *block = uiLayoutGetBlock(&parent_layout);
+  uiBlock *block = parent_layout.block();
 
   uiLayout *col = nullptr;
   if (add_box_) {
@@ -898,17 +900,23 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   uiBlock &block_ = block();
 
   uiLayout &prev_layout = current_layout();
+
+  const int width = uiLayoutGetWidth(&prev_layout);
+  if (width < int(40 * UI_SCALE_FAC)) {
+    return;
+  }
+
   blender::ui::EmbossType previous_emboss = UI_block_emboss_get(&block_);
 
   uiLayout *overlap = &prev_layout.overlap();
 
   if (!item.is_interactive_) {
-    uiLayoutSetActive(overlap, false);
+    overlap->active_set(false);
   }
 
   uiLayout *row = &overlap->row(false);
   /* Enable emboss for mouse hover highlight. */
-  uiLayoutSetEmboss(row, blender::ui::EmbossType::Emboss);
+  row->emboss_set(blender::ui::EmbossType::Emboss);
   /* Every item gets one! Other buttons can be overlapped on top. */
   item.add_treerow_button(block_);
 
@@ -932,6 +940,9 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   }
   else {
     item.build_row(*row);
+    if (item.is_active_) {
+      ui_layout_list_set_labels_active(row);
+    }
   }
 
   uiLayoutListItemAddPadding(row);
@@ -980,7 +991,7 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
                                       std::optional<StringRef> search_string,
                                       const bool add_box)
 {
-  uiBlock &block = *uiLayoutGetBlock(&layout);
+  uiBlock &block = *layout.block();
 
   const ARegion *region = CTX_wm_region_popup(&C) ? CTX_wm_region_popup(&C) : CTX_wm_region(&C);
   if (region) {
@@ -999,7 +1010,9 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
 
   TreeViewLayoutBuilder builder(layout);
   builder.add_box_ = add_box;
+  UI_block_flag_enable(&block, UI_BLOCK_LIST_ITEM);
   builder.build_from_tree(tree_view);
+  UI_block_flag_disable(&block, UI_BLOCK_LIST_ITEM);
 }
 
 /* ---------------------------------------------------------------------- */

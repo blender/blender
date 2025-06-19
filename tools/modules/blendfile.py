@@ -19,6 +19,7 @@ __all__ = (
 )
 
 
+from collections import namedtuple
 import gzip
 import logging
 import os
@@ -56,6 +57,8 @@ class BlendFile:
         "header",
         # struct.Struct
         "block_header_struct",
+        # namedtuple
+        "block_header_fields",
         # BlendFileBlock
         "blocks",
         # [DNAStruct, ...]
@@ -77,7 +80,7 @@ class BlendFile:
         log.debug("initializing reading blend-file")
         self.handle = handle
         self.header = BlendFileHeader(handle)
-        self.block_header_struct = self.header.create_block_header_struct()
+        self.block_header_struct, self.block_header_fields = self.header.create_block_header_struct()
         self.blocks = []
         self.code_index = {}
         self.structs = []
@@ -270,8 +273,6 @@ class BlendFileBlock:
                  ))
 
     def __init__(self, handle, bfile):
-        OLDBLOCK = struct.Struct(b'4sI')
-
         self.file = bfile
         self.user_data = None
 
@@ -286,18 +287,15 @@ class BlendFileBlock:
             self.count = 0
             self.file_offset = 0
             return
-        # header size can be 8, 20, or 24 bytes long
-        # 8: old blend files ENDB block (exception)
-        # 20: normal headers 32 bit platform
-        # 24: normal headers 64 bit platform
-        if len(data) > 15:
-            blockheader = bfile.block_header_struct.unpack(data)
+        # Header can be just 8 byte because of ENDB block in old .blend files.
+        if len(data) > 8:
+            blockheader = bfile.block_header_fields(*bfile.block_header_struct.unpack(data))
             self.code = blockheader[0].partition(b'\0')[0]
             if self.code != b'ENDB':
-                self.size = blockheader[1]
-                self.addr_old = blockheader[2]
-                self.sdna_index = blockheader[3]
-                self.count = blockheader[4]
+                self.size = blockheader.len
+                self.addr_old = blockheader.old
+                self.sdna_index = blockheader.SDNAnr
+                self.count = blockheader.nr
                 self.file_offset = handle.tell()
             else:
                 self.size = 0
@@ -306,6 +304,7 @@ class BlendFileBlock:
                 self.count = 0
                 self.file_offset = 0
         else:
+            OLDBLOCK = struct.Struct(b'4sI')
             blockheader = OLDBLOCK.unpack(data)
             self.code = blockheader[0].partition(b'\0')[0]
             self.code = DNA_IO.read_data0(blockheader[0])
@@ -567,6 +566,8 @@ class BlendFileRaw:
         "header",
         # struct.Struct
         "block_header_struct",
+        # namedtuple
+        "block_header_fields",
         # BlendFileBlock
         "blocks",
         # dict {addr_old: block}
@@ -583,7 +584,7 @@ class BlendFileRaw:
         log.debug("initializing reading blend-file")
         self.handle = handle
         self.header = BlendFileHeader(handle)
-        self.block_header_struct = self.header.create_block_header_struct()
+        self.block_header_struct, self.block_header_fields = self.header.create_block_header_struct()
         self.blocks = []
         self.code_index = {}
 
@@ -681,8 +682,6 @@ class BlendFileBlockRaw:
                  ))
 
     def __init__(self, handle, bfile):
-        OLDBLOCK = struct.Struct(b'4sI')
-
         self.file = bfile
         self.user_data = None
 
@@ -697,18 +696,15 @@ class BlendFileBlockRaw:
             self.count = 0
             self.file_offset = 0
             return
-        # header size can be 8, 20, or 24 bytes long
-        # 8: old blend files ENDB block (exception)
-        # 20: normal headers 32 bit platform
-        # 24: normal headers 64 bit platform
-        if len(data) > 15:
-            blockheader = bfile.block_header_struct.unpack(data)
+        # Header can be just 8 byte because of ENDB block in old .blend files.
+        if len(data) > 8:
+            blockheader = bfile.block_header_fields(*bfile.block_header_struct.unpack(data))
             self.code = blockheader[0].partition(b'\0')[0]
             if self.code != b'ENDB':
-                self.size = blockheader[1]
-                self.addr_old = blockheader[2]
-                self.sdna_index = blockheader[3]
-                self.count = blockheader[4]
+                self.size = blockheader.len
+                self.addr_old = blockheader.old
+                self.sdna_index = blockheader.SDNAnr
+                self.count = blockheader.nr
                 self.file_offset = handle.tell()
             else:
                 self.size = 0
@@ -717,6 +713,7 @@ class BlendFileBlockRaw:
                 self.count = 0
                 self.file_offset = 0
         else:
+            OLDBLOCK = struct.Struct(b'4sI')
             blockheader = OLDBLOCK.unpack(data)
             self.code = blockheader[0].partition(b'\0')[0]
             self.code = DNA_IO.read_data0(blockheader[0])
@@ -745,21 +742,18 @@ class BlendFileBlockRaw:
 
 # -----------------------------------------------------------------------------
 # Read Magic
-#
-# magic = str
-# pointer_size = int
-# is_little_endian = bool
-# version = int
 
 
 class BlendFileHeader:
     """
-    BlendFileHeader allocates the first 12 bytes of a blend file
+    BlendFileHeader allocates the first 12-17 bytes (depending on the file version) of a blend file
     it contains information about the hardware architecture
     """
     __slots__ = (
         # str
         "magic",
+        # int
+        "file_format_version",
         # int 4/8
         "pointer_size",
         # bool
@@ -773,40 +767,103 @@ class BlendFileHeader:
     )
 
     def __init__(self, handle):
-        FILEHEADER = struct.Struct(b'7s1s1s3s')
-
         log.debug("reading blend-file-header")
-        values = FILEHEADER.unpack(handle.read(FILEHEADER.size))
-        self.magic = values[0]
-        pointer_size_id = values[1]
-        if pointer_size_id == b'-':
-            self.pointer_size = 8
-        elif pointer_size_id == b'_':
-            self.pointer_size = 4
+
+        bytes_0_6 = handle.read(7)
+        if bytes_0_6 != b'BLENDER':
+            raise BlendFileError("invalid first bytes")
+        self.magic = bytes_0_6
+
+        byte_7 = handle.read(1)
+        is_legacy_header = byte_7 in (b'_', b'-')
+        if is_legacy_header:
+            self.file_format_version = 0
+            if byte_7 == b'_':
+                self.pointer_size = 4
+            elif byte_7 == b'-':
+                self.pointer_size = 8
+            else:
+                raise BlendFileError("invalid file header")
+            byte_8 = handle.read(1)
+            if byte_8 == b'v':
+                self.is_little_endian = True
+            elif byte_8 == b'V':
+                self.is_little_endian = False
+            else:
+                raise BlendFileError("invalid file header")
+            bytes_9_11 = handle.read(3)
+            self.version = int(bytes_9_11)
         else:
-            assert False, "unreachable"
-        endian_id = values[2]
-        if endian_id == b'v':
+            byte_8 = handle.read(1)
+            header_size = int(byte_7 + byte_8)
+            if header_size != 17:
+                raise BlendFileError("invalid file header")
+            byte_9 = handle.read(1)
+            if byte_9 != b'-':
+                raise BlendFileError("invalid file header")
+            self.pointer_size = 8
+            byte_10_11 = handle.read(2)
+            self.file_format_version = int(byte_10_11)
+            if self.file_format_version != 1:
+                raise BlendFileError("unsupported file format version")
+            byte_12 = handle.read(1)
+            if byte_12 != b'v':
+                raise BlendFileError("invalid file header")
             self.is_little_endian = True
+            byte_13_16 = handle.read(4)
+            self.version = int(byte_13_16)
+
+        if self.is_little_endian:
             self.endian_str = b'<'
             self.endian_index = 0
-        elif endian_id == b'V':
-            self.is_little_endian = False
+        else:
             self.endian_index = 1
             self.endian_str = b'>'
-        else:
-            assert False, "unreachable"
-
-        version_id = values[3]
-        self.version = int(version_id)
 
     def create_block_header_struct(self):
-        return struct.Struct(b''.join((
-            self.endian_str,
-            b'4sI',
-            b'I' if self.pointer_size == 4 else b'Q',
-            b'II',
-        )))
+        if self.file_format_version == 0:
+            if self.pointer_size == 4:
+                return struct.Struct(b''.join((
+                    self.endian_str,
+                    # BHead4.code
+                    b'4s',
+                    # BHead4.len
+                    b'i',
+                    # BHead4.old
+                    b'I',
+                    # BHead4.SDNAnr
+                    b'i',
+                    # BHead4.nr
+                    b'i',
+                ))), namedtuple('BHead4', ('code', 'len', 'old', 'SDNAnr', 'nr'))
+            else:
+                return struct.Struct(b''.join((
+                    self.endian_str,
+                    # SmallBHead8.code
+                    b'4s',
+                    # SmallBHead8.len
+                    b'i',
+                    # SmallBHead8.old
+                    b'Q',
+                    # SmallBHead8.SDNAnr
+                    b'i',
+                    # SmallBHead8.nr
+                    b'i',
+                ))), namedtuple('SmallBHead8', ('code', 'len', 'old', 'SDNAnr', 'nr'))
+        else:
+            return struct.Struct(b''.join((
+                self.endian_str,
+                # LargeBHead8.code
+                b'4s',
+                # LargeBHead8.SDNAnr
+                b'i',
+                # LargeBHead8.old
+                b'Q',
+                # LargeBHead8.len
+                b'q',
+                # LargeBHead8.nr
+                b'q',
+            ))), namedtuple('LargeBHead8', ('code', 'SDNAnr', 'old', 'len', 'nr'))
 
 
 class DNAName:

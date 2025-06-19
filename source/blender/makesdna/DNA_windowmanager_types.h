@@ -165,7 +165,7 @@ typedef struct wmWindowManager {
   /**
    * \note `CTX_wm_window(C)` is usually preferred.
    * Avoid relying on this where possible as this may become NULL during when handling
-   * events that close or replace windows (opening a file for e.g.).
+   * events that close or replace windows (e.g. opening a file).
    * While this happens rarely in practice, it can cause difficult to reproduce bugs.
    */
   struct wmWindow *winactive;

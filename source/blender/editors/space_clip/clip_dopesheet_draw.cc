@@ -17,6 +17,7 @@
 #include "BKE_context.hh"
 #include "BKE_movieclip.h"
 
+#include "ED_anim_api.hh"
 #include "ED_clip.hh"
 #include "ED_screen.hh"
 
@@ -99,8 +100,10 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   View2D *v2d = &region->v2d;
 
-  /* frame range */
-  clip_draw_sfra_efra(v2d, scene);
+  /* Frame and preview range. */
+  UI_view2d_view_ortho(v2d);
+  ANIM_draw_framerange(scene, v2d);
+  ANIM_draw_previewrange(scene, v2d, 0);
 
   if (clip) {
     MovieTracking *tracking = &clip->tracking;
@@ -111,7 +114,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
     uint keyframe_len = 0;
 
     GPUVertFormat *format = immVertexFormat();
-    uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    uint pos_id = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* don't use totrect set, as the width stays the same
@@ -199,12 +202,15 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
     if (keyframe_len > 0) {
       /* draw keyframe markers */
       format = immVertexFormat();
-      pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-      uint color_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      pos_id = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+      uint size_id = GPU_vertformat_attr_add(
+          format, "size", blender::gpu::VertAttrType::SFLOAT_32);
+      uint color_id = GPU_vertformat_attr_add(
+          format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
       uint outline_color_id = GPU_vertformat_attr_add(
-          format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-      uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
+          format, "outlineColor", blender::gpu::VertAttrType::UNORM_8_8_8_8);
+      uint flags_id = GPU_vertformat_attr_add(
+          format, "flags", blender::gpu::VertAttrType::UINT_32);
 
       GPU_program_point_size(true);
       immBindBuiltinProgram(GPU_SHADER_KEYFRAME_SHAPE);
@@ -310,7 +316,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
   float y = (CHANNEL_FIRST);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 

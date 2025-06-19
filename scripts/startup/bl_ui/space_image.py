@@ -532,9 +532,17 @@ class IMAGE_MT_uvs_select_mode(Menu):
             props.value = 'FACE'
             props.data_path = "tool_settings.uv_select_mode"
 
-            props = layout.operator("wm.context_set_string", text="Island", icon='UV_ISLANDSEL')
-            props.value = 'ISLAND'
-            props.data_path = "tool_settings.uv_select_mode"
+        layout.separator()
+
+        is_select_island_supported = True
+        if tool_settings.use_uv_select_sync:
+            mesh_select_mode = tool_settings.mesh_select_mode
+            if mesh_select_mode[0] or mesh_select_mode[1]:
+                is_select_island_supported = False
+
+        row = layout.row()
+        row.active = is_select_island_supported
+        row.prop(tool_settings, "use_uv_select_island", text="Island")
 
 
 class IMAGE_MT_uvs_context_menu(Menu):
@@ -555,7 +563,7 @@ class IMAGE_MT_uvs_context_menu(Menu):
                 is_vert_mode = uv_select_mode == 'VERTEX'
                 is_edge_mode = uv_select_mode == 'EDGE'
                 # is_face_mode = uv_select_mode == 'FACE'
-                # is_island_mode = uv_select_mode == 'ISLAND'
+                # is_island_mode = ts.use_uv_select_island
 
             # Add
             layout.operator("uv.unwrap")
@@ -864,9 +872,16 @@ class IMAGE_HT_header(Header):
             if tool_settings.use_uv_select_sync:
                 layout.template_edit_mode_selection()
 
+                # Currently this only works for face-select mode.
+                mesh_select_mode = tool_settings.mesh_select_mode
+                row = layout.row()
+                if mesh_select_mode[0] or mesh_select_mode[1]:
+                    row.active = False
+                row.prop(tool_settings, "use_uv_select_island", icon_only=True)
+
                 # Currently this only works for edge-select & face-select modes.
                 row = layout.row()
-                if tool_settings.mesh_select_mode[0]:
+                if mesh_select_mode[0]:
                     row.active = False
                 row.prop(tool_settings, "uv_sticky_select_mode", icon_only=True)
             else:
@@ -878,9 +893,8 @@ class IMAGE_HT_header(Header):
                              depress=(uv_select_mode == 'EDGE')).type = 'EDGE'
                 row.operator("uv.select_mode", text="", icon='UV_FACESEL',
                              depress=(uv_select_mode == 'FACE')).type = 'FACE'
-                row.operator("uv.select_mode", text="", icon='UV_ISLANDSEL',
-                             depress=(uv_select_mode == 'ISLAND')).type = 'ISLAND'
 
+                layout.prop(tool_settings, "use_uv_select_island", icon_only=True)
                 layout.prop(tool_settings, "uv_sticky_select_mode", icon_only=True)
 
         IMAGE_MT_editor_menus.draw_collapsible(context, layout)
@@ -1704,7 +1718,7 @@ class IMAGE_PT_overlay_uv_display(Panel):
     @classmethod
     def poll(cls, context):
         sima = context.space_data
-        return (sima and not (sima.show_uvedit or sima.show_render))
+        return (sima and sima.mode in {'UV', 'PAINT'} and not (sima.show_uvedit or sima.show_render))
 
     def draw(self, context):
         layout = self.layout
@@ -1787,7 +1801,6 @@ class ImageAssetShelf(BrushAssetShelf):
 class IMAGE_AST_brush_paint(ImageAssetShelf, AssetShelf):
     mode_prop = "use_paint_image"
     brush_type_prop = "image_brush_type"
-    tool_prop = "image_tool"
 
     @classmethod
     def poll(cls, context):

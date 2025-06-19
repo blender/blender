@@ -12,7 +12,7 @@ namespace blender::bke::tests {
 
 using namespace blender::bke::path_templates;
 
-[[maybe_unused]] static void debug_print_error(const Error &error)
+static std::string error_to_string(const Error &error)
 {
   const char *type;
   switch (error.type) {
@@ -29,17 +29,35 @@ using namespace blender::bke::path_templates;
       type = "UNKNOWN_VARIABLE";
       break;
   }
-  fmt::print("({}, ({}, {}))", type, error.byte_range.start(), error.byte_range.size());
+
+  std::string s;
+  fmt::format_to(std::back_inserter(s),
+                 "({}, ({}, {}))",
+                 type,
+                 error.byte_range.start(),
+                 error.byte_range.size());
+
+  return s;
 }
 
-[[maybe_unused]] static void debug_print_errors(Span<Error> errors)
+static std::string errors_to_string(Span<Error> errors)
 {
-  fmt::print("[");
+  std::string s;
+
+  fmt::format_to(std::back_inserter(s), "[");
+  bool is_first = true;
   for (const Error &error : errors) {
-    debug_print_error(error);
-    fmt::print(", ");
+    if (is_first) {
+      is_first = false;
+    }
+    else {
+      fmt::format_to(std::back_inserter(s), ", ");
+    }
+    fmt::format_to(std::back_inserter(s), "{}", error_to_string(error));
   }
-  fmt::print("]\n");
+  fmt::format_to(std::back_inserter(s), "]");
+
+  return s;
 }
 
 TEST(path_templates, VariableMap)
@@ -107,7 +125,13 @@ TEST(path_templates, VariableMap)
   EXPECT_FALSE(map.remove("what"));
 }
 
-TEST(path_templates, path_apply_variables)
+struct PathTemplateTestCase {
+  char path_in[FILE_MAX];
+  char path_result[FILE_MAX];
+  Vector<Error> expected_errors;
+};
+
+TEST(path_templates, validate_and_apply_template)
 {
   VariableMap variables;
   {
@@ -126,218 +150,205 @@ TEST(path_templates, path_apply_variables)
     variables.add_float("tiny", 0.000000000000000000000000000000002);
   }
 
-  /* Simple case, testing all variables. */
-  {
-    char path[FILE_MAX] =
-        "{hi}_{bye}_{the_answer}_{prime}_{i_negative}_{pi}_{e}_{ntsc}_{two}_{f_negative}_{huge}_{"
-        "tiny}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
+  const Vector<PathTemplateTestCase> test_cases = {
+      /* Simple case, testing all variables. */
+      {
+          "{hi}_{bye}_{the_answer}_{prime}_{i_negative}_{pi}_{e}_{ntsc}_{two}_{f_negative}_{huge}_"
+          "{tiny}",
+          "hello_goodbye_42_7_-7_3.141592653589793_2.718281828459045_29.970029970029973_2.0_-3."
+          "141592653589793_2e+32_2e-33",
+          {},
+      },
 
-    EXPECT_TRUE(errors.is_empty());
-    EXPECT_EQ(blender::StringRef(path),
-              "hello_goodbye_42_7_-7_3.141592653589793_2.718281828459045_29.970029970029973_2.0_-"
-              "3.141592653589793_2e+32_2e-33");
-  }
+      /* Integer formatting. */
+      {
+          "{the_answer:#}_{the_answer:##}_{the_answer:####}_{i_negative:####}",
+          "42_42_0042_-007",
+          {},
+      },
 
-  /* Integer formatting. */
-  {
-    char path[FILE_MAX] = "{the_answer:#}_{the_answer:##}_{the_answer:####}_{i_negative:####}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
+      /* Integer formatting as float. */
+      {
+          "{the_answer:.###}_{the_answer:#.##}_{the_answer:###.##}_{i_negative:###.####}",
+          "42.000_42.00_042.00_-07.0000",
+          {},
+      },
 
-    EXPECT_TRUE(errors.is_empty());
-    EXPECT_EQ(blender::StringRef(path), "42_42_0042_-007");
-  }
+      /* Float formatting: specify fractional digits only. */
+      {
+          "{pi:.####}_{e:.###}_{ntsc:.########}_{two:.##}_{f_negative:.##}_{huge:.##}_{tiny:.##}",
+          "3.1416_2.718_29.97002997_2.00_-3.14_200000000000000010732324408786944.00_0.00",
+          {},
+      },
 
-  /* Integer formatting as float. */
-  {
-    char path[FILE_MAX] =
-        "{the_answer:.###}_{the_answer:#.##}_{the_answer:###.##}_{i_negative:###.####}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
+      /* Float formatting: specify both integer and fractional digits. */
+      {
+          "{pi:##.####}_{e:####.###}_{ntsc:#.########}_{two:###.##}_{f_negative:###.##}_{huge:###."
+          "##}_{tiny:###.##}",
+          "03.1416_0002.718_29.97002997_002.00_-03.14_200000000000000010732324408786944.00_000.00",
+          {},
+      },
 
-    EXPECT_TRUE(errors.is_empty());
-    EXPECT_EQ(blender::StringRef(path), "42.000_42.00_042.00_-07.0000");
-  }
+      /* Float formatting: format as integer. */
+      {
+          "{pi:##}_{e:####}_{ntsc:#}_{two:###}",
+          "03_0003_30_002",
+          {},
+      },
 
-  /* Float formatting: specify fractional digits only. */
-  {
-    char path[FILE_MAX] =
-        "{pi:.####}_{e:.###}_{ntsc:.########}_{two:.##}_{f_negative:.##}_{huge:.##}_{tiny:.##}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
+      /* Escaping. "{{" and "}}" are the escape codes for literal "{" and "}". */
+      {
+          "{hi}_{{hi}}_{{{bye}}}_{bye}",
+          "hello_{hi}_{goodbye}_goodbye",
+          {},
+      },
 
-    EXPECT_TRUE(errors.is_empty());
-    EXPECT_EQ(blender::StringRef(path),
-              "3.1416_2.718_29.97002997_2.00_-3.14_200000000000000010732324408786944.00_0.00");
-  }
+      /* Error: string variables do not support format specifiers. */
+      {
+          "{hi:##}_{bye:#}",
+          "{hi:##}_{bye:#}",
+          {
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(0, 7)},
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(8, 7)},
+          },
+      },
 
-  /* Float formatting: specify both integer and fractional digits. */
-  {
-    char path[FILE_MAX] =
-        "{pi:##.####}_{e:####.###}_{ntsc:#.########}_{two:###.##}_{f_negative:###.##}_{huge:###.##"
-        "}_{tiny:###.##}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
+      /* Error: float formatting: specifying integer digits only (but still wanting
+       * it printed as a float) is currently not supported. */
+      {
+          "{pi:##.}_{e:####.}_{ntsc:#.}_{two:###.}_{f_negative:###.}_{huge:###.}_{tiny:###.}",
+          "{pi:##.}_{e:####.}_{ntsc:#.}_{two:###.}_{f_negative:###.}_{huge:###.}_{tiny:###.}",
+          {
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(0, 8)},
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(9, 9)},
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(19, 9)},
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(29, 10)},
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(40, 17)},
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(58, 11)},
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(70, 11)},
+          },
+      },
 
-    EXPECT_TRUE(errors.is_empty());
-    EXPECT_EQ(
-        blender::StringRef(path),
-        "03.1416_0002.718_29.97002997_002.00_-03.14_200000000000000010732324408786944.00_000.00");
-  }
+      /* Error: missing variable. */
+      {
+          "{hi}_{missing}_{bye}",
+          "{hi}_{missing}_{bye}",
+          {
+              {ErrorType::UNKNOWN_VARIABLE, IndexRange(5, 9)},
+          },
+      },
 
-  /* Float formatting: format as integer. */
-  {
-    char path[FILE_MAX] = "{pi:##}_{e:####}_{ntsc:#}_{two:###}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
+      /* Error: incomplete variable expression. */
+      {
+          "foo{hi",
+          "foo{hi",
+          {
+              {ErrorType::VARIABLE_SYNTAX, IndexRange(3, 3)},
+          },
+      },
 
-    EXPECT_TRUE(errors.is_empty());
-    EXPECT_EQ(blender::StringRef(path), "03_0003_30_002");
-  }
+      /* Error: incomplete variable expression after complete one. */
+      {
+          "foo{bye}{hi",
+          "foo{bye}{hi",
+          {
+              {ErrorType::VARIABLE_SYNTAX, IndexRange(8, 3)},
+          },
+      },
 
-  /* Escaping. "{{" and "}}" are the escape codes for literal "{" and "}". */
-  {
-    char path[FILE_MAX] = "{hi}_{{hi}}_{{{bye}}}_{bye}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
+      /* Error: invalid format specifiers. */
+      {
+          "{prime:}_{prime:.}_{prime:#.#.#}_{prime:sup}_{prime::sup}_{prime}",
+          "{prime:}_{prime:.}_{prime:#.#.#}_{prime:sup}_{prime::sup}_{prime}",
+          {
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(0, 8)},
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(9, 9)},
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(19, 13)},
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(33, 11)},
+              {ErrorType::FORMAT_SPECIFIER, IndexRange(45, 12)},
+          },
+      },
 
-    EXPECT_TRUE(errors.is_empty());
-    EXPECT_EQ(blender::StringRef(path), "hello_{hi}_{goodbye}_goodbye");
-  }
+      /* Error: unclosed variable. */
+      {
+          "{hi_{hi}_{bye}",
+          "{hi_{hi}_{bye}",
+          {
+              {ErrorType::VARIABLE_SYNTAX, IndexRange(0, 4)},
+          },
+      },
 
-  /* Error: string variables do not support format specifiers. */
-  {
-    char path[FILE_MAX] = "{hi:##}_{bye:#}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
-    const Vector<Error> expected_errors = {
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(0, 7)},
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(8, 7)},
-    };
+      /* Error: escaped braces inside variable. */
+      {
+          "{hi_{{hi}}_{bye}",
+          "{hi_{{hi}}_{bye}",
+          {
+              {ErrorType::VARIABLE_SYNTAX, IndexRange(0, 4)},
+          },
+      },
 
-    EXPECT_EQ(errors, expected_errors);
-    EXPECT_EQ(blender::StringRef(path), "{hi:##}_{bye:#}");
-  }
+      /* Test what happens when the path would expand to a string that's longer than
+       * `FILE_MAX`.
+       *
+       * We don't care so much about any kind of "correctness" here, we just want to
+       * ensure that it still results in a valid null-terminated string that fits in
+       * `FILE_MAX` bytes.
+       *
+       * NOTE: this test will have to be updated if `FILE_MAX` is ever changed. */
+      {
+          "___{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}"
+          "{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
+          "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
+          "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
+          "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
+          "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
+          "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
+          "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
+          "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
+          "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
+          "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
+          "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
+          "long}{long}",
 
-  /* Error: float formatting: specifying integer digits only (but still wanting
-   * it printed as a float) is currently not supported. */
-  {
-    char path[FILE_MAX] =
-        "{pi:##.}_{e:####.}_{ntsc:#.}_{two:###.}_{f_negative:###.}_{huge:###.}_{tiny:###.}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
-    const Vector<Error> expected_errors = {
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(0, 8)},
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(9, 9)},
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(19, 9)},
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(29, 10)},
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(40, 17)},
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(58, 11)},
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(70, 11)},
-    };
+          "___This string is exactly 32 bytes.This string is exactly 32 bytes.This string is "
+          "exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This "
+          "string is exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 "
+          "bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This string is "
+          "exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This "
+          "string is exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 "
+          "bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This string is "
+          "exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This "
+          "string is exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 "
+          "bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This string is "
+          "exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This "
+          "string is exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 "
+          "by",
 
-    EXPECT_EQ(errors, expected_errors);
-    EXPECT_EQ(blender::StringRef(path),
-              "{pi:##.}_{e:####.}_{ntsc:#.}_{two:###.}_{f_negative:###.}_{huge:###.}_{tiny:###.}");
-  }
+          {},
+      },
+  };
 
-  /* Error: missing variable. */
-  {
-    char path[FILE_MAX] = "{hi}_{missing}_{bye}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
-    const Vector<Error> expected_errors = {
-        {ErrorType::UNKNOWN_VARIABLE, IndexRange(5, 9)},
-    };
+  for (const PathTemplateTestCase &test_case : test_cases) {
+    char path[FILE_MAX];
+    BLI_strncpy(path, test_case.path_in, FILE_MAX);
 
-    EXPECT_EQ(errors, expected_errors);
-    EXPECT_EQ(blender::StringRef(path), "{hi}_{missing}_{bye}");
-  }
+    /* Do validation first, which shouldn't modify the path. */
+    const Vector<Error> validation_errors = BKE_path_validate_template(path, variables);
+    EXPECT_EQ(validation_errors, test_case.expected_errors)
+        << "  Template errors: " << errors_to_string(validation_errors) << std::endl
+        << "  Expected errors: " << errors_to_string(test_case.expected_errors) << std::endl
+        << "  Note: test_case.path_in = " << test_case.path_in << std::endl;
+    EXPECT_EQ(blender::StringRef(path), test_case.path_in)
+        << "  Note: test_case.path_in = " << test_case.path_in << std::endl;
 
-  /* Error: incomplete variable expression. */
-  {
-    char path[FILE_MAX] = "foo{hi";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
-    const Vector<Error> expected_errors = {
-        {ErrorType::VARIABLE_SYNTAX, IndexRange(3, 3)},
-    };
-
-    EXPECT_EQ(errors, expected_errors);
-    EXPECT_EQ(blender::StringRef(path), "foo{hi");
-  }
-
-  /* Error: invalid format specifiers. */
-  {
-    char path[FILE_MAX] = "{prime:}_{prime:.}_{prime:#.#.#}_{prime:sup}_{prime::sup}_{prime}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
-    const Vector<Error> expected_errors = {
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(0, 8)},
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(9, 9)},
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(19, 13)},
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(33, 11)},
-        {ErrorType::FORMAT_SPECIFIER, IndexRange(45, 12)},
-    };
-
-    EXPECT_EQ(errors, expected_errors);
-    EXPECT_EQ(blender::StringRef(path),
-              "{prime:}_{prime:.}_{prime:#.#.#}_{prime:sup}_{prime::sup}_{prime}");
-  }
-
-  /* Error: unclosed variable. */
-  {
-    char path[FILE_MAX] = "{hi_{hi}_{bye}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
-    const Vector<Error> expected_errors = {
-        {ErrorType::VARIABLE_SYNTAX, IndexRange(0, 4)},
-    };
-
-    EXPECT_EQ(errors, expected_errors);
-    EXPECT_EQ(blender::StringRef(path), "{hi_{hi}_{bye}");
-  }
-
-  /* Error: escaped braces inside variable. */
-  {
-    char path[FILE_MAX] = "{hi_{{hi}}_{bye}";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
-    const Vector<Error> expected_errors = {
-        {ErrorType::VARIABLE_SYNTAX, IndexRange(0, 4)},
-    };
-
-    EXPECT_EQ(errors, expected_errors);
-    EXPECT_EQ(blender::StringRef(path), "{hi_{{hi}}_{bye}");
-  }
-
-  /* Test what happens when the path would expand to a string that's longer than
-   * `FILE_MAX`.
-   *
-   * We don't care so much about any kind of "correctness" here, we just want to
-   * ensure that it still results in a valid null-terminated string that fits in
-   * `FILE_MAX` bytes.
-   *
-   * NOTE: this test will have to be updated if `FILE_MAX` is ever changed. */
-  {
-    char path[FILE_MAX] =
-        "___{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
-        "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}"
-        "{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
-        "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}"
-        "{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
-        "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}"
-        "{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
-        "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}"
-        "{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
-        "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}"
-        "{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{"
-        "long}{long}{long}{long}{long}{long}{long}{long}{long}{long}{long}";
-    const char result[FILE_MAX] =
-        "___This string is exactly 32 bytes.This string is exactly 32 bytes.This string is "
-        "exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This "
-        "string is exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 "
-        "bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This string is "
-        "exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This "
-        "string is exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 "
-        "bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This string is "
-        "exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This "
-        "string is exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 "
-        "bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This string is "
-        "exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 bytes.This "
-        "string is exactly 32 bytes.This string is exactly 32 bytes.This string is exactly 32 by";
-    const Vector<Error> errors = BKE_path_apply_template(path, FILE_MAX, variables);
-
-    EXPECT_TRUE(errors.is_empty());
-    EXPECT_EQ(blender::StringRef(path), blender::StringRef(result));
+    /* Then do application, which should modify the path. */
+    const Vector<Error> application_errors = BKE_path_apply_template(path, FILE_MAX, variables);
+    EXPECT_EQ(application_errors, test_case.expected_errors)
+        << "  Template errors: " << errors_to_string(application_errors) << std::endl
+        << "  Expected errors: " << errors_to_string(test_case.expected_errors) << std::endl
+        << "  Note: test_case.path_in = " << test_case.path_in << std::endl;
+    EXPECT_EQ(blender::StringRef(path), test_case.path_result)
+        << "  Note: test_case.path_in = " << test_case.path_in << std::endl;
   }
 }
 

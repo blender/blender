@@ -187,10 +187,8 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
     if (depsgraph == nullptr) {
       continue;
     }
-    BKE_sound_lock();
     Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
     BKE_sound_jack_scene_update(scene_eval, mode, time);
-    BKE_sound_unlock();
   }
 }
 
@@ -452,7 +450,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
   /* While nothing technically prevents saving user data in background mode,
    * don't do this as not typically useful and more likely to cause problems
-   * if automated scripts happen to write changes to the preferences for e.g.
+   * if automated scripts happen to write changes to the preferences for example.
    * Saving #BLENDER_QUIT_FILE is also not likely to be desired either. */
   BLI_assert(G.background ? (do_user_exit_actions == false) : true);
 
@@ -602,7 +600,6 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   ANIM_driver_vars_copybuf_free();
   ANIM_fmodifiers_copybuf_free();
   ED_gpencil_anim_copybuf_free();
-  ED_gpencil_strokes_copybuf_free();
 
   /* Free gizmo-maps after freeing blender,
    * so no deleted data get accessed during cleaning up of areas. */

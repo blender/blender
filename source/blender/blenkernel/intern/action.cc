@@ -24,7 +24,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
@@ -671,12 +670,11 @@ static void read_slots(BlendDataReader *reader, animrig::Action &action)
   for (int i = 0; i < action.slot_array_num; i++) {
     BLO_read_struct(reader, ActionSlot, &action.slot_array[i]);
 
-    /* Undo generic endian switching, as the ID type values are not numerically the same between
-     * little and big endian machines. Due to the way they are defined, they are always in the same
-     * byte order, regardless of hardware/platform endianness. */
-    if (BLO_read_requires_endian_switch(reader)) {
-      BLI_endian_switch_int16(&action.slot_array[i]->idtype);
-    }
+    /* NOTE: this is endianness-sensitive. */
+    /* In case of required endian switching, this code would have to undo the generic endian
+     * switching, as the ID type values are not numerically the same between little and big endian
+     * machines. Due to the way they are defined, they are always in the same byte order,
+     * regardless of hardware/platform endianness. */
 
     action.slot_array[i]->wrap().blend_read_post();
   }
@@ -686,12 +684,10 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
 {
   animrig::Action &action = reinterpret_cast<bAction *>(id)->wrap();
 
-  /* Undo generic endian switching (careful, only the two least significant bytes of the int32 must
-   * be swapped back here, since this value is actually an int16). */
-  if (BLO_read_requires_endian_switch(reader)) {
-    bAction *act = reinterpret_cast<bAction *>(id);
-    BLI_endian_switch_int16(reinterpret_cast<short *>(&act->idroot));
-  }
+  /* NOTE: this is endianness-sensitive. */
+  /* In case of required endianness switching, this code would need to undo the generic endian
+   * switching (careful, only the two least significant bytes of the int32 must be swapped back
+   * here, since this value is actually an int16). */
 
   read_strip_keyframe_data_array(reader, action);
   read_layers(reader, action);
@@ -1340,6 +1336,9 @@ void BKE_pose_copy_data_ex(bPose **dst,
     if (pchan->prop) {
       pchan->prop = IDP_CopyProperty_ex(pchan->prop, flag);
     }
+    if (pchan->system_properties) {
+      pchan->system_properties = IDP_CopyProperty_ex(pchan->system_properties, flag);
+    }
 
     pchan->draw_data = nullptr; /* Drawing cache, no need to copy. */
 
@@ -1537,6 +1536,10 @@ void BKE_pose_channel_free_ex(bPoseChannel *pchan, bool do_id_user)
     IDP_FreeProperty_ex(pchan->prop, do_id_user);
     pchan->prop = nullptr;
   }
+  if (pchan->system_properties) {
+    IDP_FreeProperty_ex(pchan->system_properties, do_id_user);
+    pchan->system_properties = nullptr;
+  }
 
   /* Cached data, for new draw manager rendering code. */
   MEM_SAFE_FREE(pchan->draw_data);
@@ -1664,12 +1667,20 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
 
   /* id-properties */
   if (pchan->prop) {
-    /* unlikely but possible it exists */
+    /* Unlikely, but possible that it exists. */
     IDP_FreeProperty(pchan->prop);
     pchan->prop = nullptr;
   }
   if (pchan_from->prop) {
     pchan->prop = IDP_CopyProperty(pchan_from->prop);
+  }
+  if (pchan->system_properties) {
+    /* Unlikely, but possible that it exists. */
+    IDP_FreeProperty(pchan->system_properties);
+    pchan->system_properties = nullptr;
+  }
+  if (pchan_from->system_properties) {
+    pchan->system_properties = IDP_CopyProperty(pchan_from->system_properties);
   }
 
   /* custom shape */
@@ -2074,6 +2085,8 @@ void BKE_pose_blend_write(BlendWriter *writer, bPose *pose, bArmature *arm)
     if (chan->prop) {
       IDP_BlendWrite(writer, chan->prop);
     }
+    /* Never write system_properties in Blender 4.5, will be reset to `nullptr` by reading code (by
+     * the matching call to #BLO_read_struct). */
 
     BKE_constraint_blend_write(writer, &chan->constraints);
 
@@ -2138,6 +2151,8 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
 
     BLO_read_struct(reader, IDProperty, &pchan->prop);
     IDP_BlendDataRead(reader, &pchan->prop);
+    BLO_read_struct(reader, IDProperty, &pchan->system_properties);
+    IDP_BlendDataRead(reader, &pchan->system_properties);
 
     BLO_read_struct(reader, bMotionPath, &pchan->mpath);
     if (pchan->mpath) {

@@ -44,6 +44,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_tracking.h"
 #include "BKE_unit.hh"
@@ -1055,7 +1056,7 @@ static void ui_apply_but_autokey(bContext *C, uiBut *but)
   Scene *scene = CTX_data_scene(C);
 
   /* try autokey */
-  ui_but_anim_autokey(C, but, scene, scene->r.cfra);
+  ui_but_anim_autokey(C, but, scene, BKE_scene_frame_get(scene));
 
   if (!but->rnaprop) {
     return;
@@ -1257,42 +1258,6 @@ static void ui_apply_but_VIEW_ITEM(bContext *C,
      */
     return;
   }
-  ui_apply_but_ROW(C, block, but, data);
-}
-
-/**
- * \note Ownership of \a properties is moved here. The #uiAfterFunc owns it now.
- *
- * \param context_but: The button to use context from when calling or polling the operator.
- *
- * \returns true if the operator was executed, otherwise false.
- */
-static bool ui_list_invoke_item_operator(bContext *C,
-                                         const uiBut *context_but,
-                                         wmOperatorType *ot,
-                                         PointerRNA **properties)
-{
-  if (!ui_but_context_poll_operator(C, ot, context_but)) {
-    return false;
-  }
-
-  /* Allow the context to be set from the hovered button, so the list item draw callback can set
-   * context for the operators. */
-  ui_handle_afterfunc_add_operator_ex(ot, properties, WM_OP_INVOKE_DEFAULT, context_but);
-  return true;
-}
-
-static void ui_apply_but_LISTROW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data)
-{
-  uiBut *listbox = ui_list_find_from_row(data->region, but);
-  if (listbox) {
-    uiList *list = static_cast<uiList *>(listbox->custom_data);
-    if (list && list->dyn_data->custom_activate_optype) {
-      ui_list_invoke_item_operator(
-          C, but, list->dyn_data->custom_activate_optype, &list->dyn_data->custom_activate_opptr);
-    }
-  }
-
   ui_apply_but_ROW(C, block, but, data);
 }
 
@@ -2409,14 +2374,12 @@ static void ui_apply_but(
     case UI_BTYPE_CHECKBOX_N:
       ui_apply_but_TOG(C, but, data);
       break;
+    case UI_BTYPE_LISTROW:
     case UI_BTYPE_ROW:
       ui_apply_but_ROW(C, block, but, data);
       break;
     case UI_BTYPE_VIEW_ITEM:
       ui_apply_but_VIEW_ITEM(C, block, but, data);
-      break;
-    case UI_BTYPE_LISTROW:
-      ui_apply_but_LISTROW(C, block, but, data);
       break;
     case UI_BTYPE_TAB:
       ui_apply_but_TAB(C, but, data);
@@ -4564,7 +4527,7 @@ static uiBut *ui_but_list_row_text_activate(bContext *C,
   uiBut *labelbut = ui_but_find_mouse_over_ex(region, event->xy, true, false, nullptr, nullptr);
 
   if (labelbut && labelbut->type == UI_BTYPE_TEXT && !(labelbut->flag & UI_BUT_DISABLED)) {
-    /* exit listrow */
+    /* Exit list-row. */
     data->cancel = true;
     button_activate_exit(C, but, data, false, false);
 
@@ -5206,15 +5169,6 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
       if (ui_but_drag_is_draggable(but) && ui_but_contains_point_px_icon(but, data->region, event))
       {
         ret = WM_UI_HANDLER_CONTINUE;
-      }
-      /* Same special case handling for UI lists. Return CONTINUE so that a tweak or CLICK event
-       * will be sent for the list to work with. */
-      const uiBut *listbox = ui_list_find_mouse_over(data->region, event);
-      if (listbox) {
-        const uiList *ui_list = static_cast<const uiList *>(listbox->custom_data);
-        if (ui_list && ui_list->dyn_data->custom_drag_optype) {
-          ret = WM_UI_HANDLER_CONTINUE;
-        }
       }
       const uiBut *view_but = ui_view_item_find_mouse_over(data->region, event->xy);
       if (view_but) {
@@ -6955,7 +6909,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
 #ifdef WITH_INPUT_NDOF
 static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
                                     uiHandleButtonData *data,
-                                    const wmNDOFMotionData *ndof,
+                                    const wmNDOFMotionData &ndof,
                                     const enum eSnapType snap,
                                     const bool shift)
 {
@@ -6963,7 +6917,7 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
   float *hsv = cpicker->hsv_perceptual;
   const float hsv_v_max = max_ff(hsv[2], hsv_but->softmax);
   float rgb[3];
-  const float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
+  const float sensitivity = (shift ? 0.15f : 0.3f) * ndof.time_delta;
 
   ui_but_v3_get(hsv_but, rgb);
   ui_scene_linear_to_perceptual_space(hsv_but, rgb);
@@ -6971,32 +6925,32 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
 
   switch (hsv_but->gradient_type) {
     case UI_GRAD_SV:
-      hsv[1] += ndof->rvec[2] * sensitivity;
-      hsv[2] += ndof->rvec[0] * sensitivity;
+      hsv[1] += ndof.rvec[2] * sensitivity;
+      hsv[2] += ndof.rvec[0] * sensitivity;
       break;
     case UI_GRAD_HV:
-      hsv[0] += ndof->rvec[2] * sensitivity;
-      hsv[2] += ndof->rvec[0] * sensitivity;
+      hsv[0] += ndof.rvec[2] * sensitivity;
+      hsv[2] += ndof.rvec[0] * sensitivity;
       break;
     case UI_GRAD_HS:
-      hsv[0] += ndof->rvec[2] * sensitivity;
-      hsv[1] += ndof->rvec[0] * sensitivity;
+      hsv[0] += ndof.rvec[2] * sensitivity;
+      hsv[1] += ndof.rvec[0] * sensitivity;
       break;
     case UI_GRAD_H:
-      hsv[0] += ndof->rvec[2] * sensitivity;
+      hsv[0] += ndof.rvec[2] * sensitivity;
       break;
     case UI_GRAD_S:
-      hsv[1] += ndof->rvec[2] * sensitivity;
+      hsv[1] += ndof.rvec[2] * sensitivity;
       break;
     case UI_GRAD_V:
-      hsv[2] += ndof->rvec[2] * sensitivity;
+      hsv[2] += ndof.rvec[2] * sensitivity;
       break;
     case UI_GRAD_V_ALT:
     case UI_GRAD_L_ALT:
       /* vertical 'value' strip */
 
       /* exception only for value strip - use the range set in but->min/max */
-      hsv[2] += ndof->rvec[0] * sensitivity;
+      hsv[2] += ndof.rvec[0] * sensitivity;
 
       CLAMP(hsv[2], hsv_but->softmin, hsv_but->softmax);
       break;
@@ -7049,7 +7003,7 @@ static int ui_do_but_HSVCUBE(
     }
 #ifdef WITH_INPUT_NDOF
     if (event->type == NDOF_MOTION) {
-      const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(event->customdata);
+      const wmNDOFMotionData &ndof = *static_cast<const wmNDOFMotionData *>(event->customdata);
       const enum eSnapType snap = ui_event_to_snap(event);
 
       ui_ndofedit_but_HSVCUBE(hsv_but, data, ndof, snap, event->modifier & KM_SHIFT);
@@ -7221,7 +7175,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
 #ifdef WITH_INPUT_NDOF
 static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
                                       uiHandleButtonData *data,
-                                      const wmNDOFMotionData *ndof,
+                                      const wmNDOFMotionData &ndof,
                                       const enum eSnapType snap,
                                       const bool shift)
 {
@@ -7229,7 +7183,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
   float *hsv = cpicker->hsv_perceptual;
   float rgb[3];
   float phi, r, v[2];
-  const float sensitivity = (shift ? 0.06f : 0.3f) * ndof->dt;
+  const float sensitivity = (shift ? 0.06f : 0.3f) * ndof.time_delta;
 
   ui_but_v3_get(but, rgb);
   ui_scene_linear_to_perceptual_space(but, rgb);
@@ -7245,14 +7199,14 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
   v[1] = r * sinf(phi);
 
   /* Use ndof device y and x rotation to move the vector in 2d space */
-  v[0] += ndof->rvec[2] * sensitivity;
-  v[1] += ndof->rvec[0] * sensitivity;
+  v[0] += ndof.rvec[2] * sensitivity;
+  v[1] += ndof.rvec[0] * sensitivity;
 
   /* convert back to polar coords on circle */
   phi = atan2f(v[0], v[1]) / (2.0f * float(M_PI)) + 0.5f;
 
   /* use ndof Y rotation to additionally rotate hue */
-  phi += ndof->rvec[1] * sensitivity * 0.5f;
+  phi += ndof.rvec[1] * sensitivity * 0.5f;
   r = len_v2(v);
 
   /* convert back to hsv values, in range [0,1] */
@@ -7324,7 +7278,7 @@ static int ui_do_but_HSVCIRCLE(
 #ifdef WITH_INPUT_NDOF
     if (event->type == NDOF_MOTION) {
       const enum eSnapType snap = ui_event_to_snap(event);
-      const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(event->customdata);
+      const wmNDOFMotionData &ndof = *static_cast<const wmNDOFMotionData *>(event->customdata);
 
       ui_ndofedit_but_HSVCIRCLE(but, data, ndof, snap, event->modifier & KM_SHIFT);
 
@@ -9359,7 +9313,7 @@ void UI_context_update_anim_flag(const bContext *C)
   ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-      depsgraph, (scene) ? scene->r.cfra : 0.0f);
+      depsgraph, (scene) ? BKE_scene_frame_get(scene) : 0.0f);
 
   while (region) {
     /* find active button */
@@ -9956,133 +9910,6 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
   return retval;
 }
 
-/**
- * Activate the underlying list-row button, so the row is highlighted.
- * Early exits if \a activate_dragging is true, but the custom drag operator fails to execute.
- * Gives the wanted behavior where the item is activated on a click-drag event when the custom drag
- * operator is executed.
- */
-static int ui_list_activate_hovered_row(bContext *C,
-                                        ARegion *region,
-                                        const uiList *ui_list,
-                                        const wmEvent *event,
-                                        bool activate_dragging)
-{
-  const bool do_drag = activate_dragging && ui_list->dyn_data->custom_drag_optype;
-
-  if (do_drag) {
-    const uiBut *hovered_but = ui_but_find_mouse_over(region, event);
-    if (!ui_list_invoke_item_operator(C,
-                                      hovered_but,
-                                      ui_list->dyn_data->custom_drag_optype,
-                                      &ui_list->dyn_data->custom_drag_opptr))
-    {
-      return WM_UI_HANDLER_CONTINUE;
-    }
-  }
-
-  int mouse_xy[2];
-  WM_event_drag_start_xy(event, mouse_xy);
-
-  uiBut *listrow = ui_list_row_find_mouse_over(region, mouse_xy);
-  if (listrow) {
-    wmOperatorType *custom_activate_optype = ui_list->dyn_data->custom_activate_optype;
-
-    /* Hacky: Ensure the custom activate operator is not called when the custom drag operator
-     * was. Only one should run! */
-    if (activate_dragging && do_drag) {
-      ((uiList *)ui_list)->dyn_data->custom_activate_optype = nullptr;
-    }
-
-    /* Simulate click on listrow button itself (which may be overlapped by another button). Also
-     * calls the custom activate operator (#uiListDyn::custom_activate_optype). */
-    UI_but_execute(C, region, listrow);
-
-    ((uiList *)ui_list)->dyn_data->custom_activate_optype = custom_activate_optype;
-  }
-
-  return WM_UI_HANDLER_BREAK;
-}
-
-static bool ui_list_is_hovering_draggable_but(bContext *C,
-                                              const uiList *list,
-                                              const ARegion *region,
-                                              const wmEvent *event)
-{
-  /* On a tweak event, uses the coordinates from where tweaking was started. */
-  int mouse_xy[2];
-  WM_event_drag_start_xy(event, mouse_xy);
-
-  const uiBut *hovered_but = ui_but_find_mouse_over_ex(
-      region, mouse_xy, false, false, nullptr, nullptr);
-
-  if (list->dyn_data->custom_drag_optype) {
-    if (ui_but_context_poll_operator(C, list->dyn_data->custom_drag_optype, hovered_but)) {
-      return true;
-    }
-  }
-
-  return (hovered_but && ui_but_drag_is_draggable(hovered_but));
-}
-
-static int ui_list_handle_click_drag(bContext *C,
-                                     const uiList *ui_list,
-                                     ARegion *region,
-                                     const wmEvent *event)
-{
-  if (event->type != LEFTMOUSE) {
-    return WM_UI_HANDLER_CONTINUE;
-  }
-
-  int retval = WM_UI_HANDLER_CONTINUE;
-
-  const bool is_draggable = ui_list_is_hovering_draggable_but(C, ui_list, region, event);
-  bool activate = false;
-  bool activate_dragging = false;
-
-  if (event->val == KM_CLICK_DRAG) {
-    if (is_draggable) {
-      activate_dragging = true;
-      activate = true;
-    }
-  }
-  /* #KM_CLICK is only sent after an uncaught release event, so the foreground button gets all
-   * regular events (including mouse presses to start dragging) and this part only kicks in if it
-   * hasn't handled the release event. Note that if there's no overlaid button, the row selects
-   * on the press event already via regular #UI_BTYPE_LISTROW handling. */
-  else if (event->val == KM_CLICK) {
-    activate = true;
-  }
-
-  if (activate) {
-    retval = ui_list_activate_hovered_row(C, region, ui_list, event, activate_dragging);
-  }
-
-  return retval;
-}
-
-static void ui_list_activate_row_from_index(
-    bContext *C, ARegion *region, uiBut *listbox, uiList *ui_list, int index)
-{
-  uiBut *new_active_row = ui_list_row_find_index(region, index, listbox);
-  if (new_active_row) {
-    /* Preferred way to update the active item, also calls the custom activate operator
-     * (#uiListDyn::custom_activate_optype). */
-    UI_but_execute(C, region, new_active_row);
-  }
-  else {
-    /* A bit ugly, set the active index in RNA directly. That's because a button that's
-     * scrolled away in the list box isn't created at all.
-     * The custom activate operator (#uiListDyn::custom_activate_optype) is not called in this case
-     * (which may need the row button context). */
-    RNA_property_int_set(&listbox->rnapoin, listbox->rnaprop, index);
-    RNA_property_update(C, &listbox->rnapoin, listbox->rnaprop);
-    ui_apply_but_undo(listbox);
-  }
-
-  ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
-}
-
 static int ui_list_get_increment(const uiList *ui_list, const int type, const int columns)
 {
   int increment = 0;
@@ -10138,10 +9965,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
     }
   }
 
-  if (event->type == LEFTMOUSE) {
-    retval = ui_list_handle_click_drag(C, ui_list, region, event);
-  }
-  else if (val == KM_PRESS) {
+  if (val == KM_PRESS) {
     if ((ELEM(type, EVT_UPARROWKEY, EVT_DOWNARROWKEY, EVT_LEFTARROWKEY, EVT_RIGHTARROWKEY) &&
          (event->modifier == 0)) ||
         (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && (event->modifier == KM_CTRL)))
@@ -10195,7 +10019,12 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
       CLAMP(value, min, max);
 
       if (value != value_orig) {
-        ui_list_activate_row_from_index(C, region, listbox, ui_list, value);
+        RNA_property_int_set(&listbox->rnapoin, listbox->rnaprop, value);
+        RNA_property_update(C, &listbox->rnapoin, listbox->rnaprop);
+
+        ui_apply_but_undo(listbox);
+
+        ui_list->flag |= UILST_SCROLL_TO_ACTIVE_ITEM;
         redraw = true;
       }
       retval = WM_UI_HANDLER_BREAK;

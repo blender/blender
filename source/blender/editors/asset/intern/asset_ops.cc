@@ -23,6 +23,7 @@
 
 #include "BLI_fnmatch.h"
 #include "BLI_path_utils.hh"
+#include "BLI_rect.h"
 #include "BLI_set.hh"
 
 #include "ED_asset.hh"
@@ -40,6 +41,7 @@
 #include "RNA_prototypes.hh"
 
 #include "IMB_imbuf.hh"
+#include "IMB_thumbs.hh"
 
 #include "WM_api.hh"
 
@@ -1028,21 +1030,35 @@ static void generate_previewimg_from_buffer(ID *id, const ImBuf *image_buffer)
     BKE_previewimg_ensure(preview_image, size_type);
     int width = image_buffer->x;
     int height = image_buffer->y;
-    if (size_type == ICON_SIZE_ICON) {
-      /* Scales down the image to `ICON_RENDER_DEFAULT_HEIGHT` while maintaining the
-       * aspect ratio. */
-      if (image_buffer->x > image_buffer->y) {
-        width = ICON_RENDER_DEFAULT_HEIGHT;
-        height = image_buffer->y * (width / float(image_buffer->x));
-      }
-      else if (image_buffer->y > image_buffer->x) {
-        height = ICON_RENDER_DEFAULT_HEIGHT;
-        width = image_buffer->x * (height / float(image_buffer->y));
-      }
-      else {
-        width = height = ICON_RENDER_DEFAULT_HEIGHT;
-      }
+    int max_size = 0;
+    switch (size_type) {
+      case ICON_SIZE_ICON:
+        max_size = ICON_RENDER_DEFAULT_HEIGHT;
+        break;
+      case ICON_SIZE_PREVIEW:
+        max_size = PREVIEW_RENDER_LARGE_HEIGHT;
+        break;
     }
+    if (max_size == 0) {
+      /* Can only be reached if a new icon size is added. */
+      BLI_assert_unreachable();
+      continue;
+    }
+
+    /* Scales down the image to `max_size` while maintaining the
+     * aspect ratio. */
+    if (image_buffer->x > image_buffer->y) {
+      width = max_size;
+      height = image_buffer->y * (width / float(image_buffer->x));
+    }
+    else if (image_buffer->y > image_buffer->x) {
+      height = max_size;
+      width = image_buffer->x * (height / float(image_buffer->y));
+    }
+    else {
+      width = height = max_size;
+    }
+
     ImBuf *scaled_imbuf = IMB_scale_into_new(
         image_buffer, width, height, IMBScaleFilter::Nearest, false);
     preview_image->rect[size_type] = (uint *)MEM_dupallocN(scaled_imbuf->byte_buffer.data);
@@ -1063,12 +1079,25 @@ static ImBuf *take_screenshot_crop(bContext *C, const rcti &crop_rect)
   wmWindow *win = CTX_wm_window(C);
   uint8_t *dumprect = WM_window_pixels_read(C, win, dumprect_size);
 
+  /* Clamp coordinates to window bounds. */
+  rcti safe_rect = crop_rect;
+  safe_rect.xmin = max_ii(0, crop_rect.xmin);
+  safe_rect.ymin = max_ii(0, crop_rect.ymin);
+  safe_rect.xmax = min_ii(dumprect_size[0] - 1, crop_rect.xmax);
+  safe_rect.ymax = min_ii(dumprect_size[1] - 1, crop_rect.ymax);
+
+  /* Validate rectangle. */
+  if (!BLI_rcti_is_valid(&safe_rect)) {
+    MEM_freeN(dumprect);
+    return nullptr;
+  }
+
   ImBuf *image_buffer = IMB_allocImBuf(dumprect_size[0], dumprect_size[1], 24, 0);
   /* Using IB_TAKE_OWNERSHIP because the crop does kind of take ownership already it seems. At
    * least freeing the memory after would cause a crash if ownership isn't taken. */
   IMB_assign_byte_buffer(image_buffer, dumprect, IB_TAKE_OWNERSHIP);
 
-  IMB_rect_crop(image_buffer, &crop_rect);
+  IMB_rect_crop(image_buffer, &safe_rect);
   return image_buffer;
 }
 
@@ -1102,7 +1131,7 @@ static wmOperatorStatus screenshot_preview_exec(bContext *C, wmOperator *op)
    * render to support transparency. Render settings are used as currently set up in the viewport
    * to comply with WYSIWYG as much as possible. One limitation is that GUI elements will not be
    * visible in the render. */
-  if (area_p1 == area_p2 && area_p1->spacetype == SPACE_VIEW3D) {
+  if (area_p1 == area_p2 && area_p1 != nullptr && area_p1->spacetype == SPACE_VIEW3D) {
     View3D *v3d = static_cast<View3D *>(area_p1->spacedata.first);
     ARegion *region = BKE_area_find_region_type(area_p1, RGN_TYPE_WINDOW);
     if (!region) {
@@ -1136,6 +1165,10 @@ static wmOperatorStatus screenshot_preview_exec(bContext *C, wmOperator *op)
   else {
     const rcti crop_rect = {p1.x, p2.x, p1.y, p2.y};
     image_buffer = take_screenshot_crop(C, crop_rect);
+    if (!image_buffer) {
+      BKE_report(op->reports, RPT_ERROR, "Invalid screenshot area selection");
+      return OPERATOR_CANCELLED;
+    }
   }
 
   const AssetRepresentationHandle *asset_handle = CTX_wm_asset(C);
@@ -1401,7 +1434,7 @@ static void ASSET_OT_screenshot_preview(wmOperatorType *ot)
 {
   /* This should be a generic operator for assets not linked to the pose-library. */
 
-  ot->name = "Capture screenshot preview";
+  ot->name = "Capture Screenshot Preview";
   ot->description = "Capture a screenshot to use as a preview for the selected asset";
   ot->idname = "ASSET_OT_screenshot_preview";
 

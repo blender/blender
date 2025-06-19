@@ -112,7 +112,7 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
   /* ray through transparent keeps same flags from previous ray and is
    * not counted as a regular bounce, transparent has separate max */
   if (label & (LABEL_TRANSPARENT | LABEL_RAY_PORTAL)) {
-    const uint32_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce) + 1;
+    const int transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce) + 1;
 
     flag |= PATH_RAY_TRANSPARENT;
     if (transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
@@ -132,7 +132,7 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
     return;
   }
 
-  const uint32_t bounce = INTEGRATOR_STATE(state, path, bounce) + 1;
+  const int bounce = INTEGRATOR_STATE(state, path, bounce) + 1;
   if (bounce >= kernel_data.integrator.max_bounce) {
     flag |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
   }
@@ -262,14 +262,14 @@ ccl_device_inline float path_state_continuation_probability(KernelGlobals kg,
                                                             const uint32_t path_flag)
 {
   if (path_flag & PATH_RAY_TRANSPARENT) {
-    const uint32_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
+    const int transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce);
     /* Do at least specified number of bounces without RR. */
     if (transparent_bounce <= kernel_data.integrator.transparent_min_bounce) {
       return 1.0f;
     }
   }
   else {
-    const uint32_t bounce = INTEGRATOR_STATE(state, path, bounce);
+    const int bounce = INTEGRATOR_STATE(state, path, bounce);
     /* Do at least specified number of bounces without RR. */
     if (bounce <= kernel_data.integrator.min_bounce) {
       return 1.0f;

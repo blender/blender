@@ -270,12 +270,6 @@ extern void (*MEM_name_ptr_set)(void *vmemh, const char *str) ATTR_NONNULL();
 void MEM_init_memleak_detection(void);
 
 /**
- * Use this if we want to call #exit during argument parsing for example,
- * without having to free all data.
- */
-void MEM_use_memleak_detection(bool enabled);
-
-/**
  * When this has been called and memory leaks have been detected, the process will have an exit
  * code that indicates failure. This can be used for when checking for memory leaks with automated
  * tests.

@@ -99,13 +99,18 @@ typedef enum eGPDbrush_Flag {
   /* Affect only the drawing in the active layer.
    * Otherwise affect all editable drawings in the object. */
   GP_BRUSH_ACTIVE_LAYER_ONLY = (1 << 20),
+  /* Automatically remove fill guides created with fill tool. */
+  GP_BRUSH_FILL_AUTO_REMOVE_FILL_GUIDES = (1 << 21),
 } eGPDbrush_Flag;
 
 typedef enum eGPDbrush_Flag2 {
+  /* DEPRECATED: replaced with BRUSH_COLOR_JITTER_USE_HUE_AT_STROKE  */
   /* Brush use random Hue at stroke level */
   GP_BRUSH_USE_HUE_AT_STROKE = (1 << 0),
+  /* DEPRECATED: replaced with BRUSH_COLOR_JITTER_USE_SAT_AT_STROKE  */
   /* Brush use random Saturation at stroke level */
   GP_BRUSH_USE_SAT_AT_STROKE = (1 << 1),
+  /* DEPRECATED: replaced with BRUSH_COLOR_JITTER_USE_VAL_AT_STROKE  */
   /* Brush use random Value at stroke level */
   GP_BRUSH_USE_VAL_AT_STROKE = (1 << 2),
   /* Brush use random Pressure at stroke level */
@@ -114,10 +119,13 @@ typedef enum eGPDbrush_Flag2 {
   GP_BRUSH_USE_STRENGTH_AT_STROKE = (1 << 4),
   /* Brush use random UV at stroke level */
   GP_BRUSH_USE_UV_AT_STROKE = (1 << 5),
+  /* DEPRECATED: replaced with BRUSH_COLOR_JITTER_USE_HUE_RAND_PRESS  */
   /* Brush use Hue random pressure */
   GP_BRUSH_USE_HUE_RAND_PRESS = (1 << 6),
+  /* DEPRECATED: replaced with BRUSH_COLOR_JITTER_USE_SAT_RAND_PRESS  */
   /* Brush use Saturation random pressure */
   GP_BRUSH_USE_SAT_RAND_PRESS = (1 << 7),
+  /* DEPRECATED: replaced with BRUSH_COLOR_JITTER_USE_VAL_RAND_PRESS  */
   /* Brush use Value random pressure */
   GP_BRUSH_USE_VAL_RAND_PRESS = (1 << 8),
   /* Brush use Pressure random pressure */
@@ -373,7 +381,7 @@ typedef enum eBrushFlags {
   BRUSH_FRONTFACE_FALLOFF = (1 << 25),
   BRUSH_PLANE_TRIM = (1 << 26),
   BRUSH_FRONTFACE = (1 << 27),
-  BRUSH_CUSTOM_ICON = (1 << 28),
+  /* BRUSH_CUSTOM_ICON = (1 << 28), */
   BRUSH_LINE = (1 << 29),
   BRUSH_ABSOLUTE_JITTER = (1 << 30),
   BRUSH_CURVE = (1u << 31),
@@ -396,6 +404,7 @@ typedef enum eBrushFlags2 {
   BRUSH_AREA_RADIUS_PRESSURE = (1 << 7),
   BRUSH_GRAB_SILHOUETTE = (1 << 8),
   BRUSH_USE_COLOR_AS_DISPLACEMENT = (1 << 9),
+  BRUSH_JITTER_COLOR = (1 << 10),
 } eBrushFlags2;
 
 typedef enum {
@@ -582,5 +591,14 @@ typedef enum eBrushCurvesSculptDensityMode {
   BRUSH_CURVES_SCULPT_DENSITY_MODE_ADD = 1,
   BRUSH_CURVES_SCULPT_DENSITY_MODE_REMOVE = 2,
 } eBrushCurvesSculptDensityMode;
+
+typedef enum eBrushColorJitterSettings_Flag {
+  BRUSH_COLOR_JITTER_USE_HUE_AT_STROKE = (1 << 0),
+  BRUSH_COLOR_JITTER_USE_SAT_AT_STROKE = (1 << 1),
+  BRUSH_COLOR_JITTER_USE_VAL_AT_STROKE = (1 << 2),
+  BRUSH_COLOR_JITTER_USE_HUE_RAND_PRESS = (1 << 3),
+  BRUSH_COLOR_JITTER_USE_SAT_RAND_PRESS = (1 << 4),
+  BRUSH_COLOR_JITTER_USE_VAL_RAND_PRESS = (1 << 5),
+} eBrushColorJitterSettings_Flag;
 
 #define MAX_BRUSH_PIXEL_RADIUS 500

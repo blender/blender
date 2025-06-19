@@ -1059,12 +1059,15 @@ static wmOperatorStatus file_view_selected_exec(bContext *C, wmOperator * /*op*/
   }
 
   /* Extend the selection area with the active file, as it may not be selected but still is
-   * important to have in view. */
-  if (sel.first == -1 || params->active_file < sel.first) {
-    sel.first = params->active_file;
-  }
-  if (sel.last == -1 || params->active_file > sel.last) {
-    sel.last = params->active_file;
+   * important to have in view. NOTE: active_file gets -1 after a search has been cleared/updated.
+   */
+  if (params->active_file != -1) {
+    if (sel.first == -1 || params->active_file < sel.first) {
+      sel.first = params->active_file;
+    }
+    if (sel.last == -1 || params->active_file > sel.last) {
+      sel.last = params->active_file;
+    }
   }
 
   ScrArea *area = CTX_wm_area(C);
@@ -1963,7 +1966,7 @@ static void file_os_operations_menu_draw(const bContext *C_const, Menu *menu)
   const char *root = filelist_dir(sfile->files);
 
   uiLayout *layout = menu->layout;
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
   wmOperatorType *ot = WM_operatortype_find("FILE_OT_external_operation", true);
 
   if (fileentry->typeflag & FILE_TYPE_DIR) {
@@ -2836,7 +2839,7 @@ static bool can_create_dir_from_user_input(const char dir[FILE_MAX_LIBEXTRA])
    * in the would immediately be created (if possible) which isn't good, see: #128567.
    *
    * The reason to treat user input differently here is the user could input anything,
-   * Values such as a single space for e.g. this resolves to the current-working-directory:
+   * e.g. values such as a single space. This resolves to the current-working-directory:
    * `$PWD/ ` which is a valid path name and could be created
    * (this was in fact the behavior until v4.4).
    *

@@ -50,19 +50,6 @@ class PDFExporter : public GreasePencilExporter {
   bool write_to_file(StringRefNull filepath);
 };
 
-static bool is_selected_frame(const GreasePencil &grease_pencil, const int frame_number)
-{
-  for (const bke::greasepencil::Layer *layer : grease_pencil.layers()) {
-    if (layer->is_visible()) {
-      const GreasePencilFrame *frame = layer->frames().lookup_ptr(frame_number);
-      if ((frame != nullptr) && frame->is_selected()) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 bool PDFExporter::export_scene(Scene &scene, StringRefNull filepath)
 {
   bool result = false;
@@ -88,7 +75,7 @@ bool PDFExporter::export_scene(Scene &scene, StringRefNull filepath)
         const int orig_frame = scene.r.cfra;
         for (int frame_number = scene.r.sfra; frame_number <= scene.r.efra; frame_number++) {
           GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_eval.data);
-          if (only_selected && !is_selected_frame(grease_pencil, frame_number)) {
+          if (only_selected && !this->is_selected_frame(grease_pencil, frame_number)) {
             continue;
           }
 

@@ -360,7 +360,10 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
       }
     }
   });
-
+  if (src_curves.nurbs_has_custom_knots()) {
+    bke::curves::nurbs::update_custom_knot_modes(
+        dst_curves.curves_range(), NURBS_KNOT_MODE_NORMAL, NURBS_KNOT_MODE_NORMAL, dst_curves);
+  }
   return dst_curves;
 }
 

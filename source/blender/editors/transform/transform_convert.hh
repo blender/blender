@@ -152,7 +152,7 @@ void transform_convert_sequencer_channel_clamp(TransInfo *t, float r_val[2]);
 
 bool transform_mode_use_local_origins(const TransInfo *t);
 /**
- * Transforming around ourselves is no use, fallback to individual origins,
+ * Transforming around ourselves is no use, fall back to individual origins,
  * useful for curve/armatures.
  */
 void transform_around_single_fallback_ex(TransInfo *t, int data_len_all);

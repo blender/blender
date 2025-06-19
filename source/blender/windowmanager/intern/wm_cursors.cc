@@ -211,7 +211,7 @@ void WM_cursor_set(wmWindow *win, int curs)
       window_set_custom_cursor(win, bcursor);
     }
     else {
-      /* Fallback to default cursor if no bitmap found. */
+      /* Fall back to default cursor if no bitmap found. */
       GHOST_SetCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
                            GHOST_kStandardCursorDefault);
     }

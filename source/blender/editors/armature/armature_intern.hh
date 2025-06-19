@@ -164,6 +164,7 @@ struct tPChanFCurveLink {
 
   /** copy of custom properties at start of operator (to be restored before each modal step) */
   IDProperty *oldprops;
+  IDProperty *old_system_properties;
 };
 
 /* ----------- */

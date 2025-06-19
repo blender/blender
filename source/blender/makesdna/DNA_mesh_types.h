@@ -21,6 +21,7 @@
 
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_memory_counter_fwd.hh"
+#  include "BLI_vector_set.hh"
 
 namespace blender {
 template<typename T> struct Bounds;
@@ -178,6 +179,17 @@ typedef struct Mesh {
   char *default_color_attribute;
 
   /**
+   * The UV map currently selected in the list and edited by a user.
+   * Currently only used for file reading/writing (see #AttributeStorage).
+   */
+  char *active_uv_map_attribute;
+  /**
+   * The UV map used by default (i.e. for rendering) if no name is given explicitly.
+   * Currently only used for file reading/writing (see #AttributeStorage).
+   */
+  char *default_uv_map_attribute;
+
+  /**
    * User-defined symmetry flag (#eMeshSymmetryType) that causes editing operations to maintain
    * symmetrical geometry. Supported by operations such as transform and weight-painting.
    */
@@ -322,6 +334,9 @@ typedef struct Mesh {
 
   /** Get the largest material index used by the mesh or `nullopt` if it has no faces. */
   std::optional<int> material_index_max() const;
+
+  /** Get all the material indices actually used by the mesh. */
+  const blender::VectorSet<int> &material_indices_used() const;
 
   /**
    * Cached map containing the index of the face using each face corner.

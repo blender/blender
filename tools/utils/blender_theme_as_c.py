@@ -37,13 +37,9 @@ C_SOURCE_HEADER = r'''/* SPDX-FileCopyrightText: 2018 Blender Authors
 
 /* clang-format off */
 
-#ifdef __LITTLE_ENDIAN__
-#  define RGBA(c) {((c) >> 24) & 0xff, ((c) >> 16) & 0xff, ((c) >> 8) & 0xff, (c) & 0xff}
-#  define RGB(c)  {((c) >> 16) & 0xff, ((c) >> 8) & 0xff, (c) & 0xff}
-#else
-#  define RGBA(c) {(c) & 0xff, ((c) >> 8) & 0xff, ((c) >> 16) & 0xff, ((c) >> 24) & 0xff}
-#  define RGB(c)  {(c) & 0xff, ((c) >> 8) & 0xff, ((c) >> 16) & 0xff}
-#endif
+/* NOTE: this is endianness-sensitive. */
+#define RGBA(c) {((c) >> 24) & 0xff, ((c) >> 16) & 0xff, ((c) >> 8) & 0xff, (c) & 0xff}
+#define RGB(c)  {((c) >> 16) & 0xff, ((c) >> 8) & 0xff, (c) & 0xff}
 
 '''
 
@@ -128,7 +124,7 @@ def dna_rename_defs(blend):
     for struct_name_runtime, members in member_runtime_to_storage_map.items():
         if len(members) > 1:
             # Order renames that are themselves destinations to go first, so that the item is not removed.
-            # Needed for e.g.
+            # Needed e.g.
             # `DNA_STRUCT_RENAME_ELEM(Light, energy_new, energy);`
             # `DNA_STRUCT_RENAME_ELEM(Light, energy, energy_deprecated)`
             # ... in this case the order matters.

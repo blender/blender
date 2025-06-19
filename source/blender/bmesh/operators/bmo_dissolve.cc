@@ -8,6 +8,8 @@
  * Removes isolated geometry regions without creating holes in the mesh.
  */
 
+#include <cmath>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_vector.h"
@@ -31,12 +33,21 @@ using blender::Vector;
 #define EDGE_MARK 1
 #define EDGE_TAG 2
 #define EDGE_ISGC 8
+/**
+ * Set when the edge is part of a chain,
+ * where at least of it's vertices has exactly one other connected edge.
+ */
+#define EDGE_CHAIN 16
 
 #define VERT_MARK 1
 #define VERT_MARK_PAIR 4
 #define VERT_TAG 2
 #define VERT_ISGC 8
 #define VERT_MARK_TEAR 16
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Utility API
+ * \{ */
 
 static bool UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
 {
@@ -71,6 +82,93 @@ static bool UNUSED_FUNCTION(check_hole_in_region)(BMesh *bm, BMFace *f)
   BMW_end(&regwalker);
 
   return true;
+}
+
+/**
+ * Calculates the angle of an edge pair, from a combination of raw angle and normal angle.
+ */
+static float bmo_vert_calc_edge_angle_blended(const BMVert *v)
+{
+  BMEdge *e_pair[2];
+  const bool is_edge_pair = BM_vert_edge_pair(v, &e_pair[0], &e_pair[1]);
+
+  BLI_assert(is_edge_pair);
+  UNUSED_VARS_NDEBUG(is_edge_pair);
+
+  /* Compute the angle between the edges. Start with the raw angle. */
+  BMVert *v_a = BM_edge_other_vert(e_pair[0], v);
+  BMVert *v_b = BM_edge_other_vert(e_pair[1], v);
+  float angle = M_PI - angle_v3v3v3(v_a->co, v->co, v_b->co);
+
+  /* There are two ways to measure the angle around a vert with two edges. The first is to
+   * measure the raw angle between the two neighboring edges, the second is to measure the
+   * angle of the edges around the vertex normal vector. When the vert is an edge pair
+   * between two faces, The normal measurement is better in general. In the specific case of
+   * a vert between two faces, but the faces have a *very* sharp angle between them, then the
+   * raw angle is better, because the normal is perpendicular to average of the two faces,
+   * and if the faces are folded almost 180 degrees, the vertex normal becomes more an more
+   * edge-on to the faces, meaning the angle *around the normal* becomes more and more flat,
+   * even if it makes a sharp angle when viewed from the side.
+   *
+   * When the faces become very folded, the `raw_factor` adds some of the "as seen from the side"
+   * angle back into the computation, making the algorithm behave more intuitively.
+   *
+   * The `raw_factor` is computed as follows:
+   * - When not a face pair, part this is skipped, and the raw angle is used.
+   * - When a face pair is co-planar, or has an angle up to 90 degrees, `raw_factor` is 0.0.
+   * - As angle increases from 90 to 180 degrees, `raw_factor` increases from 0.0 to 1.0.
+   */
+  BMFace *f_pair[2];
+  if (BM_edge_face_pair(v->e, &f_pair[0], &f_pair[1])) {
+    /* Due to merges, the normals are not currently trustworthy. Compute them. */
+    float no_a[3], no_b[3];
+    BM_face_calc_normal(f_pair[0], no_a);
+    BM_face_calc_normal(f_pair[1], no_b);
+
+    /* Now determine the raw factor based on how folded the faces are.*/
+    const float raw_factor = std::clamp(-dot_v3v3(no_a, no_b), 0.0f, 1.0f);
+
+    /* Blend the two ways of computing the angle. */
+    float normal_angle = M_PI - angle_on_axis_v3v3v3_v3(v_a->co, v->co, v_b->co, v->no);
+    angle = interpf(angle, normal_angle, raw_factor);
+  }
+
+  return angle;
+}
+
+/**
+ * A wrapper for #BM_vert_collapse_edge which ensures correct hidden state & merges edge flags.
+ */
+static BMEdge *bm_vert_collapse_edge_and_merge(BMesh *bm, BMVert *v, const bool do_del)
+
+{
+  /* Merge the header flags on the two edges that will be merged. */
+  BMEdge *e_pair[2];
+  const bool is_edge_pair = BM_vert_edge_pair(v, &e_pair[0], &e_pair[1]);
+
+  BLI_assert(is_edge_pair);
+  UNUSED_VARS_NDEBUG(is_edge_pair);
+
+  BM_elem_flag_merge_ex(e_pair[0], e_pair[1], BM_ELEM_HIDDEN);
+
+  /* Dissolve the vertex. */
+  BMEdge *e_new = BM_vert_collapse_edge(bm, v->e, v, do_del, true, true);
+
+  if (e_new) {
+    /* Ensure the result of dissolving never leaves visible edges connected to hidden vertices.
+     * From a user perspective this is an invalid state which tools should not allow. */
+    if (!BM_elem_flag_test(e_new, BM_ELEM_HIDDEN)) {
+      if (BM_elem_flag_test(e_new->v1, BM_ELEM_HIDDEN) ||
+          BM_elem_flag_test(e_new->v2, BM_ELEM_HIDDEN))
+      {
+        if (BM_elem_flag_test(e_new, BM_ELEM_SELECT)) {
+          BM_edge_select_set_noflush(bm, e_new, false);
+        }
+        BM_elem_flag_enable(e_new, BM_ELEM_HIDDEN);
+      }
+    }
+  }
+  return e_new;
 }
 
 static void bm_face_split(BMesh *bm, const short oflag, bool use_edge_delete)
@@ -116,6 +214,12 @@ static void bm_face_split(BMesh *bm, const short oflag, bool use_edge_delete)
     BLI_stack_free(edge_delete_verts);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Execute Functions
+ * \{ */
 
 void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 {
@@ -237,10 +341,11 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
     BMVert *v, *v_next;
 
     BM_ITER_MESH_MUTABLE (v, v_next, &viter, bm, BM_VERTS_OF_MESH) {
-      if (BMO_vert_flag_test(bm, v, VERT_MARK)) {
-        if (BM_vert_is_edge_pair(v)) {
-          BM_vert_collapse_edge(bm, v->e, v, true, true, true);
-        }
+      if (!BMO_vert_flag_test(bm, v, VERT_MARK)) {
+        continue;
+      }
+      if (BM_vert_is_edge_pair(v)) {
+        bm_vert_collapse_edge_and_merge(bm, v, true);
       }
     }
   }
@@ -248,6 +353,31 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
   BLI_assert(!BMO_error_occurred_at_level(bm, BMO_ERROR_FATAL));
 
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "region.out", BM_FACE, FACE_NEW);
+}
+
+/**
+ * Given an edge, and vert that are part of a chain, finds the vert at the far end of the chain.
+ */
+static BMVert *bmo_find_end_of_chain(BMEdge *e, BMVert *v)
+{
+  BMVert *v_init = v;
+  while (BM_vert_is_edge_pair(v)) {
+    e = BM_DISK_EDGE_NEXT(e, v);
+    v = BM_edge_other_vert(e, v);
+    /* While this should never happen in the context this function is called.
+     * Avoid an eternal loop even in the case of degenerate geometry. */
+    BLI_assert(v != v_init);
+    if (UNLIKELY(v == v_init)) {
+      break;
+    }
+  }
+  return v;
+}
+
+void bmo_dissolve_edges_init(BMOperator *op)
+{
+  /* Set the default not to limit dissolving at all. */
+  BMO_slot_float_set(op->slots_in, "angle_threshold", M_PI);
 }
 
 void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
@@ -258,7 +388,20 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
   BMEdge *e, *e_next;
   BMVert *v, *v_next;
 
-  const bool use_verts = BMO_slot_bool_get(op->slots_in, "use_verts");
+  /* Even when geometry has exact angles like 0 or 90 or 180 deg, `angle_on_axis_v3v3v3_v3`
+   * can return slightly incorrect values due to cos/sin functions, floating point error, etc.
+   * This lets the test ignore that tiny bit of math error so users won't notice. */
+  const float angle_epsilon = RAD2DEGF(0.0001f);
+
+  const float angle_threshold = BMO_slot_float_get(op->slots_in, "angle_threshold");
+
+  /* Use verts when told to... except, do *not* use verts when angle_threshold is 0.0. */
+  const bool use_verts = BMO_slot_bool_get(op->slots_in, "use_verts") &&
+                         (angle_threshold > angle_epsilon);
+
+  /* If angle threshold is 180, don't bother with angle math, just dissolve everything. */
+  const bool dissolve_all = (angle_threshold > M_PI - angle_epsilon);
+
   const bool use_face_split = BMO_slot_bool_get(op->slots_in, "use_face_split");
 
   if (use_face_split) {
@@ -291,12 +434,22 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  /* tag all verts/edges connected to faces */
-  /* Any element tagged with xxx_ISGC is an edge or vert of a face that borders an edge to be
-   * dissolved, and it could end up being cleaned up after a face merge has made it irrelevant. */
+  /* Tag certain geometry around the selected edges, for later processing. */
   BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
+
+    /* Connected edge chains have endpoints with edge pairs. The existing behavior was to dissolve
+     * the verts, both in the middle, and at the ends, of any selected edges in chains. Mark these
+     * kind of edges, so we know to skip the angle threshold test later. */
+    if (BM_vert_is_edge_pair(e->v1) || BM_vert_is_edge_pair(e->v2)) {
+      BMO_edge_flag_enable(bm, e, EDGE_CHAIN);
+    }
+
     BMFace *f_pair[2];
     if (BM_edge_face_pair(e, &f_pair[0], &f_pair[1])) {
+      /* Tag all the edges and verts of the two faces on either side of this edge.
+       * This edge is going to be dissolved, and after that happens, some of those elements of the
+       * surrounding faces might end up as loose geometry, depending on how the dissolve affected
+       * geometry near them. Tag them `*_ISGC`, to be checked later, and cleaned up if loose. */
       uint j;
       for (j = 0; j < 2; j++) {
         BMLoop *l_first, *l_iter;
@@ -313,6 +466,21 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
   BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
     BMLoop *l_a, *l_b;
     if (BM_edge_loop_pair(e, &l_a, &l_b)) {
+
+      /* When #VERT_MARK is set on a vert in the middle of a chain, the flag needs to be moved to
+       * the end of the chain, because when all the chain edges between the two faces get cleaned
+       * up as part of #BM_faces_join_pair, the flagged vert would otherwise be lost.
+       * Find the end of the chain, where the dissolve test should be done, move the flag there. */
+      for (int i = 0; i < 2; i++) {
+        BMVert *v_edge = *((&e->v1) + i);
+        if (BMO_vert_flag_test(bm, v_edge, VERT_MARK)) {
+          BMVert *v_edge_chain_end = bmo_find_end_of_chain(e, v_edge);
+          if (v_edge != v_edge_chain_end) {
+            BMO_vert_flag_enable(bm, v_edge_chain_end, VERT_MARK);
+          }
+        }
+      }
+
       BM_faces_join_pair(bm, l_a, l_b, false, nullptr);
     }
   }
@@ -335,12 +503,61 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 
   /* If dissolving verts, then evaluate each VERT_MARK vert. */
   if (use_verts) {
-    BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
-      if (BMO_vert_flag_test(bm, v, VERT_MARK)) {
-        if (BM_vert_is_edge_pair(v)) {
-          BM_vert_collapse_edge(bm, v->e, v, true, true, true);
-        }
+    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+      if (!BMO_vert_flag_test(bm, v, VERT_MARK)) {
+        continue;
       }
+
+      /* If it is not an edge pair, it cannot be merged. */
+      BMEdge *e_pair[2];
+      if (BM_vert_edge_pair(v, &e_pair[0], &e_pair[1]) == false) {
+        BMO_vert_flag_disable(bm, v, VERT_MARK);
+        continue;
+      }
+
+      /* At an angle threshold of 180, dissolve everything, skip the math of the angle test. */
+      if (dissolve_all) {
+        /* VERT_MARK remains enabled. */
+        continue;
+      }
+
+      /* Verts in edge chains ignore the angle test. This maintains the previous behavior,
+       * where such verts were not subject to the angle threshold.
+       *
+       * When edge chains are selected for dissolve, all edge-pair verts at *both* ends of each
+       * selected edge will be dissolved, combining the selected edges into their neighbors.
+       *
+       * Note that when only *part* of a chain is selected, this *will* alter unselected edges,
+       * because selected edges will merge *into their unselected neighbors*. This too, has been
+       * maintained, for consistency with the previous (but possibly unintentional) behavior. */
+      if (BMO_edge_flag_test(bm, e_pair[0], EDGE_CHAIN) ||
+          BMO_edge_flag_test(bm, e_pair[1], EDGE_CHAIN))
+      {
+        /* VERT_MARK remains enabled. */
+        continue;
+      }
+
+      /* If the angle at the vert is larger than the threshold, it cannot be merged. */
+      if (bmo_vert_calc_edge_angle_blended(v) > angle_threshold - angle_epsilon) {
+        BMO_vert_flag_disable(bm, v, VERT_MARK);
+        continue;
+      }
+    }
+
+    /* Dissolve all verts that remain tagged. This is done in a separate iteration pass. Otherwise
+     * the early dissolves would alter the angles measured at neighboring verts tested later. */
+    BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
+      if (!BMO_vert_flag_test(bm, v, VERT_MARK)) {
+        continue;
+      }
+
+      /* Even though pairs were checked before, the process of performing edge merges
+       * might change a neighboring vert such that it is no longer an edge pair. */
+      if (!BM_vert_is_edge_pair(v)) {
+        continue;
+      }
+
+      bm_vert_collapse_edge_and_merge(bm, v, true);
     }
   }
 }
@@ -441,7 +658,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
   /* final cleanup */
   BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
     if (BM_vert_is_edge_pair(v)) {
-      BM_vert_collapse_edge(bm, v->e, v, false, true, true);
+      bm_vert_collapse_edge_and_merge(bm, v, false);
     }
   }
 
@@ -616,3 +833,5 @@ void bmo_dissolve_degenerate_exec(BMesh *bm, BMOperator *op)
     bm_mesh_edge_collapse_flagged(bm, op->flag, EDGE_COLLAPSE);
   }
 }
+
+/** \} */

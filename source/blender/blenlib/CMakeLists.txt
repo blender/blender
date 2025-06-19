@@ -211,7 +211,7 @@ set(SRC
   BLI_compute_context.hh
   BLI_concurrent_map.hh
   BLI_console.h
-  BLI_convexhull_2d.h
+  BLI_convexhull_2d.hh
   BLI_cpp_type.hh
   BLI_cpp_type_make.hh
   BLI_cpp_types.hh

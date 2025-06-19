@@ -1,0 +1,29 @@
+From 9a0c9d47bbe8460bbb0861098bf4ee743bc51f45 Mon Sep 17 00:00:00 2001
+From: HolyBlackCat <holyblckcat@gmail.com>
+Date: Tue, 1 Apr 2025 22:48:21 +0500
+Subject: [PATCH] Install the header along with the library.
+
+https://github.com/KhronosGroup/SPIRV-Reflect/commit/9a0c9d47bbe8460bbb0861098bf4ee743bc51f45
+
+---
+ CMakeLists.txt | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 906c208..b4085d1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -113,8 +113,11 @@ if(SPIRV_REFLECT_STATIC_LIB)
+ 
+     target_include_directories(spirv-reflect-static
+                                PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
++
++    set_target_properties(spirv-reflect-static PROPERTIES PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/spirv_reflect.h")
++
+     install(TARGETS spirv-reflect-static
+             LIBRARY DESTINATION lib
+-            ARCHIVE DESTINATION lib)
++            ARCHIVE DESTINATION lib
++            PUBLIC_HEADER DESTINATION include)
+ endif()
+-

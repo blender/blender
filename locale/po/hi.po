@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2584,68 +2584,68 @@ msgid "Mask"
 msgstr "आवरण"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
-
-
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Merge"
-msgstr "विलय करें"
 
 
 msgid "Text"
 msgstr "पाठ"
 
 
+msgid "Names"
+msgstr "नाम"
+
+
 msgid "Bone Roll"
 msgstr "हड्डी पंजी"
+
+
+msgid "Merge"
+msgstr "विलय करें"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Basic"
@@ -3027,6 +3027,10 @@ msgstr "खोज का चयन करें"
 
 msgid "Custom Color"
 msgstr "रुचिनुकूल रंग"
+
+
+msgid "Starting"
+msgstr "प्रारम्भ"
 
 
 msgid "Meta"
@@ -5577,11 +5581,6 @@ msgstr "दृश्य..."
 
 
 msgctxt "Operator"
-msgid "Cross"
-msgstr "पार"
-
-
-msgctxt "Operator"
 msgid "Wipe"
 msgstr "मार्जन"
 
@@ -6693,132 +6692,4 @@ msgstr "बंद/बुझ प्रणाली कंसोल"
 
 msgid "Import-Export"
 msgstr "आयात-निर्यात"
-
-
-msgid "Japanese (日本語)"
-msgstr "जापानी (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "इतालवी (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "जर्मन (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "फिनिश (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "स्वीडिश (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "फ्रेंच (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "स्पेनिश (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "कैटालैन (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "पुर्तगाली (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "सरलीकृत चीनी (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "पारंपरिक चीनी (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "रूसी (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "क्रोएशियाई (Hrvatsk)"
-
-
-msgid "Serbian (Српски)"
-msgstr "सर्बियन (Српски)"
-
-
-msgid "Romanian (Român)"
-msgstr "रोमानियाई (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "अरबी (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "बुल्गारियाई (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "ग्रीक (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "नेपाली (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "फ़ारसी (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "इंडोनेशिया (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "सर्बियन-लैटिन (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "किरगिज़ (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "तुर्की (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "हंगेरियन (Magyar)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "हिब्रू (תירִבְעִ)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "अम्हारिक (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "उज़्बेक (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "उज़्बेक सिरिलिक (Ўзбек)"
-
-
-msgid "Complete"
-msgstr "सम्पन्न"
-
-
-msgid "In Progress"
-msgstr "प्रगति में"
-
-
-msgid "Starting"
-msgstr "प्रारम्भ"
 

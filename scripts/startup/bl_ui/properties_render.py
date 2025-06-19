@@ -53,7 +53,7 @@ class RENDER_PT_color_management(RenderButtonsPanel, Panel):
     bl_order = 100
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -91,7 +91,7 @@ class RENDER_PT_color_management_display_settings(RenderButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -122,7 +122,7 @@ class RENDER_PT_color_management_curves(RenderButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -160,7 +160,7 @@ class RENDER_PT_color_management_white_balance(RenderButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -194,10 +194,10 @@ class RENDER_PT_color_management_white_balance(RenderButtonsPanel, Panel):
         col.prop(view, "white_balance_tint")
 
 
-class RENDER_PT_eevee_next_motion_blur(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_motion_blur(RenderButtonsPanel, Panel):
     bl_label = "Motion Blur"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -225,11 +225,11 @@ class RENDER_PT_eevee_next_motion_blur(RenderButtonsPanel, Panel):
         col.prop(eevee_props, "motion_blur_steps", text="Steps")
 
 
-class RENDER_PT_eevee_next_motion_blur_curve(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_motion_blur_curve(RenderButtonsPanel, Panel):
     bl_label = "Shutter Curve"
-    bl_parent_id = "RENDER_PT_eevee_next_motion_blur"
+    bl_parent_id = "RENDER_PT_eevee_motion_blur"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -254,10 +254,10 @@ class RENDER_PT_eevee_next_motion_blur_curve(RenderButtonsPanel, Panel):
         row.operator("render.shutter_curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
-class RENDER_PT_eevee_next_depth_of_field(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_depth_of_field(RenderButtonsPanel, Panel):
     bl_label = "Depth of Field"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -284,10 +284,10 @@ class RENDER_PT_eevee_next_depth_of_field(RenderButtonsPanel, Panel):
         sub.prop(props, "bokeh_overblur")
 
 
-class RENDER_PT_eevee_next_volumes(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_volumes(RenderButtonsPanel, Panel):
     bl_label = "Volumes"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -310,11 +310,11 @@ class RENDER_PT_eevee_next_volumes(RenderButtonsPanel, Panel):
         col.prop(props, "volumetric_ray_depth", text="Max Depth")
 
 
-class RENDER_PT_eevee_next_volumes_range(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_volumes_range(RenderButtonsPanel, Panel):
     bl_label = "Custom Range"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "RENDER_PT_eevee_next_volumes"
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    bl_parent_id = "RENDER_PT_eevee_volumes"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -339,17 +339,17 @@ class RENDER_PT_eevee_next_volumes_range(RenderButtonsPanel, Panel):
         col.prop(props, "volumetric_end")
 
 
-class RENDER_PT_eevee_next_raytracing_presets(PresetPanel, Panel):
+class RENDER_PT_eevee_raytracing_presets(PresetPanel, Panel):
     bl_label = "Raytracing Presets"
     preset_subdir = "eevee/raytracing"
     preset_operator = "script.execute_preset"
     preset_add_operator = "render.eevee_raytracing_preset_add"
 
 
-class RENDER_PT_eevee_next_raytracing(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_raytracing(RenderButtonsPanel, Panel):
     bl_label = "Raytracing"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -360,7 +360,7 @@ class RENDER_PT_eevee_next_raytracing(RenderButtonsPanel, Panel):
         self.layout.prop(props, "use_raytracing", text="")
 
     def draw_header_preset(self, _context):
-        RENDER_PT_eevee_next_raytracing_presets.draw_panel_header(self.layout)
+        RENDER_PT_eevee_raytracing_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         scene = context.scene
@@ -379,11 +379,11 @@ class RENDER_PT_eevee_next_raytracing(RenderButtonsPanel, Panel):
         col.prop(options, "resolution_scale")
 
 
-class RENDER_PT_eevee_next_screen_trace(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_screen_trace(RenderButtonsPanel, Panel):
     bl_label = "Screen Tracing"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "RENDER_PT_eevee_next_raytracing"
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    bl_parent_id = "RENDER_PT_eevee_raytracing"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -406,11 +406,11 @@ class RENDER_PT_eevee_next_screen_trace(RenderButtonsPanel, Panel):
         col.prop(props, "screen_trace_thickness", text="Thickness")
 
 
-class RENDER_PT_eevee_next_gi_approximation(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_gi_approximation(RenderButtonsPanel, Panel):
     bl_label = "Fast GI Approximation"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "RENDER_PT_eevee_next_raytracing"
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    bl_parent_id = "RENDER_PT_eevee_raytracing"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -454,11 +454,11 @@ class RENDER_PT_eevee_next_gi_approximation(RenderButtonsPanel, Panel):
         col.prop(props, "fast_gi_bias", text="Bias")
 
 
-class RENDER_PT_eevee_next_denoise(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_denoise(RenderButtonsPanel, Panel):
     bl_label = "Denoising"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_parent_id = "RENDER_PT_eevee_next_raytracing"
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    bl_parent_id = "RENDER_PT_eevee_raytracing"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -492,10 +492,10 @@ class RENDER_PT_eevee_next_denoise(RenderButtonsPanel, Panel):
         col.prop(props, "denoise_bilateral")
 
 
-class RENDER_PT_eevee_next_clamping(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_clamping(RenderButtonsPanel, Panel):
     bl_label = "Clamping"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -505,10 +505,10 @@ class RENDER_PT_eevee_next_clamping(RenderButtonsPanel, Panel):
         pass
 
 
-class RENDER_PT_eevee_next_clamping_surface(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_clamping_surface(RenderButtonsPanel, Panel):
     bl_label = "Surface"
-    bl_parent_id = "RENDER_PT_eevee_next_clamping"
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    bl_parent_id = "RENDER_PT_eevee_clamping"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -526,10 +526,10 @@ class RENDER_PT_eevee_next_clamping_surface(RenderButtonsPanel, Panel):
         col.prop(props, "clamp_surface_indirect", text="Indirect Light")
 
 
-class RENDER_PT_eevee_next_clamping_volume(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_clamping_volume(RenderButtonsPanel, Panel):
     bl_label = "Volume"
-    bl_parent_id = "RENDER_PT_eevee_next_clamping"
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    bl_parent_id = "RENDER_PT_eevee_clamping"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -547,11 +547,11 @@ class RENDER_PT_eevee_next_clamping_volume(RenderButtonsPanel, Panel):
         col.prop(props, "clamp_volume_indirect", text="Indirect Light")
 
 
-class RENDER_PT_eevee_next_sampling_shadows(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_sampling_shadows(RenderButtonsPanel, Panel):
     bl_label = "Shadows"
-    bl_parent_id = "RENDER_PT_eevee_next_sampling"
+    bl_parent_id = "RENDER_PT_eevee_sampling"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -587,9 +587,9 @@ class RENDER_PT_eevee_next_sampling_shadows(RenderButtonsPanel, Panel):
         col.prop(props, "shadow_resolution_scale", text="Resolution")
 
 
-class RENDER_PT_eevee_next_sampling(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_sampling(RenderButtonsPanel, Panel):
     bl_label = "Sampling"
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -599,10 +599,10 @@ class RENDER_PT_eevee_next_sampling(RenderButtonsPanel, Panel):
         pass
 
 
-class RENDER_PT_eevee_next_sampling_viewport(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_sampling_viewport(RenderButtonsPanel, Panel):
     bl_label = "Viewport"
-    bl_parent_id = "RENDER_PT_eevee_next_sampling"
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    bl_parent_id = "RENDER_PT_eevee_sampling"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -624,10 +624,10 @@ class RENDER_PT_eevee_next_sampling_viewport(RenderButtonsPanel, Panel):
         # Add SSS sample count here.
 
 
-class RENDER_PT_eevee_next_sampling_render(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_sampling_render(RenderButtonsPanel, Panel):
     bl_label = "Render"
-    bl_parent_id = "RENDER_PT_eevee_next_sampling"
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    bl_parent_id = "RENDER_PT_eevee_sampling"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -647,11 +647,11 @@ class RENDER_PT_eevee_next_sampling_render(RenderButtonsPanel, Panel):
         # Add SSS sample count here.
 
 
-class RENDER_PT_eevee_next_sampling_advanced(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_sampling_advanced(RenderButtonsPanel, Panel):
     bl_label = "Advanced"
-    bl_parent_id = "RENDER_PT_eevee_next_sampling"
+    bl_parent_id = "RENDER_PT_eevee_sampling"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -669,10 +669,10 @@ class RENDER_PT_eevee_next_sampling_advanced(RenderButtonsPanel, Panel):
         col.prop(props, "light_threshold")
 
 
-class RENDER_PT_eevee_next_film(RenderButtonsPanel, Panel):
+class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
     bl_label = "Film"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -714,7 +714,7 @@ def draw_curves_settings(self, context):
 class RENDER_PT_eevee_hair(RenderButtonsPanel, Panel):
     bl_label = "Curves"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -728,7 +728,7 @@ class RENDER_PT_eevee_performance(RenderButtonsPanel, Panel):
     bl_label = "Performance"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -787,7 +787,7 @@ class RENDER_PT_eevee_performance_compositor(RenderButtonsPanel, CompositorPerfo
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "RENDER_PT_eevee_performance"
     COMPAT_ENGINES = {
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -798,7 +798,7 @@ class RENDER_PT_eevee_performance_compositor_denoise_settings(
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "RENDER_PT_eevee_performance_compositor"
     COMPAT_ENGINES = {
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -807,7 +807,7 @@ class RENDER_PT_eevee_performance_memory(RenderButtonsPanel, Panel):
     bl_label = "Memory"
     bl_parent_id = "RENDER_PT_eevee_performance"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -829,7 +829,7 @@ class RENDER_PT_eevee_performance_viewport(RenderButtonsPanel, Panel):
     bl_label = "Viewport"
     bl_parent_id = "RENDER_PT_eevee_performance"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -854,7 +854,7 @@ class RENDER_PT_gpencil(RenderButtonsPanel, Panel):
     bl_order = 10
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -872,7 +872,7 @@ class RENDER_PT_grease_pencil_viewport(RenderButtonsPanel, Panel):
     bl_parent_id = "RENDER_PT_gpencil"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -894,7 +894,7 @@ class RENDER_PT_grease_pencil_render(RenderButtonsPanel, Panel):
     bl_parent_id = "RENDER_PT_gpencil"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -909,6 +909,10 @@ class RENDER_PT_grease_pencil_render(RenderButtonsPanel, Panel):
         col = layout.column()
         col.prop(props, "antialias_threshold_render", text="SMAA Threshold")
         col.prop(props, "aa_samples", text="SSAA Samples")
+
+        col = layout.column()
+        col.active = scene.render.use_motion_blur
+        col.prop(props, "motion_blur_steps")
 
 
 class RENDER_PT_opengl_sampling(RenderButtonsPanel, Panel):
@@ -991,7 +995,7 @@ class RENDER_PT_simplify(RenderButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -1008,7 +1012,7 @@ class RENDER_PT_simplify_viewport(RenderButtonsPanel, Panel):
     bl_parent_id = "RENDER_PT_simplify"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -1040,7 +1044,7 @@ class RENDER_PT_simplify_render(RenderButtonsPanel, Panel):
     bl_parent_id = "RENDER_PT_simplify"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -1066,7 +1070,7 @@ class RENDER_PT_simplify_greasepencil(RenderButtonsPanel, Panel, GreasePencilSim
     bl_parent_id = "RENDER_PT_simplify"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
     bl_options = {'DEFAULT_CLOSED'}
@@ -1093,30 +1097,30 @@ class RENDER_PT_hydra_debug(RenderButtonsPanel, Panel):
 
 classes = (
     RENDER_PT_context,
-    RENDER_PT_eevee_next_sampling,
-    RENDER_PT_eevee_next_sampling_viewport,
-    RENDER_PT_eevee_next_sampling_render,
-    RENDER_PT_eevee_next_sampling_shadows,
-    RENDER_PT_eevee_next_sampling_advanced,
-    RENDER_PT_eevee_next_clamping,
-    RENDER_PT_eevee_next_clamping_surface,
-    RENDER_PT_eevee_next_clamping_volume,
-    RENDER_PT_eevee_next_raytracing_presets,
-    RENDER_PT_eevee_next_raytracing,
-    RENDER_PT_eevee_next_screen_trace,
-    RENDER_PT_eevee_next_denoise,
-    RENDER_PT_eevee_next_gi_approximation,
-    RENDER_PT_eevee_next_volumes,
-    RENDER_PT_eevee_next_volumes_range,
+    RENDER_PT_eevee_sampling,
+    RENDER_PT_eevee_sampling_viewport,
+    RENDER_PT_eevee_sampling_render,
+    RENDER_PT_eevee_sampling_shadows,
+    RENDER_PT_eevee_sampling_advanced,
+    RENDER_PT_eevee_clamping,
+    RENDER_PT_eevee_clamping_surface,
+    RENDER_PT_eevee_clamping_volume,
+    RENDER_PT_eevee_raytracing_presets,
+    RENDER_PT_eevee_raytracing,
+    RENDER_PT_eevee_screen_trace,
+    RENDER_PT_eevee_denoise,
+    RENDER_PT_eevee_gi_approximation,
+    RENDER_PT_eevee_volumes,
+    RENDER_PT_eevee_volumes_range,
     RENDER_PT_eevee_hair,
     RENDER_PT_simplify,
     RENDER_PT_simplify_viewport,
     RENDER_PT_simplify_render,
     RENDER_PT_simplify_greasepencil,
-    RENDER_PT_eevee_next_depth_of_field,
-    RENDER_PT_eevee_next_motion_blur,
-    RENDER_PT_eevee_next_motion_blur_curve,
-    RENDER_PT_eevee_next_film,
+    RENDER_PT_eevee_depth_of_field,
+    RENDER_PT_eevee_motion_blur,
+    RENDER_PT_eevee_motion_blur_curve,
+    RENDER_PT_eevee_film,
     RENDER_PT_eevee_performance,
     RENDER_PT_eevee_performance_memory,
     RENDER_PT_eevee_performance_viewport,

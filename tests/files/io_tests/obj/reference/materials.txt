@@ -76,8 +76,8 @@
   - base color (0.800, 0.800, 0.800) tex:'texture.png' (//obj/texture.png) a:False
   - specular ior 0.500
   - specular tint (1.000, 1.000, 1.000)
-  - roughness 0.000 tex:'sometexture_Roughness.png' (sometexture_Roughness.png) a:False
-  - metallic 0.000 tex:'sometexture_Metallic.png' (sometexture_Metallic.png) a:False
+  - roughness 0.000 tex:'sometexture_Roughness.png' (sometexture_Roughness.png) a:False Non-Color
+  - metallic 0.000 tex:'sometexture_Metallic.png' (sometexture_Metallic.png) a:False Non-Color
   - ior 1.450
   - normalmap 1.000 tex:'sometexture_Normal.png' (sometexture_Normal.png) a:False data
   - viewport diffuse (0.800, 0.800, 0.800, 1.000)
@@ -89,8 +89,8 @@
   - base color (0.800, 0.800, 0.800) tex:'someHatTexture_BaseColor.jpg' (someHatTexture_BaseColor.jpg) a:False
   - specular ior 0.500
   - specular tint (1.000, 1.000, 1.000)
-  - roughness 0.106 tex:'someHatTexture_Roughness.jpg' (someHatTexture_Roughness.jpg) a:False
-  - metallic 0.000 tex:'someHatTexture_Metalness.jpg' (someHatTexture_Metalness.jpg) a:False
+  - roughness 0.106 tex:'someHatTexture_Roughness.jpg' (someHatTexture_Roughness.jpg) a:False Non-Color
+  - metallic 0.000 tex:'someHatTexture_Metalness.jpg' (someHatTexture_Metalness.jpg) a:False Non-Color
   - ior 1.500
   - normalmap 0.500 tex:'someHatTexture_Normal.jpg' (someHatTexture_Normal.jpg) a:False data
   - viewport diffuse (0.800, 0.800, 0.800, 1.000)

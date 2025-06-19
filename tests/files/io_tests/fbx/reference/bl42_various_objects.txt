@@ -522,10 +522,10 @@
   - base color (0.800, 0.800, 0.800)
   - specular ior 0.500
   - specular tint (1.000, 1.000, 1.000)
-  - roughness 0.500 tex:'checkerboard_roughness.png' (../blend_scene/textures/checkerboard_roughness.png) a:False
+  - roughness 0.500 tex:'checkerboard_roughness.png' (../blend_scene/textures/checkerboard_roughness.png) a:False Non-Color
   - metallic 0.200
   - ior 1.500
-  - alpha 1.000 tex:'checkerboard_transparency.png' (../blend_scene/textures/checkerboard_transparency.png) a:True
+  - alpha 1.000 tex:'checkerboard_transparency.png' (../blend_scene/textures/checkerboard_transparency.png) a:True Non-Color
   - emission color (1.000, 1.000, 1.000) tex:'checkerboard_emissive.png' (../blend_scene/textures/checkerboard_emissive.png) a:False
   - emission strength 0.200
   - viewport diffuse (0.800, 0.800, 0.800, 1.000)

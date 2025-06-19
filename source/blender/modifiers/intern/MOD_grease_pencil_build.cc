@@ -558,7 +558,7 @@ static float get_build_factor(const GreasePencilBuildTimeMode time_mode,
       return percentage * (1.0f + fade);
     case MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED:
       /* The "drawing speed" is written as an attribute called 'delta_time' (for each point). If
-       * this attribute doesn't exist, we fallback to the "frames" mode. */
+       * this attribute doesn't exist, we fall back to the "frames" mode. */
       if (!curves.attributes().contains("delta_time")) {
         return build_factor_frames;
       }
@@ -800,7 +800,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (uiLayout *panel = restrict_frame_range_layout.body) {
     const bool active = RNA_boolean_get(ptr, "use_restrict_frame_range");
     uiLayout *col = &panel->column(false);
-    uiLayoutSetActive(col, active);
+    col->active_set(active);
     col->prop(ptr, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
     col->prop(ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
@@ -809,7 +809,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (uiLayout *panel = fading_layout.body) {
     const bool active = RNA_boolean_get(ptr, "use_fading");
     uiLayout *col = &panel->column(false);
-    uiLayoutSetActive(col, active);
+    col->active_set(active);
 
     col->prop(ptr, "fade_factor", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 

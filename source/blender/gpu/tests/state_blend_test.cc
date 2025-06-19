@@ -27,6 +27,7 @@ void blend_test(float4 source_a, float4 source_b, float4 expected_result)
                                                  GPU_RGBA16F,
                                                  GPU_TEXTURE_USAGE_ATTACHMENT |
                                                      GPU_TEXTURE_USAGE_HOST_READ,
+                                                 false,
                                                  nullptr);
   BLI_assert(offscreen != nullptr);
   GPU_offscreen_bind(offscreen, false);

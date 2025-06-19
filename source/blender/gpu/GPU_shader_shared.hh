@@ -122,12 +122,9 @@ enum eGPUSeqFlags : uint32_t {
   GPU_SEQ_FLAG_BORDER = (1u << 10u),
   GPU_SEQ_FLAG_SELECTED_LH = (1u << 11u),
   GPU_SEQ_FLAG_SELECTED_RH = (1u << 12u),
-  GPU_SEQ_FLAG_DRAW_LH = (1u << 13u),
-  GPU_SEQ_FLAG_DRAW_RH = (1u << 14u),
   GPU_SEQ_FLAG_OVERLAP = (1u << 15u),
 
-  GPU_SEQ_FLAG_ANY_HANDLE = GPU_SEQ_FLAG_SELECTED_LH | GPU_SEQ_FLAG_SELECTED_RH |
-                            GPU_SEQ_FLAG_DRAW_LH | GPU_SEQ_FLAG_DRAW_RH
+  GPU_SEQ_FLAG_ANY_HANDLE = GPU_SEQ_FLAG_SELECTED_LH | GPU_SEQ_FLAG_SELECTED_RH
 };
 
 /* VSE per-strip data for timeline rendering. */

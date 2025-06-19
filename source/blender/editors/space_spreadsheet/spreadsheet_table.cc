@@ -14,49 +14,6 @@
 #include "spreadsheet_column.hh"
 #include "spreadsheet_table.hh"
 
-uint64_t SpreadsheetTableID::hash() const
-{
-  switch (eSpreadsheetTableIDType(this->type)) {
-    case SPREADSHEET_TABLE_ID_TYPE_GEOMETRY: {
-      const auto &self = *reinterpret_cast<const SpreadsheetTableIDGeometry *>(this);
-      const uint64_t viewer_path_hash = BKE_viewer_path_hash(self.viewer_path);
-      const uint64_t instance_ids_hash = get_default_hash(
-          blender::Span(self.instance_ids, self.instance_ids_num));
-      return blender::get_default_hash(
-          blender::get_default_hash(this->type, viewer_path_hash, self.geometry_component_type),
-          blender::get_default_hash(
-              self.attribute_domain, self.object_eval_state, self.layer_index, instance_ids_hash));
-    }
-  }
-  return uint64_t(this->type);
-}
-
-bool operator==(const SpreadsheetTableID &a, const SpreadsheetTableID &b)
-{
-  if (a.type != b.type) {
-    return false;
-  }
-  const eSpreadsheetTableIDType type = eSpreadsheetTableIDType(a.type);
-  switch (type) {
-    case SPREADSHEET_TABLE_ID_TYPE_GEOMETRY: {
-      const auto &a_ = *reinterpret_cast<const SpreadsheetTableIDGeometry *>(&a);
-      const auto &b_ = *reinterpret_cast<const SpreadsheetTableIDGeometry *>(&b);
-      return BKE_viewer_path_equal(&a_.viewer_path, &b_.viewer_path) &&
-             a_.geometry_component_type == b_.geometry_component_type &&
-             a_.attribute_domain == b_.attribute_domain &&
-             a_.object_eval_state == b_.object_eval_state && a_.layer_index == b_.layer_index &&
-             blender::Span(a_.instance_ids, a_.instance_ids_num) ==
-                 blender::Span(b_.instance_ids, b_.instance_ids_num);
-    }
-  }
-  return false;
-}
-
-bool operator!=(const SpreadsheetTableID &a, const SpreadsheetTableID &b)
-{
-  return !(a == b);
-}
-
 namespace blender::ed::spreadsheet {
 
 SpreadsheetTableIDGeometry *spreadsheet_table_id_new_geometry()
@@ -165,6 +122,28 @@ void spreadsheet_table_id_foreach_id(SpreadsheetTableID &table_id, LibraryForeac
   }
 }
 
+bool spreadsheet_table_id_match(const SpreadsheetTableID &a, const SpreadsheetTableID &b)
+{
+  if (a.type != b.type) {
+    return false;
+  }
+  const eSpreadsheetTableIDType type = eSpreadsheetTableIDType(a.type);
+  switch (type) {
+    case SPREADSHEET_TABLE_ID_TYPE_GEOMETRY: {
+      const auto &a_ = *reinterpret_cast<const SpreadsheetTableIDGeometry *>(&a);
+      const auto &b_ = *reinterpret_cast<const SpreadsheetTableIDGeometry *>(&b);
+      return BKE_viewer_path_equal(
+                 &a_.viewer_path, &b_.viewer_path, VIEWER_PATH_EQUAL_FLAG_IGNORE_ITERATION) &&
+             a_.geometry_component_type == b_.geometry_component_type &&
+             a_.attribute_domain == b_.attribute_domain &&
+             a_.object_eval_state == b_.object_eval_state && a_.layer_index == b_.layer_index &&
+             blender::Span(a_.instance_ids, a_.instance_ids_num) ==
+                 blender::Span(b_.instance_ids, b_.instance_ids_num);
+    }
+  }
+  return true;
+}
+
 SpreadsheetTable *spreadsheet_table_new(SpreadsheetTableID *table_id)
 {
   SpreadsheetTable *spreadsheet_table = MEM_callocN<SpreadsheetTable>(__func__);
@@ -235,7 +214,7 @@ const SpreadsheetTable *spreadsheet_table_find(const SpaceSpreadsheet &sspreadsh
                                                const SpreadsheetTableID &table_id)
 {
   for (const SpreadsheetTable *table : Span{sspreadsheet.tables, sspreadsheet.num_tables}) {
-    if (*table->id == table_id) {
+    if (spreadsheet_table_id_match(table_id, *table->id)) {
       return table;
     }
   }
@@ -343,6 +322,12 @@ void spreadsheet_table_remove_unused_columns(SpreadsheetTable &table)
         return true;
       },
       [](SpreadsheetColumn **column) { spreadsheet_column_free(*column); });
+}
+
+void spreadsheet_table_move_to_front(SpaceSpreadsheet &sspreadsheet, SpreadsheetTable &table)
+{
+  const int old_index = Span(sspreadsheet.tables, sspreadsheet.num_tables).first_index(&table);
+  dna::array::move_index(sspreadsheet.tables, sspreadsheet.num_tables, old_index, 0);
 }
 
 }  // namespace blender::ed::spreadsheet

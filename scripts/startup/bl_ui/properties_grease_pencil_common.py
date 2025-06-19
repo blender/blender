@@ -53,7 +53,7 @@ class GreasePencilSculptAdvancedPanel:
 
         tool_settings = context.scene.tool_settings
         brush = tool_settings.gpencil_sculpt_paint.brush
-        tool = brush.gpencil_sculpt_tool
+        tool = brush.gpencil_sculpt_brush_type
         gp_settings = brush.gpencil_settings
 
         if tool in {'SMOOTH', 'RANDOMIZE'}:
@@ -130,7 +130,7 @@ class GreasePencilDisplayPanel:
                 row = layout.row(align=True)
                 row.prop(settings, "show_brush", text="Display Cursor")
 
-            if brush.gpencil_tool == 'DRAW':
+            if brush.gpencil_brush_type == 'DRAW':
                 row = layout.row(align=True)
                 row.active = settings.show_brush
                 row.prop(gp_settings, "show_lasso", text="Show Fill Color While Drawing")
@@ -140,7 +140,7 @@ class GreasePencilDisplayPanel:
             col.active = settings.show_brush
 
             col.prop(brush, "cursor_color_add", text="Cursor Color")
-            if brush.gpencil_sculpt_tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
+            if brush.gpencil_sculpt_brush_type in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
                 col.prop(brush, "cursor_color_subtract", text="Inverse Color")
 
         elif ob.mode == 'WEIGHT_GREASE_PENCIL':
@@ -244,26 +244,21 @@ class GREASE_PENCIL_MT_layer_active(Menu):
 
 
 class GPENCIL_UL_annotation_layer(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
         gpl = item
+        if gpl.lock:
+            layout.active = False
 
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            if gpl.lock:
-                layout.active = False
+        split = layout.split(factor=0.2)
+        split.prop(gpl, "color", text="", emboss=True)
+        split.prop(gpl, "info", text="", emboss=False)
 
-            split = layout.split(factor=0.2)
-            split.prop(gpl, "color", text="", emboss=True)
-            split.prop(gpl, "info", text="", emboss=False)
+        row = layout.row(align=True)
 
-            row = layout.row(align=True)
+        row.prop(gpl, "show_in_front", text="", icon='XRAY' if gpl.show_in_front else 'FACESEL', emboss=False)
 
-            row.prop(gpl, "show_in_front", text="", icon='XRAY' if gpl.show_in_front else 'FACESEL', emboss=False)
-
-            row.prop(gpl, "annotation_hide", text="", emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+        row.prop(gpl, "annotation_hide", text="", emboss=False)
 
 
 class AnnotationDataPanel:
@@ -507,43 +502,35 @@ class GreasePencilMaterialsPanel:
 
 
 class GPENCIL_UL_layer(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
         gpl = item
+        if gpl.lock:
+            layout.active = False
 
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            if gpl.lock:
-                layout.active = False
+        row = layout.row(align=True)
+        row.label(
+            text="",
+            icon='BONE_DATA' if gpl.is_parented else 'BLANK1',
+        )
+        row.prop(gpl, "info", text="", emboss=False)
 
-            row = layout.row(align=True)
-            row.label(
-                text="",
-                icon='BONE_DATA' if gpl.is_parented else 'BLANK1',
-            )
-            row.prop(gpl, "info", text="", emboss=False)
+        row = layout.row(align=True)
 
-            row = layout.row(align=True)
+        icon_mask = 'CLIPUV_DEHLT' if gpl.use_mask_layer else 'CLIPUV_HLT'
 
-            icon_mask = 'CLIPUV_DEHLT' if gpl.use_mask_layer else 'CLIPUV_HLT'
+        row.prop(gpl, "use_mask_layer", text="", icon=icon_mask, emboss=False)
 
-            row.prop(gpl, "use_mask_layer", text="", icon=icon_mask, emboss=False)
-
-            subrow = row.row(align=True)
-            subrow.prop(
-                gpl,
-                "use_onion_skinning",
-                text="",
-                icon='ONIONSKIN_ON' if gpl.use_onion_skinning else 'ONIONSKIN_OFF',
-                emboss=False,
-            )
-            row.prop(gpl, "hide", text="", emboss=False)
-            row.prop(gpl, "lock", text="", emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(
-                text="",
-                icon_value=icon,
-            )
+        subrow = row.row(align=True)
+        subrow.prop(
+            gpl,
+            "use_onion_skinning",
+            text="",
+            icon='ONIONSKIN_ON' if gpl.use_onion_skinning else 'ONIONSKIN_OFF',
+            emboss=False,
+        )
+        row.prop(gpl, "hide", text="", emboss=False)
+        row.prop(gpl, "lock", text="", emboss=False)
 
 
 class GreasePencilSimplifyPanel:
@@ -617,14 +604,10 @@ class GreasePencilLayerAdjustmentsPanel:
 class GPENCIL_UL_masks(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         mask = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row(align=True)
-            row.prop(mask, "name", text="", emboss=False, icon_value=icon)
-            row.prop(mask, "invert", text="", emboss=False)
-            row.prop(mask, "hide", text="", emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.prop(mask, "name", text="", emboss=False, icon_value=icon)
+        row = layout.row(align=True)
+        row.prop(mask, "name", text="", emboss=False, icon_value=icon)
+        row.prop(mask, "invert", text="", emboss=False)
+        row.prop(mask, "hide", text="", emboss=False)
 
 
 class GreasePencilLayerRelationsPanel:

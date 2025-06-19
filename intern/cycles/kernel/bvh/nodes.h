@@ -100,7 +100,6 @@ ccl_device_forceinline bool bvh_unaligned_node_intersect_child(KernelGlobals kg,
 ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals kg,
                                                         const float3 P,
                                                         const float3 dir,
-                                                        const float3 idir,
                                                         const float tmin,
                                                         const float tmax,
                                                         const int node_addr,
@@ -142,7 +141,7 @@ ccl_device_forceinline int bvh_node_intersect(KernelGlobals kg,
 {
   float4 node = kernel_data_fetch(bvh_nodes, node_addr);
   if (__float_as_uint(node.x) & PATH_RAY_NODE_UNALIGNED) {
-    return bvh_unaligned_node_intersect(kg, P, dir, idir, tmin, tmax, node_addr, visibility, dist);
+    return bvh_unaligned_node_intersect(kg, P, dir, tmin, tmax, node_addr, visibility, dist);
   }
   return bvh_aligned_node_intersect(kg, P, idir, tmin, tmax, node_addr, visibility, dist);
 }

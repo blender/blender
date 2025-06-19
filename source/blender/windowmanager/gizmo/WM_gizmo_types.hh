@@ -130,7 +130,7 @@ enum eWM_GizmoFlagGroupTypeFlag {
   WM_GIZMOGROUPTYPE_TOOL_INIT = (1 << 7),
 
   /**
-   * This gizmo type supports using the fallback tools keymap.
+   * This gizmo type supports using the fall back tools keymap.
    * #wmGizmoGroup.use_tool_fallback will need to be set too.
    *
    * Often useful in combination with #WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK

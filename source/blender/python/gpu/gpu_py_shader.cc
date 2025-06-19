@@ -59,7 +59,13 @@
   "   :Uniforms: vec2 viewportSize, float lineWidth\n" \
   "``POLYLINE_UNIFORM_COLOR``\n" \
   "   :Attributes: vec3 pos\n" \
-  "   :Uniforms: vec2 viewportSize, float lineWidth\n"
+  "   :Uniforms: vec2 viewportSize, float lineWidth\n" \
+  "``POINT_FLAT_COLOR``\n" \
+  "   :Attributes: vec3 pos, vec4 color\n" \
+  "   :Uniforms: float size\n" \
+  "``POLYLINE_UNIFORM_COLOR``\n" \
+  "   :Attributes: vec3 pos\n" \
+  "   :Uniforms: vec4 color, float size\n"
 
 static const PyC_StringEnumItems pygpu_shader_builtin_items[] = {
     {GPU_SHADER_3D_FLAT_COLOR, "FLAT_COLOR"},
@@ -70,6 +76,8 @@ static const PyC_StringEnumItems pygpu_shader_builtin_items[] = {
     {GPU_SHADER_3D_POLYLINE_FLAT_COLOR, "POLYLINE_FLAT_COLOR"},
     {GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR, "POLYLINE_SMOOTH_COLOR"},
     {GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR, "POLYLINE_UNIFORM_COLOR"},
+    {GPU_SHADER_3D_POINT_FLAT_COLOR, "POINT_FLAT_COLOR"},
+    {GPU_SHADER_3D_POINT_UNIFORM_COLOR, "POINT_UNIFORM_COLOR"},
     {0, nullptr},
 };
 
@@ -97,89 +105,6 @@ static int pygpu_shader_uniform_location_get(GPUShader *shader,
 /* -------------------------------------------------------------------- */
 /** \name Shader Type
  * \{ */
-
-static std::optional<blender::StringRefNull> c_str_to_stringref_opt(const char *str)
-{
-  if (!str) {
-    return std::nullopt;
-  }
-  return blender::StringRefNull(str);
-}
-
-static PyObject *pygpu_shader__tp_new(PyTypeObject * /*type*/, PyObject *args, PyObject *kwds)
-{
-  BPYGPU_IS_INIT_OR_ERROR_OBJ;
-
-  if (GPU_backend_get_type() == GPU_BACKEND_VULKAN) {
-    PyErr_SetString(PyExc_Exception,
-                    "Direct shader creation is not supported on Vulkan. "
-                    "Use gpu.shader.create_from_info(shader_info) instead.");
-    return nullptr;
-  }
-
-  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-    PyErr_SetString(PyExc_Exception,
-                    "Direct shader creation is not supported on Metal. "
-                    "Use gpu.shader.create_from_info(shader_info) instead.");
-    return nullptr;
-  }
-
-  PyErr_WarnEx(PyExc_DeprecationWarning,
-               "Direct shader creation is deprecated. "
-               "Use gpu.shader.create_from_info(shader_info) instead.",
-               1);
-
-  struct {
-    const char *vertexcode;
-    const char *fragcode;
-    const char *geocode;
-    const char *libcode;
-    const char *defines;
-    const char *name;
-  } params = {nullptr};
-
-  static const char *_keywords[] = {
-      "vertexcode", "fragcode", "geocode", "libcode", "defines", "name", nullptr};
-  static _PyArg_Parser _parser = {
-      PY_ARG_PARSER_HEAD_COMPAT()
-      "s"  /* `vertexcode` */
-      "s"  /* `fragcode` */
-      "|$" /* Optional keyword only arguments. */
-      "s"  /* `geocode` */
-      "s"  /* `libcode` */
-      "s"  /* `defines` */
-      "s"  /* `name` */
-      ":GPUShader.__new__",
-      _keywords,
-      nullptr,
-  };
-  if (!_PyArg_ParseTupleAndKeywordsFast(args,
-                                        kwds,
-                                        &_parser,
-                                        &params.vertexcode,
-                                        &params.fragcode,
-                                        &params.geocode,
-                                        &params.libcode,
-                                        &params.defines,
-                                        &params.name))
-  {
-    return nullptr;
-  }
-
-  GPUShader *shader = GPU_shader_create_from_python(c_str_to_stringref_opt(params.vertexcode),
-                                                    c_str_to_stringref_opt(params.fragcode),
-                                                    c_str_to_stringref_opt(params.geocode),
-                                                    c_str_to_stringref_opt(params.libcode),
-                                                    c_str_to_stringref_opt(params.defines),
-                                                    c_str_to_stringref_opt(params.name));
-
-  if (shader == nullptr) {
-    PyErr_SetString(PyExc_Exception, "Shader Compile Error, see console for more details");
-    return nullptr;
-  }
-
-  return BPyGPUShader_CreatePyObject(shader, false);
-}
 
 PyDoc_STRVAR(
     /* Wrap. */
@@ -710,10 +635,10 @@ static PyObject *pygpu_shader_format_calc(BPyGPUShader *self, PyObject * /*arg*/
 
     /* WORKAROUND: Special case for POLYLINE shader. */
     if (GPU_shader_get_ssbo_binding(self->shader, "pos") >= 0) {
-      GPU_vertformat_attr_add(&ret->fmt, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      GPU_vertformat_attr_add(&ret->fmt, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
     }
     if (GPU_shader_get_ssbo_binding(self->shader, "color") >= 0) {
-      GPU_vertformat_attr_add(&ret->fmt, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      GPU_vertformat_attr_add(&ret->fmt, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
     }
   }
   else {
@@ -915,39 +840,6 @@ static void pygpu_shader__tp_dealloc(BPyGPUShader *self)
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-PyDoc_STRVAR(
-    /* Wrap. */
-    pygpu_shader__tp_doc,
-    ".. class:: GPUShader(vertexcode, fragcode, geocode=None, libcode=None, defines=None, "
-    "name='pyGPUShader')\n"
-    "\n"
-    "   GPUShader combines multiple GLSL shaders into a program used for drawing.\n"
-    "   It must contain at least a vertex and fragment shaders.\n"
-    "\n"
-    "   The GLSL ``#version`` directive is automatically included at the top of shaders,\n"
-    "   and set to 330. Some preprocessor directives are automatically added according to\n"
-    "   the Operating System or availability: ``GPU_ATI``, ``GPU_NVIDIA`` and ``GPU_INTEL``.\n"
-    "\n"
-    "   The following extensions are enabled by default if supported by the GPU:\n"
-    "   ``GL_ARB_texture_gather``, ``GL_ARB_texture_cube_map_array``\n"
-    "   and ``GL_ARB_shader_draw_parameters``.\n"
-    "\n"
-    "   For drawing user interface elements and gizmos, use\n"
-    "   ``fragOutput = blender_srgb_to_framebuffer_space(fragOutput)``\n"
-    "   to transform the output sRGB colors to the frame-buffer color-space.\n"
-    "\n"
-    "   :arg vertexcode: Vertex shader code.\n"
-    "   :type vertexcode: str\n"
-    "   :arg fragcode: Fragment shader code.\n"
-    "   :type value: str\n"
-    "   :arg geocode: Geometry shader code.\n"
-    "   :type value: str\n"
-    "   :arg libcode: Code with functions and presets to be shared between shaders.\n"
-    "   :type value: str\n"
-    "   :arg defines: Preprocessor directives.\n"
-    "   :type value: str\n"
-    "   :arg name: Name of shader code, for debugging purposes.\n"
-    "   :type value: str\n");
 PyTypeObject BPyGPUShader_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GPUShader",
@@ -969,7 +861,7 @@ PyTypeObject BPyGPUShader_Type = {
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ nullptr,
     /*tp_flags*/ Py_TPFLAGS_DEFAULT,
-    /*tp_doc*/ pygpu_shader__tp_doc,
+    /*tp_doc*/ nullptr,
     /*tp_traverse*/ nullptr,
     /*tp_clear*/ nullptr,
     /*tp_richcompare*/ nullptr,
@@ -986,7 +878,7 @@ PyTypeObject BPyGPUShader_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ nullptr,
     /*tp_alloc*/ nullptr,
-    /*tp_new*/ pygpu_shader__tp_new,
+    /*tp_new*/ nullptr,
     /*tp_free*/ nullptr,
     /*tp_is_gc*/ nullptr,
     /*tp_bases*/ nullptr,

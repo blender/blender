@@ -279,7 +279,7 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain,
       else {
         /* Set reorder=false so that saving the file doesn't reorder
          * the BMesh's elements */
-        BKE_sculptsession_bm_to_me(ob, false);
+        BKE_sculptsession_bm_to_me(ob);
       }
     }
   }

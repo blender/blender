@@ -62,7 +62,7 @@ ccl_device_inline Spectrum integrate_transparent_surface_shadow(KernelGlobals kg
   }
 
   /* Compute transparency from closures. */
-  return surface_shader_transparency(kg, shadow_sd);
+  return surface_shader_transparency(shadow_sd);
 }
 
 #  ifdef __VOLUME__
@@ -92,7 +92,7 @@ ccl_device_inline void integrate_transparent_volume_shadow(KernelGlobals kg,
                                          ray.tmax;
 
   /* `object` is only needed for light tree with light linking, it is irrelevant for shadow. */
-  shader_setup_from_volume(kg, shadow_sd, &ray, OBJECT_NONE);
+  shader_setup_from_volume(shadow_sd, &ray, OBJECT_NONE);
 
   VOLUME_READ_LAMBDA(integrator_state_read_shadow_volume_stack(state, i));
   const float step_size = volume_stack_step_size(kg, volume_read_lambda_pass);
@@ -169,23 +169,21 @@ ccl_device void integrator_shade_shadow(KernelGlobals kg,
   /* Evaluate transparent shadows. */
   const bool opaque = integrate_transparent_shadow(kg, state, num_hits);
   if (opaque) {
-    integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
+    integrator_shadow_path_terminate(state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;
   }
 #endif
 
   if (shadow_intersections_has_remaining(num_hits)) {
     /* More intersections to find, continue shadow ray. */
-    integrator_shadow_path_next(kg,
-                                state,
-                                DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW,
-                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
+    integrator_shadow_path_next(
+        state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
     return;
   }
 
   guiding_record_direct_light(kg, state);
   film_write_direct_light(kg, state, render_buffer);
-  integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
+  integrator_shadow_path_terminate(state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
 }
 
 CCL_NAMESPACE_END

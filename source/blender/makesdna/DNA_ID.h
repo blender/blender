@@ -13,6 +13,9 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#include "BLI_assert.h"
+#include "BLI_compiler_typecheck.h"
+
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
 #  include <type_traits>
@@ -442,6 +445,16 @@ typedef struct ID {
 
   IDProperty *properties;
 
+  /**
+   * System-defined custom properties storage.
+   *
+   * In Blender 4.5, only used to ensure forward compatibility with 5.x blend-files, and data
+   * management consistency.
+   */
+  IDProperty *system_properties;
+
+  void *_pad1;
+
   /** Reference linked ID which this one overrides. */
   IDOverrideLibrary *override_library;
 
@@ -464,7 +477,8 @@ typedef struct ID {
    *   so accessing it from Python raises an exception instead of crashing.
    *
    *   This is of limited benefit though, as it doesn't apply to non #ID data
-   *   that references this ID (the bones of an armature or the modifiers of an object for e.g.).
+   *   that references this ID (the bones of an armature or the modifiers of an object for
+   *   example).
    */
   void *py_instance;
 
@@ -1282,4 +1296,53 @@ template<typename T>
 constexpr bool is_ID_v = detail::has_ID_as_first_member<T>() || std::is_same_v<T, ID>;
 
 }  // namespace blender::dna
+
+namespace blender {
+
+namespace dna::detail {
+template<typename Dst, typename Src, typename SrcRuntime>
+constexpr void id_cast_assert([[maybe_unused]] SrcRuntime *src)
+{
+  static_assert(blender::dna::is_ID_v<Src>);
+  static_assert(blender::dna::is_ID_v<Dst>);
+  if constexpr (std::is_same_v<Src, ID> && !std::is_same_v<Dst, ID>) {
+    /* Runtime check for when converting from #ID to subtype like #Object. */
+    BLI_assert(src == nullptr || GS(src->name) == Dst::id_type);
+  }
+  else if constexpr (!std::is_same_v<Src, ID> && std::is_same_v<Dst, ID>) {
+    /* Converting from subtype like #Object to #ID is always allowed. */
+  }
+  else {
+    /* Converting between the same types is always allowed. */
+    static_assert(std::is_same_v<Src, Dst>);
+  }
+}
+}  // namespace dna::detail
+
+/**
+ * A drop-in replacement for `reinterpret_cast` that does additional checks:
+ * - Static check that the source and destination types are data-block types.
+ * - Run-time assert when down-casting from #ID to e.g. #Object.
+ *
+ * \note This can't be used with forward-declared types as the type information is necessary for
+ * the additional checks. For the same reason, it also can't be used to convert from void pointers.
+ */
+template<typename Dst, typename Src> inline Dst id_cast(Src &&id)
+{
+  using DstDecay = std::decay_t<Dst>;
+  using SrcDecay = std::decay_t<Src>;
+  static_assert(std::is_pointer_v<SrcDecay> == std::is_pointer_v<DstDecay>);
+  if constexpr (std::is_pointer_v<SrcDecay>) {
+    dna::detail::id_cast_assert<std::decay_t<std::remove_pointer_t<DstDecay>>,
+                                std::decay_t<std::remove_pointer_t<SrcDecay>>>(id);
+  }
+  else {
+    static_assert(std::is_lvalue_reference_v<Src> && std::is_lvalue_reference_v<Dst>);
+    dna::detail::id_cast_assert<DstDecay, SrcDecay>(&id);
+  }
+  /* This also makes sure that we don't cast away constness. */
+  return reinterpret_cast<Dst>(id);
+}
+
+}  // namespace blender
 #endif

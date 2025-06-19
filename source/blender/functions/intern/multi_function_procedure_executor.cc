@@ -174,7 +174,7 @@ class ValueAllocator : NonCopyable, NonMovable {
     const int64_t alignment = type.alignment;
 
     if (alignment > min_alignment) {
-      /* In this rare case we fallback to not reusing existing buffers. */
+      /* In this rare case we fall back to not reusing existing buffers. */
       buffer = linear_allocator_.allocate(element_size * size, alignment);
     }
     else {

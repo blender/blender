@@ -88,9 +88,9 @@ static const GPUVertFormat *grease_pencil_stroke_format()
 {
   static const GPUVertFormat format = []() {
     GPUVertFormat format{};
-    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "ma", GPU_COMP_I32, 4, GPU_FETCH_INT);
-    GPU_vertformat_attr_add(&format, "uv", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32_32);
+    GPU_vertformat_attr_add(&format, "ma", gpu::VertAttrType::SINT_32_32_32_32);
+    GPU_vertformat_attr_add(&format, "uv", gpu::VertAttrType::SFLOAT_32_32_32_32);
     return format;
   }();
   return &format;
@@ -106,8 +106,8 @@ static const GPUVertFormat *grease_pencil_color_format()
 {
   static const GPUVertFormat format = []() {
     GPUVertFormat format{};
-    GPU_vertformat_attr_add(&format, "col", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "fcol", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "col", gpu::VertAttrType::SFLOAT_32_32_32_32);
+    GPU_vertformat_attr_add(&format, "fcol", gpu::VertAttrType::SFLOAT_32_32_32_32);
     return format;
   }();
   return &format;
@@ -268,10 +268,10 @@ static void grease_pencil_weight_batch_ensure(Object &object,
   const Span<const Layer *> layers = grease_pencil.layers();
 
   static const GPUVertFormat format_points_pos = GPU_vertformat_from_attribute(
-      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   static const GPUVertFormat format_points_weight = GPU_vertformat_from_attribute(
-      "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+      "selection", gpu::VertAttrType::SFLOAT_32);
 
   GPUUsageType vbo_flag = GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
   cache->edit_points_pos = GPU_vertbuf_create_with_format_ex(format_points_pos, vbo_flag);
@@ -460,11 +460,14 @@ static IndexMask grease_pencil_get_visible_nurbs_curves(Object &object,
 }
 
 static IndexMask grease_pencil_get_visible_non_nurbs_curves(
-    Object &object, const bke::greasepencil::Drawing &drawing, IndexMaskMemory &memory)
+    Object &object,
+    const bke::greasepencil::Drawing &drawing,
+    const int layer_index,
+    IndexMaskMemory &memory)
 {
   const bke::CurvesGeometry &curves = drawing.strokes();
-  const IndexMask visible_strokes = ed::greasepencil::retrieve_visible_strokes(
-      object, drawing, memory);
+  const IndexMask visible_strokes = ed::greasepencil::retrieve_editable_strokes(
+      object, drawing, layer_index, memory);
   if (!curves.has_curve_with_type(CURVE_TYPE_NURBS)) {
     return visible_strokes;
   }
@@ -525,7 +528,7 @@ static void grease_pencil_cache_add_nurbs(Object &object,
 
 static void index_buf_add_line_points(Object &object,
                                       const bke::greasepencil::Drawing &drawing,
-                                      int /*layer_index*/,
+                                      const int layer_index,
                                       IndexMaskMemory &memory,
                                       MutableSpan<uint> lines_data,
                                       int *r_drawing_line_index,
@@ -536,7 +539,7 @@ static void index_buf_add_line_points(Object &object,
   const OffsetIndices<int> points_by_curve_eval = curves.evaluated_points_by_curve();
 
   const IndexMask visible_strokes_for_lines = grease_pencil_get_visible_non_nurbs_curves(
-      object, drawing, memory);
+      object, drawing, layer_index, memory);
 
   const int offset = *r_drawing_line_start_offset;
   int line_index = *r_drawing_line_index;
@@ -712,19 +715,19 @@ static void grease_pencil_edit_batch_ensure(Object &object,
   const Span<const Layer *> layers = grease_pencil.layers();
 
   static const GPUVertFormat format_edit_points_pos = GPU_vertformat_from_attribute(
-      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   static const GPUVertFormat format_edit_line_pos = GPU_vertformat_from_attribute(
-      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      "pos", gpu::VertAttrType::SFLOAT_32_32_32);
 
   static const GPUVertFormat format_edit_points_selection = GPU_vertformat_from_attribute(
-      "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+      "selection", gpu::VertAttrType::SFLOAT_32);
 
   static const GPUVertFormat format_edit_points_vflag = GPU_vertformat_from_attribute(
-      "vflag", GPU_COMP_U32, 1, GPU_FETCH_INT);
+      "vflag", gpu::VertAttrType::UINT_32);
 
   static const GPUVertFormat format_edit_line_selection = GPU_vertformat_from_attribute(
-      "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+      "selection", gpu::VertAttrType::SFLOAT_32);
 
   GPUUsageType vbo_flag = GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
   cache->edit_points_pos = GPU_vertbuf_create_with_format_ex(format_edit_points_pos, vbo_flag);
@@ -808,7 +811,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
 
     IndexMaskMemory memory;
     const IndexMask visible_strokes_for_lines = grease_pencil_get_visible_non_nurbs_curves(
-        object, info.drawing, memory);
+        object, info.drawing, info.layer_index, memory);
 
     const IndexRange points(drawing_start_offset, curves.points_num());
     const IndexRange points_eval(drawing_line_start_offset, curves.evaluated_points_num());

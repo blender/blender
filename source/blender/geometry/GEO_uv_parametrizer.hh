@@ -10,6 +10,10 @@ namespace slim {
 struct MatrixTransfer;
 }
 
+namespace blender::geometry {
+class UVPackIsland_Params;
+}
+
 /** \file
  * \ingroup geo
  */
@@ -166,7 +170,7 @@ void uv_parametrizer_stretch_end(ParamHandle *handle);
 /** \name Packing
  * \{ */
 
-void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, bool ignore_pinned);
+void uv_parametrizer_pack(ParamHandle *handle, const UVPackIsland_Params &params);
 
 /** \} */
 

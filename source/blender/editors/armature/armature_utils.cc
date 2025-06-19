@@ -109,6 +109,9 @@ void bone_free(bArmature *arm, EditBone *bone)
   if (bone->prop) {
     IDP_FreeProperty(bone->prop);
   }
+  if (bone->system_properties) {
+    IDP_FreeProperty(bone->system_properties);
+  }
 
   /* Clear references from other edit bones. */
   LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
@@ -523,6 +526,9 @@ static EditBone *make_boneList_recursive(ListBase *edbo,
     if (curBone->prop) {
       eBone->prop = IDP_CopyProperty(curBone->prop);
     }
+    if (curBone->system_properties) {
+      eBone->system_properties = IDP_CopyProperty(curBone->system_properties);
+    }
 
     BLI_addtail(edbo, eBone);
 
@@ -744,6 +750,9 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     if (eBone->prop) {
       newBone->prop = IDP_CopyProperty(eBone->prop);
     }
+    if (eBone->system_properties) {
+      newBone->system_properties = IDP_CopyProperty(eBone->system_properties);
+    }
   }
 
   /* Fix parenting in a separate pass to ensure ebone->bone connections are valid at this point.
@@ -797,6 +806,9 @@ void ED_armature_edit_free(bArmature *arm)
         if (eBone->prop) {
           IDP_FreeProperty(eBone->prop);
         }
+        if (eBone->system_properties) {
+          IDP_FreeProperty(eBone->system_properties);
+        }
         BLI_freelistN(&eBone->bone_collections);
       }
 
@@ -831,6 +843,9 @@ void ED_armature_ebone_listbase_free(ListBase *lb, const bool do_id_user)
     if (ebone->prop) {
       IDP_FreeProperty_ex(ebone->prop, do_id_user);
     }
+    if (ebone->system_properties) {
+      IDP_FreeProperty_ex(ebone->system_properties, do_id_user);
+    }
 
     BLI_freelistN(&ebone->bone_collections);
 
@@ -849,6 +864,10 @@ void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src, const b
     if (ebone_dst->prop) {
       ebone_dst->prop = IDP_CopyProperty_ex(ebone_dst->prop,
                                             do_id_user ? 0 : LIB_ID_CREATE_NO_USER_REFCOUNT);
+    }
+    if (ebone_dst->system_properties) {
+      ebone_dst->system_properties = IDP_CopyProperty_ex(
+          ebone_dst->system_properties, do_id_user ? 0 : LIB_ID_CREATE_NO_USER_REFCOUNT);
     }
     ebone_src->temp.ebone = ebone_dst;
     BLI_addtail(lb_dst, ebone_dst);

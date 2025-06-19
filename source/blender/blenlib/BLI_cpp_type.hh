@@ -447,6 +447,9 @@ void register_cpp_types();
 
 namespace blender {
 
+/* Give a compile error instead of a link error when type information is missing. */
+template<> const CPPType &CPPType::get_impl<void>() = delete;
+
 /**
  * Two types only compare equal when their pointer is equal. No two instances of CPPType for the
  * same C++ type should be created.

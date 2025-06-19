@@ -5,9 +5,9 @@
 set(INC
   .
   ../include
-  ../../makesrna
-  ../../imbuf
   ../../gpu
+  ../../imbuf
+  ../../makesrna
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
   # RNA_prototypes.hh
@@ -20,7 +20,6 @@ set(INC_SYS
 set(SRC
   intern/asset_catalog.cc
   intern/asset_filter.cc
-  intern/asset_handle.cc
   intern/asset_import.cc
   intern/asset_indexer.cc
   intern/asset_library_reference_enum.cc
@@ -41,7 +40,6 @@ set(SRC
 
   ED_asset_catalog.hh
   ED_asset_filter.hh
-  ED_asset_handle.hh
   ED_asset_import.hh
   ED_asset_indexer.hh
   ED_asset_library.hh

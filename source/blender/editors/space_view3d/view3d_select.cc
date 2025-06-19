@@ -38,10 +38,6 @@
 
 #include "BLT_translation.hh"
 
-#ifdef __BIG_ENDIAN__
-#  include "BLI_endian_switch.h"
-#endif
-
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
@@ -2238,13 +2234,10 @@ static int gpu_select_buffer_depth_id_cmp(const void *sel_a_p, const void *sel_b
   }
 
   /* Depths match, sort by id. */
+  /* NOTE: this is endianness-sensitive.
+   * GPUSelectResult values are always expected to be little-endian. */
   uint sel_a = a->id;
   uint sel_b = b->id;
-
-#ifdef __BIG_ENDIAN__
-  BLI_endian_switch_uint32(&sel_a);
-  BLI_endian_switch_uint32(&sel_b);
-#endif
 
   if (sel_a < sel_b) {
     return -1;
@@ -2707,7 +2700,7 @@ static bool ed_object_select_pick(bContext *C,
 
   /* Split `changed` into data-types so their associated updates can be properly performed.
    * This is also needed as multiple changes may happen at once.
-   * Selecting a pose-bone or track can also select the object for e.g. */
+   * Selecting a pose-bone or track can also select the object for example */
   bool changed_object = false;
   bool changed_pose = false;
   bool changed_track = false;
@@ -3520,7 +3513,7 @@ static wmOperatorStatus view3d_select_exec(bContext *C, wmOperator *op)
 
   if (obedit && enumerate) {
     /* Enumerate makes no sense in edit-mode unless also explicitly picking objects or bones.
-     * Pass the event through so the event may be handled by loop-select for e.g. see: #100204.
+     * Pass the event through so the event may be handled by loop-select for example. See: #100204.
      */
     if (obedit->type != OB_ARMATURE) {
       return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;
@@ -4225,13 +4218,10 @@ static bool do_armature_box_select(const ViewContext *vc, const rcti *rect, cons
  */
 static int gpu_bone_select_buffer_cmp(const void *sel_a_p, const void *sel_b_p)
 {
+  /* NOTE: this is endianness-sensitive.
+   * GPUSelectResult values are always expected to be little-endian. */
   uint sel_a = ((GPUSelectResult *)sel_a_p)->id;
   uint sel_b = ((GPUSelectResult *)sel_b_p)->id;
-
-#ifdef __BIG_ENDIAN__
-  BLI_endian_switch_uint32(&sel_a);
-  BLI_endian_switch_uint32(&sel_b);
-#endif
 
   if (sel_a < sel_b) {
     return -1;

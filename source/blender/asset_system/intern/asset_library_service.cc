@@ -9,6 +9,7 @@
 #include "BKE_blender.hh"
 #include "BKE_preferences.h"
 
+#include "BLI_fileops.h"  // IWYU pragma: keep
 #include "BLI_path_utils.hh"
 #include "BLI_string_ref.hh"
 
@@ -20,6 +21,8 @@
 #include "AS_asset_library.hh"
 #include "AS_essentials_library.hh"
 #include "all_library.hh"
+#include "asset_catalog_collection.hh"
+#include "asset_catalog_definition_file.hh"  // IWYU pragma: keep
 #include "asset_library_service.hh"
 #include "essentials_library.hh"
 #include "on_disk_library.hh"
@@ -101,8 +104,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
-      AssetLibrary *library = this->get_asset_library_on_disk_custom(custom_library->name,
-                                                                     root_path);
+      AssetLibrary *library = this->get_asset_library_on_disk_custom_preferences(custom_library);
       library->import_method_ = eAssetImportMethod(custom_library->import_method);
       library->may_override_import_method_ = true;
       library->use_relative_path_ = (custom_library->flag & ASSET_LIBRARY_RELATIVE_PATH) != 0;
@@ -114,10 +116,12 @@ AssetLibrary *AssetLibraryService::get_asset_library(
   return nullptr;
 }
 
-AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType library_type,
-                                                             StringRef name,
-                                                             StringRefNull root_path,
-                                                             const bool load_catalogs)
+AssetLibrary *AssetLibraryService::get_asset_library_on_disk(
+    eAssetLibraryType library_type,
+    StringRef name,
+    StringRefNull root_path,
+    const bool load_catalogs,
+    bUserAssetLibrary *preferences_library)
 {
   if (OnDiskAssetLibrary *lib = this->lookup_on_disk_library(library_type, root_path)) {
     CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", root_path.c_str());
@@ -132,7 +136,12 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType l
   std::unique_ptr<OnDiskAssetLibrary> lib_uptr;
   switch (library_type) {
     case ASSET_LIBRARY_CUSTOM:
-      lib_uptr = std::make_unique<PreferencesOnDiskAssetLibrary>(name, normalized_root_path);
+      if (preferences_library) {
+        lib_uptr = std::make_unique<PreferencesOnDiskAssetLibrary>(name, normalized_root_path);
+      }
+      else {
+        lib_uptr = std::make_unique<OnDiskAssetLibrary>(library_type, name, normalized_root_path);
+      }
       break;
     case ASSET_LIBRARY_ESSENTIALS:
       lib_uptr = std::make_unique<EssentialsAssetLibrary>();
@@ -157,6 +166,13 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk_custom(StringRef na
                                                                     StringRefNull root_path)
 {
   return this->get_asset_library_on_disk(ASSET_LIBRARY_CUSTOM, name, root_path);
+}
+
+AssetLibrary *AssetLibraryService::get_asset_library_on_disk_custom_preferences(
+    bUserAssetLibrary *custom_library)
+{
+  return this->get_asset_library_on_disk(
+      ASSET_LIBRARY_CUSTOM, custom_library->name, custom_library->dirpath, true, custom_library);
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk_builtin(eAssetLibraryType type,
@@ -238,12 +254,25 @@ AssetLibrary *AssetLibraryService::move_runtime_current_file_into_on_disk_librar
         library_service.current_file_library_->catalog_service_);
   }
 
-  on_disk_library->catalog_service().asset_library_root_ = on_disk_library->root_path();
+  AssetCatalogService &catalog_service = on_disk_library->catalog_service();
+  catalog_service.asset_library_root_ = on_disk_library->root_path();
   /* The catalogs are not stored on disk, so there should not be any CDF. Otherwise, we'd have to
    * remap their stored file-path too (#AssetCatalogDefinitionFile.file_path). */
-  BLI_assert_msg(on_disk_library->catalog_service().get_catalog_definition_file() == nullptr,
+  BLI_assert_msg(catalog_service.get_catalog_definition_file() == nullptr,
                  "new on-disk library shouldn't have catalog definition files - root path "
                  "changed, so they would have to be relocated");
+
+  /* Create a CDF with the runtime catalogs that on-disk catalogs can be merged into. Only do if
+   * there's catalogs to write, otherwise we create empty CDFs on disk on every new .blend save. */
+  if (!catalog_service.catalog_collection_->is_empty()) {
+    char asset_lib_cdf_path[PATH_MAX];
+    BLI_path_join(asset_lib_cdf_path,
+                  sizeof(asset_lib_cdf_path),
+                  on_disk_library->root_path().c_str(),
+                  AssetCatalogService::DEFAULT_CATALOG_FILENAME.c_str());
+    catalog_service.catalog_collection_->catalog_definition_file_ =
+        catalog_service.construct_cdf_in_memory(asset_lib_cdf_path);
+  }
 
   library_service.current_file_library_ = nullptr;
 

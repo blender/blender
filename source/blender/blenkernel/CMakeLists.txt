@@ -57,8 +57,8 @@ set(SRC
   intern/attribute.cc
   intern/attribute_access.cc
   intern/attribute_legacy_convert.cc
-  intern/attribute_storage.cc
   intern/attribute_math.cc
+  intern/attribute_storage.cc
   intern/autoexec.cc
   intern/bake_data_block_map.cc
   intern/bake_geometry_nodes_modifier.cc
@@ -239,6 +239,7 @@ set(SRC
   intern/node_tree_field_inferencing.cc
   intern/node_tree_interface.cc
   intern/node_tree_reference_lifetimes.cc
+  intern/node_tree_structure_type_inferencing.cc
   intern/node_tree_update.cc
   intern/node_tree_zones.cc
   intern/object.cc
@@ -830,9 +831,9 @@ add_dependencies(bf_blenkernel bf_rna)
 if(WITH_GTESTS)
   set(TEST_SRC
     intern/action_test.cc
-    intern/attribute_storage_test.cc
     intern/armature_test.cc
     intern/asset_metadata_test.cc
+    intern/attribute_storage_test.cc
     intern/bpath_test.cc
     intern/brush_test.cc
     intern/cryptomatte_test.cc

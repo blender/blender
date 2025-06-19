@@ -250,7 +250,7 @@ static void drawFlyPixel(const bContext * /*C*/, ARegion * /*region*/, void *arg
   const float y2 = float(yoff) + 0.55f * fly->viewport_size[1];
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -1041,7 +1041,7 @@ static void flyApply_ndof(bContext *C, FlyInfo *fly, bool is_confirm)
   Object *lock_ob = ED_view3d_cameracontrol_object_get(fly->v3d_camera_control);
   bool has_translate, has_rotate;
 
-  view3d_ndof_fly(fly->ndof,
+  view3d_ndof_fly(*fly->ndof,
                   fly->v3d,
                   fly->rv3d,
                   fly->use_precision,
@@ -1136,7 +1136,6 @@ static void fly_cancel(bContext *C, wmOperator *op)
 
 static wmOperatorStatus fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  wmOperatorStatus exit_code;
   bool do_draw = false;
   FlyInfo *fly = static_cast<FlyInfo *>(op->customdata);
   View3D *v3d = fly->v3d;
@@ -1157,13 +1156,15 @@ static wmOperatorStatus fly_modal(bContext *C, wmOperator *op, const wmEvent *ev
   }
   else
 #endif /* WITH_INPUT_NDOF */
+  {
     if (event->type == TIMER && event->customdata == fly->timer) {
       flyApply(C, fly, false);
     }
+  }
 
   do_draw |= fly->redraw;
 
-  exit_code = flyEnd(C, fly);
+  wmOperatorStatus exit_code = flyEnd(C, fly);
 
   if (exit_code == OPERATOR_FINISHED) {
     const bool is_undo_pushed = ED_view3d_camera_lock_undo_push(op->type->name, v3d, rv3d, C);

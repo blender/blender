@@ -18,6 +18,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_mesh.hh"
+#include "BKE_object.hh"
 
 #include "bmesh.hh"
 
@@ -120,7 +121,17 @@ struct MeshRenderData {
   const char *default_color_name;
 };
 
-const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh);
+inline const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh)
+{
+  if (mesh.runtime->edit_mesh != nullptr) {
+    if (const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(&object)) {
+      return *editmesh_eval_final;
+    }
+  }
+
+  return mesh;
+}
+
 const CustomData &mesh_cd_vdata_get_from_mesh(const Mesh &mesh);
 const CustomData &mesh_cd_edata_get_from_mesh(const Mesh &mesh);
 const CustomData &mesh_cd_pdata_get_from_mesh(const Mesh &mesh);
@@ -263,13 +274,13 @@ void extract_face_dots_subdiv(const DRWSubdivCache &subdiv_cache,
 gpu::VertBufPtr extract_normals(const MeshRenderData &mr, bool use_hq);
 gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
                                        const DRWSubdivCache &subdiv_cache,
-                                       gpu::VertBuf &pos_nor);
+                                       gpu::VertBuf &pos);
 gpu::VertBufPtr extract_vert_normals(const MeshRenderData &mr);
 gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, bool use_hq);
 gpu::VertBufPtr extract_edge_factor(const MeshRenderData &mr);
 gpu::VertBufPtr extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,
                                            const MeshRenderData &mr,
-                                           gpu::VertBuf &pos_nor);
+                                           gpu::VertBuf &pos);
 
 gpu::IndexBufPtr extract_tris(const MeshRenderData &mr, const SortedFaceData &face_sorted);
 void create_material_subranges(const SortedFaceData &face_sorted,
@@ -376,5 +387,9 @@ gpu::VertBufPtr extract_attribute_subdiv(const MeshRenderData &mr,
                                          const DRWSubdivCache &subdiv_cache,
                                          StringRef name);
 gpu::VertBufPtr extract_attr_viewer(const MeshRenderData &mr);
+
+gpu::VertBufPtr extract_paint_overlay_flags(const MeshRenderData &mr);
+gpu::VertBufPtr extract_paint_overlay_flags_subdiv(const MeshRenderData &mr,
+                                                   const DRWSubdivCache &subdiv_cache);
 
 }  // namespace blender::draw

@@ -590,10 +590,6 @@ void BLF_draw(int fontid, const char *str, const size_t str_len, ResultBLF *r_in
   FontBLF *font = blf_get(fontid);
 
   if (font) {
-
-    /* Avoid bgl usage to corrupt BLF drawing. */
-    GPU_bgl_end();
-
     blf_draw_gpu__start(font);
     if (font->flags & BLF_WORD_WRAP) {
       blf_font_draw__wrap(font, str, str_len, r_info);
@@ -635,8 +631,6 @@ void BLF_draw_svg_icon(uint icon_id,
 #ifndef WITH_HEADLESS
   FontBLF *font = global_font[0];
   if (font) {
-    /* Avoid bgl usage to corrupt BLF drawing. */
-    GPU_bgl_end();
     blf_draw_gpu__start(font);
     blf_draw_svg_icon(font, icon_id, x, y, size, color, outline_alpha, multicolor, edit_source_cb);
     blf_draw_gpu__end(font);

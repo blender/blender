@@ -25,7 +25,11 @@ class SocketInterfaceKey {
   explicit SocketInterfaceKey(Vector<std::string> identifiers);
   explicit SocketInterfaceKey(std::string identifier);
 
+  /** Two keys match when they have one common identifier. */
   bool matches(const SocketInterfaceKey &other) const;
+  /** Two keys match exactly when the have the same identifiers (the order doesn't matter). */
+  bool matches_exactly(const SocketInterfaceKey &other) const;
+
   Span<std::string> identifiers() const;
 };
 

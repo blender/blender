@@ -138,12 +138,17 @@ if(WITH_INPUT_NDOF)
     intern/GHOST_NDOFManager.hh
   )
 
-  list(APPEND INC_SYS
-    ${NDOF_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${NDOF_LIBRARIES}
-  )
+  # Only some platforms define this.
+  if(DEFINED NDOF_INCLUDE_DIRS)
+    list(APPEND INC_SYS
+      ${NDOF_INCLUDE_DIRS}
+    )
+  endif()
+  if(DEFINED NDOF_LIBRARIES)
+    list(APPEND LIB
+      ${NDOF_LIBRARIES}
+    )
+  endif()
 endif()
 
 list(APPEND SRC

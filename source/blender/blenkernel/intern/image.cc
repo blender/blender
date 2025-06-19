@@ -1556,11 +1556,6 @@ static uintptr_t image_mem_size(Image *image)
       }
 
       size += IMB_get_size_in_memory(ibuf);
-
-      for (int level = 0; level < IMB_MIPMAP_LEVELS; level++) {
-        ImBuf *ibufm = ibuf->mipmap[level];
-        size += IMB_get_size_in_memory(ibufm);
-      }
     }
     IMB_moviecacheIter_free(iter);
   }
@@ -2994,13 +2989,6 @@ static void image_walk_id_all_users(
       }
       break;
     }
-    case ID_SCE: {
-      Scene *scene = (Scene *)id;
-      if (scene->nodetree && scene->use_nodes && !skip_nested_nodes) {
-        image_walk_ntree_all_users(scene->nodetree, &scene->id, customdata, callback);
-      }
-      break;
-    }
     default:
       break;
   }
@@ -3366,7 +3354,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
 
 /**
  * \return render-pass for a given pass index and active view.
- * fallback to available if there are missing passes for active view.
+ * fall back to available if there are missing passes for active view.
  */
 static RenderPass *image_render_pass_get(RenderLayer *rl,
                                          const int pass,
@@ -3397,7 +3385,7 @@ static RenderPass *image_render_pass_get(RenderLayer *rl,
     }
   }
 
-  /* fallback to the first pass in the layer */
+  /* fall back to the first pass in the layer */
   if (rpass_ret == nullptr) {
     rp_index = 0;
     rpass_ret = static_cast<RenderPass *>(rl->passes.first);

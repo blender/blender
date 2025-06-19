@@ -1445,7 +1445,7 @@ char *txt_to_buf(Text *text, size_t *r_buf_strlen)
     *buf_step++ = '\n';
   }
   /* Remove the trailing new-line so a round-trip doesn't add a newline:
-   * Python for e.g. `text.from_string(text.as_string())`. */
+   * Python for example `text.from_string(text.as_string())`. */
   if (has_data) {
     buf_step--;
   }

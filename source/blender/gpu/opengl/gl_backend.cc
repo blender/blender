@@ -133,6 +133,15 @@ void GLBackend::platform_init()
     device = GPU_DEVICE_UNKNOWN;
     driver = GPU_DRIVER_ANY;
   }
+  else if (strstr(renderer, "Mesa DRI R") ||
+           (strstr(renderer, "Radeon") && (strstr(vendor, "X.Org") || strstr(version, "Mesa"))) ||
+           (strstr(renderer, "AMD") && (strstr(vendor, "X.Org") || strstr(version, "Mesa"))) ||
+           (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")) ||
+           (strstr(renderer, "Gallium ") && strstr(renderer, " on AMD ")))
+  {
+    device = GPU_DEVICE_ATI;
+    driver = GPU_DRIVER_OPENSOURCE;
+  }
   else if (strstr(vendor, "ATI") || strstr(vendor, "AMD")) {
     device = GPU_DEVICE_ATI;
     driver = GPU_DRIVER_OFFICIAL;
@@ -155,15 +164,6 @@ void GLBackend::platform_init()
     {
       device |= GPU_DEVICE_INTEL_UHD;
     }
-  }
-  else if (strstr(renderer, "Mesa DRI R") ||
-           (strstr(renderer, "Radeon") && strstr(vendor, "X.Org")) ||
-           (strstr(renderer, "AMD") && strstr(vendor, "X.Org")) ||
-           (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")) ||
-           (strstr(renderer, "Gallium ") && strstr(renderer, " on AMD ")))
-  {
-    device = GPU_DEVICE_ATI;
-    driver = GPU_DRIVER_OPENSOURCE;
   }
   else if (strstr(renderer, "Nouveau") || strstr(vendor, "nouveau")) {
     device = GPU_DEVICE_NVIDIA;
@@ -524,6 +524,12 @@ static void detect_workarounds()
   {
     GCaps.use_main_context_workaround = true;
   }
+  /* Needed to avoid driver hangs on legacy AMD drivers (see #139939). */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
+      is_AMD_between_20_11_and_22(version))
+  {
+    GCaps.use_main_context_workaround = true;
+  }
   /* See #70187: merging vertices fail. This has been tested from `18.2.2` till `19.3.0~dev`
    * of the Mesa driver */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
@@ -723,17 +729,66 @@ void GLBackend::capabilities_init()
   detect_workarounds();
 
 #if BLI_SUBPROCESS_SUPPORT
-  if (GCaps.max_parallel_compilations == -1) {
-    GCaps.max_parallel_compilations = std::min(int(U.max_shader_compilation_subprocesses),
-                                               BLI_system_thread_count());
-  }
+  GCaps.use_subprocess_shader_compilations = U.shader_compilation_method ==
+                                             USER_SHADER_COMPILE_SUBPROCESS;
+#else
+  GCaps.use_subprocess_shader_compilations = false;
+#endif
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
     /* Avoid crashes on RenderDoc sessions. */
-    GCaps.max_parallel_compilations = 0;
+    GCaps.use_subprocess_shader_compilations = false;
   }
-#else
-  GCaps.max_parallel_compilations = 0;
-#endif
+
+  int thread_count = U.gpu_shader_workers;
+
+  if (thread_count == 0) {
+    /* Good default based on measurements. */
+
+    /* Always have at least 1 worker. */
+    thread_count = 1;
+
+    if (GCaps.use_subprocess_shader_compilations) {
+      /* Use reasonable number of worker by default when there are known gains. */
+      if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) ||
+          GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) ||
+          GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY))
+      {
+        /* Subprocess is too costly in memory (>150MB per worker) to have better defaults. */
+        thread_count = std::max(1, std::min(4, BLI_system_thread_count() / 2));
+      }
+    }
+    else if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+      /* Best middle ground between memory usage and speedup as Nvidia context memory footprint
+       * is quite heavy (~25MB). Moreover we have diminishing return after this because of PSO
+       * compilation blocking the main thread.
+       * Can be revisited if we find a way to delete the worker thread context after finishing
+       * compilation, and fix the scheduling bubbles (#139775). */
+      thread_count = 4;
+    }
+    else if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OPENSOURCE) ||
+             GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_UNIX, GPU_DRIVER_ANY))
+    {
+      /* Mesa has very good compilation time and doesn't block the main thread.
+       * The memory footprint of the worker context is rather small (<10MB).
+       * Shader compilation gets much slower as the number of threads increases. */
+      thread_count = 8;
+    }
+    else if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+      /* AMD proprietary driver's context have huge memory footprint (~45MB).
+       * There is also not much gain from parallelization. */
+      thread_count = 1;
+    }
+    else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY)) {
+      /* Intel windows driver offer almost no speedup with parallel compilation. */
+      thread_count = 1;
+    }
+  }
+
+  /* Allow thread count override option to limit the number of workers and avoid allocating more
+   * workers than needed. Also ensures that there is always 1 thread available for the UI. */
+  int max_thread_count = std::max(1, BLI_system_thread_count() - 1);
+
+  GCaps.max_parallel_compilations = std::min(thread_count, max_thread_count);
 
   /* Disable this feature entirely when not debugging. */
   if ((G.debug & G_DEBUG_GPU) == 0) {

@@ -137,12 +137,12 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
     void build_row(uiLayout &row) override
     {
       AssetCatalogSelectorTree &tree = dynamic_cast<AssetCatalogSelectorTree &>(get_tree_view());
-      uiBlock *block = uiLayoutGetBlock(&row);
+      uiBlock *block = row.block();
 
-      uiLayoutSetEmboss(&row, blender::ui::EmbossType::Emboss);
+      row.emboss_set(blender::ui::EmbossType::Emboss);
 
       uiLayout *subrow = &row.row(false);
-      uiLayoutSetActive(subrow, catalog_path_enabled_);
+      subrow->active_set(catalog_path_enabled_);
       subrow->label(catalog_item_.get_name(), ICON_NONE);
       UI_block_layout_set_current(block, &row);
 
@@ -183,7 +183,7 @@ void AssetCatalogSelectorTree::update_shelf_settings_from_enabled_catalogs()
 
 void library_selector_draw(const bContext *C, uiLayout *layout, AssetShelf &shelf)
 {
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
 
   PointerRNA shelf_ptr = RNA_pointer_create_discrete(
       &CTX_wm_screen(C)->id, &RNA_AssetShelf, &shelf);
@@ -212,7 +212,7 @@ static void catalog_selector_panel_draw(const bContext *C, Panel *panel)
     return;
   }
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "asset catalog tree view",

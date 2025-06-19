@@ -594,11 +594,12 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
       continue;
     }
 
-    if (md->type == eModifierType_Armature) {
-      ArmatureModifierData *amd = (ArmatureModifierData *)md;
-
-      if (amd->object && amd->object->pose) {
-        bPose *pose = amd->object->pose;
+    if (ELEM(md->type, eModifierType_Armature, eModifierType_GreasePencilArmature)) {
+      Object *object = (md->type == eModifierType_Armature) ?
+                           ((ArmatureModifierData *)md)->object :
+                           ((GreasePencilArmatureModifierData *)md)->object;
+      if (object && object->pose) {
+        bPose *pose = object->pose;
 
         LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
           void **val_p;

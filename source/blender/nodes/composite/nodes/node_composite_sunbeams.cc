@@ -48,14 +48,6 @@ static void cmp_node_sunbeams_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 }
 
-static void init(bNodeTree * /*ntree*/, bNode *node)
-{
-  /* All members are deprecated and needn't be set, but the data is still allocated for forward
-   * compatibility. */
-  NodeSunBeams *data = MEM_callocN<NodeSunBeams>(__func__);
-  node->storage = data;
-}
-
 using namespace blender::compositor;
 
 class SunBeamsOperation : public NodeOperation {
@@ -190,9 +182,6 @@ static void register_node_type_cmp_sunbeams()
   ntype.enum_name_legacy = "SUNBEAMS";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_sunbeams_declare;
-  ntype.initfunc = file_ns::init;
-  blender::bke::node_type_storage(
-      ntype, "NodeSunBeams", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);

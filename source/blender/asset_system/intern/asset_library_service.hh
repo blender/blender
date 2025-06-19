@@ -94,8 +94,17 @@ class AssetLibraryService {
   AssetLibrary *get_asset_library(const Main *bmain,
                                   const AssetLibraryReference &library_reference);
 
-  /** Get an asset library of type #ASSET_LIBRARY_CUSTOM. */
+  /**
+   * Get an asset library of type #ASSET_LIBRARY_CUSTOM from a directory path. Use
+   * #get_asset_library_on_disk_custom_preferences() for asset libraries registered in the
+   * Preferences.
+   */
   AssetLibrary *get_asset_library_on_disk_custom(StringRef name, StringRefNull root_path);
+  /**
+   * Get an asset library of type #ASSET_LIBRARY_CUSTOM from an asset library definition in the
+   * Preferences.
+   */
+  AssetLibrary *get_asset_library_on_disk_custom_preferences(bUserAssetLibrary *custom_library);
   /** Get a builtin (not user defined) asset library. I.e. a library that is **not** of type
    * #ASSET_LIBRARY_CUSTOM. */
   AssetLibrary *get_asset_library_on_disk_builtin(eAssetLibraryType type, StringRefNull root_path);
@@ -175,11 +184,14 @@ class AssetLibraryService {
    * Get the given asset library. Opens it (i.e. creates a new AssetLibrary instance) if necessary.
    *
    * \param root_path: The top level directory.
+   * \param preferences_library: The definition of the library from the Preferences. Set this to
+   * null if the library is not registered in the Preferences (but non-null if it is!).
    */
   AssetLibrary *get_asset_library_on_disk(eAssetLibraryType library_type,
                                           StringRef name,
                                           StringRefNull root_path,
-                                          bool load_catalogs = true);
+                                          bool load_catalogs = true,
+                                          bUserAssetLibrary *preferences_library = nullptr);
   /**
    * Ensure the AssetLibraryService instance is destroyed before a new blend file is loaded.
    * This makes memory management simple, and ensures a fresh start for every blend file. */

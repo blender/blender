@@ -104,6 +104,9 @@ typedef struct BrushGpencilSettings {
   /** Randomness for Value. */
   float random_value;
 
+  int color_jitter_flag;
+  char _pad1[4];
+
   /** Factor to extend stroke extremes using fill tool. */
   float fill_extend_fac;
   /** Number of pixels to dilate fill area. */
@@ -177,13 +180,10 @@ typedef struct Brush {
   /* TODO (Sean): To be removed in 5.0 */
   struct Brush *toggle_brush DNA_DEPRECATED;
 
-  struct ImBuf *icon_imbuf;
   PreviewImage *preview;
   /** Color gradient. */
   struct ColorBand *gradient;
   struct PaintCurve *paint_curve;
-
-  char icon_filepath[/*FILE_MAX*/ 1024];
 
   float normal_weight;
   /** Rake actual data (not texture), used for sculpt. */
@@ -223,6 +223,14 @@ typedef struct Brush {
 
   /** Color. */
   float rgb[3];
+  int color_jitter_flag;
+  float hsv_jitter[3];
+
+  /** Color jitter pressure curves. */
+  struct CurveMapping *curve_rand_hue;
+  struct CurveMapping *curve_rand_saturation;
+  struct CurveMapping *curve_rand_value;
+
   /** Opacity. */
   float alpha;
   /** Hardness */
@@ -291,7 +299,7 @@ typedef struct Brush {
   char gpencil_weight_brush_type;
   /** Active curves sculpt brush type (#eBrushCurvesSculptType). */
   char curves_sculpt_brush_type;
-  char _pad1[2];
+  char _pad1[10];
 
   float autosmooth_factor;
 

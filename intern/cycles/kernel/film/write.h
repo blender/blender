@@ -10,9 +10,8 @@
 
 #include "kernel/util/colorspace.h"
 
-#include "util/atomic.h"
-
 #ifdef __KERNEL_GPU__
+#  include "util/atomic.h"
 #  define __ATOMIC_PASS_WRITE__
 #endif
 

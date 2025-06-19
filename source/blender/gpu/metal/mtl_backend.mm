@@ -8,6 +8,8 @@
 
 #include <cstring>
 
+#include "BLI_threads.h"
+
 #include "BKE_global.hh"
 
 #include "gpu_backend.hh"
@@ -43,12 +45,7 @@ thread_local int g_autoreleasepool_depth = 0;
 
 void MTLBackend::init_resources()
 {
-  if (GPU_use_parallel_compilation()) {
-    compiler_ = MEM_new<MTLShaderCompiler>(__func__);
-  }
-  else {
-    compiler_ = MEM_new<ShaderCompiler>(__func__);
-  }
+  compiler_ = MEM_new<MTLShaderCompiler>(__func__);
 }
 
 void MTLBackend::delete_resources()
@@ -528,8 +525,10 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
 
   GCaps.geometry_shader_support = false;
 
-  /* Compile shaders on performance cores but leave one free so UI is still responsive */
-  GCaps.max_parallel_compilations = MTLBackend::capabilities.num_performance_cores - 1;
+  /* Compile shaders on performance cores but leave one free so UI is still responsive.
+   * Also respect command line option to reduce number of threads. */
+  GCaps.max_parallel_compilations = std::min(BLI_system_thread_count(),
+                                             MTLBackend::capabilities.num_performance_cores - 1);
 
   /* Maximum buffer bindings: 31. Consider required slot for uniforms/UBOs/Vertex attributes.
    * Can use argument buffers if a higher limit is required. */

@@ -10,6 +10,14 @@
 #include <glog/logging.h>   // IWYU pragma: export
 #include <gtest/gtest.h>    // IWYU pragma: export
 
+/* Fwd.
+ */
+namespace blender {
+
+template<typename T> class Span;
+
+}  // namespace blender
+
 namespace blender::tests {
 
 /* These strings are passed on the CLI with the --test-asset-dir and --test-release-dir arguments.
@@ -129,6 +137,17 @@ inline void EXPECT_EQ_VECTOR(const std::vector<T> &expected, const std::vector<T
   EXPECT_EQ(expected.size(), actual.size());
   if (expected.size() == actual.size()) {
     for (size_t i = 0; i < expected.size(); ++i) {
+      EXPECT_EQ(expected[i], actual[i]) << "Element mismatch at index " << i;
+    }
+  }
+}
+
+template<typename T>
+inline void EXPECT_EQ_SPAN(const blender::Span<T> expected, const blender::Span<T> actual)
+{
+  EXPECT_EQ(expected.size(), actual.size());
+  if (expected.size() == actual.size()) {
+    for (const int64_t i : expected.index_range()) {
       EXPECT_EQ(expected[i], actual[i]) << "Element mismatch at index " << i;
     }
   }

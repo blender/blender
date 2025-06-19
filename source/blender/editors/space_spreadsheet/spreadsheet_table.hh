@@ -24,6 +24,12 @@ void spreadsheet_table_id_remap_id(SpreadsheetTableID &table_id,
                                    const bke::id::IDRemapper &mappings);
 void spreadsheet_table_id_foreach_id(SpreadsheetTableID &table_id, LibraryForeachIDData *data);
 
+/**
+ * Checks if two table ids refer to the same table. This is not the same as a full equality check,
+ * because e.g. the iteration index for Geometry Nodes loops is ignored.
+ */
+bool spreadsheet_table_id_match(const SpreadsheetTableID &a, const SpreadsheetTableID &b);
+
 SpreadsheetTable *spreadsheet_table_new(SpreadsheetTableID *table_id);
 SpreadsheetTable *spreadsheet_table_copy(const SpreadsheetTable &src_table);
 void spreadsheet_table_free(SpreadsheetTable *table);
@@ -39,5 +45,6 @@ const SpreadsheetTable *spreadsheet_table_find(const SpaceSpreadsheet &sspreadsh
 void spreadsheet_table_add(SpaceSpreadsheet &sspreadsheet, SpreadsheetTable *table);
 void spreadsheet_table_remove_unused(SpaceSpreadsheet &sspreadsheet);
 void spreadsheet_table_remove_unused_columns(SpreadsheetTable &table);
+void spreadsheet_table_move_to_front(SpaceSpreadsheet &sspreadsheet, SpreadsheetTable &table);
 
 }  // namespace blender::ed::spreadsheet

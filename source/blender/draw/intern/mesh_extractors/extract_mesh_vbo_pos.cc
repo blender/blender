@@ -71,7 +71,7 @@ static void extract_positions_bm(const MeshRenderData &mr, MutableSpan<float3> v
 gpu::VertBufPtr extract_positions(const MeshRenderData &mr)
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
   GPU_vertbuf_data_alloc(*vbo, mr.corners_num + mr.loose_indices_num);
 
@@ -86,46 +86,6 @@ gpu::VertBufPtr extract_positions(const MeshRenderData &mr)
   return vbo;
 }
 
-static const GPUVertFormat &get_normals_format()
-{
-  static const GPUVertFormat format = []() {
-    GPUVertFormat format{};
-    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-    GPU_vertformat_alias_add(&format, "lnor");
-    return format;
-  }();
-  return format;
-}
-
-static const GPUVertFormat &get_custom_normals_format()
-{
-  static const GPUVertFormat format = []() {
-    GPUVertFormat format{};
-    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    GPU_vertformat_alias_add(&format, "lnor");
-    return format;
-  }();
-  return format;
-}
-
-static void extract_vertex_flags(const MeshRenderData &mr, char *flags)
-{
-  for (int i = 0; i < mr.verts_num; i++) {
-    char *flag = &flags[i];
-    const bool vert_hidden = !mr.hide_vert.is_empty() && mr.hide_vert[i];
-    /* Flag for paint mode overlay. */
-    if (vert_hidden || ((mr.orig_index_vert) && (mr.orig_index_vert[i] == ORIGINDEX_NONE))) {
-      *flag = -1;
-    }
-    else if (!mr.select_vert.is_empty() && mr.select_vert[i]) {
-      *flag = 1;
-    }
-    else {
-      *flag = 0;
-    }
-  }
-}
-
 static void extract_loose_positions_subdiv(const DRWSubdivCache &subdiv_cache,
                                            const MeshRenderData &mr,
                                            gpu::VertBuf &vbo)
@@ -135,13 +95,6 @@ static void extract_loose_positions_subdiv(const DRWSubdivCache &subdiv_cache,
   if (loose_verts.is_empty() && loose_edges_num == 0) {
     return;
   }
-
-  /* TODO(@kevindietrich): replace this when compressed normals are supported. */
-  struct SubdivPosNorLoop {
-    float pos[3];
-    float nor[3];
-    float flag;
-  };
 
   /* Make sure buffer is active for sending loose data. */
   GPU_vertbuf_use(&vbo);
@@ -153,32 +106,25 @@ static void extract_loose_positions_subdiv(const DRWSubdivCache &subdiv_cache,
 
   const int loose_geom_start = subdiv_cache.num_subdiv_loops;
 
-  SubdivPosNorLoop edge_data[2];
-  memset(edge_data, 0, sizeof(SubdivPosNorLoop) * 2);
+  float3 edge_data[2];
   for (const int i : IndexRange(loose_edges_num)) {
     const int edge_offset = loose_geom_start + i * verts_per_edge;
     const Span<float3> positions = cached_positions.slice(i * resolution, resolution);
     for (const int edge : IndexRange(edges_per_edge)) {
-      copy_v3_v3(edge_data[0].pos, positions[edge + 0]);
-      copy_v3_v3(edge_data[1].pos, positions[edge + 1]);
-      GPU_vertbuf_update_sub(&vbo,
-                             (edge_offset + edge * 2) * sizeof(SubdivPosNorLoop),
-                             sizeof(SubdivPosNorLoop) * 2,
-                             &edge_data);
+      edge_data[0] = positions[edge + 0];
+      edge_data[1] = positions[edge + 1];
+      GPU_vertbuf_update_sub(
+          &vbo, (edge_offset + edge * 2) * sizeof(float3), sizeof(float3) * 2, &edge_data);
     }
   }
 
   const int loose_verts_start = loose_geom_start + loose_edges_num * verts_per_edge;
   const Span<float3> positions = mr.vert_positions;
-
-  SubdivPosNorLoop vert_data;
-  memset(&vert_data, 0, sizeof(SubdivPosNorLoop));
   for (const int i : loose_verts.index_range()) {
-    copy_v3_v3(vert_data.pos, positions[loose_verts[i]]);
     GPU_vertbuf_update_sub(&vbo,
-                           (loose_verts_start + i) * sizeof(SubdivPosNorLoop),
-                           sizeof(SubdivPosNorLoop),
-                           &vert_data);
+                           (loose_verts_start + i) * sizeof(float3),
+                           sizeof(float3),
+                           &positions[loose_verts[i]]);
   }
 }
 
@@ -186,27 +132,15 @@ gpu::VertBufPtr extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
                                          const MeshRenderData &mr,
                                          gpu::VertBufPtr *orco_vbo)
 {
-  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_on_device(
-      draw_subdiv_get_pos_nor_format(), subdiv_full_vbo_size(mr, subdiv_cache)));
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "pos", gpu::VertAttrType::SFLOAT_32_32_32);
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(
+      GPU_vertbuf_create_on_device(format, subdiv_full_vbo_size(mr, subdiv_cache)));
 
   if (subdiv_cache.num_subdiv_loops == 0) {
     extract_loose_positions_subdiv(subdiv_cache, mr, *vbo);
     return vbo;
   }
-
-  static const GPUVertFormat flag_format = []() {
-    GPUVertFormat format{};
-    GPU_vertformat_attr_add(&format, "data", GPU_COMP_I32, 1, GPU_FETCH_INT);
-    GPU_vertformat_alias_add(&format, "flag");
-    return format;
-  }();
-
-  gpu::VertBuf *flags_buffer = GPU_vertbuf_calloc();
-  GPU_vertbuf_init_with_format(*flags_buffer, flag_format);
-  GPU_vertbuf_data_alloc(*flags_buffer, divide_ceil_u(mr.verts_num, 4));
-  char *flags = flags_buffer->data<char>().data();
-  extract_vertex_flags(mr, flags);
-  GPU_vertbuf_tag_dirty(flags_buffer);
 
   if (orco_vbo) {
     /* FIXME(fclem): We use the last component as a way to differentiate from generic vertex
@@ -214,57 +148,12 @@ gpu::VertBufPtr extract_positions_subdiv(const DRWSubdivCache &subdiv_cache,
      * Unfortunately, at the time of writing, I did not found any other "non disruptive"
      * alternative. */
     static const GPUVertFormat format = GPU_vertformat_from_attribute(
-        "orco", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+        "orco", gpu::VertAttrType::SFLOAT_32_32_32_32);
     *orco_vbo = gpu::VertBufPtr(
         GPU_vertbuf_create_on_device(format, subdiv_cache.num_subdiv_loops));
   }
 
-  draw_subdiv_extract_pos_nor(
-      subdiv_cache, flags_buffer, vbo.get(), orco_vbo ? orco_vbo->get() : nullptr);
-
-  if (subdiv_cache.use_custom_loop_normals) {
-    const Mesh *coarse_mesh = subdiv_cache.mesh;
-
-    gpu::VertBuf *src_custom_normals = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format(*src_custom_normals, get_custom_normals_format());
-    GPU_vertbuf_data_alloc(*src_custom_normals, coarse_mesh->corners_num);
-
-    src_custom_normals->data<float3>().copy_from(coarse_mesh->corner_normals());
-
-    gpu::VertBuf *dst_custom_normals = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_build_on_device(
-        *dst_custom_normals, get_custom_normals_format(), subdiv_cache.num_subdiv_loops);
-
-    draw_subdiv_interp_custom_data(
-        subdiv_cache, *src_custom_normals, *dst_custom_normals, GPU_COMP_F32, 3, 0);
-
-    draw_subdiv_finalize_custom_normals(subdiv_cache, dst_custom_normals, vbo.get());
-
-    GPU_vertbuf_discard(src_custom_normals);
-    GPU_vertbuf_discard(dst_custom_normals);
-  }
-  else {
-    /* We cannot evaluate vertex normals using the limit surface, so compute them manually. */
-    gpu::VertBuf *subdiv_loop_subdiv_vert_index = draw_subdiv_build_origindex_buffer(
-        subdiv_cache.subdiv_loop_subdiv_vert_index, subdiv_cache.num_subdiv_loops);
-
-    gpu::VertBufPtr vert_normals = gpu::VertBufPtr(
-        GPU_vertbuf_create_on_device(get_normals_format(), subdiv_cache.num_subdiv_verts));
-
-    draw_subdiv_accumulate_normals(subdiv_cache,
-                                   vbo.get(),
-                                   subdiv_cache.subdiv_vertex_face_adjacency_offsets,
-                                   subdiv_cache.subdiv_vertex_face_adjacency,
-                                   subdiv_loop_subdiv_vert_index,
-                                   vert_normals.get());
-
-    draw_subdiv_finalize_normals(
-        subdiv_cache, vert_normals.get(), subdiv_loop_subdiv_vert_index, vbo.get());
-
-    GPU_vertbuf_discard(subdiv_loop_subdiv_vert_index);
-  }
-
-  GPU_vertbuf_discard(flags_buffer);
+  draw_subdiv_extract_pos(subdiv_cache, vbo.get(), orco_vbo ? orco_vbo->get() : nullptr);
 
   extract_loose_positions_subdiv(subdiv_cache, mr, *vbo);
   return vbo;

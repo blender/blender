@@ -60,7 +60,7 @@ class AssetSaveAsTest(unittest.TestCase):
 
         self.assertTrue("Local Copy" in bpy.data.brushes)
         local_brush = bpy.data.brushes["Local Copy"]
-        self.assertEqual(local_brush.sculpt_tool, 'SMOOTH')
+        self.assertEqual(local_brush.sculpt_brush_type, 'SMOOTH')
         self.assertGreaterEqual(local_brush.users, 1)
 
 

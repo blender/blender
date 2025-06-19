@@ -76,16 +76,16 @@ ccl_device void integrator_shade_light(KernelGlobals kg,
    * As a workaround count this as a transparent bounce. It makes some sense
    * to interpret lights as transparent surfaces (and support making them opaque),
    * but this needs to be revisited. */
-  const uint32_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce) + 1;
+  const int transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce) + 1;
   INTEGRATOR_STATE_WRITE(state, path, transparent_bounce) = transparent_bounce;
 
   if (transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
-    integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT);
+    integrator_path_terminate(state, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT);
     return;
   }
 
   integrator_path_next(
-      kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
+      state, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
 
   /* TODO: in some cases we could continue directly to SHADE_BACKGROUND, but
    * probably that optimization is probably not practical if we add lights to

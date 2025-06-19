@@ -65,7 +65,7 @@ void Instance::init()
   if (!dummy_depth.is_valid()) {
     const float pixels[1] = {1.0f};
     dummy_depth.ensure_2d(
-        GPU_DEPTH_COMPONENT24, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, &pixels[0]);
+        GPU_DEPTH_COMPONENT32F, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, &pixels[0]);
   }
 
   /* Resize and reset memory-blocks. */
@@ -230,7 +230,7 @@ void Instance::begin_sync()
     const float2 size = draw_ctx->viewport_size_get();
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT;
-    this->snapshot_depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8, int2(size), usage);
+    this->snapshot_depth_tx.ensure_2d(GPU_DEPTH32F_STENCIL8, int2(size), usage);
     this->snapshot_color_tx.ensure_2d(GPU_R11F_G11F_B10F, int2(size), usage);
     this->snapshot_reveal_tx.ensure_2d(GPU_R11F_G11F_B10F, int2(size), usage);
 
@@ -475,6 +475,8 @@ tObject *Instance::object_sync_do(Object *ob, ResourceHandle res_handle)
 
     const VArray<int> stroke_materials = *attributes.lookup_or_default<int>(
         "material_index", bke::AttrDomain::Curve, 0);
+    const VArray<bool> is_fill_guide = *attributes.lookup_or_default<bool>(
+        ".is_fill_guide", bke::AttrDomain::Curve, false);
 
     const bool only_lines = !ELEM(ob->mode,
                                   OB_MODE_PAINT_GREASE_PENCIL,
@@ -492,11 +494,14 @@ tObject *Instance::object_sync_do(Object *ob, ResourceHandle res_handle)
       const int material_index = std::max(stroke_materials[stroke_i], 0);
       const MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, material_index + 1);
 
+      const bool is_fill_guide_stroke = is_fill_guide[stroke_i];
+
       const bool hide_material = (gp_style->flag & GP_MATERIAL_HIDE) != 0;
-      const bool show_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0);
+      const bool show_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0) ||
+                               is_fill_guide_stroke;
       const bool show_fill = (points.size() >= 3) &&
                              ((gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0) &&
-                             (!this->simplify_fill);
+                             (!this->simplify_fill) && !is_fill_guide_stroke;
       const bool hide_onion = is_onion && ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0 ||
                                            (!do_onion && !do_multi_frame));
       const bool skip_stroke = hide_material || (!show_stroke && !show_fill) ||
@@ -619,7 +624,7 @@ void Instance::acquire_resources()
 
   eGPUTextureFormat format = this->use_signed_fb ? GPU_RGBA16F : GPU_R11F_G11F_B10F;
 
-  this->depth_tx.acquire(size, GPU_DEPTH24_STENCIL8);
+  this->depth_tx.acquire(size, GPU_DEPTH32F_STENCIL8);
   this->color_tx.acquire(size, format);
   this->reveal_tx.acquire(size, format);
 
@@ -649,7 +654,7 @@ void Instance::acquire_resources()
     /* Use high quality format for render. */
     eGPUTextureFormat mask_format = this->is_render ? GPU_R16 : GPU_R8;
     /* We need an extra depth to not disturb the normal drawing. */
-    this->mask_depth_tx.acquire(size, GPU_DEPTH24_STENCIL8);
+    this->mask_depth_tx.acquire(size, GPU_DEPTH32F_STENCIL8);
     /* The mask_color_tx is needed for frame-buffer completeness. */
     this->mask_color_tx.acquire(size, GPU_R8);
     this->mask_tx.acquire(size, mask_format);

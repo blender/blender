@@ -14,7 +14,6 @@
 
 #include "BLI_alloca.h"
 #include "BLI_endian_defines.h"
-#include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_filereader.h"
 #include "BLI_string.h"
@@ -23,6 +22,8 @@
 #include "BLO_core_blend_header.hh"
 
 #include "blendthumb.hh"
+
+BLI_STATIC_ASSERT(ENDIAN_ORDER == L_ENDIAN, "Blender only builds on little endian systems")
 
 static void thumb_data_vertical_flip(Thumbnail *thumb)
 {
@@ -43,13 +44,12 @@ static void thumb_data_vertical_flip(Thumbnail *thumb)
   free(line);
 }
 
-static int32_t bytes_to_native_i32(const uint8_t bytes[4], bool endian_switch)
+static int32_t bytes_to_native_i32(const uint8_t bytes[4])
 {
   int32_t data;
   memcpy(&data, bytes, 4);
-  if (endian_switch) {
-    BLI_endian_switch_int32(&data);
-  }
+  /* NOTE: this is endianness-sensitive. */
+  /* PNG is always little-endian, and would require switching on a big-endian system. */
   return data;
 }
 
@@ -84,12 +84,11 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
                                                       Thumbnail *thumb,
                                                       const BlenderHeader &header)
 {
-  const bool endian_switch = header.endian != ENDIAN_ORDER;
+  BLI_assert(header.endian == L_ENDIAN);
   /* Iterate over file blocks until we find the thumbnail or run out of data. */
   while (true) {
     /* Read next BHead. */
-    const std::optional<BHead> bhead = BLO_readfile_read_bhead(
-        file, header.bhead_type(), endian_switch);
+    const std::optional<BHead> bhead = BLO_readfile_read_bhead(file, header.bhead_type());
     if (!bhead.has_value()) {
       /* File has ended. */
       return BT_INVALID_THUMB;
@@ -104,8 +103,8 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
         if (!file_read(file, shape, sizeof(shape))) {
           return BT_INVALID_THUMB;
         }
-        thumb->width = bytes_to_native_i32(&shape[0], endian_switch);
-        thumb->height = bytes_to_native_i32(&shape[4], endian_switch);
+        thumb->width = bytes_to_native_i32(&shape[0]);
+        thumb->height = bytes_to_native_i32(&shape[4]);
 
         /* Verify that image dimensions and data size make sense. */
         size_t data_size = bhead->len - sizeof(shape);
@@ -189,6 +188,13 @@ eThumbStatus blendthumb_create_thumb_from_file(FileReader *rawfile, Thumbnail *t
     file->close(file);
     return BT_EARLY_VERSION;
   }
+
+  /* Check if the file was written from a big-endian build. */
+  if (header.endian != L_ENDIAN) {
+    file->close(file);
+    return BT_INVALID_FILE;
+  }
+  BLI_assert(header.endian == ENDIAN_ORDER);
 
   /* Read the thumbnail. */
   eThumbStatus err = blendthumb_extract_from_file_impl(file, thumb, header);

@@ -183,8 +183,8 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
     if (socket_type == nullptr) {
       continue;
     }
-    eNodeSocketDatatype from = (eNodeSocketDatatype)socket.type;
-    eNodeSocketDatatype to = (eNodeSocketDatatype)socket_type->type;
+    eNodeSocketDatatype from = eNodeSocketDatatype(socket.type);
+    eNodeSocketDatatype to = socket_type->type;
     if (socket.in_out == SOCK_OUT) {
       std::swap(from, to);
     }
@@ -295,12 +295,14 @@ static void gather_socket_link_operations(const bContext &C,
       }
       const bNodeTreeInterfaceSocket &interface_socket =
           reinterpret_cast<const bNodeTreeInterfaceSocket &>(item);
+      if (!(interface_socket.flag & NODE_INTERFACE_SOCKET_INPUT)) {
+        return true;
+      }
       {
         const bke::bNodeSocketType *from_typeinfo = bke::node_socket_type_find(
             interface_socket.socket_type);
-        const eNodeSocketDatatype from = from_typeinfo ? eNodeSocketDatatype(from_typeinfo->type) :
-                                                         SOCK_CUSTOM;
-        const eNodeSocketDatatype to = eNodeSocketDatatype(socket.typeinfo->type);
+        const eNodeSocketDatatype from = from_typeinfo ? from_typeinfo->type : SOCK_CUSTOM;
+        const eNodeSocketDatatype to = socket.typeinfo->type;
         if (node_tree.typeinfo->validate_link && !node_tree.typeinfo->validate_link(from, to)) {
           return true;
         }

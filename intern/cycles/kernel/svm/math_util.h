@@ -87,6 +87,12 @@ ccl_device void svm_vector_math(ccl_private float *value,
     case NODE_VECTOR_MATH_ABSOLUTE:
       *vector = fabs(a);
       break;
+    case NODE_VECTOR_MATH_POWER:
+      *vector = make_float3(safe_powf(a.x, b.x), safe_powf(a.y, b.y), safe_powf(a.z, b.z));
+      break;
+    case NODE_VECTOR_MATH_SIGN:
+      *vector = make_float3(compatible_signf(a.x), compatible_signf(a.y), compatible_signf(a.z));
+      break;
     case NODE_VECTOR_MATH_MINIMUM:
       *vector = min(a, b);
       break;

@@ -47,14 +47,6 @@ static void cmp_node_luma_matte_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Matte");
 }
 
-static void node_composit_init_luma_matte(bNodeTree * /*ntree*/, bNode *node)
-{
-  /* All members are deprecated and needn't be set, but the data is still allocated for forward
-   * compatibility. */
-  NodeChroma *c = MEM_callocN<NodeChroma>(__func__);
-  node->storage = c;
-}
-
 using namespace blender::compositor;
 
 static int node_gpu_material(GPUMaterial *material,
@@ -111,9 +103,6 @@ static void register_node_type_cmp_luma_matte()
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_luma_matte_declare;
   ntype.flag |= NODE_PREVIEW;
-  ntype.initfunc = file_ns::node_composit_init_luma_matte;
-  blender::bke::node_type_storage(
-      ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 

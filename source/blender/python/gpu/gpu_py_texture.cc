@@ -68,7 +68,7 @@ const PyC_StringEnumItems pygpu_textureformat_items[] = {
     {GPU_R16, "R16"},
     {GPU_R11F_G11F_B10F, "R11F_G11F_B10F"},
     {GPU_DEPTH32F_STENCIL8, "DEPTH32F_STENCIL8"},
-    {GPU_DEPTH24_STENCIL8, "DEPTH24_STENCIL8"},
+    {GPU_DEPTH24_STENCIL8_DEPRECATED, "DEPTH24_STENCIL8"},
     {GPU_SRGB8_A8, "SRGB8_A8"},
     {GPU_RGB16F, "RGB16F"},
     {GPU_SRGB8_A8_DXT1, "SRGB8_A8_DXT1"},
@@ -78,7 +78,7 @@ const PyC_StringEnumItems pygpu_textureformat_items[] = {
     {GPU_RGBA8_DXT3, "RGBA8_DXT3"},
     {GPU_RGBA8_DXT5, "RGBA8_DXT5"},
     {GPU_DEPTH_COMPONENT32F, "DEPTH_COMPONENT32F"},
-    {GPU_DEPTH_COMPONENT24, "DEPTH_COMPONENT24"},
+    {GPU_DEPTH_COMPONENT24_DEPRECATED, "DEPTH_COMPONENT24"},
     {GPU_DEPTH_COMPONENT16, "DEPTH_COMPONENT16"},
     {0, nullptr},
 };
@@ -150,6 +150,18 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
                                         &pybuffer_obj))
   {
     return nullptr;
+  }
+
+  if (pygpu_textureformat.value_found == GPU_DEPTH24_STENCIL8_DEPRECATED) {
+    pygpu_textureformat.value_found = GPU_DEPTH32F_STENCIL8;
+    PyErr_WarnEx(
+        PyExc_DeprecationWarning, "'DEPTH24_STENCIL8' is deprecated. Use 'DEPTH32F_STENCIL8'.", 1);
+  }
+  if (pygpu_textureformat.value_found == GPU_DEPTH_COMPONENT24_DEPRECATED) {
+    pygpu_textureformat.value_found = GPU_DEPTH_COMPONENT32F;
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "'DEPTH_COMPONENT24' is deprecated. Use 'DEPTH_COMPONENT32F'.",
+                 1);
   }
 
   int len = 1;
@@ -588,7 +600,7 @@ PyDoc_STRVAR(
     "      `R16`,\n"
     "      `R11F_G11F_B10F`,\n"
     "      `DEPTH32F_STENCIL8`,\n"
-    "      `DEPTH24_STENCIL8`,\n"
+    "      `DEPTH24_STENCIL8` (deprecated, use `DEPTH32F_STENCIL8`),\n"
     "      `SRGB8_A8`,\n"
     "      `RGB16F`,\n"
     "      `SRGB8_A8_DXT1`,\n"
@@ -598,7 +610,7 @@ PyDoc_STRVAR(
     "      `RGBA8_DXT3`,\n"
     "      `RGBA8_DXT5`,\n"
     "      `DEPTH_COMPONENT32F`,\n"
-    "      `DEPTH_COMPONENT24`,\n"
+    "      `DEPTH_COMPONENT24`, (deprecated, use `DEPTH_COMPONENT32F`),\n"
     "      `DEPTH_COMPONENT16`,\n"
     "   :type format: str\n"
     "   :arg data: Buffer object to fill the texture.\n"

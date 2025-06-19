@@ -564,7 +564,6 @@ ccl_device_inline void film_write_direct_light(KernelGlobals kg,
  * Otherwise we'd have to write alpha on path termination, which happens
  * in many places. */
 ccl_device_inline void film_write_transparent(KernelGlobals kg,
-                                              ConstIntegratorState state,
                                               const uint32_t path_flag,
                                               const float transparent,
                                               ccl_global float *ccl_restrict buffer)
@@ -586,7 +585,7 @@ ccl_device_inline void film_write_holdout(KernelGlobals kg,
                                           ccl_global float *ccl_restrict render_buffer)
 {
   ccl_global float *buffer = film_pass_pixel_render_buffer(kg, state, render_buffer);
-  film_write_transparent(kg, state, path_flag, transparent, buffer);
+  film_write_transparent(kg, path_flag, transparent, buffer);
 }
 
 /* Write background contribution to render buffer.
@@ -606,7 +605,7 @@ ccl_device_inline void film_write_background(KernelGlobals kg,
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
   if (is_transparent_background_ray) {
-    film_write_transparent(kg, state, path_flag, transparent, buffer);
+    film_write_transparent(kg, path_flag, transparent, buffer);
   }
   else {
     const int sample = INTEGRATOR_STATE(state, path, sample);

@@ -10,12 +10,13 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_duplilist.hh"
+#include "BKE_geometry_set.hh"
+#include "BKE_geometry_set_instances.hh"
 #include "BKE_key.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 
 #include "BLI_assert.h"
-#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_set.hh"
 #include "BLI_string_utils.hh"
@@ -155,6 +156,21 @@ bool AbstractHierarchyWriter::check_has_deforming_physics(const HierarchyContext
   return rbo != nullptr && rbo->type == RBO_TYPE_ACTIVE && (rbo->flag & RBO_FLAG_USE_DEFORM) != 0;
 }
 
+bool HierarchyContext::is_point_instancer() const
+{
+  if (!object) {
+    return false;
+  }
+
+  /* Collection instancers are handled elsewhere as part of Scene instancing. */
+  if (object->type == OB_EMPTY && object->instance_collection != nullptr) {
+    return false;
+  }
+
+  const bke::GeometrySet geometry_set = bke::object_get_evaluated_geometry_set(*object);
+  return geometry_set.has_instances();
+}
+
 AbstractHierarchyIterator::AbstractHierarchyIterator(Main *bmain, Depsgraph *depsgraph)
     : bmain_(bmain), depsgraph_(depsgraph), export_subset_({true, true})
 {
@@ -287,6 +303,7 @@ void AbstractHierarchyIterator::export_graph_construct()
   deg_iter_settings.depsgraph = depsgraph_;
   deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+  DupliList duplilist;
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
     /* Non-instanced objects always have their object-parent as export-parent. */
     const bool weak_export = mark_as_weak_export(object);
@@ -298,27 +315,27 @@ void AbstractHierarchyIterator::export_graph_construct()
     }
 
     /* Export the duplicated objects instanced by this object. */
-    ListBase *lb = object_duplilist(depsgraph_, scene, object);
-    if (lb) {
+    object_duplilist(depsgraph_, scene, object, nullptr, duplilist);
+    if (!duplilist.is_empty()) {
       DupliParentFinder dupli_parent_finder;
 
-      LISTBASE_FOREACH (DupliObject *, dupli_object, lb) {
-        PersistentID persistent_id(dupli_object);
-        if (!should_visit_dupli_object(dupli_object)) {
+      for (const DupliObject &dupli_object : duplilist) {
+        PersistentID persistent_id(&dupli_object);
+        if (!should_visit_dupli_object(&dupli_object)) {
           continue;
         }
-        dupli_parent_finder.insert(dupli_object);
+        dupli_parent_finder.insert(&dupli_object);
       }
 
-      LISTBASE_FOREACH (DupliObject *, dupli_object, lb) {
-        if (!should_visit_dupli_object(dupli_object)) {
+      for (const DupliObject &dupli_object : duplilist) {
+        if (!should_visit_dupli_object(&dupli_object)) {
           continue;
         }
-        visit_dupli_object(dupli_object, object, dupli_parent_finder);
+        visit_dupli_object(&dupli_object, object, dupli_parent_finder);
       }
     }
 
-    free_object_duplilist(lb);
+    duplilist.clear();
   }
   DEG_OBJECT_ITER_END;
 }
@@ -449,7 +466,7 @@ ObjectIdentifier AbstractHierarchyIterator::determine_graph_index_object(
   return ObjectIdentifier::for_real_object(context->export_parent);
 }
 
-void AbstractHierarchyIterator::visit_dupli_object(DupliObject *dupli_object,
+void AbstractHierarchyIterator::visit_dupli_object(const DupliObject *dupli_object,
                                                    Object *duplicator,
                                                    const DupliParentFinder &dupli_parent_finder)
 {
@@ -628,7 +645,16 @@ void AbstractHierarchyIterator::make_writers(const HierarchyContext *parent_cont
     return;
   }
 
+  bool has_point_instance_ancestor = false;
+  if (parent_context &&
+      (parent_context->is_point_instance || parent_context->has_point_instance_ancestor))
+  {
+    has_point_instance_ancestor = true;
+  }
+
   for (HierarchyContext *context : *children) {
+    context->has_point_instance_ancestor = has_point_instance_ancestor;
+
     /* Update the context so that it is correct for this parent-child relation. */
     copy_m4_m4(context->parent_matrix_inv_world, parent_matrix_inv_world);
     if (parent_context != nullptr) {
@@ -645,15 +671,18 @@ void AbstractHierarchyIterator::make_writers(const HierarchyContext *parent_cont
       return;
     }
 
-    BLI_assert(DEG_is_evaluated(context->object));
-    if (transform_writer.is_newly_created() || export_subset_.transforms) {
+    const bool need_writers = context->is_point_proto || (!context->is_point_instance &&
+                                                          !context->has_point_instance_ancestor);
+
+    BLI_assert(DEG_is_evaluated_id(&context->object->id));
+    if ((transform_writer.is_newly_created() || export_subset_.transforms) && need_writers) {
       /* XXX This can lead to too many XForms being written. For example, a camera writer can
        * refuse to write an orthographic camera. By the time that this is known, the XForm has
        * already been written. */
       transform_writer->write(*context);
     }
 
-    if (!context->weak_export && include_data_writers(context)) {
+    if (!context->weak_export && include_data_writers(context) && need_writers) {
       make_writers_particle_systems(context);
       make_writer_object_data(context);
     }
@@ -758,7 +787,7 @@ void AbstractHierarchyIterator::make_writers_particle_systems(
   }
 }
 
-std::string AbstractHierarchyIterator::get_object_name(const Object *object)
+std::string AbstractHierarchyIterator::get_object_name(const Object *object) const
 {
   return get_id_name(&object->id);
 }
@@ -771,7 +800,7 @@ std::string AbstractHierarchyIterator::get_object_name(const Object *object, con
 
 std::string AbstractHierarchyIterator::get_object_data_name(const Object *object) const
 {
-  ID *object_data = static_cast<ID *>(object->data);
+  const ID *object_data = static_cast<ID *>(object->data);
   return get_id_name(object_data);
 }
 
@@ -782,7 +811,7 @@ AbstractHierarchyWriter *AbstractHierarchyIterator::get_writer(
 }
 
 EnsuredWriter AbstractHierarchyIterator::ensure_writer(
-    HierarchyContext *context, AbstractHierarchyIterator::create_writer_func create_func)
+    const HierarchyContext *context, AbstractHierarchyIterator::create_writer_func create_func)
 {
   AbstractHierarchyWriter *writer = get_writer(context->export_path);
   if (writer != nullptr) {

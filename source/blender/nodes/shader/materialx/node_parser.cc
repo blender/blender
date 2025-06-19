@@ -31,7 +31,7 @@ NodeItem NodeParser::compute_full()
 {
   NodeItem res = empty();
 
-  if (socket_out_ && !NodeItem::is_convertible((eNodeSocketDatatype)socket_out_->type, to_type_)) {
+  if (socket_out_ && !NodeItem::is_convertible(eNodeSocketDatatype(socket_out_->type), to_type_)) {
     return res;
   }
 

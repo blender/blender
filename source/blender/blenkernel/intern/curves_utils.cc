@@ -9,6 +9,8 @@
 #include "BKE_curves_utils.hh"
 #include "BKE_customdata.hh"
 
+#include "BLI_array_utils.hh"
+
 namespace blender::bke::curves {
 
 IndexMask curve_to_point_selection(OffsetIndices<int> points_by_curve,
@@ -213,5 +215,64 @@ void write_all_positions(bke::CurvesGeometry &curves,
 }
 
 }  // namespace bezier
+
+namespace nurbs {
+
+void gather_custom_knots(const bke::CurvesGeometry &src,
+                         const IndexMask &src_curves,
+                         const int dst_curve_offset,
+                         bke::CurvesGeometry &dst)
+{
+  const OffsetIndices<int> src_knots_by_curve = src.nurbs_custom_knots_by_curve();
+  const int start_offset = dst.nurbs_custom_knots_by_curve()[dst_curve_offset].start();
+  Array<int> dst_offsets(src_curves.size() + 1);
+
+  offset_indices::gather_selected_offsets(
+      src_knots_by_curve, src_curves, start_offset, dst_offsets);
+
+  array_utils::gather_group_to_group(src_knots_by_curve,
+                                     dst_offsets.as_span(),
+                                     src_curves,
+                                     src.nurbs_custom_knots(),
+                                     dst.nurbs_custom_knots_for_write());
+}
+
+void update_custom_knot_modes(const IndexMask &mask,
+                              const KnotsMode mode_for_regular,
+                              const KnotsMode mode_for_cyclic,
+                              bke::CurvesGeometry &curves)
+{
+  const VArray<bool> cyclic = curves.cyclic();
+  MutableSpan<int8_t> knot_modes = curves.nurbs_knots_modes_for_write();
+  mask.foreach_index(GrainSize(512), [&](const int64_t curve) {
+    int8_t &knot_mode = knot_modes[curve];
+    if (knot_mode == NURBS_KNOT_MODE_CUSTOM) {
+      knot_mode = cyclic[curve] ? mode_for_cyclic : mode_for_regular;
+    }
+  });
+  curves.nurbs_custom_knots_update_size();
+}
+
+void copy_custom_knots(const bke::CurvesGeometry &src_curves,
+                       const IndexMask &exclude_curves,
+                       bke::CurvesGeometry &dst_curves)
+{
+  BLI_assert(src_curves.curves_num() == dst_curves.curves_num());
+
+  if (src_curves.nurbs_has_custom_knots()) {
+    /* Ensure excluded curves don't have NURBS_KNOT_MODE_CUSTOM set. */
+    bke::curves::nurbs::update_custom_knot_modes(
+        exclude_curves, NURBS_KNOT_MODE_NORMAL, NURBS_KNOT_MODE_NORMAL, dst_curves);
+    IndexMaskMemory memory;
+    bke::curves::nurbs::gather_custom_knots(
+        src_curves,
+        IndexMask::from_difference(
+            src_curves.nurbs_custom_knot_curves(memory), exclude_curves, memory),
+        0,
+        dst_curves);
+  }
+}
+
+}  // namespace nurbs
 
 }  // namespace blender::bke::curves

@@ -186,6 +186,22 @@ template<typename T> inline std::optional<T> max(const VArray<T> &values)
 
 /**
  * Return the eight corners of a 3D bounding box.
+ * <pre>
+ *
+ * Z  Y
+ * | /
+ * |/
+ * .-----X
+ *     2----------6
+ *    /|         /|
+ *   / |        / |
+ *  1----------5  |
+ *  |  |       |  |
+ *  |  3-------|--7
+ *  | /        | /
+ *  |/         |/
+ *  0----------4
+ * </pre>
  */
 template<typename T>
 inline std::array<VecBase<T, 3>, 8> corners(const Bounds<VecBase<T, 3>> &bounds)
@@ -193,12 +209,12 @@ inline std::array<VecBase<T, 3>, 8> corners(const Bounds<VecBase<T, 3>> &bounds)
   return {
       VecBase<T, 3>{bounds.min[0], bounds.min[1], bounds.min[2]},
       VecBase<T, 3>{bounds.min[0], bounds.min[1], bounds.max[2]},
-      VecBase<T, 3>{bounds.min[0], bounds.max[1], bounds.min[2]},
       VecBase<T, 3>{bounds.min[0], bounds.max[1], bounds.max[2]},
+      VecBase<T, 3>{bounds.min[0], bounds.max[1], bounds.min[2]},
       VecBase<T, 3>{bounds.max[0], bounds.min[1], bounds.min[2]},
       VecBase<T, 3>{bounds.max[0], bounds.min[1], bounds.max[2]},
-      VecBase<T, 3>{bounds.max[0], bounds.max[1], bounds.min[2]},
       VecBase<T, 3>{bounds.max[0], bounds.max[1], bounds.max[2]},
+      VecBase<T, 3>{bounds.max[0], bounds.max[1], bounds.min[2]},
   };
 }
 

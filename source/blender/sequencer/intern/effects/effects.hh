@@ -88,7 +88,7 @@ void get_default_fac_fade(const Scene *scene,
                           float timeline_frame,
                           float *fac);
 
-EffectHandle get_sequence_effect_impl(int strip_type);
+EffectHandle effect_handle_get(int strip_type);
 
 void add_effect_get_handle(EffectHandle &rval);
 void adjustment_effect_get_handle(EffectHandle &rval);

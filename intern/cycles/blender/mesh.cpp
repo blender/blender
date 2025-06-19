@@ -453,7 +453,7 @@ static void attr_create_pointiness(Mesh *mesh,
     visited_edges.insert(v0, v1);
     const float3 co0 = make_float3(positions[v0][0], positions[v0][1], positions[v0][2]);
     const float3 co1 = make_float3(positions[v1][0], positions[v1][1], positions[v1][2]);
-    const float3 edge = normalize(co1 - co0);
+    const float3 edge = safe_normalize(co1 - co0);
     edge_accum[v0] += edge;
     edge_accum[v1] += -edge;
     ++counter[v0];

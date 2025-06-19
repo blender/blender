@@ -1409,7 +1409,7 @@ GHOST_Event *GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type,
 #ifdef WITH_INPUT_IME
 GHOST_Event *GHOST_SystemWin32::processImeEvent(GHOST_TEventType type,
                                                 GHOST_WindowWin32 *window,
-                                                GHOST_TEventImeData *data)
+                                                const GHOST_TEventImeData *data)
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
   return new GHOST_EventIME(getMessageTime(system), type, window, data);

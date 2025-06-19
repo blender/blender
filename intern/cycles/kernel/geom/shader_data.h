@@ -402,8 +402,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
 /* ShaderData setup from point inside volume */
 
 #ifdef __VOLUME__
-ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
-                                                ccl_private ShaderData *ccl_restrict sd,
+ccl_device_inline void shader_setup_from_volume(ccl_private ShaderData *ccl_restrict sd,
                                                 const ccl_private Ray *ccl_restrict ray,
                                                 const int object)
 {

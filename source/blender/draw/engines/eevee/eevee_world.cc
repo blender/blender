@@ -106,8 +106,10 @@ void World::sync()
     has_update = wo_handle.recalc != 0;
   }
 
+  bool wait_ready = true;  // TODO !inst_.is_image_render;
+
   /* Sync volume first since its result can override the surface world. */
-  sync_volume(wo_handle);
+  sync_volume(wo_handle, wait_ready);
 
   ::World *bl_world;
   if (inst_.use_studio_light()) {
@@ -122,6 +124,11 @@ void World::sync()
   }
   else {
     bl_world = scene_world_get();
+  }
+
+  ::World *world_override = DEG_get_evaluated(inst_.depsgraph, inst_.view_layer->world_override);
+  if (world_override) {
+    bl_world = world_override;
   }
 
   bNodeTree *ntree = (bl_world->nodetree && bl_world->use_nodes) ?
@@ -148,7 +155,13 @@ void World::sync()
     inst_.sampling.reset();
   }
 
-  GPUMaterial *gpumat = inst_.shaders.world_shader_get(bl_world, ntree, MAT_PIPE_DEFERRED, false);
+  GPUMaterial *gpumat = inst_.shaders.world_shader_get(
+      bl_world, ntree, MAT_PIPE_DEFERRED, !wait_ready);
+  if (GPU_material_status(gpumat) == GPU_MAT_QUEUED) {
+    is_ready_ = false;
+    return;
+  }
+  is_ready_ = true;
 
   inst_.manager->register_layer_attributes(gpumat);
 
@@ -160,7 +173,7 @@ void World::sync()
   inst_.pipelines.world.sync(gpumat);
 }
 
-void World::sync_volume(const WorldHandle &world_handle)
+void World::sync_volume(const WorldHandle &world_handle, bool wait_ready)
 {
   /* Studio lights have no volume shader. */
   ::World *world = inst_.use_studio_light() ? nullptr : inst_.scene->world;
@@ -170,7 +183,7 @@ void World::sync_volume(const WorldHandle &world_handle)
   /* Only the scene world nodetree can have volume shader. */
   if (world && world->nodetree && world->use_nodes) {
     gpumat = inst_.shaders.world_shader_get(
-        world, world->nodetree, MAT_PIPE_VOLUME_MATERIAL, !inst_.is_image_render);
+        world, world->nodetree, MAT_PIPE_VOLUME_MATERIAL, !wait_ready);
   }
 
   bool had_volume = has_volume_;

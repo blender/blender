@@ -304,7 +304,7 @@ BLI_NOINLINE static void process_leaf_node(const mf::MultiFunction &fn,
           /* The input does not have this leaf node, so just get the value that's used for the
            * entire leaf. The leaf may be in a tile or is inactive in which case the background
            * value is used. */
-          const auto single_value = tree.getValue(any_voxel_in_leaf);
+          const auto &single_value = tree.getValue(any_voxel_in_leaf);
           params.add_readonly_single_input(GPointer(param_cpp_type, &single_value));
         }
       });
@@ -610,6 +610,82 @@ BLI_NOINLINE static void process_tiles(const mf::MultiFunction &fn,
   }
 }
 
+BLI_NOINLINE static void process_background(const mf::MultiFunction &fn,
+                                            const Span<bke::SocketValueVariant *> input_values,
+                                            const Span<const openvdb::GridBase *> input_grids,
+                                            const openvdb::math::Transform &transform,
+                                            MutableSpan<openvdb::GridBase::Ptr> output_grids)
+{
+  AlignedBuffer<160, 8> allocation_buffer;
+  ResourceScope scope;
+  scope.allocator().provide_buffer(allocation_buffer);
+
+  const IndexMask mask(1);
+  mf::ParamsBuilder params(fn, &mask);
+  mf::ContextBuilder context;
+
+  for (const int input_i : input_values.index_range()) {
+    const bke::SocketValueVariant &value_variant = *input_values[input_i];
+    const mf::ParamType param_type = fn.param_type(params.next_param_index());
+    const CPPType &param_cpp_type = param_type.data_type().single_type();
+
+    if (const openvdb::GridBase *grid_base = input_grids[input_i]) {
+      to_typed_grid(*grid_base, [&](const auto &grid) {
+#  ifndef NDEBUG
+        using GridT = std::decay_t<decltype(grid)>;
+        using ValueType = typename GridT::ValueType;
+        BLI_assert(param_cpp_type.size == sizeof(ValueType));
+#  endif
+        const auto &tree = grid.tree();
+        params.add_readonly_single_input(GPointer(param_cpp_type, &tree.background()));
+      });
+      continue;
+    }
+
+    if (value_variant.is_context_dependent_field()) {
+      const fn::GField field = value_variant.get<fn::GField>();
+      const CPPType &type = field.cpp_type();
+      static const openvdb::CoordBBox background_space = openvdb::CoordBBox::inf();
+      bke::TilesFieldContext field_context(transform,
+                                           Span<openvdb::CoordBBox>(&background_space, 1));
+      fn::FieldEvaluator evaluator(field_context, 1);
+      GMutableSpan value(type, scope.allocator().allocate(type), 1);
+      evaluator.add_with_destination(field, value);
+      evaluator.evaluate();
+      params.add_readonly_single_input(GPointer(type, value.data()));
+      continue;
+    }
+
+    params.add_readonly_single_input(value_variant.get_single_ptr());
+  }
+
+  for ([[maybe_unused]] const int output_i : output_grids.index_range()) {
+    const int param_index = input_values.size() + output_i;
+    const mf::ParamType param_type = fn.param_type(param_index);
+    const CPPType &type = param_type.data_type().single_type();
+
+    GMutableSpan value_buffer(type, scope.allocator().allocate(type), 1);
+    params.add_uninitialized_single_output(value_buffer);
+  }
+
+  fn.call_auto(mask, params, context);
+
+  for ([[maybe_unused]] const int output_i : output_grids.index_range()) {
+    const int param_index = input_values.size() + output_i;
+    const GSpan value = params.computed_array(param_index);
+
+    openvdb::GridBase &grid_base = *output_grids[output_i];
+    to_typed_grid(grid_base, [&](auto &grid) {
+      using GridT = std::decay_t<decltype(grid)>;
+      using ValueType = typename GridT::ValueType;
+      auto &tree = grid.tree();
+
+      BLI_assert(value.type().size == sizeof(ValueType));
+      tree.root().setBackground(*static_cast<const ValueType *>(value.data()), true);
+    });
+  }
+}
+
 bool execute_multi_function_on_value_variant__volume_grid(
     const mf::MultiFunction &fn,
     const Span<bke::SocketValueVariant *> input_values,
@@ -707,6 +783,8 @@ bool execute_multi_function_on_value_variant__volume_grid(
       [&](const Span<openvdb::CoordBBox> tiles) {
         process_tiles(fn, input_values, input_grids, output_grids, *transform, tiles);
       });
+
+  process_background(fn, input_values, input_grids, *transform, output_grids);
 
   for (const int i : output_values.index_range()) {
     if (bke::SocketValueVariant *output_value = output_values[i]) {

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:37+0000\n"
 "Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -2088,20 +2088,20 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "Light"
-msgstr "Lumină"
+msgid "Convert"
+msgstr "Convertire"
 
 
 msgid "Add Image"
 msgstr "Adăugare Imagine"
 
 
+msgid "Light"
+msgstr "Lumină"
+
+
 msgid "Apply"
 msgstr "Aplicare"
-
-
-msgid "Convert"
-msgstr "Convertire"
 
 
 msgid "Marker"
@@ -2167,6 +2167,10 @@ msgstr "Copiere"
 
 msgid "World"
 msgstr "Lume"
+
+
+msgid "Starting"
+msgstr "Pornire"
 
 
 msgid "Aspect Correction"
@@ -3635,16 +3639,8 @@ msgid "Mask not found"
 msgstr "Masca nu a fost găsită"
 
 
-msgid "No valid inputs to swap"
-msgstr "Nu există intrări valide de schimbat"
-
-
 msgid "Please select two strips"
 msgstr "Te rog selectează două benzi"
-
-
-msgid "New effect needs more input strips"
-msgstr "Efectul nou are nevoie de mai multe benzi de intrare"
 
 
 msgid "See '%s' in the text editor"
@@ -3807,40 +3803,4 @@ msgstr "Comutați Consola de sistem"
 msgctxt "Operator"
 msgid "Toggle System Console"
 msgstr "Comutați Consola de sistem"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finlandeză (Suomi)"
-
-
-msgid "Catalan (Català)"
-msgstr "Catalan (Català)"
-
-
-msgid "Polish (Polski)"
-msgstr "Poloneză (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Română"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bulgară (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Greacă (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepali (नेपाली)"
-
-
-msgid "Complete"
-msgstr "Complet"
-
-
-msgid "Starting"
-msgstr "Pornire"
 

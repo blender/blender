@@ -49,6 +49,15 @@ class OBJParser {
  private:
   void add_mtl_library(StringRef path);
   void add_default_mtl_library();
+  size_t parse_string_buffer(StringRef &buffer_str,
+                             Vector<std::unique_ptr<Geometry>> &r_all_geometries,
+                             GlobalVertices &r_global_vertices,
+                             Geometry *&curr_geom,
+                             bool &state_shaded_smooth,
+                             std::string &state_group_name,
+                             int &state_group_index,
+                             std::string &state_material_name,
+                             int &state_material_index);
 };
 
 class MTLParser {

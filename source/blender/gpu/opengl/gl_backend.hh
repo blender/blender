@@ -9,9 +9,14 @@
 #pragma once
 
 #include "GPU_capabilities.hh"
+#include "GPU_platform.hh"
+
 #include "gpu_backend.hh"
 
+#include "BLI_threads.h"
 #include "BLI_vector.hh"
+
+#include "gpu_capabilities_private.hh"
 
 #ifdef WITH_RENDERDOC
 #  include "renderdoc_api.hh"
@@ -56,11 +61,11 @@ class GLBackend : public GPUBackend {
 
   void init_resources() override
   {
-    if (GPU_use_parallel_compilation()) {
-      compiler_ = MEM_new<GLShaderCompiler>(__func__);
+    if (GCaps.use_subprocess_shader_compilations) {
+      compiler_ = MEM_new<GLSubprocessShaderCompiler>(__func__);
     }
     else {
-      compiler_ = MEM_new<ShaderCompiler>(__func__);
+      compiler_ = MEM_new<GLShaderCompiler>(__func__);
     }
   };
 

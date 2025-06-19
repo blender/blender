@@ -2462,27 +2462,6 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
 
 namespace blender::bke {
 
-void mesh_sculpt_mask_to_legacy(MutableSpan<CustomDataLayer> vert_layers)
-{
-  bool changed = false;
-  for (CustomDataLayer &layer : vert_layers) {
-    if (StringRef(layer.name) == ".sculpt_mask") {
-      layer.type = CD_PAINT_MASK;
-      layer.name[0] = '\0';
-      changed = true;
-      break;
-    }
-  }
-  if (!changed) {
-    return;
-  }
-  /* #CustomData expects the layers to be sorted in increasing order based on type. */
-  std::stable_sort(
-      vert_layers.begin(),
-      vert_layers.end(),
-      [](const CustomDataLayer &a, const CustomDataLayer &b) { return a.type < b.type; });
-}
-
 void mesh_sculpt_mask_to_generic(Mesh &mesh)
 {
   if (mesh.attributes().contains(".sculpt_mask")) {
@@ -2508,27 +2487,6 @@ void mesh_sculpt_mask_to_generic(Mesh &mesh)
   if (sharing_info != nullptr) {
     sharing_info->remove_user_and_delete_if_last();
   }
-}
-
-void mesh_custom_normals_to_legacy(MutableSpan<CustomDataLayer> corner_layers)
-{
-  bool changed = false;
-  for (CustomDataLayer &layer : corner_layers) {
-    if (StringRef(layer.name) == "custom_normal" && layer.type == CD_PROP_INT16_2D) {
-      layer.type = CD_CUSTOMLOOPNORMAL;
-      layer.name[0] = '\0';
-      changed = true;
-      break;
-    }
-  }
-  if (!changed) {
-    return;
-  }
-  /* #CustomData expects the layers to be sorted in increasing order based on type. */
-  std::stable_sort(
-      corner_layers.begin(),
-      corner_layers.end(),
-      [](const CustomDataLayer &a, const CustomDataLayer &b) { return a.type < b.type; });
 }
 
 void mesh_custom_normals_to_generic(Mesh &mesh)

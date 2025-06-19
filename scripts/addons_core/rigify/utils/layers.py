@@ -140,7 +140,7 @@ def resolve_collection_reference(obj: ArmatureObject, ref: Any, *,
                 ref["name"] = coll.name
             return coll
 
-    # Fallback to lookup by name only if possible
+    # Fall back to lookup by name only if possible
     if name_coll:
         if update:
             ref["uid"] = ensure_collection_uid(name_coll)

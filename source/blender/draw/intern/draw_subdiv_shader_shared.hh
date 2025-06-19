@@ -59,15 +59,6 @@ struct SculptData {
   float mask;
 };
 
-/* Duplicate of #PosNorLoop from the mesh extract CPU code.
- * We do not use a float3 for the position as it will be padded to a float4 which is incompatible
- * with the format. */
-struct PosNorLoop {
-  float x, y, z;
-  float nx, ny, nz;
-  float flag;
-};
-
 /* Mirror of #UVStretchAngle in the C++ code, but using floats until proper data compression
  * is implemented for all subdivision data. */
 struct UVStretchAngle {
@@ -76,12 +67,13 @@ struct UVStretchAngle {
   float uv_angle1;
 };
 
-struct LoopNormal {
-  float nx, ny, nz;
-  float flag;
+struct Position {
+  float x;
+  float y;
+  float z;
 };
 
-struct CustomNormal {
+struct Normal {
   float x;
   float y;
   float z;

@@ -4,7 +4,7 @@
 
 /* Accumulate vertex normals from their adjacent faces.
  *
- * Accumulated normals needs to be finalized `subdiv_normals_finalize_comp.glsl`.
+ * Accumulated normals needs to be finalized `subdiv_vbo_lnor_comp.glsl`.
  * to be stored as loops.
  */
 
@@ -50,8 +50,8 @@ void main()
     /* Compute the face normal using Newell's method. */
     float3 verts[4];
     for (uint j = 0; j < 4; j++) {
-      PosNorLoop vertex_data = pos_nor[start_loop_index + j];
-      verts[j] = subdiv_get_vertex_pos(vertex_data);
+      Position position = positions[start_loop_index + j];
+      verts[j] = subdiv_position_to_float3(position);
     }
 
     float3 face_normal = float3(0.0f);
@@ -80,5 +80,9 @@ void main()
   }
 
   float3 normal = normalize(accumulated_normal);
-  normals[vertex_index] = normal;
+  Normal nor;
+  nor.x = normal.x;
+  nor.y = normal.y;
+  nor.z = normal.z;
+  vert_normals[vertex_index] = nor;
 }

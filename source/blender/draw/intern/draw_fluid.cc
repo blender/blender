@@ -551,7 +551,7 @@ void DRW_fluid_ensure_range_field(FluidModifierData *fmd)
 #endif /* WITH_FLUID */
 }
 
-void DRW_smoke_init(DRWData *drw_data)
+void DRW_smoke_begin_sync(DRWData *drw_data)
 {
   BLI_listbase_clear(&drw_data->smoke_textures);
 }

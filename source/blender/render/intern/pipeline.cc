@@ -715,7 +715,7 @@ void RE_FreeUnusedGPUResources()
 
       /* Detect if scene is using GPU compositing, and if either a node editor is
        * showing the nodes, or an image editor is showing the render result or viewer. */
-      if (!(scene->use_nodes && scene->nodetree &&
+      if (!(scene->compositing_node_group &&
             scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU))
       {
         continue;
@@ -727,7 +727,7 @@ void RE_FreeUnusedGPUResources()
 
         if (space.spacetype == SPACE_NODE) {
           const SpaceNode &snode = reinterpret_cast<const SpaceNode &>(space);
-          if (snode.nodetree == scene->nodetree) {
+          if (snode.nodetree == scene->compositing_node_group) {
             do_free = false;
           }
         }
@@ -939,8 +939,6 @@ void RE_InitState(Render *re,
   BLI_rw_mutex_unlock(&re->resultmutex);
 
   RE_init_threadcount(re);
-
-  RE_point_density_fix_linking();
 }
 
 void RE_display_init_cb(Render *re, void *handle, void (*f)(void *handle, RenderResult *rr))
@@ -1219,12 +1217,9 @@ static Scene *get_scene_referenced_by_node(const bNode *node)
  * be rendered. */
 static bool compositor_needs_render(Scene *scene)
 {
-  bNodeTree *ntree = scene->nodetree;
+  bNodeTree *ntree = scene->compositing_node_group;
 
   if (ntree == nullptr) {
-    return true;
-  }
-  if (scene->use_nodes == false) {
     return true;
   }
   if ((scene->r.scemode & R_DOCOMP) == 0) {
@@ -1267,14 +1262,14 @@ static bool node_tree_has_composite_output(const bNodeTree *node_tree)
 /* Render all scenes references by the compositor of the given render's scene. */
 static void do_render_compositor_scenes(Render *re)
 {
-  if (re->scene->nodetree == nullptr) {
+  if (re->scene->compositing_node_group == nullptr) {
     return;
   }
 
   /* For each node that requires a scene we do a full render. Results are stored in a way
    * compositor will find it. */
   blender::Set<Scene *> scenes_rendered;
-  for (bNode *node : re->scene->nodetree->all_nodes()) {
+  for (bNode *node : re->scene->compositing_node_group->all_nodes()) {
     Scene *node_scene = get_scene_referenced_by_node(node);
     if (!node_scene) {
       continue;
@@ -1296,7 +1291,7 @@ static void do_render_compositor_scenes(Render *re)
 
     scenes_rendered.add_new(node_scene);
     do_render_compositor_scene(re, node_scene, re->scene->r.cfra);
-    node->typeinfo->updatefunc(re->scene->nodetree, node);
+    node->typeinfo->updatefunc(re->scene->compositing_node_group, node);
   }
 
   /* If another scene was rendered, switch back to the current scene. */
@@ -1320,7 +1315,7 @@ static void render_compositor_stats(void *arg, const char *str)
  * The result will be output into a compositing render layer in the render result. */
 static void do_render_compositor(Render *re)
 {
-  bNodeTree *ntree = re->pipeline_scene_eval->nodetree;
+  bNodeTree *ntree = re->pipeline_scene_eval->compositing_node_group;
   bool update_newframe = false;
 
   if (compositor_needs_render(re->pipeline_scene_eval)) {
@@ -1349,7 +1344,7 @@ static void do_render_compositor(Render *re)
 
     /* The compositor does not have an output, skip writing the render result. See R_SKIP_WRITE for
      * more information. */
-    if (!node_tree_has_composite_output(re->pipeline_scene_eval->nodetree)) {
+    if (!node_tree_has_composite_output(re->pipeline_scene_eval->compositing_node_group)) {
       re->flag |= R_SKIP_WRITE;
     }
   }
@@ -1362,7 +1357,7 @@ static void do_render_compositor(Render *re)
   }
 
   if (!re->test_break()) {
-    if (ntree && re->scene->use_nodes && re->r.scemode & R_DOCOMP) {
+    if (ntree && re->r.scemode & R_DOCOMP) {
       /* checks if there are render-result nodes that need scene */
       if ((re->r.scemode & R_SINGLE_LAYER) == 0) {
         do_render_compositor_scenes(re);
@@ -1680,8 +1675,8 @@ static bool check_valid_compositing_camera(Scene *scene,
                                            Object *camera_override,
                                            ReportList *reports)
 {
-  if (scene->r.scemode & R_DOCOMP && scene->use_nodes) {
-    for (bNode *node : scene->nodetree->all_nodes()) {
+  if (scene->r.scemode & R_DOCOMP && scene->compositing_node_group) {
+    for (bNode *node : scene->compositing_node_group->all_nodes()) {
       if (node->type_legacy == CMP_NODE_R_LAYERS && !node->is_muted()) {
         Scene *sce = node->id ? (Scene *)node->id : scene;
         if (sce->camera == nullptr) {
@@ -1811,7 +1806,7 @@ static bool node_tree_has_any_compositor_output(const bNodeTree *ntree)
 
 static int check_compositor_output(Scene *scene)
 {
-  return node_tree_has_any_compositor_output(scene->nodetree);
+  return node_tree_has_any_compositor_output(scene->compositing_node_group);
 }
 
 /* Identify if the compositor can run on the GPU. Currently, this only checks if the compositor is
@@ -1861,13 +1856,8 @@ bool RE_is_rendering_allowed(Scene *scene,
       return false;
     }
   }
-  else if ((scemode & R_DOCOMP) && scene->use_nodes) {
+  else if (scemode & R_DOCOMP && scene->compositing_node_group) {
     /* Compositor */
-    if (!scene->nodetree) {
-      BKE_report(reports, RPT_ERROR, "No node tree in scene");
-      return false;
-    }
-
     if (!check_compositor_output(scene)) {
       BKE_report(reports, RPT_ERROR, "No render output node in scene");
       return false;
@@ -2097,8 +2087,8 @@ void RE_RenderFrame(Render *re,
       else {
         char filepath_override[FILE_MAX];
         const char *relbase = BKE_main_blendfile_path(bmain);
-        const path_templates::VariableMap template_variables = BKE_build_template_variables(
-            relbase, &scene->r);
+        const path_templates::VariableMap template_variables =
+            BKE_build_template_variables_for_render_path(&scene->r);
         const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
             filepath_override,
             rd.pic,
@@ -2164,7 +2154,7 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, const bool
       char scene_engine[32];
       STRNCPY(scene_engine, re->r.engine);
       if (use_eevee_for_freestyle_render(re)) {
-        change_renderdata_engine(re, RE_engine_id_BLENDER_EEVEE_NEXT);
+        change_renderdata_engine(re, RE_engine_id_BLENDER_EEVEE);
       }
 
       RE_engine_render(re, false);
@@ -2329,8 +2319,8 @@ static bool do_write_image_or_movie(
       }
       else {
         const char *relbase = BKE_main_blendfile_path(bmain);
-        const path_templates::VariableMap template_variables = BKE_build_template_variables(
-            relbase, &scene->r);
+        const path_templates::VariableMap template_variables =
+            BKE_build_template_variables_for_render_path(&scene->r);
         const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
             filepath,
             scene->r.pic,
@@ -2531,9 +2521,8 @@ void RE_RenderAnim(Render *re,
 
     /* Touch/NoOverwrite options are only valid for image's */
     if (is_movie == false && do_write_file) {
-      const char *relbase = BKE_main_blendfile_path(bmain);
-      const path_templates::VariableMap template_variables = BKE_build_template_variables(relbase,
-                                                                                          &rd);
+      const path_templates::VariableMap template_variables =
+          BKE_build_template_variables_for_render_path(&rd);
       const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
           filepath,
           rd.pic,

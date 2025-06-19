@@ -954,6 +954,42 @@ TEST(array_store, RLE_Uniform)
   EXPECT_EQ(data_pattern_enc_len, sizeof(data_uniform) + sizeof(size_t[4]));
 }
 
+TEST(array_store, RLE_Alignment)
+{
+  /* Use a size large enough to detect usable spans
+   * but not so large as to make the tests slow. */
+  const size_t data_len_max = sizeof(void *) * 8;
+  uint8_t *data_pattern = MEM_calloc_arrayN<uint8_t>(data_len_max, __func__);
+  for (size_t i = 0; i < data_len_max; i += 2) {
+    data_pattern[i] = 1;
+  }
+
+  /* Use allocations memory checking tools will report errors on invalid buffer read/writes.
+   * It's important to offset the start of the array so as to ensure searching the array
+   * is performed at different memory alignments.
+   * It's also important to use `malloc` not `MEM_mallocN` since these hide out of bounds reads. */
+  for (int data_len = 1; data_len < data_len_max; data_len += 1) {
+    uint8_t *data = static_cast<uint8_t *>(malloc(data_len));
+    for (size_t offset = 0; offset < sizeof(void *); offset += 1) {
+      uint8_t *data_offset = data + offset;
+      if (data_len <= offset) {
+        continue;
+      }
+      const size_t data_offset_len = data_len - offset;
+      memset(data, 0, data_offset_len);
+
+      /* Uniform data. */
+      EXPECT_TRUE(rle_encode_decode_test(data_offset, data_offset_len, nullptr));
+
+      /* Non-uniform data. */
+      memcpy(data_offset, data_pattern, data_offset_len);
+      EXPECT_TRUE(rle_encode_decode_test(data_offset, data_offset_len, nullptr));
+    }
+    free(data);
+  }
+  MEM_freeN(data_pattern);
+}
+
 TEST(array_store, RLE_RandomSpan)
 {
   /* Enable if there is suspicion of rare edge cases causing problems. */

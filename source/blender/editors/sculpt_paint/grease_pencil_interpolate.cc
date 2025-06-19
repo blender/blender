@@ -499,7 +499,7 @@ static void assign_samples_to_segments(const int num_dst_points,
     }
   }
   else {
-    /* If source segment lengths are zero use uniform mapping by index as fallback. */
+    /* If source segment lengths are zero use uniform mapping by index as a fallback. */
     const float index_to_free_sample_count = math::safe_divide(float(num_free_samples),
                                                                float(num_src_segments));
     int samples_start = 0;

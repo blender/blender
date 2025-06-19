@@ -10,6 +10,7 @@
 #  include "BLI_fileops.hh"
 #  include "BLI_hash.hh"
 #  include "BLI_path_utils.hh"
+#  include "BLI_string.h"
 #  include "BLI_threads.h"
 #  include "CLG_log.h"
 #  include "GHOST_C-api.h"
@@ -131,9 +132,7 @@ static bool validate_binary(void *binary)
   return status;
 }
 
-}  // namespace blender::gpu
-
-static std::string cache_dir_get()
+std::string GL_shader_cache_dir_get()
 {
   static char tmp_dir_buffer[1024];
   BKE_appdir_folder_caches(tmp_dir_buffer, sizeof(tmp_dir_buffer));
@@ -143,6 +142,8 @@ static std::string cache_dir_get()
 
   return cache_dir;
 }
+
+}  // namespace blender::gpu
 
 void GPU_compilation_subprocess_run(const char *subprocess_name)
 {
@@ -187,7 +188,7 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
   GPUContext *gpu_context = GPU_context_create(nullptr, ghost_context);
   GPU_init();
 
-  std::string cache_dir = cache_dir_get();
+  std::string cache_dir = GL_shader_cache_dir_get();
 
   while (true) {
     /* Process events to avoid crashes on Wayland.
@@ -243,6 +244,14 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
 
     /* TODO: This should lock the files? */
     if (BLI_exists(cache_path.c_str())) {
+      {
+        /* Store the source hash in the shared memory.
+         * If the subprocess crashes, the main process will delete the cache file. */
+        std::string source_hash = "SOURCE_HASH:" + hash_str;
+        BLI_strncpy(reinterpret_cast<char *>(shared_mem.get_data()),
+                    source_hash.c_str(),
+                    source_hash.size() + 1);
+      }
       /* Prevent old cache files from being deleted if they're still being used. */
       BLI_file_touch(cache_path.c_str());
       /* Read cached binary. */
@@ -293,7 +302,7 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
 namespace blender::gpu {
 void GL_shader_cache_dir_clear_old()
 {
-  std::string cache_dir = cache_dir_get();
+  std::string cache_dir = GL_shader_cache_dir_get();
 
   direntry *entries = nullptr;
   uint32_t dir_len = BLI_filelist_dir_contents(cache_dir.c_str(), &entries);

@@ -91,13 +91,6 @@ void gpencil_point_to_xy(const GP_SpaceConversion *gsc,
 /* Copy/Paste Buffer --------------------------------- */
 /* `gpencil_edit.cc` */
 
-/**
- * list of #bGPDstroke instances
- *
- * \note is exposed within the editors/gpencil module so that other tools can use it too.
- */
-extern ListBase gpencil_strokes_copypastebuf;
-
 /* ***************************************************** */
 /* Operator Defines */
 

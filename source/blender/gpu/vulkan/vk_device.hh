@@ -60,6 +60,11 @@ struct VKExtensions {
   bool external_memory = false;
 
   /**
+   * Does the device support VK_EXT_descriptor_buffer.
+   */
+  bool descriptor_buffer = false;
+
+  /**
    * Does the device support logic ops.
    */
   bool logic_ops = false;
@@ -97,7 +102,7 @@ class VKThreadData : public NonCopyable, NonMovable {
    * in flight used by GHOST. Therefore, this constant *must* always
    * match GHOST_ContextVK's GHOST_FRAMES_IN_FLIGHT.
    */
-  static constexpr uint32_t resource_pools_count = 4;
+  static constexpr uint32_t resource_pools_count = 5;
 
  public:
   /** Thread ID this instance belongs to. */
@@ -157,18 +162,8 @@ class VKDevice : public NonCopyable {
   VkQueue vk_queue_ = VK_NULL_HANDLE;
   std::mutex *queue_mutex_ = nullptr;
 
-  /**
-   * Lifetime of the device.
-   *
-   * Used for de-initialization of the command builder thread.
-   */
-  enum Lifetime {
-    UNINITIALIZED,
-    RUNNING,
-    DEINITIALIZING,
-    DESTROYED,
-  };
-  Lifetime lifetime = Lifetime::UNINITIALIZED;
+  bool is_initialized_ = false;
+
   /**
    * Task pool for render graph submission.
    *
@@ -184,7 +179,12 @@ class VKDevice : public NonCopyable {
   ThreadQueue *submitted_render_graphs_ = nullptr;
   ThreadQueue *unused_render_graphs_ = nullptr;
   VkSemaphore vk_timeline_semaphore_ = VK_NULL_HANDLE;
-  std::atomic<uint_least64_t> timeline_value_ = 0;
+  /**
+   * Last used timeline value.
+   *
+   * Must be externally synced by orphaned_data.mutex_get()
+   */
+  TimelineValue timeline_value_ = 0;
 
   VKSamplers samplers_;
   VKDescriptorSetLayouts descriptor_set_layouts_;
@@ -208,6 +208,8 @@ class VKDevice : public NonCopyable {
   VkPhysicalDeviceDriverProperties vk_physical_device_driver_properties_ = {};
   VkPhysicalDeviceIDProperties vk_physical_device_id_properties_ = {};
   VkPhysicalDeviceMemoryProperties vk_physical_device_memory_properties_ = {};
+  VkPhysicalDeviceDescriptorBufferPropertiesEXT vk_physical_device_descriptor_buffer_properties_ =
+      {};
   /** Features support. */
   VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
   VkPhysicalDeviceVulkan11Features vk_physical_device_vulkan_11_features_ = {};
@@ -258,6 +260,14 @@ class VKDevice : public NonCopyable {
     /* Extension: VK_KHR_external_memory_win32 */
     PFN_vkGetMemoryWin32HandleKHR vkGetMemoryWin32Handle = nullptr;
 #endif
+
+    /* Extension: VK_EXT_descriptor_buffer */
+    PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSize = nullptr;
+    PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffset = nullptr;
+    PFN_vkGetDescriptorEXT vkGetDescriptor = nullptr;
+    PFN_vkCmdBindDescriptorBuffersEXT vkCmdBindDescriptorBuffers = nullptr;
+    PFN_vkCmdSetDescriptorBufferOffsetsEXT vkCmdSetDescriptorBufferOffsets = nullptr;
+
   } functions;
 
   struct {
@@ -286,6 +296,12 @@ class VKDevice : public NonCopyable {
   const VkPhysicalDeviceIDProperties &physical_device_id_properties_get() const
   {
     return vk_physical_device_id_properties_;
+  }
+
+  inline const VkPhysicalDeviceDescriptorBufferPropertiesEXT &
+  physical_device_descriptor_buffer_properties_get() const
+  {
+    return vk_physical_device_descriptor_buffer_properties_;
   }
 
   const VkPhysicalDeviceFeatures &physical_device_features_get() const
@@ -343,10 +359,13 @@ class VKDevice : public NonCopyable {
     return samplers_;
   }
 
-  bool is_initialized() const;
   void init(void *ghost_context);
   void reinit();
   void deinit();
+  bool is_initialized() const
+  {
+    return is_initialized_;
+  }
 
   eGPUDeviceType device_type() const;
   eGPUDriverType driver_type() const;
@@ -365,7 +384,7 @@ class VKDevice : public NonCopyable {
   {
     return workarounds_;
   }
-  const VKExtensions &extensions_get() const
+  inline const VKExtensions &extensions_get() const
   {
     return extensions_;
   }
@@ -391,6 +410,7 @@ class VKDevice : public NonCopyable {
                                     VkSemaphore signal_semaphore,
                                     VkFence signal_fence);
   void wait_for_timeline(TimelineValue timeline);
+  void wait_queue_idle();
 
   /**
    * Retrieve the last finished submission timeline.

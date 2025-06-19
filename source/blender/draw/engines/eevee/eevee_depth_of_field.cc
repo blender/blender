@@ -48,7 +48,10 @@ void DepthOfField::init()
   const ::Camera *camera = (camera_object_eval && camera_object_eval->type == OB_CAMERA) ?
                                reinterpret_cast<const ::Camera *>(camera_object_eval->data) :
                                nullptr;
-  if (camera == nullptr) {
+
+  enabled_ = camera && (camera->dof.flag & CAM_DOF_ENABLED) != 0;
+
+  if (enabled_ == false) {
     /* Set to invalid value for update detection */
     data_.scatter_color_threshold = -1.0f;
     return;
@@ -82,7 +85,7 @@ void DepthOfField::sync()
         " - Green: Foreground\n");
   }
 
-  if (camera_data == nullptr || (camera_data->dof.flag & CAM_DOF_ENABLED) == 0) {
+  if (enabled_ == false) {
     jitter_radius_ = 0.0f;
     fx_radius_ = 0.0f;
     return;

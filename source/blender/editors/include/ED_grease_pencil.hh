@@ -175,6 +175,7 @@ class DrawingPlacement {
   /**
    * Projects a screen space coordinate to the local drawing space.
    */
+  float3 project(float2 co, bool &clipped) const;
   float3 project(float2 co) const;
   void project(Span<float2> src, MutableSpan<float3> dst) const;
   /**
@@ -431,6 +432,7 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
                                                   int layer_index,
                                                   bke::AttrDomain selection_domain,
                                                   IndexMaskMemory &memory);
+bool has_editable_layer(const GreasePencil &grease_pencil);
 
 void create_blank(Main &bmain, Object &object, int frame_number);
 void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, int frame_number);
@@ -1006,5 +1008,10 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
                                    int eval_frame,
                                    const IndexMask &orig_layers,
                                    GreasePencil &orig_grease_pencil);
+
+/**
+ * Remove all the strokes that are marked as fill guides.
+ */
+bool remove_fill_guides(bke::CurvesGeometry &curves);
 
 }  // namespace blender::ed::greasepencil

@@ -26,10 +26,10 @@ if(WIN32)
     list(APPEND USD_PLATFORM_FLAGS -DOPENVDB_LIBRARY=${LIBDIR}/openvdb/lib/openvdb_d.lib)
   endif()
 elseif(UNIX)
-  # Workaround USD not linking correctly with static Python library, where it would embed
-  # part of the interpret in the USD library. Allow undefined Python symbols and replace
-  # Python library with TBB so it doesn't complain about missing library.
   set(USD_PLATFORM_FLAGS
+    # Workaround USD not linking correctly with static Python library, where it would embed
+    # part of the interpret in the USD library. Allow undefined Python symbols and replace
+    # Python library with TBB so it doesn't complain about missing library.
     # NOTE(@ideasman42): Setting the root is needed, without this an older version of Python
     # is detected from the system. Referencing the root-directory may remove the need
     # to explicitly set the `PYTHON_INCLUDE_DIR` & `PYTHON_LIBRARY`.
@@ -53,6 +53,10 @@ elseif(UNIX)
   endif()
 endif()
 
+if(NOT APPLE)
+  list(APPEND USD_PLATFORM_FLAGS -DPXR_ENABLE_VULKAN_SUPPORT=ON)
+endif()
+
 # Custom namespace to prevent conflicts when importing both bpy module
 # and usd-core pip packages with the same version but different libs.
 string(REPLACE "." "_" USD_NAMESPACE "pxrBlender_v${USD_VERSION}")
@@ -61,7 +65,6 @@ set(USD_EXTRA_ARGS
   ${USD_PLATFORM_FLAGS}
   -DOPENSUBDIV_ROOT_DIR=${LIBDIR}/opensubdiv
   -DOpenImageIO_ROOT=${LIBDIR}/openimageio
-  -DVulkan_ROOT=${LIBDIR}/vulkan_loader
   -DMaterialX_ROOT=${LIBDIR}/materialx
   -DOPENEXR_LIBRARIES=${LIBDIR}/imath/lib/${LIBPREFIX}Imath${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}
   -DOPENEXR_INCLUDE_DIR=${LIBDIR}/imath/include
@@ -96,9 +99,6 @@ set(USD_EXTRA_ARGS
   # USD 22.03 does not support OCIO 2.x
   # Tracking ticket https://github.com/PixarAnimationStudios/USD/issues/1386
   -DPXR_BUILD_OPENCOLORIO_PLUGIN=OFF
-  # We'd like Vulkan support on, but it has trouble not finding the SDK since we have
-  # the invididual components in the deps builder.
-  -DPXR_ENABLE_VULKAN_SUPPORT=OFF
   -DPXR_ENABLE_PTEX_SUPPORT=OFF
   -DPXR_BUILD_USD_TOOLS=OFF
   -DCMAKE_DEBUG_POSTFIX=_d
@@ -107,6 +107,12 @@ set(USD_EXTRA_ARGS
   -DTBB_LIBRARIES=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
   -DTBB_LIBRARIES_DEBUG=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
   -DTBB_LIBRARIES_RELEASE=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
+  -DVulkanHeaders_ROOT=${LIBDIR}/vulkan_headers
+  -DVulkanLoader_ROOT=${LIBDIR}/vulkan_loader
+  -DVulkanUtilityLibraries_ROOT=${LIBDIR}/vulkan_headers
+  -DVulkanMemoryAllocator_ROOT=${LIBDIR}/vulkan_memory_allocator
+  -DShaderC_ROOT=${LIBDIR}/shaderc
+  -DSpirvReflect_ROOT=${LIBDIR}/spirv_reflect
 )
 
 # Ray: I'm not sure if the other platforms relied on this or not but this is no longer
@@ -146,7 +152,13 @@ ExternalProject_Add(external_usd
       ${PATCH_DIR}/usd_forward_compat.diff &&
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/usd/src/external_usd <
-      ${PATCH_DIR}/usd_noboost.diff
+      ${PATCH_DIR}/usd_noboost.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_no_vulkan_sdk.diff &&
+    ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/usd/src/external_usd <
+      ${PATCH_DIR}/usd_storm_vulkan.diff
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd
     -Wno-dev
@@ -163,6 +175,12 @@ add_dependencies(
   external_python
   external_openimageio
   external_materialx
+  external_vulkan_loader
+  external_vulkan_headers
+  external_vulkan_memory_allocator
+  external_vulkan_utility_libraries
+  external_shaderc
+  external_spirv_reflect
   openvdb
 )
 

@@ -1526,7 +1526,7 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
   const float uv_center_x_bottom = cap_ends ? 0.75f : 0.5f;
   const float uv_radius = cap_ends ? 0.24f : 0.5f;
 
-  /* Using the opposite's end uv_scale as fallback allows us to handle 'real cone' case. */
+  /* Using the opposite's end uv_scale as a fallback allows us to handle 'real cone' case. */
   const float uv_scale_top = (radius_top != 0.0f) ?
                                  (uv_radius / radius_top) :
                                  ((radius_bottom != 0.0f) ? (uv_radius / radius_bottom) :

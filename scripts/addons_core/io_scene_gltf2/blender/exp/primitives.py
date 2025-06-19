@@ -304,14 +304,26 @@ def __gather_extensions(blender_mesh,
 
     # Material idx is the slot idx. Retrieve associated variant, if any
     mapping = []
+    variants_idx_in_use = []
     for i in [v for v in blender_mesh.gltf2_variant_mesh_data if v.material_slot_index == material_idx]:
         variants = []
         for idx, v in enumerate(i.variants):
             if v.variant.variant_idx in [o.variant.variant_idx for o in i.variants[:idx]]:
                 # Avoid duplicates
                 continue
+
+            # Avoid duplicates from a previous variant (in mapping list)
+            # This happen only before fix of #2542
+            if v.variant.variant_idx in variants_idx_in_use:
+                # Avoid duplicates
+                export_settings['log'].warning(
+                    'Variant ' + str(v.variant.variant_idx) +
+                    ' has 2 differents materials for a single slot. Skipping it.')
+                continue
+
             vari = ext_variants.gather_variant(v.variant.variant_idx, export_settings)
             if vari is not None:
+                variants_idx_in_use.append(v.variant.variant_idx)
                 variant_extension = gltf2_io_extensions.ChildOfRootExtension(
                     name="KHR_materials_variants",
                     path=["variants"],

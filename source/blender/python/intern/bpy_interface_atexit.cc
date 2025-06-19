@@ -33,7 +33,7 @@ static PyObject *bpy_atexit(PyObject * /*self*/, PyObject * /*args*/, PyObject *
   bContext *C = BPY_context_get();
   /* As Python requested the exit, it handles shutting itself down. */
   const bool do_python_exit = false;
-  /* User actions such as saving the session, preferences, recent-files for e.g.
+  /* User actions such as saving the session, preferences, and recent-files
    * should be skipped because an explicit call to exit is more likely to be used as part of
    * automated processes shouldn't impact the users session in the future. */
   const bool do_user_exit_actions = false;

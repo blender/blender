@@ -58,7 +58,7 @@ void BKE_sound_reset_runtime(struct bSound *sound);
 void BKE_sound_load(struct Main *bmain, struct bSound *sound);
 void BKE_sound_ensure_loaded(struct Main *bmain, struct bSound *sound);
 
-/* Matches AUD_Channels. */
+/** Matches AUD_Channels. */
 typedef enum eSoundChannels {
   SOUND_CHANNELS_INVALID = 0,
   SOUND_CHANNELS_MONO = 1,
@@ -84,12 +84,18 @@ typedef struct SoundStreamInfo {
   double start;
 } SoundStreamInfo;
 
-/* Get information about given sound. Returns truth on success., false if sound can not be loaded
- * or if the codes is not supported. */
+/**
+ * Get information about given sound.
+ *
+ * \return true on success, false if sound can not be loaded or if the codes is not supported.
+ */
 bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *sound_info);
 
-/* Get information about given sound. Returns truth on success., false if sound can not be loaded
- * or if the codes is not supported. */
+/**
+ * Get information about given sound.
+ *
+ * \return on success, false if sound can not be loaded or if the codes is not supported.
+ */
 bool BKE_sound_stream_info_get(struct Main *main,
                                const char *filepath,
                                int stream,
@@ -140,11 +146,13 @@ void BKE_sound_move_scene_sound(const struct Scene *scene,
                                 double audio_offset);
 void BKE_sound_move_scene_sound_defaults(struct Scene *scene, struct Strip *sequence);
 
-/* Join the Sequence with the structure in Audaspace, the second parameter is a bSound */
+/** Join the Sequence with the structure in Audaspace, the second parameter is a #bSound. */
 void BKE_sound_update_scene_sound(void *handle, struct bSound *sound);
 
-/* Join the Sequence with the structure in Audaspace, the second parameter is the AUD_Sound created
- * in Audaspace previously
+/**
+ * Join the Sequence with the structure in Audaspace,
+ *
+ * \param sound_handle: the `AUD_Sound` created in Audaspace previously.
  */
 void BKE_sound_update_sequence_handle(void *handle, void *sound_handle);
 

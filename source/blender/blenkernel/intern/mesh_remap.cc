@@ -1620,7 +1620,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               w /= MREMAP_RAYCAST_APPROXIMATE_FAC;
             }
             if (n == -1) {
-              /* Fallback to 'nearest' hit here, loops usually comes in 'face group', not good to
+              /* Fall back to 'nearest' hit here, loops usually comes in 'face group', not good to
                * have only part of one dest face's loops to map to source.
                * Note that since we give this a null weight, if whole weight for a given face
                * is null, it means none of its loop mapped to this source island,

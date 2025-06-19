@@ -8,7 +8,7 @@ void node_bsdf_sheen(float4 color, float roughness, float3 N, float weight, out 
   roughness = saturate(roughness);
   N = safe_normalize(N);
 
-  /* Fallback to diffuse. */
+  /* Fall back to diffuse. */
   ClosureDiffuse diffuse_data;
   diffuse_data.weight = weight;
   diffuse_data.color = color.rgb;

@@ -476,8 +476,6 @@ option(WITH_FRIBIDI "Enable features relying on fribidi" OFF)
 option(WITH_HARFBUZZ "Enable features relying on harfbuzz" OFF)
 
 # 3D format support
-# Disable opencollada when we don't have precompiled libs
-option(WITH_OPENCOLLADA "Enable OpenCollada Support (http://www.opencollada.org)" ON)
 option(WITH_IO_WAVEFRONT_OBJ "Enable Wavefront-OBJ 3D file format support (*.obj)" ON)
 option(WITH_IO_PLY "Enable PLY 3D file format support (*.ply)" ON)
 option(WITH_IO_STL "Enable STL 3D file format support (*.stl)" ON)
@@ -740,6 +738,8 @@ This option is only for debugging purposes."
   # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
   # The supported devices can be retrieved from `ocloc` output when running
   # `ocloc compile --help`.
+  # If you have completed optimization work and now want to enable AoT for new Intel devices,
+  # update the optimization status in OneapiDevice::architecture_information.
   set(CYCLES_ONEAPI_INTEL_BINARIES_ARCH dg2 mtl lnl bmg CACHE STRING "\
 oneAPI Intel GPU architectures to build binaries for"
   )
@@ -989,7 +989,7 @@ endif()
 
 option(WITH_STRSIZE_DEBUG "\
 Ensure string operations on fixed size buffers \
-(works well with with \"WITH_COMPILER_ASAN\" & valgrind to detect incorrect buffer size arguments)"
+(works well with \"WITH_COMPILER_ASAN\" & valgrind to detect incorrect buffer size arguments)"
   OFF)
 mark_as_advanced(WITH_STRSIZE_DEBUG)
 
@@ -1631,32 +1631,16 @@ if(FIRST_RUN)
   endif()
 endif()
 
-# set the endian define
-if(MSVC)
-  # For some reason this fails on MSVC.
-  add_definitions(-D__LITTLE_ENDIAN__)
-
-  # OSX-Note: as we do cross-compiling with specific set architecture,
-  # endianness-detection and auto-setting is counterproductive
-  # so we just set endianness according CMAKE_OSX_ARCHITECTURES
-
-elseif(CMAKE_OSX_ARCHITECTURES MATCHES i386 OR
-       CMAKE_OSX_ARCHITECTURES MATCHES x86_64 OR
-       CMAKE_OSX_ARCHITECTURES MATCHES arm64)
-  add_definitions(-D__LITTLE_ENDIAN__)
-elseif(CMAKE_OSX_ARCHITECTURES MATCHES ppc OR CMAKE_OSX_ARCHITECTURES MATCHES ppc64)
-  add_definitions(-D__BIG_ENDIAN__)
-
+# Test endianness and set the endian define.
+include(TestBigEndian)
+test_big_endian(_SYSTEM_BIG_ENDIAN)
+if(_SYSTEM_BIG_ENDIAN)
+  message(FATAL_ERROR "Blender does not support building on Big Endian systems" )
 else()
-  include(TestBigEndian)
-  test_big_endian(_SYSTEM_BIG_ENDIAN)
-  if(_SYSTEM_BIG_ENDIAN)
-    add_definitions(-D__BIG_ENDIAN__)
-  else()
-    add_definitions(-D__LITTLE_ENDIAN__)
-  endif()
-  unset(_SYSTEM_BIG_ENDIAN)
+  add_definitions(-D__LITTLE_ENDIAN__)
 endif()
+unset(_SYSTEM_BIG_ENDIAN)
+
 if(WITH_IMAGE_OPENJPEG)
   # Special handling of Windows platform where openjpeg is always static.
   if(WIN32)
@@ -2777,7 +2761,6 @@ if(FIRST_RUN)
   info_cfg_option(WITH_INPUT_IME)
   info_cfg_option(WITH_INTERNATIONAL)
   info_cfg_option(WITH_MANIFOLD)
-  info_cfg_option(WITH_OPENCOLLADA)
   info_cfg_option(WITH_OPENCOLORIO)
   info_cfg_option(WITH_OPENIMAGEDENOISE)
   info_cfg_option(WITH_OPENSUBDIV)

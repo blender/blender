@@ -13,10 +13,6 @@
 #include "BLI_fileops.hh"
 #include "BLI_filereader.h"
 
-#ifdef __BIG_ENDIAN__
-#  include "BLI_endian_switch.h"
-#endif
-
 #include "MEM_guardedalloc.h"
 
 struct ZstdReader {
@@ -43,9 +39,8 @@ static bool zstd_read_u32(FileReader *base, uint32_t *val)
   if (base->read(base, val, sizeof(uint32_t)) != sizeof(uint32_t)) {
     return false;
   }
-#ifdef __BIG_ENDIAN__
-  BLI_endian_switch_uint32(val);
-#endif
+  /* NOTE: this is endianness-sensitive.
+   * `val` would need to be switched on a big endian system. */
   return true;
 }
 

@@ -120,8 +120,9 @@ class ANIM_OT_keying_set_export(Operator):
             elif ksp.id.bl_rna.identifier.startswith("CompositorNodeTree"):
                 # Find compositor node-tree using this node tree.
                 for scene in bpy.data.scenes:
-                    if scene.node_tree == ksp.id:
-                        id_bpy_path = "bpy.data.scenes[\"{:s}\"].node_tree".format(escape_identifier(scene.name))
+                    if scene.compositing_node_group == ksp.id:
+                        id_bpy_path = "bpy.data.scenes[\"{:s}\"].compositing_node_group".format(
+                            escape_identifier(scene.name))
                         break
                 else:
                     self.report(
@@ -500,7 +501,7 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
 
             # Anything else:
             case _:
-                self.report({'ERROR'}, "Cannot do anything in mode {!r}".format(context.mode))
+                self.report({'ERROR'}, rpt_("Cannot do anything in mode {!r}").format(context.mode))
                 return {'CANCELLED'}
 
         if not bone_source:

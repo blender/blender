@@ -57,7 +57,6 @@
 
 /* `inittab` initialization functions. */
 #include "../bmesh/bmesh_py_api.hh"
-#include "../generic/bgl.hh"
 #include "../generic/bl_math_py_api.hh"
 #include "../generic/blf_py_api.hh"
 #include "../generic/idprop_py_api.hh"
@@ -272,7 +271,6 @@ static _inittab bpy_internal_modules[] = {
     {"mathutils.kdtree", PyInit_mathutils_kdtree},
 #endif
     {"_bpy_path", BPyInit__bpy_path},
-    {"bgl", BPyInit_bgl},
     {"blf", BPyInit_blf},
     {"bl_math", BPyInit_bl_math},
     {"imbuf", BPyInit_imbuf},
@@ -385,7 +383,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     }
     else {
       PyConfig_InitIsolatedConfig(&config);
-      /* Python's isolated config disables it's own signal overrides.
+      /* Python's isolated config disables its own signal overrides.
        * While it makes sense not to interfering with other components of the process,
        * the signal handlers are needed for Python's own error handling to work properly.
        * Without this a `SIGPIPE` signal will crash Blender, see: #129657. */

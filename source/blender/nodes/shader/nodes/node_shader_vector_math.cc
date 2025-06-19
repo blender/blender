@@ -52,8 +52,8 @@ class SocketSearchOp {
 
 static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &params)
 {
-  if (!params.node_tree().typeinfo->validate_link(
-          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_VECTOR))
+  if (!params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
+                                                  SOCK_VECTOR))
   {
     return;
   }
@@ -142,6 +142,10 @@ static const char *gpu_shader_get_name(int mode)
       return "vector_math_faceforward";
     case NODE_VECTOR_MATH_MULTIPLY_ADD:
       return "vector_math_multiply_add";
+    case NODE_VECTOR_MATH_POWER:
+      return "vector_math_power";
+    case NODE_VECTOR_MATH_SIGN:
+      return "vector_math_sign";
   }
 
   return nullptr;
@@ -163,6 +167,7 @@ static int gpu_shader_vector_math(GPUMaterial *mat,
 
 static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
 {
+  bNodeSocket *sockA = (bNodeSocket *)BLI_findlink(&node->inputs, 0);
   bNodeSocket *sockB = (bNodeSocket *)BLI_findlink(&node->inputs, 1);
   bNodeSocket *sockC = (bNodeSocket *)BLI_findlink(&node->inputs, 2);
   bNodeSocket *sockScale = bke::node_find_socket(*node, SOCK_IN, "Scale");
@@ -182,7 +187,8 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
                                           NODE_VECTOR_MATH_LENGTH,
                                           NODE_VECTOR_MATH_ABSOLUTE,
                                           NODE_VECTOR_MATH_FRACTION,
-                                          NODE_VECTOR_MATH_NORMALIZE));
+                                          NODE_VECTOR_MATH_NORMALIZE,
+                                          NODE_VECTOR_MATH_SIGN));
   bke::node_set_socket_availability(*ntree,
                                     *sockC,
                                     ELEM(node->custom1,
@@ -205,10 +211,15 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
                                          NODE_VECTOR_MATH_DOT_PRODUCT));
 
   /* Labels */
+  node_sock_label_clear(sockA);
   node_sock_label_clear(sockB);
   node_sock_label_clear(sockC);
   node_sock_label_clear(sockScale);
   switch (node->custom1) {
+    case NODE_VECTOR_MATH_POWER:
+      node_sock_label(sockA, "Base");
+      node_sock_label(sockB, "Exponent");
+      break;
     case NODE_VECTOR_MATH_MULTIPLY_ADD:
       node_sock_label(sockB, "Multiplier");
       node_sock_label(sockC, "Addend");

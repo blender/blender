@@ -679,11 +679,6 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
     return;
   }
 
-  if ((U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0) {
-    WM_cursor_set(win, wmcursor);
-    return;
-  }
-
   const View2D *v2d = &region->v2d;
   if (UI_view2d_mouse_in_scrollers(region, v2d, win->eventstate->xy)) {
     WM_cursor_set(win, wmcursor);
@@ -852,6 +847,84 @@ static void sequencer_preview_region_listener(const wmRegionListenerParams *para
 
   /* Context changes. */
   switch (wmn->category) {
+    case NC_OBJECT: /* To handle changes in 3D viewport. */
+      switch (wmn->data) {
+        case ND_BONE_ACTIVE:
+        case ND_BONE_SELECT:
+        case ND_BONE_COLLECTION:
+        case ND_TRANSFORM:
+        case ND_POSE:
+        case ND_DRAW:
+        case ND_MODIFIER:
+        case ND_SHADERFX:
+        case ND_CONSTRAINT:
+        case ND_KEYS:
+        case ND_PARTICLE:
+        case ND_POINTCACHE:
+        case ND_LOD:
+        case ND_DRAW_ANIMVIZ:
+          ED_region_tag_redraw(region);
+          break;
+      }
+      switch (wmn->action) {
+        case NA_ADDED:
+          ED_region_tag_redraw(region);
+          break;
+      }
+      break;
+    case NC_GEOM: /* To handle changes in 3D viewport. */
+      switch (wmn->data) {
+        case ND_DATA:
+        case ND_VERTEX_GROUP:
+          ED_region_tag_redraw(region);
+          break;
+      }
+      switch (wmn->action) {
+        case NA_EDITED:
+          ED_region_tag_redraw(region);
+          break;
+      }
+      break;
+    case NC_MATERIAL: /* To handle changes in 3D viewport. */
+      switch (wmn->data) {
+        case ND_SHADING:
+        case ND_NODES:
+        case ND_SHADING_DRAW:
+        case ND_SHADING_LINKS:
+          ED_region_tag_redraw(region);
+          break;
+      }
+      break;
+    case NC_NODE: /* To handle changes in 3D viewport. */
+      ED_region_tag_redraw(region);
+      break;
+    case NC_WORLD: /* To handle changes in 3D viewport. */
+      switch (wmn->data) {
+        case ND_WORLD_DRAW:
+        case ND_WORLD:
+          ED_region_tag_redraw(region);
+          break;
+      }
+      break;
+    case NC_LAMP: /* To handle changes in 3D viewport. */
+      switch (wmn->data) {
+        case ND_LIGHTING:
+        case ND_LIGHTING_DRAW:
+          ED_region_tag_redraw(region);
+          break;
+      }
+      break;
+    case NC_LIGHTPROBE: /* To handle changes in 3D viewport. */
+    case NC_IMAGE:
+    case NC_TEXTURE:
+      ED_region_tag_redraw(region);
+      break;
+    case NC_MOVIECLIP: /* To handle changes in 3D viewport. */
+      if (wmn->data == ND_DISPLAY || wmn->action == NA_EDITED) {
+        ED_region_tag_redraw(region);
+      }
+      break;
+
     case NC_GPENCIL:
       if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
         ED_region_tag_redraw(region);
@@ -859,6 +932,12 @@ static void sequencer_preview_region_listener(const wmRegionListenerParams *para
       break;
     case NC_SCENE:
       switch (wmn->data) {
+        /* To handle changes in 3D viewport. */
+        case ND_LAYER_CONTENT:
+        case ND_LAYER:
+        case ND_TRANSFORM:
+        case ND_OB_VISIBLE:
+        /* VSE related. */
         case ND_FRAME:
         case ND_MARKERS:
         case ND_SEQUENCER:
@@ -870,6 +949,11 @@ static void sequencer_preview_region_listener(const wmRegionListenerParams *para
       break;
     case NC_ANIMATION:
       switch (wmn->data) {
+        /* To handle changes in 3D viewport. */
+        case ND_NLA_ACTCHANGE:
+        case ND_NLA:
+        case ND_ANIMCHAN:
+        /* VSE related. */
         case ND_KEYFRAME:
           ED_region_tag_redraw(region);
           break;
@@ -1077,6 +1161,7 @@ void ED_spacetype_sequencer()
   art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_ui;
   art->listener = sequencer_buttons_region_listener;
   art->init = sequencer_buttons_region_init;
+  art->snap_size = ED_region_generic_panel_region_snap_size;
   art->draw = sequencer_buttons_region_draw;
   BLI_addhead(&st->regiontypes, art);
 

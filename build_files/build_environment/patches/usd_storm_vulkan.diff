@@ -1,0 +1,16 @@
+diff --git a/pxr/imaging/hdSt/renderDelegate.cpp b/pxr/imaging/hdSt/renderDelegate.cpp
+index 2e34715d2..329933383 100644
+--- a/pxr/imaging/hdSt/renderDelegate.cpp
++++ b/pxr/imaging/hdSt/renderDelegate.cpp
+@@ -541,7 +541,10 @@ HdStRenderDelegate::CommitResources(HdChangeTracker *tracker)
+ bool
+ HdStRenderDelegate::IsSupported()
+ {
+-    return Hgi::IsSupported();
++    // BLENDER: This doesn't take into account the backend, and fails for Vulkan
++    // because it defaults to OpenGL. Instead assume Blender already succeeded
++    // creating a relevant GPU device before using Storm.
++    return true;
+ }
+ 
+ TfTokenVector

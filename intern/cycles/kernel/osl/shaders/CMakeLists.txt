@@ -17,8 +17,6 @@ set(SRC_OSL
   node_checker_texture.osl
   node_clamp.osl
   node_combine_color.osl
-  node_combine_rgb.osl
-  node_combine_hsv.osl
   node_combine_xyz.osl
   node_convert_from_color.osl
   node_convert_from_float.osl
@@ -77,8 +75,6 @@ set(SRC_OSL
   node_rgb_curves.osl
   node_rgb_ramp.osl
   node_separate_color.osl
-  node_separate_rgb.osl
-  node_separate_hsv.osl
   node_separate_xyz.osl
   node_set_normal.osl
   node_sheen_bsdf.osl
@@ -97,8 +93,6 @@ set(SRC_OSL
   node_vector_transform.osl
   node_vertex_color.osl
   node_voronoi_texture.osl
-  node_voxel_texture.osl
-  node_voxel_texture_zero.osl
   node_wavelength.osl
   node_blackbody.osl
   node_wave_texture.osl
@@ -116,6 +110,7 @@ set(SRC_OSL
 file(GLOB SRC_OSL_HEADER_DIST ${OSL_SHADER_DIR}/*.h)
 
 set(SRC_OSL_HEADERS
+  int_vector_types.h
   node_color.h
   node_color_blend.h
   node_fractal_voronoi.h

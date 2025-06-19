@@ -14,8 +14,9 @@ namespace blender::opensubdiv {
 GPUPatchTable *GPUPatchTable::Create(PatchTable const *far_patch_table, void * /*deviceContext*/)
 {
   GPUPatchTable *instance = new GPUPatchTable();
-  if (instance->allocate(far_patch_table))
+  if (instance->allocate(far_patch_table)) {
     return instance;
+  }
   delete instance;
   return nullptr;
 }

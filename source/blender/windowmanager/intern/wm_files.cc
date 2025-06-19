@@ -535,7 +535,7 @@ static void wm_init_userdef(Main *bmain)
 
   BKE_sound_init(bmain);
 
-  /* Update the temporary directory from the preferences or fallback to the system default. */
+  /* Update the temporary directory from the preferences or fall back to the system default. */
   BKE_tempdir_init(U.tempdir);
 
   /* Update input device preference. */
@@ -3339,8 +3339,8 @@ static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
   uiLayout *col = &layout->column(false);
   if (file_info->is_untrusted) {
     autoexec_text = IFACE_("Trusted Source [Untrusted Path]");
-    uiLayoutSetActive(col, false);
-    uiLayoutSetEnabled(col, false);
+    col->active_set(false);
+    col->enabled_set(false);
   }
   else {
     autoexec_text = IFACE_("Trusted Source");
@@ -4145,7 +4145,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   /* Buttons. */
   uiBut *but;
   uiLayout *split = &layout->split(0.0f, true);
-  uiLayoutSetScaleY(split, 1.2f);
+  split->scale_y_set(1.2f);
 
   /* Empty space. */
   col = &split->column(false);
@@ -4314,7 +4314,7 @@ static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bma
   uiLayout *layout = &parent_layout->column(true);
   /* Trick to make both lines of text below close enough to look like they are part of a same
    * block. */
-  uiLayoutSetScaleY(layout, 0.70f);
+  layout->scale_y_set(0.70f);
 
   if (bmain->has_forward_compatibility_issues) {
     char writer_ver_str[16];
@@ -4501,7 +4501,7 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
   /* Buttons. */
 
   uiLayout *split = &layout->split(0.3f, true);
-  uiLayoutSetScaleY(split, 1.2f);
+  split->scale_y_set(1.2f);
 
   split->column(false);
   /* Asset files don't actually allow overriding. */
@@ -4722,7 +4722,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
 
   LISTBASE_FOREACH (Report *, report, &reports.list) {
     uiLayout *row = &layout->column(false);
-    uiLayoutSetScaleY(row, 0.6f);
+    row->scale_y_set(0.6f);
     row->separator();
 
     /* Error messages created in ED_image_save_all_modified_info() can be long,
@@ -4814,7 +4814,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
     /* Windows standard layout. */
 
     uiLayout *split = &layout->split(0.0f, true);
-    uiLayoutSetScaleY(split, 1.2f);
+    split->scale_y_set(1.2f);
 
     split->column(false);
     wm_block_file_close_save_button(block, post_action, needs_overwrite_confirm);
@@ -4829,7 +4829,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
     /* Non-Windows layout (macOS and Linux). */
 
     uiLayout *split = &layout->split(0.3f, true);
-    uiLayoutSetScaleY(split, 1.2f);
+    split->scale_y_set(1.2f);
 
     split->column(false);
     wm_block_file_close_discard_button(block, post_action);

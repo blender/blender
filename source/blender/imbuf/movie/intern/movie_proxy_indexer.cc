@@ -83,7 +83,9 @@ static MovieIndexBuilder *index_builder_create(const char *filepath)
   fprintf(rv->fp,
           "%s%c%.3d",
           binary_header_str,
-          (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
+          /* NOTE: this is endianness-sensitive.
+           * On Big Endian system 'V' must be used instead of 'v'. */
+          'v',
           INDEX_FILE_VERSION);
 
   return rv;
@@ -179,7 +181,10 @@ static MovieIndex *movie_index_open(const char *filepath)
     return nullptr;
   }
 
-  if ((ENDIAN_ORDER == B_ENDIAN) != (header[8] == 'V')) {
+  /* NOTE: this is endianness-sensitive. */
+  BLI_assert(ELEM(header[8], 'v', 'V'));
+  const int16_t file_endianness = (header[8] == 'v') ? L_ENDIAN : B_ENDIAN;
+  if (file_endianness == B_ENDIAN) {
     for (int64_t i = 0; i < num_entries; i++) {
       BLI_endian_switch_int32(&idx->entries[i].frameno);
       BLI_endian_switch_uint64(&idx->entries[i].seek_pos_pts);
@@ -425,6 +430,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
   rv->c->time_base.den = 25;
   rv->c->time_base.num = 1;
   rv->st->time_base = rv->c->time_base;
+  rv->st->avg_frame_rate = av_inv_q(rv->c->time_base);
 
   /* This range matches #eFFMpegCrf. `crf_range_min` corresponds to lowest quality,
    * `crf_range_max` to highest quality. */
@@ -455,7 +461,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
     rv->c->thread_type = FF_THREAD_SLICE;
   }
 
-  if (rv->of->flags & AVFMT_GLOBALHEADER) {
+  if (rv->of->oformat->flags & AVFMT_GLOBALHEADER) {
     rv->c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
   }
 
@@ -463,8 +469,6 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
   rv->c->color_primaries = codec_ctx->color_primaries;
   rv->c->color_trc = codec_ctx->color_trc;
   rv->c->colorspace = codec_ctx->colorspace;
-
-  avcodec_parameters_from_context(rv->st->codecpar, rv->c);
 
   ffmpeg_copy_display_matrix(st, rv->st);
 
@@ -498,6 +502,8 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
     MEM_freeN(rv);
     return nullptr;
   }
+
+  avcodec_parameters_from_context(rv->st->codecpar, rv->c);
 
   rv->orig_height = st->codecpar->height;
 
@@ -627,17 +633,14 @@ static void free_proxy_output_ffmpeg(proxy_output_ctx *ctx, int rollback)
     add_to_proxy_output_ffmpeg(ctx, nullptr);
   }
 
-  avcodec_flush_buffers(ctx->c);
-
   av_write_trailer(ctx->of);
-
-  avcodec_free_context(&ctx->c);
 
   if (ctx->of->oformat) {
     if (!(ctx->of->oformat->flags & AVFMT_NOFILE)) {
       avio_close(ctx->of->pb);
     }
   }
+  avcodec_free_context(&ctx->c);
   avformat_free_context(ctx->of);
 
   if (ctx->sws_ctx) {

@@ -278,7 +278,11 @@ static void file_refresh(const bContext *C, ScrArea *area)
   }
 
   filelist_sort(sfile->files);
-  filelist_filter(sfile->files);
+
+  if (filelist_needs_filtering(sfile->files)) {
+    filelist_filter(sfile->files);
+    params->active_file = -1;
+  }
 
   if (params->display == FILE_IMGDISPLAY) {
     filelist_cache_previews_set(sfile->files, true);
@@ -897,6 +901,18 @@ static void file_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   }
   if (sfile->asset_params) {
     sfile->asset_params->base_params.rename_id = nullptr;
+    /* Code (file-browser etc.) asserts that this setting is one of the currently known values.
+     * So fall back to #FILE_ASSET_IMPORT_FOLLOW_PREFS if it is not
+     * (e.g. because of forward-compatibility while reading a blend-file from the future). */
+    switch (eFileAssetImportMethod(sfile->asset_params->import_method)) {
+      case FILE_ASSET_IMPORT_LINK:
+      case FILE_ASSET_IMPORT_APPEND:
+      case FILE_ASSET_IMPORT_APPEND_REUSE:
+      case FILE_ASSET_IMPORT_FOLLOW_PREFS:
+        break;
+      default:
+        sfile->asset_params->import_method = FILE_ASSET_IMPORT_FOLLOW_PREFS;
+    }
   }
 }
 

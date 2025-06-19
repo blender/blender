@@ -29,7 +29,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(FLT_MAX)
       .subtype(PROP_DISTANCE)
       .description("Width of the gradient inside of the mesh");
-  b.add_output<decl::Float>("Density Grid");
+  b.add_output<decl::Float>("Density Grid").structure_type(StructureType::Grid);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

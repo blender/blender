@@ -187,7 +187,7 @@ uiBlock *template_common_search_menu(const bContext *C,
   }
   /* list view */
   else {
-    const int searchbox_width = int(float(UI_searchbox_size_x()) * 1.4f);
+    const int searchbox_width = UI_searchbox_size_x_guess(C, search_update_fn, search_arg);
     const int searchbox_height = UI_searchbox_size_y();
     const int search_but_height = UI_UNIT_Y - 1.0f * UI_SCALE_FAC;
 
@@ -286,7 +286,7 @@ void uiTemplatePathBuilder(uiLayout *layout,
 
 void uiTemplateNodeSocket(uiLayout *layout, bContext * /*C*/, const float color[4])
 {
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   UI_block_align_begin(block);
 
   /* XXX using explicit socket colors is not quite ideal.
@@ -308,7 +308,7 @@ void uiTemplateFileSelectPath(uiLayout *layout, bContext *C, FileSelectParams *p
   bScreen *screen = CTX_wm_screen(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
 
-  ED_file_path_button(screen, sfile, params, uiLayoutGetBlock(layout));
+  ED_file_path_button(screen, sfile, params, layout->block());
 }
 
 /** \} */

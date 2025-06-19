@@ -341,7 +341,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   const float dx = UI_UNIT_X;
   eButGradientType bg = UI_GRAD_NONE;
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
@@ -356,7 +356,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   if (labeltype == 'v') {
     /* vector */
     uiLayout *sub = &row->row(true);
-    uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
+    sub->alignment_set(blender::ui::LayoutAlign::Left);
 
     if (cumap->cm[0].curve) {
       bt = uiDefButI(block, UI_BTYPE_ROW, 0, "X", 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, "");
@@ -374,7 +374,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   else if (labeltype == 'c' && cumap->tone != CURVE_TONE_FILMLIKE) {
     /* color */
     uiLayout *sub = &row->row(true);
-    uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
+    sub->alignment_set(blender::ui::LayoutAlign::Left);
 
     if (cumap->cm[3].curve) {
       bt = uiDefButI(block,
@@ -440,7 +440,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   else if (labeltype == 'h') {
     /* HSV */
     uiLayout *sub = &row->row(true);
-    uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
+    sub->alignment_set(blender::ui::LayoutAlign::Left);
 
     if (cumap->cm[0].curve) {
       bt = uiDefButI(block,
@@ -489,7 +489,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
     }
   }
   else {
-    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+    row->alignment_set(blender::ui::LayoutAlign::Right);
   }
 
   if (labeltype == 'h') {
@@ -499,7 +499,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   /* operation buttons */
   /* (Right aligned) */
   uiLayout *sub = &row->row(true);
-  uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
+  sub->alignment_set(blender::ui::LayoutAlign::Right);
 
   if (!(cumap->flag & CUMA_USE_WRAPPING)) {
     /* Zoom in */
@@ -770,7 +770,7 @@ void uiTemplateCurveMapping(uiLayout *layout,
                             bool tone)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   if (!prop) {
     RNA_warning(

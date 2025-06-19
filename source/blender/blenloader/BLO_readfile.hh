@@ -466,7 +466,10 @@ ID *BLO_library_link_named_part(Main *mainl,
  * \param bh: The blender file handle (WARNING! may be freed by this function!).
  * \param params: Settings for linking that don't change from beginning to end of linking.
  */
-void BLO_library_link_end(Main *mainl, BlendHandle **bh, const LibraryLink_Params *params);
+void BLO_library_link_end(Main *mainl,
+                          BlendHandle **bh,
+                          const LibraryLink_Params *params,
+                          ReportList *reports);
 
 /**
  * Struct for temporarily loading datablocks from a blend file.

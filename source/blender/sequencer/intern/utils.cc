@@ -109,7 +109,7 @@ void strip_unique_name_set(Scene *scene, ListBase *seqbasep, Strip *strip)
   edit_strip_name_set(scene, strip, sui.name_dest);
 }
 
-static const char *give_stripname_by_type(int type)
+const char *get_default_stripname_by_type(int type)
 {
   switch (type) {
     case STRIP_TYPE_META:
@@ -127,9 +127,9 @@ static const char *give_stripname_by_type(int type)
     case STRIP_TYPE_SOUND_RAM:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Audio");
     case STRIP_TYPE_CROSS:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Cross");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Crossfade");
     case STRIP_TYPE_GAMCROSS:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Gamma Cross");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Gamma Crossfade");
     case STRIP_TYPE_ADD:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Add");
     case STRIP_TYPE_SUB:
@@ -167,7 +167,7 @@ static const char *give_stripname_by_type(int type)
 
 const char *strip_give_name(const Strip *strip)
 {
-  const char *name = give_stripname_by_type(strip->type);
+  const char *name = get_default_stripname_by_type(strip->type);
 
   if (!name) {
     if (!(strip->type & STRIP_TYPE_EFFECT)) {

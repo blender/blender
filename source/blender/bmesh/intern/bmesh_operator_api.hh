@@ -327,6 +327,11 @@ struct BMOpDefine {
   const char *opname;
   BMOSlotType slot_types_in[BMO_OP_MAX_SLOTS];
   BMOSlotType slot_types_out[BMO_OP_MAX_SLOTS];
+  /**
+   * Optional initialize function.
+   * Can be used for setting defaults.
+   */
+  void (*init)(BMOperator *op);
   void (*exec)(BMesh *bm, BMOperator *op);
   BMOpTypeFlag type_flag;
 };

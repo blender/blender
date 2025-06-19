@@ -145,11 +145,11 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
   if (!(sspreadsheet->filter_flag & SPREADSHEET_FILTER_ENABLE) ||
       (column == nullptr && !column_name.is_empty()))
   {
-    uiLayoutSetActive(layout, false);
+    layout->active_set(false);
   }
 
   uiLayout *row = &layout->row(true);
-  uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+  row->emboss_set(blender::ui::EmbossType::None);
   row->prop(filter_ptr, "enabled", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   if (column_name.is_empty()) {
@@ -170,7 +170,7 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
   }
 
   row = &layout->row(true);
-  uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+  row->emboss_set(blender::ui::EmbossType::None);
   const int current_index = BLI_findindex(&sspreadsheet->row_filters, filter);
   PointerRNA op_ptr = row->op("SPREADSHEET_OT_remove_row_filter_rule", "", ICON_X);
   RNA_int_set(&op_ptr, "index", current_index);
@@ -192,7 +192,7 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
       !(filter->flag & SPREADSHEET_ROW_FILTER_ENABLED) ||
       (column == nullptr && !column_name.is_empty()))
   {
-    uiLayoutSetActive(layout, false);
+    layout->active_set(false);
   }
 
   uiLayoutSetPropSep(layout, true);
@@ -273,7 +273,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
   ListBase *row_filters = &sspreadsheet->row_filters;
 
   if (!(sspreadsheet->filter_flag & SPREADSHEET_FILTER_ENABLE)) {
-    uiLayoutSetActive(layout, false);
+    layout->active_set(false);
   }
 
   layout->op("SPREADSHEET_OT_add_row_filter_rule", std::nullopt, ICON_ADD);

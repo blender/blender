@@ -111,9 +111,7 @@ enum {
  *
  * \return The next #BHEad or #std::nullopt if the file is exhausted.
  */
-std::optional<BHead> BLO_readfile_read_bhead(FileReader *file,
-                                             BHeadType type,
-                                             bool do_endian_swap);
+std::optional<BHead> BLO_readfile_read_bhead(FileReader *file, BHeadType type);
 
 /**
  * Converts a BHead.old pointer from 64 to 32 bit. This can't work in the general case, but only
@@ -121,12 +119,11 @@ std::optional<BHead> BLO_readfile_read_bhead(FileReader *file,
  * pointers will map to the same, which will break things later on. There is no way to check for
  * that here unfortunately.
  */
-inline uint32_t uint32_from_uint64_ptr(uint64_t ptr, const bool use_endian_swap)
+inline uint32_t uint32_from_uint64_ptr(uint64_t ptr)
 {
-  if (use_endian_swap) {
-    /* Do endian switch so that the resulting pointer is not all 0. */
-    BLI_endian_switch_uint64(&ptr);
-  }
+  /* NOTE: this is endianness-sensitive. */
+  /* Switching endianness would be required to reduce the risk of two different 64bits pointers
+   * generating the same 32bits value. */
   /* Behavior has to match #cast_pointer_64_to_32. */
   ptr >>= 3;
   return uint32_t(ptr);

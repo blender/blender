@@ -28,7 +28,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-#  if OPTIX_ABI_VERSION >= 55
 static void execute_optix_task(TaskPool &pool, OptixTask task, OptixResult &failure_reason)
 {
   OptixTask additional_tasks[16];
@@ -46,10 +45,12 @@ static void execute_optix_task(TaskPool &pool, OptixTask task, OptixResult &fail
     failure_reason = result;
   }
 }
-#  endif
 
 OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
     : CUDADevice(info, stats, profiler, headless),
+#  ifdef WITH_OSL
+      osl_colorsystem(this, "osl_colorsystem", MEM_READ_ONLY),
+#  endif
       sbt_data(this, "__sbt", MEM_READ_ONLY),
       launch_params(this, "kernel_params", false)
 {
@@ -145,6 +146,7 @@ OptiXDevice::~OptiXDevice()
       optixProgramGroupDestroy(group);
     }
   }
+  osl_colorsystem.free();
 #  endif
 
   optixDeviceContextDestroy(context);
@@ -199,7 +201,6 @@ void OptiXDevice::create_optix_module(TaskPool &pool,
                                       OptixModule &module,
                                       OptixResult &result)
 {
-#  if OPTIX_ABI_VERSION >= 84
   OptixTask task = nullptr;
   result = optixModuleCreateWithTasks(context,
                                       &module_options,
@@ -213,31 +214,6 @@ void OptiXDevice::create_optix_module(TaskPool &pool,
   if (result == OPTIX_SUCCESS) {
     execute_optix_task(pool, task, result);
   }
-#  elif OPTIX_ABI_VERSION >= 55
-  OptixTask task = nullptr;
-  result = optixModuleCreateFromPTXWithTasks(context,
-                                             &module_options,
-                                             &pipeline_options,
-                                             ptx_data.data(),
-                                             ptx_data.size(),
-                                             nullptr,
-                                             nullptr,
-                                             &module,
-                                             &task);
-  if (result == OPTIX_SUCCESS) {
-    execute_optix_task(pool, task, result);
-  }
-#  else
-  (void)pool;
-  result = optixModuleCreateFromPTX(context,
-                                    &module_options,
-                                    &pipeline_options,
-                                    ptx_data.data(),
-                                    ptx_data.size(),
-                                    nullptr,
-                                    nullptr,
-                                    &module);
-#  endif
 }
 
 bool OptiXDevice::load_kernels(const uint kernel_features)
@@ -360,10 +336,8 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
 
   module_options.boundValues = nullptr;
   module_options.numBoundValues = 0;
-#  if OPTIX_ABI_VERSION >= 55
   module_options.payloadTypes = nullptr;
   module_options.numPayloadTypes = 0;
-#  endif
 
   /* Default to no motion blur and two-level graph, since it is the fastest option. */
   pipeline_options.usesMotionBlur = false;
@@ -377,11 +351,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   pipeline_options.usesPrimitiveTypeFlags = OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE;
   if (kernel_features & KERNEL_FEATURE_HAIR) {
     if (kernel_features & KERNEL_FEATURE_HAIR_THICK) {
-#  if OPTIX_ABI_VERSION >= 55
       pipeline_options.usesPrimitiveTypeFlags |= OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_CATMULLROM;
-#  else
-      pipeline_options.usesPrimitiveTypeFlags |= OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_CUBIC_BSPLINE;
-#  endif
     }
     else {
       pipeline_options.usesPrimitiveTypeFlags |= OPTIX_PRIMITIVE_TYPE_FLAGS_CUSTOM;
@@ -468,15 +438,11 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     if (kernel_features & KERNEL_FEATURE_HAIR_THICK) {
       /* Built-in thick curve intersection. */
       OptixBuiltinISOptions builtin_options = {};
-#  if OPTIX_ABI_VERSION >= 55
       builtin_options.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_ROUND_CATMULLROM;
       builtin_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE |
                                    OPTIX_BUILD_FLAG_ALLOW_COMPACTION |
                                    OPTIX_BUILD_FLAG_ALLOW_UPDATE;
       builtin_options.curveEndcapFlags = OPTIX_CURVE_ENDCAP_DEFAULT; /* Disable end-caps. */
-#  else
-      builtin_options.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE;
-#  endif
       builtin_options.usesMotionBlur = false;
 
       optix_assert(optixBuiltinISModuleGet(
@@ -632,11 +598,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   memset(sbt_data.host_pointer, 0, sizeof(SbtRecord) * NUM_PROGRAM_GROUPS);
   for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
     optix_assert(optixSbtRecordPackHeader(groups[i], &sbt_data[i]));
-#  if OPTIX_ABI_VERSION >= 84
     optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i], nullptr));
-#  else
-    optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i]));
-#  endif
   }
   sbt_data.copy_to_device(); /* Upload SBT to device. */
 
@@ -658,9 +620,6 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
 
   OptixPipelineLinkOptions link_options = {};
   link_options.maxTraceDepth = 1;
-#  if OPTIX_ABI_VERSION < 84
-  link_options.debugLevel = module_options.debugLevel;
-#  endif
 
   if (use_osl_shading || use_osl_camera) {
     /* OSL kernels will be (re)created on by OSL manager. */
@@ -847,35 +806,75 @@ bool OptiXDevice::load_osl_kernels()
   module_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
   module_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
 
-  osl_groups.resize(osl_kernels.size() + 1);
-  osl_modules.resize(osl_kernels.size() + 1);
+  /* In addition to the modules for each OSL group, we need to load our own osl_services.ptx
+   * as well as the shadeops.ptx that's embedded in OSL. */
+  size_t id_osl_services = osl_kernels.size();
+  size_t id_osl_shadeops = osl_kernels.size() + 1;
+  osl_groups.resize(osl_kernels.size() + 2);
+  osl_modules.resize(osl_kernels.size() + 2);
 
   { /* Load and compile PTX module with OSL services. */
-    string ptx_data, ptx_filename = path_get("lib/kernel_optix_osl_services.ptx.zst");
-    if (!path_read_compressed_text(ptx_filename, ptx_data)) {
+    string osl_services_ptx, ptx_filename = path_get("lib/kernel_optix_osl_services.ptx.zst");
+    if (!path_read_compressed_text(ptx_filename, osl_services_ptx)) {
       set_error(string_printf("Failed to load OptiX OSL services kernel from '%s'",
                               ptx_filename.c_str()));
       return false;
     }
 
+    const char *shadeops_ptx_ptr = nullptr;
+    osl_globals.ss->getattribute("shadeops_cuda_ptx", OSL::TypeDesc::PTR, &shadeops_ptx_ptr);
+    int shadeops_ptx_size = 0;
+    osl_globals.ss->getattribute("shadeops_cuda_ptx_size", OSL::TypeDesc::INT, &shadeops_ptx_size);
+    string shadeops_ptx(shadeops_ptx_ptr, shadeops_ptx_size);
+
     TaskPool pool;
-    OptixResult result;
-    create_optix_module(pool, module_options, ptx_data, osl_modules.back(), result);
+    OptixResult services_result, shadeops_result;
+    create_optix_module(
+        pool, module_options, osl_services_ptx, osl_modules[id_osl_services], services_result);
+    create_optix_module(
+        pool, module_options, shadeops_ptx, osl_modules[id_osl_shadeops], shadeops_result);
     pool.wait_work();
-    if (result != OPTIX_SUCCESS) {
-      set_error(string_printf("Failed to load OptiX OSL services kernel from '%s' (%s)",
-                              ptx_filename.c_str(),
-                              optixGetErrorName(result)));
-      return false;
+
+    {
+      if (services_result != OPTIX_SUCCESS) {
+        set_error(string_printf("Failed to load OptiX OSL services kernel from '%s' (%s)",
+                                ptx_filename.c_str(),
+                                optixGetErrorName(services_result)));
+        return false;
+      }
+      OptixProgramGroupDesc group_desc = {};
+      group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+      group_desc.callables.entryFunctionNameDC = "__direct_callable__dummy_services";
+      group_desc.callables.moduleDC = osl_modules[id_osl_services];
+
+      optix_assert(optixProgramGroupCreate(context,
+                                           &group_desc,
+                                           1,
+                                           &group_options,
+                                           nullptr,
+                                           nullptr,
+                                           &osl_groups[id_osl_services]));
     }
 
-    OptixProgramGroupDesc group_desc = {};
-    group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
-    group_desc.callables.entryFunctionNameDC = "__direct_callable__dummy_services";
-    group_desc.callables.moduleDC = osl_modules.back();
+    {
+      if (shadeops_result != OPTIX_SUCCESS) {
+        set_error(string_printf("Failed to load OptiX OSL shadeops kernel (%s)",
+                                optixGetErrorName(shadeops_result)));
+        return false;
+      }
+      OptixProgramGroupDesc group_desc = {};
+      group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+      group_desc.callables.entryFunctionNameDC = "__direct_callable__dummy_shadeops";
+      group_desc.callables.moduleDC = osl_modules[id_osl_shadeops];
 
-    optix_assert(optixProgramGroupCreate(
-        context, &group_desc, 1, &group_options, nullptr, nullptr, &osl_groups.back()));
+      optix_assert(optixProgramGroupCreate(context,
+                                           &group_desc,
+                                           1,
+                                           &group_options,
+                                           nullptr,
+                                           nullptr,
+                                           &osl_groups[id_osl_shadeops]));
+    }
   }
 
   TaskPool pool;
@@ -924,16 +923,14 @@ bool OptiXDevice::load_osl_kernels()
     else {
       /* Default to "__direct_callable__dummy_services", so that OSL evaluation for empty
        * materials has direct callables to call and does not crash. */
-      optix_assert(optixSbtRecordPackHeader(osl_groups.back(), &sbt_data[NUM_PROGRAM_GROUPS + i]));
+      optix_assert(optixSbtRecordPackHeader(osl_groups[id_osl_services],
+                                            &sbt_data[NUM_PROGRAM_GROUPS + i]));
     }
   }
   sbt_data.copy_to_device(); /* Upload updated SBT to device. */
 
   OptixPipelineLinkOptions link_options = {};
   link_options.maxTraceDepth = 0;
-#    if OPTIX_ABI_VERSION < 84
-  link_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
-#    endif
 
   {
     vector<OptixProgramGroup> pipeline_groups;
@@ -973,20 +970,12 @@ bool OptiXDevice::load_osl_kernels()
     vector<OptixStackSizes> osl_stack_size(osl_groups.size());
 
     for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
-#    if OPTIX_ABI_VERSION >= 84
       optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i], nullptr));
-#    else
-      optix_assert(optixProgramGroupGetStackSize(groups[i], &stack_size[i]));
-#    endif
     }
     for (size_t i = 0; i < osl_groups.size(); ++i) {
       if (osl_groups[i] != nullptr) {
-#    if OPTIX_ABI_VERSION >= 84
         optix_assert(optixProgramGroupGetStackSize(
             osl_groups[i], &osl_stack_size[i], pipelines[PIP_SHADE]));
-#    else
-        optix_assert(optixProgramGroupGetStackSize(osl_groups[i], &osl_stack_size[i]));
-#    endif
       }
     }
 
@@ -1000,6 +989,45 @@ bool OptiXDevice::load_osl_kernels()
 
     optix_assert(optixPipelineSetStackSize(
         pipelines[PIP_SHADE], 0, dss, css, pipeline_options.usesMotionBlur ? 3 : 2));
+  }
+
+  /* Copy colorsystem data from OSL to the device. */
+  {
+    /* The interface here is somewhat complex, since the colorsystem contains strings whose
+     * representation is different between CPU and GPU.
+     * OSL's ColorSystem type therefore consists of two parts: First the "fixed data" (e.g. floats)
+     * that is identical between both, and then the strings.
+     * To perform this conversion, in addition to the pointer to the CPU data, we query two sizes:
+     * The total size of the CPU data and the number of strings. */
+    uint8_t *cpu_data = nullptr;
+    size_t cpu_data_sizes[2] = {0, 0};
+    osl_globals.ss->getattribute("colorsystem", OSL::TypeDesc::PTR, &cpu_data);
+    osl_globals.ss->getattribute(
+        "colorsystem:sizes", TypeDesc(TypeDesc::LONGLONG, 2), (void *)cpu_data_sizes);
+
+    size_t cpu_full_size = cpu_data_sizes[0];
+    size_t num_strings = cpu_data_sizes[1];
+    size_t fixed_data_size = cpu_full_size - sizeof(ustringhash) * num_strings;
+
+    /* Allocate a buffer to fit the fixed data, as well as all the strings in GPU form. */
+    uint8_t *gpu_data = osl_colorsystem.alloc(fixed_data_size + sizeof(size_t) * num_strings);
+
+    /* Copy the fixed data as-is. */
+    memcpy(gpu_data, cpu_data, fixed_data_size);
+
+    /* Convert each string to GPU format. */
+    ustringhash *cpu_strings = reinterpret_cast<ustringhash *>(cpu_data + fixed_data_size);
+    size_t *gpu_strings = reinterpret_cast<size_t *>(gpu_data + fixed_data_size);
+    for (int i = 0; i < num_strings; i++) {
+      gpu_strings[i] = cpu_strings[i].hash();
+    }
+
+    /* Copy GPU form of the data to the device. */
+    osl_colorsystem.copy_to_device();
+
+    update_launch_params(offsetof(KernelParamsOptiX, osl_colorsystem),
+                         &osl_colorsystem.device_pointer,
+                         sizeof(device_ptr));
   }
 
   return !have_error();
@@ -1194,9 +1222,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       /* Four control points for each curve segment. */
       size_t num_vertices = num_segments * 4;
       if (hair->curve_shape == CURVE_THICK) {
-#  if OPTIX_ABI_VERSION >= 55
         num_vertices = hair->num_keys() + 2 * hair->num_curves();
-#  endif
         index_data.alloc(num_segments);
         vertex_data.alloc(num_vertices * num_motion_steps);
       }
@@ -1215,7 +1241,6 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
           keys = motion_keys->data_float3() + attr_offset * hair->get_curve_keys().size();
         }
 
-#  if OPTIX_ABI_VERSION >= 55
         if (hair->curve_shape == CURVE_THICK) {
           for (size_t curve_index = 0, segment_index = 0, vertex_index = step * num_vertices;
                curve_index < hair->num_curves();
@@ -1255,60 +1280,21 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
             }
           }
         }
-        else
-#  endif
-        {
+        else {
           for (size_t curve_index = 0, i = 0; curve_index < hair->num_curves(); ++curve_index) {
             const Hair::Curve curve = hair->get_curve(curve_index);
 
             for (int segment = 0; segment < curve.num_segments(); ++segment, ++i) {
-#  if OPTIX_ABI_VERSION < 55
-              if (hair->curve_shape == CURVE_THICK) {
-                const array<float> &curve_radius = hair->get_curve_radius();
+              BoundBox bounds = BoundBox::empty;
+              curve.bounds_grow(segment, keys, hair->get_curve_radius().data(), bounds);
 
-                int k0 = curve.first_key + segment;
-                int k1 = k0 + 1;
-                int ka = max(k0 - 1, curve.first_key);
-                int kb = min(k1 + 1, curve.first_key + curve.num_keys - 1);
-
-                index_data[i] = i * 4;
-                float4 *const v = vertex_data.data() + step * num_vertices + index_data[i];
-
-                const float4 px = make_float4(keys[ka].x, keys[k0].x, keys[k1].x, keys[kb].x);
-                const float4 py = make_float4(keys[ka].y, keys[k0].y, keys[k1].y, keys[kb].y);
-                const float4 pz = make_float4(keys[ka].z, keys[k0].z, keys[k1].z, keys[kb].z);
-                const float4 pw = make_float4(
-                    curve_radius[ka], curve_radius[k0], curve_radius[k1], curve_radius[kb]);
-
-                /* Convert Catmull-Rom data to B-spline. */
-                static const float4 cr2bsp0 = make_float4(+7, -4, +5, -2) / 6.f;
-                static const float4 cr2bsp1 = make_float4(-2, 11, -4, +1) / 6.f;
-                static const float4 cr2bsp2 = make_float4(+1, -4, 11, -2) / 6.f;
-                static const float4 cr2bsp3 = make_float4(-2, +5, -4, +7) / 6.f;
-
-                v[0] = make_float4(
-                    dot(cr2bsp0, px), dot(cr2bsp0, py), dot(cr2bsp0, pz), dot(cr2bsp0, pw));
-                v[1] = make_float4(
-                    dot(cr2bsp1, px), dot(cr2bsp1, py), dot(cr2bsp1, pz), dot(cr2bsp1, pw));
-                v[2] = make_float4(
-                    dot(cr2bsp2, px), dot(cr2bsp2, py), dot(cr2bsp2, pz), dot(cr2bsp2, pw));
-                v[3] = make_float4(
-                    dot(cr2bsp3, px), dot(cr2bsp3, py), dot(cr2bsp3, pz), dot(cr2bsp3, pw));
-              }
-              else
-#  endif
-              {
-                BoundBox bounds = BoundBox::empty;
-                curve.bounds_grow(segment, keys, hair->get_curve_radius().data(), bounds);
-
-                const size_t index = step * num_segments + i;
-                aabb_data[index].minX = bounds.min.x;
-                aabb_data[index].minY = bounds.min.y;
-                aabb_data[index].minZ = bounds.min.z;
-                aabb_data[index].maxX = bounds.max.x;
-                aabb_data[index].maxY = bounds.max.y;
-                aabb_data[index].maxZ = bounds.max.z;
-              }
+              const size_t index = step * num_segments + i;
+              aabb_data[index].minX = bounds.min.x;
+              aabb_data[index].minY = bounds.min.y;
+              aabb_data[index].minZ = bounds.min.z;
+              aabb_data[index].maxX = bounds.max.x;
+              aabb_data[index].maxY = bounds.max.y;
+              aabb_data[index].maxZ = bounds.max.z;
             }
           }
         }
@@ -1338,11 +1324,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       OptixBuildInput build_input = {};
       if (hair->curve_shape == CURVE_THICK) {
         build_input.type = OPTIX_BUILD_INPUT_TYPE_CURVES;
-#  if OPTIX_ABI_VERSION >= 55
         build_input.curveArray.curveType = OPTIX_PRIMITIVE_TYPE_ROUND_CATMULLROM;
-#  else
-        build_input.curveArray.curveType = OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE;
-#  endif
         build_input.curveArray.numPrimitives = num_segments;
         build_input.curveArray.vertexBuffers = (CUdeviceptr *)vertex_ptrs.data();
         build_input.curveArray.numVertices = num_vertices;
@@ -1516,21 +1498,12 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
                                  OPTIX_GEOMETRY_FLAG_REQUIRE_SINGLE_ANYHIT_CALL;
       OptixBuildInput build_input = {};
       build_input.type = OPTIX_BUILD_INPUT_TYPE_CUSTOM_PRIMITIVES;
-#  if OPTIX_ABI_VERSION < 23
-      build_input.aabbArray.aabbBuffers = (CUdeviceptr *)aabb_ptrs.data();
-      build_input.aabbArray.numPrimitives = num_points;
-      build_input.aabbArray.strideInBytes = sizeof(OptixAabb);
-      build_input.aabbArray.flags = &build_flags;
-      build_input.aabbArray.numSbtRecords = 1;
-      build_input.aabbArray.primitiveIndexOffset = pointcloud->prim_offset;
-#  else
       build_input.customPrimitiveArray.aabbBuffers = (CUdeviceptr *)aabb_ptrs.data();
       build_input.customPrimitiveArray.numPrimitives = num_points;
       build_input.customPrimitiveArray.strideInBytes = sizeof(OptixAabb);
       build_input.customPrimitiveArray.flags = &build_flags;
       build_input.customPrimitiveArray.numSbtRecords = 1;
       build_input.customPrimitiveArray.primitiveIndexOffset = pointcloud->prim_offset;
-#  endif
 
       if (!build_optix_bvh(bvh_optix, operation, build_input, num_motion_steps)) {
         progress.set_error("Failed to build OptiX acceleration structure");
@@ -1630,11 +1603,6 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         /* Also skip point clouds in local trace calls. */
         instance.visibilityMask |= 4;
       }
-
-#  if OPTIX_ABI_VERSION < 55
-      /* Cannot disable any-hit program for thick curves, since it needs to filter out end-caps. */
-      else
-#  endif
       {
         /* Can disable __anyhit__kernel_optix_visibility_test by default (except for thick curves,
          * since it needs to filter out end-caps there).

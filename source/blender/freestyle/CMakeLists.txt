@@ -576,6 +576,13 @@ if(WIN32)
   )
 endif()
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # Suppress noisy warnings from GCC.
+  # NOTE(@ideasman42): It seems resolving these could introduce functional changes.
+  # Suppress unless someone is going to address them.
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-deprecated-copy")
+endif()
+
 blender_add_lib(bf_freestyle "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(COMMAND target_precompile_headers)

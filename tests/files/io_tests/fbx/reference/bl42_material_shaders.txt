@@ -614,10 +614,10 @@
   - base color (0.800, 0.800, 0.800) tex:'checkerboard_diffuse.png' (../blend_scene/textures/checkerboard_diffuse.png) a:False rot:(0.262, 0.524, 1.047) scl:(2.000, 3.000, 4.000)
   - specular ior 0.500
   - specular tint (1.000, 1.000, 1.000)
-  - roughness 0.500 tex:'checkerboard_roughness.png' (../blend_scene/textures/checkerboard_roughness.png) a:False
-  - metallic 0.000 tex:'checkerboard_metallic.png' (../blend_scene/textures/checkerboard_metallic.png) a:False
+  - roughness 0.500 tex:'checkerboard_roughness.png' (../blend_scene/textures/checkerboard_roughness.png) a:False Non-Color
+  - metallic 0.000 tex:'checkerboard_metallic.png' (../blend_scene/textures/checkerboard_metallic.png) a:False Non-Color
   - ior 1.500
-  - alpha 1.000 tex:'alpha.png' (../blend_scene/textures/alpha.png) a:True
+  - alpha 1.000 tex:'alpha.png' (../blend_scene/textures/alpha.png) a:True Non-Color
   - emission color (1.000, 1.000, 1.000) tex:'checkerboard_emissive.png' (../blend_scene/textures/checkerboard_emissive.png) a:False scl:(2.000, 1.000, 1.000)
   - emission strength 0.200
   - normalmap 3.000 tex:'checkerboard_normal.png' (../blend_scene/textures/checkerboard_normal.png) a:False data

@@ -76,15 +76,16 @@ class OptiXDevice : public CUDADevice {
   OptixProgramGroup groups[NUM_PROGRAM_GROUPS] = {};
   OptixPipelineCompileOptions pipeline_options = {};
 
-  device_vector<SbtRecord> sbt_data;
-  device_only_memory<KernelParamsOptiX> launch_params;
-
 #  ifdef WITH_OSL
   OSLGlobals osl_globals;
   vector<OptixModule> osl_modules;
   vector<OptixProgramGroup> osl_groups;
   OptixModule osl_camera_module = nullptr;
+  device_vector<uint8_t> osl_colorsystem;
 #  endif
+
+  device_vector<SbtRecord> sbt_data;
+  device_only_memory<KernelParamsOptiX> launch_params;
 
  private:
   OptixTraversableHandle tlas_handle = 0;

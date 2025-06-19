@@ -68,15 +68,6 @@ struct TexResult;
 
 /* `texture_image.cc` */
 
-int imagewraposa(struct Tex *tex,
-                 struct Image *ima,
-                 struct ImBuf *ibuf,
-                 const float texvec[3],
-                 const float DXT[2],
-                 const float DYT[2],
-                 struct TexResult *texres,
-                 struct ImagePool *pool,
-                 bool skip_load_image);
 int imagewrap(struct Tex *tex,
               struct Image *ima,
               const float texvec[3],

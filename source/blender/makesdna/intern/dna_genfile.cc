@@ -23,13 +23,12 @@
 
 #include "MEM_guardedalloc.h" /* for MEM_freeN MEM_mallocN MEM_callocN */
 
-#include "BLI_endian_switch.h"
+#include "BLI_ghash.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_memarena.h"
+#include "BLI_set.hh"
 #include "BLI_utildefines.h"
-
-#include "BLI_ghash.h"
 
 #include "DNA_genfile.h"
 #include "DNA_print.hh"
@@ -42,8 +41,8 @@
  * - if you want a struct not to be in DNA file: add two hash marks above it `(#<enter>#<enter>)`.
  *
  * Structure DNA data is added to each blender file and to each executable, this to detect
- * in .blend files new variables in structs, changed array sizes, etc. It's also used for
- * converting endian and pointer size (32-64 bits)
+ * in .blend files new variables in structs, changed array sizes, etc. It is also used for
+ * converting pointer size (32-64 bits) (and it used to be to handle endianness).
  * As an extra, Python uses a call to detect run-time the contents of a blender struct.
  *
  * Create a structDNA: only needed when one of the input include (.h) files change.
@@ -95,7 +94,6 @@
  *  - array (`vec[3]`) to float struct (`vec3f`).
  *
  * DONE:
- *  - Endian compatibility.
  *  - Pointer conversion (32-64 bits).
  *
  * IMPORTANT:
@@ -117,13 +115,9 @@
  *    always check blender running from a console.
  */
 
-#ifdef __BIG_ENDIAN__
-/* Big Endian */
-#  define MAKE_ID(a, b, c, d) (int(a) << 24 | int(b) << 16 | (c) << 8 | (d))
-#else
+/* NOTE: this is endianness-sensitive. */
 /* Little Endian */
-#  define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
-#endif
+#define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
 
 /* ************************* DIV ********************** */
 
@@ -133,11 +127,11 @@ void DNA_sdna_free(SDNA *sdna)
     MEM_freeN(sdna->data);
   }
 
-  MEM_freeN(sdna->members);
-  MEM_freeN(sdna->members_array_num);
-  MEM_freeN(sdna->types);
-  MEM_freeN(sdna->structs);
-  MEM_freeN(sdna->types_alignment);
+  MEM_SAFE_FREE(sdna->members);
+  MEM_SAFE_FREE(sdna->members_array_num);
+  MEM_SAFE_FREE(sdna->types);
+  MEM_SAFE_FREE(sdna->structs);
+  MEM_SAFE_FREE(sdna->types_alignment);
 
 #ifdef WITH_DNA_GHASH
   if (sdna->types_to_structs_map) {
@@ -322,19 +316,24 @@ BLI_INLINE const char *pad_up_4(const char *ptr)
 /**
  * In sdna->data the data, now we convert that to something understandable
  */
-static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error_message)
+static bool init_structDNA(SDNA *sdna, const char **r_error_message)
 {
   int member_index_gravity_fix = -1;
 
   int *data = (int *)sdna->data;
 
   /* Clear pointers in case of error. */
-  sdna->members = nullptr;
   sdna->types = nullptr;
+  sdna->types_size = nullptr;
+  sdna->types_alignment = nullptr;
   sdna->structs = nullptr;
 #ifdef WITH_DNA_GHASH
   sdna->types_to_structs_map = nullptr;
 #endif
+
+  sdna->members = nullptr;
+  sdna->members_array_num = nullptr;
+
   sdna->mem_arena = nullptr;
 
   /* Lazy initialize. */
@@ -353,16 +352,14 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
   if (*data == MAKE_ID('N', 'A', 'M', 'E')) {
     data++;
 
+    /* NOTE: this is endianness-sensitive. */
     sdna->members_num = *data;
-    if (do_endian_swap) {
-      BLI_endian_switch_int32(&sdna->members_num);
-    }
     sdna->members_num_alloc = sdna->members_num;
 
     data++;
     sdna->members = MEM_calloc_arrayN<const char *>(sdna->members_num, "sdnanames");
   }
-  else {
+  if (!sdna->members) {
     *r_error_message = "NAME error in SDNA file";
     return false;
   }
@@ -393,15 +390,13 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
   if (*data == MAKE_ID('T', 'Y', 'P', 'E')) {
     data++;
 
+    /* NOTE: this is endianness-sensitive. */
     sdna->types_num = *data;
-    if (do_endian_swap) {
-      BLI_endian_switch_int32(&sdna->types_num);
-    }
 
     data++;
     sdna->types = MEM_calloc_arrayN<const char *>(sdna->types_num, "sdnatypes");
   }
-  else {
+  if (!sdna->types) {
     *r_error_message = "TYPE error in SDNA file";
     return false;
   }
@@ -423,16 +418,13 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
   short *sp;
   if (*data == MAKE_ID('T', 'L', 'E', 'N')) {
     data++;
+    /* NOTE: this is endianness-sensitive. */
     sp = (short *)data;
     sdna->types_size = sp;
 
-    if (do_endian_swap) {
-      BLI_endian_switch_int16_array(sp, sdna->types_num);
-    }
-
     sp += sdna->types_num;
   }
-  else {
+  if (!sdna->types_size) {
     *r_error_message = "TLEN error in SDNA file";
     return false;
   }
@@ -446,34 +438,30 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
   if (*data == MAKE_ID('S', 'T', 'R', 'C')) {
     data++;
 
+    /* NOTE: this is endianness-sensitive. */
     sdna->structs_num = *data;
-    if (do_endian_swap) {
-      BLI_endian_switch_int32(&sdna->structs_num);
-    }
 
     data++;
     sdna->structs = MEM_calloc_arrayN<SDNA_Struct *>(sdna->structs_num, "sdnastrcs");
   }
-  else {
+  if (!sdna->structs) {
     *r_error_message = "STRC error in SDNA file";
     return false;
   }
 
+  /* Safety check, to ensure that there is no multiple usages of a same struct index. */
+  blender::Set<short> struct_indices;
   sp = (short *)data;
   for (int struct_index = 0; struct_index < sdna->structs_num; struct_index++) {
+    /* NOTE: this is endianness-sensitive. */
     SDNA_Struct *struct_info = (SDNA_Struct *)sp;
     sdna->structs[struct_index] = struct_info;
 
-    if (do_endian_swap) {
-      BLI_endian_switch_int16(&struct_info->type_index);
-      BLI_endian_switch_int16(&struct_info->members_num);
-
-      for (short a = 0; a < struct_info->members_num; a++) {
-        SDNA_StructMember *member = &struct_info->members[a];
-        BLI_endian_switch_int16(&member->type_index);
-        BLI_endian_switch_int16(&member->member_index);
-      }
+    if (!struct_indices.add(struct_info->type_index)) {
+      *r_error_message = "Invalid duplicate struct type index in SDNA file";
+      return false;
     }
+
     sp += 2 + (sizeof(SDNA_StructMember) / sizeof(short)) * struct_info->members_num;
   }
 
@@ -560,7 +548,6 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
 
 SDNA *DNA_sdna_from_data(const void *data,
                          const int data_len,
-                         bool do_endian_swap,
                          bool data_alloc,
                          const bool do_alias,
                          const char **r_error_message)
@@ -579,7 +566,7 @@ SDNA *DNA_sdna_from_data(const void *data,
   }
   sdna->data_alloc = data_alloc;
 
-  if (init_structDNA(sdna, do_endian_swap, &error_message)) {
+  if (init_structDNA(sdna, &error_message)) {
     if (do_alias) {
       DNA_sdna_alias_data_ensure_structs_map(sdna);
     }
@@ -606,7 +593,7 @@ static SDNA *g_sdna = nullptr;
 
 void DNA_sdna_current_init()
 {
-  g_sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, true, nullptr);
+  g_sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, true, nullptr);
 }
 
 const SDNA *DNA_sdna_current_get()
@@ -743,7 +730,8 @@ const char *DNA_struct_get_compareflags(const SDNA *oldsdna, const SDNA *newsdna
    *   - `struct Link` never needed DNA-versioning.
    *
    * NOTE: This may have been broken in BE/LE conversion cases, however this endianness handling
-   * code have likely been dead/never used in practice for many years now.
+   * code have likely been dead/never used in practice for many years, and has been removed in
+   * Blender 5.0.
    */
   BLI_STATIC_ASSERT(SDNA_RAW_DATA_STRUCT_INDEX == 0, "'raw data' SDNA struct index should be 0")
   compare_flags[SDNA_RAW_DATA_STRUCT_INDEX] = SDNA_CMP_EQUAL;
@@ -1101,74 +1089,6 @@ static int get_member_size_in_bytes(const SDNA *sdna, const SDNA_StructMember *m
   }
   const int type_size = sdna->types_size[member->type_index];
   return type_size * array_length;
-}
-
-void DNA_struct_switch_endian(const SDNA *sdna, int struct_index, char *data)
-{
-  if (struct_index == -1) {
-    return;
-  }
-
-  const SDNA_Struct *struct_info = sdna->structs[struct_index];
-
-  int offset_in_bytes = 0;
-  for (int member_index = 0; member_index < struct_info->members_num; member_index++) {
-    const SDNA_StructMember *member = &struct_info->members[member_index];
-    const eStructMemberCategory member_category = get_struct_member_category(sdna, member);
-    char *member_data = data + offset_in_bytes;
-    const char *member_type_name = sdna->types[member->type_index];
-    const int member_array_length = sdna->members_array_num[member->member_index];
-
-    switch (member_category) {
-      case STRUCT_MEMBER_CATEGORY_STRUCT: {
-        const int substruct_size = sdna->types_size[member->type_index];
-        const int substruct_index = DNA_struct_find_index_without_alias(sdna, member_type_name);
-        BLI_assert(substruct_index != -1);
-        for (int a = 0; a < member_array_length; a++) {
-          DNA_struct_switch_endian(sdna, substruct_index, member_data + a * substruct_size);
-        }
-        break;
-      }
-      case STRUCT_MEMBER_CATEGORY_PRIMITIVE: {
-        switch (member->type_index) {
-          case SDNA_TYPE_SHORT:
-          case SDNA_TYPE_USHORT: {
-            BLI_endian_switch_int16_array((int16_t *)member_data, member_array_length);
-            break;
-          }
-          case SDNA_TYPE_INT:
-          case SDNA_TYPE_FLOAT: {
-            /* NOTE: intentionally ignore `long/ulong`, because these could be 4 or 8 bytes.
-             * Fortunately, we only use these types for runtime variables and only once for a
-             * struct type that is no longer used. */
-            BLI_endian_switch_int32_array((int32_t *)member_data, member_array_length);
-            break;
-          }
-          case SDNA_TYPE_INT64:
-          case SDNA_TYPE_UINT64:
-          case SDNA_TYPE_DOUBLE: {
-            BLI_endian_switch_int64_array((int64_t *)member_data, member_array_length);
-            break;
-          }
-          default: {
-            break;
-          }
-        }
-        break;
-      }
-      case STRUCT_MEMBER_CATEGORY_POINTER: {
-        /* See `readfile.cc` (#uint32_from_uint64_ptr swap endian argument),
-         * this is only done when reducing the size of a pointer from 4 to 8. */
-        if (sizeof(void *) < 8) {
-          if (sdna->pointer_size == 8) {
-            BLI_endian_switch_uint64_array((uint64_t *)member_data, member_array_length);
-          }
-        }
-        break;
-      }
-    }
-    offset_in_bytes += get_member_size_in_bytes(sdna, member);
-  }
 }
 
 enum eReconstructStepType {

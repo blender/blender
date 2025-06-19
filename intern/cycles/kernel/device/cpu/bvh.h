@@ -289,7 +289,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
   }
 
   if (intersection_skip_shadow_already_recoded(
-          kg, ctx->isect_s, current_isect.object, current_isect.prim, ctx->num_recorded_hits))
+          ctx->isect_s, current_isect.object, current_isect.prim, ctx->num_recorded_hits))
   {
     *args->valid = 0;
     return;

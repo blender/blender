@@ -39,7 +39,7 @@ static void draw_item_in_list(uiList * /*ui_list*/,
     RNA_float_get_array(itemptr, "color", color);
     uiTemplateNodeSocket(row, const_cast<bContext *>(C), color);
   }
-  uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+  row->emboss_set(blender::ui::EmbossType::None);
   row->prop(itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 }
 

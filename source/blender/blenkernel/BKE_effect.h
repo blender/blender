@@ -73,7 +73,7 @@ typedef struct EffectorCache {
 
   struct PartDeflect *pd;
 
-  /** Random noise generator for e.g. wind. */
+  /** Random noise generator, e.g. for wind. */
   struct RNG *rng;
 
   /* precalculated for guides */

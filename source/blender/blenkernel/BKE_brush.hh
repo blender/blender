@@ -10,6 +10,8 @@
  * General operations for brushes.
  */
 
+#include <optional>
+
 #include "BLI_span.hh"
 
 #include "DNA_brush_enums.h"
@@ -147,7 +149,7 @@ float BKE_brush_sample_masktex(
  * This is preferred above using mtex/mask_mtex attributes directly as due to legacy these
  * attributes got switched in sculpt mode.
  */
-const MTex *BKE_brush_mask_texture_get(const Brush *brush, const eObjectMode object_mode);
+const MTex *BKE_brush_mask_texture_get(const Brush *brush, eObjectMode object_mode);
 
 /**
  * Get the color texture for this given object mode.
@@ -155,7 +157,7 @@ const MTex *BKE_brush_mask_texture_get(const Brush *brush, const eObjectMode obj
  * This is preferred above using mtex/mask_mtex attributes directly as due to legacy these
  * attributes got switched in sculpt mode.
  */
-const MTex *BKE_brush_color_texture_get(const Brush *brush, const eObjectMode object_mode);
+const MTex *BKE_brush_color_texture_get(const Brush *brush, eObjectMode object_mode);
 
 /**
  * Radial control.
@@ -164,7 +166,23 @@ ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool displa
 
 /* Unified strength size and color. */
 
+struct BrushColorJitterSettings {
+  int flag;
+  /** Jitter amounts */
+  float hue;
+  float saturation;
+  float value;
+
+  /** Jitter pressure curves. */
+  CurveMapping *curve_hue_jitter;
+  CurveMapping *curve_sat_jitter;
+  CurveMapping *curve_val_jitter;
+};
+
 const float *BKE_brush_color_get(const Scene *scene, const Paint *paint, const Brush *brush);
+std::optional<BrushColorJitterSettings> BKE_brush_color_jitter_get_settings(const Scene *scene,
+                                                                            const Paint *paint,
+                                                                            const Brush *brush);
 const float *BKE_brush_secondary_color_get(const Scene *scene,
                                            const Paint *paint,
                                            const Brush *brush);

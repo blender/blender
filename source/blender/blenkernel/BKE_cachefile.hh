@@ -28,6 +28,7 @@ bool BKE_cachefile_filepath_get(const Main *bmain,
                                 char r_filepath[1024]);
 
 double BKE_cachefile_time_offset(const CacheFile *cache_file, double time, double fps);
+double BKE_cachefile_frame_offset(const CacheFile *cache_file, double time);
 
 /* Modifiers and constraints open and free readers through these. */
 void BKE_cachefile_reader_open(CacheFile *cache_file,

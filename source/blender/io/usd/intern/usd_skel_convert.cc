@@ -864,7 +864,7 @@ void import_skeleton(Main *bmain,
     }
   }
 
-  /* Use our custom bone length data if possible, otherwise fallback to estimated lengths. */
+  /* Use our custom bone length data if possible, otherwise fall back to estimated lengths. */
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(skel.GetPrim());
   const pxr::UsdGeomPrimvar pv_lengths = pv_api.GetPrimvar(BlenderBoneLengths);
   if (pv_lengths.HasValue()) {

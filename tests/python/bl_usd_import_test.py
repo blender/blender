@@ -128,8 +128,8 @@ class USDImportTest(AbstractUSDTest):
         # Test topology counts.
         self.assertIn("m_degenerate", objects, "Scene does not contain object m_degenerate")
         mesh = objects["m_degenerate"].data
-        self.assertEqual(len(mesh.polygons), 2)
-        self.assertEqual(len(mesh.edges), 7)
+        self.assertEqual(len(mesh.polygons), 0)
+        self.assertEqual(len(mesh.edges), 0)
         self.assertEqual(len(mesh.vertices), 6)
 
         self.assertIn("m_triangles", objects, "Scene does not contain object m_triangles")
@@ -159,6 +159,32 @@ class USDImportTest(AbstractUSDTest):
         self.assertEqual(len(mesh.edges), 5)
         self.assertEqual(len(mesh.vertices), 5)
         self.assertEqual(len(mesh.polygons[0].vertices), 5)
+
+    def test_import_mesh_topology_change(self):
+        """Test importing meshes with changing topology over time."""
+
+        infile = str(self.testdir / "usd_mesh_topology_change.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+
+        # Check topology for all frames against expected vertex and face counts
+        expected_face_verts = [
+            (4, 4, 4),
+            (3, 4, 5),
+            (3, 3, 6),
+            (4, 4, 4),
+        ]
+        for frame in range(1, 5):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+
+            mesh = depsgraph.objects["TopoTest"].data
+
+            expected = expected_face_verts[frame - 1]
+            self.assertEqual(len(mesh.polygons), len(expected), f"Unexpected data for {frame=}")
+            for face in range(0, 3):
+                verts = mesh.polygons[face].vertices
+                self.assertEqual(len(verts), expected[face], f"Unexpected data for {frame=} {face=}")
 
     def test_import_mesh_uv_maps(self):
         """Test importing meshes with udim UVs and multiple UV sets."""
@@ -506,6 +532,17 @@ class USDImportTest(AbstractUSDTest):
         assert_attribute(mat, "displayColor", "Color", "Base Color")
         assert_attribute(mat, "f_vec", "Vector", "Normal")
         assert_attribute(mat, "f_float", "Fac", "Roughness")
+
+    def test_import_material_node_graph(self):
+        """Verify we can follow connections through NodeGraph defs."""
+
+        testfile = str(self.testdir / "usd_materials_node_graph.usda")
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res)
+
+        # If NodeGraph traversal is missing or broken, the Image Texture and UV Map nodes will be missing
+        mat = bpy.data.materials["Material"]
+        self.assert_all_nodes_present(mat, ["Principled BSDF", "Image Texture", "UV Map", "Material Output"])
 
     def test_import_shader_varname_with_connection(self):
         """Test importing USD shader where uv primvar is a connection"""
@@ -1203,6 +1240,29 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(blender_light.energy, 6.5, 3)
         self.assertEqual(blender_light.shape, 'DISK')  # We read as disk to mirror what USD supports
         self.assertAlmostEqual(blender_light.size, 4, 3)
+
+    def test_import_dome_lights(self):
+        """Test importing dome lights and verify their rotations."""
+
+        # Test files and their expected EnvironmentTexture Mapping rotation values
+        tests = [
+            ("usd_dome_light_1_stageZ_poleY.usda", [0.0, 0.0, 0.0]),
+            ("usd_dome_light_1_stageZ_poleZ.usda", [0.0, -1.5708, 0.0]),
+            ("usd_dome_light_1_stageY_poleDefault.usda", [-1.5708, 0.0, 0.0])
+        ]
+
+        for test_name, expected_rot in tests:
+            bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+
+            infile = str(self.testdir / test_name)
+            res = bpy.ops.wm.usd_import(filepath=infile)
+            self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+
+            # Validate that the Mapping node on the World Material is set to the correct rotation
+            world = bpy.data.worlds["World"]
+            node = world.node_tree.nodes["Mapping"]
+            self.assertEqual(
+                self.round_vector(node.inputs[2].default_value), expected_rot, f"Incorrect rotation for {test_name}")
 
     def check_attribute(self, blender_data, attribute_name, domain, data_type, elements_len):
         attr = blender_data.attributes[attribute_name]

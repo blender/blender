@@ -129,7 +129,7 @@ void Evaluator::map_node_operation_inputs_to_their_results(DNode node,
   for (const bNodeSocket *input : node->input_sockets()) {
     const DInputSocket dinput{node.context(), input};
 
-    if (!input->is_available()) {
+    if (!is_socket_available(input)) {
       continue;
     }
 

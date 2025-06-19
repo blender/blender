@@ -35,7 +35,7 @@
  *         o-------+-----+------>
  *
  * The aforementioned equation eliminates the edges between regions X, C, and A since they get
- * subtracted with C and A. To avoid this, we subtract 1 from the lower bound and fallback to zero
+ * subtracted with C and A. To avoid this, we subtract 1 from the lower bound and fall back to zero
  * for out of bound sampling. */
 
 #include "gpu_shader_compositor_texture_utilities.glsl"

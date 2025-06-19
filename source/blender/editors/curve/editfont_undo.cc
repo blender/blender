@@ -92,7 +92,7 @@ static void uf_arraystore_compact_ex(UndoFont *uf, const UndoFont *uf_ref, bool 
     if ((uf)->id) { \
       BLI_assert(create == ((uf)->store.id == nullptr)); \
       if (create) { \
-        BArrayState *state_reference = uf_ref ? uf_ref->store.id : nullptr; \
+        const BArrayState *state_reference = uf_ref ? uf_ref->store.id : nullptr; \
         const size_t stride = sizeof(*(uf)->id); \
         BArrayStore *bs = BLI_array_store_at_size_ensure( \
             &uf_arraystore.bs_stride, stride, ARRAY_CHUNK_SIZE); \
@@ -169,7 +169,7 @@ static void uf_arraystore_expand(UndoFont *uf)
 #  define STATE_EXPAND(uf, id, len) \
     if ((uf)->store.id) { \
       const size_t stride = sizeof(*(uf)->id); \
-      BArrayState *state = (uf)->store.id; \
+      const BArrayState *state = (uf)->store.id; \
       size_t state_len; \
       *(void **)&(uf)->id = BLI_array_store_state_data_get_alloc(state, &state_len); \
       BLI_assert((len) == (state_len / stride)); \
@@ -247,7 +247,7 @@ static void *undofont_from_editfont(UndoFont *uf, Curve *cu)
 {
   BLI_assert(BLI_array_is_zeroed(uf, 1));
 
-  EditFont *ef = cu->editfont;
+  const EditFont *ef = cu->editfont;
 
   size_t mem_used_prev = MEM_get_memory_in_use();
 
@@ -314,8 +314,8 @@ static Object *editfont_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_FONT) {
-    Curve *cu = static_cast<Curve *>(obedit->data);
-    EditFont *ef = cu->editfont;
+    const Curve *cu = static_cast<Curve *>(obedit->data);
+    const EditFont *ef = cu->editfont;
     if (ef != nullptr) {
       return obedit;
     }

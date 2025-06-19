@@ -4,10 +4,13 @@
 
 #include "node_geometry_util.hh"
 
+#include "ED_screen.hh"
+
 #include "NOD_geo_bundle.hh"
 #include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
+#include "NOD_socket_search_link.hh"
 
 #include "BLO_read_write.hh"
 
@@ -36,7 +39,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       b.add_output(socket_type, name, identifier)
           .socket_name_ptr(&tree->id, SeparateBundleItemsAccessor::item_srna, &item, "name")
           .propagate_all()
-          .reference_pass_all();
+          .reference_pass_all()
+          .structure_type(StructureType::Dynamic);
     }
   }
   b.add_output<decl::Extend>("", "__extend__");
@@ -75,6 +79,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *node_ptr)
   bNode &node = *static_cast<bNode *>(node_ptr->data);
 
   if (uiLayout *panel = layout->panel(C, "bundle_items", false, TIP_("Bundle Items"))) {
+    panel->op("node.sockets_sync", "Sync", ICON_FILE_REFRESH);
+
     socket_items::ui::draw_items_list_with_operators<SeparateBundleItemsAccessor>(
         C, panel, ntree, node);
     socket_items::ui::draw_active_item_props<SeparateBundleItemsAccessor>(
@@ -133,6 +139,25 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_default_remaining_outputs();
 }
 
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const bNodeSocket &other_socket = params.other_socket();
+  if (other_socket.type != SOCK_BUNDLE) {
+    return;
+  }
+  if (other_socket.in_out == SOCK_IN) {
+    return;
+  }
+
+  params.add_item("Bundle", [](LinkSearchOpParams &params) {
+    bNode &node = params.add_node("GeometryNodeSeparateBundle");
+    params.connect_available_socket(node, "Bundle");
+
+    SpaceNode &snode = *CTX_wm_space_node(&params.C);
+    ed::space_node::sync_sockets_separate_bundle(snode, node, nullptr);
+  });
+}
+
 static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)
 {
   socket_items::blend_write<SeparateBundleItemsAccessor>(&writer, node);
@@ -156,6 +181,7 @@ static void node_register()
   ntype.insert_link = node_insert_link;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons_ex = node_layout_ex;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.register_operators = node_operators;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;

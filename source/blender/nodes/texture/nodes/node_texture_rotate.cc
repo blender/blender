@@ -48,22 +48,16 @@ static void rotate(float new_co[3], float a, const float ax[3], const float co[3
 
 static void colorfn(float *out, TexParams *p, bNode * /*node*/, bNodeStack **in, short thread)
 {
-  float new_co[3], new_dxt[3], new_dyt[3], a, ax[3];
+  float new_co[3], a, ax[3];
 
   a = tex_input_value(in[1], p, thread);
   tex_input_vec(ax, in[2], p, thread);
 
   rotate(new_co, a, ax, p->co);
-  if (p->osatex) {
-    rotate(new_dxt, a, ax, p->dxt);
-    rotate(new_dyt, a, ax, p->dyt);
-  }
 
   {
     TexParams np = *p;
     np.co = new_co;
-    np.dxt = new_dxt;
-    np.dyt = new_dyt;
     tex_input_rgba(out, in[0], &np, thread);
   }
 }

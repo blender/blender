@@ -445,7 +445,7 @@ static bool strip_update_effectdata_cb(Strip *strip, void * /*user_data*/)
   }
 
   if (strip->effectdata == nullptr) {
-    blender::seq::EffectHandle effect_handle = blender::seq::effect_handle_get(strip);
+    blender::seq::EffectHandle effect_handle = blender::seq::strip_effect_handle_get(strip);
     effect_handle.init(strip);
   }
 
@@ -1449,7 +1449,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "NodeGlare", "char", "star_45")) {
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_COMPOSIT) {
-          blender::bke::node_tree_set_type(nullptr, *ntree);
+          blender::bke::node_tree_set_type(*ntree);
           LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
             if (node->type_legacy == CMP_NODE_GLARE) {
               NodeGlare *ndg = static_cast<NodeGlare *>(node->storage);
@@ -1601,7 +1601,7 @@ void do_versions_after_linking_270(Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 279, 0)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
-        blender::bke::node_tree_set_type(nullptr, *ntree);
+        blender::bke::node_tree_set_type(*ntree);
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type_legacy == CMP_NODE_HUE_SAT) {
             do_version_hue_sat_node(ntree, node);

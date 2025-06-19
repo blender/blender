@@ -595,7 +595,7 @@ bool BM_vert_is_edge_pair_manifold(const BMVert *v)
   return false;
 }
 
-bool BM_vert_edge_pair(BMVert *v, BMEdge **r_e_a, BMEdge **r_e_b)
+bool BM_vert_edge_pair(const BMVert *v, BMEdge **r_e_a, BMEdge **r_e_b)
 {
   BMEdge *e_a = v->e;
   if (e_a) {

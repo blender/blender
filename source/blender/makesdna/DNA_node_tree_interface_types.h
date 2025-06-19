@@ -61,7 +61,8 @@ typedef enum NodeTreeInterfaceSocketFlag {
   NODE_INTERFACE_SOCKET_HIDE_VALUE = 1 << 2,
   NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER = 1 << 3,
   NODE_INTERFACE_SOCKET_COMPACT = 1 << 4,
-  NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY = 1 << 5,
+  /* To be deprecated when structure types are moved out of experimental. */
+  NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY_LEGACY = 1 << 5,
   NODE_INTERFACE_SOCKET_LAYER_SELECTION = 1 << 6,
   /* INSPECT is used by Connect to Output operator to ensure socket that exits from node group. */
   NODE_INTERFACE_SOCKET_INSPECT = 1 << 7,
@@ -70,7 +71,27 @@ typedef enum NodeTreeInterfaceSocketFlag {
   /* Menu socket should be drawn expanded instead of as drop-down menu. */
   NODE_INTERFACE_SOCKET_MENU_EXPANDED = 1 << 9,
 } NodeTreeInterfaceSocketFlag;
-ENUM_OPERATORS(NodeTreeInterfaceSocketFlag, NODE_INTERFACE_SOCKET_PANEL_TOGGLE);
+ENUM_OPERATORS(NodeTreeInterfaceSocketFlag, NODE_INTERFACE_SOCKET_MENU_EXPANDED);
+
+typedef enum NodeSocketInterfaceStructureType {
+  NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO = 0,
+  NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE = 1,
+  NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC = 2,
+  NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_FIELD = 3,
+  NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_GRID = 4,
+} NodeSocketInterfaceStructureType;
+
+// TODO: Move out of DNA.
+#ifdef __cplusplus
+namespace blender::nodes {
+enum class StructureType : int8_t {
+  Single = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE,
+  Dynamic = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC,
+  Field = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_FIELD,
+  Grid = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_GRID,
+};
+}
+#endif
 
 typedef struct bNodeTreeInterfaceSocket {
   bNodeTreeInterfaceItem item;
@@ -95,6 +116,10 @@ typedef struct bNodeTreeInterfaceSocket {
   void *socket_data;
 
   struct IDProperty *properties;
+
+  /** #NodeSocketInterfaceStructureType. */
+  int8_t structure_type;
+  char _pad[7];
 
 #ifdef __cplusplus
   bNodeSocketTypeHandle *socket_typeinfo() const;

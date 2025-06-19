@@ -1142,7 +1142,7 @@ bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
     }
   }
   else if (efa) {
-    /* no edit-selection, fallback to active face */
+    /* no edit-selection, fall back to active face */
     ese->ele = (BMElem *)efa;
     ese->htype = BM_FACE;
   }

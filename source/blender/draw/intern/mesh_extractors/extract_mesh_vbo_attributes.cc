@@ -347,7 +347,7 @@ gpu::VertBufPtr extract_attribute_subdiv(const MeshRenderData &mr,
 gpu::VertBufPtr extract_attr_viewer(const MeshRenderData &mr)
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "attribute_value", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      "attribute_value", gpu::VertAttrType::SFLOAT_32_32_32_32);
 
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
   GPU_vertbuf_data_alloc(*vbo, mr.corners_num);

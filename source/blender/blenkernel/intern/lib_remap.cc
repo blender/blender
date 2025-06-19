@@ -891,7 +891,7 @@ static int id_relink_to_newid_looper(LibraryIDLinkCallbackData *cb_data)
   RelinkToNewIDData *relink_data = static_cast<RelinkToNewIDData *>(cb_data->user_data);
 
   if (id) {
-    /* See: NEW_ID macro */
+    /* See: #ID_NEW_SET macro. */
     if (id->newid != nullptr) {
       relink_data->id_remapper.add(id, id->newid);
       id = id->newid;

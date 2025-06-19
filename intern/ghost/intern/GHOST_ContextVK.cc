@@ -116,6 +116,42 @@ static bool contains_extension(const vector<VkExtensionProperties> &extension_li
 };
 
 /* -------------------------------------------------------------------- */
+/** \name Swap-chain resources
+ * \{ */
+
+void GHOST_SwapchainImage::destroy(VkDevice vk_device)
+{
+  vkDestroySemaphore(vk_device, present_semaphore, nullptr);
+  present_semaphore = VK_NULL_HANDLE;
+  vk_image = VK_NULL_HANDLE;
+}
+
+void GHOST_FrameDiscard::destroy(VkDevice vk_device)
+{
+  while (!swapchains.empty()) {
+    VkSwapchainKHR vk_swapchain = swapchains.back();
+    swapchains.pop_back();
+    vkDestroySwapchainKHR(vk_device, vk_swapchain, nullptr);
+  }
+  while (!semaphores.empty()) {
+    VkSemaphore vk_semaphore = semaphores.back();
+    semaphores.pop_back();
+    vkDestroySemaphore(vk_device, vk_semaphore, nullptr);
+  }
+}
+
+void GHOST_Frame::destroy(VkDevice vk_device)
+{
+  vkDestroyFence(vk_device, submission_fence, nullptr);
+  submission_fence = VK_NULL_HANDLE;
+  vkDestroySemaphore(vk_device, acquire_semaphore, nullptr);
+  acquire_semaphore = VK_NULL_HANDLE;
+  discard_pile.destroy(vk_device);
+}
+
+/* \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Vulkan Device
  * \{ */
 
@@ -128,7 +164,12 @@ class GHOST_DeviceVK {
 
   uint32_t generic_queue_family = 0;
 
-  VkPhysicalDeviceProperties properties = {};
+  VkPhysicalDeviceProperties2 properties = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+  };
+  VkPhysicalDeviceVulkan12Properties properties_12 = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES,
+  };
   VkPhysicalDeviceFeatures2 features = {};
   VkPhysicalDeviceVulkan11Features features_11 = {};
   VkPhysicalDeviceVulkan12Features features_12 = {};
@@ -146,7 +187,8 @@ class GHOST_DeviceVK {
   GHOST_DeviceVK(VkInstance vk_instance, VkPhysicalDevice vk_physical_device)
       : instance(vk_instance), physical_device(vk_physical_device)
   {
-    vkGetPhysicalDeviceProperties(physical_device, &properties);
+    properties.pNext = &properties_12;
+    vkGetPhysicalDeviceProperties2(physical_device, &properties);
 
     features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     features_11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
@@ -270,6 +312,7 @@ class GHOST_DeviceVK {
     vulkan_12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     vulkan_12_features.shaderOutputLayer = features_12.shaderOutputLayer;
     vulkan_12_features.shaderOutputViewportIndex = features_12.shaderOutputViewportIndex;
+    vulkan_12_features.bufferDeviceAddress = features_12.bufferDeviceAddress;
     vulkan_12_features.timelineSemaphore = VK_TRUE;
     feature_struct_ptr.push_back(&vulkan_12_features);
 
@@ -327,6 +370,18 @@ class GHOST_DeviceVK {
     if (extension_requested(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME)) {
       feature_struct_ptr.push_back(&swapchain_maintenance_1);
       use_vk_ext_swapchain_maintenance_1 = true;
+    }
+
+    /* Descriptor buffers */
+    VkPhysicalDeviceDescriptorBufferPropertiesEXT descriptor_buffer = {
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT,
+        nullptr,
+        VK_TRUE,
+        VK_FALSE,
+        VK_FALSE,
+        VK_FALSE};
+    if (extension_requested(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME)) {
+      feature_struct_ptr.push_back(&descriptor_buffer);
     }
 
     /* Query and enable Fragment Shader Barycentrics. */
@@ -439,7 +494,7 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
 #endif
 
     int device_score = 0;
-    switch (device_vk.properties.deviceType) {
+    switch (device_vk.properties.properties.deviceType) {
       case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
         device_score = 400;
         break;
@@ -457,8 +512,8 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
     }
     /* User has configured a preferred device. Add bonus score when vendor and device match. Driver
      * id isn't considered as drivers update more frequently and can break the device selection. */
-    if (device_vk.properties.deviceID == preferred_device.device_id &&
-        device_vk.properties.vendorID == preferred_device.vendor_id)
+    if (device_vk.properties.properties.deviceID == preferred_device.device_id &&
+        device_vk.properties.properties.vendorID == preferred_device.vendor_id)
     {
       device_score += 500;
       if (preferred_device.index == device_index) {
@@ -938,13 +993,18 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
    * Minimized windows have an extent of 0,0. Although it fits in the specs returned by
    * #vkGetPhysicalDeviceSurfaceCapabilitiesKHR.
    *
-   * Ref #138032
+   * The fix is limited to NVIDIA. AMD drivers finds the swapchain to be sub-optimal and
+   * asks Blender to recreate the swapchain over and over again until it gets out of memory.
+   *
+   * Ref #138032, #139815
    */
-  if (m_render_extent.width == 0) {
-    m_render_extent.width = 1;
-  }
-  if (m_render_extent.height == 0) {
-    m_render_extent.height = 1;
+  if (vulkan_device->properties_12.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY) {
+    if (m_render_extent.width == 0) {
+      m_render_extent.width = 1;
+    }
+    if (m_render_extent.height == 0) {
+      m_render_extent.height = 1;
+    }
   }
 
   /* Use double buffering when using FIFO. Increasing the number of images could stall when doing
@@ -1184,6 +1244,8 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   optional_device_extensions.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
+  optional_device_extensions.push_back(VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
+  optional_device_extensions.push_back(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
 
   VkInstance instance = VK_NULL_HANDLE;
   if (!vulkan_device.has_value()) {

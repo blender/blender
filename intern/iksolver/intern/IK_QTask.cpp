@@ -194,8 +194,9 @@ void IK_QCenterOfMassTask::ComputeJacobian(IK_QJacobian &jacobian)
   m_distance = d_pos.norm();
 
 #if 0
-  if (m_distance > m_clamp_length)
+  if (m_distance > m_clamp_length) {
     d_pos = (m_clamp_length / m_distance) * d_pos;
+  }
 #endif
 
   jacobian.SetBetas(m_id, m_size, m_weight * d_pos);

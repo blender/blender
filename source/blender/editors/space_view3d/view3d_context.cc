@@ -30,7 +30,7 @@ const char *view3d_context_dir[] = {
 
 int view3d_context(const bContext *C, const char *member, bContextDataResult *result)
 {
-  /* fallback to the scene layer,
+  /* fall back to the scene layer,
    * allows duplicate and other object operators to run outside the 3d view */
 
   if (CTX_data_dir(member)) {

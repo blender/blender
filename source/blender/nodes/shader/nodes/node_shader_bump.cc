@@ -29,7 +29,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .translation_context(BLT_I18NCONTEXT_AMOUNT);
 #define SOCK_DISTANCE_ID 1
   b.add_input<decl::Float>("Distance")
-      .default_value(1.0f)
+      .default_value(0.001f)
       .min(0.0f)
       .max(1000.0f)
       .description(

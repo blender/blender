@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:34+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11580,96 +11580,96 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
-
-
-msgid "Metaball"
-msgstr "Metakula"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
-msgid "Rigid Body"
-msgstr "Bryła sztywna"
-
-
-msgid "Apply"
-msgstr "Zastosuj"
-
-
-msgid "Track"
-msgstr "Ścieżka"
-
-
-msgid "Quick Effects"
-msgstr "Szybkie efekty"
+msgid "Clean Up"
+msgstr "Sprzątanie"
 
 
 msgid "Show/Hide"
 msgstr "Pokaż/Ukryj"
 
 
-msgid "Clean Up"
-msgstr "Sprzątanie"
+msgid "Text"
+msgstr "Tekst"
 
 
-msgid "Asset"
-msgstr "Prefabrykat"
-
-
-msgid "Convert"
-msgstr "Konwertuj"
-
-
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
-
-
-msgid "Face Data"
-msgstr "Dane ściany"
+msgid "Metaball"
+msgstr "Metakula"
 
 
 msgid "Merge"
 msgstr "Scal"
 
 
-msgid "Text"
-msgstr "Tekst"
+msgid "Snap"
+msgstr "Przyciągnij"
 
 
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
+
+
+msgid "Convert"
+msgstr "Konwertuj"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
+msgid "Face Data"
+msgstr "Dane ściany"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Asset"
+msgstr "Prefabrykat"
+
+
+msgid "Quick Effects"
+msgstr "Szybkie efekty"
+
+
+msgid "Track"
+msgstr "Ścieżka"
+
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
+
+
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
 
 
 msgid "Catalog"
@@ -12355,6 +12355,10 @@ msgstr "Sortuje kanały według numeru ostatniej klatki"
 
 msgid "Select Pattern"
 msgstr "Zaznacz według wzoru"
+
+
+msgid "Starting"
+msgstr "Zaczęto"
 
 
 msgid "Show Preview"
@@ -17393,6 +17397,18 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
+msgid "Active Tool"
+msgstr "Aktywne narzędzie"
+
+
+msgid "Shadow Settings"
+msgstr "Ustawienia cienia"
+
+
+msgid "Compositor"
+msgstr "Kompozytor"
+
+
 msgid "Motion Tracking"
 msgstr "Śledzenie ruchu"
 
@@ -17415,18 +17431,6 @@ msgstr "Przyciąganie"
 
 msgid "Transform Orientations"
 msgstr "Orientacje przekształcenia"
-
-
-msgid "Compositor"
-msgstr "Kompozytor"
-
-
-msgid "Active Tool"
-msgstr "Aktywne narzędzie"
-
-
-msgid "Shadow Settings"
-msgstr "Ustawienia cienia"
 
 
 msgid "Aperture"
@@ -18150,10 +18154,6 @@ msgstr "Grubsze linie niż domyślnie"
 
 msgid "Changes the size of the fonts and widgets in the interface"
 msgstr "Zmienia rozmiar czcionek i widżetów w interfejsie"
-
-
-msgid "Open menu buttons and pulldowns automatically when the mouse is hovering"
-msgstr "Otwiera menu rozwijane oraz przyciski menu automatycznie po najechaniu myszką"
 
 
 msgid "Ask for confirmation when quitting with unsaved changes"
@@ -20299,11 +20299,6 @@ msgstr "Płaszczyzna Y"
 msgctxt "WindowManager"
 msgid "Z Plane"
 msgstr "Płaszczyzna Z"
-
-
-msgctxt "WindowManager"
-msgid "TrackBall"
-msgstr "TrackBall"
 
 
 msgctxt "WindowManager"
@@ -26674,20 +26669,8 @@ msgid "File '%s' could not be loaded"
 msgstr "Plik '%s' nie mógł być załadowany"
 
 
-msgid "No valid inputs to swap"
-msgstr "Brak prawidłowych wejść do zamiany"
-
-
 msgid "Please select two strips"
 msgstr "Proszę zaznaczyć dwa paski"
-
-
-msgid "One of the effect inputs is unset, cannot swap"
-msgstr "Jedeno z wejść efektu jest nie ustanowione, zamiana niemożliwa"
-
-
-msgid "New effect needs more input strips"
-msgstr "Nowy efekt potrzebuje paska źródłowego"
 
 
 msgid "Rows:"
@@ -28749,194 +28732,6 @@ msgstr "Wszystkie wtyczki zainstalowane przez użytkownika"
 
 msgid "Import-Export"
 msgstr "Import-Eksport"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japoński (日本語)"
-
-
-msgid "Dutch (Nederlands)"
-msgstr "Holenderski (Nederlands)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Włoski (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Niemiecki (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Fiński (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Szwedzki (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Francuski (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Hiszpański (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Kataloński (Català)"
-
-
-msgid "Czech (Čeština)"
-msgstr "Czeski (Čeština)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Portugalski (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Chiński uproszczony (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Chiński tradycyjny (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Rosyjski (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Chorwacki (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Serbski (Српски)"
-
-
-msgid "Ukrainian (Українська)"
-msgstr "Ukraiński (Українська)"
-
-
-msgid "Polish (Polski)"
-msgstr "Polski (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Rumuński (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arabski (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bułgarski (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Grecki (Ελληνικά)"
-
-
-msgid "Korean (한국어)"
-msgstr "Koreański (한국어)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepalski (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Perski (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonezyjski (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Serbski alfabet łaciński (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Kirgiski (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turecki (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Węgierski (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Portugalski Brazylia (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Hebrajski (תירִבְעִ)"
-
-
-msgid "Estonian (Eesti keel)"
-msgstr "Estoński (Eesti keel)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amharski (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbecki (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Uzbecki Cyrylica (Ўзбек)"
-
-
-msgid "Hindi (हिन्दी)"
-msgstr "Hinduski (हिन्दी)"
-
-
-msgid "Vietnamese (Tiếng Việt)"
-msgstr "Wietnamski (Tiếng Việt)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Tajski (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Słowacki (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "Gruziński (ქართული)"
-
-
-msgid "Belarusian (беларуску)"
-msgstr "Białoruski (беларуску)"
-
-
-msgid "Danish (Dansk)"
-msgstr "Duński (Dansk)"
-
-
-msgid "Complete"
-msgstr "Zakończono"
-
-
-msgid "In Progress"
-msgstr "W trakcie"
-
-
-msgid "Starting"
-msgstr "Zaczęto"
 
 
 msgid "Blend Radius"

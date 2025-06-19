@@ -96,7 +96,7 @@ ccl_device_forceinline void integrator_state_read_shadow_ray(ConstIntegratorShad
 }
 
 ccl_device_forceinline void integrator_state_write_shadow_ray_self(
-    KernelGlobals kg, IntegratorShadowState state, const ccl_private Ray *ccl_restrict ray)
+    IntegratorShadowState state, const ccl_private Ray *ccl_restrict ray)
 {
   /* There is a bit of implicit knowledge about the way how the kernels are invoked and what the
    * state is actually storing. Special logic here is needed because the intersect_shadow kernel
@@ -134,7 +134,7 @@ ccl_device_forceinline void integrator_state_write_shadow_ray_self(
 }
 
 ccl_device_forceinline void integrator_state_read_shadow_ray_self(
-    KernelGlobals kg, ConstIntegratorShadowState state, ccl_private Ray *ccl_restrict ray)
+    ConstIntegratorShadowState state, ccl_private Ray *ccl_restrict ray)
 {
   ray->self.object = INTEGRATOR_STATE_ARRAY(
       state, shadow_isect, INTEGRATOR_SHADOW_ISECT_SIZE - 1, object);

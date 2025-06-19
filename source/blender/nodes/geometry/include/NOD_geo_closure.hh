@@ -30,14 +30,13 @@ inline bool socket_type_supported_in_closure(const eNodeSocketDatatype socket_ty
               SOCK_CLOSURE);
 }
 
-struct ClosureInputItemsAccessor {
+struct ClosureInputItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometryClosureInputItem;
   static StructRNA *item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeClosureOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_closure_input_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_closure_input_item_remove";
@@ -105,14 +104,13 @@ struct ClosureInputItemsAccessor {
   }
 };
 
-struct ClosureOutputItemsAccessor {
+struct ClosureOutputItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometryClosureOutputItem;
   static StructRNA *item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeClosureOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_closure_output_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_closure_output_item_remove";
@@ -180,14 +178,13 @@ struct ClosureOutputItemsAccessor {
   }
 };
 
-struct EvaluateClosureInputItemsAccessor {
+struct EvaluateClosureInputItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometryEvaluateClosureInputItem;
   static StructRNA *item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeEvaluateClosure";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_evaluate_closure_input_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_evaluate_closure_input_item_remove";
@@ -246,6 +243,7 @@ struct EvaluateClosureInputItemsAccessor {
     auto *storage = static_cast<NodeGeometryEvaluateClosure *>(node.storage);
     item.socket_type = socket_type;
     item.identifier = storage->input_items.next_identifier++;
+    item.structure_type = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC;
     socket_items::set_item_name_and_make_unique<EvaluateClosureInputItemsAccessor>(
         node, item, name);
   }
@@ -256,14 +254,13 @@ struct EvaluateClosureInputItemsAccessor {
   }
 };
 
-struct EvaluateClosureOutputItemsAccessor {
+struct EvaluateClosureOutputItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometryEvaluateClosureOutputItem;
   static StructRNA *item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeEvaluateClosure";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_evaluate_closure_output_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_evaluate_closure_output_item_remove";
@@ -322,6 +319,7 @@ struct EvaluateClosureOutputItemsAccessor {
     auto *storage = static_cast<NodeGeometryEvaluateClosure *>(node.storage);
     item.socket_type = socket_type;
     item.identifier = storage->output_items.next_identifier++;
+    item.structure_type = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC;
     socket_items::set_item_name_and_make_unique<EvaluateClosureOutputItemsAccessor>(
         node, item, name);
   }

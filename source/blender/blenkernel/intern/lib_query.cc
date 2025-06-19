@@ -393,6 +393,14 @@ static bool library_foreach_ID_link(Main *bmain,
       return false;
     }
 
+    IDP_foreach_property(id->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+      BKE_lib_query_idpropertiesForeachIDLink_callback(prop, &data);
+    });
+    if (BKE_lib_query_foreachid_iter_stop(&data)) {
+      library_foreach_ID_data_cleanup(&data);
+      return false;
+    }
+
     AnimData *adt = BKE_animdata_from_id(id);
     if (adt) {
       BKE_animdata_foreach_id(adt, &data);

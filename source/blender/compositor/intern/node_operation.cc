@@ -30,7 +30,7 @@ using namespace nodes::derived_node_tree_types;
 NodeOperation::NodeOperation(Context &context, DNode node) : Operation(context), node_(node)
 {
   for (const bNodeSocket *output : node->output_sockets()) {
-    if (!output->is_available()) {
+    if (!is_socket_available(output)) {
       continue;
     }
 
@@ -39,7 +39,7 @@ NodeOperation::NodeOperation(Context &context, DNode node) : Operation(context),
   }
 
   for (const bNodeSocket *input : node->input_sockets()) {
-    if (!input->is_available()) {
+    if (!is_socket_available(input)) {
       continue;
     }
 
@@ -78,7 +78,7 @@ Result *NodeOperation::get_preview_result()
 {
   /* Find the first linked output. */
   for (const bNodeSocket *output : node()->output_sockets()) {
-    if (!output->is_available()) {
+    if (!is_socket_available(output)) {
       continue;
     }
 
@@ -95,7 +95,7 @@ Result *NodeOperation::get_preview_result()
 
   /* Find the first allocated input. */
   for (const bNodeSocket *input : node()->input_sockets()) {
-    if (!input->is_available()) {
+    if (!is_socket_available(input)) {
       continue;
     }
 
@@ -112,7 +112,7 @@ Result *NodeOperation::get_preview_result()
 void NodeOperation::compute_results_reference_counts(const Schedule &schedule)
 {
   for (const bNodeSocket *output : this->node()->output_sockets()) {
-    if (!output->is_available()) {
+    if (!is_socket_available(output)) {
       continue;
     }
 

@@ -50,7 +50,7 @@ ccl_device_template_spec float volume_attribute_value(const float4 value)
   return average(make_float3(value));
 }
 
-ccl_device_template_spec float2 volume_attribute_value(const float4 value)
+ccl_device_template_spec float2 volume_attribute_value(const float4 /*value*/)
 {
   kernel_assert(!"Float2 attribute not supported for volumes");
   return zero_float2();

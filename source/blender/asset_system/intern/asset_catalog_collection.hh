@@ -12,6 +12,8 @@
 
 namespace blender::asset_system {
 
+class AssetLibraryService;
+
 /**
  * All catalogs that are owned by a single asset library, and managed by a single instance of
  * #AssetCatalogService. The undo system for asset catalog edits contains historical copies of this
@@ -35,11 +37,16 @@ class AssetCatalogCollection {
   bool has_unsaved_changes_ = false;
 
   friend AssetCatalogService;
+  friend AssetLibraryService;
 
  public:
   AssetCatalogCollection() = default;
   AssetCatalogCollection(const AssetCatalogCollection &other) = delete;
   AssetCatalogCollection(AssetCatalogCollection &&other) noexcept = default;
+
+  /** Check if this contains any catalogs or deleted catalogs. Doesn't check if a CDF is present.
+   */
+  bool is_empty() const;
 
   std::unique_ptr<AssetCatalogCollection> deep_copy() const;
   using OnDuplicateCatalogIdFn =

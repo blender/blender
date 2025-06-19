@@ -63,62 +63,6 @@ typedef struct MTex {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #PointDensity
- * \{ */
-
-typedef struct PointDensity {
-  DNA_DEFINE_CXX_METHODS(PointDensity)
-
-  short flag;
-
-  short falloff_type;
-  float falloff_softness;
-  float radius;
-  short source;
-  char _pad0[2];
-
-  /** psys_color_source */
-  short color_source;
-  short ob_color_source;
-
-  int totpoints;
-
-  /** for 'Object' or 'Particle system' type - source object */
-  struct Object *object;
-  /** `index + 1` in ob.particle-system, non-ID pointer not allowed. */
-  int psys;
-  /** cache points in world-space, object space, ... ? */
-  short psys_cache_space;
-  /** cache points in world-space, object space, ... ? */
-  short ob_cache_space;
-  /** Vertex attribute layer for color source. */
-  char vertex_attribute_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-  char _pad1[4];
-
-  /** The acceleration tree containing points. */
-  void *point_tree;
-  /** Dynamically allocated extra for extra information, like particle age. */
-  float *point_data;
-
-  float noise_size;
-  short noise_depth;
-  short noise_influence;
-  short noise_basis;
-  char _pad2[6];
-  float noise_fac;
-
-  float speed_scale, falloff_speed_scale;
-  char _pad3[4];
-  /** For time -> color */
-  struct ColorBand *coba;
-
-  /** Falloff density curve. */
-  struct CurveMapping *falloff_curve;
-} PointDensity;
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name #Tex
  * \{ */
 
@@ -168,9 +112,6 @@ typedef struct Tex {
   short type, stype;
 
   float cropxmin, cropymin, cropxmax, cropymax;
-  int texfilter;
-  /** Anisotropic filter maximum value, EWA -> max eccentricity, feline -> max probes. */
-  int afmax;
   short xrepeat, yrepeat;
   short extend;
 
@@ -319,21 +260,10 @@ enum {
 enum {
   TEX_INTERPOL = 1 << 0,
   TEX_USEALPHA = 1 << 1,
-  TEX_MIPMAP = 1 << 2,
   TEX_IMAROT = 1 << 4,
   TEX_CALCALPHA = 1 << 5,
   TEX_NORMALMAP = 1 << 11,
-  TEX_GAUSS_MIP = 1 << 12,
-  TEX_FILTER_MIN = 1 << 13,
   TEX_DERIVATIVEMAP = 1 << 14,
-};
-
-/** #Tex::texfilter type. */
-enum {
-  TXF_BOX = 0, /* Blender's old texture filtering method. */
-  TXF_EWA = 1,
-  TXF_FELINE = 2,
-  TXF_AREA = 3,
 };
 
 /** #Tex::flag bit-mask. */
@@ -504,64 +434,6 @@ enum {
 enum {
   MTEX_ANGLE_RANDOM = 1,
   MTEX_ANGLE_RAKE = 2,
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name #PointDensity Types
- * \{ */
-
-/** #PointDensity::source. */
-enum {
-  TEX_PD_PSYS = 0,
-  TEX_PD_OBJECT = 1,
-  TEX_PD_FILE = 2,
-};
-
-/** #PointDensity::falloff_type. */
-enum {
-  TEX_PD_FALLOFF_STD = 0,
-  TEX_PD_FALLOFF_SMOOTH = 1,
-  TEX_PD_FALLOFF_SOFT = 2,
-  TEX_PD_FALLOFF_CONSTANT = 3,
-  TEX_PD_FALLOFF_ROOT = 4,
-  TEX_PD_FALLOFF_PARTICLE_AGE = 5,
-  TEX_PD_FALLOFF_PARTICLE_VEL = 6,
-};
-
-/** #PointDensity::psys_cache_space. */
-enum {
-  TEX_PD_OBJECTLOC = 0,
-  TEX_PD_OBJECTSPACE = 1,
-  TEX_PD_WORLDSPACE = 2,
-};
-
-/** #PointDensity::flag. */
-enum {
-  TEX_PD_TURBULENCE = 1 << 0,
-  TEX_PD_FALLOFF_CURVE = 1 << 1,
-};
-
-/** #PointDensity::noise_influence. */
-enum {
-  TEX_PD_NOISE_STATIC = 0,
-  // TEX_PD_NOISE_VEL = 1,  /* Deprecated. */
-  // TEX_PD_NOISE_AGE = 2,  /* Deprecated. */
-  // TEX_PD_NOISE_TIME = 3, /* Deprecated. */
-};
-
-/** #PointDensity::color_source. */
-enum {
-  TEX_PD_COLOR_CONSTANT = 0,
-  /* color_source: particles */
-  TEX_PD_COLOR_PARTAGE = 1,
-  TEX_PD_COLOR_PARTSPEED = 2,
-  TEX_PD_COLOR_PARTVEL = 3,
-  /* color_source: vertices */
-  TEX_PD_COLOR_VERTCOL = 1,
-  TEX_PD_COLOR_VERTWEIGHT = 2,
-  TEX_PD_COLOR_VERTNOR = 3,
 };
 
 /** \} */

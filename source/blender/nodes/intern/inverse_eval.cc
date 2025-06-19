@@ -573,8 +573,9 @@ static bool set_modifier_value(bContext &C,
       const float3 euler = float3(math::to_euler(rotation));
       return set_rna_property_float3(C, object.id, main_prop_rna_path, euler);
     }
+    default:
+      return false;
   }
-  return false;
 }
 
 std::optional<SocketValueVariant> get_logged_socket_value(geo_eval_log::GeoTreeLog &tree_log,

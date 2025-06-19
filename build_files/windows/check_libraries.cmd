@@ -56,7 +56,7 @@ if NOT EXIST "%BUILD_VS_LIBDIR%\.git" (
 			echo.
 			echo Python not found in external libraries, updating to latest version
 			echo.
-			"%GIT%" -C "%BLENDER_DIR%" submodule update "%BUILD_VS_LIBDIR%"
+			"%GIT%" -C "%BLENDER_DIR%\" submodule update "%BUILD_VS_LIBDIR%"
 		)
 	)
 )

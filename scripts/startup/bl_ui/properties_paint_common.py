@@ -16,7 +16,6 @@ class BrushAssetShelf:
     bl_activate_operator = "BRUSH_OT_asset_activate"
     bl_default_preview_size = 48
     brush_type_prop = None
-    tool_prop = None
     mode_prop = None
 
     @classmethod
@@ -28,7 +27,7 @@ class BrushAssetShelf:
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         space_type = context.space_data.type
 
-        brush_type_items = bpy.types.Brush.bl_rna.properties[cls.tool_prop].enum_items
+        brush_type_items = bpy.types.Brush.bl_rna.properties[cls.brush_type_prop].enum_items
 
         tool_helper_cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         for item in ToolSelectPanelHelper._tools_flatten(
@@ -60,7 +59,7 @@ class BrushAssetShelf:
 
         if not tool:
             return True
-        if not cls.brush_type_prop or not cls.tool_prop:
+        if not cls.brush_type_prop:
             return True
 
         asset_brush_type = asset.metadata.get(cls.brush_type_prop)
@@ -74,7 +73,7 @@ class BrushAssetShelf:
         if tool.brush_type == 'ANY':
             return not cls.has_tool_with_brush_type(context, asset_brush_type)
 
-        brush_type_items = bpy.types.Brush.bl_rna.properties[cls.tool_prop].enum_items
+        brush_type_items = bpy.types.Brush.bl_rna.properties[cls.brush_type_prop].enum_items
         return brush_type_items[tool.brush_type].value == asset_brush_type
 
     @classmethod
@@ -399,7 +398,7 @@ class ClonePanel(BrushPanel):
         mode = cls.get_brush_mode(context)
         if mode == 'PAINT_TEXTURE':
             brush = settings.brush
-            return brush.image_tool == 'CLONE'
+            return brush.image_brush_type == 'CLONE'
         return False
 
     def draw_header(self, context):
@@ -609,7 +608,7 @@ class FalloffPanel(BrushPanel):
             return False
         if cls.get_brush_mode(context) == 'SCULPT_CURVES':
             brush = settings.brush
-            if brush.curves_sculpt_tool in {'ADD', 'DELETE'}:
+            if brush.curves_sculpt_brush_type in {'ADD', 'DELETE'}:
                 return False
         return True
 
@@ -642,7 +641,7 @@ class FalloffPanel(BrushPanel):
             row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
         show_fallof_shape = False
-        if mode in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT'} and brush.sculpt_tool != 'POSE':
+        if mode in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT'} and brush.sculpt_brush_type != 'POSE':
             show_fallof_shape = True
         if not show_fallof_shape and mode == 'SCULPT_CURVES' and context.space_data.type == 'PROPERTIES':
             show_fallof_shape = True
@@ -681,7 +680,7 @@ class DisplayPanel(BrushPanel):
             row.prop(settings, "show_brush", text="Display Cursor")
 
         col = layout.column()
-        col.active = brush.brush_capabilities.has_overlay and settings.show_brush
+        col.active = settings.show_brush
 
         col.prop(brush, "cursor_color_add", text="Cursor Color")
         if mode == 'SCULPT' and brush.sculpt_capabilities.has_secondary_color:
@@ -690,6 +689,7 @@ class DisplayPanel(BrushPanel):
         col.separator()
 
         row = col.row(align=True)
+        row.active = settings.show_brush
         row.prop(brush, "cursor_overlay_alpha", text="Falloff Opacity")
         row.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
         row.prop(
@@ -697,8 +697,12 @@ class DisplayPanel(BrushPanel):
             icon='HIDE_OFF' if brush.use_cursor_overlay else 'HIDE_ON',
         )
 
+        # TODO: These settings are a mess. Both `has_overlay` and the following two blocks should read the
+        # appropriate texture depending on the mode, see `BKE_brush_mask_texture_get` vs `BKE_brush_color_texture_get`
+        texture_overlay_settings_active = brush.brush_capabilities.has_overlay and settings.show_brush
         if mode in {'PAINT_2D', 'PAINT_TEXTURE', 'PAINT_VERTEX', 'SCULPT'}:
             row = col.row(align=True)
+            row.active = texture_overlay_settings_active
             row.prop(brush, "texture_overlay_alpha", text="Texture Opacity")
             row.prop(brush, "use_primary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
             if tex_slot.map_mode != 'STENCIL':
@@ -709,6 +713,7 @@ class DisplayPanel(BrushPanel):
 
         if mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
             row = col.row(align=True)
+            row.active = texture_overlay_settings_active
             row.prop(brush, "mask_overlay_alpha", text="Mask Texture Opacity")
             row.prop(brush, "use_secondary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
             if tex_slot_mask.map_mode != 'STENCIL':
@@ -742,7 +747,7 @@ def brush_settings(layout, context, brush, popover=False):
     # Sculpt Mode #
     if mode == 'SCULPT':
         capabilities = brush.sculpt_capabilities
-        sculpt_tool = brush.sculpt_tool
+        sculpt_brush_type = brush.sculpt_brush_type
 
         # normal_radius_factor
         layout.prop(brush, "normal_radius_factor", slider=True)
@@ -780,7 +785,7 @@ def brush_settings(layout, context, brush, popover=False):
         # crease_pinch_factor
         if capabilities.has_pinch_factor:
             text = iface_("Pinch")
-            if sculpt_tool in {'BLOB', 'SNAKE_HOOK'}:
+            if sculpt_brush_type in {'BLOB', 'SNAKE_HOOK'}:
                 text = iface_("Magnify")
             layout.prop(brush, "crease_pinch_factor", slider=True, text=text, translate=False)
 
@@ -800,7 +805,7 @@ def brush_settings(layout, context, brush, popover=False):
                 slider=True,
             )
 
-            if sculpt_tool != 'PLANE':
+            if sculpt_brush_type != 'PLANE':
                 row = layout.row(heading="Plane Trim")
                 row.prop(brush, "use_plane_trim", text="")
                 sub = row.row()
@@ -838,25 +843,25 @@ def brush_settings(layout, context, brush, popover=False):
 
         # Per sculpt tool options.
 
-        if sculpt_tool == 'CLAY_STRIPS':
+        if sculpt_brush_type == 'CLAY_STRIPS':
             row = layout.row()
             row.prop(brush, "tip_roundness")
 
             row = layout.row()
             row.prop(brush, "tip_scale_x")
 
-        elif sculpt_tool == 'ELASTIC_DEFORM':
+        elif sculpt_brush_type == 'ELASTIC_DEFORM':
             layout.separator()
             layout.prop(brush, "elastic_deform_type")
             layout.prop(brush, "elastic_deform_volume_preservation", slider=True)
             layout.separator()
 
-        elif sculpt_tool == 'SNAKE_HOOK':
+        elif sculpt_brush_type == 'SNAKE_HOOK':
             layout.separator()
             layout.prop(brush, "snake_hook_deform_type")
             layout.separator()
 
-        elif sculpt_tool == 'POSE':
+        elif sculpt_brush_type == 'POSE':
             layout.separator()
             layout.prop(brush, "deform_target")
             layout.separator()
@@ -874,7 +879,7 @@ def brush_settings(layout, context, brush, popover=False):
 
             layout.separator()
 
-        elif sculpt_tool == 'CLOTH':
+        elif sculpt_brush_type == 'CLOTH':
             layout.separator()
             layout.prop(brush, "cloth_simulation_area_type")
             if brush.cloth_simulation_area_type != 'GLOBAL':
@@ -895,21 +900,21 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush, "use_cloth_collision")
             layout.separator()
 
-        elif sculpt_tool == 'SCRAPE':
+        elif sculpt_brush_type == 'SCRAPE':
             row = layout.row(align=True)
             row.prop(brush, "area_radius_factor")
             row.prop(brush, "use_pressure_area_radius", text="")
             row = layout.row()
             row.prop(brush, "invert_to_scrape_fill", text="Invert to Fill")
 
-        elif sculpt_tool == 'FILL':
+        elif sculpt_brush_type == 'FILL':
             row = layout.row(align=True)
             row.prop(brush, "area_radius_factor")
             row.prop(brush, "use_pressure_area_radius", text="")
             row = layout.row()
             row.prop(brush, "invert_to_scrape_fill", text="Invert to Scrape")
 
-        elif sculpt_tool == 'PLANE':
+        elif sculpt_brush_type == 'PLANE':
             row = layout.row(align=True)
             row.prop(brush, "area_radius_factor")
             row.prop(brush, "use_pressure_area_radius", text="")
@@ -919,11 +924,11 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush, "stabilize_normal")
             layout.prop(brush, "stabilize_plane")
 
-        elif sculpt_tool == 'GRAB':
+        elif sculpt_brush_type == 'GRAB':
             layout.prop(brush, "use_grab_active_vertex")
             layout.prop(brush, "use_grab_silhouette")
 
-        elif sculpt_tool == 'PAINT':
+        elif sculpt_brush_type == 'PAINT':
             row = layout.row(align=True)
             row.prop(brush, "flow")
             row.prop(brush, "invert_flow_pressure", text="")
@@ -953,11 +958,11 @@ def brush_settings(layout, context, brush, popover=False):
             row = layout.row()
             row.prop(brush, "tip_scale_x")
 
-        elif sculpt_tool == 'SMEAR':
+        elif sculpt_brush_type == 'SMEAR':
             col = layout.column()
             col.prop(brush, "smear_deform_type")
 
-        elif sculpt_tool == 'BOUNDARY':
+        elif sculpt_brush_type == 'BOUNDARY':
             layout.prop(brush, "deform_target")
             layout.separator()
             col = layout.column()
@@ -965,17 +970,17 @@ def brush_settings(layout, context, brush, popover=False):
             col.prop(brush, "boundary_falloff_type")
             col.prop(brush, "boundary_offset")
 
-        elif sculpt_tool == 'TOPOLOGY':
+        elif sculpt_brush_type == 'TOPOLOGY':
             col = layout.column()
             col.prop(brush, "slide_deform_type")
 
-        elif sculpt_tool == 'MULTIPLANE_SCRAPE':
+        elif sculpt_brush_type == 'MULTIPLANE_SCRAPE':
             col = layout.column()
             col.prop(brush, "multiplane_scrape_angle")
             col.prop(brush, "use_multiplane_scrape_dynamic")
             col.prop(brush, "show_multiplane_scrape_planes_preview")
 
-        elif sculpt_tool == 'SMOOTH':
+        elif sculpt_brush_type == 'SMOOTH':
             col = layout.column()
             col.prop(brush, "smooth_deform_type")
             if brush.smooth_deform_type == 'SURFACE':
@@ -983,20 +988,20 @@ def brush_settings(layout, context, brush, popover=False):
                 col.prop(brush, "surface_smooth_current_vertex")
                 col.prop(brush, "surface_smooth_iterations")
 
-        elif sculpt_tool == 'DISPLACEMENT_SMEAR':
+        elif sculpt_brush_type == 'DISPLACEMENT_SMEAR':
             col = layout.column()
             col.prop(brush, "smear_deform_type")
 
-        elif sculpt_tool == 'MASK':
+        elif sculpt_brush_type == 'MASK':
             layout.row().prop(brush, "mask_tool", expand=True)
 
-        # End sculpt_tool interface.
+        # End sculpt_brush_type interface.
 
     # 3D and 2D Texture Paint Mode.
     elif mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
         capabilities = brush.image_paint_capabilities
 
-        if brush.image_tool == 'FILL':
+        if brush.image_brush_type == 'FILL':
             # For some reason fill threshold only appears to be implemented in 2D paint.
             if brush.color_type == 'COLOR':
                 if mode == 'PAINT_2D':
@@ -1005,7 +1010,7 @@ def brush_settings(layout, context, brush, popover=False):
                 layout.row().prop(brush, "gradient_fill_mode", expand=True)
 
     elif mode == 'SCULPT_CURVES':
-        if brush.curves_sculpt_tool == 'ADD':
+        if brush.curves_sculpt_brush_type == 'ADD':
             layout.prop(brush.curves_sculpt_settings, "add_amount")
             col = layout.column(heading="Interpolate", align=True)
             col.prop(brush.curves_sculpt_settings, "use_length_interpolate", text="Length")
@@ -1025,7 +1030,7 @@ def brush_settings(layout, context, brush, popover=False):
             col.active = not brush.curves_sculpt_settings.use_point_count_interpolate
             col.prop(brush.curves_sculpt_settings, "points_per_curve", text="Points")
 
-        if brush.curves_sculpt_tool == 'DENSITY':
+        if brush.curves_sculpt_brush_type == 'DENSITY':
             col = layout.column()
             col.prop(brush.curves_sculpt_settings, "density_add_attempts", text="Count Max")
             col = layout.column(heading="Interpolate", align=True)
@@ -1046,7 +1051,7 @@ def brush_settings(layout, context, brush, popover=False):
             col.active = not brush.curves_sculpt_settings.use_point_count_interpolate
             col.prop(brush.curves_sculpt_settings, "points_per_curve", text="Points")
 
-        elif brush.curves_sculpt_tool == 'GROW_SHRINK':
+        elif brush.curves_sculpt_brush_type == 'GROW_SHRINK':
             layout.prop(brush.curves_sculpt_settings, "use_uniform_scale")
             layout.prop(brush.curves_sculpt_settings, "minimum_length")
 
@@ -1096,12 +1101,12 @@ def brush_shared_settings(layout, context, brush, popover=False):
             weight = brush.weight_paint_capabilities.has_weight
             strength = strength_pressure = True
         # Only draw blend mode for the Draw tool, because for other tools it is pointless. D5928#137944
-        if brush.weight_tool == 'DRAW':
+        if brush.weight_brush_type == 'DRAW':
             blend_mode = True
 
     # Sculpt Curves #
     if mode == 'SCULPT_CURVES':
-        tool = brush.curves_sculpt_tool
+        tool = brush.curves_sculpt_brush_type
         size = True
         strength = tool not in {'ADD', 'DELETE'}
         direction = tool in {'GROW_SHRINK', 'SELECTION_PAINT'}
@@ -1172,6 +1177,43 @@ def brush_shared_settings(layout, context, brush, popover=False):
         layout.row().prop(brush, "direction", expand=True)
 
 
+def color_jitter_panel(layout, context, brush):
+    mode = UnifiedPaintPanel.get_brush_mode(context)
+    ups = context.scene.tool_settings.unified_paint_settings
+
+    is_sculpt_paint_mode = mode == 'SCULPT' and brush.sculpt_capabilities.has_color
+    if mode in {'PAINT_TEXTURE', 'PAINT_2D', 'PAINT_VERTEX'} or is_sculpt_paint_mode:
+        prop_owner = ups if ups.use_unified_color else brush
+        layout.use_property_split = False
+
+        header, panel = layout.panel("color_jitter_panel", default_closed=True)
+        header.prop(prop_owner, "use_color_jitter", text="Randomize Color")
+        if panel:
+            panel.use_property_split = True
+            panel.use_property_decorate = False
+
+            col = panel.column(align=True)
+            col.use_property_split = True
+
+            row = col.row(align=True)
+            row.enabled = prop_owner.use_color_jitter
+            row.prop(prop_owner, "hue_jitter", slider=True, text="Hue")
+            row.prop(prop_owner, "use_stroke_random_hue", text="", icon='GP_SELECT_STROKES')
+            row.prop(prop_owner, "use_random_press_hue", text="", icon='STYLUS_PRESSURE')
+
+            row = col.row(align=True)
+            row.enabled = prop_owner.use_color_jitter
+            row.prop(prop_owner, "saturation_jitter", slider=True, text="Saturation")
+            row.prop(prop_owner, "use_stroke_random_sat", text="", icon='GP_SELECT_STROKES')
+            row.prop(prop_owner, "use_random_press_sat", text="", icon='STYLUS_PRESSURE')
+
+            row = col.row(align=True)
+            row.enabled = prop_owner.use_color_jitter
+            row.prop(prop_owner, "value_jitter", slider=True, text="Value")
+            row.prop(prop_owner, "use_stroke_random_val", text="", icon='GP_SELECT_STROKES')
+            row.prop(prop_owner, "use_random_press_val", text="", icon='STYLUS_PRESSURE')
+
+
 def brush_settings_advanced(layout, context, settings, brush, popover=False):
     """Draw advanced brush settings for Sculpt, Texture/Vertex/Weight Paint modes."""
 
@@ -1188,7 +1230,7 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
     use_frontface = False
 
     if mode == 'SCULPT':
-        layout.prop(brush, "sculpt_tool")
+        layout.prop(brush, "sculpt_brush_type")
         layout.separator()
 
         capabilities = brush.sculpt_capabilities
@@ -1276,7 +1318,7 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
         # sculpt plane settings
         if capabilities.has_sculpt_plane:
             layout.prop(brush, "sculpt_plane")
-            if brush.sculpt_tool != 'PLANE':
+            if brush.sculpt_brush_type != 'PLANE':
                 col = layout.column(heading="Original", align=True)
                 col.prop(brush, "use_original_normal", text="Normal")
                 col.prop(brush, "use_original_plane", text="Plane")
@@ -1293,7 +1335,7 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
 
     # 3D and 2D Texture Paint.
     elif mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
-        layout.prop(brush, "image_tool")
+        layout.prop(brush, "image_brush_type")
         layout.separator()
 
         capabilities = brush.image_paint_capabilities
@@ -1305,7 +1347,7 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
             layout.prop(brush, "use_alpha")
 
         # Tool specific settings
-        if brush.image_tool == 'SOFTEN':
+        if brush.image_brush_type == 'SOFTEN':
             layout.separator()
             layout.row().prop(brush, "direction", expand=True)
             layout.prop(brush, "sharp_threshold")
@@ -1313,36 +1355,36 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
                 layout.prop(brush, "blur_kernel_radius")
             layout.prop(brush, "blur_mode")
 
-        elif brush.image_tool == 'MASK':
+        elif brush.image_brush_type == 'MASK':
             layout.prop(brush, "weight", text="Mask Value", slider=True)
 
-        elif brush.image_tool == 'CLONE':
+        elif brush.image_brush_type == 'CLONE':
             if mode == 'PAINT_2D':
                 layout.prop(settings, "clone_image", text="Image")
                 layout.prop(settings, "clone_alpha", text="Alpha")
 
     # Vertex Paint #
     elif mode == 'PAINT_VERTEX':
-        layout.prop(brush, "vertex_tool")
+        layout.prop(brush, "vertex_brush_type")
         layout.separator()
 
         layout.prop(brush, "use_alpha")
-        if brush.vertex_tool != 'SMEAR':
+        if brush.vertex_brush_type != 'SMEAR':
             use_accumulate = True
         use_frontface = True
 
     # Weight Paint
     elif mode == 'PAINT_WEIGHT':
-        layout.prop(brush, "weight_tool")
+        layout.prop(brush, "weight_brush_type")
         layout.separator()
 
-        if brush.weight_tool != 'SMEAR':
+        if brush.weight_brush_type != 'SMEAR':
             use_accumulate = True
         use_frontface = True
 
     # Sculpt Curves
     elif mode == 'SCULPT_CURVES':
-        layout.prop(brush, "curves_sculpt_tool")
+        layout.prop(brush, "curves_sculpt_brush_type")
 
     # Draw shared settings.
     if use_accumulate:
@@ -1350,6 +1392,9 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
 
     if use_frontface:
         layout.prop(brush, "use_frontface", text="Front Faces Only")
+
+    if popover:
+        color_jitter_panel(layout, context, brush)
 
     # Brush modes
     header, panel = layout.panel("modes", default_closed=True)
@@ -1365,14 +1410,6 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
         col.prop(brush, "use_paint_weight", text="Weight Paint")
         col.prop(brush, "use_paint_image", text="Texture Paint")
         col.prop(brush, "use_paint_sculpt_curves", text="Sculpt Curves")
-
-    if len(brush.icon_filepath) > 0:
-        header, panel = layout.panel("legacy", default_closed=True)
-        header.label(text="Legacy Icon")
-        if panel:
-            panel.label(text="Brush icons have moved to the asset preview image", icon='ERROR')
-            panel.prop(brush, "use_custom_icon")
-            panel.prop(brush, "icon_filepath")
 
 
 def draw_color_settings(context, layout, brush, color_type=False):
@@ -1394,6 +1431,9 @@ def draw_color_settings(context, layout, brush, color_type=False):
         row.separator()
         row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="", emboss=False)
         row.prop(ups, "use_unified_color", text="", icon='BRUSHES_ALL')
+
+        color_jitter_panel(layout, context, brush)
+
     # Gradient
     elif brush.color_type == 'GRADIENT':
         layout.template_color_ramp(brush, "gradient", expand=True)
@@ -1402,7 +1442,7 @@ def draw_color_settings(context, layout, brush, color_type=False):
 
         col = layout.column()
 
-        if brush.image_tool == 'DRAW':
+        if brush.image_brush_type == 'DRAW':
             UnifiedPaintPanel.prop_unified(
                 col,
                 context,
@@ -1461,7 +1501,7 @@ def brush_texture_settings(layout, brush, sculpt):
         # texture_sample_bias
         layout.prop(brush, "texture_sample_bias", slider=True, text="Sample Bias")
 
-        if brush.sculpt_tool == 'DRAW':
+        if brush.sculpt_brush_type == 'DRAW':
             col = layout.column()
             col.active = tex_slot.map_mode == 'AREA_PLANE'
             col.prop(brush, "use_color_as_displacement", text="Vector Displacement")
@@ -1565,7 +1605,7 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings):
 
     row.prop(gp_settings, "use_material_pin", text="")
 
-    if brush.gpencil_tool in {'DRAW', 'FILL'}:
+    if brush.gpencil_brush_type in {'DRAW', 'FILL'}:
         row.separator(factor=1.0)
         sub_row = row.row(align=True)
         pin_draw_mode = gp_settings.pin_draw_mode
@@ -1597,7 +1637,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
         return
 
     # Brush details
-    if brush.gpencil_tool == 'ERASE':
+    if brush.gpencil_brush_type == 'ERASE':
         row = layout.row(align=True)
         row.prop(brush, "size", text="Radius")
         row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
@@ -1615,7 +1655,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
             row.prop(gp_settings, "eraser_thickness_factor")
 
     # FIXME: tools must use their own UI drawing!
-    elif brush.gpencil_tool == 'FILL':
+    elif brush.gpencil_brush_type == 'FILL':
         use_property_split_prev = layout.use_property_split
         if compact:
             row = layout.row(align=True)
@@ -1633,7 +1673,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
         row.prop(brush, "size", text="Thickness")
         layout.use_property_split = use_property_split_prev
 
-    else:  # brush.gpencil_tool == 'DRAW/TINT':
+    else:  # brush.gpencil_brush_type == 'DRAW/TINT':
         row = layout.row(align=True)
         row.prop(brush, "size", text="Radius")
         row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
@@ -1650,7 +1690,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
             col = layout.column()
             col.template_curve_mapping(gp_settings, "curve_strength", brush=True, use_negative_slope=True)
 
-        if brush.gpencil_tool == 'TINT':
+        if brush.gpencil_brush_type == 'TINT':
             row = layout.row(align=True)
             row.prop(gp_settings, "vertex_mode", text="Mode")
         else:
@@ -1694,9 +1734,9 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
     if gp_settings is None:
         return
 
-    grease_pencil_tool = brush.gpencil_tool
+    grease_pencil_brush_type = brush.gpencil_brush_type
 
-    if grease_pencil_tool in {'DRAW', 'ERASE', 'TINT'} or tool.idname in {
+    if grease_pencil_brush_type in {'DRAW', 'ERASE', 'TINT'} or tool.idname in {
             "builtin.arc",
             "builtin.curve",
             "builtin.line",
@@ -1705,7 +1745,7 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
             "builtin.polyline",
     }:
         size = "size"
-        if brush.use_locked_size == 'SCENE' and (grease_pencil_tool == 'DRAW' or tool.idname in {
+        if brush.use_locked_size == 'SCENE' and (grease_pencil_brush_type == 'DRAW' or tool.idname in {
             "builtin.arc",
             "builtin.curve",
             "builtin.line",
@@ -1765,13 +1805,13 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
             if settings.use_thickness_curve:
                 # Pressure curve.
                 layout.template_curve_mapping(settings, "thickness_primitive_curve", brush=True)
-    elif grease_pencil_tool == 'DRAW':
+    elif grease_pencil_brush_type == 'DRAW':
         row = layout.row(align=True)
         if compact:
             row.prop(gp_settings, "caps_type", text="", expand=True)
         else:
             row.prop(gp_settings, "caps_type", text="Caps Type")
-    elif brush.gpencil_tool == 'FILL':
+    elif brush.gpencil_brush_type == 'FILL':
         use_property_split_prev = layout.use_property_split
         if compact:
             row = layout.row(align=True)
@@ -1788,12 +1828,12 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, props, *, c
         row = layout.row(align=True)
         row.prop(brush, "size", text="Thickness")
         layout.use_property_split = use_property_split_prev
-    elif grease_pencil_tool == 'ERASE':
+    elif grease_pencil_brush_type == 'ERASE':
         layout.prop(gp_settings, "eraser_mode", expand=True)
         layout.prop(gp_settings, "use_active_layer_only")
         if gp_settings.eraser_mode in {'HARD', 'SOFT'}:
             layout.prop(gp_settings, "use_keep_caps_eraser")
-    elif grease_pencil_tool == 'TINT':
+    elif grease_pencil_brush_type == 'TINT':
         layout.prop(gp_settings, "vertex_mode", text="Mode")
         layout.popover("VIEW3D_PT_tools_brush_falloff")
         layout.prop(gp_settings, "use_active_layer_only")
@@ -1805,7 +1845,7 @@ def brush_basic_gpencil_sculpt_settings(layout, _context, brush, *, compact=Fals
     gp_settings = brush.gpencil_settings
     if gp_settings is None:
         return
-    tool = brush.gpencil_sculpt_tool
+    tool = brush.gpencil_sculpt_brush_type
 
     row = layout.row(align=True)
     row.prop(brush, "size", slider=True)
@@ -1836,7 +1876,7 @@ def brush_basic_gpencil_weight_settings(layout, _context, brush, *, compact=Fals
     row.prop(brush, "strength", slider=True)
     row.prop(brush, "use_pressure_strength", text="")
 
-    if brush.gpencil_weight_tool in {'WEIGHT'}:
+    if brush.gpencil_weight_brush_type in {'WEIGHT'}:
         layout.prop(brush, "weight", slider=True)
 
         layout.prop(brush, "direction", expand=True, text="" if compact else "Direction")
@@ -1850,12 +1890,12 @@ def brush_basic_gpencil_vertex_settings(layout, _context, brush, *, compact=Fals
     row.prop(brush, "size", text="Radius")
     row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
 
-    if brush.gpencil_vertex_tool in {'DRAW', 'BLUR', 'SMEAR'}:
+    if brush.gpencil_vertex_brush_type in {'DRAW', 'BLUR', 'SMEAR'}:
         row = layout.row(align=True)
         row.prop(gp_settings, "pen_strength", slider=True)
         row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
 
-    if brush.gpencil_vertex_tool in {'DRAW', 'REPLACE'}:
+    if brush.gpencil_vertex_brush_type in {'DRAW', 'REPLACE'}:
         row = layout.row(align=True)
         row.prop(gp_settings, "vertex_mode", text="Mode")
 
@@ -1886,7 +1926,7 @@ def brush_basic_grease_pencil_weight_settings(layout, context, brush, *, compact
         header=compact,
     )
 
-    if brush.gpencil_weight_tool in {'WEIGHT'}:
+    if brush.gpencil_weight_brush_type in {'WEIGHT'}:
         UnifiedPaintPanel.prop_unified(
             layout,
             context,
@@ -1913,7 +1953,7 @@ def brush_basic_grease_pencil_vertex_settings(layout, context, brush, *, compact
         header=compact,
     )
 
-    if brush.gpencil_vertex_tool in {'DRAW', 'BLUR', 'SMEAR'}:
+    if brush.gpencil_vertex_brush_type in {'DRAW', 'BLUR', 'SMEAR'}:
         UnifiedPaintPanel.prop_unified(
             layout,
             context,
@@ -1926,7 +1966,7 @@ def brush_basic_grease_pencil_vertex_settings(layout, context, brush, *, compact
         )
 
     gp_settings = brush.gpencil_settings
-    if brush.gpencil_vertex_tool in {'DRAW', 'REPLACE'}:
+    if brush.gpencil_vertex_brush_type in {'DRAW', 'REPLACE'}:
         row = layout.row(align=True)
         row.prop(gp_settings, "vertex_mode", text="Mode")
 

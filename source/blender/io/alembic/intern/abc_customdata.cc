@@ -278,7 +278,7 @@ void write_custom_data(const OCompoundProperty &prop,
                        CustomData *data,
                        int data_type)
 {
-  eCustomDataType cd_data_type = static_cast<eCustomDataType>(data_type);
+  eCustomDataType cd_data_type = eCustomDataType(data_type);
 
   if (!CustomData_has_layer(data, cd_data_type)) {
     return;

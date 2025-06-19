@@ -19,6 +19,25 @@ class BlenderMaterial():
     @staticmethod
     def create(gltf, material_idx, vertex_color):
         """Material creation."""
+
+        if material_idx is None:
+            # If no material is specified, we create a default one
+            mat = bpy.data.materials.new(name="DefaultMaterial")
+            mat.use_nodes = True
+            mat.node_tree.nodes.clear()
+            output_node = mat.node_tree.nodes.new(type='ShaderNodeOutputMaterial')
+            output_node.location = (0, 0)
+            shader_node = mat.node_tree.nodes.new(type='ShaderNodeBsdfPrincipled')
+            shader_node.location = (-200, 0)
+            mat.node_tree.links.new(shader_node.outputs[0], output_node.inputs[0])
+            if vertex_color:
+                # Add vertex color node
+                vertex_color_node = mat.node_tree.nodes.new(type='ShaderNodeVertexColor')
+                vertex_color_node.location = (-400, 0)
+                mat.node_tree.links.new(vertex_color_node.outputs[0], shader_node.inputs[0])
+            return mat.name
+
+
         pymaterial = gltf.data.materials[material_idx]
 
         import_user_extensions('gather_import_material_before_hook', gltf, pymaterial, vertex_color)

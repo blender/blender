@@ -1551,7 +1551,6 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(
 MTLShaderCompiler::MTLShaderCompiler()
     : ShaderCompiler(GPU_max_parallel_compilations(), GPUWorker::ContextType::PerThread, true)
 {
-  BLI_assert(GPU_use_parallel_compilation());
 }
 
 Shader *MTLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)

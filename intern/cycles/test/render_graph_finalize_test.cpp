@@ -797,19 +797,21 @@ TEST_F(RenderGraph, constant_fold_part_mix_div_0)
 TEST_F(RenderGraph, constant_fold_separate_combine_rgb)
 {
   EXPECT_ANY_MESSAGE(log);
-  CORRECT_INFO_MESSAGE(log, "Folding SeparateRGB::R to constant (0.3).");
-  CORRECT_INFO_MESSAGE(log, "Folding SeparateRGB::G to constant (0.5).");
-  CORRECT_INFO_MESSAGE(log, "Folding SeparateRGB::B to constant (0.7).");
-  CORRECT_INFO_MESSAGE(log, "Folding CombineRGB::Image to constant (0.3, 0.5, 0.7).");
+  CORRECT_INFO_MESSAGE(log, "Folding SeparateRGB::Red to constant (0.3).");
+  CORRECT_INFO_MESSAGE(log, "Folding SeparateRGB::Green to constant (0.5).");
+  CORRECT_INFO_MESSAGE(log, "Folding SeparateRGB::Blue to constant (0.7).");
+  CORRECT_INFO_MESSAGE(log, "Folding CombineRGB::Color to constant (0.3, 0.5, 0.7).");
 
   builder
-      .add_node(ShaderNodeBuilder<SeparateRGBNode>(graph, "SeparateRGB")
-                    .set("Image", make_float3(0.3f, 0.5f, 0.7f)))
-      .add_node(ShaderNodeBuilder<CombineRGBNode>(graph, "CombineRGB"))
-      .add_connection("SeparateRGB::R", "CombineRGB::R")
-      .add_connection("SeparateRGB::G", "CombineRGB::G")
-      .add_connection("SeparateRGB::B", "CombineRGB::B")
-      .output_color("CombineRGB::Image");
+      .add_node(ShaderNodeBuilder<SeparateColorNode>(graph, "SeparateRGB")
+                    .set("Color", make_float3(0.3f, 0.5f, 0.7f))
+                    .set_param("color_type", NODE_COMBSEP_COLOR_RGB))
+      .add_node(ShaderNodeBuilder<CombineColorNode>(graph, "CombineRGB")
+                    .set_param("color_type", NODE_COMBSEP_COLOR_RGB))
+      .add_connection("SeparateRGB::Red", "CombineRGB::Red")
+      .add_connection("SeparateRGB::Green", "CombineRGB::Green")
+      .add_connection("SeparateRGB::Blue", "CombineRGB::Blue")
+      .output_color("CombineRGB::Color");
 
   graph.finalize(scene.get());
 }
@@ -845,18 +847,21 @@ TEST_F(RenderGraph, constant_fold_separate_combine_xyz)
 TEST_F(RenderGraph, constant_fold_separate_combine_hsv)
 {
   EXPECT_ANY_MESSAGE(log);
-  CORRECT_INFO_MESSAGE(log, "Folding SeparateHSV::H to constant (0.583333).");
-  CORRECT_INFO_MESSAGE(log, "Folding SeparateHSV::S to constant (0.571429).");
-  CORRECT_INFO_MESSAGE(log, "Folding SeparateHSV::V to constant (0.7).");
+  CORRECT_INFO_MESSAGE(log, "Folding SeparateHSV::Red to constant (0.583333).");
+  CORRECT_INFO_MESSAGE(log, "Folding SeparateHSV::Green to constant (0.571429).");
+  CORRECT_INFO_MESSAGE(log, "Folding SeparateHSV::Blue to constant (0.7).");
   CORRECT_INFO_MESSAGE(log, "Folding CombineHSV::Color to constant (0.3, 0.5, 0.7).");
 
+  /* R, G, B correspond to H, S, V on this node. */
   builder
-      .add_node(ShaderNodeBuilder<SeparateHSVNode>(graph, "SeparateHSV")
-                    .set("Color", make_float3(0.3f, 0.5f, 0.7f)))
-      .add_node(ShaderNodeBuilder<CombineHSVNode>(graph, "CombineHSV"))
-      .add_connection("SeparateHSV::H", "CombineHSV::H")
-      .add_connection("SeparateHSV::S", "CombineHSV::S")
-      .add_connection("SeparateHSV::V", "CombineHSV::V")
+      .add_node(ShaderNodeBuilder<SeparateColorNode>(graph, "SeparateHSV")
+                    .set("Color", make_float3(0.3f, 0.5f, 0.7f))
+                    .set_param("color_type", NODE_COMBSEP_COLOR_HSV))
+      .add_node(ShaderNodeBuilder<CombineColorNode>(graph, "CombineHSV")
+                    .set_param("color_type", NODE_COMBSEP_COLOR_HSV))
+      .add_connection("SeparateHSV::Red", "CombineHSV::Red")
+      .add_connection("SeparateHSV::Green", "CombineHSV::Green")
+      .add_connection("SeparateHSV::Blue", "CombineHSV::Blue")
       .output_color("CombineHSV::Color");
 
   graph.finalize(scene.get());

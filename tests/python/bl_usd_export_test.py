@@ -936,7 +936,7 @@ class USDExportTest(AbstractUSDTest):
 
         # Contains 2 NURBS curves
         curve = UsdGeom.NurbsCurves(stage.GetPrimAtPath("/root/NurbsCurve/NurbsCurve"))
-        check_nurbs_curve(curve, False, [4, 4], [6, 6], 10, [[-1.75, -2.6898, -1.0117], [3.0896, 1.9583, 1.0293]])
+        check_nurbs_curve(curve, False, [4, 4], [6, 6], 10, [[-1.75, -2.6891, -1.0117], [3.0896, 1.9583, 1.0293]])
 
         # Contains 1 NURBS curve
         curve = UsdGeom.NurbsCurves(stage.GetPrimAtPath("/root/NurbsCircle/NurbsCircle"))
@@ -1688,6 +1688,95 @@ class USDExportTest(AbstractUSDTest):
         actual = tuple(sorted(actual, key=lambda pair: pair[0]))
 
         self.assertTupleEqual(expected, actual)
+
+    def test_point_instancing_export(self):
+        """Test exporting scenes that use point instancing."""
+
+        def confirm_point_instancing_stats(stage, num_meshes, num_instancers, num_instances, num_prototypes):
+            mesh_count = 0
+            instancer_count = 0
+            instance_count = 0
+            prototype_count = 0
+
+            for prim in stage.TraverseAll():
+                prim_path = prim.GetPath()
+                prim_type_name = prim.GetTypeName()
+
+                if prim_type_name == "PointInstancer":
+                    point_instancer = UsdGeom.PointInstancer(prim)
+                    if point_instancer:
+
+                        # get instance count
+                        positions_attr = point_instancer.GetPositionsAttr()
+                        if positions_attr:
+                            positions = positions_attr.Get()
+                            if positions:
+                                instance_count += len(positions)
+
+                        # get prototype count
+                        prototypes_rel = point_instancer.GetPrototypesRel()
+                        if prototypes_rel:
+                            target_prims = prototypes_rel.GetTargets()
+                            prototype_count += len(target_prims)
+
+                # show all prims and types
+                # output_string = f"  Path: {prim_path}, Type: {prim_type_name}"
+                # print(output_string)
+
+            stats = UsdUtils.ComputeUsdStageStats(stage)
+            mesh_count = stats['primary']['primCountsByType']['Mesh']
+            instancer_count = stats['primary']['primCountsByType']['PointInstancer']
+
+            return mesh_count, instancer_count, instance_count, prototype_count
+
+        point_instance_test_scenarios = [
+            # object reference treated as geometry set
+            {'input_file': str(self.testdir / "usd_point_instancer_object_ref.blend"),
+             'output_file': self.tempdir / "usd_export_point_instancer_object_ref.usda",
+             'mesh_count': 3,
+             'instancer_count': 1,
+             'total_instances': 16,
+             'total_prototypes': 1},
+            # collection reference from single point instancer
+            {'input_file': str(self.testdir / "usd_point_instancer_collection_ref.blend"),
+             'output_file': self.tempdir / "usd_export_point_instancer_collection_ref.usda",
+             'mesh_count': 5,
+             'instancer_count': 1,
+             'total_instances': 32,
+             'total_prototypes': 2},
+            # collection references in nested point instancer
+            {'input_file': str(self.testdir / "usd_point_instancer_nested.blend"),
+             'output_file': self.tempdir / "usd_export_point_instancer_nested.usda",
+             'mesh_count': 9,
+             'instancer_count': 3,
+             'total_instances': 14,
+             'total_prototypes': 4},
+            # object reference coming from a collection with separate children
+            {'input_file': str(self.testdir / "../render/shader/texture_coordinate_camera.blend"),
+             'output_file': self.tempdir / "usd_export_point_instancer_separate_children.usda",
+             'mesh_count': 9,
+             'instancer_count': 1,
+             'total_instances': 4,
+             'total_prototypes': 2}
+        ]
+
+        for scenario in point_instance_test_scenarios:
+            bpy.ops.wm.open_mainfile(filepath=scenario['input_file'])
+
+            export_path = scenario['output_file']
+            self.export_and_validate(
+                filepath=str(export_path),
+                use_instancing=True
+            )
+
+            stage = Usd.Stage.Open(str(export_path))
+
+            mesh_count, instancer_count, instance_count, proto_count = confirm_point_instancing_stats(
+                stage, scenario['mesh_count'], scenario['instancer_count'], scenario['total_instances'], scenario['total_prototypes'])
+            self.assertEqual(scenario['mesh_count'], mesh_count, "Unexpected number of primary meshes")
+            self.assertEqual(scenario['instancer_count'], instancer_count, "Unexpected number of point instancers")
+            self.assertEqual(scenario['total_instances'], instance_count, "Unexpected number of total instances")
+            self.assertEqual(scenario['total_prototypes'], proto_count, "Unexpected number of total prototypes")
 
 
 class USDHookBase:

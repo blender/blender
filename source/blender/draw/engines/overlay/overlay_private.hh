@@ -32,6 +32,13 @@
 
 #include "draw_common.hh"
 
+template<> struct blender::gpu::AttrType<VertexClass> {
+  static constexpr VertAttrType type = VertAttrType::SINT_32;
+};
+template<> struct blender::gpu::AttrType<StickBoneFlag> {
+  static constexpr VertAttrType type = VertAttrType::SINT_32;
+};
+
 namespace blender::draw::overlay {
 
 struct BoneInstanceData {
@@ -275,22 +282,30 @@ struct State {
 struct Vertex {
   float3 pos;
   VertexClass vclass;
+
+  GPU_VERTEX_FORMAT_FUNC(Vertex, pos, vclass);
 };
 
 struct VertexBone {
   float3 pos;
   StickBoneFlag vclass;
+
+  GPU_VERTEX_FORMAT_FUNC(VertexBone, pos, vclass);
 };
 
 struct VertexWithColor {
   float3 pos;
   float3 color;
+
+  GPU_VERTEX_FORMAT_FUNC(VertexWithColor, pos, color);
 };
 
 struct VertShaded {
   float3 pos;
-  VertexClass v_class;
+  VertexClass vclass;
   float3 nor;
+
+  GPU_VERTEX_FORMAT_FUNC(VertShaded, pos, vclass, nor);
 };
 
 /* TODO(fclem): Might be good to remove for simplicity. */
@@ -298,6 +313,8 @@ struct VertexTriple {
   float2 pos0;
   float2 pos1;
   float2 pos2;
+
+  GPU_VERTEX_FORMAT_FUNC(VertexTriple, pos0, pos1, pos2);
 };
 
 /**
@@ -389,72 +406,10 @@ class ShapeCache {
   ShapeCache();
 
  private:
-  GPUVertFormat format_vert = {0};
-  GPUVertFormat format_vert_with_color = {0};
-  GPUVertFormat format_vert_shaded = {0};
-  GPUVertFormat format_vert_triple = {0};
-
-  const GPUVertFormat &get_format(Vertex /*unused*/)
-  {
-    GPUVertFormat &format = format_vert;
-    if (format.attr_len != 0) {
-      return format;
-    }
-    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "vclass", GPU_COMP_I32, 1, GPU_FETCH_INT);
-    return format;
-  }
-
-  const GPUVertFormat &get_format(VertexBone /*unused*/)
-  {
-    GPUVertFormat &format = format_vert;
-    if (format.attr_len != 0) {
-      return format;
-    }
-    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "vclass", GPU_COMP_I32, 1, GPU_FETCH_INT);
-    return format;
-  }
-
-  const GPUVertFormat &get_format(VertexWithColor /*unused*/)
-  {
-    GPUVertFormat &format = format_vert_with_color;
-    if (format.attr_len != 0) {
-      return format;
-    }
-    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    return format;
-  }
-
-  const GPUVertFormat &get_format(VertShaded /*unused*/)
-  {
-    GPUVertFormat &format = format_vert_shaded;
-    if (format.attr_len != 0) {
-      return format;
-    }
-    GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "vclass", GPU_COMP_I32, 1, GPU_FETCH_INT);
-    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    return format;
-  }
-
-  const GPUVertFormat &get_format(VertexTriple /*unused*/)
-  {
-    GPUVertFormat &format = format_vert_triple;
-    if (format.attr_len != 0) {
-      return format;
-    }
-    GPU_vertformat_attr_add(&format, "pos0", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "pos1", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "pos2", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    return format;
-  }
-
   /* Caller gets ownership of the #gpu::VertBuf. */
   template<typename T> gpu::VertBuf *vbo_from_vector(const Vector<T> &vector)
   {
-    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(get_format(T()));
+    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(T::format());
     GPU_vertbuf_data_alloc(*vbo, vector.size());
     vbo->data<T>().copy_from(vector);
     return vbo;
@@ -725,6 +680,77 @@ struct Resources : public select::SelectMap {
   void init(bool clipping_enabled)
   {
     shaders = &overlay::ShaderModule::module_get(selection_type, clipping_enabled);
+    shaders->anti_aliasing.ensure_compile_async();
+    shaders->armature_degrees_of_freedom.ensure_compile_async();
+    shaders->armature_envelope_fill.ensure_compile_async();
+    shaders->armature_envelope_outline.ensure_compile_async();
+    shaders->armature_shape_fill.ensure_compile_async();
+    shaders->armature_shape_outline.ensure_compile_async();
+    shaders->armature_shape_wire_strip.ensure_compile_async();
+    shaders->armature_shape_wire.ensure_compile_async();
+    shaders->armature_sphere_fill.ensure_compile_async();
+    shaders->armature_sphere_outline.ensure_compile_async();
+    shaders->armature_stick.ensure_compile_async();
+    shaders->armature_wire.ensure_compile_async();
+    shaders->attribute_viewer_curve.ensure_compile_async();
+    shaders->attribute_viewer_curves.ensure_compile_async();
+    shaders->attribute_viewer_mesh.ensure_compile_async();
+    shaders->attribute_viewer_pointcloud.ensure_compile_async();
+    shaders->background_fill.ensure_compile_async();
+    shaders->curve_edit_handles.ensure_compile_async();
+    shaders->curve_edit_line.ensure_compile_async();
+    shaders->curve_edit_points.ensure_compile_async();
+    shaders->depth_curves.ensure_compile_async();
+    shaders->depth_grease_pencil.ensure_compile_async();
+    shaders->depth_mesh.ensure_compile_async();
+    shaders->depth_pointcloud.ensure_compile_async();
+    shaders->extra_grid.ensure_compile_async();
+    shaders->extra_ground_line.ensure_compile_async();
+    shaders->extra_loose_points.ensure_compile_async();
+    shaders->extra_point.ensure_compile_async();
+    shaders->extra_shape.ensure_compile_async();
+    shaders->extra_wire_object.ensure_compile_async();
+    shaders->extra_wire.ensure_compile_async();
+    shaders->fluid_grid_lines_flags.ensure_compile_async();
+    shaders->fluid_grid_lines_flat.ensure_compile_async();
+    shaders->fluid_grid_lines_range.ensure_compile_async();
+    shaders->fluid_velocity_mac.ensure_compile_async();
+    shaders->fluid_velocity_needle.ensure_compile_async();
+    shaders->fluid_velocity_streamline.ensure_compile_async();
+    shaders->grid.ensure_compile_async();
+    shaders->image_plane_depth_bias.ensure_compile_async();
+    shaders->lattice_points.ensure_compile_async();
+    shaders->lattice_wire.ensure_compile_async();
+    shaders->legacy_curve_edit_handles.ensure_compile_async();
+    shaders->legacy_curve_edit_points.ensure_compile_async();
+    shaders->legacy_curve_edit_wires.ensure_compile_async();
+    shaders->light_spot_cone.ensure_compile_async();
+    shaders->mesh_analysis.ensure_compile_async();
+    shaders->mesh_edit_depth.ensure_compile_async();
+    shaders->mesh_edit_edge.ensure_compile_async();
+    shaders->mesh_edit_face.ensure_compile_async();
+    shaders->mesh_edit_facedot.ensure_compile_async();
+    shaders->mesh_edit_skin_root.ensure_compile_async();
+    shaders->mesh_edit_vert.ensure_compile_async();
+    shaders->motion_path_line.ensure_compile_async();
+    shaders->motion_path_vert.ensure_compile_async();
+    shaders->outline_detect.ensure_compile_async();
+    shaders->outline_prepass_curves.ensure_compile_async();
+    shaders->outline_prepass_gpencil.ensure_compile_async();
+    shaders->outline_prepass_mesh.ensure_compile_async();
+    shaders->outline_prepass_pointcloud.ensure_compile_async();
+    shaders->outline_prepass_wire.ensure_compile_async();
+    shaders->paint_weight_fake_shading.ensure_compile_async();
+    shaders->particle_dot.ensure_compile_async();
+    shaders->particle_edit_edge.ensure_compile_async();
+    shaders->particle_edit_vert.ensure_compile_async();
+    shaders->particle_hair.ensure_compile_async();
+    shaders->particle_shape.ensure_compile_async();
+    shaders->pointcloud_points.ensure_compile_async();
+    shaders->uniform_color.ensure_compile_async();
+    shaders->wireframe_curve.ensure_compile_async();
+    shaders->wireframe_mesh.ensure_compile_async();
+    shaders->wireframe_points.ensure_compile_async();
   }
 
   void begin_sync(int clipping_plane_count)
@@ -749,16 +775,16 @@ struct Resources : public select::SelectMap {
 
     if (state.xray_enabled) {
       /* For X-ray we render the scene to a separate depth buffer. */
-      this->xray_depth_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
+      this->xray_depth_tx.acquire(render_size, GPU_DEPTH32F_STENCIL8);
       this->depth_target_tx.wrap(this->xray_depth_tx);
       /* TODO(fclem): Remove mandatory allocation. */
-      this->xray_depth_in_front_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
+      this->xray_depth_in_front_tx.acquire(render_size, GPU_DEPTH32F_STENCIL8);
       this->depth_target_in_front_tx.wrap(this->xray_depth_in_front_tx);
     }
     else {
       /* TODO(fclem): Remove mandatory allocation. */
       if (!this->depth_in_front_tx.is_valid()) {
-        this->depth_in_front_alloc_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
+        this->depth_in_front_alloc_tx.acquire(render_size, GPU_DEPTH32F_STENCIL8);
         this->depth_in_front_tx.wrap(this->depth_in_front_alloc_tx);
       }
       this->depth_target_tx.wrap(this->depth_tx);
@@ -821,15 +847,14 @@ struct Resources : public select::SelectMap {
     this->depth_in_front_alloc_tx.release();
     this->color_overlay_alloc_tx.release();
     this->color_render_alloc_tx.release();
+    free_movieclips_textures();
   }
 
   ThemeColorID object_wire_theme_id(const ObjectRef &ob_ref, const State &state) const
   {
     const bool is_edit = (state.object_mode & OB_MODE_EDIT) &&
                          (ob_ref.object->mode & OB_MODE_EDIT);
-    const bool active = ((ob_ref.dupli_parent != nullptr) ?
-                             (state.object_active == ob_ref.dupli_parent) :
-                             (state.object_active == ob_ref.object));
+    const bool active = ob_ref.is_active(state.object_active);
     const bool is_selected = ((ob_ref.object->base_flag & BASE_SELECTED) != 0);
 
     /* Object in edit mode. */
@@ -840,7 +865,7 @@ struct Resources : public select::SelectMap {
     if (((G.moving & G_TRANSFORM_OBJ) != 0) && is_selected) {
       return TH_TRANSFORM;
     }
-    /* Sets the 'theme_id' or fallback to wire */
+    /* Sets the 'theme_id' or fall back to wire */
     if ((ob_ref.object->base_flag & BASE_SELECTED) != 0) {
       return (active) ? TH_ACTIVE : TH_SELECT;
     }
@@ -928,6 +953,7 @@ struct Resources : public select::SelectMap {
     for (MovieClip *clip : bg_movie_clips) {
       BKE_movieclip_free_gputexture(clip);
     }
+    bg_movie_clips.clear();
   }
 
   static float vertex_size_get()

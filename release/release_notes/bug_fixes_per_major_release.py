@@ -22,15 +22,18 @@ some missing commits), but it's significantly better than nothing.
 - Make sure the list `LIST_OF_OFFICIAL_BLENDER_VERSIONS` is up to date.
 - Open a terminal in your Blender source code folder and make sure the
   branches you're interested in are up to date.
-- Launch `main.py` with relevant launch arguments. The required arguments are:
+- Launch `bug_fixes_per_major_release.py` with relevant launch arguments. The required arguments are:
   - --current-version (-cv)
   - --previous-version (-pv)
   - --current-release-tag (-ct)
   - --previous-release-tag (-pt)
   - --backport-tasks (-bpt) (Optional, but recommended)
-- Here is an example if you wish to collect the list for Blender 4.5 during
+- Here is an example if you wish to collect the list for Blender 5.0 during
 the Alpha stage of development.
-  - `python bug_fixes_per_major_release.py -cv 4.5 -pv 4.4 -ct main -pt blender-v4.4-release -bpt 109399 124452 135860`
+  - `python bug_fixes_per_major_release.py -cv 5.0 -pv 4.5 -ct main -pt blender-v4.5-release -bpt 124452 135860`
+- Here is an example if you wish to collect the list for Blender 4.5 during
+the Beta stage of development.
+  - `python bug_fixes_per_major_release.py -cv 4.5 -pv 4.4 -ct blender-v4.5-release -pt blender-v4.4-release -bpt 109399 124452 135860`
 - Wait for the script to finish (This can take upwards of 20 minutes).
 - Follow the guide printed to terminal.
 
@@ -221,9 +224,11 @@ LIST_OF_OFFICIAL_BLENDER_VERSIONS = (
     # 2.9x.
     '2.90', '2.91', '2.92', '2.93',
     # 3.x.
-    '3.0', '3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '4.0',
+    '3.0', '3.1', '3.2', '3.3', '3.4', '3.5', '3.6',
     # 4.x.
-    '4.1', '4.2', '4.3', '4.4', '4.5'
+    '4.0', '4.1', '4.2', '4.3', '4.4', '4.5',
+    # 5.x.
+    '5.0',
 )
 
 # Catch duplicates
@@ -281,11 +286,9 @@ class CommitInfo:
     __slots__ = (
         "hash",
         "commit_title",
-
         "backport_list",
         "classification",
         "fixed_reports",
-        "commit_message",
         "has_been_overwritten",
         "is_revert",
         "module",
@@ -306,8 +309,6 @@ class CommitInfo:
     def set_defaults(self) -> None:
         self.is_revert = 'revert' in self.commit_title.lower()
 
-        self.commit_message = subprocess.run(
-            ['git', 'show', '-s', '--format=%B', self.hash], capture_output=True).stdout.decode('utf-8')
         self.fixed_reports = self.check_full_commit_message_for_fixed_reports()
 
         # Setup some "useful" empty defaults.
@@ -321,10 +322,13 @@ class CommitInfo:
         self.has_been_overwritten = False
 
     def check_full_commit_message_for_fixed_reports(self) -> list[str]:
+        command = ['git', 'show', '-s', '--format=%B', self.hash]
+        command_output = subprocess.run(command, capture_output=True).stdout.decode('utf-8')
+
         # Find every instance of `SPACE#NUMBER`. These are the report that the commit claims to fix.
         # We are looking for the `SPACE` part because otherwise commits that fix issues in other repositories,
         # E.g. Fix `blender/blender-manual#NUMBER`, will be picked out for processing.
-        match = re.findall(r'\s#+(\d+)', self.commit_message)
+        match = re.findall(r'\s#+(\d+)', command_output)
         if match:
             return match
         return []
@@ -411,6 +415,12 @@ class CommitInfo:
                     break
 
     def generate_release_note_ready_string(self) -> str:
+        def sort_version_numbers(input_version_num: str) -> str:
+            # Pad to three digits to be future proof.
+            pad = 3
+            major, minor, patch = input_version_num.split(".")
+            return major.zfill(pad) + minor.zfill(pad) + patch.zfill(pad)
+
         # Breakup report_title based on words, and remove `:` if it's at the end of the first word.
         # This is because the website the release notes are being posted to applies some undesirable
         # formatting to ` * Word:`.
@@ -427,6 +437,8 @@ class CommitInfo:
             f" * {title} [[{self.hash[:11]}](https://projects.blender.org/blender/blender/commit/{self.hash})]"
         )
 
+        self.backport_list.sort(key=sort_version_numbers)
+
         if len(self.backport_list) > 0:
             formatted_string += f" - Backported to "
             if len(self.backport_list) > 2:
@@ -442,7 +454,6 @@ class CommitInfo:
     def prepare_for_cache(self) -> tuple[str, dict[str, Any]]:
         return self.hash, {
             'is_revert': self.is_revert,
-            'commit_message': self.commit_message,
             'fixed_reports': self.fixed_reports,
             'backport_list': self.backport_list,
             'module': self.module,
@@ -452,7 +463,6 @@ class CommitInfo:
 
     def read_from_cache(self, cache_data: dict[str, Any]) -> None:
         self.is_revert = cache_data['is_revert']
-        self.commit_message = cache_data['commit_message']
         self.fixed_reports = cache_data['fixed_reports']
         self.backport_list = cache_data['backport_list']
         self.module = cache_data['module']
@@ -470,6 +480,8 @@ class CommitInfo:
             self.fixed_reports = [override_data]
             self.needs_update = True
 
+        # Revert commits that have been overwritten should be processed like normal commits.
+        self.is_revert = False
         self.has_been_overwritten = True
 
 # ---
@@ -732,55 +744,6 @@ def classify_commits(
     print("\n\n\n")
 
 
-def sort_reverts(list_of_commits: list[CommitInfo]) -> None:
-    number_of_revert_commits = 0
-    for commit in list_of_commits:
-        if commit.classification == REVERT:
-            number_of_revert_commits += 1
-
-    if number_of_revert_commits == 0:
-        # Early out since there are no revert commits to sort
-        return
-
-    while True:
-        sort = input(f"Would you like to sort ({number_of_revert_commits}) reverts? (Y/N) ")
-
-        if sort.lower() == "n":
-            return
-        if sort.lower() == "y":
-            break
-
-    for revert_commit in list_of_commits:
-        if revert_commit.classification == REVERT:
-            # Add some space between each commit message.
-            print("\n" * 10)
-
-            print({revert_commit.commit_message})
-            reverted_commit_list = input(
-                f"Which commit hash(s) did this commit fix? Provide a comma separated list for multiple commits. Leave blank if you do not know: ")
-
-            reverted_commit_hashs: list[str] = []
-            for hash in reverted_commit_list.split(","):
-                # Split the comma separated list and remove any extra white spaces from it.
-                hash = hash.strip()
-                if len(hash) != 0:
-                    reverted_commit_hashs.append(hash)
-
-            if len(reverted_commit_hashs) == 0:
-                # A commit hash wasn't provided.
-                continue
-
-            # This is just to shift the commit into a list we don't share in the release notes.
-            # An alternative classification is `IGNORED` but then the information won't be saved to the cache.
-            revert_commit.classification = FIXED_NEW_ISSUE
-
-            for hash in reverted_commit_hashs:
-                for commit in list_of_commits:
-                    if commit.hash.startswith(hash):
-                        # This is just to shift the commit out of the list of `FIXED_OLD_ISSUE`.
-                        commit.classification = FIXED_NEW_ISSUE
-
-
 # ---
 
 def prepare_for_print(list_of_commits: list[CommitInfo]) -> dict[str, dict[str, list[CommitInfo]]]:
@@ -843,7 +806,9 @@ def print_release_notes(list_of_commits: list[CommitInfo]) -> None:
 
     print_list_of_commits("Commits that fixed old issues:", dict_of_sorted_commits[FIXED_OLD_ISSUE])
 
-    print_list_of_commits("Revert commits:", dict_of_sorted_commits[REVERT])
+    print_list_of_commits(
+        "Revert commits. Add overrides to https://projects.blender.org/blender/blender/issues/137983:",
+        dict_of_sorted_commits[REVERT])
 
     print_list_of_commits("Commits that need manual sorting:", dict_of_sorted_commits[NEEDS_MANUAL_SORTING])
 
@@ -858,7 +823,7 @@ def print_release_notes(list_of_commits: list[CommitInfo]) -> None:
 
     print(r"""What to do with this output:
     - Go through every commit in the "Commits that need manual sorting" section and:
-      - Find the corrisponding issue that was fixed (it will be in the commit message)
+      - Find the corresponding issue that was fixed (it will be in the commit message)
       - Update the "Broken" and/or "Working" fields of the report with relevant information so this script can sort it.
         - Add a module label if it's missing one.
       - Rerun this script.
@@ -867,9 +832,8 @@ def print_release_notes(list_of_commits: list[CommitInfo]) -> None:
     `<!-- skip_for_bug_fix_release_notes -->` to the report body and the script will ignore it on subsequent runs.
     - This should be done by the triaging module through out the release cycle, so the list should be quite small.
 
-    - Go through the "Revert commits" section and if needed,
-      find the commit they reverted and remove them from the list of "Commits that fixed old issues"
-      (This can be done manually or with the overrides feature).
+    - Go through the "Revert commits" section and add entries to https://projects.blender.org/blender/blender/issues/137983
+      for the reverted commits.
     - Double check if there are any obvious commits in the
       "Commits that fixed old issues" section that shouldn't be there and remove them
       (E.g. A fix for a feature that has been in development over a few releases,
@@ -1106,8 +1070,6 @@ def main() -> int:
         current_version=args.current_version,
         previous_version=args.previous_version,
     )
-
-    sort_reverts(list_of_commits)
 
     if args.cache:
         cached_commits_store(list_of_commits)

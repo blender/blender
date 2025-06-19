@@ -1324,7 +1324,7 @@ static void tracking_stabilize_frame_interpolation_cb(void *__restrict userdata,
       }
     }
     else {
-      /* Nearest or fallback to nearest. */
+      /* Nearest or fall back to nearest. */
       for (int x = 0; x < tmpibuf->x; x++, dst++) {
         vec[0] = float(x);
         mul_v3_m4v3(rvec, mat, vec);
@@ -1350,7 +1350,7 @@ static void tracking_stabilize_frame_interpolation_cb(void *__restrict userdata,
       }
     }
     else {
-      /* Nearest or fallback to nearest. */
+      /* Nearest or fall back to nearest. */
       for (int x = 0; x < tmpibuf->x; x++, dst++) {
         vec[0] = float(x);
         mul_v3_m4v3(rvec, mat, vec);

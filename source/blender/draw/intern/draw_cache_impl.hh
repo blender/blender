@@ -39,7 +39,7 @@ enum eMeshBatchDirtyMode : int8_t;
 
 namespace blender::draw {
 
-struct ObjectRef;
+class ObjectRef;
 
 /* -------------------------------------------------------------------- */
 /** \name Expose via BKE callbacks
@@ -189,11 +189,13 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                                            bool use_hide);
 
 blender::gpu::Batch *DRW_mesh_batch_cache_get_all_verts(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_paint_overlay_verts(Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_all_edges(Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_loose_edges(Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_edge_detection(Mesh &mesh, bool *r_is_manifold);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_surface(Mesh &mesh);
-blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_edges(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_paint_overlay_surface(Mesh &mesh);
+blender::gpu::Batch *DRW_mesh_batch_cache_get_paint_overlay_edges(Mesh &mesh);
 Span<gpu::Batch *> DRW_mesh_batch_cache_get_surface_shaded(Object &object,
                                                            Mesh &mesh,
                                                            Span<const GPUMaterial *> materials);
@@ -327,10 +329,6 @@ blender::gpu::Batch *DRW_particles_batch_cache_get_edit_inner_points(Object *obj
 blender::gpu::Batch *DRW_particles_batch_cache_get_edit_tip_points(Object *object,
                                                                    ParticleSystem *psys,
                                                                    PTCacheEdit *edit);
-
-/* Particle data are stored in world space. If an object is instanced, the associated particle
- * systems need to be offset appropriately. */
-float4x4 DRW_particles_dupli_matrix_get(const ObjectRef &ob_ref);
 
 /** \} */
 

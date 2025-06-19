@@ -6,7 +6,7 @@
 
 float3 vector_math_safe_normalize(float3 a)
 {
-  /* Match the safe normalize function in Cycles by defaulting to vec3(0.0f) */
+  /* Match the safe normalize function in Cycles by defaulting to float3(0.0f) */
   float length_sqr = length_squared(a);
   return (length_sqr > 1e-35f) ? a * inversesqrt(length_sqr) : float3(0.0f);
 }
@@ -129,6 +129,18 @@ void vector_math_absolute(
     float3 a, float3 b, float3 c, float scale, out float3 outVector, out float outValue)
 {
   outVector = abs(a);
+}
+
+void vector_math_power(
+    float3 a, float3 b, float3 c, float scale, out float3 outVector, out float outValue)
+{
+  outVector = compatible_pow(a, b);
+}
+
+void vector_math_sign(
+    float3 a, float3 b, float3 c, float scale, out float3 outVector, out float outValue)
+{
+  outVector = sign(a);
 }
 
 void vector_math_minimum(

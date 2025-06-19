@@ -407,8 +407,9 @@ static void IK_SolverAddCenterOfMass(IK_Solver *solver,
                                      float goal[3],
                                      float weight)
 {
-  if (solver == nullptr || root == nullptr)
+  if (solver == nullptr || root == nullptr) {
     return;
+  }
 
   IK_QSolver *qsolver = (IK_QSolver *)solver;
   IK_QSegment *qroot = (IK_QSegment *)root;

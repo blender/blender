@@ -128,6 +128,52 @@ uint hash_int4(int kx, int ky, int kz, int kw)
   return hash_uint4(uint(kx), uint(ky), uint(kz), uint(kw));
 }
 
+/* PCG 2D, 3D and 4D hash functions,
+ * from "Hash Functions for GPU Rendering" JCGT 2020
+ * https://jcgt.org/published/0009/03/02/
+ *
+ * Slightly modified to only use signed integers,
+ * so that they can also be implemented in OSL. */
+
+int2 hash_pcg2d_i(int2 v)
+{
+  v = v * 1664525 + 1013904223;
+  v.x += v.y * 1664525;
+  v.y += v.x * 1664525;
+  v = v ^ (v >> 16);
+  v.x += v.y * 1664525;
+  v.y += v.x * 1664525;
+  return v;
+}
+
+int3 hash_pcg3d_i(int3 v)
+{
+  v = v * 1664525 + 1013904223;
+  v.x += v.y * v.z;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  v = v ^ (v >> 16);
+  v.x += v.y * v.z;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  return v;
+}
+
+int4 hash_pcg4d_i(int4 v)
+{
+  v = v * 1664525 + 1013904223;
+  v.x += v.y * v.w;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  v.w += v.y * v.z;
+  v = v ^ (v >> 16);
+  v.x += v.y * v.w;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  v.w += v.y * v.z;
+  return v;
+}
+
 /* Hashing uint or uint[234] into a float in the range [0, 1]. */
 
 float hash_uint_to_float(uint kx)
@@ -193,6 +239,36 @@ float4 hash_vec4_to_vec4(float4 k)
                 hash_vec4_to_float(k.wxyz),
                 hash_vec4_to_float(k.zwxy),
                 hash_vec4_to_float(k.yzwx));
+}
+
+/* Hashing a number of integers into floats in [0..1] range. */
+
+float2 hash_int2_to_vec2(int2 k)
+{
+  int2 h = hash_pcg2d_i(k);
+  return float2(h & 0x7fffffff) * (1.0 / float(0x7fffffff));
+}
+
+float3 hash_int3_to_vec3(int3 k)
+{
+  int3 h = hash_pcg3d_i(k);
+  return float3(h & 0x7fffffff) * (1.0 / float(0x7fffffff));
+}
+
+float4 hash_int4_to_vec4(int4 k)
+{
+  int4 h = hash_pcg4d_i(k);
+  return float4(h & 0x7fffffff) * (1.0 / float(0x7fffffff));
+}
+
+float3 hash_int2_to_vec3(int2 k)
+{
+  return hash_int3_to_vec3(int3(k.x, k.y, 0));
+}
+
+float3 hash_int4_to_vec3(int4 k)
+{
+  return hash_int4_to_vec4(k).xyz;
 }
 
 /* Hashing float or vec[234] into vec3 of components in range [0, 1]. */

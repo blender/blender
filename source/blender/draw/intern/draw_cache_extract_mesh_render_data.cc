@@ -358,17 +358,6 @@ const SortedFaceData &mesh_render_data_faces_sorted_ensure(const MeshRenderData 
 /** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
  * \{ */
 
-const Mesh &editmesh_final_or_this(const Object &object, const Mesh &mesh)
-{
-  if (mesh.runtime->edit_mesh != nullptr) {
-    if (const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(&object)) {
-      return *editmesh_eval_final;
-    }
-  }
-
-  return mesh;
-}
-
 const CustomData &mesh_cd_ldata_get_from_mesh(const Mesh &mesh)
 {
   switch (mesh.runtime->wrapper_type) {
@@ -556,7 +545,7 @@ MeshRenderData mesh_render_data_create(Object &object,
   mr.use_hide = use_hide;
 
   const Mesh *editmesh_orig = BKE_object_get_pre_modified_mesh(&object);
-  if (is_editmode && editmesh_orig && editmesh_orig->runtime->edit_mesh) {
+  if (editmesh_orig && editmesh_orig->runtime->edit_mesh) {
     const Mesh *eval_cage = DRW_object_get_editmesh_cage_for_drawing(object);
 
     mr.bm = editmesh_orig->runtime->edit_mesh->bm;
@@ -605,10 +594,10 @@ MeshRenderData mesh_render_data_create(Object &object,
     mr.freestyle_face_ofs = CustomData_get_offset(&mr.bm->pdata, CD_FREESTYLE_FACE);
 #endif
 
-    /* Use bmesh directly when the object is in edit mode unchanged by any modifiers.
-     * For non-final UVs, always use original bmesh since the UV editor does not support
-     * using the cage mesh with deformed coordinates. */
-    if ((is_editmode && mr.mesh->runtime->is_original_bmesh &&
+    /* Use bmesh directly when the object is unchanged by any modifiers. For non-final UVs, always
+     * use original bmesh since the UV editor does not support using the cage mesh with deformed
+     * coordinates. */
+    if ((mr.mesh->runtime->is_original_bmesh &&
          mr.mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) ||
         (do_uvedit && !do_final))
     {

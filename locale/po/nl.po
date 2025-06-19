@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:33+0000\n"
 "Last-Translator: Brecht Van Lommel <brechtvanlommel@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2698,68 +2698,68 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
-msgid "Select Linked"
-msgstr "Selecteer Aaneengesloten"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Add Image"
-msgstr "Voeg Afbeelding Toe"
-
-
-msgid "Relations"
-msgstr "Relaties"
-
-
-msgid "Rigid Body"
-msgstr "Star Lichaam"
-
-
-msgid "Quick Effects"
-msgstr "Snelle Effecten"
-
-
 msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
 
-msgid "Convert"
-msgstr "Converteer"
-
-
-msgid "Hooks"
-msgstr "Haken"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Names"
 msgstr "Namen"
 
 
-msgid "Text"
-msgstr "Tekst"
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Convert"
+msgstr "Converteer"
+
+
+msgid "Relations"
+msgstr "Relaties"
+
+
+msgid "Add Image"
+msgstr "Voeg Afbeelding Toe"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Quick Effects"
+msgstr "Snelle Effecten"
+
+
+msgid "Rigid Body"
+msgstr "Star Lichaam"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
+msgid "Select Linked"
+msgstr "Selecteer Aaneengesloten"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Mirror"
+msgstr "Spiegel"
 
 
 msgctxt "MovieClip"
@@ -3079,6 +3079,10 @@ msgstr "Selecteer Patroon"
 
 msgid "Custom Color"
 msgstr "Eigen Kleur"
+
+
+msgid "Starting"
+msgstr "Opstarten"
 
 
 msgid "Meta"
@@ -6937,11 +6941,6 @@ msgid "Sound"
 msgstr "Geluid"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Kruisovergang"
-
-
 msgid "Use Annotations"
 msgstr "Gebruik Annotaties"
 
@@ -7860,11 +7859,6 @@ msgstr "Tekst"
 msgctxt "Operator"
 msgid "Scene..."
 msgstr "Scene..."
-
-
-msgctxt "Operator"
-msgid "Cross"
-msgstr "Kruisovergang"
 
 
 msgctxt "Operator"
@@ -9095,10 +9089,6 @@ msgid "Mask not found"
 msgstr "Masker niet gevonden"
 
 
-msgid "No valid inputs to swap"
-msgstr "Geen geldige invoers om te wisselen"
-
-
 msgid "Mean Crease:"
 msgstr "Gemiddelde Vouw:"
 
@@ -9274,16 +9264,4 @@ msgstr "Poses Bibliotheek"
 
 msgid "Import-Export"
 msgstr "Importeren-Exporteren"
-
-
-msgid "Complete"
-msgstr "Compleet"
-
-
-msgid "In Progress"
-msgstr "Bezig"
-
-
-msgid "Starting"
-msgstr "Opstarten"
 

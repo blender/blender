@@ -27,9 +27,13 @@ class VKBuffer : public NonCopyable {
   VmaAllocation allocation_ = VK_NULL_HANDLE;
   VkMemoryPropertyFlags vk_memory_property_flags_;
   TimelineValue async_timeline_ = 0;
+  /** Has a previous allocation failed. Will skip reallocations. */
+  bool allocation_failed_ = false;
 
   /* Pointer to the virtually mapped memory. */
   void *mapped_memory_ = nullptr;
+
+  VkDeviceAddress vk_device_address = 0;
 
  public:
   VKBuffer() = default;
@@ -105,6 +109,11 @@ class VKBuffer : public NonCopyable {
    * Can only be called when the buffer is (still) mapped.
    */
   void *mapped_memory_get() const;
+
+  VkDeviceAddress device_address_get() const
+  {
+    return vk_device_address;
+  }
 
   /**
    * Is this buffer mapped (visible on host)

@@ -98,34 +98,6 @@ blender::gpu::VertBuf *DRW_hair_pos_buffer_get(Object *object,
   return cache->final[subdiv].proc_buf;
 }
 
-void DRW_hair_duplimat_get(const blender::draw::ObjectRef &ob_ref,
-                           ParticleSystem * /*psys*/,
-                           ModifierData * /*md*/,
-                           float (*dupli_mat)[4])
-{
-  Object *dupli_parent = ob_ref.dupli_parent;
-  DupliObject *dupli_object = ob_ref.dupli_object;
-
-  if ((dupli_parent != nullptr) && (dupli_object != nullptr)) {
-    if (dupli_object->type & OB_DUPLICOLLECTION) {
-      unit_m4(dupli_mat);
-      Collection *collection = dupli_parent->instance_collection;
-      if (collection != nullptr) {
-        sub_v3_v3(dupli_mat[3], collection->instance_offset);
-      }
-      mul_m4_m4m4(dupli_mat, dupli_parent->object_to_world().ptr(), dupli_mat);
-    }
-    else {
-      copy_m4_m4(dupli_mat, dupli_object->ob->object_to_world().ptr());
-      invert_m4(dupli_mat);
-      mul_m4_m4m4(dupli_mat, ob_ref.object->object_to_world().ptr(), dupli_mat);
-    }
-  }
-  else {
-    unit_m4(dupli_mat);
-  }
-}
-
 /* New Draw Manager. */
 #include "draw_common.hh"
 
@@ -233,8 +205,7 @@ blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
     sub_ps.bind_texture("ac", module.dummy_vbo);
   }
 
-  float4x4 dupli_mat;
-  DRW_hair_duplimat_get(ob_ref, psys, md, dupli_mat.ptr());
+  float4x4 dupli_mat = ob_ref.particles_matrix();
 
   /* Get hair shape parameters. */
   ParticleSettings *part = psys->part;

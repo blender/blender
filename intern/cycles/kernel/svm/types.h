@@ -219,6 +219,8 @@ enum NodeVectorMathType {
   NODE_VECTOR_MATH_REFRACT,
   NODE_VECTOR_MATH_FACEFORWARD,
   NODE_VECTOR_MATH_MULTIPLY_ADD,
+  NODE_VECTOR_MATH_POWER,
+  NODE_VECTOR_MATH_SIGN,
 };
 
 enum NodeClampType {
@@ -306,7 +308,7 @@ enum NodeWaveProfile {
   NODE_WAVE_PROFILE_TRI,
 };
 
-enum NodeSkyType { NODE_SKY_PREETHAM, NODE_SKY_HOSEK, NODE_SKY_NISHITA };
+enum NodeSkyType { NODE_SKY_NISHITA };
 
 enum NodeGradientType {
   NODE_BLEND_LINEAR,
@@ -368,11 +370,6 @@ enum NodeBumpOffset {
   NODE_BUMP_OFFSET_CENTER,
   NODE_BUMP_OFFSET_DX,
   NODE_BUMP_OFFSET_DY,
-};
-
-enum NodeTexVoxelSpace {
-  NODE_TEX_VOXEL_SPACE_OBJECT = 0,
-  NODE_TEX_VOXEL_SPACE_WORLD = 1,
 };
 
 enum NodeAO {

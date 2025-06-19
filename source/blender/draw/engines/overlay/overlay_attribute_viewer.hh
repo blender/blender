@@ -65,21 +65,19 @@ class AttributeViewer : Overlay {
                    Resources & /*res*/,
                    const State &state) final
   {
-    const DupliObject *dupli_object = ob_ref.dupli_object;
-    const bool is_preview = dupli_object != nullptr &&
-                            dupli_object->preview_base_geometry != nullptr;
+    const bool is_preview = ob_ref.preview_base_geometry() != nullptr;
     if (!enabled_ || !is_preview) {
       return;
     }
 
-    if (dupli_object->preview_instance_index >= 0) {
+    if (ob_ref.preview_instance_index() >= 0) {
       const auto &instances =
-          *dupli_object->preview_base_geometry->get_component<blender::bke::InstancesComponent>();
+          *ob_ref.preview_base_geometry()->get_component<blender::bke::InstancesComponent>();
       if (const std::optional<blender::bke::AttributeMetaData> meta_data =
               instances.attributes()->lookup_meta_data(".viewer"))
       {
         if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
-          populate_for_instance(ob_ref, *dupli_object, state, manager);
+          populate_for_instance(ob_ref, state, manager);
           return;
         }
       }
@@ -107,13 +105,10 @@ class AttributeViewer : Overlay {
   }
 
  private:
-  void populate_for_instance(const ObjectRef &ob_ref,
-                             const DupliObject &dupli_object,
-                             const State &state,
-                             Manager &manager)
+  void populate_for_instance(const ObjectRef &ob_ref, const State &state, Manager &manager)
   {
     Object &object = *ob_ref.object;
-    const bke::GeometrySet &base_geometry = *dupli_object.preview_base_geometry;
+    const bke::GeometrySet &base_geometry = *ob_ref.preview_base_geometry();
     const bke::InstancesComponent &instances =
         *base_geometry.get_component<bke::InstancesComponent>();
     const bke::AttributeAccessor instance_attributes = *instances.attributes();
@@ -121,7 +116,7 @@ class AttributeViewer : Overlay {
     if (!attribute) {
       return;
     }
-    ColorGeometry4f color = attribute.get(dupli_object.preview_instance_index);
+    ColorGeometry4f color = attribute.get(ob_ref.preview_instance_index());
     color.a *= state.overlay.viewer_attribute_opacity;
     switch (object.type) {
       case OB_MESH: {
@@ -152,7 +147,7 @@ class AttributeViewer : Overlay {
         gpu::Batch *batch = DRW_cache_curve_edge_wire_get(&object);
         auto &sub = *instance_sub_;
         sub.push_constant("ucolor", float4(color));
-        ResourceHandle res_handle = manager.resource_handle(object.object_to_world());
+        ResourceHandle res_handle = manager.unique_handle(ob_ref);
         sub.draw(batch, res_handle);
         break;
       }
@@ -219,7 +214,7 @@ class AttributeViewer : Overlay {
               gpu::Batch *batch = DRW_cache_curve_edge_wire_viewer_attribute_get(&object);
               auto &sub = *curve_sub_;
               sub.push_constant("opacity", opacity);
-              ResourceHandle res_handle = manager.resource_handle(object.object_to_world());
+              ResourceHandle res_handle = manager.unique_handle(ob_ref);
               sub.draw(batch, res_handle);
             }
           }

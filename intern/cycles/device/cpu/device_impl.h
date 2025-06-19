@@ -45,7 +45,11 @@ class CPUDevice : public Device {
   OSLGlobals osl_globals;
 #endif
 #ifdef WITH_EMBREE
-  RTCScene embree_scene = nullptr;
+#  if RTC_VERSION >= 40400
+  RTCTraversable embree_traversable = nullptr;
+#  else
+  RTCScene embree_traversable = nullptr;
+#  endif
   RTCDevice embree_device;
 #endif
 #if defined(WITH_PATH_GUIDING)

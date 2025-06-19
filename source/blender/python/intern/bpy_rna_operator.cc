@@ -93,7 +93,10 @@ PyDoc_STRVAR(
     "additional user defined positional arguments are passed to the message function.\n"
     "\n"
     "   :arg message: The message or a function that returns the message.\n"
-    "   :type message: str | Callable[[Any, ...], str | None]\n");
+    "   :type message: str | Callable[..., str | None]\n"
+    "   :arg args: A sequence of arguments to pass to ``message``, if it's a callable, "
+    "otherwise argument is not available.\n"
+    "   :type args: Any\n");
 
 static PyObject *BPY_rna_operator_poll_message_set(PyObject * /*self*/, PyObject *args)
 {

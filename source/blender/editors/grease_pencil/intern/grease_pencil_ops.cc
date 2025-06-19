@@ -30,7 +30,10 @@ namespace blender::ed::greasepencil {
 bool grease_pencil_context_poll(bContext *C)
 {
   GreasePencil *grease_pencil = blender::ed::greasepencil::from_context(*C);
-  return grease_pencil != nullptr;
+  if (!grease_pencil || ID_IS_LINKED(grease_pencil)) {
+    return false;
+  }
+  return true;
 }
 
 bool active_grease_pencil_poll(bContext *C)
@@ -61,6 +64,12 @@ bool editable_grease_pencil_poll(bContext *C)
   if (!ED_operator_object_active_editable_ex(C, object)) {
     return false;
   }
+
+  const GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
+  if (ID_IS_LINKED(grease_pencil)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -71,12 +80,18 @@ bool editable_grease_pencil_with_region_view3d_poll(bContext *C)
 
 bool active_grease_pencil_layer_poll(bContext *C)
 {
+  if (!grease_pencil_context_poll(C)) {
+    return false;
+  }
   const GreasePencil *grease_pencil = blender::ed::greasepencil::from_context(*C);
   return grease_pencil && grease_pencil->has_active_layer();
 }
 
 bool active_grease_pencil_layer_group_poll(bContext *C)
 {
+  if (!grease_pencil_context_poll(C)) {
+    return false;
+  }
   const GreasePencil *grease_pencil = blender::ed::greasepencil::from_context(*C);
   return grease_pencil && grease_pencil->has_active_group();
 }

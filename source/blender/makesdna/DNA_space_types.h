@@ -419,7 +419,8 @@ typedef struct FileSelectParams {
   /** Same as filter, but for ID types (aka library groups). */
   uint64_t filter_id;
 
-  /** Active file used for keyboard navigation. */
+  /** Active file used for keyboard navigation. -1 means no active file (cleared e.g. after
+   * directory change or search update). */
   int active_file;
   /** File under cursor. */
   int highlight_file;
@@ -888,6 +889,9 @@ typedef struct SpaceNode {
   /** Grease-pencil data. */
   struct bGPdata *gpd;
 
+  char gizmo_flag;
+  char _pad2[7];
+
   SpaceNodeOverlay overlay;
 
   SpaceNode_Runtime *runtime;
@@ -1132,12 +1136,6 @@ typedef struct SpreadsheetInstanceID {
 typedef struct SpreadsheetTableID {
   /** #eSpreadsheetTableIDType. */
   int type;
-
-#ifdef __cplusplus
-  uint64_t hash() const;
-  friend bool operator==(const SpreadsheetTableID &a, const SpreadsheetTableID &b);
-  friend bool operator!=(const SpreadsheetTableID &a, const SpreadsheetTableID &b);
-#endif
 } SpreadsheetTableID;
 
 typedef struct SpreadsheetTableIDGeometry {

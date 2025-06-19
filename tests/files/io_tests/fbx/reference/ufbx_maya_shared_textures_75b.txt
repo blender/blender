@@ -87,7 +87,7 @@
   - roughness 0.500
   - metallic 0.000
   - ior 1.500
-  - alpha 1.000 tex:'checkerboard_ambient.png' (textures/checkerboard_ambient.png) a:True
+  - alpha 1.000 tex:'checkerboard_ambient.png' (textures/checkerboard_ambient.png) a:True Non-Color
   - emission color (0.500, 0.500, 0.500) tex:'checkerboard_emissive.png' (textures/checkerboard_emissive.png) a:False
   - emission strength 1.000
   - normalmap 1.000 tex:'checkerboard_bump.png' (textures/checkerboard_bump.png) a:False data

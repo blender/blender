@@ -16,7 +16,7 @@ from .material import search_node_tree
 
 
 @cached
-def gather_lights_punctual(blender_lamp, export_settings) -> Optional[Dict[str, Any]]:
+def gather_lights_punctual(blender_lamp, blender_lamp_world_matrix, export_settings) -> Optional[Dict[str, Any]]:
 
     export_settings['current_paths'] = {}  # For KHR_animation_pointer
 
@@ -25,7 +25,7 @@ def gather_lights_punctual(blender_lamp, export_settings) -> Optional[Dict[str, 
 
     light = gltf2_io_lights_punctual.Light(
         color=__gather_color(blender_lamp, export_settings),
-        intensity=__gather_intensity(blender_lamp, export_settings),
+        intensity=__gather_intensity(blender_lamp, blender_lamp_world_matrix, export_settings),
         spot=__gather_spot(blender_lamp, export_settings),
         type=__gather_type(blender_lamp, export_settings),
         range=__gather_range(blender_lamp, export_settings),
@@ -64,10 +64,20 @@ def __gather_color(blender_lamp, export_settings) -> Optional[List[float]]:
     path_['path'] = "/extensions/KHR_lights_punctual/lights/XXX/color"
     export_settings['current_paths']['color'] = path_
 
-    return list(blender_lamp.color)
+    color = blender_lamp.color
+
+    if blender_lamp.use_temperature:
+        temperature_color = blender_lamp.temperature_color
+        color[0] *= temperature_color
+        color[1] *= temperature_color
+        color[2] *= temperature_color
+
+    return list(color)
+
+    # TODO, check if temperature is animated, for KHR_animation_pointer
 
 
-def __gather_intensity(blender_lamp, export_settings) -> Optional[float]:
+def __gather_intensity(blender_lamp, blender_lamp_world_matrix, export_settings) -> Optional[float]:
     emission_node = __get_cycles_emission_node(blender_lamp)
     if emission_node is not None:
         if blender_lamp.type != 'SUN':
@@ -79,6 +89,8 @@ def __gather_intensity(blender_lamp, export_settings) -> Optional[float]:
             if result:
                 quadratic_falloff_node = result[0].shader_node
                 emission_strength = quadratic_falloff_node.inputs["Strength"].default_value / (math.pi * 4.0)
+                if not blender_lamp.normalize:
+                    emission_strength *= blender_lamp.area(world_matrix=blender_lamp_world_matrix)
 
                 # Store data for KHR_animation_pointer
                 path_ = {}
@@ -99,6 +111,8 @@ def __gather_intensity(blender_lamp, export_settings) -> Optional[float]:
                 export_settings['current_paths']["energy"] = path_
 
                 emission_strength = blender_lamp.energy
+                if not blender_lamp.normalize:
+                    emission_strength *= blender_lamp.area(world_matrix=blender_lamp_world_matrix)
         else:
             emission_strength = emission_node.inputs["Strength"].default_value
 
@@ -112,6 +126,8 @@ def __gather_intensity(blender_lamp, export_settings) -> Optional[float]:
 
     else:
         emission_strength = blender_lamp.energy
+        if not blender_lamp.normalize:
+            emission_strength *= blender_lamp.area(world_matrix=blender_lamp_world_matrix)
 
         path_ = {}
         path_['length'] = 1
@@ -120,7 +136,8 @@ def __gather_intensity(blender_lamp, export_settings) -> Optional[float]:
         export_settings['current_paths']["energy"] = path_
 
     if export_settings['gltf_lighting_mode'] == 'RAW':
-        return emission_strength
+        # TODO: Detect exposure animation and add it to the path, for KRH_animation_pointer
+        return emission_strength * 2 ** blender_lamp.exposure
     else:
         # Assume at this point the computed strength is still in the appropriate
         # watt-related SI unit, which if everything up to here was done with
@@ -138,7 +155,8 @@ def __gather_intensity(blender_lamp, export_settings) -> Optional[float]:
             pass  # Just so we have an exhaustive tree to catch bugged values.
         else:
             raise ValueError(export_settings['gltf_lighting_mode'])
-        return emission_luminous
+        # TODO: Detect exposure animation and add it to the path, for KRH_animation_pointer
+        return emission_luminous * 2 ** blender_lamp.exposure
 
 
 def __gather_spot(blender_lamp, export_settings) -> Optional[gltf2_io_lights_punctual.LightSpot]:

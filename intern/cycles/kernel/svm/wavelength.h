@@ -17,7 +17,6 @@ CCL_NAMESPACE_BEGIN
 /* Wavelength to RGB */
 
 ccl_device_noinline void svm_node_wavelength(KernelGlobals kg,
-                                             ccl_private ShaderData *sd,
                                              ccl_private float *stack,
                                              const uint wavelength,
                                              const uint color_out)

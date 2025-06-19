@@ -38,9 +38,15 @@ class ImageCoordinatesOperation : public NodeOperation {
     Result &normalized_coordinates_result = this->get_result("Normalized");
     Result &pixel_coordinates_result = this->get_result("Pixel");
     if (input.is_single_value()) {
-      uniform_coordinates_result.allocate_invalid();
-      normalized_coordinates_result.allocate_invalid();
-      pixel_coordinates_result.allocate_invalid();
+      if (uniform_coordinates_result.should_compute()) {
+        uniform_coordinates_result.allocate_invalid();
+      }
+      if (normalized_coordinates_result.should_compute()) {
+        normalized_coordinates_result.allocate_invalid();
+      }
+      if (pixel_coordinates_result.should_compute()) {
+        pixel_coordinates_result.allocate_invalid();
+      }
       return;
     }
 

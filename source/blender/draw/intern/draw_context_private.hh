@@ -61,6 +61,8 @@ struct DRWData {
 
   /* Ensure modules are created. */
   void modules_init();
+  /* Callbacks before each sync cycle. */
+  void modules_begin_sync();
   /* Callbacks after one draw to clear transient data. */
   void modules_exit();
 };
@@ -72,7 +74,12 @@ struct DRWData {
  * \{ */
 
 /* Get thread local draw context. */
-DRWContext &drw_get();
+inline DRWContext &drw_get()
+{
+  return DRWContext::get_active();
+}
+
+namespace blender::draw {
 
 void drw_batch_cache_validate(Object *ob);
 void drw_batch_cache_generate_requested(Object *ob, TaskGraph &task_graph);
@@ -82,8 +89,6 @@ void drw_batch_cache_generate_requested(Object *ob, TaskGraph &task_graph);
  */
 void drw_batch_cache_generate_requested_delayed(Object *ob);
 void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob, TaskGraph &task_graph);
-
-namespace blender::draw {
 
 void DRW_mesh_get_attributes(const Object &object,
                              const Mesh &mesh,

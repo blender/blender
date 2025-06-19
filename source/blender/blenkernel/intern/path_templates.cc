@@ -6,8 +6,18 @@
 
 #include "BLT_translation.hh"
 
+#include "BLI_span.hh"
+
+#include "BKE_context.hh"
+#include "BKE_main.hh"
 #include "BKE_path_templates.hh"
 #include "BKE_scene.hh"
+
+#include "RNA_access.hh"
+#include "RNA_prototypes.hh"
+
+#include "DNA_ID_enums.h"
+#include "DNA_node_types.h"
 
 namespace blender::bke::path_templates {
 
@@ -102,13 +112,73 @@ bool operator==(const Error &left, const Error &right)
 
 using namespace blender::bke::path_templates;
 
-VariableMap BKE_build_template_variables(const char *blend_file_path,
-                                         const RenderData *render_data)
+std::optional<VariableMap> BKE_build_template_variables_for_prop(const bContext *C,
+                                                                 PointerRNA *ptr,
+                                                                 PropertyRNA *prop)
+{
+  /*
+   * This function should be maintained such that it always produces variables
+   * consistent with the variables produced elsewhere in the code base for the
+   * same property. For example, render paths are processed in the rendering
+   * code and variables are built for that purpose there, and this function
+   * should produce variables consistent with that for those render path
+   * properties here.
+   *
+   * The recommended strategy when adding support for additional path templating
+   * use cases (that don't already have an appropriate
+   * `PropertyPathTemplateType` item) is to:
+   *
+   * 1. Create a separate function to build variables for that use case (see
+   *    e.g. `BKE_build_template_variables_for_render_path()`).
+   * 2. Call that function from here in the switch statement below.
+   * 3. Also call that function from the other parts of the code base that need
+   *    it.
+   */
+
+  /* No property passed, or it doesn't support path templates. */
+  if (ptr == nullptr || prop == nullptr ||
+      (RNA_property_flag(prop) & PROP_PATH_SUPPORTS_TEMPLATES) == 0)
+  {
+    return std::nullopt;
+  }
+
+  switch (RNA_property_path_template_type(prop)) {
+    case PROP_VARIABLES_NONE: {
+      BLI_assert_msg(
+          false,
+          "Should never have `PROP_VARIABLES_NONE` for a path that supports path templates.");
+      return VariableMap();
+    }
+
+    /* Scene render output path, the compositor's File Output node's paths, etc. */
+    case PROP_VARIABLES_RENDER_OUTPUT: {
+      const RenderData *render_data;
+      if (GS(ptr->owner_id->name) == ID_SCE) {
+        render_data = &reinterpret_cast<const Scene *>(ptr->owner_id)->r;
+      }
+      else {
+        const Scene *scene = CTX_data_scene(C);
+        render_data = scene ? &scene->r : nullptr;
+      }
+
+      return BKE_build_template_variables_for_render_path(render_data);
+    }
+  }
+
+  /* All paths that support path templates should be handled above, and any that
+   * aren't should already be rejected by the test at the top of the function. */
+  BLI_assert_unreachable();
+
+  return std::nullopt;
+}
+
+VariableMap BKE_build_template_variables_for_render_path(const RenderData *render_data)
 {
   VariableMap variables;
 
-  /* Blend file name. */
-  if (blend_file_path) {
+  /* Blend file name of the currently open blend file. */
+  {
+    const char *blend_file_path = BKE_main_blendfile_path_from_global();
     const char *file_name = BLI_path_basename(blend_file_path);
     const char *file_name_end = BLI_path_extension_or_end(file_name);
     if (file_name[0] == '\0') {
@@ -207,7 +277,7 @@ struct Token {
    * the path string. */
   blender::IndexRange byte_range;
 
-  /* Reference to the the variable name as written in the template string. Note
+  /* Reference to the variable name as written in the template string. Note
    * that this points into the template string, and does not own the value.
    *
    * Only relevant when `type == VARIABLE_EXPRESSION`. */
@@ -620,25 +690,41 @@ static std::optional<Error> token_to_syntax_error(const Token &token)
   return std::nullopt;
 }
 
-blender::Vector<Error> BKE_validate_template_syntax(blender::StringRef path)
+bool BKE_path_contains_template_syntax(blender::StringRef path)
 {
-  const blender::Vector<Token> tokens = parse_template(path);
-
-  blender::Vector<Error> errors;
-  for (const Token &token : tokens) {
-    if (std::optional<Error> error = token_to_syntax_error(token)) {
-      errors.append(*error);
-    }
-  }
-
-  return errors;
+  return path.find_first_of("{}") != std::string_view::npos;
 }
 
-blender::Vector<Error> BKE_path_apply_template(char *path,
-                                               int path_max_length,
-                                               const VariableMap &template_variables)
+/**
+ * Evaluates the path template in `in_path` and writes the result to `out_path`
+ * if provided.
+ *
+ * \param out_path: buffer to write the evaluated path to. May be null, in which
+ * case writing is skipped, and this function just acts to validate the
+ * templating in the path.
+ *
+ * \param out_path_max_length: The maximum length that template expansion is
+ * allowed to make the template-expanded path (in bytes), including the null
+ * terminator. In general, this should be the size of the underlying allocation
+ * of `out_path`.
+ *
+ * \param template_variables: map of variables and their values to use during
+ * template substitution.
+ *
+ * \return An empty vector on success, or a vector of templating errors on
+ * failure. Note that even if there are errors, `out_path` may get modified, and
+ * it should be treated as bogus data in that case.
+ */
+static blender::Vector<Error> eval_template(char *out_path,
+                                            const int out_path_max_length,
+                                            blender::StringRef in_path,
+                                            const VariableMap &template_variables)
 {
-  const blender::Vector<Token> tokens = parse_template(path);
+  if (out_path) {
+    in_path.copy_utf8_truncated(out_path, out_path_max_length);
+  }
+
+  const blender::Vector<Token> tokens = parse_template(in_path);
 
   if (tokens.is_empty()) {
     /* No tokens found, so nothing to do. */
@@ -647,15 +733,6 @@ blender::Vector<Error> BKE_path_apply_template(char *path,
 
   /* Accumulates errors as we process the tokens. */
   blender::Vector<Error> errors;
-
-  /* We work on a copy of the path, for two reasons:
-   *
-   * 1. So that if there are errors we can leave the original unmodified.
-   * 2. So that the contents of the StringRefs in the Token structs don't change
-   *    out from under us while we're generating the modified path.*/
-  blender::Vector<char> path_buffer(path_max_length);
-  char *path_modified = path_buffer.data();
-  strcpy(path_modified, path);
 
   /* Tracks the change in string length due to the modifications as we go. We
    * need this to properly map the token byte ranges to the being-modified
@@ -701,7 +778,7 @@ blender::Vector<Error> BKE_path_apply_template(char *path,
             errors.append({ErrorType::FORMAT_SPECIFIER, token.byte_range});
             continue;
           }
-          strcpy(replacement_string, string_value->c_str());
+          BLI_strncpy(replacement_string, string_value->c_str(), sizeof(replacement_string));
           break;
         }
 
@@ -726,24 +803,47 @@ blender::Vector<Error> BKE_path_apply_template(char *path,
       }
     }
 
-    /* We're off the end of the available space. */
-    if (token.byte_range.start() + length_diff >= path_max_length) {
-      break;
+    /* Perform the actual substitution with the expanded value. */
+    if (out_path) {
+      /* We're off the end of the available space. */
+      if (token.byte_range.start() + length_diff >= out_path_max_length) {
+        break;
+      }
+
+      BLI_string_replace_range(out_path,
+                               out_path_max_length,
+                               token.byte_range.start() + length_diff,
+                               token.byte_range.one_after_last() + length_diff,
+                               replacement_string);
+
+      length_diff -= token.byte_range.size();
+      length_diff += strlen(replacement_string);
     }
-
-    BLI_string_replace_range(path_modified,
-                             path_max_length,
-                             token.byte_range.start() + length_diff,
-                             token.byte_range.one_after_last() + length_diff,
-                             replacement_string);
-
-    length_diff -= token.byte_range.size();
-    length_diff += strlen(replacement_string);
   }
+
+  return errors;
+}
+
+blender::Vector<Error> BKE_path_validate_template(
+    blender::StringRef path, const blender::bke::path_templates::VariableMap &template_variables)
+{
+  return eval_template(nullptr, 0, path, template_variables);
+}
+
+blender::Vector<Error> BKE_path_apply_template(char *path,
+                                               int path_max_length,
+                                               const VariableMap &template_variables)
+{
+  BLI_assert(path != nullptr);
+
+  blender::Vector<char> path_buffer(path_max_length);
+
+  const blender::Vector<Error> errors = eval_template(
+      path_buffer.data(), path_buffer.size(), path, template_variables);
 
   if (errors.is_empty()) {
     /* No errors, so copy the modified path back to the original. */
-    strcpy(path, path_modified);
+    BLI_strncpy(path, path_buffer.data(), path_max_length);
   }
   return errors;
 }
@@ -787,4 +887,28 @@ void BKE_report_path_template_errors(ReportList *reports,
   }
 
   BKE_report(reports, report_type, error_message.c_str());
+}
+
+std::optional<std::string> BKE_path_template_format_float(
+    const blender::StringRef format_specifier, const double value)
+{
+  const FormatSpecifier format = parse_format_specifier(format_specifier);
+  if (format.type == FormatSpecifierType::SYNTAX_ERROR) {
+    return std::nullopt;
+  }
+  char buffer[FORMAT_BUFFER_SIZE];
+  format_float_to_string(format, value, buffer);
+  return buffer;
+}
+
+std::optional<std::string> BKE_path_template_format_int(const blender::StringRef format_specifier,
+                                                        const int64_t value)
+{
+  const FormatSpecifier format = parse_format_specifier(format_specifier);
+  if (format.type == FormatSpecifierType::SYNTAX_ERROR) {
+    return std::nullopt;
+  }
+  char buffer[FORMAT_BUFFER_SIZE];
+  format_int_to_string(format, value, buffer);
+  return buffer;
 }

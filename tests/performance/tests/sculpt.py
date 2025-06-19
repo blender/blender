@@ -72,7 +72,7 @@ def prepare_sculpt_scene(context: any, mode: SculptMode):
     elif mode == SculptMode.MULTIRES:
         size = 150
     elif mode == SculptMode.DYNTOPO:
-        size = 1500
+        size = 500
     else:
         raise NotImplementedError
 
@@ -159,23 +159,22 @@ def _run_brush_test(args: dict):
     import time
     context = bpy.context
 
-    timeout = 5
+    timeout = 10
     total_time_start = time.time()
 
     # Create an undo stack explicitly. This isn't created by default in background mode.
     bpy.ops.ed.undo_push()
 
-    prepare_sculpt_scene(context, args['mode'])
     prepare_brush(context, args['brush_type'])
-
-    context_override = context.copy()
-    set_view3d_context_override(context_override)
 
     min_measurements = 5
     max_measurements = 100
 
     measurements = []
     while True:
+        prepare_sculpt_scene(context, args['mode'])
+        context_override = context.copy()
+        set_view3d_context_override(context_override)
         with context.temp_override(**context_override):
             start = time.time()
             bpy.ops.sculpt.brush_stroke(stroke=generate_stroke(context_override), override_location=True)
@@ -194,22 +193,20 @@ def _run_bvh_test(args: dict):
     import time
     context = bpy.context
 
-    timeout = 5
+    timeout = 10
     total_time_start = time.time()
 
     # Create an undo stack explicitly. This isn't created by default in background mode.
     bpy.ops.ed.undo_push()
-
-    prepare_sculpt_scene(context, args['mode'])
-
-    context_override = context.copy()
-    set_view3d_context_override(context_override)
 
     min_measurements = 5
     max_measurements = 100
 
     measurements = []
     while True:
+        prepare_sculpt_scene(context, args['mode'])
+        context_override = context.copy()
+        set_view3d_context_override(context_override)
         with context.temp_override(**context_override):
             start = time.time()
             bpy.ops.sculpt.optimize()

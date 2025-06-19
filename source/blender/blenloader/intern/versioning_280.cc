@@ -821,7 +821,7 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
       if (ELEM(node->type_legacy,
                SH_NODE_CURVE_VEC,
                SH_NODE_CURVE_RGB,
-               CMP_NODE_CURVE_VEC,
+               CMP_NODE_CURVE_VEC_DEPRECATED,
                CMP_NODE_CURVE_RGB,
                CMP_NODE_TIME,
                CMP_NODE_HUECORRECT,

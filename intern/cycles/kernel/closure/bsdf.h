@@ -121,7 +121,6 @@ ccl_device_inline bool bsdf_is_transmission(const ccl_private ShaderClosure *sc,
 ccl_device_inline int bsdf_sample(KernelGlobals kg,
                                   ccl_private ShaderData *sd,
                                   const ccl_private ShaderClosure *sc,
-                                  const int path_flag,
                                   const float3 rand,
                                   ccl_private Spectrum *eval,
                                   ccl_private float3 *wo,
@@ -276,8 +275,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
   return label;
 }
 
-ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
-                                          const ccl_private ShaderClosure *sc,
+ccl_device_inline void bsdf_roughness_eta(const ccl_private ShaderClosure *sc,
                                           const float3 wo,
                                           ccl_private float2 *roughness,
                                           ccl_private float *eta)
@@ -596,7 +594,7 @@ ccl_device_inline
   return eval;
 }
 
-ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, const float roughness)
+ccl_device void bsdf_blur(ccl_private ShaderClosure *sc, const float roughness)
 {
   /* TODO: do we want to blur volume closures? */
 #if defined(__SVM__) || defined(__OSL__)

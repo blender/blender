@@ -215,7 +215,7 @@ void check_gl_error(const char *info)
 
 void check_gl_resources(const char *info)
 {
-  if (!(G.debug & G_DEBUG_GPU) || GPU_bgl_get()) {
+  if (!(G.debug & G_DEBUG_GPU)) {
     return;
   }
 
@@ -441,7 +441,7 @@ void GLContext::debug_group_end()
       break;
     }
     if (i == 0) {
-      std::cout << "Profile GPU error: Extra GPU_debug_group_end() call.\n";
+      CLOG_ERROR(&LOG, "Profile GPU error: Extra GPU_debug_group_end() call.");
     }
   }
 }
@@ -461,7 +461,7 @@ void GLContext::process_frame_timings()
     for (int i = queries.size() - 1; i >= 0; i--) {
       if (!queries[i].finished) {
         frame_is_valid = false;
-        std::cout << "Profile GPU error: Missing GPU_debug_group_end() call\n";
+        CLOG_ERROR(&LOG, "Profile GPU error: Missing GPU_debug_group_end() call");
       }
       else {
         glGetQueryObjectiv(queries.last().handle_end, GL_QUERY_RESULT_AVAILABLE, &frame_is_ready);

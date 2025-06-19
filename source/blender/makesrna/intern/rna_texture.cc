@@ -23,16 +23,6 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#ifndef RNA_RUNTIME
-static const EnumPropertyItem texture_filter_items[] = {
-    {TXF_BOX, "BOX", 0, "Box", ""},
-    {TXF_EWA, "EWA", 0, "EWA", ""},
-    {TXF_FELINE, "FELINE", 0, "FELINE", ""},
-    {TXF_AREA, "AREA", 0, "Area", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-#endif
-
 const EnumPropertyItem rna_enum_texture_type_items[] = {
     {0, "NONE", 0, "None", ""},
     {TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", "Procedural - create a ramp texture"},
@@ -447,18 +437,6 @@ static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)
   rna_Texture_nodes_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
-static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, bool value)
-{
-  Tex *tex = (Tex *)ptr->data;
-
-  if (value) {
-    tex->imaflag |= TEX_MIPMAP;
-  }
-  else {
-    tex->imaflag &= ~TEX_MIPMAP;
-  }
-}
-
 #else
 
 static void rna_def_texmapping(BlenderRNA *brna)
@@ -694,57 +672,11 @@ static void rna_def_mtex(BlenderRNA *brna)
 static void rna_def_filter_common(StructRNA *srna)
 {
   PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "use_mipmap", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "imaflag", TEX_MIPMAP);
-  RNA_def_property_boolean_funcs(prop, nullptr, "rna_ImageTexture_mipmap_set");
-  RNA_def_property_ui_text(prop, "MIP Map", "Use auto-generated MIP maps for the image");
-  RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-  prop = RNA_def_property(srna, "use_mipmap_gauss", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "imaflag", TEX_GAUSS_MIP);
-  RNA_def_property_ui_text(
-      prop, "MIP Map Gaussian filter", "Use Gauss filter to sample down MIP maps");
-  RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-  prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "texfilter");
-  RNA_def_property_enum_items(prop, texture_filter_items);
-  RNA_def_property_ui_text(prop, "Filter", "Texture filter to use for sampling image");
-  RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-  prop = RNA_def_property(srna, "filter_lightprobes", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "afmax");
-  RNA_def_property_range(prop, 1, 256);
-  RNA_def_property_ui_text(
-      prop,
-      "Filter Probes",
-      "Maximum number of samples (higher gives less blur at distant/oblique angles, "
-      "but is also slower)");
-  RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-  prop = RNA_def_property(srna, "filter_eccentricity", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "afmax");
-  RNA_def_property_range(prop, 1, 256);
-  RNA_def_property_ui_text(
-      prop,
-      "Filter Eccentricity",
-      "Maximum eccentricity (higher gives less blur at distant/oblique angles, "
-      "but is also slower)");
-  RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-  prop = RNA_def_property(srna, "use_filter_size_min", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "imaflag", TEX_FILTER_MIN);
-  RNA_def_property_ui_text(
-      prop, "Minimum Filter Size", "Use Filter Size as a minimal filter value in pixels");
-  RNA_def_property_update(prop, 0, "rna_Texture_update");
-
   prop = RNA_def_property(srna, "filter_size", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "filtersize");
   RNA_def_property_range(prop, 0.1, 50.0);
   RNA_def_property_ui_range(prop, 0.1, 50.0, 1, 2);
-  RNA_def_property_ui_text(
-      prop, "Filter Size", "Multiply the filter size used by MIP Map and Interpolation");
+  RNA_def_property_ui_text(prop, "Filter Size", "Multiply the filter size used by interpolation");
   RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 

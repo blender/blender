@@ -316,7 +316,6 @@ def fake_main():
     bpy.app.build_options.fluid = True
     bpy.app.build_options.freestyle = True
     bpy.app.build_options.mod_fluid = True
-    bpy.app.build_options.collada = True
     bpy.app.build_options.international = True
     bpy.app.build_options.mod_smoke = True
     bpy.app.build_options.alembic = True

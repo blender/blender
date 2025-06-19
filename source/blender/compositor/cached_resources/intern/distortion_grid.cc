@@ -65,8 +65,9 @@ DistortionGrid::DistortionGrid(
   int left_delta;
   int bottom_delta;
   int top_delta;
-  BKE_tracking_distortion_bounds_deltas(&movie_clip->tracking,
+  BKE_tracking_distortion_bounds_deltas(distortion,
                                         size,
+                                        calibration_size,
                                         type == DistortionType::Undistort,
                                         &right_delta,
                                         &left_delta,

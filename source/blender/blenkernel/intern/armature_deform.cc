@@ -653,9 +653,16 @@ void BKE_armature_deform_coords_with_mesh(const Object *ob_arm,
   /* Note armature modifier on legacy curves calls this, so vertex groups are not guaranteed to
    * exist. */
   const ID *id_target = static_cast<const ID *>(ob_target->data);
-  const ListBase *defbase = BKE_id_supports_vertex_groups(id_target) ?
-                                BKE_id_defgroup_list_get(id_target) :
-                                nullptr;
+  const ListBase *defbase = nullptr;
+  if (me_target) {
+    /* Use the vertex groups from the evaluated mesh that is being deformed. */
+    defbase = BKE_id_defgroup_list_get(&me_target->id);
+  }
+  else if (BKE_id_supports_vertex_groups(id_target)) {
+    /* Take the vertex groups from the original object data. */
+    defbase = BKE_id_defgroup_list_get(id_target);
+  }
+
   blender::Span<MDeformVert> dverts;
   if (ob_target->type == OB_MESH) {
     if (me_target == nullptr) {

@@ -459,7 +459,7 @@ void collection_hide_menu_draw(const bContext *C, uiLayout *layout)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   LayerCollection *lc_scene = static_cast<LayerCollection *>(view_layer->layer_collections.first);
 
-  uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
+  layout->operator_context_set(WM_OP_EXEC_REGION_WIN);
 
   LISTBASE_FOREACH (LayerCollection *, lc, &lc_scene->layer_collections) {
     int index = BKE_layer_collection_findindex(view_layer, lc);
@@ -1852,6 +1852,7 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
       }
       node_group = reinterpret_cast<bNodeTree *>(node_group_id);
       node_group->ensure_topology_cache();
+      node_group->ensure_interface_cache();
       if (is_valid_smooth_by_angle_group(*node_group)) {
         break;
       }
@@ -1930,7 +1931,7 @@ static void shade_auto_smooth_ui(bContext * /*C*/, wmOperator *op)
   layout->prop(op->ptr, "use_auto_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = &layout->column(false);
-  uiLayoutSetActive(col, RNA_boolean_get(op->ptr, "use_auto_smooth"));
+  col->active_set(RNA_boolean_get(op->ptr, "use_auto_smooth"));
   layout->prop(op->ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
@@ -2429,7 +2430,7 @@ static wmOperatorStatus move_to_collection_invoke(bContext *C,
   pup = UI_popup_menu_begin(C, title, ICON_NONE);
   layout = UI_popup_menu_layout(pup);
 
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
 
   move_to_collection_menu_create(C, layout, master_collection_menu);
 

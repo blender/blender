@@ -11,12 +11,10 @@ set(INC_SYS
 )
 
 set(SRC
-  source/sky_model.cpp
   source/sky_nishita.cpp
 
   include/sky_model.h
   source/sky_float3.h
-  source/sky_model_data.h
 )
 
 set(LIB

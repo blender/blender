@@ -99,6 +99,7 @@ static void device_iterator_cb(const char *id,
                                const int num,
                                bool hwrt_support,
                                bool oidn_support,
+                               bool has_execution_optimization,
                                void *user_ptr)
 {
   vector<DeviceInfo> *devices = (vector<DeviceInfo> *)user_ptr;
@@ -139,6 +140,8 @@ static void device_iterator_cb(const char *id,
   info.use_hardware_raytracing = false;
   (void)hwrt_support;
 #  endif
+
+  info.has_execution_optimization = has_execution_optimization;
 
   devices->push_back(info);
   VLOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";

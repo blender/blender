@@ -73,7 +73,7 @@ static void populate_gpu_node_stack(DSocket socket, GPUNodeStack &stack)
   zero_v4(stack.vec);
 
   stack.sockettype = socket->type;
-  stack.type = gpu_type_from_socket_type(static_cast<eNodeSocketDatatype>(socket->type));
+  stack.type = gpu_type_from_socket_type(eNodeSocketDatatype(socket->type));
 
   stack.hasinput = socket->is_logically_linked();
   stack.hasoutput = socket->is_logically_linked();

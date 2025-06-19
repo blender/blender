@@ -156,7 +156,7 @@ void get_default_fac_fade(const Scene *scene, const Strip *strip, float timeline
   *fac = math::clamp(*fac, 0.0f, 1.0f);
 }
 
-EffectHandle get_sequence_effect_impl(int strip_type)
+EffectHandle effect_handle_get(int strip_type)
 {
   EffectHandle rval;
 
@@ -246,12 +246,12 @@ EffectHandle get_sequence_effect_impl(int strip_type)
   return rval;
 }
 
-EffectHandle effect_handle_get(Strip *strip)
+EffectHandle strip_effect_handle_get(Strip *strip)
 {
   EffectHandle rval = {};
 
   if (strip->type & STRIP_TYPE_EFFECT) {
-    rval = get_sequence_effect_impl(strip->type);
+    rval = effect_handle_get(strip->type);
     if ((strip->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
       rval.load(strip);
       strip->flag &= ~SEQ_EFFECT_NOT_LOADED;
@@ -268,11 +268,11 @@ EffectHandle strip_effect_get_sequence_blend(Strip *strip)
   if (strip->blend_mode != 0) {
     if ((strip->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
       /* load the effect first */
-      rval = get_sequence_effect_impl(strip->type);
+      rval = effect_handle_get(strip->type);
       rval.load(strip);
     }
 
-    rval = get_sequence_effect_impl(strip->blend_mode);
+    rval = effect_handle_get(strip->blend_mode);
     if ((strip->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
       /* now load the blend and unset unloaded flag */
       rval.load(strip);
@@ -285,7 +285,7 @@ EffectHandle strip_effect_get_sequence_blend(Strip *strip)
 
 int effect_get_num_inputs(int strip_type)
 {
-  EffectHandle rval = get_sequence_effect_impl(strip_type);
+  EffectHandle rval = effect_handle_get(strip_type);
 
   int count = rval.num_inputs();
   if (rval.execute) {

@@ -94,6 +94,10 @@ class DeviceInfo {
   bool has_gpu_queue = false;           /* Device supports GPU queue. */
   bool use_hardware_raytracing = false; /* Use hardware instructions to accelerate ray tracing. */
   bool use_metalrt_by_default = false;  /* Use MetalRT by default. */
+  /* Indicate that device execution has been optimized by Blender or vendor developers.
+   * For LTS versions, this helps communicate that newer versions may have better performance. */
+  bool has_execution_optimization = true;
+
   KernelOptimizationLevel kernel_optimization_level =
       KERNEL_OPTIMIZATION_LEVEL_FULL;         /* Optimization level applied to path tracing
                                                * kernels (Metal only). */

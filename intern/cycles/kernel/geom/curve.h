@@ -153,7 +153,7 @@ ccl_device float3 curve_motion_center_location(KernelGlobals kg, const ccl_priva
 
 /* Curve tangent normal */
 
-ccl_device float3 curve_tangent_normal(KernelGlobals kg, const ccl_private ShaderData *sd)
+ccl_device float3 curve_tangent_normal(const ccl_private ShaderData *sd)
 {
   float3 tgN = make_float3(0.0f, 0.0f, 0.0f);
 

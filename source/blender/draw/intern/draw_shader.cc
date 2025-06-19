@@ -34,9 +34,6 @@ static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shade
       return "subdiv_tris_multiple_materials";
 
     case SubdivShaderType::BUFFER_EDGE_FAC:
-      if (GPU_crappy_amd_driver()) {
-        return "subdiv_edge_fac_amd_legacy";
-      }
       return "subdiv_edge_fac";
 
     case SubdivShaderType::BUFFER_SCULPT_DATA:
@@ -66,11 +63,8 @@ static blender::StringRefNull get_subdiv_shader_info_name(SubdivShaderType shade
     case SubdivShaderType::BUFFER_NORMALS_ACCUMULATE:
       return "subdiv_normals_accumulate";
 
-    case SubdivShaderType::BUFFER_NORMALS_FINALIZE:
-      return "subdiv_normals_finalize";
-
-    case SubdivShaderType::BUFFER_CUSTOM_NORMALS_FINALIZE:
-      return "subdiv_custom_normals_finalize";
+    case SubdivShaderType::BUFFER_PAINT_OVERLAY_FLAG:
+      return "subdiv_paint_overlay_flag";
 
     case SubdivShaderType::BUFFER_LNOR:
       return "subdiv_loop_normals";
@@ -113,6 +107,8 @@ class ShaderCache {
 
   gpu::StaticShader subdiv_sh[SUBDIVISION_MAX_SHADERS];
   gpu::StaticShader subdiv_custom_data_sh[SHADER_CUSTOM_DATA_INTERP_MAX_DIMENSIONS][GPU_COMP_MAX];
+  gpu::StaticShader subdiv_interp_corner_normals_sh = {
+      "subdiv_custom_data_interp_3d_f32_normalize"};
 
   ShaderCache()
   {
@@ -204,6 +200,11 @@ GPUShader *DRW_shader_subdiv_custom_data_get(GPUVertCompType comp_type, int dime
   BLI_assert(ELEM(comp_type, GPU_COMP_U16, GPU_COMP_I32, GPU_COMP_F32));
 
   return ShaderCache::get().subdiv_custom_data_sh[dimensions - 1][comp_type].get();
+}
+
+GPUShader *DRW_shader_subdiv_interp_corner_normals_get()
+{
+  return ShaderCache::get().subdiv_interp_corner_normals_sh.get();
 }
 
 void DRW_shaders_free()

@@ -6,6 +6,7 @@
  * \ingroup eevee
  */
 
+#include "BLI_time.h"
 #include "DNA_material_types.h"
 
 #include "BKE_lib_id.hh"
@@ -160,14 +161,82 @@ MaterialModule::~MaterialModule()
 void MaterialModule::begin_sync()
 {
   queued_shaders_count = 0;
+  queued_textures_count = 0;
   queued_optimize_shaders_count = 0;
+
+  material_override = DEG_get_evaluated(inst_.depsgraph, inst_.view_layer->mat_override);
 
   uint64_t next_update = GPU_pass_global_compilation_count();
   gpu_pass_last_update_ = gpu_pass_next_update_;
   gpu_pass_next_update_ = next_update;
 
+  texture_loading_queue_.clear();
   material_map_.clear();
   shader_map_.clear();
+}
+
+void MaterialModule::queue_texture_loading(GPUMaterial *material)
+{
+  ListBase textures = GPU_material_textures(material);
+  for (GPUMaterialTexture *tex : ListBaseWrapper<GPUMaterialTexture>(textures)) {
+    if (tex->ima) {
+      const bool use_tile_mapping = tex->tiled_mapping_name[0];
+      ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
+      ImageGPUTextures gputex = BKE_image_get_gpu_material_texture_try(
+          tex->ima, iuser, use_tile_mapping);
+      if (*gputex.texture == nullptr) {
+        texture_loading_queue_.append(tex);
+      }
+    }
+  }
+}
+
+void MaterialModule::end_sync()
+{
+  if (texture_loading_queue_.is_empty()) {
+    return;
+  }
+
+  if (inst_.is_viewport()) {
+    /* Avoid ghosting of textures. */
+    inst_.sampling.reset();
+  }
+
+  GPU_debug_group_begin("Texture Loading");
+
+  /* Load files from disk in a multithreaded manner. Allow better parallelism. */
+  threading::parallel_for(texture_loading_queue_.index_range(), 1, [&](const IndexRange range) {
+    for (auto i : range) {
+      GPUMaterialTexture *tex = texture_loading_queue_[i];
+      ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
+      BKE_image_tag_time(tex->ima);
+      BKE_image_get_tile(tex->ima, 0);
+      ImBuf *imbuf = BKE_image_acquire_ibuf(tex->ima, iuser, nullptr);
+      BKE_image_release_ibuf(tex->ima, imbuf, nullptr);
+    }
+  });
+
+  /* Upload to the GPU (create GPUTexture). This part still requires a valid GPU context and
+   * is not easily parallelized. */
+  for (GPUMaterialTexture *tex : texture_loading_queue_) {
+    BLI_assert(tex->ima);
+    GPU_debug_group_begin(tex->ima->id.name);
+
+    const bool use_tile_mapping = tex->tiled_mapping_name[0];
+    ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
+    ImageGPUTextures gputex = BKE_image_get_gpu_material_texture(
+        tex->ima, iuser, use_tile_mapping);
+
+    /* Acquire the textures since they were not existing inside `PassBase::material_set()`. */
+    inst_.manager->acquire_texture(*gputex.texture);
+    if (gputex.tile_mapping) {
+      inst_.manager->acquire_texture(*gputex.tile_mapping);
+    }
+
+    GPU_debug_group_end();
+  }
+  GPU_debug_group_end();
+  texture_loading_queue_.clear();
 }
 
 MaterialPass MaterialModule::material_pass_get(Object *ob,
@@ -180,11 +249,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
                          blender_mat->nodetree :
                          default_surface_ntree_.nodetree_get(blender_mat);
 
-  bool use_deferred_compilation = inst_.is_viewport() || GPU_use_parallel_compilation();
-  if (inst_.is_viewport_image_render) {
-    /* We can't defer compilation in viewport image render, since we can't re-sync.(See #130235) */
-    use_deferred_compilation = false;
-  }
+  /* We can't defer compilation in viewport image render, since we can't re-sync.(See #130235) */
+  bool use_deferred_compilation = !inst_.is_viewport_image_render;
 
   const bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_OCCUPANCY, MAT_PIPE_VOLUME_MATERIAL);
   ::Material *default_mat = is_volume ? default_volume : default_surface;
@@ -192,6 +258,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
   MaterialPass matpass = MaterialPass();
   matpass.gpumat = inst_.shaders.material_shader_get(
       blender_mat, ntree, pipeline_type, geometry_type, use_deferred_compilation, default_mat);
+
+  queue_texture_loading(matpass.gpumat);
 
   const bool is_forward = ELEM(pipeline_type,
                                MAT_PIPE_FORWARD,
@@ -260,7 +328,7 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
     if (shader_sub != nullptr) {
       /* Create a sub for this material as `shader_sub` is for sharing shader between materials. */
       matpass.sub_pass = &shader_sub->sub(GPU_material_get_name(matpass.gpumat));
-      matpass.sub_pass->material_set(*inst_.manager, matpass.gpumat);
+      matpass.sub_pass->material_set(*inst_.manager, matpass.gpumat, true);
     }
     else {
       matpass.sub_pass = nullptr;
@@ -464,7 +532,7 @@ MaterialArray &MaterialModule::material_array_get(Object *ob, bool has_motion)
   const int materials_len = BKE_object_material_used_with_fallback_eval(*ob);
 
   for (auto i : IndexRange(materials_len)) {
-    ::Material *blender_mat = material_from_slot(ob, i);
+    ::Material *blender_mat = (material_override) ? material_override : material_from_slot(ob, i);
     Material &mat = material_sync(ob, blender_mat, to_material_geometry(ob), has_motion);
     /* \note Perform a whole copy since next material_sync() can move the Material memory location
      * (i.e: because of its container growing) */
@@ -479,9 +547,27 @@ Material &MaterialModule::material_get(Object *ob,
                                        int mat_nr,
                                        eMaterialGeometry geometry_type)
 {
-  ::Material *blender_mat = material_from_slot(ob, mat_nr);
+  ::Material *blender_mat = (material_override) ? material_override :
+                                                  material_from_slot(ob, mat_nr);
   Material &mat = material_sync(ob, blender_mat, geometry_type, has_motion);
   return mat;
+}
+
+ShaderGroups MaterialModule::default_materials_load(bool block_until_ready)
+{
+  bool shaders_are_ready = true;
+  auto request_shader = [&](::Material *mat, eMaterialPipeline pipeline, eMaterialGeometry geom) {
+    GPUMaterial *gpu_mat = inst_.shaders.material_shader_get(
+        mat, mat->nodetree, pipeline, geom, !block_until_ready, nullptr);
+    shaders_are_ready = shaders_are_ready && GPU_material_status(gpu_mat) == GPU_MAT_SUCCESS;
+  };
+
+  request_shader(default_surface, MAT_PIPE_PREPASS_DEFERRED, MAT_GEOM_MESH);
+  request_shader(default_surface, MAT_PIPE_PREPASS_DEFERRED_VELOCITY, MAT_GEOM_MESH);
+  request_shader(default_surface, MAT_PIPE_DEFERRED, MAT_GEOM_MESH);
+  request_shader(default_surface, MAT_PIPE_SHADOW, MAT_GEOM_MESH);
+
+  return shaders_are_ready ? DEFAULT_MATERIALS : NONE;
 }
 
 /** \} */

@@ -78,7 +78,7 @@
   - base color (0.800, 0.800, 0.800)
   - specular ior 0.500
   - specular tint (1.000, 1.000, 1.000)
-  - roughness 0.000 tex:'texture_roughness.png' (//blend_geometry/texture_roughness.png) a:False
+  - roughness 0.000 tex:'texture_roughness.png' (//blend_geometry/texture_roughness.png) a:False Non-Color
   - metallic 0.000
   - ior 1.450
   - emission color (1.000, 1.000, 1.000) tex:'texture_illum.png' (//blend_geometry/texture_illum.png) a:False

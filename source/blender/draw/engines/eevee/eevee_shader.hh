@@ -171,7 +171,7 @@ enum eShaderType {
 class ShaderModule {
  private:
   std::array<StaticShader, MAX_SHADER_TYPE> shaders_;
-  BatchHandle compilation_handle_ = 0;
+
   Mutex mutex_;
 
   class SpecializationsKey {
@@ -189,7 +189,6 @@ class ShaderModule {
       BLI_assert(shadow_ray_count >= 1 && shadow_ray_count <= 4);
       BLI_assert(shadow_ray_step_count >= 1 && shadow_ray_step_count <= 16);
       BLI_assert(uint64_t(use_split_indirect) >= 0 && uint64_t(use_split_indirect) <= 1);
-      BLI_assert(uint64_t(use_lightprobe_eval) >= 0 && uint64_t(use_lightprobe_eval) <= 1);
       hash_value_ = render_buffers_shadow_id + 1;
       hash_value_ = (hash_value_ << 2) | (shadow_ray_count - 1);
       hash_value_ = (hash_value_ << 4) | (shadow_ray_step_count - 1);
@@ -226,7 +225,18 @@ class ShaderModule {
   ShaderModule();
   ~ShaderModule();
 
-  bool static_shaders_are_ready(bool block_until_ready);
+  /* Trigger async compilation for the given shaders groups. */
+  ShaderGroups static_shaders_load_async(ShaderGroups request_bits)
+  {
+    return static_shaders_load(request_bits, false);
+  }
+  /* Wait for async compilation to finish for the given shaders groups.
+   * If shaders are not scheduled to async compile, this will do blocking compilation. */
+  ShaderGroups static_shaders_wait_ready(ShaderGroups request_bits)
+  {
+    return static_shaders_load(request_bits, true);
+  }
+
   bool request_specializations(bool block_until_ready,
                                int render_buffers_shadow_id,
                                int shadow_ray_count,
@@ -254,6 +264,7 @@ class ShaderModule {
 
  private:
   const char *static_shader_create_info_name_get(eShaderType shader_type);
+  ShaderGroups static_shaders_load(ShaderGroups request_bits, bool block_until_ready);
 };
 
 }  // namespace blender::eevee

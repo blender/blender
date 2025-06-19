@@ -69,7 +69,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_endian_switch.h"
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
@@ -95,6 +94,7 @@
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_linestyle_types.h"
@@ -128,6 +128,7 @@
 #include "DNA_grease_pencil_defaults.h"
 #include "DNA_image_defaults.h"
 #include "DNA_lattice_defaults.h"
+#include "DNA_layer_defaults.h"
 #include "DNA_light_defaults.h"
 #include "DNA_lightprobe_defaults.h"
 #include "DNA_linestyle_defaults.h"
@@ -193,6 +194,9 @@ SDNA_DEFAULT_DECL_STRUCT(GreasePencil);
 
 /* DNA_lattice_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Lattice);
+
+/* DNA_layer_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(ViewLayer);
 
 /* DNA_light_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Light);
@@ -446,6 +450,9 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
 
     /* DNA_lattice_defaults.h */
     SDNA_DEFAULT_DECL(Lattice),
+
+    /* DNA_layer_defaults.h */
+    SDNA_DEFAULT_DECL(ViewLayer),
 
     /* DNA_light_defaults.h */
     SDNA_DEFAULT_DECL(Light),

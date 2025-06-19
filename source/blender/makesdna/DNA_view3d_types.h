@@ -125,7 +125,7 @@ typedef struct RegionView3D {
 
   char ndof_flag;
   /**
-   * Rotation center used for for "Auto Orbit" (see #NDOF_ORBIT_CENTER_AUTO).
+   * Rotation center used for "Auto Orbit" (see #NDOF_ORBIT_CENTER_AUTO).
    * Any modification should be followed by adjusting #RegionView3D::dist
    * to prevent problems zooming in after navigation. See: #134732.
    */
@@ -509,7 +509,7 @@ enum {
    *
    * The most common case is for perspective views, where orbiting around a point behind
    * the view (while possible) often seems like a bug from a user perspective.
-   * We could consider other cases invalid too (values beyond the clipping plane for e.g.),
+   * We could consider other cases invalid too (e.g. values beyond the clipping plane),
    * although in practice these cases should be fairly rare.
    */
   RV3D_NDOF_OFS_IS_VALID = (1 << 0),

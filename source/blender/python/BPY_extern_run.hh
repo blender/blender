@@ -110,7 +110,7 @@ bool BPY_run_string_eval(bContext *C, const char *imports[], const char *expr);
  * print errors to the `stdout` and clear.
  */
 struct BPy_RunErrInfo {
-  /** Brief text, single line (can show this in status bar for e.g.). */
+  /** Brief text, single line (can show this in status bar for example). */
   bool use_single_line_error;
 
   /** Report with optional prefix (when non-NULL). */

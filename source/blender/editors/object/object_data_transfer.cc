@@ -486,6 +486,8 @@ static wmOperatorStatus data_transfer_exec(bContext *C, wmOperator *op)
 
   data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, reverse_transfer);
 
+  int invalid_count = 0;
+
   for (const PointerRNA &ptr : ctx_objects) {
     Object *ob_dst = static_cast<Object *>(ptr.data);
 
@@ -527,6 +529,9 @@ static wmOperatorStatus data_transfer_exec(bContext *C, wmOperator *op)
         changed = true;
       }
     }
+    else {
+      invalid_count++;
+    }
 
     if (reverse_transfer) {
       std::swap(ob_src, ob_dst);
@@ -536,6 +541,11 @@ static wmOperatorStatus data_transfer_exec(bContext *C, wmOperator *op)
   if (changed) {
     DEG_relations_tag_update(CTX_data_main(C));
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, nullptr);
+  }
+
+  if (invalid_count > 0) {
+    BKE_reportf(
+        op->reports, RPT_WARNING, "Failed to transfer mesh data to %d objects", invalid_count);
   }
 
 #if 0 /* TODO */

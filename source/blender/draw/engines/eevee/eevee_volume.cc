@@ -31,7 +31,7 @@ void VolumeModule::init()
   int tile_size = clamp_i(scene_eval->eevee.volumetric_tile_size, 1, 16);
 
   int3 tex_size;
-  /* Try to match resolution setting but fallback to lower resolution
+  /* Try to match resolution setting but fall back to lower resolution
    * if it doesn't fit the hardware limits. */
   for (; tile_size <= 16; tile_size *= 2) {
     /* Find Froxel Texture resolution. */
@@ -99,9 +99,15 @@ void VolumeModule::object_sync(const ObjectHandle &ob_handle)
   }
 }
 
+bool VolumeModule::will_enable() const
+{
+  return inst_.world.has_volume() || !current_objects_.is_empty() ||
+         inst_.film.get_data().volume_light_id != -1;
+}
+
 void VolumeModule::end_sync()
 {
-  enabled_ = inst_.world.has_volume() || !current_objects_.is_empty();
+  enabled_ = will_enable();
 
   const Scene *scene_eval = inst_.scene;
 

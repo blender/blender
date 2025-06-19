@@ -202,31 +202,33 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
         }
       }
     }
-    if (facy < 1) {
-      /* make each window at least ED_area_headersize() high */
-      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        const int border_width = int(ceil(float(U.border_width) * UI_SCALE_FAC));
-        int min = ED_area_headersize() + border_width;
-        if (area->v1->vec.y > screen_rect->ymin) {
-          min += border_width;
-        }
-        if (area->winy < min) {
-          /* lower edge */
-          ScrEdge *se = BKE_screen_find_edge(screen, area->v4, area->v1);
-          if (se && area->v1 != area->v2) {
-            const int yval = area->v2->vec.y - min;
 
-            screen_geom_select_connected_edge(win, se);
+    /* Make each window at least ED_area_headersize() high. This
+     * should be done whether we are increasing or decreasing the
+     * vertical size since this is called on file load, not just
+     * during resize operations. */
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      const int border_width = int(ceil(float(U.border_width) * UI_SCALE_FAC));
+      int min = ED_area_headersize() + border_width;
+      if (area->v1->vec.y > screen_rect->ymin) {
+        min += border_width;
+      }
+      if (area->winy && (area->winy < min)) {
+        /* lower edge */
+        ScrEdge *se = BKE_screen_find_edge(screen, area->v4, area->v1);
+        if (se && area->v1 != area->v2) {
+          const int yval = area->v2->vec.y - min;
 
-            /* all selected vertices get the right offset */
-            LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
-              /* if is not a collapsed area */
-              if (!ELEM(sv, area->v2, area->v3)) {
-                if (sv->flag) {
-                  sv->vec.y = yval;
-                  /* Changed size of a area. Run another pass to ensure everything still fits. */
-                  needs_another_pass = true;
-                }
+          screen_geom_select_connected_edge(win, se);
+
+          /* all selected vertices get the right offset */
+          LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
+            /* if is not a collapsed area */
+            if (!ELEM(sv, area->v2, area->v3)) {
+              if (sv->flag) {
+                sv->vec.y = yval;
+                /* Changed size of a area. Run another pass to ensure everything still fits. */
+                needs_another_pass = true;
               }
             }
           }

@@ -204,7 +204,7 @@ class BindSpaceTextures {
 };
 
 class VKStateManager : public StateManager {
-  friend class VKDescriptorSetTracker;
+  friend class VKDescriptorSetUpdator;
 
   uint texture_unpack_row_length_ = 0;
 

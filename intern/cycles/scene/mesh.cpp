@@ -67,7 +67,7 @@ struct MikkMeshWrapper {
   {
     /* TODO: Check whether introducing a template boolean in order to
      * turn this into a constexpr is worth it. */
-    if (uv != nullptr) {
+    if (has_uv()) {
       const int corner_index = CornerIndex(face_num, vert_num);
       const float2 tfuv = uv[corner_index];
       return mikk::float3(tfuv.x, tfuv.y, 1.0f);
@@ -99,6 +99,11 @@ struct MikkMeshWrapper {
     if (tangent_sign != nullptr) {
       tangent_sign[corner_index] = orientation ? 1.0f : -1.0f;
     }
+  }
+
+  bool has_uv() const
+  {
+    return uv != nullptr;
   }
 
   const Mesh *mesh;

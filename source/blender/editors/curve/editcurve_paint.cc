@@ -420,7 +420,8 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
 
     {
       GPUVertFormat *format = immVertexFormat();
-      uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      uint pos = GPU_vertformat_attr_add(
+          format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       GPU_depth_test(GPU_DEPTH_NONE);
@@ -1133,7 +1134,7 @@ static wmOperatorStatus curve_draw_invoke(bContext *C, wmOperator *op, const wmE
         }
       }
 
-      /* use view plane (when set or as fallback when surface can't be found) */
+      /* use view plane (when set or as a fallback when surface can't be found) */
       if (cdd->project.use_depth == false) {
         plane_co = cdd->vc.scene->cursor.location;
         plane_no = rv3d->viewinv[2];

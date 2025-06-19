@@ -359,6 +359,8 @@ static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
       break;
     default:
       /* Tabs may be shown in unaligned regions too, they just appear as regular buttons then. */
+      rect->ymin += UI_SCALE_FAC;
+      rect->ymax += UI_SCALE_FAC;
       break;
   }
 }
@@ -398,7 +400,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
 
   /* Note that this is typically less than ~20, and almost always under ~100.
    * Even so, we can't ensure this value won't exceed available stack memory.
-   * Fallback to allocation instead of using #alloca, see: #78636. */
+   * Fall back to allocation instead of using #alloca, see: #78636. */
   ButAlign butal_array_buf[256];
   if (num_buttons <= ARRAY_SIZE(butal_array_buf)) {
     butal_array = butal_array_buf;

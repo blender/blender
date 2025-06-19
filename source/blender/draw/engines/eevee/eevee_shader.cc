@@ -42,32 +42,18 @@ void ShaderModule::module_free()
 
 ShaderModule::ShaderModule()
 {
-  Vector<const GPUShaderCreateInfo *> infos;
-  infos.reserve(MAX_SHADER_TYPE);
-
   for (auto i : IndexRange(MAX_SHADER_TYPE)) {
     const char *name = static_shader_create_info_name_get(eShaderType(i));
-    const GPUShaderCreateInfo *create_info = GPU_shader_create_info_get(name);
-
-    if (GPU_use_parallel_compilation()) {
-      infos.append(create_info);
-    }
-    else {
-      shaders_[i] = {name};
-    }
-
 #ifndef NDEBUG
     if (name == nullptr) {
       std::cerr << "EEVEE: Missing case for eShaderType(" << i
                 << ") in static_shader_create_info_name_get().";
       BLI_assert(0);
     }
+    const GPUShaderCreateInfo *create_info = GPU_shader_create_info_get(name);
     BLI_assert_msg(create_info != nullptr, "EEVEE: Missing create info for static shader.");
 #endif
-  }
-
-  if (GPU_use_parallel_compilation()) {
-    compilation_handle_ = GPU_shader_batch_create_from_infos(infos);
+    shaders_[i] = StaticShader(name);
   }
 }
 
@@ -82,10 +68,6 @@ ShaderModule::~ShaderModule()
       GPU_shader_batch_specializations_cancel(handle);
     }
   }
-
-  if (compilation_handle_) {
-    GPU_shader_batch_cancel(compilation_handle_);
-  }
 }
 
 /** \} */
@@ -95,24 +77,191 @@ ShaderModule::~ShaderModule()
  *
  * \{ */
 
-bool ShaderModule::static_shaders_are_ready(bool block_until_ready)
+ShaderGroups ShaderModule::static_shaders_load(const ShaderGroups request_bits,
+                                               bool block_until_ready)
 {
-  if (!GPU_use_parallel_compilation()) {
-    return true;
-  }
-
   std::lock_guard lock(mutex_);
 
-  if (compilation_handle_) {
-    if (GPU_shader_batch_is_ready(compilation_handle_) || block_until_ready) {
-      Vector<GPUShader *> shaders = GPU_shader_batch_finalize(compilation_handle_);
-      for (int i : IndexRange(MAX_SHADER_TYPE)) {
-        shaders_[i].set(shaders[i]);
+  ShaderGroups ready = ShaderGroups::NONE;
+  auto request = [&](ShaderGroups bit, Span<eShaderType> shader_types) {
+    if (request_bits & bit) {
+      bool all_loaded = true;
+      for (eShaderType shader : shader_types) {
+        if (shaders_[shader].is_ready()) {
+          /* Noop. */
+        }
+        else if (block_until_ready) {
+          shaders_[shader].get();
+        }
+        else {
+          shaders_[shader].ensure_compile_async();
+          all_loaded = false;
+        }
+      }
+      if (all_loaded) {
+        ready |= bit;
       }
     }
-  }
+  };
 
-  return compilation_handle_ == 0;
+#define AS_SPAN(arr) Span<eShaderType>(arr, ARRAY_SIZE(arr))
+  {
+    /* These are the slowest shaders by far. Submitting them first make sure they overlap with
+     * other shaders compilation. */
+    const eShaderType shader_list[] = {DEFERRED_LIGHT_TRIPLE,
+                                       DEFERRED_LIGHT_SINGLE,
+                                       DEFERRED_LIGHT_DOUBLE,
+                                       DEFERRED_COMBINE,
+                                       DEFERRED_TILE_CLASSIFY};
+    request(DEFERRED_LIGHTING_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {AMBIENT_OCCLUSION_PASS};
+    request(AMBIENT_OCCLUSION_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {RENDERPASS_CLEAR,
+                                       FILM_COPY,
+                                       FILM_COMP,
+                                       FILM_CRYPTOMATTE_POST,
+                                       FILM_FRAG,
+                                       FILM_PASS_CONVERT_COMBINED,
+                                       FILM_PASS_CONVERT_DEPTH,
+                                       FILM_PASS_CONVERT_VALUE,
+                                       FILM_PASS_CONVERT_COLOR,
+                                       FILM_PASS_CONVERT_CRYPTOMATTE};
+    request(FILM_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {DEFERRED_CAPTURE_EVAL};
+    request(DEFERRED_CAPTURE_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {DEFERRED_PLANAR_EVAL};
+    request(DEFERRED_PLANAR_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {DOF_BOKEH_LUT,
+                                       DOF_DOWNSAMPLE,
+                                       DOF_FILTER,
+                                       DOF_GATHER_BACKGROUND_LUT,
+                                       DOF_GATHER_BACKGROUND,
+                                       DOF_GATHER_FOREGROUND_LUT,
+                                       DOF_GATHER_FOREGROUND,
+                                       DOF_GATHER_HOLE_FILL,
+                                       DOF_REDUCE,
+                                       DOF_RESOLVE_LUT,
+                                       DOF_RESOLVE,
+                                       DOF_SCATTER,
+                                       DOF_SETUP,
+                                       DOF_STABILIZE,
+                                       DOF_TILES_DILATE_MINABS,
+                                       DOF_TILES_DILATE_MINMAX,
+                                       DOF_TILES_FLATTEN};
+    request(DEPTH_OF_FIELD_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {HIZ_UPDATE, HIZ_UPDATE_LAYER};
+    request(HIZ_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {
+        HORIZON_DENOISE, HORIZON_RESOLVE, HORIZON_SCAN, HORIZON_SETUP};
+    request(HORIZON_SCAN_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {LIGHT_CULLING_DEBUG,
+                                       LIGHT_CULLING_SELECT,
+                                       LIGHT_CULLING_SORT,
+                                       LIGHT_CULLING_TILE,
+                                       LIGHT_CULLING_ZBIN,
+                                       LIGHT_SHADOW_SETUP};
+    request(LIGHT_CULLING_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {
+        LIGHTPROBE_IRRADIANCE_BOUNDS, LIGHTPROBE_IRRADIANCE_OFFSET, LIGHTPROBE_IRRADIANCE_RAY};
+    request(IRRADIANCE_BAKE_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {MOTION_BLUR_GATHER,
+                                       MOTION_BLUR_TILE_DILATE,
+                                       MOTION_BLUR_TILE_FLATTEN_RGBA,
+                                       MOTION_BLUR_TILE_FLATTEN_RG};
+    request(MOTION_BLUR_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {RAY_DENOISE_BILATERAL,
+                                       RAY_DENOISE_SPATIAL,
+                                       RAY_DENOISE_TEMPORAL,
+                                       RAY_GENERATE,
+                                       RAY_TILE_CLASSIFY,
+                                       RAY_TILE_COMPACT,
+                                       RAY_TRACE_FALLBACK,
+                                       RAY_TRACE_PLANAR,
+                                       RAY_TRACE_SCREEN};
+    request(RAYTRACING_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {SPHERE_PROBE_CONVOLVE,
+                                       SPHERE_PROBE_IRRADIANCE,
+                                       SPHERE_PROBE_REMAP,
+                                       SPHERE_PROBE_SELECT,
+                                       SPHERE_PROBE_SUNLIGHT};
+    request(SPHERE_PROBE_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {LIGHTPROBE_IRRADIANCE_WORLD, LIGHTPROBE_IRRADIANCE_LOAD};
+    request(VOLUME_PROBE_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {SHADOW_CLIPMAP_CLEAR,
+                                       SHADOW_PAGE_ALLOCATE,
+                                       SHADOW_PAGE_CLEAR,
+                                       SHADOW_PAGE_DEFRAG,
+                                       SHADOW_PAGE_FREE,
+                                       SHADOW_PAGE_MASK,
+                                       SHADOW_PAGE_TILE_CLEAR,
+                                       SHADOW_PAGE_TILE_STORE,
+                                       SHADOW_TILEMAP_AMEND,
+                                       SHADOW_TILEMAP_BOUNDS,
+                                       SHADOW_TILEMAP_FINALIZE,
+                                       SHADOW_TILEMAP_RENDERMAP,
+                                       SHADOW_TILEMAP_INIT,
+                                       SHADOW_TILEMAP_TAG_UPDATE,
+                                       SHADOW_TILEMAP_TAG_USAGE_OPAQUE,
+                                       SHADOW_TILEMAP_TAG_USAGE_TRANSPARENT,
+                                       SHADOW_VIEW_VISIBILITY};
+    request(SHADOW_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {SUBSURFACE_CONVOLVE, SUBSURFACE_SETUP};
+    request(SUBSURFACE_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {SURFEL_CLUSTER_BUILD,
+                                       SURFEL_LIGHT,
+                                       SURFEL_LIST_BUILD,
+                                       SURFEL_LIST_SORT,
+                                       SHADOW_TILEMAP_TAG_USAGE_SURFELS,
+                                       SURFEL_RAY};
+    request(SURFEL_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {VERTEX_COPY};
+    request(VERTEX_COPY_SHADERS, AS_SPAN(shader_list));
+  }
+  {
+    const eShaderType shader_list[] = {SHADOW_TILEMAP_TAG_USAGE_VOLUME,
+                                       VOLUME_INTEGRATION,
+                                       VOLUME_OCCUPANCY_CONVERT,
+                                       VOLUME_RESOLVE,
+                                       VOLUME_SCATTER,
+                                       VOLUME_SCATTER_WITH_LIGHTS};
+    request(VOLUME_EVAL_SHADERS, AS_SPAN(shader_list));
+  }
+#undef AS_SPAN
+  return ready;
 }
 
 bool ShaderModule::request_specializations(bool block_until_ready,
@@ -122,12 +271,6 @@ bool ShaderModule::request_specializations(bool block_until_ready,
                                            bool use_split_indirect,
                                            bool use_lightprobe_eval)
 {
-  if (!GPU_use_parallel_compilation()) {
-    return true;
-  }
-
-  BLI_assert(static_shaders_are_ready(false));
-
   std::lock_guard lock(mutex_);
 
   SpecializationBatchHandle &specialization_handle = specialization_handles_.lookup_or_add_cb(
@@ -138,7 +281,7 @@ bool ShaderModule::request_specializations(bool block_until_ready,
        use_lightprobe_eval},
       [&]() {
         Vector<ShaderSpecialization> specializations;
-        for (int i = 0; i < 3; i++) {
+        for (int i : IndexRange(3)) {
           GPUShader *sh = static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i));
           int render_pass_shadow_id_index = GPU_shader_get_constant(sh, "render_pass_shadow_id");
           int use_split_indirect_index = GPU_shader_get_constant(sh, "use_split_indirect");
@@ -410,13 +553,6 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
 
 GPUShader *ShaderModule::static_shader_get(eShaderType shader_type)
 {
-  BLI_assert(compilation_handle_ == 0);
-  if (GPU_use_parallel_compilation() && shaders_[shader_type].get() == nullptr) {
-    const char *shader_name = static_shader_create_info_name_get(shader_type);
-    fprintf(stderr, "EEVEE: error: Could not compile static shader \"%s\"\n", shader_name);
-    BLI_assert(0);
-  }
-
   return shaders_[shader_type].get();
 }
 
@@ -754,6 +890,13 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     frag_gen << global_vars.str() << attr_load.str();
   }
 
+  /* TODO(fclem): This should become part of the dependency system.  */
+  std::string deps_concat;
+  for (const StringRefNull &str : info.dependencies_generated) {
+    deps_concat += str;
+  }
+  info.dependencies_generated = {};
+
   {
     const bool use_vertex_displacement = !codegen.displacement.empty() &&
                                          (displacement_type != MAT_DISPLACEMENT_BUMP) &&
@@ -764,7 +907,9 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     vert_gen << ((use_vertex_displacement) ? codegen.displacement : "return float3(0);\n");
     vert_gen << "}\n\n";
 
-    info.vertex_source_generated = vert_gen.str();
+    info.generated_sources.append({"eevee_nodetree_vert_lib.glsl",
+                                   {"eevee_nodetree_lib.glsl"},
+                                   deps_concat + vert_gen.str()});
   }
 
   if (pipeline_type != MAT_PIPE_VOLUME_OCCUPANCY) {
@@ -825,8 +970,12 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     frag_gen << (!codegen.volume.empty() ? codegen.volume : "return Closure(0);\n");
     frag_gen << "}\n\n";
 
-    info.fragment_source_generated = frag_gen.str();
+    info.generated_sources.append({"eevee_nodetree_frag_lib.glsl",
+                                   {"eevee_nodetree_lib.glsl"},
+                                   deps_concat + frag_gen.str()});
   }
+
+  int reserved_attr_slots = 0;
 
   /* Geometry Info. */
   switch (geometry_type) {
@@ -841,14 +990,30 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
       break;
     case MAT_GEOM_MESH:
       info.additional_info("eevee_geom_mesh");
+      reserved_attr_slots = 2; /* Number of vertex attributes inside eevee_geom_mesh. */
       break;
     case MAT_GEOM_POINTCLOUD:
       info.additional_info("eevee_geom_pointcloud");
       break;
     case MAT_GEOM_VOLUME:
       info.additional_info("eevee_geom_volume");
+      reserved_attr_slots = 1; /* Number of vertex attributes inside eevee_geom_mesh. */
       break;
   }
+
+  /* Make shaders that have as too many attributes fail compilation and have correct error
+   * report instead of raising an error. */
+  if (info.vertex_inputs_.size() > 0) {
+    const int last_attr_index = info.vertex_inputs_.last().index;
+    if (last_attr_index - reserved_attr_slots < 0) {
+      const char *material_name = (info.name_.c_str() + 2);
+      std::cerr << "Error: EEVEE: Material " << material_name << " uses too many attributes."
+                << std::endl;
+      /* Avoid assert in ShaderCreateInfo::finalize. */
+      info.vertex_inputs_.clear();
+    }
+  }
+
   /* Pipeline Info. */
   switch (geometry_type) {
     case MAT_GEOM_WORLD:

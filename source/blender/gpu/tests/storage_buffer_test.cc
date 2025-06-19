@@ -130,8 +130,8 @@ static void test_storage_buffer_copy_from_vertex_buffer()
 
   /* Create vertex buffer. */
   GPUVertFormat format = {0};
-  GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  GPU_vertformat_attr_add(&format, "color", gpu::VertAttrType::SFLOAT_32_32_32_32);
 
   VertBuf *vbo = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*vbo, 4);
@@ -149,7 +149,7 @@ static void test_storage_buffer_copy_from_vertex_buffer()
   for (int i : IndexRange(4)) {
     GPU_vertbuf_vert_set(vbo, i, &data[i]);
   }
-  float *expected_data = static_cast<float *>(static_cast<void *>(&data));
+  Span<float> expected_data(static_cast<float *>(static_cast<void *>(&data)), 24);
 
   Vector<float> read_data;
   read_data.resize(SIZE, 0);
@@ -161,7 +161,7 @@ static void test_storage_buffer_copy_from_vertex_buffer()
 
     /* Validate content of SSBO. */
     GPU_storagebuf_read(ssbo, read_data.data());
-    EXPECT_EQ_ARRAY(expected_data, read_data.data(), 24);
+    EXPECT_EQ_SPAN<float>(expected_data, read_data.as_span().slice(IndexRange(24)));
     for (int i : IndexRange(24, SIZE - 24)) {
       EXPECT_EQ(0.0, read_data[i]);
     }
@@ -177,8 +177,7 @@ static void test_storage_buffer_copy_from_vertex_buffer()
     for (int i : IndexRange(4)) {
       EXPECT_EQ(0.0, read_data[i]);
     }
-    float *expected_data = static_cast<float *>(static_cast<void *>(&data));
-    EXPECT_EQ_ARRAY(expected_data, &(read_data.data()[4]), 24);
+    EXPECT_EQ_SPAN(expected_data, read_data.as_span().slice(4, 24));
     for (int i : IndexRange(28, SIZE - 28)) {
       EXPECT_EQ(0.0, read_data[i]);
     }
@@ -194,8 +193,7 @@ static void test_storage_buffer_copy_from_vertex_buffer()
     for (int i : IndexRange(4)) {
       EXPECT_EQ(0.0, read_data[i]);
     }
-    float *expected_data = static_cast<float *>(static_cast<void *>(&data));
-    EXPECT_EQ_ARRAY(&expected_data[6], &(read_data.data()[4]), 12);
+    EXPECT_EQ_SPAN(expected_data.slice(6, 12), read_data.as_span().slice(4, 12));
     for (int i : IndexRange(16, SIZE - 16)) {
       EXPECT_EQ(0.0, read_data[i]);
     }

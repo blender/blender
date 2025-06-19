@@ -17,6 +17,8 @@
 #include <pxr/usd/usdGeom/xformCache.h>
 #include <pxr/usd/usdGeom/xformCommonAPI.h>
 #include <pxr/usd/usdLux/domeLight.h>
+#include <pxr/usd/usdLux/domeLight_1.h>
+#include <pxr/usd/usdLux/tokens.h>
 
 #include "BKE_image.hh"
 #include "BKE_library.hh"
@@ -42,46 +44,11 @@
 static CLG_LogRef LOG = {"io.usd"};
 
 namespace usdtokens {
-// Attribute names.
-static const pxr::TfToken color("color", pxr::TfToken::Immortal);
-static const pxr::TfToken intensity("intensity", pxr::TfToken::Immortal);
-static const pxr::TfToken texture_file("texture:file", pxr::TfToken::Immortal);
+// Attribute values.
+static const pxr::TfToken pole_axis_z("Z", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
 namespace {
-
-/**
- * If the given attribute has an authored value, return its value in the r_value
- * out parameter.
- *
- * We wish to support older UsdLux APIs in older versions of USD.  For example,
- * in previous versions of the API, shader input attributes did not have the
- * "inputs:" prefix.  One can provide the older input attribute name in the
- * 'fallback_attr_name' argument, and that attribute will be queried if 'attr'
- * doesn't exist or doesn't have an authored value.
- */
-template<typename T>
-bool get_authored_value(const pxr::UsdAttribute &attr,
-                        const double motionSampleTime,
-                        const pxr::UsdPrim &prim,
-                        const pxr::TfToken fallback_attr_name,
-                        T *r_value)
-{
-  if (attr && attr.HasAuthoredValue()) {
-    return attr.Get<T>(r_value, motionSampleTime);
-  }
-
-  if (!prim || fallback_attr_name.IsEmpty()) {
-    return false;
-  }
-
-  pxr::UsdAttribute fallback_attr = prim.GetAttribute(fallback_attr_name);
-  if (fallback_attr && fallback_attr.HasAuthoredValue()) {
-    return fallback_attr.Get<T>(r_value, motionSampleTime);
-  }
-
-  return false;
-}
 
 /**
  * Helper struct for retrieving shader information when traversing a world material
@@ -377,10 +344,11 @@ void world_material_to_dome_light(const USDExportParams &params,
 void dome_light_to_world_material(const USDImportParams &params,
                                   Scene *scene,
                                   Main *bmain,
-                                  const pxr::UsdLuxDomeLight &dome_light,
+                                  const USDImportDomeLightData &dome_light_data,
+                                  const pxr::UsdPrim &prim,
                                   const double motionSampleTime)
 {
-  if (!(scene && scene->world && dome_light)) {
+  if (!(scene && scene->world && prim)) {
     return;
   }
 
@@ -451,36 +419,18 @@ void dome_light_to_world_material(const USDImportParams &params,
   }
 
   /* Set the background shader intensity. */
-  float intensity = 1.0f;
-  get_authored_value(dome_light.GetIntensityAttr(),
-                     motionSampleTime,
-                     dome_light.GetPrim(),
-                     usdtokens::intensity,
-                     &intensity);
-
-  intensity *= params.light_intensity_scale;
+  float intensity = dome_light_data.intensity * params.light_intensity_scale;
 
   bNodeSocket *strength_sock = bke::node_find_socket(*bgshader, SOCK_IN, "Strength");
   ((bNodeSocketValueFloat *)strength_sock->default_value)->value = intensity;
 
-  /* Get the dome light texture file and color. */
-  pxr::SdfAssetPath tex_path;
-  bool has_tex = get_authored_value(dome_light.GetTextureFileAttr(),
-                                    motionSampleTime,
-                                    dome_light.GetPrim(),
-                                    usdtokens::texture_file,
-                                    &tex_path);
-
-  pxr::GfVec3f color;
-  bool has_color = get_authored_value(
-      dome_light.GetColorAttr(), motionSampleTime, dome_light.GetPrim(), usdtokens::color, &color);
-
-  if (!has_tex) {
+  if (!dome_light_data.has_tex) {
     /* No texture file is authored on the dome light.  Set the color, if it was authored,
      * and return early. */
-    if (has_color) {
+    if (dome_light_data.has_color) {
       bNodeSocket *color_sock = bke::node_find_socket(*bgshader, SOCK_IN, "Color");
-      copy_v3_v3(((bNodeSocketValueRGBA *)color_sock->default_value)->value, color.data());
+      copy_v3_v3(((bNodeSocketValueRGBA *)color_sock->default_value)->value,
+                 dome_light_data.color.data());
     }
 
     bke::node_set_active(*ntree, *output);
@@ -493,7 +443,7 @@ void dome_light_to_world_material(const USDImportParams &params,
    * texture output. */
   bNode *mult = nullptr;
 
-  if (has_color) {
+  if (dome_light_data.has_color) {
     mult = append_node(bgshader, SH_NODE_VECTOR_MATH, "Vector", "Color", ntree, 200);
 
     if (!mult) {
@@ -510,7 +460,8 @@ void dome_light_to_world_material(const USDImportParams &params,
     }
 
     if (vec_sock) {
-      copy_v3_v3(((bNodeSocketValueVector *)vec_sock->default_value)->value, color.data());
+      copy_v3_v3(((bNodeSocketValueVector *)vec_sock->default_value)->value,
+                 dome_light_data.color.data());
     }
     else {
       CLOG_WARN(&LOG, "Couldn't find vector multiply second vector socket");
@@ -547,10 +498,12 @@ void dome_light_to_world_material(const USDImportParams &params,
   }
 
   /* Load the texture image. */
-  std::string resolved_path = tex_path.GetResolvedPath();
+  std::string resolved_path = dome_light_data.tex_path.GetResolvedPath();
 
   if (resolved_path.empty()) {
-    CLOG_WARN(&LOG, "Couldn't get resolved path for asset %s", tex_path.GetAssetPath().c_str());
+    CLOG_WARN(&LOG,
+              "Couldn't get resolved path for asset %s",
+              dome_light_data.tex_path.GetAssetPath().c_str());
     return;
   }
 
@@ -564,21 +517,34 @@ void dome_light_to_world_material(const USDImportParams &params,
 
   /* Set the transform. */
   pxr::UsdGeomXformCache xf_cache(motionSampleTime);
-  pxr::GfMatrix4d xf = xf_cache.GetLocalToWorldTransform(dome_light.GetPrim());
+  pxr::GfMatrix4d xf = xf_cache.GetLocalToWorldTransform(prim);
 
-  pxr::UsdStageRefPtr stage = dome_light.GetPrim().GetStage();
+  pxr::UsdStageRefPtr stage = prim.GetStage();
 
   if (!stage) {
-    CLOG_WARN(
-        &LOG, "Couldn't get stage for dome light %s", dome_light.GetPrim().GetPath().GetText());
+    CLOG_WARN(&LOG, "Couldn't get stage for dome light %s", prim.GetPath().GetText());
     return;
   }
 
-  if (pxr::UsdGeomGetStageUpAxis(stage) == pxr::UsdGeomTokens->y) {
+  /* Note: This logic tries to produce identical results to `usdview` as of USD 25.05.
+   * However, `usdview` seems to handle Y-Up stages differently; some scenes match while others
+   * do not unless we keep the second conditional below (+90 on x-axis).  */
+  const pxr::TfToken stage_up = pxr::UsdGeomGetStageUpAxis(stage);
+  const bool needs_stage_z_adjust = stage_up == pxr::UsdGeomTokens->z &&
+                                    ELEM(dome_light_data.pole_axis,
+                                         pxr::UsdLuxTokens->Z,
+                                         pxr::UsdLuxTokens->scene);
+  const bool needs_stage_y_adjust = stage_up == pxr::UsdGeomTokens->y &&
+                                    ELEM(dome_light_data.pole_axis, pxr::UsdLuxTokens->Z);
+  if (needs_stage_z_adjust || needs_stage_y_adjust) {
+    xf *= pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(0.0, 1.0, 0.0), 90.0));
+  }
+  else if (stage_up == pxr::UsdGeomTokens->y) {
     /* Convert from Y-up to Z-up with a 90 degree rotation about the X-axis. */
     xf *= pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(1.0, 0.0, 0.0), 90.0));
   }
 
+  /* Rotate into Blender's frame of reference. */
   xf = pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(0.0, 0.0, 1.0), -90.0)) *
        pxr::GfMatrix4d().SetRotate(pxr::GfRotation(pxr::GfVec3d(1.0, 0.0, 0.0), -90.0)) * xf;
 

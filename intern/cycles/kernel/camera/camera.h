@@ -569,10 +569,8 @@ ccl_device_inline float3 camera_world_to_ndc(KernelGlobals kg,
   if (kernel_data.cam.type == CAMERA_PANORAMA) {
     return make_float3(direction_to_panorama(&kernel_data.cam, P));
   }
-  else {
-    /* TODO: Fall back to camera coordinates until we have inverse mappings for custom cameras. */
-    return P;
-  }
+  /* TODO: Fall back to camera coordinates until we have inverse mappings for custom cameras. */
+  return P;
 }
 
 CCL_NAMESPACE_END

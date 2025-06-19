@@ -48,7 +48,7 @@ int compute_number_of_integration_steps_heuristic(float distortion)
  * amount, then the amount of distortion between each two consecutive channels is computed, this
  * amount is then used to heuristically infer the number of needed integration steps, see the
  * integrate_distortion function for more information. */
-int3 compute_number_of_integration_steps(float2 uv, float distance_squared)
+int4 compute_number_of_integration_steps(float2 uv, float distance_squared)
 {
   /* Distort each channel by its respective chromatic distortion amount. */
   float3 distortion_scale = compute_chromatic_distortion_scale(distance_squared);
@@ -66,9 +66,9 @@ int3 compute_number_of_integration_steps(float2 uv, float distance_squared)
   float distortion_blue = distance(distorted_uv_green, distorted_uv_blue);
   int steps_blue = compute_number_of_integration_steps_heuristic(distortion_blue);
 
-  /* The number of integration steps used to compute the green channel is the sum of both the red
-   * and the blue channel steps because it is computed once with each of them. */
-  return int3(steps_red, steps_red + steps_blue, steps_blue);
+  /* The number of integration steps used to compute the green and the alpha channels is the sum of
+   * both the red and the blue channel steps because they are computed once with each of them. */
+  return int4(steps_red, steps_red + steps_blue, steps_blue, steps_red + steps_blue);
 }
 
 /* Returns a random jitter amount, which is essentially a random value in the [0, 1] range. If
@@ -93,9 +93,9 @@ float get_jitter(int seed)
  * in an arithmetic progression. The integration steps can be augmented with random values to
  * simulate lens jitter. Finally, it should be noted that this function integrates both the start
  * and end channels in reverse directions for more efficient computation. */
-float3 integrate_distortion(int start, int end, float distance_squared, float2 uv, int steps)
+float4 integrate_distortion(int start, int end, float distance_squared, float2 uv, int steps)
 {
-  float3 accumulated_color = float3(0.0f);
+  float4 accumulated_color = float4(0.0f);
   float distortion_amount = chromatic_distortion[end] - chromatic_distortion[start];
   for (int i = 0; i < steps; i++) {
     /* The increment will be in the [0, 1) range across iterations. Include the start channel in
@@ -110,6 +110,7 @@ float3 integrate_distortion(int start, int end, float distance_squared, float2 u
     float4 color = texture(input_tx, distorted_uv / float2(texture_size(input_tx)));
     accumulated_color[start] += (1.0f - increment) * color[start];
     accumulated_color[end] += increment * color[end];
+    accumulated_color.w += color.w;
   }
   return accumulated_color;
 }
@@ -133,13 +134,13 @@ void main()
 
   /* Compute the number of integration steps that should be used to compute each channel of the
    * distorted pixel. */
-  int3 number_of_steps = compute_number_of_integration_steps(uv, distance_squared);
+  int4 number_of_steps = compute_number_of_integration_steps(uv, distance_squared);
 
   /* Integrate the distortion of the red and green, then the green and blue channels. That means
    * the green will be integrated twice, but this is accounted for in the number of steps which the
    * color will later be divided by. See the compute_number_of_integration_steps function for more
    * details. */
-  float3 color = float3(0.0f);
+  float4 color = float4(0.0f);
   color += integrate_distortion(0, 1, distance_squared, uv, number_of_steps.r);
   color += integrate_distortion(1, 2, distance_squared, uv, number_of_steps.b);
 
@@ -147,10 +148,12 @@ void main()
    * by the sum of the weights. Assuming no jitter, the weights are generated as an arithmetic
    * progression starting from (0.5 / n) to ((n - 0.5) / n) for n terms. The sum of an arithmetic
    * progression can be computed as (n * (start + end) / 2), which when subsisting the start and
-   * end reduces to (n / 2). So the color should be multiplied by 2 / n. The jitter sequence
-   * approximately sums to the same value because it is a uniform random value whose mean value is
-   * 0.5, so the expression doesn't change regardless of jitter. */
-  color *= 2.0f / float3(number_of_steps);
+   * end reduces to (n / 2). So the color should be multiplied by 2 / n. On the other hand alpha
+   * is not weighted by the arithmetic progression, so it is multiplied by (1.0) and it is
+   * normalized by averaging only (i.e. division by (n)). The jitter sequence approximately sums to
+   * the same value because it is a uniform random value whose mean value is 0.5, so the expression
+   * doesn't change regardless of jitter. */
+  color *= float4(float3(2.0f), 1.0f) / float4(number_of_steps);
 
-  imageStore(output_img, texel, float4(color, 1.0f));
+  imageStore(output_img, texel, color);
 }

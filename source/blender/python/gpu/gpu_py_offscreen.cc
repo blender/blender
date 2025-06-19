@@ -310,6 +310,7 @@ static PyObject *pygpu_offscreen__tp_new(PyTypeObject * /*self*/, PyObject *args
                                true,
                                eGPUTextureFormat(pygpu_textureformat.value_found),
                                GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
+                               false,
                                err_out);
   }
   else {
@@ -348,19 +349,6 @@ static PyObject *pygpu_offscreen_height_get(BPyGPUOffScreen *self, void * /*type
 {
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
   return PyLong_FromLong(GPU_offscreen_height(self->ofs));
-}
-
-PyDoc_STRVAR(
-    /* Wrap. */
-    pygpu_offscreen_color_texture_doc,
-    "OpenGL bindcode for the color texture.\n"
-    "\n"
-    ":type: int");
-static PyObject *pygpu_offscreen_color_texture_get(BPyGPUOffScreen *self, void * /*type*/)
-{
-  BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
-  GPUTexture *texture = GPU_offscreen_color_texture(self->ofs);
-  return PyLong_FromLong(GPU_texture_opengl_bindcode(texture));
 }
 
 PyDoc_STRVAR(
@@ -476,12 +464,6 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
 
   depsgraph = BKE_scene_ensure_depsgraph(G_MAIN, scene, view_layer);
 
-  /* Disable 'bgl' state since it interfere with off-screen drawing, see: #84402. */
-  const bool is_bgl = GPU_bgl_get();
-  if (is_bgl) {
-    GPU_bgl_end();
-  }
-
   GPU_offscreen_bind(self->ofs, true);
 
   /* Cache the #GPUViewport so the frame-buffers and associated textures are
@@ -511,10 +493,6 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
                            self->viewport);
 
   GPU_offscreen_unbind(self->ofs, true);
-
-  if (is_bgl) {
-    GPU_bgl_start();
-  }
 
   Py_RETURN_NONE;
 }
@@ -554,11 +532,6 @@ static void BPyGPUOffScreen__tp_dealloc(BPyGPUOffScreen *self)
 }
 
 static PyGetSetDef pygpu_offscreen__tp_getseters[] = {
-    {"color_texture",
-     (getter)pygpu_offscreen_color_texture_get,
-     (setter) nullptr,
-     pygpu_offscreen_color_texture_doc,
-     nullptr},
     {"texture_color",
      (getter)pygpu_offscreen_texture_color_get,
      (setter) nullptr,

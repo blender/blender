@@ -830,8 +830,8 @@ static void collection_exporter_menu_draw(const bContext * /*C*/, Menu *menu)
   bool at_least_one = false;
   for (const auto &fh : bke::file_handlers()) {
     if (WM_operatortype_find(fh->export_operator, true)) {
-      uiItemStringO(
-          layout, fh->label, ICON_NONE, "COLLECTION_OT_exporter_add", "name", fh->idname);
+      PointerRNA op_ptr = layout->op("COLLECTION_OT_exporter_add", fh->label, ICON_NONE);
+      RNA_string_set(&op_ptr, "name", fh->idname);
       at_least_one = true;
     }
   }

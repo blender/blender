@@ -115,10 +115,10 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
 
   Object *ob = blender::ed::object::context_active_object(C);
   PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_ShaderFx, fx);
-  uiLayoutSetContextPointer(layout, "shaderfx", &ptr);
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+  layout->context_ptr_set("shaderfx", &ptr);
+  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
 
-  uiLayoutSetUnitsX(layout, 4.0f);
+  layout->ui_units_x_set(4.0f);
 
   /* Duplicate. */
   layout->op("OBJECT_OT_shaderfx_copy",
@@ -136,7 +136,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
                    UI_ITEM_NONE);
   RNA_int_set(&op_ptr, "index", 0);
   if (!fx->prev) {
-    uiLayoutSetEnabled(row, false);
+    row->enabled_set(false);
   }
 
   /* Move to last. */
@@ -148,7 +148,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
                    UI_ITEM_NONE);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->shader_fx) - 1);
   if (!fx->next) {
-    uiLayoutSetEnabled(row, false);
+    row->enabled_set(false);
   }
 }
 
@@ -163,7 +163,7 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
 
   const ShaderFxTypeInfo *fxti = BKE_shaderfx_get_info(ShaderFxType(fx->type));
 
-  UI_block_lock_set(uiLayoutGetBlock(layout), (ob && !ID_IS_EDITABLE(ob)), ERROR_LIBDATA_MESSAGE);
+  UI_block_lock_set(layout->block(), (ob && !ID_IS_EDITABLE(ob)), ERROR_LIBDATA_MESSAGE);
 
   /* Effect type icon. */
   uiLayout *row = &layout->row(false);
@@ -181,7 +181,7 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
   /* Mode enabling buttons. */
   if (fxti->flags & eShaderFxTypeFlag_SupportsEditmode) {
     uiLayout *sub = &row->row(true);
-    uiLayoutSetActive(sub, false);
+    sub->active_set(false);
     sub->prop(ptr, "show_in_editmode", UI_ITEM_NONE, "", ICON_NONE);
   }
   row->prop(ptr, "show_viewport", UI_ITEM_NONE, "", ICON_NONE);
@@ -191,7 +191,7 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
   row->menu_fn("", ICON_DOWNARROW_HLT, gpencil_shaderfx_ops_extra_draw, fx);
 
   row = &row->row(false);
-  uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+  row->emboss_set(blender::ui::EmbossType::None);
   row->op("OBJECT_OT_shaderfx_remove", "", ICON_X);
 
   /* Some padding so the X isn't too close to the drag icon. */

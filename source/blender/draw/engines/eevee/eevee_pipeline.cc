@@ -410,7 +410,7 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
   float sorting_value = math::dot(float3(ob->object_to_world().location()), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
-  pass->material_set(*inst_.manager, gpumat);
+  pass->material_set(*inst_.manager, gpumat, true);
   return pass;
 }
 
@@ -427,7 +427,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   float sorting_value = math::dot(float3(ob->object_to_world().location()), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
-  pass->material_set(*inst_.manager, gpumat);
+  pass->material_set(*inst_.manager, gpumat, true);
   return pass;
 }
 
@@ -1077,7 +1077,7 @@ PassMain::Sub *VolumeLayer::occupancy_add(const Object *ob,
   is_empty = false;
 
   PassMain::Sub *pass = &occupancy_ps_->sub(GPU_material_get_name(gpumat));
-  pass->material_set(*inst_.manager, gpumat);
+  pass->material_set(*inst_.manager, gpumat, true);
   pass->push_constant("use_fast_method", use_fast_occupancy);
   return pass;
 }
@@ -1091,7 +1091,7 @@ PassMain::Sub *VolumeLayer::material_add(const Object *ob,
   UNUSED_VARS_NDEBUG(ob);
 
   PassMain::Sub *pass = &material_ps_->sub(GPU_material_get_name(gpumat));
-  pass->material_set(*inst_.manager, gpumat);
+  pass->material_set(*inst_.manager, gpumat, true);
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_SCATTER)) {
     has_scatter = true;
   }
@@ -1174,13 +1174,12 @@ VolumeObjectBounds::VolumeObjectBounds(const Camera &camera, Object *ob)
 
   const Bounds<float3> bounds = BKE_object_boundbox_get(ob).value_or(Bounds(float3(0.0f)));
 
-  BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
+  const std::array<float3, 8> corners = bounds::corners(bounds);
 
   screen_bounds = std::nullopt;
   z_range = std::nullopt;
 
-  for (float3 l_corner : bb.vec) {
+  for (const float3 &l_corner : corners) {
     float3 ws_corner = math::transform_point(ob->object_to_world(), l_corner);
     /* Split view and projection for precision. */
     float3 vs_corner = math::transform_point(view_matrix, ws_corner);

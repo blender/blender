@@ -28,6 +28,7 @@
 
 #include "transform.hh"
 #include "transform_convert.hh"
+#include "transform_snap.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Curve/Surfaces Transform Creation
@@ -351,6 +352,10 @@ static void calculate_aligned_handles(const TransCustomData &custom_data,
 
 static void recalcData_curves(TransInfo *t)
 {
+  if (t->state != TRANS_CANCEL) {
+    transform_snap_project_individual_apply(t);
+  }
+
   const Span<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
   for (const TransDataContainer &tc : trans_data_contrainers) {
     Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
@@ -489,7 +494,7 @@ void curve_populate_trans_data_structs(const TransInfo &t,
   const float3x3 smtx_base = math::pseudo_invert(mtx_base);
 
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-  Array<float3> mean_center_point_per_curve(curves.curves_num());
+  Array<float3> mean_center_point_per_curve(curves.curves_num(), float3(0));
   if (use_individual_origin) {
     affected_curves.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
       const IndexRange points = points_by_curve[curve_i];
@@ -497,6 +502,9 @@ void curve_populate_trans_data_structs(const TransInfo &t,
       const IndexMask selection =
           IndexMask::from_bools(point_selection, memory).slice_content(points);
       if (selection.is_empty()) {
+        /* For proportional editing around individual origins, unselected points will not use the
+         * TransData center (instead the closest point found is used, see logic in #set_prop_dist /
+         * #prop_dist_loc_get). */
         return;
       }
       float3 center(0.0f);

@@ -23,7 +23,6 @@ import rst_to_doctree_mini
 
 # (file, module)
 modules = (
-    ("bgl.rst", "bgl", True),
     ("gpu.rst", "gpu", False),
 )
 

@@ -205,8 +205,7 @@ ccl_device bool shadow_linking_intersect(KernelGlobals kg, IntegratorState state
    * shade_dedicated_light kernel can use it for calculation of the light sample. */
   integrator_state_write_isect(state, &isect);
 
-  integrator_path_next(kg,
-                       state,
+  integrator_path_next(state,
                        DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT,
                        DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT);
 
@@ -227,8 +226,7 @@ ccl_device void integrator_intersect_dedicated_light(KernelGlobals kg, Integrato
   kernel_assert(!"integrator_intersect_dedicated_light is not supposed to be scheduled");
 #endif
 
-  integrator_shade_surface_next_kernel<DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT>(kg,
-                                                                                           state);
+  integrator_shade_surface_next_kernel<DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT>(state);
 }
 
 CCL_NAMESPACE_END

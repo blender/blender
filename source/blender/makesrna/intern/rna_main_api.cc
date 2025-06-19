@@ -510,7 +510,7 @@ static Brush *rna_Main_brushes_new(Main *bmain, const char *name, int mode)
 static void rna_Main_brush_gpencil_data(Main * /*bmain*/, PointerRNA *id_ptr)
 {
   ID *id = static_cast<ID *>(id_ptr->data);
-  Brush *brush = (Brush *)id;
+  Brush *brush = reinterpret_cast<Brush *>(id);
   BKE_brush_init_gpencil_settings(brush);
 }
 

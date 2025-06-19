@@ -575,7 +575,7 @@ static void loose_data_instantiate_obdata_preprocess(
 static bool loose_data_instantiate_collection_parents_check_recursive(Collection *collection)
 {
   for (CollectionParent *parent_collection =
-           static_cast<CollectionParent *>(collection->runtime.parents.first);
+           static_cast<CollectionParent *>(collection->runtime->parents.first);
        parent_collection != nullptr;
        parent_collection = parent_collection->next)
   {
@@ -709,14 +709,16 @@ static void loose_data_instantiate_collection_process(
       BKE_view_layer_synced_ensure(scene, view_layer);
 
       if ((lapp_context->params->flag & FILE_AUTOSELECT) != 0) {
-        LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
-          Object *ob = coll_ob->ob;
+        /* All objects contained in this collection need to be processed, including the ones
+         * belonging to children collections. */
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, ob) {
           Base *base = BKE_view_layer_base_find(view_layer, ob);
           if (base) {
             base->flag |= BASE_SELECTED;
             BKE_scene_object_base_flag_sync_from_base(base);
           }
         }
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
       }
     }
   }
@@ -1228,6 +1230,15 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
           id->name);
       item.action = LINK_APPEND_ACT_COPY_LOCAL;
     }
+    else if (ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY(id)) {
+      /* While in theory liboverrides can be directly made local, this causes complex potential
+       * problems, e.g. because hierarchy roots can become temporarily invalid when the root is
+       * made local, etc.
+       *
+       * So for now, simpler to always duplicate linked liboverrides. */
+      CLOG_INFO(&LOG, 3, "Appended ID '%s' is a liboverride, duplicating it.", id->name);
+      item.action = LINK_APPEND_ACT_COPY_LOCAL;
+    }
     else {
       /* That last action, making linked data directly local, can still be changed to
        * #LINK_APPEND_ACT_COPY_LOCAL in the last checks below. This can happen in rare cases with
@@ -1591,7 +1602,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
       }
     }
 
-    BLO_library_link_end(mainl, &lib_context.blo_handle, lapp_context->params);
+    BLO_library_link_end(mainl, &lib_context.blo_handle, lapp_context->params, reports);
     link_append_context_library_blohandle_release(*lapp_context, lib_context);
   }
 

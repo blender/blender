@@ -629,17 +629,17 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeViewer";
       case CMP_NODE_RGB:
         return "CompositorNodeRGB";
-      case CMP_NODE_VALUE:
+      case CMP_NODE_VALUE_DEPRECATED:
         return "CompositorNodeValue";
-      case CMP_NODE_MIX_RGB:
+      case CMP_NODE_MIX_RGB_DEPRECATED:
         return "CompositorNodeMixRGB";
-      case CMP_NODE_VALTORGB:
+      case CMP_NODE_VALTORGB_DEPRECATED:
         return "CompositorNodeValToRGB";
       case CMP_NODE_RGBTOBW:
         return "CompositorNodeRGBToBW";
       case CMP_NODE_NORMAL:
         return "CompositorNodeNormal";
-      case CMP_NODE_CURVE_VEC:
+      case CMP_NODE_CURVE_VEC_DEPRECATED:
         return "CompositorNodeCurveVec";
       case CMP_NODE_CURVE_RGB:
         return "CompositorNodeCurveRGB";
@@ -649,9 +649,9 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeBlur";
       case CMP_NODE_FILTER:
         return "CompositorNodeFilter";
-      case CMP_NODE_MAP_VALUE:
+      case CMP_NODE_MAP_VALUE_DEPRECATED:
         return "CompositorNodeMapValue";
-      case CMP_NODE_MAP_RANGE:
+      case CMP_NODE_MAP_RANGE_DEPRECATED:
         return "CompositorNodeMapRange";
       case CMP_NODE_TIME:
         return "CompositorNodeTime";
@@ -723,7 +723,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeDisplace";
       case CMP_NODE_COMBHSVA_LEGACY:
         return "CompositorNodeCombHSVA";
-      case CMP_NODE_MATH:
+      case CMP_NODE_MATH_DEPRECATED:
         return "CompositorNodeMath";
       case CMP_NODE_LUMA_MATTE:
         return "CompositorNodeLumaMatte";
@@ -2145,24 +2145,6 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type_legacy == CMP_NODE_IMAGE) {
-            Image *image = static_cast<Image *>(
-                blo_do_versions_newlibadr(fd, &ntree->id, ID_IS_LINKED(ntree), node->id));
-
-            if (image) {
-              if ((image->flag & IMA_DO_PREMUL) == 0 && image->alpha_mode == IMA_ALPHA_STRAIGHT) {
-                node->custom1 |= CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT;
-              }
-            }
-          }
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
   }
   else if (!MAIN_VERSION_FILE_ATLEAST(bmain, 266, 1)) {
     /* texture use alpha was removed for 2.66 but added back again for 2.66a,

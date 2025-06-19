@@ -859,7 +859,7 @@ static void insert_fcurve_key(bAnimContext *ac,
   ToolSettings *ts = scene->toolsettings;
 
   /* These asserts are ensuring that the fcurve we're keying lives on an Action,
-   * rather than being an fcurve for e.g. a driver or NLA Strip. This should
+   * rather than being e.g. an fcurve a driver or NLA Strip. This should
    * always hold true for this function, since all the other cases take
    * different code paths before getting here. */
   BLI_assert(ale->owner == nullptr);

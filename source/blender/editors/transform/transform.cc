@@ -772,7 +772,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Move", ""},
       {TFM_MODAL_VERT_EDGE_SLIDE, "VERT_EDGE_SLIDE", 0, "Vert/Edge Slide", ""},
       {TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
-      {TFM_MODAL_TRACKBALL, "TRACKBALL", 0, "TrackBall", ""},
+      {TFM_MODAL_TRACKBALL, "TRACKBALL", 0, "Trackball", ""},
       {TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
       {TFM_MODAL_ROTATE_NORMALS, "ROTATE_NORMALS", 0, "Rotate Normals", ""},
       {TFM_MODAL_AUTOCONSTRAINT, "AUTOCONSTRAIN", 0, "Automatic Constraint", ""},
@@ -1090,7 +1090,7 @@ wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *eve
           if (t->state == TRANS_CANCEL) {
             resetTransModal(t);
             t->state = TRANS_STARTING;
-            transform_mode_init(t, nullptr, TFM_VERT_SLIDE);
+            transform_mode_init(t, op, TFM_VERT_SLIDE);
           }
           /* Vert Slide can fail on unconnected vertices (rare but possible). */
           if (t->state == TRANS_CANCEL) {
@@ -1948,7 +1948,14 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   if (t->flag & T_PROP_EDIT) {
     bool has_selected_any = false;
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      if (tc->data->flag & TD_SELECTED) {
+      if (tc->data_len == 0) {
+        continue;
+      }
+
+      BLI_assert(tc->sorted_index_map);
+      const int first_selected_index = tc->sorted_index_map[0];
+      TransData *td = &tc->data[first_selected_index];
+      if (td->flag & TD_SELECTED) {
         has_selected_any = true;
         break;
       }

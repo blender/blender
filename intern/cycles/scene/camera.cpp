@@ -872,8 +872,9 @@ void Camera::set_osl_camera(Scene *scene,
   }
   else {
     hash = scene->osl_manager->shader_test_loaded(bytecode_hash);
-    if (!hash)
+    if (!hash) {
       hash = scene->osl_manager->shader_load_bytecode(bytecode_hash, bytecode);
+    }
   }
 
   bool changed = false;
@@ -903,22 +904,25 @@ void Camera::set_osl_camera(Scene *scene,
       int vec_size = (int)param->type.aggregate;
       if (param->type.basetype == TypeDesc::INT) {
         vector<int> data;
-        if (!params.get_int(param->name, data) || data.size() != vec_size)
+        if (!params.get_int(param->name, data) || data.size() != vec_size) {
           continue;
+        }
         raw_data.resize(sizeof(int) * vec_size);
         memcpy(raw_data.data(), data.data(), sizeof(int) * vec_size);
       }
       else if (param->type.basetype == TypeDesc::FLOAT) {
         vector<float> data;
-        if (!params.get_float(param->name, data) || data.size() != vec_size)
+        if (!params.get_float(param->name, data) || data.size() != vec_size) {
           continue;
+        }
         raw_data.resize(sizeof(float) * vec_size);
         memcpy(raw_data.data(), data.data(), sizeof(float) * vec_size);
       }
       else if (param->type.basetype == TypeDesc::STRING) {
         string data;
-        if (!params.get_string(param->name, data))
+        if (!params.get_string(param->name, data)) {
           continue;
+        }
         raw_data.resize(data.length() + 1);
         memcpy(raw_data.data(), data.c_str(), data.length() + 1);
       }
@@ -941,8 +945,9 @@ void Camera::set_osl_camera(Scene *scene,
 
     /* Remove unused parameters. */
     for (auto it = script_params.begin(); it != script_params.end();) {
-      if (used_params.count(it->first))
+      if (used_params.count(it->first)) {
         it++;
+      }
       else {
         it = script_params.erase(it);
         changed = true;

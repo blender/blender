@@ -101,8 +101,8 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   if (params.in_out() == SOCK_IN) {
-    if (params.node_tree().typeinfo->validate_link(
-            static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_STRING))
+    if (params.node_tree().typeinfo->validate_link(eNodeSocketDatatype(params.other_socket().type),
+                                                   SOCK_STRING))
     {
       for (const EnumPropertyItem *item = rna_enum_node_match_string_items;
            item->identifier != nullptr;

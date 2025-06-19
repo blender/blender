@@ -92,6 +92,8 @@ class GreasePencilExporter {
                                WriteStrokeFn stroke_fn);
 
   float2 project_to_screen(const float4x4 &transform, const float3 &position) const;
+
+  bool is_selected_frame(const GreasePencil &grease_pencil, int frame_number) const;
 };
 
 }  // namespace blender::io::grease_pencil

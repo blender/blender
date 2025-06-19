@@ -16,17 +16,77 @@
 #include "vk_debug.hh"
 #include "vk_to_string.hh"
 
+#include "gpu_profile_report.hh"
+
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
 namespace blender::gpu {
 void VKContext::debug_group_begin(const char *name, int)
 {
   render_graph().debug_group_begin(name, debug::get_debug_group_color(name));
+
+  if (!G.profile_gpu) {
+    return;
+  }
+
+  ScopeTimings timings = {};
+  timings.name = name;
+  timings.finished = false;
+  timings.cpu_start = ScopeTimings::Clock::now();
+
+  scope_timings.append(timings);
 }
 
 void VKContext::debug_group_end()
 {
   render_graph().debug_group_end();
+
+  if (!G.profile_gpu) {
+    return;
+  }
+
+  for (int i = scope_timings.size() - 1; i >= 0; i--) {
+    ScopeTimings &query = scope_timings[i];
+    if (!query.finished) {
+      query.finished = true;
+      query.cpu_end = ScopeTimings::Clock::now();
+      break;
+    }
+    if (i == 0) {
+      CLOG_ERROR(&LOG, "Profile GPU error: Extra GPU_debug_group_end() call.");
+    }
+  }
+}
+
+void VKContext::process_frame_timings()
+{
+  if (!G.profile_gpu) {
+    return;
+  }
+
+  Vector<ScopeTimings> &queries = scope_timings;
+
+  bool frame_is_valid = !queries.is_empty();
+
+  for (int i = queries.size() - 1; i >= 0; i--) {
+    if (!queries[i].finished) {
+      frame_is_valid = false;
+      CLOG_ERROR(&LOG, "Profile GPU error: Missing GPU_debug_group_end() call");
+    }
+    break;
+  }
+
+  if (!frame_is_valid) {
+    return;
+  }
+
+  for (ScopeTimings &query : queries) {
+    ProfileReport::get().add_group_cpu(query.name,
+                                       query.cpu_start.time_since_epoch().count(),
+                                       query.cpu_end.time_since_epoch().count());
+  }
+
+  queries.clear();
 }
 
 bool VKContext::debug_capture_begin(const char *title)
@@ -113,7 +173,7 @@ void VKDebuggingTools::deinit(VkInstance vk_instance)
 void object_label(VkObjectType vk_object_type, uint64_t object_handle, const char *name)
 {
   const VKDevice &device = VKBackend::get().device;
-  if (G.debug & G_DEBUG_GPU && device.functions.vkSetDebugUtilsObjectName) {
+  if (G.debug & G_DEBUG_GPU && device.functions.vkSetDebugUtilsObjectName && object_handle != 0) {
     VkDebugUtilsObjectNameInfoEXT info = {};
     info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     info.objectType = vk_object_type;

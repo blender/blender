@@ -52,6 +52,11 @@ void BKE_libblock_free_data(ID *id, const bool do_id_user)
     MEM_freeN(id->properties);
     id->properties = nullptr;
   }
+  if (id->system_properties) {
+    IDP_FreePropertyContent_ex(id->system_properties, do_id_user);
+    MEM_freeN(id->system_properties);
+    id->system_properties = nullptr;
+  }
 
   if (id->override_library) {
     BKE_lib_override_library_free(&id->override_library, do_id_user);

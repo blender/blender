@@ -1036,6 +1036,7 @@ static void legacy_gpencil_to_grease_pencil(ConversionData &conversion_data,
   BLI_assert(!grease_pencil.id.properties);
   if (gpd.id.properties) {
     grease_pencil.id.properties = IDP_CopyProperty(gpd.id.properties);
+    grease_pencil.id.system_properties = IDP_CopyProperty(gpd.id.properties);
   }
 
   /** Convert Grease Pencil data flag. */

@@ -120,7 +120,7 @@ static void movie_clip_free_data(ID *id)
 {
   MovieClip *movie_clip = (MovieClip *)id;
 
-  /* Also frees animdata. */
+  /* Also frees animation-data. */
   free_buffers(movie_clip);
 
   BKE_tracking_free(&movie_clip->tracking);

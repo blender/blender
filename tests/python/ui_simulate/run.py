@@ -23,6 +23,7 @@ For an editor to follow the tests:
 
 import os
 import sys
+import tempfile
 
 
 def create_parser():
@@ -137,7 +138,7 @@ def _process_test_id_fn(env, args, test_id):
     return test_id, callproc.returncode == 0
 
 
-def main():
+def run(empty_user_dir):
     directory = os.path.dirname(__file__)
     if "--list-tests" in sys.argv:
         list_tests(directory)
@@ -164,6 +165,7 @@ def main():
     env = os.environ.copy()
     env.update({
         "LSAN_OPTIONS": "exitcode=0",
+        "BLENDER_USER_RESOURCES": empty_user_dir,
     })
 
     # We could support multiple tests per Blender session.
@@ -187,6 +189,13 @@ def main():
     print(len(results), "tests,", results_fail, "failed")
     for test_id, ok in results:
         print("OK:  " if ok else "FAIL:", test_id)
+
+    return 0
+
+
+def main():
+    with tempfile.TemporaryDirectory() as empty_user_dir:
+        sys.exit(run(empty_user_dir))
 
 
 if __name__ == "__main__":

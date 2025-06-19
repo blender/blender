@@ -1172,7 +1172,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
   bool can_split = false;
 
   if (state < num_states) {
-    can_split = ccl_gpu_kernel_call(kernel_shadow_catcher_path_can_split(nullptr, state));
+    can_split = ccl_gpu_kernel_call(kernel_shadow_catcher_path_can_split(state));
   }
 
   /* NOTE: All threads specified in the mask must execute the intrinsic. */

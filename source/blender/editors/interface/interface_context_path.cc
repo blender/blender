@@ -54,11 +54,11 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
 void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path)
 {
   uiLayout *row = &layout.row(true);
-  uiLayoutSetAlignment(&layout, UI_LAYOUT_ALIGN_LEFT);
+  layout.alignment_set(blender::ui::LayoutAlign::Left);
 
   for (const int i : context_path.index_range()) {
     uiLayout *sub_row = &row->row(true);
-    uiLayoutSetAlignment(sub_row, UI_LAYOUT_ALIGN_LEFT);
+    sub_row->alignment_set(blender::ui::LayoutAlign::Left);
 
     if (i > 0) {
       sub_row->label("", ICON_RIGHTARROW_THIN);

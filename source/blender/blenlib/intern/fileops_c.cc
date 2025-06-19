@@ -964,7 +964,7 @@ static int recursive_operation_impl(StrBuf *src_buf,
 {
   /* NOTE(@ideasman42): This function must *not* use any `MEM_*` functions
    * as it's used to purge temporary files on when the processed is aborted,
-   * in this case the `MEM_*` state may have already been freed (memory usage tracking for e.g.)
+   * in this case the `MEM_*` state may have already been freed (e.g. memory usage tracking)
    * causing freed memory access, potentially crashing. This constraint doesn't apply to the
    * callbacks themselves - unless they might also be called when aborting. */
   struct stat st;

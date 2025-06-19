@@ -4,6 +4,8 @@
 
 #include "node_function_util.hh"
 
+#include "NOD_socket_search_link.hh"
+
 #include "BLT_translation.hh"
 
 #include "UI_interface.hh"
@@ -11,13 +13,15 @@
 
 #include "BLO_read_write.hh"
 
+#include "BLF_api.hh"
+
 namespace blender::nodes::node_fn_input_string_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_output<decl::String>("String").custom_draw([](CustomSocketDrawParams &params) {
-    uiLayoutSetAlignment(&params.layout, UI_LAYOUT_ALIGN_EXPAND);
+    params.layout.alignment_set(blender::ui::LayoutAlign::Expand);
     PropertyRNA *prop = RNA_struct_find_property(&params.node_ptr, "string");
     params.layout.prop(
         &params.node_ptr, prop, -1, 0, UI_ITEM_NONE, "", ICON_NONE, IFACE_("String"));
@@ -73,6 +77,26 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
   BLO_read_string(&reader, &storage->string);
 }
 
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const eNodeSocketDatatype type = eNodeSocketDatatype(params.other_socket().type);
+  if (type != SOCK_STRING) {
+    return;
+  }
+
+  params.add_item(IFACE_("String"), [](LinkSearchOpParams &params) {
+    bNode &node = params.add_node("FunctionNodeInputString");
+    params.update_and_connect_available_socket(node, "String");
+
+    /* Adapt width of the new node to its content. */
+    const StringRef string = static_cast<NodeInputString *>(node.storage)->string;
+    const uiFontStyle &fstyle = UI_style_get()->widget;
+    BLF_size(fstyle.uifont_id, fstyle.points);
+    const float width = BLF_width(fstyle.uifont_id, string.data(), string.size()) + 40.0f;
+    node.width = std::clamp(width, 140.0f, 1000.0f);
+  });
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -87,6 +111,7 @@ static void node_register()
   ntype.build_multi_function = node_build_multi_function;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

@@ -43,8 +43,6 @@ BLOCKLIST = [
 ]
 
 BLOCKLIST_METAL = [
-    # Blocked due to difference in tangent space calculation (to be fixed).
-    "tangent_no_uv.blend",
     # Blocked due to difference in volume lightprobe bakes (to be fixed).
     "clamp_.*.blend",
     "shadow_all_max_bounces.blend",
@@ -75,7 +73,7 @@ def setup():
     import bpy
 
     for scene in bpy.data.scenes:
-        scene.render.engine = 'BLENDER_EEVEE_NEXT'
+        scene.render.engine = 'BLENDER_EEVEE'
 
         # Enable Eevee features
         eevee = scene.eevee
@@ -85,7 +83,8 @@ def setup():
         eevee.overscan_size = 50.0
 
         # Ambient Occlusion Pass
-        eevee.gtao_distance = 1
+        for view_layer in scene.view_layers:
+            view_layer.eevee.ambient_occlusion_distance = 1
 
         # Lights
         eevee.light_threshold = 0.001
@@ -210,7 +209,7 @@ def get_arguments(filepath, output_filepath, gpu_backend):
 
     arguments.extend([
         filepath,
-        "-E", "BLENDER_EEVEE_NEXT",
+        "-E", "BLENDER_EEVEE",
         "-P",
         os.path.realpath(__file__),
         "-o", output_filepath,
@@ -240,7 +239,7 @@ def main():
     gpu_device_type = get_gpu_device_type(args.blender)
     reference_override_dir = None
     if gpu_device_type == "AMD":
-        reference_override_dir = "eevee_next_renders/amd"
+        reference_override_dir = "eevee_renders/amd"
 
     blocklist = BLOCKLIST
     if args.gpu_backend == "metal":
@@ -248,14 +247,14 @@ def main():
     elif args.gpu_backend == "vulkan":
         blocklist += BLOCKLIST_VULKAN
 
-    report = EEVEEReport("Eevee Next", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
+    report = EEVEEReport("EEVEE", args.outdir, args.oiiotool, variation=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":
-        report.set_compare_engine('eevee_next', 'opengl')
+        report.set_compare_engine('eevee', 'opengl')
     else:
         report.set_compare_engine('cycles', 'CPU')
 
     report.set_pixelated(True)
-    report.set_reference_dir("eevee_next_renders")
+    report.set_reference_dir("eevee_renders")
     report.set_reference_override_dir(reference_override_dir)
 
     test_dir_name = Path(args.testdir).name

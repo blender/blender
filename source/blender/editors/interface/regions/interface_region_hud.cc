@@ -97,7 +97,7 @@ struct HudRegionData {
    * When this cannot be resolved, use the first region of `regionid`.
    *
    * This is needed because it's possible the index is no longer available
-   * if exiting quad-view int the 3D viewport after performing an operation for e.g.
+   * if exiting quad-view in the 3D viewport after performing an operation for example.
    * so in this case use the first region.
    */
   int region_index_hint;
@@ -172,7 +172,7 @@ static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
     return;
   }
   if (!WM_operator_check_ui_enabled(C, op->type->name)) {
-    uiLayoutSetEnabled(panel->layout, false);
+    panel->layout->enabled_set(false);
   }
   uiLayout *col = &panel->layout->column(false);
   uiTemplateOperatorRedoProperties(col, C);

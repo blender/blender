@@ -14,15 +14,45 @@
  * - Pass cached data to called functions.
  */
 
+#include "FN_user_data.hh"
+
 namespace blender::fn::multi_function {
 
 class Context;
-
-class ContextBuilder {};
+class ContextBuilder;
 
 class Context {
  public:
-  Context(ContextBuilder & /*builder*/) {}
+  /**
+   * Custom user data that can be used in the function.
+   */
+  UserData *user_data = nullptr;
+
+  friend ContextBuilder;
+
+ private:
+  Context() = default;
+
+ public:
+  Context(ContextBuilder & /*builder*/);
 };
+
+class ContextBuilder {
+ private:
+  Context context_;
+
+  friend Context;
+
+ public:
+  void user_data(UserData *user_data)
+  {
+    context_.user_data = user_data;
+  }
+};
+
+inline Context::Context(ContextBuilder &builder)
+{
+  *this = builder.context_;
+}
 
 }  // namespace blender::fn::multi_function

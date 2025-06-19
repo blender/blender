@@ -90,7 +90,7 @@ However, when linking in library data from another blend-file naming collisions 
 so it's best to avoid referencing data by name at all.
 
 This can be tricky at times and not even Blender handles this correctly in some cases
-(when selecting the modifier object for e.g. you can't select between multiple objects with the same name),
+(when selecting the modifier object for example, you can't select between multiple objects with the same name),
 but it's still good to try avoiding these problems in this area.
 If you need to select between local and library data, there is a feature in ``bpy.data`` members to allow for this.
 

@@ -201,7 +201,7 @@ def main() -> None:
         platform_tag = "macosx_%d_%d_%s" % (target_major, target_minor, machine)
     elif sys.platform == "win32":
         # Workaround for Python process running in a virtualized environment on Windows-on-Arm:
-        # use the actual processor architecture instead of the the virtualized one.
+        # use the actual processor architecture instead of the virtualized one.
         #
         # The win_arm64 matches the behavior when native WoA Python is used, and also matches
         # sysconfig.get_platform() from a native Python build (although it returns win-arm64 with a

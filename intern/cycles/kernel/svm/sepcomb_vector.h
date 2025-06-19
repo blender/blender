@@ -10,8 +10,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Vector combine / separate, used for the RGB and XYZ nodes */
 
-ccl_device void svm_node_combine_vector(ccl_private ShaderData *sd,
-                                        ccl_private float *stack,
+ccl_device void svm_node_combine_vector(ccl_private float *stack,
                                         const uint in_offset,
                                         const uint vector_index,
                                         const uint out_offset)
@@ -23,8 +22,7 @@ ccl_device void svm_node_combine_vector(ccl_private ShaderData *sd,
   }
 }
 
-ccl_device void svm_node_separate_vector(ccl_private ShaderData *sd,
-                                         ccl_private float *stack,
+ccl_device void svm_node_separate_vector(ccl_private float *stack,
                                          const uint ivector_offset,
                                          const uint vector_index,
                                          const uint out_offset)

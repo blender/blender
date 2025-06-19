@@ -171,7 +171,6 @@ def get_texture_node_types():
         "ShaderNodeTexMagic",
         "ShaderNodeTexMusgrave",
         "ShaderNodeTexNoise",
-        "ShaderNodeTexPointDensity",
         "ShaderNodeTexSky",
         "ShaderNodeTexVoronoi",
         "ShaderNodeTexWave",

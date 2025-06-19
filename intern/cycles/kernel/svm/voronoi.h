@@ -71,6 +71,28 @@ ccl_device float voronoi_distance(const T a, const T b, const ccl_private Vorono
   return 0.0f;
 }
 
+/* Possibly cheaper/faster version of Voronoi distance, in a way that does not change
+ * logic of "which distance is the closest?". */
+template<typename T>
+ccl_device float voronoi_distance_bound(const T a,
+                                        const T b,
+                                        const ccl_private VoronoiParams &params)
+{
+  if (params.metric == NODE_VORONOI_EUCLIDEAN) {
+    return len_squared(a - b);
+  }
+  if (params.metric == NODE_VORONOI_MANHATTAN) {
+    return reduce_add(fabs(a - b));
+  }
+  if (params.metric == NODE_VORONOI_CHEBYCHEV) {
+    return reduce_max(fabs(a - b));
+  }
+  if (params.metric == NODE_VORONOI_MINKOWSKI) {
+    return reduce_add(power(fabs(a - b), params.exponent));
+  }
+  return 0.0f;
+}
+
 /* **** 1D Voronoi **** */
 
 ccl_device float4 voronoi_position(const float coord)
@@ -245,18 +267,20 @@ ccl_device float4 voronoi_position(const float2 coord)
 
 ccl_device VoronoiOutput voronoi_f1(const ccl_private VoronoiParams &params, const float2 coord)
 {
-  const float2 cellPosition = floor(coord);
-  const float2 localPosition = coord - cellPosition;
+  const float2 cellPosition_f = floor(coord);
+  const float2 localPosition = coord - cellPosition_f;
+  const int2 cellPosition = make_int2(cellPosition_f);
 
   float minDistance = FLT_MAX;
-  float2 targetOffset = make_float2(0.0f, 0.0f);
+  int2 targetOffset = make_int2(0);
   float2 targetPosition = make_float2(0.0f, 0.0f);
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
-      const float2 cellOffset = make_float2(i, j);
-      const float2 pointPosition = cellOffset + hash_float2_to_float2(cellPosition + cellOffset) *
-                                                    params.randomness;
-      const float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
+      const int2 cellOffset = make_int2(i, j);
+      const float2 pointPosition = make_float2(cellOffset) +
+                                   hash_int2_to_float2(cellPosition + cellOffset) *
+                                       params.randomness;
+      const float distanceToPoint = voronoi_distance_bound(pointPosition, localPosition, params);
       if (distanceToPoint < minDistance) {
         targetOffset = cellOffset;
         minDistance = distanceToPoint;
@@ -266,17 +290,18 @@ ccl_device VoronoiOutput voronoi_f1(const ccl_private VoronoiParams &params, con
   }
 
   VoronoiOutput octave;
-  octave.distance = minDistance;
-  octave.color = hash_float2_to_float3(cellPosition + targetOffset);
-  octave.position = voronoi_position(targetPosition + cellPosition);
+  octave.distance = voronoi_distance(targetPosition, localPosition, params);
+  octave.color = hash_int2_to_float3(cellPosition + targetOffset);
+  octave.position = voronoi_position(targetPosition + cellPosition_f);
   return octave;
 }
 
 ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &params,
                                            const float2 coord)
 {
-  const float2 cellPosition = floor(coord);
-  const float2 localPosition = coord - cellPosition;
+  const float2 cellPosition_f = floor(coord);
+  const float2 localPosition = coord - cellPosition_f;
+  const int2 cellPosition = make_int2(cellPosition_f);
 
   float smoothDistance = 0.0f;
   float3 smoothColor = make_float3(0.0f, 0.0f, 0.0f);
@@ -284,9 +309,10 @@ ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &para
   float h = -1.0f;
   for (int j = -2; j <= 2; j++) {
     for (int i = -2; i <= 2; i++) {
-      const float2 cellOffset = make_float2(i, j);
-      const float2 pointPosition = cellOffset + hash_float2_to_float2(cellPosition + cellOffset) *
-                                                    params.randomness;
+      const int2 cellOffset = make_int2(i, j);
+      const float2 pointPosition = make_float2(cellOffset) +
+                                   hash_int2_to_float2(cellPosition + cellOffset) *
+                                       params.randomness;
       const float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
       h = h == -1.0f ?
               1.0f :
@@ -296,7 +322,7 @@ ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &para
       float correctionFactor = params.smoothness * h * (1.0f - h);
       smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
       correctionFactor /= 1.0f + 3.0f * params.smoothness;
-      const float3 cellColor = hash_float2_to_float3(cellPosition + cellOffset);
+      const float3 cellColor = hash_int2_to_float3(cellPosition + cellOffset);
       smoothColor = mix(smoothColor, cellColor, h) - correctionFactor;
       smoothPosition = mix(smoothPosition, pointPosition, h) - correctionFactor;
     }
@@ -305,26 +331,28 @@ ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &para
   VoronoiOutput octave;
   octave.distance = smoothDistance;
   octave.color = smoothColor;
-  octave.position = voronoi_position(cellPosition + smoothPosition);
+  octave.position = voronoi_position(cellPosition_f + smoothPosition);
   return octave;
 }
 
 ccl_device VoronoiOutput voronoi_f2(const ccl_private VoronoiParams &params, const float2 coord)
 {
-  const float2 cellPosition = floor(coord);
-  const float2 localPosition = coord - cellPosition;
+  const float2 cellPosition_f = floor(coord);
+  const float2 localPosition = coord - cellPosition_f;
+  const int2 cellPosition = make_int2(cellPosition_f);
 
   float distanceF1 = FLT_MAX;
   float distanceF2 = FLT_MAX;
-  float2 offsetF1 = make_float2(0.0f, 0.0f);
+  int2 offsetF1 = make_int2(0);
   float2 positionF1 = make_float2(0.0f, 0.0f);
-  float2 offsetF2 = make_float2(0.0f, 0.0f);
+  int2 offsetF2 = make_int2(0);
   float2 positionF2 = make_float2(0.0f, 0.0f);
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
-      const float2 cellOffset = make_float2(i, j);
-      const float2 pointPosition = cellOffset + hash_float2_to_float2(cellPosition + cellOffset) *
-                                                    params.randomness;
+      const int2 cellOffset = make_int2(i, j);
+      const float2 pointPosition = make_float2(cellOffset) +
+                                   hash_int2_to_float2(cellPosition + cellOffset) *
+                                       params.randomness;
       const float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
       if (distanceToPoint < distanceF1) {
         distanceF2 = distanceF1;
@@ -344,24 +372,25 @@ ccl_device VoronoiOutput voronoi_f2(const ccl_private VoronoiParams &params, con
 
   VoronoiOutput octave;
   octave.distance = distanceF2;
-  octave.color = hash_float2_to_float3(cellPosition + offsetF2);
-  octave.position = voronoi_position(positionF2 + cellPosition);
+  octave.color = hash_int2_to_float3(cellPosition + offsetF2);
+  octave.position = voronoi_position(positionF2 + cellPosition_f);
   return octave;
 }
 
 ccl_device float voronoi_distance_to_edge(const ccl_private VoronoiParams &params,
                                           const float2 coord)
 {
-  const float2 cellPosition = floor(coord);
-  const float2 localPosition = coord - cellPosition;
+  const float2 cellPosition_f = floor(coord);
+  const float2 localPosition = coord - cellPosition_f;
+  const int2 cellPosition = make_int2(cellPosition_f);
 
   float2 vectorToClosest = make_float2(0.0f, 0.0f);
   float minDistance = FLT_MAX;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
-      const float2 cellOffset = make_float2(i, j);
-      const float2 vectorToPoint = cellOffset +
-                                   hash_float2_to_float2(cellPosition + cellOffset) *
+      const int2 cellOffset = make_int2(i, j);
+      const float2 vectorToPoint = make_float2(cellOffset) +
+                                   hash_int2_to_float2(cellPosition + cellOffset) *
                                        params.randomness -
                                    localPosition;
       const float distanceToPoint = dot(vectorToPoint, vectorToPoint);
@@ -375,9 +404,9 @@ ccl_device float voronoi_distance_to_edge(const ccl_private VoronoiParams &param
   minDistance = FLT_MAX;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
-      const float2 cellOffset = make_float2(i, j);
-      const float2 vectorToPoint = cellOffset +
-                                   hash_float2_to_float2(cellPosition + cellOffset) *
+      const int2 cellOffset = make_int2(i, j);
+      const float2 vectorToPoint = make_float2(cellOffset) +
+                                   hash_int2_to_float2(cellPosition + cellOffset) *
                                        params.randomness -
                                    localPosition;
       const float2 perpendicularToEdge = vectorToPoint - vectorToClosest;
@@ -395,39 +424,42 @@ ccl_device float voronoi_distance_to_edge(const ccl_private VoronoiParams &param
 ccl_device float voronoi_n_sphere_radius(const ccl_private VoronoiParams &params,
                                          const float2 coord)
 {
-  const float2 cellPosition = floor(coord);
-  const float2 localPosition = coord - cellPosition;
+  const float2 cellPosition_f = floor(coord);
+  const float2 localPosition = coord - cellPosition_f;
+  const int2 cellPosition = make_int2(cellPosition_f);
 
   float2 closestPoint = make_float2(0.0f, 0.0f);
-  float2 closestPointOffset = make_float2(0.0f, 0.0f);
-  float minDistance = FLT_MAX;
+  int2 closestPointOffset = make_int2(0);
+  float minDistanceSq = FLT_MAX;
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
-      const float2 cellOffset = make_float2(i, j);
-      const float2 pointPosition = cellOffset + hash_float2_to_float2(cellPosition + cellOffset) *
-                                                    params.randomness;
-      const float distanceToPoint = distance(pointPosition, localPosition);
-      if (distanceToPoint < minDistance) {
-        minDistance = distanceToPoint;
+      const int2 cellOffset = make_int2(i, j);
+      const float2 pointPosition = make_float2(cellOffset) +
+                                   hash_int2_to_float2(cellPosition + cellOffset) *
+                                       params.randomness;
+      const float distanceToPointSq = len_squared(pointPosition - localPosition);
+      if (distanceToPointSq < minDistanceSq) {
+        minDistanceSq = distanceToPointSq;
         closestPoint = pointPosition;
         closestPointOffset = cellOffset;
       }
     }
   }
 
-  minDistance = FLT_MAX;
+  minDistanceSq = FLT_MAX;
   float2 closestPointToClosestPoint = make_float2(0.0f, 0.0f);
   for (int j = -1; j <= 1; j++) {
     for (int i = -1; i <= 1; i++) {
       if (i == 0 && j == 0) {
         continue;
       }
-      const float2 cellOffset = make_float2(i, j) + closestPointOffset;
-      const float2 pointPosition = cellOffset + hash_float2_to_float2(cellPosition + cellOffset) *
-                                                    params.randomness;
-      const float distanceToPoint = distance(closestPoint, pointPosition);
-      if (distanceToPoint < minDistance) {
-        minDistance = distanceToPoint;
+      const int2 cellOffset = make_int2(i, j) + closestPointOffset;
+      const float2 pointPosition = make_float2(cellOffset) +
+                                   hash_int2_to_float2(cellPosition + cellOffset) *
+                                       params.randomness;
+      const float distanceToPointSq = len_squared(closestPoint - pointPosition);
+      if (distanceToPointSq < minDistanceSq) {
+        minDistanceSq = distanceToPointSq;
         closestPointToClosestPoint = pointPosition;
       }
     }
@@ -445,20 +477,21 @@ ccl_device float4 voronoi_position(const float3 coord)
 
 ccl_device VoronoiOutput voronoi_f1(const ccl_private VoronoiParams &params, const float3 coord)
 {
-  const float3 cellPosition = floor(coord);
-  const float3 localPosition = coord - cellPosition;
+  const float3 cellPosition_f = floor(coord);
+  const float3 localPosition = coord - cellPosition_f;
+  const int3 cellPosition = make_int3(cellPosition_f);
 
   float minDistance = FLT_MAX;
-  float3 targetOffset = make_float3(0.0f, 0.0f, 0.0f);
+  int3 targetOffset = make_int3(0);
   float3 targetPosition = make_float3(0.0f, 0.0f, 0.0f);
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
-        const float3 cellOffset = make_float3(i, j, k);
-        const float3 pointPosition = cellOffset +
-                                     hash_float3_to_float3(cellPosition + cellOffset) *
+        const int3 cellOffset = make_int3(i, j, k);
+        const float3 pointPosition = make_float3(cellOffset) +
+                                     hash_int3_to_float3(cellPosition + cellOffset) *
                                          params.randomness;
-        const float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
+        const float distanceToPoint = voronoi_distance_bound(pointPosition, localPosition, params);
         if (distanceToPoint < minDistance) {
           targetOffset = cellOffset;
           minDistance = distanceToPoint;
@@ -469,17 +502,18 @@ ccl_device VoronoiOutput voronoi_f1(const ccl_private VoronoiParams &params, con
   }
 
   VoronoiOutput octave;
-  octave.distance = minDistance;
-  octave.color = hash_float3_to_float3(cellPosition + targetOffset);
-  octave.position = voronoi_position(targetPosition + cellPosition);
+  octave.distance = voronoi_distance(targetPosition, localPosition, params);
+  octave.color = hash_int3_to_float3(cellPosition + targetOffset);
+  octave.position = voronoi_position(targetPosition + cellPosition_f);
   return octave;
 }
 
 ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &params,
                                            const float3 coord)
 {
-  const float3 cellPosition = floor(coord);
-  const float3 localPosition = coord - cellPosition;
+  const float3 cellPosition_f = floor(coord);
+  const float3 localPosition = coord - cellPosition_f;
+  const int3 cellPosition = make_int3(cellPosition_f);
 
   float smoothDistance = 0.0f;
   float3 smoothColor = make_float3(0.0f, 0.0f, 0.0f);
@@ -488,9 +522,9 @@ ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &para
   for (int k = -2; k <= 2; k++) {
     for (int j = -2; j <= 2; j++) {
       for (int i = -2; i <= 2; i++) {
-        const float3 cellOffset = make_float3(i, j, k);
-        const float3 pointPosition = cellOffset +
-                                     hash_float3_to_float3(cellPosition + cellOffset) *
+        const int3 cellOffset = make_int3(i, j, k);
+        const float3 pointPosition = make_float3(cellOffset) +
+                                     hash_int3_to_float3(cellPosition + cellOffset) *
                                          params.randomness;
         const float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
         h = h == -1.0f ?
@@ -501,7 +535,7 @@ ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &para
         float correctionFactor = params.smoothness * h * (1.0f - h);
         smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
         correctionFactor /= 1.0f + 3.0f * params.smoothness;
-        const float3 cellColor = hash_float3_to_float3(cellPosition + cellOffset);
+        const float3 cellColor = hash_int3_to_float3(cellPosition + cellOffset);
         smoothColor = mix(smoothColor, cellColor, h) - correctionFactor;
         smoothPosition = mix(smoothPosition, pointPosition, h) - correctionFactor;
       }
@@ -511,27 +545,28 @@ ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &para
   VoronoiOutput octave;
   octave.distance = smoothDistance;
   octave.color = smoothColor;
-  octave.position = voronoi_position(cellPosition + smoothPosition);
+  octave.position = voronoi_position(cellPosition_f + smoothPosition);
   return octave;
 }
 
 ccl_device VoronoiOutput voronoi_f2(const ccl_private VoronoiParams &params, const float3 coord)
 {
-  const float3 cellPosition = floor(coord);
-  const float3 localPosition = coord - cellPosition;
+  const float3 cellPosition_f = floor(coord);
+  const float3 localPosition = coord - cellPosition_f;
+  const int3 cellPosition = make_int3(cellPosition_f);
 
   float distanceF1 = FLT_MAX;
   float distanceF2 = FLT_MAX;
-  float3 offsetF1 = make_float3(0.0f, 0.0f, 0.0f);
+  int3 offsetF1 = make_int3(0);
   float3 positionF1 = make_float3(0.0f, 0.0f, 0.0f);
-  float3 offsetF2 = make_float3(0.0f, 0.0f, 0.0f);
+  int3 offsetF2 = make_int3(0);
   float3 positionF2 = make_float3(0.0f, 0.0f, 0.0f);
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
-        const float3 cellOffset = make_float3(i, j, k);
-        const float3 pointPosition = cellOffset +
-                                     hash_float3_to_float3(cellPosition + cellOffset) *
+        const int3 cellOffset = make_int3(i, j, k);
+        const float3 pointPosition = make_float3(cellOffset) +
+                                     hash_int3_to_float3(cellPosition + cellOffset) *
                                          params.randomness;
         const float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
         if (distanceToPoint < distanceF1) {
@@ -553,25 +588,26 @@ ccl_device VoronoiOutput voronoi_f2(const ccl_private VoronoiParams &params, con
 
   VoronoiOutput octave;
   octave.distance = distanceF2;
-  octave.color = hash_float3_to_float3(cellPosition + offsetF2);
-  octave.position = voronoi_position(positionF2 + cellPosition);
+  octave.color = hash_int3_to_float3(cellPosition + offsetF2);
+  octave.position = voronoi_position(positionF2 + cellPosition_f);
   return octave;
 }
 
 ccl_device float voronoi_distance_to_edge(const ccl_private VoronoiParams &params,
                                           const float3 coord)
 {
-  const float3 cellPosition = floor(coord);
-  const float3 localPosition = coord - cellPosition;
+  const float3 cellPosition_f = floor(coord);
+  const float3 localPosition = coord - cellPosition_f;
+  const int3 cellPosition = make_int3(cellPosition_f);
 
   float3 vectorToClosest = make_float3(0.0f, 0.0f, 0.0f);
   float minDistance = FLT_MAX;
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
-        const float3 cellOffset = make_float3(i, j, k);
-        const float3 vectorToPoint = cellOffset +
-                                     hash_float3_to_float3(cellPosition + cellOffset) *
+        const int3 cellOffset = make_int3(i, j, k);
+        const float3 vectorToPoint = make_float3(cellOffset) +
+                                     hash_int3_to_float3(cellPosition + cellOffset) *
                                          params.randomness -
                                      localPosition;
         const float distanceToPoint = dot(vectorToPoint, vectorToPoint);
@@ -587,9 +623,9 @@ ccl_device float voronoi_distance_to_edge(const ccl_private VoronoiParams &param
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
-        const float3 cellOffset = make_float3(i, j, k);
-        const float3 vectorToPoint = cellOffset +
-                                     hash_float3_to_float3(cellPosition + cellOffset) *
+        const int3 cellOffset = make_int3(i, j, k);
+        const float3 vectorToPoint = make_float3(cellOffset) +
+                                     hash_int3_to_float3(cellPosition + cellOffset) *
                                          params.randomness -
                                      localPosition;
         const float3 perpendicularToEdge = vectorToPoint - vectorToClosest;
@@ -608,22 +644,23 @@ ccl_device float voronoi_distance_to_edge(const ccl_private VoronoiParams &param
 ccl_device float voronoi_n_sphere_radius(const ccl_private VoronoiParams &params,
                                          const float3 coord)
 {
-  const float3 cellPosition = floor(coord);
-  const float3 localPosition = coord - cellPosition;
+  const float3 cellPosition_f = floor(coord);
+  const float3 localPosition = coord - cellPosition_f;
+  const int3 cellPosition = make_int3(cellPosition_f);
 
   float3 closestPoint = make_float3(0.0f, 0.0f, 0.0f);
-  float3 closestPointOffset = make_float3(0.0f, 0.0f, 0.0f);
-  float minDistance = FLT_MAX;
+  int3 closestPointOffset = make_int3(0);
+  float minDistanceSq = FLT_MAX;
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
       for (int i = -1; i <= 1; i++) {
-        const float3 cellOffset = make_float3(i, j, k);
-        const float3 pointPosition = cellOffset +
-                                     hash_float3_to_float3(cellPosition + cellOffset) *
+        const int3 cellOffset = make_int3(i, j, k);
+        const float3 pointPosition = make_float3(cellOffset) +
+                                     hash_int3_to_float3(cellPosition + cellOffset) *
                                          params.randomness;
-        const float distanceToPoint = distance(pointPosition, localPosition);
-        if (distanceToPoint < minDistance) {
-          minDistance = distanceToPoint;
+        const float distanceToPointSq = len_squared(pointPosition - localPosition);
+        if (distanceToPointSq < minDistanceSq) {
+          minDistanceSq = distanceToPointSq;
           closestPoint = pointPosition;
           closestPointOffset = cellOffset;
         }
@@ -631,7 +668,7 @@ ccl_device float voronoi_n_sphere_radius(const ccl_private VoronoiParams &params
     }
   }
 
-  minDistance = FLT_MAX;
+  minDistanceSq = FLT_MAX;
   float3 closestPointToClosestPoint = make_float3(0.0f, 0.0f, 0.0f);
   for (int k = -1; k <= 1; k++) {
     for (int j = -1; j <= 1; j++) {
@@ -639,13 +676,13 @@ ccl_device float voronoi_n_sphere_radius(const ccl_private VoronoiParams &params
         if (i == 0 && j == 0 && k == 0) {
           continue;
         }
-        const float3 cellOffset = make_float3(i, j, k) + closestPointOffset;
-        const float3 pointPosition = cellOffset +
-                                     hash_float3_to_float3(cellPosition + cellOffset) *
+        const int3 cellOffset = make_int3(i, j, k) + closestPointOffset;
+        const float3 pointPosition = make_float3(cellOffset) +
+                                     hash_int3_to_float3(cellPosition + cellOffset) *
                                          params.randomness;
-        const float distanceToPoint = distance(closestPoint, pointPosition);
-        if (distanceToPoint < minDistance) {
-          minDistance = distanceToPoint;
+        const float distanceToPointSq = len_squared(closestPoint - pointPosition);
+        if (distanceToPointSq < minDistanceSq) {
+          minDistanceSq = distanceToPointSq;
           closestPointToClosestPoint = pointPosition;
         }
       }
@@ -664,21 +701,23 @@ ccl_device float4 voronoi_position(const float4 coord)
 
 ccl_device VoronoiOutput voronoi_f1(const ccl_private VoronoiParams &params, const float4 coord)
 {
-  const float4 cellPosition = floor(coord);
-  const float4 localPosition = coord - cellPosition;
+  const float4 cellPosition_f = floor(coord);
+  const float4 localPosition = coord - cellPosition_f;
+  const int4 cellPosition = make_int4(cellPosition_f);
 
   float minDistance = FLT_MAX;
-  float4 targetOffset = zero_float4();
+  int4 targetOffset = zero_int4();
   float4 targetPosition = zero_float4();
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
-          const float4 cellOffset = make_float4(i, j, k, u);
-          const float4 pointPosition = cellOffset +
-                                       hash_float4_to_float4(cellPosition + cellOffset) *
+          const int4 cellOffset = make_int4(i, j, k, u);
+          const float4 pointPosition = make_float4(cellOffset) +
+                                       hash_int4_to_float4(cellPosition + cellOffset) *
                                            params.randomness;
-          const float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
+          const float distanceToPoint = voronoi_distance_bound(
+              pointPosition, localPosition, params);
           if (distanceToPoint < minDistance) {
             targetOffset = cellOffset;
             minDistance = distanceToPoint;
@@ -690,17 +729,18 @@ ccl_device VoronoiOutput voronoi_f1(const ccl_private VoronoiParams &params, con
   }
 
   VoronoiOutput octave;
-  octave.distance = minDistance;
-  octave.color = hash_float4_to_float3(cellPosition + targetOffset);
-  octave.position = voronoi_position(targetPosition + cellPosition);
+  octave.distance = voronoi_distance(targetPosition, localPosition, params);
+  octave.color = hash_int4_to_float3(cellPosition + targetOffset);
+  octave.position = voronoi_position(targetPosition + cellPosition_f);
   return octave;
 }
 
 ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &params,
                                            const float4 coord)
 {
-  const float4 cellPosition = floor(coord);
-  const float4 localPosition = coord - cellPosition;
+  const float4 cellPosition_f = floor(coord);
+  const float4 localPosition = coord - cellPosition_f;
+  const int4 cellPosition = make_int4(cellPosition_f);
 
   float smoothDistance = 0.0f;
   float3 smoothColor = make_float3(0.0f, 0.0f, 0.0f);
@@ -710,9 +750,9 @@ ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &para
     for (int k = -2; k <= 2; k++) {
       for (int j = -2; j <= 2; j++) {
         for (int i = -2; i <= 2; i++) {
-          const float4 cellOffset = make_float4(i, j, k, u);
-          const float4 pointPosition = cellOffset +
-                                       hash_float4_to_float4(cellPosition + cellOffset) *
+          const int4 cellOffset = make_int4(i, j, k, u);
+          const float4 pointPosition = make_float4(cellOffset) +
+                                       hash_int4_to_float4(cellPosition + cellOffset) *
                                            params.randomness;
           const float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
           h = h == -1.0f ?
@@ -723,7 +763,7 @@ ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &para
           float correctionFactor = params.smoothness * h * (1.0f - h);
           smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
           correctionFactor /= 1.0f + 3.0f * params.smoothness;
-          const float3 cellColor = hash_float4_to_float3(cellPosition + cellOffset);
+          const float3 cellColor = hash_int4_to_float3(cellPosition + cellOffset);
           smoothColor = mix(smoothColor, cellColor, h) - correctionFactor;
           smoothPosition = mix(smoothPosition, pointPosition, h) - correctionFactor;
         }
@@ -734,28 +774,29 @@ ccl_device VoronoiOutput voronoi_smooth_f1(const ccl_private VoronoiParams &para
   VoronoiOutput octave;
   octave.distance = smoothDistance;
   octave.color = smoothColor;
-  octave.position = voronoi_position(cellPosition + smoothPosition);
+  octave.position = voronoi_position(cellPosition_f + smoothPosition);
   return octave;
 }
 
 ccl_device VoronoiOutput voronoi_f2(const ccl_private VoronoiParams &params, const float4 coord)
 {
-  const float4 cellPosition = floor(coord);
-  const float4 localPosition = coord - cellPosition;
+  const float4 cellPosition_f = floor(coord);
+  const float4 localPosition = coord - cellPosition_f;
+  const int4 cellPosition = make_int4(cellPosition_f);
 
   float distanceF1 = FLT_MAX;
   float distanceF2 = FLT_MAX;
-  float4 offsetF1 = zero_float4();
+  int4 offsetF1 = zero_int4();
   float4 positionF1 = zero_float4();
-  float4 offsetF2 = zero_float4();
+  int4 offsetF2 = zero_int4();
   float4 positionF2 = zero_float4();
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
-          const float4 cellOffset = make_float4(i, j, k, u);
-          const float4 pointPosition = cellOffset +
-                                       hash_float4_to_float4(cellPosition + cellOffset) *
+          const int4 cellOffset = make_int4(i, j, k, u);
+          const float4 pointPosition = make_float4(cellOffset) +
+                                       hash_int4_to_float4(cellPosition + cellOffset) *
                                            params.randomness;
           const float distanceToPoint = voronoi_distance(pointPosition, localPosition, params);
           if (distanceToPoint < distanceF1) {
@@ -778,16 +819,17 @@ ccl_device VoronoiOutput voronoi_f2(const ccl_private VoronoiParams &params, con
 
   VoronoiOutput octave;
   octave.distance = distanceF2;
-  octave.color = hash_float4_to_float3(cellPosition + offsetF2);
-  octave.position = voronoi_position(positionF2 + cellPosition);
+  octave.color = hash_int4_to_float3(cellPosition + offsetF2);
+  octave.position = voronoi_position(positionF2 + cellPosition_f);
   return octave;
 }
 
 ccl_device float voronoi_distance_to_edge(const ccl_private VoronoiParams &params,
                                           const float4 coord)
 {
-  const float4 cellPosition = floor(coord);
-  const float4 localPosition = coord - cellPosition;
+  const float4 cellPosition_f = floor(coord);
+  const float4 localPosition = coord - cellPosition_f;
+  const int4 cellPosition = make_int4(cellPosition_f);
 
   float4 vectorToClosest = zero_float4();
   float minDistance = FLT_MAX;
@@ -795,9 +837,9 @@ ccl_device float voronoi_distance_to_edge(const ccl_private VoronoiParams &param
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
-          const float4 cellOffset = make_float4(i, j, k, u);
-          const float4 vectorToPoint = cellOffset +
-                                       hash_float4_to_float4(cellPosition + cellOffset) *
+          const int4 cellOffset = make_int4(i, j, k, u);
+          const float4 vectorToPoint = make_float4(cellOffset) +
+                                       hash_int4_to_float4(cellPosition + cellOffset) *
                                            params.randomness -
                                        localPosition;
           const float distanceToPoint = dot(vectorToPoint, vectorToPoint);
@@ -815,9 +857,9 @@ ccl_device float voronoi_distance_to_edge(const ccl_private VoronoiParams &param
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
-          const float4 cellOffset = make_float4(i, j, k, u);
-          const float4 vectorToPoint = cellOffset +
-                                       hash_float4_to_float4(cellPosition + cellOffset) *
+          const int4 cellOffset = make_int4(i, j, k, u);
+          const float4 vectorToPoint = make_float4(cellOffset) +
+                                       hash_int4_to_float4(cellPosition + cellOffset) *
                                            params.randomness -
                                        localPosition;
           const float4 perpendicularToEdge = vectorToPoint - vectorToClosest;
@@ -837,23 +879,24 @@ ccl_device float voronoi_distance_to_edge(const ccl_private VoronoiParams &param
 ccl_device float voronoi_n_sphere_radius(const ccl_private VoronoiParams &params,
                                          const float4 coord)
 {
-  const float4 cellPosition = floor(coord);
-  const float4 localPosition = coord - cellPosition;
+  const float4 cellPosition_f = floor(coord);
+  const float4 localPosition = coord - cellPosition_f;
+  const int4 cellPosition = make_int4(cellPosition_f);
 
   float4 closestPoint = zero_float4();
-  float4 closestPointOffset = zero_float4();
-  float minDistance = FLT_MAX;
+  int4 closestPointOffset = zero_int4();
+  float minDistanceSq = FLT_MAX;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
       for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
-          const float4 cellOffset = make_float4(i, j, k, u);
-          const float4 pointPosition = cellOffset +
-                                       hash_float4_to_float4(cellPosition + cellOffset) *
+          const int4 cellOffset = make_int4(i, j, k, u);
+          const float4 pointPosition = make_float4(cellOffset) +
+                                       hash_int4_to_float4(cellPosition + cellOffset) *
                                            params.randomness;
-          const float distanceToPoint = distance(pointPosition, localPosition);
-          if (distanceToPoint < minDistance) {
-            minDistance = distanceToPoint;
+          const float distanceToPointSq = len_squared(pointPosition - localPosition);
+          if (distanceToPointSq < minDistanceSq) {
+            minDistanceSq = distanceToPointSq;
             closestPoint = pointPosition;
             closestPointOffset = cellOffset;
           }
@@ -862,7 +905,7 @@ ccl_device float voronoi_n_sphere_radius(const ccl_private VoronoiParams &params
     }
   }
 
-  minDistance = FLT_MAX;
+  minDistanceSq = FLT_MAX;
   float4 closestPointToClosestPoint = zero_float4();
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
@@ -871,13 +914,13 @@ ccl_device float voronoi_n_sphere_radius(const ccl_private VoronoiParams &params
           if (i == 0 && j == 0 && k == 0 && u == 0) {
             continue;
           }
-          const float4 cellOffset = make_float4(i, j, k, u) + closestPointOffset;
-          const float4 pointPosition = cellOffset +
-                                       hash_float4_to_float4(cellPosition + cellOffset) *
+          const int4 cellOffset = make_int4(i, j, k, u) + closestPointOffset;
+          const float4 pointPosition = make_float4(cellOffset) +
+                                       hash_int4_to_float4(cellPosition + cellOffset) *
                                            params.randomness;
-          const float distanceToPoint = distance(closestPoint, pointPosition);
-          if (distanceToPoint < minDistance) {
-            minDistance = distanceToPoint;
+          const float distanceToPointSq = len_squared(closestPoint - pointPosition);
+          if (distanceToPointSq < minDistanceSq) {
+            minDistanceSq = distanceToPointSq;
             closestPointToClosestPoint = pointPosition;
           }
         }
@@ -1031,7 +1074,6 @@ ccl_device void svm_voronoi_output(const uint4 stack_offsets,
 
 template<uint node_feature_mask>
 ccl_device_noinline int svm_node_tex_voronoi(KernelGlobals kg,
-                                             ccl_private ShaderData *sd,
                                              ccl_private float *stack,
                                              const uint dimensions,
                                              const uint feature,

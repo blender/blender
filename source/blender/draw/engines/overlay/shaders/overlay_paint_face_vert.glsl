@@ -20,8 +20,8 @@ void main()
   gl_Position.z -= 5e-5f;
 #endif
 
-  bool is_select = (nor.w > 0.0f);
-  bool is_hidden = (nor.w < 0.0f);
+  bool is_select = (paint_overlay_flag > 0);
+  bool is_hidden = (paint_overlay_flag < 0);
 
   /* Don't draw faces that are selected. */
   if (is_hidden || is_select) {

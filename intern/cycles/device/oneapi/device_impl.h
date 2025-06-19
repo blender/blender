@@ -16,14 +16,18 @@ CCL_NAMESPACE_BEGIN
 class DeviceQueue;
 
 using OneAPIDeviceIteratorCallback =
-    void (*)(const char *, const char *, const int, bool, bool, void *);
+    void (*)(const char *, const char *, const int, bool, bool, bool, void *);
 
 class OneapiDevice : public GPUDevice {
  private:
-  SyclQueue *device_queue_;
+  SyclQueue *device_queue_ = nullptr;
 #  ifdef WITH_EMBREE_GPU
-  RTCDevice embree_device;
-  RTCScene embree_scene;
+  RTCDevice embree_device = nullptr;
+#    if RTC_VERSION >= 40400
+  RTCTraversable embree_traversable = nullptr;
+#    else
+  RTCScene embree_traversable = nullptr;
+#    endif
 #    if RTC_VERSION >= 40302
   thread_mutex scene_data_mutex;
   vector<RTCScene> all_embree_scenes;
@@ -31,10 +35,10 @@ class OneapiDevice : public GPUDevice {
 #  endif
   using ConstMemMap = map<string, unique_ptr<device_vector<uchar>>>;
   ConstMemMap const_mem_map_;
-  void *kg_memory_;
-  void *kg_memory_device_;
-  size_t kg_memory_size_ = (size_t)0;
-  size_t max_memory_on_device_ = (size_t)0;
+  void *kg_memory_ = nullptr;
+  void *kg_memory_device_ = nullptr;
+  size_t kg_memory_size_ = 0;
+  size_t max_memory_on_device_ = 0;
   std::string oneapi_error_string_;
   bool use_hardware_raytracing = false;
   unsigned int kernel_features = 0;
@@ -117,6 +121,7 @@ class OneapiDevice : public GPUDevice {
   void *usm_aligned_alloc_host(const size_t memory_size, const size_t alignment);
   void usm_free(void *usm_ptr);
 
+  static void architecture_information(const SyclDevice *device, string &name, bool &is_optimized);
   static char *device_capabilities();
   static void iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_ptr);
 

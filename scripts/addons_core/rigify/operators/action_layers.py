@@ -232,88 +232,84 @@ class RIGIFY_UL_action_slots(UIList):
         action_slots, action_slot_idx = get_action_slots_active(data)
         active_action = action_slots[action_slot_idx]
 
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            if action_slot.action:
-                row = layout.row()
-                icon = 'ACTION'
+        if action_slot.action:
+            row = layout.row()
+            icon = 'ACTION'
 
-                # Check if this action is a trigger for the active corrective action
-                if active_action.is_corrective and \
-                    action_slot.action in [active_action.trigger_action_a,
-                                           active_action.trigger_action_b]:
-                    icon = 'RESTRICT_INSTANCED_OFF'
+            # Check if this action is a trigger for the active corrective action
+            if active_action.is_corrective and \
+                action_slot.action in [active_action.trigger_action_a,
+                                        active_action.trigger_action_b]:
+                icon = 'RESTRICT_INSTANCED_OFF'
 
-                # Check if the active action is a trigger for this corrective action.
-                if action_slot.is_corrective and \
-                    active_action.action in [action_slot.trigger_action_a,
-                                             action_slot.trigger_action_b]:
-                    icon = 'RESTRICT_INSTANCED_OFF'
+            # Check if the active action is a trigger for this corrective action.
+            if action_slot.is_corrective and \
+                active_action.action in [action_slot.trigger_action_a,
+                                            action_slot.trigger_action_b]:
+                icon = 'RESTRICT_INSTANCED_OFF'
 
-                row.prop(action_slot.action, 'name', text="", emboss=False, icon=icon)
+            row.prop(action_slot.action, 'name', text="", emboss=False, icon=icon)
 
-                # Highlight various errors
+            # Highlight various errors
 
-                if find_duplicate_slot(data, action_slot):
-                    # Multiple entries for the same action
-                    row.alert = True
-                    row.label(text="Duplicate", icon='ERROR')
+            if find_duplicate_slot(data, action_slot):
+                # Multiple entries for the same action
+                row.alert = True
+                row.label(text="Duplicate", icon='ERROR')
 
-                elif action_slot.is_corrective:
-                    text = "Corrective"
-                    icon = 'RESTRICT_INSTANCED_OFF'
+            elif action_slot.is_corrective:
+                text = "Corrective"
+                icon = 'RESTRICT_INSTANCED_OFF'
 
-                    for trigger in [action_slot.trigger_action_a,
-                                    action_slot.trigger_action_b]:
-                        trigger_slot, trigger_idx = find_slot_by_action(data, trigger)
+                for trigger in [action_slot.trigger_action_a,
+                                action_slot.trigger_action_b]:
+                    trigger_slot, trigger_idx = find_slot_by_action(data, trigger)
 
-                        # No trigger action set, no slot or invalid slot
-                        if not trigger_slot or trigger_slot.is_corrective:
-                            row.alert = True
-                            text = "No Trigger Action"
-                            icon = 'ERROR'
-                            break
-
-                    row.label(text=text, icon=icon)
-
-                else:
-                    text = action_slot.subtarget
-                    icon = 'BONE_DATA'
-
-                    target_rig = get_rigify_target_rig(data)
-
-                    if not action_slot.subtarget:
+                    # No trigger action set, no slot or invalid slot
+                    if not trigger_slot or trigger_slot.is_corrective:
                         row.alert = True
-                        text = 'No Control Bone'
+                        text = "No Trigger Action"
+                        icon = 'ERROR'
+                        break
+
+                row.label(text=text, icon=icon)
+
+            else:
+                text = action_slot.subtarget
+                icon = 'BONE_DATA'
+
+                target_rig = get_rigify_target_rig(data)
+
+                if not action_slot.subtarget:
+                    row.alert = True
+                    text = 'No Control Bone'
+                    icon = 'ERROR'
+
+                elif target_rig:
+                    # Check for bones not actually present in the generated rig
+                    bones = target_rig.pose.bones
+
+                    if action_slot.subtarget not in bones:
+                        row.alert = True
+                        text = 'Bad Control Bone'
+                        icon = 'ERROR'
+                    elif (action_slot.symmetrical
+                            and mirror_name(action_slot.subtarget) not in bones):
+                        row.alert = True
+                        text = 'Bad Control Bone'
                         icon = 'ERROR'
 
-                    elif target_rig:
-                        # Check for bones not actually present in the generated rig
-                        bones = target_rig.pose.bones
+                row.label(text=text, icon=icon)
 
-                        if action_slot.subtarget not in bones:
-                            row.alert = True
-                            text = 'Bad Control Bone'
-                            icon = 'ERROR'
-                        elif (action_slot.symmetrical
-                              and mirror_name(action_slot.subtarget) not in bones):
-                            row.alert = True
-                            text = 'Bad Control Bone'
-                            icon = 'ERROR'
+            icon = 'CHECKBOX_HLT' if action_slot.enabled else 'CHECKBOX_DEHLT'
+            row.enabled = action_slot.enabled
 
-                    row.label(text=text, icon=icon)
+            layout.prop(action_slot, 'enabled', text="", icon=icon, emboss=False)
 
-                icon = 'CHECKBOX_HLT' if action_slot.enabled else 'CHECKBOX_DEHLT'
-                row.enabled = action_slot.enabled
+        # No action
+        else:
+            layout.label(text="", translate=False, icon='ACTION')
 
-                layout.prop(action_slot, 'enabled', text="", icon=icon, emboss=False)
-
-            # No action
-            else:
-                layout.label(text="", translate=False, icon='ACTION')
-
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
 
 
 # noinspection PyPep8Naming

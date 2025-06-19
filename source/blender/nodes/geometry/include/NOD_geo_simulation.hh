@@ -14,14 +14,13 @@ namespace blender::nodes {
  * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) with
  * simulation items.
  */
-struct SimulationItemsAccessor {
+struct SimulationItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeSimulationItem;
   static StructRNA *item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeSimulationOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_simulation_zone_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_simulation_zone_item_remove";

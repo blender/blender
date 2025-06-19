@@ -631,11 +631,6 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 
 /* Sky Texture */
 
-static float2 sky_spherical_coordinates(const float3 dir)
-{
-  return make_float2(acosf(dir.z), atan2f(dir.x, dir.y));
-}
-
 struct SunSky {
   /* sun direction in spherical and cartesian */
   float theta, phi;
@@ -644,118 +639,6 @@ struct SunSky {
   float radiance_x, radiance_y, radiance_z;
   float config_x[9], config_y[9], config_z[9], nishita_data[10];
 };
-
-/* Preetham model */
-static float sky_perez_function(const float lam[6], float theta, const float gamma)
-{
-  return (1.0f + lam[0] * expf(lam[1] / cosf(theta))) *
-         (1.0f + lam[2] * expf(lam[3] * gamma) + lam[4] * cosf(gamma) * cosf(gamma));
-}
-
-static void sky_texture_precompute_preetham(SunSky *sunsky,
-                                            const float3 dir,
-                                            const float turbidity)
-{
-  /*
-   * We re-use the SunSky struct of the new model, to avoid extra variables
-   * zenith_Y/x/y is now radiance_x/y/z
-   * perez_Y/x/y is now config_x/y/z
-   */
-
-  const float2 spherical = sky_spherical_coordinates(dir);
-  const float theta = spherical.x;
-  const float phi = spherical.y;
-
-  sunsky->theta = theta;
-  sunsky->phi = phi;
-
-  const float theta2 = theta * theta;
-  const float theta3 = theta2 * theta;
-  const float T = turbidity;
-  const float T2 = T * T;
-
-  const float chi = (4.0f / 9.0f - T / 120.0f) * (M_PI_F - 2.0f * theta);
-  sunsky->radiance_x = (4.0453f * T - 4.9710f) * tanf(chi) - 0.2155f * T + 2.4192f;
-  sunsky->radiance_x *= 0.06f;
-
-  sunsky->radiance_y = (0.00166f * theta3 - 0.00375f * theta2 + 0.00209f * theta) * T2 +
-                       (-0.02903f * theta3 + 0.06377f * theta2 - 0.03202f * theta + 0.00394f) * T +
-                       (0.11693f * theta3 - 0.21196f * theta2 + 0.06052f * theta + 0.25886f);
-
-  sunsky->radiance_z = (0.00275f * theta3 - 0.00610f * theta2 + 0.00317f * theta) * T2 +
-                       (-0.04214f * theta3 + 0.08970f * theta2 - 0.04153f * theta + 0.00516f) * T +
-                       (0.15346f * theta3 - 0.26756f * theta2 + 0.06670f * theta + 0.26688f);
-
-  sunsky->config_x[0] = (0.1787f * T - 1.4630f);
-  sunsky->config_x[1] = (-0.3554f * T + 0.4275f);
-  sunsky->config_x[2] = (-0.0227f * T + 5.3251f);
-  sunsky->config_x[3] = (0.1206f * T - 2.5771f);
-  sunsky->config_x[4] = (-0.0670f * T + 0.3703f);
-
-  sunsky->config_y[0] = (-0.0193f * T - 0.2592f);
-  sunsky->config_y[1] = (-0.0665f * T + 0.0008f);
-  sunsky->config_y[2] = (-0.0004f * T + 0.2125f);
-  sunsky->config_y[3] = (-0.0641f * T - 0.8989f);
-  sunsky->config_y[4] = (-0.0033f * T + 0.0452f);
-
-  sunsky->config_z[0] = (-0.0167f * T - 0.2608f);
-  sunsky->config_z[1] = (-0.0950f * T + 0.0092f);
-  sunsky->config_z[2] = (-0.0079f * T + 0.2102f);
-  sunsky->config_z[3] = (-0.0441f * T - 1.6537f);
-  sunsky->config_z[4] = (-0.0109f * T + 0.0529f);
-
-  /* unused for old sky model */
-  for (int i = 5; i < 9; i++) {
-    sunsky->config_x[i] = 0.0f;
-    sunsky->config_y[i] = 0.0f;
-    sunsky->config_z[i] = 0.0f;
-  }
-
-  sunsky->radiance_x /= sky_perez_function(sunsky->config_x, 0, theta);
-  sunsky->radiance_y /= sky_perez_function(sunsky->config_y, 0, theta);
-  sunsky->radiance_z /= sky_perez_function(sunsky->config_z, 0, theta);
-}
-
-/* Hosek / Wilkie */
-static void sky_texture_precompute_hosek(SunSky *sunsky,
-                                         const float3 dir,
-                                         float turbidity,
-                                         const float ground_albedo)
-{
-  /* Calculate Sun Direction and save coordinates */
-  const float2 spherical = sky_spherical_coordinates(dir);
-  float theta = spherical.x;
-  const float phi = spherical.y;
-
-  /* Clamp Turbidity */
-  turbidity = clamp(turbidity, 0.0f, 10.0f);
-
-  /* Clamp to Horizon */
-  theta = clamp(theta, 0.0f, M_PI_2_F);
-
-  sunsky->theta = theta;
-  sunsky->phi = phi;
-
-  const float solarElevation = M_PI_2_F - theta;
-
-  /* Initialize Sky Model */
-  SKY_ArHosekSkyModelState *sky_state;
-  sky_state = SKY_arhosek_xyz_skymodelstate_alloc_init(
-      (double)turbidity, (double)ground_albedo, (double)solarElevation);
-
-  /* Copy values from sky_state to SunSky */
-  for (int i = 0; i < 9; ++i) {
-    sunsky->config_x[i] = (float)sky_state->configs[0][i];
-    sunsky->config_y[i] = (float)sky_state->configs[1][i];
-    sunsky->config_z[i] = (float)sky_state->configs[2][i];
-  }
-  sunsky->radiance_x = (float)sky_state->radiances[0];
-  sunsky->radiance_y = (float)sky_state->radiances[1];
-  sunsky->radiance_z = (float)sky_state->radiances[2];
-
-  /* Free sky_state */
-  SKY_arhosekskymodelstate_free(sky_state);
-}
 
 /* Nishita improved */
 static void sky_texture_precompute_nishita(SunSky *sunsky,
@@ -856,14 +739,9 @@ NODE_DEFINE(SkyTextureNode)
   TEXTURE_MAPPING_DEFINE(SkyTextureNode);
 
   static NodeEnum type_enum;
-  type_enum.insert("preetham", NODE_SKY_PREETHAM);
-  type_enum.insert("hosek_wilkie", NODE_SKY_HOSEK);
   type_enum.insert("nishita_improved", NODE_SKY_NISHITA);
   SOCKET_ENUM(sky_type, "Type", type_enum, NODE_SKY_NISHITA);
 
-  SOCKET_VECTOR(sun_direction, "Sun Direction", make_float3(0.0f, 0.0f, 1.0f));
-  SOCKET_FLOAT(turbidity, "Turbidity", 2.2f);
-  SOCKET_FLOAT(ground_albedo, "Ground Albedo", 0.3f);
   SOCKET_BOOLEAN(sun_disc, "Sun Disc", true);
   SOCKET_FLOAT(sun_size, "Sun Size", 0.009512f);
   SOCKET_FLOAT(sun_intensity, "Sun Intensity", 1.0f);
@@ -920,96 +798,48 @@ void SkyTextureNode::compile(SVMCompiler &compiler)
   ShaderOutput *color_out = output("Color");
 
   SunSky sunsky;
-  if (sky_type == NODE_SKY_PREETHAM) {
-    sky_texture_precompute_preetham(&sunsky, sun_direction, turbidity);
-  }
-  else if (sky_type == NODE_SKY_HOSEK) {
-    sky_texture_precompute_hosek(&sunsky, sun_direction, turbidity, ground_albedo);
-  }
-  else if (sky_type == NODE_SKY_NISHITA) {
-    /* Clamp altitude to reasonable values.
-     * Below 1m causes numerical issues and above 60km is space. */
-    const float clamped_altitude = clamp(altitude, 1.0f, 59999.0f);
+  /* Clamp altitude to reasonable values.
+   * Below 1m causes numerical issues and above 60km is space. */
+  const float clamped_altitude = clamp(altitude, 1.0f, 59999.0f);
 
-    sky_texture_precompute_nishita(&sunsky,
-                                   sun_disc,
-                                   get_sun_size(),
-                                   sun_intensity,
-                                   sun_elevation,
-                                   sun_rotation,
-                                   clamped_altitude,
-                                   air_density,
-                                   dust_density);
-    /* precomputed texture image parameters */
-    ImageManager *image_manager = compiler.scene->image_manager.get();
-    ImageParams impar;
-    impar.interpolation = INTERPOLATION_LINEAR;
-    impar.extension = EXTENSION_EXTEND;
+  sky_texture_precompute_nishita(&sunsky,
+                                 sun_disc,
+                                 get_sun_size(),
+                                 sun_intensity,
+                                 sun_elevation,
+                                 sun_rotation,
+                                 clamped_altitude,
+                                 air_density,
+                                 dust_density);
+  /* precomputed texture image parameters */
+  ImageManager *image_manager = compiler.scene->image_manager.get();
+  ImageParams impar;
+  impar.interpolation = INTERPOLATION_LINEAR;
+  impar.extension = EXTENSION_EXTEND;
 
-    /* precompute sky texture */
-    if (handle.empty()) {
-      unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(
-          sun_elevation, clamped_altitude, air_density, dust_density, ozone_density);
-      handle = image_manager->add_image(std::move(loader), impar);
-    }
-  }
-  else {
-    assert(false);
+  /* precompute sky texture */
+  if (handle.empty()) {
+    unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(
+        sun_elevation, clamped_altitude, air_density, dust_density, ozone_density);
+    handle = image_manager->add_image(std::move(loader), impar);
   }
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
 
   compiler.stack_assign(color_out);
   compiler.add_node(NODE_TEX_SKY, vector_offset, compiler.stack_assign(color_out), sky_type);
-  /* nishita doesn't need this data */
-  if (sky_type != NODE_SKY_NISHITA) {
-    compiler.add_node(__float_as_uint(sunsky.phi),
-                      __float_as_uint(sunsky.theta),
-                      __float_as_uint(sunsky.radiance_x),
-                      __float_as_uint(sunsky.radiance_y));
-    compiler.add_node(__float_as_uint(sunsky.radiance_z),
-                      __float_as_uint(sunsky.config_x[0]),
-                      __float_as_uint(sunsky.config_x[1]),
-                      __float_as_uint(sunsky.config_x[2]));
-    compiler.add_node(__float_as_uint(sunsky.config_x[3]),
-                      __float_as_uint(sunsky.config_x[4]),
-                      __float_as_uint(sunsky.config_x[5]),
-                      __float_as_uint(sunsky.config_x[6]));
-    compiler.add_node(__float_as_uint(sunsky.config_x[7]),
-                      __float_as_uint(sunsky.config_x[8]),
-                      __float_as_uint(sunsky.config_y[0]),
-                      __float_as_uint(sunsky.config_y[1]));
-    compiler.add_node(__float_as_uint(sunsky.config_y[2]),
-                      __float_as_uint(sunsky.config_y[3]),
-                      __float_as_uint(sunsky.config_y[4]),
-                      __float_as_uint(sunsky.config_y[5]));
-    compiler.add_node(__float_as_uint(sunsky.config_y[6]),
-                      __float_as_uint(sunsky.config_y[7]),
-                      __float_as_uint(sunsky.config_y[8]),
-                      __float_as_uint(sunsky.config_z[0]));
-    compiler.add_node(__float_as_uint(sunsky.config_z[1]),
-                      __float_as_uint(sunsky.config_z[2]),
-                      __float_as_uint(sunsky.config_z[3]),
-                      __float_as_uint(sunsky.config_z[4]));
-    compiler.add_node(__float_as_uint(sunsky.config_z[5]),
-                      __float_as_uint(sunsky.config_z[6]),
-                      __float_as_uint(sunsky.config_z[7]),
-                      __float_as_uint(sunsky.config_z[8]));
-  }
-  else {
-    compiler.add_node(__float_as_uint(sunsky.nishita_data[0]),
-                      __float_as_uint(sunsky.nishita_data[1]),
-                      __float_as_uint(sunsky.nishita_data[2]),
-                      __float_as_uint(sunsky.nishita_data[3]));
-    compiler.add_node(__float_as_uint(sunsky.nishita_data[4]),
-                      __float_as_uint(sunsky.nishita_data[5]),
-                      __float_as_uint(sunsky.nishita_data[6]),
-                      __float_as_uint(sunsky.nishita_data[7]));
-    compiler.add_node(__float_as_uint(sunsky.nishita_data[8]),
-                      __float_as_uint(sunsky.nishita_data[9]),
-                      handle.svm_slot(),
-                      0);
-  }
+  compiler.add_node(__float_as_uint(sunsky.nishita_data[0]),
+                    __float_as_uint(sunsky.nishita_data[1]),
+                    __float_as_uint(sunsky.nishita_data[2]),
+                    __float_as_uint(sunsky.nishita_data[3]));
+  compiler.add_node(__float_as_uint(sunsky.nishita_data[4]),
+                    __float_as_uint(sunsky.nishita_data[5]),
+                    __float_as_uint(sunsky.nishita_data[6]),
+                    __float_as_uint(sunsky.nishita_data[7]));
+  compiler.add_node(__float_as_uint(sunsky.nishita_data[8]),
+                    __float_as_uint(sunsky.nishita_data[9]),
+                    handle.svm_slot(),
+                    0);
 
   tex_mapping.compile_end(compiler, vector_in, vector_offset);
 }
@@ -1019,41 +849,30 @@ void SkyTextureNode::compile(OSLCompiler &compiler)
   tex_mapping.compile(compiler);
 
   SunSky sunsky;
-  if (sky_type == NODE_SKY_PREETHAM) {
-    sky_texture_precompute_preetham(&sunsky, sun_direction, turbidity);
-  }
-  else if (sky_type == NODE_SKY_HOSEK) {
-    sky_texture_precompute_hosek(&sunsky, sun_direction, turbidity, ground_albedo);
-  }
-  else if (sky_type == NODE_SKY_NISHITA) {
-    /* Clamp altitude to reasonable values.
-     * Below 1m causes numerical issues and above 60km is space. */
-    const float clamped_altitude = clamp(altitude, 1.0f, 59999.0f);
+  /* Clamp altitude to reasonable values.
+   * Below 1m causes numerical issues and above 60km is space. */
+  const float clamped_altitude = clamp(altitude, 1.0f, 59999.0f);
 
-    sky_texture_precompute_nishita(&sunsky,
-                                   sun_disc,
-                                   get_sun_size(),
-                                   sun_intensity,
-                                   sun_elevation,
-                                   sun_rotation,
-                                   clamped_altitude,
-                                   air_density,
-                                   dust_density);
-    /* precomputed texture image parameters */
-    ImageManager *image_manager = compiler.scene->image_manager.get();
-    ImageParams impar;
-    impar.interpolation = INTERPOLATION_LINEAR;
-    impar.extension = EXTENSION_EXTEND;
+  sky_texture_precompute_nishita(&sunsky,
+                                 sun_disc,
+                                 get_sun_size(),
+                                 sun_intensity,
+                                 sun_elevation,
+                                 sun_rotation,
+                                 clamped_altitude,
+                                 air_density,
+                                 dust_density);
+  /* precomputed texture image parameters */
+  ImageManager *image_manager = compiler.scene->image_manager.get();
+  ImageParams impar;
+  impar.interpolation = INTERPOLATION_LINEAR;
+  impar.extension = EXTENSION_EXTEND;
 
-    /* precompute sky texture */
-    if (handle.empty()) {
-      unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(
-          sun_elevation, clamped_altitude, air_density, dust_density, ozone_density);
-      handle = image_manager->add_image(std::move(loader), impar);
-    }
-  }
-  else {
-    assert(false);
+  /* precompute sky texture */
+  if (handle.empty()) {
+    unique_ptr<SkyLoader> loader = make_unique<SkyLoader>(
+        sun_elevation, clamped_altitude, air_density, dust_density, ozone_density);
+    handle = image_manager->add_image(std::move(loader), impar);
   }
 
   compiler.parameter(this, "sky_type");
@@ -1065,10 +884,7 @@ void SkyTextureNode::compile(OSLCompiler &compiler)
   compiler.parameter_array("config_y", sunsky.config_y, 9);
   compiler.parameter_array("config_z", sunsky.config_z, 9);
   compiler.parameter_array("nishita_data", sunsky.nishita_data, 10);
-  /* nishita texture */
-  if (sky_type == NODE_SKY_NISHITA) {
-    compiler.parameter_texture("filename", handle);
-  }
+  compiler.parameter_texture("filename", handle);
   compiler.add(this, "node_sky_texture");
 }
 
@@ -1854,156 +1670,6 @@ void BrickTextureNode::compile(OSLCompiler &compiler)
   compiler.parameter(this, "squash");
   compiler.parameter(this, "squash_frequency");
   compiler.add(this, "node_brick_texture");
-}
-
-/* Point Density Texture */
-
-NODE_DEFINE(PointDensityTextureNode)
-{
-  NodeType *type = NodeType::add("point_density_texture", create, NodeType::SHADER);
-
-  SOCKET_STRING(filename, "Filename", ustring());
-
-  static NodeEnum space_enum;
-  space_enum.insert("object", NODE_TEX_VOXEL_SPACE_OBJECT);
-  space_enum.insert("world", NODE_TEX_VOXEL_SPACE_WORLD);
-  SOCKET_ENUM(space, "Space", space_enum, NODE_TEX_VOXEL_SPACE_OBJECT);
-
-  static NodeEnum interpolation_enum;
-  interpolation_enum.insert("closest", INTERPOLATION_CLOSEST);
-  interpolation_enum.insert("linear", INTERPOLATION_LINEAR);
-  interpolation_enum.insert("cubic", INTERPOLATION_CUBIC);
-  interpolation_enum.insert("smart", INTERPOLATION_SMART);
-  SOCKET_ENUM(interpolation, "Interpolation", interpolation_enum, INTERPOLATION_LINEAR);
-
-  SOCKET_TRANSFORM(tfm, "Transform", transform_identity());
-
-  SOCKET_IN_POINT(vector, "Vector", zero_float3(), SocketType::LINK_POSITION);
-
-  SOCKET_OUT_FLOAT(density, "Density");
-  SOCKET_OUT_COLOR(color, "Color");
-
-  return type;
-}
-
-PointDensityTextureNode::PointDensityTextureNode() : ShaderNode(get_node_type()) {}
-
-PointDensityTextureNode::~PointDensityTextureNode() = default;
-
-ShaderNode *PointDensityTextureNode::clone(ShaderGraph *graph) const
-{
-  /* Increase image user count for new node. We need to ensure to not call
-   * add_image again, to work around access of freed data on the Blender
-   * side. A better solution should be found to avoid this. */
-  PointDensityTextureNode *node = graph->create_node<PointDensityTextureNode>(*this);
-  node->handle = handle; /* TODO: not needed? */
-  return node;
-}
-
-void PointDensityTextureNode::attributes(Shader *shader, AttributeRequestSet *attributes)
-{
-  if (shader->has_volume) {
-    attributes->add(ATTR_STD_GENERATED_TRANSFORM);
-  }
-
-  ShaderNode::attributes(shader, attributes);
-}
-
-ImageParams PointDensityTextureNode::image_params() const
-{
-  ImageParams params;
-  params.interpolation = interpolation;
-  return params;
-}
-
-void PointDensityTextureNode::compile(SVMCompiler &compiler)
-{
-  ShaderInput *vector_in = input("Vector");
-  ShaderOutput *density_out = output("Density");
-  ShaderOutput *color_out = output("Color");
-
-  const bool use_density = !density_out->links.empty();
-  const bool use_color = !color_out->links.empty();
-
-  if (!(use_density || use_color)) {
-    return;
-  }
-
-  /* Point Density is only supported for volume shaders. */
-  if (compiler.output_type() != SHADER_TYPE_VOLUME) {
-    if (use_density) {
-      compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), compiler.stack_assign(density_out));
-    }
-    if (use_color) {
-      compiler.add_node(NODE_VALUE_V, compiler.stack_assign(color_out));
-      compiler.add_node(NODE_VALUE_V, zero_float3());
-    }
-    return;
-  }
-
-  if (handle.empty()) {
-    ImageManager *image_manager = compiler.scene->image_manager.get();
-    handle = image_manager->add_image(filename.string(), image_params());
-  }
-
-  const int slot = handle.svm_slot();
-  if (slot != -1) {
-    compiler.stack_assign(vector_in);
-    compiler.add_node(NODE_TEX_VOXEL,
-                      slot,
-                      compiler.encode_uchar4(compiler.stack_assign(vector_in),
-                                             compiler.stack_assign_if_linked(density_out),
-                                             compiler.stack_assign_if_linked(color_out),
-                                             space));
-    if (space == NODE_TEX_VOXEL_SPACE_WORLD) {
-      compiler.add_node(tfm.x);
-      compiler.add_node(tfm.y);
-      compiler.add_node(tfm.z);
-    }
-  }
-  else {
-    if (use_density) {
-      compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), compiler.stack_assign(density_out));
-    }
-    if (use_color) {
-      compiler.add_node(NODE_VALUE_V, compiler.stack_assign(color_out));
-      compiler.add_node(
-          NODE_VALUE_V,
-          make_float3(TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B));
-    }
-  }
-}
-
-void PointDensityTextureNode::compile(OSLCompiler &compiler)
-{
-  ShaderOutput *density_out = output("Density");
-  ShaderOutput *color_out = output("Color");
-
-  const bool use_density = !density_out->links.empty();
-  const bool use_color = !color_out->links.empty();
-
-  if (!(use_density || use_color)) {
-    return;
-  }
-
-  /* Point Density is only supported for volume shaders. */
-  if (compiler.output_type() != SHADER_TYPE_VOLUME) {
-    compiler.add(this, "node_voxel_texture_zero");
-    return;
-  }
-
-  if (handle.empty()) {
-    ImageManager *image_manager = compiler.scene->image_manager.get();
-    handle = image_manager->add_image(filename.string(), image_params());
-  }
-
-  compiler.parameter_texture("filename", handle);
-  if (space == NODE_TEX_VOXEL_SPACE_WORLD) {
-    compiler.parameter("mapping", tfm);
-    compiler.parameter("use_mapping", 1);
-  }
-  compiler.parameter(this, "interpolation");
-  compiler.add(this, "node_voxel_texture");
 }
 
 /* Normal */
@@ -4688,8 +4354,9 @@ void ParticleInfoNode::attributes(Shader *shader, AttributeRequestSet *attribute
     attributes->add(ATTR_STD_PARTICLE);
   }
 #if 0 /* not yet supported */
-  if (!output("Rotation")->links.empty())
+  if (!output("Rotation")->links.empty()) {
     attributes->add(ATTR_STD_PARTICLE);
+  }
 #endif
   if (!output("Size")->links.empty()) {
     attributes->add(ATTR_STD_PARTICLE);
@@ -5690,52 +5357,6 @@ void CombineColorNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_combine_color");
 }
 
-/* Combine RGB */
-
-NODE_DEFINE(CombineRGBNode)
-{
-  NodeType *type = NodeType::add("combine_rgb", create, NodeType::SHADER);
-
-  SOCKET_IN_FLOAT(r, "R", 0.0f);
-  SOCKET_IN_FLOAT(g, "G", 0.0f);
-  SOCKET_IN_FLOAT(b, "B", 0.0f);
-
-  SOCKET_OUT_COLOR(image, "Image");
-
-  return type;
-}
-
-CombineRGBNode::CombineRGBNode() : ShaderNode(get_node_type()) {}
-
-void CombineRGBNode::constant_fold(const ConstantFolder &folder)
-{
-  if (folder.all_inputs_constant()) {
-    folder.make_constant(make_float3(r, g, b));
-  }
-}
-
-void CombineRGBNode::compile(SVMCompiler &compiler)
-{
-  ShaderInput *red_in = input("R");
-  ShaderInput *green_in = input("G");
-  ShaderInput *blue_in = input("B");
-  ShaderOutput *color_out = output("Image");
-
-  compiler.add_node(
-      NODE_COMBINE_VECTOR, compiler.stack_assign(red_in), 0, compiler.stack_assign(color_out));
-
-  compiler.add_node(
-      NODE_COMBINE_VECTOR, compiler.stack_assign(green_in), 1, compiler.stack_assign(color_out));
-
-  compiler.add_node(
-      NODE_COMBINE_VECTOR, compiler.stack_assign(blue_in), 2, compiler.stack_assign(color_out));
-}
-
-void CombineRGBNode::compile(OSLCompiler &compiler)
-{
-  compiler.add(this, "node_combine_rgb");
-}
-
 /* Combine XYZ */
 
 NODE_DEFINE(CombineXYZNode)
@@ -5780,49 +5401,6 @@ void CombineXYZNode::compile(SVMCompiler &compiler)
 void CombineXYZNode::compile(OSLCompiler &compiler)
 {
   compiler.add(this, "node_combine_xyz");
-}
-
-/* Combine HSV */
-
-NODE_DEFINE(CombineHSVNode)
-{
-  NodeType *type = NodeType::add("combine_hsv", create, NodeType::SHADER);
-
-  SOCKET_IN_FLOAT(h, "H", 0.0f);
-  SOCKET_IN_FLOAT(s, "S", 0.0f);
-  SOCKET_IN_FLOAT(v, "V", 0.0f);
-
-  SOCKET_OUT_COLOR(color, "Color");
-
-  return type;
-}
-
-CombineHSVNode::CombineHSVNode() : ShaderNode(get_node_type()) {}
-
-void CombineHSVNode::constant_fold(const ConstantFolder &folder)
-{
-  if (folder.all_inputs_constant()) {
-    folder.make_constant(hsv_to_rgb(make_float3(h, s, v)));
-  }
-}
-
-void CombineHSVNode::compile(SVMCompiler &compiler)
-{
-  ShaderInput *hue_in = input("H");
-  ShaderInput *saturation_in = input("S");
-  ShaderInput *value_in = input("V");
-  ShaderOutput *color_out = output("Color");
-
-  compiler.add_node(NODE_COMBINE_HSV,
-                    compiler.stack_assign(hue_in),
-                    compiler.stack_assign(saturation_in),
-                    compiler.stack_assign(value_in));
-  compiler.add_node(NODE_COMBINE_HSV, compiler.stack_assign(color_out));
-}
-
-void CombineHSVNode::compile(OSLCompiler &compiler)
-{
-  compiler.add(this, "node_combine_hsv");
 }
 
 /* Gamma */
@@ -5982,57 +5560,6 @@ void SeparateColorNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_separate_color");
 }
 
-/* Separate RGB */
-
-NODE_DEFINE(SeparateRGBNode)
-{
-  NodeType *type = NodeType::add("separate_rgb", create, NodeType::SHADER);
-
-  SOCKET_IN_COLOR(color, "Image", zero_float3());
-
-  SOCKET_OUT_FLOAT(r, "R");
-  SOCKET_OUT_FLOAT(g, "G");
-  SOCKET_OUT_FLOAT(b, "B");
-
-  return type;
-}
-
-SeparateRGBNode::SeparateRGBNode() : ShaderNode(get_node_type()) {}
-
-void SeparateRGBNode::constant_fold(const ConstantFolder &folder)
-{
-  if (folder.all_inputs_constant()) {
-    for (int channel = 0; channel < 3; channel++) {
-      if (outputs[channel] == folder.output) {
-        folder.make_constant(color[channel]);
-        return;
-      }
-    }
-  }
-}
-
-void SeparateRGBNode::compile(SVMCompiler &compiler)
-{
-  ShaderInput *color_in = input("Image");
-  ShaderOutput *red_out = output("R");
-  ShaderOutput *green_out = output("G");
-  ShaderOutput *blue_out = output("B");
-
-  compiler.add_node(
-      NODE_SEPARATE_VECTOR, compiler.stack_assign(color_in), 0, compiler.stack_assign(red_out));
-
-  compiler.add_node(
-      NODE_SEPARATE_VECTOR, compiler.stack_assign(color_in), 1, compiler.stack_assign(green_out));
-
-  compiler.add_node(
-      NODE_SEPARATE_VECTOR, compiler.stack_assign(color_in), 2, compiler.stack_assign(blue_out));
-}
-
-void SeparateRGBNode::compile(OSLCompiler &compiler)
-{
-  compiler.add(this, "node_separate_rgb");
-}
-
 /* Separate XYZ */
 
 NODE_DEFINE(SeparateXYZNode)
@@ -6082,56 +5609,6 @@ void SeparateXYZNode::compile(SVMCompiler &compiler)
 void SeparateXYZNode::compile(OSLCompiler &compiler)
 {
   compiler.add(this, "node_separate_xyz");
-}
-
-/* Separate HSV */
-
-NODE_DEFINE(SeparateHSVNode)
-{
-  NodeType *type = NodeType::add("separate_hsv", create, NodeType::SHADER);
-
-  SOCKET_IN_COLOR(color, "Color", zero_float3());
-
-  SOCKET_OUT_FLOAT(h, "H");
-  SOCKET_OUT_FLOAT(s, "S");
-  SOCKET_OUT_FLOAT(v, "V");
-
-  return type;
-}
-
-SeparateHSVNode::SeparateHSVNode() : ShaderNode(get_node_type()) {}
-
-void SeparateHSVNode::constant_fold(const ConstantFolder &folder)
-{
-  if (folder.all_inputs_constant()) {
-    float3 hsv = rgb_to_hsv(color);
-
-    for (int channel = 0; channel < 3; channel++) {
-      if (outputs[channel] == folder.output) {
-        folder.make_constant(hsv[channel]);
-        return;
-      }
-    }
-  }
-}
-
-void SeparateHSVNode::compile(SVMCompiler &compiler)
-{
-  ShaderInput *color_in = input("Color");
-  ShaderOutput *hue_out = output("H");
-  ShaderOutput *saturation_out = output("S");
-  ShaderOutput *value_out = output("V");
-
-  compiler.add_node(NODE_SEPARATE_HSV,
-                    compiler.stack_assign(color_in),
-                    compiler.stack_assign(hue_out),
-                    compiler.stack_assign(saturation_out));
-  compiler.add_node(NODE_SEPARATE_HSV, compiler.stack_assign(value_out));
-}
-
-void SeparateHSVNode::compile(OSLCompiler &compiler)
-{
-  compiler.add(this, "node_separate_hsv");
 }
 
 /* Hue/Saturation/Value */
@@ -6972,6 +6449,8 @@ NODE_DEFINE(VectorMathNode)
   type_enum.insert("wrap", NODE_VECTOR_MATH_WRAP);
   type_enum.insert("fraction", NODE_VECTOR_MATH_FRACTION);
   type_enum.insert("absolute", NODE_VECTOR_MATH_ABSOLUTE);
+  type_enum.insert("power", NODE_VECTOR_MATH_POWER);
+  type_enum.insert("sign", NODE_VECTOR_MATH_SIGN);
   type_enum.insert("minimum", NODE_VECTOR_MATH_MINIMUM);
   type_enum.insert("maximum", NODE_VECTOR_MATH_MAXIMUM);
 

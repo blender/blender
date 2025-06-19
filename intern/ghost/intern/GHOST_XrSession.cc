@@ -186,7 +186,7 @@ static void create_reference_spaces(OpenXRSessionData &oxr,
             "space. To use the stage reference space, please define a tracking space via the XR "
             "runtime.\n");
       }
-      /* Fallback to local space. */
+      /* Fall back to local space. */
       if (oxr.reference_space != XR_NULL_HANDLE) {
         CHECK_XR(xrDestroySpace(oxr.reference_space), "Failed to destroy stage reference space.");
       }

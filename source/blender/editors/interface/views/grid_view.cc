@@ -379,9 +379,7 @@ class GridViewLayoutBuilder {
   uiLayout *current_layout() const;
 };
 
-GridViewLayoutBuilder::GridViewLayoutBuilder(uiLayout &layout) : block_(*uiLayoutGetBlock(&layout))
-{
-}
+GridViewLayoutBuilder::GridViewLayoutBuilder(uiLayout &layout) : block_(*layout.block()) {}
 
 void GridViewLayoutBuilder::build_grid_tile(const bContext &C,
                                             uiLayout &grid_layout,
@@ -406,8 +404,8 @@ void GridViewLayoutBuilder::build_from_view(const bContext &C,
   /* We might not actually know the width available for the grid view. Let's just assume that
    * either there is a fixed width defined via #uiLayoutSetUnitsX() or that the layout is close to
    * the root level and inherits its width. Might need a more reliable method. */
-  const int guessed_layout_width = (uiLayoutGetUnitsX(parent_layout) > 0) ?
-                                       uiLayoutGetUnitsX(parent_layout) * UI_UNIT_X :
+  const int guessed_layout_width = (parent_layout->ui_units_x() > 0) ?
+                                       parent_layout->ui_units_x() * UI_UNIT_X :
                                        uiLayoutGetWidth(parent_layout);
   const int cols_per_row = std::max(guessed_layout_width / style.tile_width, 1);
 
@@ -456,7 +454,7 @@ void GridViewBuilder::build_grid_view(const bContext &C,
                                       uiLayout &layout,
                                       std::optional<StringRef> search_string)
 {
-  uiBlock &block = *uiLayoutGetBlock(&layout);
+  uiBlock &block = *layout.block();
 
   const ARegion *region = CTX_wm_region_popup(&C) ? CTX_wm_region_popup(&C) : CTX_wm_region(&C);
   ui_block_view_persistent_state_restore(*region, block, grid_view);
@@ -484,7 +482,7 @@ void PreviewGridItem::build_grid_tile_button(uiLayout &layout,
                                              BIFIconID override_preview_icon_id) const
 {
   const GridViewStyle &style = this->get_view().get_style();
-  uiBlock *block = uiLayoutGetBlock(&layout);
+  uiBlock *block = layout.block();
 
   UI_but_func_quick_tooltip_set(this->view_item_button(),
                                 [this](const uiBut * /*but*/) { return label; });

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21444,160 +21444,12 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
 msgid "Clean Up"
 msgstr "Limpeza"
 
 
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Merge"
-msgstr "Fundir"
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
 
 
 msgid "Special Characters"
@@ -21608,16 +21460,164 @@ msgid "Text"
 msgstr "Texto"
 
 
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
+
+
+msgid "Merge"
+msgstr "Fundir"
 
 
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
 
+msgid "Snap"
+msgstr "Atrair"
+
+
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
 
 
 msgid "Basic"
@@ -26781,6 +26781,10 @@ msgid "Influence of this track on 2D stabilization"
 msgstr "Influência desta trilha na estabilização 2D."
 
 
+msgid "Starting"
+msgstr "Iniciando"
+
+
 msgid "NLA Strip"
 msgstr "Faixa de animação não linear"
 
@@ -27085,10 +27089,6 @@ msgid "Aspect Correction"
 msgstr "Correção de aspecto"
 
 
-msgid "Type of aspect correction to use"
-msgstr "Tipo de correção de aspecto para usar."
-
-
 msgid "Relative Size X"
 msgstr "Tamanho relativo X"
 
@@ -27101,20 +27101,8 @@ msgid "Bokeh"
 msgstr "Flocagem"
 
 
-msgid "Use circular filter (slower)"
-msgstr "Usa um filtro circular (mais lento)."
-
-
 msgid "Extend Bounds"
 msgstr "Estender as extremidades"
-
-
-msgid "Extend bounds of the input image to fully fit blurred image"
-msgstr "Estende as extremidades da imagem de entrada para preencher completamente a imagem desfocada."
-
-
-msgid "Use relative (percent) values to define blur radius"
-msgstr "Usa valores relativos (percentagem) para definir o raio de desfoque."
 
 
 msgid "Variable Size"
@@ -37875,10 +37863,6 @@ msgid "Dissolve edges, merging faces"
 msgstr "Dissolve as arestas, fundindo as faces."
 
 
-msgid "Dissolve remaining vertices"
-msgstr "Dissolve os vértices remanescentes."
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "Dissolver faces"
@@ -44934,10 +44918,6 @@ msgid "Expand/Collapse Header Menus"
 msgstr "Expandir ou encolher os menus do cabeçalho"
 
 
-msgid "Expand or collapse the header pulldown menus"
-msgstr "Permite expandir ou encolher os menus de cabeçalho suspensos."
-
-
 msgctxt "Operator"
 msgid "Jump to Marker"
 msgstr "Saltar para marcador"
@@ -45321,11 +45301,6 @@ msgstr "Usa o método Classes de Humphrey para relaxamento."
 
 
 msgctxt "Operator"
-msgid "Change Effect Input"
-msgstr "Alterar as entradas de efeito"
-
-
-msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Alterar os tipos de efeito"
 
@@ -45335,21 +45310,9 @@ msgid "Type"
 msgstr "Tipo"
 
 
-msgid "Sequencer effect type"
-msgstr "Tipos de efeito para o editor de sequências."
-
-
-msgid "Crossfade effect strip type"
-msgstr "Faixa de efeito tipo esmaecimento cruzado."
-
-
 msgctxt "Sequence"
 msgid "Add"
 msgstr "Adicionar"
-
-
-msgid "Add effect strip type"
-msgstr "Permite adicionar alguma faixa de efeito dentre os tipos disponíveis."
 
 
 msgctxt "Sequence"
@@ -45357,17 +45320,9 @@ msgid "Subtract"
 msgstr "Subtrair"
 
 
-msgid "Subtract effect strip type"
-msgstr "Faixa de efeito tipo subtração."
-
-
 msgctxt "Sequence"
 msgid "Alpha Over"
 msgstr "Alfa por cima"
-
-
-msgid "Alpha Over effect strip type"
-msgstr "Faixa de efeito tipo alfa por cima."
 
 
 msgctxt "Sequence"
@@ -45375,26 +45330,9 @@ msgid "Alpha Under"
 msgstr "Alfa por baixo"
 
 
-msgid "Alpha Under effect strip type"
-msgstr "Faixa de efeito tipo alfa por baixo."
-
-
-msgctxt "Sequence"
-msgid "Gamma Cross"
-msgstr "Cruzar por gama"
-
-
-msgid "Gamma Cross effect strip type"
-msgstr "Faixa de efeito tipo cruzar por gama."
-
-
 msgctxt "Sequence"
 msgid "Multiply"
 msgstr "Multiplicar"
-
-
-msgid "Multiply effect strip type"
-msgstr "Faixa de efeito tipo multiplicar."
 
 
 msgctxt "Sequence"
@@ -45402,17 +45340,9 @@ msgid "Wipe"
 msgstr "Varredura"
 
 
-msgid "Wipe effect strip type"
-msgstr "Faixa de efeito do tipo varredura."
-
-
 msgctxt "Sequence"
 msgid "Glow"
 msgstr "Incandescência"
-
-
-msgid "Glow effect strip type"
-msgstr "Faixa de efeito tipo incandescência."
 
 
 msgctxt "Sequence"
@@ -45420,17 +45350,9 @@ msgid "Transform"
 msgstr "Transformar"
 
 
-msgid "Transform effect strip type"
-msgstr "Faixa de efeito tipo transformar."
-
-
 msgctxt "Sequence"
 msgid "Color"
 msgstr "Cor"
-
-
-msgid "Color effect strip type"
-msgstr "Faixa de efeito tipo cor."
 
 
 msgctxt "Sequence"
@@ -45524,6 +45446,10 @@ msgstr "Não corrige as sobreposições em novas faixas de sequência."
 
 msgid "Replace Selection"
 msgstr "Sobrepor seleção"
+
+
+msgid "Sequencer effect type"
+msgstr "Tipos de efeito para o editor de sequências."
 
 
 msgctxt "Operator"
@@ -49769,6 +49695,10 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
@@ -49783,10 +49713,6 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"
@@ -52189,12 +52115,8 @@ msgid "Helicopter Mode"
 msgstr "Modo de helicóptero"
 
 
-msgid "Lock Horizon"
-msgstr "Travar no horizonte"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "Mantém o nível do horizonte durante o voo com o mouse 3D."
+msgid "NDOF View Navigate"
+msgstr "NDOF - Navegação da visualização"
 
 
 msgid "Orbit Sensitivity"
@@ -52203,14 +52125,6 @@ msgstr "Sensibilidade de órbita"
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "Sensibilidade geral do mouse 3D para movimentar em órbita."
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Trocar os eixos Y e Z"
-
-
-msgid "Pan using up/down on the device (otherwise forward/backward)"
-msgstr "Panorama usado acima ou abaixo no dispositivo (caso contrário, apontado para frente ou para trás)."
 
 
 msgid "Invert X Axis"
@@ -52243,50 +52157,6 @@ msgstr "Sensibilidade geral do mouse 3D para movimentar em panorama."
 
 msgid "Display the center and axis during rotation"
 msgstr "Mostra o centro e o eixo durante a rotação."
-
-
-msgid "NDOF View Navigate"
-msgstr "NDOF - Navegação da visualização"
-
-
-msgid "Navigation style in the viewport"
-msgstr "Estilo de navegação na janela de exibição."
-
-
-msgid "Use full 6 degrees of freedom by default"
-msgstr "Usa os 6 graus de liberdade plenos por padrão."
-
-
-msgid "Orbit about the view center by default"
-msgstr "Orbita em torno do centro de visão por padrão."
-
-
-msgid "NDOF View Rotation"
-msgstr "NDOF - Rotação da visualização"
-
-
-msgid "Rotation style in the viewport"
-msgstr "Estilo de rotação na janela de exibição."
-
-
-msgid "Turntable"
-msgstr "Mesa rotativa"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Usa a rotação em estilo de mesa rotativa dentro da janela de exibição."
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "Usa a rotação tipo bola de tração na janela de exibição."
-
-
-msgid "Invert Zoom"
-msgstr "Inverter a ampliação"
-
-
-msgid "Zoom using opposite direction"
-msgstr "Permite a ampliação usando a direção oposta."
 
 
 msgid "Softness"
@@ -52335,6 +52205,10 @@ msgstr "Usa a seleção como o ponto de pivô."
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center"
 msgstr "Amplia na direção do ponteiro do mouse dentro da janela de visualização 3D, ao invés do centro da janela 2D."
+
+
+msgid "Turntable"
+msgstr "Mesa rotativa"
 
 
 msgid "Zoom Axis"
@@ -52991,10 +52865,6 @@ msgstr "Linhas mais espessas que o padrão."
 
 msgid "Changes the size of the fonts and widgets in the interface"
 msgstr "Altera o tamanho das fontes e botões na interface"
-
-
-msgid "Open menu buttons and pulldowns automatically when the mouse is hovering"
-msgstr "Abre os botões de menu e menus suspensos automaticamente quando o ponteiro do mouse pairar sobre eles."
 
 
 msgid "Text Anti-Aliasing"
@@ -57728,11 +57598,6 @@ msgid "Sound"
 msgstr "Som"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Cruzar"
-
-
 msgid "Use Default Fade"
 msgstr "Usar esmaecimento padrão"
 
@@ -57843,10 +57708,6 @@ msgstr "Faixa de sequência criando uma imagem preenchida com uma cor única."
 
 msgid "Effect Strip color"
 msgstr "Cor da faixa de efeito"
-
-
-msgid "Cross Sequence"
-msgstr "Sequência tipo cruzar"
 
 
 msgid "Sequence strip creating a gaussian blur"
@@ -63038,16 +62899,6 @@ msgstr "Cena..."
 
 
 msgctxt "Operator"
-msgid "Cross"
-msgstr "Cruzar"
-
-
-msgctxt "Operator"
-msgid "Gamma Cross"
-msgstr "Cruzar por gama"
-
-
-msgctxt "Operator"
 msgid "Wipe"
 msgstr "Varredura"
 
@@ -63533,10 +63384,6 @@ msgid "Zoom Method"
 msgstr "Método de Zoom"
 
 
-msgid "Pan Sensitivity"
-msgstr "Sensibilidade para panorama"
-
-
 msgctxt "Operator"
 msgid "Save as Studio light"
 msgstr "Salvar como Luz de Estúdio"
@@ -63544,6 +63391,14 @@ msgstr "Salvar como Luz de Estúdio"
 
 msgid "Invert Wheel Zoom Direction"
 msgstr "Inverter ampliação pela roda do mouse"
+
+
+msgid "Lock Horizon"
+msgstr "Travar no horizonte"
+
+
+msgid "Pan Sensitivity"
+msgstr "Sensibilidade para panorama"
 
 
 msgid "Error (see console)"
@@ -68196,20 +68051,8 @@ msgid "File '%s' could not be loaded"
 msgstr "Arquivo '%s' não pode ser carregado."
 
 
-msgid "No valid inputs to swap"
-msgstr "Sem entradas válidas para trocar."
-
-
 msgid "Please select two strips"
 msgstr "Por favor, selecione duas faixas."
-
-
-msgid "One of the effect inputs is unset, cannot swap"
-msgstr "Uma das entradas de faixas de efeito não está configurada, não é possível trocar."
-
-
-msgid "New effect needs more input strips"
-msgstr "Novos efeitos necessitam de mais faixas de entrada."
 
 
 msgid "Can't create subtitle file"
@@ -70183,160 +70026,4 @@ msgstr "Todos os complementos instalados pelo usuário"
 
 msgid "Import-Export"
 msgstr "Importar e exportar"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japonês (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Italiano (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Alemão (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finlandês (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Sueco (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Francês (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Espanhol (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Catalão (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Português (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Chinês simplificado (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Chinês tradicional (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Russo (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Croata (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Sérvio (Српски)"
-
-
-msgid "Polish (Polski)"
-msgstr "Polonês (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Romeno (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Árabe (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Búlgaro (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Grego (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepalês (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Pérsico (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonesiano (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Latim Sérvio (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Quirguistanês (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turco (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Húngaro (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Português do Brasil (Português do Brasil)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amárico (Etiópia) (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbeque (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Uzbeque Cirílico (Ўзбек)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "Hausa (Hausa)"
-
-
-msgid "Abkhaz (Аԥсуа бызшәа)"
-msgstr "Abcázio (Аԥсуа бызшәа)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Tailandês (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Eslovaco (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "Georgiano (ქართული)"
-
-
-msgid "Complete"
-msgstr "Completo"
-
-
-msgid "In Progress"
-msgstr "Em progresso"
-
-
-msgid "Starting"
-msgstr "Iniciando"
 

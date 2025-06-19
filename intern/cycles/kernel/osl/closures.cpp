@@ -83,7 +83,7 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
                                          const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
+  shaderdata_to_shaderglobals(sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;
@@ -168,7 +168,7 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
       sd->P = P;
       sd->dP = dP;
 
-      /* Apply bump output to sd->N since it's used for e.g. shadow terminator logic. */
+      /* Apply bump output to sd->N since it's used for shadow terminator logic, for example. */
       sd->N = TO_FLOAT3(globals->N);
 
       globals->P = TO_VEC3(P);
@@ -203,7 +203,7 @@ void osl_eval_nodes<SHADER_TYPE_VOLUME>(const ThreadKernelGlobalsCPU *kg,
                                         const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
+  shaderdata_to_shaderglobals(sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;
@@ -250,7 +250,7 @@ void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const ThreadKernelGlobalsCPU *kg,
                                               const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
+  shaderdata_to_shaderglobals(sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;
@@ -298,7 +298,7 @@ packed_float3 osl_eval_camera(const ThreadKernelGlobalsCPU *kg,
     return zero_spectrum();
   }
 
-  /* Setup shader globals from from the sensor position. */
+  /* Setup shader globals from the sensor position. */
   cameradata_to_shaderglobals(sensor, dSdx, dSdy, rand_lens, &kg->osl.shader_globals);
 
   /* Clear trace data. */

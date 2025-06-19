@@ -6,12 +6,14 @@
  * \ingroup edcurves
  */
 
+#include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
+#include "DNA_key_types.h"
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_object.hh"
@@ -191,8 +193,7 @@ static const ImplicitSharingInfo *get_vertex_group_sharing_info(const Mesh &mesh
  * explicitly compare it.
  */
 class MeshState {
-  VectorSet<const ImplicitSharingInfo *> sharing_infos_;
-  const ImplicitSharingInfo *vertex_group_sharing_info_ = nullptr;
+  VectorSet<ImplicitSharingPtr<>> sharing_infos_;
 
  public:
   MeshState(const Mesh &mesh)
@@ -216,21 +217,64 @@ class MeshState {
 
   void freeze_shared_state(const ImplicitSharingInfo &sharing_info)
   {
-    if (sharing_infos_.add(&sharing_info)) {
+    if (sharing_infos_.add(ImplicitSharingPtr<>{&sharing_info})) {
       sharing_info.add_user();
     }
   }
-
-  ~MeshState()
-  {
-    for (const ImplicitSharingInfo *sharing_info : sharing_infos_) {
-      sharing_info->remove_user_and_delete_if_last();
-    }
-    if (vertex_group_sharing_info_) {
-      vertex_group_sharing_info_->remove_user_and_delete_if_last();
-    }
-  }
 };
+
+static std::string shape_key_attribute_name(const KeyBlock &kb)
+{
+  return fmt::format(".kb:{}", kb.name);
+}
+
+/** Support shape keys by propagating them through geometry nodes as attributes. */
+static void add_shape_keys_as_attributes(Mesh &mesh, const Key &key)
+{
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  LISTBASE_FOREACH (const KeyBlock *, kb, &key.block) {
+    if (kb == key.refkey) {
+      /* The basis key will just receive values from the mesh positions. */
+      continue;
+    }
+    const Span<float3> key_data(static_cast<float3 *>(kb->data), kb->totelem);
+    attributes.add<float3>(shape_key_attribute_name(*kb),
+                           bke::AttrDomain::Point,
+                           bke::AttributeInitVArray(VArray<float3>::ForSpan(key_data)));
+  }
+}
+
+/* Copy shape key attributes back to the key data-block. */
+static void store_attributes_to_shape_keys(const Mesh &mesh, Key &key)
+{
+  const bke::AttributeAccessor attributes = mesh.attributes();
+  LISTBASE_FOREACH (KeyBlock *, kb, &key.block) {
+    const VArray attr = *attributes.lookup<float3>(shape_key_attribute_name(*kb),
+                                                   bke::AttrDomain::Point);
+    if (!attr) {
+      continue;
+    }
+    MEM_freeN(kb->data);
+    kb->data = MEM_malloc_arrayN(attr.size(), sizeof(float3), __func__);
+    kb->totelem = attr.size();
+    attr.materialize({static_cast<float3 *>(kb->data), attr.size()});
+  }
+  if (KeyBlock *kb = key.refkey) {
+    const Span<float3> positions = mesh.vert_positions();
+    MEM_freeN(kb->data);
+    kb->data = MEM_malloc_arrayN(positions.size(), sizeof(float3), __func__);
+    kb->totelem = positions.size();
+    array_utils::copy(positions, MutableSpan(static_cast<float3 *>(kb->data), positions.size()));
+  }
+}
+
+static void remove_shape_key_attributes(Mesh &mesh, const Key &key)
+{
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  LISTBASE_FOREACH (KeyBlock *, kb, &key.block) {
+    attributes.remove(shape_key_attribute_name(*kb));
+  }
+}
 
 /**
  * Geometry nodes currently requires working on "evaluated" data-blocks (rather than "original"
@@ -254,23 +298,31 @@ static bke::GeometrySet get_original_geometry_eval_copy(Depsgraph &depsgraph,
       return bke::GeometrySet::from_pointcloud(points);
     }
     case OB_MESH: {
-      const Mesh *mesh = static_cast<const Mesh *>(object.data);
+      Mesh *mesh = static_cast<Mesh *>(object.data);
+
       if (std::shared_ptr<BMEditMesh> &em = mesh->runtime->edit_mesh) {
         operator_data.active_point_index = BM_mesh_active_vert_index_get(em->bm);
         operator_data.active_edge_index = BM_mesh_active_edge_index_get(em->bm);
         operator_data.active_face_index = BM_mesh_active_face_index_get(em->bm, false, true);
-        Mesh *mesh_copy = BKE_mesh_wrapper_from_editmesh(em, nullptr, mesh);
-        BKE_mesh_wrapper_ensure_mdata(mesh_copy);
-        Mesh *final_copy = BKE_mesh_copy_for_eval(*mesh_copy);
-        BKE_id_free(nullptr, mesh_copy);
-        return bke::GeometrySet::from_mesh(final_copy);
+        EDBM_mesh_load_ex(DEG_get_bmain(&depsgraph), &object, true);
+        EDBM_mesh_free_data(mesh->runtime->edit_mesh.get());
+        em->bm = nullptr;
       }
+
       if (bke::pbvh::Tree *pbvh = bke::object::pbvh_get(object)) {
         /* Currently many sculpt mode operations do not tag normals dirty (see use of
          * #Mesh::tag_positions_changed_no_normals()), so access within geometry nodes cannot
          * know that normals are out of date and recalculate them. Update them here instead. */
         bke::pbvh::update_normals(depsgraph, object, *pbvh);
       }
+
+      if (Key *key = mesh->key) {
+        /* Add the shape key attributes to the original mesh before the evaluated copy. Applying
+         * the result of the operator in sculpt mode uses the attributes on the original mesh to
+         * detect which changes. */
+        add_shape_keys_as_attributes(*mesh, *key);
+      }
+
       Mesh *mesh_copy = BKE_mesh_copy_for_eval(*mesh);
       orig_mesh_states.append_as(*mesh_copy);
       return bke::GeometrySet::from_mesh(mesh_copy);
@@ -321,7 +373,7 @@ static void store_result_geometry(const bContext &C,
       PointCloud *new_points =
           geometry.get_component_for_write<bke::PointCloudComponent>().release();
       if (!new_points) {
-        CustomData_free(&points.pdata);
+        new_points->attribute_storage.wrap() = {};
         points.totpoint = 0;
         break;
       }
@@ -337,8 +389,6 @@ static void store_result_geometry(const bContext &C,
     case OB_MESH: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
 
-      const bool has_shape_keys = mesh.key != nullptr;
-
       Mesh *new_mesh = geometry.get_component_for_write<bke::MeshComponent>().release();
       if (new_mesh) {
         /* Anonymous attributes shouldn't be available on the applied geometry. */
@@ -349,23 +399,38 @@ static void store_result_geometry(const bContext &C,
         new_mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
       }
 
-      if (object.mode == OB_MODE_SCULPT) {
-        sculpt_paint::store_mesh_from_eval(op, scene, depsgraph, rv3d, object, new_mesh);
-      }
-      else if (object.mode == OB_MODE_EDIT) {
-        EDBM_mesh_make_from_mesh(&object, new_mesh, scene.toolsettings->selectmode, true);
-        BKE_editmesh_looptris_and_normals_calc(mesh.runtime->edit_mesh.get());
-        BKE_id_free(nullptr, new_mesh);
-        DEG_id_tag_update(&mesh.id, ID_RECALC_GEOMETRY);
-      }
-      else {
-        BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object);
-        DEG_id_tag_update(&mesh.id, ID_RECALC_GEOMETRY);
+      if (Key *key = mesh.key) {
+        /* Copy the evaluated shape key attributes back to the key data-block. */
+        store_attributes_to_shape_keys(*new_mesh, *key);
       }
 
-      if (has_shape_keys && !mesh.key) {
-        BKE_report(op.reports, RPT_WARNING, "Mesh shape key data removed");
+      if (object.mode == OB_MODE_SCULPT) {
+        sculpt_paint::store_mesh_from_eval(op, scene, depsgraph, rv3d, object, new_mesh);
+        if (Key *key = mesh.key) {
+          /* Make sure to free the shape key attributes after `sculpt_paint::store_mesh_from_eval`
+           * because that uses the attributes to detect changes, for a critical performance
+           * optimization when only changing specific attributes. */
+          remove_shape_key_attributes(mesh, *key);
+        }
       }
+      else {
+        if (Key *key = mesh.key) {
+          /* Make sure to free the attributes before converting to #BMesh for edit mode; removing
+           * attributes on #BMesh requires reallocating the dynamic AoS storage.*/
+          remove_shape_key_attributes(*new_mesh, *key);
+        }
+        if (object.mode == OB_MODE_EDIT) {
+          EDBM_mesh_make_from_mesh(&object, new_mesh, scene.toolsettings->selectmode, true);
+          BKE_editmesh_looptris_and_normals_calc(mesh.runtime->edit_mesh.get());
+          BKE_id_free(nullptr, new_mesh);
+          DEG_id_tag_update(&mesh.id, ID_RECALC_GEOMETRY);
+        }
+        else {
+          BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object, false);
+          DEG_id_tag_update(&mesh.id, ID_RECALC_GEOMETRY);
+        }
+      }
+
       break;
     }
     case OB_GREASE_PENCIL: {
@@ -504,7 +569,7 @@ static Map<StringRef, ID *> gather_input_ids(const Main &bmain,
           return;
         }
         const std::optional<ID_Type> id_type = socket_type_to_id_type(
-            eNodeSocketDatatype(input->socket_typeinfo()->type));
+            input->socket_typeinfo()->type);
         if (!id_type) {
           return;
         }
@@ -1454,7 +1519,7 @@ void ui_template_node_operator_asset_menu_items(uiLayout &layout,
     return;
   }
   uiLayout *col = &layout.column(false);
-  uiLayoutSetContextString(col, "asset_catalog_path", item->catalog_path().str());
+  col->context_string_set("asset_catalog_path", item->catalog_path().str());
   uiItemMContents(col, "GEO_MT_node_operator_catalog_assets");
 }
 

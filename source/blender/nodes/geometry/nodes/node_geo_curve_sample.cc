@@ -36,19 +36,19 @@ static void node_declare(NodeDeclarationBuilder &b)
                      .min(0.0f)
                      .max(1.0f)
                      .subtype(PROP_FACTOR)
-                     .field_on_all()
+                     .supports_field()
                      .make_available([](bNode &node) {
                        node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_FACTOR;
                      });
   auto &length = b.add_input<decl::Float>("Length")
                      .min(0.0f)
                      .subtype(PROP_DISTANCE)
-                     .field_on_all()
+                     .supports_field()
                      .make_available([](bNode &node) {
                        node_storage(node).mode = GEO_NODE_CURVE_SAMPLE_LENGTH;
                      });
   auto &index =
-      b.add_input<decl::Int>("Curve Index").field_on_all().make_available([](bNode &node) {
+      b.add_input<decl::Int>("Curve Index").supports_field().make_available([](bNode &node) {
         node_storage(node).use_all_curves = false;
       });
 

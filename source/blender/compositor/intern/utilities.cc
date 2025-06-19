@@ -22,6 +22,11 @@ namespace blender::compositor {
 using namespace nodes::derived_node_tree_types;
 using TargetSocketPathInfo = DOutputSocket::TargetSocketPathInfo;
 
+bool is_socket_available(const bNodeSocket *socket)
+{
+  return socket->is_available() && StringRef(socket->idname) != "NodeSocketVirtual";
+}
+
 DSocket get_input_origin_socket(DInputSocket input)
 {
   /* The input is unlinked. Return the socket itself. */
@@ -121,7 +126,7 @@ static ImplicitInput get_implicit_input(const nodes::SocketDeclaration *socket_d
 static int get_domain_priority(const bNodeSocket *input,
                                const nodes::SocketDeclaration *socket_declaration)
 {
-  /* Negative priority means no priority is set and we fallback to the index, that is, we
+  /* Negative priority means no priority is set and we fall back to the index, that is, we
    * prioritize inputs according to their order. */
   if (socket_declaration->compositor_domain_priority() < 0) {
     return input->index();
@@ -192,7 +197,7 @@ DOutputSocket find_preview_output_socket(const DNode &node)
   }
 
   for (const bNodeSocket *output : node->output_sockets()) {
-    if (!output->is_available()) {
+    if (!is_socket_available(output)) {
       continue;
     }
 

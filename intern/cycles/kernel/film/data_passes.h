@@ -72,10 +72,10 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
 
     if (!(sd->flag & (SD_TRANSPARENT | SD_RAY_PORTAL)) ||
         kernel_data.film.pass_alpha_threshold == 0.0f ||
-        average(surface_shader_alpha(kg, sd)) >= kernel_data.film.pass_alpha_threshold)
+        average(surface_shader_alpha(sd)) >= kernel_data.film.pass_alpha_threshold)
     {
       if (flag & PASSMASK(NORMAL)) {
-        const float3 normal = surface_shader_average_normal(kg, sd);
+        const float3 normal = surface_shader_average_normal(sd);
         film_write_pass_float3(buffer + kernel_data.film.pass_normal, normal);
       }
       if (flag & PASSMASK(ROUGHNESS)) {
@@ -99,7 +99,7 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
   if (kernel_data.film.cryptomatte_passes) {
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
     const float matte_weight = average(throughput) *
-                               (1.0f - average(surface_shader_transparency(kg, sd)));
+                               (1.0f - average(surface_shader_transparency(sd)));
     if (matte_weight > 0.0f) {
       ccl_global float *cryptomatte_buffer = buffer + kernel_data.film.pass_cryptomatte;
       if (kernel_data.film.cryptomatte_passes & CRYPT_OBJECT) {
@@ -161,7 +161,7 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
 
     /* Modulate by transparency */
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
-    const Spectrum alpha = surface_shader_alpha(kg, sd);
+    const Spectrum alpha = surface_shader_alpha(sd);
     const float mist_output = (1.0f - mist) * average(throughput * alpha);
 
     /* Note that the final value in the render buffer we want is 1 - mist_output,

@@ -488,9 +488,7 @@ bool AssetCatalogService::write_to_disk_ex(const CatalogFilePath &blend_file_pat
     return catalog_collection_->catalog_definition_file_->write_to_disk();
   }
 
-  if (catalog_collection_->catalogs_.is_empty() &&
-      catalog_collection_->deleted_catalogs_.is_empty())
-  {
+  if (catalog_collection_->is_empty()) {
     /* Avoid saving anything, when there is nothing to save. */
     return true; /* Writing nothing when there is nothing to write is still a success. */
   }

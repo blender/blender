@@ -1070,13 +1070,20 @@ static void panel_title_color_get(const Panel *panel,
   }
 }
 
-static void panel_draw_highlight_border(const Panel *panel,
-                                        const rcti *rect,
-                                        const rcti *header_rect)
+static void panel_draw_border(const Panel *panel,
+                              const rcti *rect,
+                              const rcti *header_rect,
+                              const bool is_active)
 {
   const bool is_subpanel = panel->type->parent != nullptr;
   if (is_subpanel) {
     return;
+  }
+
+  float color[4];
+  UI_GetThemeColor4fv(is_active ? TH_SELECT_ACTIVE : TH_PANEL_OUTLINE, color);
+  if (color[3] == 0.0f) {
+    return; /* No border to draw. */
   }
 
   const bTheme *btheme = UI_GetTheme();
@@ -1089,9 +1096,6 @@ static void panel_draw_highlight_border(const Panel *panel,
   box_rect.xmax = rect->xmax;
   box_rect.ymin = UI_panel_is_closed(panel) ? header_rect->ymin : rect->ymin;
   box_rect.ymax = header_rect->ymax;
-
-  float color[4];
-  UI_GetThemeColor4fv(TH_SELECT_ACTIVE, color);
   UI_draw_roundbox_4fv(&box_rect, false, radius, color);
 }
 
@@ -1107,6 +1111,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   const uiFontStyle *fontstyle = (is_subpanel) ? &style->widget : &style->paneltitle;
 
   const int header_height = BLI_rcti_size_y(header_rect);
+  const int header_width = BLI_rcti_size_x(header_rect);
   const int scaled_unit = round_fl_to_int(UI_UNIT_X / aspect);
 
   /* Offset triangle and text to the right for sub-panels. */
@@ -1124,11 +1129,16 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   {
     const float size_y = BLI_rcti_size_y(&widget_rect);
     GPU_blend(GPU_BLEND_ALPHA);
+    float alpha = 0.8f;
+    /* Dim as its space is reduced to zero. */
+    if (header_width < (scaled_unit * 4)) {
+      alpha *= std::max(float(header_width - scaled_unit) / float(scaled_unit * 3), 0.0f);
+    }
     UI_icon_draw_ex(widget_rect.xmin + size_y * 0.2f,
                     widget_rect.ymin + size_y * (UI_panel_is_closed(panel) ? 0.17f : 0.14f),
                     UI_panel_is_closed(panel) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
                     aspect * UI_INV_SCALE_FAC,
-                    0.8f,
+                    alpha,
                     0.0f,
                     title_color,
                     false,
@@ -1140,7 +1150,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   if (panel->drawname && panel->drawname[0] != '\0') {
     rcti title_rect;
     title_rect.xmin = widget_rect.xmin + (panel->labelofs / aspect) + scaled_unit * 1.1f;
-    title_rect.xmax = widget_rect.xmax;
+    title_rect.xmax = widget_rect.xmax - scaled_unit;
     title_rect.ymin = widget_rect.ymin - 2.0f / aspect;
     title_rect.ymax = widget_rect.ymax;
 
@@ -1172,7 +1182,10 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
     const bool is_pin = panel_custom_pin_to_last_get(panel);
     const int icon = is_pin ? ICON_PINNED : ICON_GRIP;
     const float size = aspect * UI_INV_SCALE_FAC;
-    const float alpha = is_pin ? 1.0f : 0.5f;
+    float alpha = is_pin ? 1.0f : 0.5f;
+    if (header_width < (scaled_unit * 5)) {
+      alpha *= std::max((header_width - scaled_unit) / float(scaled_unit * 4), 0.0f);
+    }
     UI_icon_draw_ex(x, y, icon, size, alpha, 0.0f, title_color, false, UI_NO_ICON_OVERLAY_TEXT);
   }
 }
@@ -1220,6 +1233,21 @@ void ui_draw_layout_panels_backdrop(const ARegion *region,
   }
 }
 
+static void panel_draw_softshadow(const rctf *box_rect,
+                                  const int roundboxalign,
+                                  const float radius,
+                                  const float shadow_width)
+{
+  const float outline = U.pixelsize;
+
+  rctf shadow_rect = *box_rect;
+  BLI_rctf_pad(&shadow_rect, -outline, -outline);
+  UI_draw_roundbox_corner_set(roundboxalign);
+
+  const float shadow_alpha = UI_GetTheme()->tui.menu_shadow_fac;
+  ui_draw_dropshadow(&shadow_rect, radius, shadow_width, 1.0f, shadow_alpha);
+}
+
 static void panel_draw_aligned_backdrop(const ARegion *region,
                                         const Panel *panel,
                                         const rcti *rect,
@@ -1228,6 +1256,7 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
   const bool is_open = !UI_panel_is_closed(panel);
   const bool is_subpanel = panel->type->parent != nullptr;
   const bool has_header = (panel->type->flag & PANEL_TYPE_NO_HEADER) == 0;
+  const bool is_dragging = UI_panel_is_dragging(panel);
 
   if (is_subpanel && !is_open) {
     return;
@@ -1239,6 +1268,22 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
+
+  /* Draw shadow on top-level panels with headers during drag or region overlap. */
+  if (!is_subpanel && has_header && (region->overlap || is_dragging)) {
+    /* Make shadow wider (at least 16px) while the panel is being dragged. */
+    const float shadow_width = is_dragging ?
+                                   max_ii(int(16.0f * UI_SCALE_FAC), UI_ThemeMenuShadowWidth()) :
+                                   UI_ThemeMenuShadowWidth();
+    const int roundboxalign = is_open ? UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT : UI_CNR_ALL;
+
+    rctf box_rect;
+    box_rect.xmin = rect->xmin;
+    box_rect.xmax = rect->xmax;
+    box_rect.ymin = is_open ? rect->ymin : header_rect->ymin;
+    box_rect.ymax = header_rect->ymax;
+    panel_draw_softshadow(&box_rect, roundboxalign, radius, shadow_width);
+  }
 
   /* Panel backdrop. */
   if (is_open || !has_header) {
@@ -1252,9 +1297,10 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
     }
 
     rctf box_rect;
-    box_rect.xmin = rect->xmin;
-    box_rect.xmax = rect->xmax;
-    box_rect.ymin = rect->ymin;
+    const float padding = is_subpanel ? U.widget_unit * 0.1f / aspect : 0.0f;
+    box_rect.xmin = rect->xmin + padding;
+    box_rect.xmax = rect->xmax - padding;
+    box_rect.ymin = rect->ymin + padding;
     box_rect.ymax = rect->ymax;
     UI_draw_roundbox_4fv(&box_rect, true, radius, panel_backcolor);
 
@@ -1293,6 +1339,11 @@ void ui_draw_aligned_panel(const ARegion *region,
 {
   const Panel *panel = block->panel;
 
+  if (panel->sizex < 0 || panel->sizey < 0) {
+    /* Nothing to draw. */
+    return;
+  }
+
   /* Add 0.001f to prevent flicker from float inaccuracy. */
   const rcti header_rect = {
       rect->xmin,
@@ -1316,8 +1367,9 @@ void ui_draw_aligned_panel(const ARegion *region,
                                region_search_filter_active);
   }
 
-  if (panel_custom_data_active_get(panel)) {
-    panel_draw_highlight_border(panel, rect, &header_rect);
+  /* Draw the panel outline on non-transparent panels. */
+  if (UI_panel_should_show_background(region, panel->type)) {
+    panel_draw_border(panel, rect, &header_rect, panel_custom_data_active_get(panel));
   }
 }
 
@@ -1371,8 +1423,10 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   const int tab_v_pad = round_fl_to_int(TABS_PADDING_BETWEEN_FACTOR * dpi_fac * zoom);
   bTheme *btheme = UI_GetTheme();
   const float tab_curve_radius = btheme->tui.wcol_tab.roundness * U.widget_unit * zoom;
-  const int roundboxtype = is_left ? (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT) :
-                                     (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
+  /* Round all corners when region overlap is on. */
+  const int roundboxtype = region->overlap ? UI_CNR_ALL :
+                                             (is_left ? (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT) :
+                                                        (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT));
   bool is_alpha;
 #ifdef USE_FLAT_INACTIVE
   bool is_active_prev = false;
@@ -1385,23 +1439,24 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
   /* Primary theme colors. */
   uchar theme_col_back[4];
-  uchar theme_col_text[3];
-  uchar theme_col_text_hi[3];
 
   /* Tab colors. */
   uchar theme_col_tab_bg[4];
+  uchar theme_col_tab_text[3];
+  uchar theme_col_tab_text_sel[3];
   float theme_col_tab_active[4];
   float theme_col_tab_inactive[4];
   float theme_col_tab_outline[4];
+  float theme_col_tab_outline_sel[4];
 
   UI_GetThemeColor4ubv(TH_BACK, theme_col_back);
-  UI_GetThemeColor3ubv(TH_TEXT, theme_col_text);
-  UI_GetThemeColor3ubv(TH_TEXT_HI, theme_col_text_hi);
-
+  UI_GetThemeColor3ubv(TH_TAB_TEXT, theme_col_tab_text);
+  UI_GetThemeColor3ubv(TH_TAB_TEXT_HI, theme_col_tab_text_sel);
   UI_GetThemeColor4ubv(TH_TAB_BACK, theme_col_tab_bg);
   UI_GetThemeColor4fv(TH_TAB_ACTIVE, theme_col_tab_active);
   UI_GetThemeColor4fv(TH_TAB_INACTIVE, theme_col_tab_inactive);
   UI_GetThemeColor4fv(TH_TAB_OUTLINE, theme_col_tab_outline);
+  UI_GetThemeColor4fv(TH_TAB_OUTLINE_ACTIVE, theme_col_tab_outline_sel);
 
   is_alpha = (region->overlap && (theme_col_back[3] != 255));
 
@@ -1444,7 +1499,8 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   /* Begin drawing. */
   GPU_line_smooth(true);
 
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw the background. */
@@ -1474,6 +1530,10 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
   immUnbindProgram();
 
+  /* If the area is too small to show panels, then don't show any tabs as active. */
+  const bool too_narrow = BLI_rcti_size_x(&region->winrct) <=
+                          int(UI_PANEL_CATEGORY_MIN_WIDTH * UI_SCALE_FAC / aspect);
+
   LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->runtime->panels_category) {
     const rcti *rct = &pc_dyn->rect;
     if (rct->ymin > v2d->mask.ymax) {
@@ -1487,14 +1547,15 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
     const char *category_id = pc_dyn->idname;
     const char *category_id_draw = IFACE_(category_id);
     size_t category_draw_len = BLF_DRAW_STR_DUMMY_MAX;
-    const bool is_active = STREQ(category_id, category_id_active);
+    const bool is_active = !too_narrow && STREQ(category_id, category_id_active);
 
     GPU_blend(GPU_BLEND_ALPHA);
 
 #ifdef USE_FLAT_INACTIVE
     /* Draw line between inactive tabs. */
     if (is_active == false && is_active_prev == false && pc_dyn->prev) {
-      pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      pos = GPU_vertformat_attr_add(
+          immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor3fvAlpha(theme_col_tab_outline, 0.3f);
       immRectf(pos,
@@ -1524,19 +1585,25 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
                            true,
                            tab_curve_radius,
                            is_active ? theme_col_tab_active : theme_col_tab_inactive);
-      UI_draw_roundbox_4fv(&box_rect, false, tab_curve_radius, theme_col_tab_outline);
+      UI_draw_roundbox_4fv(&box_rect,
+                           false,
+                           tab_curve_radius,
+                           is_active ? theme_col_tab_outline_sel : theme_col_tab_outline);
 
       /* Disguise the outline on one side to join the tab to the panel. */
-      pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+      if (!region->overlap) {
+        pos = GPU_vertformat_attr_add(
+            immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-      immUniformColor4fv(is_active ? theme_col_tab_active : theme_col_tab_inactive);
-      immRectf(pos,
-               is_left ? rct->xmax - px : rct->xmin,
-               rct->ymin + px,
-               is_left ? rct->xmax : rct->xmin + px,
-               rct->ymax - px);
-      immUnbindProgram();
+        immUniformColor4fv(is_active ? theme_col_tab_active : theme_col_tab_inactive);
+        immRectf(pos,
+                 is_left ? rct->xmax - px : rct->xmin,
+                 rct->ymin + px,
+                 is_left ? rct->xmax : rct->xmin + px,
+                 rct->ymax - px);
+        immUnbindProgram();
+      }
     }
 
     /* Tab titles. */
@@ -1551,8 +1618,21 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
                            rct->xmin + text_v_ofs - text_size_offset,
                  is_left ? rct->ymin + tab_v_pad_text : rct->ymax - tab_v_pad_text,
                  0.0f);
-    BLF_color3ubv(fontid, is_active ? theme_col_text_hi : theme_col_text);
+    BLF_color3ubv(fontid, is_active ? theme_col_tab_text_sel : theme_col_tab_text);
+
+    if (fstyle->shadow) {
+      BLF_enable(fontid, BLF_SHADOW);
+      const float shadow_color[4] = {
+          fstyle->shadowcolor, fstyle->shadowcolor, fstyle->shadowcolor, fstyle->shadowalpha};
+      BLF_shadow(fontid, FontShadowType(fstyle->shadow), shadow_color);
+      BLF_shadow_offset(fontid, fstyle->shadx, fstyle->shady);
+    }
+
     BLF_draw(fontid, category_id_draw, category_draw_len);
+
+    if (fstyle->shadow) {
+      BLF_disable(fontid, BLF_SHADOW);
+    }
 
     GPU_blend(GPU_BLEND_NONE);
 
@@ -2493,6 +2573,25 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
   return WM_UI_HANDLER_CONTINUE;
 }
 
+static void ui_panel_region_width_set(ARegion *region, const float aspect, int unscaled_size)
+{
+  const float size_new = unscaled_size / aspect;
+  if (region->alignment & RGN_ALIGN_RIGHT) {
+    region->winrct.xmin = region->winrct.xmax - (size_new * UI_SCALE_FAC);
+  }
+  else {
+    region->winrct.xmax = region->winrct.xmin + (size_new * UI_SCALE_FAC);
+  }
+  region->winx = size_new * UI_SCALE_FAC;
+  region->sizex = size_new;
+  region->v2d.winx = region->winx;
+  region->v2d.cur.xmin = 0;
+  region->v2d.cur.xmax = size_new * UI_SCALE_FAC;
+  region->v2d.mask.xmin = 0;
+  region->v2d.mask.xmax = size_new * UI_SCALE_FAC;
+  UI_view2d_curRect_validate(&region->v2d);
+}
+
 int ui_handler_panel_region(bContext *C,
                             const wmEvent *event,
                             ARegion *region,
@@ -2520,7 +2619,26 @@ int ui_handler_panel_region(bContext *C,
     if (event->type == LEFTMOUSE) {
       PanelCategoryDyn *pc_dyn = panel_categories_find_mouse_over(region, event);
       if (pc_dyn) {
+        const bool already_active = STREQ(pc_dyn->idname,
+                                          UI_panel_category_active_get(region, false));
         UI_panel_category_active_set(region, pc_dyn->idname);
+
+        const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
+                             (BLI_rcti_size_y(&region->v2d.mask) + 1);
+        const bool too_narrow = BLI_rcti_size_x(&region->winrct) <=
+                                int(std::ceil(UI_PANEL_CATEGORY_MIN_WIDTH * UI_SCALE_FAC /
+                                              aspect));
+        if (too_narrow) {
+          /* Enlarge region. */
+          ui_panel_region_width_set(region, aspect, 250.0f);
+          WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
+        }
+        else if (already_active) {
+          /* Minimize region. */
+          ui_panel_region_width_set(region, aspect, UI_PANEL_CATEGORY_MIN_WIDTH);
+          WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
+        }
+
         ED_region_tag_redraw(region);
 
         /* Reset scroll to the top (#38348). */
@@ -2619,8 +2737,8 @@ static void ui_panel_custom_data_set_recursive(Panel *panel, PointerRNA *custom_
 
 void UI_panel_context_pointer_set(Panel *panel, const char *name, PointerRNA *ptr)
 {
-  uiLayoutSetContextPointer(panel->layout, name, ptr);
-  panel->runtime->context = uiLayoutGetContextStore(panel->layout);
+  panel->layout->context_ptr_set(name, ptr);
+  panel->runtime->context = panel->layout->context_store();
 }
 
 void UI_panel_custom_data_set(Panel *panel, PointerRNA *custom_data)

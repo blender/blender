@@ -561,6 +561,18 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 
 /* ------------------------ */
 
+static bool handles_visible(KeyframeEditData *ked, BezTriple *bezt)
+{
+  const bool handles_shown = (ked->iterflags & KEYFRAME_ITER_HANDLES_INVISIBLE) == 0;
+  if (!handles_shown) {
+    return false;
+  }
+  const bool handles_shown_only_selected = ked->iterflags &
+                                           KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE;
+
+  return handles_shown_only_selected ? BEZT_ISSEL_ANY(bezt) : true;
+}
+
 static short keyframe_ok_checks(
     KeyframeEditData *ked,
     BezTriple *bezt,
@@ -572,10 +584,7 @@ static short keyframe_ok_checks(
   }
   if (ked && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES))
   { /* Only act on visible items, so check handle visibility state. */
-    const bool handles_visible = ((ked->iterflags & KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE) ?
-                                      BEZT_ISSEL_ANY(bezt) :
-                                      true);
-    if (handles_visible) {
+    if (handles_visible(ked, bezt)) {
       if (check(ked, bezt, 0)) {
         ok |= KEYFRAME_OK_H1;
       }
@@ -617,6 +626,15 @@ static short ok_bezier_selected(KeyframeEditData * /*ked*/, BezTriple *bezt)
    */
   if (BEZT_ISSEL_ANY(bezt)) {
     return KEYFRAME_OK_ALL;
+  }
+  return 0;
+}
+
+static short ok_bezier_selected_key(KeyframeEditData * /*ked*/, BezTriple *bezt)
+{
+  /* This macro checks the beztriple key (f2) selection. */
+  if (BEZT_ISSEL_IDX(bezt, 1)) {
+    return KEYFRAME_OK_KEY;
   }
   return 0;
 }
@@ -791,8 +809,11 @@ KeyframeEditFunc ANIM_editkeyframes_ok(short mode)
       /* only if bezt falls within the specified frame range (floats) */
       return ok_bezier_framerange;
     case BEZT_OK_SELECTED:
-      /* only if bezt is selected (self) */
+      /* only if bezt is selected (any of f1, f2, f3) */
       return ok_bezier_selected;
+    case BEZT_OK_SELECTED_KEY:
+      /* only if bezt is selected (f2 is enough) */
+      return ok_bezier_selected_key;
     case BEZT_OK_VALUE:
       /* only if bezt value matches (float) */
       return ok_bezier_value;
@@ -1582,12 +1603,8 @@ KeyframeEditFunc ANIM_editkeyframes_easing(short mode)
 static short select_bezier_add(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* Only act on visible items, so check handle visibility state. */
-  const bool handles_visible = ked && ((ked->iterflags & KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE) ?
-                                           BEZT_ISSEL_ANY(bezt) :
-                                           true);
-
   /* if we've got info on what to select, use it, otherwise select all */
-  if ((ked) && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES) && handles_visible) {
+  if ((ked) && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES) && handles_visible(ked, bezt)) {
     if (ked->curflags & KEYFRAME_OK_KEY) {
       bezt->f2 |= SELECT;
     }
@@ -1608,12 +1625,8 @@ static short select_bezier_add(KeyframeEditData *ked, BezTriple *bezt)
 static short select_bezier_subtract(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* Only act on visible items, so check handle visibility state. */
-  const bool handles_visible = ked && ((ked->iterflags & KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE) ?
-                                           BEZT_ISSEL_ANY(bezt) :
-                                           true);
-
   /* if we've got info on what to deselect, use it, otherwise deselect all */
-  if ((ked) && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES) && handles_visible) {
+  if ((ked) && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES) && handles_visible(ked, bezt)) {
     if (ked->curflags & KEYFRAME_OK_KEY) {
       bezt->f2 &= ~SELECT;
     }

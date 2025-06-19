@@ -42,6 +42,8 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
+#include "SEQ_relations.hh"
+
 #include "ED_node.hh"
 #include "ED_node_preview.hh"
 #include "ED_paint.hh"
@@ -181,8 +183,8 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
       update_ctx.view_layer = view_layer;
       ED_render_id_flush_update(&update_ctx, &scene->id);
     }
-    if (scene->nodetree && update_scene_data) {
-      ntreeCompositUpdateRLayers(scene->nodetree);
+    if (scene->compositing_node_group && update_scene_data) {
+      ntreeCompositUpdateRLayers(scene->compositing_node_group);
     }
   }
   BKE_main_ensure_invariants(*bmain);
@@ -249,8 +251,8 @@ static void texture_changed(Main *bmain, Tex *tex)
       BKE_paint_invalidate_overlay_tex(scene, view_layer, tex);
     }
     /* find compositing nodes */
-    if (scene->use_nodes && scene->nodetree) {
-      for (bNode *node : scene->nodetree->all_nodes()) {
+    if (scene->compositing_node_group) {
+      for (bNode *node : scene->compositing_node_group->all_nodes()) {
         if (node->id == &tex->id) {
           blender::ed::space_node::tag_update_id(&scene->id);
         }
@@ -305,6 +307,26 @@ static void scene_changed(Main *bmain, Scene *scene)
   }
 }
 
+static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bmain, ID *id)
+{
+  if (ELEM(id->recalc,
+           0,
+           ID_RECALC_SELECT,
+           ID_RECALC_FRAME_CHANGE,
+           ID_RECALC_AUDIO_FPS,
+           ID_RECALC_AUDIO_VOLUME,
+           ID_RECALC_AUDIO_MUTE,
+           ID_RECALC_AUDIO_LISTENER,
+           ID_RECALC_AUDIO))
+  {
+    return;
+  }
+
+  if (GS(id->name) != ID_SCE) {
+    blender::seq::relations_invalidate_scene_strips(bmain, update_ctx->scene);
+  }
+}
+
 void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 {
   /* this can be called from render or baking thread when a python script makes
@@ -340,6 +362,8 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
     default:
       break;
   }
+
+  update_sequencer(update_ctx, bmain, id);
 }
 
 /** \} */

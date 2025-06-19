@@ -51,8 +51,8 @@ void relations_invalidate_cache(Scene *scene, Strip *strip);
  * images of the strip.
  */
 void relations_invalidate_cache_raw(Scene *scene, Strip *strip);
+void relations_invalidate_scene_strips(const Main *bmain, const Scene *scene_target);
 
-void relations_invalidate_scene_strips(Main *bmain, Scene *scene_target);
 void relations_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_target);
 /**
  * Release FFmpeg handles of strips that are not currently displayed to minimize memory usage.
@@ -69,7 +69,9 @@ void relations_check_uids_unique_and_report(const Scene *scene);
 void relations_session_uid_generate(Strip *strip);
 
 void cache_cleanup(Scene *scene);
+void cache_settings_changed(Scene *scene);
 bool is_cache_full(const Scene *scene);
+bool evict_caches_if_full(Scene *scene);
 
 void source_image_cache_iterate(Scene *scene,
                                 void *userdata,

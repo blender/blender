@@ -23,6 +23,8 @@
 
 #include "CLG_log.h"
 
+#include "gpu_profile_report.hh"
+
 #include <utility>
 
 namespace blender::gpu::debug {
@@ -50,6 +52,17 @@ void MTLContext::debug_group_begin(const char *name, int index)
   if (G.debug & G_DEBUG_GPU) {
     this->main_command_buffer.push_debug_group(name, index);
   }
+
+  if (!G.profile_gpu) {
+    return;
+  }
+
+  ScopeTimings timings = {};
+  timings.name = name;
+  timings.finished = false;
+  timings.cpu_start = ScopeTimings::Clock::now();
+
+  scope_timings.append(timings);
 }
 
 void MTLContext::debug_group_end()
@@ -57,6 +70,56 @@ void MTLContext::debug_group_end()
   if (G.debug & G_DEBUG_GPU) {
     this->main_command_buffer.pop_debug_group();
   }
+
+  if (!G.profile_gpu) {
+    return;
+  }
+
+  for (int i = scope_timings.size() - 1; i >= 0; i--) {
+    ScopeTimings &query = scope_timings[i];
+    if (!query.finished) {
+      query.finished = true;
+      query.cpu_end = ScopeTimings::Clock::now();
+      break;
+    }
+    if (i == 0) {
+      CLOG_ERROR(&debug::LOG, "Profile GPU error: Extra GPU_debug_group_end() call.");
+    }
+  }
+}
+
+MTLContext::ScopeTimings::TimePoint MTLContext::ScopeTimings::epoch =
+    MTLContext::ScopeTimings::Clock::now();
+
+void MTLContext::process_frame_timings()
+{
+  if (!G.profile_gpu) {
+    return;
+  }
+
+  Vector<ScopeTimings> &queries = scope_timings;
+
+  bool frame_is_valid = !queries.is_empty();
+
+  for (int i = queries.size() - 1; i >= 0; i--) {
+    if (!queries[i].finished) {
+      frame_is_valid = false;
+      CLOG_ERROR(&debug::LOG, "Profile GPU error: Missing GPU_debug_group_end() call");
+    }
+    break;
+  }
+
+  if (!frame_is_valid) {
+    return;
+  }
+
+  for (ScopeTimings &query : queries) {
+    ScopeTimings::Nanoseconds begin = query.cpu_start - ScopeTimings::epoch;
+    ScopeTimings::Nanoseconds end = query.cpu_end - ScopeTimings::epoch;
+    ProfileReport::get().add_group_cpu(query.name, begin.count(), end.count());
+  }
+
+  queries.clear();
 }
 
 bool MTLContext::debug_capture_begin(const char * /*title*/)

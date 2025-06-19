@@ -578,6 +578,12 @@ void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item)
 {
   switch (NodeTreeInterfaceItemType(item.item_type)) {
     case NODE_INTERFACE_SOCKET: {
+      /* Forward compatible writing of older single value only flag. To be removed in 5.0. */
+      bNodeTreeInterfaceSocket &socket = get_item_as<bNodeTreeInterfaceSocket>(item);
+      SET_FLAG_FROM_TEST(socket.flag,
+                         socket.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE,
+                         NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY_LEGACY);
+
       BLO_write_struct(writer, bNodeTreeInterfaceSocket, &item);
       break;
     }
@@ -876,6 +882,12 @@ int bNodeTreeInterfacePanel::find_valid_insert_position_for_item(
       const auto &sb = reinterpret_cast<const bNodeTreeInterfaceSocket &>(b);
       const bool is_output_a = sa.flag & NODE_INTERFACE_SOCKET_OUTPUT;
       const bool is_output_b = sb.flag & NODE_INTERFACE_SOCKET_OUTPUT;
+      if ((sa.flag & NODE_INTERFACE_SOCKET_PANEL_TOGGLE) ||
+          (sb.flag & NODE_INTERFACE_SOCKET_PANEL_TOGGLE))
+      {
+        /* Panel toggle inputs are allowed to be above outputs. */
+        return false;
+      }
       if (is_output_a && !is_output_b) {
         return true;
       }

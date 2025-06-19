@@ -1693,6 +1693,8 @@ void BKE_sound_jack_scene_update(Scene *scene, int mode, double time)
   if (G.is_rendering) {
     return;
   }
+#ifdef WITH_AUDASPACE
+  AUD_Device_lock(g_state.sound_device);
 
   if (mode) {
     BKE_sound_play_scene(scene);
@@ -1700,12 +1702,12 @@ void BKE_sound_jack_scene_update(Scene *scene, int mode, double time)
   else {
     BKE_sound_stop_scene(scene);
   }
-#ifdef WITH_AUDASPACE
   if (scene->playback_handle != nullptr) {
     AUD_Handle_setPosition(scene->playback_handle, time);
   }
+  AUD_Device_unlock(g_state.sound_device);
 #else
-  UNUSED_VARS(time);
+  UNUSED_VARS(mode, time);
 #endif
 }
 

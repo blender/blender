@@ -612,7 +612,7 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
         }
       }
       else {
-        /* rough estimate from boundbox as fallback */
+        /* rough estimate from boundbox as a fallback */
         /* XXX could implement other types of geometry here (curves, etc.) */
         volume = size[0] * size[1] * size[2];
       }

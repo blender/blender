@@ -1,12 +1,69 @@
-/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2011-2025 Blender Foundation
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "int_vector_types.h"
 #include "stdcycles.h"
 #include "vector2.h"
 #include "vector4.h"
 
 #define vector3 point
+
+/* Hashing `uint` or `uint[234]` into a float in the range [0, 1].
+ * Based on PCG 2D/3D/4D hash, but with signed integers. */
+
+vector2 hash_int2_to_vector2(int2 k)
+{
+  int2 v = k * 1664525 + 1013904223;
+  v.x += v.y * 1664525;
+  v.y += v.x * 1664525;
+  v = v ^ (v >> 16);
+  v.x += v.y * 1664525;
+  v.y += v.x * 1664525;
+  vector2 f = int2_to_vec2(v & 0x7FFFFFFF);
+  return f * (1.0 / (float)0x7FFFFFFF);
+}
+
+vector3 hash_int3_to_vector3(int3 k)
+{
+  int3 v = k * 1664525 + 1013904223;
+  v.x += v.y * v.z;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  v = v ^ (v >> 16);
+  v.x += v.y * v.z;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  vector3 f = int3_to_vec3(v & 0x7FFFFFFF);
+  return f * (1.0 / (float)0x7FFFFFFF);
+}
+
+vector4 hash_int4_to_vector4(int4 k)
+{
+  int4 v = k * 1664525 + 1013904223;
+  v.x += v.y * v.w;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  v.w += v.y * v.z;
+  v = v ^ (v >> 16);
+  v.x += v.y * v.w;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  v.w += v.y * v.z;
+  vector4 f = int4_to_vec4(v & 0x7FFFFFFF);
+  return f * (1.0 / (float)0x7FFFFFFF);
+}
+
+color hash_int2_to_color(int2 k)
+{
+  return hash_int3_to_vector3(int3(k.x, k.y, 0));
+}
+
+color hash_int4_to_color(int4 k)
+{
+  vector4 v = hash_int4_to_vector4(k);
+  return color(v.x, v.y, v.z);
+}
 
 /* **** Hash a float or vector[234] into a float [0, 1] **** */
 

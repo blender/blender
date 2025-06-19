@@ -48,7 +48,7 @@ AssetLibrary *AS_asset_library_load(const Main *bmain,
   return service->get_asset_library(bmain, library_reference);
 }
 
-AssetLibrary *AS_asset_library_load(const char *name, const char *library_dirpath)
+AssetLibrary *AS_asset_library_load_from_directory(const char *name, const char *library_dirpath)
 {
   /* NOTE: Loading an asset library at this point only means loading the catalogs.
    * Later on this should invoke reading of asset representations too. */
@@ -233,6 +233,15 @@ std::weak_ptr<AssetRepresentation> AssetLibrary::add_local_id_asset(StringRef re
 
 bool AssetLibrary::remove_asset(AssetRepresentation &asset)
 {
+  /* Make sure this is forwarded to the library actually owning the asset if needed. For example
+   * the "All Libraries" library doesn't own the assets itself. */
+  if (&asset.owner_asset_library_ != this) {
+    return asset.owner_asset_library_.remove_asset(asset);
+  }
+
+  BLI_assert(asset_storage_.local_id_assets.contains_as(&asset) ||
+             asset_storage_.external_assets.contains_as(&asset));
+
   if (asset_storage_.local_id_assets.remove_as(&asset)) {
     return true;
   }

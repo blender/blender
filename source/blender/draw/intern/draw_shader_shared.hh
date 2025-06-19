@@ -38,7 +38,7 @@ struct GPULayerAttr;
 
 namespace blender::draw {
 
-struct ObjectRef;
+class ObjectRef;
 
 }  // namespace blender::draw
 
@@ -376,7 +376,7 @@ inline uint debug_color_pack(float4 v_color)
 }
 
 /* Take the header (DrawCommand) into account. */
-#define DRW_DEBUG_DRAW_VERT_MAX (64 * 8192) - 1
+#define DRW_DEBUG_DRAW_VERT_MAX (2 * 1024) - 1
 
 /* The debug draw buffer is laid-out as the following struct.
  * But we use plain array in shader code instead because of driver issues. */

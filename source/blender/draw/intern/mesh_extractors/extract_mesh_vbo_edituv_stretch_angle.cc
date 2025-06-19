@@ -62,7 +62,7 @@ static void edituv_get_edituv_stretch_angle(float auv[2][2],
   r_stretch->uv_angles[0] = v2_to_short_angle(auv[0]);
   r_stretch->uv_angles[1] = v2_to_short_angle(auv[1]);
   /* Compute 3D angle here. */
-  r_stretch->angle = angle_normalized_v3v3(av[0], av[1]) * float(M_1_PI) * SHRT_MAX;
+  r_stretch->angle = angle_normalized_v3v3(av[0], av[1]) * float(M_1_PI);
 
 #if 0 /* here for reference, this is done in shader now. */
   float uvang = angle_normalized_v2v2(auv0, auv1);
@@ -190,8 +190,8 @@ gpu::VertBufPtr extract_edituv_stretch_angle(const MeshRenderData &mr)
   static const GPUVertFormat format = []() {
     GPUVertFormat format{};
     /* Waning: adjust #UVStretchAngle struct accordingly. */
-    GPU_vertformat_attr_add(&format, "angle", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "uv_angles", GPU_COMP_I16, 2, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    GPU_vertformat_attr_add(&format, "angle", gpu::VertAttrType::SFLOAT_32);
+    GPU_vertformat_attr_add(&format, "uv_angles", gpu::VertAttrType::SNORM_16_16);
     return format;
   }();
 
@@ -213,8 +213,8 @@ static const GPUVertFormat &get_edituv_stretch_angle_format_subdiv()
   static const GPUVertFormat format = []() {
     GPUVertFormat format{};
     /* Waning: adjust #UVStretchAngle struct accordingly. */
-    GPU_vertformat_attr_add(&format, "angle", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    GPU_vertformat_attr_add(&format, "uv_angles", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "angle", gpu::VertAttrType::SFLOAT_32);
+    GPU_vertformat_attr_add(&format, "uv_angles", gpu::VertAttrType::SFLOAT_32_32);
     return format;
   }();
   return format;
@@ -227,7 +227,7 @@ gpu::VertBufPtr extract_edituv_stretch_angle_subdiv(const MeshRenderData &mr,
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_on_device(
       get_edituv_stretch_angle_format_subdiv(), subdiv_cache.num_subdiv_loops));
 
-  gpu::VertBuf *pos_nor = cache.final.buff.vbos.lookup(VBOType::Position).get();
+  gpu::VertBuf *pos = cache.final.buff.vbos.lookup(VBOType::Position).get();
   gpu::VertBuf *uvs = cache.final.buff.vbos.lookup(VBOType::UVs).get();
 
   /* It may happen that the data for the UV editor is requested before (as a separate draw update)
@@ -235,12 +235,12 @@ gpu::VertBufPtr extract_edituv_stretch_angle_subdiv(const MeshRenderData &mr,
    * buffer might not be created yet. In this case, create a buffer it locally, the subdivision
    * data should already be evaluated if we are here. This can happen if the subsurf modifier is
    * only enabled in edit-mode. See #96338. */
-  if (!pos_nor) {
-    pos_nor = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_build_on_device(
-        *pos_nor, draw_subdiv_get_pos_nor_format(), subdiv_full_vbo_size(mr, subdiv_cache));
-
-    draw_subdiv_extract_pos_nor(subdiv_cache, nullptr, pos_nor, nullptr);
+  if (!pos) {
+    pos = GPU_vertbuf_calloc();
+    static const GPUVertFormat pos_format = GPU_vertformat_from_attribute(
+        "pos", gpu::VertAttrType::SFLOAT_32_32_32);
+    GPU_vertbuf_init_build_on_device(*pos, pos_format, subdiv_full_vbo_size(mr, subdiv_cache));
+    draw_subdiv_extract_pos(subdiv_cache, pos, nullptr);
   }
 
   /* UVs are stored contiguously so we need to compute the offset in the UVs buffer for the active
@@ -271,7 +271,7 @@ gpu::VertBufPtr extract_edituv_stretch_angle_subdiv(const MeshRenderData &mr,
   /* The data is at `offset * num loops`, and we have 2 values per index. */
   uvs_offset *= subdiv_cache.num_subdiv_loops * 2;
 
-  draw_subdiv_build_edituv_stretch_angle_buffer(subdiv_cache, pos_nor, uvs, uvs_offset, vbo.get());
+  draw_subdiv_build_edituv_stretch_angle_buffer(subdiv_cache, pos, uvs, uvs_offset, vbo.get());
   return vbo;
 }
 

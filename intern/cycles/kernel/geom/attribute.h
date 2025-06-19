@@ -115,7 +115,7 @@ ccl_device_template_spec uchar4 attribute_data_fetch(KernelGlobals kg, int offse
 /* ATTR_ELEMENT_CORNER_BYTE is stored as uchar4, but has to be converted to float4.
  * We don't support it for float/float2/float3. */
 template<typename T>
-ccl_device_inline T attribute_data_fetch_bytecolor(KernelGlobals kg, int offset)
+ccl_device_inline T attribute_data_fetch_bytecolor(KernelGlobals /*kg*/, int /*offset*/)
 {
   kernel_assert(false);
   return make_zero<T>();

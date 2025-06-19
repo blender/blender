@@ -862,7 +862,7 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag);
 /**
  * Draw preview range 'curtains' for highlighting where the animation data is.
  */
-void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width);
+void ANIM_draw_previewrange(const Scene *scene, View2D *v2d, int end_frame_width);
 
 /** \} */
 
@@ -874,8 +874,6 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 
 /**
  * Draw frame range guides (for scene frame range) in background.
- *
- * TODO: Should we still show these when preview range is enabled?
  */
 void ANIM_draw_framerange(Scene *scene, View2D *v2d);
 

@@ -451,6 +451,10 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
     table = spreadsheet_table_new(spreadsheet_table_id_copy(*active_table_id));
     spreadsheet_table_add(*sspreadsheet, table);
   }
+  if (table) {
+    /* Move to the front of the tables list to make it cheaper to find the table in future. */
+    spreadsheet_table_move_to_front(*sspreadsheet, *table);
+  }
 
   /* Update the last used time on the table. */
   if (table->last_used < sspreadsheet->table_use_clock || sspreadsheet->table_use_clock == 0) {
@@ -480,8 +484,9 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
       continue;
     }
     const ColumnValues *values = scope.add(std::move(values_ptr));
+    const eSpreadsheetColumnValueType column_type = values->type();
 
-    if (column->width <= 0.0f) {
+    if (column->width <= 0.0f || column_type != column->data_type) {
       column->width = values->fit_column_width_px(100) / SPREADSHEET_WIDTH_UNIT;
     }
     const int width_in_pixels = column->width * SPREADSHEET_WIDTH_UNIT;
@@ -491,7 +496,7 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
     x += width_in_pixels;
     column->runtime->right_x = x;
 
-    spreadsheet_column_assign_runtime_data(column, values->type(), values->name());
+    spreadsheet_column_assign_runtime_data(column, column_type, values->name());
   }
 
   spreadsheet_layout.row_indices = spreadsheet_filter_rows(
@@ -654,7 +659,7 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
                                      0,
                                      style);
   uiItemSpacer(layout);
-  uiLayoutSetAlignment(layout, UI_LAYOUT_ALIGN_RIGHT);
+  layout->alignment_set(blender::ui::LayoutAlign::Right);
   layout->label(stats_str, ICON_NONE);
   UI_block_layout_resolve(block, nullptr, nullptr);
   UI_block_align_end(block);

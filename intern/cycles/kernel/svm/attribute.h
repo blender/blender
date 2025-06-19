@@ -64,7 +64,7 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
   {
     /* Volumes
      * NOTE: moving this into its own node type might help improve performance. */
-    if (primitive_is_volume_attribute(sd, desc)) {
+    if (primitive_is_volume_attribute(sd)) {
       const float4 value = volume_attribute_float4(kg, sd, desc);
 
       if (type == NODE_ATTR_OUTPUT_FLOAT) {
@@ -185,7 +185,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
 
 #ifdef __VOLUME__
   /* Volume */
-  if (primitive_is_volume_attribute(sd, desc)) {
+  if (primitive_is_volume_attribute(sd)) {
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, 0.0f);
     }
@@ -289,7 +289,7 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
 
 #ifdef __VOLUME__
   /* Volume */
-  if (primitive_is_volume_attribute(sd, desc)) {
+  if (primitive_is_volume_attribute(sd)) {
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, 0.0f);
     }

@@ -6,6 +6,7 @@
  * \ingroup edtransform
  */
 
+#include "BLI_bounds.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -243,7 +244,7 @@ void drawSnapping(TransInfo *t)
       copy_m4_m4(view_inv, rv3d->viewinv);
 
       uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+          immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
 
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -276,7 +277,7 @@ void drawSnapping(TransInfo *t)
     /* Draw normal if needed. */
     if (target_loc && usingSnappingNormal(t) && validSnappingNormal(t)) {
       uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+          immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
 
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor4ubv(activeCol);
@@ -293,7 +294,8 @@ void drawSnapping(TransInfo *t)
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    uint pos = GPU_vertformat_attr_add(
+        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
 
     float x, y;
     const float snap_point[2] = {
@@ -316,7 +318,8 @@ void drawSnapping(TransInfo *t)
   else if (t->spacetype == SPACE_SEQ) {
     const ARegion *region = t->region;
     GPU_blend(GPU_BLEND_ALPHA);
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    uint pos = GPU_vertformat_attr_add(
+        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4ubv(col);
     float pixelx = BLI_rctf_size_x(&region->v2d.cur) / BLI_rcti_size_x(&region->v2d.mask);
@@ -519,7 +522,7 @@ void transform_snap_project_individual_apply(TransInfo *t)
       }
 
       /* If both face ray-cast and face nearest methods are enabled, start with face ray-cast and
-       * fallback to face nearest ray-cast does not hit. */
+       * fall back to face nearest ray-cast does not hit. */
       bool hit = false;
       if (t->tsnap.mode & SCE_SNAP_INDIVIDUAL_PROJECT) {
         hit = applyFaceProject(t, tc, td);
@@ -1371,21 +1374,24 @@ void tranform_snap_target_median_calc(const TransInfo *t, float r_median[3])
   zero_v3(r_median);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
-    int i;
     float v[3];
     zero_v3(v);
 
-    for (i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
+    BLI_assert(tc->sorted_index_map);
+    for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+      TransData *td = &tc->data[i];
+      if (!(td->flag & TD_SELECTED)) {
+        break;
+      }
       add_v3_v3(v, td->center);
     }
 
-    if (i == 0) {
+    if (tc->data_len == 0) {
       /* Is this possible? */
       continue;
     }
 
-    mul_v3_fl(v, 1.0 / i);
+    mul_v3_fl(v, 1.0 / tc->data_len);
 
     if (tc->use_local_mat) {
       mul_m4_v3(tc->mat, v);
@@ -1460,10 +1466,14 @@ static void snap_source_closest_fn(TransInfo *t)
 
     /* Object mode. */
     if (t->options & CTX_OBJECT) {
-      int i;
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        TransData *td;
-        for (td = tc->data, i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
+        BLI_assert(tc->sorted_index_map);
+        for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+          TransData *td = &tc->data[i];
+          if (!(td->flag & TD_SELECTED)) {
+            break;
+          }
+
           std::optional<Bounds<float3>> bounds;
 
           if ((t->options & CTX_OBMODE_XFORM_OBDATA) == 0) {
@@ -1473,15 +1483,14 @@ static void snap_source_closest_fn(TransInfo *t)
 
           /* Use bound-box if possible. */
           if (bounds) {
-            BoundBox bb;
-            BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
+            const std::array<float3, 8> bounds_corners = bounds::corners(*bounds);
             int j;
 
             for (j = 0; j < 8; j++) {
               float loc[3];
               float dist;
 
-              copy_v3_v3(loc, bb.vec[j]);
+              copy_v3_v3(loc, bounds_corners[j]);
               mul_m4_v3(td->ext->obmat, loc);
 
               dist = t->mode_info->snap_distance_fn(t, loc, t->tsnap.snap_target);
@@ -1516,9 +1525,13 @@ static void snap_source_closest_fn(TransInfo *t)
     }
     else {
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        TransData *td = tc->data;
-        int i;
-        for (i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
+        BLI_assert(tc->sorted_index_map);
+        for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+          TransData *td = &tc->data[i];
+          if (!(td->flag & TD_SELECTED)) {
+            break;
+          }
+
           float loc[3];
           float dist;
 

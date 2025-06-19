@@ -1019,7 +1019,7 @@ wmGizmoGroup *WM_gizmomaptype_group_init_runtime_with_region(wmGizmoMapType *gzm
 
   wmGizmoGroup *gzgroup = wm_gizmogroup_new_from_type(gzmap, gzgt);
 
-  /* Don't allow duplicates when switching modes for e.g. see: #66229. */
+  /* Don't allow duplicates when switching modes for example. See: #66229. */
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup_iter, &gzmap->groups) {
     if (gzgroup_iter->type == gzgt) {
       if (gzgroup_iter != gzgroup) {

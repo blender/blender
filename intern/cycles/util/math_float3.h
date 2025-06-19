@@ -9,6 +9,7 @@
 #include "util/math_float4.h"
 #include "util/types_float3.h"
 #include "util/types_float4.h"
+#include "util/types_int3.h"
 
 CCL_NAMESPACE_BEGIN
 

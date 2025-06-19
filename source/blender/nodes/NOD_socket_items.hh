@@ -29,6 +29,13 @@
 
 namespace blender::nodes::socket_items {
 
+struct SocketItemsAccessorDefaults {
+  static constexpr bool has_single_identifier_str = true;
+  static constexpr bool has_name_validation = false;
+  static constexpr bool has_custom_initial_name = false;
+  static constexpr char unique_name_separator = '.';
+};
+
 /**
  * References a "C-Array" that is stored elsewhere. This is different from a MutableSpan, because
  * one can even resize the array through this reference.
@@ -96,6 +103,19 @@ template<typename Accessor> inline void copy_array(const bNode &src_node, bNode 
 }
 
 /**
+ * Enforce constraints on the name of the item.
+ */
+template<typename Accessor> inline std::string get_validated_name(const StringRef name)
+{
+  if constexpr (Accessor::has_name_validation) {
+    return Accessor::validate_name(name);
+  }
+  else {
+    return name;
+  }
+}
+
+/**
  * Changes the name of an existing item and makes sure that the name is unique among other the
  * other items in the same array.
  */
@@ -111,8 +131,10 @@ inline void set_item_name_and_make_unique(bNode &node,
     default_name = *bke::node_static_socket_label(Accessor::get_socket_type(item), 0);
   }
 
+  const std::string validated_name = get_validated_name<Accessor>(value);
+
   char unique_name[MAX_NAME + 4];
-  STRNCPY(unique_name, value);
+  STRNCPY(unique_name, validated_name.c_str());
 
   BLI_uniquename_cb(
       [&](const StringRef name) {
@@ -126,9 +148,12 @@ inline void set_item_name_and_make_unique(bNode &node,
         return false;
       },
       default_name.c_str(),
-      '.',
+      Accessor::unique_name_separator,
       unique_name,
       ARRAY_SIZE(unique_name));
+
+  /* The unique name should still be valid. */
+  BLI_assert(StringRef(unique_name) == get_validated_name<Accessor>(unique_name));
 
   char **item_name = Accessor::get_name(item);
   MEM_SAFE_FREE(*item_name);
@@ -244,8 +269,11 @@ template<typename Accessor>
     if (!Accessor::supports_socket_type(socket_type)) {
       return false;
     }
-    item = add_item_with_socket_type_and_name<Accessor>(
-        storage_node, socket_type, src_socket->name);
+    std::string name = src_socket->name;
+    if constexpr (Accessor::has_custom_initial_name) {
+      name = Accessor::custom_initial_name(storage_node, name);
+    }
+    item = add_item_with_socket_type_and_name<Accessor>(storage_node, socket_type, name.c_str());
   }
   else if constexpr (Accessor::has_name && !Accessor::has_type) {
     item = add_item_with_name<Accessor>(storage_node, src_socket->name);

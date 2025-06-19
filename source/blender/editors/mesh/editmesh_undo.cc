@@ -315,7 +315,7 @@ static void um_arraystore_cd_compact(CustomData *cdata,
             bcd->states[i] = ImplicitSharingInfoAndData{sharing_info, layer->data};
           }
           else {
-            BArrayState *state_reference = nullptr;
+            const BArrayState *state_reference = nullptr;
             if (bcd_reference_current && i < bcd_reference_current->states.size()) {
               state_reference = std::get<BArrayState *>(bcd_reference_current->states[i]);
             }
@@ -395,7 +395,7 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
     for (int i = 0; i < bcd->states.size(); i++) {
       BLI_assert(bcd->type == layer->type);
       if (std::holds_alternative<BArrayState *>(bcd->states[i])) {
-        BArrayState *state = std::get<BArrayState *>(bcd->states[i]);
+        const BArrayState *state = std::get<BArrayState *>(bcd->states[i]);
         if (state) {
           size_t state_len;
           void *data = BLI_array_store_state_data_get_alloc(state, &state_len);
@@ -518,7 +518,8 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
         if (mesh->face_offset_indices) {
           BLI_assert(create == (um->store.face_offset_indices == nullptr));
           if (create) {
-            BArrayState *state_reference = um_ref ? um_ref->store.face_offset_indices : nullptr;
+            const BArrayState *state_reference = um_ref ? um_ref->store.face_offset_indices :
+                                                          nullptr;
             const size_t stride = sizeof(*mesh->face_offset_indices);
             BArrayStore *bs = BLI_array_store_at_size_ensure(
                 &um_arraystore.bs_stride[ARRAY_STORE_INDEX_POLY_OFFSETS],
@@ -549,10 +550,10 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
           KeyBlock *keyblock = static_cast<KeyBlock *>(mesh->key->block.first);
           for (int i = 0; i < mesh->key->totkey; i++, keyblock = keyblock->next) {
             if (create) {
-              BArrayState *state_reference = (um_ref && um_ref->mesh->key &&
-                                              (i < um_ref->mesh->key->totkey)) ?
-                                                 um_ref->store.keyblocks[i] :
-                                                 nullptr;
+              const BArrayState *state_reference = (um_ref && um_ref->mesh->key &&
+                                                    (i < um_ref->mesh->key->totkey)) ?
+                                                       um_ref->store.keyblocks[i] :
+                                                       nullptr;
               um->store.keyblocks[i] = BLI_array_store_state_add(
                   bs, keyblock->data, size_t(keyblock->totelem) * stride, state_reference);
             }
@@ -568,7 +569,7 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
         if (mesh->mselect && mesh->totselect) {
           BLI_assert(create == (um->store.mselect == nullptr));
           if (create) {
-            BArrayState *state_reference = um_ref ? um_ref->store.mselect : nullptr;
+            const BArrayState *state_reference = um_ref ? um_ref->store.mselect : nullptr;
             const size_t stride = sizeof(*mesh->mselect);
             BArrayStore *bs = BLI_array_store_at_size_ensure(
                 &um_arraystore.bs_stride[ARRAY_STORE_INDEX_MSEL],
@@ -685,7 +686,7 @@ static void um_arraystore_expand(UndoMesh *um)
     const size_t stride = mesh->key->elemsize;
     KeyBlock *keyblock = static_cast<KeyBlock *>(mesh->key->block.first);
     for (int i = 0; i < mesh->key->totkey; i++, keyblock = keyblock->next) {
-      BArrayState *state = um->store.keyblocks[i];
+      const BArrayState *state = um->store.keyblocks[i];
       size_t state_len;
       keyblock->data = BLI_array_store_state_data_get_alloc(state, &state_len);
       BLI_assert(keyblock->totelem == (state_len / stride));
@@ -695,7 +696,7 @@ static void um_arraystore_expand(UndoMesh *um)
 
   if (um->store.face_offset_indices) {
     const size_t stride = sizeof(*mesh->face_offset_indices);
-    BArrayState *state = um->store.face_offset_indices;
+    const BArrayState *state = um->store.face_offset_indices;
     size_t state_len;
     mesh->face_offset_indices = static_cast<int *>(
         BLI_array_store_state_data_get_alloc(state, &state_len));
@@ -706,7 +707,7 @@ static void um_arraystore_expand(UndoMesh *um)
   }
   if (um->store.mselect) {
     const size_t stride = sizeof(*mesh->mselect);
-    BArrayState *state = um->store.mselect;
+    const BArrayState *state = um->store.mselect;
     size_t state_len;
     mesh->mselect = static_cast<MSelect *>(
         BLI_array_store_state_data_get_alloc(state, &state_len));

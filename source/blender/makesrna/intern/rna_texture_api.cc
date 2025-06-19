@@ -29,7 +29,7 @@ static void texture_evaluate(Tex *tex, const float value[3], float r_color[4])
   TexResult texres = {0.0f};
 
   /* TODO(sergey): always use color management now. */
-  multitex_ext(tex, value, nullptr, nullptr, 1, &texres, 0, nullptr, true, false);
+  multitex_ext(tex, value, &texres, 0, nullptr, true, false);
 
   copy_v3_v3(r_color, texres.trgba);
   r_color[3] = texres.tin;

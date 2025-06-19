@@ -1851,7 +1851,7 @@ static size_t unit_as_string_main(char *str,
 
   if (split && unit_should_be_split(type)) {
     int length = unit_as_string_split_pair(str, str_maxncpy, value, prec, usys, main_unit);
-    /* Failed when length is negative, fallback to no split. */
+    /* Failed when length is negative, fall back to no split. */
     if (length >= 0) {
       return length;
     }

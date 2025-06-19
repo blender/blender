@@ -69,6 +69,15 @@ struct OBJExportParams {
   ReportList *reports = nullptr;
 };
 
+/**
+ * Behavior when the name of an imported material
+ * conflicts with an existing material.
+ */
+enum eOBJMtlNameCollisionMode {
+  OBJ_MTL_NAME_COLLISION_MAKE_UNIQUE = 0,
+  OBJ_MTL_NAME_COLLISION_REFERENCE_EXISTING = 1,
+};
+
 struct OBJImportParams {
   /** Full path to the source OBJ file to import. */
   char filepath[FILE_MAX] = "";
@@ -85,6 +94,9 @@ struct OBJImportParams {
   bool close_spline_loops = true;
   bool relative_paths = true;
   bool clear_selection = true;
+
+  /** How to handle material name collisions during import. */
+  eOBJMtlNameCollisionMode mtl_name_collision_mode = OBJ_MTL_NAME_COLLISION_MAKE_UNIQUE;
 
   ReportList *reports = nullptr;
 };

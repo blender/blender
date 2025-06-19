@@ -305,7 +305,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &row->row(true);
   sub->prop(ptr, "use_add", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_add"));
+  sub->active_set(RNA_boolean_get(ptr, "use_add"));
   uiLayoutSetPropSep(sub, false);
   sub->prop(ptr, "add_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   uiItemDecoratorR(row, ptr, "add_threshold", 0);
@@ -316,7 +316,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &row->row(true);
   sub->prop(ptr, "use_remove", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_remove"));
+  sub->active_set(RNA_boolean_get(ptr, "use_remove"));
   uiLayoutSetPropSep(sub, false);
   sub->prop(ptr, "remove_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   uiItemDecoratorR(row, ptr, "remove_threshold", 0);

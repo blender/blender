@@ -59,7 +59,7 @@ class AverageWeightPaintOperation : public WeightPaintOperation {
 
     /* Iterate over the drawings grouped per frame number. Collect all stroke points under the
      * brush and average them. */
-    std::atomic<bool> changed = false;
+    std::atomic<bool> drawing_changed = false;
     threading::parallel_for_each(
         this->drawing_weight_data.index_range(), [&](const int frame_group) {
           Array<DrawingWeightData> &drawing_weights = this->drawing_weight_data[frame_group];
@@ -80,8 +80,14 @@ class AverageWeightPaintOperation : public WeightPaintOperation {
 
           /* Apply the Average brush to all points in the brush buffer. */
           threading::parallel_for_each(drawing_weights, [&](DrawingWeightData &drawing_weight) {
+            bool point_changed = false;
             for (const BrushPoint &point : drawing_weight.points_in_brush) {
+              if (drawing_weight.point_is_read_only[point.drawing_point_index]) {
+                continue;
+              }
+
               this->apply_weight_to_point(point, average_weight, drawing_weight);
+              point_changed = true;
 
               /* Normalize weights of bone-deformed vertex groups to 1.0f. */
               if (this->auto_normalize) {
@@ -92,14 +98,14 @@ class AverageWeightPaintOperation : public WeightPaintOperation {
               }
             }
 
-            if (!drawing_weight.points_in_brush.is_empty()) {
-              changed = true;
-              drawing_weight.points_in_brush.clear();
+            if (point_changed) {
+              drawing_changed.store(true, std::memory_order_relaxed);
             }
+            drawing_weight.points_in_brush.clear();
           });
         });
 
-    if (changed) {
+    if (drawing_changed) {
       DEG_id_tag_update(&this->grease_pencil->id, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &grease_pencil);
     }

@@ -223,7 +223,6 @@ ccl_device_inline bool motion_triangle_custom_local_intersect(const hiprtRay &ra
                                          payload->ray_time,
                                          object_id,
                                          prim_id_global,
-                                         prim_id_local,
                                          ray.minT,
                                          ray.maxT,
                                          payload->lcg_state,
@@ -407,8 +406,7 @@ ccl_device_inline bool shadow_intersection_filter(const hiprtRay &ray,
     return true; /* No hit -continue traversal. */
   }
 
-  if (intersection_skip_shadow_already_recoded(
-          kg, state, object, prim, *payload->r_num_recorded_hits))
+  if (intersection_skip_shadow_already_recoded(state, object, prim, *payload->r_num_recorded_hits))
   {
     return true;
   }
@@ -501,8 +499,7 @@ ccl_device_inline bool shadow_intersection_filter_curves(const hiprtRay &ray,
   }
 
   /* FIXME: transparent curves are not recorded, this check doesn't work. */
-  if (intersection_skip_shadow_already_recoded(
-          kg, payload->in_state, object, prim, num_recorded_hits))
+  if (intersection_skip_shadow_already_recoded(payload->in_state, object, prim, num_recorded_hits))
   {
     return true;
   }

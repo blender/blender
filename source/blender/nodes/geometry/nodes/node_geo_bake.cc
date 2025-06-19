@@ -80,8 +80,10 @@ static void node_declare(NodeDeclarationBuilder &b)
       }
     }
   }
-  b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Extend>("", "__extend__").align_with_previous();
+  b.add_input<decl::Extend>("", "__extend__").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Extend>("", "__extend__")
+      .structure_type(StructureType::Dynamic)
+      .align_with_previous();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -487,6 +489,12 @@ static void node_extra_info(NodeExtraInfoParams &params)
   if (!get_bake_draw_context(&params.C, params.node, ctx)) {
     return;
   }
+  if (!ctx.is_bakeable_in_current_context) {
+    NodeExtraInfoRow row;
+    row.text = TIP_("Can't bake in zone");
+    row.icon = ICON_ERROR;
+    params.rows.append(std::move(row));
+  }
   if (ctx.is_baked) {
     NodeExtraInfoRow row;
     row.text = get_baked_string(ctx);
@@ -501,12 +509,12 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
   if (!get_bake_draw_context(C, node, ctx)) {
     return;
   }
-
-  uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
+  layout->active_set(ctx.is_bakeable_in_current_context);
+  layout->enabled_set(ID_IS_EDITABLE(ctx.object));
   uiLayout *col = &layout->column(false);
   {
     uiLayout *row = &col->row(true);
-    uiLayoutSetEnabled(row, !ctx.is_baked);
+    row->enabled_set(!ctx.is_baked);
     row->prop(&ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
   }
   draw_bake_button_row(ctx, col);
@@ -522,13 +530,14 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
     return;
   }
 
-  uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
+  layout->active_set(ctx.is_bakeable_in_current_context);
+  layout->enabled_set(ID_IS_EDITABLE(ctx.object));
 
   {
     uiLayout *col = &layout->column(false);
     {
       uiLayout *row = &col->row(true);
-      uiLayoutSetEnabled(row, !ctx.is_baked);
+      row->enabled_set(!ctx.is_baked);
       row->prop(&ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
     }
 
@@ -629,14 +638,15 @@ bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext
   }
   r_ctx.object = object_and_modifier->object;
   r_ctx.nmd = object_and_modifier->nmd;
-  const std::optional<int32_t> bake_id = ed::space_node::find_nested_node_id_in_root(*r_ctx.snode,
-                                                                                     *r_ctx.node);
+  const std::optional<FoundNestedNodeID> bake_id = ed::space_node::find_nested_node_id_in_root(
+      *r_ctx.snode, *r_ctx.node);
   if (!bake_id) {
     return false;
   }
+  r_ctx.is_bakeable_in_current_context = !bake_id->is_in_loop && !bake_id->is_in_closure;
   r_ctx.bake = nullptr;
   for (const NodesModifierBake &iter_bake : Span(r_ctx.nmd->bakes, r_ctx.nmd->bakes_num)) {
-    if (iter_bake.id == *bake_id) {
+    if (iter_bake.id == bake_id->id) {
       r_ctx.bake = &iter_bake;
       break;
     }
@@ -651,7 +661,7 @@ bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext
     const bke::bake::ModifierCache &cache = *r_ctx.nmd->runtime->cache;
     std::lock_guard lock{cache.mutex};
     if (const std::unique_ptr<bke::bake::BakeNodeCache> *node_cache_ptr =
-            cache.bake_cache_by_id.lookup_ptr(*bake_id))
+            cache.bake_cache_by_id.lookup_ptr(bake_id->id))
     {
       const bke::bake::BakeNodeCache &node_cache = **node_cache_ptr;
       if (!node_cache.bake.frames.is_empty()) {
@@ -661,7 +671,7 @@ bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext
       }
     }
     else if (const std::unique_ptr<bke::bake::SimulationNodeCache> *node_cache_ptr =
-                 cache.simulation_cache_by_id.lookup_ptr(*bake_id))
+                 cache.simulation_cache_by_id.lookup_ptr(bake_id->id))
     {
       const bke::bake::SimulationNodeCache &node_cache = **node_cache_ptr;
       if (!node_cache.bake.frames.is_empty() &&
@@ -739,7 +749,7 @@ void draw_bake_button_row(const BakeDrawContext &ctx, uiLayout *layout, const bo
   }
   {
     uiLayout *subrow = &row->row(true);
-    uiLayoutSetActive(subrow, ctx.is_baked);
+    subrow->active_set(ctx.is_baked);
     if (is_in_sidebar) {
       if (ctx.is_baked && !G.is_rendering) {
         if (ctx.bake->packed) {
@@ -793,16 +803,16 @@ void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layo
   uiLayoutSetPropDecorate(layout, false);
 
   uiLayout *settings_col = &layout->column(false);
-  uiLayoutSetActive(settings_col, !ctx.is_baked);
+  settings_col->active_set(!ctx.is_baked);
   {
     uiLayout *col = &settings_col->column(true);
     col->prop(&ctx.bake_rna, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayout *subcol = &col->column(true);
-    uiLayoutSetActive(subcol, ctx.bake_target == NODES_MODIFIER_BAKE_TARGET_DISK);
+    subcol->active_set(ctx.bake_target == NODES_MODIFIER_BAKE_TARGET_DISK);
     subcol->prop(&ctx.bake_rna, "use_custom_path", UI_ITEM_NONE, IFACE_("Custom Path"), ICON_NONE);
     uiLayout *subsubcol = &subcol->column(true);
     const bool use_custom_path = ctx.bake->flag & NODES_MODIFIER_BAKE_CUSTOM_PATH;
-    uiLayoutSetActive(subsubcol, use_custom_path);
+    subsubcol->active_set(use_custom_path);
     Main *bmain = CTX_data_main(C);
     auto bake_path = bke::bake::get_node_bake_path(*bmain, *ctx.object, *ctx.nmd, ctx.bake->id);
 
@@ -834,7 +844,7 @@ void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layo
               IFACE_("Custom Range"),
               ICON_NONE);
     uiLayout *subcol = &col->column(true);
-    uiLayoutSetActive(subcol, ctx.bake->flag & NODES_MODIFIER_BAKE_CUSTOM_SIMULATION_FRAME_RANGE);
+    subcol->active_set(ctx.bake->flag & NODES_MODIFIER_BAKE_CUSTOM_SIMULATION_FRAME_RANGE);
     subcol->prop(&ctx.bake_rna, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
     subcol->prop(&ctx.bake_rna, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }

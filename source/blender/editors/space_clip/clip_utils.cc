@@ -600,34 +600,3 @@ bool clip_view_has_locked_selection(const bContext *C)
 
   return mask_has_selection(C);
 }
-
-void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
-{
-  UI_view2d_view_ortho(v2d);
-
-  /* currently clip editor supposes that editing clip length is equal to scene frame range */
-  GPU_blend(GPU_BLEND_ALPHA);
-
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-  immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-  immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, float(scene->r.sfra), v2d->cur.ymax);
-  immRectf(pos, float(scene->r.efra), v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
-
-  GPU_blend(GPU_BLEND_NONE);
-
-  immUniformThemeColorShade(TH_BACK, -60);
-
-  /* thin lines where the actual frames are */
-  GPU_line_width(1.0f);
-
-  immBegin(GPU_PRIM_LINES, 4);
-  immVertex2f(pos, float(scene->r.sfra), v2d->cur.ymin);
-  immVertex2f(pos, float(scene->r.sfra), v2d->cur.ymax);
-  immVertex2f(pos, float(scene->r.efra), v2d->cur.ymin);
-  immVertex2f(pos, float(scene->r.efra), v2d->cur.ymax);
-  immEnd();
-
-  immUnbindProgram();
-}

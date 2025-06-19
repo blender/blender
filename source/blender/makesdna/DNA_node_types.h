@@ -236,7 +236,7 @@ typedef struct bNodeSocket {
   bool affects_node_output() const;
   /**
    * This becomes false when it is detected that the input socket is currently not used and its
-   * usage depends on a menu (as opposed to e.g. a boolean input). By convention, sockets whoose
+   * usage depends on a menu (as opposed to e.g. a boolean input). By convention, sockets whose
    * visibility is controlled by a menu should be hidden.
    */
   bool inferred_input_socket_visibility() const;
@@ -321,6 +321,8 @@ typedef enum eNodeSocketDisplayShape {
   SOCK_DISPLAY_SHAPE_CIRCLE_DOT = 3,
   SOCK_DISPLAY_SHAPE_SQUARE_DOT = 4,
   SOCK_DISPLAY_SHAPE_DIAMOND_DOT = 5,
+  SOCK_DISPLAY_SHAPE_LINE = 6,
+  SOCK_DISPLAY_SHAPE_VOLUME_GRID = 7,
 } eNodeSocketDisplayShape;
 
 /** Socket side (input/output). */
@@ -1167,14 +1169,20 @@ typedef struct NodeImageLayer {
 } NodeImageLayer;
 
 typedef struct NodeBlurData {
-  short sizex, sizey;
-  short samples, maxspeed, minspeed, relative, aspect;
-  short curved;
-  float fac, percentx, percenty;
+  short sizex DNA_DEPRECATED;
+  short sizey DNA_DEPRECATED;
+  short samples DNA_DEPRECATED;
+  short maxspeed DNA_DEPRECATED;
+  short minspeed DNA_DEPRECATED;
+  short relative DNA_DEPRECATED;
+  short aspect DNA_DEPRECATED;
+  short curved DNA_DEPRECATED;
+  float fac DNA_DEPRECATED;
+  float percentx DNA_DEPRECATED;
+  float percenty DNA_DEPRECATED;
   short filtertype;
-  char bokeh, gamma;
-  /** Needed for absolute/relative conversions. */
-  int image_in_width, image_in_height;
+  char bokeh DNA_DEPRECATED;
+  char gamma DNA_DEPRECATED;
 } NodeBlurData;
 
 typedef struct NodeDBlurData {
@@ -1213,7 +1221,9 @@ typedef struct NodeAntiAliasingData {
 
 /** \note Only for do-version code. */
 typedef struct NodeHueSat {
-  float hue, sat, val;
+  float hue DNA_DEPRECATED;
+  float sat DNA_DEPRECATED;
+  float val DNA_DEPRECATED;
 } NodeHueSat;
 
 typedef struct NodeImageFile {
@@ -1264,18 +1274,19 @@ typedef struct NodeChroma {
 } NodeChroma;
 
 typedef struct NodeTwoXYs {
-  short x1;
-  short x2;
-  short y1;
-  short y2;
-  float fac_x1;
-  float fac_x2;
-  float fac_y1;
-  float fac_y2;
+  short x1 DNA_DEPRECATED;
+  short x2 DNA_DEPRECATED;
+  short y1 DNA_DEPRECATED;
+  short y2 DNA_DEPRECATED;
+  float fac_x1 DNA_DEPRECATED;
+  float fac_x2 DNA_DEPRECATED;
+  float fac_y1 DNA_DEPRECATED;
+  float fac_y2 DNA_DEPRECATED;
 } NodeTwoXYs;
 
 typedef struct NodeTwoFloats {
-  float x, y;
+  float x DNA_DEPRECATED;
+  float y DNA_DEPRECATED;
 } NodeTwoFloats;
 
 typedef struct NodeVertexCol {
@@ -1290,11 +1301,14 @@ typedef struct NodeCMPCombSepColor {
 
 /** Defocus blur node. */
 typedef struct NodeDefocus {
-  char bktype, _pad0, preview, gamco;
-  short samples, no_zbuf;
-  float fstop, maxblur, bthresh, scale;
+  char bktype;
+  char gamco DNA_DEPRECATED;
+  char no_zbuf;
+  char _pad0;
+  float fstop;
+  float maxblur;
+  float scale;
   float rotation;
-  char _pad1[4];
 } NodeDefocus;
 
 typedef struct NodeScriptDict {
@@ -1321,6 +1335,13 @@ typedef struct NodeGlare {
   float angle_ofs DNA_DEPRECATED;
   char _pad1[4];
 } NodeGlare;
+
+/* Glare Node. Stored in NodeGlare.quality. */
+typedef enum CMPNodeGlareQuality {
+  CMP_NODE_GLARE_QUALITY_HIGH = 0,
+  CMP_NODE_GLARE_QUALITY_MEDIUM = 1,
+  CMP_NODE_GLARE_QUALITY_LOW = 2,
+} CMPNodeGlareQuality;
 
 /** Tone-map node. */
 typedef struct NodeTonemap {
@@ -1398,9 +1419,6 @@ typedef struct NodeTexBase {
 typedef struct NodeTexSky {
   NodeTexBase base;
   int sky_model;
-  float sun_direction[3];
-  float turbidity;
-  float ground_albedo;
   float sun_size;
   float sun_intensity;
   float sun_elevation;
@@ -1410,7 +1428,7 @@ typedef struct NodeTexSky {
   float dust_density;
   float ozone_density;
   char sun_disc;
-  char _pad[7];
+  char _pad[11];
 } NodeTexSky;
 
 typedef struct NodeTexImage {
@@ -1506,24 +1524,6 @@ typedef struct NodeShaderVectTransform {
   char _pad[4];
 } NodeShaderVectTransform;
 
-typedef struct NodeShaderTexPointDensity {
-  NodeTexBase base;
-  short point_source;
-  char _pad[2];
-  int particle_system;
-  float radius;
-  int resolution;
-  short space;
-  short interpolation;
-  short color_source;
-  short ob_color_source;
-  /** Used at runtime only by sampling RNA API. */
-  PointDensity pd;
-  int cached_resolution;
-  /** Vertex attribute layer for color source. */
-  char vertex_attribute_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-} NodeShaderTexPointDensity;
-
 typedef struct NodeShaderPrincipled {
   char use_subsurface_auto_radius;
   char _pad[3];
@@ -1567,13 +1567,17 @@ typedef struct NodeTrackPosData {
 
 typedef struct NodeTranslateData {
   char wrap_axis;
-  char relative;
+  char relative DNA_DEPRECATED;
   short interpolation;
 } NodeTranslateData;
 
 typedef struct NodeScaleData {
   short interpolation;
 } NodeScaleData;
+
+typedef struct NodeDisplaceData {
+  short interpolation;
+} NodeDisplaceData;
 
 typedef struct NodePlaneTrackDeformData {
   char tracking_object[64];
@@ -2181,7 +2185,9 @@ typedef struct NodeGeometryClosureInputItem {
   char *name;
   /** #eNodeSocketDatatype. */
   short socket_type;
-  char _pad[2];
+  /** #NodeSocketInterfaceStructureType.  */
+  int8_t structure_type;
+  char _pad[1];
   int identifier;
 } NodeGeometryClosureInputItem;
 
@@ -2218,7 +2224,9 @@ typedef struct NodeGeometryEvaluateClosureInputItem {
   char *name;
   /** #eNodeSocketDatatype */
   short socket_type;
-  char _pad[2];
+  /** #NodeSocketInterfaceStructureType.  */
+  int8_t structure_type;
+  char _pad[1];
   int identifier;
 } NodeGeometryEvaluateClosureInputItem;
 
@@ -2226,7 +2234,9 @@ typedef struct NodeGeometryEvaluateClosureOutputItem {
   char *name;
   /** #eNodeSocketDatatype */
   short socket_type;
-  char _pad[2];
+  /** #NodeSocketInterfaceStructureType.  */
+  int8_t structure_type;
+  char _pad[1];
   int identifier;
 } NodeGeometryEvaluateClosureOutputItem;
 
@@ -2394,6 +2404,21 @@ typedef struct NodeGeometrySeparateBundle {
   int active_index;
   char _pad[4];
 } NodeGeometrySeparateBundle;
+
+typedef struct NodeFunctionFormatStringItem {
+  char *name;
+  int identifier;
+  int16_t socket_type;
+  char _pad[2];
+} NodeFunctionFormatStringItem;
+
+typedef struct NodeFunctionFormatString {
+  NodeFunctionFormatStringItem *items;
+  int items_num;
+  int next_identifier;
+  int active_index;
+  char _pad[4];
+} NodeFunctionFormatString;
 
 /* script node mode */
 enum {
@@ -2583,11 +2608,7 @@ enum {
 };
 
 /* sky texture */
-enum {
-  SHD_SKY_PREETHAM = 0,
-  SHD_SKY_HOSEK = 1,
-  SHD_SKY_NISHITA = 2,
-};
+enum { SHD_SKY_NISHITA = 0 };
 
 /* environment texture */
 enum {
@@ -2747,6 +2768,8 @@ typedef enum NodeVectorMathOperation {
   NODE_VECTOR_MATH_REFRACT = 24,
   NODE_VECTOR_MATH_FACEFORWARD = 25,
   NODE_VECTOR_MATH_MULTIPLY_ADD = 26,
+  NODE_VECTOR_MATH_POWER = 27,
+  NODE_VECTOR_MATH_SIGN = 28,
 } NodeVectorMathOperation;
 
 typedef enum NodeBooleanMathOperation {
@@ -2863,11 +2886,6 @@ typedef enum CMPNodeTranslateRepeatAxis {
 } CMPNodeTranslateRepeatAxis;
 
 #define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
-
-/* image */
-enum {
-  CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT = 1,
-};
 
 /* viewer and composite output. */
 enum {
@@ -2988,15 +3006,8 @@ typedef enum CMPNodeInterpolation {
   CMP_NODE_INTERPOLATION_NEAREST = 0,
   CMP_NODE_INTERPOLATION_BILINEAR = 1,
   CMP_NODE_INTERPOLATION_BICUBIC = 2,
+  CMP_NODE_INTERPOLATION_ANISOTROPIC = 3,
 } CMPNodeInterpolation;
-
-/* CornerPin node interpolation option. */
-typedef enum CMPNodeCornerPinInterpolation {
-  CMP_NODE_CORNER_PIN_INTERPOLATION_NEAREST = 0,
-  CMP_NODE_CORNER_PIN_INTERPOLATION_BILINEAR = 1,
-  CMP_NODE_CORNER_PIN_INTERPOLATION_BICUBIC = 2,
-  CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC = 3,
-} CMPNodeCornerPinInterpolation;
 
 /* Set Alpha Node. */
 
@@ -3076,30 +3087,6 @@ typedef enum CMPNodeRelativeToPixelReferenceDimension {
   CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_SMALLER = 4,
   CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_DIAGONAL = 5,
 } CMPNodeRelativeToPixelReferenceDimension;
-
-/* Point Density shader node */
-
-enum {
-  SHD_POINTDENSITY_SOURCE_PSYS = 0,
-  SHD_POINTDENSITY_SOURCE_OBJECT = 1,
-};
-
-enum {
-  SHD_POINTDENSITY_SPACE_OBJECT = 0,
-  SHD_POINTDENSITY_SPACE_WORLD = 1,
-};
-
-enum {
-  SHD_POINTDENSITY_COLOR_PARTAGE = 1,
-  SHD_POINTDENSITY_COLOR_PARTSPEED = 2,
-  SHD_POINTDENSITY_COLOR_PARTVEL = 3,
-};
-
-enum {
-  SHD_POINTDENSITY_COLOR_VERTCOL = 0,
-  SHD_POINTDENSITY_COLOR_VERTWEIGHT = 1,
-  SHD_POINTDENSITY_COLOR_VERTNOR = 2,
-};
 
 /* Scattering phase functions */
 enum {

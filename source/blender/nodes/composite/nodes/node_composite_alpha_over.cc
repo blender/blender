@@ -48,12 +48,6 @@ static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 }
 
-static void node_alphaover_init(bNodeTree * /*ntree*/, bNode *node)
-{
-  /* Not used, but the data is still allocated for forward compatibility. */
-  node->storage = MEM_callocN<NodeTwoFloats>(__func__);
-}
-
 using namespace blender::compositor;
 
 static int node_gpu_material(GPUMaterial *material,
@@ -109,9 +103,6 @@ static void register_node_type_cmp_alphaover()
   ntype.enum_name_legacy = "ALPHAOVER";
   ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_alphaover_declare;
-  ntype.initfunc = file_ns::node_alphaover_init;
-  blender::bke::node_type_storage(
-      ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 

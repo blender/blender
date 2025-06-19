@@ -20,6 +20,7 @@ void transform_mesh(Mesh &mesh, float3 translation, math::Quaternion rotation, f
 
 struct TransformGeometryErrors {
   bool volume_too_small = false;
+  bool bad_volume_transform = false;
 };
 
 std::optional<TransformGeometryErrors> transform_geometry(bke::GeometrySet &geometry,

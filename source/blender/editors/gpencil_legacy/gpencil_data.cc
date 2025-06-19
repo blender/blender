@@ -255,9 +255,6 @@ static wmOperatorStatus gpencil_layer_remove_exec(bContext *C, wmOperator *op)
   /* delete the layer now... */
   BKE_gpencil_layer_delete(gpd, gpl);
 
-  /* Reorder masking. */
-  BKE_gpencil_layer_mask_sort_all(gpd);
-
   /* notifiers */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
@@ -319,9 +316,6 @@ static wmOperatorStatus gpencil_layer_move_exec(bContext *C, wmOperator *op)
 
   BLI_assert(ELEM(direction, -1, 0, 1)); /* we use value below */
   if (BLI_listbase_link_move(&gpd->layers, gpl, direction)) {
-    /* Reorder masking. */
-    BKE_gpencil_layer_mask_sort_all(gpd);
-
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }

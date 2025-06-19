@@ -27,7 +27,6 @@ def _keep_open():
 def _test_window(windows_exclude=None):
     import bpy
     wm = bpy.data.window_managers[0]
-    # Use -1 so the last added window is always used.
     if windows_exclude is None:
         return wm.windows[0]
     for window in wm.windows:
@@ -505,6 +504,59 @@ def view3d_sculpt_trim():
     yield e.ctrl.shift.z()                                                  # Redo Trim
     after_redo_positions = extract_mesh_positions(window)
     t.assertEqual(after_trim_positions, after_redo_positions)
+
+
+def view3d_sculpt_dyntopo_stroke_toggle():
+    e, t = _test_vars(window := _test_window())
+    yield from _view3d_startup_area_maximized(e)
+
+    yield from _call_menu(e, "Add -> Mesh -> Torus")
+    yield e.numpad_period()             # View all.
+    yield from _call_by_name(e, "Remove UV Map")
+    yield e.ctrl.tab().s()              # Sculpt via pie menu.
+
+    # Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
+    def extract_mesh_positions(window):
+        # TODO: Find/add a way to get that info when there is a multires active in Sculpt mode.
+        window.view_layer.update()
+        tmp_mesh = window.view_layer.objects.active.to_mesh(preserve_all_data_layers=True)
+        tmp_cos = [0.0] * len(tmp_mesh.vertices) * 3
+        tmp_mesh.vertices.foreach_get("co", tmp_cos)
+        window.view_layer.objects.active.to_mesh_clear()
+        return tmp_cos
+
+    original_positions = extract_mesh_positions(window)
+    yield from _call_by_name(e, "Dynamic Topology")  # On
+
+    yield from e.leftmouse.cursor_motion(_cursor_motion_data_x(window))
+
+    yield from _call_by_name(e, "Dynamic Topology")  # Off
+    after_toggle_off = extract_mesh_positions(window)
+    t.assertNotEqual(original_positions, after_toggle_off)
+
+    yield from e.leftmouse.cursor_motion(_cursor_motion_data_y(window))
+    after_normal_stroke = extract_mesh_positions(window)
+    t.assertNotEqual(after_toggle_off, after_normal_stroke)
+
+    yield e.ctrl.z()                          # Undo Stroke
+    after_first_undo = extract_mesh_positions(window)
+    t.assertEqual(after_first_undo, after_toggle_off)
+
+    yield e.ctrl.z()                          # Undo Toggle Off
+    yield e.ctrl.z()                          # Undo Dyntopo Stroke
+    yield e.ctrl.z()                          # Undo Toggle On
+    after_full_undo = extract_mesh_positions(window)
+    t.assertEqual(after_full_undo, original_positions)
+
+    yield e.ctrl.shift.z()                    # Redo Toggle On
+    yield e.ctrl.shift.z()                    # Redo Dyntopo Stroke
+    yield e.ctrl.shift.z()                    # Redo Toggle Off
+    after_toggle_off_redo = extract_mesh_positions(window)
+    t.assertEqual(after_toggle_off_redo, after_toggle_off)
+
+    yield e.ctrl.shift.z()                    # Redo Normal Stroke
+    after_normal_stroke_redo = extract_mesh_positions(window)
+    t.assertEqual(after_normal_stroke, after_normal_stroke_redo)
 
 
 def view3d_texture_paint_simple():

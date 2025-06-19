@@ -162,7 +162,7 @@ class StaleFiles:
                 #
                 # If this ever did happen besides potentially trying to remove `base_directory`,
                 # this path could be treated as a file which could not be removed and queued for
-                # removal again causing a single space (for e.g.) to be left in the stale file,
+                # removal again causing a single space (for example) to be left in the stale file,
                 # trying to be removed every startup and failing.
                 # Avoid all these issues by checking the path doesn't resolve to being the same path as it's parent.
                 is_same = False

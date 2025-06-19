@@ -17,6 +17,13 @@ The following updates do **not** trigger message bus notifications:
 - Moving objects in the 3D Viewport.
 - Changes performed by the animation system.
 
+Changes done from ``msgbus`` callbacks are not included in related undo steps,
+so users can easily skip their effects by using Undo followed by Redo.
+
+Unlike properties ``update`` callbacks, message bus update callbacks are postponed
+until all operators have finished executing.
+Additionally, for each property the callback is only triggered once per update cycle,
+even if the property was changed multiple times during that period.
 
 Example Use
 -----------

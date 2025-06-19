@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:18+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -557,16 +557,16 @@ msgid "Min Angle"
 msgstr "Angelu Minimoa"
 
 
-msgid "Relations"
-msgstr "Loturak"
-
-
 msgid "Show/Hide"
 msgstr "Erakutsi/Ezkutatu"
 
 
 msgid "Text"
 msgstr "Testua"
+
+
+msgid "Relations"
+msgstr "Loturak"
 
 
 msgid "UV"
@@ -621,6 +621,10 @@ msgstr "Mundua"
 msgctxt "Curve"
 msgid "Random"
 msgstr "Ausaz"
+
+
+msgid "Starting"
+msgstr "Hasten"
 
 
 msgid "Shadow"
@@ -1738,11 +1742,6 @@ msgid "Sound"
 msgstr "Soinua"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Gurutzatu"
-
-
 msgctxt "WindowManager"
 msgid "Window"
 msgstr "Leihoa"
@@ -2299,140 +2298,4 @@ msgstr "Ezin da irakurri %s '%s': %s"
 
 msgid "Import-Export"
 msgstr "Inportatu-Esportatu"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japoniera (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Italiera (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Alemaniera (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finlandiera (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Suediera (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Frantsesa (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Gaztelania (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Katalana (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Portugesa (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Txinera laburtua (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Txinera tradizionala (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Errusiera (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Kroaziera (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Serbiera (Српски)"
-
-
-msgid "Polish (Polski)"
-msgstr "Poloniera (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Errumaniera (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arabiera (ﺔﻴﺑﺮﻌﻟﺩ"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bulgariera (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Greziera (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepalera (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Persiera (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonesiera (Bahasa indonesia)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Kirgizera (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turkiera (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Hungariera (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Brazilgo Portugesa (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Hebreera (תירִבְעִ)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperantoa (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amharera (አማርኛ)\""
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbekera (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Uzbekera Zirilikoa (Ўзбек)"
-
-
-msgid "Complete"
-msgstr "Bukatuta"
-
-
-msgid "In Progress"
-msgstr "Abian"
-
-
-msgid "Starting"
-msgstr "Hasten"
 

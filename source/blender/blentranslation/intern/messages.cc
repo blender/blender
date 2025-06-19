@@ -111,8 +111,20 @@ class Info {
       if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, buf, sizeof(buf)) != 0) {
         locale_name = buf;
         if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_SISO3166CTRYNAME, buf, sizeof(buf)) != 0) {
-          locale_name += "_";
-          locale_name += buf;
+          std::string region = buf;
+          if (locale_name == "zh") {
+            if (region == "TW" || region == "HK" || region == "MO") {
+              /* Traditional for Taiwan, Hong Kong, Macau. */
+              locale_name += "_HANT";
+            }
+            else {
+              /* Simplified for all other areas. */
+              locale_name += "_HANS";
+            }
+          }
+          else {
+            locale_name += "_" + region;
+          }
         }
       }
     }

@@ -244,7 +244,7 @@ static Vector<ReferenceSetInfo> find_reference_sets(
   for (const int input_i : interface_inputs.index_range()) {
     const bNodeTreeInterfaceSocket &interface_input = *interface_inputs[input_i];
     const bNodeSocketType *stype = interface_input.socket_typeinfo();
-    const eNodeSocketDatatype socket_type = stype ? eNodeSocketDatatype(stype->type) : SOCK_CUSTOM;
+    const eNodeSocketDatatype socket_type = stype ? stype->type : SOCK_CUSTOM;
     if (can_contain_reference(socket_type)) {
       reference_sets.append({ReferenceSetType::GroupInputReferenceSet, input_i});
     }
@@ -253,7 +253,7 @@ static Vector<ReferenceSetInfo> find_reference_sets(
   for (const int output_i : interface_outputs.index_range()) {
     const bNodeTreeInterfaceSocket &interface_output = *interface_outputs[output_i];
     const bNodeSocketType *stype = interface_output.socket_typeinfo();
-    const eNodeSocketDatatype socket_type = stype ? eNodeSocketDatatype(stype->type) : SOCK_CUSTOM;
+    const eNodeSocketDatatype socket_type = stype ? stype->type : SOCK_CUSTOM;
     if (can_contain_referenced_data(socket_type)) {
       r_group_output_reference_sets.append(
           reference_sets.append_and_get_index({ReferenceSetType::GroupOutputData, output_i}));
@@ -263,7 +263,7 @@ static Vector<ReferenceSetInfo> find_reference_sets(
   for (const int input_i : interface_inputs.index_range()) {
     const bNodeTreeInterfaceSocket &interface_input = *interface_inputs[input_i];
     const bNodeSocketType *stype = interface_input.socket_typeinfo();
-    const eNodeSocketDatatype socket_type = stype ? eNodeSocketDatatype(stype->type) : SOCK_CUSTOM;
+    const eNodeSocketDatatype socket_type = stype ? stype->type : SOCK_CUSTOM;
     if (can_contain_referenced_data(socket_type)) {
       for (const bNode *node : tree.group_input_nodes()) {
         const bNodeSocket &socket = node->output_socket(input_i);
@@ -865,8 +865,7 @@ static aal::RelationsInNode get_tree_relations(
 
   for (const int input_i : tree.interface_inputs().index_range()) {
     const bNodeTreeInterfaceSocket &interface_input = *tree.interface_inputs()[input_i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(
-        interface_input.socket_typeinfo()->type);
+    const eNodeSocketDatatype socket_type = interface_input.socket_typeinfo()->type;
     if (can_contain_referenced_data(socket_type)) {
       BitVector<> required_data(required_data_by_socket.group_size(), false);
       for (const bNode *input_node : tree.group_input_nodes()) {

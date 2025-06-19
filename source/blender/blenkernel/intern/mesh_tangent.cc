@@ -70,6 +70,11 @@ struct BKEMeshToTangent {
     copy_v4_fl4(p_res, T.x, T.y, T.z, orientation ? 1.0f : -1.0f);
   }
 
+  bool has_uv() const
+  {
+    return true;
+  }
+
   OffsetIndices<int> faces;         /* faces */
   const int *corner_verts;          /* faces vertices */
   const float (*positions)[3];      /* vertices */
@@ -227,7 +232,7 @@ struct SGLSLMeshToTangent {
     int3 tri;
     int face_index;
     uint loop_index = GetLoop(face_num, vert_num, tri, face_index);
-    if (mloopuv != nullptr) {
+    if (has_uv()) {
       const float2 &uv = mloopuv[loop_index];
       return mikk::float3(uv[0], uv[1], 1.0f);
     }
@@ -279,6 +284,11 @@ struct SGLSLMeshToTangent {
     uint loop_index = GetLoop(face_num, vert_num, tri, face_index);
 
     copy_v4_fl4(tangent[loop_index], T.x, T.y, T.z, orientation ? 1.0f : -1.0f);
+  }
+
+  bool has_uv() const
+  {
+    return mloopuv != nullptr;
   }
 
   Span<float3> face_normals;

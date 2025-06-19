@@ -9,12 +9,12 @@ add_definitions(-DBLENDER_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
 set(INC
   .
   ..
-  ${GLOG_INCLUDE_DIRS}
-  ${GFLAGS_INCLUDE_DIRS}
-  ../../../extern/gtest/include
 )
 
 set(INC_SYS
+  ${GLOG_INCLUDE_DIRS}
+  ${GFLAGS_INCLUDE_DIRS}
+  ../../../extern/gtest/include
 )
 
 set(SRC

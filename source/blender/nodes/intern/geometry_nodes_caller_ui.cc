@@ -84,6 +84,7 @@ struct DrawGroupInputsContext {
   PointerRNA *properties_ptr;
   PointerRNA *bmain_ptr;
   Array<nodes::socket_usage_inference::SocketUsage> input_usages;
+  bool use_name_for_ids = false;
   std::function<PanelOpenProperty(const bNodeTreeInterfacePanel &)> panel_open_property_fn;
   std::function<SocketSearchData(const bNodeTreeInterfaceSocket &)> socket_search_data_fn;
   std::function<void(uiLayout &, int icon, const bNodeTreeInterfaceSocket &)>
@@ -229,12 +230,12 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
 
   uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
-  uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
+  name_row->alignment_set(blender::ui::LayoutAlign::Right);
 
   name_row->label(socket.name ? IFACE_(socket.name) : "", ICON_NONE);
   uiLayout *prop_row = &split->row(true);
 
-  uiBlock *block = uiLayoutGetBlock(prop_row);
+  uiBlock *block = prop_row->block();
   uiBut *but = uiDefIconTextButR(block,
                                  UI_BTYPE_SEARCH_MENU,
                                  0,
@@ -354,7 +355,7 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
     return;
   }
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   uiBut *but = uiDefIconTextButR(block,
                                  UI_BTYPE_SEARCH_MENU,
                                  0,
@@ -408,7 +409,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
                                                   const bNodeTreeInterfaceSocket &socket)
 {
   const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
-  const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+  const eNodeSocketDatatype type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
   const std::string rna_path_attribute_name = fmt::format(
       "[\"{}{}\"]", BLI_str_escape(socket.identifier), nodes::input_attribute_name_suffix);
 
@@ -417,7 +418,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
 
   uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
-  uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
+  name_row->alignment_set(blender::ui::LayoutAlign::Right);
 
   uiLayout *prop_row = nullptr;
 
@@ -433,7 +434,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
 
   if (type == SOCK_BOOLEAN) {
     uiLayoutSetPropSep(prop_row, false);
-    uiLayoutSetAlignment(prop_row, UI_LAYOUT_ALIGN_EXPAND);
+    prop_row->alignment_set(blender::ui::LayoutAlign::Expand);
   }
 
   if (attribute_name) {
@@ -474,7 +475,9 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
 
   /* IDProperties can be removed with python, so there could be a situation where
    * there isn't a property for a socket or it doesn't have the correct type. */
-  if (property == nullptr || !nodes::id_property_type_matches_socket(socket, *property)) {
+  if (property == nullptr ||
+      !nodes::id_property_type_matches_socket(socket, *property, ctx.use_name_for_ids))
+  {
     return;
   }
 
@@ -487,7 +490,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
 
   uiLayout *row = &layout->row(true);
   uiLayoutSetPropDecorate(row, true);
-  uiLayoutSetActive(row, ctx.input_is_active(socket));
+  row->active_set(ctx.input_is_active(socket));
 
   const std::string rna_path = fmt::format("[\"{}\"]", BLI_str_escape(identifier.c_str()));
 
@@ -495,7 +498,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
    * information about what type of ID to select for editing the values. This is because
    * pointer IDProperties contain no information about their type. */
   const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
-  const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+  const eNodeSocketDatatype type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
   const char *name = socket.name ? IFACE_(socket.name) : "";
   switch (type) {
     case SOCK_OBJECT: {
@@ -650,8 +653,8 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
           IDProperty *property = ctx.properties.lookup_key_default_as(identifier, nullptr);
           /* IDProperties can be removed with python, so there could be a situation where
            * there isn't a property for a socket or it doesn't have the correct type. */
-          if (property == nullptr ||
-              !nodes::id_property_type_matches_socket(*toggle_socket, *property))
+          if (property == nullptr || !nodes::id_property_type_matches_socket(
+                                         *toggle_socket, *property, ctx.use_name_for_ids))
           {
             continue;
           }
@@ -674,7 +677,7 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
           panel_layout.header->label(IFACE_(sub_interface_panel.name), ICON_NONE);
         }
         if (!interface_panel_affects_output(ctx, sub_interface_panel)) {
-          uiLayoutSetActive(panel_layout.header, false);
+          panel_layout.header->active_set(false);
         }
         uiLayoutSetTooltipFunc(
             panel_layout.header,
@@ -758,7 +761,7 @@ static bool has_output_attribute(const bNodeTree *tree)
   }
   for (const bNodeTreeInterfaceSocket *interface_socket : tree->interface_outputs()) {
     const bke::bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
-    const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+    const eNodeSocketDatatype type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
     if (nodes::socket_type_has_attribute_toggle(type)) {
       return true;
     }
@@ -775,7 +778,7 @@ static void draw_property_for_output_socket(DrawGroupInputsContext &ctx,
 
   uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
-  uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
+  name_row->alignment_set(blender::ui::LayoutAlign::Right);
   name_row->label(socket.name ? socket.name : "", ICON_NONE);
 
   uiLayout *row = &split->row(true);
@@ -787,8 +790,7 @@ static void draw_output_attributes_panel(DrawGroupInputsContext &ctx, uiLayout *
   if (ctx.tree != nullptr && !ctx.properties.is_empty()) {
     for (const bNodeTreeInterfaceSocket *socket : ctx.tree->interface_outputs()) {
       const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
-      const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) :
-                                                  SOCK_CUSTOM;
+      const eNodeSocketDatatype type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
       if (nodes::socket_type_has_attribute_toggle(type)) {
         draw_property_for_output_socket(ctx, layout, *socket);
       }
@@ -866,8 +868,8 @@ static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd
     }
 
     uiLayout *row = &split->row(false);
-    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
-    uiLayoutSetActive(row, false);
+    row->alignment_set(blender::ui::LayoutAlign::Right);
+    row->active_set(false);
     row->label(ss.str(), ICON_NONE);
 
     row = &split->row(false);
@@ -1006,6 +1008,7 @@ void draw_geometry_nodes_operator_redo_ui(const bContext &C,
             "[\"{}{}\"]", BLI_str_escape(io_socket.identifier), nodes::input_use_attribute_suffix);
         layout.prop(op.ptr, prop_name, UI_ITEM_R_ICON_ONLY, "", icon);
       };
+  ctx.use_name_for_ids = true;
 
   uiLayoutSetPropSep(&layout, true);
   /* Decorators are added manually for supported properties because the

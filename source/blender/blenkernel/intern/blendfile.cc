@@ -1440,7 +1440,7 @@ void BKE_blendfile_read_make_empty(bContext *C)
  *
  *   The preferences are merged by using some from the app-template and other settings from the
  *   regular preferences (add-ons from the app-template for example are used),
- *   undo-memory uses the regular preferences (for e.g.).
+ *   undo-memory uses the regular preferences (for example).
  *
  * - Writing preferences is performed for both the app-template & regular preferences.
  *

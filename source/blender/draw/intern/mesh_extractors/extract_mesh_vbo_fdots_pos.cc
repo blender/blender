@@ -17,14 +17,14 @@ namespace blender::draw {
 static const GPUVertFormat &get_fdots_pos_format()
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   return format;
 }
 
 static const GPUVertFormat &get_fdots_nor_format_subdiv()
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "norAndFlag", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      "norAndFlag", gpu::VertAttrType::SFLOAT_32_32_32_32);
   return format;
 }
 

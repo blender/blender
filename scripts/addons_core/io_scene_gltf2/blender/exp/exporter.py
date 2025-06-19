@@ -161,7 +161,7 @@ class GlTF2Exporter:
             os.makedirs(output_path, exist_ok=True)
 
         for name, image in self.__images.items():
-            dst_path = output_path + "/" + image.uri
+            dst_path = os.path.join(self.export_settings['gltf_filedirectory'], uri_to_path(image.uri))
             with open(dst_path, 'wb') as f:
                 f.write(image.data)
 

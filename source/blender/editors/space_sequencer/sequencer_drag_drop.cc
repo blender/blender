@@ -359,7 +359,7 @@ static void get_drag_path(const bContext *C, wmDrag *drag, char r_path[FILE_MAX]
   }
 }
 
-static void draw_seq_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, const int xy[2])
+static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, const int xy[2])
 {
   SeqDropCoords *coords = &g_drop_coords;
   if (!coords->in_use) {
@@ -438,12 +438,12 @@ static void draw_seq_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, cons
     strip_color[3] = 204;
     data.col_outline = color_pack(strip_color);
 
-    const bool use_thin_handle = (U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) != 0;
-    const float handle_size = use_thin_handle ? 5.0f : 8.0f;
+    /* Taken from strip_handle_draw_size_get(). */
+    const float handle_size = pixelx * (5.0f * U.pixelsize);
 
     /* Calculate height needed for drawing text on strip. */
     float text_margin_y = y2 - min_ff(0.40f, 20 * UI_SCALE_FAC * pixely);
-    float text_margin_x = 2.0f * (pixelx * handle_size) * U.pixelsize;
+    float text_margin_x = 2.0f * handle_size;
 
     rctf rect;
     rect.xmin = x1 + text_margin_x;
@@ -667,7 +667,7 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
   drop = WM_dropbox_add(
       lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
-  drop->draw_in_view = draw_seq_in_view;
+  drop->draw_in_view = draw_strip_in_view;
   drop->on_enter = image_drop_on_enter;
   drop->on_exit = sequencer_drop_on_exit;
 
@@ -676,7 +676,7 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
   drop = WM_dropbox_add(
       lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
-  drop->draw_in_view = draw_seq_in_view;
+  drop->draw_in_view = draw_strip_in_view;
   drop->on_enter = movie_drop_on_enter;
   drop->on_exit = sequencer_drop_on_exit;
 
@@ -685,7 +685,7 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
   drop = WM_dropbox_add(
       lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
-  drop->draw_in_view = draw_seq_in_view;
+  drop->draw_in_view = draw_strip_in_view;
   drop->on_enter = sound_drop_on_enter;
   drop->on_exit = sequencer_drop_on_exit;
 }

@@ -11,6 +11,8 @@
 #include "BKE_appdir.hh"
 #include "BKE_global.hh"
 
+#include "BLI_fileops.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_time.h"
 #include "BLI_vector.hh"
@@ -75,7 +77,10 @@ void GLShader::init(const shader::ShaderCreateInfo &info, bool is_batch_compilat
 
   /* NOTE: This is not threadsafe with regards to the specialization constants state access.
    * The shader creation must be externally synchronized. */
-  main_program_ = &program_cache_.lookup_or_add_default(constants->values);
+  main_program_ = program_cache_
+                      .lookup_or_add_cb(constants->values,
+                                        []() { return std::make_unique<GLProgram>(); })
+                      .get();
   if (!main_program_->program_id) {
     main_program_->program_id = glCreateProgram();
     debug::object_label(GL_PROGRAM, main_program_->program_id, name);
@@ -84,7 +89,10 @@ void GLShader::init(const shader::ShaderCreateInfo &info, bool is_batch_compilat
 
 void GLShader::init()
 {
-  main_program_ = &program_cache_.lookup_or_add_default(constants->values);
+  main_program_ = program_cache_
+                      .lookup_or_add_cb(constants->values,
+                                        []() { return std::make_unique<GLProgram>(); })
+                      .get();
   if (!main_program_->program_id) {
     main_program_->program_id = glCreateProgram();
     debug::object_label(GL_PROGRAM, main_program_->program_id, name);
@@ -591,6 +599,24 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
 
+  ss << "\n/* Compilation Constants (pass-through). */\n";
+  for (const CompilationConstant &sc : info.compilation_constants_) {
+    ss << "const ";
+    switch (sc.type) {
+      case Type::int_t:
+        ss << "int " << sc.name << "=" << std::to_string(sc.value.i) << ";\n";
+        break;
+      case Type::uint_t:
+        ss << "uint " << sc.name << "=" << std::to_string(sc.value.u) << "u;\n";
+        break;
+      case Type::bool_t:
+        ss << "bool " << sc.name << "=" << (sc.value.u ? "true" : "false") << ";\n";
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  }
   /* NOTE: We define macros in GLSL to trigger compilation error if the resource names
    * are reused for local variables. This is to match other backend behavior which needs accessors
    * macros. */
@@ -1592,7 +1618,8 @@ GLShader::GLProgram &GLShader::program_get(const shader::SpecializationConstants
 
   program_cache_mutex_.lock();
 
-  GLProgram &program = program_cache_.lookup_or_add_default(constants_state->values);
+  GLProgram &program = *program_cache_.lookup_or_add_cb(
+      constants_state->values, []() { return std::make_unique<GLProgram>(); });
 
   program_cache_mutex_.unlock();
 
@@ -1646,6 +1673,17 @@ GLSourcesBaked GLShader::get_sources()
   result.geom = geometry_sources_.to_string();
   result.frag = fragment_sources_.to_string();
   return result;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name GLShaderCompiler
+ * \{ */
+
+void GLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
+{
+  dynamic_cast<GLShader *>(unwrap(specialization.shader))->program_get(&specialization.constants);
 }
 
 /** \} */
@@ -1719,15 +1757,37 @@ void GLCompilerWorker::compile(const GLSourcesBaked &sources)
   compilation_start = BLI_time_now_seconds();
 }
 
-void GLCompilerWorker::block_until_ready()
+bool GLCompilerWorker::block_until_ready()
 {
   BLI_assert(ELEM(state_, COMPILATION_REQUESTED, COMPILATION_READY));
   if (state_ == COMPILATION_READY) {
-    return;
+    return true;
   }
 
-  end_semaphore_->decrement();
+  auto delete_cached_binary = [&]() {
+    /* If the subprocess crashed when loading the binary,
+     * its name should be stored in shared memory.
+     * Delete it to prevent more crashes in the future. */
+    char str_start[] = "SOURCE_HASH:";
+    char *shared_mem = reinterpret_cast<char *>(shared_mem_->get_data());
+    if (BLI_str_startswith(shared_mem, str_start)) {
+      std::string path = GL_shader_cache_dir_get() + SEP_STR +
+                         std::string(shared_mem + sizeof(str_start) - 1);
+      if (BLI_exists(path.c_str())) {
+        BLI_delete(path.c_str(), false, false);
+      }
+    }
+  };
+
+  while (!end_semaphore_->try_decrement(1000)) {
+    if (is_lost()) {
+      delete_cached_binary();
+      return false;
+    }
+  }
+
   state_ = COMPILATION_READY;
+  return true;
 }
 
 bool GLCompilerWorker::is_lost()
@@ -1741,10 +1801,8 @@ bool GLCompilerWorker::is_lost()
 
 bool GLCompilerWorker::load_program_binary(GLint program)
 {
-  BLI_assert(ELEM(state_, COMPILATION_REQUESTED, COMPILATION_READY));
-  if (state_ == COMPILATION_REQUESTED) {
-    end_semaphore_->decrement();
-    state_ = COMPILATION_READY;
+  if (!block_until_ready()) {
+    return false;
   }
 
   ShaderBinaryHeader *binary = (ShaderBinaryHeader *)shared_mem_->get_data();
@@ -1752,7 +1810,9 @@ bool GLCompilerWorker::load_program_binary(GLint program)
   state_ = COMPILATION_FINISHED;
 
   if (binary->size > 0) {
+    GPU_debug_group_begin("Load Binary");
     glProgramBinary(program, binary->format, binary->data, binary->size);
+    GPU_debug_group_end();
     return true;
   }
 
@@ -1767,10 +1827,10 @@ void GLCompilerWorker::release()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name GLShaderCompiler
+/** \name GLSubprocessShaderCompiler
  * \{ */
 
-GLShaderCompiler::~GLShaderCompiler()
+GLSubprocessShaderCompiler::~GLSubprocessShaderCompiler()
 {
   /* Must be called before we destruct the GLCompilerWorkers. */
   destruct_compilation_worker();
@@ -1780,57 +1840,31 @@ GLShaderCompiler::~GLShaderCompiler()
   }
 }
 
-GLCompilerWorker *GLShaderCompiler::get_compiler_worker(const GLSourcesBaked &sources)
+GLCompilerWorker *GLSubprocessShaderCompiler::get_compiler_worker()
 {
-  auto try_get_compiler_worker = [&]() {
-    GLCompilerWorker *result = nullptr;
-    for (GLCompilerWorker *compiler : workers_) {
-      if (compiler->state_ == GLCompilerWorker::AVAILABLE) {
-        result = compiler;
-        break;
-      }
-    }
-
-    if (result) {
-      check_worker_is_lost(result);
-    }
-
-    if (!result && workers_.size() < GCaps.max_parallel_compilations) {
-      result = new GLCompilerWorker();
-      workers_.append(result);
-    }
-
+  auto new_worker = [&]() {
+    GLCompilerWorker *result = new GLCompilerWorker();
+    std::lock_guard lock(workers_mutex_);
+    workers_.append(result);
     return result;
   };
 
-  std::lock_guard lock(workers_mutex_);
+  static thread_local GLCompilerWorker *worker = new_worker();
 
-  GLCompilerWorker *result = nullptr;
-  while (true) {
-    if ((result = try_get_compiler_worker())) {
-      BLI_time_sleep_ms(1);
-      break;
-    }
-  }
-
-  result->compile(sources);
-
-  return result;
-}
-
-bool GLShaderCompiler::check_worker_is_lost(GLCompilerWorker *&worker)
-{
   if (worker->is_lost()) {
     std::cerr << "ERROR: Compilation subprocess lost\n";
-    workers_.remove_first_occurrence_and_reorder(worker);
+    {
+      std::lock_guard lock(workers_mutex_);
+      workers_.remove_first_occurrence_and_reorder(worker);
+    }
     delete worker;
-    worker = nullptr;
+    worker = new_worker();
   }
 
-  return worker == nullptr;
+  return worker;
 }
 
-Shader *GLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
+Shader *GLSubprocessShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
 {
   const_cast<ShaderCreateInfo *>(&info)->finalize();
   GLShader *shader = static_cast<GLShader *>(compile(info, true));
@@ -1844,20 +1878,25 @@ Shader *GLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
     return compile(info, false);
   }
 
-  GLCompilerWorker *worker = get_compiler_worker(sources);
+  GLCompilerWorker *worker = get_compiler_worker();
+  worker->compile(sources);
+
+  GPU_debug_group_begin("Subprocess Compilation");
 
   /* This path is always called for the default shader compilation. Not for specialization.
    * Use the default constant template.*/
   const shader::SpecializationConstants &constants = GPU_shader_get_default_constant_state(
       wrap(shader));
 
-  if (!worker->load_program_binary(shader->program_cache_.lookup(constants.values).program_id) ||
+  if (!worker->load_program_binary(shader->program_cache_.lookup(constants.values)->program_id) ||
       !shader->post_finalize(&info))
   {
     /* Compilation failed, try to compile it locally. */
     delete shader;
     shader = nullptr;
   }
+
+  GPU_debug_group_end();
 
   worker->release();
 
@@ -1868,7 +1907,7 @@ Shader *GLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
   return shader;
 }
 
-void GLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
+void GLSubprocessShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
 {
   static std::mutex mutex;
 
@@ -1876,7 +1915,7 @@ void GLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
 
   auto program_get = [&]() -> GLShader::GLProgram * {
     if (shader->program_cache_.contains(specialization.constants.values)) {
-      return &shader->program_cache_.lookup(specialization.constants.values);
+      return shader->program_cache_.lookup(specialization.constants.values).get();
     }
     return nullptr;
   };
@@ -1911,7 +1950,10 @@ void GLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
     }
   }
 
-  GLCompilerWorker *worker = get_compiler_worker(sources);
+  GPU_debug_group_begin("Subprocess Specialization");
+
+  GLCompilerWorker *worker = get_compiler_worker();
+  worker->compile(sources);
   worker->block_until_ready();
 
   std::lock_guard lock(mutex);
@@ -1919,6 +1961,8 @@ void GLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
   if (!worker->load_program_binary(program_get()->program_id)) {
     program_release();
   }
+
+  GPU_debug_group_end();
 
   worker->release();
 }

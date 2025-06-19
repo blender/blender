@@ -91,6 +91,13 @@ void write_vertex(uint index, Vertex v)
   }
 #else
   uint base_index = shader_data.dst_offset + index * DIMENSIONS;
+#  ifdef NORMALIZE
+  vec3 value = vec3(v.vertex_data[0], v.vertex_data[1], v.vertex_data[2]);
+  value = normalize(value);
+  v.vertex_data[0] = value.x;
+  v.vertex_data[1] = value.y;
+  v.vertex_data[2] = value.z;
+#  endif
   for (int i = 0; i < DIMENSIONS; i++) {
     dst_data[base_index + i] = v.vertex_data[i];
   }

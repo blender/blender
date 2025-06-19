@@ -33,7 +33,6 @@
 
 #include "BLO_readfile.hh"
 
-#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_light_types.h"
@@ -271,7 +270,7 @@ const char *ED_preview_collection_name(const ePreviewType pr_type)
 
 static bool render_engine_supports_ray_visibility(const Scene *sce)
 {
-  return !STREQ(sce->r.engine, RE_engine_id_BLENDER_EEVEE_NEXT);
+  return !STREQ(sce->r.engine, RE_engine_id_BLENDER_EEVEE);
 }
 
 static void switch_preview_collection_visibility(ViewLayer *view_layer, const ePreviewType pr_type)
@@ -400,7 +399,6 @@ static ID *duplicate_ids(ID *id, const bool allow_failure)
     }
     /* These support threading, but don't need duplicating. */
     case ID_IM:
-    case ID_BR:
       BLI_assert(BKE_previewimg_id_supports_jobs(id));
       return nullptr;
     default:
@@ -513,7 +511,7 @@ static Scene *preview_prepare_scene(
 
     if (id_type == ID_TE) {
       /* Texture is not actually rendered with engine, just set dummy value. */
-      STRNCPY(sce->r.engine, RE_engine_id_BLENDER_EEVEE_NEXT);
+      STRNCPY(sce->r.engine, RE_engine_id_BLENDER_EEVEE);
     }
 
     if (id_type == ID_MA) {
@@ -1247,8 +1245,9 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 #if 0
   if (idtype == ID_TE) {
     Tex *tex = (Tex *)id;
-    if (tex->use_nodes && tex->nodetree)
+    if (tex->use_nodes && tex->nodetree) {
       ntreeEndExecTree(tex->nodetree);
+    }
   }
 #endif
 }
@@ -1336,32 +1335,6 @@ static void shader_preview_free(void *customdata)
 /* -------------------------------------------------------------------- */
 /** \name Icon Preview
  * \{ */
-
-static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
-{
-  if (!brush->icon_imbuf && (brush->flag & BRUSH_CUSTOM_ICON) && brush->icon_filepath[0]) {
-    const int flags = IB_byte_data | IB_multilayer | IB_metadata;
-
-    /* First use the path directly to try and load the file. */
-    char filepath[FILE_MAX];
-
-    STRNCPY(filepath, brush->icon_filepath);
-    BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
-
-    /* Use default color-spaces for brushes. */
-    brush->icon_imbuf = IMB_load_image_from_filepath(filepath, flags);
-
-    if (brush->icon_imbuf) {
-      BKE_icon_changed(BKE_icon_id_ensure(&brush->id));
-    }
-  }
-
-  if (!(brush->icon_imbuf)) {
-    brush->id.icon_id = 0;
-  }
-
-  return brush->icon_imbuf;
-}
 
 static void icon_copy_rect(const ImBuf *ibuf, uint w, uint h, uint *rect)
 {
@@ -1464,21 +1437,6 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
     *do_update = true;
 
     BKE_image_release_ibuf(ima, ibuf, nullptr);
-  }
-  else if (idtype == ID_BR) {
-    Brush *br = (Brush *)id;
-
-    br->icon_imbuf = icon_preview_imbuf_from_brush(br);
-
-    memset(sp->pr_rect, 0x88, sp->sizex * sp->sizey * sizeof(uint));
-
-    if (!(br->icon_imbuf) || !(br->icon_imbuf->byte_buffer.data)) {
-      return;
-    }
-
-    icon_copy_rect(br->icon_imbuf, sp->sizex, sp->sizey, sp->pr_rect);
-
-    *do_update = true;
   }
   else {
     /* re-use shader job */
@@ -1601,7 +1559,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
     /* TODO: Decouple the ID-type-specific render functions from this function, so that it's not
      * necessary to know here what happens inside lower-level functions. */
     const bool use_solid_render_mode = (ip->id != nullptr) &&
-                                       ELEM(GS(ip->id->name), ID_OB, ID_AC, ID_IM, ID_GR, ID_BR);
+                                       ELEM(GS(ip->id->name), ID_OB, ID_AC, ID_IM, ID_GR);
     if (!use_solid_render_mode && preview_method_is_render(pr_method) &&
         !ED_check_engine_supports_preview(ip->scene))
     {
@@ -1676,9 +1634,6 @@ static void icon_preview_endjob(void *customdata)
 
   if (ip->id) {
 
-    if (GS(ip->id->name) == ID_BR) {
-      WM_main_add_notifier(NC_BRUSH | NA_EDITED, ip->id);
-    }
 #if 0
     if (GS(ip->id->name) == ID_MA) {
       Material *ma = (Material *)ip->id;

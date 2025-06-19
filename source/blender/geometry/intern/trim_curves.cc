@@ -1070,6 +1070,10 @@ bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
 
   dst_curves.remove_attributes_based_on_types();
   dst_curves.tag_topology_changed();
+  if (src_curves.nurbs_has_custom_knots()) {
+    bke::curves::nurbs::update_custom_knot_modes(
+        dst_curves.curves_range(), NURBS_KNOT_MODE_NORMAL, NURBS_KNOT_MODE_NORMAL, dst_curves);
+  }
   return dst_curves;
 }
 

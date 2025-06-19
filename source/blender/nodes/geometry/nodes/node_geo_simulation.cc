@@ -225,13 +225,14 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   if (!get_bake_draw_context(C, output_node, ctx)) {
     return;
   }
+  layout->active_set(ctx.is_bakeable_in_current_context);
 
   draw_simulation_state(C, layout, ntree, output_node);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
+  layout->enabled_set(ID_IS_EDITABLE(ctx.object));
 
   {
     uiLayout *col = &layout->column(false);
@@ -436,12 +437,15 @@ static void node_declare(NodeDeclarationBuilder &b)
                                &node_tree->id, SimulationItemsAccessor::item_srna, &item, "name");
     auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
     if (socket_type_supports_fields(socket_type)) {
-      input_decl.supports_field();
+      /* If it's below a geometry input it may be a field evaluated on that geometry. */
+      input_decl.supports_field().structure_type(StructureType::Dynamic);
       output_decl.dependent_field({input_decl.index()});
     }
   }
-  b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Extend>("", "__extend__").align_with_previous();
+  b.add_input<decl::Extend>("", "__extend__").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Extend>("", "__extend__")
+      .structure_type(StructureType::Dynamic)
+      .align_with_previous();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -568,6 +572,14 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       return;
     }
     if (!user_data.call_data->simulation_params) {
+      if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
+              user_data))
+      {
+        tree_logger->node_warnings.append(
+            *tree_logger->allocator,
+            {node_.identifier,
+             {NodeWarningType::Error, TIP_("Simulation zone is not supported")}});
+      }
       this->set_default_outputs(params);
       return;
     }
@@ -796,12 +808,15 @@ static void node_declare(NodeDeclarationBuilder &b)
                                &tree->id, SimulationItemsAccessor::item_srna, &item, "name");
     auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
     if (socket_type_supports_fields(socket_type)) {
-      input_decl.supports_field();
+      /* If it's below a geometry input it may be a field evaluated on that geometry. */
+      input_decl.supports_field().structure_type(StructureType::Dynamic);
       output_decl.dependent_field({input_decl.index()});
     }
   }
-  b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Extend>("", "__extend__").align_with_previous();
+  b.add_input<decl::Extend>("", "__extend__").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Extend>("", "__extend__")
+      .structure_type(StructureType::Dynamic)
+      .align_with_previous();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -850,6 +865,12 @@ static void node_extra_info(NodeExtraInfoParams &params)
   BakeDrawContext ctx;
   if (!get_bake_draw_context(&params.C, params.node, ctx)) {
     return;
+  }
+  if (!ctx.is_bakeable_in_current_context) {
+    NodeExtraInfoRow row;
+    row.text = TIP_("Can't bake in zone");
+    row.icon = ICON_ERROR;
+    params.rows.append(std::move(row));
   }
   if (ctx.is_baked) {
     NodeExtraInfoRow row;

@@ -151,9 +151,9 @@ void OSLManager::device_update_post(Device *device,
 {
   /* Create the camera shader. */
   if (need_update() && !scene->camera->script_name.empty()) {
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
-
+    }
     foreach_osl_device(device, [this, scene](Device *sub_device, OSLGlobals *og) {
       OSL::ShadingSystem *ss = get_shading_system(sub_device);
 

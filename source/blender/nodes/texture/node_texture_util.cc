@@ -105,10 +105,7 @@ float tex_input_value(bNodeStack *in, TexParams *params, short thread)
 void params_from_cdata(TexParams *out, TexCallData *in)
 {
   out->co = in->co;
-  out->dxt = in->dxt;
-  out->dyt = in->dyt;
   out->previewco = in->co;
-  out->osatex = in->osatex;
   out->cfra = in->cfra;
   out->mtex = in->mtex;
 }

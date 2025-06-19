@@ -18,8 +18,3 @@ void IMB_premultiply_rect_float(float *rect_float, int channels, int w, int h);
 
 void IMB_unpremultiply_rect(uint8_t *rect, char planes, int w, int h);
 void IMB_unpremultiply_rect_float(float *rect_float, int channels, int w, int h);
-
-/**
- * Result in ibuf2, scaling should be done correctly.
- */
-void imb_onehalf_no_alloc(ImBuf *ibuf2, ImBuf *ibuf1);

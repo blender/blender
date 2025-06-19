@@ -49,6 +49,7 @@ set(SRC
   intern/mesh_extractors/extract_mesh_vbo_mesh_analysis.cc
   intern/mesh_extractors/extract_mesh_vbo_orco.cc
   intern/mesh_extractors/extract_mesh_vbo_pos.cc
+  intern/mesh_extractors/extract_mesh_vbo_paint_overlay_flag.cc
   intern/mesh_extractors/extract_mesh_vbo_sculpt_data.cc
   intern/mesh_extractors/extract_mesh_vbo_select_idx.cc
   intern/mesh_extractors/extract_mesh_vbo_skin_roots.cc
@@ -145,6 +146,7 @@ set(SRC
   engines/overlay/overlay_armature.cc
   engines/overlay/overlay_engine.cc
   engines/overlay/overlay_instance.cc
+  engines/overlay/overlay_mode_transfer.cc
   engines/overlay/overlay_shader.cc
   engines/overlay/overlay_shape.cc
 
@@ -247,7 +249,6 @@ set(SRC
   engines/overlay/overlay_camera.hh
   engines/overlay/overlay_cursor.hh
   engines/overlay/overlay_curve.hh
-  engines/overlay/overlay_text.hh
   engines/overlay/overlay_empty.hh
   engines/overlay/overlay_engine.h
   engines/overlay/overlay_facing.hh
@@ -276,6 +277,7 @@ set(SRC
   engines/overlay/overlay_relation.hh
   engines/overlay/overlay_sculpt.hh
   engines/overlay/overlay_speaker.hh
+  engines/overlay/overlay_text.hh
   engines/overlay/overlay_wireframe.hh
   engines/overlay/overlay_xray_fade.hh
   engines/select/select_defines.hh
@@ -410,7 +412,9 @@ set(GLSL_SRC
   engines/eevee/shaders/eevee_motion_blur_flatten_comp.glsl
   engines/eevee/shaders/eevee_motion_blur_gather_comp.glsl
   engines/eevee/shaders/eevee_motion_blur_lib.glsl
+  engines/eevee/shaders/eevee_nodetree_frag_lib.glsl
   engines/eevee/shaders/eevee_nodetree_lib.glsl
+  engines/eevee/shaders/eevee_nodetree_vert_lib.glsl
   engines/eevee/shaders/eevee_occupancy_convert_frag.glsl
   engines/eevee/shaders/eevee_occupancy_lib.glsl
   engines/eevee/shaders/eevee_occupancy_test.glsl
@@ -539,12 +543,12 @@ set(GLSL_SRC
   intern/shaders/subdiv_ibo_tris_comp.glsl
   intern/shaders/subdiv_lib.glsl
   intern/shaders/subdiv_normals_accumulate_comp.glsl
-  intern/shaders/subdiv_normals_finalize_comp.glsl
   intern/shaders/subdiv_patch_evaluation_comp.glsl
   intern/shaders/subdiv_vbo_edge_fac_comp.glsl
   intern/shaders/subdiv_vbo_edituv_strech_angle_comp.glsl
   intern/shaders/subdiv_vbo_edituv_strech_area_comp.glsl
   intern/shaders/subdiv_vbo_lnor_comp.glsl
+  intern/shaders/subdiv_vbo_paint_overlay_flag_comp.glsl
   intern/shaders/subdiv_vbo_sculpt_data_comp.glsl
   intern/shaders/draw_aabb_lib.glsl
   intern/shaders/draw_colormanagement_lib.glsl

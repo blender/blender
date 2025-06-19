@@ -123,11 +123,14 @@ class Manager {
    * Create a unique resource handle for the given object.
    * Returns the existing handle if it exists.
    */
+  /* WORKAROUND: Instead of breaking const correctness everywhere, we only break it for this. */
   ResourceHandleRange unique_handle(const ObjectRef &ref);
+
+  ResourceHandleRange unique_handle_for_sculpt(const ObjectRef &ref);
+
   /**
    * Create a new resource handle for the given object.
    */
-  /* WORKAROUND: Instead of breaking const correctness everywhere, we only break it for this. */
   ResourceHandleRange resource_handle(const ObjectRef &ref, float inflate_bounds = 0.0f);
   /**
    * Create a new resource handle for the given object, but optionally override model matrix and
@@ -156,16 +159,10 @@ class Manager {
    */
   ResourceHandle resource_handle_for_psys(const ObjectRef &ref, const float4x4 &model_matrix);
 
-  ResourceHandleRange resource_handle_for_sculpt(const ObjectRef &ref);
-
   /** Update the bounds of an already created handle. */
   void update_handle_bounds(ResourceHandle handle,
                             const ObjectRef &ref,
                             float inflate_bounds = 0.0f);
-  /** Update the bounds of an already created handle. */
-  void update_handle_bounds(ResourceHandle handle,
-                            const float3 &bounds_center,
-                            const float3 &bounds_half_extent);
 
   /**
    * Populate additional per resource data on demand.
@@ -317,16 +314,16 @@ class Manager {
 
 inline ResourceHandleRange Manager::unique_handle(const ObjectRef &ref)
 {
-  if (ref.handle.handle_first.raw == 0) {
+  if (ref.handle_.handle_first.raw == 0) {
     /* WORKAROUND: Instead of breaking const correctness everywhere, we only break it for this. */
-    const_cast<ObjectRef &>(ref).handle = resource_handle(ref);
+    const_cast<ObjectRef &>(ref).handle_ = resource_handle(ref);
   }
-  return ref.handle;
+  return ref.handle_;
 }
 
 inline ResourceHandleRange Manager::resource_handle(const ObjectRef &ref, float inflate_bounds)
 {
-  bool is_active_object = (ref.dupli_object ? ref.dupli_parent : ref.object) == object_active;
+  bool is_active_object = ref.is_active(object_active);
   matrix_buf.current().get_or_resize(resource_len_).sync(*ref.object);
   bounds_buf.current().get_or_resize(resource_len_).sync(*ref.object, inflate_bounds);
   infos_buf.current().get_or_resize(resource_len_).sync(ref, is_active_object);
@@ -338,7 +335,6 @@ inline ResourceHandle Manager::resource_handle(const ObjectRef &ref,
                                                const float3 *bounds_center,
                                                const float3 *bounds_half_extent)
 {
-  bool is_active_object = (ref.dupli_object ? ref.dupli_parent : ref.object) == object_active;
   if (model_matrix) {
     matrix_buf.current().get_or_resize(resource_len_).sync(*model_matrix);
   }
@@ -351,7 +347,7 @@ inline ResourceHandle Manager::resource_handle(const ObjectRef &ref,
   else {
     bounds_buf.current().get_or_resize(resource_len_).sync(*ref.object);
   }
-  infos_buf.current().get_or_resize(resource_len_).sync(ref, is_active_object);
+  infos_buf.current().get_or_resize(resource_len_).sync(ref, ref.is_active(object_active));
   return ResourceHandle(resource_len_++, (ref.object->transflag & OB_NEG_SCALE) != 0);
 }
 
@@ -376,10 +372,9 @@ inline ResourceHandle Manager::resource_handle(const float4x4 &model_matrix,
 inline ResourceHandle Manager::resource_handle_for_psys(const ObjectRef &ref,
                                                         const float4x4 &model_matrix)
 {
-  bool is_active_object = (ref.dupli_object ? ref.dupli_parent : ref.object) == object_active;
   matrix_buf.current().get_or_resize(resource_len_).sync(model_matrix);
   bounds_buf.current().get_or_resize(resource_len_).sync();
-  infos_buf.current().get_or_resize(resource_len_).sync(ref, is_active_object);
+  infos_buf.current().get_or_resize(resource_len_).sync(ref, ref.is_active(object_active));
   return ResourceHandle(resource_len_++, (ref.object->transflag & OB_NEG_SCALE) != 0);
 }
 
@@ -388,13 +383,6 @@ inline void Manager::update_handle_bounds(ResourceHandle handle,
                                           float inflate_bounds)
 {
   bounds_buf.current()[handle.resource_index()].sync(*ref.object, inflate_bounds);
-}
-
-inline void Manager::update_handle_bounds(ResourceHandle handle,
-                                          const float3 &bounds_center,
-                                          const float3 &bounds_half_extent)
-{
-  bounds_buf.current()[handle.resource_index()].sync(bounds_center, bounds_half_extent);
 }
 
 inline void Manager::extract_object_attributes(ResourceHandle handle,

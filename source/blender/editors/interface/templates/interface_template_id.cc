@@ -298,7 +298,8 @@ static void template_id_liboverride_hierarchy_collection_root_find_recursive(
       *r_collection_parent_best = collection;
     }
   }
-  for (CollectionParent *iter = static_cast<CollectionParent *>(collection->runtime.parents.first);
+  for (CollectionParent *iter =
+           static_cast<CollectionParent *>(collection->runtime->parents.first);
        iter != nullptr;
        iter = iter->next)
   {
@@ -319,7 +320,7 @@ static void template_id_liboverride_hierarchy_collections_tag_recursive(
    * linked ones can be replaced by the local overrides in those parents too. */
   if (do_parents) {
     for (CollectionParent *iter =
-             static_cast<CollectionParent *>(root_collection->runtime.parents.first);
+             static_cast<CollectionParent *>(root_collection->runtime->parents.first);
          iter != nullptr;
          iter = iter->next)
     {
@@ -1037,9 +1038,9 @@ static void template_ID(const bContext *C,
   // lb = template_ui->idlb;
 
   /* Allow operators to take the ID from context. */
-  uiLayoutSetContextPointer(layout, "id", &idptr);
+  layout->context_ptr_set("id", &idptr);
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   UI_block_align_begin(block);
 
   if (idptr.type) {
@@ -1431,10 +1432,15 @@ static void template_ID_tabs(const bContext *C,
   const PointerRNA active_ptr = RNA_property_pointer_get(&template_id.ptr, template_id.prop);
   MenuType *mt = menu ? WM_menutype_find(menu, false) : nullptr;
 
-  const int but_align = ui_but_align_opposite_to_area_align_get(region);
+  /* When horizontal show the tabs as pills, rounded on all corners. */
+  const bool horizontal =
+      (region->regiontype == RGN_TYPE_HEADER &&
+       ELEM(RGN_ALIGN_ENUM_FROM_MASK(region->alignment), RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM));
+  const int but_align = horizontal ? 0 : ui_but_align_opposite_to_area_align_get(region);
+
   const int but_height = UI_UNIT_Y * 1.1;
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   const uiStyle *style = UI_style_get_dpi();
 
   for (ID *id : BKE_id_ordered_list(template_id.idlb)) {
@@ -1808,7 +1814,7 @@ void uiTemplateAnyID(uiLayout *layout,
   /* HACK: special group just for the enum,
    * otherwise we get ugly layout with text included too... */
   uiLayout *sub = &row->row(true);
-  uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
+  sub->alignment_set(blender::ui::LayoutAlign::Left);
 
   sub->prop(ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
@@ -1817,7 +1823,7 @@ void uiTemplateAnyID(uiLayout *layout,
   /* HACK: special group to counteract the effects of the previous enum,
    * which now pushes everything too far right. */
   sub = &row->row(true);
-  uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);
+  sub->alignment_set(blender::ui::LayoutAlign::Expand);
 
   sub->prop(ptr, propID, 0, 0, UI_ITEM_NONE, "", ICON_NONE);
 }

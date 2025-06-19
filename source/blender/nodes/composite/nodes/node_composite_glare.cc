@@ -316,6 +316,7 @@ class GlareOperation : public NodeOperation {
     GPU_shader_uniform_1f(shader, "threshold", this->get_threshold());
     GPU_shader_uniform_1f(shader, "highlights_smoothness", this->get_highlights_smoothness());
     GPU_shader_uniform_1f(shader, "max_brightness", this->get_maximum_brightness());
+    GPU_shader_uniform_1i(shader, "quality", node_storage(bnode()).quality);
 
     const Result &input_image = get_input("Image");
     GPU_texture_filter_mode(input_image, true);
@@ -347,11 +348,59 @@ class GlareOperation : public NodeOperation {
     Result output = context().create_result(ResultType::Color);
     output.allocate_texture(highlights_size);
 
+    const CMPNodeGlareQuality quality = static_cast<CMPNodeGlareQuality>(
+        node_storage(bnode()).quality);
+    const int2 input_size = input.domain().size;
+
     parallel_for(highlights_size, [&](const int2 texel) {
-      float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(highlights_size);
+      float4 color = float4(0.0f);
+
+      switch (quality) {
+        case CMP_NODE_GLARE_QUALITY_HIGH: {
+          color = input.load_pixel<float4>(texel);
+          break;
+        }
+
+        /* Down-sample the image 2 times to match the output size by averaging the 2x2 block of
+         * pixels into a single output pixel. This is done due to the bilinear interpolation at the
+         * center of the 2x2 block of pixels */
+        case CMP_NODE_GLARE_QUALITY_MEDIUM: {
+          float2 normalized_coordinates = (float2(texel) * 2.0f + float2(1.0f)) /
+                                          float2(input_size);
+          color = input.sample_bilinear_extended(normalized_coordinates);
+          break;
+        }
+
+          /* Down-sample the image 4 times to match the output size by averaging each 4x4 block of
+           * pixels into a single output pixel. This is done by averaging 4 bilinear taps at the
+           * center of each of the corner 2x2 pixel blocks, which are themselves the average of the
+           * 2x2 block due to the bilinear interpolation at the center. */
+        case CMP_NODE_GLARE_QUALITY_LOW: {
+
+          float2 lower_left_coordinates = (float2(texel) * 4.0f + float2(1.0f)) /
+                                          float2(input_size);
+          float4 lower_left_color = input.sample_bilinear_extended(lower_left_coordinates);
+
+          float2 lower_right_coordinates = (float2(texel) * 4.0f + float2(3.0f, 1.0f)) /
+                                           float2(input_size);
+          float4 lower_right_color = input.sample_bilinear_extended(lower_right_coordinates);
+
+          float2 upper_left_coordinates = (float2(texel) * 4.0f + float2(1.0f, 3.0f)) /
+                                          float2(input_size);
+          float4 upper_left_color = input.sample_bilinear_extended(upper_left_coordinates);
+
+          float2 upper_right_coordinates = (float2(texel) * 4.0f + float2(3.0f)) /
+                                           float2(input_size);
+          float4 upper_right_color = input.sample_bilinear_extended(upper_right_coordinates);
+
+          color = (upper_left_color + upper_right_color + lower_left_color + lower_right_color) /
+                  4.0f;
+          break;
+        }
+      }
 
       float4 hsva;
-      rgb_to_hsv_v(input.sample_bilinear_extended(normalized_coordinates), hsva);
+      rgb_to_hsv_v(color, hsva);
 
       /* Clamp the brightness of the highlights such that pixels whose brightness are less than the
        * threshold will be equal to the threshold and will become zero once threshold is subtracted
@@ -1454,16 +1503,11 @@ class GlareOperation : public NodeOperation {
                              highlights,
                              small_ghost_result,
                              float2(get_small_ghost_radius()),
-                             R_FILTER_GAUSS,
-                             false);
+                             R_FILTER_GAUSS);
 
     Result big_ghost_result = context().create_result(ResultType::Color);
-    symmetric_separable_blur(context(),
-                             highlights,
-                             big_ghost_result,
-                             float2(get_big_ghost_radius()),
-                             R_FILTER_GAUSS,
-                             false);
+    symmetric_separable_blur(
+        context(), highlights, big_ghost_result, float2(get_big_ghost_radius()), R_FILTER_GAUSS);
 
     Result base_ghost_result = context().create_result(ResultType::Color);
     if (this->context().use_gpu()) {
@@ -2382,7 +2426,7 @@ class GlareOperation : public NodeOperation {
    * size after downsampling. */
   int2 get_glare_image_size()
   {
-    return this->compute_domain().size / this->get_quality_factor();
+    return math::divide_ceil(this->compute_domain().size, int2(this->get_quality_factor()));
   }
 
   /* The glare node can compute the glare on a fraction of the input image size to improve

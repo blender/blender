@@ -93,7 +93,6 @@ ccl_device_inline float4 rgb_ramp_lookup(KernelGlobals kg,
 }
 
 ccl_device_noinline int svm_node_rgb_ramp(KernelGlobals kg,
-                                          ccl_private ShaderData *sd,
                                           ccl_private float *stack,
                                           const uint4 node,
                                           int offset)
@@ -122,7 +121,6 @@ ccl_device_noinline int svm_node_rgb_ramp(KernelGlobals kg,
 }
 
 ccl_device_noinline int svm_node_curves(KernelGlobals kg,
-                                        ccl_private ShaderData *sd,
                                         ccl_private float *stack,
                                         const uint4 node,
                                         int offset)
@@ -155,7 +153,6 @@ ccl_device_noinline int svm_node_curves(KernelGlobals kg,
 }
 
 ccl_device_noinline int svm_node_curve(KernelGlobals kg,
-                                       ccl_private ShaderData *sd,
                                        ccl_private float *stack,
                                        const uint4 node,
                                        int offset)

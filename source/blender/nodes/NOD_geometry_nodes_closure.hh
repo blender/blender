@@ -4,32 +4,15 @@
 
 #pragma once
 
-#include "BKE_node.hh"
-
 #include "NOD_geometry_nodes_closure_fwd.hh"
 #include "NOD_geometry_nodes_closure_location.hh"
-#include "NOD_socket_interface_key.hh"
+#include "NOD_geometry_nodes_closure_signature.hh"
 
 #include "BLI_resource_scope.hh"
 
 #include "FN_lazy_function.hh"
 
 namespace blender::nodes {
-
-/** Describes the names and types of the inputs and outputs of a closure. */
-class ClosureSignature {
- public:
-  struct Item {
-    SocketInterfaceKey key;
-    const bke::bNodeSocketType *type = nullptr;
-  };
-
-  Vector<Item> inputs;
-  Vector<Item> outputs;
-
-  std::optional<int> find_input_index(const SocketInterfaceKey &key) const;
-  std::optional<int> find_output_index(const SocketInterfaceKey &key) const;
-};
 
 /**
  * Describes the meaning of the various inputs and outputs of the lazy-function that's contained

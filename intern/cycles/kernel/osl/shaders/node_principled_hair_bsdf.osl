@@ -90,7 +90,7 @@ shader node_principled_hair_bsdf(color Color = color(0.017513, 0.005763, 0.00205
     sigma = sigma_from_reflectance(Color, radial_roughness);
   }
   else {
-    /* Fallback to brownish hair, same as defaults for melanin. */
+    /* Fall back to brownish hair, same as defaults for melanin. */
     sigma = sigma_from_concentration(0.0, 0.8054375);
   }
 

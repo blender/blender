@@ -505,7 +505,10 @@ static void subdiv_accumulate_vertex_displacement(SubdivMeshContext *ctx,
 {
   /* Accumulate displacement. */
   Subdiv *subdiv = ctx->subdiv;
-  float dummy_P[3], dPdu[3], dPdv[3], D[3];
+  float3 dummy_P;
+  float3 dPdu;
+  float3 dPdv;
+  float3 D;
   eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, dummy_P, dPdu, dPdv);
 
   /* NOTE: The subdivided mesh is allocated in this module, and its vertices are kept at zero

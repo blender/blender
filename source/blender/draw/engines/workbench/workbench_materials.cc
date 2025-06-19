@@ -16,14 +16,6 @@
 
 namespace blender::workbench {
 
-Material::Material() = default;
-
-Material::Material(float3 color)
-{
-  base_color = color;
-  packed_data = Material::pack_data(0.0f, 0.4f, 1.0f);
-}
-
 Material::Material(::Object &ob, bool random)
 {
   if (random) {
@@ -38,28 +30,6 @@ Material::Material(::Object &ob, bool random)
     base_color = ob.color;
   }
   packed_data = Material::pack_data(0.0f, 0.4f, ob.color[3]);
-}
-
-Material::Material(::Material &mat)
-{
-  base_color = &mat.r;
-  packed_data = Material::pack_data(mat.metallic, mat.roughness, mat.a);
-}
-
-bool Material::is_transparent()
-{
-  uint32_t full_alpha_ref = 0x00ff0000;
-  return (packed_data & full_alpha_ref) != full_alpha_ref;
-}
-
-uint32_t Material::pack_data(float metallic, float roughness, float alpha)
-{
-  /* Remap to Disney roughness. */
-  roughness = sqrtf(roughness);
-  uint32_t packed_roughness = unit_float_to_uchar_clamp(roughness);
-  uint32_t packed_metallic = unit_float_to_uchar_clamp(metallic);
-  uint32_t packed_alpha = unit_float_to_uchar_clamp(alpha);
-  return (packed_alpha << 16u) | (packed_roughness << 8u) | packed_metallic;
 }
 
 MaterialTexture::MaterialTexture(Object *ob, int material_index)

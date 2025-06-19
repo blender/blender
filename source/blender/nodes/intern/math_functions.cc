@@ -278,6 +278,10 @@ const FloatMathOperationInfo *get_float3_math_operation_info(const int operation
       RETURN_OPERATION_INFO("Faceforward", "vector_math_faceforward");
     case NODE_VECTOR_MATH_MULTIPLY_ADD:
       RETURN_OPERATION_INFO("Multiply Add", "vector_math_multiply_add");
+    case NODE_VECTOR_MATH_POWER:
+      RETURN_OPERATION_INFO("Power", "vector_math_power");
+    case NODE_VECTOR_MATH_SIGN:
+      RETURN_OPERATION_INFO("Sign", "vector_math_sign");
   }
 
 #undef RETURN_OPERATION_INFO

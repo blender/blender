@@ -287,6 +287,14 @@ typedef struct bPoseChannel {
   /** User-Defined Properties on this PoseChannel. */
   IDProperty *prop;
 
+  /**
+   * System-defined custom properties storage.
+   *
+   * In Blender 4.5, only used to ensure forward compatibility with 5.x blend-files, and data
+   * management consistency.
+   */
+  IDProperty *system_properties;
+
   /** Constraints that act on this PoseChannel. */
   ListBase constraints;
   char name[/*MAXBONENAME*/ 64];
@@ -420,6 +428,8 @@ typedef struct bPoseChannel {
   struct bPoseChannel *orig_pchan;
 
   BoneColor color; /* MUST be named the same as in Bone and EditBone structs. */
+
+  void *_pad2;
 
   /** Runtime data (keep last). */
   struct bPoseChannel_Runtime runtime;
@@ -900,7 +910,7 @@ typedef enum eDopeSheet_FilterFlag {
   /* datatype-based filtering */
   ADS_FILTER_NOSHAPEKEYS = (1 << 6),
   ADS_FILTER_NOMESH = (1 << 7),
-  /** for animdata on object level, if we only want to concentrate on materials/etc. */
+  /** For animation-data on object level, if we only want to concentrate on materials/etc. */
   ADS_FILTER_NOOBJ = (1 << 8),
   ADS_FILTER_NOLAT = (1 << 9),
   ADS_FILTER_NOCAM = (1 << 10),

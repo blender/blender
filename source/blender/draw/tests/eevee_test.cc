@@ -1920,10 +1920,10 @@ static void test_eevee_surfel_list()
   // Span<int>(list_start_buf.data(), expect_list_start.size()).print_as_lines("list_start");
   // link_next.as_span().print_as_lines("link_next");
   // link_prev.as_span().print_as_lines("link_prev");
-  EXPECT_EQ_ARRAY(expect_list_start.data(), list_start_buf.data(), expect_list_start.size());
+  EXPECT_EQ_SPAN(expect_list_start, list_start_buf);
 #endif
-  EXPECT_EQ_ARRAY(expect_link_next.data(), link_next.data(), expect_link_next.size());
-  EXPECT_EQ_ARRAY(expect_link_prev.data(), link_prev.data(), expect_link_prev.size());
+  EXPECT_EQ_SPAN<int>(expect_link_next, link_next);
+  EXPECT_EQ_SPAN<int>(expect_link_prev, link_prev);
 
   GPU_shader_unbind();
 

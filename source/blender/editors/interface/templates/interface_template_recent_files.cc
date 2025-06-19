@@ -145,7 +145,7 @@ int uiTemplateRecentFiles(uiLayout *layout, int rows)
     RNA_string_set(&ptr, "filepath", recent->filepath);
     RNA_boolean_set(&ptr, "display_file_selector", false);
 
-    uiBlock *block = uiLayoutGetBlock(layout);
+    uiBlock *block = layout->block();
     uiBut *but = ui_but_last(block);
     UI_but_func_tooltip_custom_set(
         but, uiTemplateRecentFiles_tooltip_func, BLI_strdup(recent->filepath), MEM_freeN);

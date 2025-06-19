@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:40+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8585,112 +8585,112 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "Snap"
-msgstr "Лепљење"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
-
-
-msgid "Light"
-msgstr "Светлост"
-
-
-msgid "Relations"
-msgstr "Односи"
-
-
-msgid "Rigid Body"
-msgstr "Круто тело"
-
-
-msgid "Apply"
-msgstr "Примени"
-
-
-msgid "Track"
-msgstr "Стаза"
-
-
-msgid "Quick Effects"
-msgstr "Брзи ефекти"
-
-
 msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
-
-
-msgid "Hooks"
-msgstr "Удице"
-
-
-msgid "Clear Transform"
-msgstr "Очисти трансформације"
-
-
-msgid "In-Betweens"
-msgstr "У међувремену"
-
-
-msgid "Propagate"
-msgstr "Пренеси"
-
-
-msgid "Names"
-msgstr "Имена"
-
-
-msgid "Toggle Bone Options"
-msgstr "Мање/више информација"
-
-
-msgid "Enable Bone Options"
-msgstr "Омогући опције костију"
-
-
-msgid "Disable Bone Options"
-msgstr "Онемогући опције костију"
-
-
-msgid "Mesh Select Mode"
-msgstr "Мод избора мреже"
-
-
-msgid "Merge"
-msgstr "Сједини"
 
 
 msgid "Special Characters"
 msgstr "Специјални знаци"
 
 
+msgid "Metaball"
+msgstr "Мета лопта"
+
+
+msgid "Names"
+msgstr "Имена"
+
+
 msgid "Bone Roll"
 msgstr "Ролна костију"
+
+
+msgid "Merge"
+msgstr "Сједини"
+
+
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "Hooks"
+msgstr "Удице"
+
+
+msgid "Relations"
+msgstr "Односи"
+
+
+msgid "Light"
+msgstr "Светлост"
+
+
+msgid "Mesh Select Mode"
+msgstr "Мод избора мреже"
+
+
+msgid "Quick Effects"
+msgstr "Брзи ефекти"
+
+
+msgid "Disable Bone Options"
+msgstr "Онемогући опције костију"
+
+
+msgid "Enable Bone Options"
+msgstr "Омогући опције костију"
+
+
+msgid "Track"
+msgstr "Стаза"
+
+
+msgid "Toggle Bone Options"
+msgstr "Мање/више информација"
+
+
+msgid "Apply"
+msgstr "Примени"
+
+
+msgid "Rigid Body"
+msgstr "Круто тело"
+
+
+msgid "Propagate"
+msgstr "Пренеси"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "In-Betweens"
+msgstr "У међувремену"
+
+
+msgid "Clear Transform"
+msgstr "Очисти трансформације"
+
+
+msgid "Select Linked"
+msgstr "Изабери повезано"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Mirror"
+msgstr "Огледало"
 
 
 msgid "Basic"
@@ -10549,6 +10549,10 @@ msgstr "Изабери мустру"
 
 msgid "Custom Color"
 msgstr "Прилагођена боја"
+
+
+msgid "Starting"
+msgstr "Започињем"
 
 
 msgid "Action End Frame"
@@ -15034,10 +15038,6 @@ msgid "Dissolve edges, merging faces"
 msgstr "Растопи ивице, спајајући странице"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "Растапа преостала темена"
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "Растопи странице"
@@ -17895,11 +17895,6 @@ msgstr "Користи Лапласов метод за опуштање"
 
 
 msgctxt "Operator"
-msgid "Change Effect Input"
-msgstr "Измени улаз ефекта"
-
-
-msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Измени врсту ефеката"
 
@@ -17909,21 +17904,9 @@ msgid "Type"
 msgstr "Врста"
 
 
-msgid "Sequencer effect type"
-msgstr "Тип секвенцер ефекта"
-
-
-msgid "Crossfade effect strip type"
-msgstr "Ефекат претапања тип траке"
-
-
 msgctxt "Sequence"
 msgid "Add"
 msgstr "Додај"
-
-
-msgid "Add effect strip type"
-msgstr "Ефекат додавања тип траке"
 
 
 msgctxt "Sequence"
@@ -17931,17 +17914,9 @@ msgid "Subtract"
 msgstr "Одузимање"
 
 
-msgid "Subtract effect strip type"
-msgstr "Ефекат одузимања тип траке"
-
-
 msgctxt "Sequence"
 msgid "Alpha Over"
 msgstr "Провидност преко"
-
-
-msgid "Alpha Over effect strip type"
-msgstr "Ефекат провидно изнад тип траке"
 
 
 msgctxt "Sequence"
@@ -17949,22 +17924,9 @@ msgid "Alpha Under"
 msgstr "Провидност испод"
 
 
-msgid "Alpha Under effect strip type"
-msgstr "Ефекат провидно испод тип траке"
-
-
-msgctxt "Sequence"
-msgid "Gamma Cross"
-msgstr "Укрштање гаме"
-
-
 msgctxt "Sequence"
 msgid "Multiply"
 msgstr "Умножено"
-
-
-msgid "Multiply effect strip type"
-msgstr "Ефекат множења тип траке"
 
 
 msgctxt "Sequence"
@@ -17972,17 +17934,9 @@ msgid "Wipe"
 msgstr "Брисање"
 
 
-msgid "Wipe effect strip type"
-msgstr "Ефекат брисање тип траке"
-
-
 msgctxt "Sequence"
 msgid "Glow"
 msgstr "Исијавање"
-
-
-msgid "Glow effect strip type"
-msgstr "Ефекат исијавања тип траке"
 
 
 msgctxt "Sequence"
@@ -17990,17 +17944,9 @@ msgid "Transform"
 msgstr "Трансформација"
 
 
-msgid "Transform effect strip type"
-msgstr "Ефекат трансформације тип траке"
-
-
 msgctxt "Sequence"
 msgid "Color"
 msgstr "Боја"
-
-
-msgid "Color effect strip type"
-msgstr "Ефекат бојења тип траке"
 
 
 msgctxt "Sequence"
@@ -18057,6 +18003,10 @@ msgstr "Не исправљај преклапање за нове траке с
 
 msgid "Replace Selection"
 msgstr "Замени избор"
+
+
+msgid "Sequencer effect type"
+msgstr "Тип секвенцер ефекта"
 
 
 msgid "All Gaps"
@@ -20617,14 +20567,6 @@ msgid "Helicopter Mode"
 msgstr "Мод хелихоптера"
 
 
-msgid "Lock Horizon"
-msgstr "Закључај хоризонт"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Замени Y и Z осе"
-
-
 msgid "Invert X Axis"
 msgstr "Изврнута X оса"
 
@@ -20643,18 +20585,6 @@ msgstr "Изврнута оса скретања (Y)"
 
 msgid "Invert Roll (Z) Axis"
 msgstr "Изврнута оса окретања (Z)"
-
-
-msgid "Turntable"
-msgstr "Окретница"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Користи стил окретнице за окретање помоћу средњег тастера"
-
-
-msgid "Invert Zoom"
-msgstr "Изврнуто увећање"
 
 
 msgid "Softness"
@@ -20683,6 +20613,10 @@ msgstr "Имитирај 3. дугме"
 
 msgid "Use selection as the pivot point"
 msgstr "Користи векторе одсјаја као координате текстуре"
+
+
+msgid "Turntable"
+msgstr "Окретница"
 
 
 msgid "Zoom Axis"
@@ -22103,11 +22037,6 @@ msgstr "Маска"
 msgctxt "Sequence"
 msgid "Sound"
 msgstr "Звук"
-
-
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Укрштење"
 
 
 msgid "Use Linear Modifiers"
@@ -24045,16 +23974,6 @@ msgstr "Сцена..."
 
 
 msgctxt "Operator"
-msgid "Cross"
-msgstr "Укрштење"
-
-
-msgctxt "Operator"
-msgid "Gamma Cross"
-msgstr "Укрштање гаме"
-
-
-msgctxt "Operator"
 msgid "Wipe"
 msgstr "Брисање"
 
@@ -24185,6 +24104,10 @@ msgstr "Б"
 
 msgid "Invert Wheel Zoom Direction"
 msgstr "Обрнути смер приближавања точкићем"
+
+
+msgid "Lock Horizon"
+msgstr "Закључај хоризонт"
 
 
 msgid "Missing script files"
@@ -26252,140 +26175,4 @@ msgstr "Збирка поза"
 
 msgid "Import-Export"
 msgstr "Увоз-извоз"
-
-
-msgid "Japanese (日本語)"
-msgstr "Јапански (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Италијански (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Немачки (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Фински (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Шведски (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Француски (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Шпански (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Каталонски (Català)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Једноставан кинески (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Традиционални кинески (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Руски (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Хрватски (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Српски"
-
-
-msgid "Polish (Polski)"
-msgstr "Пољски (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Румунски (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Арапски (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Бугарски (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Грчки (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Непалски (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Персијски (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Индонежански (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Српски латиница"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Киргиски (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Турски (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Мађарски (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Португалски Бразил (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Хебрејски (תירִבְעִ)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Есперанто (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Амхарски (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Узбечки (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Узбечка ћирилица (Ўзбек)"
-
-
-msgid "Complete"
-msgstr "Завршено"
-
-
-msgid "In Progress"
-msgstr "У току"
-
-
-msgid "Starting"
-msgstr "Започињем"
 

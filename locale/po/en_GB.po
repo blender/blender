@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-05-14 07:56+0000\n"
 "Last-Translator: Sol Blackshaw <solblackshaw@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -29436,14 +29436,6 @@ msgid "Maintained by community developers"
 msgstr "Maintained by community developers"
 
 
-msgid "Testing"
-msgstr "Testing"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Newly contributed scripts (excluded from release builds)"
-
-
 msgid "Addon Tags"
 msgstr "Addon Tags"
 
@@ -34433,200 +34425,12 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Select More/Less"
-msgstr "Select More/Less"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
-msgid "Add Image"
-msgstr "Add Image"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Apply"
-msgstr "Apply"
-
-
-msgid "Track"
-msgstr "Track"
-
-
-msgid "Quick Effects"
-msgstr "Quick Effects"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
 msgid "Clean Up"
 msgstr "Clean Up"
 
 
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Make Single User"
-msgstr "Make Single User"
-
-
-msgid "Convert"
-msgstr "Convert"
-
-
-msgid "Link/Transfer Data"
-msgstr "Link/Transfer Data"
-
-
-msgid "Hooks"
-msgstr "Hooks"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Trim/Add"
-msgstr "Trim/Add"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Sculpt Set Pivot"
-
-
-msgid "Face Sets Init"
-msgstr "Face Sets Init"
-
-
-msgid "Random Mask"
-msgstr "Random Mask"
-
-
-msgid "Clear Transform"
-msgstr "Clear Transform"
-
-
-msgid "In-Betweens"
-msgstr "In-Betweens"
-
-
-msgid "Propagate"
-msgstr "Propagate"
-
-
-msgid "Bone Collections"
-msgstr "Bone Collections"
-
-
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Toggle Bone Options"
-msgstr "Toggle Bone Options"
-
-
-msgid "Enable Bone Options"
-msgstr "Enable Bone Options"
-
-
-msgid "Disable Bone Options"
-msgstr "Disable Bone Options"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
-
-
-msgid "Face Data"
-msgstr "Face Data"
-
-
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Merge"
-msgstr "Merge"
+msgid "Show/Hide"
+msgstr "Show/Hide"
 
 
 msgid "Special Characters"
@@ -34641,12 +34445,28 @@ msgid "Text"
 msgstr "Text"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Names"
+
+
 msgid "Bone Roll"
 msgstr "Bone Roll"
 
 
+msgid "Merge"
+msgstr "Merge"
+
+
 msgid "Pivot Point"
 msgstr "Pivot Point"
+
+
+msgid "Snap"
+msgstr "Snap"
 
 
 msgid "Proportional Editing Falloff"
@@ -34663,6 +34483,178 @@ msgstr "Automasking"
 
 msgid "Face Sets Edit"
 msgstr "Face Sets Edit"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Hooks"
+msgstr "Hooks"
+
+
+msgid "Link/Transfer Data"
+msgstr "Link/Transfer Data"
+
+
+msgid "Convert"
+msgstr "Convert"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "Add Image"
+msgstr "Add Image"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Make Single User"
+msgstr "Make Single User"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
+
+
+msgid "Quick Effects"
+msgstr "Quick Effects"
+
+
+msgid "Disable Bone Options"
+msgstr "Disable Bone Options"
+
+
+msgid "Enable Bone Options"
+msgstr "Enable Bone Options"
+
+
+msgid "Track"
+msgstr "Track"
+
+
+msgid "Toggle Bone Options"
+msgstr "Toggle Bone Options"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Propagate"
+msgstr "Propagate"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
+msgid "Bone Collections"
+msgstr "Bone Collections"
+
+
+msgid "In-Betweens"
+msgstr "In-Betweens"
+
+
+msgid "Clear Transform"
+msgstr "Clear Transform"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "Random Mask"
+msgstr "Random Mask"
+
+
+msgid "Face Sets Init"
+msgstr "Face Sets Init"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Sculpt Set Pivot"
+
+
+msgid "Trim/Add"
+msgstr "Trim/Add"
 
 
 msgid "Keyframe Insert Pie"
@@ -43944,6 +43936,10 @@ msgid "Active track in this tracking data object. Deprecated, use objects[name].
 msgstr "Active track in this tracking data object. Deprecated, use objects[name].tracks.active"
 
 
+msgid "Starting"
+msgstr "Starting"
+
+
 msgid "NLA Strip"
 msgstr "NLA Strip"
 
@@ -44393,10 +44389,6 @@ msgid "Aspect Correction"
 msgstr "Aspect Correction"
 
 
-msgid "Type of aspect correction to use"
-msgstr "Type of aspect correction to use"
-
-
 msgid "Relative Size X"
 msgstr "Relative Size X"
 
@@ -44454,20 +44446,8 @@ msgid "Bokeh"
 msgstr "Bokeh"
 
 
-msgid "Use circular filter (slower)"
-msgstr "Use circular filter (slower)"
-
-
 msgid "Extend Bounds"
 msgstr "Extend Bounds"
-
-
-msgid "Extend bounds of the input image to fully fit blurred image"
-msgstr "Extend bounds of the input image to fully fit blurred image"
-
-
-msgid "Use relative (percent) values to define blur radius"
-msgstr "Use relative (percent) values to define blur radius"
 
 
 msgid "Variable Size"
@@ -45684,10 +45664,6 @@ msgstr "Invert Colour"
 
 msgid "Invert colors, producing a negative"
 msgstr "Invert colors, producing a negative"
-
-
-msgid "(Deprecated: Use Invert Color node instead.)"
-msgstr "(Deprecated: Use Invert Colour node instead.)"
 
 
 msgid "Perform both chroma keying (to remove the backdrop) and despill (to correct color cast from the backdrop)"
@@ -47094,6 +47070,14 @@ msgid "Round the float to the closest integer in the direction of zero (floor if
 msgstr "Round the float to the closest integer in the direction of zero (floor if positive; ceiling if negative)"
 
 
+msgid "Active Item Index"
+msgstr "Active Item Index"
+
+
+msgid "Index of the active item"
+msgstr "Index of the active item"
+
+
 msgid "Hash Value"
 msgstr "Hash Value"
 
@@ -47435,14 +47419,6 @@ msgstr "Bake"
 
 msgid "Cache the incoming data so that it can be used without recomputation"
 msgstr "Cache the incoming data so that it can be used without recomputation"
-
-
-msgid "Active Item Index"
-msgstr "Active Item Index"
-
-
-msgid "Index of the active item"
-msgstr "Index of the active item"
 
 
 msgid "Blur Attribute"
@@ -52724,10 +52700,6 @@ msgstr "Socket description"
 
 msgid "Single Value"
 msgstr "Single Value"
-
-
-msgid "Only allow single value inputs rather than fields"
-msgstr "Only allow single value inputs rather than fields"
 
 
 msgid "Hide in Modifier"
@@ -68937,10 +68909,6 @@ msgid "Dissolve Vertices"
 msgstr "Dissolve Vertices"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "Dissolve remaining vertices"
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "Dissolve Faces"
@@ -73493,14 +73461,6 @@ msgstr "Type of object to convert to"
 
 msgid "Curve from Mesh or Text objects"
 msgstr "Curve from Mesh or Text objects"
-
-
-msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
-msgstr "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
-
-
-msgid "Point Cloud from Mesh objects"
-msgstr "Point Cloud from Mesh objects"
 
 
 msgid "Curves from evaluated curve data"
@@ -80583,10 +80543,6 @@ msgid "Expand/Collapse Header Menus"
 msgstr "Expand/Collapse Header Menus"
 
 
-msgid "Expand or collapse the header pulldown menus"
-msgstr "Expand or collapse the header pulldown menus"
-
-
 msgctxt "Operator"
 msgid "Show Info Log"
 msgstr "Show Info Log"
@@ -82121,11 +82077,6 @@ msgstr "Use Geometry (cotangent) relaxation, making UVs follow the underlying 3D
 
 
 msgctxt "Operator"
-msgid "Change Effect Input"
-msgstr "Change Effect Input"
-
-
-msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Change Effect Type"
 
@@ -82135,17 +82086,9 @@ msgid "Type"
 msgstr "Type"
 
 
-msgid "Sequencer effect type"
-msgstr "Sequencer effect type"
-
-
 msgctxt "Sequence"
 msgid "Crossfade"
 msgstr "Crossfade"
-
-
-msgid "Crossfade effect strip type"
-msgstr "Crossfade effect strip type"
 
 
 msgctxt "Sequence"
@@ -82153,17 +82096,9 @@ msgid "Add"
 msgstr "Add"
 
 
-msgid "Add effect strip type"
-msgstr "Add effect strip type"
-
-
 msgctxt "Sequence"
 msgid "Subtract"
 msgstr "Subtract"
-
-
-msgid "Subtract effect strip type"
-msgstr "Subtract effect strip type"
 
 
 msgctxt "Sequence"
@@ -82171,26 +82106,9 @@ msgid "Alpha Over"
 msgstr "Alpha Over"
 
 
-msgid "Alpha Over effect strip type"
-msgstr "Alpha Over effect strip type"
-
-
 msgctxt "Sequence"
 msgid "Alpha Under"
 msgstr "Alpha Under"
-
-
-msgid "Alpha Under effect strip type"
-msgstr "Alpha Under effect strip type"
-
-
-msgctxt "Sequence"
-msgid "Gamma Cross"
-msgstr "Gamma Cross"
-
-
-msgid "Gamma Cross effect strip type"
-msgstr "Gamma Cross effect strip type"
 
 
 msgctxt "Sequence"
@@ -82198,17 +82116,9 @@ msgid "Multiply"
 msgstr "Multiply"
 
 
-msgid "Multiply effect strip type"
-msgstr "Multiply effect strip type"
-
-
 msgctxt "Sequence"
 msgid "Wipe"
 msgstr "Wipe"
-
-
-msgid "Wipe effect strip type"
-msgstr "Wipe effect strip type"
 
 
 msgctxt "Sequence"
@@ -82216,26 +82126,14 @@ msgid "Glow"
 msgstr "Glow"
 
 
-msgid "Glow effect strip type"
-msgstr "Glow effect strip type"
-
-
 msgctxt "Sequence"
 msgid "Transform"
 msgstr "Transform"
 
 
-msgid "Transform effect strip type"
-msgstr "Transform effect strip type"
-
-
 msgctxt "Sequence"
 msgid "Color"
 msgstr "Color"
-
-
-msgid "Color effect strip type"
-msgstr "Color effect strip type"
 
 
 msgctxt "Sequence"
@@ -82396,6 +82294,10 @@ msgstr "Replace Selection"
 
 msgid "Deselect previously selected strips"
 msgstr "Deselect previously selected strips"
+
+
+msgid "Sequencer effect type"
+msgstr "Sequencer effect type"
 
 
 msgctxt "Operator"
@@ -90974,6 +90876,38 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
+msgid "Active Tool"
+msgstr "Active Tool"
+
+
+msgid "View Lock"
+msgstr "View Lock"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selectability & Visibility"
+
+
+msgid "Shadow Settings"
+msgstr "Shadow Settings"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Settings"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Render Pass"
+msgstr "Render Pass"
+
+
+msgid "Compositor"
+msgstr "Compositor"
+
+
 msgid "Overlays"
 msgstr "Overlays"
 
@@ -91042,10 +90976,6 @@ msgid "Multi Frame"
 msgstr "Multi Frame"
 
 
-msgid "Compositor"
-msgstr "Compositor"
-
-
 msgid "Auto-Masking"
 msgstr "Auto-Masking"
 
@@ -91088,34 +91018,6 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTF Animations"
-
-
-msgid "Active Tool"
-msgstr "Active Tool"
-
-
-msgid "View Lock"
-msgstr "View Lock"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selectability & Visibility"
-
-
-msgid "Shadow Settings"
-msgstr "Shadow Settings"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Settings"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Render Pass"
-msgstr "Render Pass"
 
 
 msgid "Import Settings"
@@ -95091,32 +94993,16 @@ msgid "Device up/down directly controls the Z position of the 3D viewport"
 msgstr "Device up/down directly controls the Z position of the 3D viewport"
 
 
-msgid "Lock Camera Pan/Zoom"
-msgstr "Lock Camera Pan/Zoom"
-
-
 msgid "Pan/zoom the camera view instead of leaving the camera view when orbiting"
 msgstr "Pan/zoom the camera view instead of leaving the camera view when orbiting"
 
 
-msgid "Lock Horizon"
-msgstr "Lock Horizon"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "Keep horizon level while flying with 3D Mouse"
+msgid "NDOF View Navigate"
+msgstr "NDOF View Navigate"
 
 
 msgid "Auto sets the orbit center dynamically. When the complete model is in view, the center of volume of the whole model is used as the rotation point. When you move closer, the orbit center will be set on an object close to your center of the view."
 msgstr "Auto sets the orbit center dynamically. When the complete model is in view, the center of volume of the whole model is used as the rotation point. When you move closer, the orbit center will be set on an object close to your center of the view."
-
-
-msgid "Use Selected Items"
-msgstr "Use Selected Items"
-
-
-msgid "Use selected item forces the orbit center to only take the currently selected objects into account."
-msgstr "Use selected item forces the orbit center to only take the currently selected objects into account."
 
 
 msgid "Orbit Sensitivity"
@@ -95125,14 +95011,6 @@ msgstr "Orbit Sensitivity"
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "Overall sensitivity of the 3D Mouse for orbiting"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Y/Z Swap Axis"
-
-
-msgid "Pan using up/down on the device (otherwise forward/backward)"
-msgstr "Pan using up/down on the device (otherwise forward/backward)"
 
 
 msgid "Invert X Axis"
@@ -95179,48 +95057,8 @@ msgid "Display the orbit center during rotation"
 msgstr "Display the orbit center during rotation"
 
 
-msgid "NDOF View Navigate"
-msgstr "NDOF View Navigate"
-
-
-msgid "Navigation style in the viewport"
-msgstr "Navigation style in the viewport"
-
-
-msgid "Use full 6 degrees of freedom by default"
-msgstr "Use full 6 degrees of freedom by default"
-
-
-msgid "Orbit about the view center by default"
-msgstr "Orbit about the view center by default"
-
-
-msgid "NDOF View Rotation"
-msgstr "NDOF View Rotation"
-
-
-msgid "Rotation style in the viewport"
-msgstr "Rotation style in the viewport"
-
-
-msgid "Turntable"
-msgstr "Turntable"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Use turntable style rotation in the viewport"
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "Use trackball style rotation in the viewport"
-
-
-msgid "Invert Zoom"
-msgstr "Invert Zoom"
-
-
-msgid "Zoom using opposite direction"
-msgstr "Zoom using opposite direction"
+msgid "Up/Down"
+msgstr "Up/Down"
 
 
 msgid "Softness"
@@ -95377,6 +95215,10 @@ msgstr "Orbit Method"
 
 msgid "Orbit method in the viewport"
 msgstr "Orbit method in the viewport"
+
+
+msgid "Turntable"
+msgstr "Turntable"
 
 
 msgid "Turntable keeps the Z-axis upright while orbiting"
@@ -95765,14 +95607,6 @@ msgstr "Ambient Color"
 
 msgid "Color of the ambient light that uniformly lit the scene"
 msgstr "Color of the ambient light that uniformly lit the scene"
-
-
-msgid "Max Shader Compilation Subprocesses"
-msgstr "Max Shader Compilation Subprocesses"
-
-
-msgid "Max number of parallel shader compilation subprocesses, clamped at the max threads supported by the CPU (requires restarting Blender for changes to take effect). Setting it to 0 disables subprocess shader compilation."
-msgstr "Max number of parallel shader compilation subprocesses, clamped at the max threads supported by the CPU (requires restarting Blender for changes to take effect). Setting it to 0 disables subprocess shader compilation."
 
 
 msgid "Memory Cache Limit"
@@ -96553,10 +96387,6 @@ msgid ""
 msgstr ""
 "Enable a fresnel effect on edit mesh overlays.\n"
 "It improves shape readability of very dense meshes, but increases eye fatigue when modeling lower poly"
-
-
-msgid "Open menu buttons and pulldowns automatically when the mouse is hovering"
-msgstr "Open menu buttons and pulldowns automatically when the mouse is hovering"
 
 
 msgid "Save Prompt"
@@ -101930,10 +101760,6 @@ msgid "Attenuation constant"
 msgstr "Attenuation constant"
 
 
-msgid "Distance of object that contribute to the Cavity/Edge effect"
-msgstr "Distance of object that contribute to the Cavity/Edge effect"
-
-
 msgid "Number of samples"
 msgstr "Number of samples"
 
@@ -106804,11 +106630,6 @@ msgid "Sound"
 msgstr "Sound"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Cross"
-
-
 msgid "Use Default Fade"
 msgstr "Use Default Fade"
 
@@ -106959,18 +106780,6 @@ msgstr "Sequence strip creating an image filled with a single color"
 
 msgid "Effect Strip color"
 msgstr "Effect Strip color"
-
-
-msgid "Cross Strip"
-msgstr "Cross Strip"
-
-
-msgid "Cross Sequence"
-msgstr "Cross Sequence"
-
-
-msgid "Gamma Cross Strip"
-msgstr "Gamma Cross Strip"
 
 
 msgid "Gaussian Blur Strip"
@@ -108666,6 +108475,14 @@ msgid "Color of keyframes on a path before current frame"
 msgstr "Color of keyframes on a path before current frame"
 
 
+msgid "Preview Range"
+msgstr "Preview Range"
+
+
+msgid "Color of preview range overlay"
+msgstr "Color of preview range overlay"
+
+
 msgid "Selected Marker"
 msgstr "Selected Marker"
 
@@ -108892,14 +108709,6 @@ msgstr "Long Key"
 
 msgid "Long Key Selected"
 msgstr "Long Key Selected"
-
-
-msgid "Preview Range"
-msgstr "Preview Range"
-
-
-msgid "Color of preview range overlay"
-msgstr "Color of preview range overlay"
 
 
 msgid "Simulated Frames"
@@ -116728,11 +116537,6 @@ msgstr "Vert/Edge Slide"
 
 
 msgctxt "WindowManager"
-msgid "TrackBall"
-msgstr "TrackBall"
-
-
-msgctxt "WindowManager"
 msgid "Resize"
 msgstr "Resize"
 
@@ -119560,12 +119364,12 @@ msgid "No animation data to convert on object: {!r}"
 msgstr "No animation data to convert on object: {!r}"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "Modifiers cannot be added to object: "
-
-
 msgid "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}"
 msgstr "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}"
+
+
+msgid "Modifiers cannot be added to object: "
+msgstr "Modifiers cannot be added to object: "
 
 
 msgid "Object {!r} already has {!r} F-Curve(s). Remove these before trying again"
@@ -120589,10 +120393,6 @@ msgstr "K0"
 
 msgid "Height Min"
 msgstr "Height Min"
-
-
-msgid "Cylinder radius"
-msgstr "Cylinder radius"
 
 
 msgid "Resolution Preview U"
@@ -124033,16 +123833,6 @@ msgstr "Scene..."
 
 
 msgctxt "Operator"
-msgid "Cross"
-msgstr "Cross"
-
-
-msgctxt "Operator"
-msgid "Gamma Cross"
-msgstr "Gamma Cross"
-
-
-msgctxt "Operator"
 msgid "Wipe"
 msgstr "Wipe"
 
@@ -125061,22 +124851,6 @@ msgid "Zoom Method"
 msgstr "Zoom Method"
 
 
-msgid "Pan Sensitivity"
-msgstr "Pan Sensitivity"
-
-
-msgid "Swap Y and Z Axes"
-msgstr "Swap Y and Z Axes"
-
-
-msgid "Invert Axis Pan"
-msgstr "Invert Axis Pan"
-
-
-msgid "Invert Pan Axis"
-msgstr "Invert Pan Axis"
-
-
 msgctxt "Operator"
 msgid "Remove Repository"
 msgstr "Remove Repository"
@@ -125120,10 +124894,6 @@ msgid "A restart of Blender is required"
 msgstr "A restart of Blender is required"
 
 
-msgid "• USD/Hydra is not supported"
-msgstr "• USD/Hydra is not supported"
-
-
 msgid "Open blend files with this Blender version"
 msgstr "Open blend files with this Blender version"
 
@@ -125158,20 +124928,24 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Invert Wheel Zoom Direction"
 
 
-msgid "Show Guides"
-msgstr "Show Guides"
-
-
-msgid "Orbit Axis"
-msgstr "Orbit Axis"
+msgid "Lock Horizon"
+msgstr "Lock Horizon"
 
 
 msgid "Orbit Center"
 msgstr "Orbit Center"
 
 
-msgid "Fly/Walk"
-msgstr "Fly/Walk"
+msgid "Orbit Axis"
+msgstr "Orbit Axis"
+
+
+msgid "Pan Sensitivity"
+msgstr "Pan Sensitivity"
+
+
+msgid "Invert Pan Axis"
+msgstr "Invert Pan Axis"
 
 
 msgctxt "Operator"
@@ -127505,6 +127279,11 @@ msgid "Path Steps"
 msgstr "Path Steps"
 
 
+msgctxt "GPencil"
+msgid "Boundary"
+msgstr "Boundary"
+
+
 msgid "No brush selected"
 msgstr "No brush selected"
 
@@ -127544,9 +127323,8 @@ msgid "Auto-Velocity"
 msgstr "Auto-Velocity"
 
 
-msgctxt "GPencil"
-msgid "Boundary"
-msgstr "Boundary"
+msgid "Ignore Transparent"
+msgstr "Ignore Transparent"
 
 
 msgid "No Textures"
@@ -127556,10 +127334,6 @@ msgstr "No Textures"
 msgctxt "Operator"
 msgid "Add UVs"
 msgstr "Add UVs"
-
-
-msgid "Ignore Transparent"
-msgstr "Ignore Transparent"
 
 
 msgid "Cannot change action, as it is still being edited in NLA"
@@ -129234,10 +129008,6 @@ msgid "Compiling shaders ({} remaining)"
 msgstr "Compiling shaders ({} remaining)"
 
 
-msgid "Increasing Preferences > System > Max Shader Compilation Subprocesses may improve compilation time."
-msgstr "Increasing Preferences > System > Max Shader Compilation Subprocesses may improve compilation time."
-
-
 msgid "Optimizing shaders ({} remaining)"
 msgstr "Optimizing shaders ({} remaining)"
 
@@ -130628,10 +130398,6 @@ msgstr "Baked strokes are cleared"
 
 msgid "Panning"
 msgstr "Panning"
-
-
-msgid "subdivisions"
-msgstr "subdivisions"
 
 
 msgid "Grab"
@@ -136415,10 +136181,6 @@ msgid "No active collection"
 msgstr "No active collection"
 
 
-msgid "Can't duplicate the master collection"
-msgstr "Can't duplicate the master collection"
-
-
 msgid "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
 msgstr "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
 
@@ -136927,10 +136689,6 @@ msgid "Add an alpha under blend mode effect strip for two selected strips with v
 msgstr "Add an alpha under blend mode effect strip for two selected strips with video content"
 
 
-msgid "Add a gamma cross transition strip for two selected strips with video content"
-msgstr "Add a gamma cross transition strip for two selected strips with video content"
-
-
 msgid "Add a multiply blend mode effect strip for two selected strips with video content"
 msgstr "Add a multiply blend mode effect strip for two selected strips with video content"
 
@@ -137043,20 +136801,8 @@ msgid "Cannot reassign inputs: recursion detected"
 msgstr "Cannot reassign inputs: recursion detected"
 
 
-msgid "No valid inputs to swap"
-msgstr "No valid inputs to swap"
-
-
 msgid "Please select two strips"
 msgstr "Please select two strips"
-
-
-msgid "One of the effect inputs is unset, cannot swap"
-msgstr "One of the effect inputs is unset, cannot swap"
-
-
-msgid "New effect needs more input strips"
-msgstr "New effect needs more input strips"
 
 
 msgid "Can't create subtitle file"
@@ -137677,10 +137423,6 @@ msgstr "Cannot remove background image %d from camera '%s', as it is from the li
 
 msgid "Gizmos hidden in this view"
 msgstr "Gizmos hidden in this view"
-
-
-msgid "Up/Down"
-msgstr "Up/Down"
 
 
 msgid "Free Look"
@@ -141798,10 +141540,6 @@ msgid "Disabled, built without FFTW"
 msgstr "Disabled, built without FFTW"
 
 
-msgid "Suppress"
-msgstr "Suppress"
-
-
 msgid "Streaks Angle"
 msgstr "Streaks Angle"
 
@@ -141824,14 +141562,6 @@ msgstr "The brightness level at which pixels are considered part of the highligh
 
 msgid "The smoothness of the extracted highlights"
 msgstr "The smoothness of the extracted highlights"
-
-
-msgid "Suppress bright highlights"
-msgstr "Suppress bright highlights"
-
-
-msgid "Suppresses bright highlights such that their brightness are not larger than this value"
-msgstr "Suppresses bright highlights such that their brightness are not larger than this value"
 
 
 msgid "Adjusts the brightness of the glare"
@@ -141874,16 +141604,16 @@ msgid "Align the star diagonally"
 msgstr "Align the star diagonally"
 
 
+msgid "Viewport compositor setup not fully supported"
+msgstr "Viewport compositor setup not fully supported"
+
+
 msgid "ID value"
 msgstr "ID value"
 
 
 msgid "Render passes in the Viewport compositor are only supported in EEVEE"
 msgstr "Render passes in the Viewport compositor are only supported in EEVEE"
-
-
-msgid "Viewport compositor setup not fully supported"
-msgstr "Viewport compositor setup not fully supported"
 
 
 msgid "Garbage Matte"
@@ -147067,234 +146797,6 @@ msgstr "microphone"
 
 msgid "network"
 msgstr "network"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japanese (日本語)"
-
-
-msgid "Dutch (Nederlands)"
-msgstr "Dutch (Nederlands)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Italian (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "German (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finnish (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Swedish (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "French (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Spanish (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Catalan (Català)"
-
-
-msgid "Czech (Čeština)"
-msgstr "Czech (Čeština)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Portuguese (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Simplified Chinese (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Traditional Chinese (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Russian (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Croatian (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Serbian (Српски)"
-
-
-msgid "Ukrainian (Українська)"
-msgstr "Ukrainian (Українська)"
-
-
-msgid "Polish (Polski)"
-msgstr "Polish (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Romanian (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bulgarian (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Greek (Ελληνικά)"
-
-
-msgid "Korean (한국어)"
-msgstr "Korean (한국어)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepali (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Persian (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonesian (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Serbian Latin (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Kyrgyz (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turkish (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Hungarian (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Brazilian Portuguese (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Hebrew (תירִבְעִ)"
-
-
-msgid "Estonian (Eesti keel)"
-msgstr "Estonian (Eesti keel)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amharic (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbek (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Uzbek Cyrillic (Ўзбек)"
-
-
-msgid "Hindi (हिन्दी)"
-msgstr "Hindi (हिन्दी)"
-
-
-msgid "Vietnamese (Tiếng Việt)"
-msgstr "Vietnamese (Tiếng Việt)"
-
-
-msgid "Basque (Euskara)"
-msgstr "Basque (Euskara)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "Hausa (Hausa)"
-
-
-msgid "Kazakh (Қазақша)"
-msgstr "Kazakh (Қазақша)"
-
-
-msgid "Abkhaz (Аԥсуа бызшәа)"
-msgstr "Abkhaz (Аԥсуа бызшәа)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Thai (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Slovak (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "Georgian (ქართული)"
-
-
-msgid "Tamil (தமிழ்)"
-msgstr "Tamil (தமிழ்)"
-
-
-msgid "Khmer (ខ្មែរ)"
-msgstr "Khmer (ខ្មែរ)"
-
-
-msgid "Swahili (Kiswahili)"
-msgstr "Swahili (Kiswahili)"
-
-
-msgid "Belarusian (беларуску)"
-msgstr "Belarusian (беларуску)"
-
-
-msgid "Danish (Dansk)"
-msgstr "Danish (Dansk)"
-
-
-msgid "Slovenian (Slovenščina)"
-msgstr "Slovenian (Slovenščina)"
-
-
-msgid "Urdu (وُدرُا)"
-msgstr "Urdu (وُدرُا)"
-
-
-msgid "Lithuanian (Lietuviškai)"
-msgstr "Lithuanian (Lietuviškai)"
-
-
-msgid "Complete"
-msgstr "Complete"
-
-
-msgid "In Progress"
-msgstr "In Progress"
-
-
-msgid "Starting"
-msgstr "Starting"
 
 
 msgid "Add & Subtract"

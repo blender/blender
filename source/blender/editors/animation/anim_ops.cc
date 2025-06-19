@@ -61,10 +61,12 @@
 /** \name Frame Change Operator
  * \{ */
 
-/* Persistent data to re-use during frame change modal operations. */
+/** Persistent data to re-use during frame change modal operations. */
 class FrameChangeModalData {
-  /* Used for keyframe snapping. Is populated when needed and re-used so it doesn't have to be
-   * created on every modal call. */
+  /**
+   * Used for keyframe snapping. Is populated when needed and re-used so it doesn't have to be
+   * created on every modal call.
+   */
  public:
   AnimKeylist *keylist;
 
@@ -81,11 +83,13 @@ class FrameChangeModalData {
   }
 };
 
-/* Point the playhead can snap to. */
+/** Point the play-head can snap to. */
 struct SnapTarget {
   float pos;
-  /* If true, only snap if close to the point in screenspace. If false snap to this point
-   * regardless of screen space distance. */
+  /**
+   * If true, only snap if close to the point in screen-space. If false snap to this point
+   * regardless of screen space distance.
+   */
   bool use_snap_treshold;
 };
 
@@ -620,10 +624,6 @@ static bool use_playhead_snapping(bContext *C)
 
 static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *event)
 {
-  if ((U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0) {
-    return false;
-  }
-
   const Scene *scene = CTX_data_scene(C);
   if (!blender::seq::editing_get(scene)) {
     return false;

@@ -40,6 +40,8 @@
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdLux/boundableLightBase.h>
+#include <pxr/usd/usdLux/domeLight.h>
+#include <pxr/usd/usdLux/domeLight_1.h>
 #include <pxr/usd/usdLux/nonboundableLightBase.h>
 #include <pxr/usd/usdShade/material.h>
 
@@ -252,7 +254,9 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
   if (params_.import_meshes && prim.IsA<pxr::UsdGeomMesh>()) {
     return new USDMeshReader(prim, params_, settings_);
   }
-  if (params_.import_lights && prim.IsA<pxr::UsdLuxDomeLight>()) {
+  if (params_.import_lights &&
+      (prim.IsA<pxr::UsdLuxDomeLight>() || prim.IsA<pxr::UsdLuxDomeLight_1>()))
+  {
     /* Dome lights are handled elsewhere. */
     return nullptr;
   }
@@ -297,7 +301,7 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
   if (prim.IsA<pxr::UsdGeomMesh>()) {
     return new USDMeshReader(prim, params_, settings_);
   }
-  if (prim.IsA<pxr::UsdLuxDomeLight>()) {
+  if (prim.IsA<pxr::UsdLuxDomeLight>() || prim.IsA<pxr::UsdLuxDomeLight_1>()) {
     /* We don't handle dome lights. */
     return nullptr;
   }
@@ -440,8 +444,10 @@ USDPrimReader *USDStageReader::collect_readers(const pxr::UsdPrim &prim,
     }
   }
 
-  if (prim.IsA<pxr::UsdLuxDomeLight>()) {
-    dome_lights_.append(pxr::UsdLuxDomeLight(prim));
+  if (prim.IsA<pxr::UsdLuxDomeLight>() || prim.IsA<pxr::UsdLuxDomeLight_1>()) {
+    USDDomeLightReader *reader = new USDDomeLightReader(prim, params_, settings_);
+    reader->incref();
+    dome_light_readers_.append(reader);
   }
 
   pxr::Usd_PrimFlagsConjunction filter_flags = pxr::UsdPrimIsActive && pxr::UsdPrimIsLoaded &&
@@ -529,7 +535,6 @@ void USDStageReader::collect_readers()
   }
 
   clear_readers();
-  dome_lights_.clear();
 
   /* Identify paths to point instancer prototypes, as these will be converted
    * in a separate pass over the stage. */
@@ -733,6 +738,11 @@ void USDStageReader::clear_readers()
     }
   }
   instancer_proto_readers_.clear();
+
+  for (USDDomeLightReader *reader : dome_light_readers_) {
+    decref(reader);
+  }
+  dome_light_readers_.clear();
 }
 
 void USDStageReader::sort_readers()
@@ -897,19 +907,25 @@ void USDStageReader::collect_point_instancer_proto_paths(const pxr::UsdPrim &pri
   pxr::UsdPrimSiblingRange children = prim.GetFilteredChildren(filter_flags);
 
   for (const auto &child_prim : children) {
-    const pxr::UsdGeomImageable imageable = pxr::UsdGeomImageable(child_prim);
-    if (!imageable) {
-      continue;
-    }
 
-    /* We should only traverse through a hierarchy, and any potential instancers, if they would be
-     * included by our purpose and visibility checks, matching what is inside #collect_readers. */
-    if (!include_by_purpose(imageable)) {
-      continue;
-    }
+    /* Note we allow undefined prims in case prototypes are defined as overs.
+     * If the prim is defined, we apply additional checks for inclusion. */
+    if (child_prim.IsDefined()) {
+      const pxr::UsdGeomImageable imageable = pxr::UsdGeomImageable(child_prim);
+      if (!imageable) {
+        continue;
+      }
 
-    if (!include_by_visibility(imageable)) {
-      continue;
+      /* We should only traverse through a hierarchy, and any potential instancers, if they would
+       * be included by our purpose and visibility checks, matching what is inside
+       * #collect_readers. */
+      if (!include_by_purpose(imageable)) {
+        continue;
+      }
+
+      if (!include_by_visibility(imageable)) {
+        continue;
+      }
     }
 
     if (pxr::UsdGeomPointInstancer instancer = pxr::UsdGeomPointInstancer(child_prim)) {

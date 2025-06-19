@@ -10,6 +10,7 @@
 
 #include "MOD_lineart.hh"
 
+#include "BLI_bounds.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -2433,13 +2434,12 @@ static bool lineart_geometry_check_visible(double model_view_proj[4][4],
   if (!bounds.has_value()) {
     return false;
   }
-  BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, bounds.value().min, bounds.value().max);
+  const std::array<float3, 8> corners = blender::bounds::corners(*bounds);
 
   double co[8][4];
   double tmp[3];
   for (int i = 0; i < 8; i++) {
-    copy_v3db_v3fl(co[i], bb.vec[i]);
+    copy_v3db_v3fl(co[i], corners[i]);
     copy_v3_v3_db(tmp, co[i]);
     mul_v4_m4v3_db(co[i], model_view_proj, tmp);
     co[i][0] -= shift_x * 2 * co[i][3];
@@ -2490,7 +2490,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
   obi->obindex = obindex << LRT_OBINDEX_SHIFT;
 
   /* Prepare the matrix used for transforming this specific object (instance). This has to be
-   * done before mesh boundbox check because the function needs that. */
+   * done before mesh bound-box check because the function needs that. */
   mul_m4db_m4db_m4fl(obi->model_view_proj, ld->conf.view_projection, use_mat);
   mul_m4db_m4db_m4fl(obi->model_view, ld->conf.view, use_mat);
 

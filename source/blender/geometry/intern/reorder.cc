@@ -6,6 +6,7 @@
 #include "BKE_attribute_filters.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
+#include "BKE_curves_utils.hh"
 #include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
@@ -291,6 +292,12 @@ static void copy_and_reorder_curves(const bke::CurvesGeometry &src_curves,
                                     attribute_filter,
                                     dst_curves.attributes_for_write());
   dst_curves.tag_topology_changed();
+  if (src_curves.nurbs_has_custom_knots()) {
+    dst_curves.nurbs_custom_knots_update_size();
+    IndexMaskMemory memory;
+    bke::curves::nurbs::gather_custom_knots(
+        src_curves, IndexMask::from_indices(old_by_new_map, memory), 0, dst_curves);
+  }
 }
 
 static void copy_and_reorder_instaces(const bke::Instances &src_instances,

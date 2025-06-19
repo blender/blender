@@ -770,7 +770,7 @@ static bke::CurvesGeometry process_image(Image &ima,
 /** \} */
 
 constexpr const char *attr_material_index = "material_index";
-constexpr const char *attr_is_boundary = "is_boundary";
+constexpr const char *attr_is_fill_guide = ".is_fill_guide";
 
 static IndexMask get_visible_boundary_strokes(const Object &object,
                                               const DrawingInfo &info,
@@ -803,15 +803,15 @@ static IndexMask get_visible_boundary_strokes(const Object &object,
 
   /* On boundary layers only boundary strokes are rendered. */
   if (is_boundary_layer) {
-    const VArray<bool> boundary_strokes = *attributes.lookup_or_default<bool>(
-        attr_is_boundary, bke::AttrDomain::Curve, false);
+    const VArray<bool> fill_guides = *attributes.lookup_or_default<bool>(
+        attr_is_fill_guide, bke::AttrDomain::Curve, false);
 
     return IndexMask::from_predicate(
         strokes.curves_range(), GrainSize(512), memory, [&](const int curve_i) {
           if (!is_visible_curve(curve_i)) {
             return false;
           }
-          const bool is_boundary_stroke = boundary_strokes[curve_i];
+          const bool is_boundary_stroke = fill_guides[curve_i];
           return is_boundary_stroke;
         });
   }
@@ -888,7 +888,7 @@ static std::optional<Bounds<float2>> get_boundary_bounds(const ARegion &region,
     const VArray<int> materials = *attributes.lookup_or_default<int>(
         attr_material_index, bke::AttrDomain::Curve, 0);
     const VArray<bool> is_boundary_stroke = *attributes.lookup_or_default<bool>(
-        "is_boundary", bke::AttrDomain::Curve, false);
+        attr_is_fill_guide, bke::AttrDomain::Curve, false);
 
     IndexMaskMemory curve_mask_memory;
     const IndexMask curve_mask = get_visible_boundary_strokes(

@@ -24,10 +24,11 @@ extern const int DNAlen;
 
 /**
  * Primitive (non-struct, non-pointer/function/array) types,
+ *
+ * NOTE: this is endianness-sensitive.
  * \warning Don't change these values!
- * Currently changes here will work on native endianness,
- * however #DNA_struct_switch_endian currently checks these
- * hard-coded values against those from old files.
+ * Currently changes here will work on native endianness, however before 5.0,
+ * #DNA_struct_switch_endian used to check these hard-coded values against those from old files.
  */
 typedef enum eSDNA_Type {
   SDNA_TYPE_CHAR = 0,
@@ -61,8 +62,7 @@ enum eSDNA_StructCompare {
   /* Struct has disappeared
    * (values of this struct type will not be loaded by the current Blender) */
   SDNA_CMP_REMOVED = 0,
-  /* Struct is the same
-   * (can be loaded with straight memory copy after any necessary endian conversion) */
+  /* Struct is the same (can be loaded with straight memory copy). */
   SDNA_CMP_EQUAL = 1,
   /* Struct is different in some way
    * (needs to be copied/converted field by field) */
@@ -74,12 +74,8 @@ enum eSDNA_StructCompare {
 /**
  * Constructs and returns a decoded SDNA structure from the given encoded SDNA data block.
  */
-struct SDNA *DNA_sdna_from_data(const void *data,
-                                int data_len,
-                                bool do_endian_swap,
-                                bool data_alloc,
-                                bool do_alias,
-                                const char **r_error_message);
+struct SDNA *DNA_sdna_from_data(
+    const void *data, int data_len, bool data_alloc, bool do_alias, const char **r_error_message);
 void DNA_sdna_free(struct SDNA *sdna);
 
 /* Access for current Blender versions SDNA. */
@@ -137,14 +133,6 @@ bool DNA_struct_member_exists_without_alias(const struct SDNA *sdna,
                                             const char *vartype,
                                             const char *name);
 
-/**
- * Does endian swapping on the fields of a struct value.
- *
- * \param sdna: SDNA of the struct_nr belongs to
- * \param struct_nr: Index of struct info within sdna
- * \param data: Struct data that is to be converted
- */
-void DNA_struct_switch_endian(const struct SDNA *sdna, int struct_index, char *data);
 /**
  * Constructs and returns an array of byte flags with one element for each struct in oldsdna,
  * indicating how it compares to newsdna.

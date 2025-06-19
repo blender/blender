@@ -41,6 +41,7 @@ using namespace draw;
 
 constexpr GPUSamplerState no_filter = GPUSamplerState::default_sampler();
 constexpr GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
+
 #endif
 
 #define EEVEE_PI 3.14159265358979323846 /* pi */
@@ -54,6 +55,38 @@ enum eCubeFace : uint32_t {
   Y_NEG = 4u,
   Z_POS = 5u,
 };
+
+/**
+ * Bitmask representing the shader categories.
+ * This allows the loading of certain parts of the engine to kick-in as soon as the shaders that
+ * depends on it are compiled.
+ */
+enum ShaderGroups : uint32_t {
+  NONE = 0,
+  DEFERRED_LIGHTING_SHADERS = 1 << 0,
+  DEFERRED_CAPTURE_SHADERS = 1 << 1,
+  DEFERRED_PLANAR_SHADERS = 1 << 2,
+  DEPTH_OF_FIELD_SHADERS = 1 << 3,
+  HIZ_SHADERS = 1 << 4,
+  HORIZON_SCAN_SHADERS = 1 << 5,
+  LIGHT_CULLING_SHADERS = 1 << 6,
+  IRRADIANCE_BAKE_SHADERS = 1 << 7,
+  SPHERE_PROBE_SHADERS = 1 << 8,
+  SHADOW_SHADERS = 1 << 9,
+  AMBIENT_OCCLUSION_SHADERS = 1 << 10,
+  MOTION_BLUR_SHADERS = 1 << 11,
+  RAYTRACING_SHADERS = 1 << 12,
+  FILM_SHADERS = 1 << 13,
+  SUBSURFACE_SHADERS = 1 << 14,
+  SURFEL_SHADERS = 1 << 15,
+  VERTEX_COPY_SHADERS = 1 << 16,
+  VOLUME_EVAL_SHADERS = 1 << 17,
+  DEFAULT_MATERIALS = 1 << 18,
+  WORLD_SHADERS = 1 << 19,
+  MATERIAL_SHADERS = 1 << 20,
+  VOLUME_PROBE_SHADERS = 1 << 21,
+};
+ENUM_OPERATORS(ShaderGroups, VOLUME_PROBE_SHADERS)
 
 /* -------------------------------------------------------------------- */
 /** \name Transform
@@ -837,7 +870,7 @@ enum LightingType : uint32_t {
   LIGHT_TRANSMISSION = 2u,
   LIGHT_VOLUME = 3u,
   /* WORKAROUND: Special value used to tag translucent BSDF with thickness.
-   * Fallback to LIGHT_DIFFUSE. */
+   * Fall back to LIGHT_DIFFUSE. */
   LIGHT_TRANSLUCENT_WITH_THICKNESS = 4u,
 };
 

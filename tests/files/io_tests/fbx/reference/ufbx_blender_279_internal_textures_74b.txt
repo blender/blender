@@ -34,14 +34,14 @@
 ==== Materials: 1
 - Mat 'Material.001'
   - base color (0.800, 0.800, 0.800) tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:False
-  - specular ior 0.500 tex:'checkerboard_weight.png' (textures/checkerboard_weight.png) a:False
+  - specular ior 0.500 tex:'checkerboard_weight.png' (textures/checkerboard_weight.png) a:False Non-Color
   - specular tint (1.000, 1.000, 1.000) tex:'checkerboard_specular.png' (textures/checkerboard_specular.png) a:False
   - roughness 0.690
   - metallic 0.000
   - ior 1.500
-  - alpha 1.000 tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:True
+  - alpha 1.000 tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:True Non-Color
   - emission color (0.800, 0.800, 0.800)
-  - emission strength 0.000 tex:'checkerboard_emissive.png' (textures/checkerboard_emissive.png) a:False
+  - emission strength 0.000 tex:'checkerboard_emissive.png' (textures/checkerboard_emissive.png) a:False Non-Color
   - viewport diffuse (0.800, 0.800, 0.800, 1.000)
   - viewport specular (1.000, 1.000, 1.000), intensity 0.500
   - viewport metallic 0.000, roughness 0.690

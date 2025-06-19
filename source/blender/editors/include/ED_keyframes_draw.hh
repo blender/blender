@@ -129,7 +129,7 @@ void ED_add_grease_pencil_cels_channel(ChannelDrawList *channel_list,
 /* Grease Pencil layer group channels */
 void ED_add_grease_pencil_layer_group_channel(ChannelDrawList *channel_list,
                                               bDopeSheet *ads,
-                                              const GreasePencilLayerTreeGroup *layer,
+                                              const GreasePencilLayerTreeGroup *layer_group,
                                               float ypos,
                                               float yscale_fac,
                                               int saction_flag);

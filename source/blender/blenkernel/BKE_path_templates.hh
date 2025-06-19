@@ -22,6 +22,10 @@
 
 #include "DNA_scene_types.h"
 
+struct bContext;
+struct PointerRNA;
+struct PropertyRNA;
+
 namespace blender::bke::path_templates {
 
 /**
@@ -129,7 +133,22 @@ bool operator==(const Error &left, const Error &right);
 }  // namespace blender::bke::path_templates
 
 /**
- * Build a template variable map based on available information.
+ * Build a template variable map for the passed RNA property.
+ *
+ * \param C: the context to use for building some variables. This is needed in
+ * some cases when the property and its owner do not provide the data needed for
+ * a variable. This parameter can be null, but the variables it's needed for
+ * will then be absent in the returned variable map.
+ *
+ * \return On success, returns the template variables for the property. If no
+ * property is provided or if the property doesn't support path templates,
+ * returns #std::nullopt.
+ */
+std::optional<blender::bke::path_templates::VariableMap> BKE_build_template_variables_for_prop(
+    const bContext *C, PointerRNA *ptr, PropertyRNA *prop);
+
+/**
+ * Build a template variable map for render output paths.
  *
  * All parameters are allowed to be null, in which case the variables derived
  * from those parameters will simply not be included.
@@ -154,21 +173,34 @@ bool operator==(const Error &left, const Error &right);
  *
  * \see BLI_path_abs()
  */
-blender::bke::path_templates::VariableMap BKE_build_template_variables(
-    const char *blend_file_path, const RenderData *render_data);
+blender::bke::path_templates::VariableMap BKE_build_template_variables_for_render_path(
+    const RenderData *render_data);
 
 /**
- * Validate the template syntax in the given path.
+ * Check if a path contains any templating syntax at all.
  *
- * This does *not* validate whether any variables referenced in the path exist
- * or not, nor whether the format specification in a variable expression is
- * appropriate for its type. This only validates that the template syntax itself
- * is valid.
+ * This is primarily intended to be used as a pre-check in performance-sensitive
+ * code to skip path template processing when it's not needed.
  *
- * \return An empty vector if valid, or a vector of the parse errors if invalid.
+ * \return False if the path contains no templating syntax (no template
+ * processing is needed). True if the path does contain templating syntax
+ * (template processing *is* needed).
  */
-blender::Vector<blender::bke::path_templates::Error> BKE_validate_template_syntax(
-    blender::StringRef path);
+bool BKE_path_contains_template_syntax(blender::StringRef path);
+
+/**
+ * Validate the templating in the given path.
+ *
+ * This produces identical errors as `BKE_path_apply_template()`, but
+ * without modifying the path on success.
+ *
+ * \return An empty vector if the templating in the path is valid, or a vector
+ * of the errors if invalid.
+ *
+ * \see BKE_path_apply_template()
+ */
+blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
+    blender::StringRef path, const blender::bke::path_templates::VariableMap &template_variables);
 
 /**
  * Perform variable substitution and escaping on the given path.
@@ -227,3 +259,16 @@ void BKE_report_path_template_errors(ReportList *reports,
                                      eReportType report_type,
                                      blender::StringRef path,
                                      blender::Span<blender::bke::path_templates::Error> errors);
+
+/**
+ * Format the given floating point value with the provided format specifier. The format specifier
+ * is e.g. the "##.###" in "{name:##.###}".
+ *
+ * \return #std::nullopt if the format specifier is invalid.
+ */
+std::optional<std::string> BKE_path_template_format_float(blender::StringRef format_specifier,
+                                                          double value);
+
+/** Same as #BKE_path_template_format_float but for formatting an integer value.  */
+std::optional<std::string> BKE_path_template_format_int(blender::StringRef format_specifier,
+                                                        int64_t value);

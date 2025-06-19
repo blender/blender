@@ -21,9 +21,9 @@
 
 static void png_extend_native_int32(blender::Vector<uint8_t> &output, int32_t data)
 {
-  if (ENDIAN_ORDER == L_ENDIAN) {
-    BLI_endian_switch_int32(&data);
-  }
+  /* NOTE: this is endianness-sensitive. */
+  /* PNG is big-endian, its values need to be switched on little-endian systems. */
+  BLI_endian_switch_int32(&data);
   output.extend_unchecked(blender::Span((uint8_t *)&data, 4));
 }
 

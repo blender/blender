@@ -40,7 +40,7 @@ endif()
 
 if(UNIX)
   if(APPLE)
-    harvest(external_xml2 xml2/lib opencollada/lib "*.a")
+    harvest(external_xml2 xml2/lib xml2/lib "*.a")
   else()
     harvest(external_xml2 xml2/include xml2/include "*.h")
     harvest(external_xml2 xml2/lib xml2/lib "*.a")

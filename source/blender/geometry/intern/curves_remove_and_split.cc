@@ -6,6 +6,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
+#include "BKE_curves_utils.hh"
 #include "BKE_deform.hh"
 
 #include "GEO_curves_remove_and_split.hh"
@@ -109,6 +110,10 @@ bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &curves,
   dst_curves.update_curve_types();
   dst_curves.remove_attributes_based_on_types();
 
+  if (curves.nurbs_has_custom_knots()) {
+    bke::curves::nurbs::update_custom_knot_modes(
+        dst_curves.curves_range(), NURBS_KNOT_MODE_NORMAL, NURBS_KNOT_MODE_NORMAL, dst_curves);
+  }
   return dst_curves;
 }
 

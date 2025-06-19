@@ -17,11 +17,13 @@ indices = (
     (4, 5), (4, 6), (5, 7), (6, 7),
     (0, 4), (1, 5), (2, 6), (3, 7))
 
-shader = gpu.shader.from_builtin('UNIFORM_COLOR')
+shader = gpu.shader.from_builtin('POLYLINE_UNIFORM_COLOR')
 batch = batch_for_shader(shader, 'LINES', {"pos": coords}, indices=indices)
 
 
 def draw():
+    shader.uniform_float("viewportSize", gpu.state.viewport_get()[2:])
+    shader.uniform_float("lineWidth", 4.5)
     shader.uniform_float("color", (1, 0, 0, 1))
     batch.draw(shader)
 

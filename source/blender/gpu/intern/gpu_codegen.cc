@@ -306,7 +306,7 @@ void GPUCodegen::generate_library()
 
   std::sort(source_files.begin(), source_files.end());
   for (auto &key : source_files) {
-    auto deps = gpu_shader_dependency_get_resolved_source(key.c_str());
+    auto deps = gpu_shader_dependency_get_resolved_source(key.c_str(), {});
     info.dependencies_generated.extend_non_duplicates(deps);
   }
 }

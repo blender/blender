@@ -25,7 +25,7 @@ endfunction()
 # ------------------------------------------------------------------------
 # Find system provided libraries.
 
-# Find system ZLIB, not the pre-compiled one supplied with OpenCollada.
+# Find system ZLIB
 set(ZLIB_ROOT /usr)
 find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
@@ -212,12 +212,6 @@ endif()
 
 if(WITH_JACK)
   string(APPEND PLATFORM_LINKFLAGS " -F/Library/Frameworks -weak_framework jackmp")
-endif()
-
-if(WITH_OPENCOLLADA)
-  find_package(OpenCOLLADA)
-  find_library(XML2_LIBRARIES NAMES xml2 HINTS ${LIBDIR}/opencollada/lib)
-  print_found_status("XML2" "${XML2_LIBRARIES}")
 endif()
 
 if(WITH_SDL)

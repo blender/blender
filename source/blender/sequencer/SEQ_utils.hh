@@ -20,6 +20,7 @@ struct StripElem;
 namespace blender::seq {
 
 void strip_unique_name_set(Scene *scene, ListBase *seqbasep, Strip *strip);
+const char *get_default_stripname_by_type(int type);
 const char *strip_give_name(const Strip *strip);
 ListBase *get_seqbase_from_strip(Strip *strip, ListBase **r_channels, int *r_offset);
 const Strip *strip_topmost_get(const Scene *scene, int frame);

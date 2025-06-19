@@ -302,7 +302,6 @@ ccl_device float2 compute_3d_gabor_noise(const float3 coordinates,
 }
 
 ccl_device_noinline int svm_node_tex_gabor(KernelGlobals kg,
-                                           ccl_private ShaderData *sd,
                                            ccl_private float *stack,
                                            const uint type,
                                            const uint stack_offsets_1,

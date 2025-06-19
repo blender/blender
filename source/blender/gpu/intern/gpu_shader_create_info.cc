@@ -96,6 +96,22 @@ bool ShaderCreateInfo::is_vulkan_compatible() const
 
 /** \} */
 
+void ShaderCreateInfo::resource_guard_defines(std::string &defines) const
+{
+  if (name_.startswith("MA") || name_.startswith("WO")) {
+    defines += "#define CREATE_INFO_Material\n";
+  }
+  else {
+    defines += "#define CREATE_INFO_" + name_ + "\n";
+  }
+  for (const auto &info_name : additional_infos_) {
+    const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(
+        gpu_shader_create_info_get(info_name.c_str()));
+
+    info.resource_guard_defines(defines);
+  }
+}
+
 void ShaderCreateInfo::finalize(const bool recursive)
 {
   if (finalized_) {
@@ -132,6 +148,7 @@ void ShaderCreateInfo::finalize(const bool recursive)
     geometry_out_interfaces_.extend_non_duplicates(info.geometry_out_interfaces_);
     subpass_inputs_.extend_non_duplicates(info.subpass_inputs_);
     specialization_constants_.extend_non_duplicates(info.specialization_constants_);
+    compilation_constants_.extend_non_duplicates(info.compilation_constants_);
 
     validate_vertex_attributes(&info);
 
@@ -199,6 +216,23 @@ void ShaderCreateInfo::finalize(const bool recursive)
     if (!info.compute_source_.is_empty()) {
       assert_no_overlap(compute_source_.is_empty(), "Compute source already existing");
       compute_source_ = info.compute_source_;
+    }
+
+    if (info.vertex_entry_fn_ != "main") {
+      assert_no_overlap(vertex_entry_fn_ == "main", "Vertex function already existing");
+      vertex_entry_fn_ = info.vertex_entry_fn_;
+    }
+    if (info.geometry_entry_fn_ != "main") {
+      assert_no_overlap(geometry_entry_fn_ == "main", "Geometry function already existing");
+      geometry_entry_fn_ = info.geometry_entry_fn_;
+    }
+    if (info.fragment_entry_fn_ != "main") {
+      assert_no_overlap(fragment_entry_fn_ == "main", "Fragment function already existing");
+      fragment_entry_fn_ = info.fragment_entry_fn_;
+    }
+    if (info.compute_entry_fn_ != "main") {
+      assert_no_overlap(compute_entry_fn_ == "main", "Compute function already existing");
+      compute_entry_fn_ = info.compute_entry_fn_;
     }
   }
 
@@ -312,6 +346,16 @@ std::string ShaderCreateInfo::check_error() const
       if (specialization_constants_[i].name == specialization_constants_[j].name) {
         error += this->name_ + " contains two specialization constants with the name: " +
                  std::string(specialization_constants_[i].name);
+      }
+    }
+  }
+
+  /* Validate compilation constants. */
+  for (int i = 0; i < compilation_constants_.size(); i++) {
+    for (int j = i + 1; j < compilation_constants_.size(); j++) {
+      if (compilation_constants_[i].name == compilation_constants_[j].name) {
+        error += this->name_ + " contains two compilation constants with the name: " +
+                 std::string(compilation_constants_[i].name);
       }
     }
   }
@@ -563,16 +607,8 @@ bool gpu_shader_create_info_compile(const char *name_starts_with_filter)
     }
   }
 
-  Vector<GPUShader *> result;
-  if (GPU_use_parallel_compilation() == false) {
-    for (const GPUShaderCreateInfo *info : infos) {
-      result.append(GPU_shader_create_from_info(info));
-    }
-  }
-  else {
-    BatchHandle batch = GPU_shader_batch_create_from_infos(infos);
-    result = GPU_shader_batch_finalize(batch);
-  }
+  BatchHandle batch = GPU_shader_batch_create_from_infos(infos);
+  Vector<GPUShader *> result = GPU_shader_batch_finalize(batch);
 
   for (int i : result.index_range()) {
     const ShaderCreateInfo *info = reinterpret_cast<const ShaderCreateInfo *>(infos[i]);

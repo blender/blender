@@ -2147,7 +2147,7 @@ using LibOverrideMissingIDsData =
  *   ID library>`.
  *
  * So e.g. returns `<"OBMyObject", lib>` for ID from `lib` with names like `"OBMyObject"`,
- * `"OBMyObject.002"`, `"OBMyObject.12345"`, and so on, but _not_ for e.g. `"OBMyObject.12.002"`.
+ * `"OBMyObject.002"`, `"OBMyObject.12345"`, and so on, but _not_ `"OBMyObject.12.002"`.
  */
 static LibOverrideMissingIDsData_Key lib_override_library_resync_missing_id_key(ID *id)
 {

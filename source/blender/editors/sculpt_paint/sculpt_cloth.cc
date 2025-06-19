@@ -808,6 +808,7 @@ static void calc_forces_mesh(const Depsgraph &depsgraph,
     calc_brush_distances(
         ss, current_positions, eBrushFalloffShape(brush.falloff_shape), distances);
   }
+  filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
@@ -918,6 +919,7 @@ static void calc_forces_grids(const Depsgraph &depsgraph,
     calc_brush_distances(
         ss, current_positions, eBrushFalloffShape(brush.falloff_shape), distances);
   }
+  filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
@@ -1026,6 +1028,7 @@ static void calc_forces_bmesh(const Depsgraph &depsgraph,
     calc_brush_distances(
         ss, current_positions, eBrushFalloffShape(brush.falloff_shape), distances);
   }
+  filter_distances_with_radius(cache.radius, distances, factors);
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 

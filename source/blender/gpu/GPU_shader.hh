@@ -78,6 +78,8 @@ const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
  */
 bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128]);
 
+enum class CompilationPriority { Low, Medium, High };
+
 using BatchHandle = int64_t;
 /**
  * Request the creation of multiple shaders at once, allowing the backend to use multithreaded
@@ -87,7 +89,9 @@ using BatchHandle = int64_t;
  * WARNING: The GPUShaderCreateInfo pointers should be valid until `GPU_shader_batch_finalize` has
  * returned.
  */
-BatchHandle GPU_shader_batch_create_from_infos(blender::Span<const GPUShaderCreateInfo *> infos);
+BatchHandle GPU_shader_batch_create_from_infos(
+    blender::Span<const GPUShaderCreateInfo *> infos,
+    CompilationPriority priority = CompilationPriority::High);
 /**
  * Returns true if all the shaders from the batch have finished their compilation.
  */
@@ -264,7 +268,8 @@ struct ShaderSpecialization {
  * WARNING: Binding a specialization before the batch finishes will fail.
  */
 SpecializationBatchHandle GPU_shader_batch_specializations(
-    blender::Span<ShaderSpecialization> specializations);
+    blender::Span<ShaderSpecialization> specializations,
+    CompilationPriority priority = CompilationPriority::High);
 
 /**
  * Returns true if all the specializations from the batch have finished their compilation.
@@ -442,6 +447,8 @@ class StaticShader : NonCopyable {
   /* TODO: Failed compilation detection should be supported by the GPUShader API. */
   std::atomic<bool> failed_ = false;
   std::mutex mutex_;
+  /* Handle for async compilation. */
+  BatchHandle compilation_handle_ = 0;
 
   void move(StaticShader &&other)
   {
@@ -452,6 +459,7 @@ class StaticShader : NonCopyable {
     /* No std::swap support for atomics. */
     shader_.exchange(other.shader_.exchange(shader_));
     failed_.exchange(other.failed_.exchange(failed_));
+    std::swap(compilation_handle_, other.compilation_handle_);
   }
 
  public:
@@ -470,21 +478,58 @@ class StaticShader : NonCopyable {
 
   ~StaticShader()
   {
+    if (compilation_handle_) {
+      GPU_shader_batch_cancel(compilation_handle_);
+    }
     GPU_SHADER_FREE_SAFE(shader_);
+  }
+
+  /* Schedule the shader to be compile in a worker thread. */
+  void ensure_compile_async()
+  {
+    if (is_ready()) {
+      return;
+    }
+
+    std::scoped_lock lock(mutex_);
+
+    if (compilation_handle_) {
+      if (GPU_shader_batch_is_ready(compilation_handle_)) {
+        shader_ = GPU_shader_batch_finalize(compilation_handle_)[0];
+        failed_ = shader_ == nullptr;
+      }
+      return;
+    }
+
+    if (!shader_ && !failed_ && !compilation_handle_) {
+      BLI_assert(!info_name_.empty());
+      const GPUShaderCreateInfo *create_info = GPU_shader_create_info_get(info_name_.c_str());
+      compilation_handle_ = GPU_shader_batch_create_from_infos({&create_info, 1});
+    }
+  }
+
+  bool is_ready()
+  {
+    return shader_ || failed_;
   }
 
   GPUShader *get()
   {
-    if (shader_ || failed_) {
+    if (is_ready()) {
       return shader_;
     }
 
     std::scoped_lock lock(mutex_);
 
     if (!shader_ && !failed_) {
-      BLI_assert(!info_name_.empty());
-      shader_ = GPU_shader_create_from_info_name(info_name_.c_str());
-      failed_ = shader_ != nullptr;
+      if (compilation_handle_) {
+        shader_ = GPU_shader_batch_finalize(compilation_handle_)[0];
+      }
+      else {
+        BLI_assert(!info_name_.empty());
+        shader_ = GPU_shader_create_from_info_name(info_name_.c_str());
+      }
+      failed_ = shader_ == nullptr;
     }
 
     return shader_;

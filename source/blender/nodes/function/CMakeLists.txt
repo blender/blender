@@ -5,6 +5,7 @@
 set(INC
   .
   ..
+  include
   ../intern
   ../../editors/include
   ../../makesrna
@@ -29,6 +30,7 @@ set(SRC
   nodes/node_fn_euler_to_rotation.cc
   nodes/node_fn_find_in_string.cc
   nodes/node_fn_float_to_int.cc
+  nodes/node_fn_format_string.cc
   nodes/node_fn_hash_value.cc
   nodes/node_fn_input_bool.cc
   nodes/node_fn_input_color.cc
@@ -65,10 +67,12 @@ set(SRC
 
   node_function_util.cc
 
+  include/NOD_fn_format_string.hh
   node_function_util.hh
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
@@ -78,6 +82,7 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
+  PRIVATE bf::extern::fmtlib
 )
 
 add_node_discovery(

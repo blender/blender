@@ -42,7 +42,7 @@ static wmOperatorStatus viewcenter_pick_invoke(bContext *C, wmOperator *op, cons
       /* pass */
     }
     else {
-      /* fallback to simple pan */
+      /* fall back to simple pan */
       negate_v3_v3(ofs_new, rv3d->ofs);
       ED_view3d_win_to_3d_int(v3d, region, ofs_new, event->mval, ofs_new);
     }

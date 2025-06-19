@@ -155,7 +155,10 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   /** Visual feature: Define a number of item rows the view will show by default. If there
    * are fewer items, empty dummy items will be added. These contribute to the view bounds, so the
    * drop target of the view includes them, but they are not interactive (e.g. no mouse-hover
-   * highlight). */
+   * highlight).
+   *
+   * \note Value should be greater than #MIN_ROWS. This is to prevent resizing below certain
+   * height. */
   void set_default_rows(int default_rows);
 
  protected:

@@ -1272,13 +1272,6 @@ void **GPU_texture_py_reference_get(GPUTexture *texture);
 void GPU_texture_py_reference_set(GPUTexture *texture, void **py_ref);
 #endif
 
-/**
- * Return the backend handle of the texture.
- * \note This is a legacy feature only working on OpenGL backend. It will be removed once we remove
- * the python BGL module.
- */
-int GPU_texture_opengl_bindcode(const GPUTexture *texture);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

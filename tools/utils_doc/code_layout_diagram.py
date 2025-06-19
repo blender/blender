@@ -142,7 +142,7 @@ SECTIONS = (
         ],
     ),
     SectionData(
-        heading="Tools",
+        heading="Editor Tools",
         source_code_call_sibling_modules=True,
         source_code_base="source/blender/editors/",
         source_code_dirs=[
@@ -197,6 +197,7 @@ SECTIONS = (
              "Internal misc libraries: "
              "math functions, lists, random, noise, memory pools, file operations (platform agnostic)."),
             ("blenloader", "Blend file loading and writing as well as in memory undo file system."),
+            ("blenloader_core", "Core blend file access (shared by Blender & blend-thumbnail extraction)."),
             ("blentranslation", "Internal support for non-English translations (gettext)."),
             ("bmesh", "Mesh-data manipulation. Used by mesh edit-mode."),
             ("compositor", "Image compositor which implements the compositor and various nodes."),
@@ -234,6 +235,7 @@ SECTIONS = (
             ("atomic", "Low level operations lockless concurrent programming."),
             ("audaspace", "Wrapper (see extern)."),
             ("clog", "C-logging library."),
+            ("uriconvert", "Support encoding strings (typically paths) as URI's."),
             ("cycles", "Cycles rendering engine."),
             ("dualcon", "Re-meshing "),
             ("eigen", "Wrapper (see extern/Eigen3/)"),
@@ -246,7 +248,6 @@ SECTIONS = (
             ("mantaflow", "Wrapper (see extern)."),
             ("memutil", "Memory allocation utilities."),
             ("mikktspace", "Calculation for mesh tangents from normals & UV's."),
-            ("opencolorio", "Wrapper (see libraries)."),
             ("opensubdiv", "Wrapper (see libraries)."),
             ("openvdb", "OpenVDB wrapper for volumetric data support."),
             ("quadriflow", "Wrapper for quadriflow re-meshing."),
@@ -288,9 +289,11 @@ SECTIONS = (
             ("rangetree", "Efficient range storage."),
             ("renderdoc", "Graphical GPU debugger."),
             ("tinygltf", "GLTF 3D file format support."),
+            ("ufbx", "FBX 3D file format loading support, used by the C++ FBX importer."),
             ("vulkan_memory_allocator", "Memory allocation utilities for Vulkan GPU back-end."),
             ("wcwidth", "Unicode character width."),
-            ("xdnd", "Drag & drop support for X11."),
+            ("xdnd", "Drag & drop support for the X11 graphical environment."),
+            ("wintab", "Tablet input device support for MS-Windows."),
             ("xxhash", "Fast non-cryptographic hashing functions."),
         ],
     ),
@@ -311,7 +314,7 @@ SECTIONS = (
              "Bi-directional text support (right-to-left) for Arabic & Hebrew script. "
              "Intended for complex text shaping (not yet supported)."),
             ("gmp", "Arbitrary precision arithmetic library."),
-            ("harfbuzz", "Text shaping engine for for complex script."),
+            ("harfbuzz", "Text shaping engine for complex script."),
             ("haru", "PDF generation library."),
             ("hiprt", "Ray-tracing for AMD GPU's. Used by Cycles."),
             ("imath", "Library used by OpenEXR image-format."),
@@ -319,10 +322,10 @@ SECTIONS = (
             ("jpeg", "JPEG image-format support."),
             ("level-zero", "OneAPI loader & validation. Used by Cycles oneAPI."),
             ("llvm", "Low level virtual machine. Used by OSL."),
+            ("manifold", "A library for operating on manifold meshes. Used as a boolean solver."),
             ("materialx", "A standard for representing materials. Used by USD, Hydra & Blender's shader nodes."),
             ("mesa", "Used for it's software OpenGL implementation."),
             ("openal", "Cross platform audio output."),
-            ("opencollada", "Support for the COLLADA 3D interchange file format."),
             ("opencolorio", "A solution for highly precise, performant, and consistent color management."),
             ("openexr", "EXR image-format support."),
             ("openimagedenoise", "Denoising filters for images rendered with ray tracing. Used by Cycles."),
@@ -372,6 +375,7 @@ SECTIONS = (
         source_code_call_sibling_modules=None,
         source_code_base="",
         source_code_dirs=[
+            ("assets", "Bundled assets such as brushes & nodes, accessible from the default installation."),
             ("build_files", "Files used by CMake, the build-bot & utilities for packaging blender builds."),
             ("doc", "Scripts for building Blender's Python's API docs, man-page and DOXYGEN documentation."),
             ("locale", "Translations for Blender's interface."),
@@ -1003,6 +1007,7 @@ def validate_sections():
         ".git",
         ".github",
         ".gitea",
+        ".well-known",
     }
 
     for source_code_base, sections in sections_shared.items():
@@ -1089,7 +1094,7 @@ def main():
     VFONT_FROM_STYLE["mono"] = bpy.data.fonts.load(FONT_FILE_MONO)
 
     scene = bpy.context.scene
-    scene.render.engine = 'BLENDER_EEVEE_NEXT'
+    scene.render.engine = 'BLENDER_EEVEE'
 
     # Without this, the whites are gray.
     scene.view_settings.view_transform = "Standard"

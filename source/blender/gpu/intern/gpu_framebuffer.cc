@@ -730,6 +730,7 @@ GPUOffScreen *GPU_offscreen_create(int width,
                                    bool with_depth_buffer,
                                    eGPUTextureFormat format,
                                    eGPUTextureUsage usage,
+                                   bool clear,
                                    char err_out[256])
 {
   GPUOffScreen *ofs = MEM_callocN<GPUOffScreen>(__func__);
@@ -748,7 +749,7 @@ GPUOffScreen *GPU_offscreen_create(int width,
     /* Format view flag is needed by Workbench Volumes to read the stencil view. */
     eGPUTextureUsage depth_usage = usage | GPU_TEXTURE_USAGE_FORMAT_VIEW;
     ofs->depth = GPU_texture_create_2d(
-        "ofs_depth", width, height, 1, GPU_DEPTH24_STENCIL8, depth_usage, nullptr);
+        "ofs_depth", width, height, 1, GPU_DEPTH32F_STENCIL8, depth_usage, nullptr);
   }
 
   if ((with_depth_buffer && !ofs->depth) || !ofs->color) {
@@ -770,6 +771,19 @@ GPUOffScreen *GPU_offscreen_create(int width,
     GPU_offscreen_free(ofs);
     return nullptr;
   }
+
+  if (clear) {
+    float const clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float clear_depth = 0.0f;
+    GPU_framebuffer_bind(fb);
+    if (with_depth_buffer) {
+      GPU_framebuffer_clear_color_depth(fb, clear_color, clear_depth);
+    }
+    else {
+      GPU_framebuffer_clear_color(fb, clear_color);
+    }
+  }
+
   GPU_framebuffer_restore();
   return ofs;
 }

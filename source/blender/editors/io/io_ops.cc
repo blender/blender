@@ -2,17 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup collada
- */
-
 #include "io_ops.hh" /* own include */
 
 #include "WM_api.hh"
-
-#ifdef WITH_COLLADA
-#  include "io_collada.hh"
-#endif
 
 #ifdef WITH_ALEMBIC
 #  include "io_alembic.hh"
@@ -85,12 +77,6 @@ void ED_operatortypes_io()
 #ifdef WITH_IO_FBX
   WM_operatortype_append(WM_OT_fbx_import);
   /* ed::io::fbx_file_handler_add(); TODO: add once not experimental */
-#endif
-
-#ifdef WITH_COLLADA
-  WM_operatortype_append(WM_OT_collada_export);
-  WM_operatortype_append(WM_OT_collada_import);
-  ed::io::collada_file_handler_add();
 #endif
 
   WM_operatortype_append(WM_OT_drop_import_file);

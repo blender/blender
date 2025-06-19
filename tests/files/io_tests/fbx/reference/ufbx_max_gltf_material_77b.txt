@@ -43,13 +43,13 @@
 ==== Materials: 1
 - Mat '01 - Default'
   - base color (0.010, 0.020, 0.030) tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:False
-  - specular ior 0.420 tex:'checkerboard_weight.png' (textures/checkerboard_weight.png) a:False
+  - specular ior 0.420 tex:'checkerboard_weight.png' (textures/checkerboard_weight.png) a:False Non-Color
   - specular tint (0.220, 0.230, 0.240) tex:'checkerboard_specular.png' (textures/checkerboard_specular.png) a:False
-  - roughness 0.060 tex:'checkerboard_roughness.png' (textures/checkerboard_roughness.png) a:False
-  - metallic 0.050 tex:'checkerboard_metallic.png' (textures/checkerboard_metallic.png) a:False
+  - roughness 0.060 tex:'checkerboard_roughness.png' (textures/checkerboard_roughness.png) a:False Non-Color
+  - metallic 0.050 tex:'checkerboard_metallic.png' (textures/checkerboard_metallic.png) a:False Non-Color
   - ior 1.330
-  - transmission 0.260 tex:'checkerboard_transparency.png' (textures/checkerboard_transparency.png) a:False
-  - alpha 1.000 tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:True
+  - transmission 0.260 tex:'checkerboard_transparency.png' (textures/checkerboard_transparency.png) a:False Non-Color
+  - alpha 1.000 tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:True Non-Color
   - normalmap 1.000 tex:'checkerboard_normal.png' (textures/checkerboard_normal.png) a:False data
   - viewport diffuse (0.010, 0.020, 0.030, 1.000)
   - viewport specular (1.000, 1.000, 1.000), intensity 0.420

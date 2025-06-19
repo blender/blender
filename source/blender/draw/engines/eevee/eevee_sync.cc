@@ -178,7 +178,7 @@ bool SyncModule::sync_sculpt(Object *ob, ObjectHandle &ob_handle, const ObjectRe
     return false;
   }
 
-  ResourceHandle res_handle = inst_.manager->unique_handle(ob_ref);
+  ResourceHandle res_handle = inst_.manager->unique_handle_for_sculpt(ob_ref);
 
   bool has_motion = false;
   MaterialArray &material_array = inst_.materials.material_array_get(ob, has_motion);
@@ -234,13 +234,6 @@ bool SyncModule::sync_sculpt(Object *ob, ObjectHandle &ob_handle, const ObjectRe
   if (has_volume) {
     inst_.volume.object_sync(ob_handle);
   }
-
-  /* Use a valid bounding box. The pbvh::Tree module already does its own culling, but a valid */
-  /* bounding box is still needed for directional shadow tile-map bounds computation. */
-  const Bounds<float3> bounds = bke::pbvh::bounds_get(*bke::object::pbvh_get(*ob_ref.object));
-  const float3 center = math::midpoint(bounds.min, bounds.max);
-  const float3 half_extent = bounds.max - center + inflate_bounds;
-  inst_.manager->update_handle_bounds(res_handle, center, half_extent);
 
   inst_.manager->extract_object_attributes(res_handle, ob_ref, material_array.gpu_materials);
 
@@ -472,24 +465,26 @@ void SyncModule::sync_curves(Object *ob,
 
 /** \} */
 
-void foreach_hair_particle_handle(Object *ob, ObjectHandle ob_handle, HairHandleCallback callback)
+void foreach_hair_particle_handle(ObjectRef &ob_ref,
+                                  ObjectHandle ob_handle,
+                                  HairHandleCallback callback)
 {
   int sub_key = 1;
 
-  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+  LISTBASE_FOREACH (ModifierData *, md, &ob_ref.object->modifiers) {
     if (md->type == eModifierType_ParticleSystem) {
       ParticleSystem *particle_sys = reinterpret_cast<ParticleSystemModifierData *>(md)->psys;
       ParticleSettings *part_settings = particle_sys->part;
       const int draw_as = (part_settings->draw_as == PART_DRAW_REND) ? part_settings->ren_as :
                                                                        part_settings->draw_as;
       if (draw_as != PART_DRAW_PATH ||
-          !DRW_object_is_visible_psys_in_active_context(ob, particle_sys))
+          !DRW_object_is_visible_psys_in_active_context(ob_ref.object, particle_sys))
       {
         continue;
       }
 
       ObjectHandle particle_sys_handle = ob_handle;
-      particle_sys_handle.object_key = ObjectKey(ob, sub_key++);
+      particle_sys_handle.object_key = ObjectKey(ob_ref, sub_key++);
       particle_sys_handle.recalc = particle_sys->recalc;
 
       callback(particle_sys_handle, *md, *particle_sys);

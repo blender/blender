@@ -73,7 +73,7 @@ FCurvePathCache *BKE_fcurve_pathcache_create(blender::Span<FCurve *> fcurves)
 
   /* Allow for the case no F-Curves share an RNA-path, otherwise this is over-allocated.
    * Although in practice it's likely to only be 3-4x as large as is needed
-   * (with transform channels for e.g.). */
+   * (e.g. with transform channels). */
   FCurvePathCache_Span *span_table = MEM_malloc_arrayN<FCurvePathCache_Span>(fcurve_array_len,
                                                                              __func__);
 

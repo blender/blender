@@ -304,10 +304,10 @@ static wmOperatorStatus wm_macro_end(wmOperator *op, wmOperatorStatus retval)
 {
   MacroData *md = static_cast<MacroData *>(op->customdata);
 
-  if (retval & OPERATOR_CANCELLED) {
+  if (retval & (OPERATOR_CANCELLED | OPERATOR_INTERFACE)) {
     if (md && (md->retval & OPERATOR_FINISHED)) {
       retval |= OPERATOR_FINISHED;
-      retval &= ~OPERATOR_CANCELLED;
+      retval &= ~(OPERATOR_CANCELLED | OPERATOR_INTERFACE);
     }
   }
 

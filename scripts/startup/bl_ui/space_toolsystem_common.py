@@ -1165,6 +1165,8 @@ def description_from_id(context, space_type, idname, *, use_operator=True):
             return tip_(_bpy.ops.get_rna_type(operator).description)
     return ""
 
+# NOTE: used by tool-tips in C++ (not called from Python).
+
 
 def item_from_id(context, space_type, idname):
     # Used directly for tooltips.
@@ -1237,33 +1239,6 @@ def _keymap_from_item(context, item):
         keyconf = wm.keyconfigs.user
         return keyconf.keymaps.get(item.keymap[0])
     return None
-
-
-class PlayheadSnappingPanel:
-    bl_region_type = 'HEADER'
-    bl_label = "Playhead"
-
-    @classmethod
-    def poll(cls, context):
-        del context
-        return True
-
-    def draw(self, context):
-        tool_settings = context.tool_settings
-        layout = self.layout
-        col = layout.column()
-
-        col.prop(tool_settings, "use_snap_playhead")
-        col.prop(tool_settings, "playhead_snap_distance")
-        col.separator()
-        col.label(text="Snap Target")
-        col.prop(tool_settings, "snap_playhead_element", expand=True)
-        col.separator()
-
-        if 'FRAME' in tool_settings.snap_playhead_element:
-            col.prop(tool_settings, "snap_playhead_frame_step")
-        if 'SECOND' in tool_settings.snap_playhead_element:
-            col.prop(tool_settings, "snap_playhead_second_step")
 
 
 classes = (

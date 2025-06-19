@@ -632,7 +632,7 @@ typedef enum eFileSel_File_Types {
   /** represents folders for filtering */
   FILE_TYPE_FOLDER = (1 << 11),
   FILE_TYPE_BTX = (1 << 12),
-  FILE_TYPE_COLLADA = (1 << 13),
+  FILE_TYPE_UNUSED_13 = (1 << 13), /* Was FILE_TYPE_COLLADA */
   /** from filter_glob operator property */
   FILE_TYPE_OPERATOR = (1 << 14),
   FILE_TYPE_BUNDLE = (1 << 15),
@@ -851,6 +851,13 @@ typedef enum eSpaceNode_Flag {
   SNODE_FLAG_UNUSED_12 = (1 << 13),
 } eSpaceNode_Flag;
 
+/** #SpaceNode.gizmo_flag */
+enum {
+  /** All gizmos. */
+  SNODE_GIZMO_HIDE = (1 << 0),
+  SNODE_GIZMO_HIDE_ACTIVE_NODE = (1 << 1),
+};
+
 /** #SpaceNode.texfrom */
 typedef enum eSpaceNode_TexFrom {
   /* SNODE_TEX_OBJECT   = 0, */
@@ -971,6 +978,7 @@ typedef enum eSpaceSpreadsheet_Flag {
    * versioning first.
    */
   SPREADSHEET_FLAG_CONTEXT_PATH_COLLAPSED_LEGACY = (1 << 1),
+  SPREADSHEET_FLAG_SHOW_INTERNAL_ATTRIBUTES = (1 << 2),
 } eSpaceSpreadsheet_Flag;
 
 typedef enum eSpaceSpreadsheet_FilterFlag {

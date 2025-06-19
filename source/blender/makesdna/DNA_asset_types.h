@@ -197,23 +197,6 @@ typedef struct AssetWeakReference {
 #endif
 } AssetWeakReference;
 
-/**
- * To be replaced by #AssetRepresentation!
- *
- * Not part of the core design, we should try to get rid of it. Only needed to wrap FileDirEntry
- * into a type with PropertyGroup as base, so we can have an RNA collection of #AssetHandle's to
- * pass to the UI.
- *
- * \warning Never store this! When using #blender::ed::asset::list::iterate(), only access it
- * within the iterator function. The contained file data can be freed since the file cache has a
- * maximum number of items.
- */
-#
-#
-typedef struct AssetHandle {
-  const struct FileDirEntry *file_data;
-} AssetHandle;
-
 struct AssetCatalogPathLink {
   struct AssetCatalogPathLink *next, *prev;
   char *path;

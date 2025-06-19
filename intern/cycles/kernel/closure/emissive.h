@@ -46,11 +46,11 @@ ccl_device float emissive_pdf(const float3 Ng, const float3 wi)
   return (cosNI > 0.0f) ? 1.0f : 0.0f;
 }
 
-ccl_device void emissive_sample(const float3 Ng,
-                                const float randu,
-                                const float randv,
-                                ccl_private float3 *wi,
-                                ccl_private float *pdf)
+ccl_device void emissive_sample(const float3 /*Ng*/,
+                                const float /*randu*/,
+                                const float /*randv*/,
+                                ccl_private float3 * /*wi*/,
+                                ccl_private float * /*pdf*/)
 {
   /* todo: not implemented and used yet */
 }

@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include "BLI_vector_list.hh"
+
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 
@@ -23,42 +25,9 @@ struct ViewerPath;
 /* ---------------------------------------------------- */
 /* Dupli-Geometry */
 
-/**
- * \return a #ListBase of #DupliObject.
- */
-ListBase *object_duplilist(Depsgraph *depsgraph,
-                           Scene *sce,
-                           Object *ob,
-                           blender::Set<const Object *> *include_objects = nullptr);
-/**
- * \return a #ListBase of #DupliObject for the preview geometry referenced by the #ViewerPath.
- */
-ListBase *object_duplilist_preview(Depsgraph *depsgraph,
-                                   Scene *scene,
-                                   Object *ob,
-                                   const ViewerPath *viewer_path);
-void free_object_duplilist(ListBase *lb);
-
-/**
- * Get the legacy instances of this object. That includes instances coming from these sources:
- * - Particles
- * - Dupli Verts
- * - Dupli Faces
- * - "Objects as Font"
- *
- * This does not include collection instances which are not considered legacy and should be treated
- * properly at a higher level.
- *
- * Also see #get_dupli_generator for the different existing dupli generators.
- */
-blender::bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph,
-                                                          Scene &scene,
-                                                          Object &ob);
-
 constexpr int MAX_DUPLI_RECUR = 8;
 
 struct DupliObject {
-  DupliObject *next, *prev;
   /* Object whose geometry is instanced. */
   Object *ob;
   /* Data owned by the object above that is instanced. This might not be the same as `ob->data`. */
@@ -96,6 +65,41 @@ struct DupliObject {
   /* Random ID for shading */
   unsigned int random_id;
 };
+
+using DupliList = blender::VectorList<DupliObject>;
+
+/**
+ * Fill a Vector of #DupliObject.
+ */
+void object_duplilist(Depsgraph *depsgraph,
+                      Scene *sce,
+                      Object *ob,
+                      blender::Set<const Object *> *include_objects,
+                      DupliList &r_duplilist);
+/**
+ * Fill a Vector of #DupliObject for the preview geometry referenced by the #ViewerPath.
+ */
+void object_duplilist_preview(Depsgraph *depsgraph,
+                              Scene *scene,
+                              Object *ob,
+                              const ViewerPath *viewer_path,
+                              DupliList &r_duplilist);
+
+/**
+ * Get the legacy instances of this object. That includes instances coming from these sources:
+ * - Particles
+ * - Dupli Verts
+ * - Dupli Faces
+ * - "Objects as Font"
+ *
+ * This does not include collection instances which are not considered legacy and should be treated
+ * properly at a higher level.
+ *
+ * Also see #get_dupli_generator for the different existing dupli generators.
+ */
+blender::bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph,
+                                                          Scene &scene,
+                                                          Object &ob);
 
 /**
  * Look up the RGBA value of a uniform shader attribute.

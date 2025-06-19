@@ -31,7 +31,12 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supported_type(GeometryComponent::Type::GreasePencil);
   b.add_output<decl::Geometry>("Grease Pencil").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  auto &group_id = b.add_input<decl::Int>("Group ID").hide_value().field_on_all();
+  auto &group_id = b.add_input<decl::Int>("Group ID")
+                       .hide_value()
+                       .field_on_all()
+                       .make_available([](bNode &node) {
+                         node_storage(node).mode = int8_t(MergeLayerMode::ByID);
+                       });
 
   const bNode *node = b.node_or_null();
   if (node) {

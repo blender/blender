@@ -2530,8 +2530,9 @@ static Value parallel_reduce(const int range,
       reduction);
 }
 
-void BKE_tracking_distortion_bounds_deltas(MovieTracking *tracking,
+void BKE_tracking_distortion_bounds_deltas(MovieDistortion *distortion,
                                            const int size[2],
+                                           const int calibration_size[2],
                                            const bool undistort,
                                            int *r_right,
                                            int *r_left,
@@ -2541,16 +2542,25 @@ void BKE_tracking_distortion_bounds_deltas(MovieTracking *tracking,
   using namespace blender;
 
   auto distortion_function = [&](const float2 &position) {
-    float2 distorted_position;
+    /* The tracking distortion functions expect the coordinates to be in the space of the image
+     * where the tracking camera was calibrated. So we first remap the coordinates into that space,
+     * apply the distortion, then remap back to the original coordinates space. This is done by
+     * dividing the by the size then multiplying by the calibration size, making sure to add 0.5 to
+     * evaluate at the center of pixels. */
+    float2 coordinates = ((position + 0.5f) / float2(size)) * float2(calibration_size);
     /* Notice that the condition is inverted, that's because when we are undistorting, we compute
      * the boundaries by distorting and vice versa. */
+    float2 distorted_coordinates;
     if (undistort) {
-      BKE_tracking_distort_v2(tracking, size[0], size[1], position, distorted_position);
+      BKE_tracking_distortion_distort_v2(distortion, coordinates, distorted_coordinates);
     }
     else {
-      BKE_tracking_undistort_v2(tracking, size[0], size[1], position, distorted_position);
+      BKE_tracking_distortion_undistort_v2(distortion, coordinates, distorted_coordinates);
     }
-    return distorted_position;
+
+    /* We remap the coordinates back into the original size by dividing by the calibration size and
+     * multiplying by the size. */
+    return (distorted_coordinates / float2(calibration_size)) * float2(size);
   };
 
   /* Maximum distorted x location along the right edge of the image. */

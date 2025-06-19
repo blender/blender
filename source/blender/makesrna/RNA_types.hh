@@ -431,6 +431,14 @@ enum PropertyFlag {
 
   /**
    * Paths that are evaluated with templating.
+   *
+   * Note that this doesn't cause the property to support templating, but rather
+   * *indicates* to other parts of Blender whether it supports templating.
+   * Support for templating needs to be manually implemented.
+   *
+   * When this is set, the property's `path_template_type` field should also be
+   * set to something other than `PROP_VARIABLES_NONE`, to indicate which
+   * template variables it supports.
    */
   PROP_PATH_SUPPORTS_TEMPLATES = (1 << 14),
 
@@ -438,6 +446,17 @@ enum PropertyFlag {
   PROP_SKIP_PRESET = (1 << 11),
 };
 ENUM_OPERATORS(PropertyFlag, PROP_TEXTEDIT_UPDATE)
+
+/**
+ * For properties that support path templates, this indicates which variables
+ * should be available to them and how those variables should be built.
+ *
+ * \see BKE_build_template_variables_for_prop()
+ */
+enum PropertyPathTemplateType {
+  PROP_VARIABLES_NONE = 0,
+  PROP_VARIABLES_RENDER_OUTPUT,
+};
 
 /**
  * Flags related to comparing and overriding RNA properties.
@@ -689,7 +708,7 @@ ENUM_OPERATORS(eStringPropertySearchFlag, PROP_STRING_SEARCH_SUGGESTION)
  * \param prop: RNA property. This must have its #StringPropertyRNA.search callback set,
  * to check this use `RNA_property_string_search_flag(prop) & PROP_STRING_SEARCH_SUPPORTED`.
  * \param edit_text: Optionally use the string being edited by the user as a basis
- * for the search results (auto-complete Python attributes for e.g.).
+ * for the search results (auto-complete Python attributes for example).
  * \param visit_fn: This function is called with every search candidate and is typically
  * responsible for storing the search results.
  */

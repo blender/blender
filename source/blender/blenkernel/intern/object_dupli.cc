@@ -28,7 +28,7 @@
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_vector.hh"
+#include "BLI_vector_list.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_curves_types.h"
@@ -75,6 +75,7 @@ using blender::float4x4;
 using blender::Set;
 using blender::Span;
 using blender::Vector;
+using blender::VectorList;
 using blender::bke::GeometrySet;
 using blender::bke::InstanceReference;
 using blender::bke::Instances;
@@ -137,7 +138,7 @@ struct DupliContext {
   const struct DupliGenerator *gen;
 
   /** Result containers. */
-  ListBase *duplilist; /* Legacy doubly-linked list. */
+  DupliList *duplilist;
 };
 
 struct DupliGenerator {
@@ -158,7 +159,8 @@ static void init_context(DupliContext *r_ctx,
                          const float space_mat[4][4],
                          blender::Set<const Object *> *include_objects,
                          Vector<Object *> &instance_stack,
-                         Vector<short> &dupli_gen_type_stack)
+                         Vector<short> &dupli_gen_type_stack,
+                         DupliList &duplilist)
 {
   r_ctx->depsgraph = depsgraph;
   r_ctx->scene = scene;
@@ -169,6 +171,7 @@ static void init_context(DupliContext *r_ctx,
   r_ctx->obedit = OBEDIT_FROM_OBACT(ob);
   r_ctx->instance_stack = &instance_stack;
   r_ctx->dupli_gen_type_stack = &dupli_gen_type_stack;
+  r_ctx->duplilist = &duplilist;
   if (space_mat) {
     copy_m4_m4(r_ctx->space_mat, space_mat);
   }
@@ -182,7 +185,6 @@ static void init_context(DupliContext *r_ctx,
     r_ctx->dupli_gen_type_stack->append(r_ctx->gen->type);
   }
 
-  r_ctx->duplilist = nullptr;
   r_ctx->preview_instance_index = -1;
   r_ctx->preview_base_geometry = nullptr;
 
@@ -268,8 +270,8 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 
   /* Add a #DupliObject instance to the result container. */
   if (ctx->duplilist) {
-    dob = MEM_callocN<DupliObject>("dupli object");
-    BLI_addtail(ctx->duplilist, dob);
+    ctx->duplilist->append({});
+    dob = &ctx->duplilist->last();
   }
   else {
     return nullptr;
@@ -550,7 +552,9 @@ static void make_duplis_collection(const DupliContext *ctx)
     }
 
     if (ctx->include_objects) {
-      if (!ctx->include_objects->contains(cob)) {
+      Object *original_object = cob->id.orig_id ? reinterpret_cast<Object *>(cob->id.orig_id) :
+                                                  cob;
+      if (!ctx->include_objects->contains(original_object)) {
         continue;
       }
     }
@@ -1802,39 +1806,49 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 /** \name Dupli-Container Implementation
  * \{ */
 
-ListBase *object_duplilist(Depsgraph *depsgraph,
-                           Scene *sce,
-                           Object *ob,
-                           Set<const Object *> *include_objects)
+void object_duplilist(Depsgraph *depsgraph,
+                      Scene *sce,
+                      Object *ob,
+                      Set<const Object *> *include_objects,
+                      DupliList &r_duplilist)
 {
-  ListBase *duplilist = MEM_callocN<ListBase>("duplilist");
   DupliContext ctx;
   Vector<Object *> instance_stack;
   Vector<short> dupli_gen_type_stack({0});
   instance_stack.append(ob);
-  init_context(
-      &ctx, depsgraph, sce, ob, nullptr, include_objects, instance_stack, dupli_gen_type_stack);
+  init_context(&ctx,
+               depsgraph,
+               sce,
+               ob,
+               nullptr,
+               include_objects,
+               instance_stack,
+               dupli_gen_type_stack,
+               r_duplilist);
   if (ctx.gen) {
-    ctx.duplilist = duplilist;
     ctx.gen->make_duplis(&ctx);
   }
-
-  return duplilist;
 }
 
-ListBase *object_duplilist_preview(Depsgraph *depsgraph,
-                                   Scene *sce,
-                                   Object *ob_eval,
-                                   const ViewerPath *viewer_path)
+void object_duplilist_preview(Depsgraph *depsgraph,
+                              Scene *sce,
+                              Object *ob_eval,
+                              const ViewerPath *viewer_path,
+                              DupliList &r_duplilist)
 {
-  ListBase *duplilist = MEM_callocN<ListBase>("duplilist");
   DupliContext ctx;
   Vector<Object *> instance_stack;
   Vector<short> dupli_gen_type_stack({0});
   instance_stack.append(ob_eval);
-  init_context(
-      &ctx, depsgraph, sce, ob_eval, nullptr, nullptr, instance_stack, dupli_gen_type_stack);
-  ctx.duplilist = duplilist;
+  init_context(&ctx,
+               depsgraph,
+               sce,
+               ob_eval,
+               nullptr,
+               nullptr,
+               instance_stack,
+               dupli_gen_type_stack,
+               r_duplilist);
 
   Object *ob_orig = DEG_get_original(ob_eval);
 
@@ -1857,7 +1871,6 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
                                     ob_eval->type == OB_CURVES);
     }
   }
-  return duplilist;
 }
 
 blender::bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph,
@@ -1866,19 +1879,25 @@ blender::bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph,
 {
   using namespace blender;
 
-  ListBase *duplilist = MEM_callocN<ListBase>("duplilist");
   DupliContext ctx;
+  DupliList duplilist;
   Vector<Object *> instance_stack({&ob});
   Vector<short> dupli_gen_type_stack({0});
 
-  init_context(
-      &ctx, &depsgraph, &scene, &ob, nullptr, nullptr, instance_stack, dupli_gen_type_stack);
+  init_context(&ctx,
+               &depsgraph,
+               &scene,
+               &ob,
+               nullptr,
+               nullptr,
+               instance_stack,
+               dupli_gen_type_stack,
+               duplilist);
   if (ctx.gen == &gen_dupli_geometry_set) {
     /* These are not legacy instances. */
     return {};
   }
   if (ctx.gen) {
-    ctx.duplilist = duplilist;
     ctx.gen->make_duplis(&ctx);
   }
   const bool is_particle_duplis = ctx.gen == &gen_dupli_particles;
@@ -1887,12 +1906,12 @@ blender::bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph,
   const int level_to_use = is_particle_duplis ? 1 : 0;
 
   Vector<DupliObject *> top_level_duplis;
-  LISTBASE_FOREACH (DupliObject *, dob, duplilist) {
-    BLI_assert(dob->ob != &ob);
+  for (DupliObject &dob : duplilist) {
+    BLI_assert(dob.ob != &ob);
     /* We only need the top level instances in the end, because when #Instances references an
      * object, it implicitly also references all instances of that object. */
-    if (dob->level == level_to_use) {
-      top_level_duplis.append(dob);
+    if (dob.level == level_to_use) {
+      top_level_duplis.append(&dob);
     }
   }
 
@@ -1931,14 +1950,7 @@ blender::bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph,
   }
   instances_ids.finish();
 
-  free_object_duplilist(duplilist);
   return top_level_instances;
-}
-
-void free_object_duplilist(ListBase *lb)
-{
-  BLI_freelistN(lb);
-  MEM_freeN(lb);
 }
 
 /** \} */

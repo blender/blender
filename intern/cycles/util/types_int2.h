@@ -36,4 +36,9 @@ ccl_device_inline int2 make_int2(const int x, const int y)
 }
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
+ccl_device_inline int2 make_int2(const int i)
+{
+  return {i, i};
+}
+
 CCL_NAMESPACE_END

@@ -174,13 +174,6 @@ struct Global {
   char autoexec_fail[200];
 
   /**
-   * Has there been an opengl deprecation call detected when running on a none OpenGL backend.
-   */
-  bool opengl_deprecation_usage_detected;
-  const char *opengl_deprecation_usage_filename;
-  int opengl_deprecation_usage_lineno;
-
-  /**
    * Triggers a GPU capture if the name matches a DebugScope.
    * Set using `--debug-gpu-scope-capture "debug_scope"`.
    */
@@ -269,7 +262,7 @@ enum {
                        G_DEBUG_DEPSGRAPH_TIME | G_DEBUG_DEPSGRAPH_UID),
   G_DEBUG_SIMDATA = (1 << 15),                     /* sim debug data display */
   G_DEBUG_GPU = (1 << 16),                         /* gpu debug */
-  G_DEBUG_IO = (1 << 17),                          /* IO Debugging (for Collada, ...). */
+  G_DEBUG_IO = (1 << 17),                          /* IO Debugging. */
   G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18),       /* Force GPU workarounds bypassing detection. */
   G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ = (1 << 19), /* Force GPU dynamic rendering local read. */
   G_DEBUG_GPU_COMPILE_SHADERS = (1 << 20),         /* Compile all statically defined shaders. . */

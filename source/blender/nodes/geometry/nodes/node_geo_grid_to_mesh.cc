@@ -16,7 +16,7 @@ namespace blender::nodes::node_geo_grid_to_mesh_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Grid").hide_value();
+  b.add_input<decl::Float>("Grid").hide_value().structure_type(StructureType::Grid);
   b.add_input<decl::Float>("Threshold")
       .default_value(0.1f)
       .description("Values larger than the threshold are inside the generated mesh");

@@ -35,6 +35,7 @@
 #  endif
 
 #  include "BKE_appdir.hh"
+#  include "BKE_blender.hh"
 #  include "BKE_blender_cli_command.hh"
 #  include "BKE_blender_version.h"
 #  include "BKE_blendfile.hh"
@@ -627,6 +628,10 @@ static const char arg_handle_print_version_doc[] =
 static int arg_handle_print_version(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
   print_version_full();
+
+  /* Handles cleanup before exit. */
+  BKE_blender_atexit();
+
   exit(EXIT_SUCCESS);
   BLI_assert_unreachable();
   return 0;
@@ -784,8 +789,8 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--gpu-backend");
 #  ifdef WITH_OPENGL_BACKEND
   BLI_args_print_arg_doc(ba, "--gpu-compilation-subprocesses");
-  BLI_args_print_arg_doc(ba, "--profile-gpu");
 #  endif
+  BLI_args_print_arg_doc(ba, "--profile-gpu");
 
   PRINT("\n");
   PRINT("Misc Options:\n");
@@ -921,6 +926,9 @@ static int arg_handle_print_help(int /*argc*/, const char ** /*argv*/, void *dat
   bArgs *ba = (bArgs *)data;
 
   print_help(ba, false);
+
+  /* Handles cleanup before exit. */
+  BKE_blender_atexit();
 
   exit(EXIT_SUCCESS);
   BLI_assert_unreachable();
@@ -1113,12 +1121,12 @@ static int arg_handle_command_set(int argc, const char **argv, void *data)
 
 static const char arg_handle_disable_depsgraph_on_file_load_doc[] =
     "\n"
-    "\tBackround mode: Do not systematically build and evaluate ViewLayers' dependency graphs\n"
-    "\twhen loading a blendfile in background mode (`-b` or `-c` options).\n"
+    "\tBackground mode: Do not systematically build and evaluate ViewLayers' dependency graphs\n"
+    "\twhen loading a blend-file in background mode ('-b' or '-c' options).\n"
     "\n"
     "\tScripts requiring evaluated data then need to explicitly ensure that\n"
     "\tan evaluated depsgraph is available\n"
-    "\t(e.g. by calling `depsgraph = context.evaluated_depsgraph_get()`).\n"
+    "\t(e.g. by calling 'depsgraph = context.evaluated_depsgraph_get()').\n"
     "\n"
     "\tNOTE: this is a temporary option, in the future depsgraph will never be\n"
     "\tautomatically generated on file load in background mode.";
@@ -1132,10 +1140,10 @@ static int arg_handle_disable_depsgraph_on_file_load(int /*argc*/,
 
 static const char arg_handle_disable_liboverride_auto_resync_doc[] =
     "\n"
-    "\tDo not perform library override automatic resync when loading a new blendfile.\n"
+    "\tDo not perform library override automatic resync when loading a new blend-file.\n"
     "\n"
     "\tNOTE: this is an alternative way to get the same effect as when setting the\n"
-    "\t`No Override Auto Resync` User Preferences Debug option.";
+    "\t'No Override Auto Resync' User Preferences Debug option.";
 static int arg_handle_disable_liboverride_auto_resync(int /*argc*/,
                                                       const char ** /*argv*/,
                                                       void * /*data*/)
@@ -1367,7 +1375,7 @@ static int arg_handle_debug_mode_generic_set(int /*argc*/, const char ** /*argv*
 
 static const char arg_handle_debug_mode_io_doc[] =
     "\n\t"
-    "Enable debug messages for I/O (Collada, ...).";
+    "Enable debug messages for I/O.";
 static int arg_handle_debug_mode_io(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
   G.debug |= G_DEBUG_IO;
@@ -1549,7 +1557,7 @@ static int arg_handle_gpu_backend_set(int argc, const char **argv, void * /*data
       fprintf(stderr, (i + 1 != backends_supported_num) ? "%s, " : "%s", backends_supported[i]);
     }
     fprintf(stderr, "].\n");
-    return 0;
+    return 1;
   }
   /* NOLINTEND: bugprone-assignment-in-if-condition */
 
@@ -1699,9 +1707,9 @@ static int arg_handle_playback_mode(int argc, const char **argv, void * /*data*/
   /* Ignore the animation player if `-b` was given first. */
   if (G.background == 0) {
     /* Skip this argument (`-a`). */
-    WM_main_playanim(argc - 1, argv + 1);
+    const int exit_code = WM_main_playanim(argc - 1, argv + 1);
 
-    exit(EXIT_SUCCESS);
+    exit(exit_code);
   }
 
   return -2;
@@ -1958,7 +1966,9 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
 {
   bContext *C = static_cast<bContext *>(data);
   if (argc >= 2) {
-    if (STREQ(argv[1], "help")) {
+    const char *engine_name = argv[1];
+
+    if (STREQ(engine_name, "help")) {
       printf("Blender Engine Listing:\n");
       LISTBASE_FOREACH (RenderEngineType *, type, &R_engines) {
         printf("\t%s\n", type->idname);
@@ -1968,12 +1978,17 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
     else {
       Scene *scene = CTX_data_scene(C);
       if (scene) {
-        if (BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
-          STRNCPY_UTF8(scene->r.engine, argv[1]);
+        /* Backwards compatibility. */
+        if (STREQ(engine_name, "BLENDER_EEVEE_NEXT")) {
+          engine_name = "BLENDER_EEVEE";
+        }
+
+        if (BLI_findstring(&R_engines, engine_name, offsetof(RenderEngineType, idname))) {
+          STRNCPY_UTF8(scene->r.engine, engine_name);
           DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
         }
         else {
-          fprintf(stderr, "\nError: engine not found '%s'\n", argv[1]);
+          fprintf(stderr, "\nError: engine not found '%s'\n", engine_name);
           exit(1);
         }
       }
@@ -2512,7 +2527,6 @@ static int arg_handle_addons_set(int argc, const char **argv, void *data)
   return 0;
 }
 
-#  ifdef WITH_OPENGL_BACKEND
 static const char arg_handle_profile_gpu_set_doc[] =
     "\n"
     "\tEnable CPU & GPU performance profiling for GPU debug groups\n"
@@ -2522,7 +2536,6 @@ static int arg_handle_profile_gpu_set(int /*argc*/, const char ** /*argv*/, void
   G.profile_gpu = true;
   return 0;
 }
-#  endif
 
 /**
  * Implementation for #arg_handle_load_last_file, also used by `--open-last`.
@@ -2591,7 +2604,7 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
      *
      * WARNING: The path referenced may be incorrect, no attempt is made to validate the path
      * here or check that writing to it will work. If the users enters the path of a directory
-     * that doesn't exist (for e.g.) saving will fail.
+     * that doesn't exist (for example) saving will fail.
      * Attempting to create the file at this point is possible but likely to cause more
      * trouble than it's worth (what with network drives), removable devices ... etc. */
 
@@ -2694,8 +2707,8 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                "--gpu-compilation-subprocesses",
                CB(arg_handle_gpu_compilation_subprocesses_set),
                nullptr);
-  BLI_args_add(ba, nullptr, "--profile-gpu", CB(arg_handle_profile_gpu_set), nullptr);
 #  endif
+  BLI_args_add(ba, nullptr, "--profile-gpu", CB(arg_handle_profile_gpu_set), nullptr);
 
   /* Pass: Background Mode & Settings
    *

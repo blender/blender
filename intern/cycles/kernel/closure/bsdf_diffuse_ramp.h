@@ -46,10 +46,13 @@ ccl_device int bsdf_diffuse_ramp_setup(DiffuseRampBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device void bsdf_diffuse_ramp_blur(ccl_private ShaderClosure *sc, const float roughness) {}
+ccl_device void bsdf_diffuse_ramp_blur(ccl_private ShaderClosure * /*sc*/,
+                                       const float /*roughness*/)
+{
+}
 
 ccl_device Spectrum bsdf_diffuse_ramp_eval(const ccl_private ShaderClosure *sc,
-                                           const float3 wi,
+                                           const float3 /*wi*/,
                                            const float3 wo,
                                            ccl_private float *pdf)
 {
@@ -67,7 +70,7 @@ ccl_device Spectrum bsdf_diffuse_ramp_eval(const ccl_private ShaderClosure *sc,
 
 ccl_device int bsdf_diffuse_ramp_sample(const ccl_private ShaderClosure *sc,
                                         const float3 Ng,
-                                        const float3 wi,
+                                        const float3 /*wi*/,
                                         const float2 rand,
                                         ccl_private Spectrum *eval,
                                         ccl_private float3 *wo,

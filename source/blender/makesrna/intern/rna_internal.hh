@@ -66,7 +66,7 @@ struct PropertyDefRNA {
   int dnapointerlevel;
   /**
    * Offset in bytes within `dnastructname`.
-   * -1 when unusable (follows pointer for e.g.). */
+   * -1 when unusable (follows pointer for example). */
   int dnaoffset;
   int dnasize;
 

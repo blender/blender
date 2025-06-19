@@ -640,6 +640,7 @@ struct GPUOffScreen;
  * Create a #GPUOffScreen with attachment size of \a width by \a height pixels.
  * If \a with_depth_buffer is true, a depth buffer attachment will also be created.
  * \a format is the format of the color buffer.
+ * If \a clear is true, the color and depth buffer attachments will be cleared.
  * If \a err_out is not `nullptr` it will be use to write any configuration error message..
  * \note This function binds the framebuffer to the active context.
  * \note `GPU_TEXTURE_USAGE_ATTACHMENT` is added to the usage parameter by default.
@@ -649,6 +650,7 @@ GPUOffScreen *GPU_offscreen_create(int width,
                                    bool with_depth_buffer,
                                    eGPUTextureFormat format,
                                    eGPUTextureUsage usage,
+                                   bool clear,
                                    char err_out[256]);
 
 /**

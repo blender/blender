@@ -187,7 +187,7 @@ static void topbar_header_region_message_subscribe(const wmRegionMessageSubscrib
 static void recent_files_menu_draw(const bContext * /*C*/, Menu *menu)
 {
   uiLayout *layout = menu->layout;
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
   if (uiTemplateRecentFiles(layout, U.recent_files) != 0) {
     layout->separator();
     layout->op("WM_OT_clear_recent_files", IFACE_("Clear Recent Files List..."), ICON_TRASH);
@@ -245,7 +245,7 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
     }
     const bool is_active = (us == wm->undo_stack->step_active);
     uiLayout *row = &column->row(false);
-    uiLayoutSetEnabled(row, !is_active);
+    row->enabled_set(!is_active);
     PointerRNA op_ptr = row->op("ED_OT_undo_history",
                                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, us->name),
                                 is_active ? ICON_LAYER_ACTIVE : ICON_NONE);

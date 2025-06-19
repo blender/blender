@@ -33,7 +33,7 @@ void uiTemplateColorPicker(uiLayout *layout,
                            bool cubic)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
   ColorPicker *cpicker = ui_block_colorpicker_create(block);
 
   if (!prop) {
@@ -250,7 +250,7 @@ void uiTemplatePalette(uiLayout *layout,
     return;
   }
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   Palette *palette = static_cast<Palette *>(cptr.data);
 
@@ -352,7 +352,7 @@ void uiTemplateCryptoPicker(uiLayout *layout,
     return;
   }
 
-  uiBlock *block = uiLayoutGetBlock(layout);
+  uiBlock *block = layout->block();
 
   uiBut *but = uiDefIconButO(block,
                              UI_BTYPE_BUT,

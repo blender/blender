@@ -153,7 +153,7 @@ static int compute_number_of_integration_steps_heuristic(const float distortion,
  * amount, then the amount of distortion between each two consecutive channels is computed, this
  * amount is then used to heuristically infer the number of needed integration steps, see the
  * integrate_distortion function for more information. */
-static int3 compute_number_of_integration_steps(const float3 &chromatic_distortion,
+static int4 compute_number_of_integration_steps(const float3 &chromatic_distortion,
                                                 const int2 &size,
                                                 const float2 &uv,
                                                 const float distance_squared,
@@ -176,9 +176,10 @@ static int3 compute_number_of_integration_steps(const float3 &chromatic_distorti
   float distortion_blue = math::distance(distorted_uv_green, distorted_uv_blue);
   int steps_blue = compute_number_of_integration_steps_heuristic(distortion_blue, use_jitter);
 
-  /* The number of integration steps used to compute the green channel is the sum of both the red
-   * and the blue channel steps because it is computed once with each of them. */
-  return int3(steps_red, steps_red + steps_blue, steps_blue);
+  /* The number of integration steps used to compute the green and the alpha channels is the sum
+   * of both the red and the blue channels steps because they are computed once with each of them.
+   */
+  return int4(steps_red, steps_red + steps_blue, steps_blue, steps_red + steps_blue);
 }
 
 /* Returns a random jitter amount, which is essentially a random value in the [0, 1] range. If
@@ -202,7 +203,7 @@ static float get_jitter(const int2 &texel, const int seed, const bool use_jitter
  * in an arithmetic progression. The integration steps can be augmented with random values to
  * simulate lens jitter. Finally, it should be noted that this function integrates both the start
  * and end channels in reverse directions for more efficient computation. */
-static float3 integrate_distortion(const int2 &texel,
+static float4 integrate_distortion(const int2 &texel,
                                    const Result &input,
                                    const int2 &size,
                                    const float3 &chromatic_distortion,
@@ -213,7 +214,7 @@ static float3 integrate_distortion(const int2 &texel,
                                    const int steps,
                                    const bool use_jitter)
 {
-  float3 accumulated_color = float3(0.0f);
+  float4 accumulated_color = float4(0.0f);
   float distortion_amount = chromatic_distortion[end] - chromatic_distortion[start];
   for (int i = 0; i < steps; i++) {
     /* The increment will be in the [0, 1) range across iterations. Include the start channel in
@@ -228,6 +229,7 @@ static float3 integrate_distortion(const int2 &texel,
     float4 color = input.sample_bilinear_zero(distorted_uv / float2(size));
     accumulated_color[start] += (1.0f - increment) * color[start];
     accumulated_color[end] += increment * color[end];
+    accumulated_color.w += color.w;
   }
   return accumulated_color;
 }
@@ -256,14 +258,14 @@ static void radial_lens_distortion(const int2 texel,
 
   /* Compute the number of integration steps that should be used to compute each channel of the
    * distorted pixel. */
-  int3 number_of_steps = compute_number_of_integration_steps(
+  int4 number_of_steps = compute_number_of_integration_steps(
       chromatic_distortion, size, uv, distance_squared, use_jitter);
 
   /* Integrate the distortion of the red and green, then the green and blue channels. That means
    * the green will be integrated twice, but this is accounted for in the number of steps which the
    * color will later be divided by. See the compute_number_of_integration_steps function for more
    * details. */
-  float3 color = float3(0.0f);
+  float4 color = float4(0.0f);
   color += integrate_distortion(texel,
                                 input,
                                 size,
@@ -289,12 +291,14 @@ static void radial_lens_distortion(const int2 texel,
    * by the sum of the weights. Assuming no jitter, the weights are generated as an arithmetic
    * progression starting from (0.5 / n) to ((n - 0.5) / n) for n terms. The sum of an arithmetic
    * progression can be computed as (n * (start + end) / 2), which when subsisting the start and
-   * end reduces to (n / 2). So the color should be multiplied by 2 / n. The jitter sequence
-   * approximately sums to the same value because it is a uniform random value whose mean value is
-   * 0.5, so the expression doesn't change regardless of jitter. */
-  color *= 2.0f / float3(number_of_steps);
+   * end reduces to (n / 2). So the color should be multiplied by 2 / n. On the other hand alpha
+   * is not weighted by the arithmetic progression, so it is multiplied by (1.0) and it is
+   * normalized by averaging only (i.e. division by (n)). The jitter sequence approximately sums to
+   * the same value because it is a uniform random value whose mean value is 0.5, so the expression
+   * doesn't change regardless of jitter. */
+  color *= float4(float3(2.0f), 1.0f) / float4(number_of_steps);
 
-  output.store_pixel(texel, float4(color, 1.0f));
+  output.store_pixel(texel, color);
 }
 
 class LensDistortionOperation : public NodeOperation {
@@ -372,11 +376,13 @@ class LensDistortionOperation : public NodeOperation {
       float2 normalized_texel = (float2(texel) + float2(0.5f)) / float2(size);
 
       /* Sample the red and blue channels shifted by the dispersion amount. */
-      const float red = input.sample_bilinear_zero(normalized_texel + float2(dispersion, 0.0f)).x;
-      const float green = input.load_pixel<float4>(texel).y;
-      const float blue = input.sample_bilinear_zero(normalized_texel - float2(dispersion, 0.0f)).z;
+      const float4 red = input.sample_bilinear_zero(normalized_texel + float2(dispersion, 0.0f));
+      const float4 green = input.load_pixel<float4>(texel);
+      const float4 blue = input.sample_bilinear_zero(normalized_texel - float2(dispersion, 0.0f));
 
-      output.store_pixel(texel, float4(red, green, blue, 1.0f));
+      const float alpha = blender::math::dot(float3(red.w, green.w, blue.w), float3(1.0f)) / 3.0f;
+
+      output.store_pixel(texel, float4(red.x, green.y, blue.z, alpha));
     });
   }
 

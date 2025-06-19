@@ -249,7 +249,7 @@ void ViewOpsData::init_navigation(bContext *C,
      * Logically it doesn't make sense to use the selection as a pivot when the first-person
      * navigation pivots from the view-point. This also interferes with zoom-speed,
      * causing zoom-speed scale based on the distance to the selection center, see: #115253. */
-    if ((U.ndof_flag & NDOF_MODE_ORBIT) == 0) {
+    if (U.ndof_navigation_mode == NDOF_NAVIGATION_MODE_FLY) {
       viewops_flag &= ~VIEWOPS_FLAG_ORBIT_SELECT;
     }
   }
@@ -754,7 +754,7 @@ static void view3d_orbit_apply_dyn_ofs_ortho_correction(float ofs[3],
    * (`ofs` + `dist` along the view Z-axis) unlike orthographic views which center around `ofs`.
    * Nevertheless there will be cases when having `ofs` and a large `dist` pointing nowhere doesn't
    * give ideal behavior (zooming may jump in larger than expected steps and panning the view may
-   * move too much in relation to nearby objects - for e.g.). So it's worth investigating but
+   * move too much in relation to nearby objects - for example). So it's worth investigating but
    * should be done with extra care as changing `ofs` in perspective view also requires changing
    * the `dist` which could cause unexpected results if the calculated `dist` happens to be small.
    * So disable this workaround in perspective view unless there are clear benefits to enabling. */

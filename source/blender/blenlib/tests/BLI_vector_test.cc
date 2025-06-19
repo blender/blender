@@ -299,7 +299,7 @@ TEST(vector, ExtendIterator)
   std::forward_list<int> list = {8, 9};
   vec.extend(list.begin(), list.end());
   EXPECT_EQ(vec.size(), 5);
-  EXPECT_EQ_ARRAY(vec.data(), Span({3, 4, 5, 8, 9}).data(), 5);
+  EXPECT_EQ_SPAN<int>(vec, Span({3, 4, 5, 8, 9}));
 }
 
 TEST(vector, Iterator)
@@ -429,7 +429,7 @@ TEST(vector, RemoveIf)
   EXPECT_EQ(vec.size() + removed, 8);
   const Vector<int> expected_vec = {1, 3, 5, 7};
   EXPECT_EQ(vec.size(), expected_vec.size());
-  EXPECT_EQ_ARRAY(vec.data(), expected_vec.data(), size_t(vec.size()));
+  EXPECT_EQ_SPAN<int>(vec, expected_vec);
 }
 
 TEST(vector, RemoveIfNonTrivialDestructible)
@@ -746,7 +746,7 @@ TEST(vector, InsertAtBeginning)
   Vector<int> vec = {1, 2, 3};
   vec.insert(0, {6, 7});
   EXPECT_EQ(vec.size(), 5);
-  EXPECT_EQ_ARRAY(vec.data(), Span({6, 7, 1, 2, 3}).data(), 5);
+  EXPECT_EQ_SPAN<int>(vec, Span({6, 7, 1, 2, 3}));
 }
 
 TEST(vector, InsertAtEnd)
@@ -754,7 +754,7 @@ TEST(vector, InsertAtEnd)
   Vector<int> vec = {1, 2, 3};
   vec.insert(3, {6, 7});
   EXPECT_EQ(vec.size(), 5);
-  EXPECT_EQ_ARRAY(vec.data(), Span({1, 2, 3, 6, 7}).data(), 5);
+  EXPECT_EQ_SPAN<int>(vec, Span({1, 2, 3, 6, 7}));
 }
 
 TEST(vector, InsertInMiddle)
@@ -762,7 +762,7 @@ TEST(vector, InsertInMiddle)
   Vector<int> vec = {1, 2, 3};
   vec.insert(1, {6, 7});
   EXPECT_EQ(vec.size(), 5);
-  EXPECT_EQ_ARRAY(vec.data(), Span({1, 6, 7, 2, 3}).data(), 5);
+  EXPECT_EQ_SPAN<int>(vec, Span({1, 6, 7, 2, 3}));
 }
 
 TEST(vector, InsertAtIterator)
@@ -771,7 +771,7 @@ TEST(vector, InsertAtIterator)
   Vector<std::string> other_vec = {"hello", "world"};
   vec.insert(vec.begin() + 1, other_vec.begin(), other_vec.end());
   EXPECT_EQ(vec.size(), 5);
-  EXPECT_EQ_ARRAY(vec.data(), Span<std::string>({"1", "hello", "world", "2", "3"}).data(), 5);
+  EXPECT_EQ_SPAN<std::string>(vec, Span<std::string>({"1", "hello", "world", "2", "3"}));
 }
 
 TEST(vector, InsertMoveOnlyType)
@@ -791,7 +791,7 @@ TEST(vector, Prepend)
   Vector<int> vec = {1, 2, 3};
   vec.prepend({7, 8});
   EXPECT_EQ(vec.size(), 5);
-  EXPECT_EQ_ARRAY(vec.data(), Span({7, 8, 1, 2, 3}).data(), 5);
+  EXPECT_EQ_SPAN<int>(vec, Span({7, 8, 1, 2, 3}));
 }
 
 TEST(vector, PrependString)
@@ -813,7 +813,7 @@ TEST(vector, ReverseIterator)
     reversed_vec.append(*it);
   }
   EXPECT_EQ(reversed_vec.size(), 4);
-  EXPECT_EQ_ARRAY(reversed_vec.data(), Span({7, 6, 5, 4}).data(), 4);
+  EXPECT_EQ_SPAN<int>(reversed_vec, Span({7, 6, 5, 4}));
 }
 
 TEST(vector, SizeValueConstructorExceptions)

@@ -122,7 +122,7 @@ static void disable(
     undo::restore_from_bmesh_enter_geometry(*undo_step, *mesh);
   }
   else {
-    BKE_sculptsession_bm_to_me(&ob, true);
+    BKE_sculptsession_bm_to_me(&ob);
   }
 
   /* Clear data. */

@@ -99,7 +99,6 @@ ccl_device_noinline_cpu float3 svm_magic(const float3 p,
 }
 
 ccl_device_noinline int svm_node_tex_magic(KernelGlobals kg,
-                                           ccl_private ShaderData *sd,
                                            ccl_private float *stack,
                                            const uint4 node,
                                            int offset)

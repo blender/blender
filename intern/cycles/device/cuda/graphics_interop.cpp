@@ -157,7 +157,10 @@ void CUDADeviceGraphicsInterop::free()
     cu_external_memory_ = nullptr;
   }
 
-  cu_external_memory_ptr_ = 0;
+  if (cu_external_memory_ptr_) {
+    cuda_device_assert(device_, cuMemFree(cu_external_memory_ptr_));
+    cu_external_memory_ptr_ = 0;
+  }
 
 #  ifdef _WIN32
   if (vulkan_windows_handle_) {

@@ -132,9 +132,7 @@ void device_cuda_info(vector<DeviceInfo> &devices)
       continue;
     }
 
-    int major;
-    cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, num);
-    if (major < 3) {
+    if (!cudaSupportsDevice(num)) {
       VLOG_INFO << "Ignoring device \"" << name
                 << "\", this graphics card is no longer supported.";
       continue;
@@ -154,9 +152,11 @@ void device_cuda_info(vector<DeviceInfo> &devices)
     /* Check if the device has P2P access to any other device in the system. */
     for (int peer_num = 0; peer_num < count && !info.has_peer_memory; peer_num++) {
       if (num != peer_num) {
-        int can_access = 0;
-        cuDeviceCanAccessPeer(&can_access, num, peer_num);
-        info.has_peer_memory = (can_access != 0);
+        if (cudaSupportsDevice(peer_num)) {
+          int can_access = 0;
+          cuDeviceCanAccessPeer(&can_access, num, peer_num);
+          info.has_peer_memory = (can_access != 0);
+        }
       }
     }
 
@@ -188,6 +188,8 @@ void device_cuda_info(vector<DeviceInfo> &devices)
     cuDeviceGetAttribute(&preempt_attr, CU_DEVICE_ATTRIBUTE_COMPUTE_PREEMPTION_SUPPORTED, num);
 
 #  ifdef _WIN32
+    int major;
+    cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, num);
     /* The CUDA driver reports compute preemption as not being available on
      * Windows 10 even when it is, due to an issue in application profiles.
      * Detect case where we expect it to be available and override. */

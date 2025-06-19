@@ -39,12 +39,12 @@ static void cmp_node_crop_declare(NodeDeclarationBuilder &b)
       .compositor_expects_single_value()
       .description("The Y position of the lower left corner of the crop region");
   b.add_input<decl::Int>("Width")
-      .default_value(100)
+      .default_value(1920)
       .min(1)
       .compositor_expects_single_value()
       .description("The width of the crop region");
   b.add_input<decl::Int>("Height")
-      .default_value(100)
+      .default_value(1080)
       .min(1)
       .compositor_expects_single_value()
       .description("The width of the crop region");
@@ -56,13 +56,6 @@ static void cmp_node_crop_declare(NodeDeclarationBuilder &b)
           "cropping the size of the image");
 
   b.add_output<decl::Color>("Image");
-}
-
-static void node_composit_init_crop(bNodeTree * /*ntree*/, bNode *node)
-{
-  /* Not used, but the data is still allocated for forward compatibility. */
-  NodeTwoXYs *nxy = MEM_callocN<NodeTwoXYs>(__func__);
-  node->storage = nxy;
 }
 
 using namespace blender::compositor;
@@ -261,9 +254,6 @@ static void register_node_type_cmp_crop()
   ntype.enum_name_legacy = "CROP";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_crop_declare;
-  ntype.initfunc = file_ns::node_composit_init_crop;
-  blender::bke::node_type_storage(
-      ntype, "NodeTwoXYs", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);

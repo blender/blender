@@ -3,8 +3,8 @@ index 9b20aa043..8f33d3a3f 100755
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -180,7 +180,12 @@ option(OCIO_USE_OIIO_FOR_APPS "Request OIIO to build apps (ociolutimage, ociocon
- 
- 
+
+
  if (NOT APPLE)
 -    if ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(AMD64|IA64|EM64T|x86_64|X86|i386|i686)")
 +    if("${CMAKE_GENERATOR_PLATFORM}" MATCHES "(ARM64|arm64)" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
@@ -19,7 +19,7 @@ index 9b20aa043..8f33d3a3f 100755
 @@ -270,7 +275,7 @@ option(OCIO_USE_AVX2 "Specify whether to enable AVX2 CPU performance optimizatio
  option(OCIO_USE_AVX512 "Specify whether to enable AVX512 CPU performance optimizations" ${OCIO_BUILD_ENABLE_OPTIMIZATIONS_AVX})
  option(OCIO_USE_F16C  "Specify whether to enable F16C CPU performance optimizations" ${OCIO_BUILD_ENABLE_OPTIMIZATIONS_F16C})
- 
+
 -if (APPLE)
 +if (APPLE OR WIN32)
     # TODO: Revisit whether that option is necessary.
@@ -37,7 +37,7 @@ index 9b20aa043..8f33d3a3f 100755
 +        endif()
      endif()
  endif()
- 
+
 diff --git a/share/cmake/modules/install/Installsse2neon.cmake b/share/cmake/modules/install/Installsse2neon.cmake
 index 47877436a..ced4ae139 100644
 --- a/share/cmake/modules/install/Installsse2neon.cmake
@@ -49,7 +49,7 @@ index 47877436a..ced4ae139 100644
 -  GIT_TAG        v1.6.0
 +  GIT_TAG        227cc413fb2d50b2a10073087be96b59d5364aea
  )
- 
+
  # FetchContent_MakeAvailable is not available until CMake 3.14+.
 @@ -38,6 +38,8 @@ if(NOT sse2neon_POPULATED)
    add_library(sse2neon INTERFACE)
@@ -72,14 +72,14 @@ index c47c8be70..d24cda55f 100644
  set(_cmake_required_includes_orig "${CMAKE_REQUIRED_INCLUDES}")
  set(_cmake_osx_architectures_orig "${CMAKE_OSX_ARCHITECTURES}")
 +set(_cmake_cxx_flags_orig "${CMAKE_CXX_FLAGS}")
- 
+
 -if(APPLE AND COMPILER_SUPPORTS_ARM_NEON)
 +if(MSVC)
 +    set(CMAKE_CXX_FLAGS "/Zc:preprocessor")
 +endif()
 +
 +if((APPLE OR WIN32) AND COMPILER_SUPPORTS_ARM_NEON)
- 
+
      if("${CMAKE_OSX_ARCHITECTURES}" MATCHES "arm64;x86_64" OR
         "${CMAKE_OSX_ARCHITECTURES}" MATCHES "x86_64;arm64")
 @@ -63,8 +68,9 @@ endif()
@@ -87,7 +87,7 @@ index c47c8be70..d24cda55f 100644
  set(CMAKE_REQUIRED_INCLUDES "${_cmake_required_includes_orig}")
  set(CMAKE_OSX_ARCHITECTURES "${_cmake_osx_architectures_orig}")
 +set(CMAKE_CXX_FLAGS "${_cmake_cxx_flags_orig}")
- 
+
  unset(_cmake_required_flags_orig)
  unset(_cmake_required_includes_orig)
  unset(_cmake_osx_architectures_orig)
@@ -98,7 +98,7 @@ index 536b5eebd..d87e73f2d 100644
 --- a/share/cmake/utils/CompilerFlags.cmake
 +++ b/share/cmake/utils/CompilerFlags.cmake
 @@ -18,7 +18,12 @@ if(OCIO_USE_SIMD)
- 
+
      if (OCIO_USE_SSE2NEON AND COMPILER_SUPPORTS_ARM_NEON)
          include(CheckSupportSSEUsingSSE2NEON)
 -        if(NOT COMPILER_SUPPORTS_SSE_WITH_SSE2NEON)
@@ -118,10 +118,10 @@ index dce813a4f..edf341792 100644
 @@ -183,7 +183,7 @@ CPUInfo::CPUInfo()
      }
  }
- 
+
 -#elif defined(__aarch64__) // ARM Processor or Apple ARM.
 +#elif defined(__aarch64__) || defined(_M_ARM64) // ARM 64-bit processor (multiple platforms)
- 
+
  CPUInfo::CPUInfo()
  {
 diff --git a/src/OpenColorIO/CPUInfoConfig.h.in b/src/OpenColorIO/CPUInfoConfig.h.in
@@ -130,7 +130,7 @@ index b8f5045d2..c105d4159 100644
 +++ b/src/OpenColorIO/CPUInfoConfig.h.in
 @@ -6,7 +6,7 @@
  #cmakedefine01 OCIO_ARCH_X86_32
- 
+
  // Relevant only for arm64 architecture.
 -#if defined(__aarch64__)
 +#if defined(__aarch64__) || defined(_M_ARM64)
@@ -138,7 +138,7 @@ index b8f5045d2..c105d4159 100644
  #else
      #define OCIO_USE_SSE2NEON 0
 @@ -23,7 +23,7 @@
- 
+
  // Building for x86_64 processor on a non-ARM host architecture
  // OR Building on/for an ARM architecture and using SSE2NEON.
 -#if (OCIO_ARCH_X86 && !defined(__aarch64__)) || (defined(__aarch64__) && OCIO_USE_SSE2NEON)
@@ -152,7 +152,7 @@ index 2494698c5..6aebc45d4 100644
 +++ b/src/OpenColorIO/SSE.h
 @@ -9,14 +9,25 @@
  #if OCIO_USE_SSE2
- 
+
  // Include the appropriate SIMD intrinsics header based on the architecture (Intel vs. ARM).
 -#if !defined(__aarch64__)
 +#if !defined(__aarch64__) && !defined(_M_ARM64)
@@ -177,22 +177,22 @@ index 2494698c5..6aebc45d4 100644
 +        #endif
      #endif
  #endif
- 
+
 @@ -30,7 +41,7 @@ namespace OCIO_NAMESPACE
  // Note that it is important for the code below this ifdef stays in the OCIO_NAMESPACE since
  // it is redefining two of the functions from sse2neon.
- 
+
 -#if defined(__aarch64__)
 +#if defined(__aarch64__) || defined(_M_ARM64)
      #if OCIO_USE_SSE2NEON
-         // Using vmaxnmq_f32 and vminnmq_f32 rather than sse2neon's vmaxq_f32 and vminq_f32 due to 
+         // Using vmaxnmq_f32 and vminnmq_f32 rather than sse2neon's vmaxq_f32 and vminq_f32 due to
          // NaN handling. This doesn't seem to be significantly slower than the default sse2neon behavior.
 @@ -77,6 +88,9 @@ static const __m128 EPOS128 = _mm_set1_ps(128.0f);
- 
+
  static const __m128 EPOSINF = _mm_set1_ps(std::numeric_limits<float>::infinity());
- 
+
 +// These funtions won't work when using MSVC + ARM64 unless you specify /Zc:arm64-aliased-neon-types-
-+// This comes with it's own issues, so it is easier to just disable them when using MSVC + ARM64
++// This comes with its own issues, so it is easier to just disable them when using MSVC + ARM64
 +#if !defined(_M_ARM64)
  // Debug function to print out the contents of a floating-point SSE register
  inline void ssePrintRegister(const char* msg, __m128& reg)
@@ -202,15 +202,15 @@ index 2494698c5..6aebc45d4 100644
      printf("%s : %d %d %d %d\n", msg, r[0], r[1], r[2], r[3]);
  }
 +#endif
- 
+
  // Determine whether a floating-point value is negative based on its sign bit.
  // This function will treat special values, like -0, -NaN, -Inf, as they were indeed
 @@ -170,7 +185,7 @@ inline __m128 sseLog2(__m128 x)
  {
-     // y = log2( x ) = log2( 2^exponent * mantissa ) 
+     // y = log2( x ) = log2( 2^exponent * mantissa )
      //               = exponent + log2( mantissa )
 -
-+  
++
      __m128 mantissa
          = _mm_or_ps(                                    // OR with EONE
              _mm_andnot_ps(                              // NOT(EMASK) AND x
@@ -220,7 +220,7 @@ index 918694fc8..e51dad9b5 100644
 +++ b/src/OpenColorIO/SSE2.h
 @@ -9,12 +9,35 @@
  #if OCIO_USE_SSE2
- 
+
  // Include the appropriate SIMD intrinsics header based on the architecture (Intel vs. ARM).
 -#if !defined(__aarch64__)
 +#if !defined(__aarch64__) && !defined(_M_ARM64)
@@ -255,19 +255,19 @@ index 918694fc8..e51dad9b5 100644
 +        #endif
      #endif
  #endif
- 
+
 @@ -30,7 +53,7 @@ namespace OCIO_NAMESPACE
  // Note that it is important for the code below this ifdef stays in the OCIO_NAMESPACE since
  // it is redefining two of the functions from sse2neon.
- 
+
 -#if defined(__aarch64__)
 +#if defined(__aarch64__) || defined(_M_ARM64)
      #if OCIO_USE_SSE2NEON
-         // Using vmaxnmq_f32 and vminnmq_f32 rather than sse2neon's vmaxq_f32 and vminq_f32 due to 
+         // Using vmaxnmq_f32 and vminnmq_f32 rather than sse2neon's vmaxq_f32 and vminq_f32 due to
          // NaN handling. This doesn't seem to be significantly slower than the default sse2neon behavior.
 @@ -321,7 +344,7 @@ struct SSE2RGBAPack<BIT_DEPTH_F16>
          sse2RGBATranspose_4x4(r, g, b, a, rgba0, rgba1, rgba2, rgba3);
- 
+
  #if OCIO_USE_SSE2NEON
 -        // use neon hardware support for f32 to f16
 +        // use neon hardware support for f32 to f16 (apart from in MSVC, which doesnt support it)
@@ -281,7 +281,7 @@ index 96adff44b..e9e977433 100644
 @@ -1844,7 +1844,7 @@ __m128 Renderer_LIN_TO_PQ_SSE<true>::myPower(__m128 x, __m128 exp)
      return ssePower(x, exp);
  }
- 
+
 -#ifdef _WIN32
 +#if (_MSC_VER >= 1920) && (OCIO_USE_AVX)
  // Only Windows compilers have built-in _mm_pow_ps() SVML intrinsic
@@ -293,6 +293,6 @@ index 96adff44b..e9e977433 100644
  }
 -#endif // _WIN32
 +#endif // (_MSC_VER >= 1920) && (OCIO_USE_AVX)
- 
+
  template<bool FAST_POWER>
  void Renderer_LIN_TO_PQ_SSE<FAST_POWER>::apply(const void* inImg, void* outImg, long numPixels) const

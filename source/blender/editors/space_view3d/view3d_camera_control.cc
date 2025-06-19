@@ -185,7 +185,7 @@ View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
  * A version of #BKE_object_apply_mat4 that respects #Object.protectflag,
  * applying the locking back to the view to avoid the view.
  * This is needed so the view doesn't get out of sync with the object,
- * causing visible jittering when in fly/walk mode for e.g.
+ * causing visible jittering when in fly/walk mode for example.
  *
  * \note This could be exposed as an API option, as we might not want the view
  * to be constrained by the thing it's controlling.

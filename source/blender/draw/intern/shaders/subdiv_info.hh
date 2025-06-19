@@ -46,8 +46,6 @@ GPU_SHADER_CREATE_END()
   STORAGE_BUF(PATCH_EVALUATION_QUAD_NODES_BUF_SLOT, read, QuadNode, quad_nodes[]) \
   STORAGE_BUF(PATCH_EVALUATION_PATCH_COORDS_BUF_SLOT, read, BlenderPatchCoord, patch_coords[]) \
   STORAGE_BUF( \
-      PATCH_EVALUATION_INPUT_VERTEX_ORIG_INDEX_BUF_SLOT, read, int, input_vert_origindex[]) \
-  STORAGE_BUF( \
       PATCH_EVALUATION_PATCH_ARRAY_BUFFER_BUF_SLOT, read, OsdPatchArray, patchArrayBuffer[]) \
   STORAGE_BUF(PATCH_EVALUATION_PATCH_INDEX_BUFFER_BUF_SLOT, read, int, patchIndexBuffer[]) \
   STORAGE_BUF( \
@@ -66,8 +64,7 @@ GPU_SHADER_CREATE_END()
 #define SUBDIV_PATCH_EVALUATION_VERTS() \
   SUBDIV_PATCH_EVALUATION_BASIS() \
   DEFINE("VERTS_EVALUATION") \
-  STORAGE_BUF(PATCH_EVALUATION_FLAGS_BUFFER_BUF_SLOT, read, int, flags_buffer[]) \
-  STORAGE_BUF(PATCH_EVALUATION_OUTPUT_VERTS_BUF_SLOT, write, PosNorLoop, output_verts[])
+  STORAGE_BUF(PATCH_EVALUATION_OUTPUT_POS_BUF_SLOT, write, Position, positions[])
 
 GPU_SHADER_CREATE_INFO(subdiv_patch_evaluation_fvar)
 DO_STATIC_COMPILATION()
@@ -112,10 +109,11 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(subdiv_loop_normals)
 DO_STATIC_COMPILATION()
-STORAGE_BUF(LOOP_NORMALS_POS_NOR_BUF_SLOT, read, PosNorLoop, pos_nor[])
+STORAGE_BUF(LOOP_NORMALS_POS_SLOT, read, Position, positions[])
 STORAGE_BUF(LOOP_NORMALS_EXTRA_COARSE_FACE_DATA_BUF_SLOT, read, uint, extra_coarse_face_data[])
-STORAGE_BUF(LOOP_NORMALS_INPUT_VERT_ORIG_INDEX_BUF_SLOT, read, int, input_vert_origindex[])
-STORAGE_BUF(LOOP_NORMALS_OUTPUT_LNOR_BUF_SLOT, write, LoopNormal, output_lnor[])
+STORAGE_BUF(LOOP_NORMALS_VERT_NORMALS_BUF_SLOT, read, Normal, vert_normals[])
+STORAGE_BUF(LOOP_NORMALS_VERTEX_LOOP_MAP_BUF_SLOT, read, uint, vert_loop_map[])
+STORAGE_BUF(LOOP_NORMALS_OUTPUT_LNOR_BUF_SLOT, write, Normal, output_lnor[])
 COMPUTE_SOURCE("subdiv_vbo_lnor_comp.glsl")
 ADDITIONAL_INFO(subdiv_polygon_offset_base)
 GPU_SHADER_CREATE_END()
@@ -174,25 +172,14 @@ GPU_SHADER_CREATE_END()
 /** \name Edge data for object mode wireframe
  * \{ */
 
-GPU_SHADER_CREATE_INFO(subdiv_edge_fac_base)
+GPU_SHADER_CREATE_INFO(subdiv_edge_fac)
 ADDITIONAL_INFO(subdiv_base)
-STORAGE_BUF(EDGE_FAC_POS_NOR_BUF_SLOT, read, PosNorLoop, pos_nor[])
+DO_STATIC_COMPILATION()
+STORAGE_BUF(EDGE_FAC_POS_BUF_SLOT, read, Position, positions[])
 STORAGE_BUF(EDGE_FAC_EDGE_DRAW_FLAG_BUF_SLOT, read, uint, input_edge_draw_flag[])
 STORAGE_BUF(EDGE_FAC_POLY_OTHER_MAP_BUF_SLOT, read, int, input_poly_other_map[])
-COMPUTE_SOURCE("subdiv_vbo_edge_fac_comp.glsl")
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(subdiv_edge_fac)
-DO_STATIC_COMPILATION()
-STORAGE_BUF(EDGE_FAC_EDGE_FAC_BUF_SLOT, write, uint, output_edge_fac[])
-ADDITIONAL_INFO(subdiv_edge_fac_base)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(subdiv_edge_fac_amd_legacy)
-DO_STATIC_COMPILATION()
-DEFINE("GPU_AMD_DRIVER_BYTE_BUG")
 STORAGE_BUF(EDGE_FAC_EDGE_FAC_BUF_SLOT, write, float, output_edge_fac[])
-ADDITIONAL_INFO(subdiv_edge_fac_base)
+COMPUTE_SOURCE("subdiv_vbo_edge_fac_comp.glsl")
 GPU_SHADER_CREATE_END()
 
 /** \} */
@@ -212,18 +199,30 @@ GPU_SHADER_CREATE_END()
   STORAGE_BUF(CUSTOM_DATA_EXTRA_COARSE_FACE_DATA_BUF_SLOT, read, uint, extra_coarse_face_data[]) \
   STORAGE_BUF(CUSTOM_DATA_SOURCE_DATA_BUF_SLOT, read, data_type, src_data[]) \
   STORAGE_BUF(CUSTOM_DATA_DESTINATION_DATA_BUF_SLOT, write, data_type, dst_data[]) \
-  ADDITIONAL_INFO(subdiv_polygon_offset_base) \
-  GPU_SHADER_CREATE_END()
+  ADDITIONAL_INFO(subdiv_polygon_offset_base)
 
 SUBDIV_CUSTOM_DATA_VARIANT(4d_u16, "GPU_COMP_U16", uint, "DIMENSIONS_4")
+GPU_SHADER_CREATE_END()
 SUBDIV_CUSTOM_DATA_VARIANT(1d_i32, "GPU_COMP_I32", int, "DIMENSIONS_1")
+GPU_SHADER_CREATE_END()
 SUBDIV_CUSTOM_DATA_VARIANT(2d_i32, "GPU_COMP_I32", int, "DIMENSIONS_2")
+GPU_SHADER_CREATE_END()
 SUBDIV_CUSTOM_DATA_VARIANT(3d_i32, "GPU_COMP_I32", int, "DIMENSIONS_3")
+GPU_SHADER_CREATE_END()
 SUBDIV_CUSTOM_DATA_VARIANT(4d_i32, "GPU_COMP_I32", int, "DIMENSIONS_4")
+GPU_SHADER_CREATE_END()
 SUBDIV_CUSTOM_DATA_VARIANT(1d_f32, "GPU_COMP_F32", float, "DIMENSIONS_1")
+GPU_SHADER_CREATE_END()
 SUBDIV_CUSTOM_DATA_VARIANT(2d_f32, "GPU_COMP_F32", float, "DIMENSIONS_2")
+GPU_SHADER_CREATE_END()
 SUBDIV_CUSTOM_DATA_VARIANT(3d_f32, "GPU_COMP_F32", float, "DIMENSIONS_3")
+GPU_SHADER_CREATE_END()
 SUBDIV_CUSTOM_DATA_VARIANT(4d_f32, "GPU_COMP_F32", float, "DIMENSIONS_4")
+GPU_SHADER_CREATE_END()
+
+SUBDIV_CUSTOM_DATA_VARIANT(3d_f32_normalize, "GPU_COMP_F32", float, "DIMENSIONS_3")
+DEFINE("NORMALIZE")
+GPU_SHADER_CREATE_END()
 
 #undef SUBDIV_CUSTOM_DATA_VARIANT
 
@@ -250,7 +249,7 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(subdiv_edituv_stretch_angle)
 DO_STATIC_COMPILATION()
-STORAGE_BUF(STRETCH_ANGLE_POS_NOR_BUF_SLOT, read, PosNorLoop, pos_nor[])
+STORAGE_BUF(STRETCH_ANGLE_POS_BUF_SLOT, read, Position, positions[])
 STORAGE_BUF(STRETCH_ANGLE_UVS_BUF_SLOT, read, packed_float2, uvs[])
 STORAGE_BUF(STRETCH_ANGLE_UV_STRETCHES_BUF_SLOT, write, UVStretchAngle, uv_stretches[])
 COMPUTE_SOURCE("subdiv_vbo_edituv_strech_angle_comp.glsl")
@@ -273,35 +272,31 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(subdiv_normals_accumulate)
 DO_STATIC_COMPILATION()
-STORAGE_BUF(NORMALS_ACCUMULATE_POS_NOR_BUF_SLOT, read, PosNorLoop, pos_nor[])
+STORAGE_BUF(NORMALS_ACCUMULATE_POS_BUF_SLOT, read, Position, positions[])
 STORAGE_BUF(NORMALS_ACCUMULATE_FACE_ADJACENCY_OFFSETS_BUF_SLOT,
             read,
             uint,
             face_adjacency_offsets[])
 STORAGE_BUF(NORMALS_ACCUMULATE_FACE_ADJACENCY_LISTS_BUF_SLOT, read, uint, face_adjacency_lists[])
 STORAGE_BUF(NORMALS_ACCUMULATE_VERTEX_LOOP_MAP_BUF_SLOT, read, uint, vert_loop_map[])
-STORAGE_BUF(NORMALS_ACCUMULATE_NORMALS_BUF_SLOT, write, packed_float3, normals[])
+STORAGE_BUF(NORMALS_ACCUMULATE_NORMALS_BUF_SLOT, write, Normal, vert_normals[])
 COMPUTE_SOURCE("subdiv_normals_accumulate_comp.glsl")
 ADDITIONAL_INFO(subdiv_base)
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(subdiv_normals_finalize)
-DO_STATIC_COMPILATION()
-STORAGE_BUF(NORMALS_FINALIZE_VERTEX_NORMALS_BUF_SLOT, read, packed_float3, vertex_normals[])
-STORAGE_BUF(NORMALS_FINALIZE_VERTEX_LOOP_MAP_BUF_SLOT, read, uint, vert_loop_map[])
-STORAGE_BUF(NORMALS_FINALIZE_POS_NOR_BUF_SLOT, read_write, PosNorLoop, pos_nor[])
-COMPUTE_SOURCE("subdiv_normals_finalize_comp.glsl")
-ADDITIONAL_INFO(subdiv_base)
-GPU_SHADER_CREATE_END()
+/** \} */
 
-/* Meshes can have (custom) split normals as loop attribute. */
-GPU_SHADER_CREATE_INFO(subdiv_custom_normals_finalize)
+/* -------------------------------------------------------------------- */
+/** \name Paint Overlay Flag
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(subdiv_paint_overlay_flag)
 DO_STATIC_COMPILATION()
-DEFINE("CUSTOM_NORMALS")
-STORAGE_BUF(NORMALS_FINALIZE_CUSTOM_NORMALS_BUF_SLOT, read, CustomNormal, custom_normals[])
-STORAGE_BUF(NORMALS_FINALIZE_POS_NOR_BUF_SLOT, read_write, PosNorLoop, pos_nor[])
-COMPUTE_SOURCE("subdiv_normals_finalize_comp.glsl")
-ADDITIONAL_INFO(subdiv_base)
+STORAGE_BUF(PAINT_OVERLAY_EXTRA_COARSE_FACE_DATA_BUF_SLOT, read, uint, extra_coarse_face_data[])
+STORAGE_BUF(PAINT_OVERLAY_EXTRA_INPUT_VERT_ORIG_INDEX_SLOT, read, int, input_vert_origindex[])
+STORAGE_BUF(PAINT_OVERLAY_OUTPUT_FLAG_SLOT, write, int, flags[])
+COMPUTE_SOURCE("subdiv_vbo_paint_overlay_flag_comp.glsl")
+ADDITIONAL_INFO(subdiv_polygon_offset_base)
 GPU_SHADER_CREATE_END()
 
 /** \} */

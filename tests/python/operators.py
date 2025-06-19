@@ -112,8 +112,21 @@ def main():
         ),
 
         SpecMeshTest(
-            "CylinderDissolveEdges.UseVertsTrue", "testCylinderDissolveEdges", "expectedCylinderDissolveEdges.DissolveAllVerts",
-            [OperatorSpecEditMode("dissolve_edges", {"use_verts": True}, "EDGE", {0, 5, 6, 9})],
+            "CylinderDissolveEdges.AngleThrehsoldNoDissolve", "testCylinderDissolveEdges", "expectedCylinderDissolveEdges.DissolveNoVerts",
+            [OperatorSpecEditMode("dissolve_edges", {"use_verts": True,
+                                  "angle_threshold": 0}, "EDGE", {0, 5, 6, 9})],
+        ),
+
+        SpecMeshTest(
+            "CylinderDissolveEdges.AngleThresholdSomeDissolve", "testCylinderDissolveEdges", "expectedCylinderDissolveEdges.DissolveThresh.218166",
+            [OperatorSpecEditMode("dissolve_edges", {"use_verts": True,
+                                  "angle_threshold": 0.218166}, "EDGE", {0, 5, 6, 9})],
+        ),
+
+        SpecMeshTest(
+            "CylinderDissolveEdges.AngleThresholdAllDissolve", "testCylinderDissolveEdges", "expectedCylinderDissolveEdges.DissolveAllVerts",
+            [OperatorSpecEditMode("dissolve_edges", {"use_verts": True,
+                                  "angle_threshold": 3.14159}, "EDGE", {0, 5, 6, 9})],
         ),
 
         # dissolve faces

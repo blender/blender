@@ -342,27 +342,34 @@ float3 DrawingPlacement::try_project_depth(const float2 co) const
   }
 
   float3 proj_point;
-  /* Fallback to `View` placement. */
+  /* Fall back to `View` placement. */
   ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
   return proj_point;
 }
 
-float3 DrawingPlacement::project(const float2 co) const
+float3 DrawingPlacement::project(const float2 co, bool &r_clipped) const
 {
   float3 proj_point;
   if (depth_ == DrawingPlacementDepth::Surface) {
     /* Project using the viewport depth cache. */
     proj_point = this->try_project_depth(co);
+    r_clipped = false;
   }
   else {
     if (placement_plane_) {
-      ED_view3d_win_to_3d_on_plane(region_, *placement_plane_, co, false, proj_point);
+      r_clipped = !ED_view3d_win_to_3d_on_plane(region_, *placement_plane_, co, true, proj_point);
     }
     else {
       ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
+      r_clipped = false;
     }
   }
   return math::transform_point(world_space_to_layer_space_, proj_point);
+}
+float3 DrawingPlacement::project(const float2 co) const
+{
+  [[maybe_unused]] bool clipped_unused;
+  return this->project(co, clipped_unused);
 }
 
 float3 DrawingPlacement::project_with_shift(const float2 co) const
@@ -1296,6 +1303,17 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
   return {};
 }
 
+bool has_editable_layer(const GreasePencil &grease_pencil)
+{
+  using namespace blender::bke::greasepencil;
+  for (const Layer *layer : grease_pencil.layers()) {
+    if (layer->is_editable()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Array<PointTransferData> compute_topology_change(
     const bke::CurvesGeometry &src,
     bke::CurvesGeometry &dst,
@@ -1968,6 +1986,22 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
 
   /* Free temporary grease pencil struct. */
   BKE_id_free(nullptr, &merged_layers_grease_pencil);
+}
+
+bool remove_fill_guides(bke::CurvesGeometry &curves)
+{
+  if (!curves.attributes().contains(".is_fill_guide")) {
+    return false;
+  }
+
+  const bke::AttributeAccessor attributes = curves.attributes();
+  const VArray<bool> is_fill_guide = *attributes.lookup<bool>(".is_fill_guide",
+                                                              bke::AttrDomain::Curve);
+
+  IndexMaskMemory memory;
+  const IndexMask fill_guides = IndexMask::from_bools(is_fill_guide, memory);
+  curves.remove_curves(fill_guides, {});
+  return true;
 }
 
 }  // namespace blender::ed::greasepencil

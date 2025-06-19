@@ -20,6 +20,7 @@
 #include "BLI_mutex.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 #include "BLI_virtual_array_fwd.hh"
 
 #include "DNA_customdata_types.h"
@@ -190,13 +191,15 @@ struct MeshRuntime {
   SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_edges_no_hidden;
 
   SharedCache<std::optional<int>> max_material_index;
+  SharedCache<VectorSet<int>> used_material_indices;
 
   /** Needed in case we need to lazily initialize the mesh. */
   CustomData_MeshMasks cd_mask_extra = {};
 
   /**
-   * Grids representation for multi-resolution sculpting. When this is set, the mesh will be empty,
-   * since it is conceptually replaced with the limited data stored in the grids.
+   * Grids representation for multi-resolution sculpting. When this is set, the mesh data
+   * corresponds to the unsubdivided base mesh; it is conceptually replaced with the limited
+   * data stored in the grids.
    */
   std::unique_ptr<SubdivCCG> subdiv_ccg;
   int subdiv_ccg_tot_level = 0;

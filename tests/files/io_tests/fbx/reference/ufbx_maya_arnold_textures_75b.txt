@@ -45,10 +45,10 @@
   - base color (0.000, 0.000, 0.000) tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:False
   - specular ior 1.000
   - specular tint (0.000, 0.000, 0.000) tex:'checkerboard_specular.png' (textures/checkerboard_specular.png) a:False
-  - roughness 1.000 tex:'checkerboard_roughness.png' (textures/checkerboard_roughness.png) a:False
-  - metallic 1.000 tex:'checkerboard_metallic.png' (textures/checkerboard_metallic.png) a:False
+  - roughness 1.000 tex:'checkerboard_roughness.png' (textures/checkerboard_roughness.png) a:False Non-Color
+  - metallic 1.000 tex:'checkerboard_metallic.png' (textures/checkerboard_metallic.png) a:False Non-Color
   - ior 1.520
-  - alpha 1.000 tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:True
+  - alpha 1.000 tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:True Non-Color
   - viewport diffuse (0.000, 0.000, 0.000, 1.000)
   - viewport specular (1.000, 1.000, 1.000), intensity 1.000
   - viewport metallic 1.000, roughness 1.000

@@ -449,11 +449,11 @@ void BVHSpatialSplit::split_point_primitive(const PointCloud *pointcloud,
   }
   point = get_unaligned_point(point);
 
-  if (point[dim] <= pos) {
+  if (point[dim] - radius <= pos) {
     left_bounds.grow(point, radius);
   }
 
-  if (point[dim] >= pos) {
+  if (point[dim] + radius >= pos) {
     right_bounds.grow(point, radius);
   }
 }

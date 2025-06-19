@@ -215,14 +215,6 @@ void GPU_flush();
 void GPU_finish();
 void GPU_apply_state();
 
-void GPU_bgl_start();
-
-/**
- * Just turn off the `bgl` safeguard system. Can be called even without #GPU_bgl_start.
- */
-void GPU_bgl_end();
-bool GPU_bgl_get();
-
 /**
  * A barrier _must_ be issued _after_ a shader arbitrary write to a buffer or a
  * texture (i.e: using imageStore, imageAtomics, or SSBO). Otherwise, the written value may not

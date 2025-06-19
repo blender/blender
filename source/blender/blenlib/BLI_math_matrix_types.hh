@@ -25,10 +25,10 @@
  * A `blender::MutableMatView`. It is mostly the same as `blender::MatView`, but can to be
  * modified.
  *
- * This allow working with any number type `T` (float, double, mpq, ...) and to use these types in
- * shared shader files (code compiled in both C++ and Shader language). To this end, only low level
- * constructors are defined inside the class itself and every function working on matrices are
- * defined outside of the class in the `blender::math` namespace.
+ * This allow working with any number type `T` (`float, double, mpq, ...`)
+ * and to use these types in shared shader files (code compiled in both C++ and Shader language).
+ * To this end, only low level constructors are defined inside the class itself and every
+ * function working on matrices are defined outside of the class in the `blender::math` namespace.
  */
 
 #include <ostream>

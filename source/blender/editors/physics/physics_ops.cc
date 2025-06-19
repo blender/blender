@@ -62,6 +62,7 @@ static void operatortypes_particle()
   WM_operatortype_append(PARTICLE_OT_disconnect_hair);
   WM_operatortype_append(PARTICLE_OT_copy_particle_systems);
   WM_operatortype_append(PARTICLE_OT_duplicate_particle_system);
+  WM_operatortype_append(PARTICLE_OT_particle_system_remove_all);
 
   WM_operatortype_append(PARTICLE_OT_dupliob_refresh);
   WM_operatortype_append(PARTICLE_OT_dupliob_copy);

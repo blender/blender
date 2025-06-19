@@ -750,4 +750,151 @@ static void test_preprocess_matrix_constructors()
 GPU_TEST(preprocess_matrix_constructors);
 #endif
 
+static void test_preprocess_stage_attribute()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(
+[[gpu::vertex_function]] void my_func() {
+  return;
+}
+)";
+    string expect = R"(
+#if defined(GPU_VERTEX_SHADER)
+#line 2
+                         void my_func() {
+  return;
+}
+#endif
+#line 5
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_stage_attribute);
+
+static void test_preprocess_resource_guard()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(
+void my_func() {
+  interface_get(draw_resource_id_varying, drw_ResourceID_iface).resource_index;
+}
+)";
+    string expect = R"(
+void my_func() {
+#if defined(CREATE_INFO_draw_resource_id_varying)
+#line 3
+  interface_get(draw_resource_id_varying, drw_ResourceID_iface).resource_index;
+#endif
+#line 4
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+uint my_func() {
+  uint i = 0;
+  i += interface_get(draw_resource_id_varying, drw_ResourceID_iface).resource_index;
+  return i;
+}
+)";
+    string expect = R"(
+uint my_func() {
+#if defined(CREATE_INFO_draw_resource_id_varying)
+#line 3
+  uint i = 0;
+  i += interface_get(draw_resource_id_varying, drw_ResourceID_iface).resource_index;
+  return i;
+#else
+#line 3
+  return uint(0);
+#endif
+#line 6
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    // EXPECT_EQ(output, expect); /* TODO: Add support. */
+    EXPECT_EQ(error,
+              "Return statement with values are not supported inside the same scope as "
+              "resource access function.");
+  }
+  {
+    string input = R"(
+uint my_func() {
+  uint i = 0;
+  {
+    i += interface_get(draw_resource_id_varying, drw_ResourceID_iface).resource_index;
+  }
+  return i;
+}
+)";
+    string expect = R"(
+uint my_func() {
+  uint i = 0;
+  {
+#if defined(CREATE_INFO_draw_resource_id_varying)
+#line 5
+    i += interface_get(draw_resource_id_varying, drw_ResourceID_iface).resource_index;
+#endif
+#line 6
+  }
+  return i;
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+uint my_func() {
+  uint i = 0;
+  {
+    i += interface_get(draw_resource_id_varying, drw_ResourceID_iface).resource_index;
+    i += buffer_get(draw_resource_id, resource_id_buf)[0];
+  }
+  return i;
+}
+)";
+    string expect = R"(
+uint my_func() {
+  uint i = 0;
+  {
+#if defined(CREATE_INFO_draw_resource_id_varying)
+#line 5
+#if defined(CREATE_INFO_draw_resource_id)
+#line 5
+    i += interface_get(draw_resource_id_varying, drw_ResourceID_iface).resource_index;
+    i += buffer_get(draw_resource_id, resource_id_buf)[0];
+#endif
+#line 7
+#endif
+#line 7
+  }
+  return i;
+}
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_resource_guard);
+
 }  // namespace blender::gpu::tests

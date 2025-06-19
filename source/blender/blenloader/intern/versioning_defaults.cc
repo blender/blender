@@ -214,6 +214,10 @@ static void blo_update_defaults_screen(bScreen *screen,
       /* Disable Curve Normals. */
       v3d->overlay.edit_flag &= ~V3D_OVERLAY_EDIT_CU_NORMALS;
       v3d->overlay.normals_constant_screen_size = 7.0f;
+      /* Always enable Grease Pencil vertex color overlay by default. */
+      v3d->overlay.gpencil_vertex_paint_opacity = 1.0f;
+      /* Always use theme color for wireframe by default. */
+      v3d->shading.wire_color_type = V3D_SHADING_SINGLE_COLOR;
 
       /* Level out the 3D Viewport camera rotation, see: #113751. */
       constexpr float viewports_to_level[][4] = {
@@ -347,7 +351,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 {
   ToolSettings *ts = scene->toolsettings;
 
-  STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE_NEXT);
+  STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
 
   scene->r.cfra = 1.0f;
 
@@ -366,15 +370,19 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Disable Z pass by default. */
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     view_layer->passflag &= ~SCE_PASS_Z;
+    view_layer->eevee.ambient_occlusion_distance = 10.0f;
   }
 
-  /* Display missing media by default. */
   if (scene->ed) {
+    /* Display missing media by default. */
     scene->ed->show_missing_media_flag |= SEQ_EDIT_SHOW_MISSING_MEDIA;
+    /* Turn on frame pre-fetching per default. */
+    scene->ed->cache_flag |= SEQ_CACHE_PREFETCH_ENABLE;
   }
 
   /* New EEVEE defaults. */
   scene->eevee.motion_blur_shutter_deprecated = 0.5f;
+  scene->eevee.flag &= ~SCE_EEVEE_VOLUME_CUSTOM_RANGE;
 
   copy_v3_v3(scene->display.light_direction, blender::float3(M_SQRT1_3));
   copy_v2_fl2(scene->safe_areas.title, 0.1f, 0.05f);
@@ -452,6 +460,16 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   ts->unified_paint_settings.flag = default_ups.flag;
   copy_v3_v3(ts->unified_paint_settings.rgb, default_ups.rgb);
   copy_v3_v3(ts->unified_paint_settings.secondary_rgb, default_ups.secondary_rgb);
+
+  if (ts->unified_paint_settings.curve_rand_hue == nullptr) {
+    ts->unified_paint_settings.curve_rand_hue = BKE_paint_default_curve();
+  }
+  if (ts->unified_paint_settings.curve_rand_saturation == nullptr) {
+    ts->unified_paint_settings.curve_rand_saturation = BKE_paint_default_curve();
+  }
+  if (ts->unified_paint_settings.curve_rand_value == nullptr) {
+    ts->unified_paint_settings.curve_rand_value = BKE_paint_default_curve();
+  }
 }
 
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)

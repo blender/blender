@@ -222,6 +222,14 @@ size_t BLI_str_partition_ex_utf8(const char *str,
                                  const char **r_suf,
                                  bool from_right) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3, 4, 5);
 
+/**
+ * Ensure that `str` has a null byte in the range of `[0..str_size]`, while not generating any
+ * invalid UTF-8 code. The resulting `strlen(str)` is guaranteed to be less than `str_size`.
+ *
+ * \return true when `str` was truncated.
+ */
+bool BLI_str_utf8_truncate_at_size(char *str, const size_t str_size);
+
 int BLI_str_utf8_offset_to_index(const char *str,
                                  size_t str_len,
                                  int offset_target) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);

@@ -21,12 +21,12 @@
 #include "DNA_object_types.h"
 
 #include "BLI_bounds.hh"
-#include "BLI_endian_switch.h"
 #include "BLI_hash.h"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_memory_counter.hh"
 #include "BLI_resource_scope.hh"
@@ -201,6 +201,10 @@ static void mesh_copy_data(Main *bmain,
       MEM_dupallocN(mesh_src->active_color_attribute));
   mesh_dst->default_color_attribute = static_cast<char *>(
       MEM_dupallocN(mesh_src->default_color_attribute));
+  mesh_dst->active_uv_map_attribute = static_cast<char *>(
+      MEM_dupallocN(mesh_src->active_uv_map_attribute));
+  mesh_dst->default_uv_map_attribute = static_cast<char *>(
+      MEM_dupallocN(mesh_src->default_uv_map_attribute));
 
   CustomData_init_from(
       &mesh_src->vert_data, &mesh_dst->vert_data, mask.vmask, mesh_dst->verts_num);
@@ -248,6 +252,8 @@ static void mesh_free_data(ID *id)
   BLI_freelistN(&mesh->vertex_group_names);
   MEM_SAFE_FREE(mesh->active_color_attribute);
   MEM_SAFE_FREE(mesh->default_color_attribute);
+  MEM_SAFE_FREE(mesh->active_uv_map_attribute);
+  MEM_SAFE_FREE(mesh->default_uv_map_attribute);
   mesh->attribute_storage.wrap().~AttributeStorage();
   if (mesh->face_offset_indices) {
     blender::implicit_sharing::free_shared_data(&mesh->face_offset_indices,
@@ -284,53 +290,6 @@ static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
-static void rename_seam_layer_to_old_name(const ListBase vertex_groups,
-                                          const Span<CustomDataLayer> vert_layers,
-                                          MutableSpan<CustomDataLayer> edge_layers,
-                                          const Span<CustomDataLayer> face_layers,
-                                          const Span<CustomDataLayer> corner_layers)
-{
-  CustomDataLayer *seam_layer = nullptr;
-  for (CustomDataLayer &layer : edge_layers) {
-    if (STREQ(layer.name, ".uv_seam")) {
-      return;
-    }
-    if (layer.type == CD_PROP_BOOL && STREQ(layer.name, "uv_seam")) {
-      seam_layer = &layer;
-    }
-  }
-
-  if (!seam_layer) {
-    return;
-  }
-
-  /* Current files are not expected to have a ".uv_seam" attribute (the old name) except in the
-   * rare case users created it themselves. If that happens, avoid renaming the current UV seam
-   * attribute so that at least it's not hidden in the old version. */
-  for (const CustomDataLayer &layer : vert_layers) {
-    if (STREQ(layer.name, ".uv_seam")) {
-      return;
-    }
-  }
-  for (const CustomDataLayer &layer : face_layers) {
-    if (STREQ(layer.name, ".uv_seam")) {
-      return;
-    }
-  }
-  for (const CustomDataLayer &layer : corner_layers) {
-    if (STREQ(layer.name, ".uv_seam")) {
-      return;
-    }
-  }
-  LISTBASE_FOREACH (const bDeformGroup *, vertex_group, &vertex_groups) {
-    if (STREQ(vertex_group->name, ".uv_seam")) {
-      return;
-    }
-  }
-
-  STRNCPY(seam_layer->name, ".uv_seam");
-}
-
 static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   using namespace blender;
@@ -349,6 +308,29 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   mesh->mface = nullptr;
   mesh->totface_legacy = 0;
   mesh->fdata_legacy = CustomData{};
+
+  if (U.experimental.use_attribute_storage_write) {
+    /* Convert from the format still used at runtime (flags on #CustomDataLayer) to the format
+     * reserved for future runtime use (names stored on #Mesh). */
+    if (const char *name = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2)) {
+      mesh->active_uv_map_attribute = const_cast<char *>(
+          scope.allocator().copy_string(name).c_str());
+    }
+    else {
+      mesh->active_uv_map_attribute = nullptr;
+    }
+    if (const char *name = CustomData_get_render_layer_name(&mesh->corner_data, CD_PROP_FLOAT2)) {
+      mesh->default_uv_map_attribute = const_cast<char *>(
+          scope.allocator().copy_string(name).c_str());
+    }
+    else {
+      mesh->default_uv_map_attribute = nullptr;
+    }
+  }
+  else {
+    mesh->active_uv_map_attribute = nullptr;
+    mesh->default_uv_map_attribute = nullptr;
+  }
 
   /* Do not store actual geometry data in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
@@ -382,13 +364,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
         mesh->corner_data, AttrDomain::Corner, mesh->corners_num, loop_layers, attribute_data);
     mesh->attribute_storage.dna_attributes = attribute_data.attributes.data();
     mesh->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
-    if (!is_undo) {
-      /* Write forward compatible format. To be removed in 5.0. */
-      rename_seam_layer_to_old_name(
-          mesh->vertex_group_names, vert_layers, edge_layers, face_layers, loop_layers);
-      mesh_sculpt_mask_to_legacy(vert_layers);
-      mesh_custom_normals_to_legacy(loop_layers);
-    }
   }
 
   const blender::bke::MeshRuntime *mesh_runtime = mesh->runtime;
@@ -400,6 +375,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   BKE_defbase_blend_write(writer, &mesh->vertex_group_names);
   BLO_write_string(writer, mesh->active_color_attribute);
   BLO_write_string(writer, mesh->default_color_attribute);
+  BLO_write_string(writer, mesh->active_uv_map_attribute);
+  BLO_write_string(writer, mesh->default_uv_map_attribute);
 
   BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
   BLO_write_struct_array(writer, MSelect, mesh->totselect, mesh->mselect);
@@ -464,6 +441,8 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   }
   BLO_read_string(reader, &mesh->active_color_attribute);
   BLO_read_string(reader, &mesh->default_color_attribute);
+  BLO_read_string(reader, &mesh->active_uv_map_attribute);
+  BLO_read_string(reader, &mesh->default_uv_map_attribute);
 
   /* Forward compatibility. To be removed when runtime format changes. */
   blender::bke::mesh_convert_storage_to_customdata(*mesh);
@@ -484,12 +463,9 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
     mesh->totselect = 0;
   }
 
-  if (BLO_read_requires_endian_switch(reader) && mesh->tface) {
-    TFace *tf = mesh->tface;
-    for (int i = 0; i < mesh->totface_legacy; i++, tf++) {
-      BLI_endian_switch_uint32_array(tf->col, 4);
-    }
-  }
+  /* NOTE: this is endianness-sensitive. */
+  /* Each legacy TFace would need to undo the automatic DNA switch of its array of four uint32_t
+   * RGBA colors. */
 }
 
 IDTypeInfo IDType_ID_ME = {
@@ -1400,12 +1376,16 @@ void Mesh::bounds_set_eager(const blender::Bounds<float3> &bounds)
   this->runtime->bounds_cache.ensure([&](blender::Bounds<float3> &r_data) { r_data = bounds; });
 }
 
+static bool use_bmesh_material_indices(const Mesh &mesh)
+{
+  return mesh.runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH && mesh.runtime->edit_mesh &&
+         mesh.runtime->edit_mesh->bm;
+}
+
 std::optional<int> Mesh::material_index_max() const
 {
   this->runtime->max_material_index.ensure([&](std::optional<int> &value) {
-    if (this->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH && this->runtime->edit_mesh &&
-        this->runtime->edit_mesh->bm)
-    {
+    if (use_bmesh_material_indices(*this)) {
       BMesh *bm = this->runtime->edit_mesh->bm;
       if (bm->totface == 0) {
         value = std::nullopt;
@@ -1433,6 +1413,57 @@ std::optional<int> Mesh::material_index_max() const
     }
   });
   return this->runtime->max_material_index.data();
+}
+
+const blender::VectorSet<int> &Mesh::material_indices_used() const
+{
+  using namespace blender;
+  this->runtime->used_material_indices.ensure([&](VectorSet<int> &r_data) {
+    const std::optional<int> max_material_index_opt = this->material_index_max();
+    r_data.clear();
+    if (!max_material_index_opt.has_value()) {
+      return;
+    }
+    const int max_material_index = *max_material_index_opt;
+    const auto clamp_material_index = [&](const int index) {
+      return std::clamp<int>(index, 0, max_material_index);
+    };
+
+    /* Find used indices in parallel and then create the vector set in the end. */
+    Array<bool> used_indices(max_material_index + 1, false);
+    if (use_bmesh_material_indices(*this)) {
+      BMesh *bm = this->runtime->edit_mesh->bm;
+      BMFace *efa;
+      BMIter iter;
+      BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+        used_indices[clamp_material_index(efa->mat_nr)] = true;
+      }
+    }
+    else if (const VArray<int> material_indices =
+                 this->attributes()
+                     .lookup_or_default<int>("material_index", bke::AttrDomain::Face, 0)
+                     .varray)
+    {
+      if (const std::optional<int> single_material_index = material_indices.get_if_single()) {
+        used_indices[clamp_material_index(*single_material_index)] = true;
+      }
+      else {
+        VArraySpan<int> material_indices_span = material_indices;
+        threading::parallel_for(
+            material_indices_span.index_range(), 1024, [&](const IndexRange range) {
+              for (const int i : range) {
+                used_indices[clamp_material_index(material_indices_span[i])] = true;
+              }
+            });
+      }
+    }
+    for (const int i : used_indices.index_range()) {
+      if (used_indices[i]) {
+        r_data.add_new(i);
+      }
+    }
+  });
+  return this->runtime->used_material_indices.data();
 }
 
 namespace blender::bke {

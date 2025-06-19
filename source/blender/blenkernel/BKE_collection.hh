@@ -25,10 +25,52 @@ struct Collection;
 struct ID;
 struct CollectionChild;
 struct CollectionExport;
+struct GHash;
 struct Main;
 struct Object;
 struct Scene;
 struct ViewLayer;
+
+/** #CollectionRuntime.tag */
+enum {
+  /**
+   * That code (#BKE_main_collections_parent_relations_rebuild and the like)
+   * is called from very low-level places, like e.g ID remapping...
+   * Using a generic tag like #ID_TAG_DOIT for this is just impossible, we need our very own.
+   */
+  COLLECTION_TAG_RELATION_REBUILD = (1 << 0),
+  /**
+   * Mark the `gobject` list and/or its `runtime.gobject_hash` mapping as dirty, i.e. that their
+   * data is not reliable and should be cleaned-up or updated.
+   *
+   * This should typically only be set by ID remapping code.
+   */
+  COLLECTION_TAG_COLLECTION_OBJECT_DIRTY = (1 << 1),
+};
+
+namespace blender::bke {
+
+struct CollectionRuntime {
+  /**
+   * Cache of objects in this collection and all its children.
+   * This is created on demand when e.g. some physics simulation needs it,
+   * we don't want to have it for every collections due to memory usage reasons.
+   */
+  ListBase object_cache = {};
+
+  /** Need this for line art sub-collection selections. */
+  ListBase object_cache_instanced = {};
+
+  /** List of collections that are a parent of this data-block. */
+  ListBase parents = {};
+
+  /** An optional map for faster lookups on #Collection.gobject */
+  GHash *gobject_hash = nullptr;
+
+  uint8_t tag = 0;
+};
+
+}  // namespace blender::bke
 
 struct CollectionParent {
   struct CollectionParent *next, *prev;

@@ -15,8 +15,7 @@ namespace blender::draw {
 
 static gpu::VertBufPtr create_vbo(const int size)
 {
-  static GPUVertFormat format = GPU_vertformat_from_attribute(
-      "index", GPU_COMP_I32, 1, GPU_FETCH_INT);
+  static GPUVertFormat format = GPU_vertformat_from_attribute("index", gpu::VertAttrType::SINT_32);
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
   GPU_vertbuf_data_alloc(*vbo, size);
   return vbo;

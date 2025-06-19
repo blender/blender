@@ -60,7 +60,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
   }
 
   uiLayout *ui_abs = &layout->absolute(false);
-  uiBlock *block = uiLayoutGetBlock(ui_abs);
+  uiBlock *block = ui_abs->block();
   blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
 
   uchar report_icon_color[4];
@@ -344,7 +344,7 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
 
   /* Otherwise should cursor keymap status. */
   for (int i = 0; i < 3; i++) {
-    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
+    row->alignment_set(blender::ui::LayoutAlign::Left);
 
     const char *msg = CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT,
                                  WM_window_cursor_keymap_status_get(win, i, 0));
@@ -420,10 +420,10 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
         row->label("|", ICON_NONE);
         row->separator(-0.5f);
       }
-      uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+      row->emboss_set(blender::ui::EmbossType::None);
       /* This operator also works fine for blocked extensions. */
       row->op("EXTENSIONS_OT_userpref_show_for_update", "", ICON_ERROR);
-      uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
+      uiBut *but = layout->block()->buttons.last().get();
       uchar color[4];
       UI_GetThemeColor4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
@@ -446,9 +446,9 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
         row->label("", ICON_INTERNET_OFFLINE);
       }
       else {
-        uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+        row->emboss_set(blender::ui::EmbossType::None);
         row->op("EXTENSIONS_OT_userpref_show_online", "", ICON_INTERNET_OFFLINE);
-        uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
+        uiBut *but = layout->block()->buttons.last().get();
         uchar color[4];
         UI_GetThemeColor4ubv(TH_TEXT, color);
         copy_v4_v4_uchar(but->col, color);
@@ -470,9 +470,9 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
         row->label("|", ICON_NONE);
         row->separator(-0.5f);
       }
-      uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+      row->emboss_set(blender::ui::EmbossType::None);
       row->op("EXTENSIONS_OT_userpref_show_for_update", "", icon);
-      uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
+      uiBut *but = layout->block()->buttons.last().get();
       uchar color[4];
       UI_GetThemeColor4ubv(TH_TEXT, color);
       copy_v4_v4_uchar(but->col, color);
@@ -519,7 +519,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
 
   const uiStyle *style = UI_style_get();
   uiLayout *ui_abs = &layout->absolute(false);
-  uiBlock *block = uiLayoutGetBlock(ui_abs);
+  uiBlock *block = ui_abs->block();
   blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
 
   UI_fontstyle_set(&style->widget);

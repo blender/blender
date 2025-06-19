@@ -444,15 +444,18 @@ def _encode_temp_image(tmp_image: bpy.types.Image, file_format: str, export_sett
 
         tmp_image.file_format = file_format
 
-        # if image is jpeg, use quality export settings
-        if file_format in ["JPEG", "WEBP"]:
-            tmp_image.save(quality=export_settings['gltf_image_quality'])
-        else:
-            tmp_image.save()
+        try:
+            # if image is jpeg, use quality export settings
+            if file_format in ["JPEG", "WEBP"]:
+                tmp_image.save(quality=export_settings['gltf_image_quality'])
+            else:
+                tmp_image.save()
 
-        with open(tmpfilename, "rb") as f:
-            return f.read()
-
+            with open(tmpfilename, "rb") as f:
+                return f.read()
+        except Exception as e:
+            export_settings['log'].error("Error while saving image: %s" % e)
+            return b''
 
 class TmpImageGuard:
     """Guard to automatically clean up temp images (use it with `with`)."""
@@ -473,9 +476,13 @@ def make_temp_image_copy(guard: TmpImageGuard, src_image: bpy.types.Image):
     guard.image = src_image.copy()
     tmp_image = guard.image
 
-    tmp_image.update()
-    # See #1564 and T95616
-    tmp_image.scale(*src_image.size)
+    try:
+        tmp_image.update()
+        # See #1564 and T95616
+        tmp_image.scale(*src_image.size)
+    except RuntimeError:
+        # Can happen if the user deleted the image from the HDD
+        pass
 
     if src_image.is_dirty:  # Warning, img size change doesn't make it dirty, see T95616
         # Unsaved changes aren't copied by .copy(), so do them ourselves

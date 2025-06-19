@@ -210,18 +210,13 @@ class FILEBROWSER_UL_dir(UIList):
         direntry = item
         # space = context.space_data
 
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            row = layout.row(align=True)
-            row.enabled = direntry.is_valid
-            # Non-editable entries would show grayed-out, which is bad in this specific case, so switch to mere label.
-            if direntry.is_property_readonly("name"):
-                row.label(text=direntry.name, icon_value=icon)
-            else:
-                row.prop(direntry, "name", text="", emboss=False, icon_value=icon)
-
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.prop(direntry, "path", text="")
+        row = layout.row(align=True)
+        row.enabled = direntry.is_valid
+        # Non-editable entries would show grayed-out, which is bad in this specific case, so switch to mere label.
+        if direntry.is_property_readonly("name"):
+            row.label(text=direntry.name, icon_value=icon)
+        else:
+            row.prop(direntry, "name", text="", emboss=False, icon_value=icon)
 
 
 class FILEBROWSER_PT_bookmarks_volumes(Panel):
