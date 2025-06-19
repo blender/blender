@@ -261,6 +261,11 @@ class RemoteAssetListingDownloader:
         logger.info("Parsing %s", path_to_load)
         json_data = path_to_load.read_bytes()
         parsed_data = api_model.model_validate_json(json_data)
+
+        # The file has been parsed & validated, so 'touch' it to let other
+        # Blender processes know when this was last downloaded/validated.
+        path_to_load.touch()
+
         return parsed_data, used_unsafe_file
 
     def _rename_to_safe(self, unsafe_filepath: Path) -> Path:
