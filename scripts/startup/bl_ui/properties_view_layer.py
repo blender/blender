@@ -274,7 +274,7 @@ class VIEWLAYER_PT_override(ViewLayerButtonsPanel, Panel):
     bl_label = "Override"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'CYCLES',
     }
 
