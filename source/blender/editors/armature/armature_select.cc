@@ -661,7 +661,9 @@ static EditBone *get_nearest_editbonepoint(
    * selection. this way overlapping bones will cycle selection state as with objects. */
   Object *obedit_orig = vc->obedit;
   EditBone *ebone_active_orig = static_cast<bArmature *>(obedit_orig->data)->act_edbone;
-  if ((ebone_active_orig->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) == 0) {
+  if (ebone_active_orig &&
+      (ebone_active_orig->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) == 0)
+  {
     ebone_active_orig = nullptr;
   }
 
