@@ -294,7 +294,6 @@ set(GLSL_SRC
   shaders/library/gpu_shader_compositor_main.glsl
   shaders/library/gpu_shader_compositor_map_value.glsl
   shaders/library/gpu_shader_compositor_motion_blur_lib.glsl
-  shaders/library/gpu_shader_compositor_normal.glsl
   shaders/library/gpu_shader_compositor_ocio_processor.glsl
   shaders/library/gpu_shader_compositor_posterize.glsl
   shaders/library/gpu_shader_compositor_separate_combine.glsl
