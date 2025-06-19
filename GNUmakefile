@@ -135,10 +135,6 @@ Utilities
      Create a combined file with all the license information relative to the libraries and other
      code depedencies.
 
-   * generate_datamodels:
-     Generate Python code based on OpenAPI specifications. The Python code is also tracked by
-	 Git, and so running this command is only necessary when the OpenAPI specification changes.
-
 Environment Variables
 
    * BUILD_CMAKE_ARGS:      Arguments passed to CMake.
@@ -621,9 +617,6 @@ update_code: .FORCE
 format: .FORCE
 	@PATH="${LIBDIR}/llvm/bin/:$(PATH)" $(PYTHON) tools/utils_maintenance/clang_format_paths.py $(PATHS)
 	@$(PYTHON) tools/utils_maintenance/autopep8_format_paths.py --autopep8-command="$(AUTOPEP8)" $(PATHS)
-
-generate_datamodels:
-	@$(PYTHON) ./build_files/utils/make_generate_datamodels.py
 
 license: .FORCE
 	@$(PYTHON) tools/utils_maintenance/make_license.py
