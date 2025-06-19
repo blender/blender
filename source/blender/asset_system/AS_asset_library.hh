@@ -190,6 +190,8 @@ class AssetLibrary {
  protected:
   /** Load catalogs that have changed on disk. */
   virtual void refresh_catalogs();
+
+  void load_or_reload_catalogs();
 };
 
 Vector<AssetLibraryReference> all_valid_asset_library_refs();

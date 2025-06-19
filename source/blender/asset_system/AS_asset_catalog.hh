@@ -54,7 +54,7 @@ class AssetCatalogService {
   bool is_read_only_ = false;
 
   friend class AssetLibraryService;
-  friend class OnDiskAssetLibrary;
+  friend class AssetLibrary;
 
  public:
   static const CatalogFilePath DEFAULT_CATALOG_FILENAME;

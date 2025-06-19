@@ -20,7 +20,6 @@ class OnDiskAssetLibrary : public AssetLibrary {
 
   std::optional<AssetLibraryReference> library_reference() const override;
   void refresh_catalogs() override;
-  void load_or_reload_catalogs();
 };
 
 }  // namespace blender::asset_system

@@ -14,8 +14,8 @@
 
 namespace blender::asset_system {
 
-RemoteAssetLibrary::RemoteAssetLibrary(const StringRef remote_url)
-    : AssetLibrary(ASSET_LIBRARY_CUSTOM)
+RemoteAssetLibrary::RemoteAssetLibrary(const StringRef remote_url, StringRef cache_root_path)
+    : AssetLibrary(ASSET_LIBRARY_CUSTOM, "", cache_root_path)
 {
   import_method_ = ASSET_IMPORT_APPEND_REUSE;
   may_override_import_method_ = false;
@@ -39,6 +39,11 @@ std::optional<AssetLibraryReference> RemoteAssetLibrary::library_reference() con
   }
 
   return {};
+}
+
+void RemoteAssetLibrary::refresh_catalogs()
+{
+  this->catalog_service().reload_catalogs();
 }
 
 }  // namespace blender::asset_system

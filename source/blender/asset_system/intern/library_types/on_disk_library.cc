@@ -7,9 +7,6 @@
  */
 
 #include "AS_asset_catalog.hh"
-#include "AS_asset_catalog_tree.hh"
-#include "asset_catalog_collection.hh"
-#include "asset_catalog_definition_file.hh"
 
 #include "on_disk_library.hh"
 
@@ -41,28 +38,6 @@ std::optional<AssetLibraryReference> OnDiskAssetLibrary::library_reference() con
 void OnDiskAssetLibrary::refresh_catalogs()
 {
   this->catalog_service().reload_catalogs();
-}
-
-void OnDiskAssetLibrary::load_or_reload_catalogs()
-{
-  {
-    std::lock_guard lock{catalog_service_mutex_};
-    /* Should never actually be the case, catalog service gets allocated with the asset library. */
-    if (catalog_service_ == nullptr) {
-      auto catalog_service = std::make_unique<AssetCatalogService>(root_path());
-      catalog_service->load_from_disk();
-      catalog_service_ = std::move(catalog_service);
-      return;
-    }
-  }
-
-  /* The catalog service was created before without being associated with a definition file. */
-  if (catalog_service_->get_catalog_definition_file() == nullptr) {
-    catalog_service_->load_from_disk();
-  }
-  else {
-    this->refresh_catalogs();
-  }
 }
 
 }  // namespace blender::asset_system

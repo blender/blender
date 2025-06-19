@@ -192,6 +192,28 @@ AssetCatalogService &AssetLibrary::catalog_service() const
 
 void AssetLibrary::refresh_catalogs() {}
 
+void AssetLibrary::load_or_reload_catalogs()
+{
+  {
+    std::lock_guard lock{catalog_service_mutex_};
+    /* Should never actually be the case, catalog service gets allocated with the asset library. */
+    if (catalog_service_ == nullptr) {
+      auto catalog_service = std::make_unique<AssetCatalogService>(*root_path_);
+      catalog_service->load_from_disk();
+      catalog_service_ = std::move(catalog_service);
+      return;
+    }
+  }
+
+  /* The catalog service was created before without being associated with a definition file. */
+  if (catalog_service_->get_catalog_definition_file() == nullptr) {
+    catalog_service_->load_from_disk();
+  }
+  else {
+    this->refresh_catalogs();
+  }
+}
+
 std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_asset(
     StringRef relative_asset_path,
     StringRef name,

@@ -16,8 +16,10 @@ class RemoteAssetLibrary : public AssetLibrary {
   std::string remote_url_;
 
  public:
-  RemoteAssetLibrary(StringRef remote_url);
+  RemoteAssetLibrary(StringRef remote_url, StringRef cache_rootpath);
   std::optional<AssetLibraryReference> library_reference() const override;
+  void refresh_catalogs() override;
+  void load_or_reload_catalogs();
 };
 
 }  // namespace blender::asset_system
