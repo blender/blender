@@ -230,7 +230,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
 
   uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
-  uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
+  name_row->alignment_set(blender::ui::LayoutAlign::Right);
 
   name_row->label(socket.name ? IFACE_(socket.name) : "", ICON_NONE);
   uiLayout *prop_row = &split->row(true);
@@ -418,7 +418,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
 
   uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
-  uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
+  name_row->alignment_set(blender::ui::LayoutAlign::Right);
 
   uiLayout *prop_row = nullptr;
 
@@ -434,7 +434,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
 
   if (type == SOCK_BOOLEAN) {
     uiLayoutSetPropSep(prop_row, false);
-    uiLayoutSetAlignment(prop_row, UI_LAYOUT_ALIGN_EXPAND);
+    prop_row->alignment_set(blender::ui::LayoutAlign::Expand);
   }
 
   if (attribute_name) {
@@ -778,7 +778,7 @@ static void draw_property_for_output_socket(DrawGroupInputsContext &ctx,
 
   uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
-  uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
+  name_row->alignment_set(blender::ui::LayoutAlign::Right);
   name_row->label(socket.name ? socket.name : "", ICON_NONE);
 
   uiLayout *row = &split->row(true);
@@ -868,7 +868,7 @@ static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd
     }
 
     uiLayout *row = &split->row(false);
-    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+    row->alignment_set(blender::ui::LayoutAlign::Right);
     row->active_set(false);
     row->label(ss.str(), ICON_NONE);
 

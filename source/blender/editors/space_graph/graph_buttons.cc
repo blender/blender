@@ -975,7 +975,7 @@ static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *f
 
   /* panel layout... */
   row = &layout->row(true);
-  uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
+  row->alignment_set(blender::ui::LayoutAlign::Left);
 
   /* -> user friendly 'name' for datablock that owns F-Curve */
   /* XXX: Actually, we may need the datablock icons only...
@@ -1153,7 +1153,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
      * otherwise we get ugly layout with text included too... */
     sub = &subrow->row(true);
 
-    uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
+    sub->alignment_set(blender::ui::LayoutAlign::Left);
 
     sub->prop(&dvar_ptr, "type", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
@@ -1163,7 +1163,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
      * which now pushes everything too far right */
     sub = &subrow->row(true);
 
-    uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);
+    sub->alignment_set(blender::ui::LayoutAlign::Expand);
 
     sub->prop(&dvar_ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 

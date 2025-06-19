@@ -458,7 +458,7 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
 
     /* The logo image. */
     row = &layout->row(false);
-    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
+    row->alignment_set(blender::ui::LayoutAlign::Left);
     uiDefButImage(block, ibuf, 0, U.widget_unit, ibuf->x, ibuf->y, show_color ? nullptr : color);
 
     /* Padding below the logo. */

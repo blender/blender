@@ -1198,7 +1198,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 
   uiLayout *col = &layout->column(true);
-  uiLayoutSetAlignment(col, UI_LAYOUT_ALIGN_RIGHT);
+  col->alignment_set(blender::ui::LayoutAlign::Right);
 
   if (ibuf == nullptr) {
     col->label(RPT_("Can't Load Image"), ICON_NONE);

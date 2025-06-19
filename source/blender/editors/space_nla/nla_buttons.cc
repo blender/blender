@@ -322,7 +322,7 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
 
     /* ID-block name > AnimData */
     row = &layout->row(true);
-    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
+    row->alignment_set(blender::ui::LayoutAlign::Left);
 
     row->label(id->name + 2, RNA_struct_ui_icon(id_ptr.type)); /* id-block (src) */
     row->label("", ICON_RIGHTARROW);                           /* expander */

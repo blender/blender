@@ -265,7 +265,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
 
   /* (Left aligned) */
   uiLayout *sub = &row->row(true);
-  uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
+  sub->alignment_set(blender::ui::LayoutAlign::Left);
 
   /* Zoom in */
   bt = uiDefIconBut(block,
@@ -305,7 +305,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
 
   /* (Right aligned) */
   sub = &row->row(true);
-  uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
+  sub->alignment_set(blender::ui::LayoutAlign::Right);
 
   /* Flip path */
   bt = uiDefIconBut(block,

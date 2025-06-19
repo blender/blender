@@ -533,7 +533,7 @@ static bool node_update_basis_socket(const bContext &C,
     PointerRNA sockptr = RNA_pointer_create_discrete(&ntree.id, &RNA_NodeSocket, input_socket);
     row->context_ptr_set("socket", &sockptr);
 
-    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
+    row->alignment_set(blender::ui::LayoutAlign::Expand);
 
     input_socket->typeinfo->draw(
         (bContext *)&C, row, &sockptr, &nodeptr, node_socket_get_label(input_socket, panel_label));
@@ -544,7 +544,7 @@ static bool node_update_basis_socket(const bContext &C,
     row->context_ptr_set("socket", &sockptr);
 
     /* Align output buttons to the right. */
-    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+    row->alignment_set(blender::ui::LayoutAlign::Right);
 
     output_socket->typeinfo->draw((bContext *)&C,
                                   row,

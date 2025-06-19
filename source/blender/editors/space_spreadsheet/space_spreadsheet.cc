@@ -659,7 +659,7 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
                                      0,
                                      style);
   uiItemSpacer(layout);
-  uiLayoutSetAlignment(layout, UI_LAYOUT_ALIGN_RIGHT);
+  layout->alignment_set(blender::ui::LayoutAlign::Right);
   layout->label(stats_str, ICON_NONE);
   UI_block_layout_resolve(block, nullptr, nullptr);
   UI_block_align_end(block);
