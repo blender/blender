@@ -97,3 +97,31 @@ def _parse_catalog(catalog_filepath: Path) -> dict[str, AssetCatalog]:
             catalogs[cat.uuid] = cat
 
     return catalogs
+
+
+_ASSET_CATS_HEADER = """# This is an Asset Catalog Definition file for Blender.
+#
+# Empty lines and lines starting with `#` will be ignored.
+# The first non-ignored line should be the version indicator.
+# Other lines are of the format "UUID:catalog/path/for/assets:simple catalog name"
+#
+# Remote Asset Library: {library_name!s}
+
+VERSION 1
+"""
+
+
+def write(catalogs: list[api_models.CatalogV1], catalog_filepath: Path,
+          asset_library_meta: api_models.AssetLibraryMeta) -> None:
+    """Create a catalog file from the list of catalogs."""
+
+    # TODO: this really should be using an RNA API.
+
+    header = _ASSET_CATS_HEADER.format(library_name=asset_library_meta.name)
+
+    with catalog_filepath.open("w", encoding="utf8") as catfile:
+        print(header, file=catfile)
+
+        for cat in sorted(catalogs, key=lambda cat: cat.path):
+            for uuid in cat.uuids:
+                print("{}:{}:{}".format(uuid, cat.path, cat.simple_name), file=catfile)

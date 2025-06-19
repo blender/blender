@@ -16,6 +16,7 @@ from _bpy_internal.http import downloader as http_dl
 from _bpy_internal.assets.remote_library_index import blender_asset_library_openapi as api_models
 from _bpy_internal.assets.remote_library_index import index_common
 from _bpy_internal.assets.remote_library_index import http_metadata
+from _bpy_internal.assets.remote_library_index import asset_catalogs
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,8 @@ class RemoteAssetListingDownloader:
     longer exist.
     """
 
+    _library_meta: api_models.AssetLibraryMeta | None
+
     def __init__(
         self,
         remote_url: str,
@@ -74,6 +77,7 @@ class RemoteAssetListingDownloader:
 
         self._num_asset_pages_pending = 0
         self._referenced_local_files = []
+        self._library_meta = None
 
         # Work around a limitation of Blender, see bug report #139720 for details.
         self.on_timer_event = self.on_timer_event  # type: ignore[method-assign]
@@ -158,6 +162,8 @@ class RemoteAssetListingDownloader:
         if used_unsafe_file:
             self._rename_to_safe(unsafe_local_file)
 
+        self._library_meta = metadata
+
         # Download the asset index.
         main_index_filepath = index_common.api_versioned(index_common.ASSET_INDEX_JSON_FILENAME)
         self._queue_download(
@@ -172,15 +178,21 @@ class RemoteAssetListingDownloader:
                               ) -> None:
         asset_index, used_unsafe_file = self._parse_api_model(unsafe_local_file, api_models.AssetLibraryIndexV1)
 
+        page_urls = asset_index.page_urls or []
+        logger.info("    Schema version    : %s", asset_index.schema_version)
+        logger.info("    Asset count       : %d", asset_index.asset_count)
+        logger.info("    Pages             : %d", len(page_urls))
+
         # The file passed validation, so can be marked safe.
         if used_unsafe_file:
             self._rename_to_safe(unsafe_local_file)
 
-        page_urls = asset_index.page_urls or []
-
-        logger.info("    Schema version    : %s", asset_index.schema_version)
-        logger.info("    Asset count       : %d", asset_index.asset_count)
-        logger.info("    Pages             : %d", len(page_urls))
+        # Write the catalogs file. Even when there are no catalogs, this should
+        # be done, because catalogs might have existed previously.
+        assert self._library_meta, "By now the asset library metadata should be known"
+        catalogs_file = self._local_path / "blender_assets.cats.txt"
+        logger.info("Writing catalogs to %s", catalogs_file)
+        asset_catalogs.write(asset_index.catalogs or [], catalogs_file, self._library_meta)
 
         # Download the asset pages.
         self._num_asset_pages_pending = len(page_urls)
