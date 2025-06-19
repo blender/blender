@@ -1912,13 +1912,14 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "menu_shadow_fac", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_ui_text(prop, "Menu Shadow Strength", "Blending factor for menu shadows");
+  RNA_def_property_ui_text(
+      prop, "Panel/Menu Shadow Strength", "Blending factor for panel and menu shadows");
   RNA_def_property_range(prop, 0.01f, 1.0f);
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "menu_shadow_width", PROP_INT, PROP_PIXEL);
   RNA_def_property_ui_text(
-      prop, "Menu Shadow Width", "Width of menu shadows, set to zero to disable");
+      prop, "Panel/Menu Shadow Width", "Width of panel and menu shadows, set to zero to disable");
   RNA_def_property_range(prop, 0.0f, 24.0f);
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
