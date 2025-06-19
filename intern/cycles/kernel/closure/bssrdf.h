@@ -305,9 +305,11 @@ ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
   int bssrdf_channels = SPECTRUM_CHANNELS;
   Spectrum diffuse_weight = zero_spectrum();
 
-  if (path_flag & PATH_RAY_DIFFUSE_ANCESTOR) {
-    /* Always fall back to diffuse after a diffuse ancestor. Can't see it that well and it adds
-     * considerable noise due to probabilities of continuing the path getting lower and lower. */
+  if (type == CLOSURE_BSSRDF_BURLEY_ID && (path_flag & PATH_RAY_DIFFUSE_ANCESTOR)) {
+    /* Fall back to diffuse after a diffuse ancestor for Christensen-Burley. Can't see it that
+     * well and it adds considerable noise due to probabilities of continuing the path getting
+     * lower and lower. The disk sampling must probe in directions where most of the time
+     * nothing will be hit. */
     bssrdf_channels = 0;
     diffuse_weight = bssrdf->weight;
   }
