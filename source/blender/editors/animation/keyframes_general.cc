@@ -2142,7 +2142,7 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
     ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, false, false);
     paste_animedit_keys_fcurve(
         fcu, fcurve_in_copy_buffer, offset, paste_context.merge_mode, false);
-    ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, true, true);
+    ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, true, false);
 
     ale->update |= ANIM_UPDATE_DEFAULT;
 
