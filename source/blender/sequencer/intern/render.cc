@@ -1416,7 +1416,7 @@ static ImBuf *seq_render_scene_strip(const RenderData *context,
 #if 0 /* UNUSED */
   have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
 #endif
-  have_comp = (scene->r.scemode & R_DOCOMP) && scene->use_nodes && scene->compositing_node_group;
+  have_comp = (scene->r.scemode & R_DOCOMP) && scene->compositing_node_group;
 
   /* Get view layer for the strip. */
   ViewLayer *view_layer = BKE_view_layer_default_render(scene);

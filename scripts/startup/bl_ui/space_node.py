@@ -147,9 +147,6 @@ class NODE_HT_header(Header):
 
             NODE_MT_editor_menus.draw_collapsible(context, layout)
 
-            if snode_id:
-                layout.prop(snode_id, "use_nodes")
-
             layout.separator_spacer()
             row = layout.row()
             row.enabled = not snode.pin

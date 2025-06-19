@@ -472,7 +472,7 @@ def write_release_log(path, release_log, c, cat, rstate, rstate_list):
                                 "branch), only fixes of issues which already existed in previous official releases are "
                                 "listed here. Fixes for regressions introduced since last release, or for new "
                                 "features, are '''not''' listed here.<br/>For following RCs and final release, "
-                                "'''all''' backported fixes are listed.}}", IGNORE_END_LINE))
+                                "'''all''' back-ported fixes are listed.}}", IGNORE_END_LINE))
 
         f.write("\n".join(lines))
         f.write("\n")

@@ -258,9 +258,13 @@ using uiListItemGetNameFn =
     blender::FunctionRef<std::string(const PointerRNA &itemptr, int index)>;
 
 /**
- * Filter list items using \a item_filter_fn and sort the result. This respects the normal UI list
- * filter settings like alphabetical sorting (#UILST_FLT_SORT_ALPHA), and result inverting
- * (#UILST_FLT_EXCLUDE).
+ * Helper to apply custom filtering to UI lists not defined in Python. Custom filtering for
+ * Python UI lists has own code. This is also used as the default filtering if no
+ * #uiListType::filter_items callback is set.
+ *
+ * Filters list items using \a item_filter_fn and sorts the result. Also handles alphabetical
+ * sorting (#UILST_FLT_SORT_ALPHA), and result inverting (#UILST_FLT_EXCLUDE) if enabled, so the
+ * callback doesn't have to do this (unlike the filter function in Python).
  *
  * Call this from a #uiListType::filter_items callback with any #item_filter_fn. #uiListNameFilter
  * can be used to apply the default name based filtering.

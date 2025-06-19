@@ -176,10 +176,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
             cp = ts->header;
           }
           else if (g_theme_state.regionid == RGN_TYPE_NAV_BAR) {
-            cp = ts->navigation_bar;
-          }
-          else if (g_theme_state.regionid == RGN_TYPE_EXECUTE) {
-            cp = ts->execution_buts;
+            cp = ts->tab_back;
           }
           else if (g_theme_state.regionid == RGN_TYPE_ASSET_SHELF) {
             cp = btheme->asset_shelf.back;
@@ -279,6 +276,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
         case TH_PANEL_SUB_BACK:
           cp = btheme->tui.panel_sub_back;
+          break;
+        case TH_PANEL_OUTLINE:
+          cp = btheme->tui.panel_outline;
           break;
 
         case TH_BUTBACK:

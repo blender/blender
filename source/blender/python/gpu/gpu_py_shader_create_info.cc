@@ -205,7 +205,7 @@ static const PyC_StringEnumItems pygpu_depth_write_items[] = {
   "      - ``R16``\n" \
   "      - ``R11F_G11F_B10F``\n" \
   "      - ``DEPTH32F_STENCIL8``\n" \
-  "      - ``DEPTH24_STENCIL8``\n" \
+  "      - ``DEPTH24_STENCIL8`` (deprecated, use ``DEPTH32F_STENCIL8``)\n" \
   "      - ``SRGB8_A8``\n" \
   "      - ``RGB16F``\n" \
   "      - ``SRGB8_A8_DXT1``\n" \
@@ -215,7 +215,7 @@ static const PyC_StringEnumItems pygpu_depth_write_items[] = {
   "      - ``RGBA8_DXT3``\n" \
   "      - ``RGBA8_DXT5``\n" \
   "      - ``DEPTH_COMPONENT32F``\n" \
-  "      - ``DEPTH_COMPONENT24``\n" \
+  "      - ``DEPTH_COMPONENT24`` (deprecated, use ``DEPTH_COMPONENT32F``)\n" \
   "      - ``DEPTH_COMPONENT16``\n"
 extern const PyC_StringEnumItems pygpu_tex_format_items[];
 
@@ -788,6 +788,18 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
           pygpu_qualifiers, py_qualifiers, (int *)&qualifier, "shader_info.image") == -1)
   {
     return nullptr;
+  }
+
+  if (pygpu_texformat.value_found == GPU_DEPTH24_STENCIL8_DEPRECATED) {
+    pygpu_texformat.value_found = GPU_DEPTH32F_STENCIL8;
+    PyErr_WarnEx(
+        PyExc_DeprecationWarning, "'DEPTH24_STENCIL8' is deprecated. Use 'DEPTH32F_STENCIL8'.", 1);
+  }
+  if (pygpu_texformat.value_found == GPU_DEPTH_COMPONENT24_DEPRECATED) {
+    pygpu_texformat.value_found = GPU_DEPTH_COMPONENT32F;
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "'DEPTH_COMPONENT24' is deprecated. Use 'DEPTH_COMPONENT32F'.",
+                 1);
   }
 
 #  ifdef USE_GPU_PY_REFERENCES

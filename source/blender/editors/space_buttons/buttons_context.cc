@@ -1193,7 +1193,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
   }
 
   uiLayout *row = &panel->layout->row(true);
-  uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
+  row->alignment_set(blender::ui::LayoutAlign::Left);
 
   bool first = true;
   for (int i = 0; i < path->len; i++) {
@@ -1250,7 +1250,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
   }
 
   uiLayout *pin_row = &row->row(false);
-  uiLayoutSetAlignment(pin_row, UI_LAYOUT_ALIGN_RIGHT);
+  pin_row->alignment_set(blender::ui::LayoutAlign::Right);
   uiItemSpacer(pin_row);
   pin_row->emboss_set(blender::ui::EmbossType::None);
   pin_row->op(

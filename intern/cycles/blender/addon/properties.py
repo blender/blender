@@ -364,7 +364,7 @@ def update_render_engine(self, context):
 
 
 def update_world(self, context):
-    # Force a depsgraph update, because add-on properties dont.
+    # Force a depsgraph update, because add-on properties don't.
     # (at least not from the UI, see #138071)
     context.scene.world.update_tag()
 

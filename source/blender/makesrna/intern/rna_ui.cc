@@ -1445,12 +1445,12 @@ static void rna_UILayout_keep_aspect_set(PointerRNA *ptr, int value)
 
 static int rna_UILayout_alignment_get(PointerRNA *ptr)
 {
-  return uiLayoutGetAlignment(static_cast<uiLayout *>(ptr->data));
+  return int(static_cast<uiLayout *>(ptr->data)->alignment());
 }
 
 static void rna_UILayout_alignment_set(PointerRNA *ptr, int value)
 {
-  uiLayoutSetAlignment(static_cast<uiLayout *>(ptr->data), value);
+  static_cast<uiLayout *>(ptr->data)->alignment_set(blender::ui::LayoutAlign(value));
 }
 
 static int rna_UILayout_direction_get(PointerRNA *ptr)
@@ -1654,10 +1654,10 @@ static void rna_def_ui_layout(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem alignment_items[] = {
-      {UI_LAYOUT_ALIGN_EXPAND, "EXPAND", 0, "Expand", ""},
-      {UI_LAYOUT_ALIGN_LEFT, "LEFT", 0, "Left", ""},
-      {UI_LAYOUT_ALIGN_CENTER, "CENTER", 0, "Center", ""},
-      {UI_LAYOUT_ALIGN_RIGHT, "RIGHT", 0, "Right", ""},
+      {int(blender::ui::LayoutAlign::Expand), "EXPAND", 0, "Expand", ""},
+      {int(blender::ui::LayoutAlign::Left), "LEFT", 0, "Left", ""},
+      {int(blender::ui::LayoutAlign::Center), "CENTER", 0, "Center", ""},
+      {int(blender::ui::LayoutAlign::Right), "RIGHT", 0, "Right", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

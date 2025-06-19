@@ -53,12 +53,11 @@ GLStateManager::GLStateManager()
 
 void GLStateManager::apply_state()
 {
-  if (!this->use_bgl) {
-    this->set_state(this->state);
-    this->set_mutable_state(this->mutable_state);
-    this->texture_bind_apply();
-    this->image_bind_apply();
-  }
+  this->set_state(this->state);
+  this->set_mutable_state(this->mutable_state);
+  this->texture_bind_apply();
+  this->image_bind_apply();
+
   /* This is needed by gpu_py_offscreen. */
   active_fb->apply_state();
 };

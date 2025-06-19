@@ -38,6 +38,7 @@ namespace blender::ui {
 enum class ItemType : int8_t;
 enum class ItemInternalFlag : uint8_t;
 enum class EmbossType : uint8_t;
+enum class LayoutAlign : int8_t;
 }  // namespace blender::ui
 
 struct PanelLayout {
@@ -96,7 +97,7 @@ struct uiLayout : uiItem {
   bool keepaspect_;
   /** For layouts inside grid-flow, they and their items shall never have a fixed maximal size. */
   bool variable_size_;
-  char alignment_;
+  blender::ui::LayoutAlign alignment_;
   blender::ui::EmbossType emboss_;
   /** for fixed width or height to avoid UI size changes */
   float units_[2];
@@ -126,6 +127,9 @@ struct uiLayout : uiItem {
    * activated.
    */
   void activate_init_set(bool activate_init);
+
+  blender::ui::LayoutAlign alignment() const;
+  void alignment_set(blender::ui::LayoutAlign alignment);
 
   uiBlock *block() const;
 
@@ -442,6 +446,16 @@ inline void uiLayout::activate_init_set(bool activate_init)
   activate_init_ = activate_init;
 }
 
+inline blender::ui::LayoutAlign uiLayout::alignment() const
+{
+  return alignment_;
+}
+
+inline void uiLayout::alignment_set(blender::ui::LayoutAlign alignment)
+{
+  alignment_ = alignment;
+}
+
 inline bContextStore *uiLayout::context_store() const
 {
   return context_;
@@ -506,12 +520,14 @@ enum {
   UI_LAYOUT_VERT_BAR = 5,
 };
 
-enum {
-  UI_LAYOUT_ALIGN_EXPAND = 0,
-  UI_LAYOUT_ALIGN_LEFT = 1,
-  UI_LAYOUT_ALIGN_CENTER = 2,
-  UI_LAYOUT_ALIGN_RIGHT = 3,
+namespace blender::ui {
+enum class LayoutAlign : int8_t {
+  Expand = 0,
+  Left = 1,
+  Center = 2,
+  Right = 3,
 };
+}  // namespace blender::ui
 
 enum eUI_Item_Flag : uint16_t {
   /* UI_ITEM_O_RETURN_PROPS = 1 << 0, */ /* UNUSED */
@@ -605,7 +621,6 @@ void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout);
 void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout);
 
 void uiLayoutSetRedAlert(uiLayout *layout, bool redalert);
-void uiLayoutSetAlignment(uiLayout *layout, char alignment);
 void uiLayoutSetFixedSize(uiLayout *layout, bool fixed_size);
 void uiLayoutSetKeepAspect(uiLayout *layout, bool keepaspect);
 void uiLayoutSetPropSep(uiLayout *layout, bool is_sep);
@@ -614,7 +629,6 @@ int uiLayoutGetLocalDir(const uiLayout *layout);
 void uiLayoutSetSearchWeight(uiLayout *layout, float weight);
 
 bool uiLayoutGetRedAlert(uiLayout *layout);
-int uiLayoutGetAlignment(uiLayout *layout);
 bool uiLayoutGetFixedSize(uiLayout *layout);
 bool uiLayoutGetKeepAspect(uiLayout *layout);
 int uiLayoutGetWidth(uiLayout *layout);

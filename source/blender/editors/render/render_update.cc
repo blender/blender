@@ -251,7 +251,7 @@ static void texture_changed(Main *bmain, Tex *tex)
       BKE_paint_invalidate_overlay_tex(scene, view_layer, tex);
     }
     /* find compositing nodes */
-    if (scene->use_nodes && scene->compositing_node_group) {
+    if (scene->compositing_node_group) {
       for (bNode *node : scene->compositing_node_group->all_nodes()) {
         if (node->id == &tex->id) {
           blender::ed::space_node::tag_update_id(&scene->id);

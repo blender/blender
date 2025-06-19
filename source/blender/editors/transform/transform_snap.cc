@@ -1374,21 +1374,24 @@ void tranform_snap_target_median_calc(const TransInfo *t, float r_median[3])
   zero_v3(r_median);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    TransData *td = tc->data;
-    int i;
     float v[3];
     zero_v3(v);
 
-    for (i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
+    BLI_assert(tc->sorted_index_map);
+    for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+      TransData *td = &tc->data[i];
+      if (!(td->flag & TD_SELECTED)) {
+        break;
+      }
       add_v3_v3(v, td->center);
     }
 
-    if (i == 0) {
+    if (tc->data_len == 0) {
       /* Is this possible? */
       continue;
     }
 
-    mul_v3_fl(v, 1.0 / i);
+    mul_v3_fl(v, 1.0 / tc->data_len);
 
     if (tc->use_local_mat) {
       mul_m4_v3(tc->mat, v);
@@ -1463,10 +1466,14 @@ static void snap_source_closest_fn(TransInfo *t)
 
     /* Object mode. */
     if (t->options & CTX_OBJECT) {
-      int i;
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        TransData *td;
-        for (td = tc->data, i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
+        BLI_assert(tc->sorted_index_map);
+        for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+          TransData *td = &tc->data[i];
+          if (!(td->flag & TD_SELECTED)) {
+            break;
+          }
+
           std::optional<Bounds<float3>> bounds;
 
           if ((t->options & CTX_OBMODE_XFORM_OBDATA) == 0) {
@@ -1518,9 +1525,13 @@ static void snap_source_closest_fn(TransInfo *t)
     }
     else {
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        TransData *td = tc->data;
-        int i;
-        for (i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
+        BLI_assert(tc->sorted_index_map);
+        for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+          TransData *td = &tc->data[i];
+          if (!(td->flag & TD_SELECTED)) {
+            break;
+          }
+
           float loc[3];
           float dist;
 

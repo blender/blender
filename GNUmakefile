@@ -99,6 +99,9 @@ Spell Checkers
    Example:
       make check_spelling_c CHECK_SPELLING_CACHE=../spelling_cache.data
 
+   Note: additonal arguments can be passed in via: 'CHECK_SPELLING_EXTRA_ARGS'.
+   See the output of './tools/check_source/check_spelling.py --help' for details.
+
 Utilities
    Not associated with building Blender.
 
@@ -131,10 +134,6 @@ Utilities
    * license:
      Create a combined file with all the license information relative to the libraries and other
      code depedencies.
-
-   * generate_datamodels:
-     Generate Python code based on OpenAPI specifications. The Python code is also tracked by
-	 Git, and so running this command is only necessary when the OpenAPI specification changes.
 
 Environment Variables
 
@@ -528,6 +527,7 @@ check_spelling_py: .FORCE
 	    "$(BLENDER_DIR)/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    --match=".*\.(py)$$" \
+	    $(CHECK_SPELLING_EXTRA_ARGS) \
 	    "$(BLENDER_DIR)/release" \
 	    "$(BLENDER_DIR)/scripts" \
 	    "$(BLENDER_DIR)/source" \
@@ -540,6 +540,7 @@ check_spelling_c: .FORCE
 	    "$(BLENDER_DIR)/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    --match=".*\.(c|cc|cpp|cxx|h|hh|hpp|hxx|inl|m|mm)$$" \
+	    $(CHECK_SPELLING_EXTRA_ARGS) \
 	    "$(BLENDER_DIR)/source" \
 	    "$(BLENDER_DIR)/intern/cycles" \
 	    "$(BLENDER_DIR)/intern/guardedalloc" \
@@ -550,6 +551,7 @@ check_spelling_shaders: .FORCE
 	    "$(BLENDER_DIR)/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    --match=".*\.(osl|metal|msl|glsl)$$" \
+	    $(CHECK_SPELLING_EXTRA_ARGS) \
 	    "$(BLENDER_DIR)/intern/" \
 	    "$(BLENDER_DIR)/source/"
 
@@ -559,6 +561,7 @@ check_spelling_cmake: .FORCE
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    --match=".*\.(cmake)$$" \
 	    --match=".*\bCMakeLists\.(txt)$$" \
+	    $(CHECK_SPELLING_EXTRA_ARGS) \
 	    "$(BLENDER_DIR)/build_files/" \
 	    "$(BLENDER_DIR)/intern/" \
 	    "$(BLENDER_DIR)/source/"
@@ -614,9 +617,6 @@ update_code: .FORCE
 format: .FORCE
 	@PATH="${LIBDIR}/llvm/bin/:$(PATH)" $(PYTHON) tools/utils_maintenance/clang_format_paths.py $(PATHS)
 	@$(PYTHON) tools/utils_maintenance/autopep8_format_paths.py --autopep8-command="$(AUTOPEP8)" $(PATHS)
-
-generate_datamodels:
-	@$(PYTHON) ./build_files/utils/make_generate_datamodels.py
 
 license: .FORCE
 	@$(PYTHON) tools/utils_maintenance/make_license.py

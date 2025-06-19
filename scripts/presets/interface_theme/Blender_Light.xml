@@ -471,8 +471,6 @@
             button_title="#1a1a1a"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#656565ff"
             >
             <gradients>
@@ -535,8 +533,6 @@
             button_title="#1a1a1a"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#999999ff"
             >
           </ThemeSpaceGeneric>
@@ -570,8 +566,6 @@
             button_title="#1a1a1a"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#999999e6"
             tab_back="#999999ff"
             >
           </ThemeSpaceGeneric>
@@ -618,8 +612,6 @@
             button_title="#000000"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#404040ff"
             >
           </ThemeSpaceGeneric>
@@ -685,8 +677,6 @@
             button_title="#000000"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#404040ff"
             >
           </ThemeSpaceGeneric>
@@ -761,8 +751,6 @@
             button_title="#1a1a1a"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#656565ff"
             >
           </ThemeSpaceGeneric>
@@ -822,8 +810,6 @@
             button_title="#1a1a1a"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#656565ff"
             >
           </ThemeSpaceGeneric>
@@ -857,8 +843,6 @@
             button_title="#000000"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#a6a6a6ff"
-            execution_buts="#00000000"
             tab_back="#404040ff"
             >
           </ThemeSpaceGeneric>
@@ -893,8 +877,6 @@
             button_title="#000000"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#404040ff"
             >
           </ThemeSpaceGeneric>
@@ -950,8 +932,6 @@
             button_title="#1a1a1a"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#656565ff"
             >
           </ThemeSpaceGeneric>
@@ -990,8 +970,6 @@
             button_title="#000000"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#404040ff"
             >
           </ThemeSpaceGeneric>
@@ -1025,8 +1003,6 @@
             button_title="#000000"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#404040ff"
             >
           </ThemeSpaceGeneric>
@@ -1048,8 +1024,6 @@
             button_title="#000000"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#b3b3b3ff"
-            execution_buts="#b3b3b3ff"
             tab_back="#404040ff"
             >
           </ThemeSpaceGeneric>
@@ -1078,8 +1052,6 @@
             button_title="#ffffff"
             button_text="#cccccc"
             button_text_hi="#ffffff"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#404040ff"
             >
           </ThemeSpaceGeneric>
@@ -1133,8 +1105,6 @@
             button_title="#000000"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#404040ff"
             >
           </ThemeSpaceGeneric>
@@ -1165,8 +1135,6 @@
             button_title="#ffffff"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#28292dff"
             >
           </ThemeSpaceGeneric>
@@ -1188,8 +1156,6 @@
             button_title="#ffffff"
             button_text="#ffffff"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#00000000"
             tab_back="#28292dff"
             >
           </ThemeSpaceGeneric>
@@ -1213,8 +1179,6 @@
             button_title="#1a1a1a"
             button_text="#000000"
             button_text_hi="#000000"
-            navigation_bar="#00000000"
-            execution_buts="#999999e6"
             tab_back="#999999ff"
             >
           </ThemeSpaceGeneric>

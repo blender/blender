@@ -244,7 +244,7 @@ class GREASE_PENCIL_MT_layer_active(Menu):
 
 
 class GPENCIL_UL_annotation_layer(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
         gpl = item
         if gpl.lock:
@@ -502,7 +502,7 @@ class GreasePencilMaterialsPanel:
 
 
 class GPENCIL_UL_layer(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
         gpl = item
         if gpl.lock:

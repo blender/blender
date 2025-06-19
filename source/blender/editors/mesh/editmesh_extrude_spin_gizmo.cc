@@ -904,7 +904,12 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
     ARegion *region = CTX_wm_region(C);
     wmGizmoMap *gzmap = region->runtime->gizmo_map;
     wmGizmoGroup *gzgroup_init = WM_gizmomap_group_find(gzmap, "MESH_GGT_spin");
-    if (gzgroup_init) {
+    /* NOTE(@ideasman42): the intention here is to initialize one gizmo from another.
+     * This works when activating the tool but can fail when switching tools & space types,
+     * In this case setting an identity matrix is used when changing contexts.
+     * Having a spin start in one region, then continuing to adjust this in another region
+     * with the orientation matrix properly set would be good to support though. See: #140339. */
+    if (gzgroup_init && gzgroup_init->customdata) {
       GizmoGroupData_SpinInit *ggd_init = static_cast<GizmoGroupData_SpinInit *>(
           gzgroup_init->customdata);
       copy_m3_m3(ggd->data.orient_mat, ggd_init->data.orient_mat);

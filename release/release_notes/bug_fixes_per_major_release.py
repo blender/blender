@@ -823,7 +823,7 @@ def print_release_notes(list_of_commits: list[CommitInfo]) -> None:
 
     print(r"""What to do with this output:
     - Go through every commit in the "Commits that need manual sorting" section and:
-      - Find the corrisponding issue that was fixed (it will be in the commit message)
+      - Find the corresponding issue that was fixed (it will be in the commit message)
       - Update the "Broken" and/or "Working" fields of the report with relevant information so this script can sort it.
         - Add a module label if it's missing one.
       - Rerun this script.

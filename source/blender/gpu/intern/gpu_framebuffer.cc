@@ -749,7 +749,7 @@ GPUOffScreen *GPU_offscreen_create(int width,
     /* Format view flag is needed by Workbench Volumes to read the stencil view. */
     eGPUTextureUsage depth_usage = usage | GPU_TEXTURE_USAGE_FORMAT_VIEW;
     ofs->depth = GPU_texture_create_2d(
-        "ofs_depth", width, height, 1, GPU_DEPTH24_STENCIL8, depth_usage, nullptr);
+        "ofs_depth", width, height, 1, GPU_DEPTH32F_STENCIL8, depth_usage, nullptr);
   }
 
   if ((with_depth_buffer && !ofs->depth) || !ofs->color) {

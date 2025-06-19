@@ -186,7 +186,7 @@ void OpaquePass::draw(Manager &manager,
   }
 
   if (shadow_pass) {
-    shadow_depth_stencil_tx.ensure_2d(GPU_DEPTH24_STENCIL8,
+    shadow_depth_stencil_tx.ensure_2d(GPU_DEPTH32F_STENCIL8,
                                       resolution,
                                       GPU_TEXTURE_USAGE_SHADER_READ |
                                           GPU_TEXTURE_USAGE_ATTACHMENT |

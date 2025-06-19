@@ -682,7 +682,7 @@ void Instance::end_sync()
                                                    size.x,
                                                    size.y,
                                                    1,
-                                                   GPU_DEPTH24_STENCIL8,
+                                                   GPU_DEPTH32F_STENCIL8,
                                                    GPU_TEXTURE_USAGE_GENERAL,
                                                    nullptr);
     }

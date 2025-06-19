@@ -67,7 +67,6 @@ void VKDevice::deinit()
   if (!is_initialized()) {
     return;
   }
-  lifetime = Lifetime::DEINITIALIZING;
 
   deinit_submission_pool();
 
@@ -108,12 +107,7 @@ void VKDevice::deinit()
   glsl_frag_patch_.clear();
   glsl_geom_patch_.clear();
   glsl_comp_patch_.clear();
-  lifetime = Lifetime::DESTROYED;
-}
-
-bool VKDevice::is_initialized() const
-{
-  return lifetime == Lifetime::RUNNING;
+  is_initialized_ = false;
 }
 
 void VKDevice::init(void *ghost_context)
@@ -152,7 +146,7 @@ void VKDevice::init(void *ghost_context)
   orphaned_data.timeline_ = 0;
 
   init_submission_pool();
-  lifetime = Lifetime::RUNNING;
+  is_initialized_ = true;
 }
 
 void VKDevice::init_functions()

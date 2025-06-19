@@ -2490,7 +2490,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
   obi->obindex = obindex << LRT_OBINDEX_SHIFT;
 
   /* Prepare the matrix used for transforming this specific object (instance). This has to be
-   * done before mesh boundbox check because the function needs that. */
+   * done before mesh bound-box check because the function needs that. */
   mul_m4db_m4db_m4fl(obi->model_view_proj, ld->conf.view_projection, use_mat);
   mul_m4db_m4db_m4fl(obi->model_view, ld->conf.view, use_mat);
 

@@ -390,7 +390,6 @@ class RENDER_PT_output_pixel_density(RenderOutputButtonsPanel, Panel):
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
-        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 

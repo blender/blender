@@ -790,6 +790,7 @@ void postTrans(bContext *C, TransInfo *t)
       MEM_SAFE_FREE(tc->data_mirror);
       MEM_SAFE_FREE(tc->data_ext);
       MEM_SAFE_FREE(tc->data_2d);
+      MEM_SAFE_FREE(tc->sorted_index_map);
     }
   }
 

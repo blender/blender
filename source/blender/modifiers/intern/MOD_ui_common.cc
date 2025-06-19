@@ -448,7 +448,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
     name_row->prop(ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
-    uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+    row->alignment_set(blender::ui::LayoutAlign::Right);
   }
 
   /* Extra padding for delete button. */

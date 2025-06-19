@@ -15,6 +15,7 @@ regular Blender build process, and only needs to be run when any of the YAML
 files change.
 """
 
+import argparse
 from pathlib import Path
 import sys
 import time
@@ -78,8 +79,15 @@ CUSTOM_FILE_HEADER = """
 def main() -> None:
     """Run the datamodel code generator."""
 
+    argparser = argparse.ArgumentParser(description="Run the datamodel code generator.")
+    argparser.add_argument('source_root', type=Path, help="The root of Blender's source directory")
+    args = argparser.parse_args(sys.argv[1:])
+    root_path: Path = args.source_root
+
+    if not root_path.is_dir():
+        raise SystemExit("Path {!s} should be a directory".format(root_path))
+
     print("Generating data model files:")
-    root_path = _find_blender_root()
 
     # Hide warnings about unknown `format` specifiers in the OpenAPI spec
     # file. The only warning I (Sybren) have seen so far is that `format: url`
@@ -138,31 +146,11 @@ def _generate_datamodel(in_path: Path, in_type: str, out_path: Path) -> None:
             raise SystemExit(f"unknown result from code generation: {status}")
 
 
-def _find_blender_root() -> Path:
-    """Find the source code root path.
-
-    Basically we go up the directory structure until `source/blender` can be
-    resolved. That seems like a decent indicator.
-    """
-
-    path = Path(__file__).parent
-
-    # At a root path, the path's parent is the same as the path itself.
-    while path.parent != path:
-        if (path / "source/blender").exists():
-            return path
-        path = path.parent
-
-    raise SystemExit("Could not find the root path of Blender's source code")
-
-
 # --------- Below this point is the self-bootstrapping logic ---------
 
 
-import hashlib
 import importlib.util
 import subprocess
-import tempfile
 import venv
 
 
@@ -175,11 +163,9 @@ REQUIREMENTS = [
 # Name of a module to import, to test whether dependencies have been installed or not.
 TEST_INSTALL_MODULE = "pydantic"
 
-# Get a stable temp directory based on the script's path. This is used for
-# the virtualenv, which shouldn't be created in Blender's source code.
-SCRIPT_PATH = Path(__file__).resolve()
-SCRIPT_HASH = hashlib.md5(str(SCRIPT_PATH).encode()).hexdigest()[:8]  # Short hash for uniqueness
-VENV_DIR = Path(tempfile.gettempdir()) / f"venv_blender_generate_datamodels_{SCRIPT_HASH}"
+# Directory for the virtualenv. This script is expected to run with Blender's
+# build directory as its working directory.
+VENV_DIR = Path("generate_datamodels_venv").resolve()
 
 # Python executable inside the virtual environment.
 VENV_PYTHON = VENV_DIR / "Scripts/python.exe" if sys.platform == "win32" else VENV_DIR / "bin/python"

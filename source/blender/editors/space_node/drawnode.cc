@@ -1169,7 +1169,7 @@ static void std_node_socket_draw(
   if (has_gizmo) {
     if (sock->in_out == SOCK_OUT && node->is_group_input()) {
       uiLayout *row = &layout->row(false);
-      uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+      row->alignment_set(blender::ui::LayoutAlign::Right);
       node_socket_button_label(C, row, ptr, node_ptr, text);
       row->label("", ICON_GIZMO);
       return;

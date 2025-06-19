@@ -2161,8 +2161,9 @@ Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
     const TransDataContainer *tc, Vector<float3> &r_loc_dst_buffer)
 {
   int td_selected_len = 0;
-  TransData *td = tc->data;
-  for (int i = 0; i < tc->data_len; i++, td++) {
+  BLI_assert(tc->sorted_index_map);
+  for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+    TransData *td = &tc->data[i];
     if (!(td->flag & TD_SELECTED)) {
       /* The selected ones are sorted at the beginning. */
       break;
@@ -2173,8 +2174,8 @@ Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
   Array<TransDataVertSlideVert> r_sv(td_selected_len);
 
   r_loc_dst_buffer.reserve(r_sv.size() * 4);
-  td = tc->data;
-  for (int i = 0; i < tc->data_len; i++, td++) {
+  for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+    TransData *td = &tc->data[i];
     if (!(td->flag & TD_SELECTED)) {
       /* The selected ones are sorted at the beginning. */
       break;
@@ -2296,8 +2297,9 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
   /* Ensure valid selection. */
   BMIter iter;
   BMVert *v;
-  TransData *td = tc->data;
-  for (int i = 0; i < tc->data_len; i++, td++) {
+  BLI_assert(tc->sorted_index_map);
+  for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+    TransData *td = &tc->data[i];
     if (!(td->flag & TD_SELECTED)) {
       /* The selected ones are sorted at the beginning. */
       break;
@@ -2332,8 +2334,8 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
   Array<TransDataEdgeSlideVert> r_sv(td_selected_len);
   TransDataEdgeSlideVert *sv = r_sv.data();
   int sv_index = 0;
-  td = tc->data;
-  for (int i = 0; i < tc->data_len; i++, td++) {
+  for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+    TransData *td = &tc->data[i];
     if (!(td->flag & TD_SELECTED)) {
       continue;
     }
