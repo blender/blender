@@ -852,7 +852,7 @@ TEST_F(RenderGraph, constant_fold_separate_combine_hsv)
   CORRECT_INFO_MESSAGE(log, "Folding SeparateHSV::Blue to constant (0.7).");
   CORRECT_INFO_MESSAGE(log, "Folding CombineHSV::Color to constant (0.3, 0.5, 0.7).");
 
-  /* R, G, B corrispond to H, S, V on this node */
+  /* R, G, B correspond to H, S, V on this node. */
   builder
       .add_node(ShaderNodeBuilder<SeparateColorNode>(graph, "SeparateHSV")
                     .set("Color", make_float3(0.3f, 0.5f, 0.7f))

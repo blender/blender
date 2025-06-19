@@ -19,8 +19,8 @@ namespace blender::gpu {
  * identical between GPU module and GHOST, otherwise GHOST can still select a device which isn't
  * supported.
  *
- * For example on a Linux machine where llvmpipe is installed and an not supported NVIDIA driver
- * Blender would detect a supported configuration using llvmpipe, but GHOST could still select the
+ * For example on a Linux machine where LLVMPIPE is installed and an not supported NVIDIA driver
+ * Blender would detect a supported configuration using LLVMPIPE, but GHOST could still select the
  * unsupported NVIDIA driver.
  *
  * Returns true when supported, false when not supported.
