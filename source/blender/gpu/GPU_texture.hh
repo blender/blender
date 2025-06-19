@@ -105,8 +105,6 @@ enum class TextureFormat : uint8_t {
   UFLOAT_9_9_9_EXP_5_(impl) \
 \
   UNORM_16_DEPTH_(impl) \
-  UNORM_24_DEPTH_(impl) /* TODO(fclem): Incompatible with metal, is emulated. To remove. */ \
-  UNORM_24_DEPTH_UINT_8_(impl) \
   SFLOAT_32_DEPTH_(impl) \
   SFLOAT_32_DEPTH_UINT_8_(impl) \
 \
@@ -186,8 +184,6 @@ enum class TextureTargetFormat : uint8_t {
   UFLOAT_11_11_10_(impl) \
 \
   UNORM_16_DEPTH_(impl) \
-  UNORM_24_DEPTH_(impl) /* TODO(fclem): Incompatible with metal, is emulated. To remove. */ \
-  UNORM_24_DEPTH_UINT_8_(impl) \
   SFLOAT_32_DEPTH_(impl) \
   SFLOAT_32_DEPTH_UINT_8_(impl) \
 \
@@ -687,7 +683,6 @@ enum eGPUTextureFormat {
   GPU_RGB10_A2UI = uint8_t(blender::gpu::TextureFormat::UINT_10_10_10_2),
   GPU_R11F_G11F_B10F = uint8_t(blender::gpu::TextureFormat::UFLOAT_11_11_10),
   GPU_DEPTH32F_STENCIL8 = uint8_t(blender::gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8),
-  GPU_DEPTH24_STENCIL8 = uint8_t(blender::gpu::TextureFormat::UNORM_24_DEPTH_UINT_8),
   GPU_SRGB8_A8 = uint8_t(blender::gpu::TextureFormat::SRGBA_8_8_8_8),
 
   /* Texture only formats. */
@@ -730,7 +725,6 @@ enum eGPUTextureFormat {
 
   /* Depth Formats. */
   GPU_DEPTH_COMPONENT32F = uint8_t(blender::gpu::TextureFormat::SFLOAT_32_DEPTH),
-  GPU_DEPTH_COMPONENT24 = uint8_t(blender::gpu::TextureFormat::UNORM_24_DEPTH),
   GPU_DEPTH_COMPONENT16 = uint8_t(blender::gpu::TextureFormat::UNORM_16_DEPTH),
 };
 

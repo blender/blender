@@ -121,9 +121,6 @@ bool Texture::init_cubemap(int w, int layers, int mip_len, eGPUTextureFormat for
 bool Texture::init_buffer(VertBuf *vbo, eGPUTextureFormat format)
 {
   /* See to_texture_format(). */
-  if (format == GPU_DEPTH_COMPONENT24) {
-    return false;
-  }
   w_ = GPU_vertbuf_get_vertex_len(vbo);
   h_ = 0;
   d_ = 0;
@@ -823,8 +820,6 @@ const char *GPU_texture_format_name(eGPUTextureFormat texture_format)
       return "R11F_G11F_B10F";
     case GPU_DEPTH32F_STENCIL8:
       return "DEPTH32F_STENCIL8";
-    case GPU_DEPTH24_STENCIL8:
-      return "DEPTH24_STENCIL8";
     case GPU_SRGB8_A8:
       return "SRGB8_A8";
     /* Texture only formats. */
@@ -884,8 +879,6 @@ const char *GPU_texture_format_name(eGPUTextureFormat texture_format)
     /* Depth Formats. */
     case GPU_DEPTH_COMPONENT32F:
       return "DEPTH_COMPONENT32F";
-    case GPU_DEPTH_COMPONENT24:
-      return "DEPTH_COMPONENT24";
     case GPU_DEPTH_COMPONENT16:
       return "DEPTH_COMPONENT16";
   }

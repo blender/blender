@@ -437,12 +437,10 @@ static PyObject *pygpu_texture_read(BPyGPUTexture *self)
    * So choose data_format here. */
   eGPUDataFormat best_data_format;
   switch (tex_format) {
-    case GPU_DEPTH_COMPONENT24:
     case GPU_DEPTH_COMPONENT16:
     case GPU_DEPTH_COMPONENT32F:
       best_data_format = GPU_DATA_FLOAT;
       break;
-    case GPU_DEPTH24_STENCIL8:
     case GPU_DEPTH32F_STENCIL8:
       best_data_format = GPU_DATA_UINT_24_8;
       break;

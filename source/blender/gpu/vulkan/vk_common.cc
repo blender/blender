@@ -56,12 +56,10 @@ VkImageAspectFlags to_vk_image_aspect_flag_bits(const eGPUTextureFormat format)
 
     /* Depth Formats. */
     case GPU_DEPTH_COMPONENT32F:
-    case GPU_DEPTH_COMPONENT24:
     case GPU_DEPTH_COMPONENT16:
       return VK_IMAGE_ASPECT_DEPTH_BIT;
 
     case GPU_DEPTH32F_STENCIL8:
-    case GPU_DEPTH24_STENCIL8:
       return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 
     /* Texture only formats. */
@@ -204,14 +202,10 @@ VkFormat to_vk_format(const eGPUTextureFormat format)
       return VK_FORMAT_R8G8B8A8_SRGB;
     case GPU_DEPTH32F_STENCIL8:
       return VK_FORMAT_D32_SFLOAT_S8_UINT;
-    case GPU_DEPTH24_STENCIL8:
-      return VK_FORMAT_D24_UNORM_S8_UINT;
 
     /* Depth Formats. */
     case GPU_DEPTH_COMPONENT32F:
       return VK_FORMAT_D32_SFLOAT;
-    case GPU_DEPTH_COMPONENT24:
-      return VK_FORMAT_X8_D24_UNORM_PACK32;
     case GPU_DEPTH_COMPONENT16:
       return VK_FORMAT_D16_UNORM;
 

@@ -695,7 +695,7 @@ void MTLFrameBuffer::update_attachments(bool /*update_viewport*/)
           /* Check stencil component -- if supplied texture format supports stencil. */
           eGPUTextureFormat format = GPU_texture_format(attach.tex);
           bool use_stencil = (type == GPU_FB_DEPTH_STENCIL_ATTACHMENT) &&
-                             (format == GPU_DEPTH32F_STENCIL8 || format == GPU_DEPTH24_STENCIL8);
+                             (format == GPU_DEPTH32F_STENCIL8);
           if (use_stencil) {
             if (this->has_stencil_attachment()) {
               MTLAttachment stencil_attachment_prev = this->get_stencil_attachment();
