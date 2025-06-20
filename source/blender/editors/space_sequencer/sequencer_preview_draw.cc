@@ -1047,12 +1047,12 @@ static void text_edit_draw_cursor(const bContext *C, const Strip *strip, uint po
       text->lines[cursor_position.y].characters[cursor_position.x].position;
   /* Clamp cursor coords to be inside of text boundbox. Compensate for cursor width, but also line
    * width hardcoded in shader. */
-  rcti text_boundbox = text->text_boundbox;
-  text_boundbox.xmax -= cursor_width + U.pixelsize;
-  text_boundbox.xmin += U.pixelsize;
+  const float bound_left = float(text->text_boundbox.xmin) + U.pixelsize;
+  const float bound_right = float(text->text_boundbox.xmax) - (cursor_width + U.pixelsize);
+  /* Note: do not use std::clamp since due to math above left can become larger than right. */
+  cursor_coords.x = std::max(cursor_coords.x, bound_left);
+  cursor_coords.x = std::min(cursor_coords.x, bound_right);
 
-  cursor_coords.x = std::clamp(
-      cursor_coords.x, float(text_boundbox.xmin), float(text_boundbox.xmax));
   cursor_coords = coords_region_view_align(UI_view2d_fromcontext(C), cursor_coords);
 
   blender::float4x2 cursor_quad{
