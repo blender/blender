@@ -250,7 +250,7 @@ FFMPEG_INLINE const enum AVSampleFormat *ffmpeg_get_sample_fmts(
 FFMPEG_INLINE const int *ffmpeg_get_sample_rates(struct AVCodecContext * /*context*/,
                                                  const AVCodec *codec)
 {
-  return codec->sample_rates;
+  return codec->supported_samplerates;
 }
 #endif
 
