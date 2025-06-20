@@ -26,6 +26,7 @@
 
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
+#include "WM_api.hh"
 
 #include "intern/bone_collections_internal.hh"
 
@@ -700,6 +701,7 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
      * solo'ing should still be active on the armature. */
     ANIM_armature_refresh_solo_active(armature);
   }
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, nullptr);
 }
 
 void ANIM_armature_bonecoll_remove(bArmature *armature, BoneCollection *bcoll)
