@@ -3144,8 +3144,12 @@ static wmOperatorStatus sequencer_export_subtitles_exec(bContext *C, wmOperator 
         FPS,
         USER_TIMECODE_SUBRIP);
 
-    fprintf(
-        file, "%d\n%s --> %s\n%s\n\n", iter++, timecode_str_start, timecode_str_end, data->text);
+    fprintf(file,
+            "%d\n%s --> %s\n%s\n\n",
+            iter++,
+            timecode_str_start,
+            timecode_str_end,
+            data->text_ptr);
 
     strip_next = static_cast<Strip *>(strip->next);
     MEM_freeN(strip);

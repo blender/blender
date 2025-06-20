@@ -85,7 +85,7 @@ bool effects_can_render_text(const Strip *strip);
 
 struct CharInfo {
   int index = 0;
-  const char *str_ptr = nullptr;
+  int offset = 0; /* Offset in bytes within text buffer. */
   int byte_length = 0;
   float2 position{0.0f, 0.0f};
   int advance_x = 0;

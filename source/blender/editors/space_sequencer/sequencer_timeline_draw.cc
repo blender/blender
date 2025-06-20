@@ -815,7 +815,7 @@ static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t 
     }
     case STRIP_TYPE_TEXT: {
       const TextVars *textdata = static_cast<TextVars *>(strip->effectdata);
-      BLI_strncpy(r_source, textdata->text, source_maxncpy);
+      BLI_strncpy(r_source, textdata->text_ptr, source_maxncpy);
       break;
     }
     case STRIP_TYPE_SCENE: {

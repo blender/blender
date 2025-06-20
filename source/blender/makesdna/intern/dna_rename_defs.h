@@ -212,6 +212,7 @@ DNA_STRUCT_RENAME_MEMBER(SurfaceDeformModifierData, num_mesh_verts, mesh_verts_n
 DNA_STRUCT_RENAME_MEMBER(SurfaceDeformModifierData, numpoly, target_polys_num)
 DNA_STRUCT_RENAME_MEMBER(SurfaceDeformModifierData, numverts, bind_verts_num)
 DNA_STRUCT_RENAME_MEMBER(Text, name, filepath)
+DNA_STRUCT_RENAME_MEMBER(TextVars, text, text_legacy)
 DNA_STRUCT_RENAME_MEMBER(ThemeSpace, scrubbing_background, time_scrub_background)
 DNA_STRUCT_RENAME_MEMBER(ThemeSpace, show_back_grad, background_type)
 DNA_STRUCT_RENAME_MEMBER(UVProjectModifierData, num_projectors, projectors_num)

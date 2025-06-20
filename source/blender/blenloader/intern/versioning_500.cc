@@ -12,6 +12,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -28,6 +29,8 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
+
+#include "SEQ_iterator.hh"
 
 #include "readfile.hh"
 
@@ -437,6 +440,24 @@ static void do_version_normal_node_dot_product(bNodeTree *node_tree, bNode *node
   }
 }
 
+static void version_seq_text_from_legacy(Main *bmain)
+{
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    if (scene->ed != nullptr) {
+      blender::seq::for_each_callback(&scene->ed->seqbase, [&](Strip *strip) -> bool {
+        if (strip->type == STRIP_TYPE_TEXT && strip->effectdata != nullptr) {
+          TextVars *data = static_cast<TextVars *>(strip->effectdata);
+          if (data->text_ptr == nullptr) {
+            data->text_ptr = BLI_strdup(data->text_legacy);
+            data->text_len_bytes = strlen(data->text_ptr);
+          }
+        }
+        return true;
+      });
+    }
+  }
+}
+
 void do_versions_after_linking_500(FileData * /*fd*/, Main * /*bmain*/)
 {
   /**
@@ -595,6 +616,10 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 25)) {
+    version_seq_text_from_legacy(bmain);
   }
 
   /**
