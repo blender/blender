@@ -782,12 +782,14 @@ void RNA_define_fallback_property_update(int noteflag, const char *updatefunc)
 void RNA_struct_free_extension(StructRNA *srna, ExtensionRNA *rna_ext)
 {
 #ifdef RNA_RUNTIME
-  rna_ext->free(rna_ext->data);               /* Decrefs the PyObject that the `srna` owns. */
+  rna_ext->free(rna_ext->data);
   RNA_struct_blender_type_set(srna, nullptr); /* FIXME: this gets accessed again. */
 
-  /* nullptr the srna's value so RNA_struct_free won't complain of a leak */
-  RNA_struct_py_type_set(srna, nullptr);
-
+  /* Decrease the reference and set to null so #RNA_struct_free doesn't warn of a leak. */
+  if (srna->py_type) {
+    BPY_DECREF(srna->py_type);
+    RNA_struct_py_type_set(srna, nullptr);
+  }
 #else
   (void)srna;
   (void)rna_ext;
