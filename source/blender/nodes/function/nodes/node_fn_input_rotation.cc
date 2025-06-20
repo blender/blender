@@ -6,7 +6,7 @@
 
 #include "NOD_geometry_nodes_gizmos.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "node_function_util.hh"

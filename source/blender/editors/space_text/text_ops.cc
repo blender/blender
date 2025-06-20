@@ -45,7 +45,9 @@
 #include "ED_curve.hh"
 #include "ED_screen.hh"
 #include "ED_text.hh"
+
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "RE_engine.h"

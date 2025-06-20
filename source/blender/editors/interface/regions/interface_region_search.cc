@@ -30,7 +30,6 @@
 
 #include "RNA_access.hh"
 
-#include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 #include "UI_view2d.hh"
 

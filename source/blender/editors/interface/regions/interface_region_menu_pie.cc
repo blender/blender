@@ -31,7 +31,7 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "BLT_translation.hh"
 

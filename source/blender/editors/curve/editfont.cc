@@ -62,6 +62,7 @@
 #include "ED_view3d.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "curve_intern.hh"
 

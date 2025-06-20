@@ -27,8 +27,6 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
-#include "UI_interface.hh"
-
 #include "WM_api.hh"
 #include "WM_message.hh"
 #include "WM_toolsystem.hh"

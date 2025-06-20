@@ -47,7 +47,6 @@
 #include "ED_node.hh"
 #include "ED_render.hh"
 
-#include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 
 #include "WM_api.hh"

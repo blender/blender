@@ -28,6 +28,7 @@
 #include "WM_api.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #define B_MATPRV 1
 

@@ -30,8 +30,6 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "UI_interface.hh"
-
 #include "WM_api.hh"
 
 #include <numeric>

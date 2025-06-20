@@ -20,6 +20,7 @@
 #include "RNA_prototypes.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 static void modifier_panel_id(void *md_link, char *r_name)
 {

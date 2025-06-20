@@ -48,6 +48,7 @@
 #include "DNA_space_types.h"
 
 #include "GPU_immediate.hh"
+
 #include "UI_interface_c.hh"
 #include "UI_resources.hh"
 

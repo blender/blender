@@ -14,7 +14,7 @@
 
 #include "NOD_geometry_nodes_bundle.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 namespace blender::nodes::node_geo_combine_bundle_cc {
 

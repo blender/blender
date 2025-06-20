@@ -15,7 +15,7 @@
 #include "RNA_access.hh"
 #include "RNA_types.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 struct bContext;
 

@@ -9,7 +9,7 @@
 #include "BLI_assert.h"
 #include "BLI_math_matrix.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "COM_node_operation.hh"

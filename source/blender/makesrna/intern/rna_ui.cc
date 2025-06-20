@@ -21,6 +21,7 @@
 #include "rna_internal.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"

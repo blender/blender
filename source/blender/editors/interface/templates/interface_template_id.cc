@@ -40,7 +40,7 @@
 
 #include "WM_api.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_string_search.hh"
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"

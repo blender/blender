@@ -39,8 +39,6 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
-#include "UI_interface.hh"
-
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 

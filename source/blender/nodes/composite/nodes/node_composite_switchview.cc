@@ -11,8 +11,6 @@
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 
-#include "UI_interface.hh"
-
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"

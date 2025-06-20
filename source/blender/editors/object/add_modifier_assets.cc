@@ -36,6 +36,7 @@
 #include "MOD_nodes.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "WM_api.hh"
 

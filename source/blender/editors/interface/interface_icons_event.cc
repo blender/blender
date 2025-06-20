@@ -18,8 +18,6 @@
 
 #include "BLT_translation.hh"
 
-#include "UI_interface.hh"
-
 #include "interface_intern.hh"
 
 static int inverted_icon(int icon_id)

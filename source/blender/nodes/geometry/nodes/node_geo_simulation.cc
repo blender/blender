@@ -17,7 +17,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "NOD_common.hh"
 #include "NOD_geo_bake.hh"

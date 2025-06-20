@@ -71,8 +71,6 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.hh"
 
-#include "UI_interface.hh"
-
 #include "BLF_api.hh"
 #include "BLT_translation.hh"
 

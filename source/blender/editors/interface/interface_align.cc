@@ -13,8 +13,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "UI_interface.hh"
-
 #include "interface_intern.hh"
 
 #include "MEM_guardedalloc.h"

@@ -9,6 +9,7 @@
 #include "GEO_mesh_to_curve.hh"
 
 #include "UI_interface_c.hh"
+#include "UI_interface_layout.hh"
 
 #include "node_geometry_util.hh"
 

@@ -35,7 +35,7 @@
 #include "wm.hh"
 #include "wm_window.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)

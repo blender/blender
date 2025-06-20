@@ -46,6 +46,7 @@
 #include "object_intern.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 namespace bake = blender::bke::bake;
 

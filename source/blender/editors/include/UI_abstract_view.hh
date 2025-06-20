@@ -31,6 +31,7 @@
 #include "BLI_string_ref.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "WM_types.hh"
 

@@ -18,6 +18,7 @@
 #include "BLT_translation.hh"
 
 #include "UI_interface_c.hh"
+#include "UI_interface_layout.hh"
 #include "UI_tree_view.hh"
 
 #include "ED_asset_filter.hh"

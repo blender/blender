@@ -9,7 +9,7 @@
 #include "node_shader_util.hh"
 #include "node_util.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_vector_transform_cc {

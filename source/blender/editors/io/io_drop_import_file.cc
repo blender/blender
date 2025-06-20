@@ -20,6 +20,7 @@
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "io_drop_import_file.hh"
 #include "io_utils.hh"

@@ -10,8 +10,6 @@
 
 #include "ED_asset.hh"
 
-#include "UI_interface.hh"
-
 #include "WM_api.hh"
 
 #include "interface_intern.hh"

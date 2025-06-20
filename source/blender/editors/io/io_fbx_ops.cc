@@ -26,6 +26,7 @@
 #  include "BLT_translation.hh"
 
 #  include "UI_interface.hh"
+#  include "UI_interface_layout.hh"
 
 #  include "IO_fbx.hh"
 #  include "io_fbx_ops.hh"

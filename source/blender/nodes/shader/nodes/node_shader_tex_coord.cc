@@ -6,7 +6,7 @@
 
 #include "DNA_customdata_types.h"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_tex_coord_cc {

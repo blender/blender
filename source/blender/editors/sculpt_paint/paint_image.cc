@@ -55,7 +55,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_types.hh"
 #include "UI_view2d.hh"
 
 #include "ED_grease_pencil.hh"

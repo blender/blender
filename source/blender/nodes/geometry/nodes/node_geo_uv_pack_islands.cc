@@ -11,7 +11,7 @@
 
 #include "NOD_rna_define.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 namespace blender::nodes::node_geo_uv_pack_islands_cc {
 

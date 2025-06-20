@@ -31,6 +31,7 @@
 #endif
 
 #include "ED_numinput.hh"
+
 #include "UI_interface.hh"
 
 /* Numeric input which isn't allowing full numeric editing. */

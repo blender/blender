@@ -31,7 +31,6 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_nla.hh"
 
-#include "UI_interface.hh"
 #include "UI_view2d.hh"
 
 #include "ED_anim_api.hh"

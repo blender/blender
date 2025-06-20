@@ -32,8 +32,6 @@
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
 
-#include "UI_interface.hh"
-
 #include "RNA_access.hh"
 #include "RNA_path.hh"
 

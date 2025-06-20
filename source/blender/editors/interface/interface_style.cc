@@ -24,8 +24,6 @@
 
 #include "BLF_api.hh"
 
-#include "UI_interface.hh"
-
 #include "interface_intern.hh"
 
 #ifdef WIN32

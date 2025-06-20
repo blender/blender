@@ -75,6 +75,7 @@
 #include "GEO_subdivide_curves.hh"
 
 #include "UI_interface_c.hh"
+#include "UI_interface_layout.hh"
 
 #include "UI_resources.hh"
 #include <limits>

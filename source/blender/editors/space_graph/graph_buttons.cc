@@ -48,6 +48,7 @@
 #include "ED_undo.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "graph_intern.hh" /* own include */

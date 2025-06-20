@@ -31,7 +31,7 @@
 #include "ED_screen.hh"
 
 #include "UI_abstract_view.hh"
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "interface_intern.hh"
 

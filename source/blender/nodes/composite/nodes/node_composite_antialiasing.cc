@@ -6,7 +6,6 @@
  * \ingroup cmpnodes
  */
 
-#include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "COM_algorithm_smaa.hh"

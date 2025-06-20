@@ -62,8 +62,6 @@
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
-#include "UI_interface.hh"
-
 #include "bmesh.hh"
 
 #include <cmath>

@@ -26,7 +26,7 @@
 #include "GEO_resample_curves.hh"
 #include "GEO_simplify_curves.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "MOD_grease_pencil_util.hh"
