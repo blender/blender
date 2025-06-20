@@ -349,6 +349,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg format: The format that describes the content of a single item.\n"
     "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
+    "      `UINT_24_8` is deprecated, use `FLOAT` instead.\n"
     "   :type format: str\n"
     "   :arg value: Sequence each representing the value to fill. Sizes 1..4 are supported.\n"
     "   :type value: Sequence[float]\n");
@@ -379,6 +380,9 @@ static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObje
   {
     return nullptr;
   }
+  if (pygpu_dataformat.value_found == GPU_DATA_UINT_24_8_DEPRECATED) {
+    PyErr_WarnEx(PyExc_DeprecationWarning, "`UINT_24_8` is deprecated, use `FLOAT` instead", 1);
+  }
 
   int shape = PySequence_Size(py_values);
   if (shape == -1) {
@@ -390,7 +394,8 @@ static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObje
     return nullptr;
   }
 
-  if (shape != 1 && ELEM(pygpu_dataformat.value_found, GPU_DATA_UINT_24_8, GPU_DATA_10_11_11_REV))
+  if (shape != 1 &&
+      ELEM(pygpu_dataformat.value_found, GPU_DATA_UINT_24_8_DEPRECATED, GPU_DATA_10_11_11_REV))
   {
     PyErr_SetString(PyExc_AttributeError,
                     "`UINT_24_8` and `10_11_11_REV` only support single values");
@@ -439,10 +444,8 @@ static PyObject *pygpu_texture_read(BPyGPUTexture *self)
   switch (tex_format) {
     case GPU_DEPTH_COMPONENT16:
     case GPU_DEPTH_COMPONENT32F:
-      best_data_format = GPU_DATA_FLOAT;
-      break;
     case GPU_DEPTH32F_STENCIL8:
-      best_data_format = GPU_DATA_UINT_24_8;
+      best_data_format = GPU_DATA_FLOAT;
       break;
     case GPU_R8UI:
     case GPU_R16UI:

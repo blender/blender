@@ -579,9 +579,9 @@ void gpu::MTLTexture::update_sub_depth_2d(
   /* Verify we are in a valid configuration. */
   BLI_assert(ELEM(format_, GPU_DEPTH_COMPONENT32F, GPU_DEPTH_COMPONENT16, GPU_DEPTH32F_STENCIL8));
   BLI_assert(validate_data_format(format_, type));
-  BLI_assert(ELEM(type, GPU_DATA_FLOAT, GPU_DATA_UINT_24_8, GPU_DATA_UINT));
+  BLI_assert(ELEM(type, GPU_DATA_FLOAT, GPU_DATA_UINT_24_8_DEPRECATED, GPU_DATA_UINT));
 
-  /* Determine whether we are in GPU_DATA_UINT_24_8 or GPU_DATA_FLOAT mode. */
+  /* Determine whether we are in GPU_DATA_UINT_24_8_DEPRECATED or GPU_DATA_FLOAT mode. */
   bool is_float = (type == GPU_DATA_FLOAT);
   eGPUTextureFormat format = (is_float) ? GPU_R32F : GPU_R32I;
 
@@ -592,7 +592,7 @@ void gpu::MTLTexture::update_sub_depth_2d(
       specialization.data_mode = MTL_DEPTH_UPDATE_MODE_FLOAT;
       break;
 
-    case GPU_DATA_UINT_24_8:
+    case GPU_DATA_UINT_24_8_DEPRECATED:
       specialization.data_mode = MTL_DEPTH_UPDATE_MODE_INT24;
       break;
 

@@ -729,7 +729,7 @@ inline size_t to_bytesize(eGPUDataFormat data_format)
     case GPU_DATA_INT:
     case GPU_DATA_UINT:
       return 4;
-    case GPU_DATA_UINT_24_8:
+    case GPU_DATA_UINT_24_8_DEPRECATED:
     case GPU_DATA_10_11_11_REV:
     case GPU_DATA_2_10_10_10_REV:
       return 4;
@@ -809,7 +809,7 @@ constexpr bool validate_data_format(eGPUTextureFormat tex_format, eGPUDataFormat
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_10_11_11_REV);
     case GPU_DEPTH32F_STENCIL8:
       /* Should have its own type. For now, we rely on the backend to do the conversion. */
-      return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UINT_24_8, GPU_DATA_UINT);
+      return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UINT_24_8_DEPRECATED, GPU_DATA_UINT);
     case GPU_SRGB8_A8:
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UBYTE);
 
@@ -918,7 +918,7 @@ inline eGPUDataFormat to_data_format(eGPUTextureFormat tex_format)
       return GPU_DATA_10_11_11_REV;
     case GPU_DEPTH32F_STENCIL8:
       /* Should have its own type. For now, we rely on the backend to do the conversion. */
-      return GPU_DATA_UINT_24_8;
+      return GPU_DATA_UINT_24_8_DEPRECATED;
     case GPU_SRGB8_A8:
       return GPU_DATA_FLOAT;
 

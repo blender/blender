@@ -741,7 +741,9 @@ enum eGPUDataFormat {
   GPU_DATA_UINT,
   GPU_DATA_UBYTE,
   /** Special type used for depth-stencil textures. */
-  GPU_DATA_UINT_24_8,
+  /* GPU_DATA_UINT_24_8_DEPRECATED is deprecated since Blender 5.0. It is still here as python
+   * add-ons can still use it. */
+  GPU_DATA_UINT_24_8_DEPRECATED,
   /** Special type used for packed 32bit per pixel textures. Data is stored in reverse order. */
   GPU_DATA_10_11_11_REV,
   GPU_DATA_2_10_10_10_REV,

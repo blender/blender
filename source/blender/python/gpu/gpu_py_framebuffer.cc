@@ -550,6 +550,7 @@ PyDoc_STRVAR(
     "   :type slot: int\n"
     "   :arg format: The format that describes the content of a single channel.\n"
     "      Possible values are `FLOAT`, `INT`, `UINT`, `UBYTE`, `UINT_24_8` and `10_11_11_REV`.\n"
+    "      `UINT_24_8` is deprecated, use `FLOAT` instead.\n"
     "   :type format: str\n"
     "   :arg data: Optional Buffer object to fill with the pixels values.\n"
     "   :type data: :class:`gpu.types.Buffer`\n"
@@ -597,6 +598,10 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
                                         &py_buffer))
   {
     return nullptr;
+  }
+
+  if (pygpu_dataformat.value_found == GPU_DATA_UINT_24_8_DEPRECATED) {
+    PyErr_WarnEx(PyExc_DeprecationWarning, "`UINT_24_8` is deprecated, use `FLOAT` instead", 1);
   }
 
   if (!IN_RANGE_INCL(channels, 1, 4)) {

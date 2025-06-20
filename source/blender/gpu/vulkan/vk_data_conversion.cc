@@ -597,7 +597,7 @@ static ConversionType host_to_device(const eGPUDataFormat host_format,
       return type_of_conversion_r11g11b10(device_format);
     case GPU_DATA_2_10_10_10_REV:
       return type_of_conversion_r10g10b10a2(device_format);
-    case GPU_DATA_UINT_24_8:
+    case GPU_DATA_UINT_24_8_DEPRECATED:
       return type_of_conversion_uint248(device_format);
   }
 

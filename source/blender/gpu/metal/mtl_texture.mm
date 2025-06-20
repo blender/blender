@@ -626,7 +626,7 @@ void gpu::MTLTexture::update_sub(
     }
 
     /* Safety Checks. */
-    if (type == GPU_DATA_UINT_24_8 || type == GPU_DATA_10_11_11_REV ||
+    if (type == GPU_DATA_UINT_24_8_DEPRECATED || type == GPU_DATA_10_11_11_REV ||
         type == GPU_DATA_2_10_10_10_REV || is_compressed)
     {
       BLI_assert(can_use_direct_blit &&
@@ -1619,7 +1619,7 @@ void gpu::MTLTexture::read_internal(int mip,
     image_components = 1;
     BLI_assert(num_output_components == 1);
     BLI_assert(image_components == 1);
-    BLI_assert(data_format == GPU_DATA_FLOAT || data_format == GPU_DATA_UINT_24_8);
+    BLI_assert(data_format == GPU_DATA_FLOAT || data_format == GPU_DATA_UINT_24_8_DEPRECATED);
     BLI_assert(validate_data_format(format_, data_format));
   }
 
@@ -1676,7 +1676,7 @@ void gpu::MTLTexture::read_internal(int mip,
       case GPU_DATA_FLOAT:
         depth_format_mode = 1;
         break;
-      case GPU_DATA_UINT_24_8:
+      case GPU_DATA_UINT_24_8_DEPRECATED:
         depth_format_mode = 2;
         break;
       case GPU_DATA_UINT:

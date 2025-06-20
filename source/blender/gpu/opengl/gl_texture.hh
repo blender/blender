@@ -365,7 +365,7 @@ inline GLenum to_gl(eGPUDataFormat format)
       return GL_UNSIGNED_INT;
     case GPU_DATA_UBYTE:
       return GL_UNSIGNED_BYTE;
-    case GPU_DATA_UINT_24_8:
+    case GPU_DATA_UINT_24_8_DEPRECATED:
       return GL_UNSIGNED_INT_24_8;
     case GPU_DATA_2_10_10_10_REV:
       return GL_UNSIGNED_INT_2_10_10_10_REV;

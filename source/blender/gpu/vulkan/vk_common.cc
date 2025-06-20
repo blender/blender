@@ -742,7 +742,7 @@ VkClearColorValue to_vk_clear_color_value(const eGPUDataFormat format, const voi
       copy_color<uint32_t>(result.uint32, uint_data);
       break;
     }
-    case GPU_DATA_UINT_24_8: {
+    case GPU_DATA_UINT_24_8_DEPRECATED: {
       BLI_assert_unreachable();
       break;
     }

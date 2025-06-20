@@ -114,7 +114,7 @@ void VKTexture::copy_to(Texture *tex)
 
 void VKTexture::clear(eGPUDataFormat format, const void *data)
 {
-  if (format == GPU_DATA_UINT_24_8) {
+  if (format == GPU_DATA_UINT_24_8_DEPRECATED) {
     float clear_depth = 0.0f;
     convert_host_to_device(
         &clear_depth, data, 1, format, GPU_DEPTH32F_STENCIL8, GPU_DEPTH32F_STENCIL8);

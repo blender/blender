@@ -404,7 +404,7 @@ void MTLFrameBuffer::clear_attachment(GPUAttachmentType type,
 
   if (type == GPU_FB_DEPTH_STENCIL_ATTACHMENT) {
     if (this->has_depth_attachment() || this->has_stencil_attachment()) {
-      BLI_assert(data_format == GPU_DATA_UINT_24_8);
+      BLI_assert(data_format == GPU_DATA_UINT_24_8_DEPRECATED);
       float depth = ((*(uint32_t *)clear_value) & 0x00FFFFFFu) / (float)0x00FFFFFFu;
       int stencil = ((*(uint32_t *)clear_value) >> 24);
       this->set_depth_attachment_clear_value(depth);
