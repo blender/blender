@@ -447,6 +447,7 @@ void AttributeStorage::blend_read(BlendDataReader &reader)
   for (const int i : IndexRange(this->dna_attributes_num)) {
     ::Attribute &dna_attr = this->dna_attributes[i];
     BLO_read_string(&reader, &dna_attr.name);
+    BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(dna_attr.name); });
 
     const std::optional<AttrDomain> domain = read_attr_domain(dna_attr.domain);
     if (!domain) {
@@ -455,6 +456,7 @@ void AttributeStorage::blend_read(BlendDataReader &reader)
 
     std::optional<Attribute::DataVariant> data = read_attr_data(
         reader, dna_attr.storage_type, dna_attr.data_type, dna_attr);
+    BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(dna_attr.data); });
     if (!data) {
       continue;
     }
@@ -468,9 +470,6 @@ void AttributeStorage::blend_read(BlendDataReader &reader)
     if (!this->runtime->attributes.add(std::move(attribute))) {
       CLOG_ERROR(&LOG, "Ignoring attribute with duplicate name: \"%s\"", dna_attr.name);
     }
-
-    MEM_SAFE_FREE(dna_attr.name);
-    MEM_SAFE_FREE(dna_attr.data);
   }
 
   /* These fields are not used at runtime. */

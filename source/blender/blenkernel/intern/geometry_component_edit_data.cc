@@ -116,6 +116,9 @@ static void remember_deformed_grease_pencil_if_necessary(const GreasePencil *gre
     if (curves.points_num() != orig_drawing->strokes().points_num()) {
       continue;
     }
+    if (curves.is_empty()) {
+      continue;
+    }
     drawing_hints.positions_data = save_shared_attribute(curves.attributes().lookup("position"));
   }
 }
