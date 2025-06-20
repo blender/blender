@@ -15,6 +15,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 
+#include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 

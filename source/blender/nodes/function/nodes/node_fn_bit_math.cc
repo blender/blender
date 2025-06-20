@@ -7,6 +7,7 @@
 #include "RNA_enum_types.hh"
 
 #include "UI_interface_layout.hh"
+#include "UI_resources.hh"
 
 #include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
