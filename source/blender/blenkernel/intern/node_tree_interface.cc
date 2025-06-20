@@ -1159,11 +1159,18 @@ bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
     SET_FLAG_FROM_TEST(flag, from_sock.in_out & SOCK_IN, NODE_INTERFACE_SOCKET_INPUT);
     SET_FLAG_FROM_TEST(flag, from_sock.in_out & SOCK_OUT, NODE_INTERFACE_SOCKET_OUTPUT);
 
-    iosock = ntree.tree_interface.add_socket(
-        name, from_sock.description, socket_type, flag, nullptr);
+    const nodes::SocketDeclaration *decl = from_sock.runtime->declaration;
+    StringRef description = from_sock.description;
+    if (decl) {
+      if (!decl->description.empty()) {
+        description = decl->description;
+      }
+    }
+
+    iosock = ntree.tree_interface.add_socket(name, description, socket_type, flag, nullptr);
 
     if (iosock) {
-      if (const nodes::SocketDeclaration *decl = from_sock.runtime->declaration) {
+      if (decl) {
         iosock->default_input = decl->default_input_type;
       }
     }
