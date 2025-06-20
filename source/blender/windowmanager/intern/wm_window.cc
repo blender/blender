@@ -662,7 +662,7 @@ static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const
 
   float titlebar_bg_color[3], titlebar_fg_color[3];
   UI_GetThemeColor3fv(TH_BACK, titlebar_bg_color);
-  UI_GetThemeColor3fv(TH_BUTBACK_TEXT, titlebar_fg_color);
+  UI_GetThemeColor3fv(TH_TEXT, titlebar_fg_color);
   copy_v3_v3(decoration_settings.colored_titlebar_bg_color, titlebar_bg_color);
   copy_v3_v3(decoration_settings.colored_titlebar_fg_color, titlebar_fg_color);
 
