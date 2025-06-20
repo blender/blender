@@ -13,6 +13,8 @@
 #include "BLI_utildefines.h"
 #include <Python.h>
 
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
+
 #include "BKE_callbacks.hh"
 
 #include "RNA_access.hh"
@@ -270,7 +272,7 @@ PyObject *BPY_app_handlers_struct()
   BlenderAppCbType.tp_init = nullptr;
   BlenderAppCbType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppCbType.tp_hash = (hashfunc)_Py_HashPointer;
+  BlenderAppCbType.tp_hash = (hashfunc)Py_HashPointer;
 
   /* assign the C callbacks */
   if (ret) {

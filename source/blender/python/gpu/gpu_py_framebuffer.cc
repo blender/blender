@@ -19,7 +19,7 @@
 #include "GPU_init_exit.hh"
 
 #include "../generic/py_capi_utils.hh"
-#include "../generic/python_compat.hh"
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 #include "../generic/python_utildefines.hh"
 
 #include "../mathutils/mathutils.hh"

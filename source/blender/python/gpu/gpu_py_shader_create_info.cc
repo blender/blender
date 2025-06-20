@@ -17,7 +17,7 @@
 #include "intern/gpu_shader_create_info.hh"
 
 #include "../generic/py_capi_utils.hh"
-#include "../generic/python_compat.hh"
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
 #include "gpu_py_shader.hh" /* own include */
 #include "gpu_py_texture.hh"

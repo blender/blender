@@ -27,7 +27,7 @@
 #include "bpy_rna.hh"
 
 #include "../generic/py_capi_rna.hh"
-#include "../generic/python_compat.hh"
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
 /* we may want to add, but not now */
 

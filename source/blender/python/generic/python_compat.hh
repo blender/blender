@@ -5,6 +5,9 @@
 /** \file
  * \ingroup pygen
  * \brief header-only compatibility defines.
+ *
+ * \note this header should not be removed/cleaned where Python is used.
+ * Because its required for Blender to build against different versions of Python.
  */
 
 #pragma once
@@ -26,4 +29,12 @@
 #  define PyObject_GetOptionalAttr _PyObject_LookupAttr
 
 #  define Py_IsFinalizing _Py_IsFinalizing
+#endif
+
+/* Python 3.14 made some changes, use the "new" names. */
+#if PY_VERSION_HEX < 0x030e0000
+#  define Py_HashPointer _Py_HashPointer
+#  define PyThreadState_GetUnchecked _PyThreadState_UncheckedGet
+
+/* TODO: Support: `PyDict_Pop`, it has different arguments. */
 #endif

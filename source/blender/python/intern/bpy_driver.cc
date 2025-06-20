@@ -326,7 +326,9 @@ static bool is_opcode_secure(const int opcode)
     OK_OP(UNARY_NEGATIVE)
     OK_OP(UNARY_NOT)
     OK_OP(UNARY_INVERT)
-    OK_OP(BINARY_SUBSCR)
+#  if PY_VERSION_HEX < 0x030e0000
+    OK_OP(BINARY_SUBSCR) /* Replaced with existing `BINARY_OP`. */
+#  endif
     OK_OP(GET_LEN)
 #  if PY_VERSION_HEX < 0x030c0000
     OK_OP(LIST_TO_TUPLE)

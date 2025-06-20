@@ -12,7 +12,7 @@
 #include <Python.h>
 
 #include "../generic/py_capi_utils.hh"
-#include "../generic/python_compat.hh"
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
 #include "gpu_py.hh"
 #include "gpu_py_vertex_format.hh" /* own include */

@@ -367,19 +367,19 @@ class TextureProperties_MixIn:
         description="How the image is extrapolated past its original bounds",
     )
 
-    t = bpy.types.Image.bl_rna.properties["alpha_mode"]
+    _Image_alpha_mode = bpy.types.Image.bl_rna.properties["alpha_mode"]
     alpha_mode: EnumProperty(
-        name=t.name,
-        items=tuple((e.identifier, e.name, e.description) for e in t.enum_items),
-        default=t.default,
-        description=t.description,
+        name=_Image_alpha_mode.name,
+        items=tuple((e.identifier, e.name, e.description) for e in _Image_alpha_mode.enum_items),
+        default=_Image_alpha_mode.default,
+        description=_Image_alpha_mode.description,
     )
 
-    t = bpy.types.ImageUser.bl_rna.properties["use_auto_refresh"]
+    _ImageUser_use_auto_refresh = bpy.types.ImageUser.bl_rna.properties["use_auto_refresh"]
     use_auto_refresh: BoolProperty(
-        name=t.name,
+        name=_ImageUser_use_auto_refresh.name,
         default=True,
-        description=t.description,
+        description=_ImageUser_use_auto_refresh.description,
     )
 
     relative: BoolProperty(

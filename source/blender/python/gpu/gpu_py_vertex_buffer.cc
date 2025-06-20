@@ -14,7 +14,7 @@
 #include "GPU_vertex_buffer.hh"
 
 #include "../generic/py_capi_utils.hh"
-#include "../generic/python_compat.hh"
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
 #include "gpu_py.hh"
 #include "gpu_py_vertex_buffer.hh" /* own include */

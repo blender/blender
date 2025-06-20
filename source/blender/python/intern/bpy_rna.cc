@@ -69,7 +69,7 @@
 #include "../generic/idprop_py_ui_api.hh"
 #include "../generic/py_capi_rna.hh"
 #include "../generic/py_capi_utils.hh"
-#include "../generic/python_compat.hh"
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 #include "../generic/python_utildefines.hh"
 
 #define USE_PEDANTIC_WRITE
@@ -1163,7 +1163,7 @@ static PyObject *pyrna_func_repr(BPy_FunctionRNA *self)
 
 static Py_hash_t pyrna_struct_hash(BPy_StructRNA *self)
 {
-  return _Py_HashPointer(self->ptr->data);
+  return Py_HashPointer(self->ptr->data);
 }
 
 /* From Python's meth_hash v3.1.2. */
@@ -1174,12 +1174,12 @@ static long pyrna_prop_hash(BPy_PropertyRNA *self)
     x = 0;
   }
   else {
-    x = _Py_HashPointer(self->ptr->data);
+    x = Py_HashPointer(self->ptr->data);
     if (x == -1) {
       return -1;
     }
   }
-  y = _Py_HashPointer((void *)(self->prop));
+  y = Py_HashPointer((void *)(self->prop));
   if (y == -1) {
     return -1;
   }

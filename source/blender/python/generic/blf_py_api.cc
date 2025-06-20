@@ -13,7 +13,7 @@
 
 #include "blf_py_api.hh"
 
-#include "../generic/py_capi_utils.hh"
+#include "py_capi_utils.hh"
 
 #include <Python.h>
 
@@ -25,7 +25,8 @@
 #include "../../imbuf/IMB_imbuf.hh"
 #include "../../imbuf/IMB_imbuf_types.hh"
 
-#include "python_compat.hh"
+#include "python_compat.hh" /* IWYU pragma: keep. */
+
 #include "python_utildefines.hh"
 
 #include "imbuf_py_api.hh"
