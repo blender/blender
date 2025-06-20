@@ -89,6 +89,24 @@ blender::float2 image_transform_mirror_factor_get(const Strip *strip);
  */
 blender::float2 image_transform_origin_offset_pixelspace_get(const Scene *scene,
                                                              const Strip *strip);
+
+/**
+ * Get strip transform origin relative value. This function is mainly needed to
+ * recalculate text strip origin position.
+ *
+ * \param render_size: Size of image canvas in pixels
+ * \param strip: Strip to calculate origin for
+ */
+float2 image_transform_origin_get(const Scene *scene, const Strip *strip);
+
+/**
+ * Get size of the image, which is produced by strip without any transformation.
+ *
+ * \param render_size: Size of image canvas in pixels
+ * \param strip: Strip to calculate origin for
+ */
+float2 transform_image_raw_size_get(const Scene *scene, const Strip *strip);
+
 /**
  * Get 4 corner points of strip image, optionally without rotation component applied.
  * Corner vectors are in viewport space.

@@ -8,15 +8,18 @@
  * \ingroup bke
  */
 
-#include "BLI_bounds.hh"
-#include "BLI_math_base.hh"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_rect.h"
+
+#include "BLF_api.hh"
 
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
@@ -28,6 +31,7 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
+#include "effects/effects.hh"
 #include "sequencer.hh"
 #include "strip_time.hh"
 
@@ -587,8 +591,10 @@ float2 image_transform_mirror_factor_get(const Strip *strip)
   return mirror;
 }
 
-static float2 strip_raw_image_size_get(const Scene *scene, const Strip *strip)
+float2 transform_image_raw_size_get(const Scene *scene, const Strip *strip)
 {
+  float2 scene_render_size(scene->r.xsch, scene->r.ysch);
+
   if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
     const StripElem *selem = strip->data->stripdata;
     return {float(selem->orig_width), float(selem->orig_height)};
@@ -601,22 +607,56 @@ static float2 strip_raw_image_size_get(const Scene *scene, const Strip *strip)
     }
   }
 
-  return {float(scene->r.xsch), float(scene->r.ysch)};
+  if (strip->type == STRIP_TYPE_TEXT) {
+    const TextVars *data = static_cast<TextVars *>(strip->effectdata);
+    const int font_flags = ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : 0) |
+                           ((data->flag & SEQ_TEXT_ITALIC) ? BLF_ITALIC : 0);
+    const int font = text_effect_font_init(nullptr, strip, font_flags);
+
+    const TextVarsRuntime *runtime = text_effect_calc_runtime(
+        strip, font, int2(scene_render_size));
+
+    const float2 text_size(float(BLI_rcti_size_x(&runtime->text_boundbox)),
+                           float(BLI_rcti_size_y(&runtime->text_boundbox)));
+    MEM_delete(runtime);
+    return text_size;
+  }
+
+  return scene_render_size;
+}
+
+float2 image_transform_origin_get(const Scene *scene, const Strip *strip)
+{
+
+  const StripTransform *transform = strip->data->transform;
+  if (strip->type != STRIP_TYPE_TEXT) {
+    return {transform->origin[0], transform->origin[1]};
+  }
+
+  /* Text image size is different from true image size, so the origin position must be
+   * calculated. */
+  float2 scene_render_size(scene->r.xsch, scene->r.ysch);
+  const float2 text_image_size = transform_image_raw_size_get(scene, strip);
+  const float2 scale = text_image_size / scene_render_size;
+  const float2 origin_rel(transform->origin[0], transform->origin[1]);
+  const float2 origin_center(0.5f, 0.5f);
+  const float2 origin_diff = origin_rel - origin_center;
+
+  const float2 true_origin_relative = origin_center + origin_diff * scale;
+  return true_origin_relative;
 }
 
 float2 image_transform_origin_offset_pixelspace_get(const Scene *scene, const Strip *strip)
 {
-  const float2 image_size = strip_raw_image_size_get(scene, strip);
   const StripTransform *transform = strip->data->transform;
-
-  const float2 origin(
-      (image_size[0] * transform->origin[0]) - (image_size[0] * 0.5f) + transform->xofs,
-      (image_size[1] * transform->origin[1]) - (image_size[1] * 0.5f) + transform->yofs);
-
+  const float2 image_size = transform_image_raw_size_get(scene, strip);
+  const float2 origin_relative(transform->origin[0], transform->origin[1]);
+  const float2 translation(transform->xofs, transform->yofs);
+  const float2 origin_pos_pixels = (image_size * origin_relative) - (image_size * 0.5f) +
+                                   translation;
   const float2 viewport_pixel_aspect(scene->r.xasp / scene->r.yasp, 1.0f);
   const float2 mirror = image_transform_mirror_factor_get(strip);
-
-  return origin * mirror * viewport_pixel_aspect;
+  return origin_pos_pixels * mirror * viewport_pixel_aspect;
 }
 
 static float3x3 seq_image_transform_matrix_get_ex(const Scene *scene,
@@ -624,12 +664,13 @@ static float3x3 seq_image_transform_matrix_get_ex(const Scene *scene,
                                                   bool apply_rotation = true)
 {
   const StripTransform *transform = strip->data->transform;
-  const float2 image_size = strip_raw_image_size_get(scene, strip);
-  const float2 origin(image_size.x * transform->origin[0], image_size[1] * transform->origin[1]);
+  const float2 image_size = transform_image_raw_size_get(scene, strip);
+  const float2 origin_relative(transform->origin[0], transform->origin[1]);
+  const float2 origin_absolute = image_size * origin_relative;
   const float2 translation(transform->xofs, transform->yofs);
   const float rotation = apply_rotation ? transform->rotation : 0.0f;
   const float2 scale(transform->scale_x, transform->scale_y);
-  const float2 pivot = origin - (image_size / 2);
+  const float2 pivot = origin_absolute - (image_size / 2);
 
   const float3x3 matrix = math::from_loc_rot_scale<float3x3>(translation, rotation, scale);
   return math::from_origin_transform(matrix, pivot);
@@ -644,7 +685,7 @@ static Array<float2> strip_image_transform_quad_get_ex(const Scene *scene,
                                                        const Strip *strip,
                                                        bool apply_rotation)
 {
-  const float2 image_size = strip_raw_image_size_get(scene, strip);
+  const float2 image_size = transform_image_raw_size_get(scene, strip);
 
   const StripCrop *crop = strip->data->crop;
   float2 quad[4]{

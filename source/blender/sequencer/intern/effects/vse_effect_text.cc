@@ -772,6 +772,12 @@ static void fill_rect_alpha_under(
 static int text_effect_line_size_get(const RenderData *context, const Strip *strip)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
+
+  /* Used to calculate boundbox. Proxy size compensation is not needed there. */
+  if (context == nullptr) {
+    return data->text_size;
+  }
+
   /* Compensate text size for preview render size. */
   double proxy_size_comp = context->scene->r.size / 100.0;
   if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
@@ -781,7 +787,7 @@ static int text_effect_line_size_get(const RenderData *context, const Strip *str
   return proxy_size_comp * data->text_size;
 }
 
-static int text_effect_font_init(const RenderData *context, const Strip *strip, int font_flags)
+int text_effect_font_init(const RenderData *context, const Strip *strip, int font_flags)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   int font = blf_mono_font_render;
@@ -992,16 +998,11 @@ static void apply_text_alignment(const TextVars *data,
   }
 }
 
-static void calc_text_runtime(const Strip *strip, int font, const int2 image_size)
+TextVarsRuntime *text_effect_calc_runtime(const Strip *strip, int font, const int2 image_size)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
+  TextVarsRuntime *runtime = MEM_new<TextVarsRuntime>(__func__);
 
-  if (data->runtime != nullptr) {
-    MEM_delete(data->runtime);
-  }
-
-  data->runtime = MEM_new<TextVarsRuntime>(__func__);
-  TextVarsRuntime *runtime = data->runtime;
   runtime->font = font;
   runtime->line_height = BLF_height_max(font);
   runtime->font_descender = BLF_descender(font);
@@ -1011,6 +1012,7 @@ static void calc_text_runtime(const Strip *strip, int font, const int2 image_siz
   apply_word_wrapping(data, runtime, image_size, characters_temp);
   apply_text_alignment(data, runtime, image_size);
   calc_boundbox(data, runtime, image_size);
+  return runtime;
 }
 
 static ImBuf *do_text_effect(const RenderData *context,
@@ -1035,8 +1037,12 @@ static ImBuf *do_text_effect(const RenderData *context,
 
   const int font = text_effect_font_init(context, strip, font_flags);
 
-  calc_text_runtime(strip, font, {out->x, out->y});
-  TextVarsRuntime *runtime = data->runtime;
+  if (data->runtime != nullptr) {
+    MEM_delete(data->runtime);
+  }
+
+  TextVarsRuntime *runtime = text_effect_calc_runtime(strip, font, {out->x, out->y});
+  data->runtime = runtime;
 
   rcti outline_rect = draw_text_outline(context, data, runtime, display, out);
   BLF_buffer(font, nullptr, out->byte_buffer.data, out->x, out->y, display);
