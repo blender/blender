@@ -60,12 +60,6 @@ class VKTexture : public Texture {
    */
   Vector<VKImageView> image_views_;
 
-  /* Last image layout of the texture. Frame-buffer and barriers can alter/require the actual
-   * layout to be changed. During this it requires to set the current layout in order to know which
-   * conversion should happen. #current_layout_ keep track of the layout so the correct conversion
-   * can be done. */
-  VkImageLayout current_layout_ = VK_IMAGE_LAYOUT_UNDEFINED;
-
   int layer_offset_ = 0;
   bool use_stencil_ = false;
 
@@ -82,8 +76,6 @@ class VKTexture : public Texture {
   VKTexture(const char *name) : Texture(name) {}
 
   virtual ~VKTexture() override;
-
-  void init(VkImage vk_image, VkImageLayout layout, eGPUTextureFormat texture_format);
 
   void generate_mipmap() override;
   void copy_to(Texture *tex) override;

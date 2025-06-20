@@ -51,14 +51,6 @@ VKTexture::~VKTexture()
   }
 }
 
-void VKTexture::init(VkImage vk_image, VkImageLayout layout, eGPUTextureFormat texture_format)
-{
-  vk_image_ = vk_image;
-  current_layout_ = layout;
-  format_ = texture_format;
-  device_format_ = texture_format;
-}
-
 void VKTexture::generate_mipmap()
 {
   BLI_assert(!is_texture_view());
