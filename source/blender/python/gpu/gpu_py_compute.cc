@@ -15,7 +15,7 @@
 #include "GPU_compute.hh"
 #include "GPU_state.hh"
 
-#include "../generic/python_compat.hh"
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
 #include "gpu_py.hh"
 #include "gpu_py_compute.hh" /* own include */

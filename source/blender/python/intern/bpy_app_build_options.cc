@@ -8,6 +8,8 @@
 
 #include <Python.h>
 
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
+
 #include "BLI_utildefines.h"
 
 #include "bpy_app_build_options.hh"
@@ -350,7 +352,7 @@ PyObject *BPY_app_build_options_struct()
   BlenderAppBuildOptionsType.tp_init = nullptr;
   BlenderAppBuildOptionsType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppBuildOptionsType.tp_hash = (hashfunc)_Py_HashPointer;
+  BlenderAppBuildOptionsType.tp_hash = (hashfunc)Py_HashPointer;
 
   return ret;
 }

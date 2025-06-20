@@ -8,6 +8,8 @@
 
 #include <Python.h>
 
+#include "python_compat.hh" /* IWYU pragma: keep. */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_string.h"
@@ -1009,7 +1011,7 @@ static PyObject *BPy_IDPropertyUIManager_repr(BPy_IDPropertyUIManager *self)
 
 static Py_hash_t BPy_IDPropertyUIManager_hash(BPy_IDPropertyUIManager *self)
 {
-  return _Py_HashPointer(self->property);
+  return Py_HashPointer(self->property);
 }
 
 PyTypeObject BPy_IDPropertyUIManager_Type = {

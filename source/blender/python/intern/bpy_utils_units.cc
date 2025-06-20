@@ -21,7 +21,7 @@
 #include "bpy_utils_units.hh"
 
 #include "../generic/py_capi_utils.hh"
-#include "../generic/python_compat.hh"
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
 #include "BKE_unit.hh"
 

@@ -11,6 +11,8 @@
 
 #include <Python.h>
 
+#include "python_compat.hh" /* IWYU pragma: keep. */
+
 #include "../BPY_extern.hh"
 
 BPy_ThreadStatePtr BPY_thread_save()
@@ -20,7 +22,7 @@ BPy_ThreadStatePtr BPY_thread_save()
    *
    * `PyEval_SaveThread()` will release the GIL, so this thread has to have the GIL to begin with
    * or badness will ensue. */
-  if (_PyThreadState_UncheckedGet() && PyGILState_Check()) {
+  if (PyThreadState_GetUnchecked() && PyGILState_Check()) {
     return (BPy_ThreadStatePtr)PyEval_SaveThread();
   }
   return nullptr;
