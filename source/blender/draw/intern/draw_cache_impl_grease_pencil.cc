@@ -1166,11 +1166,13 @@ static void grease_pencil_geom_batch_ensure(Object &object,
   GPU_vertbuf_data_alloc(*cache->vbo, total_verts_num + 2);
   GPU_vertbuf_data_alloc(*cache->vbo_col, total_verts_num + 2);
 
-  GPUIndexBufBuilder ibo;
   MutableSpan<GreasePencilStrokeVert> verts = cache->vbo->data<GreasePencilStrokeVert>();
   MutableSpan<GreasePencilColorVert> cols = cache->vbo_col->data<GreasePencilColorVert>();
   /* Create IBO. */
-  GPU_indexbuf_init(&ibo, GPU_PRIM_TRIS, total_triangles_num, 0xFFFFFFFFu);
+  GPUIndexBufBuilder ibo;
+  GPU_indexbuf_init(&ibo, GPU_PRIM_TRIS, total_triangles_num, INT_MAX);
+  MutableSpan<uint3> triangle_ibo_data = GPU_indexbuf_get_data(&ibo).cast<uint3>();
+  int triangle_ibo_index = 0;
 
   /* Fill buffers with data. */
   for (const int drawing_i : drawings.index_range()) {
@@ -1264,8 +1266,10 @@ static void grease_pencil_geom_batch_ensure(Object &object,
       c_vert.fcol[3] = (int(c_vert.fcol[3] * 10000.0f) * 10.0f) + fill_opacities[curve_i];
 
       int v_mat = (verts_range[idx] << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
-      GPU_indexbuf_add_tri_verts(&ibo, v_mat + 0, v_mat + 1, v_mat + 2);
-      GPU_indexbuf_add_tri_verts(&ibo, v_mat + 2, v_mat + 1, v_mat + 3);
+      triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 0, v_mat + 1, v_mat + 2);
+      triangle_ibo_index++;
+      triangle_ibo_data[triangle_ibo_index] = uint3(v_mat + 2, v_mat + 1, v_mat + 3);
+      triangle_ibo_index++;
     };
 
     visible_strokes.foreach_index([&](const int curve_i, const int pos) {
@@ -1288,10 +1292,11 @@ static void grease_pencil_geom_batch_ensure(Object &object,
       if (points.size() >= 3) {
         const Span<int3> tris_slice = triangles.slice(tris_start_offset, points.size() - 2);
         for (const int3 tri : tris_slice) {
-          GPU_indexbuf_add_tri_verts(&ibo,
-                                     (verts_range[1] + tri.x) << GP_VERTEX_ID_SHIFT,
-                                     (verts_range[1] + tri.y) << GP_VERTEX_ID_SHIFT,
-                                     (verts_range[1] + tri.z) << GP_VERTEX_ID_SHIFT);
+          triangle_ibo_data[triangle_ibo_index] = uint3(
+              (verts_range[1] + tri.x) << GP_VERTEX_ID_SHIFT,
+              (verts_range[1] + tri.y) << GP_VERTEX_ID_SHIFT,
+              (verts_range[1] + tri.z) << GP_VERTEX_ID_SHIFT);
+          triangle_ibo_index++;
         }
       }
 
@@ -1341,7 +1346,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
   verts[0].mat = -1;
 
   /* Finish the IBO. */
-  cache->ibo = GPU_indexbuf_build(&ibo);
+  cache->ibo = GPU_indexbuf_build_ex(&ibo, 0, INT_MAX, false);
   /* Create the batches */
   cache->geom_batch = GPU_batch_create(GPU_PRIM_TRIS, cache->vbo, cache->ibo);
   /* Allow creation of buffer texture. */
