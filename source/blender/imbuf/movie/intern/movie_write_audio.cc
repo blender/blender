@@ -267,13 +267,14 @@ AVStream *alloc_audio_stream(MovieWriter *context,
     c->sample_fmt = AV_SAMPLE_FMT_FLT;
   }
 
-  if (codec->sample_fmts) {
+  const enum AVSampleFormat *sample_fmts = ffmpeg_get_sample_fmts(c, codec);
+  if (sample_fmts) {
     /* Check if the preferred sample format for this codec is supported.
      * this is because, depending on the version of LIBAV,
      * and with the whole FFMPEG/LIBAV fork situation,
      * you have various implementations around.
      * Float samples in particular are not always supported. */
-    const enum AVSampleFormat *p = codec->sample_fmts;
+    const enum AVSampleFormat *p = sample_fmts;
     for (; *p != -1; p++) {
       if (*p == c->sample_fmt) {
         break;
@@ -281,12 +282,13 @@ AVStream *alloc_audio_stream(MovieWriter *context,
     }
     if (*p == -1) {
       /* sample format incompatible with codec. Defaulting to a format known to work */
-      c->sample_fmt = codec->sample_fmts[0];
+      c->sample_fmt = sample_fmts[0];
     }
   }
 
-  if (codec->supported_samplerates) {
-    const int *p = codec->supported_samplerates;
+  const int *supported_samplerates = ffmpeg_get_sample_rates(c, codec);
+  if (supported_samplerates) {
+    const int *p = supported_samplerates;
     int best = 0;
     int best_dist = INT_MAX;
     for (; *p; p++) {
