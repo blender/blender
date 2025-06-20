@@ -963,6 +963,7 @@ class USERPREF_MT_interface_theme_presets(Menu):
         "ThemeSpaceGeneric",
         "ThemeSpaceGradient",
         "ThemeSpaceListGeneric",
+        "ThemeSpaceRegionGeneric",
         "ThemeSpreadsheet",
         "ThemeStatusBar",
         "ThemeStripColor",
