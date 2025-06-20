@@ -103,7 +103,7 @@ void CPUDevice::mem_alloc(device_memory &mem)
     }
 
     if (mem.type == MEM_DEVICE_ONLY) {
-      size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES;
+      size_t alignment = MIN_ALIGNMENT_DEVICE_MEMORY;
       void *data = util_aligned_malloc(mem.memory_size(), alignment);
       mem.device_pointer = (device_ptr)data;
     }

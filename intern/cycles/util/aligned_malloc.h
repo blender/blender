@@ -10,6 +10,8 @@ CCL_NAMESPACE_BEGIN
 
 /* Minimum alignment needed by all CPU native data types (SSE, AVX). */
 #define MIN_ALIGNMENT_CPU_DATA_TYPES 16  // NOLINT
+/* NanoVDB needs at least 32 byte alignment. */
+#define MIN_ALIGNMENT_DEVICE_MEMORY 32  // NOLINT
 
 /* Allocate block of size bytes at least aligned to a given value. */
 void *util_aligned_malloc(const size_t size, const int alignment);
