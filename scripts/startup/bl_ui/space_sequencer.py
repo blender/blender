@@ -672,8 +672,14 @@ class SEQUENCER_MT_change(Menu):
             del bpy_data_scenes_len
 
         layout.operator_context = 'INVOKE_DEFAULT'
-        layout.menu("SEQUENCER_MT_strip_effect_change")
-        layout.operator("sequencer.swap_inputs")
+        if strip.type in {
+            'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
+            'GAMMA_CROSS', 'MULTIPLY', 'WIPE', 'GLOW',
+            'TRANSFORM', 'SPEED', 'MULTICAM', 'ADJUSTMENT',
+            'GAUSSIAN_BLUR',
+        }:
+            layout.menu("SEQUENCER_MT_strip_effect_change")
+            layout.operator("sequencer.swap_inputs")
         props = layout.operator("sequencer.change_path", text="Path/Files")
 
         if strip:
