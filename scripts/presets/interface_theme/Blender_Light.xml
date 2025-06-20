@@ -463,6 +463,9 @@
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>
@@ -475,9 +478,6 @@
             header="#99999900"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#1a1a1a"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
             <gradients>
               <ThemeGradientColors
@@ -535,9 +535,6 @@
             header="#adadadff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#1a1a1a"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -553,6 +550,9 @@
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>
@@ -573,15 +573,15 @@
             header="#adadadff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#1a1a1a"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>
@@ -624,9 +624,6 @@
             header="#adadadff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#000000"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -642,6 +639,9 @@
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>
@@ -694,9 +694,6 @@
             header="#adadadff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#000000"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -712,6 +709,9 @@
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>
@@ -773,15 +773,15 @@
             header="#b3b3b3ff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#1a1a1a"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>
@@ -837,9 +837,6 @@
             header="#b3b3b3ff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#1a1a1a"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -855,6 +852,9 @@
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>
@@ -875,12 +875,19 @@
             header="#b3b3b3ff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#000000"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
+        <space_region>
+          <ThemeSpaceRegionGeneric
+            button="#303030ff"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
+            tab_back="#a6a6a6ff"
+            >
+          </ThemeSpaceRegionGeneric>
+        </space_region>
       </ThemeProperties>
     </properties>
     <text_editor>
@@ -907,15 +914,15 @@
             header="#b3b3b3ff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#000000"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>
@@ -967,17 +974,15 @@
             header="#b3b3b3ff"
             header_text="#eeeeee"
             header_text_hi="#ffffff"
-            button="#99999900"
-            button_title="#1a1a1a"
-            button_text="#000000"
-            button_text_hi="#000000"
-            tab_back="#656565ff"
             >
           </ThemeSpaceGeneric>
         </space>
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>
@@ -1003,9 +1008,6 @@
             header="#b3b3b3ff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#000000"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -1034,9 +1036,6 @@
             header="#b3b3b3ff"
             header_text="#1a1a1a"
             header_text_hi="#ffffff"
-            button_title="#000000"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -1053,15 +1052,15 @@
             header="#b3b3b3ff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#000000"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>
@@ -1086,9 +1085,6 @@
             header="#b3b3b3ff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#ffffff"
-            button_text="#cccccc"
-            button_text_hi="#ffffff"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -1137,9 +1133,6 @@
             header="#b3b3b3ff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#000000"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -1155,6 +1148,9 @@
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>
@@ -1172,9 +1168,6 @@
             header="#999999ff"
             header_text="#eeeeee"
             header_text_hi="#ffffff"
-            button_title="#ffffff"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -1191,9 +1184,6 @@
             header="#999999ff"
             header_text="#1a1a1a"
             header_text_hi="#ffffff"
-            button_title="#ffffff"
-            button_text="#ffffff"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
@@ -1212,15 +1202,15 @@
             header="#adadadff"
             header_text="#000000"
             header_text_hi="#ffffff"
-            button_title="#1a1a1a"
-            button_text="#000000"
-            button_text_hi="#000000"
             >
           </ThemeSpaceGeneric>
         </space>
         <space_region>
           <ThemeSpaceRegionGeneric
             button="#b3b3b300"
+            button_title="#1a1a1a"
+            button_text="#1a1a1a"
+            button_text_hi="#000000"
             tab_back="#b3b3b300"
             >
           </ThemeSpaceRegionGeneric>

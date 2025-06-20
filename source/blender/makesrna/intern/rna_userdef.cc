@@ -3506,6 +3506,7 @@ static void rna_def_userdef_theme_space_buts(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   rna_def_userdef_theme_spaces_main(srna);
+  rna_def_userdef_theme_spaces_region_main(srna);
 }
 
 static void rna_def_userdef_theme_space_image(BlenderRNA *brna)

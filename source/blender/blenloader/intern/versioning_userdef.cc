@@ -331,6 +331,14 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->tui.menu_shadow_width = U_theme_default.tui.menu_shadow_width;
   }
 
+  if (!USER_VERSION_ATLEAST(500, 24)) {
+    FROM_DEFAULT_V4_UCHAR(space_properties.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_properties.button);
+    FROM_DEFAULT_V4_UCHAR(space_properties.button_title);
+    FROM_DEFAULT_V4_UCHAR(space_properties.button_text);
+    FROM_DEFAULT_V4_UCHAR(space_properties.button_text_hi);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
