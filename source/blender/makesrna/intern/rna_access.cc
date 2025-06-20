@@ -5062,7 +5062,7 @@ static int rna_raw_access(ReportList *reports,
           iprop = RNA_struct_find_property(&itemptr, propname);
 
           if (iprop) {
-            is_array = RNA_property_array_check(itemprop);
+            is_array = RNA_property_array_check(iprop);
             array_len = rna_property_array_length_all_dimensions(&itemptr, iprop);
             item_len = is_array ? array_len : 1;
             itemtype = RNA_property_type(iprop);
