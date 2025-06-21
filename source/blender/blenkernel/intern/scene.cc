@@ -1023,13 +1023,14 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   /* direct data */
   ToolSettings *tos = sce->toolsettings;
-  BLO_write_struct(writer, ToolSettings, tos);
 
   /* In 5.0 we intend to change the brush.size value from representing radius to representing
    * diameter. This and the corresponding code in `brush_blend_read_data` should be removed once
    * that transition is complete. */
   tos->unified_paint_settings.size *= 2;
   tos->unified_paint_settings.unprojected_radius *= 2.0f;
+
+  BLO_write_struct(writer, ToolSettings, tos);
 
   if (tos->unified_paint_settings.curve_rand_hue) {
     BKE_curvemapping_blend_write(writer, tos->unified_paint_settings.curve_rand_hue);
