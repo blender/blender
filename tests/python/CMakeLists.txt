@@ -314,6 +314,7 @@ if(TEST_SRC_DIR_EXISTS)
       --debug
       --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_versioning.py --
       --src-test-dir ${TEST_SRC_DIR}/
+      --output-dir ${TEST_OUT_DIR}/blendfile_io/
       --slice-range ${BLENDFILE_VERSIONING_SPLIT_RANGE}
       --slice-index ${idx}
     )
