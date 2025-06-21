@@ -92,8 +92,8 @@ struct LinearGrid {
 };
 
 struct LinearGrids {
-  int num_grids;
-  int level;
+  int num_grids = 0;
+  int level = 0;
 
   /* Cached size for the grid, for faster lookup. */
   int grid_size;
@@ -107,7 +107,7 @@ struct LinearGrids {
 
 /* Context which holds all information needed during propagation and smoothing. */
 
-struct MultiresReshapeSmoothContext {
+struct MultiresReshapeSmoothContext : blender::NonCopyable, blender::NonMovable {
   const MultiresReshapeContext *reshape_context;
 
   /* Geometry at a reshape multires level. */
@@ -140,10 +140,10 @@ struct MultiresReshapeSmoothContext {
   LinearGrids linear_delta_grids;
 
   /* From #Mesh::loose_edges(). May be empty. */
-  blender::BitSpan loose_base_edges;
+  blender::BitSpan loose_base_edges = {};
 
   /* Subdivision surface created for geometry at a reshape level. */
-  blender::bke::subdiv::Subdiv *reshape_subdiv;
+  blender::bke::subdiv::Subdiv *reshape_subdiv = nullptr;
 
   /* Limit surface of the base mesh with original sculpt level details on it, subdivided up to the
    * top level.
@@ -162,19 +162,31 @@ struct MultiresReshapeSmoothContext {
    * NOTE: Uses same enumerator type as Subdivide operator, since the values are the same and
    * decoupling type just adds extra headache to convert one enumerator to another. */
   MultiresSubdivideModeType smoothing_type;
+
+  MultiresReshapeSmoothContext(const MultiresReshapeContext *reshape_context,
+                               const MultiresSubdivideModeType smoothing_type)
+      : reshape_context(reshape_context),
+        geometry(),
+        linear_delta_grids(),
+        smoothing_type(smoothing_type)
+  {
+  }
+  ~MultiresReshapeSmoothContext();
 };
+
+MultiresReshapeSmoothContext::~MultiresReshapeSmoothContext()
+{
+  if (this->reshape_subdiv == nullptr) {
+    return;
+  }
+  blender::bke::subdiv::free(this->reshape_subdiv);
+}
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Linear grids manipulation
  * \{ */
-
-static void linear_grids_init(LinearGrids *linear_grids)
-{
-  linear_grids->num_grids = 0;
-  linear_grids->level = 0;
-}
 
 static void linear_grids_allocate(LinearGrids *linear_grids, int num_grids, int level)
 {
@@ -450,36 +462,6 @@ static float get_effective_crease_float(const MultiresReshapeSmoothContext *resh
     return 1.0f;
   }
   return crease;
-}
-
-static void context_init(MultiresReshapeSmoothContext *reshape_smooth_context,
-                         const MultiresReshapeContext *reshape_context,
-                         const MultiresSubdivideModeType mode)
-{
-  reshape_smooth_context->reshape_context = reshape_context;
-
-  reshape_smooth_context->geometry.max_edges = 0;
-  reshape_smooth_context->geometry.num_edges = 0;
-
-  linear_grids_init(&reshape_smooth_context->linear_delta_grids);
-
-  reshape_smooth_context->loose_base_edges = {};
-  reshape_smooth_context->reshape_subdiv = nullptr;
-
-  reshape_smooth_context->smoothing_type = mode;
-}
-
-static void context_free_subdiv(MultiresReshapeSmoothContext *reshape_smooth_context)
-{
-  if (reshape_smooth_context->reshape_subdiv == nullptr) {
-    return;
-  }
-  blender::bke::subdiv::free(reshape_smooth_context->reshape_subdiv);
-}
-
-static void context_free(MultiresReshapeSmoothContext *reshape_smooth_context)
-{
-  context_free_subdiv(reshape_smooth_context);
 }
 
 static bool foreach_topology_info(const blender::bke::subdiv::ForeachContext *foreach_context,
@@ -1362,15 +1344,10 @@ void multires_reshape_smooth_object_grids_with_details(
     return;
   }
 
-  MultiresReshapeSmoothContext reshape_smooth_context;
-  if (reshape_context->subdiv->settings.is_simple) {
-    context_init(&reshape_smooth_context, reshape_context, MultiresSubdivideModeType::Simple);
-  }
-  else {
-    context_init(
-        &reshape_smooth_context, reshape_context, MultiresSubdivideModeType::CatmullClark);
-  }
-
+  const MultiresSubdivideModeType smoothing_type = reshape_context->subdiv->settings.is_simple ?
+                                                       MultiresSubdivideModeType::Simple :
+                                                       MultiresSubdivideModeType::CatmullClark;
+  MultiresReshapeSmoothContext reshape_smooth_context(reshape_context, smoothing_type);
   geometry_create(&reshape_smooth_context);
   evaluate_linear_delta_grids(&reshape_smooth_context);
 
@@ -1382,8 +1359,6 @@ void multires_reshape_smooth_object_grids_with_details(
 
   reshape_subdiv_refine_final(&reshape_smooth_context);
   evaluate_higher_grid_positions_with_details(&reshape_smooth_context);
-
-  context_free(&reshape_smooth_context);
 #else
   UNUSED_VARS(reshape_context);
 #endif
@@ -1399,9 +1374,7 @@ void multires_reshape_smooth_object_grids(const MultiresReshapeContext *reshape_
     return;
   }
 
-  MultiresReshapeSmoothContext reshape_smooth_context;
-  context_init(&reshape_smooth_context, reshape_context, mode);
-
+  MultiresReshapeSmoothContext reshape_smooth_context(reshape_context, mode);
   geometry_create(&reshape_smooth_context);
   evaluate_linear_delta_grids(&reshape_smooth_context);
 
@@ -1409,8 +1382,6 @@ void multires_reshape_smooth_object_grids(const MultiresReshapeContext *reshape_
 
   reshape_subdiv_refine_final(&reshape_smooth_context);
   evaluate_higher_grid_positions(&reshape_smooth_context);
-
-  context_free(&reshape_smooth_context);
 #else
   UNUSED_VARS(reshape_context, mode);
 #endif
