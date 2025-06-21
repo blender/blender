@@ -1256,7 +1256,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 
     /* Prior to 5.0, the brush->size value is expected to be the radius, not the diameter. To
      * ensure correct behavior, convert this when reading newer files. */
-    if (BLO_read_fileversion_get(reader) > 500) {
+    if (BLO_read_fileversion_get(reader) >= 500) {
       ups->size = std::max(ups->size / 2, 1);
       ups->unprojected_radius = std::max(ups->unprojected_radius / 2, 0.001f);
     }
