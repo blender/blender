@@ -281,9 +281,7 @@ void multires_reshape_ensure_grids(Mesh *mesh, int level);
  * vertices at a reshape level.
  */
 bool multires_reshape_assign_final_coords_from_vertcos(
-    const MultiresReshapeContext *reshape_context,
-    const float (*vert_coords)[3],
-    int num_vert_coords);
+    const MultiresReshapeContext *reshape_context, blender::Span<blender::float3> positions);
 
 /* --------------------------------------------------------------------
  * Functions specific to reshaping from CCG.
