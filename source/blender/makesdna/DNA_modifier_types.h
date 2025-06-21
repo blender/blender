@@ -2240,7 +2240,7 @@ typedef enum {
   MOD_DATATRANSFER_USE_POLY = 1u << 31,
 } DataTransferModifierFlag;
 
-/** Set Split Normals modifier. */
+/** Normal Edit modifier. */
 typedef struct NormalEditModifierData {
   ModifierData modifier;
   char defgrp_name[/*MAX_VGROUP_NAME*/ 64];
