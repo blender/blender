@@ -101,6 +101,7 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #ifdef RNA_RUNTIME
 #  include "MEM_guardedalloc.h"
 
+#  include "BKE_brush.hh"
 #  include "BKE_collection.hh"
 #  include "BKE_colortools.hh"
 #  include "BKE_context.hh"
@@ -514,6 +515,98 @@ static void rna_Sculpt_automasking_cavity_set(PointerRNA *ptr, bool val)
     sd->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_NORMAL;
   }
 }
+
+static void rna_UnifiedPaintSettings_update(bContext *C, PointerRNA * /*ptr*/)
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Brush *br = BKE_paint_brush(BKE_paint_get_active(scene, view_layer));
+  WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
+}
+
+static void rna_UnifiedPaintSettings_size_set(PointerRNA *ptr, int value)
+{
+  UnifiedPaintSettings *ups = static_cast<UnifiedPaintSettings *>(ptr->data);
+
+  /* scale unprojected radius so it stays consistent with brush size */
+  BKE_brush_scale_unprojected_radius(&ups->unprojected_radius, value, ups->size);
+  ups->size = value;
+}
+
+static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, float value)
+{
+  UnifiedPaintSettings *ups = static_cast<UnifiedPaintSettings *>(ptr->data);
+
+  /* scale brush size so it stays consistent with unprojected_radius */
+  BKE_brush_scale_size(&ups->size, value, ups->unprojected_radius);
+  ups->unprojected_radius = value;
+}
+
+static void rna_UnifiedPaintSettings_radius_update(bContext *C, PointerRNA *ptr)
+{
+  /* changing the unified size should invalidate the overlay but also update the brush */
+  BKE_paint_invalidate_overlay_all();
+  rna_UnifiedPaintSettings_update(C, ptr);
+}
+
+static const UnifiedPaintSettings *rna_UnifiedPaintSettings_address_get(const Paint *paint)
+{
+  if (!paint) {
+    return nullptr;
+  }
+
+  return &paint->unified_paint_settings;
+}
+
+static std::optional<std::string> rna_UnifiedPaintSettings_path(const PointerRNA *ptr)
+{
+  const Scene *scene = reinterpret_cast<Scene *>(ptr->owner_id);
+  const ToolSettings *tool_settings = scene ? scene->toolsettings : nullptr;
+  if (tool_settings == nullptr) {
+    return std::nullopt;
+  }
+  if (rna_UnifiedPaintSettings_address_get(reinterpret_cast<Paint *>(tool_settings->vpaint)) ==
+      ptr->data)
+  {
+    return "tool_settings.vertex_paint.unified_paint_settings";
+  }
+  if (rna_UnifiedPaintSettings_address_get(reinterpret_cast<Paint *>(tool_settings->wpaint)) ==
+      ptr->data)
+  {
+    return "tool_settings.weight_paint.unified_paint_settings";
+  }
+  if (rna_UnifiedPaintSettings_address_get(reinterpret_cast<Paint *>(tool_settings->sculpt)) ==
+      ptr->data)
+  {
+    return "tool_settings.sculpt.unified_paint_settings";
+  }
+  if (rna_UnifiedPaintSettings_address_get(reinterpret_cast<Paint *>(tool_settings->gp_paint)) ==
+      ptr->data)
+  {
+    return "tool_settings.gpencil_paint.unified_paint_settings";
+  }
+  if (rna_UnifiedPaintSettings_address_get(
+          reinterpret_cast<Paint *>(tool_settings->gp_vertexpaint)) == ptr->data)
+  {
+    return "tool_settings.gpencil_vertex_paint.unified_paint_settings";
+  }
+  if (rna_UnifiedPaintSettings_address_get(
+          reinterpret_cast<Paint *>(tool_settings->gp_sculptpaint)) == ptr->data)
+  {
+    return "tool_settings.gpencil_sculpt_paint.unified_paint_settings";
+  }
+  if (rna_UnifiedPaintSettings_address_get(
+          reinterpret_cast<Paint *>(tool_settings->gp_weightpaint)) == ptr->data)
+  {
+    return "tool_settings.gpencil_weight_paint.unified_paint_settings";
+  }
+  if (rna_UnifiedPaintSettings_address_get(
+          reinterpret_cast<Paint *>(tool_settings->curves_sculpt)) == ptr->data)
+  {
+    return "tool_settings.curves_sculpt.unified_paint_settings";
+  }
+  return std::nullopt;
+}
 #else
 
 static void rna_def_paint_curve(BlenderRNA *brna)
@@ -652,6 +745,198 @@ static void rna_def_paint(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "symmetry_flags", PAINT_TILE_Z);
   RNA_def_property_ui_text(prop, "Tile Z", "Tile along Z axis");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+
+  /* Unified Paint Settings */
+  prop = RNA_def_property(srna, "unified_paint_settings", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "UnifiedPaintSettings");
+  RNA_def_property_ui_text(prop, "Unified Paint Settings", nullptr);
+}
+
+static void rna_def_unified_paint_settings(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem brush_size_unit_items[] = {
+      {0, "VIEW", 0, "View", "Measure brush size relative to the view"},
+      {UNIFIED_PAINT_BRUSH_LOCK_SIZE,
+       "SCENE",
+       0,
+       "Scene",
+       "Measure brush size relative to the scene"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  srna = RNA_def_struct(brna, "UnifiedPaintSettings", nullptr);
+  RNA_def_struct_path_func(srna, "rna_UnifiedPaintSettings_path");
+  RNA_def_struct_ui_text(
+      srna, "Unified Paint Settings", "Overrides for some of the active brush's settings");
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+
+  /* high-level flags to enable or disable unified paint settings */
+  prop = RNA_def_property(srna, "use_unified_size", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_SIZE);
+  RNA_def_property_ui_text(prop,
+                           "Use Unified Radius",
+                           "Instead of per-brush radius, the radius is shared across brushes");
+
+  prop = RNA_def_property(srna, "use_unified_strength", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_ALPHA);
+  RNA_def_property_ui_text(prop,
+                           "Use Unified Strength",
+                           "Instead of per-brush strength, the strength is shared across brushes");
+
+  prop = RNA_def_property(srna, "use_unified_weight", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_WEIGHT);
+  RNA_def_property_ui_text(prop,
+                           "Use Unified Weight",
+                           "Instead of per-brush weight, the weight is shared across brushes");
+
+  prop = RNA_def_property(srna, "use_unified_color", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_COLOR);
+  RNA_def_property_ui_text(
+      prop, "Use Unified Color", "Instead of per-brush color, the color is shared across brushes");
+
+  prop = RNA_def_property(srna, "use_unified_input_samples", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_INPUT_SAMPLES);
+  RNA_def_property_ui_text(
+      prop,
+      "Use Unified Input Samples",
+      "Instead of per-brush input samples, the value is shared across brushes");
+
+  /* unified paint settings that override the equivalent settings
+   * from the active brush */
+  prop = RNA_def_property(srna, "size", PROP_INT, PROP_PIXEL);
+  RNA_def_property_int_funcs(prop, nullptr, "rna_UnifiedPaintSettings_size_set", nullptr);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS * 10);
+  RNA_def_property_ui_range(prop, 1, MAX_BRUSH_PIXEL_RADIUS, 1, -1);
+  RNA_def_property_ui_text(prop, "Radius", "Radius of the brush");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_radius_update");
+
+  prop = RNA_def_property(srna, "unprojected_radius", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_funcs(
+      prop, nullptr, "rna_UnifiedPaintSettings_unprojected_radius_set", nullptr);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_range(prop, 0.001, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001, 1, 1, -1);
+  RNA_def_property_ui_text(prop, "Unprojected Radius", "Radius of brush in Blender units");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_radius_update");
+
+  prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "alpha");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_range(prop, 0.0f, 10.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+  RNA_def_property_ui_text(
+      prop, "Strength", "How powerful the effect of the brush is when applied");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "weight");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
+  RNA_def_property_ui_text(prop, "Weight", "Weight to assign in vertex groups");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_range(prop, 0.0, 1.0);
+  RNA_def_property_float_sdna(prop, nullptr, "rgb");
+  RNA_def_property_ui_text(prop, "Color", "");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "secondary_color", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_range(prop, 0.0, 1.0);
+  RNA_def_property_float_sdna(prop, nullptr, "secondary_rgb");
+  RNA_def_property_ui_text(prop, "Secondary Color", "");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "use_color_jitter", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_COLOR_JITTER);
+  RNA_def_property_ui_text(prop, "Use Color Jitter", "Jitter brush color");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "hue_jitter", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_float_sdna(prop, nullptr, "hsv_jitter[0]");
+  RNA_def_property_range(prop, 0, 1.0f);
+  RNA_def_property_ui_range(prop, 0, 1, 0.05, 2);
+  RNA_def_property_ui_text(prop, "Hue Jitter", "Color jitter effect on hue");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "saturation_jitter", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_float_sdna(prop, nullptr, "hsv_jitter[1]");
+  RNA_def_property_range(prop, 0, 1.0f);
+  RNA_def_property_ui_range(prop, 0, 1, 0.05, 2);
+  RNA_def_property_ui_text(prop, "Saturation Jitter", "Color jitter effect on saturation");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "value_jitter", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_float_sdna(prop, nullptr, "hsv_jitter[2]");
+  RNA_def_property_range(prop, 0, 1.0f);
+  RNA_def_property_ui_range(prop, 0, 1, 0.05, 2);
+  RNA_def_property_ui_text(prop, "Value Jitter", "Color jitter effect on value");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "use_stroke_random_hue", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_HUE_AT_STROKE);
+  RNA_def_property_ui_icon(prop, ICON_GP_SELECT_STROKES, 0);
+  RNA_def_property_ui_text(prop, "Stroke Random", "Use randomness at stroke level");
+
+  prop = RNA_def_property(srna, "use_stroke_random_sat", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_SAT_AT_STROKE);
+  RNA_def_property_ui_icon(prop, ICON_GP_SELECT_STROKES, 0);
+  RNA_def_property_ui_text(prop, "Stroke Random", "Use randomness at stroke level");
+
+  prop = RNA_def_property(srna, "use_stroke_random_val", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_VAL_AT_STROKE);
+  RNA_def_property_ui_icon(prop, ICON_GP_SELECT_STROKES, 0);
+  RNA_def_property_ui_text(prop, "Stroke Random", "Use randomness at stroke level");
+
+  prop = RNA_def_property(srna, "use_random_press_hue", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_HUE_RAND_PRESS);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_ui_text(prop, "Use Pressure", "Use pressure to modulate randomness");
+
+  prop = RNA_def_property(srna, "use_random_press_sat", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_SAT_RAND_PRESS);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_ui_text(prop, "Use Pressure", "Use pressure to modulate randomness");
+
+  prop = RNA_def_property(srna, "use_random_press_val", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_VAL_RAND_PRESS);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_ui_text(prop, "Use Pressure", "Use pressure to modulate randomness");
+
+  prop = RNA_def_property(srna, "input_samples", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "input_samples");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_range(prop, 1, PAINT_MAX_INPUT_SAMPLES);
+  RNA_def_property_ui_range(prop, 1, PAINT_MAX_INPUT_SAMPLES, 1, -1);
+  RNA_def_property_ui_text(
+      prop,
+      "Input Samples",
+      "Number of input samples to average together to smooth the brush stroke");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "use_locked_size", PROP_ENUM, PROP_NONE); /* as an enum */
+  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag");
+  RNA_def_property_enum_items(prop, brush_size_unit_items);
+  RNA_def_property_ui_text(
+      prop, "Radius Unit", "Measure brush size relative to the view or the scene");
 }
 
 static void rna_def_sculpt(BlenderRNA *brna)
@@ -1659,6 +1944,7 @@ void RNA_def_sculpt_paint(BlenderRNA *brna)
   RNA_define_animate_sdna(false);
   rna_def_paint_curve(brna);
   rna_def_paint(brna);
+  rna_def_unified_paint_settings(brna);
   rna_def_sculpt(brna);
   rna_def_uv_sculpt(brna);
   rna_def_gp_paint(brna);

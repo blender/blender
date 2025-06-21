@@ -81,7 +81,7 @@ struct SlideOperationExecutor {
   SlideOperation *self_ = nullptr;
   CurvesSculptCommonContext ctx_;
 
-  const CurvesSculpt *curves_sculpt_ = nullptr;
+  CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;
   float brush_radius_base_re_;
   float brush_radius_factor_;
@@ -146,9 +146,9 @@ struct SlideOperationExecutor {
 
     curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
-    brush_radius_base_re_ = BKE_brush_size_get(ctx_.scene, brush_);
+    brush_radius_base_re_ = BKE_brush_size_get(&curves_sculpt_->paint, brush_);
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
-    brush_strength_ = BKE_brush_alpha_get(ctx_.scene, brush_);
+    brush_strength_ = BKE_brush_alpha_get(&curves_sculpt_->paint, brush_);
 
     curve_factors_ = *curves_orig_->attributes().lookup_or_default(
         ".selection", bke::AttrDomain::Curve, 1.0f);
@@ -236,7 +236,8 @@ struct SlideOperationExecutor {
       return;
     }
     remember_stroke_position(
-        *ctx_.scene, math::transform_point(transforms_.curves_to_world, brush_3d->position_cu));
+        *curves_sculpt_,
+        math::transform_point(transforms_.curves_to_world, brush_3d->position_cu));
 
     const ReverseUVSampler reverse_uv_sampler_orig{surface_uv_map_orig_,
                                                    surface_corner_tris_orig_};

@@ -71,12 +71,10 @@ void do_clay_thumb_brush(const Depsgraph &depsgraph,
 float clay_thumb_get_stabilized_pressure(const StrokeCache &cache);
 
 void do_crease_brush(const Depsgraph &depsgraph,
-                     const Scene &scene,
                      const Sculpt &sd,
                      Object &ob,
                      const IndexMask &node_mask);
 void do_blob_brush(const Depsgraph &depsgraph,
-                   const Scene &scene,
                    const Sculpt &sd,
                    Object &ob,
                    const IndexMask &node_mask);

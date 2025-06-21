@@ -368,7 +368,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_set_exec(bContext *C, wmOpera
       eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
 
   float3 color_linear;
-  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(&scene, &paint, &brush));
+  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(&paint, &brush));
   const ColorGeometry4f target_color(color_linear[0], color_linear[1], color_linear[2], 1.0f);
 
   std::atomic<bool> any_changed;

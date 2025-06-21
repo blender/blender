@@ -76,6 +76,7 @@ struct PaintStroke {
 
   /* Cached values */
   ViewContext vc;
+  Paint *paint;
   Brush *brush;
   UnifiedPaintSettings *ups;
 
@@ -315,6 +316,7 @@ bool paint_brush_update(bContext *C,
                         bool *r_location_is_set)
 {
   Scene *scene = CTX_data_scene(C);
+  Paint *paint = BKE_paint_get_active_from_paintmode(scene, mode);
   UnifiedPaintSettings &ups = *stroke->ups;
   bool location_sampled = false;
   bool location_success = false;
@@ -350,8 +352,8 @@ bool paint_brush_update(bContext *C,
   ups.stroke_active = true;
   ups.size_pressure_value = stroke->cached_size_pressure;
 
-  ups.pixel_radius = BKE_brush_size_get(scene, &brush);
-  ups.initial_pixel_radius = BKE_brush_size_get(scene, &brush);
+  ups.pixel_radius = BKE_brush_size_get(paint, &brush);
+  ups.initial_pixel_radius = BKE_brush_size_get(paint, &brush);
 
   if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, mode)) {
     ups.pixel_radius *= stroke->cached_size_pressure;
@@ -515,8 +517,7 @@ static bool paint_stroke_use_jitter(const PaintMode mode, const Brush &brush, co
   return use_jitter;
 }
 
-void paint_stroke_jitter_pos(Scene &scene,
-                             const PaintStroke &stroke,
+void paint_stroke_jitter_pos(const PaintStroke &stroke,
                              const PaintMode mode,
                              const Brush &brush,
                              const float pressure,
@@ -530,7 +531,7 @@ void paint_stroke_jitter_pos(Scene &scene,
       factor *= pressure;
     }
 
-    BKE_brush_jitter_pos(scene, brush, mval, r_mouse_out);
+    BKE_brush_jitter_pos(*stroke.paint, brush, mval, r_mouse_out);
 
     /* XXX: meh, this is round about because
      * BKE_brush_jitter_pos isn't written in the best way to
@@ -551,7 +552,6 @@ void paint_stroke_jitter_pos(Scene &scene,
 static void paint_brush_stroke_add_step(
     bContext *C, wmOperator *op, PaintStroke *stroke, const float2 mval, float pressure)
 {
-  Scene &scene = *CTX_data_scene(C);
   const Paint &paint = *BKE_paint_get_active_from_context(C);
   const PaintMode mode = BKE_paintmode_get_active_from_context(C);
   const Brush &brush = *BKE_paint_brush_for_read(&paint);
@@ -605,7 +605,7 @@ static void paint_brush_stroke_add_step(
 
   float2 mouse_out;
   /* Get jitter position (same as mval if no jitter is used). */
-  paint_stroke_jitter_pos(scene, *stroke, mode, brush, pressure, mval, mouse_out);
+  paint_stroke_jitter_pos(*stroke, mode, brush, pressure, mval, mouse_out);
 
   float3 location;
   bool is_location_is_set;
@@ -681,7 +681,6 @@ static bool paint_smooth_stroke(PaintStroke *stroke,
 }
 
 static float paint_space_stroke_spacing(const bContext *C,
-                                        const Scene *scene,
                                         PaintStroke *stroke,
                                         const float size_pressure,
                                         const float spacing_pressure)
@@ -695,12 +694,12 @@ static float paint_space_stroke_spacing(const bContext *C,
     const float3 last_object_space_position = math::transform_point(
         stroke->vc.obact->world_to_object(), stroke->last_world_space_position);
     size_clamp = object_space_radius_get(
-        stroke->vc, *scene, brush, last_object_space_position, size_pressure);
+        stroke->vc, *paint, brush, last_object_space_position, size_pressure);
   }
   else {
     /* brushes can have a minimum size of 1.0 but with pressure it can be smaller than a pixel
      * causing very high step sizes, hanging blender #32381. */
-    size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * size_pressure);
+    size_clamp = max_ff(1.0f, BKE_brush_size_get(stroke->paint, stroke->brush) * size_pressure);
   }
 
   float spacing = stroke->brush->spacing;
@@ -778,7 +777,6 @@ static float paint_stroke_integrate_overlap(const Brush &br, const float factor)
 }
 
 static float paint_space_stroke_spacing_variable(bContext *C,
-                                                 const Scene *scene,
                                                  PaintStroke *stroke,
                                                  const float pressure,
                                                  const float pressure_delta,
@@ -788,7 +786,7 @@ static float paint_space_stroke_spacing_variable(bContext *C,
     /* use pressure to modify size. set spacing so that at 100%, the circles
      * are aligned nicely with no overlap. for this the spacing needs to be
      * the average of the previous and next size. */
-    const float s = paint_space_stroke_spacing(C, scene, stroke, 1.0f, pressure);
+    const float s = paint_space_stroke_spacing(C, stroke, 1.0f, pressure);
     const float q = s * pressure_delta / (2.0f * length);
     const float pressure_fac = (1.0f + q) / (1.0f - q);
 
@@ -796,16 +794,14 @@ static float paint_space_stroke_spacing_variable(bContext *C,
     const float new_size_pressure = stroke->last_pressure * pressure_fac;
 
     /* average spacing */
-    const float last_spacing = paint_space_stroke_spacing(
-        C, scene, stroke, last_size_pressure, pressure);
-    const float new_spacing = paint_space_stroke_spacing(
-        C, scene, stroke, new_size_pressure, pressure);
+    const float last_spacing = paint_space_stroke_spacing(C, stroke, last_size_pressure, pressure);
+    const float new_spacing = paint_space_stroke_spacing(C, stroke, new_size_pressure, pressure);
 
     return 0.5f * (last_spacing + new_spacing);
   }
 
   /* no size pressure */
-  return paint_space_stroke_spacing(C, scene, stroke, 1.0f, pressure);
+  return paint_space_stroke_spacing(C, stroke, 1.0f, pressure);
 }
 
 /* For brushes with stroke spacing enabled, moves mouse in steps
@@ -816,7 +812,6 @@ static int paint_space_stroke(bContext *C,
                               const float2 final_mouse,
                               const float final_pressure)
 {
-  const Scene *scene = CTX_data_scene(C);
   const ARegion *region = CTX_wm_region(C);
   UnifiedPaintSettings *ups = stroke->ups;
   const Paint &paint = *BKE_paint_get_active_from_context(C);
@@ -851,11 +846,11 @@ static int paint_space_stroke(bContext *C,
 
   float pressure = stroke->last_pressure;
   float pressure_delta = final_pressure - stroke->last_pressure;
-  const float no_pressure_spacing = paint_space_stroke_spacing(C, scene, stroke, 1.0f, 1.0f);
+  const float no_pressure_spacing = paint_space_stroke_spacing(C, stroke, 1.0f, 1.0f);
   int count = 0;
   while (length > 0.0f) {
     const float spacing = paint_space_stroke_spacing_variable(
-        C, scene, stroke, pressure, pressure_delta, length);
+        C, stroke, pressure, pressure_delta, length);
     BLI_assert(spacing >= 0.0f);
 
     if (length >= spacing) {
@@ -907,9 +902,9 @@ PaintStroke *paint_stroke_new(bContext *C,
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PaintStroke *stroke = MEM_new<PaintStroke>(__func__);
-  ToolSettings *toolsettings = CTX_data_tool_settings(C);
-  UnifiedPaintSettings *ups = &toolsettings->unified_paint_settings;
   Paint *paint = BKE_paint_get_active_from_context(C);
+  stroke->paint = paint;
+  UnifiedPaintSettings *ups = &paint->unified_paint_settings;
   Brush *br = stroke->brush = BKE_paint_brush(paint);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
@@ -976,7 +971,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 
   BKE_paint_set_overlay_override(eOverlayFlags(br->overlay_flags));
 
-  ups->start_pixel_radius = BKE_brush_size_get(CTX_data_scene(C), br);
+  ups->start_pixel_radius = BKE_brush_size_get(stroke->paint, br);
 
   return stroke;
 }
@@ -1340,9 +1335,9 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
     return false;
   }
 
-  UnifiedPaintSettings &ups = CTX_data_tool_settings(C)->unified_paint_settings;
-  const Scene *scene = CTX_data_scene(C);
-  const float spacing = paint_space_stroke_spacing(C, scene, stroke, 1.0f, 1.0f);
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  UnifiedPaintSettings &ups = paint->unified_paint_settings;
+  const float spacing = paint_space_stroke_spacing(C, stroke, 1.0f, 1.0f);
   const PaintCurve *pc = br.paint_curve;
 
   if (!pc) {
@@ -1459,7 +1454,6 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
                                     const wmEvent *event,
                                     PaintStroke **stroke_p)
 {
-  const Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   const PaintMode mode = BKE_paintmode_get_active_from_context(C);
   PaintStroke *stroke = *stroke_p;
@@ -1488,7 +1482,7 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
     stroke->last_tablet_event_pressure = pressure;
   }
 
-  const int input_samples = BKE_brush_input_samples_get(scene, br);
+  const int input_samples = BKE_brush_input_samples_get(stroke->paint, br);
   paint_stroke_add_sample(stroke, input_samples, event->mval[0], event->mval[1], pressure);
 
   PaintSample sample_average;

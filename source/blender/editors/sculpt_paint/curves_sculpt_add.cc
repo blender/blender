@@ -92,7 +92,7 @@ struct AddOperationExecutor {
   VArraySpan<float2> surface_uv_map_eval_;
   bke::BVHTreeFromMesh surface_bvh_eval_;
 
-  const CurvesSculpt *curves_sculpt_ = nullptr;
+  CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;
   const BrushCurvesSculptSettings *brush_settings_ = nullptr;
   int add_amount_;
@@ -144,7 +144,7 @@ struct AddOperationExecutor {
     curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
     brush_settings_ = brush_->curves_sculpt_settings;
-    brush_radius_re_ = brush_radius_get(*ctx_.scene, *brush_, stroke_extension);
+    brush_radius_re_ = brush_radius_get(curves_sculpt_->paint, *brush_, stroke_extension);
     brush_pos_re_ = stroke_extension.mouse_position;
 
     use_front_face_ = brush_->flag & BRUSH_FRONTFACE;
@@ -241,7 +241,8 @@ struct AddOperationExecutor {
               curves_orig_->positions().slice(add_outputs.new_points_range)))
       {
         remember_stroke_position(
-            *ctx_.scene, math::transform_point(transforms_.curves_to_world, center_cu->center()));
+            *curves_sculpt_,
+            math::transform_point(transforms_.curves_to_world, center_cu->center()));
       }
     }
 

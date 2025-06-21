@@ -2159,7 +2159,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_vertex_color(View3DPanel, Panel):
         settings = tool_settings.gpencil_vertex_paint
         brush = settings.brush
         use_unified_paint = (context.object.mode != 'PAINT_GREASE_PENCIL')
-        ups = context.tool_settings.unified_paint_settings
+        ups = settings.unified_paint_settings
         prop_owner = ups if use_unified_paint and ups.use_unified_color else brush
 
         col = layout.column()
@@ -2820,7 +2820,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_mixcolor(View3DPanel, Panel):
         brush = settings.brush
         gp_settings = brush.gpencil_settings
         use_unified_paint = (context.object.mode != 'PAINT_GREASE_PENCIL')
-        ups = context.tool_settings.unified_paint_settings
+        ups = settings.unified_paint_settings
         prop_owner = ups if use_unified_paint and ups.use_unified_color else brush
 
         row = layout.row()

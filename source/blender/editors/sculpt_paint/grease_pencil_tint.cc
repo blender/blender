@@ -90,7 +90,7 @@ void TintOperation::on_stroke_begin(const bContext &C, const InputSample & /*sta
 
   float4 color_linear;
   color_linear[3] = 1.0f;
-  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(scene, paint, brush));
+  srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(paint, brush));
 
   color_ = ColorGeometry4f(color_linear);
 

@@ -2078,8 +2078,9 @@ class _defs_weight_paint:
     @ToolDef.from_fn
     def sample_weight():
         def draw_settings(context, layout, _tool):
-            if context.tool_settings.unified_paint_settings.use_unified_weight:
-                weight = context.tool_settings.unified_paint_settings.weight
+            ups = context.tool_settings.weight_paint.unified_paint_settings
+            if ups.use_unified_weight:
+                weight = ups.weight
             elif context.tool_settings.weight_paint.brush:
                 weight = context.tool_settings.weight_paint.brush.weight
             else:
