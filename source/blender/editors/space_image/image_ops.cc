@@ -795,7 +795,7 @@ static wmOperatorStatus image_view_ndof_invoke(bContext *C,
   const wmNDOFMotionData &ndof = *static_cast<const wmNDOFMotionData *>(event->customdata);
   const float pan_speed = NDOF_PIXELS_PER_SECOND;
 
-  blender::float3 pan_vec = -ndof.time_delta * WM_event_ndof_translation_get(ndof);
+  blender::float3 pan_vec = ndof.time_delta * WM_event_ndof_translation_get_for_navigation(ndof);
 
   mul_v2_fl(pan_vec, pan_speed / sima->zoom);
 

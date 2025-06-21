@@ -254,7 +254,8 @@ static void view3d_ndof_orbit(const wmNDOFMotionData &ndof,
   else {
     float quat[4];
     float axis[3];
-    float angle = ndof.time_delta * WM_event_ndof_to_axis_angle(ndof, axis);
+    float angle = ndof.time_delta *
+                  WM_event_ndof_rotation_get_axis_angle_for_navigation(ndof, axis);
 
     /* transform rotation axis from view to world coordinates */
     mul_qt_v3(view_inv, axis);
@@ -312,8 +313,7 @@ void view3d_ndof_fly(const wmNDOFMotionData &ndof,
       speed *= 0.2f;
     }
 
-    blender::float3 trans = WM_event_ndof_translation_get(ndof);
-    mul_v3_fl(trans, speed * ndof.time_delta);
+    blender::float3 trans = (speed * ndof.time_delta) * WM_event_ndof_translation_get(ndof);
     trans_orig_y = trans[1];
 
     if (U.ndof_flag & NDOF_FLY_HELICOPTER) {
@@ -355,7 +355,7 @@ void view3d_ndof_fly(const wmNDOFMotionData &ndof,
   if (has_rotate) {
     float rotation[4];
     float axis[3];
-    float angle = ndof.time_delta * WM_event_ndof_to_axis_angle(ndof, axis);
+    float angle = ndof.time_delta * WM_event_ndof_rotation_get_axis_angle(ndof, axis);
 
     if (fabsf(angle) > 0.0001f) {
       has_rotate = true;

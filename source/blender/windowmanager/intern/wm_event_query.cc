@@ -546,26 +546,19 @@ blender::float3 WM_event_ndof_rotation_get(const wmNDOFMotionData &ndof)
   };
 }
 
-float WM_event_ndof_to_axis_angle(const wmNDOFMotionData &ndof, float axis[3])
+float WM_event_ndof_rotation_get_axis_angle_for_navigation(const wmNDOFMotionData &ndof,
+                                                           float axis[3])
 {
-  float angle;
-  angle = normalize_v3_v3(axis, ndof.rvec);
-
-  axis[0] = axis[0] * ((U.ndof_flag & NDOF_ROTX_INVERT_AXIS) ? -1.0f : 1.0f);
-  axis[1] = axis[1] * ((U.ndof_flag & NDOF_ROTY_INVERT_AXIS) ? -1.0f : 1.0f);
-  axis[2] = axis[2] * ((U.ndof_flag & NDOF_ROTZ_INVERT_AXIS) ? -1.0f : 1.0f);
-
-  return angle;
+  const blender::float3 rvec = WM_event_ndof_rotation_get_for_navigation(ndof);
+  return normalize_v3_v3(axis, rvec);
 }
 
-void WM_event_ndof_to_quat(const wmNDOFMotionData &ndof, float q[4])
+float WM_event_ndof_rotation_get_axis_angle(const wmNDOFMotionData &ndof, float axis[3])
 {
-  float axis[3];
-  float angle;
-
-  angle = WM_event_ndof_to_axis_angle(ndof, axis);
-  axis_angle_to_quat(q, axis, angle);
+  const blender::float3 rvec = WM_event_ndof_rotation_get(ndof);
+  return normalize_v3_v3(axis, rvec);
 }
+
 #endif /* WITH_INPUT_NDOF */
 
 /** \} */
