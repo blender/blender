@@ -739,9 +739,9 @@ static wmOperatorStatus mesh_customdata_custom_splitnormals_add_exec(bContext *C
 void MESH_OT_customdata_custom_splitnormals_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Custom Split Normals Data";
+  ot->name = "Add Custom Normals Data";
   ot->idname = "MESH_OT_customdata_custom_splitnormals_add";
-  ot->description = "Add a custom split normals layer, if none exists yet";
+  ot->description = "Add a custom normals layer, if none exists yet";
 
   /* API callbacks. */
   ot->exec = mesh_customdata_custom_splitnormals_add_exec;
@@ -782,9 +782,9 @@ static wmOperatorStatus mesh_customdata_custom_splitnormals_clear_exec(bContext 
 void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Clear Custom Split Normals Data";
+  ot->name = "Clear Custom Normals Data";
   ot->idname = "MESH_OT_customdata_custom_splitnormals_clear";
-  ot->description = "Remove the custom split normals layer, if it exists";
+  ot->description = "Remove the custom normals layer, if it exists";
 
   /* API callbacks. */
   ot->exec = mesh_customdata_custom_splitnormals_clear_exec;

@@ -266,9 +266,9 @@ void RNA_api_mesh(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(
       func,
-      "Compute tangents and bitangent signs, to be used together with the split normals "
+      "Compute tangents and bitangent signs, to be used together with the custom normals "
       "to get a complete tangent space for normal mapping "
-      "(split normals are also computed if not yet present)");
+      "(custom normals are also computed if not yet present)");
   RNA_def_string(func,
                  "uvmap",
                  nullptr,
@@ -305,7 +305,7 @@ void RNA_api_mesh(StructRNA *srna)
 
   func = RNA_def_function(srna, "normals_split_custom_set", "rna_Mesh_normals_split_custom_set");
   RNA_def_function_ui_description(func,
-                                  "Define custom split normals of this mesh "
+                                  "Define custom normals of this mesh "
                                   "(use zero-vectors to keep auto ones)");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   /* TODO: see how array size of 0 works, this shouldn't be used. */
@@ -316,10 +316,9 @@ void RNA_api_mesh(StructRNA *srna)
   func = RNA_def_function(srna,
                           "normals_split_custom_set_from_vertices",
                           "rna_Mesh_normals_split_custom_set_from_vertices");
-  RNA_def_function_ui_description(
-      func,
-      "Define custom split normals of this mesh, from vertices' normals "
-      "(use zero-vectors to keep auto ones)");
+  RNA_def_function_ui_description(func,
+                                  "Define custom normals of this mesh, from vertices' normals "
+                                  "(use zero-vectors to keep auto ones)");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   /* TODO: see how array size of 0 works, this shouldn't be used. */
   parm = RNA_def_float_array(func, "normals", 1, nullptr, -1.0f, 1.0f, "", "Normals", 0.0f, 0.0f);

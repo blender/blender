@@ -398,7 +398,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                ('SMOOTH_GROUP', "Smoothing Groups", "Write face smoothing groups"),
                ),
         description="Export smoothing information "
-        "(prefer 'Normals Only' option if your target importer understand split normals)",
+        "(prefer 'Normals Only' option if your target importer understands custom normals)",
         default='OFF',
     )
     colors_type: EnumProperty(
