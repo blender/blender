@@ -2161,25 +2161,13 @@ Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
     const TransDataContainer *tc, Vector<float3> &r_loc_dst_buffer)
 {
   int td_selected_len = 0;
-  BLI_assert(tc->sorted_index_map);
-  for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
-    TransData *td = &tc->data[i];
-    if (!(td->flag & TD_SELECTED)) {
-      /* The selected ones are sorted at the beginning. */
-      break;
-    }
-    td_selected_len++;
-  }
+  tc->foreach_index_selected([&](const int /*i*/) { td_selected_len++; });
 
   Array<TransDataVertSlideVert> r_sv(td_selected_len);
 
   r_loc_dst_buffer.reserve(r_sv.size() * 4);
-  for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+  tc->foreach_index_selected([&](const int i) {
     TransData *td = &tc->data[i];
-    if (!(td->flag & TD_SELECTED)) {
-      /* The selected ones are sorted at the beginning. */
-      break;
-    }
     const int size_prev = r_loc_dst_buffer.size();
 
     BMVert *v = static_cast<BMVert *>(td->extra);
@@ -2205,7 +2193,7 @@ Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
 
     /* Store the buffer size temporarily in `target_curr`. */
     sv.co_link_curr = r_loc_dst_buffer.size() - size_prev;
-  }
+  });
 
   int start = 0;
   for (TransDataVertSlideVert &sv : r_sv) {
@@ -2297,20 +2285,21 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
   /* Ensure valid selection. */
   BMIter iter;
   BMVert *v;
-  BLI_assert(tc->sorted_index_map);
-  for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+  bool found_invalid_edge_selection = false;
+  tc->foreach_index_selected([&](const int i) {
     TransData *td = &tc->data[i];
-    if (!(td->flag & TD_SELECTED)) {
-      /* The selected ones are sorted at the beginning. */
-      break;
-    }
     v = static_cast<BMVert *>(td->extra);
     int numsel = BM_iter_elem_count_flag(BM_EDGES_OF_VERT, v, BM_ELEM_SELECT, true);
     if (numsel == 0 || numsel > 2) {
       /* Invalid edge selection. */
-      return {};
+      found_invalid_edge_selection = true;
+      return;
     }
     td_selected_len++;
+  });
+
+  if (found_invalid_edge_selection) {
+    return {};
   }
 
   BMEdge *e;
@@ -2334,11 +2323,9 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
   Array<TransDataEdgeSlideVert> r_sv(td_selected_len);
   TransDataEdgeSlideVert *sv = r_sv.data();
   int sv_index = 0;
-  for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+  tc->foreach_index_selected([&](const int i) {
     TransData *td = &tc->data[i];
-    if (!(td->flag & TD_SELECTED)) {
-      continue;
-    }
+
     sv->td = td;
     sv->loop_nr = -1;
     sv->dir_side[0] = float3(0);
@@ -2349,7 +2336,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
     BM_elem_index_set(v, sv_index);
     sv_index++;
     sv++;
-  }
+  });
 
   /* Map indicating the indexes of #TransData connected by edge. */
   Array<int2> td_connected(tc->data_len, int2(-1, -1));

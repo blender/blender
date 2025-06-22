@@ -1377,14 +1377,7 @@ void tranform_snap_target_median_calc(const TransInfo *t, float r_median[3])
     float v[3];
     zero_v3(v);
 
-    BLI_assert(tc->sorted_index_map);
-    for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
-      TransData *td = &tc->data[i];
-      if (!(td->flag & TD_SELECTED)) {
-        break;
-      }
-      add_v3_v3(v, td->center);
-    }
+    tc->foreach_index_selected([&](const int i) { add_v3_v3(v, tc->data[i].center); });
 
     if (tc->data_len == 0) {
       /* Is this possible? */
@@ -1468,11 +1461,8 @@ static void snap_source_closest_fn(TransInfo *t)
     if (t->options & CTX_OBJECT) {
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         BLI_assert(tc->sorted_index_map);
-        for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+        tc->foreach_index_selected([&](const int i) {
           TransData *td = &tc->data[i];
-          if (!(td->flag & TD_SELECTED)) {
-            break;
-          }
 
           std::optional<Bounds<float3>> bounds;
 
@@ -1520,17 +1510,14 @@ static void snap_source_closest_fn(TransInfo *t)
               closest = td;
             }
           }
-        }
+        });
       }
     }
     else {
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
         BLI_assert(tc->sorted_index_map);
-        for (const int i : Span(tc->sorted_index_map, tc->data_len)) {
+        tc->foreach_index_selected([&](const int i) {
           TransData *td = &tc->data[i];
-          if (!(td->flag & TD_SELECTED)) {
-            break;
-          }
 
           float loc[3];
           float dist;
@@ -1550,7 +1537,7 @@ static void snap_source_closest_fn(TransInfo *t)
             closest = td;
             dist_closest = dist;
           }
-        }
+        });
       }
     }
   }
