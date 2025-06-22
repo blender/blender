@@ -158,14 +158,7 @@ class Device {
   {
     return !error_message().empty();
   }
-  virtual void set_error(const string &error)
-  {
-    if (!have_error()) {
-      error_msg = error;
-    }
-    fprintf(stderr, "%s\n", error.c_str());
-    fflush(stderr);
-  }
+  virtual void set_error(const string &error);
   virtual BVHLayoutMask get_bvh_layout_mask(const uint kernel_features) const = 0;
 
   /* statistics */

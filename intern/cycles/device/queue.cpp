@@ -2,14 +2,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "device/queue.h"
+#include <iomanip>
+
 #include "device/kernel.h"
+#include "device/queue.h"
 
 #include "util/algorithm.h"
 #include "util/log.h"
 #include "util/time.h"
-
-#include <iomanip>
 
 CCL_NAMESPACE_BEGIN
 

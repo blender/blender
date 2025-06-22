@@ -7,6 +7,7 @@
 #  include <cstdio>
 #  include <cstdlib>
 #  include <cstring>
+#  include <iomanip>
 
 #  include "device/hip/device_impl.h"
 
@@ -345,9 +346,8 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
                                  fatbin.c_str(),
                                  common_cflags.c_str());
 
-  printf("Compiling %sHIP kernel ...\n%s\n",
-         (use_adaptive_compilation()) ? "adaptive " : "",
-         command.c_str());
+  LOG(INFO_IMPORTANT) << "Compiling " << ((use_adaptive_compilation()) ? "adaptive " : "")
+                      << "HIP kernel ...";
 
 #  ifdef _WIN32
   command = "call " + command;
@@ -367,7 +367,8 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
     return string();
   }
 
-  printf("Kernel compilation finished in %.2lfs.\n", time_dt() - starttime);
+  LOG(INFO_IMPORTANT) << "Kernel compilation finished in " << std::fixed << std::setprecision(2)
+                      << time_dt() - starttime << "s";
 
   return fatbin;
 }

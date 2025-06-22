@@ -217,9 +217,8 @@ int SVMCompiler::stack_find_offset(const int size)
 
   if (!compile_failed) {
     compile_failed = true;
-    fprintf(stderr,
-            "Cycles: out of SVM stack space, shader \"%s\" too big.\n",
-            current_shader->name.c_str());
+    LOG(ERROR) << "Shader graph: out of SVM stack space, shader \"" << current_shader->name
+               << "\" too big.";
   }
 
   return 0;

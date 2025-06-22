@@ -129,7 +129,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
   hipError_t result = device_hip_safe_init();
   if (result != hipSuccess) {
     if (result != hipErrorNoDevice) {
-      fprintf(stderr, "HIP hipInit: %s\n", hipewErrorString(result));
+      LOG(ERROR) << "HIP hipInit: " << hipewErrorString(result);
     }
     return;
   }
@@ -137,7 +137,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
   int count = 0;
   result = hipGetDeviceCount(&count);
   if (result != hipSuccess) {
-    fprintf(stderr, "HIP hipGetDeviceCount: %s\n", hipewErrorString(result));
+    LOG(ERROR) << "HIP hipGetDeviceCount: " << hipewErrorString(result);
     return;
   }
 
@@ -154,7 +154,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
 
     result = hipDeviceGetName(name, 256, num);
     if (result != hipSuccess) {
-      fprintf(stderr, "HIP :hipDeviceGetName: %s\n", hipewErrorString(result));
+      LOG(ERROR) << "HIP hipDeviceGetName: " << hipewErrorString(result);
       continue;
     }
 

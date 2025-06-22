@@ -567,7 +567,7 @@ const char *OSLManager::shader_load_filepath(string filepath)
   string bytecode;
 
   if (!path_read_text(filepath, bytecode)) {
-    fprintf(stderr, "Cycles shader graph: failed to read file %s\n", filepath.c_str());
+    LOG(ERROR) << "Shader graph: failed to read file " << filepath;
     const OSLShaderInfo info;
     loaded_shaders[bytecode_hash] = info; /* to avoid repeat tries */
     return nullptr;
@@ -588,7 +588,7 @@ const char *OSLManager::shader_load_bytecode(const string &hash, const string &b
   OSLShaderInfo info;
 
   if (!info.query.open_bytecode(bytecode)) {
-    fprintf(stderr, "OSL query error: %s\n", info.query.geterror().c_str());
+    LOG(ERROR) << "OSL query error: " << info.query.geterror();
   }
 
   /* this is a bit weak, but works */

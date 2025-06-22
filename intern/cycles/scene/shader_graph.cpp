@@ -241,20 +241,16 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
   assert(from && to);
 
   if (to->link) {
-    fprintf(stderr, "Cycles shader graph connect: input already connected.\n");
+    LOG(WARNING) << "Sraph connect: input already connected.";
     return;
   }
 
   if (from->type() != to->type()) {
     /* can't do automatic conversion from closure */
     if (from->type() == SocketType::CLOSURE) {
-      fprintf(stderr,
-              "Cycles shader graph connect: can only connect closure to closure "
-              "(%s.%s to %s.%s).\n",
-              from->parent->name.c_str(),
-              from->name().c_str(),
-              to->parent->name.c_str(),
-              to->name().c_str());
+      LOG(WARNING) << "Shader graph connect: can only connect closure to closure ("
+                   << from->parent->name.c_str() << "." << from->name().c_str() << " to "
+                   << to->parent->name.c_str() << "." << to->name().c_str() << ")";
       return;
     }
 
@@ -721,7 +717,7 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool> &visited, vector<b
       if (on_stack[depnode->id]) {
         /* break cycle */
         disconnect(input);
-        fprintf(stderr, "Cycles shader graph: detected cycle in graph, connection removed.\n");
+        LOG(WARNING) << "Shader graph: detected cycle in graph, connection removed.";
       }
       else if (!visited[depnode->id]) {
         /* visit dependencies */
@@ -1200,7 +1196,7 @@ void ShaderGraph::dump_graph(const char *filename)
   FILE *fd = fopen(filename, "w");
 
   if (fd == nullptr) {
-    printf("Error opening file for dumping the graph: %s\n", filename);
+    LOG(ERROR) << "Error opening file for dumping the graph: " << filename;
     return;
   }
 

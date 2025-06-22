@@ -49,6 +49,15 @@ uint Device::devices_initialized_mask = 0;
 
 Device::~Device() noexcept(false) = default;
 
+void Device::set_error(const string &error)
+{
+  if (!have_error()) {
+    error_msg = error;
+  }
+  LOG(ERROR) << error;
+  fflush(stderr);
+}
+
 void Device::build_bvh(BVH *bvh, Progress &progress, bool refit)
 {
   assert(bvh->params.bvh_layout == BVH_LAYOUT_BVH2);

@@ -14,7 +14,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-LogLevel LOG_LEVEL = DWARNING;
+LogLevel LOG_LEVEL = INFO_IMPORTANT;
 static LogFunction LOG_FUNCTION;
 static double LOG_START_TIME = time_dt();
 
@@ -30,6 +30,7 @@ const char *log_level_to_string(const LogLevel level)
     case WARNING:
     case DWARNING:
       return "WARNING";
+    case INFO_IMPORTANT:
     case INFO:
       return "INFO";
     case WORK:
@@ -59,7 +60,7 @@ LogLevel log_string_to_level(const string &str)
     return WARNING;
   }
   if (str_lower == "info") {
-    return FATAL;
+    return INFO;
   }
   if (str_lower == "work") {
     return WORK;

@@ -7,6 +7,7 @@
 
 #include "app/opengl/window.h"
 
+#include "util/log.h"
 #include "util/string.h"
 #include "util/thread.h"
 #include "util/version.h"
@@ -66,7 +67,7 @@ static void window_display_text(int /*x*/, int /*y*/, const char *text)
   static string last_text;
 
   if (text != last_text) {
-    printf("%s\n", text);
+    LOG(INFO_IMPORTANT) << text;
     last_text = text;
   }
 #endif
@@ -291,7 +292,7 @@ void window_main_loop(const char *title,
                               height,
                               SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
   if (V.window == nullptr) {
-    fprintf(stderr, "Failed to create window: %s\n", SDL_GetError());
+    LOG(ERROR) << "Failed to create window: " << SDL_GetError();
     return;
   }
 

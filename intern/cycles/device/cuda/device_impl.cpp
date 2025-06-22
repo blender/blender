@@ -8,6 +8,7 @@
 #  include <cstdio>
 #  include <cstdlib>
 #  include <cstring>
+#  include <iomanip>
 
 #  include "device/cuda/device_impl.h"
 
@@ -339,19 +340,13 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   const int nvcc_cuda_version = cuewCompilerVersion();
   LOG(INFO) << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
   if (nvcc_cuda_version < 101) {
-    printf(
-        "Unsupported CUDA version %d.%d detected, "
-        "you need CUDA 10.1 or newer.\n",
-        nvcc_cuda_version / 10,
-        nvcc_cuda_version % 10);
+    LOG(WARNING) << "Unsupported CUDA version " << nvcc_cuda_version / 10 << "."
+                 << nvcc_cuda_version % 10 << ", you need CUDA 10.1 or newer";
     return string();
   }
   if (!(nvcc_cuda_version >= 102 && nvcc_cuda_version < 130)) {
-    printf(
-        "CUDA version %d.%d detected, build may succeed but only "
-        "CUDA 10.1 to 12 are officially supported.\n",
-        nvcc_cuda_version / 10,
-        nvcc_cuda_version % 10);
+    LOG(WARNING) << "CUDA version " << nvcc_cuda_version / 10 << "." << nvcc_cuda_version % 10
+                 << "CUDA 10.1 to 12 are officially supported.";
   }
 
   double starttime = time_dt();
@@ -376,9 +371,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
       cubin.c_str(),
       common_cflags.c_str());
 
-  printf("Compiling %sCUDA kernel ...\n%s\n",
-         (use_adaptive_compilation()) ? "adaptive " : "",
-         command.c_str());
+  LOG(INFO_IMPORTANT) << "Compiling " << ((use_adaptive_compilation()) ? "adaptive " : "")
+                      << "CUDA kernel ...";
+  LOG(INFO_IMPORTANT) << command;
 
 #  ifdef _WIN32
   command = "call " + command;
@@ -398,7 +393,8 @@ string CUDADevice::compile_kernel(const string &common_cflags,
     return string();
   }
 
-  printf("Kernel compilation finished in %.2lfs.\n", time_dt() - starttime);
+  LOG(INFO_IMPORTANT) << "Kernel compilation finished in " << std::fixed << std::setprecision(2)
+                      << time_dt() - starttime << "s";
 
   return cubin;
 }

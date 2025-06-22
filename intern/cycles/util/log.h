@@ -15,16 +15,17 @@ CCL_NAMESPACE_BEGIN
 /* Log Levels */
 
 enum LogLevel {
-  FATAL = 0,    /* Fatal error, application will abort */
-  DFATAL = 1,   /* Fatal error in debug build only */
-  ERROR = 2,    /* Error */
-  DERROR = 3,   /* Error in debug build only */
-  WARNING = 4,  /* Warning */
-  DWARNING = 5, /* Warning in debug build only */
-  INFO = 6,     /* Info about devices, scene contents and features used. */
-  WORK = 7,     /* Work being performed and timing/memory stats about that work. */
-  STATS = 8,    /* Detailed device timing stats. */
-  DEBUG = 9,    /* Verbose debug messages. */
+  FATAL = 0,          /* Fatal error, application will abort */
+  DFATAL = 1,         /* Fatal error in debug build only */
+  ERROR = 2,          /* Error */
+  DERROR = 3,         /* Error in debug build only */
+  WARNING = 4,        /* Warning */
+  DWARNING = 5,       /* Warning in debug build only */
+  INFO_IMPORTANT = 6, /* Important info that is printed by default */
+  INFO = 7,           /* Info about devices, scene contents and features used. */
+  WORK = 8,           /* Work being performed and timing/memory stats about that work. */
+  STATS = 9,          /* Detailed device timing stats. */
+  DEBUG = 10,         /* Verbose debug messages. */
   UNKNOWN = -1,
 };
 
@@ -78,19 +79,16 @@ extern LogLevel LOG_LEVEL;
 #define LOG_STRINGIFY_APPEND(a, b) "" a #b
 #define LOG_STRINGIFY(x) LOG_STRINGIFY_APPEND("", x)
 
+/* Macro to ensure lazy evaluation of both condition and logging text. */
 #ifdef NDEBUG
 #  define LOG_IF(level, condition) \
     if constexpr (level != DFATAL && level != DERROR && level != DWARNING) \
-      if (LIKELY(!(level <= LOG_LEVEL && (condition)))) \
-        ; \
-      else \
-        LogMessage(level, __FILE__ ":" LOG_STRINGIFY(__LINE__), __func__).stream()
+      if (UNLIKELY(level <= LOG_LEVEL && (condition))) \
+    LogMessage(level, __FILE__ ":" LOG_STRINGIFY(__LINE__), __func__).stream()
 #else
 #  define LOG_IF(level, condition) \
-    if (LIKELY(!(level <= LOG_LEVEL && (condition)))) \
-      ; \
-    else \
-      LogMessage(level, __FILE__ ":" LOG_STRINGIFY(__LINE__), __func__).stream()
+    if (UNLIKELY(level <= LOG_LEVEL && (condition))) \
+    LogMessage(level, __FILE__ ":" LOG_STRINGIFY(__LINE__), __func__).stream()
 #endif
 
 /* Log a message at the desired level.

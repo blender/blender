@@ -539,7 +539,7 @@ using namespace ccl;
 
 int main(const int argc, const char **argv)
 {
-  log_init(argv[0]);
+  log_init(nullptr);
   path_init();
   options_parse(argc, argv);
 

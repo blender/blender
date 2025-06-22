@@ -10,6 +10,8 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
+#include "util/log.h"
+
 #include "BKE_volume_grid.hh"
 
 CCL_NAMESPACE_BEGIN
@@ -140,16 +142,15 @@ class BlenderSmokeLoader : public ImageLoader {
       }
     }
     else {
-      fprintf(stderr,
-              "Cycles error: unknown volume attribute %s, skipping\n",
-              Attribute::standard_name(attribute));
+      LOG(ERROR) << "Unknown volume attribute " << Attribute::standard_name(attribute)
+                 << "skipping ";
       fpixels[0] = 0.0f;
       return false;
     }
 #else
     (void)pixels;
 #endif
-    fprintf(stderr, "Cycles error: unexpected smoke volume resolution, skipping\n");
+    LOG(ERROR) << "Unexpected smoke volume resolution, skipping";
     return false;
   }
 

@@ -29,6 +29,7 @@ void CCL_log_init()
             CLG_log_str(log_type, CLG_SEVERITY_WARN, file_line, func, msg);
             return;
           case ccl::INFO:
+          case ccl::INFO_IMPORTANT:
           case ccl::WORK:
           case ccl::STATS:
           case ccl::DEBUG:

@@ -109,7 +109,7 @@ void device_cuda_info(vector<DeviceInfo> &devices)
   CUresult result = device_cuda_safe_init();
   if (result != CUDA_SUCCESS) {
     if (result != CUDA_ERROR_NO_DEVICE) {
-      fprintf(stderr, "CUDA cuInit: %s\n", cuewErrorString(result));
+      LOG(ERROR) << "CUDA cuInit: " << cuewErrorString(result);
     }
     return;
   }
@@ -117,7 +117,7 @@ void device_cuda_info(vector<DeviceInfo> &devices)
   int count = 0;
   result = cuDeviceGetCount(&count);
   if (result != CUDA_SUCCESS) {
-    fprintf(stderr, "CUDA cuDeviceGetCount: %s\n", cuewErrorString(result));
+    LOG(ERROR) << "CUDA cuDeviceGetCount: " << cuewErrorString(result);
     return;
   }
 
@@ -128,7 +128,7 @@ void device_cuda_info(vector<DeviceInfo> &devices)
 
     result = cuDeviceGetName(name, 256, num);
     if (result != CUDA_SUCCESS) {
-      fprintf(stderr, "CUDA cuDeviceGetName: %s\n", cuewErrorString(result));
+      LOG(ERROR) << "CUDA cuDeviceGetName: " << cuewErrorString(result);
       continue;
     }
 

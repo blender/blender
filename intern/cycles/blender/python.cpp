@@ -17,7 +17,7 @@
 #include "util/debug.h"
 
 #include "util/guiding.h"
-#include "util/md5.h"
+#include "util/log.h"
 #include "util/openimagedenoise.h"
 #include "util/path.h"
 #include "util/string.h"
@@ -727,7 +727,7 @@ static PyObject *set_device_override_func(PyObject * /*self*/, PyObject *arg)
     BlenderSession::device_override = DEVICE_MASK_ONEAPI;
   }
   else {
-    fprintf(stderr, "\nError: %s is not a valid Cycles device.\n", override.c_str());
+    LOG(ERROR) << override << " is not a valid Cycles device.";
     Py_RETURN_FALSE;
   }
 

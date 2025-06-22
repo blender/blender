@@ -335,7 +335,7 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
           oidn_filter_, "weights", custom_weights.data(), custom_weights.size());
     }
     else {
-      fprintf(stderr, "Cycles: Failed to load custom OIDN weights!");
+      LOG(ERROR) << "Failed to load custom OpenImageDenoise weights";
     }
   }
 

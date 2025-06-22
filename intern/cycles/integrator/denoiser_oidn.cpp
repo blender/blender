@@ -121,7 +121,7 @@ class OIDNDenoiseContext {
     const char *custom_weight_path = getenv("CYCLES_OIDN_CUSTOM_WEIGHTS");
     if (custom_weight_path) {
       if (!path_read_binary(custom_weight_path, custom_weights)) {
-        fprintf(stderr, "Cycles: Failed to load custom OIDN weights!");
+        LOG(ERROR) << "Failed to load custom OpenImageDenoise weights";
       }
     }
   }
