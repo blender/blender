@@ -23,10 +23,10 @@
 /** \name Reshape from object
  * \{ */
 
-bool multiresModifier_reshapeFromVertcos(Depsgraph *depsgraph,
-                                         Object *object,
-                                         MultiresModifierData *mmd,
-                                         blender::Span<blender::float3> positions)
+static bool multiresModifier_reshapeFromVertcos(Depsgraph *depsgraph,
+                                                Object *object,
+                                                MultiresModifierData *mmd,
+                                                blender::Span<blender::float3> positions)
 {
   MultiresReshapeContext reshape_context;
   if (!multires_reshape_context_create_from_object(&reshape_context, depsgraph, object, mmd)) {
