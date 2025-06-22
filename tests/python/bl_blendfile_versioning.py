@@ -341,7 +341,9 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
     def save_reload(self, bfp, prefix):
         if self.skip_save_reload_path_check(bfp):
             return
-        tmp_save_path = os.path.join(self.args.output_dir, prefix + os.path.basename(bfp))
+        # Use a hash to deduplicate the few blendfiles that have a same name,
+        # but a different path (e.g. currently, `flip_faces.blend`).
+        tmp_save_path = os.path.join(self.args.output_dir, prefix + hex(hash(bfp)) + "_" + os.path.basename(bfp))
         if not self.args.is_quiet:
             print(f"Trying to save to {tmp_save_path}", flush=True)
         bpy.ops.wm.save_as_mainfile(filepath=tmp_save_path, compress=True)
@@ -351,14 +353,7 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
         if not self.args.is_quiet:
             print(f"Removing {tmp_save_path}", flush=True)
         bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
-        # For some reasons, this can fail randomely... Juts ignore, this is only here to cleanup
-        # the hundreds of written files, not worth failing the test if it cannot be removed.
-        if os.path.exists(tmp_save_path):
-            os.remove(tmp_save_path)
-        # The 'backup' blendfile created when resaving over an exisitng one.
-        tmp_save_path_1 = tmp_save_path + "1"
-        if os.path.exists(tmp_save_path_1):
-            os.remove(tmp_save_path_1)
+        os.remove(tmp_save_path)
 
     def test_open(self):
         for bfp in self.blendfile_paths:
