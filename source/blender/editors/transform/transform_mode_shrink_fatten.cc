@@ -120,7 +120,7 @@ static void applyShrinkFatten(TransInfo *t)
     if (unit.system != USER_UNIT_NONE) {
       char unit_str[64];
       BKE_unit_value_as_string_scaled(
-          unit_str, sizeof(unit_str), distance, 4, B_UNIT_LENGTH, unit, true);
+          unit_str, sizeof(unit_str), distance, -4, B_UNIT_LENGTH, unit, true);
       fmt::format_to(fmt::appender(str), "{}", unit_str);
     }
     else {
