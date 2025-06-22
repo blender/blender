@@ -447,7 +447,10 @@ typedef struct GaussianBlurVars {
 
 typedef struct TextVars {
   char *text_ptr;
-  /* Text length in bytes, not including terminating zero (i.e. strlen of text). */
+  /**
+   * Text length in bytes, not including terminating zero
+   * (The `strlen` of text).
+   */
   int text_len_bytes;
   char _pad2[4];
 

@@ -129,8 +129,8 @@ static void sort_trans_data_dist_container(const TransInfo *t, TransDataContaine
     return tc->data[a].rdist < tc->data[b].rdist;
   };
 
-  /* The "sort by distance" is often preceeded by "calculate distance", which is
-   * often preceeded by "sort selected first". */
+  /* The "sort by distance" is often preceded by "calculate distance", which is
+   * often preceded by "sort selected first". */
   MEM_SAFE_FREE(tc->sorted_index_map);
 
   make_sorted_index_map(tc, compare);

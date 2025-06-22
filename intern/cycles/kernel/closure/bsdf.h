@@ -83,11 +83,11 @@ ccl_device_inline float bump_shadowing_term(const ccl_private ShaderData *sd,
    * However, when using bump/normal mapping, this can lead to light leaking not just
    * "around" the shadow terminator, but to the rear side of supposedly opaque geometry.
    * In order to detect this case, we can ensure that the direction is also valid w.r.t.
-   * the smoothed (but non-bump-mapped) normal sd->N (or Ns for short below).
+   * the smoothed (but non-bump-mapped) normal `sd->N` (or `Ns` for short below).
    *
-   * dot(Ns, I) * dot(Ns, N) tells us if I and N are on the same side of the smoothed geometry.
-   * If incoming(I) and normal(N) are on the same side we reject refractions, dot(N, I) < 0.
-   * If they are on different sides we reject reflections, dot(N, I) > 0. */
+   * `dot(Ns, I) * dot(Ns, N)` tells us if I and N are on the same side of the smoothed geometry.
+   * If incoming(I) and normal(N) are on the same side we reject refractions, `dot(N, I) < 0`.
+   * If they are on different sides we reject reflections, `dot(N, I) > 0`. */
   const float cosNsI = dot(sd->N, I);
   const float cosNsN = dot(sd->N, sc->N);
   const float cosNI = dot(sc->N, I);

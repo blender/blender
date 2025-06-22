@@ -1369,7 +1369,7 @@ static void draw_selected_name(
    * - 1 collection name `(MAX_ID_NAME - 2 + 3)`.
    * - 1 object name `(MAX_ID_NAME - 2)`.
    * - 1 object data name `(MAX_ID_NAME - 2)`.
-   * - 2 non-ID data names (bones, shapekeys...) `(MAX_NAME * 2)`.
+   * - 2 non-ID data names (bones, shape-keys...) `(MAX_NAME * 2)`.
    * - 2 BREAD_CRUMB_SEPARATOR(s) `(6)`.
    * - 1 SHAPE_KEY_PINNED marker and a trailing '\0' `(9+1)` - translated, so give some room!
    * - 1 marker name `(MAX_NAME + 3)`.
@@ -1481,8 +1481,8 @@ static void draw_selected_name(
   BLI_assert(i < int(ARRAY_SIZE(info_array)));
 
   char info[MAX_ID_NAME * 4];
-  /* It's expected there will be enough room for the whole string in the the buffer. If not,
-   * increase it. */
+  /* It's expected there will be enough room for the whole string in the buffer.
+   * If not, increase it. */
   BLI_assert(BLI_string_len_array(info_array, i) < sizeof(info));
 
   BLI_string_join_array(info, sizeof(info), info_array, i);

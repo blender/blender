@@ -257,7 +257,7 @@ bool data_path_maybe_shared(const ID &id, const StringRef data_path)
     return !is_thread_safe;
   }
 
-  /* Allow concurrent writes to shapekey values. #140706 shows that this
+  /* Allow concurrent writes to shape-key values. #140706 shows that this
    * shouldn't be a problem in practice. */
   if (GS(id.name) == ID_KE) {
     const bool is_thread_safe = data_path.startswith("key_blocks[") &&
