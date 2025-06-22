@@ -77,6 +77,7 @@ struct SequencerAddData {
 /* Avoid passing multiple args and be more verbose. */
 #define SEQPROP_STARTFRAME (1 << 0)
 #define SEQPROP_ENDFRAME (1 << 1)
+/* Skip pre-setting filepath to active strip media directory */
 #define SEQPROP_NOPATHS (1 << 2)
 #define SEQPROP_NOCHAN (1 << 3)
 #define SEQPROP_FIT_METHOD (1 << 4)
@@ -1118,7 +1119,7 @@ static wmOperatorStatus sequencer_add_movie_strip_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  sequencer_generic_invoke_xy__internal(C, op, 0, STRIP_TYPE_MOVIE);
+  sequencer_generic_invoke_xy__internal(C, op, SEQPROP_NOPATHS, STRIP_TYPE_MOVIE);
 
   const char *error_msg;
   if (!have_free_channels(C, op, 2, &error_msg)) {
