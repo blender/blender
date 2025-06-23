@@ -31,8 +31,6 @@
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 
-#include "UI_interface.hh"
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 

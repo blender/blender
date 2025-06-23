@@ -113,6 +113,13 @@ def _read_blend_rend_chunk_from_file(blendfile, filepath):
 
             scene_name = blendfile.read(64)
             sizeof_data_left -= 64
+            if b'\0' not in scene_name:
+                if sizeof_data_left >= 192:
+                    # Assume new, up to 256 bytes name.
+                    scene_name += blendfile.read(192)
+                    sizeof_data_left -= 192
+            if b'\0' not in scene_name:
+                scene_name = scene_name[:-1] + b'\0'
 
             scene_name = scene_name[:scene_name.index(b'\0')]
             # It's possible old blend files are not UTF8 compliant, use `surrogateescape`.

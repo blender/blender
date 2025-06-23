@@ -34,8 +34,6 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "UI_interface.hh"
-
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"

@@ -153,6 +153,12 @@ static wmOperatorStatus brush_asset_save_as_exec(bContext *C, wmOperator *op)
 
   /* Determine file path to save to. */
   PropertyRNA *name_prop = RNA_struct_find_property(op->ptr, "name");
+  /* FIXME: MAX_ID_NAME & FILE_MAXFILE
+   *
+   * This `name` should be `MAX_ID_NAME - 2` long.
+   *
+   * This name might also be used as filename for the saved asset, thus hitting the size issue
+   * between ID names and file names (FILE_MAXFILE). */
   char name[MAX_NAME] = "";
   if (RNA_property_is_set(op->ptr, name_prop)) {
     RNA_property_string_get(op->ptr, name_prop, name);

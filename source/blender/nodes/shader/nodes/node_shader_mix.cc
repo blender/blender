@@ -16,7 +16,7 @@
 
 #include "DNA_material_types.h"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "node_shader_util.hh"

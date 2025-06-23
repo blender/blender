@@ -5,7 +5,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
+#include "UI_resources.hh"
 
 #include "RNA_enum_types.hh"
 

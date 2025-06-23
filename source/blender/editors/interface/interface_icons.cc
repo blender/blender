@@ -47,7 +47,6 @@
 #include "ED_node.hh"
 #include "ED_render.hh"
 
-#include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 
 #include "WM_api.hh"
@@ -2096,11 +2095,12 @@ int UI_icon_from_idcode(const int idcode)
       return ICON_WORKSPACE;
     case ID_GP:
       return ICON_OUTLINER_DATA_GREASEPENCIL;
+    case ID_KE:
+      return ICON_SHAPEKEY_DATA;
 
     /* No icons for these ID-types. */
     case ID_LI:
     case ID_IP:
-    case ID_KE:
     case ID_SCR:
     case ID_WM:
       break;

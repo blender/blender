@@ -28,6 +28,7 @@
 #include "WM_api.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #define B_MATPRV 1
 
@@ -121,7 +122,6 @@ void uiTemplatePreview(uiLayout *layout,
   uiBlock *block = layout->block();
   uiLayout *row = &layout->row(false);
   uiLayout *col = &row->column(false);
-  uiLayoutSetKeepAspect(col, true);
 
   /* add preview */
   uiDefBut(

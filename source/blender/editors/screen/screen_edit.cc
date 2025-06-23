@@ -564,7 +564,18 @@ static bool screen_area_join_ex(bContext *C,
 
   if (close_all_remainders || offset1 < 0 || offset2 > 0) {
     /* Close both if trimming `sa1`. */
+    float inner[4] = {0.0f, 0.0f, 0.0f, 0.7f};
+    if (side1) {
+      rcti rect = {side1->v1->vec.x, side1->v3->vec.x, side1->v1->vec.y, side1->v3->vec.y};
+      screen_animate_area_highlight(
+          CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
+    }
     screen_area_close(C, reports, screen, side1);
+    if (side2) {
+      rcti rect = {side2->v1->vec.x, side2->v3->vec.x, side2->v1->vec.y, side2->v3->vec.y};
+      screen_animate_area_highlight(
+          CTX_wm_window(C), CTX_wm_screen(C), &rect, inner, nullptr, AREA_CLOSE_FADEOUT);
+    }
     screen_area_close(C, reports, screen, side2);
   }
   else {

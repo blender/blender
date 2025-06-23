@@ -38,7 +38,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "ED_id_management.hh"
 
@@ -4038,7 +4038,7 @@ static void ui_litem_estimate_panel_header(uiLayout *litem)
 static void ui_litem_layout_panel_header(uiLayout *litem)
 {
   uiLayoutItemPanelHeader *header_litem = static_cast<uiLayoutItemPanelHeader *>(litem);
-  Panel *panel = litem->block()->panel;
+  Panel *panel = litem->root_panel();
 
   BLI_assert(litem->items_.size() == 1);
   uiItem *item = litem->items_.first();
@@ -4062,7 +4062,7 @@ static void ui_litem_estimate_panel_body(uiLayout *litem)
 
 static void ui_litem_layout_panel_body(uiLayout *litem)
 {
-  Panel *panel = litem->block()->panel;
+  Panel *panel = litem->root_panel();
   ui_litem_layout_column(litem, false, false);
   const float offset = UI_style_get_dpi()->panelspace;
   panel->runtime->layout_panels.bodies.append({
@@ -4887,7 +4887,7 @@ uiLayout *uiLayout::panel_prop(const bContext *C,
 
 PanelLayout uiLayout::panel(const bContext *C, const StringRef idname, const bool default_closed)
 {
-  Panel *root_panel = uiLayoutGetRootPanel(this);
+  Panel *root_panel = this->root_panel();
   BLI_assert(root_panel != nullptr);
 
   LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(
@@ -5101,16 +5101,6 @@ uiLayout &uiLayout::split(float percentage, bool align)
   return *split;
 }
 
-void uiLayoutSetRedAlert(uiLayout *layout, bool redalert)
-{
-  layout->redalert_ = redalert;
-}
-
-void uiLayoutSetKeepAspect(uiLayout *layout, bool keepaspect)
-{
-  layout->keepaspect_ = keepaspect;
-}
-
 void uiLayout::emboss_set(blender::ui::EmbossType emboss)
 {
   emboss_ = emboss;
@@ -5136,34 +5126,9 @@ void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep)
   SET_FLAG_FROM_TEST(layout->flag_, is_sep, uiItemInternalFlag::PropDecorate);
 }
 
-void uiLayoutSetSearchWeight(uiLayout *layout, const float weight)
+Panel *uiLayout::root_panel() const
 {
-  layout->search_weight_ = weight;
-}
-
-float uiLayoutGetSearchWeight(uiLayout *layout)
-{
-  return layout->search_weight_;
-}
-
-Panel *uiLayoutGetRootPanel(uiLayout *layout)
-{
-  return layout->block()->panel;
-}
-
-bool uiLayoutGetRedAlert(uiLayout *layout)
-{
-  return layout->redalert_;
-}
-
-bool uiLayoutGetKeepAspect(uiLayout *layout)
-{
-  return layout->keepaspect_;
-}
-
-int uiLayoutGetWidth(uiLayout *layout)
-{
-  return layout->w_;
+  return this->block()->panel;
 }
 
 blender::ui::EmbossType uiLayout::emboss() const
@@ -5183,7 +5148,7 @@ void uiLayoutListItemAddPadding(uiLayout *layout)
 {
   uiBlock *block = layout->block();
   uiLayout *row = &layout->row(true);
-  uiLayoutSetFixedSize(row, true);
+  row->fixed_size_set(true);
 
   uiDefBut(
       block, UI_BTYPE_SEPR, 0, "", 0, 0, uiLayoutListItemPaddingWidth(), 0, nullptr, 0.0, 0.0, "");
@@ -5777,19 +5742,14 @@ bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut 
   return true;
 }
 
-void uiLayoutSetFixedSize(uiLayout *layout, bool fixed_size)
+void uiLayout::fixed_size_set(bool fixed_size)
 {
-  if (fixed_size) {
-    layout->flag_ |= uiItemInternalFlag::FixedSize;
-  }
-  else {
-    layout->flag_ &= ~uiItemInternalFlag::FixedSize;
-  }
+  SET_FLAG_FROM_TEST(flag_, fixed_size, uiItemInternalFlag::FixedSize);
 }
 
-bool uiLayoutGetFixedSize(uiLayout *layout)
+bool uiLayout::fixed_size() const
 {
-  return bool(layout->flag_ & uiItemInternalFlag::FixedSize);
+  return bool(flag_ & uiItemInternalFlag::FixedSize);
 }
 
 void uiLayout::operator_context_set(wmOperatorCallContext opcontext)

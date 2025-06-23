@@ -25,6 +25,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
+#include "BLI_string_utf8.h"
 
 #include "BKE_fcurve.hh"
 #include "BKE_idprop.hh"
@@ -762,9 +763,15 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
         case STRIP_TYPE_GAUSSIAN_BLUR:
           BLO_write_struct(writer, GaussianBlurVars, strip->effectdata);
           break;
-        case STRIP_TYPE_TEXT:
-          BLO_write_struct(writer, TextVars, strip->effectdata);
-          break;
+        case STRIP_TYPE_TEXT: {
+          TextVars *text = static_cast<TextVars *>(strip->effectdata);
+          if (!BLO_write_is_undo(writer)) {
+            /* Copy current text into legacy buffer. */
+            STRNCPY_UTF8(text->text_legacy, text->text_ptr);
+          }
+          BLO_write_struct(writer, TextVars, text);
+          BLO_write_string(writer, text->text_ptr);
+        } break;
         case STRIP_TYPE_COLORMIX:
           BLO_write_struct(writer, ColorMixVars, strip->effectdata);
           break;
@@ -861,9 +868,12 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
       case STRIP_TYPE_GAUSSIAN_BLUR:
         BLO_read_struct(reader, GaussianBlurVars, &strip->effectdata);
         break;
-      case STRIP_TYPE_TEXT:
+      case STRIP_TYPE_TEXT: {
         BLO_read_struct(reader, TextVars, &strip->effectdata);
-        break;
+        TextVars *text = static_cast<TextVars *>(strip->effectdata);
+        BLO_read_string(reader, &text->text_ptr);
+        text->text_len_bytes = text->text_ptr ? strlen(text->text_ptr) : 0;
+      } break;
       case STRIP_TYPE_COLORMIX:
         BLO_read_struct(reader, ColorMixVars, &strip->effectdata);
         break;

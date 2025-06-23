@@ -13,7 +13,7 @@
 
 #include "WM_api.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
 static void keymap_item_modified(bContext * /*C*/, void *kmi_p, void * /*unused*/)

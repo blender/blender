@@ -112,7 +112,7 @@ struct Cache {
 
 void cache_init(bContext *C,
                 Object &ob,
-                const Sculpt &sd,
+                Sculpt &sd,
                 undo::Type undo_type,
                 const float mval_fl[2],
                 float area_normal_radius,

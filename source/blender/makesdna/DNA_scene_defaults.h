@@ -286,7 +286,10 @@
 
 #define _DNA_DEFAULTS_ImagePaintSettings \
   { \
-    .paint.flags = PAINT_SHOW_BRUSH, \
+    .paint = { \
+      .flags = PAINT_SHOW_BRUSH, \
+      .unified_paint_settings = _DNA_DEFAULTS_UnifiedPaintSettings, \
+    }, \
     .normal_angle = 80, \
     .seam_bleed = 2, \
     .clone_alpha = 0.5f, \
@@ -433,6 +436,7 @@
     .automasking_boundary_edges_propagation_steps = 1, \
     .flags = SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE,\
     .paint = {\
+      .unified_paint_settings = _DNA_DEFAULTS_UnifiedPaintSettings, \
       .symmetry_flags = PAINT_SYMMETRY_FEATHER,\
       .tile_offset = {1.0f, 1.0f, 1.0f},\
     }\

@@ -984,7 +984,7 @@ void draw_geometry_nodes_operator_redo_ui(const bContext &C,
   DrawGroupInputsContext ctx{
       C, &tree, tree_log, nodes::build_properties_vector_set(op.properties), op.ptr, &bmain_ptr};
   ctx.panel_open_property_fn = [&](const bNodeTreeInterfacePanel &io_panel) -> PanelOpenProperty {
-    Panel *root_panel = uiLayoutGetRootPanel(&layout);
+    Panel *root_panel = layout.root_panel();
     LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(
         root_panel,
         "node_operator_panel_" + std::to_string(io_panel.identifier),

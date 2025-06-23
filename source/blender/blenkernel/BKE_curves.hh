@@ -496,10 +496,11 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Helper struct for `CurvesGeometry::blend_write_*` functions.
    */
   struct BlendWriteData {
-    Vector<CustomDataLayer, 16> point_layers;
-    Vector<CustomDataLayer, 16> curve_layers;
+    ResourceScope &scope;
+    Vector<CustomDataLayer, 16> &point_layers;
+    Vector<CustomDataLayer, 16> &curve_layers;
     AttributeStorage::BlendWriteData attribute_data;
-    explicit BlendWriteData(ResourceScope &scope) : attribute_data{scope} {}
+    explicit BlendWriteData(ResourceScope &scope);
   };
   /**
    * This function needs to be called before `blend_write` and before the `CurvesGeometry` struct

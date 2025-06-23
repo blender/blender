@@ -18,14 +18,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "UI_interface.hh"
-
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
+
+#include "UI_interface_types.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

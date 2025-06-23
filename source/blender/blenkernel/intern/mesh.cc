@@ -309,26 +309,20 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   mesh->totface_legacy = 0;
   mesh->fdata_legacy = CustomData{};
 
-  if (U.experimental.use_attribute_storage_write) {
-    /* Convert from the format still used at runtime (flags on #CustomDataLayer) to the format
-     * reserved for future runtime use (names stored on #Mesh). */
-    if (const char *name = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2)) {
-      mesh->active_uv_map_attribute = const_cast<char *>(
-          scope.allocator().copy_string(name).c_str());
-    }
-    else {
-      mesh->active_uv_map_attribute = nullptr;
-    }
-    if (const char *name = CustomData_get_render_layer_name(&mesh->corner_data, CD_PROP_FLOAT2)) {
-      mesh->default_uv_map_attribute = const_cast<char *>(
-          scope.allocator().copy_string(name).c_str());
-    }
-    else {
-      mesh->default_uv_map_attribute = nullptr;
-    }
+  /* Convert from the format still used at runtime (flags on #CustomDataLayer) to the format
+   * reserved for future runtime use (names stored on #Mesh). */
+  if (const char *name = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2)) {
+    mesh->active_uv_map_attribute = const_cast<char *>(
+        scope.allocator().copy_string(name).c_str());
   }
   else {
     mesh->active_uv_map_attribute = nullptr;
+  }
+  if (const char *name = CustomData_get_render_layer_name(&mesh->corner_data, CD_PROP_FLOAT2)) {
+    mesh->default_uv_map_attribute = const_cast<char *>(
+        scope.allocator().copy_string(name).c_str());
+  }
+  else {
     mesh->default_uv_map_attribute = nullptr;
   }
 
@@ -348,12 +342,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     mesh->face_offset_indices = nullptr;
   }
   else {
-    attribute_storage_blend_write_prepare(mesh->attribute_storage.wrap(),
-                                          {{AttrDomain::Point, &vert_layers},
-                                           {AttrDomain::Edge, &edge_layers},
-                                           {AttrDomain::Face, &face_layers},
-                                           {AttrDomain::Corner, &loop_layers}},
-                                          attribute_data);
+    attribute_storage_blend_write_prepare(mesh->attribute_storage.wrap(), attribute_data);
     CustomData_blend_write_prepare(
         mesh->vert_data, AttrDomain::Point, mesh->verts_num, vert_layers, attribute_data);
     CustomData_blend_write_prepare(

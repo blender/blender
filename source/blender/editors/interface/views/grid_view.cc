@@ -21,7 +21,7 @@
 
 #include "RNA_access.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_view2d.hh"
 #include "interface_intern.hh"
 
@@ -386,7 +386,7 @@ void GridViewLayoutBuilder::build_grid_tile(const bContext &C,
                                             AbstractGridViewItem &item) const
 {
   uiLayout *overlap = &grid_layout.overlap();
-  uiLayoutSetFixedSize(overlap, true);
+  overlap->fixed_size_set(true);
 
   item.add_grid_tile_button(block_);
   item.build_grid_tile(C, overlap->row(false));
@@ -406,7 +406,7 @@ void GridViewLayoutBuilder::build_from_view(const bContext &C,
    * the root level and inherits its width. Might need a more reliable method. */
   const int guessed_layout_width = (parent_layout->ui_units_x() > 0) ?
                                        parent_layout->ui_units_x() * UI_UNIT_X :
-                                       uiLayoutGetWidth(parent_layout);
+                                       parent_layout->width();
   const int cols_per_row = std::max(guessed_layout_width / style.tile_width, 1);
 
   const AbstractGridViewItem *search_highlight_item = dynamic_cast<const AbstractGridViewItem *>(

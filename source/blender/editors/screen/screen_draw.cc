@@ -22,6 +22,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
+#include "BLI_time.h"
 
 #include "BLT_translation.hh"
 
@@ -666,4 +667,82 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
     rect.xmax = x + half_line_width;
   }
   UI_draw_roundbox_4fv(&rect, true, 0.0f, border);
+}
+
+struct AreaAnimateHighlightData {
+  wmWindow *win;
+  bScreen *screen;
+  rctf rect;
+  float inner[4];
+  float outline[4];
+  double start_time;
+  double end_time;
+  void *draw_callback;
+};
+
+static void area_animate_highlight_cb(const wmWindow * /*win*/, void *userdata)
+{
+  const AreaAnimateHighlightData *data = static_cast<const AreaAnimateHighlightData *>(userdata);
+
+  double now = BLI_time_now_seconds();
+  if (now > data->end_time) {
+    WM_draw_cb_exit(data->win, data->draw_callback);
+    MEM_freeN(const_cast<AreaAnimateHighlightData *>(data));
+    data = nullptr;
+    return;
+  }
+
+  const float factor = pow((now - data->start_time) / (data->end_time - data->start_time), 2);
+  const bool do_inner = data->inner[3] > 0.0f;
+  const bool do_outline = data->outline[3] > 0.0f;
+
+  float inner_color[4];
+  if (do_inner) {
+    inner_color[0] = data->inner[0];
+    inner_color[1] = data->inner[1];
+    inner_color[2] = data->inner[2];
+    inner_color[3] = (1.0f - factor) * data->inner[3];
+  }
+
+  float outline_color[4];
+  if (do_outline) {
+    outline_color[0] = data->outline[0];
+    outline_color[1] = data->outline[1];
+    outline_color[2] = data->outline[2];
+    outline_color[3] = (1.0f - factor) * data->outline[3];
+  }
+
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  UI_draw_roundbox_4fv_ex(&data->rect,
+                          do_inner ? inner_color : nullptr,
+                          nullptr,
+                          1.0f,
+                          do_outline ? outline_color : nullptr,
+                          U.pixelsize,
+                          EDITORRADIUS);
+
+  data->screen->do_refresh = true;
+}
+
+void screen_animate_area_highlight(wmWindow *win,
+                                   bScreen *screen,
+                                   const rcti *rect,
+                                   float inner[4],
+                                   float outline[4],
+                                   float seconds)
+{
+  AreaAnimateHighlightData *data = MEM_callocN<AreaAnimateHighlightData>(
+      "screen_animate_area_highlight");
+  data->win = win;
+  data->screen = screen;
+  BLI_rctf_rcti_copy(&data->rect, rect);
+  if (inner) {
+    copy_v4_v4(data->inner, inner);
+  }
+  if (outline) {
+    copy_v4_v4(data->outline, outline);
+  }
+  data->start_time = BLI_time_now_seconds();
+  data->end_time = data->start_time + seconds;
+  data->draw_callback = WM_draw_cb_activate(win, area_animate_highlight_cb, data);
 }

@@ -52,6 +52,7 @@
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
@@ -3613,7 +3614,7 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
       }
 
       /* for view2d */
-      xco = uiLayoutGetWidth(layout);
+      xco = layout->width();
       maxco = std::max(xco, maxco);
     }
 

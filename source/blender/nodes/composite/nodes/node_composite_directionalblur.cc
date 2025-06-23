@@ -9,7 +9,6 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
 
-#include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "GPU_shader.hh"

@@ -38,7 +38,7 @@
 #include "NOD_socket.hh"
 
 #include "../interface/interface_intern.hh" /* XXX bad level */
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "ED_node.hh" /* own include */
 #include "node_intern.hh"

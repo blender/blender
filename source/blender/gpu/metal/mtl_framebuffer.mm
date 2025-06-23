@@ -404,7 +404,7 @@ void MTLFrameBuffer::clear_attachment(GPUAttachmentType type,
 
   if (type == GPU_FB_DEPTH_STENCIL_ATTACHMENT) {
     if (this->has_depth_attachment() || this->has_stencil_attachment()) {
-      BLI_assert(data_format == GPU_DATA_UINT_24_8);
+      BLI_assert(data_format == GPU_DATA_UINT_24_8_DEPRECATED);
       float depth = ((*(uint32_t *)clear_value) & 0x00FFFFFFu) / (float)0x00FFFFFFu;
       int stencil = ((*(uint32_t *)clear_value) >> 24);
       this->set_depth_attachment_clear_value(depth);
@@ -695,7 +695,7 @@ void MTLFrameBuffer::update_attachments(bool /*update_viewport*/)
           /* Check stencil component -- if supplied texture format supports stencil. */
           eGPUTextureFormat format = GPU_texture_format(attach.tex);
           bool use_stencil = (type == GPU_FB_DEPTH_STENCIL_ATTACHMENT) &&
-                             (format == GPU_DEPTH32F_STENCIL8 || format == GPU_DEPTH24_STENCIL8);
+                             (format == GPU_DEPTH32F_STENCIL8);
           if (use_stencil) {
             if (this->has_stencil_attachment()) {
               MTLAttachment stencil_attachment_prev = this->get_stencil_attachment();

@@ -55,7 +55,7 @@ namespace blender::ed::sculpt_paint {
 void init_transform(bContext *C, Object &ob, const float mval_fl[2], const char *undo_name)
 {
   const Scene &scene = *CTX_data_scene(C);
-  const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
+  Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
   SculptSession &ss = *ob.sculpt;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -551,17 +551,16 @@ void update_modal_transform(bContext *C, Object &ob)
     }
     case SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC: {
       const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
-      Scene *scene = CTX_data_scene(C);
       float transform_radius;
 
-      if (BKE_brush_use_locked_size(scene, &brush)) {
-        transform_radius = BKE_brush_unprojected_radius_get(scene, &brush);
+      if (BKE_brush_use_locked_size(&sd.paint, &brush)) {
+        transform_radius = BKE_brush_unprojected_radius_get(&sd.paint, &brush);
       }
       else {
         ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
         transform_radius = paint_calc_object_space_radius(
-            vc, ss.init_pivot_pos, BKE_brush_size_get(scene, &brush));
+            vc, ss.init_pivot_pos, BKE_brush_size_get(&sd.paint, &brush));
       }
 
       transform_radius_elastic(*depsgraph, sd, ob, transform_radius);
@@ -955,7 +954,8 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
   }
 
   /* Update the viewport navigation rotation origin. */
-  UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  UnifiedPaintSettings *ups = &paint->unified_paint_settings;
   copy_v3_v3(ups->average_stroke_accum, ss.pivot_pos);
   ups->average_stroke_counter = 1;
   ups->last_stroke_valid = true;

@@ -18,6 +18,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_memory_counter.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_task.hh"
 
 #include "BLO_read_write.hh"
@@ -1915,12 +1916,17 @@ void CurvesGeometry::blend_read(BlendDataReader &reader)
   this->update_curve_types();
 }
 
+CurvesGeometry::BlendWriteData::BlendWriteData(ResourceScope &scope)
+    : scope(scope),
+      point_layers(scope.construct<Vector<CustomDataLayer, 16>>()),
+      curve_layers(scope.construct<Vector<CustomDataLayer, 16>>()),
+      attribute_data(scope)
+{
+}
+
 void CurvesGeometry::blend_write_prepare(CurvesGeometry::BlendWriteData &write_data)
 {
-  attribute_storage_blend_write_prepare(this->attribute_storage.wrap(),
-                                        {{AttrDomain::Point, &write_data.point_layers},
-                                         {AttrDomain::Curve, &write_data.curve_layers}},
-                                        write_data.attribute_data);
+  attribute_storage_blend_write_prepare(this->attribute_storage.wrap(), write_data.attribute_data);
   CustomData_blend_write_prepare(this->point_data,
                                  AttrDomain::Point,
                                  this->points_num(),

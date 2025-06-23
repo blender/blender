@@ -27,7 +27,7 @@
 
 #include "WM_api.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"
 
@@ -116,7 +116,7 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
   /* Constraint type icon. */
   uiLayout *sub = &layout->row(false);
   sub->emboss_set(blender::ui::EmbossType::Emboss);
-  uiLayoutSetRedAlert(sub, (con->flag & CONSTRAINT_DISABLE));
+  sub->red_alert_set(con->flag & CONSTRAINT_DISABLE);
   sub->label("", RNA_struct_ui_icon(ptr.type));
 
   UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);

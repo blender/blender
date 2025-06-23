@@ -341,6 +341,7 @@ dict_custom = {
     "redistributions",
     "registerable",
     "reimplement",
+    "reimplementation",
     "reimplemented",
     "reimplementing",
     "reimport",

@@ -54,6 +54,7 @@
 #  include "io_utils.hh"
 
 #  include "ABC_alembic.h"
+#  include "UI_interface_layout.hh"
 
 const EnumPropertyItem rna_enum_abc_export_evaluation_mode_items[] = {
     {DAG_EVAL_RENDER,

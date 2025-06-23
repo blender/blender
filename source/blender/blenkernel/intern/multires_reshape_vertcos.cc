@@ -16,8 +16,7 @@
 struct MultiresReshapeAssignVertcosContext {
   const MultiresReshapeContext *reshape_context;
 
-  const float (*vert_coords)[3];
-  int num_vert_coords;
+  blender::Span<blender::float3> positions;
 };
 
 /**
@@ -31,7 +30,7 @@ static void multires_reshape_vertcos_foreach_single_vertex(
 {
   MultiresReshapeAssignVertcosContext *reshape_vertcos_context =
       static_cast<MultiresReshapeAssignVertcosContext *>(foreach_context->user_data);
-  const float *coordinate = reshape_vertcos_context->vert_coords[subdiv_vertex_index];
+  const blender::float3 &coordinate = reshape_vertcos_context->positions[subdiv_vertex_index];
 
   ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(
       reshape_vertcos_context->reshape_context, grid_coord);
@@ -102,7 +101,7 @@ static bool multires_reshape_vertcos_foreach_topology_info(
 {
   MultiresReshapeAssignVertcosContext *reshape_vertcos_context =
       static_cast<MultiresReshapeAssignVertcosContext *>(foreach_context->user_data);
-  if (num_vertices != reshape_vertcos_context->num_vert_coords) {
+  if (num_vertices != reshape_vertcos_context->positions.size()) {
     return false;
   }
   return true;
@@ -165,14 +164,11 @@ static void multires_reshape_vertcos_foreach_vertex_every_edge(
 }
 
 bool multires_reshape_assign_final_coords_from_vertcos(
-    const MultiresReshapeContext *reshape_context,
-    const float (*vert_coords)[3],
-    const int num_vert_coords)
+    const MultiresReshapeContext *reshape_context, const blender::Span<blender::float3> positions)
 {
   MultiresReshapeAssignVertcosContext reshape_vertcos_context{};
   reshape_vertcos_context.reshape_context = reshape_context;
-  reshape_vertcos_context.vert_coords = vert_coords;
-  reshape_vertcos_context.num_vert_coords = num_vert_coords;
+  reshape_vertcos_context.positions = positions;
 
   blender::bke::subdiv::ForeachContext foreach_context{};
   foreach_context.topology_info = multires_reshape_vertcos_foreach_topology_info;

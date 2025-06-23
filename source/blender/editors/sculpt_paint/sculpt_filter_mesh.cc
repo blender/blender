@@ -54,7 +54,7 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "bmesh.hh"
@@ -128,7 +128,7 @@ Cache::~Cache() = default;
 
 void cache_init(bContext *C,
                 Object &ob,
-                const Sculpt &sd,
+                Sculpt &sd,
                 const undo::Type undo_type,
                 const float mval_fl[2],
                 float area_normal_radius,
@@ -161,8 +161,7 @@ void cache_init(bContext *C,
     copy_m4_m4(ss.filter_cache->viewmat_inv.ptr(), vc.rv3d->viewinv);
   }
 
-  Scene *scene = CTX_data_scene(C);
-  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  UnifiedPaintSettings *ups = &sd.paint.unified_paint_settings;
 
   float3 co;
 
@@ -172,7 +171,7 @@ void cache_init(bContext *C,
 
     float radius;
     if (brush) {
-      radius = object_space_radius_get(vc, *scene, *brush, co, area_normal_radius);
+      radius = object_space_radius_get(vc, sd.paint, *brush, co, area_normal_radius);
     }
     else {
       radius = paint_calc_object_space_radius(vc, co, float(ups->size) * area_normal_radius);
@@ -2378,7 +2377,7 @@ static wmOperatorStatus sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   const Scene &scene = *CTX_data_scene(C);
   Object &ob = *CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  const Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
+  Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);

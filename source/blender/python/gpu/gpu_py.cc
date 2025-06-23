@@ -42,7 +42,7 @@ PyC_StringEnumItems bpygpu_dataformat_items[] = {
     {GPU_DATA_INT, "INT"},
     {GPU_DATA_UINT, "UINT"},
     {GPU_DATA_UBYTE, "UBYTE"},
-    {GPU_DATA_UINT_24_8, "UINT_24_8"},
+    {GPU_DATA_UINT_24_8_DEPRECATED, "UINT_24_8"},
     {GPU_DATA_10_11_11_REV, "10_11_11_REV"},
     {0, nullptr},
 };

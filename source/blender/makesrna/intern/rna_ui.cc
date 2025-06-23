@@ -21,6 +21,7 @@
 #include "rna_internal.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
@@ -1393,12 +1394,12 @@ static void rna_UILayout_activate_init_set(PointerRNA *ptr, bool value)
 
 static bool rna_UILayout_alert_get(PointerRNA *ptr)
 {
-  return uiLayoutGetRedAlert(static_cast<uiLayout *>(ptr->data));
+  return static_cast<uiLayout *>(ptr->data)->red_alert();
 }
 
 static void rna_UILayout_alert_set(PointerRNA *ptr, bool value)
 {
-  uiLayoutSetRedAlert(static_cast<uiLayout *>(ptr->data), value);
+  static_cast<uiLayout *>(ptr->data)->red_alert_set(value);
 }
 
 static void rna_UILayout_op_context_set(PointerRNA *ptr, int value)
@@ -1424,22 +1425,12 @@ static void rna_UILayout_enabled_set(PointerRNA *ptr, bool value)
 #  if 0
 static int rna_UILayout_red_alert_get(PointerRNA *ptr)
 {
-  return uiLayoutGetRedAlert(static_cast<uiLayout *>(ptr->data));
+  return static_cast<uiLayout *>(ptr->data)->red_alert();
 }
 
 static void rna_UILayout_red_alert_set(PointerRNA *ptr, bool value)
 {
-  uiLayoutSetRedAlert(static_cast<uiLayout *>(ptr->data), value);
-}
-
-static bool rna_UILayout_keep_aspect_get(PointerRNA *ptr)
-{
-  return uiLayoutGetKeepAspect(static_cast<uiLayout *>(ptr->data));
-}
-
-static void rna_UILayout_keep_aspect_set(PointerRNA *ptr, int value)
-{
-  uiLayoutSetKeepAspect(static_cast<uiLayout *>(ptr->data), value);
+  static_cast<uiLayout *>(ptr->data)->red_alert_set(value);
 }
 #  endif
 
@@ -1744,12 +1735,6 @@ static void rna_def_ui_layout(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, direction_items);
   RNA_def_property_enum_funcs(prop, "rna_UILayout_direction_get", nullptr, nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-#  if 0
-  prop = RNA_def_property(srna, "keep_aspect", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(
-      prop, "rna_UILayout_keep_aspect_get", "rna_UILayout_keep_aspect_set");
-#  endif
 
   prop = RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_funcs(

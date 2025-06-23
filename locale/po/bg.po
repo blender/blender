@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-04-14 08:10+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1144,36 +1144,36 @@ msgid "Text"
 msgstr "Текст"
 
 
-msgid "Merge"
-msgstr "Слей"
-
-
-msgid "Hooks"
-msgstr "Куки"
+msgid "UV Mapping"
+msgstr "UV Картиране"
 
 
 msgid "Light"
 msgstr "Светлина"
 
 
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
+msgid "Rigid Body"
+msgstr "Твърдо тяло"
 
 
 msgid "Apply"
 msgstr "Прилагане"
 
 
-msgid "Rigid Body"
-msgstr "Твърдо тяло"
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
+
+
+msgid "Hooks"
+msgstr "Куки"
 
 
 msgid "In-Betweens"
 msgstr "Междинни Кадри"
 
 
-msgid "UV Mapping"
-msgstr "UV Картиране"
+msgid "Merge"
+msgstr "Слей"
 
 
 msgid "Languages..."

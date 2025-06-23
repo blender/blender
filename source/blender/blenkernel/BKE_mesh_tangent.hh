@@ -19,7 +19,7 @@ struct Mesh;
 /**
  * Compute simplified tangent space normals, i.e.
  * tangent vector + sign of bi-tangent one, which combined with
- * split normals can be used to recreate the full tangent space.
+ * custom normals can be used to recreate the full tangent space.
  *
  * \note The mesh should be made of only triangles and quads!
  */

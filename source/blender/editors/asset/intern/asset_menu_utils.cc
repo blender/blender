@@ -25,6 +25,7 @@
 #include "ED_asset_menu_utils.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 namespace blender::ed::asset {
 

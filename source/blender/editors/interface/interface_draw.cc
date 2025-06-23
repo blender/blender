@@ -45,8 +45,6 @@
 #include "GPU_state.hh"
 #include "GPU_uniform_buffer.hh"
 
-#include "UI_interface.hh"
-
 /* own include */
 #include "interface_intern.hh"
 

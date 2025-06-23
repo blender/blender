@@ -757,8 +757,9 @@ static AVStream *alloc_video_stream(MovieWriter *context,
 
   /* Be sure to use the correct pixel format(e.g. RGB, YUV) */
 
-  if (codec->pix_fmts) {
-    c->pix_fmt = codec->pix_fmts[0];
+  const enum AVPixelFormat *pix_fmts = ffmpeg_get_pix_fmts(c, codec);
+  if (pix_fmts) {
+    c->pix_fmt = pix_fmts[0];
   }
   else {
     /* makes HuffYUV happy ... */

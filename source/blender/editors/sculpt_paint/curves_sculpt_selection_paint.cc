@@ -63,6 +63,7 @@ struct SelectionPaintOperationExecutor {
 
   bke::SpanAttributeWriter<float> selection_;
 
+  CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;
   float brush_radius_base_re_;
   float brush_radius_factor_;
@@ -93,10 +94,11 @@ struct SelectionPaintOperationExecutor {
       return;
     }
 
-    brush_ = BKE_paint_brush_for_read(&ctx_.scene->toolsettings->curves_sculpt->paint);
-    brush_radius_base_re_ = BKE_brush_size_get(ctx_.scene, brush_);
+    curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
+    brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
+    brush_radius_base_re_ = BKE_brush_size_get(&curves_sculpt_->paint, brush_);
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
-    brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
+    brush_strength_ = brush_strength_get(curves_sculpt_->paint, *brush_, stroke_extension);
 
     brush_pos_re_ = stroke_extension.mouse_position;
 
@@ -376,7 +378,7 @@ struct SelectionPaintOperationExecutor {
     if (brush_3d.has_value()) {
       self_->brush_3d_ = *brush_3d;
       remember_stroke_position(
-          *ctx_.scene,
+          *curves_sculpt_,
           math::transform_point(transforms_.curves_to_world, self_->brush_3d_.position_cu));
     }
   }

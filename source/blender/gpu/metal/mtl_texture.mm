@@ -626,7 +626,7 @@ void gpu::MTLTexture::update_sub(
     }
 
     /* Safety Checks. */
-    if (type == GPU_DATA_UINT_24_8 || type == GPU_DATA_10_11_11_REV ||
+    if (type == GPU_DATA_UINT_24_8_DEPRECATED || type == GPU_DATA_10_11_11_REV ||
         type == GPU_DATA_2_10_10_10_REV || is_compressed)
     {
       BLI_assert(can_use_direct_blit &&
@@ -1255,9 +1255,8 @@ void gpu::MTLTexture::generate_mipmap()
   }
 
   /* Verify if we can perform mipmap generation. */
-  if (format_ == GPU_DEPTH_COMPONENT32F || format_ == GPU_DEPTH_COMPONENT24 ||
-      format_ == GPU_DEPTH_COMPONENT16 || format_ == GPU_DEPTH32F_STENCIL8 ||
-      format_ == GPU_DEPTH24_STENCIL8)
+  if (format_ == GPU_DEPTH_COMPONENT32F || format_ == GPU_DEPTH_COMPONENT16 ||
+      format_ == GPU_DEPTH32F_STENCIL8)
   {
     MTL_LOG_WARNING("Cannot generate mipmaps for textures using DEPTH formats");
     return;
@@ -1620,7 +1619,7 @@ void gpu::MTLTexture::read_internal(int mip,
     image_components = 1;
     BLI_assert(num_output_components == 1);
     BLI_assert(image_components == 1);
-    BLI_assert(data_format == GPU_DATA_FLOAT || data_format == GPU_DATA_UINT_24_8);
+    BLI_assert(data_format == GPU_DATA_FLOAT || data_format == GPU_DATA_UINT_24_8_DEPRECATED);
     BLI_assert(validate_data_format(format_, data_format));
   }
 
@@ -1677,7 +1676,7 @@ void gpu::MTLTexture::read_internal(int mip,
       case GPU_DATA_FLOAT:
         depth_format_mode = 1;
         break;
-      case GPU_DATA_UINT_24_8:
+      case GPU_DATA_UINT_24_8_DEPRECATED:
         depth_format_mode = 2;
         break;
       case GPU_DATA_UINT:
@@ -2185,7 +2184,7 @@ bool gpu::MTLTexture::init_internal(GPUTexture *src,
   /* Stencil view support. */
   texture_view_stencil_ = false;
   if (use_stencil) {
-    BLI_assert(ELEM(format_, GPU_DEPTH24_STENCIL8, GPU_DEPTH32F_STENCIL8));
+    BLI_assert(ELEM(format_, GPU_DEPTH32F_STENCIL8));
     texture_view_stencil_ = true;
   }
 

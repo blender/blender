@@ -89,13 +89,14 @@
 #include "RNA_enum_types.hh"
 #include "RNA_types.hh"
 
+#include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 
 #include "CLG_log.h"
 
 /* For menu/popup icons etc. */
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "WM_api.hh"

@@ -17,7 +17,7 @@
 #include <cstddef>
 
 #include "../generic/py_capi_utils.hh"
-#include "../generic/python_compat.hh"
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
 #include "BLI_string.h"
 

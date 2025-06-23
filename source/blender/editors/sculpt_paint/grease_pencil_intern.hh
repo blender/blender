@@ -52,13 +52,13 @@ Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_for_stroke_operation(c
 Vector<ed::greasepencil::MutableDrawingInfo> get_drawings_with_masking_for_stroke_operation(
     const bContext &C);
 /* Get the brush radius accounting for pen pressure. */
-float brush_radius(const Scene &scene, const Brush &brush, float pressure);
+float brush_radius(const Paint &paint, const Brush &brush, float pressure);
 
 /* Make sure the brush has all necessary grease pencil settings. */
 void init_brush(Brush &brush);
 
 /* Index mask of all points within the brush radius. */
-IndexMask brush_point_influence_mask(const Scene &scene,
+IndexMask brush_point_influence_mask(const Paint &paint,
                                      const Brush &brush,
                                      const float2 &mouse_position,
                                      float pressure,
@@ -69,7 +69,7 @@ IndexMask brush_point_influence_mask(const Scene &scene,
                                      IndexMaskMemory &memory);
 
 /* Influence value at point co for the brush. */
-float brush_point_influence(const Scene &scene,
+float brush_point_influence(const Paint &paint,
                             const Brush &brush,
                             const float2 &co,
                             const InputSample &sample,
@@ -81,7 +81,7 @@ float brush_point_influence(const Scene &scene,
  */
 float closest_distance_to_surface_2d(const float2 pt, const Span<float2> verts);
 /* Influence value for an entire fill. */
-float brush_fill_influence(const Scene &scene,
+float brush_fill_influence(const Paint &paint,
                            const Brush &brush,
                            Span<float2> fill_positions,
                            const InputSample &sample,

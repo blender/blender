@@ -186,8 +186,7 @@ class GeoNodeExecParams {
   {
     using StoredT = std::decay_t<T>;
     if constexpr (stored_as_SocketValueVariant_v<StoredT>) {
-      SocketValueVariant value_variant(std::forward<T>(value));
-      this->set_output(identifier, std::move(value_variant));
+      this->set_output(identifier, SocketValueVariant::From(std::forward<T>(value)));
     }
     else {
 #ifndef NDEBUG

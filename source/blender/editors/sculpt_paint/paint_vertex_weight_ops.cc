@@ -47,6 +47,7 @@
 #include "ED_view3d.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "paint_intern.hh" /* own include */
@@ -257,7 +258,7 @@ static wmOperatorStatus weight_sample_invoke(bContext *C, wmOperator *op, const 
       MEM_SAFE_FREE(defbase_unlocked);
 
       CLAMP(vgroup_weight, 0.0f, 1.0f);
-      BKE_brush_weight_set(vc.scene, brush, vgroup_weight);
+      BKE_brush_weight_set(&ts->wpaint->paint, brush, vgroup_weight);
       changed = true;
     }
   }
@@ -493,11 +494,10 @@ static bool weight_paint_set(Object *ob, float paintweight)
 
 static wmOperatorStatus weight_paint_set_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
-  float vgroup_weight = BKE_brush_weight_get(scene, brush);
+  float vgroup_weight = BKE_brush_weight_get(&ts->wpaint->paint, brush);
 
   if (ED_wpaint_ensure_data(C, op->reports, WPAINT_ENSURE_MIRROR, nullptr) == false) {
     return OPERATOR_CANCELLED;
@@ -821,7 +821,7 @@ static wmOperatorStatus paint_weight_gradient_exec(bContext *C, wmOperator *op)
     BKE_curvemapping_init(brush->curve);
 
     data.brush = brush;
-    data.weightpaint = BKE_brush_weight_get(scene, brush);
+    data.weightpaint = BKE_brush_weight_get(&wp->paint, brush);
     data.use_vgroup_restrict = (ts->wpaint->flag & VP_FLAG_VGROUP_RESTRICT) != 0;
   }
 

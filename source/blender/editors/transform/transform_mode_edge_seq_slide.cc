@@ -22,7 +22,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_types.hh"
 
 #include "BLT_translation.hh"
 

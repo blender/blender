@@ -31,7 +31,7 @@
 #include "ED_screen.hh"
 
 #include "UI_abstract_view.hh"
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "interface_intern.hh"
 
@@ -1061,7 +1061,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   /* Favorites Menu */
   if (ui_but_is_user_menu_compatible(C, but)) {
     uiBlock *block = layout->block();
-    const int w = uiLayoutGetWidth(layout);
+    const int w = layout->width();
     bool item_found = false;
 
     uint um_array_len;
@@ -1128,7 +1128,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   const char *idname = shortcut_get_operator_property(C, but, &prop);
   if (idname != nullptr) {
     uiBlock *block = layout->block();
-    const int w = uiLayoutGetWidth(layout);
+    const int w = layout->width();
 
     /* We want to know if this op has a shortcut, be it hotkey or not. */
     wmKeyMap *km;
@@ -1145,7 +1145,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                       "Change Shortcut",
                       0,
                       0,
-                      uiLayoutGetWidth(layout),
+                      layout->width(),
                       UI_UNIT_Y,
                       "");
 #endif

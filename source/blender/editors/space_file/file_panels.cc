@@ -28,6 +28,7 @@
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "WM_api.hh"
@@ -111,7 +112,7 @@ static void file_panel_execution_cancel_button(uiLayout *layout)
 {
   uiLayout *row = &layout->row(false);
   row->scale_x_set(0.8f);
-  uiLayoutSetFixedSize(row, true);
+  row->fixed_size_set(true);
   row->op("FILE_OT_cancel", IFACE_("Cancel"), ICON_NONE);
 }
 
@@ -119,7 +120,7 @@ static void file_panel_execution_execute_button(uiLayout *layout, const char *ti
 {
   uiLayout *row = &layout->row(false);
   row->scale_x_set(0.8f);
-  uiLayoutSetFixedSize(row, true);
+  row->fixed_size_set(true);
   /* Just a display hint. */
   row->active_default_set(true);
   row->op("FILE_OT_execute", title, ICON_NONE);

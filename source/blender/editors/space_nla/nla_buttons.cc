@@ -34,8 +34,8 @@
 
 #include "ED_anim_api.hh"
 
-#include "UI_interface.hh"
 #include "UI_interface_c.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "nla_intern.hh" /* own include */

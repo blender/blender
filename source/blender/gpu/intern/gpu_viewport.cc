@@ -172,7 +172,7 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
                                                    GPU_TEXTURE_USAGE_FORMAT_VIEW,
                                                nullptr);
     const int depth_clear = 0;
-    GPU_texture_clear(viewport->depth_tx, GPU_DATA_UINT_24_8, &depth_clear);
+    GPU_texture_clear(viewport->depth_tx, GPU_DATA_UINT_24_8_DEPRECATED, &depth_clear);
   }
 
   if (!viewport->depth_tx || !viewport->color_render_tx[0] || !viewport->color_overlay_tx[0]) {

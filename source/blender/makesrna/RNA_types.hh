@@ -901,6 +901,10 @@ struct BlenderRNA;
  * order to make them definable through RNA.
  */
 struct ExtensionRNA {
+  /**
+   * \note For Python types this holds the Python class but does *not* own a reference.
+   * The same value is typically stored in `srna->py_type` which does own a reference.
+   */
   void *data;
   StructRNA *srna;
   StructCallbackFunc call;

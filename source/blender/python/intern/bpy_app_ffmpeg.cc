@@ -9,6 +9,8 @@
 #include "BLI_utildefines.h"
 #include <Python.h>
 
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
+
 #include "bpy_app_ffmpeg.hh"
 
 #include "../generic/py_capi_utils.hh"
@@ -130,7 +132,7 @@ PyObject *BPY_app_ffmpeg_struct()
   BlenderAppFFmpegType.tp_init = nullptr;
   BlenderAppFFmpegType.tp_new = nullptr;
   /* Without this we can't do `set(sys.modules)` #29635. */
-  BlenderAppFFmpegType.tp_hash = (hashfunc)_Py_HashPointer;
+  BlenderAppFFmpegType.tp_hash = (hashfunc)Py_HashPointer;
 
   return ret;
 }

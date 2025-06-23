@@ -184,7 +184,7 @@ short2 corner_space_custom_normal_to_data(const CornerNormalSpace &lnor_space,
                                           const float3 &custom_lnor);
 
 /**
- * Compute split normals, i.e. vertex normals associated with each face. Used to visualize sharp
+ * Compute custom normals, i.e. vertex normals associated with each face. Used to visualize sharp
  * edges (or non-smooth faces) without actually modifying the geometry (splitting edges).
  *
  * \param sharp_edges: Optional array of sharp edge tags, used to split the evaluated normals on

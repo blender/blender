@@ -31,6 +31,8 @@
 
 #include <Python.h>
 
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
+
 #include "../mathutils/mathutils.hh"
 
 #include "../generic/py_capi_utils.hh"
@@ -3819,12 +3821,12 @@ static void bpy_bmelemseq_dealloc(BPy_BMElemSeq *self)
 /* not sure where this should go */
 static Py_hash_t bpy_bm_elem_hash(PyObject *self)
 {
-  return _Py_HashPointer(((BPy_BMElem *)self)->ele);
+  return Py_HashPointer(((BPy_BMElem *)self)->ele);
 }
 
 static Py_hash_t bpy_bm_hash(PyObject *self)
 {
-  return _Py_HashPointer(((BPy_BMesh *)self)->bm);
+  return Py_HashPointer(((BPy_BMesh *)self)->bm);
 }
 
 /* Type Doc-strings

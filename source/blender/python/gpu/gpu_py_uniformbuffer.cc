@@ -18,7 +18,7 @@
 #include "GPU_context.hh"
 #include "GPU_uniform_buffer.hh"
 
-#include "../generic/python_compat.hh"
+#include "../generic/python_compat.hh" /* IWYU pragma: keep. */
 
 #include "gpu_py.hh"
 #include "gpu_py_uniformbuffer.hh" /* own include */

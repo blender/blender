@@ -23,14 +23,15 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from bl_blendfile_utils import TestHelper
 
 
-class TestBlendFileOpenAllTestFiles(TestHelper):
+class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
 
     def __init__(self, args):
         self.args = args
-        # Some files are known broken currently.
+        # Some files are known broken currently for opening or linking.
+        # They cannot be opened, or will generate some error (e.g. memleaks).
         # Each file in this list should either be the source of a bug report,
         # or removed from tests repo.
-        self.excluded_paths = {
+        self.excluded_open_link_paths = {
             # modifier_stack/explode_modifier.blend
             # BLI_assert failed: source/blender/blenlib/BLI_ordered_edge.hh:41, operator==(), at 'e1.v_low < e1.v_high'
             "explode_modifier.blend",
@@ -54,6 +55,49 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             # Error: Not freed memory blocks: 4, total unfreed memory 0.000427 MB
             "ram_glsl.blend",
         }
+
+        # Directories to exclude relative to `./tests/files/`.
+        self.excluded_open_link_dirs = ()
+
+        # Some files are known broken currently on re-saving & re-opening.
+        # Each file in this list should either be the source of a bug report,
+        # or removed from tests repo.
+        self.excluded_save_reload_paths = {
+            # gameengine_bullet_softbody/softbody_constraints.blend
+            # Error: on save,
+            #        'Unable to pack file, source path '.../gameengine_bullet_softbody/marble_256.jpg' not found'
+            "softbody_constraints.blend",
+
+            # files/libraries_and_linking/library_test_scene.blend
+            # Error: on save and/or reload, creates memleaks.
+            "library_test_scene.blend",
+
+            # files/libraries_and_linking/libraries/main_scene.blend
+            # Error: on save and/or reload, creates memleaks.
+            "main_scene.blend",
+
+            # modeling/geometry_nodes/import/import_obj.blend
+            # Error: on reload,
+            #        "OBJParser: Cannot read from OBJ file:
+            #         '/home/guest/blender/main/build_main_release/tests/blendfile_io/data_files/icosphere.obj'"
+            "import_obj.blend",
+
+            # grease_pencil/grease_pencil_paper_pig.blend
+            # Error: on save and/or reload, creates memleaks.
+            "grease_pencil_paper_pig.blend",
+
+            # modeling/geometry_nodes/import/import_ply.blend
+            # Error: on reload, 'read_ply_to_mesh: PLY Importer: icosphere: Invalid PLY header.'
+            "import_ply.blend",
+
+            # modeling/geometry_nodes/import/import_stl.blend
+            # Error: on reload,
+            #        'read_stl_file: Failed to open STL file:'...tests/blendfile_io/data_files/icosphere.stl'.'
+            "import_stl.blend",
+        }
+
+        # Directories to exclude relative to `./tests/files/`.
+        self.excluded_save_reload_dirs = ()
 
         # Some files are expected to be invalid.
         # This mapping stores filenames as keys, and expected error message as value.
@@ -230,11 +274,10 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             ),
         }
 
-        # Directories to exclude relative to `./tests/files/`.
-        self.excluded_dirs = ()
-
-        assert all(p.endswith("/") for p in self.excluded_dirs)
-        self.excluded_dirs = tuple(p.replace("/", os.sep) for p in self.excluded_dirs)
+        assert all(p.endswith("/") for p in self.excluded_open_link_dirs)
+        self.excluded_open_link_dirs = tuple(p.replace("/", os.sep) for p in self.excluded_open_link_dirs)
+        assert all(p.endswith("/") for p in self.excluded_save_reload_dirs)
+        self.excluded_save_reload_dirs = tuple(p.replace("/", os.sep) for p in self.excluded_save_reload_dirs)
 
         # Generate the slice of blendfile paths that this instance of the test should process.
         blendfile_paths = [p for p in self.iter_blendfiles_from_directory(self.args.src_test_dir)]
@@ -267,15 +310,21 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
         slice_indices = [(gen_indices(i), gen_indices(i + 1)) for i in range(slice_range)]
         return slice_indices[slice_index]
 
-    def skip_path_check(self, bfp):
-        if os.path.basename(bfp) in self.excluded_paths:
+    def skip_path_check(self, bfp, excluded_paths, excluded_dirs):
+        if os.path.basename(bfp) in excluded_paths:
             return True
-        if self.excluded_dirs:
+        if excluded_dirs:
             assert bfp.startswith(self.args.src_test_dir)
             bfp_relative = bfp[len(self.args.src_test_dir):].rstrip(os.sep)
-            if bfp_relative.startswith(*self.excluded_dirs):
+            if bfp_relative.startswith(*excluded_dirs):
                 return True
         return False
+
+    def skip_open_link_path_check(self, bfp):
+        return self.skip_path_check(bfp, self.excluded_open_link_paths, self.excluded_open_link_dirs)
+
+    def skip_save_reload_path_check(self, bfp):
+        return self.skip_path_check(bfp, self.excluded_save_reload_paths, self.excluded_save_reload_dirs)
 
     def invalid_path_exception_process(self, bfp, exception):
         expected_failure = self.invalid_paths.get(os.path.basename(bfp), None)
@@ -289,22 +338,40 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             raise exception
         print(f"\tExpected failure: '{exception}'", flush=True)
 
+    def save_reload(self, bfp, prefix):
+        if self.skip_save_reload_path_check(bfp):
+            return
+        # Use a hash to deduplicate the few blendfiles that have a same name,
+        # but a different path (e.g. currently, `flip_faces.blend`).
+        tmp_save_path = os.path.join(self.args.output_dir, prefix + hex(hash(bfp)) + "_" + os.path.basename(bfp))
+        if not self.args.is_quiet:
+            print(f"Trying to save to {tmp_save_path}", flush=True)
+        bpy.ops.wm.save_as_mainfile(filepath=tmp_save_path, compress=True)
+        if not self.args.is_quiet:
+            print(f"Trying to reload from {tmp_save_path}", flush=True)
+        bpy.ops.wm.revert_mainfile()
+        if not self.args.is_quiet:
+            print(f"Removing {tmp_save_path}", flush=True)
+        bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
+        os.remove(tmp_save_path)
+
     def test_open(self):
         for bfp in self.blendfile_paths:
-            if self.skip_path_check(bfp):
+            if self.skip_open_link_path_check(bfp):
                 continue
             if not self.args.is_quiet:
                 print(f"Trying to open {bfp}", flush=True)
             bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
             try:
                 bpy.ops.wm.open_mainfile(filepath=bfp, load_ui=False)
+                self.save_reload(bfp, "OPENED_")
             except BaseException as e:
                 self.invalid_path_exception_process(bfp, e)
 
     def link_append(self, do_link):
         operation_name = "link" if do_link else "append"
         for bfp in self.blendfile_paths:
-            if self.skip_path_check(bfp):
+            if self.skip_open_link_path_check(bfp):
                 continue
             bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
             try:
@@ -317,6 +384,7 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                         if not self.args.is_quiet:
                             print(f"Trying to {operation_name} {bfp}/Object/{lib_in.objects[0]}", flush=True)
                         lib_out.objects.append(lib_in.objects[0])
+                self.save_reload(bfp, f"{operation_name.upper()}_")
             except BaseException as e:
                 self.invalid_path_exception_process(bfp, e)
 
@@ -328,7 +396,7 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
 
 
 TESTS = (
-    TestBlendFileOpenAllTestFiles,
+    TestBlendFileOpenLinkSaveAllTestFiles,
 )
 
 
@@ -336,14 +404,21 @@ def argparse_create():
     import argparse
 
     # When --help or no args are given, print this help
-    description = ("Test basic versioning code by opening all blend files "
-                   "in `tests/files` directory.")
+    description = ("Test basic versioning and writing code by opening, linking from, saving and reloading"
+                   "all blend files in `--src-test-dir` directory (typically the `tests/files` one).")
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "--src-test-dir",
         dest="src_test_dir",
         default="..",
         help="Root tests directory to search for blendfiles",
+        required=False,
+    )
+    parser.add_argument(
+        "--output-dir",
+        dest="output_dir",
+        default=".",
+        help="Where to output temp saved blendfiles",
         required=False,
     )
 

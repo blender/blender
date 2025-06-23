@@ -133,6 +133,12 @@ void BLI_path_sequence_encode(char *path,
 {
   BLI_string_debug_size(path, path_maxncpy);
 
+  /* FIXME: MAX_ID_NAME & FILE_MAXFILE
+   *
+   * As this function directly works on a full file path (typically a FILE_MAX long char buffer),
+   * and does not perform any check on the filename part of the path, it can easily generate final
+   * paths containing a filename longer than the max supported length (FILE_MAXFILE).
+   */
   BLI_snprintf(path, path_maxncpy, "%s%.*d%s", head, numlen, std::max(0, pic), tail);
 }
 

@@ -43,6 +43,7 @@
 #include "ED_gizmo_library.hh"
 #include "ED_view3d.hh"
 
+#include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 #include "interface_intern.hh"
 

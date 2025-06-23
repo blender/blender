@@ -478,7 +478,7 @@ void GLFrameBuffer::clear_attachment(GPUAttachmentType type,
   context_->state_manager->apply_state();
 
   if (type == GPU_FB_DEPTH_STENCIL_ATTACHMENT) {
-    BLI_assert(data_format == GPU_DATA_UINT_24_8);
+    BLI_assert(data_format == GPU_DATA_UINT_24_8_DEPRECATED);
     float depth = ((*(uint32_t *)clear_value) & 0x00FFFFFFu) / float(0x00FFFFFFu);
     int stencil = ((*(uint32_t *)clear_value) >> 24);
     glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);

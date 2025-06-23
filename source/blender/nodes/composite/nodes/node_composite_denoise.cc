@@ -14,7 +14,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "GPU_state.hh"

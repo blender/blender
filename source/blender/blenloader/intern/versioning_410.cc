@@ -1052,7 +1052,7 @@ void blo_do_versions_410(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type_legacy == CMP_NODE_MAP_UV) {
-            node->custom2 = CMP_NODE_MAP_UV_FILTERING_ANISOTROPIC;
+            node->custom2 = CMP_NODE_INTERPOLATION_ANISOTROPIC;
           }
         }
       }

@@ -79,6 +79,7 @@
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
+#include "UI_interface_layout.hh"
 
 #include "BLF_api.hh"
 #include "GPU_context.hh"
@@ -659,11 +660,9 @@ static void wm_window_decoration_style_set_from_theme(const wmWindow *win, const
     UI_SetTheme(0, RGN_TYPE_WINDOW);
   }
 
-  float titlebar_bg_color[3], titlebar_fg_color[3];
+  float titlebar_bg_color[3];
   UI_GetThemeColor3fv(TH_BACK, titlebar_bg_color);
-  UI_GetThemeColor3fv(TH_BUTBACK_TEXT, titlebar_fg_color);
   copy_v3_v3(decoration_settings.colored_titlebar_bg_color, titlebar_bg_color);
-  copy_v3_v3(decoration_settings.colored_titlebar_fg_color, titlebar_fg_color);
 
   GHOST_SetWindowDecorationStyleSettings(static_cast<GHOST_WindowHandle>(win->ghostwin),
                                          decoration_settings);

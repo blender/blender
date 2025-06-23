@@ -55,7 +55,7 @@
 #include "ANIM_keyframing.hh"
 #include "ANIM_keyingsets.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "armature_intern.hh"

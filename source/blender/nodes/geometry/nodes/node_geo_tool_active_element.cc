@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "RNA_enum_types.hh"
 

@@ -21,7 +21,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"
 
@@ -568,7 +568,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
                      but_func_argN_copy<RNAUpdateCb>);
 
   /* Curve itself. */
-  const int size = max_ii(uiLayoutGetWidth(layout), UI_UNIT_X);
+  const int size = max_ii(layout->width(), UI_UNIT_X);
   row = &layout->row(false);
   uiButCurveMapping *curve_but = (uiButCurveMapping *)uiDefBut(
       block, UI_BTYPE_CURVE, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, "");

@@ -807,8 +807,8 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   bool is_set = false;
 
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Scene *scene = CTX_data_scene(C);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Paint *paint = BKE_paint_get_active_from_context(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   View3D *v3d = CTX_wm_view3d(C);
   BKE_view_layer_synced_ensure(scene_eval, view_layer_eval);
@@ -819,7 +819,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
       /* with weight-paint + pose-mode, fall through to using calculateTransformCenter */
       ((ob_act->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(ob_act)) == 0)
   {
-    BKE_paint_stroke_get_average(scene, ob_act_eval, lastofs);
+    BKE_paint_stroke_get_average(paint, ob_act_eval, lastofs);
     is_set = true;
   }
   else if (ob_act && ELEM(ob_act->mode,
@@ -829,7 +829,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
                           OB_MODE_VERTEX_GREASE_PENCIL,
                           OB_MODE_WEIGHT_GREASE_PENCIL))
   {
-    BKE_paint_stroke_get_average(scene, ob_act_eval, lastofs);
+    BKE_paint_stroke_get_average(paint, ob_act_eval, lastofs);
     is_set = true;
   }
   else if (ob_act && (ob_act->mode & OB_MODE_EDIT) && (ob_act->type == OB_FONT)) {

@@ -18,6 +18,7 @@
 #include "BLT_translation.hh"
 
 #include "UI_interface_c.hh"
+#include "UI_interface_layout.hh"
 #include "UI_tree_view.hh"
 
 #include "ED_asset_filter.hh"
@@ -243,7 +244,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   uiLayout *row = &layout->row(false);
   uiLayout *catalogs_col = &row->column(false);
   catalogs_col->ui_units_x_set(LEFT_COL_WIDTH_UNITS);
-  uiLayoutSetFixedSize(catalogs_col, true);
+  catalogs_col->fixed_size_set(true);
   library_selector_draw(C, catalogs_col, *shelf);
   catalog_tree_draw(*C, *catalogs_col, *shelf);
 
@@ -261,7 +262,7 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   uiLayout *asset_view_col = &right_col->column(false);
   BLI_assert((layout_width_units - LEFT_COL_WIDTH_UNITS) > 0);
   asset_view_col->ui_units_x_set(layout_width_units - LEFT_COL_WIDTH_UNITS);
-  uiLayoutSetFixedSize(asset_view_col, true);
+  asset_view_col->fixed_size_set(true);
 
   build_asset_view(*asset_view_col, shelf->settings.asset_library_reference, *shelf, *C);
 }

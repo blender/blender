@@ -21,7 +21,7 @@
 
 #include "WM_api.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "node_geometry_util.hh"
 

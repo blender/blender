@@ -19,8 +19,6 @@
 
 #include "BKE_colortools.hh"
 
-#include "UI_interface.hh"
-
 #include "GPU_material.hh"
 
 #include "COM_node_operation.hh"

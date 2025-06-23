@@ -7,8 +7,10 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 
 #include "ANIM_bone_collections.hh"
 #include "intern/bone_collections_internal.hh"
@@ -48,9 +50,12 @@ class ArmatureBoneCollections : public testing::Test {
  protected:
   bArmature arm = {};
   Bone bone1 = {}, bone2 = {}, bone3 = {};
+  Main *bmain;
 
   void SetUp() override
   {
+    bmain = BKE_main_new();
+    G_MAIN = bmain;
     STRNCPY(arm.id.name, "ARArmature");
     STRNCPY(bone1.name, "bone1");
     STRNCPY(bone2.name, "bone2");
@@ -71,6 +76,9 @@ class ArmatureBoneCollections : public testing::Test {
 
     BKE_idtype_init();
     BKE_libblock_free_datablock(&arm.id, 0);
+
+    BKE_main_free(bmain);
+    G_MAIN = nullptr;
   }
 };
 

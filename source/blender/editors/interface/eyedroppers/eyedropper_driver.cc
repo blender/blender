@@ -25,8 +25,6 @@
 #include "RNA_define.hh"
 #include "RNA_path.hh"
 
-#include "UI_interface.hh"
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 

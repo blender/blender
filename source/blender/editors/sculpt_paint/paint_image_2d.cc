@@ -124,6 +124,7 @@ struct ImagePaintState {
   SpaceImage *sima;
   View2D *v2d;
   Scene *scene;
+  const Paint *paint;
 
   Brush *brush;
   short brush_type, blend;
@@ -150,7 +151,7 @@ static BrushPainter *brush_painter_2d_new(Scene *scene,
   painter->brush = brush;
   painter->scene = scene;
   painter->paint = paint;
-  if (BKE_brush_color_jitter_get_settings(scene, paint, brush)) {
+  if (BKE_brush_color_jitter_get_settings(paint, brush)) {
     painter->initial_hsv_jitter = seed_hsv_jitter();
   }
   painter->firsttouch = true;
@@ -216,7 +217,6 @@ static void brush_imbuf_tex_co(const rctf *mapping, int x, int y, float texco[3]
 /* create a mask with the mask texture */
 static ushort *brush_painter_mask_ibuf_new(BrushPainter *painter, const int size)
 {
-  Scene *scene = painter->scene;
   Brush *brush = painter->brush;
   rctf mask_mapping = painter->mask_mapping;
   ImagePool *pool = painter->pool;
@@ -232,7 +232,7 @@ static ushort *brush_painter_mask_ibuf_new(BrushPainter *painter, const int size
     for (x = 0; x < size; x++, m++) {
       float res;
       brush_imbuf_tex_co(&mask_mapping, x, y, texco);
-      res = BKE_brush_sample_masktex(scene, brush, texco, thread, pool);
+      res = BKE_brush_sample_masktex(painter->paint, brush, texco, thread, pool);
       *m = ushort(65535.0f * res);
     }
   }
@@ -252,7 +252,6 @@ static void brush_painter_mask_imbuf_update(BrushPainter *painter,
                                             int yt,
                                             const int diameter)
 {
-  Scene *scene = painter->scene;
   Brush *brush = painter->brush;
   BrushPainterCache *cache = &tile->cache;
   rctf tex_mapping = painter->mask_mapping;
@@ -278,7 +277,8 @@ static void brush_painter_mask_imbuf_update(BrushPainter *painter,
 
       if (!use_texture_old) {
         brush_imbuf_tex_co(&tex_mapping, x, y, texco);
-        res = ushort(65535.0f * BKE_brush_sample_masktex(scene, brush, texco, thread, pool));
+        res = ushort(65535.0f *
+                     BKE_brush_sample_masktex(painter->paint, brush, texco, thread, pool));
       }
 
       /* read from old texture buffer */
@@ -402,8 +402,7 @@ static ImBuf *brush_painter_imbuf_new(
 
   /* get brush color */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
-    paint_brush_color_get(scene,
-                          paint,
+    paint_brush_color_get(paint,
                           brush,
                           painter->initial_hsv_jitter,
                           use_color_correction,
@@ -428,7 +427,7 @@ static ImBuf *brush_painter_imbuf_new(
       if (is_texbrush) {
         brush_imbuf_tex_co(&tex_mapping, x, y, texco);
         const MTex *mtex = &brush->mtex;
-        BKE_brush_sample_tex_3d(scene, brush, mtex, texco, rgba, thread, pool);
+        BKE_brush_sample_tex_3d(painter->paint, brush, mtex, texco, rgba, thread, pool);
         /* TODO(sergey): Support texture paint color space. */
         if (!use_float) {
           IMB_colormanagement_scene_linear_to_display_v3(rgba, display);
@@ -495,8 +494,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
 
   /* get brush color */
   if (brush->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) {
-    paint_brush_color_get(scene,
-                          paint,
+    paint_brush_color_get(paint,
                           brush,
                           painter->initial_hsv_jitter,
                           use_color_correction,
@@ -521,7 +519,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
       if (!use_texture_old) {
         if (is_texbrush) {
           brush_imbuf_tex_co(&tex_mapping, x, y, texco);
-          BKE_brush_sample_tex_3d(scene, brush, mtex, texco, rgba, thread, pool);
+          BKE_brush_sample_tex_3d(painter->paint, brush, mtex, texco, rgba, thread, pool);
           /* TODO(sergey): Support texture paint color space. */
           if (!use_float) {
             IMB_colormanagement_scene_linear_to_display_v3(rgba, display);
@@ -718,8 +716,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
                                            float distance,
                                            float size)
 {
-  const Scene *scene = painter->scene;
-  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  const UnifiedPaintSettings *ups = &painter->paint->unified_paint_settings;
   Brush *brush = painter->brush;
   BrushPainterCache *cache = &tile->cache;
   /* Adding 4 pixels of padding for brush anti-aliasing. */
@@ -732,7 +729,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
                              BRUSH_GRADIENT_SPACING_REPEAT,
                              BRUSH_GRADIENT_SPACING_CLAMP) ||
                         (cache->last_pressure != pressure))) ||
-                      BKE_brush_color_jitter_get_settings(scene, painter->paint, brush);
+                      BKE_brush_color_jitter_get_settings(painter->paint, brush);
   float tex_rotation = -brush->mtex.rot;
   float mask_rotation = -brush->mask_mtex.rot;
 
@@ -1042,7 +1039,7 @@ static void paint_2d_lift_soften(ImagePaintState *s,
            * avoid colored speckles appearing in final image, and also to check for threshold. */
           outrgb[0] = outrgb[1] = outrgb[2] = IMB_colormanagement_get_luminance(outrgb);
           if (fabsf(outrgb[0]) > threshold) {
-            float mask = BKE_brush_alpha_get(s->scene, s->brush);
+            float mask = BKE_brush_alpha_get(s->paint, s->brush);
             float alpha = rgba[3];
             rgba[3] = outrgb[3] = mask;
 
@@ -1325,7 +1322,7 @@ static int paint_2d_op(void *state,
   short blend = s->blend;
   const float *offset = image_paint_settings.clone_offset;
   float liftpos[2];
-  float mask_max = BKE_brush_alpha_get(s->scene, s->brush);
+  float mask_max = BKE_brush_alpha_get(s->paint, s->brush);
   int bpos[2], blastpos[2], bliftpos[2];
   int a, tot;
 
@@ -1463,7 +1460,7 @@ static int paint_2d_canvas_set(ImagePaintState *s, const Paint *paint)
   }
 
   /* set masking */
-  s->do_masking = paint_use_opacity_masking(s->scene, paint, s->brush);
+  s->do_masking = paint_use_opacity_masking(paint, s->brush);
 
   return 1;
 }
@@ -1607,6 +1604,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   s->sima = CTX_wm_space_image(C);
   s->v2d = &CTX_wm_region(C)->v2d;
   s->scene = scene;
+  s->paint = paint;
 
   s->brush = brush;
   s->brush_type = brush->image_brush_type;
@@ -1816,6 +1814,7 @@ void paint_2d_bucket_fill(const bContext *C,
                           void *ps)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
+  Paint *paint = BKE_paint_get_active_from_context(C);
   Image *ima = sima->image;
 
   ImagePaintState *s = static_cast<ImagePaintState *>(ps);
@@ -1824,7 +1823,7 @@ void paint_2d_bucket_fill(const bContext *C,
   int x_px, y_px;
   uint color_b;
   float color_f[4];
-  float strength = (s && br) ? BKE_brush_alpha_get(s->scene, br) : 1.0f;
+  float strength = (s && br) ? BKE_brush_alpha_get(paint, br) : 1.0f;
 
   bool do_float;
 
@@ -2021,7 +2020,7 @@ void paint_2d_gradient_fill(
   float image_init[2], image_final[2];
   float tangent[2];
   float line_len_sq_inv, line_len;
-  const float brush_alpha = BKE_brush_alpha_get(s->scene, br);
+  const float brush_alpha = BKE_brush_alpha_get(s->paint, br);
 
   bool do_float;
 

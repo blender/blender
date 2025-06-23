@@ -185,7 +185,6 @@ static void calc_bmesh(const Depsgraph &depsgraph,
 }
 
 static void do_crease_or_blob_brush(const Depsgraph &depsgraph,
-                                    const Scene &scene,
                                     const Sculpt &sd,
                                     const bool invert_strength,
                                     Object &object,
@@ -202,7 +201,7 @@ static void do_crease_or_blob_brush(const Depsgraph &depsgraph,
   /* We divide out the squared alpha and multiply by the squared crease
    * to give us the pinch strength. */
   float crease_correction = brush.crease_pinch_factor * brush.crease_pinch_factor;
-  float brush_alpha = BKE_brush_alpha_get(&scene, &brush);
+  float brush_alpha = BKE_brush_alpha_get(&sd.paint, &brush);
   if (brush_alpha > 0.0f) {
     crease_correction /= brush_alpha * brush_alpha;
   }
@@ -264,21 +263,19 @@ static void do_crease_or_blob_brush(const Depsgraph &depsgraph,
 }  // namespace crease_cc
 
 void do_crease_brush(const Depsgraph &depsgraph,
-                     const Scene &scene,
                      const Sculpt &sd,
                      Object &object,
                      const IndexMask &node_mask)
 {
-  do_crease_or_blob_brush(depsgraph, scene, sd, false, object, node_mask);
+  do_crease_or_blob_brush(depsgraph, sd, false, object, node_mask);
 }
 
 void do_blob_brush(const Depsgraph &depsgraph,
-                   const Scene &scene,
                    const Sculpt &sd,
                    Object &object,
                    const IndexMask &node_mask)
 {
-  do_crease_or_blob_brush(depsgraph, scene, sd, true, object, node_mask);
+  do_crease_or_blob_brush(depsgraph, sd, true, object, node_mask);
 }
 
 }  // namespace blender::ed::sculpt_paint::brushes

@@ -4,7 +4,8 @@
 
 #include "BKE_grease_pencil.hh"
 
-#include "UI_interface.hh"
+#include "UI_interface_layout.hh"
+#include "UI_resources.hh"
 
 #include "NOD_rna_define.hh"
 

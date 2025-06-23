@@ -31,8 +31,6 @@
 
 #include "interface_intern.hh"
 
-#include "UI_interface.hh"
-
 #include "UI_abstract_view.hh"
 #include "UI_grid_view.hh"
 #include "UI_tree_view.hh"

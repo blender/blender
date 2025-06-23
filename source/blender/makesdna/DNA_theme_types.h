@@ -206,6 +206,8 @@ typedef struct ThemeUI {
   unsigned char panel_back[4];
   unsigned char panel_sub_back[4];
   unsigned char panel_outline[4];
+  unsigned char panel_title[4];
+  unsigned char panel_text[4];
   char _pad2[4];
 
 } ThemeUI;
@@ -246,10 +248,7 @@ typedef struct ThemeSpace {
   /* button/tool regions */
   /** Region background. */
   unsigned char button[4];
-  /** Panel title. */
-  unsigned char button_title[4];
-  unsigned char button_text[4];
-  unsigned char button_text_hi[4];
+  unsigned char _pad3[4];
 
   /* List-view regions. */
   /** Region background. */

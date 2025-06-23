@@ -344,7 +344,21 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *de
   else if (ob_eval && (ob_eval->mode & (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT |
                                         OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
   {
-    BKE_paint_stroke_get_average(scene, ob_eval, min);
+    PaintMode mode = PaintMode::Invalid;
+    if (ob_eval->mode & OB_MODE_SCULPT) {
+      mode = PaintMode::Sculpt;
+    }
+    else if (ob_eval->mode & OB_MODE_VERTEX_PAINT) {
+      mode = PaintMode::Vertex;
+    }
+    else if (ob_eval->mode & OB_MODE_WEIGHT_PAINT) {
+      mode = PaintMode::Weight;
+    }
+    else if (ob_eval->mode & OB_MODE_TEXTURE_PAINT) {
+      mode = PaintMode::Texture3D;
+    }
+    Paint *paint = BKE_paint_get_active_from_paintmode(scene, mode);
+    BKE_paint_stroke_get_average(paint, ob_eval, min);
     copy_v3_v3(max, min);
     changed = true;
     *r_do_zoom = false;

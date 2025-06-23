@@ -62,6 +62,7 @@
 #include "ED_view3d.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 
 #include "curve_intern.hh"
 
@@ -764,7 +765,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   UI_but_flag_enable(confirm, UI_BUT_ACTIVE_DEFAULT);
 
   int bounds_offset[2];
-  bounds_offset[0] = uiLayoutGetWidth(layout) * -0.2f;
+  bounds_offset[0] = layout->width() * -0.2f;
   bounds_offset[1] = UI_UNIT_Y * 2.5;
   UI_block_bounds_set_popup(block, 7 * UI_SCALE_FAC, bounds_offset);
 

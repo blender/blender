@@ -125,16 +125,15 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
   {
     using namespace blender::ed::greasepencil;
 
-    const Scene *scene = CTX_data_scene(&C);
     this->object = CTX_data_active_object(&C);
     this->grease_pencil = static_cast<GreasePencil *>(this->object->data);
     Paint *paint = BKE_paint_get_active_from_context(&C);
     Brush *brush = BKE_paint_brush(paint);
 
     this->brush = brush;
-    this->initial_brush_radius = BKE_brush_size_get(scene, brush);
-    this->initial_brush_strength = BKE_brush_alpha_get(scene, brush);
-    this->brush_weight = BKE_brush_weight_get(scene, brush);
+    this->initial_brush_radius = BKE_brush_size_get(paint, brush);
+    this->initial_brush_strength = BKE_brush_alpha_get(paint, brush);
+    this->brush_weight = BKE_brush_weight_get(paint, brush);
     this->mouse_position_previous = start_sample.mouse_position;
     this->invert_brush_weight = false;
 

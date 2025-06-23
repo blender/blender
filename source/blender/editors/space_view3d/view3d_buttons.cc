@@ -67,6 +67,7 @@
 #include "ANIM_bone_collections.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "view3d_intern.hh" /* own include */
@@ -1866,11 +1867,6 @@ static void view3d_panel_transform(const bContext *C, Panel *panel)
   }
 }
 
-static void hide_collections_menu_draw(const bContext *C, Menu *menu)
-{
-  blender::ed::object::collection_hide_menu_draw(C, menu->layout);
-}
-
 void view3d_buttons_register(ARegionType *art)
 {
   PanelType *pt;
@@ -1892,15 +1888,6 @@ void view3d_buttons_register(ARegionType *art)
   pt->draw = view3d_panel_vgroup;
   pt->poll = view3d_panel_vgroup_poll;
   BLI_addtail(&art->paneltypes, pt);
-
-  MenuType *mt;
-
-  mt = MEM_callocN<MenuType>("spacetype view3d menu collections");
-  STRNCPY(mt->idname, "VIEW3D_MT_collection");
-  STRNCPY(mt->label, N_("Collection"));
-  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-  mt->draw = hide_collections_menu_draw;
-  WM_menutype_add(mt);
 }
 
 static wmOperatorStatus view3d_object_mode_menu_exec(bContext *C, wmOperator *op)

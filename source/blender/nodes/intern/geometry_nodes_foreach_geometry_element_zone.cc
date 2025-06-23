@@ -916,8 +916,7 @@ void LazyFunctionForReduceForeachGeometryElement::handle_main_items_and_geometry
         *base_cpp_type,
         make_anonymous_attribute_socket_inspection_string(
             parent_.output_bnode_.output_socket(parent_.indices_.main.bsocket_outer[item_i])));
-    SocketValueVariant attribute_value_variant{GField(std::move(attribute_field))};
-    params.set_output(1 + item_i, std::move(attribute_value_variant));
+    params.set_output(1 + item_i, SocketValueVariant::From(GField(std::move(attribute_field))));
   }
 
   /* Output the original geometry with potentially additional attributes. */
@@ -1183,9 +1182,8 @@ void LazyFunctionForReduceForeachGeometryElement::handle_generation_items_group(
         base_cpp_type,
         make_anonymous_attribute_socket_inspection_string(
             parent_.output_bnode_.output_socket(2 + node_storage.main_items.items_num + item_i)));
-    SocketValueVariant attribute_value_variant{GField(std::move(attribute_field))};
     params.set_output(parent_.indices_.generation.lf_outer[item_i],
-                      std::move(attribute_value_variant));
+                      bke::SocketValueVariant::From(GField(std::move(attribute_field))));
   }
 }
 

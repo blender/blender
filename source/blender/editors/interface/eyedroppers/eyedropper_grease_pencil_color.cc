@@ -28,8 +28,6 @@
 #include "BKE_material.hh"
 #include "BKE_paint.hh"
 
-#include "UI_interface.hh"
-
 #include "IMB_colormanagement.hh"
 
 #include "WM_api.hh"

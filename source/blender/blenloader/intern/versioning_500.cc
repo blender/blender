@@ -10,18 +10,28 @@
 
 #include "DNA_ID.h"
 #include "DNA_mesh_types.h"
+#include "DNA_node_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_sys_types.h"
 
 #include "BKE_attribute_legacy_convert.hh"
+#include "BKE_colortools.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
+#include "BKE_node_runtime.hh"
+
+#include "SEQ_iterator.hh"
 
 #include "readfile.hh"
 
@@ -345,6 +355,148 @@ static void do_version_scene_remove_use_nodes(Scene *scene)
   /* Ignore use_nodes otherwise. */
 }
 
+/* The Dot output of the Normal node was removed, so replace it with a dot product vector math
+ * node, noting that the Dot output was actually negative the dot product of the normalized
+ * node vector with the input. */
+static void do_version_normal_node_dot_product(bNodeTree *node_tree, bNode *node)
+{
+  bNodeSocket *normal_input = blender::bke::node_find_socket(*node, SOCK_IN, "Normal");
+  bNodeSocket *normal_output = blender::bke::node_find_socket(*node, SOCK_OUT, "Normal");
+  bNodeSocket *dot_output = blender::bke::node_find_socket(*node, SOCK_OUT, "Dot");
+
+  /* Find the links going into and out from the node. */
+  bNodeLink *normal_input_link = nullptr;
+  bool is_normal_ontput_needed = false;
+  bool is_dot_output_used = false;
+  LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
+    if (link->tosock == normal_input) {
+      normal_input_link = link;
+    }
+
+    if (link->fromsock == normal_output) {
+      is_normal_ontput_needed = true;
+    }
+
+    if (link->fromsock == dot_output) {
+      is_dot_output_used = true;
+    }
+  }
+
+  /* The dot output is unused, nothing to do. */
+  if (!is_dot_output_used) {
+    return;
+  }
+
+  /* Take the dot product with negative the node normal. */
+  bNode *dot_product_node = blender::bke::node_add_node(
+      nullptr, *node_tree, "ShaderNodeVectorMath");
+  dot_product_node->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
+  dot_product_node->flag |= NODE_HIDDEN;
+  dot_product_node->parent = node->parent;
+  dot_product_node->location[0] = node->location[0];
+  dot_product_node->location[1] = node->location[1];
+
+  bNodeSocket *dot_product_a_input = blender::bke::node_find_socket(
+      *dot_product_node, SOCK_IN, "Vector");
+  bNodeSocket *dot_product_b_input = blender::bke::node_find_socket(
+      *dot_product_node, SOCK_IN, "Vector_001");
+  bNodeSocket *dot_product_output = blender::bke::node_find_socket(
+      *dot_product_node, SOCK_OUT, "Value");
+
+  copy_v3_v3(static_cast<bNodeSocketValueVector *>(dot_product_a_input->default_value)->value,
+             static_cast<bNodeSocketValueVector *>(normal_input->default_value)->value);
+
+  if (normal_input_link) {
+    version_node_add_link(*node_tree,
+                          *normal_input_link->fromnode,
+                          *normal_input_link->fromsock,
+                          *dot_product_node,
+                          *dot_product_a_input);
+    blender::bke::node_remove_link(node_tree, *normal_input_link);
+  }
+
+  /* Notice that we normalize and take the negative to reproduce the same behavior as the old
+   * Normal node. */
+  const blender::float3 node_normal =
+      normal_output->default_value_typed<bNodeSocketValueVector>()->value;
+  const blender::float3 normalized_node_normal = -blender::math::normalize(node_normal);
+  copy_v3_v3(static_cast<bNodeSocketValueVector *>(dot_product_b_input->default_value)->value,
+             normalized_node_normal);
+
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &node_tree->links) {
+    if (link->fromsock != dot_output) {
+      continue;
+    }
+
+    version_node_add_link(
+        *node_tree, *dot_product_node, *dot_product_output, *link->tonode, *link->tosock);
+    blender::bke::node_remove_link(node_tree, *link);
+  }
+
+  /* If only the Dot output was used, remove the node, making sure to initialize the node types to
+   * allow removal. */
+  if (!is_normal_ontput_needed) {
+    blender::bke::node_tree_set_type(*node_tree);
+    blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
+  }
+}
+
+static void version_seq_text_from_legacy(Main *bmain)
+{
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    if (scene->ed != nullptr) {
+      blender::seq::for_each_callback(&scene->ed->seqbase, [&](Strip *strip) -> bool {
+        if (strip->type == STRIP_TYPE_TEXT && strip->effectdata != nullptr) {
+          TextVars *data = static_cast<TextVars *>(strip->effectdata);
+          if (data->text_ptr == nullptr) {
+            data->text_ptr = BLI_strdup(data->text_legacy);
+            data->text_len_bytes = strlen(data->text_ptr);
+          }
+        }
+        return true;
+      });
+    }
+  }
+}
+
+static void apply_unified_paint_settings_to_all_modes(Scene &scene)
+{
+  const UnifiedPaintSettings &scene_ups = scene.toolsettings->unified_paint_settings;
+  auto apply_to_paint = [&](Paint *paint) {
+    if (paint == nullptr) {
+      return;
+    }
+    UnifiedPaintSettings &ups = paint->unified_paint_settings;
+
+    ups.size = scene_ups.size;
+    ups.unprojected_radius = scene_ups.unprojected_radius;
+    ups.alpha = scene_ups.alpha;
+    ups.weight = scene_ups.weight;
+    copy_v3_v3(ups.rgb, scene_ups.rgb);
+    copy_v3_v3(ups.secondary_rgb, scene_ups.secondary_rgb);
+    ups.color_jitter_flag = scene_ups.color_jitter_flag;
+    copy_v3_v3(ups.hsv_jitter, scene_ups.hsv_jitter);
+
+    BLI_assert(ups.curve_rand_hue == nullptr);
+    BLI_assert(ups.curve_rand_saturation == nullptr);
+    BLI_assert(ups.curve_rand_value == nullptr);
+    ups.curve_rand_hue = BKE_curvemapping_copy(scene_ups.curve_rand_hue);
+    ups.curve_rand_saturation = BKE_curvemapping_copy(scene_ups.curve_rand_saturation);
+    ups.curve_rand_value = BKE_curvemapping_copy(scene_ups.curve_rand_value);
+    ups.flag = scene_ups.flag;
+  };
+
+  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->vpaint));
+  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->wpaint));
+  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->sculpt));
+  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_paint));
+  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_vertexpaint));
+  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_sculptpaint));
+  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->gp_weightpaint));
+  apply_to_paint(reinterpret_cast<Paint *>(scene.toolsettings->curves_sculpt));
+  apply_to_paint(reinterpret_cast<Paint *>(&scene.toolsettings->imapaint));
+}
+
 void do_versions_after_linking_500(FileData * /*fd*/, Main * /*bmain*/)
 {
   /**
@@ -364,19 +516,6 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       bke::mesh_custom_normals_to_generic(*mesh);
       rename_mesh_uv_seam_attribute(*mesh);
     }
-
-    /* Change default Sky Texture to Nishita (after removal of old sky models) */
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_SHADER) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type_legacy == SH_NODE_TEX_SKY && node->storage) {
-            NodeTexSky *tex = (NodeTexSky *)node->storage;
-            tex->sky_model = 0;
-          }
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 2)) {
@@ -469,6 +608,62 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 17)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       do_version_scene_remove_use_nodes(scene);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 20)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (ELEM(sl->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA, SPACE_SEQ)) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            ARegion *new_footer = do_versions_add_region_if_not_found(
+                regionbase, RGN_TYPE_FOOTER, "footer for animation editors", RGN_TYPE_HEADER);
+            if (new_footer != nullptr) {
+              new_footer->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP :
+                                                                        RGN_ALIGN_BOTTOM;
+              new_footer->flag |= RGN_FLAG_HIDDEN;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 21)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
+          do_version_normal_node_dot_product(node_tree, node);
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 23)) {
+    /* Change default Sky Texture to Nishita (after removal of old sky models) */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type_legacy == SH_NODE_TEX_SKY && node->storage) {
+            NodeTexSky *tex = (NodeTexSky *)node->storage;
+            tex->sky_model = 0;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 25)) {
+    version_seq_text_from_legacy(bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 26)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      apply_unified_paint_settings_to_all_modes(*scene);
     }
   }
 

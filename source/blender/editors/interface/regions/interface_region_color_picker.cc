@@ -25,8 +25,6 @@
 
 #include "RNA_access.hh"
 
-#include "UI_interface.hh"
-
 #include "BLT_translation.hh"
 
 #include "IMB_colormanagement.hh"

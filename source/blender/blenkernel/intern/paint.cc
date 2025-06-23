@@ -589,14 +589,14 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
   return PaintMode::Invalid;
 }
 
-bool BKE_paint_use_unified_color(const ToolSettings *tool_settings, const Paint *paint)
+bool BKE_paint_use_unified_color(const Paint *paint)
 {
   /* Grease pencil draw mode never uses unified paint. */
   if (paint->runtime.ob_mode == OB_MODE_PAINT_GREASE_PENCIL) {
     return false;
   }
 
-  return tool_settings->unified_paint_settings.flag & UNIFIED_PAINT_COLOR;
+  return paint->unified_paint_settings.flag & UNIFIED_PAINT_COLOR;
 }
 
 /**
@@ -1672,6 +1672,28 @@ eObjectMode BKE_paint_object_mode_from_paintmode(const PaintMode mode)
   }
 }
 
+static void paint_init_data(Paint &paint)
+{
+  const UnifiedPaintSettings &default_ups = *DNA_struct_default_get(UnifiedPaintSettings);
+  paint.unified_paint_settings.size = default_ups.size;
+  paint.unified_paint_settings.input_samples = default_ups.input_samples;
+  paint.unified_paint_settings.unprojected_radius = default_ups.unprojected_radius;
+  paint.unified_paint_settings.alpha = default_ups.alpha;
+  paint.unified_paint_settings.weight = default_ups.weight;
+  paint.unified_paint_settings.flag = default_ups.flag;
+  if (!paint.unified_paint_settings.curve_rand_hue) {
+    paint.unified_paint_settings.curve_rand_hue = BKE_paint_default_curve();
+  }
+  if (!paint.unified_paint_settings.curve_rand_saturation) {
+    paint.unified_paint_settings.curve_rand_saturation = BKE_paint_default_curve();
+  }
+  if (!paint.unified_paint_settings.curve_rand_value) {
+    paint.unified_paint_settings.curve_rand_value = BKE_paint_default_curve();
+  }
+  copy_v3_v3(paint.unified_paint_settings.rgb, default_ups.rgb);
+  copy_v3_v3(paint.unified_paint_settings.secondary_rgb, default_ups.secondary_rgb);
+}
+
 bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
 {
   Paint *paint = nullptr;
@@ -1708,6 +1730,7 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
   if (((VPaint **)r_paint == &ts->vpaint) || ((VPaint **)r_paint == &ts->wpaint)) {
     VPaint *data = MEM_callocN<VPaint>(__func__);
     paint = &data->paint;
+    paint_init_data(*paint);
   }
   else if ((Sculpt **)r_paint == &ts->sculpt) {
     Sculpt *data = MEM_callocN<Sculpt>(__func__);
@@ -1715,29 +1738,36 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
     *data = *DNA_struct_default_get(Sculpt);
 
     paint = &data->paint;
+    paint_init_data(*paint);
   }
   else if ((GpPaint **)r_paint == &ts->gp_paint) {
     GpPaint *data = MEM_callocN<GpPaint>(__func__);
     paint = &data->paint;
+    paint_init_data(*paint);
   }
   else if ((GpVertexPaint **)r_paint == &ts->gp_vertexpaint) {
     GpVertexPaint *data = MEM_callocN<GpVertexPaint>(__func__);
     paint = &data->paint;
+    paint_init_data(*paint);
   }
   else if ((GpSculptPaint **)r_paint == &ts->gp_sculptpaint) {
     GpSculptPaint *data = MEM_callocN<GpSculptPaint>(__func__);
     paint = &data->paint;
+    paint_init_data(*paint);
   }
   else if ((GpWeightPaint **)r_paint == &ts->gp_weightpaint) {
     GpWeightPaint *data = MEM_callocN<GpWeightPaint>(__func__);
     paint = &data->paint;
+    paint_init_data(*paint);
   }
   else if ((CurvesSculpt **)r_paint == &ts->curves_sculpt) {
     CurvesSculpt *data = MEM_callocN<CurvesSculpt>(__func__);
     paint = &data->paint;
+    paint_init_data(*paint);
   }
   else if (*r_paint == &ts->imapaint.paint) {
     paint = &ts->imapaint.paint;
+    paint_init_data(*paint);
   }
 
   paint->flags |= PAINT_SHOW_BRUSH;
@@ -1769,10 +1799,10 @@ void BKE_paint_brushes_ensure(Main *bmain, Paint *paint)
 void BKE_paint_init(
     Main *bmain, Scene *sce, PaintMode mode, const uchar col[3], const bool ensure_brushes)
 {
-  UnifiedPaintSettings *ups = &sce->toolsettings->unified_paint_settings;
 
   BKE_paint_ensure_from_paintmode(sce, mode);
   Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
+  UnifiedPaintSettings *ups = &paint->unified_paint_settings;
 
   if (ensure_brushes) {
     BKE_paint_brushes_ensure(bmain, paint);
@@ -1804,6 +1834,10 @@ void BKE_paint_free(Paint *paint)
     MEM_delete(brush_ref);
   }
   MEM_delete(paint->runtime.previous_active_brush_reference);
+
+  BKE_curvemapping_free(paint->unified_paint_settings.curve_rand_hue);
+  BKE_curvemapping_free(paint->unified_paint_settings.curve_rand_saturation);
+  BKE_curvemapping_free(paint->unified_paint_settings.curve_rand_value);
 }
 
 void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
@@ -1833,14 +1867,21 @@ void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
         __func__, *brush_ref->brush_asset_reference);
   }
 
+  dst->unified_paint_settings.curve_rand_hue = BKE_curvemapping_copy(
+      src->unified_paint_settings.curve_rand_hue);
+  dst->unified_paint_settings.curve_rand_saturation = BKE_curvemapping_copy(
+      src->unified_paint_settings.curve_rand_saturation);
+  dst->unified_paint_settings.curve_rand_value = BKE_curvemapping_copy(
+      src->unified_paint_settings.curve_rand_value);
+
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
     id_us_plus((ID *)dst->palette);
   }
 }
 
-void BKE_paint_stroke_get_average(const Scene *scene, const Object *ob, float stroke[3])
+void BKE_paint_stroke_get_average(const Paint *paint, const Object *ob, float stroke[3])
 {
-  const UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  const UnifiedPaintSettings *ups = &paint->unified_paint_settings;
   if (ups->last_stroke_valid && ups->average_stroke_counter > 0) {
     float fac = 1.0f / ups->average_stroke_counter;
     mul_v3_v3fl(stroke, ups->average_stroke_accum, fac);
@@ -1936,6 +1977,18 @@ void BKE_paint_blend_write(BlendWriter *writer, Paint *paint)
       }
     }
   }
+
+  if (paint->unified_paint_settings.curve_rand_hue) {
+    BKE_curvemapping_blend_write(writer, paint->unified_paint_settings.curve_rand_hue);
+  }
+
+  if (paint->unified_paint_settings.curve_rand_saturation) {
+    BKE_curvemapping_blend_write(writer, paint->unified_paint_settings.curve_rand_saturation);
+  }
+
+  if (paint->unified_paint_settings.curve_rand_value) {
+    BKE_curvemapping_blend_write(writer, paint->unified_paint_settings.curve_rand_value);
+  }
 }
 
 void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *paint)
@@ -1979,8 +2032,32 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
       }
     }
   }
+  UnifiedPaintSettings *ups = &paint->unified_paint_settings;
+  BLO_read_struct(reader, CurveMapping, &ups->curve_rand_hue);
+  if (ups->curve_rand_hue) {
+    BKE_curvemapping_blend_read(reader, ups->curve_rand_hue);
+    BKE_curvemapping_init(ups->curve_rand_hue);
+  }
+
+  BLO_read_struct(reader, CurveMapping, &ups->curve_rand_saturation);
+  if (ups->curve_rand_saturation) {
+    BKE_curvemapping_blend_read(reader, ups->curve_rand_saturation);
+    BKE_curvemapping_init(ups->curve_rand_saturation);
+  }
+
+  BLO_read_struct(reader, CurveMapping, &ups->curve_rand_value);
+  if (ups->curve_rand_value) {
+    BKE_curvemapping_blend_read(reader, ups->curve_rand_value);
+    BKE_curvemapping_init(ups->curve_rand_value);
+  }
 
   paint->paint_cursor = nullptr;
+
+  /* Reset last_location and last_hit, so they are not remembered across sessions. In some files
+   * these are also NaN, which could lead to crashes in painting. */
+  zero_v3(ups->last_location);
+  ups->last_hit = 0;
+
   paint_runtime_init(scene->toolsettings, paint);
 }
 

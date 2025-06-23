@@ -632,7 +632,8 @@ void WM_draw_cb_exit(wmWindow *win, void *handle)
 
 static void wm_draw_callbacks(wmWindow *win)
 {
-  LISTBASE_FOREACH (WindowDrawCB *, wdc, &win->drawcalls) {
+  /* Allow callbacks to remove themselves. */
+  LISTBASE_FOREACH_MUTABLE (WindowDrawCB *, wdc, &win->drawcalls) {
     wdc->draw(win, wdc->customdata);
   }
 }

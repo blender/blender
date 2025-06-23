@@ -90,7 +90,7 @@ void BKE_brush_tag_unsaved_changes(Brush *brush);
 
 Brush *BKE_brush_first_search(Main *bmain, eObjectMode ob_mode);
 
-void BKE_brush_jitter_pos(const Scene &scene,
+void BKE_brush_jitter_pos(const Paint &paint,
                           const Brush &brush,
                           const float pos[2],
                           float jitterpos[2]);
@@ -133,7 +133,7 @@ float BKE_brush_curve_strength(const Brush *br, float p, float len);
  *
  * RGBA outputs straight alpha.
  */
-float BKE_brush_sample_tex_3d(const Scene *scene,
+float BKE_brush_sample_tex_3d(const Paint *paint,
                               const Brush *br,
                               const MTex *mtex,
                               const float point[3],
@@ -141,7 +141,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
                               int thread,
                               ImagePool *pool);
 float BKE_brush_sample_masktex(
-    const Scene *scene, Brush *br, const float point[2], int thread, ImagePool *pool);
+    const Paint *paint, Brush *br, const float point[2], int thread, ImagePool *pool);
 
 /**
  * Get the mask texture for this given object mode.
@@ -179,30 +179,27 @@ struct BrushColorJitterSettings {
   CurveMapping *curve_val_jitter;
 };
 
-const float *BKE_brush_color_get(const Scene *scene, const Paint *paint, const Brush *brush);
-std::optional<BrushColorJitterSettings> BKE_brush_color_jitter_get_settings(const Scene *scene,
-                                                                            const Paint *paint,
+const float *BKE_brush_color_get(const Paint *paint, const Brush *brush);
+std::optional<BrushColorJitterSettings> BKE_brush_color_jitter_get_settings(const Paint *paint,
                                                                             const Brush *brush);
-const float *BKE_brush_secondary_color_get(const Scene *scene,
-                                           const Paint *paint,
-                                           const Brush *brush);
-void BKE_brush_color_set(Scene *scene, const Paint *paint, Brush *brush, const float color[3]);
+const float *BKE_brush_secondary_color_get(const Paint *paint, const Brush *brush);
+void BKE_brush_color_set(Paint *paint, Brush *brush, const float color[3]);
 
-int BKE_brush_size_get(const Scene *scene, const Brush *brush);
-void BKE_brush_size_set(Scene *scene, Brush *brush, int size);
+int BKE_brush_size_get(const Paint *paint, const Brush *brush);
+void BKE_brush_size_set(Paint *paint, Brush *brush, int size);
 
-float BKE_brush_unprojected_radius_get(const Scene *scene, const Brush *brush);
-void BKE_brush_unprojected_radius_set(Scene *scene, Brush *brush, float unprojected_radius);
+float BKE_brush_unprojected_radius_get(const Paint *paint, const Brush *brush);
+void BKE_brush_unprojected_radius_set(Paint *paint, Brush *brush, float unprojected_radius);
 
-float BKE_brush_alpha_get(const Scene *scene, const Brush *brush);
-void BKE_brush_alpha_set(Scene *scene, Brush *brush, float alpha);
-float BKE_brush_weight_get(const Scene *scene, const Brush *brush);
-void BKE_brush_weight_set(const Scene *scene, Brush *brush, float value);
+float BKE_brush_alpha_get(const Paint *paint, const Brush *brush);
+void BKE_brush_alpha_set(Paint *paint, Brush *brush, float alpha);
+float BKE_brush_weight_get(const Paint *paint, const Brush *brush);
+void BKE_brush_weight_set(Paint *paint, Brush *brush, float value);
 
-int BKE_brush_input_samples_get(const Scene *scene, const Brush *brush);
-void BKE_brush_input_samples_set(const Scene *scene, Brush *brush, int value);
+int BKE_brush_input_samples_get(const Paint *paint, const Brush *brush);
+void BKE_brush_input_samples_set(Paint *paint, Brush *brush, int value);
 
-bool BKE_brush_use_locked_size(const Scene *scene, const Brush *brush);
+bool BKE_brush_use_locked_size(const Paint *paint, const Brush *brush);
 bool BKE_brush_use_alpha_pressure(const Brush *brush);
 bool BKE_brush_use_size_pressure(const Brush *brush);
 

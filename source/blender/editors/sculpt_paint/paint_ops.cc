@@ -50,7 +50,6 @@
 
 static wmOperatorStatus brush_scale_size_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
   float scalar = RNA_float_get(op->ptr, "scalar");
@@ -62,7 +61,7 @@ static wmOperatorStatus brush_scale_size_exec(bContext *C, wmOperator *op)
   if (brush) {
     /* Pixel radius. */
     {
-      const int old_size = (use_unified_size) ? BKE_brush_size_get(scene, brush) : brush->size;
+      const int old_size = (use_unified_size) ? BKE_brush_size_get(paint, brush) : brush->size;
       int size = int(scalar * old_size);
 
       if (abs(old_size - size) < U.pixelsize) {
@@ -75,7 +74,7 @@ static wmOperatorStatus brush_scale_size_exec(bContext *C, wmOperator *op)
       }
 
       if (use_unified_size) {
-        BKE_brush_size_set(scene, brush, size);
+        BKE_brush_size_set(paint, brush, size);
       }
       else {
         brush->size = max_ii(size, 1);
@@ -86,13 +85,13 @@ static wmOperatorStatus brush_scale_size_exec(bContext *C, wmOperator *op)
     /* Unprojected radius. */
     {
       float unprojected_radius = scalar * (use_unified_size ?
-                                               BKE_brush_unprojected_radius_get(scene, brush) :
+                                               BKE_brush_unprojected_radius_get(paint, brush) :
                                                brush->unprojected_radius);
 
       unprojected_radius = std::max(unprojected_radius, 0.001f);
 
       if (use_unified_size) {
-        BKE_brush_unprojected_radius_set(scene, brush, unprojected_radius);
+        BKE_brush_unprojected_radius_set(paint, brush, unprojected_radius);
       }
       else {
         brush->unprojected_radius = unprojected_radius;
@@ -166,7 +165,6 @@ static bool palette_poll(bContext *C)
 
 static wmOperatorStatus palette_color_add_exec(bContext *C, wmOperator * /*op*/)
 {
-  Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   PaintMode mode = BKE_paintmode_get_active_from_context(C);
   Palette *palette = paint->palette;
@@ -185,7 +183,7 @@ static wmOperatorStatus palette_color_add_exec(bContext *C, wmOperator * /*op*/)
              PaintMode::GPencil,
              PaintMode::VertexGPencil))
     {
-      copy_v3_v3(color->rgb, BKE_brush_color_get(scene, paint, brush));
+      copy_v3_v3(color->rgb, BKE_brush_color_get(paint, brush));
       color->value = 0.0;
     }
     else if (mode == PaintMode::Weight) {

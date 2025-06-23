@@ -38,6 +38,7 @@
 #include "ED_outliner.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "armature_intern.hh"

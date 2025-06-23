@@ -103,8 +103,6 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
       return MTLPixelFormatRGB10A2Uint;
     case GPU_R11F_G11F_B10F:
       return MTLPixelFormatRG11B10Float;
-    case GPU_DEPTH24_STENCIL8:
-      /* NOTE(fclem): DEPTH24_STENCIL8 not supported by Apple Silicon. Fallback to Depth32F8S. */
     case GPU_DEPTH32F_STENCIL8:
       return MTLPixelFormatDepth32Float_Stencil8;
     case GPU_SRGB8_A8:
@@ -178,10 +176,6 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
       return MTLPixelFormatRGB9E5Float;
     /* Depth Formats. */
     case GPU_DEPTH_COMPONENT32F:
-      return MTLPixelFormatDepth32Float;
-    case GPU_DEPTH_COMPONENT24:
-      /* This formal is not supported on Metal.
-       * Use 32Float depth instead with some conversion steps for download and upload. */
       return MTLPixelFormatDepth32Float;
     case GPU_DEPTH_COMPONENT16:
       return MTLPixelFormatDepth16Unorm;
@@ -583,16 +577,11 @@ void gpu::MTLTexture::update_sub_depth_2d(
     int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data)
 {
   /* Verify we are in a valid configuration. */
-  BLI_assert(ELEM(format_,
-                  GPU_DEPTH_COMPONENT24,
-                  GPU_DEPTH_COMPONENT32F,
-                  GPU_DEPTH_COMPONENT16,
-                  GPU_DEPTH24_STENCIL8,
-                  GPU_DEPTH32F_STENCIL8));
+  BLI_assert(ELEM(format_, GPU_DEPTH_COMPONENT32F, GPU_DEPTH_COMPONENT16, GPU_DEPTH32F_STENCIL8));
   BLI_assert(validate_data_format(format_, type));
-  BLI_assert(ELEM(type, GPU_DATA_FLOAT, GPU_DATA_UINT_24_8, GPU_DATA_UINT));
+  BLI_assert(ELEM(type, GPU_DATA_FLOAT, GPU_DATA_UINT_24_8_DEPRECATED, GPU_DATA_UINT));
 
-  /* Determine whether we are in GPU_DATA_UINT_24_8 or GPU_DATA_FLOAT mode. */
+  /* Determine whether we are in GPU_DATA_UINT_24_8_DEPRECATED or GPU_DATA_FLOAT mode. */
   bool is_float = (type == GPU_DATA_FLOAT);
   eGPUTextureFormat format = (is_float) ? GPU_R32F : GPU_R32I;
 
@@ -603,7 +592,7 @@ void gpu::MTLTexture::update_sub_depth_2d(
       specialization.data_mode = MTL_DEPTH_UPDATE_MODE_FLOAT;
       break;
 
-    case GPU_DATA_UINT_24_8:
+    case GPU_DATA_UINT_24_8_DEPRECATED:
       specialization.data_mode = MTL_DEPTH_UPDATE_MODE_INT24;
       break;
 

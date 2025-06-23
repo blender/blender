@@ -40,7 +40,6 @@
 
 #include "ED_screen.hh"
 
-#include "UI_interface.hh"
 #include "UI_interface_c.hh"
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"

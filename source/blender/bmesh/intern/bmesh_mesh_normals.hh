@@ -52,7 +52,7 @@ void BM_verts_calc_normal_vcos(BMesh *bm,
 /**
  * \brief BMesh Compute Loop Normals from/to external data.
  *
- * Compute split normals, i.e. vertex normals associated with each poly (hence 'loop normals').
+ * Compute custom normals, i.e. vertex normals associated with each poly (hence 'loop normals').
  * Useful to materialize sharp edges (or non-smooth faces) without actually modifying the geometry
  * (splitting edges).
  */

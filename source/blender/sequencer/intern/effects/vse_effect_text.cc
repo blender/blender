@@ -196,7 +196,8 @@ static void init_text_effect(Strip *strip)
   data->outline_color[3] = 0.7f;
   data->outline_width = 0.05f;
 
-  STRNCPY(data->text, "Text");
+  data->text_ptr = BLI_strdup("Text");
+  data->text_len_bytes = strlen(data->text_ptr);
 
   data->loc[0] = 0.5f;
   data->loc[1] = 0.5f;
@@ -264,6 +265,7 @@ static void free_text_effect(Strip *strip, const bool do_id_user)
   effect_text_font_unload(data, do_id_user);
 
   if (data) {
+    MEM_SAFE_FREE(data->text_ptr);
     MEM_delete(data->runtime);
     MEM_freeN(data);
     strip->effectdata = nullptr;
@@ -280,6 +282,7 @@ static void copy_text_effect(Strip *dst, const Strip *src, const int flag)
 {
   dst->effectdata = MEM_dupallocN(src->effectdata);
   TextVars *data = static_cast<TextVars *>(dst->effectdata);
+  data->text_ptr = BLI_strdup_null(data->text_ptr);
 
   data->runtime = nullptr;
   data->text_blf_id = -1;
@@ -549,7 +552,7 @@ static void jump_flooding_pass(Span<JFACoord> input,
   });
 }
 
-static void text_draw(const TextVarsRuntime *runtime, float color[4])
+static void text_draw(const char *text_ptr, const TextVarsRuntime *runtime, float color[4])
 {
   const bool use_fallback = BLF_is_builtin(runtime->font);
   if (!use_fallback) {
@@ -560,7 +563,7 @@ static void text_draw(const TextVarsRuntime *runtime, float color[4])
     for (const CharInfo &character : line.characters) {
       BLF_position(runtime->font, character.position.x, character.position.y, 0.0f);
       BLF_buffer_col(runtime->font, color);
-      BLF_draw_buffer(runtime->font, character.str_ptr, character.byte_length);
+      BLF_draw_buffer(runtime->font, text_ptr + character.offset, character.byte_length);
     }
   }
 
@@ -590,7 +593,7 @@ static rcti draw_text_outline(const RenderData *context,
   Array<uchar4> tmp_buf(pixel_count, uchar4(0));
   BLF_buffer(runtime->font, nullptr, (uchar *)tmp_buf.data(), size.x, size.y, display);
 
-  text_draw(runtime, float4(1.0f));
+  text_draw(data->text_ptr, runtime, float4(1.0f));
 
   rcti outline_rect = runtime->text_boundbox;
   BLI_rcti_pad(&outline_rect, outline_width + 1, outline_width + 1);
@@ -772,6 +775,12 @@ static void fill_rect_alpha_under(
 static int text_effect_line_size_get(const RenderData *context, const Strip *strip)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
+
+  /* Used to calculate boundbox. Proxy size compensation is not needed there. */
+  if (context == nullptr) {
+    return data->text_size;
+  }
+
   /* Compensate text size for preview render size. */
   double proxy_size_comp = context->scene->r.size / 100.0;
   if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
@@ -781,7 +790,7 @@ static int text_effect_line_size_get(const RenderData *context, const Strip *str
   return proxy_size_comp * data->text_size;
 }
 
-static int text_effect_font_init(const RenderData *context, const Strip *strip, int font_flags)
+int text_effect_font_init(const RenderData *context, const Strip *strip, int font_flags)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   int font = blf_mono_font_render;
@@ -809,7 +818,7 @@ static int text_effect_font_init(const RenderData *context, const Strip *strip, 
 static Vector<CharInfo> build_character_info(const TextVars *data, int font)
 {
   Vector<CharInfo> characters;
-  const size_t len_max = STRNLEN(data->text);
+  const int len_max = data->text_len_bytes;
   int byte_offset = 0;
   int char_index = 0;
 
@@ -819,12 +828,12 @@ static Vector<CharInfo> build_character_info(const TextVars *data, int font)
   }
 
   while (byte_offset <= len_max) {
-    const char *str = data->text + byte_offset;
+    const char *str = data->text_ptr + byte_offset;
     const int char_length = BLI_str_utf8_size_safe(str);
 
     CharInfo char_info;
     char_info.index = char_index;
-    char_info.str_ptr = str;
+    char_info.offset = byte_offset;
     char_info.byte_length = char_length;
     char_info.advance_x = BLF_glyph_advance(font, str);
     characters.append(char_info);
@@ -861,15 +870,16 @@ static void apply_word_wrapping(const TextVars *data,
 
   /* First pass: Find characters where line has to be broken. */
   for (CharInfo &character : characters) {
-    if (character.str_ptr[0] == ' ') {
+    char ch = data->text_ptr[character.offset];
+    if (ch == ' ') {
       character.position = char_position;
       last_space = &character;
     }
-    if (character.str_ptr[0] == '\n') {
+    if (ch == '\n') {
       char_position.x = 0;
       last_space = nullptr;
     }
-    if (character.str_ptr[0] != '\0' && char_position.x > wrap_width && last_space != nullptr) {
+    if (ch != '\0' && char_position.x > wrap_width && last_space != nullptr) {
       last_space->do_wrap = true;
       char_position -= last_space->position + last_space->advance_x;
     }
@@ -886,7 +896,7 @@ static void apply_word_wrapping(const TextVars *data,
 
     char_position.x += character.advance_x;
 
-    if (character.do_wrap || character.str_ptr[0] == '\n') {
+    if (character.do_wrap || data->text_ptr[character.offset] == '\n') {
       runtime->lines.append(LineInfo());
       char_position.x = 0;
       char_position.y -= runtime->line_height;
@@ -992,25 +1002,21 @@ static void apply_text_alignment(const TextVars *data,
   }
 }
 
-static void calc_text_runtime(const Strip *strip, int font, const int2 image_size)
+TextVarsRuntime *text_effect_calc_runtime(const Strip *strip, int font, const int2 image_size)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
+  TextVarsRuntime *runtime = MEM_new<TextVarsRuntime>(__func__);
 
-  if (data->runtime != nullptr) {
-    MEM_delete(data->runtime);
-  }
-
-  data->runtime = MEM_new<TextVarsRuntime>(__func__);
-  TextVarsRuntime *runtime = data->runtime;
   runtime->font = font;
   runtime->line_height = BLF_height_max(font);
   runtime->font_descender = BLF_descender(font);
-  runtime->character_count = BLI_strlen_utf8(data->text);
+  runtime->character_count = BLI_strlen_utf8(data->text_ptr);
 
   Vector<CharInfo> characters_temp = build_character_info(data, font);
   apply_word_wrapping(data, runtime, image_size, characters_temp);
   apply_text_alignment(data, runtime, image_size);
   calc_boundbox(data, runtime, image_size);
+  return runtime;
 }
 
 static ImBuf *do_text_effect(const RenderData *context,
@@ -1035,12 +1041,16 @@ static ImBuf *do_text_effect(const RenderData *context,
 
   const int font = text_effect_font_init(context, strip, font_flags);
 
-  calc_text_runtime(strip, font, {out->x, out->y});
-  TextVarsRuntime *runtime = data->runtime;
+  if (data->runtime != nullptr) {
+    MEM_delete(data->runtime);
+  }
+
+  TextVarsRuntime *runtime = text_effect_calc_runtime(strip, font, {out->x, out->y});
+  data->runtime = runtime;
 
   rcti outline_rect = draw_text_outline(context, data, runtime, display, out);
   BLF_buffer(font, nullptr, out->byte_buffer.data, out->x, out->y, display);
-  text_draw(runtime, data->color);
+  text_draw(data->text_ptr, runtime, data->color);
   BLF_buffer(font, nullptr, nullptr, 0, 0, nullptr);
   BLF_disable(font, font_flags);
 

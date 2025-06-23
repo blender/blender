@@ -284,14 +284,15 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
   if (refresh) {
     ImagePool *pool = nullptr;
+    Paint *paint = BKE_paint_get_active_from_context(vc->C);
     /* Stencil is rotated later. */
     const float rotation = (mtex->brush_map_mode != MTEX_MAP_MODE_STENCIL) ? -mtex->rot : 0.0f;
-    const float radius = BKE_brush_size_get(vc->scene, br) * zoom;
+    const float radius = BKE_brush_size_get(paint, br) * zoom;
 
     make_tex_snap(target, vc, zoom);
 
     if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
-      int s = BKE_brush_size_get(vc->scene, br);
+      int s = BKE_brush_size_get(paint, br);
       int r = 1;
 
       for (s >>= 1; s > 0; s >>= 1) {
@@ -430,11 +431,12 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
   init = (cursor_snap.overlay_texture != nullptr);
 
   if (refresh) {
+    Paint *paint = BKE_paint_get_active_from_context(vc->C);
     int s, r;
 
     cursor_snap.zoom = zoom;
 
-    s = BKE_brush_size_get(vc->scene, br);
+    s = BKE_brush_size_get(paint, br);
     r = 1;
 
     for (s >>= 1; s > 0; s >>= 1) {
@@ -633,7 +635,8 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
         quad.ymax = center[1] + ups->anchored_size;
       }
       else {
-        const int radius = BKE_brush_size_get(vc->scene, brush) * zoom;
+        const Paint &paint = *BKE_paint_get_active_from_paintmode(vc->scene, mode);
+        const int radius = BKE_brush_size_get(&paint, brush) * zoom;
         quad.xmin = center[0] - radius;
         quad.ymin = center[1] - radius;
         quad.xmax = center[0] + radius;
@@ -747,7 +750,8 @@ static bool paint_draw_cursor_overlay(
       quad.ymax = ups->anchored_initial_mouse[1] + ups->anchored_size;
     }
     else {
-      const int radius = BKE_brush_size_get(vc->scene, brush) * zoom;
+      const Paint *paint = BKE_paint_get_active_from_context(vc->C);
+      const int radius = BKE_brush_size_get(paint, brush) * zoom;
       center[0] = x;
       center[1] = y;
 
@@ -1043,9 +1047,9 @@ static void paint_cursor_update_unprojected_radius(const UnifiedPaintSettings &u
                                                    const ViewContext &vc,
                                                    const float location[3])
 {
-
+  Paint &paint = *BKE_paint_get_active_from_context(vc.C);
   /* Update the brush's cached 3D radius. */
-  if (!BKE_brush_use_locked_size(vc.scene, &brush)) {
+  if (!BKE_brush_use_locked_size(&paint, &brush)) {
     float projected_radius;
     /* Get 2D brush radius. */
     if (ups.draw_anchored) {
@@ -1056,7 +1060,7 @@ static void paint_cursor_update_unprojected_radius(const UnifiedPaintSettings &u
         projected_radius = 8;
       }
       else {
-        projected_radius = BKE_brush_size_get(vc.scene, &brush);
+        projected_radius = BKE_brush_size_get(&paint, &brush);
       }
     }
 
@@ -1069,7 +1073,7 @@ static void paint_cursor_update_unprojected_radius(const UnifiedPaintSettings &u
     }
 
     /* Set cached value in either Brush or UnifiedPaintSettings. */
-    BKE_brush_unprojected_radius_set(vc.scene, &brush, unprojected_radius);
+    BKE_brush_unprojected_radius_set(&paint, &brush, unprojected_radius);
   }
 }
 
@@ -1339,11 +1343,11 @@ static bool paint_cursor_context_init(bContext *C,
   pcontext.screen = CTX_wm_screen(C);
   pcontext.depsgraph = CTX_data_depsgraph_pointer(C);
   pcontext.scene = CTX_data_scene(C);
-  pcontext.ups = &pcontext.scene->toolsettings->unified_paint_settings;
   pcontext.paint = BKE_paint_get_active_from_context(C);
   if (pcontext.paint == nullptr) {
     return false;
   }
+  pcontext.ups = &pcontext.paint->unified_paint_settings;
   pcontext.brush = BKE_paint_brush(pcontext.paint);
   if (pcontext.brush == nullptr) {
     return false;
@@ -1369,7 +1373,7 @@ static bool paint_cursor_context_init(bContext *C,
   float zoomx, zoomy;
   get_imapaint_zoom(C, &zoomx, &zoomy);
   pcontext.zoomx = max_ff(zoomx, zoomy);
-  pcontext.final_radius = (BKE_brush_size_get(pcontext.scene, pcontext.brush) * zoomx);
+  pcontext.final_radius = (BKE_brush_size_get(pcontext.paint, pcontext.brush) * zoomx);
 
   /* There is currently no way to check if the direction is inverted before starting the stroke,
    * so this does not reflect the state of the brush in the UI. */
@@ -1408,10 +1412,10 @@ static void paint_cursor_update_pixel_radius(PaintCursorContext &pcontext)
   if (pcontext.is_cursor_over_mesh) {
     Brush *brush = BKE_paint_brush(pcontext.paint);
     pcontext.pixel_radius = project_brush_radius(
-        &pcontext.vc, BKE_brush_unprojected_radius_get(pcontext.scene, brush), pcontext.location);
+        &pcontext.vc, BKE_brush_unprojected_radius_get(pcontext.paint, brush), pcontext.location);
 
     if (pcontext.pixel_radius == 0) {
-      pcontext.pixel_radius = BKE_brush_size_get(pcontext.scene, brush);
+      pcontext.pixel_radius = BKE_brush_size_get(pcontext.paint, brush);
     }
 
     pcontext.scene_space_location = math::transform_point(pcontext.vc.obact->object_to_world(),
@@ -1421,7 +1425,7 @@ static void paint_cursor_update_pixel_radius(PaintCursorContext &pcontext)
     Sculpt *sd = CTX_data_tool_settings(pcontext.C)->sculpt;
     Brush *brush = BKE_paint_brush(&sd->paint);
 
-    pcontext.pixel_radius = BKE_brush_size_get(pcontext.scene, brush);
+    pcontext.pixel_radius = BKE_brush_size_get(pcontext.paint, brush);
   }
 }
 
@@ -1433,7 +1437,6 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext &pcon
   bContext *C = pcontext.C;
   SculptSession &ss = *pcontext.ss;
   Brush &brush = *pcontext.brush;
-  Scene &scene = *pcontext.scene;
   UnifiedPaintSettings &ups = *pcontext.ups;
   ViewContext &vc = pcontext.vc;
   CursorGeometryInfo gi;
@@ -1464,8 +1467,8 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext &pcon
 
   paint_cursor_update_pixel_radius(pcontext);
 
-  if (BKE_brush_use_locked_size(&scene, &brush)) {
-    BKE_brush_size_set(&scene, &brush, pcontext.pixel_radius);
+  if (BKE_brush_use_locked_size(pcontext.paint, &brush)) {
+    BKE_brush_size_set(pcontext.paint, &brush, pcontext.pixel_radius);
   }
 
   if (pcontext.is_cursor_over_mesh) {
@@ -1655,8 +1658,8 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext &pcontext)
     }
   }
   else if (pcontext.mode == PaintMode::VertexGPencil) {
-    pcontext.pixel_radius = BKE_brush_size_get(pcontext.vc.scene, brush);
-    color = BKE_brush_color_get(pcontext.vc.scene, paint, brush);
+    pcontext.pixel_radius = BKE_brush_size_get(pcontext.paint, brush);
+    color = BKE_brush_color_get(paint, brush);
   }
 
   GPU_line_width(1.0f);
@@ -1703,14 +1706,14 @@ static void paint_draw_3D_view_inactive_brush_cursor(PaintCursorContext &pcontex
       pcontext.translation[0],
       pcontext.translation[1],
       pcontext.final_radius *
-          clamp_f(BKE_brush_alpha_get(pcontext.scene, pcontext.brush), 0.0f, 1.0f),
+          clamp_f(BKE_brush_alpha_get(pcontext.paint, pcontext.brush), 0.0f, 1.0f),
       80);
 }
 
 static void paint_cursor_update_object_space_radius(PaintCursorContext &pcontext)
 {
   pcontext.radius = object_space_radius_get(
-      pcontext.vc, *pcontext.scene, *pcontext.brush, pcontext.location);
+      pcontext.vc, *pcontext.paint, *pcontext.brush, pcontext.location);
 }
 
 static void paint_cursor_drawing_setup_cursor_space(const PaintCursorContext &pcontext)
@@ -1747,7 +1750,7 @@ static void paint_cursor_draw_main_inactive_cursor(PaintCursorContext &pcontext)
       pcontext.pos,
       0,
       0,
-      pcontext.radius * clamp_f(BKE_brush_alpha_get(pcontext.scene, pcontext.brush), 0.0f, 1.0f),
+      pcontext.radius * clamp_f(BKE_brush_alpha_get(pcontext.paint, pcontext.brush), 0.0f, 1.0f),
       80);
 }
 

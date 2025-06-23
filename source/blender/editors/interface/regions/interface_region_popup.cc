@@ -28,8 +28,6 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_interface.hh"
-
 #include "ED_screen.hh"
 
 #include "interface_intern.hh"

@@ -48,7 +48,6 @@
 #include "GPU_immediate.hh"
 #include "GPU_state.hh"
 
-#include "UI_interface.hh"
 #include "UI_resources.hh"
 
 namespace blender::ed::greasepencil {
