@@ -374,12 +374,12 @@ static PointerRNA rna_uiItemO(uiLayout *layout,
     flag |= UI_ITEM_O_DEPRESS;
   }
 
-  const float prev_weight = uiLayoutGetSearchWeight(layout);
-  uiLayoutSetSearchWeight(layout, search_weight);
+  const float prev_weight = layout->search_weight();
+  layout->search_weight_set(search_weight);
 
   PointerRNA opptr = layout->op(ot, text, icon, layout->operator_context(), flag);
 
-  uiLayoutSetSearchWeight(layout, prev_weight);
+  layout->search_weight_set(prev_weight);
   return opptr;
 }
 
@@ -866,7 +866,7 @@ void rna_uiLayoutPanelProp(uiLayout *layout,
                            uiLayout **r_layout_header,
                            uiLayout **r_layout_body)
 {
-  Panel *panel = uiLayoutGetRootPanel(layout);
+  Panel *panel = layout->root_panel();
   if (panel == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Layout panels can not be used in this context");
     *r_layout_header = nullptr;
@@ -887,7 +887,7 @@ void rna_uiLayoutPanel(uiLayout *layout,
                        uiLayout **r_layout_header,
                        uiLayout **r_layout_body)
 {
-  Panel *panel = uiLayoutGetRootPanel(layout);
+  Panel *panel = layout->root_panel();
   if (panel == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Layout panels can not be used in this context");
     *r_layout_header = nullptr;

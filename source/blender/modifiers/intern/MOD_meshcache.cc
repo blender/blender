@@ -346,7 +346,7 @@ static void axis_mapping_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = &layout->column(true);
-  uiLayoutSetRedAlert(col, RNA_enum_get(ptr, "forward_axis") == RNA_enum_get(ptr, "up_axis"));
+  col->red_alert_set(RNA_enum_get(ptr, "forward_axis") == RNA_enum_get(ptr, "up_axis"));
   col->prop(ptr, "forward_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(ptr, "up_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

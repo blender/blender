@@ -1394,12 +1394,12 @@ static void rna_UILayout_activate_init_set(PointerRNA *ptr, bool value)
 
 static bool rna_UILayout_alert_get(PointerRNA *ptr)
 {
-  return uiLayoutGetRedAlert(static_cast<uiLayout *>(ptr->data));
+  return static_cast<uiLayout *>(ptr->data)->red_alert();
 }
 
 static void rna_UILayout_alert_set(PointerRNA *ptr, bool value)
 {
-  uiLayoutSetRedAlert(static_cast<uiLayout *>(ptr->data), value);
+  static_cast<uiLayout *>(ptr->data)->red_alert_set(value);
 }
 
 static void rna_UILayout_op_context_set(PointerRNA *ptr, int value)
@@ -1425,12 +1425,12 @@ static void rna_UILayout_enabled_set(PointerRNA *ptr, bool value)
 #  if 0
 static int rna_UILayout_red_alert_get(PointerRNA *ptr)
 {
-  return uiLayoutGetRedAlert(static_cast<uiLayout *>(ptr->data));
+  return static_cast<uiLayout *>(ptr->data)->red_alert();
 }
 
 static void rna_UILayout_red_alert_set(PointerRNA *ptr, bool value)
 {
-  uiLayoutSetRedAlert(static_cast<uiLayout *>(ptr->data), value);
+  static_cast<uiLayout *>(ptr->data)->red_alert_set(value);
 }
 #  endif
 

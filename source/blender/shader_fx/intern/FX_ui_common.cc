@@ -169,7 +169,7 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
   /* Effect type icon. */
   uiLayout *row = &layout->row(false);
   if (fxti->is_disabled && fxti->is_disabled(fx, false)) {
-    uiLayoutSetRedAlert(row, true);
+    row->red_alert_set(true);
   }
   row->label("", RNA_struct_ui_icon(ptr->type));
 
