@@ -465,7 +465,8 @@ void SyncModule::sync_curves(Object *ob,
 
 /** \} */
 
-void foreach_hair_particle_handle(ObjectRef &ob_ref,
+void foreach_hair_particle_handle(Instance &inst,
+                                  ObjectRef &ob_ref,
                                   ObjectHandle ob_handle,
                                   HairHandleCallback callback)
 {
@@ -475,8 +476,10 @@ void foreach_hair_particle_handle(ObjectRef &ob_ref,
     if (md->type == eModifierType_ParticleSystem) {
       ParticleSystem *particle_sys = reinterpret_cast<ParticleSystemModifierData *>(md)->psys;
       ParticleSettings *part_settings = particle_sys->part;
-      const int draw_as = (part_settings->draw_as == PART_DRAW_REND) ? part_settings->ren_as :
-                                                                       part_settings->draw_as;
+      /* Only use the viewport drawing mode for material preview. */
+      const int draw_as = (part_settings->draw_as == PART_DRAW_REND || !inst.is_viewport()) ?
+                              part_settings->ren_as :
+                              part_settings->draw_as;
       if (draw_as != PART_DRAW_PATH ||
           !DRW_object_is_visible_psys_in_active_context(ob_ref.object, particle_sys))
       {
