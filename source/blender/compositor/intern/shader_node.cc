@@ -41,9 +41,9 @@ GPUNodeStack &ShaderNode::get_output(const StringRef identifier)
   return get_shader_node_output(*node_, outputs_.data(), identifier);
 }
 
-static eGPUType gpu_type_from_socket_type(eNodeSocketDatatype type)
+static eGPUType gpu_type_from_socket(DSocket socket)
 {
-  switch (type) {
+  switch (eNodeSocketDatatype(socket->type)) {
     case SOCK_FLOAT:
       return GPU_FLOAT;
     case SOCK_INT:
@@ -53,7 +53,17 @@ static eGPUType gpu_type_from_socket_type(eNodeSocketDatatype type)
       /* GPUMaterial doesn't support boolean, so it is passed as a float. */
       return GPU_FLOAT;
     case SOCK_VECTOR:
-      return GPU_VEC3;
+      switch (socket->default_value_typed<bNodeSocketValueVector>()->dimensions) {
+        case 2:
+          return GPU_VEC2;
+        case 3:
+          return GPU_VEC3;
+        case 4:
+          return GPU_VEC4;
+        default:
+          BLI_assert_unreachable();
+          return GPU_NONE;
+      }
     case SOCK_RGBA:
       return GPU_VEC4;
     default:
@@ -73,7 +83,7 @@ static void populate_gpu_node_stack(DSocket socket, GPUNodeStack &stack)
   zero_v4(stack.vec);
 
   stack.sockettype = socket->type;
-  stack.type = gpu_type_from_socket_type(eNodeSocketDatatype(socket->type));
+  stack.type = gpu_type_from_socket(socket);
 
   stack.hasinput = socket->is_logically_linked();
   stack.hasoutput = socket->is_logically_linked();

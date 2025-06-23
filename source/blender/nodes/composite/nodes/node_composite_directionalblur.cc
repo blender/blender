@@ -261,10 +261,9 @@ class DirectionalBlurOperation : public NodeOperation {
 
   float2 get_center()
   {
-    return math::clamp(
-        this->get_input("Center").get_single_value_default(float3(0.5f, 0.5f, 0.0f)).xy(),
-        float2(0.0f),
-        float2(1.0f));
+    return math::clamp(this->get_input("Center").get_single_value_default(float2(0.5f)),
+                       float2(0.0f),
+                       float2(1.0f));
   }
 
   float get_translation_amount()

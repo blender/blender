@@ -188,7 +188,7 @@ class RelativeToPixelOperation : public NodeOperation {
       Result &output_vector_value = this->get_result("Vector Value");
       if (output_vector_value.should_compute()) {
         output_vector_value.allocate_single_value();
-        output_vector_value.set_single_value(float3(value_in_pixels, 0.0f));
+        output_vector_value.set_single_value(value_in_pixels);
       }
     }
   }
@@ -198,7 +198,7 @@ class RelativeToPixelOperation : public NodeOperation {
     if (this->get_data_type() == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT) {
       return float2(this->get_input("Float Value").get_single_value_default(0.0f));
     }
-    return this->get_input("Vector Value").get_single_value_default(float3(0.0f)).xy();
+    return this->get_input("Vector Value").get_single_value_default(float2(0.0f));
   }
 
   float2 compute_reference_size()

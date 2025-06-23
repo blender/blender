@@ -38,8 +38,9 @@
  *
  * The shader is generic enough to implement many types of reductions. This is done by using macros
  * that the developer should define to implement a certain reduction operation. Those include,
- * TYPE, IDENTITY, INITIALIZE, LOAD, and REDUCE. See the implementation below for more information
- * as well as the compositor_parallel_reduction_info.hh for example reductions operations. */
+ * TYPE, IDENTITY, INITIALIZE, LOAD, REDUCE, and WRITE. See the implementation below for more
+ * information as well as the compositor_parallel_reduction_info.hh for example reductions
+ * operations. */
 
 /* Doing the reduction in shared memory is faster, so create a shared array where the whole data
  * of the work group will be loaded and reduced. The 2D structure of the work group is irrelevant
@@ -108,6 +109,12 @@ void main()
    * it. */
   barrier();
   if (gl_LocalInvocationIndex == 0) {
+    /* If no WRITE macro is provided, we assume the reduction type can be passed to the float4
+     * constructor. If not, WRITE is expected to be defined to construct the output value. */
+#if defined(WRITE)
+    imageStore(output_img, int2(gl_WorkGroupID.xy), WRITE(reduction_data[0]));
+#else
     imageStore(output_img, int2(gl_WorkGroupID.xy), float4(reduction_data[0]));
+#endif
   }
 }

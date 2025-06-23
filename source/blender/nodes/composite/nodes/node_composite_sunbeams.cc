@@ -153,7 +153,7 @@ class SunBeamsOperation : public NodeOperation {
 
   float2 get_source()
   {
-    return this->get_input("Source").get_single_value_default(float3(0.5f, 0.5f, 0.0f)).xy();
+    return this->get_input("Source").get_single_value_default(float2(0.5f));
   }
 
   float get_length()

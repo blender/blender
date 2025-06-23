@@ -45,8 +45,26 @@ void InputSingleValueOperation::execute()
       break;
     }
     case SOCK_VECTOR: {
-      const float3 value = input_socket_->default_value_typed<bNodeSocketValueVector>()->value;
-      result.set_single_value(value);
+      switch (input_socket_->default_value_typed<bNodeSocketValueVector>()->dimensions) {
+        case 2: {
+          const float2 value = input_socket_->default_value_typed<bNodeSocketValueVector>()->value;
+          result.set_single_value(value);
+          break;
+        }
+        case 3: {
+          const float3 value = input_socket_->default_value_typed<bNodeSocketValueVector>()->value;
+          result.set_single_value(value);
+          break;
+        }
+        case 4: {
+          const float4 value = input_socket_->default_value_typed<bNodeSocketValueVector>()->value;
+          result.set_single_value(value);
+          break;
+        }
+        default:
+          BLI_assert_unreachable();
+          break;
+      }
       break;
     }
     case SOCK_RGBA: {

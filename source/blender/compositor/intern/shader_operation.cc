@@ -208,8 +208,8 @@ static void initialize_input_stack_value(const DInputSocket input, GPUNodeStack 
       break;
     }
     case SOCK_VECTOR: {
-      const float3 value = float3(input->default_value_typed<bNodeSocketValueVector>()->value);
-      copy_v3_v3(stack.vec, value);
+      const float4 value = float4(input->default_value_typed<bNodeSocketValueVector>()->value);
+      copy_v4_v4(stack.vec, value);
       break;
     }
     case SOCK_RGBA: {

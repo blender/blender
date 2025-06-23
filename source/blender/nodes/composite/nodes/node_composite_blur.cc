@@ -79,7 +79,7 @@ class BlurOperation : public NodeOperation {
     const Result &size = this->get_input("Size");
     if (this->get_extend_bounds()) {
       Result padded_input = this->context().create_result(ResultType::Color);
-      Result padded_size = this->context().create_result(ResultType::Float3);
+      Result padded_size = this->context().create_result(ResultType::Float2);
 
       const int2 padding_size = this->compute_extended_boundary_size(size);
 
@@ -268,8 +268,7 @@ class BlurOperation : public NodeOperation {
       float4 accumulated_color = float4(0.0f);
       float4 accumulated_weight = float4(0.0f);
 
-      const float2 size = math::max(float2(0.0f),
-                                    size_input.load_pixel_extended<float3>(texel).xy());
+      const float2 size = math::max(float2(0.0f), size_input.load_pixel_extended<float2>(texel));
       int2 radius = int2(math::ceil(size));
       float2 coordinates_scale = float2(1.0f) / (size + float2(1.0f));
 
@@ -327,7 +326,7 @@ class BlurOperation : public NodeOperation {
 
   float2 compute_maximum_blur_size()
   {
-    return math::max(float2(0.0f), maximum_float3(this->context(), this->get_input("Size")).xy());
+    return math::max(float2(0.0f), maximum_float2(this->context(), this->get_input("Size")));
   }
 
   bool is_identity()
@@ -374,7 +373,7 @@ class BlurOperation : public NodeOperation {
   float2 get_blur_size()
   {
     BLI_assert(this->get_input("Size").is_single_value());
-    return math::max(float2(0.0f), this->get_input("Size").get_single_value<float3>().xy());
+    return math::max(float2(0.0f), this->get_input("Size").get_single_value<float2>());
   }
 
   bool get_separable()
