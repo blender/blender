@@ -1531,12 +1531,8 @@ const AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C)
 
 blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C)
 {
-  if (auto *asset = static_cast<blender::asset_system::AssetRepresentation *>(
-          ctx_data_pointer_get(C, "asset")))
-  {
-    return asset;
-  }
-  return nullptr;
+  return static_cast<blender::asset_system::AssetRepresentation *>(
+      ctx_data_pointer_get(C, "asset"));
 }
 
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)
