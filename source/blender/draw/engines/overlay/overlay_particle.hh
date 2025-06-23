@@ -99,7 +99,7 @@ class Particles : Overlay {
         auto &sub = pass.sub("Dots");
         sub.shader_set(res.shaders->particle_edit_vert.get());
         sub.bind_texture("weight_tx", res.weight_ramp_tx);
-        sub.push_constant("use_weight", show_weight_);
+        sub.push_constant("use_weight", false);
         sub.push_constant("use_grease_pencil", false);
         edit_vert_ps_ = &sub;
       }
@@ -107,7 +107,7 @@ class Particles : Overlay {
         auto &sub = pass.sub("Edges");
         sub.shader_set(res.shaders->particle_edit_edge.get());
         sub.bind_texture("weight_tx", res.weight_ramp_tx);
-        sub.push_constant("use_weight", false);
+        sub.push_constant("use_weight", show_weight_);
         sub.push_constant("use_grease_pencil", false);
         edit_edge_ps_ = &sub;
       }
