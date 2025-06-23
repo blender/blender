@@ -1327,7 +1327,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   srna = RNA_def_struct(brna, "GizmoProperties", nullptr);
   RNA_def_struct_ui_text(srna, "Gizmo Properties", "Input properties of a Gizmo");
   RNA_def_struct_refine_func(srna, "rna_GizmoProperties_refine");
-  RNA_def_struct_idprops_func(srna, "rna_GizmoProperties_idprops");
+  RNA_def_struct_system_idprops_func(srna, "rna_GizmoProperties_idprops");
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);
 }
 
@@ -1523,7 +1523,7 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "GizmoGroupProperties", nullptr);
   RNA_def_struct_ui_text(srna, "Gizmo Group Properties", "Input properties of a Gizmo Group");
   RNA_def_struct_refine_func(srna, "rna_GizmoGroupProperties_refine");
-  RNA_def_struct_idprops_func(srna, "rna_GizmoGroupProperties_idprops");
+  RNA_def_struct_system_idprops_func(srna, "rna_GizmoGroupProperties_idprops");
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);
 }
 

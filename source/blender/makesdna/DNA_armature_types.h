@@ -61,12 +61,7 @@ typedef struct Bone {
   struct Bone *next, *prev;
   /** User-Defined Properties on this Bone. */
   IDProperty *prop;
-  /**
-   * System-Defined Properties storage.
-   *
-   * In Blender 4.5, only used to ensure forward compatibility with 5.x blend-files, and data
-   * management consistency.
-   */
+  /** System-Defined Properties storage. */
   IDProperty *system_properties;
   void *_pad0;
   /** Parent (IK parent if appropriate flag is set). */
@@ -284,12 +279,7 @@ typedef struct BoneCollection {
 
   /** Custom properties. */
   struct IDProperty *prop;
-  /**
-   * Custom system IDProperties.
-   *
-   * In Blender 4.5, only used to ensure forward compatibility with 5.x blend-files, and data
-   * management consistency.
-   */
+  /** Custom system IDProperties. */
   struct IDProperty *system_properties;
 
 #ifdef __cplusplus

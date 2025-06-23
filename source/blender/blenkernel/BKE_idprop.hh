@@ -200,13 +200,24 @@ IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop,
 
 /*-------- Main Functions --------*/
 /**
- * Get the Group property that contains the id properties for ID `id`.
+ * Get the Group property that contains the user-defined id properties for ID `id`.
  */
 IDProperty *IDP_GetProperties(ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /**
- * Ensure the Group property that contains the id properties for ID `id` exists & return it.
+ * Ensure the Group property that contains the user-defined id properties for ID `id` exists &
+ * return it.
  */
 IDProperty *IDP_EnsureProperties(ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+/**
+ * Get the Group property that contains the system-defined id properties for ID `id`.
+ */
+IDProperty *IDP_ID_system_properties_get(ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+/**
+ * Ensure the Group property that contains the system-defined id properties for ID `id` exists &
+ * return it.
+ */
+IDProperty *IDP_ID_system_properties_ensure(ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+
 IDProperty *IDP_CopyProperty(const IDProperty *prop) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**
  * \param flag the ID creation/copying flags (`LIB_ID_CREATE_...`), same as passed to

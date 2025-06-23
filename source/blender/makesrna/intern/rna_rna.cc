@@ -459,7 +459,7 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
     /* try id properties */
     if (!iter->valid) {
-      group = RNA_struct_idprops(&iter->builtin_parent, 0);
+      group = RNA_struct_system_idprops(&iter->builtin_parent, 0);
 
       if (group) {
         rna_iterator_listbase_end(iter);

@@ -894,6 +894,24 @@ IDProperty *IDP_EnsureProperties(ID *id)
   return id->properties;
 }
 
+IDProperty *IDP_ID_system_properties_get(ID *id)
+{
+  return id->system_properties;
+}
+
+IDProperty *IDP_ID_system_properties_ensure(ID *id)
+{
+  if (id->system_properties == nullptr) {
+    id->system_properties = MEM_callocN<IDProperty>(__func__);
+    id->system_properties->type = IDP_GROUP;
+    /* NOTE(@ideasman42): Don't overwrite the data's name and type
+     * some functions might need this if they
+     * don't have a real ID, should be named elsewhere. */
+    // STRNCPY(id->name, "top_level_group");
+  }
+  return id->system_properties;
+}
+
 bool IDP_EqualsProperties_ex(const IDProperty *prop1,
                              const IDProperty *prop2,
                              const bool is_strict)

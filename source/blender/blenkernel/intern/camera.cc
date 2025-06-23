@@ -169,9 +169,10 @@ static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_crea
 
   /* For forward compatibility, still write panoramic properties as ID properties for
    * previous blender versions. */
-  IDProperty *idprop_prev = IDP_GetProperties(id);
+  IDProperty *idprop_prev = IDP_ID_system_properties_get(id);
   /* Make a copy to avoid modifying the original. */
-  IDProperty *idprop_temp = idprop_prev ? IDP_CopyProperty(idprop_prev) : IDP_EnsureProperties(id);
+  IDProperty *idprop_temp = idprop_prev ? IDP_CopyProperty(idprop_prev) :
+                                          IDP_ID_system_properties_ensure(id);
 
   Camera *cam = (Camera *)id;
   IDProperty *cycles_cam = cycles_data_ensure(idprop_temp);
@@ -188,7 +189,7 @@ static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_crea
   cycles_property_float_set(cycles_cam, "fisheye_polynomial_k3", cam->fisheye_polynomial_k3);
   cycles_property_float_set(cycles_cam, "fisheye_polynomial_k4", cam->fisheye_polynomial_k4);
 
-  id->properties = idprop_temp;
+  id->system_properties = idprop_temp;
 
   return {idprop_prev, idprop_temp};
 }
@@ -196,7 +197,7 @@ static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_crea
 static void camera_write_cycles_compatibility_data_clear(ID *id,
                                                          CameraCyclesCompatibilityData &data)
 {
-  id->properties = data.idprop_prev;
+  id->system_properties = data.idprop_prev;
   data.idprop_prev = nullptr;
 
   if (data.idprop_temp) {

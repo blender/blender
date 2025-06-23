@@ -4855,7 +4855,7 @@ static void rna_def_userdef_addon_pref(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_AddonPref_refine");
   RNA_def_struct_register_funcs(
       srna, "rna_AddonPref_register", "rna_AddonPref_unregister", nullptr);
-  RNA_def_struct_idprops_func(srna, "rna_AddonPref_idprops");
+  RNA_def_struct_system_idprops_func(srna, "rna_AddonPref_idprops");
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES); /* Mandatory! */
 
   USERDEF_TAG_DIRTY_PROPERTY_UPDATE_DISABLE;

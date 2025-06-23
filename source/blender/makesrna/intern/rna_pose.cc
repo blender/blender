@@ -171,6 +171,12 @@ static IDProperty **rna_PoseBone_idprops(PointerRNA *ptr)
   return &pchan->prop;
 }
 
+static IDProperty **rna_PoseBone_system_idprops(PointerRNA *ptr)
+{
+  bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
+  return &pchan->system_properties;
+}
+
 static void rna_Pose_ik_solver_set(PointerRNA *ptr, int value)
 {
   bPose *pose = (bPose *)ptr->data;
@@ -762,6 +768,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Pose Bone", "Channel defining pose data for a bone in a Pose");
   RNA_def_struct_path_func(srna, "rna_PoseBone_path");
   RNA_def_struct_idprops_func(srna, "rna_PoseBone_idprops");
+  RNA_def_struct_system_idprops_func(srna, "rna_PoseBone_system_idprops");
   RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 
   /* Bone Constraints */

@@ -12,6 +12,7 @@
 
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
@@ -496,13 +497,13 @@ float *version_cycles_node_socket_vector_value(bNodeSocket *socket)
 
 IDProperty *version_cycles_properties_from_ID(ID *id)
 {
-  IDProperty *idprop = IDP_GetProperties(id);
+  IDProperty *idprop = IDP_ID_system_properties_get(id);
   return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : nullptr;
 }
 
 IDProperty *version_cycles_properties_from_view_layer(ViewLayer *view_layer)
 {
-  IDProperty *idprop = view_layer->id_properties;
+  IDProperty *idprop = view_layer->system_properties;
   return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : nullptr;
 }
 
@@ -546,7 +547,7 @@ void version_cycles_property_boolean_set(IDProperty *idprop, const char *name, b
 
 IDProperty *version_cycles_visibility_properties_from_ID(ID *id)
 {
-  IDProperty *idprop = IDP_GetProperties(id);
+  IDProperty *idprop = IDP_ID_system_properties_get(id);
   return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles_visibility", IDP_GROUP) : nullptr;
 }
 

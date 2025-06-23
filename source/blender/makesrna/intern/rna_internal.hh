@@ -216,6 +216,14 @@ void RNA_def_xr(BlenderRNA *brna);
 
 /* Common Define functions */
 
+/**
+ * Accessor to expose System IDProperties in structs that support it.
+ *
+ * See also #RNA_def_struct_system_idprops_func.
+ */
+struct IDPropertyGroup;
+IDPropertyGroup *rna_struct_system_properties_get_func(PointerRNA ptr, bool do_create);
+
 void rna_def_attributes_common(StructRNA *srna, AttributeOwnerType type);
 
 void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter, PointerRNA *ptr);
@@ -281,6 +289,7 @@ int rna_ID_name_length(PointerRNA *ptr);
 void rna_ID_name_set(PointerRNA *ptr, const char *value);
 StructRNA *rna_ID_refine(PointerRNA *ptr);
 IDProperty **rna_ID_idprops(PointerRNA *ptr);
+IDProperty **rna_ID_system_idprops(PointerRNA *ptr);
 void rna_ID_fake_user_set(PointerRNA *ptr, bool value);
 void **rna_ID_instance(PointerRNA *ptr);
 IDProperty **rna_PropertyGroup_idprops(PointerRNA *ptr);

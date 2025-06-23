@@ -525,7 +525,7 @@ static void rna_def_asset_data(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Asset Data", "Additional data stored for an asset data-block");
   //  RNA_def_struct_ui_icon(srna, ICON_ASSET); /* TODO: Icon doesn't exist! */
   /* The struct has custom properties, but no pointer properties to other IDs! */
-  RNA_def_struct_idprops_func(srna, "rna_AssetMetaData_idprops");
+  RNA_def_struct_system_idprops_func(srna, "rna_AssetMetaData_idprops");
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES); /* Mandatory! */
 
   prop = RNA_def_property(srna, "author", PROP_STRING, PROP_NONE);

@@ -62,19 +62,19 @@ void deg_invalidate_iterator_work_data(DEGObjectIterData *data)
 #endif
 }
 
-void ensure_id_properties_freed(const Object *dupli_object, Object *temp_dupli_object)
+void ensure_id_properties_freed(const IDProperty *dupli_idprops, IDProperty **temp_dupli_idprops)
 {
-  if (temp_dupli_object->id.properties == nullptr) {
+  if (*temp_dupli_idprops == nullptr) {
     /* No ID properties in temp data-block -- no leak is possible. */
     return;
   }
-  if (temp_dupli_object->id.properties == dupli_object->id.properties) {
+  if (*temp_dupli_idprops == dupli_idprops) {
     /* Temp copy of object did not modify ID properties. */
     return;
   }
   /* Free memory which is owned by temporary storage which is about to get overwritten. */
-  IDP_FreeProperty(temp_dupli_object->id.properties);
-  temp_dupli_object->id.properties = nullptr;
+  IDP_FreeProperty(*temp_dupli_idprops);
+  *temp_dupli_idprops = nullptr;
 }
 
 void free_owned_memory(DEGObjectIterData *data)
@@ -87,7 +87,9 @@ void free_owned_memory(DEGObjectIterData *data)
   const Object *dupli_object = data->dupli_object_current->ob;
   Object *temp_dupli_object = &data->temp_dupli_object;
 
-  ensure_id_properties_freed(dupli_object, temp_dupli_object);
+  ensure_id_properties_freed(dupli_object->id.properties, &temp_dupli_object->id.properties);
+  ensure_id_properties_freed(dupli_object->id.system_properties,
+                             &temp_dupli_object->id.system_properties);
 }
 
 bool deg_object_hide_original(eEvaluationMode eval_mode, Object *ob, DupliObject *dob)

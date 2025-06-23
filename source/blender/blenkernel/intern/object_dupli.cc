@@ -2003,7 +2003,7 @@ static bool find_rna_property_rgba(PointerRNA *id_ptr, const char *name, float r
   }
 
   /* First, check custom properties. */
-  IDProperty *group = RNA_struct_idprops(id_ptr, false);
+  IDProperty *group = RNA_struct_system_idprops(id_ptr, false);
   PropertyRNA *prop = nullptr;
 
   if (group && group->type == IDP_GROUP) {

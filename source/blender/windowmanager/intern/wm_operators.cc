@@ -835,7 +835,7 @@ void WM_operator_properties_reset(wmOperator *op)
 
       if ((RNA_property_flag(prop) & (PROP_SKIP_SAVE | PROP_SKIP_PRESET)) == 0) {
         const char *identifier = RNA_property_identifier(prop);
-        RNA_struct_idprops_unset(op->ptr, identifier);
+        RNA_struct_system_idprops_unset(op->ptr, identifier);
       }
     }
     RNA_PROP_END;

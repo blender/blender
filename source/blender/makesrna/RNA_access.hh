@@ -140,19 +140,28 @@ void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 IDProperty **RNA_struct_idprops_p(PointerRNA *ptr);
 IDProperty *RNA_struct_idprops(PointerRNA *ptr, bool create);
 bool RNA_struct_idprops_check(const StructRNA *srna);
-bool RNA_struct_idprops_register_check(const StructRNA *type);
+bool RNA_struct_system_idprops_register_check(const StructRNA *type);
 bool RNA_struct_idprops_datablock_allowed(const StructRNA *type);
+
+/** Get root IDProperty for system-defined runtime properties. */
+IDProperty **RNA_struct_system_idprops_p(PointerRNA *ptr);
+IDProperty *RNA_struct_system_idprops(PointerRNA *ptr, bool create);
+/** Return `true` if the given RNA type supports system-defined IDProperties. */
+bool RNA_struct_system_idprops_check(StructRNA *srna);
 /**
  * Whether given type implies datablock usage by IDProperties.
  * This is used to prevent classes allowed to have IDProperties,
  * but not datablock ones, to indirectly use some
  * (e.g. by assigning an IDP_GROUP containing some IDP_ID pointers...).
+ *
+ * \note This is currently giving results for both user-defined and system-defined IDProperties,
+ * there is no distinction for this between both storages.
  */
 bool RNA_struct_idprops_contains_datablock(const StructRNA *type);
 /**
  * Remove an id-property.
  */
-bool RNA_struct_idprops_unset(PointerRNA *ptr, const char *identifier);
+bool RNA_struct_system_idprops_unset(PointerRNA *ptr, const char *identifier);
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 

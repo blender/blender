@@ -396,7 +396,7 @@ float new_primitive_matrix(bContext *C,
 
 static void view_align_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  RNA_struct_idprops_unset(ptr, "rotation");
+  RNA_struct_system_idprops_unset(ptr, "rotation");
 }
 
 void add_unit_props_size(wmOperatorType *ot)

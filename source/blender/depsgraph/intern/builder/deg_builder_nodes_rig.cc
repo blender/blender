@@ -239,8 +239,16 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
     op_node->set_as_exit();
 
     /* Custom properties. */
+    bool add_idprops_operation = false;
     if (pchan->prop != nullptr) {
       build_idproperties(pchan->prop);
+      add_idprops_operation = true;
+    }
+    if (pchan->system_properties != nullptr) {
+      build_idproperties(pchan->system_properties);
+      add_idprops_operation = true;
+    }
+    if (add_idprops_operation) {
       add_operation_node(
           &object->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EVAL, nullptr, pchan->name);
     }

@@ -682,7 +682,7 @@ void WM_gizmo_properties_reset(wmGizmo *gz)
 
       if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
         const char *identifier = RNA_property_identifier(prop);
-        RNA_struct_idprops_unset(gz->ptr, identifier);
+        RNA_struct_system_idprops_unset(gz->ptr, identifier);
       }
     }
     RNA_PROP_END;

@@ -9508,7 +9508,7 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_Node_refine");
   RNA_def_struct_path_func(srna, "rna_Node_path");
   RNA_def_struct_register_funcs(srna, "rna_Node_register", "rna_Node_unregister", nullptr);
-  RNA_def_struct_idprops_func(srna, "rna_Node_idprops");
+  RNA_def_struct_system_idprops_func(srna, "rna_Node_idprops");
 
   prop = RNA_def_property(srna, "type", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(prop, "rna_node_type_get", "rna_node_type_length", nullptr);
