@@ -1277,6 +1277,13 @@ if(TEST_SRC_DIR_EXISTS)
     --
     --testdir "${TEST_SRC_DIR}/sculpting"
   )
+
+  add_blender_test(
+    bl_sculpt_mask_filter
+    --python ${CMAKE_CURRENT_LIST_DIR}/sculpt_paint/mask_filter_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/sculpting"
+  )
 endif()
 
 if(WITH_GPU_MESH_PAINT_TESTS AND TEST_SRC_DIR_EXISTS)
