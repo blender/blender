@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-04-14 08:44+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26603,10 +26603,6 @@ msgid "Bone Roll"
 msgstr "Прокручення Кістки"
 
 
-msgid "Merge"
-msgstr "Об'єднання"
-
-
 msgid "Pivot Point"
 msgstr "Точка Опертя"
 
@@ -26635,160 +26631,164 @@ msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
 
 
-msgid "Set Face Strength"
-msgstr "Задати Силу Грані"
-
-
-msgid "Select by Face Strength"
-msgstr "Вибрати за Силою Грані"
-
-
-msgid "Hooks"
-msgstr "Гачки"
-
-
-msgid "Link/Transfer Data"
-msgstr "Пов'язати/Перенести Дані"
-
-
-msgid "Convert"
-msgstr "Конвертування"
-
-
-msgid "Relations"
-msgstr "Зв'язки"
-
-
-msgid "Add Image"
-msgstr "Додати Зображення"
-
-
-msgid "Light Probe"
-msgstr "Проба Освітлення"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
-
-
-msgid "Light"
-msgstr "Слабко"
-
-
-msgid "Make Single User"
-msgstr "Зробити однокористувацьким"
-
-
-msgid "Asset"
-msgstr "Актив"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Quick Effects"
-msgstr "Швидкі ефекти"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Track"
-msgstr "Стеження"
-
-
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
-
-
-msgid "Apply"
-msgstr "Застосувати"
-
-
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
-
-
-msgid "Rigid Body"
-msgstr "Тверде тіло"
-
-
-msgid "Propagate"
-msgstr "Поширити"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
-msgid "Select More/Less"
-msgstr "Вибрати більше/менше"
-
-
-msgid "In-Betweens"
-msgstr "У проміжках"
-
-
-msgid "Clear Transform"
-msgstr "Зчистити трансформації"
-
-
-msgid "Select Loops"
-msgstr "Виділити петлі"
-
-
-msgid "Select Linked"
-msgstr "Виділити пов'язане"
-
-
-msgid "Select All by Trait"
-msgstr "Вибрати все за рисою"
-
-
-msgid "Select Similar"
-msgstr "Вибрати подібні"
-
-
-msgid "View Regions"
-msgstr "Регіони Огляду"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
+msgid "Mirror"
+msgstr "Дзеркалення"
 
 
 msgid "UV Mapping"
 msgstr "Розкладання UV"
 
 
-msgid "Mirror"
-msgstr "Дзеркалення"
+msgid "Local View"
+msgstr "Огляд Локально"
+
+
+msgid "Viewpoint"
+msgstr "Точка зору"
+
+
+msgid "Navigation"
+msgstr "Навігація"
+
+
+msgid "Align View"
+msgstr "Вирівняти Огляд"
+
+
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
+
+
+msgid "View Regions"
+msgstr "Регіони Огляду"
+
+
+msgid "Select More/Less"
+msgstr "Вибрати більше/менше"
+
+
+msgid "Select Similar"
+msgstr "Вибрати подібні"
+
+
+msgid "Select All by Trait"
+msgstr "Вибрати все за рисою"
+
+
+msgid "Select Linked"
+msgstr "Виділити пов'язане"
+
+
+msgid "Select Loops"
+msgstr "Виділити петлі"
+
+
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
+
+
+msgid "Light"
+msgstr "Слабко"
+
+
+msgid "Light Probe"
+msgstr "Проба Освітлення"
+
+
+msgid "Add Image"
+msgstr "Додати Зображення"
+
+
+msgid "Relations"
+msgstr "Зв'язки"
+
+
+msgid "Rigid Body"
+msgstr "Тверде тіло"
+
+
+msgid "Apply"
+msgstr "Застосувати"
+
+
+msgid "Track"
+msgstr "Стеження"
+
+
+msgid "Quick Effects"
+msgstr "Швидкі ефекти"
+
+
+msgid "Asset"
+msgstr "Актив"
+
+
+msgid "Make Single User"
+msgstr "Зробити однокористувацьким"
+
+
+msgid "Convert"
+msgstr "Конвертування"
+
+
+msgid "Link/Transfer Data"
+msgstr "Пов'язати/Перенести Дані"
+
+
+msgid "Hooks"
+msgstr "Гачки"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Ліплення Задати Опертя"
 
 
 msgid "Face Sets Init"
 msgstr "Ініціація Наборів Граней"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "Ліплення Задати Опертя"
+msgid "Clear Transform"
+msgstr "Зчистити трансформації"
+
+
+msgid "In-Betweens"
+msgstr "У проміжках"
+
+
+msgid "Propagate"
+msgstr "Поширити"
+
+
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
+
+
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Вибрати за Силою Грані"
+
+
+msgid "Set Face Strength"
+msgstr "Задати Силу Грані"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
 
 
 msgid "Basic"
@@ -44902,10 +44902,6 @@ msgstr "Показати криві"
 
 msgid "Make previously hidden curves visible again in Graph Editor view"
 msgstr "Показати у редакторі графіків раніше приховані криві"
-
-
-msgid "Are handles tested individually against the selection criteria"
-msgstr "Чи перевірені ручки за критерієм відбору"
 
 
 msgctxt "Operator"
@@ -66732,10 +66728,6 @@ msgstr "Мова"
 
 msgid "Language used for translation"
 msgstr "Мова, вживана для перекладу"
-
-
-msgid "Automatically choose system's defined language if available, or fall-back to English"
-msgstr "Автоматично вибирати системну мову, якщо доступна, або повертатися на англійську"
 
 
 msgid "HDRI Preview Size"

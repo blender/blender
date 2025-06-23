@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-04-14 08:24+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6601,44 +6601,44 @@ msgid "Metaball"
 msgstr "Meta test"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
-
-
-msgid "Relations"
-msgstr "Kapcsolatok"
-
-
-msgid "Light"
-msgstr "Fényforrás"
-
-
-msgid "Track"
-msgstr "Nyom"
-
-
-msgid "Apply"
-msgstr "Elfogadás"
-
-
-msgid "Rigid Body"
-msgstr "Szilárd test"
+msgid "Mirror"
+msgstr "Tükrözés"
 
 
 msgid "Local View"
 msgstr "Helyi nézet"
 
 
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
 msgid "Navigation"
 msgstr "Navigáció"
 
 
-msgid "Mirror"
-msgstr "Tükrözés"
+msgid "Align View"
+msgstr "Nézet igazítása"
+
+
+msgid "Light"
+msgstr "Fényforrás"
+
+
+msgid "Relations"
+msgstr "Kapcsolatok"
+
+
+msgid "Rigid Body"
+msgstr "Szilárd test"
+
+
+msgid "Apply"
+msgstr "Elfogadás"
+
+
+msgid "Track"
+msgstr "Nyom"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
 
 
 msgctxt "MovieClip"

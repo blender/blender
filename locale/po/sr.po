@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-04-14 08:40+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8605,92 +8605,92 @@ msgid "Bone Roll"
 msgstr "Ролна костију"
 
 
-msgid "Merge"
-msgstr "Сједини"
-
-
 msgid "Snap"
 msgstr "Лепљење"
 
 
-msgid "Hooks"
-msgstr "Удице"
-
-
-msgid "Relations"
-msgstr "Односи"
-
-
-msgid "Light"
-msgstr "Светлост"
-
-
-msgid "Mesh Select Mode"
-msgstr "Мод избора мреже"
-
-
-msgid "Quick Effects"
-msgstr "Брзи ефекти"
-
-
-msgid "Disable Bone Options"
-msgstr "Онемогући опције костију"
-
-
-msgid "Enable Bone Options"
-msgstr "Омогући опције костију"
-
-
-msgid "Track"
-msgstr "Стаза"
-
-
-msgid "Toggle Bone Options"
-msgstr "Мање/више информација"
-
-
-msgid "Apply"
-msgstr "Примени"
-
-
-msgid "Rigid Body"
-msgstr "Круто тело"
-
-
-msgid "Propagate"
-msgstr "Пренеси"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "In-Betweens"
-msgstr "У међувремену"
-
-
-msgid "Clear Transform"
-msgstr "Очисти трансформације"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
+msgid "Mirror"
+msgstr "Огледало"
 
 
 msgid "UV Mapping"
 msgstr "UV Мапирање"
 
 
-msgid "Mirror"
-msgstr "Огледало"
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
+msgid "Select Linked"
+msgstr "Изабери повезано"
+
+
+msgid "Light"
+msgstr "Светлост"
+
+
+msgid "Relations"
+msgstr "Односи"
+
+
+msgid "Rigid Body"
+msgstr "Круто тело"
+
+
+msgid "Apply"
+msgstr "Примени"
+
+
+msgid "Track"
+msgstr "Стаза"
+
+
+msgid "Quick Effects"
+msgstr "Брзи ефекти"
+
+
+msgid "Hooks"
+msgstr "Удице"
+
+
+msgid "Clear Transform"
+msgstr "Очисти трансформације"
+
+
+msgid "In-Betweens"
+msgstr "У међувремену"
+
+
+msgid "Propagate"
+msgstr "Пренеси"
+
+
+msgid "Toggle Bone Options"
+msgstr "Мање/више информација"
+
+
+msgid "Enable Bone Options"
+msgstr "Омогући опције костију"
+
+
+msgid "Disable Bone Options"
+msgstr "Онемогући опције костију"
+
+
+msgid "Mesh Select Mode"
+msgstr "Мод избора мреже"
+
+
+msgid "Merge"
+msgstr "Сједини"
 
 
 msgid "Basic"

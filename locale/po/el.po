@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-04-14 08:15+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -527,40 +527,40 @@ msgid "Metaball"
 msgstr "Μετα-σφαίρα"
 
 
-msgid "Merge"
-msgstr "Συγχώνευση"
-
-
 msgid "Snap"
 msgstr "Προσκόλληση"
 
 
-msgid "Light"
-msgstr "Φως"
-
-
-msgid "Make Single User"
-msgstr "Ορισμός Ενός Χρήστη"
-
-
-msgid "Track"
-msgstr "Ανίχνευση"
-
-
-msgid "Apply"
-msgstr "Εφαρμογή"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
+msgid "Mirror"
+msgstr "Καθρέφτισμα"
 
 
 msgid "Select Linked"
 msgstr "Επιλογή Συνδεδεμένων"
 
 
-msgid "Mirror"
-msgstr "Καθρέφτισμα"
+msgid "Light"
+msgstr "Φως"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Εφαρμογή"
+
+
+msgid "Track"
+msgstr "Ανίχνευση"
+
+
+msgid "Make Single User"
+msgstr "Ορισμός Ενός Χρήστη"
+
+
+msgid "Merge"
+msgstr "Συγχώνευση"
 
 
 msgid "Key"

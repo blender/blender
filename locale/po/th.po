@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-04-14 08:42+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1877,10 +1877,6 @@ msgid "Names"
 msgstr "ชื่อ"
 
 
-msgid "Merge"
-msgstr "ผสาน"
-
-
 msgid "Pivot Point"
 msgstr "จุดหมุน"
 
@@ -1897,56 +1893,60 @@ msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
 
 
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
-
-
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Light"
-msgstr "แสง"
-
-
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Apply"
-msgstr "นำไปใช้"
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Local View"
 msgstr "มุมมองท้องถิ่น"
 
 
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
 
 
 msgid "Navigation"
 msgstr "การนำทาง"
 
 
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
+msgid "Align View"
+msgstr "จัดมุมมอง"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
+
+
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
+
+
+msgid "Light"
+msgstr "แสง"
+
+
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
 
 
 msgid "Zoom"

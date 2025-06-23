@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
-"PO-Revision-Date: 2025-06-16 09:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"PO-Revision-Date: 2025-06-21 21:59+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.11"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -207,6 +207,10 @@ msgid "Expanded"
 msgstr "Expanderad"
 
 
+msgid "Action group is expanded except in graph editor"
+msgstr "Åtgärdsgruppen utökas förutom i grafredigeraren"
+
+
 msgid "Expanded in Graph Editor"
 msgstr "Expanderad i grafredigeraren"
 
@@ -225,6 +229,10 @@ msgstr "Åtgärdslager"
 
 msgid "Action Layers"
 msgstr "Åtgärdslager"
+
+
+msgid "Collection of animation layers"
+msgstr "Samling av animationslager"
 
 
 msgid "Collection of timeline markers"
@@ -462,8 +470,24 @@ msgid "Device to use for computation (rendering with Cycles)"
 msgstr "Enhet att använda för beräkning (rendering med Cycles)"
 
 
+msgid "Kernel Optimization"
+msgstr "Kärnoptimering"
+
+
+msgid "Kernels can be optimized based on scene content. Optimized kernels are requested at the start of a render. If optimized kernels are not available, rendering will proceed using generic kernels until the optimized set is available in the cache. This can result in additional CPU usage for a brief time (tens of seconds)"
+msgstr "Kärnor kan optimeras baserat på sceninnehåll. Optimerade kärnor begärs i början av en rendering. Om optimerade kärnor inte finns tillgängliga fortsätter renderingen med generiska kärnor tills den optimerade uppsättningen finns tillgänglig i cacheminnet. Detta kan resultera i extra CPU-användning under en kort tid (tiotals sekunder)"
+
+
 msgid "Off"
 msgstr "Av"
+
+
+msgid "Disable kernel optimization. Slowest rendering, no extra background CPU usage"
+msgstr "Inaktivera kärnoptimering. Långsammast rendering, ingen extra CPU-användning i bakgrunden"
+
+
+msgid "Full"
+msgstr "Fullständig"
 
 
 msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
@@ -474,6 +498,10 @@ msgid "MetalRT"
 msgstr "MetalRT"
 
 
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "MetalRT för strålspårning använder mindre minne för scener som använder kurvor i stor utsträckning, och kan ge bättre prestanda i vissa fall"
+
+
 msgid "On"
 msgstr "På"
 
@@ -482,12 +510,36 @@ msgid "Auto"
 msgstr "Auto"
 
 
+msgid "Automatically pick the fastest intersection method"
+msgstr "Välj automatiskt den snabbaste intersektionsmetoden"
+
+
 msgid "Distribute memory across devices"
 msgstr "Fördela minne över enheter"
 
 
+msgid "HIP RT"
+msgstr "HIP RT"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above"
+msgstr "HIP RT möjliggör AMD-hårdvarustrålspårning på RDNA2 och högre"
+
+
 msgid "Embree on GPU"
 msgstr "Embree på GPU"
+
+
+msgid "KHR_materials_variants_ui"
+msgstr "KHR_materials_variants_ui"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr "Visar glTF UI för att hantera materialvarianter"
+
+
+msgid "Path to gltfpack binary"
+msgstr "Sökväg till binärfilen gltfpack"
 
 
 msgid "        Filter by Name"
@@ -3678,6 +3730,10 @@ msgid "Inner Proximity"
 msgstr "Inre närhet"
 
 
+msgid "Paint Color Ramp"
+msgstr "Färgramp"
+
+
 msgctxt "Brush"
 msgid "Constant"
 msgstr "Konstant"
@@ -5911,6 +5967,10 @@ msgid "Show texture in viewport"
 msgstr "Visa textur i vy"
 
 
+msgid "Spacing Distance"
+msgstr "Avståndsdistans"
+
+
 msgid "Adjust Strength for Spacing"
 msgstr "Justera styrkan för avstånd"
 
@@ -6340,6 +6400,10 @@ msgstr "Resultatbild i TIFF-format"
 
 msgid "WebP"
 msgstr "WebP"
+
+
+msgid "True if the image data is loaded into memory"
+msgstr "True om bilddata har lästs in i minnet"
 
 
 msgid "Dirty"
@@ -9271,10 +9335,6 @@ msgid "Names"
 msgstr "Namn"
 
 
-msgid "Merge"
-msgstr "Sammanfoga"
-
-
 msgid "Pivot Point"
 msgstr "Fast punkt"
 
@@ -9283,84 +9343,88 @@ msgid "Snap"
 msgstr "Snäpp"
 
 
-msgid "Link/Transfer Data"
-msgstr "Länka/överför data"
-
-
-msgid "Convert"
-msgstr "Konvertera"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Asset"
-msgstr "Tillgång"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
-
-
-msgid "Track"
-msgstr "Spår"
-
-
-msgid "Apply"
-msgstr "Applicera"
-
-
-msgid "Assign Material"
-msgstr "Tilldela material"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Propagate"
-msgstr "Propagera"
+msgid "Mirror"
+msgstr "Spegla"
 
 
 msgid "Local View"
 msgstr "Lokal vy"
 
 
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
-msgid "Align View"
-msgstr "Justera vy"
+msgid "Viewpoint"
+msgstr "Visningspunkt"
 
 
 msgid "Navigation"
 msgstr "Navigering"
 
 
-msgid "Viewpoint"
-msgstr "Visningspunkt"
+msgid "Align View"
+msgstr "Justera vy"
 
 
-msgid "Mirror"
-msgstr "Spegla"
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
+
+
+msgid "Assign Material"
+msgstr "Tilldela material"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Track"
+msgstr "Spår"
+
+
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Convert"
+msgstr "Konvertera"
+
+
+msgid "Link/Transfer Data"
+msgstr "Länka/överför data"
+
+
+msgid "Propagate"
+msgstr "Propagera"
+
+
+msgid "Merge"
+msgstr "Sammanfoga"
 
 
 msgid "Animals"
@@ -9624,6 +9688,34 @@ msgstr "Återställ"
 
 msgid "Help"
 msgstr "Hjälp"
+
+
+msgid ""
+"\n"
+"    UI button context menu definition. Scripts can append/prepend this to\n"
+"    add own operators to the context menu. They must check context though, so\n"
+"    their items only draw in a valid context and for the correct buttons.\n"
+"    "
+msgstr ""
+"\n"
+"    Definition av kontextmeny för UI-knapp. Skript kan lägga till/förbereda detta för att\n"
+"    lägga till egna operatörer i snabbmenyn. De måste dock kontrollera sammanhanget,\n"
+"    så att deras objekt bara ritas i ett giltigt sammanhang och för rätt knappar.\n"
+"    "
+
+
+msgid ""
+"\n"
+"    UI List item context menu definition. Scripts can append/prepend this to\n"
+"    add own operators to the context menu. They must check context though, so\n"
+"    their items only draw in a valid context and for the correct UI list.\n"
+"    "
+msgstr ""
+"\n"
+"    UI Definition av kontextmeny för listobjekt. Skript kan lägga till/förbereda detta för att\n"
+"    lägga till egna operatörer i snabbmenyn. De måste dock kontrollera sammanhanget,\n"
+"    så att deras objekt bara ritas i en giltig kontext och för rätt UI-lista.\n"
+"    "
 
 
 msgid "Add-ons Settings"
@@ -10575,6 +10667,34 @@ msgstr "Justera färg och värden"
 
 msgid "Basis"
 msgstr "Bas"
+
+
+msgid "Highlights contrast. (Deprecated: Use Highlights Contrast input instead.)"
+msgstr "Framhäver kontrast. (Föråldrat: Använd istället inmatningen Framhäver kontrast.)"
+
+
+msgid "Highlights saturation. (Deprecated: Use Highlights Saturation input instead.)"
+msgstr "Framhäver färgmättnad. (Föråldrad: Använd inmatningen Framhäver färgmättnad istället.)"
+
+
+msgid "Master contrast. (Deprecated: Use Master Contrast input instead.)"
+msgstr "Huvudkontrast. (Föråldrad: Använd inmatningen Huvudkontrast istället.)"
+
+
+msgid "Master gain. (Deprecated: Use Master Gain input instead.)"
+msgstr "Masterförstärkning. (Föråldrad: Använd inmatningen Masterförstärkning istället.)"
+
+
+msgid "Master gamma. (Deprecated: Use Master Gamma input instead.)"
+msgstr "Huvudgamma. (Föråldrad: Använd inmatningen Huvudgamma istället.)"
+
+
+msgid "Master lift. (Deprecated: Use Master Lift input instead.)"
+msgstr "Huvudlyft. (Föråldrad: Använd inmatningen Huvudlyft istället.)"
+
+
+msgid "Master saturation. (Deprecated: Use Master Saturation input instead.)"
+msgstr "Huvudfärgmättnad. (Föråldrad: Använd inmatningen Huvudfärgmättnad istället.)"
 
 
 msgid "S"
@@ -23172,10 +23292,6 @@ msgid "Automatic (Automatic)"
 msgstr "Automatiskt (automatiskt)"
 
 
-msgid "Automatically choose system's defined language if available, or fall-back to English"
-msgstr "Välj automatiskt operativsystemets språk om tillgängligt, eller engelska som reserv"
-
-
 msgid "HDRI Preview Size"
 msgstr "HDRI förhandsvisningsstorlek"
 
@@ -31426,6 +31542,14 @@ msgid "Deleted %u object(s)"
 msgstr "Tog bort %u objekt"
 
 
+msgid "None of the objects are compatible with a conversion to \"%s\""
+msgstr "Inget av objekten är kompatibelt med en konvertering till ”%s”"
+
+
+msgid "The selection included %d object type(s) which do not support conversion to \"%s\""
+msgstr "Valet innehöll %d objekttyp(er) som inte stöder konvertering till ”%s”"
+
+
 msgid "Add IK"
 msgstr "Lägg till IK"
 
@@ -31484,6 +31608,10 @@ msgstr "Välj samling"
 
 msgid "Removed effect: %s"
 msgstr "Tog bort effekt: %s"
+
+
+msgid "Object \"%s\" has a non-invertible transformation matrix, not applying transform"
+msgstr "Objektet ”%s” har en icke-inverterbar transformationsmatris, transformering tillämpas inte"
 
 
 msgid "%i object(s) not centered, %i changed:"
@@ -32819,8 +32947,16 @@ msgid "Can't write to asset %s:  %s"
 msgstr "Kan inte skriva till tillgång %s:  %s"
 
 
+msgid "One or more objects used as prototypes in 'Instance on Points' nodes either do not have 'As Instance' enabled in their 'Object Info' nodes, or the prototype is the base geometry input itself. Both cases prevent valid point instancer export. If it's the former, enable 'As Instance' to avoid incorrect self-referencing."
+msgstr "Ett eller flera objekt som används som prototyper i noder av typen ”Instans på punkter” har antingen inte alternativet ”Som instans” aktiverat i sina ’Objektinfo’-noder, eller så är prototypen själva basgeometrin som matats in. Båda fallen förhindrar export av giltiga punktinstanser. Om det är det förstnämnda fallet, aktivera ”Som instans” för att undvika felaktiga självreferenser."
+
+
 msgid "Unhandled Gprim type: %s (%s)"
 msgstr "Ohanterad Gprim-typ: %s (%s)"
+
+
+msgid "Instances number '%d' doesn't match transforms size '%d'"
+msgstr "Instansnummer ’%d’ matchar inte transformeringsstorlek ’%d’"
 
 
 msgid "Built-in fonts cannot be renamed"
@@ -33609,6 +33745,10 @@ msgstr "Cylinderns radie"
 
 msgid "Rings must be at least 3"
 msgstr "Ringar måste vara minst 3"
+
+
+msgid "The subdivision level is too large"
+msgstr "Subdivisionsnivån är för stor"
 
 
 msgid "As Instance"

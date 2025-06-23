@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
-"PO-Revision-Date: 2025-06-14 06:59+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"PO-Revision-Date: 2025-06-23 08:33+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.11"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -35085,10 +35085,6 @@ msgid "Bone Roll"
 msgstr "ボーンロール"
 
 
-msgid "Merge"
-msgstr "マージ"
-
-
 msgid "Pivot Point"
 msgstr "ピボットポイント"
 
@@ -35117,172 +35113,176 @@ msgid "Vertex Group Locks"
 msgstr "頂点グループのロック"
 
 
-msgid "Set Face Strength"
-msgstr "面の強さを設定"
-
-
-msgid "Select by Face Strength"
-msgstr "面の強さで選択"
-
-
-msgid "Hooks"
-msgstr "フック"
-
-
-msgid "Link/Transfer Data"
-msgstr "データのリンク/転送"
-
-
-msgid "Convert"
-msgstr "変換"
-
-
-msgid "Relations"
-msgstr "関係"
-
-
-msgid "Add Image"
-msgstr "画像を追加"
-
-
-msgid "Light Probe"
-msgstr "ライトプローブ"
-
-
-msgid "Face Data"
-msgstr "面データ"
-
-
-msgid "Light"
-msgstr "ライト"
-
-
-msgid "Make Single User"
-msgstr "シングルユーザー化"
-
-
-msgid "Asset"
-msgstr "アセット"
-
-
-msgid "Mesh Select Mode"
-msgstr "メッシュ選択モード"
-
-
-msgid "Quick Effects"
-msgstr "クイックエフェクト"
-
-
-msgid "Disable Bone Options"
-msgstr "ボーンオプションを無効化"
-
-
-msgid "Enable Bone Options"
-msgstr "ボーンオプションを有効化"
-
-
-msgid "Track"
-msgstr "トラック"
-
-
-msgid "Toggle Bone Options"
-msgstr "ボーンオプションを切り替え"
-
-
-msgid "Apply"
-msgstr "適用"
-
-
-msgid "Assign Material"
-msgstr "マテリアルを割り当て"
-
-
-msgid "Rigid Body"
-msgstr "リジッドボディ"
-
-
-msgid "Propagate"
-msgstr "伝播"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
-
-
-msgid "Select More/Less"
-msgstr "選択の拡大縮小"
-
-
-msgid "Bone Collections"
-msgstr "ボーンコレクション"
-
-
-msgid "In-Betweens"
-msgstr "中間ポーズ"
-
-
-msgid "Clear Transform"
-msgstr "トランスフォームをクリア"
-
-
-msgid "Select Loops"
-msgstr "ループ選択"
-
-
-msgid "Select Linked"
-msgstr "リンク選択"
-
-
-msgid "Select All by Trait"
-msgstr "特徴で全選択"
-
-
-msgid "Select Similar"
-msgstr "類似選択"
-
-
-msgid "View Regions"
-msgstr "ビュー領域設定"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
-
-
-msgid "Align View"
-msgstr "視点を揃える"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
-
-
-msgid "Viewpoint"
-msgstr "視点"
+msgid "Mirror"
+msgstr "ミラー"
 
 
 msgid "UV Mapping"
 msgstr "UVマッピング"
 
 
-msgid "Mirror"
-msgstr "ミラー"
+msgid "Local View"
+msgstr "ローカルビュー"
 
 
-msgid "Random Mask"
-msgstr "ランダムマスク"
+msgid "Viewpoint"
+msgstr "視点"
 
 
-msgid "Face Sets Init"
-msgstr "面セットを初期化"
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
+
+
+msgid "View Regions"
+msgstr "ビュー領域設定"
+
+
+msgid "Select More/Less"
+msgstr "選択の拡大縮小"
+
+
+msgid "Select Similar"
+msgstr "類似選択"
+
+
+msgid "Select All by Trait"
+msgstr "特徴で全選択"
+
+
+msgid "Select Linked"
+msgstr "リンク選択"
+
+
+msgid "Select Loops"
+msgstr "ループ選択"
+
+
+msgid "Assign Material"
+msgstr "マテリアルを割り当て"
+
+
+msgid "Light"
+msgstr "ライト"
+
+
+msgid "Light Probe"
+msgstr "ライトプローブ"
+
+
+msgid "Add Image"
+msgstr "画像を追加"
+
+
+msgid "Relations"
+msgstr "関係"
+
+
+msgid "Rigid Body"
+msgstr "リジッドボディ"
+
+
+msgid "Apply"
+msgstr "適用"
+
+
+msgid "Track"
+msgstr "トラック"
+
+
+msgid "Quick Effects"
+msgstr "クイックエフェクト"
+
+
+msgid "Asset"
+msgstr "アセット"
+
+
+msgid "Make Single User"
+msgstr "シングルユーザー化"
+
+
+msgid "Convert"
+msgstr "変換"
+
+
+msgid "Link/Transfer Data"
+msgstr "データのリンク/転送"
+
+
+msgid "Hooks"
+msgstr "フック"
+
+
+msgid "Trim/Add"
+msgstr "トリム/追加"
 
 
 msgid "Sculpt Set Pivot"
 msgstr "スカルプトピボット設定"
 
 
-msgid "Trim/Add"
-msgstr "トリム/追加"
+msgid "Face Sets Init"
+msgstr "面セットを初期化"
+
+
+msgid "Random Mask"
+msgstr "ランダムマスク"
+
+
+msgid "Clear Transform"
+msgstr "トランスフォームをクリア"
+
+
+msgid "In-Betweens"
+msgstr "中間ポーズ"
+
+
+msgid "Propagate"
+msgstr "伝播"
+
+
+msgid "Bone Collections"
+msgstr "ボーンコレクション"
+
+
+msgid "Toggle Bone Options"
+msgstr "ボーンオプションを切り替え"
+
+
+msgid "Enable Bone Options"
+msgstr "ボーンオプションを有効化"
+
+
+msgid "Disable Bone Options"
+msgstr "ボーンオプションを無効化"
+
+
+msgid "Mesh Select Mode"
+msgstr "メッシュ選択モード"
+
+
+msgid "Face Data"
+msgstr "面データ"
+
+
+msgid "Select by Face Strength"
+msgstr "面の強さで選択"
+
+
+msgid "Set Face Strength"
+msgstr "面の強さを設定"
+
+
+msgid "Merge"
+msgstr "マージ"
 
 
 msgid "Keyframe Insert Pie"
@@ -48268,6 +48268,16 @@ msgid "Round the float to the closest integer in the direction of zero (floor if
 msgstr "0の方向に一番近い整数に丸めます（正の場合は床，負の場合は天井）"
 
 
+msgid "Format String"
+msgstr "文字列フォーマット"
+
+
+msgid "Insert values into a string using a Python and path template compatible formatting syntax"
+msgstr ""
+"Python とパステンプレート互換のフォーマット構文を使用し，\n"
+"文字列中に値を挿入します"
+
+
 msgid "Active Item Index"
 msgstr "アクティブアイテムインデックス"
 
@@ -48397,6 +48407,10 @@ msgstr "終了文字"
 
 msgid "True when the first input ends with the second"
 msgstr "最初の入力が二つめの入力で終了していると true"
+
+
+msgid "Contains"
+msgstr "含む"
 
 
 msgid "True when the first input contains the second as a substring"
@@ -48625,6 +48639,14 @@ msgid "Calculate the limits of a geometry's positions and generate a box mesh wi
 msgstr "ジオメトリの位置の最大・最小値を計算し，その寸法のボックスメッシュを生成します"
 
 
+msgid "Camera Info"
+msgstr "カメラ情報"
+
+
+msgid "Retrieve information from a camera object"
+msgstr "カメラオブジェクトの情報を取得します"
+
+
 msgid "Capture Attribute"
 msgstr "属性キャプチャ"
 
@@ -48669,6 +48691,10 @@ msgid "Bring the input collection geometry into the modified object, maintaining
 msgstr ""
 "シーン内での各オブジェクト間の相対的な位置を維持しながら，\n"
 "入力コレクションのジオメトリを変形オブジェクトに渡します"
+
+
+msgid "Combine Bundle"
+msgstr "バンドル統合"
 
 
 msgid "Combine multiple socket values into one."
@@ -49139,6 +49165,10 @@ msgid "Group faces into regions surrounded by the selected boundary edges"
 msgstr "選択中の境界辺内の領域の面をグループ化します"
 
 
+msgid "Evaluate Closure"
+msgstr "クロージャ評価"
+
+
 msgid "Input Items"
 msgstr "入力アイテム"
 
@@ -49181,6 +49211,10 @@ msgstr "フィールド平均"
 
 msgid "Calculate the mean and median of a given field"
 msgstr "与えられたフィールドの平均と中央値を計算します"
+
+
+msgid "Type of data the outputs are calculated from"
+msgstr "出力を計算する元データのタイプ"
 
 
 msgid "Field Min & Max"
@@ -49447,12 +49481,20 @@ msgid "Cubic interpolation"
 msgstr "三次補間"
 
 
+msgid "Import CSV"
+msgstr "CSVをインポート"
+
+
+msgid "Import geometry from an CSV file"
+msgstr "CSV ファイルからジオメトリをインポートします"
+
+
 msgid "Import OBJ"
 msgstr "OBJをインポート"
 
 
 msgid "Import geometry from an OBJ file"
-msgstr "OBJ ファイルから形状をインポートします"
+msgstr "OBJ ファイルからジオメトリをインポートします"
 
 
 msgid "Import PLY"
@@ -49469,6 +49511,10 @@ msgstr "STLをインポート"
 
 msgid "Import a mesh from an STL file"
 msgstr "STL ファイルからメッシュをインポートします"
+
+
+msgid "Import Text"
+msgstr "テキストをインポート"
 
 
 msgid "Import a string from a text file"
@@ -49541,6 +49587,14 @@ msgstr "単一の画像データブロックを入力します"
 
 msgid "Retrieve an integer value indicating the position of each element in the list, starting at zero"
 msgstr "各要素のリスト内の位置を示す整数値を取得します（０スタート）"
+
+
+msgid "Instance Bounds"
+msgstr "インスタンスの境界"
+
+
+msgid "Calculate position bounds of each instance's geometry set"
+msgstr "各インスタンスのジオメトリセットの境界位置を計算します"
 
 
 msgid "Instance Rotation"
@@ -49939,6 +49993,10 @@ msgid "Convert mesh edges to curve segments. Attributes are propagated to curve 
 msgstr "メッシュの辺をカーブセグメントに変換します．属性はカーブポイントに引き継がれます"
 
 
+msgid "Convert each mesh face to a cyclic curve. Face attributes are propagated to curves."
+msgstr "メッシュの面毎でループカーブに変換します．面の属性はカーブに引き継がれます"
+
+
 msgid "Mesh to Density Grid"
 msgstr "メッシュの密度グリッド化"
 
@@ -50197,6 +50255,12 @@ msgid "Keep Last Segment"
 msgstr "最後のセグメントを維持"
 
 
+msgid "Do not collapse curves to single points if they are shorter than the given length. The collapsing behavior exists for compatibility reasons."
+msgstr ""
+"与えられた長さより短いカーブを単一ポイントに統合しません．\n"
+"この折り畳みの挙動は互換性のために存在しています."
+
+
 msgid "How to specify the amount of samples"
 msgstr "サンプル数を指定する方法"
 
@@ -50400,6 +50464,10 @@ msgstr "オブジェクト自身"
 
 msgid "Retrieve the object that contains the geometry nodes modifier currently being executed"
 msgstr "現在実行中のジオメトリノードモディファイアーのあるオブジェクトを取得します"
+
+
+msgid "Separate Bundle"
+msgstr "バンドル分離"
 
 
 msgid "Split a bundle into multiple sockets."
@@ -53255,6 +53323,10 @@ msgstr "クロージャ出力アイテム"
 
 msgid "Closure Output Items"
 msgstr "クロージャ出力アイテム"
+
+
+msgid "Combine Bundle Item"
+msgstr "バンドル統合アイテム"
 
 
 msgid "Input Item"
@@ -66154,10 +66226,6 @@ msgstr "右側"
 
 msgid "The factor to scale keys with"
 msgstr "キーをスケーリングする係数"
-
-
-msgid "Are handles tested individually against the selection criteria"
-msgstr "選択基準とは別個にテストされたハンドルです"
 
 
 msgid "Select Curves"
@@ -97937,10 +98005,6 @@ msgstr "ローカライズに使用する言語"
 
 msgid "Automatic (Automatic)"
 msgstr "自動（Automatic）"
-
-
-msgid "Automatically choose system's defined language if available, or fall-back to English"
-msgstr "可能な場合，自動的にシステム設定の言語を選択し，そうでない場合は英語に戻します"
 
 
 msgid "HDRI Preview Size"
@@ -134884,6 +134948,10 @@ msgid "Object '%s' has no evaluated curves data"
 msgstr "オブジェクト「%s」に評価済みカーブデータがありません"
 
 
+msgid "The selection included %d object type(s) which do not support conversion to \"%s\""
+msgstr "選択内の %d 個のオブジェクトは「%s」への変換に未対応のタイプです"
+
+
 msgid "Cannot edit object '%s' as it is used by override collections"
 msgstr "オブジェクト「%s」が編集できません．オーバーライドコレクションに使用されています"
 
@@ -135860,6 +135928,10 @@ msgstr "テキストオブジェクトはスケール以外適用できません
 
 msgid "Area Lights can only have scale applied: \"%s\""
 msgstr "エリアライトはスケール以外適用できません．「%s」"
+
+
+msgid "Object \"%s\" has a non-invertible transformation matrix, not applying transform"
+msgstr "オブジェクト「%s」には可逆のトランスフォーム行列がないため，トランスフォームを適用できません"
 
 
 msgid "%i object(s) not centered, %i changed:"
@@ -144832,6 +144904,10 @@ msgid "Empty identifier can't be used when explicit identifier was used before. 
 msgstr "以前に明示的に識別子を使用していない場合，空の識別子は使用できません．例えば「{} {x}」はOKですが，「{x} {}」はアウトです."
 
 
+msgid "Format uses more inputs than provided."
+msgstr "フォーマットに提供されるより多くの入力を使用しています"
+
+
 msgid "Invalid identifier: \"{}\""
 msgstr "無効な識別子です：{}"
 
@@ -144852,8 +144928,28 @@ msgid "Input does not exist: \"{}\""
 msgstr "入力が存在しません:「{}」"
 
 
+msgid "Format contains unsupported \"{}\" character: \"{}\""
+msgstr "フォーマットに未対応の文字「{}」が入っています：{}"
+
+
 msgid "Invalid format: \"{}\""
-msgstr "無効なフォーマット：{}"
+msgstr "無効なフォーマットです:「{}」"
+
+
+msgid "Only integer inputs can be used as dynamic precision: \"{}\""
+msgstr "動的な精度として使用可能なのは整数入力のみです:「{}」"
+
+
+msgid "Invalid format specifier: \"{}\""
+msgstr "無効なフォーマット指定です:「{}」"
+
+
+msgid "Invalid format specifier for string: \"{}\""
+msgstr "文字列では無効なフォーマット指定です:「{}」"
+
+
+msgid "Format specifier is not closed: \"{}\""
+msgstr "フォーマット指定が閉じていません：{}"
 
 
 msgid "Hash"
@@ -145041,6 +145137,10 @@ msgid "An input was not manifold"
 msgstr "入力が多様体ではありません"
 
 
+msgid "Unknown Boolean error"
+msgstr "未知のブーリアンエラー"
+
+
 msgid "Mesh 1"
 msgstr "メッシュ 1"
 
@@ -145081,8 +145181,16 @@ msgid "Size of the camera sensor"
 msgstr "カメラセンサーのサイズ"
 
 
+msgid "Camera shift"
+msgstr "カメラのシフト"
+
+
 msgid "Whether the camera is using orthographic projection"
 msgstr "カメラが平行投影を使用しているかどうか"
+
+
+msgid "Orthographic camera scale (similar to zoom)"
+msgstr "平行投影のカメラスケール（ズームと同様）"
 
 
 msgid "Collection contains current object"
@@ -145107,6 +145215,10 @@ msgstr "コレクションの各子を別々のインスタンスとしてアル
 
 msgid "Reset the transforms of every child instance in the output. Only used when Separate Children is enabled"
 msgstr "出力時に各子インスタンスのトランスフォームをリセットします．「子を分離」有効時のみ使用されます"
+
+
+msgid "Bundle Items"
+msgstr "バンドルアイテム"
 
 
 msgid "Disabled, Blender was compiled without Bullet"
@@ -145665,12 +145777,24 @@ msgid "Top"
 msgstr "上"
 
 
+msgid "The values the mean and median will be calculated from"
+msgstr "平均値と中央値を計算する元の値"
+
+
+msgid "The values the mininum and maximum will be calculated from"
+msgstr "最小値と最大値を計算する元の値"
+
+
 msgid "The lowest value in each group"
 msgstr "各グループの最小値"
 
 
 msgid "The highest value in each group"
 msgstr "各グループの最大値"
+
+
+msgid "The values the standard deviation and variance will be calculated from"
+msgstr "標準偏差と分散を計算する元の値"
 
 
 msgid "The square root of the variance for each group"
@@ -145817,6 +145941,14 @@ msgstr "テクスチャ座標（０から１）"
 
 msgid "Delimiter must be a single character"
 msgstr "区切り文字は一文字にしてください"
+
+
+msgid ""
+"Delimiter must not be \\n"
+", \\r, \" or \\"
+msgstr ""
+"区切り文字は「\\n"
+"」「\\r」「\"」「\\」以外にしてください"
 
 
 msgid "Delimiter"
@@ -146379,6 +146511,10 @@ msgid "The number of horizontal rings"
 msgstr "水平のリング数"
 
 
+msgid "The subdivision level is too large"
+msgstr "細分化レベルが大きすぎです"
+
+
 msgid "Disabled, Blender was compiled without OpenSubdiv"
 msgstr "無効，Blender は OpenSubdiv なしでコンパイルされています"
 
@@ -146865,6 +147001,14 @@ msgid "Simulation zone is not supported"
 msgstr "シミュレーションゾーンは未対応です"
 
 
+msgid "Simulation must not be in a loop or closure"
+msgstr "シミュレーションをループやクロージャの中に置かないでください"
+
+
+msgid "Simulation must not be in a loop"
+msgstr "シミュレーションをループ内に置かないでください"
+
+
 msgid "Skip"
 msgstr "スキップ"
 
@@ -147071,8 +147215,16 @@ msgid "Recursive closure is not allowed"
 msgstr "再帰クロージャはできません"
 
 
+msgid "Closure input has incompatible type: \"{}\""
+msgstr "クロージャの入力に非互換のタイプがあります:「{}」"
+
+
 msgid "Closure does not have input: \"{}\""
 msgstr "クロージャに入力がありません:「{}」"
+
+
+msgid "Closure output has incompatible type: \"{}\""
+msgstr "クロージャの出力に非互換のタイプがあります:「{}」"
 
 
 msgid "Closure does not have output: \"{}\""
@@ -147097,6 +147249,14 @@ msgstr "調査インデックスが範囲外です"
 
 msgid "Missing Data-Block"
 msgstr "データブロックなし"
+
+
+msgid "Unused Output"
+msgstr "未使用の出力"
+
+
+msgid "There are multiple group output nodes and this one is not active"
+msgstr "複数のグループ出力ノードがあり，これはアクティブではありません"
 
 
 msgid "Nesting a node group inside of itself is not allowed"
@@ -147131,8 +147291,16 @@ msgid "No input grid found that can determine the topology"
 msgstr "トポロジーを決める入力グリッドがありません"
 
 
+msgid "Grid type not supported"
+msgstr "グリッドタイプは未対応です"
+
+
 msgid "Not a shader node tree"
 msgstr "シェーダーノードツリーではありません"
+
+
+msgid "Not a shader, geometry, or compositor node tree"
+msgstr "シェーダー・ジオメトリ・コンポジターのどのノードツリーでもありません"
 
 
 msgid "AO"
@@ -148109,6 +148277,10 @@ msgid "No mesh in active object"
 msgstr "アクティブオブジェクトにメッシュがありません"
 
 
+msgid "Absorption Coefficients"
+msgstr "吸収係数"
+
+
 msgid "Scatter Coefficients"
 msgstr "散乱係数"
 
@@ -148707,6 +148879,10 @@ msgid "Can't read alternative start-up file: \"%s\""
 msgstr "代替の起動ファイル「%s」が読み込みできません"
 
 
+msgid "Saved incremental as \"%s\""
+msgstr "加算した「%s」で保存しました"
+
+
 msgid "Saved copy as \"%s\""
 msgstr "コピーを「%s」で保存しました"
 
@@ -148745,6 +148921,18 @@ msgstr "「%s」: ライブラリではありません"
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"
 msgstr "シーン「%s」はリンクされており，オブジェクトのインスタンス化はできません"
+
+
+msgid "No valid existing linked ID given to relocate"
+msgstr "既存のリンク ID に再配置可能な物がありません"
+
+
+msgid "Selected ID '%s' is a %s, cannot be used to relocate existing linked ID '%s' which is a %s"
+msgstr "選択中の ID「%s」は「%s」で，既存のリンク ID「%s」(%s) の再配置には使用できません"
+
+
+msgid "Selected ID '%s' seems to be the same as the relocated ID '%s', use 'Reload' operation instead"
+msgstr "選択中の ID「%s」は再配置した ID「%s」と同じようです．代わりに「再読み込み」してください"
 
 
 msgid "'%s' is not a valid library filepath"
@@ -148791,12 +148979,20 @@ msgid "KeyMaps are equal"
 msgstr "同じキーマップです"
 
 
+msgid "KeyMap item result may be incorrect since an update is pending, call `context.window_manager.keyconfigs.update()` to ensure matches can be found."
+msgstr "更新が保留になったため，キーマップアイテムの結果が間違っている恐れがあります．`context.window_manager.keyconfigs.update()` で確実にマッチ可能です."
+
+
 msgid "KeyMap \"%s\" doesn't match \"%s\""
 msgstr "キーマップ「%s」は「%s」とマッチしません"
 
 
 msgid "KeyMap \"%s\" (base) must be a user keymap"
 msgstr "キーマップ「%s」(ベース) はユーザーキーマップでないといけません"
+
+
+msgid "KeyMap \"%s\" (other) must be an add-on or active keymap"
+msgstr "キーマップ「%s」(その他) はアドオンまたはアクティブのキーマップでないといけません"
 
 
 msgid "KeyMap \"%s\" item not part of the keymap"
