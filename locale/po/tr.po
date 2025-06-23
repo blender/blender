@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-05-17 17:56+0000\n"
 "Last-Translator: Ugur Saglam <saglamugur556@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -29298,10 +29298,6 @@ msgid "Bone Roll"
 msgstr "Kemik Rulosu"
 
 
-msgid "Merge"
-msgstr "Birleştir"
-
-
 msgid "Pivot Point"
 msgstr "Pivot Noktası"
 
@@ -29330,172 +29326,176 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
 
 
-msgid "Set Face Strength"
-msgstr "Yüz Gücünü Ayarla"
-
-
-msgid "Select by Face Strength"
-msgstr "Yüz Gücüne Göre Seç"
-
-
-msgid "Hooks"
-msgstr "Kancalar"
-
-
-msgid "Link/Transfer Data"
-msgstr "Veriyi Bağlantıla/Aktar"
-
-
-msgid "Convert"
-msgstr "Çevir"
-
-
-msgid "Relations"
-msgstr "İlişkiler"
-
-
-msgid "Add Image"
-msgstr "Resim Ekle"
-
-
-msgid "Light Probe"
-msgstr "Işık Sondası"
-
-
-msgid "Face Data"
-msgstr "Yüz Verileri"
-
-
-msgid "Light"
-msgstr "Işık"
-
-
-msgid "Make Single User"
-msgstr "Tek Kullanıcı Yap"
-
-
-msgid "Asset"
-msgstr "Varlık"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Quick Effects"
-msgstr "Hızlı Etkiler"
-
-
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
-
-
-msgid "Track"
-msgstr "İzlemek"
-
-
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
-
-
-msgid "Apply"
-msgstr "Uygula"
-
-
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
-
-
-msgid "Rigid Body"
-msgstr "Sert Gövde"
-
-
-msgid "Propagate"
-msgstr "Yaymak"
-
-
-msgid "Local View"
-msgstr "Yerel Görünüm"
-
-
-msgid "Select More/Less"
-msgstr "Daha Fazla/Daha Az Seç"
-
-
-msgid "Bone Collections"
-msgstr "Kemik Koleksiyonları"
-
-
-msgid "In-Betweens"
-msgstr "Arada Kalanlar"
-
-
-msgid "Clear Transform"
-msgstr "Temizle Dönüşüm"
-
-
-msgid "Select Loops"
-msgstr "Döngüleri Seç"
-
-
-msgid "Select Linked"
-msgstr "Bağlantılıyı Seç"
-
-
-msgid "Select All by Trait"
-msgstr "Özelliğe Göre Tümünü Seç"
-
-
-msgid "Select Similar"
-msgstr "Benzerini Seç"
-
-
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
-
-
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
-
-
-msgid "Align View"
-msgstr "Görünümü hizala"
-
-
-msgid "Navigation"
-msgstr "Navigasyon"
-
-
-msgid "Viewpoint"
-msgstr "Bakış açısı"
+msgid "Mirror"
+msgstr "Yansıtma"
 
 
 msgid "UV Mapping"
 msgstr "UV Haritalama"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
+msgid "Local View"
+msgstr "Yerel Görünüm"
 
 
-msgid "Random Mask"
-msgstr "Rastgele Maske"
+msgid "Viewpoint"
+msgstr "Bakış açısı"
 
 
-msgid "Face Sets Init"
-msgstr "Yüz Setleri Başlatma"
+msgid "Navigation"
+msgstr "Navigasyon"
+
+
+msgid "Align View"
+msgstr "Görünümü hizala"
+
+
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
+
+
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
+
+
+msgid "Select More/Less"
+msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Select Similar"
+msgstr "Benzerini Seç"
+
+
+msgid "Select All by Trait"
+msgstr "Özelliğe Göre Tümünü Seç"
+
+
+msgid "Select Linked"
+msgstr "Bağlantılıyı Seç"
+
+
+msgid "Select Loops"
+msgstr "Döngüleri Seç"
+
+
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
+
+
+msgid "Light"
+msgstr "Işık"
+
+
+msgid "Light Probe"
+msgstr "Işık Sondası"
+
+
+msgid "Add Image"
+msgstr "Resim Ekle"
+
+
+msgid "Relations"
+msgstr "İlişkiler"
+
+
+msgid "Rigid Body"
+msgstr "Sert Gövde"
+
+
+msgid "Apply"
+msgstr "Uygula"
+
+
+msgid "Track"
+msgstr "İzlemek"
+
+
+msgid "Quick Effects"
+msgstr "Hızlı Etkiler"
+
+
+msgid "Asset"
+msgstr "Varlık"
+
+
+msgid "Make Single User"
+msgstr "Tek Kullanıcı Yap"
+
+
+msgid "Convert"
+msgstr "Çevir"
+
+
+msgid "Link/Transfer Data"
+msgstr "Veriyi Bağlantıla/Aktar"
+
+
+msgid "Hooks"
+msgstr "Kancalar"
+
+
+msgid "Trim/Add"
+msgstr "Kırp/Ekle"
 
 
 msgid "Sculpt Set Pivot"
 msgstr "Heykel Seti Pivot"
 
 
-msgid "Trim/Add"
-msgstr "Kırp/Ekle"
+msgid "Face Sets Init"
+msgstr "Yüz Setleri Başlatma"
+
+
+msgid "Random Mask"
+msgstr "Rastgele Maske"
+
+
+msgid "Clear Transform"
+msgstr "Temizle Dönüşüm"
+
+
+msgid "In-Betweens"
+msgstr "Arada Kalanlar"
+
+
+msgid "Propagate"
+msgstr "Yaymak"
+
+
+msgid "Bone Collections"
+msgstr "Kemik Koleksiyonları"
+
+
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
+
+
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
+
+
+msgid "Face Data"
+msgstr "Yüz Verileri"
+
+
+msgid "Select by Face Strength"
+msgstr "Yüz Gücüne Göre Seç"
+
+
+msgid "Set Face Strength"
+msgstr "Yüz Gücünü Ayarla"
+
+
+msgid "Merge"
+msgstr "Birleştir"
 
 
 msgid "Keyframe Insert Pie"
@@ -55469,10 +55469,6 @@ msgstr "Sağdan"
 
 msgid "The factor to scale keys with"
 msgstr "Anahtarları ölçeklendirmek için faktör"
-
-
-msgid "Are handles tested individually against the selection criteria"
-msgstr "Saplar seçim kriterlerine göre tek tek test ediliyor mu"
 
 
 msgid "Select Curves"
@@ -83271,10 +83267,6 @@ msgstr "Çeviri için kullanılan dil"
 
 msgid "Automatic (Automatic)"
 msgstr "Otomatik (Otomatik)"
-
-
-msgid "Automatically choose system's defined language if available, or fall-back to English"
-msgstr "Mevcutsa sistemin tanımlı dilini otomatik olarak seçin veya İngilizce'ye geri dönün"
 
 
 msgid "HDRI Preview Size"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-06-09 12:55+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -34198,10 +34198,6 @@ msgid "Bone Roll"
 msgstr "Lăn Xương"
 
 
-msgid "Merge"
-msgstr "Hợp Nhất"
-
-
 msgid "Pivot Point"
 msgstr "Điểm Tựa"
 
@@ -34230,172 +34226,176 @@ msgid "Vertex Group Locks"
 msgstr "Khóa của Nhóm Điểm Đỉnh"
 
 
-msgid "Set Face Strength"
-msgstr "Đặt Cường Độ Mặt"
-
-
-msgid "Select by Face Strength"
-msgstr "Chọn theo Cường Độ Mặt"
-
-
-msgid "Hooks"
-msgstr "Móc"
-
-
-msgid "Link/Transfer Data"
-msgstr "Kết Nối/Thuyên Chuyển Dữ Liệu"
-
-
-msgid "Convert"
-msgstr "Chuyển Đổi"
-
-
-msgid "Relations"
-msgstr "Mối Quan Hệ"
-
-
-msgid "Add Image"
-msgstr "Thêm Hình Ảnh"
-
-
-msgid "Light Probe"
-msgstr "Đầu Dò Ánh Sáng"
-
-
-msgid "Face Data"
-msgstr "Dữ Liệu Mặt"
-
-
-msgid "Light"
-msgstr "Nguồn/Ánh Sáng/Đèn"
-
-
-msgid "Make Single User"
-msgstr "Biến Thành Đơn Người Dùng"
-
-
-msgid "Asset"
-msgstr "Tài Sản"
-
-
-msgid "Mesh Select Mode"
-msgstr "Chế Độ Chọn Khung Lưới"
-
-
-msgid "Quick Effects"
-msgstr "Hiệu Ứng Nhanh"
-
-
-msgid "Disable Bone Options"
-msgstr "Tắt các Tùy Chọn về Xương"
-
-
-msgid "Enable Bone Options"
-msgstr "Bật các Tùy Chọn về Xương"
-
-
-msgid "Track"
-msgstr "Giám Sát"
-
-
-msgid "Toggle Bone Options"
-msgstr "Bật/Tắt Tùy Chọn về Xương"
-
-
-msgid "Apply"
-msgstr "Áp Dụng"
-
-
-msgid "Assign Material"
-msgstr "Ấn Định Nguyên Vật Liệu"
-
-
-msgid "Rigid Body"
-msgstr "Thân Cứng"
-
-
-msgid "Propagate"
-msgstr "Lan Truyền"
-
-
-msgid "Local View"
-msgstr "Góc Nhìn Cục Bộ"
-
-
-msgid "Select More/Less"
-msgstr "Tăng/Giảm Lựa Chọn"
-
-
-msgid "Bone Collections"
-msgstr "Bộ Sưu Tập Xương"
-
-
-msgid "In-Betweens"
-msgstr "Bước Trung Gian"
-
-
-msgid "Clear Transform"
-msgstr "Xóa Biến Hóa"
-
-
-msgid "Select Loops"
-msgstr "Chọn Vòng Mạch"
-
-
-msgid "Select Linked"
-msgstr "Chọn cái Kết Nối"
-
-
-msgid "Select All by Trait"
-msgstr "Chọn Toàn Bộ theo Đặc Điểm"
-
-
-msgid "Select Similar"
-msgstr "Chọn Tương Tự"
-
-
-msgid "View Regions"
-msgstr "Vùng Góc Nhìn"
-
-
-msgid "Align View to Active"
-msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
-
-
-msgid "Align View"
-msgstr "Căn Chỉnh Góc Nhìn"
-
-
-msgid "Navigation"
-msgstr "Điều Hướng"
-
-
-msgid "Viewpoint"
-msgstr "Điểm Nhìn"
+msgid "Mirror"
+msgstr "Phản Chiếu Đối Xứng"
 
 
 msgid "UV Mapping"
 msgstr "Ánh Xạ UV"
 
 
-msgid "Mirror"
-msgstr "Phản Chiếu Đối Xứng"
+msgid "Local View"
+msgstr "Góc Nhìn Cục Bộ"
 
 
-msgid "Random Mask"
-msgstr "Màn Chắn Lọc Ngẫu Nhiên"
+msgid "Viewpoint"
+msgstr "Điểm Nhìn"
 
 
-msgid "Face Sets Init"
-msgstr "Khởi Thủy các Mặt Ấn Định"
+msgid "Navigation"
+msgstr "Điều Hướng"
+
+
+msgid "Align View"
+msgstr "Căn Chỉnh Góc Nhìn"
+
+
+msgid "Align View to Active"
+msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
+
+
+msgid "View Regions"
+msgstr "Vùng Góc Nhìn"
+
+
+msgid "Select More/Less"
+msgstr "Tăng/Giảm Lựa Chọn"
+
+
+msgid "Select Similar"
+msgstr "Chọn Tương Tự"
+
+
+msgid "Select All by Trait"
+msgstr "Chọn Toàn Bộ theo Đặc Điểm"
+
+
+msgid "Select Linked"
+msgstr "Chọn cái Kết Nối"
+
+
+msgid "Select Loops"
+msgstr "Chọn Vòng Mạch"
+
+
+msgid "Assign Material"
+msgstr "Ấn Định Nguyên Vật Liệu"
+
+
+msgid "Light"
+msgstr "Nguồn/Ánh Sáng/Đèn"
+
+
+msgid "Light Probe"
+msgstr "Đầu Dò Ánh Sáng"
+
+
+msgid "Add Image"
+msgstr "Thêm Hình Ảnh"
+
+
+msgid "Relations"
+msgstr "Mối Quan Hệ"
+
+
+msgid "Rigid Body"
+msgstr "Thân Cứng"
+
+
+msgid "Apply"
+msgstr "Áp Dụng"
+
+
+msgid "Track"
+msgstr "Giám Sát"
+
+
+msgid "Quick Effects"
+msgstr "Hiệu Ứng Nhanh"
+
+
+msgid "Asset"
+msgstr "Tài Sản"
+
+
+msgid "Make Single User"
+msgstr "Biến Thành Đơn Người Dùng"
+
+
+msgid "Convert"
+msgstr "Chuyển Đổi"
+
+
+msgid "Link/Transfer Data"
+msgstr "Kết Nối/Thuyên Chuyển Dữ Liệu"
+
+
+msgid "Hooks"
+msgstr "Móc"
+
+
+msgid "Trim/Add"
+msgstr "Cắt Xén/Thêm"
 
 
 msgid "Sculpt Set Pivot"
 msgstr "Điêu Khắc: Đặt Điểm Tựa"
 
 
-msgid "Trim/Add"
-msgstr "Cắt Xén/Thêm"
+msgid "Face Sets Init"
+msgstr "Khởi Thủy các Mặt Ấn Định"
+
+
+msgid "Random Mask"
+msgstr "Màn Chắn Lọc Ngẫu Nhiên"
+
+
+msgid "Clear Transform"
+msgstr "Xóa Biến Hóa"
+
+
+msgid "In-Betweens"
+msgstr "Bước Trung Gian"
+
+
+msgid "Propagate"
+msgstr "Lan Truyền"
+
+
+msgid "Bone Collections"
+msgstr "Bộ Sưu Tập Xương"
+
+
+msgid "Toggle Bone Options"
+msgstr "Bật/Tắt Tùy Chọn về Xương"
+
+
+msgid "Enable Bone Options"
+msgstr "Bật các Tùy Chọn về Xương"
+
+
+msgid "Disable Bone Options"
+msgstr "Tắt các Tùy Chọn về Xương"
+
+
+msgid "Mesh Select Mode"
+msgstr "Chế Độ Chọn Khung Lưới"
+
+
+msgid "Face Data"
+msgstr "Dữ Liệu Mặt"
+
+
+msgid "Select by Face Strength"
+msgstr "Chọn theo Cường Độ Mặt"
+
+
+msgid "Set Face Strength"
+msgstr "Đặt Cường Độ Mặt"
+
+
+msgid "Merge"
+msgstr "Hợp Nhất"
 
 
 msgid "Keyframe Insert Pie"
@@ -65140,10 +65140,6 @@ msgstr "Từ Bên Phải"
 
 msgid "The factor to scale keys with"
 msgstr "Hệ số để đổi tỷ lệ các khóa"
-
-
-msgid "Are handles tested individually against the selection criteria"
-msgstr "Kiểm tra xem mỗi tay cầm có được bao gồm trong vùng lựa chọn hay không"
 
 
 msgid "Select Curves"
@@ -96465,10 +96461,6 @@ msgstr "Ngôn ngữ sử dụng trong bản phiên dịch"
 
 msgid "Automatic (Automatic)"
 msgstr "Tự Động (Automatic)"
-
-
-msgid "Automatically choose system's defined language if available, or fall-back to English"
-msgstr "Tự động chọn ngôn ngữ mà hệ thống xác định, nếu có, hoặc quay trở lại tiếng Anh cơ sở"
 
 
 msgid "HDRI Preview Size"

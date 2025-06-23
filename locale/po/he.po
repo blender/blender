@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-04-14 08:22+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -587,20 +587,20 @@ msgid "Mask"
 msgstr "הכסמ"
 
 
-msgid "Convert"
-msgstr "רמה"
-
-
-msgid "Face Data"
-msgstr "האפ ינותנ"
+msgid "Mirror"
+msgstr "הארמ"
 
 
 msgid "Apply"
 msgstr "לחה"
 
 
-msgid "Mirror"
-msgstr "הארמ"
+msgid "Convert"
+msgstr "רמה"
+
+
+msgid "Face Data"
+msgstr "האפ ינותנ"
 
 
 msgid "Languages..."

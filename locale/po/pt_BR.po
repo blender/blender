@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21472,10 +21472,6 @@ msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
 
 
-msgid "Merge"
-msgstr "Fundir"
-
-
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
@@ -21488,136 +21484,140 @@ msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "UV Mapping"
 msgstr "Mapeamento UV"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
 
 
 msgid "Random Mask"
 msgstr "Máscara Aleatória"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
 
 
 msgid "Basic"
@@ -35852,10 +35852,6 @@ msgstr "Revelar curvas"
 
 msgid "Make previously hidden curves visible again in Graph Editor view"
 msgstr "Torna as curvas previamente ocultadas novamente visíveis na visualização do editor gráfico."
-
-
-msgid "Are handles tested individually against the selection criteria"
-msgstr "Os manípulos são testados individualmente com relação ao o critério de seleção."
 
 
 msgid "Select Curves"

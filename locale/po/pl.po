@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-04-14 08:34+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11596,10 +11596,6 @@ msgid "Metaball"
 msgstr "Metakula"
 
 
-msgid "Merge"
-msgstr "Scal"
-
-
 msgid "Snap"
 msgstr "Przyciągnij"
 
@@ -11608,68 +11604,72 @@ msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
 
 
-msgid "Convert"
-msgstr "Konwertuj"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
-msgid "Face Data"
-msgstr "Dane ściany"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Asset"
-msgstr "Prefabrykat"
-
-
-msgid "Quick Effects"
-msgstr "Szybkie efekty"
-
-
-msgid "Track"
-msgstr "Ścieżka"
-
-
-msgid "Apply"
-msgstr "Zastosuj"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
-
-
-msgid "Rigid Body"
-msgstr "Bryła sztywna"
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
 
 
 msgid "Local View"
 msgstr "Widok lokalny"
 
 
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
 
 
 msgid "Navigation"
 msgstr "Nawigacja"
 
 
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
 
 
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
+
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+
+msgid "Track"
+msgstr "Ścieżka"
+
+
+msgid "Quick Effects"
+msgstr "Szybkie efekty"
+
+
+msgid "Asset"
+msgstr "Prefabrykat"
+
+
+msgid "Convert"
+msgstr "Konwertuj"
+
+
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
+
+
+msgid "Face Data"
+msgstr "Dane ściany"
+
+
+msgid "Merge"
+msgstr "Scal"
 
 
 msgid "Catalog"

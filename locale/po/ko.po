@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-04-14 08:31+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23861,10 +23861,6 @@ msgid "Bone Roll"
 msgstr "본 롤"
 
 
-msgid "Merge"
-msgstr "병합"
-
-
 msgid "Pivot Point"
 msgstr "피벗 포인트"
 
@@ -23881,148 +23877,152 @@ msgid "Mask Edit"
 msgstr "마스크 편집"
 
 
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
-
-
-msgid "Hooks"
-msgstr "후크"
-
-
-msgid "Relations"
-msgstr "관계"
-
-
-msgid "Add Image"
-msgstr "이미지를 추가"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Make Single User"
-msgstr "싱글 유저를 만들기"
-
-
-msgid "Asset"
-msgstr "에셋"
-
-
-msgid "Mesh Select Mode"
-msgstr "메쉬 선택 모드"
-
-
-msgid "Quick Effects"
-msgstr "빠른 이펙트"
-
-
-msgid "Disable Bone Options"
-msgstr "본 옵션을 사용 중지"
-
-
-msgid "Enable Bone Options"
-msgstr "본 옵션을 사용"
-
-
-msgid "Track"
-msgstr "트랙"
-
-
-msgid "Toggle Bone Options"
-msgstr "본 옵션을 토글"
-
-
-msgid "Apply"
-msgstr "적용"
-
-
-msgid "Assign Material"
-msgstr "매테리얼을 할당"
-
-
-msgid "Rigid Body"
-msgstr "리지드 바디"
-
-
-msgid "Propagate"
-msgstr "전파"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "In-Betweens"
-msgstr "사이에서"
-
-
-msgid "Clear Transform"
-msgstr "변환을 지우기"
-
-
-msgid "Select Loops"
-msgstr "루프를 선택"
-
-
-msgid "Select Linked"
-msgstr "연결된 선택"
-
-
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
+msgid "Mirror"
+msgstr "미러"
 
 
 msgid "UV Mapping"
 msgstr "UV 맵핑"
 
 
-msgid "Mirror"
-msgstr "미러"
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
+msgid "View Regions"
+msgstr "뷰 지역"
+
+
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
+msgid "Select Similar"
+msgstr "유사한 선택"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
+
+
+msgid "Select Linked"
+msgstr "연결된 선택"
+
+
+msgid "Select Loops"
+msgstr "루프를 선택"
+
+
+msgid "Assign Material"
+msgstr "매테리얼을 할당"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "Add Image"
+msgstr "이미지를 추가"
+
+
+msgid "Relations"
+msgstr "관계"
+
+
+msgid "Rigid Body"
+msgstr "리지드 바디"
+
+
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Track"
+msgstr "트랙"
+
+
+msgid "Quick Effects"
+msgstr "빠른 이펙트"
+
+
+msgid "Asset"
+msgstr "에셋"
+
+
+msgid "Make Single User"
+msgstr "싱글 유저를 만들기"
+
+
+msgid "Hooks"
+msgstr "후크"
 
 
 msgid "Sculpt Set Pivot"
 msgstr "스컬프트 설정 피벗"
+
+
+msgid "Clear Transform"
+msgstr "변환을 지우기"
+
+
+msgid "In-Betweens"
+msgstr "사이에서"
+
+
+msgid "Propagate"
+msgstr "전파"
+
+
+msgid "Toggle Bone Options"
+msgstr "본 옵션을 토글"
+
+
+msgid "Enable Bone Options"
+msgstr "본 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "본 옵션을 사용 중지"
+
+
+msgid "Mesh Select Mode"
+msgstr "메쉬 선택 모드"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
+msgid "Merge"
+msgstr "병합"
 
 
 msgid "Basic"
@@ -39686,10 +39686,6 @@ msgstr "커브를 보이기"
 
 msgid "Make previously hidden curves visible again in Graph Editor view"
 msgstr "그래프 에디터 뷰에서 이전에 숨겨진 커브를 볼 수 있도록 만들기"
-
-
-msgid "Are handles tested individually against the selection criteria"
-msgstr "선택 기준에 따라 핸들이 개별적으로 테스트되는지 여부"
 
 
 msgctxt "Operator"
@@ -58345,10 +58341,6 @@ msgstr "번역에 사용된 언어"
 
 msgid "Automatic (Automatic)"
 msgstr "자동 (Automatic)"
-
-
-msgid "Automatically choose system's defined language if available, or fall-back to English"
-msgstr "가능한 경우 시스템 정의된 언어를 자동으로 선택하거나 영어로 폴백"
 
 
 msgid "HDRI Preview Size"

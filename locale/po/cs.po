@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
 "PO-Revision-Date: 2025-04-14 08:12+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13613,10 +13613,6 @@ msgid "Bone Roll"
 msgstr "Kost"
 
 
-msgid "Merge"
-msgstr "Sloučit"
-
-
 msgid "Pivot Point"
 msgstr "Bod pro pivot"
 
@@ -13629,80 +13625,84 @@ msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
 
 
-msgid "Hooks"
-msgstr "Háky"
-
-
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
-
-
-msgid "Navigation"
-msgstr "Navigace"
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
 msgid "UV Mapping"
 msgstr "UV mapování"
 
 
-msgid "Mirror"
-msgstr "Zrcadlit"
+msgid "Local View"
+msgstr "Lokální pohled"
+
+
+msgid "Navigation"
+msgstr "Navigace"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
+
+
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Hooks"
+msgstr "Háky"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Merge"
+msgstr "Sloučit"
 
 
 msgid "Basic"

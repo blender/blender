@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-16 10:45+0000\n"
-"PO-Revision-Date: 2025-05-14 07:56+0000\n"
-"Last-Translator: Sol Blackshaw <solblackshaw@gmail.com>\n"
+"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"PO-Revision-Date: 2025-06-17 02:59+0000\n"
+"Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
 "Language: en_GB\n"
 "MIME-Version: 1.0\n"
@@ -965,7 +965,7 @@ msgstr "Combine"
 
 
 msgid "The strip values are combined with accumulated results by appropriately using addition, multiplication, or quaternion math, based on channel type"
-msgstr "The strip values are combined with accumulated results by appropriately using addition, multiplication, or quaternion math, based on channel type"
+msgstr "The strip values are combined with accumulated results by appropriately using addition, multiplication, or quaternion maths, based on channel type"
 
 
 msgid "Add"
@@ -12849,7 +12849,7 @@ msgstr "Built-In Function"
 
 
 msgid "Generate a curve using standard math functions such as sin and cos"
-msgstr "Generate a curve using standard math functions such as sin and cos"
+msgstr "Generate a curve using standard maths functions such as sin and cos"
 
 
 msgctxt "Action"
@@ -34457,10 +34457,6 @@ msgid "Bone Roll"
 msgstr "Bone Roll"
 
 
-msgid "Merge"
-msgstr "Merge"
-
-
 msgid "Pivot Point"
 msgstr "Pivot Point"
 
@@ -34489,172 +34485,176 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Group Locks"
 
 
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Hooks"
-msgstr "Hooks"
-
-
-msgid "Link/Transfer Data"
-msgstr "Link/Transfer Data"
-
-
-msgid "Convert"
-msgstr "Convert"
-
-
-msgid "Relations"
-msgstr "Relations"
-
-
-msgid "Add Image"
-msgstr "Add Image"
-
-
-msgid "Light Probe"
-msgstr "Light Probe"
-
-
-msgid "Face Data"
-msgstr "Face Data"
-
-
-msgid "Light"
-msgstr "Light"
-
-
-msgid "Make Single User"
-msgstr "Make Single User"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
-
-
-msgid "Quick Effects"
-msgstr "Quick Effects"
-
-
-msgid "Disable Bone Options"
-msgstr "Disable Bone Options"
-
-
-msgid "Enable Bone Options"
-msgstr "Enable Bone Options"
-
-
-msgid "Track"
-msgstr "Track"
-
-
-msgid "Toggle Bone Options"
-msgstr "Toggle Bone Options"
-
-
-msgid "Apply"
-msgstr "Apply"
-
-
-msgid "Assign Material"
-msgstr "Assign Material"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Propagate"
-msgstr "Propagate"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Select More/Less"
-msgstr "Select More/Less"
-
-
-msgid "Bone Collections"
-msgstr "Bone Collections"
-
-
-msgid "In-Betweens"
-msgstr "In-Betweens"
-
-
-msgid "Clear Transform"
-msgstr "Clear Transform"
-
-
-msgid "Select Loops"
-msgstr "Select Loops"
-
-
-msgid "Select Linked"
-msgstr "Select Linked"
-
-
-msgid "Select All by Trait"
-msgstr "Select All by Trait"
-
-
-msgid "Select Similar"
-msgstr "Select Similar"
-
-
-msgid "View Regions"
-msgstr "View Regions"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
+msgid "Mirror"
+msgstr "Mirror"
 
 
 msgid "UV Mapping"
 msgstr "UV Mapping"
 
 
-msgid "Mirror"
-msgstr "Mirror"
+msgid "Local View"
+msgstr "Local View"
 
 
-msgid "Random Mask"
-msgstr "Random Mask"
+msgid "Viewpoint"
+msgstr "Viewpoint"
 
 
-msgid "Face Sets Init"
-msgstr "Face Sets Init"
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
+msgid "View Regions"
+msgstr "View Regions"
+
+
+msgid "Select More/Less"
+msgstr "Select More/Less"
+
+
+msgid "Select Similar"
+msgstr "Select Similar"
+
+
+msgid "Select All by Trait"
+msgstr "Select All by Trait"
+
+
+msgid "Select Linked"
+msgstr "Select Linked"
+
+
+msgid "Select Loops"
+msgstr "Select Loops"
+
+
+msgid "Assign Material"
+msgstr "Assign Material"
+
+
+msgid "Light"
+msgstr "Light"
+
+
+msgid "Light Probe"
+msgstr "Light Probe"
+
+
+msgid "Add Image"
+msgstr "Add Image"
+
+
+msgid "Relations"
+msgstr "Relations"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Track"
+msgstr "Track"
+
+
+msgid "Quick Effects"
+msgstr "Quick Effects"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Make Single User"
+
+
+msgid "Convert"
+msgstr "Convert"
+
+
+msgid "Link/Transfer Data"
+msgstr "Link/Transfer Data"
+
+
+msgid "Hooks"
+msgstr "Hooks"
+
+
+msgid "Trim/Add"
+msgstr "Trim/Add"
 
 
 msgid "Sculpt Set Pivot"
 msgstr "Sculpt Set Pivot"
 
 
-msgid "Trim/Add"
-msgstr "Trim/Add"
+msgid "Face Sets Init"
+msgstr "Face Sets Init"
+
+
+msgid "Random Mask"
+msgstr "Random Mask"
+
+
+msgid "Clear Transform"
+msgstr "Clear Transform"
+
+
+msgid "In-Betweens"
+msgstr "In-Betweens"
+
+
+msgid "Propagate"
+msgstr "Propagate"
+
+
+msgid "Bone Collections"
+msgstr "Bone Collections"
+
+
+msgid "Toggle Bone Options"
+msgstr "Toggle Bone Options"
+
+
+msgid "Enable Bone Options"
+msgstr "Enable Bone Options"
+
+
+msgid "Disable Bone Options"
+msgstr "Disable Bone Options"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Merge"
+msgstr "Merge"
 
 
 msgid "Keyframe Insert Pie"
@@ -34892,7 +34892,7 @@ msgstr "Deprecated"
 
 
 msgid "Math"
-msgstr "Math"
+msgstr "Maths"
 
 
 msgid "Primitives"
@@ -34965,7 +34965,7 @@ msgstr "Batch Change Selected Nodes"
 
 
 msgid "Batch Change Math Operation"
-msgstr "Batch Change Math Operation"
+msgstr "Batch Change Maths Operation"
 
 
 msgid "To Socket"
@@ -35005,7 +35005,7 @@ msgstr "Merge Selected Nodes using Geometry Nodes"
 
 
 msgid "Merge Selected Nodes using Math"
-msgstr "Merge Selected Nodes using Math"
+msgstr "Merge Selected Nodes using Maths"
 
 
 msgid "Merge Selected Nodes using Mix"
@@ -45923,7 +45923,7 @@ msgstr "Motion Blur"
 
 
 msgid "Perform math operations"
-msgstr "Perform math operations"
+msgstr "Perform maths operations"
 
 
 msgctxt "NodeTree"
@@ -46856,6 +46856,10 @@ msgid "Axis Angle to Rotation"
 msgstr "Axis Angle to Rotation"
 
 
+msgid "Bit Math"
+msgstr "Bit Maths"
+
+
 msgid "And"
 msgstr "And"
 
@@ -46865,7 +46869,7 @@ msgstr "Or"
 
 
 msgid "Boolean Math"
-msgstr "Boolean Math"
+msgstr "Boolean Maths"
 
 
 msgid "True when both inputs are true"
@@ -47087,7 +47091,7 @@ msgstr "Input value used for unconnected socket"
 
 
 msgid "Integer Math"
-msgstr "Integer Math"
+msgstr "Integer Maths"
 
 
 msgid "Non-negative value of A, abs(A)"
@@ -51652,11 +51656,11 @@ msgstr "World space vector displacement mapping"
 
 
 msgid "Vector Math"
-msgstr "Vector Math"
+msgstr "Vector Maths"
 
 
 msgid "Perform vector math operation"
-msgstr "Perform vector math operation"
+msgstr "Perform vector maths operation"
 
 
 msgid "Entry-wise multiply"
@@ -64804,10 +64808,6 @@ msgid "The factor to scale keys with"
 msgstr "The factor to scale keys with"
 
 
-msgid "Are handles tested individually against the selection criteria"
-msgstr "Are handles tested individually against the selection criteria"
-
-
 msgid "Select Curves"
 msgstr "Select Curves"
 
@@ -72367,7 +72367,7 @@ msgstr "The amount of space between nodes"
 
 
 msgid "Batch change blend type and math operation"
-msgstr "Batch change blend type and math operation"
+msgstr "Batch change blend type and maths operation"
 
 
 msgid "Add Mode"
@@ -72703,11 +72703,11 @@ msgstr "Merge using Mix nodes"
 
 
 msgid "Math Node"
-msgstr "Math Node"
+msgstr "Maths Node"
 
 
 msgid "Merge using Math nodes"
-msgstr "Merge using Math nodes"
+msgstr "Merge using Maths nodes"
 
 
 msgid "Z-Combine Node"
@@ -72732,7 +72732,7 @@ msgstr "Mode"
 
 
 msgid "All possible blend types, boolean operations and math operations"
-msgstr "All possible blend types, boolean operations and math operations"
+msgstr "All possible blend types, boolean operations and maths operations"
 
 
 msgctxt "NodeTree"
@@ -95190,7 +95190,7 @@ msgstr "Default to Advanced Numeric Input"
 
 
 msgid "When entering numbers while transforming, default to advanced mode for full math expression evaluation"
-msgstr "When entering numbers while transforming, default to advanced mode for full math expression evaluation"
+msgstr "When entering numbers while transforming, default to advanced mode for full maths expression evaluation"
 
 
 msgid "Orbit Around Selection"
@@ -96007,10 +96007,6 @@ msgstr "Language used for translation"
 
 msgid "Automatic (Automatic)"
 msgstr "Automatic (Automatic)"
-
-
-msgid "Automatically choose system's defined language if available, or fall-back to English"
-msgstr "Automatically choose system's defined language if available, or fall-back to English"
 
 
 msgid "HDRI Preview Size"
@@ -117898,7 +117894,7 @@ msgstr "Use Geometry Nodes"
 
 
 msgid "Use Math Nodes"
-msgstr "Use Math Nodes"
+msgstr "Use Maths Nodes"
 
 
 msgid "Use Mix Nodes"
