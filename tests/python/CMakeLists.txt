@@ -340,6 +340,12 @@ if(TEST_SRC_DIR_EXISTS)
     --output-dir ${TEST_OUT_DIR}/blendfile_io/
     --test-dir "${TEST_SRC_DIR}/libraries_and_linking"
   )
+
+  add_blender_test(
+    blendfile_header
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_header.py --
+    --testdir "${TEST_SRC_DIR}/io_tests/blend_parsing"
+  )
 endif()
 
 # ------------------------------------------------------------------------------

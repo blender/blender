@@ -272,6 +272,12 @@ class TestBlendFileOpenLinkSaveAllTestFiles(TestHelper):
                 (OSError, RuntimeError),
                 "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
             ),
+            # io_tests/blend_parsing/BHead4_big_endian.blend
+            # File generated from a big endian build of Blender.
+            "BHead4_big_endian.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
         }
 
         assert all(p.endswith("/") for p in self.excluded_open_link_dirs)
