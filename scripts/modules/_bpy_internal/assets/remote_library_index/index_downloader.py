@@ -5,8 +5,10 @@
 from __future__ import annotations
 
 import logging
+import time
 import urllib.parse
-from pathlib import Path
+import hashlib
+from pathlib import Path, PurePosixPath
 from typing import Callable, TypeAlias, TypeVar, Type
 
 import bpy
@@ -21,6 +23,17 @@ from _bpy_internal.assets.remote_library_index import asset_catalogs
 logger = logging.getLogger(__name__)
 
 PydanticModel = TypeVar("PydanticModel", bound=pydantic.BaseModel)
+
+# TODO: discuss & adjust this value, as this was just picked more or less randomly:
+THUMBNAIL_FRESH_DURATION_MINS = 60
+"""If a thumbnail was downloaded this many seconds ago, do not download it again.
+
+If the local timestamp of the thumbnail file indicates that it was downloaded
+less that this duration ago, do not attempt a re-download. Even though the
+downloader supports conditional downloads, and won't actually re-download when
+the server responds with a `304 Not Modified`, doing that request still takes
+time and requires resources on the server.
+"""
 
 
 class RemoteAssetListingDownloader:
@@ -211,7 +224,9 @@ class RemoteAssetListingDownloader:
                                  http_req_descr: http_dl.RequestDescription,
                                  unsafe_local_file: Path,
                                  ) -> None:
-        _, used_unsafe_file = self._parse_api_model(unsafe_local_file, api_models.AssetLibraryIndexPageV1)
+        asset_page, used_unsafe_file = self._parse_api_model(unsafe_local_file, api_models.AssetLibraryIndexPageV1)
+
+        self._queue_thumbnail_downloads(asset_page)
 
         # The file passed validation, so can be marked safe.
         if used_unsafe_file:
@@ -242,7 +257,24 @@ class RemoteAssetListingDownloader:
             abs_path.unlink()
 
         self.report({'INFO'}, "Asset library index downloaded")
-        self.shutdown()
+
+        if self._bg_downloader.all_downloads_done:
+            # There were no new downloads queued for this page (like thumbnails), so we're done.
+            self.shutdown()
+
+    def on_thumbnail_downloaded(self,
+                                http_req_descr: http_dl.RequestDescription,
+                                local_file: Path,
+                                ) -> None:
+        # Indicate to a future run that we just confirmed this file is still fresh.
+        local_file.touch()
+
+        # TODO: maybe poke the asset browser to load this thumbnail? Not sure if it's even necessary.
+        # TODO: convert the file to the right format
+
+        if self._num_asset_pages_pending == 0 and self._bg_downloader.all_downloads_done:
+            # Done downloading everything, let's shut down.
+            self.shutdown()
 
     def _parse_api_model(self, unsafe_local_file: Path, api_model: Type[PydanticModel]) -> tuple[PydanticModel, bool]:
         """Use a Pydantic model to parse & validate a JSON file.
@@ -302,15 +334,89 @@ class RemoteAssetListingDownloader:
         self.report({'ERROR'}, "Asset library index had an issue, download aborted")
         self.shutdown()
 
-    def _queue_download(self, relative_url: str, relative_path: Path | str,
+    def _queue_download(self, relative_url: str, download_to_path: Path | str,
                         on_done: Callable[[http_dl.RequestDescription, Path], None]) -> Path:
         """Queue up this download, returning the path to which it will be downloaded."""
         remote_url = urllib.parse.urljoin(self._remote_url, relative_url)
-        download_to_path = self._local_path / relative_path
+        download_to_path = self._local_path / download_to_path
 
         self._bg_downloader.queue_download(remote_url, download_to_path, on_done)
 
         return download_to_path
+
+    def _queue_thumbnail_downloads(self, asset_page: api_models.AssetLibraryIndexPageV1) -> None:
+        """Queue the download of all the thumbnails of all the assets in this page."""
+
+        # TODO: after all thumbnails of all asset listing pages have been
+        # processed, delete the ones that are no longer referenced.
+
+        num_queued_thumbs = 0
+        for asset in asset_page.assets:
+            if not asset.thumbnail_url:
+                # TODO: delete any existing thumbnail?
+                continue
+
+            # TODO: check if there already is a local version of this asset. If so,
+            # the thumbnail of that asset takes presence over any remote thumbnail.
+            # and we don't have to bother downloading it.
+
+            thumbnail_path = self._thumbnail_download_path(asset)
+            if not thumbnail_path:
+                continue
+
+            # Check the age of the downloaded thumbnail. If it's too young,
+            # don't try a conditional download to avoid DOSsing the server.
+            if thumbnail_path.exists():
+                stat = thumbnail_path.stat()
+                now = time.time()
+                if (now - stat.st_mtime) / 60 < THUMBNAIL_FRESH_DURATION_MINS:
+                    continue
+
+            self._queue_download(asset.thumbnail_url, thumbnail_path, self.on_thumbnail_downloaded)
+            num_queued_thumbs += 1
+
+            # Because there can be a _lot_ of thumbnails in one page, call the
+            # update function periodically. Without this, the pipe between
+            # processes can deadlock.
+            if num_queued_thumbs % 100 == 0:
+                self._bg_downloader.update()
+
+    def _thumbnail_download_path(self, asset: api_models.AssetV1) -> Path | None:
+        """Construct the download path suitable for this asset's thumbnail.
+
+        This assumes that the URL already ends in the correct extension. This is
+        not always the case, and using the content type in the HTTP response
+        headers is technically a possibility. Keeping this limitation makes the
+        code considerably simpler, as now the download filename is known
+        beforehand.
+        """
+
+        assert asset.thumbnail_url
+
+        abs_url = urllib.parse.urljoin(self._remote_url, asset.thumbnail_url)
+
+        try:
+            split_url = urllib.parse.urlsplit(abs_url)
+        except ValueError as ex:
+            logger.warning("thumbnail has invalid URL (%s): %s", abs_url, ex)
+            return None
+
+        url_path = PurePosixPath(urllib.parse.unquote(split_url.path))
+        url_suffix = url_path.suffix.lower()
+        if url_suffix not in {'.webp', '.png'}:
+            logger.warning(
+                "thumbnail url (%s) does not end in .webp or .png (but in %s), ignoring",
+                abs_url,
+                url_suffix)
+            return None
+
+        # Construct a directory & filename by hashing:
+        hash = hashlib.sha256(f"{asset.archive_url}/{asset.id_type}/{asset.name}".encode()).hexdigest()
+        relative_path = Path(hash[:2], hash[2:]).with_suffix(url_path.suffix)
+
+        # Return the absolute path.
+        absolute_path = self._local_path / "_thumbs" / relative_path
+        return absolute_path
 
     # TODO: implement this in a more useful way:
     def report(self, level: set[str], message: str) -> None:
@@ -334,7 +440,7 @@ class RemoteAssetListingDownloader:
                 # of the reason of the cancellation and thus can provide more info.
                 num_pending = self._bg_downloader.num_pending_downloads
                 if num_pending:
-                    logger.info("Shutting down background downloader, %d downloads pending", num_pending)
+                    logger.warning("Shutting down background downloader, %d downloads pending", num_pending)
 
             self._bg_downloader.shutdown()
         finally:
@@ -362,7 +468,7 @@ class RemoteAssetListingDownloader:
 
     def download_starts(self, http_req_descr: http_dl.RequestDescription) -> None:
         self.report({'INFO'}, "Download starting: {}".format(http_req_descr.url))
-        logger.info("Download starting: %s", http_req_descr)
+        logger.debug("Download starting: %s", http_req_descr)
 
     def already_downloaded(
         self,

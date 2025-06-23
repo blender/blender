@@ -425,6 +425,7 @@ class BackgroundDownloader:
             payload=(http_req_descr, local_path),
         ))
 
+    @property
     def all_downloads_done(self) -> bool:
         return self._num_pending_downloads == 0
 
