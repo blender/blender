@@ -26,6 +26,7 @@
 #include "BKE_node.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_scene.hh"
+#include "BKE_scene_runtime.hh"
 #include "BKE_undo_system.hh"
 
 #include "../depsgraph/DEG_depsgraph.hh"
@@ -228,6 +229,17 @@ static void memfile_undosys_step_decode(
       if (id->tag & ID_TAG_UNDO_OLD_ID_REUSED_UNCHANGED) {
         BKE_library_foreach_ID_link(
             bmain, id, memfile_undosys_step_id_reused_cb, nullptr, IDWALK_READONLY);
+      }
+
+      if (GS(id->name) == ID_SCE) {
+        Scene *scene = reinterpret_cast<Scene *>(id);
+        if (scene->compositing_node_group) {
+          /* Ensure undo calls from the UI update the interactive compositor preview depsgraph, see
+           * #compo_initjob. */
+          blender::bke::CompositorRuntime &compositor_runtime = scene->runtime->compositor;
+          DEG_graph_free(compositor_runtime.preview_depsgraph);
+          compositor_runtime.preview_depsgraph = nullptr;
+        }
       }
 
       /* NOTE: Tagging `ID_RECALC_SYNC_TO_EVAL` here should not be needed in practice, since
