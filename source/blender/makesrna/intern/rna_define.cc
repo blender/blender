@@ -4691,6 +4691,14 @@ void RNA_def_function_output(FunctionRNA * /*func*/, PropertyRNA *ret)
 void RNA_def_function_flag(FunctionRNA *func, int flag)
 {
   func->flag |= flag;
+
+  if (func->flag & FUNC_USE_SELF_TYPE) {
+    BLI_assert_msg((func->flag & FUNC_NO_SELF) != 0, "FUNC_USE_SELF_TYPE requires FUNC_NO_SELF");
+  }
+  if (func->flag & FUNC_SELF_AS_RNA) {
+    BLI_assert_msg((func->flag & FUNC_NO_SELF) == 0,
+                   "FUNC_SELF_AS_RNA and FUNC_NO_SELF are mutually exclusive");
+  }
 }
 
 void RNA_def_function_ui_description(FunctionRNA *func, const char *description)
