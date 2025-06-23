@@ -334,8 +334,8 @@ const char *IMB_colormanagement_display_get_default_view_transform_name(
 /** \name View Functions
  * \{ */
 
-int IMB_colormanagement_view_get_named_index(const char *display, const char *name);
-const char *IMB_colormanagement_view_get_indexed_name(const char *display, int index);
+int IMB_colormanagement_view_get_id_by_name(const char *name);
+const char *IMB_colormanagement_view_get_name_by_id(int index);
 
 /** \} */
 
