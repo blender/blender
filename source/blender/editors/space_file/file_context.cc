@@ -83,7 +83,7 @@ int /*eContextResult*/ file_context(const bContext *C,
 
   if (CTX_data_equals(member, "asset")) {
     FileDirEntry *file = filelist_file(sfile->files, params->active_file);
-    if (file == nullptr) {
+    if (file == nullptr || !file->asset) {
       return CTX_RESULT_NO_DATA;
     }
 
