@@ -39,6 +39,7 @@
 #include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
+#include "BLI_vector_set.hh"
 
 #include "BKE_appdir.hh"
 #include "BKE_colortools.hh"
@@ -67,6 +68,7 @@ namespace math = blender::math;
  * \{ */
 
 static std::unique_ptr<ocio::Config> g_config = nullptr;
+static blender::VectorSet<blender::StringRefNull> g_all_view_names;
 
 #define DISPLAY_BUFFER_CHANNELS 4
 
@@ -307,12 +309,10 @@ static void colormanage_cachedata_set(ImBuf *ibuf, ColormanageCacheData *data)
 
 static void colormanage_view_settings_to_cache(ImBuf *ibuf,
                                                ColormanageCacheViewSettings *cache_view_settings,
-                                               const ColorManagedViewSettings *view_settings,
-                                               const ColorManagedDisplaySettings *display_settings)
+                                               const ColorManagedViewSettings *view_settings)
 {
   int look = IMB_colormanagement_look_get_named_index(view_settings->look);
-  int view = IMB_colormanagement_view_get_named_index(display_settings->display_device,
-                                                      view_settings->view_transform);
+  int view = IMB_colormanagement_view_get_id_by_name(view_settings->view_transform);
 
   cache_view_settings->look = look;
   cache_view_settings->view = view;
@@ -542,13 +542,19 @@ static bool colormanage_load_config(ocio::Config &config)
 
   for (const int display_index : blender::IndexRange(g_config->get_num_displays())) {
     const ocio::Display *display = g_config->get_display_by_index(display_index);
-    if (display->get_num_views() <= 0) {
+    const int num_views = display->get_num_views();
+    if (num_views <= 0) {
       if (!G.quiet) {
         printf("Color management: Error, could not find any views for display %s\n",
                display->name().c_str());
       }
       ok = false;
       break;
+    }
+
+    for (const int view_index : blender::IndexRange(num_views)) {
+      const ocio::View *view = display->get_view_by_index(view_index);
+      g_all_view_names.add(view->name());
     }
   }
 
@@ -571,6 +577,7 @@ static bool colormanage_load_config(ocio::Config &config)
 static void colormanage_free_config()
 {
   g_config = nullptr;
+  g_all_view_names.clear();
 }
 
 void colormanagement_init()
@@ -935,7 +942,8 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
     else if (!colormanage_compatible_look(look, view_settings->view_transform)) {
       if (!G.quiet) {
         printf(
-            "Color management: %s look \"%s\" is not compatible with view \"%s\", setting default "
+            "Color management: %s look \"%s\" is not compatible with view \"%s\", setting "
+            "default "
             "\"%s\".\n",
             what,
             view_settings->look,
@@ -2321,8 +2329,8 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
    * it leads to bad artifacts especially when saving byte images.
    *
    * What we do here is we're overlaying our image on top of background color (which is currently
-   * black). This is quite much the same as what Gimp does and it seems to be what artists expects
-   * from saving.
+   * black). This is quite much the same as what Gimp does and it seems to be what artists
+   * expects from saving.
    *
    * Do a conversion here, so image format writers could happily assume all the alpha tricks were
    * made already. helps keep things locally here, not spreading it to all possible image writers
@@ -2483,8 +2491,7 @@ uchar *IMB_display_buffer_acquire(ImBuf *ibuf,
     }
   }
 
-  colormanage_view_settings_to_cache(
-      ibuf, &cache_view_settings, applied_view_settings, display_settings);
+  colormanage_view_settings_to_cache(ibuf, &cache_view_settings, applied_view_settings);
   colormanage_display_settings_to_cache(&cache_display_settings, display_settings);
 
   if (ibuf->invalid_rect.xmin != ibuf->invalid_rect.xmax) {
@@ -2685,34 +2692,22 @@ const char *IMB_colormanagement_display_get_default_view_transform_name(
 /** \name View Functions
  * \{ */
 
-int IMB_colormanagement_view_get_named_index(const char *display, const char *name)
+int IMB_colormanagement_view_get_id_by_name(const char *name)
 {
-  const ocio::Display *ocio_display = g_config->get_display_by_name(display);
-  if (!ocio_display) {
-    return -1;
-  }
-
-  const ocio::View *view = ocio_display->get_view_by_name(name);
-  if (!view) {
-    return -1;
-  }
-
-  return view->index;
+  return g_all_view_names.index_of(name);
 }
 
-const char *IMB_colormanagement_view_get_indexed_name(const char *display, const int index)
+const char *IMB_colormanagement_view_get_name_by_id(const int index)
 {
-  const ocio::Display *ocio_display = g_config->get_display_by_name(display);
-  if (!ocio_display) {
+  /* The code is expected to be used for the purposes of the EnumPropertyItem and maintaining the
+   * DNA values from RNA's get() and set(). It is unexpected that an invalid index will be passed
+   * here, as it will indicate a coding error somewhere else. */
+  if (index < 0 || index >= g_all_view_names.size()) {
+    BLI_assert(0);
     return "";
   }
 
-  const ocio::View *view = ocio_display->get_view_by_index(index);
-  if (!view) {
-    return "";
-  }
-
-  return view->name().c_str();
+  return g_all_view_names[index].c_str();
 }
 
 const char *IMB_colormanagement_view_get_default_name(const char *display_name)
@@ -2913,7 +2908,7 @@ void IMB_colormanagement_view_items_add(EnumPropertyItem **items,
 
     EnumPropertyItem item;
 
-    item.value = view->index;
+    item.value = IMB_colormanagement_view_get_id_by_name(view->name().c_str());
     item.name = view->name().c_str();
     item.identifier = view->name().c_str();
     item.icon = 0;
@@ -3160,8 +3155,7 @@ static void imb_partial_display_buffer_update_ex(
   if (ibuf->display_buffer_flags) {
     int view_flag, display_index;
 
-    colormanage_view_settings_to_cache(
-        ibuf, &cache_view_settings, view_settings, display_settings);
+    colormanage_view_settings_to_cache(ibuf, &cache_view_settings, view_settings);
     colormanage_display_settings_to_cache(&cache_display_settings, display_settings);
 
     view_flag = 1 << cache_view_settings.view;
