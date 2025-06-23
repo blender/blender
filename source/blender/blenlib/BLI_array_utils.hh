@@ -326,6 +326,7 @@ template<typename T> inline void fill_index_range(MutableSpan<T> span, const T s
 template<typename T>
 bool indexed_data_equal(const Span<T> all_values, const Span<int> indices, const Span<T> values)
 {
+  BLI_assert(indices.size() == values.size());
   for (const int i : indices.index_range()) {
     if (all_values[indices[i]] != values[i]) {
       return false;
