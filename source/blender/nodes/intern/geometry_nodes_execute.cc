@@ -565,7 +565,7 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
     }
     case SOCK_STRING: {
       std::string value = IDP_String(&property);
-      new (r_value) bke::SocketValueVariant(std::move(value));
+      bke::SocketValueVariant::ConstructIn(r_value, std::move(value));
       break;
     }
     case SOCK_MENU: {
@@ -662,14 +662,14 @@ static void initialize_group_input(const bNodeTree &tree,
   if (attribute_name && bke::allow_procedural_attribute_access(*attribute_name)) {
     fn::GField attribute_field = bke::AttributeFieldInput::Create(*attribute_name,
                                                                   *typeinfo->base_cpp_type);
-    new (r_value) bke::SocketValueVariant(std::move(attribute_field));
+    bke::SocketValueVariant::ConstructIn(r_value, std::move(attribute_field));
   }
   else if (is_layer_selection_field(io_input)) {
     const IDProperty *property_layer_name = properties.lookup_key_as(io_input.identifier);
     StringRef layer_name = IDP_String(property_layer_name);
-    const fn::GField selection_field(
-        std::make_shared<bke::NamedLayerSelectionFieldInput>(layer_name), 0);
-    new (r_value) bke::SocketValueVariant(std::move(selection_field));
+    fn::GField selection_field(std::make_shared<bke::NamedLayerSelectionFieldInput>(layer_name),
+                               0);
+    bke::SocketValueVariant::ConstructIn(r_value, std::move(selection_field));
   }
   else {
     init_socket_cpp_value_from_property(*property, socket_data_type, r_value);

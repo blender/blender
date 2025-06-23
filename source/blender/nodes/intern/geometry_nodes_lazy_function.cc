@@ -303,7 +303,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
         std::move(socket_inspection_name));
 
     void *r_value = params.get_output_data_ptr(lf_index);
-    new (r_value) SocketValueVariant(GField(std::move(attribute_field)));
+    SocketValueVariant::ConstructIn(r_value, GField(std::move(attribute_field)));
     params.output_set(lf_index);
   }
 
