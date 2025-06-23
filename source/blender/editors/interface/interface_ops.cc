@@ -514,44 +514,10 @@ static void UI_OT_unset_property_button(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Define Override Type Operator
+/** \name Add Override Operator
  * \{ */
 
-/* Note that we use different values for UI/UX than 'real' override operations, user does not care
- * whether it's added or removed for the differential operation e.g. */
-enum {
-  UIOverride_Type_NOOP = 0,
-  UIOverride_Type_Replace = 1,
-  UIOverride_Type_Difference = 2, /* Add/subtract */
-  UIOverride_Type_Factor = 3,     /* Multiply */
-  /* TODO: should/can we expose insert/remove ones for collections? Doubt it... */
-};
-
-static EnumPropertyItem override_type_items[] = {
-    {UIOverride_Type_NOOP,
-     "NOOP",
-     0,
-     "NoOp",
-     "'No-Operation', place holder preventing automatic override to ever affect the property"},
-    {UIOverride_Type_Replace,
-     "REPLACE",
-     0,
-     "Replace",
-     "Completely replace value from linked data by local one"},
-    {UIOverride_Type_Difference,
-     "DIFFERENCE",
-     0,
-     "Difference",
-     "Store difference to linked data value"},
-    {UIOverride_Type_Factor,
-     "FACTOR",
-     0,
-     "Factor",
-     "Store factor to linked data value (useful e.g. for scale)"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static bool override_type_set_button_poll(bContext *C)
+static bool override_add_button_poll(bContext *C)
 {
   PointerRNA ptr;
   PropertyRNA *prop;
@@ -565,36 +531,15 @@ static bool override_type_set_button_poll(bContext *C)
   return (ptr.data && prop && (override_status & RNA_OVERRIDE_STATUS_OVERRIDABLE));
 }
 
-static wmOperatorStatus override_type_set_button_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus override_add_button_exec(bContext *C, wmOperator *op)
 {
   PointerRNA ptr;
   PropertyRNA *prop;
   int index;
   bool created;
   const bool all = RNA_boolean_get(op->ptr, "all");
-  const int op_type = RNA_enum_get(op->ptr, "type");
 
-  short operation;
-
-  switch (op_type) {
-    case UIOverride_Type_NOOP:
-      operation = LIBOVERRIDE_OP_NOOP;
-      break;
-    case UIOverride_Type_Replace:
-      operation = LIBOVERRIDE_OP_REPLACE;
-      break;
-    case UIOverride_Type_Difference:
-      /* override code will automatically switch to subtract if needed. */
-      operation = LIBOVERRIDE_OP_ADD;
-      break;
-    case UIOverride_Type_Factor:
-      operation = LIBOVERRIDE_OP_MULTIPLY;
-      break;
-    default:
-      operation = LIBOVERRIDE_OP_REPLACE;
-      BLI_assert(0);
-      break;
-  }
+  const short operation = LIBOVERRIDE_OP_REPLACE;
 
   /* try to reset the nominated setting to its default value */
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
@@ -624,43 +569,22 @@ static wmOperatorStatus override_type_set_button_exec(bContext *C, wmOperator *o
   return operator_button_property_finish(C, &ptr, prop);
 }
 
-static wmOperatorStatus override_type_set_button_invoke(bContext *C,
-                                                        wmOperator *op,
-                                                        const wmEvent * /*event*/)
-{
-#if 0 /* Disabled for now */
-  return WM_menu_invoke_ex(C, op, blender::wm::OpCallContext::InvokeDefault);
-#else
-  RNA_enum_set(op->ptr, "type", LIBOVERRIDE_OP_REPLACE);
-  return override_type_set_button_exec(C, op);
-#endif
-}
-
-static void UI_OT_override_type_set_button(wmOperatorType *ot)
+static void UI_OT_override_add_button(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Define Override Type";
-  ot->idname = "UI_OT_override_type_set_button";
-  ot->description = "Create an override operation, or set the type of an existing one";
+  ot->name = "Add Override";
+  ot->idname = "UI_OT_override_add_button";
+  ot->description = "Create an override operation";
 
   /* callbacks */
-  ot->poll = override_type_set_button_poll;
-  ot->exec = override_type_set_button_exec;
-  ot->invoke = override_type_set_button_invoke;
+  ot->poll = override_add_button_poll;
+  ot->exec = override_add_button_exec;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(
-      ot->srna, "all", true, "All", "Reset to default values all elements of the array");
-  ot->prop = RNA_def_enum(ot->srna,
-                          "type",
-                          override_type_items,
-                          UIOverride_Type_Replace,
-                          "Type",
-                          "Type of override operation");
-  /* TODO: add itemf callback, not all options are available for all data types... */
+  RNA_def_boolean(ot->srna, "all", true, "All", "Add overrides for all elements of the array");
 }
 
 static bool override_remove_button_poll(bContext *C)
@@ -3011,7 +2935,7 @@ void ED_operatortypes_ui()
   WM_operatortype_append(UI_OT_view_item_rename);
   WM_operatortype_append(UI_OT_view_item_select);
 
-  WM_operatortype_append(UI_OT_override_type_set_button);
+  WM_operatortype_append(UI_OT_override_add_button);
   WM_operatortype_append(UI_OT_override_remove_button);
   WM_operatortype_append(UI_OT_override_idtemplate_make);
   WM_operatortype_append(UI_OT_override_idtemplate_reset);
