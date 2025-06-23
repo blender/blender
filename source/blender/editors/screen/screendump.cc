@@ -213,7 +213,7 @@ static void screenshot_draw(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   ScreenshotData *scd = static_cast<ScreenshotData *>(op->customdata);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   /* image template */

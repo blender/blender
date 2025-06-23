@@ -81,7 +81,7 @@ static void wm_stl_export_draw(bContext *C, wmOperator *op)
   uiLayout *layout = op->layout;
   PointerRNA *ptr = op->ptr;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = layout->panel(C, "STL_export_general", false, IFACE_("General"))) {
@@ -243,7 +243,7 @@ static bool wm_stl_import_check(bContext * /*C*/, wmOperator *op)
 
 static void ui_stl_import_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = layout->panel(C, "STL_import_general", false, IFACE_("General"))) {

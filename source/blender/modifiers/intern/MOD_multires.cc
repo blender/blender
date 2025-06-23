@@ -298,7 +298,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(true);
   col->prop(ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
@@ -403,7 +403,7 @@ static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
   row = &col->row(false);
   if (is_external) {
     row->op("OBJECT_OT_multires_external_pack", IFACE_("Pack External"), ICON_NONE);
-    uiLayoutSetPropSep(col, true);
+    col->use_property_split_set(true);
     row = &col->row(false);
     row->prop(ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
@@ -421,7 +421,7 @@ static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 
   bool has_displacement = RNA_int_get(ptr, "total_levels") != 0;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->active_set(!has_displacement);
 

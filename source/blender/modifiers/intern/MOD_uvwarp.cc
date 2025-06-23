@@ -249,7 +249,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA warp_obj_ptr;
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   uiItemPointerR(
       layout, ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
@@ -288,7 +288,7 @@ static void transform_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);

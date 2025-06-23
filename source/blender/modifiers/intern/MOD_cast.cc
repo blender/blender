@@ -470,7 +470,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA cast_object_ptr = RNA_pointer_get(ptr, "object");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "cast_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

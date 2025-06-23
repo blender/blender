@@ -347,7 +347,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(true);
   col->prop(ptr, "object_from", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -384,7 +384,7 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 
   bool use_falloff = (RNA_enum_get(ptr, "falloff_type") != eWarp_Falloff_None);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "falloff_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -409,7 +409,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
 
   uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->prop(ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);

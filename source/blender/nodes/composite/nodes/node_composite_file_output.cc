@@ -331,7 +331,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 
   {
     uiLayout *column = &layout->column(true);
-    uiLayoutSetPropSep(column, true);
+    column->use_property_split_set(true);
     uiLayoutSetPropDecorate(column, false);
     column->prop(ptr, "save_as_render", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
@@ -340,7 +340,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 
   if (!save_as_render) {
     uiLayout *col = &layout->column(true);
-    uiLayoutSetPropSep(col, true);
+    col->use_property_split_set(true);
     uiLayoutSetPropDecorate(col, false);
 
     PointerRNA linear_settings_ptr = RNA_pointer_get(&imfptr, "linear_colorspace_settings");
@@ -450,7 +450,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
       if (!use_node_format) {
         {
           uiLayout *column = &layout->column(true);
-          uiLayoutSetPropSep(column, true);
+          column->use_property_split_set(true);
           uiLayoutSetPropDecorate(column, false);
           column->prop(&active_input_ptr,
                        "save_as_render",
@@ -466,7 +466,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 
         if (!use_color_management) {
           uiLayout *col = &layout->column(true);
-          uiLayoutSetPropSep(col, true);
+          col->use_property_split_set(true);
           uiLayoutSetPropDecorate(col, false);
 
           PointerRNA linear_settings_ptr = RNA_pointer_get(&imfptr, "linear_colorspace_settings");

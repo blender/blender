@@ -269,7 +269,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   PointerRNA hook_object_ptr = RNA_pointer_get(ptr, "object");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   uiLayout *col = &layout->column(false);
   col->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -284,7 +284,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   layout->prop(ptr, "strength", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (uiLayout *sub = layout->panel_prop(C, ptr, "open_falloff_panel", IFACE_("Falloff"))) {
-    uiLayoutSetPropSep(sub, true);
+    sub->use_property_split_set(true);
 
     sub->prop(ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
 

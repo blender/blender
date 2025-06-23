@@ -247,7 +247,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   int wrap_method = RNA_enum_get(ptr, "wrap_method");
   uiLayout *col, *row;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "wrap_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -285,7 +285,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
   layout->prop(ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "smooth_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(ptr, "smooth_step", UI_ITEM_NONE, IFACE_("Repeat"), ICON_NONE);

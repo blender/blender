@@ -58,7 +58,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ForeachGeometryElementInputItemsAccessor>(
           ntree, output_node, [&](PointerRNA *item_ptr) {
-            uiLayoutSetPropSep(panel, true);
+            panel->use_property_split_set(true);
             uiLayoutSetPropDecorate(panel, false);
             panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           });
@@ -70,7 +70,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ForeachGeometryElementMainItemsAccessor>(
           ntree, output_node, [&](PointerRNA *item_ptr) {
-            uiLayoutSetPropSep(panel, true);
+            panel->use_property_split_set(true);
             uiLayoutSetPropDecorate(panel, false);
             panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           });
@@ -84,7 +84,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
           ntree, output_node, [&](PointerRNA *item_ptr) {
             NodeForeachGeometryElementGenerationItem &active_item =
                 storage.generation_items.items[storage.generation_items.active_index];
-            uiLayoutSetPropSep(panel, true);
+            panel->use_property_split_set(true);
             uiLayoutSetPropDecorate(panel, false);
             panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
             if (active_item.socket_type != SOCK_GEOMETRY) {

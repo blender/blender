@@ -792,7 +792,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   bool is_bind = RNA_boolean_get(ptr, "is_bind");
   bool has_vertex_group = RNA_string_length(ptr, "vertex_group") != 0;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "iterations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

@@ -2019,7 +2019,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA op_ptr;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "branch_smoothing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

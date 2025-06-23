@@ -192,6 +192,12 @@ struct uiLayout : uiItem {
   /** Sets a fixed height size for this layout. */
   void ui_units_y_set(float height);
 
+  bool use_property_split() const;
+  /**
+   * Sets when to split property's label into a separate button when adding new property buttons.
+   */
+  void use_property_split_set(bool value);
+
   int width() const;
 
   /** Sub-layout items. */
@@ -659,10 +665,8 @@ void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout);
  */
 void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout);
 
-void uiLayoutSetPropSep(uiLayout *layout, bool is_sep);
 void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep);
 int uiLayoutGetLocalDir(const uiLayout *layout);
-bool uiLayoutGetPropSep(uiLayout *layout);
 bool uiLayoutGetPropDecorate(uiLayout *layout);
 
 int uiLayoutListItemPaddingWidth();

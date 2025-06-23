@@ -448,7 +448,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row = &layout->row(false);
   row->prop(ptr, "deform_method", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   if (ELEM(deform_method, MOD_SIMPLEDEFORM_MODE_TAPER, MOD_SIMPLEDEFORM_MODE_STRETCH)) {
     layout->prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -474,7 +474,7 @@ static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
 
   int deform_method = RNA_enum_get(ptr, "deform_method");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "limits", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 

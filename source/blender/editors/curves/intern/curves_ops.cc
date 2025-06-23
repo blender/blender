@@ -1010,7 +1010,7 @@ static void select_ends_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   uiLayout *col = &layout->column(true);
   uiLayoutSetPropDecorate(col, false);

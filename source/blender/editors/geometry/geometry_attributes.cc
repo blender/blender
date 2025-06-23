@@ -649,7 +649,7 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
 static void geometry_color_attribute_add_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   layout->prop(op->ptr, "name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -882,7 +882,7 @@ static wmOperatorStatus geometry_attribute_convert_invoke(bContext *C,
 static void geometry_attribute_convert_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   Object *ob = object::context_object(C);
@@ -1012,7 +1012,7 @@ static wmOperatorStatus geometry_color_attribute_convert_invoke(bContext *C,
 static void geometry_color_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   layout->prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);

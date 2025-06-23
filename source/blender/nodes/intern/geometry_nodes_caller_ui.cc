@@ -433,7 +433,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
   }
 
   if (type == SOCK_BOOLEAN) {
-    uiLayoutSetPropSep(prop_row, false);
+    prop_row->use_property_split_set(false);
     prop_row->alignment_set(blender::ui::LayoutAlign::Expand);
   }
 
@@ -801,7 +801,7 @@ static void draw_output_attributes_panel(DrawGroupInputsContext &ctx, uiLayout *
 static void draw_bake_panel(uiLayout *layout, PointerRNA *modifier_ptr)
 {
   uiLayout *col = &layout->column(false);
-  uiLayoutSetPropSep(col, true);
+  col->use_property_split_set(true);
   uiLayoutSetPropDecorate(col, false);
   col->prop(modifier_ptr, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(modifier_ptr, "bake_directory", UI_ITEM_NONE, IFACE_("Bake Path"), ICON_NONE);
@@ -934,7 +934,7 @@ void draw_geometry_nodes_modifier_ui(const bContext &C, PointerRNA *modifier_ptr
         RNA_string_set(&props, "input_name", io_socket.identifier);
       };
 
-  uiLayoutSetPropSep(&layout, true);
+  layout.use_property_split_set(true);
   /* Decorators are added manually for supported properties because the
    * attribute/value toggle requires a manually built layout anyway. */
   uiLayoutSetPropDecorate(&layout, false);
@@ -1010,7 +1010,7 @@ void draw_geometry_nodes_operator_redo_ui(const bContext &C,
       };
   ctx.use_name_for_ids = true;
 
-  uiLayoutSetPropSep(&layout, true);
+  layout.use_property_split_set(true);
   /* Decorators are added manually for supported properties because the
    * attribute/value toggle requires a manually built layout anyway. */
   uiLayoutSetPropDecorate(&layout, false);

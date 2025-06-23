@@ -101,7 +101,7 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   const bool use_layer_group_filter = RNA_boolean_get(ptr, "use_layer_group_filter");
   uiLayout *row, *col, *sub, *subsub;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(true);
   row = &col->row(true);
@@ -145,7 +145,7 @@ void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, Poi
   const bool use_material_pass = RNA_boolean_get(ptr, "use_material_pass_filter");
   uiLayout *row, *col, *sub, *subsub;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(true);
   row = &col->row(true);
@@ -171,7 +171,7 @@ void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   bool has_vertex_group = RNA_string_length(ptr, "vertex_group_name") != 0;
   uiLayout *row, *col, *sub;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(true);
   row = &col->row(true);
@@ -188,7 +188,7 @@ void draw_custom_curve_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   bool use_custom_curve = RNA_boolean_get(ptr, "use_custom_curve");
   uiLayout *row;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   row = &layout->row(true);
   uiLayoutSetPropDecorate(row, false);
   row->prop(ptr, "use_custom_curve", UI_ITEM_NONE, IFACE_("Custom Curve"), ICON_NONE);

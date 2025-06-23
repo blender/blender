@@ -189,7 +189,7 @@ static wmOperatorStatus grease_pencil_import_svg_exec(bContext *C, wmOperator *o
 static void grease_pencil_import_svg_draw(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
   uiLayout *box = &layout->box();
   uiLayout *col = &box->column(false);
@@ -362,7 +362,7 @@ static void ui_gpencil_export_settings(uiLayout *layout,
 {
   uiLayout *box, *row, *col, *sub;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   box = &layout->box();
@@ -381,7 +381,7 @@ static void ui_gpencil_export_settings(uiLayout *layout,
   sub = &col->column(false);
   sub->prop(ptr, "frame_mode", UI_ITEM_NONE, IFACE_("Frame"), ICON_NONE);
 
-  uiLayoutSetPropSep(box, true);
+  box->use_property_split_set(true);
 
   sub = &col->column(true);
   sub->prop(ptr, "stroke_sample", UI_ITEM_NONE, std::nullopt, ICON_NONE);

@@ -139,7 +139,7 @@ static void graph_panel_cursor(const bContext *C, Panel *panel)
   PointerRNA sceneptr = RNA_id_pointer_create(&scene->id);
   PointerRNA spaceptr = RNA_pointer_create_discrete(&screen->id, &RNA_SpaceGraphEditor, sipo);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   /* 2D-Cursor */
@@ -218,7 +218,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   }
   col->label(name, icon);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   /* RNA-Path Editing - only really should be enabled when things aren't working */
@@ -366,7 +366,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
   block = layout->block();
   // UI_block_func_handle_set(block, do_graph_region_buttons, nullptr);
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   /* only show this info if there are keyframes to edit */

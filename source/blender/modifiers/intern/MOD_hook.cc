@@ -455,7 +455,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA hook_object_ptr = RNA_pointer_get(ptr, "object");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -491,7 +491,7 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 
   bool use_falloff = RNA_enum_get(ptr, "falloff_type") != eWarp_Falloff_None;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
 

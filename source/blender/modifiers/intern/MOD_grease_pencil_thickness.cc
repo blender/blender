@@ -178,7 +178,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "use_uniform_thickness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_boolean_get(ptr, "use_uniform_thickness")) {

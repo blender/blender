@@ -105,7 +105,7 @@ static void wm_ply_export_draw(bContext *C, wmOperator *op)
   uiLayout *layout = op->layout;
   PointerRNA *ptr = op->ptr;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = layout->panel(C, "PLY_export_general", false, IFACE_("General"))) {
@@ -282,7 +282,7 @@ static wmOperatorStatus wm_ply_import_exec(bContext *C, wmOperator *op)
 
 static void ui_ply_import_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = layout->panel(C, "PLY_import_general", false, IFACE_("General"))) {

@@ -246,7 +246,7 @@ static void edbm_intersect_ui(bContext * /*C*/, wmOperator *op)
 
   bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
   row = &layout->row(false);
   row->prop(op->ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
@@ -406,7 +406,7 @@ static void edbm_intersect_boolean_ui(bContext * /*C*/, wmOperator *op)
 
   bool use_exact = RNA_enum_get(op->ptr, "solver") == ISECT_SOLVER_EXACT;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   row = &layout->row(false);

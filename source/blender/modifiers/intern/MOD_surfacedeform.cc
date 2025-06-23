@@ -1586,7 +1586,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   bool is_bound = RNA_boolean_get(ptr, "is_bound");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->active_set(!is_bound);

@@ -401,7 +401,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
           BLI_assert(label_align == UI_BUT_LABEL_ALIGN_SPLIT_COLUMN);
           col = &layout->column(true);
           /* Let uiLayout::prop() create the split layout. */
-          uiLayoutSetPropSep(col, true);
+          col->use_property_split_set(true);
         }
 
         break;

@@ -281,7 +281,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(ptr, "replace_material", UI_ITEM_NONE, IFACE_("Material Override"), ICON_NONE);
@@ -308,7 +308,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (uiLayout *sub = layout->panel_prop(C, ptr, "open_randomize_panel", IFACE_("Randomize"))) {
-    uiLayoutSetPropSep(sub, true);
+    sub->use_property_split_set(true);
     sub->prop(ptr, "random_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
     sub->prop(ptr, "random_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
     sub->prop(ptr, "random_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);

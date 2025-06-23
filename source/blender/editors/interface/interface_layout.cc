@@ -1922,7 +1922,7 @@ static uiLayout *ui_item_prop_split_layout_hack(uiLayout *layout_parent, uiLayou
 
   if (layout_parent->type_ == uiItemType::LayoutRow) {
     /* Prevent further splits within the row. */
-    uiLayoutSetPropSep(layout_parent, false);
+    layout_parent->use_property_split_set(false);
 
     layout_parent->child_items_layout_ = &layout_split->row(true);
     return layout_parent->child_items_layout_;
@@ -5106,14 +5106,14 @@ void uiLayout::emboss_set(blender::ui::EmbossType emboss)
   emboss_ = emboss;
 }
 
-bool uiLayoutGetPropSep(uiLayout *layout)
+bool uiLayout::use_property_split() const
 {
-  return bool(layout->flag_ & uiItemInternalFlag::PropSep);
+  return bool(flag_ & uiItemInternalFlag::PropSep);
 }
 
-void uiLayoutSetPropSep(uiLayout *layout, bool is_sep)
+void uiLayout::use_property_split_set(bool is_sep)
 {
-  SET_FLAG_FROM_TEST(layout->flag_, is_sep, uiItemInternalFlag::PropSep);
+  SET_FLAG_FROM_TEST(flag_, is_sep, uiItemInternalFlag::PropSep);
 }
 
 bool uiLayoutGetPropDecorate(uiLayout *layout)

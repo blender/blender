@@ -80,7 +80,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   int solidify_mode = RNA_enum_get(ptr, "solidify_mode");
   bool has_vertex_group = RNA_string_length(ptr, "vertex_group") != 0;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "solidify_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -132,7 +132,7 @@ static void normals_panel_draw(const bContext * /*C*/, Panel *panel)
 
   int solidify_mode = RNA_enum_get(ptr, "solidify_mode");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->prop(ptr, "use_flip_normals", UI_ITEM_NONE, IFACE_("Flip"), ICON_NONE);
@@ -149,7 +149,7 @@ static void materials_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "material_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col = &layout->column(true);
@@ -170,7 +170,7 @@ static void edge_data_panel_draw(const bContext * /*C*/, Panel *panel)
 
   int solidify_mode = RNA_enum_get(ptr, "solidify_mode");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   if (solidify_mode == MOD_SOLIDIFY_MODE_EXTRUDE) {
     uiLayout *col;
@@ -194,7 +194,7 @@ static void clamp_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->prop(ptr, "thickness_clamp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -211,7 +211,7 @@ static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   uiItemPointerR(

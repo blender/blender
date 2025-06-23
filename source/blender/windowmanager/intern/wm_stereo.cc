@@ -362,7 +362,7 @@ void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)
   PointerRNA stereo3d_format_ptr = RNA_pointer_create_discrete(
       nullptr, &RNA_Stereo3dDisplay, &s3dd->stereo3d_format);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   col = &layout->column(false);

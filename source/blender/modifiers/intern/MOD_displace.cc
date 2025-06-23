@@ -347,7 +347,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   bool has_texture = !RNA_pointer_is_null(&texture_ptr);
   int texture_coords = RNA_enum_get(ptr, "texture_coords");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 

@@ -3931,7 +3931,7 @@ static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
 
   PointerRNA ptr_key = RNA_id_pointer_create((ID *)mesh->key);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   uiItemPointerR(
@@ -5731,7 +5731,7 @@ static void edbm_decimate_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout, *row, *col, *sub;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(op->ptr, "ratio", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -8674,7 +8674,7 @@ static void edbm_point_normals_ui(bContext *C, wmOperator *op)
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   /* Main auto-draw call */
   uiDefAutoButsRNA(layout,
@@ -9166,7 +9166,7 @@ static void edbm_average_normals_ui(bContext *C, wmOperator *op)
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   /* Main auto-draw call */
   uiDefAutoButsRNA(layout,

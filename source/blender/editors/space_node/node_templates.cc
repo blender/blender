@@ -744,7 +744,7 @@ static void ui_node_draw_recursive(uiLayout &layout,
                                                   "";
   PanelLayout panel_layout = layout.panel(&C, panel_id.c_str(), panel_decl.default_collapsed);
   if (panel_toggle_decl) {
-    uiLayoutSetPropSep(panel_layout.header, false);
+    panel_layout.header->use_property_split_set(false);
     uiLayoutSetPropDecorate(panel_layout.header, false);
     PointerRNA toggle_ptr = RNA_pointer_create_discrete(
         &ntree.id, &RNA_NodeSocket, &node.socket_by_decl(*panel_toggle_decl));
@@ -810,7 +810,7 @@ static void ui_node_draw_node(
   else {
     if (node.typeinfo->draw_buttons) {
       if (node.type_legacy != NODE_GROUP) {
-        uiLayoutSetPropSep(&layout, true);
+        layout.use_property_split_set(true);
         node.typeinfo->draw_buttons(&layout, &C, &nodeptr);
       }
     }

@@ -1627,7 +1627,7 @@ static wmOperatorStatus sequencer_split_invoke(bContext *C, wmOperator *op, cons
 static void sequencer_split_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   uiLayoutSetPropDecorate(layout, false);
 
   uiLayout *row = &layout->row(false);

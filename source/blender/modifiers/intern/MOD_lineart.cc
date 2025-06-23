@@ -227,7 +227,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   const int source_type = RNA_enum_get(ptr, "source_type");
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   layout->enabled_set(!is_baked);
 
   if (!is_first_lineart(*static_cast<const GreasePencilLineartModifierData *>(ptr->data))) {
@@ -280,7 +280,7 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->enabled_set(!is_baked);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   uiLayout *sub = &layout->row(false);
   sub->active_set(has_light);
@@ -358,7 +358,7 @@ static void options_light_reference_draw(const bContext * /*C*/, Panel *panel)
   const bool is_first = is_first_lineart(
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   layout->enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
@@ -389,7 +389,7 @@ static void options_panel_draw(const bContext * /*C*/, Panel *panel)
   const bool is_first = is_first_lineart(
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   layout->enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
@@ -401,7 +401,7 @@ static void options_panel_draw(const bContext * /*C*/, Panel *panel)
   row->prop(ptr, "use_custom_camera", UI_ITEM_NONE, "", ICON_NONE);
   uiLayout *subrow = &row->row(true);
   subrow->active_set(RNA_boolean_get(ptr, "use_custom_camera"));
-  uiLayoutSetPropSep(subrow, true);
+  subrow->use_property_split_set(true);
   subrow->prop(ptr, "source_camera", UI_ITEM_NONE, "", ICON_OBJECT_DATA);
 
   uiLayout *col = &layout->column(true);
@@ -427,7 +427,7 @@ static void occlusion_panel_draw(const bContext * /*C*/, Panel *panel)
   const bool use_multiple_levels = RNA_boolean_get(ptr, "use_multiple_levels");
   const bool show_in_front = RNA_boolean_get(&ob_ptr, "show_in_front");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   layout->enabled_set(!is_baked);
 
   if (!show_in_front) {
@@ -484,7 +484,7 @@ static void material_mask_panel_draw(const bContext * /*C*/, Panel *panel)
   layout->enabled_set(!is_baked);
   layout->active_set(anything_showing_through(ptr));
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->enabled_set(RNA_boolean_get(ptr, "use_material_mask"));
 
@@ -510,7 +510,7 @@ static void intersection_panel_draw(const bContext * /*C*/, Panel *panel)
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
   layout->enabled_set(!is_baked);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->active_set(RNA_boolean_get(ptr, "use_intersection"));
 
@@ -567,7 +567,7 @@ static void face_mark_panel_draw(const bContext * /*C*/, Panel *panel)
     return;
   }
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->active_set(use_mark);
 
@@ -589,7 +589,7 @@ static void chaining_panel_draw(const bContext * /*C*/, Panel *panel)
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
   const bool is_geom = RNA_boolean_get(ptr, "use_geometry_space_chain");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   layout->enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
@@ -629,7 +629,7 @@ static void vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
   const bool is_first = is_first_lineart(
       *static_cast<const GreasePencilLineartModifierData *>(ptr->data));
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
   layout->enabled_set(!is_baked);
 
   if (use_cache && !is_first) {
@@ -657,11 +657,11 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
 
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   if (is_baked) {
     uiLayout *col = &layout->column(false);
-    uiLayoutSetPropSep(col, false);
+    col->use_property_split_set(false);
     col->label(TIP_("Modifier has baked data"), ICON_NONE);
     col->prop(ptr, "is_baked", UI_ITEM_R_TOGGLE, IFACE_("Continue Without Clearing"), ICON_NONE);
   }
@@ -687,7 +687,7 @@ static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
 
   const bool show_in_front = RNA_boolean_get(&ob_ptr, "show_in_front");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "overscan", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(ptr, "use_image_boundary_trimming", UI_ITEM_NONE, std::nullopt, ICON_NONE);

@@ -393,7 +393,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   layout->prop(ptr, "subdivision_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   uiLayout *col = &layout->column(true);
   col->prop(ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
@@ -455,7 +455,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (uiLayout *advanced_layout = layout->panel_prop(
           C, ptr, "open_advanced_panel", IFACE_("Advanced")))
   {
-    uiLayoutSetPropSep(advanced_layout, true);
+    advanced_layout->use_property_split_set(true);
 
     advanced_layout->prop(ptr, "use_limit_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
