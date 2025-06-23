@@ -871,30 +871,13 @@ class NodeTreeMainUpdater {
     }
   }
 
-  static bool socket_type_always_single(const SocketDeclaration &decl)
-  {
-    switch (decl.socket_type) {
-      case SOCK_OBJECT:
-      case SOCK_IMAGE:
-      case SOCK_GEOMETRY:
-      case SOCK_COLLECTION:
-      case SOCK_TEXTURE:
-      case SOCK_MATERIAL:
-      case SOCK_CLOSURE:
-      case SOCK_BUNDLE:
-        return true;
-      default:
-        return false;
-    }
-  }
-
   static int get_input_socket_shape(const SocketDeclaration &decl,
                                     const StructureType structure_type)
   {
     if (decl.identifier == "__extend__") {
       return SOCK_DISPLAY_SHAPE_CIRCLE;
     }
-    if (socket_type_always_single(decl)) {
+    if (socket_type_always_single(decl.socket_type)) {
       return SOCK_DISPLAY_SHAPE_LINE;
     }
     switch (structure_type) {
@@ -917,7 +900,7 @@ class NodeTreeMainUpdater {
     if (decl.identifier == "__extend__") {
       return SOCK_DISPLAY_SHAPE_CIRCLE;
     }
-    if (socket_type_always_single(decl)) {
+    if (socket_type_always_single(decl.socket_type)) {
       return SOCK_DISPLAY_SHAPE_LINE;
     }
     switch (structure_type) {
