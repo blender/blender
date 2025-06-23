@@ -31,12 +31,12 @@
 
 namespace blender::ed::sculpt_paint::smooth {
 
-template<typename T> T calc_average(const Span<T> positions, const Span<int> indices)
+template<typename T> T calc_average(const Span<T> values, const Span<int> indices)
 {
-  const float factor = math::rcp(float(indices.size()));
+  const float factor = math::safe_rcp(float(indices.size()));
   T result{};
   for (const int i : indices) {
-    result += positions[i] * factor;
+    result += values[i] * factor;
   }
   return result;
 }
@@ -78,7 +78,6 @@ void neighbor_data_average_mesh(const Span<T> src,
   BLI_assert(vert_neighbors.size() == dst.size());
 
   for (const int i : vert_neighbors.index_range()) {
-    BLI_assert(!vert_neighbors[i].is_empty());
     dst[i] = calc_average(src, vert_neighbors[i]);
   }
 }
@@ -233,7 +232,7 @@ void average_data_grids(const SubdivCCG &subdiv_ccg,
                             CCG_grid_xy_to_index(key.grid_size, neighbor.x, neighbor.y);
           sum += src[index];
         }
-        dst[node_vert_index] = sum / neighbors.coords.size();
+        dst[node_vert_index] = math::safe_divide(sum, float(neighbors.coords.size()));
       }
     }
   }
@@ -251,7 +250,7 @@ void average_data_bmesh(const Span<T> src, const Set<BMVert *, 0> &verts, const 
     for (const BMVert *neighbor : neighbors) {
       sum += src[BM_elem_index_get(neighbor)];
     }
-    dst[i] = sum / neighbors.size();
+    dst[i] = math::safe_divide(sum, float(neighbors.size()));
     i++;
   }
 }
@@ -273,7 +272,7 @@ template void average_data_bmesh<float3>(Span<float3> src,
 
 static float3 average_positions(const Span<const BMVert *> verts)
 {
-  const float factor = math::rcp(float(verts.size()));
+  const float factor = math::safe_rcp(float(verts.size()));
   float3 result(0);
   for (const BMVert *vert : verts) {
     result += float3(vert->co) * factor;
