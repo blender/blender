@@ -81,9 +81,10 @@ static void create_aligned_handles_masks(const bke::CurvesGeometry &curves,
       selected_right_handles, both_aligned, transform_data.memory);
 }
 
-static void calculate_curve_point_distances_for_proportional_editing(
-    const Span<float3> positions, MutableSpan<float> r_distances)
+static void curve_connected_point_distances(const Span<float3> positions,
+                                            MutableSpan<float> r_distances)
 {
+  BLI_assert(positions.size() == r_distances.size());
   Array<bool, 32> visited(positions.size(), false);
 
   InplacePriorityQueue<float, std::less<>> queue(r_distances);
@@ -94,22 +95,56 @@ static void calculate_curve_point_distances_for_proportional_editing(
     }
     visited[index] = true;
 
-    /* TODO(Falk): Handle cyclic curves here. */
-    if (index > 0 && !visited[index - 1]) {
-      int adjacent = index - 1;
-      float dist = r_distances[index] + math::distance(positions[index], positions[adjacent]);
-      if (dist < r_distances[adjacent]) {
-        r_distances[adjacent] = dist;
-        queue.priority_changed(adjacent);
+    const int left_i = index - 1;
+    if (left_i >= 0 && !visited[left_i]) {
+      const float left_dist = r_distances[index] +
+                              math::distance(positions[index], positions[left_i]);
+      if (left_dist < r_distances[left_i]) {
+        r_distances[left_i] = left_dist;
+        queue.priority_increased(left_i);
       }
     }
-    if (index < positions.size() - 1 && !visited[index + 1]) {
-      int adjacent = index + 1;
-      float dist = r_distances[index] + math::distance(positions[index], positions[adjacent]);
-      if (dist < r_distances[adjacent]) {
-        r_distances[adjacent] = dist;
-        queue.priority_changed(adjacent);
+
+    const int right_i = index + 1;
+    if (right_i < positions.size() && !visited[right_i]) {
+      const float right_dist = r_distances[index] +
+                               math::distance(positions[index], positions[right_i]);
+      if (right_dist < r_distances[right_i]) {
+        r_distances[right_i] = right_dist;
+        queue.priority_increased(right_i);
       }
+    }
+  }
+}
+
+static void cyclic_curve_connected_point_distances(const Span<float3> positions,
+                                                   MutableSpan<float> r_distances)
+{
+  BLI_assert(positions.size() == r_distances.size());
+  Array<bool, 32> visited(positions.size(), false);
+
+  InplacePriorityQueue<float, std::less<>> queue(r_distances);
+  while (!queue.is_empty()) {
+    int64_t index = queue.pop_index();
+    if (visited[index]) {
+      continue;
+    }
+    visited[index] = true;
+
+    const int left_i = math::mod_periodic<int>(index - 1, positions.size());
+    const float left_dist = r_distances[index] +
+                            math::distance(positions[index], positions[left_i]);
+    if (left_dist < r_distances[left_i] && !visited[left_i]) {
+      r_distances[left_i] = left_dist;
+      queue.priority_increased(left_i);
+    }
+
+    const int right_i = math::mod_periodic<int>(index + 1, positions.size());
+    const float right_dist = r_distances[index] +
+                             math::distance(positions[index], positions[right_i]);
+    if (right_dist < r_distances[right_i] && !visited[right_i]) {
+      r_distances[right_i] = right_dist;
+      queue.priority_increased(right_i);
     }
   }
 }
@@ -465,6 +500,7 @@ void curve_populate_trans_data_structs(const TransInfo &t,
                                                false;
   const bool use_individual_origin = (t.around == V3D_AROUND_LOCAL_ORIGINS);
   const Span<float3> point_positions = curves.positions();
+  const VArray<bool> cyclic = curves.cyclic();
   const VArray<bool> point_selection = *curves.attributes().lookup_or_default<bool>(
       ".selection", bke::AttrDomain::Point, true);
   const VArray<int8_t> curve_types = curves.curve_types();
@@ -622,8 +658,16 @@ void curve_populate_trans_data_structs(const TransInfo &t,
             closest_distances[i] = 0.0f;
           }
         }
-        calculate_curve_point_distances_for_proportional_editing(
-            mapped_curve_positions.as_span(), closest_distances.as_mutable_span());
+
+        if (cyclic[curve_i]) {
+          cyclic_curve_connected_point_distances(mapped_curve_positions.as_span(),
+                                                 closest_distances.as_mutable_span());
+        }
+        else {
+          curve_connected_point_distances(mapped_curve_positions.as_span(),
+                                          closest_distances.as_mutable_span());
+        }
+
         for (const int i : closest_distances.index_range()) {
           TransData &td = all_tc_data[map[i]];
           td.dist = closest_distances[i];
