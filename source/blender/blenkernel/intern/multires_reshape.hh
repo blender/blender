@@ -227,8 +227,8 @@ GridCoord multires_reshape_ptex_coord_to_grid(const MultiresReshapeContext *resh
 void multires_reshape_tangent_matrix_for_corner(const MultiresReshapeContext *reshape_context,
                                                 int face_index,
                                                 int corner,
-                                                const float dPdu[3],
-                                                const float dPdv[3],
+                                                const blender::float3 &dPdu,
+                                                const blender::float3 &dPdv,
                                                 blender::float3x3 &r_tangent_matrix);
 
 /**
