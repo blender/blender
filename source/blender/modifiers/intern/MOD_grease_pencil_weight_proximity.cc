@@ -257,7 +257,7 @@ static void panel_draw(const bContext *C, Panel *panel)
       row, ptr, "target_vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
   sub = &row->row(true);
   bool has_output = RNA_string_length(ptr, "target_vertex_group") != 0;
-  uiLayoutSetPropDecorate(sub, false);
+  sub->use_property_decorate_set(false);
   sub->active_set(has_output);
   sub->prop(ptr, "use_invert_output", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 

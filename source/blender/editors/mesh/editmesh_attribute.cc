@@ -245,7 +245,7 @@ static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = &op->layout->column(true);
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   Mesh *mesh = ED_mesh_context(C);
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);

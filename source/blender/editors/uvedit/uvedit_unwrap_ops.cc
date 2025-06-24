@@ -1890,7 +1890,7 @@ static void uv_pack_islands_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
   layout->prop(op->ptr, "shape_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(op->ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   {
@@ -2884,7 +2884,7 @@ static void unwrap_draw(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   /* Main draw call */
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, op->type->srna, op->properties);

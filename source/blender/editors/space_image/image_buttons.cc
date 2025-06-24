@@ -834,7 +834,7 @@ void uiTemplateImage(uiLayout *layout,
 
   layout = &layout->column(false);
   layout->enabled_set(!is_dirty);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   /* Image source */
   {
@@ -990,7 +990,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
   col = &layout->column(false);
 
   col->use_property_split_set(true);
-  uiLayoutSetPropDecorate(col, false);
+  col->use_property_decorate_set(false);
 
   col->prop(imfptr, "file_format", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -1117,7 +1117,7 @@ static void uiTemplateViewsFormat(uiLayout *layout,
   col = &layout->column(false);
 
   col->use_property_split_set(true);
-  uiLayoutSetPropDecorate(col, false);
+  col->use_property_decorate_set(false);
 
   col->prop(ptr, "views_format", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 

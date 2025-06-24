@@ -70,7 +70,7 @@ static void search_link_ops(GatherLinkSearchOpParams &params)
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
   layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 

@@ -426,7 +426,7 @@ static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)
 
   uiLayout *layout = op->layout;
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   PointerRNA *ptr = op->ptr;
   const bUserExtensionRepoAddType repo_type = bUserExtensionRepoAddType(RNA_enum_get(ptr, "type"));

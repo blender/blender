@@ -1511,12 +1511,12 @@ static void rna_UILayout_property_split_set(PointerRNA *ptr, bool value)
 
 static bool rna_UILayout_property_decorate_get(PointerRNA *ptr)
 {
-  return uiLayoutGetPropDecorate(static_cast<uiLayout *>(ptr->data));
+  return static_cast<const uiLayout *>(ptr->data)->use_property_decorate();
 }
 
 static void rna_UILayout_property_decorate_set(PointerRNA *ptr, bool value)
 {
-  uiLayoutSetPropDecorate(static_cast<uiLayout *>(ptr->data), value);
+  static_cast<uiLayout *>(ptr->data)->use_property_decorate_set(value);
 }
 
 /* File Handler */

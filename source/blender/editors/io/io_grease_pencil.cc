@@ -190,7 +190,7 @@ static void grease_pencil_import_svg_draw(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
   uiLayout *box = &layout->box();
   uiLayout *col = &box->column(false);
   col->prop(op->ptr, "resolution", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -363,7 +363,7 @@ static void ui_gpencil_export_settings(uiLayout *layout,
   uiLayout *box, *row, *col, *sub;
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   box = &layout->box();
 

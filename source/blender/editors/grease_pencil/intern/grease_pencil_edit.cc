@@ -371,7 +371,7 @@ static void grease_pencil_simplify_ui(bContext *C, wmOperator *op)
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   layout->prop(&ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -3304,7 +3304,7 @@ static void grease_pencil_reproject_ui(bContext * /*C*/, wmOperator *op)
   const ReprojectMode type = ReprojectMode(RNA_enum_get(op->ptr, "type"));
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
   row = &layout->row(true);
   row->prop(op->ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -4589,7 +4589,7 @@ static void grease_pencil_convert_curve_type_ui(bContext *C, wmOperator *op)
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   layout->prop(&ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

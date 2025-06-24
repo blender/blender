@@ -137,7 +137,7 @@ void modifier_vgroup_ui(uiLayout *layout,
   if (invert_vgroup_prop) {
     uiLayout *sub = &row->row(true);
     sub->active_set(has_vertex_group);
-    uiLayoutSetPropDecorate(sub, false);
+    sub->use_property_decorate_set(false);
     sub->prop(ptr, *invert_vgroup_prop, UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
 }

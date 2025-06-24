@@ -3932,7 +3932,7 @@ static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
   PointerRNA ptr_key = RNA_id_pointer_create((ID *)mesh->key);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   uiItemPointerR(
       layout, op->ptr, "shape", &ptr_key, "key_blocks", std::nullopt, ICON_SHAPEKEY_DATA);

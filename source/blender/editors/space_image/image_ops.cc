@@ -2046,7 +2046,7 @@ static void image_save_as_draw(bContext * /*C*/, wmOperator *op)
   const bool save_as_render = RNA_boolean_get(op->ptr, "save_as_render");
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   /* Operator settings. */
   uiDefAutoButsRNA(layout,
@@ -2700,7 +2700,7 @@ static void image_new_draw(bContext * /*C*/, wmOperator *op)
   /* copy of WM_operator_props_dialog_popup() layout */
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   col = &layout->column(false);
   col->prop(op->ptr, "name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -4237,7 +4237,7 @@ static bool do_fill_tile(PointerRNA *ptr, Image *ima, ImageTile *tile)
 static void draw_fill_tile(PointerRNA *ptr, uiLayout *layout)
 {
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   uiLayout *col = &layout->column(false);
   col->prop(ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -4384,7 +4384,7 @@ static void tile_add_draw(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   col = &layout->column(false);
   col->prop(op->ptr, "number", UI_ITEM_NONE, std::nullopt, ICON_NONE);

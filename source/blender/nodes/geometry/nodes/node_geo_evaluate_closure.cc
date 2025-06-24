@@ -89,7 +89,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   bNode &node = *static_cast<bNode *>(ptr->data);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   layout->op("node.sockets_sync", "Sync", ICON_FILE_REFRESH);
 

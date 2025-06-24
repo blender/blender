@@ -358,7 +358,7 @@ static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
 
     if (profile_type == MOD_BEVEL_PROFILE_CUSTOM) {
       uiLayout *sub = &layout->column(false);
-      uiLayoutSetPropDecorate(sub, false);
+      sub->use_property_decorate_set(false);
       uiTemplateCurveProfile(sub, ptr, "custom_profile");
     }
   }

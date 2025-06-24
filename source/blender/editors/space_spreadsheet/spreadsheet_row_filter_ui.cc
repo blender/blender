@@ -197,7 +197,7 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
   }
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   layout->prop(filter_ptr, "column_name", UI_ITEM_NONE, IFACE_("Column"), ICON_NONE);
 

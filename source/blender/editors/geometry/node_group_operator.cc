@@ -881,7 +881,7 @@ static void run_node_group_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
   Main *bmain = CTX_data_main(C);
   PointerRNA bmain_ptr = RNA_main_pointer_create(bmain);
 

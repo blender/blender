@@ -236,7 +236,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     layout->prop(ptr, "ratio", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
     row = &layout->row(true, IFACE_("Symmetry"));
-    uiLayoutSetPropDecorate(row, false);
+    row->use_property_decorate_set(false);
     sub = &row->row(true);
     sub->prop(ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
     sub = &sub->row(true);

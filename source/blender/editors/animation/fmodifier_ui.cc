@@ -280,7 +280,7 @@ static void fmodifier_frame_range_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = fmodifier_get_pointers(C, panel, nullptr);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   FModifier *fcm = static_cast<FModifier *>(ptr->data);
   layout->active_set(fcm->flag & FMODIFIER_FLAG_RANGERESTRICT);
@@ -366,7 +366,7 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
   layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   layout->prop(ptr, "use_additive", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -449,7 +449,7 @@ static void fn_generator_panel_draw(const bContext *C, Panel *panel)
   layout->prop(ptr, "function_type", UI_ITEM_NONE, "", ICON_NONE);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   col = &layout->column(false);
   col->prop(ptr, "use_additive", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -492,7 +492,7 @@ static void cycles_panel_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = fmodifier_get_pointers(C, panel, nullptr);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   /* Before. */
   col = &layout->column(false);
@@ -536,7 +536,7 @@ static void noise_panel_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = fmodifier_get_pointers(C, panel, nullptr);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   layout->prop(ptr, "blend_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -674,7 +674,7 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
   FMod_Envelope *env = static_cast<FMod_Envelope *>(fcm->data);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   /* General settings. */
   col = &layout->column(true);
@@ -765,7 +765,7 @@ static void limits_panel_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = fmodifier_get_pointers(C, panel, nullptr);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   /* Minimums. */
   col = &layout->column(false);
@@ -827,7 +827,7 @@ static void stepped_panel_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = fmodifier_get_pointers(C, panel, nullptr);
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   /* Stepping Settings. */
   col = &layout->column(false);

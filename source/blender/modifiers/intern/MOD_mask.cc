@@ -773,7 +773,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     row = &layout->row(true);
     row->prop(ptr, "armature", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub = &row->row(true);
-    uiLayoutSetPropDecorate(sub, false);
+    sub->use_property_decorate_set(false);
     sub->prop(ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
   else if (mode == MOD_MASK_MODE_VGROUP) {

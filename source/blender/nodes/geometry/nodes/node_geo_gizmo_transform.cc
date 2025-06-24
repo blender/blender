@@ -40,7 +40,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   {
     uiLayout *row = &layout->column(true, IFACE_("Translation"));

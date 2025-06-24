@@ -150,7 +150,7 @@ static wmOperatorStatus wm_alembic_export_exec(bContext *C, wmOperator *op)
 static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   if (uiLayout *panel = layout->panel(C, "ABC_export_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
@@ -567,7 +567,7 @@ static int get_sequence_len(const char *filepath, int *ofs)
 static void ui_alembic_import_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   if (uiLayout *panel = layout->panel(C, "ABC_import_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);

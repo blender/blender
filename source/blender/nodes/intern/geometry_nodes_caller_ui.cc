@@ -226,7 +226,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
     return;
   }
 
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
@@ -414,7 +414,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
       "[\"{}{}\"]", BLI_str_escape(socket.identifier), nodes::input_attribute_name_suffix);
 
   /* We're handling this manually in this case. */
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
@@ -489,7 +489,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
   }
 
   uiLayout *row = &layout->row(true);
-  uiLayoutSetPropDecorate(row, true);
+  row->use_property_decorate_set(true);
   row->active_set(ctx.input_is_active(socket));
 
   const std::string rna_path = fmt::format("[\"{}\"]", BLI_str_escape(identifier.c_str()));
@@ -802,7 +802,7 @@ static void draw_bake_panel(uiLayout *layout, PointerRNA *modifier_ptr)
 {
   uiLayout *col = &layout->column(false);
   col->use_property_split_set(true);
-  uiLayoutSetPropDecorate(col, false);
+  col->use_property_decorate_set(false);
   col->prop(modifier_ptr, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(modifier_ptr, "bake_directory", UI_ITEM_NONE, IFACE_("Bake Path"), ICON_NONE);
 }
@@ -937,7 +937,7 @@ void draw_geometry_nodes_modifier_ui(const bContext &C, PointerRNA *modifier_ptr
   layout.use_property_split_set(true);
   /* Decorators are added manually for supported properties because the
    * attribute/value toggle requires a manually built layout anyway. */
-  uiLayoutSetPropDecorate(&layout, false);
+  layout.use_property_decorate_set(false);
 
   if (!(nmd.flag & NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR)) {
     const char *newop = (nmd.node_group == nullptr) ? "node.new_geometry_node_group_assign" :
@@ -1013,7 +1013,7 @@ void draw_geometry_nodes_operator_redo_ui(const bContext &C,
   layout.use_property_split_set(true);
   /* Decorators are added manually for supported properties because the
    * attribute/value toggle requires a manually built layout anyway. */
-  uiLayoutSetPropDecorate(&layout, false);
+  layout.use_property_decorate_set(false);
 
   tree.ensure_interface_cache();
   ctx.input_usages.reinitialize(tree.interface_inputs().size());

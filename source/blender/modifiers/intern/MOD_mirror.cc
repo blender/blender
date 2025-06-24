@@ -195,7 +195,7 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = &layout->column(true);
   row = &col->row(true, IFACE_("Mirror U"));
-  uiLayoutSetPropDecorate(row, false);
+  row->use_property_decorate_set(false);
   sub = &row->row(true);
   sub->prop(ptr, "use_mirror_u", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
@@ -204,7 +204,7 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemDecoratorR(row, ptr, "mirror_offset_u", 0);
 
   row = &col->row(true, IFACE_("V"));
-  uiLayoutSetPropDecorate(row, false);
+  row->use_property_decorate_set(false);
   sub = &row->row(true);
   sub->prop(ptr, "use_mirror_v", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);

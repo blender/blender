@@ -1927,7 +1927,7 @@ static void shade_auto_smooth_ui(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   layout->prop(op->ptr, "use_auto_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

@@ -650,7 +650,7 @@ static void geometry_color_attribute_add_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   layout->prop(op->ptr, "name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
@@ -883,7 +883,7 @@ static void geometry_attribute_convert_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   Object *ob = object::context_object(C);
   if (ob->type == OB_MESH) {
@@ -1013,7 +1013,7 @@ static void geometry_color_attribute_convert_ui(bContext * /*C*/, wmOperator *op
 {
   uiLayout *layout = op->layout;
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   layout->prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout->prop(op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);

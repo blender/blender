@@ -90,7 +90,7 @@ static bool wm_fbx_import_check(bContext * /*C*/, wmOperator * /*op*/)
 static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   if (uiLayout *panel = layout->panel(C, "FBX_import_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);

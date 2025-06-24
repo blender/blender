@@ -99,7 +99,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
     socket_items::ui::draw_active_item_props<FormatStringItemsAccessor>(
         tree, node, [&](PointerRNA *item_ptr) {
           panel->use_property_split_set(true);
-          uiLayoutSetPropDecorate(panel, false);
+          panel->use_property_decorate_set(false);
           panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         });
   }

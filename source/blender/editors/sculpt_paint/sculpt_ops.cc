@@ -1296,7 +1296,7 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
   Sculpt *sd = scene->toolsettings ? scene->toolsettings->sculpt : nullptr;
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
   MaskSettingsSource source = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
 
   if (!sd) {
@@ -1478,7 +1478,7 @@ static void mask_from_boundary_ui(bContext *C, wmOperator *op)
   Sculpt *sd = scene->toolsettings ? scene->toolsettings->sculpt : nullptr;
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
   MaskSettingsSource source = (MaskSettingsSource)RNA_enum_get(op->ptr, "settings_source");
 
   if (!sd) {

@@ -302,7 +302,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = &layout->column(false, IFACE_("Group Add"));
   row = &col->row(true);
-  uiLayoutSetPropDecorate(row, false);
+  row->use_property_decorate_set(false);
   sub = &row->row(true);
   sub->prop(ptr, "use_add", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
@@ -313,7 +313,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = &layout->column(false, IFACE_("Group Remove"));
   row = &col->row(true);
-  uiLayoutSetPropDecorate(row, false);
+  row->use_property_decorate_set(false);
   sub = &row->row(true);
   sub->prop(ptr, "use_remove", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);

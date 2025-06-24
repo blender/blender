@@ -213,7 +213,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row = &layout->row(true);
   row->prop(ptr, "object", UI_ITEM_NONE, IFACE_("Source"), ICON_NONE);
   sub = &row->row(true);
-  uiLayoutSetPropDecorate(sub, false);
+  sub->use_property_decorate_set(false);
   sub->prop(ptr, "use_object_transform", UI_ITEM_NONE, "", ICON_ORIENTATION_GLOBAL);
 
   layout->prop(ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);

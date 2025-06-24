@@ -127,7 +127,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
     layout->use_property_split_set(use_prop_split);
-    uiLayoutSetPropDecorate(layout, false);
+    layout->use_property_decorate_set(false);
 
     /* main draw call */
     return_info = uiDefAutoButsRNA(
@@ -366,7 +366,7 @@ static void draw_export_properties(bContext *C,
   uiLayout *col = &layout->column(false);
 
   col->use_property_split_set(true);
-  uiLayoutSetPropDecorate(col, false);
+  col->use_property_decorate_set(false);
 
   /* Note this property is used as an alternative to the `filepath` property of `op->ptr`.
    * This property is a wrapper to access that property, see the `CollectionExport::filepath`

@@ -3191,7 +3191,7 @@ uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout)
   split_wrapper.label_column = &layout_split->column(true);
   split_wrapper.label_column->alignment_ = blender::ui::LayoutAlign::Right;
   split_wrapper.property_row = ui_item_prop_split_layout_hack(parent_layout, layout_split);
-  split_wrapper.decorate_column = uiLayoutGetPropDecorate(parent_layout) ?
+  split_wrapper.decorate_column = parent_layout->use_property_decorate() ?
                                       &layout_row->column(true) :
                                       nullptr;
 
@@ -5116,14 +5116,14 @@ void uiLayout::use_property_split_set(bool is_sep)
   SET_FLAG_FROM_TEST(flag_, is_sep, uiItemInternalFlag::PropSep);
 }
 
-bool uiLayoutGetPropDecorate(uiLayout *layout)
+bool uiLayout::use_property_decorate() const
 {
-  return bool(layout->flag_ & uiItemInternalFlag::PropDecorate);
+  return bool(flag_ & uiItemInternalFlag::PropDecorate);
 }
 
-void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep)
+void uiLayout::use_property_decorate_set(bool is_sep)
 {
-  SET_FLAG_FROM_TEST(layout->flag_, is_sep, uiItemInternalFlag::PropDecorate);
+  SET_FLAG_FROM_TEST(flag_, is_sep, uiItemInternalFlag::PropDecorate);
 }
 
 Panel *uiLayout::root_panel() const

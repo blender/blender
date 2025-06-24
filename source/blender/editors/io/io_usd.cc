@@ -446,7 +446,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   PointerRNA *ptr = op->ptr;
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   if (uiLayout *panel = layout->panel(C, "USD_export_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
@@ -1090,7 +1090,7 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
   PointerRNA *ptr = op->ptr;
 
   layout->use_property_split_set(true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   if (uiLayout *panel = layout->panel(C, "USD_import_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
