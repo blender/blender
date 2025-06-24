@@ -1877,7 +1877,7 @@ static bool ui_item_rna_is_expand(PropertyRNA *prop, int index, const eUI_Item_F
 static uiLayout *ui_layout_heading_find(uiLayout *cur_layout)
 {
   for (uiLayout *parent = cur_layout; parent; parent = parent->parent_) {
-    if (parent->heading_[0]) {
+    if (!parent->heading_.empty()) {
       return parent;
     }
   }
@@ -1904,7 +1904,7 @@ static void ui_layout_heading_label_add(uiLayout *layout,
   }
   /* After adding the heading label, we have to mark it somehow as added, so it's not added again
    * for other items in this layout. For now just clear it. */
-  heading_layout->heading_[0] = '\0';
+  heading_layout->heading_ = {};
 
   layout->alignment_ = prev_alignment;
 }
@@ -4791,11 +4791,6 @@ static void ui_litem_init_from_parent(uiLayout *litem, uiLayout *layout, int ali
   }
 }
 
-static void ui_layout_heading_set(uiLayout *layout, const StringRef heading)
-{
-  heading.copy_utf8_truncated(layout->heading_);
-}
-
 uiLayout &uiLayout::row(bool align)
 {
   uiLayout *litem = MEM_new<uiLayout>(__func__);
@@ -4917,7 +4912,7 @@ bool uiLayoutEndsWithPanelHeader(const uiLayout &layout)
 uiLayout &uiLayout::row(bool align, const StringRef heading)
 {
   uiLayout &litem = this->row(align);
-  ui_layout_heading_set(&litem, heading);
+  litem.heading_ = heading;
   return litem;
 }
 
@@ -4937,7 +4932,7 @@ uiLayout &uiLayout::column(bool align)
 uiLayout &uiLayout::column(bool align, const StringRef heading)
 {
   uiLayout &litem = this->column(align);
-  ui_layout_heading_set(&litem, heading);
+  litem.heading_ = heading;
   return litem;
 }
 

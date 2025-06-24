@@ -80,7 +80,7 @@ struct uiLayout : uiItem {
   uiLayout *parent_;
   blender::Vector<uiItem *> items_;
 
-  char heading_[UI_MAX_NAME_STR];
+  std::string heading_;
 
   /** Sub layout to add child items, if not the layout itself. */
   uiLayout *child_items_layout_;
