@@ -250,7 +250,6 @@ class _draw_tool_settings_context_mode:
         if brush is None:
             return False
 
-        tool_settings = context.tool_settings
         capabilities = brush.sculpt_capabilities
 
         ups = paint.unified_paint_settings
@@ -393,7 +392,6 @@ class _draw_tool_settings_context_mode:
 
         BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
-        tool_settings = context.tool_settings
         capabilities = brush.sculpt_capabilities
 
         ups = paint.unified_paint_settings

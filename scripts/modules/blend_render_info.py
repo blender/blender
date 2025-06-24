@@ -72,7 +72,6 @@ def get_render_info_structure(endian_str, size):
 
 
 def _read_blend_rend_chunk_from_file(blendfile, filepath):
-    import struct
     import sys
 
     from os import SEEK_CUR

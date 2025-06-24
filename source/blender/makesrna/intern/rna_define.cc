@@ -1252,7 +1252,7 @@ void RNA_def_struct_system_idprops_func(StructRNA *srna, const char *system_idpr
       "PropertyGroup",
       "",
       "The system properties root container, or None if there are no system properties stored in "
-      "this data yet, and its creation was not rquested");
+      "this data yet, and its creation was not requested");
   RNA_def_function_return(func, parm);
 }
 
