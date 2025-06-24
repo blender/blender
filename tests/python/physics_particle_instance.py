@@ -24,12 +24,10 @@ def main():
     command = list(sys.argv)
     for i, cmd in enumerate(command):
         if cmd == "--run-all-tests":
-            particle_instance_test.apply_modifiers = True
             particle_instance_test.do_compare = True
             particle_instance_test.run_all_tests()
             break
         elif cmd == "--run-test":
-            particle_instance_test.apply_modifiers = False
             particle_instance_test.do_compare = False
             name = command[i + 1]
             particle_instance_test.run_test(name)

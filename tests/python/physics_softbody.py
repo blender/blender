@@ -24,12 +24,10 @@ def main():
     command = list(sys.argv)
     for i, cmd in enumerate(command):
         if cmd == "--run-all-tests":
-            soft_body_test.apply_modifiers = True
             soft_body_test.do_compare = True
             soft_body_test.run_all_tests()
             break
         elif cmd == "--run-test":
-            soft_body_test.apply_modifiers = False
             soft_body_test.do_compare = False
             name = command[i + 1]
             soft_body_test.run_test(name)
