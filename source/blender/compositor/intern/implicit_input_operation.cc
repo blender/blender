@@ -19,11 +19,11 @@ static ResultType get_implicit_input_result_type(const ImplicitInput implicit_in
     case ImplicitInput::None:
       break;
     case ImplicitInput::TextureCoordinates:
-      return ResultType::Float3;
+      return ResultType::Float2;
   }
 
   BLI_assert_unreachable();
-  return ResultType::Float3;
+  return ResultType::Float2;
 }
 
 ImplicitInputOperation::ImplicitInputOperation(Context &context,
