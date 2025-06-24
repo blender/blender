@@ -14,6 +14,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
@@ -283,12 +284,12 @@ static SurfacePoint *base_surface_grids_read(MultiresReshapeSmoothContext *resha
 
 static void base_surface_grids_write(MultiresReshapeSmoothContext *reshape_smooth_context,
                                      const GridCoord *grid_coord,
-                                     float P[3],
-                                     float tangent_matrix[3][3])
+                                     const blender::float3 &P,
+                                     const blender::float3x3 &tangent_matrix)
 {
   SurfacePoint *point = base_surface_grids_read(reshape_smooth_context, grid_coord);
-  copy_v3_v3(point->P, P);
-  copy_m3_m3(point->tangent_matrix.ptr(), tangent_matrix);
+  point->P = P;
+  point->tangent_matrix = tangent_matrix;
 }
 
 /** \} */
@@ -965,7 +966,7 @@ static void reshape_subdiv_create(MultiresReshapeSmoothContext *reshape_smooth_c
 using ReshapeSubdivCoarsePositionCb =
     void(const MultiresReshapeSmoothContext *reshape_smooth_context,
          const Vertex *vertex,
-         float r_P[3]);
+         blender::float3 &r_P);
 
 /* Refine subdivision surface topology at a reshape level for new coarse vertices positions. */
 static void reshape_subdiv_refine(const MultiresReshapeSmoothContext *reshape_smooth_context,
@@ -978,7 +979,7 @@ static void reshape_subdiv_refine(const MultiresReshapeSmoothContext *reshape_sm
   const int num_vertices = reshape_smooth_context->geometry.vertices.size();
   for (int i = 0; i < num_vertices; ++i) {
     const Vertex *vertex = &reshape_smooth_context->geometry.vertices[i];
-    float P[3];
+    blender::float3 P;
     coarse_position_cb(reshape_smooth_context, vertex, P);
     reshape_subdiv->evaluator->eval_output->setCoarsePositions(P, i, 1);
   }
@@ -1000,14 +1001,16 @@ BLI_INLINE const GridCoord *reshape_subdiv_refine_vertex_grid_coord(const Vertex
 
 /* Version of reshape_subdiv_refine() which uses coarse position from original grids. */
 static void reshape_subdiv_refine_orig_P(
-    const MultiresReshapeSmoothContext *reshape_smooth_context, const Vertex *vertex, float r_P[3])
+    const MultiresReshapeSmoothContext *reshape_smooth_context,
+    const Vertex *vertex,
+    blender::float3 &r_P)
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
   const GridCoord *grid_coord = reshape_subdiv_refine_vertex_grid_coord(vertex);
 
   /* Check whether this is a loose vertex. */
   if (grid_coord == nullptr) {
-    zero_v3(r_P);
+    r_P = blender::float3(0.0f);
     return;
   }
 
@@ -1018,10 +1021,10 @@ static void reshape_subdiv_refine_orig_P(
   const ReshapeConstGridElement orig_grid_element =
       multires_reshape_orig_grid_element_for_grid_coord(reshape_context, grid_coord);
 
-  float D[3];
+  blender::float3 D;
   mul_v3_m3v3(D, tangent_matrix.ptr(), orig_grid_element.displacement);
 
-  add_v3_v3v3(r_P, limit_P, D);
+  r_P = limit_P + D;
 }
 static void reshape_subdiv_refine_orig(const MultiresReshapeSmoothContext *reshape_smooth_context)
 {
@@ -1030,14 +1033,16 @@ static void reshape_subdiv_refine_orig(const MultiresReshapeSmoothContext *resha
 
 /* Version of reshape_subdiv_refine() which uses coarse position from final grids. */
 static void reshape_subdiv_refine_final_P(
-    const MultiresReshapeSmoothContext *reshape_smooth_context, const Vertex *vertex, float r_P[3])
+    const MultiresReshapeSmoothContext *reshape_smooth_context,
+    const Vertex *vertex,
+    blender::float3 &r_P)
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
   const GridCoord *grid_coord = reshape_subdiv_refine_vertex_grid_coord(vertex);
 
   /* Check whether this is a loose vertex. */
   if (grid_coord == nullptr) {
-    zero_v3(r_P);
+    r_P = blender::float3(0.0f);
     return;
   }
 
@@ -1216,8 +1221,7 @@ static void evaluate_base_surface_grids(MultiresReshapeSmoothContext *reshape_sm
         reshape_subdiv_evaluate_limit_at_grid(
             reshape_smooth_context, ptex_coord, grid_coord, limit_P, tangent_matrix);
 
-        base_surface_grids_write(
-            reshape_smooth_context, grid_coord, limit_P, tangent_matrix.ptr());
+        base_surface_grids_write(reshape_smooth_context, grid_coord, limit_P, tangent_matrix);
       });
 }
 
@@ -1232,7 +1236,7 @@ static void evaluate_base_surface_grids(MultiresReshapeSmoothContext *reshape_sm
 static void evaluate_final_original_point(
     const MultiresReshapeSmoothContext *reshape_smooth_context,
     const GridCoord *grid_coord,
-    float r_orig_final_P[3])
+    blender::float3 &r_orig_final_P)
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
@@ -1247,11 +1251,11 @@ static void evaluate_final_original_point(
       reshape_context, grid_coord, base_mesh_limit_P, base_mesh_tangent_matrix);
 
   /* Convert original displacement from tangent space to object space. */
-  float orig_displacement[3];
+  blender::float3 orig_displacement;
   mul_v3_m3v3(orig_displacement, base_mesh_tangent_matrix.ptr(), orig_grid_element.displacement);
 
   /* Final point = limit surface + displacement. */
-  add_v3_v3v3(r_orig_final_P, base_mesh_limit_P, orig_displacement);
+  r_orig_final_P = base_mesh_limit_P + orig_displacement;
 }
 
 static void evaluate_higher_grid_positions_with_details(
@@ -1261,7 +1265,7 @@ static void evaluate_higher_grid_positions_with_details(
   foreach_toplevel_grid_coord(
       reshape_smooth_context, [&](const PTexCoord *ptex_coord, const GridCoord *grid_coord) {
         /* Position of the original vertex at top level. */
-        float orig_final_P[3];
+        blender::float3 orig_final_P;
         evaluate_final_original_point(reshape_smooth_context, grid_coord, orig_final_P);
 
         /* Original surface point on sculpt level (sculpt level before edits in sculpt mode). */
@@ -1269,17 +1273,14 @@ static void evaluate_higher_grid_positions_with_details(
                                                                         grid_coord);
 
         /* Difference between original top level and original sculpt level in object space. */
-        float original_detail_delta[3];
-        sub_v3_v3v3(original_detail_delta, orig_final_P, orig_sculpt_point->P);
+        const blender::float3 original_detail_delta = orig_final_P - orig_sculpt_point->P;
 
         /* Difference between original top level and original sculpt level in tangent space of
          * original sculpt level. */
-        float original_detail_delta_tangent[3];
-        float original_sculpt_tangent_matrix_inv[3][3];
-        invert_m3_m3(original_sculpt_tangent_matrix_inv, orig_sculpt_point->tangent_matrix.ptr());
-        mul_v3_m3v3(original_detail_delta_tangent,
-                    original_sculpt_tangent_matrix_inv,
-                    original_detail_delta);
+        const blender::float3x3 original_sculpt_tangent_matrix_inv = blender::math::invert(
+            orig_sculpt_point->tangent_matrix);
+        blender::float3 original_detail_delta_tangent = blender::math::transform_direction(
+            original_sculpt_tangent_matrix_inv, original_detail_delta);
 
         /* Limit surface of smoothed (subdivided) edited sculpt level. */
         blender::float3 smooth_limit_P;
@@ -1288,8 +1289,8 @@ static void evaluate_higher_grid_positions_with_details(
             reshape_smooth_context, ptex_coord, grid_coord, smooth_limit_P, smooth_tangent_matrix);
 
         /* Add original detail to the smoothed surface. */
-        float smooth_delta[3];
-        mul_v3_m3v3(smooth_delta, smooth_tangent_matrix.ptr(), original_detail_delta_tangent);
+        blender::float3 smooth_delta = blender::math::transform_direction(
+            smooth_tangent_matrix, original_detail_delta_tangent);
 
         /* Grid element of the result.
          *
