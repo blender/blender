@@ -3934,8 +3934,7 @@ static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
   layout->use_property_split_set(true);
   layout->use_property_decorate_set(false);
 
-  uiItemPointerR(
-      layout, op->ptr, "shape", &ptr_key, "key_blocks", std::nullopt, ICON_SHAPEKEY_DATA);
+  layout->prop_search(op->ptr, "shape", &ptr_key, "key_blocks", std::nullopt, ICON_SHAPEKEY_DATA);
   layout->prop(op->ptr, "blend", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(op->ptr, "add", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }

@@ -336,8 +336,7 @@ static void rna_uiItemPointerR(uiLayout *layout,
   std::optional<StringRefNull> text = rna_translate_ui_text(
       name, text_ctxt, nullptr, prop, translate);
 
-  uiItemPointerR_prop(
-      layout, ptr, prop, searchptr, searchprop, text, icon, results_are_suggestions);
+  layout->prop_search(ptr, prop, searchptr, searchprop, text, icon, results_are_suggestions);
 }
 
 static PointerRNA rna_uiItemO(uiLayout *layout,

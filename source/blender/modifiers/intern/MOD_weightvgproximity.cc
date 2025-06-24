@@ -635,8 +635,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->use_property_split_set(true);
 
-  uiItemPointerR(
-      layout, ptr, "vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_GROUP_VERTEX);
+  layout->prop_search(
+      ptr, "vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_GROUP_VERTEX);
 
   layout->prop(ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

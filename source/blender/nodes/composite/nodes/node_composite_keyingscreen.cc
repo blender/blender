@@ -81,7 +81,7 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
         &clip->id, &RNA_MovieTracking, &clip->tracking);
 
     col = &layout->column(true);
-    uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+    col->prop_search(ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
   }
 }
 

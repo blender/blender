@@ -251,8 +251,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->use_property_split_set(true);
 
-  uiItemPointerR(
-      layout, ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
+  layout->prop_search(ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
 
   col = &layout->column(false);
   col->prop(ptr, "center", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -266,15 +265,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   warp_obj_ptr = RNA_pointer_get(ptr, "object_from");
   if (!RNA_pointer_is_null(&warp_obj_ptr) && RNA_enum_get(&warp_obj_ptr, "type") == OB_ARMATURE) {
     PointerRNA warp_obj_data_ptr = RNA_pointer_get(&warp_obj_ptr, "data");
-    uiItemPointerR(
-        col, ptr, "bone_from", &warp_obj_data_ptr, "bones", std::nullopt, ICON_BONE_DATA);
+    col->prop_search(ptr, "bone_from", &warp_obj_data_ptr, "bones", std::nullopt, ICON_BONE_DATA);
   }
 
   col->prop(ptr, "object_to", UI_ITEM_NONE, CTX_IFACE_(BLT_I18NCONTEXT_MODIFIER, "To"), ICON_NONE);
   warp_obj_ptr = RNA_pointer_get(ptr, "object_to");
   if (!RNA_pointer_is_null(&warp_obj_ptr) && RNA_enum_get(&warp_obj_ptr, "type") == OB_ARMATURE) {
     PointerRNA warp_obj_data_ptr = RNA_pointer_get(&warp_obj_ptr, "data");
-    uiItemPointerR(col, ptr, "bone_to", &warp_obj_data_ptr, "bones", std::nullopt, ICON_BONE_DATA);
+    col->prop_search(ptr, "bone_to", &warp_obj_data_ptr, "bones", std::nullopt, ICON_BONE_DATA);
   }
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);

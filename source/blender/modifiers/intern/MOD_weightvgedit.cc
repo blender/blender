@@ -295,8 +295,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout->use_property_split_set(true);
 
   col = &layout->column(true);
-  uiItemPointerR(
-      col, ptr, "vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_GROUP_VERTEX);
+  col->prop_search(ptr, "vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_GROUP_VERTEX);
 
   layout->prop(ptr, "default_weight", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 

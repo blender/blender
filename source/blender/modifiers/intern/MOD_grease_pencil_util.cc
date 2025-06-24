@@ -107,22 +107,20 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   row = &col->row(true);
   row->use_property_decorate_set(false);
   if (use_layer_group_filter) {
-    uiItemPointerR(row,
-                   ptr,
-                   "tree_node_filter",
-                   &obj_data_ptr,
-                   "layer_groups",
-                   "Group",
-                   ICON_GREASEPENCIL_LAYER_GROUP);
+    row->prop_search(ptr,
+                     "tree_node_filter",
+                     &obj_data_ptr,
+                     "layer_groups",
+                     "Group",
+                     ICON_GREASEPENCIL_LAYER_GROUP);
   }
   else {
-    uiItemPointerR(row,
-                   ptr,
-                   "tree_node_filter",
-                   &obj_data_ptr,
-                   "layers",
-                   std::nullopt,
-                   ICON_OUTLINER_DATA_GP_LAYER);
+    row->prop_search(ptr,
+                     "tree_node_filter",
+                     &obj_data_ptr,
+                     "layers",
+                     std::nullopt,
+                     ICON_OUTLINER_DATA_GP_LAYER);
   }
   sub = &row->row(true);
   sub->prop(ptr, "use_layer_group_filter", UI_ITEM_NONE, "", ICON_GREASEPENCIL_LAYER_GROUP);
@@ -150,8 +148,8 @@ void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, Poi
   col = &layout->column(true);
   row = &col->row(true);
   row->use_property_decorate_set(false);
-  uiItemPointerR(
-      row, ptr, "material_filter", &obj_data_ptr, "materials", std::nullopt, ICON_SHADING_TEXTURE);
+  row->prop_search(
+      ptr, "material_filter", &obj_data_ptr, "materials", std::nullopt, ICON_SHADING_TEXTURE);
   sub = &row->row(true);
   sub->prop(ptr, "invert_material_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
@@ -176,7 +174,7 @@ void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   col = &layout->column(true);
   row = &col->row(true);
   row->use_property_decorate_set(false);
-  uiItemPointerR(row, ptr, "vertex_group_name", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
+  row->prop_search(ptr, "vertex_group_name", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
   sub = &row->row(true);
   sub->active_set(has_vertex_group);
   sub->use_property_decorate_set(false);

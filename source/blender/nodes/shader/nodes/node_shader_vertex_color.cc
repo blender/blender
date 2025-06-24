@@ -33,7 +33,7 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
     if (depsgraph) {
       Object *object_eval = DEG_get_evaluated(depsgraph, object);
       PointerRNA dataptr = RNA_id_pointer_create(static_cast<ID *>(object_eval->data));
-      uiItemPointerR(layout, ptr, "layer_name", &dataptr, "color_attributes", "", ICON_GROUP_VCOL);
+      layout->prop_search(ptr, "layer_name", &dataptr, "color_attributes", "", ICON_GROUP_VCOL);
       return;
     }
   }

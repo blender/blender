@@ -494,36 +494,35 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
 
   const std::string rna_path = fmt::format("[\"{}\"]", BLI_str_escape(identifier.c_str()));
 
-  /* Use #uiItemPointerR to draw pointer properties because #uiLayout::prop would not have enough
-   * information about what type of ID to select for editing the values. This is because
+  /* Use #uiLayout::prop_search to draw pointer properties because #uiLayout::prop would not have
+   * enough information about what type of ID to select for editing the values. This is because
    * pointer IDProperties contain no information about their type. */
   const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
   const eNodeSocketDatatype type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
   const char *name = socket.name ? IFACE_(socket.name) : "";
   switch (type) {
     case SOCK_OBJECT: {
-      uiItemPointerR(
-          row, ctx.properties_ptr, rna_path, ctx.bmain_ptr, "objects", name, ICON_OBJECT_DATA);
+      row->prop_search(
+          ctx.properties_ptr, rna_path, ctx.bmain_ptr, "objects", name, ICON_OBJECT_DATA);
       break;
     }
     case SOCK_COLLECTION: {
-      uiItemPointerR(row,
-                     ctx.properties_ptr,
-                     rna_path,
-                     ctx.bmain_ptr,
-                     "collections",
-                     name,
-                     ICON_OUTLINER_COLLECTION);
+      row->prop_search(ctx.properties_ptr,
+                       rna_path,
+                       ctx.bmain_ptr,
+                       "collections",
+                       name,
+                       ICON_OUTLINER_COLLECTION);
       break;
     }
     case SOCK_MATERIAL: {
-      uiItemPointerR(
-          row, ctx.properties_ptr, rna_path, ctx.bmain_ptr, "materials", name, ICON_MATERIAL);
+      row->prop_search(
+          ctx.properties_ptr, rna_path, ctx.bmain_ptr, "materials", name, ICON_MATERIAL);
       break;
     }
     case SOCK_TEXTURE: {
-      uiItemPointerR(
-          row, ctx.properties_ptr, rna_path, ctx.bmain_ptr, "textures", name, ICON_TEXTURE);
+      row->prop_search(
+          ctx.properties_ptr, rna_path, ctx.bmain_ptr, "textures", name, ICON_TEXTURE);
       break;
     }
     case SOCK_IMAGE: {

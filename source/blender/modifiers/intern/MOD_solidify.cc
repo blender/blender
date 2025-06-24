@@ -214,15 +214,14 @@ static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
   layout->use_property_split_set(true);
 
   col = &layout->column(false);
-  uiItemPointerR(
-      col, ptr, "shell_vertex_group", &ob_ptr, "vertex_groups", IFACE_("Shell"), ICON_NONE);
-  uiItemPointerR(col,
-                 ptr,
-                 "rim_vertex_group",
-                 &ob_ptr,
-                 "vertex_groups",
-                 CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"),
-                 ICON_NONE);
+  col->prop_search(
+      ptr, "shell_vertex_group", &ob_ptr, "vertex_groups", IFACE_("Shell"), ICON_NONE);
+  col->prop_search(ptr,
+                   "rim_vertex_group",
+                   &ob_ptr,
+                   "vertex_groups",
+                   CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"),
+                   ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

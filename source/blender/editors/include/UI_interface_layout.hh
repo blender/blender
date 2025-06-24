@@ -444,6 +444,31 @@ struct uiLayout : uiItem {
             std::optional<blender::StringRef> name,
             int icon);
 
+  /**
+   * Adds a RNA enum/pointer/string/ property item, and exposes it into the layout. Button input
+   * would suggest values from the search property collection.
+   * \param searchprop: Collection property in \a searchptr from where to take input values.
+   * \param results_are_suggestions: Allow inputs that not match any suggested value.
+   */
+  void prop_search(PointerRNA *ptr,
+                   PropertyRNA *prop,
+                   PointerRNA *searchptr,
+                   PropertyRNA *searchprop,
+                   std::optional<blender::StringRefNull> name,
+                   int icon,
+                   bool results_are_suggestions);
+  /**
+   * Adds a RNA enum/pointer/string/ property item, and exposes it into the layout. Button input
+   * would suggest values from the search property collection, input must match a suggested value.
+   * \param searchprop: Collection property in \a searchptr from where to take input values.
+   */
+  void prop_search(PointerRNA *ptr,
+                   blender::StringRefNull propname,
+                   PointerRNA *searchptr,
+                   blender::StringRefNull searchpropname,
+                   std::optional<blender::StringRefNull> name,
+                   int icon);
+
   /** Adds a separator item, that adds empty space between items. */
   void separator(float factor = 1.0f, LayoutSeparatorType type = LayoutSeparatorType::Auto);
 };
@@ -763,21 +788,6 @@ void uiItemEnumR_string(uiLayout *layout,
                         std::optional<blender::StringRefNull> name,
                         int icon);
 void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, blender::StringRefNull propname);
-void uiItemPointerR_prop(uiLayout *layout,
-                         PointerRNA *ptr,
-                         PropertyRNA *prop,
-                         PointerRNA *searchptr,
-                         PropertyRNA *searchprop,
-                         std::optional<blender::StringRefNull> name,
-                         int icon,
-                         bool results_are_suggestions);
-void uiItemPointerR(uiLayout *layout,
-                    PointerRNA *ptr,
-                    blender::StringRefNull propname,
-                    PointerRNA *searchptr,
-                    blender::StringRefNull searchpropname,
-                    std::optional<blender::StringRefNull> name,
-                    int icon);
 
 /**
  * Create a list of enum items.

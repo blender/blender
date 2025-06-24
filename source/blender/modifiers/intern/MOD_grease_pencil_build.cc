@@ -817,13 +817,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     subcol->prop(ptr, "fade_thickness_strength", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
     subcol->prop(ptr, "fade_opacity_strength", UI_ITEM_NONE, IFACE_("Opacity"), ICON_NONE);
 
-    uiItemPointerR(col,
-                   ptr,
-                   "target_vertex_group",
-                   &ob_ptr,
-                   "vertex_groups",
-                   IFACE_("Weight Output"),
-                   ICON_NONE);
+    col->prop_search(
+        ptr, "target_vertex_group", &ob_ptr, "vertex_groups", IFACE_("Weight Output"), ICON_NONE);
   }
 
   if (uiLayout *influence_panel = layout->panel_prop(

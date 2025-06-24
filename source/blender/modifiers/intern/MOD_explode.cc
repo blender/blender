@@ -1172,8 +1172,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->use_property_split_set(true);
 
-  uiItemPointerR(
-      layout, ptr, "particle_uv", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
+  layout->prop_search(
+      ptr, "particle_uv", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
 
   row = &layout->row(true, IFACE_("Show"));
   row->prop(ptr, "show_alive", toggles_flag, std::nullopt, ICON_NONE);
