@@ -1023,6 +1023,13 @@ inline bool bNodeSocket::is_icon_visible() const
          (this->owner_node().flag & NODE_HIDDEN || !this->is_panel_collapsed());
 }
 
+inline bool bNodeSocket::may_be_field() const
+{
+  return ELEM(this->owner_tree().runtime->inferred_structure_types[this->index_in_tree()],
+              blender::nodes::StructureType::Field,
+              blender::nodes::StructureType::Dynamic);
+}
+
 inline bNode &bNodeSocket::owner_node()
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));

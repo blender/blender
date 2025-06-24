@@ -240,6 +240,11 @@ typedef struct bNodeSocket {
    * visibility is controlled by a menu should be hidden.
    */
   bool inferred_input_socket_visibility() const;
+  /**
+   * True when the value of this socket may be a field. This is inferred during structure type
+   * inferencing.
+   */
+  bool may_be_field() const;
 
   bool is_multi_input() const;
   bool is_input() const;

@@ -2191,10 +2191,7 @@ static bool node_link_is_field_link(const SpaceNode &snode, const bNodeLink &lin
   if (tree.type != NTREE_GEOMETRY) {
     return false;
   }
-  const Span<bke::FieldSocketState> field_states = tree.runtime->field_states;
-  if (link.fromsock &&
-      field_states[link.fromsock->index_in_tree()] == bke::FieldSocketState::IsField)
-  {
+  if (link.fromsock && link.fromsock->may_be_field()) {
     return true;
   }
   return false;
