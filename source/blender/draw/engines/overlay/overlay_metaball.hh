@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_mball.hh"
+
 #include "ED_mball.hh"
 
 #include "overlay_base.hh"
@@ -53,16 +55,16 @@ class Metaballs : Overlay {
     LISTBASE_FOREACH (MetaElem *, ml, mb.editelems) {
       const bool is_selected = (ml->flag & SELECT) != 0;
       const bool is_scale_radius = (ml->flag & MB_SCALE_RAD) != 0;
-      const float stiffness_radius = ml->rad * atanf(ml->s) * 2.0f / math::numbers::pi;
+      blender::float2 radius_stiffness = BKE_mball_element_display_radius_calc_with_stiffness(ml);
       const float3 position = float3(&ml->x);
 
       const select::ID radius_id = res.select_id(ob_ref, MBALLSEL_RADIUS | elem_num);
       color = (is_selected && is_scale_radius) ? col_radius_select : col_radius;
-      circle_buf_.append({ob->object_to_world(), position, ml->rad, color}, radius_id);
+      circle_buf_.append({ob->object_to_world(), position, radius_stiffness[0], color}, radius_id);
 
       const select::ID stiff_id = res.select_id(ob_ref, MBALLSEL_STIFF | elem_num);
       color = (is_selected && !is_scale_radius) ? col_stiffness_select : col_stiffness;
-      circle_buf_.append({ob->object_to_world(), position, stiffness_radius, color}, stiff_id);
+      circle_buf_.append({ob->object_to_world(), position, radius_stiffness[1], color}, stiff_id);
       elem_num += 1 << 16;
     }
   }
@@ -81,7 +83,8 @@ class Metaballs : Overlay {
     LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
       const float3 position = float3(&ml->x);
       /* Draw radius only. */
-      circle_buf_.append({ob->object_to_world(), position, ml->rad, color}, select_id);
+      const float radius = BKE_mball_element_display_radius_calc(ml);
+      circle_buf_.append({ob->object_to_world(), position, radius, color}, select_id);
     }
   }
 
