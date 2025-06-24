@@ -67,6 +67,9 @@ class RemoteAssetListingDownloader:
 
     _library_meta: api_models.AssetLibraryMeta | None
 
+    _noncritical_downloads: set[Path]
+    """Failing downloads to any of these files will not cause a complete shutdown."""
+
     def __init__(
         self,
         remote_url: str,
@@ -96,6 +99,7 @@ class RemoteAssetListingDownloader:
         self._num_asset_pages_pending = 0
         self._referenced_local_files = []
         self._library_meta = None
+        self._noncritical_downloads = set()
 
         # Work around a limitation of Blender, see bug report #139720 for details.
         self.on_timer_event = self.on_timer_event  # type: ignore[method-assign]
@@ -287,10 +291,7 @@ class RemoteAssetListingDownloader:
             abs_path.unlink()
 
         self.report({'INFO'}, "Asset library index downloaded")
-
-        if self._bg_downloader.all_downloads_done:
-            # There were no new downloads queued for this page (like thumbnails), so we're done.
-            self.shutdown()
+        self._shutdown_if_done()
 
     def on_thumbnail_downloaded(self,
                                 http_req_descr: http_dl.RequestDescription,
@@ -301,6 +302,9 @@ class RemoteAssetListingDownloader:
 
         # TODO: maybe poke the asset browser to load this thumbnail? Not sure if it's even necessary.
 
+        self._shutdown_if_done()
+
+    def _shutdown_if_done(self) -> None:
         if self._num_asset_pages_pending == 0 and self._bg_downloader.all_downloads_done:
             # Done downloading everything, let's shut down.
             self.shutdown()
@@ -331,7 +335,7 @@ class RemoteAssetListingDownloader:
             path_to_load = safe_local_file
             used_unsafe_file = False
 
-        logger.info("Parsing %s", path_to_load)
+        logger.info("Validating %s", path_to_load)
         json_data = path_to_load.read_bytes()
         parsed_data = api_model.model_validate_json(json_data)
 
@@ -397,7 +401,12 @@ class RemoteAssetListingDownloader:
                 if (now - stat.st_mtime) / 60 < THUMBNAIL_FRESH_DURATION_MINS:
                     continue
 
-            self._queue_download(asset.thumbnail_url, thumbnail_path, self.on_thumbnail_downloaded)
+            # Queue the thumbnail download, and remember that this is a
+            # non-critical download (so that errors don't cancel the entire download
+            # queue).
+            download_path = self._queue_download(asset.thumbnail_url, thumbnail_path, self.on_thumbnail_downloaded)
+            self._noncritical_downloads.add(download_path)
+
             num_queued_thumbs += 1
 
             # Because there can be a _lot_ of thumbnails in one page, call the
@@ -573,16 +582,25 @@ class RemoteAssetListingDownloader:
     def download_error(
         self,
         http_req_descr: http_dl.RequestDescription,
+        local_file: Path,
         error: Exception,
     ) -> None:
         if isinstance(error, http_dl.DownloadCancelled):
             if self._num_asset_pages_pending:
                 self.report({'WARNING'}, "Cancelled {} pending download".format(self._num_asset_pages_pending))
             logger.warning("Download cancelled: %s", http_req_descr)
-        else:
-            self.report({'ERROR'}, "Error downloading {}: {}".format(http_req_descr.url, error))
-            logger.warning("Error downloading %s: %s", http_req_descr, error)
+            self.shutdown()
+            return
 
+        if local_file in self._noncritical_downloads:
+            logger.warning("Could not download non-critical file %s: %s", http_req_descr, error)
+            # This could have been the last to-be-downloaded file, so better
+            # check if there's anything left to do.
+            self._shutdown_if_done()
+            return
+
+        self.report({'ERROR'}, "Error downloading {}: {}".format(http_req_descr.url, error))
+        logger.error("Error downloading %s: %s", http_req_descr, error)
         self.shutdown()
 
     def download_progress(

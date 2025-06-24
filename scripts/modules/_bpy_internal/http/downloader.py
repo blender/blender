@@ -102,7 +102,7 @@ class ConditionalDownloader:
         try:
             self._download_to_file(http_req_descr, local_path)
         except Exception as ex:
-            self._reporter.download_error(http_req_descr, ex)
+            self._reporter.download_error(http_req_descr, local_path, ex)
             raise
 
     def _download_to_file(self, http_req_descr: RequestDescription, local_path: Path) -> None:
@@ -564,6 +564,7 @@ class BackgroundDownloader:
     def download_error(
         self,
         http_req_descr: RequestDescription,
+        local_file: Path,
         error: Exception,
     ) -> None:
         """CachingDownloadReporter interface function.
@@ -804,6 +805,7 @@ class DownloadReporter(Protocol):
     def download_error(
         self,
         http_req_descr: RequestDescription,
+        local_file: Path,
         error: Exception,
     ) -> None:
         """There was an error downloading the URL.
@@ -848,6 +850,7 @@ class _DummyReporter(DownloadReporter):
     def download_error(
         self,
         http_req_descr: RequestDescription,
+        local_file: Path,
         error: Exception,
     ) -> None:
         pass
@@ -904,9 +907,10 @@ class QueueingReporter(DownloadReporter):
     def download_error(
         self,
         http_req_descr: RequestDescription,
+        local_file: Path,
         error: Exception,
     ) -> None:
-        self._queue_call('download_error', http_req_descr, error)
+        self._queue_call('download_error', http_req_descr, local_file, error)
 
     def download_progress(
         self,
