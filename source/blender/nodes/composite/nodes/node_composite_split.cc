@@ -7,6 +7,7 @@
  */
 
 #include "BLI_math_base.hh"
+#include "BLI_math_numbers.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
@@ -24,23 +25,22 @@ namespace blender::nodes::node_composite_split_cc {
 
 static void cmp_node_split_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Factor")
-      .default_value(0.5f)
+  b.add_input<decl::Vector>("Position")
+      .dimensions(2)
       .subtype(PROP_FACTOR)
+      .default_value({0.5f, 0.5f})
       .min(0.0f)
       .max(1.0f)
-      .description("Specifies the position of the split")
-      .compositor_expects_single_value();
+      .description("Line position where the image should be split");
+  b.add_input<decl::Float>("Rotation")
+      .default_value(math::numbers::pi_v<float> / 4.0f)
+      .subtype(PROP_ANGLE)
+      .description("Line angle where the image should be split.");
+
   b.add_input<decl::Color>("Image");
   b.add_input<decl::Color>("Image", "Image_001");
 
   b.add_output<decl::Color>("Image");
-}
-
-static void node_composit_buts_split(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout *row = &layout->row(false);
-  row->prop(ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -61,17 +61,21 @@ class SplitOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    GPUShader *shader = this->get_split_shader();
+    GPUShader *shader = this->context().get_shader("compositor_split");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "split_ratio", this->get_split_ratio());
+    const Domain domain = this->compute_domain();
+
+    GPU_shader_uniform_2fv(shader, "position", this->get_position(domain));
+
+    const float2 normal = {-math::sin(this->get_rotation()), math::cos(this->get_rotation())};
+    GPU_shader_uniform_2fv(shader, "normal", normal);
 
     const Result &first_image = this->get_input("Image");
     first_image.bind_as_texture(shader, "first_image_tx");
     const Result &second_image = this->get_input("Image_001");
     second_image.bind_as_texture(shader, "second_image_tx");
 
-    const Domain domain = this->compute_domain();
     Result &output_image = this->get_result("Image");
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
@@ -84,15 +88,6 @@ class SplitOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
-  GPUShader *get_split_shader()
-  {
-    if (this->get_split_axis() == CMP_NODE_SPLIT_HORIZONTAL) {
-      return this->context().get_shader("compositor_split_horizontal");
-    }
-
-    return this->context().get_shader("compositor_split_vertical");
-  }
-
   void execute_cpu()
   {
     const Result &first_image = this->get_input("Image");
@@ -102,36 +97,30 @@ class SplitOperation : public NodeOperation {
     Result &output_image = this->get_result("Image");
     output_image.allocate_texture(domain);
 
-    const float split_ratio = this->get_split_ratio();
-    const bool is_horizontal = this->get_split_axis() == CMP_NODE_SPLIT_HORIZONTAL;
-    const float split_pixel = (is_horizontal ? domain.size.x : domain.size.y) * split_ratio;
+    const math::AngleRadian rotation = this->get_rotation();
+    const float2 normal = {-math::sin(rotation), math::cos(rotation)};
+    const float2 line_point = this->get_position(domain);
 
-    if (is_horizontal) {
-      parallel_for(domain.size, [&](const int2 texel) {
-        output_image.store_pixel(texel,
-                                 split_pixel <= texel.x ?
-                                     first_image.load_pixel<float4, true>(texel) :
-                                     second_image.load_pixel<float4, true>(texel));
-      });
-    }
-    else {
-      parallel_for(domain.size, [&](const int2 texel) {
-        output_image.store_pixel(texel,
-                                 split_pixel <= texel.y ?
-                                     first_image.load_pixel<float4, true>(texel) :
-                                     second_image.load_pixel<float4, true>(texel));
-      });
-    }
+    parallel_for(domain.size, [&](const int2 texel) {
+      const float2 direction_to_line_point = line_point - float2(texel);
+      const float projection = math::dot(normal, direction_to_line_point);
+      const bool is_below_line = projection <= 0;
+      output_image.store_pixel(texel,
+                               is_below_line ? first_image.load_pixel<float4, true>(texel) :
+                                               second_image.load_pixel<float4, true>(texel));
+    });
   }
 
-  CMPNodeSplitAxis get_split_axis()
+  float2 get_position(const Domain &domain)
   {
-    return static_cast<CMPNodeSplitAxis>(bnode().custom2);
+    const float2 relative_position =
+        this->get_input("Position").get_single_value_default(float2(0.5f, 0.5f));
+    return float2(domain.size) * relative_position;
   }
 
-  float get_split_ratio()
+  math::AngleRadian get_rotation()
   {
-    return math::clamp(this->get_input("Factor").get_single_value_default(0.5f), 0.0f, 1.0f);
+    return this->get_input("Rotation").get_single_value_default(0.0f);
   }
 };
 
@@ -156,7 +145,6 @@ static void register_node_type_cmp_split()
   ntype.enum_name_legacy = "SPLIT";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_split_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_split;
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

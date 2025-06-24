@@ -17,6 +17,7 @@
 #include "DNA_sequence_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_numbers.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -955,6 +956,47 @@ static void do_version_convert_to_generic_nodes_after_linking(Main *bmain,
   }
 }
 
+static void do_version_split_node_rotation(bNodeTree *node_tree, bNode *node)
+{
+  using namespace blender;
+
+  bNodeSocket *factor_input = bke::node_find_socket(*node, SOCK_IN, "Factor");
+  float factor = factor_input->default_value_typed<bNodeSocketValueFloat>()->value;
+
+  bNodeSocket *rotation_input = bke::node_find_socket(*node, SOCK_IN, "Rotation");
+  if (!rotation_input) {
+    rotation_input = bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_ANGLE, "Rotation", "Rotation");
+  }
+
+  bNodeSocket *position_input = bke::node_find_socket(*node, SOCK_IN, "Position");
+  if (!position_input) {
+    position_input = bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_VECTOR, PROP_FACTOR, "Position", "Position");
+  }
+
+  constexpr int CMP_NODE_SPLIT_HORIZONTAL = 0;
+  constexpr int CMP_NODE_SPLIT_VERTICAL = 1;
+
+  switch (node->custom2) {
+    case CMP_NODE_SPLIT_HORIZONTAL: {
+      rotation_input->default_value_typed<bNodeSocketValueFloat>()->value =
+          -math::numbers::pi_v<float> / 2.0f;
+      position_input->default_value_typed<bNodeSocketValueVector>()->value[0] = factor;
+      /* The y-coordinate doesn't matter in this case, so set the value to 0.5 so that the gizmo
+       * appears nicely at the center.*/
+      position_input->default_value_typed<bNodeSocketValueVector>()->value[1] = 0.5f;
+      break;
+    }
+    case CMP_NODE_SPLIT_VERTICAL: {
+      rotation_input->default_value_typed<bNodeSocketValueFloat>()->value = 0.0f;
+      position_input->default_value_typed<bNodeSocketValueVector>()->value[0] = 0.5f;
+      position_input->default_value_typed<bNodeSocketValueVector>()->value[1] = factor;
+      break;
+    }
+  }
+}
+
 void do_versions_after_linking_500(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 9)) {
@@ -1138,6 +1180,19 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
         do_version_convert_to_generic_nodes(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 28)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_SPLIT) {
+            do_version_split_node_rotation(node_tree, node);
+          }
+        }
       }
     }
     FOREACH_NODETREE_END;
