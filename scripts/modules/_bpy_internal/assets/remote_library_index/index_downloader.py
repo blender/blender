@@ -4,10 +4,12 @@
 
 from __future__ import annotations
 
-import logging
-import time
-import urllib.parse
 import hashlib
+import logging
+import re
+import time
+import unicodedata
+import urllib.parse
 from pathlib import Path, PurePosixPath
 from typing import Callable, TypeAlias, TypeVar, Type
 
@@ -39,6 +41,9 @@ time and requires resources on the server.
 class RemoteAssetListingDownloader:
     _remote_url: str
     _local_path: Path
+
+    _remote_url_split: urllib.parse.SplitResult
+    _remote_url_path: PurePosixPath
 
     OnDoneCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
     _on_done_callback: OnDoneCallback
@@ -94,6 +99,11 @@ class RemoteAssetListingDownloader:
 
         # Work around a limitation of Blender, see bug report #139720 for details.
         self.on_timer_event = self.on_timer_event  # type: ignore[method-assign]
+
+        # Parse the remote URL. As this URL should never change, this can just
+        # happen once here, instead of every time when this info is necessary.
+        self._remote_url_split = urllib.parse.urlsplit(self._remote_url)
+        self._remote_url_path = _sanitize_path_from_url(self._remote_url_split.path)
 
         self._http_metadata_provider = http_metadata.ExtraFileMetadataProvider(
             http_dl.MetadataProviderFilesystem(
@@ -270,7 +280,6 @@ class RemoteAssetListingDownloader:
         local_file.touch()
 
         # TODO: maybe poke the asset browser to load this thumbnail? Not sure if it's even necessary.
-        # TODO: convert the file to the right format
 
         if self._num_asset_pages_pending == 0 and self._bg_downloader.all_downloads_done:
             # Done downloading everything, let's shut down.
@@ -356,10 +365,6 @@ class RemoteAssetListingDownloader:
                 # TODO: delete any existing thumbnail?
                 continue
 
-            # TODO: check if there already is a local version of this asset. If so,
-            # the thumbnail of that asset takes presence over any remote thumbnail.
-            # and we don't have to bother downloading it.
-
             thumbnail_path = self._thumbnail_download_path(asset)
             if not thumbnail_path:
                 continue
@@ -381,6 +386,62 @@ class RemoteAssetListingDownloader:
             if num_queued_thumbs % 100 == 0:
                 self._bg_downloader.update()
 
+    def _asset_download_path(self, asset: api_models.AssetV1) -> Path:
+        """Construct the absolute download path for this asset.
+
+        This assumes that the URL already ends in the correct filename. In other
+        words, any filename served in the HTTP response header
+        `Content-Disposition` will be ignored.
+
+        This can raise a ValueError if the archive URL is not suitable (either
+        downright invalid, or not ending in `.blend`).
+
+        >>> rald = RemoteAssetListingDownloader('http://localhost:8000/', Path('/tmp/dl'), lambda x: None)
+        >>> asset = api_models.AssetV1(
+        ...     name="Suzanne",
+        ...     id_type=api_models.AssetIDTypeV1.object,
+        ...     archive_url='http://localhost:8000/monkeys/suzanne.blend',
+        ...     archive_size_in_bytes=327,
+        ...     archive_hash='010203040506',
+        ... )
+        >>> rald._asset_download_path(asset)
+        PosixPath('/tmp/dl/monkeys/suzanne.blend')
+
+        >>> asset.archive_url = 'https://Slapi%C4%87.hr/apes/suzanne.blend'
+        >>> rald._asset_download_path(asset)
+        PosixPath('/tmp/dl/slapić.hr/apes/suzanne.blend')
+        """
+        assert asset.archive_url
+
+        asset_url_path, asset_split_url = self._path_from_url(asset.archive_url)
+
+        # TODO: support non-.blend downloads as well.
+        url_suffix = asset_url_path.suffix.lower()
+        if url_suffix != '.blend':
+            raise ValueError(
+                "asset url ({!s}) does not end in .blend (but in {!r})".format(
+                    asset.archive_url, url_suffix))
+
+        # TODO: support files that are served 'out of context', without an actual
+        # asset repository path structure in the URLs. For example, what you'd get
+        # when serving assets from S3 buckets like Dropbox.
+        #
+        # The approach below kinda works, but doesn't really guard against collisions.
+        if (asset_split_url.netloc == self._remote_url_split.netloc and
+                asset_url_path.is_relative_to(self._remote_url_path)):
+            # This URL is within the 'directory space' of the repository URL, so just
+            # use the relative path to construct the local location for the asset.
+            unsafe_relpath = asset_url_path.relative_to(self._remote_url_path)
+            relpath = _sanitize_path_from_url(unsafe_relpath)
+        else:
+            # We cannot use this URL directly, so just use the host & path
+            # components of the URL instead.
+            host_port = _sanitize_netloc_from_url(asset_split_url.netloc)
+            path = _sanitize_path_from_url(asset_split_url.path)
+            relpath = host_port / path
+
+        return self._local_path / relpath
+
     def _thumbnail_download_path(self, asset: api_models.AssetV1) -> Path | None:
         """Construct the download path suitable for this asset's thumbnail.
 
@@ -390,33 +451,45 @@ class RemoteAssetListingDownloader:
         code considerably simpler, as now the download filename is known
         beforehand.
         """
-
         assert asset.thumbnail_url
 
-        abs_url = urllib.parse.urljoin(self._remote_url, asset.thumbnail_url)
-
         try:
-            split_url = urllib.parse.urlsplit(abs_url)
+            url_path, _ = self._path_from_url(asset.thumbnail_url)
         except ValueError as ex:
-            logger.warning("thumbnail has invalid URL (%s): %s", abs_url, ex)
+            logger.warning("thumbnail has invalid URL: %s", ex)
             return None
 
-        url_path = PurePosixPath(urllib.parse.unquote(split_url.path))
         url_suffix = url_path.suffix.lower()
         if url_suffix not in {'.webp', '.png'}:
             logger.warning(
-                "thumbnail url (%s) does not end in .webp or .png (but in %s), ignoring",
-                abs_url,
+                "thumbnail url (%s) does not end in .webp or .png (but in %r), ignoring",
+                asset.thumbnail_url,
                 url_suffix)
             return None
 
-        # Construct a directory & filename by hashing:
-        hash = hashlib.sha256(f"{asset.archive_url}/{asset.id_type}/{asset.name}".encode()).hexdigest()
-        relative_path = Path(hash[:2], hash[2:]).with_suffix(url_path.suffix)
+        asset_download_path = self._asset_download_path(asset)
+        assert asset_download_path.is_absolute()
 
-        # Return the absolute path.
-        absolute_path = self._local_path / "_thumbs" / relative_path
-        return absolute_path
+        id_type = asset.id_type.value.title()  # turn 'object' into 'Object'.
+        hash = hashlib.md5(f"{asset_download_path}/{id_type}/{asset.name}".encode()).hexdigest()
+
+        relative_path = Path(hash[:2], hash[2:]).with_suffix(url_path.suffix)
+        return self._local_path / "_thumbs/large" / relative_path
+
+    def _path_from_url(self, url: str) -> tuple[PurePosixPath, urllib.parse.SplitResult]:
+        """Construct a PurePosixPath from the path component of this URL.
+
+        This function can throw a ValueError if the URL is not valid.
+        """
+        # An URL can only be correctly interpreted if it's a full URL, and not
+        # just a relative path.
+        abs_url = urllib.parse.urljoin(self._remote_url, url)
+        try:
+            split_url = urllib.parse.urlsplit(abs_url)
+        except ValueError as ex:
+            raise ValueError("invalid URL ({!s}): {!s}".format(abs_url, ' '.join(ex.args)))
+
+        return _sanitize_path_from_url(split_url.path), split_url
 
     # TODO: implement this in a more useful way:
     def report(self, level: set[str], message: str) -> None:
@@ -509,3 +582,142 @@ class RemoteAssetListingDownloader:
     ) -> None:
         self.report({'INFO'}, "Download finished: {}".format(http_req_descr.url))
         logger.info("Download finished: %s", http_req_descr)
+
+
+def _sanitize_path_from_url(urlpath: PurePosixPath | str) -> PurePosixPath:
+    """Safely convert some path (assumed from a URL) to a relative path.
+
+    Directory up-references ('/../') are removed.
+
+    >>> _sanitize_path_from_url(PurePosixPath('/normal/path/as/expected.blend'))
+    PurePosixPath('normal/path/as/expected.blend')
+
+    >>> _sanitize_path_from_url(PurePosixPath(''))
+    PurePosixPath('.')
+
+    >>> _sanitize_path_from_url(PurePosixPath('/path/sub/../filename.blend'))
+    PurePosixPath('path/filename.blend')
+
+    >>> _sanitize_path_from_url('/path/sub%2F%2E%2e/filename.blend')
+    PurePosixPath('path/filename.blend')
+
+    >>> _sanitize_path_from_url('path/filename.blend')
+    PurePosixPath('path/filename.blend')
+
+    >>> _sanitize_path_from_url(PurePosixPath('/longer/faster/path/../../filename.blend'))
+    PurePosixPath('longer/filename.blend')
+
+    >>> _sanitize_path_from_url(PurePosixPath('/faster/path/../../filename.blend'))
+    PurePosixPath('filename.blend')
+
+    >>> _sanitize_path_from_url('/faster/path/../../filename.blend')
+    PurePosixPath('filename.blend')
+
+    >>> _sanitize_path_from_url(PurePosixPath('/../../../../../etc/passwd'))
+    PurePosixPath('etc/passwd')
+    """
+
+    if isinstance(urlpath, str):
+        # Assumption: this string comes directly from urllib.parse.urlsplit(url).path
+        unquoted = urllib.parse.unquote(urlpath)
+        normalized = unicodedata.normalize('NFKC', unquoted)
+        urlpath = PurePosixPath(normalized)
+
+    # The URL could have entries like `..` in there, which should be removed.
+    # However, PurePosixPath does not have functionality for this (for good
+    # reason), but since this is about URL paths and not real filesystem paths
+    # (yet) we can just go ahead and do this ourselves.
+
+    parts = list(urlpath.parts)
+
+    if urlpath.is_absolute():
+        parts = parts[1:]
+
+    i = 0
+    while i < len(parts):
+        if parts[i] != '..':
+            i += 1
+            continue
+
+        if i == 0:
+            parts = parts[1:]
+            continue
+
+        parts = parts[:i - 1] + parts[i + 1:]
+        i -= 1
+
+    return PurePosixPath(*parts)
+
+
+_sanitize_netloc_invalid_chars_re = re.compile(r'[:\[\]\+*"/\\<>|?]+')
+
+
+def _sanitize_netloc_from_url(netloc: str) -> PurePosixPath:
+    """Safely convert a 'netloc' (from a URL) into a relative path.
+
+    'netloc' can contain authentication (username/password), which will be
+    stripped. Also the ':' in IPv6 addresses and between the hostname and port
+    number will be transformed.
+
+    >>> _sanitize_netloc_from_url('example.com')  # Just a simple host
+    PurePosixPath('example.com')
+
+    >>> _sanitize_netloc_from_url('/example.com')  # Hostname with slash?
+    PurePosixPath('example.com')
+
+    >>> _sanitize_netloc_from_url('example.com:8080')  # Host + port
+    PurePosixPath('example.com_8080')
+
+    >>> _sanitize_netloc_from_url('10.161.57.327:8080')   # IPv4 + port
+    PurePosixPath('10.161.57.327_8080')
+
+    >>> _sanitize_netloc_from_url('[fe80::1023:cafe:f00d:47]')  # IPv6 without port
+    PurePosixPath('fe80_1023_cafe_f00d_47')
+
+    >>> _sanitize_netloc_from_url('[fe80::1023:cafe:f00d:47]:555')  # IPv6 + port
+    PurePosixPath('fe80_1023_cafe_f00d_47_555')
+
+    >>> _sanitize_netloc_from_url('user:password@example.com')  # Auth info
+    PurePosixPath('example.com')
+    >>> _sanitize_netloc_from_url('user@example.com')  # Auth info
+    PurePosixPath('example.com')
+    >>> _sanitize_netloc_from_url(':password@example.com')  # Auth info
+    PurePosixPath('example.com')
+
+    >>> _sanitize_netloc_from_url('user:password@example.com:555')  # Auth info + port
+    PurePosixPath('example.com_555')
+
+    >>> _sanitize_netloc_from_url('user%3Apassword%40example.com%3A555')  # Quoted
+    PurePosixPath('example.com_555')
+
+    >>> _sanitize_netloc_from_url('Slapi%C4%87.hr')  # Quoted UTF-8
+    PurePosixPath('slapić.hr')
+
+    >>> _sanitize_netloc_from_url('Besanc%CC%A7on')  # Quoted UTF-8 not normalized
+    PurePosixPath('besançon')
+
+    >>> _sanitize_netloc_from_url('')  # Empty
+    Traceback (most recent call last):
+      ...
+    ValueError: empty netloc
+    """
+
+    if not netloc:
+        raise ValueError('empty netloc')
+
+    # Assumption: this string comes directly from urllib.parse.urlsplit(url).netloc
+    # TODO: add support for punycode.
+    unquoted = urllib.parse.unquote(netloc)
+    normalized = unicodedata.normalize('NFKC', unquoted)
+
+    parts = normalized.split('@')
+    hostname_port = parts[-1].lower()
+
+    netloc_path = _sanitize_netloc_invalid_chars_re.sub('_', hostname_port).strip('_')
+
+    return _sanitize_path_from_url(PurePosixPath(netloc_path))
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
