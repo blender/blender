@@ -342,12 +342,10 @@ def main():
     command = list(sys.argv)
     for i, cmd in enumerate(command):
         if cmd == "--run-all-tests":
-            modifiers_test.apply_modifiers = True
             modifiers_test.do_compare = True
             modifiers_test.run_all_tests()
             break
         elif cmd == "--run-test":
-            modifiers_test.apply_modifiers = False
             modifiers_test.do_compare = False
             name = command[i + 1]
             modifiers_test.run_test(name)

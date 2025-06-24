@@ -814,7 +814,7 @@ class RunTest:
     >>> modifiers_test.run_all_tests()
     """
 
-    def __init__(self, tests, apply_modifiers=False, do_compare=False):
+    def __init__(self, tests, do_compare=False):
         """
         Construct a test suite.
 
@@ -825,10 +825,11 @@ class RunTest:
              2) expected_object_name: bpy.Types.Object - expected object
              3) modifiers or operators: list - list of mesh_test.ModifierSpec objects or
              mesh_test.OperatorSpecEditMode objects
+        :arg do_compare: bool - Whether the result mesh will be compared with the provided golden mesh. When set to False
+        the modifier is not applied so the result can be examined inside Blender.
         """
         self.tests = tests
         self._ensure_unique_test_name_or_raise_error()
-        self.apply_modifiers = apply_modifiers
         self.do_compare = do_compare
         self.verbose = os.environ.get("BLENDER_VERBOSE") is not None
         self._failed_tests_list = []
@@ -895,7 +896,9 @@ class RunTest:
             raise Exception('No test called {} found!'.format(test_name))
 
         test = case
-        test.apply_modifier = self.apply_modifiers
+        if not self.do_compare:
+            test.apply_modifier = False
+
         test.do_compare = self.do_compare
 
         success = test.run_test()
