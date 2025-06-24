@@ -169,7 +169,7 @@ struct ShadowTileMapPool {
 
 /* Can be either a shadow caster or a shadow receiver. */
 struct ShadowObject {
-  ResourceHandle resource_handle = {0};
+  ResourceHandleRange resource_handle = {0};
   bool used = true;
 };
 
@@ -351,7 +351,7 @@ class ShadowModule {
   /** Register a shadow caster or receiver. */
   void sync_object(const Object *ob,
                    const ObjectHandle &handle,
-                   const ResourceHandle &resource_handle,
+                   const ResourceHandleRange &resource_handle,
                    bool is_alpha_blend,
                    bool has_transparent_shadows);
   void end_sync();

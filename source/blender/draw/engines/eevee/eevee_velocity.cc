@@ -76,7 +76,7 @@ static void step_object_sync_render(Instance &inst, ObjectRef &ob_ref)
   }
 
   /* NOTE: Dummy resource handle since this won't be used for drawing. */
-  ResourceHandle resource_handle(0);
+  ResourceHandleRange resource_handle(0);
   ObjectHandle &ob_handle = inst.sync.sync_object(ob_ref);
 
   if (partsys_is_visible) {
@@ -127,7 +127,7 @@ void VelocityModule::step_camera_sync()
 bool VelocityModule::step_object_sync(ObjectKey &object_key,
                                       const ObjectRef &object_ref,
                                       int /*IDRecalcFlag*/ recalc,
-                                      ResourceHandle resource_handle,
+                                      ResourceHandleRange resource_handle,
                                       ModifierData *modifier_data /*=nullptr*/,
                                       ParticleSystem *particle_sys /*=nullptr*/)
 {

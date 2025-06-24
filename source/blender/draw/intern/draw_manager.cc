@@ -174,7 +174,7 @@ uint64_t Manager::fingerprint_get()
 
 ResourceHandleRange Manager::unique_handle_for_sculpt(const ObjectRef &ref)
 {
-  if (ref.sculpt_handle_.handle_first.raw != 0) {
+  if (ref.sculpt_handle_.is_valid()) {
     return ref.sculpt_handle_;
   }
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(*ref.object);

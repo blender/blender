@@ -28,7 +28,7 @@ void ScreenSpaceDrawingMode::add_shgroups() const
   pass.bind_texture("depth_tx", dtxl->depth);
 
   float4x4 image_mat = float4x4::identity();
-  ResourceHandle handle = instance_.manager->resource_handle(image_mat);
+  ResourceHandleRange handle = instance_.manager->resource_handle(image_mat);
   for (const TextureInfo &info : instance_.state.texture_infos) {
     PassSimple::Sub &sub = pass.sub("Texture");
     sub.push_constant("offset", info.offset());
@@ -44,7 +44,7 @@ void ScreenSpaceDrawingMode::add_depth_shgroups(::Image *image, ImageUser *image
   pass.shader_set(shader);
 
   float4x4 image_mat = float4x4::identity();
-  ResourceHandle handle = instance_.manager->resource_handle(image_mat);
+  ResourceHandleRange handle = instance_.manager->resource_handle(image_mat);
 
   ImageUser tile_user = {nullptr};
   if (image_user) {

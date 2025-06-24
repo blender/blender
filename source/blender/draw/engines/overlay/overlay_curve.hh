@@ -225,7 +225,7 @@ class Curves : Overlay {
       return;
     }
 
-    ResourceHandle res_handle = manager.unique_handle(ob_ref);
+    ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
 
     Object *ob = ob_ref.object;
     ::Curve &curve = DRW_object_get_data_for_drawing<::Curve>(*ob);

@@ -205,7 +205,7 @@ struct Instance : public DrawEngine {
 
   ElemIndexRanges edit_mesh_sync(Object *ob,
                                  BMEditMesh *em,
-                                 ResourceHandle res_handle,
+                                 ResourceHandleRange res_handle,
                                  short select_mode,
                                  bool draw_facedot,
                                  const uint initial_index)
@@ -264,7 +264,7 @@ struct Instance : public DrawEngine {
   }
 
   ElemIndexRanges mesh_sync(Object *ob,
-                            ResourceHandle res_handle,
+                            ResourceHandleRange res_handle,
                             short select_mode,
                             const uint initial_index)
   {
@@ -307,7 +307,7 @@ struct Instance : public DrawEngine {
   }
 
   ElemIndexRanges object_sync(
-      View3D *v3d, Object *ob, ResourceHandle res_handle, short select_mode, uint index_start)
+      View3D *v3d, Object *ob, ResourceHandleRange res_handle, short select_mode, uint index_start)
   {
     BLI_assert_msg(index_start > 0, "Index 0 is reserved for no selection");
 
@@ -353,7 +353,7 @@ struct Instance : public DrawEngine {
     /* Only sync selectable object once.
      * This can happen in retopology mode where there is two sync loop. */
     sel_ctx.elem_ranges.lookup_or_add_cb(ob, [&]() {
-      ResourceHandle res_handle = manager.unique_handle(ob_ref);
+      ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
       ElemIndexRanges elem_ranges = object_sync(
           draw_ctx->v3d, ob, res_handle, sel_ctx.select_mode, sel_ctx.max_index_drawn_len);
       sel_ctx.max_index_drawn_len = elem_ranges.total.one_after_last();

@@ -283,7 +283,7 @@ class GreasePencil : Overlay {
                                  PassMain::Sub &pass,
                                  const Scene *scene,
                                  Object *ob,
-                                 ResourceHandle res_handle,
+                                 ResourceHandleRange res_handle,
                                  select::ID select_id = select::SelectMap::select_invalid_id())
   {
     using namespace blender;

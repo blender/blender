@@ -50,7 +50,7 @@ void Cryptomatte::begin_sync()
   }
 }
 
-void Cryptomatte::sync_object(Object *ob, ResourceHandle res_handle)
+void Cryptomatte::sync_object(Object *ob, ResourceHandleRange res_handle)
 {
   const eViewLayerEEVEEPassType enabled_passes = inst_.film.enabled_passes_get();
   if (!(enabled_passes &

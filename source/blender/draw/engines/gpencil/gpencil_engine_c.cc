@@ -341,7 +341,7 @@ bool Instance::use_layer_in_render(const GreasePencil &grease_pencil,
   return true;
 }
 
-tObject *Instance::object_sync_do(Object *ob, ResourceHandle res_handle)
+tObject *Instance::object_sync_do(Object *ob, ResourceHandleRange res_handle)
 {
   using namespace ed::greasepencil;
   using namespace bke::greasepencil;
@@ -585,7 +585,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   }
 
   if (ob->data && (ob->type == OB_GREASE_PENCIL) && (ob->dt >= OB_SOLID)) {
-    ResourceHandle res_handle = manager.unique_handle(ob_ref);
+    ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
 
     tObject *tgp_ob = object_sync_do(ob, res_handle);
     vfx_sync(ob, tgp_ob);

@@ -692,7 +692,7 @@ class DrawMultiBuf {
 
     uint &group_id = group_ids_.lookup_or_add(DrawGroupKey(cmd.uuid, batch), uint(-1));
 
-    bool inverted = handle_range.handle_first.has_inverted_handedness();
+    bool inverted = handle_range.has_inverted_handedness();
 
     for (auto handle : handle_range.index_range()) {
       DrawPrototype &draw = prototype_buf_.get_or_resize(prototype_count_++);

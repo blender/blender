@@ -61,7 +61,7 @@ class SyncModule {
   void sync_curves(Object *ob,
                    ObjectHandle &ob_handle,
                    const ObjectRef &ob_ref,
-                   ResourceHandle res_handle = 0,
+                   ResourceHandleRange res_handle = {},
                    ModifierData *modifier_data = nullptr,
                    ParticleSystem *particle_sys = nullptr);
 };

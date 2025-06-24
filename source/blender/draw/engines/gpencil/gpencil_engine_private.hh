@@ -328,7 +328,7 @@ struct Instance final : public DrawEngine {
   static float2 antialiasing_sample_get(int sample_index, int sample_count);
 
  private:
-  tObject *object_sync_do(Object *ob, ResourceHandle res_handle);
+  tObject *object_sync_do(Object *ob, ResourceHandleRange res_handle);
 
   /* Check if the passed in layer is used by any other layer as a mask (in the viewlayer). */
   bool is_used_as_layer_mask_in_viewlayer(const GreasePencil &grease_pencil,

@@ -609,7 +609,7 @@ class Cameras : Overlay {
         pass.push_constant("is_camera_background", true);
         pass.push_constant("depth_set", true);
         pass.push_constant("ucolor", color_premult_alpha);
-        ResourceHandle res_handle = manager.resource_handle(mat);
+        ResourceHandleRange res_handle = manager.resource_handle(mat);
         pass.draw(res.shapes.quad_solid.get(), res_handle, select_id.get());
       }
     }
