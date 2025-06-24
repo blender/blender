@@ -24,7 +24,10 @@ struct ClosureEagerEvalParams {
   struct OutputItem {
     SocketInterfaceKey key;
     const bke::bNodeSocketType *type = nullptr;
-    /** Where the output value should be stored. */
+    /**
+     * Where the output value should be stored. This is expected to point to uninitialized memory
+     * when it's passed into #evaluate_closure_eagerly which will then construct the value inplace.
+     */
     void *value = nullptr;
   };
 
