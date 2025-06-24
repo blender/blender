@@ -10,7 +10,7 @@ from random import seed
 import bpy
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest
+from modules.mesh_test import RunTest, ModifierSpec, SpecMeshTest, OperatorSpecObjectMode
 
 seed(0)
 
@@ -151,8 +151,12 @@ def main():
 
         SpecMeshTest("CylinderMask", "testCylinderMask", "expectedCylinderMask",
                      [ModifierSpec('mask', 'MASK', {'vertex_group': "mask_vertex_group"})]),
-        SpecMeshTest("ConeMultiRes", "testConeMultiRes", "expectedConeMultiRes",
-                     [ModifierSpec('multires', 'MULTIRES', {})]),
+        SpecMeshTest("CubeMultires", "testCubeMultires", "expectedCubeMultires",
+                     [
+                         ModifierSpec('multires', 'MULTIRES', {}),
+                         OperatorSpecObjectMode('multires_subdivide', {'modifier': 'multires'}),
+                         OperatorSpecObjectMode('modifier_apply', {'modifier': 'multires'})
+                     ], apply_modifier=False),
 
         # 24
         SpecMeshTest("CubeScrew", "testCubeScrew", "expectedCubeScrew",
