@@ -4531,6 +4531,10 @@ static wmOperatorStatus knifetool_modal(bContext *C, wmOperator *op, const wmEve
       }
       kcd->axis_constrained = (kcd->constrain_axis != KNF_CONSTRAIN_AXIS_NONE);
       knifetool_disable_angle_snapping(kcd);
+
+      /* Needed so changes to constraints are re-evaluated without any cursor motion. */
+      knifetool_update_mval(kcd, mval);
+
       do_refresh = true;
     }
   }
