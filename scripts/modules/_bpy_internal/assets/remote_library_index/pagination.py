@@ -10,8 +10,12 @@ try:
 except ImportError:
     import itertools
 
-    # According to the itertools documentation, this code is equivalent:
-    def batched(iterable, n):  # type: ignore
+    # According to the itertools documentation, this code is equivalent.
+    #
+    # The 'type: ignore' is necessary only for mypy in strict mode, and so the
+    # non-strict check would complain it's unused, hence also ignoring that
+    # error explicitly.
+    def batched(iterable, n):  # type: ignore[no-untyped-def,unused-ignore]
         if n < 1:
             raise ValueError('n must be at least one')
         iterator = iter(iterable)
