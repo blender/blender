@@ -92,6 +92,19 @@ def print_row(config: api.TestConfig, entries: list, end='\n') -> None:
     print(row, end=end, flush=True)
 
 
+def print_entry(config: api.TestConfig, entry: api.TestEntry) -> None:
+    # Print a single test entry, potentially on multiple lines, with more details than in `print_row`.
+    # NOTE: Currently only used to print detailed error info.
+
+    print_row(config, [entry])
+
+    if entry.status != 'failed':
+        return
+    if not entry.exception_msg:
+        return
+    print(entry.exception_msg, flush=True)
+
+
 def match_entry(entry: api.TestEntry, args: argparse.Namespace):
     # Filter tests by name and category.
     return (
@@ -176,7 +189,8 @@ def run_entry(env: api.TestEnvironment,
         except Exception as e:
             failed = True
             entry.status = 'failed'
-            entry.error_msg = str(e)
+            entry.error_msg = 'Failed to run'
+            entry.exception_msg = str(e)
 
     print_row(config, row, end='\r')
 
@@ -293,6 +307,7 @@ def cmd_run(env: api.TestEnvironment, argv: list, update_only: bool):
                             config.queue.write()
                         if test_failed:
                             exit_code = 1
+                            print_entry(config, entry)
                     except KeyboardInterrupt as e:
                         cancel = True
                         break

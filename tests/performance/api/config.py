@@ -31,7 +31,10 @@ class TestEntry:
     device_id: str = 'CPU'
     device_name: str = 'Unknown CPU'
     status: str = 'queued'
+    # Short, single-line error.
     error_msg: str = ''
+    # More detailed error info, potentially multi-lines.
+    exception_msg: str = ''
     output: dict = field(default_factory=dict)
     benchmark_type: str = 'comparison'
 
