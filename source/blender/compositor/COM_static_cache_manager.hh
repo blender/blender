@@ -8,7 +8,6 @@
 #include "COM_cached_image.hh"
 #include "COM_cached_mask.hh"
 #include "COM_cached_shader.hh"
-#include "COM_cached_texture.hh"
 #include "COM_deriche_gaussian_coefficients.hh"
 #include "COM_distortion_grid.hh"
 #include "COM_fog_glow_kernel.hh"
@@ -52,7 +51,6 @@ class StaticCacheManager {
   SymmetricBlurWeightsContainer symmetric_blur_weights;
   SymmetricSeparableBlurWeightsContainer symmetric_separable_blur_weights;
   MorphologicalDistanceFeatherWeightsContainer morphological_distance_feather_weights;
-  CachedTextureContainer cached_textures;
   CachedMaskContainer cached_masks;
   SMAAPrecomputedTexturesContainer smaa_precomputed_textures;
   OCIOColorSpaceConversionShaderContainer ocio_color_space_conversion_shaders;

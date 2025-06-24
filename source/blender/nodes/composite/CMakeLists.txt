@@ -96,7 +96,6 @@ set(SRC
   nodes/node_composite_sunbeams.cc
   nodes/node_composite_switch.cc
   nodes/node_composite_switchview.cc
-  nodes/node_composite_texture.cc
   nodes/node_composite_tonemap.cc
   nodes/node_composite_trackpos.cc
   nodes/node_composite_transform.cc
