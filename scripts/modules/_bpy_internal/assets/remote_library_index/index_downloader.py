@@ -208,7 +208,9 @@ class RemoteAssetListingDownloader:
 
         # The file passed validation, so can be marked safe.
         if used_unsafe_file:
-            self._rename_to_safe(unsafe_local_file)
+            local_file = self._rename_to_safe(unsafe_local_file)
+        else:
+            local_file = unsafe_local_file
 
         # Write the catalogs file. Even when there are no catalogs, this should
         # be done, because catalogs might have existed previously.
@@ -216,6 +218,16 @@ class RemoteAssetListingDownloader:
         catalogs_file = self._local_path / "blender_assets.cats.txt"
         logger.info("Writing catalogs to %s", catalogs_file)
         asset_catalogs.write(asset_index.catalogs or [], catalogs_file, self._library_meta)
+
+        # Construct a "processed" version of the asset index file. This will be
+        # what Blender reads, and thus it should reference local files, and not
+        # the URLs where they were downloaded from.
+        processed_asset_index = asset_index.model_copy(deep=True)
+        # Catalogs are not read from here, but from the above-generated file. So
+        # no need to store them again.
+        processed_asset_index.catalogs = []
+        # The code below will re-fill the list with the relative file paths.
+        processed_asset_index.page_urls = []
 
         # Download the asset pages.
         self._num_asset_pages_pending = len(page_urls)
@@ -229,6 +241,14 @@ class RemoteAssetListingDownloader:
                 self.on_asset_page_downloaded)
 
             self._referenced_local_files.append(http_metadata.unsafe_to_safe_filename(download_to))
+            processed_asset_index.page_urls.append(local_path.as_posix())
+
+        # Save the processed index to a JSON file for Blender to pick up.
+        json_path = local_file.with_suffix(".processed{!s}".format(local_file.suffix))
+        as_json = processed_asset_index.model_dump_json(indent=2, exclude_defaults=True)
+        json_path.parent.mkdir(exist_ok=True, parents=True)
+        with json_path.open("w") as json_file:
+            json_file.write(as_json)
 
     def on_asset_page_downloaded(self,
                                  http_req_descr: http_dl.RequestDescription,
