@@ -6,7 +6,11 @@
  * \ingroup gpu
  */
 
+#include "DNA_userdef_types.h"
+
 #include "GPU_debug.hh"
+
+#include "gpu_capabilities_private.hh"
 
 #include "vk_backend.hh"
 #include "vk_context.hh"
@@ -94,6 +98,11 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
 
       swap_chain_format_ = swap_chain_data.surface_format;
       vk_extent_ = swap_chain_data.extent;
+      GCaps.hdr_viewport_support = U.experimental.use_vulkan_hdr &&
+                                   (swap_chain_format_.format == VK_FORMAT_R16G16B16A16_SFLOAT) &&
+                                   ELEM(swap_chain_format_.colorSpace,
+                                        VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT,
+                                        VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);
     }
   }
 }
@@ -366,10 +375,16 @@ void VKContext::swap_buffers_post_callback()
 
 void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
 {
-  GPU_debug_group_begin("BackBuffer.Blit");
 
   VKFrameBuffer &framebuffer = *unwrap(active_fb);
   VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
+
+  VKDevice &device = VKBackend::get().device;
+  device.resources.add_image(swap_chain_data.image, 1, "SwapchainImage");
+
+  render_graph::VKRenderGraph &render_graph = this->render_graph();
+  framebuffer.rendering_end(*this);
+  GPU_debug_group_begin("BackBuffer.Blit");
 
   render_graph::VKBlitImageNode::CreateInfo blit_image = {};
   blit_image.src_image = color_attachment->vk_image_handle();
@@ -391,25 +406,17 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   region.dstSubresource.baseArrayLayer = 0;
   region.dstSubresource.layerCount = 1;
 
-  /* Swap chain commands are CPU synchronized at this moment, allowing to temporary add the swap
-   * chain image as device resources. When we move towards GPU swap chain synchronization we need
-   * to keep track of the swap chain image between frames. */
-  VKDevice &device = VKBackend::get().device;
-  device.resources.add_image(swap_chain_data.image, 1, "SwapchainImage");
-
-  framebuffer.rendering_end(*this);
-  flush_render_graph(RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
-
-  render_graph::VKRenderGraph &render_graph = this->render_graph();
   render_graph.add_node(blit_image);
-  GPU_debug_group_end();
+
   render_graph::VKSynchronizationNode::CreateInfo synchronization = {};
   synchronization.vk_image = swap_chain_data.image;
   synchronization.vk_image_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
   synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
   render_graph.add_node(synchronization);
+  GPU_debug_group_end();
+
   flush_render_graph(RenderGraphFlushFlags::SUBMIT | RenderGraphFlushFlags::RENEW_RENDER_GRAPH,
-                     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+                     VK_PIPELINE_STAGE_TRANSFER_BIT,
                      swap_chain_data.acquire_semaphore,
                      swap_chain_data.present_semaphore,
                      swap_chain_data.submission_fence);

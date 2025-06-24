@@ -2878,6 +2878,13 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "write_legacy_blend_file_format"}, ("/blender/blender/issues/129309", "#129309")),
             ),
         )
+        import sys
+        if sys.platform == "linux":
+            self._draw_items(
+                context, (
+                    ({"property": "use_vulkan_hdr"}, ("/blender/blender/issues/140277", "#140277")),
+                ),
+            )
 
 
 # Keep this as tweaks can be useful to restore.
