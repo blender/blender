@@ -202,6 +202,7 @@ GPU_SHADER_CREATE_INFO(overlay_motion_path_line)
 DO_STATIC_COMPILATION()
 STORAGE_BUF_FREQ(0, read, float, pos[], GEOMETRY)
 PUSH_CONSTANT(int2, gpu_attr_0)
+PUSH_CONSTANT(int, gpu_attr_0_len) /* Avoid a warning on Metal. */
 PUSH_CONSTANT(int4, mpath_line_settings)
 PUSH_CONSTANT(bool, selected)
 PUSH_CONSTANT(float3, custom_color_pre)
