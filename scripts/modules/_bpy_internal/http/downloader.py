@@ -116,12 +116,13 @@ class ConditionalDownloader:
         temp_path.parent.mkdir(exist_ok=True, parents=True)
 
         try:
-            http_meta = self._request_and_stream(http_req_descr, temp_path, http_meta)
+            result = self._request_and_stream(http_req_descr, temp_path, http_meta)
         except Exception:
             # Clean up the partially downloaded file.
             temp_path.unlink(missing_ok=True)
             raise
 
+        http_meta, http_req_descr_with_headers = result
         if http_meta is None:
             # Local file is already fresh, no need to re-download.
             assert not temp_path.exists()
@@ -136,18 +137,20 @@ class ConditionalDownloader:
 
         self.metadata_provider.save(http_req_descr, http_meta)
 
-        self._reporter.download_finished(http_req_descr, local_path)
+        self._reporter.download_finished(http_req_descr_with_headers, local_path)
 
     def _request_and_stream(
         self,
         http_req_descr: RequestDescription,
         local_path: Path,
         meta: HTTPMetadata | None,
-    ) -> HTTPMetadata | None:
+    ) -> tuple[HTTPMetadata | None, RequestDescription]:
         """Download the remote URL to a local file.
 
-        :return: the metadata of the downloaded data, or None if the passed-in
-            metadata matches the URL (a "304 Not Modified" was returned).
+        :return: tuple of:
+            - the metadata of the downloaded data, or None if the passed-in
+              metadata matches the URL (a "304 Not Modified" was returned).
+            - RequestDescription object that includes the HTTP response headers.
         """
 
         # Don't bother doing anything when the download was cancelled already.
@@ -170,11 +173,22 @@ class ConditionalDownloader:
 
             stream.raise_for_status()
 
+            # Create a copy of the `http_req_descr` to store the response headers.
+            # The `RequestDescription` struct is frozen, so cannot be modified
+            # in-place. And returning a modified copy is IMO a clearer interface
+            # than modifying parameters and expecting the caller to know about
+            # this.
+            response_headers = {key.lower(): value for key, value in stream.headers.items()}
+            http_req_descr_with_headers = http_req_descr.model_copy(
+                update=dict(response_headers=response_headers),
+            )
+
             if stream.status_code == 304:  # 304 Not Modified
                 # The remote file matches what we have locally. Don't bother streaming.
-                return None
+                return None, http_req_descr_with_headers
 
-            return self._stream_to_file(stream, http_req_descr, local_path)
+            meta = self._stream_to_file(stream, http_req_descr_with_headers, local_path)
+            return meta, http_req_descr_with_headers
 
     def _stream_to_file(
         self,
@@ -252,9 +266,13 @@ class ConditionalDownloader:
         if num_downloaded_bytes != content_length:
             raise ContentLengthError(http_req_descr, content_length, num_downloaded_bytes)
 
-        # File was downloaded succesfully, store the metadata.
+        # File was downloaded succesfully, store the metadata without all the headers.
+        http_req_descr_without_headers = http_req_descr.model_copy(
+            update=dict(response_headers=None),
+        )
+
         meta = HTTPMetadata(
-            request=http_req_descr,
+            request=http_req_descr_without_headers,
             etag=stream.headers.get("ETag") or "",
             last_modified=stream.headers.get("Last-Modified") or "",
             content_length=num_downloaded_bytes,
@@ -1026,7 +1044,10 @@ class MetadataProviderFilesystem(MetadataProvider):
 class HTTPMetadata(pydantic.BaseModel):
     """HTTP headers, stored so they can be used for conditional requests later."""
 
+    # Saved without the response headers, as only the interesting ones are
+    # stored in explicit fields below.
     request: RequestDescription
+
     etag: str = ""
     last_modified: str = ""
     content_length: int = 0
@@ -1038,12 +1059,38 @@ class RequestDescription(pydantic.BaseModel):
     This is used to simplify function parameters, as well as a key for hashing
     to find the HTTPMetadata file that stores data of previous calls to this
     HTTP requests.
+
+    When passed to callbacks after the request has been performed,
+    `response_headers` will contain a copy of the HTTP response headers. The
+    header names (i.e. the keys of the dictionary) will be converted to lower
+    case.
     """
     # Freeze instances of this class, so they can be used as map key.
     model_config = pydantic.ConfigDict(frozen=True)
 
     http_method: str
     url: str
+
+    response_headers: dict[str, str] = pydantic.Field(exclude=True, default_factory=dict)
+    """Response headers, dictionary keys are lower-cased.
+
+    This field is ignored in hash() calls and equality checks, to keep instances
+    of this class hashable (and thus usable as map key).
+    """
+
+    def __hash__(self) -> int:
+        return hash((self.http_method, self.url))
+
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, RequestDescription):
+            return False
+        return (self.http_method, self.url) == (value.http_method, value.url)
+
+    def __str__(self) -> str:
+        return "RequestDescription({!s} {!s})".format(self.http_method, self.url)
+
+    def __repr__(self) -> str:
+        return str(self)
 
 
 class HTTPRequestDownloadError(RuntimeError):

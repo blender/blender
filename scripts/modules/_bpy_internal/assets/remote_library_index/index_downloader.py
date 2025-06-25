@@ -351,12 +351,24 @@ class RemoteAssetListingDownloader:
                                 http_req_descr: http_dl.RequestDescription,
                                 local_file: Path,
                                 ) -> None:
-        # Indicate to a future run that we just confirmed this file is still fresh.
-        local_file.touch()
+        try:
+            # Check whether the file was actually an image.
+            assert http_req_descr.response_headers
+            content_type = http_req_descr.response_headers['content-type']
+            if not content_type.startswith('image/'):
+                logger.warning("Thumbnail URL %r has content type %r, expected an image",
+                               http_req_descr.url, content_type)
+                # TODO: mark as 'failed' so that this file isn't repeatedly
+                # downloaded and rejected. For now I'll just keep the file
+                # around, so that at least the timestamping works to prevent
+                # hammering the server.
 
-        # TODO: maybe poke the asset browser to load this thumbnail? Not sure if it's even necessary.
+            # Indicate to a future run that we just confirmed this file is still fresh.
+            local_file.touch()
 
-        self._shutdown_if_done()
+            # TODO: maybe poke the asset browser to load this thumbnail? Not sure if it's even necessary.
+        finally:
+            self._shutdown_if_done()
 
     def _shutdown_if_done(self) -> None:
         if self._num_asset_pages_pending == 0 and self._bg_downloader.all_downloads_done:
