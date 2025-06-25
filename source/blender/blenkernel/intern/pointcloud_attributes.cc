@@ -183,6 +183,10 @@ static constexpr AttributeAccessorFunctions get_pointcloud_accessor_functions()
     BLI_assert(cd_type.has_value());
     return AttributeDomainAndType{info->domain, *cd_type};
   };
+  fn.get_builtin_default = [](const void * /*owner*/, StringRef name) -> GPointer {
+    const BuiltinInfo &info = builtin_attributes().lookup(name);
+    return info.default_value;
+  };
   fn.lookup = [](const void *owner, const StringRef name) -> GAttributeReader {
     const PointCloud &pointcloud = *static_cast<const PointCloud *>(owner);
     const AttributeStorage &storage = pointcloud.attribute_storage.wrap();
