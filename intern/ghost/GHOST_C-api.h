@@ -348,6 +348,11 @@ extern GHOST_TSuccess GHOST_GetCursorBitmap(GHOST_WindowHandle windowhandle,
                                             GHOST_CursorBitmapRef *bitmap);
 
 /**
+ * \return the size of the cursor in logical pixels (before Hi-DPI scaling is applied).
+ */
+extern uint32_t GHOST_GetCursorPreferredLogicalSize(const GHOST_SystemHandle systemhandle);
+
+/**
  * Returns the visibility state of the cursor.
  * \param windowhandle: The handle to the window.
  * \return The visibility state of the cursor.
