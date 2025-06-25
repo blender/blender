@@ -104,6 +104,26 @@ GreasePencilDrawing *AttributeOwner::get_grease_pencil_drawing() const
   return reinterpret_cast<GreasePencilDrawing *>(ptr_);
 }
 
+std::optional<blender::bke::MutableAttributeAccessor> AttributeOwner::get_accessor() const
+{
+  switch (type_) {
+    case AttributeOwnerType::Mesh:
+      /* The attribute API isn't implemented for BMesh, so edit mode meshes are not supported. */
+      BLI_assert(this->get_mesh()->runtime->edit_mesh == nullptr);
+      return this->get_mesh()->attributes_for_write();
+    case AttributeOwnerType::PointCloud:
+      return this->get_pointcloud()->attributes_for_write();
+    case AttributeOwnerType::Curves:
+      return this->get_curves()->geometry.wrap().attributes_for_write();
+    case AttributeOwnerType::GreasePencil:
+      return this->get_grease_pencil()->attributes_for_write();
+    case AttributeOwnerType::GreasePencilDrawing:
+      return this->get_grease_pencil_drawing()->geometry.wrap().attributes_for_write();
+  }
+  BLI_assert(false);
+  return std::nullopt;
+}
+
 struct DomainInfo {
   CustomData *customdata = nullptr;
   int length = 0;
@@ -170,41 +190,6 @@ static std::array<DomainInfo, ATTR_DOMAIN_NUM> get_domains(const AttributeOwner 
 
   return info;
 }
-
-namespace blender::bke {
-
-static std::optional<blender::bke::MutableAttributeAccessor> get_attribute_accessor_for_write(
-    AttributeOwner &owner)
-{
-  switch (owner.type()) {
-    case AttributeOwnerType::Mesh: {
-      Mesh &mesh = *owner.get_mesh();
-      /* The attribute API isn't implemented for BMesh, so edit mode meshes are not supported. */
-      BLI_assert(mesh.runtime->edit_mesh == nullptr);
-      return mesh.attributes_for_write();
-    }
-    case AttributeOwnerType::PointCloud: {
-      PointCloud &pointcloud = *owner.get_pointcloud();
-      return pointcloud.attributes_for_write();
-    }
-    case AttributeOwnerType::Curves: {
-      Curves &curves_id = *owner.get_curves();
-      CurvesGeometry &curves = curves_id.geometry.wrap();
-      return curves.attributes_for_write();
-    }
-    case AttributeOwnerType::GreasePencil: {
-      GreasePencil &grease_pencil = *owner.get_grease_pencil();
-      return grease_pencil.attributes_for_write();
-    }
-    case AttributeOwnerType::GreasePencilDrawing: {
-      blender::bke::greasepencil::Drawing &drawing = owner.get_grease_pencil_drawing()->wrap();
-      return drawing.strokes_for_write().attributes_for_write();
-    }
-  }
-  return {};
-}
-
-}  // namespace blender::bke
 
 static bool bke_attribute_rename_if_exists(AttributeOwner &owner,
                                            const StringRef old_name,
@@ -430,7 +415,7 @@ CustomDataLayer *BKE_attribute_new(AttributeOwner &owner,
     }
   }
 
-  std::optional<MutableAttributeAccessor> attributes = get_attribute_accessor_for_write(owner);
+  std::optional<MutableAttributeAccessor> attributes = owner.get_accessor();
   if (!attributes) {
     return nullptr;
   }
@@ -451,7 +436,7 @@ static void bke_attribute_copy_if_exists(AttributeOwner &owner,
 {
   using namespace blender::bke;
 
-  std::optional<MutableAttributeAccessor> attributes = get_attribute_accessor_for_write(owner);
+  std::optional<MutableAttributeAccessor> attributes = owner.get_accessor();
   if (!attributes) {
     return;
   }
@@ -480,7 +465,7 @@ CustomDataLayer *BKE_attribute_duplicate(AttributeOwner &owner,
     }
   }
 
-  std::optional<MutableAttributeAccessor> attributes = get_attribute_accessor_for_write(owner);
+  std::optional<MutableAttributeAccessor> attributes = owner.get_accessor();
   if (!attributes) {
     return nullptr;
   }
@@ -597,7 +582,7 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
     }
   }
 
-  std::optional<MutableAttributeAccessor> attributes = get_attribute_accessor_for_write(owner);
+  std::optional<MutableAttributeAccessor> attributes = owner.get_accessor();
   if (!attributes) {
     return false;
   }
