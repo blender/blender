@@ -38,7 +38,11 @@ def cli_main(arguments_raw: argparse.Namespace) -> None:
 
         is_done = True
 
-    downloader = index_downloader.RemoteAssetListingDownloader(arguments.url, base_path, on_done_callback)
+    downloader = index_downloader.RemoteAssetListingDownloader(
+        arguments.url,
+        base_path,
+        lambda *args: None,
+        on_done_callback)
     downloader.download_and_process()
 
     while not is_done:

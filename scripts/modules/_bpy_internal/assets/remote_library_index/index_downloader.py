@@ -45,12 +45,6 @@ class DownloadStatus(enum.Enum):
     FAILED = 'failed'
 
 
-class DownloadStatus(enum.Enum):
-    LOADING = 'loading'
-    FINISHED_SUCCESSFULLY = 'finished successfully'
-    FAILED = 'failed'
-
-
 class RemoteAssetListingDownloader:
     _remote_url: str
     _local_path: Path
@@ -63,9 +57,9 @@ class RemoteAssetListingDownloader:
     OnDoneCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
     _on_done_callback: OnDoneCallback
     OnMetafilesDoneCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
-    _on_metafiles_done_callback: OnMetafilesDoneCallback
+    _on_metafiles_done_callback: OnMetafilesDoneCallback | None
     OnPageDoneCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
-    _on_page_done_callback: OnPageDoneCallback
+    _on_page_done_callback: OnPageDoneCallback | None
 
     _bgdownloader: http_dl.BackgroundDownloader
     _num_asset_pages_pending: int
@@ -285,7 +279,6 @@ class RemoteAssetListingDownloader:
         processed_asset_index.catalogs = []
         # The code below will re-fill the list with the relative file paths.
         processed_asset_index.page_urls = []
-
 
         # Download the asset pages.
         self._num_asset_pages_pending = len(page_urls)
@@ -620,7 +613,7 @@ class RemoteAssetListingDownloader:
             self._bg_downloader.update()
         except http_dl.BackgroundProcessNotRunningError:
             logger.error("Background downloader subprocess died, aborting.")
-            self.shutdown()
+            self.shutdown(DownloadStatus.FAILED)
             return 0  # Deactivate the timer.
         except Exception:
             logger.exception(
@@ -667,7 +660,7 @@ class RemoteAssetListingDownloader:
             if self._num_asset_pages_pending:
                 self.report({'WARNING'}, "Cancelled {} pending download".format(self._num_asset_pages_pending))
             logger.warning("Download cancelled: %s", http_req_descr)
-            self.shutdown()
+            self.shutdown(DownloadStatus.FAILED)
             return
 
         if local_file in self._noncritical_downloads:
