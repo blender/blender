@@ -36,11 +36,8 @@ enum class ReadingResult {
 /**
  * Reading of API schema version 1. See #read_remote_listing() on \a process_fn.
  * \param version_root_dirpath: Absolute path to the remote listing root directory.
- * \param version_listing_filepath: Absolute path to the remote listing meta file of this version
- *                                  (e.g. `_v1/asset-listing.json`).
  */
 ReadingResult read_remote_listing_v1(StringRefNull listing_root_dirpath,
-                                     StringRefNull version_listing_filepath,
                                      RemoteListingEntryProcessFn process_fn);
 
 }  // namespace blender::ed::asset::index

@@ -209,12 +209,21 @@ std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(StringRefNull l
 /** \} */
 
 ReadingResult read_remote_listing_v1(StringRefNull listing_root_dirpath,
-                                     StringRefNull version_listing_filepath,
                                      RemoteListingEntryProcessFn process_fn)
 {
+  /* Version 1 asset indices are always stored in this path by RemoteAssetListingDownloader. */
+  constexpr const char *asset_index_relpath = "_v1/asset-index.processed.json";
+
+  char asset_index_abspath[FILE_MAX];
+  BLI_path_join(asset_index_abspath,
+                sizeof(asset_index_abspath),
+                listing_root_dirpath.c_str(),
+                asset_index_relpath);
+
   const std::optional<AssetLibraryListingV1> listing = AssetLibraryListingV1::read(
-      version_listing_filepath);
+      asset_index_abspath);
   if (!listing) {
+    printf("Couldn't read V1 listing from %s\n", asset_index_abspath);
     return ReadingResult::Failure;
   }
 
@@ -222,6 +231,10 @@ ReadingResult read_remote_listing_v1(StringRefNull listing_root_dirpath,
     const ReadingResult result = AssetLibraryListingPageV1::read_asset_entries(
         listing_root_dirpath, page_path, process_fn);
     if (result != ReadingResult::Success) {
+      printf("Couldn't read V1 listing from %s%c%s\n",
+             listing_root_dirpath.c_str(),
+             SEP,
+             page_path.c_str());
       return result;
     }
   }

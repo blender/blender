@@ -147,10 +147,9 @@ static std::optional<ApiVersionInfo> choose_api_version(const AssetLibraryMeta &
   };
 
   for (const auto &[version_nr, version_str] : readable_versions) {
-    if (const std::string *version_listing_relpath = library_meta.api_versions.lookup_ptr(
-            version_str))
+    if (const std::string *version_listing_url = library_meta.api_versions.lookup_ptr(version_str))
     {
-      return ApiVersionInfo{version_nr, *version_listing_relpath};
+      return ApiVersionInfo{version_nr, *version_listing_url};
     }
   }
 
@@ -167,25 +166,17 @@ bool read_remote_listing(StringRefNull root_dirpath, RemoteListingEntryProcessFn
     return false;
   }
 
-  const std::optional<ApiVersionInfo> api_version_relpath = choose_api_version(*meta);
-  if (!api_version_relpath) {
+  const std::optional<ApiVersionInfo> api_version_info = choose_api_version(*meta);
+  if (!api_version_info) {
     printf("Couldn't choose API version");
     return false;
   }
 
-  /* Path to the listing meta-file (e.g. `_v1/asset-index.json`). */
-  char version_listing_filepath[FILE_MAX];
-  BLI_path_join(version_listing_filepath,
-                sizeof(version_listing_filepath),
-                root_dirpath.c_str(),
-                api_version_relpath->listing_relpath.c_str());
-
-  switch (api_version_relpath->version_nr) {
+  /* Path to the listing meta-file is version-dependent. */
+  switch (api_version_info->version_nr) {
     case 1: {
-      const ReadingResult result = read_remote_listing_v1(
-          root_dirpath, version_listing_filepath, process_fn);
+      const ReadingResult result = read_remote_listing_v1(root_dirpath, process_fn);
       if (result == ReadingResult::Failure) {
-        printf("Couldn't read V1 listing from %s\n", version_listing_filepath);
         return false;
       }
       if (result == ReadingResult::Cancelled) {
