@@ -85,15 +85,22 @@ Attribute::ArrayData Attribute::ArrayData::ForDefaultValue(const CPPType &type,
   return ForValue(GPointer(type, type.default_value()), domain_size);
 }
 
-Attribute::ArrayData Attribute::ArrayData::ForConstructed(const CPPType &type,
-                                                          const int64_t domain_size)
+Attribute::ArrayData Attribute::ArrayData::ForUninitialized(const CPPType &type,
+                                                            const int64_t domain_size)
 {
   Attribute::ArrayData data{};
   data.data = MEM_malloc_arrayN_aligned(domain_size, type.size, type.alignment, __func__);
-  type.default_construct_n(data.data, domain_size);
   data.size = domain_size;
   BLI_assert(type.is_trivially_destructible);
   data.sharing_info = ImplicitSharingPtr<>(implicit_sharing::info_for_mem_free(data.data));
+  return data;
+}
+
+Attribute::ArrayData Attribute::ArrayData::ForConstructed(const CPPType &type,
+                                                          const int64_t domain_size)
+{
+  Attribute::ArrayData data = Attribute::ArrayData::ForUninitialized(type, domain_size);
+  type.default_construct_n(data.data, domain_size);
   return data;
 }
 
@@ -163,7 +170,7 @@ Attribute::DataVariant &Attribute::data_for_write()
       return data_;
     }
     const CPPType &type = attribute_type_to_cpp_type(type_);
-    ArrayData new_data = ArrayData::ForConstructed(type, data->size);
+    ArrayData new_data = ArrayData::ForUninitialized(type, data->size);
     type.copy_construct_n(data->data, new_data.data, data->size);
     *data = std::move(new_data);
   }
