@@ -410,7 +410,7 @@ class CLIP_OT_set_viewport_background(Operator):
 
     bl_idname = "clip.set_viewport_background"
     bl_label = "Set as Background"
-    bl_options = {'REGISTER'}
+    bl_options = {'UNDO', 'REGISTER'}
 
     @classmethod
     def poll(cls, context):
