@@ -82,6 +82,9 @@ struct GPUViewport {
   /* TODO(@fclem): the UV-image display use the viewport but do not set any view transform for the
    * moment. The end goal would be to let the GPUViewport do the color management. */
   bool do_color_management;
+  /* Used for rendering HDR content without clamping even if display doesn't necessarily support
+   * HDR. This is used for viewport render preview (see #77909). */
+  bool force_hdr_output;
   GPUViewportBatch batch;
 };
 
@@ -274,6 +277,11 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
   viewport->do_color_management = true;
 }
 
+void GPU_viewport_force_hdr(GPUViewport *viewport)
+{
+  viewport->force_hdr_output = true;
+}
+
 void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo_format)
 {
   if (!ELEM(stereo_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
@@ -437,6 +445,10 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
   bool use_ocio = false;
   bool use_hdr = GPU_hdr_support() &&
                  ((viewport->view_settings.flag & COLORMANAGE_VIEW_USE_HDR) != 0);
+
+  if (viewport->force_hdr_output) {
+    use_hdr = true;
+  }
 
   if (viewport->do_color_management && display_colorspace) {
     /* During the binding process the last used VertexFormat is tested and can assert as it is not
