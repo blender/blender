@@ -207,7 +207,7 @@ class BUILTIN_KSI_VisualLoc(KeyingSetInfo):
     bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
-    poll = keyingsets_utils.RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_bones_or_objects
 
     # iterator - use callback for selected bones/objects
     iterator = keyingsets_utils.RKS_ITER_selected_item
@@ -225,7 +225,7 @@ class BUILTIN_KSI_VisualRot(KeyingSetInfo):
     bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
-    poll = keyingsets_utils.RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_bones_or_objects
 
     # iterator - use callback for selected bones/objects
     iterator = keyingsets_utils.RKS_ITER_selected_item
@@ -243,7 +243,7 @@ class BUILTIN_KSI_VisualScaling(KeyingSetInfo):
     bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
-    poll = keyingsets_utils.RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_bones_or_objects
 
     # iterator - use callback for selected bones/objects
     iterator = keyingsets_utils.RKS_ITER_selected_item
@@ -261,7 +261,7 @@ class BUILTIN_KSI_VisualLocRot(KeyingSetInfo):
     bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
-    poll = keyingsets_utils.RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_bones_or_objects
 
     # iterator - use callback for selected bones/objects
     iterator = keyingsets_utils.RKS_ITER_selected_item
@@ -283,7 +283,7 @@ class BUILTIN_KSI_VisualLocScale(KeyingSetInfo):
     bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
-    poll = keyingsets_utils.RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_bones_or_objects
 
     # iterator - use callback for selected bones/objects
     iterator = keyingsets_utils.RKS_ITER_selected_item
@@ -305,7 +305,7 @@ class BUILTIN_KSI_VisualLocRotScale(KeyingSetInfo):
     bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
-    poll = keyingsets_utils.RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_bones_or_objects
 
     # iterator - use callback for selected bones/objects
     iterator = keyingsets_utils.RKS_ITER_selected_item
@@ -329,7 +329,7 @@ class BUILTIN_KSI_VisualRotScale(KeyingSetInfo):
     bl_options = {'INSERTKEY_VISUAL'}
 
     # poll - use predefined callback for selected bones/objects
-    poll = keyingsets_utils.RKS_POLL_selected_items
+    poll = keyingsets_utils.RKS_POLL_selected_bones_or_objects
 
     # iterator - use callback for selected bones/objects
     iterator = keyingsets_utils.RKS_ITER_selected_item

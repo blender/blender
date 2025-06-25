@@ -44,6 +44,9 @@ def path_add_property(path, prop):
 
 # selected objects (active object must be in object mode)
 def RKS_POLL_selected_objects(_ksi, context):
+    if context.area.type == 'SEQUENCE_EDITOR':
+        return False
+
     ob = context.active_object
     if ob:
         return ob.mode == 'OBJECT'
@@ -53,6 +56,9 @@ def RKS_POLL_selected_objects(_ksi, context):
 
 # selected bones
 def RKS_POLL_selected_bones(_ksi, context):
+    if context.area.type == 'SEQUENCE_EDITOR':
+        return False
+
     # we must be in Pose Mode, and there must be some bones selected
     ob = context.active_object
     if ob and ob.mode == 'POSE':
@@ -62,9 +68,27 @@ def RKS_POLL_selected_bones(_ksi, context):
     # nothing selected
     return False
 
+# selected vse strip
+
+
+def RKS_POLL_selected_strip(_ksi, context):
+    if context.active_strip or context.selected_strips:
+        return True
+
+    # nothing selected
+    return False
+
+
+# selected bones, objects or strips
+def RKS_POLL_selected_items(ksi, context):
+    return (RKS_POLL_selected_bones(ksi, context) or
+            RKS_POLL_selected_objects(ksi, context) or
+            RKS_POLL_selected_strip(ksi, context))
 
 # selected bones or objects
-def RKS_POLL_selected_items(ksi, context):
+
+
+def RKS_POLL_selected_bones_or_objects(ksi, context):
     return (RKS_POLL_selected_bones(ksi, context) or
             RKS_POLL_selected_objects(ksi, context))
 
@@ -74,11 +98,17 @@ def RKS_POLL_selected_items(ksi, context):
 
 # All selected objects or pose bones, depending on which we've got.
 def RKS_ITER_selected_item(ksi, context, ks):
+    if context.area.type == 'SEQUENCE_EDITOR':
+        if context.selected_strips:
+            for strip in context.selected_strips:
+                ksi.generate(context, ks, strip)
+        return
+
     ob = context.active_object
     if ob and ob.mode == 'POSE':
         for bone in context.selected_pose_bones:
             ksi.generate(context, ks, bone)
-    else:
+    elif context.selected_objects:
         for ob in context.selected_objects:
             ksi.generate(context, ks, ob)
 
@@ -165,6 +195,17 @@ def RKS_GEN_location(_ksi, _context, ks, data):
     # get id-block and path info
     id_block, base_path, grouping = get_transform_generators_base_info(data)
 
+    if isinstance(data, bpy.types.Strip):
+        path_x = path_add_property(base_path, "transform.offset_x")
+        path_y = path_add_property(base_path, "transform.offset_y")
+        if grouping:
+            ks.paths.add(id_block, path_x, group_method='NAMED', group_name=grouping)
+            ks.paths.add(id_block, path_y, group_method='NAMED', group_name=grouping)
+        else:
+            ks.paths.add(id_block, path_x)
+            ks.paths.add(id_block, path_y)
+        return
+
     # add the property name to the base path
     path = path_add_property(base_path, "location")
 
@@ -181,6 +222,13 @@ def RKS_GEN_rotation(_ksi, _context, ks, data):
     id_block, base_path, grouping = get_transform_generators_base_info(data)
 
     # add the property name to the base path
+    if isinstance(data, bpy.types.Strip):
+        path = path_add_property(base_path, "transform.rotation")
+        if grouping:
+            ks.paths.add(id_block, path, group_method='NAMED', group_name=grouping)
+        else:
+            ks.paths.add(id_block, path)
+        return
     #   rotation mode affects the property used
     if data.rotation_mode == 'QUATERNION':
         path = path_add_property(base_path, "rotation_quaternion")
@@ -201,6 +249,16 @@ def RKS_GEN_scaling(_ksi, _context, ks, data):
     # get id-block and path info
     id_block, base_path, grouping = get_transform_generators_base_info(data)
 
+    if isinstance(data, bpy.types.Strip):
+        path_x = path_add_property(base_path, "transform.scale_x")
+        path_y = path_add_property(base_path, "transform.scale_y")
+        if grouping:
+            ks.paths.add(id_block, path_x, group_method='NAMED', group_name=grouping)
+            ks.paths.add(id_block, path_y, group_method='NAMED', group_name=grouping)
+        else:
+            ks.paths.add(id_block, path_x)
+            ks.paths.add(id_block, path_y)
+        return
     # add the property name to the base path
     path = path_add_property(base_path, "scale")
 
