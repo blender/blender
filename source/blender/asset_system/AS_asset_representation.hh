@@ -46,18 +46,24 @@ class AssetRepresentation : NonCopyable, NonMovable {
     int id_type = 0;
     std::unique_ptr<AssetMetaData> metadata_ = nullptr;
     PreviewImage *preview_ = nullptr;
+    bool is_online_;
   };
   std::variant<ExternalAsset, ID *> asset_;
 
   friend class AssetLibrary;
 
  public:
-  /** Constructs an asset representation for an external ID. The asset will not be editable. */
+  /**
+   * Constructs an asset representation for an external ID. The asset will not be editable.
+   * \param is_online: The asset is stored online, not on disk. Previews will use specialized
+   * handling see #THB_SOURCE_ONLINE_ASSET.
+   */
   AssetRepresentation(StringRef relative_asset_path,
                       StringRef name,
                       int id_type,
                       std::unique_ptr<AssetMetaData> metadata,
-                      AssetLibrary &owner_asset_library);
+                      AssetLibrary &owner_asset_library,
+                      bool is_online);
   /**
    * Constructs an asset representation for an ID stored in the current file. This makes the asset
    * local and fully editable.
@@ -117,6 +123,8 @@ class AssetRepresentation : NonCopyable, NonMovable {
   ID *local_id() const;
   /** Returns if this asset is stored inside this current file, and as such fully editable. */
   bool is_local_id() const;
+  /** The asset is stored online, not on disk. */
+  bool is_online() const;
   AssetLibrary &owner_asset_library() const;
 };
 

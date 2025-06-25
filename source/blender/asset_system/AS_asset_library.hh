@@ -54,10 +54,10 @@ class AssetLibrary {
   /**
    * AssetStorage for assets (better said their representations) that are considered to be part of
    * this library. Assets are not automatically loaded into this when loading an asset library.
-   * Assets have to be loaded externally and added to this storage via #add_external_asset() or
-   * #add_local_id_asset(). So this really is arbitrary storage as far as #AssetLibrary is
-   * concerned (allowing the API user to manage partial library storage and partial loading, so
-   * only relevant parts of a library are kept in memory).
+   * Assets have to be loaded externally and added to this storage via
+   * #add_external_on_disk_asset() or #add_local_id_asset(). So this really is arbitrary storage as
+   * far as #AssetLibrary is concerned (allowing the API user to manage partial library storage and
+   * partial loading, so only relevant parts of a library are kept in memory).
    *
    * For now, multiple parts of Blender just keep adding their own assets to this storage. E.g.
    * multiple asset browsers might load multiple representations for the same asset into this.
@@ -143,14 +143,22 @@ class AssetLibrary {
    *         reference stored to be able to call #remove_asset(). This would be dangling once the
    *         asset library is destructed, so a weak pointer should be used to reference it.
    */
-  std::weak_ptr<AssetRepresentation> add_external_asset(StringRef relative_asset_path,
-                                                        StringRef name,
-                                                        int id_type,
-                                                        std::unique_ptr<AssetMetaData> metadata);
-  /** See #AssetLibrary::add_external_asset(). */
+  std::weak_ptr<AssetRepresentation> add_external_on_disk_asset(
+      StringRef relative_asset_path,
+      StringRef name,
+      int id_type,
+      std::unique_ptr<AssetMetaData> metadata);
+  /** See #AssetLibrary::add_external_on_disk_asset(). Use this for assets that are not available
+   * on disk, and part of an online asset library. */
+  std::weak_ptr<AssetRepresentation> add_external_online_asset(
+      StringRef relative_asset_path,
+      StringRef name,
+      int id_type,
+      std::unique_ptr<AssetMetaData> metadata);
+  /** See #AssetLibrary::add_external_on_disk_asset(). */
   std::weak_ptr<AssetRepresentation> add_local_id_asset(StringRef relative_asset_path, ID &id);
   /**
-   * Remove an asset from the library that was added using #add_external_asset() or
+   * Remove an asset from the library that was added using #add_external_on_disk_asset() or
    * #add_local_id_asset(). Can usually be expected to be constant time complexity (worst case may
    * differ).
    * \note This is safe to call if \a asset is freed (dangling reference), will not perform any

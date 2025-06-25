@@ -28,10 +28,12 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
                                          StringRef name,
                                          const int id_type,
                                          std::unique_ptr<AssetMetaData> metadata,
-                                         AssetLibrary &owner_asset_library)
+                                         AssetLibrary &owner_asset_library,
+                                         const bool is_online)
     : owner_asset_library_(owner_asset_library),
       relative_identifier_(relative_asset_path),
-      asset_(AssetRepresentation::ExternalAsset{name, id_type, std::move(metadata), nullptr})
+      asset_(AssetRepresentation::ExternalAsset{
+          name, id_type, std::move(metadata), nullptr, is_online})
 {
 }
 
@@ -73,9 +75,10 @@ void AssetRepresentation::ensure_previewable()
 
   /* Use the full path as preview name, it's the only unique identifier we have. */
   const std::string full_path = this->full_path();
+  const ThumbSource source = extern_asset.is_online_ ? THB_SOURCE_ONLINE_ASSET : THB_SOURCE_BLEND;
   /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
   extern_asset.preview_ = BKE_previewimg_cached_thumbnail_read(
-      full_path.c_str(), full_path.c_str(), THB_SOURCE_BLEND, false);
+      full_path.c_str(), full_path.c_str(), source, false);
 
   BKE_icon_preview_ensure(nullptr, extern_asset.preview_);
 }
@@ -166,6 +169,14 @@ ID *AssetRepresentation::local_id() const
 bool AssetRepresentation::is_local_id() const
 {
   return std::holds_alternative<ID *>(asset_);
+}
+
+bool AssetRepresentation::is_online() const
+{
+  if (const ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_)) {
+    return extern_asset->is_online_;
+  }
+  return false;
 }
 
 AssetLibrary &AssetRepresentation::owner_asset_library() const

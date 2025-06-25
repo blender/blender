@@ -214,14 +214,24 @@ void AssetLibrary::load_or_reload_catalogs()
   }
 }
 
-std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_asset(
+std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_on_disk_asset(
     StringRef relative_asset_path,
     StringRef name,
     const int id_type,
     std::unique_ptr<AssetMetaData> metadata)
 {
   return asset_storage_.external_assets.lookup_key_or_add(std::make_shared<AssetRepresentation>(
-      relative_asset_path, name, id_type, std::move(metadata), *this));
+      relative_asset_path, name, id_type, std::move(metadata), *this, false));
+}
+
+std::weak_ptr<AssetRepresentation> AssetLibrary::add_external_online_asset(
+    StringRef relative_asset_path,
+    StringRef name,
+    const int id_type,
+    std::unique_ptr<AssetMetaData> metadata)
+{
+  return asset_storage_.external_assets.lookup_key_or_add(std::make_shared<AssetRepresentation>(
+      relative_asset_path, name, id_type, std::move(metadata), *this, true));
 }
 
 std::weak_ptr<AssetRepresentation> AssetLibrary::add_local_id_asset(StringRef relative_asset_path,

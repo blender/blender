@@ -1531,12 +1531,15 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   //  printf("%s: Start (%d)...\n", __func__, threadid);
 
   //  printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
-  BLI_assert(preview->flags &
-             (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT | FILE_TYPE_BLENDER |
-              FILE_TYPE_OBJECT_IO | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB));
+  BLI_assert(preview->flags & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_FTFONT |
+                               FILE_TYPE_BLENDER | FILE_TYPE_OBJECT_IO | FILE_TYPE_BLENDER_BACKUP |
+                               FILE_TYPE_BLENDERLIB | FILE_TYPE_ASSET_ONLINE));
 
   if (preview->flags & FILE_TYPE_IMAGE) {
     source = THB_SOURCE_IMAGE;
+  }
+  else if (preview->flags & FILE_TYPE_ASSET_ONLINE) {
+    source = THB_SOURCE_ONLINE_ASSET;
   }
   else if (preview->flags & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP | FILE_TYPE_BLENDERLIB))
   {
@@ -3097,22 +3100,22 @@ struct FileListReadJob {
  */
 static char *current_relpath_append(const FileListReadJob *job_params, const char *filename)
 {
-  const char *relbase = job_params->cur_relbase;
+  char relbase[sizeof(job_params->cur_relbase)];
+  STRNCPY(relbase, job_params->cur_relbase);
 
   /* Early exit, nothing to join. */
   if (!relbase[0]) {
     return BLI_strdup(filename);
   }
 
-  BLI_assert(ELEM(relbase[strlen(relbase) - 1], SEP, ALTSEP));
-  BLI_assert(BLI_path_is_rel(relbase));
+  BLI_path_slash_ensure(relbase, sizeof(job_params->cur_relbase));
 
   char relpath[FILE_MAX_LIBEXTRA];
   /* Using #BLI_path_join works but isn't needed as `rel_subdir` has a trailing slash. */
   BLI_string_join(relpath,
                   sizeof(relpath),
                   /* + 2 to remove "//" relative path prefix. */
-                  relbase + 2,
+                  BLI_path_is_rel(relbase) ? relbase + 2 : relbase,
                   filename);
 
   return BLI_strdup(relpath);
@@ -3249,7 +3252,8 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
                                                     BLODataBlockInfo *datablock_info,
                                                     const bool prefix_relpath_with_group_name,
                                                     const int idcode,
-                                                    const char *group_name)
+                                                    const char *group_name,
+                                                    const bool is_online_asset = false)
 {
   FileListInternEntry *entry = MEM_new<FileListInternEntry>(__func__);
   if (prefix_relpath_with_group_name) {
@@ -3269,6 +3273,9 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
 
     if (datablock_info->asset_data) {
       entry->typeflag |= FILE_TYPE_ASSET;
+      if (is_online_asset) {
+        entry->typeflag |= FILE_TYPE_ASSET_ONLINE;
+      }
 
       if (job_params->load_asset_library) {
         /* Take ownership over the asset data (shallow copies into unique_ptr managed memory) to
@@ -3281,8 +3288,11 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
         datablock_info->asset_data = metadata.get();
         datablock_info->free_asset_data = false;
 
-        entry->asset = job_params->load_asset_library->add_external_asset(
-            entry->relpath, datablock_info->name, idcode, std::move(metadata));
+        entry->asset = is_online_asset ?
+                           job_params->load_asset_library->add_external_online_asset(
+                               entry->relpath, datablock_info->name, idcode, std::move(metadata)) :
+                           job_params->load_asset_library->add_external_on_disk_asset(
+                               entry->relpath, datablock_info->name, idcode, std::move(metadata));
       }
     }
   }
@@ -4059,8 +4069,10 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
         const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
         ListBase entries = {nullptr};
 
+        BLI_strncpy(
+            job_params->cur_relbase, entry.archive_url.c_str(), sizeof(job_params->cur_relbase));
         filelist_readjob_list_lib_add_datablock(
-            job_params, &entries, &entry.datablock_info, true, entry.idcode, group_name);
+            job_params, &entries, &entry.datablock_info, true, entry.idcode, group_name, true);
         assets_per_blend_path.add(entry.archive_url, &entry);
 
         int entries_num = 0;

@@ -644,6 +644,8 @@ typedef enum eFileSel_File_Types {
   FILE_TYPE_VOLUME = (1 << 19),
 
   FILE_TYPE_ASSET = (1 << 28),
+  /** Set together with #FILE_TYPE_ASSET when the asset is hosted online, not on disk. */
+  FILE_TYPE_ASSET_ONLINE = (1 << 29),
   /** An FS directory (i.e. S_ISDIR on its path is true). */
   FILE_TYPE_DIR = (1 << 30),
   FILE_TYPE_BLENDERLIB = (1u << 31),
