@@ -2166,6 +2166,7 @@ Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
   Array<TransDataVertSlideVert> r_sv(td_selected_len);
 
   r_loc_dst_buffer.reserve(r_sv.size() * 4);
+  int r_sv_index = 0;
   tc->foreach_index_selected([&](const int i) {
     TransData *td = &tc->data[i];
     const int size_prev = r_loc_dst_buffer.size();
@@ -2186,13 +2187,15 @@ Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
       }
     }
 
-    TransDataVertSlideVert &sv = r_sv[i];
+    TransDataVertSlideVert &sv = r_sv[r_sv_index];
     sv.td = &tc->data[i];
     /* The buffer address may change as the vector is resized. Avoid setting #Span. */
     // sv.targets = r_loc_dst_buffer.as_span().drop_front(size_prev);
 
     /* Store the buffer size temporarily in `target_curr`. */
     sv.co_link_curr = r_loc_dst_buffer.size() - size_prev;
+
+    r_sv_index++;
   });
 
   int start = 0;
