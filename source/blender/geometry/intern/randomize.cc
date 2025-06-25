@@ -98,7 +98,7 @@ static void reorder_attribute_domain(bke::AttributeStorage &data,
         bke::attribute_math::gather(GSpan(type, data.data, data.size),
                                     new_by_old_map,
                                     GMutableSpan(type, new_data.data, new_data.size));
-        attr.data_for_write() = std::move(new_data);
+        attr.assign_data(std::move(new_data));
       }
       case bke::AttrStorageType::Single: {
         return;

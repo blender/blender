@@ -108,6 +108,9 @@ class Attribute {
    * \warning Does not yet support attributes stored as a single value (#AttrStorageType::Single).
    */
   DataVariant &data_for_write();
+
+  /** Replace the attribute's data without first making the existing data mutable. */
+  void assign_data(DataVariant &&data);
 };
 
 class AttributeStorageRuntime {
@@ -226,6 +229,11 @@ inline AttrType Attribute::data_type() const
 inline const Attribute::DataVariant &Attribute::data() const
 {
   return data_;
+}
+
+inline void Attribute::assign_data(DataVariant &&data)
+{
+  data_ = std::move(data);
 }
 
 }  // namespace blender::bke
