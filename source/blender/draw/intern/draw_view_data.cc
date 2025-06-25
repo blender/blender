@@ -94,8 +94,6 @@ void DRWViewData::clear(bool free_instance_data)
   if (free_instance_data) {
     foreach_engine([&](DrawEngine::Pointer &ptr) {
       if (ptr.instance) {
-        /* TODO Move where it belongs. */
-        DRW_text_cache_destroy(ptr.instance->text_draw_cache);
         ptr.free_instance();
       }
     });
@@ -126,8 +124,6 @@ void DRW_view_data_free_unused(DRWViewData *view_data)
 {
   view_data->foreach_engine([&](DrawEngine::Pointer &ptr) {
     if (ptr.instance && ptr.instance->used == false) {
-      /* TODO Move where it belongs. */
-      DRW_text_cache_destroy(ptr.instance->text_draw_cache);
       ptr.free_instance();
     }
   });

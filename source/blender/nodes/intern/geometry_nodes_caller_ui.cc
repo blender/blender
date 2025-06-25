@@ -226,7 +226,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
     return;
   }
 
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
@@ -414,7 +414,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
       "[\"{}{}\"]", BLI_str_escape(socket.identifier), nodes::input_attribute_name_suffix);
 
   /* We're handling this manually in this case. */
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
@@ -433,7 +433,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
   }
 
   if (type == SOCK_BOOLEAN) {
-    uiLayoutSetPropSep(prop_row, false);
+    prop_row->use_property_split_set(false);
     prop_row->alignment_set(blender::ui::LayoutAlign::Expand);
   }
 
@@ -489,41 +489,40 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
   }
 
   uiLayout *row = &layout->row(true);
-  uiLayoutSetPropDecorate(row, true);
+  row->use_property_decorate_set(true);
   row->active_set(ctx.input_is_active(socket));
 
   const std::string rna_path = fmt::format("[\"{}\"]", BLI_str_escape(identifier.c_str()));
 
-  /* Use #uiItemPointerR to draw pointer properties because #uiLayout::prop would not have enough
-   * information about what type of ID to select for editing the values. This is because
+  /* Use #uiLayout::prop_search to draw pointer properties because #uiLayout::prop would not have
+   * enough information about what type of ID to select for editing the values. This is because
    * pointer IDProperties contain no information about their type. */
   const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
   const eNodeSocketDatatype type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
   const char *name = socket.name ? IFACE_(socket.name) : "";
   switch (type) {
     case SOCK_OBJECT: {
-      uiItemPointerR(
-          row, ctx.properties_ptr, rna_path, ctx.bmain_ptr, "objects", name, ICON_OBJECT_DATA);
+      row->prop_search(
+          ctx.properties_ptr, rna_path, ctx.bmain_ptr, "objects", name, ICON_OBJECT_DATA);
       break;
     }
     case SOCK_COLLECTION: {
-      uiItemPointerR(row,
-                     ctx.properties_ptr,
-                     rna_path,
-                     ctx.bmain_ptr,
-                     "collections",
-                     name,
-                     ICON_OUTLINER_COLLECTION);
+      row->prop_search(ctx.properties_ptr,
+                       rna_path,
+                       ctx.bmain_ptr,
+                       "collections",
+                       name,
+                       ICON_OUTLINER_COLLECTION);
       break;
     }
     case SOCK_MATERIAL: {
-      uiItemPointerR(
-          row, ctx.properties_ptr, rna_path, ctx.bmain_ptr, "materials", name, ICON_MATERIAL);
+      row->prop_search(
+          ctx.properties_ptr, rna_path, ctx.bmain_ptr, "materials", name, ICON_MATERIAL);
       break;
     }
     case SOCK_TEXTURE: {
-      uiItemPointerR(
-          row, ctx.properties_ptr, rna_path, ctx.bmain_ptr, "textures", name, ICON_TEXTURE);
+      row->prop_search(
+          ctx.properties_ptr, rna_path, ctx.bmain_ptr, "textures", name, ICON_TEXTURE);
       break;
     }
     case SOCK_IMAGE: {
@@ -801,8 +800,8 @@ static void draw_output_attributes_panel(DrawGroupInputsContext &ctx, uiLayout *
 static void draw_bake_panel(uiLayout *layout, PointerRNA *modifier_ptr)
 {
   uiLayout *col = &layout->column(false);
-  uiLayoutSetPropSep(col, true);
-  uiLayoutSetPropDecorate(col, false);
+  col->use_property_split_set(true);
+  col->use_property_decorate_set(false);
   col->prop(modifier_ptr, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(modifier_ptr, "bake_directory", UI_ITEM_NONE, IFACE_("Bake Path"), ICON_NONE);
 }
@@ -934,10 +933,10 @@ void draw_geometry_nodes_modifier_ui(const bContext &C, PointerRNA *modifier_ptr
         RNA_string_set(&props, "input_name", io_socket.identifier);
       };
 
-  uiLayoutSetPropSep(&layout, true);
+  layout.use_property_split_set(true);
   /* Decorators are added manually for supported properties because the
    * attribute/value toggle requires a manually built layout anyway. */
-  uiLayoutSetPropDecorate(&layout, false);
+  layout.use_property_decorate_set(false);
 
   if (!(nmd.flag & NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR)) {
     const char *newop = (nmd.node_group == nullptr) ? "node.new_geometry_node_group_assign" :
@@ -1010,10 +1009,10 @@ void draw_geometry_nodes_operator_redo_ui(const bContext &C,
       };
   ctx.use_name_for_ids = true;
 
-  uiLayoutSetPropSep(&layout, true);
+  layout.use_property_split_set(true);
   /* Decorators are added manually for supported properties because the
    * attribute/value toggle requires a manually built layout anyway. */
-  uiLayoutSetPropDecorate(&layout, false);
+  layout.use_property_decorate_set(false);
 
   tree.ensure_interface_cache();
   ctx.input_usages.reinitialize(tree.interface_inputs().size());

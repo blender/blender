@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_compiler_compat.h"
+#include "BLI_math_vector_types.hh"
 
 struct Mesh;
 struct MultiresModifierData;
@@ -137,9 +138,9 @@ struct Displacement {
                             int ptex_face_index,
                             float u,
                             float v,
-                            const float dPdu[3],
-                            const float dPdv[3],
-                            float r_D[3]);
+                            const float3 &dPdu,
+                            const float3 &dPdv,
+                            float3 &r_D);
 
   /* Free the data, not the evaluator itself. */
   void (*free)(Displacement *displacement);

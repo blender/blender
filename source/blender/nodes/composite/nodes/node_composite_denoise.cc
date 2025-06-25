@@ -42,20 +42,23 @@ static void cmp_node_denoise_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+      .compositor_domain_priority(0)
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Vector>("Normal")
       .default_value({0.0f, 0.0f, 0.0f})
       .min(-1.0f)
       .max(1.0f)
       .hide_value()
-      .compositor_domain_priority(2);
+      .compositor_domain_priority(2)
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Color>("Albedo")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .hide_value()
-      .compositor_domain_priority(1);
-  b.add_input<decl::Bool>("HDR").default_value(true).compositor_expects_single_value();
+      .compositor_domain_priority(1)
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Bool>("HDR").default_value(true);
 
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_denonise(bNodeTree * /*ntree*/, bNode *node)

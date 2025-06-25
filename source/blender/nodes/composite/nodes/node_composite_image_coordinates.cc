@@ -10,15 +10,24 @@ namespace blender::nodes::node_composite_image_coordinates_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").hide_value().compositor_realization_mode(
-      CompositorInputRealizationMode::None);
+  b.add_input<decl::Color>("Image")
+      .hide_value()
+      .compositor_realization_mode(CompositorInputRealizationMode::None)
+      .structure_type(StructureType::Dynamic);
 
-  b.add_output<decl::Vector>("Uniform").dimensions(2).description(
-      "Zero centered coordinates normalizes along the larger dimension for uniform scaling");
+  b.add_output<decl::Vector>("Uniform")
+      .dimensions(2)
+      .structure_type(StructureType::Dynamic)
+      .description(
+          "Zero centered coordinates normalizes along the larger dimension for uniform scaling");
   b.add_output<decl::Vector>("Normalized")
       .dimensions(2)
+      .structure_type(StructureType::Dynamic)
       .description("Normalized coordinates with half pixel offsets");
-  b.add_output<decl::Vector>("Pixel").dimensions(2).description("Integer pixel coordinates");
+  b.add_output<decl::Vector>("Pixel")
+      .dimensions(2)
+      .structure_type(StructureType::Dynamic)
+      .description("Integer pixel coordinates");
 }
 
 using namespace blender::compositor;

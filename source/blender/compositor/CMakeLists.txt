@@ -104,7 +104,6 @@ set(SRC
   cached_resources/intern/cached_image.cc
   cached_resources/intern/cached_mask.cc
   cached_resources/intern/cached_shader.cc
-  cached_resources/intern/cached_texture.cc
   cached_resources/intern/deriche_gaussian_coefficients.cc
   cached_resources/intern/distortion_grid.cc
   cached_resources/intern/fog_glow_kernel.cc
@@ -122,7 +121,6 @@ set(SRC
   cached_resources/COM_cached_mask.hh
   cached_resources/COM_cached_resource.hh
   cached_resources/COM_cached_shader.hh
-  cached_resources/COM_cached_texture.hh
   cached_resources/COM_deriche_gaussian_coefficients.hh
   cached_resources/COM_distortion_grid.hh
   cached_resources/COM_fog_glow_kernel.hh

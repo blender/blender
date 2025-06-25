@@ -31,38 +31,34 @@ static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Vector>("Upper Left")
       .subtype(PROP_FACTOR)
       .dimensions(2)
       .default_value({0.0f, 1.0f})
       .min(0.0f)
-      .max(1.0f)
-      .compositor_expects_single_value();
+      .max(1.0f);
   b.add_input<decl::Vector>("Upper Right")
       .subtype(PROP_FACTOR)
       .dimensions(2)
       .default_value({1.0f, 1.0f})
       .min(0.0f)
-      .max(1.0f)
-      .compositor_expects_single_value();
+      .max(1.0f);
   b.add_input<decl::Vector>("Lower Left")
       .subtype(PROP_FACTOR)
       .dimensions(2)
       .default_value({0.0f, 0.0f})
       .min(0.0f)
-      .max(1.0f)
-      .compositor_expects_single_value();
+      .max(1.0f);
   b.add_input<decl::Vector>("Lower Right")
       .subtype(PROP_FACTOR)
       .dimensions(2)
       .default_value({1.0f, 0.0f})
       .min(0.0f)
-      .max(1.0f)
-      .compositor_expects_single_value();
+      .max(1.0f);
 
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Plane");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Float>("Plane").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_cornerpin(bNodeTree * /*ntree*/, bNode *node)
@@ -271,10 +267,10 @@ class CornerPinOperation : public NodeOperation {
 
   float3x3 compute_homography_matrix()
   {
-    float2 lower_left = get_input("Lower Left").get_single_value_default(float3(0.0f)).xy();
-    float2 lower_right = get_input("Lower Right").get_single_value_default(float3(0.0f)).xy();
-    float2 upper_right = get_input("Upper Right").get_single_value_default(float3(0.0f)).xy();
-    float2 upper_left = get_input("Upper Left").get_single_value_default(float3(0.0f)).xy();
+    float2 lower_left = get_input("Lower Left").get_single_value_default(float2(0.0f));
+    float2 lower_right = get_input("Lower Right").get_single_value_default(float2(0.0f));
+    float2 upper_right = get_input("Upper Right").get_single_value_default(float2(0.0f));
+    float2 upper_left = get_input("Upper Left").get_single_value_default(float2(0.0f));
 
     /* The inputs are invalid because the plane is not convex, fall back to an identity operation
      * in that case. */

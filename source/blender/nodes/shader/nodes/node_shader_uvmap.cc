@@ -37,7 +37,7 @@ static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *pt
       if (depsgraph) {
         Object *object_eval = DEG_get_evaluated(depsgraph, object);
         PointerRNA dataptr = RNA_id_pointer_create(static_cast<ID *>(object_eval->data));
-        uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
+        layout->prop_search(ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
         return;
       }
     }

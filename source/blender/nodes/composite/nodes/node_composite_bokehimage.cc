@@ -22,31 +22,25 @@ namespace blender::nodes::node_composite_bokehimage_cc {
 
 static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>("Flaps")
-      .default_value(5)
-      .min(3)
-      .max(24)
-      .description("The number of flaps in the bokeh")
-      .compositor_expects_single_value();
+  b.add_input<decl::Int>("Flaps").default_value(5).min(3).max(24).description(
+      "The number of flaps in the bokeh");
   b.add_input<decl::Float>("Angle")
       .default_value(0.0f)
       .subtype(PROP_ANGLE)
-      .description("The angle of the bokeh")
-      .compositor_expects_single_value();
+      .description("The angle of the bokeh");
   b.add_input<decl::Float>("Roundness")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .description("Specifies how round the bokeh is, maximum roundness produces a circular bokeh")
-      .compositor_expects_single_value();
+      .description(
+          "Specifies how round the bokeh is, maximum roundness produces a circular bokeh");
   b.add_input<decl::Float>("Catadioptric Size")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
-      .description("Specifies the size of the catadioptric iris, zero means no iris")
-      .compositor_expects_single_value();
+      .description("Specifies the size of the catadioptric iris, zero means no iris");
   b.add_input<decl::Float>("Color Shift")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
@@ -54,10 +48,9 @@ static void cmp_node_bokehimage_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description(
           "Specifies the amount of color shifting. 1 means maximum shifting towards blue while -1 "
-          "means maximum shifting toward red")
-      .compositor_expects_single_value();
+          "means maximum shifting toward red");
 
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

@@ -228,6 +228,35 @@ MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
   return ml;
 }
 
+blender::float2 BKE_mball_element_display_radius_calc_with_stiffness(const MetaElem *ml)
+{
+  blender::float2 radius_stiffness = {
+      /* Display radius. */
+      ml->rad,
+      /* Display stiffness. */
+      ml->rad * atanf(ml->s) * float(2.0 / blender::math::numbers::pi),
+  };
+
+  if (ml->type == MB_CUBE) {
+    /* Without this additional size, the cube can't be selected in solid mode.
+     * Use the minimum size so this doesn't become too large because of one large axis.
+     * See: #136396. */
+    const float offset = min_fff(ml->expx, ml->expy, ml->expz) * M_SQRT2;
+    radius_stiffness[0] += offset;
+    radius_stiffness[1] += offset;
+  }
+  return radius_stiffness;
+}
+float BKE_mball_element_display_radius_calc(const MetaElem *ml)
+{
+  float radius = ml->rad;
+  if (ml->type == MB_CUBE) {
+    const float offset = min_fff(ml->expx, ml->expy, ml->expz) * M_SQRT2;
+    radius += offset;
+  }
+  return radius;
+}
+
 bool BKE_mball_is_basis(const Object *ob)
 {
   /* Meta-Ball Basis Notes from Blender-2.5x

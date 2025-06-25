@@ -106,10 +106,9 @@ struct CustomDataAndSize {
  * Move generic attributes from #CustomData to #AttributeStorage. All other non-generic layers are
  * left in #CustomData.
  */
-static AttributeStorage attribute_legacy_convert_customdata_to_storage(
-    const Map<AttrDomain, CustomDataAndSize> &domains)
+static void attribute_legacy_convert_customdata_to_storage(
+    const Map<AttrDomain, CustomDataAndSize> &domains, AttributeStorage &storage)
 {
-  AttributeStorage storage;
   struct AttributeToAdd {
     StringRef name;
     AttrDomain domain;
@@ -163,8 +162,6 @@ static AttributeStorage attribute_legacy_convert_customdata_to_storage(
     custom_data.data.maxlayer = data.capacity;
     CustomData_update_typemap(&custom_data.data);
   }
-
-  return storage;
 }
 
 std::optional<eCustomDataType> attr_type_to_custom_data_type(const AttrType attr_type)
@@ -264,11 +261,12 @@ void mesh_convert_storage_to_customdata(Mesh &mesh)
 }
 void mesh_convert_customdata_to_storage(Mesh &mesh)
 {
-  mesh.attribute_storage.wrap() = bke::attribute_legacy_convert_customdata_to_storage(
+  bke::attribute_legacy_convert_customdata_to_storage(
       {{AttrDomain::Point, {mesh.vert_data, mesh.verts_num}},
        {AttrDomain::Edge, {mesh.edge_data, mesh.edges_num}},
        {AttrDomain::Face, {mesh.face_data, mesh.faces_num}},
-       {AttrDomain::Corner, {mesh.corner_data, mesh.corners_num}}});
+       {AttrDomain::Corner, {mesh.corner_data, mesh.corners_num}}},
+      mesh.attribute_storage.wrap());
 }
 
 void curves_convert_storage_to_customdata(CurvesGeometry &curves)
@@ -279,15 +277,17 @@ void curves_convert_storage_to_customdata(CurvesGeometry &curves)
 }
 void curves_convert_customdata_to_storage(CurvesGeometry &curves)
 {
-  curves.attribute_storage.wrap() = attribute_legacy_convert_customdata_to_storage(
+  attribute_legacy_convert_customdata_to_storage(
       {{AttrDomain::Point, {curves.point_data, curves.points_num()}},
-       {AttrDomain::Curve, {curves.curve_data, curves.curves_num()}}});
+       {AttrDomain::Curve, {curves.curve_data, curves.curves_num()}}},
+      curves.attribute_storage.wrap());
 }
 
 void pointcloud_convert_customdata_to_storage(PointCloud &pointcloud)
 {
-  pointcloud.attribute_storage.wrap() = attribute_legacy_convert_customdata_to_storage(
-      {{AttrDomain::Point, {pointcloud.pdata_legacy, pointcloud.totpoint}}});
+  attribute_legacy_convert_customdata_to_storage(
+      {{AttrDomain::Point, {pointcloud.pdata_legacy, pointcloud.totpoint}}},
+      pointcloud.attribute_storage.wrap());
 }
 
 void grease_pencil_convert_storage_to_customdata(GreasePencil &grease_pencil)
@@ -298,8 +298,9 @@ void grease_pencil_convert_storage_to_customdata(GreasePencil &grease_pencil)
 }
 void grease_pencil_convert_customdata_to_storage(GreasePencil &grease_pencil)
 {
-  grease_pencil.attribute_storage.wrap() = attribute_legacy_convert_customdata_to_storage(
-      {{AttrDomain::Layer, {grease_pencil.layers_data, int(grease_pencil.layers().size())}}});
+  attribute_legacy_convert_customdata_to_storage(
+      {{AttrDomain::Layer, {grease_pencil.layers_data, int(grease_pencil.layers().size())}}},
+      grease_pencil.attribute_storage.wrap());
 }
 
 }  // namespace blender::bke

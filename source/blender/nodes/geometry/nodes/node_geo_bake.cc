@@ -142,8 +142,8 @@ static void draw_bake_items(const bContext *C, uiLayout *layout, PointerRNA node
     socket_items::ui::draw_active_item_props<BakeItemsAccessor>(
         tree, node, [&](PointerRNA *item_ptr) {
           const NodeGeometryBakeItem &active_item = storage.items[storage.active_index];
-          uiLayoutSetPropSep(panel, true);
-          uiLayoutSetPropDecorate(panel, false);
+          panel->use_property_split_set(true);
+          panel->use_property_decorate_set(false);
           panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
             panel->prop(item_ptr, "attribute_domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -799,8 +799,8 @@ void draw_bake_button_row(const BakeDrawContext &ctx, uiLayout *layout, const bo
 
 void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layout)
 {
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   uiLayout *settings_col = &layout->column(false);
   settings_col->active_set(!ctx.is_baked);

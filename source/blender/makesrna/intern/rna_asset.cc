@@ -525,6 +525,12 @@ static void rna_def_asset_data(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Asset Data", "Additional data stored for an asset data-block");
   //  RNA_def_struct_ui_icon(srna, ICON_ASSET); /* TODO: Icon doesn't exist! */
   /* The struct has custom properties, but no pointer properties to other IDs! */
+  /* FIXME: These need to remain 'user-defined' properties for now, as they are _not_ accessible
+   * through RNA system.
+   * Current situation is not great, as these idprops are technically system-defined (users have no
+   * access/control over them), yet they behave as user-defined ones.
+   * Ultimately it's a similar issue as with the 'Node Modifier' - though not sure the same
+   * solution (actually using RNA access to them) would be desired here?. */
   RNA_def_struct_idprops_func(srna, "rna_AssetMetaData_idprops");
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES); /* Mandatory! */
 

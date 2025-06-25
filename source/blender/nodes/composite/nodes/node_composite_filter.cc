@@ -29,11 +29,14 @@ static void cmp_node_filter_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .compositor_domain_priority(1);
+      .compositor_domain_priority(1)
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_output<decl::Color>("Image");
+      .compositor_domain_priority(0)
+      .structure_type(StructureType::Dynamic);
+
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_buts_filter(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

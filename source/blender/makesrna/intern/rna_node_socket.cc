@@ -693,7 +693,7 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
   RNA_def_struct_register_funcs(
       srna, "rna_NodeSocket_register", "rna_NodeSocket_unregister", nullptr);
-  RNA_def_struct_idprops_func(srna, "rna_NodeSocket_idprops");
+  RNA_def_struct_system_idprops_func(srna, "rna_NodeSocket_idprops");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Name", "Socket name");

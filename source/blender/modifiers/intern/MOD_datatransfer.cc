@@ -208,12 +208,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   row = &layout->row(true);
   row->prop(ptr, "object", UI_ITEM_NONE, IFACE_("Source"), ICON_NONE);
   sub = &row->row(true);
-  uiLayoutSetPropDecorate(sub, false);
+  sub->use_property_decorate_set(false);
   sub->prop(ptr, "use_object_transform", UI_ITEM_NONE, "", ICON_ORIENTATION_GLOBAL);
 
   layout->prop(ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -251,7 +251,7 @@ static void vertex_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "data_types_verts", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "vert_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
@@ -264,7 +264,7 @@ static void vertex_vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->active_set(RNA_enum_get(ptr, "data_types_verts") & DT_TYPE_MDEFORMVERT);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(
       ptr, "layers_vgroup_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
@@ -290,7 +290,7 @@ static void edge_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "data_types_edges", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "edge_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
@@ -314,7 +314,7 @@ static void face_corner_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "data_types_loops", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "loop_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
@@ -325,7 +325,7 @@ static void vert_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->active_set(RNA_enum_get(ptr, "data_types_verts") &
                      (DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT));
@@ -342,7 +342,7 @@ static void face_corner_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->active_set(RNA_enum_get(ptr, "data_types_loops") &
                      (DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP));
@@ -359,7 +359,7 @@ static void face_corner_uv_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->active_set(RNA_enum_get(ptr, "data_types_loops") & DT_TYPE_UV);
 
@@ -387,7 +387,7 @@ static void face_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "data_types_polys", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "poly_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
@@ -399,7 +399,7 @@ static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   row = &layout->row(true, IFACE_("Max Distance"));
   row->prop(ptr, "use_max_distance", UI_ITEM_NONE, "", ICON_NONE);

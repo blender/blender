@@ -896,8 +896,8 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
   int offset_type = RNA_enum_get(op->ptr, "offset_type");
   bool affect_type = RNA_enum_get(op->ptr, "affect");
 
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   row = &layout->row(false);
   row->prop(op->ptr, "affect", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);

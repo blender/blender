@@ -35,8 +35,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   }
   bNode &output_node = const_cast<bNode &>(*zone->output_node());
 
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   if (current_node->type_legacy == GEO_NODE_CLOSURE_INPUT) {
     if (uiLayout *panel = layout->panel(C, "input_items", false, TIP_("Input Items"))) {

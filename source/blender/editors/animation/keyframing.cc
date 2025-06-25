@@ -10,6 +10,8 @@
 
 #include <fmt/format.h>
 
+#include "DNA_sequence_types.h"
+#include "ED_sequencer.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_string.h"
@@ -207,6 +209,7 @@ static wmOperatorStatus insert_key_with_keyingset(bContext *C, wmOperator *op, K
   if (num_channels > 0) {
     /* send notifiers that keyframes have been changed */
     WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);
+    WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   }
 
   if (confirm) {
@@ -230,6 +233,25 @@ static blender::Vector<RNAPath> construct_rna_paths(PointerRNA *ptr)
 {
   eRotationModes rotation_mode;
   blender::Vector<RNAPath> paths;
+
+  if (ptr->type == &RNA_Strip || RNA_struct_is_a(ptr->type, &RNA_Strip)) {
+    eKeyInsertChannels insert_channel_flags = eKeyInsertChannels(U.key_insert_channels);
+    if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_LOCATION) {
+      paths.append({"transform.offset_x"});
+      paths.append({"transform.offset_y"});
+    }
+    if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_ROTATION) {
+      paths.append({"transform.rotation"});
+    }
+    if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_SCALE) {
+      paths.append({"transform.scale_x"});
+      paths.append({"transform.scale_y"});
+    }
+    if (insert_channel_flags & USER_ANIM_KEY_CHANNEL_CUSTOM_PROPERTIES) {
+      paths.extend(blender::animrig::get_keyable_id_property_paths(*ptr));
+    }
+    return paths;
+  }
 
   if (ptr->type == &RNA_PoseBone) {
     bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
@@ -284,6 +306,17 @@ static blender::Vector<RNAPath> construct_rna_paths(PointerRNA *ptr)
 static bool get_selection(bContext *C, blender::Vector<PointerRNA> *r_selection)
 {
   const eContextObjectMode context_mode = CTX_data_mode_enum(C);
+  ScrArea *area = CTX_wm_area(C);
+
+  if (area && area->spacetype == SPACE_SEQ) {
+    blender::VectorSet<Strip *> strips = blender::ed::vse::selected_strips_from_context(C);
+    for (Strip *strip : strips) {
+      PointerRNA ptr;
+      ptr = RNA_pointer_create_discrete(&CTX_data_scene(C)->id, &RNA_Strip, strip);
+      r_selection->append(ptr);
+    }
+    return true;
+  }
 
   switch (context_mode) {
     case CTX_MODE_OBJECT: {
@@ -366,6 +399,7 @@ static wmOperatorStatus insert_key(bContext *C, wmOperator *op)
   }
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
 }

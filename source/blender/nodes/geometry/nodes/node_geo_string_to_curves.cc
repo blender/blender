@@ -62,8 +62,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
   uiTemplateID(layout, C, ptr, "font", nullptr, "FONT_OT_open", "FONT_OT_unlink");
   layout->prop(ptr, "overflow", UI_ITEM_NONE, "", ICON_NONE);
   layout->prop(ptr, "align_x", UI_ITEM_NONE, "", ICON_NONE);

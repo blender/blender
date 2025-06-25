@@ -44,7 +44,7 @@ void Instance::init()
   state.is_depth_only_drawing = ctx->is_depth();
   state.is_material_select = ctx->is_material_select();
   state.draw_background = ctx->options.draw_background;
-  state.show_text = ctx->options.draw_text;
+  state.show_text = false;
 
   /* Note there might be less than 6 planes, but we always compute the 6 of them for simplicity. */
   state.clipping_plane_count = clipping_enabled_ ? 6 : 0;
@@ -86,6 +86,8 @@ void Instance::init()
       state.overlay = state.v3d->overlay;
       state.v3d_flag = state.v3d->flag;
       state.v3d_gridflag = state.v3d->gridflag;
+      state.show_text = !resources.is_selection() && !state.is_depth_only_drawing &&
+                        (ctx->v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0;
     }
     else {
       memset(&state.overlay, 0, sizeof(state.overlay));
@@ -426,9 +428,11 @@ void Instance::begin_sync()
 {
   /* TODO(fclem): Against design. Should not sync depending on view. */
   View &view = View::default_get();
-  state.dt = DRW_text_cache_ensure();
   state.camera_position = view.viewinv().location();
   state.camera_forward = view.viewinv().z_axis();
+
+  DRW_text_cache_destroy(state.dt);
+  state.dt = DRW_text_cache_create();
 
   resources.begin_sync(state.clipping_plane_count);
 
@@ -955,7 +959,20 @@ void Instance::draw_v3d(Manager &manager, View &view)
     background.draw_output(resources.overlay_output_color_only_fb, manager, view);
     anti_aliasing.draw_output(resources.overlay_output_color_only_fb, manager, view);
     cursor.draw_output(resources.overlay_output_color_only_fb, manager, view);
+
+    draw_text(resources.overlay_output_color_only_fb);
   }
+}
+
+void Instance::draw_text(Framebuffer &framebuffer)
+{
+  if (state.show_text == false) {
+    return;
+  }
+  GPU_framebuffer_bind(framebuffer);
+
+  GPU_depth_test(GPU_DEPTH_NONE);
+  DRW_text_cache_draw(state.dt, state.region, state.v3d);
 }
 
 bool Instance::object_is_selected(const ObjectRef &ob_ref)

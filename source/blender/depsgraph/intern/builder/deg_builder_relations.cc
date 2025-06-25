@@ -622,6 +622,7 @@ void DepsgraphRelationBuilder::build_generic_id(ID *id)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(*id);
 
   build_idproperties(id->properties);
+  build_idproperties(id->system_properties);
   build_animdata(id);
   build_parameters(id);
 }
@@ -671,6 +672,7 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
   }
 
   build_idproperties(collection->id.properties);
+  build_idproperties(collection->id.system_properties);
   build_parameters(&collection->id);
 
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(collection->id);
@@ -816,6 +818,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   }
 
   build_idproperties(object->id.properties);
+  build_idproperties(object->id.system_properties);
 
   /* Animation data */
   build_animdata(&object->id);
@@ -1847,6 +1850,7 @@ void DepsgraphRelationBuilder::build_action(bAction *dna_action)
 
   build_parameters(&dna_action->id);
   build_idproperties(dna_action->id.properties);
+  build_idproperties(dna_action->id.system_properties);
 
   blender::animrig::Action &action = dna_action->wrap();
   if (!action.is_empty()) {
@@ -2251,6 +2255,7 @@ void DepsgraphRelationBuilder::build_world(World *world)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(world->id);
 
   build_idproperties(world->id.properties);
+  build_idproperties(world->id.system_properties);
   /* animation */
   build_animdata(&world->id);
   build_parameters(&world->id);
@@ -2545,6 +2550,7 @@ void DepsgraphRelationBuilder::build_shapekeys(Key *key)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(key->id);
 
   build_idproperties(key->id.properties);
+  build_idproperties(key->id.system_properties);
   /* Attach animdata to geometry. */
   build_animdata(&key->id);
   build_parameters(&key->id);
@@ -2699,6 +2705,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(*obdata);
 
   build_idproperties(obdata->properties);
+  build_idproperties(obdata->system_properties);
   /* Animation. */
   build_animdata(obdata);
   build_parameters(obdata);
@@ -2868,6 +2875,7 @@ void DepsgraphRelationBuilder::build_armature(bArmature *armature)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(armature->id);
 
   build_idproperties(armature->id.properties);
+  build_idproperties(armature->id.system_properties);
   build_animdata(&armature->id);
   build_parameters(&armature->id);
   build_armature_bones(&armature->bonebase);
@@ -2878,6 +2886,7 @@ void DepsgraphRelationBuilder::build_armature_bones(ListBase *bones)
 {
   LISTBASE_FOREACH (Bone *, bone, bones) {
     build_idproperties(bone->prop);
+    build_idproperties(bone->system_properties);
     build_armature_bones(&bone->childbase);
   }
 }
@@ -2887,6 +2896,7 @@ void DepsgraphRelationBuilder::build_armature_bone_collections(
 {
   for (BoneCollection *bcoll : collections) {
     build_idproperties(bcoll->prop);
+    build_idproperties(bcoll->system_properties);
   }
 }
 
@@ -2899,6 +2909,7 @@ void DepsgraphRelationBuilder::build_camera(Camera *camera)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(camera->id);
 
   build_idproperties(camera->id.properties);
+  build_idproperties(camera->id.system_properties);
   build_animdata(&camera->id);
   build_parameters(&camera->id);
   if (camera->dof.focus_object != nullptr) {
@@ -2926,6 +2937,7 @@ void DepsgraphRelationBuilder::build_light(Light *lamp)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(lamp->id);
 
   build_idproperties(lamp->id.properties);
+  build_idproperties(lamp->id.system_properties);
   build_animdata(&lamp->id);
   build_parameters(&lamp->id);
 
@@ -2993,6 +3005,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(ntree->id);
 
   build_idproperties(ntree->id.properties);
+  build_idproperties(ntree->id.system_properties);
   build_animdata(&ntree->id);
   build_parameters(&ntree->id);
   OperationKey ntree_output_key(&ntree->id, NodeType::NTREE_OUTPUT, OperationCode::NTREE_OUTPUT);
@@ -3138,6 +3151,7 @@ void DepsgraphRelationBuilder::build_material(Material *material, ID *owner)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(material->id);
 
   build_idproperties(material->id.properties);
+  build_idproperties(material->id.system_properties);
   /* animation */
   build_animdata(&material->id);
   build_parameters(&material->id);
@@ -3179,6 +3193,7 @@ void DepsgraphRelationBuilder::build_texture(Tex *texture)
   /* texture itself */
   ComponentKey texture_key(&texture->id, NodeType::GENERIC_DATABLOCK);
   build_idproperties(texture->id.properties);
+  build_idproperties(texture->id.system_properties);
   build_animdata(&texture->id);
   build_parameters(&texture->id);
 
@@ -3221,6 +3236,7 @@ void DepsgraphRelationBuilder::build_image(Image *image)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(image->id);
 
   build_idproperties(image->id.properties);
+  build_idproperties(image->id.system_properties);
   build_parameters(&image->id);
 }
 
@@ -3233,6 +3249,7 @@ void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(cache_file->id);
 
   build_idproperties(cache_file->id.properties);
+  build_idproperties(cache_file->id.system_properties);
   /* Animation. */
   build_animdata(&cache_file->id);
   build_parameters(&cache_file->id);
@@ -3266,6 +3283,7 @@ void DepsgraphRelationBuilder::build_mask(Mask *mask)
 
   ID *mask_id = &mask->id;
   build_idproperties(mask_id->properties);
+  build_idproperties(mask_id->system_properties);
   /* F-Curve animation. */
   build_animdata(mask_id);
   build_parameters(mask_id);
@@ -3307,6 +3325,7 @@ void DepsgraphRelationBuilder::build_freestyle_linestyle(FreestyleLineStyle *lin
   ID *linestyle_id = &linestyle->id;
   build_parameters(linestyle_id);
   build_idproperties(linestyle_id->properties);
+  build_idproperties(linestyle_id->system_properties);
   build_animdata(linestyle_id);
   build_nodetree(linestyle->nodetree);
 }
@@ -3321,6 +3340,7 @@ void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)
 
   /* Animation. */
   build_idproperties(clip->id.properties);
+  build_idproperties(clip->id.system_properties);
   build_animdata(&clip->id);
   build_parameters(&clip->id);
 }
@@ -3334,6 +3354,7 @@ void DepsgraphRelationBuilder::build_lightprobe(LightProbe *probe)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(probe->id);
 
   build_idproperties(probe->id.properties);
+  build_idproperties(probe->id.system_properties);
   build_animdata(&probe->id);
   build_parameters(&probe->id);
 }
@@ -3347,6 +3368,7 @@ void DepsgraphRelationBuilder::build_speaker(Speaker *speaker)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(speaker->id);
 
   build_idproperties(speaker->id.properties);
+  build_idproperties(speaker->id.system_properties);
   build_animdata(&speaker->id);
   build_parameters(&speaker->id);
   if (speaker->sound != nullptr) {
@@ -3366,6 +3388,7 @@ void DepsgraphRelationBuilder::build_sound(bSound *sound)
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(sound->id);
 
   build_idproperties(sound->id.properties);
+  build_idproperties(sound->id.system_properties);
   build_animdata(&sound->id);
   build_parameters(&sound->id);
 
@@ -3386,6 +3409,7 @@ static bool strip_build_prop_cb(Strip *strip, void *user_data)
   Seq_build_prop_cb_data *cd = (Seq_build_prop_cb_data *)user_data;
 
   cd->builder->build_idproperties(strip->prop);
+  cd->builder->build_idproperties(strip->system_properties);
   if (strip->sound != nullptr) {
     cd->builder->build_sound(strip->sound);
     ComponentKey sound_key(&strip->sound->id, NodeType::AUDIO);
@@ -3474,6 +3498,7 @@ void DepsgraphRelationBuilder::build_vfont(VFont *vfont)
 
   build_parameters(&vfont->id);
   build_idproperties(vfont->id.properties);
+  build_idproperties(vfont->id.system_properties);
 }
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations()

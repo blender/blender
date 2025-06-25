@@ -105,7 +105,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
       row.enabled_set(false);
     }
 
-    uiLayoutSetPropDecorate(&row, false);
+    row.use_property_decorate_set(false);
 
     uiLayout *input_socket_layout = &row.row(true);
     if (socket_.flag & NODE_INTERFACE_SOCKET_INPUT) {
@@ -206,7 +206,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
     this->add_label(row);
 
     uiLayout *sub = &row.row(true);
-    uiLayoutSetPropDecorate(sub, false);
+    sub->use_property_decorate_set(false);
   }
 
  protected:

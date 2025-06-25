@@ -298,7 +298,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   row = &layout->row(true, IFACE_("Motion"));
   row->prop(
@@ -334,7 +334,7 @@ static void position_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "start_position_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
 
@@ -350,7 +350,7 @@ static void time_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->prop(ptr, "time_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
@@ -371,7 +371,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
 
   uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->prop(ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);
@@ -382,18 +382,17 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
         (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE))
     {
       PointerRNA texture_coords_obj_data_ptr = RNA_pointer_get(&texture_coords_obj_ptr, "data");
-      uiItemPointerR(col,
-                     ptr,
-                     "texture_coords_bone",
-                     &texture_coords_obj_data_ptr,
-                     "bones",
-                     IFACE_("Bone"),
-                     ICON_NONE);
+      col->prop_search(ptr,
+                       "texture_coords_bone",
+                       &texture_coords_obj_data_ptr,
+                       "bones",
+                       IFACE_("Bone"),
+                       ICON_NONE);
     }
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
     PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
-    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
+    col->prop_search(ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
   }
 }
 

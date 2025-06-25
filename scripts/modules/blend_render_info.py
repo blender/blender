@@ -4,19 +4,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # This module can get render info without running from inside blender.
-#
-# This struct won't change according to Ton.
-# Note that the size differs on 32/64bit
-#
-# typedef struct BHead {
-#     int code, len;
-#     void *old;
-#     int SDNAnr, nr;
-# } BHead;
+
 
 __all__ = (
     "read_blend_rend_chunk",
 )
+
+import blendfile_header
 
 
 class RawBlendFileReader:
@@ -64,75 +58,50 @@ class RawBlendFileReader:
         return False
 
 
-def _read_blend_rend_chunk_from_file(blendfile, filepath):
+def get_render_info_structure(endian_str, size):
     import struct
+    # The maximum size of the scene name changed over time, so create a different
+    # structure depending on the size of the entire block.
+    if size == 2 * 4 + 24:
+        return struct.Struct(endian_str + b'ii24s')
+    if size == 2 * 4 + 64:
+        return struct.Struct(endian_str + b'ii64s')
+    if size == 2 * 4 + 256:
+        return struct.Struct(endian_str + b'ii256s')
+    raise ValueError("Unknown REND chunk size: {:d}".format(size))
+
+
+def _read_blend_rend_chunk_from_file(blendfile, filepath):
     import sys
 
     from os import SEEK_CUR
 
-    head = blendfile.read(7)
-    if head != b'BLENDER':
+    try:
+        blender_header = blendfile_header.BlendFileHeader(blendfile)
+    except blendfile_header.BlendHeaderError:
         sys.stderr.write("Not a blend file: {:s}\n".format(filepath))
         return []
 
-    is_64_bit = (blendfile.read(1) == b'-')
-
-    # true for PPC, false for X86
-    is_big_endian = (blendfile.read(1) == b'V')
-
-    # Now read the bhead chunk!
-    blendfile.seek(3, SEEK_CUR)  # Skip the version.
-
     scenes = []
 
-    sizeof_bhead = 24 if is_64_bit else 20
+    endian_str = b'<' if blender_header.is_little_endian else b'>'
 
-    # Should always be 4, but a malformed/corrupt file may be less.
-    while (bhead_id := blendfile.read(4)) != b'ENDB':
-
-        if len(bhead_id) != 4:
-            sys.stderr.write("Unable to read until ENDB block (corrupt file): {:s}\n".format(filepath))
+    block_header_struct = blender_header.create_block_header_struct()
+    while bhead := blendfile_header.BlockHeader(blendfile, block_header_struct):
+        if bhead.code == b'ENDB':
             break
-
-        sizeof_data_left = struct.unpack('>i' if is_big_endian else '<i', blendfile.read(4))[0]
-        if sizeof_data_left < 0:
-            # Very unlikely, but prevent other errors.
-            sys.stderr.write("Negative block size found (corrupt file): {:s}\n".format(filepath))
-            break
-
-        # 4 from the `head_id`, another 4 for the size of the BHEAD.
-        sizeof_bhead_left = sizeof_bhead - 8
-
-        # The remainder of the BHEAD struct is not used.
-        blendfile.seek(sizeof_bhead_left, SEEK_CUR)
-
-        if bhead_id == b'REND':
-            # Now we want the scene name, start and end frame. this is 32bits long.
-            start_frame, end_frame = struct.unpack('>2i' if is_big_endian else '<2i', blendfile.read(8))
-            sizeof_data_left -= 8
-
-            scene_name = blendfile.read(64)
-            sizeof_data_left -= 64
-            if b'\0' not in scene_name:
-                if sizeof_data_left >= 192:
-                    # Assume new, up to 256 bytes name.
-                    scene_name += blendfile.read(192)
-                    sizeof_data_left -= 192
-            if b'\0' not in scene_name:
-                scene_name = scene_name[:-1] + b'\0'
+        remaining_bytes = bhead.size
+        if bhead.code == b'REND':
+            rend_block_struct = get_render_info_structure(endian_str, bhead.size)
+            start_frame, end_frame, scene_name = rend_block_struct.unpack(blendfile.read(rend_block_struct.size))
+            remaining_bytes -= rend_block_struct.size
 
             scene_name = scene_name[:scene_name.index(b'\0')]
             # It's possible old blend files are not UTF8 compliant, use `surrogateescape`.
             scene_name = scene_name.decode("utf8", errors="surrogateescape")
-
             scenes.append((start_frame, end_frame, scene_name))
 
-        if sizeof_data_left > 0:
-            blendfile.seek(sizeof_data_left, SEEK_CUR)
-        elif sizeof_data_left < 0:
-            # Very unlikely, but prevent attempting to further parse corrupt data.
-            sys.stderr.write("Error calculating next block (corrupt file): {:s}\n".format(filepath))
-            break
+        blendfile.seek(remaining_bytes, SEEK_CUR)
 
     return scenes
 

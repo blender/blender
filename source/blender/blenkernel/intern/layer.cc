@@ -2396,8 +2396,9 @@ void BKE_view_layer_blend_write(BlendWriter *writer, const Scene *scene, ViewLay
   if (view_layer->id_properties) {
     IDP_BlendWrite(writer, view_layer->id_properties);
   }
-  /* Never write system_properties in Blender 4.5, will be reset to `nullptr` by reading code (by
-   * the matching call to #BLO_read_struct). */
+  if (view_layer->system_properties) {
+    IDP_BlendWrite(writer, view_layer->system_properties);
+  }
 
   LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
     BLO_write_struct(writer, FreestyleModuleConfig, fmc);

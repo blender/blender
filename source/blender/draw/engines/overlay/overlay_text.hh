@@ -190,7 +190,7 @@ class Text : Overlay {
       }
       float4x4 mat;
       v2_quad_corners_to_mat4(box, mat);
-      ResourceHandle res_handle = manager.resource_handle(ob_to_world * mat);
+      ResourceHandleRange res_handle = manager.resource_handle(ob_to_world * mat);
       selection_ps_->draw(quad, res_handle);
       selection_highlight_ps_->draw(quad, res_handle);
     }
@@ -202,7 +202,7 @@ class Text : Overlay {
     float4x2 cursor = float4x2(&edit_font->textcurs[0][0]);
     float4x4 mat;
     v2_quad_corners_to_mat4(cursor, mat);
-    ResourceHandle res_handle = manager.resource_handle(ob_to_world * mat);
+    ResourceHandleRange res_handle = manager.resource_handle(ob_to_world * mat);
 
     cursor_ps_->draw(quad, res_handle);
 

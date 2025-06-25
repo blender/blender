@@ -2738,6 +2738,11 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
   win->eventstate->xy[1] = oldy;
 }
 
+uint WM_cursor_preferred_logical_size()
+{
+  return GHOST_GetCursorPreferredLogicalSize(g_system);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

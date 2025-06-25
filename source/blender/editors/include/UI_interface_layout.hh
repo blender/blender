@@ -80,7 +80,7 @@ struct uiLayout : uiItem {
   uiLayout *parent_;
   blender::Vector<uiItem *> items_;
 
-  char heading_[UI_MAX_NAME_STR];
+  std::string heading_;
 
   /** Sub layout to add child items, if not the layout itself. */
   uiLayout *child_items_layout_;
@@ -191,6 +191,19 @@ struct uiLayout : uiItem {
   float ui_units_y() const;
   /** Sets a fixed height size for this layout. */
   void ui_units_y_set(float height);
+
+  bool use_property_split() const;
+  /**
+   * Sets when to split property's label into a separate button when adding new property buttons.
+   */
+  void use_property_split_set(bool value);
+
+  bool use_property_decorate() const;
+  /**
+   * Sets when to add an extra button to insert keyframes next to new property buttons added in the
+   * layout.
+   */
+  void use_property_decorate_set(bool is_sep);
 
   int width() const;
 
@@ -431,6 +444,31 @@ struct uiLayout : uiItem {
             std::optional<blender::StringRef> name,
             int icon);
 
+  /**
+   * Adds a RNA enum/pointer/string/ property item, and exposes it into the layout. Button input
+   * would suggest values from the search property collection.
+   * \param searchprop: Collection property in \a searchptr from where to take input values.
+   * \param results_are_suggestions: Allow inputs that not match any suggested value.
+   */
+  void prop_search(PointerRNA *ptr,
+                   PropertyRNA *prop,
+                   PointerRNA *searchptr,
+                   PropertyRNA *searchprop,
+                   std::optional<blender::StringRefNull> name,
+                   int icon,
+                   bool results_are_suggestions);
+  /**
+   * Adds a RNA enum/pointer/string/ property item, and exposes it into the layout. Button input
+   * would suggest values from the search property collection, input must match a suggested value.
+   * \param searchprop: Collection property in \a searchptr from where to take input values.
+   */
+  void prop_search(PointerRNA *ptr,
+                   blender::StringRefNull propname,
+                   PointerRNA *searchptr,
+                   blender::StringRefNull searchpropname,
+                   std::optional<blender::StringRefNull> name,
+                   int icon);
+
   /** Adds a separator item, that adds empty space between items. */
   void separator(float factor = 1.0f, LayoutSeparatorType type = LayoutSeparatorType::Auto);
 };
@@ -659,11 +697,7 @@ void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout);
  */
 void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout);
 
-void uiLayoutSetPropSep(uiLayout *layout, bool is_sep);
-void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep);
 int uiLayoutGetLocalDir(const uiLayout *layout);
-bool uiLayoutGetPropSep(uiLayout *layout);
-bool uiLayoutGetPropDecorate(uiLayout *layout);
 
 int uiLayoutListItemPaddingWidth();
 void uiLayoutListItemAddPadding(uiLayout *layout);
@@ -754,21 +788,6 @@ void uiItemEnumR_string(uiLayout *layout,
                         std::optional<blender::StringRefNull> name,
                         int icon);
 void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, blender::StringRefNull propname);
-void uiItemPointerR_prop(uiLayout *layout,
-                         PointerRNA *ptr,
-                         PropertyRNA *prop,
-                         PointerRNA *searchptr,
-                         PropertyRNA *searchprop,
-                         std::optional<blender::StringRefNull> name,
-                         int icon,
-                         bool results_are_suggestions);
-void uiItemPointerR(uiLayout *layout,
-                    PointerRNA *ptr,
-                    blender::StringRefNull propname,
-                    PointerRNA *searchptr,
-                    blender::StringRefNull searchpropname,
-                    std::optional<blender::StringRefNull> name,
-                    int icon);
 
 /**
  * Create a list of enum items.

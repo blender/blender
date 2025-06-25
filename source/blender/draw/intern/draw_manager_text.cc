@@ -131,7 +131,7 @@ void DRW_text_cache_add(DRWTextStore *dt,
   }
 }
 
-static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
+static void drw_text_cache_draw_ex(const DRWTextStore *dt, const ARegion *region)
 {
   ViewCachedString *vos;
   BLI_memiter_handle it;
@@ -198,7 +198,7 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
   GPU_matrix_projection_set(original_proj);
 }
 
-void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, View3D *v3d)
+void DRW_text_cache_draw(const DRWTextStore *dt, const ARegion *region, const View3D *v3d)
 {
   ViewCachedString *vos;
   if (v3d) {
@@ -242,7 +242,7 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, View3D *v3d)
     /* project first */
     BLI_memiter_handle it;
     BLI_memiter_iter_init(dt->cache_strings, &it);
-    View2D *v2d = &region->v2d;
+    const View2D *v2d = &region->v2d;
     float viewmat[4][4];
     rctf region_space = {0.0f, float(region->winx), 0.0f, float(region->winy)};
     BLI_rctf_transform_calc_m4_pivot_min(&v2d->cur, &region_space, viewmat);

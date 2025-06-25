@@ -27,18 +27,17 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .description(
-          "A value that is relative to the image size and needs to be converted to be in pixels")
-      .compositor_expects_single_value();
+          "A value that is relative to the image size and needs to be converted to be in pixels");
   b.add_input<decl::Float>("Value", "Float Value")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
       .description(
-          "A value that is relative to the image size and needs to be converted to be in pixels")
-      .compositor_expects_single_value();
-  b.add_input<decl::Color>("Image").compositor_realization_mode(
-      CompositorInputRealizationMode::None);
+          "A value that is relative to the image size and needs to be converted to be in pixels");
+  b.add_input<decl::Color>("Image")
+      .compositor_realization_mode(CompositorInputRealizationMode::None)
+      .structure_type(StructureType::Dynamic);
 
   b.add_output<decl::Float>("Value", "Float Value");
   b.add_output<decl::Vector>("Value", "Vector Value").dimensions(2);
@@ -188,7 +187,7 @@ class RelativeToPixelOperation : public NodeOperation {
       Result &output_vector_value = this->get_result("Vector Value");
       if (output_vector_value.should_compute()) {
         output_vector_value.allocate_single_value();
-        output_vector_value.set_single_value(float3(value_in_pixels, 0.0f));
+        output_vector_value.set_single_value(value_in_pixels);
       }
     }
   }
@@ -198,7 +197,7 @@ class RelativeToPixelOperation : public NodeOperation {
     if (this->get_data_type() == CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT) {
       return float2(this->get_input("Float Value").get_single_value_default(0.0f));
     }
-    return this->get_input("Vector Value").get_single_value_default(float3(0.0f)).xy();
+    return this->get_input("Vector Value").get_single_value_default(float2(0.0f));
   }
 
   float2 compute_reference_size()

@@ -1894,7 +1894,7 @@ void ED_operatormacros_clip()
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "CLIP_OT_add_marker");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-  RNA_struct_idprops_unset(otmacro->ptr, "release_confirm");
+  RNA_struct_system_idprops_unset(otmacro->ptr, "release_confirm");
 
   ot = WM_operatortype_append_macro(
       "CLIP_OT_add_marker_slide",

@@ -608,7 +608,7 @@ static wmOperatorStatus view3d_ndof_cameraview_pan_zoom(ViewOpsData *vod,
   const bool has_translate = !is_zero_v2(ndof.tvec);
   const bool has_zoom = ndof.tvec[2] != 0.0f;
 
-  blender::float3 pan_vec = ndof.time_delta * WM_event_ndof_translation_get(ndof);
+  blender::float3 pan_vec = ndof.time_delta * WM_event_ndof_translation_get_for_navigation(ndof);
 
   /* NOTE: unlike image and clip views, the 2D pan doesn't have to be scaled by the zoom level.
    * #ED_view3d_camera_view_pan already takes the zoom level into account. */
@@ -628,12 +628,8 @@ static wmOperatorStatus view3d_ndof_cameraview_pan_zoom(ViewOpsData *vod,
   bool changed = false;
 
   if (has_translate) {
-    /* Use the X & Y of `pan_vec`.
-     * Negate while applying the delta time, matches 2D spaces. */
-
-    float pan_2d[2];
-    negate_v2_v2(pan_2d, pan_vec);
-    if (ED_view3d_camera_view_pan(region, pan_2d)) {
+    /* Use the X & Y of `pan_vec`. */
+    if (ED_view3d_camera_view_pan(region, pan_vec)) {
       changed = true;
     }
   }

@@ -34,41 +34,28 @@ static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+      .structure_type(StructureType::Dynamic);
 
-  b.add_input<decl::Float>("Key")
-      .default_value(0.18f)
-      .min(0.0f)
-      .description(
-          "The luminance that will be mapped to the log average luminance, typically set to the "
-          "middle gray value")
-      .compositor_expects_single_value();
-  b.add_input<decl::Float>("Balance")
-      .default_value(1.0f)
-      .min(0.0f)
-      .description(
-          "Balances low and high luminance areas. Lower values emphasize details in shadows, "
-          "while higher values compress highlights more smoothly")
-      .compositor_expects_single_value();
-  b.add_input<decl::Float>("Gamma")
-      .default_value(1.0f)
-      .min(0.0f)
-      .description("Gamma correction factor applied after tone mapping")
-      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Key").default_value(0.18f).min(0.0f).description(
+      "The luminance that will be mapped to the log average luminance, typically set to the "
+      "middle gray value");
+  b.add_input<decl::Float>("Balance").default_value(1.0f).min(0.0f).description(
+      "Balances low and high luminance areas. Lower values emphasize details in shadows, "
+      "while higher values compress highlights more smoothly");
+  b.add_input<decl::Float>("Gamma").default_value(1.0f).min(0.0f).description(
+      "Gamma correction factor applied after tone mapping");
 
   b.add_input<decl::Float>("Intensity")
       .default_value(0.0f)
       .description(
           "Controls the intensity of the image, lower values makes it darker while higher values "
-          "makes it lighter")
-      .compositor_expects_single_value();
+          "makes it lighter");
   b.add_input<decl::Float>("Contrast")
       .default_value(0.0f)
       .min(0.0f)
       .description(
           "Controls the contrast of the image. Zero automatically sets the contrast based on its "
-          "global range for better luminance distribution")
-      .compositor_expects_single_value();
+          "global range for better luminance distribution");
   b.add_input<decl::Float>("Light Adaptation")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
@@ -76,8 +63,7 @@ static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description(
           "Specifies if tone mapping operates on the entire image or per pixel, 0 means the "
-          "entire image, 1 means it is per pixel, and values in between blends between both")
-      .compositor_expects_single_value();
+          "entire image, 1 means it is per pixel, and values in between blends between both");
   b.add_input<decl::Float>("Chromatic Adaptation")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
@@ -86,10 +72,9 @@ static void cmp_node_tonemap_declare(NodeDeclarationBuilder &b)
       .description(
           "Specifies if tone mapping operates on the luminance or on each channel independently, "
           "0 means it uses luminance, 1 means it is per channel, and values in between blends "
-          "between both")
-      .compositor_expects_single_value();
+          "between both");
 
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_tonemap(bNodeTree * /*ntree*/, bNode *node)

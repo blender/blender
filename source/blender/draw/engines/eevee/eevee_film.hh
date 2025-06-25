@@ -73,7 +73,7 @@ class Film {
   bool use_compute_;
 
   /** Copy of v3d->shading properties used to detect viewport settings update. */
-  eViewLayerEEVEEPassType ui_render_pass_ = eViewLayerEEVEEPassType(-1);
+  eViewLayerEEVEEPassType ui_render_pass_ = eViewLayerEEVEEPassType(0);
   std::string ui_aov_name_;
 
   /**

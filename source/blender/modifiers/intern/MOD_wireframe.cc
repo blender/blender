@@ -106,7 +106,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "thickness", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
   layout->prop(ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -140,7 +140,7 @@ static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
 
   bool has_vertex_group = RNA_string_length(ptr, "vertex_group") != 0;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 

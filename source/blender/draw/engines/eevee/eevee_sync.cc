@@ -59,15 +59,18 @@ WorldHandle SyncModule::sync_world(const ::World &world)
 
 static inline void geometry_call(PassMain::Sub *sub_pass,
                                  gpu::Batch *geom,
-                                 ResourceHandle resource_handle)
+                                 ResourceHandleRange resource_handle)
 {
   if (sub_pass != nullptr) {
     sub_pass->draw(geom, resource_handle);
   }
 }
 
-static inline void volume_call(
-    MaterialPass &matpass, Scene *scene, Object *ob, gpu::Batch *geom, ResourceHandle res_handle)
+static inline void volume_call(MaterialPass &matpass,
+                               Scene *scene,
+                               Object *ob,
+                               gpu::Batch *geom,
+                               ResourceHandleRange res_handle)
 {
   if (matpass.sub_pass != nullptr) {
     PassMain::Sub *object_pass = volume_sub_pass(*matpass.sub_pass, scene, ob, matpass.gpumat);
@@ -94,7 +97,7 @@ void SyncModule::sync_mesh(Object *ob, ObjectHandle &ob_handle, const ObjectRef 
     return;
   }
 
-  ResourceHandle res_handle = inst_.manager->unique_handle(ob_ref);
+  ResourceHandleRange res_handle = inst_.manager->unique_handle(ob_ref);
 
   bool has_motion = inst_.velocity.step_object_sync(
       ob_handle.object_key, ob_ref, ob_handle.recalc, res_handle);
@@ -178,7 +181,7 @@ bool SyncModule::sync_sculpt(Object *ob, ObjectHandle &ob_handle, const ObjectRe
     return false;
   }
 
-  ResourceHandle res_handle = inst_.manager->unique_handle_for_sculpt(ob_ref);
+  ResourceHandleRange res_handle = inst_.manager->unique_handle_for_sculpt(ob_ref);
 
   bool has_motion = false;
   MaterialArray &material_array = inst_.materials.material_array_get(ob, has_motion);
@@ -253,7 +256,7 @@ void SyncModule::sync_pointcloud(Object *ob, ObjectHandle &ob_handle, const Obje
 {
   const int material_slot = POINTCLOUD_MATERIAL_NR;
 
-  ResourceHandle res_handle = inst_.manager->unique_handle(ob_ref);
+  ResourceHandleRange res_handle = inst_.manager->unique_handle(ob_ref);
 
   bool has_motion = inst_.velocity.step_object_sync(
       ob_handle.object_key, ob_ref, ob_handle.recalc, res_handle);
@@ -324,7 +327,7 @@ void SyncModule::sync_volume(Object *ob, ObjectHandle &ob_handle, const ObjectRe
     return;
   }
 
-  ResourceHandle res_handle = inst_.manager->unique_handle(ob_ref);
+  ResourceHandleRange res_handle = inst_.manager->unique_handle(ob_ref);
 
   const int material_slot = VOLUME_MATERIAL_NR;
 
@@ -345,18 +348,19 @@ void SyncModule::sync_volume(Object *ob, ObjectHandle &ob_handle, const ObjectRe
     return;
   }
 
-  auto drawcall_add = [&](MaterialPass &matpass, gpu::Batch *geom, ResourceHandle res_handle) {
-    if (matpass.sub_pass == nullptr) {
-      return false;
-    }
-    PassMain::Sub *object_pass = volume_sub_pass(
-        *matpass.sub_pass, inst_.scene, ob, matpass.gpumat);
-    if (object_pass != nullptr) {
-      object_pass->draw(geom, res_handle);
-      return true;
-    }
-    return false;
-  };
+  auto drawcall_add =
+      [&](MaterialPass &matpass, gpu::Batch *geom, ResourceHandleRange res_handle) {
+        if (matpass.sub_pass == nullptr) {
+          return false;
+        }
+        PassMain::Sub *object_pass = volume_sub_pass(
+            *matpass.sub_pass, inst_.scene, ob, matpass.gpumat);
+        if (object_pass != nullptr) {
+          object_pass->draw(geom, res_handle);
+          return true;
+        }
+        return false;
+      };
 
   /* Use bounding box tag empty spaces. */
   gpu::Batch *geom = inst_.volume.unit_cube_batch_get();
@@ -383,7 +387,7 @@ void SyncModule::sync_volume(Object *ob, ObjectHandle &ob_handle, const ObjectRe
 void SyncModule::sync_curves(Object *ob,
                              ObjectHandle &ob_handle,
                              const ObjectRef &ob_ref,
-                             ResourceHandle res_handle,
+                             ResourceHandleRange res_handle,
                              ModifierData *modifier_data,
                              ParticleSystem *particle_sys)
 {
@@ -396,7 +400,7 @@ void SyncModule::sync_curves(Object *ob,
     mat_nr = particle_sys->part->omat;
   }
 
-  if (res_handle.raw == 0) {
+  if (!res_handle.is_valid()) {
     /* For curve objects. */
     res_handle = inst_.manager->unique_handle(ob_ref);
   }
@@ -465,7 +469,8 @@ void SyncModule::sync_curves(Object *ob,
 
 /** \} */
 
-void foreach_hair_particle_handle(ObjectRef &ob_ref,
+void foreach_hair_particle_handle(Instance &inst,
+                                  ObjectRef &ob_ref,
                                   ObjectHandle ob_handle,
                                   HairHandleCallback callback)
 {
@@ -475,8 +480,10 @@ void foreach_hair_particle_handle(ObjectRef &ob_ref,
     if (md->type == eModifierType_ParticleSystem) {
       ParticleSystem *particle_sys = reinterpret_cast<ParticleSystemModifierData *>(md)->psys;
       ParticleSettings *part_settings = particle_sys->part;
-      const int draw_as = (part_settings->draw_as == PART_DRAW_REND) ? part_settings->ren_as :
-                                                                       part_settings->draw_as;
+      /* Only use the viewport drawing mode for material preview. */
+      const int draw_as = (part_settings->draw_as == PART_DRAW_REND || !inst.is_viewport()) ?
+                              part_settings->ren_as :
+                              part_settings->draw_as;
       if (draw_as != PART_DRAW_PATH ||
           !DRW_object_is_visible_psys_in_active_context(ob_ref.object, particle_sys))
       {

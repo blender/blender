@@ -79,7 +79,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   VolumeToMeshModifierData *vmmd = static_cast<VolumeToMeshModifierData *>(ptr->data);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   {
     uiLayout *col = &layout->column(false);

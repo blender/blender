@@ -767,13 +767,13 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   if (mode == MOD_MASK_MODE_ARM) {
     row = &layout->row(true);
     row->prop(ptr, "armature", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub = &row->row(true);
-    uiLayoutSetPropDecorate(sub, false);
+    sub->use_property_decorate_set(false);
     sub->prop(ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
   else if (mode == MOD_MASK_MODE_VGROUP) {

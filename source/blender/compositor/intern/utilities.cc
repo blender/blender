@@ -66,10 +66,17 @@ ResultType get_node_socket_result_type(const bNodeSocket *socket)
     case SOCK_BOOLEAN:
       return ResultType::Bool;
     case SOCK_VECTOR:
-      /* Vector sockets can also be ResultType::Float4 or ResultType::Float2, but the
-       * developer is expected to define that manually since there is no way to distinguish them
-       * from the socket. */
-      return ResultType::Float3;
+      switch (socket->default_value_typed<bNodeSocketValueVector>()->dimensions) {
+        case 2:
+          return ResultType::Float2;
+        case 3:
+          return ResultType::Float3;
+        case 4:
+          return ResultType::Float4;
+        default:
+          BLI_assert_unreachable();
+          return ResultType::Float;
+      }
     case SOCK_RGBA:
       return ResultType::Color;
     default:
@@ -152,7 +159,8 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
   }
   const SocketDeclaration *socket_declaration = node_declaration->inputs[socket->index()];
   input_descriptor.domain_priority = get_domain_priority(socket, socket_declaration);
-  input_descriptor.expects_single_value = socket_declaration->compositor_expects_single_value();
+  input_descriptor.expects_single_value = socket_declaration->structure_type ==
+                                          StructureType::Single;
   input_descriptor.realization_mode = static_cast<InputRealizationMode>(
       socket_declaration->compositor_realization_mode());
   input_descriptor.implicit_input = get_implicit_input(socket_declaration);

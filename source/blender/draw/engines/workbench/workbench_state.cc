@@ -291,26 +291,33 @@ ObjectState::ObjectState(const DRWContext *draw_ctx,
 
   color_type = (eV3DShadingColorType)scene_state.shading.color_type;
 
-  bool has_color = false;
-  bool has_uv = false;
-
-  if (ob->type == OB_MESH) {
+  /* Don't perform CustomData lookup unless it's really necessary, since it's quite expensive. */
+  const auto has_color = [&]() {
+    if (ob->type != OB_MESH) {
+      return false;
+    }
     const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
     const CustomData *cd_vdata = get_vert_custom_data(&mesh);
     const CustomData *cd_ldata = get_loop_custom_data(&mesh);
+    return CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
+           CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||
+           CustomData_has_layer(cd_ldata, CD_PROP_COLOR) ||
+           CustomData_has_layer(cd_ldata, CD_PROP_BYTE_COLOR);
+  };
 
-    has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
-                 CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||
-                 CustomData_has_layer(cd_ldata, CD_PROP_COLOR) ||
-                 CustomData_has_layer(cd_ldata, CD_PROP_BYTE_COLOR));
+  const auto has_uv = [&]() {
+    if (ob->type != OB_MESH) {
+      return false;
+    }
+    const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
+    const CustomData *cd_ldata = get_loop_custom_data(&mesh);
+    return CustomData_has_layer(cd_ldata, CD_PROP_FLOAT2);
+  };
 
-    has_uv = CustomData_has_layer(cd_ldata, CD_PROP_FLOAT2);
-  }
-
-  if (color_type == V3D_SHADING_TEXTURE_COLOR && (!has_uv || ob->dt < OB_TEXTURE)) {
+  if (color_type == V3D_SHADING_TEXTURE_COLOR && (!has_uv() || ob->dt < OB_TEXTURE)) {
     color_type = V3D_SHADING_MATERIAL_COLOR;
   }
-  else if (color_type == V3D_SHADING_VERTEX_COLOR && !has_color) {
+  else if (color_type == V3D_SHADING_VERTEX_COLOR && !has_color()) {
     color_type = V3D_SHADING_OBJECT_COLOR;
   }
 
@@ -334,10 +341,10 @@ ObjectState::ObjectState(const DRWContext *draw_ctx,
     /* Force texture or vertex mode if object is in paint mode. */
     const bool is_vertpaint_mode = is_active && (scene_state.object_mode == CTX_MODE_PAINT_VERTEX);
     const bool is_texpaint_mode = is_active && (scene_state.object_mode == CTX_MODE_PAINT_TEXTURE);
-    if (is_vertpaint_mode && has_color) {
+    if (is_vertpaint_mode && has_color()) {
       color_type = V3D_SHADING_VERTEX_COLOR;
     }
-    else if (is_texpaint_mode && has_uv) {
+    else if (is_texpaint_mode && has_uv()) {
       color_type = V3D_SHADING_TEXTURE_COLOR;
       show_missing_texture = true;
       const ImagePaintSettings *imapaint = &scene_state.scene->toolsettings->imapaint;

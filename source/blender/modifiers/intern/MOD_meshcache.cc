@@ -293,7 +293,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "cache_format", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -314,7 +314,7 @@ static void time_remapping_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "time_mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "play_mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
@@ -343,7 +343,7 @@ static void axis_mapping_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(true);
   col->red_alert_set(RNA_enum_get(ptr, "forward_axis") == RNA_enum_get(ptr, "up_axis"));

@@ -15,6 +15,7 @@
 #include "DNA_node_types.h"
 
 #include "NOD_node_declaration.hh"
+#include "NOD_socket.hh"
 
 namespace blender::bke::node_structure_type_inferencing {
 
@@ -142,6 +143,10 @@ static void init_input_requirements(const bNodeTree &tree,
       const nodes::SocketDeclaration *declaration = socket->runtime->declaration;
       if (!declaration) {
         requirement = DataRequirement::None;
+        continue;
+      }
+      if (nodes::socket_type_always_single(eNodeSocketDatatype(socket->type))) {
+        requirement = DataRequirement::Single;
         continue;
       }
       switch (declaration->structure_type) {
@@ -799,6 +804,14 @@ static StructureTypeInferenceResult calc_structure_type_interface(const bNodeTre
       tree, node_interfaces, result.group_interface.inputs, result.socket_structure_types);
   store_group_output_structure_types(
       tree, node_interfaces, result.socket_structure_types, result.group_interface);
+
+  /* Ensure that the structure type is never invalid. */
+  for (const int i : tree.all_sockets().index_range()) {
+    const bNodeSocket &socket = *tree.all_sockets()[i];
+    if (nodes::socket_type_always_single(eNodeSocketDatatype(socket.type))) {
+      result.socket_structure_types[i] = StructureType::Single;
+    }
+  }
 
   return result;
 }

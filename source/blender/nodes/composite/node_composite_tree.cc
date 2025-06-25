@@ -210,9 +210,6 @@ void ntreeCompositTagRender(Scene *scene)
         if (node->id == (ID *)scene || node->type_legacy == CMP_NODE_COMPOSITE) {
           BKE_ntree_update_tag_node_property(sce_iter->compositing_node_group, node);
         }
-        else if (node->type_legacy == CMP_NODE_TEXTURE) /* uses scene size_x/size_y */ {
-          BKE_ntree_update_tag_node_property(sce_iter->compositing_node_group, node);
-        }
       }
     }
   }

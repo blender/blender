@@ -35,12 +35,10 @@ def main():
     command = list(sys.argv)
     for i, cmd in enumerate(command):
         if cmd == "--run-all-tests":
-            cloth_test.apply_modifiers = True
             cloth_test.do_compare = True
             cloth_test.run_all_tests()
             break
         elif cmd == "--run-test":
-            cloth_test.apply_modifiers = False
             cloth_test.do_compare = False
             name = command[i + 1]
             cloth_test.run_test(name)

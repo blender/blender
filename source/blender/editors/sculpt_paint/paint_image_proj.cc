@@ -6873,8 +6873,8 @@ static wmOperatorStatus texture_paint_add_texture_paint_slot_invoke(bContext *C,
 static void texture_paint_add_texture_paint_slot_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
   Object *ob = blender::ed::object::context_active_object(C);
   ePaintCanvasSource slot_type = PAINT_CANVAS_SOURCE_IMAGE;
 

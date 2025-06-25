@@ -55,9 +55,14 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
 
-  b.add_output<decl::Color>("Image").description("The image with the generated glare added");
-  b.add_output<decl::Color>("Glare").description("The generated glare");
+  b.add_output<decl::Color>("Image")
+      .structure_type(StructureType::Dynamic)
+      .description("The image with the generated glare added");
+  b.add_output<decl::Color>("Glare")
+      .structure_type(StructureType::Dynamic)
+      .description("The generated glare");
   b.add_output<decl::Color>("Highlights")
+      .structure_type(StructureType::Dynamic)
       .description("The extracted highlights from which the glare was generated");
 
   b.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
@@ -74,7 +79,7 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+      .structure_type(StructureType::Dynamic);
 
   PanelDeclarationBuilder &highlights_panel = b.add_panel("Highlights").default_closed(true);
   highlights_panel.add_input<decl::Float>("Threshold", "Highlights Threshold")
@@ -82,29 +87,25 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .description(
           "The brightness level at which pixels are considered part of the highlights that "
-          "produce a glare")
-      .compositor_expects_single_value();
+          "produce a glare");
   highlights_panel.add_input<decl::Float>("Smoothness", "Highlights Smoothness")
       .default_value(0.1f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .description("The smoothness of the extracted highlights")
-      .compositor_expects_single_value();
+      .description("The smoothness of the extracted highlights");
 
   PanelDeclarationBuilder &supress_highlights_panel =
       highlights_panel.add_panel("Clamp").default_closed(true);
   supress_highlights_panel.add_input<decl::Bool>("Clamp", "Clamp Highlights")
       .default_value(false)
       .panel_toggle()
-      .description("Clamp bright highlights")
-      .compositor_expects_single_value();
+      .description("Clamp bright highlights");
   supress_highlights_panel.add_input<decl::Float>("Maximum", "Maximum Highlights")
       .default_value(10.0f)
       .min(0.0f)
       .description(
-          "Clamp bright highlights such that their brightness are not larger than this value")
-      .compositor_expects_single_value();
+          "Clamp bright highlights such that their brightness are not larger than this value");
 
   PanelDeclarationBuilder &mix_panel = b.add_panel("Adjust");
   mix_panel.add_input<decl::Float>("Strength")
@@ -112,19 +113,16 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .description("Adjusts the brightness of the glare")
-      .compositor_expects_single_value();
+      .description("Adjusts the brightness of the glare");
   mix_panel.add_input<decl::Float>("Saturation")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .description("Adjusts the saturation of the glare")
-      .compositor_expects_single_value();
+      .description("Adjusts the saturation of the glare");
   mix_panel.add_input<decl::Color>("Tint")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .description("Tints the glare. Consider desaturating the glare to more accurate tinting")
-      .compositor_expects_single_value();
+      .description("Tints the glare. Consider desaturating the glare to more accurate tinting");
 
   PanelDeclarationBuilder &glare_panel = b.add_panel("Glare");
   glare_panel.add_input<decl::Float>("Size")
@@ -134,45 +132,35 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description(
           "The size of the glare relative to the image. 1 means the glare covers the entire "
-          "image, 0.5 means the glare covers half the image, and so on")
-      .compositor_expects_single_value();
-  glare_panel.add_input<decl::Int>("Streaks")
-      .default_value(4)
-      .min(1)
-      .max(16)
-      .description("The number of streaks")
-      .compositor_expects_single_value();
+          "image, 0.5 means the glare covers half the image, and so on");
+  glare_panel.add_input<decl::Int>("Streaks").default_value(4).min(1).max(16).description(
+      "The number of streaks");
   glare_panel.add_input<decl::Float>("Streaks Angle")
       .default_value(0.0f)
       .subtype(PROP_ANGLE)
-      .description("The angle that the first streak makes with the horizontal axis")
-      .compositor_expects_single_value();
+      .description("The angle that the first streak makes with the horizontal axis");
   glare_panel.add_input<decl::Int>("Iterations")
       .default_value(3)
       .min(2)
       .max(5)
       .description(
           "The number of ghosts for Ghost glare or the quality and spread of Glare for Streaks "
-          "and Simple Star")
-      .compositor_expects_single_value();
+          "and Simple Star");
   glare_panel.add_input<decl::Float>("Fade")
       .default_value(0.9f)
       .min(0.75f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .description("Streak fade-out factor")
-      .compositor_expects_single_value();
+      .description("Streak fade-out factor");
   glare_panel.add_input<decl::Float>("Color Modulation")
       .default_value(0.25)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .description("Modulates colors of streaks and ghosts for a spectral dispersion effect")
-      .compositor_expects_single_value();
+      .description("Modulates colors of streaks and ghosts for a spectral dispersion effect");
   glare_panel.add_input<decl::Bool>("Diagonal", "Diagonal Star")
       .default_value(true)
-      .description("Align the star diagonally")
-      .compositor_expects_single_value();
+      .description("Align the star diagonally");
 }
 
 static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)

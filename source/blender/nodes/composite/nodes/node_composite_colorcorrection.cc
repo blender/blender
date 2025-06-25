@@ -28,6 +28,7 @@ namespace blender::nodes::node_composite_colorcorrection_cc {
 
 static void cmp_node_colorcorrection_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.use_custom_socket_order();
 
   b.add_output<decl::Color>("Image");

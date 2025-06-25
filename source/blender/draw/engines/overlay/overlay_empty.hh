@@ -322,7 +322,7 @@ class Empties : Overlay {
       pass.push_constant("is_camera_background", false);
       pass.push_constant("depth_set", depth_mode != OB_EMPTY_IMAGE_DEPTH_DEFAULT);
       pass.push_constant("ucolor", float4(ob->color));
-      ResourceHandle res_handle = manager.resource_handle(mat);
+      ResourceHandleRange res_handle = manager.resource_handle(mat);
       pass.draw(res.shapes.quad_solid.get(), res_handle, select_id.get());
     }
   }

@@ -760,13 +760,6 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::compositor_domain_pr
   return *this;
 }
 
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::compositor_expects_single_value(
-    bool value)
-{
-  decl_base_->compositor_expects_single_value_ = value;
-  return *this;
-}
-
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::make_available(
     std::function<void(bNode &)> fn)
 {
@@ -879,11 +872,6 @@ const CompositorInputRealizationMode &SocketDeclaration::compositor_realization_
 int SocketDeclaration::compositor_domain_priority() const
 {
   return compositor_domain_priority_;
-}
-
-bool SocketDeclaration::compositor_expects_single_value() const
-{
-  return compositor_expects_single_value_;
 }
 
 void SocketDeclaration::make_available(bNode &node) const

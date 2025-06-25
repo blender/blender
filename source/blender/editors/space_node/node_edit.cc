@@ -38,6 +38,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -436,8 +437,14 @@ static blender::compositor::OutputTypes get_compositor_needed_outputs(const bCon
 
 void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_owner)
 {
+  /* None of the outputs are needed except maybe previews, so no need to execute the compositor.
+   * Previews are not considered because they are a secondary output that needs another output to
+   * be computed with. */
   blender::compositor::OutputTypes needed_outputs = get_compositor_needed_outputs(C);
-  if (needed_outputs == blender::compositor::OutputTypes::None) {
+  if (ELEM(needed_outputs,
+           blender::compositor::OutputTypes::None,
+           blender::compositor::OutputTypes::Previews))
+  {
     return;
   }
 

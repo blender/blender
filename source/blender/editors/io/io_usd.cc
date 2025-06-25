@@ -445,8 +445,8 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   uiLayout *layout = op->layout;
   PointerRNA *ptr = op->ptr;
 
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   if (uiLayout *panel = layout->panel(C, "USD_export_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
@@ -534,7 +534,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
 
   {
     PanelLayout panel = layout->panel(C, "USD_export_materials", true);
-    uiLayoutSetPropSep(panel.header, false);
+    panel.header->use_property_split_set(false);
     panel.header->prop(ptr, "export_materials", UI_ITEM_NONE, "", ICON_NONE);
     panel.header->label(IFACE_("Materials"), ICON_NONE);
     if (panel.body) {
@@ -545,7 +545,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
       col->prop(ptr, "generate_preview_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       col->prop(ptr, "generate_materialx_network", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       col = &panel.body->column(true);
-      uiLayoutSetPropSep(col, true);
+      col->use_property_split_set(true);
 
       col->prop(ptr, "export_textures_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -553,7 +553,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
           RNA_enum_get(op->ptr, "export_textures_mode"));
 
       uiLayout *col2 = &col->column(true);
-      uiLayoutSetPropSep(col2, true);
+      col2->use_property_split_set(true);
       col2->enabled_set(textures_mode == USD_TEX_EXPORT_NEW_PATH);
       col2->prop(ptr, "overwrite_textures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       col2->prop(ptr, "usdz_downscale_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1089,8 +1089,8 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
   uiLayout *layout = op->layout;
   PointerRNA *ptr = op->ptr;
 
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   if (uiLayout *panel = layout->panel(C, "USD_import_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);

@@ -101,17 +101,19 @@ class Cursor : Overlay {
       /* Render line first to avoid Z fighting. */
       pass.push_constant("ModelViewProjectionMatrix", mvp * float4x4(rotation));
       pass.push_constant("gpu_vert_stride_count_offset", vert_stride_count_line);
-      pass.draw_expand(res.shapes.cursor_lines.get(), GPU_PRIM_TRIS, 2, 1, ResourceHandle(0));
+      pass.draw_expand(res.shapes.cursor_lines.get(), GPU_PRIM_TRIS, 2, 1, ResourceHandleRange(0));
       pass.push_constant("ModelViewProjectionMatrix", mvp);
       pass.push_constant("gpu_vert_stride_count_offset", vert_stride_count_circle);
-      pass.draw_expand(res.shapes.cursor_circle.get(), GPU_PRIM_TRIS, 2, 1, ResourceHandle(0));
+      pass.draw_expand(
+          res.shapes.cursor_circle.get(), GPU_PRIM_TRIS, 2, 1, ResourceHandleRange(0));
     }
     else {
       pass.push_constant("ModelViewProjectionMatrix", mvp);
       pass.push_constant("gpu_vert_stride_count_offset", vert_stride_count_circle);
-      pass.draw_expand(res.shapes.cursor_circle.get(), GPU_PRIM_TRIS, 2, 1, ResourceHandle(0));
+      pass.draw_expand(
+          res.shapes.cursor_circle.get(), GPU_PRIM_TRIS, 2, 1, ResourceHandleRange(0));
       pass.push_constant("gpu_vert_stride_count_offset", vert_stride_count_line);
-      pass.draw_expand(res.shapes.cursor_lines.get(), GPU_PRIM_TRIS, 2, 1, ResourceHandle(0));
+      pass.draw_expand(res.shapes.cursor_lines.get(), GPU_PRIM_TRIS, 2, 1, ResourceHandleRange(0));
     }
   }
 

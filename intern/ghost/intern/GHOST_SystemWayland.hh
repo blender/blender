@@ -202,6 +202,8 @@ class GHOST_SystemWayland : public GHOST_System {
   GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const override;
   GHOST_TSuccess setCursorPosition(int32_t x, int32_t y) override;
 
+  uint32_t getCursorPreferredLogicalSize() const override;
+
   void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const override;
 
   void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const override;

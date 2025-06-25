@@ -49,7 +49,7 @@ class Cryptomatte {
   Cryptomatte(Instance &inst) : inst_(inst){};
 
   void begin_sync();
-  void sync_object(Object *ob, ResourceHandle res_handle);
+  void sync_object(Object *ob, ResourceHandleRange res_handle);
   void sync_material(const ::Material *material);
   void end_sync();
 

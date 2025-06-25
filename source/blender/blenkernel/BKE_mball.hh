@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
 /** \file
@@ -81,6 +82,15 @@ void BKE_mball_translate(MetaBall *mb, const float offset[3]);
  * \note don't do context manipulation here (rna uses).
  */
 MetaElem *BKE_mball_element_add(MetaBall *mb, int type);
+
+/**
+ * Calculate & return the display radius & stiffness.
+ */
+blender::float2 BKE_mball_element_display_radius_calc_with_stiffness(const MetaElem *ml);
+/**
+ * Calculate & return the display radius.
+ */
+float BKE_mball_element_display_radius_calc(const MetaElem *ml);
 
 /* *** Select functions *** */
 

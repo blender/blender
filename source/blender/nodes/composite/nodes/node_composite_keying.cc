@@ -34,12 +34,16 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
 
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Matte");
-  b.add_output<decl::Float>("Edges");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Float>("Matte").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Float>("Edges").structure_type(StructureType::Dynamic);
 
-  b.add_input<decl::Color>("Image").default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Color>("Key Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image")
+      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Color>("Key Color")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .structure_type(StructureType::Dynamic);
 
   PanelDeclarationBuilder &preprocess_panel = b.add_panel("Preprocess").default_closed(true);
   preprocess_panel.add_input<decl::Int>("Blur Size", "Preprocess Blur Size")
@@ -47,8 +51,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
       .min(0)
       .description(
           "Blur the color of the input image in YCC color space before keying while leaving the "
-          "luminance intact using a Gaussian blur of the given size")
-      .compositor_expects_single_value();
+          "luminance intact using a Gaussian blur of the given size");
 
   PanelDeclarationBuilder &key_panel = b.add_panel("Key").default_closed(true).translation_context(
       BLT_I18NCONTEXT_ID_NODETREE);
@@ -60,8 +63,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
       .description(
           "Balances between the two non primary color channels that the primary channel compares "
           "against. 0 means the latter channel of the two is used, while 1 means the former of "
-          "the two is used")
-      .compositor_expects_single_value();
+          "the two is used");
 
   PanelDeclarationBuilder &tweak_panel = b.add_panel("Tweak").default_closed(true);
   tweak_panel.add_input<decl::Float>("Black Level")
@@ -71,8 +73,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description(
           "The matte gets remapped such matte values lower than the black level become black. "
-          "Pixels at the identified edges are excluded from the remapping to preserve details")
-      .compositor_expects_single_value();
+          "Pixels at the identified edges are excluded from the remapping to preserve details");
   tweak_panel.add_input<decl::Float>("White Level")
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
@@ -80,8 +81,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description(
           "The matte gets remapped such matte values higher than the white level become white. "
-          "Pixels at the identified edges are excluded from the remapping to preserve details")
-      .compositor_expects_single_value();
+          "Pixels at the identified edges are excluded from the remapping to preserve details");
 
   PanelDeclarationBuilder &edges_panel = tweak_panel.add_panel("Edges").default_closed(true);
   edges_panel.add_input<decl::Int>("Size", "Edge Search Size")
@@ -90,8 +90,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
       .description(
           "Size of the search window used to identify edges. Higher search size corresponds to "
           "less noisy and higher quality edges, not necessarily bigger edges. Edge tolerance can "
-          "be used to expend the size of the edges")
-      .compositor_expects_single_value();
+          "be used to expend the size of the edges");
   edges_panel.add_input<decl::Float>("Tolerance", "Edge Tolerance")
       .default_value(0.1f)
       .subtype(PROP_FACTOR)
@@ -99,8 +98,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description(
           "Pixels are considered part of the edges if more than 10% of the neighbouring pixels "
-          "have matte values that differ from the pixel's matte value by this tolerance")
-      .compositor_expects_single_value();
+          "have matte values that differ from the pixel's matte value by this tolerance");
 
   PanelDeclarationBuilder &mask_panel = b.add_panel("Mask").default_closed(true);
   mask_panel.add_input<decl::Float>("Garbage Matte")
@@ -108,33 +106,32 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
+      .structure_type(StructureType::Dynamic)
       .description("Areas in the garbage matte mask are excluded from the matte");
   mask_panel.add_input<decl::Float>("Core Matte")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
+      .structure_type(StructureType::Dynamic)
       .description("Areas in the core matte mask are included in the matte");
 
   PanelDeclarationBuilder &postprocess_panel = b.add_panel("Postprocess").default_closed(true);
   postprocess_panel.add_input<decl::Int>("Blur Size", "Postprocess Blur Size")
       .default_value(0)
       .min(0)
-      .description("Blur the computed matte using a Gaussian blur of the given size")
-      .compositor_expects_single_value();
+      .description("Blur the computed matte using a Gaussian blur of the given size");
   postprocess_panel.add_input<decl::Int>("Dilate Size", "Postprocess Dilate Size")
       .default_value(0)
       .description(
           "Dilate or erode the computed matte using a circular structuring element of the "
-          "specified size. Negative sizes means erosion while positive means dilation")
-      .compositor_expects_single_value();
+          "specified size. Negative sizes means erosion while positive means dilation");
   postprocess_panel.add_input<decl::Int>("Feather Size", "Postprocess Feather Size")
       .default_value(0)
       .description(
           "Dilate or erode the computed matte using an inverse distance operation evaluated at "
           "the given falloff of the specified size. Negative sizes means erosion while positive "
-          "means dilation")
-      .compositor_expects_single_value();
+          "means dilation");
   postprocess_panel.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
     layout->prop(ptr, "feather_falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   });
@@ -145,8 +142,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
-      .description("Specifies the strength of the despill")
-      .compositor_expects_single_value();
+      .description("Specifies the strength of the despill");
   despill_panel.add_input<decl::Float>("Balance", "Despill Balance")
       .default_value(0.5f)
       .subtype(PROP_FACTOR)
@@ -155,8 +151,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
       .description(
           "Defines the channel used for despill limiting. Balances between the two non primary "
           "color channels that the primary channel compares against. 0 means the latter channel "
-          "of the two is used, while 1 means the former of the two is used")
-      .compositor_expects_single_value();
+          "of the two is used, while 1 means the former of the two is used");
 }
 
 static void node_composit_init_keying(bNodeTree * /*ntree*/, bNode *node)

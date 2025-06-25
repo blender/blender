@@ -590,6 +590,12 @@ IDProperty **rna_ID_idprops(PointerRNA *ptr)
   return &id->properties;
 }
 
+IDProperty **rna_ID_system_idprops(PointerRNA *ptr)
+{
+  ID *id = (ID *)ptr->data;
+  return &id->system_properties;
+}
+
 int rna_ID_is_runtime_editable(const PointerRNA *ptr, const char **r_info)
 {
   ID *id = (ID *)ptr->data;
@@ -1655,7 +1661,10 @@ static void rna_def_ID_properties(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "PropertyGroup", nullptr);
   RNA_def_struct_sdna(srna, "IDPropertyGroup");
   RNA_def_struct_ui_text(srna, "ID Property Group", "Group of ID properties");
+  /* For property groups, both 'user-defined' and system-defined properties are the same.
+   * The user-defined access is kept to allow 'dict-type' subscripting in python. */
   RNA_def_struct_idprops_func(srna, "rna_PropertyGroup_idprops");
+  RNA_def_struct_system_idprops_func(srna, "rna_PropertyGroup_idprops");
   RNA_def_struct_register_funcs(
       srna, "rna_PropertyGroup_register", "rna_PropertyGroup_unregister", nullptr);
   RNA_def_struct_refine_func(srna, "rna_PropertyGroup_refine");
@@ -2259,6 +2268,7 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_struct_flag(srna, STRUCT_ID | STRUCT_ID_REFCOUNT);
   RNA_def_struct_refine_func(srna, "rna_ID_refine");
   RNA_def_struct_idprops_func(srna, "rna_ID_idprops");
+  RNA_def_struct_system_idprops_func(srna, "rna_ID_system_idprops");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(
@@ -2700,7 +2710,10 @@ static void rna_def_idproperty_wrap_ptr(BlenderRNA *brna)
   StructRNA *srna;
 
   srna = RNA_def_struct(brna, "IDPropertyWrapPtr", nullptr);
+  /* For property groups, both 'user-defined' and system-defined properties are the same.
+   * The user-defined access is kept to allow 'dict-type' subscripting in python. */
   RNA_def_struct_idprops_func(srna, "rna_IDPropertyWrapPtr_idprops");
+  RNA_def_struct_system_idprops_func(srna, "rna_IDPropertyWrapPtr_idprops");
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);
 }
 

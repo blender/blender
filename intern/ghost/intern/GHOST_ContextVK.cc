@@ -25,8 +25,7 @@
 
 #include "CLG_log.h"
 
-#include <vector>
-
+#include <array>
 #include <cassert>
 #include <cstdio>
 #include <cstring>
@@ -34,6 +33,7 @@
 #include <mutex>
 #include <optional>
 #include <sstream>
+#include <vector>
 
 #include <sys/stat.h>
 
@@ -852,21 +852,19 @@ static bool selectSurfaceFormat(const VkPhysicalDevice physical_device,
   vector<VkSurfaceFormatKHR> formats(format_count);
   vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &format_count, formats.data());
 
-  for (const VkSurfaceFormatKHR &format : formats) {
-    if (format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR &&
-        format.format == VK_FORMAT_R8G8B8A8_UNORM)
-    {
-      r_surfaceFormat = format;
-      return true;
-    }
-  }
+  array<pair<VkColorSpaceKHR, VkFormat>, 4> selection_order = {
+      make_pair(VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT, VK_FORMAT_R16G16B16A16_SFLOAT),
+      make_pair(VK_COLOR_SPACE_SRGB_NONLINEAR_KHR, VK_FORMAT_R16G16B16A16_SFLOAT),
+      make_pair(VK_COLOR_SPACE_SRGB_NONLINEAR_KHR, VK_FORMAT_R8G8B8A8_UNORM),
+      make_pair(VK_COLOR_SPACE_SRGB_NONLINEAR_KHR, VK_FORMAT_B8G8R8A8_UNORM),
+  };
 
-  for (const VkSurfaceFormatKHR &format : formats) {
-    if (format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR &&
-        format.format == VK_FORMAT_B8G8R8A8_UNORM)
-    {
-      r_surfaceFormat = format;
-      return true;
+  for (pair<VkColorSpaceKHR, VkFormat> &pair : selection_order) {
+    for (const VkSurfaceFormatKHR &format : formats) {
+      if (format.colorSpace == pair.first && format.format == pair.second) {
+        r_surfaceFormat = format;
+        return true;
+      }
     }
   }
 
@@ -1053,7 +1051,7 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
   create_info.imageExtent = m_render_extent;
   create_info.imageArrayLayers = 1;
   create_info.imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-  create_info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+  create_info.preTransform = capabilities.currentTransform;
   create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
   create_info.presentMode = present_mode;
   create_info.clipped = VK_TRUE;
@@ -1207,6 +1205,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     requireExtension(extensions_available, extensions_enabled, VK_KHR_SURFACE_EXTENSION_NAME);
     requireExtension(extensions_available, extensions_enabled, native_surface_extension_name);
     required_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    optional_device_extensions.push_back(VK_EXT_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME);
 
     /* X11 doesn't use the correct swapchain offset, flipping can squash the first frames. */
     const bool use_swapchain_maintenance1 =

@@ -61,13 +61,14 @@ class SyncModule {
   void sync_curves(Object *ob,
                    ObjectHandle &ob_handle,
                    const ObjectRef &ob_ref,
-                   ResourceHandle res_handle = 0,
+                   ResourceHandleRange res_handle = {},
                    ModifierData *modifier_data = nullptr,
                    ParticleSystem *particle_sys = nullptr);
 };
 
 using HairHandleCallback = FunctionRef<void(ObjectHandle, ModifierData &, ParticleSystem &)>;
-void foreach_hair_particle_handle(ObjectRef &ob_ref,
+void foreach_hair_particle_handle(Instance &inst,
+                                  ObjectRef &ob_ref,
                                   ObjectHandle ob_handle,
                                   HairHandleCallback callback);
 

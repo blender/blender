@@ -41,23 +41,26 @@ static void extract_face_normals(const MeshRenderData &mr, MutableSpan<GPUType> 
 template<typename GPUType>
 static void extract_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
+  const auto get_vert_normals = [&]() {
+    return mr.use_simplify_normals ? mr.mesh->vert_normals_true() : mr.mesh->vert_normals();
+  };
   if (mr.normals_domain == bke::MeshNormalDomain::Face) {
     extract_face_normals(mr, normals);
   }
   else if (mr.normals_domain == bke::MeshNormalDomain::Point) {
-    extract_vert_normals(mr.corner_verts, mr.mesh->vert_normals(), normals);
+    extract_vert_normals(mr.corner_verts, get_vert_normals(), normals);
   }
   else if (!mr.corner_normals.is_empty()) {
     gpu::convert_normals(mr.corner_normals, normals);
   }
   else if (mr.sharp_faces.is_empty()) {
-    extract_vert_normals(mr.corner_verts, mr.mesh->vert_normals(), normals);
+    extract_vert_normals(mr.corner_verts, get_vert_normals(), normals);
   }
   else {
     const OffsetIndices faces = mr.faces;
     const Span<int> corner_verts = mr.corner_verts;
     const Span<bool> sharp_faces = mr.sharp_faces;
-    const Span<float3> vert_normals = mr.mesh->vert_normals();
+    const Span<float3> vert_normals = get_vert_normals();
     const Span<float3> face_normals = mr.face_normals;
     threading::parallel_for(faces.index_range(), 2048, [&](const IndexRange range) {
       for (const int face : range) {

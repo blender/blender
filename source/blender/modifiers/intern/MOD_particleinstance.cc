@@ -529,17 +529,16 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA particle_obj_ptr = RNA_pointer_get(ptr, "object");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (!RNA_pointer_is_null(&particle_obj_ptr)) {
-    uiItemPointerR(layout,
-                   ptr,
-                   "particle_system",
-                   &particle_obj_ptr,
-                   "particle_systems",
-                   IFACE_("Particle System"),
-                   ICON_NONE);
+    layout->prop_search(ptr,
+                        "particle_system",
+                        &particle_obj_ptr,
+                        "particle_systems",
+                        IFACE_("Particle System"),
+                        ICON_NONE);
   }
   else {
     layout->prop(ptr, "particle_system_index", UI_ITEM_NONE, IFACE_("Particle System"), ICON_NONE);
@@ -586,7 +585,7 @@ static void path_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->active_set(RNA_boolean_get(ptr, "use_path"));
 
@@ -610,13 +609,13 @@ static void layers_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
-  uiItemPointerR(
-      col, ptr, "index_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Index"), ICON_NONE);
-  uiItemPointerR(
-      col, ptr, "value_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Value"), ICON_NONE);
+  col->prop_search(
+      ptr, "index_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Index"), ICON_NONE);
+  col->prop_search(
+      ptr, "value_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Value"), ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

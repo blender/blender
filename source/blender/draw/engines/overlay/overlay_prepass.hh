@@ -132,7 +132,7 @@ class Prepass : Overlay {
   {
     Object *ob = ob_ref.object;
 
-    ResourceHandle handle = {0};
+    ResourceHandleRange handle = {0};
 
     LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
       if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
@@ -146,7 +146,7 @@ class Prepass : Overlay {
           if ((state.is_wireframe_mode == false) && (part->draw_as == PART_DRAW_REND)) {
             /* Case where the render engine should have rendered it, but we need to draw it for
              * selection purpose. */
-            if (handle.raw == 0u) {
+            if (!handle.is_valid()) {
               handle = manager.resource_handle_for_psys(ob_ref, ob_ref.particles_matrix());
             }
 
@@ -168,7 +168,7 @@ class Prepass : Overlay {
 
   void sculpt_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res)
   {
-    ResourceHandle handle = manager.unique_handle_for_sculpt(ob_ref);
+    ResourceHandleRange handle = manager.unique_handle_for_sculpt(ob_ref);
 
     for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {
       select::ID select_id = use_material_slot_selection_ ?
@@ -276,7 +276,7 @@ class Prepass : Overlay {
       return;
     }
 
-    ResourceHandle res_handle = manager.unique_handle(ob_ref);
+    ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
 
     for (int material_id : geom_list.index_range()) {
       select::ID select_id = use_material_slot_selection_ ?

@@ -578,7 +578,7 @@ struct GreasePencilDepthPlane {
   /* Center and size of the bounding box of the Grease Pencil object. */
   Bounds<float3> bounds;
   /* Grease-pencil object resource handle. */
-  ResourceHandle handle;
+  ResourceHandleRange handle;
 };
 
 struct Resources : public select::SelectMap {
@@ -979,7 +979,7 @@ struct Resources : public select::SelectMap {
  * Allow deferred rendering condition of flat object for special purpose. */
 struct FlatObjectRef {
   gpu::Batch *geom;
-  ResourceHandle handle;
+  ResourceHandleRange handle;
   int flattened_axis_id;
 
   /* Returns flat axis index if only one axis is flat. Returns -1 otherwise. */
@@ -1008,7 +1008,7 @@ struct FlatObjectRef {
     return -1;
   }
 
-  using Callback = FunctionRef<void(gpu::Batch *geom, ResourceHandle handle)>;
+  using Callback = FunctionRef<void(gpu::Batch *geom, ResourceHandleRange handle)>;
 
   /* Execute callback for every handles that is orthogonal to the view.
    * Note: Only works in orthogonal view. */
@@ -1075,7 +1075,7 @@ template<typename InstanceDataT> struct ShapeInstanceBuf : private select::Selec
     data_buf.push_update();
     pass.bind_ssbo("data_buf", &data_buf);
     pass.draw_expand(
-        shape, primitive_type, primitive_len, data_buf.size(), ResourceHandle(0), uint(0));
+        shape, primitive_type, primitive_len, data_buf.size(), ResourceHandleRange(0), uint(0));
   }
 };
 

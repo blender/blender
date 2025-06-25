@@ -46,7 +46,9 @@ static void cmp_node_keyingscreen_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description("Specifies the smoothness of the keying screen");
 
-  b.add_output<decl::Color>("Screen").translation_context(BLT_I18NCONTEXT_ID_SCREEN);
+  b.add_output<decl::Color>("Screen")
+      .translation_context(BLT_I18NCONTEXT_ID_SCREEN)
+      .structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)
@@ -81,7 +83,7 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
         &clip->id, &RNA_MovieTracking, &clip->tracking);
 
     col = &layout->column(true);
-    uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+    col->prop_search(ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
   }
 }
 

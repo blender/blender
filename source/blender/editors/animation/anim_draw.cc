@@ -249,6 +249,9 @@ bool ANIM_nla_mapping_allowed(const bAnimListElem *ale)
     case ANIMTYPE_MASKLAYER:
       /* I (Sybren) don't _think_ masks can use the NLA. */
       return false;
+    case ANIMTYPE_SUMMARY:
+      /* The summary line cannot do NLA remapping since it may contain multiple actions. */
+      return false;
     default:
       /* NLA time remapping is the default behavior, and only should be
        * prohibited for the above types. */

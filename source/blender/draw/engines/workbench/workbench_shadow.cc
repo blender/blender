@@ -379,7 +379,7 @@ void ShadowPass::sync()
 
 void ShadowPass::object_sync(SceneState &scene_state,
                              ObjectRef &ob_ref,
-                             ResourceHandle handle,
+                             ResourceHandleRange handle,
                              const bool has_transp_mat)
 {
   if (!enabled_) {

@@ -518,9 +518,15 @@ class NodeTreeMainUpdater {
       if (node_field_inferencing::update_field_inferencing(ntree)) {
         result.interface_changed = true;
       }
+    }
+
+    if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
       if (node_structure_type_inferencing::update_structure_type_interface(ntree)) {
         result.interface_changed = true;
       }
+    }
+
+    if (ntree.type == NTREE_GEOMETRY) {
       this->update_from_field_inference(ntree);
       if (node_tree_reference_lifetimes::analyse_reference_lifetimes(ntree)) {
         result.interface_changed = true;
@@ -528,7 +534,13 @@ class NodeTreeMainUpdater {
       if (nodes::gizmos::update_tree_gizmo_propagation(ntree)) {
         result.interface_changed = true;
       }
+    }
+
+    if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_COMPOSIT)) {
       this->update_socket_shapes(ntree);
+    }
+
+    if (ntree.type == NTREE_GEOMETRY) {
       this->update_eval_dependencies(ntree);
     }
 
@@ -858,33 +870,15 @@ class NodeTreeMainUpdater {
     /* Automatically tag a bake item as attribute when the input is a field. The flag should not be
      * removed automatically even when the field input is disconnected because the baked data may
      * still contain attribute data instead of a single value. */
-    const Span<bke::FieldSocketState> field_states = ntree.runtime->field_states;
     for (bNode *node : ntree.nodes_by_type("GeometryNodeBake")) {
       NodeGeometryBake &storage = *static_cast<NodeGeometryBake *>(node->storage);
       for (const int i : IndexRange(storage.items_num)) {
         const bNodeSocket &socket = node->input_socket(i);
         NodeGeometryBakeItem &item = storage.items[i];
-        if (field_states[socket.index_in_tree()] == FieldSocketState::IsField) {
+        if (socket.may_be_field()) {
           item.flag |= GEO_NODE_BAKE_ITEM_IS_ATTRIBUTE;
         }
       }
-    }
-  }
-
-  static bool socket_type_always_single(const SocketDeclaration &decl)
-  {
-    switch (decl.socket_type) {
-      case SOCK_OBJECT:
-      case SOCK_IMAGE:
-      case SOCK_GEOMETRY:
-      case SOCK_COLLECTION:
-      case SOCK_TEXTURE:
-      case SOCK_MATERIAL:
-      case SOCK_CLOSURE:
-      case SOCK_BUNDLE:
-        return true;
-      default:
-        return false;
     }
   }
 
@@ -893,9 +887,6 @@ class NodeTreeMainUpdater {
   {
     if (decl.identifier == "__extend__") {
       return SOCK_DISPLAY_SHAPE_CIRCLE;
-    }
-    if (socket_type_always_single(decl)) {
-      return SOCK_DISPLAY_SHAPE_LINE;
     }
     switch (structure_type) {
       case StructureType::Single:
@@ -916,9 +907,6 @@ class NodeTreeMainUpdater {
   {
     if (decl.identifier == "__extend__") {
       return SOCK_DISPLAY_SHAPE_CIRCLE;
-    }
-    if (socket_type_always_single(decl)) {
-      return SOCK_DISPLAY_SHAPE_LINE;
     }
     switch (structure_type) {
       case StructureType::Single: {
@@ -978,18 +966,25 @@ class NodeTreeMainUpdater {
       }
     }
     else {
-      const Span<bke::FieldSocketState> field_states = ntree.runtime->field_states;
-      for (bNodeSocket *socket : ntree.all_sockets()) {
-        switch (field_states[socket->index_in_tree()]) {
-          case bke::FieldSocketState::RequiresSingle:
-            socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
-            break;
-          case bke::FieldSocketState::CanBeField:
-            socket->display_shape = SOCK_DISPLAY_SHAPE_DIAMOND_DOT;
-            break;
-          case bke::FieldSocketState::IsField:
-            socket->display_shape = SOCK_DISPLAY_SHAPE_DIAMOND;
-            break;
+      if (ntree.type == NTREE_GEOMETRY) {
+        const Span<bke::FieldSocketState> field_states = ntree.runtime->field_states;
+        for (bNodeSocket *socket : ntree.all_sockets()) {
+          switch (field_states[socket->index_in_tree()]) {
+            case bke::FieldSocketState::RequiresSingle:
+              socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+              break;
+            case bke::FieldSocketState::CanBeField:
+              socket->display_shape = SOCK_DISPLAY_SHAPE_DIAMOND_DOT;
+              break;
+            case bke::FieldSocketState::IsField:
+              socket->display_shape = SOCK_DISPLAY_SHAPE_DIAMOND;
+              break;
+          }
+        }
+      }
+      else if (ntree.type == NTREE_COMPOSIT) {
+        for (bNodeSocket *socket : ntree.all_sockets()) {
+          socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
         }
       }
     }
@@ -1325,10 +1320,7 @@ class NodeTreeMainUpdater {
         continue;
       }
       if (ntree.type == NTREE_GEOMETRY) {
-        const Span<FieldSocketState> field_states = ntree.runtime->field_states;
-        if (field_states[link->fromsock->index_in_tree()] == FieldSocketState::IsField &&
-            field_states[link->tosock->index_in_tree()] != FieldSocketState::IsField)
-        {
+        if (link->fromsock->may_be_field() && !link->tosock->may_be_field()) {
           link->flag &= ~NODE_LINK_VALID;
           ntree.runtime->link_errors.add(
               NodeLinkKey{*link}, NodeLinkError{TIP_("The node input does not support fields")});

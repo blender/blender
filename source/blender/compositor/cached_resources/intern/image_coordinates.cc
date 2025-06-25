@@ -42,7 +42,7 @@ bool operator==(const ImageCoordinatesKey &a, const ImageCoordinatesKey &b)
  */
 
 ImageCoordinates::ImageCoordinates(Context &context, const int2 &size, const CoordinatesType type)
-    : result(context.create_result(ResultType::Float3))
+    : result(context.create_result(ResultType::Float2))
 {
   this->result.allocate_texture(Domain(size), false);
 
@@ -96,7 +96,7 @@ void ImageCoordinates::compute_cpu(const CoordinatesType type)
       parallel_for(size, [&](const int2 texel) {
         float2 centered_coordinates = (float2(texel) + 0.5f) - float2(size) / 2.0f;
         float2 normalized_coordinates = (centered_coordinates / max_size) * 2.0f;
-        this->result.store_pixel(texel, float3(normalized_coordinates, 0.0f));
+        this->result.store_pixel(texel, normalized_coordinates);
       });
       break;
     }
@@ -104,14 +104,13 @@ void ImageCoordinates::compute_cpu(const CoordinatesType type)
       const int2 size = this->result.domain().size;
       parallel_for(size, [&](const int2 texel) {
         float2 normalized_coordinates = (float2(texel) + 0.5f) / float2(size);
-        this->result.store_pixel(texel, float3(normalized_coordinates, 0.0f));
+        this->result.store_pixel(texel, normalized_coordinates);
       });
       break;
     }
     case CoordinatesType::Pixel: {
-      parallel_for(this->result.domain().size, [&](const int2 texel) {
-        this->result.store_pixel(texel, float3(float2(texel), 0.0f));
-      });
+      parallel_for(this->result.domain().size,
+                   [&](const int2 texel) { this->result.store_pixel(texel, float2(texel)); });
       break;
     }
   }

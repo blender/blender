@@ -19,6 +19,7 @@
 #include "BLI_alloca.h"
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -643,6 +644,10 @@ static bool edges_face_connected_at_vert(BMEdge *bme1, BMEdge *bme2)
  */
 static UVFace *register_uv_face(BevelParams *bp, BMFace *fnew, BMFace *frep, BMFace **frep_arr)
 {
+  if (!fnew) {
+    return nullptr;
+  }
+
   UVFace *uv_face = (UVFace *)BLI_memarena_alloc(bp->mem_arena, sizeof(UVFace));
   uv_face->f = fnew;
   uv_face->attached_frep = nullptr;
@@ -705,7 +710,7 @@ static void update_uv_vert_map(BevelParams *bp,
         }
 
         UVFace *uv_face2 = find_uv_face(bp, l2->f);
-        if (!uv_face2) {
+        if (!uv_face2 || !uv_face2->attached_frep) {
           continue;
         }
 
@@ -7125,7 +7130,6 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 
   int odd = nseg % 2;
   int mid = nseg / 2;
-  BMEdge *center_bme = nullptr;
   BMFace *fchoices[2] = {f1, f2};
   BMFace *f_choice = nullptr;
   int center_adj_k = -1;
@@ -7189,8 +7193,6 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
       BMEdge *edges[4] = {nullptr, nullptr, bme, bme};
       r_f = bev_create_ngon(
           bp, bm, verts, 4, nullptr, f1, edges, nullptr, &nv_bv_map, mat_nr, true);
-      center_bme = BM_edge_exists(verts[2], verts[3]);
-      BLI_assert(center_bme != nullptr);
     }
     else if (!odd && k == mid + 1) {
       /* Right poly that touches an even center line on left. */
@@ -7700,7 +7702,8 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
    * The intersection of these two corner vectors is the collapse point.
    * The length of edge B divided by the projection of these vectors onto edge B
    * is the number of 'offsets' that can be accommodated. */
-  float offsets_projected_on_B = (ka + cos1 * kb) / sin1 + (kc + cos2 * kb) / sin2;
+  float offsets_projected_on_B = safe_divide(ka + cos1 * kb, sin1) +
+                                 safe_divide(kc + cos2 * kb, sin2);
   if (offsets_projected_on_B > BEVEL_EPSILON) {
     offsets_projected_on_B = bp->offset * (len_v3v3(vb->co, vc->co) / offsets_projected_on_B);
     if (offsets_projected_on_B > BEVEL_EPSILON) {
@@ -7713,48 +7716,54 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
    * iterating until we find a return edge (not in line with B) to provide a minimum offset
    * to the far side of the N-gon. This is not perfect, but is simpler and will catch many
    * more overlap issues. */
-  if (ka == 0.0f && kb > FLT_EPSILON) {
-    BMLoop *la = BM_face_edge_share_loop(eb->fnext, ea->e);
-    if (la) {
-      float A_side_slide = 0.0f;
-      float exterior_angle = 0.0f;
-      bool first = true;
-      while (exterior_angle < 0.0001f) {
-        if (first) {
-          exterior_angle = float(M_PI) - th1;
-          first = false;
-        }
-        else {
-          la = la->prev;
-          exterior_angle += float(M_PI) -
-                            angle_v3v3v3(la->v->co, la->next->v->co, la->next->next->v->co);
-        }
-        A_side_slide += BM_edge_calc_length(la->e) * sinf(exterior_angle);
-      }
-      limit = std::min(A_side_slide, limit);
-    }
-  }
+  if (kb > FLT_EPSILON && (ka == 0.0f || kc == 0.0f)) {
+    // use bevel weight offsets and not the full offset where weights are used
+    kb = bp->offset / kb;
 
-  if (kb > FLT_EPSILON && kc == 0.0f) {
-    BMLoop *lc = BM_face_edge_share_loop(eb->fnext, eb->e);
-    if (lc) {
-      lc = lc->next;
-      float C_side_slide = 0.0f;
-      float exterior_angle = 0.0f;
-      bool first = true;
-      while (exterior_angle < 0.0001f) {
-        if (first) {
-          exterior_angle = float(M_PI) - th2;
-          first = false;
+    if (ka == 0.0f) {
+      BMLoop *la = BM_face_edge_share_loop(eb->fnext, ea->e);
+      if (la) {
+        float A_side_slide = 0.0f;
+        float exterior_angle = 0.0f;
+        bool first = true;
+
+        while (exterior_angle < 0.0001f) {
+          if (first) {
+            exterior_angle = float(M_PI) - th1;
+            first = false;
+          }
+          else {
+            la = la->prev;
+            exterior_angle += float(M_PI) -
+                              angle_v3v3v3(la->v->co, la->next->v->co, la->next->next->v->co);
+          }
+          A_side_slide += BM_edge_calc_length(la->e) * sinf(exterior_angle);
         }
-        else {
-          lc = lc->next;
-          exterior_angle += float(M_PI) -
-                            angle_v3v3v3(lc->prev->v->co, lc->v->co, lc->next->v->co);
-        }
-        C_side_slide += BM_edge_calc_length(lc->e) * sinf(exterior_angle);
+        limit = std::min(A_side_slide * kb, limit);
       }
-      limit = std::min(C_side_slide, limit);
+    }
+
+    if (kc == 0.0f) {
+      BMLoop *lc = BM_face_edge_share_loop(eb->fnext, eb->e);
+      if (lc) {
+        lc = lc->next;
+        float C_side_slide = 0.0f;
+        float exterior_angle = 0.0f;
+        bool first = true;
+        while (exterior_angle < 0.0001f) {
+          if (first) {
+            exterior_angle = float(M_PI) - th2;
+            first = false;
+          }
+          else {
+            lc = lc->next;
+            exterior_angle += float(M_PI) -
+                              angle_v3v3v3(lc->prev->v->co, lc->v->co, lc->next->v->co);
+          }
+          C_side_slide += BM_edge_calc_length(lc->e) * sinf(exterior_angle);
+        }
+        limit = std::min(C_side_slide * kb, limit);
+      }
     }
   }
   return limit;

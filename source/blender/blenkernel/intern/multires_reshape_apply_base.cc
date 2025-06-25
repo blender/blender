@@ -40,20 +40,25 @@ void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *resh
 
     ReshapeConstGridElement grid_element = multires_reshape_orig_grid_element_for_grid_coord(
         reshape_context, &grid_coord);
-    float D[3];
+    blender::float3 D;
     mul_v3_m3v3(D, tangent_matrix.ptr(), grid_element.displacement);
 
-    add_v3_v3v3(base_positions[corner_verts[loop_index]], P, D);
+    base_positions[corner_verts[loop_index]] = P + D;
   }
 }
 
 /* Assumes no is normalized; return value's sign is negative if v is on the other side of the
- * plane. */
-static float v3_dist_from_plane(const float v[3], const float center[3], const float no[3])
+ * plane.
+ *
+ * TODO: This should probably be substituted with a call in `math_geom.cc` or this should be
+ * promoted into that class.
+ */
+static float v3_dist_from_plane(const blender::float3 &v,
+                                const blender::float3 &center,
+                                const blender::float3 &no)
 {
-  float s[3];
-  sub_v3_v3v3(s, v, center);
-  return dot_v3v3(s, no);
+  const blender::float3 s = v - center;
+  return blender::math::dot(s, no);
 }
 
 void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape_context)
@@ -64,16 +69,17 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   reshape_context->base_positions = base_positions;
   const blender::GroupedSpan<int> vert_to_face_map = base_mesh->vert_to_face_map();
 
-  float(*origco)[3] = MEM_calloc_arrayN<float[3]>(base_mesh->verts_num, __func__);
+  blender::Array<blender::float3> origco(base_mesh->verts_num);
   for (int i = 0; i < base_mesh->verts_num; i++) {
-    copy_v3_v3(origco[i], base_positions[i]);
+    origco[i] = base_positions[i];
   }
 
   for (int i = 0; i < base_mesh->verts_num; i++) {
-    float avg_no[3] = {0, 0, 0}, center[3] = {0, 0, 0}, push[3];
+    blender::float3 avg_no(0.0f);
+    blender::float3 center(0.0f);
 
     /* Don't adjust vertices not used by at least one face. */
-    if (!vert_to_face_map[i].size()) {
+    if (vert_to_face_map[i].is_empty()) {
       continue;
     }
 
@@ -84,12 +90,12 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
       for (const int corner : reshape_context->base_faces[face]) {
         const int vndx = reshape_context->base_corner_verts[corner];
         if (vndx != i) {
-          add_v3_v3(center, origco[vndx]);
+          center += origco[vndx];
           tot++;
         }
       }
     }
-    mul_v3_fl(center, 1.0f / tot);
+    center *= blender::math::rcp(tot);
 
     /* Find normal. */
     for (int j = 0; j < vert_to_face_map[i].size(); j++) {
@@ -105,26 +111,23 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
         face_verts[k] = k;
 
         if (vndx == i) {
-          copy_v3_v3(fake_co[k], center);
+          fake_co[k] = center;
         }
         else {
-          copy_v3_v3(fake_co[k], origco[vndx]);
+          fake_co[k] = origco[vndx];
         }
       }
 
       const blender::float3 no = blender::bke::mesh::face_normal_calc(fake_co, face_verts);
-      add_v3_v3(avg_no, no);
+      avg_no += no;
     }
-    normalize_v3(avg_no);
+    avg_no = blender::math::normalize(avg_no);
 
     /* Push vertex away from the plane. */
     const float dist = v3_dist_from_plane(base_positions[i], center, avg_no);
-    copy_v3_v3(push, avg_no);
-    mul_v3_fl(push, dist);
-    add_v3_v3(base_positions[i], push);
+    const blender::float3 push = avg_no * dist;
+    base_positions[i] += push;
   }
-
-  MEM_freeN(origco);
 
   /* Vertices were moved around, need to update normals after all the vertices are updated
    * Probably this is possible to do in the loop above, but this is rather tricky because

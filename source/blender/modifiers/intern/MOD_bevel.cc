@@ -293,7 +293,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "affect", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->prop(ptr, "offset_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -341,7 +341,7 @@ static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "profile_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   if (ELEM(profile_type, MOD_BEVEL_PROFILE_SUPERELLIPSE, MOD_BEVEL_PROFILE_CUSTOM)) {
     row = &layout->row(false);
@@ -358,7 +358,7 @@ static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
 
     if (profile_type == MOD_BEVEL_PROFILE_CUSTOM) {
       uiLayout *sub = &layout->column(false);
-      uiLayoutSetPropDecorate(sub, false);
+      sub->use_property_decorate_set(false);
       uiTemplateCurveProfile(sub, ptr, "custom_profile");
     }
   }
@@ -373,7 +373,7 @@ static void geometry_panel_draw(const bContext * /*C*/, Panel *panel)
 
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   row = &layout->row(false);
   row->active_set(edge_bevel);
@@ -406,7 +406,7 @@ static void shading_panel_draw(const bContext * /*C*/, Panel *panel)
 
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "harden_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

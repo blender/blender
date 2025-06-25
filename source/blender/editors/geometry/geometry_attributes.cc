@@ -214,8 +214,7 @@ bool attribute_set_poll(bContext &C, const ID &object_data)
   }
 
   if (owner.type() == AttributeOwnerType::PointCloud) {
-    PointCloud &pointcloud = *owner.get_pointcloud();
-    bke::AttributeAccessor attributes = pointcloud.attributes();
+    bke::AttributeAccessor attributes = *owner.get_accessor();
     std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(*name);
     if (!meta_data) {
       CTX_wm_operator_poll_msg_set(&C, "No active attribute");
@@ -300,13 +299,12 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
   AttributeOwner owner = AttributeOwner::from_id(id);
 
   if (owner.type() == AttributeOwnerType::PointCloud) {
-    PointCloud &pointcloud = *owner.get_pointcloud();
-    bke::MutableAttributeAccessor accessor = pointcloud.attributes_for_write();
+    bke::MutableAttributeAccessor accessor = *owner.get_accessor();
     if (!accessor.domain_supported(bke::AttrDomain(domain))) {
       BKE_report(op->reports, RPT_ERROR, "Attribute domain not supported by this geometry type");
       return OPERATOR_CANCELLED;
     }
-    bke::AttributeStorage &attributes = pointcloud.attribute_storage.wrap();
+    bke::AttributeStorage &attributes = *owner.get_storage();
     const int domain_size = accessor.domain_size(bke::AttrDomain(domain));
 
     const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(type);
@@ -649,8 +647,8 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
 static void geometry_color_attribute_add_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   layout->prop(op->ptr, "name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
@@ -882,8 +880,8 @@ static wmOperatorStatus geometry_attribute_convert_invoke(bContext *C,
 static void geometry_attribute_convert_ui(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   Object *ob = object::context_object(C);
   if (ob->type == OB_MESH) {
@@ -1012,8 +1010,8 @@ static wmOperatorStatus geometry_color_attribute_convert_invoke(bContext *C,
 static void geometry_color_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   layout->prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout->prop(op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);

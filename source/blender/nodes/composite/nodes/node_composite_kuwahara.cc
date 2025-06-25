@@ -37,18 +37,17 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Size")
       .default_value(6.0f)
       .description("The size of the filter in pixels")
-      .compositor_domain_priority(1);
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Int>("Uniformity")
       .default_value(4)
       .min(0)
       .description(
           "Controls the uniformity of the direction of the filter. Higher values produces more "
-          "uniform directions")
-      .compositor_expects_single_value();
+          "uniform directions");
   b.add_input<decl::Float>("Sharpness")
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
@@ -56,8 +55,7 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description(
           "Controls the sharpness of the filter. 0 means completely smooth while 1 means "
-          "completely sharp")
-      .compositor_expects_single_value();
+          "completely sharp");
   b.add_input<decl::Float>("Eccentricity")
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
@@ -65,15 +63,13 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
       .max(2.0f)
       .description(
           "Controls how directional the filter is. 0 means the filter is completely "
-          "omnidirectional while 2 means it is maximally directed along the edges of the image")
-      .compositor_expects_single_value();
+          "omnidirectional while 2 means it is maximally directed along the edges of the image");
   b.add_input<decl::Bool>("High Precision")
       .default_value(false)
       .description(
-          "Uses a more precise but slower method. Use if the output contains undesirable noise.")
-      .compositor_expects_single_value();
+          "Uses a more precise but slower method. Use if the output contains undesirable noise.");
 
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_kuwahara(bNodeTree * /*ntree*/, bNode *node)

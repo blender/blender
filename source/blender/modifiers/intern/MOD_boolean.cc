@@ -623,7 +623,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "operation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "operand_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "operand_type") == eBooleanModifierFlag_Object) {
@@ -646,7 +646,7 @@ static void solver_options_panel_draw(const bContext * /*C*/, Panel *panel)
   const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Mesh_Arr;
   const bool use_manifold = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Manifold;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   uiLayout *col = &layout->column(true);
   if (use_exact) {

@@ -474,7 +474,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->prop(ptr, "geometry_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -513,7 +513,7 @@ static void waves_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->prop(ptr, "wave_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
@@ -549,7 +549,7 @@ static void foam_panel_draw(const bContext * /*C*/, Panel *panel)
 
   bool use_foam = RNA_boolean_get(ptr, "use_foam");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->active_set(use_foam);
@@ -582,7 +582,7 @@ static void spray_panel_draw(const bContext * /*C*/, Panel *panel)
   bool use_foam = RNA_boolean_get(ptr, "use_foam");
   bool use_spray = RNA_boolean_get(ptr, "use_spray");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->active_set(use_foam && use_spray);
@@ -599,7 +599,7 @@ static void spectrum_panel_draw(const bContext * /*C*/, Panel *panel)
 
   int spectrum = RNA_enum_get(ptr, "spectrum");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->prop(ptr, "spectrum", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -616,7 +616,7 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   bool is_cached = RNA_boolean_get(ptr, "is_cached");
   bool use_foam = RNA_boolean_get(ptr, "use_foam");

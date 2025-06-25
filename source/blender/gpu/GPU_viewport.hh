@@ -53,6 +53,11 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
                                  float dither);
 
 /**
+ * Force this viewport to not clamp the result regardless of the display HDR support.
+ */
+void GPU_viewport_force_hdr(GPUViewport *viewport);
+
+/**
  * Should be called from DRW after DRW_gpu_context_enable.
  */
 void GPU_viewport_bind_from_offscreen(GPUViewport *viewport,

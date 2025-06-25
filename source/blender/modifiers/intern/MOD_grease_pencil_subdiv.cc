@@ -155,7 +155,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "subdivision_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(ptr, "level", UI_ITEM_NONE, IFACE_("Subdivisions"), ICON_NONE);

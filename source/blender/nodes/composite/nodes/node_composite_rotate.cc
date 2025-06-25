@@ -26,14 +26,11 @@ static void cmp_node_rotate_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_realization_mode(CompositorInputRealizationMode::None)
-      .compositor_domain_priority(0);
-  b.add_input<decl::Float>("Angle")
-      .default_value(0.0f)
-      .min(-10000.0f)
-      .max(10000.0f)
-      .subtype(PROP_ANGLE)
-      .compositor_expects_single_value();
-  b.add_output<decl::Color>("Image");
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Float>("Angle").default_value(0.0f).min(-10000.0f).max(10000.0f).subtype(
+      PROP_ANGLE);
+
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_rotate(bNodeTree * /*ntree*/, bNode *node)

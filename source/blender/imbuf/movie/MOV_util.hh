@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_scene_types.h"
+
 struct FFMpegCodecData;
 struct ImageFormatData;
 struct RenderData;
@@ -28,20 +30,20 @@ void MOV_exit();
 bool MOV_is_movie_file(const char *filepath);
 
 /** Checks whether given FFMPEG codec and profile combination supports alpha channel (RGBA). */
-bool MOV_codec_supports_alpha(int av_codec_id, int ffmpeg_profile);
+bool MOV_codec_supports_alpha(IMB_Ffmpeg_Codec_ID codec_id, int ffmpeg_profile);
 
 /**
  * Checks whether given FFMPEG video AVCodecID supports CRF (i.e. "quality level")
  * setting. For codecs that do not support constant quality, only target bit-rate
  * can be specified.
  */
-bool MOV_codec_supports_crf(int av_codec_id);
+bool MOV_codec_supports_crf(IMB_Ffmpeg_Codec_ID codec_id);
 
 /**
- * Which pixel bit depths are supported by a given FFMPEG video AVCodecID.
+ * Which pixel bit depths are supported by a given FFMPEG video CodecID.
  * Returns bit-mask of `R_IMF_CHAN_DEPTH_` flags.
  */
-int MOV_codec_valid_bit_depths(int av_codec_id);
+int MOV_codec_valid_bit_depths(IMB_Ffmpeg_Codec_ID codec_id);
 
 /**
  * Given desired output image format type, sets up required FFMPEG

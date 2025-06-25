@@ -396,7 +396,7 @@ float new_primitive_matrix(bContext *C,
 
 static void view_align_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  RNA_struct_idprops_unset(ptr, "rotation");
+  RNA_struct_system_idprops_unset(ptr, "rotation");
 }
 
 void add_unit_props_size(wmOperatorType *ot)
@@ -4244,7 +4244,7 @@ static void object_convert_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(op->ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(op->ptr, "keep_original", UI_ITEM_NONE, std::nullopt, ICON_NONE);

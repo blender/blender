@@ -114,7 +114,7 @@ void uiTemplateCacheFileTimeSettings(uiLayout *layout, PointerRNA *fileptr)
 
   row = &layout->row(true, IFACE_("Override Frame"));
   sub = &row->row(true);
-  uiLayoutSetPropDecorate(sub, false);
+  sub->use_property_decorate_set(false);
   sub->prop(fileptr, "override_frame", UI_ITEM_NONE, "", ICON_NONE);
   subsub = &sub->row(true);
   subsub->active_set(RNA_boolean_get(fileptr, "override_frame"));
@@ -245,7 +245,7 @@ void uiTemplateCacheFile(uiLayout *layout,
 
   uiLayout *row, *sub;
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   row = &layout->row(true);
   row->prop(&fileptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);

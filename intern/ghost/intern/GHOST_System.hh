@@ -175,6 +175,8 @@ class GHOST_System : public GHOST_ISystem {
                                                  int32_t x,
                                                  int32_t y) override;
 
+  uint32_t getCursorPreferredLogicalSize() const override;
+
   /**
    * Inherited from GHOST_ISystem but left pure virtual
    * <pre>

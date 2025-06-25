@@ -91,12 +91,10 @@ deform_tests = RunTest(tests)
 command = list(sys.argv)
 for i, cmd in enumerate(command):
     if cmd == "--run-all-tests":
-        deform_tests.apply_modifiers = True
         deform_tests.do_compare = True
         deform_tests.run_all_tests()
         break
     elif cmd == "--run-test":
-        deform_tests.apply_modifiers = False
         deform_tests.do_compare = False
         name = command[i + 1]
         deform_tests.run_test(name)

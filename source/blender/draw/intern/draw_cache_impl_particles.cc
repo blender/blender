@@ -899,19 +899,19 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   /* Strand Data */
   cache->proc_strand_buf = GPU_vertbuf_create_with_format_ex(
       format_data, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-  GPU_vertbuf_data_alloc(*cache->proc_strand_buf, cache->strands_len);
+  GPU_vertbuf_data_alloc(*cache->proc_strand_buf, max_ii(1, cache->strands_len));
   GPU_vertbuf_attr_get_raw_data(cache->proc_strand_buf, data_id, &data_step);
 
   cache->proc_strand_seg_buf = GPU_vertbuf_create_with_format_ex(
       format_seg, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-  GPU_vertbuf_data_alloc(*cache->proc_strand_seg_buf, cache->strands_len);
+  GPU_vertbuf_data_alloc(*cache->proc_strand_seg_buf, max_ii(1, cache->strands_len));
   GPU_vertbuf_attr_get_raw_data(cache->proc_strand_seg_buf, seg_id, &seg_step);
 
   /* UV layers */
   for (int i = 0; i < cache->num_uv_layers; i++) {
     cache->proc_uv_buf[i] = GPU_vertbuf_create_with_format_ex(
         format_uv, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-    GPU_vertbuf_data_alloc(*cache->proc_uv_buf[i], cache->strands_len);
+    GPU_vertbuf_data_alloc(*cache->proc_uv_buf[i], max_ii(1, cache->strands_len));
     GPU_vertbuf_attr_get_raw_data(cache->proc_uv_buf[i], uv_id, &uv_step[i]);
 
     char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
@@ -946,7 +946,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   for (int i = 0; i < cache->num_col_layers; i++) {
     cache->proc_col_buf[i] = GPU_vertbuf_create_with_format_ex(
         format_col, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-    GPU_vertbuf_data_alloc(*cache->proc_col_buf[i], cache->strands_len);
+    GPU_vertbuf_data_alloc(*cache->proc_col_buf[i], max_ii(1, cache->strands_len));
     GPU_vertbuf_attr_get_raw_data(cache->proc_col_buf[i], col_id, &col_step[i]);
 
     char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];

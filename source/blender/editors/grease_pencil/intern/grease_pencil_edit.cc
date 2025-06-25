@@ -370,8 +370,8 @@ static void grease_pencil_simplify_ui(bContext *C, wmOperator *op)
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   layout->prop(&ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -3303,8 +3303,8 @@ static void grease_pencil_reproject_ui(bContext * /*C*/, wmOperator *op)
 
   const ReprojectMode type = ReprojectMode(RNA_enum_get(op->ptr, "type"));
 
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
   row = &layout->row(true);
   row->prop(op->ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -4428,9 +4428,9 @@ static void GREASE_PENCIL_OT_outline(wmOperatorType *ot)
 /** \name Convert Curve Type Operator
  * \{ */
 
-static const bke::CurvesGeometry fit_poly_curves(bke::CurvesGeometry &curves,
-                                                 const IndexMask &selection,
-                                                 const float threshold)
+static bke::CurvesGeometry fit_poly_curves(bke::CurvesGeometry &curves,
+                                           const IndexMask &selection,
+                                           const float threshold)
 {
   const VArray<float> thresholds = VArray<float>::ForSingle(threshold, curves.curves_num());
   /* TODO: Detect or manually provide corners. */
@@ -4588,8 +4588,8 @@ static void grease_pencil_convert_curve_type_ui(bContext *C, wmOperator *op)
 
   PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
 
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   layout->prop(&ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

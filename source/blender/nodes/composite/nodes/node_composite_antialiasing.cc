@@ -21,7 +21,7 @@ static void cmp_node_antialiasing_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Threshold")
       .default_value(0.2f)
       .subtype(PROP_FACTOR)
@@ -29,25 +29,22 @@ static void cmp_node_antialiasing_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description(
           "Specifies the threshold or sensitivity to edges. Lowering this value you will be able "
-          "to detect more edges at the expense of performance")
-      .compositor_expects_single_value();
+          "to detect more edges at the expense of performance");
   b.add_input<decl::Float>("Contrast Limit")
       .default_value(2.0f)
       .min(0.0f)
       .description(
           "If there is an neighbor edge that has a Contrast Limit times bigger contrast than "
           "current edge, current edge will be discarded. This allows to eliminate spurious "
-          "crossing edges")
-      .compositor_expects_single_value();
+          "crossing edges");
   b.add_input<decl::Float>("Corner Rounding")
       .default_value(0.25f)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
-      .description("Specifies how much sharp corners will be rounded")
-      .compositor_expects_single_value();
+      .description("Specifies how much sharp corners will be rounded");
 
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

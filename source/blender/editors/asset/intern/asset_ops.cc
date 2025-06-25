@@ -1004,22 +1004,37 @@ static inline void sort_points(int2 &p1, int2 &p2)
   }
 }
 
-/* Ensures that the x and y distance to from p1 to p2 is equal. The two points can be in any
- * spacial relation to each other i.e. if p1 was top left, it remains top left. */
-static inline void square_points(const int2 &p1, int2 &p2)
+/* Clamps the point to the window bounds. */
+static inline int2 clamp_point_to_window(const int2 &point, const wmWindow *window)
 {
-  int2 delta = p2 - p1;
+  return {clamp_i(point.x, 0, window->sizex - 1), clamp_i(point.y, 0, window->sizey - 1)};
+}
+
+/* Ensures that the x and y distance to from p1 to p2 is equal and the resulting square remains
+ * fully within the window bounds. The two points can be in any spacial relation to each other i.e.
+ * if p1 was top left, it remains top left. */
+static inline void square_points_clamp_to_window(const int2 &p1, int2 &p2, const wmWindow *window)
+{
+  const int2 delta = p2 - p1;
+
+  /* Determine the drag direction for each axis. */
+  const int dir_x = (delta.x >= 0) ? 1 : -1;
+  const int dir_y = (delta.y >= 0) ? 1 : -1;
 
   const int size_x = std::abs(delta.x);
   const int size_y = std::abs(delta.y);
-  if (size_x < size_y) {
-    delta.x = std::copysignf(size_y, delta.x);
-  }
-  else if (size_y < size_x) {
-    delta.y = std::copysign(size_x, delta.y);
-  }
-  p2.x = p1.x + delta.x;
-  p2.y = p1.y + delta.y;
+  int square_size = std::max(size_x, size_y);
+
+  /* Compute maximum size that fits within window bounds in the drag direction. */
+  const int max_size_x = (dir_x > 0) ? window->sizex - p1.x - 1 : p1.x;
+  const int max_size_y = (dir_y > 0) ? window->sizey - p1.y - 1 : p1.y;
+
+  /* Clamp the square size so it does not exceed window bounds. */
+  square_size = std::min(square_size, std::min(max_size_x, max_size_y));
+
+  /* Update p2 to form a clamped square in the same direction as the drag. */
+  p2.x = p1.x + dir_x * square_size;
+  p2.y = p1.y + dir_y * square_size;
 }
 
 static void generate_previewimg_from_buffer(ID *id, const ImBuf *image_buffer)
@@ -1105,13 +1120,18 @@ static ImBuf *take_screenshot_crop(bContext *C, const rcti &crop_rect)
 static wmOperatorStatus screenshot_preview_exec(bContext *C, wmOperator *op)
 {
   int2 p1, p2;
+  wmWindow *win = CTX_wm_window(C);
   RNA_int_get_array(op->ptr, "p1", p1);
   RNA_int_get_array(op->ptr, "p2", p2);
+
+  /* Clamp points to window bounds, so the screenshot area is always valid. */
+  p1 = clamp_point_to_window(p1, win);
+  p2 = clamp_point_to_window(p2, win);
 
   /* Squaring has to happen before sorting so the area is squared from the point where
    * dragging started. */
   if (RNA_boolean_get(op->ptr, "force_square")) {
-    square_points(p1, p2);
+    square_points_clamp_to_window(p1, p2, win);
   }
 
   sort_points(p1, p2);
@@ -1207,9 +1227,16 @@ static void screenshot_preview_draw(const wmWindow *window, void *operator_data)
   int2 p1 = data->p1;
   int2 p2 = data->p2;
 
+  /* Clamp points to window bounds, so the screenshot area is always valid. */
+  p1 = clamp_point_to_window(p1, window);
+  p2 = clamp_point_to_window(p2, window);
+
+  /* Squaring has to happen before sorting so the area is squared from the point where
+   * dragging started. */
   if (data->force_square) {
-    square_points(p1, p2);
+    square_points_clamp_to_window(p1, p2, window);
   }
+
   sort_points(p1, p2);
 
   /* Drawing rect just out of the screenshot area to not capture the box in the picture. */
@@ -1254,7 +1281,7 @@ static inline void screenshot_area_transfer_to_rna(wmOperator *op, ScreenshotOpe
 static wmOperatorStatus screenshot_preview_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
-
+  wmWindow *win = CTX_wm_window(C);
   ScreenshotOperatorData *data = static_cast<ScreenshotOperatorData *>(op->customdata);
 
   const int2 screen_space_cursor = {
@@ -1271,7 +1298,7 @@ static wmOperatorStatus screenshot_preview_modal(bContext *C, wmOperator *op, co
           break;
         case KM_RELEASE:
           data->is_mouse_down = false;
-          data->drag_end = screen_space_cursor;
+          data->drag_end = clamp_point_to_window(screen_space_cursor, win);
           screenshot_area_transfer_to_rna(op, data);
           screenshot_preview_exec(C, op);
           screenshot_preview_exit(C, op);
@@ -1327,27 +1354,39 @@ static wmOperatorStatus screenshot_preview_modal(bContext *C, wmOperator *op, co
     }
 
     case MOUSEMOVE: {
-      if (!data->crossed_threshold) {
-        const int2 delta = data->drag_end - data->drag_start;
-        if (std::abs(delta.x) > DRAG_THRESHOLD && std::abs(delta.y) > DRAG_THRESHOLD) {
-          /* Only set the points once the threshold has been crossed. This allows to just
-           * click to confirm using a potentially existing screenshot rect. */
-          data->crossed_threshold = true;
-          data->p1 = data->drag_start;
+      if (data->shift_area) {
+        const int2 delta = screen_space_cursor - data->last_cursor;
+        const int2 new_p1 = data->p1 + delta;
+        const int2 new_p2 = data->p2 + delta;
+
+        auto is_within_window = [win](const int2 &pt) -> bool {
+          return pt.x >= 0 && pt.x < win->sizex && pt.y >= 0 && pt.y < win->sizey;
+        };
+
+        /* Apply movement only if the entire rectangle stays within window bounds. */
+        if (is_within_window(new_p1) && is_within_window(new_p2)) {
+          data->p1 = new_p1;
+          data->p2 = new_p2;
+        }
+      }
+      else if (data->is_mouse_down) {
+        data->drag_end = clamp_point_to_window(screen_space_cursor, win);
+
+        if (!data->crossed_threshold) {
+          const int2 delta = data->drag_end - data->drag_start;
+          if (std::abs(delta.x) > DRAG_THRESHOLD && std::abs(delta.y) > DRAG_THRESHOLD) {
+            /* Only set the points once the threshold has been crossed. This allows to just
+             * click to confirm using a potentially existing screenshot rect. */
+            data->crossed_threshold = true;
+            data->p1 = data->drag_start;
+          }
+        }
+
+        if (data->crossed_threshold) {
+          data->p2 = data->drag_end;
         }
       }
 
-      if (data->shift_area) {
-        const int2 delta = screen_space_cursor - data->last_cursor;
-        data->p1 += delta;
-        data->p2 += delta;
-      }
-      else if (data->is_mouse_down) {
-        data->drag_end = screen_space_cursor;
-        if (data->crossed_threshold) {
-          data->p2 = screen_space_cursor;
-        }
-      }
       CTX_wm_screen(C)->do_draw = true;
       data->last_cursor = screen_space_cursor;
       break;

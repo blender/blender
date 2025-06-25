@@ -27,6 +27,8 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
 void rna_idproperty_touch(IDProperty *idprop);
 IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name);
 
+IDProperty *rna_system_idproperty_find(PointerRNA *ptr, const char *name);
+
 /**
  * Find the property which uses the given nested struct.
  */

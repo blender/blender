@@ -8,6 +8,8 @@
  * \brief Extraction of Mesh data into VBO to feed to GPU.
  */
 
+#include "BKE_attribute.hh"
+
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
@@ -73,6 +75,31 @@ static void ensure_dependency_data(MeshRenderData &mr,
 /** \name Extract Loop
  * \{ */
 
+/**
+ * The mesh normals access functions can end up mixing face corner normals calculated with the
+ * costly tangent space method. The "Simplify Normals" option is supposed to avoid that, but not
+ * the "Free" normals which are actually cheaper than calculating true normals.
+ */
+static bool use_normals_simplify(const Scene &scene, const MeshRenderData &mr)
+{
+  if (!(scene.r.mode & R_SIMPLIFY) || !(scene.r.mode & R_SIMPLIFY_NORMALS)) {
+    return false;
+  }
+  if (!mr.mesh) {
+    return true;
+  }
+  const Mesh &mesh = *mr.mesh;
+  const std::optional<bke::AttributeMetaData> meta_data = mesh.attributes().lookup_meta_data(
+      "custom_normal");
+  if (!meta_data) {
+    return false;
+  }
+  if (meta_data->domain == bke::AttrDomain::Corner && meta_data->data_type == CD_PROP_INT16_2D) {
+    return true;
+  }
+  return false;
+}
+
 void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
                                         const Scene &scene,
                                         MeshBatchCache &cache,
@@ -118,10 +145,10 @@ void mesh_buffer_cache_create_requested(TaskGraph & /*task_graph*/,
   MeshRenderData mr = mesh_render_data_create(
       object, mesh, is_editmode, is_paint_mode, do_final, do_uvedit, use_hide, scene.toolsettings);
 
-  ensure_dependency_data(mr, ibo_requests, vbo_requests, mbc);
-
   mr.use_subsurf_fdots = mr.mesh && !mr.mesh->runtime->subsurf_face_dot_tags.is_empty();
-  mr.use_simplify_normals = (scene.r.mode & R_SIMPLIFY) && (scene.r.mode & R_SIMPLIFY_NORMALS);
+  mr.use_simplify_normals = use_normals_simplify(scene, mr);
+
+  ensure_dependency_data(mr, ibo_requests, vbo_requests, mbc);
 
   Array<gpu::IndexBufPtr, 16> created_ibos(ibos_to_create.size());
 

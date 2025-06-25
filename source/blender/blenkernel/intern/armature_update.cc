@@ -944,6 +944,9 @@ static void pose_channel_flush_to_orig_if_needed(Depsgraph *depsgraph,
 
 void BKE_pose_bone_done(Depsgraph *depsgraph, Object *object, int pchan_index)
 {
+  /* Note: tests in `armature_deform_test.cc` update pose matrices locally to avoid creating a full
+   * depsgraph. Keep these in sync if this function is changed! */
+
   const bArmature *armature = (bArmature *)object->data;
   if (armature->edbo != nullptr) {
     return;

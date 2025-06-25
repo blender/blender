@@ -89,8 +89,8 @@ static bool wm_fbx_import_check(bContext * /*C*/, wmOperator * /*op*/)
 
 static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   if (uiLayout *panel = layout->panel(C, "FBX_import_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
@@ -111,7 +111,7 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
 
   {
     PanelLayout panel = layout->panel(C, "FBX_import_anim", true);
-    uiLayoutSetPropSep(panel.header, false);
+    panel.header->use_property_split_set(false);
     panel.header->prop(ptr, "use_anim", UI_ITEM_NONE, "", ICON_NONE);
     panel.header->label(IFACE_("Animation"), ICON_NONE);
     if (panel.body) {

@@ -106,6 +106,14 @@ blender::StringRef legacy_socket_idname_to_socket_type(blender::StringRef idname
  * hard to detect.
  */
 bNode &version_node_add_empty(bNodeTree &ntree, const char *idname);
+
+/**
+ * Removes a node for versioning purposes:
+ * - Animation data (#AnimData) are not removed, because they might be using #bAction.id which
+ *   is not be available before linking.
+ * - User count is not updated. This is ensured after blend file reading is done.
+ */
+void version_node_remove(bNodeTree &ntree, bNode &node);
 bNodeSocket &version_node_add_socket(bNodeTree &ntree,
                                      bNode &node,
                                      eNodeSocketInOut in_out,
@@ -199,9 +207,9 @@ void version_update_node_input(
 bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type);
 
 /**
- * Allow 4.5 to open 5.0+ files and recover their system-defined ID properties.
+ * Allow 5.0+ to 'convert' older blendfiles' system properties storage.
  */
-void version_forward_compat_system_idprops(Main *bmain);
+void version_system_idprops_generate(Main *bmain);
 
 bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines);
 

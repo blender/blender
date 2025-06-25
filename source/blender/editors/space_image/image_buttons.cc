@@ -834,12 +834,12 @@ void uiTemplateImage(uiLayout *layout,
 
   layout = &layout->column(false);
   layout->enabled_set(!is_dirty);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_decorate_set(false);
 
   /* Image source */
   {
     uiLayout *col = &layout->column(false);
-    uiLayoutSetPropSep(col, true);
+    col->use_property_split_set(true);
     col->prop(&imaptr, "source", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
@@ -873,7 +873,7 @@ void uiTemplateImage(uiLayout *layout,
 
     /* Generated */
     uiLayout *col = &layout->column(false);
-    uiLayoutSetPropSep(col, true);
+    col->use_property_split_set(true);
 
     uiLayout *sub = &col->column(true);
     sub->prop(&imaptr, "generated_width", UI_ITEM_NONE, "X", ICON_NONE);
@@ -904,7 +904,7 @@ void uiTemplateImage(uiLayout *layout,
     layout->separator();
 
     uiLayout *col = &layout->column(true);
-    uiLayoutSetPropSep(col, true);
+    col->use_property_split_set(true);
 
     uiLayout *sub = &col->column(true);
     uiLayout *row = &sub->row(true);
@@ -928,7 +928,7 @@ void uiTemplateImage(uiLayout *layout,
       layout->separator();
 
       uiLayout *col = &layout->column(false);
-      uiLayoutSetPropSep(col, true);
+      col->use_property_split_set(true);
       col->prop(&imaptr, "use_multiview", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       if (RNA_boolean_get(&imaptr, "use_multiview")) {
@@ -942,7 +942,7 @@ void uiTemplateImage(uiLayout *layout,
     layout->separator();
 
     uiLayout *col = &layout->column(false);
-    uiLayoutSetPropSep(col, true);
+    col->use_property_split_set(true);
     uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
 
     if (compact == 0) {
@@ -989,8 +989,8 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 
   col = &layout->column(false);
 
-  uiLayoutSetPropSep(col, true);
-  uiLayoutSetPropDecorate(col, false);
+  col->use_property_split_set(true);
+  col->use_property_decorate_set(false);
 
   col->prop(imfptr, "file_format", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -1116,8 +1116,8 @@ static void uiTemplateViewsFormat(uiLayout *layout,
 
   col = &layout->column(false);
 
-  uiLayoutSetPropSep(col, true);
-  uiLayoutSetPropDecorate(col, false);
+  col->use_property_split_set(true);
+  col->use_property_decorate_set(false);
 
   col->prop(ptr, "views_format", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 

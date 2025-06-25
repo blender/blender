@@ -177,7 +177,7 @@ class Wireframe : Overlay {
 
         if (show_surface_wire) {
           if (BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d)) {
-            ResourceHandle handle = manager.unique_handle(ob_ref);
+            ResourceHandleRange handle = manager.unique_handle(ob_ref);
 
             for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_WIREFRAME)) {
               coloring.mesh_all_edges_ps_->draw(batch.batch, handle);

@@ -40,6 +40,10 @@
 
 static CLG_LogRef LOG = {"rna.define"};
 
+#ifdef RNA_RUNTIME
+#  include "RNA_prototypes.hh"
+#endif
+
 #ifndef NDEBUG
 #  define ASSERT_SOFT_HARD_LIMITS \
     if (softmin < hardmin || softmax > hardmax) { \
@@ -1207,6 +1211,49 @@ void RNA_def_struct_idprops_func(StructRNA *srna, const char *idproperties)
   if (idproperties) {
     srna->idproperties = (IDPropertiesFunc)idproperties;
   }
+}
+
+#ifdef RNA_RUNTIME
+IDPropertyGroup *rna_struct_system_properties_get_func(PointerRNA ptr, bool do_create)
+{
+  return reinterpret_cast<IDPropertyGroup *>(RNA_struct_system_idprops(&ptr, do_create));
+}
+#endif
+
+void RNA_def_struct_system_idprops_func(StructRNA *srna, const char *system_idproperties)
+{
+  if (!DefRNA.preprocess) {
+    CLOG_ERROR(&LOG, "only during preprocessing.");
+    return;
+  }
+
+  if (!system_idproperties) {
+    return;
+  }
+  srna->system_idproperties = reinterpret_cast<IDPropertiesFunc>(
+      const_cast<char *>(system_idproperties));
+
+  FunctionRNA *func = RNA_def_function(
+      srna, "bl_system_properties_get", "rna_struct_system_properties_get_func");
+  RNA_def_function_ui_description(
+      func,
+      "DEBUG ONLY. Internal access to runtime-defined RNA data storage, intended solely for "
+      "testing and debugging purposes. Do not access it in regular scripting work, and in "
+      "particular, do not assume that it contains writable data");
+  RNA_def_function_flag(func, FUNC_SELF_AS_RNA);
+  RNA_def_boolean(func,
+                  "do_create",
+                  false,
+                  "",
+                  "Ensure that system properties are created if they do not exist yet");
+  PropertyRNA *parm = RNA_def_pointer(
+      func,
+      "system_properties",
+      "PropertyGroup",
+      "",
+      "The system properties root container, or None if there are no system properties stored in "
+      "this data yet, and its creation was not requested");
+  RNA_def_function_return(func, parm);
 }
 
 void RNA_def_struct_register_funcs(StructRNA *srna,
@@ -4691,6 +4738,14 @@ void RNA_def_function_output(FunctionRNA * /*func*/, PropertyRNA *ret)
 void RNA_def_function_flag(FunctionRNA *func, int flag)
 {
   func->flag |= flag;
+
+  if (func->flag & FUNC_USE_SELF_TYPE) {
+    BLI_assert_msg((func->flag & FUNC_NO_SELF) != 0, "FUNC_USE_SELF_TYPE requires FUNC_NO_SELF");
+  }
+  if (func->flag & FUNC_SELF_AS_RNA) {
+    BLI_assert_msg((func->flag & FUNC_NO_SELF) == 0,
+                   "FUNC_SELF_AS_RNA and FUNC_NO_SELF are mutually exclusive");
+  }
 }
 
 void RNA_def_function_ui_description(FunctionRNA *func, const char *description)

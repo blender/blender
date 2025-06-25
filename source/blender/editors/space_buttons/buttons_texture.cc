@@ -153,13 +153,7 @@ static void buttons_texture_users_find_nodetree(ListBase *users,
 {
   if (ntree) {
     for (bNode *node : ntree->all_nodes()) {
-      if (node->type_legacy == CMP_NODE_TEXTURE) {
-        PointerRNA ptr = RNA_pointer_create_discrete(&ntree->id, &RNA_Node, node);
-        PropertyRNA *prop = RNA_struct_find_property(&ptr, "texture");
-        buttons_texture_user_node_add(
-            users, id, ntree, node, ptr, prop, category, RNA_struct_ui_icon(ptr.type), node->name);
-      }
-      else if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
+      if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
         PointerRNA ptr = RNA_pointer_create_discrete(&ntree->id, &RNA_Node, node);
         buttons_texture_user_node_add(users,
                                       id,

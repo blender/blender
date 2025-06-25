@@ -276,7 +276,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   col = &layout->column(false);
   col->prop(ptr, "factor", UI_ITEM_NONE, IFACE_("Position"), ICON_NONE);

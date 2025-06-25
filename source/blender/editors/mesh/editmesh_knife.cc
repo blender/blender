@@ -1797,6 +1797,7 @@ static void knife_snap_curr(KnifeTool_OpData *kcd,
                             const float2 &mval,
                             const float3 &ray_orig,
                             const float3 &ray_dir,
+                            const float3 *curr_cage_constrain,
                             const float3 *fallback);
 
 /* User has just clicked for first time or first time after a restart (E key).
@@ -1808,7 +1809,7 @@ static void knife_start_cut(KnifeTool_OpData *kcd, const float2 &mval)
   ED_view3d_win_to_ray_clipped(
       kcd->vc.depsgraph, kcd->region, kcd->vc.v3d, mval, ray_orig, ray_dir, false);
 
-  knife_snap_curr(kcd, mval, ray_orig, ray_dir, nullptr);
+  knife_snap_curr(kcd, mval, ray_orig, ray_dir, nullptr, nullptr);
   kcd->prev = kcd->curr;
   kcd->mdata.is_stored = false;
 }
@@ -3198,15 +3199,15 @@ static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
  *
  * \return true if the point is between the edge limits.
  */
-static bool knife_closest_constrain_to_edge(KnifeTool_OpData *kcd,
+static bool knife_closest_constrain_to_edge(const float3 &cut_origin,
+                                            const float3 &cut_dir,
                                             const float3 &kfv1_cageco,
                                             const float3 &kfv2_cageco,
                                             float r_close[3])
 {
   /* If snapping, check we're in bounds. */
   float lambda;
-  float3 dir = kcd->curr.cage - kcd->prev.cage;
-  if (!isect_ray_line_v3(kcd->prev.cage, dir, kfv1_cageco, kfv2_cageco, &lambda)) {
+  if (!isect_ray_line_v3(cut_origin, cut_dir, kfv1_cageco, kfv2_cageco, &lambda)) {
     return false;
   }
 
@@ -3224,6 +3225,7 @@ static bool knife_find_closest_edge_of_face(KnifeTool_OpData *kcd,
                                             int ob_index,
                                             BMFace *f,
                                             const float2 &curr_cage_ss,
+                                            const float3 *curr_cage_constrain,
                                             const float3 &ray_orig,
                                             const float3 &ray_dir,
                                             KnifePosData *r_kpd)
@@ -3245,6 +3247,10 @@ static bool knife_find_closest_edge_of_face(KnifeTool_OpData *kcd,
   float cur_dist_sq = maxdist_sq;
   bool has_hit = false;
 
+  const float3 &cut_origin = kcd->prev.cage;
+  const float3 cut_dir = math::normalize(
+      (curr_cage_constrain ? *curr_cage_constrain : kcd->curr.cage) - kcd->prev.cage);
+
   /* Look through all edges associated with this face. */
   ListBase *list = knife_get_face_kedges(kcd, ob_index, f);
   LISTBASE_FOREACH (LinkData *, ref, list) {
@@ -3260,7 +3266,9 @@ static bool knife_find_closest_edge_of_face(KnifeTool_OpData *kcd,
         (kcd->mode == MODE_DRAGGING))
     {
       /* Check if it is within the edges' bounds. */
-      if (!knife_closest_constrain_to_edge(kcd, kfe->v1->cageco, kfe->v2->cageco, test_cagep)) {
+      if (!knife_closest_constrain_to_edge(
+              cut_origin, cut_dir, kfe->v1->cageco, kfe->v2->cageco, test_cagep))
+      {
         continue;
       }
     }
@@ -3608,10 +3616,16 @@ static void knife_constrain_axis(const KnifeTool_OpData *kcd,
   r_cage = kcd->prev.cage + cage_dir;
 }
 
+/**
+ * \param curr_cage_constrain: This the value of `kcd->curr.cage` with constraints applied.
+ * This is needed since snapping re-calculates coordinates in 3D space.
+ * Use this when constraints should be taken into account.
+ */
 static void knife_snap_curr(KnifeTool_OpData *kcd,
                             const float2 &mval,
                             const float3 &ray_orig,
                             const float3 &ray_dir,
+                            const float3 *curr_cage_constrain,
                             const float3 *fallback)
 {
   knife_pos_data_clear(&kcd->curr);
@@ -3623,6 +3637,7 @@ static void knife_snap_curr(KnifeTool_OpData *kcd,
                                           kcd->curr.ob_index,
                                           kcd->curr.bmface,
                                           kcd->curr.mval,
+                                          curr_cage_constrain,
                                           ray_orig,
                                           ray_dir,
                                           &kpos_tmp))
@@ -3711,6 +3726,7 @@ static void knife_snap_update_from_mval(KnifeTool_OpData *kcd, const float2 &mva
   }
 
   float3 fallback;
+  float3 curr_cage_constrain;
   if (is_constrained) {
     /* Update ray and `mval_constrain`. */
     if (kcd->is_ortho) {
@@ -3725,10 +3741,16 @@ static void knife_snap_update_from_mval(KnifeTool_OpData *kcd, const float2 &mva
       ray_dir = math::normalize(kcd->curr.cage - ray_orig);
     }
     knife_project_v2(kcd, kcd->curr.cage, mval_constrain);
+    curr_cage_constrain = kcd->curr.cage;
     fallback = kcd->curr.cage;
   }
 
-  knife_snap_curr(kcd, mval_constrain, ray_orig, ray_dir, is_constrained ? &fallback : nullptr);
+  knife_snap_curr(kcd,
+                  mval_constrain,
+                  ray_orig,
+                  ray_dir,
+                  is_constrained ? &curr_cage_constrain : nullptr,
+                  is_constrained ? &fallback : nullptr);
 }
 
 /**
@@ -4511,6 +4533,10 @@ static wmOperatorStatus knifetool_modal(bContext *C, wmOperator *op, const wmEve
       }
       kcd->axis_constrained = (kcd->constrain_axis != KNF_CONSTRAIN_AXIS_NONE);
       knifetool_disable_angle_snapping(kcd);
+
+      /* Needed so changes to constraints are re-evaluated without any cursor motion. */
+      knifetool_update_mval(kcd, mval);
+
       do_refresh = true;
     }
   }

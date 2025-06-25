@@ -120,6 +120,9 @@ eGPUTextureFormat to_gpu_format(const VkFormat format)
     case VK_FORMAT_B8G8R8A8_UNORM:
       return GPU_RGBA8;
 
+    case VK_FORMAT_R16G16B16A16_SFLOAT:
+      return GPU_RGBA16F;
+
     default:
       BLI_assert_unreachable();
   }

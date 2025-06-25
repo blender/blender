@@ -45,8 +45,8 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
 
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Plane");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Float>("Plane").structure_type(StructureType::Dynamic);
 
   b.add_layout([](uiLayout *layout, bContext *C, PointerRNA *ptr) {
     bNode *node = ptr->data_as<bNode>();
@@ -61,7 +61,7 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
           &clip->id, &RNA_MovieTracking, tracking);
 
       uiLayout *col = &layout->column(false);
-      uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+      col->prop_search(ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
 
       tracking_object = BKE_tracking_object_get_named(tracking,
                                                       node_storage(*node).tracking_object);
@@ -69,8 +69,7 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
         PointerRNA object_ptr = RNA_pointer_create_discrete(
             &clip->id, &RNA_MovieTrackingObject, tracking_object);
 
-        uiItemPointerR(
-            col, ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
+        col->prop_search(ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
       }
       else {
         layout->prop(ptr, "plane_track_name", UI_ITEM_NONE, "", ICON_ANIM_DATA);
@@ -78,27 +77,25 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
     }
   });
 
-  b.add_input<decl::Color>("Image").compositor_realization_mode(
-      CompositorInputRealizationMode::Transforms);
+  b.add_input<decl::Color>("Image")
+      .compositor_realization_mode(CompositorInputRealizationMode::Transforms)
+      .structure_type(StructureType::Dynamic);
   PanelDeclarationBuilder &motion_blur_panel = b.add_panel("Motion Blur").default_closed(true);
   motion_blur_panel.add_input<decl::Bool>("Motion Blur")
       .default_value(false)
       .panel_toggle()
-      .description("Use multi-sampled motion blur of the plane")
-      .compositor_expects_single_value();
+      .description("Use multi-sampled motion blur of the plane");
   motion_blur_panel.add_input<decl::Int>("Samples", "Motion Blur Samples")
       .default_value(16)
       .min(1)
       .max(64)
-      .description("Number of motion blur samples")
-      .compositor_expects_single_value();
+      .description("Number of motion blur samples");
   motion_blur_panel.add_input<decl::Float>("Shutter", "Motion Blur Shutter")
       .default_value(0.5f)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
-      .description("Exposure for motion blur as a factor of FPS")
-      .compositor_expects_single_value();
+      .description("Exposure for motion blur as a factor of FPS");
 }
 
 static void init(const bContext *C, PointerRNA *ptr)

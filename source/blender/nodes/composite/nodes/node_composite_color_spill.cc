@@ -29,6 +29,7 @@ NODE_STORAGE_FUNCS(NodeColorspill)
 
 static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.use_custom_socket_order();
 
   b.add_output<decl::Color>("Image");

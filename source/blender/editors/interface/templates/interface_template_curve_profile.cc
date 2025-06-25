@@ -211,7 +211,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
 
   UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
-  uiLayoutSetPropSep(layout, false);
+  layout->use_property_split_set(false);
 
   /* Preset selector */
   /* There is probably potential to use simpler "uiLayout::prop" functions here, but automatic

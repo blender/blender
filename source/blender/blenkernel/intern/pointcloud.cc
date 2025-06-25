@@ -232,7 +232,7 @@ static MutableSpan<T> get_mutable_attribute(PointCloud &pointcloud,
       if (const auto *single_data = std::get_if<bke::Attribute::SingleData>(&attr->data())) {
         /* Convert single value storage to array storage. */
         const GPointer g_value(CPPType::get<T>(), single_data->value);
-        attr->data_for_write() = bke::Attribute::ArrayData::ForValue(g_value, pointcloud.totpoint);
+        attr->assign_data(bke::Attribute::ArrayData::ForValue(g_value, pointcloud.totpoint));
       }
       auto &array_data = std::get<bke::Attribute::ArrayData>(attr->data_for_write());
       BLI_assert(array_data.size == pointcloud.totpoint);

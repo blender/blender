@@ -25,6 +25,7 @@ namespace blender::nodes::node_composite_alpha_over_cc {
 
 static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Float>("Fac")
       .default_value(1.0f)
       .min(0.0f)

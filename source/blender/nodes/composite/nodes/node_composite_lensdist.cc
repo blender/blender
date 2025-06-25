@@ -40,7 +40,9 @@ NODE_STORAGE_FUNCS(NodeLensDist)
 
 static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Image")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Distortion")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
@@ -48,28 +50,21 @@ static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description(
           "The amount of distortion. 0 means no distortion, -1 means full Pincushion distortion, "
-          "and 1 means full Barrel distortion")
-      .compositor_expects_single_value();
+          "and 1 means full Barrel distortion");
   b.add_input<decl::Float>("Dispersion")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
-      .description("The amount of chromatic aberration to add to the distortion")
-      .compositor_expects_single_value();
-  b.add_input<decl::Bool>("Jitter")
-      .default_value(false)
-      .description(
-          "Introduces jitter while doing distortion, which can be faster but can produce grainy "
-          "or noisy results")
-      .compositor_expects_single_value();
-  b.add_input<decl::Bool>("Fit")
-      .default_value(false)
-      .description(
-          "Scales the image such that it fits entirely in the frame, leaving no empty spaces at "
-          "the corners")
-      .compositor_expects_single_value();
-  b.add_output<decl::Color>("Image");
+      .description("The amount of chromatic aberration to add to the distortion");
+  b.add_input<decl::Bool>("Jitter").default_value(false).description(
+      "Introduces jitter while doing distortion, which can be faster but can produce grainy "
+      "or noisy results");
+  b.add_input<decl::Bool>("Fit").default_value(false).description(
+      "Scales the image such that it fits entirely in the frame, leaving no empty spaces at "
+      "the corners");
+
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_lensdist(bNodeTree * /*ntree*/, bNode *node)

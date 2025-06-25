@@ -63,7 +63,7 @@ class ModeTransfer : Overlay {
     const bool use_sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d) &&
                                  !state.is_image_render;
     if (use_sculpt_pbvh) {
-      ResourceHandle handle = manager.unique_handle_for_sculpt(ob_ref);
+      ResourceHandleRange handle = manager.unique_handle_for_sculpt(ob_ref);
 
       for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {
         ps_.draw(batch.batch, handle);

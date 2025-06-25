@@ -1877,7 +1877,7 @@ static bool ui_item_rna_is_expand(PropertyRNA *prop, int index, const eUI_Item_F
 static uiLayout *ui_layout_heading_find(uiLayout *cur_layout)
 {
   for (uiLayout *parent = cur_layout; parent; parent = parent->parent_) {
-    if (parent->heading_[0]) {
+    if (!parent->heading_.empty()) {
       return parent;
     }
   }
@@ -1904,7 +1904,7 @@ static void ui_layout_heading_label_add(uiLayout *layout,
   }
   /* After adding the heading label, we have to mark it somehow as added, so it's not added again
    * for other items in this layout. For now just clear it. */
-  heading_layout->heading_[0] = '\0';
+  heading_layout->heading_ = {};
 
   layout->alignment_ = prev_alignment;
 }
@@ -1922,7 +1922,7 @@ static uiLayout *ui_item_prop_split_layout_hack(uiLayout *layout_parent, uiLayou
 
   if (layout_parent->type_ == uiItemType::LayoutRow) {
     /* Prevent further splits within the row. */
-    uiLayoutSetPropSep(layout_parent, false);
+    layout_parent->use_property_split_set(false);
 
     layout_parent->child_items_layout_ = &layout_split->row(true);
     return layout_parent->child_items_layout_;
@@ -2730,18 +2730,17 @@ uiBut *ui_but_add_search(uiBut *but,
   return but;
 }
 
-void uiItemPointerR_prop(uiLayout *layout,
-                         PointerRNA *ptr,
-                         PropertyRNA *prop,
-                         PointerRNA *searchptr,
-                         PropertyRNA *searchprop,
-                         const std::optional<StringRefNull> name_opt,
-                         int icon,
-                         bool results_are_suggestions)
+void uiLayout::prop_search(PointerRNA *ptr,
+                           PropertyRNA *prop,
+                           PointerRNA *searchptr,
+                           PropertyRNA *searchprop,
+                           const std::optional<StringRefNull> name_opt,
+                           int icon,
+                           bool results_are_suggestions)
 {
-  const bool use_prop_sep = bool(layout->flag_ & uiItemInternalFlag::PropSep);
-
-  ui_block_new_button_group(layout->block(), uiButtonGroupFlag(0));
+  const bool use_prop_sep = bool(flag_ & uiItemInternalFlag::PropSep);
+  uiBlock *block = this->block();
+  ui_block_new_button_group(block, uiButtonGroupFlag(0));
 
   const PropertyType type = RNA_property_type(prop);
   if (!ELEM(type, PROP_POINTER, PROP_STRING, PROP_ENUM)) {
@@ -2777,23 +2776,21 @@ void uiItemPointerR_prop(uiLayout *layout,
   }
 
   /* create button */
-  uiBlock *block = layout->block();
 
   int w, h;
-  ui_item_rna_size(layout, name, icon, ptr, prop, 0, false, false, &w, &h);
+  ui_item_rna_size(this, name, icon, ptr, prop, 0, false, false, &w, &h);
   w += UI_UNIT_X; /* X icon needs more space */
-  uiBut *but = ui_item_with_label(layout, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
+  uiBut *but = ui_item_with_label(this, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
 
   but = ui_but_add_search(but, ptr, prop, searchptr, searchprop, results_are_suggestions);
 }
 
-void uiItemPointerR(uiLayout *layout,
-                    PointerRNA *ptr,
-                    const StringRefNull propname,
-                    PointerRNA *searchptr,
-                    const StringRefNull searchpropname,
-                    const std::optional<StringRefNull> name,
-                    int icon)
+void uiLayout::prop_search(PointerRNA *ptr,
+                           const StringRefNull propname,
+                           PointerRNA *searchptr,
+                           const StringRefNull searchpropname,
+                           const std::optional<StringRefNull> name,
+                           int icon)
 {
   /* validate arguments */
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
@@ -2809,7 +2806,7 @@ void uiItemPointerR(uiLayout *layout,
     return;
   }
 
-  uiItemPointerR_prop(layout, ptr, prop, searchptr, searchprop, name, icon, false);
+  this->prop_search(ptr, prop, searchptr, searchprop, name, icon, false);
 }
 
 void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
@@ -3191,7 +3188,7 @@ uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout)
   split_wrapper.label_column = &layout_split->column(true);
   split_wrapper.label_column->alignment_ = blender::ui::LayoutAlign::Right;
   split_wrapper.property_row = ui_item_prop_split_layout_hack(parent_layout, layout_split);
-  split_wrapper.decorate_column = uiLayoutGetPropDecorate(parent_layout) ?
+  split_wrapper.decorate_column = parent_layout->use_property_decorate() ?
                                       &layout_row->column(true) :
                                       nullptr;
 
@@ -4794,11 +4791,6 @@ static void ui_litem_init_from_parent(uiLayout *litem, uiLayout *layout, int ali
   }
 }
 
-static void ui_layout_heading_set(uiLayout *layout, const StringRef heading)
-{
-  heading.copy_utf8_truncated(layout->heading_);
-}
-
 uiLayout &uiLayout::row(bool align)
 {
   uiLayout *litem = MEM_new<uiLayout>(__func__);
@@ -4920,7 +4912,7 @@ bool uiLayoutEndsWithPanelHeader(const uiLayout &layout)
 uiLayout &uiLayout::row(bool align, const StringRef heading)
 {
   uiLayout &litem = this->row(align);
-  ui_layout_heading_set(&litem, heading);
+  litem.heading_ = heading;
   return litem;
 }
 
@@ -4940,7 +4932,7 @@ uiLayout &uiLayout::column(bool align)
 uiLayout &uiLayout::column(bool align, const StringRef heading)
 {
   uiLayout &litem = this->column(align);
-  ui_layout_heading_set(&litem, heading);
+  litem.heading_ = heading;
   return litem;
 }
 
@@ -5106,24 +5098,24 @@ void uiLayout::emboss_set(blender::ui::EmbossType emboss)
   emboss_ = emboss;
 }
 
-bool uiLayoutGetPropSep(uiLayout *layout)
+bool uiLayout::use_property_split() const
 {
-  return bool(layout->flag_ & uiItemInternalFlag::PropSep);
+  return bool(flag_ & uiItemInternalFlag::PropSep);
 }
 
-void uiLayoutSetPropSep(uiLayout *layout, bool is_sep)
+void uiLayout::use_property_split_set(bool is_sep)
 {
-  SET_FLAG_FROM_TEST(layout->flag_, is_sep, uiItemInternalFlag::PropSep);
+  SET_FLAG_FROM_TEST(flag_, is_sep, uiItemInternalFlag::PropSep);
 }
 
-bool uiLayoutGetPropDecorate(uiLayout *layout)
+bool uiLayout::use_property_decorate() const
 {
-  return bool(layout->flag_ & uiItemInternalFlag::PropDecorate);
+  return bool(flag_ & uiItemInternalFlag::PropDecorate);
 }
 
-void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep)
+void uiLayout::use_property_decorate_set(bool is_sep)
 {
-  SET_FLAG_FROM_TEST(layout->flag_, is_sep, uiItemInternalFlag::PropDecorate);
+  SET_FLAG_FROM_TEST(flag_, is_sep, uiItemInternalFlag::PropDecorate);
 }
 
 Panel *uiLayout::root_panel() const

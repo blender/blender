@@ -41,7 +41,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "orientation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   layout->prop(ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);

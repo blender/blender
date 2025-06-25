@@ -139,8 +139,8 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   const bool export_smooth_groups = RNA_boolean_get(ptr, "export_smooth_groups");
   const bool export_materials = RNA_boolean_get(ptr, "export_materials");
 
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   /* Object General options. */
   if (uiLayout *panel = layout->panel(C, "OBJ_export_general", false, IFACE_("General"))) {
@@ -185,7 +185,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
 
   /* Material options. */
   PanelLayout panel = layout->panel(C, "OBJ_export_materials", false);
-  uiLayoutSetPropSep(panel.header, false);
+  panel.header->use_property_split_set(false);
   panel.header->prop(ptr, "export_materials", UI_ITEM_NONE, "", ICON_NONE);
   panel.header->label(IFACE_("Materials"), ICON_NONE);
   if (panel.body) {
@@ -198,7 +198,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
 
   /* Animation options. */
   panel = layout->panel(C, "OBJ_export_animation", true);
-  uiLayoutSetPropSep(panel.header, false);
+  panel.header->use_property_split_set(false);
   panel.header->prop(ptr, "export_animation", UI_ITEM_NONE, "", ICON_NONE);
   panel.header->label(IFACE_("Animation"), ICON_NONE);
   if (panel.body) {
@@ -458,8 +458,8 @@ static wmOperatorStatus wm_obj_import_exec(bContext *C, wmOperator *op)
 
 static void ui_obj_import_settings(const bContext *C, uiLayout *layout, PointerRNA *ptr)
 {
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   if (uiLayout *panel = layout->panel(C, "OBJ_import_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);

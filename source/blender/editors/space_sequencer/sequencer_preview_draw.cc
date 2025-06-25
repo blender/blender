@@ -949,7 +949,6 @@ static void strip_draw_image_origin_and_outline(const bContext *C,
     UI_GetThemeColor3fv(TH_SEQ_SELECTED, col);
   }
   immUniformColor3fv(col);
-  immUniform1f("lineWidth", U.pixelsize);
   immBegin(GPU_PRIM_LINE_LOOP, 4);
   immVertex2f(pos, strip_image_quad[0].x, strip_image_quad[0].y);
   immVertex2f(pos, strip_image_quad[1].x, strip_image_quad[1].y);

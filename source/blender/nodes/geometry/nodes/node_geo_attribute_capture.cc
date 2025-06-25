@@ -59,8 +59,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
   layout->prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 }
 
@@ -85,8 +85,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
         C, panel, tree, node);
     socket_items::ui::draw_active_item_props<CaptureAttributeItemsAccessor>(
         tree, node, [&](PointerRNA *item_ptr) {
-          uiLayoutSetPropSep(panel, true);
-          uiLayoutSetPropDecorate(panel, false);
+          panel->use_property_split_set(true);
+          panel->use_property_decorate_set(false);
           panel->prop(item_ptr, "data_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         });
   }

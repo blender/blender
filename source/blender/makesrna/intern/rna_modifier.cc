@@ -8081,7 +8081,10 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "NodesModifier", "Modifier");
   RNA_def_struct_ui_text(srna, "Nodes Modifier", "");
   RNA_def_struct_sdna(srna, "NodesModifierData");
+  /* NOTE: `RNA_def_struct_idprops_func` should be removed once #132129 is implemented.
+   * Similar to the issue with Operator (for node tools), see #rna_def_operator. */
   RNA_def_struct_idprops_func(srna, "rna_NodesModifier_properties");
+  RNA_def_struct_system_idprops_func(srna, "rna_NodesModifier_properties");
   RNA_def_struct_ui_icon(srna, ICON_GEOMETRY_NODES);
 
   RNA_define_lib_overridable(true);

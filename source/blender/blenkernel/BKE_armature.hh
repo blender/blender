@@ -38,12 +38,7 @@ struct EditBone {
   EditBone *next, *prev;
   /** User-Defined Properties on this Bone */
   IDProperty *prop;
-  /**
-   * System-Defined Properties storage.
-   *
-   * In Blender 4.5, only used to ensure forward compatibility with 5.x blend-files, and data
-   * management consistency.
-   */
+  /** System-Defined Properties storage. */
   IDProperty *system_properties;
   /**
    * Edit-bones have a one-way link  (i.e. children refer

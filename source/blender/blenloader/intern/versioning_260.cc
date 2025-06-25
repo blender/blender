@@ -673,7 +673,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeComposite";
       case CMP_NODE_OUTPUT_FILE:
         return "CompositorNodeOutputFile";
-      case CMP_NODE_TEXTURE:
+      case CMP_NODE_TEXTURE_DEPRECATED:
         return "CompositorNodeTexture";
       case CMP_NODE_TRANSLATE:
         return "CompositorNodeTranslate";

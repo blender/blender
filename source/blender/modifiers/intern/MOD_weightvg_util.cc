@@ -315,7 +315,7 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
   bool has_mask_vertex_group = RNA_string_length(ptr, "mask_vertex_group") != 0;
   int mask_tex_mapping = RNA_enum_get(ptr, "mask_tex_mapping");
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   layout->prop(ptr, "mask_constant", UI_ITEM_R_SLIDER, IFACE_("Global Influence:"), ICON_NONE);
 
@@ -345,8 +345,8 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
       }
       else if (mask_tex_mapping == MOD_DISP_MAP_UV && RNA_enum_get(ob_ptr, "type") == OB_MESH) {
         PointerRNA obj_data_ptr = RNA_pointer_get(ob_ptr, "data");
-        uiItemPointerR(
-            layout, ptr, "mask_tex_uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_NONE);
+        layout->prop_search(
+            ptr, "mask_tex_uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_NONE);
       }
     }
   }

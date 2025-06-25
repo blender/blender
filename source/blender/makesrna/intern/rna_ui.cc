@@ -1501,22 +1501,22 @@ static void rna_UILayout_emboss_set(PointerRNA *ptr, int value)
 
 static bool rna_UILayout_property_split_get(PointerRNA *ptr)
 {
-  return uiLayoutGetPropSep(static_cast<uiLayout *>(ptr->data));
+  return static_cast<const uiLayout *>(ptr->data)->use_property_split();
 }
 
 static void rna_UILayout_property_split_set(PointerRNA *ptr, bool value)
 {
-  uiLayoutSetPropSep(static_cast<uiLayout *>(ptr->data), value);
+  static_cast<uiLayout *>(ptr->data)->use_property_split_set(value);
 }
 
 static bool rna_UILayout_property_decorate_get(PointerRNA *ptr)
 {
-  return uiLayoutGetPropDecorate(static_cast<uiLayout *>(ptr->data));
+  return static_cast<const uiLayout *>(ptr->data)->use_property_decorate();
 }
 
 static void rna_UILayout_property_decorate_set(PointerRNA *ptr, bool value)
 {
-  uiLayoutSetPropDecorate(static_cast<uiLayout *>(ptr->data), value);
+  static_cast<uiLayout *>(ptr->data)->use_property_decorate_set(value);
 }
 
 /* File Handler */
@@ -1980,7 +1980,7 @@ static void rna_def_uilist(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "uiList");
   RNA_def_struct_refine_func(srna, "rna_UIList_refine");
   RNA_def_struct_register_funcs(srna, "rna_UIList_register", "rna_UIList_unregister", nullptr);
-  RNA_def_struct_idprops_func(srna, "rna_UIList_idprops");
+  RNA_def_struct_system_idprops_func(srna, "rna_UIList_idprops");
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES | STRUCT_PUBLIC_NAMESPACE_INHERIT);
 
   /* Registration */

@@ -40,7 +40,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetPropSep(layout, true);
+  layout->use_property_split_set(true);
 
   row = &layout->row(true, IFACE_("Axis"));
   row->prop(ptr, "use_flip_x", toggles_flag, std::nullopt, ICON_NONE);
