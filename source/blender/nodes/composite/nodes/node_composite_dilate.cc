@@ -37,22 +37,19 @@ NODE_STORAGE_FUNCS(NodeDilateErode)
 
 static void cmp_node_dilate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Mask").default_value(0.0f).min(0.0f).max(1.0f);
-  b.add_input<decl::Int>("Size")
-      .default_value(0)
-      .description(
-          "The size of dilation/erosion in pixels. Positive values dilates and negative values "
-          "erodes")
-      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Mask").default_value(0.0f).min(0.0f).max(1.0f).structure_type(
+      StructureType::Dynamic);
+  b.add_input<decl::Int>("Size").default_value(0).description(
+      "The size of dilation/erosion in pixels. Positive values dilates and negative values "
+      "erodes");
   b.add_input<decl::Float>("Falloff Size")
       .default_value(0.0f)
       .min(0.0f)
       .description(
           "The size of the falloff from the edges in pixels. If less than two pixels, the edges "
-          "will be anti-aliased")
-      .compositor_expects_single_value();
+          "will be anti-aliased");
 
-  b.add_output<decl::Float>("Mask");
+  b.add_output<decl::Float>("Mask").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_dilateerode(bNodeTree * /*ntree*/, bNode *node)

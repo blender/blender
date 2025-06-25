@@ -25,6 +25,7 @@ namespace blender::nodes::node_composite_normal_cc {
 
 static void cmp_node_normal_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_output<decl::Vector>("Normal")
       .default_value({0.0f, 0.0f, 1.0f})
       .min(-1.0f)

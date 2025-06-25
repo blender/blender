@@ -237,10 +237,6 @@ class SocketDeclaration : public ItemDeclaration {
    * See compositor::InputDescriptor for more information. */
   int compositor_domain_priority_ = -1;
 
-  /** This input expects a single value and can't operate on non-single values. See
-   * compositor::InputDescriptor for more information. */
-  bool compositor_expects_single_value_ = false;
-
   /** Utility method to make the socket available if there is a straightforward way to do so. */
   std::function<void(bNode &)> make_available_fn_;
 
@@ -282,7 +278,6 @@ class SocketDeclaration : public ItemDeclaration {
 
   const CompositorInputRealizationMode &compositor_realization_mode() const;
   int compositor_domain_priority() const;
-  bool compositor_expects_single_value() const;
 
  protected:
   void set_common_flags(bNodeSocket &socket) const;
@@ -398,12 +393,6 @@ class BaseSocketDeclarationBuilder {
    * compositor::InputDescriptor for more information.
    */
   BaseSocketDeclarationBuilder &compositor_domain_priority(int priority);
-
-  /**
-   * This input expects a single value and can't operate on non-single values. See
-   * compositor::InputDescriptor for more information.
-   */
-  BaseSocketDeclarationBuilder &compositor_expects_single_value(bool value = true);
 
   /**
    * Pass a function that sets properties on the node required to make the corresponding socket

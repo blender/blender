@@ -72,6 +72,7 @@ NODE_STORAGE_FUNCS(NodeCMPCombSepColor)
 
 static void cmp_node_separate_color_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
@@ -252,6 +253,7 @@ NODE_STORAGE_FUNCS(NodeCMPCombSepColor)
 
 static void cmp_node_combine_color_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Float>("Red")
       .default_value(0.0f)
       .min(0.0f)

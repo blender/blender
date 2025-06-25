@@ -27,18 +27,17 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .description(
-          "A value that is relative to the image size and needs to be converted to be in pixels")
-      .compositor_expects_single_value();
+          "A value that is relative to the image size and needs to be converted to be in pixels");
   b.add_input<decl::Float>("Value", "Float Value")
       .default_value(0.0f)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
       .description(
-          "A value that is relative to the image size and needs to be converted to be in pixels")
-      .compositor_expects_single_value();
-  b.add_input<decl::Color>("Image").compositor_realization_mode(
-      CompositorInputRealizationMode::None);
+          "A value that is relative to the image size and needs to be converted to be in pixels");
+  b.add_input<decl::Color>("Image")
+      .compositor_realization_mode(CompositorInputRealizationMode::None)
+      .structure_type(StructureType::Dynamic);
 
   b.add_output<decl::Float>("Value", "Float Value");
   b.add_output<decl::Vector>("Value", "Vector Value").dimensions(2);

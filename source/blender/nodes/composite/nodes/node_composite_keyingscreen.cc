@@ -46,7 +46,9 @@ static void cmp_node_keyingscreen_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description("Specifies the smoothness of the keying screen");
 
-  b.add_output<decl::Color>("Screen").translation_context(BLT_I18NCONTEXT_ID_SCREEN);
+  b.add_output<decl::Color>("Screen")
+      .translation_context(BLT_I18NCONTEXT_ID_SCREEN)
+      .structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)

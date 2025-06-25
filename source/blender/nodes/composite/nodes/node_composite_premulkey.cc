@@ -25,6 +25,7 @@ namespace blender::nodes::node_composite_premulkey_cc {
 
 static void cmp_node_premulkey_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);

@@ -29,47 +29,36 @@ static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
 
-  b.add_output<decl::Float>("Mask");
+  b.add_output<decl::Float>("Mask").structure_type(StructureType::Dynamic);
 
   b.add_layout([](uiLayout *layout, bContext *C, PointerRNA *ptr) {
     uiTemplateID(layout, C, ptr, "mask", nullptr, nullptr, nullptr);
     layout->prop(ptr, "size_source", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
 
-  b.add_input<decl::Int>("Size X")
-      .default_value(256)
-      .min(1)
-      .description("The resolution of the mask along the X direction")
-      .compositor_expects_single_value();
-  b.add_input<decl::Int>("Size Y")
-      .default_value(256)
-      .min(1)
-      .description("The resolution of the mask along the Y direction")
-      .compositor_expects_single_value();
-  b.add_input<decl::Bool>("Feather")
-      .default_value(true)
-      .description("Use feather information from the mask")
-      .compositor_expects_single_value();
+  b.add_input<decl::Int>("Size X").default_value(256).min(1).description(
+      "The resolution of the mask along the X direction");
+  b.add_input<decl::Int>("Size Y").default_value(256).min(1).description(
+      "The resolution of the mask along the Y direction");
+  b.add_input<decl::Bool>("Feather").default_value(true).description(
+      "Use feather information from the mask");
 
   PanelDeclarationBuilder &motion_blur_panel = b.add_panel("Motion Blur").default_closed(true);
   motion_blur_panel.add_input<decl::Bool>("Motion Blur")
       .default_value(false)
       .panel_toggle()
-      .description("Use multi-sampled motion blur of the mask")
-      .compositor_expects_single_value();
+      .description("Use multi-sampled motion blur of the mask");
   motion_blur_panel.add_input<decl::Int>("Samples", "Motion Blur Samples")
       .default_value(16)
       .min(1)
       .max(64)
-      .description("Number of motion blur samples")
-      .compositor_expects_single_value();
+      .description("Number of motion blur samples");
   motion_blur_panel.add_input<decl::Float>("Shutter", "Motion Blur Shutter")
       .default_value(0.5f)
       .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
-      .description("Exposure for motion blur as a factor of FPS")
-      .compositor_expects_single_value();
+      .description("Exposure for motion blur as a factor of FPS");
 }
 
 static void node_mask_label(const bNodeTree * /*ntree*/,

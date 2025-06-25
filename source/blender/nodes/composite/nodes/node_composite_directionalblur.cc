@@ -24,18 +24,15 @@ static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
 
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Int>("Samples")
-      .default_value(1)
-      .min(1)
-      .max(32)
-      .description(
-          "The number of samples used to compute the blur. The more samples the smoother the "
-          "result, but at the expense of more compute time. The actual number of samples is two "
-          "to the power of this input, so it increases exponentially")
-      .compositor_expects_single_value();
+  b.add_input<decl::Color>("Image")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Int>("Samples").default_value(1).min(1).max(32).description(
+      "The number of samples used to compute the blur. The more samples the smoother the "
+      "result, but at the expense of more compute time. The actual number of samples is two "
+      "to the power of this input, so it increases exponentially");
   b.add_input<decl::Vector>("Center")
       .subtype(PROP_FACTOR)
       .dimensions(2)
@@ -44,19 +41,14 @@ static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description(
           "The position at which the transformations pivot around. Defined in normalized "
-          "coordinates, so 0 means lower left corner and 1 means upper right corner of the image")
-      .compositor_expects_single_value();
+          "coordinates, so 0 means lower left corner and 1 means upper right corner of the image");
 
   b.add_input<decl::Float>("Rotation")
       .default_value(0.0f)
       .subtype(PROP_ANGLE)
-      .description("The amount of rotation that the blur spans")
-      .compositor_expects_single_value();
-  b.add_input<decl::Float>("Scale")
-      .default_value(1.0f)
-      .min(0.0f)
-      .description("The amount of scaling that the blur spans")
-      .compositor_expects_single_value();
+      .description("The amount of rotation that the blur spans");
+  b.add_input<decl::Float>("Scale").default_value(1.0f).min(0.0f).description(
+      "The amount of scaling that the blur spans");
 
   PanelDeclarationBuilder &translation_panel = b.add_panel("Translation").default_closed(false);
   translation_panel.add_input<decl::Float>("Amount", "Translation Amount")
@@ -66,13 +58,11 @@ static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .description(
           "The amount of translation that the blur spans in the specified direction relative to "
-          "the size of the image. Negative values indicate translation in the opposite direction")
-      .compositor_expects_single_value();
+          "the size of the image. Negative values indicate translation in the opposite direction");
   translation_panel.add_input<decl::Float>("Direction", "Translation Direction")
       .default_value(0.0f)
       .subtype(PROP_ANGLE)
-      .description("The angle that defines the direction of the translation")
-      .compositor_expects_single_value();
+      .description("The angle that defines the direction of the translation");
 }
 
 using namespace blender::compositor;

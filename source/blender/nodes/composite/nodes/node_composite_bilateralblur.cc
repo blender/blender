@@ -24,22 +24,22 @@ namespace blender::nodes::node_composite_bilateralblur_cc {
 
 static void cmp_node_bilateralblur_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Color>("Determinator").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Int>("Size")
-      .default_value(0)
-      .min(0)
-      .description("The size of the blur in pixels")
-      .compositor_expects_single_value();
+  b.add_input<decl::Color>("Image")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Color>("Determinator")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Int>("Size").default_value(0).min(0).description(
+      "The size of the blur in pixels");
   b.add_input<decl::Float>("Threshold")
       .default_value(0.1f)
       .min(0.0f)
       .description(
           "Pixels are considered in the blur area if the average difference between their "
-          "determinator and the determinator of the center pixel is less than this threshold")
-      .compositor_expects_single_value();
+          "determinator and the determinator of the center pixel is less than this threshold");
 
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

@@ -28,35 +28,37 @@ static void cmp_node_zcombine_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+      .compositor_domain_priority(0)
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Z")
       .default_value(1.0f)
       .min(0.0f)
       .max(10000.0f)
-      .compositor_domain_priority(2);
+      .compositor_domain_priority(2)
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Color>("Image", "Image_001")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(1);
+      .compositor_domain_priority(1)
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Z", "Z_001")
       .default_value(1.0f)
       .min(0.0f)
       .max(10000.0f)
-      .compositor_domain_priority(3);
+      .compositor_domain_priority(3)
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Bool>("Use Alpha")
       .default_value(false)
       .description(
           "Use the alpha of the first input as mixing factor and return the more opaque alpha of "
-          "the two inputs")
-      .compositor_expects_single_value();
+          "the two inputs");
   b.add_input<decl::Bool>("Anti-Alias")
       .default_value(true)
       .description(
           "Anti-alias the generated mask before combining for smoother boundaries at the cost of "
-          "more expensive processing")
-      .compositor_expects_single_value();
+          "more expensive processing");
 
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Z");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Float>("Z").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

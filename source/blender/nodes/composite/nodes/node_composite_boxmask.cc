@@ -29,25 +29,33 @@ namespace blender::nodes::node_composite_boxmask_cc {
 
 static void cmp_node_boxmask_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Mask").subtype(PROP_FACTOR).default_value(0.0f).min(0.0f).max(1.0f);
-  b.add_input<decl::Float>("Value").subtype(PROP_FACTOR).default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_input<decl::Float>("Mask")
+      .subtype(PROP_FACTOR)
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Float>("Value")
+      .subtype(PROP_FACTOR)
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Vector>("Position")
       .subtype(PROP_FACTOR)
       .dimensions(2)
       .default_value({0.5f, 0.5f})
       .min(-0.5f)
-      .max(1.5f)
-      .compositor_expects_single_value();
+      .max(1.5f);
   b.add_input<decl::Vector>("Size")
       .subtype(PROP_FACTOR)
       .dimensions(2)
       .default_value({0.2f, 0.1f})
       .min(0.0f)
-      .max(1.0f)
-      .compositor_expects_single_value();
-  b.add_input<decl::Float>("Rotation").subtype(PROP_ANGLE).compositor_expects_single_value();
+      .max(1.0f);
+  b.add_input<decl::Float>("Rotation").subtype(PROP_ANGLE);
 
-  b.add_output<decl::Float>("Mask");
+  b.add_output<decl::Float>("Mask").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_buts_boxmask(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

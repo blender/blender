@@ -582,10 +582,11 @@ static void cmp_node_cryptomatte_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({0.0f, 0.0f, 0.0f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Matte");
-  b.add_output<decl::Color>("Pick");
+      .structure_type(StructureType::Dynamic);
+
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Float>("Matte").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Color>("Pick").structure_type(StructureType::Dynamic);
 }
 
 static void node_init_cryptomatte(bNodeTree * /*ntree*/, bNode *node)

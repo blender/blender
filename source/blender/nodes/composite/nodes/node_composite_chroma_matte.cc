@@ -30,6 +30,7 @@ namespace blender::nodes::node_composite_chroma_matte_cc {
 
 static void cmp_node_chroma_matte_declare(NodeDeclarationBuilder &b)
 {
+  b.is_function_node();
   b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_input<decl::Color>("Key Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_input<decl::Float>("Minimum")

@@ -159,7 +159,8 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
   }
   const SocketDeclaration *socket_declaration = node_declaration->inputs[socket->index()];
   input_descriptor.domain_priority = get_domain_priority(socket, socket_declaration);
-  input_descriptor.expects_single_value = socket_declaration->compositor_expects_single_value();
+  input_descriptor.expects_single_value = socket_declaration->structure_type ==
+                                          StructureType::Single;
   input_descriptor.realization_mode = static_cast<InputRealizationMode>(
       socket_declaration->compositor_realization_mode());
   input_descriptor.implicit_input = get_implicit_input(socket_declaration);

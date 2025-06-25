@@ -27,11 +27,15 @@ namespace blender::nodes::node_composite_id_mask_cc {
 
 static void cmp_node_idmask_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("ID value").default_value(1.0f).min(0.0f).max(1.0f);
-  b.add_input<decl::Int>("Index").default_value(0).min(0).compositor_expects_single_value();
-  b.add_input<decl::Bool>("Anti-Alias").default_value(false).compositor_expects_single_value();
+  b.add_input<decl::Float>("ID value")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Int>("Index").default_value(0).min(0);
+  b.add_input<decl::Bool>("Anti-Alias").default_value(false);
 
-  b.add_output<decl::Float>("Alpha");
+  b.add_output<decl::Float>("Alpha").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

@@ -31,38 +31,34 @@ static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Vector>("Upper Left")
       .subtype(PROP_FACTOR)
       .dimensions(2)
       .default_value({0.0f, 1.0f})
       .min(0.0f)
-      .max(1.0f)
-      .compositor_expects_single_value();
+      .max(1.0f);
   b.add_input<decl::Vector>("Upper Right")
       .subtype(PROP_FACTOR)
       .dimensions(2)
       .default_value({1.0f, 1.0f})
       .min(0.0f)
-      .max(1.0f)
-      .compositor_expects_single_value();
+      .max(1.0f);
   b.add_input<decl::Vector>("Lower Left")
       .subtype(PROP_FACTOR)
       .dimensions(2)
       .default_value({0.0f, 0.0f})
       .min(0.0f)
-      .max(1.0f)
-      .compositor_expects_single_value();
+      .max(1.0f);
   b.add_input<decl::Vector>("Lower Right")
       .subtype(PROP_FACTOR)
       .dimensions(2)
       .default_value({1.0f, 0.0f})
       .min(0.0f)
-      .max(1.0f)
-      .compositor_expects_single_value();
+      .max(1.0f);
 
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Plane");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Float>("Plane").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_cornerpin(bNodeTree * /*ntree*/, bNode *node)

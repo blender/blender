@@ -37,10 +37,10 @@ static void cmp_node_split_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_ANGLE)
       .description("Line angle where the image should be split.");
 
-  b.add_input<decl::Color>("Image");
-  b.add_input<decl::Color>("Image", "Image_001");
+  b.add_input<decl::Color>("Image").structure_type(StructureType::Dynamic);
+  b.add_input<decl::Color>("Image", "Image_001").structure_type(StructureType::Dynamic);
 
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;

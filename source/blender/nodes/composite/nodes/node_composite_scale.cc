@@ -39,11 +39,20 @@ static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_realization_mode(CompositorInputRealizationMode::None);
-  b.add_input<decl::Float>("X").default_value(1.0f).min(0.0001f).max(CMP_SCALE_MAX);
-  b.add_input<decl::Float>("Y").default_value(1.0f).min(0.0001f).max(CMP_SCALE_MAX);
+      .compositor_realization_mode(CompositorInputRealizationMode::None)
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Float>("X")
+      .default_value(1.0f)
+      .min(0.0001f)
+      .max(CMP_SCALE_MAX)
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Float>("Y")
+      .default_value(1.0f)
+      .min(0.0001f)
+      .max(CMP_SCALE_MAX)
+      .structure_type(StructureType::Dynamic);
 
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_scale(bNodeTree * /*ntree*/, bNode *node)

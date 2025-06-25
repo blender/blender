@@ -36,17 +36,23 @@ NODE_STORAGE_FUNCS(NodeBlurData)
 
 static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Vector>("Size").dimensions(2).default_value({0.0f, 0.0f}).min(0.0f);
-  b.add_input<decl::Bool>("Extend Bounds").default_value(false).compositor_expects_single_value();
+  b.add_input<decl::Color>("Image")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Vector>("Size")
+      .dimensions(2)
+      .default_value({0.0f, 0.0f})
+      .min(0.0f)
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Bool>("Extend Bounds").default_value(false);
   b.add_input<decl::Bool>("Separable")
       .default_value(true)
-      .compositor_expects_single_value()
+
       .description(
           "Use faster approximation by blurring along the horizontal and vertical directions "
           "independently");
 
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_init_blur(bNodeTree * /*ntree*/, bNode *node)

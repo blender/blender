@@ -28,14 +28,11 @@ static void cmp_node_inpaint_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_input<decl::Int>("Size")
-      .default_value(0)
-      .min(0)
-      .description("The size of the inpaint in pixels")
-      .compositor_expects_single_value();
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Int>("Size").default_value(0).min(0).description(
+      "The size of the inpaint in pixels");
 
-  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 using namespace blender::compositor;
