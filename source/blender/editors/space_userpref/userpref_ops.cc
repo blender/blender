@@ -230,8 +230,8 @@ static wmOperatorStatus preferences_asset_library_add_invoke(bContext *C,
 static void preferences_asset_library_add_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetPropDecorate(layout, false);
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
 
   PointerRNA *ptr = op->ptr;
   const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
