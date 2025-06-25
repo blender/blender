@@ -447,6 +447,51 @@ struct uiLayout : uiItem {
             int icon);
 
   /**
+   * Add a enum property value item. This button acts like a radio button that are used to chose
+   * a single enum value from a set of the enum property value items.
+   */
+  void prop_enum(PointerRNA *ptr,
+                 PropertyRNA *prop,
+                 int value,
+                 std::optional<blender::StringRefNull> name,
+                 int icon);
+  /**
+   * Add a enum property value item. This button acts like a radio button that are used to chose
+   * a single enum value from a set of the enum property value items.
+   */
+  void prop_enum(PointerRNA *ptr,
+                 PropertyRNA *prop,
+                 const char *value,
+                 std::optional<blender::StringRefNull> name,
+                 int icon);
+  /**
+   * Add a enum property value item. This button acts like a radio button that are used to chose
+   * a single enum value from a set of the enum property value items.
+   */
+  void prop_enum(PointerRNA *ptr,
+                 blender::StringRefNull propname,
+                 const char *value,
+                 std::optional<blender::StringRefNull> name,
+                 int icon);
+
+  /** Add a enum property item, and exposes its value throw a radio button menu. */
+  void prop_menu_enum(PointerRNA *ptr,
+                      PropertyRNA *prop,
+                      std::optional<blender::StringRefNull> name,
+                      int icon);
+
+  /** Expands enum property value items as tabs buttons. */
+  void prop_tabs_enum(bContext *C,
+                      PointerRNA *ptr,
+                      PropertyRNA *prop,
+                      PointerRNA *ptr_highlight,
+                      PropertyRNA *prop_highlight,
+                      bool icon_only);
+
+  /** Expands enum property value items as radio buttons. */
+  void props_enum(PointerRNA *ptr, blender::StringRefNull propname);
+
+  /**
    * Adds a RNA enum/pointer/string/ property item, and exposes it into the layout. Button input
    * would suggest values from the search property collection.
    * \param searchprop: Collection property in \a searchptr from where to take input values.
@@ -771,25 +816,6 @@ void uiItemFullR_with_menu(uiLayout *layout,
                            std::optional<blender::StringRefNull> name,
                            int icon,
                            const char *menu_type);
-void uiItemEnumR_prop(uiLayout *layout,
-                      std::optional<blender::StringRefNull> name,
-                      int icon,
-                      PointerRNA *ptr,
-                      PropertyRNA *prop,
-                      int value);
-void uiItemEnumR_string_prop(uiLayout *layout,
-                             PointerRNA *ptr,
-                             PropertyRNA *prop,
-                             const char *value,
-                             std::optional<blender::StringRefNull> name,
-                             int icon);
-void uiItemEnumR_string(uiLayout *layout,
-                        PointerRNA *ptr,
-                        blender::StringRefNull propname,
-                        const char *value,
-                        std::optional<blender::StringRefNull> name,
-                        int icon);
-void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, blender::StringRefNull propname);
 
 /**
  * Create a list of enum items.
@@ -928,18 +954,6 @@ void uiItemMenuEnumO(uiLayout *layout,
                      blender::StringRefNull propname,
                      blender::StringRefNull name,
                      int icon);
-void uiItemMenuEnumR_prop(uiLayout *layout,
-                          PointerRNA *ptr,
-                          PropertyRNA *prop,
-                          std::optional<blender::StringRefNull>,
-                          int icon);
-void uiItemTabsEnumR_prop(uiLayout *layout,
-                          bContext *C,
-                          PointerRNA *ptr,
-                          PropertyRNA *prop,
-                          PointerRNA *ptr_highlight,
-                          PropertyRNA *prop_highlight,
-                          bool icon_only);
 
 /* Only for testing, inspecting layouts. */
 /**

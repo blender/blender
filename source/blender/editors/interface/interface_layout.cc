@@ -2471,33 +2471,31 @@ void uiItemFullR_with_menu(uiLayout *layout,
   }
 }
 
-void uiItemEnumR_prop(uiLayout *layout,
-                      const std::optional<StringRefNull> name,
-                      int icon,
-                      PointerRNA *ptr,
-                      PropertyRNA *prop,
-                      int value)
+void uiLayout::prop_enum(PointerRNA *ptr,
+                         PropertyRNA *prop,
+                         int value,
+                         const std::optional<StringRefNull> name,
+                         int icon)
 {
   if (RNA_property_type(prop) != PROP_ENUM) {
     const StringRefNull propname = RNA_property_identifier(prop);
-    ui_item_disabled(layout, propname.c_str());
+    ui_item_disabled(this, propname.c_str());
     RNA_warning("property not an enum: %s.%s", RNA_struct_identifier(ptr->type), propname.c_str());
     return;
   }
 
-  layout->prop(ptr, prop, RNA_ENUM_VALUE, value, UI_ITEM_NONE, name, icon);
+  this->prop(ptr, prop, RNA_ENUM_VALUE, value, UI_ITEM_NONE, name, icon);
 }
 
-void uiItemEnumR_string_prop(uiLayout *layout,
-                             PointerRNA *ptr,
-                             PropertyRNA *prop,
-                             const char *value,
-                             const std::optional<StringRefNull> name,
-                             int icon)
+void uiLayout::prop_enum(PointerRNA *ptr,
+                         PropertyRNA *prop,
+                         const char *value,
+                         const std::optional<StringRefNull> name,
+                         int icon)
 {
   if (UNLIKELY(RNA_property_type(prop) != PROP_ENUM)) {
     const StringRefNull propname = RNA_property_identifier(prop);
-    ui_item_disabled(layout, propname.c_str());
+    ui_item_disabled(this, propname.c_str());
     RNA_warning("not an enum property: %s.%s", RNA_struct_identifier(ptr->type), propname.c_str());
     return;
   }
@@ -2505,7 +2503,7 @@ void uiItemEnumR_string_prop(uiLayout *layout,
   const EnumPropertyItem *item;
   bool free;
   RNA_property_enum_items(
-      static_cast<bContext *>(layout->block()->evil_C), ptr, prop, &item, nullptr, &free);
+      static_cast<bContext *>(this->block()->evil_C), ptr, prop, &item, nullptr, &free);
 
   int ivalue;
   if (!RNA_enum_value_from_id(item, value, &ivalue)) {
@@ -2513,7 +2511,7 @@ void uiItemEnumR_string_prop(uiLayout *layout,
     if (free) {
       MEM_freeN(item);
     }
-    ui_item_disabled(layout, propname.c_str());
+    ui_item_disabled(this, propname.c_str());
     RNA_warning("enum property value not found: %s", value);
     return;
   }
@@ -2528,7 +2526,7 @@ void uiItemEnumR_string_prop(uiLayout *layout,
           CTX_IFACE_(RNA_property_translation_context(prop), item[a].name));
       const eUI_Item_Flag flag = !item_name.is_empty() ? UI_ITEM_NONE : UI_ITEM_R_ICON_ONLY;
 
-      layout->prop(ptr, prop, RNA_ENUM_VALUE, ivalue, flag, item_name, icon ? icon : item[a].icon);
+      this->prop(ptr, prop, RNA_ENUM_VALUE, ivalue, flag, item_name, icon ? icon : item[a].icon);
       break;
     }
   }
@@ -2538,31 +2536,30 @@ void uiItemEnumR_string_prop(uiLayout *layout,
   }
 }
 
-void uiItemEnumR_string(uiLayout *layout,
-                        PointerRNA *ptr,
-                        const StringRefNull propname,
-                        const char *value,
-                        const std::optional<StringRefNull> name,
-                        int icon)
+void uiLayout::prop_enum(PointerRNA *ptr,
+                         const StringRefNull propname,
+                         const char *value,
+                         const std::optional<StringRefNull> name,
+                         int icon)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
   if (UNLIKELY(prop == nullptr)) {
-    ui_item_disabled(layout, propname.c_str());
+    ui_item_disabled(this, propname.c_str());
     RNA_warning(
         "enum property not found: %s.%s", RNA_struct_identifier(ptr->type), propname.c_str());
     return;
   }
-  uiItemEnumR_string_prop(layout, ptr, prop, value, name, icon);
+  this->prop_enum(ptr, prop, value, name, icon);
 }
 
-void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, const StringRefNull propname)
+void uiLayout::props_enum(PointerRNA *ptr, const StringRefNull propname)
 {
-  uiBlock *block = layout->block();
+  uiBlock *block = this->block();
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
 
   if (!prop) {
-    ui_item_disabled(layout, propname.c_str());
+    ui_item_disabled(this, propname.c_str());
     RNA_warning(
         "enum property not found: %s.%s", RNA_struct_identifier(ptr->type), propname.c_str());
     return;
@@ -2573,7 +2570,7 @@ void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, const StringRefNull propnam
     return;
   }
 
-  uiLayout *split = &layout->split(0.0f, false);
+  uiLayout *split = &this->split(0.0f, false);
   uiLayout *column = &split->column(false);
 
   int totitem;
@@ -2584,7 +2581,7 @@ void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, const StringRefNull propnam
 
   for (int i = 0; i < totitem; i++) {
     if (item[i].identifier[0]) {
-      uiItemEnumR_prop(column, item[i].name, item[i].icon, ptr, prop, item[i].value);
+      column->prop_enum(ptr, prop, item[i].value, item[i].name, item[i].icon);
       ui_but_tip_from_enum_item(block->buttons.last().get(), &item[i]);
     }
     else {
@@ -3518,25 +3515,24 @@ static void menu_item_enum_rna_menu(bContext * /*C*/, uiLayout *layout, void *ar
   MenuItemLevel *lvl = (MenuItemLevel *)(((uiBut *)arg)->func_argN);
 
   layout->operator_context_set(lvl->opcontext);
-  uiItemsEnumR(layout, &lvl->rnapoin, lvl->propname);
+  layout->props_enum(&lvl->rnapoin, lvl->propname);
 }
 
-void uiItemMenuEnumR_prop(uiLayout *layout,
-                          PointerRNA *ptr,
-                          PropertyRNA *prop,
-                          const std::optional<StringRefNull> name,
-                          int icon)
+void uiLayout::prop_menu_enum(PointerRNA *ptr,
+                              PropertyRNA *prop,
+                              const std::optional<StringRefNull> name,
+                              int icon)
 {
-  if (layout->root_->type == UI_LAYOUT_MENU && !icon) {
+  if (root_->type == UI_LAYOUT_MENU && !icon) {
     icon = ICON_BLANK1;
   }
 
   MenuItemLevel *lvl = MEM_new<MenuItemLevel>("MenuItemLevel");
   lvl->rnapoin = *ptr;
   STRNCPY(lvl->propname, RNA_property_identifier(prop));
-  lvl->opcontext = layout->root_->opcontext;
+  lvl->opcontext = root_->opcontext;
 
-  ui_item_menu(layout,
+  ui_item_menu(this,
                name.value_or(RNA_property_ui_name(prop)),
                icon,
                menu_item_enum_rna_menu,
@@ -3548,18 +3544,17 @@ void uiItemMenuEnumR_prop(uiLayout *layout,
                but_func_argN_copy<MenuItemLevel>);
 }
 
-void uiItemTabsEnumR_prop(uiLayout *layout,
-                          bContext *C,
-                          PointerRNA *ptr,
-                          PropertyRNA *prop,
-                          PointerRNA *ptr_highlight,
-                          PropertyRNA *prop_highlight,
-                          bool icon_only)
+void uiLayout::prop_tabs_enum(bContext *C,
+                              PointerRNA *ptr,
+                              PropertyRNA *prop,
+                              PointerRNA *ptr_highlight,
+                              PropertyRNA *prop_highlight,
+                              bool icon_only)
 {
-  uiBlock *block = layout->block();
+  uiBlock *block = this->block();
 
-  UI_block_layout_set_current(block, layout);
-  ui_item_enum_expand_tabs(layout,
+  UI_block_layout_set_current(block, this);
+  ui_item_enum_expand_tabs(this,
                            C,
                            block,
                            ptr,
