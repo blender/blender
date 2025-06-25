@@ -4042,7 +4042,7 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
   MultiValueMap<StringRef, index::RemoteListingAssetEntry *> assets_per_blend_path;
   /* Keeps the entries alive for further processing. These are moved out of #read_remote_listing()
    * below, which is allowed by the API. */
-  Vector<index::RemoteListingAssetEntry> entries;
+  Vector<std::unique_ptr<index::RemoteListingAssetEntry>> entries_store;
 
   if (!index::read_remote_listing(dirpath, [&](index::RemoteListingAssetEntry &movable_entry) {
         if (*stop) {
@@ -4051,9 +4051,10 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
         }
 
         /* Move into own storage for later access. */
-        entries.append(std::move(movable_entry));
+        entries_store.append(
+            std::make_unique<index::RemoteListingAssetEntry>(std::move(movable_entry)));
 
-        index::RemoteListingAssetEntry &entry = entries.last();
+        index::RemoteListingAssetEntry &entry = *entries_store.last();
 
         const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
         ListBase entries = {nullptr};
