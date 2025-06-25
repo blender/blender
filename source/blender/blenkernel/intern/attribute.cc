@@ -104,6 +104,24 @@ GreasePencilDrawing *AttributeOwner::get_grease_pencil_drawing() const
   return reinterpret_cast<GreasePencilDrawing *>(ptr_);
 }
 
+blender::bke::AttributeStorage *AttributeOwner::get_storage() const
+{
+  switch (type_) {
+    case AttributeOwnerType::Mesh:
+      return &this->get_mesh()->attribute_storage.wrap();
+    case AttributeOwnerType::PointCloud:
+      return &this->get_pointcloud()->attribute_storage.wrap();
+    case AttributeOwnerType::Curves:
+      return &this->get_curves()->geometry.attribute_storage.wrap();
+    case AttributeOwnerType::GreasePencil:
+      return &this->get_grease_pencil()->attribute_storage.wrap();
+    case AttributeOwnerType::GreasePencilDrawing:
+      return &this->get_grease_pencil_drawing()->geometry.attribute_storage.wrap();
+  }
+  BLI_assert(false);
+  return nullptr;
+}
+
 std::optional<blender::bke::MutableAttributeAccessor> AttributeOwner::get_accessor() const
 {
   switch (type_) {
@@ -264,8 +282,7 @@ bool BKE_attribute_rename(AttributeOwner &owner,
   }
 
   if (owner.type() == AttributeOwnerType::PointCloud) {
-    PointCloud &pointcloud = *owner.get_pointcloud();
-    bke::AttributeStorage &attributes = pointcloud.attribute_storage.wrap();
+    bke::AttributeStorage &attributes = *owner.get_storage();
     if (!attributes.lookup(old_name)) {
       BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
       return false;
@@ -378,7 +395,8 @@ static bool attribute_name_exists(const AttributeOwner &owner, const StringRef n
 std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner, const StringRef name)
 {
   if (owner.type() == AttributeOwnerType::PointCloud) {
-    return owner.get_pointcloud()->attribute_storage.wrap().unique_name_calc(name);
+    blender::bke::AttributeStorage &storage = *owner.get_storage();
+    return storage.unique_name_calc(name);
   }
   return BLI_uniquename_cb(
       [&](const StringRef new_name) { return attribute_name_exists(owner, new_name); },
@@ -805,8 +823,7 @@ std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOw
     return std::nullopt;
   }
   if (owner.type() == AttributeOwnerType::PointCloud) {
-    PointCloud &pointcloud = *owner.get_pointcloud();
-    bke::AttributeStorage &storage = pointcloud.attribute_storage.wrap();
+    bke::AttributeStorage &storage = *owner.get_storage();
     if (active_index >= storage.count()) {
       return std::nullopt;
     }
@@ -847,8 +864,7 @@ void BKE_attributes_active_set(AttributeOwner &owner, const StringRef name)
 {
   using namespace blender;
   if (owner.type() == AttributeOwnerType::PointCloud) {
-    PointCloud &pointcloud = *owner.get_pointcloud();
-    bke::AttributeStorage &attributes = pointcloud.attribute_storage.wrap();
+    bke::AttributeStorage &attributes = *owner.get_storage();
     *BKE_attributes_active_index_p(owner) = attributes.index_of(name);
     return;
   }
