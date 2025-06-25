@@ -324,12 +324,13 @@ static IDProperty *idp_generic_copy(const IDProperty *prop, const int /*flag*/)
 
 static IDProperty *IDP_CopyArray(const IDProperty *prop, const int flag)
 {
+  BLI_assert(prop->type == IDP_ARRAY);
   IDProperty *newp = idp_generic_copy(prop, flag);
 
   if (prop->data.pointer) {
     newp->data.pointer = MEM_dupallocN(prop->data.pointer);
 
-    if (prop->type == IDP_GROUP) {
+    if (prop->subtype == IDP_GROUP) {
       IDProperty **array = static_cast<IDProperty **>(newp->data.pointer);
       int a;
 
