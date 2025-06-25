@@ -2152,12 +2152,33 @@ static wmOperatorStatus editsource_exec(bContext *C, wmOperator *op)
     /* redraw and get active button python info */
     ui_region_redraw_immediately(C, region);
 
+    /* It's possible the key button referenced in `ui_editsource_info` has been freed.
+     * This typically happens with popovers but could happen in other situations, see: #140439. */
+    blender::Set<const uiBut *> valid_buttons_in_region;
+    LISTBASE_FOREACH (uiBlock *, block_base, &region->runtime->uiblocks) {
+      uiBlock *block_pair[2] = {block_base, block_base->oldblock};
+      for (uiBlock *block : blender::Span(block_pair, block_pair[1] ? 2 : 1)) {
+        for (int i = 0; i < block->buttons.size(); i++) {
+          const uiBut *but = block->buttons[i].get();
+          valid_buttons_in_region.add(but);
+        }
+      }
+    }
+
     for (BLI_ghashIterator_init(&ghi, ui_editsource_info->hash);
          BLI_ghashIterator_done(&ghi) == false;
          BLI_ghashIterator_step(&ghi))
     {
       uiBut *but_key = static_cast<uiBut *>(BLI_ghashIterator_getKey(&ghi));
-      if (but_key && ui_editsource_uibut_match(&ui_editsource_info->but_orig, but_key)) {
+      if (but_key == nullptr) {
+        continue;
+      }
+
+      if (!valid_buttons_in_region.contains(but_key)) {
+        continue;
+      }
+
+      if (ui_editsource_uibut_match(&ui_editsource_info->but_orig, but_key)) {
         but_store = static_cast<uiEditSourceButStore *>(BLI_ghashIterator_getValue(&ghi));
         break;
       }
