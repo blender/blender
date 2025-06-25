@@ -365,7 +365,7 @@ char BKE_imtype_valid_depths_with_video(char imtype, const ID *owner_id)
     const bool is_render_out = (owner_id && GS(owner_id->name) == ID_SCE);
     if (is_render_out) {
       const Scene *scene = (const Scene *)owner_id;
-      depths |= MOV_codec_valid_bit_depths(scene->r.ffcodecdata.codec);
+      depths |= MOV_codec_valid_bit_depths(scene->r.ffcodecdata.codec_id_get());
     }
   }
   return depths;

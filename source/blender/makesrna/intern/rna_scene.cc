@@ -1412,7 +1412,9 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
     Scene *scene = (Scene *)ptr->owner_id;
     RenderData *rd = &scene->r;
 
-    if (MOV_codec_supports_alpha(rd->ffcodecdata.codec, rd->ffcodecdata.ffmpeg_prores_profile)) {
+    if (MOV_codec_supports_alpha(rd->ffcodecdata.codec_id_get(),
+                                 rd->ffcodecdata.ffmpeg_prores_profile))
+    {
       chan_flag |= IMA_CHAN_FLAG_RGBA;
     }
   }
@@ -2972,7 +2974,7 @@ static std::optional<std::string> rna_FFmpegSettings_path(const PointerRNA * /*p
 static void rna_FFmpegSettings_codec_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   FFMpegCodecData *codec_data = (FFMpegCodecData *)ptr->data;
-  if (!MOV_codec_supports_crf(codec_data->codec)) {
+  if (!MOV_codec_supports_crf(codec_data->codec_id_get())) {
     /* Constant Rate Factor (CRF) setting is only available for some codecs. Change encoder quality
      * mode to CBR for others. */
     codec_data->constant_rate_factor = FFM_CRF_NONE;
