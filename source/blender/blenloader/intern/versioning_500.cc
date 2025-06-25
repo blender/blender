@@ -493,7 +493,7 @@ static void do_version_normal_node_dot_product(bNodeTree *node_tree, bNode *node
    * allow removal. */
   if (!is_normal_ontput_needed) {
     blender::bke::node_tree_set_type(*node_tree);
-    blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
+    version_node_remove(*node_tree, *node);
   }
 }
 

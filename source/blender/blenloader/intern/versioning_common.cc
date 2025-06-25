@@ -258,6 +258,15 @@ bNode &version_node_add_empty(bNodeTree &ntree, const char *idname)
   return *node;
 }
 
+void version_node_remove(bNodeTree &ntree, bNode &node)
+{
+  blender::bke::node_unlink_node(ntree, node);
+  blender::bke::node_unlink_attached(&ntree, &node);
+
+  blender::bke::node_free_node(&ntree, node);
+  blender::bke::node_rebuild_id_vector(ntree);
+}
+
 bNodeSocket &version_node_add_socket(bNodeTree &ntree,
                                      bNode &node,
                                      const eNodeSocketInOut in_out,

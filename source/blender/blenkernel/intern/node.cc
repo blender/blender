@@ -3921,7 +3921,7 @@ void node_unlink_node(bNodeTree &ntree, bNode &node)
   }
 }
 
-static void node_unlink_attached(bNodeTree *ntree, const bNode *parent)
+void node_unlink_attached(bNodeTree *ntree, const bNode *parent)
 {
   for (bNode *node : ntree->all_nodes()) {
     if (node->parent == parent) {

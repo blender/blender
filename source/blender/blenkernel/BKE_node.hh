@@ -933,6 +933,8 @@ void node_modify_socket_type(bNodeTree &ntree,
  */
 void node_unlink_node(bNodeTree &ntree, bNode &node);
 
+void node_unlink_attached(bNodeTree *ntree, const bNode *parent);
+
 /**
  * Rebuild the `node_by_id` runtime vector set. Call after removing a node if not handled
  * separately. This is important instead of just using `nodes_by_id.remove()` since it maintains

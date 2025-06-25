@@ -106,6 +106,14 @@ blender::StringRef legacy_socket_idname_to_socket_type(blender::StringRef idname
  * hard to detect.
  */
 bNode &version_node_add_empty(bNodeTree &ntree, const char *idname);
+
+/**
+ * Removes a node for versioning purposes:
+ * - Animation data (#AnimData) are not removed, because they might be using #bAction.id which
+ *   is not be available before linking.
+ * - User count is not updated. This is ensured after blend file reading is done.
+ */
+void version_node_remove(bNodeTree &ntree, bNode &node);
 bNodeSocket &version_node_add_socket(bNodeTree &ntree,
                                      bNode &node,
                                      eNodeSocketInOut in_out,
