@@ -7878,8 +7878,8 @@ static void rna_def_scene_display(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "matcap_ssao_attenuation", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_text(prop, "Attenuation", "Attenuation constant");
-  RNA_def_property_range(prop, 1.0f, 100000.0f);
-  RNA_def_property_ui_range(prop, 1.0f, 100.0f, 1, 3);
+  RNA_def_property_range(prop, 0.0f, 100000.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
 
   prop = RNA_def_property(srna, "matcap_ssao_samples", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(prop, "Samples", "Number of samples");
