@@ -58,11 +58,17 @@ struct RemoteListingAssetEntry {
 };
 
 using RemoteListingEntryProcessFn = FunctionRef<bool(RemoteListingAssetEntry &)>;
+using RemoteListingWaitForPagesFn = FunctionRef<bool()>;
 /**
  * \param process_fn: Called for each asset entry read from the listing. It's fine to move out the
  * passed #RemoteListingAssetEntry. Returning false will cancel the whole reading process and not
  * read any further entries.
+ * \param wait_fn: If this is set, reading will keep retrying to load unavailable pages, and call
+ * this wait function for each try. The wait function can block until for until it thinks new pages
+ * might be available. If this returns false the whole reading process will be cancelled.
  */
-bool read_remote_listing(StringRefNull root_dirpath, RemoteListingEntryProcessFn process_fn);
+bool read_remote_listing(StringRefNull root_dirpath,
+                         RemoteListingEntryProcessFn process_fn,
+                         RemoteListingWaitForPagesFn wait_fn = nullptr);
 
 }  // namespace blender::ed::asset::index

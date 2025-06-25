@@ -38,6 +38,7 @@ enum class ReadingResult {
  * \param version_root_dirpath: Absolute path to the remote listing root directory.
  */
 ReadingResult read_remote_listing_v1(StringRefNull listing_root_dirpath,
-                                     RemoteListingEntryProcessFn process_fn);
+                                     RemoteListingEntryProcessFn process_fn,
+                                     RemoteListingWaitForPagesFn wait_fn = nullptr);
 
 }  // namespace blender::ed::asset::index

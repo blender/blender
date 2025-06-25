@@ -34,6 +34,7 @@ set(SRC
   AS_asset_library.hh
   AS_asset_representation.hh
   AS_essentials_library.hh
+  AS_remote_library.hh
   intern/asset_catalog_collection.hh
   intern/asset_catalog_definition_file.hh
   intern/asset_library_service.hh
@@ -49,6 +50,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::dna
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog

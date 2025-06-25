@@ -56,7 +56,7 @@ RemoteListingAssetEntry::~RemoteListingAssetEntry()
 /** \name General functions for reading.
  * \{ */
 
-std::unique_ptr<Value> read_contents(StringRefNull filepath)
+std::unique_ptr<Value> read_contents(const StringRefNull filepath)
 {
   JsonFormatter formatter;
   std::ifstream is;
@@ -79,13 +79,13 @@ struct AssetLibraryMeta {
   /** Map of API version string ("v1", "v2", ...) to path relative to root directory. */
   Map<std::string, std::string> api_versions;
 
-  static std::optional<AssetLibraryMeta> read(StringRefNull root_dirpath);
+  static std::optional<AssetLibraryMeta> read(const StringRefNull root_dirpath);
 };
 
 /**
  * \return the supported API versions read from the `_asset-library-meta.json` file.
  */
-std::optional<AssetLibraryMeta> AssetLibraryMeta::read(StringRefNull root_dirpath)
+std::optional<AssetLibraryMeta> AssetLibraryMeta::read(const StringRefNull root_dirpath)
 {
   char filepath[FILE_MAX];
   BLI_path_join(filepath, sizeof(filepath), root_dirpath.c_str(), "_asset-library-meta.json");
@@ -95,7 +95,7 @@ std::optional<AssetLibraryMeta> AssetLibraryMeta::read(StringRefNull root_dirpat
     return {};
   }
 
-  std::unique_ptr<Value> contents = read_contents(filepath);
+  const std::unique_ptr<Value> contents = read_contents(filepath);
   if (!contents) {
     /** TODO report error message? */
     return {};
@@ -156,7 +156,9 @@ static std::optional<ApiVersionInfo> choose_api_version(const AssetLibraryMeta &
   return {};
 }
 
-bool read_remote_listing(StringRefNull root_dirpath, RemoteListingEntryProcessFn process_fn)
+bool read_remote_listing(const StringRefNull root_dirpath,
+                         const RemoteListingEntryProcessFn process_fn,
+                         const RemoteListingWaitForPagesFn wait_fn)
 {
   /* TODO: Error reporting for all false return branches. */
 
@@ -175,7 +177,7 @@ bool read_remote_listing(StringRefNull root_dirpath, RemoteListingEntryProcessFn
   /* Path to the listing meta-file is version-dependent. */
   switch (api_version_info->version_nr) {
     case 1: {
-      const ReadingResult result = read_remote_listing_v1(root_dirpath, process_fn);
+      const ReadingResult result = read_remote_listing_v1(root_dirpath, process_fn, wait_fn);
       if (result == ReadingResult::Failure) {
         return false;
       }

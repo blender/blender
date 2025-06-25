@@ -10,6 +10,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_serialize.hh"
+#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
@@ -28,8 +29,7 @@ using namespace blender::io::serialize;
  * \{ */
 
 struct AssetLibraryListingPageV1 {
-  static ReadingResult read_asset_entries(const StringRefNull root_dirpath,
-                                          const StringRefNull page_rel_path,
+  static ReadingResult read_asset_entries(const StringRefNull filepath,
                                           RemoteListingEntryProcessFn process_fn);
 };
 
@@ -85,7 +85,7 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
 }
 
 static ReadingResult listing_entries_from_root(const DictionaryValue &value,
-                                               RemoteListingEntryProcessFn process_fn)
+                                               const RemoteListingEntryProcessFn process_fn)
 {
   const ArrayValue *entries = value.lookup_array("assets");
   BLI_assert(entries != nullptr);
@@ -111,19 +111,15 @@ static ReadingResult listing_entries_from_root(const DictionaryValue &value,
   return ReadingResult::Success;
 }
 
-ReadingResult AssetLibraryListingPageV1::read_asset_entries(const StringRefNull root_dirpath,
-                                                            const StringRefNull page_rel_path,
-                                                            RemoteListingEntryProcessFn process_fn)
+ReadingResult AssetLibraryListingPageV1::read_asset_entries(
+    const StringRefNull filepath, const RemoteListingEntryProcessFn process_fn)
 {
-  char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), root_dirpath.c_str(), page_rel_path.c_str());
-
-  if (!BLI_exists(filepath)) {
+  if (!BLI_exists(filepath.c_str())) {
     /** TODO report error message? */
     return ReadingResult::Failure;
   }
 
-  std::unique_ptr<Value> contents = read_contents(filepath);
+  const std::unique_ptr<Value> contents = read_contents(filepath);
   if (!contents) {
     /** TODO report error message? */
     return ReadingResult::Failure;
@@ -135,7 +131,7 @@ ReadingResult AssetLibraryListingPageV1::read_asset_entries(const StringRefNull 
     return ReadingResult::Failure;
   }
 
-  ReadingResult result = listing_entries_from_root(*root, process_fn);
+  const ReadingResult result = listing_entries_from_root(*root, process_fn);
   if (result != ReadingResult::Success) {
     return result;
   }
@@ -159,17 +155,18 @@ struct AssetLibraryListingV1 {
    * root_dirpath. */
   Vector<std::string> page_rel_paths;
 
-  static std::optional<AssetLibraryListingV1> read(StringRefNull listing_filepath);
+  static std::optional<AssetLibraryListingV1> read(const StringRefNull listing_filepath);
 };
 
-std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(StringRefNull listing_filepath)
+std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(
+    const StringRefNull listing_filepath)
 {
   if (!BLI_exists(listing_filepath.c_str())) {
     /** TODO report error message? */
     return {};
   }
 
-  std::unique_ptr<Value> contents = read_contents(listing_filepath);
+  const std::unique_ptr<Value> contents = read_contents(listing_filepath);
   if (!contents) {
     /** TODO report error message? */
     return {};
@@ -208,8 +205,9 @@ std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(StringRefNull l
 
 /** \} */
 
-ReadingResult read_remote_listing_v1(StringRefNull listing_root_dirpath,
-                                     RemoteListingEntryProcessFn process_fn)
+ReadingResult read_remote_listing_v1(const StringRefNull listing_root_dirpath,
+                                     const RemoteListingEntryProcessFn process_fn,
+                                     const RemoteListingWaitForPagesFn wait_fn)
 {
   /* Version 1 asset indices are always stored in this path by RemoteAssetListingDownloader. */
   constexpr const char *asset_index_relpath = "_v1/asset-index.processed.json";
@@ -227,15 +225,44 @@ ReadingResult read_remote_listing_v1(StringRefNull listing_root_dirpath,
     return ReadingResult::Failure;
   }
 
-  for (const std::string &page_path : listing->page_rel_paths) {
-    const ReadingResult result = AssetLibraryListingPageV1::read_asset_entries(
-        listing_root_dirpath, page_path, process_fn);
-    if (result != ReadingResult::Success) {
-      printf("Couldn't read V1 listing from %s%c%s\n",
-             listing_root_dirpath.c_str(),
-             SEP,
-             page_path.c_str());
-      return result;
+  Set<StringRef> done_pages;
+  char filepath[FILE_MAX];
+
+  // TODO should we have some timeout here too? Like timeout after 30 seconds without a new page?
+
+  while (true) {
+    for (const std::string &page_path : listing->page_rel_paths) {
+      if (done_pages.contains(page_path)) {
+        continue;
+      }
+
+      BLI_path_join(filepath, sizeof(filepath), listing_root_dirpath.c_str(), page_path.c_str());
+      if (wait_fn && !BLI_exists(filepath)) {
+        continue;
+      }
+
+      const ReadingResult result = AssetLibraryListingPageV1::read_asset_entries(filepath,
+                                                                                 process_fn);
+      done_pages.add(page_path);
+
+      if (result != ReadingResult::Success) {
+        printf("Couldn't read V1 listing from %s%c%s\n",
+               listing_root_dirpath.c_str(),
+               SEP,
+               page_path.c_str());
+        return result;
+      }
+    }
+
+    BLI_assert(done_pages.size() <= listing->page_rel_paths.size());
+    if (done_pages.size() >= listing->page_rel_paths.size()) {
+      break;
+    }
+    if (!wait_fn) {
+      break;
+    }
+    if (!wait_fn()) {
+      return ReadingResult::Cancelled;
     }
   }
 

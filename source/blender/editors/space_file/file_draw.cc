@@ -16,6 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "AS_asset_representation.hh"
+#include "AS_remote_library.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
@@ -74,6 +75,8 @@
 #include "filelist.hh"
 
 #include "file_intern.hh" /* own include */
+
+using RemoteLibraryLoadingStatus = blender::asset_system::RemoteLibraryLoadingStatus;
 
 void ED_file_path_button(bScreen *screen,
                          const SpaceFile *sfile,
@@ -530,7 +533,10 @@ static rcti file_measure_string_multiline(blender::StringRef string, const int w
   const int font_id = style->widget.uifont_id;
 
   rcti textbox;
-  BLF_wordwrap(font_id, wrap_width);
+  BLF_wordwrap(font_id,
+               wrap_width,
+               BLFWrapMode(int(BLFWrapMode::Typographical) | int(BLFWrapMode::Path) |
+                           int(BLFWrapMode::HardLimit)));
   BLF_enable(font_id, BLF_WORD_WRAP);
   BLF_boundbox(font_id, string.data(), string.size(), &textbox);
   BLF_disable(font_id, BLF_WORD_WRAP);
@@ -1773,6 +1779,91 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
                              nullptr);
 }
 
+static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C,
+                                                               const SpaceFile *sfile,
+                                                               ARegion *region,
+                                                               const bUserAssetLibrary *library)
+{
+  using namespace blender;
+
+  uchar text_col[4];
+  UI_GetThemeColor4ubv(TH_TEXT, text_col);
+
+  const View2D *v2d = &region->v2d;
+  const int pad_x = sfile->layout->tile_border_x * 2;
+  const int pad_y = sfile->layout->tile_border_y * 2;
+  const int available_width = BLI_rctf_size_x(&v2d->tot) - (2 * pad_x);
+  const int line_height = sfile->layout->text_line_height;
+  StringRefNull message =
+      RemoteLibraryLoadingStatus::failure_message(library->remote_url).value_or("Unknown reason");
+
+  const int message_width = UI_fontstyle_string_width(&UI_style_get()->widget, message.c_str());
+  const int box_width = std::min({available_width, UI_UNIT_X * 28, message_width + (2 * pad_x)});
+  /* The width we have available inside the box. */
+  const int wrap_width = box_width - 2 * pad_x;
+  const rcti message_textbox = file_measure_string_multiline(message, wrap_width);
+  /* The text box doesn't seem to encompass all text, apparently half a line too little. */
+  const int message_height = BLI_rcti_size_y(&message_textbox) + 0.5f * line_height;
+
+  const int heading_height = UI_UNIT_Y;
+  const int box_height = heading_height + message_height +
+                         /* Extra spacing after header. */
+                         pad_y +
+                         /* Top and bottom padding. */
+                         2 * pad_y;
+
+  int sx = round_fl_to_int(BLI_rctf_cent_x(&v2d->tot) - box_width / 2.0f);
+  int sy = round_fl_to_int(BLI_rctf_cent_y(&v2d->tot) + box_height / 2.0f);
+
+  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+
+  uiDefBut(block,
+           UI_BTYPE_ROUNDBOX,
+           0,
+           "",
+           sx,
+           sy - box_height,
+           box_width,
+           box_height,
+           nullptr,
+           0.0,
+           0.0,
+           "");
+
+  /* Top left padding within the box. */
+  sx += pad_x;
+  sy -= pad_y;
+
+  {
+    uiDefIconTextBut(block,
+                     UI_BTYPE_LABEL,
+                     0,
+                     ICON_CANCEL,
+                     "Asset Library Download Failed",
+                     sx,
+                     sy - heading_height,
+                     wrap_width,
+                     heading_height,
+                     nullptr,
+                     0.0f,
+                     0.0f,
+                     {});
+  }
+
+  UI_block_end(C, block);
+  UI_block_draw(C, block);
+
+  /* Draw multi-line text on top of widget drawing. */
+  file_draw_string_multiline(sx,
+                             sy - heading_height - pad_y,
+                             message,
+                             wrap_width,
+                             line_height,
+                             text_col,
+                             nullptr,
+                             nullptr);
+}
+
 static void file_draw_invalid_library_hint(const bContext * /*C*/,
                                            const SpaceFile *sfile,
                                            ARegion *region,
@@ -1840,31 +1931,37 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
   if (is_asset_browser) {
     FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
 
-    const bool is_remote_library = [&]() {
+    const bUserAssetLibrary *remote_library = [&]() -> const bUserAssetLibrary * {
       if (asset_params->asset_library_ref.type == ASSET_LIBRARY_CUSTOM) {
         if (const bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
                 &U, asset_params->asset_library_ref.custom_library_index))
         {
           if (library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-            return true;
+            return library;
           }
         }
       }
-      return false;
+      return nullptr;
     }();
 
-    if (is_remote_library && ((G.f & G_FLAG_INTERNET_ALLOW) == 0) &&
+    if (remote_library && ((G.f & G_FLAG_INTERNET_ALLOW) == 0) &&
         ((U.extension_flag & USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED) == 0))
     {
       setup_view();
       file_draw_asset_library_internet_access_required_hint(C, sfile, region);
       return true;
     }
-
+    if (remote_library && RemoteLibraryLoadingStatus::status(remote_library->remote_url) ==
+                              RemoteLibraryLoadingStatus::Failure)
+    {
+      setup_view();
+      file_draw_asset_library_remote_loading_failed_hint(C, sfile, region, remote_library);
+      return true;
+    }
     const bool is_on_disk_library = !ELEM(asset_params->asset_library_ref.type,
                                           ASSET_LIBRARY_LOCAL,
                                           ASSET_LIBRARY_ALL) &&
-                                    !is_remote_library;
+                                    (remote_library == nullptr);
 
     /* Check if the asset library exists. */
     if (is_on_disk_library && !filelist_is_dir(sfile->files, asset_params->base_params.dir)) {

@@ -218,6 +218,7 @@ static const EnumPropertyItem rna_enum_preferences_extension_repo_source_type_it
 #  include "MEM_CacheLimiterC-Api.h"
 #  include "MEM_guardedalloc.h"
 
+#  include "ED_asset_library.hh"
 #  include "ED_asset_list.hh"
 #  include "ED_screen.hh"
 
@@ -379,6 +380,10 @@ static void rna_userdef_asset_library_clear_update(bContext *C, PointerRNA *ptr)
 
 static void rna_userdef_asset_library_remote_sync_update(bContext *C, PointerRNA *ptr)
 {
+  bUserAssetLibrary *library = (bUserAssetLibrary *)ptr->data;
+  AssetLibraryReference library_ref = blender::ed::asset::user_library_to_library_ref(*library);
+  /* Make sure all visible instances of this asset library will be refreshed. */
+  blender::ed::asset::list::clear(&library_ref, C);
   BKE_callback_exec(CTX_data_main(C), &ptr, 1, BKE_CB_EVT_REMOTE_ASSET_LIBRARIES_SYNC);
   rna_userdef_asset_library_clear_update(C, ptr);
 }

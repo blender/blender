@@ -431,6 +431,7 @@ const EnumPropertyItem *rna_WorkSpaceTool_brush_type_itemf(bContext *C,
 void RNA_api_action(StructRNA *srna);
 void RNA_api_animdata(StructRNA *srna);
 void RNA_api_armature_edit_bone(StructRNA *srna);
+void RNA_api_asset_library_loading_status(StructRNA *srna);
 void RNA_api_bone(StructRNA *srna);
 void RNA_api_bonecollection(StructRNA *srna);
 void RNA_api_camera(StructRNA *srna);

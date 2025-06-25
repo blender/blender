@@ -444,10 +444,19 @@ def remote_asset_libraries_sync(library: bpy.types.UserAssetLibrary, *args) -> N
     # Create the downloader and start downloading.
     from _bpy_internal.assets.remote_library_index import index_downloader
 
+    # Communicate to the asset system that we started loading a library. It will let asset browsers
+    # and other UIs displaying this library indicate that loading is ongoing then, until finished.
+    wm = bpy.context.window_manager
+    wm.asset_library_status_begin_loading(library.remote_url)
+
     downloader = index_downloader.RemoteAssetListingDownloader(
         library.remote_url,
         library.path,
-        _remote_asset_libraries_sync_done)
+        on_update_callback=_remote_asset_libraries_sync_update,
+        on_done_callback=_remote_asset_libraries_sync_done,
+        on_metafiles_done_callback=_remote_asset_libraries_sync_metafiles_done,
+        on_page_done_callback=_remote_asset_libraries_sync_new_page_done,
+    )
     downloader.download_and_process()
 
     # Just to keep the Python object referenced:
@@ -461,7 +470,37 @@ def _remote_asset_libraries_sync_done(downloader: _RemoteAssetListingDownloader)
     or other issues can cause things to abort. In that case, this function is
     still called.
     """
+    from _bpy_internal.assets.remote_library_index.index_downloader import DownloadStatus
+
     _downloaders.remove(downloader)
+
+    wm = bpy.context.window_manager
+    match downloader.status:
+        case DownloadStatus.LOADING:
+            print("Unexpected: `on_done_callback` called while downloader status is loading")
+        case DownloadStatus.FINISHED_SUCCESSFULLY:
+            wm.asset_library_status_finished_loading(downloader.remote_url)
+        case DownloadStatus.FAILED:
+            wm.asset_library_status_failed_loading(downloader.remote_url, message=downloader.error_message)
+
+
+def _remote_asset_libraries_sync_update(downloader: _RemoteAssetListingDownloader) -> None:
+    from _bpy_internal.assets.remote_library_index.index_downloader import DownloadStatus
+
+    # Only call `asset_library_status_ping_still_loading()` if the loading is still going on.
+    if downloader.status == DownloadStatus.LOADING:
+        wm = bpy.context.window_manager
+        wm.asset_library_status_ping_still_loading(downloader.remote_url)
+
+
+def _remote_asset_libraries_sync_metafiles_done(downloader: _RemoteAssetListingDownloader) -> None:
+    wm = bpy.context.window_manager
+    wm.asset_library_status_ping_metafiles_in_place(downloader.remote_url)
+
+
+def _remote_asset_libraries_sync_new_page_done(downloader: _RemoteAssetListingDownloader) -> None:
+    wm = bpy.context.window_manager
+    wm.asset_library_status_ping_loaded_new_pages(downloader.remote_url)
 
 
 @bpy.app.handlers.persistent

@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import enum
 import hashlib
 import logging
 import re
@@ -38,6 +39,18 @@ time and requires resources on the server.
 """
 
 
+class DownloadStatus(enum.Enum):
+    LOADING = 'loading'
+    FINISHED_SUCCESSFULLY = 'finished successfully'
+    FAILED = 'failed'
+
+
+class DownloadStatus(enum.Enum):
+    LOADING = 'loading'
+    FINISHED_SUCCESSFULLY = 'finished successfully'
+    FAILED = 'failed'
+
+
 class RemoteAssetListingDownloader:
     _remote_url: str
     _local_path: Path
@@ -45,11 +58,25 @@ class RemoteAssetListingDownloader:
     _remote_url_split: urllib.parse.SplitResult
     _remote_url_path: PurePosixPath
 
+    OnUpdateCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
+    _on_update_callback: OnUpdateCallback
     OnDoneCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
     _on_done_callback: OnDoneCallback
+    OnMetafilesDoneCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
+    _on_metafiles_done_callback: OnMetafilesDoneCallback
+    OnPageDoneCallback: TypeAlias = Callable[['RemoteAssetListingDownloader'], None]
+    _on_page_done_callback: OnPageDoneCallback
 
     _bgdownloader: http_dl.BackgroundDownloader
     _num_asset_pages_pending: int
+
+    _status: DownloadStatus
+    _error_message: str
+    """An error message to show to the user.
+
+    Should be set on errors to communicate a message to users. Calling report()
+    with 'ERROR' as the level will set this to the given message.
+    """
 
     _DOWNLOAD_POLL_INTERVAL: float = 0.01
     """How often the background download process is polled, in seconds.
@@ -74,7 +101,10 @@ class RemoteAssetListingDownloader:
         self,
         remote_url: str,
         local_path: Path | str,
+        on_update_callback: OnUpdateCallback,
         on_done_callback: OnDoneCallback,
+        on_metafiles_done_callback: OnMetafilesDoneCallback | None = None,
+        on_page_done_callback: OnPageDoneCallback | None = None,
     ) -> None:
         """Create a downloader for the remote index of this library.
 
@@ -84,22 +114,44 @@ class RemoteAssetListingDownloader:
 
         :param local_path: The directory to download the index files to.
 
+        :param on_update_callback: Called with one parameter (this
+            RemoteAssetListingDownloader) in short, regular intervals
+            (_DOWNLOAD_POLL_INTERVAL) while the download is ongoing, and once
+            just after the download is done.
+
         :param on_done_callback: called with one parameter (this
             RemoteAssetListingDownloader) whenever the downloader is "done".
 
             Here "done" does not imply "successful", as cancellations, network
             errors, or other issues can cause things to abort. In that case,
             this function is still called.
+
+        :param on_metafiles_done_callback: called with one parameter (this
+            RemoteAssetListingDownloader) whenever the meta files
+            (ASSET_TOP_METADATA_FILENAME, ASSET_INDEX_JSON_FILENAME, and
+            blender_assets.cats.txt) are in their final location and ready to
+            be picked up by the asset system.
+
+        :param on_page_done_callback: called with one parameter (this
+            RemoteAssetListingDownloader) when at least one new page of the
+            asset listing finished downloading and verification, and was put in
+            its final location, ready to be picked up by the asset system.
         """
 
         self._remote_url = remote_url
         self._local_path = Path(local_path)
         self._on_done_callback = on_done_callback
+        self._on_update_callback = on_update_callback
+        self._on_metafiles_done_callback = on_metafiles_done_callback
+        self._on_page_done_callback = on_page_done_callback
 
         self._num_asset_pages_pending = 0
         self._referenced_local_files = []
         self._library_meta = None
         self._noncritical_downloads = set()
+
+        self._status = DownloadStatus.LOADING
+        self._error_message = ""
 
         # Work around a limitation of Blender, see bug report #139720 for details.
         self.on_timer_event = self.on_timer_event  # type: ignore[method-assign]
@@ -182,6 +234,7 @@ class RemoteAssetListingDownloader:
             self.report({'ERROR'}, msg)
             logger.error(msg)
 
+            self._status = DownloadStatus.FAILED
             self._bg_downloader.shutdown()
             return
 
@@ -233,6 +286,7 @@ class RemoteAssetListingDownloader:
         # The code below will re-fill the list with the relative file paths.
         processed_asset_index.page_urls = []
 
+
         # Download the asset pages.
         self._num_asset_pages_pending = len(page_urls)
         for page_index, page_url in enumerate(page_urls):
@@ -254,6 +308,10 @@ class RemoteAssetListingDownloader:
         with json_path.open("w") as json_file:
             json_file.write(as_json)
 
+        # Meta files are ready to be picked up by the asset system.
+        if self._on_metafiles_done_callback:
+            self._on_metafiles_done_callback(self)
+
     def on_asset_page_downloaded(self,
                                  http_req_descr: http_dl.RequestDescription,
                                  unsafe_local_file: Path,
@@ -270,6 +328,9 @@ class RemoteAssetListingDownloader:
 
         self._num_asset_pages_pending -= 1
         assert self._num_asset_pages_pending >= 0
+
+        if self._on_page_done_callback:
+            self._on_page_done_callback(self)
 
         logger.debug("Asset index page downloaded: %s", local_file)
 
@@ -307,7 +368,7 @@ class RemoteAssetListingDownloader:
     def _shutdown_if_done(self) -> None:
         if self._num_asset_pages_pending == 0 and self._bg_downloader.all_downloads_done:
             # Done downloading everything, let's shut down.
-            self.shutdown()
+            self.shutdown(DownloadStatus.FINISHED_SUCCESSFULLY)
 
     def _parse_api_model(self, unsafe_local_file: Path, api_model: Type[PydanticModel]) -> tuple[PydanticModel, bool]:
         """Use a Pydantic model to parse & validate a JSON file.
@@ -365,7 +426,7 @@ class RemoteAssetListingDownloader:
             "exception while handling downloaded file ({!r}, saved to {!r})".format(
                 http_req_descr, local_file))
         self.report({'ERROR'}, "Asset library index had an issue, download aborted")
-        self.shutdown()
+        self.shutdown(DownloadStatus.FAILED)
 
     def _queue_download(self, relative_url: str, download_to_path: Path | str,
                         on_done: Callable[[http_dl.RequestDescription, Path], None]) -> Path:
@@ -523,10 +584,13 @@ class RemoteAssetListingDownloader:
     # TODO: implement this in a more useful way:
     def report(self, level: set[str], message: str) -> None:
         # logger.info("Report: {:s}: {:s}".format("/".join(level), message))
-        pass
+        if 'ERROR' in level:
+            self._error_message = message
 
-    def shutdown(self) -> None:
-        """Stop the background downloader and call the 'done' callback."""
+    def shutdown(self, status: DownloadStatus) -> None:
+        """Stop the background downloader, update the status and call the 'done' callback."""
+
+        self._status = status
 
         # The timer is no longer necessary, the bg_downloader.shutdown() call
         # takes care of the last queued messages.
@@ -564,7 +628,21 @@ class RemoteAssetListingDownloader:
                 self._remote_url,
                 self._local_path)
 
+        self._on_update_callback(self)
+
         return self._DOWNLOAD_POLL_INTERVAL
+
+    @property
+    def remote_url(self) -> str:
+        return self._remote_url
+
+    @property
+    def status(self) -> DownloadStatus:
+        return self._status
+
+    @property
+    def error_message(self) -> str:
+        return self._error_message
 
     # Below here: CachingDownloadReporter functions:
 
@@ -601,7 +679,7 @@ class RemoteAssetListingDownloader:
 
         self.report({'ERROR'}, "Error downloading {}: {}".format(http_req_descr.url, error))
         logger.error("Error downloading %s: %s", http_req_descr, error)
-        self.shutdown()
+        self.shutdown(DownloadStatus.FAILED)
 
     def download_progress(
         self,
