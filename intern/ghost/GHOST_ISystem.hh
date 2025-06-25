@@ -373,6 +373,11 @@ class GHOST_ISystem {
   virtual GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const = 0;
 
   /**
+   * \return the size of the cursor in logical pixels (before Hi-DPI scaling is applied).
+   */
+  virtual uint32_t getCursorPreferredLogicalSize() const = 0;
+
+  /**
    * Updates the location of the cursor (location in screen coordinates).
    * Not all operating systems allow the cursor to be moved (without the input device being moved).
    * \param x: The x-coordinate of the cursor.

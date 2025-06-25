@@ -8356,6 +8356,15 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t x, const int
   return GHOST_kFailure;
 }
 
+uint32_t GHOST_SystemWayland::getCursorPreferredLogicalSize() const
+{
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*server_mutex};
+#endif
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  return seat->cursor.theme_size;
+}
+
 void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
