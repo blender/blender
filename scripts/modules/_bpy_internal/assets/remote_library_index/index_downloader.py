@@ -311,6 +311,7 @@ class RemoteAssetListingDownloader:
             options=http_dl.DownloaderOptions(
                 metadata_provider=self._http_metadata_provider,
                 http_headers={'Accept': 'application/json'},
+                timeout=300,
             ),
             on_callback_error=self._on_callback_error,
         )

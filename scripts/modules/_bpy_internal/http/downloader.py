@@ -67,6 +67,12 @@ class ConditionalDownloader:
     (False).
     """
 
+    timeout: int | tuple[int, int] | None
+    """Timeout in seconds, tuple (connect timeout, read timeout).
+
+    When only one number is given, it is used for both timeouts.
+    """
+
     _reporter: DownloadReporter
 
     def __init__(
@@ -82,6 +88,7 @@ class ConditionalDownloader:
         self.http_session = http_session()
         self.chunk_size = 8192  # Sensible default, can be adjusted after creation if necessary.
         self.periodic_check = lambda: True
+        self.timeout = None
         self._reporter = _DummyReporter()
 
     def download_to_file(
@@ -163,7 +170,7 @@ class ConditionalDownloader:
         self._add_compression_request_headers(prepped)
         self._add_conditional_request_headers(prepped, meta)
 
-        with self.http_session.send(prepped, stream=True) as stream:
+        with self.http_session.send(prepped, stream=True, timeout=self.timeout) as stream:
             logger.debug(
                 "HTTP %s %s (headers %s) -> %d",
                 http_req_descr.http_method,
@@ -346,6 +353,11 @@ _mp_context = multiprocessing.get_context(method='spawn')
 @dataclasses.dataclass
 class DownloaderOptions:
     metadata_provider: MetadataProvider
+    timeout: int | tuple[int, int]
+    """Timeout in seconds, tuple (connect timeout, read timeout).
+
+    When only one number is given, it is used for both timeouts.
+    """
     http_headers: dict[str, str] = dataclasses.field(default_factory=dict)
 
 
@@ -774,6 +786,7 @@ def _download_queued_items(
     downloader.http_session.headers.update(options.http_headers)
     downloader.add_reporter(reporter)
     downloader.periodic_check = periodic_check
+    downloader.timeout = options.timeout
 
     while periodic_check():
         # Pop an item off the front of the queue.
