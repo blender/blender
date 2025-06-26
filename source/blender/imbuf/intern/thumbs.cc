@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -579,7 +580,7 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size)
   }
 }
 
-static ImBuf *thumb_online_asset_get(const char *file_or_lib_path, ThumbSize size)
+static std::optional<std::string> thumb_online_asset_library_cache_dir_get(const char *lib_path)
 {
   char library_cache_dir[FILE_MAXDIR] = "";
   /* A bit ugly, but we don't have access to the asset or asset library here, so need to find the
@@ -597,7 +598,7 @@ static ImBuf *thumb_online_asset_get(const char *file_or_lib_path, ThumbSize siz
     }();
 
     if (!libraries_cache) {
-      return nullptr;
+      return {};
     }
 
     direntry *dir_entries = nullptr;
@@ -613,22 +614,27 @@ static ImBuf *thumb_online_asset_get(const char *file_or_lib_path, ThumbSize siz
         continue;
       }
 
-      if (BLI_path_contains(entry->path, file_or_lib_path)) {
+      if (BLI_path_contains(entry->path, lib_path)) {
         STRNCPY(library_cache_dir, entry->path);
         break;
       }
     }
   }
 
-  if (library_cache_dir[0] == '\0') {
-    return nullptr;
-  }
+  return library_cache_dir;
+}
 
-  /* Practically always "large" for asset previews. */
-  const char *thumb_size_dir = get_thumb_size_dir_name(size);
+static ImBuf *thumb_online_asset_get(const char *lib_path,
+                                     const StringRefNull library_cache_dir,
+                                     const ThumbSize size)
+{
   char thumbs_dir_path[FILE_MAXDIR];
-  BLI_path_join(
-      thumbs_dir_path, sizeof(thumbs_dir_path), library_cache_dir, "_thumbs", thumb_size_dir);
+  BLI_path_join(thumbs_dir_path,
+                sizeof(thumbs_dir_path),
+                library_cache_dir.c_str(),
+                "_thumbs",
+                /* Practically always "large" for asset previews. */
+                get_thumb_size_dir_name(size));
 
   const char *extensions[] = {
 #ifdef WITH_IMAGE_WEBP
@@ -640,7 +646,7 @@ static ImBuf *thumb_online_asset_get(const char *file_or_lib_path, ThumbSize siz
   /* Try for each supported extension. */
   for (int i = 0; i < ARRAY_SIZE(extensions); i++) {
     char thumb_name[40];
-    string_to_md5_hash_file_name(file_or_lib_path, extensions[i], thumb_name, sizeof(thumb_name));
+    string_to_md5_hash_file_name(lib_path, extensions[i], thumb_name, sizeof(thumb_name));
 
     /* First two letters of the thumbnail name (MD5 hash of the URI) as sub-directory name. */
     char thumb_prefix[3];
@@ -652,10 +658,25 @@ static ImBuf *thumb_online_asset_get(const char *file_or_lib_path, ThumbSize siz
     char thumb_path[FILE_MAX];
     BLI_path_join(thumb_path, sizeof(thumb_path), thumbs_dir_path, thumb_prefix, thumb_name + 2);
     if (ImBuf *imbuf = IMB_load_image_from_filepath(thumb_path, IB_byte_data | IB_metadata)) {
-      IMB_byte_from_float(imbuf);
-      IMB_free_float_pixels(imbuf);
       return imbuf;
     }
+  }
+
+  return nullptr;
+}
+
+static ImBuf *thumb_online_asset_manage(const char *lib_path, ThumbSize size)
+{
+  std::optional<std::string> library_cache_dir = thumb_online_asset_library_cache_dir_get(
+      lib_path);
+  if (!library_cache_dir) {
+    return nullptr;
+  }
+
+  if (ImBuf *thumb = thumb_online_asset_get(lib_path, *library_cache_dir, size)) {
+    IMB_byte_from_float(thumb);
+    IMB_free_float_pixels(thumb);
+    return thumb;
   }
 
   return nullptr;
@@ -664,7 +685,7 @@ static ImBuf *thumb_online_asset_get(const char *file_or_lib_path, ThumbSize siz
 ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSource source)
 {
   if (source == THB_SOURCE_ONLINE_ASSET) {
-    return thumb_online_asset_get(file_or_lib_path, size);
+    return thumb_online_asset_manage(file_or_lib_path, size);
   }
 
   char path_buff[FILE_MAX_LIBEXTRA];

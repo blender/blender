@@ -2705,6 +2705,7 @@ bool filelist_cache_previews_update(FileList *filelist)
     /* Paranoid (should never happen currently
      * since we consume this queue from a single thread), but... */
     if (!preview) {
+      BLI_assert_unreachable();
       continue;
     }
     /* entry might have been removed from cache in the mean time,
