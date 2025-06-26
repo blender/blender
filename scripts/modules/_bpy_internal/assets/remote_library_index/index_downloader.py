@@ -749,8 +749,12 @@ class RemoteAssetListingDownloader:
         http_req_descr: http_dl.RequestDescription,
         local_file: Path,
     ) -> None:
-        self.report({'INFO'}, "Download finished: {}".format(http_req_descr.url))
-        logger.info("Download finished: %s", http_req_descr)
+        if local_file in self._noncritical_downloads:
+            # Don't spam the reports & logs with all the thumbnail download.
+            logger.debug("Download finished: %s", http_req_descr)
+        else:
+            self.report({'INFO'}, "Download finished: {}".format(http_req_descr.url))
+            logger.info("Download finished: %s", http_req_descr)
 
 
 def _sanitize_path_from_url(urlpath: PurePosixPath | str) -> PurePosixPath:
