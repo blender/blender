@@ -1700,7 +1700,6 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
    * using the mesh's face offsets, and we will use Blender's parallelized function to calculate
    * edges later. */
   Mesh *mesh = bke::mesh_new_no_attributes(verts_num, 0, faces_num, 0);
-  BKE_defgroup_copy_list(&mesh->vertex_group_names, &joined_mesh->vertex_group_names);
   BKE_mesh_copy_parameters_for_eval(mesh, joined_mesh);
 
   /* First the face offsets store the size of each result face, then we accumulate them to form the
