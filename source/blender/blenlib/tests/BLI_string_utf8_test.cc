@@ -319,7 +319,7 @@ static const char *utf8_invalid_tests[][3] = {
 /* clang-format on */
 
 /* BLI_str_utf8_invalid_strip (and indirectly, BLI_str_utf8_invalid_byte). */
-TEST(string, Utf8InvalidBytes)
+TEST(string, Utf8InvalidBytesStrip)
 {
   for (int i = 0; utf8_invalid_tests[i][0] != nullptr; i++) {
     const char *tst = utf8_invalid_tests[i][0];
@@ -335,6 +335,53 @@ TEST(string, Utf8InvalidBytes)
     EXPECT_EQ(errors_found_num, errors_num);
     EXPECT_STREQ(buff, tst_stripped);
   }
+}
+
+/* BLI_str_utf8_invalid_substitute (and indirectly, BLI_str_utf8_invalid_byte). */
+TEST(string, Utf8InvalidBytesSubstitute)
+{
+  for (int i = 0; utf8_invalid_tests[i][0] != nullptr; i++) {
+    const char *tst = utf8_invalid_tests[i][0];
+    const int errors_num = int(utf8_invalid_tests[i][2][0]);
+
+    char buff[80];
+    memcpy(buff, tst, sizeof(buff));
+
+    const int errors_found_num = BLI_str_utf8_invalid_substitute(buff, sizeof(buff) - 1, '?');
+
+    EXPECT_EQ(errors_found_num, errors_num);
+    EXPECT_EQ(BLI_str_utf8_invalid_byte(buff, sizeof(buff) - 1), -1);
+    EXPECT_EQ(strlen(buff), sizeof(buff) - 1);
+  }
+}
+
+TEST(string, Utf8InvalidBytesSubstitutePatterns)
+{
+#define TEST_SIMPLE(src_chars, expected_error_count, expected_str) \
+  { \
+    char buff[] = src_chars; \
+    EXPECT_EQ(BLI_str_utf8_invalid_substitute(buff, strlen(buff), '?'), expected_error_count); \
+    EXPECT_STREQ(buff, expected_str); \
+  } \
+  ((void)0)
+
+#define ARRAY_ARG(...) __VA_ARGS__
+
+  /* Empty string. */
+  TEST_SIMPLE(ARRAY_ARG({0x0}), 0, "");
+  /* One good. */
+  TEST_SIMPLE(ARRAY_ARG({'A', 0x0}), 0, "A");
+  /* One bad. */
+  TEST_SIMPLE(ARRAY_ARG({0xff, 0x0}), 1, "?");
+
+  /* Additional patterns. */
+  TEST_SIMPLE(ARRAY_ARG({0xe0, 0xef, 0x0}), 2, "??");
+  TEST_SIMPLE(ARRAY_ARG({0xe0, 'A', 0x0}), 1, "?A");
+  TEST_SIMPLE(ARRAY_ARG({'A', 0xef, 0x0}), 1, "A?");
+  TEST_SIMPLE(ARRAY_ARG({0xe0, 'A', 0xed, 0x0}), 2, "?A?");
+
+#undef ARRAY_ARG
+#undef TEST_SIMPLE
 }
 
 /** \} */

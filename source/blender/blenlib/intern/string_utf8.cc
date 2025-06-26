@@ -307,6 +307,25 @@ int BLI_str_utf8_invalid_strip(char *str, size_t str_len)
   return tot;
 }
 
+int BLI_str_utf8_invalid_substitute(char *str, size_t str_len, const char substitute)
+{
+  BLI_assert(substitute);
+  ptrdiff_t bad_char;
+  int tot = 0;
+
+  BLI_assert(str[str_len] == '\0');
+
+  while ((bad_char = BLI_str_utf8_invalid_byte(str, str_len)) != -1) {
+    str[bad_char] = substitute;
+    bad_char += 1; /* Step over the bad character. */
+    str += bad_char;
+    str_len -= size_t(bad_char);
+    tot++;
+  }
+
+  return tot;
+}
+
 /**
  * Internal utility for implementing #BLI_strncpy_utf8 / #BLI_strncpy_utf8_rlen.
  *
