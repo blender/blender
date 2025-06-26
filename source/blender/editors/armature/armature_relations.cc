@@ -334,6 +334,30 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  /* Check that there are no shared Armatures, as the code below assumes that
+   * each to-be-joined Armature is unique. */
+  {
+    blender::Set<const bArmature *> seen_armatures;
+    CTX_DATA_BEGIN (C, const Object *, ob_iter, selected_editable_objects) {
+      if (ob_iter->type != OB_ARMATURE) {
+        continue;
+      }
+
+      const bArmature *armature = static_cast<bArmature *>(ob_iter->data);
+      if (seen_armatures.add(armature)) {
+        /* Armature pointer was added to the set, which means it wasn't seen before. */
+        continue;
+      }
+
+      BKE_reportf(op->reports,
+                  RPT_ERROR,
+                  "Cannot join objects that share armature data: %s",
+                  armature->id.name + 2);
+      return OPERATOR_CANCELLED;
+    }
+    CTX_DATA_END;
+  }
+
   /* Inverse transform for all selected armatures in this object,
    * See #object_join_exec for detailed comment on why the safe version is used. */
   invert_m4_m4_safe_ortho(oimat, ob_active->object_to_world().ptr());
