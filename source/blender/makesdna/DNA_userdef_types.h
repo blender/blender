@@ -1016,11 +1016,11 @@ typedef enum eNdof_Flag {
   NDOF_SHOULD_ROTATE = (1 << 5),
 
   // NDOF_UNUSED_6 = (1 << 6), /* Dirty. */
-
-  /* actually... users probably don't care about what the mode
-   * is called, just that it feels right */
-  /* zoom is up/down if this flag is set (otherwise forward/backward) */
-  NDOF_PAN_YZ_SWAP_AXIS = (1 << 7),
+  /**
+   * When set translation results in zoom being up/down otherwise forward/backward
+   * This also swaps X/Y for rotation.
+   */
+  NDOF_SWAP_XY_AXIS = (1 << 7),
   // NDOF_UNUSED_8 = (1 << 8), /* Dirty. */
   NDOF_ROTX_INVERT_AXIS = (1 << 9),
   NDOF_ROTY_INVERT_AXIS = (1 << 10),
