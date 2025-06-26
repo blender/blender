@@ -12,6 +12,7 @@ import logging
 import multiprocessing
 import multiprocessing.connection
 import multiprocessing.process
+import queue
 import time
 import zlib  # For streaming gzip decompression.
 from collections.abc import Callable
@@ -468,7 +469,6 @@ class BackgroundDownloader:
             target=_download_queued_items,
             args=(
                 subprocess_side,
-                self._shutdown_event,
                 self._options,
             ),
             daemon=True,
@@ -506,6 +506,9 @@ class BackgroundDownloader:
 
         self._logger.debug("shutting down")
         self._shutdown_event.set()
+
+        # Send the CANCEL message to shut down the background process.
+        self._connection.send(PipeMessage(PipeMsgType.CANCEL, None))
 
         # Keep receiving incoming messages, to avoid the background process
         # getting stuck on a send() call.
@@ -675,13 +678,15 @@ class PipeMessage:
 
 def _download_queued_items(
         connection: multiprocessing.connection.Connection,
-        shutdown_event: EventClass,
         options: DownloaderOptions,
 ) -> None:
     """Runs in a daemon process to download stuff.
 
     Managed by the BackgroundDownloader class above.
     """
+    import queue
+    import threading
+
     # logging.basicConfig(
     #     format="%(asctime)-15s %(processName)22s %(levelname)8s %(name)s %(message)s",
     #     level=logging.DEBUG,
@@ -689,22 +694,38 @@ def _download_queued_items(
     log = logger.getChild('background_process')
     log.info('Downloader background process starting')
 
+    # Local queue for incoming messages.
+    rx_queue: queue.Queue[PipeMessage] = queue.Queue()
+
     # Local queue of stuff to download.
     download_queue: collections.deque[BackgroundDownloader.QueuedDownload] = collections.deque()
 
     # Local queue of reports to send back to the main process.
     reporter = QueueingReporter()
 
-    def periodic_check() -> bool:
-        """Called periodically by this function, as well as by the downloader."""
+    do_shutdown = threading.Event()
 
-        # Send queued reports back to the main process.
-        while True:
+    def rx_thread_func():
+        """Process incoming messages."""
+        while not do_shutdown.is_set():
+            # Always keep receiving messages while they're coming in,
+            # to prevent the remote end hanging on their send() call.
+            # Only once that's done should we check the do_shutdown event.
+            while connection.poll():
+                received_msg: PipeMessage = connection.recv()
+                log.info("received message: %s", received_msg)
+                rx_queue.put(received_msg)
+
+    def tx_thread_func():
+        """Send queued reports back to the main process."""
+        while not do_shutdown.is_set():
             try:
                 queued_call = reporter.pop()
             except IndexError:
                 # Not having anything to do is fine.
-                break
+                time.sleep(0.01)
+                continue
+
             queued_msg = PipeMessage(
                 msgtype=PipeMsgType.REPORT,
                 payload=queued_call,
@@ -712,23 +733,35 @@ def _download_queued_items(
             log.info("sending message %s", queued_msg)
             connection.send(queued_msg)
 
-        # Process incoming messages.
-        can_keep_running = True
-        while connection.poll():
-            received_msg: PipeMessage = connection.recv()
-            log.info("received message: %s", received_msg)
+    rx_thread = threading.Thread(target=rx_thread_func)
+    tx_thread = threading.Thread(target=tx_thread_func)
+
+    rx_thread.start()
+    tx_thread.start()
+
+    def periodic_check() -> bool:
+        """Handle received messages, and return whether we can keep running.
+
+        Called periodically by this function, as well as by the downloader.
+        """
+
+        while not do_shutdown.is_set():
+            try:
+                received_msg: PipeMessage = rx_queue.get(block=False)
+            except queue.Empty:
+                # Not receiving anything is fine.
+                return not do_shutdown.is_set()
+
             match received_msg.msgtype:
                 case PipeMsgType.CANCEL:
-                    can_keep_running = False
+                    do_shutdown.set()
                 case PipeMsgType.QUEUE_DOWNLOAD:
                     download_queue.append(received_msg.payload)
                 case PipeMsgType.REPORT:
+                    # Reports are sent by us, not by the other side.
                     pass
 
-        if shutdown_event.is_set():
-            return False
-
-        return can_keep_running
+        return not do_shutdown.is_set()
 
     # Construct a ConditionalDownloader. Unfortunately this is necessary, as
     # not all its properties can be pickled, and as a result, it cannot be
@@ -747,9 +780,6 @@ def _download_queued_items(
         except IndexError:
             time.sleep(0.1)
             continue
-
-        if shutdown_event.is_set():
-            break
 
         http_req_descr, local_path = queued_download
 
@@ -778,6 +808,16 @@ def _download_queued_items(
             # Unexpected errors should really be logged here, as they may
             # indicate bugs (typos, dependencies not found, etc).
             log.exception("unexpected error downloading %s: %s", http_req_descr, ex)
+
+    try:
+        rx_thread.join(timeout=1.0)
+    except RuntimeError:
+        log.exception("joining RX thread")
+
+    try:
+        tx_thread.join(timeout=1.0)
+    except RuntimeError:
+        log.exception("joining TX thread")
 
     log.debug("download process shutting down")
 
