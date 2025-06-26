@@ -322,13 +322,16 @@ static int py_imbuf_filepath_set(Py_ImBuf *self, PyObject *value, void * /*closu
 
   ImBuf *ibuf = self->ibuf;
   const Py_ssize_t value_str_len_max = sizeof(ibuf->filepath);
+  PyObject *value_coerce = nullptr;
   Py_ssize_t value_str_len;
-  const char *value_str = PyUnicode_AsUTF8AndSize(value, &value_str_len);
+  const char *value_str = PyC_UnicodeAsBytesAndSize(value, &value_str_len, &value_coerce);
   if (value_str_len >= value_str_len_max) {
     PyErr_Format(PyExc_TypeError, "filepath length over %zd", value_str_len_max - 1);
+    Py_XDECREF(value_coerce);
     return -1;
   }
   memcpy(ibuf->filepath, value_str, value_str_len + 1);
+  Py_XDECREF(value_coerce);
   return 0;
 }
 
