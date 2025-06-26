@@ -186,6 +186,12 @@ class AttributeStorage : public ::AttributeStorage {
   void rename(StringRef old_name, std::string new_name);
 
   /**
+   * Resize the data for a given domain. New values will be default initialized (meaning no zero
+   * initialization for trivial types).
+   */
+  void resize(AttrDomain domain, int64_t new_size);
+
+  /**
    * Read data owned by the #AttributeStorage struct. This works by converting the DNA-specific
    * types stored in the files to the runtime data structures.
    */

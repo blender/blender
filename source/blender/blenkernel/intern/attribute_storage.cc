@@ -314,6 +314,34 @@ void AttributeStorage::rename(const StringRef old_name, std::string new_name)
   }
 }
 
+void AttributeStorage::resize(const AttrDomain domain, const int64_t new_size)
+{
+  this->foreach([&](Attribute &attr) {
+    if (attr.domain() != domain) {
+      return;
+    }
+    const CPPType &type = attribute_type_to_cpp_type(attr.data_type());
+    switch (attr.storage_type()) {
+      case bke::AttrStorageType::Array: {
+        const auto &data = std::get<bke::Attribute::ArrayData>(attr.data());
+        const int64_t old_size = data.size;
+
+        auto new_data = bke::Attribute::ArrayData::ForUninitialized(type, new_size);
+        type.copy_construct_n(data.data, new_data.data, std::min(old_size, new_size));
+        if (old_size < new_size) {
+          type.default_construct_n(POINTER_OFFSET(new_data.data, type.size * old_size),
+                                   new_size - old_size);
+        }
+
+        attr.assign_data(std::move(new_data));
+      }
+      case bke::AttrStorageType::Single: {
+        return;
+      }
+    }
+  });
+}
+
 static void read_array_data(BlendDataReader &reader,
                             const int8_t dna_attr_type,
                             const int64_t size,

@@ -259,7 +259,8 @@ void debug_randomize_instance_order(bke::Instances *instances)
   const int instances_num = instances->instances_num();
   const int seed = seed_from_instances(*instances);
   const Array<int> new_by_old_map = get_permutation(instances_num, seed);
-  reorder_customdata(instances->custom_data_attributes(), new_by_old_map);
+  reorder_attribute_domain(
+      instances->attribute_storage(), bke::AttrDomain::Instance, new_by_old_map);
 }
 
 bool use_debug_randomization()

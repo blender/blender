@@ -59,6 +59,7 @@ set(SRC
   intern/attribute_legacy_convert.cc
   intern/attribute_math.cc
   intern/attribute_storage.cc
+  intern/attribute_storage_access.cc
   intern/autoexec.cc
   intern/bake_data_block_map.cc
   intern/bake_geometry_nodes_modifier.cc
