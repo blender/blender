@@ -3148,7 +3148,19 @@ void BKE_pchan_minmax(const Object *ob,
 {
   using namespace blender;
   const bArmature *arm = static_cast<const bArmature *>(ob->data);
-  Object *ob_custom = (arm->flag & ARM_NO_CUSTOM) ? nullptr : pchan->custom;
+
+  Object *ob_custom = nullptr;
+  if (!(arm->flag & ARM_NO_CUSTOM) && pchan->custom) {
+    /* This should not be possible, protected against in RNA code and
+     * BKE_pose_blend_read_after_liblink(). Just for safety do another check
+     * here, as otherwise this code can end in an infinite loop. */
+    BLI_assert(pchan->custom->type != OB_ARMATURE);
+
+    if (pchan->custom->type != OB_ARMATURE) {
+      ob_custom = pchan->custom;
+    }
+  }
+
   const bPoseChannel *pchan_tx = (ob_custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
 
   std::optional<Bounds<float3>> bb_custom;
