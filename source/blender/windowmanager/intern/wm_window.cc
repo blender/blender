@@ -544,7 +544,7 @@ void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title)
     win_title.append(filename, filename_no_ext_len);
   }
   else if (has_filepath) {
-    win_title.append(BLI_path_basename(filename));
+    win_title.append(filename);
   }
   /* New / Unsaved file default title. Shows "Untitled" on macOS following the Apple HIGs. */
   else {
