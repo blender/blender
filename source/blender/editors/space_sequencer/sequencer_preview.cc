@@ -101,20 +101,6 @@ static void execute_read_sound_waveform_task(TaskPool *__restrict task_pool, voi
   BKE_sound_read_waveform(audio_job->bmain, audio_job->sound, task->stop);
 }
 
-static void push_preview_job_audio_task(TaskPool *__restrict task_pool,
-                                        PreviewJob *pj,
-                                        PreviewJobAudio *previewjb,
-                                        bool *stop)
-{
-  ReadSoundWaveformTask *task = MEM_callocN<ReadSoundWaveformTask>("read sound waveform task");
-  task->wm_job = pj;
-  task->preview_job_audio = previewjb;
-  task->stop = stop;
-
-  BLI_task_pool_push(
-      task_pool, execute_read_sound_waveform_task, task, true, free_read_sound_waveform_task);
-}
-
 /* Only this runs inside thread. */
 static void preview_startjob(void *data, wmJobWorkerStatus *worker_status)
 {
@@ -160,13 +146,23 @@ static void preview_startjob(void *data, wmJobWorkerStatus *worker_status)
       break;
     }
 
+    Vector<ReadSoundWaveformTask *> new_tasks;
     LISTBASE_FOREACH_MUTABLE (PreviewJobAudio *, previewjb, &pj->previews) {
-      push_preview_job_audio_task(task_pool, pj, previewjb, &worker_status->stop);
+      ReadSoundWaveformTask *task = MEM_callocN<ReadSoundWaveformTask>("read sound waveform task");
+      task->wm_job = pj;
+      task->preview_job_audio = previewjb;
+      task->stop = &worker_status->stop;
+      new_tasks.append(task);
 
       BLI_remlink(&pj->previews, previewjb);
     }
 
     BLI_mutex_unlock(pj->mutex);
+
+    for (ReadSoundWaveformTask *task : new_tasks) {
+      BLI_task_pool_push(
+          task_pool, execute_read_sound_waveform_task, task, true, free_read_sound_waveform_task);
+    }
   }
 
   BLI_task_pool_work_and_wait(task_pool);
