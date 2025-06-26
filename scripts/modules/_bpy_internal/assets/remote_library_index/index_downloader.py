@@ -354,8 +354,12 @@ class RemoteAssetListingDownloader:
         try:
             # Check whether the file was actually an image.
             assert http_req_descr.response_headers
-            content_type = http_req_descr.response_headers['content-type']
-            if not content_type.startswith('image/'):
+            content_type = http_req_descr.response_headers.get('content-type', "")
+
+            # Only check the content type if the server sends it back. Otherwise
+            # just trust that it's valid. For example, when sending a `304 Not
+            # Modified`, the server may actually skip the Content-Type header.
+            if content_type and not content_type.startswith('image/'):
                 logger.warning("Thumbnail URL %r has content type %r, expected an image",
                                http_req_descr.url, content_type)
                 # TODO: mark as 'failed' so that this file isn't repeatedly

@@ -126,7 +126,7 @@ class ConditionalDownloader:
         if http_meta is None:
             # Local file is already fresh, no need to re-download.
             assert not temp_path.exists()
-            self._reporter.already_downloaded(http_req_descr, local_path)
+            self._reporter.already_downloaded(http_req_descr_with_headers, local_path)
             return
 
         # Move the downloaded file to the final filename.
@@ -135,7 +135,7 @@ class ConditionalDownloader:
         local_path.unlink(missing_ok=True)
         temp_path.rename(local_path)
 
-        self.metadata_provider.save(http_req_descr, http_meta)
+        self.metadata_provider.save(http_req_descr_with_headers, http_meta)
 
         self._reporter.download_finished(http_req_descr_with_headers, local_path)
 
@@ -266,13 +266,8 @@ class ConditionalDownloader:
         if num_downloaded_bytes != content_length:
             raise ContentLengthError(http_req_descr, content_length, num_downloaded_bytes)
 
-        # File was downloaded succesfully, store the metadata without all the headers.
-        http_req_descr_without_headers = http_req_descr.model_copy(
-            update=dict(response_headers=None),
-        )
-
         meta = HTTPMetadata(
-            request=http_req_descr_without_headers,
+            request=http_req_descr,
             etag=stream.headers.get("ETag") or "",
             last_modified=stream.headers.get("Last-Modified") or "",
             content_length=num_downloaded_bytes,
