@@ -18,6 +18,7 @@ class RemoteAssetLibrary : public AssetLibrary {
  public:
   RemoteAssetLibrary(StringRef remote_url, StringRef cache_rootpath);
   std::optional<AssetLibraryReference> library_reference() const override;
+  std::optional<StringRefNull> remote_url() const override;
   void refresh_catalogs() override;
   void load_or_reload_catalogs();
 };

@@ -185,6 +185,11 @@ void AssetLibrary::foreach_loaded(FunctionRef<void(AssetLibrary &)> fn,
   service->foreach_loaded_asset_library(fn, include_all_library);
 }
 
+std::optional<StringRefNull> AssetLibrary::remote_url() const
+{
+  return {};
+};
+
 AssetCatalogService &AssetLibrary::catalog_service() const
 {
   return *catalog_service_;

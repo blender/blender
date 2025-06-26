@@ -127,6 +127,7 @@ class AssetLibrary {
    * were loaded directly through a path.
    */
   virtual std::optional<AssetLibraryReference> library_reference() const = 0;
+  virtual std::optional<StringRefNull> remote_url() const;
 
   AssetCatalogService &catalog_service() const;
 

@@ -44,6 +44,11 @@ std::optional<AssetLibraryReference> RemoteAssetLibrary::library_reference() con
   return {};
 }
 
+std::optional<StringRefNull> RemoteAssetLibrary::remote_url() const
+{
+  return remote_url_;
+}
+
 void RemoteAssetLibrary::refresh_catalogs()
 {
   this->catalog_service().reload_catalogs();
