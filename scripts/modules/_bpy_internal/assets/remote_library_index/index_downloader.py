@@ -520,7 +520,9 @@ class RemoteAssetListingDownloader:
             # Indicate to a future run that we just confirmed this file is still fresh.
             local_file.touch()
 
-            # TODO: maybe poke the asset browser to load this thumbnail? Not sure if it's even necessary.
+            # Poke Blender so it knows there's a thumbnail update.
+            wm: bpy.types.WindowManager = bpy.context.window_manager
+            wm.asset_library_status_ping_loaded_new_previews(self.remote_url)
         finally:
             self._shutdown_if_done()
 
