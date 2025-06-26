@@ -582,42 +582,45 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size)
 
 static std::optional<std::string> thumb_online_asset_library_cache_dir_get(const char *lib_path)
 {
-  char library_cache_dir[FILE_MAXDIR] = "";
+
+  static char library_cache_dir[FILE_MAXDIR] = "";
+
+  /* Optimization: Remember result from last lookup, and check if it still points to the needed
+   * cache. In practice this avoids a lot of lookups, since we typically get a bunch of for asset
+   * previews in the same library after each other. */
+  if (library_cache_dir[0] && BLI_path_contains(library_cache_dir, lib_path)) {
+    return library_cache_dir;
+  }
+  library_cache_dir[0] = '\0';
+
   /* A bit ugly, but we don't have access to the asset or asset library here, so need to find the
    * library cache somehow. This iterates the current library caches on disk, and checks which one
    * contains #file_or_lib_path. */
-  {
-    static std::optional<std::string> libraries_cache = []() -> std::optional<std::string> {
-      char cache_path[FILE_MAXDIR];
-      if (!BKE_appdir_folder_caches(cache_path, sizeof(cache_path))) {
-        return std::nullopt;
-      }
-      char libraries_cache[FILE_MAX];
-      BLI_path_join(libraries_cache, sizeof(libraries_cache), cache_path, "remote-assets");
-      return libraries_cache;
-    }();
 
-    if (!libraries_cache) {
-      return {};
+  char cache_path[FILE_MAXDIR];
+  if (!BKE_appdir_folder_caches(cache_path, sizeof(cache_path))) {
+    return std::nullopt;
+  }
+
+  char libraries_cache[FILE_MAX];
+  BLI_path_join(libraries_cache, sizeof(libraries_cache), cache_path, "remote-assets");
+
+  direntry *dir_entries = nullptr;
+  const int dir_entries_num = BLI_filelist_dir_contents(libraries_cache, &dir_entries);
+  BLI_SCOPED_DEFER([&]() { BLI_filelist_free(dir_entries, dir_entries_num); });
+
+  for (int i = 0; i < dir_entries_num; i++) {
+    direntry *entry = &dir_entries[i];
+    if (!BLI_is_dir(entry->path)) {
+      continue;
+    }
+    if (entry->relname[0] == '.') {
+      continue;
     }
 
-    direntry *dir_entries = nullptr;
-    const int dir_entries_num = BLI_filelist_dir_contents(libraries_cache->c_str(), &dir_entries);
-    BLI_SCOPED_DEFER([&]() { BLI_filelist_free(dir_entries, dir_entries_num); });
-
-    for (int i = 0; i < dir_entries_num; i++) {
-      direntry *entry = &dir_entries[i];
-      if (!BLI_is_dir(entry->path)) {
-        continue;
-      }
-      if (entry->relname[0] == '.') {
-        continue;
-      }
-
-      if (BLI_path_contains(entry->path, lib_path)) {
-        STRNCPY(library_cache_dir, entry->path);
-        break;
-      }
+    if (BLI_path_contains(entry->path, lib_path)) {
+      STRNCPY(library_cache_dir, entry->path);
+      break;
     }
   }
 
