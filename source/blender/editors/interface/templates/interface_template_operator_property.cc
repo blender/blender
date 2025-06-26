@@ -351,7 +351,7 @@ static void draw_export_controls(
   if (valid) {
     uiLayout *row = &layout->row(false);
     row->emboss_set(blender::ui::EmbossType::None);
-    uiItemPopoverPanel(row, C, "WM_PT_operator_presets", "", ICON_PRESET);
+    row->popover(C, "WM_PT_operator_presets", "", ICON_PRESET);
     PointerRNA op_ptr = row->op("COLLECTION_OT_exporter_export", "", ICON_EXPORT);
     RNA_int_set(&op_ptr, "index", index);
   }
