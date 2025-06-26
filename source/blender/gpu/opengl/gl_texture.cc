@@ -375,7 +375,8 @@ void *GLTexture::read(int mip, eGPUDataFormat type)
    * if the texture is big. (see #66573) */
   void *data = MEM_mallocN(texture_size + 8, "GPU_texture_read");
 
-  GLenum gl_format = to_gl_data_format(format_);
+  GLenum gl_format = to_gl_data_format(format_ == GPU_DEPTH32F_STENCIL8 ? GPU_DEPTH_COMPONENT32F :
+                                                                          format_);
   GLenum gl_type = to_gl(type);
 
   if (GLContext::direct_state_access_support) {
