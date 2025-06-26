@@ -421,7 +421,10 @@ class BackgroundDownloader:
         self._reporters.append(reporter)
 
     def queue_download(self, remote_url: str, local_path: Path,
-                       on_download_done: DownloadDoneCallback | None = None) -> None:
+                       on_download_done: DownloadDoneCallback | None = None,
+                       *,
+                       http_method: str = 'GET',
+                       ) -> None:
         """Queue up a download of some URL to a location on disk."""
 
         if self._shutdown_event.is_set():
@@ -429,8 +432,7 @@ class BackgroundDownloader:
 
         self._num_pending_downloads += 1
 
-        # TODO: move the HTTP method to an optional argument?
-        http_req_descr = RequestDescription(http_method='GET', url=remote_url)
+        http_req_descr = RequestDescription(http_method=http_method, url=remote_url)
         if on_download_done:
             self._on_downloaded_callbacks[http_req_descr] = on_download_done
 
