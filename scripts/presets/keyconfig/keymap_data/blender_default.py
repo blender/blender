@@ -1339,6 +1339,7 @@ def km_outliner(params):
         # Copy/paste.
         ("outliner.id_copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("outliner.id_paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
+        *_template_object_hide_collection_from_number_keys(),
     ])
 
     return keymap
@@ -4422,7 +4423,6 @@ def km_object_mode(params):
         ("object.link_to_collection", {"type": 'M', "value": 'PRESS', "shift": True}, None),
         *_template_items_hide_reveal_actions("object.hide_view_set", "object.hide_view_clear"),
         ("object.hide_collection", {"type": 'H', "value": 'PRESS', "ctrl": True}, None),
-        *_template_object_hide_collection_from_number_keys(),
         *_template_items_context_menu("VIEW3D_MT_object_context_menu", params.context_menu_event),
     ])
 
