@@ -862,7 +862,8 @@ static void file_draw_indicator_icons(const FileList *files,
                                       const rcti *tile_draw_rect,
                                       const float preview_icon_aspect,
                                       const int file_type_icon,
-                                      const bool has_special_file_image)
+                                      const bool has_special_file_image,
+                                      eDirEntry_SelectFlag selflag)
 {
   const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
   const bool is_link = (file->attributes & FILE_ATTR_ANY_LINK);
@@ -920,23 +921,38 @@ static void file_draw_indicator_icons(const FileList *files,
     }
   }
 
-  const bool is_current_main_data = filelist_file_get_id(file) != nullptr;
-  if (is_current_main_data) {
-    /* Smaller, fainter icon at the top-right indicating that the file represents data from the
-     * current file (from current #Main in fact). */
-    float icon_x, icon_y;
+  {
+    const float icon_x = float(tile_draw_rect->xmax) - (16.0f * UI_SCALE_FAC);
+    const float icon_y = float(tile_draw_rect->ymax) - (20.0f * UI_SCALE_FAC);
     const uchar light[4] = {255, 255, 255, 255};
-    icon_x = float(tile_draw_rect->xmax) - (16.0f * UI_SCALE_FAC);
-    icon_y = float(tile_draw_rect->ymax) - (20.0f * UI_SCALE_FAC);
-    UI_icon_draw_ex(icon_x,
-                    icon_y,
-                    ICON_CURRENT_FILE,
-                    1.0f / UI_SCALE_FAC,
-                    0.6f,
-                    0.0f,
-                    light,
-                    true,
-                    UI_NO_ICON_OVERLAY_TEXT);
+
+    const bool is_current_main_data = filelist_file_get_id(file) != nullptr;
+    if (is_current_main_data) {
+      /* Smaller, fainter icon at the top-right indicating that the file represents data from the
+       * current file (from current #Main in fact). */
+      UI_icon_draw_ex(icon_x,
+                      icon_y,
+                      ICON_CURRENT_FILE,
+                      1.0f / UI_SCALE_FAC,
+                      0.6f,
+                      0.0f,
+                      light,
+                      true,
+                      UI_NO_ICON_OVERLAY_TEXT);
+    }
+    else if ((file->typeflag & FILE_TYPE_ASSET_ONLINE) != 0) {
+      if (selflag & (FILE_SEL_HIGHLIGHTED | FILE_SEL_SELECTED)) {
+        UI_icon_draw_ex(icon_x,
+                        icon_y,
+                        ICON_INTERNET,
+                        1.0f / UI_SCALE_FAC,
+                        0.6f,
+                        0.0f,
+                        light,
+                        true,
+                        UI_NO_ICON_OVERLAY_TEXT);
+      }
+    }
   }
 }
 
@@ -1360,25 +1376,24 @@ void file_draw_list(const bContext *C, ARegion *region)
   UI_GetThemeColor4ubv(TH_TEXT, text_col);
 
   for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {
-    eDirEntry_SelectFlag file_selflag;
     const int padx = 0.1f * UI_UNIT_X;
     int icon_ofs = 0;
 
     const rcti tile_draw_rect = tile_draw_rect_get(v2d, layout, i);
 
     file = filelist_file(files, i);
-    file_selflag = filelist_entry_select_get(sfile->files, file, CHECK_ALL);
+    eDirEntry_SelectFlag file_selflag = filelist_entry_select_get(sfile->files, file, CHECK_ALL);
+    if (params->highlight_file == i) {
+      file_selflag |= FILE_SEL_HIGHLIGHTED;
+    }
 
     char path[FILE_MAX_LIBEXTRA];
     filelist_file_get_full_path(files, file, path);
 
     if (!(file_selflag & FILE_SEL_EDITING)) {
-      if ((params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ||
-          (file_selflag & FILE_SEL_SELECTED))
-      {
+      if (file_selflag & (FILE_SEL_HIGHLIGHTED | FILE_SEL_SELECTED)) {
         int colorid = (file_selflag & FILE_SEL_SELECTED) ? TH_HILITE : TH_BACK;
-        int shade = (params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ? 35 :
-                                                                                             0;
+        int shade = (file_selflag & FILE_SEL_HIGHLIGHTED) ? 35 : 0;
         BLI_assert(i == 0 || !FILENAME_IS_CURRPAR(file->relpath));
 
         draw_tile_background(&tile_draw_rect, colorid, shade);
@@ -1416,7 +1431,8 @@ void file_draw_list(const bContext *C, ARegion *region)
                                 &tile_draw_rect,
                                 thumb_icon_aspect,
                                 file_type_icon,
-                                has_special_file_image);
+                                has_special_file_image,
+                                file_selflag);
 
       if (do_drag) {
         file_add_preview_drag_but(
