@@ -688,6 +688,7 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
         prefs = context.preferences
         system = prefs.system
         import gpu
+        import sys
 
         col = layout.column()
         col.prop(system, "gpu_backend", text="Backend")
@@ -701,9 +702,10 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
 
         if system.gpu_backend == 'VULKAN':
             col = layout.column()
-            col.label(text="Vulkan backend limitations:", icon='INFO')
-            col.label(text="\u2022 WoA support", icon='BLANK1')
-            col.label(text="\u2022 Low VR performance", icon='BLANK1')
+            col.label(text="Current Vulkan backend limitations:", icon='INFO')
+            col.label(text="\u2022 Low performance in VR", icon='BLANK1')
+            if sys.platform == "win32" and gpu.platform.device_type_get() == 'QUALCOMM':
+                col.label(text="\u2022 Windows on ARM requires driver 31.0.112.0 or higher", icon='BLANK1')
 
 
 class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
