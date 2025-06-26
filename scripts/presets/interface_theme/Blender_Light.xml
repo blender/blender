@@ -917,7 +917,7 @@
         converter_node="#4482a3"
         color_node="#8e8e3f"
         group_node="#566643"
-        group_socket_node="#000000"
+        group_socket_node="#3d3d3d"
         frame_node="#0f0f0fcc"
         matte_node="#7a5656"
         distor_node="#5d7a7a"
