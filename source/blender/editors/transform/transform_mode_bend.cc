@@ -169,7 +169,7 @@ static void Bend(TransInfo *t)
    * this isn't essential but nicer to give reasonable snapping values for radius. */
   if (t->tsnap.mode & SCE_SNAP_TO_INCREMENT) {
     const float radius_snap = 0.1f;
-    const float snap_hack = (t->snap[0] * bend_data->warp_init_dist) / radius_snap;
+    const float snap_hack = (t->increment[0] * bend_data->warp_init_dist) / radius_snap;
     values.scale *= snap_hack;
     transform_snap_increment(t, values.vector);
     values.scale /= snap_hack;
@@ -284,7 +284,7 @@ static void initBend(TransInfo *t, wmOperator * /*op*/)
   t->num.idx_max = 1;
   initSnapAngleIncrements(t);
 
-  copy_v3_fl(t->num.val_inc, t->snap[0]);
+  copy_v3_fl(t->num.val_inc, t->increment[0]);
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_use_radians = (t->scene->unit.system_rotation == USER_UNIT_ROT_RADIANS);
   t->num.unit_type[0] = B_UNIT_ROTATION;

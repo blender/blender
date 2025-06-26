@@ -2208,6 +2208,14 @@ void BKE_pose_blend_read_after_liblink(BlendLibReader *reader, Object *ob, bPose
       pchan->bone->flag &= ~BONE_SELECTED;
       pchan->bone->flag |= pchan->selectflag;
     }
+
+    /* At some point in history, bones could have an armature object as custom shape, which caused
+     * all kinds of wonderful issues. This is now avoided in RNA, but through the magic of linking
+     * and editing the library file, the situation can still occur. Better to just reset the
+     * pointer in those cases. */
+    if (pchan->custom && pchan->custom->type == OB_ARMATURE) {
+      pchan->custom = nullptr;
+    }
   }
 
   if (rebuild) {

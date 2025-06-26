@@ -91,6 +91,25 @@ bool GPU_vulkan_is_supported_driver(VkPhysicalDevice vk_physical_device)
   }
 #endif
 
+#ifdef _WIN32
+  if (vk_physical_device_driver_properties.driverID == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) {
+    /* Any Qualcomm driver older than 31.0.112.0 will not be capable of running blender due
+     * to an issue in their semaphore timeline implementation. The driver could return
+     * timelines that have not been provided by Blender. As Blender uses timelines for resource
+     * management this resulted in resources to be destroyed, that are still in use. */
+
+    /* Public version 31.0.112 uses vulkan driver version 512.827.14. */
+    const uint32_t driver_version = vk_physical_device_properties.properties.driverVersion;
+    constexpr uint32_t version_31_0_112 = VK_MAKE_VERSION(512, 827, 14);
+    if (driver_version < version_31_0_112) {
+      CLOG_WARN(&LOG,
+                "Detected qualcomm driver is not supported. To run the Vulkan backend "
+                "driver 31.0.112.0 or later is required. Switching to OpenGL.");
+      return false;
+    }
+  }
+#endif
+
   return true;
 }
 

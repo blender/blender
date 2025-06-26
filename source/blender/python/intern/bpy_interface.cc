@@ -727,7 +727,7 @@ void BPY_modules_load_user(bContext *C)
   bpy_context_clear(C, &gilstate);
 }
 
-int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result)
+bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result)
 {
   PyGILState_STATE gilstate;
   const bool use_gil = !PyC_IsInterpreterActive();

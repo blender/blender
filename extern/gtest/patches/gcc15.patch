@@ -1,0 +1,34 @@
+From 00b2154e8e4bbb1ab0b22580c9f19fbfd3f56c04 Mon Sep 17 00:00:00 2001
+From: Derek Mauro <dmauro@google.com>
+Date: Tue, 29 Apr 2025 06:12:50 -0700
+Subject: [PATCH] Fix GCC15 warning that <ciso646> is deprecated in C++17
+
+PiperOrigin-RevId: 752706554
+Change-Id: I83d35b693efdaabcc63d15169dbf19d63163a563
+---
+ googletest/include/gtest/internal/gtest-port.h | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/googletest/include/gtest/internal/gtest-port.h b/googletest/include/gtest/internal/gtest-port.h
+index 4cfc16c03e..25b7d194db 100644
+--- a/googletest/include/gtest/internal/gtest-port.h
++++ b/googletest/include/gtest/internal/gtest-port.h
+@@ -282,10 +282,14 @@
+ 
+ // Detect C++ feature test macros as gracefully as possible.
+ // MSVC >= 19.15, Clang >= 3.4.1, and GCC >= 4.1.2 support feature test macros.
+-#if GTEST_INTERNAL_CPLUSPLUS_LANG >= 202002L && \
+-    (!defined(__has_include) || GTEST_INTERNAL_HAS_INCLUDE(<version>))
+-#include <version>  // C++20 and later
+-#elif (!defined(__has_include) || GTEST_INTERNAL_HAS_INCLUDE(<ciso646>))
++//
++// GCC15 warns that <ciso646> is deprecated in C++17 and suggests using
++// <version> instead, even though <version> is not available in C++17 mode prior
++// to GCC9.
++#if GTEST_INTERNAL_CPLUSPLUS_LANG >= 202002L || \
++    GTEST_INTERNAL_HAS_INCLUDE(<version>)
++#include <version>  // C++20 or <version> support.
++#else
+ #include <ciso646>  // Pre-C++20
+ #endif
+ 

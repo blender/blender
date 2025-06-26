@@ -845,13 +845,14 @@ struct TransInfo {
   float center2d[2];
   /** Maximum index on the input vector. */
   short idx_max;
-  /** Snapping Gears. */
-  float snap[2];
+  /** Increment value for incremental snapping. */
+  float3 increment;
+  float increment_precision;
   /** Spatial snapping gears(even when rotating, scaling... etc). */
   float snap_spatial[3];
   /**
    * Precision factor that is multiplied to snap_spatial when precision
-   * modifier is enabled for snap to grid or incremental snap.
+   * modifier is enabled for snap to grid.
    */
   float snap_spatial_precision;
   /** Mouse side of the current frame, 'L', 'R' or 'B'. */

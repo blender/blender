@@ -644,6 +644,32 @@ static void rna_PoseChannel_custom_shape_transform_set(PointerRNA *ptr,
       ob, (Object *)value.owner_id, static_cast<bPoseChannel *>(value.data));
 }
 
+void rna_Pose_custom_shape_set(PointerRNA *ptr, PointerRNA value, struct ReportList *reports)
+{
+  bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr->data);
+  Object *custom_shape = static_cast<Object *>(value.data);
+
+  if (!custom_shape) {
+    pchan->custom = nullptr;
+    return;
+  }
+
+  /* This should be ensured by the RNA property type. */
+  BLI_assert(GS(custom_shape->id.name) == ID_OB);
+
+  if (custom_shape->type == OB_ARMATURE) {
+    BKE_report(reports, RPT_ERROR, "Cannot use armature object as custom bone shape");
+    return;
+  }
+
+  pchan->custom = custom_shape;
+}
+
+bool rna_Pose_custom_shape_object_poll(PointerRNA * /*ptr*/, PointerRNA value)
+{
+  return (reinterpret_cast<Object *>(value.owner_id))->type != OB_ARMATURE;
+}
+
 #else
 
 void rna_def_actionbone_group_common(StructRNA *srna, int update_flag, const char *update_cb)
@@ -1106,6 +1132,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Custom Object", "Object that defines custom display shape for this bone");
   RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, "rna_Pose_custom_shape_set", nullptr, "rna_Pose_custom_shape_object_poll");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_dependency_update");
 
   prop = RNA_def_property(srna, "custom_shape_scale_xyz", PROP_FLOAT, PROP_XYZ);

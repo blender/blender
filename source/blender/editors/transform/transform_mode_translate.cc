@@ -26,6 +26,7 @@
 #include "BLT_translation.hh"
 
 #include "UI_interface_types.hh"
+#include "UI_view2d.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -591,10 +592,21 @@ static void initTranslation(TransInfo *t, wmOperator * /*op*/)
   t->num.flag = 0;
   t->num.idx_max = t->idx_max;
 
-  t->snap[0] = t->snap_spatial[0];
-  t->snap[1] = t->snap_spatial[0] * t->snap_spatial_precision;
+  float3 aspect = t->aspect;
+  /* Custom aspect for fcurve. */
+  if (t->spacetype == SPACE_GRAPH) {
+    View2D *v2d = &t->region->v2d;
+    Scene *scene = t->scene;
+    SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
+    aspect[0] = UI_view2d_grid_resolution_x__frames_or_seconds(
+        v2d, scene, sipo->flag & SIPO_DRAWTIME);
+    aspect[1] = UI_view2d_grid_resolution_y__values(v2d);
+  }
 
-  copy_v3_fl(t->num.val_inc, t->snap[0]);
+  t->increment = t->snap_spatial * aspect;
+  t->increment_precision = t->snap_spatial_precision;
+
+  copy_v3_fl(t->num.val_inc, t->increment[0]);
   t->num.unit_sys = t->scene->unit.system;
   if (t->spacetype == SPACE_VIEW3D) {
     /* Handling units makes only sense in 3Dview... See #38877. */

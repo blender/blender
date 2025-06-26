@@ -78,7 +78,7 @@ static void dump_span_with_stride(Span<T> span, int stride, const std::string &n
 }
 
 template<typename T>
-static void dump_vector(std::vector<T> vec, int stride, const std::string &name)
+static void dump_vector(const std::vector<T> &vec, int stride, const std::string &name)
 {
   std::cout << name << ":";
   for (int i = 0; i < vec.size(); i++) {
@@ -91,6 +91,26 @@ static void dump_vector(std::vector<T> vec, int stride, const std::string &name)
     }
   }
   std::cout << "\n";
+}
+
+template<typename T>
+static void dump_vector_values(const std::string indent,
+                               const std::string &assign_to,
+                               const std::vector<T> &vec)
+{
+  std::cout << indent << assign_to << " = { ";
+  for (int i = 0; i < vec.size(); i++) {
+    if (i > 0 && (i % 10) == 0) {
+      std::cout << "\n" << indent << indent;
+    }
+    std::cout << vec[i];
+    if (i == vec.size() - 1) {
+      std::cout << " };\n";
+    }
+    else {
+      std::cout << ", ";
+    }
+  }
 }
 
 static void dump_meshgl(const MeshGL &mgl, const std::string &name)
@@ -107,6 +127,27 @@ static void dump_meshgl(const MeshGL &mgl, const std::string &name)
   }
   dump_vector(mgl.runIndex, 1, "runIndex");
   dump_vector(mgl.runOriginalID, 1, "runOrigiinalID");
+}
+
+[[maybe_unused]] static void dump_meshgl_for_debug(const MeshGL &mgl)
+{
+  std::string indent = "    ";
+  std::cout << indent << "MeshGL m;\n";
+  std::cout << indent << "m.numProp = " << mgl.numProp << ";\n";
+  dump_vector_values(indent, "m.vertProperties", mgl.vertProperties);
+  dump_vector_values(indent, "m.triVerts", mgl.triVerts);
+  if (!mgl.mergeFromVert.empty()) {
+    dump_vector_values(indent, "m.mergeFromVert", mgl.mergeFromVert);
+    dump_vector_values(indent, "m.mergeToVert", mgl.mergeToVert);
+  }
+  dump_vector_values(indent, "m.runIndex", mgl.runIndex);
+  dump_vector_values(indent, "m.runOriginalID", mgl.runOriginalID);
+  dump_vector_values(indent, "m.faceID", mgl.faceID);
+  BLI_assert(mgl.runTransform.size() == 0);
+  BLI_assert(mgl.halfedgeTangent.size() == 0);
+  if (mgl.tolerance != 0) {
+    std::cout << indent << "m.tolerance = " << mgl.tolerance << ";\n";
+  }
 }
 
 static const char *domain_names[] = {
@@ -243,9 +284,9 @@ static void get_manifold(Manifold &manifold,
   array_utils::copy(mesh.vert_positions(), MutableSpan(meshgl.vertProperties).cast<float3>());
 
   /* Using separate a OriginalID for each input face will prevent coplanar
-   * faces from being merged.  (Maybe a better way is coming to Manifold
-   * in the future, but for now this will work.) */
-  constexpr bool use_runids = true;
+   * faces from being merged.  We need this until the fix introduced in
+   * Manifold at version 3.1.0. */
+  constexpr bool use_runids = false;
   if (use_runids) {
     meshgl.runIndex.resize(mesh.faces_num);
     meshgl.runOriginalID.resize(mesh.faces_num);
@@ -282,6 +323,9 @@ static void get_manifold(Manifold &manifold,
   }
   if (dbg_level > 0) {
     dump_meshgl(meshgl, "converted result for mesh " + std::to_string(mesh_index));
+    if (dbg_level > 1) {
+      dump_meshgl_for_debug(meshgl);
+    }
   }
   {
 #  ifdef DEBUG_TIME
@@ -363,14 +407,34 @@ struct OutFace {
 /** Data needed to build the final output Mesh. */
 struct MeshAssembly {
   /* Vertex positions, linearized (use vertpos_stride to multiply index). */
-  Span<float> vertpos;
+  MutableSpan<float> vertpos;
   int vertpos_stride = 3;
   /* How many vertices were in the combined input meshes. */
   int input_verts_num;
   /* How many vertices are in the output (i.e., in vertpos). */
   int output_verts_num;
-  /* New faces to output. */
+  /* The new output faces. */
   Vector<OutFace> new_faces;
+  /* If we have to delete vertices, this map will have non-zero size and
+   * will map the MeshGL vertex index to final vertex index.
+   * Also, if this mapping happens, the vertpos array will be modified
+   * accordingly.
+   */
+  Vector<int> old_to_new_vert_map;
+
+  float3 vert_position(const int v) const
+  {
+    const int start = vertpos_stride * v;
+    return float3(vertpos[start], vertpos[start + 1], vertpos[start + 2]);
+  }
+
+  int mapped_vert(const int v) const
+  {
+    if (!new_faces.is_empty()) {
+      return old_to_new_vert_map[v];
+    }
+    return v;
+  }
 };
 
 /**
@@ -1148,6 +1212,128 @@ static void merge_out_faces(Vector<OutFace> &faces)
   }
 }
 
+/** Return true if the ponts p0, p1, p2 are approximately in a straight line. */
+static inline const bool approx_in_line(const float3 &p0, const float3 &p1, const float3 &p2)
+{
+  float cos_ang = math::dot(math::normalize(p1 - p0), math::normalize(p2 - p1));
+  return math::abs(cos_ang - 1.0) < 1e-4;
+}
+
+/**
+ * Find redundant valence-2 vertices in the output faces #ma.new_faces and dissolve them.
+ * A vertex is redundant if it is valence-2 in both shared faces and if it is between
+ * two neighbors in approximately a straight line.
+ * These can be the result of triangulation edges intersecting the result geometry,
+ * and then being dissolved by merge_out_faces.
+ * TODO: don't do this if the vertex was original.
+ * (To do that we need the mapping from input to output verts to be passed as an argument,
+ * and at th moment, we don't do that mapping yet -- and would have to redo itif we end up
+ * dissolving vert.)
+ */
+static void dissolve_valence2_verts(MeshAssembly &ma)
+{
+  const int vnum = ma.output_verts_num;
+  Array<bool> dissolve(vnum, false);
+  /* We'll rememeber up to two vertex neighbors for each vertex. */
+  Array<std::pair<int, int>> neighbors(ma.output_verts_num, std::pair<int, int>(-1, -1));
+  /* First, tentatively set dissolve based on neighbors. Alignment will be checked later. */
+  for (const int f : ma.new_faces.index_range()) {
+    const OutFace &face = ma.new_faces[f];
+    const int fsize = face.verts.size();
+    for (const int i : ma.new_faces[f].verts.index_range()) {
+      const int vprev = face.verts[(i - 1 + fsize) % fsize];
+      const int v = face.verts[i];
+      const int vnext = face.verts[(i + 1) % fsize];
+      std::pair<int, int> &v_nbrs = neighbors[v];
+      if (v_nbrs.first == -1) {
+        /* First time we've seen v. Set the tentative neighbors. */
+        v_nbrs.first = vprev;
+        v_nbrs.second = vnext;
+        dissolve[v] = true;
+      }
+      else {
+        /* Some previous face had v. Disable dissolve unless if neighbors are the same, reversed.
+         */
+        if (!(vprev == v_nbrs.second && vnext == v_nbrs.first)) {
+          dissolve[v] = false;
+        }
+      }
+    }
+  }
+  /* Now, for tentative dissolves, check "in a straight line" condition. */
+  const int grain_size = 15000;
+  bool any_dissolve = false;
+  threading::parallel_for(IndexRange(vnum), grain_size, [&](const IndexRange range) {
+    bool range_any_dissolve = false;
+    for (const int v : range) {
+      if (dissolve[v]) {
+        std::pair<int, int> &v_nbrs = neighbors[v];
+        BLI_assert(v_nbrs.first != -1 && v_nbrs.second != -1);
+        const float3 p0 = ma.vert_position(v_nbrs.first);
+        const float3 p1 = ma.vert_position(v);
+        const float3 p2 = ma.vert_position(v_nbrs.second);
+        if (!approx_in_line(p0, p1, p2)) {
+          dissolve[v] = false;
+        }
+        else {
+          range_any_dissolve = true;
+        }
+      }
+    }
+    if (range_any_dissolve) {
+      /* No need for atomics here as this is a single byte. */
+      any_dissolve = true;
+    }
+  });
+  if (!any_dissolve) {
+    return;
+  }
+
+  /* We need to compress out the disssolved vertices out of ma.vertpos,
+   * remap all the faces to account for that compression,
+   * and rebuild any faces containing those compressed verts.
+   * The compressing part is a bit like #mesh_copy_selection.
+   */
+  IndexMaskMemory memory;
+  IndexMask keep = IndexMask::from_bools_inverse(
+      dissolve.index_range(), dissolve.as_span(), memory);
+  const int new_vnum = keep.size();
+  ma.old_to_new_vert_map.reinitialize(vnum);
+  ma.old_to_new_vert_map.fill(-1);
+  index_mask::build_reverse_map<int>(keep, ma.old_to_new_vert_map);
+
+  /* Compress vertpos in place. Is there a parallel way to do this? */
+  float *vpos_data = ma.vertpos.data();
+  BLI_assert(ma.vertpos_stride == 3);
+  for (const int old_v : IndexRange(vnum)) {
+    const int new_v = ma.old_to_new_vert_map[old_v];
+    BLI_assert(new_v <= old_v);
+    if (new_v >= 0) {
+      std::copy_n(vpos_data + 3 * old_v, 3, vpos_data + 3 * new_v);
+    }
+  }
+  ma.vertpos = ma.vertpos.take_front(new_vnum * ma.vertpos_stride);
+  ma.output_verts_num = new_vnum;
+
+  /* Remap verts and compress dissolved verts in output faces. */
+  threading::parallel_for(ma.new_faces.index_range(), 10000, [&](IndexRange range) {
+    for (const int f : range) {
+      OutFace &face = ma.new_faces[f];
+      int i_to = 0;
+      for (const int i_from : face.verts.index_range()) {
+        const int mapped_v_from = ma.mapped_vert(face.verts[i_from]);
+        if (mapped_v_from >= 0) {
+          face.verts[i_to++] = mapped_v_from;
+        }
+      }
+      if (i_to < face.verts.size()) {
+        BLI_assert(i_to >= 3);
+        face.verts.resize(i_to);
+      }
+    }
+  });
+}
+
 /**
  * Build the MeshAssembly corresponding to \a mgl.
  * This involves:
@@ -1157,7 +1343,7 @@ static void merge_out_faces(Vector<OutFace> &faces)
  *      were part of the same input face.
  *  (4) For each face group, remove as many shared edges as possible.
  */
-static MeshAssembly assemble_mesh_from_meshgl(const MeshGL &mgl, const MeshOffsets &mesh_offsets)
+static MeshAssembly assemble_mesh_from_meshgl(MeshGL &mgl, const MeshOffsets &mesh_offsets)
 {
 #  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("calculating assemble_mesh_from_meshgl");
@@ -1167,7 +1353,7 @@ static MeshAssembly assemble_mesh_from_meshgl(const MeshGL &mgl, const MeshOffse
     std::cout << "assemble_mesh_from_meshgl\n";
   }
   MeshAssembly ma;
-  ma.vertpos = Span<float>(&*mgl.vertProperties.begin(), mgl.vertProperties.size());
+  ma.vertpos = MutableSpan<float>(&*mgl.vertProperties.begin(), mgl.vertProperties.size());
   ma.vertpos_stride = mgl.numProp;
   ma.input_verts_num = mesh_offsets.vert_start.last();
   ma.output_verts_num = ma.vertpos.size() / ma.vertpos_stride;
@@ -1186,8 +1372,6 @@ static MeshAssembly assemble_mesh_from_meshgl(const MeshGL &mgl, const MeshOffse
 #  ifdef DEBUG_TIME
     timeit::ScopedTimer timer("face merging");
 #  endif
-#  define parallel_face_merge
-#  ifdef parallel_face_merge
     Vector<Vector<OutFace>> new_groups(face_groups.size());
     const int grain_size = 15000;
     threading::parallel_for(face_groups.index_range(), grain_size, [&](const IndexRange range) {
@@ -1201,30 +1385,29 @@ static MeshAssembly assemble_mesh_from_meshgl(const MeshGL &mgl, const MeshOffse
         merge_out_faces(group_faces);
       }
     });
-#    ifdef DEBUG_TIME
+#  ifdef DEBUG_TIME
     timeit::ScopedTimer xtimer("copying groups at end");
-#    endif
+#  endif
     for (const int i : new_groups.index_range()) {
       ma.new_faces.extend(new_groups[i].as_span());
     }
-#  else
-    for (const int gid : face_groups.index_range()) {
-      const Span<int> group = face_groups[gid].as_span();
-      Vector<OutFace> group_faces(group.size());
-      for (const int i : group_faces.index_range()) {
-        int tri_index = group[i];
-        group_faces[i] = make_out_face(mgl, tri_index, gid);
-      }
-      merge_out_faces(group_faces);
-      ma.new_faces.extend(group_faces.as_span());
-    }
+  }
+  {
+#  ifdef DEBUG_TIME
+    timeit::ScopedTimer timer("valence-2-vertex dissolving");
 #  endif
+    dissolve_valence2_verts(ma);
+    if (ma.old_to_new_vert_map.size() > 0) {
+      /* We compressed ma.vertpos in place, but that really means
+       * we compressed mgl.VertProperties, so we need to change its size. */
+      mgl.vertProperties.resize(ma.vertpos.size());
+    }
   }
   if (dbg_level > 0) {
     std::cout << "mesh_assembly result:\n";
     std::cout << "input_verts_num = " << ma.input_verts_num
               << ", output_verts_num = " << ma.output_verts_num << "\n";
-    dump_span_with_stride(ma.vertpos, ma.vertpos_stride, "vertpos");
+    dump_span_with_stride(ma.vertpos.as_span(), ma.vertpos_stride, "vertpos");
     std::cout << "new_faces:\n";
     for (const int i : ma.new_faces.index_range()) {
       std::cout << i << ": face_id = " << ma.new_faces[i].face_id << "\nverts ";

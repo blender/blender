@@ -3,4 +3,4 @@ URL: https://github.com/google/googletest
 License: SPDX:BSD-3-Clause
 Copyright: Copyright 2007, Google Inc. All rights reserved.
 Upstream version: 1.15.2 (b514bdc898e2951020cbdca1304b75f5950d1f59)
-Local modifications: None
+Local modifications: Apply patches/gcc15.patch

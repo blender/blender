@@ -237,7 +237,7 @@ static void rna_uiItemMenuEnumR(uiLayout *layout,
   /* Get translated name (label). */
   std::optional<StringRefNull> text = rna_translate_ui_text(
       name, text_ctxt, nullptr, prop, translate);
-  uiItemMenuEnumR_prop(layout, ptr, prop, text, icon);
+  layout->prop_menu_enum(ptr, prop, text, icon);
 }
 
 static void rna_uiItemTabsEnumR(uiLayout *layout,
@@ -283,7 +283,7 @@ static void rna_uiItemTabsEnumR(uiLayout *layout,
     }
   }
 
-  uiItemTabsEnumR_prop(layout, C, ptr, prop, ptr_highlight, prop_highlight, icon_only);
+  layout->prop_tabs_enum(C, ptr, prop, ptr_highlight, prop_highlight, icon_only);
 }
 
 static void rna_uiItemEnumR_string(uiLayout *layout,
@@ -306,7 +306,12 @@ static void rna_uiItemEnumR_string(uiLayout *layout,
   std::optional<StringRefNull> text = rna_translate_ui_text(
       name, text_ctxt, nullptr, prop, translate);
 
-  uiItemEnumR_string_prop(layout, ptr, prop, value, text, icon);
+  layout->prop_enum(ptr, prop, value, text, icon);
+}
+
+static void rna_uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, const char *propname)
+{
+  layout->props_enum(ptr, propname);
 }
 
 static void rna_uiItemPointerR(uiLayout *layout,
@@ -1421,7 +1426,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
   RNA_def_boolean(func, "invert_checkbox", false, "", "Draw checkbox value inverted");
 
-  func = RNA_def_function(srna, "props_enum", "uiItemsEnumR");
+  func = RNA_def_function(srna, "props_enum", "rna_uiItemsEnumR");
   api_ui_item_rna_common(func);
 
   func = RNA_def_function(srna, "prop_menu_enum", "rna_uiItemMenuEnumR");

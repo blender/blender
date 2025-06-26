@@ -513,11 +513,26 @@ void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title)
     return;
   }
 
-  const char *filepath = BKE_main_blendfile_path_from_global();
-  const char *filename = BLI_path_basename(filepath);
+  /* This path may contain invalid UTF8 byte sequences on UNIX systems,
+   * use `filepath` for display which is sanitized as needed. */
+  const char *filepath_as_bytes = BKE_main_blendfile_path_from_global();
 
+  char _filepath_utf8_buf[FILE_MAX];
+  /* Allow non-UTF8 characters on systems that support it.
+   *
+   * On Wayland, invalid UTF8 characters will disconnect
+   * from the server - exiting immediately. */
+  const char *filepath = (OS_MAC || OS_WINDOWS) ?
+                             filepath_as_bytes :
+                             BLI_str_utf8_invalid_substitute_as_needed(filepath_as_bytes,
+                                                                       strlen(filepath_as_bytes),
+                                                                       '?',
+                                                                       _filepath_utf8_buf,
+                                                                       sizeof(_filepath_utf8_buf));
+
+  const char *filename = BLI_path_basename(filepath);
   const bool has_filepath = filepath[0] != '\0';
-  const bool native_filepath_display = GHOST_SetPath(handle, filepath) == GHOST_kSuccess;
+  const bool native_filepath_display = GHOST_SetPath(handle, filepath_as_bytes) == GHOST_kSuccess;
   const bool include_filepath = has_filepath && (filepath != filename) && !native_filepath_display;
 
   /* File saved state. */
@@ -529,7 +544,7 @@ void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title)
     win_title.append(filename, filename_no_ext_len);
   }
   else if (has_filepath) {
-    win_title.append(BLI_path_basename(filename));
+    win_title.append(filename);
   }
   /* New / Unsaved file default title. Shows "Untitled" on macOS following the Apple HIGs. */
   else {

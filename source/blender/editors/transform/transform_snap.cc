@@ -873,7 +873,7 @@ void transform_snap_grid_init(const TransInfo *t, float r_snap[3], float *r_snap
 
   if (t->spacetype == SPACE_VIEW3D) {
     /* Used by incremental snap. */
-    if (t->region->regiondata) {
+    if (t->region->regiontype == RGN_TYPE_WINDOW) {
       View3D *v3d = static_cast<View3D *>(t->area->spacedata.first);
       r_snap[0] = r_snap[1] = r_snap[2] = ED_view3d_grid_view_scale(
           t->scene, v3d, t->region, nullptr);
@@ -1021,6 +1021,10 @@ void initSnapping(TransInfo *t, wmOperator *op)
   initSnappingMode(t);
   transform_snap_grid_init(t, t->snap_spatial, &t->snap_spatial_precision);
   transform_snap_flag_from_modifiers_set(t);
+
+  /* Default increment values. */
+  t->increment = float3(1.0f);
+  t->increment_precision = 0.1f;
 }
 
 void freeSnapping(TransInfo *t)
@@ -1039,13 +1043,18 @@ void freeSnapping(TransInfo *t)
 
 void initSnapAngleIncrements(TransInfo *t)
 {
+  /* The final value of increment with precision is `t->increment[0] * t->increment_precision`.
+   * Therefore, we divide `snap_angle_increment_*_precision` by `snap_angle_increment_*`
+   * to compute `increment_precision`. */
   if (t->spacetype == SPACE_VIEW3D) {
-    t->snap[0] = t->settings->snap_angle_increment_3d;
-    t->snap[1] = t->settings->snap_angle_increment_3d_precision;
+    t->increment[0] = t->settings->snap_angle_increment_3d;
+    t->increment_precision = t->settings->snap_angle_increment_3d_precision /
+                             t->settings->snap_angle_increment_3d;
   }
   else {
-    t->snap[0] = t->settings->snap_angle_increment_2d;
-    t->snap[1] = t->settings->snap_angle_increment_2d_precision;
+    t->increment[0] = t->settings->snap_angle_increment_2d;
+    t->increment_precision = t->settings->snap_angle_increment_2d_precision /
+                             t->settings->snap_angle_increment_2d;
   }
 }
 
@@ -1679,51 +1688,16 @@ bool peelObjectsTransform(TransInfo *t,
 /** \name snap Grid
  * \{ */
 
-static void snap_increment_apply_ex(const TransInfo * /*t*/,
-                                    const int max_index,
-                                    const float increment_val,
-                                    const float aspect[3],
-                                    const float loc[3],
-                                    float r_out[3])
+static void snap_increment_apply(const TransInfo *t, const float loc[3], float r_out[3])
 {
+  bool use_precision = (t->modifiers & MOD_PRECISION) != 0;
+
   /* Relative snapping in fixed increments. */
-  for (int i = 0; i <= max_index; i++) {
-    const float iter_fac = increment_val * aspect[i];
+  for (int i = 0; i <= t->idx_max; i++) {
+    const float iter_fac = use_precision ? t->increment[i] * t->increment_precision :
+                                           t->increment[i];
     r_out[i] = iter_fac * roundf(loc[i] / iter_fac);
   }
-}
-
-static void snap_increment_apply(const TransInfo *t,
-                                 const int max_index,
-                                 const float increment_dist,
-                                 float *r_val)
-{
-  BLI_assert(t->tsnap.mode & SCE_SNAP_TO_INCREMENT);
-  BLI_assert(max_index <= 2);
-
-  /* Early bailing out if no need to snap. */
-  if (increment_dist == 0.0f) {
-    return;
-  }
-
-  float asp_local[3] = {1, 1, 1};
-  const bool use_aspect = ELEM(t->mode, TFM_TRANSLATION);
-  const float *asp = use_aspect ? t->aspect : asp_local;
-
-  if (use_aspect) {
-    /* Custom aspect for fcurve. */
-    if (t->spacetype == SPACE_GRAPH) {
-      View2D *v2d = &t->region->v2d;
-      Scene *scene = t->scene;
-      SpaceGraph *sipo = static_cast<SpaceGraph *>(t->area->spacedata.first);
-      asp_local[0] = UI_view2d_grid_resolution_x__frames_or_seconds(
-          v2d, scene, sipo->flag & SIPO_DRAWTIME);
-      asp_local[1] = UI_view2d_grid_resolution_y__values(v2d);
-      asp = asp_local;
-    }
-  }
-
-  snap_increment_apply_ex(t, max_index, increment_dist, asp, r_val, r_val);
 }
 
 bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float *r_val)
@@ -1751,8 +1725,7 @@ bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float
     mul_m3_v3(t->spacemtx_inv, r_val);
   }
 
-  float increment_dist = (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
-  snap_increment_apply(t, t->idx_max, increment_dist, r_val);
+  snap_increment_apply(t, r_val, r_val);
 
   if (use_local_space) {
     mul_m3_v3(t->spacemtx, r_val);
@@ -1770,7 +1743,8 @@ float transform_snap_increment_get(const TransInfo *t)
 {
   if (transform_snap_is_active(t) && (t->tsnap.mode & (SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID)))
   {
-    return (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
+    return (t->modifiers & MOD_PRECISION) ? t->increment[0] * t->increment_precision :
+                                            t->increment[0];
   }
 
   return 0.0f;

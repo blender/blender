@@ -307,6 +307,59 @@ int BLI_str_utf8_invalid_strip(char *str, size_t str_len)
   return tot;
 }
 
+int BLI_str_utf8_invalid_substitute(char *str, size_t str_len, const char substitute)
+{
+  BLI_assert(substitute);
+  ptrdiff_t bad_char;
+  int tot = 0;
+
+  BLI_assert(str[str_len] == '\0');
+
+  while ((bad_char = BLI_str_utf8_invalid_byte(str, str_len)) != -1) {
+    str[bad_char] = substitute;
+    bad_char += 1; /* Step over the bad character. */
+    str += bad_char;
+    str_len -= size_t(bad_char);
+    tot++;
+  }
+
+  return tot;
+}
+
+const char *BLI_str_utf8_invalid_substitute_as_needed(const char *str,
+                                                      const size_t str_len,
+                                                      const char substitute,
+                                                      char *buf,
+                                                      const size_t buf_maxncpy)
+{
+  BLI_assert(str[str_len] == '\0');
+  const ptrdiff_t bad_char = BLI_str_utf8_invalid_byte(str, str_len);
+  if (LIKELY(bad_char == -1)) {
+    return str;
+  }
+  BLI_assert(bad_char >= 0);
+
+  /* In the case a bad character is outside the buffer limit,
+   * simply perform a truncating UTF8 copy into the buffer and return that. */
+  if (UNLIKELY(size_t(bad_char) >= buf_maxncpy)) {
+    BLI_strncpy_utf8(buf, str, buf_maxncpy);
+    return buf;
+  }
+
+  size_t buf_len;
+  if (str_len < buf_maxncpy) {
+    memcpy(buf, str, str_len + 1);
+    buf_len = str_len;
+  }
+  else {
+    buf_len = BLI_strncpy_rlen(buf, str, buf_maxncpy);
+  }
+
+  /* Skip the good characters. */
+  BLI_str_utf8_invalid_substitute(buf + bad_char, buf_len - size_t(bad_char), substitute);
+  return buf;
+}
+
 /**
  * Internal utility for implementing #BLI_strncpy_utf8 / #BLI_strncpy_utf8_rlen.
  *
