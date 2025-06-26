@@ -1569,6 +1569,8 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   ImBuf *imbuf = IMB_thumb_manage(preview->filepath, THB_LARGE, source);
   IMB_thumb_path_unlock(preview->filepath);
   if (imbuf) {
+    /* TODO(Julian): Is this okay here? Should be a separate fix in main if so. */
+    IMB_premultiply_alpha(imbuf);
     preview->icon_id = BKE_icon_imbuf_create(imbuf);
   }
 
