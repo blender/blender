@@ -907,11 +907,11 @@ endif()
 
 if(TEST_SRC_DIR_EXISTS)
   set(compositor_tests
-    color
-    converter
-    filter
     input
     output
+    color
+    filter
+    utilities    
     vector
 
     pixel_nodes
@@ -919,7 +919,7 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   if(WITH_LIBMV)
-    list(APPEND compositor_tests distort matte anisotropic_filtering)
+    list(APPEND compositor_tests keying mask tracking transform anisotropic_filtering)
   endif()
 
   foreach(comp_test ${compositor_tests})
@@ -942,11 +942,11 @@ endif()
 
 if(WITH_GPU_COMPOSITOR_TESTS AND TEST_SRC_DIR_EXISTS)
   set(compositor_tests
-    color
-    converter
-    filter
     input
     output
+    color
+    filter
+    utilities    
     vector
 
     pixel_nodes
@@ -954,7 +954,7 @@ if(WITH_GPU_COMPOSITOR_TESTS AND TEST_SRC_DIR_EXISTS)
   )
 
   if(WITH_LIBMV)
-    list(APPEND compositor_tests distort matte)
+    list(APPEND compositor_tests keying mask tracking transform)
   endif()
 
   if(WITH_OPENGL_BACKEND)
