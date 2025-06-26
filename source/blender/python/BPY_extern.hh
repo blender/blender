@@ -102,7 +102,11 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
 void BPY_DECREF(void *pyob_ptr);
 
 void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr);
-int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result);
+/**
+ * \return true when `member` was found.
+ * Note that this can include a "None" value.
+ */
+bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result);
 void BPY_context_set(bContext *C);
 /**
  * Use for updating while a python script runs - in case of file load.
