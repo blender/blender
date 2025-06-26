@@ -104,7 +104,7 @@ static Image *load_image(std::string tex_path, Main *bmain, const USDImportParam
                                                              USD_TEX_NAME_COLLISION_OVERWRITE :
                                                              params.tex_name_collision_mode;
 
-    tex_path = import_asset(tex_path.c_str(), textures_dir, name_collision_mode, nullptr);
+    tex_path = import_asset(tex_path, textures_dir, name_collision_mode, nullptr);
   }
 
   Image *image = BKE_image_load_exists(bmain, tex_path.c_str());

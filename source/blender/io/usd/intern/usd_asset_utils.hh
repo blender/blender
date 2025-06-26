@@ -21,8 +21,8 @@ namespace blender::io::usd {
  *                 API).
  * \return true if the copy succeeded, false otherwise
  */
-bool copy_asset(const char *src,
-                const char *dst,
+bool copy_asset(const std::string &src,
+                const std::string &dst,
                 eUSDTexNameCollisionMode name_collision_mode,
                 ReportList *reports);
 
@@ -33,7 +33,7 @@ bool copy_asset(const char *src,
  * \param path: the path to resolve
  * \return true if the asset exists, false otherwise
  */
-bool asset_exists(const char *path);
+bool asset_exists(const std::string &path);
 
 /**
  * Invoke the USD asset resolver to copy an asset to a destination
@@ -50,7 +50,7 @@ bool asset_exists(const char *path);
  *                 API).
  * \return path to copied file or the original `src` path if there was an error
  */
-std::string import_asset(const char *src,
+std::string import_asset(const std::string &src,
                          const char *import_dir,
                          eUSDTexNameCollisionMode name_collision_mode,
                          ReportList *reports);
@@ -99,13 +99,13 @@ bool should_import_asset(const std::string &path);
  * Invokes the USD asset resolver to resolve the given paths and
  * returns true if the resolved paths are equal.
  *
- * \param p1: first path to compare
- * \param p2: second path to compare
+ * \param path1: first path to compare
+ * \param path2: second path to compare
  * \return true if the resolved input paths are equal, returns
  *         false otherwise.
  *
  */
-bool paths_equal(const char *p1, const char *p2);
+bool paths_equal(const std::string &path1, const std::string &path2);
 
 /**
  * Returns path to temporary folder for saving imported textures prior to packing.
@@ -125,7 +125,7 @@ const char *temp_textures_dir();
  *         false otherwise.
  *
  */
-bool write_to_path(const void *data, size_t size, const char *path, ReportList *reports);
+bool write_to_path(const void *data, size_t size, const std::string &path, ReportList *reports);
 
 /**
  * Add the given path as a custom property "usd_source_path" on the given id.
