@@ -806,6 +806,11 @@ static void rna_asset_library_status_ping_loaded_new_pages(const char *library_u
   RemoteLibraryLoadingStatus::ping_new_pages(library_url);
 }
 
+static void rna_asset_library_status_ping_loaded_new_previews(const char *library_url)
+{
+  RemoteLibraryLoadingStatus::ping_new_previews(library_url);
+}
+
 static void rna_asset_library_status_finished_loading(const char *library_url)
 {
   RemoteLibraryLoadingStatus::set_finished(library_url);
@@ -1594,6 +1599,20 @@ void RNA_api_asset_library_loading_status(StructRNA *srna)
                           "asset_library_status_ping_loaded_new_pages",
                           "rna_asset_library_status_ping_loaded_new_pages");
   RNA_def_function_ui_description(func, "Inform the asset system that new content");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  parm = RNA_def_string(func,
+                        "library_url",
+                        nullptr,
+                        0,
+                        "URL",
+                        "The URL identifying the asset library being loaded");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna,
+                          "asset_library_status_ping_loaded_new_previews",
+                          "rna_asset_library_status_ping_loaded_new_previews");
+  RNA_def_function_ui_description(
+      func, "Inform the asset system that new previews are available and ready for display");
   RNA_def_function_flag(func, FUNC_NO_SELF);
   parm = RNA_def_string(func,
                         "library_url",

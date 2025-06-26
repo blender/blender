@@ -112,6 +112,19 @@ void RemoteLibraryLoadingStatus::ping_new_pages(const StringRef url)
   }
 }
 
+void RemoteLibraryLoadingStatus::ping_new_previews(const StringRef url)
+{
+  RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
+  if (!status) {
+    return;
+  }
+
+  if (status->status_ == RemoteLibraryLoadingStatus::Loading) {
+    status->reset_timeout();
+    status->last_new_previews_time_point_ = std::chrono::steady_clock::now();
+  }
+}
+
 void RemoteLibraryLoadingStatus::ping_metafiles_in_place(const StringRef url)
 {
   RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);

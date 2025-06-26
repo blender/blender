@@ -43,6 +43,7 @@ class RemoteLibraryLoadingStatus {
   /* See #RemoteLibraryLoadingStatus::handle_timeout(). */
   TimePoint last_timeout_handled_time_point_;
   TimePoint last_new_pages_time_point_;
+  TimePoint last_new_previews_time_point_;
 
   Status status_;
   std::optional<StringRefNull> failure_message_;
@@ -53,6 +54,7 @@ class RemoteLibraryLoadingStatus {
   /** Let the state know that the loading is still ongoing, resetting the timeout. */
   static void ping_still_loading(StringRef url);
   static void ping_new_pages(StringRef url);
+  static void ping_new_previews(StringRef url);
   static void ping_metafiles_in_place(StringRef url);
   static void set_finished(StringRef url);
   static void set_failure(StringRef url, std::optional<StringRefNull> failure_message);
