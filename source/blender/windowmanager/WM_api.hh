@@ -2031,6 +2031,9 @@ blender::float3 WM_event_ndof_translation_get(const wmNDOFMotionData &ndof);
 blender::float3 WM_event_ndof_rotation_get(const wmNDOFMotionData &ndof);
 float WM_event_ndof_rotation_get_axis_angle(const wmNDOFMotionData &ndof, float axis[3]);
 
+bool WM_event_ndof_translation_has_pan(const wmNDOFMotionData &ndof);
+bool WM_event_ndof_translation_has_zoom(const wmNDOFMotionData &ndof);
+
 #endif /* WITH_INPUT_NDOF */
 
 #ifdef WITH_XR_OPENXR
