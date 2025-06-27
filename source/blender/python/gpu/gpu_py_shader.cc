@@ -929,7 +929,8 @@ PyDoc_STRVAR(
     ".. class:: GPUShader(vertexcode, fragcode, geocode=None, libcode=None, defines=None, "
     "name='pyGPUShader')\n"
     "\n"
-    "   Deprecated, use gpu.shader.create_from_info(shader_info) instead.\n"
+    "   Constructor is deprecated and will be removed in Blender 5.0, "
+    "use :func:`gpu.shader.create_from_info` instead.\n"
     "\n"
     "   GPUShader combines multiple GLSL shaders into a program used for drawing.\n"
     "   It must contain at least a vertex and fragment shaders.\n"
@@ -1098,7 +1099,7 @@ PyDoc_STRVAR(
     "   Create shader from a GPUShaderCreateInfo.\n"
     "\n"
     "   :arg shader_info: GPUShaderCreateInfo\n"
-    "   :type shader_info: :class:`bpy.types.GPUShaderCreateInfo`\n"
+    "   :type shader_info: :class:`gpu.types.GPUShaderCreateInfo`\n"
     "   :return: Shader object corresponding to the given name.\n"
     "   :rtype: :class:`gpu.types.GPUShader`\n");
 static PyObject *pygpu_shader_create_from_info(BPyGPUShader * /*self*/, BPyGPUShaderCreateInfo *o)
