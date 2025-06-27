@@ -62,7 +62,8 @@ const char *GHOST_SystemPathsWin32::getUserDir(int, const char *versionstr) cons
   return user_dir;
 }
 
-const char *GHOST_SystemPathsWin32::getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const
+std::optional<std::string> GHOST_SystemPathsWin32::getUserSpecialDir(
+    GHOST_TUserSpecialDirTypes type) const
 {
   const char *special_dir = nullptr;
 
@@ -93,7 +94,7 @@ const char *GHOST_SystemPathsWin32::getUserSpecialDir(GHOST_TUserSpecialDirTypes
       GHOST_ASSERT(
           false,
           "GHOST_SystemPathsWin32::getUserSpecialDir(): Invalid enum value for type parameter");
-      return nullptr;
+      return std::nullopt;
   }
 
   static char knownpath[MAX_PATH * 3] = {0};
@@ -103,6 +104,10 @@ const char *GHOST_SystemPathsWin32::getUserSpecialDir(GHOST_TUserSpecialDirTypes
   if (hResult == S_OK) {
     conv_utf_16_to_8(knownpath_16, knownpath, MAX_PATH * 3);
     special_dir = knownpath;
+  }
+
+  if ((special_dir == nullptr) || (special_dir[0] == '\0')) {
+    return std::nullopt;
   }
 
   CoTaskMemFree(knownpath_16);

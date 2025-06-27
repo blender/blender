@@ -5,6 +5,9 @@
 #import <AppKit/NSDocumentController.h>
 #import <Foundation/Foundation.h>
 
+#include <optional>
+#include <string>
+
 #include "GHOST_Debug.hh"
 #include "GHOST_SystemPathsCocoa.hh"
 
@@ -46,9 +49,10 @@ const char *GHOST_SystemPathsCocoa::getUserDir(int /* version */, const char *ve
   return GetApplicationSupportDir(versionstr, NSUserDomainMask, tempPath, sizeof(tempPath));
 }
 
-const char *GHOST_SystemPathsCocoa::getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const
+std::optional<std::string> GHOST_SystemPathsCocoa::getUserSpecialDir(
+    GHOST_TUserSpecialDirTypes type) const
 {
-  static char tempPath[512] = "";
+  char tempPath[512] = "";
   @autoreleasepool {
     NSSearchPathDirectory ns_directory;
 
@@ -78,12 +82,12 @@ const char *GHOST_SystemPathsCocoa::getUserSpecialDir(GHOST_TUserSpecialDirTypes
         GHOST_ASSERT(
             false,
             "GHOST_SystemPathsCocoa::getUserSpecialDir(): Invalid enum value for type parameter");
-        return nullptr;
+        return std::nullopt;
     }
 
     NSArray *paths = NSSearchPathForDirectoriesInDomains(ns_directory, NSUserDomainMask, YES);
     if (paths.count == 0) {
-      return nullptr;
+      return std::nullopt;
     }
     NSString *basePath = [paths objectAtIndex:0];
 
@@ -93,6 +97,9 @@ const char *GHOST_SystemPathsCocoa::getUserSpecialDir(GHOST_TUserSpecialDirTypes
     basePath_len = MIN(basePath_len, sizeof(tempPath) - 1);
     memcpy(tempPath, basePath_cstr, basePath_len);
     tempPath[basePath_len] = '\0';
+  }
+  if (!tempPath[0]) {
+    return std::nullopt;
   }
   return tempPath;
 }

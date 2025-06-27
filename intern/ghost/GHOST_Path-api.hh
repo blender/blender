@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "GHOST_Types.h"
 
 GHOST_DECLARE_HANDLE(GHOST_SystemPathsHandle);
@@ -46,9 +49,9 @@ extern const char *GHOST_getUserDir(int version, const char *versionstr);
 
 /**
  * Determine a special ("well known") and easy to reach user directory.
- * \return Unsigned char string pointing to user directory (eg `~/Documents/`).
+ * \return If successfull, a string containing the user directory path (eg `~/Documents/`).
  */
-extern const char *GHOST_getUserSpecialDir(GHOST_TUserSpecialDirTypes type);
+extern std::optional<std::string> GHOST_getUserSpecialDir(GHOST_TUserSpecialDirTypes type);
 
 /**
  * Determine the directory in which the binary file is found.

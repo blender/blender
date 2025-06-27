@@ -34,7 +34,7 @@ const char *GHOST_getUserDir(int version, const char *versionstr)
   return systemPaths ? systemPaths->getUserDir(version, versionstr) : nullptr;
 }
 
-const char *GHOST_getUserSpecialDir(GHOST_TUserSpecialDirTypes type)
+std::optional<std::string> GHOST_getUserSpecialDir(GHOST_TUserSpecialDirTypes type)
 {
   const GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
   /* Shouldn't be `nullptr`. */

@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "../GHOST_Types.h"
 #include "GHOST_SystemPaths.hh"
 
@@ -40,9 +43,9 @@ class GHOST_SystemPathsUnix : public GHOST_SystemPaths {
 
   /**
    * Determine a special ("well known") and easy to reach user directory.
-   * \return Unsigned char string pointing to user directory (eg `~/Documents/`).
+   * \return If successfull, a string containing the user directory path (eg `~/Documents/`).
    */
-  const char *getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const override;
+  std::optional<std::string> getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const override;
 
   /**
    * Determine the directory of the current binary.
