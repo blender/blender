@@ -222,31 +222,6 @@ bool BKE_mesh_calc_islands_loop_face_edgeseam(const float (*vert_positions)[3],
                                               MeshIslandStore *r_island_store);
 
 /**
- * Calculate UV islands.
- *
- * \note If no UV layer is passed, we only consider edges tagged as seams as UV boundaries.
- * This has the advantages of simplicity, and being valid/common to all UV maps.
- * However, it means actual UV islands without matching UV seams will not be handled correctly.
- * If a valid UV layer is passed as \a luvs parameter,
- * UV coordinates are also used to detect islands boundaries.
- *
- * \note All this could be optimized.
- * Not sure it would be worth the more complex code, though,
- * those loops are supposed to be really quick to do.
- */
-bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
-                                           int totvert,
-                                           blender::int2 *edges,
-                                           int totedge,
-                                           const bool *uv_seams,
-                                           blender::OffsetIndices<int> faces,
-                                           const int *corner_verts,
-                                           const int *corner_edges,
-                                           int corners_num,
-                                           const float (*luvs)[2],
-                                           MeshIslandStore *r_island_store);
-
-/**
  * Calculate smooth groups from sharp edges, using increasing numbers as identifier for each group.
  *
  * \param sharp_edges: Optional (possibly empty) span.

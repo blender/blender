@@ -83,10 +83,10 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
   for (const int64_t a : faces.index_range()) {
     const blender::IndexRange face = faces[a];
     if (!selected || (!(hide_poly && hide_poly[a]) && (select_poly && select_poly[a]))) {
-      float(*tf_uv)[2] = nullptr;
+      float (*tf_uv)[2] = nullptr;
 
       if (use_winding) {
-        tf_uv = (float(*)[2])BLI_buffer_reinit_data(
+        tf_uv = (float (*)[2])BLI_buffer_reinit_data(
             &tf_uv_buf, blender::float2, size_t(face.size()));
       }
 
@@ -926,10 +926,8 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
 static bool mesh_calc_islands_loop_face_uv(const int totedge,
                                            const bool *uv_seams,
                                            const blender::OffsetIndices<int> faces,
-                                           const int *corner_verts,
                                            const int *corner_edges,
                                            const int corners_num,
-                                           const float (*luvs)[2],
                                            MeshIslandStore *r_island_store)
 {
   using namespace blender;
@@ -960,14 +958,6 @@ static bool mesh_calc_islands_loop_face_uv(const int totedge,
   const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_face_map(
       faces, {corner_edges, corners_num}, totedge, edge_to_face_offsets, edge_to_face_indices);
 
-  Array<int> edge_to_corner_offsets;
-  Array<int> edge_to_corner_indices;
-  GroupedSpan<int> edge_to_corner_map;
-  if (luvs) {
-    edge_to_corner_map = bke::mesh::build_edge_to_corner_map(
-        {corner_edges, corners_num}, totedge, edge_to_corner_offsets, edge_to_corner_indices);
-  }
-
   /* TODO: I'm not sure edge seam flag is enough to define UV islands?
    *       Maybe we should also consider UV-maps values
    *       themselves (i.e. different UV-edges for a same mesh-edge => boundary edge too?).
@@ -975,40 +965,10 @@ static bool mesh_calc_islands_loop_face_uv(const int totedge,
    *       and each UVMap would then need its own mesh mapping, not sure we want that at all!
    */
   auto mesh_check_island_boundary_uv = [&](const int /*face_index*/,
-                                           const int corner,
+                                           const int /*corner*/,
                                            const int edge_index,
                                            const int /*edge_user_count*/,
                                            const Span<int> /*edge_face_map_elem*/) -> bool {
-    if (luvs) {
-      const Span<int> edge_to_corners = edge_to_corner_map[corner_edges[corner]];
-
-      BLI_assert(edge_to_corners.size() >= 2 && (edge_to_corners.size() % 2) == 0);
-
-      const int v1 = corner_verts[edge_to_corners[0]];
-      const int v2 = corner_verts[edge_to_corners[1]];
-      const float *uvco_v1 = luvs[edge_to_corners[0]];
-      const float *uvco_v2 = luvs[edge_to_corners[1]];
-      for (int i = 2; i < edge_to_corners.size(); i += 2) {
-        if (corner_verts[edge_to_corners[i]] == v1) {
-          if (!equals_v2v2(uvco_v1, luvs[edge_to_corners[i]]) ||
-              !equals_v2v2(uvco_v2, luvs[edge_to_corners[i + 1]]))
-          {
-            return true;
-          }
-        }
-        else {
-          BLI_assert(corner_verts[edge_to_corners[i]] == v2);
-          UNUSED_VARS_NDEBUG(v2);
-          if (!equals_v2v2(uvco_v2, luvs[edge_to_corners[i]]) ||
-              !equals_v2v2(uvco_v1, luvs[edge_to_corners[i + 1]]))
-          {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
     /* Edge is UV boundary if tagged as seam. */
     return uv_seams && uv_seams[edge_index];
   };
@@ -1100,32 +1060,14 @@ bool BKE_mesh_calc_islands_loop_face_edgeseam(const float (*vert_positions)[3],
                                               const int totedge,
                                               const bool *uv_seams,
                                               const blender::OffsetIndices<int> faces,
-                                              const int *corner_verts,
+                                              const int * /*corner_verts*/,
                                               const int *corner_edges,
                                               const int corners_num,
                                               MeshIslandStore *r_island_store)
 {
   UNUSED_VARS(vert_positions, totvert, edges);
   return mesh_calc_islands_loop_face_uv(
-      totedge, uv_seams, faces, corner_verts, corner_edges, corners_num, nullptr, r_island_store);
-}
-
-bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
-                                           const int totvert,
-                                           blender::int2 *edges,
-                                           const int totedge,
-                                           const bool *uv_seams,
-                                           const blender::OffsetIndices<int> faces,
-                                           const int *corner_verts,
-                                           const int *corner_edges,
-                                           const int corners_num,
-                                           const float (*luvs)[2],
-                                           MeshIslandStore *r_island_store)
-{
-  UNUSED_VARS(vert_positions, totvert, edges);
-  BLI_assert(luvs != nullptr);
-  return mesh_calc_islands_loop_face_uv(
-      totedge, uv_seams, faces, corner_verts, corner_edges, corners_num, luvs, r_island_store);
+      totedge, uv_seams, faces, corner_edges, corners_num, r_island_store);
 }
 
 /** \} */
