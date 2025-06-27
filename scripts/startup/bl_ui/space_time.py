@@ -11,8 +11,6 @@ def playback_controls(layout, context):
     scene = context.scene
     tool_settings = context.tool_settings
     screen = context.screen
-    st = context.space_data
-    is_graph_editor = st.type == 'GRAPH_EDITOR'
 
     row = layout.row(align=True)
     row.popover(
@@ -56,11 +54,7 @@ def playback_controls(layout, context):
         row.operator("screen.animation_play", text="", icon='PAUSE')
         row.scale_x = 1
 
-    if is_graph_editor:
-        row.operator("graph.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
-    else:
-        row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
-
+    row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
     row.operator("screen.frame_jump", text="", icon='FF').end = True
 
     layout.separator_spacer()
