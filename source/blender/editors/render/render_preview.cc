@@ -64,6 +64,7 @@
 #include "BKE_object.hh"
 #include "BKE_pose_backup.h"
 #include "BKE_preview_image.hh"
+#include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_texture.h"
@@ -1065,6 +1066,69 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Scene Preview
+ * \{ */
+
+static bool scene_preview_is_supported(const Scene *scene)
+{
+  return scene->camera != nullptr;
+}
+
+static void scene_preview_render(IconPreview *preview,
+                                 IconPreviewSize *preview_sized,
+                                 ReportList *reports)
+{
+  Depsgraph *depsgraph = preview->depsgraph;
+  /* Not all code paths that lead to this function actually provide a depsgraph.
+   * The "Refresh Asset Preview" button (#ED_OT_lib_id_generate_preview) does,
+   * but #WM_OT_previews_ensure does not. */
+  BLI_assert(depsgraph != nullptr);
+  BLI_assert(preview->id != nullptr);
+
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+  Object *camera_eval = scene_eval->camera;
+  if (camera_eval == nullptr) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Scene has no camera, unable to render preview of %s without it.",
+                BKE_id_name(*preview->id));
+    return;
+  }
+
+  char err_out[256] = "";
+  /* This renders with the Workbench engine settings stored on the Scene. */
+  ImBuf *ibuf = ED_view3d_draw_offscreen_imbuf_simple(depsgraph,
+                                                      scene_eval,
+                                                      nullptr,
+                                                      OB_SOLID,
+                                                      camera_eval,
+                                                      preview_sized->sizex,
+                                                      preview_sized->sizey,
+                                                      IB_byte_data,
+                                                      V3D_OFSDRAW_NONE,
+                                                      R_ADDSKY,
+                                                      nullptr,
+                                                      nullptr,
+                                                      nullptr,
+                                                      err_out);
+
+  if (err_out[0] != '\0') {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Error rendering Scene %s preview: %s.",
+                BKE_id_name(*preview->id),
+                err_out);
+  }
+
+  if (ibuf) {
+    icon_copy_rect(ibuf, preview_sized->sizex, preview_sized->sizey, preview_sized->rect);
+    IMB_freeImBuf(ibuf);
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name New Shader Preview System
  * \{ */
 
@@ -1559,7 +1623,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
     /* TODO: Decouple the ID-type-specific render functions from this function, so that it's not
      * necessary to know here what happens inside lower-level functions. */
     const bool use_solid_render_mode = (ip->id != nullptr) &&
-                                       ELEM(GS(ip->id->name), ID_OB, ID_AC, ID_IM, ID_GR);
+                                       ELEM(GS(ip->id->name), ID_OB, ID_AC, ID_IM, ID_GR, ID_SCE);
     if (!use_solid_render_mode && preview_method_is_render(pr_method) &&
         !ED_check_engine_supports_preview(ip->scene))
     {
@@ -1597,6 +1661,9 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
           continue;
         case ID_AC:
           action_preview_render(ip, cur_size);
+          continue;
+        case ID_SCE:
+          scene_preview_render(ip, cur_size, worker_status->reports);
           continue;
         default:
           /* Fall through to the same code as the `ip->id == nullptr` case. */
@@ -1918,6 +1985,9 @@ bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)
             collection_preview_contains_geometry_recursive((const Collection *)id),
             RPT_("Collection does not contain object types that can be rendered for the automatic "
                  "preview")};
+      case ID_SCE:
+        return {scene_preview_is_supported((const Scene *)id),
+                RPT_("Scenes without a camera do not support previews")};
       default:
         return {BKE_previewimg_id_get_p(id) != nullptr,
                 RPT_("Data-block type does not support automatic previews")};
@@ -1950,14 +2020,23 @@ void ED_preview_icon_render(
   ED_preview_ensure_dbase(true);
 
   ip.bmain = CTX_data_main(C);
-  ip.scene = scene;
-  ip.depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  if (GS(id->name) == ID_SCE) {
+    Scene *icon_scene = reinterpret_cast<Scene *>(id);
+    ip.scene = icon_scene;
+    ip.depsgraph = BKE_scene_ensure_depsgraph(
+        ip.bmain, ip.scene, BKE_view_layer_default_render(ip.scene));
+    ip.active_object = nullptr;
+  }
+  else {
+    ip.scene = scene;
+    ip.depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    /* Control isn't given back to the caller until the preview is done. So we don't need to copy
+     * the ID to avoid thread races. */
+    ip.id_copy = duplicate_ids(id, true);
+    ip.active_object = CTX_data_active_object(C);
+  }
   ip.owner = BKE_previewimg_id_ensure(id);
   ip.id = id;
-  /* Control isn't given back to the caller until the preview is done. So we don't need to copy
-   * the ID to avoid thread races. */
-  ip.id_copy = duplicate_ids(id, true);
-  ip.active_object = CTX_data_active_object(C);
 
   prv_img->flag[icon_size] |= PRV_RENDERING;
 
@@ -2012,12 +2091,21 @@ void ED_preview_icon_job(
 
   /* customdata for preview thread */
   ip->bmain = CTX_data_main(C);
-  ip->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ip->scene = DEG_get_input_scene(ip->depsgraph);
-  ip->active_object = CTX_data_active_object(C);
+  if (GS(id->name) == ID_SCE) {
+    Scene *icon_scene = reinterpret_cast<Scene *>(id);
+    ip->scene = icon_scene;
+    ip->depsgraph = BKE_scene_ensure_depsgraph(
+        ip->bmain, ip->scene, BKE_view_layer_default_render(ip->scene));
+    ip->active_object = nullptr;
+  }
+  else {
+    ip->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    ip->scene = DEG_get_input_scene(ip->depsgraph);
+    ip->id_copy = duplicate_ids(id, false);
+    ip->active_object = CTX_data_active_object(C);
+  }
   ip->owner = prv_img;
   ip->id = id;
-  ip->id_copy = duplicate_ids(id, false);
 
   prv_img->flag[icon_size] |= PRV_RENDERING;
 

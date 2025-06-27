@@ -260,7 +260,7 @@ void BKE_previewimg_id_custom_set(ID *id, const char *filepath)
 
 bool BKE_previewimg_id_supports_jobs(const ID *id)
 {
-  return ELEM(GS(id->name), ID_OB, ID_MA, ID_TE, ID_LA, ID_WO, ID_IM, ID_BR, ID_GR);
+  return ELEM(GS(id->name), ID_OB, ID_MA, ID_TE, ID_LA, ID_WO, ID_IM, ID_BR, ID_GR, ID_SCE);
 }
 
 void BKE_previewimg_deferred_release(PreviewImage *prv)
