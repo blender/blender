@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-import blendfile_header
+import _blendfile_header  # Not part of the Public API, allow use for testing.
 import blend_render_info
 import bpy
 import pathlib
@@ -26,7 +26,7 @@ class BlendFileHeaderTest(unittest.TestCase):
     def test_small_bhead_8(self):
         path = self.testdir / "SmallBHead8.blend"
         with gzip.open(path, "rb") as f:
-            header = blendfile_header.BlendFileHeader(f)
+            header = _blendfile_header.BlendFileHeader(f)
             self.assertEqual(header.magic, b"BLENDER")
             self.assertEqual(header.file_format_version, 0)
             self.assertEqual(header.pointer_size, 8)
@@ -34,7 +34,7 @@ class BlendFileHeaderTest(unittest.TestCase):
             self.assertEqual(header.version, 300)
 
             header_struct = header.create_block_header_struct()
-            self.assertIs(header_struct.type, blendfile_header.SmallBHead8)
+            self.assertIs(header_struct.type, _blendfile_header.SmallBHead8)
 
             buffer = f.read(header_struct.struct.size)
             block = header_struct.parse(buffer)
@@ -49,7 +49,7 @@ class BlendFileHeaderTest(unittest.TestCase):
     def test_large_bhead_8(self):
         path = self.testdir / "LargeBHead8.blend"
         with open(path, "rb") as f:
-            header = blendfile_header.BlendFileHeader(f)
+            header = _blendfile_header.BlendFileHeader(f)
             self.assertEqual(header.magic, b"BLENDER")
             self.assertEqual(header.file_format_version, 1)
             self.assertEqual(header.pointer_size, 8)
@@ -57,7 +57,7 @@ class BlendFileHeaderTest(unittest.TestCase):
             self.assertEqual(header.version, 500)
 
             header_struct = header.create_block_header_struct()
-            self.assertIs(header_struct.type, blendfile_header.LargeBHead8)
+            self.assertIs(header_struct.type, _blendfile_header.LargeBHead8)
 
             buffer = f.read(header_struct.struct.size)
             block = header_struct.parse(buffer)
@@ -72,7 +72,7 @@ class BlendFileHeaderTest(unittest.TestCase):
     def test_bhead_4(self):
         path = self.testdir / "BHead4.blend"
         with gzip.open(path, "rb") as f:
-            header = blendfile_header.BlendFileHeader(f)
+            header = _blendfile_header.BlendFileHeader(f)
             self.assertEqual(header.magic, b"BLENDER")
             self.assertEqual(header.file_format_version, 0)
             self.assertEqual(header.pointer_size, 4)
@@ -80,7 +80,7 @@ class BlendFileHeaderTest(unittest.TestCase):
             self.assertEqual(header.version, 260)
 
             header_struct = header.create_block_header_struct()
-            self.assertIs(header_struct.type, blendfile_header.BHead4)
+            self.assertIs(header_struct.type, _blendfile_header.BHead4)
 
             buffer = f.read(header_struct.struct.size)
             block = header_struct.parse(buffer)
@@ -95,7 +95,7 @@ class BlendFileHeaderTest(unittest.TestCase):
     def test_bhead_4_big_endian(self):
         path = self.testdir / "BHead4_big_endian.blend"
         with gzip.open(path, "rb") as f:
-            header = blendfile_header.BlendFileHeader(f)
+            header = _blendfile_header.BlendFileHeader(f)
             self.assertEqual(header.magic, b"BLENDER")
             self.assertEqual(header.file_format_version, 0)
             self.assertEqual(header.pointer_size, 4)
@@ -103,7 +103,7 @@ class BlendFileHeaderTest(unittest.TestCase):
             self.assertEqual(header.version, 170)
 
             header_struct = header.create_block_header_struct()
-            self.assertIs(header_struct.type, blendfile_header.BHead4)
+            self.assertIs(header_struct.type, _blendfile_header.BHead4)
 
             buffer = f.read(header_struct.struct.size)
             block = header_struct.parse(buffer)
@@ -131,7 +131,7 @@ class BlendFileHeaderTest(unittest.TestCase):
         version_int = version[0] * 100 + version[1]
 
         with open(path, "rb") as f:
-            header = blendfile_header.BlendFileHeader(f)
+            header = _blendfile_header.BlendFileHeader(f)
             self.assertEqual(header.magic, b"BLENDER")
             self.assertEqual(header.file_format_version, 1)
             self.assertEqual(header.pointer_size, 8)
@@ -139,7 +139,7 @@ class BlendFileHeaderTest(unittest.TestCase):
             self.assertEqual(header.version, version_int)
 
             header_struct = header.create_block_header_struct()
-            self.assertIs(header_struct.type, blendfile_header.LargeBHead8)
+            self.assertIs(header_struct.type, _blendfile_header.LargeBHead8)
 
             buffer = f.read(header_struct.struct.size)
             block = header_struct.parse(buffer)
