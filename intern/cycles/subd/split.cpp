@@ -593,11 +593,14 @@ void DiagSplit::split_triangle(SubPatch &&sub)
    * platforms rather than choice being decided by precision. */
   const float bias = 1.00012345f;
 
-  /* Pick longest edge that must be split. */
-  float max_length = 0;
-  int split_index_0 = 0;
+  /* Pick longest edge that must be split. Note that in degenerate cases edges may have
+   * zero length but still requires splitting at depth 0. */
+  float max_length = 0.0f;
+  int split_index_0 = -1;
   for (int i = 0; i < 3; i++) {
-    if (sub.edges[i].edge->must_split() && sub.edges[i].edge->length > max_length) {
+    if (sub.edges[i].edge->must_split() &&
+        (split_index_0 == -1 || sub.edges[i].edge->length > max_length))
+    {
       split_index_0 = i;
       max_length = sub.edges[i].edge->length * bias;
     }
