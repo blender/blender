@@ -349,8 +349,6 @@ struct PaintOperationExecutor {
     const float start_rotation = ed::greasepencil::randomize_rotation(
         *settings_, self.rng_, self.stroke_random_rotation_factor_, start_sample.pressure);
     Scene *scene = CTX_data_scene(&C);
-    Paint *paint = BKE_paint_get_active_from_context(&C);
-    Brush *brush = BKE_paint_brush(paint);
     if (use_vertex_color_) {
       vertex_color_ = ed::greasepencil::randomize_color(*settings_,
                                                         jitter_settings_,
@@ -646,8 +644,6 @@ struct PaintOperationExecutor {
                                 const InputSample &extension_sample)
   {
     Scene *scene = CTX_data_scene(&C);
-    Paint *paint = BKE_paint_get_active_from_context(&C);
-    Brush *brush = BKE_paint_brush(paint);
     const RegionView3D *rv3d = CTX_wm_region_view3d(&C);
     const ARegion *region = CTX_wm_region(&C);
     const bool on_back = (scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) != 0;
