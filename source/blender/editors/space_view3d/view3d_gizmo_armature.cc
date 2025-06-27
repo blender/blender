@@ -13,6 +13,7 @@
 #include "BKE_action.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 
 #include "DNA_armature_types.h"
@@ -120,7 +121,9 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType
       if (arm->drawtype == ARM_DRAW_TYPE_B_BONE) {
         bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
         if (pchan && pchan->bone->segments > 1) {
-          return true;
+          if (BKE_id_is_editable(CTX_data_main(C), &arm->id)) {
+            return true;
+          }
         }
       }
     }
