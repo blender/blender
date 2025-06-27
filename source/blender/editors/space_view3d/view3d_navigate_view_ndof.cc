@@ -420,6 +420,9 @@ void view3d_ndof_fly(const wmNDOFMotionData &ndof,
 
 static bool ndof_orbit_center_is_auto(const View3D *v3d, const RegionView3D *rv3d)
 {
+  if (!NDOF_IS_ORBIT_AROUND_CENTER_MODE(&U)) {
+    return false;
+  }
   if ((U.ndof_flag & NDOF_ORBIT_CENTER_AUTO) == 0) {
     return false;
   }
