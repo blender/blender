@@ -75,6 +75,25 @@ BlendHandle *BLO_blendhandle_from_memory(const void *mem,
   return bh;
 }
 
+/* Return `false` if the block should be skipped because it is either an invalid block, or it does
+ * not meet to required conditions. */
+static bool blendhandle_load_id_data_and_validate(FileData *fd,
+                                                  BHead *bhead,
+                                                  bool use_assets_only,
+                                                  const char *&r_idname,
+                                                  AssetMetaData *&r_asset_meta_data)
+{
+  r_idname = blo_bhead_id_name(fd, bhead);
+  if (!r_idname || r_idname[0] == '\0') {
+    return false;
+  }
+  r_asset_meta_data = blo_bhead_id_asset_data_address(fd, bhead);
+  if (use_assets_only && r_asset_meta_data == nullptr) {
+    return false;
+  }
+  return true;
+}
+
 LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
                                               int ofblocktype,
                                               const bool use_assets_only,
@@ -87,11 +106,11 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (bhead->code == ofblocktype) {
-      const char *idname = blo_bhead_id_name(fd, bhead);
-      if (!idname) {
-        continue;
-      }
-      if (use_assets_only && blo_bhead_id_asset_data_address(fd, bhead) == nullptr) {
+      const char *idname;
+      AssetMetaData *asset_meta_data;
+      if (!blendhandle_load_id_data_and_validate(
+              fd, bhead, use_assets_only, idname, asset_meta_data))
+      {
         continue;
       }
 
@@ -126,18 +145,15 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
     if (bhead->code == ofblocktype) {
       BHead *id_bhead = bhead;
 
-      const char *idname = blo_bhead_id_name(fd, bhead);
-      if (!idname) {
+      const char *idname;
+      AssetMetaData *asset_meta_data;
+      if (!blendhandle_load_id_data_and_validate(
+              fd, id_bhead, use_assets_only, idname, asset_meta_data))
+      {
         continue;
       }
-      const char *name = idname + 2;
-      AssetMetaData *asset_meta_data = blo_bhead_id_asset_data_address(fd, bhead);
 
-      const bool is_asset = asset_meta_data != nullptr;
-      const bool skip_datablock = use_assets_only && !is_asset;
-      if (skip_datablock) {
-        continue;
-      }
+      const char *name = idname + 2;
       BLODataBlockInfo *info = MEM_mallocN<BLODataBlockInfo>(__func__);
 
       /* Lastly, read asset data from the following blocks. */
