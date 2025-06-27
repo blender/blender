@@ -455,6 +455,9 @@ class DOPESHEET_MT_view(Menu):
         props.value = 'GRAPH_EDITOR'
         layout.separator()
 
+        layout.menu("DOPESHEET_MT_cache")
+        layout.separator()
+
         layout.menu("INFO_MT_area")
 
 
@@ -472,6 +475,29 @@ class DOPESHEET_MT_view_pie(Menu):
             pie.operator("anim.scene_range_frame", text="Frame Preview Range")
         else:
             pie.operator("anim.scene_range_frame", text="Frame Scene Range")
+
+
+class DOPESHEET_MT_cache(Menu):
+    bl_label = "Cache"
+
+    def draw(self, context):
+        layout = self.layout
+
+        st = context.space_data
+
+        layout.prop(st, "show_cache")
+
+        layout.separator()
+
+        col = layout.column()
+        col.enabled = st.show_cache
+        col.prop(st, "cache_softbody")
+        col.prop(st, "cache_particles")
+        col.prop(st, "cache_cloth")
+        col.prop(st, "cache_simulation_nodes")
+        col.prop(st, "cache_smoke")
+        col.prop(st, "cache_dynamicpaint")
+        col.prop(st, "cache_rigidbody")
 
 
 class DOPESHEET_MT_select(Menu):
@@ -1001,6 +1027,7 @@ classes = (
     DOPESHEET_PT_proportional_edit,
     DOPESHEET_MT_editor_menus,
     DOPESHEET_MT_view,
+    DOPESHEET_MT_cache,
     DOPESHEET_MT_select,
     DOPESHEET_MT_marker,
     DOPESHEET_MT_channel,
