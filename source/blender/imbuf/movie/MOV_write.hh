@@ -17,14 +17,15 @@ struct Scene;
 
 MovieWriter *MOV_write_begin(const char imtype,
                              const Scene *scene,
-                             RenderData *rd,
+                             const RenderData *rd,
                              int rectx,
                              int recty,
                              ReportList *reports,
                              bool preview,
                              const char *suffix);
 bool MOV_write_append(MovieWriter *writer,
-                      RenderData *rd,
+                      const Scene *scene,
+                      const RenderData *rd,
                       int start_frame,
                       int frame,
                       const ImBuf *image,
@@ -36,6 +37,7 @@ void MOV_write_end(MovieWriter *writer);
  * \note Similar to #BKE_image_path_from_imformat()
  */
 void MOV_filepath_from_settings(char filepath[/*FILE_MAX*/ 1024],
+                                const Scene *scene,
                                 const RenderData *rd,
                                 bool preview,
                                 const char *suffix,
