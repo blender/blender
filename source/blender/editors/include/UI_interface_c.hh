@@ -954,10 +954,10 @@ void UI_block_lock_clear(uiBlock *block);
 enum class uiButtonSectionsAlign : int8_t { None = 1, Top, Bottom };
 /**
  * Draw a background with rounded corners behind each visual group of buttons. The visual groups
- * are separated by spacer buttons (#uiItemSpacer()). Button groups that are closer than
- * #UI_BUTTON_SECTION_MERGE_DISTANCE will be merged into one visual section. If the group is closer
- * than that to a region edge, it will also be extended to that, and the rounded corners will be
- * removed on that edge.
+ * are separated by spacer buttons (#uiLayout::separator_spacer()). Button groups that are closer
+ * than #UI_BUTTON_SECTION_MERGE_DISTANCE will be merged into one visual section. If the group is
+ * closer than that to a region edge, it will also be extended to that, and the rounded corners
+ * will be removed on that edge.
  *
  * \note This currently only works well for horizontal, header like regions.
  */

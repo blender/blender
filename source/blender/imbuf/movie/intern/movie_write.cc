@@ -56,6 +56,7 @@ static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value)
 static void ffmpeg_movie_close(MovieWriter *context);
 static bool ffmpeg_filepath_get(MovieWriter *context,
                                 char filepath[FILE_MAX],
+                                const Scene *scene,
                                 const RenderData *rd,
                                 bool preview,
                                 const char *suffix,
@@ -336,7 +337,7 @@ static AVRational calc_time_base(uint den, double num, AVCodecID codec_id)
 }
 
 static const AVCodec *get_av1_encoder(
-    MovieWriter *context, RenderData *rd, AVDictionary **opts, int rectx, int recty)
+    MovieWriter *context, const RenderData *rd, AVDictionary **opts, int rectx, int recty)
 {
   /* There are three possible encoders for AV1: `libaom-av1`, librav1e, and `libsvtav1`. librav1e
    * tends to give the best compression quality while `libsvtav1` tends to be the fastest encoder.
@@ -540,7 +541,7 @@ static int remap_crf_to_h265_crf(int crf, bool is_10_or_12_bpp)
   return crf;
 }
 
-static const AVCodec *get_prores_encoder(RenderData *rd, int rectx, int recty)
+static const AVCodec *get_prores_encoder(const RenderData *rd, int rectx, int recty)
 {
   /* The prores_aw encoder currently (April 2025) has issues when encoding alpha with high
    * resolution but is faster in most cases for similar quality. Use it instead of prores_ks
@@ -640,7 +641,7 @@ static void set_quality_rate_options(const MovieWriter *context,
 }
 
 static AVStream *alloc_video_stream(MovieWriter *context,
-                                    RenderData *rd,
+                                    const RenderData *rd,
                                     AVCodecID codec_id,
                                     AVFormatContext *of,
                                     int rectx,
@@ -1013,7 +1014,8 @@ static void ffmpeg_add_metadata_callback(void *data,
 }
 
 static bool start_ffmpeg_impl(MovieWriter *context,
-                              RenderData *rd,
+                              const Scene *scene,
+                              const RenderData *rd,
                               int rectx,
                               int recty,
                               const char *suffix,
@@ -1042,7 +1044,8 @@ static bool start_ffmpeg_impl(MovieWriter *context,
   }
 
   /* Determine the correct filename */
-  if (!ffmpeg_filepath_get(context, filepath, rd, context->ffmpeg_preview, suffix, reports)) {
+  if (!ffmpeg_filepath_get(context, filepath, scene, rd, context->ffmpeg_preview, suffix, reports))
+  {
     return false;
   }
   FF_DEBUG_PRINT(
@@ -1286,6 +1289,7 @@ static void flush_delayed_frames(AVCodecContext *c, AVStream *stream, AVFormatCo
  */
 static bool ffmpeg_filepath_get(MovieWriter *context,
                                 char filepath[FILE_MAX],
+                                const Scene *scene,
                                 const RenderData *rd,
                                 bool preview,
                                 const char *suffix,
@@ -1312,8 +1316,12 @@ static bool ffmpeg_filepath_get(MovieWriter *context,
 
   BLI_strncpy(filepath, rd->pic, FILE_MAX);
 
+  blender::bke::path_templates::VariableMap template_variables;
+  BKE_add_template_variables_general(template_variables, &scene->id);
+  BKE_add_template_variables_for_render_path(template_variables, *scene);
+
   const blender::Vector<blender::bke::path_templates::Error> errors = BKE_path_apply_template(
-      filepath, FILE_MAX, BKE_build_template_variables_for_render_path(rd));
+      filepath, FILE_MAX, template_variables);
   if (!errors.is_empty()) {
     BKE_report_path_template_errors(reports, RPT_ERROR, filepath, errors);
     return false;
@@ -1365,16 +1373,17 @@ static bool ffmpeg_filepath_get(MovieWriter *context,
 }
 
 static void ffmpeg_get_filepath(char filepath[/*FILE_MAX*/ 1024],
+                                const Scene *scene,
                                 const RenderData *rd,
                                 bool preview,
                                 const char *suffix,
                                 ReportList *reports)
 {
-  ffmpeg_filepath_get(nullptr, filepath, rd, preview, suffix, reports);
+  ffmpeg_filepath_get(nullptr, filepath, scene, rd, preview, suffix, reports);
 }
 
 static MovieWriter *ffmpeg_movie_open(const Scene *scene,
-                                      RenderData *rd,
+                                      const RenderData *rd,
                                       int rectx,
                                       int recty,
                                       ReportList *reports,
@@ -1396,7 +1405,7 @@ static MovieWriter *ffmpeg_movie_open(const Scene *scene,
   context->ffmpeg_preview = preview;
   context->stamp_data = BKE_stamp_info_from_scene_static(scene);
 
-  bool success = start_ffmpeg_impl(context, rd, rectx, recty, suffix, reports);
+  bool success = start_ffmpeg_impl(context, scene, rd, rectx, recty, suffix, reports);
 
   if (success) {
     success = movie_audio_open(context,
@@ -1417,7 +1426,8 @@ static MovieWriter *ffmpeg_movie_open(const Scene *scene,
 static void end_ffmpeg_impl(MovieWriter *context, bool is_autosplit);
 
 static bool ffmpeg_movie_append(MovieWriter *context,
-                                RenderData *rd,
+                                const Scene *scene,
+                                const RenderData *rd,
                                 int start_frame,
                                 int frame,
                                 const ImBuf *image,
@@ -1445,7 +1455,7 @@ static bool ffmpeg_movie_append(MovieWriter *context,
       end_ffmpeg_impl(context, true);
       context->ffmpeg_autosplit_count++;
 
-      success &= start_ffmpeg_impl(context, rd, image->x, image->y, suffix, reports);
+      success &= start_ffmpeg_impl(context, scene, rd, image->x, image->y, suffix, reports);
     }
   }
 
@@ -1543,7 +1553,7 @@ static bool is_imtype_ffmpeg(const char imtype)
 
 MovieWriter *MOV_write_begin(const char imtype,
                              const Scene *scene,
-                             RenderData *rd,
+                             const RenderData *rd,
                              int rectx,
                              int recty,
                              ReportList *reports,
@@ -1565,7 +1575,8 @@ MovieWriter *MOV_write_begin(const char imtype,
 }
 
 bool MOV_write_append(MovieWriter *writer,
-                      RenderData *rd,
+                      const Scene *scene,
+                      const RenderData *rd,
                       int start_frame,
                       int frame,
                       const ImBuf *image,
@@ -1577,10 +1588,10 @@ bool MOV_write_append(MovieWriter *writer,
   }
 
 #ifdef WITH_FFMPEG
-  bool ok = ffmpeg_movie_append(writer, rd, start_frame, frame, image, suffix, reports);
+  bool ok = ffmpeg_movie_append(writer, scene, rd, start_frame, frame, image, suffix, reports);
   return ok;
 #else
-  UNUSED_VARS(rd, start_frame, frame, image, suffix, reports);
+  UNUSED_VARS(scene, rd, start_frame, frame, image, suffix, reports);
   return false;
 #endif
 }
@@ -1597,6 +1608,7 @@ void MOV_write_end(MovieWriter *writer)
 }
 
 void MOV_filepath_from_settings(char filepath[/*FILE_MAX*/ 1024],
+                                const Scene *scene,
                                 const RenderData *rd,
                                 bool preview,
                                 const char *suffix,
@@ -1604,11 +1616,11 @@ void MOV_filepath_from_settings(char filepath[/*FILE_MAX*/ 1024],
 {
 #ifdef WITH_FFMPEG
   if (is_imtype_ffmpeg(rd->im_format.imtype)) {
-    ffmpeg_get_filepath(filepath, rd, preview, suffix, reports);
+    ffmpeg_get_filepath(filepath, scene, rd, preview, suffix, reports);
     return;
   }
 #else
-  UNUSED_VARS(rd, preview, suffix, reports);
+  UNUSED_VARS(scene, rd, preview, suffix, reports);
 #endif
   filepath[0] = '\0';
 }

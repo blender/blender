@@ -10,10 +10,11 @@
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
+
+#include "attribute_storage_access.hh"
 
 namespace blender::bke {
 
@@ -145,34 +146,27 @@ uint64_t InstanceReference::hash() const
   return get_default_hash(geometry_hash, type_, data_);
 }
 
-Instances::Instances()
-{
-  CustomData_reset(&attributes_);
-}
+Instances::Instances() = default;
 
 Instances::Instances(Instances &&other)
     : references_(std::move(other.references_)),
       instances_num_(other.instances_num_),
-      attributes_(other.attributes_),
+      attributes_(std::move(other.attributes_)),
       reference_user_counts_(std::move(other.reference_user_counts_)),
       almost_unique_ids_cache_(std::move(other.almost_unique_ids_cache_))
 {
-  CustomData_reset(&other.attributes_);
 }
 
 Instances::Instances(const Instances &other)
     : references_(other.references_),
       instances_num_(other.instances_num_),
+      attributes_(other.attributes_),
       reference_user_counts_(other.reference_user_counts_),
       almost_unique_ids_cache_(other.almost_unique_ids_cache_)
 {
-  CustomData_init_from(&other.attributes_, &attributes_, CD_MASK_ALL, other.instances_num_);
 }
 
-Instances::~Instances()
-{
-  CustomData_free(&attributes_);
-}
+Instances::~Instances() = default;
 
 Instances &Instances::operator=(const Instances &other)
 {
@@ -196,17 +190,21 @@ Instances &Instances::operator=(Instances &&other)
 
 void Instances::resize(int capacity)
 {
-  CustomData_realloc(&attributes_, instances_num_, capacity, CD_SET_DEFAULT);
+  const int old_size = this->instances_num();
+  attributes_.resize(AttrDomain::Instance, capacity);
   instances_num_ = capacity;
+  fill_attribute_range_default(this->attributes_for_write(),
+                               AttrDomain::Instance,
+                               {},
+                               IndexRange::from_begin_end(old_size, capacity));
 }
 
 void Instances::add_instance(const int instance_handle, const float4x4 &transform)
 {
   BLI_assert(instance_handle >= 0);
   BLI_assert(instance_handle < references_.size());
-  const int old_size = instances_num_;
   instances_num_++;
-  CustomData_realloc(&attributes_, old_size, instances_num_);
+  attributes_.resize(AttrDomain::Instance, instances_num_);
   this->reference_handles_for_write().last() = instance_handle;
   this->transforms_for_write().last() = transform;
   this->tag_reference_handles_changed();
@@ -214,38 +212,26 @@ void Instances::add_instance(const int instance_handle, const float4x4 &transfor
 
 Span<int> Instances::reference_handles() const
 {
-  return {static_cast<const int *>(
-              CustomData_get_layer_named(&attributes_, CD_PROP_INT32, ".reference_index")),
-          instances_num_};
+  return get_span_attribute<int>(
+      attributes_, AttrDomain::Instance, ".reference_index", instances_num_);
 }
 
 MutableSpan<int> Instances::reference_handles_for_write()
 {
-  int *data = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &attributes_, CD_PROP_INT32, ".reference_index", instances_num_));
-  if (!data) {
-    data = static_cast<int *>(CustomData_add_layer_named(
-        &attributes_, CD_PROP_INT32, CD_SET_DEFAULT, instances_num_, ".reference_index"));
-  }
-  return {data, instances_num_};
+  return get_mutable_attribute<int>(
+      attributes_, AttrDomain::Instance, ".reference_index", instances_num_);
 }
 
 Span<float4x4> Instances::transforms() const
 {
-  return {static_cast<const float4x4 *>(
-              CustomData_get_layer_named(&attributes_, CD_PROP_FLOAT4X4, "instance_transform")),
-          instances_num_};
+  return get_span_attribute<float4x4>(
+      attributes_, AttrDomain::Instance, "instance_transform", instances_num_);
 }
 
 MutableSpan<float4x4> Instances::transforms_for_write()
 {
-  float4x4 *data = static_cast<float4x4 *>(CustomData_get_layer_named_for_write(
-      &attributes_, CD_PROP_FLOAT4X4, "instance_transform", instances_num_));
-  if (!data) {
-    data = static_cast<float4x4 *>(CustomData_add_layer_named(
-        &attributes_, CD_PROP_FLOAT4X4, CD_SET_DEFAULT, instances_num_, "instance_transform"));
-  }
-  return {data, instances_num_};
+  return get_mutable_attribute<float4x4>(
+      attributes_, AttrDomain::Instance, "instance_transform", instances_num_);
 }
 
 GeometrySet &Instances::geometry_set_from_reference(const int reference_index)
@@ -427,7 +413,7 @@ void Instances::ensure_owns_direct_data()
 
 void Instances::count_memory(MemoryCounter &memory) const
 {
-  CustomData_count_memory(attributes_, instances_num_, memory);
+  attributes_.count_memory(memory);
   for (const InstanceReference &reference : references_) {
     reference.count_memory(memory);
   }

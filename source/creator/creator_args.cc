@@ -764,6 +764,9 @@ static void print_help(bArgs *ba, bool all)
     BLI_args_print_arg_doc(ba, "--debug-gpu-scope-capture");
     BLI_args_print_arg_doc(ba, "--debug-gpu-renderdoc");
   }
+#  ifdef WITH_VULKAN_BACKEND
+  BLI_args_print_arg_doc(ba, "--debug-gpu-vulkan-local-read");
+#  endif
   BLI_args_print_arg_doc(ba, "--debug-wm");
   if (defs.with_xr_openxr) {
     BLI_args_print_arg_doc(ba, "--debug-xr");

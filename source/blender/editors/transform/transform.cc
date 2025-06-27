@@ -1102,7 +1102,7 @@ wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *eve
         }
 
         /* Need to reinitialize after mode change. */
-        initSnapping(t, nullptr);
+        transform_snap_reset_from_mode(t, op);
         applyMouseInput(t, &t->mouse, t->mval, t->values);
         t->redraw |= TREDRAW_HARD;
         break;

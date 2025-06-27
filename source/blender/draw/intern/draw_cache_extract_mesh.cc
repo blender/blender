@@ -358,7 +358,10 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
 
   if (vbos_to_create.contains(VBOType::Position) || vbos_to_create.contains(VBOType::Orco)) {
     gpu::VertBufPtr orco_vbo;
-    buffers.vbos.add_new(
+    /* Don't use `add_new` because #VBOType::Orco might be requested after #VBOType::Position
+     * already exists. It's inefficient to build the position VBO a second time but that's the API
+     * that GPU subdivision provides. */
+    buffers.vbos.add(
         VBOType::Position,
         extract_positions_subdiv(
             subdiv_cache, mr, vbos_to_create.contains(VBOType::Orco) ? &orco_vbo : nullptr));

@@ -802,8 +802,8 @@ static std::string get_in_memory_texture_filename(Image *ima)
 
 static void export_in_memory_imbuf(ImBuf *imbuf,
                                    const std::string &export_dir,
-                                   char image_abs_path[FILE_MAX],
-                                   char file_name[FILE_MAX],
+                                   const char image_abs_path[FILE_MAX],
+                                   const char file_name[FILE_MAX],
                                    const bool allow_overwrite,
                                    ReportList *reports)
 {
@@ -901,7 +901,7 @@ static void export_packed_texture(Image *ima,
 
     const PackedFile *pf = imapf->packedfile;
 
-    char image_abs_path[FILE_MAX];
+    char image_abs_path[FILE_MAX] = {};
     char file_name[FILE_MAX];
 
     if (imapf->filepath[0] != '\0') {
@@ -934,20 +934,22 @@ static void export_packed_texture(Image *ima,
       }
     }
 
-    char export_path[FILE_MAX];
-    BLI_path_join(export_path, FILE_MAX, export_dir.c_str(), file_name);
-    BLI_string_replace_char(export_path, '\\', '/');
+    char export_path_buf[FILE_MAX];
+    BLI_path_join(export_path_buf, FILE_MAX, export_dir.c_str(), file_name);
+    BLI_string_replace_char(export_path_buf, '\\', '/');
 
+    const std::string export_path(export_path_buf);
     if (!allow_overwrite && asset_exists(export_path)) {
       return;
     }
 
-    if (paths_equal(export_path, image_abs_path) && asset_exists(image_abs_path)) {
+    const std::string image_path(image_abs_path);
+    if (paths_equal(export_path, image_path) && asset_exists(image_path)) {
       /* As a precaution, don't overwrite the original path. */
       return;
     }
 
-    CLOG_INFO(&LOG, 2, "Exporting packed texture to '%s'", export_path);
+    CLOG_INFO(&LOG, 2, "Exporting packed texture to '%s'", export_path.c_str());
 
     write_to_path(pf->data, pf->size, export_path, reports);
   }

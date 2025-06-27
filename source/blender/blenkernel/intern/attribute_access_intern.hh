@@ -179,9 +179,9 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
  * if the stored type is the same as the attribute type.
  */
 class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
-  using UpdateOnChange = void (*)(void *owner);
+  using AttrUpdateOnChange = void (*)(void *owner);
   const CustomDataAccessInfo custom_data_access_;
-  const UpdateOnChange update_on_change_;
+  const AttrUpdateOnChange update_on_change_;
 
  public:
   BuiltinCustomDataLayerProvider(std::string attribute_name,
@@ -189,7 +189,7 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
                                  const eCustomDataType data_type,
                                  const DeletableEnum deletable,
                                  const CustomDataAccessInfo custom_data_access,
-                                 const UpdateOnChange update_on_change,
+                                 const AttrUpdateOnChange update_on_change,
                                  const AttributeValidator validator = {},
                                  const GPointer default_value = {})
       : BuiltinAttributeProvider(

@@ -987,6 +987,14 @@ static Map<StringRef, AttributeDomainAndType> gather_attributes_to_propagate(
           return;
         }
       }
+      if (component->type() == bke::GeometryComponent::Type::Instance) {
+        if (ELEM(iter.name, "instance_transform", ".reference_index")) {
+          /* These attributes reference potentially temporary instance components in the set above.
+           * If we added these names, the string references in the result map would outlive the
+           * attributes they reference. */
+          return;
+        }
+      }
       if (iter.data_type == CD_PROP_STRING) {
         /* Propagating string attributes is not supported yet. */
         return;
@@ -1037,8 +1045,6 @@ static OrderedAttributes gather_generic_instance_attributes_to_propagate(
   Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::Instance, options, varied_depth_option);
   attributes_to_propagate.pop_try("id");
-  attributes_to_propagate.pop_try("instance_transform");
-  attributes_to_propagate.pop_try(".reference_index");
   OrderedAttributes ordered_attributes;
   for (const auto item : attributes_to_propagate.items()) {
     ordered_attributes.ids.add_new(item.key);

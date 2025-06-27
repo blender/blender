@@ -11,8 +11,6 @@ def playback_controls(layout, context):
     scene = context.scene
     tool_settings = context.tool_settings
     screen = context.screen
-    st = context.space_data
-    is_graph_editor = st.type == 'GRAPH_EDITOR'
 
     row = layout.row(align=True)
     row.popover(
@@ -56,11 +54,7 @@ def playback_controls(layout, context):
         row.operator("screen.animation_play", text="", icon='PAUSE')
         row.scale_x = 1
 
-    if is_graph_editor:
-        row.operator("graph.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
-    else:
-        row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
-
+    row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
     row.operator("screen.frame_jump", text="", icon='FF').end = True
 
     layout.separator_spacer()
@@ -144,33 +138,10 @@ class TIME_MT_view(Menu):
         layout.prop(st.dopesheet, "show_only_errors")
         layout.separator()
 
-        layout.menu("TIME_MT_cache")
+        layout.menu("DOPESHEET_MT_cache")
         layout.separator()
 
         layout.menu("INFO_MT_area")
-
-
-class TIME_MT_cache(Menu):
-    bl_label = "Cache"
-
-    def draw(self, context):
-        layout = self.layout
-
-        st = context.space_data
-
-        layout.prop(st, "show_cache")
-
-        layout.separator()
-
-        col = layout.column()
-        col.enabled = st.show_cache
-        col.prop(st, "cache_softbody")
-        col.prop(st, "cache_particles")
-        col.prop(st, "cache_cloth")
-        col.prop(st, "cache_simulation_nodes")
-        col.prop(st, "cache_smoke")
-        col.prop(st, "cache_dynamicpaint")
-        col.prop(st, "cache_rigidbody")
 
 
 def marker_menu_generic(layout, context):
@@ -320,7 +291,6 @@ classes = (
     TIME_MT_editor_menus,
     TIME_MT_marker,
     TIME_MT_view,
-    TIME_MT_cache,
     TIME_PT_playback,
     TIME_PT_keyframing_settings,
     TIME_PT_auto_keyframing,

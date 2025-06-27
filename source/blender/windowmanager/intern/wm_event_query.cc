@@ -513,7 +513,7 @@ static blender::float3 event_ndof_translation_get_with_sign(const wmNDOFMotionDa
 {
   int ndof_flag = U.ndof_flag;
   int x = 0, y = 1, z = 2;
-  if (ndof_flag & NDOF_SWAP_XY_AXIS) {
+  if (ndof_flag & NDOF_SWAP_YZ_AXIS) {
     /* Map `{x, y, z}` -> `{x, -z, y}`. */
     std::swap(y, z);
     ndof_flag ^= NDOF_PANY_INVERT_AXIS;
@@ -530,7 +530,7 @@ static blender::float3 event_ndof_rotation_get_with_sign(const wmNDOFMotionData 
 {
   int ndof_flag = U.ndof_flag;
   int x = 0, y = 1, z = 2;
-  if (ndof_flag & NDOF_SWAP_XY_AXIS) {
+  if (ndof_flag & NDOF_SWAP_YZ_AXIS) {
     /* Map `{x, y, z}` -> `{x, -z, y}`. */
     std::swap(y, z);
     ndof_flag ^= NDOF_ROTY_INVERT_AXIS;
@@ -579,13 +579,13 @@ float WM_event_ndof_rotation_get_axis_angle(const wmNDOFMotionData &ndof, float 
 
 bool WM_event_ndof_translation_has_pan(const wmNDOFMotionData &ndof)
 {
-  return (U.ndof_flag & NDOF_SWAP_XY_AXIS) ? ((ndof.tvec[0] != 0.0f) || (ndof.tvec[2] != 0.0f)) :
+  return (U.ndof_flag & NDOF_SWAP_YZ_AXIS) ? ((ndof.tvec[0] != 0.0f) || (ndof.tvec[2] != 0.0f)) :
                                              ((ndof.tvec[0] != 0.0f) || (ndof.tvec[1] != 0.0f));
 }
 
 bool WM_event_ndof_translation_has_zoom(const wmNDOFMotionData &ndof)
 {
-  return ndof.tvec[(U.ndof_flag & NDOF_SWAP_XY_AXIS) ? 1 : 2] != 0.0f;
+  return ndof.tvec[(U.ndof_flag & NDOF_SWAP_YZ_AXIS) ? 1 : 2] != 0.0f;
 }
 
 #endif /* WITH_INPUT_NDOF */

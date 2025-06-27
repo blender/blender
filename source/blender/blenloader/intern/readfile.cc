@@ -4265,6 +4265,62 @@ struct BlendExpander {
   BLOExpandDoitCallback callback;
 };
 
+static void read_id_in_lib(FileData *fd,
+                           Main *libmain,
+                           Library *parent_lib,
+                           BHead *bhead,
+                           ID_Readfile_Data::Tags id_read_tags)
+{
+  ID *id = library_id_is_yet_read(fd, libmain, bhead);
+
+  if (id == nullptr) {
+    /* ID has not been read yet, add placeholder to the main of the
+     * library it belongs to, so that it will be read later. */
+    read_libblock(
+        fd, libmain, bhead, fd->id_tag_extra | ID_TAG_INDIRECT, id_read_tags, false, &id);
+    BLI_assert(id != nullptr);
+    id_sort_by_name(which_libbase(libmain, GS(id->name)), id, static_cast<ID *>(id->prev));
+
+    /* commented because this can print way too much */
+    // if (G.debug & G_DEBUG) printf("expand_doit: other lib %s\n", lib->filepath);
+
+    /* For outliner dependency only. */
+    if (parent_lib) {
+      libmain->curlib->runtime->parent = parent_lib;
+    }
+  }
+  else {
+    /* Convert any previously read weak link to regular link to signal that we want to read this
+     * data-block.
+     *
+     * Note that this function also visits already-loaded data-blocks, and thus their
+     * `readfile_data` field might already have been freed. */
+    if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder) {
+      id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
+    }
+
+    /* "id" is either a placeholder or real ID that is already in the
+     * main of the library (A) it belongs to. However it might have been
+     * put there by another library (C) which only updated its own
+     * fd->libmap. In that case we also need to update the fd->libmap
+     * of the current library (B) so we can find it for lookups.
+     *
+     * An example of such a setup is:
+     * (A) tree.blend: contains Tree object.
+     * (B) forest.blend: contains Forest collection linking in Tree from tree.blend.
+     * (C) shot.blend: links in both Tree from tree.blend and Forest from forest.blend.
+     */
+    oldnewmap_lib_insert(fd, bhead->old, id, bhead->code);
+
+    /* Commented because this can print way too much. */
+#if 0
+      if (G.debug & G_DEBUG) {
+        printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->filepath);
+      }
+#endif
+  }
+}
+
 static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 {
   FileData *fd = static_cast<FileData *>(fdhandle);
@@ -4300,6 +4356,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
     Library *lib = reinterpret_cast<Library *>(
         read_id_struct(fd, bheadlib, "Data for Library ID type", INDEX_ID_NULL));
     Main *libmain = blo_find_main(fd, lib->filepath, fd->relabase);
+    MEM_freeN(lib);
 
     if (libmain->curlib == nullptr) {
       const char *idname = blo_bhead_id_name(fd, bhead);
@@ -4312,77 +4369,13 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       return;
     }
 
-    ID *id = library_id_is_yet_read(fd, libmain, bhead);
-
-    if (id == nullptr) {
-      /* ID has not been read yet, add placeholder to the main of the
-       * library it belongs to, so that it will be read later. */
-      read_libblock(fd, libmain, bhead, fd->id_tag_extra | ID_TAG_INDIRECT, {}, false, &id);
-      BLI_assert(id != nullptr);
-      id_sort_by_name(which_libbase(libmain, GS(id->name)), id, static_cast<ID *>(id->prev));
-
-      /* commented because this can print way too much */
-      // if (G.debug & G_DEBUG) printf("expand_doit: other lib %s\n", lib->filepath);
-
-      /* for outliner dependency only */
-      libmain->curlib->runtime->parent = mainvar->curlib;
-    }
-    else {
-      /* Convert any previously read weak link to regular link
-       * to signal that we want to read this data-block. */
-      if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder) {
-        id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
-      }
-
-      /* "id" is either a placeholder or real ID that is already in the
-       * main of the library (A) it belongs to. However it might have been
-       * put there by another library (C) which only updated its own
-       * fd->libmap. In that case we also need to update the fd->libmap
-       * of the current library (B) so we can find it for lookups.
-       *
-       * An example of such a setup is:
-       * (A) tree.blend: contains Tree object.
-       * (B) forest.blend: contains Forest collection linking in Tree from tree.blend.
-       * (C) shot.blend: links in both Tree from tree.blend and Forest from forest.blend.
-       */
-      oldnewmap_lib_insert(fd, bhead->old, id, bhead->code);
-
-      /* Commented because this can print way too much. */
-#if 0
-      if (G.debug & G_DEBUG) {
-        printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->filepath);
-      }
-#endif
-    }
-
-    MEM_freeN(lib);
+    read_id_in_lib(fd, libmain, mainvar->curlib, bhead, {});
   }
   else {
     /* Data-block in same library. */
-    ID *id = library_id_is_yet_read(fd, mainvar, bhead);
-    if (id == nullptr) {
-      ID_Readfile_Data::Tags id_read_tags{};
-      id_read_tags.needs_expanding = true;
-      read_libblock(
-          fd, mainvar, bhead, fd->id_tag_extra | ID_TAG_INDIRECT, id_read_tags, false, &id);
-      BLI_assert(id != nullptr);
-      id_sort_by_name(which_libbase(mainvar, GS(id->name)), id, static_cast<ID *>(id->prev));
-    }
-    else {
-      /* Convert any previously read weak link to regular link to signal that we want to read this
-       * data-block. Note that this function also visits already-loaded data-blocks, and thus their
-       * `readfile_data` field might already have been freed. */
-      if (BLO_readfile_id_runtime_tags(*id).is_link_placeholder) {
-        id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
-      }
-
-      /* this is actually only needed on UI call? when ID was already read before,
-       * and another append happens which invokes same ID...
-       * in that case the lookup table needs this entry */
-      oldnewmap_lib_insert(fd, bhead->old, id, bhead->code);
-      /* commented because this can print way too much */
-      // if (G.debug & G_DEBUG) printf("expand: already read %s\n", id->name);
-    }
+    ID_Readfile_Data::Tags id_read_tags{};
+    id_read_tags.needs_expanding = true;
+    read_id_in_lib(fd, mainvar, nullptr, bhead, id_read_tags);
   }
 }
 

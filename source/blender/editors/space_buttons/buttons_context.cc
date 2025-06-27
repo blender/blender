@@ -1252,7 +1252,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
 
   uiLayout *pin_row = &row->row(false);
   pin_row->alignment_set(blender::ui::LayoutAlign::Right);
-  uiItemSpacer(pin_row);
+  pin_row->separator_spacer();
   pin_row->emboss_set(blender::ui::EmbossType::None);
   pin_row->op(
       "BUTTONS_OT_toggle_pin", "", (sbuts->flag & SB_PIN_CONTEXT) ? ICON_PINNED : ICON_UNPINNED);

@@ -6,6 +6,7 @@
  * \ingroup GHOST
  */
 
+#include <optional>
 #include <sstream>
 
 #include "GHOST_SystemPathsUnix.hh"
@@ -100,10 +101,10 @@ const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionst
   return user_path.c_str();
 }
 
-const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const
+std::optional<std::string> GHOST_SystemPathsUnix::getUserSpecialDir(
+    GHOST_TUserSpecialDirTypes type) const
 {
   const char *type_str;
-  static string path;
 
   switch (type) {
     case GHOST_kUserSpecialDirDesktop:
@@ -133,16 +134,15 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
       /* If `XDG_CACHE_HOME` is not set, then `$HOME/.cache is used`. */
       const char *home_dir = home_dir_get();
       if (home_dir == nullptr) {
-        return nullptr;
+        return std::nullopt;
       }
-      path = string(home_dir) + "/.cache";
-      return path.c_str();
+      return string(home_dir) + "/.cache";
     }
     default:
       GHOST_ASSERT(
           false,
           "GHOST_SystemPathsUnix::getUserSpecialDir(): Invalid enum value for type parameter");
-      return nullptr;
+      return std::nullopt;
   }
 
   /* Pipe `stderr` to `/dev/null` to avoid error prints. We will fail gracefully still. */
@@ -150,7 +150,7 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
 
   FILE *fstream = popen(command.c_str(), "r");
   if (fstream == nullptr) {
-    return nullptr;
+    return std::nullopt;
   }
   std::stringstream path_stream;
   while (!feof(fstream)) {
@@ -163,11 +163,11 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
   }
   if (pclose(fstream) == -1) {
     perror("GHOST_SystemPathsUnix::getUserSpecialDir failed at pclose()");
-    return nullptr;
+    return std::nullopt;
   }
 
-  path = path_stream.str();
-  return path[0] ? path.c_str() : nullptr;
+  std::string path = path_stream.str();
+  return path[0] ? std::optional(path) : std::nullopt;
 }
 
 const char *GHOST_SystemPathsUnix::getBinaryDir() const

@@ -82,12 +82,12 @@ struct MultiresReshapeContext {
   GridPaintMask *grid_paint_masks;
 
   /* Indexed by face index, gives first grid index of the face. */
-  int *face_start_grid_index;
+  blender::Array<int> face_start_grid_index;
 
   /* Indexed by grid index, contains face index in the base mesh from which the grid has
    * been created (in other words, index of a face which contains loop corresponding to the grid
    * index). */
-  int *grid_to_face_index;
+  blender::Array<int> grid_to_face_index;
 
   /* Indexed by ptex face index, gives first grid index of the ptex face.
    *
@@ -96,7 +96,7 @@ struct MultiresReshapeContext {
    *
    * For quad base faces there is a single ptex face but 4 grids. So in this case there will be
    * 4 grids for the ptex, starting at a value stored in this mapping. */
-  int *ptex_start_grid_index;
+  blender::Array<int> ptex_start_grid_index;
 
   /* Indexed by base face index, returns first ptex face index corresponding
    * to that base face. */

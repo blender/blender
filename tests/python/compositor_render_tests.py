@@ -65,7 +65,7 @@ def main():
     if os.path.basename(args.testdir) == 'filter':
         # Temporary change to pass OpenImageDenoise test with both 1.3 and 1.4.
         report.set_fail_threshold(0.05)
-    elif os.path.basename(args.testdir) == 'matte':
+    elif os.path.basename(args.testdir) == 'mask' or os.path.basename(args.testdir) == 'keying':
         # The node_keying_matte.blend test is very sensitive to the exact values in the
         # input image. It makes it hard to precisely match results on different systems
         # (with and without SSE, i.e.), especially when OCIO has different precision for

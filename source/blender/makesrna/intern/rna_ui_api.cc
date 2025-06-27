@@ -185,7 +185,7 @@ static void rna_uiItemR_with_popover(uiLayout *layout,
   /* Get translated name (label). */
   std::optional<StringRefNull> text = rna_translate_ui_text(
       name, text_ctxt, nullptr, prop, translate);
-  uiItemFullR_with_popover(layout, ptr, prop, -1, 0, flag, text, icon, panel_type);
+  layout->prop_with_popover(ptr, prop, -1, 0, flag, text, icon, panel_type);
 }
 
 static void rna_uiItemR_with_menu(uiLayout *layout,
@@ -216,7 +216,7 @@ static void rna_uiItemR_with_menu(uiLayout *layout,
   /* Get translated name (label). */
   std::optional<StringRefNull> text = rna_translate_ui_text(
       name, text_ctxt, nullptr, prop, translate);
-  uiItemFullR_with_menu(layout, ptr, prop, -1, 0, flag, text, icon, menu_type);
+  layout->prop_with_menu(ptr, prop, -1, 0, flag, text, icon, menu_type);
 }
 
 static void rna_uiItemMenuEnumR(uiLayout *layout,
@@ -418,9 +418,7 @@ static PointerRNA rna_uiItemOMenuHold(uiLayout *layout,
     flag |= UI_ITEM_O_DEPRESS;
   }
 
-  PointerRNA opptr;
-  uiItemFullOMenuHold_ptr(layout, ot, text, icon, layout->operator_context(), flag, menu, &opptr);
-  return opptr;
+  return layout->op_menu_hold(ot, text, icon, layout->operator_context(), flag, menu);
 }
 
 static void rna_uiItemsEnumO(uiLayout *layout,
@@ -516,7 +514,7 @@ static void rna_uiItemPopoverPanel(uiLayout *layout,
     icon = icon_value;
   }
 
-  uiItemPopoverPanel(layout, C, panel_type, text, icon);
+  layout->popover(C, panel_type, text, icon);
 }
 
 static void rna_uiItemPopoverPanelFromGroup(uiLayout *layout,
@@ -526,7 +524,7 @@ static void rna_uiItemPopoverPanelFromGroup(uiLayout *layout,
                                             const char *context,
                                             const char *category)
 {
-  uiItemPopoverPanelFromGroup(layout, C, space_id, region_id, context, category);
+  layout->popover_group(C, space_id, region_id, context, category);
 }
 
 static void rna_uiItemProgress(uiLayout *layout,
@@ -556,6 +554,11 @@ static void rna_uiLayoutContextPointerSet(uiLayout *layout, const char *name, Po
 static void rna_uiLayoutContextStringSet(uiLayout *layout, const char *name, const char *value)
 {
   layout->context_string_set(name, value);
+}
+
+static void rna_uiLayoutSeparatorSpacer(uiLayout *layout)
+{
+  layout->separator_spacer();
 }
 
 static void rna_uiTemplateID(uiLayout *layout,
@@ -1595,7 +1598,7 @@ void RNA_api_ui_layout(StructRNA *srna)
                "Type",
                "The type of the separator");
 
-  func = RNA_def_function(srna, "separator_spacer", "uiItemSpacer");
+  func = RNA_def_function(srna, "separator_spacer", "rna_uiLayoutSeparatorSpacer");
   RNA_def_function_ui_description(
       func, "Item. Inserts horizontal spacing empty space into the layout between items.");
 

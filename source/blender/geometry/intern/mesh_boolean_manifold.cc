@@ -1240,6 +1240,9 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
   for (const int f : ma.new_faces.index_range()) {
     const OutFace &face = ma.new_faces[f];
     const int fsize = face.verts.size();
+    if (fsize <= 3) {
+      continue;
+    }
     for (const int i : ma.new_faces[f].verts.index_range()) {
       const int vprev = face.verts[(i - 1 + fsize) % fsize];
       const int v = face.verts[i];
@@ -1319,6 +1322,9 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
   threading::parallel_for(ma.new_faces.index_range(), 10000, [&](IndexRange range) {
     for (const int f : range) {
       OutFace &face = ma.new_faces[f];
+      if (face.verts.size() <= 3) {
+        continue;
+      }
       int i_to = 0;
       for (const int i_from : face.verts.index_range()) {
         const int mapped_v_from = ma.mapped_vert(face.verts[i_from]);
@@ -1327,7 +1333,17 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
         }
       }
       if (i_to < face.verts.size()) {
-        BLI_assert(i_to >= 3);
+        if (i_to < 3) {
+          /* Should be very rare. Means we dissolved two or more vertices from
+           * a degenerate ngon. Since its too late to really undo that, just make
+           * a valid triangle with undeleted verts. */
+          if (i_to == 0) {
+            face.verts[i_to++] = 0;
+          }
+          while (i_to < 3) {
+            face.verts[i_to++] = face.verts[0];
+          }
+        }
         face.verts.resize(i_to);
       }
     }
@@ -1700,7 +1716,6 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
    * using the mesh's face offsets, and we will use Blender's parallelized function to calculate
    * edges later. */
   Mesh *mesh = bke::mesh_new_no_attributes(verts_num, 0, faces_num, 0);
-  BKE_defgroup_copy_list(&mesh->vertex_group_names, &joined_mesh->vertex_group_names);
   BKE_mesh_copy_parameters_for_eval(mesh, joined_mesh);
 
   /* First the face offsets store the size of each result face, then we accumulate them to form the
