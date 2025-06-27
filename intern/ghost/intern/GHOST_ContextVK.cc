@@ -389,7 +389,7 @@ class GHOST_DeviceVK {
     fragment_shader_barycentric.sType =
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR;
     fragment_shader_barycentric.fragmentShaderBarycentric = VK_TRUE;
-    if (has_extensions({VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME})) {
+    if (extension_enabled(VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME)) {
       feature_struct_ptr.push_back(&fragment_shader_barycentric);
     }
 
