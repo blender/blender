@@ -1246,7 +1246,8 @@ CameraBGImage *BKE_camera_background_image_new(Camera *cam)
   bgpic->scale = 1.0f;
   bgpic->alpha = 0.5f;
   bgpic->iuser.flag |= IMA_ANIM_ALWAYS;
-  bgpic->flag |= CAM_BGIMG_FLAG_EXPANDED | CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
+  bgpic->flag |= CAM_BGIMG_FLAG_EXPANDED | CAM_BGIMG_FLAG_CAMERA_ASPECT |
+                 CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
 
   BLI_addtail(&cam->bg_images, bgpic);
 
