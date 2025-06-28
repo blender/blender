@@ -25,4 +25,4 @@ struct BPyGPUOffScreen {
   GPUViewport *viewport;
 };
 
-PyObject *BPyGPUOffScreen_CreatePyObject(GPUOffScreen *ofs) ATTR_NONNULL(1);
+[[nodiscard]] PyObject *BPyGPUOffScreen_CreatePyObject(GPUOffScreen *ofs) ATTR_NONNULL(1);

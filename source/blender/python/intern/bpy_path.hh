@@ -10,4 +10,4 @@
 
 #include <Python.h>
 
-PyObject *BPyInit__bpy_path();
+[[nodiscard]] PyObject *BPyInit__bpy_path();

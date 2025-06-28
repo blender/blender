@@ -10,4 +10,4 @@
 
 #include <Python.h>
 
-PyObject *BPY_msgbus_module();
+[[nodiscard]] PyObject *BPY_msgbus_module();

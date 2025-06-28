@@ -31,7 +31,8 @@ struct BPyGPUTexture {
   GPUTexture *tex;
 };
 
-int bpygpu_ParseTexture(PyObject *o, void *p);
-PyObject *bpygpu_texture_init();
+[[nodiscard]] int bpygpu_ParseTexture(PyObject *o, void *p);
+[[nodiscard]] PyObject *bpygpu_texture_init();
 
-PyObject *BPyGPUTexture_CreatePyObject(GPUTexture *tex, bool shared_reference) ATTR_NONNULL(1);
+[[nodiscard]] PyObject *BPyGPUTexture_CreatePyObject(GPUTexture *tex, bool shared_reference)
+    ATTR_NONNULL(1);

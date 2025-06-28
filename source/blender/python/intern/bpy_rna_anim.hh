@@ -17,7 +17,11 @@ extern char pyrna_struct_keyframe_delete_doc[];
 extern char pyrna_struct_driver_add_doc[];
 extern char pyrna_struct_driver_remove_doc[];
 
-PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyObject *kw);
-PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyObject *kw);
-PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args);
-PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args);
+[[nodiscard]] PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self,
+                                                     PyObject *args,
+                                                     PyObject *kw);
+[[nodiscard]] PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self,
+                                                     PyObject *args,
+                                                     PyObject *kw);
+[[nodiscard]] PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args);
+[[nodiscard]] PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args);

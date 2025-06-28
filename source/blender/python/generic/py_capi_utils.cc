@@ -1487,11 +1487,11 @@ PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag)
 /** \name Run String (Evaluate to Primitive Types)
  * \{ */
 
-static PyObject *pyc_run_string_as_py_object(const char *imports[],
-                                             const char *imports_star[],
-                                             const char *expr,
-                                             const char *filename)
-    ATTR_NONNULL(3, 4) ATTR_WARN_UNUSED_RESULT;
+[[nodiscard]] static PyObject *pyc_run_string_as_py_object(const char *imports[],
+                                                           const char *imports_star[],
+                                                           const char *expr,
+                                                           const char *filename)
+    ATTR_NONNULL(3, 4);
 static PyObject *pyc_run_string_as_py_object(const char *imports[],
                                              const char *imports_star[],
                                              const char *expr,

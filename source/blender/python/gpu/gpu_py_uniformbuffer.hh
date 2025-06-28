@@ -23,4 +23,4 @@ struct BPyGPUUniformBuf {
   GPUUniformBuf *ubo;
 };
 
-PyObject *BPyGPUUniformBuf_CreatePyObject(GPUUniformBuf *ubo) ATTR_NONNULL(1);
+[[nodiscard]] PyObject *BPyGPUUniformBuf_CreatePyObject(GPUUniformBuf *ubo) ATTR_NONNULL(1);

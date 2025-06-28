@@ -22,7 +22,7 @@ extern char BaseMathObject_is_frozen_doc[];
 extern char BaseMathObject_is_valid_doc[];
 extern char BaseMathObject_owner_doc[];
 
-PyObject *_BaseMathObject_new_impl(PyTypeObject *root_type, PyTypeObject *base_type);
+[[nodiscard]] PyObject *_BaseMathObject_new_impl(PyTypeObject *root_type, PyTypeObject *base_type);
 
 #define BASE_MATH_NEW(struct_name, root_type, base_type) \
   ((struct_name *)_BaseMathObject_new_impl(&root_type, base_type))
@@ -71,13 +71,13 @@ struct BaseMathObject {
 /* avoid checking all types */
 #define BaseMathObject_CheckExact(v) (Py_TYPE(v)->tp_dealloc == (destructor)BaseMathObject_dealloc)
 
-PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *);
-PyObject *BaseMathObject_is_wrapped_get(BaseMathObject *self, void *);
-PyObject *BaseMathObject_is_frozen_get(BaseMathObject *self, void *);
-PyObject *BaseMathObject_is_valid_get(BaseMathObject *self, void *);
+[[nodiscard]] PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *);
+[[nodiscard]] PyObject *BaseMathObject_is_wrapped_get(BaseMathObject *self, void *);
+[[nodiscard]] PyObject *BaseMathObject_is_frozen_get(BaseMathObject *self, void *);
+[[nodiscard]] PyObject *BaseMathObject_is_valid_get(BaseMathObject *self, void *);
 
 extern char BaseMathObject_freeze_doc[];
-PyObject *BaseMathObject_freeze(BaseMathObject *self);
+[[nodiscard]] PyObject *BaseMathObject_freeze(BaseMathObject *self);
 
 int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg);
 int BaseMathObject_clear(BaseMathObject *self);
@@ -86,8 +86,11 @@ int BaseMathObject_is_gc(BaseMathObject *self);
 
 PyMODINIT_FUNC PyInit_mathutils();
 
-int EXPP_FloatsAreEqual(float af, float bf, int maxDiff);
-int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps);
+[[nodiscard]] int EXPP_FloatsAreEqual(float af, float bf, int maxDiff);
+[[nodiscard]] int EXPP_VectorsAreEqual(const float *vecA,
+                                       const float *vecB,
+                                       int size,
+                                       int floatSteps);
 
 /** Checks the user is still valid. */
 using BaseMathCheckFunc = int (*)(BaseMathObject *);
@@ -108,13 +111,13 @@ struct Mathutils_Callback {
   BaseMathSetIndexFunc set_index;
 };
 
-unsigned char Mathutils_RegisterCallback(Mathutils_Callback *cb);
+[[nodiscard]] unsigned char Mathutils_RegisterCallback(Mathutils_Callback *cb);
 
-int _BaseMathObject_CheckCallback(BaseMathObject *self);
-int _BaseMathObject_ReadCallback(BaseMathObject *self);
-int _BaseMathObject_WriteCallback(BaseMathObject *self);
-int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index);
-int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
+[[nodiscard]] int _BaseMathObject_CheckCallback(BaseMathObject *self);
+[[nodiscard]] int _BaseMathObject_ReadCallback(BaseMathObject *self);
+[[nodiscard]] int _BaseMathObject_WriteCallback(BaseMathObject *self);
+[[nodiscard]] int _BaseMathObject_ReadIndexCallback(BaseMathObject *self, int index);
+[[nodiscard]] int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
 
 void _BaseMathObject_RaiseFrozenExc(const BaseMathObject *self);
 void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
@@ -157,50 +160,52 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self);
  * Helper function.
  * \return length of `value`, -1 on error.
  */
-int mathutils_array_parse(
+[[nodiscard]] int mathutils_array_parse(
     float *array, int array_num_min, int array_num_max, PyObject *value, const char *error_prefix);
 /**
  * \return -1 is returned on error and no allocation is made.
  */
-int mathutils_array_parse_alloc(float **array,
-                                int array_num_min,
-                                PyObject *value,
-                                const char *error_prefix);
+[[nodiscard]] int mathutils_array_parse_alloc(float **array,
+                                              int array_num_min,
+                                              PyObject *value,
+                                              const char *error_prefix);
 /**
  * Parse an array of vectors.
  */
-int mathutils_array_parse_alloc_v(float **array,
-                                  int array_dim,
-                                  PyObject *value,
-                                  const char *error_prefix);
+[[nodiscard]] int mathutils_array_parse_alloc_v(float **array,
+                                                int array_dim,
+                                                PyObject *value,
+                                                const char *error_prefix);
 /**
  * Parse an sequence array_dim integers into array.
  */
-int mathutils_int_array_parse(int *array,
-                              int array_dim,
-                              PyObject *value,
-                              const char *error_prefix);
+[[nodiscard]] int mathutils_int_array_parse(int *array,
+                                            int array_dim,
+                                            PyObject *value,
+                                            const char *error_prefix);
 /**
  * Parse sequence of array_dim sequences of integers and return allocated result.
  */
-int mathutils_array_parse_alloc_vi(int **array,
-                                   int array_dim,
-                                   PyObject *value,
-                                   const char *error_prefix);
+[[nodiscard]] int mathutils_array_parse_alloc_vi(int **array,
+                                                 int array_dim,
+                                                 PyObject *value,
+                                                 const char *error_prefix);
 /**
  * Parse sequence of variable-length sequences of integers and fill r_data with their values.
  */
-bool mathutils_array_parse_alloc_viseq(PyObject *value,
-                                       const char *error_prefix,
-                                       blender::Array<blender::Vector<int>> &r_data);
-int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix);
+[[nodiscard]] bool mathutils_array_parse_alloc_viseq(PyObject *value,
+                                                     const char *error_prefix,
+                                                     blender::Array<blender::Vector<int>> &r_data);
+[[nodiscard]] int mathutils_any_to_rotmat(float rmat[3][3],
+                                          PyObject *value,
+                                          const char *error_prefix);
 
 /**
  * helper function that returns a Python `__hash__`.
  *
  * \note consistent with the equivalent tuple of floats (CPython's `tuplehash`)
  */
-Py_hash_t mathutils_array_hash(const float *array, size_t array_len);
+[[nodiscard]] Py_hash_t mathutils_array_hash(const float *array, size_t array_len);
 
 /* zero remaining unused elements of the array */
 #define MU_ARRAY_ZERO (1u << 30)
@@ -221,10 +226,12 @@ Py_hash_t mathutils_array_hash(const float *array, size_t array_len);
  * \note Vector/Matrix multiplication is not commutative.
  * \note Assume read callbacks have been done first.
  */
-int column_vector_multiplication(float r_vec[4], VectorObject *vec, MatrixObject *mat);
+[[nodiscard]] int column_vector_multiplication(float r_vec[4],
+                                               VectorObject *vec,
+                                               MatrixObject *mat);
 
 #ifndef MATH_STANDALONE
 /* dynstr as python string utility functions */
 /* dynstr as python string utility functions, frees 'ds'! */
-PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
+[[nodiscard]] PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
 #endif

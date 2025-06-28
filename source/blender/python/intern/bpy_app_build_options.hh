@@ -10,4 +10,4 @@
 
 #include <Python.h>
 
-PyObject *BPY_app_build_options_struct();
+[[nodiscard]] PyObject *BPY_app_build_options_struct();

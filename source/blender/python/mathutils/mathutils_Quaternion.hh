@@ -28,11 +28,9 @@ struct QuaternionObject {
 
 /* Prototypes. */
 
-PyObject *Quaternion_CreatePyObject(const float quat[4],
-                                    PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;
-PyObject *Quaternion_CreatePyObject_wrap(float quat[4],
-                                         PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT
+[[nodiscard]] PyObject *Quaternion_CreatePyObject(const float quat[4], PyTypeObject *base_type);
+[[nodiscard]] PyObject *Quaternion_CreatePyObject_wrap(float quat[4], PyTypeObject *base_type)
     ATTR_NONNULL(1);
-PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user,
-                                       unsigned char cb_type,
-                                       unsigned char cb_subtype) ATTR_WARN_UNUSED_RESULT;
+[[nodiscard]] PyObject *Quaternion_CreatePyObject_cb(PyObject *cb_user,
+                                                     unsigned char cb_type,
+                                                     unsigned char cb_subtype);

@@ -14,4 +14,4 @@
  * However, it is currently of little use. */
 // #define BPYGPU_USE_GPUOBJ_FREE_METHOD
 
-PyObject *BPyInit_gpu();
+[[nodiscard]] PyObject *BPyInit_gpu();

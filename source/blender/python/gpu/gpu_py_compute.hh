@@ -10,4 +10,4 @@
 
 #include <Python.h>
 
-PyObject *bpygpu_compute_init();
+[[nodiscard]] PyObject *bpygpu_compute_init();

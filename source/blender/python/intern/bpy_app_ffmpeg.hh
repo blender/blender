@@ -10,4 +10,4 @@
 
 #include <Python.h>
 
-PyObject *BPY_app_ffmpeg_struct();
+[[nodiscard]] PyObject *BPY_app_ffmpeg_struct();
