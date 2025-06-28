@@ -445,8 +445,11 @@ class GHOST_ISystem {
    ***************************************************************************************/
 
   /**
-   * Returns the selection buffer
-   * \return "unsigned char" from X11 XA_CUT_BUFFER0 buffer
+   * Return the clipboard buffer or null.
+   *
+   * \param selection: Use the "primary" selection.
+   * Check the #GHOST_kCapabilityPrimaryClipboard for backends that support this.
+   * \return Returns the clipboard data as a null terminated string or null when unavailable.
    */
   virtual char *getClipboard(bool selection) const = 0;
 
