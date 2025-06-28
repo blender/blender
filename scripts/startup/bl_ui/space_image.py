@@ -347,6 +347,7 @@ class IMAGE_MT_uvs_snap(Menu):
 
 class IMAGE_MT_uvs_mirror(Menu):
     bl_label = "Mirror"
+    bl_translation_context = i18n_contexts.operator_default
 
     def draw(self, _context):
         layout = self.layout
