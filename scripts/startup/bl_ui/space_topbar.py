@@ -372,7 +372,7 @@ class TOPBAR_MT_file_import(Menu):
             self.layout.operator("wm.stl_import", text="STL (.stl)")
 
         if bpy.app.build_options.io_fbx:
-            self.layout.operator("wm.fbx_import", text="FBX (.fbx) (experimental)")
+            self.layout.operator("wm.fbx_import", text="FBX (.fbx)")
 
 
 class TOPBAR_MT_file_export(Menu):
