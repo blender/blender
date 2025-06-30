@@ -3302,6 +3302,15 @@ static void rna_def_mesh(BlenderRNA *brna)
                            "Mirror the left/right vertex groups when painting. The symmetry axis "
                            "is determined by the symmetry settings.");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+  prop = RNA_def_property(srna, "radial_symmetry", PROP_INT, PROP_XYZ);
+  RNA_def_property_int_sdna(prop, nullptr, "radial_symmetry");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_int_default(prop, 1);
+  RNA_def_property_range(prop, 1, 64);
+  RNA_def_property_ui_range(prop, 1, 32, 1, 1);
+  RNA_def_property_ui_text(
+      prop, "Radial Symmetry Count", "Number of mirrored regions around a central axis");
   /* End Symmetry */
 
   RNA_define_verify_sdna(false);

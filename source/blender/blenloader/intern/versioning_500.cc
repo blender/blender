@@ -1253,6 +1253,14 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 32)) {
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      mesh->radial_symmetry[0] = 1;
+      mesh->radial_symmetry[1] = 1;
+      mesh->radial_symmetry[2] = 1;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

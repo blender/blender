@@ -95,6 +95,8 @@ class View3DPanel:
 
 # Used by vertex & weight paint
 def draw_vpaint_symmetry(layout, vpaint, obj):
+    mesh = obj.data
+
     col = layout.column()
     row = col.row(heading="Mirror", align=True)
     row.prop(obj, "use_mesh_mirror_x", text="X", toggle=True)
@@ -103,7 +105,7 @@ def draw_vpaint_symmetry(layout, vpaint, obj):
 
     col = layout.column()
     col.active = not obj.data.use_mirror_vertex_groups
-    col.prop(vpaint, "radial_symmetry", text="Radial")
+    col.prop(mesh, "radial_symmetry", text="Radial")
 
 
 # ********** default tools for object mode ****************
@@ -1147,7 +1149,7 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         row.prop(sculpt, "tile_z", text="Z", toggle=True)
 
         layout.prop(sculpt, "use_symmetry_feather", text="Feather")
-        layout.prop(sculpt, "radial_symmetry", text="Radial")
+        layout.prop(mesh, "radial_symmetry", text="Radial")
         layout.prop(sculpt, "tile_offset", text="Tile Offset")
 
         layout.separator()

@@ -1212,15 +1212,15 @@ static float calc_overlap(const blender::ed::sculpt_paint::StrokeCache &cache,
   return 0.0f;
 }
 
-static float calc_radial_symmetry_feather(const Sculpt &sd,
+static float calc_radial_symmetry_feather(const Mesh &mesh,
                                           const blender::ed::sculpt_paint::StrokeCache &cache,
                                           const ePaintSymmetryFlags symm,
                                           const char axis)
 {
   float overlap = 0.0f;
 
-  for (int i = 1; i < sd.radial_symm[axis - 'X']; i++) {
-    const float angle = 2.0f * M_PI * i / sd.radial_symm[axis - 'X'];
+  for (int i = 1; i < mesh.radial_symmetry[axis - 'X']; i++) {
+    const float angle = 2.0f * M_PI * i / mesh.radial_symmetry[axis - 'X'];
     overlap += calc_overlap(cache, symm, axis, angle);
   }
 
@@ -1228,6 +1228,7 @@ static float calc_radial_symmetry_feather(const Sculpt &sd,
 }
 
 static float calc_symmetry_feather(const Sculpt &sd,
+                                   const Mesh &mesh,
                                    const blender::ed::sculpt_paint::StrokeCache &cache)
 {
   if (!(sd.paint.symmetry_flags & PAINT_SYMMETRY_FEATHER)) {
@@ -1244,9 +1245,9 @@ static float calc_symmetry_feather(const Sculpt &sd,
 
     overlap += calc_overlap(cache, ePaintSymmetryFlags(i), 0, 0);
 
-    overlap += calc_radial_symmetry_feather(sd, cache, ePaintSymmetryFlags(i), 'X');
-    overlap += calc_radial_symmetry_feather(sd, cache, ePaintSymmetryFlags(i), 'Y');
-    overlap += calc_radial_symmetry_feather(sd, cache, ePaintSymmetryFlags(i), 'Z');
+    overlap += calc_radial_symmetry_feather(mesh, cache, ePaintSymmetryFlags(i), 'X');
+    overlap += calc_radial_symmetry_feather(mesh, cache, ePaintSymmetryFlags(i), 'Y');
+    overlap += calc_radial_symmetry_feather(mesh, cache, ePaintSymmetryFlags(i), 'Z');
   }
   return 1.0f / overlap;
 }
@@ -3576,9 +3577,10 @@ static void do_radial_symmetry(const Depsgraph &depsgraph,
                                const float /*feather*/)
 {
   SculptSession &ss = *ob.sculpt;
+  const Mesh &mesh = *static_cast<Mesh *>(ob.data);
 
-  for (int i = 1; i < sd.radial_symm[axis - 'X']; i++) {
-    const float angle = 2.0f * M_PI * i / sd.radial_symm[axis - 'X'];
+  for (int i = 1; i < mesh.radial_symmetry[axis - 'X']; i++) {
+    const float angle = 2.0f * M_PI * i / mesh.radial_symmetry[axis - 'X'];
     ss.cache->radial_symmetry_pass = i;
     SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
     do_tiled(depsgraph, scene, sd, ob, brush, ups, paint_mode_settings, action);
@@ -3609,11 +3611,12 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
                                          PaintModeSettings &paint_mode_settings)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
+  const Mesh &mesh = *static_cast<Mesh *>(ob.data);
   SculptSession &ss = *ob.sculpt;
   StrokeCache &cache = *ss.cache;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  float feather = calc_symmetry_feather(sd, *ss.cache);
+  float feather = calc_symmetry_feather(sd, mesh, *ss.cache);
 
   cache.bstrength = brush_strength(sd, cache, feather, ups, paint_mode_settings);
   cache.symmetry = symm;

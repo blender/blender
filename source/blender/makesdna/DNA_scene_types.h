@@ -1340,7 +1340,7 @@ typedef struct Sculpt {
 
   // /* Control tablet input. */
   // char tablet_size, tablet_strength; XXX not used?
-  int radial_symm[3];
+  int radial_symm[3] DNA_DEPRECATED;
 
   /** Maximum edge length for dynamic topology sculpting (in pixels). */
   float detail_size;
@@ -1428,7 +1428,7 @@ typedef struct VPaint {
   char flag;
   char _pad[3];
   /** For mirrored painting. */
-  int radial_symm[3];
+  int radial_symm[3] DNA_DEPRECATED;
 } VPaint;
 
 /** #VPaint::flag */

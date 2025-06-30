@@ -1006,14 +1006,6 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Sculpt", "");
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
 
-  prop = RNA_def_property(srna, "radial_symmetry", PROP_INT, PROP_XYZ);
-  RNA_def_property_int_sdna(prop, nullptr, "radial_symm");
-  RNA_def_property_int_default(prop, 1);
-  RNA_def_property_range(prop, 1, 64);
-  RNA_def_property_ui_range(prop, 0, 32, 1, 1);
-  RNA_def_property_ui_text(
-      prop, "Radial Symmetry Count X Axis", "Number of times to copy strokes across the surface");
-
   prop = RNA_def_property(srna, "lock_x", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", SCULPT_LOCK_X);
   RNA_def_property_ui_text(prop, "Lock X", "Disallow changes to the X axis of vertices");
@@ -1312,15 +1304,6 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", VP_FLAG_VGROUP_RESTRICT);
   RNA_def_property_ui_text(prop, "Restrict", "Restrict painting to vertices in the group");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
-
-  /* Mirroring */
-  prop = RNA_def_property(srna, "radial_symmetry", PROP_INT, PROP_XYZ);
-  RNA_def_property_int_sdna(prop, nullptr, "radial_symm");
-  RNA_def_property_int_default(prop, 1);
-  RNA_def_property_range(prop, 1, 64);
-  RNA_def_property_ui_range(prop, 1, 32, 1, 1);
-  RNA_def_property_ui_text(
-      prop, "Radial Symmetry Count X Axis", "Number of times to copy strokes across the surface");
 }
 
 static void rna_def_paint_mode(BlenderRNA *brna)
