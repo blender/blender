@@ -22,7 +22,7 @@ void main()
    * larger than the given radius are skipped and not considered. Consequently, the dilation or
    * erosion that take place produces round results as opposed to squarish ones. This is
    * essentially a morphological operator with a circular structuring element. The LIMIT value
-   * should be FLT_MAX if OPERATOR is min and FLT_MIN if OPERATOR is max. */
+   * should be FLT_MAX if OPERATOR is min and -FLT_MAX if OPERATOR is max. */
   float value = LIMIT;
   for (int y = start.y; y < end.y; y++) {
     int yy = y * y;
