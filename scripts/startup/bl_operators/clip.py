@@ -708,12 +708,13 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
     @staticmethod
     def _wipeDefaultNodes(tree):
-        if len(tree.nodes) != 2:
+        if len(tree.nodes) != 4:
             return False
         types = [node.type for node in tree.nodes]
         types.sort()
 
-        if types[0] == 'COMPOSITE' and types[1] == 'R_LAYERS':
+        if (types[0] == 'COMPOSITE' and types[1] == 'REROUTE'
+                and types[2] == 'R_LAYERS' and types[3] == 'VIEWER'):
             while tree.nodes:
                 tree.nodes.remove(tree.nodes[0])
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-04-14 08:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -15969,6 +15969,11 @@ msgid "Align"
 msgstr "ﻱﺫﺎﺣ"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
+
+
 msgid "UV Select Mode"
 msgstr "UV ـﻟﺍ ﺭﺎﻴﺘﺧﺍ ﻂﻤﻧ"
 
@@ -26236,11 +26241,6 @@ msgstr "ﺕﺎﺌﻳﺰﺠﻟﺍ ﻡﺎﻈﻧ ﻰﻠﻋ ﺓﺬﻔﻨﻤﻟﺍ �
 
 msgid "Hide selected particles"
 msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﺕﺎﺌﻳﺰﺠﻟﺍ ﻲﻔﺧﺍ"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
 
 
 msgctxt "Operator"

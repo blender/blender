@@ -46,7 +46,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   auto &remainder = b.add_output<decl::String>("Remainder").make_available([](bNode &node) {
     node_storage(node).overflow = GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE;
   });
-  b.add_output<decl::Int>("Line").field_on_all();
+  b.add_output<decl::Int>("Line").field_on_all().translation_context(BLT_I18NCONTEXT_ID_TEXT);
   b.add_output<decl::Vector>("Pivot Point").field_on_all();
 
   const bNode *node = b.node_or_null();

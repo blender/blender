@@ -2741,7 +2741,7 @@ static wmOperatorStatus wm_userpref_read_exec(bContext *C, wmOperator *op)
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
 
-  /* Needed to recalculate UI scaling values (eg, #UserDef.inv_dpi_fac). */
+  /* Needed to recalculate UI scaling values (eg, #UserDef.inv_scale_factor). */
   wm_window_clear_drawable(static_cast<wmWindowManager *>(bmain->wm.first));
 
   WM_event_add_notifier(C, NC_WINDOW, nullptr);

@@ -131,11 +131,11 @@ struct BPy_RunErrInfo {
  * \param r_value: The resulting value.
  * \return Success.
  */
-bool BPY_run_string_as_number(bContext *C,
-                              const char *imports[],
-                              const char *expr,
-                              BPy_RunErrInfo *err_info,
-                              double *r_value) ATTR_NONNULL(1, 3, 5);
+[[nodiscard]] bool BPY_run_string_as_number(bContext *C,
+                                            const char *imports[],
+                                            const char *expr,
+                                            BPy_RunErrInfo *err_info,
+                                            double *r_value) ATTR_NONNULL(1, 3, 5);
 /**
  * Evaluate `expr` as an integer or pointer.
  *
@@ -148,11 +148,11 @@ bool BPY_run_string_as_number(bContext *C,
  * \param r_value: The resulting value.
  * \return Success.
  */
-bool BPY_run_string_as_intptr(bContext *C,
-                              const char *imports[],
-                              const char *expr,
-                              BPy_RunErrInfo *err_info,
-                              intptr_t *r_value) ATTR_NONNULL(1, 3, 5);
+[[nodiscard]] bool BPY_run_string_as_intptr(bContext *C,
+                                            const char *imports[],
+                                            const char *expr,
+                                            BPy_RunErrInfo *err_info,
+                                            intptr_t *r_value) ATTR_NONNULL(1, 3, 5);
 /**
  * Evaluate `expr` as a string.
  *
@@ -163,19 +163,19 @@ bool BPY_run_string_as_intptr(bContext *C,
  * \param r_value: The resulting value.
  * \return Success.
  */
-bool BPY_run_string_as_string_and_len(bContext *C,
-                                      const char *imports[],
-                                      const char *expr,
-                                      BPy_RunErrInfo *err_info,
-                                      char **r_value,
-                                      size_t *r_value_len) ATTR_NONNULL(1, 3, 5, 6);
+[[nodiscard]] bool BPY_run_string_as_string_and_len(bContext *C,
+                                                    const char *imports[],
+                                                    const char *expr,
+                                                    BPy_RunErrInfo *err_info,
+                                                    char **r_value,
+                                                    size_t *r_value_len) ATTR_NONNULL(1, 3, 5, 6);
 
 /** See #BPY_run_string_as_string_and_len */
-bool BPY_run_string_as_string(bContext *C,
-                              const char *imports[],
-                              const char *expr,
-                              BPy_RunErrInfo *err_info,
-                              char **r_value) ATTR_NONNULL(1, 3, 5);
+[[nodiscard]] bool BPY_run_string_as_string(bContext *C,
+                                            const char *imports[],
+                                            const char *expr,
+                                            BPy_RunErrInfo *err_info,
+                                            char **r_value) ATTR_NONNULL(1, 3, 5);
 
 /**
  * Evaluate `expr` as a string or None.
@@ -188,18 +188,19 @@ bool BPY_run_string_as_string(bContext *C,
  * \param r_value: The resulting value.
  * \return Success.
  */
-bool BPY_run_string_as_string_and_len_or_none(bContext *C,
-                                              const char *imports[],
-                                              const char *expr,
-                                              BPy_RunErrInfo *err_info,
-                                              char **r_value,
-                                              size_t *r_value_len) ATTR_NONNULL(1, 3, 5, 6);
+[[nodiscard]] bool BPY_run_string_as_string_and_len_or_none(bContext *C,
+                                                            const char *imports[],
+                                                            const char *expr,
+                                                            BPy_RunErrInfo *err_info,
+                                                            char **r_value,
+                                                            size_t *r_value_len)
+    ATTR_NONNULL(1, 3, 5, 6);
 
 /** See #BPY_run_string_as_string_and_len */
-bool BPY_run_string_as_string_or_none(bContext *C,
-                                      const char *imports[],
-                                      const char *expr,
-                                      BPy_RunErrInfo *err_info,
-                                      char **r_value) ATTR_NONNULL(1, 3, 5);
+[[nodiscard]] bool BPY_run_string_as_string_or_none(bContext *C,
+                                                    const char *imports[],
+                                                    const char *expr,
+                                                    BPy_RunErrInfo *err_info,
+                                                    char **r_value) ATTR_NONNULL(1, 3, 5);
 
 /** \} */

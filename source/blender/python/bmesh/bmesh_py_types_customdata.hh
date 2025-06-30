@@ -52,9 +52,9 @@ struct BPy_BMLayerItem {
   int index; /* index of this layer type */
 };
 
-PyObject *BPy_BMLayerAccess_CreatePyObject(BMesh *bm, char htype);
-PyObject *BPy_BMLayerCollection_CreatePyObject(BMesh *bm, char htype, int type);
-PyObject *BPy_BMLayerItem_CreatePyObject(BMesh *bm, char htype, int type, int index);
+[[nodiscard]] PyObject *BPy_BMLayerAccess_CreatePyObject(BMesh *bm, char htype);
+[[nodiscard]] PyObject *BPy_BMLayerCollection_CreatePyObject(BMesh *bm, char htype, int type);
+[[nodiscard]] PyObject *BPy_BMLayerItem_CreatePyObject(BMesh *bm, char htype, int type, int index);
 
 void BPy_BM_init_types_customdata();
 
@@ -63,5 +63,7 @@ void BPy_BM_init_types_customdata();
  *
  * Assume all error checks are done, eg: `uv = vert[uv_layer]`
  */
-PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer);
-int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObject *value);
+[[nodiscard]] PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer);
+[[nodiscard]] int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele,
+                                          BPy_BMLayerItem *py_layer,
+                                          PyObject *value);

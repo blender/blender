@@ -26,4 +26,4 @@ struct BPyGPUVertBuf {
   blender::gpu::VertBuf *buf;
 };
 
-PyObject *BPyGPUVertBuf_CreatePyObject(blender::gpu::VertBuf *buf) ATTR_NONNULL(1);
+[[nodiscard]] PyObject *BPyGPUVertBuf_CreatePyObject(blender::gpu::VertBuf *buf) ATTR_NONNULL(1);

@@ -10,4 +10,4 @@
 
 #include <Python.h>
 
-PyObject *BPyInit_bmesh_ops();
+[[nodiscard]] PyObject *BPyInit_bmesh_ops();

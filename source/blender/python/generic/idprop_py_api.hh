@@ -75,29 +75,30 @@ struct BPy_IDGroup_View {
   bool reversed;
 };
 
-PyObject *BPy_Wrap_GetKeys(IDProperty *prop);
-PyObject *BPy_Wrap_GetValues(ID *id, IDProperty *prop);
-PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop);
+[[nodiscard]] PyObject *BPy_Wrap_GetKeys(IDProperty *prop);
+[[nodiscard]] PyObject *BPy_Wrap_GetValues(ID *id, IDProperty *prop);
+[[nodiscard]] PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop);
 
-PyObject *BPy_Wrap_GetKeys_View_WithID(ID *id, IDProperty *prop);
-PyObject *BPy_Wrap_GetValues_View_WithID(ID *id, IDProperty *prop);
-PyObject *BPy_Wrap_GetItems_View_WithID(ID *id, IDProperty *prop);
+[[nodiscard]] PyObject *BPy_Wrap_GetKeys_View_WithID(ID *id, IDProperty *prop);
+[[nodiscard]] PyObject *BPy_Wrap_GetValues_View_WithID(ID *id, IDProperty *prop);
+[[nodiscard]] PyObject *BPy_Wrap_GetItems_View_WithID(ID *id, IDProperty *prop);
 
-int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val);
+[[nodiscard]] int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val);
 
 /**
  * For simple, non nested types this is the same as #BPy_IDGroup_WrapData.
  */
-PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop);
-PyObject *BPy_IDGroup_WrapData(ID *id, IDProperty *prop, IDProperty *parent);
+[[nodiscard]] PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop);
+[[nodiscard]] PyObject *BPy_IDGroup_WrapData(ID *id, IDProperty *prop, IDProperty *parent);
 /**
  * \note group can be a pointer array or a group.
  * assume we already checked key is a string.
  *
  * \return success.
  */
-bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, IDProperty *group, PyObject *ob);
-
+[[nodiscard]] bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *key,
+                                                        IDProperty *group,
+                                                        PyObject *ob);
 void IDProp_Init_Types();
 
-PyObject *BPyInit_idprop();
+[[nodiscard]] PyObject *BPyInit_idprop();

@@ -796,7 +796,6 @@ void SEQUENCER_OT_scene_strip_add_new(wmOperatorType *ot)
 
   ot->prop = RNA_def_enum(ot->srna, "type", strip_new_scene_items, SCE_COPY_NEW, "Type", "");
   RNA_def_enum_funcs(ot->prop, strip_new_sequencer_enum_itemf);
-  RNA_def_property_flag(ot->prop, PROP_ENUM_NO_TRANSLATE);
 }
 
 static wmOperatorStatus sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)

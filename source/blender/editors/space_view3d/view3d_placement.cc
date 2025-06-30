@@ -18,6 +18,7 @@
 #include "BLI_math_rotation.h"
 
 #include "BKE_context.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"
@@ -1395,6 +1396,17 @@ static void WIDGETGROUP_placement_setup(const bContext * /*C*/, wmGizmoGroup *gz
   }
 }
 
+static bool WIDGETGROUP_placement_poll(const bContext *C, wmGizmoGroupType *gzgt)
+{
+  if (ED_gizmo_poll_or_unlink_delayed_from_tool(C, gzgt)) {
+    const Scene *scene = CTX_data_scene(C);
+    if (BKE_id_is_editable(CTX_data_main(C), &scene->id)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void VIEW3D_GGT_placement(wmGizmoGroupType *gzgt)
 {
   gzgt->name = "Placement Widget";
@@ -1405,7 +1417,7 @@ void VIEW3D_GGT_placement(wmGizmoGroupType *gzgt)
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-  gzgt->poll = ED_gizmo_poll_or_unlink_delayed_from_tool;
+  gzgt->poll = WIDGETGROUP_placement_poll;
   gzgt->setup = WIDGETGROUP_placement_setup;
 }
 

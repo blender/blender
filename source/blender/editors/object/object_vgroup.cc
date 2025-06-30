@@ -3419,10 +3419,22 @@ static wmOperatorStatus vertex_group_smooth_exec(bContext *C, wmOperator *op)
   for (Object *ob : objects) {
     int subset_count, vgroup_tot;
 
-    const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
+    bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
         ob, subset_type, &vgroup_tot, &subset_count);
 
     if (vgroup_tot) {
+      const bool *locked_vgroups = BKE_object_defgroup_lock_flags_get(ob, vgroup_tot);
+      if (locked_vgroups) {
+        /* Remove locked groups from the vgroup valid map. */
+        for (int i = 0; i < vgroup_tot; i++) {
+          if (vgroup_validmap[i] && locked_vgroups[i]) {
+            vgroup_validmap[i] = false;
+            subset_count--;
+          }
+        }
+      }
+      MEM_SAFE_FREE(locked_vgroups);
+
       has_vgroup_multi = true;
 
       if (subset_count) {

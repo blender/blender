@@ -1502,11 +1502,11 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContex
     if (depth_ok & R_IMF_CHAN_DEPTH_16) {
       if (is_float) {
         tmp = *item_16bit;
-        tmp.name = "Float (Half)";
+        tmp.name = N_("Float (Half)");
         if (ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
-          tmp.description =
+          tmp.description = N_(
               "16-bit color channels. Data passes like Depth will still be saved using full "
-              "32-bit precision.";
+              "32-bit precision.");
         }
         RNA_enum_item_add(&item, &totitem, &tmp);
       }
@@ -1518,7 +1518,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContex
     if (depth_ok & R_IMF_CHAN_DEPTH_32) {
       if (is_float) {
         tmp = *item_32bit;
-        tmp.name = "Float (Full)";
+        tmp.name = N_("Float (Full)");
         RNA_enum_item_add(&item, &totitem, &tmp);
       }
       else {

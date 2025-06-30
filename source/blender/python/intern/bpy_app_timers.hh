@@ -10,4 +10,4 @@
 
 #include <Python.h>
 
-PyObject *BPY_app_timers_module();
+[[nodiscard]] PyObject *BPY_app_timers_module();

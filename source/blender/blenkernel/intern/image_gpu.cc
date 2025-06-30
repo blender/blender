@@ -429,6 +429,9 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
   ImageTile *tile = BKE_image_get_tile(ima, 0);
   if (tile == nullptr) {
     *result.texture = image_gpu_texture_error_create(textarget);
+    if (textarget == TEXTARGET_2D_ARRAY) {
+      *result.tile_mapping = image_gpu_texture_error_create(TEXTARGET_TILE_MAPPING);
+    }
     return result;
   }
 
@@ -438,6 +441,9 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
   if (ibuf == nullptr) {
     BKE_image_release_ibuf(ima, ibuf, (use_viewers) ? lock : nullptr);
     *result.texture = image_gpu_texture_error_create(textarget);
+    if (textarget == TEXTARGET_2D_ARRAY) {
+      *result.tile_mapping = image_gpu_texture_error_create(TEXTARGET_TILE_MAPPING);
+    }
     return result;
   }
 

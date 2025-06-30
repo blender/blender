@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-04-14 08:12+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13775,6 +13775,11 @@ msgid "Align"
 msgstr "Zarovnaný"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+
 msgid "UV Select Mode"
 msgstr "UV výběrový mód"
 
@@ -27033,11 +27038,6 @@ msgstr "Zobrazit a vybrat klíče"
 
 msgid "Hide selected particles"
 msgstr "Skrýt označené plošky"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Zrcadlit"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"

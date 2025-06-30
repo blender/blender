@@ -188,9 +188,27 @@ void BPY_context_dict_clear_members_array(void **dict_p,
    * while supported it's good to avoid for low level functions like this that run often. */
   for (uint i = 0; i < context_members_len; i++) {
     PyObject *key = PyUnicode_FromString(context_members[i]);
-    PyObject *item = _PyDict_Pop(dict, key, Py_None);
-    Py_DECREF(key);
+    PyObject *item;
+
+#if PY_VERSION_HEX >= 0x030d0000
+    switch (PyDict_Pop(dict, key, &item)) {
+      case 1: {
+        Py_DECREF(item);
+        break;
+      }
+      case -1: {
+        /* Not expected, but allow for an error. */
+        BLI_assert(false);
+        PyErr_Clear();
+        break;
+      }
+    }
+#else /* Remove when Python 3.12 support is dropped. */
+    item = _PyDict_Pop(dict, key, Py_None);
     Py_DECREF(item);
+#endif
+
+    Py_DECREF(key);
   }
 
   if (use_gil) {

@@ -4,6 +4,7 @@
 
 import bpy
 from bpy.types import Panel
+from bpy.app.translations import contexts as i18n_contexts
 from rna_prop_ui import PropertyPanel
 from bl_ui.space_properties import PropertiesAnimationMixin
 
@@ -85,7 +86,7 @@ class DATA_PT_distance(DataButtonsPanel, Panel):
 
         col = layout.column()
         sub = col.column(align=True)
-        sub.prop(speaker, "volume_min", slider=True, text="Volume Min")
+        sub.prop(speaker, "volume_min", slider=True, text="Volume Min", text_ctxt=i18n_contexts.id_speaker)
         sub.prop(speaker, "volume_max", slider=True, text="Max")
         col.prop(speaker, "attenuation")
 

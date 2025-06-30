@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
-"PO-Revision-Date: 2025-06-21 06:47+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"PO-Revision-Date: 2025-06-24 09:59+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -35044,6 +35044,11 @@ msgid "Align"
 msgstr "Zarovnať"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Zrkadlovo"
+
+
 msgid "UV Select Mode"
 msgstr "Režim výberu UV"
 
@@ -65950,6 +65955,10 @@ msgid "The factor to scale keys with"
 msgstr "Faktor na zmenu mierky kľúčov spolu"
 
 
+msgid "Are handles tested individually against the selection criteria, independently from their keys. When unchecked, handles are (de)selected in unison with their keys"
+msgstr "Manipulátory sú testované individuálne na základe výberových kritérií, nezávisle od ich kľúčov. Ak nie je zaškrtnuté, manipulátory sa vyberajú/rušia výber spoločne s ich kľúčmi"
+
+
 msgid "Select Curves"
 msgstr "Výber kriviek"
 
@@ -68953,6 +68962,14 @@ msgstr "Odhadnúť originálnu u pózy"
 
 msgid "Try to guess the original bind pose for skinned meshes from the inverse bind matrices. When off, use default/rest pose as bind pose"
 msgstr "Pokúsi sa odhadnúť pôvodnú u pózy pre vytvorenie pokožky povrchovej siete z inverzných matríc y. Ak je vypnutá, použije ako u pózy predvolenú/pokojovú pózu"
+
+
+msgid "Merge Material Slot when possible"
+msgstr "Zlúči zásuvky materiálu, ak je to možné"
+
+
+msgid "Merge material slots when possible"
+msgstr "Zlúči zásuvky materiálu, ak je to možné"
 
 
 msgid "Pack Images"
@@ -74740,6 +74757,14 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Krivka podľa objektov povrchovej siete alebo textu"
 
 
+msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
+msgstr "Povrchová sieť z objektov Krivka, Povrch, Meta-guľa, Text alebo Mračno bodov"
+
+
+msgid "Point Cloud from Mesh objects"
+msgstr "Mračno bodov z povrchovej siete objektov"
+
+
 msgid "Curves from evaluated curve data"
 msgstr "Krivky z vyhodnotených údajov krivky"
 
@@ -79700,11 +79725,6 @@ msgstr "Vráti späť všetky úpravy vykonané na časticovom systéme"
 
 msgid "Hide selected particles"
 msgstr "Skryje vybrané častice"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Zrkadlovo"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"
@@ -97681,6 +97701,10 @@ msgstr "Jazyk použitý na preklad"
 
 msgid "Automatic (Automatic)"
 msgstr "Automatický (automatický)"
+
+
+msgid "Automatically choose the system-defined language if available, or fall-back to English (US)"
+msgstr "Automaticky vyberie jazyk definovaný systémom, ak je k dispozícii, alebo sa vráti k angličtine (USA)"
 
 
 msgid "HDRI Preview Size"
@@ -121371,10 +121395,6 @@ msgid "Active camera is not in this scene"
 msgstr "Aktívna kamera sa na tejto scéne nenachádza"
 
 
-msgid "No {0} modifiers found"
-msgstr "Nenašli sa žiadne modifikátory {0}"
-
-
 msgid "Skipping '{:s}', not a mesh"
 msgstr "Preskočené '{:s}', nie povrchová sieť"
 
@@ -127010,18 +127030,6 @@ msgstr "Cycles sú v tejto zostave zakázané"
 
 msgid "A restart of Blender is required"
 msgstr "Je potrebný reštart Blenderu"
-
-
-msgid "Vulkan backend limitations:"
-msgstr "Obmedzenia backendu Vulkan:"
-
-
-msgid "• WoA support"
-msgstr "• podpora WoA"
-
-
-msgid "• Low VR performance"
-msgstr "• Nízky výkon VR"
 
 
 msgid "Open blend files with this Blender version"

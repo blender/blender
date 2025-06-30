@@ -21,4 +21,4 @@ struct BPyGPUVertFormat {
   GPUVertFormat fmt;
 };
 
-PyObject *BPyGPUVertFormat_CreatePyObject(GPUVertFormat *fmt);
+[[nodiscard]] PyObject *BPyGPUVertFormat_CreatePyObject(GPUVertFormat *fmt);

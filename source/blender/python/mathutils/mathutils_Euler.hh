@@ -28,16 +28,15 @@ struct EulerObject {
 
 /* prototypes */
 
-PyObject *Euler_CreatePyObject(const float eul[3],
-                               short order,
-                               PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;
-PyObject *Euler_CreatePyObject_wrap(float eul[3],
-                                    short order,
-                                    PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1);
-PyObject *Euler_CreatePyObject_cb(PyObject *cb_user,
-                                  short order,
-                                  unsigned char cb_type,
-                                  unsigned char cb_subtype) ATTR_WARN_UNUSED_RESULT;
+[[nodiscard]] PyObject *Euler_CreatePyObject(const float eul[3],
+                                             short order,
+                                             PyTypeObject *base_type);
+[[nodiscard]] PyObject *Euler_CreatePyObject_wrap(float eul[3],
+                                                  short order,
+                                                  PyTypeObject *base_type) ATTR_NONNULL(1);
+[[nodiscard]] PyObject *Euler_CreatePyObject_cb(PyObject *cb_user,
+                                                short order,
+                                                unsigned char cb_type,
+                                                unsigned char cb_subtype);
 
-short euler_order_from_string(const char *str, const char *error_prefix);
+[[nodiscard]] short euler_order_from_string(const char *str, const char *error_prefix);

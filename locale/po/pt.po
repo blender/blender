@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
-"PO-Revision-Date: 2025-06-20 17:59+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"PO-Revision-Date: 2025-06-27 21:59+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -11827,7 +11827,7 @@ msgstr "Usar gotejamento"
 
 
 msgid "Process drip effect (drip wet paint to gravity direction)"
-msgstr "Efeito de processo de gotejamento (gotejar a pintura molhada na direcção da gravidade)."
+msgstr "Processar efeito de escorrimento (pingar pintura húmida na direcção da gravidade)"
 
 
 msgid "Use logarithmic drying (makes high values to dry faster than low values)"
@@ -14962,7 +14962,7 @@ msgstr "Determina a quantidade de fluido permitida numa células de obstáculo (
 
 
 msgid "Gravity in X, Y and Z direction"
-msgstr "Gravidade na direcção X, Y e Z."
+msgstr "Gravidade na direcção X, Y e Z"
 
 
 msgid "Cell Type"
@@ -35045,6 +35045,11 @@ msgstr "UV"
 
 msgid "Align"
 msgstr "Alinhar"
+
+
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "UV Select Mode"
@@ -65953,6 +65958,10 @@ msgid "The factor to scale keys with"
 msgstr "O factor para redimensionar as chaves"
 
 
+msgid "Are handles tested individually against the selection criteria, independently from their keys. When unchecked, handles are (de)selected in unison with their keys"
+msgstr "Se os manípulos são testados individualmente pelo critério de selecção, independentemente das suas chaves. Quando desmarcado, os manípulos são (de)seleccionados em uníssono com as suas chaves."
+
+
 msgid "Select Curves"
 msgstr "Seleccionar Curvas"
 
@@ -68956,6 +68965,14 @@ msgstr "Adivinhar Pose de Acoplamento Original"
 
 msgid "Try to guess the original bind pose for skinned meshes from the inverse bind matrices. When off, use default/rest pose as bind pose"
 msgstr "Tentar adivinhar a pose de acoplamento original para malhas de pele a partir das matrizes de acoplamento inversas. Quando desligado, usar pose padrão/de descanso como pose de acoplamento"
+
+
+msgid "Merge Material Slot when possible"
+msgstr "Juntar Compartimentos de Materiais quando possível"
+
+
+msgid "Merge material slots when possible"
+msgstr "Juntar compartimentos de materiais quando possível"
 
 
 msgid "Pack Images"
@@ -74743,6 +74760,14 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Curva a partir de Malha ou objectos de Texto"
 
 
+msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
+msgstr "Malha a partir Curva, Superfície, Metaesfera, Texto, ou Nuvem e Pontos"
+
+
+msgid "Point Cloud from Mesh objects"
+msgstr "Nuvem de Pontos a partir de Objecto Malha"
+
+
 msgid "Curves from evaluated curve data"
 msgstr "Curvas a partir de dados avaliados de curva"
 
@@ -79705,11 +79730,6 @@ msgid "Hide selected particles"
 msgstr "Oculta as partículas seleccionadas"
 
 
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Espelhar"
-
-
 msgid "Duplicate and mirror the selected particles along the local X axis"
 msgstr "Duplica e espelha as partículas seleccionadas ao longo do eixo local X."
 
@@ -82278,9 +82298,144 @@ msgid "Use the local axis to limit the force and set the gravity direction"
 msgstr "Usar o eixo local para limitar a força e definir a direcção da gravidade"
 
 
+msgid "Use the global axis to limit the force and set the gravity direction"
+msgstr "Usar o eixo global para limitar a força e definir a direcção da gravidade"
+
+
+msgid "Use the view axis to limit the force and set the gravity direction"
+msgstr "Usar eixo do ponto de vista para limitar a força e definir a direcção da gravidade"
+
+
+msgid "Starting Mouse"
+msgstr "Posição Inicial do Rato"
+
+
+msgid "Filter strength"
+msgstr "Força de filtro"
+
+
+msgctxt "Operator"
+msgid "Filter Type"
+msgstr "Tipo de Filtro"
+
+
+msgid "Operation that is going to be applied to the mesh"
+msgstr "Operação a ser aplicada à malha"
+
+
+msgctxt "Operator"
+msgid "Gravity"
+msgstr "Gravidade"
+
+
+msgid "Applies gravity to the simulation"
+msgstr "Aplica gravidade à simulação"
+
+
+msgctxt "Operator"
+msgid "Inflate"
+msgstr "Insuflar"
+
+
+msgid "Inflates the cloth"
+msgstr "Insufla o têxtil"
+
+
+msgctxt "Operator"
+msgid "Expand"
+msgstr "Expandir"
+
+
+msgid "Expands the cloth's dimensions"
+msgstr "Expande as dimensões do têxtil"
+
+
+msgctxt "Operator"
+msgid "Pinch"
+msgstr "Beliscar"
+
+
+msgid "Pulls the cloth to the cursor's start position"
+msgstr "Puxa o têxtil na direcção inicial do cursor"
+
+
 msgctxt "Operator"
 msgid "Scale"
 msgstr "Escalonamento"
+
+
+msgid "Scales the mesh as a soft body using the origin of the object as scale"
+msgstr "Redimensiona a malha como um corpo mole usando a origem do objecto como escala"
+
+
+msgid "Use Collisions"
+msgstr "Usar Colisões"
+
+
+msgid "Collide with other collider objects in the scene"
+msgstr "Colidir com outro objecto colisor na cena"
+
+
+msgid "Use Face Sets"
+msgstr "Usar Conjuntos de Faces"
+
+
+msgid "Apply the filter only to the Face Set under the cursor"
+msgstr "Aplicar filtro apenas ao Conjunto de Faces sob o cursor"
+
+
+msgctxt "Operator"
+msgid "Filter Color"
+msgstr "Filtrar Cor"
+
+
+msgid "Applies a filter to modify the active color attribute"
+msgstr "Aplica um filtro para modificar o atributo de cor activo"
+
+
+msgctxt "Mesh"
+msgid "Fill Color"
+msgstr "Preencher Cor"
+
+
+msgid "Fill with a specific color"
+msgstr "preencher com uma cor específica"
+
+
+msgid "Change hue"
+msgstr "Alterar Tonalidade"
+
+
+msgid "Change saturation"
+msgstr "Alterar a saturação"
+
+
+msgid "Change value"
+msgstr "Alterar valor"
+
+
+msgid "Change brightness"
+msgstr "Alterar brilho"
+
+
+msgid "Change contrast"
+msgstr "Alterar contraste"
+
+
+msgid "Smooth colors"
+msgstr "Suavizar cores"
+
+
+msgid "Change red channel"
+msgstr "Alterar canal vermelho"
+
+
+msgid "Change green channel"
+msgstr "Alterar canal vede"
+
+
+msgid "Change blue channel"
+msgstr "Alterar canal azul"
 
 
 msgctxt "Operator"
@@ -82301,8 +82456,192 @@ msgid "Dynamic topology alters the mesh topology while sculpting"
 msgstr "Topologia dinâmica altera a topologia da malha durante a escultura."
 
 
+msgctxt "Operator"
+msgid "Edit Dyntopo Detail Size"
+msgstr "Editar Detalhe de Topologia Dinâmica"
+
+
+msgid "Modify the detail size of dyntopo interactively"
+msgstr "Modificar o tamanho de detalhe de Topologia Dinâmica interactivamente"
+
+
+msgid "Generic sculpt expand operator"
+msgstr "Operador de expansão de escultura genérico"
+
+
 msgid "Falloff Type"
 msgstr "Tipo de decaimento"
+
+
+msgid "Initial falloff of the expand operation"
+msgstr "Decaimento inicial da operação de expansão"
+
+
+msgid "Geodesic"
+msgstr "Geodésico"
+
+
+msgid "Topology Diagonals"
+msgstr "Diagonais de Topologia"
+
+
+msgid "Boundary Topology"
+msgstr "Topologia de Limite"
+
+
+msgid "Boundary Face Set"
+msgstr "Limites de Conjuntos de Faces"
+
+
+msgid "Active Face Set"
+msgstr "Conjunto de Faces Activo"
+
+
+msgid "Invert the expand active elements"
+msgstr "Inverter expansão dos elementos activos"
+
+
+msgid "Max Vertex Count for Geodesic Move Preview"
+msgstr "Número máximo de Vértices para Pré Visualização de Movimento Geodésico"
+
+
+msgid "Maximum number of vertices in the mesh for using geodesic falloff when moving the origin of expand. If the total number of vertices is greater than this value, the falloff will be set to spherical when moving"
+msgstr "Número máximo de vértices na malha para usar decaimento geodésico ao mover a origem da expansão. Se o número total de vértices for maior que este valor, o decaimento será considerado esférico"
+
+
+msgid "Normal Smooth"
+msgstr "Suavizar Normais"
+
+
+msgid "Blurring steps for normal falloff"
+msgstr "Passos de desfoque para decaimento de normal"
+
+
+msgid "Data Target"
+msgstr "Dados Alvo"
+
+
+msgid "Data that is going to be modified in the expand operation"
+msgstr "Dados que serão modificados na operação de expansão"
+
+
+msgid "Auto Create"
+msgstr "Criar Automaticamente"
+
+
+msgid "Fill in mask if nothing is already masked"
+msgstr "Preencher a máscara se não houver nada já seleccionado"
+
+
+msgid "Falloff Gradient"
+msgstr "Gradiente de Decaimento"
+
+
+msgid "Expand Using a linear falloff"
+msgstr "Expandir usando um decaimento linear"
+
+
+msgid "Preserve Previous"
+msgstr "Manter Anterior"
+
+
+msgid "Preserve the previous state of the target data"
+msgstr "Preservar o estado anterior dos dados alvo"
+
+
+msgid "Modify Active"
+msgstr "Modificar Activo"
+
+
+msgid "Modify the active Face Set instead of creating a new one"
+msgstr "Modificar o conjunto de faces activo em vez de criar um novo"
+
+
+msgid "Reposition Pivot"
+msgstr "Reposicionar Pivot"
+
+
+msgid "Reposition the sculpt transform pivot to the boundary of the expand active area"
+msgstr "Reposicionar o pivot de transformação de escultura para o limite da área de expansão activa"
+
+
+msgctxt "Operator"
+msgid "Face Set Box Gesture"
+msgstr "Gesto de Rectângulo para Conjunto de Faces"
+
+
+msgid "Add a face set in a rectangle defined by the cursor"
+msgstr "Adicionar conjunto de faces num rectângulo definido pelo cursor"
+
+
+msgctxt "Operator"
+msgid "Face Sets Visibility"
+msgstr "Visibilidade de Conjunto de Faces"
+
+
+msgid "Change the visibility of the Face Sets of the sculpt"
+msgstr "Alterar visibilidade dos Conjuntos de Faces da escultura"
+
+
+msgid "Toggle Visibility"
+msgstr "Alternar Visibilidade"
+
+
+msgid "Hide all Face Sets except for the active one"
+msgstr "Esconder todos os Conjuntos de Faces excepto o activo"
+
+
+msgid "Show Active Face Set"
+msgstr "Mostrar Conjunto de Faces Activo"
+
+
+msgid "Hide Active Face Sets"
+msgstr "Esconder Conjuntos de Faces Activos"
+
+
+msgctxt "Operator"
+msgid "Edit Face Set"
+msgstr "Editar Conjuntos de Faces"
+
+
+msgid "Edits the current active Face Set"
+msgstr "Edita o Conjunto de Faces activo"
+
+
+msgid "Grow Face Set"
+msgstr "Crescer Conjunto de Face"
+
+
+msgid "Grows the Face Sets boundary by one face based on mesh topology"
+msgstr "Crescer o limite do Conjunto de Faces por uma face com base na topologia da malha"
+
+
+msgid "Shrink Face Set"
+msgstr "Encolher Conjuntos de Faces"
+
+
+msgid "Shrinks the Face Sets boundary by one face based on mesh topology"
+msgstr "Encolhe o limite do Conjuntos de Faces por uma face com base na topologia da malha"
+
+
+msgid "Deletes the faces that are assigned to the Face Set"
+msgstr "Apaga as faces que estão atribuídas ao Conjuntos de Faces"
+
+
+msgid "Fair Positions"
+msgstr "Nivelar Posições"
+
+
+msgid "Creates a smooth as possible geometry patch from the Face Set minimizing changes in vertex positions"
+msgstr "Criar pedaço de geometria tão suave quanto possível a partir do conjunto de faces minimizando alterações na posição dos vértices"
+
+
+msgid "Fair Tangency"
+msgstr "Nivelar Tangência"
+
+
+msgid "Creates a smooth as possible geometry patch from the Face Set minimizing changes in vertex tangents"
+msgstr "Criar um pedaço de geometria tão suave quanto possível a partir de um conjunto de faces minimizando alterações nas posições dos vértices"
 
 
 msgctxt "Operator"
@@ -91286,7 +91625,7 @@ msgstr "Flutuabilidade"
 
 
 msgid "Artificial buoyancy force in negative gravity direction based on pressure differences inside the fluid"
-msgstr "Força de flutuação artificial na direcção da gravidade negativa com base em diferenças de pressão no interior do fluido."
+msgstr "Força de flutuação artificial na direcção negativa da gravidade baseada em diferenças de pressão no interior do fluido"
 
 
 msgid "Interaction Radius"

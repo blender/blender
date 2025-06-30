@@ -32,4 +32,4 @@ struct BPyGPUBatch {
 #endif
 };
 
-PyObject *BPyGPUBatch_CreatePyObject(blender::gpu::Batch *batch) ATTR_NONNULL(1);
+[[nodiscard]] PyObject *BPyGPUBatch_CreatePyObject(blender::gpu::Batch *batch) ATTR_NONNULL(1);

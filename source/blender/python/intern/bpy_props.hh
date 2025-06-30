@@ -12,16 +12,16 @@
 
 struct StructRNA;
 
-PyObject *BPY_rna_props();
+[[nodiscard]] PyObject *BPY_rna_props();
 /**
  * Run this on exit, clearing all Python callback users and disable the RNA callback,
  * as it would be called after Python has already finished.
  */
 void BPY_rna_props_clear_all();
 
-PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw);
-StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix);
+[[nodiscard]] PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw);
+[[nodiscard]] PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw);
+[[nodiscard]] StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix);
 
 struct BPy_PropDeferred {
   PyObject_HEAD

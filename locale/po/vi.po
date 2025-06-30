@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-06-09 12:55+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -34580,6 +34580,11 @@ msgstr "UV"
 
 msgid "Align"
 msgstr "Canh/Thẳng Hàng"
+
+
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Phản Chiếu Đối Xứng"
 
 
 msgid "UV Select Mode"
@@ -78813,11 +78818,6 @@ msgstr "Hoàn tác toàn bộ các biên soạn đã thi hành trên hệ thốn
 
 msgid "Hide selected particles"
 msgstr "Ẩn giấu các hạt đã chọn"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Phản Chiếu Đối Xứng"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"
@@ -125147,10 +125147,6 @@ msgstr "Cycles đã bị tắt đi trong phiên bản này"
 
 msgid "A restart of Blender is required"
 msgstr "Cần phải khởi động Blender lại"
-
-
-msgid "Vulkan backend limitations:"
-msgstr "Những hạn chế của Vulkan:"
 
 
 msgid "Open blend files with this Blender version"

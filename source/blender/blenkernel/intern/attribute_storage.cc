@@ -422,7 +422,7 @@ static std::optional<Attribute::DataVariant> read_attr_data(BlendDataReader &rea
       BLO_read_struct(&reader, AttributeArray, &dna_attr.data);
       auto &data = *static_cast<::AttributeArray *>(dna_attr.data);
       read_shared_array(reader, dna_attr_type, data.size, &data.data, &data.sharing_info);
-      if (!data.data) {
+      if (data.size != 0 && !data.data) {
         return std::nullopt;
       }
       return Attribute::ArrayData{data.data, data.size, ImplicitSharingPtr<>(data.sharing_info)};

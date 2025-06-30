@@ -125,27 +125,27 @@ struct BPy_BMIter {
 
 void BPy_BM_init_types();
 
-PyObject *BPyInit_bmesh_types();
+[[nodiscard]] PyObject *BPyInit_bmesh_types();
 
 enum {
   BPY_BMFLAG_NOP = 0,        /* do nothing */
   BPY_BMFLAG_IS_WRAPPED = 1, /* the mesh is owned by editmode */
 };
 
-PyObject *BPy_BMesh_CreatePyObject(BMesh *bm, int flag);
-PyObject *BPy_BMVert_CreatePyObject(BMesh *bm, BMVert *v);
-PyObject *BPy_BMEdge_CreatePyObject(BMesh *bm, BMEdge *e);
-PyObject *BPy_BMFace_CreatePyObject(BMesh *bm, BMFace *f);
-PyObject *BPy_BMLoop_CreatePyObject(BMesh *bm, BMLoop *l);
-PyObject *BPy_BMElemSeq_CreatePyObject(BMesh *bm, BPy_BMElem *py_ele, char itype);
-PyObject *BPy_BMVertSeq_CreatePyObject(BMesh *bm);
-PyObject *BPy_BMEdgeSeq_CreatePyObject(BMesh *bm);
-PyObject *BPy_BMFaceSeq_CreatePyObject(BMesh *bm);
-PyObject *BPy_BMLoopSeq_CreatePyObject(BMesh *bm);
-PyObject *BPy_BMIter_CreatePyObject(BMesh *bm);
+[[nodiscard]] PyObject *BPy_BMesh_CreatePyObject(BMesh *bm, int flag);
+[[nodiscard]] PyObject *BPy_BMVert_CreatePyObject(BMesh *bm, BMVert *v);
+[[nodiscard]] PyObject *BPy_BMEdge_CreatePyObject(BMesh *bm, BMEdge *e);
+[[nodiscard]] PyObject *BPy_BMFace_CreatePyObject(BMesh *bm, BMFace *f);
+[[nodiscard]] PyObject *BPy_BMLoop_CreatePyObject(BMesh *bm, BMLoop *l);
+[[nodiscard]] PyObject *BPy_BMElemSeq_CreatePyObject(BMesh *bm, BPy_BMElem *py_ele, char itype);
+[[nodiscard]] PyObject *BPy_BMVertSeq_CreatePyObject(BMesh *bm);
+[[nodiscard]] PyObject *BPy_BMEdgeSeq_CreatePyObject(BMesh *bm);
+[[nodiscard]] PyObject *BPy_BMFaceSeq_CreatePyObject(BMesh *bm);
+[[nodiscard]] PyObject *BPy_BMLoopSeq_CreatePyObject(BMesh *bm);
+[[nodiscard]] PyObject *BPy_BMIter_CreatePyObject(BMesh *bm);
 
 /** Just checks type and creates vert/edge/face/loop. */
-PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele);
+[[nodiscard]] PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele);
 
 /**
  * Generic python seq as BMVert/Edge/Face array,
@@ -153,46 +153,48 @@ PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele);
  *
  * The 'bm_r' value is assigned when empty, and used when set.
  */
-void *BPy_BMElem_PySeq_As_Array_FAST(BMesh **r_bm,
-                                     PyObject *seq_fast,
-                                     Py_ssize_t min,
-                                     Py_ssize_t max,
-                                     Py_ssize_t *r_size,
-                                     char htype,
-                                     bool do_unique_check,
-                                     bool do_bm_check,
-                                     const char *error_prefix);
-void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm,
-                                PyObject *seq,
-                                Py_ssize_t min,
-                                Py_ssize_t max,
-                                Py_ssize_t *r_size,
-                                char htype,
-                                bool do_unique_check,
-                                bool do_bm_check,
-                                const char *error_prefix);
+[[nodiscard]] void *BPy_BMElem_PySeq_As_Array_FAST(BMesh **r_bm,
+                                                   PyObject *seq_fast,
+                                                   Py_ssize_t min,
+                                                   Py_ssize_t max,
+                                                   Py_ssize_t *r_size,
+                                                   char htype,
+                                                   bool do_unique_check,
+                                                   bool do_bm_check,
+                                                   const char *error_prefix);
+[[nodiscard]] void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm,
+                                              PyObject *seq,
+                                              Py_ssize_t min,
+                                              Py_ssize_t max,
+                                              Py_ssize_t *r_size,
+                                              char htype,
+                                              bool do_unique_check,
+                                              bool do_bm_check,
+                                              const char *error_prefix);
 
-PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_len);
-PyObject *BPy_BMVert_Array_As_Tuple(BMesh *bm, BMVert **elem, Py_ssize_t elem_len);
-PyObject *BPy_BMEdge_Array_As_Tuple(BMesh *bm, BMEdge **elem, Py_ssize_t elem_len);
-PyObject *BPy_BMFace_Array_As_Tuple(BMesh *bm, BMFace **elem, Py_ssize_t elem_len);
-PyObject *BPy_BMLoop_Array_As_Tuple(BMesh *bm, BMLoop *const *elem, Py_ssize_t elem_len);
+[[nodiscard]] PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_len);
+[[nodiscard]] PyObject *BPy_BMVert_Array_As_Tuple(BMesh *bm, BMVert **elem, Py_ssize_t elem_len);
+[[nodiscard]] PyObject *BPy_BMEdge_Array_As_Tuple(BMesh *bm, BMEdge **elem, Py_ssize_t elem_len);
+[[nodiscard]] PyObject *BPy_BMFace_Array_As_Tuple(BMesh *bm, BMFace **elem, Py_ssize_t elem_len);
+[[nodiscard]] PyObject *BPy_BMLoop_Array_As_Tuple(BMesh *bm,
+                                                  BMLoop *const *elem,
+                                                  Py_ssize_t elem_len);
 
-int BPy_BMElem_CheckHType(PyTypeObject *type, char htype);
+[[nodiscard]] int BPy_BMElem_CheckHType(PyTypeObject *type, char htype);
 /**
  * Use for error strings only, not thread safe,
  *
  * \return a string like '(BMVert/BMEdge/BMFace/BMLoop)'
  */
-char *BPy_BMElem_StringFromHType_ex(char htype, char ret[32]);
-char *BPy_BMElem_StringFromHType(char htype);
+[[nodiscard]] char *BPy_BMElem_StringFromHType_ex(char htype, char ret[32]);
+[[nodiscard]] char *BPy_BMElem_StringFromHType(char htype);
 
 // void bpy_bm_generic_invalidate(BPy_BMGeneric *self);
-int bpy_bm_generic_valid_check(BPy_BMGeneric *self);
-int bpy_bm_generic_valid_check_source(BMesh *bm_source,
-                                      const char *error_prefix,
-                                      void **args,
-                                      uint args_tot) ATTR_NONNULL(1, 2);
+[[nodiscard]] int bpy_bm_generic_valid_check(BPy_BMGeneric *self);
+[[nodiscard]] int bpy_bm_generic_valid_check_source(BMesh *bm_source,
+                                                    const char *error_prefix,
+                                                    void **args,
+                                                    uint args_tot) ATTR_NONNULL(1, 2);
 
 #define BPY_BM_CHECK_OBJ(obj) \
   if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { \

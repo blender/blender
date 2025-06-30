@@ -329,7 +329,7 @@ class TEXT_MT_select(Menu):
         layout = self.layout
 
         layout.operator("text.select_all", text="All")
-        layout.operator("text.select_line", text="Line")
+        layout.operator("text.select_line", text="Line", text_ctxt=i18n_contexts.id_text)
         layout.operator("text.select_word", text="Word")
 
         layout.separator()

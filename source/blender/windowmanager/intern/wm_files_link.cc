@@ -109,6 +109,9 @@ static wmOperatorStatus wm_link_append_invoke(bContext *C,
 
 static int wm_link_append_flag(wmOperator *op)
 {
+  /* NOTE: most options exposed here should also be available in the Python API
+   * unless there are good reasons to have them only exposed to the operator.
+   * see `bpy_lib_load`. */
   PropertyRNA *prop;
   int flag = 0;
 

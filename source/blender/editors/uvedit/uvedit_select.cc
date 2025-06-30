@@ -4687,7 +4687,7 @@ static wmOperatorStatus uv_select_overlap(bContext *C, const bool extend)
       BMesh *bm_a = BKE_editmesh_from_object(obedit_a)->bm;
       BMesh *bm_b = BKE_editmesh_from_object(obedit_b)->bm;
       BMFace *face_a = bm_a->ftable[o_a->face_index];
-      BMFace *face_b = bm_a->ftable[o_b->face_index];
+      BMFace *face_b = bm_b->ftable[o_b->face_index];
 
       if (scene->toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) {
         /* Pass. */

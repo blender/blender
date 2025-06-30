@@ -192,31 +192,36 @@ struct BPy_FunctionRNA {
   FunctionRNA *func;
 };
 
-StructRNA *srna_from_self(PyObject *self, const char *error_prefix);
-StructRNA *pyrna_struct_as_srna(PyObject *self, bool parent, const char *error_prefix);
+[[nodiscard]] StructRNA *srna_from_self(PyObject *self, const char *error_prefix);
+[[nodiscard]] StructRNA *pyrna_struct_as_srna(PyObject *self,
+                                              bool parent,
+                                              const char *error_prefix);
 
 void BPY_rna_init();
 void BPY_rna_exit();
-PyObject *BPY_rna_module();
+[[nodiscard]] PyObject *BPY_rna_module();
 void BPY_update_rna_module();
 // PyObject *BPY_rna_doc();
-PyObject *BPY_rna_types();
+[[nodiscard]] PyObject *BPY_rna_types();
 void BPY_rna_types_finalize_external_types(PyObject *submodule);
 
-PyObject *pyrna_struct_CreatePyObject_with_primitive_support(PointerRNA *ptr);
-PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr);
-PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop);
+[[nodiscard]] PyObject *pyrna_struct_CreatePyObject_with_primitive_support(PointerRNA *ptr);
+[[nodiscard]] PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr);
+[[nodiscard]] PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop);
 
 /* Made public for other modules which don't deal closely with RNA. */
-PyObject *pyrna_id_CreatePyObject(ID *id);
-bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
-bool pyrna_id_CheckPyObject(PyObject *obj);
+[[nodiscard]] PyObject *pyrna_id_CreatePyObject(ID *id);
+[[nodiscard]] bool pyrna_id_FromPyObject(PyObject *obj, ID **id);
+[[nodiscard]] bool pyrna_id_CheckPyObject(PyObject *obj);
 
 /* operators also need this to set args */
-int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, bool all_args, const char *error_prefix);
-PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
+[[nodiscard]] int pyrna_pydict_to_props(PointerRNA *ptr,
+                                        PyObject *kw,
+                                        bool all_args,
+                                        const char *error_prefix);
+[[nodiscard]] PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
-int pyrna_deferred_register_class(StructRNA *srna, PyTypeObject *py_class);
+[[nodiscard]] int pyrna_deferred_register_class(StructRNA *srna, PyTypeObject *py_class);
 
 const PointerRNA *pyrna_struct_as_ptr(PyObject *py_obj, const StructRNA *srna);
 const PointerRNA *pyrna_struct_as_ptr_or_null(PyObject *py_obj, const StructRNA *srna);
@@ -239,11 +244,11 @@ struct BPy_StructRNA_Parse {
  *
  * Use with #PyArg_ParseTuple's `O&` formatting.
  */
-int pyrna_struct_as_ptr_parse(PyObject *o, void *p);
+[[nodiscard]] int pyrna_struct_as_ptr_parse(PyObject *o, void *p);
 /**
  * A version of #pyrna_struct_as_ptr_parse that maps Python's `None` to #PointerRNA_NULL.
  */
-int pyrna_struct_as_ptr_or_null_parse(PyObject *o, void *p);
+[[nodiscard]] int pyrna_struct_as_ptr_or_null_parse(PyObject *o, void *p);
 
 void pyrna_struct_type_extend_capi(StructRNA *srna, PyMethodDef *method, PyGetSetDef *getset);
 
@@ -251,35 +256,35 @@ void pyrna_alloc_types();
 
 /* Primitive type conversion. */
 
-int pyrna_py_to_array(
+[[nodiscard]] int pyrna_py_to_array(
     PointerRNA *ptr, PropertyRNA *prop, char *param_data, PyObject *py, const char *error_prefix);
-int pyrna_py_to_array_index(PointerRNA *ptr,
-                            PropertyRNA *prop,
-                            int arraydim,
-                            int arrayoffset,
-                            int index,
-                            PyObject *py,
-                            const char *error_prefix);
-PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index);
+[[nodiscard]] int pyrna_py_to_array_index(PointerRNA *ptr,
+                                          PropertyRNA *prop,
+                                          int arraydim,
+                                          int arrayoffset,
+                                          int index,
+                                          PyObject *py,
+                                          const char *error_prefix);
+[[nodiscard]] PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 
-PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop);
-PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self,
-                                    PointerRNA *ptr,
-                                    PropertyRNA *prop,
-                                    int index);
-PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
-int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
+[[nodiscard]] PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop);
+[[nodiscard]] PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self,
+                                                  PointerRNA *ptr,
+                                                  PropertyRNA *prop,
+                                                  int index);
+[[nodiscard]] PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
+[[nodiscard]] int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
 
-bool pyrna_write_check();
+[[nodiscard]] bool pyrna_write_check();
 void pyrna_write_set(bool val);
 
 void pyrna_invalidate(BPy_DummyPointerRNA *self);
 
-int pyrna_struct_validity_check_only(const BPy_StructRNA *pysrna);
+[[nodiscard]] int pyrna_struct_validity_check_only(const BPy_StructRNA *pysrna);
 void pyrna_struct_validity_exception_only(const BPy_StructRNA *pysrna);
-int pyrna_struct_validity_check(const BPy_StructRNA *pysrna);
+[[nodiscard]] int pyrna_struct_validity_check(const BPy_StructRNA *pysrna);
 
-int pyrna_prop_validity_check(const BPy_PropertyRNA *self);
+[[nodiscard]] int pyrna_prop_validity_check(const BPy_PropertyRNA *self);
 
 /* bpy.utils.(un)register_class */
 extern PyMethodDef meth_bpy_register_class;

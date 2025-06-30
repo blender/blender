@@ -6844,6 +6844,44 @@ static void blend_file_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop
   RNA_string_set(drop->ptr, "filepath", WM_drag_get_single_path(drag));
 }
 
+static bool screen_drop_scene_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
+{
+  /* Make sure we're dropping the scene outside the asset browser. */
+  SpaceFile *sfile = CTX_wm_space_file(C);
+  if (sfile && ED_fileselect_is_asset_browser(sfile)) {
+    return false;
+  }
+  return WM_drag_is_ID_type(drag, ID_SCE);
+}
+
+static void screen_drop_scene_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
+{
+  ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, ID_SCE);
+  BLI_assert(id);
+  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
+}
+
+static std::string screen_drop_scene_tooltip(bContext * /*C*/,
+                                             wmDrag *drag,
+                                             const int /*xy*/
+                                                 [2],
+                                             wmDropBox * /*drop*/)
+{
+  const char *dragged_scene_name = WM_drag_get_item_name(drag);
+  wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, ID_SCE);
+  if (asset_drag) {
+    switch (asset_drag->import_settings.method) {
+      case ASSET_IMPORT_LINK:
+        return fmt::format(fmt::runtime(TIP_("Link {}")), dragged_scene_name);
+      case ASSET_IMPORT_APPEND:
+        return fmt::format(fmt::runtime(TIP_("Append {}")), dragged_scene_name);
+      case ASSET_IMPORT_APPEND_REUSE:
+        return fmt::format(fmt::runtime(TIP_("Append (Reuse) {}")), dragged_scene_name);
+    }
+  }
+  return fmt::format(fmt::runtime(TIP_("Set {} as active")), dragged_scene_name);
+}
+
 void ED_keymap_screen(wmKeyConfig *keyconf)
 {
   /* Screen Editing ------------------------------------------------ */
@@ -6860,6 +6898,12 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
   WM_dropbox_add(
       lb, "WM_OT_drop_blend_file", blend_file_drop_poll, blend_file_drop_copy, nullptr, nullptr);
   WM_dropbox_add(lb, "UI_OT_drop_color", UI_drop_color_poll, UI_drop_color_copy, nullptr, nullptr);
+  WM_dropbox_add(lb,
+                 "SCENE_OT_drop_scene_asset",
+                 screen_drop_scene_poll,
+                 screen_drop_scene_copy,
+                 WM_drag_free_imported_drag_ID,
+                 screen_drop_scene_tooltip);
 
   keymap_modal_set(keyconf);
 }

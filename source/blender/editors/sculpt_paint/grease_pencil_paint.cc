@@ -271,6 +271,8 @@ struct PaintOperationExecutor {
   Brush *brush_;
 
   BrushGpencilSettings *settings_;
+  std::optional<BrushColorJitterSettings> jitter_settings_;
+
   ColorGeometry4f vertex_color_ = ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f);
   ColorGeometry4f fill_color_ = ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f);
   float softness_;
@@ -299,6 +301,7 @@ struct PaintOperationExecutor {
       }
     }
     softness_ = 1.0f - settings_->hardness;
+    jitter_settings_ = BKE_brush_color_jitter_get_settings(paint, brush_);
   }
 
   void process_start_sample(PaintOperation &self,
@@ -345,8 +348,10 @@ struct PaintOperationExecutor {
 
     const float start_rotation = ed::greasepencil::randomize_rotation(
         *settings_, self.rng_, self.stroke_random_rotation_factor_, start_sample.pressure);
+    Scene *scene = CTX_data_scene(&C);
     if (use_vertex_color_) {
       vertex_color_ = ed::greasepencil::randomize_color(*settings_,
+                                                        jitter_settings_,
                                                         self.stroke_random_hue_factor_,
                                                         self.stroke_random_sat_factor_,
                                                         self.stroke_random_val_factor_,
@@ -355,7 +360,6 @@ struct PaintOperationExecutor {
                                                         start_sample.pressure);
     }
 
-    Scene *scene = CTX_data_scene(&C);
     const bool on_back = (scene->toolsettings->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) != 0;
 
     self.screen_space_coords_orig_.append(start_coords);
@@ -841,6 +845,7 @@ struct PaintOperationExecutor {
       if (use_settings_random_ || attributes.contains("vertex_color")) {
         for (const int i : IndexRange(new_points_num)) {
           new_vertex_colors[i] = ed::greasepencil::randomize_color(*settings_,
+                                                                   jitter_settings_,
                                                                    self.stroke_random_hue_factor_,
                                                                    self.stroke_random_sat_factor_,
                                                                    self.stroke_random_val_factor_,

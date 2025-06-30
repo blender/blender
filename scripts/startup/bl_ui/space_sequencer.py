@@ -810,7 +810,7 @@ class SEQUENCER_MT_add_scene(Menu):
                     continue
 
                 layout.operator_context = 'INVOKE_REGION_WIN'
-                layout.operator("sequencer.scene_strip_add", text=sc_item.name).scene = sc_item.name
+                layout.operator("sequencer.scene_strip_add", text=sc_item.name, translate=False).scene = sc_item.name
 
         del bpy_data_scenes_len
 
@@ -2508,7 +2508,7 @@ class SEQUENCER_PT_adjust_transform(SequencerButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(strip.transform, "origin")
 
-        col = layout.column(heading="Mirror", align=True)
+        col = layout.column(heading="Mirror", align=True, heading_ctxt=i18n_contexts.id_image)
         col.prop(strip, "use_flip_x", text="X", toggle=True)
         col.prop(strip, "use_flip_y", text="Y", toggle=True)
 

@@ -13,6 +13,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 
 #include "DEG_depsgraph.hh"
@@ -108,10 +109,14 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType * /
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_active_base_get(view_layer);
   if (base && BASE_SELECTABLE(v3d, base)) {
-    Object *ob = base->object;
+    const Object *ob = base->object;
     if (ob->type == OB_EMPTY) {
       if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
-        return BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d);
+        if (BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d)) {
+          if (BKE_id_is_editable(CTX_data_main(C), &ob->id)) {
+            return true;
+          }
+        }
       }
     }
   }

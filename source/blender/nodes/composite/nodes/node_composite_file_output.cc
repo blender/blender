@@ -21,6 +21,8 @@
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
@@ -235,7 +237,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
   BKE_image_format_update_color_space_for_type(&nimf->format);
 
   /* add one socket by default */
-  ntreeCompositOutputFileAddSocket(ntree, node, "Image", format);
+  ntreeCompositOutputFileAddSocket(ntree, node, DATA_("Image"), format);
 }
 
 static void free_output_file(bNode *node)

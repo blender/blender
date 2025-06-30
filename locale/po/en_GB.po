@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-06-17 02:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34839,6 +34839,11 @@ msgstr "UV"
 
 msgid "Align"
 msgstr "Align"
+
+
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Mirror"
 
 
 msgid "UV Select Mode"
@@ -78380,11 +78385,6 @@ msgstr "Undo all edition performed on the particle system"
 
 msgid "Hide selected particles"
 msgstr "Hide selected particles"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Mirror"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"

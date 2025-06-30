@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-04-14 08:14+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -19121,6 +19121,11 @@ msgid "Align"
 msgstr "Ausrichten"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
 msgid "UV Select Mode"
 msgstr "UV-Auswahlmodus"
 
@@ -35469,11 +35474,6 @@ msgstr "Naht entfernen"
 
 msgid "Hide selected particles"
 msgstr "Nicht ausgewählte verbergen"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Spiegeln"
 
 
 msgctxt "Operator"

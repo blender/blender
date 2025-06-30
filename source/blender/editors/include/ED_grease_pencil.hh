@@ -22,6 +22,7 @@
 #include "WM_api.hh"
 
 struct bContext;
+struct BrushColorJitterSettings;
 struct BrushGpencilSettings;
 struct Main;
 struct Object;
@@ -988,6 +989,7 @@ float randomize_rotation(const BrushGpencilSettings &settings,
  * \param pressure: Pressure factor.
  */
 ColorGeometry4f randomize_color(const BrushGpencilSettings &settings,
+                                const std::optional<BrushColorJitterSettings> &jitter,
                                 float stroke_hue_factor,
                                 float stroke_saturation_factor,
                                 float stroke_value_factor,

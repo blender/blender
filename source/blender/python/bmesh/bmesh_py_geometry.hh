@@ -10,4 +10,4 @@
 
 #include <Python.h>
 
-PyObject *BPyInit_bmesh_geometry();
+[[nodiscard]] PyObject *BPyInit_bmesh_geometry();

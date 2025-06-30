@@ -17,7 +17,7 @@ struct wmOperatorType;
  *
  * Accessed via sub-classes of `bpy.types.Macro` using the `define` method.
  */
-PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args);
+[[nodiscard]] PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args);
 
 /* Exposed to RNA/WM API. */
 

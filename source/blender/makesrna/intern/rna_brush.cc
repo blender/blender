@@ -917,6 +917,13 @@ static std::optional<std::string> rna_BrushGpencilSettings_path(const PointerRNA
 static void rna_BrushGpencilSettings_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Brush *br = reinterpret_cast<Brush *>(ptr->owner_id);
+  /* Synchronize the general randomization flag with the brush color jitter flag */
+  if (br->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) {
+    br->flag2 |= BRUSH_JITTER_COLOR;
+  }
+  else {
+    br->flag2 &= ~BRUSH_JITTER_COLOR;
+  }
   BKE_brush_tag_unsaved_changes(br);
 }
 
