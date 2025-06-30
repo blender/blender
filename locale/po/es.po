@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
-"PO-Revision-Date: 2025-06-16 19:59+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"PO-Revision-Date: 2025-06-23 18:59+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.11"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -35044,6 +35044,11 @@ msgid "Align"
 msgstr "Alinear"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Voltear"
+
+
 msgid "UV Select Mode"
 msgstr "Modo de selección de UV"
 
@@ -65950,6 +65955,10 @@ msgid "The factor to scale keys with"
 msgstr "El factor de escala de los claves"
 
 
+msgid "Are handles tested individually against the selection criteria, independently from their keys. When unchecked, handles are (de)selected in unison with their keys"
+msgstr "Determina si las asas serán evaluadas en base a los criterios de selección de manera independiente a sus claves. Cuando esté inactiva, el estado de selección de las asas será modificado en concierto con el de sus claves"
+
+
 msgid "Select Curves"
 msgstr "Seleccionar curvas"
 
@@ -68953,6 +68962,14 @@ msgstr "Adivinar pose original de enlace"
 
 msgid "Try to guess the original bind pose for skinned meshes from the inverse bind matrices. When off, use default/rest pose as bind pose"
 msgstr "Intenta obtener la pose de enlace original de mallas deformadas, a partir de las matrices inversas de enlace. Cuando se encuentre desactivado, usará la pose de reposo predefinida como pose de enlace"
+
+
+msgid "Merge Material Slot when possible"
+msgstr "Fusionar contenedores de material cuando sea posible"
+
+
+msgid "Merge material slots when possible"
+msgstr "Fusionar contenedores de material cuando sea posible"
 
 
 msgid "Pack Images"
@@ -74740,6 +74757,14 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Curva a partir de mallas o textos"
 
 
+msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
+msgstr "Malla a partir de Curvas, Superficies, Metabolas, Textos o Nubes de puntos"
+
+
+msgid "Point Cloud from Mesh objects"
+msgstr "Nube de puntos a partir de Mallas"
+
+
 msgid "Curves from evaluated curve data"
 msgstr "Curvas a partir de datos evaluados de curva"
 
@@ -79700,11 +79725,6 @@ msgstr "Deshace todas las ediciones hechas a este sistema de partículas"
 
 msgid "Hide selected particles"
 msgstr "Oculta las partículas seleccionadas"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Voltear"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"
@@ -97681,6 +97701,10 @@ msgstr "Idioma al cual traducir"
 
 msgid "Automatic (Automatic)"
 msgstr "Automático (Automatic)"
+
+
+msgid "Automatically choose the system-defined language if available, or fall-back to English (US)"
+msgstr "Eligir automáticamente el idioma definido en el sistema; si no estuviera disponible se mostrará en Inglés (EE.UU.)"
 
 
 msgid "HDRI Preview Size"
@@ -121371,10 +121395,6 @@ msgid "Active camera is not in this scene"
 msgstr "La cámara activa no se encuentra en esta escena"
 
 
-msgid "No {0} modifiers found"
-msgstr "Ningún modificador {0} encontrado"
-
-
 msgid "Skipping '{:s}', not a mesh"
 msgstr "Omitiendo a '{:s}', debido a que no es una malla"
 
@@ -127010,18 +127030,6 @@ msgstr "Cycles se encuentra deshabilitado en esta compilación del programa"
 
 msgid "A restart of Blender is required"
 msgstr "Se necesitará reiniciar Blender"
-
-
-msgid "Vulkan backend limitations:"
-msgstr "Limitaciones con Vulkan:"
-
-
-msgid "• WoA support"
-msgstr "• Soporte para WoA"
-
-
-msgid "• Low VR performance"
-msgstr "• Bajo rendimiento con RV"
 
 
 msgid "Open blend files with this Blender version"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-06-20 17:59+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -24765,6 +24765,11 @@ msgid "Align"
 msgstr "Poravnaj"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Prezrcali"
+
+
 msgid "Show/Hide Faces"
 msgstr "Pokaži / skrij lica"
 
@@ -43060,11 +43065,6 @@ msgstr "Podvoji nastavitve"
 msgctxt "Operator"
 msgid "Clear Edited"
 msgstr "Počisti urejeno"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Prezrcali"
 
 
 msgctxt "Operator"
@@ -64394,10 +64394,6 @@ msgstr "V tej izgradnji je Cycles onemogočen"
 
 msgid "A restart of Blender is required"
 msgstr "Blender je treba ponovno zagnati"
-
-
-msgid "Vulkan backend limitations:"
-msgstr "Omejitve zaledja Vulkan:"
 
 
 msgid "Open blend files with this Blender version"

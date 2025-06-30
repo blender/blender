@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-06-22 12:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -25031,6 +25031,11 @@ msgid "Align"
 msgstr "Allinea"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Specchia"
+
+
 msgid "UV Select Mode"
 msgstr "Modalità Selezione UV"
 
@@ -45651,11 +45656,6 @@ msgstr "Annulla tutte le modifiche apportate al sistema particellare"
 
 msgid "Hide selected particles"
 msgstr "Nascondi le facce selezionate"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Specchia"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"

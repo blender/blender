@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
-"PO-Revision-Date: 2025-06-23 02:59+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"PO-Revision-Date: 2025-06-28 18:59+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -16927,7 +16927,7 @@ msgstr "Circular"
 
 
 msgid "Use single point to create rings"
-msgstr "Utilitza un sol punt per crear anelles"
+msgstr "Utilitza un sol punt per crear anells"
 
 
 msgid "Radial"
@@ -28572,7 +28572,7 @@ msgstr "Fusta"
 
 
 msgid "Procedural - wave generated bands or rings, with optional noise"
-msgstr "Procedimental - aigües o anelles generades per ones, amb soroll opcional"
+msgstr "Procedimental - aigües o anells generats per ones, amb soroll opcional"
 
 
 msgid "Set negative texture RGB and intensity values to zero, for some uses like displacement this option can be disabled to get the full range"
@@ -29435,11 +29435,11 @@ msgstr "[Bands] Usa la textura de fusta estàndard amb aigües"
 
 msgctxt "Texture"
 msgid "Rings"
-msgstr "Anelles"
+msgstr "Anells"
 
 
 msgid "Use wood texture in rings"
-msgstr "Usa la textura de fusta amb anelles"
+msgstr "Usa la textura de fusta amb anells"
 
 
 msgctxt "Texture"
@@ -29457,7 +29457,7 @@ msgstr "Soroll d'anells"
 
 
 msgid "Add noise to rings"
-msgstr "[Ring Noise]: Afegir soroll a les anelles"
+msgstr "[Ring Noise]: Afegeix soroll als anells"
 
 
 msgid "Vector Font"
@@ -35044,6 +35044,11 @@ msgid "Align"
 msgstr "Alinear"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Emmirallar"
+
+
 msgid "UV Select Mode"
 msgstr "Mode de selecció UV"
 
@@ -36913,7 +36918,7 @@ msgstr "Afegir un desplaçament relatiu a la capsa contenidora de l'objecte"
 
 
 msgid "Bevel Modifier"
-msgstr "Modificador bisellat"
+msgstr "Modificador bisellar"
 
 
 msgid "Bevel modifier to make edges and vertices more rounded"
@@ -37017,7 +37022,7 @@ msgstr "Escórrer bucles"
 
 
 msgid "Prefer sliding along edges to having even widths"
-msgstr "[Loop slide]: Prefereix fer lliscar seguint les arestes que no mantenir amplades equivalents"
+msgstr "[Loop slide]: Prefereix fer el corriment seguint les arestes que no tenir amplades uniformes"
 
 
 msgid "Mark Seams"
@@ -46150,7 +46155,7 @@ msgstr "Capgira una imatge sobre un eix específic"
 
 
 msgid "(Deprecated: Use Flip X and Flip Y inputs instead.)"
-msgstr "(Obsolet: usar en el seu lloc les ingressions de Capgirar X i Capgirar Y.)"
+msgstr "(Obsolet: usar en el seu lloc les ingressions de Invertir X i Invertir Y.)"
 
 
 msgid "Flip X"
@@ -52515,7 +52520,7 @@ msgstr "Textura onatge"
 
 
 msgid "Generate procedural bands or rings with noise"
-msgstr "[Wave Texture]: Genera aigües o anelles procedimentals amb soroll"
+msgstr "[Wave Texture]: Genera aigües o anells procedimentals amb soroll"
 
 
 msgid "Bands Direction"
@@ -52539,23 +52544,23 @@ msgstr "Aigües al llarg de l'eix diagonal"
 
 
 msgid "Rings Direction"
-msgstr "Direcció de les anelles"
+msgstr "Direcció dels anells"
 
 
 msgid "Rings along X axis"
-msgstr "Anelles seguint l'eix X"
+msgstr "Anells seguint l'eix X"
 
 
 msgid "Rings along Y axis"
-msgstr "Anelles seguint l'eix Y"
+msgstr "Anells seguint l'eix Y"
 
 
 msgid "Rings along Z axis"
-msgstr "Anelles seguint l'eix Z"
+msgstr "Anells seguint l'eix Z"
 
 
 msgid "Rings along spherical distance"
-msgstr "Anelles seguint la distància esfèrica"
+msgstr "Anells seguint la distància esfèrica"
 
 
 msgid "Wave Profile"
@@ -52591,11 +52596,11 @@ msgstr "Usa la textura d'ona estàndard amb aigües"
 
 
 msgid "Rings"
-msgstr "Anelles"
+msgstr "Anells"
 
 
 msgid "Use wave texture in rings"
-msgstr "Usa la textura d'ona amb anelles"
+msgstr "Usa la textura d'ona amb anells"
 
 
 msgid "White Noise Texture"
@@ -65950,6 +65955,10 @@ msgid "The factor to scale keys with"
 msgstr "El factor amb què escalar les fites"
 
 
+msgid "Are handles tested individually against the selection criteria, independently from their keys. When unchecked, handles are (de)selected in unison with their keys"
+msgstr "SI és que les nanses s'examinen individualment a partir dels criteris de selecció, independentment de les seves claus. Si està desmarcat, les nanses es (des)seleccionen a l'uníson que les claus"
+
+
 msgid "Select Curves"
 msgstr "Seleccionar corbes"
 
@@ -68955,6 +68964,14 @@ msgid "Try to guess the original bind pose for skinned meshes from the inverse b
 msgstr "[Guess Original Bind Pose]: Prova d'endevinar la posa de fixació original per a les malles empellades des les matrius de fixació inverses. Quan està desactivat, usa la posa per defecte/repòs com a posa de fixació"
 
 
+msgid "Merge Material Slot when possible"
+msgstr "Fusionar epígraf de material quan sigui possible"
+
+
+msgid "Merge material slots when possible"
+msgstr "Fusiona els epígrafs de materials si es pot"
+
+
 msgid "Pack Images"
 msgstr "Empaquetar imatges"
 
@@ -69682,7 +69699,7 @@ msgstr "Determinar la força de cara només en les cares noves i modificades"
 
 
 msgid "Prefer sliding along edges to even widths"
-msgstr "Preferir de escórrer al llarg d'arestes que en amplades regulars"
+msgstr "Prefereix fer el corriment per les arestes que no les amplades regulars"
 
 
 msgid "Material for bevel faces (-1 means use adjacent faces)"
@@ -70862,7 +70879,7 @@ msgstr "Inserir bucle"
 
 
 msgid "Slide an edge loop along a mesh"
-msgstr "Escorre un bucle d'arestes al llarg d'una malla"
+msgstr "Escorrer un bucle d'arestes seguint una malla"
 
 
 msgctxt "Operator"
@@ -71064,11 +71081,11 @@ msgstr "[Cap Endpoint]: Amplia el bucle al voltant dels punts finals"
 
 msgctxt "Operator"
 msgid "Offset Edge Slide"
-msgstr "Escórrer arestes desplaçades"
+msgstr "Bucles d'arestes extra"
 
 
 msgid "Offset edge loop slide"
-msgstr "[Offset Edge Slide]: Desplaça el bucle d'arestes escorregut"
+msgstr "[Offset Edge Slide]: Fa bucles d'arestes adjacents"
 
 
 msgid "Offset Edge Loop"
@@ -74738,6 +74755,14 @@ msgstr "Tipus d'objecte en què convertir"
 
 msgid "Curve from Mesh or Text objects"
 msgstr "Corba des d'objectes malla o text"
+
+
+msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
+msgstr "Malla des d'objectes Corba, Superfície, Metabola, Text o Núvol de punts"
+
+
+msgid "Point Cloud from Mesh objects"
+msgstr "Núvol de punts des d'objectes Malla"
 
 
 msgid "Curves from evaluated curve data"
@@ -79700,11 +79725,6 @@ msgstr "Desfa tota edició realitzada en el sistema de partícules"
 
 msgid "Hide selected particles"
 msgstr "Ocultar partícules seleccionades"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Emmirallar"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"
@@ -97683,6 +97703,10 @@ msgid "Automatic (Automatic)"
 msgstr "Automàtica (automàtica)"
 
 
+msgid "Automatically choose the system-defined language if available, or fall-back to English (US)"
+msgstr "Tria automàticament la llengua definida del sistema si està disponible, o recorre a l'anglès (dels EUA)"
+
+
 msgid "HDRI Preview Size"
 msgstr "Mida previsionat HDRI"
 
@@ -113612,7 +113636,7 @@ msgstr "Mostrar pesos de bisells"
 
 
 msgid "Display weights created for the Bevel modifier"
-msgstr "Mostra els pesos creats per al modificador bisellat"
+msgstr "Mostra els pesos creats per al modificador Bisellar"
 
 
 msgid "Display Creases"
@@ -121371,10 +121395,6 @@ msgid "Active camera is not in this scene"
 msgstr "La càmera activa no està en aquesta escena"
 
 
-msgid "No {0} modifiers found"
-msgstr "No s'ha trobat modificadors {0}"
-
-
 msgid "Skipping '{:s}', not a mesh"
 msgstr "S'omet '{:s}', no és una malla"
 
@@ -127012,18 +127032,6 @@ msgid "A restart of Blender is required"
 msgstr "Cal reiniciar el Blender"
 
 
-msgid "Vulkan backend limitations:"
-msgstr "Limitacions del basament Vulkan:"
-
-
-msgid "• WoA support"
-msgstr "• Compatibilitat amb WoA"
-
-
-msgid "• Low VR performance"
-msgstr "• Rendiment d'RV baix"
-
-
 msgid "Open blend files with this Blender version"
 msgstr "Obrir documents blend amb aquesta versió de Blender"
 
@@ -131145,11 +131153,11 @@ msgstr "No s'han trobat anelles d'aresta"
 
 
 msgid "Edge-ring pair isn't connected"
-msgstr "El parell d'anelles d'aresta no estan connectades"
+msgstr "El parell d'anelles d'aresta no està connectat"
 
 
 msgid "Edge-rings are not connected"
-msgstr "Anelles-aresta no connectades"
+msgstr "Les anelles-aresta no estan connectades"
 
 
 msgid "color_index is invalid"
@@ -139688,7 +139696,7 @@ msgstr "Mostrar els valors locals"
 
 
 msgid "Vertex weight used by Bevel modifier"
-msgstr "Pes de vèrtex utilitzat pel modificador bisellat"
+msgstr "Pes de vèrtex utilitzat pel modificador Bisellar"
 
 
 msgid "Weight used by the Subdivision Surface modifier"
@@ -139704,7 +139712,7 @@ msgstr "Radi Y utilitzat pel modificador Empellar"
 
 
 msgid "Edge weight used by Bevel modifier"
-msgstr "Pes d'aresta utilitzat pel Modificador bisellat"
+msgstr "Pes d'aresta utilitzat pel modificador Bisellar"
 
 
 msgid "Weight used for Soft Body Goal"
@@ -146366,7 +146374,7 @@ msgstr "El nombre d'arestes que s'executen verticalment al llarg del costat del 
 
 
 msgid "Number of concentric rings used to fill the round face"
-msgstr "Nombre d'anelles concèntriques utilitzades per omplir la cara rodona"
+msgstr "Nombre d'anells concèntrics utilitzats per omplir la cara rodona"
 
 
 msgid "Radius of the top circle of the cone"
@@ -146422,7 +146430,7 @@ msgstr "El nombre de segments rectangulars a cada costat"
 
 
 msgid "The number of concentric rings used to fill the round faces"
-msgstr "El nombre d'anelles concèntriques utilitzades per omplir les cares rodones"
+msgstr "El nombre d'anells concèntrics utilitzats per omplir les cares rodones"
 
 
 msgid "The radius of the cylinder"
@@ -146486,7 +146494,7 @@ msgstr "Els segments han de ser com a mínim 3"
 
 
 msgid "Rings must be at least 3"
-msgstr "Les anelles han de ser com a mínim 3"
+msgstr "Els anells han de ser com a mínim 3"
 
 
 msgid "Horizontal resolution of the sphere"
@@ -146494,7 +146502,7 @@ msgstr "Resolució horitzontal de l'esfera"
 
 
 msgid "The number of horizontal rings"
-msgstr "El nombre d'anelles horitzontals"
+msgstr "El nombre d'anells horitzontals"
 
 
 msgid "The subdivision level is too large"
