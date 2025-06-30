@@ -1612,7 +1612,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     use_hiprt: BoolProperty(
         name="HIP RT",
         description="HIP RT enables AMD hardware ray tracing on RDNA2 and above",
-        default=True,
+        default=False,
     )
 
     use_oneapirt: BoolProperty(
