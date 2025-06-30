@@ -177,6 +177,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
+  if (solver == geometry::boolean::Solver::Manifold) {
+    /* Manifold remaps materials using realize_instances. */
+    material_remaps.resize(0);
+  }
+
   AttributeOutputs attribute_outputs;
   if (ELEM(solver, geometry::boolean::Solver::MeshArr, geometry::boolean::Solver::Manifold)) {
     attribute_outputs.intersecting_edges_id = params.get_output_anonymous_attribute_id_if_needed(

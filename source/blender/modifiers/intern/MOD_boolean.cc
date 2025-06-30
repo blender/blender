@@ -658,7 +658,7 @@ static void solver_options_panel_draw(const bContext * /*C*/, Panel *panel)
     col->prop(ptr, "use_hole_tolerant", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (use_manifold) {
-    /* No options as of yet. */
+    col->prop(ptr, "material_mode", UI_ITEM_NONE, IFACE_("Materials"), ICON_NONE);
   }
   else {
     col->prop(ptr, "double_threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
