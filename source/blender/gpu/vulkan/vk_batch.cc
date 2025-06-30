@@ -39,8 +39,8 @@ void VKBatch::draw(int vertex_first, int vertex_count, int instance_first, int i
     render_graph::VKDrawIndexedNode::CreateInfo draw_indexed(resource_access_info);
     draw_indexed.node_data.index_count = vertex_count;
     draw_indexed.node_data.instance_count = instance_count;
-    draw_indexed.node_data.first_index = vertex_first;
-    draw_indexed.node_data.vertex_offset = index_buffer->index_start_get();
+    draw_indexed.node_data.first_index = index_buffer->index_start_get() + vertex_first;
+    draw_indexed.node_data.vertex_offset = index_buffer->index_base_get();
     draw_indexed.node_data.first_instance = instance_first;
 
     context.active_framebuffer_get()->vk_viewports_append(
