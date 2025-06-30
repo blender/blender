@@ -231,7 +231,7 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
     return dir;
   }
 
-  if (node->flag & NODE_HIDDEN) {
+  if (node->flag & NODE_COLLAPSED) {
     /* right part of node */
     rctf bounds = node->runtime->draw_bounds;
     bounds.xmin = node->runtime->draw_bounds.xmax - 1.0f * U.widget_unit;
@@ -1621,7 +1621,7 @@ float2 socket_link_connection_location(const bNode &node,
                                        const bNodeLink &link)
 {
   const float2 socket_location = socket.runtime->location;
-  if (socket.is_multi_input() && socket.is_input() && !(node.flag & NODE_HIDDEN)) {
+  if (socket.is_multi_input() && socket.is_input() && !(node.flag & NODE_COLLAPSED)) {
     /* For internal link case, handle number of links as at least 1. */
     const int clamped_total_inputs = math::max<int>(1, socket.runtime->total_inputs);
     return node_link_calculate_multi_input_position(

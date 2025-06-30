@@ -350,7 +350,7 @@ static bool versioning_eevee_material_blend_mode_settings(bNodeTree *ntree, floa
 
       bNode *math_node = blender::bke::node_add_node(nullptr, *ntree, "ShaderNodeMath");
       math_node->custom1 = NODE_MATH_GREATER_THAN;
-      math_node->flag |= NODE_HIDDEN;
+      math_node->flag |= NODE_COLLAPSED;
       math_node->parent = to_node->parent;
       math_node->locx_legacy = to_node->locx_legacy - math_node->width - 30;
       math_node->locy_legacy = min_ff(to_node->locy_legacy, from_node->locy_legacy);
@@ -446,7 +446,7 @@ static void versioning_eevee_material_shadow_none(Material *material)
   /* Add mix node for mixing between original material, and transparent BSDF for shadows */
   bNode *mix_node = blender::bke::node_add_node(nullptr, *ntree, "ShaderNodeMixShader");
   STRNCPY(mix_node->label, "Disable Shadow");
-  mix_node->flag |= NODE_HIDDEN;
+  mix_node->flag |= NODE_COLLAPSED;
   mix_node->parent = output_node->parent;
   mix_node->locx_legacy = output_node->locx_legacy;
   mix_node->locy_legacy = output_node->locy_legacy - output_node->height - 120;
@@ -468,7 +468,7 @@ static void versioning_eevee_material_shadow_none(Material *material)
 
   /* Add light path node to control shadow visibility */
   bNode *lp_node = blender::bke::node_add_node(nullptr, *ntree, "ShaderNodeLightPath");
-  lp_node->flag |= NODE_HIDDEN;
+  lp_node->flag |= NODE_COLLAPSED;
   lp_node->parent = output_node->parent;
   lp_node->locx_legacy = output_node->locx_legacy;
   lp_node->locy_legacy = mix_node->locy_legacy + 35;
@@ -483,7 +483,7 @@ static void versioning_eevee_material_shadow_none(Material *material)
 
   /* Add transparent BSDF to make shadows transparent. */
   bNode *bsdf_node = blender::bke::node_add_node(nullptr, *ntree, "ShaderNodeBsdfTransparent");
-  bsdf_node->flag |= NODE_HIDDEN;
+  bsdf_node->flag |= NODE_COLLAPSED;
   bsdf_node->parent = output_node->parent;
   bsdf_node->locx_legacy = output_node->locx_legacy;
   bsdf_node->locy_legacy = mix_node->locy_legacy - 35;

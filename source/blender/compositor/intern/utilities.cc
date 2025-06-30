@@ -184,7 +184,7 @@ bool is_node_preview_needed(const DNode &node)
     return false;
   }
 
-  if (node->flag & NODE_HIDDEN) {
+  if (node->flag & NODE_COLLAPSED) {
     return false;
   }
 

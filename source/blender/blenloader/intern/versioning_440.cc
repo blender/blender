@@ -359,7 +359,7 @@ static void do_version_color_to_float_conversion(bNodeTree *node_tree)
     bNode *dot_product_node = blender::bke::node_add_static_node(
         nullptr, *node_tree, SH_NODE_VECTOR_MATH);
     dot_product_node->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
-    dot_product_node->flag |= NODE_HIDDEN;
+    dot_product_node->flag |= NODE_COLLAPSED;
     dot_product_node->location[0] = link->fromnode->location[0] + link->fromnode->width + 10.0f;
     dot_product_node->location[1] = link->fromnode->location[1];
 

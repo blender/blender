@@ -156,7 +156,7 @@ static void versioning_update_noise_texture_node(bNodeTree *ntree)
       clamp_node->custom1 = NODE_CLAMP_MINMAX;
       clamp_node->locx_legacy = node->locx_legacy;
       clamp_node->locy_legacy = node->locy_legacy - 300.0f;
-      clamp_node->flag |= NODE_HIDDEN;
+      clamp_node->flag |= NODE_COLLAPSED;
       bNodeSocket *clamp_socket_value = blender::bke::node_find_socket(
           *clamp_node, SOCK_IN, "Value");
       bNodeSocket *clamp_socket_min = blender::bke::node_find_socket(*clamp_node, SOCK_IN, "Min");
@@ -252,7 +252,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       min_node->custom1 = NODE_MATH_MINIMUM;
       min_node->locx_legacy = node->locx_legacy;
       min_node->locy_legacy = node->locy_legacy - 320.0f;
-      min_node->flag |= NODE_HIDDEN;
+      min_node->flag |= NODE_COLLAPSED;
       bNodeSocket *min_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 0));
       bNodeSocket *min_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 1));
       bNodeSocket *min_socket_out = blender::bke::node_find_socket(*min_node, SOCK_OUT, "Value");
@@ -262,7 +262,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       sub1_node->custom1 = NODE_MATH_SUBTRACT;
       sub1_node->locx_legacy = node->locx_legacy;
       sub1_node->locy_legacy = node->locy_legacy - 360.0f;
-      sub1_node->flag |= NODE_HIDDEN;
+      sub1_node->flag |= NODE_COLLAPSED;
       bNodeSocket *sub1_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&sub1_node->inputs, 0));
       bNodeSocket *sub1_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&sub1_node->inputs, 1));
       bNodeSocket *sub1_socket_out = blender::bke::node_find_socket(*sub1_node, SOCK_OUT, "Value");
@@ -286,7 +286,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         greater_node->custom1 = NODE_MATH_GREATER_THAN;
         greater_node->locx_legacy = node->locx_legacy;
         greater_node->locy_legacy = node->locy_legacy - 400.0f;
-        greater_node->flag |= NODE_HIDDEN;
+        greater_node->flag |= NODE_COLLAPSED;
         bNodeSocket *greater_socket_A = static_cast<bNodeSocket *>(
             BLI_findlink(&greater_node->inputs, 0));
         bNodeSocket *greater_socket_B = static_cast<bNodeSocket *>(
@@ -309,7 +309,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         clamp_node->custom1 = NODE_CLAMP_MINMAX;
         clamp_node->locx_legacy = node->locx_legacy;
         clamp_node->locy_legacy = node->locy_legacy + 40.0f;
-        clamp_node->flag |= NODE_HIDDEN;
+        clamp_node->flag |= NODE_COLLAPSED;
         bNodeSocket *clamp_socket_value = blender::bke::node_find_socket(
             *clamp_node, SOCK_IN, "Value");
         bNodeSocket *clamp_socket_min = blender::bke::node_find_socket(
@@ -324,7 +324,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         mul_node->custom1 = NODE_MATH_MULTIPLY;
         mul_node->locx_legacy = node->locx_legacy;
         mul_node->locy_legacy = node->locy_legacy + 80.0f;
-        mul_node->flag |= NODE_HIDDEN;
+        mul_node->flag |= NODE_COLLAPSED;
         bNodeSocket *mul_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 0));
         bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 1));
         bNodeSocket *mul_socket_out = blender::bke::node_find_socket(*mul_node, SOCK_OUT, "Value");
@@ -341,7 +341,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
           sub2_node->custom2 = SHD_MATH_CLAMP;
           sub2_node->locx_legacy = node->locx_legacy;
           sub2_node->locy_legacy = node->locy_legacy + 120.0f;
-          sub2_node->flag |= NODE_HIDDEN;
+          sub2_node->flag |= NODE_COLLAPSED;
           bNodeSocket *sub2_socket_A = static_cast<bNodeSocket *>(
               BLI_findlink(&sub2_node->inputs, 0));
           bNodeSocket *sub2_socket_B = static_cast<bNodeSocket *>(
@@ -354,7 +354,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
           add_node->custom1 = NODE_MATH_ADD;
           add_node->locx_legacy = node->locx_legacy;
           add_node->locy_legacy = node->locy_legacy + 160.0f;
-          add_node->flag |= NODE_HIDDEN;
+          add_node->flag |= NODE_COLLAPSED;
           bNodeSocket *add_socket_A = static_cast<bNodeSocket *>(
               BLI_findlink(&add_node->inputs, 0));
           bNodeSocket *add_socket_B = static_cast<bNodeSocket *>(
@@ -406,7 +406,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
           mul_node->custom1 = NODE_MATH_MULTIPLY;
           mul_node->locx_legacy = node->locx_legacy;
           mul_node->locy_legacy = node->locy_legacy + 40.0f;
-          mul_node->flag |= NODE_HIDDEN;
+          mul_node->flag |= NODE_COLLAPSED;
           bNodeSocket *mul_socket_A = static_cast<bNodeSocket *>(
               BLI_findlink(&mul_node->inputs, 0));
           bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(
@@ -424,7 +424,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
             add_node->custom1 = NODE_MATH_ADD;
             add_node->locx_legacy = node->locx_legacy;
             add_node->locy_legacy = node->locy_legacy + 80.0f;
-            add_node->flag |= NODE_HIDDEN;
+            add_node->flag |= NODE_COLLAPSED;
             bNodeSocket *add_socket_A = static_cast<bNodeSocket *>(
                 BLI_findlink(&add_node->inputs, 0));
             bNodeSocket *add_socket_B = static_cast<bNodeSocket *>(
@@ -482,7 +482,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       max1_node->custom1 = NODE_MATH_MAXIMUM;
       max1_node->locx_legacy = node->locx_legacy;
       max1_node->locy_legacy = node->locy_legacy - 400.0f + locy_offset;
-      max1_node->flag |= NODE_HIDDEN;
+      max1_node->flag |= NODE_COLLAPSED;
       bNodeSocket *max1_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&max1_node->inputs, 0));
       bNodeSocket *max1_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&max1_node->inputs, 1));
       bNodeSocket *max1_socket_out = blender::bke::node_find_socket(*max1_node, SOCK_OUT, "Value");
@@ -492,7 +492,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       mul_node->custom1 = NODE_MATH_MULTIPLY;
       mul_node->locx_legacy = node->locx_legacy;
       mul_node->locy_legacy = node->locy_legacy - 360.0f + locy_offset;
-      mul_node->flag |= NODE_HIDDEN;
+      mul_node->flag |= NODE_COLLAPSED;
       bNodeSocket *mul_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 0));
       bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 1));
       bNodeSocket *mul_socket_out = blender::bke::node_find_socket(*mul_node, SOCK_OUT, "Value");
@@ -502,7 +502,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       pow_node->custom1 = NODE_MATH_POWER;
       pow_node->locx_legacy = node->locx_legacy;
       pow_node->locy_legacy = node->locy_legacy - 320.0f + locy_offset;
-      pow_node->flag |= NODE_HIDDEN;
+      pow_node->flag |= NODE_COLLAPSED;
       bNodeSocket *pow_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 0));
       bNodeSocket *pow_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 1));
       bNodeSocket *pow_socket_out = blender::bke::node_find_socket(*pow_node, SOCK_OUT, "Value");
@@ -526,7 +526,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         max2_node->custom1 = NODE_MATH_MAXIMUM;
         max2_node->locx_legacy = node->locx_legacy;
         max2_node->locy_legacy = node->locy_legacy - 440.0f + locy_offset;
-        max2_node->flag |= NODE_HIDDEN;
+        max2_node->flag |= NODE_COLLAPSED;
         bNodeSocket *max2_socket_A = static_cast<bNodeSocket *>(
             BLI_findlink(&max2_node->inputs, 0));
         bNodeSocket *max2_socket_B = static_cast<bNodeSocket *>(
@@ -554,7 +554,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       max2_node->custom1 = NODE_MATH_MAXIMUM;
       max2_node->locx_legacy = node->locx_legacy;
       max2_node->locy_legacy = node->locy_legacy - 360.0f + locy_offset;
-      max2_node->flag |= NODE_HIDDEN;
+      max2_node->flag |= NODE_COLLAPSED;
       bNodeSocket *max2_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&max2_node->inputs, 0));
       bNodeSocket *max2_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&max2_node->inputs, 1));
       bNodeSocket *max2_socket_out = blender::bke::node_find_socket(*max2_node, SOCK_OUT, "Value");
@@ -564,7 +564,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       pow_node->custom1 = NODE_MATH_POWER;
       pow_node->locx_legacy = node->locx_legacy;
       pow_node->locy_legacy = node->locy_legacy - 320.0f + locy_offset;
-      pow_node->flag |= NODE_HIDDEN;
+      pow_node->flag |= NODE_COLLAPSED;
       bNodeSocket *pow_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 0));
       bNodeSocket *pow_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 1));
       bNodeSocket *pow_socket_out = blender::bke::node_find_socket(*pow_node, SOCK_OUT, "Value");

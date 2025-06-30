@@ -1020,7 +1020,7 @@ inline bool bNodeSocket::is_visible() const
 inline bool bNodeSocket::is_icon_visible() const
 {
   return this->is_visible() &&
-         (this->owner_node().flag & NODE_HIDDEN || !this->is_panel_collapsed());
+         (this->owner_node().flag & NODE_COLLAPSED || !this->is_panel_collapsed());
 }
 
 inline bool bNodeSocket::may_be_field() const

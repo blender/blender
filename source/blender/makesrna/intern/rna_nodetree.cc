@@ -9675,8 +9675,8 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, nullptr);
 
   prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODE_HIDDEN);
-  RNA_def_property_ui_text(prop, "Hide", "");
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODE_COLLAPSED);
+  RNA_def_property_ui_text(prop, "Collapse", "");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, nullptr);
 
   prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
