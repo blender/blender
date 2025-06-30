@@ -266,7 +266,7 @@ class SubdivisionSet(Operator):
                     mod_name = "Multiresolution"
                 else:
                     mod_name = "Subdivision Surface"
-                self.report({'WARNING'}, "No {0} modifiers found".format(mod_name))
+                self.report({'WARNING'}, rpt_("No {:s} modifiers found").format(mod_name))
                 return {'CANCELLED'}
 
         if not relative and level < 0:

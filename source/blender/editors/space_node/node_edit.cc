@@ -2188,7 +2188,13 @@ static wmOperatorStatus node_output_file_add_socket_exec(bContext *C, wmOperator
   }
 
   RNA_string_get(op->ptr, "file_path", file_path);
-  ntreeCompositOutputFileAddSocket(ntree, node, file_path, &scene->r.im_format);
+
+  if (strlen(file_path) != 0) {
+    ntreeCompositOutputFileAddSocket(ntree, node, file_path, &scene->r.im_format);
+  }
+  else {
+    ntreeCompositOutputFileAddSocket(ntree, node, DATA_("Image"), &scene->r.im_format);
+  }
 
   BKE_main_ensure_invariants(*CTX_data_main(C), snode->edittree->id);
 
@@ -2210,7 +2216,7 @@ void NODE_OT_output_file_add_socket(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_string(
-      ot->srna, "file_path", "Image", MAX_NAME, "File Path", "Subpath of the output file");
+      ot->srna, "file_path", nullptr, MAX_NAME, "File Path", "Subpath of the output file");
 }
 
 /** \} */
