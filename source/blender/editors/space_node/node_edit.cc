@@ -656,7 +656,7 @@ void ED_node_composit_default(const bContext *C, Scene *sce)
   }
 
   sce->compositing_node_group = blender::bke::node_tree_add_tree(
-      bmain, DATA_("Compositing Node Tree"), ntreeType_Composite->idname);
+      bmain, DATA_("Compositor Nodes"), ntreeType_Composite->idname);
 
   ED_node_composit_default_init(C, sce->compositing_node_group);
 
