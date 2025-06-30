@@ -472,10 +472,20 @@ static void toolsystem_brush_sync_for_texture_paint(Main *bmain,
     }
   }
 }
+static void toolsystem_brush_clear_paint_reference(Scene *scene, bToolRef *tref)
+{
+  const PaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
+  Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
+  if (!paint) {
+    return;
+  }
+
+  BKE_paint_previous_asset_reference_clear(paint);
+}
 
 /** \} */
 
-static void toolsystem_ref_link(Main *bmain, WorkSpace *workspace, bToolRef *tref)
+static void toolsystem_ref_link(Main *bmain, Scene *scene, WorkSpace *workspace, bToolRef *tref)
 {
   bToolRef_Runtime *tref_rt = tref->runtime;
   if (tref_rt->gizmo_group[0]) {
@@ -500,6 +510,9 @@ static void toolsystem_ref_link(Main *bmain, WorkSpace *workspace, bToolRef *tre
     toolsystem_brush_activate_from_toolref(bmain, workspace, tref);
     toolsystem_brush_sync_for_texture_paint(bmain, workspace, tref);
   }
+  else {
+    toolsystem_brush_clear_paint_reference(scene, tref);
+  }
 }
 
 static void toolsystem_refresh_ref(const bContext *C, WorkSpace *workspace, bToolRef *tref)
@@ -508,7 +521,7 @@ static void toolsystem_refresh_ref(const bContext *C, WorkSpace *workspace, bToo
     return;
   }
   /* Currently same operation. */
-  toolsystem_ref_link(CTX_data_main(C), workspace, tref);
+  toolsystem_ref_link(CTX_data_main(C), CTX_data_scene(C), workspace, tref);
 }
 void WM_toolsystem_refresh(const bContext *C, WorkSpace *workspace, const bToolKey *tkey)
 {
@@ -624,7 +637,7 @@ void WM_toolsystem_ref_set_from_runtime(bContext *C,
     tref->runtime->keymap_fallback[0] = '\0';
   }
 
-  toolsystem_ref_link(bmain, workspace, tref);
+  toolsystem_ref_link(bmain, CTX_data_scene(C), workspace, tref);
 
   toolsystem_refresh_screen_from_active_tool(bmain, workspace, tref);
 
