@@ -7478,21 +7478,19 @@ static void def_cmp_translate(BlenderRNA * /*brna*/, StructRNA *srna)
   prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "interpolation");
   RNA_def_property_enum_items(prop, cmp_interpolation_items);
-  RNA_def_property_ui_text(prop, "", "");
+  RNA_def_property_ui_text(prop, "Interpolation", "Interpolation method");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "extension_x", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "extension_x");
   RNA_def_property_enum_items(prop, cmp_extension_mode_items);
-  RNA_def_property_ui_text(
-      prop, "Extension mode (x-axis)", "The extension mode applied to the X axis.");
+  RNA_def_property_ui_text(prop, "X Extension Mode", "The extension mode applied to the X axis");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "extension_y", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "extension_y");
   RNA_def_property_enum_items(prop, cmp_extension_mode_items);
-  RNA_def_property_ui_text(
-      prop, "Extension mode (y-axis)", "The extension mode applied to the Y axis.");
+  RNA_def_property_ui_text(prop, "Y Extension Mode", "The extension mode applied to the Y axis");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
