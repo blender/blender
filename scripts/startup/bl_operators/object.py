@@ -28,7 +28,7 @@ class SelectPattern(Operator):
         translation_context=i18n_contexts.id_text,
         description="Name filter using '*', '?' and "
         "'[abc]' unix style wildcards",
-        maxlen=64,
+        maxlen=256,
         default="*",
     )
     case_sensitive: BoolProperty(
