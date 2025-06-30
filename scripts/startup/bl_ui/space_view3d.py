@@ -3596,6 +3596,9 @@ class VIEW3D_MT_paint_weight(Menu):
 
         layout.separator()
 
+        # Using default context for 'flipping along axis', to differentiate from 'symmetrizing' (i.e.
+        # 'mirrored copy').
+        # See https://projects.blender.org/blender/blender/issues/43295#issuecomment-1400465
         layout.operator("object.vertex_group_mirror", text="Mirror", text_ctxt=i18n_contexts.default)
         layout.operator("object.vertex_group_invert", text="Invert")
         layout.operator("object.vertex_group_clean", text="Clean")

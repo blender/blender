@@ -3725,6 +3725,9 @@ void PARTICLE_OT_mirror(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Mirror";
+  /* Using default context for 'flipping along axis', to differentiate from 'symmetrizing' (i.e.
+   * 'mirrored copy').
+   * See https://projects.blender.org/blender/blender/issues/43295#issuecomment-1400465 */
   ot->translation_context = BLT_I18NCONTEXT_DEFAULT;
   ot->idname = "PARTICLE_OT_mirror";
   ot->description = "Duplicate and mirror the selected particles along the local X axis";
