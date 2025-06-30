@@ -15,7 +15,7 @@ GPU_SHADER_CREATE_END()
 GPU_SHADER_CREATE_INFO(compositor_morphological_step_dilate)
 ADDITIONAL_INFO(compositor_morphological_step_shared)
 DEFINE_VALUE("OPERATOR(a, b)", "max(a, b)")
-DEFINE_VALUE("LIMIT", "FLT_MIN")
+DEFINE_VALUE("LIMIT", "-FLT_MAX")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
