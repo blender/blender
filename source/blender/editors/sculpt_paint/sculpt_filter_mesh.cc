@@ -2438,7 +2438,9 @@ static wmOperatorStatus sculpt_mesh_filter_start(bContext *C, wmOperator *op)
 
   filter::Cache *filter_cache = ss.filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
-  auto_mask::filter_cache_ensure(*depsgraph, sd, ob);
+  if (auto_mask::is_enabled(sd, ob, nullptr)) {
+    auto_mask::filter_cache_ensure(*depsgraph, sd, ob);
+  }
 
   sculpt_filter_specific_init(*depsgraph, filter_type, op, ob);
 
