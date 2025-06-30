@@ -95,7 +95,7 @@ class RemoteAssetListingLocator:
         This can raise a ValueError if the archive URL is not suitable (either
         downright invalid, or not ending in `.blend`).
 
-        >>> rald = RemoteAssetListingDownloader('http://localhost:8000/', Path('/tmp/dl'), lambda x: None)
+        >>> loc = RemoteAssetListingLocator("https://localhost:8000/", Path("/tmp/dl"))
         >>> asset = api_models.AssetV1(
         ...     name="Suzanne",
         ...     id_type=api_models.AssetIDTypeV1.object,
@@ -103,11 +103,11 @@ class RemoteAssetListingLocator:
         ...     archive_size_in_bytes=327,
         ...     archive_hash='010203040506',
         ... )
-        >>> rald._asset_download_path(asset)
+        >>> loc.asset_download_path(asset)
         PosixPath('/tmp/dl/monkeys/suzanne.blend')
 
         >>> asset.archive_url = 'https://Slapi%C4%87.hr/apes/suzanne.blend'
-        >>> rald._asset_download_path(asset)
+        >>> loc.asset_download_path(asset)
         PosixPath('/tmp/dl/slapić.hr/apes/suzanne.blend')
         """
         assert asset.archive_url
