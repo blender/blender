@@ -1240,10 +1240,7 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
   for (const int f : ma.new_faces.index_range()) {
     const OutFace &face = ma.new_faces[f];
     const int fsize = face.verts.size();
-    if (fsize <= 3) {
-      continue;
-    }
-    for (const int i : ma.new_faces[f].verts.index_range()) {
+    for (const int i : IndexRange(fsize)) {
       const int vprev = face.verts[(i - 1 + fsize) % fsize];
       const int v = face.verts[i];
       const int vnext = face.verts[(i + 1) % fsize];
@@ -1252,7 +1249,8 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
         /* First time we've seen v. Set the tentative neighbors. */
         v_nbrs.first = vprev;
         v_nbrs.second = vnext;
-        dissolve[v] = true;
+        /* Don't want to dissolve any vert of a triangle, even if triangle is degenerate. */
+        dissolve[v] = fsize <= 3 ? false : true;
       }
       else {
         /* Some previous face had v. Disable dissolve unless if neighbors are the same, reversed.
@@ -1322,9 +1320,6 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
   threading::parallel_for(ma.new_faces.index_range(), 10000, [&](IndexRange range) {
     for (const int f : range) {
       OutFace &face = ma.new_faces[f];
-      if (face.verts.size() <= 3) {
-        continue;
-      }
       int i_to = 0;
       for (const int i_from : face.verts.index_range()) {
         const int mapped_v_from = ma.mapped_vert(face.verts[i_from]);
