@@ -22,6 +22,11 @@ from bpy.types import (
     Panel,
 )
 
+from bpy.app.translations import (
+    pgettext_n as n_,
+    contexts as i18n_contexts,
+)
+
 from bl_ui.space_userpref import (
     USERPREF_PT_addons,
     USERPREF_PT_extensions,
@@ -163,10 +168,10 @@ ADDON_TYPE_LEGACY_USER = 2
 ADDON_TYPE_LEGACY_OTHER = 3
 
 addon_type_name = (
-    "Extension",  # `ADDON_TYPE_EXTENSION`.
-    "Core",  # `ADDON_TYPE_LEGACY_CORE`.
-    "Legacy (User)",  # `ADDON_TYPE_LEGACY_USER`.
-    "Legacy (Other)",  # `ADDON_TYPE_LEGACY_OTHER`.
+    n_("Extension", i18n_contexts.editor_preferences),  # `ADDON_TYPE_EXTENSION`.
+    n_("Core", i18n_contexts.editor_preferences),  # `ADDON_TYPE_LEGACY_CORE`.
+    n_("Legacy (User)", i18n_contexts.editor_preferences),  # `ADDON_TYPE_LEGACY_USER`.
+    n_("Legacy (Other)", i18n_contexts.editor_preferences),  # `ADDON_TYPE_LEGACY_OTHER`.
 )
 
 addon_type_icon = (
@@ -276,7 +281,7 @@ def addon_draw_item_expanded(
 
     if USE_SHOW_ADDON_TYPE_AS_TEXT:
         col_a.label(text="Type")
-        col_b.label(text=addon_type_name[addon_type])
+        col_b.label(text=addon_type_name[addon_type], text_ctxt=i18n_contexts.editor_preferences)
     if item_maintainer:
         col_a.label(text="Maintainer")
         col_b.label(text=item_maintainer, translate=False)

@@ -488,7 +488,7 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
             sub.prop(tex, "repeat_x", text="Repeat X")
             sub.prop(tex, "repeat_y", text="Y")
 
-            col = flow.column(heading="Mirror")
+            col = flow.column(heading="Mirror", heading_ctxt=i18n_contexts.id_image)
             sub = col.column()
             sub.active = (tex.repeat_x > 1)
             sub.prop(tex, "use_mirror_x", text="X")
