@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-04-14 08:44+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26907,6 +26907,11 @@ msgstr "UV"
 
 msgid "Align"
 msgstr "Вирівнювання"
+
+
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Дзеркалення"
 
 
 msgid "UV Select Mode"
@@ -54398,11 +54403,6 @@ msgstr "Касувати все редагування, виконане над 
 
 msgid "Hide selected particles"
 msgstr "Приховати вибрані частинки"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Дзеркалення"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"

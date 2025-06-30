@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-04-14 08:40+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8759,6 +8759,11 @@ msgid "Align"
 msgstr "Поравнај"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Огледало"
+
+
 msgid "UV Select Mode"
 msgstr "UV режим избора"
 
@@ -17223,11 +17228,6 @@ msgstr "Развежи косу"
 
 msgid "Hide selected particles"
 msgstr "Сакрива изабране странице"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Огледало"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"

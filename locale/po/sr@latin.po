@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-04-14 08:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8759,6 +8759,11 @@ msgid "Align"
 msgstr "Poravnaj"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
 msgid "UV Select Mode"
 msgstr "UV režim izbora"
 
@@ -17223,11 +17228,6 @@ msgstr "Razveži kosu"
 
 msgid "Hide selected particles"
 msgstr "Sakriva izabrane stranice"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Ogledalo"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"

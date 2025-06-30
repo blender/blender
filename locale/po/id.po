@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-05-01 10:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15468,6 +15468,11 @@ msgid "UV"
 msgstr "UV"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Cermin"
+
+
 msgid "Shape Key Specials"
 msgstr "Spesial Kunci Bentuk"
 
@@ -23011,11 +23016,6 @@ msgstr "Penyunting Grafik"
 
 msgid "Hide selected particles"
 msgstr "Warna Standar"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Cermin"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-06-19 13:59+0000\n"
 "Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -22892,6 +22892,11 @@ msgid "Align"
 msgstr "對齊"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "鏡像"
+
+
 msgid "UV Select Mode"
 msgstr "UV 選取模式"
 
@@ -43682,11 +43687,6 @@ msgstr "復原所有執行於粒子系統上的編輯"
 
 msgid "Hide selected particles"
 msgstr "隱藏所選粒子"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "鏡像"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
 "PO-Revision-Date: 2025-04-14 08:42+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1965,6 +1965,11 @@ msgid "UV"
 msgstr "UV"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
+
+
 msgid "Math"
 msgstr "คณิตศาสตร์"
 
@@ -2996,11 +3001,6 @@ msgstr "(ยกเลิก)เลือกทั้งหมด"
 
 msgid "Palette"
 msgstr "จานสี"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
 
 
 msgid "Axis Lock"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'a051f87fee73')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-23 08:33+0000\n"
-"PO-Revision-Date: 2025-06-18 22:59+0000\n"
+"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"PO-Revision-Date: 2025-06-24 02:59+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.11"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -35044,6 +35044,11 @@ msgid "Align"
 msgstr "Aligner"
 
 
+msgctxt "Operator"
+msgid "Mirror"
+msgstr "Miroir"
+
+
 msgid "UV Select Mode"
 msgstr "Mode de sélection d’UV"
 
@@ -65953,6 +65958,10 @@ msgid "The factor to scale keys with"
 msgstr "Facteur duquel redimensionner les clés"
 
 
+msgid "Are handles tested individually against the selection criteria, independently from their keys. When unchecked, handles are (de)selected in unison with their keys"
+msgstr "Est-ce que les poignées sont testées individuellement par rapport aux critères de sélection, indépendamment de leurs clés. Si décoché, les poignées sont (dé)sélectionnées en même temps que leur clé"
+
+
 msgid "Select Curves"
 msgstr "Sélectionner les courbes"
 
@@ -68956,6 +68965,14 @@ msgstr "Deviner la pose de liaison originale"
 
 msgid "Try to guess the original bind pose for skinned meshes from the inverse bind matrices. When off, use default/rest pose as bind pose"
 msgstr "Essayer de deviner la pose de liaison originale pour les maillages liés à une armature, à partir des matrices inverses de liaison. Si désactivé, utiliser la pose par défaut ou la pose de repos comme pose de liaison"
+
+
+msgid "Merge Material Slot when possible"
+msgstr "Fusionner emplacements de matériaux si possible"
+
+
+msgid "Merge material slots when possible"
+msgstr "Fusionner les emplacements de matériaux si possible"
 
 
 msgid "Pack Images"
@@ -74743,6 +74760,14 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Courbe depuis les objets maillages ou textes"
 
 
+msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
+msgstr "Maillage depuis les objets courbes, surfaces, métaballes, textes, ou nuages de points"
+
+
+msgid "Point Cloud from Mesh objects"
+msgstr "Nuage de points depuis les objets maillages"
+
+
 msgid "Curves from evaluated curve data"
 msgstr "Courbes depuis les données évaluées"
 
@@ -79703,11 +79728,6 @@ msgstr "Annuler toutes les éditions effectuées dans le système de particules"
 
 msgid "Hide selected particles"
 msgstr "Cacher les particules sélectionnées"
-
-
-msgctxt "Operator"
-msgid "Mirror"
-msgstr "Miroir"
 
 
 msgid "Duplicate and mirror the selected particles along the local X axis"
@@ -97684,6 +97704,10 @@ msgstr "Langue utilisée pour la traduction"
 
 msgid "Automatic (Automatic)"
 msgstr "Automatique (Automatic)"
+
+
+msgid "Automatically choose the system-defined language if available, or fall-back to English (US)"
+msgstr "Choisir automatiquement la langue définie par le système si disponible, sinon se replier sur l’anglais (US)"
 
 
 msgid "HDRI Preview Size"
@@ -121374,10 +121398,6 @@ msgid "Active camera is not in this scene"
 msgstr "La caméra active n’est pas dans cette scène"
 
 
-msgid "No {0} modifiers found"
-msgstr "Aucun modificateur {0} trouvé"
-
-
 msgid "Skipping '{:s}', not a mesh"
 msgstr "« {:s} » ignoré, pas un maillage"
 
@@ -127013,18 +127033,6 @@ msgstr "Cycles est désactivé dans cette build"
 
 msgid "A restart of Blender is required"
 msgstr "Un redémarrage de Blender est requis"
-
-
-msgid "Vulkan backend limitations:"
-msgstr "Limitations du dorsal Vulkan :"
-
-
-msgid "• WoA support"
-msgstr "• Prise en charge WoA"
-
-
-msgid "• Low VR performance"
-msgstr "• Faibles performances en VR"
 
 
 msgid "Open blend files with this Blender version"
@@ -150025,7 +150033,7 @@ msgstr "réseau"
 
 
 msgid "English (US)"
-msgstr "Anglais (US)"
+msgstr "Anglais (USA) - English (US)"
 
 
 msgid "Japanese - 日本語"
@@ -150245,7 +150253,7 @@ msgstr "Lituanien - Lietuviškai"
 
 
 msgid "English (UK)"
-msgstr "Anglais (UK)"
+msgstr "Anglais (UK) - English (UK)"
 
 
 msgid "Add & Subtract"
