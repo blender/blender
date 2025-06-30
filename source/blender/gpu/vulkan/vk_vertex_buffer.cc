@@ -65,6 +65,10 @@ void VKVertexBuffer::wrap_handle(uint64_t /*handle*/)
 
 void VKVertexBuffer::update_sub(uint start_offset, uint data_size_in_bytes, const void *data)
 {
+  if (!buffer_.is_allocated()) {
+    /* Allocating huge buffers can fail, in that case we skip copying data. */
+    return;
+  }
   if (buffer_.is_mapped()) {
     buffer_.update_sub_immediately(start_offset, data_size_in_bytes, data);
   }
@@ -85,9 +89,12 @@ void VKVertexBuffer::read(void *data) const
     return;
   }
 
-  VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::DeviceToHost);
-  staging_buffer.copy_from_device(context);
-  staging_buffer.host_buffer_get().read(context, data);
+  /* Allocating huge buffers can fail, in that case we skip copying data. */
+  if (buffer_.is_allocated()) {
+    VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::DeviceToHost);
+    staging_buffer.copy_from_device(context);
+    staging_buffer.host_buffer_get().read(context, data);
+  }
 }
 
 void VKVertexBuffer::acquire_data()
@@ -137,7 +144,12 @@ void VKVertexBuffer::upload_data()
 {
   if (!buffer_.is_allocated()) {
     allocate();
+    /* If allocation fails, don't upload.*/
+    if (!buffer_.is_allocated()) {
+      return;
+    }
   }
+
   if (!ELEM(usage_, GPU_USAGE_STATIC, GPU_USAGE_STREAM, GPU_USAGE_DYNAMIC)) {
     return;
   }
