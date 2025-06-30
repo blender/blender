@@ -251,7 +251,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
           return false;
         }
         if (grid_socket_type == socket_type) {
-          bke::SocketValueVariant::ConstructIn(r_value, std::move(*item->grid));
+          bke::SocketValueVariant::ConstructIn(r_value, *item->grid);
           return true;
         }
         return false;
