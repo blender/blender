@@ -588,20 +588,23 @@ void OneapiDevice::const_copy_to(const char *name, void *host, const size_t size
              << string_human_readable_number(size) << " bytes. ("
              << string_human_readable_size(size) << ")";
 
-#  ifdef WITH_EMBREE_GPU
-  if (embree_traversable != nullptr && strcmp(name, "data") == 0) {
+  if (strcmp(name, "data") == 0) {
     assert(size <= sizeof(KernelData));
+    KernelData *const data = static_cast<KernelData *>(host);
 
-    /* Update scene handle(since it is different for each device on multi devices).
-     * This must be a raw pointer copy since at some points during scene update this
-     * pointer may be invalid. */
-    KernelData *const data = (KernelData *)host;
-    data->device_bvh = embree_traversable;
-
-    /* We need this number later for proper local memory allocation. */
+    /* We need this value when allocating local memory for integrator_sort_bucket_pass
+     * and integrator_sort_write_pass kernels. */
     scene_max_shaders_ = data->max_shaders;
-  }
+
+#  ifdef WITH_EMBREE_GPU
+    if (embree_traversable != nullptr) {
+      /* Update scene handle (since it is different for each device on multi devices).
+       * This must be a raw pointer copy since at some points during scene update this
+       * pointer may be invalid. */
+      data->device_bvh = embree_traversable;
+    }
 #  endif
+  }
 
   ConstMemMap::iterator i = const_mem_map_.find(name);
   device_vector<uchar> *data;
