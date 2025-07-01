@@ -281,7 +281,9 @@ StripScreenQuad get_strip_screen_quad(const RenderData *context, const Strip *st
   const float2 offset{x * 0.5f, y * 0.5f};
 
   Array<float2> quad = image_transform_final_quad_get(scene, strip);
-  const float scale = rendersize_to_scale_factor(context->preview_render_size);
+  const float scale = context->preview_render_size == SEQ_RENDER_SIZE_SCENE ?
+                          float(scene->r.size) / 100.0f :
+                          rendersize_to_scale_factor(context->preview_render_size);
   return StripScreenQuad{float2(quad[0] * scale + offset),
                          float2(quad[1] * scale + offset),
                          float2(quad[2] * scale + offset),
