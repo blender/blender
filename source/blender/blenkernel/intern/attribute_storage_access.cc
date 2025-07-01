@@ -197,7 +197,7 @@ GMutableSpan get_mutable_attribute(AttributeStorage &storage,
       name,
       domain,
       type,
-      bke::Attribute::ArrayData::ForValue({cpp_type, &default_value}, domain_size));
+      bke::Attribute::ArrayData::ForValue({cpp_type, default_value}, domain_size));
   auto &array_data = std::get<bke::Attribute::ArrayData>(attr.data_for_write());
   BLI_assert(array_data.size == domain_size);
   return GMutableSpan(cpp_type, array_data.data, domain_size);
