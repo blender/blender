@@ -117,6 +117,12 @@ void Instance::antialiasing_draw(Manager &manager)
 
   GPU_framebuffer_bind(this->scene_fb);
   manager.submit(this->smaa_resolve_ps);
+
+  if (this->use_separate_pass) {
+    GPU_framebuffer_bind(this->gpencil_pass_fb);
+    GPU_framebuffer_clear(this->gpencil_pass_fb, GPU_COLOR_BIT, float4(0, 0, 0, 0), 0, 0);
+    manager.submit(this->smaa_resolve_ps);
+  }
 }
 
 static float erfinv_approx(const float x)

@@ -165,6 +165,7 @@ struct Instance final : public DrawEngine {
 
   Framebuffer render_fb = {"render_fb"};
   Framebuffer gpencil_fb = {"gpencil_fb"};
+  Framebuffer gpencil_pass_fb = {"gpencil_pass_fb"};
   Framebuffer snapshot_fb = {"snapshot_fb"};
   Framebuffer layer_fb = {"layer_fb"};
   Framebuffer object_fb = {"object_fb"};
@@ -275,6 +276,9 @@ struct Instance final : public DrawEngine {
   bool use_layer_fb;
   bool use_object_fb;
   bool use_mask_fb;
+  /* If viewport compositor is active, we need to render grease pencil onto another additional
+   * pass. */
+  bool use_separate_pass;
   /* Some blend mode needs to add negative values.
    * This is only supported if target texture is signed. */
   bool use_signed_fb;
