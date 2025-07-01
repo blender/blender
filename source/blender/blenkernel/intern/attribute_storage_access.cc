@@ -173,7 +173,7 @@ GMutableSpan get_mutable_attribute(AttributeStorage &storage,
                                    const CPPType &cpp_type,
                                    const StringRef name,
                                    const int64_t domain_size,
-                                   const void *default_value)
+                                   const void *custom_default_value)
 {
   if (domain_size <= 0) {
     return {};
@@ -193,6 +193,8 @@ GMutableSpan get_mutable_attribute(AttributeStorage &storage,
      * in case, remove it. */
     storage.wrap().remove(name);
   }
+  const void *default_value = custom_default_value ? custom_default_value :
+                                                     cpp_type.default_value();
   bke::Attribute &attr = storage.wrap().add(
       name,
       domain,
