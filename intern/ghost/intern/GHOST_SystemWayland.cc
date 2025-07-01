@@ -8683,32 +8683,45 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const uint8_t *bitma
 
   wl_buffer_add_listener(buffer, &cursor_buffer_listener, cursor);
 
-  static constexpr uint32_t black = 0xFF000000;
-  static constexpr uint32_t white = 0xFFFFFFFF;
-  static constexpr uint32_t transparent = 0x00000000;
+  if (mask) {
+    /* Monochrome & mask (expand to RGBA). */
+    static constexpr uint32_t black = 0xFF000000;
+    static constexpr uint32_t white = 0xFFFFFFFF;
+    static constexpr uint32_t transparent = 0x00000000;
 
-  uint8_t datab = 0, maskb = 0;
+    uint8_t datab = 0, maskb = 0;
+    uint32_t *px_dst = static_cast<uint32_t *>(cursor->custom_data);
 
-  for (int y = 0; y < sizey; ++y) {
-    uint32_t *pixel = &static_cast<uint32_t *>(cursor->custom_data)[y * sizex];
-    for (int x = 0; x < sizex; ++x) {
-      if ((x % 8) == 0) {
-        datab = *bitmap++;
-        maskb = *mask++;
+    for (int y = 0; y < sizey; y++) {
+      for (int x = 0; x < sizex; x++) {
+        if ((x % 8) == 0) {
+          datab = *bitmap++;
+          maskb = *mask++;
 
-        /* Reverse bit order. */
-        datab = uint8_t((datab * 0x0202020202ULL & 0x010884422010ULL) % 1023);
-        maskb = uint8_t((maskb * 0x0202020202ULL & 0x010884422010ULL) % 1023);
+          /* Reverse bit order. */
+          datab = uint8_t((datab * 0x0202020202ULL & 0x010884422010ULL) % 1023);
+          maskb = uint8_t((maskb * 0x0202020202ULL & 0x010884422010ULL) % 1023);
+        }
+
+        if (maskb & 0x80) {
+          *px_dst++ = (datab & 0x80) ? white : black;
+        }
+        else {
+          *px_dst++ = (datab & 0x80) ? white : transparent;
+        }
+        datab <<= 1;
+        maskb <<= 1;
       }
-
-      if (maskb & 0x80) {
-        *pixel++ = (datab & 0x80) ? white : black;
+    }
+  }
+  else {
+    /* RGBA color (direct copy). */
+    const uint32_t *px_src = reinterpret_cast<const uint32_t *>(bitmap);
+    uint32_t *px_dst = static_cast<uint32_t *>(cursor->custom_data);
+    for (int y = 0; y < sizey; y++) {
+      for (int x = 0; x < sizex; x++) {
+        *px_dst++ = *px_src++;
       }
-      else {
-        *pixel++ = (datab & 0x80) ? white : transparent;
-      }
-      datab <<= 1;
-      maskb <<= 1;
     }
   }
 
@@ -8841,8 +8854,6 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
            * In all likelihood, this back-end will eventually need to support client-side
            * decorations, see #113795. */
           GHOST_kCapabilityWindowDecorationStyles |
-          /* No support for RGBA mouse cursors yet, but will be added soon. */
-          GHOST_kCapabilityRGBACursors |
           /* This flag will eventually be removed. */
           ((has_wl_trackpad_physical_direction == 1) ?
                0 :

@@ -294,16 +294,26 @@ static void gwl_window_cursor_custom_store(GWL_WindowCursorCustomShape &ccs,
                                            bool can_invert_color)
 {
   gwl_window_cursor_custom_clear(ccs);
-  /* The width is divided by 8, rounding up. */
-  const size_t bitmap_size = sizeof(uint8_t) * ((size[0] + 7) / 8) * size[1];
 
-  if (bitmap) {
-    ccs.bitmap = static_cast<uint8_t *>(malloc(bitmap_size));
-    memcpy(ccs.bitmap, bitmap, bitmap_size);
-  }
   if (mask) {
+    /* Monochrome bitmap (with mask). */
+    /* The width is divided by 8, rounding up. */
+    const size_t bitmap_size = sizeof(uint8_t) * ((size[0] + 7) / 8) * size[1];
+
+    if (bitmap) {
+      ccs.bitmap = static_cast<uint8_t *>(malloc(bitmap_size));
+      memcpy(ccs.bitmap, bitmap, bitmap_size);
+    }
     ccs.mask = static_cast<uint8_t *>(malloc(bitmap_size));
     memcpy(ccs.mask, mask, bitmap_size);
+  }
+  else {
+    /* RGBA bitmap (mask is alpha). */
+    const size_t bitmap_size = sizeof(uint32_t) * size[0] * size[1];
+    if (bitmap) {
+      ccs.bitmap = static_cast<uint8_t *>(malloc(bitmap_size));
+      memcpy(ccs.bitmap, bitmap, bitmap_size);
+    }
   }
 
   ccs.size[0] = size[0];
