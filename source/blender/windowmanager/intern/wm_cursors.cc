@@ -234,6 +234,9 @@ static bool window_set_custom_cursor(wmWindow *win, BCursor *cursor)
   int bitmap_size[2];
   blender::Array<uint8_t> render_bmp = cursor_bitmap_from_svg(
       cursor->svg_source, size, bitmap_size);
+  if (UNLIKELY(render_bmp.is_empty())) {
+    return false;
+  }
 
   const int hot_spot[2] = {
       int(cursor->hotspot[0] * (bitmap_size[0] - 1)),
