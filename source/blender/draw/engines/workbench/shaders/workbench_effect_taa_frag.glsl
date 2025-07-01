@@ -21,7 +21,7 @@ void main()
       /* Clamp infinite inputs (See #112211). */
       color = clamp(color, float4(0.0f), float4(1e10f));
       /* Use log2 space to avoid highlights creating too much aliasing. */
-      color = log2(color + 0.5f);
+      color = log2(color + 1.0f);
 
       frag_color += color * samplesWeights[i];
     }
