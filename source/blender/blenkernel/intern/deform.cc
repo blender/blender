@@ -1269,8 +1269,8 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
                                                                 Object *ob_dst,
                                                                 const MDeformVert *data_src,
                                                                 MDeformVert *data_dst,
-                                                                const CustomData * /*cd_src*/,
-                                                                CustomData *cd_dst,
+                                                                const CustomData & /*cd_src*/,
+                                                                CustomData &cd_dst,
                                                                 const bool /*use_dupref_dst*/,
                                                                 const int tolayers,
                                                                 const bool *use_layers_src,
@@ -1318,7 +1318,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
          * Again, use_create is not relevant in this case */
         if (!data_dst) {
           data_dst = static_cast<MDeformVert *>(
-              CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
+              CustomData_add_layer(&cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
         }
 
         while (idx_src--) {
@@ -1382,7 +1382,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
            * use_create is not relevant in this case */
           if (!data_dst) {
             data_dst = static_cast<MDeformVert *>(
-                CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
+                CustomData_add_layer(&cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
           }
 
           data_transfer_layersmapping_add_item(r_map,
@@ -1420,8 +1420,8 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
                                          const bool use_delete,
                                          Object *ob_src,
                                          Object *ob_dst,
-                                         const CustomData *cd_src,
-                                         CustomData *cd_dst,
+                                         const CustomData &cd_src,
+                                         CustomData &cd_dst,
                                          const bool use_dupref_dst,
                                          const int fromlayers,
                                          const int tolayers)
@@ -1449,14 +1449,14 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
   }
 
   const MDeformVert *data_src = static_cast<const MDeformVert *>(
-      CustomData_get_layer(cd_src, CD_MDEFORMVERT));
+      CustomData_get_layer(&cd_src, CD_MDEFORMVERT));
 
   MDeformVert *data_dst = static_cast<MDeformVert *>(
-      CustomData_get_layer_for_write(cd_dst, CD_MDEFORMVERT, num_elem_dst));
+      CustomData_get_layer_for_write(&cd_dst, CD_MDEFORMVERT, num_elem_dst));
   if (data_dst && use_dupref_dst && r_map) {
     /* If dest is an evaluated mesh, we do not want to overwrite cdlayers of org mesh! */
     data_dst = static_cast<MDeformVert *>(
-        CustomData_get_layer_for_write(cd_dst, CD_MDEFORMVERT, num_elem_dst));
+        CustomData_get_layer_for_write(&cd_dst, CD_MDEFORMVERT, num_elem_dst));
   }
 
   if (fromlayers == DT_LAYERS_ACTIVE_SRC || fromlayers >= 0) {
@@ -1527,7 +1527,7 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
        * use_create is not relevant in this case */
       if (!data_dst) {
         data_dst = static_cast<MDeformVert *>(
-            CustomData_add_layer(cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
+            CustomData_add_layer(&cd_dst, CD_MDEFORMVERT, CD_SET_DEFAULT, num_elem_dst));
       }
 
       data_transfer_layersmapping_add_item(r_map,
