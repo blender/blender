@@ -138,6 +138,8 @@ ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
 
   if (WebPDecode(data, data_size, &config) != VP8_STATUS_OK) {
     fprintf(stderr, "WebP: Failed to decode image\n");
+    IMB_freeImBuf(ibuf);
+
     imb_mmap_lock();
     BLI_mmap_free(mmap_file);
     imb_mmap_unlock();
