@@ -195,7 +195,6 @@ struct FileListEntryCache {
    * previews either in `previews_pool` or `previews_done`. #filelist_cache_previews_update() makes
    * previews in `preview_done` ready for display, so the counter is decremented there. */
   int previews_todo_count;
-  bool keep_preview_job_running;
 };
 
 /** #FileListCache.flags */
@@ -1602,7 +1601,6 @@ static void filelist_cache_preview_ensure_running(FileListEntryCache *cache)
     cache->previews_pool = BLI_task_pool_create_background(cache, TASK_PRIORITY_LOW);
     cache->previews_done = BLI_thread_queue_init();
     cache->previews_todo_count = 0;
-    cache->keep_preview_job_running = false;
 
     IMB_thumb_locks_acquire();
   }
@@ -1629,7 +1627,6 @@ static void filelist_cache_previews_clear(FileListEntryCache *cache)
       MEM_freeN(preview);
     }
     cache->previews_todo_count = 0;
-    cache->keep_preview_job_running = false;
   }
 }
 
@@ -1645,7 +1642,6 @@ static void filelist_cache_previews_free(FileListEntryCache *cache)
     cache->previews_pool = nullptr;
     cache->previews_done = nullptr;
     cache->previews_todo_count = 0;
-    cache->keep_preview_job_running = false;
 
     IMB_thumb_locks_release();
   }
@@ -1777,7 +1773,6 @@ static void filelist_cache_init(FileListEntryCache *cache, size_t cache_size)
   cache->flags = FLC_IS_INIT;
 
   cache->previews_todo_count = 0;
-  cache->keep_preview_job_running = false;
 }
 
 static void filelist_cache_free(FileListEntryCache *cache)
@@ -2449,8 +2444,7 @@ bool filelist_file_cache_block(FileList *filelist, const int index)
   int start_index = max_ii(0, index - (cache_size / 2));
   int end_index = min_ii(entries_num, index + (cache_size / 2));
   int i;
-  const bool full_refresh = (filelist->flags & FL_IS_READY) == 0 ||
-                            cache->keep_preview_job_running;
+  const bool full_refresh = (filelist->flags & FL_IS_READY) == 0;
 
   if ((index < 0) || (index >= entries_num)) {
     //      printf("Wrong index %d ([%d:%d])", index, 0, entries_num);
@@ -2694,9 +2688,6 @@ bool filelist_cache_previews_update(FileList *filelist)
 
   //  printf("%s: Update Previews...\n", __func__);
 
-  /* Let preview pushing below decide if it still needs to continue loading. */
-  cache->keep_preview_job_running = false;
-
   while (!BLI_thread_queue_is_empty(cache->previews_done)) {
     FileListEntryPreview *preview = static_cast<FileListEntryPreview *>(
         BLI_thread_queue_pop(cache->previews_done));
@@ -2735,14 +2726,14 @@ bool filelist_cache_previews_update(FileList *filelist)
           if (RemoteLibraryLoadingStatus::status(*remote_url) ==
               RemoteLibraryLoadingStatus::Loading)
           {
-            /* Couldn't find a preview but remote library is still loading. Kepp the job running.
-             *
-             * Would be nicer if #filelist_cache_previews_done() return false for as long as the
-             * library is loading, but the "All" asset library might contain multiple different
-             * remote libraries.
-             */
+            /* Couldn't find a preview but remote library is still loading. */
+
             preview_done = false;
-            cache->keep_preview_job_running = true;
+
+            entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
+            /* Continuously requery the preview, until it's found or the remote library isn't
+             * loading anymore. */
+            filelist_cache_previews_push(filelist, entry, preview->index);
           }
         }
       }
@@ -2781,10 +2772,6 @@ bool filelist_cache_previews_done(FileList *filelist)
   FileListEntryCache *cache = &filelist->filelist_cache;
   if ((cache->flags & FLC_PREVIEWS_ACTIVE) == 0) {
     /* There are no previews. */
-    return false;
-  }
-
-  if (cache->keep_preview_job_running) {
     return false;
   }
 
