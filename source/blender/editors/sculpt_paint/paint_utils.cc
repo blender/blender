@@ -221,44 +221,40 @@ static blender::float2 imapaint_pick_uv(const Mesh *mesh_eval,
                                         const int tri_index,
                                         const blender::float3 &bary_coord)
 {
+  using namespace blender;
   const ePaintCanvasSource mode = ePaintCanvasSource(scene->toolsettings->imapaint.mode);
 
-  const blender::Span<blender::int3> tris = mesh_eval->corner_tris();
-  const blender::Span<int> tri_faces = mesh_eval->corner_tri_faces();
+  const Span<int3> tris = mesh_eval->corner_tris();
+  const Span<int> tri_faces = mesh_eval->corner_tri_faces();
 
-  const int *material_indices = (const int *)CustomData_get_layer_named(
-      &mesh_eval->face_data, CD_PROP_INT32, "material_index");
+  const bke::AttributeAccessor attributes = mesh_eval->attributes();
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
+      "material_index", bke::AttrDomain::Face, 0);
 
   /* face means poly here, not triangle, indeed */
   const int face_i = tri_faces[tri_index];
 
-  const float(*mloopuv)[2];
+  VArraySpan<float2> uv_map;
 
   if (mode == PAINT_CANVAS_SOURCE_MATERIAL) {
     const Material *ma;
     const TexPaintSlot *slot;
 
-    ma = BKE_object_material_get(ob_eval,
-                                 material_indices == nullptr ? 1 : material_indices[face_i] + 1);
+    ma = BKE_object_material_get(ob_eval, material_indices[face_i] + 1);
     slot = &ma->texpaintslot[ma->paint_active_slot];
-
-    if (!(slot && slot->uvname &&
-          (mloopuv = static_cast<const float(*)[2]>(CustomData_get_layer_named(
-               &mesh_eval->corner_data, CD_PROP_FLOAT2, slot->uvname)))))
-    {
-      mloopuv = static_cast<const float(*)[2]>(
-          CustomData_get_layer(&mesh_eval->corner_data, CD_PROP_FLOAT2));
+    if (slot && slot->uvname) {
+      uv_map = *attributes.lookup<float2>(slot->uvname, bke::AttrDomain::Face);
     }
   }
-  else {
-    mloopuv = static_cast<const float(*)[2]>(
-        CustomData_get_layer(&mesh_eval->corner_data, CD_PROP_FLOAT2));
+
+  if (uv_map.is_empty()) {
+    const char *active_name = CustomData_get_active_layer_name(&mesh_eval->corner_data,
+                                                               CD_PROP_FLOAT2);
+    uv_map = *attributes.lookup<float2>(active_name, bke::AttrDomain::Face);
   }
 
-  return blender::bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
-      bary_coord,
-      tris[tri_index],
-      blender::Span(reinterpret_cast<const blender::float2 *>(mloopuv), mesh_eval->corners_num));
+  return bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
+      bary_coord, tris[tri_index], uv_map);
 }
 
 /* returns 0 if not found, otherwise 1 */
@@ -344,8 +340,9 @@ void paint_sample_color(
 
     if (ob) {
       const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
-      const int *material_indices = (const int *)CustomData_get_layer_named(
-          &mesh_eval->face_data, CD_PROP_INT32, "material_index");
+      const bke::AttributeAccessor attributes = mesh_eval->attributes();
+      const VArray material_indices = *attributes.lookup_or_default<int>(
+          "material_index", bke::AttrDomain::Face, 0);
 
       if (CustomData_has_layer(&mesh_eval->corner_data, CD_PROP_FLOAT2)) {
         ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
@@ -366,8 +363,7 @@ void paint_sample_color(
 
           if (use_material) {
             /* Image and texture interpolation from material. */
-            Material *ma = BKE_object_material_get(
-                ob_eval, material_indices ? material_indices[faceindex] + 1 : 1);
+            Material *ma = BKE_object_material_get(ob_eval, material_indices[faceindex] + 1);
 
             /* Force refresh since paint slots are not updated when changing interpolation. */
             BKE_texpaint_slot_refresh_cache(scene, ma, ob);
