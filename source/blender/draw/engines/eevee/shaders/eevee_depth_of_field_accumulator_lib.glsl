@@ -428,7 +428,7 @@ void dof_gather_init(float base_radius,
   /* TODO(fclem) Seems like the default lod selection is too big. Bias to avoid blocky moving out
    * of focus shapes. */
   constexpr float lod_bias = -2.0f;
-  lod = max(floor(log2(base_radius * unit_sample_radius) + 0.5f) + lod_bias, 0.0f);
+  lod = max(floor(log2(base_radius * unit_sample_radius) + 1.0f) + lod_bias, 0.0f);
 
   if (no_gather_mipmaps) {
     lod = 0.0f;
