@@ -104,8 +104,6 @@ class Attribute {
   /**
    * The same as #data(), but if the attribute data is shared initially, it will be unshared and
    * made mutable.
-   *
-   * \warning Does not yet support attributes stored as a single value (#AttrStorageType::Single).
    */
   DataVariant &data_for_write();
 
