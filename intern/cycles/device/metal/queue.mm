@@ -514,8 +514,8 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
                                             usage:MTLResourceUsageRead];
           }
           [mtlComputeCommandEncoder useResources:metal_device_->unique_blas_array.data()
-                                          count:metal_device_->unique_blas_array.size()
-                                          usage:MTLResourceUsageRead];
+                                           count:metal_device_->unique_blas_array.size()
+                                           usage:MTLResourceUsageRead];
         }
       }
     }
