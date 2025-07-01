@@ -732,120 +732,39 @@ static void calc_final_indices(const bke::CurvesGeometry &curves,
   cache.final.proc_hairs = GPU_batch_create_ex(prim_type, vbo, ibo, owns_flag);
 }
 
+static std::optional<StringRef> get_first_uv_name(const bke::AttributeAccessor &attributes)
+{
+  std::optional<StringRef> name;
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.data_type == CD_PROP_FLOAT2) {
+      name = iter.name;
+      iter.stop();
+    }
+  });
+  return name;
+}
+
 static bool ensure_attributes(const Curves &curves,
                               CurvesBatchCache &cache,
                               const GPUMaterial *gpu_material)
 {
-  const CustomData &cd_curve = curves.geometry.curve_data;
-  const CustomData &cd_point = curves.geometry.point_data;
+  const bke::AttributeAccessor attributes = curves.geometry.wrap().attributes();
   CurvesEvalFinalCache &final_cache = cache.eval_cache.final;
 
   if (gpu_material) {
-    /* The following code should be kept in sync with `mesh_cd_calc_used_gpu_layers`. */
     VectorSet<std::string> attrs_needed;
     ListBase gpu_attrs = GPU_material_attributes(gpu_material);
-    LISTBASE_FOREACH (const GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
+    LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
       StringRef name = gpu_attr->name;
-      eCustomDataType type = eCustomDataType(gpu_attr->type);
-      int layer = -1;
-      std::optional<bke::AttrDomain> domain;
-
-      if (gpu_attr->type == CD_AUTO_FROM_NAME) {
-        /* We need to deduce what exact layer is used.
-         *
-         * We do it based on the specified name.
-         */
-        if (!name.is_empty()) {
-          layer = CustomData_get_named_layer(&cd_curve, CD_PROP_FLOAT2, name);
-          type = CD_MTFACE;
-          domain = bke::AttrDomain::Curve;
-
-          if (layer == -1) {
-            /* Try to match a generic attribute, we use the first attribute domain with a
-             * matching name. */
-            if (drw_custom_data_match_attribute(cd_point, name, &layer, &type)) {
-              domain = bke::AttrDomain::Point;
-            }
-            else if (drw_custom_data_match_attribute(cd_curve, name, &layer, &type)) {
-              domain = bke::AttrDomain::Curve;
-            }
-            else {
-              domain.reset();
-              layer = -1;
-            }
-          }
-
-          if (layer == -1) {
-            continue;
-          }
-        }
-        else {
-          /* Fall back to the UV layer, which matches old behavior. */
-          type = CD_MTFACE;
+      if (name.is_empty()) {
+        if (std::optional<StringRef> uv_name = get_first_uv_name(attributes)) {
+          drw_attributes_add_request(&attrs_needed, *uv_name);
         }
       }
-      else {
-        if (drw_custom_data_match_attribute(cd_curve, name, &layer, &type)) {
-          domain = bke::AttrDomain::Curve;
-        }
-        else if (drw_custom_data_match_attribute(cd_point, name, &layer, &type)) {
-          domain = bke::AttrDomain::Point;
-        }
+      if (!attributes.contains(name)) {
+        continue;
       }
-
-      switch (type) {
-        case CD_MTFACE: {
-          if (layer == -1) {
-            layer = !name.is_empty() ?
-                        CustomData_get_named_layer(&cd_curve, CD_PROP_FLOAT2, name) :
-                        CustomData_get_render_layer(&cd_curve, CD_PROP_FLOAT2);
-            if (layer != -1) {
-              domain = bke::AttrDomain::Curve;
-            }
-          }
-          if (layer == -1) {
-            layer = !name.is_empty() ?
-                        CustomData_get_named_layer(&cd_point, CD_PROP_FLOAT2, name) :
-                        CustomData_get_render_layer(&cd_point, CD_PROP_FLOAT2);
-            if (layer != -1) {
-              domain = bke::AttrDomain::Point;
-            }
-          }
-
-          if (layer != -1 && !name.is_empty() && domain.has_value()) {
-            name = CustomData_get_layer_name(
-                domain == bke::AttrDomain::Curve ? &cd_curve : &cd_point, CD_PROP_FLOAT2, layer);
-          }
-
-          if (layer != -1 && domain.has_value()) {
-            drw_attributes_add_request(&attrs_needed, name);
-          }
-          break;
-        }
-
-        case CD_TANGENT:
-        case CD_ORCO:
-          break;
-
-        case CD_PROP_BYTE_COLOR:
-        case CD_PROP_COLOR:
-        case CD_PROP_QUATERNION:
-        case CD_PROP_FLOAT3:
-        case CD_PROP_BOOL:
-        case CD_PROP_INT8:
-        case CD_PROP_INT32:
-        case CD_PROP_INT16_2D:
-        case CD_PROP_INT32_2D:
-        case CD_PROP_FLOAT:
-        case CD_PROP_FLOAT2: {
-          if (layer != -1 && domain.has_value()) {
-            drw_attributes_add_request(&attrs_needed, name);
-          }
-          break;
-        }
-        default:
-          break;
-      }
+      drw_attributes_add_request(&attrs_needed, name);
     }
 
     if (!drw_attributes_overlap(&final_cache.attr_used, &attrs_needed)) {

@@ -11,6 +11,8 @@
 #include <fmt/format.h>
 
 #include "DNA_ID.h"
+#include "DNA_curves_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
@@ -29,6 +31,7 @@
 #include "BKE_animsys.h"
 #include "BKE_attribute_legacy_convert.hh"
 #include "BKE_colortools.hh"
+#include "BKE_curves.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -1215,7 +1218,7 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 31)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 32)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type != NTREE_COMPOSIT) {
         continue;
@@ -1258,6 +1261,22 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       mesh->radial_symmetry[0] = 1;
       mesh->radial_symmetry[1] = 1;
       mesh->radial_symmetry[2] = 1;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 33)) {
+    LISTBASE_FOREACH (Curves *, curves, &bmain->hair_curves) {
+      blender::bke::curves_convert_customdata_to_storage(curves->geometry.wrap());
+    }
+    LISTBASE_FOREACH (GreasePencil *, grease_pencil, &bmain->grease_pencils) {
+      blender::bke::grease_pencil_convert_customdata_to_storage(*grease_pencil);
+      for (const int i : IndexRange(grease_pencil->drawing_array_num)) {
+        GreasePencilDrawingBase *drawing_base = grease_pencil->drawing_array[i];
+        if (drawing_base->type == GP_DRAWING) {
+          GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+          blender::bke::curves_convert_customdata_to_storage(drawing->geometry.wrap());
+        }
+      }
     }
   }
 

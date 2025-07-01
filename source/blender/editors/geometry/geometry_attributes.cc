@@ -213,7 +213,7 @@ bool attribute_set_poll(bContext &C, const ID &object_data)
     return false;
   }
 
-  if (owner.type() == AttributeOwnerType::PointCloud) {
+  if (owner.type() != AttributeOwnerType::Mesh) {
     bke::AttributeAccessor attributes = *owner.get_accessor();
     std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(*name);
     if (!meta_data) {
@@ -298,7 +298,7 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
   bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
   AttributeOwner owner = AttributeOwner::from_id(id);
 
-  if (owner.type() == AttributeOwnerType::PointCloud) {
+  if (owner.type() != AttributeOwnerType::Mesh) {
     bke::MutableAttributeAccessor accessor = *owner.get_accessor();
     if (!accessor.domain_supported(bke::AttrDomain(domain))) {
       BKE_report(op->reports, RPT_ERROR, "Attribute domain not supported by this geometry type");

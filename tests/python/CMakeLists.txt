@@ -405,6 +405,11 @@ if(TEST_SRC_DIR_EXISTS)
   )
 endif()
 
+add_blender_test(
+  geometry_attributes
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_geometry_attributes.py
+)
+
 # ------------------------------------------------------------------------------
 # MODIFIERS TESTS
 # ------------------------------------------------------------------------------
@@ -911,7 +916,7 @@ if(TEST_SRC_DIR_EXISTS)
     output
     color
     filter
-    utilities    
+    utilities
     vector
 
     pixel_nodes
@@ -946,7 +951,7 @@ if(WITH_GPU_COMPOSITOR_TESTS AND TEST_SRC_DIR_EXISTS)
     output
     color
     filter
-    utilities    
+    utilities
     vector
 
     pixel_nodes

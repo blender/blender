@@ -745,17 +745,20 @@ static void convert_grease_pencil_stroke_hardness_to_softness(GreasePencil *grea
     }
     bke::greasepencil::Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
     const int layer_index = CustomData_get_named_layer_index(
-        &drawing.geometry.curve_data, CD_PROP_FLOAT, "hardness");
+        &drawing.geometry.curve_data_legacy, CD_PROP_FLOAT, "hardness");
     if (layer_index == -1) {
       continue;
     }
-    float *data = static_cast<float *>(CustomData_get_layer_named_for_write(
-        &drawing.geometry.curve_data, CD_PROP_FLOAT, "hardness", drawing.geometry.curve_num));
+    float *data = static_cast<float *>(
+        CustomData_get_layer_named_for_write(&drawing.geometry.curve_data_legacy,
+                                             CD_PROP_FLOAT,
+                                             "hardness",
+                                             drawing.geometry.curve_num));
     for (const int i : IndexRange(drawing.geometry.curve_num)) {
       data[i] = 1.0f - data[i];
     }
     /* Rename the layer. */
-    STRNCPY(drawing.geometry.curve_data.layers[layer_index].name, "softness");
+    STRNCPY(drawing.geometry.curve_data_legacy.layers[layer_index].name, "softness");
   }
 }
 

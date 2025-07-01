@@ -627,7 +627,7 @@ static std::optional<CurvesGeometry> try_load_curves_geometry(const DictionaryVa
   }
 
   CurvesGeometry curves;
-  CustomData_free_layer_named(&curves.point_data, "position");
+  curves.attribute_storage.wrap().remove("position");
   curves.point_num = io_curves.lookup_int("num_points").value_or(0);
   curves.curve_num = io_curves.lookup_int("num_curves").value_or(0);
 

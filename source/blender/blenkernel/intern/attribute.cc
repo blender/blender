@@ -152,6 +152,9 @@ static std::array<DomainInfo, ATTR_DOMAIN_NUM> get_domains(const AttributeOwner 
   std::array<DomainInfo, ATTR_DOMAIN_NUM> info;
 
   switch (owner.type()) {
+    case AttributeOwnerType::Curves:
+    case AttributeOwnerType::GreasePencil:
+    case AttributeOwnerType::GreasePencilDrawing:
     case AttributeOwnerType::PointCloud: {
       /* This should be implemented with #AttributeStorage instead. */
       BLI_assert_unreachable();
@@ -180,28 +183,6 @@ static std::array<DomainInfo, ATTR_DOMAIN_NUM> get_domains(const AttributeOwner 
         info[int(AttrDomain::Face)].customdata = &mesh->face_data;
         info[int(AttrDomain::Face)].length = mesh->faces_num;
       }
-      break;
-    }
-    case AttributeOwnerType::Curves: {
-      Curves *curves = owner.get_curves();
-      info[int(AttrDomain::Point)].customdata = &curves->geometry.point_data;
-      info[int(AttrDomain::Point)].length = curves->geometry.point_num;
-      info[int(AttrDomain::Curve)].customdata = &curves->geometry.curve_data;
-      info[int(AttrDomain::Curve)].length = curves->geometry.curve_num;
-      break;
-    }
-    case AttributeOwnerType::GreasePencil: {
-      GreasePencil *grease_pencil = owner.get_grease_pencil();
-      info[int(AttrDomain::Layer)].customdata = &grease_pencil->layers_data;
-      info[int(AttrDomain::Layer)].length = grease_pencil->layers().size();
-      break;
-    }
-    case AttributeOwnerType::GreasePencilDrawing: {
-      blender::bke::greasepencil::Drawing &drawing = owner.get_grease_pencil_drawing()->wrap();
-      info[int(AttrDomain::Point)].customdata = &drawing.geometry.point_data;
-      info[int(AttrDomain::Point)].length = drawing.geometry.point_num;
-      info[int(AttrDomain::Curve)].customdata = &drawing.geometry.curve_data;
-      info[int(AttrDomain::Curve)].length = drawing.geometry.curve_num;
       break;
     }
   }
@@ -281,7 +262,7 @@ bool BKE_attribute_rename(AttributeOwner &owner,
     return false;
   }
 
-  if (owner.type() == AttributeOwnerType::PointCloud) {
+  if (owner.type() != AttributeOwnerType::Mesh) {
     bke::AttributeStorage &attributes = *owner.get_storage();
     if (!attributes.lookup(old_name)) {
       BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
@@ -394,7 +375,7 @@ static bool attribute_name_exists(const AttributeOwner &owner, const StringRef n
 
 std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner, const StringRef name)
 {
-  if (owner.type() == AttributeOwnerType::PointCloud) {
+  if (owner.type() != AttributeOwnerType::Mesh) {
     blender::bke::AttributeStorage &storage = *owner.get_storage();
     return storage.unique_name_calc(name);
   }
@@ -822,7 +803,7 @@ std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOw
   if (active_index == -1) {
     return std::nullopt;
   }
-  if (owner.type() == AttributeOwnerType::PointCloud) {
+  if (owner.type() != AttributeOwnerType::Mesh) {
     bke::AttributeStorage &storage = *owner.get_storage();
     if (active_index >= storage.count()) {
       return std::nullopt;
@@ -863,7 +844,7 @@ std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOw
 void BKE_attributes_active_set(AttributeOwner &owner, const StringRef name)
 {
   using namespace blender;
-  if (owner.type() == AttributeOwnerType::PointCloud) {
+  if (owner.type() != AttributeOwnerType::Mesh) {
     bke::AttributeStorage &attributes = *owner.get_storage();
     *BKE_attributes_active_index_p(owner) = attributes.index_of(name);
     return;
