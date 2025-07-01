@@ -584,7 +584,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
           /* Create as much data layers as necessary! */
           for (; idx_dst < idx_src; idx_dst++) {
             CustomData_add_layer(
-&cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
+                &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
           }
         }
         else {
@@ -637,7 +637,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
         if (idx_dst == -1) {
           if (use_create) {
             CustomData_add_layer_named(
-&cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst, name);
+                &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst, name);
             idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
           }
           else {
@@ -716,7 +716,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
         return true;
       }
       data_dst = CustomData_add_layer(
-&cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
+          &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
     }
 
     if (r_map) {
@@ -761,7 +761,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
           return true;
         }
         data_dst = CustomData_add_layer(
-&cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
+            &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
       }
       else {
         data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
@@ -790,7 +790,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
           return true;
         }
         CustomData_add_layer_named(
-&cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst, name);
+            &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst, name);
         idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
       }
       data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
@@ -870,13 +870,13 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                  SpaceTransform *space_transform)
 {
   using namespace blender;
-  
+
   cd_datatransfer_interp interp = nullptr;
   void *interp_data = nullptr;
 
   if (elem_type == ME_VERT) {
     if (!(cddata_type & CD_FAKE)) {
-            if (!data_transfer_layersmapping_cdlayers(r_map,
+      if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
@@ -898,20 +898,20 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     }
     if (cddata_type == CD_FAKE_MDEFORMVERT) {
       return data_transfer_layersmapping_vgroups(r_map,
-                                                mix_mode,
-                                                mix_factor,
-                                                mix_weights,
-                                                num_elem_dst,
-                                                use_create,
-                                                use_delete,
-                                                ob_src,
-                                                ob_dst,
-                                                me_src->vert_data,
+                                                 mix_mode,
+                                                 mix_factor,
+                                                 mix_weights,
+                                                 num_elem_dst,
+                                                 use_create,
+                                                 use_delete,
+                                                 ob_src,
+                                                 ob_dst,
+                                                 me_src->vert_data,
                                                  me_dst->vert_data,
-                                                me_dst != ob_dst->data,
-                                                fromlayers,
-                                                tolayers);
-          }
+                                                 me_dst != ob_dst->data,
+                                                 fromlayers,
+                                                 tolayers);
+    }
     if (cddata_type == CD_FAKE_SHAPEKEY) {
       /* TODO: leaving shape-keys aside for now, quite specific case,
        * since we can't access them from mesh vertices :/ */
@@ -941,7 +941,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
   }
   else if (elem_type == ME_EDGE) {
     if (!(cddata_type & CD_FAKE)) { /* Unused for edges, currently... */
-            if (!data_transfer_layersmapping_cdlayers(r_map,
+      if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
@@ -1071,7 +1071,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     }
 
     if (!(cddata_type & CD_FAKE)) {
-            if (!data_transfer_layersmapping_cdlayers(r_map,
+      if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
@@ -1100,7 +1100,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     }
 
     if (!(cddata_type & CD_FAKE)) {
-            if (!data_transfer_layersmapping_cdlayers(r_map,
+      if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 eCustomDataType(cddata_type),
                                                 mix_mode,
                                                 mix_factor,
@@ -1347,8 +1347,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
   }
 
   if (vgroup_name) {
-    mdef = static_cast<const MDeformVert *>(
-        CustomData_get_layer(&me_dst->vert_data, CD_MDEFORMVERT));
+    mdef = me_dst->deform_verts().data();
     if (mdef) {
       vg_idx = BKE_id_defgroup_name_index(&me_dst->id, vgroup_name);
     }

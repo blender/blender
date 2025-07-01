@@ -23,7 +23,6 @@
 
 #include "BKE_colortools.hh" /* CurveMapping. */
 #include "BKE_context.hh"
-#include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_modifier.hh"
 #include "BKE_texture.h" /* Texture masking. */
@@ -212,8 +211,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
 
     /* Proceed only if vgroup is valid, else use constant factor. */
     /* Get actual deform-verts (ie vertex group data). */
-    const MDeformVert *dvert = static_cast<const MDeformVert *>(
-        CustomData_get_layer(&mesh->vert_data, CD_MDEFORMVERT));
+    const MDeformVert *dvert = mesh->deform_verts().data();
     /* Proceed only if vgroup is valid, else assume factor = O. */
     if (dvert == nullptr) {
       return;

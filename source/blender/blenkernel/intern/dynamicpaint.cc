@@ -2007,18 +2007,13 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
           /* vertex group paint */
           else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
             int defgrp_index = BKE_object_defgroup_name_index(ob, surface->output_name);
-            MDeformVert *dvert = static_cast<MDeformVert *>(CustomData_get_layer_for_write(
-                &result->vert_data, CD_MDEFORMVERT, result->verts_num));
             float *weight = (float *)sData->type_data;
 
             /* apply weights into a vertex group, if doesn't exists add a new layer */
-            if (defgrp_index != -1 && !dvert && (surface->output_name[0] != '\0')) {
-              dvert = static_cast<MDeformVert *>(CustomData_add_layer(
-                  &result->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, sData->total_points));
-            }
-            if (defgrp_index != -1 && dvert) {
+            blender::MutableSpan<MDeformVert> dverts = result->deform_verts_for_write();
+            if (defgrp_index != -1) {
               for (int i = 0; i < sData->total_points; i++) {
-                MDeformVert *dv = &dvert[i];
+                MDeformVert *dv = &dverts[i];
                 MDeformWeight *def_weight = BKE_defvert_find_index(dv, defgrp_index);
 
                 /* skip if weight value is 0 and no existing weight is found */
