@@ -772,14 +772,6 @@ static void subdiv_ccg_average_grids_boundary(SubdivCCG &subdiv_ccg,
   }
 }
 
-struct AverageGridsCornerData {
-  SubdivCCG *subdiv_ccg;
-  CCGKey *key;
-
-  /* Optional lookup table. Maps task range index to index in `subdiv_ccg.adjacent_verts`. */
-  const int *adjacent_vert_index_map;
-};
-
 static void subdiv_ccg_average_grids_corners(SubdivCCG &subdiv_ccg,
                                              const CCGKey &key,
                                              const SubdivCCGAdjacentVertex &adjacent_vertex)
