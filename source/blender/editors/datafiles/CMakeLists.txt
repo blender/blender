@@ -931,6 +931,46 @@ if(WITH_BLENDER)
       zoom_previous
       zoom_selected
     )
+
+    set(SVG_CURSORS_FILENAMES_NOEXT
+      cursor_blade
+      cursor_both_handles
+      cursor_crossc
+      cursor_crosshair
+      cursor_dot
+      cursor_e_arrow
+      cursor_eraser
+      cursor_ew_scroll
+      cursor_eyedropper
+      cursor_hand
+      cursor_hand_closed
+      cursor_hand_point
+      cursor_h_split
+      cursor_knife
+      cursor_left_handle
+      cursor_mute
+      cursor_n_arrow
+      cursor_nsew_scroll
+      cursor_ns_scroll
+      cursor_paint
+      cursor_pencil
+      cursor_pick_area
+      cursor_pointer
+      cursor_right_handle
+      cursor_s_arrow
+      cursor_stop
+      cursor_swap_area
+      cursor_text_edit
+      cursor_v_split
+      cursor_vertex_loop
+      cursor_wait
+      cursor_w_arrow
+      cursor_x_move
+      cursor_y_move
+      cursor_zoom_in
+      cursor_zoom_out
+    )
+
     set(SVG_CONTENTS_H)
     set(SVG_CONTENTS_C)
     foreach(svg ${SVG_FILENAMES_NOEXT})
@@ -963,6 +1003,25 @@ if(WITH_BLENDER)
 
     list(APPEND SRC ${CMAKE_CURRENT_BINARY_DIR}/svg_icons.h)
     list(APPEND SRC ${CMAKE_CURRENT_BINARY_DIR}/svg_icons.cc)
+
+    set(SVG_CURSORS_CONTENTS_H)
+    foreach(svg ${SVG_CURSORS_FILENAMES_NOEXT})
+      data_to_c_simple(../../../../release/datafiles/cursors/${svg}.svg SRC)
+      list(APPEND SVG_CURSORS_CONTENTS_H
+        "extern const char datatoc_${svg}_svg[]\;\n"
+      )
+    endforeach()
+    list(APPEND SRC ${CMAKE_CURRENT_BINARY_DIR}/svg_cursors.h)
+    list(JOIN SVG_CURSORS_CONTENTS_H "" SVG_CURSORS_CONTENTS_H)
+
+    configure_file(
+      "svg_cursors.h.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/svg_cursors.h"
+      ESCAPE_QUOTES
+      @ONLY
+    )
+    unset(SVG_CURSORS_CONTENTS_H)
+
     # Blend files.
     data_to_c_simple(../../../../release/datafiles/preview.blend SRC)
     data_to_c_simple(../../../../release/datafiles/preview_grease_pencil.blend SRC)

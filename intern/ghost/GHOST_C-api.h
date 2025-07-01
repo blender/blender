@@ -324,10 +324,14 @@ extern GHOST_TSuccess GHOST_HasCursorShape(GHOST_WindowHandle windowhandle,
                                            GHOST_TStandardCursor cursorshape);
 
 /**
- * Set the shape of the cursor to a custom cursor of specified size.
+ * Set the shape of the cursor to a custom cursor of specified size. Two
+ * formats are supported. XBitMap will always be a 1bpp 32x32 bitmap and mask.
+ * If mask is nullptr the bitmap should be assumed to be 32-bit RGBA bitmap of
+ * any size and dimension up to 128x128. RGBA data will only supplied if
+ * WM_CAPABILITY_RGBA_CURSORS capability flag is set.
  * \param windowhandle: The handle to the window.
  * \param bitmap: The bitmap data for the cursor.
- * \param mask: The mask data for the cursor.
+ * \param mask: The mask for 1bpp cursor, nullptr if RGBA cursor.
  * \param sizex: The width of the cursor.
  * \param sizey: The height of the cursor.
  * \param hotX: The X coordinate of the cursor hot-spot.

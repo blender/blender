@@ -192,6 +192,8 @@ class GHOST_SystemWin32 : public GHOST_System {
    */
   GHOST_TSuccess getPixelAtCursor(float r_color[3]) const override;
 
+  uint32_t getCursorPreferredLogicalSize() const override;
+
   /***************************************************************************************
    ** Access to mouse button and keyboard states.
    ***************************************************************************************/

@@ -2201,6 +2201,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityKeyboardHyperKey) {
     flag |= WM_CAPABILITY_KEYBOARD_HYPER_KEY;
   }
+  if (ghost_flag & GHOST_kCapabilityRGBACursors) {
+    flag |= WM_CAPABILITY_RGBA_CURSORS;
+  }
 
   return flag;
 }
