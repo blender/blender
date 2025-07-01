@@ -502,7 +502,7 @@ static SDL_Cursor *sdl_std_cursor_array[int(GHOST_kStandardCursorNumCursors)] = 
 /* utility function mostly a copy of SDL_CreateCursor but allows us to change
  * color and supports blenders flipped bits */
 static SDL_Cursor *sdl_ghost_CreateCursor(
-    const Uint8 *data, const Uint8 *mask, int w, int h, int hot_x, int hot_y)
+    const uint8_t *data, const uint8_t *mask, int w, int h, int hot_x, int hot_y)
 {
   SDL_Surface *surface;
   SDL_Cursor *cursor;
@@ -616,12 +616,10 @@ GHOST_TSuccess GHOST_WindowSDL::hasCursorShape(GHOST_TStandardCursor shape)
   return (getStandardCursorShape(shape)) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
-GHOST_TSuccess GHOST_WindowSDL::setWindowCustomCursorShape(uint8_t *bitmap,
-                                                           uint8_t *mask,
-                                                           int sizex,
-                                                           int sizey,
-                                                           int hotX,
-                                                           int hotY,
+GHOST_TSuccess GHOST_WindowSDL::setWindowCustomCursorShape(const uint8_t *bitmap,
+                                                           const uint8_t *mask,
+                                                           const int size[2],
+                                                           const int hot_spot[2],
                                                            bool /*canInvertColor*/)
 {
   if (m_sdl_custom_cursor) {
@@ -629,7 +627,7 @@ GHOST_TSuccess GHOST_WindowSDL::setWindowCustomCursorShape(uint8_t *bitmap,
   }
 
   m_sdl_custom_cursor = sdl_ghost_CreateCursor(
-      (const Uint8 *)bitmap, (const Uint8 *)mask, sizex, sizey, hotX, hotY);
+      bitmap, mask, size[0], size[1], hot_spot[0], hot_spot[1]);
 
   SDL_SetCursor(m_sdl_custom_cursor);
   return GHOST_kSuccess;

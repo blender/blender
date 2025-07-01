@@ -188,12 +188,10 @@ class GHOST_WindowX11 : public GHOST_Window {
    * Sets the cursor shape on the window using
    * native window system calls (Arbitrary size/color).
    */
-  GHOST_TSuccess setWindowCustomCursorShape(uint8_t *bitmap,
-                                            uint8_t *mask,
-                                            int sizex,
-                                            int sizey,
-                                            int hotX,
-                                            int hotY,
+  GHOST_TSuccess setWindowCustomCursorShape(const uint8_t *bitmap,
+                                            const uint8_t *mask,
+                                            const int size[2],
+                                            const int hot_spot[2],
                                             bool canInvertColor) override;
 
  private:

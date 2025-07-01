@@ -113,12 +113,10 @@ class GHOST_Window : public GHOST_IWindow {
   GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape) override;
 
   /** \copydoc #GHOST_IWindow::setCustomCursorShape */
-  GHOST_TSuccess setCustomCursorShape(uint8_t *bitmap,
-                                      uint8_t *mask,
-                                      int sizex,
-                                      int sizey,
-                                      int hotX,
-                                      int hotY,
+  GHOST_TSuccess setCustomCursorShape(const uint8_t *bitmap,
+                                      const uint8_t *mask,
+                                      const int size[2],
+                                      const int hot_spot[2],
                                       bool canInvertColor) override;
 
   GHOST_TSuccess getCursorBitmap(GHOST_CursorBitmapRef *bitmap) override;
@@ -289,12 +287,10 @@ class GHOST_Window : public GHOST_IWindow {
   virtual GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape) = 0;
 
   /** \copydoc #GHOST_IWindow::setWindowCustomCursorShape */
-  virtual GHOST_TSuccess setWindowCustomCursorShape(uint8_t *bitmap,
-                                                    uint8_t *mask,
-                                                    int szx,
-                                                    int szy,
-                                                    int hotX,
-                                                    int hotY,
+  virtual GHOST_TSuccess setWindowCustomCursorShape(const uint8_t *bitmap,
+                                                    const uint8_t *mask,
+                                                    const int size[2],
+                                                    const int hot_size[2],
                                                     bool canInvertColor) = 0;
 
   GHOST_TSuccess releaseNativeHandles();

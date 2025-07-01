@@ -1454,12 +1454,10 @@ GHOST_TSuccess GHOST_WindowX11::hasCursorShape(GHOST_TStandardCursor shape)
   return getStandardCursor(shape, xcursor);
 }
 
-GHOST_TSuccess GHOST_WindowX11::setWindowCustomCursorShape(uint8_t *bitmap,
-                                                           uint8_t *mask,
-                                                           int sizex,
-                                                           int sizey,
-                                                           int hotX,
-                                                           int hotY,
+GHOST_TSuccess GHOST_WindowX11::setWindowCustomCursorShape(const uint8_t *bitmap,
+                                                           const uint8_t *mask,
+                                                           const int size[2],
+                                                           const int hot_spot[2],
                                                            bool /*canInvertColor*/)
 {
   Colormap colormap = DefaultColormap(m_display, m_visualInfo->screen);
@@ -1477,10 +1475,11 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCustomCursorShape(uint8_t *bitmap,
     XFreeCursor(m_display, m_custom_cursor);
   }
 
-  bitmap_pix = XCreateBitmapFromData(m_display, m_window, (char *)bitmap, sizex, sizey);
-  mask_pix = XCreateBitmapFromData(m_display, m_window, (char *)mask, sizex, sizey);
+  bitmap_pix = XCreateBitmapFromData(m_display, m_window, (char *)bitmap, size[0], size[1]);
+  mask_pix = XCreateBitmapFromData(m_display, m_window, (char *)mask, size[0], size[1]);
 
-  m_custom_cursor = XCreatePixmapCursor(m_display, bitmap_pix, mask_pix, &fg, &bg, hotX, hotY);
+  m_custom_cursor = XCreatePixmapCursor(
+      m_display, bitmap_pix, mask_pix, &fg, &bg, hot_spot[0], hot_spot[1]);
   XDefineCursor(m_display, m_window, m_custom_cursor);
   XFlush(m_display);
 

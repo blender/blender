@@ -151,8 +151,7 @@ static float cursor_size()
 
 static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
                                                       float size,
-                                                      size_t &r_width,
-                                                      size_t &r_height)
+                                                      int r_bitmap_size[2])
 {
   /* Nano alters the source string. */
   std::string svg_source = svg;
@@ -182,22 +181,23 @@ static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
   nsvgDeleteRasterizer(rast);
   nsvgDelete(image);
 
-  r_width = dest_w;
-  r_height = dest_h;
+  r_bitmap_size[0] = dest_w;
+  r_bitmap_size[1] = dest_h;
 
   return render_bmp;
 }
 
-/* Convert 32-bit RGBA bitmap (1-32 x 1-32) to 32x32 1bpp XBitMap bitmap and mask. */
+/**
+ * Convert 32-bit RGBA bitmap (1-32 x 1-32) to 32x32 1bpp XBitMap bitmap and mask.
+ */
 static void cursor_rgba_to_xbm_32(const blender::Array<uint8_t> rgba,
-                                  const size_t width,
-                                  const size_t height,
+                                  const int bitmap_size[2],
                                   uint8_t *bitmap,
                                   uint8_t *mask)
 {
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
-      int i = (y * width * 4) + (x * 4);
+  for (int y = 0; y < bitmap_size[1]; y++) {
+    for (int x = 0; x < bitmap_size[0]; x++) {
+      int i = (y * bitmap_size[0] * 4) + (x * 4);
       int j = (y * 4) + (x >> 3);
       int k = (x % 8);
       if (rgba[i + 3] > 128) {
@@ -221,35 +221,34 @@ static bool window_set_custom_cursor(wmWindow *win, BCursor *cursor)
   const int max_size = use_rgba ? 128 : 32;
   const float size = std::min(cursor_size(), float(max_size));
 
-  size_t width;
-  size_t height;
+  int bitmap_size[2];
   blender::Array<uint8_t> render_bmp = cursor_bitmap_from_svg(
-      cursor->svg_source, size, width, height);
+      cursor->svg_source, size, bitmap_size);
 
-  int hotspot_x = int(cursor->hotspot_x * (width - 1));
-  int hotspot_y = int(cursor->hotspot_y * (height - 1));
+  const int hot_spot[2] = {
+      int(cursor->hotspot_x * (bitmap_size[0] - 1)),
+      int(cursor->hotspot_y * (bitmap_size[1] - 1)),
+  };
 
   if (use_rgba) {
     return GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
                                       render_bmp.data(),
                                       nullptr,
-                                      width,
-                                      height,
-                                      hotspot_x,
-                                      hotspot_y,
+                                      bitmap_size,
+                                      hot_spot,
                                       cursor->can_invert) == GHOST_kSuccess;
   }
   else {
+    int bitmap_size_fixed[2] = {32, 32};
+
     uint8_t bitmap[4 * 32] = {0};
     uint8_t mask[4 * 32] = {0};
-    cursor_rgba_to_xbm_32(render_bmp, width, height, bitmap, mask);
+    cursor_rgba_to_xbm_32(render_bmp, bitmap_size, bitmap, mask);
     return GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
                                       bitmap,
                                       mask,
-                                      32,
-                                      32,
-                                      hotspot_x,
-                                      hotspot_y,
+                                      bitmap_size_fixed,
+                                      hot_spot,
                                       cursor->can_invert) == GHOST_kSuccess;
   }
 }
@@ -505,8 +504,8 @@ static bool wm_cursor_time_large(wmWindow *win, int nr)
        0x30, 0x0c, 0x30, 0x1c, 0x30, 0xf8, 0x3f, 0xf0, 0x3f, 0x00, 0x38,
        0x00, 0x1c, 0x00, 0x0e, 0xfc, 0x07, 0xfc, 0x03, 0x00, 0x00},
   };
-  uchar mask[32][4] = {{0}};
-  uchar bitmap[32][4] = {{0}};
+  uint8_t mask[32][4] = {{0}};
+  uint8_t bitmap[32][4] = {{0}};
 
   /* Print number bottom right justified. */
   for (int idx = 3; nr && idx >= 0; idx--) {
@@ -526,13 +525,13 @@ static bool wm_cursor_time_large(wmWindow *win, int nr)
     nr /= 10;
   }
 
+  const int size[2] = {32, 32};
+  const int hot_spot[2] = {15, 15};
   return GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
-                                    (uint8_t *)bitmap,
-                                    (uint8_t *)mask,
-                                    32,
-                                    32,
-                                    15,
-                                    15,
+                                    bitmap[0],
+                                    mask[0],
+                                    size,
+                                    hot_spot,
                                     false) == GHOST_kSuccess;
 }
 
@@ -551,8 +550,8 @@ static void wm_cursor_time_small(wmWindow *win, int nr)
       {0, 60, 66, 66, 60, 66, 66, 60},
       {0, 56, 68, 68, 120, 64, 68, 56},
   };
-  uchar mask[16][2] = {{0}};
-  uchar bitmap[16][2] = {{0}};
+  uint8_t mask[16][2] = {{0}};
+  uint8_t bitmap[16][2] = {{0}};
 
   /* Print number bottom right justified. */
   for (int idx = 3; nr && idx >= 0; idx--) {
@@ -569,13 +568,13 @@ static void wm_cursor_time_small(wmWindow *win, int nr)
     nr /= 10;
   }
 
+  const int size[2] = {16, 16};
+  const int hot_spot[2] = {7, 7};
   GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
                              (uint8_t *)bitmap,
                              (uint8_t *)mask,
-                             16,
-                             16,
-                             7,
-                             7,
+                             size,
+                             hot_spot,
                              false);
 }
 

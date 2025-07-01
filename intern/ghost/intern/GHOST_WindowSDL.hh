@@ -83,12 +83,10 @@ class GHOST_WindowSDL : public GHOST_Window {
   GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape) override;
   GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor shape) override;
 
-  GHOST_TSuccess setWindowCustomCursorShape(uint8_t *bitmap,
-                                            uint8_t *mask,
-                                            int sizex,
-                                            int sizey,
-                                            int hotX,
-                                            int hotY,
+  GHOST_TSuccess setWindowCustomCursorShape(const uint8_t *bitmap,
+                                            const uint8_t *mask,
+                                            const int size[2],
+                                            const int hot_spot[2],
                                             bool canInvertColor) override;
 
   GHOST_TSuccess setWindowCursorVisibility(bool visible) override;

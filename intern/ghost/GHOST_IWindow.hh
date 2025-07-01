@@ -322,16 +322,14 @@ class GHOST_IWindow {
    * Set the shape of the cursor to a custom cursor.
    * \param bitmap: The bitmap data for the cursor.
    * \param mask: The mask data for the cursor.
-   * \param hotX: The X coordinate of the cursor hot-spot.
-   * \param hotY: The Y coordinate of the cursor hot-spot.
+   * \param size: The X,Y size of the cursor in pixels.
+   * \param hot_spot: The X,Y coordinate of the cursor hot-spot.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess setCustomCursorShape(uint8_t *bitmap,
-                                              uint8_t *mask,
-                                              int sizex,
-                                              int sizey,
-                                              int hotX,
-                                              int hotY,
+  virtual GHOST_TSuccess setCustomCursorShape(const uint8_t *bitmap,
+                                              const uint8_t *mask,
+                                              const int size[2],
+                                              const int hot_spot[2],
                                               bool canInvertColor) = 0;
 
   virtual GHOST_TSuccess getCursorBitmap(GHOST_CursorBitmapRef *bitmap) = 0;

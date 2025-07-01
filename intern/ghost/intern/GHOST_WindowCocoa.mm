@@ -1218,8 +1218,11 @@ static uint16_t uns16ReverseBits(uint16_t shrt)
   return shrt;
 }
 
-GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(
-    uint8_t *bitmap, uint8_t *mask, int sizex, int sizey, int hotX, int hotY, bool canInvertColor)
+GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(const uint8_t *bitmap,
+                                                             const uint8_t *mask,
+                                                             const int size[2],
+                                                             const int hot_spot[2],
+                                                             const bool canInvertColor)
 {
   @autoreleasepool {
     if (m_customCursor) {
@@ -1229,14 +1232,14 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(
 
     NSBitmapImageRep *cursorImageRep = [[NSBitmapImageRep alloc]
         initWithBitmapDataPlanes:nil
-                      pixelsWide:sizex
-                      pixelsHigh:sizey
+                      pixelsWide:size[0]
+                      pixelsHigh:size[1]
                    bitsPerSample:1
                  samplesPerPixel:2
                         hasAlpha:YES
                         isPlanar:YES
                   colorSpaceName:NSDeviceWhiteColorSpace
-                     bytesPerRow:(sizex / 8 + (sizex % 8 > 0 ? 1 : 0))
+                     bytesPerRow:(size[0] / 8 + (size[0] % 8 > 0 ? 1 : 0))
                     bitsPerPixel:1];
 
     uint16_t *cursorBitmap = (uint16_t *)cursorImageRep.bitmapData;
@@ -1258,11 +1261,11 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(
       }
     }
 
-    const NSSize imSize = {(CGFloat)sizex, (CGFloat)sizey};
+    const NSSize imSize = {(CGFloat)size[0], (CGFloat)size[1]};
     NSImage *cursorImage = [[NSImage alloc] initWithSize:imSize];
     [cursorImage addRepresentation:cursorImageRep];
 
-    const NSPoint hotSpotPoint = {(CGFloat)(hotX), (CGFloat)(hotY)};
+    const NSPoint hotSpotPoint = {(CGFloat)(hot_spot[0]), (CGFloat)(hot_spot[1])};
 
     /* Foreground and background color parameter is not handled for now (10.6). */
     m_customCursor = [[NSCursor alloc] initWithImage:cursorImage hotSpot:hotSpotPoint];
