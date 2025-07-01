@@ -13,7 +13,17 @@
 
 #include "BLI_string_ref.hh"
 
+struct bUserAssetLibrary;
+struct Main;
+
 namespace blender::asset_system {
+
+/**
+ * Ensures the remote library cache directory exists, and calls Python downloader through
+ * application handler. Doesn't do anything if a download with the library's URL is already
+ * ongoing.
+ */
+void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_definition);
 
 /**
  * Status information about an externally loaded asset library listing, stored globally.

@@ -4258,9 +4258,9 @@ static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
   }
 }
 
-static const bUserAssetLibrary *lookup_remote_library(const FileListReadJob *job_params)
+static bUserAssetLibrary *lookup_remote_library(const FileListReadJob *job_params)
 {
-  const bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
+  bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
       &U, job_params->filelist->asset_library_ref->custom_library_index);
   if (!library && !(library->flag & ASSET_LIBRARY_USE_REMOTE_URL)) {
     return nullptr;
@@ -4298,6 +4298,17 @@ static void filelist_remote_asset_library_update_loading_flags(FileListReadJob *
 
 static void filelist_start_job_remote_asset_library(FileListReadJob *job_params)
 {
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  if (bUserAssetLibrary *library = lookup_remote_library(job_params)) {
+    /* Check if the library's cache directory exists, otherwise, request download. */
+    if (!BLI_is_dir(library->dirpath)) {
+      blender::asset_system::remote_library_request_download(*job_params->current_main, *library);
+    }
+  }
   filelist_remote_asset_library_update_loading_flags(job_params);
 }
 

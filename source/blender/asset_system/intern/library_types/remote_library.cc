@@ -6,11 +6,17 @@
  * \ingroup asset_system
  */
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
 
 #include "BLT_translation.hh"
 
+#include "BKE_global.hh"
+
 #include "DNA_userdef_types.h"
+
+#include "RNA_access.hh"
+#include "RNA_prototypes.hh"
 
 #include "AS_remote_library.hh"
 #include "remote_library.hh"
@@ -241,5 +247,33 @@ bool RemoteLibraryLoadingStatus::handle_timeout(const StringRef url)
 }
 
 /** \} */
+
+void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_definition)
+{
+  BLI_assert(library_definition.flag & ASSET_LIBRARY_USE_REMOTE_URL);
+  /* Ensure we don't attempt to download anything when online access is disabled. Caller should
+   * check. */
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  /* Remote library is already downloading. */
+  if (RemoteLibraryLoadingStatus::status(library_definition.remote_url) ==
+      RemoteLibraryLoadingStatus::Loading)
+  {
+    return;
+  }
+
+  /* Returns true if the directory exists, also if it pre-existed. */
+  if (!BLI_dir_create_recursive(library_definition.dirpath)) {
+    return;
+  }
+
+  PointerRNA lib_ptr = RNA_pointer_create_discrete(
+      nullptr, &RNA_UserAssetLibrary, &library_definition);
+  PointerRNA *lib_ptr_arr[] = {&lib_ptr};
+  BKE_callback_exec(&bmain, lib_ptr_arr, 1, BKE_CB_EVT_REMOTE_ASSET_LIBRARIES_SYNC);
+}
 
 }  // namespace blender::asset_system

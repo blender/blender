@@ -9,6 +9,8 @@
 #include <cstring>
 #include <fmt/format.h>
 
+#include "AS_remote_library.hh"
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
@@ -193,13 +195,8 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
   U.active_asset_library = BLI_findindex(&U.asset_libraries, new_library);
   U.runtime.is_dirty = true;
 
-  {
-    PointerRNA new_repo_ptr = RNA_pointer_create_discrete(
-        nullptr, &RNA_UserAssetLibrary, new_library);
-    PointerRNA *pointers[] = {&new_repo_ptr};
-
-    BKE_callback_exec(
-        CTX_data_main(C), pointers, ARRAY_SIZE(pointers), BKE_CB_EVT_REMOTE_ASSET_LIBRARIES_SYNC);
+  if (new_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+    blender::asset_system::remote_library_request_download(*CTX_data_main(C), *new_library);
   }
 
   /* There's no dedicated notifier for the Preferences. */

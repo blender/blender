@@ -6,6 +6,10 @@ set(INC
   PUBLIC .
   intern
   intern/library_types
+  ../makesrna
+
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -82,3 +86,6 @@ if(WITH_GTESTS)
     "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}" "${TEST_COMMON_SRC}"
   )
 endif()
+
+# RNA_prototypes.hh dna_type_offsets.h
+add_dependencies(bf_asset_system bf_rna)

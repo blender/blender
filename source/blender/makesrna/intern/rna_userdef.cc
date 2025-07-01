@@ -183,6 +183,8 @@ static const EnumPropertyItem rna_enum_preferences_extension_repo_source_type_it
 
 #ifdef RNA_RUNTIME
 
+#  include "AS_remote_library.hh"
+
 #  include "BLI_math_vector.h"
 #  include "BLI_memory_cache.hh"
 #  include "BLI_string_utils.hh"
@@ -384,7 +386,7 @@ static void rna_userdef_asset_library_remote_sync_update(bContext *C, PointerRNA
   AssetLibraryReference library_ref = blender::ed::asset::user_library_to_library_ref(*library);
   /* Make sure all visible instances of this asset library will be refreshed. */
   blender::ed::asset::list::clear(&library_ref, C);
-  BKE_callback_exec(CTX_data_main(C), &ptr, 1, BKE_CB_EVT_REMOTE_ASSET_LIBRARIES_SYNC);
+  blender::asset_system::remote_library_request_download(*CTX_data_main(C), *library);
   rna_userdef_asset_library_clear_update(C, ptr);
 }
 
