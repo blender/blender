@@ -615,6 +615,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         "msgid": ((("msgctxt",), _ctxt_to_ctxt),
                   ),
         "message": (),
+        "label": (),
         "heading": ((("heading_ctxt",), _ctxt_to_ctxt),),
         "placeholder": ((("text_ctxt",), _ctxt_to_ctxt),),
     }
@@ -664,6 +665,16 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         func_translate_args[func_id] = pgettext_variants_args
         for sub_func_id in func_ids:
             func_translate_args[sub_func_id] = pgettext_variants_args
+    # Manually add functions from node_add_menu.py.
+    for func_id, arg_pos in (
+            ("add_node_type", 3),
+            ("add_node_type_with_outputs", 5),
+            ("add_simulation_zone", 1),
+            ("add_repeat_zone", 1),
+            ("add_foreach_geometry_element_zone", 1),
+            ("add_closure_zone", 1),
+    ):
+        func_translate_args[func_id] = {"label": (arg_pos, {})}
     # print(func_translate_args)
 
     # Break recursive nodes look up on some kind of nodes.
@@ -710,7 +721,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                 # Skip function if it's marked as not translatable.
                 do_translate = True
                 for kw in node.keywords:
-                    if kw.arg == "translate" and not kw.value.value:
+                    if kw.arg == "translate" and not getattr(kw.value, "value", False):
                         do_translate = False
                         break
                 if not do_translate:
