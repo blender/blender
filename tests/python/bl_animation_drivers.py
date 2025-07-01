@@ -236,6 +236,11 @@ class SubDataDriverRemovalTest(AbstractEmptyDriverTest, unittest.TestCase):
         self.assertEqual(len(pose_bone.constraints), 1)
         arm_ob.driver_add('pose.bones["test"].constraints["test"].distance')
         self.assertEqual(len(arm_ob.animation_data.drivers), 1)
+
+        # To do a proper test, the depsgraph needs to be evaluated between adding
+        # the data and removing it. This causes depsgraph nodes to be built, which
+        # have to be removed as well. See #141243
+        bpy.context.evaluated_depsgraph_get()
         pose_bone.constraints.remove(constraint)
         self.assertEqual(len(pose_bone.constraints), 0)
         self.assertEqual(len(arm_ob.animation_data.drivers), 0,

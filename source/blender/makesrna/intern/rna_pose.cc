@@ -398,6 +398,7 @@ static void rna_PoseChannel_constraints_remove(
   con_ptr->invalidate();
 
   blender::ed::object::constraint_update(bmain, ob);
+  DEG_relations_tag_update(bmain);
 
   /* XXX(@ideasman42): is this really needed? */
   BKE_constraints_active_set(&pchan->constraints, nullptr);
