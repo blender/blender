@@ -109,7 +109,7 @@ static bool vertex_paint_from_weight(Object &ob)
   const GVArray vertex_group = *attributes.lookup(
       deform_group->name,
       bke::AttrDomain::Point,
-      bke::cpp_type_to_custom_data_type(color_attribute.varray.type()));
+      bke::cpp_type_to_attribute_type(color_attribute.varray.type()));
   if (!vertex_group) {
     BLI_assert_unreachable();
     return false;

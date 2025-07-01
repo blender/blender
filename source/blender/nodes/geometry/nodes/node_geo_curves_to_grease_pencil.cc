@@ -133,7 +133,7 @@ static GreasePencil *curve_instances_to_grease_pencil_layers(
     if (iter.is_builtin && !grease_pencil_attributes.is_builtin(iter.name)) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (ELEM(iter.name, "opacity")) {

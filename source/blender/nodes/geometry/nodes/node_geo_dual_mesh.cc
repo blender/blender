@@ -161,7 +161,7 @@ static void transfer_attributes(
       /* Edges and Face Corners. */
       out_domain = src.domain;
     }
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(src.varray.type());
+    const bke::AttrType data_type = bke::cpp_type_to_attribute_type(src.varray.type());
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, out_domain, data_type);
     if (!dst) {

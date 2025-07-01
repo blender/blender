@@ -94,7 +94,7 @@ bool has_anything_selected(const PointCloud &pointcloud)
 }
 
 bke::GSpanAttributeWriter ensure_selection_attribute(PointCloud &pointcloud,
-                                                     eCustomDataType create_type)
+                                                     bke::AttrType create_type)
 {
   const bke::AttrDomain selection_domain = bke::AttrDomain::Point;
   const StringRef attribute_name = ".selection";
@@ -105,16 +105,16 @@ bke::GSpanAttributeWriter ensure_selection_attribute(PointCloud &pointcloud,
   }
   const int domain_size = pointcloud.totpoint;
   switch (create_type) {
-    case CD_PROP_BOOL:
+    case bke::AttrType::Bool:
       attributes.add(attribute_name,
                      selection_domain,
-                     CD_PROP_BOOL,
+                     bke::AttrType::Bool,
                      bke::AttributeInitVArray(VArray<bool>::ForSingle(true, domain_size)));
       break;
-    case CD_PROP_FLOAT:
+    case bke::AttrType::Float:
       attributes.add(attribute_name,
                      selection_domain,
-                     CD_PROP_FLOAT,
+                     bke::AttrType::Float,
                      bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, domain_size)));
       break;
     default:
@@ -176,7 +176,8 @@ static void select_all(PointCloud &pointcloud, const IndexMask &mask, int action
     }
   }
 
-  bke::GSpanAttributeWriter selection = ensure_selection_attribute(pointcloud, CD_PROP_BOOL);
+  bke::GSpanAttributeWriter selection = ensure_selection_attribute(pointcloud,
+                                                                   bke::AttrType::Bool);
   if (action == SEL_SELECT) {
     fill_selection_true(selection.span, mask);
   }
@@ -199,7 +200,8 @@ static bool apply_selection_operation(PointCloud &pointcloud,
                                       eSelectOp sel_op)
 {
   bool changed = false;
-  bke::GSpanAttributeWriter selection = ensure_selection_attribute(pointcloud, CD_PROP_BOOL);
+  bke::GSpanAttributeWriter selection = ensure_selection_attribute(pointcloud,
+                                                                   bke::AttrType::Bool);
   if (sel_op == SEL_OP_SET) {
     fill_selection_false(selection.span, IndexRange(selection.span.size()));
     changed = true;

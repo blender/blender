@@ -74,7 +74,7 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
 
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   attributes.foreach_attribute([&](const AttributeIter &iter) {
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (iter.domain != AttrDomain::Corner) {

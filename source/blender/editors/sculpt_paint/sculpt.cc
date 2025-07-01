@@ -5187,7 +5187,7 @@ void flush_update_done(const bContext *C, Object &ob, const UpdateType update_ty
 static void replace_attribute(const bke::AttributeAccessor src_attributes,
                               const StringRef name,
                               const bke::AttrDomain domain,
-                              const eCustomDataType data_type,
+                              const bke::AttrType data_type,
                               bke::MutableAttributeAccessor dst_attributes)
 {
   dst_attributes.remove(name);
@@ -5353,7 +5353,7 @@ void store_mesh_from_eval(const wmOperator &op,
       replace_attribute(new_mesh->attributes(),
                         ".sculpt_mask",
                         bke::AttrDomain::Point,
-                        CD_PROP_FLOAT,
+                        bke::AttrType::Float,
                         mesh.attributes_for_write());
       pbvh.tag_masks_changed(leaf_nodes);
       BKE_mesh_copy_parameters(&mesh, new_mesh);
@@ -5366,7 +5366,7 @@ void store_mesh_from_eval(const wmOperator &op,
       replace_attribute(new_mesh->attributes(),
                         ".sculpt_face_set",
                         bke::AttrDomain::Face,
-                        CD_PROP_INT32,
+                        bke::AttrType::Int32,
                         mesh.attributes_for_write());
       pbvh.tag_face_sets_changed(leaf_nodes);
       BKE_mesh_copy_parameters(&mesh, new_mesh);

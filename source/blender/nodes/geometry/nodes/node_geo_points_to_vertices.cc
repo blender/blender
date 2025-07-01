@@ -64,7 +64,7 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
 
   for (MapItem<StringRef, AttributeDomainAndType> entry : attributes.items()) {
     const StringRef id = entry.key;
-    const eCustomDataType data_type = entry.value.data_type;
+    const bke::AttrType data_type = entry.value.data_type;
     const GAttributeReader src = src_attributes.lookup(id);
     if (selection.size() == points->totpoint && src.sharing_info && src.varray.is_span()) {
       const bke::AttributeInitShared init(src.varray.get_internal_span().data(),

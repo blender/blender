@@ -1159,7 +1159,7 @@ static void duplicate_layer_and_frames(GreasePencil &dst_grease_pencil,
       bke::GAttributeWriter writer = dst_attributes.lookup_or_add_for_write(
           iter.name, iter.domain, iter.data_type);
       if (writer) {
-        const CPPType &cpptype = *bke::custom_data_type_to_cpp_type(iter.data_type);
+        const CPPType &cpptype = bke::attribute_type_to_cpp_type(iter.data_type);
         BUFFER_FOR_CPP_TYPE_VALUE(cpptype, buffer);
         reader.varray.get(src_layer_index, buffer);
         writer.varray.set_by_copy(dst_layer_index, buffer);

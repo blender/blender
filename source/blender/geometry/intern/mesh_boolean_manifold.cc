@@ -177,20 +177,20 @@ static void dump_mesh(const Mesh *mesh, const std::string &name)
     const char *domain = (di >= 0 && di < ATTR_DOMAIN_NUM) ? domain_names[di] : "?";
     std::string label = std::string(domain) + ": " + iter.name;
     switch (iter.data_type) {
-      case CD_PROP_FLOAT: {
+      case bke::AttrType::Float: {
         VArraySpan<float> floatspan(*attrs.lookup<float>(iter.name));
         dump_span(floatspan, label);
       } break;
-      case CD_PROP_INT32:
-      case CD_PROP_BOOL: {
+      case bke::AttrType::Int32:
+      case bke::AttrType::Bool: {
         const VArraySpan<int> intspan(*attrs.lookup<int>(iter.name));
         dump_span(intspan, label);
       } break;
-      case CD_PROP_FLOAT3: {
+      case bke::AttrType::Float3: {
         const VArraySpan<float3> float3span(*attrs.lookup<float3>(iter.name));
         dump_span(float3span, label);
       } break;
-      case CD_PROP_FLOAT2: {
+      case bke::AttrType::Float2: {
         const VArraySpan<float2> float2span(*attrs.lookup<float2>(iter.name));
         dump_span(float2span, label);
       } break;

@@ -154,7 +154,7 @@ static void modify_curves(ModifierData &md,
   }
 
   ImplicitSharingPtrAndData old_positions_data = save_shared_attribute(
-      curves.attributes().lookup("position", CD_PROP_FLOAT3));
+      curves.attributes().lookup("position", bke::AttrType::Float3));
   Span<float3> old_positions = {static_cast<const float3 *>(old_positions_data.data),
                                 curves.points_num()};
 

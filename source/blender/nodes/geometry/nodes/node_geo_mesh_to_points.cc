@@ -99,8 +99,8 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   }
 
   MutableAttributeAccessor dst_attributes = pointcloud->attributes_for_write();
-  GSpanAttributeWriter radius = dst_attributes.lookup_or_add_for_write_only_span(
-      "radius", AttrDomain::Point, CD_PROP_FLOAT);
+  SpanAttributeWriter radius = dst_attributes.lookup_or_add_for_write_only_span<float>(
+      "radius", AttrDomain::Point);
   array_utils::gather(evaluator.get_evaluated(1), selection, radius.span);
   radius.finish();
 
@@ -115,7 +115,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
 
   for (MapItem<StringRef, AttributeDomainAndType> entry : attributes.items()) {
     const StringRef attribute_id = entry.key;
-    const eCustomDataType data_type = entry.value.data_type;
+    const bke::AttrType data_type = entry.value.data_type;
     const bke::GAttributeReader src = src_attributes.lookup(attribute_id, domain, data_type);
     if (!src) {
       /* Domain interpolation can fail if the source domain is empty. */

@@ -167,7 +167,7 @@ static bool foreach_vertex_group(const void *owner, FunctionRef<void(const Attri
     const auto get_fn = [&]() {
       return reader_for_vertex_group_index(*curves, dverts, group_index);
     };
-    AttributeIter iter{group->name, AttrDomain::Point, CD_PROP_FLOAT, get_fn};
+    AttributeIter iter{group->name, AttrDomain::Point, bke::AttrType::Float, get_fn};
     fn(iter);
     if (iter.is_stopped()) {
       return false;
@@ -308,9 +308,7 @@ static AttributeAccessorFunctions get_curves_accessor_functions()
     if (!info) {
       return std::nullopt;
     }
-    const std::optional<eCustomDataType> cd_type = attr_type_to_custom_data_type(info->type);
-    BLI_assert(cd_type.has_value());
-    return AttributeDomainAndType{info->domain, *cd_type};
+    return AttributeDomainAndType{info->domain, info->type};
   };
   fn.get_builtin_default = [](const void * /*owner*/, StringRef name) -> GPointer {
     const AttrBuiltinInfo &info = builtin_attributes().lookup(name);
@@ -355,10 +353,7 @@ static AttributeAccessorFunctions get_curves_accessor_functions()
         const int domain_size = get_domain_size(owner, attr.domain());
         return attribute_to_reader(attr, attr.domain(), domain_size);
       };
-      const std::optional<eCustomDataType> cd_type = attr_type_to_custom_data_type(
-          attr.data_type());
-      BLI_assert(cd_type.has_value());
-      AttributeIter iter(attr.name(), attr.domain(), *cd_type, get_fn);
+      AttributeIter iter(attr.name(), attr.domain(), attr.data_type(), get_fn);
       iter.is_builtin = builtin_attributes().contains(attr.name());
       iter.accessor = &accessor;
       fn(iter);
@@ -413,13 +408,11 @@ static AttributeAccessorFunctions get_curves_accessor_functions()
   fn.add = [](void *owner,
               const StringRef name,
               const AttrDomain domain,
-              const eCustomDataType data_type,
+              const AttrType type,
               const AttributeInit &initializer) {
     CurvesGeometry &curves = *static_cast<CurvesGeometry *>(owner);
     const int domain_size = get_domain_size(owner, domain);
     AttributeStorage &storage = curves.attribute_storage.wrap();
-    const std::optional<AttrType> type = custom_data_type_to_attr_type(data_type);
-    BLI_assert(type.has_value());
     if (const AttrBuiltinInfo *info = builtin_attributes().lookup_ptr(name)) {
       if (info->domain != domain || info->type != type) {
         return false;
@@ -428,8 +421,8 @@ static AttributeAccessorFunctions get_curves_accessor_functions()
     if (storage.lookup(name)) {
       return false;
     }
-    Attribute::DataVariant data = attribute_init_to_data(*type, domain_size, initializer);
-    storage.add(name, domain, *type, std::move(data));
+    Attribute::DataVariant data = attribute_init_to_data(type, domain_size, initializer);
+    storage.add(name, domain, type, std::move(data));
     return true;
   };
 

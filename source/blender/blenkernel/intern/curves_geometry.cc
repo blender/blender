@@ -1646,7 +1646,7 @@ void CurvesGeometry::reverse_curves(const IndexMask &curves_to_reverse)
     if (iter.domain != AttrDomain::Point) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (bezier_handle_names.contains(iter.name)) {

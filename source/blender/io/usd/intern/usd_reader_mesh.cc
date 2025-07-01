@@ -771,7 +771,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
     }
 
     /* Read Color primvars. */
-    if (convert_usd_type_to_blender(type) == CD_PROP_COLOR) {
+    if (convert_usd_type_to_blender(type) == bke::AttrType::ColorFloat) {
       if ((settings->read_flag & MOD_MESHSEQ_READ_COLOR) != 0) {
         /* Set the active color name to 'displayColor', if a color primvar
          * with this name exists.  Otherwise, use the name of the first
@@ -789,7 +789,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
                   pxr::UsdGeomTokens->vertex,
                   pxr::UsdGeomTokens->faceVarying,
                   pxr::UsdGeomTokens->varying) &&
-             convert_usd_type_to_blender(type) == CD_PROP_FLOAT2)
+             convert_usd_type_to_blender(type) == bke::AttrType::Float2)
     {
       if ((settings->read_flag & MOD_MESHSEQ_READ_UV) != 0) {
         /* Set the active uv set name to 'st', if a uv set primvar

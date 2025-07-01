@@ -64,7 +64,7 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     if (iter.domain == bke::AttrDomain::Point) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (attribute_filter_with_skip.allow_skip(iter.name)) {
@@ -303,7 +303,7 @@ bke::CurvesGeometry mesh_faces_to_curves_convert(const Mesh &mesh,
     if (iter.domain != bke::AttrDomain::Edge) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (attribute_filter_with_skip.allow_skip(iter.name)) {

@@ -2693,7 +2693,7 @@ static wmOperatorStatus grease_pencil_paste_strokes_exec(bContext *C, wmOperator
   /* Make sure everything on the clipboard is selected, in the correct selection domain. */
   threading::parallel_for_each(clipboard.layers, [&](Clipboard::ClipboardLayer &layer) {
     bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-        layer.curves, selection_domain, CD_PROP_BOOL);
+        layer.curves, selection_domain, bke::AttrType::Bool);
     selection.finish();
   });
 
@@ -2713,7 +2713,7 @@ static wmOperatorStatus grease_pencil_paste_strokes_exec(bContext *C, wmOperator
     const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
     threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
       bke::GSpanAttributeWriter selection_in_target = ed::curves::ensure_selection_attribute(
-          info.drawing.strokes_for_write(), selection_domain, CD_PROP_BOOL);
+          info.drawing.strokes_for_write(), selection_domain, bke::AttrType::Bool);
       ed::curves::fill_selection_false(selection_in_target.span);
       selection_in_target.finish();
     });
@@ -2773,7 +2773,7 @@ static wmOperatorStatus grease_pencil_paste_strokes_exec(bContext *C, wmOperator
     const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
     threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
       bke::GSpanAttributeWriter selection_in_target = ed::curves::ensure_selection_attribute(
-          info.drawing.strokes_for_write(), selection_domain, CD_PROP_BOOL);
+          info.drawing.strokes_for_write(), selection_domain, bke::AttrType::Bool);
       ed::curves::fill_selection_false(selection_in_target.span);
       selection_in_target.finish();
     });
@@ -3056,7 +3056,7 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
        ed::curves::get_curves_selection_attribute_names(src))
   {
     bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-        dst, bke::AttrDomain::Point, CD_PROP_BOOL, selection_attribute_name);
+        dst, bke::AttrDomain::Point, bke::AttrType::Bool, selection_attribute_name);
     selection.span.copy_from(dst_selected.as_span());
     selection.finish();
   }
@@ -4803,13 +4803,13 @@ static bke::AttributeStorage merge_attributes(const bke::AttributeAccessor &a,
                                               const bke::AttributeAccessor &b,
                                               const int dst_size)
 {
-  Map<std::string, eCustomDataType> new_types;
+  Map<std::string, bke::AttrType> new_types;
   const auto add_or_upgrade_types = [&](const bke::AttributeAccessor &attributes) {
     attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
       new_types.add_or_modify(
           iter.name,
-          [&](eCustomDataType *value) { *value = iter.data_type; },
-          [&](eCustomDataType *value) {
+          [&](bke::AttrType *value) { *value = iter.data_type; },
+          [&](bke::AttrType *value) {
             *value = bke::attribute_data_type_highest_complexity({*value, iter.data_type});
           });
     });
@@ -4820,7 +4820,7 @@ static bke::AttributeStorage merge_attributes(const bke::AttributeAccessor &a,
 
   bke::AttributeStorage new_storage;
   for (const auto &[name, type] : new_types.items()) {
-    const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(type);
+    const CPPType &cpp_type = bke::attribute_type_to_cpp_type(type);
     auto new_data = bke::Attribute::ArrayData::ForUninitialized(cpp_type, dst_size);
 
     const GVArray data_a = *a.lookup_or_default(name, bke::AttrDomain::Layer, type);
@@ -4830,10 +4830,7 @@ static bke::AttributeStorage merge_attributes(const bke::AttributeAccessor &a,
     data_b.materialize_to_uninitialized(
         POINTER_OFFSET(new_data.data, cpp_type.size * domain_size_a));
 
-    new_storage.add(name,
-                    bke::AttrDomain::Layer,
-                    *bke::custom_data_type_to_attr_type(type),
-                    std::move(new_data));
+    new_storage.add(name, bke::AttrDomain::Layer, type, std::move(new_data));
   }
 
   return new_storage;

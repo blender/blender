@@ -16,7 +16,7 @@
 
 namespace blender::draw {
 
-GPUVertFormat init_format_for_attribute(const eCustomDataType data_type, const StringRef vbo_name)
+GPUVertFormat init_format_for_attribute(const bke::AttrType data_type, const StringRef vbo_name)
 {
   GPUVertFormat format{};
   bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {

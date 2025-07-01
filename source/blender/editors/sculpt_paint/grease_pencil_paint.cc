@@ -1511,7 +1511,7 @@ static void deselect_stroke(const bContext &C,
       scene->toolsettings);
 
   bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-      curves, selection_domain, CD_PROP_BOOL);
+      curves, selection_domain, bke::AttrType::Bool);
 
   if (selection_domain == bke::AttrDomain::Curve) {
     ed::curves::fill_selection_false(selection.span.slice(IndexRange::from_single(active_curve)));

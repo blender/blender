@@ -132,7 +132,7 @@ void reverse_points_of(bke::CurvesGeometry &dst_curves, const IndexRange points_
     if (iter.domain != bke::AttrDomain::Point) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
 
@@ -523,7 +523,7 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
   append_strokes_from(std::move(tmp_curves), dst_curves);
 
   bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-      dst_curves, selection_domain, CD_PROP_BOOL);
+      dst_curves, selection_domain, bke::AttrType::Bool);
 
   if (selection_domain == bke::AttrDomain::Curve) {
     ed::curves::fill_selection_true(selection.span.take_back(tmp_curves.curves_num()));

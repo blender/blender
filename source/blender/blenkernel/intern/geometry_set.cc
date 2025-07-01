@@ -728,7 +728,7 @@ void GeometrySet::gather_attributes_for_propagation(
             return;
           }
         }
-        if (meta_data.data_type == CD_PROP_STRING) {
+        if (meta_data.data_type == AttrType::String) {
           /* Propagating string attributes is not supported yet. */
           return;
         }

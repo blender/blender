@@ -265,7 +265,7 @@ static bke::CurvesGeometry extrude_curves(const bke::CurvesGeometry &curves,
     dst_selections[selection_i] = ensure_selection_attribute(
         new_curves,
         bke::AttrDomain::Point,
-        src_selection_array.type().is<bool>() ? CD_PROP_BOOL : CD_PROP_FLOAT,
+        src_selection_array.type().is<bool>() ? bke::AttrType::Bool : bke::AttrType::Float,
         selection_name);
   }
 

@@ -809,7 +809,7 @@ static wmOperatorStatus curves_set_selection_domain_exec(bContext *C, wmOperator
         attributes.remove(selection_name);
         if (!attributes.add(selection_name,
                             domain,
-                            bke::cpp_type_to_custom_data_type(type),
+                            bke::cpp_type_to_attribute_type(type),
                             bke::AttributeInitMoveArray(dst)))
         {
           MEM_freeN(dst);
@@ -913,7 +913,7 @@ static wmOperatorStatus select_random_exec(bContext *C, wmOperator *op)
 
     const bool was_anything_selected = has_anything_selected(curves);
     bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-        curves, selection_domain, CD_PROP_BOOL);
+        curves, selection_domain, bke::AttrType::Bool);
     if (!was_anything_selected) {
       curves::fill_selection_true(selection.span);
     }
@@ -984,7 +984,7 @@ static wmOperatorStatus select_ends_exec(bContext *C, wmOperator *op)
 
     const bool was_anything_selected = has_anything_selected(curves);
     bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-        curves, bke::AttrDomain::Point, CD_PROP_BOOL);
+        curves, bke::AttrDomain::Point, bke::AttrType::Bool);
     if (!was_anything_selected) {
       fill_selection_true(selection.span);
     }

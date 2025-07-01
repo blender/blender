@@ -20,7 +20,7 @@ using bke::AttrDomain;
 
 struct PropagationAttribute {
   StringRef name;
-  eCustomDataType cd_type;
+  bke::AttrType data_type;
   AttrDomain domain;
   GVArray data;
 };
@@ -36,7 +36,7 @@ Array<Mesh *> extract_mesh_vertices(const Mesh &mesh,
 
   Vector<PropagationAttribute> propagation_attributes;
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (attribute_filter.allow_skip(iter.name)) {
@@ -57,7 +57,7 @@ Array<Mesh *> extract_mesh_vertices(const Mesh &mesh,
 
     for (const PropagationAttribute &src_attribute : propagation_attributes) {
       bke::GSpanAttributeWriter dst = element_attributes.lookup_or_add_for_write_only_span(
-          src_attribute.name, AttrDomain::Point, src_attribute.cd_type);
+          src_attribute.name, AttrDomain::Point, src_attribute.data_type);
       if (!dst) {
         continue;
       }
@@ -83,7 +83,7 @@ Array<Mesh *> extract_mesh_edges(const Mesh &mesh,
 
   Vector<PropagationAttribute> propagation_attributes;
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (iter.name == ".edge_verts") {
@@ -126,7 +126,7 @@ Array<Mesh *> extract_mesh_edges(const Mesh &mesh,
     bke::MutableAttributeAccessor element_attributes = element->attributes_for_write();
     for (const PropagationAttribute &src_attribute : propagation_attributes) {
       bke::GSpanAttributeWriter dst = element_attributes.lookup_or_add_for_write_only_span(
-          src_attribute.name, src_attribute.domain, src_attribute.cd_type);
+          src_attribute.name, src_attribute.domain, src_attribute.data_type);
       if (!dst) {
         continue;
       }
@@ -160,7 +160,7 @@ Array<Mesh *> extract_mesh_faces(const Mesh &mesh,
 
   Vector<PropagationAttribute> propagation_attributes;
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (ELEM(iter.name, ".edge_verts", ".corner_edge", ".corner_vert")) {
@@ -201,7 +201,7 @@ Array<Mesh *> extract_mesh_faces(const Mesh &mesh,
     bke::MutableAttributeAccessor element_attributes = element->attributes_for_write();
     for (const PropagationAttribute &src_attribute : propagation_attributes) {
       bke::GSpanAttributeWriter dst = element_attributes.lookup_or_add_for_write_only_span(
-          src_attribute.name, src_attribute.domain, src_attribute.cd_type);
+          src_attribute.name, src_attribute.domain, src_attribute.data_type);
       if (!dst) {
         continue;
       }

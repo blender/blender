@@ -88,8 +88,8 @@ static void mix_attributes(bke::MutableAttributeAccessor attributes_a,
     if (domain != mix_domain) {
       continue;
     }
-    const eCustomDataType type = bke::cpp_type_to_custom_data_type(attribute_a.varray.type());
-    if (ELEM(type, CD_PROP_STRING, CD_PROP_BOOL)) {
+    const bke::AttrType type = bke::cpp_type_to_attribute_type(attribute_a.varray.type());
+    if (ELEM(type, bke::AttrType::String, bke::AttrType::Bool)) {
       /* String attributes can't be mixed, and there's no point in mixing boolean attributes. */
       continue;
     }

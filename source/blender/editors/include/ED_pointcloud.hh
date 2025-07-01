@@ -16,7 +16,6 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector_set.hh"
 
-#include "DNA_customdata_types.h"
 #include "DNA_windowmanager_enums.h"
 
 struct ARegion;
@@ -28,6 +27,7 @@ struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
 namespace blender::bke {
+enum class AttrType : int16_t;
 struct GSpanAttributeWriter;
 }  // namespace blender::bke
 namespace blender {
@@ -78,7 +78,7 @@ void select_all(PointCloud &pointcloud, int action);
  * If the selection_id attribute doesn't exist, create it with the requested type (bool or float).
  */
 bke::GSpanAttributeWriter ensure_selection_attribute(PointCloud &pointcloud,
-                                                     eCustomDataType create_type);
+                                                     bke::AttrType create_type);
 
 bool select_box(PointCloud &pointcloud,
                 const ARegion &region,

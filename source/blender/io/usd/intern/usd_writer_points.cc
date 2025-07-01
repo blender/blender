@@ -84,7 +84,7 @@ void USDPointsWriter::write_generic_data(const bke::AttributeIter &attr,
                 "Attribute '%s' (Blender domain %d, type %d) cannot be converted to USD",
                 attr.name.c_str(),
                 int(attr.domain),
-                attr.data_type);
+                int(attr.data_type));
     return;
   }
 

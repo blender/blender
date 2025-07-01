@@ -15,6 +15,7 @@
 #include "draw_view.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_customdata.hh"
 #include "BKE_material.hh"
 #include "BKE_object.hh"
@@ -148,7 +149,8 @@ static bool bmesh_attribute_exists(const BMesh &bm,
                                    const StringRef name)
 {
   const CustomData *cdata = get_cdata(bm, meta_data.domain);
-  return cdata && CustomData_get_offset_named(cdata, meta_data.data_type, name) != -1;
+  return cdata && CustomData_get_offset_named(
+                      cdata, *bke::attr_type_to_custom_data_type(meta_data.data_type), name) != -1;
 }
 
 Vector<SculptBatch> sculpt_batches_get(const Object *ob, SculptBatchFeature features)

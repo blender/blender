@@ -873,7 +873,7 @@ void LazyFunctionForReduceForeachGeometryElement::handle_main_items_and_geometry
     if (!base_cpp_type) {
       continue;
     }
-    const eCustomDataType cd_type = bke::cpp_type_to_custom_data_type(*base_cpp_type);
+    const bke::AttrType cd_type = bke::cpp_type_to_attribute_type(*base_cpp_type);
 
     /* Compute output attribute name for this item. */
     const std::string attribute_name = bke::hash_to_anonymous_attribute_name(
@@ -1036,11 +1036,11 @@ void LazyFunctionForReduceForeachGeometryElement::handle_generation_items_group(
     /* These are the attributes we need to propagate from the original input geometry. */
     struct NameWithType {
       StringRef name;
-      eCustomDataType type;
+      bke::AttrType type;
     };
     Vector<NameWithType> attributes_to_propagate;
     src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-      if (iter.data_type == CD_PROP_STRING) {
+      if (iter.data_type == bke::AttrType::String) {
         return;
       }
       if (attribute_filter.allow_skip(iter.name)) {
@@ -1084,7 +1084,7 @@ void LazyFunctionForReduceForeachGeometryElement::handle_generation_items_group(
         /* Propagate attributes from the input geometry. */
         for (const NameWithType &name_with_type : attributes_to_propagate) {
           const StringRef name = name_with_type.name;
-          const eCustomDataType cd_type = name_with_type.type;
+          const bke::AttrType data_type = name_with_type.type;
           if (src_attributes.is_builtin(name) && !dst_attributes.is_builtin(name)) {
             continue;
           }
@@ -1108,7 +1108,8 @@ void LazyFunctionForReduceForeachGeometryElement::handle_generation_items_group(
 
           /* Actually create the attribute. */
           bke::GSpanAttributeWriter dst_attribute =
-              dst_attributes.lookup_or_add_for_write_only_span(name, *propagation_domain, cd_type);
+              dst_attributes.lookup_or_add_for_write_only_span(
+                  name, *propagation_domain, data_type);
           type.fill_assign_n(element_value, dst_attribute.span.data(), dst_attribute.span.size());
           dst_attribute.finish();
 

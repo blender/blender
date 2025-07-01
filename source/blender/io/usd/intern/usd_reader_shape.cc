@@ -211,8 +211,8 @@ void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const double motionSampl
       continue;
     }
 
-    const std::optional<eCustomDataType> type = convert_usd_type_to_blender(pv_type);
-    if (type == CD_PROP_COLOR) {
+    const std::optional<bke::AttrType> type = convert_usd_type_to_blender(pv_type);
+    if (type == bke::AttrType::String) {
       /* Set the active color name to 'displayColor', if a color primvar
        * with this name exists.  Otherwise, use the name of the first
        * color primvar we find for the active color. */

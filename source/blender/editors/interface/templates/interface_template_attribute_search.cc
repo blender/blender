@@ -16,6 +16,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 
 #include "NOD_geometry_nodes_log.hh"
 
@@ -45,10 +46,11 @@ static StringRef attribute_domain_string(const bke::AttrDomain domain)
 
 static bool attribute_search_item_add(uiSearchItems *items, const GeometryAttributeInfo &item)
 {
-  std::string search_item_text = fmt::format("{} " UI_MENU_ARROW_SEP "{}" UI_SEP_CHAR_S "{}",
-                                             attribute_domain_string(*item.domain),
-                                             item.name,
-                                             attribute_data_type_string(*item.data_type));
+  std::string search_item_text = fmt::format(
+      "{} " UI_MENU_ARROW_SEP "{}" UI_SEP_CHAR_S "{}",
+      attribute_domain_string(*item.domain),
+      item.name,
+      attribute_data_type_string(*bke::attr_type_to_custom_data_type(*item.data_type)));
   return UI_search_item_add(
       items, search_item_text, (void *)&item, ICON_NONE, UI_BUT_HAS_SEP_CHAR, 0);
 }

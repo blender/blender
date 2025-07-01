@@ -1964,7 +1964,7 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
     if (attribute_name_is_anonymous(iter.name)) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     const GVArraySpan src = *iter.get(AttrDomain::Layer);

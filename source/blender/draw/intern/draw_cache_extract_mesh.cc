@@ -94,7 +94,9 @@ static bool use_normals_simplify(const Scene &scene, const MeshRenderData &mr)
   if (!meta_data) {
     return false;
   }
-  if (meta_data->domain == bke::AttrDomain::Corner && meta_data->data_type == CD_PROP_INT16_2D) {
+  if (meta_data->domain == bke::AttrDomain::Corner &&
+      meta_data->data_type == bke::AttrType::Int16_2D)
+  {
     return true;
   }
   return false;

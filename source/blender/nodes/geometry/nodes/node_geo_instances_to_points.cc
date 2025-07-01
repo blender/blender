@@ -70,7 +70,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
 
   for (const auto item : attributes_to_propagate.items()) {
     const StringRef id = item.key;
-    const eCustomDataType type = item.value.data_type;
+    const bke::AttrType type = item.value.data_type;
 
     const GAttributeReader src = src_attributes.lookup(id);
     if (selection.size() == instances.instances_num() && src.sharing_info && src.varray.is_span())

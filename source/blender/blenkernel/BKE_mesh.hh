@@ -19,6 +19,7 @@
 namespace blender::bke {
 
 enum class AttrDomain : int8_t;
+enum class AttrType : int16_t;
 struct AttributeAccessorFunctions;
 
 namespace mesh {
@@ -414,7 +415,7 @@ void mesh_select_face_flush(Mesh &mesh);
 void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
                                                 StringRef id,
                                                 AttrDomain domain,
-                                                eCustomDataType data_type);
+                                                bke::AttrType data_type);
 
 void mesh_data_update(Depsgraph &depsgraph,
                       const Scene &scene,
