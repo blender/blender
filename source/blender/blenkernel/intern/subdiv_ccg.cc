@@ -1594,9 +1594,9 @@ void BKE_subdiv_ccg_grid_hidden_free(SubdivCCG &subdiv_ccg)
 
 static void subdiv_ccg_coord_to_ptex_coord(const SubdivCCG &subdiv_ccg,
                                            const SubdivCCGCoord &coord,
-                                           int *r_ptex_face_index,
-                                           float *r_u,
-                                           float *r_v)
+                                           int &r_ptex_face_index,
+                                           float &r_u,
+                                           float &r_v)
 {
   Subdiv *subdiv = subdiv_ccg.subdiv;
 
@@ -1610,17 +1610,17 @@ static void subdiv_ccg_coord_to_ptex_coord(const SubdivCCG &subdiv_ccg,
   const OffsetIndices<int> faces = subdiv_ccg.faces;
   const IndexRange face = faces[face_index];
   const int *face_ptex_offset = face_ptex_offset_get(subdiv);
-  *r_ptex_face_index = face_ptex_offset[face_index];
+  r_ptex_face_index = face_ptex_offset[face_index];
 
   const float corner = coord.grid_index - face.start();
 
   if (face.size() == 4) {
-    rotate_grid_to_quad(corner, grid_u, grid_v, r_u, r_v);
+    rotate_grid_to_quad(corner, grid_u, grid_v, &r_u, &r_v);
   }
   else {
-    *r_ptex_face_index += corner;
-    *r_u = 1.0f - grid_v;
-    *r_v = 1.0f - grid_u;
+    r_ptex_face_index += corner;
+    r_u = 1.0f - grid_v;
+    r_v = 1.0f - grid_u;
   }
 }
 
@@ -1631,7 +1631,7 @@ void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg,
   Subdiv *subdiv = subdiv_ccg.subdiv;
   int ptex_face_index;
   float u, v;
-  subdiv_ccg_coord_to_ptex_coord(subdiv_ccg, coord, &ptex_face_index, &u, &v);
+  subdiv_ccg_coord_to_ptex_coord(subdiv_ccg, coord, ptex_face_index, u, v);
   eval_limit_point(subdiv, ptex_face_index, u, v, r_point);
 }
 
