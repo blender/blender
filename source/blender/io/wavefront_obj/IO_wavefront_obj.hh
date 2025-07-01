@@ -27,7 +27,7 @@ struct OBJExportParams {
   char filepath[FILE_MAX] = "";
   /** Pretend that destination file folder is this, if non-empty. Used only for tests. */
   char file_base_for_tests[FILE_MAX] = "";
-  char collection[MAX_IDPROP_NAME] = "";
+  char collection[MAX_ID_NAME - 2] = "";
 
   /** Full path to current blender file (used for comments in output). */
   const char *blen_filepath = nullptr;

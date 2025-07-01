@@ -364,7 +364,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                   "Flatten Hierarchy",
                   "Do not preserve objects' parent/children relationship");
 
-  prop = RNA_def_string(ot->srna, "collection", nullptr, MAX_IDPROP_NAME, "Collection", nullptr);
+  prop = RNA_def_string(ot->srna, "collection", nullptr, MAX_ID_NAME - 2, "Collection", nullptr);
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_boolean(ot->srna, "uvs", true, "UV Coordinates", "Export UV coordinates");
