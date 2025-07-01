@@ -850,12 +850,23 @@ typedef struct {
 
 } GHOST_VulkanOpenXRData;
 
+/**
+ * Return argument passed to #GHOST_IContext:::getVulkanHandles.
+ *
+ * The members of this struct are assigned values.
+ */
 typedef struct {
+  /** The instance handle. */
   VkInstance instance;
+  /** The physics device handle. */
   VkPhysicalDevice physical_device;
+  /** The device handle. */
   VkDevice device;
+  /** The graphic queue family id. */
   uint32_t graphic_queue_family;
+  /** The queue handle. */
   VkQueue queue;
+  /** The #std::mutex mutex. */
   void *queue_mutex;
 } GHOST_VulkanHandles;
 

@@ -27,38 +27,25 @@ class GHOST_Event : public GHOST_IEvent {
   {
   }
 
-  /**
-   * Returns the event type.
-   * \return The event type.
-   */
+  /** \copydoc #GHOST_IEvent::getType */
   GHOST_TEventType getType() const override
   {
     return m_type;
   }
 
-  /**
-   * Returns the time this event was generated.
-   * \return The event generation time.
-   */
+  /** \copydoc #GHOST_IEvent::getTime */
   uint64_t getTime() const override
   {
     return m_time;
   }
 
-  /**
-   * Returns the window this event was generated on,
-   * or nullptr if it is a 'system' event.
-   * \return The generating window.
-   */
+  /** \copydoc #GHOST_IEvent::getWindow */
   GHOST_IWindow *getWindow() const override
   {
     return m_window;
   }
 
-  /**
-   * Returns the event data.
-   * \return The event data.
-   */
+  /** \copydoc #GHOST_IEvent::getData */
   GHOST_TEventDataPtr getData() const override
   {
     return m_data;

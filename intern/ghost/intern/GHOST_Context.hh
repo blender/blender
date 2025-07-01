@@ -43,22 +43,13 @@ class GHOST_Context : public GHOST_IContext {
     return active_context_;
   }
 
-  /**
-   * Swaps front and back buffers of a window.
-   * \return A boolean success indicator.
-   */
+  /** \copydoc #GHOST_IContext::swapBuffers */
   GHOST_TSuccess swapBuffers() override = 0;
 
-  /**
-   * Activates the drawing context of this window.
-   * \return A boolean success indicator.
-   */
+  /** \copydoc #GHOST_IContext::activateDrawingContext */
   GHOST_TSuccess activateDrawingContext() override = 0;
 
-  /**
-   * Release the drawing context of the calling thread.
-   * \return A boolean success indicator.
-   */
+  /** \copydoc #GHOST_IContext::releaseDrawingContext */
   GHOST_TSuccess releaseDrawingContext() override = 0;
 
   /**
@@ -137,57 +128,26 @@ class GHOST_Context : public GHOST_IContext {
     return false;
   }
 
-  /**
-   * Gets the OpenGL frame-buffer associated with the OpenGL context
-   * \return The ID of an OpenGL frame-buffer object.
-   */
+  /** \copydoc #GHOST_IContext::getDefaultFramebuffer */
   unsigned int getDefaultFramebuffer() override
   {
     return 0;
   }
 
 #ifdef WITH_VULKAN_BACKEND
-  /**
-   * Get Vulkan handles for the given context.
-   *
-   * These handles are the same for a given context.
-   * Should only be called when using a Vulkan context.
-   * Other contexts will not return any handles and leave the
-   * handles where the parameters are referring to unmodified.
-   *
-   * \param r_instance: After calling this function the VkInstance
-   *     referenced by this parameter will contain the VKInstance handle
-   *     of the context associated with the `context` parameter.
-   * \param r_physical_device: After calling this function the VkPhysicalDevice
-   *     referenced by this parameter will contain the VKPhysicalDevice handle
-   *     of the context associated with the `context` parameter.
-   * \param r_device: After calling this function the VkDevice
-   *     referenced by this parameter will contain the VKDevice handle
-   *     of the context associated with the `context` parameter.
-   * \param r_graphic_queue_family: After calling this function the uint32_t
-   *     referenced by this parameter will contain the graphic queue family id
-   *     of the context associated with the `context` parameter.
-   * \param r_queue: After calling this function the VkQueue
-   *     referenced by this parameter will contain the VKQueue handle
-   *     of the context associated with the `context` parameter.
-   * \param r_queue_mutex: After calling this function the std::mutex referred
-   *     by this parameter will contain the mutex of the context associated
-   *     with the context parameter.
-   * \returns GHOST_kFailure when context isn't a Vulkan context.
-   *     GHOST_kSuccess when the context is a Vulkan context and the
-   *     handles have been set.
-   */
+  /** \copydoc #GHOST_IContext::getVulkanHandles */
   virtual GHOST_TSuccess getVulkanHandles(GHOST_VulkanHandles & /* r_handles */) override
   {
     return GHOST_kFailure;
   };
-
+  /** \copydoc #GHOST_IContext::getVulkanSwapChainFormat */
   virtual GHOST_TSuccess getVulkanSwapChainFormat(
       GHOST_VulkanSwapChainData * /*r_swap_chain_data*/) override
   {
     return GHOST_kFailure;
   }
 
+  /** \copydoc #GHOST_IContext::setVulkanSwapBuffersCallbacks */
   virtual GHOST_TSuccess setVulkanSwapBuffersCallbacks(
       std::function<void(const GHOST_VulkanSwapChainData *)> /*swap_buffers_pre_callback*/,
       std::function<void(void)> /*swap_buffers_post_callback*/,
