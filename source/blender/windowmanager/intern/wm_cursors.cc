@@ -190,7 +190,7 @@ static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
 /**
  * Convert 32-bit RGBA bitmap (1-32 x 1-32) to 32x32 1bpp XBitMap bitmap and mask.
  */
-static void cursor_rgba_to_xbm_32(const blender::Array<uint8_t> rgba,
+static void cursor_rgba_to_xbm_32(const blender::Array<uint8_t> &rgba,
                                   const int bitmap_size[2],
                                   uint8_t *bitmap,
                                   uint8_t *mask)
