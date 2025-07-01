@@ -1759,7 +1759,7 @@ static bool rna_MeshUVLoop_select_get(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   int uv_map_index;
   int loop_index;
-  const bool *select = nullptr;
+  blender::VArray<bool> select;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
     select = ED_mesh_uv_map_vert_select_layer_get(mesh, uv_map_index);
   }
@@ -1772,8 +1772,10 @@ static void rna_MeshUVLoop_select_set(PointerRNA *ptr, const bool value)
   int uv_map_index;
   int loop_index;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    bool *select = ED_mesh_uv_map_vert_select_layer_ensure(mesh, uv_map_index);
-    select[loop_index] = value;
+blender::bke::AttributeWriter<bool> select = ED_mesh_uv_map_vert_select_layer_ensure(
+mesh, uv_map_index);
+    select.varray.set(loop_index, value);
+    select.finish();
   }
 }
 
@@ -1782,7 +1784,7 @@ static bool rna_MeshUVLoop_select_edge_get(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   int uv_map_index;
   int loop_index;
-  const bool *select_edge = nullptr;
+  blender::VArray<bool> select_edge;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
     select_edge = ED_mesh_uv_map_edge_select_layer_get(mesh, uv_map_index);
   }
@@ -1795,8 +1797,10 @@ static void rna_MeshUVLoop_select_edge_set(PointerRNA *ptr, const bool value)
   int uv_map_index;
   int loop_index;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    bool *select_edge = ED_mesh_uv_map_edge_select_layer_ensure(mesh, uv_map_index);
-    select_edge[loop_index] = value;
+blender::bke::AttributeWriter<bool> select_edge = ED_mesh_uv_map_edge_select_layer_ensure(
+mesh, uv_map_index);
+    select_edge.varray.set(loop_index, value);
+    select_edge.finish();
   }
 }
 
@@ -1805,7 +1809,7 @@ static bool rna_MeshUVLoop_pin_uv_get(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   int uv_map_index;
   int loop_index;
-  const bool *pin_uv = nullptr;
+  blender::VArray<bool> pin_uv;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
     pin_uv = ED_mesh_uv_map_pin_layer_get(mesh, uv_map_index);
   }
@@ -1818,8 +1822,10 @@ static void rna_MeshUVLoop_pin_uv_set(PointerRNA *ptr, const bool value)
   int uv_map_index;
   int loop_index;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    bool *pin_uv = ED_mesh_uv_map_pin_layer_ensure(mesh, uv_map_index);
-    pin_uv[loop_index] = value;
+blender::bke::AttributeWriter<bool> pin_uv = ED_mesh_uv_map_pin_layer_ensure(mesh,
+uv_map_index);
+    pin_uv.varray.set(loop_index, value);
+    pin_uv.finish();
   }
 }
 
