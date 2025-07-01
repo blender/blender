@@ -176,14 +176,14 @@ static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
   };
   scale = float(dest_size[0]) / image->width;
 
-  blender::Array<uint8_t> render_bmp(dest_size[0] * dest_size[1] * 4);
+  blender::Array<uint8_t> bitmap_rgba(dest_size[0] * dest_size[1] * 4);
 
   nsvgRasterize(rast,
                 image,
                 0.0f,
                 0.0f,
                 scale,
-                render_bmp.data(),
+                bitmap_rgba.data(),
                 dest_size[0],
                 dest_size[1],
                 dest_size[0] * 4);
@@ -194,7 +194,7 @@ static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
   r_bitmap_size[0] = dest_size[0];
   r_bitmap_size[1] = dest_size[1];
 
-  return render_bmp;
+  return bitmap_rgba;
 }
 
 /**
@@ -232,9 +232,9 @@ static bool window_set_custom_cursor(wmWindow *win, BCursor *cursor)
   const float size = std::min(cursor_size(), float(max_size));
 
   int bitmap_size[2];
-  blender::Array<uint8_t> render_bmp = cursor_bitmap_from_svg(
+  blender::Array<uint8_t> bitmap_rgba = cursor_bitmap_from_svg(
       cursor->svg_source, size, bitmap_size);
-  if (UNLIKELY(render_bmp.is_empty())) {
+  if (UNLIKELY(bitmap_rgba.is_empty())) {
     return false;
   }
 
@@ -246,7 +246,7 @@ static bool window_set_custom_cursor(wmWindow *win, BCursor *cursor)
   GHOST_TSuccess success;
   if (use_rgba) {
     success = GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
-                                         render_bmp.data(),
+                                         bitmap_rgba.data(),
                                          nullptr,
                                          bitmap_size,
                                          hot_spot,
@@ -257,7 +257,7 @@ static bool window_set_custom_cursor(wmWindow *win, BCursor *cursor)
 
     uint8_t bitmap[4 * 32] = {0};
     uint8_t mask[4 * 32] = {0};
-    cursor_rgba_to_xbm_32(render_bmp, bitmap_size, bitmap, mask);
+    cursor_rgba_to_xbm_32(bitmap_rgba, bitmap_size, bitmap, mask);
     success = GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
                                          bitmap,
                                          mask,
