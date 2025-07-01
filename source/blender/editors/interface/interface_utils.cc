@@ -34,6 +34,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
+#include "ANIM_action.hh"
+
 #include "UI_interface_icons.hh"
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
@@ -536,6 +538,13 @@ void ui_rna_collection_search_update_fn(
       else if (itemptr.type == &RNA_ActionSlot) {
         PropertyRNA *prop = RNA_struct_find_property(&itemptr, "name_display");
         name = RNA_property_string_get_alloc(&itemptr, prop, name_buf, sizeof(name_buf), nullptr);
+        /* Also show an icon for the data-block type that each slot is intended for. */
+        animrig::Slot &slot = reinterpret_cast<ActionSlot *>(itemptr.data)->wrap();
+        iconid = UI_icon_from_idcode(slot.idtype);
+        /* So indentation is kept when no icon is present. */
+        if (iconid == ICON_NONE) {
+          iconid = ICON_BLANK1;
+        }
       }
       else {
         name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
