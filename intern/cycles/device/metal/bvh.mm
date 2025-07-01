@@ -1048,10 +1048,6 @@ bool BVHMetal::build_TLAS(Progress &progress,
       }
     }
 
-    if (num_instances == 0) {
-      return false;
-    }
-
     const bool use_instance_motion = motion_blur && num_motion_instances;
     const bool use_fast_trace_bvh = (params.bvh_type == BVH_TYPE_STATIC) || !support_refit_blas();
 
