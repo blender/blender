@@ -6,6 +6,7 @@
  * \ingroup modifiers
  */
 
+#include "BLI_color.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -178,7 +179,7 @@ static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *ps
   return true;
 }
 
-static void store_float_in_vcol(MLoopCol *vcol, float float_value)
+static void store_float_in_vcol(blender::ColorGeometry4b *vcol, float float_value)
 {
   const uchar value = unit_float_to_uchar_clamp(float_value);
   vcol->r = vcol->g = vcol->b = value;
@@ -187,6 +188,7 @@ static void store_float_in_vcol(MLoopCol *vcol, float float_value)
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
+  using namespace blender;
   Mesh *result;
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
@@ -317,14 +319,16 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   blender::MutableSpan<int> face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
-
-  MLoopCol *mloopcols_index = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
-      &result->corner_data, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->corners_num));
-  MLoopCol *mloopcols_value = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
-      &result->corner_data, CD_PROP_BYTE_COLOR, pimd->value_layer_name, result->corners_num));
+  blender::bke::MutableAttributeAccessor attributes = result->attributes_for_write();
+  bke::SpanAttributeWriter mloopcols_index =
+      attributes.lookup_or_add_for_write_span<ColorGeometry4b>(pimd->index_layer_name,
+                                                               bke::AttrDomain::Corner);
+  bke::SpanAttributeWriter mloopcols_value =
+      attributes.lookup_or_add_for_write_span<ColorGeometry4b>(pimd->value_layer_name,
+                                                               bke::AttrDomain::Corner);
   int *vert_part_index = nullptr;
   float *vert_part_value = nullptr;
-  if (mloopcols_index != nullptr) {
+  if (mloopcols_index) {
     vert_part_index = MEM_calloc_arrayN<int>(maxvert, "vertex part index array");
   }
   if (mloopcols_value) {
@@ -491,14 +495,14 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
           corner_verts[dst_corner_i] = orig_corner_verts[orig_corner_i] + (p_skip * totvert);
           corner_edges[dst_corner_i] = orig_corner_edges[orig_corner_i] + (p_skip * totedge);
           const int vert = corner_verts[dst_corner_i];
-          if (mloopcols_index != nullptr) {
+          if (mloopcols_index) {
             const int part_index = vert_part_index[vert];
-            store_float_in_vcol(&mloopcols_index[dst_corner_i],
+            store_float_in_vcol(&mloopcols_index.span[dst_corner_i],
                                 float(part_index) / float(psys->totpart - 1));
           }
-          if (mloopcols_value != nullptr) {
+          if (mloopcols_value) {
             const float part_value = vert_part_value[vert];
-            store_float_in_vcol(&mloopcols_value[dst_corner_i], part_value);
+            store_float_in_vcol(&mloopcols_value.span[dst_corner_i], part_value);
           }
         }
       }
@@ -514,6 +518,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   MEM_SAFE_FREE(vert_part_index);
   MEM_SAFE_FREE(vert_part_value);
+
+  mloopcols_index.finish();
+  mloopcols_value.finish();
 
   return result;
 }
