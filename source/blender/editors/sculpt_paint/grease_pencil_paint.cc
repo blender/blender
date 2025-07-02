@@ -276,6 +276,7 @@ struct PaintOperationExecutor {
   ColorGeometry4f vertex_color_ = ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f);
   ColorGeometry4f fill_color_ = ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f);
   float softness_;
+  float aspect_ratio_;
 
   bool use_vertex_color_;
   bool use_settings_random_;
@@ -301,6 +302,7 @@ struct PaintOperationExecutor {
       }
     }
     softness_ = 1.0f - settings_->hardness;
+    aspect_ratio_ = settings_->aspect_ratio[0] / math::max(settings_->aspect_ratio[1], 1e-8f);
     jitter_settings_ = BKE_brush_color_jitter_get_settings(paint, brush_);
   }
 
@@ -423,6 +425,13 @@ struct PaintOperationExecutor {
       u_scale.span[active_curve] = 1.0f;
       curve_attributes_to_skip.add("u_scale");
       u_scale.finish();
+    }
+    if (bke::SpanAttributeWriter<float> aspect_ratio =
+            attributes.lookup_or_add_for_write_span<float>("aspect_ratio", bke::AttrDomain::Curve))
+    {
+      aspect_ratio.span[active_curve] = aspect_ratio_;
+      curve_attributes_to_skip.add("aspect_ratio");
+      aspect_ratio.finish();
     }
 
     if (settings_->uv_random > 0.0f || attributes.contains("rotation")) {
@@ -1502,7 +1511,7 @@ static void deselect_stroke(const bContext &C,
       scene->toolsettings);
 
   bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-      curves, selection_domain, CD_PROP_BOOL);
+      curves, selection_domain, bke::AttrType::Bool);
 
   if (selection_domain == bke::AttrDomain::Curve) {
     ed::curves::fill_selection_false(selection.span.slice(IndexRange::from_single(active_curve)));

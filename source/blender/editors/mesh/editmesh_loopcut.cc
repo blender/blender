@@ -256,8 +256,11 @@ static void ringsel_exit(bContext * /*C*/, wmOperator *op)
 {
   RingSelOpData *lcd = static_cast<RingSelOpData *>(op->customdata);
 
-  /* deactivate the extra drawing stuff in 3D-View */
-  ED_region_draw_cb_exit(lcd->region->runtime->type, lcd->draw_handle);
+  /* Type can be null in background mode. */
+  if (lcd->region->runtime->type) {
+    /* deactivate the extra drawing stuff in 3D-View */
+    ED_region_draw_cb_exit(lcd->region->runtime->type, lcd->draw_handle);
+  }
 
   EDBM_preselect_edgering_destroy(lcd->presel_edgering);
 
@@ -281,8 +284,11 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 
   /* assign the drawing handle for drawing preview line... */
   lcd->region = CTX_wm_region(C);
-  lcd->draw_handle = ED_region_draw_cb_activate(
-      lcd->region->runtime->type, ringsel_draw, lcd, REGION_DRAW_POST_VIEW);
+  /* Type can be null in background mode. */
+  if (lcd->region->runtime->type) {
+    lcd->draw_handle = ED_region_draw_cb_activate(
+        lcd->region->runtime->type, ringsel_draw, lcd, REGION_DRAW_POST_VIEW);
+  }
   lcd->presel_edgering = EDBM_preselect_edgering_create();
   /* Initialize once the cursor is over a mesh. */
   lcd->ob = nullptr;

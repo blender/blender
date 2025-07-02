@@ -128,6 +128,11 @@ typedef enum {
    * Support for the "Hyper" modifier key.
    */
   GHOST_kCapabilityKeyboardHyperKey = (1 << 9),
+  /**
+   * Support for creation of RGBA mouse cursors. This flag is likely
+   * to be temporary as our intention is to implement on all platforms.
+   */
+  GHOST_kCapabilityRGBACursors = (1 << 10),
 
 } GHOST_TCapabilityFlag;
 
@@ -140,7 +145,8 @@ typedef enum {
    GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityGPUReadFrontBuffer | \
    GHOST_kCapabilityClipboardImages | GHOST_kCapabilityDesktopSample | \
    GHOST_kCapabilityInputIME | GHOST_kCapabilityTrackpadPhysicalDirection | \
-   GHOST_kCapabilityWindowDecorationStyles | GHOST_kCapabilityKeyboardHyperKey)
+   GHOST_kCapabilityWindowDecorationStyles | GHOST_kCapabilityKeyboardHyperKey | \
+   GHOST_kCapabilityRGBACursors)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the
@@ -844,12 +850,23 @@ typedef struct {
 
 } GHOST_VulkanOpenXRData;
 
+/**
+ * Return argument passed to #GHOST_IContext:::getVulkanHandles.
+ *
+ * The members of this struct are assigned values.
+ */
 typedef struct {
+  /** The instance handle. */
   VkInstance instance;
+  /** The physics device handle. */
   VkPhysicalDevice physical_device;
+  /** The device handle. */
   VkDevice device;
+  /** The graphic queue family id. */
   uint32_t graphic_queue_family;
+  /** The queue handle. */
   VkQueue queue;
+  /** The #std::mutex mutex. */
   void *queue_mutex;
 } GHOST_VulkanHandles;
 

@@ -393,7 +393,7 @@ static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attribut
   if (attribute_filter.allow_skip(id)) {
     return false;
   }
-  if (meta_data.data_type == CD_PROP_STRING) {
+  if (meta_data.data_type == AttrType::String) {
     return false;
   }
   return true;
@@ -590,7 +590,7 @@ static bool try_sharing_point_data(const CurvesGeometry &main,
   return mesh_attributes.add(
       id,
       AttrDomain::Point,
-      bke::cpp_type_to_custom_data_type(src.varray.type()),
+      bke::cpp_type_to_attribute_type(src.varray.type()),
       AttributeInitShared(src.varray.get_internal_span().data(), *src.sharing_info));
 }
 
@@ -622,7 +622,7 @@ static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_in
     }
   }
   GSpanAttributeWriter dst_attribute = mesh_attributes.lookup_or_add_for_write_only_span(
-      id, dst_domain, bke::cpp_type_to_custom_data_type(src_attribute.varray.type()));
+      id, dst_domain, bke::cpp_type_to_attribute_type(src_attribute.varray.type()));
   if (!dst_attribute) {
     return;
   }
@@ -943,7 +943,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     }
 
     const AttrDomain src_domain = iter.domain;
-    const eCustomDataType type = iter.data_type;
+    const AttrType type = iter.data_type;
     const GAttributeReader src = iter.get();
     const AttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, iter.name);
 
@@ -979,7 +979,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
       return;
     }
     const AttrDomain src_domain = iter.domain;
-    const eCustomDataType type = iter.data_type;
+    const AttrType type = iter.data_type;
     const GVArray src = *iter.get();
 
     const AttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, iter.name);

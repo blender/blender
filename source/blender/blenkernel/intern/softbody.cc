@@ -2672,10 +2672,8 @@ static void mesh_to_softbody(Object *ob)
 {
   SoftBody *sb;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  const blender::int2 *edge = static_cast<const blender::int2 *>(
-      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_INT32_2D, ".edge_verts"));
+  const blender::Span<blender::int2> edges = mesh->edges();
   BodyPoint *bp;
-  BodySpring *bs;
   int a, totedge;
   int defgroup_index, defgroup_index_mass, defgroup_index_spring;
 
@@ -2728,12 +2726,11 @@ static void mesh_to_softbody(Object *ob)
 
   /* but we only optionally add body edge springs */
   if (ob->softflag & OB_SB_EDGES) {
-    if (edge) {
-      bs = sb->bspring;
-      for (a = mesh->edges_num; a > 0; a--, edge++, bs++) {
-        bs->v1 = edge->x;
-        bs->v2 = edge->y;
-        bs->springtype = SB_EDGE;
+    if (!edges.is_empty()) {
+      for (const int i : edges.index_range()) {
+        sb->bspring[i].v1 = edges[i][0];
+        sb->bspring[i].v2 = edges[i][1];
+        sb->bspring[i].springtype = SB_EDGE;
       }
 
       /* insert *diagonal* springs in quads if desired */

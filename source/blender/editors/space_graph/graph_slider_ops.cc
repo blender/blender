@@ -1790,9 +1790,24 @@ struct tFCurveSegmentLink {
   tFCurveSegmentLink *next, *prev;
   FCurve *fcu;
   FCurveSegment *segment;
-  float *samples; /* Array of y-values of the FCurve segment. */
+  /* Array of y-values. The length of the array equals the length of the
+   * segment. */
+  float *original_y_values;
+  /* Array of y-values of the FCurve segment at regular intervals. */
+  float *samples;
   int sample_count;
 };
+
+/* Allocates data that has to be freed after. */
+static float *back_up_key_y_values(const FCurveSegment *segment, const FCurve *fcu)
+{
+  float *original_y_values = MEM_calloc_arrayN<float>(segment->length,
+                                                      "Smooth FCurve original values");
+  for (int i = 0; i < segment->length; i++) {
+    original_y_values[i] = fcu->bezt[i + segment->start_index].vec[1][1];
+  }
+  return original_y_values;
+}
 
 static void gaussian_smooth_allocate_operator_data(tGraphSliderOp *gso,
                                                    const int filter_width,
@@ -1816,6 +1831,7 @@ static void gaussian_smooth_allocate_operator_data(tGraphSliderOp *gso,
       tFCurveSegmentLink *segment_link = MEM_callocN<tFCurveSegmentLink>("FCurve Segment Link");
       segment_link->fcu = fcu;
       segment_link->segment = segment;
+      segment_link->original_y_values = back_up_key_y_values(segment, fcu);
       BezTriple left_bezt = fcu->bezt[segment->start_index];
       BezTriple right_bezt = fcu->bezt[segment->start_index + segment->length - 1];
       const int sample_count = int(right_bezt.vec[1][0] - left_bezt.vec[1][0]) +
@@ -1824,6 +1840,7 @@ static void gaussian_smooth_allocate_operator_data(tGraphSliderOp *gso,
       blender::animrig::sample_fcurve_segment(
           fcu, left_bezt.vec[1][0] - filter_width, 1, samples, sample_count);
       segment_link->samples = samples;
+      segment_link->sample_count = sample_count;
       BLI_addtail(&segment_links, segment_link);
     }
   }
@@ -1839,6 +1856,7 @@ static void gaussian_smooth_free_operator_data(void *operator_data)
   LISTBASE_FOREACH (tFCurveSegmentLink *, segment_link, &gauss_data->segment_links) {
     MEM_freeN(segment_link->samples);
     MEM_freeN(segment_link->segment);
+    MEM_freeN(segment_link->original_y_values);
   }
   MEM_freeN(gauss_data->kernel);
   BLI_freelistN(&gauss_data->segment_links);
@@ -1865,7 +1883,9 @@ static void gaussian_smooth_modal_update(bContext *C, wmOperator *op)
   LISTBASE_FOREACH (tFCurveSegmentLink *, segment, &operator_data->segment_links) {
     smooth_fcurve_segment(segment->fcu,
                           segment->segment,
+                          segment->original_y_values,
                           segment->samples,
+                          segment->sample_count,
                           factor,
                           filter_width,
                           operator_data->kernel);
@@ -1923,10 +1943,13 @@ static void gaussian_smooth_graph_keys(bAnimContext *ac,
       const int sample_count = int(right_bezt.vec[1][0] - left_bezt.vec[1][0]) +
                                (filter_width * 2 + 1);
       float *samples = MEM_calloc_arrayN<float>(sample_count, "Smooth FCurve Op Samples");
+      float *original_y_values = back_up_key_y_values(segment, fcu);
       blender::animrig::sample_fcurve_segment(
           fcu, left_bezt.vec[1][0] - filter_width, 1, samples, sample_count);
-      smooth_fcurve_segment(fcu, segment, samples, factor, filter_width, kernel);
+      smooth_fcurve_segment(
+          fcu, segment, original_y_values, samples, sample_count, factor, filter_width, kernel);
       MEM_freeN(samples);
+      MEM_freeN(original_y_values);
     }
 
     BLI_freelistN(&segments);

@@ -596,7 +596,7 @@ enum {
   NODE_SELECT = 1 << 0,
   NODE_OPTIONS = 1 << 1,
   NODE_PREVIEW = 1 << 2,
-  NODE_HIDDEN = 1 << 3,
+  NODE_COLLAPSED = 1 << 3,
   NODE_ACTIVE = 1 << 4,
   // NODE_ACTIVE_ID = 1 << 5, /* Deprecated. */
   /** Used to indicate which group output node is used and which viewer node is active. */

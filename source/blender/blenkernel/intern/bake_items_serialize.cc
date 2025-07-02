@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_anonymous_attribute_id.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_bake_items.hh"
 #include "BKE_bake_items_serialize.hh"
 #include "BKE_curves.hh"
@@ -563,7 +564,7 @@ template<typename T>
     if (attributes.contains(*name)) {
       /* If the attribute exists already, copy the values over to the existing array. */
       GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_only_span(
-          *name, *domain, *data_type);
+          *name, *domain, *custom_data_type_to_attr_type(*data_type));
       if (!attribute) {
         return false;
       }
@@ -574,7 +575,7 @@ template<typename T>
       /* Add a new attribute that shares the data. */
       if (!attributes.add(*name,
                           *domain,
-                          *data_type,
+                          *custom_data_type_to_attr_type(*data_type),
                           AttributeInitShared(attribute_data, *attribute_sharing_info)))
       {
         return false;
@@ -627,7 +628,7 @@ static std::optional<CurvesGeometry> try_load_curves_geometry(const DictionaryVa
   }
 
   CurvesGeometry curves;
-  CustomData_free_layer_named(&curves.point_data, "position");
+  curves.attribute_storage.wrap().remove("position");
   curves.point_num = io_curves.lookup_int("num_points").value_or(0);
   curves.curve_num = io_curves.lookup_int("num_curves").value_or(0);
 
@@ -1050,7 +1051,8 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
     const StringRefNull domain_name = get_domain_io_name(iter.domain);
     io_attribute->append_str("domain", domain_name);
 
-    const StringRefNull type_name = get_data_type_io_name(iter.data_type);
+    const StringRefNull type_name = get_data_type_io_name(
+        *attr_type_to_custom_data_type(iter.data_type));
     io_attribute->append_str("type", type_name);
 
     const GAttributeReader attribute = iter.get();

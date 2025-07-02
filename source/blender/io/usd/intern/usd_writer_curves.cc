@@ -429,7 +429,7 @@ void USDCurvesWriter::write_generic_data(const bke::CurvesGeometry &curves,
                 "Attribute '%s' (Blender domain %d, type %d) cannot be converted to USD",
                 attr.name.c_str(),
                 int8_t(attr.domain),
-                attr.data_type);
+                int(attr.data_type));
     return;
   }
 
@@ -501,7 +501,7 @@ void USDCurvesWriter::write_custom_data(const bke::CurvesGeometry &curves,
     }
 
     /* Spline UV data */
-    if (iter.domain == bke::AttrDomain::Curve && iter.data_type == CD_PROP_FLOAT2) {
+    if (iter.domain == bke::AttrDomain::Curve && iter.data_type == bke::AttrType::Float2) {
       if (usd_export_context_.export_params.export_uvmaps) {
         this->write_uv_data(iter, usd_curves);
       }

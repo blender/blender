@@ -87,7 +87,7 @@ static void fix_curve_nurbs_knot_mode_custom(Main *bmain)
     }
 
     int8_t *knot_modes = static_cast<int8_t *>(CustomData_get_layer_named_for_write(
-        &curves.curve_data, CD_PROP_INT8, "knots_mode", curves.curve_num));
+        &curves.curve_data_legacy, CD_PROP_INT8, "knots_mode", curves.curve_num));
     if (knot_modes == nullptr) {
       return;
     }

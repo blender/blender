@@ -784,7 +784,7 @@ static wmOperatorStatus select_grow_modal(bContext *C, wmOperator *op, const wmE
           attributes.add(
               ".selection",
               bke::AttrDomain(curves_id.selection_domain),
-              bke::cpp_type_to_custom_data_type(curve_op_data->original_selection.type()),
+              bke::cpp_type_to_attribute_type(curve_op_data->original_selection.type()),
               bke::AttributeInitVArray(GVArray::ForSpan(curve_op_data->original_selection)));
         }
 

@@ -115,7 +115,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                     attributes.lookup_meta_data("custom_normal"))
             {
               if (meta_data->domain == bke::AttrDomain::Corner &&
-                  meta_data->data_type == CD_PROP_INT16_2D)
+                  meta_data->data_type == bke::AttrType::Int16_2D)
               {
                 add_sharpness_and_corner_fan_info = true;
               }

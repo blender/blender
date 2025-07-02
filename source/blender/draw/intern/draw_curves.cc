@@ -270,6 +270,18 @@ gpu::VertBuf *curves_pos_buffer_get(Scene *scene, Object *object)
   return cache->final.proc_buf;
 }
 
+static std::optional<StringRef> get_first_uv_name(const bke::AttributeAccessor &attributes)
+{
+  std::optional<StringRef> name;
+  attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.data_type == bke::AttrType::Float2) {
+      name = iter.name;
+      iter.stop();
+    }
+  });
+  return name;
+}
+
 template<typename PassT>
 gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
                                                  const Scene *scene,
@@ -326,17 +338,8 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
     sub_ps.bind_texture("l", curves_cache->proc_length_buf);
   }
 
-  StringRef curve_data_render_uv;
-  StringRef point_data_render_uv;
-  if (CustomData_has_layer(&curves_id.geometry.curve_data, CD_PROP_FLOAT2)) {
-    curve_data_render_uv = CustomData_get_render_layer_name(&curves_id.geometry.curve_data,
-                                                            CD_PROP_FLOAT2);
-  }
-  if (CustomData_has_layer(&curves_id.geometry.point_data, CD_PROP_FLOAT2)) {
-    point_data_render_uv = CustomData_get_render_layer_name(&curves_id.geometry.point_data,
-                                                            CD_PROP_FLOAT2);
-  }
-
+  const std::optional<StringRef> uv_name = get_first_uv_name(
+      curves_id.geometry.wrap().attributes());
   const VectorSet<std::string> &attrs = curves_cache->final.attr_used;
   for (const int i : attrs.index_range()) {
     const StringRef name = attrs[i];
@@ -348,7 +351,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
         continue;
       }
       sub_ps.bind_texture(sampler_name, curves_cache->proc_attributes_buf[i]);
-      if (name == curve_data_render_uv) {
+      if (name == uv_name) {
         sub_ps.bind_texture("a", curves_cache->proc_attributes_buf[i]);
       }
     }
@@ -357,7 +360,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
         continue;
       }
       sub_ps.bind_texture(sampler_name, curves_cache->final.attributes_buf[i]);
-      if (name == point_data_render_uv) {
+      if (name == uv_name) {
         sub_ps.bind_texture("a", curves_cache->final.attributes_buf[i]);
       }
     }

@@ -89,37 +89,25 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
     m_next = next;
   }
 
-  /**
-   * Returns the timer callback.
-   * \return the timer callback.
-   */
+  /** \copydoc #GHOST_ITimerTask::getTimerProc */
   GHOST_TimerProcPtr getTimerProc() const override
   {
     return m_timerProc;
   }
 
-  /**
-   * Changes the timer callback.
-   * \param timerProc: The timer callback.
-   */
+  /** \copydoc #GHOST_ITimerTask::setTimerProc */
   void setTimerProc(const GHOST_TimerProcPtr timerProc) override
   {
     m_timerProc = timerProc;
   }
 
-  /**
-   * Returns the timer user data.
-   * \return The timer user data.
-   */
+  /** \copydoc #GHOST_ITimerTask::getUserData */
   GHOST_TUserDataPtr getUserData() const override
   {
     return m_userData;
   }
 
-  /**
-   * Changes the time user data.
-   * \param userData: The timer user data.
-   */
+  /** \copydoc #GHOST_ITimerTask::setUserData */
   void setUserData(const GHOST_TUserDataPtr userData) override
   {
     m_userData = userData;

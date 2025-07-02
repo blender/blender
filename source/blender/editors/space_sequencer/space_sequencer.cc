@@ -75,19 +75,6 @@ static void sequencer_scopes_tag_refresh(ScrArea *area)
 
 SpaceSeq_Runtime::~SpaceSeq_Runtime() = default;
 
-/* ******************** manage regions ********************* */
-
-static ARegion *sequencer_find_region(ScrArea *area, short type)
-{
-
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype == type) {
-      return region;
-    }
-  }
-  return nullptr;
-}
-
 /* ******************** default callbacks for sequencer space ***************** */
 
 static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
@@ -238,8 +225,8 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
 {
   const wmWindow *window = CTX_wm_window(C);
   SpaceSeq *sseq = (SpaceSeq *)area->spacedata.first;
-  ARegion *region_main = sequencer_find_region(area, RGN_TYPE_WINDOW);
-  ARegion *region_preview = sequencer_find_region(area, RGN_TYPE_PREVIEW);
+  ARegion *region_main = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  ARegion *region_preview = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
   bool view_changed = false;
 
   switch (sseq->view) {

@@ -112,10 +112,10 @@ template<class T> struct is_vt_array<pxr::VtArray<T>> : std::true_type {};
 
 }  // namespace detail
 
-std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(
-    const eCustomDataType blender_type, bool use_color3f_type = false);
+std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(const bke::AttrType blender_type,
+                                                                 bool use_color3f_type = false);
 
-std::optional<eCustomDataType> convert_usd_type_to_blender(const pxr::SdfValueTypeName usd_type);
+std::optional<bke::AttrType> convert_usd_type_to_blender(const pxr::SdfValueTypeName usd_type);
 
 /**
  * Set the USD attribute to the provided value at the given time. The value will be written
@@ -188,7 +188,7 @@ void copy_blender_buffer_to_primvar(const VArray<BlenderT> &buffer,
 }
 
 void copy_blender_attribute_to_primvar(const GVArray &attribute,
-                                       const eCustomDataType data_type,
+                                       const bke::AttrType data_type,
                                        const pxr::UsdTimeCode timecode,
                                        const pxr::UsdGeomPrimvar &primvar,
                                        pxr::UsdUtilsSparseValueWriter &value_writer);
@@ -269,7 +269,7 @@ void copy_primvar_to_blender_buffer(const pxr::UsdGeomPrimvar &primvar,
 
 void copy_primvar_to_blender_attribute(const pxr::UsdGeomPrimvar &primvar,
                                        const pxr::UsdTimeCode timecode,
-                                       const eCustomDataType data_type,
+                                       const bke::AttrType data_type,
                                        const bke::AttrDomain domain,
                                        const OffsetIndices<int> face_indices,
                                        bke::MutableAttributeAccessor attributes);

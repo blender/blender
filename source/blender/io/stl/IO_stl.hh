@@ -42,7 +42,7 @@ struct STLExportParams {
   bool apply_modifiers = true;
   bool ascii_format = false;
   bool use_batch = false;
-  char collection[MAX_IDPROP_NAME] = "";
+  char collection[MAX_ID_NAME - 2] = "";
 
   ReportList *reports = nullptr;
 };

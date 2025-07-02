@@ -44,17 +44,11 @@ void mesh_convert_storage_to_customdata(Mesh &mesh);
  */
 void mesh_convert_customdata_to_storage(Mesh &mesh);
 
-/** See #mesh_convert_storage_to_customdata. */
-void curves_convert_storage_to_customdata(CurvesGeometry &curves);
-
 /** See #mesh_convert_customdata_to_storage. */
 void curves_convert_customdata_to_storage(CurvesGeometry &curves);
 
 /** See #mesh_convert_customdata_to_storage. */
 void pointcloud_convert_customdata_to_storage(PointCloud &pointcloud);
-
-/** See #mesh_convert_storage_to_customdata. */
-void grease_pencil_convert_storage_to_customdata(GreasePencil &grease_pencil);
 
 /** See #mesh_convert_customdata_to_storage. */
 void grease_pencil_convert_customdata_to_storage(GreasePencil &grease_pencil);

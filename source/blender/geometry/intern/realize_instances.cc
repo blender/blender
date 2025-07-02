@@ -226,7 +226,8 @@ static bke::AttrDomain normal_domain_to_domain(bke::MeshNormalDomain domain)
   return bke::AttrDomain::Point;
 }
 
-constexpr bke::AttributeMetaData CORNER_FAN_META_DATA{bke::AttrDomain::Corner, CD_PROP_INT16_2D};
+constexpr bke::AttributeMetaData CORNER_FAN_META_DATA{bke::AttrDomain::Corner,
+                                                      bke::AttrType::Int16_2D};
 
 /** Tracks the storage format for the resulting mesh based on the combination of input meshes. */
 struct MeshNormalInfo {
@@ -273,7 +274,7 @@ struct MeshNormalInfo {
       this->add_no_custom_normals(mesh.normals_domain());
       return;
     }
-    if (custom_normal->data_type == CD_PROP_FLOAT3) {
+    if (custom_normal->data_type == bke::AttrType::Float3) {
       if (custom_normal->domain == bke::AttrDomain::Edge) {
         /* Skip invalid storage on the edge domain. */
         this->add_no_custom_normals(mesh.normals_domain());
@@ -595,10 +596,10 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
       return;
     }
     GSpan span = attribute.varray.get_internal_span();
-    const eCustomDataType expected_type = ordered_attributes.kinds[attribute_index].data_type;
+    const bke::AttrType expected_type = ordered_attributes.kinds[attribute_index].data_type;
     if (iter.data_type != expected_type) {
       const CPPType &from_type = span.type();
-      const CPPType &to_type = *bke::custom_data_type_to_cpp_type(expected_type);
+      const CPPType &to_type = bke::attribute_type_to_cpp_type(expected_type);
       const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
       if (!conversions.is_convertible(from_type, to_type)) {
         /* Ignore the attribute because it can not be converted to the desired type. */
@@ -995,7 +996,7 @@ static Map<StringRef, AttributeDomainAndType> gather_attributes_to_propagate(
           return;
         }
       }
-      if (iter.data_type == CD_PROP_STRING) {
+      if (iter.data_type == bke::AttrType::String) {
         /* Propagating string attributes is not supported yet. */
         return;
       }
@@ -1081,7 +1082,7 @@ static void execute_instances_tasks(
   for (const int attribute_index : all_instances_attributes.index_range()) {
     const bke::AttrDomain domain = bke::AttrDomain::Instance;
     const StringRef id = all_instances_attributes.ids[attribute_index];
-    const eCustomDataType type = all_instances_attributes.kinds[attribute_index].data_type;
+    const bke::AttrType type = all_instances_attributes.kinds[attribute_index].data_type;
     dst_instances->attributes_for_write()
         .lookup_or_add_for_write_only_span(id, domain, type)
         .finish();
@@ -1105,9 +1106,8 @@ static void execute_instances_tasks(
     const IndexRange dst_range = offsets[component_index];
     for (const int attribute_index : all_instances_attributes.index_range()) {
       const StringRef id = all_instances_attributes.ids[attribute_index];
-      const eCustomDataType type = all_instances_attributes.kinds[attribute_index].data_type;
-      const CPPType *cpp_type = bke::custom_data_type_to_cpp_type(type);
-      BLI_assert(cpp_type != nullptr);
+      const bke::AttrType type = all_instances_attributes.kinds[attribute_index].data_type;
+      const CPPType &cpp_type = bke::attribute_type_to_cpp_type(type);
       bke::GSpanAttributeWriter write_attribute =
           dst_instances->attributes_for_write().lookup_for_write_span(id);
       GMutableSpan dst_span = write_attribute.span;
@@ -1117,10 +1117,10 @@ static void execute_instances_tasks(
         attribute_ptr = attribute_fallback_array[attribute_index];
       }
       else {
-        attribute_ptr = cpp_type->default_value();
+        attribute_ptr = cpp_type.default_value();
       }
 
-      cpp_type->fill_assign_n(attribute_ptr, dst_span.slice(dst_range).data(), dst_range.size());
+      cpp_type.fill_assign_n(attribute_ptr, dst_span.slice(dst_range).data(), dst_range.size());
       write_attribute.finish();
     }
 
@@ -1210,7 +1210,7 @@ static AllPointCloudsInfo preprocess_pointclouds(const bke::GeometrySet &geometr
     pointcloud_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const StringRef attribute_id = info.attributes.ids[attribute_index];
-      const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
+      const bke::AttrType data_type = info.attributes.kinds[attribute_index].data_type;
       const bke::AttrDomain domain = info.attributes.kinds[attribute_index].domain;
       if (attributes.contains(attribute_id)) {
         GVArray attribute = *attributes.lookup_or_default(attribute_id, domain, data_type);
@@ -1282,8 +1282,8 @@ static void add_instance_attributes_to_single_geometry(
       continue;
     }
     const bke::AttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
-    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
-    const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(data_type);
+    const bke::AttrType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    const CPPType &cpp_type = bke::attribute_type_to_cpp_type(data_type);
     GVArray gvaray(GVArray::ForSingle(cpp_type, attributes.domain_size(domain), value));
     attributes.add(ordered_attributes.ids[attribute_index],
                    domain,
@@ -1347,7 +1347,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
   Vector<GSpanAttributeWriter> dst_attribute_writers;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const StringRef attribute_id = ordered_attributes.ids[attribute_index];
-    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    const bke::AttrType data_type = ordered_attributes.kinds[attribute_index].data_type;
     dst_attribute_writers.append(dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, bke::AttrDomain::Point, data_type));
   }
@@ -1480,7 +1480,7 @@ static AllMeshesInfo preprocess_meshes(const bke::GeometrySet &geometry_set,
     mesh_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const StringRef attribute_id = info.attributes.ids[attribute_index];
-      const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
+      const bke::AttrType data_type = info.attributes.kinds[attribute_index].data_type;
       const bke::AttrDomain domain = info.attributes.kinds[attribute_index].domain;
       if (attributes.contains(attribute_id)) {
         GVArray attribute = *attributes.lookup_or_default(attribute_id, domain, data_type);
@@ -1693,7 +1693,7 @@ static void copy_vertex_group_names(Mesh &dst_mesh,
         continue;
       }
       const bke::AttributeDomainAndType kind = ordered_attributes.kinds[attribute_index];
-      if (kind.domain != bke::AttrDomain::Point || kind.data_type != CD_PROP_FLOAT) {
+      if (kind.domain != bke::AttrDomain::Point || kind.data_type != bke::AttrType::Float) {
         /* Prefer using the highest priority domain and type from all input meshes. */
         continue;
       }
@@ -1783,13 +1783,13 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
     }
     case MeshNormalInfo::Output::CornerFan: {
       custom_normals = dst_attributes.lookup_or_add_for_write_only_span(
-          "custom_normal", bke::AttrDomain::Corner, CD_PROP_INT16_2D);
+          "custom_normal", bke::AttrDomain::Corner, bke::AttrType::Int16_2D);
       break;
     }
     case MeshNormalInfo::Output::Free: {
       const bke::AttrDomain domain = *all_meshes_info.custom_normal_info.result_domain;
       custom_normals = dst_attributes.lookup_or_add_for_write_only_span(
-          "custom_normal", domain, CD_PROP_FLOAT3);
+          "custom_normal", domain, bke::AttrType::Float3);
       break;
     }
   }
@@ -1799,7 +1799,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   for (const int attribute_index : ordered_attributes.index_range()) {
     const StringRef attribute_id = ordered_attributes.ids[attribute_index];
     const bke::AttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
-    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    const bke::AttrType data_type = ordered_attributes.kinds[attribute_index].data_type;
     dst_attribute_writers.append(
         dst_attributes.lookup_or_add_for_write_only_span(attribute_id, domain, data_type));
   }
@@ -1922,7 +1922,7 @@ static AllCurvesInfo preprocess_curves(const bke::GeometrySet &geometry_set,
     for (const int attribute_index : info.attributes.index_range()) {
       const bke::AttrDomain domain = info.attributes.kinds[attribute_index].domain;
       const StringRef attribute_id = info.attributes.ids[attribute_index];
-      const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
+      const bke::AttrType data_type = info.attributes.kinds[attribute_index].data_type;
       if (attributes.contains(attribute_id)) {
         GVArray attribute = *attributes.lookup_or_default(attribute_id, domain, data_type);
         curve_info.attributes[attribute_index].emplace(std::move(attribute));
@@ -2127,7 +2127,7 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   for (const int attribute_index : ordered_attributes.index_range()) {
     const StringRef attribute_id = ordered_attributes.ids[attribute_index];
     const bke::AttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
-    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    const bke::AttrType data_type = ordered_attributes.kinds[attribute_index].data_type;
     dst_attribute_writers.append(
         dst_attributes.lookup_or_add_for_write_only_span(attribute_id, domain, data_type));
   }
@@ -2247,7 +2247,7 @@ static AllGreasePencilsInfo preprocess_grease_pencils(
     grease_pencil_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const StringRef attribute_id = info.attributes.ids[attribute_index];
-      const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
+      const bke::AttrType data_type = info.attributes.kinds[attribute_index].data_type;
       const bke::AttrDomain domain = info.attributes.kinds[attribute_index].domain;
       if (attributes.contains(attribute_id)) {
         GVArray attribute = *attributes.lookup_or_default(attribute_id, domain, data_type);
@@ -2378,7 +2378,7 @@ static void execute_realize_grease_pencil_tasks(
   Vector<GSpanAttributeWriter> dst_attribute_writers;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const StringRef attribute_id = ordered_attributes.ids[attribute_index];
-    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    const bke::AttrType data_type = ordered_attributes.kinds[attribute_index].data_type;
     dst_attribute_writers.append(dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, bke::AttrDomain::Layer, data_type));
   }

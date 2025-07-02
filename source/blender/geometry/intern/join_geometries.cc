@@ -25,7 +25,7 @@ static Map<StringRef, AttributeDomainAndType> get_final_attribute_info(
       if (ignored_attributes.contains(iter.name)) {
         return;
       }
-      if (iter.data_type == CD_PROP_STRING) {
+      if (iter.data_type == bke::AttrType::String) {
         return;
       }
       info.add_or_modify(
@@ -47,12 +47,11 @@ static Map<StringRef, AttributeDomainAndType> get_final_attribute_info(
 
 static void fill_new_attribute(const Span<const GeometryComponent *> src_components,
                                const StringRef attribute_id,
-                               const eCustomDataType data_type,
+                               const bke::AttrType data_type,
                                const bke::AttrDomain domain,
                                GMutableSpan dst_span)
 {
-  const CPPType *cpp_type = bke::custom_data_type_to_cpp_type(data_type);
-  BLI_assert(cpp_type != nullptr);
+  const CPPType &cpp_type = bke::attribute_type_to_cpp_type(data_type);
 
   int offset = 0;
   for (const GeometryComponent *component : src_components) {
@@ -66,7 +65,7 @@ static void fill_new_attribute(const Span<const GeometryComponent *> src_compone
     GVArraySpan src_span{read_attribute};
     const void *src_buffer = src_span.data();
     void *dst_buffer = dst_span[offset];
-    cpp_type->copy_assign_n(src_buffer, dst_buffer, domain_num);
+    cpp_type.copy_assign_n(src_buffer, dst_buffer, domain_num);
 
     offset += domain_num;
   }

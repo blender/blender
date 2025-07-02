@@ -1150,6 +1150,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
                                             const Object &ob,
                                             const float radius)
 {
+  const Mesh *mesh = static_cast<const Mesh *>(ob.data);
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   float3 location;
   float symm_rot_mat[4][4];
@@ -1166,8 +1167,8 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
 
       /* Radial Symmetry. */
       for (char raxis = 0; raxis < 3; raxis++) {
-        for (int r = 1; r < sd.radial_symm[raxis]; r++) {
-          float angle = 2 * M_PI * r / sd.radial_symm[int(raxis)];
+        for (int r = 1; r < mesh->radial_symmetry[raxis]; r++) {
+          float angle = 2 * M_PI * r / mesh->radial_symmetry[int(raxis)];
           location = symmetry_flip(true_location, ePaintSymmetryFlags(i));
           unit_m4(symm_rot_mat);
           rotate_m4(symm_rot_mat, raxis + 'X', angle);

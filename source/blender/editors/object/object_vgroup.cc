@@ -1078,7 +1078,7 @@ static void vgroup_grease_pencil_select_verts(const Scene &scene,
     }
 
     GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-        curves, selection_domain, CD_PROP_BOOL);
+        curves, selection_domain, bke::AttrType::Bool);
     switch (selection_domain) {
       case AttrDomain::Point:
         threading::parallel_for(curves.points_range(), 4096, [&](const IndexRange range) {

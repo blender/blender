@@ -145,7 +145,7 @@ static void expand_mesh(Mesh &mesh,
   if (edge_expand != 0) {
     if (mesh.edges_num == 0) {
       mesh.attributes_for_write().add(
-          ".edge_verts", AttrDomain::Edge, CD_PROP_INT32_2D, bke::AttributeInitConstruct());
+          ".edge_verts", AttrDomain::Edge, bke::AttrType::Int32_2D, bke::AttributeInitConstruct());
     }
     const int old_edges_num = mesh.edges_num;
     mesh.edges_num += edge_expand;
@@ -166,9 +166,9 @@ static void expand_mesh(Mesh &mesh,
   if (loop_expand != 0) {
     if (mesh.corners_num == 0) {
       mesh.attributes_for_write().add(
-          ".corner_vert", AttrDomain::Corner, CD_PROP_INT32, bke::AttributeInitConstruct());
+          ".corner_vert", AttrDomain::Corner, bke::AttrType::Int32, bke::AttributeInitConstruct());
       mesh.attributes_for_write().add(
-          ".corner_edge", AttrDomain::Corner, CD_PROP_INT32, bke::AttributeInitConstruct());
+          ".corner_edge", AttrDomain::Corner, bke::AttrType::Int32, bke::AttributeInitConstruct());
     }
     const int old_loops_num = mesh.corners_num;
     mesh.corners_num += loop_expand;
@@ -272,7 +272,7 @@ static IDsByDomain attribute_ids_by_domain(const AttributeAccessor attributes,
 {
   IDsByDomain ids_by_domain;
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (skip.contains(iter.name)) {
@@ -289,7 +289,7 @@ static bool is_empty_domain(const AttributeAccessor attributes,
 {
   bool is_empty = true;
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (iter.domain != domain) {

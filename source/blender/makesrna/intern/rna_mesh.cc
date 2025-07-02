@@ -290,8 +290,7 @@ static int rna_MeshEdge_index_get(PointerRNA *ptr)
   using namespace blender;
   const Mesh *mesh = rna_mesh(ptr);
   const blender::int2 *edge = static_cast<const blender::int2 *>(ptr->data);
-  const blender::int2 *edges = static_cast<const blender::int2 *>(
-      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_INT32_2D, ".edge_verts"));
+  const blender::int2 *edges = mesh->edges().data();
   const int index = int(edge - edges);
   BLI_assert(index >= 0);
   BLI_assert(index < mesh->edges_num);
@@ -416,53 +415,43 @@ static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
 static bool rna_MeshVertex_hide_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const bool *hide_vert = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->vert_data, CD_PROP_BOOL, ".hide_vert"));
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArray hide_vert = *attributes.lookup_or_default<bool>(
+      ".hide_vert", blender::bke::AttrDomain::Point, false);
   const int index = rna_MeshVertex_index_get(ptr);
-  return hide_vert == nullptr ? false : hide_vert[index];
+  return hide_vert[index];
 }
 
 static void rna_MeshVertex_hide_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->vert_data, CD_PROP_BOOL, ".hide_vert", mesh->verts_num));
-  if (!hide_vert) {
-    if (!value) {
-      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
-      return;
-    }
-    hide_vert = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh->vert_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->verts_num, ".hide_vert"));
-  }
+  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  blender::bke::AttributeWriter hide_vert = attributes.lookup_or_add_for_write<bool>(
+      ".hide_vert", blender::bke::AttrDomain::Point, blender::bke::AttributeInitDefaultValue());
   const int index = rna_MeshVertex_index_get(ptr);
-  hide_vert[index] = value;
+  hide_vert.varray.set(index, value);
+  hide_vert.finish();
 }
 
 static bool rna_MeshVertex_select_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const bool *select_vert = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->vert_data, CD_PROP_BOOL, ".select_vert"));
   const int index = rna_MeshVertex_index_get(ptr);
-  return select_vert == nullptr ? false : select_vert[index];
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArray select_vert = *attributes.lookup_or_default<bool>(
+      ".select_vert", blender::bke::AttrDomain::Point, false);
+  return select_vert[index];
 }
 
 static void rna_MeshVertex_select_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *select_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->vert_data, CD_PROP_BOOL, ".select_vert", mesh->verts_num));
-  if (!select_vert) {
-    if (!value) {
-      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
-      return;
-    }
-    select_vert = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh->vert_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->verts_num, ".select_vert"));
-  }
   const int index = rna_MeshVertex_index_get(ptr);
-  select_vert[index] = value;
+  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  blender::bke::AttributeWriter select_vert = attributes.lookup_or_add_for_write<bool>(
+      ".select_vert", blender::bke::AttrDomain::Point, blender::bke::AttributeInitDefaultValue());
+  select_vert.varray.set(index, value);
+  select_vert.finish();
 }
 
 static int rna_MeshLoop_vertex_index_get(PointerRNA *ptr)
@@ -551,82 +540,64 @@ static void rna_MeshPolygon_normal_get(PointerRNA *ptr, float *values)
 static bool rna_MeshPolygon_hide_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const bool *hide_poly = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, ".hide_poly"));
   const int index = rna_MeshPolygon_index_get(ptr);
-  return hide_poly == nullptr ? false : hide_poly[index];
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArray hide_poly = *attributes.lookup_or_default<bool>(
+      ".hide_poly", blender::bke::AttrDomain::Face, false);
+  return hide_poly[index];
 }
 
 static void rna_MeshPolygon_hide_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
-  if (!hide_poly) {
-    if (!value) {
-      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
-      return;
-    }
-    hide_poly = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh->face_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->faces_num, ".hide_poly"));
-  }
   const int index = rna_MeshPolygon_index_get(ptr);
-  hide_poly[index] = value;
+  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  blender::bke::AttributeWriter hide_poly = attributes.lookup_or_add_for_write<bool>(
+      ".hide_poly", blender::bke::AttrDomain::Face, blender::bke::AttributeInitDefaultValue());
+  hide_poly.varray.set(index, value);
+  hide_poly.finish();
 }
 
 static bool rna_MeshPolygon_use_smooth_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
   const int index = rna_MeshPolygon_index_get(ptr);
-  return !(sharp_faces && sharp_faces[index]);
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArray sharp_face = *attributes.lookup_or_default<bool>(
+      "sharp_face", blender::bke::AttrDomain::Face, false);
+  return !sharp_face[index];
 }
 
 static void rna_MeshPolygon_use_smooth_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *sharp_faces = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_BOOL, "sharp_face", mesh->faces_num));
-  if (!sharp_faces) {
-    if (value) {
-      /* Skip adding layer if the value is the same as the default. */
-      return;
-    }
-    sharp_faces = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh->face_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->faces_num, "sharp_face"));
-  }
   const int index = rna_MeshPolygon_index_get(ptr);
-  if (value == sharp_faces[index]) {
-    sharp_faces[index] = !value;
-    mesh->tag_sharpness_changed();
-  }
+  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  blender::bke::AttributeWriter sharp_face = attributes.lookup_or_add_for_write<bool>(
+      "sharp_face", blender::bke::AttrDomain::Face, blender::bke::AttributeInitDefaultValue());
+  sharp_face.varray.set(index, !value);
+  sharp_face.finish();
 }
 
 static bool rna_MeshPolygon_select_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const bool *select_poly = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, ".select_poly"));
   const int index = rna_MeshPolygon_index_get(ptr);
-  return select_poly == nullptr ? false : select_poly[index];
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArray select_poly = *attributes.lookup_or_default<bool>(
+      ".select_poly", blender::bke::AttrDomain::Face, false);
+  return select_poly[index];
 }
 
 static void rna_MeshPolygon_select_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *select_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_BOOL, ".select_poly", mesh->faces_num));
-  if (!select_poly) {
-    if (!value) {
-      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
-      return;
-    }
-    select_poly = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh->face_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->faces_num, ".select_poly"));
-  }
   const int index = rna_MeshPolygon_index_get(ptr);
-  select_poly[index] = value;
+  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  blender::bke::AttributeWriter select_poly = attributes.lookup_or_add_for_write<bool>(
+      ".select_poly", blender::bke::AttrDomain::Face, blender::bke::AttributeInitDefaultValue());
+  select_poly.varray.set(index, value);
+  select_poly.finish();
 }
 
 static int rna_MeshPolygon_material_index_get(PointerRNA *ptr)
@@ -1298,108 +1269,85 @@ static void rna_MeshPoly_material_index_range(
 static bool rna_MeshEdge_hide_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const bool *hide_edge = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, ".hide_edge"));
   const int index = rna_MeshEdge_index_get(ptr);
-  return hide_edge == nullptr ? false : hide_edge[index];
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArray hide_edge = *attributes.lookup_or_default<bool>(
+      ".hide_edge", blender::bke::AttrDomain::Edge, false);
+  return hide_edge[index];
 }
 
 static void rna_MeshEdge_hide_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *hide_edge = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->edge_data, CD_PROP_BOOL, ".hide_edge", mesh->edges_num));
-  if (!hide_edge) {
-    if (!value) {
-      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
-      return;
-    }
-    hide_edge = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->edges_num, ".hide_edge"));
-  }
   const int index = rna_MeshEdge_index_get(ptr);
-  hide_edge[index] = value;
+  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  blender::bke::AttributeWriter hide_edge = attributes.lookup_or_add_for_write<bool>(
+      ".hide_edge", blender::bke::AttrDomain::Edge, blender::bke::AttributeInitDefaultValue());
+  hide_edge.varray.set(index, value);
+  hide_edge.finish();
 }
 
 static bool rna_MeshEdge_select_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const bool *select_edge = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, ".select_edge"));
   const int index = rna_MeshEdge_index_get(ptr);
-  return select_edge == nullptr ? false : select_edge[index];
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArray select_edge = *attributes.lookup_or_default<bool>(
+      ".select_edge", blender::bke::AttrDomain::Edge, false);
+  return select_edge[index];
 }
 
 static void rna_MeshEdge_select_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *select_edge = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->edge_data, CD_PROP_BOOL, ".select_edge", mesh->edges_num));
-  if (!select_edge) {
-    if (!value) {
-      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
-      return;
-    }
-    select_edge = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->edges_num, ".select_edge"));
-  }
   const int index = rna_MeshEdge_index_get(ptr);
-  select_edge[index] = value;
+  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  blender::bke::AttributeWriter select_edge = attributes.lookup_or_add_for_write<bool>(
+      ".select_edge", blender::bke::AttrDomain::Edge, blender::bke::AttributeInitDefaultValue());
+  select_edge.varray.set(index, value);
+  select_edge.finish();
 }
 
 static bool rna_MeshEdge_use_edge_sharp_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const bool *sharp_edge = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, "sharp_edge"));
   const int index = rna_MeshEdge_index_get(ptr);
-  return sharp_edge == nullptr ? false : sharp_edge[index];
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArray sharp_edge = *attributes.lookup_or_default<bool>(
+      "sharp_edge", blender::bke::AttrDomain::Edge, false);
+  return sharp_edge[index];
 }
 
 static void rna_MeshEdge_use_edge_sharp_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *sharp_edge = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->edge_data, CD_PROP_BOOL, "sharp_edge", mesh->edges_num));
-  if (!sharp_edge) {
-    if (!value) {
-      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
-      return;
-    }
-    sharp_edge = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->edges_num, "sharp_edge"));
-  }
   const int index = rna_MeshEdge_index_get(ptr);
-  if (value != sharp_edge[index]) {
-    sharp_edge[index] = value;
-    mesh->tag_sharpness_changed();
-  }
+  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  blender::bke::AttributeWriter sharp_edge = attributes.lookup_or_add_for_write<bool>(
+      "sharp_edge", blender::bke::AttrDomain::Edge, blender::bke::AttributeInitDefaultValue());
+  sharp_edge.varray.set(index, value);
+  sharp_edge.finish();
 }
 
 static bool rna_MeshEdge_use_seam_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const bool *seam_edge = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, "uv_seam"));
   const int index = rna_MeshEdge_index_get(ptr);
-  return seam_edge == nullptr ? false : seam_edge[index];
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArray uv_seam = *attributes.lookup_or_default<bool>(
+      "uv_seam", blender::bke::AttrDomain::Edge, false);
+  return uv_seam[index];
 }
 
 static void rna_MeshEdge_use_seam_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
-  bool *seam_edge = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->edge_data, CD_PROP_BOOL, "uv_seam", mesh->edges_num));
-  if (!seam_edge) {
-    if (!value) {
-      /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
-      return;
-    }
-    seam_edge = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->edges_num, "uv_seam"));
-  }
   const int index = rna_MeshEdge_index_get(ptr);
-  seam_edge[index] = value;
+  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  blender::bke::AttributeWriter uv_seam = attributes.lookup_or_add_for_write<bool>(
+      "uv_seam", blender::bke::AttrDomain::Edge, blender::bke::AttributeInitDefaultValue());
+  uv_seam.varray.set(index, value);
+  uv_seam.finish();
 }
 
 static bool rna_MeshEdge_is_loose_get(PointerRNA *ptr)
@@ -1423,10 +1371,10 @@ static int rna_MeshLoopTriangle_material_index_get(PointerRNA *ptr)
 static bool rna_MeshLoopTriangle_use_smooth_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const int face_i = rna_MeshLoopTriangle_polygon_index_get(ptr);
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
-  return !(sharp_faces && sharp_faces[face_i]);
+  const blender::bke::AttributeAccessor attributes = mesh->attributes();
+  const blender::VArray sharp_face = *attributes.lookup_or_default<bool>(
+      "sharp_face", blender::bke::AttrDomain::Face, false);
+  return !sharp_face[rna_MeshLoopTriangle_polygon_index_get(ptr)];
 }
 
 /* path construction */
@@ -1552,10 +1500,9 @@ static void rna_Mesh_edges_begin(CollectionPropertyIterator *iter, PointerRNA *p
 {
   using namespace blender;
   Mesh *mesh = rna_mesh(ptr);
-  blender::int2 *edges = static_cast<blender::int2 *>(CustomData_get_layer_named_for_write(
-      &mesh->edge_data, CD_PROP_INT32_2D, ".edge_verts", mesh->edges_num));
+  blender::MutableSpan<blender::int2> edges = mesh->edges_for_write();
   rna_iterator_array_begin(
-      iter, ptr, edges, sizeof(blender::int2), mesh->edges_num, false, nullptr);
+      iter, ptr, edges.data(), sizeof(blender::int2), edges.size(), false, nullptr);
 }
 static int rna_Mesh_edges_length(PointerRNA *ptr)
 {
@@ -1569,8 +1516,7 @@ bool rna_Mesh_edges_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
   if (index < 0 || index >= mesh->edges_num) {
     return false;
   }
-  blender::int2 *edges = static_cast<blender::int2 *>(CustomData_get_layer_named_for_write(
-      &mesh->edge_data, CD_PROP_INT32_2D, ".edge_verts", mesh->edges_num));
+  blender::MutableSpan<blender::int2> edges = mesh->edges_for_write();
   rna_pointer_create_with_ancestors(*ptr, &RNA_MeshEdge, &edges[index], *r_ptr);
   return true;
 }
@@ -1774,7 +1720,7 @@ static bool rna_MeshUVLoop_select_get(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   int uv_map_index;
   int loop_index;
-  const bool *select = nullptr;
+  blender::VArray<bool> select;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
     select = ED_mesh_uv_map_vert_select_layer_get(mesh, uv_map_index);
   }
@@ -1787,8 +1733,10 @@ static void rna_MeshUVLoop_select_set(PointerRNA *ptr, const bool value)
   int uv_map_index;
   int loop_index;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    bool *select = ED_mesh_uv_map_vert_select_layer_ensure(mesh, uv_map_index);
-    select[loop_index] = value;
+    blender::bke::AttributeWriter<bool> select = ED_mesh_uv_map_vert_select_layer_ensure(
+        mesh, uv_map_index);
+    select.varray.set(loop_index, value);
+    select.finish();
   }
 }
 
@@ -1797,7 +1745,7 @@ static bool rna_MeshUVLoop_select_edge_get(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   int uv_map_index;
   int loop_index;
-  const bool *select_edge = nullptr;
+  blender::VArray<bool> select_edge;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
     select_edge = ED_mesh_uv_map_edge_select_layer_get(mesh, uv_map_index);
   }
@@ -1810,8 +1758,10 @@ static void rna_MeshUVLoop_select_edge_set(PointerRNA *ptr, const bool value)
   int uv_map_index;
   int loop_index;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    bool *select_edge = ED_mesh_uv_map_edge_select_layer_ensure(mesh, uv_map_index);
-    select_edge[loop_index] = value;
+    blender::bke::AttributeWriter<bool> select_edge = ED_mesh_uv_map_edge_select_layer_ensure(
+        mesh, uv_map_index);
+    select_edge.varray.set(loop_index, value);
+    select_edge.finish();
   }
 }
 
@@ -1820,7 +1770,7 @@ static bool rna_MeshUVLoop_pin_uv_get(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   int uv_map_index;
   int loop_index;
-  const bool *pin_uv = nullptr;
+  blender::VArray<bool> pin_uv;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
     pin_uv = ED_mesh_uv_map_pin_layer_get(mesh, uv_map_index);
   }
@@ -1833,8 +1783,10 @@ static void rna_MeshUVLoop_pin_uv_set(PointerRNA *ptr, const bool value)
   int uv_map_index;
   int loop_index;
   if (get_uv_index_and_layer(ptr, &uv_map_index, &loop_index)) {
-    bool *pin_uv = ED_mesh_uv_map_pin_layer_ensure(mesh, uv_map_index);
-    pin_uv[loop_index] = value;
+    blender::bke::AttributeWriter<bool> pin_uv = ED_mesh_uv_map_pin_layer_ensure(mesh,
+                                                                                 uv_map_index);
+    pin_uv.varray.set(loop_index, value);
+    pin_uv.finish();
   }
 }
 
@@ -3302,6 +3254,15 @@ static void rna_def_mesh(BlenderRNA *brna)
                            "Mirror the left/right vertex groups when painting. The symmetry axis "
                            "is determined by the symmetry settings.");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+  prop = RNA_def_property(srna, "radial_symmetry", PROP_INT, PROP_XYZ);
+  RNA_def_property_int_sdna(prop, nullptr, "radial_symmetry");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_int_default(prop, 1);
+  RNA_def_property_range(prop, 1, 64);
+  RNA_def_property_ui_range(prop, 1, 32, 1, 1);
+  RNA_def_property_ui_text(
+      prop, "Radial Symmetry Count", "Number of mirrored regions around a central axis");
   /* End Symmetry */
 
   RNA_define_verify_sdna(false);

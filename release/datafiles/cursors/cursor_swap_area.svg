@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1600"
+   height="1600"
+   viewBox="0 0 1600 1599.9999"
+   fill="none"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="cursor_swap_area.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#777777"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="true"
+     showguides="true"
+     inkscape:zoom="0.64160472"
+     inkscape:cx="564.98961"
+     inkscape:cy="1263.2388"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4">
+    <inkscape:grid
+       id="grid4"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="99.999997"
+       spacingy="99.999997"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="0"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="true" />
+  </sodipodi:namedview>
+  <defs
+     id="defs4">
+    <filter
+       id="filter0_d_40_365"
+       x="55.100101"
+       y="13.6218"
+       width="155.883"
+       height="230.843"
+       filterUnits="userSpaceOnUse"
+       color-interpolation-filters="sRGB">
+      <feFlood
+         flood-opacity="0"
+         result="BackgroundImageFix"
+         id="feFlood2" />
+      <feColorMatrix
+         in="SourceAlpha"
+         type="matrix"
+         values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+         result="hardAlpha"
+         id="feColorMatrix2" />
+      <feOffset
+         dx="-3"
+         dy="7"
+         id="feOffset2" />
+      <feGaussianBlur
+         stdDeviation="7.5"
+         id="feGaussianBlur2" />
+      <feColorMatrix
+         type="matrix"
+         values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0"
+         id="feColorMatrix3" />
+      <feBlend
+         mode="normal"
+         in2="BackgroundImageFix"
+         result="effect1_dropShadow_40_365"
+         id="feBlend3" />
+      <feBlend
+         mode="normal"
+         in="SourceGraphic"
+         in2="effect1_dropShadow_40_365"
+         result="shape"
+         id="feBlend4" />
+    </filter>
+  </defs>
+  <g
+     id="path2-7">
+    <path
+       style="color:#000000;fill:#000000;-inkscape-stroke:none"
+       d="m 649.98006,50.499349 899.74074,-0.09333 0.1511,899.511611 -898.7999,0.62108 z"
+       id="path8" />
+    <path
+       style="color:#000000;fill:#ffffff;-inkscape-stroke:none"
+       d="M 1599.7129,0.40039063 599.91992,0.50390625 599.96387,999.793 l 999.91703,0.0898 z m -99.7896,99.62206937 -0.06,799.93066 -800.02052,-0.0337 0.003,-799.81495 z"
+       id="path9"
+       sodipodi:nodetypes="cccccccccc" />
+  </g>
+  <g
+     id="path2">
+    <path
+       style="color:#000000;fill:#ffffff;-inkscape-stroke:none"
+       d="m 50.050186,650.47077 899.923944,-0.6655 0.28029,900.94403 -900.662927,-0.3613 z"
+       id="path6" />
+    <path
+       style="color:#000000;fill:#000000;-inkscape-stroke:none"
+       d="M 999.95898,599.9624 0.07617187,600.11816 0.11745175,1600.3672 999.99398,1600.7695 Z m -99.96875,99.8794 -0.0275,800.0621 -800.345573,0.5043 0.13268,-800.25013 z"
+       id="path7"
+       sodipodi:nodetypes="cccccccccc" />
+  </g>
+  <path
+     style="fill:#000000;fill-opacity:1;stroke-width:100;stroke-dasharray:none"
+     d="m 199.88943,1000.2703 0.33427,400.0578 399.75591,-0.1452 z"
+     id="path1"
+     sodipodi:nodetypes="cccc" />
+  <path
+     style="fill:#ffffff;fill-opacity:1;stroke-width:100;stroke-dasharray:none"
+     d="M 1399.7493,200.0346 H 1000.0927 L 1399.777,599.76283 Z"
+     id="path3"
+     sodipodi:nodetypes="cccc" />
+  <path
+     style="fill:#ffffff;fill-opacity:1;stroke-width:100;stroke-dasharray:none"
+     d="M 1199.6297,299.94114 1300.1035,400.60404 900.31514,799.85757 799.82512,700.26432 Z"
+     id="path4"
+     sodipodi:nodetypes="ccccc" />
+  <path
+     style="fill:#000000;fill-opacity:1;stroke-width:100;stroke-dasharray:none"
+     d="M 300.8217,1199.6459 700.19943,799.84134 800.15463,900.1585 399.6748,1299.963 Z"
+     id="path5"
+     sodipodi:nodetypes="ccccc" />
+</svg>

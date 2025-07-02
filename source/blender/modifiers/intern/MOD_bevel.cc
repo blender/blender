@@ -87,7 +87,7 @@ static std::string ensure_weight_attribute_meta_data(Mesh &mesh,
     r_attr_converted = false;
     return name;
   }
-  if (meta_data->domain == domain && meta_data->data_type == CD_PROP_FLOAT) {
+  if (meta_data->domain == domain && meta_data->data_type == bke::AttrType::Float) {
     r_attr_converted = false;
     return name;
   }

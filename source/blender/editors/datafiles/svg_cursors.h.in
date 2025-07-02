@@ -1,0 +1,15 @@
+/* SPDX-FileCopyrightText: 2024 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+@SVG_CURSORS_CONTENTS_H@
+
+#ifdef __cplusplus
+}
+#endif

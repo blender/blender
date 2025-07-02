@@ -131,7 +131,7 @@ void USDPointsReader::read_custom_data(PointCloud *pointcloud, const double moti
     }
 
     const bke::AttrDomain domain = bke::AttrDomain::Point;
-    const std::optional<eCustomDataType> type = convert_usd_type_to_blender(pv_type);
+    const std::optional<bke::AttrType> type = convert_usd_type_to_blender(pv_type);
     if (!type.has_value()) {
       return;
     }

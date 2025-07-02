@@ -112,7 +112,7 @@ GreasePencil *merge_layers(const GreasePencil &src_grease_pencil,
   const bke::AttributeAccessor src_attributes = src_grease_pencil.attributes();
   bke::MutableAttributeAccessor new_attributes = new_grease_pencil->attributes_for_write();
   src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (attribute_filter.allow_skip(iter.name)) {

@@ -182,7 +182,7 @@ void USDCurvesReader::read_custom_data(bke::CurvesGeometry &curves,
 
     const pxr::TfToken pv_interp = pv.GetInterpolation();
     const std::optional<bke::AttrDomain> domain = convert_usd_interp_to_blender(pv_interp);
-    const std::optional<eCustomDataType> type = convert_usd_type_to_blender(pv_type);
+    const std::optional<bke::AttrType> type = convert_usd_type_to_blender(pv_type);
 
     if (!domain.has_value() || !type.has_value()) {
       const pxr::TfToken pv_name = pxr::UsdGeomPrimvar::StripPrimvarsName(pv.GetPrimvarName());

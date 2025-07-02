@@ -12,12 +12,14 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
-#include "DNA_customdata_types.h" /* #eCustomDataType. */
-
 #include "GPU_vertex_format.hh"
 
 namespace blender::gpu {
 class VertBuf;
+}
+
+namespace blender::bke {
+enum class AttrType : int16_t;
 }
 
 /**
@@ -141,7 +143,7 @@ template<> struct AttributeConverter<math::Quaternion> {
   }
 };
 
-GPUVertFormat init_format_for_attribute(eCustomDataType data_type, StringRef vbo_name);
+GPUVertFormat init_format_for_attribute(bke::AttrType data_type, StringRef vbo_name);
 
 void vertbuf_data_extract_direct(GSpan attribute, gpu::VertBuf &vbo);
 

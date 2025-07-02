@@ -1824,6 +1824,8 @@ GHOST_TCapabilityFlag GHOST_SystemX11::getCapabilities() const
                                    GHOST_kCapabilityClipboardImages |
                                    /* No support yet for IME input methods. */
                                    GHOST_kCapabilityInputIME |
+                                   /* No support yet for RGBA mouse cursors. */
+                                   GHOST_kCapabilityRGBACursors |
                                    /* No support for window decoration styles. */
                                    GHOST_kCapabilityWindowDecorationStyles));
 }

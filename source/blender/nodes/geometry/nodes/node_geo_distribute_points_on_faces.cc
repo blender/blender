@@ -297,7 +297,7 @@ BLI_NOINLINE static void propagate_existing_attributes(
 
   for (MapItem<StringRef, AttributeDomainAndType> entry : attributes.items()) {
     const StringRef attribute_id = entry.key;
-    const eCustomDataType output_data_type = entry.value.data_type;
+    const bke::AttrType output_data_type = entry.value.data_type;
 
     GAttributeReader src = mesh_attributes.lookup(attribute_id);
     if (!src) {

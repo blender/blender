@@ -89,7 +89,7 @@ void read_generic_mesh_primvar(Mesh *mesh,
   const pxr::TfToken pv_name = pxr::UsdGeomPrimvar::StripPrimvarsName(primvar.GetPrimvarName());
 
   const std::optional<bke::AttrDomain> domain = convert_usd_varying_to_blender(pv_interp);
-  const std::optional<eCustomDataType> type = convert_usd_type_to_blender(pv_type);
+  const std::optional<bke::AttrType> type = convert_usd_type_to_blender(pv_type);
 
   if (!domain.has_value() || !type.has_value()) {
     CLOG_WARN(&LOG,

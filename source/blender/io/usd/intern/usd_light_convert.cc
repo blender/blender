@@ -17,7 +17,6 @@
 #include <pxr/usd/usdGeom/xformCache.h>
 #include <pxr/usd/usdGeom/xformCommonAPI.h>
 #include <pxr/usd/usdLux/domeLight.h>
-#include <pxr/usd/usdLux/domeLight_1.h>
 #include <pxr/usd/usdLux/tokens.h>
 
 #include "BKE_image.hh"
@@ -31,13 +30,17 @@
 #include "BLI_fileops.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_utildefines.h"
 
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
+#include <cmath>
+#include <cstdint>
 #include <string>
 
 #include "CLG_log.h"
@@ -138,10 +141,6 @@ static bNode *append_node(bNode *dst_node,
                           float offset)
 {
   bNode *src_node = bke::node_add_static_node(nullptr, *ntree, new_node_type);
-  if (!src_node) {
-    return nullptr;
-  }
-
   bke::node_add_link(*ntree,
                      *src_node,
                      *bke::node_find_socket(*src_node, SOCK_OUT, out_sock),
@@ -238,7 +237,7 @@ void world_material_to_dome_light(const USDExportParams &params,
     /* Find the world output. */
     const bNodeTree *ntree = scene->world->nodetree;
     ntree->ensure_topology_cache();
-    const blender::Span<const bNode *> bsdf_nodes = ntree->nodes_by_type("ShaderNodeOutputWorld");
+    const Span<const bNode *> bsdf_nodes = ntree->nodes_by_type("ShaderNodeOutputWorld");
     const bNode *output = bsdf_nodes.is_empty() ? nullptr : bsdf_nodes.first();
 
     if (!output) {
@@ -358,10 +357,6 @@ void dome_light_to_world_material(const USDImportParams &params,
 
   if (!scene->world->nodetree) {
     scene->world->nodetree = bke::node_tree_add_tree(nullptr, "Shader Nodetree", "ShaderNodeTree");
-    if (!scene->world->nodetree) {
-      CLOG_WARN(&LOG, "Couldn't create world ntree");
-      return;
-    }
   }
 
   bNodeTree *ntree = scene->world->nodetree;
@@ -388,23 +383,12 @@ void dome_light_to_world_material(const USDImportParams &params,
   /* Create the output and background shader nodes, if they don't exist. */
   if (!output) {
     output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_WORLD);
-
-    if (!output) {
-      CLOG_WARN(&LOG, "Couldn't create world output node");
-      return;
-    }
-
     output->location[0] = 300.0f;
     output->location[1] = 300.0f;
   }
 
   if (!bgshader) {
     bgshader = append_node(output, SH_NODE_BACKGROUND, "Background", "Surface", ntree, 200);
-
-    if (!bgshader) {
-      CLOG_WARN(&LOG, "Couldn't create world shader node");
-      return;
-    }
 
     /* Set the default background color. */
     bNodeSocket *color_sock = bke::node_find_socket(*bgshader, SOCK_IN, "Color");
@@ -445,12 +429,6 @@ void dome_light_to_world_material(const USDImportParams &params,
 
   if (dome_light_data.has_color) {
     mult = append_node(bgshader, SH_NODE_VECTOR_MATH, "Vector", "Color", ntree, 200);
-
-    if (!mult) {
-      CLOG_WARN(&LOG, "Couldn't create vector multiply node");
-      return;
-    }
-
     mult->custom1 = NODE_VECTOR_MATH_MULTIPLY;
 
     /* Set the color in the vector math node's second socket. */
@@ -479,27 +457,12 @@ void dome_light_to_world_material(const USDImportParams &params,
     tex = append_node(bgshader, SH_NODE_TEX_ENVIRONMENT, "Color", "Color", ntree, 400);
   }
 
-  if (!tex) {
-    CLOG_WARN(&LOG, "Couldn't create world environment texture node");
-    return;
-  }
-
   bNode *mapping = append_node(tex, SH_NODE_MAPPING, "Vector", "Vector", ntree, 200);
-  if (!mapping) {
-    CLOG_WARN(&LOG, "Couldn't create mapping node");
-    return;
-  }
 
-  const bNode *tex_coord = append_node(
-      mapping, SH_NODE_TEX_COORD, "Generated", "Vector", ntree, 200);
-  if (!tex_coord) {
-    CLOG_WARN(&LOG, "Couldn't create texture coordinate node");
-    return;
-  }
+  append_node(mapping, SH_NODE_TEX_COORD, "Generated", "Vector", ntree, 200);
 
   /* Load the texture image. */
-  std::string resolved_path = dome_light_data.tex_path.GetResolvedPath();
-
+  const std::string &resolved_path = dome_light_data.tex_path.GetResolvedPath();
   if (resolved_path.empty()) {
     CLOG_WARN(&LOG,
               "Couldn't get resolved path for asset %s",

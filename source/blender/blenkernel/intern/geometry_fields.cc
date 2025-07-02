@@ -391,7 +391,7 @@ GVArray InstancesFieldInput::get_varray_for_context(const fn::FieldContext &cont
 GVArray AttributeFieldInput::get_varray_for_context(const GeometryFieldContext &context,
                                                     const IndexMask & /*mask*/) const
 {
-  const eCustomDataType data_type = cpp_type_to_custom_data_type(*type_);
+  const bke::AttrType data_type = cpp_type_to_attribute_type(*type_);
   const AttrDomain domain = context.domain();
   if (const GreasePencil *grease_pencil = context.grease_pencil()) {
     const AttributeAccessor layer_attributes = grease_pencil->attributes();
@@ -500,7 +500,7 @@ GVArray IDAttributeFieldInput::get_varray_for_context(const GeometryFieldContext
 
   const StringRef name = get_random_id_attribute_name(context.domain());
   if (auto attributes = context.attributes()) {
-    if (GVArray attribute = *attributes->lookup(name, context.domain(), CD_PROP_INT32)) {
+    if (GVArray attribute = *attributes->lookup<int>(name, context.domain())) {
       return attribute;
     }
   }
@@ -756,7 +756,7 @@ static std::optional<StringRefNull> try_get_field_direct_attribute_id(const fn::
 
 static bool attribute_kind_matches(const AttributeMetaData meta_data,
                                    const AttrDomain domain,
-                                   const eCustomDataType data_type)
+                                   const bke::AttrType data_type)
 {
   return meta_data.domain == domain && meta_data.data_type == data_type;
 }
@@ -778,7 +778,7 @@ static bool try_add_shared_field_attribute(MutableAttributeAccessor attributes,
   if (!meta_data) {
     return false;
   }
-  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(field.cpp_type());
+  const bke::AttrType data_type = bke::cpp_type_to_attribute_type(field.cpp_type());
   if (!attribute_kind_matches(*meta_data, domain, data_type)) {
     /* Avoid costly domain and type interpolation, which would make sharing impossible. */
     return false;
@@ -817,7 +817,7 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
   if (domain_size == 0) {
     bool all_added = true;
     for (const int i : attribute_ids.index_range()) {
-      const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(fields[i].cpp_type());
+      const bke::AttrType data_type = bke::cpp_type_to_attribute_type(fields[i].cpp_type());
       all_added &= attributes.add(attribute_ids[i], domain, data_type, AttributeInitConstruct{});
     }
     return all_added;
@@ -847,7 +847,7 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
   for (const int input_index : attribute_ids.index_range()) {
     const StringRef id = attribute_ids[input_index];
     const CPPType &type = fields[input_index].cpp_type();
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
+    const bke::AttrType data_type = bke::cpp_type_to_attribute_type(type);
 
     /* Avoid adding or writing to builtin attributes with an incorrect type or domain. */
     if (const std::optional<AttributeDomainAndType> meta_data =
@@ -908,7 +908,7 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
     const StringRef id = attribute_ids[result.input_index];
     attributes.remove(id);
     const CPPType &type = fields[result.input_index].cpp_type();
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
+    const bke::AttrType data_type = bke::cpp_type_to_attribute_type(type);
     if (!attributes.add(id, domain, data_type, AttributeInitMoveArray(result.buffer))) {
       /* If the name corresponds to a builtin attribute, removing the attribute might fail if
        * it's required, adding the attribute might fail if the domain or type is incorrect. */

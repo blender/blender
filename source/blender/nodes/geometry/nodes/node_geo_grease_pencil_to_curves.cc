@@ -84,7 +84,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (ELEM(iter.name, "opacity")) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     const GAttributeReader src_attribute = iter.get();

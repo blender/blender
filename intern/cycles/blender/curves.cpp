@@ -750,7 +750,7 @@ static void attr_create_generic(Scene *scene,
     const ustring name{std::string_view(iter.name)};
 
     const blender::bke::AttrDomain b_domain = iter.domain;
-    const eCustomDataType b_data_type = iter.data_type;
+    const blender::bke::AttrType b_data_type = iter.data_type;
 
     if (need_motion && name == u_velocity) {
       const blender::VArraySpan b_attr = *iter.get<blender::float3>(
@@ -760,7 +760,7 @@ static void attr_create_generic(Scene *scene,
     }
 
     /* Weak, use first float2 attribute as standard UV. */
-    if (need_uv && !have_uv && b_data_type == CD_PROP_FLOAT2 &&
+    if (need_uv && !have_uv && b_data_type == blender::bke::AttrType::Float2 &&
         b_domain == blender::bke::AttrDomain::Curve)
     {
       Attribute *attr = attributes.add(ATTR_STD_UV, name);

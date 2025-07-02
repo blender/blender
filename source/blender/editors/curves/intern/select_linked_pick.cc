@@ -95,7 +95,7 @@ static bool select_linked_pick(bContext &C, const int2 &mval, const SelectPick_P
   }
   else if (selection_domain == bke::AttrDomain::Curve) {
     bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-        closest_curves, bke::AttrDomain::Curve, CD_PROP_BOOL);
+        closest_curves, bke::AttrDomain::Curve, bke::AttrType::Bool);
     apply_selection_operation_at_index(selection.span, closest.elem.index, params.sel_op);
     selection.finish();
   }

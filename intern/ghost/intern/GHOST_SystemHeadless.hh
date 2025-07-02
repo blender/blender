@@ -54,7 +54,8 @@ class GHOST_SystemHeadless : public GHOST_System {
         ~(GHOST_kCapabilityWindowPosition | GHOST_kCapabilityCursorWarp |
           GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityDesktopSample |
           GHOST_kCapabilityClipboardImages | GHOST_kCapabilityInputIME |
-          GHOST_kCapabilityWindowDecorationStyles | GHOST_kCapabilityKeyboardHyperKey));
+          GHOST_kCapabilityWindowDecorationStyles | GHOST_kCapabilityKeyboardHyperKey |
+          GHOST_kCapabilityRGBACursors));
   }
   char *getClipboard(bool /*selection*/) const override
   {

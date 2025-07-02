@@ -6,6 +6,9 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_enums.h"
 
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+
 #include "WM_api.hh"
 
 #include "BKE_compute_context_cache.hh"
@@ -29,37 +32,247 @@
 
 namespace blender::ed::space_node {
 
-void sync_sockets_evaluate_closure(SpaceNode &snode,
-                                   bNode &evaluate_closure_node,
-                                   ReportList *reports)
+struct BundleSyncState {
+  NodeSyncState state;
+  std::optional<nodes::BundleSignature> source_signature;
+};
+
+struct ClosureSyncState {
+  NodeSyncState state;
+  std::optional<nodes::ClosureSignature> source_signature;
+};
+
+static BundleSyncState get_sync_state_separate_bundle(const SpaceNode &snode,
+                                                      const bNode &separate_bundle_node)
+{
+  BLI_assert(separate_bundle_node.is_type("GeometryNodeSeparateBundle"));
+  snode.edittree->ensure_topology_cache();
+  const bNodeSocket &bundle_socket = separate_bundle_node.input_socket(0);
+
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
+      snode, compute_context_cache, bundle_socket);
+  const Vector<nodes::BundleSignature> source_signatures =
+      ed::space_node::gather_linked_origin_bundle_signatures(
+          current_context, bundle_socket, compute_context_cache);
+  if (source_signatures.is_empty()) {
+    return {NodeSyncState::NoSyncSource};
+  }
+  if (!nodes::BundleSignature::all_matching_exactly(source_signatures)) {
+    return {NodeSyncState::ConflictingSyncSources};
+  }
+  const nodes::BundleSignature &source_signature = source_signatures[0];
+  const nodes::BundleSignature &current_signature = nodes::BundleSignature::FromSeparateBundleNode(
+      separate_bundle_node);
+  if (!source_signature.matches_exactly(current_signature)) {
+    return {NodeSyncState::CanBeSynced, source_signature};
+  }
+  return {NodeSyncState::Synced};
+}
+
+static BundleSyncState get_sync_state_combine_bundle(const SpaceNode &snode,
+                                                     const bNode &combine_bundle_node)
+{
+  BLI_assert(combine_bundle_node.is_type("GeometryNodeCombineBundle"));
+  snode.edittree->ensure_topology_cache();
+  const bNodeSocket &bundle_socket = combine_bundle_node.output_socket(0);
+
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
+      snode, compute_context_cache, bundle_socket);
+  const Vector<nodes::BundleSignature> source_signatures =
+      ed::space_node::gather_linked_target_bundle_signatures(
+          current_context, bundle_socket, compute_context_cache);
+  if (source_signatures.is_empty()) {
+    return {NodeSyncState::NoSyncSource};
+  }
+  if (!nodes::BundleSignature::all_matching_exactly(source_signatures)) {
+    return {NodeSyncState::ConflictingSyncSources};
+  }
+  const nodes::BundleSignature &source_signature = source_signatures[0];
+  const nodes::BundleSignature &current_signature = nodes::BundleSignature::FromCombineBundleNode(
+      combine_bundle_node);
+  if (!source_signature.matches_exactly(current_signature)) {
+    return {NodeSyncState::CanBeSynced, source_signature};
+  }
+  return {NodeSyncState::Synced};
+}
+
+static ClosureSyncState get_sync_state_closure_output(const SpaceNode &snode,
+                                                      const bNode &closure_output_node)
 {
   snode.edittree->ensure_topology_cache();
-  bNodeSocket &closure_socket = evaluate_closure_node.input_socket(0);
+  const bNodeSocket &closure_socket = closure_output_node.output_socket(0);
 
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
       snode, compute_context_cache, closure_socket);
-  const Vector<nodes::ClosureSignature> signatures =
+  const Vector<nodes::ClosureSignature> source_signatures =
+      ed::space_node::gather_linked_target_closure_signatures(
+          current_context, closure_socket, compute_context_cache);
+  if (source_signatures.is_empty()) {
+    return {NodeSyncState::NoSyncSource};
+  }
+  if (!nodes::ClosureSignature::all_matching_exactly(source_signatures)) {
+    return {NodeSyncState::ConflictingSyncSources};
+  }
+  const nodes::ClosureSignature &source_signature = source_signatures[0];
+  const nodes::ClosureSignature &current_signature =
+      nodes::ClosureSignature::FromClosureOutputNode(closure_output_node);
+  if (!source_signature.matches_exactly(current_signature)) {
+    return {NodeSyncState::CanBeSynced, source_signature};
+  }
+  return {NodeSyncState::Synced};
+}
+
+static ClosureSyncState get_sync_state_evaluate_closure(const SpaceNode &snode,
+                                                        const bNode &evaluate_closure_node)
+{
+  snode.edittree->ensure_topology_cache();
+  const bNodeSocket &closure_socket = evaluate_closure_node.input_socket(0);
+
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
+      snode, compute_context_cache, closure_socket);
+  const Vector<nodes::ClosureSignature> source_signatures =
       ed::space_node::gather_linked_origin_closure_signatures(
           current_context, closure_socket, compute_context_cache);
-  if (signatures.is_empty()) {
-    BKE_report(reports, RPT_INFO, "No closure signature found");
-    return;
+  if (source_signatures.is_empty()) {
+    return {NodeSyncState::NoSyncSource};
+  }
+  if (!nodes::ClosureSignature::all_matching_exactly(source_signatures)) {
+    return {NodeSyncState::ConflictingSyncSources};
+  }
+  const nodes::ClosureSignature &source_signature = source_signatures[0];
+  const nodes::ClosureSignature &current_signature =
+      nodes::ClosureSignature::FromEvaluateClosureNode(evaluate_closure_node);
+  if (!source_signature.matches_exactly(current_signature)) {
+    return {NodeSyncState::CanBeSynced, source_signature};
+  }
+  return {NodeSyncState::Synced};
+}
+
+NodeSyncState sync_sockets_state_separate_bundle(const SpaceNode &snode,
+                                                 const bNode &separate_bundle_node)
+{
+  return get_sync_state_separate_bundle(snode, separate_bundle_node).state;
+}
+
+NodeSyncState sync_sockets_state_combine_bundle(const SpaceNode &snode,
+                                                const bNode &combine_bundle_node)
+{
+  return get_sync_state_combine_bundle(snode, combine_bundle_node).state;
+}
+
+NodeSyncState sync_sockets_state_closure_output(const SpaceNode &snode,
+                                                const bNode &closure_output_node)
+{
+  return get_sync_state_closure_output(snode, closure_output_node).state;
+}
+
+NodeSyncState sync_sockets_state_evaluate_closure(const SpaceNode &snode,
+                                                  const bNode &evaluate_closure_node)
+{
+  return get_sync_state_evaluate_closure(snode, evaluate_closure_node).state;
+}
+
+void sync_sockets_separate_bundle(SpaceNode &snode,
+                                  bNode &separate_bundle_node,
+                                  ReportList *reports)
+{
+  const BundleSyncState sync_state = get_sync_state_separate_bundle(snode, separate_bundle_node);
+  switch (sync_state.state) {
+    case NodeSyncState::Synced:
+      return;
+    case NodeSyncState::NoSyncSource:
+      BKE_report(reports, RPT_INFO, "No bundle signature found");
+      return;
+    case NodeSyncState::ConflictingSyncSources:
+      BKE_report(reports, RPT_INFO, "Found conflicting bundle signatures");
+      return;
+    case NodeSyncState::CanBeSynced:
+      break;
   }
 
-  bool all_matching = true;
-  for (const int i : IndexRange(signatures.size() - 1)) {
-    const nodes::ClosureSignature &signature = signatures[i];
-    if (!signature.matches_exactly(signatures[i + 1])) {
-      all_matching = false;
-      break;
+  auto &storage = *static_cast<NodeGeometrySeparateBundle *>(separate_bundle_node.storage);
+
+  Map<std::string, int> old_identifiers;
+  for (const int i : IndexRange(storage.items_num)) {
+    const NodeGeometrySeparateBundleItem &item = storage.items[i];
+    old_identifiers.add_new(StringRef(item.name), item.identifier);
+  }
+
+  nodes::socket_items::clear<nodes::SeparateBundleItemsAccessor>(separate_bundle_node);
+  for (const nodes::BundleSignature::Item &item : sync_state.source_signature->items) {
+    const StringRefNull name = item.key.identifiers()[0];
+    NodeGeometrySeparateBundleItem &new_item =
+        *nodes::socket_items::add_item_with_socket_type_and_name<
+            nodes ::SeparateBundleItemsAccessor>(
+            separate_bundle_node, item.type->type, name.c_str());
+    if (const std::optional<int> old_identifier = old_identifiers.lookup_try(name)) {
+      new_item.identifier = *old_identifier;
     }
   }
-  if (!all_matching) {
-    BKE_report(reports, RPT_INFO, "Found conflicting closure signatures");
-    return;
+  BKE_ntree_update_tag_node_property(snode.edittree, &separate_bundle_node);
+}
+
+void sync_sockets_combine_bundle(SpaceNode &snode, bNode &combine_bundle_node, ReportList *reports)
+{
+  const BundleSyncState sync_state = get_sync_state_combine_bundle(snode, combine_bundle_node);
+  switch (sync_state.state) {
+    case NodeSyncState::Synced:
+      return;
+    case NodeSyncState::NoSyncSource:
+      BKE_report(reports, RPT_INFO, "No bundle signature found");
+      return;
+    case NodeSyncState::ConflictingSyncSources:
+      BKE_report(reports, RPT_INFO, "Found conflicting bundle signatures");
+      return;
+    case NodeSyncState::CanBeSynced:
+      break;
   }
-  const nodes::ClosureSignature &signature = signatures[0];
+
+  auto &storage = *static_cast<NodeGeometryCombineBundle *>(combine_bundle_node.storage);
+
+  Map<std::string, int> old_identifiers;
+  for (const int i : IndexRange(storage.items_num)) {
+    const NodeGeometryCombineBundleItem &item = storage.items[i];
+    old_identifiers.add_new(StringRef(item.name), item.identifier);
+  }
+
+  nodes::socket_items::clear<nodes::CombineBundleItemsAccessor>(combine_bundle_node);
+  for (const nodes::BundleSignature::Item &item : sync_state.source_signature->items) {
+    const StringRefNull name = item.key.identifiers()[0];
+    NodeGeometryCombineBundleItem &new_item =
+        *nodes::socket_items::add_item_with_socket_type_and_name<
+            nodes ::CombineBundleItemsAccessor>(
+            combine_bundle_node, item.type->type, name.c_str());
+    if (const std::optional<int> old_identifier = old_identifiers.lookup_try(name)) {
+      new_item.identifier = *old_identifier;
+    }
+  }
+
+  BKE_ntree_update_tag_node_property(snode.edittree, &combine_bundle_node);
+}
+
+void sync_sockets_evaluate_closure(SpaceNode &snode,
+                                   bNode &evaluate_closure_node,
+                                   ReportList *reports)
+{
+  const ClosureSyncState sync_state = get_sync_state_evaluate_closure(snode,
+                                                                      evaluate_closure_node);
+  switch (sync_state.state) {
+    case NodeSyncState::Synced:
+      return;
+    case NodeSyncState::NoSyncSource:
+      BKE_report(reports, RPT_INFO, "No closure signature found");
+      return;
+    case NodeSyncState::ConflictingSyncSources:
+      BKE_report(reports, RPT_INFO, "Found conflicting closure signatures");
+      return;
+    case NodeSyncState::CanBeSynced:
+      break;
+  }
 
   auto &storage = *static_cast<NodeGeometryEvaluateClosure *>(evaluate_closure_node.storage);
 
@@ -77,7 +290,7 @@ void sync_sockets_evaluate_closure(SpaceNode &snode,
   nodes::socket_items::clear<nodes::EvaluateClosureInputItemsAccessor>(evaluate_closure_node);
   nodes::socket_items::clear<nodes::EvaluateClosureOutputItemsAccessor>(evaluate_closure_node);
 
-  for (const nodes::ClosureSignature::Item &item : signature.inputs) {
+  for (const nodes::ClosureSignature::Item &item : sync_state.source_signature->inputs) {
     const StringRefNull name = item.key.identifiers()[0];
     NodeGeometryEvaluateClosureInputItem &new_item =
         *nodes::socket_items::add_item_with_socket_type_and_name<
@@ -87,7 +300,7 @@ void sync_sockets_evaluate_closure(SpaceNode &snode,
       new_item.identifier = *old_identifier;
     }
   }
-  for (const nodes::ClosureSignature::Item &item : signature.outputs) {
+  for (const nodes::ClosureSignature::Item &item : sync_state.source_signature->outputs) {
     const StringRefNull name = item.key.identifiers()[0];
     NodeGeometryEvaluateClosureOutputItem &new_item =
         *nodes::socket_items::add_item_with_socket_type_and_name<
@@ -100,146 +313,26 @@ void sync_sockets_evaluate_closure(SpaceNode &snode,
   BKE_ntree_update_tag_node_property(snode.edittree, &evaluate_closure_node);
 }
 
-void sync_sockets_separate_bundle(SpaceNode &snode,
-                                  bNode &separate_bundle_node,
-                                  ReportList *reports)
-{
-  snode.edittree->ensure_topology_cache();
-  bNodeSocket &bundle_socket = separate_bundle_node.input_socket(0);
-
-  bke::ComputeContextCache compute_context_cache;
-  const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
-      snode, compute_context_cache, bundle_socket);
-  const Vector<nodes::BundleSignature> signatures =
-      ed::space_node::gather_linked_origin_bundle_signatures(
-          current_context, bundle_socket, compute_context_cache);
-  if (signatures.is_empty()) {
-    BKE_report(reports, RPT_INFO, "No bundle signature found");
-    return;
-  }
-
-  bool all_matching = true;
-  for (const int i : IndexRange(signatures.size() - 1)) {
-    const nodes::BundleSignature &signature = signatures[i];
-    if (!signature.matches_exactly(signatures[i + 1])) {
-      all_matching = false;
-      break;
-    }
-  }
-  if (!all_matching) {
-    BKE_report(reports, RPT_INFO, "Found conflicting bundle signatures");
-    return;
-  }
-  const nodes::BundleSignature &signature = signatures[0];
-
-  auto &storage = *static_cast<NodeGeometrySeparateBundle *>(separate_bundle_node.storage);
-
-  Map<std::string, int> old_identifiers;
-  for (const int i : IndexRange(storage.items_num)) {
-    const NodeGeometrySeparateBundleItem &item = storage.items[i];
-    old_identifiers.add_new(StringRef(item.name), item.identifier);
-  }
-
-  nodes::socket_items::clear<nodes::SeparateBundleItemsAccessor>(separate_bundle_node);
-  for (const nodes::BundleSignature::Item &item : signature.items) {
-    const StringRefNull name = item.key.identifiers()[0];
-    NodeGeometrySeparateBundleItem &new_item =
-        *nodes::socket_items::add_item_with_socket_type_and_name<
-            nodes ::SeparateBundleItemsAccessor>(
-            separate_bundle_node, item.type->type, name.c_str());
-    if (const std::optional<int> old_identifier = old_identifiers.lookup_try(name)) {
-      new_item.identifier = *old_identifier;
-    }
-  }
-  BKE_ntree_update_tag_node_property(snode.edittree, &separate_bundle_node);
-}
-
-void sync_sockets_combine_bundle(SpaceNode &snode, bNode &combine_bundle_node, ReportList *reports)
-{
-  snode.edittree->ensure_topology_cache();
-  bNodeSocket &bundle_socket = combine_bundle_node.output_socket(0);
-
-  bke::ComputeContextCache compute_context_cache;
-  const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
-      snode, compute_context_cache, bundle_socket);
-  const Vector<nodes::BundleSignature> signatures =
-      ed::space_node::gather_linked_target_bundle_signatures(
-          current_context, bundle_socket, compute_context_cache);
-  if (signatures.is_empty()) {
-    BKE_report(reports, RPT_INFO, "No bundle signature found");
-    return;
-  }
-
-  bool all_matching = true;
-  for (const int i : IndexRange(signatures.size() - 1)) {
-    const nodes::BundleSignature &signature = signatures[i];
-    if (!signature.matches_exactly(signatures[i + 1])) {
-      all_matching = false;
-      break;
-    }
-  }
-  if (!all_matching) {
-    BKE_report(reports, RPT_INFO, "Found conflicting bundle signatures");
-    return;
-  }
-  const nodes::BundleSignature &signature = signatures[0];
-
-  auto &storage = *static_cast<NodeGeometryCombineBundle *>(combine_bundle_node.storage);
-
-  Map<std::string, int> old_identifiers;
-  for (const int i : IndexRange(storage.items_num)) {
-    const NodeGeometryCombineBundleItem &item = storage.items[i];
-    old_identifiers.add_new(StringRef(item.name), item.identifier);
-  }
-
-  nodes::socket_items::clear<nodes::CombineBundleItemsAccessor>(combine_bundle_node);
-  for (const nodes::BundleSignature::Item &item : signature.items) {
-    const StringRefNull name = item.key.identifiers()[0];
-    NodeGeometryCombineBundleItem &new_item =
-        *nodes::socket_items::add_item_with_socket_type_and_name<
-            nodes ::CombineBundleItemsAccessor>(
-            combine_bundle_node, item.type->type, name.c_str());
-    if (const std::optional<int> old_identifier = old_identifiers.lookup_try(name)) {
-      new_item.identifier = *old_identifier;
-    }
-  }
-
-  BKE_ntree_update_tag_node_property(snode.edittree, &combine_bundle_node);
-}
-
 void sync_sockets_closure(SpaceNode &snode,
                           bNode &closure_input_node,
                           bNode &closure_output_node,
                           const bool initialize_internal_links,
                           ReportList *reports)
 {
-  snode.edittree->ensure_topology_cache();
-  bNodeSocket &closure_socket = closure_output_node.output_socket(0);
-
-  bke::ComputeContextCache compute_context_cache;
-  const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
-      snode, compute_context_cache, closure_socket);
-  const Vector<nodes::ClosureSignature> signatures =
-      ed::space_node::gather_linked_target_closure_signatures(
-          current_context, closure_socket, compute_context_cache);
-  if (signatures.is_empty()) {
-    BKE_report(reports, RPT_INFO, "No closure signature found");
-    return;
-  }
-
-  bool all_matching = true;
-  for (const int i : IndexRange(signatures.size() - 1)) {
-    const nodes::ClosureSignature &signature = signatures[i];
-    if (!signature.matches_exactly(signatures[i + 1])) {
-      all_matching = false;
+  const ClosureSyncState sync_state = get_sync_state_closure_output(snode, closure_output_node);
+  switch (sync_state.state) {
+    case NodeSyncState::Synced:
+      return;
+    case NodeSyncState::NoSyncSource:
+      BKE_report(reports, RPT_INFO, "No closure signature found");
+      return;
+    case NodeSyncState::ConflictingSyncSources:
+      BKE_report(reports, RPT_INFO, "Found conflicting closure signatures");
+      return;
+    case NodeSyncState::CanBeSynced:
       break;
-    }
   }
-  if (!all_matching) {
-    BKE_report(reports, RPT_INFO, "Found conflicting closure signatures");
-    return;
-  }
-  const nodes::ClosureSignature &signature = signatures[0];
+  const nodes::ClosureSignature &signature = *sync_state.source_signature;
 
   auto &storage = *static_cast<NodeGeometryClosureOutput *>(closure_output_node.storage);
 

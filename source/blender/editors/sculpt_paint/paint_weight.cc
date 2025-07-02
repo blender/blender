@@ -1719,8 +1719,8 @@ static void wpaint_do_radial_symmetry(bContext *C,
                                       const ePaintSymmetryFlags symm,
                                       const int axis)
 {
-  for (int i = 1; i < wp.radial_symm[axis - 'X']; i++) {
-    const float angle = (2.0 * M_PI) * i / wp.radial_symm[axis - 'X'];
+  for (int i = 1; i < mesh.radial_symmetry[axis - 'X']; i++) {
+    const float angle = (2.0 * M_PI) * i / mesh.radial_symmetry[axis - 'X'];
     wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, axis, i, angle);
   }
 }

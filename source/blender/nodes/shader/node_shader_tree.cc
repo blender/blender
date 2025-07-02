@@ -452,6 +452,20 @@ static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
   }
 }
 
+static void ntree_shader_unlink_script_nodes(bNodeTree *ntree)
+{
+  /* To avoid more trouble in the node tree processing (especially inside
+   * `ntree_shader_weight_tree_invert()`) we disconnect the script node since they are not
+   * supported in EEVEE (see #101702). */
+  LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
+    if ((link->tonode->type_legacy == SH_NODE_SCRIPT) ||
+        (link->fromnode->type_legacy == SH_NODE_SCRIPT))
+    {
+      blender::bke::node_remove_link(ntree, *link);
+    }
+  }
+}
+
 static void ntree_shader_groups_remove_muted_links(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -1230,6 +1244,7 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat)
 {
   bNodeTreeExec *exec;
 
+  ntree_shader_unlink_script_nodes(localtree);
   ntree_shader_groups_remove_muted_links(localtree);
   ntree_shader_groups_expand_inputs(localtree);
   ntree_shader_groups_flatten(localtree);

@@ -2363,7 +2363,7 @@ void uiLayout::prop(PointerRNA *ptr,
       PropertyRNA *prop_dec = use_blank_decorator ? nullptr : but_decorate->rnaprop;
 
       /* The icons are set in 'ui_but_anim_flag' */
-      uiItemDecoratorR_prop(layout_col, ptr_dec, prop_dec, but_decorate->rnaindex);
+      layout_col->decorator(ptr_dec, prop_dec, but_decorate->rnaindex);
       but = block->buttons.last().get();
 
       if (!tmp.is_empty()) {
@@ -2926,7 +2926,7 @@ void uiLayout::menu(const StringRef menuname, const std::optional<StringRef> nam
   this->menu(mt, name, icon);
 }
 
-void uiItemMContents(uiLayout *layout, const StringRef menuname)
+void uiLayout::menu_contents(const StringRef menuname)
 {
   MenuType *mt = WM_menutype_find(menuname, false);
   if (mt == nullptr) {
@@ -2934,23 +2934,23 @@ void uiItemMContents(uiLayout *layout, const StringRef menuname)
     return;
   }
 
-  uiBlock *block = layout->block();
+  uiBlock *block = this->block();
   bContext *C = static_cast<bContext *>(block->evil_C);
   if (WM_menutype_poll(C, mt) == false) {
     return;
   }
 
-  UI_menutype_draw(C, mt, layout);
+  UI_menutype_draw(C, mt, this);
 }
 
-void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index)
+void uiLayout::decorator(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-  uiBlock *block = layout->block();
+  uiBlock *block = this->block();
 
-  UI_block_layout_set_current(block, layout);
-  uiLayout *col = &layout->column(false);
-  col->space_ = 0;
-  col->emboss_ = blender::ui::EmbossType::None;
+  UI_block_layout_set_current(block, this);
+  uiLayout &col = this->column(false);
+  col.space_ = 0;
+  col.emboss_ = blender::ui::EmbossType::None;
 
   if (ELEM(nullptr, ptr, prop) || !RNA_property_animateable(ptr, prop)) {
     uiBut *but = uiDefIconBut(block,
@@ -2998,10 +2998,7 @@ void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop,
   }
 }
 
-void uiItemDecoratorR(uiLayout *layout,
-                      PointerRNA *ptr,
-                      const std::optional<StringRefNull> propname,
-                      int index)
+void uiLayout::decorator(PointerRNA *ptr, const std::optional<StringRefNull> propname, int index)
 {
   PropertyRNA *prop = nullptr;
 
@@ -3009,7 +3006,7 @@ void uiItemDecoratorR(uiLayout *layout,
     /* validate arguments */
     prop = RNA_struct_find_property(ptr, propname->c_str());
     if (!prop) {
-      ui_item_disabled(layout, propname->c_str());
+      ui_item_disabled(this, propname->c_str());
       RNA_warning(
           "property not found: %s.%s", RNA_struct_identifier(ptr->type), propname->c_str());
       return;
@@ -3017,7 +3014,7 @@ void uiItemDecoratorR(uiLayout *layout,
   }
 
   /* ptr and prop are allowed to be nullptr here. */
-  uiItemDecoratorR_prop(layout, ptr, prop, index);
+  this->decorator(ptr, prop, index);
 }
 
 void uiLayout::popover(const bContext *C,
@@ -3264,16 +3261,15 @@ void uiLayout::separator(float factor, const LayoutSeparatorType type)
   }
 }
 
-void uiItemProgressIndicator(uiLayout *layout,
-                             const char *text,
-                             const float factor,
-                             const eButProgressType progress_type)
+void uiLayout::progress_indicator(const char *text,
+                                  const float factor,
+                                  const blender::ui::ButProgressType progress_type)
 {
   const bool has_text = text && text[0];
-  uiBlock *block = layout->block();
+  uiBlock *block = this->block();
   short width;
 
-  if (progress_type == UI_BUT_PROGRESS_TYPE_BAR) {
+  if (progress_type == blender::ui::ButProgressType::Bar) {
     width = UI_UNIT_X * 5;
   }
   else if (has_text) {
@@ -3283,7 +3279,7 @@ void uiItemProgressIndicator(uiLayout *layout,
     width = UI_UNIT_X;
   }
 
-  UI_block_layout_set_current(block, layout);
+  UI_block_layout_set_current(block, this);
   uiBut *but = uiDefBut(block,
                         UI_BTYPE_PROGRESS,
                         0,
@@ -3297,13 +3293,13 @@ void uiItemProgressIndicator(uiLayout *layout,
                         0.0,
                         "");
 
-  if (has_text && (progress_type == UI_BUT_PROGRESS_TYPE_RING)) {
+  if (has_text && (progress_type == blender::ui::ButProgressType::Ring)) {
     /* For progress bar, centered is okay, left aligned for ring/pie. */
     but->drawflag |= UI_BUT_TEXT_LEFT;
   }
 
   uiButProgress *progress_bar = static_cast<uiButProgress *>(but);
-  progress_bar->progress_type = eButProgressType(progress_type);
+  progress_bar->progress_type = progress_type;
   progress_bar->progress_factor = factor;
 }
 

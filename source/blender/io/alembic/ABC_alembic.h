@@ -60,7 +60,7 @@ struct AlembicExportParams {
 
   float global_scale;
 
-  char collection[MAX_IDPROP_NAME] = "";
+  char collection[MAX_ID_NAME - 2] = "";
 };
 
 struct AlembicImportParams {

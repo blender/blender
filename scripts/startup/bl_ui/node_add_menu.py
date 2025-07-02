@@ -11,7 +11,7 @@ from bpy.app.translations import (
 )
 
 
-def add_node_type(layout, node_type, *, label=None, poll=None, search_weight=0.0):
+def add_node_type(layout, node_type, *, label=None, poll=None, search_weight=0.0, translate=True):
     """Add a node type to a menu."""
     bl_rna = bpy.types.Node.bl_rna_get_subclass(node_type)
     if not label:
@@ -19,7 +19,12 @@ def add_node_type(layout, node_type, *, label=None, poll=None, search_weight=0.0
 
     if poll is True or poll is None:
         translation_context = bl_rna.translation_context if bl_rna else i18n_contexts.default
-        props = layout.operator("node.add_node", text=label, text_ctxt=translation_context, search_weight=search_weight)
+        props = layout.operator(
+            "node.add_node",
+            text=label,
+            text_ctxt=translation_context,
+            translate=translate,
+            search_weight=search_weight)
         props.type = node_type
         props.use_transform = True
         return props
@@ -94,12 +99,11 @@ def add_node_type_with_searchable_enum(context, layout, node_idname, property_na
     if getattr(context, "is_menu_search", False):
         node_type = getattr(bpy.types, node_idname)
         for item in node_type.bl_rna.properties[property_name].enum_items_static:
+            label = "{} ▸ {}".format(node_type.bl_rna.name, item.name)
             props = add_node_type(
                 layout,
                 node_idname,
-                label=node_type.bl_rna.name +
-                " ▸ " +
-                item.name,
+                label=label,
                 search_weight=search_weight)
             prop = props.settings.add()
             prop.name = property_name
@@ -115,7 +119,8 @@ def add_color_mix_node(context, layout):
 
     if getattr(context, "is_menu_search", False):
         for item in bpy.types.ShaderNodeMix.bl_rna.properties["blend_type"].enum_items_static:
-            props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=label + " ▸ " + item.name)
+            sublabel = "{} ▸ {}".format(label, item.name)
+            props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=sublabel)
             prop = props.settings.add()
             prop.name = "data_type"
             prop.value = "'RGBA'"

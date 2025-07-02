@@ -10,6 +10,7 @@
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
 
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_context.hh"
 #include "BKE_main_invariants.hh"
 #include "BKE_node_legacy_types.hh"
@@ -199,7 +200,8 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   if (node->type_legacy == GEO_NODE_INPUT_NAMED_ATTRIBUTE && item->data_type.has_value()) {
     NodeGeometryInputNamedAttribute &storage = *static_cast<NodeGeometryInputNamedAttribute *>(
         node->storage);
-    const eCustomDataType new_type = data_type_in_attribute_input_node(*item->data_type);
+    const eCustomDataType new_type = data_type_in_attribute_input_node(
+        *bke::attr_type_to_custom_data_type(*item->data_type));
     if (new_type != storage.data_type) {
       storage.data_type = new_type;
       /* Make the output socket with the new type on the attribute input node active. */

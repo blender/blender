@@ -269,18 +269,15 @@ void mesh_convert_customdata_to_storage(Mesh &mesh)
       mesh.attribute_storage.wrap());
 }
 
-void curves_convert_storage_to_customdata(CurvesGeometry &curves)
-{
-  convert_storage_to_customdata(curves.attribute_storage.wrap(),
-                                {{AttrDomain::Point, {curves.point_data, curves.points_num()}},
-                                 {AttrDomain::Curve, {curves.curve_data, curves.curves_num()}}});
-}
 void curves_convert_customdata_to_storage(CurvesGeometry &curves)
 {
   attribute_legacy_convert_customdata_to_storage(
       {{AttrDomain::Point, {curves.point_data, curves.points_num()}},
-       {AttrDomain::Curve, {curves.curve_data, curves.curves_num()}}},
+       {AttrDomain::Curve, {curves.curve_data_legacy, curves.curves_num()}}},
       curves.attribute_storage.wrap());
+  /* Update the curve type count again (the first time was done on file-read, where
+   * #AttributeStorage data doesn't exist yet for older fiels). */
+  curves.update_curve_types();
 }
 
 void pointcloud_convert_customdata_to_storage(PointCloud &pointcloud)
@@ -290,16 +287,11 @@ void pointcloud_convert_customdata_to_storage(PointCloud &pointcloud)
       pointcloud.attribute_storage.wrap());
 }
 
-void grease_pencil_convert_storage_to_customdata(GreasePencil &grease_pencil)
-{
-  convert_storage_to_customdata(
-      grease_pencil.attribute_storage.wrap(),
-      {{AttrDomain::Layer, {grease_pencil.layers_data, int(grease_pencil.layers().size())}}});
-}
 void grease_pencil_convert_customdata_to_storage(GreasePencil &grease_pencil)
 {
   attribute_legacy_convert_customdata_to_storage(
-      {{AttrDomain::Layer, {grease_pencil.layers_data, int(grease_pencil.layers().size())}}},
+      {{AttrDomain::Layer,
+        {grease_pencil.layers_data_legacy, int(grease_pencil.layers().size())}}},
       grease_pencil.attribute_storage.wrap());
 }
 

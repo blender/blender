@@ -446,7 +446,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
   else {
     const char *name = socket.name ? IFACE_(socket.name) : "";
     prop_row->prop(ctx.properties_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
-    uiItemDecoratorR(layout, ctx.properties_ptr, rna_path.c_str(), -1);
+    layout->decorator(ctx.properties_ptr, rna_path.c_str(), -1);
   }
 
   ctx.draw_attribute_toggle_fn(*prop_row, ICON_SPREADSHEET, socket);

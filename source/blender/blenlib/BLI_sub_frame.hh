@@ -78,7 +78,7 @@ struct SubFrame {
 
   friend bool operator<=(const SubFrame &a, const SubFrame &b)
   {
-    return a.frame_ <= b.frame_ || (a.frame_ == b.frame_ && a.subframe_ <= b.subframe_);
+    return a.frame_ < b.frame_ || (a.frame_ == b.frame_ && a.subframe_ <= b.subframe_);
   }
 
   friend bool operator>(const SubFrame &a, const SubFrame &b)
@@ -88,7 +88,7 @@ struct SubFrame {
 
   friend bool operator>=(const SubFrame &a, const SubFrame &b)
   {
-    return a.frame_ >= b.frame_ || (a.frame_ == b.frame_ && a.subframe_ >= b.subframe_);
+    return a.frame_ > b.frame_ || (a.frame_ == b.frame_ && a.subframe_ >= b.subframe_);
   }
 };
 

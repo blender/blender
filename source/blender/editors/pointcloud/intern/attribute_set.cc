@@ -84,8 +84,8 @@ static wmOperatorStatus set_attribute_exec(bContext *C, wmOperator *op)
   AttributeOwner active_owner = AttributeOwner::from_id(&active_pointcloud.id);
   const StringRef name = *BKE_attributes_active_name_get(active_owner);
   const bke::AttributeMetaData meta_data = *active_pointcloud.attributes().lookup_meta_data(name);
-  const eCustomDataType active_type = meta_data.data_type;
-  const CPPType &type = *bke::custom_data_type_to_cpp_type(active_type);
+  const bke::AttrType active_type = meta_data.data_type;
+  const CPPType &type = bke::attribute_type_to_cpp_type(active_type);
 
   BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
   BLI_SCOPED_DEFER([&]() { type.destruct(buffer); });
@@ -146,7 +146,7 @@ static wmOperatorStatus set_attribute_invoke(bContext *C, wmOperator *op, const 
   const CPPType &type = attribute.varray.type();
 
   PropertyRNA *prop = geometry::rna_property_for_type(*op->ptr,
-                                                      bke::cpp_type_to_custom_data_type(type));
+                                                      bke::cpp_type_to_attribute_type(type));
   if (RNA_property_is_set(op->ptr, prop)) {
     return WM_operator_props_popup(C, op, event);
   }
@@ -179,7 +179,7 @@ static void set_attribute_ui(bContext *C, wmOperator *op)
   AttributeOwner owner = AttributeOwner::from_id(&pointcloud.id);
   const StringRef name = *BKE_attributes_active_name_get(owner);
   const bke::AttributeMetaData meta_data = *pointcloud.attributes().lookup_meta_data(name);
-  const eCustomDataType active_type = eCustomDataType(meta_data.data_type);
+  const bke::AttrType active_type = bke::AttrType(meta_data.data_type);
   const StringRefNull prop_name = geometry::rna_property_name_for_type(active_type);
   layout->prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }

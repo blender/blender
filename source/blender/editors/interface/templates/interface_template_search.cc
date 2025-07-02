@@ -13,6 +13,8 @@
 
 #include "BLT_translation.hh"
 
+#include "ANIM_action.hh"
+
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 #include "interface_templates_intern.hh"
@@ -93,9 +95,14 @@ static void template_search_add_button_name(uiBlock *block,
     return;
   }
 
+  int iconid = ICON_NONE;
+
   PropertyRNA *name_prop;
   if (type == &RNA_ActionSlot) {
     name_prop = RNA_struct_find_property(active_ptr, "name_display");
+    /* Also show an icon for the data-block type that each slot is intended for. */
+    blender::animrig::Slot &slot = reinterpret_cast<ActionSlot *>(active_ptr->data)->wrap();
+    iconid = UI_icon_from_idcode(slot.idtype);
   }
   else {
     name_prop = RNA_struct_name_property(type);
@@ -103,7 +110,7 @@ static void template_search_add_button_name(uiBlock *block,
 
   const int width = template_search_textbut_width(active_ptr, name_prop);
   const int height = template_search_textbut_height();
-  uiDefAutoButR(block, active_ptr, name_prop, 0, "", ICON_NONE, 0, 0, width, height);
+  uiDefAutoButR(block, active_ptr, name_prop, 0, "", iconid, 0, 0, width, height);
 }
 
 static void template_search_add_button_operator(
@@ -204,7 +211,7 @@ static void template_search_buttons(const bContext *C,
   UI_block_align_end(block);
 
   if (decorator_layout) {
-    uiItemDecoratorR(decorator_layout, nullptr, "", RNA_NO_INDEX);
+    decorator_layout->decorator(nullptr, "", RNA_NO_INDEX);
   }
 }
 

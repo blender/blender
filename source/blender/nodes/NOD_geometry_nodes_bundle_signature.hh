@@ -19,6 +19,11 @@ struct BundleSignature {
   Vector<Item> items;
 
   bool matches_exactly(const BundleSignature &other) const;
+
+  static bool all_matching_exactly(const Span<BundleSignature> signatures);
+
+  static BundleSignature FromCombineBundleNode(const bNode &node);
+  static BundleSignature FromSeparateBundleNode(const bNode &node);
 };
 
 }  // namespace blender::nodes

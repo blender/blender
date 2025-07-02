@@ -192,15 +192,12 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
                                int num_innercut_items,
                                int *innercut_item_indices);
 
-using MeshRemapIslandsCalc = bool (*)(const float (*vert_positions)[3],
-                                      int totvert,
-                                      const blender::int2 *edges,
-                                      int totedge,
-                                      const bool *uv_seams,
+using MeshRemapIslandsCalc = bool (*)(blender::Span<blender::float3> vert_positions,
+                                      blender::Span<blender::int2> edges,
+                                      blender::Span<bool> uv_seams,
                                       blender::OffsetIndices<int> faces,
-                                      const int *corner_verts,
-                                      const int *corner_edges,
-                                      int corners_num,
+                                      blender::Span<int> corner_verts,
+                                      blender::Span<int> corner_edges,
                                       MeshIslandStore *r_island_store);
 
 /* Above vert/UV mapping stuff does not do what we need here, but does things we do not need here.
@@ -209,42 +206,16 @@ using MeshRemapIslandsCalc = bool (*)(const float (*vert_positions)[3],
 /**
  * Calculate 'generic' UV islands, i.e. based only on actual geometry data (edge seams),
  * not some UV layers coordinates.
+ *
+ * \param uv_seams: Optional (possibly empty) span.
  */
-bool BKE_mesh_calc_islands_loop_face_edgeseam(const float (*vert_positions)[3],
-                                              int totvert,
-                                              const blender::int2 *edges,
-                                              int totedge,
-                                              const bool *uv_seams,
+bool BKE_mesh_calc_islands_loop_face_edgeseam(blender::Span<blender::float3> vert_positions,
+                                              blender::Span<blender::int2> edges,
+                                              blender::Span<bool> uv_seams,
                                               blender::OffsetIndices<int> faces,
-                                              const int *corner_verts,
-                                              const int *corner_edges,
-                                              int corners_num,
+                                              blender::Span<int> corner_verts,
+                                              blender::Span<int> corner_edges,
                                               MeshIslandStore *r_island_store);
-
-/**
- * Calculate UV islands.
- *
- * \note If no UV layer is passed, we only consider edges tagged as seams as UV boundaries.
- * This has the advantages of simplicity, and being valid/common to all UV maps.
- * However, it means actual UV islands without matching UV seams will not be handled correctly.
- * If a valid UV layer is passed as \a luvs parameter,
- * UV coordinates are also used to detect islands boundaries.
- *
- * \note All this could be optimized.
- * Not sure it would be worth the more complex code, though,
- * those loops are supposed to be really quick to do.
- */
-bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
-                                           int totvert,
-                                           blender::int2 *edges,
-                                           int totedge,
-                                           const bool *uv_seams,
-                                           blender::OffsetIndices<int> faces,
-                                           const int *corner_verts,
-                                           const int *corner_edges,
-                                           int corners_num,
-                                           const float (*luvs)[2],
-                                           MeshIslandStore *r_island_store);
 
 /**
  * Calculate smooth groups from sharp edges, using increasing numbers as identifier for each group.

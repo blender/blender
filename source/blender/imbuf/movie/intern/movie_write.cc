@@ -970,31 +970,18 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     AVPixelFormat src_format = is_10_bpp || is_12_bpp || is_16_bpp ? AV_PIX_FMT_GBRAPF32LE :
                                                                      AV_PIX_FMT_RGBA;
     context->img_convert_frame = alloc_frame(src_format, c->width, c->height);
-    context->img_convert_ctx = ffmpeg_sws_get_context(
-        c->width, c->height, src_format, c->width, c->height, c->pix_fmt, SWS_BICUBIC);
-
     /* Setup BT.709 coefficients for RGB->YUV conversion, if needed. */
-    if (set_bt709) {
-      int *inv_table = nullptr, *table = nullptr;
-      int src_range = 0, dst_range = 0, brightness = 0, contrast = 0, saturation = 0;
-      sws_getColorspaceDetails(context->img_convert_ctx,
-                               &inv_table,
-                               &src_range,
-                               &table,
-                               &dst_range,
-                               &brightness,
-                               &contrast,
-                               &saturation);
-      const int *new_table = sws_getCoefficients(AVCOL_SPC_BT709);
-      sws_setColorspaceDetails(context->img_convert_ctx,
-                               inv_table,
-                               src_range,
-                               new_table,
-                               dst_range,
-                               brightness,
-                               contrast,
-                               saturation);
-    }
+    context->img_convert_ctx = ffmpeg_sws_get_context(c->width,
+                                                      c->height,
+                                                      src_format,
+                                                      false,
+                                                      -1,
+                                                      c->width,
+                                                      c->height,
+                                                      c->pix_fmt,
+                                                      false,
+                                                      set_bt709 ? AVCOL_SPC_BT709 : -1,
+                                                      SWS_BICUBIC);
   }
 
   avcodec_parameters_from_context(st->codecpar, c);

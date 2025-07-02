@@ -37,6 +37,7 @@
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
+#include "BKE_curves_utils.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
@@ -97,12 +98,8 @@ struct TransformMedian_Lattice {
   float location[3], weight;
 };
 
-struct TransformMedian_GreasePencil {
-  float location[3];
-};
-
 struct TransformMedian_Curves {
-  float location[3];
+  float location[3], nurbs_weight, radius, tilt;
 };
 
 union TransformMedian {
@@ -110,7 +107,6 @@ union TransformMedian {
   TransformMedian_Mesh mesh;
   TransformMedian_Curve curve;
   TransformMedian_Lattice lattice;
-  TransformMedian_GreasePencil grease_pencil;
   TransformMedian_Curves curves;
 };
 
@@ -306,6 +302,186 @@ static TransformProperties *v3d_transform_props_ensure(View3D *v3d)
   return static_cast<TransformProperties *>(v3d->runtime.properties_storage);
 }
 
+struct CurvesSelectionStatus {
+  TransformMedian_Curves median = {};
+  int total = 0;
+  int total_curve_points = 0;
+  int total_nurbs_weights = 0;
+
+  static CurvesSelectionStatus sum(const CurvesSelectionStatus &a, const CurvesSelectionStatus &b)
+  {
+    CurvesSelectionStatus result;
+    add_v3_v3v3(result.median.location, a.median.location, b.median.location);
+    result.median.nurbs_weight = a.median.nurbs_weight + b.median.nurbs_weight;
+    result.median.radius = a.median.radius + b.median.radius;
+    result.median.tilt = a.median.tilt + b.median.tilt;
+    result.total = a.total + b.total;
+    result.total_curve_points = a.total_curve_points + b.total_curve_points;
+    result.total_nurbs_weights = a.total_nurbs_weights + b.total_nurbs_weights;
+    return result;
+  }
+};
+
+static CurvesSelectionStatus init_curves_selection_status(
+    const blender::bke::CurvesGeometry &curves)
+{
+  using namespace blender;
+  using namespace ed::curves;
+
+  if (curves.is_empty()) {
+    return CurvesSelectionStatus();
+  }
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  const VArray<int8_t> curve_types = curves.curve_types();
+  const Span<float> nurbs_weights = curves.nurbs_weights();
+  const VArray<float> radius = curves.radius();
+  const VArray<float> tilt = curves.tilt();
+  const Span<float3> positions = curves.positions();
+
+  IndexMaskMemory memory;
+  const IndexMask selection = retrieve_selected_points(curves, ".selection", memory);
+
+  CurvesSelectionStatus status = threading::parallel_reduce(
+      curves.curves_range(),
+      512,
+      CurvesSelectionStatus(),
+      [&](const IndexRange range, const CurvesSelectionStatus &acc) {
+        CurvesSelectionStatus value = acc;
+
+        for (const int curve : range) {
+          const IndexRange points = points_by_curve[curve];
+          const CurveType curve_type = CurveType(curve_types[curve]);
+          const bool is_nurbs = curve_type == CURVE_TYPE_NURBS;
+          const IndexMask curve_selection = selection.slice_content(points);
+
+          value.total += curve_selection.size();
+          value.total_curve_points += curve_selection.size();
+
+          curve_selection.foreach_index([&](const int point) {
+            add_v3_v3(value.median.location, positions[point]);
+            value.total_nurbs_weights += is_nurbs;
+            value.median.nurbs_weight += is_nurbs ?
+                                             (nurbs_weights.is_empty() ? 1.0f :
+                                                                         nurbs_weights[point]) :
+                                             0;
+            value.median.radius += radius[point];
+            value.median.tilt += tilt[point];
+          });
+        }
+        return value;
+      },
+      CurvesSelectionStatus::sum);
+
+  if (!curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    return status;
+  }
+
+  auto add_handles = [&](StringRef selection_attribute, Span<float3> positions) {
+    const IndexMask selection = retrieve_selected_points(curves, selection_attribute, memory);
+
+    if (selection.is_empty()) {
+      return;
+    }
+
+    status.total += selection.size();
+
+    selection.foreach_index(
+        [&](const int point) { add_v3_v3(status.median.location, positions[point]); });
+  };
+
+  add_handles(".selection_handle_left", curves.handle_positions_left());
+  add_handles(".selection_handle_right", curves.handle_positions_right());
+  return status;
+}
+
+static bool apply_to_curves_selection(const int tot,
+                                      const TransformMedian_Curves &median,
+                                      const TransformMedian_Curves &ve_median,
+                                      blender::bke::CurvesGeometry &curves)
+{
+  using namespace blender;
+  using namespace ed::curves;
+  if (curves.is_empty()) {
+    return false;
+  }
+
+  bool changed = false;
+
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  const VArray<int8_t> curve_types = curves.curve_types();
+  const MutableSpan<float> nurbs_weights = median.nurbs_weight ? curves.nurbs_weights_for_write() :
+                                                                 MutableSpan<float>{};
+  const MutableSpan<float> radius = median.radius ? curves.radius_for_write() :
+                                                    MutableSpan<float>{};
+  const MutableSpan<float> tilt = median.tilt ? curves.tilt_for_write() : MutableSpan<float>{};
+
+  IndexMaskMemory memory;
+  const IndexMask selection = retrieve_selected_points(curves, ".selection", memory);
+  const bool update_location = math::length_manhattan(float3(median.location)) > 0;
+  MutableSpan<float3> positions = update_location && !selection.is_empty() ?
+                                      curves.positions_for_write() :
+                                      MutableSpan<float3>();
+
+  threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange range) {
+    for (const int curve : range) {
+      const IndexRange points = points_by_curve[curve];
+      const CurveType curve_type = CurveType(curve_types[curve]);
+      const bool is_nurbs = curve_type == CURVE_TYPE_NURBS;
+      const IndexMask curve_selection = selection.slice_content(points);
+
+      if (!curve_selection.is_empty()) {
+        changed = true;
+      }
+
+      curve_selection.foreach_index([&](const int point) {
+        if (is_nurbs && median.nurbs_weight) {
+          apply_raw_diff(&nurbs_weights[point], tot, ve_median.nurbs_weight, median.nurbs_weight);
+          nurbs_weights[point] = math::clamp(nurbs_weights[point], 0.01f, 100.0f);
+        }
+        if (median.radius) {
+          apply_raw_diff(&radius[point], tot, ve_median.radius, median.radius);
+        }
+        if (median.tilt) {
+          apply_raw_diff(&tilt[point], tot, ve_median.tilt, median.tilt);
+        }
+        if (update_location) {
+          apply_raw_diff_v3(positions[point], tot, ve_median.location, median.location);
+        }
+      });
+    }
+  });
+
+  /* Only location can be changed for Bezier handles. */
+  if (!update_location || !curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    return changed;
+  }
+
+  auto apply_to_handles = [&](StringRef selection_attribute, StringRef handles_attribute) {
+    const IndexMask selection = retrieve_selected_points(curves, selection_attribute, memory);
+    if (selection.is_empty()) {
+      return;
+    }
+
+    bke::SpanAttributeWriter<float3> handles =
+        curves.attributes_for_write().lookup_for_write_span<float3>(handles_attribute);
+    selection.foreach_index(GrainSize(2048), [&](const int point) {
+      apply_raw_diff_v3(handles.span[point], tot, ve_median.location, median.location);
+    });
+    handles.finish();
+
+    changed = true;
+  };
+
+  apply_to_handles(".selection_handle_left", "handle_left");
+  apply_to_handles(".selection_handle_right", "handle_right");
+
+  if (changed) {
+    curves.calculate_bezier_auto_handles();
+  }
+
+  return changed;
+}
+
 /* is used for both read and write... */
 static void v3d_editvertex_buts(
     const bContext *C, uiLayout *layout, View3D *v3d, Object *ob, float lim)
@@ -315,6 +491,7 @@ static void v3d_editvertex_buts(
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
   TransformMedian median_basis, ve_median_basis;
   int tot, totedgedata, totcurvedata, totlattdata, totcurvebweight;
+  int total_curve_points_data = 0;
   bool has_meshdata = false;
   bool has_skinradius = false;
   PointerRNA data_ptr;
@@ -484,60 +661,42 @@ static void v3d_editvertex_buts(
       data_ptr = RNA_pointer_create_discrete(&lt->id, seltype, selp);
     }
   }
-  else if (ob->type == OB_GREASE_PENCIL) {
-    using namespace blender::ed::greasepencil;
-    using namespace ed::curves;
-    Scene &scene = *CTX_data_scene(C);
-    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
-    blender::Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene,
-                                                                              grease_pencil);
+  else if (ELEM(ob->type, OB_GREASE_PENCIL, OB_CURVES)) {
+    CurvesSelectionStatus status;
 
-    threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-      const bke::CurvesGeometry &curves = info.drawing.strokes();
-      if (curves.is_empty()) {
-        return;
-      }
+    if (ob->type == OB_GREASE_PENCIL) {
+      using namespace blender::ed::greasepencil;
+      using namespace ed::curves;
+      Scene &scene = *CTX_data_scene(C);
+      GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+      blender::Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene,
+                                                                                grease_pencil);
 
-      const Span<StringRef> selection_names = get_curves_selection_attribute_names(curves);
-      Vector<Span<float3>> positions = get_curves_positions(curves);
-      TransformMedian_Curves &median = median_basis.curves;
-      for (int attribute_i : selection_names.index_range()) {
-        IndexMaskMemory memory;
-        const IndexMask selection = retrieve_selected_points(
-            curves, selection_names[attribute_i], memory);
-        if (selection.is_empty()) {
-          continue;
-        }
-
-        tot += selection.size();
-        selection.foreach_index(
-            [&](const int point) { add_v3_v3(median.location, positions[attribute_i][point]); });
-      }
-    });
-  }
-  else if (ob->type == OB_CURVES) {
-    using namespace ed::curves;
-    const Curves &curves_id = *static_cast<Curves *>(ob->data);
-    const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-    if (curves.is_empty()) {
-      return;
+      status = threading::parallel_reduce(
+          drawings.index_range(),
+          1L,
+          CurvesSelectionStatus(),
+          [&](const IndexRange range, const CurvesSelectionStatus &acc) {
+            CurvesSelectionStatus value = acc;
+            for (const int drawing : range) {
+              value = CurvesSelectionStatus::sum(
+                  value, init_curves_selection_status(drawings[drawing].drawing.strokes()));
+            }
+            return value;
+          },
+          CurvesSelectionStatus::sum);
+    }
+    else {
+      using namespace ed::curves;
+      const Curves &curves_id = *static_cast<Curves *>(ob->data);
+      status = init_curves_selection_status(curves_id.geometry.wrap());
     }
 
-    const Span<StringRef> selection_names = get_curves_selection_attribute_names(curves);
-    const Vector<Span<float3>> positions = get_curves_positions(curves);
     TransformMedian_Curves &median = median_basis.curves;
-    for (int attribute_i : selection_names.index_range()) {
-      IndexMaskMemory memory;
-      const IndexMask selection = retrieve_selected_points(
-          curves, selection_names[attribute_i], memory);
-      if (selection.is_empty()) {
-        continue;
-      }
-
-      tot += selection.size();
-      selection.foreach_index(
-          [&](const int point) { add_v3_v3(median.location, positions[attribute_i][point]); });
-    }
+    median = status.median;
+    tot = status.total;
+    total_curve_points_data = status.total_curve_points;
+    totcurvebweight = status.total_nurbs_weights;
   }
 
   if (tot == 0) {
@@ -566,6 +725,14 @@ static void v3d_editvertex_buts(
         median->skin[1] /= float(tot);
       }
     }
+  }
+  else if (total_curve_points_data) {
+    TransformMedian_Curves &median = median_basis.curves;
+    if (totcurvebweight) {
+      median.nurbs_weight /= totcurvebweight;
+    }
+    median.radius /= total_curve_points_data;
+    median.tilt /= total_curve_points_data;
   }
   else if (totcurvedata) {
     TransformMedian_Curve *median = &median_basis.curve;
@@ -661,6 +828,9 @@ static void v3d_editvertex_buts(
     UI_but_unit_type_set(but, PROP_UNIT_LENGTH);
 
     if (totcurvebweight == tot) {
+      float &weight = (ob->type == OB_CURVES || ob->type == OB_GREASE_PENCIL) ?
+                          tfp->ve_median.curves.nurbs_weight :
+                          tfp->ve_median.curve.b_weight;
       but = uiDefButF(block,
                       UI_BTYPE_NUM,
                       B_TRANSFORM_PANEL_MEDIAN,
@@ -669,7 +839,7 @@ static void v3d_editvertex_buts(
                       yi -= buth,
                       butw,
                       buth,
-                      &(tfp->ve_median.curve.b_weight),
+                      &weight,
                       0.01,
                       100.0,
                       "");
@@ -829,6 +999,44 @@ static void v3d_editvertex_buts(
         UI_but_number_step_size_set(but, 1);
         UI_but_number_precision_set(but, 2);
       }
+    }
+    /* Curve or GP... */
+    else if (total_curve_points_data) {
+      const bool is_single = total_curve_points_data == 1;
+      TransformMedian_Curves *ve_median = &tfp->ve_median.curves;
+
+      but = uiDefButF(block,
+                      UI_BTYPE_NUM,
+                      B_TRANSFORM_PANEL_MEDIAN,
+                      is_single ? IFACE_("Radius:") : IFACE_("Mean Radius:"),
+                      0,
+                      yi -= buth + but_margin,
+                      butw,
+                      buth,
+                      &ve_median->radius,
+                      0.0,
+                      100.0,
+                      is_single ?
+                          std::nullopt :
+                          std::optional<StringRef>{TIP_("Radius of curve control points")});
+      UI_but_number_step_size_set(but, 1);
+      UI_but_number_precision_set(but, 3);
+      but = uiDefButF(block,
+                      UI_BTYPE_NUM,
+                      B_TRANSFORM_PANEL_MEDIAN,
+                      is_single ? IFACE_("Tilt:") : IFACE_("Mean Tilt:"),
+                      0,
+                      yi -= buth + but_margin,
+                      butw,
+                      buth,
+                      &ve_median->tilt,
+                      -tilt_limit,
+                      tilt_limit,
+                      is_single ? std::nullopt :
+                                  std::optional<StringRef>{TIP_("Tilt of curve control points")});
+      UI_but_number_step_size_set(but, 1);
+      UI_but_number_precision_set(but, 3);
+      UI_but_unit_type_set(but, PROP_UNIT_ROTATION);
     }
     /* Curve... */
     else if (totcurvedata) {
@@ -1242,7 +1450,10 @@ static void v3d_editvertex_buts(
         bp++;
       }
     }
-    else if (ob->type == OB_GREASE_PENCIL && apply_vcos) {
+    else if (ob->type == OB_GREASE_PENCIL &&
+             (apply_vcos || median_basis.curves.nurbs_weight || median_basis.curves.radius ||
+              median_basis.curves.tilt))
+    {
       using namespace blender::ed::greasepencil;
       using namespace ed::curves;
       Scene &scene = *CTX_data_scene(C);
@@ -1252,56 +1463,20 @@ static void v3d_editvertex_buts(
 
       threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
         bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-        if (curves.is_empty()) {
-          return;
-        }
-
-        TransformMedian_GreasePencil &median = median_basis.grease_pencil;
-        TransformMedian_GreasePencil &ve_median = ve_median_basis.grease_pencil;
-        IndexMaskMemory memory;
-        const Span<StringRef> selection_names = get_curves_selection_attribute_names(curves);
-        const Vector<MutableSpan<float3>> positions = get_curves_positions_for_write(curves);
-        for (int attribute_i : selection_names.index_range()) {
-          const IndexMask selection = retrieve_selected_points(
-              curves, selection_names[attribute_i], memory);
-          if (selection.is_empty()) {
-            continue;
-          }
-
-          selection.foreach_index([&](const int point) {
-            apply_raw_diff_v3(
-                positions[attribute_i][point], tot, ve_median.location, median.location);
-          });
+        if (apply_to_curves_selection(tot, median_basis.curves, ve_median_basis.curves, curves)) {
           info.drawing.tag_positions_changed();
         }
       });
     }
-    else if (ob->type == OB_CURVES && apply_vcos) {
+    else if (ob->type == OB_CURVES && (apply_vcos || median_basis.curves.nurbs_weight ||
+                                       median_basis.curves.radius || median_basis.curves.tilt))
+    {
       using namespace ed::curves;
       Curves &curves_id = *static_cast<Curves *>(ob->data);
       bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-      if (curves.is_empty()) {
-        return;
+      if (apply_to_curves_selection(tot, median_basis.curves, ve_median_basis.curves, curves)) {
+        curves.tag_positions_changed();
       }
-
-      TransformMedian_Curves &median = median_basis.curves;
-      TransformMedian_Curves &ve_median = ve_median_basis.curves;
-      IndexMaskMemory memory;
-      const Span<StringRef> selection_names = get_curves_selection_attribute_names(curves);
-      Vector<MutableSpan<float3>> positions = get_curves_positions_for_write(curves);
-      for (int attribute_i : selection_names.index_range()) {
-        const IndexMask selection = retrieve_selected_points(
-            curves, selection_names[attribute_i], memory);
-        if (selection.is_empty()) {
-          continue;
-        }
-
-        selection.foreach_index([&](const int point) {
-          apply_raw_diff_v3(
-              positions[attribute_i][point], tot, ve_median.location, median.location);
-        });
-      }
-      curves.tag_positions_changed();
     }
   }
 

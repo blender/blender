@@ -15,7 +15,7 @@ bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
   if (const auto meta_data = attributes.lookup_meta_data(".selection")) {
-    if (meta_data->data_type == CD_PROP_BOOL) {
+    if (meta_data->data_type == bke::AttrType::Bool) {
       const VArray<float> selection = *attributes.lookup<float>(".selection");
       float *dst = static_cast<float *>(
           MEM_malloc_arrayN(selection.size(), sizeof(float), __func__));
@@ -23,7 +23,7 @@ bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)
 
       attributes.remove(".selection");
       attributes.add(
-          ".selection", meta_data->domain, CD_PROP_FLOAT, bke::AttributeInitMoveArray(dst));
+          ".selection", meta_data->domain, bke::AttrType::Float, bke::AttributeInitMoveArray(dst));
     }
   }
   else {
@@ -31,7 +31,7 @@ bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)
     const int64_t size = attributes.domain_size(domain);
     attributes.add(".selection",
                    domain,
-                   CD_PROP_FLOAT,
+                   bke::AttrType::Float,
                    bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, size)));
   }
 

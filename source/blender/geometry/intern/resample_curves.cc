@@ -112,8 +112,7 @@ static void retrieve_attribute_spans(const Span<StringRef> ids,
                                                                       bke::AttrDomain::Point);
     src.append(src_attribute.varray);
 
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
-        src_attribute.varray.type());
+    const bke::AttrType data_type = bke::cpp_type_to_attribute_type(src_attribute.varray.type());
     bke::GSpanAttributeWriter dst_attribute =
         dst_curves.attributes_for_write().lookup_or_add_for_write_only_span(
             ids[i], bke::AttrDomain::Point, data_type);
@@ -152,7 +151,7 @@ static void gather_point_attributes_to_interpolate(
     if (iter.domain != bke::AttrDomain::Point) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (!interpolate_attribute_to_curves(iter.name, dst_curves.curve_type_counts())) {
@@ -186,14 +185,14 @@ static void gather_point_attributes_to_interpolate(
   if (output_ids.tangent_id) {
     result.src_evaluated_tangents = src_curves.evaluated_tangents();
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        *output_ids.tangent_id, bke::AttrDomain::Point, CD_PROP_FLOAT3);
+        *output_ids.tangent_id, bke::AttrDomain::Point, bke::AttrType::Float3);
     result.dst_tangents = dst_attribute.span.typed<float3>();
     result.dst_attributes.append(std::move(dst_attribute));
   }
   if (output_ids.normal_id) {
     result.src_evaluated_normals = src_curves.evaluated_normals();
     bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
-        *output_ids.normal_id, bke::AttrDomain::Point, CD_PROP_FLOAT3);
+        *output_ids.normal_id, bke::AttrDomain::Point, bke::AttrType::Float3);
     result.dst_normals = dst_attribute.span.typed<float3>();
     result.dst_attributes.append(std::move(dst_attribute));
   }

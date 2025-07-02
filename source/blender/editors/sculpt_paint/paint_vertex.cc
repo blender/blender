@@ -922,13 +922,13 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
  */
 
 template<typename Func>
-static void to_static_color_type(const eCustomDataType type, const Func &func)
+static void to_static_color_type(const bke::AttrType type, const Func &func)
 {
   switch (type) {
-    case CD_PROP_COLOR:
+    case bke::AttrType::ColorFloat:
       func(ColorGeometry4f());
       break;
-    case CD_PROP_BYTE_COLOR:
+    case bke::AttrType::ColorByte:
       func(ColorGeometry4b());
       break;
     default:
@@ -940,7 +940,7 @@ static void to_static_color_type(const eCustomDataType type, const Func &func)
 struct VPaintData : public PaintModeData {
   ViewContext vc;
   AttrDomain domain;
-  eCustomDataType type;
+  bke::AttrType type;
 
   NormalAnglePrecalc normal_angle_precalc;
 
@@ -982,7 +982,7 @@ static std::unique_ptr<VPaintData> vpaint_init_vpaint(bContext *C,
                                                       Object &ob,
                                                       Mesh &mesh,
                                                       const AttrDomain domain,
-                                                      const eCustomDataType type,
+                                                      const bke::AttrType type,
                                                       const Brush &brush)
 {
   std::unique_ptr<VPaintData> vpd = std::make_unique<VPaintData>();
@@ -1977,8 +1977,8 @@ static void vpaint_do_radial_symmetry(bContext *C,
                                       const ePaintSymmetryFlags symm,
                                       const int axis)
 {
-  for (int i = 1; i < vp.radial_symm[axis - 'X']; i++) {
-    const float angle = (2.0 * M_PI) * i / vp.radial_symm[axis - 'X'];
+  for (int i = 1; i < mesh.radial_symmetry[axis - 'X']; i++) {
+    const float angle = (2.0 * M_PI) * i / mesh.radial_symmetry[axis - 'X'];
     vpaint_do_paint(C, vp, vpd, ob, mesh, brush, symm, axis, i, angle);
   }
 }

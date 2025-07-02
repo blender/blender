@@ -1520,7 +1520,7 @@ void ui_template_node_operator_asset_menu_items(uiLayout &layout,
   }
   uiLayout *col = &layout.column(false);
   col->context_string_set("asset_catalog_path", item->catalog_path().str());
-  uiItemMContents(col, "GEO_MT_node_operator_catalog_assets");
+  col->menu_contents("GEO_MT_node_operator_catalog_assets");
 }
 
 void ui_template_node_operator_asset_root_items(uiLayout &layout, const bContext &C)

@@ -155,7 +155,7 @@ static void add_instances_from_component(
   bke::MutableAttributeAccessor dst_attributes = dst_component.attributes_for_write();
   for (const auto item : attributes_to_propagate.items()) {
     const StringRef id = item.key;
-    const eCustomDataType data_type = item.value.data_type;
+    const bke::AttrType data_type = item.value.data_type;
     const bke::GAttributeReader src = src_attributes.lookup(id, AttrDomain::Point, data_type);
     if (!src) {
       /* Domain interpolation can fail if the source domain is empty. */

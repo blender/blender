@@ -28,6 +28,7 @@
 
 #include "DNA_modifier_enums.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
@@ -1346,17 +1347,14 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
     /* First, generate the islands, if possible. */
     if (gen_islands_src) {
-      const bool *uv_seams = static_cast<const bool *>(
-          CustomData_get_layer_named(&me_src->edge_data, CD_PROP_BOOL, "uv_seam"));
-      use_islands = gen_islands_src(reinterpret_cast<const float(*)[3]>(positions_src.data()),
-                                    num_verts_src,
-                                    edges_src.data(),
-                                    int(edges_src.size()),
+      const bke::AttributeAccessor attributes = me_src->attributes();
+      const VArraySpan uv_seams = *attributes.lookup<bool>("uv_seam", bke::AttrDomain::Edge);
+      use_islands = gen_islands_src(positions_src,
+                                    edges_src,
                                     uv_seams,
                                     faces_src,
-                                    corner_verts_src.data(),
-                                    corner_edges_src.data(),
-                                    int(corner_verts_src.size()),
+                                    corner_verts_src,
+                                    corner_edges_src,
                                     &island_store);
 
       num_trees = use_islands ? island_store.islands_num : 1;

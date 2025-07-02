@@ -84,6 +84,9 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   if (type != SOCK_STRING) {
     return;
   }
+  if (params.other_socket().in_out == SOCK_OUT) {
+    return;
+  }
 
   params.add_item(IFACE_("String"), [](LinkSearchOpParams &params) {
     bNode &node = params.add_node("FunctionNodeInputString");

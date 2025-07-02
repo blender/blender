@@ -80,11 +80,11 @@ static AttributesForInterpolation retrieve_attribute_spans(const Span<StringRef>
   const bke::AttributeAccessor src_to_attributes = src_to_curves.attributes();
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
   for (const int i : ids.index_range()) {
-    eCustomDataType data_type;
+    bke::AttrType data_type;
 
     const GVArray src_from_attribute = *src_from_attributes.lookup(ids[i], domain);
     if (src_from_attribute) {
-      data_type = bke::cpp_type_to_custom_data_type(src_from_attribute.type());
+      data_type = bke::cpp_type_to_attribute_type(src_from_attribute.type());
 
       const GVArray src_to_attribute = *src_to_attributes.lookup(ids[i], domain, data_type);
 
@@ -96,7 +96,7 @@ static AttributesForInterpolation retrieve_attribute_spans(const Span<StringRef>
       /* Attribute should exist on at least one of the geometries. */
       BLI_assert(src_to_attribute);
 
-      data_type = bke::cpp_type_to_custom_data_type(src_to_attribute.type());
+      data_type = bke::cpp_type_to_attribute_type(src_to_attribute.type());
 
       result.src_from.append(GVArraySpan{});
       result.src_to.append(src_to_attribute);
@@ -121,7 +121,7 @@ static AttributesForInterpolation gather_point_attributes_to_interpolate(
     if (iter.domain != bke::AttrDomain::Point) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (!interpolate_attribute_to_curves(iter.name, dst_curves.curve_type_counts())) {
@@ -156,7 +156,7 @@ static AttributesForInterpolation gather_curve_attributes_to_interpolate(
     if (iter.domain != bke::AttrDomain::Curve) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (bke::attribute_name_is_anonymous(iter.name)) {

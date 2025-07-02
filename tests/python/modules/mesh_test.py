@@ -61,6 +61,23 @@ class ModifierSpec:
                " with parameters: " + str(self.modifier_parameters)
 
 
+class MultiModifierSpec:
+    """
+    Holds a list of Deform modifiers that must be applied together to yield the expected result.
+    """
+
+    def __init__(self, modifiers):
+        """
+        Constructs a multi-modifier spec.
+
+        :arg modifiers - list of modifier specs
+        """
+        self.modifiers = modifiers
+
+    def __str__(self):
+        return "Multi-Modifier: [" + ', '.join(str(modspec) for modspec in self.modifiers) + "]"
+
+
 class ParticleSystemSpec:
     """
     Holds a Particle System modifier and its parameters.
@@ -491,6 +508,13 @@ class SpecMeshTest(MeshTest):
                     self._apply_modifier(
                         evaluated_test_object, operation.modifier_name)
 
+            elif isinstance(operation, MultiModifierSpec):
+                for modspec in operation.modifiers:
+                    self._add_modifier(evaluated_test_object, modspec)
+                if self.apply_modifier:
+                    self._apply_all_modifiers(
+                        evaluated_test_object)
+
             elif isinstance(operation, OperatorSpecEditMode):
                 self._apply_operator_edit_mode(
                     evaluated_test_object, operation)
@@ -595,6 +619,12 @@ class SpecMeshTest(MeshTest):
             bpy.ops.object.convert(target='MESH')
         elif test_object.type == 'MESH':
             bpy.ops.object.modifier_apply(modifier=modifier_name)
+        else:
+            raise Exception("This object type is not yet supported!")
+
+    def _apply_all_modifiers(self, test_object):
+        if test_object.type in ['CURVE', 'MESH']:
+            bpy.ops.object.convert(target='MESH')
         else:
             raise Exception("This object type is not yet supported!")
 

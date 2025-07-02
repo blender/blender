@@ -540,12 +540,12 @@ namespace blender::bke {
 void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
                                                 const StringRef id,
                                                 AttrDomain domain,
-                                                eCustomDataType data_type)
+                                                bke::AttrType data_type)
 {
   if (bke::attribute_name_is_anonymous(id)) {
     return;
   }
-  if (!(CD_TYPE_AS_MASK(data_type) & CD_MASK_COLOR_ALL) ||
+  if (!(CD_TYPE_AS_MASK(*attr_type_to_custom_data_type(data_type)) & CD_MASK_COLOR_ALL) ||
       !(ATTR_DOMAIN_AS_MASK(domain) & ATTR_DOMAIN_MASK_COLOR))
   {
     return;
@@ -562,10 +562,10 @@ void mesh_ensure_required_data_layers(Mesh &mesh)
   AttributeInitConstruct attribute_init;
 
   /* Try to create attributes if they do not exist. */
-  attributes.add("position", AttrDomain::Point, CD_PROP_FLOAT3, attribute_init);
-  attributes.add(".edge_verts", AttrDomain::Edge, CD_PROP_INT32_2D, attribute_init);
-  attributes.add(".corner_vert", AttrDomain::Corner, CD_PROP_INT32, attribute_init);
-  attributes.add(".corner_edge", AttrDomain::Corner, CD_PROP_INT32, attribute_init);
+  attributes.add("position", AttrDomain::Point, bke::AttrType::Float3, attribute_init);
+  attributes.add(".edge_verts", AttrDomain::Edge, bke::AttrType::Int32_2D, attribute_init);
+  attributes.add(".corner_vert", AttrDomain::Corner, bke::AttrType::Int32, attribute_init);
+  attributes.add(".corner_edge", AttrDomain::Corner, bke::AttrType::Int32, attribute_init);
 }
 
 static bool meta_data_matches(const std::optional<bke::AttributeMetaData> meta_data,
@@ -578,7 +578,7 @@ static bool meta_data_matches(const std::optional<bke::AttributeMetaData> meta_d
   if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & domains)) {
     return false;
   }
-  if (!(CD_TYPE_AS_MASK(meta_data->data_type) & types)) {
+  if (!(CD_TYPE_AS_MASK(*attr_type_to_custom_data_type(meta_data->data_type)) & types)) {
     return false;
   }
   return true;
@@ -1526,7 +1526,7 @@ void mesh_transform(Mesh &mesh, const float4x4 &transform, bool do_shape_keys)
   if (const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data(
           "custom_normal"))
   {
-    if (meta_data->data_type == CD_PROP_FLOAT3) {
+    if (meta_data->data_type == bke::AttrType::Float3) {
       bke::SpanAttributeWriter normals = attributes.lookup_for_write_span<float3>("custom_normal");
       transform_normals(normals.span, transform);
       normals.finish();

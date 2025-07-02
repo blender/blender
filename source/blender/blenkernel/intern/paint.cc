@@ -2717,7 +2717,7 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
   AttributeOwner owner = AttributeOwner::from_id(&orig_me->id);
   const std::string unique_name = BKE_attribute_calc_unique_name(owner, "Color");
   if (!orig_me->attributes_for_write().add(
-          unique_name, AttrDomain::Point, CD_PROP_COLOR, AttributeInitDefaultValue()))
+          unique_name, AttrDomain::Point, AttrType::ColorFloat, AttributeInitDefaultValue()))
   {
     return;
   }

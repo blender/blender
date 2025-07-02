@@ -816,7 +816,7 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
         return this->get_for_vertex_group_index(*mesh, dverts, group_index);
       };
 
-      AttributeIter iter{group->name, AttrDomain::Point, CD_PROP_FLOAT, get_fn};
+      AttributeIter iter{group->name, AttrDomain::Point, bke::AttrType::Float, get_fn};
       fn(iter);
       if (iter.is_stopped()) {
         return false;

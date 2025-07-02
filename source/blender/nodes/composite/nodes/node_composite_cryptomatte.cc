@@ -648,7 +648,7 @@ static bool node_poll_cryptomatte(const blender::bke::bNodeType * /*ntype*/,
 
     if (scene == nullptr) {
       *r_disabled_hint = RPT_(
-          "The node tree must be the compositing node tree of any scene in the file");
+          "The node tree must be the compositing node group of any scene in the file");
     }
     return scene != nullptr;
   }

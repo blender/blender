@@ -521,9 +521,13 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
     rv->sws_ctx = ffmpeg_sws_get_context(st->codecpar->width,
                                          rv->orig_height,
                                          AVPixelFormat(st->codecpar->format),
+                                         codec_ctx->color_range == AVCOL_RANGE_JPEG,
+                                         -1,
                                          width,
                                          height,
                                          rv->c->pix_fmt,
+                                         codec_ctx->color_range == AVCOL_RANGE_JPEG,
+                                         -1,
                                          SWS_FAST_BILINEAR);
   }
 

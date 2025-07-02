@@ -408,7 +408,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
   prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
-  prop = RNA_def_string(ot->srna, "collection", nullptr, MAX_IDPROP_NAME, "Collection", nullptr);
+  prop = RNA_def_string(ot->srna, "collection", nullptr, MAX_ID_NAME - 2, "Collection", nullptr);
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 

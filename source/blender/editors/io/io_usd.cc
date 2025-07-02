@@ -647,7 +647,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   "Only export visible objects. Invisible parents of exported objects are "
                   "exported as empty transforms");
 
-  prop = RNA_def_string(ot->srna, "collection", nullptr, MAX_IDPROP_NAME, "Collection", nullptr);
+  prop = RNA_def_string(ot->srna, "collection", nullptr, MAX_ID_NAME - 2, "Collection", nullptr);
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_boolean(

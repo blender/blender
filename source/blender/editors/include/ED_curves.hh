@@ -249,7 +249,7 @@ IndexMask retrieve_all_selected_points(const bke::CurvesGeometry &curves, IndexM
  */
 bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves,
                                                      bke::AttrDomain selection_domain,
-                                                     eCustomDataType create_type,
+                                                     bke::AttrType create_type,
                                                      StringRef attribute_name = ".selection");
 
 void foreach_selection_attribute_writer(

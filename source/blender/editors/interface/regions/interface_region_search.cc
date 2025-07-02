@@ -595,7 +595,12 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *st
   BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
 
   if (str[0]) {
-    data->items.autocpl = UI_autocomplete_begin(str, ui_but_string_get_maxncpy(but));
+    int maxncpy = ui_but_string_get_maxncpy(but);
+    if (maxncpy == 0) {
+      /* The string length is dynamic, just assume a reasonable length. */
+      maxncpy = strlen(str) + 1024;
+    }
+    data->items.autocpl = UI_autocomplete_begin(str, maxncpy);
 
     ui_searchbox_update_fn(C, search_but, but->editstr, &data->items);
 

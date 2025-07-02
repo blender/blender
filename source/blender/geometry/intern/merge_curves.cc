@@ -133,7 +133,7 @@ static void reorder_and_flip_attributes_group_to_group(
     if (iter.domain != domain) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     const GVArray src = *iter.get(domain);

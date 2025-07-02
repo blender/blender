@@ -186,7 +186,7 @@ class TestIdRuntimeTag(TestHelper):
 
         self.assertNotIn('Cube', bpy.data.objects)
         self.assertNotIn('LibMaterial', bpy.data.materials)
-        self.assertNotIn('libMesh', bpy.data.meshes)
+        self.assertNotIn('LibMesh', bpy.data.meshes)
 
 
 TESTS = (

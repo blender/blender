@@ -344,6 +344,11 @@ static void rna_uiItemPointerR(uiLayout *layout,
   layout->prop_search(ptr, prop, searchptr, searchprop, text, icon, results_are_suggestions);
 }
 
+void rna_uiLayoutDecorator(uiLayout *layout, PointerRNA *ptr, const char *propname, int index)
+{
+  layout->decorator(ptr, propname, index);
+}
+
 static PointerRNA rna_uiItemO(uiLayout *layout,
                               const char *opname,
                               const char *name,
@@ -494,7 +499,7 @@ static void rna_uiItemM(uiLayout *layout,
 
 static void rna_uiItemM_contents(uiLayout *layout, const char *menuname)
 {
-  uiItemMContents(layout, menuname);
+  layout->menu_contents(menuname);
 }
 
 static void rna_uiItemPopoverPanel(uiLayout *layout,
@@ -538,7 +543,7 @@ static void rna_uiItemProgress(uiLayout *layout,
     text = BLT_pgettext((text_ctxt && text_ctxt[0]) ? text_ctxt : BLT_I18NCONTEXT_DEFAULT, text);
   }
 
-  uiItemProgressIndicator(layout, text, factor, eButProgressType(progress_type));
+  layout->progress_indicator(text, factor, blender::ui::ButProgressType(progress_type));
 }
 
 static void rna_uiItemSeparator(uiLayout *layout, float factor, int type)
@@ -1187,8 +1192,8 @@ void RNA_api_ui_layout(StructRNA *srna)
   };
 
   static const EnumPropertyItem progress_type_items[] = {
-      {UI_BUT_PROGRESS_TYPE_BAR, "BAR", 0, "Bar", ""},
-      {UI_BUT_PROGRESS_TYPE_RING, "RING", 0, "Ring", ""},
+      {int(blender::ui::ButProgressType::Bar), "BAR", 0, "Bar", ""},
+      {int(blender::ui::ButProgressType::Ring), "RING", 0, "Ring", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -1478,7 +1483,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_boolean(
       func, "results_are_suggestions", false, "", "Accept inputs that do not match any item");
 
-  func = RNA_def_function(srna, "prop_decorator", "uiItemDecoratorR");
+  func = RNA_def_function(srna, "prop_decorator", "rna_uiLayoutDecorator");
   api_ui_item_rna_common(func);
   RNA_def_int(func,
               "index",
@@ -1617,7 +1622,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_enum(func,
                "type",
                progress_type_items,
-               UI_BUT_PROGRESS_TYPE_BAR,
+               int(blender::ui::ButProgressType::Bar),
                "Type",
                "The type of progress indicator");
 

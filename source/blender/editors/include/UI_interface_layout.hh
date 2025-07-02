@@ -39,6 +39,7 @@ enum class ItemType : int8_t;
 enum class ItemInternalFlag : uint8_t;
 enum class EmbossType : uint8_t;
 enum class LayoutAlign : int8_t;
+enum class ButProgressType : int8_t;
 }  // namespace blender::ui
 
 struct PanelLayout {
@@ -352,6 +353,18 @@ struct uiLayout : uiItem {
 
   /** Items. */
 
+  /**
+   * Insert a decorator item for a button with the same property as \a prop.
+   * To force inserting a blank dummy element, nullptr can be passed for \a or and \a prop.
+   */
+  void decorator(PointerRNA *ptr, PropertyRNA *prop, int index);
+  /**
+   * Insert a decorator item for a button with the same property as \a prop.
+   * To force inserting a blank dummy element, nullptr can be passed for \a ptr or `std::nullopt`
+   * for \a propname.
+   */
+  void decorator(PointerRNA *ptr, std::optional<blender::StringRefNull> propname, int index);
+
   /** Adds a label item that will display text and/or icon in the layout. */
   void label(blender::StringRef name, int icon);
 
@@ -365,6 +378,9 @@ struct uiLayout : uiItem {
    * If menu fails to poll with `WM_menutype_poll` it will not be added into the layout.
    */
   void menu(blender::StringRef menuname, std::optional<blender::StringRef> name, int icon);
+
+  /** Adds the menu content into this layout. */
+  void menu_contents(blender::StringRef menuname);
 
   /**
    * Adds a menu item, which is a button that when active will display a menu.
@@ -440,6 +456,11 @@ struct uiLayout : uiItem {
                           wmOperatorCallContext context,
                           eUI_Item_Flag flag,
                           const char *menu_id);
+
+  void progress_indicator(const char *text,
+                          float factor,
+                          blender::ui::ButProgressType progress_type);
+
   /**
    * Adds a RNA property item, and exposes it into the layout.
    * \param ptr: RNA pointer to the struct owner of \a prop.
@@ -705,6 +726,10 @@ enum class LayoutAlign : int8_t {
   Center = 2,
   Right = 3,
 };
+enum class ButProgressType : int8_t {
+  Bar = 0,
+  Ring = 1,
+};
 }  // namespace blender::ui
 
 enum eUI_Item_Flag : uint16_t {
@@ -902,36 +927,6 @@ uiLayout *uiItemL_respect_property_split(uiLayout *layout, blender::StringRef te
  * Label icon for dragging.
  */
 void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, blender::StringRef name, int icon);
-/**
- * Menu contents.
- */
-void uiItemMContents(uiLayout *layout, blender::StringRef menuname);
-
-/* Decorators. */
-
-/**
- * Insert a decorator item for a button with the same property as \a prop.
- * To force inserting a blank dummy element, NULL can be passed for \a ptr and \a prop.
- */
-void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index);
-/**
- * Insert a decorator item for a button with the same property as \a prop.
- * To force inserting a blank dummy element, NULL can be passed for \a ptr and \a propname.
- */
-void uiItemDecoratorR(uiLayout *layout,
-                      PointerRNA *ptr,
-                      std::optional<blender::StringRefNull> propname,
-                      int index);
-
-enum eButProgressType {
-  UI_BUT_PROGRESS_TYPE_BAR = 0,
-  UI_BUT_PROGRESS_TYPE_RING = 1,
-};
-
-void uiItemProgressIndicator(uiLayout *layout,
-                             const char *text,
-                             float factor,
-                             eButProgressType progress_type);
 
 /**
  * Level items.

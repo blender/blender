@@ -119,7 +119,7 @@ void uiTemplateCacheFileTimeSettings(uiLayout *layout, PointerRNA *fileptr)
   subsub = &sub->row(true);
   subsub->active_set(RNA_boolean_get(fileptr, "override_frame"));
   subsub->prop(fileptr, "frame", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemDecoratorR(row, fileptr, "frame", 0);
+  row->decorator(fileptr, "frame", 0);
 
   row = &layout->row(false);
   row->prop(fileptr, "frame_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);

@@ -465,9 +465,13 @@ static int startffmpeg(MovieReader *anim)
   anim->img_convert_ctx = ffmpeg_sws_get_context(anim->x,
                                                  anim->y,
                                                  anim->pCodecCtx->pix_fmt,
+                                                 anim->pCodecCtx->color_range == AVCOL_RANGE_JPEG,
+                                                 anim->pCodecCtx->colorspace,
                                                  anim->x,
                                                  anim->y,
                                                  anim->pFrameRGB->format,
+                                                 false,
+                                                 -1,
                                                  SWS_POINT | SWS_FULL_CHR_H_INT |
                                                      SWS_ACCURATE_RND);
 
@@ -486,38 +490,6 @@ static int startffmpeg(MovieReader *anim)
     av_frame_free(&anim->pFrame_backup);
     anim->pCodecCtx = nullptr;
     return -1;
-  }
-
-  /* Try do detect if input has 0-255 YCbCR range (JFIF, JPEG, Motion-JPEG). */
-  int srcRange, dstRange, brightness, contrast, saturation;
-  int *table;
-  const int *inv_table;
-  if (!sws_getColorspaceDetails(anim->img_convert_ctx,
-                                (int **)&inv_table,
-                                &srcRange,
-                                &table,
-                                &dstRange,
-                                &brightness,
-                                &contrast,
-                                &saturation))
-  {
-    srcRange = srcRange || anim->pCodecCtx->color_range == AVCOL_RANGE_JPEG;
-    inv_table = sws_getCoefficients(anim->pCodecCtx->colorspace);
-
-    if (sws_setColorspaceDetails(anim->img_convert_ctx,
-                                 (int *)inv_table,
-                                 srcRange,
-                                 table,
-                                 dstRange,
-                                 brightness,
-                                 contrast,
-                                 saturation))
-    {
-      fprintf(stderr, "Warning: Could not set libswscale colorspace details.\n");
-    }
-  }
-  else {
-    fprintf(stderr, "Warning: Could not set libswscale colorspace details.\n");
   }
 
   return 0;

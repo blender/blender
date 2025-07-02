@@ -55,7 +55,7 @@ static void reorder_attributes_group_to_group(const bke::AttributeAccessor src_a
     if (iter.domain != domain) {
       return;
     }
-    if (iter.data_type == CD_PROP_STRING) {
+    if (iter.data_type == bke::AttrType::String) {
       return;
     }
     if (attribute_filter.allow_skip(iter.name)) {

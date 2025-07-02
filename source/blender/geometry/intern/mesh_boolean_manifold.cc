@@ -177,20 +177,20 @@ static void dump_mesh(const Mesh *mesh, const std::string &name)
     const char *domain = (di >= 0 && di < ATTR_DOMAIN_NUM) ? domain_names[di] : "?";
     std::string label = std::string(domain) + ": " + iter.name;
     switch (iter.data_type) {
-      case CD_PROP_FLOAT: {
+      case bke::AttrType::Float: {
         VArraySpan<float> floatspan(*attrs.lookup<float>(iter.name));
         dump_span(floatspan, label);
       } break;
-      case CD_PROP_INT32:
-      case CD_PROP_BOOL: {
+      case bke::AttrType::Int32:
+      case bke::AttrType::Bool: {
         const VArraySpan<int> intspan(*attrs.lookup<int>(iter.name));
         dump_span(intspan, label);
       } break;
-      case CD_PROP_FLOAT3: {
+      case bke::AttrType::Float3: {
         const VArraySpan<float3> float3span(*attrs.lookup<float3>(iter.name));
         dump_span(float3span, label);
       } break;
-      case CD_PROP_FLOAT2: {
+      case bke::AttrType::Float2: {
         const VArraySpan<float2> float2span(*attrs.lookup<float2>(iter.name));
         dump_span(float2span, label);
       } break;
@@ -1240,10 +1240,7 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
   for (const int f : ma.new_faces.index_range()) {
     const OutFace &face = ma.new_faces[f];
     const int fsize = face.verts.size();
-    if (fsize <= 3) {
-      continue;
-    }
-    for (const int i : ma.new_faces[f].verts.index_range()) {
+    for (const int i : IndexRange(fsize)) {
       const int vprev = face.verts[(i - 1 + fsize) % fsize];
       const int v = face.verts[i];
       const int vnext = face.verts[(i + 1) % fsize];
@@ -1252,7 +1249,8 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
         /* First time we've seen v. Set the tentative neighbors. */
         v_nbrs.first = vprev;
         v_nbrs.second = vnext;
-        dissolve[v] = true;
+        /* Don't want to dissolve any vert of a triangle, even if triangle is degenerate. */
+        dissolve[v] = fsize <= 3 ? false : true;
       }
       else {
         /* Some previous face had v. Disable dissolve unless if neighbors are the same, reversed.
@@ -1322,9 +1320,6 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
   threading::parallel_for(ma.new_faces.index_range(), 10000, [&](IndexRange range) {
     for (const int f : range) {
       OutFace &face = ma.new_faces[f];
-      if (face.verts.size() <= 3) {
-        continue;
-      }
       int i_to = 0;
       for (const int i_from : face.verts.index_range()) {
         const int mapped_v_from = ma.mapped_vert(face.verts[i_from]);
@@ -1592,6 +1587,37 @@ static inline int mesh_id_for_face(int face_id, const MeshOffsets &mesh_offsets)
 }
 
 /**
+ * The \a dst span should be the material_index property of the result.
+ * Rather than using the attribute from the joined mesh, we want to take
+ * the original face and map it using \a material_remaps.
+ */
+static void set_material_from_map(const Span<int> out_to_in_map,
+                                  const Span<Array<short>> material_remaps,
+                                  const Span<const Mesh *> meshes,
+                                  const MeshOffsets &mesh_offsets,
+                                  const MutableSpan<int> dst)
+{
+  BLI_assert(material_remaps.size() > 0);
+  Vector<VArraySpan<int>> material_varrays;
+  for (const int i : meshes.index_range()) {
+    bke::AttributeAccessor input_attrs = meshes[i]->attributes();
+    material_varrays.append(
+        *input_attrs.lookup_or_default<int>("material_index", bke::AttrDomain::Face, 0));
+  }
+  threading::parallel_for(out_to_in_map.index_range(), 8192, [&](const IndexRange range) {
+    for (const int out_f : range) {
+      const int in_f = out_to_in_map[out_f];
+      const int mesh_id = mesh_id_for_face(in_f, mesh_offsets);
+      const int in_f_local = in_f - mesh_offsets.face_start[mesh_id];
+      const int orig = material_varrays[mesh_id][in_f_local];
+      const Array<short> &map = material_remaps[mesh_id];
+      dst[out_f] = (orig >= 0 && orig < map.size()) ? map[orig] : orig;
+      ;
+    }
+  });
+}
+
+/**
  * Find the edges that are the result of intersecting one mesh with another,
  * and add their indices to \a r_intersecting_edges.
  */
@@ -1600,9 +1626,9 @@ static void get_intersecting_edges(Vector<int> *r_intersecting_edges,
                                    OutToInMaps &out_to_in,
                                    const MeshOffsets &mesh_offsets)
 {
-  /* In a manifold mesh, every edge is adjacent to exactly two faces.
-   * Find them, and when we have a pair, check to see if those faces came
-   * from separate input meshes, and add the edge to r_intersecting_Edges if so. */
+/* In a manifold mesh, every edge is adjacent to exactly two faces.
+ * Find them, and when we have a pair, check to see if those faces came
+ * from separate input meshes, and add the edge to r_intersecting_Edges if so. */
 #  ifdef DEBUG_TIME
   timeit::ScopedTimer timer("get_intersecting_edges");
 #  endif
@@ -1690,6 +1716,8 @@ static MeshGL mesh_trim_manifold(Manifold &manifold0,
  */
 static Mesh *meshgl_to_mesh(MeshGL &mgl,
                             const Mesh *joined_mesh,
+                            Span<const Mesh *> meshes,
+                            const Span<Array<short>> material_remaps,
                             const MeshOffsets &mesh_offsets,
                             Vector<int> *r_intersecting_edges)
 {
@@ -1791,6 +1819,7 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
       }
       Span<int> out_to_in_map;
       bool do_copy = true;
+      bool do_material_remap = false;
       switch (iter.domain) {
         case bke::AttrDomain::Point: {
           out_to_in_map = out_to_in.ensure_vertex_map();
@@ -1798,6 +1827,12 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
         }
         case bke::AttrDomain::Face: {
           out_to_in_map = out_to_in.ensure_face_map();
+          /* If #material_remaps is non-empty, we need to use that map to set the
+           * face "material_index" property instead of taking it from the joined mesh.
+           * This should only happen if the user wants something other than the default
+           * "transfer the materials" mode, which has already happened in the joined mesh.
+           */
+          do_material_remap = material_remaps.size() > 0 && iter.name == "material_index";
           break;
         }
         case bke::AttrDomain::Edge: {
@@ -1821,7 +1856,13 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
         }
         bke::GSpanAttributeWriter dst = output_attrs.lookup_or_add_for_write_span(
             iter.name, iter.domain, iter.data_type);
-        copy_attribute_using_map(GVArraySpan(*iter.get()), out_to_in_map, dst.span);
+        if (do_material_remap) {
+          set_material_from_map(
+              out_to_in_map, material_remaps, meshes, mesh_offsets, dst.span.typed<int>());
+        }
+        else {
+          copy_attribute_using_map(GVArraySpan(*iter.get()), out_to_in_map, dst.span);
+        }
         dst.finish();
       }
     });
@@ -1870,7 +1911,7 @@ static bke::GeometrySet join_meshes_with_transforms(const Span<const Mesh *> mes
 
 Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
                             const Span<float4x4> transforms,
-                            const Span<Array<short>> /*material_remaps*/,
+                            const Span<Array<short>> material_remaps,
                             const BooleanOpParameters op_params,
                             Vector<int> *r_intersecting_edges,
                             BooleanError *r_error)
@@ -1953,7 +1994,8 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
 #  ifdef DEBUG_TIME
       timeit::ScopedTimer timer_out("MESHGL RESULT TO MESH");
 #  endif
-      mesh_result = meshgl_to_mesh(meshgl_result, joined_mesh, mesh_offsets, r_intersecting_edges);
+      mesh_result = meshgl_to_mesh(
+          meshgl_result, joined_mesh, meshes, material_remaps, mesh_offsets, r_intersecting_edges);
     }
     return mesh_result;
   }

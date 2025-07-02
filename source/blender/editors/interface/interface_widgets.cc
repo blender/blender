@@ -3923,11 +3923,11 @@ static void widget_progress_indicator(uiBut *but,
 {
   uiButProgress *but_progress = static_cast<uiButProgress *>(but);
   switch (but_progress->progress_type) {
-    case UI_BUT_PROGRESS_TYPE_BAR: {
+    case blender::ui::ButProgressType::Bar: {
       widget_progress_type_bar(but_progress, wcol, rect, roundboxalign, zoom);
       break;
     }
-    case UI_BUT_PROGRESS_TYPE_RING: {
+    case blender::ui::ButProgressType::Ring: {
       widget_progress_type_ring(but_progress, wcol, rect);
       break;
     }

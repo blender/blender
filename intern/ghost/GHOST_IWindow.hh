@@ -45,8 +45,8 @@ class GHOST_IWindow {
   virtual bool getValid() const = 0;
 
   /**
-   * Returns the associated OS object/handle
-   * \return The associated OS object/handle
+   * Returns the associated OS object/handle.
+   * \return The associated OS object/handle.
    */
   virtual void *getOSWindow() const = 0;
 
@@ -167,8 +167,8 @@ class GHOST_IWindow {
   virtual void setAcceptDragOperation(bool canAccept) = 0;
 
   /**
-   * Returns acceptance of the dropped object
-   * Usually called by the "object dropped" event handling function
+   * Returns acceptance of the dropped object.
+   * Usually called by the "object dropped" event handling function.
    */
   virtual bool canAcceptDragOperation() const = 0;
 
@@ -186,14 +186,14 @@ class GHOST_IWindow {
   virtual GHOST_TSuccess setState(GHOST_TWindowState state) = 0;
 
   /**
-   * Sets the window "modified" status, indicating unsaved changes
+   * Sets the window "modified" status, indicating unsaved changes.
    * \param isUnsavedChanges: Unsaved changes or not.
    * \return Indication of success.
    */
   virtual GHOST_TSuccess setModifiedState(bool isUnsavedChanges) = 0;
 
   /**
-   * Gets the window "modified" status, indicating unsaved changes
+   * Gets the window "modified" status, indicating unsaved changes.
    * \return True if there are unsaved changes
    */
   virtual bool getModifiedState() = 0;
@@ -239,6 +239,7 @@ class GHOST_IWindow {
   virtual unsigned int getDefaultFramebuffer() = 0;
 
 #ifdef WITH_VULKAN_BACKEND
+  /** \copydoc #GHOST_GetVulkanSwapChainFormat */
   virtual GHOST_TSuccess getVulkanSwapChainFormat(
       GHOST_VulkanSwapChainData *r_swap_chain_data) = 0;
 #endif
@@ -274,7 +275,7 @@ class GHOST_IWindow {
   virtual GHOST_TSuccess setProgressBar(float progress) = 0;
 
   /**
-   * Hides the progress bar in the icon
+   * Hides the progress bar in the icon.
    */
   virtual GHOST_TSuccess endProgressBar() = 0;
 
@@ -295,6 +296,10 @@ class GHOST_IWindow {
    */
   virtual GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape) = 0;
 
+  /**
+   * Gets the cursor grab region, if unset the window is used.
+   * reset when grab is disabled.
+   */
   virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) const = 0;
 
   virtual void getCursorGrabState(GHOST_TGrabCursorMode &mode,
@@ -302,6 +307,9 @@ class GHOST_IWindow {
                                   GHOST_Rect &bounds,
                                   bool &use_software_cursor) = 0;
 
+  /**
+   * Return true when a software cursor should be used.
+   */
   virtual bool getCursorGrabUseSoftwareDisplay() = 0;
 
   /**
@@ -314,16 +322,14 @@ class GHOST_IWindow {
    * Set the shape of the cursor to a custom cursor.
    * \param bitmap: The bitmap data for the cursor.
    * \param mask: The mask data for the cursor.
-   * \param hotX: The X coordinate of the cursor hot-spot.
-   * \param hotY: The Y coordinate of the cursor hot-spot.
+   * \param size: The X,Y size of the cursor in pixels.
+   * \param hot_spot: The X,Y coordinate of the cursor hot-spot.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess setCustomCursorShape(uint8_t *bitmap,
-                                              uint8_t *mask,
-                                              int sizex,
-                                              int sizey,
-                                              int hotX,
-                                              int hotY,
+  virtual GHOST_TSuccess setCustomCursorShape(const uint8_t *bitmap,
+                                              const uint8_t *mask,
+                                              const int size[2],
+                                              const int hot_spot[2],
                                               bool canInvertColor) = 0;
 
   virtual GHOST_TSuccess getCursorBitmap(GHOST_CursorBitmapRef *bitmap) = 0;
@@ -354,6 +360,9 @@ class GHOST_IWindow {
     return GHOST_kSuccess;
   }
 
+  /**
+   * If this window was opened using native pixel size, return the scaling factor.
+   */
   virtual float getNativePixelSize() = 0;
 
   /**

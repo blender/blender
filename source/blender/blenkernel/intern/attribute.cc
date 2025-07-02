@@ -26,6 +26,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
@@ -152,6 +153,9 @@ static std::array<DomainInfo, ATTR_DOMAIN_NUM> get_domains(const AttributeOwner 
   std::array<DomainInfo, ATTR_DOMAIN_NUM> info;
 
   switch (owner.type()) {
+    case AttributeOwnerType::Curves:
+    case AttributeOwnerType::GreasePencil:
+    case AttributeOwnerType::GreasePencilDrawing:
     case AttributeOwnerType::PointCloud: {
       /* This should be implemented with #AttributeStorage instead. */
       BLI_assert_unreachable();
@@ -182,28 +186,6 @@ static std::array<DomainInfo, ATTR_DOMAIN_NUM> get_domains(const AttributeOwner 
       }
       break;
     }
-    case AttributeOwnerType::Curves: {
-      Curves *curves = owner.get_curves();
-      info[int(AttrDomain::Point)].customdata = &curves->geometry.point_data;
-      info[int(AttrDomain::Point)].length = curves->geometry.point_num;
-      info[int(AttrDomain::Curve)].customdata = &curves->geometry.curve_data;
-      info[int(AttrDomain::Curve)].length = curves->geometry.curve_num;
-      break;
-    }
-    case AttributeOwnerType::GreasePencil: {
-      GreasePencil *grease_pencil = owner.get_grease_pencil();
-      info[int(AttrDomain::Layer)].customdata = &grease_pencil->layers_data;
-      info[int(AttrDomain::Layer)].length = grease_pencil->layers().size();
-      break;
-    }
-    case AttributeOwnerType::GreasePencilDrawing: {
-      blender::bke::greasepencil::Drawing &drawing = owner.get_grease_pencil_drawing()->wrap();
-      info[int(AttrDomain::Point)].customdata = &drawing.geometry.point_data;
-      info[int(AttrDomain::Point)].length = drawing.geometry.point_num;
-      info[int(AttrDomain::Curve)].customdata = &drawing.geometry.curve_data;
-      info[int(AttrDomain::Curve)].length = drawing.geometry.curve_num;
-      break;
-    }
   }
 
   return info;
@@ -226,7 +208,7 @@ static bool name_valid_for_builtin_domain_and_type(
     const blender::bke::AttributeAccessor attributes,
     const StringRef name,
     const AttrDomain domain,
-    const eCustomDataType data_type,
+    const blender::bke::AttrType data_type,
     ReportList *reports)
 {
   if (const std::optional metadata = attributes.get_builtin_domain_and_type(name)) {
@@ -249,7 +231,7 @@ static bool name_valid_for_builtin_domain_and_type(
 static bool mesh_attribute_valid(const Mesh &mesh,
                                  const StringRef name,
                                  const AttrDomain domain,
-                                 const eCustomDataType data_type,
+                                 const blender::bke::AttrType data_type,
                                  ReportList *reports)
 {
   using namespace blender;
@@ -281,7 +263,7 @@ bool BKE_attribute_rename(AttributeOwner &owner,
     return false;
   }
 
-  if (owner.type() == AttributeOwnerType::PointCloud) {
+  if (owner.type() != AttributeOwnerType::Mesh) {
     bke::AttributeStorage &attributes = *owner.get_storage();
     if (!attributes.lookup(old_name)) {
       BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
@@ -316,7 +298,7 @@ bool BKE_attribute_rename(AttributeOwner &owner,
     if (!mesh_attribute_valid(*mesh,
                               new_name,
                               BKE_attribute_domain(owner, layer),
-                              eCustomDataType(layer->type),
+                              *bke::custom_data_type_to_attr_type(eCustomDataType(layer->type)),
                               reports))
     {
       return false;
@@ -324,11 +306,12 @@ bool BKE_attribute_rename(AttributeOwner &owner,
   }
   else if (owner.type() == AttributeOwnerType::Curves) {
     Curves *curves = owner.get_curves();
-    if (!name_valid_for_builtin_domain_and_type(curves->geometry.wrap().attributes(),
-                                                new_name,
-                                                BKE_attribute_domain(owner, layer),
-                                                eCustomDataType(layer->type),
-                                                reports))
+    if (!name_valid_for_builtin_domain_and_type(
+            curves->geometry.wrap().attributes(),
+            new_name,
+            BKE_attribute_domain(owner, layer),
+            *bke::custom_data_type_to_attr_type(eCustomDataType(layer->type)),
+            reports))
     {
       return false;
     }
@@ -394,7 +377,7 @@ static bool attribute_name_exists(const AttributeOwner &owner, const StringRef n
 
 std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner, const StringRef name)
 {
-  if (owner.type() == AttributeOwnerType::PointCloud) {
+  if (owner.type() != AttributeOwnerType::Mesh) {
     blender::bke::AttributeStorage &storage = *owner.get_storage();
     return storage.unique_name_calc(name);
   }
@@ -424,7 +407,9 @@ CustomDataLayer *BKE_attribute_new(AttributeOwner &owner,
   if (owner.type() == AttributeOwnerType::Mesh) {
     Mesh *mesh = owner.get_mesh();
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-      if (!mesh_attribute_valid(*mesh, name, domain, type, reports)) {
+      if (!mesh_attribute_valid(
+              *mesh, name, domain, *custom_data_type_to_attr_type(type), reports))
+      {
         return nullptr;
       }
       BM_data_layer_add_named(em->bm, customdata, type, uniquename.c_str());
@@ -438,7 +423,8 @@ CustomDataLayer *BKE_attribute_new(AttributeOwner &owner,
     return nullptr;
   }
 
-  attributes->add(uniquename, domain, eCustomDataType(type), AttributeInitDefaultValue());
+  attributes->add(
+      uniquename, domain, *custom_data_type_to_attr_type(type), AttributeInitDefaultValue());
 
   const int index = CustomData_get_named_layer_index(customdata, type, uniquename);
   if (index == -1) {
@@ -464,8 +450,10 @@ static void bke_attribute_copy_if_exists(AttributeOwner &owner,
     return;
   }
 
-  const eCustomDataType type = cpp_type_to_custom_data_type(src.varray.type());
-  attributes->add(dstname, src.domain, type, AttributeInitVArray(src.varray));
+  attributes->add(dstname,
+                  src.domain,
+                  cpp_type_to_attribute_type(src.varray.type()),
+                  AttributeInitVArray(src.varray));
 }
 
 CustomDataLayer *BKE_attribute_duplicate(AttributeOwner &owner,
@@ -494,10 +482,10 @@ CustomDataLayer *BKE_attribute_duplicate(AttributeOwner &owner,
     return nullptr;
   }
 
-  const eCustomDataType type = cpp_type_to_custom_data_type(src.varray.type());
+  const AttrType type = cpp_type_to_attribute_type(src.varray.type());
   attributes->add(uniquename, src.domain, type, AttributeInitVArray(src.varray));
 
-  if (owner.type() == AttributeOwnerType::Mesh && type == CD_PROP_FLOAT2) {
+  if (owner.type() == AttributeOwnerType::Mesh && type == AttrType::Float2) {
     /* Duplicate UV sub-attributes. */
     char buffer_src[MAX_CUSTOMDATA_LAYER_NAME];
     char buffer_dst[MAX_CUSTOMDATA_LAYER_NAME];
@@ -632,7 +620,7 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
           &mesh->id, color_name_from_index(owner, color_clamp_index(owner, default_color_index)));
     }
 
-    if (metadata->data_type == CD_PROP_FLOAT2 && metadata->domain == AttrDomain::Corner) {
+    if (metadata->data_type == AttrType::Float2 && metadata->domain == AttrDomain::Corner) {
       char buffer[MAX_CUSTOMDATA_LAYER_NAME];
       attributes->remove(BKE_uv_map_vert_select_name_get(name_copy, buffer));
       attributes->remove(BKE_uv_map_edge_select_name_get(name_copy, buffer));
@@ -822,7 +810,7 @@ std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOw
   if (active_index == -1) {
     return std::nullopt;
   }
-  if (owner.type() == AttributeOwnerType::PointCloud) {
+  if (owner.type() != AttributeOwnerType::Mesh) {
     bke::AttributeStorage &storage = *owner.get_storage();
     if (active_index >= storage.count()) {
       return std::nullopt;
@@ -863,7 +851,7 @@ std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOw
 void BKE_attributes_active_set(AttributeOwner &owner, const StringRef name)
 {
   using namespace blender;
-  if (owner.type() == AttributeOwnerType::PointCloud) {
+  if (owner.type() != AttributeOwnerType::Mesh) {
     bke::AttributeStorage &attributes = *owner.get_storage();
     *BKE_attributes_active_index_p(owner) = attributes.index_of(name);
     return;
@@ -1075,7 +1063,7 @@ bool BKE_color_attribute_supported(const Mesh &mesh, const StringRef name)
     return false;
   }
   if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
-      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL))
+      !(CD_TYPE_AS_MASK(*attr_type_to_custom_data_type(meta_data->data_type)) & CD_MASK_COLOR_ALL))
   {
     return false;
   }

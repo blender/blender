@@ -10,6 +10,7 @@ from bpy.types import (
 )
 from bpy.app.translations import (
     contexts as i18n_contexts,
+    pgettext_iface as iface_,
     pgettext_rpt as rpt_,
 )
 from bl_ui.properties_grease_pencil_common import (
@@ -2654,19 +2655,19 @@ class SEQUENCER_PT_cache_view_settings(SequencerButtonsPanel, Panel):
             split.alignment = 'RIGHT'
             split.label(text="Current Cache Size")
             split.alignment = 'LEFT'
-            split.label(text="{:d} MB".format(cache_raw_size + cache_final_size), translate=False)
+            split.label(text=iface_("{:d} MB").format(cache_raw_size + cache_final_size), translate=False)
 
             split = col.split(factor=0.4, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Raw")
             split.alignment = 'LEFT'
-            split.label(text="{:d} MB".format(cache_raw_size), translate=False)
+            split.label(text=iface_("{:d} MB").format(cache_raw_size), translate=False)
 
             split = col.split(factor=0.4, align=True)
             split.alignment = 'RIGHT'
             split.label(text="Final")
             split.alignment = 'LEFT'
-            split.label(text="{:d} MB".format(cache_final_size), translate=False)
+            split.label(text=iface_("{:d} MB").format(cache_final_size), translate=False)
 
 
 class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):

@@ -177,7 +177,7 @@ struct USDExportParams {
   int usdz_downscale_custom_size = 128;
 
   char root_prim_path[1024] = ""; /* FILE_MAX */
-  char collection[MAX_IDPROP_NAME] = "";
+  char collection[MAX_ID_NAME - 2] = "";
   char custom_properties_namespace[MAX_IDPROP_NAME] = "";
 
   eUSDSceneUnits convert_scene_units = eUSDSceneUnits::USD_SCENE_UNITS_METERS;

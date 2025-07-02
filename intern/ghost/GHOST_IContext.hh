@@ -46,7 +46,15 @@ class GHOST_IContext {
    */
   virtual GHOST_TSuccess releaseDrawingContext() = 0;
 
+  /**
+   * Gets the OpenGL frame-buffer associated with the OpenGL context
+   * \return The ID of an OpenGL frame-buffer object.
+   */
   virtual unsigned int getDefaultFramebuffer() = 0;
+  /**
+   * Swaps front and back buffers of a window.
+   * \return A boolean success indicator.
+   */
   virtual GHOST_TSuccess swapBuffers() = 0;
 
 #ifdef WITH_VULKAN_BACKEND

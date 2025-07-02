@@ -38,7 +38,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_view_selected);
 
   WM_operatortype_append(NODE_OT_mute_toggle);
-  WM_operatortype_append(NODE_OT_hide_toggle);
+  WM_operatortype_append(NODE_OT_collapse_toggle);
   WM_operatortype_append(NODE_OT_preview_toggle);
   WM_operatortype_append(NODE_OT_options_toggle);
   WM_operatortype_append(NODE_OT_hide_socket_toggle);

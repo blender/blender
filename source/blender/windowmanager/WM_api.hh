@@ -189,6 +189,8 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_WINDOW_DECORATION_STYLES = (1 << 8),
   /** Support for the "Hyper" modifier key. */
   WM_CAPABILITY_KEYBOARD_HYPER_KEY = (1 << 9),
+  /** Support for RGBA Cursors. */
+  WM_CAPABILITY_RGBA_CURSORS = (1 << 10),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };

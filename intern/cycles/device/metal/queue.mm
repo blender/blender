@@ -509,8 +509,10 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
         if (id<MTLAccelerationStructure> accel_struct = metal_device_->accel_struct) {
           /* Mark all Accelerations resources as used */
           [mtlComputeCommandEncoder useResource:accel_struct usage:MTLResourceUsageRead];
-          [mtlComputeCommandEncoder useResource:metal_device_->blas_buffer
-                                          usage:MTLResourceUsageRead];
+          if (metal_device_->blas_buffer) {
+            [mtlComputeCommandEncoder useResource:metal_device_->blas_buffer
+                                            usage:MTLResourceUsageRead];
+          }
           [mtlComputeCommandEncoder useResources:metal_device_->unique_blas_array.data()
                                            count:metal_device_->unique_blas_array.size()
                                            usage:MTLResourceUsageRead];

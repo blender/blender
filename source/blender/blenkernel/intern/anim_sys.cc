@@ -4235,6 +4235,13 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
     fcu = static_cast<FCurve *>(BLI_findlink(&adt->drivers, driver_index));
   }
 
+  if (!fcu) {
+    /* Trying to evaluate a driver that does no longer exist. Potentially missing a call to
+     * DEG_relations_tag_update. */
+    BLI_assert_unreachable();
+    return;
+  }
+
   DEG_debug_print_eval_subdata_index(
       depsgraph, __func__, id->name, id, "fcu", fcu->rna_path, fcu, fcu->array_index);
 

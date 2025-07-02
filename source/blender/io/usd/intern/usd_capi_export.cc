@@ -770,7 +770,7 @@ bool USD_export(const bContext *C,
     Collection *collection = reinterpret_cast<Collection *>(
         BKE_libblock_find_name(job->bmain, ID_GR, job->params.collection));
     if (!collection) {
-      BKE_reportf(job->params.worker_status->reports,
+      BKE_reportf(reports,
                   RPT_ERROR,
                   "USD Export: Unable to find collection '%s'",
                   job->params.collection);

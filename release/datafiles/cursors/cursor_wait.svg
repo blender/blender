@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1600"
+   height="1600"
+   viewBox="0 0 1600 1599.9999"
+   fill="none"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="cursor_wait.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#777777"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="true"
+     showguides="true"
+     inkscape:zoom="0.45368305"
+     inkscape:cx="790.19924"
+     inkscape:cy="772.56578"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4">
+    <inkscape:grid
+       id="grid4"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="99.999997"
+       spacingy="99.999997"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="0"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="true" />
+  </sodipodi:namedview>
+  <defs
+     id="defs4">
+    <filter
+       id="filter0_d_40_365"
+       x="55.100101"
+       y="13.6218"
+       width="155.883"
+       height="230.843"
+       filterUnits="userSpaceOnUse"
+       color-interpolation-filters="sRGB">
+      <feFlood
+         flood-opacity="0"
+         result="BackgroundImageFix"
+         id="feFlood2" />
+      <feColorMatrix
+         in="SourceAlpha"
+         type="matrix"
+         values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+         result="hardAlpha"
+         id="feColorMatrix2" />
+      <feOffset
+         dx="-3"
+         dy="7"
+         id="feOffset2" />
+      <feGaussianBlur
+         stdDeviation="7.5"
+         id="feGaussianBlur2" />
+      <feColorMatrix
+         type="matrix"
+         values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0"
+         id="feColorMatrix3" />
+      <feBlend
+         mode="normal"
+         in2="BackgroundImageFix"
+         result="effect1_dropShadow_40_365"
+         id="feBlend3" />
+      <feBlend
+         mode="normal"
+         in="SourceGraphic"
+         in2="effect1_dropShadow_40_365"
+         result="shape"
+         id="feBlend4" />
+    </filter>
+  </defs>
+  <path
+     style="fill:#ffffff;stroke:#000000;stroke-width:100;stroke-opacity:1"
+     d="m 359.12176,149.30205 881.26154,0.71243 C 1347.5115,599.3495 917.59452,700.43437 917.93239,799.92872 918.27285,900.18787 1352.0809,997.66443 1240.4501,1449.4906 H 359.8342 C 248.89622,1000.7688 683.6206,900.40794 683.41966,798.44844 683.22375,699.0459 249.17608,597.4734 359.12176,149.30205 Z"
+     id="path3"
+     sodipodi:nodetypes="ccsccsc" />
+  <path
+     style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:100;stroke-opacity:1"
+     d="M 499.79826,1300.4674 H 1100.4379 C 1054.48,1197.9134 916.98545,1043.9867 800.11806,1043.6936 677.92452,1042.6831 550.81278,1198.6495 499.79826,1300.4674 Z"
+     id="path4"
+     sodipodi:nodetypes="cccc" />
+  <path
+     style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:100;stroke-opacity:1"
+     d="M 800.25176,678.68946 C 847.52905,591.4083 1000.0286,499.2718 999.9193,399.53371 c -98.35027,28.0201 -299.17446,30.21757 -400.64922,1.02376 1.01736,101.22587 158.27396,193.30074 200.98168,278.13199 z"
+     id="path5"
+     sodipodi:nodetypes="cccc" />
+  <path
+     style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:100"
+     d="m 199.88943,1600.2844 0.38964,-200.6687 1198.94693,0 0.3896,201.0583 z"
+     id="path2"
+     sodipodi:nodetypes="ccccc" />
+  <path
+     style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:100;stroke-opacity:1"
+     d="M 199.88943,0.38964796 200.27908,200.27907 1400.3949,199.49978 V -1.4439958e-8 Z"
+     id="path1"
+     sodipodi:nodetypes="ccccc" />
+</svg>

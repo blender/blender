@@ -9,6 +9,7 @@
 #include "BLI_generic_pointer.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
@@ -142,8 +143,9 @@ static wmOperatorStatus mesh_set_attribute_exec(bContext *C, wmOperator *op)
   const StringRef name = *BKE_attributes_active_name_get(active_owner);
   CustomDataLayer *active_layer = BKE_attribute_search_for_write(
       active_owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-  const eCustomDataType active_type = eCustomDataType(active_layer->type);
-  const CPPType &type = *bke::custom_data_type_to_cpp_type(active_type);
+  const bke::AttrType active_type = *bke::custom_data_type_to_attr_type(
+      eCustomDataType(active_layer->type));
+  const CPPType &type = bke::attribute_type_to_cpp_type(active_type);
 
   BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
   BLI_SCOPED_DEFER([&]() { type.destruct(buffer); });
@@ -217,7 +219,8 @@ static wmOperatorStatus mesh_set_attribute_invoke(bContext *C,
   const StringRef name = *BKE_attributes_active_name_get(owner);
   CustomDataLayer *layer = BKE_attribute_search_for_write(
       owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-  const eCustomDataType data_type = eCustomDataType(layer->type);
+  const bke::AttrType data_type = *bke::custom_data_type_to_attr_type(
+      eCustomDataType(layer->type));
   const bke::AttrDomain domain = BKE_attribute_domain(owner, layer);
   const BMElem *active_elem = BM_mesh_active_elem_get(bm);
   if (!active_elem) {
@@ -230,7 +233,7 @@ static wmOperatorStatus mesh_set_attribute_invoke(bContext *C,
     return WM_operator_props_popup(C, op, event);
   }
 
-  const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
+  const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
   const GPointer active_value(type, POINTER_OFFSET(active_elem->head.data, layer->offset));
 
   PropertyRNA *prop = geometry::rna_property_for_type(*op->ptr, data_type);
@@ -252,7 +255,7 @@ static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
   const StringRef name = *BKE_attributes_active_name_get(owner);
   CustomDataLayer *layer = BKE_attribute_search_for_write(
       owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-  const eCustomDataType active_type = eCustomDataType(layer->type);
+  const bke::AttrType active_type = bke::AttrType(layer->type);
   const StringRefNull prop_name = geometry::rna_property_name_for_type(active_type);
   layout->prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }
