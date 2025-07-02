@@ -77,7 +77,7 @@ class SCENE_PT_gltf2_variants(bpy.types.Panel):
         layout = self.layout
         row = layout.row()
 
-        if bpy.data.scenes[0].get('gltf2_KHR_materials_variants_variants') and len(
+        if bpy.data.scenes[0].gltf2_KHR_materials_variants_variants and len(
                 bpy.data.scenes[0].gltf2_KHR_materials_variants_variants) > 0:
 
             row.template_list(
@@ -338,12 +338,11 @@ class MESH_PT_gltf2_mesh_variants(bpy.types.Panel):
         active_material_slots = bpy.context.object.active_material_index
 
         found = False
-        if 'gltf2_variant_mesh_data' in bpy.context.object.data.keys():
-            for idx, prim in enumerate(bpy.context.object.data.gltf2_variant_mesh_data):
-                if prim.material_slot_index == active_material_slots and id(prim.material) == id(
-                        bpy.context.object.material_slots[active_material_slots].material):
-                    found = True
-                    break
+        for idx, prim in enumerate(bpy.context.object.data.gltf2_variant_mesh_data):
+            if prim.material_slot_index == active_material_slots and id(prim.material) == id(
+                    bpy.context.object.material_slots[active_material_slots].material):
+                found = True
+                break
 
         row = layout.row()
         if found is True:
@@ -354,8 +353,7 @@ class MESH_PT_gltf2_mesh_variants(bpy.types.Panel):
             row.operator("scene.gltf2_remove_material_variant", icon="REMOVE", text="")
 
             row = layout.row()
-            if 'gltf2_KHR_materials_variants_variants' in bpy.data.scenes[0].keys() and len(
-                    bpy.data.scenes[0].gltf2_KHR_materials_variants_variants) > 0:
+            if bpy.data.scenes[0].gltf2_KHR_materials_variants_variants:
                 row.prop_search(
                     context.object.data,
                     "gltf2_variant_pointer",
@@ -367,8 +365,7 @@ class MESH_PT_gltf2_mesh_variants(bpy.types.Panel):
             else:
                 row.label(text="Please Create a Variant First")
         else:
-            if 'gltf2_KHR_materials_variants_variants' in bpy.data.scenes[0].keys() and len(
-                    bpy.data.scenes[0].gltf2_KHR_materials_variants_variants) > 0:
+            if bpy.data.scenes[0].gltf2_KHR_materials_variants_variants:
                 row.operator("scene.gltf2_variants_slot_add", text="Add a new Variant Slot")
             else:
                 row.label(text="Please Create a Variant First")

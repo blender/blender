@@ -64,18 +64,10 @@ def gather_material(blender_material, export_settings):
         return export_viewport_material(blender_material, export_settings), {"uv_info": {}, "vc_info": {'color': None, 'alpha': None,
                                                  'color_type': None, 'alpha_type': None, 'alpha_mode': "OPAQUE"}, "udim_info": {}}
 
+    nodes_used = export_settings['nodes_used'] = {}
 
     # Reset exported images / textures nodes
     export_settings['exported_texture_nodes'] = []
-    if blender_material.node_tree and blender_material.use_nodes:
-        nodes = get_material_nodes(
-            blender_material.node_tree, [
-                blender_material.node_tree], bpy.types.ShaderNodeTexImage)
-    else:
-        nodes = []
-    for node in nodes:
-        if node[0].get("used", None) is not None:
-            del (node[0]['used'])
 
     mat_unlit, uvmap_info, vc_info, udim_info = __export_unlit(blender_material, export_settings)
     if mat_unlit is not None:
@@ -133,8 +125,7 @@ def gather_material(blender_material, export_settings):
             nodes = []
         cpt_additional = 0
         for node in nodes:
-            if node[0].get("used", None) is not None:
-                del (node[0]['used'])
+            if nodes_used.get(node[0].name):
                 continue
 
             s = NodeSocket(node[0].outputs[0], node[1])
@@ -147,16 +138,7 @@ def gather_material(blender_material, export_settings):
                 cpt_additional += 1
                 export_settings['additional_texture_export'].append(tex)
 
-        # Reset
-        if blender_material.node_tree and blender_material.use_nodes:
-            nodes = get_material_nodes(
-                blender_material.node_tree, [
-                    blender_material.node_tree], bpy.types.ShaderNodeTexImage)
-        else:
-            nodes = []
-        for node in nodes:
-            if node[0].get("used", None) is not None:
-                del (node[0]['used'])
+    export_settings.pop('nodes_used')
 
     uvmap_infos.update(uvmap_info_emissive)
     uvmap_infos.update(uvmap_info_extensions)
