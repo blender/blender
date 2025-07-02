@@ -433,13 +433,16 @@ static void gwl_simple_buffer_set_from_string(GWL_SimpleBuffer *buffer, const ch
  */
 #define EVDEV_OFFSET 8
 
-/** Wayland cursor shape protocol types.
+/**
+ * Wayland cursor shape protocol types.
  * Not used if the compositor doesn't support the cursor shape protocol.
  */
 struct GWL_CursorShape {
-  /* The enum_id is currently only used to keep track of the last cursor shape used.
-   * This is so we can restore it after hiding the cursor. */
-  int enum_id = 0;
+  /**
+   * The enum_id is currently only used to keep track of the last cursor shape used.
+   * This is so we can restore it after hiding the cursor.
+   */
+  wp_cursor_shape_device_v1_shape enum_id = WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_DEFAULT;
   wp_cursor_shape_device_v1 *device = nullptr;
 };
 
@@ -2685,8 +2688,10 @@ static void cursor_buffer_set_surface_impl(const wl_cursor_image *wl_image,
   wl_surface_commit(wl_surface);
 }
 
-static int get_cursor_shape_enum_from_ghost_shape(const GHOST_TStandardCursor shape)
+static std::optional<wp_cursor_shape_device_v1_shape> gwl_seat_cursor_find_wl_shape_from_ghost(
+    const GHOST_TStandardCursor shape)
 {
+  /* Cases that return `std::nullopt` mean the cursor is not available. */
   switch (shape) {
     case GHOST_kStandardCursorDefault:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_DEFAULT;
@@ -2697,7 +2702,7 @@ static int get_cursor_shape_enum_from_ghost_shape(const GHOST_TStandardCursor sh
     case GHOST_kStandardCursorInfo:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_CONTEXT_MENU;
     case GHOST_kStandardCursorDestroy:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorHelp:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_HELP;
     case GHOST_kStandardCursorWait:
@@ -2707,13 +2712,13 @@ static int get_cursor_shape_enum_from_ghost_shape(const GHOST_TStandardCursor sh
     case GHOST_kStandardCursorCrosshair:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_CROSSHAIR;
     case GHOST_kStandardCursorCrosshairA:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorCrosshairB:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorCrosshairC:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorPencil:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorUpArrow:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_N_RESIZE;
     case GHOST_kStandardCursorDownArrow:
@@ -2723,11 +2728,11 @@ static int get_cursor_shape_enum_from_ghost_shape(const GHOST_TStandardCursor sh
     case GHOST_kStandardCursorHorizontalSplit:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_ROW_RESIZE;
     case GHOST_kStandardCursorEraser:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorKnife:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorEyedropper:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorZoomIn:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_ZOOM_IN;
     case GHOST_kStandardCursorZoomOut:
@@ -2743,9 +2748,9 @@ static int get_cursor_shape_enum_from_ghost_shape(const GHOST_TStandardCursor sh
     case GHOST_kStandardCursorNSEWScroll:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_ALL_SCROLL;
     case GHOST_kStandardCursorNSScroll:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorEWScroll:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorStop:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_NOT_ALLOWED;
     case GHOST_kStandardCursorUpDown:
@@ -2753,37 +2758,37 @@ static int get_cursor_shape_enum_from_ghost_shape(const GHOST_TStandardCursor sh
     case GHOST_kStandardCursorLeftRight:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_EW_RESIZE;
     case GHOST_kStandardCursorTopSide:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorBottomSide:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorLeftSide:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorRightSide:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorTopLeftCorner:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorTopRightCorner:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorBottomRightCorner:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorBottomLeftCorner:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorCopy:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_COPY;
     case GHOST_kStandardCursorLeftHandle:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorRightHandle:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorBothHandles:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorBlade:
-      return 0; /* Not available. */
+      return std::nullopt;
     case GHOST_kStandardCursorCustom:
-      return 0; /* Not available. */
+      return std::nullopt;
   }
   GHOST_ASSERT(0, "Unhandled GHOST cursor shape!");
   /* Shape not found. */
-  return 0;
+  return std::nullopt;
 }
 
 /**
@@ -3702,6 +3707,7 @@ static void cursor_surface_handle_enter(void *data, wl_surface *wl_surface, wl_o
       seat, wl_surface);
   const GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   seat_state_pointer->outputs.insert(reg_output);
+  update_cursor_scale(seat->cursor, seat->system->wl_shm_get(), seat_state_pointer, wl_surface);
 }
 
 static void cursor_surface_handle_leave(void *data, wl_surface *wl_surface, wl_output *wl_output)
@@ -3717,6 +3723,7 @@ static void cursor_surface_handle_leave(void *data, wl_surface *wl_surface, wl_o
       seat, wl_surface);
   const GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   seat_state_pointer->outputs.erase(reg_output);
+  update_cursor_scale(seat->cursor, seat->system->wl_shm_get(), seat_state_pointer, wl_surface);
 }
 
 static void cursor_surface_handle_preferred_buffer_scale(void * /*data*/,
@@ -8502,8 +8509,9 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
     return GHOST_kFailure;
   }
 
-  const int wl_shape = get_cursor_shape_enum_from_ghost_shape(shape);
-  if (!wl_shape) {
+  const std::optional<wp_cursor_shape_device_v1_shape> wl_shape =
+      gwl_seat_cursor_find_wl_shape_from_ghost(shape);
+  if (wl_shape == std::nullopt) {
     return GHOST_kFailure;
   }
 
@@ -8516,9 +8524,10 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
         return GHOST_kFailure;
       }
     }
-    wp_cursor_shape_device_v1_set_shape(seat->cursor.shape.device, seat->pointer.serial, wl_shape);
+    wp_cursor_shape_device_v1_set_shape(
+        seat->cursor.shape.device, seat->pointer.serial, *wl_shape);
     /* Set this to make sure we remember which shape we set when unhiding cursors. */
-    seat->cursor.shape.enum_id = wl_shape;
+    seat->cursor.shape.enum_id = *wl_shape;
 
     GWL_Cursor *cursor = &seat->cursor;
     cursor->visible = true;
@@ -8536,9 +8545,9 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
         return GHOST_kFailure;
       }
     }
-    wp_cursor_shape_device_v1_set_shape(tablet_tool->shape.device, seat->tablet.serial, wl_shape);
+    wp_cursor_shape_device_v1_set_shape(tablet_tool->shape.device, seat->tablet.serial, *wl_shape);
     /* Set this to make sure we remember which shape we set when unhiding cursors. */
-    tablet_tool->shape.enum_id = wl_shape;
+    tablet_tool->shape.enum_id = *wl_shape;
   }
   return GHOST_kSuccess;
 }
@@ -8555,8 +8564,9 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_check(const GHOST_TStandardCurs
     return GHOST_kFailure;
   }
 
-  const int wl_shape = get_cursor_shape_enum_from_ghost_shape(cursorShape);
-  if (!wl_shape) {
+  const std::optional<wp_cursor_shape_device_v1_shape> wl_shape =
+      gwl_seat_cursor_find_wl_shape_from_ghost(cursorShape);
+  if (wl_shape == std::nullopt) {
     return GHOST_kFailure;
   }
   return GHOST_kSuccess;
