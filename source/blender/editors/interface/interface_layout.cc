@@ -6093,7 +6093,7 @@ static void ui_layout_introspect_button(DynStr *ds, const uiButtonItem *bitem)
   }
 }
 
-static void ui_layout_introspect_items(DynStr *ds, blender::Span<uiItem *> items)
+static void ui_layout_introspect_items(DynStr *ds, blender::Span<const uiItem *> items)
 {
   BLI_dynstr_append(ds, "[");
 
@@ -6153,8 +6153,7 @@ static void ui_layout_introspect_items(DynStr *ds, blender::Span<uiItem *> items
 const char *UI_layout_introspect(uiLayout *layout)
 {
   DynStr *ds = BLI_dynstr_new();
-  uiLayout layout_copy(*layout);
-  blender::Vector<uiItem *> layout_dummy_list(1, static_cast<uiItem *>(&layout_copy));
+  blender::Vector<uiItem *> layout_dummy_list(1, layout);
   ui_layout_introspect_items(ds, layout_dummy_list);
   const char *result = BLI_dynstr_get_cstring(ds);
   BLI_dynstr_free(ds);
