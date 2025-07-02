@@ -540,6 +540,10 @@ struct GWL_TabletTool {
   GWL_CursorShape shape;
 
   GWL_Seat *seat = nullptr;
+
+  /** The serial, set on `proximity_in`, cleared on `proximity_out`. */
+  uint32_t serial = 0;
+
   /** Used to delay clearing tablet focused wl_surface until the frame is handled. */
   bool proximity = false;
 
@@ -703,7 +707,11 @@ struct GWL_SeatStatePointer {
 
   int theme_scale = 1;
 
-  /** The serial of the last used pointer or tablet. */
+  /**
+   * The serial of the last used pointer or tablet.
+   *
+   * \note For tablet cursors, use: #GWL_TabletTool::serial instead.
+   */
   uint32_t serial = 0;
 
   GHOST_Buttons buttons = GHOST_Buttons();
@@ -2822,11 +2830,11 @@ static void gwl_seat_cursor_buffer_show(GWL_Seat *seat)
           zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
       if (tablet_tool->shape.device) {
         wp_cursor_shape_device_v1_set_shape(
-            tablet_tool->shape.device, seat->tablet.serial, tablet_tool->shape.enum_id);
+            tablet_tool->shape.device, tablet_tool->serial, tablet_tool->shape.enum_id);
       }
       else {
         zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2,
-                                      seat->tablet.serial,
+                                      tablet_tool->serial,
                                       tablet_tool->wl.surface_cursor,
                                       hotspot_x,
                                       hotspot_y);
@@ -2848,7 +2856,9 @@ static void gwl_seat_cursor_buffer_hide(GWL_Seat *seat)
 {
   wl_pointer_set_cursor(seat->wl.pointer, seat->pointer.serial, nullptr, 0, 0);
   for (zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->wp.tablet_tools) {
-    zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2, seat->tablet.serial, nullptr, 0, 0);
+    GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(
+        zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
+    zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2, tablet_tool->serial, nullptr, 0, 0);
   }
 }
 
@@ -2881,7 +2891,7 @@ static void gwl_seat_cursor_buffer_set(const GWL_Seat *seat,
           zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
       cursor_buffer_set_surface_impl(wl_image, buffer, tablet_tool->wl.surface_cursor);
       zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2,
-                                    seat->tablet.serial,
+                                    tablet_tool->serial,
                                     visible ? tablet_tool->wl.surface_cursor : nullptr,
                                     hotspot_x,
                                     hotspot_y);
@@ -4589,6 +4599,7 @@ static void tablet_tool_handle_proximity_in(void *data,
 
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
   tablet_tool->proximity = true;
+  tablet_tool->serial = serial;
 
   GWL_Seat *seat = tablet_tool->seat;
   seat->cursor_source_serial = serial;
@@ -4618,6 +4629,7 @@ static void tablet_tool_handle_proximity_out(void *data,
   /* Defer clearing the wl_surface until the frame is handled.
    * Without this, the frame can not access the wl_surface. */
   tablet_tool->proximity = false;
+  tablet_tool->serial = 0;
 }
 
 static void tablet_tool_handle_down(void *data,
@@ -8545,7 +8557,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
         return GHOST_kFailure;
       }
     }
-    wp_cursor_shape_device_v1_set_shape(tablet_tool->shape.device, seat->tablet.serial, *wl_shape);
+    wp_cursor_shape_device_v1_set_shape(tablet_tool->shape.device, tablet_tool->serial, *wl_shape);
     /* Set this to make sure we remember which shape we set when unhiding cursors. */
     tablet_tool->shape.enum_id = *wl_shape;
   }
