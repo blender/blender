@@ -99,7 +99,7 @@ static int gpu_shader_vect_transform(GPUMaterial *mat,
     inputlink = in[0].link;
   }
   else {
-    inputlink = GPU_constant(in[0].vec);
+    inputlink = GPU_uniform(in[0].vec);
   }
 
   const bool is_direction = (nodeprop->type != SHD_VECT_TRANSFORM_TYPE_POINT);
