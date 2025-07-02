@@ -1086,14 +1086,6 @@ static void sound_start_play_scene(Scene *scene)
   }
 }
 
-static double get_cur_time(Scene *scene)
-{
-  /* We divide by the current `framelen` to take into account time remapping.
-   * Otherwise we will get the wrong starting time which will break A/V sync.
-   * See #74111 for further details. */
-  return FRA2TIME((scene->r.cfra + scene->r.subframe) / double(scene->r.framelen));
-}
-
 void BKE_sound_play_scene(Scene *scene)
 {
   std::lock_guard lock(g_state.sound_device_mutex);
@@ -1101,7 +1093,7 @@ void BKE_sound_play_scene(Scene *scene)
   sound_verify_evaluated_id(&scene->id);
 
   AUD_Status status;
-  const double cur_time = get_cur_time(scene);
+  const double cur_time = FRA2TIME((scene->r.cfra + scene->r.subframe));
 
   AUD_Device_lock(g_state.sound_device);
 
