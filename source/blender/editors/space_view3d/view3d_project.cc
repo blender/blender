@@ -671,10 +671,8 @@ bool ED_view3d_win_to_3d_on_plane_with_fallback(const ARegion *region,
   return true;
 }
 
-void ED_view3d_win_to_delta(const ARegion *region,
-                            const float xy_delta[2],
-                            const float zfac,
-                            float r_out[3])
+void ED_view3d_win_to_delta(
+    const ARegion *region, const float xy_delta[2], const float zfac, float r_out[3], bool precise)
 {
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   float dx, dy;
@@ -682,9 +680,20 @@ void ED_view3d_win_to_delta(const ARegion *region,
   dx = 2.0f * xy_delta[0] * zfac / region->winx;
   dy = 2.0f * xy_delta[1] * zfac / region->winy;
 
-  r_out[0] = (rv3d->persinv[0][0] * dx + rv3d->persinv[1][0] * dy);
-  r_out[1] = (rv3d->persinv[0][1] * dx + rv3d->persinv[1][1] * dy);
-  r_out[2] = (rv3d->persinv[0][2] * dx + rv3d->persinv[1][2] * dy);
+  if (precise) {
+    /* Fix for operators that needs more precision. (see #103499) */
+    float wininv[4][4];
+    invert_m4_m4(wininv, rv3d->winmat);
+    r_out[0] = (wininv[0][0] * dx + wininv[1][0] * dy);
+    r_out[1] = (wininv[0][1] * dx + wininv[1][1] * dy);
+    r_out[2] = (wininv[0][2] * dx + wininv[1][2] * dy);
+    mul_mat3_m4_v3(rv3d->viewinv, r_out);
+  }
+  else {
+    r_out[0] = (rv3d->persinv[0][0] * dx + rv3d->persinv[1][0] * dy);
+    r_out[1] = (rv3d->persinv[0][1] * dx + rv3d->persinv[1][1] * dy);
+    r_out[2] = (rv3d->persinv[0][2] * dx + rv3d->persinv[1][2] * dy);
+  }
 }
 
 void ED_view3d_win_to_origin(const ARegion *region, const float mval[2], float r_out[3])

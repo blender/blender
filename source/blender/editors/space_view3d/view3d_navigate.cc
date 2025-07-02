@@ -1034,7 +1034,7 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
   else {
     float dvec[3];
 
-    ED_view3d_win_to_delta(vod->region, event_ofs, vod->init.zfac, dvec);
+    ED_view3d_win_to_delta(vod->region, event_ofs, vod->init.zfac, dvec, true);
 
     sub_v3_v3(vod->rv3d->ofs, dvec);
 
