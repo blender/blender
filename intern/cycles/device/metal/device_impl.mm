@@ -105,7 +105,8 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     /* Use "Ray tracing with per component motion interpolation" if available.
      * Requires Apple9 support (https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf). */
     if (use_metalrt && [mtlDevice supportsFamily:MTLGPUFamilyApple9]) {
-      if (@available(macos 15.0, *)) {
+      /* Concave motion paths weren't correctly bounded prior to macOS 15.6 (#136253). */
+      if (@available(macos 15.6, *)) {
         use_pcmi = DebugFlags().metal.use_metalrt_pcmi;
       }
     }
