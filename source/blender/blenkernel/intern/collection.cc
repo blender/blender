@@ -2095,18 +2095,15 @@ bool BKE_collection_validate(Collection *collection)
 /** \name Collection Index
  * \{ */
 
-static Collection *collection_from_index_recursive(Collection *collection,
-                                                   const int index,
-                                                   int *index_current)
+static Collection *collection_from_session_uid_recursive(Collection *collection,
+                                                         uint64_t session_uid)
 {
-  if (index == (*index_current)) {
-    return collection;
-  }
-
-  (*index_current)++;
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    Collection *nested = collection_from_index_recursive(child->collection, index, index_current);
+    if (child->collection->id.session_uid == session_uid) {
+      return child->collection;
+    }
+    Collection *nested = collection_from_session_uid_recursive(child->collection, session_uid);
     if (nested != nullptr) {
       return nested;
     }
@@ -2114,11 +2111,27 @@ static Collection *collection_from_index_recursive(Collection *collection,
   return nullptr;
 }
 
-Collection *BKE_collection_from_index(Scene *scene, const int index)
+Collection *BKE_collection_from_session_uid(Scene *scene, uint64_t session_uid)
 {
-  int index_current = 0;
   Collection *master_collection = scene->master_collection;
-  return collection_from_index_recursive(master_collection, index, &index_current);
+  if (master_collection->id.session_uid == session_uid) {
+    return scene->master_collection;
+  }
+  return collection_from_session_uid_recursive(master_collection, session_uid);
+}
+
+Collection *BKE_collection_from_session_uid(Main *bmain, uint64_t session_uid, Scene **r_scene)
+{
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    Collection *collection = BKE_collection_from_session_uid(scene, session_uid);
+    if (collection) {
+      if (r_scene) {
+        *r_scene = scene;
+      }
+      return collection;
+    }
+  }
+  return nullptr;
 }
 
 static bool collection_objects_select(const Scene *scene,

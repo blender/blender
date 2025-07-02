@@ -3123,7 +3123,7 @@ class VIEW3D_MT_object_context_menu(Menu):
         if view and view.local_view:
             layout.operator("view3d.localview_remove_from")
         else:
-            layout.operator("object.move_to_collection")
+            layout.menu("OBJECT_MT_move_to_collection")
 
         layout.separator()
 
@@ -3259,8 +3259,8 @@ class VIEW3D_MT_object_collection(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("object.move_to_collection")
-        layout.operator("object.link_to_collection")
+        layout.menu("OBJECT_MT_move_to_collection")
+        layout.menu("OBJECT_MT_link_to_collection")
 
         layout.separator()
 

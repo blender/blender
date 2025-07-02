@@ -61,6 +61,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
+#include "BKE_screen.hh"
 #include "BKE_softbody.h"
 #include "BKE_workspace.hh"
 
@@ -91,6 +92,7 @@
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
+#include "UI_interface_layout.hh"
 
 #include "CLG_log.h"
 
@@ -113,8 +115,6 @@ namespace blender::ed::object {
 static CLG_LogRef LOG = {"ed.object.edit"};
 
 /* prototypes */
-struct MoveToCollectionData;
-static void move_to_collection_menus_items(uiLayout *layout, MoveToCollectionData *menu);
 static ListBase selected_objects_get(bContext *C);
 
 /* -------------------------------------------------------------------- */
@@ -2185,8 +2185,7 @@ static bool move_to_collection_poll(bContext *C)
 static wmOperatorStatus move_to_collection_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "collection_index");
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "collection_uid");
   const bool is_link = STREQ(op->idname, "OBJECT_OT_link_to_collection");
   const bool is_new = RNA_boolean_get(op->ptr, "is_new");
 
@@ -2194,9 +2193,11 @@ static wmOperatorStatus move_to_collection_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No collection selected");
     return OPERATOR_CANCELLED;
   }
+  Scene *src_scene = CTX_data_scene(C);
 
-  int collection_index = RNA_property_int_get(op->ptr, prop);
-  Collection *collection = BKE_collection_from_index(scene, collection_index);
+  int collection_uid = RNA_property_int_get(op->ptr, prop);
+  Scene *dest_scene = nullptr;
+  Collection *collection = BKE_collection_from_session_uid(bmain, collection_uid, &dest_scene);
   if (collection == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Unexpected error, collection not found");
     return OPERATOR_CANCELLED;
@@ -2236,7 +2237,7 @@ static wmOperatorStatus move_to_collection_exec(bContext *C, wmOperator *op)
     Object *ob = static_cast<Object *>(link->data);
 
     if (!is_link) {
-      BKE_collection_object_move(bmain, scene, collection, nullptr, ob);
+      BKE_collection_object_move(bmain, src_scene, collection, nullptr, ob);
     }
     else {
       BKE_collection_object_add(bmain, collection, ob);
@@ -2272,171 +2273,169 @@ static wmOperatorStatus move_to_collection_exec(bContext *C, wmOperator *op)
   }
 
   DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+  DEG_id_tag_update(&src_scene->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
 
-  WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
-  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
-  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER, src_scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, src_scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, src_scene);
+
+  if (src_scene != dest_scene) {
+    DEG_id_tag_update(&dest_scene->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+
+    WM_event_add_notifier(C, NC_SCENE | ND_LAYER, dest_scene);
+    WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, dest_scene);
+    WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, dest_scene);
+  }
 
   return OPERATOR_FINISHED;
 }
-
-struct MoveToCollectionData {
-  MoveToCollectionData *next, *prev;
-  int index;
-  Collection *collection;
-  ListBase submenus;
-  PointerRNA ptr;
-  wmOperatorType *ot;
-};
-
-static int move_to_collection_menus_create(wmOperator *op, MoveToCollectionData *menu)
-{
-  int index = menu->index;
-  LISTBASE_FOREACH (CollectionChild *, child, &menu->collection->children) {
-    Collection *collection = child->collection;
-    MoveToCollectionData *submenu = MEM_new<MoveToCollectionData>(__func__);
-    BLI_addtail(&menu->submenus, submenu);
-    submenu->collection = collection;
-    submenu->index = ++index;
-    index = move_to_collection_menus_create(op, submenu);
-    submenu->ot = op->type;
-  }
-  return index;
-}
-
-static void move_to_collection_menus_free_recursive(MoveToCollectionData *menu)
-{
-  LISTBASE_FOREACH_MUTABLE (MoveToCollectionData *, submenu, &menu->submenus) {
-    move_to_collection_menus_free_recursive(submenu);
-    MEM_delete(submenu);
-  }
-  BLI_listbase_clear(&menu->submenus);
-}
-
-static void move_to_collection_menus_free(MoveToCollectionData **menu)
-{
-  if (*menu == nullptr) {
-    return;
-  }
-
-  move_to_collection_menus_free_recursive(*menu);
-  MEM_delete(*menu);
-  *menu = nullptr;
-}
-
-static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *menu_v)
-{
-  MoveToCollectionData *menu = static_cast<MoveToCollectionData *>(menu_v);
-  const char *name = BKE_collection_ui_name_get(menu->collection);
-
-  menu->ptr = layout->op(menu->ot,
-                         CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Collection"),
-                         ICON_ADD,
-                         WM_OP_INVOKE_DEFAULT,
-                         UI_ITEM_NONE);
-  RNA_int_set(&menu->ptr, "collection_index", menu->index);
-  RNA_boolean_set(&menu->ptr, "is_new", true);
-
-  layout->separator();
-
-  Scene *scene = CTX_data_scene(C);
-  const int icon = (menu->collection == scene->master_collection) ?
-                       ICON_SCENE_DATA :
-                       UI_icon_color_from_collection(menu->collection);
-  PointerRNA op_ptr = layout->op(menu->ot, name, icon);
-  RNA_int_set(&op_ptr, "collection_index", menu->index);
-
-  LISTBASE_FOREACH (MoveToCollectionData *, submenu, &menu->submenus) {
-    move_to_collection_menus_items(layout, submenu);
-  }
-}
-
-static void move_to_collection_menus_items(uiLayout *layout, MoveToCollectionData *menu)
-{
-  const int icon = UI_icon_color_from_collection(menu->collection);
-
-  if (BLI_listbase_is_empty(&menu->submenus)) {
-    PointerRNA op_ptr = layout->op(menu->ot, menu->collection->id.name + 2, icon);
-    RNA_int_set(&op_ptr, "collection_index", menu->index);
-  }
-  else {
-    layout->menu_fn(menu->collection->id.name + 2, icon, move_to_collection_menu_create, menu);
-  }
-}
-
-/* This is allocated statically because we need this available for the menus creation callback. */
-static MoveToCollectionData *master_collection_menu = nullptr;
 
 static wmOperatorStatus move_to_collection_invoke(bContext *C,
                                                   wmOperator *op,
                                                   const wmEvent * /*event*/)
 {
-  Scene *scene = CTX_data_scene(C);
-
   ListBase objects = selected_objects_get(C);
   if (BLI_listbase_is_empty(&objects)) {
     BKE_report(op->reports, RPT_ERROR, "No objects selected");
     return OPERATOR_CANCELLED;
   }
   BLI_freelistN(&objects);
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "collection_uid");
+  bool is_move = STREQ(op->type->idname, "OBJECT_OT_move_to_collection");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    WM_menu_name_call(
+        C, is_move ? "OBJECT_MT_move_to_collection" : "OBJECT_MT_link_to_collection", 0);
+    return OPERATOR_FINISHED;
+  }
 
-  /* Reset the menus data for the current master collection, and free previously allocated data. */
-  move_to_collection_menus_free(&master_collection_menu);
-
-  PropertyRNA *prop;
-  prop = RNA_struct_find_property(op->ptr, "collection_index");
-  if (RNA_property_is_set(op->ptr, prop)) {
-    int collection_index = RNA_property_int_get(op->ptr, prop);
-
-    if (RNA_boolean_get(op->ptr, "is_new")) {
-      prop = RNA_struct_find_property(op->ptr, "new_collection_name");
-      if (!RNA_property_is_set(op->ptr, prop)) {
-        char name[MAX_NAME];
-        Collection *collection;
-
-        collection = BKE_collection_from_index(scene, collection_index);
-        BKE_collection_new_name_get(collection, name);
-
-        RNA_property_string_set(op->ptr, prop, name);
-        return WM_operator_props_dialog_popup(
-            C, op, 200, IFACE_("Move to New Collection"), IFACE_("Create"));
-      }
-    }
+  if (!RNA_boolean_get(op->ptr, "is_new")) {
     return move_to_collection_exec(C, op);
   }
 
-  Collection *master_collection = scene->master_collection;
+  int collection_uid = RNA_property_int_get(op->ptr, prop);
+  Collection *collection = BKE_collection_from_session_uid(CTX_data_main(C), collection_uid);
 
-  /* We need the data to be allocated so it's available during menu drawing.
-   * Technically we could use #wmOperator.customdata. However there is no free callback
-   * called to an operator that exit with OPERATOR_INTERFACE to launch a menu.
-   *
-   * So we are left with a memory that will necessarily leak. It's a small leak though. */
-  if (master_collection_menu == nullptr) {
-    master_collection_menu = MEM_new<MoveToCollectionData>(
-        "MoveToCollectionData menu - expected eventual memleak");
+  if (!collection) {
+    BKE_report(op->reports, RPT_ERROR, "Unexpected error, collection not found");
+    return OPERATOR_CANCELLED;
   }
 
-  master_collection_menu->collection = master_collection;
-  master_collection_menu->ot = op->type;
-  move_to_collection_menus_create(op, master_collection_menu);
+  prop = RNA_struct_find_property(op->ptr, "new_collection_name");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    char name[MAX_NAME];
 
-  uiPopupMenu *pup;
-  uiLayout *layout;
+    BKE_collection_new_name_get(collection, name);
 
-  /* Build the menus. */
-  const char *title = CTX_IFACE_(op->type->translation_context, op->type->name);
-  pup = UI_popup_menu_begin(C, title, ICON_NONE);
-  layout = UI_popup_menu_layout(pup);
+    RNA_property_string_set(op->ptr, prop, name);
+    return WM_operator_props_dialog_popup(C,
+                                          op,
+                                          200,
+                                          is_move ? IFACE_("Move to New Collection") :
+                                                    IFACE_("Link to New Collection"),
+                                          IFACE_("Create"));
+  }
+  return move_to_collection_exec(C, op);
+}
 
-  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
+static void move_to_collection_menu_draw(Menu *menu, Collection *collection, int icon)
+{
+  uiLayout &layout = *menu->layout;
+  bool is_move = ELEM(StringRefNull(menu->type->idname),
+                      "OBJECT_MT_move_to_collection",
+                      "OBJECT_MT_move_to_collection_recursive");
+  wmOperatorType *ot = WM_operatortype_find(
+      is_move ? "OBJECT_OT_move_to_collection" : "OBJECT_OT_link_to_collection", false);
 
-  move_to_collection_menu_create(C, layout, master_collection_menu);
+  layout.operator_context_set(WM_OP_INVOKE_DEFAULT);
 
-  UI_popup_menu_end(C, pup);
+  PointerRNA op_ptr = layout.op(
+      ot, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Collection"), ICON_ADD);
+  RNA_int_set(&op_ptr, "collection_uid", collection->id.session_uid);
+  RNA_boolean_set(&op_ptr, "is_new", true);
+  layout.separator();
 
-  return OPERATOR_INTERFACE;
+  op_ptr = layout.op(ot, BKE_collection_ui_name_get(collection), icon);
+  RNA_int_set(&op_ptr, "collection_uid", collection->id.session_uid);
+
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+    collection = child->collection;
+    if (BLI_listbase_is_empty(&collection->children)) {
+      op_ptr = layout.op(
+          ot, BKE_collection_ui_name_get(collection), UI_icon_color_from_collection(collection));
+      RNA_int_set(&op_ptr, "collection_uid", collection->id.session_uid);
+      continue;
+    }
+    const PointerRNA ptr = RNA_id_pointer_create(&collection->id);
+    layout.context_ptr_set("collection", &ptr);
+    layout.menu(is_move ? "OBJECT_MT_move_to_collection_recursive" :
+                          "OBJECT_MT_link_to_collection_recursive",
+                BKE_collection_ui_name_get(collection),
+                UI_icon_color_from_collection(collection));
+  }
+}
+
+static void move_to_collection_recursive_menu_draw(const bContext * /*C*/, Menu *menu)
+{
+  uiLayout &layout = *menu->layout;
+  const PointerRNA *ptr = layout.context_ptr_get("collection", &RNA_Collection);
+  Collection *collection = ptr ? ptr->data_as<Collection>() : nullptr;
+  if (!collection) {
+    return;
+  }
+  move_to_collection_menu_draw(menu, collection, UI_icon_color_from_collection(collection));
+}
+
+static void move_to_collection_menu_draw(const bContext *C, Menu *menu)
+{
+  uiLayout &layout = *menu->layout;
+  Scene *scene = CTX_data_scene(C);
+  if (layout.operator_context() == WM_OP_EXEC_REGION_WIN) {
+    layout.operator_context_set(WM_OP_INVOKE_REGION_WIN);
+    PointerRNA op_ptr = layout.op("WM_OT_search_single_menu", "Search...", ICON_VIEWZOOM);
+    RNA_string_set(&op_ptr, "menu_idname", menu->type->idname);
+    layout.separator();
+  }
+  move_to_collection_menu_draw(menu, scene->master_collection, ICON_SCENE_DATA);
+}
+
+void move_to_colletion_menu_register()
+{
+  /* Add recursive sub-menu type, to avoid each sub-menu from showing the main menu shortcut. */
+  MenuType *mt = MEM_callocN<MenuType>("OBJECT_MT_move_to_collection_recursive");
+  STRNCPY(mt->idname, "OBJECT_MT_move_to_collection_recursive");
+  STRNCPY(mt->label, N_("Move to Collection Recursive"));
+  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  mt->draw = move_to_collection_recursive_menu_draw;
+  mt->flag = MenuTypeFlag::ContextDependent;
+  WM_menutype_add(mt);
+
+  mt = MEM_callocN<MenuType>("OBJECT_MT_move_to_collection");
+  STRNCPY(mt->idname, "OBJECT_MT_move_to_collection");
+  STRNCPY(mt->label, N_("Move to Collection"));
+  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  mt->draw = move_to_collection_menu_draw;
+  mt->flag = MenuTypeFlag::SearchOnKeyPress;
+  WM_menutype_add(mt);
+}
+
+void link_to_colletion_menu_register()
+{
+  /* Add recursive sub-menu type, to avoid each sub-menu from showing the main menu shortcut. */
+  MenuType *mt = MEM_callocN<MenuType>("OBJECT_MT_link_to_collection_recursive");
+  STRNCPY(mt->idname, "OBJECT_MT_link_to_collection_recursive");
+  STRNCPY(mt->label, N_("Link to Collection Recursive"));
+  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  mt->draw = move_to_collection_recursive_menu_draw;
+  mt->flag = MenuTypeFlag::ContextDependent;
+  WM_menutype_add(mt);
+
+  mt = MEM_callocN<MenuType>("OBJECT_MT_link_to_collection");
+  STRNCPY(mt->idname, "OBJECT_MT_link_to_collection");
+  STRNCPY(mt->label, N_("Link to Collection"));
+  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  mt->draw = move_to_collection_menu_draw;
+  mt->flag = MenuTypeFlag::SearchOnKeyPress;
+  WM_menutype_add(mt);
 }
 
 void OBJECT_OT_move_to_collection(wmOperatorType *ot)
@@ -2457,12 +2456,12 @@ void OBJECT_OT_move_to_collection(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   prop = RNA_def_int(ot->srna,
-                     "collection_index",
+                     "collection_uid",
                      COLLECTION_INVALID_INDEX,
                      COLLECTION_INVALID_INDEX,
                      INT_MAX,
-                     "Collection Index",
-                     "Index of the collection to move to",
+                     "Collection UID",
+                     "Session UID of the collection to move to",
                      0,
                      INT_MAX);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
@@ -2496,16 +2495,16 @@ void OBJECT_OT_link_to_collection(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   prop = RNA_def_int(ot->srna,
-                     "collection_index",
+                     "collection_uid",
                      COLLECTION_INVALID_INDEX,
                      COLLECTION_INVALID_INDEX,
                      INT_MAX,
-                     "Collection Index",
-                     "Index of the collection to move to",
+                     "Collection UID",
+                     "Session UID of the collection to link to",
                      0,
                      INT_MAX);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
-  prop = RNA_def_boolean(ot->srna, "is_new", false, "New", "Move objects to a new collection");
+  prop = RNA_def_boolean(ot->srna, "is_new", false, "New", "Link objects to a new collection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
   prop = RNA_def_string(ot->srna,
                         "new_collection_name",
