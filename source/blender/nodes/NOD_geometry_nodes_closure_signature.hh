@@ -26,6 +26,10 @@ class ClosureSignature {
   std::optional<int> find_output_index(const SocketInterfaceKey &key) const;
 
   bool matches_exactly(const ClosureSignature &other) const;
+  static bool all_matching_exactly(Span<ClosureSignature> signatures);
+
+  static ClosureSignature FromClosureOutputNode(const bNode &node);
+  static ClosureSignature FromEvaluateClosureNode(const bNode &node);
 };
 
 }  // namespace blender::nodes
