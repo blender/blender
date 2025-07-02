@@ -179,8 +179,7 @@ static void set_attribute_ui(bContext *C, wmOperator *op)
   AttributeOwner owner = AttributeOwner::from_id(&pointcloud.id);
   const StringRef name = *BKE_attributes_active_name_get(owner);
   const bke::AttributeMetaData meta_data = *pointcloud.attributes().lookup_meta_data(name);
-  const bke::AttrType active_type = bke::AttrType(meta_data.data_type);
-  const StringRefNull prop_name = geometry::rna_property_name_for_type(active_type);
+  const StringRefNull prop_name = geometry::rna_property_name_for_type(meta_data.data_type);
   layout->prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }
 
