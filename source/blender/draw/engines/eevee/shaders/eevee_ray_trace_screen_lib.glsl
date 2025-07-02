@@ -182,9 +182,8 @@ ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
 
   float2 inv_texture_size = 1.0f / float2(textureSize(planar_depth_tx, 0).xy);
   /* NOTE: The 2.0 factor here is because we are applying it in NDC space. */
-  /* TODO(@fclem): This uses the main view's projection matrix, not the planar's one.
-   * This works fine for reflection, but this prevent the use of any other projection capture. */
-  ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray, 2.0f * inv_texture_size);
+  ScreenSpaceRay ssray = raytrace_screenspace_ray_create(
+      ray, planar.winmat, 2.0f * inv_texture_size);
 
   float prev_delta = 0.0f, prev_time = 0.0f;
   float depth_sample = reverse_z::read(
@@ -220,9 +219,9 @@ ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
   ScreenTraceHitData result;
   result.valid = hit;
   result.ss_hit_P = ssray.origin.xyz + ssray.direction.xyz * time;
-  /* TODO(@fclem): This uses the main view's projection matrix, not the planar's one.
-   * This works fine for reflection, but this prevent the use of any other projection capture. */
-  result.v_hit_P = drw_point_screen_to_view(result.ss_hit_P);
+
+  /* NOTE: v_hit_P is in planar reflected view space. */
+  result.v_hit_P = project_point(planar.wininv, drw_screen_to_ndc(result.ss_hit_P));
   /* Convert to world space ray time. */
   result.time = length(result.v_hit_P - ray.origin) / length(ray.direction);
   return result;

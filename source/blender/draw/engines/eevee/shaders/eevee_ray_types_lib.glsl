@@ -7,6 +7,7 @@
 #include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_bxdf_lib.glsl" /* Needed for Ray. */
+#include "gpu_shader_math_matrix_lib.glsl"
 
 /* Screen-space ray ([0..1] "uv" range) where direction is normalize to be as small as one
  * full-resolution pixel. The ray is also clipped to all frustum sides.
@@ -55,6 +56,16 @@ ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray, float2 pixel_size)
   ScreenSpaceRay ssray;
   ssray.origin.xyz = drw_point_view_to_ndc(ray.origin);
   ssray.direction.xyz = drw_point_view_to_ndc(ray.origin + ray.direction * ray.max_time);
+
+  raytrace_screenspace_ray_finalize(ssray, pixel_size);
+  return ssray;
+}
+
+ScreenSpaceRay raytrace_screenspace_ray_create(Ray ray, float4x4 winmat, float2 pixel_size)
+{
+  ScreenSpaceRay ssray;
+  ssray.origin.xyz = project_point(winmat, ray.origin);
+  ssray.direction.xyz = project_point(winmat, ray.origin + ray.direction * ray.max_time);
 
   raytrace_screenspace_ray_finalize(ssray, pixel_size);
   return ssray;
