@@ -255,7 +255,6 @@ struct Instance final : public DrawEngine {
   /* Batches containing the temp stroke. */
   gpu::Batch *stroke_batch;
   gpu::Batch *fill_batch;
-  bool do_fast_drawing;
   bool snapshot_buffer_dirty;
 
   /* Display onion skinning */
@@ -347,9 +346,6 @@ struct Instance final : public DrawEngine {
 
   void draw_mask(View &view, tObject *ob, tLayer *layer);
   void draw_object(View &view, tObject *ob);
-
-  void fast_draw_start();
-  void fast_draw_end(View &view);
 
   void antialiasing_init();
   void antialiasing_draw(Manager &manager);
