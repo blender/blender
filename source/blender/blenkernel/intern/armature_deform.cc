@@ -18,6 +18,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
@@ -44,6 +45,63 @@ static CLG_LogRef LOG = {"bke.armature_deform"};
 /* -------------------------------------------------------------------- */
 /** \name Armature Deform Internal Utilities
  * \{ */
+
+static float bone_envelope_falloff(const float distance_squared,
+                                   const float closest_radius,
+                                   const float falloff_distance)
+{
+  using namespace blender;
+
+  if (distance_squared < closest_radius * closest_radius) {
+    return 1.0f;
+  }
+
+  /* Zero influence beyond falloff distance. */
+  if (falloff_distance == 0.0f ||
+      distance_squared >= math::square(closest_radius + falloff_distance))
+  {
+    return 0.0f;
+  }
+
+  /* Compute influence from envelope over the falloff distance. */
+  const float dist_envelope = sqrtf(distance_squared) - closest_radius;
+  return 1.0f - (dist_envelope * dist_envelope) / (falloff_distance * falloff_distance);
+}
+
+float distfactor_to_bone(const blender::float3 &position,
+                         const blender::float3 &head,
+                         const blender::float3 &tail,
+                         const float radius_head,
+                         const float radius_tail,
+                         const float falloff_distance)
+{
+  using namespace blender;
+
+  float bone_length;
+  const float3 bone_axis = math::normalize_and_get_length(tail - head, bone_length);
+  /* Distance along the bone axis from head. */
+  const float height = math::dot(position - head, bone_axis);
+
+  if (height < 0.0f) {
+    /* Below the start of the bone use the head radius. */
+    const float distance_squared = math::distance_squared(position, head);
+    return bone_envelope_falloff(distance_squared, radius_head, falloff_distance);
+  }
+  else if (height > bone_length) {
+    /* After the end of the bone use the tail radius. */
+    const float distance_squared = math::distance_squared(tail, position);
+    return bone_envelope_falloff(distance_squared, radius_tail, falloff_distance);
+  }
+  else {
+    /* Interpolate radius. */
+    const float distance_squared = math::distance_squared(position, head) - height * height;
+    const float closest_radius = bone_length != 0.0f ? math::interpolate(radius_head,
+                                                                         radius_tail,
+                                                                         height / bone_length) :
+                                                       radius_head;
+    return bone_envelope_falloff(distance_squared, closest_radius, falloff_distance);
+  }
+}
 
 /* Add the effect of one bone or B-Bone segment to the accumulated result. */
 static void pchan_deform_accumulate(const DualQuat *deform_dq,
@@ -106,59 +164,6 @@ static void b_bone_deform(const bPoseChannel *pchan,
                           full_deform);
   pchan_deform_accumulate(
       &quats[index + 1], mats[index + 2].mat, co, weight * blend, vec, dq, defmat, full_deform);
-}
-
-float distfactor_to_bone(
-    const float vec[3], const float b1[3], const float b2[3], float rad1, float rad2, float rdist)
-{
-  float dist_sq;
-  float bdelta[3];
-  float pdelta[3];
-  float hsqr, a, l, rad;
-
-  sub_v3_v3v3(bdelta, b2, b1);
-  l = normalize_v3(bdelta);
-
-  sub_v3_v3v3(pdelta, vec, b1);
-
-  a = dot_v3v3(bdelta, pdelta);
-  hsqr = len_squared_v3(pdelta);
-
-  if (a < 0.0f) {
-    /* If we're past the end of the bone, do a spherical field attenuation thing */
-    dist_sq = len_squared_v3v3(b1, vec);
-    rad = rad1;
-  }
-  else if (a > l) {
-    /* If we're past the end of the bone, do a spherical field attenuation thing */
-    dist_sq = len_squared_v3v3(b2, vec);
-    rad = rad2;
-  }
-  else {
-    dist_sq = (hsqr - (a * a));
-
-    if (l != 0.0f) {
-      rad = a / l;
-      rad = rad * rad2 + (1.0f - rad) * rad1;
-    }
-    else {
-      rad = rad1;
-    }
-  }
-
-  a = rad * rad;
-  if (dist_sq < a) {
-    return 1.0f;
-  }
-
-  l = rad + rdist;
-  l *= l;
-  if (rdist == 0.0f || dist_sq >= l) {
-    return 0.0f;
-  }
-
-  a = sqrtf(dist_sq) - rad;
-  return 1.0f - (a * a) / (rdist * rdist);
 }
 
 static float dist_bone_deform(const bPoseChannel *pchan,
