@@ -1629,7 +1629,8 @@ static ImBuf *do_render_strip_seqbase(const RenderData *context,
       BKE_animsys_evaluate_all_animation(context->bmain, context->depsgraph, frame_index);
     }
 
-    intra_frame_cache_set_cur_frame(context->scene, frame_index, context->view_id);
+    intra_frame_cache_set_cur_frame(
+        context->scene, frame_index, context->view_id, context->rectx, context->recty);
     ibuf = seq_render_strip_stack(context,
                                   state,
                                   channels,
@@ -2019,7 +2020,8 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
     channels = ed->displayed_channels;
   }
 
-  intra_frame_cache_set_cur_frame(scene, timeline_frame, context->view_id);
+  intra_frame_cache_set_cur_frame(
+      scene, timeline_frame, context->view_id, context->rectx, context->recty);
 
   Scene *orig_scene = prefetch_get_original_scene(context);
   ImBuf *out = nullptr;
