@@ -86,6 +86,10 @@ class Context(_StructRNA):
         return value
 
     def copy(self):
+        """Get context members as a dictionary.
+
+        :rtype: dict[str, Any]
+        """
         from types import BuiltinMethodType
         new_context = {}
         generic_attrs = (
