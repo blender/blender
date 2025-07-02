@@ -211,7 +211,7 @@ static void template_search_buttons(const bContext *C,
   UI_block_align_end(block);
 
   if (decorator_layout) {
-    uiItemDecoratorR(decorator_layout, nullptr, "", RNA_NO_INDEX);
+    decorator_layout->decorator(nullptr, "", RNA_NO_INDEX);
   }
 }
 

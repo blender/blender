@@ -398,7 +398,7 @@ void ui_template_modifier_asset_menu_items(uiLayout &layout, const StringRef cat
   layout.separator();
   uiLayout *col = &layout.column(false);
   col->context_string_set("asset_catalog_path", item->catalog_path().str());
-  uiItemMContents(col, "OBJECT_MT_add_modifier_catalog_assets");
+  col->menu_contents("OBJECT_MT_add_modifier_catalog_assets");
 }
 
 }  // namespace blender::ed::object

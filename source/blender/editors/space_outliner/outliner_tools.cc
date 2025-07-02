@@ -3629,7 +3629,7 @@ static wmOperatorStatus outliner_operator_menu(bContext *C, const char *opname)
     layout->separator();
   }
 
-  uiItemMContents(layout, "OUTLINER_MT_context_menu");
+  layout->menu_contents("OUTLINER_MT_context_menu");
 
   UI_popup_menu_end(C, pup);
 

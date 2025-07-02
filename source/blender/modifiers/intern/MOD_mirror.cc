@@ -201,7 +201,7 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_mirror_u"));
   sub->prop(ptr, "mirror_offset_u", UI_ITEM_R_SLIDER, "", ICON_NONE);
-  uiItemDecoratorR(row, ptr, "mirror_offset_u", 0);
+  row->decorator(ptr, "mirror_offset_u", 0);
 
   row = &col->row(true, IFACE_("V"));
   row->use_property_decorate_set(false);
@@ -210,7 +210,7 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &sub->row(true);
   sub->active_set(RNA_boolean_get(ptr, "use_mirror_v"));
   sub->prop(ptr, "mirror_offset_v", UI_ITEM_R_SLIDER, "", ICON_NONE);
-  uiItemDecoratorR(row, ptr, "mirror_offset_v", 0);
+  row->decorator(ptr, "mirror_offset_v", 0);
 
   col = &layout->column(true);
   col->prop(ptr, "offset_u", UI_ITEM_R_SLIDER, IFACE_("Offset U"), ICON_NONE);
