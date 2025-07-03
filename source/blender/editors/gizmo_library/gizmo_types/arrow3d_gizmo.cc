@@ -120,7 +120,8 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow,
     wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_LOOP);
   }
   else if (draw_style == ED_GIZMO_ARROW_STYLE_PLANE) {
-    const float scale = 0.1f;
+    /* Increase the size a bit during selection. These are relatively easy to hit. */
+    const float scale = select ? 0.15f : 0.1f;
     const float verts[4][3] = {
         {0, 0, 0},
         {scale, 0, scale},
@@ -168,7 +169,8 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow,
     /* NOTE: ideally #ARROW_SELECT_THRESHOLD_PX would be added here, however adding a
      * margin in pixel space isn't so simple, nor is it as important as for the arrow stem. */
     if (draw_style == ED_GIZMO_ARROW_STYLE_BOX) {
-      const float size = 0.05f;
+      /* Increase the size during selection so it is wider than other lines. */
+      const float size = select ? 0.11f : 0.05f;
 
       /* translate to line end with some extra offset so box starts exactly where line ends */
       GPU_matrix_translate_3f(0.0f, 0.0f, arrow_length + size);
@@ -183,8 +185,9 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow,
     else {
       BLI_assert(draw_style == ED_GIZMO_ARROW_STYLE_NORMAL);
 
-      const float len = 0.25f;
-      const float width = 0.06f;
+      /* Increase the size during selection, but mostly wider. */
+      const float len = select ? 0.35f : 0.25f;
+      const float width = select ? 0.12f : 0.06f;
 
       /* translate to line end */
       GPU_matrix_translate_3f(0.0f, 0.0f, arrow_length);
