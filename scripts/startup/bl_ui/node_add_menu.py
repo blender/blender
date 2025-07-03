@@ -29,6 +29,8 @@ def add_node_type(layout, node_type, *, label=None, poll=None, search_weight=0.0
         props.use_transform = True
         return props
 
+    return None
+
 
 def add_node_type_with_outputs(context, layout, node_type, subnames, *, label=None, search_weight=0.0):
     bl_rna = bpy.types.Node.bl_rna_get_subclass(node_type)
