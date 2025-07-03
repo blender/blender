@@ -345,7 +345,7 @@ void BKE_main_namemap_destroy(UniqueName_Map **r_name_map)
 
 void BKE_main_namemap_clear(Main &bmain)
 {
-  for (Main *bmain_iter = &bmain; bmain_iter != nullptr; bmain_iter = bmain_iter->next) {
+  auto bmain_namemap_clear = [](Main *bmain_iter) -> void {
     BKE_main_namemap_destroy(&bmain_iter->name_map);
     BKE_main_namemap_destroy(&bmain_iter->name_map_global);
     for (Library *lib_iter = static_cast<Library *>(bmain_iter->libraries.first);
@@ -354,6 +354,17 @@ void BKE_main_namemap_clear(Main &bmain)
     {
       BKE_main_namemap_destroy(&lib_iter->runtime->name_map);
     }
+  };
+
+  if (bmain.split_mains) {
+    BLI_assert_msg(bmain.split_mains->contains(&bmain),
+                   "Main should always be part of its own `split_mains`");
+    for (Main *bmain_iter : *bmain.split_mains) {
+      bmain_namemap_clear(bmain_iter);
+    }
+  }
+  else {
+    bmain_namemap_clear(&bmain);
   }
 }
 
