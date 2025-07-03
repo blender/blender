@@ -445,6 +445,32 @@ bke::CurvesGeometry curves_merge_endpoints_by_distance(
       src_curves, connect_to_curve, flip_direction, attribute_filter);
 }
 
+/* Generate a full circle around a point. */
+static void generate_circle_from_point(const float3 &pt,
+                                       const float radius,
+                                       const int corner_subdivisions,
+                                       const int src_point_index,
+                                       Vector<float3> &r_perimeter,
+                                       Vector<int> &r_src_indices)
+{
+  /* Number of points is 2^(n+2) on a full circle (n=corner_subdivisions). */
+  BLI_assert(corner_subdivisions >= 0);
+  const int num_points = 1 << (corner_subdivisions + 2);
+  const float delta_angle = 2 * M_PI / float(num_points);
+  const float delta_cos = math::cos(delta_angle);
+  const float delta_sin = math::sin(delta_angle);
+
+  float3 vec = float3(radius, 0, 0);
+  for ([[maybe_unused]] const int i : IndexRange(num_points)) {
+    r_perimeter.append(pt + vec);
+    r_src_indices.append(src_point_index);
+
+    const float x = delta_cos * vec.x - delta_sin * vec.y;
+    const float y = delta_sin * vec.x + delta_cos * vec.y;
+    vec = float3(x, y, 0.0f);
+  }
+}
+
 /* Generate points in an counter-clockwise arc between two directions. */
 static void generate_arc_from_point_to_point(const float3 &from,
                                              const float3 &to,
@@ -588,7 +614,20 @@ static void generate_stroke_perimeter(const Span<float3> all_positions,
 {
   const Span<float3> positions = all_positions.slice(points);
   const int point_num = points.size();
-  if (point_num < 2) {
+  if (point_num == 0) {
+    return;
+  }
+  if (point_num == 1) {
+    /* Generate a circle for a single point. */
+    const int perimeter_start = r_perimeter.size();
+    const int point = points.first();
+    const float radius = std::max(all_radii[point] + outline_offset, 0.0f);
+    generate_circle_from_point(
+        positions.first(), radius, corner_subdivisions, point, r_perimeter, r_point_indices);
+    const int perimeter_count = r_perimeter.size() - perimeter_start;
+    if (perimeter_count > 0) {
+      r_point_counts.append(perimeter_count);
+    }
     return;
   }
 
