@@ -369,7 +369,7 @@ struct Draw {
   uint8_t expand_prim_len;
   uint32_t vertex_first;
   uint32_t vertex_len;
-  ResourceHandle handle;
+  ResourceIndex res_index;
 
   Draw() = default;
 
@@ -379,11 +379,11 @@ struct Draw {
        uint vertex_first,
        GPUPrimType expanded_prim_type,
        uint expanded_prim_len,
-       ResourceHandle handle)
+       ResourceIndex res_index)
   {
     BLI_assert(batch != nullptr);
     this->batch = batch;
-    this->handle = handle;
+    this->res_index = res_index;
     this->instance_len = uint16_t(min_uu(instance_len, USHRT_MAX));
     this->vertex_len = vertex_len;
     this->vertex_first = vertex_first;
@@ -413,7 +413,7 @@ struct DrawMulti {
 struct DrawIndirect {
   gpu::Batch *batch;
   GPUStorageBuf **indirect_buf;
-  ResourceHandle handle;
+  ResourceIndex res_index;
 
   void execute(RecordingState &state) const;
   std::string serialize() const;
@@ -547,7 +547,7 @@ class DrawCommandBuf {
                    uint instance_len,
                    uint vertex_len,
                    uint vertex_first,
-                   ResourceHandleRange handle_range,
+                   ResourceIndexRange index_range,
                    uint custom_id,
                    GPUPrimType expanded_prim_type,
                    uint16_t expanded_prim_len)
@@ -559,7 +559,7 @@ class DrawCommandBuf {
     BLI_assert_msg(custom_id == 0, "Custom ID is not supported in PassSimple");
     UNUSED_VARS_NDEBUG(custom_id);
 
-    for (auto handle : handle_range.index_range()) {
+    for (auto res_index : index_range.index_range()) {
       int64_t index = commands.append_and_get_index({});
       headers.append({Type::Draw, uint(index)});
       commands[index].draw = {batch,
@@ -568,7 +568,7 @@ class DrawCommandBuf {
                               vertex_first,
                               expanded_prim_type,
                               expanded_prim_len,
-                              ResourceHandle(handle)};
+                              ResourceIndex(res_index)};
     }
   }
 
@@ -668,7 +668,7 @@ class DrawMultiBuf {
                    uint instance_len,
                    uint vertex_len,
                    uint vertex_first,
-                   ResourceHandleRange handle_range,
+                   ResourceIndexRange index_range,
                    uint custom_id,
                    GPUPrimType expanded_prim_type,
                    uint16_t expanded_prim_len)
@@ -692,11 +692,11 @@ class DrawMultiBuf {
 
     uint &group_id = group_ids_.lookup_or_add(DrawGroupKey(cmd.uuid, batch), uint(-1));
 
-    bool inverted = handle_range.has_inverted_handedness();
+    bool inverted = index_range.has_inverted_handedness();
 
-    for (auto handle : handle_range.index_range()) {
+    for (auto res_index : index_range.index_range()) {
       DrawPrototype &draw = prototype_buf_.get_or_resize(prototype_count_++);
-      draw.res_handle = uint32_t(handle);
+      draw.res_index = uint32_t(res_index);
       draw.custom_id = custom_id;
       draw.instance_len = instance_len;
       draw.group_id = group_id;

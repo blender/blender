@@ -1074,8 +1074,7 @@ template<typename InstanceDataT> struct ShapeInstanceBuf : private select::Selec
     this->select_bind(pass);
     data_buf.push_update();
     pass.bind_ssbo("data_buf", &data_buf);
-    pass.draw_expand(
-        shape, primitive_type, primitive_len, data_buf.size(), ResourceHandleRange(0), uint(0));
+    pass.draw_expand(shape, primitive_type, primitive_len, data_buf.size());
   }
 };
 

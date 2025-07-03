@@ -59,8 +59,8 @@ void main()
 
   DrawPrototype proto = prototype_buf[proto_id];
   uint group_id = proto.group_id;
-  bool is_inverted = (proto.res_handle & 0x80000000u) != 0;
-  uint resource_index = (proto.res_handle & 0x7FFFFFFFu);
+  bool is_inverted = (proto.res_index & 0x80000000u) != 0;
+  uint resource_index = (proto.res_index & 0x7FFFFFFFu);
 
   /* Visibility test result. */
   uint visible_instance_len = 0;
