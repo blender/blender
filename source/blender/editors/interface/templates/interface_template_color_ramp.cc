@@ -73,18 +73,18 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
 
   uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Pulldown);
 
-  uiLayout *layout = UI_block_layout(block,
-                                     UI_LAYOUT_VERTICAL,
-                                     UI_LAYOUT_MENU,
-                                     0,
-                                     0,
-                                     UI_MENU_WIDTH_MIN,
-                                     0,
-                                     UI_MENU_PADDING,
-                                     style);
-  UI_block_layout_set_current(block, layout);
+  uiLayout &layout = blender::ui::block_layout(block,
+                                               blender::ui::LayoutDirection::Vertical,
+                                               blender::ui::LayoutType::Menu,
+                                               0,
+                                               0,
+                                               UI_MENU_WIDTH_MIN,
+                                               0,
+                                               UI_MENU_PADDING,
+                                               style);
+  UI_block_layout_set_current(block, &layout);
   {
-    layout->context_ptr_set("color_ramp", &coba_ptr);
+    layout.context_ptr_set("color_ramp", &coba_ptr);
   }
 
   /* We could move these to operators,
@@ -150,11 +150,11 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
     });
   }
 
-  layout->separator();
+  layout.separator();
 
-  layout->op("UI_OT_eyedropper_colorramp", IFACE_("Eyedropper"), ICON_EYEDROPPER);
+  layout.op("UI_OT_eyedropper_colorramp", IFACE_("Eyedropper"), ICON_EYEDROPPER);
 
-  layout->separator();
+  layout.separator();
 
   {
     uiBut *but = uiDefIconTextBut(block,

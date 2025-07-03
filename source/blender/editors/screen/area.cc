@@ -2936,15 +2936,15 @@ static void ed_panel_draw(const bContext *C,
   UI_panel_header_buttons_begin(panel);
   if (pt->draw_header_preset && !(pt->flag & PANEL_TYPE_NO_HEADER)) {
     /* for preset menu */
-    panel->layout = UI_block_layout(block,
-                                    UI_LAYOUT_HORIZONTAL,
-                                    UI_LAYOUT_HEADER,
-                                    0,
-                                    (UI_UNIT_Y * 1.1f) + style->panelspace,
-                                    UI_UNIT_Y,
-                                    1,
-                                    0,
-                                    style);
+    panel->layout = &blender::ui::block_layout(block,
+                                               blender::ui::LayoutDirection::Horizontal,
+                                               blender::ui::LayoutType::Header,
+                                               0,
+                                               (UI_UNIT_Y * 1.1f) + style->panelspace,
+                                               UI_UNIT_Y,
+                                               1,
+                                               0,
+                                               style);
 
     panel->layout->operator_context_set(op_context);
 
@@ -2962,21 +2962,28 @@ static void ed_panel_draw(const bContext *C,
 
     /* Unusual case: Use expanding layout (buttons stretch to available width). */
     if (pt->flag & PANEL_TYPE_HEADER_EXPAND) {
-      uiLayout *layout = UI_block_layout(block,
-                                         UI_LAYOUT_VERTICAL,
-                                         UI_LAYOUT_PANEL,
-                                         labelx,
-                                         labely,
-                                         headerend - 2 * style->panelspace,
-                                         1,
-                                         0,
-                                         style);
-      panel->layout = &layout->row(false);
+      uiLayout &layout = blender::ui::block_layout(block,
+                                                   blender::ui::LayoutDirection::Vertical,
+                                                   blender::ui::LayoutType::Panel,
+                                                   labelx,
+                                                   labely,
+                                                   headerend - 2 * style->panelspace,
+                                                   1,
+                                                   0,
+                                                   style);
+      panel->layout = &layout.row(false);
     }
     /* Regular case: Normal panel with fixed size buttons. */
     else {
-      panel->layout = UI_block_layout(
-          block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, labelx, labely, UI_UNIT_Y, 1, 0, style);
+      panel->layout = &blender::ui::block_layout(block,
+                                                 blender::ui::LayoutDirection::Horizontal,
+                                                 blender::ui::LayoutType::Header,
+                                                 labelx,
+                                                 labely,
+                                                 UI_UNIT_Y,
+                                                 1,
+                                                 0,
+                                                 style);
     }
 
     panel->layout->operator_context_set(op_context);
@@ -2994,22 +3001,22 @@ static void ed_panel_draw(const bContext *C,
   UI_panel_header_buttons_end(panel);
 
   if (open || search_filter_active) {
-    short panelContext;
+    blender::ui::LayoutType panelContext;
 
     /* panel context can either be toolbar region or normal panels region */
     if (pt->flag & PANEL_TYPE_LAYOUT_VERT_BAR) {
-      panelContext = UI_LAYOUT_VERT_BAR;
+      panelContext = blender::ui::LayoutType::VerticalBar;
     }
     else if (region->regiontype == RGN_TYPE_TOOLS) {
-      panelContext = UI_LAYOUT_TOOLBAR;
+      panelContext = blender::ui::LayoutType::Toolbar;
     }
     else {
-      panelContext = UI_LAYOUT_PANEL;
+      panelContext = blender::ui::LayoutType::Panel;
     }
 
-    panel->layout = UI_block_layout(
+    panel->layout = &blender::ui::block_layout(
         block,
-        UI_LAYOUT_VERTICAL,
+        blender::ui::LayoutDirection::Vertical,
         panelContext,
         (pt->flag & PANEL_TYPE_LAYOUT_VERT_BAR) ? 0 : style->panelspace,
         0,
@@ -3457,18 +3464,39 @@ static bool panel_property_search(const bContext *C,
   /* Build the layouts. Because they are only used for search,
    * they don't need any of the proper style or layout information. */
   if (panel->type->draw_header_preset != nullptr) {
-    panel->layout = UI_block_layout(
-        block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, 0, 0, 0, 0, 0, style);
+    panel->layout = &blender::ui::block_layout(block,
+                                               blender::ui::LayoutDirection::Horizontal,
+                                               blender::ui::LayoutType::Header,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               style);
     panel_type->draw_header_preset(C, panel);
   }
   if (panel->type->draw_header != nullptr) {
-    panel->layout = UI_block_layout(
-        block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, 0, 0, 0, 0, 0, style);
+    panel->layout = &blender::ui::block_layout(block,
+                                               blender::ui::LayoutDirection::Horizontal,
+                                               blender::ui::LayoutType::Header,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               style);
     panel_type->draw_header(C, panel);
   }
   if (LIKELY(panel->type->draw != nullptr)) {
-    panel->layout = UI_block_layout(
-        block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 0, 0, 0, style);
+    panel->layout = &blender::ui::block_layout(block,
+                                               blender::ui::LayoutDirection::Vertical,
+                                               blender::ui::LayoutType::Panel,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               0,
+                                               style);
     panel_type->draw(C, panel);
   }
 
@@ -3597,24 +3625,31 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
     }
 
     uiBlock *block = UI_block_begin(C, region, ht->idname, blender::ui::EmbossType::Emboss);
-    uiLayout *layout = UI_block_layout(
-        block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, buttony, 1, 0, style);
+    uiLayout &layout = blender::ui::block_layout(block,
+                                                 blender::ui::LayoutDirection::Horizontal,
+                                                 blender::ui::LayoutType::Header,
+                                                 xco,
+                                                 yco,
+                                                 buttony,
+                                                 1,
+                                                 0,
+                                                 style);
 
     if (buttony_scale != 1.0f) {
-      layout->scale_y_set(buttony_scale);
+      layout.scale_y_set(buttony_scale);
     }
 
     Header header = {nullptr};
     if (ht->draw) {
       header.type = ht;
-      header.layout = layout;
+      header.layout = &layout;
       ht->draw(C, &header);
       if (ht->next) {
-        layout->separator();
+        layout.separator();
       }
 
       /* for view2d */
-      xco = layout->width();
+      xco = layout.width();
       maxco = std::max(xco, maxco);
     }
 

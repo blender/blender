@@ -93,8 +93,15 @@ static void ui_popover_create_block(bContext *C,
   }
 #endif
 
-  pup->layout = UI_block_layout(
-      pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, pup->ui_size_x, 0, 0, style);
+  pup->layout = &blender::ui::block_layout(pup->block,
+                                           blender::ui::LayoutDirection::Vertical,
+                                           blender::ui::LayoutType::Panel,
+                                           0,
+                                           0,
+                                           pup->ui_size_x,
+                                           0,
+                                           0,
+                                           style);
 
   pup->layout->operator_context_set(opcontext);
 

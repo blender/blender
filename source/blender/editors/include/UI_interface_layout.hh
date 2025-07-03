@@ -41,6 +41,7 @@ enum class ItemInternalFlag : uint8_t;
 enum class EmbossType : uint8_t;
 enum class LayoutAlign : int8_t;
 enum class ButProgressType : int8_t;
+enum class LayoutDirection : int8_t;
 }  // namespace blender::ui
 
 struct PanelLayout {
@@ -165,6 +166,8 @@ struct uiLayout : uiItem, blender::NonCopyable, blender::NonMovable {
 
   [[nodiscard]] bool fixed_size() const;
   void fixed_size_set(bool fixed_size);
+
+  [[nodiscard]] blender::ui::LayoutDirection local_direction() const;
 
   [[nodiscard]] wmOperatorCallContext operator_context() const;
   /** Sets the default call context for new operator buttons added in any #root_ sub-layout. */
@@ -706,21 +709,21 @@ inline int uiLayout::width() const
   return this->w_;
 }
 
-enum {
-  UI_LAYOUT_HORIZONTAL = 0,
-  UI_LAYOUT_VERTICAL = 1,
-};
-
-enum {
-  UI_LAYOUT_PANEL = 0,
-  UI_LAYOUT_HEADER = 1,
-  UI_LAYOUT_MENU = 2,
-  UI_LAYOUT_TOOLBAR = 3,
-  UI_LAYOUT_PIEMENU = 4,
-  UI_LAYOUT_VERT_BAR = 5,
-};
-
 namespace blender::ui {
+enum class LayoutDirection : int8_t {
+  Horizontal = 0,
+  Vertical = 1,
+};
+
+enum class LayoutType : int8_t {
+  Panel = 0,
+  Header = 1,
+  Menu = 2,
+  Toolbar = 3,
+  PieMenu = 4,
+  VerticalBar = 5,
+};
+
 enum class LayoutAlign : int8_t {
   Expand = 0,
   Left = 1,
@@ -731,6 +734,17 @@ enum class ButProgressType : int8_t {
   Bar = 0,
   Ring = 1,
 };
+
+uiLayout &block_layout(uiBlock *block,
+                       LayoutDirection direction,
+                       LayoutType type,
+                       int x,
+                       int y,
+                       int size,
+                       int em,
+                       int padding,
+                       const uiStyle *style);
+
 }  // namespace blender::ui
 
 enum eUI_Item_Flag : uint16_t {
@@ -772,15 +786,6 @@ enum eUI_Item_Flag : uint16_t {
 ENUM_OPERATORS(eUI_Item_Flag, UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE)
 #define UI_ITEM_NONE eUI_Item_Flag(0)
 
-uiLayout *UI_block_layout(uiBlock *block,
-                          int dir,
-                          int type,
-                          int x,
-                          int y,
-                          int size,
-                          int em,
-                          int padding,
-                          const uiStyle *style);
 void UI_block_layout_set_current(uiBlock *block, uiLayout *layout);
 void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y);
 bool UI_block_layout_needs_resolving(const uiBlock *block);
@@ -823,8 +828,6 @@ void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout);
  * Used for popup panels only.
  */
 void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout);
-
-int uiLayoutGetLocalDir(const uiLayout *layout);
 
 int uiLayoutListItemPaddingWidth();
 void uiLayoutListItemAddPadding(uiLayout *layout);

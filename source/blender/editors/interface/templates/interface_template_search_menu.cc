@@ -665,16 +665,23 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
       }
 
       uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
-      uiLayout *layout = UI_block_layout(
-          block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
+      uiLayout &layout = blender::ui::block_layout(block,
+                                                   blender::ui::LayoutDirection::Vertical,
+                                                   blender::ui::LayoutType::Menu,
+                                                   0,
+                                                   0,
+                                                   200,
+                                                   0,
+                                                   UI_MENU_PADDING,
+                                                   style);
 
       UI_block_flag_enable(block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
 
       if (current_menu.context.has_value()) {
-        layout->context_copy(&*current_menu.context);
+        layout.context_copy(&*current_menu.context);
       }
-      layout->operator_context_set(WM_OP_INVOKE_REGION_WIN);
-      UI_menutype_draw(C, mt, layout);
+      layout.operator_context_set(WM_OP_INVOKE_REGION_WIN);
+      UI_menutype_draw(C, mt, &layout);
 
       UI_block_end(C, block);
 
@@ -765,12 +772,19 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           /* +1 to avoid overlap with the current 'block'. */
           uiBlock *sub_block = UI_block_begin(
               C, region, __func__ + 1, blender::ui::EmbossType::Emboss);
-          uiLayout *sub_layout = UI_block_layout(
-              sub_block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
+          uiLayout &sub_layout = blender::ui::block_layout(sub_block,
+                                                           blender::ui::LayoutDirection::Vertical,
+                                                           blender::ui::LayoutType::Menu,
+                                                           0,
+                                                           0,
+                                                           200,
+                                                           0,
+                                                           UI_MENU_PADDING,
+                                                           style);
 
           UI_block_flag_enable(sub_block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
 
-          sub_layout->operator_context_set(WM_OP_INVOKE_REGION_WIN);
+          sub_layout.operator_context_set(WM_OP_INVOKE_REGION_WIN);
 
           /* If this is a panel, check it's poll function succeeds before drawing.
            * otherwise draw(..) may be called in an unsupported context and crash, see: #130744.
@@ -786,7 +800,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           }
 
           if (poll_success) {
-            but->menu_create_func(C, sub_layout, but->poin);
+            but->menu_create_func(C, &sub_layout, but->poin);
           }
 
           UI_block_end(C, sub_block);

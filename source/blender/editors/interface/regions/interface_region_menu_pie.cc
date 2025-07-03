@@ -131,8 +131,15 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
     win->pie_event_type_lock = event_type;
   }
 
-  pie->layout = UI_block_layout(
-      pie->pie_block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PIEMENU, 0, 0, 200, 0, 0, style);
+  pie->layout = &blender::ui::block_layout(pie->pie_block,
+                                           blender::ui::LayoutDirection::Vertical,
+                                           blender::ui::LayoutType::PieMenu,
+                                           0,
+                                           0,
+                                           200,
+                                           0,
+                                           0,
+                                           style);
 
   /* NOTE: #wmEvent.xy is where we started dragging in case of #KM_CLICK_DRAG. */
   pie->mx = event->xy[0];

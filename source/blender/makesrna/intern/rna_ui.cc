@@ -1446,7 +1446,7 @@ static void rna_UILayout_alignment_set(PointerRNA *ptr, int value)
 
 static int rna_UILayout_direction_get(PointerRNA *ptr)
 {
-  return uiLayoutGetLocalDir(static_cast<uiLayout *>(ptr->data));
+  return int(ptr->data_as<uiLayout>()->local_direction());
 }
 
 static float rna_UILayout_scale_x_get(PointerRNA *ptr)
@@ -1653,8 +1653,8 @@ static void rna_def_ui_layout(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem direction_items[] = {
-      {UI_LAYOUT_HORIZONTAL, "HORIZONTAL", 0, "Horizontal", ""},
-      {UI_LAYOUT_VERTICAL, "VERTICAL", 0, "Vertical", ""},
+      {int(blender::ui::LayoutDirection::Horizontal), "HORIZONTAL", 0, "Horizontal", ""},
+      {int(blender::ui::LayoutDirection::Vertical), "VERTICAL", 0, "Vertical", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

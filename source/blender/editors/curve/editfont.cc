@@ -705,11 +705,18 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
   const uiStyle *style = UI_style_get_dpi();
-  uiLayout *layout = UI_block_layout(
-      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 200 * UI_SCALE_FAC, UI_UNIT_Y, 0, style);
+  uiLayout &layout = blender::ui::block_layout(block,
+                                               blender::ui::LayoutDirection::Vertical,
+                                               blender::ui::LayoutType::Panel,
+                                               0,
+                                               0,
+                                               200 * UI_SCALE_FAC,
+                                               UI_UNIT_Y,
+                                               0,
+                                               style);
 
-  uiItemL_ex(layout, IFACE_("Insert Unicode Character"), ICON_NONE, true, false);
-  layout->label(RPT_("Enter a Unicode codepoint hex value"), ICON_NONE);
+  uiItemL_ex(&layout, IFACE_("Insert Unicode Character"), ICON_NONE, true, false);
+  layout.label(RPT_("Enter a Unicode codepoint hex value"), ICON_NONE);
 
   uiBut *text_but = uiDefBut(block,
                              UI_BTYPE_TEXT,
@@ -727,7 +734,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   /* Hitting Enter in the text input is treated the same as clicking the Confirm button. */
   UI_but_func_set(text_but, text_insert_unicode_confirm, block, edit_string);
 
-  layout->separator();
+  layout.separator();
 
   /* Buttons. */
 
@@ -739,7 +746,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
 
   uiBut *confirm = nullptr;
   uiBut *cancel = nullptr;
-  uiLayout *split = &layout->split(0.0f, true);
+  uiLayout *split = &layout.split(0.0f, true);
   split->column(false);
 
   if (windows_layout) {
@@ -798,7 +805,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   UI_but_flag_enable(confirm, UI_BUT_ACTIVE_DEFAULT);
 
   int bounds_offset[2];
-  bounds_offset[0] = layout->width() * -0.2f;
+  bounds_offset[0] = layout.width() * -0.2f;
   bounds_offset[1] = UI_UNIT_Y * 2.5;
   UI_block_bounds_set_popup(block, 7 * UI_SCALE_FAC, bounds_offset);
 

@@ -519,17 +519,17 @@ void region_layout(const bContext *C, ARegion *region)
   const uiStyle *style = UI_style_get_dpi();
   const int padding_y = main_region_padding_y();
   const int padding_x = main_region_padding_x();
-  uiLayout *layout = UI_block_layout(block,
-                                     UI_LAYOUT_VERTICAL,
-                                     UI_LAYOUT_PANEL,
-                                     padding_x,
-                                     -padding_y,
-                                     region->winx - 2 * padding_x,
-                                     0,
-                                     0,
-                                     style);
+  uiLayout &layout = blender::ui::block_layout(block,
+                                               blender::ui::LayoutDirection::Vertical,
+                                               blender::ui::LayoutType::Panel,
+                                               padding_x,
+                                               -padding_y,
+                                               region->winx - 2 * padding_x,
+                                               0,
+                                               0,
+                                               style);
 
-  build_asset_view(*layout, active_shelf->settings.asset_library_reference, *active_shelf, *C);
+  build_asset_view(layout, active_shelf->settings.asset_library_reference, *active_shelf, *C);
 
   int layout_height;
   UI_block_layout_resolve(block, nullptr, &layout_height);

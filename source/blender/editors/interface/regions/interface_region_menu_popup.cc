@@ -198,8 +198,15 @@ static void ui_popup_menu_create_block(bContext *C,
   if (!title.is_empty()) {
     pup->block->puphash = ui_popup_menu_hash(title);
   }
-  pup->layout = UI_block_layout(
-      pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
+  pup->layout = &blender::ui::block_layout(pup->block,
+                                           blender::ui::LayoutDirection::Vertical,
+                                           blender::ui::LayoutType::Menu,
+                                           0,
+                                           0,
+                                           200,
+                                           0,
+                                           UI_MENU_PADDING,
+                                           style);
 
   /* NOTE: this intentionally differs from the menu & sub-menu default because many operators
    * use popups like this to select one of their options -

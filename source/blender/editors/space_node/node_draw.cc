@@ -428,23 +428,23 @@ static bool node_update_basis_buttons(const bContext &C,
 
   dy -= NODE_DYS / 4;
 
-  uiLayout *layout = UI_block_layout(&block,
-                                     UI_LAYOUT_VERTICAL,
-                                     UI_LAYOUT_PANEL,
-                                     loc.x + NODE_DYS,
-                                     dy,
-                                     NODE_WIDTH(node) - NODE_DY,
-                                     0,
-                                     0,
-                                     UI_style_get_dpi());
+  uiLayout &layout = blender::ui::block_layout(&block,
+                                               blender::ui::LayoutDirection::Vertical,
+                                               blender::ui::LayoutType::Panel,
+                                               loc.x + NODE_DYS,
+                                               dy,
+                                               NODE_WIDTH(node) - NODE_DY,
+                                               0,
+                                               0,
+                                               UI_style_get_dpi());
 
   if (node.is_muted()) {
-    layout->active_set(false);
+    layout.active_set(false);
   }
 
-  layout->context_ptr_set("node", &nodeptr);
+  layout.context_ptr_set("node", &nodeptr);
 
-  draw_buttons(layout, (bContext *)&C, &nodeptr);
+  draw_buttons(&layout, (bContext *)&C, &nodeptr);
 
   UI_block_align_end(&block);
   int buty;
@@ -511,21 +511,21 @@ static bool node_update_basis_socket(const bContext &C,
                                               0.0f;
   locy -= multi_input_socket_offset * 0.5f;
 
-  uiLayout *layout = UI_block_layout(&block,
-                                     UI_LAYOUT_VERTICAL,
-                                     UI_LAYOUT_PANEL,
-                                     locx + NODE_DYS,
-                                     locy,
-                                     NODE_WIDTH(node) - NODE_DY,
-                                     NODE_DY,
-                                     0,
-                                     UI_style_get_dpi());
+  uiLayout &layout = blender::ui::block_layout(&block,
+                                               blender::ui::LayoutDirection::Vertical,
+                                               blender::ui::LayoutType::Panel,
+                                               locx + NODE_DYS,
+                                               locy,
+                                               NODE_WIDTH(node) - NODE_DY,
+                                               NODE_DY,
+                                               0,
+                                               UI_style_get_dpi());
 
   if (node.is_muted()) {
-    layout->active_set(false);
+    layout.active_set(false);
   }
 
-  uiLayout *row = &layout->row(true);
+  uiLayout *row = &layout.row(true);
   PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
   row->context_ptr_set("node", &nodeptr);
 
@@ -1145,37 +1145,37 @@ static void node_update_basis_from_declaration(
             const nodes::LayoutDeclaration &decl = *item.decl;
             /* Round the node origin because text contents are always pixel-aligned. */
             const float2 loc = math::round(node_to_view(node.location));
-            uiLayout *layout = UI_block_layout(&block,
-                                               UI_LAYOUT_VERTICAL,
-                                               UI_LAYOUT_PANEL,
-                                               loc.x + NODE_DYS,
-                                               locy,
-                                               NODE_WIDTH(node) - NODE_DY,
-                                               0,
-                                               0,
-                                               UI_style_get_dpi());
+            uiLayout &layout = blender::ui::block_layout(&block,
+                                                         blender::ui::LayoutDirection::Vertical,
+                                                         blender::ui::LayoutType::Panel,
+                                                         loc.x + NODE_DYS,
+                                                         locy,
+                                                         NODE_WIDTH(node) - NODE_DY,
+                                                         0,
+                                                         0,
+                                                         UI_style_get_dpi());
             if (node.is_muted()) {
-              layout->active_set(false);
+              layout.active_set(false);
             }
             PointerRNA node_ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
-            layout->context_ptr_set("node", &node_ptr);
-            decl.draw(layout, const_cast<bContext *>(&C), &node_ptr);
+            layout.context_ptr_set("node", &node_ptr);
+            decl.draw(&layout, const_cast<bContext *>(&C), &node_ptr);
             UI_block_align_end(&block);
             int buty;
             UI_block_layout_resolve(&block, nullptr, &buty);
             locy = buty;
           }
           else if constexpr (std::is_same_v<ItemT, flat_item::Separator>) {
-            uiLayout *layout = UI_block_layout(&block,
-                                               UI_LAYOUT_VERTICAL,
-                                               UI_LAYOUT_PANEL,
-                                               locx + NODE_DYS,
-                                               locy,
-                                               NODE_WIDTH(node) - NODE_DY,
-                                               NODE_DY,
-                                               0,
-                                               UI_style_get_dpi());
-            layout->separator(1.0, LayoutSeparatorType::Line);
+            uiLayout &layout = blender::ui::block_layout(&block,
+                                                         blender::ui::LayoutDirection::Vertical,
+                                                         blender::ui::LayoutType::Panel,
+                                                         locx + NODE_DYS,
+                                                         locy,
+                                                         NODE_WIDTH(node) - NODE_DY,
+                                                         NODE_DY,
+                                                         0,
+                                                         UI_style_get_dpi());
+            layout.separator(1.0, LayoutSeparatorType::Line);
             UI_block_layout_resolve(&block, nullptr, nullptr);
           }
           else if constexpr (std::is_same_v<ItemT, flat_item::PanelHeader>) {
@@ -5212,11 +5212,18 @@ static void draw_tree_path(const bContext &C, ARegion &region)
   const int width = BLI_rcti_size_x(rect) - 2 * padding_x;
 
   uiBlock *block = UI_block_begin(&C, &region, __func__, blender::ui::EmbossType::None);
-  uiLayout *layout = UI_block_layout(
-      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y, width, 1, 0, style);
+  uiLayout &layout = blender::ui::block_layout(block,
+                                               blender::ui::LayoutDirection::Vertical,
+                                               blender::ui::LayoutType::Panel,
+                                               x,
+                                               y,
+                                               width,
+                                               1,
+                                               0,
+                                               style);
 
   const Vector<ui::ContextPathItem> context_path = ed::space_node::context_path_for_space_node(C);
-  ui::template_breadcrumbs(*layout, context_path);
+  ui::template_breadcrumbs(layout, context_path);
 
   UI_block_layout_resolve(block, nullptr, nullptr);
   UI_block_end(&C, block);
