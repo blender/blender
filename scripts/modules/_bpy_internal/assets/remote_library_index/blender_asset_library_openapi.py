@@ -58,6 +58,32 @@ class CatalogV1(BaseModel):
     uuids: Annotated[list[str], Field(min_length=1)]
 
 
+class FileV1(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    path: Annotated[str, Field(description="Relative path of where this file is located in the asset library.\n")]
+    url: Annotated[
+        str,
+        Field(
+            description="URL where the file can be downloaded. If the URL is relative, it is to be interpreted as relative to the library's root URL.\n"
+        ),
+    ]
+    size_in_bytes: int
+    hash: Annotated[
+        str,
+        Field(
+            description='Hash of the file. This should be in the format "HASHTYPE:HASH-AS-HEX". Currently only the "SHA256" hash type is supported.\n'
+        ),
+    ]
+    blender_version: Annotated[
+        str,
+        Field(
+            description="Version of Blender used to create this file.. Should be a semantic version, which may be shortened ('3.1' matches any '3.1.x' version).\n"
+        ),
+    ]
+
+
 class AssetLibraryMeta(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -84,11 +110,17 @@ class AssetLibraryIndexV1(BaseModel):
     ]
     asset_size_bytes: int
     asset_count: Annotated[
-        Optional[int],
+        int,
         Field(
             description="Total number of assets in this index. This is the sum of all `asset_count` fields of each page.\n"
         ),
-    ] = None
+    ]
+    file_count: Annotated[
+        int,
+        Field(
+            description="Total number of files in this index. This is the sum of all `file_count` fields of each page (after deduplication).\n"
+        ),
+    ]
     page_urls: Annotated[
         Optional[list[str]],
         Field(
@@ -104,23 +136,10 @@ class AssetV1(BaseModel):
     )
     name: Annotated[str, Field(description="Name of the Blender data-block.")]
     id_type: AssetIDTypeV1
-    blender_version_min: Annotated[
-        Optional[str],
-        Field(
-            description="Minimal version of Blender required to use this asset. Should be a semantic version, which may be shortened ('3.1' matches any '3.1.x' version).\n"
-        ),
-    ] = None
-    archive_url: Annotated[
+    file: Annotated[
         str,
         Field(
-            description="URL where a blend file containing this asset can be downloaded. If the URL is relative, it is to be interpreted as relative to the library's root URL.\n"
-        ),
-    ]
-    archive_size_in_bytes: int
-    archive_hash: Annotated[
-        str,
-        Field(
-            description='Hash of the file at \'archive_url\'. This should be in the format "HASHTYPE:HASH-AS-HEX". Currently only the "SHA256" hash type is supported.\n'
+            description="Relative path of the file that contains this asset. This relative path is used to look up more file information in the asset library's list of files.\n"
         ),
     ]
     thumbnail_url: Annotated[
@@ -142,4 +161,16 @@ class AssetLibraryIndexPageV1(BaseModel):
             description="Number of assets in this page. This is declared separately, so that a partial JSON parser has this information before the entire file is downloaded and parsed.\n"
         ),
     ]
+    file_count: Annotated[
+        int,
+        Field(
+            description="Number of files in this page. This is declared separately, so that a partial JSON parser has this information before the entire file is downloaded and parsed.\n"
+        ),
+    ]
     assets: list[AssetV1]
+    files: Annotated[
+        list[AssetV1],
+        Field(
+            description="The files that are referenced by the above assets. Note that there may be duplication of this information between asset pages, as each file can contain multiple assets, and those assets might be scattered across multiple pages.\n"
+        ),
+    ]

@@ -149,6 +149,11 @@ components:
           description: >
             Total number of assets in this index. This is the sum of all
             `asset_count` fields of each page.
+        "file_count":
+          type: integer
+          description: >
+            Total number of files in this index. This is the sum of all
+            `file_count` fields of each page (after deduplication).
         "page_urls":
           type: array
           items:
@@ -161,7 +166,7 @@ components:
         "catalogs":
           type: array
           items: { $ref: "#/components/schemas/CatalogV1" }
-      required: [schema_version, asset_size_bytes, assets]
+      required: [schema_version, asset_size_bytes, assets, asset_count, file_count]
 
     AssetLibraryIndexPageV1:
       type: object
@@ -173,10 +178,24 @@ components:
             Number of assets in this page. This is declared separately, so that
             a partial JSON parser has this information before the entire file is
             downloaded and parsed.
+        "file_count":
+          type: integer
+          description: >
+            Number of files in this page. This is declared separately, so that
+            a partial JSON parser has this information before the entire file is
+            downloaded and parsed.
         "assets":
           type: array
           items: { $ref: "#/components/schemas/AssetV1" }
-      required: [asset_count, assets]
+        "files":
+          type: array
+          items: { $ref: "#/components/schemas/AssetV1" }
+          description: >
+            The files that are referenced by the above assets. Note that there
+            may be duplication of this information between asset pages, as each
+            file can contain multiple assets, and those assets might be
+            scattered across multiple pages.
+      required: [asset_count, file_count, assets, files]
 
     AssetV1:
       type: object
@@ -191,26 +210,11 @@ components:
           type: string
           description: Name of the Blender data-block.
         "id_type": { $ref: "#/components/schemas/AssetIDTypeV1" }
-        "blender_version_min":
+        "file":
           type: string
           description: >
-            Minimal version of Blender required to use this asset. Should be a
-            semantic version, which may be shortened ('3.1' matches any '3.1.x'
-            version).
-        "archive_url":
-          type: string
-          format: url
-          description: >
-            URL where a blend file containing this asset can be downloaded.
-            If the URL is relative, it is to be interpreted as relative to the
-            library's root URL.
-        "archive_size_in_bytes": { type: integer, format: int64 }
-        "archive_hash":
-          type: string
-          description: >
-            Hash of the file at 'archive_url'. This should be in the format
-            "HASHTYPE:HASH-AS-HEX". Currently only the "SHA256" hash type is
-            supported.
+            Relative path of the file that contains this asset.
+            This relative path is used to look up more file information in the asset library's list of files.
         "thumbnail_url":
           type: string
           format: url
@@ -222,9 +226,7 @@ components:
       required:
         - "name"
         - "id_type"
-        - "archive_url"
-        - "archive_size_in_bytes"
-        - "archive_hash"
+        - "file"
 
     AssetIDTypeV1:
       type: string
@@ -272,3 +274,36 @@ components:
             type: string
           minItems: 1
       required: [path, uuids]
+
+    FileV1:
+      type: object
+      description: >
+        Single file in the asset library. Identified by its relative path in that library.
+      properties:
+        "path":
+          type: string
+          description: >
+            Relative path of where this file is located in the asset library.
+        "url":
+          type: string
+          format: url
+          description: >
+            URL where the file can be downloaded. If the URL is relative, it is
+            to be interpreted as relative to the library's root URL.
+        "size_in_bytes": { type: integer, format: int64 }
+        "hash":
+          type: string
+          description: >
+            Hash of the file. This should be in the format "HASHTYPE:HASH-AS-HEX".
+            Currently only the "SHA256" hash type is supported.
+        "blender_version":
+          type: string
+          description: >
+            Version of Blender used to create this file.. Should be a semantic
+            version, which may be shortened ('3.1' matches any '3.1.x' version).
+      required:
+        - "path"
+        - "url"
+        - "size_in_bytes"
+        - "hash"
+        - "blender_version"
