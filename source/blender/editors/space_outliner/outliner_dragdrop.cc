@@ -1133,7 +1133,9 @@ static bool collection_drop_init(bContext *C, wmDrag *drag, const int xy[2], Col
 
   Collection *to_collection = outliner_collection_from_tree_element(te);
   if (!ID_IS_EDITABLE(to_collection) || ID_IS_OVERRIDE_LIBRARY(to_collection)) {
-    return false;
+    if (insert_type == TE_INSERT_INTO) {
+      return false;
+    }
   }
 
   /* Get drag datablocks. */
