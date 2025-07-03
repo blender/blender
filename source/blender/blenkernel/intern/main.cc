@@ -49,7 +49,8 @@ Main::Main()
 {
   SpinLock *main_lock = MEM_mallocN<SpinLock>("main lock");
   BLI_spin_init(main_lock);
-  this->lock = reinterpret_cast<MainLock *>(main_lock);
+  /* Use C-style cast to workaround an issue casting away volatile for builds without TBB. */
+  this->lock = (MainLock *)main_lock;
 
   /* Just rebuilding the Action Slot to ID* map once is likely cheaper than,
    * for every ID, when it's loaded from disk, check whether it's animated or
