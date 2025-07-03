@@ -84,13 +84,6 @@ struct PointCloudBatchCache {
 
   /* settings to determine if cache is invalid */
   bool is_dirty;
-
-  /**
-   * The draw cache extraction is currently not multi-threaded for multiple objects, but if it was,
-   * some locking would be necessary because multiple objects can use the same object data with
-   * different materials, etc. This is a placeholder to make multi-threading easier in the future.
-   */
-  Mutex render_mutex;
 };
 
 static PointCloudBatchCache *pointcloud_batch_cache_get(PointCloud &pointcloud)
@@ -367,9 +360,9 @@ gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
     for (const int i : IndexRange(GPU_MAX_ATTR)) {
       GPU_VERTBUF_DISCARD_SAFE(cache->eval_cache.attributes_buf[i]);
     }
-    drw_attributes_merge(&cache->eval_cache.attr_used, &attrs_needed, cache->render_mutex);
+    drw_attributes_merge(&cache->eval_cache.attr_used, &attrs_needed);
   }
-  drw_attributes_merge(&cache->eval_cache.attr_used_over_time, &attrs_needed, cache->render_mutex);
+  drw_attributes_merge(&cache->eval_cache.attr_used_over_time, &attrs_needed);
 
   DRW_batch_request(&cache->eval_cache.surface_per_mat[0]);
   return cache->eval_cache.surface_per_mat;
@@ -411,7 +404,7 @@ gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const 
   {
     VectorSet<std::string> requests{};
     drw_attributes_add_request(&requests, name);
-    drw_attributes_merge(&cache.eval_cache.attr_used, &requests, cache.render_mutex);
+    drw_attributes_merge(&cache.eval_cache.attr_used, &requests);
   }
 
   int request_i = -1;

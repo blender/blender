@@ -94,13 +94,6 @@ struct CurvesBatchCache {
 
   /* Whether the cache is invalid. */
   bool is_dirty;
-
-  /**
-   * The draw cache extraction is currently not multi-threaded for multiple objects, but if it was,
-   * some locking would be necessary because multiple objects can use the same curves data with
-   * different materials, etc. This is a placeholder to make multi-threading easier in the future.
-   */
-  Mutex render_mutex;
 };
 
 static bool batch_cache_is_dirty(const Curves &curves)
@@ -773,9 +766,9 @@ static bool ensure_attributes(const Curves &curves,
         GPU_VERTBUF_DISCARD_SAFE(final_cache.attributes_buf[i]);
         GPU_VERTBUF_DISCARD_SAFE(cache.eval_cache.proc_attributes_buf[i]);
       }
-      drw_attributes_merge(&final_cache.attr_used, &attrs_needed, cache.render_mutex);
+      drw_attributes_merge(&final_cache.attr_used, &attrs_needed);
     }
-    drw_attributes_merge(&final_cache.attr_used_over_time, &attrs_needed, cache.render_mutex);
+    drw_attributes_merge(&final_cache.attr_used_over_time, &attrs_needed);
   }
 
   bool need_tf_update = false;
@@ -807,7 +800,7 @@ static void request_attribute(Curves &curves, const StringRef name)
   }
   drw_attributes_add_request(&attributes, name);
 
-  drw_attributes_merge(&final_cache.attr_used, &attributes, cache.render_mutex);
+  drw_attributes_merge(&final_cache.attr_used, &attributes);
 }
 
 void drw_curves_get_attribute_sampler_name(const StringRef layer_name, char r_sampler_name[32])

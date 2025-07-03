@@ -139,9 +139,6 @@ struct MeshRuntime {
   Mesh *mesh_eval = nullptr;
   Mutex eval_mutex;
 
-  /** Needed to ensure some thread-safety during render data pre-processing. */
-  Mutex render_mutex;
-
   /** Implicit sharing user count for #Mesh::face_offset_indices. */
   const ImplicitSharingInfo *face_offsets_sharing_info = nullptr;
 
