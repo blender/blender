@@ -104,7 +104,7 @@ static void node_label(const bNodeTree * /*ntree*/, const bNode *node, char *lab
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_integer_math_items, node->custom1, &name);
   if (!enum_label) {
-    name = "Unknown";
+    name = CTX_N_(BLT_I18NCONTEXT_ID_NODETREE, "Unknown");
   }
   BLI_strncpy(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, name), maxlen);
 }

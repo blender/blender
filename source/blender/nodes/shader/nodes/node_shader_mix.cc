@@ -139,7 +139,7 @@ static void sh_node_mix_label(const bNodeTree * /*ntree*/,
     const char *name;
     bool enum_label = RNA_enum_name(rna_enum_ramp_blend_items, storage.blend_type, &name);
     if (!enum_label) {
-      name = "Unknown";
+      name = N_("Unknown");
     }
     BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
     return;
