@@ -3043,7 +3043,7 @@ def repo_sync_from_remote(
             del read_total
             del retrieve_info
         except (Exception, KeyboardInterrupt) as ex:
-            msg = url_retrieve_exception_as_message(ex, prefix="sync", url=remote_url)
+            msg = url_retrieve_exception_as_message(ex, prefix="sync", url=remote_json_url)
             if demote_connection_errors_to_status and url_retrieve_exception_is_connectivity(ex):
                 msglog.status(msg)
             else:
@@ -3953,7 +3953,7 @@ class subcmd_client:
                 result.write(block)
 
         except (Exception, KeyboardInterrupt) as ex:
-            msg = url_retrieve_exception_as_message(ex, prefix="list", url=remote_url)
+            msg = url_retrieve_exception_as_message(ex, prefix="list", url=remote_json_url)
             if demote_connection_errors_to_status and url_retrieve_exception_is_connectivity(ex):
                 msglog.status(msg)
             else:
@@ -4420,7 +4420,7 @@ class subcmd_client:
                         # Unlike querying information which might reasonably be skipped.
                         msglog.fatal_error(
                             url_retrieve_exception_as_message(
-                                ex, prefix="install", url=remote_url))
+                                ex, prefix="install", url=filepath_remote_archive))
                         return False
 
                     if request_exit:
