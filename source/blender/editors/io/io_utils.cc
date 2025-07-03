@@ -5,6 +5,7 @@
 #include <fmt/format.h>
 
 #include "BLI_path_utils.hh"
+#include "BLI_string.h"
 
 #include "BLT_translation.hh"
 
@@ -96,6 +97,7 @@ Vector<std::string> paths_from_operator_properties(PointerRNA *ptr)
       RNA_string_get(&file_ptr, "name", name);
       char path[FILE_MAX];
       BLI_path_join(path, sizeof(path), directory, name);
+      BLI_path_normalize(path);
       paths.append_non_duplicates(path);
     }
     RNA_PROP_END;
@@ -121,7 +123,8 @@ void paths_to_operator_properties(PointerRNA *ptr, const Span<std::string> paths
   RNA_collection_clear(ptr, "files");
   for (const auto &path : paths) {
     char file[FILE_MAX];
-    BLI_path_split_file_part(path.c_str(), file, sizeof(file));
+    STRNCPY(file, path.c_str());
+    BLI_path_rel(file, dir);
 
     PointerRNA itemptr{};
     RNA_collection_add(ptr, "files", &itemptr);
