@@ -1851,8 +1851,8 @@ def km_graph_editor_generic(params):
          {"properties": [("only_active", False)]}),
         ("anim.channels_select_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         *_template_items_hide_reveal_actions("graph.hide", "graph.reveal"),
-        ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", "area.type"), ("value", 'DOPESHEET_EDITOR')]}),
+        ("screen.space_type_set_or_cycle", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
+         {"properties": [("space_type", 'DOPESHEET_EDITOR')]}),
     ])
 
     return keymap
