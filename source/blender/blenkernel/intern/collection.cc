@@ -25,6 +25,7 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_collection.hh"
+#include "BKE_file_handler.hh"
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"
@@ -1454,6 +1455,47 @@ static bool collection_object_remove(
   }
   collection_object_remove_no_gobject_hash(bmain, collection, cob, id_create_flag, free_us);
   return true;
+}
+
+CollectionExport *BKE_collection_exporter_add(Collection *collection, char *idname, char *label)
+{
+  /* Add a new #CollectionExport item to our handler list and fill it with #FileHandlerType
+   * information. Also load in the operator's properties now as well. */
+  CollectionExport *data = MEM_callocN<CollectionExport>("CollectionExport");
+  STRNCPY(data->fh_idname, idname);
+
+  BKE_collection_exporter_name_set(&collection->exporters, data, label);
+
+  IDPropertyTemplate val{};
+  data->export_properties = IDP_New(IDP_GROUP, &val, "export_properties");
+  data->flag |= IO_HANDLER_PANEL_OPEN;
+
+  BLI_addtail(&collection->exporters, data);
+  collection->active_exporter_index = BLI_listbase_count(&collection->exporters) - 1;
+
+  return data;
+}
+
+void BKE_collection_exporter_remove(Collection *collection, CollectionExport *data)
+{
+  ListBase *exporters = &collection->exporters;
+  BLI_remlink(exporters, data);
+  BKE_collection_exporter_free_data(data);
+
+  MEM_freeN(data);
+
+  const int count = BLI_listbase_count(exporters);
+  const int new_index = count == 0 ? 0 : std::min(collection->active_exporter_index, count - 1);
+  collection->active_exporter_index = new_index;
+}
+
+bool BKE_collection_exporter_move(Collection *collection, const int from, const int to)
+{
+  if (from == to) {
+    return false;
+  }
+
+  return BLI_listbase_move_index(&collection->exporters, from, to);
 }
 
 static void collection_exporter_copy(Collection *collection, CollectionExport *data)

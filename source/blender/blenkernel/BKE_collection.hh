@@ -112,6 +112,21 @@ void BKE_collection_add_from_collection(Main *bmain,
 void BKE_collection_free_data(Collection *collection);
 
 /**
+ * Add a new collection exporter to the collection.
+ */
+CollectionExport *BKE_collection_exporter_add(Collection *collection, char *idname, char *label);
+
+/**
+ * Remove a collection exporter from the collection.
+ */
+void BKE_collection_exporter_remove(Collection *collection, CollectionExport *data);
+
+/**
+ * Move a collection exporter from one position to another.
+ */
+bool BKE_collection_exporter_move(Collection *collection, const int from, const int to);
+
+/**
  * Assigns a unique name to the collection exporter.
  */
 void BKE_collection_exporter_name_set(const ListBase *exporters,
