@@ -174,7 +174,6 @@ static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
       std::min(size_t(ceil(image->width * scale)), size_t(size)),
       std::min(size_t(ceil(image->height * scale)), size_t(size)),
   };
-  scale = float(dest_size[0]) / image->width;
 
   blender::Array<uint8_t> bitmap_rgba(dest_size[0] * dest_size[1] * 4);
 
