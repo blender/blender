@@ -1401,7 +1401,7 @@ static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu)
       immUnbindProgram();
 
       /* GPU_PRIM_POINTS do not survive dashed line geometry shader... */
-      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+      immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_COLOR);
 
       /* x marks the spot .................................................... */
       /* -> outer frame */
