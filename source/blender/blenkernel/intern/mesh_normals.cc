@@ -1243,7 +1243,14 @@ void normals_calc_corners(const Span<float3> vert_positions,
       r_fan_spaces->corners_by_space.reserve(corner_verts.size());
     }
   }
-  threading::parallel_for(vert_positions.index_range(), 256, [&](const IndexRange range) {
+
+  int64_t grain_size = 256;
+  /* Decrease parallelism in case where lock is used to avoid contention. */
+  if (!custom_normals.is_empty() || r_fan_spaces) {
+    grain_size = std::max(int64_t(16384), vert_positions.size() / 2);
+  }
+
+  threading::parallel_for(vert_positions.index_range(), grain_size, [&](const IndexRange range) {
     Vector<VertCornerInfo, 16> corner_infos;
     LocalEdgeVectorSet local_edge_by_vert;
     Vector<VertEdgeInfo, 16> edge_infos;
