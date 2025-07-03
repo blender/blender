@@ -2087,6 +2087,7 @@ struct PlanarProbeData {
   /** Matrices used to render the planar capture. */
   float4x4 viewmat;
   float4x4 winmat;
+  float4x4 wininv;
   /** Transform world to local position with influence distance as Z scale. */
   float3x4 world_to_object_transposed;
   /** World space plane normal. */

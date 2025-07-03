@@ -189,7 +189,8 @@ static void node_label(const bNodeTree * /*ntree*/,
                        char *label,
                        const int label_maxncpy)
 {
-  BLI_strncpy_utf8(label, IFACE_("For Each Element"), label_maxncpy);
+  BLI_strncpy_utf8(
+      label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "For Each Element"), label_maxncpy);
 }
 
 static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)

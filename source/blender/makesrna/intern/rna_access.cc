@@ -3734,17 +3734,18 @@ std::string RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop)
   IDProperty *idprop;
 
   BLI_assert(RNA_property_type(prop) == PROP_STRING);
+  const size_t length = size_t(RNA_property_string_length(ptr, prop));
 
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
-    /* NOTE: `std::string` does support NULL char in its data. */
-    return std::string{IDP_String(idprop), size_t(idprop->len)};
+    /* For normal strings, the length does not contain the null terminator. But for
+     * #IDP_STRING_SUB_BYTE, it contains the full string including any terminating null. */
+    return std::string{IDP_String(idprop), length};
   }
 
   if (!sprop->get && !sprop->get_ex) {
     return std::string{sprop->defaultvalue};
   }
 
-  size_t length = size_t(RNA_property_string_length(ptr, prop));
   std::string string_ret{};
   /* Note: after `resize()` the underlying buffer is actually at least `length +
    * 1` bytes long, because (since C++11) `std::string` guarantees a terminating

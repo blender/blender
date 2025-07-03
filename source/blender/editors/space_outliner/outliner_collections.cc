@@ -645,11 +645,16 @@ static wmOperatorStatus collection_duplicate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  int failed_count = 0;
   LISTBASE_FOREACH (LinkData *, link, &selected_collections.selected_array) {
     TreeElement *te = static_cast<TreeElement *>(link->data);
     Collection *collection = outliner_collection_from_tree_element(te);
     Collection *parent = (te->parent) ? outliner_collection_from_tree_element(te->parent) :
                                         nullptr;
+    if (!parent) {
+      failed_count += 1;
+      continue;
+    }
     CollectionChild *child = BKE_collection_child_find(parent, collection);
 
     /* We are allowed to duplicated linked collections (they will become local IDs then),
@@ -676,17 +681,19 @@ static wmOperatorStatus collection_duplicate_exec(bContext *C, wmOperator *op)
       }
     }
 
-    if (parent == nullptr) {
-      BKE_report(op->reports,
-                 RPT_WARNING,
-                 "Could not find a valid parent collection for the new duplicate, "
-                 "it won't be linked to any view layer");
-    }
-
     const eDupli_ID_Flags dupli_flags = (eDupli_ID_Flags)(USER_DUP_OBJECT |
                                                           (linked ? 0 : U.dupflag));
     BKE_collection_duplicate(
         bmain, parent, child, collection, dupli_flags, LIB_ID_DUPLICATE_IS_ROOT_ID);
+  }
+
+  if (failed_count != 0) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "Unable to duplicate %d of the selected collections. "
+                "Could not find a valid parent collection for the new duplicate, "
+                "they won't be linked to any view layer",
+                failed_count);
   }
 
   BLI_freelistN(&selected_collections.selected_array);

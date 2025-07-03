@@ -236,7 +236,8 @@ def __gather_texture_transform_and_tex_coord(primary_socket, export_settings):
     result_tex = get_texture_node_from_socket(primary_socket, export_settings)
     blender_shader_node = result_tex.shader_node
 
-    blender_shader_node['used'] = True
+    nodes_used = export_settings.get('nodes_used', {})
+    nodes_used[blender_shader_node.name] = True
 
     # Skip over UV wrapping stuff (it goes in the sampler)
     result = detect_manual_uv_wrapping(blender_shader_node, result_tex.group_path)

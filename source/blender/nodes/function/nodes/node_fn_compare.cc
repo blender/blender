@@ -197,7 +197,7 @@ static void node_label(const bNodeTree * /*tree*/,
   const char *name;
   bool enum_label = RNA_enum_name(rna_enum_node_compare_operation_items, data->operation, &name);
   if (!enum_label) {
-    name = "Unknown";
+    name = N_("Unknown");
   }
   BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }

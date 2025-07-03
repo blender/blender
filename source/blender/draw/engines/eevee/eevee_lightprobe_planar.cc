@@ -21,6 +21,9 @@ void PlanarProbe::set_view(const draw::View &view, int layer_id)
   this->winmat = view.winmat();
   /* Invert Y offset in the projection matrix to compensate the flip above (see #141112). */
   this->winmat[2][1] = -this->winmat[2][1];
+
+  this->wininv = invert(this->winmat);
+
   this->world_to_object_transposed = float3x4(transpose(world_to_plane));
   this->normal = normalize(plane_to_world.z_axis());
 

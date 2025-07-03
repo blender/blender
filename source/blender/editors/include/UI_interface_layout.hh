@@ -7,6 +7,7 @@
 #include <optional>
 
 #include "BLI_string_ref.hh"
+#include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
 #include "UI_interface_icons.hh" /* `eAlertIcon` */
@@ -74,7 +75,7 @@ enum class LayoutSeparatorType : int8_t {
  * incoming refactors would remove public access and add public read/write function methods.
  * Meanwhile keep using `uiLayout*` functions to read/write this properties.
  */
-struct uiLayout : uiItem {
+struct uiLayout : uiItem, blender::NonCopyable, blender::NonMovable {
   // protected:
   uiLayoutRoot *root_;
   bContextStore *context_;

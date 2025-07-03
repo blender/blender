@@ -579,7 +579,8 @@ static wmOperatorStatus geometry_attribute_convert_exec(bContext *C, wmOperator 
                                attributes,
                                name,
                                bke::AttrDomain(RNA_enum_get(op->ptr, "domain")),
-                               bke::AttrType(RNA_enum_get(op->ptr, "data_type")),
+                               *bke::custom_data_type_to_attr_type(
+                                   eCustomDataType(RNA_enum_get(op->ptr, "data_type"))),
                                op->reports))
         {
           return OPERATOR_CANCELLED;

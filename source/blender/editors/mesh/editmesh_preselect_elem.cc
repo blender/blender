@@ -119,6 +119,22 @@ void EDBM_preselect_elem_clear(EditMesh_PreSelElem *psel)
   psel->verts_len = 0;
 }
 
+enum class PreselectColor { Polygons, LinesOrPoints, Delete };
+static void edbm_preselect_imm_color(PreselectColor preselect_color)
+{
+  switch (preselect_color) {
+    case PreselectColor::Polygons:
+      immUniformColor4ub(141, 171, 186, 100);
+      break;
+    case PreselectColor::LinesOrPoints:
+      immUniformColor4ub(3, 161, 252, 200);
+      break;
+    case PreselectColor::Delete:
+      immUniformColor4ub(252, 49, 10, 200);
+      break;
+  }
+}
+
 void EDBM_preselect_elem_draw(EditMesh_PreSelElem *psel, const float matrix[4][4])
 {
   if ((psel->edges_len == 0) && (psel->verts_len == 0)) {
@@ -135,7 +151,7 @@ void EDBM_preselect_elem_draw(EditMesh_PreSelElem *psel, const float matrix[4][4
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-  immUniformColor4ub(141, 171, 186, 100);
+  edbm_preselect_imm_color(PreselectColor::Polygons);
   if (psel->preview_action != PRESELECT_ACTION_TRANSFORM) {
     if (psel->preview_tris_len > 0) {
       immBegin(GPU_PRIM_TRIS, psel->preview_tris_len * 3);
@@ -149,8 +165,7 @@ void EDBM_preselect_elem_draw(EditMesh_PreSelElem *psel, const float matrix[4][4
     }
 
     if (psel->preview_lines_len > 0) {
-
-      immUniformColor4ub(3, 161, 252, 200);
+      edbm_preselect_imm_color(PreselectColor::LinesOrPoints);
       GPU_line_width(2.0f);
       immBegin(GPU_PRIM_LINES, psel->preview_lines_len * 2);
       for (int i = 0; i < psel->preview_lines_len; i++) {
@@ -161,12 +176,9 @@ void EDBM_preselect_elem_draw(EditMesh_PreSelElem *psel, const float matrix[4][4
     }
   }
 
-  if (psel->preview_action == PRESELECT_ACTION_DELETE) {
-    immUniformColor4ub(252, 49, 10, 200);
-  }
-  else {
-    immUniformColor4ub(3, 161, 252, 200);
-  }
+  edbm_preselect_imm_color(psel->preview_action == PRESELECT_ACTION_DELETE ?
+                               PreselectColor::Delete :
+                               PreselectColor::LinesOrPoints);
 
   if (psel->edges_len > 0) {
     GPU_line_width(3.0f);
@@ -181,6 +193,11 @@ void EDBM_preselect_elem_draw(EditMesh_PreSelElem *psel, const float matrix[4][4
   }
 
   if (psel->verts_len > 0) {
+    immUnbindProgram();
+    immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_COLOR);
+    edbm_preselect_imm_color(psel->preview_action == PRESELECT_ACTION_DELETE ?
+                                 PreselectColor::Delete :
+                                 PreselectColor::LinesOrPoints);
     GPU_point_size(4.0f);
 
     immBegin(GPU_PRIM_POINTS, psel->verts_len);

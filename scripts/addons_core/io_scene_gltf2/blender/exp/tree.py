@@ -906,7 +906,7 @@ class VExportTree:
         if bpy.context.preferences.addons['io_scene_gltf2'].preferences.KHR_materials_variants_ui is False:
             return
         objects = [self.nodes[o].blender_object for o in self.get_all_node_of_type(VExportNode.OBJECT) if self.nodes[o].blender_object.type == "MESH"
-                   and self.nodes[o].blender_object.data.get('gltf2_variant_default_materials') is not None]
+                   and self.nodes[o].blender_object.data.gltf2_variant_default_materials is not None]
         for obj in objects:
             # loop on material slots ( primitives )
             for mat_slot_idx, s in enumerate(obj.material_slots):

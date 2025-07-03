@@ -11,6 +11,8 @@
 #  include "gpu_glsl_cpp_stubs.hh"
 
 #  include "GPU_shader_shared.hh"
+
+#  include "gpu_srgb_to_framebuffer_space_info.hh"
 #endif
 
 #include "gpu_interface_info.hh"
@@ -24,4 +26,5 @@ FRAGMENT_OUT(0, float4, fragColor)
 PUSH_CONSTANT(float4x4, ModelViewProjectionMatrix)
 SAMPLER(0, sampler2D, image)
 VERTEX_SOURCE("gpu_shader_2D_image_vert.glsl")
+ADDITIONAL_INFO(gpu_srgb_to_framebuffer_space)
 GPU_SHADER_CREATE_END()

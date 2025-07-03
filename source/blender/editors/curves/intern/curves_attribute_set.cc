@@ -195,8 +195,7 @@ static void set_attribute_ui(bContext *C, wmOperator *op)
   AttributeOwner owner = AttributeOwner::from_id(&curves_id.id);
   const StringRef name = *BKE_attributes_active_name_get(owner);
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-  const bke::AttributeAccessor attributes = curves.attributes();
-  const bke::AttributeMetaData meta_data = *attributes.lookup_meta_data(name);
+  const bke::AttributeMetaData meta_data = *curves.attributes().lookup_meta_data(name);
   const StringRefNull prop_name = geometry::rna_property_name_for_type(meta_data.data_type);
   layout->prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }

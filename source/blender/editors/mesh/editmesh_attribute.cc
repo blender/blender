@@ -255,7 +255,8 @@ static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
   const StringRef name = *BKE_attributes_active_name_get(owner);
   CustomDataLayer *layer = BKE_attribute_search_for_write(
       owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-  const bke::AttrType active_type = bke::AttrType(layer->type);
+  const bke::AttrType active_type = *bke::custom_data_type_to_attr_type(
+      eCustomDataType(layer->type));
   const StringRefNull prop_name = geometry::rna_property_name_for_type(active_type);
   layout->prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }

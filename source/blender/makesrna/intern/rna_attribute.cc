@@ -431,8 +431,11 @@ const EnumPropertyItem *rna_enum_attribute_domain_itemf(const AttributeOwner &ow
     {
       continue;
     }
-    if (owner.type() == AttributeOwnerType::Mesh &&
-        ELEM(domain_item->value, int(AttrDomain::Curve)))
+    if (owner.type() == AttributeOwnerType::Mesh && !ELEM(domain_item->value,
+                                                          int(AttrDomain::Point),
+                                                          int(AttrDomain::Edge),
+                                                          int(AttrDomain::Face),
+                                                          int(AttrDomain::Corner)))
     {
       continue;
     }

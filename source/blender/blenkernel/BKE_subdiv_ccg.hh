@@ -141,11 +141,18 @@ struct SubdivCCG : blender::NonCopyable {
   blender::Span<int> grid_to_face_map;
 
   /* Edges which are adjacent to faces.
+   *
+   * Maps from coarse edge to a directional `grid_size` * 2 map of indices to `SubdivCCGCoord`,
+   * indexed by OpenSubdiv base mesh edge.
+   *
    * Used for faster grid stitching, at the cost of extra memory.
    */
   blender::Array<SubdivCCGAdjacentEdge> adjacent_edges;
 
-  /* Vertices which are adjacent to faces
+  /* Vertices which are adjacent to faces.
+   *
+   * Maps from coarse vertex to `SubdivCCGCoord`, indexed by OpenSubdiv base mesh vertex.
+   *
    * Used for faster grid stitching, at the cost of extra memory.
    */
   blender::Array<SubdivCCGAdjacentVertex> adjacent_verts;

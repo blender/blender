@@ -459,6 +459,85 @@ static void rna_CollectionExport_name_set(PointerRNA *ptr, const char *value)
   BKE_collection_exporter_name_set(nullptr, data, value);
 }
 
+static CollectionExport *rna_CollectionExport_new(Collection *collection,
+                                                  ReportList *reports,
+                                                  int type,
+                                                  const char *name)
+{
+  blender::bke::FileHandlerType *fh = nullptr;
+  blender::Span<std::unique_ptr<blender::bke::FileHandlerType>> types =
+      blender::bke::file_handlers();
+  if (types.index_range().contains(type)) {
+    fh = types[type].get();
+  }
+  if (fh) {
+    CollectionExport *exporter = BKE_collection_exporter_add(
+        collection, fh->idname, name ? (char *)name : fh->label);
+
+    WM_main_add_notifier(NC_SCENE, nullptr);
+    return exporter;
+  }
+  else {
+    BKE_reportf(reports, RPT_ERROR, "File handler not found");
+    return nullptr;
+  }
+}
+
+static void rna_CollectionExport_remove(Collection *collection, CollectionExport *exporter)
+{
+  BKE_collection_exporter_remove(collection, exporter);
+  WM_main_add_notifier(NC_SCENE, nullptr);
+}
+
+static void rna_CollectionExport_move(Collection *collection,
+                                      ReportList *reports,
+                                      const int from,
+                                      const int to)
+{
+  if (!BKE_collection_exporter_move(collection, from, to)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Could not move collection exporter from index '%d' to '%d'",
+                from,
+                to);
+    return;
+  }
+
+  WM_main_add_notifier(NC_SCENE, nullptr);
+}
+
+static const EnumPropertyItem *rna_CollectionExport_type_itemf(bContext * /*C*/,
+                                                               PointerRNA * /*ptr*/,
+                                                               PropertyRNA * /*prop*/,
+                                                               bool *r_free)
+{
+  EnumPropertyItem *item = nullptr, item_tmp = {0};
+  int totitem = 0;
+  blender::Span<std::unique_ptr<blender::bke::FileHandlerType>> types =
+      blender::bke::file_handlers();
+
+  for (const int i : types.index_range()) {
+    blender::bke::FileHandlerType *fh = types[i].get();
+    if (WM_operatortype_find(fh->export_operator, true)) {
+      item_tmp.value = i;
+      item_tmp.identifier = fh->idname;
+      item_tmp.name = fh->label;
+
+      RNA_enum_item_add(&item, &totitem, &item_tmp);
+    }
+  }
+
+  if (totitem == 0) {
+    *r_free = false;
+    return rna_enum_dummy_NULL_items;
+  }
+
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+
+  return item;
+}
+
 static PointerRNA rna_CollectionExport_export_properties_get(PointerRNA *ptr)
 {
   const CollectionExport *data = reinterpret_cast<CollectionExport *>(ptr->data);
@@ -582,6 +661,43 @@ static void rna_def_collection_children(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Remove this child collection from a collection");
   RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_MAIN);
   parm = RNA_def_pointer(func, "child", "Collection", "", "Collection to remove");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+}
+
+static void rna_def_collection_exporters(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "CollectionExports");
+  srna = RNA_def_struct(brna, "CollectionExports", nullptr);
+  RNA_def_struct_sdna(srna, "Collection");
+  RNA_def_struct_ui_text(srna, "Export Handlers", "Collection of export handlers");
+
+  func = RNA_def_function(srna, "new", "rna_CollectionExport_new");
+  RNA_def_function_ui_description(func, "Add an export handler to the collection");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_enum(
+      func, "type", rna_enum_dummy_DEFAULT_items, 0, "Type", "The type of export handler to add");
+  RNA_def_property_enum_funcs(parm, nullptr, nullptr, "rna_CollectionExport_type_itemf");
+  RNA_def_parameter_flags(parm, PROP_ENUM_NO_CONTEXT, PARM_REQUIRED);
+  RNA_def_string(func, "name", nullptr, 0, "Name", "Name of the new export handler");
+  parm = RNA_def_pointer(func, "exporter", "CollectionExport", "", "Newly created export handler");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_CollectionExport_remove");
+  RNA_def_function_ui_description(func, "Remove an export handler from the collection");
+  parm = RNA_def_pointer(func, "exporter", "CollectionExport", "", "Export Handler to remove");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "move", "rna_CollectionExport_move");
+  RNA_def_function_ui_description(func, "Move an export handler");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_int(
+      func, "from_index", -1, INT_MIN, INT_MAX, "From Index", "Index to move", 0, 10000);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_int(func, "to_index", -1, INT_MIN, INT_MAX, "To Index", "Target index", 0, 10000);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
@@ -784,6 +900,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "exporters", nullptr);
   RNA_def_property_ui_text(
       prop, "Collection Export Handlers", "Export Handlers configured for the collection");
+  rna_def_collection_exporters(brna, prop);
 
   prop = RNA_def_property(srna, "active_exporter_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

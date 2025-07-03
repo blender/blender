@@ -387,12 +387,16 @@ def extension_url_find_repo_index_and_pkg_id(url):
     repos_all = extension_repos_read()
     repo_cache_store = repo_cache_store_ensure()
 
+    # Regarding `ignore_missing`, set to True, otherwise a user-repository
+    # or a new repository that has not yet been initialize will report errors.
+    # It's OK to silently ignore these.
+
     for repo_index, (
             pkg_manifest_local,
             pkg_manifest_remote,
     ) in enumerate(zip(
-        repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print),
-        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print),
+        repo_cache_store.pkg_manifest_from_local_ensure(error_fn=print, ignore_missing=True),
+        repo_cache_store.pkg_manifest_from_remote_ensure(error_fn=print, ignore_missing=True),
         strict=True,
     )):
         # It's possible the remote repo could not be connected to when syncing.
