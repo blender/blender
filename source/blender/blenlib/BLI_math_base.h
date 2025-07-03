@@ -163,6 +163,26 @@ MINLINE uint ulp_diff_ff(float a, float b);
 MINLINE int compare_ff_relative(float a, float b, float max_diff, int max_ulps);
 MINLINE bool compare_threshold_relative(float value1, float value2, float thresh);
 
+/**
+ * Increment the given float to the next representable floating point value in
+ * the positive direction.
+ *
+ * Infinities and NaNs are left untouched. Subnormal numbers are handled
+ * correctly, as is crossing zero (i.e. 0 and -0 are considered a single value,
+ * and progressing past zero continues on to the positive numbers).
+ */
+MINLINE float increment_ulp(float value);
+
+/**
+ * Decrement the given float to the next representable floating point value in
+ * the negative direction.
+ *
+ * Infinities and NaNs are left untouched. Subnormal numbers are handled
+ * correctly, as is zero (i.e. 0 and -0 are considered a single value, and
+ * progressing past zero continues on to the negative numbers).
+ */
+MINLINE float decrement_ulp(float value);
+
 MINLINE float signf(float f);
 MINLINE int signum_i_ex(float a, float eps);
 MINLINE int signum_i(float a);
