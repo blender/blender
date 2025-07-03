@@ -39,6 +39,10 @@ the server responds with a `304 Not Modified`, doing that request still takes
 time and requires resources on the server.
 """
 
+# TODO: discuss & adjust this value, as this was just picked more or less randomly:
+THUMBNAIL_FAILED_REDOWNLOAD_MINS = 60 * 24  # 1 day
+"""Thumbnails that failed to download will only be re-downloaded after this."""
+
 
 class RemoteAssetListingLocator:
     """Construct paths for various components of a remote asset library.
@@ -53,6 +57,9 @@ class RemoteAssetListingLocator:
     _remote_url_split: urllib.parse.SplitResult
     _remote_url_path: PurePosixPath
 
+    _thumbs_root: Path
+    _thumbs_subpath_large = "large"
+
     def __init__(
         self,
         remote_url: str,
@@ -65,6 +72,8 @@ class RemoteAssetListingLocator:
         # happen once here, instead of every time when this info is necessary.
         self._remote_url_split = urllib.parse.urlsplit(self._remote_url)
         self._remote_url_path = _sanitize_path_from_url(self._remote_url_split.path)
+
+        self._thumbs_root = self._local_path / "_thumbs"
 
     @property
     def remote_url(self) -> str:
@@ -174,7 +183,7 @@ class RemoteAssetListingLocator:
         hash = hashlib.md5(f"{asset_download_path}/{id_type}/{asset.name}".encode()).hexdigest()
 
         relative_path = Path(hash[:2], hash[2:]).with_suffix(url_path.suffix)
-        return self._local_path / "_thumbs/large" / relative_path
+        return self._thumbs_root / self._thumbs_subpath_large / relative_path
 
     def _path_from_url(self, url: str) -> tuple[PurePosixPath, urllib.parse.SplitResult]:
         """Construct a PurePosixPath from the path component of this URL.
@@ -190,6 +199,31 @@ class RemoteAssetListingLocator:
             raise ValueError("invalid URL ({!s}): {!s}".format(abs_url, ' '.join(ex.args)))
 
         return _sanitize_path_from_url(split_url.path), split_url
+
+    def thumbnail_failed_path(self, thumbnail_path: Path) -> Path:
+        """Return the 'failed' path for this thumbnail.
+
+        Raises a ValueError if `thumbnail_path` is not actually in the thumbnail
+        root directory.
+
+        >>> loc = RemoteAssetListingLocator("https://localhost:8000/", Path("/tmp"))
+        >>> loc.thumbnail_failed_path(Path("/tmp/_thumbs/large/01/020304.webp"))
+        PosixPath('/tmp/_thumbs/failed/01/020304.webp')
+        >>> loc.thumbnail_failed_path(Path("/somewhere/else/020304.webp"))
+        Traceback (most recent call last):
+            ...
+        ValueError: ...
+        """
+
+        # Big assumption #1: the thumbnail path was constructed with the
+        # thumbnail_download_path() function above, and thus is inside our
+        # _thumbs_root. If it is not, it'll raise a ValueError.
+        rel_path = thumbnail_path.relative_to(self._thumbs_root)
+
+        # Big assumption #2: for the same reason, it's sitting in the "large"
+        # subdirectory of the thumbs root.
+        assert rel_path.parts[0] == self._thumbs_subpath_large
+        return self._thumbs_root / "failed" / Path(*rel_path.parts[1:])
 
 
 class DownloadStatus(enum.Enum):
@@ -526,6 +560,27 @@ class RemoteAssetListingDownloader:
         finally:
             self._shutdown_if_done()
 
+    def _on_thumbnail_failed(
+        self,
+        http_req_descr: http_dl.RequestDescription,
+        local_file: Path,
+        error: Exception,
+    ) -> None:
+        """Create a 'failure' marker file, to prevent re-downloading this over and over again."""
+        try:
+            failure_path = self._locator.thumbnail_failed_path(local_file)
+        except ValueError:
+            # Just log the error. There is no need to disrupt the download process any further.
+            logger.exception("constructing 'failure' path from thumbnail path")
+            return
+
+        # The failure path existing, with a timestamp newer than the local file
+        # (if that exists in the first place), should be enough to prevent
+        # further downloads. It should also prevent Blender from trying to
+        # render the thumbnail.
+        failure_path.parent.mkdir(parents=True, exist_ok=True)
+        failure_path.touch(exist_ok=True)
+
     def _shutdown_if_done(self) -> None:
         if self._num_asset_pages_pending == 0 and self._bg_downloader.all_downloads_done:
             # Done downloading everything, let's shut down.
@@ -615,13 +670,12 @@ class RemoteAssetListingDownloader:
             if not thumbnail_path:
                 continue
 
-            # Check the age of the downloaded thumbnail. If it's too young,
-            # don't try a conditional download to avoid DOSsing the server.
-            if thumbnail_path.exists():
-                stat = thumbnail_path.stat()
-                now = time.time()
-                if (now - stat.st_mtime) / 60 < THUMBNAIL_FRESH_DURATION_MINS:
-                    continue
+            failure_path = self._locator.thumbnail_failed_path(thumbnail_path)
+
+            # See if this download should happen at all.
+            should_download = _compare_thumbnail_filepath_timestamps(thumbnail_path, failure_path)
+            if not should_download:
+                continue
 
             # Queue the thumbnail download, and remember that this is a
             # non-critical download (so that errors don't cancel the entire download
@@ -728,6 +782,10 @@ class RemoteAssetListingDownloader:
 
         if local_file in self._noncritical_downloads:
             logger.warning("Could not download non-critical file %s: %s", http_req_descr, error)
+            # TODO: distinguish between "thumbnail" and "other non-critical". For now
+            # the only non-critical downloads are the thumbnails, though.
+            self._on_thumbnail_failed(http_req_descr, local_file, error)
+
             # This could have been the last to-be-downloaded file, so better
             # check if there's anything left to do.
             self._shutdown_if_done()
@@ -894,6 +952,55 @@ def _sanitize_netloc_from_url(netloc: str) -> PurePosixPath:
     return _sanitize_path_from_url(PurePosixPath(netloc_path))
 
 
+def _compare_thumbnail_filepath_timestamps(thumbnail_path: Path, failure_path: Path) -> bool:
+    """Check the thumbnail and 'failure' file timestamps.
+
+    If the thumbnail already exists, and is relatively new, it won't be
+    re-downloaded. If the failure path exists, and it's newer than the
+    thumbnail, the thumbnail also shouldn't be downloaded.
+
+    :return: whether this thumbnail should be downloaded or not.
+    """
+
+    now = time.time()
+
+    # Timestamp that indicates 'file does not exist'. Having this a valid number
+    # but smaller than any actual timestamp makes the logic in this function a
+    # bit easier.
+    DOES_NOT_EXIST = 0
+    try:
+        failure_mtime = failure_path.stat().st_mtime
+        failure_age_mins = (now - failure_mtime) // 60
+    except FileNotFoundError:
+        failure_mtime = DOES_NOT_EXIST
+        failure_age_mins = DOES_NOT_EXIST
+
+    try:
+        thumbnail_mtime = thumbnail_path.stat().st_mtime
+    except FileNotFoundError:
+        # The thumbnail does not exist, so it should be downloaded unless the
+        # failure file tells us not to.
+        return failure_mtime == DOES_NOT_EXIST or failure_age_mins > THUMBNAIL_FAILED_REDOWNLOAD_MINS
+
+    # If the failure file newer than the thumbnail, its age determines whether
+    # another attempt at downloading is ok.
+    if failure_mtime > thumbnail_mtime:
+        return failure_age_mins > THUMBNAIL_FAILED_REDOWNLOAD_MINS
+
+    # Check the age of the existing thumbnail file. If it's too young, don't
+    # try a conditional download to avoid DOSsing the server.
+    #
+    # To illustrate an experiment on my (Sybren) computer: doing ~1700 requests
+    # via Blender's conditional downloader, and getting `304 Not Modified` in
+    # return from a fairly efficient web server, still took about 2 seconds.
+    thumbnail_age_mins = (now - thumbnail_mtime) / 60
+    return thumbnail_age_mins > THUMBNAIL_FRESH_DURATION_MINS
+
+
 if __name__ == '__main__':
     import doctest
-    doctest.testmod()
+
+    # Run the doctests. Note: these only work on Posix systems for now, due to
+    # how pathlib.Path is an alias for either PosixPath or WindowsPath,
+    # depending on the platform.
+    doctest.testmod(optionflags=doctest.ELLIPSIS)
