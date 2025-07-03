@@ -47,7 +47,7 @@ class Background : Overlay {
       background_type = BG_CHECKER;
     }
     else if (state.v3d->shading.background_type == V3D_SHADING_BACKGROUND_WORLD &&
-             state.scene->world)
+             state.v3d->shading.type <= OB_SOLID && state.scene->world)
     {
       background_type = BG_SOLID;
       /* TODO(fclem): this is a scene referred linear color. we should convert
