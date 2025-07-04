@@ -4126,11 +4126,10 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
     const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
     ListBase entries = {nullptr};
 
-    BLI_strncpy(
-        job_params->cur_relbase, entry.archive_url.c_str(), sizeof(job_params->cur_relbase));
+    BLI_strncpy(job_params->cur_relbase, entry.file_path.c_str(), sizeof(job_params->cur_relbase));
     filelist_readjob_list_lib_add_datablock(
         job_params, &entries, &entry.datablock_info, true, entry.idcode, group_name, true);
-    assets_per_blend_path.add(entry.archive_url, &entry);
+    assets_per_blend_path.add(entry.file_path, &entry);
 
     int entries_num = 0;
     LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {

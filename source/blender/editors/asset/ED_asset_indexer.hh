@@ -44,9 +44,8 @@ struct RemoteListingAssetEntry {
   BLODataBlockInfo datablock_info = {};
   short idcode = 0;
 
-  /* TODO: This should be the final path relative to the library root. How to ensure that? Should
-   * the downloader handle it? */
-  std::string archive_url;
+  /* The path of the blend file that contains the asset, relative to the library root. */
+  std::string file_path;
   std::string thumbnail_url;
 
   RemoteListingAssetEntry() = default;

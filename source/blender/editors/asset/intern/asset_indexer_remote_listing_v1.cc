@@ -61,12 +61,12 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
     return {};
   }
 
-  /* 'archive_url': required string. */
-  if (const std::optional<StringRef> archive_url = dictionary.lookup_str("archive_url")) {
-    listing_entry.archive_url = *archive_url;
+  /* 'file': required string. */
+  if (const std::optional<StringRef> file_path = dictionary.lookup_str("file")) {
+    listing_entry.file_path = *file_path;
   }
   else {
-    *r_failure_reason = "could not read asset location, 'archive_url' field not set";
+    *r_failure_reason = "could not read asset location, 'file' field not set";
     return {};
   }
 

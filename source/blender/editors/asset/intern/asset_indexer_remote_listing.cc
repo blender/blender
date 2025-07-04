@@ -31,7 +31,7 @@ RemoteListingAssetEntry::RemoteListingAssetEntry(RemoteListingAssetEntry &&other
   other.datablock_info = {};
   this->idcode = other.idcode;
 
-  this->archive_url = std::move(other.archive_url);
+  this->file_path = std::move(other.file_path);
   this->thumbnail_url = std::move(other.thumbnail_url);
 }
 
