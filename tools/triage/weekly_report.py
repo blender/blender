@@ -99,7 +99,7 @@ def argparse_create() -> argparse.ArgumentParser:
         "--date",
         dest="date",
         type=str_as_isodate,
-        default="",
+        default=None,
         help="Show only for this day (YYYY-MM-DD), and not for an entire week."
     )
 
