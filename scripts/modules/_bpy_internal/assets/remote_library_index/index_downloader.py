@@ -93,65 +93,38 @@ class RemoteAssetListingLocator:
     def catalogs_file(self) -> Path:
         return self._local_path / "blender_assets.cats.txt"
 
-    # TODO: add lru_cache decorator here too, once we can measure its impact.
-    def asset_download_path(self, asset: api_models.AssetV1) -> Path:
+    def asset_download_path(self, asset_file: api_models.FileV1) -> Path:
         """Construct the absolute download path for this asset.
 
-        This assumes that the URL already ends in the correct filename. In other
-        words, any filename served in the HTTP response header
-        `Content-Disposition` will be ignored.
-
-        This can raise a ValueError if the archive URL is not suitable (either
+        This can raise a ValueError if the file path is not suitable (either
         downright invalid, or not ending in `.blend`).
 
         >>> loc = RemoteAssetListingLocator("https://localhost:8000/", Path("/tmp/dl"))
-        >>> asset = api_models.AssetV1(
-        ...     name="Suzanne",
-        ...     id_type=api_models.AssetIDTypeV1.object,
-        ...     archive_url='http://localhost:8000/monkeys/suzanne.blend',
-        ...     archive_size_in_bytes=327,
-        ...     archive_hash='010203040506',
+        >>> asset_file = api_models.FileV1(
+        ...     path="monkeys/suzanne.blend",
+        ...     url="http://localhost:8000/does/not/matter",
+        ...     size_in_bytes=327,
+        ...     hash='010203040506',
+        ...     blender_version="1.2.3",
         ... )
-        >>> loc.asset_download_path(asset)
+        >>> loc.asset_download_path(asset_file)
         PosixPath('/tmp/dl/monkeys/suzanne.blend')
-
-        >>> asset.archive_url = 'https://Slapi%C4%87.hr/apes/suzanne.blend'
-        >>> loc.asset_download_path(asset)
-        PosixPath('/tmp/dl/slapić.hr/apes/suzanne.blend')
         """
-        assert asset.archive_url
+        assert asset_file.path
 
-        asset_url_path, asset_split_url = self._path_from_url(asset.archive_url)
+        relpath = Path(asset_file.path)
 
         # TODO: support non-.blend downloads as well.
-        url_suffix = asset_url_path.suffix.lower()
-        if url_suffix != '.blend':
+        path_suffix = relpath.suffix.lower()
+        if path_suffix != '.blend':
             raise ValueError(
-                "asset url ({!s}) does not end in .blend (but in {!r})".format(
-                    asset.archive_url, url_suffix))
-
-        # TODO: support files that are served 'out of context', without an actual
-        # asset repository path structure in the URLs. For example, what you'd get
-        # when serving assets from S3 buckets like Dropbox.
-        #
-        # The approach below kinda works, but doesn't really guard against collisions.
-        if (asset_split_url.netloc == self._remote_url_split.netloc and
-                asset_url_path.is_relative_to(self._remote_url_path)):
-            # This URL is within the 'directory space' of the repository URL, so just
-            # use the relative path to construct the local location for the asset.
-            unsafe_relpath = asset_url_path.relative_to(self._remote_url_path)
-            relpath = _sanitize_path_from_url(unsafe_relpath)
-        else:
-            # We cannot use this URL directly, so just use the host & path
-            # components of the URL instead.
-            host_port = _sanitize_netloc_from_url(asset_split_url.netloc)
-            path = _sanitize_path_from_url(asset_split_url.path)
-            relpath = host_port / path
+                "asset file path ({!s}) does not end in .blend (but in {!r})".format(
+                    relpath, path_suffix))
 
         return self._local_path / relpath
 
     # TODO: add lru_cache decorator here too, once we can measure its impact.
-    def thumbnail_download_path(self, asset: api_models.AssetV1) -> Path | None:
+    def thumbnail_download_path(self, asset: api_models.AssetV1, asset_file: api_models.FileV1) -> Path | None:
         """Construct the download path suitable for this asset's thumbnail.
 
         This assumes that the URL already ends in the correct extension. This is
@@ -176,7 +149,7 @@ class RemoteAssetListingLocator:
                 url_suffix)
             return None
 
-        asset_download_path = self.asset_download_path(asset)
+        asset_download_path = self.asset_download_path(asset_file)
         assert asset_download_path.is_absolute()
 
         id_type = asset.id_type.value.title()  # turn 'object' into 'Object'.
@@ -660,13 +633,18 @@ class RemoteAssetListingDownloader:
         # TODO: after all thumbnails of all asset listing pages have been
         # processed, delete the ones that are no longer referenced.
 
+        # Create a lookup table for the asset files.
+        file_map: dict[str, api_models.FileV1] = {file.path: file for file in asset_page.files}
+
         num_queued_thumbs = 0
         for asset in asset_page.assets:
             if not asset.thumbnail_url:
                 # TODO: delete any existing thumbnail?
                 continue
 
-            thumbnail_path = self._locator.thumbnail_download_path(asset)
+            asset_file = file_map[asset.file]
+
+            thumbnail_path = self._locator.thumbnail_download_path(asset, asset_file)
             if not thumbnail_path:
                 continue
 

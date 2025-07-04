@@ -200,7 +200,7 @@ def _blendfile_info(filepath: Path, asset_library_root: Path) -> api_models.File
     stat = filepath.stat()
 
     relative_posix = filepath.relative_to(asset_library_root).as_posix()
-    file_url = urllib.parse.quote(relative_posix)
+    file_url: str | None = urllib.parse.quote(relative_posix)
 
     if file_url == relative_posix:
         # Optimization: if the file path is URL-safe, it can be used as the URL
