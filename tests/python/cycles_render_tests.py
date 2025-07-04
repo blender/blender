@@ -39,7 +39,7 @@ BLOCKLIST_OSL_LIMITED = []
 # So blocking these tests doesn't lose any test permutations.
 BLOCKLIST_OSL_ALL = BLOCKLIST_OSL_LIMITED + [
     # AOVs are not supported. See 73266
-    'aov_position.blend',
+    'aov_.*.blend',
     'render_passes_aov.*.blend',
     # Image sampling is different from SVM. There are OSL variants of these tests
     'image_byte.*.blend',
