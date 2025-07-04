@@ -398,8 +398,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   {
-    short orient_types[3];
-    short orient_type_apply = O_DEFAULT;
+    eTOType orient_types[3];
+    eTOType orient_type_apply = O_DEFAULT;
     float custom_matrix[3][3];
 
     int orient_type_scene = V3D_ORIENT_GLOBAL;
@@ -487,9 +487,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       }
     }
     else {
-      if (t->con.mode & CON_APPLY) {
-        orient_type_apply = O_SET;
-      }
+      orient_type_apply = O_SET;
     }
 
     BLI_assert(!ELEM(-1, orient_type_default, orient_type_set));
@@ -498,9 +496,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       orient_type_set = V3D_ORIENT_CUSTOM_MATRIX;
     }
 
-    orient_types[O_DEFAULT] = short(orient_type_default);
-    orient_types[O_SCENE] = short(orient_type_scene);
-    orient_types[O_SET] = short(orient_type_set);
+    orient_types[O_DEFAULT] = eTOType(orient_type_default);
+    orient_types[O_SCENE] = eTOType(orient_type_scene);
+    orient_types[O_SET] = eTOType(orient_type_set);
 
     for (int i = 0; i < 3; i++) {
       /* For efficiency, avoid calculating the same orientation twice. */

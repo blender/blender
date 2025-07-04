@@ -86,7 +86,7 @@ static void transdata_elem_rotate(const TransInfo *t,
   if (t->con.applyRot) {
     copy_v3_v3(axis_buffer, axis);
     axis_final = axis_buffer;
-    t->con.applyRot(t, tc, td, axis_buffer, nullptr);
+    t->con.applyRot(t, tc, td, axis_buffer);
     angle_final = angle * td->factor;
     /* Even though final angle might be identical to orig value,
      * we have to update the rotation matrix in that case... */
@@ -142,7 +142,7 @@ static float RotationBetween(TransInfo *t, const float p1[3], const float p2[3])
   if (t->con.applyRot != nullptr && (t->con.mode & CON_APPLY)) {
     float axis[3];
 
-    t->con.applyRot(t, nullptr, nullptr, axis, nullptr);
+    t->con.applyRot(t, nullptr, nullptr, axis);
 
     angle = -angle_signed_on_axis_v3v3_v3(start, end, axis);
   }
@@ -285,22 +285,23 @@ static bool clip_uv_transform_rotate(const TransInfo *t, float *vec, float *vec_
 
 static void applyRotation(TransInfo *t)
 {
-  float axis_final[3];
-  float final = t->values[0] + t->values_modal_offset[0];
+  float3 axis_final;
+  transform_mode_rotation_axis_get(t, axis_final);
 
-  if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
-    t->con.applyRot(t, nullptr, nullptr, axis_final, &final);
-  }
-  else {
-    negate_v3_v3(axis_final, t->spacemtx[t->orient_axis]);
-  }
-
+  float final;
   if (applyNumInput(&t->num, &final)) {
     /* We have to limit the amount of turns to a reasonable number here,
      * to avoid things getting *very* slow, see how applyRotationValue() handles those... */
     final = large_rotation_limit(final);
   }
   else {
+    final = t->values[0] + t->values_modal_offset[0];
+    if (!(t->flag & T_INPUT_IS_VALUES_FINAL) &&
+        transform_mode_is_axis_pointing_to_screen(t, axis_final))
+    {
+      /* Flip rotation direction if axis is pointing to screen. */
+      final = -final;
+    }
     transform_snap_mixed_apply(t, &final);
     if (!(transform_snap_is_active(t) && validSnap(t))) {
       transform_snap_increment(t, &final);
@@ -332,14 +333,9 @@ static void applyRotation(TransInfo *t)
 
 static void applyRotationMatrix(TransInfo *t, float mat_xform[4][4])
 {
-  float axis_final[3];
+  float3 axis_final;
+  transform_mode_rotation_axis_get(t, axis_final);
   const float angle_final = t->values_final[0];
-  if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
-    t->con.applyRot(t, nullptr, nullptr, axis_final, nullptr);
-  }
-  else {
-    negate_v3_v3(axis_final, t->spacemtx[t->orient_axis]);
-  }
 
   float mat3[3][3];
   float mat4[4][4];

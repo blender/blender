@@ -1248,6 +1248,23 @@ void transform_mode_default_modal_orientation_set(TransInfo *t, int type)
   }
 }
 
+void transform_mode_rotation_axis_get(const TransInfo *t, float3 &r_axis)
+{
+  if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
+    t->con.applyRot(t, nullptr, nullptr, r_axis);
+  }
+  else {
+    r_axis = t->spacemtx[t->orient_axis];
+  }
+}
+
+bool transform_mode_is_axis_pointing_to_screen(const TransInfo *t, const float3 &axis)
+{
+  float view_vector[3];
+  view_vector_calc(t, t->center_global, view_vector);
+  return dot_v3v3(axis, view_vector) > 0.0f;
+}
+
 /** \} */
 
 }  // namespace blender::ed::transform

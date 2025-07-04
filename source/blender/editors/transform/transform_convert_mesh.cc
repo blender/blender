@@ -1486,6 +1486,15 @@ static void VertsToTransData(TransInfo *t,
 static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    if (t->mode == TFM_NORMAL_ROTATION) {
+      /* Avoid freeing the container by creating a dummy TransData. The Rotate Normal mode uses a
+       * custom array and ignores any elements created for the mesh in transData and similar
+       * structures. */
+      tc->data_len = 1;
+      tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransData Dummy");
+      continue;
+    }
+
     TransDataExtension *tx = nullptr;
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
     Mesh *mesh = static_cast<Mesh *>(tc->obedit->data);

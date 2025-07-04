@@ -106,6 +106,9 @@ void transform_mode_init(TransInfo *t, wmOperator *op, int mode);
  */
 void transform_mode_default_modal_orientation_set(TransInfo *t, int type);
 
+void transform_mode_rotation_axis_get(const TransInfo *t, float3 &r_axis);
+bool transform_mode_is_axis_pointing_to_screen(const TransInfo *t, const float3 &axis);
+
 /* `transform_mode_align.cc` */
 
 extern TransModeInfo TransMode_align;
