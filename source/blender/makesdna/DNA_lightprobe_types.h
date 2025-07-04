@@ -103,6 +103,7 @@ enum {
   LIGHTPROBE_FLAG_SHOW_CLIP_DIST = (1 << 3),
   LIGHTPROBE_FLAG_SHOW_DATA = (1 << 4),
   LIGHTPROBE_FLAG_INVERT_GROUP = (1 << 5),
+  LIGHTPROBE_DS_EXPAND = (1 << 6),
 };
 
 /* Probe->grid_flag */

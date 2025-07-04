@@ -33,6 +33,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_light_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
@@ -3367,6 +3368,103 @@ static bAnimChannelType ACF_DSVOLUME = {
     /*setting_post_update*/ nullptr,
 };
 
+/* LightProbe Expander  ------------------------------------------- */
+
+/* TODO: just get this from RNA? */
+static int acf_dslightprobe_icon(bAnimListElem *ale)
+{
+  const LightProbe *probe = static_cast<LightProbe *>(ale->data);
+  switch (probe->type) {
+    case LIGHTPROBE_TYPE_SPHERE:
+      return ICON_LIGHTPROBE_SPHERE;
+    case LIGHTPROBE_TYPE_PLANE:
+      return ICON_LIGHTPROBE_PLANE;
+    case LIGHTPROBE_TYPE_VOLUME:
+      return ICON_LIGHTPROBE_VOLUME;
+    default:
+      return ICON_LIGHTPROBE_SPHERE;
+  }
+}
+
+/* Get the appropriate flag(s) for the setting when it is valid. */
+static int acf_dslightprobe_setting_flag(bAnimContext * /*ac*/,
+                                         eAnimChannel_Settings setting,
+                                         bool *r_neg)
+{
+  /* Clear extra return data first. */
+  *r_neg = false;
+
+  switch (setting) {
+    case ACHANNEL_SETTING_EXPAND: /* expanded */
+      return LIGHTPROBE_DS_EXPAND;
+
+    case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+      return ADT_NLA_EVAL_OFF;
+
+    case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+      *r_neg = true;
+      return ADT_CURVES_NOT_VISIBLE;
+
+    case ACHANNEL_SETTING_SELECT: /* selected */
+      return ADT_UI_SELECTED;
+
+    case ACHANNEL_SETTING_ALWAYS_VISIBLE: /* pin */
+      return ADT_CURVES_ALWAYS_VISIBLE;
+
+    default: /* unsupported */
+      return 0;
+  }
+}
+
+/* get pointer to the setting */
+static void *acf_dslightprobe_setting_ptr(bAnimListElem *ale,
+                                          eAnimChannel_Settings setting,
+                                          short *r_type)
+{
+  LightProbe *probe = static_cast<LightProbe *>(ale->data);
+
+  /* Clear extra return data first. */
+  *r_type = 0;
+
+  switch (setting) {
+    case ACHANNEL_SETTING_EXPAND: /* expanded */
+      return GET_ACF_FLAG_PTR(probe->flag, r_type);
+
+    case ACHANNEL_SETTING_SELECT:         /* selected */
+    case ACHANNEL_SETTING_MUTE:           /* muted (for NLA only) */
+    case ACHANNEL_SETTING_VISIBLE:        /* visible (for Graph Editor only) */
+    case ACHANNEL_SETTING_ALWAYS_VISIBLE: /* pin */
+      if (probe->adt) {
+        return GET_ACF_FLAG_PTR(probe->adt->flag, r_type);
+      }
+      return nullptr;
+
+    default: /* unsupported */
+      return nullptr;
+  }
+}
+
+/** Light Probe expander type define. */
+static bAnimChannelType ACF_DSLIGHTPROBE = {
+    /*channel_type_name*/ "LightProbe Expander",
+    /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
+
+    /*get_backdrop_color*/ acf_generic_dataexpand_color,
+    /*get_channel_color*/ nullptr,
+    /*draw_backdrop*/ acf_generic_dataexpand_backdrop,
+    /*get_indent_level*/ acf_generic_indentation_1,
+    /*get_offset*/ acf_generic_basic_offset,
+
+    /*name*/ acf_generic_idblock_name,
+    /*name_prop*/ acf_generic_idblock_name_prop,
+    /*icon*/ acf_dslightprobe_icon,
+
+    /*has_setting*/ acf_generic_dataexpand_setting_valid,
+    /*setting_flag*/ acf_dslightprobe_setting_flag,
+    /*setting_ptr*/ acf_dslightprobe_setting_ptr,
+    /*setting_post_update*/ nullptr,
+};
+
 /* GPencil Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
@@ -4633,6 +4731,7 @@ static void ANIM_init_channel_typeinfo_data()
     animchannelTypeInfo[type++] = &ACF_DSCURVES;     /* Curves Channel */
     animchannelTypeInfo[type++] = &ACF_DSPOINTCLOUD; /* PointCloud Channel */
     animchannelTypeInfo[type++] = &ACF_DSVOLUME;     /* Volume Channel */
+    animchannelTypeInfo[type++] = &ACF_DSLIGHTPROBE; /* Light Probe */
 
     animchannelTypeInfo[type++] = &ACF_SHAPEKEY; /* ShapeKey */
 
