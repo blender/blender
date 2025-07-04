@@ -661,7 +661,7 @@ class SEQUENCER_MT_change(Menu):
             del bpy_data_scenes_len
 
         layout.operator_context = 'INVOKE_DEFAULT'
-        if strip.type in {
+        if strip and strip.type in {
             'CROSS', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
             'GAMMA_CROSS', 'MULTIPLY', 'WIPE', 'GLOW',
             'TRANSFORM', 'SPEED', 'MULTICAM', 'ADJUSTMENT',
