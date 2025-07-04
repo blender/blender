@@ -9390,8 +9390,12 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
           Py_DECREF(item); \
           return -1; \
         } \
+        Py_DECREF(item); \
       } \
-      Py_DECREF(item); \
+      else { \
+        Py_DECREF(item); \
+        item = nullptr; \
+      } \
     } \
     else { \
       PyErr_Clear(); \
