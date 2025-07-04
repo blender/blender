@@ -47,7 +47,7 @@ extern "C" {
 namespace blender::gpu {
 
 using GPUPrintFormatMap = Map<uint32_t, shader::PrintfFormat>;
-using GPUSourceDictionnary = Map<StringRef, struct GPUSource *>;
+using GPUSourceDictionnary = Map<StringRef, GPUSource *>;
 using GPUFunctionDictionnary = Map<StringRef, GPUFunction *>;
 
 struct GPUSource {

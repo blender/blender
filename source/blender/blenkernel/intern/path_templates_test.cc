@@ -399,7 +399,7 @@ TEST(path_templates, validate_and_apply_template)
 
   for (const PathTemplateTestCase &test_case : test_cases) {
     char path[FILE_MAX];
-    BLI_strncpy(path, test_case.path_in, FILE_MAX);
+    STRNCPY(path, test_case.path_in);
 
     /* Do validation first, which shouldn't modify the path. */
     const Vector<Error> validation_errors = BKE_path_validate_template(path, variables);

@@ -866,7 +866,7 @@ static blender::Vector<Error> eval_template(char *out_path,
             errors.append({ErrorType::FORMAT_SPECIFIER, token.byte_range});
             continue;
           }
-          BLI_strncpy(replacement_string, string_value->c_str(), sizeof(replacement_string));
+          STRNCPY(replacement_string, string_value->c_str());
           break;
         }
 
