@@ -19,7 +19,6 @@
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_enums.h"
-#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLF_api.hh"
@@ -41,7 +40,6 @@
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
