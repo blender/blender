@@ -17,6 +17,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation.h"
@@ -103,128 +104,167 @@ float distfactor_to_bone(const blender::float3 &position,
   }
 }
 
-/* Add the effect of one bone or B-Bone segment to the accumulated result. */
-static void pchan_deform_accumulate(const DualQuat *deform_dq,
-                                    const float deform_mat[4][4],
-                                    const float co_in[3],
-                                    const float weight,
-                                    float co_accum[3],
-                                    DualQuat *dq_accum,
-                                    float mat_accum[3][3],
-                                    const bool full_deform)
-{
-  if (weight == 0.0f) {
-    return;
-  }
+namespace blender::bke {
 
-  if (dq_accum) {
-    BLI_assert(!co_accum);
+/**
+ * Utility class for accumulating linear bone deformation.
+ * If full_deform is true the deformation matrix is also computed.
+ */
+template<bool full_deform> struct BoneDeformLinearMixer {
 
-    add_weighted_dq_dq_pivot(dq_accum, deform_dq, co_in, weight, full_deform);
-  }
-  else {
-    float tmp[3];
-    mul_v3_m4v3(tmp, deform_mat, co_in);
+  float3 position_delta = float3(0.0f);
+  float3x3 deform = float3x3::zero();
 
-    sub_v3_v3(tmp, co_in);
-    madd_v3_v3fl(co_accum, tmp, weight);
+  void accumulate(const bPoseChannel &pchan, const float3 &co, const float weight)
+  {
+    const float4x4 &pose_mat = float4x4(pchan.chan_mat);
 
-    if (full_deform) {
-      float tmpmat[3][3];
-      copy_m3_m4(tmpmat, deform_mat);
-
-      madd_m3_m3m3fl(mat_accum, mat_accum, tmpmat, weight);
+    position_delta += weight * (math::transform_point(pose_mat, co) - co);
+    if constexpr (full_deform) {
+      deform += weight * pose_mat.view<3, 3>();
     }
   }
-}
 
-static void b_bone_deform(const bPoseChannel *pchan,
-                          const float co[3],
+  void accumulate_bbone(const bPoseChannel &pchan,
+                        const float3 &co,
+                        const float weight,
+                        const int index)
+  {
+    const Span<float4x4> pose_mats = Span<Mat4>(pchan.runtime.bbone_deform_mats,
+                                                pchan.runtime.bbone_segments + 2)
+                                         .cast<float4x4>();
+    const float4x4 &pose_mat = pose_mats[index + 1];
+
+    position_delta += weight * (math::transform_point(pose_mat, co) - co);
+    if constexpr (full_deform) {
+      deform += weight * pose_mat.view<3, 3>();
+    }
+  }
+
+  void finalize(const float3 & /*co*/,
+                float total,
+                float armature_weight,
+                float3 &r_delta_co,
+                float3x3 &r_deform_mat)
+  {
+    const float scale_factor = armature_weight / total;
+    r_delta_co = position_delta * scale_factor;
+    r_deform_mat = deform * scale_factor;
+  };
+};
+
+/**
+ * Utility class for accumulating dual quaternion bone deformation.
+ * If full_deform is true the deformation matrix is also computed.
+ */
+template<bool full_deform> struct BoneDeformDualQuaternionMixer {
+  DualQuat dq = {};
+
+  void accumulate(const bPoseChannel &pchan, const float3 &co, const float weight)
+  {
+    const DualQuat &deform_quat = pchan.runtime.deform_dual_quat;
+
+    add_weighted_dq_dq_pivot(&dq, &deform_quat, co, weight, full_deform);
+  }
+
+  void accumulate_bbone(const bPoseChannel &pchan,
+                        const float3 &co,
+                        const float weight,
+                        const int index)
+  {
+    const Span<DualQuat> quats = {pchan.runtime.bbone_dual_quats,
+                                  pchan.runtime.bbone_segments + 1};
+    const DualQuat &deform_quat = quats[index];
+
+    add_weighted_dq_dq_pivot(&dq, &deform_quat, co, weight, full_deform);
+  }
+
+  void finalize(const float3 &co,
+                float total,
+                float armature_weight,
+                float3 &r_delta_co,
+                float3x3 &r_deform_mat)
+  {
+    normalize_dq(&dq, total);
+    float3 dco = co;
+    float3x3 dmat;
+    mul_v3m3_dq(dco, dmat.ptr(), &dq);
+    r_delta_co = (dco - co) * armature_weight;
+    /* Quaternion already is scale corrected. */
+    r_deform_mat = dmat;
+  }
+};
+
+/* Add interpolated deformation along a b-bone segment of the pose channel. */
+template<typename MixerT>
+static void b_bone_deform(const bPoseChannel &pchan,
+                          const float3 &co,
                           const float weight,
-                          float vec[3],
-                          DualQuat *dq,
-                          float defmat[3][3],
-                          const bool full_deform)
+                          MixerT &mixer)
 {
-  const DualQuat *quats = pchan->runtime.bbone_dual_quats;
-  const Mat4 *mats = pchan->runtime.bbone_deform_mats;
-  float blend;
-  int index;
-
   /* Calculate the indices of the 2 affecting b_bone segments. */
-  BKE_pchan_bbone_deform_segment_index(pchan, co, &index, &blend);
+  int index;
+  float blend;
+  BKE_pchan_bbone_deform_segment_index(&pchan, co, &index, &blend);
 
-  pchan_deform_accumulate(&quats[index],
-                          mats[index + 1].mat,
-                          co,
-                          weight * (1.0f - blend),
-                          vec,
-                          dq,
-                          defmat,
-                          full_deform);
-  pchan_deform_accumulate(
-      &quats[index + 1], mats[index + 2].mat, co, weight * blend, vec, dq, defmat, full_deform);
+  mixer.accumulate_bbone(pchan, co, weight * (1.0f - blend), index);
+  mixer.accumulate_bbone(pchan, co, weight * blend, index + 1);
 }
 
-static float dist_bone_deform(const bPoseChannel *pchan,
-                              float vec[3],
-                              DualQuat *dq,
-                              float mat[3][3],
-                              const float co[3],
-                              const bool full_deform)
+/* Add bone deformation based on envelope distance. */
+template<typename MixerT>
+static float dist_bone_deform(const bPoseChannel &pchan, const float3 &co, MixerT &mixer)
 {
-  const Bone *bone = pchan->bone;
-  float fac, contrib = 0.0;
-
-  if (bone == nullptr) {
+  const Bone *bone = pchan.bone;
+  if (bone == nullptr || bone->weight == 0.0f) {
     return 0.0f;
   }
 
-  fac = distfactor_to_bone(
-      co, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
-
-  if (fac > 0.0f) {
-    fac *= bone->weight;
-    contrib = fac;
-    if (contrib > 0.0f) {
-      if (bone->segments > 1 && pchan->runtime.bbone_segments == bone->segments) {
-        b_bone_deform(pchan, co, fac, vec, dq, mat, full_deform);
-      }
-      else {
-        pchan_deform_accumulate(
-            &pchan->runtime.deform_dual_quat, pchan->chan_mat, co, fac, vec, dq, mat, full_deform);
-      }
-    }
+  const float fac = distfactor_to_bone(co,
+                                       float3(bone->arm_head),
+                                       float3(bone->arm_tail),
+                                       bone->rad_head,
+                                       bone->rad_tail,
+                                       bone->dist);
+  if (fac == 0.0f) {
+    return 0.0f;
   }
 
-  return contrib;
-}
-
-static void pchan_bone_deform(const bPoseChannel *pchan,
-                              const float weight,
-                              float vec[3],
-                              DualQuat *dq,
-                              float mat[3][3],
-                              const float co[3],
-                              const bool full_deform,
-                              float *contrib)
-{
-  const Bone *bone = pchan->bone;
-
-  if (!weight) {
-    return;
-  }
-
-  if (bone->segments > 1 && pchan->runtime.bbone_segments == bone->segments) {
-    b_bone_deform(pchan, co, weight, vec, dq, mat, full_deform);
+  const float weight = fac * bone->weight;
+  if (bone->segments > 1 && pchan.runtime.bbone_segments == bone->segments) {
+    b_bone_deform(pchan, co, weight, mixer);
   }
   else {
-    pchan_deform_accumulate(
-        &pchan->runtime.deform_dual_quat, pchan->chan_mat, co, weight, vec, dq, mat, full_deform);
+    mixer.accumulate(pchan, co, weight);
   }
 
-  (*contrib) += weight;
+  return weight;
 }
+
+/* Add bone deformation based on vertex group weight. */
+template<typename MixerT>
+static float pchan_bone_deform(const bPoseChannel &pchan,
+                               const float weight,
+                               const float3 &co,
+                               MixerT &mixer)
+{
+  const Bone *bone = pchan.bone;
+
+  if (!weight) {
+    return 0.0f;
+  }
+
+  if (bone->segments > 1 && pchan.runtime.bbone_segments == bone->segments) {
+    b_bone_deform(pchan, co, weight, mixer);
+  }
+  else {
+    mixer.accumulate(pchan, co, weight);
+  }
+
+  return weight;
+}
+
+}  // namespace blender::bke
 
 /** \} */
 
@@ -234,12 +274,12 @@ static void pchan_bone_deform(const bPoseChannel *pchan,
  * #BKE_armature_deform_coords and related functions.
  * \{ */
 
+namespace blender::bke {
+
 struct ArmatureUserdata {
-  const Object *ob_arm;
-  const Mesh *me_target;
-  float (*vert_coords)[3];
-  float (*vert_deform_mats)[3][3];
-  float (*vert_coords_prev)[3];
+  MutableSpan<float3> vert_coords;
+  std::optional<MutableSpan<float3x3>> vert_deform_mats;
+  std::optional<Span<float3>> vert_coords_prev;
 
   bool use_envelope;
   bool use_quaternion;
@@ -248,188 +288,215 @@ struct ArmatureUserdata {
 
   int armature_def_nr;
 
-  const MDeformVert *dverts;
-  int dverts_len;
+  /* List of all pose channels on the target object. */
+  ConstListBaseWrapper<bPoseChannel> pose_channels = {{nullptr, nullptr}};
+  /* Maps vertex group index (def_nr) to pose channels, if vertex groups are used.
+   * Vertex groups used for deform can be different from the target object vertex groups list,
+   * the def_nr needs to be mapped to the correct pose channel first. */
+  Array<bPoseChannel *> pose_channel_by_vertex_group;
 
-  bPoseChannel **pchan_from_defbase;
-  int defbase_len;
+  float4x4 target_to_armature;
+  float4x4 armature_to_target;
 
-  float premat[4][4];
-  float postmat[4][4];
-
-  /** Specific data types. */
+  const Mesh *me_target;
+  std::optional<Span<MDeformVert>> dverts;
   struct {
     int cd_dvert_offset;
   } bmesh;
 };
 
-static void armature_vert_task_with_dvert(const ArmatureUserdata *data,
-                                          const int i,
-                                          const MDeformVert *dvert)
+static ArmatureUserdata get_armature_deform_data(
+    const Object &ob_arm,
+    const Object &ob_target,
+    const ListBase *defbase,
+    MutableSpan<float3> vert_coords,
+    std::optional<Span<float3>> vert_coords_prev,
+    std::optional<MutableSpan<float3x3>> vert_deform_mats,
+    const int deformflag,
+    blender::StringRefNull defgrp_name,
+    const bool use_dverts,
+    const Mesh *me_target,
+    const std::optional<Span<MDeformVert>> dverts,
+    std::optional<int> cd_dvert_offset)
 {
-  float(*const vert_coords)[3] = data->vert_coords;
-  float(*const vert_deform_mats)[3][3] = data->vert_deform_mats;
-  float(*const vert_coords_prev)[3] = data->vert_coords_prev;
-  const bool use_envelope = data->use_envelope;
-  const bool use_quaternion = data->use_quaternion;
-  const bool use_dverts = data->use_dverts;
-  const int armature_def_nr = data->armature_def_nr;
+  const bool dverts_supported = BKE_object_supports_vertex_groups(&ob_target);
 
-  DualQuat sumdq = {}, *dq = nullptr;
-  const bPoseChannel *pchan;
-  float *co, dco[3];
-  float sumvec[3], summat[3][3];
-  float *vec = nullptr, (*smat)[3] = nullptr;
-  float contrib = 0.0f;
-  float armature_weight = 1.0f; /* default to 1 if no overall def group */
-  float prevco_weight = 0.0f;   /* weight for optional cached vertexcos */
+  ArmatureUserdata data{};
+  data.vert_coords = vert_coords;
+  data.vert_deform_mats = vert_deform_mats;
+  data.vert_coords_prev = vert_coords_prev;
+  data.use_envelope = bool(deformflag & ARM_DEF_ENVELOPE);
+  data.use_quaternion = bool(deformflag & ARM_DEF_QUATERNION);
+  data.invert_vgroup = bool(deformflag & ARM_DEF_INVERT_VGROUP);
 
-  const bool full_deform = vert_deform_mats != nullptr;
-
-  if (use_quaternion) {
-    dq = &sumdq;
-  }
-  else {
-    zero_v3(sumvec);
-    vec = sumvec;
-
-    if (full_deform) {
-      zero_m3(summat);
-      smat = summat;
+  data.pose_channels = {ob_arm.pose->chanbase};
+  data.use_dverts = dverts_supported && use_dverts && (deformflag & ARM_DEF_VGROUP);
+  if (data.use_dverts) {
+    const int defbase_len = BLI_listbase_count(defbase);
+    data.pose_channel_by_vertex_group.reinitialize(defbase_len);
+    /* TODO(sergey): Some considerations here:
+     *
+     * - Check whether keeping this consistent across frames gives speedup.
+     */
+    int i;
+    LISTBASE_FOREACH_INDEX (bDeformGroup *, dg, defbase, i) {
+      bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm.pose, dg->name);
+      /* Exclude non-deforming bones. */
+      data.pose_channel_by_vertex_group[i] = (pchan && !(pchan->bone->flag & BONE_NO_DEFORM)) ?
+                                                 pchan :
+                                                 nullptr;
     }
   }
 
-  if (armature_def_nr != -1 && dvert) {
-    armature_weight = BKE_defvert_find_weight(dvert, armature_def_nr);
+  /* Index of singular vertex group, if used. */
+  data.armature_def_nr = dverts_supported ? BKE_defgroup_name_index(defbase, defgrp_name) : -1;
 
-    if (data->invert_vgroup) {
-      armature_weight = 1.0f - armature_weight;
-    }
+  data.me_target = me_target;
+  data.dverts = dverts;
+  data.bmesh.cd_dvert_offset = cd_dvert_offset ? *cd_dvert_offset : -1;
 
-    /* hackish: the blending factor can be used for blending with vert_coords_prev too */
-    if (vert_coords_prev) {
-      /* This weight specifies the contribution from the coordinates at the start of this
-       * modifier evaluation, while armature_weight is normally the opposite of that. */
-      prevco_weight = 1.0f - armature_weight;
-      armature_weight = 1.0f;
-    }
-  }
+/* TODO using the existing matrices directly is better, but fails tests because old code was
+ * doing a double-inverse of the object matrix, leading to small differences on the order of 10^-5.
+ * Test data needs to be updated if the transforms change. */
+#if 0
+  data.target_to_armature = ob_arm.world_to_object() * ob_target.object_to_world();
+  data.armature_to_target = ob_target.world_to_object() * ob_arm.object_to_world();
+#else
+  data.armature_to_target = ob_target.world_to_object() * ob_arm.object_to_world();
+  data.target_to_armature = math::invert(data.armature_to_target);
+#endif
 
-  /* check if there's any  point in calculating for this vert */
-  if (vert_coords_prev) {
-    if (prevco_weight == 1.0f) {
-      return;
-    }
+  return data;
+}
 
-    /* get the coord we work on */
-    co = vert_coords_prev[i];
-  }
-  else {
-    if (armature_weight == 0.0f) {
-      return;
-    }
+/* Accumulate bone deformations using the mixer implementation. */
+template<typename MixerT>
+static void armature_vert_task_with_mixer(const ArmatureUserdata &data,
+                                          const int i,
+                                          const MDeformVert *dvert,
+                                          MixerT &mixer)
+{
+  const bool full_deform = data.vert_deform_mats.has_value();
 
-    /* get the coord we work on */
-    co = vert_coords[i];
-  }
-
-  /* Apply the object's matrix */
-  mul_m4_v3(data->premat, co);
-
-  if (use_dverts && dvert && dvert->totweight) { /* use weight groups ? */
-    const MDeformWeight *dw = dvert->dw;
-    int deformed = 0;
-    uint j;
-    for (j = dvert->totweight; j != 0; j--, dw++) {
-      const uint index = dw->def_nr;
-      if (index >= data->defbase_len) {
-        continue;
+  /* Overall influence, can change by masking with a vertex group. */
+  float armature_weight = 1.0f;
+  float prevco_weight = 0.0f; /* weight for optional cached vertexcos */
+  if (data.armature_def_nr != -1 && dvert) {
+    const float mask_weight = BKE_defvert_find_weight(dvert, data.armature_def_nr);
+    /* On multi-modifier the mask is used to blend with previous coordinates. */
+    if (data.vert_coords_prev) {
+      prevco_weight = data.invert_vgroup ? mask_weight : 1.0f - mask_weight;
+      if (prevco_weight == 1.0f) {
+        return;
       }
-      pchan = data->pchan_from_defbase[index];
+    }
+    else {
+      armature_weight = data.invert_vgroup ? 1.0f - mask_weight : mask_weight;
+      if (armature_weight == 0.0f) {
+        return;
+      }
+    }
+  }
+
+  /* Input coordinates to start from. */
+  float3 co = data.vert_coords_prev ? (*data.vert_coords_prev)[i] : data.vert_coords[i];
+  /* Transform to armature space. */
+  co = math::transform_point(data.target_to_armature, co);
+
+  float contrib = 0.0f;
+  bool deformed = false;
+  /* Apply vertex group deformation if enabled. */
+  if (data.use_dverts && dvert) {
+    /* Range of valid def_nr in MDeformWeight. */
+    const IndexRange def_nr_range = data.pose_channel_by_vertex_group.index_range();
+    const Span<MDeformWeight> dweights(dvert->dw, dvert->totweight);
+    for (const auto &dw : dweights) {
+      const bPoseChannel *pchan = def_nr_range.contains(dw.def_nr) ?
+                                      data.pose_channel_by_vertex_group[dw.def_nr] :
+                                      nullptr;
       if (pchan == nullptr) {
         continue;
       }
 
-      float weight = dw->weight;
+      float weight = dw.weight;
+
+      /* Bone option to mix with envelope weight. */
       const Bone *bone = pchan->bone;
-
-      deformed = 1;
-
       if (bone && bone->flag & BONE_MULT_VG_ENV) {
-        weight *= distfactor_to_bone(
-            co, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
+        weight *= distfactor_to_bone(co,
+                                     float3(bone->arm_head),
+                                     float3(bone->arm_tail),
+                                     bone->rad_head,
+                                     bone->rad_tail,
+                                     bone->dist);
       }
 
-      pchan_bone_deform(pchan, weight, vec, dq, smat, co, full_deform, &contrib);
-    }
-    /* If there are vertex-groups but not groups with bones (like for soft-body groups). */
-    if (deformed == 0 && use_envelope) {
-      for (pchan = static_cast<const bPoseChannel *>(data->ob_arm->pose->chanbase.first); pchan;
-           pchan = pchan->next)
-      {
-        if (!(pchan->bone->flag & BONE_NO_DEFORM)) {
-          contrib += dist_bone_deform(pchan, vec, dq, smat, co, full_deform);
-        }
-      }
+      contrib += pchan_bone_deform(*pchan, weight, co, mixer);
+      deformed = true;
     }
   }
-  else if (use_envelope) {
-    for (pchan = static_cast<const bPoseChannel *>(data->ob_arm->pose->chanbase.first); pchan;
-         pchan = pchan->next)
-    {
+  /* Use envelope if enabled and no bone deformed the vertex yet. */
+  if (!deformed && data.use_envelope) {
+    for (const bPoseChannel *pchan : data.pose_channels) {
       if (!(pchan->bone->flag & BONE_NO_DEFORM)) {
-        contrib += dist_bone_deform(pchan, vec, dq, smat, co, full_deform);
+        contrib += dist_bone_deform(*pchan, co, mixer);
       }
     }
   }
 
-  /* actually should be EPSILON? weight values and contrib can be like 10e-39 small */
-  if (contrib > 0.0001f) {
-    if (use_quaternion) {
-      normalize_dq(dq, contrib);
+  /* TODO Actually should be EPSILON? Weight values and contrib can be like 10e-39 small. */
+  constexpr float contrib_threshold = 0.0001f;
+  if (contrib > contrib_threshold) {
+    float3 delta_co;
+    float3x3 local_deform_mat;
+    mixer.finalize(co, contrib, armature_weight, delta_co, local_deform_mat);
 
-      if (armature_weight != 1.0f) {
-        copy_v3_v3(dco, co);
-        mul_v3m3_dq(dco, full_deform ? summat : nullptr, dq);
-        sub_v3_v3(dco, co);
-        mul_v3_fl(dco, armature_weight);
-        add_v3_v3(co, dco);
-      }
-      else {
-        mul_v3m3_dq(co, full_deform ? summat : nullptr, dq);
-      }
+    co += delta_co;
+    if (full_deform) {
+      float3x3 &deform_mat = (*data.vert_deform_mats)[i];
+      const float3x3 armature_to_target = data.armature_to_target.view<3, 3>();
+      const float3x3 target_to_armature = data.target_to_armature.view<3, 3>();
+      deform_mat = armature_to_target * local_deform_mat * target_to_armature * deform_mat;
+    }
+  }
 
-      smat = summat;
+  /* Transform back to target object space. */
+  co = math::transform_point(data.armature_to_target, co);
+
+  /* Multi-modifier: Interpolate with previous modifier position using the vertex group mask. */
+  if (data.vert_coords_prev) {
+    copy_v3_v3(data.vert_coords[i], math::interpolate(co, data.vert_coords[i], prevco_weight));
+  }
+  else {
+    copy_v3_v3(data.vert_coords[i], co);
+  }
+}
+
+/* Accumulate bone deformations for a vertex. */
+static void armature_vert_task_with_dvert(const ArmatureUserdata &data,
+                                          const int i,
+                                          const MDeformVert *dvert)
+{
+  const bool full_deform = data.vert_deform_mats.has_value();
+  if (data.use_quaternion) {
+    if (full_deform) {
+      bke::BoneDeformDualQuaternionMixer<true> mixer;
+      armature_vert_task_with_mixer(data, i, dvert, mixer);
     }
     else {
-      mul_v3_fl(vec, armature_weight / contrib);
-      add_v3_v3v3(co, vec, co);
-    }
-
-    if (full_deform) {
-      float pre[3][3], post[3][3], tmpmat[3][3];
-
-      copy_m3_m4(pre, data->premat);
-      copy_m3_m4(post, data->postmat);
-      copy_m3_m3(tmpmat, vert_deform_mats[i]);
-
-      if (!use_quaternion) { /* quaternion already is scale corrected */
-        mul_m3_fl(smat, armature_weight / contrib);
-      }
-
-      mul_m3_series(vert_deform_mats[i], post, smat, pre, tmpmat);
+      bke::BoneDeformDualQuaternionMixer<false> mixer;
+      armature_vert_task_with_mixer(data, i, dvert, mixer);
     }
   }
-
-  /* always, check above code */
-  mul_m4_v3(data->postmat, co);
-
-  /* interpolate with previous modifier position using weight group */
-  if (vert_coords_prev) {
-    float mw = 1.0f - prevco_weight;
-    vert_coords[i][0] = prevco_weight * vert_coords[i][0] + mw * co[0];
-    vert_coords[i][1] = prevco_weight * vert_coords[i][1] + mw * co[1];
-    vert_coords[i][2] = prevco_weight * vert_coords[i][2] + mw * co[2];
+  else {
+    if (full_deform) {
+      bke::BoneDeformLinearMixer<true> mixer;
+      armature_vert_task_with_mixer(data, i, dvert, mixer);
+    }
+    else {
+      bke::BoneDeformLinearMixer<false> mixer;
+      armature_vert_task_with_mixer(data, i, dvert, mixer);
+    }
   }
 }
 
@@ -442,15 +509,15 @@ static void armature_vert_task(void *__restrict userdata,
   if (data->use_dverts || data->armature_def_nr != -1) {
     if (data->me_target) {
       BLI_assert(i < data->me_target->verts_num);
-      if (data->dverts != nullptr) {
-        dvert = data->dverts + i;
+      if (data->dverts.has_value()) {
+        dvert = &(*data->dverts)[i];
       }
       else {
         dvert = nullptr;
       }
     }
-    else if (data->dverts && i < data->dverts_len) {
-      dvert = data->dverts + i;
+    else if (data->dverts && i < data->dverts->size()) {
+      dvert = &(*data->dverts)[i];
     }
     else {
       dvert = nullptr;
@@ -460,7 +527,7 @@ static void armature_vert_task(void *__restrict userdata,
     dvert = nullptr;
   }
 
-  armature_vert_task_with_dvert(data, i, dvert);
+  armature_vert_task_with_dvert(*data, i, dvert);
 }
 
 static void armature_vert_task_editmesh(void *__restrict userdata,
@@ -471,7 +538,7 @@ static void armature_vert_task_editmesh(void *__restrict userdata,
   BMVert *v = (BMVert *)iter;
   const MDeformVert *dvert = static_cast<const MDeformVert *>(
       BM_ELEM_CD_GET_VOID_P(v, data->bmesh.cd_dvert_offset));
-  armature_vert_task_with_dvert(data, BM_elem_index_get(v), dvert);
+  armature_vert_task_with_dvert(*data, BM_elem_index_get(v), dvert);
 }
 
 static void armature_vert_task_editmesh_no_dvert(void *__restrict userdata,
@@ -480,30 +547,25 @@ static void armature_vert_task_editmesh_no_dvert(void *__restrict userdata,
 {
   const ArmatureUserdata *data = static_cast<const ArmatureUserdata *>(userdata);
   BMVert *v = (BMVert *)iter;
-  armature_vert_task_with_dvert(data, BM_elem_index_get(v), nullptr);
+  armature_vert_task_with_dvert(*data, BM_elem_index_get(v), nullptr);
 }
 
-static void armature_deform_coords_impl(const Object *ob_arm,
-                                        const Object *ob_target,
-                                        const ListBase *defbase,
-                                        float (*vert_coords)[3],
-                                        float (*vert_deform_mats)[3][3],
-                                        const int vert_coords_len,
-                                        const int deformflag,
-                                        float (*vert_coords_prev)[3],
-                                        const char *defgrp_name,
-                                        blender::Span<MDeformVert> dverts,
-                                        const Mesh *me_target,
-                                        const BMEditMesh *em_target)
+static void armature_deform_coords_impl(
+    const Object *ob_arm,
+    const Object *ob_target,
+    const ListBase *defbase,
+    const MutableSpan<float3> vert_coords,
+    const std::optional<MutableSpan<float3x3>> vert_deform_mats,
+    const int vert_coords_len,
+    const int deformflag,
+    const std::optional<Span<float3>> vert_coords_prev,
+    const char *defgrp_name,
+    const Span<MDeformVert> dverts,
+    const Mesh *me_target,
+    const BMEditMesh *em_target)
 {
   const bArmature *arm = static_cast<const bArmature *>(ob_arm->data);
-  bPoseChannel **pchan_from_defbase = nullptr;
-  const bool use_envelope = (deformflag & ARM_DEF_ENVELOPE) != 0;
-  const bool use_quaternion = (deformflag & ARM_DEF_QUATERNION) != 0;
-  const bool invert_vgroup = (deformflag & ARM_DEF_INVERT_VGROUP) != 0;
-  int defbase_len = 0; /* Safety for vertex-group index overflow. */
   bool use_dverts = false;
-  int armature_def_nr = -1;
   int cd_dvert_offset = -1;
 
   /* in editmode, or not an armature */
@@ -519,10 +581,6 @@ static void armature_deform_coords_impl(const Object *ob_arm,
   }
 
   if (BKE_object_supports_vertex_groups(ob_target)) {
-    /* Collect the vertex group names from the evaluated data. */
-    armature_def_nr = BKE_defgroup_name_index(defbase, defgrp_name);
-    defbase_len = BLI_listbase_count(defbase);
-
     /* Get a vertex-deform-index to pose-channel array. */
     if (deformflag & ARM_DEF_VGROUP) {
       /* if we have a Mesh, only use dverts if it has them */
@@ -536,49 +594,21 @@ static void armature_deform_coords_impl(const Object *ob_arm,
       else if (dverts.size() == vert_coords_len) {
         use_dverts = true;
       }
-
-      if (use_dverts) {
-        pchan_from_defbase = MEM_calloc_arrayN<bPoseChannel *>(defbase_len, "defnrToBone");
-        /* TODO(sergey): Some considerations here:
-         *
-         * - Check whether keeping this consistent across frames gives speedup.
-         */
-        int i;
-        LISTBASE_FOREACH_INDEX (bDeformGroup *, dg, defbase, i) {
-          pchan_from_defbase[i] = BKE_pose_channel_find_name(ob_arm->pose, dg->name);
-          /* exclude non-deforming bones */
-          if (pchan_from_defbase[i]) {
-            if (pchan_from_defbase[i]->bone->flag & BONE_NO_DEFORM) {
-              pchan_from_defbase[i] = nullptr;
-            }
-          }
-        }
-      }
     }
   }
 
-  ArmatureUserdata data{};
-  data.ob_arm = ob_arm;
-  data.me_target = me_target;
-  data.vert_coords = vert_coords;
-  data.vert_deform_mats = vert_deform_mats;
-  data.vert_coords_prev = vert_coords_prev;
-  data.use_envelope = use_envelope;
-  data.use_quaternion = use_quaternion;
-  data.invert_vgroup = invert_vgroup;
-  data.use_dverts = use_dverts;
-  data.armature_def_nr = armature_def_nr;
-  data.dverts = dverts.data();
-  data.dverts_len = dverts.size();
-  data.pchan_from_defbase = pchan_from_defbase;
-  data.defbase_len = defbase_len;
-  data.bmesh.cd_dvert_offset = cd_dvert_offset;
-
-  float obinv[4][4];
-  invert_m4_m4(obinv, ob_target->object_to_world().ptr());
-
-  mul_m4_m4m4(data.postmat, obinv, ob_arm->object_to_world().ptr());
-  invert_m4_m4(data.premat, data.postmat);
+  ArmatureUserdata data = get_armature_deform_data(*ob_arm,
+                                                   *ob_target,
+                                                   defbase,
+                                                   vert_coords,
+                                                   vert_coords_prev,
+                                                   vert_deform_mats,
+                                                   deformflag,
+                                                   defgrp_name,
+                                                   use_dverts,
+                                                   me_target,
+                                                   dverts,
+                                                   cd_dvert_offset);
 
   if (em_target != nullptr) {
     /* While this could cause an extra loop over mesh data, in most cases this will
@@ -603,11 +633,9 @@ static void armature_deform_coords_impl(const Object *ob_arm,
     settings.min_iter_per_thread = 32;
     BLI_task_parallel_range(0, vert_coords_len, &data, armature_vert_task, &settings);
   }
-
-  if (pchan_from_defbase) {
-    MEM_freeN(pchan_from_defbase);
-  }
 }
+
+}  // namespace blender::bke
 
 void BKE_armature_deform_coords_with_curves(
     const Object &ob_arm,
@@ -620,29 +648,24 @@ void BKE_armature_deform_coords_with_curves(
     int deformflag,
     blender::StringRefNull defgrp_name)
 {
+  using namespace blender;
+
   /* Vertex groups must be provided explicitly, cannot rely on object vertex groups since this is
    * used for Grease Pencil layers as well. */
   BLI_assert(dverts.size() == vert_coords.size());
 
-  blender::float3 *vert_coords_prev_data = nullptr;
-  if (vert_coords_prev.has_value()) {
-    /* const_cast for old positions for the C API, these are not actually written. */
-    vert_coords_prev_data = const_cast<blender::float3 *>(vert_coords_prev->data());
-  }
-
-  armature_deform_coords_impl(
-      &ob_arm,
-      &ob_target,
-      defbase,
-      reinterpret_cast<float(*)[3]>(vert_coords.data()),
-      vert_deform_mats ? reinterpret_cast<float(*)[3][3]>(vert_deform_mats->data()) : nullptr,
-      vert_coords.size(),
-      deformflag,
-      reinterpret_cast<float(*)[3]>(vert_coords_prev_data),
-      defgrp_name.c_str(),
-      dverts,
-      nullptr,
-      nullptr);
+  bke::armature_deform_coords_impl(&ob_arm,
+                                   &ob_target,
+                                   defbase,
+                                   vert_coords,
+                                   vert_deform_mats,
+                                   vert_coords.size(),
+                                   deformflag,
+                                   vert_coords_prev,
+                                   defgrp_name.c_str(),
+                                   dverts,
+                                   nullptr,
+                                   nullptr);
 }
 
 void BKE_armature_deform_coords_with_mesh(const Object *ob_arm,
@@ -655,6 +678,8 @@ void BKE_armature_deform_coords_with_mesh(const Object *ob_arm,
                                           const char *defgrp_name,
                                           const Mesh *me_target)
 {
+  using namespace blender;
+
   /* Note armature modifier on legacy curves calls this, so vertex groups are not guaranteed to
    * exist. */
   const ID *id_target = static_cast<const ID *>(ob_target->data);
@@ -680,18 +705,27 @@ void BKE_armature_deform_coords_with_mesh(const Object *ob_arm,
     dverts = blender::Span<MDeformVert>(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
   }
 
-  armature_deform_coords_impl(ob_arm,
-                              ob_target,
-                              defbase,
-                              vert_coords,
-                              vert_deform_mats,
-                              vert_coords_len,
-                              deformflag,
-                              vert_coords_prev,
-                              defgrp_name,
-                              dverts,
-                              me_target,
-                              nullptr);
+  MutableSpan<float3> vert_coords_span(reinterpret_cast<float3 *>(vert_coords), vert_coords_len);
+  std::optional<MutableSpan<float3x3>> vert_deform_mats_span;
+  if (vert_deform_mats) {
+    vert_deform_mats_span = {reinterpret_cast<float3x3 *>(vert_deform_mats), vert_coords_len};
+  }
+  std::optional<Span<float3>> vert_coords_prev_span;
+  if (vert_coords_prev) {
+    vert_coords_prev_span = {reinterpret_cast<const float3 *>(vert_coords_prev), vert_coords_len};
+  }
+  bke::armature_deform_coords_impl(ob_arm,
+                                   ob_target,
+                                   defbase,
+                                   vert_coords_span,
+                                   vert_deform_mats_span,
+                                   vert_coords_len,
+                                   deformflag,
+                                   vert_coords_prev_span,
+                                   defgrp_name,
+                                   dverts,
+                                   me_target,
+                                   nullptr);
 }
 
 void BKE_armature_deform_coords_with_editmesh(const Object *ob_arm,
@@ -704,19 +738,31 @@ void BKE_armature_deform_coords_with_editmesh(const Object *ob_arm,
                                               const char *defgrp_name,
                                               const BMEditMesh *em_target)
 {
+  using namespace blender;
+
   const ListBase *defbase = BKE_id_defgroup_list_get(static_cast<const ID *>(ob_target->data));
-  armature_deform_coords_impl(ob_arm,
-                              ob_target,
-                              defbase,
-                              vert_coords,
-                              vert_deform_mats,
-                              vert_coords_len,
-                              deformflag,
-                              vert_coords_prev,
-                              defgrp_name,
-                              {},
-                              nullptr,
-                              em_target);
+
+  MutableSpan<float3> vert_coords_span(reinterpret_cast<float3 *>(vert_coords), vert_coords_len);
+  std::optional<MutableSpan<float3x3>> vert_deform_mats_span;
+  if (vert_deform_mats) {
+    vert_deform_mats_span = {reinterpret_cast<float3x3 *>(vert_deform_mats), vert_coords_len};
+  }
+  std::optional<Span<float3>> vert_coords_prev_span;
+  if (vert_coords_prev) {
+    vert_coords_prev_span = {reinterpret_cast<const float3 *>(vert_coords_prev), vert_coords_len};
+  }
+  bke::armature_deform_coords_impl(ob_arm,
+                                   ob_target,
+                                   defbase,
+                                   vert_coords_span,
+                                   vert_deform_mats_span,
+                                   vert_coords_len,
+                                   deformflag,
+                                   vert_coords_prev_span,
+                                   defgrp_name,
+                                   {},
+                                   nullptr,
+                                   em_target);
 }
 
 /** \} */
