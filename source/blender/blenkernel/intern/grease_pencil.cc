@@ -3363,6 +3363,9 @@ void GreasePencil::move_duplicate_frames(
 const blender::bke::greasepencil::Drawing *GreasePencil::get_drawing_at(
     const blender::bke::greasepencil::Layer &layer, const int frame_number) const
 {
+  if (this->drawings().is_empty()) {
+    return nullptr;
+  }
   const int drawing_index = layer.drawing_index_at(frame_number);
   if (drawing_index == -1) {
     /* No drawing found. */
@@ -3380,6 +3383,9 @@ const blender::bke::greasepencil::Drawing *GreasePencil::get_drawing_at(
 blender::bke::greasepencil::Drawing *GreasePencil::get_drawing_at(
     const blender::bke::greasepencil::Layer &layer, const int frame_number)
 {
+  if (this->drawings().is_empty()) {
+    return nullptr;
+  }
   const int drawing_index = layer.drawing_index_at(frame_number);
   if (drawing_index == -1) {
     /* No drawing found. */
@@ -3400,7 +3406,9 @@ blender::bke::greasepencil::Drawing *GreasePencil::get_editable_drawing_at(
   if (!layer.is_editable()) {
     return nullptr;
   }
-
+  if (this->drawings().is_empty()) {
+    return nullptr;
+  }
   const int drawing_index = layer.drawing_index_at(frame_number);
   if (drawing_index == -1) {
     /* No drawing found. */
