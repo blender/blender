@@ -9232,7 +9232,6 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
   StructRNA *srna_base = RNA_struct_base(srna);
   PyObject *py_class = (PyObject *)py_data;
   PyObject *base_class = static_cast<PyObject *>(RNA_struct_py_type_get(srna));
-  PyObject *item;
   int i, arg_count, func_arg_count, func_arg_min_count = 0;
   const char *py_class_name = ((PyTypeObject *)py_class)->tp_name; /* __name__ */
 
@@ -9262,21 +9261,31 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
       continue;
     }
 
-    item = PyObject_GetAttrString(py_class, RNA_function_identifier(func));
+    PyObject *item;
+    switch (PyObject_GetOptionalAttrString(py_class, RNA_function_identifier(func), &item)) {
+      case 1: {
+        break;
+      }
+      case 0: {
+        if ((flag & (FUNC_REGISTER_OPTIONAL & ~FUNC_REGISTER)) == 0) {
+          PyErr_Format(PyExc_AttributeError,
+                       "expected %.200s, %.200s class to have an \"%.200s\" attribute",
+                       class_type,
+                       py_class_name,
+                       RNA_function_identifier(func));
+          return -1;
+        }
+        break;
+      }
+      case -1: { /* Unexpected error, an exception will have been raise. */
+        return -1;
+      }
+    }
+
     have_function[i] = (item != nullptr);
     i++;
 
     if (item == nullptr) {
-      if ((flag & (FUNC_REGISTER_OPTIONAL & ~FUNC_REGISTER)) == 0) {
-        PyErr_Format(PyExc_AttributeError,
-                     "expected %.200s, %.200s class to have an \"%.200s\" attribute",
-                     class_type,
-                     py_class_name,
-                     RNA_function_identifier(func));
-        return -1;
-      }
-      PyErr_Clear();
-
       continue;
     }
 
@@ -9360,10 +9369,18 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
     Py_DECREF(item_orig);
   }
 
+  /* Allow Python `__name__` to be used for `bl_idname` for convenience. */
+  struct {
+    const char *rna_attr;
+    PyObject *py_attr;
+  } bpy_property_substitutions[] = {
+      {"bl_idname", bpy_intern_str___name__},
+      {"bl_description", bpy_intern_str___doc__},
+  };
+
   /* Verify properties. */
   lb = RNA_struct_type_properties(srna);
   LISTBASE_FOREACH (Link *, link, lb) {
-    const char *identifier;
     PropertyRNA *prop = (PropertyRNA *)link;
     const int flag = RNA_property_flag(prop);
 
@@ -9371,58 +9388,67 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
       continue;
     }
 
-    /* TODO(@ideasman42): Use #PyObject_GetOptionalAttr(), also in the macro below. */
-    identifier = RNA_property_identifier(prop);
-    item = PyObject_GetAttrString(py_class, identifier);
-
-    if (item == nullptr) {
-      PyErr_Clear();
-      /* Sneaky workaround to use the class name as the bl_idname. */
-
-#define BPY_REPLACEMENT_STRING(rna_attr, py_attr) \
-  else if (STREQ(identifier, rna_attr)) { \
-    if ((item = PyObject_GetAttr(py_class, py_attr))) { \
-      if (item != Py_None) { \
-        if (pyrna_py_to_prop(dummy_ptr, prop, nullptr, item, "validating class:") != 0) { \
-          Py_DECREF(item); \
-          return -1; \
-        } \
-        Py_DECREF(item); \
-      } \
-      else { \
-        Py_DECREF(item); \
-        item = nullptr; \
-      } \
-    } \
-    else { \
-      PyErr_Clear(); \
-    } \
-  } /* Intentionally allow else here. */
-
-      if (false) {
-      } /* Needed for macro. */
-      BPY_REPLACEMENT_STRING("bl_idname", bpy_intern_str___name__)
-      BPY_REPLACEMENT_STRING("bl_description", bpy_intern_str___doc__)
-
-#undef BPY_REPLACEMENT_STRING
-
-      if (item == nullptr && ((flag & PROP_REGISTER_OPTIONAL) != PROP_REGISTER_OPTIONAL)) {
-        PyErr_Format(PyExc_AttributeError,
-                     "expected %.200s, %.200s class to have an \"%.200s\" attribute",
-                     class_type,
-                     py_class_name,
-                     identifier);
-        return -1;
-      }
-
-      PyErr_Clear();
-    }
-    else {
-      if (pyrna_py_to_prop(dummy_ptr, prop, nullptr, item, "validating class:") != 0) {
+    const char *identifier = RNA_property_identifier(prop);
+    PyObject *item = nullptr;
+    switch (PyObject_GetOptionalAttrString(py_class, identifier, &item)) {
+      case 1: { /* Found. */
+        if (pyrna_py_to_prop(dummy_ptr, prop, nullptr, item, "validating class:") != 0) {
+          Py_DECREF(item);
+          return -1;
+        }
         Py_DECREF(item);
-        return -1;
+        break;
       }
-      Py_DECREF(item);
+      case -1: { /* Not found (an unexpected error). */
+        /* Typically the attribute will exist or not, in previous releases all errors
+         * were assumed to be missing attributes, so print the error and move on. */
+        PyErr_Print();
+        [[fallthrough]];
+      }
+      case 0: { /* Not found, check for fallbacks. */
+
+        /* Sneaky workaround to use the class name as the `bl_idname`. */
+        int i;
+        for (i = 0; i < ARRAY_SIZE(bpy_property_substitutions); i += 1) {
+          if (STREQ(identifier, bpy_property_substitutions[i].rna_attr)) {
+            break;
+          }
+        }
+
+        if (i < ARRAY_SIZE(bpy_property_substitutions)) {
+          PyObject *py_attr = bpy_property_substitutions[i].py_attr;
+          switch (PyObject_GetOptionalAttr(py_class, py_attr, &item)) {
+            case 1: { /* Found. */
+              if (UNLIKELY(item == Py_None)) {
+                Py_DECREF(item);
+                item = nullptr;
+              }
+              else {
+                if (pyrna_py_to_prop(dummy_ptr, prop, nullptr, item, "validating class:") != 0) {
+                  Py_DECREF(item);
+                  return -1;
+                }
+                Py_DECREF(item);
+              }
+              break;
+            }
+            case -1: { /* Not found (an unexpected error). */
+              PyErr_Print();
+              break;
+            }
+          }
+        }
+
+        if (item == nullptr && ((flag & PROP_REGISTER_OPTIONAL) != PROP_REGISTER_OPTIONAL)) {
+          PyErr_Format(PyExc_AttributeError,
+                       "expected %.200s, %.200s class to have an \"%.200s\" attribute",
+                       class_type,
+                       py_class_name,
+                       identifier);
+          return -1;
+        }
+        break;
+      }
     }
   }
 
