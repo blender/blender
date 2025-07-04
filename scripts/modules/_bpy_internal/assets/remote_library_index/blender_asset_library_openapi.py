@@ -64,11 +64,11 @@ class FileV1(BaseModel):
     )
     path: Annotated[str, Field(description="Relative path of where this file is located in the asset library.\n")]
     url: Annotated[
-        str,
+        Optional[str],
         Field(
-            description="URL where the file can be downloaded. If the URL is relative, it is to be interpreted as relative to the library's root URL.\n"
+            description="URL where the file can be downloaded. If the URL is relative, it is to be interpreted as relative to the library's root URL.\nIf the URL is not given, or an empty string, it is assumed to be the same as 'path'.\n"
         ),
-    ]
+    ] = None
     size_in_bytes: int
     hash: Annotated[
         str,
@@ -169,7 +169,7 @@ class AssetLibraryIndexPageV1(BaseModel):
     ]
     assets: list[AssetV1]
     files: Annotated[
-        list[AssetV1],
+        list[FileV1],
         Field(
             description="The files that are referenced by the above assets. Note that there may be duplication of this information between asset pages, as each file can contain multiple assets, and those assets might be scattered across multiple pages.\n"
         ),

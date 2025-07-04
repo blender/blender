@@ -189,7 +189,7 @@ components:
           items: { $ref: "#/components/schemas/AssetV1" }
         "files":
           type: array
-          items: { $ref: "#/components/schemas/AssetV1" }
+          items: { $ref: "#/components/schemas/FileV1" }
           description: >
             The files that are referenced by the above assets. Note that there
             may be duplication of this information between asset pages, as each
@@ -290,6 +290,9 @@ components:
           description: >
             URL where the file can be downloaded. If the URL is relative, it is
             to be interpreted as relative to the library's root URL.
+
+            If the URL is not given, or an empty string, it is assumed to be the
+            same as 'path'.
         "size_in_bytes": { type: integer, format: int64 }
         "hash":
           type: string
@@ -303,7 +306,6 @@ components:
             version, which may be shortened ('3.1' matches any '3.1.x' version).
       required:
         - "path"
-        - "url"
         - "size_in_bytes"
         - "hash"
         - "blender_version"
