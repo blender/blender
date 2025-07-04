@@ -34,7 +34,7 @@
   PyObject *oname = PyUnicode_FromString(name);
   if (oname == nullptr) {
     *result = nullptr;
-    return nullptr;
+    return -1;
   }
   const int status = PyObject_GetOptionalAttr(obj, oname, result);
   Py_DECREF(oname);
