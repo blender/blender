@@ -1147,7 +1147,9 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
-          do_version_normal_node_dot_product(node_tree, node);
+          if (node->type_legacy == CMP_NODE_NORMAL) {
+            do_version_normal_node_dot_product(node_tree, node);
+          }
         }
       }
     }
