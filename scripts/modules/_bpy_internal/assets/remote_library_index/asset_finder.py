@@ -12,33 +12,24 @@ import shutil
 import unicodedata
 import urllib.parse
 from pathlib import Path
-from typing import Callable
 
 import bpy
-import pydantic
 
 from . import blender_asset_library_openapi as api_models
 
 log = logging.getLogger(__name__)
 
 
-class BlendfileInfo(pydantic.BaseModel):
-    # Asset info that's blendfile-specific:
-    archive_url: str
-    archive_hash: str
-    archive_size_in_bytes: int
-
-    # Last access/modification time:
-    st_atime: float
-    st_mtime: float
-
-    # See _filepath_to_url_transformer()
-    filepath_to_url: Callable[[Path], str]
-
-
-def list_assets(blendfile: Path, asset_library_root: Path) -> list[api_models.AssetV1]:
+def list_assets(blendfile: Path, asset_library_root: Path) -> tuple[api_models.FileV1, list[api_models.AssetV1]]:
     # Start by erasing everything from memory.
     bpy.ops.wm.read_homefile(use_factory_startup=True, use_empty=True, load_ui=False)
+
+    blendfile_info = _blendfile_info(blendfile, asset_library_root)
+
+    # TODO: when this is possible, get the version of Blender used to write this
+    # blendfile (bpy.data.version when you open it 'for real'), rather than the
+    # currently-running version.
+    blendfile_info.blender_version = ".".join(map(str, bpy.app.version))
 
     # Tell Blender to only load asset data-blocks.
     with bpy.data.libraries.load(str(blendfile), assets_only=True) as (
@@ -50,14 +41,13 @@ def list_assets(blendfile: Path, asset_library_root: Path) -> list[api_models.As
 
     # Get the last modification timestamp of the blend file, to compare against
     # the thumbnails.
-    blendfile_info = _blendfile_info(blendfile, asset_library_root)
     thumbnail_dir = blendfile.with_name(blendfile.stem + "_thumbnails")
+    blend_stat = blendfile.stat()
 
     thumbnail_timestamper = thumbnail_dir / ".last_modified"
     if thumbnail_timestamper.exists():
         thumb_mtime = thumbnail_timestamper.stat().st_mtime
-        blend_mtime = blendfile_info.st_mtime
-        should_write_thumbnails = abs(blend_mtime - thumb_mtime) > 0.001
+        should_write_thumbnails = abs(blend_stat.st_mtime - thumb_mtime) > 0.001
     else:
         should_write_thumbnails = True
 
@@ -76,7 +66,11 @@ def list_assets(blendfile: Path, asset_library_root: Path) -> list[api_models.As
     for attr in dir(data_to):
         datablocks = getattr(data_from, attr)
         datablocks_assets = _find_assets(
-            datablocks, blendfile_info, thumbnail_dir, should_write_thumbnails,
+            asset_library_root,
+            blendfile_info,
+            datablocks,
+            thumbnail_dir,
+            should_write_thumbnails,
         )
         assets.extend(datablocks_assets)
 
@@ -84,14 +78,15 @@ def list_assets(blendfile: Path, asset_library_root: Path) -> list[api_models.As
     # blendfile. By tracking the mtime of the directory itself, not every
     # individual thumbnail needs to be time-checked.
     thumbnail_timestamper.touch(exist_ok=True)
-    os.utime(thumbnail_timestamper, (blendfile_info.st_atime, blendfile_info.st_mtime))
+    os.utime(thumbnail_timestamper, (blend_stat.st_atime, blend_stat.st_mtime))
 
-    return assets
+    return blendfile_info, assets
 
 
 def _find_assets(
+    asset_library_root: Path,
+    file: api_models.FileV1,
     datablocks: bpy.types.BlendData,
-    blendfile_info: BlendfileInfo,
     thumbnail_dir: Path,
     should_write_thumbnails: bool,
 ) -> list[api_models.AssetV1]:
@@ -107,18 +102,16 @@ def _find_assets(
             _save_thumbnail(datablock, thumbnail_path)
 
         if thumbnail_path:
-            thumbnail_url = blendfile_info.filepath_to_url(thumbnail_path)
+            as_posix = thumbnail_path.relative_to(asset_library_root).as_posix()
+            thumbnail_url = urllib.parse.quote(as_posix)
         else:
             thumbnail_url = ""
 
         asset = api_models.AssetV1(
             name=datablock.name,
             id_type=datablock.id_type.lower(),
-            blender_version_min=".".join(map(str, bpy.data.version)),
+            file=file.path,
             thumbnail_url=thumbnail_url,
-            archive_url=blendfile_info.archive_url,
-            archive_hash=blendfile_info.archive_hash,
-            archive_size_in_bytes=blendfile_info.archive_size_in_bytes,
         )
 
         # Only set the fields that have a value. That way we can detect whether
@@ -203,30 +196,24 @@ def _name_to_filename(value: str) -> str:
     return _re_safe_filename_dashspace.sub('-', value).strip('-_')
 
 
-def _blendfile_info(filepath: Path, asset_library_root: Path) -> BlendfileInfo:
+def _blendfile_info(filepath: Path, asset_library_root: Path) -> api_models.FileV1:
     stat = filepath.stat()
-    filepath_to_url = _filepath_to_url_transformer(asset_library_root)
 
-    return BlendfileInfo(
-        archive_url=filepath_to_url(filepath),
-        archive_hash=_sha256_file(filepath),
-        archive_size_in_bytes=stat.st_size,
-        st_atime=stat.st_atime,
-        st_mtime=stat.st_mtime,
-        filepath_to_url=filepath_to_url,
+    relative_posix = filepath.relative_to(asset_library_root).as_posix()
+    file_url = urllib.parse.quote(relative_posix)
+
+    if file_url == relative_posix:
+        # Optimization: if the file path is URL-safe, it can be used as the URL
+        # and there is no need to include this URL explicitly.
+        file_url = None
+
+    return api_models.FileV1(
+        path=relative_posix,
+        url=file_url,
+        hash=_sha256_file(filepath),
+        size_in_bytes=stat.st_size,
+        blender_version="",  # Determined later when the file is opened to find assets.
     )
-
-
-def _filepath_to_url_transformer(asset_library_root: Path) -> Callable[[Path], str]:
-    """Return a function that transforms an asset path to a URL.
-
-    Files are assumed to be contained in the asset library.
-    """
-
-    def transformer(filepath: Path) -> str:
-        as_posix = filepath.relative_to(asset_library_root).as_posix()
-        return urllib.parse.quote(as_posix)
-    return transformer
 
 
 def _sha256_file(filepath: Path) -> str:

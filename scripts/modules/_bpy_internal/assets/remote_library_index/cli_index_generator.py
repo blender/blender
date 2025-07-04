@@ -68,13 +68,20 @@ def cli_main(arguments_raw: argparse.Namespace) -> None:
     # Find the assets in the blend files.
     logger.info("Parsing the files...")
     assets: list[api_models.AssetV1] = []
+    files: list[api_models.FileV1] = []
+
     for i, filepath in enumerate(filepaths[:limit]):
         logger.info(f"* {i + 1}/{limit}: {filepath.relative_to(arguments.repository)}")
-        assets_in_file = asset_finder.list_assets(filepath, arguments.repository)
+
+        bfile_info, assets_in_file = asset_finder.list_assets(filepath, arguments.repository)
+        if not assets_in_file:
+            continue
+
         assets.extend(assets_in_file)
+        files.append(bfile_info)
 
     # Write the output.
-    asset_index_pages = pagination.paginate_asset_list(assets, arguments.page_size)
+    asset_index_pages = pagination.paginate_asset_list(assets, files, arguments.page_size)
     _write_json_files(arguments, asset_index_pages)
 
 
@@ -119,15 +126,17 @@ def _write_json_files(
         _save_json(page, outdir_root / page_relpath)
 
     # Library Index file /_v1/asset-index.json:
-    total_asset_count = sum(len(page.assets) for page in asset_index_pages)
-    asset_size_bytes = sum(asset.archive_size_in_bytes
+    total_asset_count = sum(page.asset_count for page in asset_index_pages)
+    total_file_count = sum(page.file_count for page in asset_index_pages)
+    asset_size_bytes = sum(file.size_in_bytes
                            for page in asset_index_pages
-                           for asset in page.assets)
+                           for file in page.files)
     asset_cats = asset_catalogs.parse_catalogs(arguments.repository)
     index = api_models.AssetLibraryIndexV1(
         schema_version=SCHEMA_VERSION,
         asset_size_bytes=asset_size_bytes,
         asset_count=total_asset_count,
+        file_count=total_file_count,
         page_urls=page_urls,
         catalogs=asset_cats,
     )
