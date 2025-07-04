@@ -357,21 +357,91 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
 /**
  * Given an edge, and vert that are part of a chain, finds the vert at the far end of the chain.
+ *
+ * If `edge_oflag` is provided, each edge along the chain is tagged,
+ * and walking stops when an edge that is already tagged is found.
+ * This avoids repeatedly re-walking the chain.
+ *
+ * Returns `nullptr` if already tagged edges are found, or if the chain loops.
  */
-static BMVert *bmo_find_end_of_chain(BMEdge *e, BMVert *v)
+static BMVert *bmo_find_end_of_chain(BMesh *bm, BMEdge *e, BMVert *v, const short edge_oflag = 0)
 {
   BMVert *v_init = v;
+
   while (BM_vert_is_edge_pair(v)) {
+
+    /* Move one step down the chain. */
     e = BM_DISK_EDGE_NEXT(e, v);
     v = BM_edge_other_vert(e, v);
+
+    /* If we walk to an edge that has already been processed, there's no need to keep working.
+     * If `edge_oflag` is 0, this test never returns true,
+     * so iteration will truly go to the end. */
+    if (BMO_edge_flag_test(bm, e, edge_oflag)) {
+      return nullptr;
+    }
+
+    /* Optionally mark along the chain.
+     * If `edge_oflag` is 0, `hflag |= 0` is still faster than if + test + jump. */
+    BMO_edge_flag_enable(bm, e, edge_oflag);
+
     /* While this should never happen in the context this function is called.
      * Avoid an eternal loop even in the case of degenerate geometry. */
     BLI_assert(v != v_init);
     if (UNLIKELY(v == v_init)) {
-      break;
+      return nullptr;
     }
   }
   return v;
+}
+
+/**
+ * Determines if a vert touches an unselected face that would be altered if the vert was dissolved.
+ * This is sometimes desirable (T-junction) and sometimes not (other cases).
+ */
+static bool bmo_vert_touches_unselected_face(BMesh *bm, BMVert *v)
+{
+  /* If the vert was already tested and marked, don't test again. */
+  if (BMO_vert_flag_test(bm, v, VERT_MARK)) {
+    return false;
+  }
+
+  /* Check each face at this vert by checking each loop. */
+  BMIter iter;
+  BMLoop *l_a;
+  BM_ITER_ELEM (l_a, &iter, v, BM_LOOPS_OF_VERT) {
+    BMLoop *l_b = BM_loop_other_edge_loop(l_a, v);
+
+    /* `l_a` and `l_b` are now the two edges of the face that share this vert.
+     * if both are untagged, return true. */
+    if (!BMO_edge_flag_test(bm, l_a->e, EDGE_TAG) && !BMO_edge_flag_test(bm, l_b->e, EDGE_TAG)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Counts how many edges touching a vert are tagged with the specified `edge_oflag`.
+ */
+static int bmo_vert_tagged_edges_count_at_most(BMesh *bm,
+                                               BMVert *v,
+                                               const short edge_oflag,
+                                               const int max)
+{
+  int retval = 0;
+  BMIter iter;
+  BMEdge *e;
+  BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
+    if (BMO_edge_flag_test(bm, e, edge_oflag)) {
+      retval++;
+    }
+    if (retval == max) {
+      return retval;
+    }
+  }
+  return retval;
 }
 
 void bmo_dissolve_edges_init(BMOperator *op)
@@ -404,9 +474,11 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 
   const bool use_face_split = BMO_slot_bool_get(op->slots_in, "use_face_split");
 
-  if (use_face_split) {
+  if (use_face_split || use_verts) {
     BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_TAG);
+  }
 
+  if (use_face_split) {
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
       BMIter itersub;
       int untag_count = 0;
@@ -423,15 +495,6 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
     }
 
     bm_face_split(bm, VERT_TAG, false);
-  }
-
-  if (use_verts) {
-
-    /* Mark all verts that are candidates to be dissolved. */
-    BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
-      BMO_vert_flag_enable(bm, e->v1, VERT_MARK);
-      BMO_vert_flag_enable(bm, e->v2, VERT_MARK);
-    }
   }
 
   /* Tag certain geometry around the selected edges, for later processing. */
@@ -459,6 +522,82 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
           BMO_edge_flag_enable(bm, l_iter->e, EDGE_ISGC);
         } while ((l_iter = l_iter->next) != l_first);
       }
+
+      /* If using verts, and this edge is part of a chain that will be dissolved, then extend
+       * `EDGE_TAG` to both ends of the chain. This marks any edges that, even though they might
+       * not be selected, will also be dissolved when the face merge happens. This allows counting
+       * how many edges will remain after the dissolves are done later. */
+      if (use_verts && BMO_edge_flag_test(bm, e, EDGE_CHAIN)) {
+        bmo_find_end_of_chain(bm, e, e->v1, EDGE_TAG);
+        bmo_find_end_of_chain(bm, e, e->v2, EDGE_TAG);
+      }
+    }
+  }
+
+  if (use_verts) {
+
+    /* Mark all verts that are candidates to be dissolved. */
+    BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
+
+      /* Edges only dissolve if they are manifold, so if the edge won't be dissolved, then there's
+       * no reason to mark either of its ends for dissolve. */
+      BMFace *f_pair[2];
+      if (!BM_edge_face_pair(e, &f_pair[0], &f_pair[1])) {
+        continue;
+      }
+
+      /* if `BM_faces_join_pair` will be done, mark the correct two verts at the ends for
+       * dissolve. */
+      for (int i = 0; i < 2; i++) {
+        BMVert *v_edge = *((&e->v1) + i);
+
+        /* An edge between two triangles should dissolve to a quad, akin to un-triangulate.
+         * Prevent dissolving either corner, if doing so would collapse the corner, converting
+         * the quad to a triangle or wire. This happens when two triangles join, and the vert
+         * has two untagged edges, and the _only_ other tagged edge is this edge that's about
+         * to be dissolved. When that case is found, skip it, do not tag it.
+         * The edge count test ensures that if we're dissolving a chain, the crossing loop cuts
+         * will still be dissolved, even if they happen to make an "un-triangulate" case. */
+        if (f_pair[0]->len == 3 && f_pair[1]->len == 3 &&
+            bmo_vert_tagged_edges_count_at_most(bm, v_edge, EDGE_TAG, 2) == 1)
+        {
+          continue;
+        }
+
+        /* If a chain, follow the chain until the end is found. The whole chain will dissolve, so
+         * the test needs to happen there, at the end of the chain, where it meets other geometry,
+         * not here, at the end of a selected edge that only touches other parts of the chain. */
+        if (BM_vert_is_edge_pair(v_edge)) {
+          v_edge = bmo_find_end_of_chain(bm, e, v_edge, EDGE_CHAIN);
+        }
+
+        /* If the end of the chain was searched for and was not located, take no action. */
+        if (v_edge == nullptr) {
+          continue;
+        }
+
+        /* When the user selected multiple edges that meet at one vert, and there are existing
+         * faces at that vert that are *not* selected, then remove that vert from consideration for
+         * dissolve.
+         *
+         * This logic implements the following:
+         * - When several dissolved edges cross a loop cut, the loop cut vert should be dissolved.
+         *   (`bmo_vert_touches_unselected_face()` will be false).
+         * - When dissolve edges *end* at a T on a loop cut, the loop cut vert should be dissolved.
+         *   (`bmo_vert_tagged_edges_count_at_most()` will be 1).
+         * - When multiple dissolve edges touch the corner of a quad or triangle, but leave in a
+         *   different direction, regard that contact is 'incidental' and the face should stay.
+         *   (both tests will be true).
+         */
+        if (bmo_vert_touches_unselected_face(bm, v_edge) &&
+            bmo_vert_tagged_edges_count_at_most(bm, v_edge, EDGE_TAG, 2) != 1)
+        {
+          continue;
+        }
+
+        /* Mark for dissolve. */
+        BMO_vert_flag_enable(bm, v_edge, VERT_MARK);
+      }
     }
   }
 
@@ -466,21 +605,6 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
   BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
     BMLoop *l_a, *l_b;
     if (BM_edge_loop_pair(e, &l_a, &l_b)) {
-
-      /* When #VERT_MARK is set on a vert in the middle of a chain, the flag needs to be moved to
-       * the end of the chain, because when all the chain edges between the two faces get cleaned
-       * up as part of #BM_faces_join_pair, the flagged vert would otherwise be lost.
-       * Find the end of the chain, where the dissolve test should be done, move the flag there. */
-      for (int i = 0; i < 2; i++) {
-        BMVert *v_edge = *((&e->v1) + i);
-        if (BMO_vert_flag_test(bm, v_edge, VERT_MARK)) {
-          BMVert *v_edge_chain_end = bmo_find_end_of_chain(e, v_edge);
-          if (v_edge != v_edge_chain_end) {
-            BMO_vert_flag_enable(bm, v_edge_chain_end, VERT_MARK);
-          }
-        }
-      }
-
       BM_faces_join_pair(bm, l_a, l_b, false, nullptr);
     }
   }
