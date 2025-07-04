@@ -2792,16 +2792,47 @@ static void UI_OT_view_item_rename(wmOperatorType *ot)
   ot->flag = OPTYPE_INTERNAL;
 }
 
-static wmOperatorStatus ui_view_item_select_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus ui_view_item_select_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent * /*event*/)
 {
   const wmWindow &win = *CTX_wm_window(C);
   const ARegion &region = *CTX_wm_region(C);
 
-  if (AbstractViewItem *active_item = UI_region_views_find_item_at(region, win.eventstate->xy)) {
-    active_item->activate(*C);
+  AbstractViewItem *clicked_item = UI_region_views_find_item_at(region, win.eventstate->xy);
+  if (clicked_item == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  AbstractView &view = clicked_item->get_view();
+  const bool is_multiselect = view.is_multiselect_supported();
+  const bool extend = RNA_boolean_get(op->ptr, "extend") && is_multiselect;
+  const bool range_select = RNA_boolean_get(op->ptr, "range_select") && is_multiselect;
+
+  if (!extend) {
+    /* Keep previous selection for extend selection, see: !138979. */
+    view.foreach_view_item([](AbstractViewItem &item) { item.set_selected(false); });
+  }
+
+  if (range_select) {
+    bool is_inside_range = false;
+    view.foreach_view_item([&](AbstractViewItem &item) {
+      if ((item.is_active()) ^ (&item == clicked_item)) {
+        is_inside_range = !is_inside_range;
+        /* Select end items from the range. */
+        item.set_selected(true);
+      }
+      if (is_inside_range) {
+        /* Select items within the range. */
+        item.set_selected(true);
+      }
+    });
     return OPERATOR_FINISHED;
   }
-  return OPERATOR_CANCELLED;
+
+  clicked_item->activate(*C);
+
+  return OPERATOR_FINISHED;
 }
 
 static void UI_OT_view_item_select(wmOperatorType *ot)
@@ -2810,10 +2841,19 @@ static void UI_OT_view_item_select(wmOperatorType *ot)
   ot->idname = "UI_OT_view_item_select";
   ot->description = "Activate selected view item";
 
-  ot->exec = ui_view_item_select_exec;
+  ot->invoke = ui_view_item_select_invoke;
   ot->poll = ui_view_focused_poll;
 
   ot->flag = OPTYPE_INTERNAL;
+
+  PropertyRNA *prop = RNA_def_boolean(ot->srna, "extend", false, "extend", "Extend Selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "range_select",
+                         false,
+                         "Range Select",
+                         "Select all between clicked and active items");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 /** \} */
 

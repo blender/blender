@@ -44,6 +44,8 @@
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
+#include "UI_abstract_view.hh"
+
 #ifdef WITH_INPUT_IME
 #  include "WM_types.hh"
 #endif
@@ -4369,9 +4371,17 @@ static void widget_list_itembut(uiBut *but,
                                 const float zoom)
 {
   rcti draw_rect = *rect;
+  bool is_selected = state->but_flag & UI_SELECT;
 
   if (but->type == UI_BTYPE_VIEW_ITEM) {
     uiButViewItem *item_but = static_cast<uiButViewItem *>(but);
+    blender::ui::AbstractViewItem &view_item = *item_but->view_item;
+
+    if (!view_item.is_active() && view_item.is_selected()) {
+      copy_v4_v4_uchar(wcol->inner, wcol->inner_sel);
+      color_blend_v3_v3(wcol->inner, wcol->outline, 0.5);
+      is_selected = true;
+    }
     if (item_but->draw_width > 0) {
       BLI_rcti_resize_x(&draw_rect, zoom * item_but->draw_width);
     }
@@ -4388,7 +4398,7 @@ static void widget_list_itembut(uiBut *but,
 
   if (state->but_flag & UI_HOVER) {
     color_blend_v3_v3(wcol->inner, wcol->text, 0.2);
-    wcol->inner[3] = (state->but_flag & UI_SELECT) ? 255 : 20;
+    wcol->inner[3] = is_selected ? 255 : 20;
   }
 
   widgetbase_draw(&wtb, wcol);
