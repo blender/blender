@@ -832,8 +832,8 @@ add_dependencies(bf_blenkernel bf_rna)
 if(WITH_GTESTS)
   set(TEST_SRC
     intern/action_test.cc
-    intern/armature_test.cc
     intern/armature_deform_test.cc
+    intern/armature_test.cc
     intern/asset_metadata_test.cc
     intern/attribute_storage_test.cc
     intern/bpath_test.cc
