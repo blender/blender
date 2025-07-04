@@ -227,60 +227,6 @@ wmOperatorStatus UI_pie_menu_invoke(bContext *C, const char *idname, const wmEve
   return OPERATOR_INTERFACE;
 }
 
-wmOperatorStatus UI_pie_menu_invoke_from_operator_enum(bContext *C,
-                                                       const StringRefNull title,
-                                                       const StringRefNull opname,
-                                                       const StringRefNull propname,
-                                                       const wmEvent *event)
-{
-  uiPieMenu *pie;
-  uiLayout *layout;
-
-  pie = UI_pie_menu_begin(C, IFACE_(title.c_str()), ICON_NONE, event);
-  layout = UI_pie_menu_layout(pie);
-
-  layout = &layout->menu_pie();
-  uiItemsEnumO(layout, opname, propname);
-
-  UI_pie_menu_end(C, pie);
-
-  return OPERATOR_INTERFACE;
-}
-
-wmOperatorStatus UI_pie_menu_invoke_from_rna_enum(bContext *C,
-                                                  const char *title,
-                                                  const char *path,
-                                                  const wmEvent *event)
-{
-  PointerRNA r_ptr;
-  PropertyRNA *r_prop;
-  uiPieMenu *pie;
-  uiLayout *layout;
-
-  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, C);
-
-  if (!RNA_path_resolve(&ctx_ptr, path, &r_ptr, &r_prop)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  /* invalid property, only accept enums */
-  if (RNA_property_type(r_prop) != PROP_ENUM) {
-    BLI_assert(0);
-    return OPERATOR_CANCELLED;
-  }
-
-  pie = UI_pie_menu_begin(C, IFACE_(title), ICON_NONE, event);
-
-  layout = UI_pie_menu_layout(pie);
-
-  layout = &layout->menu_pie();
-  layout->prop(&r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-
-  UI_pie_menu_end(C, pie);
-
-  return OPERATOR_INTERFACE;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
