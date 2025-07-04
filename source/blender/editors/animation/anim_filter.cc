@@ -38,6 +38,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_light_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
@@ -769,6 +770,12 @@ static bAnimListElem *make_new_animlistelem(
       Volume *volume = static_cast<Volume *>(data);
       ale->flag = FILTER_VOLUME_OBJD(volume);
       key_data_from_adt(*ale, volume->adt);
+      break;
+    }
+    case ANIMTYPE_DSLIGHTPROBE: {
+      LightProbe *probe = static_cast<LightProbe *>(data);
+      ale->flag = FILTER_LIGHTPROBE_OBJD(probe);
+      key_data_from_adt(*ale, probe->adt);
       break;
     }
     case ANIMTYPE_DSSKEY: {
@@ -3058,6 +3065,18 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
 
       type = ANIMTYPE_DSVOLUME;
       expanded = FILTER_VOLUME_OBJD(volume);
+      break;
+    }
+    case OB_LIGHTPROBE: /* ---------- LightProbe ----------- */
+    {
+      LightProbe *probe = static_cast<LightProbe *>(ob->data);
+
+      if (ads_filterflag2 & ADS_FILTER_NOLIGHTPROBE) {
+        return 0;
+      }
+
+      type = ANIMTYPE_DSLIGHTPROBE;
+      expanded = FILTER_LIGHTPROBE_OBJD(probe);
       break;
     }
   }

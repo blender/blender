@@ -962,6 +962,8 @@ typedef enum eDopeSheet_FilterFlag2 {
 
   /** Include working drivers with variables using their fallback values into Only Show Errors. */
   ADS_FILTER_DRIVER_FALLBACK_AS_ERROR = (1 << 6),
+
+  ADS_FILTER_NOLIGHTPROBE = (1 << 7),
 } eDopeSheet_FilterFlag2;
 
 /* DopeSheet general flags */
