@@ -786,6 +786,9 @@ class MutableAttributeAccessor : public AttributeAccessor {
            const AttrType data_type,
            const AttributeInit &initializer)
   {
+    if (!this->domain_supported(domain)) {
+      return false;
+    }
     if (this->contains(attribute_id)) {
       return false;
     }
