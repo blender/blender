@@ -678,9 +678,18 @@ class NWMergeNodes(Operator, NWBase):
         selected_vector = []  # entry = [index, loc]
         selected_z = []  # entry = [index, loc]
         selected_alphaover = []  # entry = [index, loc]
+        selected_boolean = [] # entry = [index, loc]
 
         for i, node in enumerate(nodes):
             if node.select and node.outputs:
+                output = get_first_enabled_output(node)
+                output_type = output.type
+                if output_type == 'BOOLEAN':
+                    if merge_type == 'MATH' and mode != 'ADD':
+                        merge_type = 'AUTO'
+                        mode = 'MIX'
+                    if merge_type == 'AUTO' and mode == 'ADD':
+                        mode = 'MIX'
                 if merge_type == 'AUTO':
                     for (type, types_list, dst) in (
                             ('SHADER', ('MIX', 'ADD'), selected_shader),
@@ -688,9 +697,8 @@ class NWMergeNodes(Operator, NWBase):
                             ('RGBA', [t[0] for t in blend_types], selected_mix),
                             ('VALUE', [t[0] for t in operations], selected_math),
                             ('VECTOR', [], selected_vector),
+                            ('BOOLEAN', [], selected_boolean),
                     ):
-                        output = get_first_enabled_output(node)
-                        output_type = output.type
                         valid_mode = mode in types_list
                         # When mode is 'MIX' we have to cheat since the mix node is not used in
                         # geometry nodes.
@@ -701,6 +709,8 @@ class NWMergeNodes(Operator, NWBase):
                                 elif output_type == 'VECTOR' and type == 'VECTOR':
                                     valid_mode = True
                                 elif type == 'GEOMETRY':
+                                    valid_mode = True
+                                elif type == 'BOOLEAN':
                                     valid_mode = True
                         # When mode is 'MIX' use mix node for both 'RGBA' and 'VALUE' output types.
                         # Cheat that output type is 'RGBA',
@@ -720,9 +730,11 @@ class NWMergeNodes(Operator, NWBase):
                             ('MATH', [t[0] for t in operations], selected_math),
                             ('ZCOMBINE', ('MIX', ), selected_z),
                             ('ALPHAOVER', ('MIX', ), selected_alphaover),
+                            ('BOOLEAN', (''), selected_boolean),
                     ):
-                        if merge_type == type and mode in types_list:
-                            dst.append([i, node.location.x, node.location.y, node.dimensions.x, node.hide])
+                        if (merge_type == type and mode in types_list):
+                            dst.append(
+                                [i, node.location.x, node.location.y, node.dimensions.x, node.hide])
         # When nodes with output kinds 'RGBA' and 'VALUE' are selected at the same time
         # use only 'Mix' nodes for merging.
         # For that we add selected_math list to selected_mix list and clear selected_math.
@@ -732,7 +744,7 @@ class NWMergeNodes(Operator, NWBase):
 
         # If no nodes are selected, do nothing and pass through.
         if not (selected_mix + selected_shader + selected_geometry + selected_math
-                + selected_vector + selected_z + selected_alphaover):
+                + selected_vector + selected_z + selected_alphaover + selected_boolean):
             return {'PASS_THROUGH'}
 
         for nodes_list in [
@@ -742,7 +754,8 @@ class NWMergeNodes(Operator, NWBase):
                 selected_math,
                 selected_vector,
                 selected_z,
-                selected_alphaover]:
+                selected_alphaover,
+                selected_boolean]:
             if not nodes_list:
                 continue
             count_before = len(nodes)
@@ -864,6 +877,14 @@ class NWMergeNodes(Operator, NWBase):
                         loc_y = loc_y - 50
                     first = 1
                     second = 2
+                elif nodes_list == selected_boolean:
+                    add = nodes.new('FunctionNodeBooleanMath')
+                    add.show_preview = False
+                    add.hide = do_hide
+                    if do_hide:
+                        loc_y = loc_y - 50
+                    first = 0
+                    second = 1
                 add.location = loc_x, loc_y
                 loc_y += offset_y
                 add.select = True
