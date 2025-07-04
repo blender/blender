@@ -1470,19 +1470,17 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
 static bool transinfo_show_overlay(TransInfo *t, ARegion *region)
 {
   /* Don't show overlays when not the active view and when overlay is disabled: #57139 */
-  bool ok = false;
   if (region == t->region) {
-    ok = true;
+    return true;
   }
-  else {
-    if (t->spacetype == SPACE_VIEW3D) {
-      View3D *v3d = static_cast<View3D *>(t->view);
-      if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
-        ok = true;
-      }
+
+  if (t->spacetype == SPACE_VIEW3D) {
+    View3D *v3d = static_cast<View3D *>(t->view);
+    if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
+      return true;
     }
   }
-  return ok;
+  return false;
 }
 
 static void drawTransformView(const bContext * /*C*/, ARegion *region, void *arg)
@@ -1602,24 +1600,24 @@ static void drawTransformPixel(const bContext * /*C*/, ARegion *region, void *ar
     return;
   }
 
-  if (region == t->region) {
-    Scene *scene = t->scene;
-    ViewLayer *view_layer = t->view_layer;
-    BKE_view_layer_synced_ensure(scene, view_layer);
-    Object *ob = BKE_view_layer_active_object_get(view_layer);
+  if (region != t->region) {
+    return;
+  }
 
-    /* Draw auto-key-framing hint in the corner
-     * - only draw if enabled (advanced users may be distracted/annoyed),
-     *   for objects that will be auto-keyframed (no point otherwise),
-     *   AND only for the active region (as showing all is too overwhelming)
-     */
-    if ((U.keying_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
-      if (region == t->region) {
-        if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
-          if (ob && animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
-            drawAutoKeyWarning(t, region);
-          }
-        }
+  /* Draw auto-key-framing hint in the corner
+   * - only draw if enabled (advanced users may be distracted/annoyed),
+   *   for objects that will be auto-keyframed (no point otherwise),
+   *   AND only for the active region (as showing all is too overwhelming)
+   */
+  if ((U.keying_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
+    if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
+      Scene *scene = t->scene;
+      ViewLayer *view_layer = t->view_layer;
+      BKE_view_layer_synced_ensure(scene, view_layer);
+      Object *ob = BKE_view_layer_active_object_get(view_layer);
+
+      if (ob && animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
+        drawAutoKeyWarning(t, region);
       }
     }
   }
