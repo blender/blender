@@ -5483,6 +5483,27 @@ void node_draw_space(const bContext &C, ARegion &region)
   }
 
   /* Scrollers. */
+
+  /* Hide the right scrollbar while a right-aligned region
+   * is open. Otherwise we can have two scroll bars. #141225 */
+  ScrArea *area = CTX_wm_area(&C);
+  bool sidebar = false;
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    if (region->alignment == RGN_ALIGN_RIGHT && region->overlap &&
+        !(region->flag & RGN_FLAG_HIDDEN))
+    {
+      sidebar = true;
+      break;
+    }
+  }
+
+  if (sidebar) {
+    v2d.scroll &= ~V2D_SCROLL_RIGHT;
+  }
+  else {
+    v2d.scroll |= V2D_SCROLL_RIGHT;
+  }
+
   UI_view2d_scrollers_draw(&v2d, nullptr);
 }
 
