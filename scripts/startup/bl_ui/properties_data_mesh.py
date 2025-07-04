@@ -421,7 +421,7 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
 
         col.operator("mesh.customdata_mask_clear", icon='X')
         col.operator("mesh.customdata_skin_clear", icon='X')
-
+        col.operator("mesh.reorder_vertices_spatial")
         if me.has_custom_normals:
             col.operator("mesh.customdata_custom_splitnormals_clear", icon='X')
         else:

@@ -334,6 +334,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->max_material_index.tag_dirty();
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
+  mesh->runtime->spatial_groups.reset();
   mesh->flag &= ~ME_NO_OVERLAPPING_TOPOLOGY;
 }
 
