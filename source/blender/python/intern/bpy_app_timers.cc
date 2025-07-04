@@ -20,7 +20,6 @@ static double handle_returned_value(PyObject *function, PyObject *ret)
 {
   if (ret == nullptr) {
     PyErr_PrintEx(0);
-    PyErr_Clear();
     return -1;
   }
 

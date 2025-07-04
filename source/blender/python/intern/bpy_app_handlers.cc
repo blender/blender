@@ -406,7 +406,6 @@ void bpy_app_generic_callback(Main * /*main*/,
                           app_cb_info_fields[POINTER_AS_INT(arg)].name,
                           int(pos));
         PyErr_PrintEx(0);
-        PyErr_Clear();
       }
       else {
         Py_DECREF(ret);

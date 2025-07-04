@@ -301,7 +301,6 @@ static void pydriver_error(ChannelDriver *driver, const PathResolvedRNA *anim_rn
 
   // BPy_errors_to_report(nullptr); /* TODO: reports. */
   PyErr_Print();
-  PyErr_Clear();
 }
 
 #ifdef USE_BYTECODE_WHITELIST
@@ -464,7 +463,6 @@ bool BPY_driver_secure_bytecode_test_ex(PyObject *expr_code,
     co_code = PyCode_GetCode(py_code);
     if (UNLIKELY(!co_code)) {
       PyErr_Print();
-      PyErr_Clear();
       return false;
     }
 
@@ -702,7 +700,6 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
       fprintf(stderr, "\t%s: couldn't add variable '%s' to namespace\n", __func__, dvar->name);
       // BPy_errors_to_report(nullptr); /* TODO: reports. */
       PyErr_Print();
-      PyErr_Clear();
     }
     Py_DECREF(driver_arg);
   }
