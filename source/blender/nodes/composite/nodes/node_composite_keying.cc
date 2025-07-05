@@ -36,7 +36,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
 
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Matte");
-  b.add_output<decl::Float>("Edges");
+  b.add_output<decl::Float>("Edges").translation_context(BLT_I18NCONTEXT_ID_IMAGE);
 
   b.add_input<decl::Color>("Image").default_value({0.8f, 0.8f, 0.8f, 1.0f});
   b.add_input<decl::Color>("Key Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
@@ -83,7 +83,9 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
           "Pixels at the identified edges are excluded from the remapping to preserve details")
       .compositor_expects_single_value();
 
-  PanelDeclarationBuilder &edges_panel = tweak_panel.add_panel("Edges").default_closed(true);
+  PanelDeclarationBuilder &edges_panel =
+      tweak_panel.add_panel("Edges").default_closed(true).translation_context(
+          BLT_I18NCONTEXT_ID_IMAGE);
   edges_panel.add_input<decl::Int>("Size", "Edge Search Size")
       .default_value(3)
       .min(0)
