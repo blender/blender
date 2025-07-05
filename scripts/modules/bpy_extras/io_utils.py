@@ -437,14 +437,14 @@ path_reference_mode = EnumProperty(
     items=(
         ('AUTO', "Auto", "Use relative paths with subdirectories only"),
         ('ABSOLUTE', "Absolute", "Always write absolute paths"),
-        ('RELATIVE', "Relative", "Always write relative paths "
-         "(where possible)"),
+        ('RELATIVE', "Relative", "Write relative paths where possible"),
         ('MATCH', "Match", "Match absolute/relative "
          "setting with input path"),
-        ('STRIP', "Strip Path", "Filename only"),
+        ('STRIP', "Strip", "Filename only"),
         ('COPY', "Copy", "Copy the file to the destination path "
          "(or subdirectory)"),
     ),
+    translation_context=i18n_contexts.editor_filebrowser,
     default='AUTO',
 )
 
