@@ -266,6 +266,10 @@ PYGETTEXT_KEYWORDS = (() +
     tuple(("{}\\((?:[^\"',]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("BKE_modifier_set_error",)) +
 
+    # Window manager job names.
+    tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*,").format(it)
+          for it in ("WM_jobs_get",)) +
+
     # Compositor and EEVEE messages.
     # Ends either with `)` (function call close), or `,` when there are extra formatting parameters.
     tuple((r"{}\(\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
