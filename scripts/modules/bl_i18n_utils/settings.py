@@ -293,23 +293,19 @@ PYGETTEXT_KEYWORDS = (() +
     tuple((r"\.{}\(\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("description", "error_message_add")) +
 
-    # Node socket labels from declarations: context-less names
+    # Node socket panels and labels from declarations: context-less names
     tuple((r"\.{}\(\s*" + _msg_re +
            r"\s*\)(?![^;]*\.translation_context\()[^;]*;").format(it)
-          for it in ("short_label",)) +
+          for it in ("short_label", "add_panel",)) +
 
-    # Node socket labels from declarations: names with contexts
+    # Node socket panels and labels from declarations: names with contexts
     tuple((r"\.{}\(\s*" + _msg_re + r"[^;]*\.translation_context\(\s*" +
            _ctxt_re + r"\s*\)").format(it)
-          for it in ("short_label",)) +
+          for it in ("short_label", "add_panel",)) +
 
     # Dynamic node socket labels
     tuple((r"{}\(\s*[^,]+,\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("node_sock_label",)) +
-
-    # Node panel declarations
-    tuple((r"\.{}\(\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("add_panel",)) +
 
     # Geometry Nodes field inputs
     ((r"FieldInput\(CPPType::get<.*?>\(\),\s*" + _msg_re + r"\s*\)"),) +
