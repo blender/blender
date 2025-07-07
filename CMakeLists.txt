@@ -1822,6 +1822,7 @@ Define the maximum number of concurrent heavy compilation jobs, for ninja build 
       FORCE
     )
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
+    message(STATUS "Using NINJA_POOL_JOBS: max heavy compile jobs: ${NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS}")
     set(_compile_heavy_jobs)
     set(_compile_heavy_jobs_max)
 
@@ -1848,6 +1849,7 @@ Define the maximum number of concurrent heavy compilation jobs, for ninja build 
     set(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS "${_compile_jobs}" CACHE STRING
         "Define the maximum number of concurrent compilation jobs, for ninja build system." FORCE)
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS)
+    message(STATUS "Using NINJA_POOL_JOBS: max regular compile jobs: ${NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS}")
     set(_compile_jobs)
     set(_compile_jobs_max)
 
@@ -1856,6 +1858,7 @@ Define the maximum number of concurrent heavy compilation jobs, for ninja build 
     set(NINJA_MAX_NUM_PARALLEL_LINK_JOBS "1" CACHE STRING
         "Define the maximum number of concurrent link jobs, for ninja build system." FORCE)
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_LINK_JOBS)
+    message(STATUS "Using NINJA_POOL_JOBS: max linking jobs: ${NINJA_MAX_NUM_PARALLEL_LINK_JOBS}")
 
     set(_NUM_CORES)
     set(_TOT_MEM)
