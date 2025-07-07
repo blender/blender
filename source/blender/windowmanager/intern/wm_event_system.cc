@@ -1175,9 +1175,8 @@ static void wm_operator_reports(bContext *C,
   }
 
   std::string pystring = WM_operator_pystring(C, op, false, true);
-  if (retval & OPERATOR_FINISHED) {
-    CLOG_INFO(WM_LOG_OPERATORS, "Finished %s", pystring.c_str());
 
+  if (retval & OPERATOR_FINISHED) {
     if (caller_owns_reports == false) {
       /* Print out reports to console.
        * When quiet, only show warnings, suppressing info and other non-essential warnings. */
@@ -1192,9 +1191,12 @@ static void wm_operator_reports(bContext *C,
       }
     }
   }
-  else {
-    CLOG_INFO(WM_LOG_OPERATORS, "Cancelled %s", pystring.c_str());
-  }
+
+  CLOG_AT_LEVEL(WM_LOG_OPERATORS,
+                /* Avoid logging very noisy hover/timer driven operators at info level. */
+                ((op->type->flag & OPTYPE_REGISTER) ? CLG_LEVEL_INFO : CLG_LEVEL_DEBUG),
+                (retval & OPERATOR_FINISHED) ? "Finished %s" : "Cancelled: %s",
+                pystring.c_str());
 
   /* Refresh Info Editor with reports immediately, even if op returned #OPERATOR_CANCELLED. */
   if ((retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) &&
@@ -1607,7 +1609,11 @@ static wmOperatorStatus wm_operator_invoke(bContext *C,
     /* If `reports == nullptr`, they'll be initialized. */
     wmOperator *op = wm_operator_create(wm, ot, properties, reports);
 
-    CLOG_INFO(WM_LOG_OPERATORS, "Started %s", WM_operator_pystring(C, op, false, true).c_str());
+    CLOG_AT_LEVEL(WM_LOG_OPERATORS,
+                  /* Avoid logging very noisy hover/timer driven operators at info level. */
+                  ((op->type->flag & OPTYPE_REGISTER) ? CLG_LEVEL_INFO : CLG_LEVEL_DEBUG),
+                  "Started %s",
+                  WM_operator_pystring(C, op, false, true).c_str());
 
     const bool is_nested_call = (wm->op_undo_depth != 0);
 
@@ -1622,7 +1628,7 @@ static wmOperatorStatus wm_operator_invoke(bContext *C,
 
     if ((event == nullptr) || (event->type != MOUSEMOVE)) {
       CLOG_DEBUG(WM_LOG_EVENTS,
-                 "handle evt %d win %p op %s",
+                 "Handle event %d win %p op %s",
                  event ? event->type : 0,
                  CTX_wm_screen(C)->active_region,
                  ot->idname);
@@ -2680,7 +2686,7 @@ static eHandlerActionFlag wm_handler_operator_call(bContext *C,
       }
     }
     else {
-      CLOG_ERROR(WM_LOG_EVENTS, "missing modal '%s'", op->idname);
+      CLOG_ERROR(WM_LOG_EVENTS, "Missing modal '%s'", op->idname);
     }
   }
   else {
@@ -3107,7 +3113,7 @@ static eHandlerActionFlag wm_handlers_do_keymap_with_keymap_handler(
               C, handlers, &handler->head, event, kmi->ptr, kmi->idname);
 
           CLOG_DEBUG(WM_LOG_EVENTS,
-                     "keymap '%s', %s, %s, event: %s",
+                     "Keymap '%s', %s, %s, event: %s",
                      keymap->idname,
                      keymap_handler_log_kmi_op_str(C, kmi).c_str(),
                      keymap_handler_log_action_str(action),
@@ -3648,7 +3654,7 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
           event->keymodifier = event->prev_press_keymodifier;
           event->direction = direction;
 
-          CLOG_DEBUG(WM_LOG_EVENTS, "handling CLICK_DRAG");
+          CLOG_DEBUG(WM_LOG_EVENTS, "Handling CLICK_DRAG");
 
           action |= wm_handlers_do_intern(C, win, event, handlers);
 
@@ -3661,7 +3667,7 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
           win->event_queue_check_click = false;
           if (!((action & WM_HANDLER_BREAK) == 0 || wm_action_not_handled(action))) {
             /* Only disable when handled as other handlers may use this drag event. */
-            CLOG_DEBUG(WM_LOG_EVENTS, "canceling CLICK_DRAG: drag was generated & handled");
+            CLOG_DEBUG(WM_LOG_EVENTS, "Canceling CLICK_DRAG: drag was generated & handled");
             win->event_queue_check_drag = false;
           }
         }
@@ -3669,7 +3675,7 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
     }
     else {
       if (win->event_queue_check_drag) {
-        CLOG_DEBUG(WM_LOG_EVENTS, "canceling CLICK_DRAG: motion event was handled");
+        CLOG_DEBUG(WM_LOG_EVENTS, "Canceling CLICK_DRAG: motion event was handled");
         win->event_queue_check_drag = false;
       }
     }
@@ -3686,7 +3692,7 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
         if ((event->flag & WM_EVENT_IS_REPEAT) == 0) {
           win->event_queue_check_click = true;
 
-          CLOG_DEBUG(WM_LOG_EVENTS, "detecting CLICK_DRAG: press event detected");
+          CLOG_DEBUG(WM_LOG_EVENTS, "Detecting CLICK_DRAG: press event detected");
           win->event_queue_check_drag = true;
 
           win->event_queue_check_drag_handled = false;
@@ -3700,7 +3706,7 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
             /* Support releasing modifier keys without canceling the drag event, see #89989. */
           }
           else {
-            CLOG_DEBUG(WM_LOG_EVENTS, "CLICK_DRAG: canceling (release event didn't match press)");
+            CLOG_DEBUG(WM_LOG_EVENTS, "Canceling CLICK_DRAG (release event didn't match press)");
             win->event_queue_check_drag = false;
           }
         }
@@ -3714,7 +3720,7 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
                 win->event_queue_check_click = false;
                 if (win->event_queue_check_drag) {
                   CLOG_DEBUG(WM_LOG_EVENTS,
-                             "CLICK_DRAG: canceling (key-release exceeds drag threshold)");
+                             "Canceling CLICK_DRAG (key-release exceeds drag threshold)");
                   win->event_queue_check_drag = false;
                 }
               }
@@ -3726,7 +3732,7 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
                 copy_v2_v2_int(event->xy, event->prev_press_xy);
                 event->val = KM_CLICK;
 
-                CLOG_DEBUG(WM_LOG_EVENTS, "CLICK: handling");
+                CLOG_DEBUG(WM_LOG_EVENTS, "Handling CLICK");
 
                 action |= wm_handlers_do_intern(C, win, event, handlers);
 
@@ -3753,7 +3759,7 @@ static eHandlerActionFlag wm_handlers_do(bContext *C, wmEvent *event, ListBase *
 
       if (win->event_queue_check_drag) {
         CLOG_DEBUG(WM_LOG_EVENTS,
-                   "CLICK_DRAG: canceling (button event was handled: value=%d)",
+                   "Canceling CLICK_DRAG (button event was handled: value=%d)",
                    event->val);
         win->event_queue_check_drag = false;
       }
@@ -4135,13 +4141,13 @@ void wm_event_do_handlers(bContext *C)
             event->flag |= WM_EVENT_IS_CONSECUTIVE;
           }
           else if (is_consecutive || WM_event_consecutive_gesture_test_break(win, event)) {
-            CLOG_DEBUG(WM_LOG_EVENTS, "consecutive gesture break (%d)", event->type);
+            CLOG_DEBUG(WM_LOG_EVENTS, "Consecutive gesture break (%d)", event->type);
             win->event_queue_consecutive_gesture_type = EVENT_NONE;
             WM_event_consecutive_data_free(win);
           }
         }
         else if (is_consecutive) {
-          CLOG_DEBUG(WM_LOG_EVENTS, "consecutive gesture begin (%d)", event->type);
+          CLOG_DEBUG(WM_LOG_EVENTS, "Consecutive gesture begin (%d)", event->type);
           win->event_queue_consecutive_gesture_type = event->type;
           copy_v2_v2_int(win->event_queue_consecutive_gesture_xy, event->xy);
           /* While this should not be set, it's harmless to free here. */
@@ -4160,7 +4166,7 @@ void wm_event_do_handlers(bContext *C)
       /* Take care of pie event filter. */
       if (wm_event_pie_filter(win, event)) {
         if (!ISMOUSE_MOTION(event->type)) {
-          CLOG_DEBUG(WM_LOG_EVENTS, "event filtered due to pie button pressed");
+          CLOG_DEBUG(WM_LOG_EVENTS, "Event filtered due to pie button pressed");
         }
         BLI_remlink(&win->runtime->event_queue, event);
         wm_event_free_last_handled(win, event);
@@ -5811,7 +5817,7 @@ static void wm_event_state_update_and_click_set_ex(wmEvent *event,
   if (check_double_click &&
       wm_event_is_double_click(event, event_time_ms, *event_state_prev_press_time_ms_p))
   {
-    CLOG_DEBUG(WM_LOG_EVENTS, "DBL_CLICK: detected");
+    CLOG_DEBUG(WM_LOG_EVENTS, "Detected DBL_CLICK");
     event->val = KM_DBL_CLICK;
   }
   else if (event->val == KM_PRESS) {
