@@ -9,9 +9,11 @@
 namespace blender::ocio {
 
 /* Standard XYZ (D65) to linear Rec.709 transform. */
-static const float3x3 XYZ_TO_REC709{{3.2404542f, -0.9692660f, 0.0556434f},
-                                    {-1.5371385f, 1.8760108f, -0.2040259f},
-                                    {-0.4985314f, 0.0415560f, 1.0572252f}};
+/* Use four-digit constants instead of higher precisions to match sRGB and Rec.2020 standards.
+ * See PR #141027 for details. */
+static const float3x3 XYZ_TO_REC709{{3.2409699f, -0.9692436f, 0.0556301f},
+                                    {-1.5373832f, 1.8759675f, -0.2039770f},
+                                    {-0.4986108f, 0.0415551f, 1.0569715f}};
 
 /* Standard ACES to XYZ (D65) transform.
  * Matches OpenColorIO builtin transform: UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD. */
