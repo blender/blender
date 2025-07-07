@@ -702,7 +702,9 @@ void BKE_armature_deform_coords_with_mesh(const Object *ob_arm,
   }
   else if (ob_target->type == OB_LATTICE) {
     const Lattice *lt = static_cast<const Lattice *>(ob_target->data);
-    dverts = blender::Span<MDeformVert>(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
+    if (lt->dvert != nullptr) {
+      dverts = blender::Span<MDeformVert>(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
+    }
   }
 
   MutableSpan<float3> vert_coords_span(reinterpret_cast<float3 *>(vert_coords), vert_coords_len);
