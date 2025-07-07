@@ -357,8 +357,14 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
         mesh->face_data, AttrDomain::Face, mesh->faces_num, face_layers, attribute_data);
     CustomData_blend_write_prepare(
         mesh->corner_data, AttrDomain::Corner, mesh->corners_num, loop_layers, attribute_data);
-    mesh->attribute_storage.dna_attributes = attribute_data.attributes.data();
-    mesh->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
+    if (attribute_data.attributes.is_empty()) {
+      mesh->attribute_storage.dna_attributes = nullptr;
+      mesh->attribute_storage.dna_attributes_num = 0;
+    }
+    else {
+      mesh->attribute_storage.dna_attributes = attribute_data.attributes.data();
+      mesh->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
+    }
   }
 
   const blender::bke::MeshRuntime *mesh_runtime = mesh->runtime;
