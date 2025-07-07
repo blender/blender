@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
-"PO-Revision-Date: 2025-06-23 18:59+0000\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"PO-Revision-Date: 2025-07-07 06:59+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -21737,7 +21737,7 @@ msgstr "Modo de rellenar la curva"
 
 
 msgid "Half"
-msgstr "Mitad"
+msgstr "Media"
 
 
 msgid "Distance to move the curve parallel to its normals"
@@ -23426,7 +23426,7 @@ msgstr "Genera un buffer usando valores decimales"
 
 
 msgid "Half Float Precision"
-msgstr "Mitad de precisión decimal"
+msgstr "Decimal con precisión media"
 
 
 msgid "Use 16 bits per channel to lower the memory usage during rendering"
@@ -34628,36 +34628,12 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
-msgid "Clean Up"
-msgstr "Limpiar"
-
-
 msgid "Show/Hide"
 msgstr "Mostrar / Ocultar"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Names"
-msgstr "Nombres"
-
-
-msgid "Bone Roll"
-msgstr "Giro de huesos"
+msgid "Clean Up"
+msgstr "Limpiar"
 
 
 msgid "Pivot Point"
@@ -34744,6 +34720,10 @@ msgid "Assign Material"
 msgstr "Asignar material"
 
 
+msgid "Metaball"
+msgstr "Metabola"
+
+
 msgid "Light"
 msgstr "Luz"
 
@@ -34828,6 +34808,10 @@ msgid "Bone Collections"
 msgstr "Colecciones de huesos"
 
 
+msgid "Names"
+msgstr "Nombres"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opciones de huesos"
 
@@ -34858,6 +34842,22 @@ msgstr "Definir intensidad de caras"
 
 msgid "Merge"
 msgstr "Fusionar"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Bone Roll"
+msgstr "Giro de huesos"
 
 
 msgid "Keyframe Insert Pie"
@@ -53886,6 +53886,7 @@ msgid "Minimum value"
 msgstr "Valor mínimo"
 
 
+msgctxt "Unit"
 msgid "Subtype"
 msgstr "Subtipo"
 
@@ -62915,10 +62916,6 @@ msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
 msgstr "Otros tipos de geometría como curvas, metabolas, etc. (convertidos a mallas)"
 
 
-msgid "Path Mode"
-msgstr "Modo de rutas"
-
-
 msgid "Method used to reference paths"
 msgstr "Método usado para referenciar las rutas de acceso"
 
@@ -62931,20 +62928,12 @@ msgid "Always write absolute paths"
 msgstr "Siempre guardar rutas absolutas"
 
 
-msgid "Always write relative paths (where possible)"
-msgstr "Siempre guardar rutas relativas (cuando sea posible)"
-
-
-msgid "Match"
-msgstr "Coincidir"
+msgid "Write relative paths where possible"
+msgstr "Guardar siempre rutas relativas cuando sea posible"
 
 
 msgid "Match absolute/relative setting with input path"
 msgstr "Hace coincidir la opción Absoluto o Relativo con la de la ruta de entrada"
-
-
-msgid "Strip Path"
-msgstr "Quitar ruta"
 
 
 msgid "Filename only"
@@ -83487,11 +83476,11 @@ msgstr "Sustrae los colores de un clip de los de otro"
 
 msgctxt "Sequence"
 msgid "Alpha Over"
-msgstr "Alfa encima"
+msgstr "Superponer con alfa"
 
 
 msgid "Blend alpha on top of another video"
-msgstr "Mezcla el alfa encima de otro video"
+msgstr "Superpone encima de otro video usando el canal alfa"
 
 
 msgctxt "Sequence"
@@ -89815,10 +89804,6 @@ msgid "Negative Z axis"
 msgstr "Eje negativo Z"
 
 
-msgid "Write relative paths where possible"
-msgstr "Guardar siempre rutas relativas cuando sea posible"
-
-
 msgid "Write filename only"
 msgstr "Guardar sólo el nombre del archivo"
 
@@ -90212,11 +90197,6 @@ msgstr "Límite laxo  Máx"
 
 msgid "Soft Min"
 msgstr "Límite laxo  Mín"
-
-
-msgctxt "Unit"
-msgid "Subtype"
-msgstr "Subtipo"
 
 
 msgid "Soft Limits"
@@ -108633,7 +108613,7 @@ msgstr "Desplaza el inicio de la animación (recorta su inicio)"
 
 
 msgid "Alpha Over Strip"
-msgstr "Alfa encima"
+msgstr "Superponer con alfa"
 
 
 msgid "Alpha Under Strip"
@@ -118953,6 +118933,26 @@ msgid "Error: {:s}"
 msgstr "Error: {:s}"
 
 
+msgctxt "Preferences"
+msgid "Extension"
+msgstr "Extensión"
+
+
+msgctxt "Preferences"
+msgid "Core"
+msgstr "Integrado"
+
+
+msgctxt "Preferences"
+msgid "Legacy (User)"
+msgstr "Obsoleto (usuario)"
+
+
+msgctxt "Preferences"
+msgid "Legacy (Other)"
+msgstr "Obsoleto (otro)"
+
+
 msgid "Missing Built-in Add-ons"
 msgstr "Complementos integrados faltantes"
 
@@ -121395,6 +121395,10 @@ msgid "Active camera is not in this scene"
 msgstr "La cámara activa no se encuentra en esta escena"
 
 
+msgid "No {:s} modifiers found"
+msgstr "Ningún modificador {:s} encontrado"
+
+
 msgid "Skipping '{:s}', not a mesh"
 msgstr "Omitiendo a '{:s}', debido a que no es una malla"
 
@@ -122113,6 +122117,14 @@ msgid "Mix Vector"
 msgstr "Mezclar (vectores)"
 
 
+msgid "For Each Element"
+msgstr "Para cada elemento"
+
+
+msgid "Determinant"
+msgstr "Determinante"
+
+
 msgid "Calculation Range"
 msgstr "Rango de cálculo"
 
@@ -122725,6 +122737,11 @@ msgstr "Actualizar al editar"
 msgctxt "Operator"
 msgid "Search..."
 msgstr "Buscar..."
+
+
+msgctxt "Speaker"
+msgid "Volume Min"
+msgstr "Volumen  Mín"
 
 
 msgid "Distance Reference"
@@ -124188,6 +124205,10 @@ msgstr "Calibración"
 msgctxt "Operator"
 msgid "Prefetch"
 msgstr "Precargar"
+
+
+msgid "Match"
+msgstr "Coincidir"
 
 
 msgctxt "Operator"
@@ -125979,7 +126000,7 @@ msgstr "Multiplicar"
 
 msgctxt "Operator"
 msgid "Alpha Over"
-msgstr "Alfa encima"
+msgstr "Superponer con alfa"
 
 
 msgctxt "Operator"
@@ -127032,6 +127053,14 @@ msgid "A restart of Blender is required"
 msgstr "Se necesitará reiniciar Blender"
 
 
+msgid "Current Vulkan backend limitations:"
+msgstr "Limitaciones actuales con Vulkan:"
+
+
+msgid "• Low performance in VR"
+msgstr "• Bajo rendimiento con RV"
+
+
 msgid "Open blend files with this Blender version"
 msgstr "Abrir archivos blend con esta versión de Blender"
 
@@ -127105,6 +127134,10 @@ msgstr "URL del repositorio"
 
 msgid "Enable Cycles Render Engine add-on to use Cycles"
 msgstr "Habilitar el complemento Cycles Render Engine para usar poder usar Cycles"
+
+
+msgid "• Windows on ARM requires driver 31.0.112.0 or higher"
+msgstr "• Windows (ARM) requiere un controlador versión 31.0.112.0 o superior"
 
 
 msgid "Microsoft Store installation"
@@ -131803,6 +131836,10 @@ msgid "Separated bones"
 msgstr "Huesos separados"
 
 
+msgid "Cannot join objects that share armature data: %s"
+msgstr "No es posible unir objetos que compartan datos de esqueleto: %s"
+
+
 msgid "Unselectable bone in chain"
 msgstr "Hueso no seleccionable en la cadena"
 
@@ -132343,6 +132380,10 @@ msgstr "No se ha seleccionado ningún punto de control"
 
 msgid "Control point belongs to another spline"
 msgstr "El punto de control pertenece a otra curva"
+
+
+msgid "Insert"
+msgstr "Insertar"
 
 
 msgid "Unicode codepoint hex value"
@@ -132973,10 +133014,6 @@ msgstr "Esc"
 
 msgid "Pause"
 msgstr "Pausa"
-
-
-msgid "Insert"
-msgstr "Insertar"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -133965,6 +134002,10 @@ msgstr "Indicadores grupos suavizado"
 
 msgid "PBR Extensions"
 msgstr "Extensiones PBR"
+
+
+msgid "Path Mode"
+msgstr "Modo de rutas"
 
 
 msgid "File exported successfully"
@@ -138151,6 +138192,10 @@ msgid "Menu Undefined"
 msgstr "Menú no definido"
 
 
+msgid "Subtype"
+msgstr "Subtipo"
+
+
 msgid "Could not determine type of group node"
 msgstr "No se pudo determinar el tipo del nodo de grupo"
 
@@ -138549,10 +138594,6 @@ msgstr "No es posible agregar una nueva colección a la escena vinculada o redef
 
 msgid "No active collection"
 msgstr "No hay una colección activa"
-
-
-msgid "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
-msgstr "No se pudo encontrar una colección superior válida para el nuevo duplicado, no quedará vinculado a ninguna capa de visualización"
 
 
 msgid "Cannot add a collection to a linked/override collection/scene"
@@ -139064,7 +139105,7 @@ msgstr "Agrega un clip de efecto de tipo sustraer a dos clips seleccionados con 
 
 
 msgid "Add an alpha over blend mode effect strip for two selected strips with video content"
-msgstr "Agrega un clip de efecto de tipo alfa encima a dos clips seleccionados con contenido de video"
+msgstr "Agrega un clip de efecto de tipo Superponer con alfa a dos clips seleccionados que contengan video"
 
 
 msgid "Add an alpha under blend mode effect strip for two selected strips with video content"
@@ -139337,10 +139378,6 @@ msgstr "(Geometría)"
 
 msgid "No Data-Block"
 msgstr "Ningún bloque de datos"
-
-
-msgid "For Each Element"
-msgstr "Para cada elemento"
 
 
 msgid "No Active Context"
@@ -142347,6 +142384,10 @@ msgid "Cannot edit bone groups for library overrides"
 msgstr "No es posible editar grupos de huesos en redefiniciones de biblioteca"
 
 
+msgid "Cannot use armature object as custom bone shape"
+msgstr "No es posible usar un objeto de tipo esqueleto como forma personalizada de un hueso"
+
+
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "Restricción '%s' no encontrada en el hueso '%s' de la pose"
 
@@ -142369,6 +142410,18 @@ msgstr "Se proporcionó una forma de colisión no convexa a la función, usar s�
 
 msgid "Rigidbody world was not properly initialized, need to step the simulation first"
 msgstr "El entorno de cuerpos rígidos no fue correctamente inicializado, se necesita correr la simulación primero"
+
+
+msgid "Float (Half)"
+msgstr "Decimal (media)"
+
+
+msgid "16-bit color channels. Data passes like Depth will still be saved using full 32-bit precision."
+msgstr "Canales de color de 16 bits. Las pasadas de datos, tales como la de Profundidad serán guardadas con una precisión completa de 32 bits."
+
+
+msgid "Float (Full)"
+msgstr "Decimal (completa)"
 
 
 msgid "Use the scene orientation"
@@ -144973,10 +145026,6 @@ msgstr "Verdadero cuando la matriz de entrada sea invertible"
 
 msgid "The string to find in the input string"
 msgstr "El texto a buscar en el texto de entrada"
-
-
-msgid "Determinant"
-msgstr "Determinante"
 
 
 msgid "The string to replace each match with"
@@ -147673,11 +147722,6 @@ msgid "IOR Level"
 msgstr "Nivel de IR"
 
 
-msgctxt "NodeTree"
-msgid "Tint"
-msgstr "Tinte"
-
-
 msgid "Subsurface"
 msgstr "Transluminiscencia"
 
@@ -147688,6 +147732,11 @@ msgstr "Brillo tangencial"
 
 msgid "Thin Film"
 msgstr "Película delgada"
+
+
+msgctxt "NodeTree"
+msgid "Tint"
+msgstr "Tinte"
 
 
 msgid "Strength of the bump mapping effect, interpolating between no bump mapping and full bump mapping"

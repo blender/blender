@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
 "PO-Revision-Date: 2025-04-14 08:40+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8589,22 +8589,6 @@ msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
 
 
-msgid "Special Characters"
-msgstr "Специјални знаци"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
-
-
-msgid "Names"
-msgstr "Имена"
-
-
-msgid "Bone Roll"
-msgstr "Ролна костију"
-
-
 msgid "Snap"
 msgstr "Лепљење"
 
@@ -8631,6 +8615,10 @@ msgstr "Поравнај поглед"
 
 msgid "Select Linked"
 msgstr "Изабери повезано"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
 
 
 msgid "Light"
@@ -8673,6 +8661,10 @@ msgid "Propagate"
 msgstr "Пренеси"
 
 
+msgid "Names"
+msgstr "Имена"
+
+
 msgid "Toggle Bone Options"
 msgstr "Мање/више информација"
 
@@ -8691,6 +8683,14 @@ msgstr "Мод избора мреже"
 
 msgid "Merge"
 msgstr "Сједини"
+
+
+msgid "Special Characters"
+msgstr "Специјални знаци"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
 
 
 msgid "Basic"
@@ -13898,20 +13898,12 @@ msgid "Other"
 msgstr "Остало"
 
 
-msgid "Path Mode"
-msgstr "Режим путање"
-
-
 msgid "Method used to reference paths"
 msgstr "Коришћен метод за референтне путање"
 
 
 msgid "Always write absolute paths"
 msgstr "Увек користи апсолутне путање"
-
-
-msgid "Always write relative paths (where possible)"
-msgstr "Ако је могуће, увек користи релативне поуање"
 
 
 msgid "Filename only"
@@ -25119,6 +25111,10 @@ msgstr "Група материјала"
 
 msgid "Smooth Groups"
 msgstr "Групе умекшања"
+
+
+msgid "Path Mode"
+msgstr "Режим путање"
 
 
 msgctxt "Mesh"

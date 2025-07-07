@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
 "PO-Revision-Date: 2025-06-21 21:59+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -9311,28 +9311,12 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Clean Up"
-msgstr "Städa upp"
-
-
 msgid "Show/Hide"
 msgstr "Visa/dölj"
 
 
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgid "Names"
-msgstr "Namn"
+msgid "Clean Up"
+msgstr "Städa upp"
 
 
 msgid "Pivot Point"
@@ -9373,6 +9357,10 @@ msgstr "Markera mera/mindre"
 
 msgid "Assign Material"
 msgstr "Tilldela material"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
 
 
 msgid "Light"
@@ -9423,8 +9411,20 @@ msgid "Propagate"
 msgstr "Propagera"
 
 
+msgid "Names"
+msgstr "Namn"
+
+
 msgid "Merge"
 msgstr "Sammanfoga"
+
+
+msgid "Special Characters"
+msgstr "Specialtecken"
+
+
+msgid "Text"
+msgstr "Text"
 
 
 msgid "Animals"
@@ -13080,10 +13080,6 @@ msgid "Minimum value"
 msgstr "Minimalt värde"
 
 
-msgid "Subtype"
-msgstr "Undertyp"
-
-
 msgid "Subtype of the default value"
 msgstr "Undertyp av standardvärdet"
 
@@ -15405,10 +15401,6 @@ msgstr "Annan"
 
 msgid "Always write absolute paths"
 msgstr "Skriv alltid absoluta sökvägar"
-
-
-msgid "Always write relative paths (where possible)"
-msgstr "Skriv alltid relativa sökvägar (där så är möjligt)"
 
 
 msgid "Custom Properties"
@@ -30828,6 +30820,10 @@ msgid "Cannot make segment"
 msgstr "Kan inte göra segment"
 
 
+msgid "Insert"
+msgstr "Infoga"
+
+
 msgid "Text too long"
 msgstr "Texten är för lång"
 
@@ -30945,10 +30941,6 @@ msgstr "R"
 
 msgid "OS"
 msgstr "OS"
-
-
-msgid "Insert"
-msgstr "Infoga"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -32291,6 +32283,10 @@ msgstr "Inga objekt"
 
 msgid "Menu Error"
 msgstr "Menyfel"
+
+
+msgid "Subtype"
+msgstr "Undertyp"
 
 
 msgid "Could not determine type of group node"
