@@ -192,6 +192,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   /* Show the window. */
   int nCmdShow;
   switch (state) {
+    case GHOST_kWindowStateFullScreen:
     case GHOST_kWindowStateMaximized:
       nCmdShow = SW_SHOWMAXIMIZED;
       break;
