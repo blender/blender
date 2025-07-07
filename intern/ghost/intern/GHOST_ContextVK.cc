@@ -373,7 +373,7 @@ class GHOST_DeviceVK {
     }
 
     /* Descriptor buffers */
-    VkPhysicalDeviceDescriptorBufferPropertiesEXT descriptor_buffer = {
+    VkPhysicalDeviceDescriptorBufferFeaturesEXT descriptor_buffer = {
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT,
         nullptr,
         VK_TRUE,
