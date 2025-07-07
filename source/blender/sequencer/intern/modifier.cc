@@ -1208,7 +1208,7 @@ StripModifierData *modifier_new(Strip *strip, const char *name, int type)
   smd->flag |= SEQUENCE_MODIFIER_EXPANDED;
 
   if (!name || !name[0]) {
-    STRNCPY(smd->name, DATA_(smti->name));
+    STRNCPY(smd->name, CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, smti->name));
   }
   else {
     STRNCPY(smd->name, name);

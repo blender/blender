@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21444,32 +21444,12 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
+msgid "Clean Up"
+msgstr "Limpeza"
 
 
 msgid "Pivot Point"
@@ -21536,6 +21516,10 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
 msgid "Light"
 msgstr "Luz"
 
@@ -21596,6 +21580,10 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
+msgid "Names"
+msgstr "Nomes"
+
+
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
@@ -21618,6 +21606,18 @@ msgstr "Dados das faces"
 
 msgid "Merge"
 msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
 
 
 msgid "Basic"
@@ -34712,28 +34712,12 @@ msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
 msgstr "Outros tipos de geometria, como curvas, esferas-meta, etc (convertida em malhas)."
 
 
-msgid "Path Mode"
-msgstr "Modo dos caminhos"
-
-
 msgid "Method used to reference paths"
 msgstr "Define o método usado para referenciar os caminhos de exportação."
 
 
 msgid "Always write absolute paths"
 msgstr "Sempre escrever caminhos absolutos"
-
-
-msgid "Always write relative paths (where possible)"
-msgstr "Sempre escrever em caminhos relativos (onde for possível)."
-
-
-msgid "Match"
-msgstr "Combinar"
-
-
-msgid "Strip Path"
-msgstr "Caminho da faixa"
 
 
 msgid "Filename only"
@@ -62070,6 +62054,10 @@ msgid "Prefetch"
 msgstr "Pré-processamento"
 
 
+msgid "Match"
+msgstr "Combinar"
+
+
 msgctxt "Operator"
 msgid "Copy from Active Track"
 msgstr "Copiar a partir da trilha ativa"
@@ -66019,6 +66007,10 @@ msgstr "Grupos de materiais"
 
 msgid "Smooth Groups"
 msgstr "Grupos suavizados"
+
+
+msgid "Path Mode"
+msgstr "Modo dos caminhos"
 
 
 msgid "Rigging"

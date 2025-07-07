@@ -46,6 +46,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         .field_source_reference_all()
         .description("The sum of all values in each group divided by the size of said group");
     b.add_output(data_type, "Median")
+        .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
         .field_source_reference_all()
         .description(
             "The middle value in each group when all values are sorted from lowest to highest");
@@ -100,7 +101,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
         },
         0);
     params.add_item(
-        IFACE_("Median"),
+        CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "Median"),
         [type](LinkSearchOpParams &params) {
           bNode &node = params.add_node("GeometryNodeFieldAverage");
           node.custom1 = *type;

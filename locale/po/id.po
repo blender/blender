@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
 "PO-Revision-Date: 2025-05-01 10:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15355,18 +15355,6 @@ msgid "Mask"
 msgstr "Masker"
 
 
-msgid "Text"
-msgstr "Teks"
-
-
-msgid "Metaball"
-msgstr "Metabola"
-
-
-msgid "Names"
-msgstr "Nama"
-
-
 msgid "Snap"
 msgstr "Jepret"
 
@@ -15385,6 +15373,10 @@ msgstr "Seleksi yang Terhubung"
 
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
+
+
+msgid "Metaball"
+msgstr "Metabola"
 
 
 msgid "Light"
@@ -15415,8 +15407,16 @@ msgid "Hooks"
 msgstr "Kait"
 
 
+msgid "Names"
+msgstr "Nama"
+
+
 msgid "Merge"
 msgstr "Menggabungkan"
+
+
+msgid "Text"
+msgstr "Teks"
 
 
 msgctxt "MovieClip"
@@ -19011,10 +19011,6 @@ msgid "String Node Socket"
 msgstr "String Node Socket"
 
 
-msgid "Subtype"
-msgstr "Subtipe"
-
-
 msgid "Active Node"
 msgstr "Tambah Baru"
 
@@ -20346,10 +20342,6 @@ msgstr "PERHATIAN: tidak terdukung di contoh-contoh dupli/kelompok"
 
 msgid "Other"
 msgstr "Lain"
-
-
-msgid "Path Mode"
-msgstr "Mode Jalur"
 
 
 msgid "-X Axis"
@@ -31018,6 +31010,10 @@ msgid "Unable to export PDF"
 msgstr "Tidak dapat mengekspor PDF"
 
 
+msgid "Path Mode"
+msgstr "Mode Jalur"
+
+
 msgid "Rigging"
 msgstr "Menali"
 
@@ -31586,6 +31582,10 @@ msgstr "Bingkai: %d"
 
 msgid "Matte Objects:"
 msgstr "Objek Matte:"
+
+
+msgid "Subtype"
+msgstr "Subtipe"
 
 
 msgid "• Mesh: {} vertices, {} edges, {} faces"

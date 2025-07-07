@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
-"PO-Revision-Date: 2025-06-24 02:59+0000\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"PO-Revision-Date: 2025-07-06 02:59+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -34628,36 +34628,12 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
-msgid "Clean Up"
-msgstr "Nettoyer"
-
-
 msgid "Show/Hide"
 msgstr "Afficher/cacher"
 
 
-msgid "Special Characters"
-msgstr "Caractères spéciaux"
-
-
-msgid "Kerning"
-msgstr "Approche"
-
-
-msgid "Text"
-msgstr "Texte"
-
-
-msgid "Metaball"
-msgstr "Métaballe"
-
-
-msgid "Names"
-msgstr "Noms"
-
-
-msgid "Bone Roll"
-msgstr "Roulis de l’os"
+msgid "Clean Up"
+msgstr "Nettoyer"
 
 
 msgid "Pivot Point"
@@ -34744,6 +34720,10 @@ msgid "Assign Material"
 msgstr "Assigner un matériau"
 
 
+msgid "Metaball"
+msgstr "Métaballe"
+
+
 msgid "Light"
 msgstr "Éclairage"
 
@@ -34828,6 +34808,10 @@ msgid "Bone Collections"
 msgstr "Collections d’os"
 
 
+msgid "Names"
+msgstr "Noms"
+
+
 msgid "Toggle Bone Options"
 msgstr "(Dés)activer des options d’os"
 
@@ -34858,6 +34842,22 @@ msgstr "Définir la force de face"
 
 msgid "Merge"
 msgstr "Fusionner"
+
+
+msgid "Special Characters"
+msgstr "Caractères spéciaux"
+
+
+msgid "Kerning"
+msgstr "Approche"
+
+
+msgid "Text"
+msgstr "Texte"
+
+
+msgid "Bone Roll"
+msgstr "Roulis de l’os"
 
 
 msgid "Keyframe Insert Pie"
@@ -53888,6 +53888,7 @@ msgid "Minimum value"
 msgstr "Valeur minimum"
 
 
+msgctxt "Unit"
 msgid "Subtype"
 msgstr "Sous-type"
 
@@ -62918,10 +62919,6 @@ msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
 msgstr "Autres types de géométrie, comme les courbes, métaballes, etc. (converties en maillages)"
 
 
-msgid "Path Mode"
-msgstr "Mode de chemin"
-
-
 msgid "Method used to reference paths"
 msgstr "Méthode utilisée pour désigner les chemins"
 
@@ -62934,20 +62931,12 @@ msgid "Always write absolute paths"
 msgstr "Toujours écrire des chemins absolus"
 
 
-msgid "Always write relative paths (where possible)"
-msgstr "Toujours écrire des chemins relatifs (si possible)"
-
-
-msgid "Match"
-msgstr "Correspondance"
+msgid "Write relative paths where possible"
+msgstr "Écrire des chemins relatifs si possible"
 
 
 msgid "Match absolute/relative setting with input path"
 msgstr "Faire correspondre le réglage absolu/relatif avec le chemin d’entrée"
-
-
-msgid "Strip Path"
-msgstr "Nettoyer le chemin"
 
 
 msgid "Filename only"
@@ -89818,10 +89807,6 @@ msgid "Negative Z axis"
 msgstr "Axe Z négatif"
 
 
-msgid "Write relative paths where possible"
-msgstr "Écrire des chemins relatifs si possible"
-
-
 msgid "Write filename only"
 msgstr "Écrire le nom du fichier uniquement"
 
@@ -90215,11 +90200,6 @@ msgstr "Max souple"
 
 msgid "Soft Min"
 msgstr "Min souple"
-
-
-msgctxt "Unit"
-msgid "Subtype"
-msgstr "Sous-type"
 
 
 msgid "Soft Limits"
@@ -97303,7 +97283,7 @@ msgstr "Délai d’attente réseau"
 
 
 msgid "The time in seconds to wait for online operations before a connection may fail with a time-out error. Zero uses the systems default."
-msgstr "Temps d’attente en secondes pour les opérations en ligne avant qu’une connexion puisse échouer avec une erreur de délai dépassé. 0 utiliser la valeur par défaut du système."
+msgstr "Temps d’attente en secondes pour les opérations en ligne avant qu’une connexion puisse échouer avec une erreur de délai dépassé. 0 pour utiliser la valeur par défaut du système."
 
 
 msgid "Register for All Users"
@@ -102003,11 +101983,11 @@ msgstr "Précision des résultats intermédiaires du compositeur"
 
 
 msgid "Full precision for final renders, half precision otherwise"
-msgstr "Simple précision pour les rendus finaux, demi-précision autrement"
+msgstr "Précision complète pour les rendus finaux, demi-précision autrement"
 
 
 msgid "Full precision"
-msgstr "Simple précision (full)"
+msgstr "Précision complète"
 
 
 msgid "Dither Intensity"
@@ -118956,6 +118936,26 @@ msgid "Error: {:s}"
 msgstr "Erreur : {:s}"
 
 
+msgctxt "Preferences"
+msgid "Extension"
+msgstr "Extension"
+
+
+msgctxt "Preferences"
+msgid "Core"
+msgstr "Interne"
+
+
+msgctxt "Preferences"
+msgid "Legacy (User)"
+msgstr "Héritage (utilisateur)"
+
+
+msgctxt "Preferences"
+msgid "Legacy (Other)"
+msgstr "Héritage (autre)"
+
+
 msgid "Missing Built-in Add-ons"
 msgstr "Add-ons intégrés manquants"
 
@@ -119329,7 +119329,7 @@ msgstr "Blender a été compilé sans débruiteur de la vue 3D"
 
 
 msgid " (Unoptimized Performance)"
-msgstr " (Performamces non-optimisées)"
+msgstr " (Performances non-optimisées)"
 
 
 msgid "No compatible GPUs found for Cycles"
@@ -121398,6 +121398,10 @@ msgid "Active camera is not in this scene"
 msgstr "La caméra active n’est pas dans cette scène"
 
 
+msgid "No {:s} modifiers found"
+msgstr "Aucun modificateur {:s} trouvé"
+
+
 msgid "Skipping '{:s}', not a mesh"
 msgstr "« {:s} » ignoré, pas un maillage"
 
@@ -122116,6 +122120,14 @@ msgid "Mix Vector"
 msgstr "Mélanger les vecteurs"
 
 
+msgid "For Each Element"
+msgstr "Pour chaque élément"
+
+
+msgid "Determinant"
+msgstr "Déterminant"
+
+
 msgid "Calculation Range"
 msgstr "Intervalle de calcul"
 
@@ -122730,6 +122742,11 @@ msgid "Search..."
 msgstr "Rechercher…"
 
 
+msgctxt "Speaker"
+msgid "Volume Min"
+msgstr "Volume min"
+
+
 msgid "Distance Reference"
 msgstr "Distance de référence"
 
@@ -123053,7 +123070,7 @@ msgstr "Afficher l’instanciateur"
 
 
 msgid "Normal Offset"
-msgstr "Décalage normal"
+msgstr "Décalage normales"
 
 
 msgid "Shading Offset"
@@ -124191,6 +124208,10 @@ msgstr "Calibration"
 msgctxt "Operator"
 msgid "Prefetch"
 msgstr "Précharger"
+
+
+msgid "Match"
+msgstr "Correspondance"
 
 
 msgctxt "Operator"
@@ -127035,6 +127056,14 @@ msgid "A restart of Blender is required"
 msgstr "Un redémarrage de Blender est requis"
 
 
+msgid "Current Vulkan backend limitations:"
+msgstr "Limitations actuelles du dorsal Vulkan :"
+
+
+msgid "• Low performance in VR"
+msgstr "• Faibles performances en VR"
+
+
 msgid "Open blend files with this Blender version"
 msgstr "Ouvrir les fichiers .blend avec cette version de Blender"
 
@@ -127108,6 +127137,10 @@ msgstr "URL du dépôt"
 
 msgid "Enable Cycles Render Engine add-on to use Cycles"
 msgstr "Activer l’add-on Moteur de rendu Cycles pour utiliser Cycles"
+
+
+msgid "• Windows on ARM requires driver 31.0.112.0 or higher"
+msgstr "• Windows sur ARM nécessite le pilote 31.0.112.0 ou supérieur"
 
 
 msgid "Microsoft Store installation"
@@ -131806,6 +131839,10 @@ msgid "Separated bones"
 msgstr "Os séparés"
 
 
+msgid "Cannot join objects that share armature data: %s"
+msgstr "Impossible de combiner des objets qui ont les mêmes données d’armature : %s"
+
+
 msgid "Unselectable bone in chain"
 msgstr "Os non-sélectionnable dans la chaîne"
 
@@ -132346,6 +132383,10 @@ msgstr "Aucun point de contrôle sélectionné"
 
 msgid "Control point belongs to another spline"
 msgstr "Le point de contrôle appartient à une autre courbe"
+
+
+msgid "Insert"
+msgstr "Insérer"
 
 
 msgid "Unicode codepoint hex value"
@@ -132976,10 +133017,6 @@ msgstr "Échap"
 
 msgid "Pause"
 msgstr "Pause"
-
-
-msgid "Insert"
-msgstr "Insérer"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -133968,6 +134005,10 @@ msgstr "Drapeaux de groupes de lissage"
 
 msgid "PBR Extensions"
 msgstr "Extensions PBR"
+
+
+msgid "Path Mode"
+msgstr "Mode de chemin"
 
 
 msgid "File exported successfully"
@@ -138154,6 +138195,10 @@ msgid "Menu Undefined"
 msgstr "Menu indéfini"
 
 
+msgid "Subtype"
+msgstr "Sous-type"
+
+
 msgid "Could not determine type of group node"
 msgstr "Impossible de déterminer le type du groupe de nœuds"
 
@@ -138552,10 +138597,6 @@ msgstr "Impossible d’ajouter une nouvelle collection à une scène liée ou re
 
 msgid "No active collection"
 msgstr "Aucune collection active"
-
-
-msgid "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
-msgstr "Impossible de trouver une collection parente valide pour le nouveau duplicata, il ne ser lié dans aucun calque de vue"
 
 
 msgid "Cannot add a collection to a linked/override collection/scene"
@@ -139340,10 +139381,6 @@ msgstr "(Géométrie)"
 
 msgid "No Data-Block"
 msgstr "Aucun bloc de données"
-
-
-msgid "For Each Element"
-msgstr "Pour chaque élément"
 
 
 msgid "No Active Context"
@@ -142350,6 +142387,10 @@ msgid "Cannot edit bone groups for library overrides"
 msgstr "Impossible d’éditer des groupes d’os pour les redéfinitions de bibliothèque"
 
 
+msgid "Cannot use armature object as custom bone shape"
+msgstr "Impossible d’utiliser un objet armature comme forme d’os personnalisée"
+
+
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "La contrainte « %s » est introuvable dans l’os de pose « %s »"
 
@@ -142372,6 +142413,18 @@ msgstr "Une forme de collision non-convexe a été passée à la fonction, utili
 
 msgid "Rigidbody world was not properly initialized, need to step the simulation first"
 msgstr "Le monde de corps rigides n’a pas été initialisé correctement, vous devez d’abord faire avancer la simulation frame à frame"
+
+
+msgid "Float (Half)"
+msgstr "Flottante (demie)"
+
+
+msgid "16-bit color channels. Data passes like Depth will still be saved using full 32-bit precision."
+msgstr "Canaux de couleur 16 bits. Les passes de données telles que la profondeur seront enregistrées en utilisant une précision complète 32 bits."
+
+
+msgid "Float (Full)"
+msgstr "Flottante (complète)"
 
 
 msgid "Use the scene orientation"
@@ -144976,10 +145029,6 @@ msgstr "Vrai si la matrice en entrée est inversable"
 
 msgid "The string to find in the input string"
 msgstr "Le texte à trouver dans le texte en entrée"
-
-
-msgid "Determinant"
-msgstr "Déterminant"
 
 
 msgid "The string to replace each match with"
@@ -147676,11 +147725,6 @@ msgid "IOR Level"
 msgstr "Niveau IDR"
 
 
-msgctxt "NodeTree"
-msgid "Tint"
-msgstr "Teinte"
-
-
 msgid "Subsurface"
 msgstr "Subsurface"
 
@@ -147691,6 +147735,11 @@ msgstr "Lustre"
 
 msgid "Thin Film"
 msgstr "Couche mince"
+
+
+msgctxt "NodeTree"
+msgid "Tint"
+msgstr "Teinte"
 
 
 msgid "Strength of the bump mapping effect, interpolating between no bump mapping and full bump mapping"

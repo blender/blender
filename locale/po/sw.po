@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
 "PO-Revision-Date: 2025-04-14 08:50+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28722,20 +28722,12 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
-
-
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
 
-msgid "Text"
-msgstr "Maandishi"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
+msgid "Clean Up"
+msgstr "Safisha"
 
 
 msgid "Pivot Point"
@@ -28756,6 +28748,10 @@ msgstr "Urambazaji"
 
 msgid "Select Linked"
 msgstr "Chagua Imeunganishwa"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Light"
@@ -28780,6 +28776,10 @@ msgstr "Mikusanyo ya Mifupa"
 
 msgid "Merge"
 msgstr "Unganisha"
+
+
+msgid "Text"
+msgstr "Maandishi"
 
 
 msgid "Keyframe Insert Pie"
@@ -43520,10 +43520,6 @@ msgid "Minimum value"
 msgstr "Thamani ya chini"
 
 
-msgid "Subtype"
-msgstr "Aina ndogo"
-
-
 msgid "Subtype of the default value"
 msgstr "Aina ndogo ya thamani chaguo-msingi"
 
@@ -50912,10 +50908,6 @@ msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
 msgstr "Aina zingine za jiometri, kama vile curve, metaball, n.k. (zimebadilishwa kuwa meshes)"
 
 
-msgid "Path Mode"
-msgstr "Njia ya Njia"
-
-
 msgid "Method used to reference paths"
 msgstr "Njia inayotumika kurejelea njia"
 
@@ -50928,20 +50920,12 @@ msgid "Always write absolute paths"
 msgstr "Andika njia kamili kila wakati"
 
 
-msgid "Always write relative paths (where possible)"
-msgstr "Andika kila wakati njia za jamaa (inapowezekana)"
-
-
-msgid "Match"
-msgstr "Mechi"
+msgid "Write relative paths where possible"
+msgstr "Andika njia za jamaa inapowezekana"
 
 
 msgid "Match absolute/relative setting with input path"
 msgstr "Linganisha mpangilio kamili/jamaa na njia ya ingizo"
-
-
-msgid "Strip Path"
-msgstr "Njia ya Ukanda"
 
 
 msgid "Filename only"
@@ -73255,10 +73239,6 @@ msgstr "Mhimili Y hasi"
 
 msgid "Negative Z axis"
 msgstr "Mhimili wa Z hasi"
-
-
-msgid "Write relative paths where possible"
-msgstr "Andika njia za jamaa inapowezekana"
 
 
 msgid "Write filename only"
@@ -98470,6 +98450,10 @@ msgid "Prefetch"
 msgstr "Leta mapema"
 
 
+msgid "Match"
+msgstr "Mechi"
+
+
 msgctxt "Operator"
 msgid "Copy from Active Track"
 msgstr "Nakili kutoka Wimbo Inayotumika"
@@ -105620,6 +105604,10 @@ msgid "PBR Extensions"
 msgstr "Viendelezi vya PBR"
 
 
+msgid "Path Mode"
+msgstr "Njia ya Njia"
+
+
 msgid "Batch"
 msgstr "Kundi"
 
@@ -108944,6 +108932,10 @@ msgid "Menu Undefined"
 msgstr "Menyu Haijafafanuliwa"
 
 
+msgid "Subtype"
+msgstr "Aina ndogo"
+
+
 msgid "Could not determine type of group node"
 msgstr "Haikuweza kubainisha aina ya nodi za kikundi"
 
@@ -109190,10 +109182,6 @@ msgstr "Haiwezi kuongeza mkusanyiko mpya kwenye tukio lililounganishwa/kubatilis
 
 msgid "No active collection"
 msgstr "Hakuna mkusanyiko unaotumika"
-
-
-msgid "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
-msgstr "Haikuweza kupata mkusanyiko halali wa mzazi kwa nakala mpya, hautaunganishwa na safu yoyote ya mwonekano."
 
 
 msgid "Cannot add a collection to a linked/override collection/scene"

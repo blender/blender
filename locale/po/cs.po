@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
-"PO-Revision-Date: 2025-04-14 08:12+0000\n"
-"Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"PO-Revision-Date: 2025-07-04 19:59+0000\n"
+"Last-Translator: Adam Dominec <ad@m.dominec.eu>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -32,7 +32,7 @@ msgstr "Název"
 
 
 msgid "Name of the AOV"
-msgstr "Jméno AOV"
+msgstr "Název AOV"
 
 
 msgid "Type"
@@ -59,8 +59,16 @@ msgid "Collection of AOVs"
 msgstr "Kolekce s AOVs"
 
 
+msgid "Collection of animation channels, typically associated with an action slot"
+msgstr "Kolekce animačních kanálu, typicky spojené s akčním slotem"
+
+
 msgid "F-Curves"
-msgstr "F-Křivky"
+msgstr "F-Křivka"
+
+
+msgid "The individual F-Curves that animate the slot"
+msgstr "Jednotlivé F-Křivky, které animují slot"
 
 
 msgid "Slot"
@@ -248,7 +256,7 @@ msgstr "Kolekce akčních skupin"
 
 
 msgid "Strips"
-msgstr "NLA Proužky"
+msgstr "Proužky"
 
 
 msgid "Action Pose Markers"
@@ -279,8 +287,20 @@ msgid "Active"
 msgstr "Aktivní"
 
 
+msgid "Name of the slot, for display in the user interface. This name combined with the slot's data-block type is unique within its Action"
+msgstr "Název slotu pro zobrazení v uživatelském rozhraní. Tento název v kombinaci s typem bloku s daty slotu je jedinečný v rámci jeho Akce"
+
+
 msgid "Show Expanded"
 msgstr "Zobrazit rozbalené"
+
+
+msgid "Expanded state of the slot"
+msgstr "Rozšířený stav slotu"
+
+
+msgid "Type of data-block that this slot is intended to animate; can be set when 'UNSPECIFIED' but is otherwise read-only"
+msgstr "Typ datového bloku, který má tento slot animovat; může být nastaven, když je „UNSPECIFIED“ (\"NESPECIFIKOVANÝ\"), ale jinak je pouze pro čtení"
 
 
 msgctxt "ID"
@@ -319,6 +339,11 @@ msgstr "Křivka"
 
 
 msgctxt "ID"
+msgid "Curves"
+msgstr "Křivky"
+
+
+msgctxt "ID"
 msgid "Font"
 msgstr "Písmo"
 
@@ -326,6 +351,11 @@ msgstr "Písmo"
 msgctxt "ID"
 msgid "Grease Pencil"
 msgstr "Skicovací tužka"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Skicovací tužka v3"
 
 
 msgctxt "ID"
@@ -424,6 +454,11 @@ msgstr "Scéna"
 
 
 msgctxt "ID"
+msgid "Screen"
+msgstr "Obrazovka"
+
+
+msgctxt "ID"
 msgid "Sound"
 msgstr "Zvuk"
 
@@ -461,6 +496,11 @@ msgstr "Pracovní prostor"
 msgctxt "ID"
 msgid "World"
 msgstr "Okolí"
+
+
+msgctxt "ID"
+msgid "Unspecified"
+msgstr "Nespecifikováno"
 
 
 msgid "Keyframe"
@@ -511,6 +551,10 @@ msgid "Disable kernel optimization. Slowest rendering, no extra background CPU u
 msgstr "Vypnout optimalizaci jader. Nejpomalejší renderování, bez využití CPU na pozadí"
 
 
+msgid "Intersection only"
+msgstr "Pouze průsečík"
+
+
 msgid "Optimize only intersection kernels. Faster rendering, negligible extra background CPU usage"
 msgstr "Optimalizovat pouze protínající se jádra. Rychlejší renderování, zanedbatelné využíti CPU na pozadí"
 
@@ -527,16 +571,20 @@ msgid "MetalRT"
 msgstr "MetalRT"
 
 
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "MetalRT pro ray tracing (sledování paprsku světla) používá méně paměti ve scénách, kde jsou často používány křivky, a může ve specifických případech poskytnout lepší výkon"
+
+
 msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
-msgstr "Vypnout MetalRT (používá BVH2 rozložení pro výpočet kolizí)"
+msgstr "Vypnout MetalRT (používá rozložení BVH2 pro dotazy na průsečíky)"
 
 
 msgid "On"
-msgstr "Zapnout"
+msgstr "Zapnuto"
 
 
 msgid "Enable MetalRT for intersection queries"
-msgstr "Zapnout MetalRT pro výpočet kolizí"
+msgstr "Zapnout MetalRT pro dotazy na průsečíky"
 
 
 msgid "Auto"
@@ -544,7 +592,7 @@ msgstr "Automaticky"
 
 
 msgid "Automatically pick the fastest intersection method"
-msgstr "Automaticky vybrat nejrychlejší metodu výpočtu kolizí"
+msgstr "Automaticky vybrat nejrychlejší metodu průsečíků"
 
 
 msgid "Distribute memory across devices"
@@ -553,6 +601,14 @@ msgstr "Distribuce paměti mezi zařízeními"
 
 msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
 msgstr "Udělejte více místa pro velké scény tím, že rozložíte paměť mezi propojená zařízení (např. přes NVLink), spíše než že ji duplikujete"
+
+
+msgid "HIP RT"
+msgstr "HIP RT"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above"
+msgstr "HIP RT umožňuje AMD hardwarový ray tracing (sledování paprsků světla) na RDNA2 a novější"
 
 
 msgid "Embree on GPU"
@@ -571,8 +627,24 @@ msgid "Displays glTF UI to manage material variants"
 msgstr "Zobrazí glTF uživatelské rozhraní k správě variant materiálů"
 
 
+msgid "Allow glTF Embedded format"
+msgstr "Povolit formát glTF Embedded"
+
+
 msgid "Display glTF UI to manage animations"
 msgstr "Zobrazí glTF uživatelské rozhraní k správě animací"
+
+
+msgid "glTFpack file path"
+msgstr "Cesta k souboru glTFpack"
+
+
+msgid "Path to gltfpack binary"
+msgstr "Cesta ke spustitelnému souboru gltfpack"
+
+
+msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
+msgstr "Zobrazí uzel Výstup materiálu glTF v editoru stínování (nabídka Přidat > Výstup)"
 
 
 msgid "Always"
@@ -593,6 +665,10 @@ msgstr "Dole"
 
 msgid "Fribidi Library"
 msgstr "Fribidská knihovna"
+
+
+msgid "The FriBidi C compiled library (.so under Linux, .dll under windows...), you’ll likely have to edit it if you’re under Windows, e.g. using the one included in Blender libraries repository"
+msgstr "Zkompilovaná knihovna FriBidi C (.so pod Linuxem, .dll pod Windows...), pokud používáte Windows, budete ji muset upravit, např. pomocí jedné z knihoven zahrnutých v úložišti knihoven Blenderu"
 
 
 msgid "Translation Root"
@@ -755,6 +831,14 @@ msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Částka, o kterou aktivní akce přispívá k výsledku zásobníku NLA"
 
 
+msgid "Tweak Mode Action Storage"
+msgstr "Režim úpravy akčního úložiště"
+
+
+msgid "Slot to temporarily hold the main action while in tweak mode"
+msgstr "Slot na dočasné podržení hlavní akce během režimu úpravy"
+
+
 msgid "Drivers"
 msgstr "Ovladače"
 
@@ -875,12 +959,40 @@ msgid "Paths Range"
 msgstr "Rozsah Cest"
 
 
+msgid "Type of range to calculate for Motion Paths"
+msgstr "Typ rozsahu na výpočet pro dráhy pohybu"
+
+
+msgid "All Keys"
+msgstr "Všechny klíče"
+
+
 msgid "From the first keyframe to the last"
 msgstr "Od prvního klíče k poslednímu"
 
 
+msgid "Selected Keys"
+msgstr "Vybrané klíče"
+
+
 msgid "From the first selected keyframe to the last"
 msgstr "Od prvního vybraného klíče k poslednímu"
+
+
+msgid "Scene Frame Range"
+msgstr "Rozsah snímků scény"
+
+
+msgid "The entire Scene / Preview range"
+msgstr "Celé scéna / Rozsah náhledu"
+
+
+msgid "Manual Range"
+msgstr "Manuální rozsah"
+
+
+msgid "Manually determined frame range"
+msgstr "Manuálně určený rozsah snímků"
 
 
 msgid "Show Frame Numbers"
@@ -944,11 +1056,11 @@ msgstr "Jakýkoliv typ"
 
 
 msgid "RNA type used for pointers to any possible data"
-msgstr "Typ RNA používaný pro umistování na případná data"
+msgstr "Typ RNA používaný pro ukazatele na všechna možná data"
 
 
 msgid "Area in a subdivided screen, containing an editor"
-msgstr "Oblast na rozdělené obrazovce obsahující editor"
+msgstr "Oblast na rozdělené obrazovce, obsahující editor"
 
 
 msgid "Height"
@@ -1219,8 +1331,32 @@ msgid "Armatures active edit bone"
 msgstr "Aktivní kosti armatury pro úpravu"
 
 
+msgid "Catalog Path"
+msgstr "Cesta katalogu"
+
+
+msgid "User Asset Libraries"
+msgstr "Uživatelské knihovny objektů"
+
+
+msgid "Collection of user asset libraries"
+msgstr "Kolekce uživatelských knihoven objektů"
+
+
+msgid "Asset Library Reference"
+msgstr "Odkaz na knihovnu objektů"
+
+
+msgid "Identifier to refer to the asset library"
+msgstr "Identifikátor odkazující na knihovnu objektů"
+
+
 msgid "Asset Data"
 msgstr "Asset Data"
+
+
+msgid "Additional data stored for an asset data-block"
+msgstr "Dodatečná data uloženy pro objektový blok s daty"
 
 
 msgid "Active Tag"
@@ -1231,6 +1367,26 @@ msgid "Index of the tag set for editing"
 msgstr "Index sady značek pro úpravy"
 
 
+msgid "Author"
+msgstr "Autor"
+
+
+msgid "Name of the creator of the asset"
+msgstr "Jméno tvůrce objektu"
+
+
+msgid "Catalog UUID"
+msgstr "Katalog UUID"
+
+
+msgid "Catalog Simple Name"
+msgstr "Zjednodušený název katalogu"
+
+
+msgid "Simple name of the asset's catalog, for debugging and data recovery purposes"
+msgstr "Jednoduchý název katalogu tohoto objektu, pro účely debugování a záchranu dat"
+
+
 msgid "Copyright"
 msgstr "Autorská práva"
 
@@ -1239,20 +1395,109 @@ msgid "Description"
 msgstr "Popis"
 
 
+msgid "A description of the asset to be displayed for the user"
+msgstr "Popis objektu, který se zobrazí uživateli"
+
+
+msgid "License"
+msgstr "Licence"
+
+
 msgid "Tags"
 msgstr "Tagy"
+
+
+msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
+msgstr "Vlastní štítky (žetony či také tokeny jmen) k tomuto objektu, použité pro filtrování a všeobecnou správu objektů"
+
+
+msgid "Asset Representation"
+msgstr "Reprezentace objektu"
+
+
+msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
+msgstr "Informace o entitě, která objektovému systému umožňuje s ní zacházet jako s objektem"
+
+
+msgid "Full Library Path"
+msgstr "Celá knihovní cesta"
+
+
+msgid "Absolute path to the .blend file containing this asset"
+msgstr "Absolutní cesta k souboru .blend, který obsahuje tento objekt"
+
+
+msgid "Full Path"
+msgstr "Úplná cesta"
+
+
+msgid "Absolute path to the .blend file containing this asset extended with the path of the asset inside the file"
+msgstr "Absolutní cesta k souboru .blend, který obsahuje tento objekt, doplněná o cestu k objektu v rámci souboru"
+
+
+msgctxt "ID"
+msgid "Data-block Type"
+msgstr "Typ bloku s daty"
+
+
+msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
+msgstr "Typ bloku s daty, pokud objekt nějaký reprezentuje(v opačném případě 'NONE' ('ŽÁDNÝ'))"
+
+
+msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
+msgstr "Místní blok s daty reprezentovaný tímto objektem; platí pouze pokud se jedná o blok s daty v tomto souboru"
 
 
 msgid "Asset Metadata"
 msgstr "Metadata assetu"
 
 
+msgid "Additional information about the asset"
+msgstr "Dodatečné informate k tomuto objektu"
+
+
+msgid "Asset Shelf"
+msgstr "Přihrádka objektů"
+
+
+msgid "Regions for quick access to assets"
+msgstr "Oblasti pro rychlý přístup k objektům"
+
+
 msgid "Asset Library"
 msgstr "Knihovna Grafických položek"
 
 
+msgid "Choose the asset library to display assets from"
+msgstr "Zvolte knihovnu objektů, jejíž objekty se mají zobrazovat"
+
+
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Zobrazit objekty ze všech uvedených knihoven"
+
+
+msgid "Current File"
+msgstr "Aktuální soubor"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Zobrazit objekty dostupné v této relaci Blenderu"
+
+
+msgid "Essentials"
+msgstr "Nezbytnosti"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Zobrazit základní součásti a služby dostupné v Blenderu"
+
+
 msgid "Custom"
 msgstr "Vlastní"
+
+
+msgid "Show assets from the asset libraries configured in the Preferences"
+msgstr "Zobrazit objekty z knihoven nastavených v Předvolbách"
 
 
 msgid "ID Name"
@@ -1263,16 +1508,68 @@ msgid "Options"
 msgstr "Nastavení"
 
 
+msgid "Options for this asset shelf type"
+msgstr "Možnosti pro tento typ přihrádky assetů"
+
+
+msgid "No Asset Dragging"
+msgstr "Žádné přetahování objektů"
+
+
 msgid "Space Type"
 msgstr "Stejné typy"
+
+
+msgid "The space where the asset shelf is going to be used in"
+msgstr "Prostor ve kterém bude tato objektová přihrádka používána"
+
+
+msgid "Preview Size"
+msgstr "Velikost náhledu"
+
+
+msgid "Size of the asset preview thumbnails in pixels"
+msgstr "Velikost náhledových miniatur objektů v pixelech"
 
 
 msgid "Display Filter"
 msgstr "Filtr Zobrazení"
 
 
+msgid "Filter assets by name"
+msgstr "Filtrovat objekty podle názvu"
+
+
 msgid "Show Names"
 msgstr "Zobrazit tvar"
+
+
+msgid "Asset Tag"
+msgstr "Štítek objektu"
+
+
+msgid "User defined tag (name token)"
+msgstr "Značka definovaná uživatelem (žeton neboli token názvu)"
+
+
+msgid "The identifier that makes up this tag"
+msgstr "Identifikátor tvořící tento štítek"
+
+
+msgid "Asset Tags"
+msgstr "Štítky objektů"
+
+
+msgid "Collection of custom asset tags"
+msgstr "Kolekce vlastních štítků assetů"
+
+
+msgid "Asset Weak Reference"
+msgstr "Slabá reference na objekt"
+
+
+msgid "Weak reference to some asset"
+msgstr "Slabá reference na nějaký objekt"
 
 
 msgid "Geometry attribute"
@@ -1311,8 +1608,16 @@ msgid "3D vector with floating-point values"
 msgstr "3D vektor s hodnotami s plovoucím bodem"
 
 
+msgid "RGBA color with 32-bit floating-point values"
+msgstr "RGBA barva s 32-bitovými hodnotami s plovoucí desetinnou čárkou"
+
+
 msgid "Byte Color"
 msgstr "Bytová barva"
+
+
+msgid "RGBA color with 8-bit positive integer values"
+msgstr "Barva RGBA s 8-bitovými kladnými celočíselnými hodnotami"
 
 
 msgid "String"
@@ -1335,8 +1640,32 @@ msgid "2D Vector"
 msgstr "2D Vektor"
 
 
+msgid "2D vector with floating-point values"
+msgstr "2D vektor s hodnotami s plovoucím bodem"
+
+
+msgid "8-Bit Integer"
+msgstr "8-bitové celé číslo"
+
+
+msgid "Smaller integer with a range from -128 to 127"
+msgstr "Menší celé číslo v rozsahu od -128 do 127"
+
+
+msgid "2D Integer Vector"
+msgstr "2D celočíselný vektor"
+
+
+msgid "32-bit signed integer vector"
+msgstr "32-bitový znaménkový celočíselný vektor"
+
+
 msgid "Quaternion"
-msgstr "Původni rotace"
+msgstr "Kvaternion"
+
+
+msgid "Floating point quaternion rotation"
+msgstr "Kvaternionová rotace s plovoucí desetinnou čárkou"
 
 
 msgid "Domain"
@@ -1367,12 +1696,56 @@ msgid "Face"
 msgstr "Plocha"
 
 
+msgid "Attribute on mesh faces"
+msgstr "Atribut na ploše sítě"
+
+
+msgid "Face Corner"
+msgstr "Roh plochy"
+
+
+msgid "Attribute on mesh face corner"
+msgstr "Atribut v rohu plochy sítě"
+
+
 msgid "Spline"
 msgstr "Křivky"
 
 
+msgid "Attribute on spline"
+msgstr "Atribut na křivce"
+
+
+msgid "Instance"
+msgstr "Instance"
+
+
+msgid "Attribute on instance"
+msgstr "Atribut na instanci"
+
+
 msgid "Layer"
 msgstr "Vrstva"
+
+
+msgid "Attribute on Grease Pencil layer"
+msgstr "Atribut na vrstvě skicovací tužky"
+
+
+msgid "Is Internal"
+msgstr "Je vnitřní"
+
+
+msgid "The attribute is meant for internal use by Blender"
+msgstr "Tento atribut je určen pro vnitřní použití v Blenderu"
+
+
+msgid "Is Required"
+msgstr "Je vyžadováno"
+
+
+msgid "Whether the attribute can be removed or renamed"
+msgstr "Zda je možné atribut odstranit či přejmenovat"
 
 
 msgid "Name of the Attribute"
@@ -1383,8 +1756,24 @@ msgid "Bool Attribute"
 msgstr "Bool Atribut"
 
 
+msgid "Geometry attribute that stores booleans"
+msgstr "Geometrický atribut, který uchovává booleovské hodnoty"
+
+
 msgid "Byte Color Attribute"
 msgstr "Atribut bytové barvy"
+
+
+msgid "Geometry attribute that stores RGBA colors as positive integer values using 8-bits per channel"
+msgstr "Geometrický atribut, který uchovává RGBA barvy jako kladné celočíselné hodnoty s použitím 8-bitů na kanál"
+
+
+msgid "8-bit Integer Attribute"
+msgstr "8-bitový celočíselný atribut"
+
+
+msgid "Geometry attribute that stores 8-bit integers"
+msgstr "Geometrický atribut, který uchovává 8-bitová celá čísla"
 
 
 msgid "Float Attribute"
@@ -2577,7 +2966,7 @@ msgstr "Vyhladit"
 
 
 msgid "B-Bone"
-msgstr "Kost"
+msgstr "B-Kost"
 
 
 msgid "Envelope"
@@ -2851,7 +3240,7 @@ msgstr "Aspekt"
 
 
 msgid "Mode"
-msgstr "Režim"
+msgstr "Mód"
 
 
 msgid "Preselected mode when using this brush"
@@ -3459,7 +3848,7 @@ msgstr "Fyzikální model pro simulaci ohybových sil"
 
 
 msgid "Angular"
-msgstr "Úhlové"
+msgstr "Úhlový"
 
 
 msgid "Cloth model with angular bending springs"
@@ -4119,6 +4508,10 @@ msgid "Lin error"
 msgstr "Chyba LIN"
 
 
+msgid "Influence"
+msgstr "Vliv"
+
+
 msgid "Disable"
 msgstr "Zakázat"
 
@@ -4364,7 +4757,7 @@ msgstr "Vzdálenost meli linkami orientační sítě"
 
 
 msgid "Mix Mode"
-msgstr "Mixážní režim"
+msgstr "Režim míchání"
 
 
 msgid "Target object"
@@ -6915,7 +7308,7 @@ msgstr "Křivka"
 
 
 msgid "Gradient"
-msgstr "Gradient"
+msgstr "Přechod"
 
 
 msgid "Type of field"
@@ -9971,7 +10364,7 @@ msgstr "Barevná Značka"
 
 
 msgid "Attribute"
-msgstr "Atribut"
+msgstr "Vlastnost"
 
 
 msgid "Converter"
@@ -10047,7 +10440,7 @@ msgstr "Upravit"
 
 
 msgid "Sculpt"
-msgstr "Tesat"
+msgstr "Tvarovat"
 
 
 msgid "Modifier"
@@ -10055,7 +10448,7 @@ msgstr "Modifikátory"
 
 
 msgid "Tool"
-msgstr "Nástroje"
+msgstr "Nástroj"
 
 
 msgid "Mesh"
@@ -10228,10 +10621,6 @@ msgstr "Plochy"
 
 msgid "Holdout"
 msgstr "Vydržet"
-
-
-msgid "Line Art"
-msgstr "Kresba Tužkou"
 
 
 msgid "Location of the object"
@@ -13585,32 +13974,12 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
 
 
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
+msgid "Clean Up"
+msgstr "Vyčistit"
 
 
 msgid "Pivot Point"
@@ -13653,6 +14022,10 @@ msgid "Assign Material"
 msgstr "Přiřadit Materiál"
 
 
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
 msgid "Light"
 msgstr "Světlo"
 
@@ -13693,6 +14066,10 @@ msgid "Propagate"
 msgstr "Vložit"
 
 
+msgid "Names"
+msgstr "Názvy"
+
+
 msgid "Mesh Select Mode"
 msgstr "Síťový mód výběru"
 
@@ -13703,6 +14080,18 @@ msgstr "Data Ploch"
 
 msgid "Merge"
 msgstr "Sloučit"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
 
 
 msgid "Basic"
@@ -21603,18 +21992,6 @@ msgstr "Světlo"
 
 msgid "Other"
 msgstr "Ostatní"
-
-
-msgid "Path Mode"
-msgstr "Mřížka"
-
-
-msgid "Match"
-msgstr "Cesta"
-
-
-msgid "Strip Path"
-msgstr "NLA Proužky"
 
 
 msgid "Filename only"
@@ -34003,6 +34380,10 @@ msgid "Simplify Grease Pencil drawing"
 msgstr "Zjednodušit kreslení skicovací tužkou"
 
 
+msgid "Antialiasing"
+msgstr "Vyhlazení zubatých hran"
+
+
 msgid "Use Antialiasing to smooth stroke edges"
 msgstr "Vyhlazení okrajů tahu pomocí antialiasingu"
 
@@ -38979,6 +39360,10 @@ msgid "Calibration"
 msgstr "Kalibrace"
 
 
+msgid "Match"
+msgstr "Cesta"
+
+
 msgid "Track:"
 msgstr "Stopa:"
 
@@ -41140,6 +41525,10 @@ msgid "Point cache must be baked"
 msgstr "Zrcadlit UV"
 
 
+msgid "in memory to enable editing!"
+msgstr "v paměti pro zapnutí úpravy!"
+
+
 msgctxt "Operator"
 msgid "Add UVs"
 msgstr "Přidat UV"
@@ -41666,6 +42055,10 @@ msgid "Unsupported context"
 msgstr "Nepodporovaný kontext"
 
 
+msgid "Internal error!"
+msgstr "Vnitřní chyba!"
+
+
 msgid "Movie"
 msgstr "Animace"
 
@@ -42123,6 +42516,10 @@ msgstr "Materiál"
 
 msgid "Smooth Groups"
 msgstr "Přidat do skupiny"
+
+
+msgid "Path Mode"
+msgstr "Mřížka"
 
 
 msgid "ASCII"
