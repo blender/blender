@@ -1605,7 +1605,9 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
    * probably reduce this to one pixel if we consolidate text output with length measuring. But
    * our text string lengths include the last character's right-side bearing anyway, so a string
    * can be longer by that amount and still fit visibly in the required space. */
-  BLI_assert((strwidth <= (okwidth + 2)) || (okwidth <= 0.0f));
+  BLI_assert((strwidth <= (okwidth + 2)) || (okwidth <= 0.0f) ||
+             /* TODO: proper handling of non UTF8 strings. */
+             (BLI_str_utf8_invalid_byte(str, max_len) != -1));
   UNUSED_VARS_NDEBUG(okwidth);
 
   return strwidth;
