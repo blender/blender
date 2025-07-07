@@ -990,26 +990,31 @@ static wmOperatorStatus grease_pencil_material_select_exec(bContext *C, wmOperat
     if (strokes.is_empty()) {
       return;
     }
-    bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-        curves, domain, CD_PROP_BOOL);
 
-    switch (domain) {
-      case bke::AttrDomain::Curve: {
-        index_mask::masked_fill(selection.span.typed<bool>(), select, strokes);
-        break;
+    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+    const Span<StringRef> selection_attribute_names =
+        ed::curves::get_curves_selection_attribute_names(curves);
+
+    for (const int i : selection_attribute_names.index_range()) {
+      bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+          curves, domain, CD_PROP_BOOL, selection_attribute_names[i]);
+      switch (domain) {
+        case bke::AttrDomain::Curve: {
+          index_mask::masked_fill(selection.span.typed<bool>(), select, strokes);
+          break;
+        }
+        case bke::AttrDomain::Point: {
+          strokes.foreach_index([&](const int curve_index) {
+            const IndexRange points = points_by_curve[curve_index];
+            ed::curves::fill_selection(selection.span.slice(points), select);
+          });
+          break;
+        }
+        default:
+          BLI_assert_unreachable();
       }
-      case bke::AttrDomain::Point: {
-        const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-        strokes.foreach_index([&](const int curve_index) {
-          const IndexRange points = points_by_curve[curve_index];
-          ed::curves::fill_selection(selection.span.slice(points), select);
-        });
-        break;
-      }
-      default:
-        BLI_assert_unreachable();
+      selection.finish();
     }
-    selection.finish();
   });
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
