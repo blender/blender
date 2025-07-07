@@ -595,6 +595,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
 
   /* Step 2: apply new sizes to cur rect,
    * but need to take into account alignment settings here... */
+  const bool do_keepofs = resize || !(v2d->flag & V2D_ZOOM_IGNORE_KEEPOFS);
   if ((width != curwidth) || (height != curheight)) {
     float temp, dh;
 
@@ -603,7 +604,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
       if (v2d->keepofs & V2D_LOCKOFS_X) {
         cur->xmax += width - BLI_rctf_size_x(cur);
       }
-      else if (v2d->keepofs & V2D_KEEPOFS_X) {
+      else if ((v2d->keepofs & V2D_KEEPOFS_X) && do_keepofs) {
         if (v2d->align & V2D_ALIGN_NO_POS_X) {
           cur->xmin -= width - BLI_rctf_size_x(cur);
         }
@@ -623,7 +624,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
       if (v2d->keepofs & V2D_LOCKOFS_Y) {
         cur->ymax += height - BLI_rctf_size_y(cur);
       }
-      else if (v2d->keepofs & V2D_KEEPOFS_Y) {
+      else if ((v2d->keepofs & V2D_KEEPOFS_Y) && do_keepofs) {
         if (v2d->align & V2D_ALIGN_NO_POS_Y) {
           cur->ymin -= height - BLI_rctf_size_y(cur);
         }
