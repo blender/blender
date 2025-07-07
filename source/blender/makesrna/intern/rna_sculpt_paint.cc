@@ -110,6 +110,7 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #  include "BKE_material.hh"
 #  include "BKE_object.hh"
 #  include "BKE_paint.hh"
+#  include "BKE_paint_types.hh"
 #  include "BKE_particle.h"
 #  include "BKE_pointcache.h"
 
@@ -277,7 +278,7 @@ static bool rna_Paint_brush_poll(PointerRNA *ptr, PointerRNA value)
   const Paint *paint = static_cast<Paint *>(ptr->data);
   const Brush *brush = static_cast<Brush *>(value.data);
 
-  return (brush == nullptr) || (paint->runtime.ob_mode & brush->ob_mode) != 0;
+  return (brush == nullptr) || (paint->runtime->ob_mode & brush->ob_mode) != 0;
 }
 
 static PointerRNA rna_Paint_eraser_brush_get(PointerRNA *ptr)
@@ -303,7 +304,7 @@ static bool rna_Paint_eraser_brush_poll(PointerRNA *ptr, PointerRNA value)
   const Paint *paint = static_cast<Paint *>(ptr->data);
   const Brush *brush = static_cast<Brush *>(value.data);
 
-  return (brush == nullptr) || (paint->runtime.ob_mode & brush->ob_mode) != 0;
+  return (brush == nullptr) || (paint->runtime->ob_mode & brush->ob_mode) != 0;
 }
 
 static void rna_Sculpt_update(bContext *C, PointerRNA * /*ptr*/)

@@ -47,6 +47,7 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_types.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -200,7 +201,7 @@ bool brush_use_accumulate_ex(const Brush &brush, const eObjectMode ob_mode)
 bool brush_use_accumulate(const VPaint &vp)
 {
   const Brush *brush = BKE_paint_brush_for_read(&vp.paint);
-  return brush_use_accumulate_ex(*brush, eObjectMode(vp.paint.runtime.ob_mode));
+  return brush_use_accumulate_ex(*brush, eObjectMode(vp.paint.runtime->ob_mode));
 }
 
 void init_stroke(Depsgraph &depsgraph, Object &ob)

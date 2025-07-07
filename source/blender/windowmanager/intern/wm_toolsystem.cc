@@ -43,6 +43,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_types.hh"
 #include "BKE_workspace.hh"
 
 #include "RNA_access.hh"
@@ -391,7 +392,7 @@ static void toolsystem_brush_activate_from_toolref_for_object_paint(Main *bmain,
           return *brush_ref->brush_asset_reference;
         }
         /* No remembered brush found for this type, use a default for the type. */
-        return BKE_paint_brush_type_default_reference(eObjectMode(paint->runtime.ob_mode),
+        return BKE_paint_brush_type_default_reference(eObjectMode(paint->runtime->ob_mode),
                                                       tref_rt->brush_type);
       }();
 
@@ -411,7 +412,7 @@ static void toolsystem_brush_activate_from_toolref_for_object_paint(Main *bmain,
           if (paint->tool_brush_bindings.main_brush_asset_reference) {
             return *paint->tool_brush_bindings.main_brush_asset_reference;
           }
-          return BKE_paint_brush_type_default_reference(eObjectMode(paint->runtime.ob_mode),
+          return BKE_paint_brush_type_default_reference(eObjectMode(paint->runtime->ob_mode),
                                                         std::nullopt);
         }();
 
