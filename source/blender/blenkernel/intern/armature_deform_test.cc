@@ -456,24 +456,22 @@ class ArmatureDeformTestBase {
                                                                              nullptr;
 
     MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
-    float(*vert_positions_ptr)[3] = vert_positions.cast<float[3]>().data();
 
     Array<float3x3> deform_mats;
-    float(*deform_mats_ptr)[3][3] = nullptr;
+    std::optional<MutableSpan<float3x3>> deform_mats_opt;
     if (output == OutputValueTest::PositionAndDeformMatrix) {
       deform_mats = identity_deform_mats();
-      deform_mats_ptr = reinterpret_cast<float(*)[3][3]>(deform_mats.data());
+      deform_mats_opt = deform_mats;
     }
 
     const int deform_flag = get_deform_flag(interpolation, weighting);
     const char *defgrp_name = get_defgrp_name(masking);
-    BKE_armature_deform_coords_with_mesh(ob_arm,
-                                         ob_target,
-                                         vert_positions_ptr,
-                                         deform_mats_ptr,
-                                         vert_positions.size(),
+    BKE_armature_deform_coords_with_mesh(*ob_arm,
+                                         *ob_target,
+                                         vert_positions,
+                                         std::nullopt,
+                                         deform_mats_opt,
                                          deform_flag,
-                                         nullptr,
                                          defgrp_name,
                                          mesh_target);
 
@@ -505,26 +503,24 @@ class ArmatureDeformTestBase {
     BMesh *bm = BKE_mesh_to_bmesh(mesh, 0, false, &create_params);
     BMEditMesh *edit_mesh = BKE_editmesh_create(bm);
     Array<float3> bm_verts_wrapper = BM_mesh_vert_coords_alloc(edit_mesh->bm);
-    float(*vert_positions_ptr)[3] = bm_verts_wrapper.as_mutable_span().cast<float[3]>().data();
 
     Array<float3x3> deform_mats;
-    float(*deform_mats_ptr)[3][3] = nullptr;
+    std::optional<MutableSpan<float3x3>> deform_mats_opt;
     if (output == OutputValueTest::PositionAndDeformMatrix) {
       deform_mats = identity_deform_mats();
-      deform_mats_ptr = reinterpret_cast<float(*)[3][3]>(deform_mats.data());
+      deform_mats_opt = deform_mats;
     }
 
     const int deform_flag = get_deform_flag(interpolation, weighting);
     const char *defgrp_name = get_defgrp_name(masking);
-    BKE_armature_deform_coords_with_editmesh(ob_arm,
-                                             ob_target,
-                                             vert_positions_ptr,
-                                             deform_mats_ptr,
-                                             bm_verts_wrapper.size(),
+    BKE_armature_deform_coords_with_editmesh(*ob_arm,
+                                             *ob_target,
+                                             bm_verts_wrapper,
+                                             std::nullopt,
+                                             deform_mats_opt,
                                              deform_flag,
-                                             nullptr,
                                              defgrp_name,
-                                             edit_mesh);
+                                             *edit_mesh);
 
     EXPECT_EQ_SPAN(expected_positions(TargetDataType::EditMesh, weighting, masking),
                    bm_verts_wrapper.as_span());

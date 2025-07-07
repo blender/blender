@@ -119,17 +119,21 @@ static void deform_verts(ModifierData *md,
                          blender::MutableSpan<blender::float3> positions)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
+  std::optional<blender::Span<blender::float3>> vert_coords_prev;
+  if (amd->vert_coords_prev) {
+    vert_coords_prev = {reinterpret_cast<blender::float3 *>(amd->vert_coords_prev),
+                        positions.size()};
+  }
 
   /* if next modifier needs original vertices */
   MOD_previous_vcos_store(md, reinterpret_cast<float(*)[3]>(positions.data()));
 
-  BKE_armature_deform_coords_with_mesh(amd->object,
-                                       ctx->object,
-                                       reinterpret_cast<float(*)[3]>(positions.data()),
-                                       nullptr,
-                                       positions.size(),
+  BKE_armature_deform_coords_with_mesh(*amd->object,
+                                       *ctx->object,
+                                       positions,
+                                       vert_coords_prev,
+                                       std::nullopt,
                                        amd->deformflag,
-                                       amd->vert_coords_prev,
                                        amd->defgrp_name,
                                        mesh);
 
@@ -149,19 +153,23 @@ static void deform_verts_EM(ModifierData *md,
   }
 
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
+  std::optional<blender::Span<blender::float3>> vert_coords_prev;
+  if (amd->vert_coords_prev) {
+    vert_coords_prev = {reinterpret_cast<blender::float3 *>(amd->vert_coords_prev),
+                        positions.size()};
+  }
 
   /* if next modifier needs original vertices */
   MOD_previous_vcos_store(md, reinterpret_cast<float(*)[3]>(positions.data()));
 
-  BKE_armature_deform_coords_with_editmesh(amd->object,
-                                           ctx->object,
-                                           reinterpret_cast<float(*)[3]>(positions.data()),
-                                           nullptr,
-                                           positions.size(),
+  BKE_armature_deform_coords_with_editmesh(*amd->object,
+                                           *ctx->object,
+                                           positions,
+                                           vert_coords_prev,
+                                           std::nullopt,
                                            amd->deformflag,
-                                           amd->vert_coords_prev,
                                            amd->defgrp_name,
-                                           em);
+                                           *em);
 
   /* free cache */
   MEM_SAFE_FREE(amd->vert_coords_prev);
@@ -175,16 +183,14 @@ static void deform_matrices_EM(ModifierData *md,
                                blender::MutableSpan<blender::float3x3> matrices)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
-
-  BKE_armature_deform_coords_with_editmesh(amd->object,
-                                           ctx->object,
-                                           reinterpret_cast<float(*)[3]>(positions.data()),
-                                           reinterpret_cast<float(*)[3][3]>(matrices.data()),
-                                           positions.size(),
+  BKE_armature_deform_coords_with_editmesh(*amd->object,
+                                           *ctx->object,
+                                           positions,
+                                           std::nullopt,
+                                           matrices,
                                            amd->deformflag,
-                                           nullptr,
                                            amd->defgrp_name,
-                                           em);
+                                           *em);
 }
 
 static void deform_matrices(ModifierData *md,
@@ -194,13 +200,12 @@ static void deform_matrices(ModifierData *md,
                             blender::MutableSpan<blender::float3x3> matrices)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
-  BKE_armature_deform_coords_with_mesh(amd->object,
-                                       ctx->object,
-                                       reinterpret_cast<float(*)[3]>(positions.data()),
-                                       reinterpret_cast<float(*)[3][3]>(matrices.data()),
-                                       positions.size(),
+  BKE_armature_deform_coords_with_mesh(*amd->object,
+                                       *ctx->object,
+                                       positions,
+                                       std::nullopt,
+                                       matrices,
                                        amd->deformflag,
-                                       nullptr,
                                        amd->defgrp_name,
                                        mesh);
 }
