@@ -2827,6 +2827,7 @@ static wmOperatorStatus ui_view_item_select_invoke(bContext *C,
         item.set_selected(true);
       }
     });
+    WM_main_add_notifier(NC_ANIMATION, nullptr);
     return OPERATOR_FINISHED;
   }
 
