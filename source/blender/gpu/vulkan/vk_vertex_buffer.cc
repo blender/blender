@@ -15,6 +15,10 @@
 #include "vk_state_manager.hh"
 #include "vk_vertex_buffer.hh"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"gpu.vulkan"};
+
 namespace blender::gpu {
 
 VKVertexBuffer::~VKVertexBuffer()
@@ -92,8 +96,17 @@ void VKVertexBuffer::read(void *data) const
   /* Allocating huge buffers can fail, in that case we skip copying data. */
   if (buffer_.is_allocated()) {
     VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::DeviceToHost);
-    staging_buffer.copy_from_device(context);
-    staging_buffer.host_buffer_get().read(context, data);
+    VKBuffer &buffer = staging_buffer.host_buffer_get();
+    if (buffer.is_mapped()) {
+      staging_buffer.copy_from_device(context);
+      staging_buffer.host_buffer_get().read(context, data);
+    }
+    else {
+      CLOG_ERROR(
+          &LOG,
+          "Unable to read data from vertex buffer via a staging buffer as the staging buffer "
+          "could not be allocated. ");
+    }
   }
 }
 
@@ -136,8 +149,18 @@ void VKVertexBuffer::upload_data_direct(const VKBuffer &host_buffer)
 void VKVertexBuffer::upload_data_via_staging_buffer(VKContext &context)
 {
   VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
-  upload_data_direct(staging_buffer.host_buffer_get());
-  staging_buffer.copy_to_device(context);
+  VKBuffer &buffer = staging_buffer.host_buffer_get();
+  if (buffer.is_allocated()) {
+    upload_data_direct(buffer);
+    staging_buffer.copy_to_device(context);
+  }
+  else {
+    CLOG_ERROR(&LOG,
+               "Unable to upload data to vertex buffer via a staging buffer as the staging buffer "
+               "could not be allocated. Vertex buffer will be filled with on zeros to reduce "
+               "drawing artifacts due to read from uninitialized memory.");
+    buffer_.clear(context, 0u);
+  }
 }
 
 void VKVertexBuffer::upload_data()
