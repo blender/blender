@@ -1478,7 +1478,6 @@ static void snap_source_closest_fn(TransInfo *t)
     /* Object mode. */
     if (t->options & CTX_OBJECT) {
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        BLI_assert(tc->sorted_index_map || !(t->flag & T_PROP_EDIT_ALL));
         tc->foreach_index_selected([&](const int i) {
           TransData *td = &tc->data[i];
 
@@ -1533,7 +1532,6 @@ static void snap_source_closest_fn(TransInfo *t)
     }
     else {
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        BLI_assert(tc->sorted_index_map || !(t->flag & T_PROP_EDIT_ALL));
         tc->foreach_index_selected([&](const int i) {
           TransData *td = &tc->data[i];
 
