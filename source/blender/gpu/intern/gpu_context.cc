@@ -515,6 +515,24 @@ eGPUBackendType GPU_backend_get_type()
   return GPU_BACKEND_NONE;
 }
 
+const char *GPU_backend_get_name()
+{
+  switch (GPU_backend_get_type()) {
+    case GPU_BACKEND_OPENGL:
+      return "OpenGL";
+    case GPU_BACKEND_VULKAN:
+      return "Vulkan";
+    case GPU_BACKEND_METAL:
+      return "Metal";
+    case GPU_BACKEND_NONE:
+      return "None";
+    case GPU_BACKEND_ANY:
+      break;
+  }
+
+  return "Unknown";
+}
+
 GPUBackend *GPUBackend::get()
 {
   return g_backend;
