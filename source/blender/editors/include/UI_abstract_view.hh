@@ -302,6 +302,8 @@ class AbstractViewItem {
    * click), not if the view reflects an external change (e.g.
    * #AbstractViewItem::should_be_active() changes from returning false to returning true).
    *
+   * Also ensures the item is selected if it's active.
+   *
    * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise the
    * actual item state is unknown, possibly calling state-change update functions incorrectly.
    */

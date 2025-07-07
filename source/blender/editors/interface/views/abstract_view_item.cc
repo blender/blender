@@ -72,6 +72,10 @@ void AbstractViewItem::activate(bContext &C)
 {
   if (set_state_active()) {
     on_activate(C);
+  }
+
+  /* Make sure active item is selected. */
+  if (is_active()) {
     set_selected(true);
   }
 }
