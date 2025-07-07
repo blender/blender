@@ -314,6 +314,7 @@ static void gwl_window_cursor_custom_store(GWL_WindowCursorCustomShape &ccs,
       ccs.bitmap = static_cast<uint8_t *>(malloc(bitmap_size));
       memcpy(ccs.bitmap, bitmap, bitmap_size);
     }
+    ccs.mask = nullptr;
   }
 
   ccs.size[0] = size[0];
