@@ -336,6 +336,8 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
       return false;
     }
 
+    debug_enqueue_begin(kernel, work_size);
+
     VLOG_DEVICE_STATS << "Metal queue launch " << device_kernel_as_string(kernel) << ", work_size "
                       << work_size;
 
@@ -619,6 +621,8 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
       }
     }
 
+    debug_enqueue_end();
+
     return !(metal_device_->have_error());
   }
 }
@@ -679,6 +683,8 @@ bool MetalDeviceQueue::synchronize()
       mtlCommandBuffer_ = nil;
       flush_timing_stats();
     }
+
+    debug_synchronize();
 
     return !(metal_device_->have_error());
   }
