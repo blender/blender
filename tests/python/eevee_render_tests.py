@@ -61,6 +61,8 @@ BLOCKLIST_METAL = [
     "image.blend",
     # Blocked due to differences in transparency.
     "aov_transparency.blend",
+    # Blocked due to subtle differences in DOF
+    "osl_camera_advanced.blend",
 ]
 
 BLOCKLIST_VULKAN = [

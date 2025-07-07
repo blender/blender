@@ -70,6 +70,8 @@ BLOCKLIST_OPTIX_OSL_LIMITED = [
     'image_.*_osl.blend',
     # OptiX OSL doesn't support the trace function
     'osl_trace_shader.blend',
+    # Noise functions do not return color with OptiX OSL
+    'osl_camera_advanced.blend',
 ]
 
 # Blocklist for SVM tests that fail when forced to run with OptiX OSL
