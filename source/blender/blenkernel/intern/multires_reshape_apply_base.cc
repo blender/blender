@@ -95,7 +95,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
         }
       }
     }
-    center *= blender::math::rcp(tot);
+    center *= blender::math::rcp(float(tot));
 
     /* Find normal. */
     for (int j = 0; j < vert_to_face_map[i].size(); j++) {
