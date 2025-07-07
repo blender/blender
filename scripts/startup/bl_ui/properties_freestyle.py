@@ -1243,12 +1243,11 @@ class VIEWLAYER_PT_freestyle_linestyle_texture(ViewLayerFreestyleLineStyle, Pane
         layout.prop(linestyle, "texture_spacing", text="Spacing Along Stroke")
 
         row = layout.row()
-        props = row.operator(
-            "wm.properties_context_change",
-            text="Go to Linestyle Textures Properties",
-            icon='TEXTURE',
-        )
-        props.context = 'TEXTURE'
+        if linestyle.active_texture:
+            slot = linestyle.texture_slots[linestyle.active_texture_index]
+            layout.template_ID(slot, "texture", new="texture.new")
+        else:
+            layout.template_ID(linestyle, "active_texture", new="texture.new")
 
 
 class VIEWLAYER_PT_freestyle_animation(ViewLayerFreestyleButtonsPanel, PropertiesAnimationMixin, Panel):
