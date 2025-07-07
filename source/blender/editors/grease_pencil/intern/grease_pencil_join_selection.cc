@@ -470,9 +470,6 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
       RNA_enum_get(op->ptr, "type"));
   const Layer &active_layer = *grease_pencil.get_active_layer();
 
-  const std::optional<int> opt_layer_index = grease_pencil.get_layer_index(active_layer);
-  BLI_assert(opt_layer_index.has_value());
-
   Drawing *dst_drawing = grease_pencil.get_editable_drawing_at(active_layer, scene->r.cfra);
   if (dst_drawing == nullptr) {
     return OPERATOR_CANCELLED;
