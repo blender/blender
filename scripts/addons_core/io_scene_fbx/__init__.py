@@ -215,9 +215,8 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
 
         if self.files:
             ret = {'CANCELLED'}
-            dirname = os.path.dirname(self.filepath)
             for file in self.files:
-                path = os.path.join(dirname, file.name)
+                path = os.path.join(self.directory, file.name)
                 if import_fbx.load(self, context, filepath=path, **keywords) == {'FINISHED'}:
                     ret = {'FINISHED'}
             return ret
