@@ -625,13 +625,9 @@ static PyObject *bpy_wm_capabilities(PyObject *self)
 #define SetFlagItem(x) \
   PyDict_SetItemString(result, STRINGIFY(x), PyBool_FromLong((WM_CAPABILITY_##x) & flag));
 
-      SetFlagItem(CURSOR_WARP);
-      SetFlagItem(WINDOW_POSITION);
-      SetFlagItem(CLIPBOARD_PRIMARY);
-      SetFlagItem(GPU_FRONT_BUFFER_READ);
-      SetFlagItem(CLIPBOARD_IMAGE);
-      SetFlagItem(DESKTOP_SAMPLE);
-      SetFlagItem(INPUT_IME);
+      /* Only exposed flags which are used, by Blender's built-in scripts
+       * since this is a private API. */
+
       SetFlagItem(TRACKPAD_PHYSICAL_DIRECTION);
       SetFlagItem(KEYBOARD_HYPER_KEY);
 
