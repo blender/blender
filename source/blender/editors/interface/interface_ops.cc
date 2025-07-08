@@ -2797,7 +2797,7 @@ static wmOperatorStatus ui_view_item_select_invoke(bContext *C,
                                                    const wmEvent * /*event*/)
 {
   const wmWindow &win = *CTX_wm_window(C);
-  const ARegion &region = *CTX_wm_region(C);
+  ARegion &region = *CTX_wm_region(C);
 
   AbstractViewItem *clicked_item = UI_region_views_find_item_at(region, win.eventstate->xy);
   if (clicked_item == nullptr) {
@@ -2827,7 +2827,7 @@ static wmOperatorStatus ui_view_item_select_invoke(bContext *C,
         item.set_selected(true);
       }
     });
-    WM_main_add_notifier(NC_ANIMATION, nullptr);
+    ED_region_tag_redraw(&region);
     return OPERATOR_FINISHED;
   }
 
