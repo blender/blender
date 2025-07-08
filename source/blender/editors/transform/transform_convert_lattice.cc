@@ -98,7 +98,6 @@ static void createTransLatticeVerts(bContext * /*C*/, TransInfo *t)
           copy_m3_m3(td->smtx, smtx);
           copy_m3_m3(td->mtx, mtx);
 
-          td->ext = nullptr;
           td->val = nullptr;
 
           td++;

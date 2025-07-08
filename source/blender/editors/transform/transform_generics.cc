@@ -824,24 +824,6 @@ void postTrans(bContext *C, TransInfo *t)
   }
 }
 
-void applyTransObjects(TransInfo *t)
-{
-  TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
-
-  TransData *td;
-
-  for (td = tc->data; td < tc->data + tc->data_len; td++) {
-    copy_v3_v3(td->iloc, td->loc);
-    if (td->ext->rot) {
-      copy_v3_v3(td->ext->irot, td->ext->rot);
-    }
-    if (td->ext->scale) {
-      copy_v3_v3(td->ext->iscale, td->ext->scale);
-    }
-  }
-  recalc_data(t);
-}
-
 static void transdata_restore_basic(TransDataBasic *td_basic)
 {
   if (td_basic->loc) {
@@ -859,25 +841,6 @@ static void transdata_restore_basic(TransDataBasic *td_basic)
 static void restoreElement(TransData *td)
 {
   transdata_restore_basic((TransDataBasic *)td);
-
-  if (td->ext && (td->flag & TD_NO_EXT) == 0) {
-    if (td->ext->rot) {
-      copy_v3_v3(td->ext->rot, td->ext->irot);
-    }
-    if (td->ext->rotAngle) {
-      *td->ext->rotAngle = td->ext->irotAngle;
-    }
-    if (td->ext->rotAxis) {
-      copy_v3_v3(td->ext->rotAxis, td->ext->irotAxis);
-    }
-    /* XXX, `drotAngle` & `drotAxis` not used yet. */
-    if (td->ext->scale) {
-      copy_v3_v3(td->ext->scale, td->ext->iscale);
-    }
-    if (td->ext->quat) {
-      copy_qt_qt(td->ext->quat, td->ext->iquat);
-    }
-  }
 
   if (td->flag & TD_BEZTRIPLE) {
     *(td->hdata->h1) = td->hdata->ih1;
@@ -899,6 +862,32 @@ void restoreTransObjects(TransInfo *t)
 
     for (tdm = tc->data_mirror; tdm < tc->data_mirror + tc->data_mirror_len; tdm++) {
       transdata_restore_basic((TransDataBasic *)tdm);
+    }
+
+    if (tc->data_ext) {
+      for (int i = 0; i < tc->data_len; i++) {
+        if (tc->data[i].flag & TD_NO_EXT) {
+          continue;
+        }
+
+        TransDataExtension *td_ext = &tc->data_ext[i];
+        if (td_ext->rot) {
+          copy_v3_v3(td_ext->rot, td_ext->irot);
+        }
+        if (td_ext->rotAngle) {
+          *td_ext->rotAngle = td_ext->irotAngle;
+        }
+        if (td_ext->rotAxis) {
+          copy_v3_v3(td_ext->rotAxis, td_ext->irotAxis);
+        }
+        /* XXX, `drotAngle` & `drotAxis` not used yet. */
+        if (td_ext->scale) {
+          copy_v3_v3(td_ext->scale, td_ext->iscale);
+        }
+        if (td_ext->quat) {
+          copy_qt_qt(td_ext->quat, td_ext->iquat);
+        }
+      }
     }
 
     for (td2d = tc->data_2d; tc->data_2d && td2d < tc->data_2d + tc->data_len; td2d++) {
@@ -1392,7 +1381,10 @@ void calculatePropRatio(TransInfo *t)
   }
 }
 
-void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
+void transform_data_ext_rotate(TransData *td,
+                               TransDataExtension *td_ext,
+                               float mat[3][3],
+                               bool use_drot)
 {
   float totmat[3][3];
   float smat[3][3];
@@ -1407,30 +1399,30 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
 
   /* Logic from #BKE_object_rot_to_mat3. */
   if (use_drot) {
-    if (td->ext->rotOrder > 0) {
-      eulO_to_mat3(dmat, td->ext->drot, td->ext->rotOrder);
+    if (td_ext->rotOrder > 0) {
+      eulO_to_mat3(dmat, td_ext->drot, td_ext->rotOrder);
     }
-    else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
+    else if (td_ext->rotOrder == ROT_MODE_AXISANGLE) {
 #if 0
-      axis_angle_to_mat3(dmat, td->ext->drotAxis, td->ext->drotAngle);
+      axis_angle_to_mat3(dmat, td_ext->drotAxis, td_ext->drotAngle);
 #else
       unit_m3(dmat);
 #endif
     }
     else {
       float tquat[4];
-      normalize_qt_qt(tquat, td->ext->dquat);
+      normalize_qt_qt(tquat, td_ext->dquat);
       quat_to_mat3(dmat, tquat);
     }
 
     invert_m3_m3(dmat_inv, dmat);
   }
 
-  if (td->ext->rotOrder == ROT_MODE_QUAT) {
+  if (td_ext->rotOrder == ROT_MODE_QUAT) {
     float quat[4];
 
     /* Calculate the total rotation. */
-    quat_to_mat3(obmat, td->ext->iquat);
+    quat_to_mat3(obmat, td_ext->iquat);
     if (use_drot) {
       mul_m3_m3m3(obmat, dmat, obmat);
     }
@@ -1445,13 +1437,13 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
     mat3_to_quat(quat, fmat);
 
     /* Apply. */
-    copy_qt_qt(td->ext->quat, quat);
+    copy_qt_qt(td_ext->quat, quat);
   }
-  else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
+  else if (td_ext->rotOrder == ROT_MODE_AXISANGLE) {
     float axis[3], angle;
 
     /* Calculate the total rotation. */
-    axis_angle_to_mat3(obmat, td->ext->irotAxis, td->ext->irotAngle);
+    axis_angle_to_mat3(obmat, td_ext->irotAxis, td_ext->irotAngle);
     if (use_drot) {
       mul_m3_m3m3(obmat, dmat, obmat);
     }
@@ -1466,14 +1458,14 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
     mat3_to_axis_angle(axis, &angle, fmat);
 
     /* Apply. */
-    copy_v3_v3(td->ext->rotAxis, axis);
-    *td->ext->rotAngle = angle;
+    copy_v3_v3(td_ext->rotAxis, axis);
+    *td_ext->rotAngle = angle;
   }
   else {
     float eul[3];
 
     /* Calculate the total rotation. */
-    eulO_to_mat3(obmat, td->ext->irot, td->ext->rotOrder);
+    eulO_to_mat3(obmat, td_ext->irot, td_ext->rotOrder);
     if (use_drot) {
       mul_m3_m3m3(obmat, dmat, obmat);
     }
@@ -1485,10 +1477,10 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot)
       mul_m3_m3m3(fmat, dmat_inv, fmat);
     }
 
-    mat3_to_compatible_eulO(eul, td->ext->rot, td->ext->rotOrder, fmat);
+    mat3_to_compatible_eulO(eul, td_ext->rot, td_ext->rotOrder, fmat);
 
     /* Apply. */
-    copy_v3_v3(td->ext->rot, eul);
+    copy_v3_v3(td_ext->rot, eul);
   }
 }
 

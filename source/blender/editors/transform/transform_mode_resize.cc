@@ -220,7 +220,7 @@ static void applyResize(TransInfo *t)
         if (td->flag & TD_SKIP) {
           continue;
         }
-        ElementResize(t, tc, td, mat);
+        ElementResize(t, tc, i, mat);
       }
     });
   }
@@ -234,9 +234,8 @@ static void applyResize(TransInfo *t)
     }
 
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-      TransData *td = tc->data;
-      for (i = 0; i < tc->data_len; i++, td++) {
-        ElementResize(t, tc, td, mat);
+      for (i = 0; i < tc->data_len; i++) {
+        ElementResize(t, tc, i, mat);
       }
 
       /* Not ideal, see #clipUVData code-comment. */

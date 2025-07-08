@@ -90,7 +90,6 @@ static void MaskHandleToTransData(MaskSplinePoint *point,
   memset(td->axismtx, 0, sizeof(td->axismtx));
   td->axismtx[2][2] = 1.0f;
 
-  td->ext = nullptr;
   td->val = nullptr;
 
   if (is_sel_any) {
@@ -155,8 +154,6 @@ static void MaskPointToTransData(Scene *scene,
 
       memset(td->axismtx, 0, sizeof(td->axismtx));
       td->axismtx[2][2] = 1.0f;
-
-      td->ext = nullptr;
 
       if (i == 1) {
         /* Scaling weights. */

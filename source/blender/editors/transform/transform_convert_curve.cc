@@ -227,7 +227,6 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
                   td->flag = 0;
                 }
               }
-              td->ext = nullptr;
               td->val = nullptr;
 
               hdata = initTransDataCurveHandles(td, bezt);
@@ -253,7 +252,6 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
               else {
                 td->flag = 0;
               }
-              td->ext = nullptr;
 
               /* TODO: make points scale. */
               if (t->mode == TFM_CURVE_SHRINKFATTEN /* `|| t->mode == TFM_RESIZE` */) {
@@ -309,7 +307,6 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
                   td->flag = 0;
                 }
               }
-              td->ext = nullptr;
               td->val = nullptr;
 
               if (hdata == nullptr) {
@@ -345,7 +342,6 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
               else {
                 td->flag = 0;
               }
-              td->ext = nullptr;
 
               if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_RESIZE)) {
                 td->val = &(bp->radius);

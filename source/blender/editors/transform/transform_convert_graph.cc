@@ -110,7 +110,6 @@ static void bezt_to_transdata(TransData *td,
   memset(td->axismtx, 0, sizeof(td->axismtx));
   td->axismtx[2][2] = 1.0f;
 
-  td->ext = nullptr;
   td->val = nullptr;
 
   /* Store AnimData info in td->extra, for applying mapping when flushing.

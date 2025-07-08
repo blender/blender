@@ -357,13 +357,14 @@ static short transform_orientation_or_default(const TransInfo *t)
 }
 
 static const float (*transform_object_axismtx_get(const TransInfo *t,
-                                                  const TransDataContainer * /*tc*/,
+                                                  const TransDataContainer *tc,
                                                   const TransData *td))[3]
 {
   if (transform_orientation_or_default(t) == V3D_ORIENT_GIMBAL) {
     BLI_assert(t->orient_type_mask & (1 << V3D_ORIENT_GIMBAL));
     if (t->options & (CTX_POSE_BONE | CTX_OBJECT)) {
-      return td->ext->axismtx_gimbal;
+      TransDataExtension *td_ext = &tc->data_ext[td - tc->data];
+      return td_ext->axismtx_gimbal;
     }
   }
   return td->axismtx;

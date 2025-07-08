@@ -1474,11 +1474,9 @@ static void VertsToTransData(TransInfo *t,
         td->axismtx[1][1] = td->axismtx[1][2] = 0.0f;
   }
 
-  td->ext = nullptr;
   td->val = nullptr;
   td->extra = eve;
   if (t->mode == TFM_SHRINKFATTEN) {
-    td->ext = tx;
     tx->iscale[0] = BM_vert_calc_shell_factor_ex(eve, no, BM_ELEM_SELECT);
   }
 }

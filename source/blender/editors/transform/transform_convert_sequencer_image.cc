@@ -121,7 +121,6 @@ static TransData *SeqToTransData(
     store_transform_properties(scene, strip, origin, td);
   }
 
-  td->ext = nullptr;
   td->flag |= TD_SELECTED;
   td->dist = 0.0;
 

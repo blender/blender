@@ -61,7 +61,6 @@ static void UVsToTransData(const float aspect[2],
   memset(r_td->axismtx, 0, sizeof(r_td->axismtx));
   r_td->axismtx[2][2] = 1.0f;
 
-  r_td->ext = nullptr;
   r_td->val = nullptr;
 
   if (selected) {

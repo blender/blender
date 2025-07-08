@@ -73,6 +73,7 @@ static void rmat_cache_update(RotateMatrixCache *rmc, const float axis[3], const
 static void transdata_elem_rotate(const TransInfo *t,
                                   const TransDataContainer *tc,
                                   TransData *td,
+                                  TransDataExtension *td_ext,
                                   const float axis[3],
                                   const float angle,
                                   const float angle_step,
@@ -106,13 +107,13 @@ static void transdata_elem_rotate(const TransInfo *t,
    * Otherwise, just assume it's useless (e.g. in case of mesh/UV/etc. editing).
    * Also need to be in Euler rotation mode, the others never allow more than one turn anyway.
    */
-  if (is_large_rotation && td->ext != nullptr && td->ext->rotOrder == ROT_MODE_EUL) {
-    copy_v3_v3(td->ext->rot, td->ext->irot);
+  if (is_large_rotation && td_ext != nullptr && td_ext->rotOrder == ROT_MODE_EUL) {
+    copy_v3_v3(td_ext->rot, td_ext->irot);
     for (float angle_progress = angle_step; fabsf(angle_progress) < fabsf(angle_final);
          angle_progress += angle_step)
     {
       axis_angle_normalized_to_mat3(rmc->mat, axis_final, angle_progress);
-      ElementRotation(t, tc, td, rmc->mat, t->around);
+      ElementRotation(t, tc, td, td_ext, rmc->mat, t->around);
     }
     rmat_cache_reset(rmc);
   }
@@ -122,7 +123,7 @@ static void transdata_elem_rotate(const TransInfo *t,
 
   rmat_cache_update(rmc, axis_final, angle_final);
 
-  ElementRotation(t, tc, td, rmc->mat, t->around);
+  ElementRotation(t, tc, td, td_ext, rmc->mat, t->around);
 }
 
 /** \} */
@@ -210,10 +211,11 @@ static void applyRotationValue(TransInfo *t,
       rmat_cache_init(&rmc, angle, axis);
       for (const int i : range) {
         TransData *td = &tc->data[i];
+        TransDataExtension *td_ext = tc->data_ext ? &tc->data_ext[i] : nullptr;
         if (td->flag & TD_SKIP) {
           continue;
         }
-        transdata_elem_rotate(t, tc, td, axis, angle, angle_step, is_large_rotation, &rmc);
+        transdata_elem_rotate(t, tc, td, td_ext, axis, angle, angle_step, is_large_rotation, &rmc);
       }
     });
   }
