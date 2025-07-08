@@ -182,7 +182,6 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
       ++iter;
     }
     usd_instancer.GetPrototypesRel().SetTargets(proto_wrapper_paths);
-    prototypesOver.GetPrim().SetSpecifier(pxr::SdfSpecifierOver);
     stage->GetRootLayer()->Save();
   }
 
