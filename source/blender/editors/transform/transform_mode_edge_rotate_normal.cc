@@ -110,13 +110,9 @@ static void applyNormalRotation(TransInfo *t)
       BKE_lnor_space_custom_normal_to_data(
           bm->lnor_spacearr->lspacearr[lnor_ed->loop_index], lnor_ed->nloc, lnor_ed->clnors_data);
     }
-
-    /* Replaces `recalc_data`, thus disregarding partial update, mirror, correct customdata and
-     * other updates. */
-    DEG_id_tag_update(static_cast<ID *>(tc->obedit->data), ID_RECALC_GEOMETRY);
   }
 
-  // recalc_data(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

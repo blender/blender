@@ -2063,6 +2063,15 @@ static void mesh_transdata_mirror_apply(TransDataContainer *tc)
 
 static void recalcData_mesh(TransInfo *t)
 {
+  if (t->mode == TFM_NORMAL_ROTATION) {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      /* The Rotate Normal mode uses a  custom array and ignores any elements created for the mesh
+       * in transData and similar structures. */
+      DEG_id_tag_update(static_cast<ID *>(tc->obedit->data), ID_RECALC_GEOMETRY);
+    }
+    return;
+  }
+
   bool is_canceling = t->state == TRANS_CANCEL;
   /* Apply corrections. */
   if (!is_canceling) {
