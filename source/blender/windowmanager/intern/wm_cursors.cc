@@ -131,25 +131,25 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
   }
 }
 
-static float cursor_size()
+static int cursor_size()
 {
   /* Scaling with UI scale can be useful for magnified captures. */
   const bool scale_cursor_with_ui_scale = false;
 
   if (scale_cursor_with_ui_scale) {
-    return 21.0f * UI_SCALE_FAC;
+    return int(21.0f * UI_SCALE_FAC);
   }
 
 #if (OS_MAC)
   /* MacOS always scales up this type of cursor for high-dpi displays. */
-  return 21.0f;
+  return 21;
 #endif
 
-  return WM_cursor_preferred_logical_size() * (UI_SCALE_FAC / U.ui_scale);
+  return int(WM_cursor_preferred_logical_size() * (UI_SCALE_FAC / U.ui_scale));
 }
 
 static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
-                                                      float size,
+                                                      const int size,
                                                       int r_bitmap_size[2])
 {
   /* Nano alters the source string. */
@@ -169,7 +169,7 @@ static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
     return {};
   }
 
-  float scale = (size / 1600.0f);
+  const float scale = float(size) / 1600.0f;
   const size_t dest_size[2] = {
       std::min(size_t(ceil(image->width * scale)), size_t(size)),
       std::min(size_t(ceil(image->height * scale)), size_t(size)),
@@ -228,7 +228,7 @@ static bool window_set_custom_cursor(wmWindow *win, const BCursor &cursor)
                         (WM_capabilities_flag() & WM_CAPABILITY_RGBA_CURSORS);
 
   const int max_size = use_rgba ? 128 : 32;
-  const float size = std::min(cursor_size(), float(max_size));
+  const int size = std::min(cursor_size(), max_size);
 
   int bitmap_size[2];
   blender::Array<uint8_t> bitmap_rgba = cursor_bitmap_from_svg(
