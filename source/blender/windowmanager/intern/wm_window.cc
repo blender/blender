@@ -2739,6 +2739,18 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win,
                                       const int event_xy[2],
                                       int r_event_xy_other[2])
 {
+  if ((WM_capabilities_flag() & WM_CAPABILITY_WINDOW_POSITION) == 0) {
+    /* Window positions are unsupported, so this function can't work as intended.
+     * Perform the bare minimum, return the active window if the event is within it. */
+    rcti rect;
+    WM_window_rect_calc(win, &rect);
+    if (!BLI_rcti_isect_pt_v(&rect, event_xy)) {
+      return nullptr;
+    }
+    copy_v2_v2_int(r_event_xy_other, event_xy);
+    return win;
+  }
+
   int temp_xy[2];
   copy_v2_v2_int(temp_xy, event_xy);
   wm_cursor_position_to_ghost_screen_coords(win, &temp_xy[0], &temp_xy[1]);
