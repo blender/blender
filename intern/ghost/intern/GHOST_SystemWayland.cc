@@ -2684,7 +2684,10 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
 /** \name Private Cursor API
  * \{ */
 
-static void cursor_buffer_set_surface_impl(const wl_cursor_image *wl_image, wl_buffer *buffer, wl_surface *wl_surface, const int scale)
+static void cursor_buffer_set_surface_impl(const wl_cursor_image *wl_image,
+                                           wl_buffer *buffer,
+                                           wl_surface *wl_surface,
+                                           const int scale)
 {
   const int32_t image_size_x = int32_t(wl_image->width);
   const int32_t image_size_y = int32_t(wl_image->height);
