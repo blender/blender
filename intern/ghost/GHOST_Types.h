@@ -55,6 +55,10 @@ GHOST_DECLARE_HANDLE(GHOST_XrContextHandle);
 
 typedef void (*GHOST_TBacktraceFn)(void *file_handle);
 
+typedef void *GHOST_TUserDataPtr;
+
+typedef enum { GHOST_kFailure = 0, GHOST_kSuccess } GHOST_TSuccess;
+
 /**
  * A reference to cursor bitmap data.
  */
@@ -74,10 +78,6 @@ typedef enum GHOST_DialogOptions {
   GHOST_DialogWarning = (1 << 0),
   GHOST_DialogError = (1 << 1),
 } GHOST_DialogOptions;
-
-typedef void *GHOST_TUserDataPtr;
-
-typedef enum { GHOST_kFailure = 0, GHOST_kSuccess } GHOST_TSuccess;
 
 /**
  * Static flag (relating to the back-ends support for features).
