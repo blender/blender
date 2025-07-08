@@ -166,7 +166,19 @@ const char *WM_ghost_backend();
 enum eWM_CapabilitiesFlag {
   /** Ability to warp the cursor (set its location). */
   WM_CAPABILITY_CURSOR_WARP = (1 << 0),
-  /** Ability to access window positions & move them. */
+  /**
+   * Window position access, support for the following.
+   * - Getting window positions.
+   * - Setting window positions.
+   * - Setting positions for new windows.
+   *
+   * Currently there is no need to distinguish between these different cases
+   * so a single flag is used.
+   *
+   * When omitted, it isn't possible to know where windows are located in relation to each other.
+   * Operations such as applying events from one window to another or detecting the non-active
+   * window under the cursor are not supported.
+   */
   WM_CAPABILITY_WINDOW_POSITION = (1 << 1),
   /**
    * The windowing system supports a separate primary clipboard
