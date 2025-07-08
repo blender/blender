@@ -6,6 +6,7 @@
 
 #include <optional>
 
+#include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
@@ -744,6 +745,7 @@ uiLayout &block_layout(uiBlock *block,
                        int em,
                        int padding,
                        const uiStyle *style);
+int2 block_layout_resolve(uiBlock *block);
 
 }  // namespace blender::ui
 
@@ -787,7 +789,6 @@ ENUM_OPERATORS(eUI_Item_Flag, UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE)
 #define UI_ITEM_NONE eUI_Item_Flag(0)
 
 void UI_block_layout_set_current(uiBlock *block, uiLayout *layout);
-void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y);
 bool UI_block_layout_needs_resolving(const uiBlock *block);
 /**
  * Used for property search when the layout process needs to be cancelled in order to avoid

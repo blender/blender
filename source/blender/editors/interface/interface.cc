@@ -2105,7 +2105,7 @@ void UI_block_end_ex(const bContext *C,
 
   /* handle pending stuff */
   if (block->layouts.first) {
-    UI_block_layout_resolve(block, nullptr, nullptr);
+    blender::ui::block_layout_resolve(block);
   }
   ui_block_align_calc(block, region);
   if ((block->flag & UI_BLOCK_LOOP) && (block->flag & UI_BLOCK_NUMSELECT) &&

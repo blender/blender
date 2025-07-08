@@ -662,7 +662,7 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
   layout.separator_spacer();
   layout.alignment_set(blender::ui::LayoutAlign::Right);
   layout.label(stats_str, ICON_NONE);
-  UI_block_layout_resolve(block, nullptr, nullptr);
+  blender::ui::block_layout_resolve(block);
   UI_block_align_end(block);
   UI_block_end(C, block);
   UI_block_draw(C, block);

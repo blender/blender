@@ -531,8 +531,7 @@ void region_layout(const bContext *C, ARegion *region)
 
   build_asset_view(layout, active_shelf->settings.asset_library_reference, *active_shelf, *C);
 
-  int layout_height;
-  UI_block_layout_resolve(block, nullptr, &layout_height);
+  int layout_height = blender::ui::block_layout_resolve(block).y;
   BLI_assert(layout_height <= 0);
   UI_view2d_totRect_set(&region->v2d, region->winx - 1, layout_height - padding_y);
   UI_view2d_curRect_validate(&region->v2d);

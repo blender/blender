@@ -5517,7 +5517,7 @@ static void ui_item_layout(uiItem *item)
   }
 }
 
-static void ui_layout_end(uiBlock *block, uiLayout *layout, int *r_x, int *r_y)
+static blender::int2 ui_layout_end(uiBlock *block, uiLayout *layout)
 {
   if (layout->root_->handlefunc) {
     UI_block_func_handle_set(block, layout->root_->handlefunc, layout->root_->argv);
@@ -5525,13 +5525,7 @@ static void ui_layout_end(uiBlock *block, uiLayout *layout, int *r_x, int *r_y)
 
   ui_item_estimate(layout);
   ui_item_layout(layout);
-
-  if (r_x) {
-    *r_x = layout->x_;
-  }
-  if (r_y) {
-    *r_y = layout->y_;
-  }
+  return {layout->x_, layout->y_};
 }
 
 static void ui_layout_free(uiLayout *layout)
@@ -5756,17 +5750,12 @@ void UI_block_layout_free(uiBlock *block)
     MEM_freeN(root);
   }
 }
+namespace blender::ui {
 
-void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y)
+int2 block_layout_resolve(uiBlock *block)
 {
   BLI_assert(block->active);
-
-  if (r_x) {
-    *r_x = 0;
-  }
-  if (r_y) {
-    *r_y = 0;
-  }
+  int2 block_size = {0, 0};
 
   block->curlayout = nullptr;
 
@@ -5774,13 +5763,15 @@ void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y)
     ui_layout_add_padding_button(root);
 
     /* nullptr in advance so we don't interfere when adding button */
-    ui_layout_end(block, root->layout, r_x, r_y);
+    block_size = ui_layout_end(block, root->layout);
     ui_layout_free(root->layout);
     MEM_freeN(root);
   }
 
   BLI_listbase_clear(&block->layouts);
+  return block_size;
 }
+}  // namespace blender::ui
 
 bool UI_block_layout_needs_resolving(const uiBlock *block)
 {
