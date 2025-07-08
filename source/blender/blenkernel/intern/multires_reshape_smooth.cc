@@ -48,12 +48,12 @@
  * traversing the final limit surface. */
 
 struct SurfacePoint {
-  blender::float3 P;
-  blender::float3x3 tangent_matrix;
+  blender::float3 P = blender::float3(0.0f);
+  blender::float3x3 tangent_matrix = blender::float3x3::identity();
 };
 
 struct SurfaceGrid {
-  blender::Array<SurfacePoint> points;
+  blender::Array<SurfacePoint> points = {};
 };
 
 /* Geometry elements which are used to simplify creation of topology refiner at the sculpt level.
@@ -62,34 +62,34 @@ struct SurfaceGrid {
 struct Vertex {
   /* All grid coordinates which the vertex corresponding to.
    * For a vertices which are created from inner points of grids there is always one coordinate. */
-  blender::Vector<GridCoord> grid_coords;
+  blender::Vector<GridCoord> grid_coords = {};
 
-  float sharpness;
-  bool is_infinite_sharp;
+  float sharpness = 0.0f;
+  bool is_infinite_sharp = false;
 };
 
 struct Corner {
   /* Indexes into the geometry.vertices array */
-  int vert_index;
-  int grid_index;
+  int vert_index = 0;
+  int grid_index = 0;
 };
 
 struct Edge {
-  int v1;
-  int v2;
+  int v1 = 0;
+  int v2 = 0;
 
-  float sharpness;
+  float sharpness = 0.0f;
 };
 
 /* Storage of data which is linearly interpolated from the reshape level to the top level. */
 
 struct LinearGridElement {
-  float mask;
+  float mask = 0.0f;
 };
 
 struct LinearGrid {
   /* Span pointing to section of `elements_storage` in `LinearGrids` */
-  blender::MutableSpan<LinearGridElement> elements;
+  blender::MutableSpan<LinearGridElement> elements = {};
 };
 
 struct LinearGrids {
