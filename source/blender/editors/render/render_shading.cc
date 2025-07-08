@@ -187,10 +187,7 @@ static bool material_slot_populated_poll(bContext *C)
   if (ob_active == nullptr) {
     return false;
   }
-  if (ob_active->actcol <= 0) {
-    return false;
-  }
-  return true;
+  return ob_active->actcol > 0;
 }
 /** \} */
 
