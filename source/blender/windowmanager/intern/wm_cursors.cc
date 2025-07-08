@@ -137,7 +137,7 @@ static int cursor_size()
   const bool scale_cursor_with_ui_scale = false;
 
   if (scale_cursor_with_ui_scale) {
-    return int(21.0f * UI_SCALE_FAC);
+    return std::lround(21.0f * UI_SCALE_FAC);
   }
 
 #if (OS_MAC)
@@ -145,7 +145,7 @@ static int cursor_size()
   return 21;
 #endif
 
-  return int(WM_cursor_preferred_logical_size() * (UI_SCALE_FAC / U.ui_scale));
+  return std::lround(WM_cursor_preferred_logical_size() * (UI_SCALE_FAC / U.ui_scale));
 }
 
 static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
