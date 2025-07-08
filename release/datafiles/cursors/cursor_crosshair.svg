@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   width="1500"
-   height="1500"
-   viewBox="0 0 1500 1499.9999"
+   width="1200"
+   height="1200"
+   viewBox="0 0 1200 1199.9999"
    fill="none"
    version="1.1"
    id="svg4"
@@ -23,9 +23,9 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="true"
      showguides="true"
-     inkscape:zoom="0.32"
-     inkscape:cx="787.5"
-     inkscape:cy="951.5625"
+     inkscape:zoom="0.90509668"
+     inkscape:cx="487.24077"
+     inkscape:cy="314.33106"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
      inkscape:window-x="1912"
@@ -37,11 +37,11 @@
        units="px"
        originx="0"
        originy="0"
-       spacingx="99.999997"
-       spacingy="99.999997"
-       empcolor="#00ace5"
+       spacingx="9.9999996"
+       spacingy="9.9999996"
+       empcolor="#db00e5"
        empopacity="0.30196078"
-       color="#0025dc"
+       color="#8900dc"
        opacity="0.14901961"
        empspacing="0"
        dotted="false"
@@ -53,12 +53,12 @@
        units="px"
        originx="0"
        originy="0"
-       spacingx="9.9999997"
-       spacingy="9.9999997"
+       spacingx="99.999997"
+       spacingy="99.999996"
        empcolor="#0099e5"
        empopacity="0.30196078"
-       color="#0099e5"
-       opacity="0.14901961"
+       color="#95dcff"
+       opacity="0.43137255"
        empspacing="5"
        dotted="false"
        gridanglex="30"
@@ -119,79 +119,79 @@
     </linearGradient>
   </defs>
   <g
-     transform="matrix(298.31289,0,0,298.31289,-1262.3457,-1261.9287)"
+     transform="matrix(255.96902,0,0,263.8172,-1188.4252,-1224.9348)"
      id="use5368"
      style="stroke-width:0.5">
     <g
        id="g11"
        inkscape:transform-center-y="-1.4552084">
       <path
-         style="color:#000000;fill:#000000;stroke-linecap:round;stroke-miterlimit:4.3;-inkscape-stroke:none"
-         d="m 6.2428873,4.2303733 3.274e-4,2.011204 h 1.005069 l 1.357e-4,-2.011204 z"
-         id="path10"
-         sodipodi:nodetypes="ccccc" />
-      <path
          style="color:#000000;fill:#ffffff;stroke-linecap:round;-inkscape-stroke:none"
-         d="m 6.511126,4.4986971 3.28e-4,1.4750366 0.4687667,-3.274e-4 -5e-7,-1.4747092 z"
+         d="m 6.6353744,4.6432177 4.9e-6,1.6676869 0.7029372,-1.12e-5 2.121e-4,-1.6676323 z"
          id="path11"
          sodipodi:nodetypes="ccccc" />
     </g>
   </g>
+  <path
+     style="fill:#000000;fill-opacity:0.65;stroke-width:57.1849"
+     d="m 689.99975,0.03113175 -0.008,509.98413825 510.00305,-0.0112 -10e-5,-70.01847 -440.01368,0.001 0.005,-439.95541825 z"
+     id="path1"
+     sodipodi:nodetypes="ccccccc" />
   <g
-     transform="matrix(298.31289,0,0,298.31289,-1262.1563,-361.8136)"
+     transform="matrix(-255.96902,0,0,-263.8172,2344.1104,2416.1046)"
      id="use5368-6"
      style="stroke-width:0.5">
     <g
-       id="g11-2"
+       id="g11-7"
        inkscape:transform-center-y="-1.4552084">
       <path
-         style="color:#000000;fill:#000000;stroke-linecap:round;stroke-miterlimit:4.3;-inkscape-stroke:none"
-         d="m 6.2428873,4.2303733 3.274e-4,2.011204 h 1.005069 l 1.357e-4,-2.011204 z"
-         id="path10-5"
-         sodipodi:nodetypes="ccccc" />
-      <path
          style="color:#000000;fill:#ffffff;stroke-linecap:round;-inkscape-stroke:none"
-         d="m 6.511126,4.4986971 3.28e-4,1.4750366 0.4687667,-3.274e-4 -5e-7,-1.4747092 z"
-         id="path11-6"
+         d="m 6.4621726,4.6098383 -8.41e-5,1.667805 0.7032064,-2.05e-5 4.46e-5,-1.6678052 z"
+         id="path11-7"
          sodipodi:nodetypes="ccccc" />
     </g>
   </g>
+  <path
+     style="fill:#000000;fill-opacity:0.65;stroke-width:57.1849"
+     d="m 510.01765,1199.9685 0.003,-509.99371 -510.020565948419,0.063 0.06312954842,69.9332 439.9261164,-0.0167 -0.0148,439.98678 z"
+     id="path1-0"
+     sodipodi:nodetypes="ccccccc" />
   <g
-     transform="matrix(0,-298.31289,298.31289,0,-1261.9281,2762.7016)"
-     id="use5368-0"
+     transform="matrix(0,255.96902,-263.8172,0,2398.4402,-1170.5561)"
+     id="use5368-68"
      style="stroke-width:0.5">
     <g
        id="g11-9"
        inkscape:transform-center-y="-1.4552084">
       <path
-         style="color:#000000;fill:#000000;stroke-linecap:round;stroke-miterlimit:4.3;-inkscape-stroke:none"
-         d="m 6.2428873,4.2303733 3.274e-4,2.011204 h 1.005069 l 1.357e-4,-2.011204 z"
-         id="path10-1"
-         sodipodi:nodetypes="ccccc" />
-      <path
          style="color:#000000;fill:#ffffff;stroke-linecap:round;-inkscape-stroke:none"
-         d="m 6.511126,4.4986971 3.28e-4,1.4750366 0.4687667,-3.274e-4 -5e-7,-1.4747092 z"
-         id="path11-2"
+         d="m 6.5656013,4.5427394 -5.37e-5,1.6677934 0.7031737,-1.7e-5 -2.116e-4,-1.6677294 z"
+         id="path11-9"
          sodipodi:nodetypes="ccccc" />
     </g>
   </g>
+  <path
+     style="fill:#000000;fill-opacity:0.65;stroke-width:57.1849"
+     d="m 1200.0048,690.00747 -509.99478,0.003 -0.008,509.98413 69.97797,0.017 0.003,-440.03631 440.02068,0.0169 z"
+     id="path1-8"
+     sodipodi:nodetypes="ccccccc" />
   <g
-     transform="matrix(0,-298.31289,298.31289,0,-361.8129,2762.5122)"
-     id="use5368-6-3"
+     transform="matrix(0,-255.96902,263.8172,0,-1242.7371,2361.9152)"
+     id="use5368-0"
      style="stroke-width:0.5">
     <g
-       id="g11-2-4"
+       id="g11-5"
        inkscape:transform-center-y="-1.4552084">
       <path
-         style="color:#000000;fill:#000000;stroke-linecap:round;stroke-miterlimit:4.3;-inkscape-stroke:none"
-         d="m 6.2428873,4.2303733 3.274e-4,2.011204 h 1.005069 l 1.357e-4,-2.011204 z"
-         id="path10-5-3"
-         sodipodi:nodetypes="ccccc" />
-      <path
          style="color:#000000;fill:#ffffff;stroke-linecap:round;-inkscape-stroke:none"
-         d="m 6.511126,4.4986971 3.28e-4,1.4750366 0.4687667,-3.274e-4 -5e-7,-1.4747092 z"
-         id="path11-6-6"
+         d="m 6.5317653,4.7106266 -4.6e-6,1.6677407 0.7031002,-8.8e-5 3.88e-5,-1.6674784 z"
+         id="path11-99"
          sodipodi:nodetypes="ccccc" />
     </g>
   </g>
+  <path
+     style="fill:#000000;fill-opacity:0.65;stroke-width:57.1849"
+     d="m 0.0018214,510.02329 510.0243586,-0.0242 0.002,-509.99654486 -70.05296,4.661e-5 0.015,439.96115825 -439.942701,0.0403 z"
+     id="path1-07"
+     sodipodi:nodetypes="ccccccc" />
 </svg>
