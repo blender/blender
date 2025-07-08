@@ -44,6 +44,23 @@ int library_reference_to_enum_value(const AssetLibraryReference *library)
   return ASSET_LIBRARY_LOCAL;
 }
 
+static bool custom_library_is_valid(const bUserAssetLibrary *user_library)
+{
+  if (!user_library->name[0]) {
+    return false;
+  }
+  /* Note that there's no check if the path exists on disk here. If an invalid library path is
+   * used, the Asset Browser can give a nice hint on what's wrong, so include such items in enums
+   * the user can choose from. */
+  if (!user_library->dirpath[0]) {
+    return false;
+  }
+  if ((user_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) && !user_library->remote_url[0]) {
+    return false;
+  }
+  return true;
+}
+
 AssetLibraryReference library_reference_from_enum_value(int value)
 {
   AssetLibraryReference library;
@@ -65,13 +82,9 @@ AssetLibraryReference library_reference_from_enum_value(int value)
     library.type = ASSET_LIBRARY_ALL;
     library.custom_library_index = -1;
   }
-  else {
-    const bool is_valid = user_library->name[0] &&
-                          (user_library->remote_url[0] || user_library->dirpath[0]);
-    if (is_valid) {
-      library.custom_library_index = value - ASSET_LIBRARY_CUSTOM;
-      library.type = ASSET_LIBRARY_CUSTOM;
-    }
+  else if (custom_library_is_valid(user_library)) {
+    library.custom_library_index = value - ASSET_LIBRARY_CUSTOM;
+    library.type = ASSET_LIBRARY_CUSTOM;
   }
   return library;
 }
@@ -80,10 +93,7 @@ static void rna_enum_add_custom_libraries(EnumPropertyItem **item, int *totitem)
 {
   int i;
   LISTBASE_FOREACH_INDEX (bUserAssetLibrary *, user_library, &U.asset_libraries, i) {
-    /* Note that the path itself isn't checked for validity here. If an invalid library path is
-     * used, the Asset Browser can give a nice hint on what's wrong. */
-    const bool is_valid = (user_library->name[0] && user_library->dirpath[0]);
-    if (!is_valid) {
+    if (!custom_library_is_valid(user_library)) {
       continue;
     }
 

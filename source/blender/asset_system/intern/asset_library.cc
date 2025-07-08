@@ -390,6 +390,11 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
   }
   int i;
   LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
+    if ((asset_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) &&
+        (asset_library->remote_url[0] == '\0'))
+    {
+      continue;
+    }
     if (!BLI_is_dir(asset_library->dirpath)) {
       continue;
     }
