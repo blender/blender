@@ -442,6 +442,9 @@ class BackgroundDownloader:
         if self._shutdown_event.is_set():
             raise RuntimeError("BackgroundDownloader is shutting down, cannot queue new downloads")
 
+        if self._downloader_process is None:
+            raise RuntimeError("BackgroundDownloader is not started yet, cannot queue downloads")
+
         self._num_pending_downloads += 1
 
         http_req_descr = RequestDescription(http_method=http_method, url=remote_url)
