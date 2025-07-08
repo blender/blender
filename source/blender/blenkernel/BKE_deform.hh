@@ -6,6 +6,7 @@
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_virtual_array_fwd.hh"
 
@@ -233,26 +234,49 @@ void BKE_defvert_sync_mapped(MDeformVert *dvert_dst,
 void BKE_defvert_remap(MDeformVert *dvert, const int *map, int map_len);
 void BKE_defvert_flip(MDeformVert *dvert, const int *flip_map, int flip_map_num);
 void BKE_defvert_flip_merged(MDeformVert *dvert, const int *flip_map, int flip_map_num);
-void BKE_defvert_normalize(MDeformVert *dvert);
+
 /**
- * Same as #BKE_defvert_normalize but takes a bool array.
+ * Normalize all the vertex group weights on a vertex.
+ *
+ * Note: this ignores whether groups are locked or not, and will therefore
+ * happily modify even locked groups.
+ *
+ * See #BKE_defvert_normalize_lock_map() for parameter documentation.
  */
-void BKE_defvert_normalize_subset(MDeformVert *dvert, const bool *vgroup_subset, int vgroup_num);
+void BKE_defvert_normalize(MDeformVert &dvert);
+
 /**
- * Same as BKE_defvert_normalize() if the locked vgroup is not a member of the subset
+ * Normalize a subset of vertex group weights among themselves.
+ *
+ * Note: this ignores whether groups are locked or not, and will therefore
+ * happily modify even locked groups.
+ *
+ * See #BKE_defvert_normalize_lock_map() for parameter documentation.
  */
-void BKE_defvert_normalize_lock_single(MDeformVert *dvert,
-                                       const bool *vgroup_subset,
-                                       int vgroup_num,
-                                       uint def_nr_lock);
+void BKE_defvert_normalize_subset(MDeformVert &dvert, blender::Span<bool> subset_flags);
+
 /**
- * Same as BKE_defvert_normalize() if no locked vgroup is a member of the subset
+ * Normalize the vertex groups of a vertex, with all the bells and whistles.
+ *
+ * \param dvert: the vertex weights to be normalized.
+ *
+ * \param subset_flags: span of bools indicating which vertex groups are
+ * included vs ignored in this function. True means included, false means
+ * ignored. Note that this is different than locking: locked groups are not
+ * *modified*, but their weights are still accounted for in the normalization
+ * process, whereas ignored groups aren't accounted for at all. May be empty,
+ * indicating all vertex groups are included. If not empty, its length must
+ * match the number of vertex groups in the source data (e.g. the mesh).
+ *
+ * \param lock_flags: span of bools with `true` indicating the vertex groups
+ * that are completely locked from modification, even if that prevents
+ * normalization. May be empty, indicating no locked groups. If not empty, its
+ * length must match the number of vertex groups in the source data (e.g. the
+ * mesh).
  */
-void BKE_defvert_normalize_lock_map(MDeformVert *dvert,
-                                    const bool *vgroup_subset,
-                                    int vgroup_num,
-                                    const bool *lock_flags,
-                                    int defbase_num);
+void BKE_defvert_normalize_lock_map(MDeformVert &dvert,
+                                    blender::Span<bool> subset_flags,
+                                    blender::Span<bool> lock_flags);
 
 /* Utilities to 'extract' a given vgroup into a simple float array,
  * for verts, but also edges/faces/loops. */
