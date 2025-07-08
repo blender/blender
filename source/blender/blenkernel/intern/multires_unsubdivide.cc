@@ -16,9 +16,11 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_gsqueue.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
@@ -867,17 +869,9 @@ static const char vname[] = "v_remap_index";
 
 static void multires_unsubdivide_free_original_datalayers(Mesh *mesh)
 {
-  const int l_layer_index = CustomData_get_named_layer_index(
-      &mesh->corner_data, CD_PROP_INT32, lname);
-  if (l_layer_index != -1) {
-    CustomData_free_layer(&mesh->corner_data, CD_PROP_INT32, l_layer_index);
-  }
-
-  const int v_layer_index = CustomData_get_named_layer_index(
-      &mesh->vert_data, CD_PROP_INT32, vname);
-  if (v_layer_index != -1) {
-    CustomData_free_layer(&mesh->vert_data, CD_PROP_INT32, v_layer_index);
-  }
+  blender::bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  attributes.remove(lname);
+  attributes.remove(vname);
 }
 
 /**
@@ -886,21 +880,19 @@ static void multires_unsubdivide_free_original_datalayers(Mesh *mesh)
  */
 static void multires_unsubdivide_add_original_index_datalayers(Mesh *mesh)
 {
+  using namespace blender;
   multires_unsubdivide_free_original_datalayers(mesh);
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
 
-  int *l_index = static_cast<int *>(CustomData_add_layer_named(
-      &mesh->corner_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->corners_num, lname));
+  bke::SpanAttributeWriter l_index = attributes.lookup_or_add_for_write_only_span<int>(
+      lname, bke::AttrDomain::Corner);
+  array_utils::fill_index_range<int>(l_index.span);
+  l_index.finish();
 
-  int *v_index = static_cast<int *>(CustomData_add_layer_named(
-      &mesh->vert_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->verts_num, vname));
-
-  /* Initialize these data-layer with the indices in the current mesh. */
-  for (int i = 0; i < mesh->corners_num; i++) {
-    l_index[i] = i;
-  }
-  for (int i = 0; i < mesh->verts_num; i++) {
-    v_index[i] = i;
-  }
+  bke::SpanAttributeWriter v_index = attributes.lookup_or_add_for_write_only_span<int>(
+      vname, bke::AttrDomain::Point);
+  array_utils::fill_index_range<int>(v_index.span);
+  v_index.finish();
 }
 
 static void multires_unsubdivide_prepare_original_bmesh_for_extract(
@@ -922,8 +914,8 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
                                  false);
 
   /* Get the mapping data-layer. */
-  context->base_to_orig_vmap = static_cast<const int *>(
-      CustomData_get_layer_named(&base_mesh->vert_data, CD_PROP_INT32, vname));
+  blender::bke::AttributeAccessor attributes = base_mesh->attributes();
+  context->base_to_orig_vmap = *attributes.lookup<int>(vname);
 
   /* Tag the base mesh vertices in the original mesh. */
   for (int i = 0; i < base_mesh->verts_num; i++) {
@@ -965,6 +957,7 @@ static bool multires_unsubdivide_flip_grid_x_axis(const blender::OffsetIndices<i
 
 static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *context)
 {
+  using namespace blender;
   Mesh *original_mesh = context->original_mesh;
   Mesh *base_mesh = context->base_mesh;
 
@@ -980,8 +973,8 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
   int *orig_to_base_vmap = MEM_calloc_arrayN<int>(bm_original_mesh->totvert, "orig vmap");
   int *base_to_orig_vmap = MEM_calloc_arrayN<int>(base_mesh->verts_num, "base vmap");
 
-  context->base_to_orig_vmap = static_cast<const int *>(
-      CustomData_get_layer_named(&base_mesh->vert_data, CD_PROP_INT32, vname));
+  const bke::AttributeAccessor attributes = base_mesh->attributes();
+  context->base_to_orig_vmap = *attributes.lookup<int>(vname);
   for (int i = 0; i < base_mesh->verts_num; i++) {
     base_to_orig_vmap[i] = context->base_to_orig_vmap[i];
   }
