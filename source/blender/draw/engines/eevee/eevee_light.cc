@@ -179,7 +179,8 @@ void Light::shape_parameters_set(const ::Light *la,
 
   /* Compute influence radius first. Can be amended by shape later. */
   if (is_local_light(this->type)) {
-    const float max_power = reduce_max(float3(&la->r)) * fabsf(la->energy / 100.0f);
+    const float max_power = reduce_max(BKE_light_color(*la)) *
+                            fabsf(BKE_light_power(*la) / 100.0f);
     const float surface_max_power = max(la->diff_fac, la->spec_fac) * max_power;
     const float volume_max_power = la->volume_fac * max_power;
 
