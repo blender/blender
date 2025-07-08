@@ -8,7 +8,6 @@ import enum
 import functools
 import hashlib
 import logging
-import re
 import time
 import unicodedata
 import urllib.parse
@@ -859,75 +858,6 @@ def _sanitize_path_from_url(urlpath: PurePosixPath | str) -> PurePosixPath:
         i -= 1
 
     return PurePosixPath(*parts)
-
-
-_sanitize_netloc_invalid_chars_re = re.compile(r'[:\[\]\+*"/\\<>|?]+')
-
-
-def _sanitize_netloc_from_url(netloc: str) -> PurePosixPath:
-    """Safely convert a 'netloc' (from a URL) into a relative path.
-
-    'netloc' can contain authentication (username/password), which will be
-    stripped. Also the ':' in IPv6 addresses and between the hostname and port
-    number will be transformed.
-
-    >>> _sanitize_netloc_from_url('example.com')  # Just a simple host
-    PurePosixPath('example.com')
-
-    >>> _sanitize_netloc_from_url('/example.com')  # Hostname with slash?
-    PurePosixPath('example.com')
-
-    >>> _sanitize_netloc_from_url('example.com:8080')  # Host + port
-    PurePosixPath('example.com_8080')
-
-    >>> _sanitize_netloc_from_url('10.161.57.327:8080')   # IPv4 + port
-    PurePosixPath('10.161.57.327_8080')
-
-    >>> _sanitize_netloc_from_url('[fe80::1023:cafe:f00d:47]')  # IPv6 without port
-    PurePosixPath('fe80_1023_cafe_f00d_47')
-
-    >>> _sanitize_netloc_from_url('[fe80::1023:cafe:f00d:47]:555')  # IPv6 + port
-    PurePosixPath('fe80_1023_cafe_f00d_47_555')
-
-    >>> _sanitize_netloc_from_url('user:password@example.com')  # Auth info
-    PurePosixPath('example.com')
-    >>> _sanitize_netloc_from_url('user@example.com')  # Auth info
-    PurePosixPath('example.com')
-    >>> _sanitize_netloc_from_url(':password@example.com')  # Auth info
-    PurePosixPath('example.com')
-
-    >>> _sanitize_netloc_from_url('user:password@example.com:555')  # Auth info + port
-    PurePosixPath('example.com_555')
-
-    >>> _sanitize_netloc_from_url('user%3Apassword%40example.com%3A555')  # Quoted
-    PurePosixPath('example.com_555')
-
-    >>> _sanitize_netloc_from_url('Slapi%C4%87.hr')  # Quoted UTF-8
-    PurePosixPath('slapić.hr')
-
-    >>> _sanitize_netloc_from_url('Besanc%CC%A7on')  # Quoted UTF-8 not normalized
-    PurePosixPath('besançon')
-
-    >>> _sanitize_netloc_from_url('')  # Empty
-    Traceback (most recent call last):
-      ...
-    ValueError: empty netloc
-    """
-
-    if not netloc:
-        raise ValueError('empty netloc')
-
-    # Assumption: this string comes directly from urllib.parse.urlsplit(url).netloc
-    # TODO: add support for punycode.
-    unquoted = urllib.parse.unquote(netloc)
-    normalized = unicodedata.normalize('NFKC', unquoted)
-
-    parts = normalized.split('@')
-    hostname_port = parts[-1].lower()
-
-    netloc_path = _sanitize_netloc_invalid_chars_re.sub('_', hostname_port).strip('_')
-
-    return _sanitize_path_from_url(PurePosixPath(netloc_path))
 
 
 def _compare_thumbnail_filepath_timestamps(thumbnail_path: Path, failure_path: Path) -> bool:
