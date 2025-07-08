@@ -1891,7 +1891,7 @@ static wmOperatorStatus grease_pencil_erase_lasso_exec(bContext *C, wmOperator *
       const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
       const bke::crazyspace::GeometryDeformation deformation =
           bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-              ob_eval, *object, info.layer_index, info.frame_number);
+              ob_eval, *object, info.drawing);
       const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
 
       const bke::CurvesGeometry &curves = info.drawing.strokes();
@@ -1999,7 +1999,7 @@ static wmOperatorStatus grease_pencil_erase_box_exec(bContext *C, wmOperator *op
       const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
       const bke::crazyspace::GeometryDeformation deformation =
           bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-              ob_eval, *object, info.layer_index, info.frame_number);
+              ob_eval, *object, info.drawing);
       const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
 
       const bke::CurvesGeometry &curves = info.drawing.strokes();

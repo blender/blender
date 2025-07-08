@@ -198,7 +198,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
       bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
       const bke::crazyspace::GeometryDeformation deformation =
           bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-              *CTX_data_depsgraph_pointer(C), *object, info.layer_index, info.frame_number);
+              *CTX_data_depsgraph_pointer(C), *object, info.drawing);
 
       std::optional<MutableSpan<float>> value_attribute;
       if (t->mode == TFM_GPENCIL_OPACITY) {

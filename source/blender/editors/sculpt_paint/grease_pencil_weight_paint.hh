@@ -243,7 +243,7 @@ class WeightPaintOperation : public GreasePencilStrokeOperation {
 
         bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *this->object, drawing_info.layer_index, drawing_info.frame_number);
+                ob_eval, *this->object, drawing_info.drawing);
         drawing_weight_data.point_positions.reinitialize(deformation.positions.size());
         threading::parallel_for(curves.points_range(), 1024, [&](const IndexRange point_range) {
           for (const int point : point_range) {
