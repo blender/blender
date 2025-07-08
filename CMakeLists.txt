@@ -1772,10 +1772,11 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
     # Note: this gives mem in MB.
     cmake_host_system_information(RESULT _TOT_MEM QUERY TOTAL_PHYSICAL_MEMORY)
 
-    # Heuristics: Assume 8Gb of RAM is needed per heavy compile job.
-    # Typical RAM peak usage of these is actually less than 3GB currently,
+    # Heuristics: Assume 12Gb of RAM is needed per heavy compile job.
+    # Typical RAM peak usage of these is actually around 3-4GB currently,
     # but this also accounts for the part of the physical RAM being used by other unrelated
     # processes on the system, and the part being used by the 'regular' compile and linking jobs.
+    # Further more, some cycles kernel files can require almost 12GB in debug builds.
     #
     # Also always cap heavy jobs amount to `number of available threads - 1`,
     # to ensure that even if there would be enough RAM, the machine never ends up
@@ -1791,7 +1792,7 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
     #   - debug with ASAN build:
     #      * RAM: typically less than 40%, with some peaks at 50%.
     #      * CPU: over 90% of usage on average over the whole build time.
-    math(EXPR _compile_heavy_jobs "${_TOT_MEM} / 8000")
+    math(EXPR _compile_heavy_jobs "${_TOT_MEM} / 12000")
     math(EXPR _compile_heavy_jobs_max "${_NUM_CORES} - 1")
     if(${_compile_heavy_jobs} GREATER ${_compile_heavy_jobs_max})
       set(_compile_heavy_jobs ${_compile_heavy_jobs_max})
@@ -1808,7 +1809,7 @@ Define the maximum number of concurrent heavy compilation jobs, for ninja build 
     set(_compile_heavy_jobs)
     set(_compile_heavy_jobs_max)
 
-    # Heuristics: Assume 2Gb of RAM is needed per heavy compile job.
+    # Heuristics: Assume 3Gb of RAM is needed per regular compile job.
     # Typical RAM peak usage of these is actually way less than 1GB usually,
     # but this also accounts for the part of the physical RAM being used by other unrelated
     # processes on the system, and the part being used by the 'heavy' compile and linking jobs.
@@ -1817,7 +1818,7 @@ Define the maximum number of concurrent heavy compilation jobs, for ninja build 
     # `number of cores - 1`, otherwise allow using all cores if there is enough RAM available.
     # This allows to ensure that the heavy jobs won't get starved by too many normal jobs,
     # since the former usually take a long time to process.
-    math(EXPR _compile_jobs "${_TOT_MEM} / 2000")
+    math(EXPR _compile_jobs "${_TOT_MEM} / 3000")
     if(${_NUM_CORES} GREATER 3)
       math(EXPR _compile_jobs_max "${_NUM_CORES} - 1")
     else()
