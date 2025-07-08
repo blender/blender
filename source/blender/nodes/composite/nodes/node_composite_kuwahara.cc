@@ -40,6 +40,7 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
       .compositor_domain_priority(0);
   b.add_input<decl::Float>("Size")
       .default_value(6.0f)
+      .min(0.0f)
       .description("The size of the filter in pixels")
       .compositor_domain_priority(1);
   b.add_input<decl::Int>("Uniformity")
