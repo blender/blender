@@ -493,6 +493,13 @@ if(TEST_SRC_DIR_EXISTS)
     --
     --testdir "${TEST_SRC_DIR}/constraints"
   )
+
+  add_blender_test(
+    multires
+    --python ${TEST_PYTHON_DIR}/bl_multires.py
+    --
+    --testdir "${TEST_SRC_DIR}/sculpting"
+  )
 endif()
 
 # ------------------------------------------------------------------------------
