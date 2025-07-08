@@ -1571,6 +1571,12 @@ typedef struct NodeTrackPosData {
   char track_name[64];
 } NodeTrackPosData;
 
+typedef struct NodeTransformData {
+  short interpolation;
+  char extension_x;
+  char extension_y;
+} NodeTransformData;
+
 typedef struct NodeTranslateData {
   char wrap_axis DNA_DEPRECATED;
   char relative DNA_DEPRECATED;
