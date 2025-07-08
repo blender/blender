@@ -40,6 +40,7 @@ static void cmp_node_kuwahara_declare(NodeDeclarationBuilder &b)
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Size")
       .default_value(6.0f)
+      .min(0.0f)
       .description("The size of the filter in pixels")
       .structure_type(StructureType::Dynamic);
   b.add_input<decl::Int>("Uniformity")
