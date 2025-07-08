@@ -1188,7 +1188,7 @@ static bool do_lasso_select_grease_pencil(const ViewContext *vc,
         const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
         const bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *object, info.layer_index, info.frame_number);
+                ob_eval, *object, info.drawing);
         const IndexMask visible_handle_elements =
             ed::greasepencil::retrieve_visible_bezier_handle_elements(
                 *object, info.drawing, info.layer_index, selection_domain, memory);
@@ -3358,7 +3358,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           /* Get deformation by modifiers. */
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                  ob_eval, *object, info.layer_index, info.frame_number);
+                  ob_eval, *object, info.drawing);
 
           IndexMaskMemory memory;
           const IndexMask elements = ed::greasepencil::retrieve_editable_elements(
@@ -4419,7 +4419,7 @@ static bool do_grease_pencil_box_select(const ViewContext *vc,
         const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
         const bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *object, info.layer_index, info.frame_number);
+                ob_eval, *object, info.drawing);
         const IndexMask visible_handle_elements =
             ed::greasepencil::retrieve_visible_bezier_handle_elements(
                 *object, info.drawing, info.layer_index, selection_domain, memory);
@@ -5302,7 +5302,7 @@ static bool grease_pencil_circle_select(const ViewContext *vc,
         const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
         const bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                ob_eval, *object, info.layer_index, info.frame_number);
+                ob_eval, *object, info.drawing);
         const IndexMask visible_handle_elements =
             ed::greasepencil::retrieve_visible_bezier_handle_elements(
                 *object, info.drawing, info.layer_index, selection_domain, memory);

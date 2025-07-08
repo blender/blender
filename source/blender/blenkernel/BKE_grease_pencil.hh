@@ -430,6 +430,14 @@ class LayerRuntime {
    */
   bool is_visibility_animated_;
 
+  /**
+   * For evaluated layers, the index of the corresponding original layer, or -1 if there is no
+   * original layer that could be mapped to. E.g. when the layer was created during evaluation.
+   *
+   * TODO: Find a way to store this information in #GreasePencilEditHints instead.
+   */
+  int orig_layer_index_ = -1;
+
  public:
   /** Reset all runtime data. */
   void clear();
@@ -968,7 +976,7 @@ class GreasePencilEditHints {
 
   /**
    * Array of #GreasePencilDrawingEditHints. There is one edit hint for each evaluated drawing.
-   * \note The index for each element is the layer index.
+   * \note The index for each element is the evaluated layer index.
    */
   std::optional<Array<GreasePencilDrawingEditHints>> drawing_hints;
 };

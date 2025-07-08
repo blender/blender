@@ -1214,7 +1214,7 @@ bool ED_view3d_minmax_verts(const Scene *scene, Object *obedit, float r_min[3], 
 
       const bke::crazyspace::GeometryDeformation deformation =
           bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-              obedit, ob_orig, info.layer_index, info.frame_number);
+              obedit, ob_orig, info.drawing);
 
       const bke::greasepencil::Layer &layer = grease_pencil.layer(info.layer_index);
       const float4x4 layer_to_world = layer.to_world_space(*obedit);

@@ -95,19 +95,19 @@ static void remember_deformed_grease_pencil_if_necessary(const GreasePencil *gre
   const Span<const greasepencil::Layer *> layers = grease_pencil->layers();
   const Span<const greasepencil::Layer *> orig_layers = orig_grease_pencil.layers();
   const int layers_num = layers.size();
-  if (layers_num != orig_layers.size()) {
-    return;
-  }
   edit_component.grease_pencil_edit_hints_->drawing_hints.emplace(layers_num);
   MutableSpan<GreasePencilDrawingEditHints> all_hints =
       *edit_component.grease_pencil_edit_hints_->drawing_hints;
-  for (const int layer_index : layers.index_range()) {
-    const greasepencil::Drawing *drawing = grease_pencil->get_eval_drawing(
-        grease_pencil->layer(layer_index));
-    const greasepencil::Layer &orig_layer = *orig_layers[layer_index];
+  for (const int eval_layer_index : layers.index_range()) {
+    const greasepencil::Layer &eval_layer = *layers[eval_layer_index];
+    const greasepencil::Drawing *drawing = grease_pencil->get_eval_drawing(eval_layer);
+    if (eval_layer.runtime->orig_layer_index_ == -1) {
+      continue;
+    }
+    const greasepencil::Layer &orig_layer = *orig_layers[eval_layer.runtime->orig_layer_index_];
     const greasepencil::Drawing *orig_drawing = orig_grease_pencil.get_drawing_at(
         orig_layer, grease_pencil->runtime->eval_frame);
-    GreasePencilDrawingEditHints &drawing_hints = all_hints[layer_index];
+    GreasePencilDrawingEditHints &drawing_hints = all_hints[eval_layer_index];
     if (!drawing || !orig_drawing) {
       continue;
     }
