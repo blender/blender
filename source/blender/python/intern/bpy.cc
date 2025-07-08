@@ -627,9 +627,9 @@ static PyObject *bpy_wm_capabilities(PyObject *self)
 
       SetFlagItem(CURSOR_WARP);
       SetFlagItem(WINDOW_POSITION);
-      SetFlagItem(PRIMARY_CLIPBOARD);
+      SetFlagItem(CLIPBOARD_PRIMARY);
       SetFlagItem(GPU_FRONT_BUFFER_READ);
-      SetFlagItem(CLIPBOARD_IMAGES);
+      SetFlagItem(CLIPBOARD_IMAGE);
       SetFlagItem(DESKTOP_SAMPLE);
       SetFlagItem(INPUT_IME);
       SetFlagItem(TRACKPAD_PHYSICAL_DIRECTION);

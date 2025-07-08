@@ -62,9 +62,9 @@ class GHOST_SystemHeadless : public GHOST_System {
             /* Wrap. */
             GHOST_kCapabilityCursorWarp |
             /* Wrap. */
-            GHOST_kCapabilityPrimaryClipboard |
+            GHOST_kCapabilityClipboardPrimary |
             /* Wrap. */
-            GHOST_kCapabilityClipboardImages |
+            GHOST_kCapabilityClipboardImage |
             /* Wrap. */
             GHOST_kCapabilityDesktopSample |
             /* Wrap. */
@@ -74,7 +74,7 @@ class GHOST_SystemHeadless : public GHOST_System {
             /* Wrap. */
             GHOST_kCapabilityKeyboardHyperKey |
             /* Wrap. */
-            GHOST_kCapabilityRGBACursors)
+            GHOST_kCapabilityCursorRGBA)
 
     );
   }

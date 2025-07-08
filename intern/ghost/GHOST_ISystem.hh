@@ -452,7 +452,7 @@ class GHOST_ISystem {
    * Return the clipboard buffer or null.
    *
    * \param selection: Use the "primary" selection.
-   * Check the #GHOST_kCapabilityPrimaryClipboard for backends that support this.
+   * Check the #GHOST_kCapabilityClipboardPrimary for backends that support this.
    * \return Returns the clipboard data as a null terminated string or null when unavailable.
    */
   virtual char *getClipboard(bool selection) const = 0;

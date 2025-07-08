@@ -464,7 +464,7 @@ static void font_select_update_primary_clipboard(Object *obedit)
     return;
   }
 
-  if ((WM_capabilities_flag() & WM_CAPABILITY_PRIMARY_CLIPBOARD) == 0) {
+  if ((WM_capabilities_flag() & WM_CAPABILITY_CLIPBOARD_PRIMARY) == 0) {
     return;
   }
   char *buf = font_select_to_buffer(obedit);

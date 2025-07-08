@@ -261,7 +261,7 @@ static void wm_software_cursor_draw_bitmap(const int event_xy[2],
    *
    * NOTE: *technically* if a window spans two output of different scales,
    * we should scale to the output. This use case is currently not accounted for. */
-  const int scale = (WM_capabilities_flag() & WM_CAPABILITY_RGBA_CURSORS) ?
+  const int scale = (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_RGBA) ?
                         1 :
                         std::max(1, round_fl_to_int(system_scale));
 

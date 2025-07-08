@@ -2209,14 +2209,14 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityWindowPosition) {
     flag |= WM_CAPABILITY_WINDOW_POSITION;
   }
-  if (ghost_flag & GHOST_kCapabilityPrimaryClipboard) {
-    flag |= WM_CAPABILITY_PRIMARY_CLIPBOARD;
+  if (ghost_flag & GHOST_kCapabilityClipboardPrimary) {
+    flag |= WM_CAPABILITY_CLIPBOARD_PRIMARY;
   }
   if (ghost_flag & GHOST_kCapabilityGPUReadFrontBuffer) {
     flag |= WM_CAPABILITY_GPU_FRONT_BUFFER_READ;
   }
-  if (ghost_flag & GHOST_kCapabilityClipboardImages) {
-    flag |= WM_CAPABILITY_CLIPBOARD_IMAGES;
+  if (ghost_flag & GHOST_kCapabilityClipboardImage) {
+    flag |= WM_CAPABILITY_CLIPBOARD_IMAGE;
   }
   if (ghost_flag & GHOST_kCapabilityDesktopSample) {
     flag |= WM_CAPABILITY_DESKTOP_SAMPLE;
@@ -2233,8 +2233,8 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityKeyboardHyperKey) {
     flag |= WM_CAPABILITY_KEYBOARD_HYPER_KEY;
   }
-  if (ghost_flag & GHOST_kCapabilityRGBACursors) {
-    flag |= WM_CAPABILITY_RGBA_CURSORS;
+  if (ghost_flag & GHOST_kCapabilityCursorRGBA) {
+    flag |= WM_CAPABILITY_CURSOR_RGBA;
   }
 
   return flag;

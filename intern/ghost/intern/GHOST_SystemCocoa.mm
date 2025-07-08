@@ -974,12 +974,12 @@ GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
       /* NOTE: order the following flags as they they're declared in the source. */
       ~(
           /* Cocoa has no support for a primary selection clipboard. */
-          GHOST_kCapabilityPrimaryClipboard |
+          GHOST_kCapabilityClipboardPrimary |
           /* Cocoa doesn't define a Hyper modifier key,
            * it's possible another modifier could be optionally used in it's place. */
           GHOST_kCapabilityKeyboardHyperKey |
           /* No support yet for RGBA mouse cursors. */
-          GHOST_kCapabilityRGBACursors));
+          GHOST_kCapabilityCursorRGBA));
 }
 
 /* --------------------------------------------------------------------

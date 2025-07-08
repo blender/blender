@@ -1823,13 +1823,13 @@ GHOST_TCapabilityFlag GHOST_SystemX11::getCapabilities() const
       /* NOTE: order the following flags as they they're declared in the source. */
       ~(
           /* No support yet for image copy/paste. */
-          GHOST_kCapabilityClipboardImages |
+          GHOST_kCapabilityClipboardImage |
           /* No support yet for IME input methods. */
           GHOST_kCapabilityInputIME |
           /* No support for window decoration styles. */
           GHOST_kCapabilityWindowDecorationStyles |
           /* No support yet for RGBA mouse cursors. */
-          GHOST_kCapabilityRGBACursors));
+          GHOST_kCapabilityCursorRGBA));
 }
 
 void GHOST_SystemX11::addDirtyWindow(GHOST_WindowX11 *bad_wind)
