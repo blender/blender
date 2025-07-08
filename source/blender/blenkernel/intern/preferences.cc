@@ -130,6 +130,25 @@ int BKE_preferences_asset_library_get_index(const UserDef *userdef,
   return BLI_findindex(&userdef->asset_libraries, library);
 }
 
+bool BKE_preferences_asset_library_is_valid(const bUserAssetLibrary *library,
+                                            const bool check_directory_exists)
+{
+  if ((library->flag & ASSET_LIBRARY_USE_REMOTE_URL) && !library->remote_url[0]) {
+    return false;
+  }
+  /* Note that there's no check if the path exists on disk here. If an invalid library path is
+   * used, the Asset Browser can give a nice hint on what's wrong, so include such items in enums
+   * the user can choose from. */
+  if (!library->dirpath[0]) {
+    return false;
+  }
+  if (check_directory_exists && !BLI_is_dir(library->dirpath)) {
+    return false;
+  }
+
+  return true;
+}
+
 void BKE_preferences_asset_library_default_add(UserDef *userdef)
 {
   char documents_path[FILE_MAXDIR];

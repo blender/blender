@@ -49,16 +49,13 @@ static bool custom_library_is_valid(const bUserAssetLibrary *user_library)
   if (!user_library->name[0]) {
     return false;
   }
-  /* Note that there's no check if the path exists on disk here. If an invalid library path is
-   * used, the Asset Browser can give a nice hint on what's wrong, so include such items in enums
-   * the user can choose from. */
-  if (!user_library->dirpath[0]) {
-    return false;
-  }
-  if ((user_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) && !user_library->remote_url[0]) {
-    return false;
-  }
-  return true;
+
+  /* Don't check if the path exists on disk. If an invalid library path is used, the Asset Browser
+   * can give a nice hint on what's wrong, so include such items in menus the user can choose from.
+   */
+  const bool check_directory_exists = false;
+
+  return BKE_preferences_asset_library_is_valid(user_library, check_directory_exists);
 }
 
 AssetLibraryReference library_reference_from_enum_value(int value)
@@ -76,8 +73,6 @@ AssetLibraryReference library_reference_from_enum_value(int value)
   const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
       &U, value - ASSET_LIBRARY_CUSTOM);
 
-  /* Note that there is no check if the path exists here. If an invalid library path is used, the
-   * Asset Browser can give a nice hint on what's wrong. */
   if (!user_library) {
     library.type = ASSET_LIBRARY_ALL;
     library.custom_library_index = -1;

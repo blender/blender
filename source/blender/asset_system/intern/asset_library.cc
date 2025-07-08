@@ -390,14 +390,10 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
   }
   int i;
   LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
-    if ((asset_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) &&
-        (asset_library->remote_url[0] == '\0'))
-    {
+    if (!BKE_preferences_asset_library_is_valid(asset_library, true)) {
       continue;
     }
-    if (!BLI_is_dir(asset_library->dirpath)) {
-      continue;
-    }
+
     AssetLibraryReference library_ref{};
     library_ref.custom_library_index = i;
     library_ref.type = ASSET_LIBRARY_CUSTOM;
