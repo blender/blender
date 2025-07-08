@@ -3728,8 +3728,8 @@ PyDoc_STRVAR(
     "\n"
     "   Unset a property, will use default value afterward.\n"
     "\n"
-    "   :arg key: Property name.\n"
-    "   :type key: str\n");
+    "   :arg property: Property name.\n"
+    "   :type property: str\n");
 static PyObject *pyrna_struct_property_unset(BPy_StructRNA *self, PyObject *args)
 {
   PropertyRNA *prop;
