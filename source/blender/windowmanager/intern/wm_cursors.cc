@@ -219,7 +219,7 @@ static void cursor_rgba_to_xbm_32(const blender::Array<uint8_t> &rgba,
   }
 }
 
-static bool window_set_custom_cursor(wmWindow *win, BCursor *cursor)
+static bool window_set_custom_cursor(wmWindow *win, const BCursor &cursor)
 {
   /* Option to force use of 1bpp XBitMap cursors is needed for testing. */
   const bool use_only_1bpp_cursors = false;
@@ -232,14 +232,14 @@ static bool window_set_custom_cursor(wmWindow *win, BCursor *cursor)
 
   int bitmap_size[2];
   blender::Array<uint8_t> bitmap_rgba = cursor_bitmap_from_svg(
-      cursor->svg_source, size, bitmap_size);
+      cursor.svg_source, size, bitmap_size);
   if (UNLIKELY(bitmap_rgba.is_empty())) {
     return false;
   }
 
   const int hot_spot[2] = {
-      int(cursor->hotspot[0] * (bitmap_size[0] - 1)),
-      int(cursor->hotspot[1] * (bitmap_size[1] - 1)),
+      int(cursor.hotspot[0] * (bitmap_size[0] - 1)),
+      int(cursor.hotspot[1] * (bitmap_size[1] - 1)),
   };
 
   GHOST_TSuccess success;
@@ -249,7 +249,7 @@ static bool window_set_custom_cursor(wmWindow *win, BCursor *cursor)
                                          nullptr,
                                          bitmap_size,
                                          hot_spot,
-                                         cursor->can_invert);
+                                         cursor.can_invert);
   }
   else {
     int bitmap_size_fixed[2] = {32, 32};
@@ -262,7 +262,7 @@ static bool window_set_custom_cursor(wmWindow *win, BCursor *cursor)
                                          mask,
                                          bitmap_size_fixed,
                                          hot_spot,
-                                         cursor->can_invert);
+                                         cursor.can_invert);
   }
   return (success == GHOST_kSuccess) ? true : false;
 }
@@ -307,8 +307,8 @@ void WM_cursor_set(wmWindow *win, int curs)
     GHOST_SetCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin), ghost_cursor);
   }
   else {
-    BCursor *bcursor = &BlenderCursor[curs];
-    if (!bcursor || !bcursor->svg_source || !window_set_custom_cursor(win, bcursor)) {
+    const BCursor &bcursor = BlenderCursor[curs];
+    if (!bcursor.svg_source || !window_set_custom_cursor(win, bcursor)) {
       /* Fall back to default cursor if no bitmap found. */
       GHOST_SetCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
                            GHOST_kStandardCursorDefault);
