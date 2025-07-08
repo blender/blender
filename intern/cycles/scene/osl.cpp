@@ -286,13 +286,16 @@ void OSLManager::device_free(Device *device, DeviceScene * /*dscene*/, Scene *sc
   /* Remove any textures specific to an image manager from shared render services textures, since
    * the image manager may get destroyed next. */
   foreach_render_services([scene](OSLRenderServices *services) {
-    for (auto it = services->textures.begin(); it != services->textures.end(); ++it) {
+    for (auto it = services->textures.begin(); it != services->textures.end();) {
       if (it->second.handle.get_manager() == scene->image_manager.get()) {
         /* Don't lock again, since the iterator already did so. */
         services->textures.erase(it->first, false);
         it.clear();
         /* Iterator was invalidated, start from the beginning again. */
         it = services->textures.begin();
+      }
+      else {
+        ++it;
       }
     }
   });
