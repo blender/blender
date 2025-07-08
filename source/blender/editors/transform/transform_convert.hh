@@ -220,13 +220,9 @@ void create_aligned_handles_masks(const bke::CurvesGeometry &curves,
 void calculate_aligned_handles(const TransCustomData &custom_data,
                                bke::CurvesGeometry &curves,
                                int curve_index);
-void update_vector_handle_types(const IndexMask &selected_handles,
-                                MutableSpan<int8_t> handle_types);
-void update_auto_handle_types(const IndexMask &selected_handles_left,
-                              const IndexMask &selected_handles_right,
-                              const IndexMask &bezier_points,
-                              MutableSpan<int8_t> handle_types_left,
-                              MutableSpan<int8_t> handle_types_right);
+bool update_handle_types_for_transform(bke::CurvesGeometry &curves,
+                                       const std::array<IndexMask, 3> &selection_per_attribute,
+                                       const IndexMask &bezier_points);
 
 }  // namespace curves
 

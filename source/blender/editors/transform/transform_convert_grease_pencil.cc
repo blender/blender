@@ -113,21 +113,11 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
 
       /* Alter selection as in legacy curves bezt_select_to_transform_triple_flag(). */
       if (!bezier_points.is_empty()) {
-        IndexMaskMemory memory;
-        /* Selected handles, but not the control point. */
-        const IndexMask selected_left = IndexMask::from_difference(
-            selection_per_attribute[1], selection_per_attribute[0], memory);
-        const IndexMask selected_right = IndexMask::from_difference(
-            selection_per_attribute[2], selection_per_attribute[0], memory);
-        MutableSpan<int8_t> handle_types_left = curves.handle_types_left_for_write();
-        MutableSpan<int8_t> handle_types_right = curves.handle_types_right_for_write();
-
-        curves::update_vector_handle_types(selected_left, handle_types_left);
-        curves::update_vector_handle_types(selected_right, handle_types_right);
-        curves::update_auto_handle_types(
-            selected_left, selected_right, bezier_points, handle_types_left, handle_types_right);
-        curves.tag_topology_changed();
-        info.drawing.tag_topology_changed();
+        if (curves::update_handle_types_for_transform(
+                curves, selection_per_attribute, bezier_points))
+        {
+          info.drawing.tag_topology_changed();
+        }
 
         index_mask::ExprBuilder builder;
         const index_mask::Expr &selected_bezier_points = builder.intersect(

@@ -150,34 +150,29 @@ static void cyclic_curve_connected_point_distances(const Span<float3> positions,
   }
 }
 
-static IndexMask handles_by_type(const IndexMask handles,
+static IndexMask handles_by_type(const IndexMask &handles,
+                                 const VArray<int8_t> &types,
                                  const HandleType type,
-                                 Span<int8_t> types,
                                  IndexMaskMemory &memory)
 {
+  if (const std::optional<int8_t> single_type = types.get_if_single()) {
+    return HandleType(*single_type) == type ? handles : IndexMask();
+  }
+  const VArraySpan types_span = types;
   return IndexMask::from_predicate(
-      handles, GrainSize(4096), memory, [&](const int64_t i) { return types[i] == type; });
+      handles, GrainSize(4096), memory, [&](const int64_t i) { return types_span[i] == type; });
 }
 
-void update_vector_handle_types(const IndexMask &selected_handles,
-                                MutableSpan<int8_t> handle_types)
-{
-  IndexMaskMemory memory;
-  /* Selected BEZIER_HANDLE_VECTOR handles. */
-  const IndexMask convert_to_free = handles_by_type(
-      selected_handles, BEZIER_HANDLE_VECTOR, handle_types, memory);
-  index_mask::masked_fill(handle_types, int8_t(BEZIER_HANDLE_FREE), convert_to_free);
-}
-
-static void update_auto_handle_types(const IndexMask &auto_handles,
+static bool update_auto_handle_types(bke::CurvesGeometry &curves,
+                                     const IndexMask &auto_handles,
                                      const IndexMask &auto_handles_opposite,
                                      const IndexMask &selected_handles,
                                      const IndexMask &selected_handles_opposite,
-                                     MutableSpan<int8_t> handle_types,
+                                     const StringRef handle_type_name,
                                      IndexMaskMemory &memory)
 {
   index_mask::ExprBuilder builder;
-  const IndexMask &convert_to_align = evaluate_expression(
+  const IndexMask convert_to_align = evaluate_expression(
       builder.merge({
           /* Selected BEZIER_HANDLE_AUTO handles from one side. */
           &builder.intersect({&selected_handles, &auto_handles}),
@@ -186,33 +181,71 @@ static void update_auto_handle_types(const IndexMask &auto_handles,
           &builder.intersect({&selected_handles_opposite, &auto_handles_opposite, &auto_handles}),
       }),
       memory);
-  index_mask::masked_fill(handle_types, int8_t(BEZIER_HANDLE_ALIGN), convert_to_align);
+  if (convert_to_align.is_empty()) {
+    return false;
+  }
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  bke::SpanAttributeWriter handle_types = attributes.lookup_or_add_for_write_span<int8_t>(
+      handle_type_name, bke::AttrDomain::Point);
+  index_mask::masked_fill(handle_types.span, int8_t(BEZIER_HANDLE_ALIGN), convert_to_align);
+  handle_types.finish();
+  return true;
 }
 
-void update_auto_handle_types(const IndexMask &selected_handles_left,
-                              const IndexMask &selected_handles_right,
-                              const IndexMask &bezier_points,
-                              MutableSpan<int8_t> handle_types_left,
-                              MutableSpan<int8_t> handle_types_right)
+static bool update_vector_handle_types(bke::CurvesGeometry &curves,
+                                       const IndexMask &selected_handles,
+                                       const StringRef handle_type_name)
+{
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+  IndexMaskMemory memory;
+  const IndexMask selected_vector = handles_by_type(
+      selected_handles,
+      *attributes.lookup_or_default<int8_t>(handle_type_name, bke::AttrDomain::Point, 0),
+      BEZIER_HANDLE_VECTOR,
+      memory);
+  if (selected_vector.is_empty()) {
+    return false;
+  }
+
+  bke::SpanAttributeWriter handle_types = attributes.lookup_or_add_for_write_span<int8_t>(
+      handle_type_name, bke::AttrDomain::Point);
+  index_mask::masked_fill(handle_types.span, int8_t(BEZIER_HANDLE_FREE), selected_vector);
+  handle_types.finish();
+  return true;
+}
+
+bool update_handle_types_for_transform(bke::CurvesGeometry &curves,
+                                       const std::array<IndexMask, 3> &selection_per_attribute,
+                                       const IndexMask &bezier_points)
 {
   IndexMaskMemory memory;
-  const IndexMask auto_left = handles_by_type(
-      bezier_points, BEZIER_HANDLE_AUTO, handle_types_left, memory);
-  const IndexMask auto_right = handles_by_type(
-      bezier_points, BEZIER_HANDLE_AUTO, handle_types_right, memory);
 
-  update_auto_handle_types(auto_left,
-                           auto_right,
-                           selected_handles_left,
-                           selected_handles_right,
-                           handle_types_left,
-                           memory);
-  update_auto_handle_types(auto_right,
-                           auto_left,
-                           selected_handles_right,
-                           selected_handles_left,
-                           handle_types_right,
-                           memory);
+  const IndexMask selected_left = IndexMask::from_difference(
+      selection_per_attribute[1], selection_per_attribute[0], memory);
+  const IndexMask selected_right = IndexMask::from_difference(
+      selection_per_attribute[2], selection_per_attribute[0], memory);
+
+  const IndexMask auto_left = handles_by_type(
+      bezier_points, curves.handle_types_left(), BEZIER_HANDLE_AUTO, memory);
+  const IndexMask auto_right = handles_by_type(
+      bezier_points, curves.handle_types_right(), BEZIER_HANDLE_AUTO, memory);
+
+  bool changed = false;
+
+  changed |= update_auto_handle_types(
+      curves, auto_left, auto_right, selected_left, selected_right, "handle_type_left", memory);
+  changed |= update_auto_handle_types(
+      curves, auto_right, auto_left, selected_right, selected_left, "handle_type_right", memory);
+
+  changed |= update_vector_handle_types(curves, selected_left, "handle_type_left");
+  changed |= update_vector_handle_types(curves, selected_right, "handle_type_right");
+
+  if (changed) {
+    curves.tag_topology_changed();
+  }
+
+  return changed;
 }
 
 static MutableSpan<float3> append_positions_to_custom_data(const IndexMask selection,
@@ -267,20 +300,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
 
     /* Alter selection as in legacy curves bezt_select_to_transform_triple_flag(). */
     if (!bezier_points.is_empty()) {
-      IndexMaskMemory memory;
-      /* Selected handles, but not the control point. */
-      const IndexMask selected_left = IndexMask::from_difference(
-          selection_per_attribute[1], selection_per_attribute[0], memory);
-      const IndexMask selected_right = IndexMask::from_difference(
-          selection_per_attribute[2], selection_per_attribute[0], memory);
-      MutableSpan<int8_t> handle_types_left = curves.handle_types_left_for_write();
-      MutableSpan<int8_t> handle_types_right = curves.handle_types_right_for_write();
-
-      update_vector_handle_types(selected_left, handle_types_left);
-      update_vector_handle_types(selected_right, handle_types_right);
-      update_auto_handle_types(
-          selected_left, selected_right, bezier_points, handle_types_left, handle_types_right);
-      curves.tag_topology_changed();
+      update_handle_types_for_transform(curves, selection_per_attribute, bezier_points);
 
       index_mask::ExprBuilder builder;
       const index_mask::Expr &selected_bezier_points = builder.intersect(
