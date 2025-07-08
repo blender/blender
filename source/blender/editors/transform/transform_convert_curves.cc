@@ -159,8 +159,8 @@ static IndexMask handles_by_type(const IndexMask handles,
       handles, GrainSize(4096), memory, [&](const int64_t i) { return types[i] == type; });
 }
 
-static void update_vector_handle_types(const IndexMask &selected_handles,
-                                       MutableSpan<int8_t> handle_types)
+void update_vector_handle_types(const IndexMask &selected_handles,
+                                MutableSpan<int8_t> handle_types)
 {
   IndexMaskMemory memory;
   /* Selected BEZIER_HANDLE_VECTOR handles. */
@@ -189,11 +189,11 @@ static void update_auto_handle_types(const IndexMask &auto_handles,
   index_mask::masked_fill(handle_types, int8_t(BEZIER_HANDLE_ALIGN), convert_to_align);
 }
 
-static void update_auto_handle_types(const IndexMask &selected_handles_left,
-                                     const IndexMask &selected_handles_right,
-                                     const IndexMask &bezier_points,
-                                     MutableSpan<int8_t> handle_types_left,
-                                     MutableSpan<int8_t> handle_types_right)
+void update_auto_handle_types(const IndexMask &selected_handles_left,
+                              const IndexMask &selected_handles_right,
+                              const IndexMask &bezier_points,
+                              MutableSpan<int8_t> handle_types_left,
+                              MutableSpan<int8_t> handle_types_right)
 {
   IndexMaskMemory memory;
   const IndexMask auto_left = handles_by_type(
@@ -280,6 +280,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
       update_vector_handle_types(selected_right, handle_types_right);
       update_auto_handle_types(
           selected_left, selected_right, bezier_points, handle_types_left, handle_types_right);
+      curves.tag_topology_changed();
 
       index_mask::ExprBuilder builder;
       const index_mask::Expr &selected_bezier_points = builder.intersect(

@@ -11,6 +11,8 @@
 #include "BKE_context.hh"
 #include "BKE_curves_utils.hh"
 
+#include "BLI_index_mask_expression.hh"
+
 #include "DEG_depsgraph_query.hh"
 
 #include "ED_curves.hh"
@@ -38,8 +40,6 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
   ToolSettings *ts = scene->toolsettings;
   const bool is_scale_thickness = ((t->mode == TFM_CURVE_SHRINKFATTEN) ||
                                    (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_SCALE_THICKNESS));
-
-  Vector<int> handle_selection;
 
   int total_number_of_drawings = 0;
   Vector<Vector<ed::greasepencil::MutableDrawingInfo>> all_drawings;
@@ -82,7 +82,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
     const Vector<ed::greasepencil::MutableDrawingInfo> drawings = all_drawings[i];
     curves_transform_data->grease_pencil_falloffs.reinitialize(drawings.size());
     for (ed::greasepencil::MutableDrawingInfo info : drawings) {
-      const bke::CurvesGeometry &curves = info.drawing.strokes();
+      bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
       Span<StringRef> selection_attribute_names = ed::curves::get_curves_selection_attribute_names(
           curves);
       std::array<IndexMask, 3> selection_per_attribute;
@@ -107,42 +107,43 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
                                                                   CURVE_TYPE_BEZIER,
                                                                   editable_strokes,
                                                                   curves_transform_data->memory);
+      const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+      const IndexMask bezier_points = IndexMask::from_ranges(
+          points_by_curve, bezier_curves[layer_offset], curves_transform_data->memory);
+
       /* Alter selection as in legacy curves bezt_select_to_transform_triple_flag(). */
-      if (!bezier_curves[layer_offset].is_empty()) {
-        const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-        const VArray<int8_t> handle_types_left = curves.handle_types_left();
-        const VArray<int8_t> handle_types_right = curves.handle_types_right();
+      if (!bezier_points.is_empty()) {
+        IndexMaskMemory memory;
+        /* Selected handles, but not the control point. */
+        const IndexMask selected_left = IndexMask::from_difference(
+            selection_per_attribute[1], selection_per_attribute[0], memory);
+        const IndexMask selected_right = IndexMask::from_difference(
+            selection_per_attribute[2], selection_per_attribute[0], memory);
+        MutableSpan<int8_t> handle_types_left = curves.handle_types_left_for_write();
+        MutableSpan<int8_t> handle_types_right = curves.handle_types_right_for_write();
 
-        handle_selection.clear();
-        bezier_curves[layer_offset].foreach_index([&](const int bezier_index) {
-          for (const int point_i : points_by_curve[bezier_index]) {
-            if (selection_per_attribute[0].contains(point_i)) {
-              const HandleType type_left = HandleType(handle_types_left[point_i]);
-              const HandleType type_right = HandleType(handle_types_right[point_i]);
-              if (ELEM(type_left, BEZIER_HANDLE_AUTO, BEZIER_HANDLE_ALIGN) &&
-                  ELEM(type_right, BEZIER_HANDLE_AUTO, BEZIER_HANDLE_ALIGN))
-              {
-                handle_selection.append(point_i);
-              }
-            }
-          }
-        });
+        curves::update_vector_handle_types(selected_left, handle_types_left);
+        curves::update_vector_handle_types(selected_right, handle_types_right);
+        curves::update_auto_handle_types(
+            selected_left, selected_right, bezier_points, handle_types_left, handle_types_right);
+        curves.tag_topology_changed();
+        info.drawing.tag_topology_changed();
 
-        /* Select bezier handles that must be transformed if the main control point is selected. */
-        const IndexMask handle_selection_mask = IndexMask::from_indices(
-            handle_selection.as_span(), curves_transform_data->memory);
-        if (!handle_selection.is_empty()) {
-          selection_per_attribute[1] = IndexMask::from_union(
-              selection_per_attribute[1], handle_selection_mask, curves_transform_data->memory);
-          selection_per_attribute[2] = IndexMask::from_union(
-              selection_per_attribute[2], handle_selection_mask, curves_transform_data->memory);
-        }
+        index_mask::ExprBuilder builder;
+        const index_mask::Expr &selected_bezier_points = builder.intersect(
+            {&bezier_points, &selection_per_attribute[0]});
+
+        /* Select bezier handles that must be transformed because the control point is
+         * selected. */
+        selection_per_attribute[1] = evaluate_expression(
+            builder.merge({&selection_per_attribute[1], &selected_bezier_points}),
+            curves_transform_data->memory);
+        selection_per_attribute[2] = evaluate_expression(
+            builder.merge({&selection_per_attribute[2], &selected_bezier_points}),
+            curves_transform_data->memory);
       }
 
       if (use_proportional_edit) {
-        const IndexMask bezier_points = bke::curves::curve_to_point_selection(
-            curves.points_by_curve(), bezier_curves[layer_offset], curves_transform_data->memory);
-
         tc.data_len += editable_points.size() + 2 * bezier_points.size();
         points_to_transform_per_attribute[layer_offset].append(editable_points);
 
