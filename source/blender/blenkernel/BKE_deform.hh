@@ -241,7 +241,7 @@ void BKE_defvert_flip_merged(MDeformVert *dvert, const int *flip_map, int flip_m
  * Note: this ignores whether groups are locked or not, and will therefore
  * happily modify even locked groups.
  *
- * See #BKE_defvert_normalize_lock_map() for parameter documentation.
+ * See #BKE_defvert_normalize_ex() for parameter documentation.
  */
 void BKE_defvert_normalize(MDeformVert &dvert);
 
@@ -251,9 +251,19 @@ void BKE_defvert_normalize(MDeformVert &dvert);
  * Note: this ignores whether groups are locked or not, and will therefore
  * happily modify even locked groups.
  *
- * See #BKE_defvert_normalize_lock_map() for parameter documentation.
+ * See #BKE_defvert_normalize_ex() for parameter documentation.
  */
 void BKE_defvert_normalize_subset(MDeformVert &dvert, blender::Span<bool> subset_flags);
+
+/**
+ * Normalize a subset of vertex group weights among themselves, but leaving
+ * locked groups unmodified.
+ *
+ * See #BKE_defvert_normalize_ex() for parameter documentation.
+ */
+void BKE_defvert_normalize_lock_map(MDeformVert &dvert,
+                                    blender::Span<bool> subset_flags,
+                                    blender::Span<bool> lock_flags);
 
 /**
  * Normalize the vertex groups of a vertex, with all the bells and whistles.
@@ -273,10 +283,21 @@ void BKE_defvert_normalize_subset(MDeformVert &dvert, blender::Span<bool> subset
  * normalization. May be empty, indicating no locked groups. If not empty, its
  * length must match the number of vertex groups in the source data (e.g. the
  * mesh).
+ *
+ * \param soft_lock_flags: span of bools with `true` indicating a set of vertex
+ * groups that are "soft locked". The intended use case for this is to "protect"
+ * weights that have just been set by a tool or operator during post-process
+ * normalization. When possible, only non-soft-locked weights will be modified
+ * to achieve normalization, but if necessary soft-locked will also be modified.
+ * NOTE: in theory this could be used for purposes other than "just set" groups,
+ * but corner cases are handled with that use case in mind. May be empty,
+ * indicating no "soft locked" groups. If not empty, its length must match the
+ * number of vertex groups in the source data (e.g. the mesh).
  */
-void BKE_defvert_normalize_lock_map(MDeformVert &dvert,
-                                    blender::Span<bool> subset_flags,
-                                    blender::Span<bool> lock_flags);
+void BKE_defvert_normalize_ex(MDeformVert &dvert,
+                              blender::Span<bool> vgroup_subset,
+                              blender::Span<bool> lock_flags,
+                              blender::Span<bool> soft_lock_flags);
 
 /* Utilities to 'extract' a given vgroup into a simple float array,
  * for verts, but also edges/faces/loops. */
