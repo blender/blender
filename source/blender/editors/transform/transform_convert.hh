@@ -209,6 +209,14 @@ void copy_positions_from_curves_transform_custom_data(const TransCustomData &cus
                                                       const int layer,
                                                       MutableSpan<float3> positions_dst);
 
+void update_vector_handle_types(const IndexMask &selected_handles,
+                                MutableSpan<int8_t> handle_types);
+void update_auto_handle_types(const IndexMask &selected_handles_left,
+                              const IndexMask &selected_handles_right,
+                              const IndexMask &bezier_points,
+                              MutableSpan<int8_t> handle_types_left,
+                              MutableSpan<int8_t> handle_types_right);
+
 }  // namespace curves
 
 /* `transform_convert_action.cc` */
