@@ -66,7 +66,7 @@ void main()
   final_color.a *= 1.0f - (outer_color.a > 0.0f ? mix_w_outer : mix_w);
 
   eObjectInfoFlag ob_flag = drw_object_infos().flag;
-  bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
+  bool is_active = flag_test(ob_flag, OBJECT_ACTIVE_EDIT_MODE);
   final_color.a *= is_active ? alpha : (alpha * 0.25f);
 
   frag_color = final_color;
