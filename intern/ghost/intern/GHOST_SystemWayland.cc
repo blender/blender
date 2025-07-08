@@ -8776,6 +8776,7 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
 
   return GHOST_TCapabilityFlag(
       GHOST_CAPABILITY_FLAG_ALL &
+      /* NOTE: order the following flags as they they're declared in the source. */
       ~(
           /* WAYLAND doesn't support accessing the window position. */
           GHOST_kCapabilityWindowPosition |
@@ -8796,14 +8797,15 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
           GHOST_kCapabilityGPUReadFrontBuffer |
           /* This WAYLAND back-end has not yet implemented desktop color sample. */
           GHOST_kCapabilityDesktopSample |
+          /* This flag will eventually be removed when support
+           * for the old track-pad protocol is dropped. */
+          ((has_wl_trackpad_physical_direction == 1) ?
+               0 :
+               GHOST_kCapabilityTrackpadPhysicalDirection) |
           /* This WAYLAND back-end doesn't have support for window decoration styles.
            * In all likelihood, this back-end will eventually need to support client-side
            * decorations, see #113795. */
-          GHOST_kCapabilityWindowDecorationStyles |
-          /* This flag will eventually be removed. */
-          ((has_wl_trackpad_physical_direction == 1) ?
-               0 :
-               GHOST_kCapabilityTrackpadPhysicalDirection)));
+          GHOST_kCapabilityWindowDecorationStyles));
 }
 
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)

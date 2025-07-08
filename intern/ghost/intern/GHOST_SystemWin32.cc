@@ -610,6 +610,7 @@ GHOST_TCapabilityFlag GHOST_SystemWin32::getCapabilities() const
 {
   return GHOST_TCapabilityFlag(
       GHOST_CAPABILITY_FLAG_ALL &
+      /* NOTE: order the following flags as they they're declared in the source. */
       ~(
           /* WIN32 has no support for a primary selection clipboard. */
           GHOST_kCapabilityPrimaryClipboard |
