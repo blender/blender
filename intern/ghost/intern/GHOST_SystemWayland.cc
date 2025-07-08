@@ -2684,15 +2684,24 @@ static char *read_file_as_buffer(const int fd, const bool nil_terminate, size_t 
 /** \name Private Cursor API
  * \{ */
 
-static void cursor_buffer_set_surface_impl(const wl_cursor_image *wl_image,
-                                           wl_buffer *buffer,
-                                           wl_surface *wl_surface)
+static void cursor_buffer_set_surface_impl(wl_buffer *buffer, wl_surface *wl_surface)
 {
-  const int32_t image_size_x = int32_t(wl_image->width);
-  const int32_t image_size_y = int32_t(wl_image->height);
-
   wl_surface_attach(wl_surface, buffer, 0, 0);
-  wl_surface_damage(wl_surface, 0, 0, image_size_x, image_size_y);
+  if (wl_surface_get_version(wl_surface) >= WL_SURFACE_DAMAGE_BUFFER_SINCE_VERSION) {
+    wl_surface_damage_buffer(wl_surface,
+                             0,
+                             0,
+                             std::numeric_limits<int32_t>::max(),
+                             std::numeric_limits<int32_t>::max());
+  }
+  else {
+    /* Effectively deprecated according to documentation. */
+    wl_surface_damage(wl_surface,
+                      0,
+                      0,
+                      std::numeric_limits<int32_t>::max(),
+                      std::numeric_limits<int32_t>::max());
+  }
   wl_surface_commit(wl_surface);
 }
 
@@ -2874,7 +2883,7 @@ static void gwl_seat_cursor_buffer_set(const GWL_Seat *seat,
   if (seat->wl.pointer) {
     const int32_t hotspot_x = int32_t(wl_image->hotspot_x);
     const int32_t hotspot_y = int32_t(wl_image->hotspot_y);
-    cursor_buffer_set_surface_impl(wl_image, buffer, cursor->wl.surface_cursor);
+    cursor_buffer_set_surface_impl(buffer, cursor->wl.surface_cursor);
     wl_pointer_set_cursor(seat->wl.pointer,
                           seat->pointer.serial,
                           visible ? cursor->wl.surface_cursor : nullptr,
@@ -2889,7 +2898,7 @@ static void gwl_seat_cursor_buffer_set(const GWL_Seat *seat,
     for (zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->wp.tablet_tools) {
       GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(
           zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
-      cursor_buffer_set_surface_impl(wl_image, buffer, tablet_tool->wl.surface_cursor);
+      cursor_buffer_set_surface_impl(buffer, tablet_tool->wl.surface_cursor);
       zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2,
                                     tablet_tool->serial,
                                     visible ? tablet_tool->wl.surface_cursor : nullptr,
