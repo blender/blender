@@ -478,25 +478,6 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
     BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_TAG);
   }
 
-  if (use_face_split) {
-    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-      BMIter itersub;
-      int untag_count = 0;
-      BM_ITER_ELEM (e, &itersub, v, BM_EDGES_OF_VERT) {
-        if (!BMO_edge_flag_test(bm, e, EDGE_TAG)) {
-          untag_count++;
-        }
-      }
-
-      /* check that we have 2 edges remaining after dissolve */
-      if (untag_count <= 2) {
-        BMO_vert_flag_enable(bm, v, VERT_TAG);
-      }
-    }
-
-    bm_face_split(bm, VERT_TAG, false);
-  }
-
   /* Tag certain geometry around the selected edges, for later processing. */
   BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
 
@@ -557,7 +538,9 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
          * has two untagged edges, and the _only_ other tagged edge is this edge that's about
          * to be dissolved. When that case is found, skip it, do not tag it.
          * The edge count test ensures that if we're dissolving a chain, the crossing loop cuts
-         * will still be dissolved, even if they happen to make an "un-triangulate" case. */
+         * will still be dissolved, even if they happen to make an "un-triangulate" case.
+         * This is not done when face split is active, because face split often creates triangle
+         * pairs on edges that touch boundaries, resulting in the boundary vert not dissolving. */
         if (f_pair[0]->len == 3 && f_pair[1]->len == 3 &&
             bmo_vert_tagged_edges_count_at_most(bm, v_edge, EDGE_TAG, 2) == 1)
         {
@@ -599,6 +582,25 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
         BMO_vert_flag_enable(bm, v_edge, VERT_MARK);
       }
     }
+  }
+
+  if (use_face_split) {
+    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+      BMIter itersub;
+      int untag_count = 0;
+      BM_ITER_ELEM (e, &itersub, v, BM_EDGES_OF_VERT) {
+        if (!BMO_edge_flag_test(bm, e, EDGE_TAG)) {
+          untag_count++;
+        }
+      }
+
+      /* check that we have 2 edges remaining after dissolve */
+      if (untag_count <= 2) {
+        BMO_vert_flag_enable(bm, v, VERT_TAG);
+      }
+    }
+
+    bm_face_split(bm, VERT_TAG, false);
   }
 
   /* Merge any face pairs that straddle a selected edge. */
