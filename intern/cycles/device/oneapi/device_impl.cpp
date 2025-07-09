@@ -1398,92 +1398,97 @@ int parse_driver_build_version(const sycl::device &device)
 
 std::vector<sycl::device> available_sycl_devices()
 {
+  std::vector<sycl::device> available_devices;
   bool allow_all_devices = false;
   if (getenv("CYCLES_ONEAPI_ALL_DEVICES") != nullptr) {
     allow_all_devices = true;
   }
 
-  const std::vector<sycl::platform> &oneapi_platforms = sycl::platform::get_platforms();
+  try {
+    const std::vector<sycl::platform> &oneapi_platforms = sycl::platform::get_platforms();
 
-  std::vector<sycl::device> available_devices;
-  for (const sycl::platform &platform : oneapi_platforms) {
-    /* ignore OpenCL platforms to avoid using the same devices through both Level-Zero and OpenCL.
-     */
-    if (platform.get_backend() == sycl::backend::opencl) {
-      continue;
-    }
+    for (const sycl::platform &platform : oneapi_platforms) {
+      /* ignore OpenCL platforms to avoid using the same devices through both Level-Zero and
+       * OpenCL.
+       */
+      if (platform.get_backend() == sycl::backend::opencl) {
+        continue;
+      }
 
-    const std::vector<sycl::device> &oneapi_devices =
-        (allow_all_devices) ? platform.get_devices(sycl::info::device_type::all) :
-                              platform.get_devices(sycl::info::device_type::gpu);
+      const std::vector<sycl::device> &oneapi_devices =
+          (allow_all_devices) ? platform.get_devices(sycl::info::device_type::all) :
+                                platform.get_devices(sycl::info::device_type::gpu);
 
-    for (const sycl::device &device : oneapi_devices) {
-      bool filter_out = false;
-      if (!allow_all_devices) {
-        /* For now we support all Intel(R) Arc(TM) devices and likely any future GPU,
-         * assuming they have either more than 96 Execution Units or not 7 threads per EU.
-         * Official support can be broaden to older and smaller GPUs once ready. */
-        if (!device.is_gpu() || platform.get_backend() != sycl::backend::ext_oneapi_level_zero) {
-          filter_out = true;
-        }
-        else {
-          /* Filtered-out defaults in-case these values aren't available. */
-          int number_of_eus = 96;
-          int threads_per_eu = 7;
-          if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
-            number_of_eus = device.get_info<sycl::ext::intel::info::device::gpu_eu_count>();
-          }
-          if (device.has(sycl::aspect::ext_intel_gpu_hw_threads_per_eu)) {
-            threads_per_eu =
-                device.get_info<sycl::ext::intel::info::device::gpu_hw_threads_per_eu>();
-          }
-          /* This filters out all Level-Zero supported GPUs from older generation than Arc. */
-          if (number_of_eus <= 96 && threads_per_eu == 7) {
+      for (const sycl::device &device : oneapi_devices) {
+        bool filter_out = false;
+        if (!allow_all_devices) {
+          /* For now we support all Intel(R) Arc(TM) devices and likely any future GPU,
+           * assuming they have either more than 96 Execution Units or not 7 threads per EU.
+           * Official support can be broaden to older and smaller GPUs once ready. */
+          if (!device.is_gpu() || platform.get_backend() != sycl::backend::ext_oneapi_level_zero) {
             filter_out = true;
           }
-          /* if not already filtered out, check driver version. */
-          bool check_driver_version = !filter_out;
-          /* We don't know how to check driver version strings for non-Intel GPUs. */
-          if (check_driver_version &&
-              device.get_info<sycl::info::device::vendor>().find("Intel") == std::string::npos)
-          {
-            check_driver_version = false;
-          }
-          /* Because of https://github.com/oneapi-src/unified-runtime/issues/1777, future drivers
-           * may break parsing done by a SYCL runtime from before the fix we expect in major
-           * version 8. Parsed driver version would start with something different than current
-           * "1.3.". To avoid blocking a device by mistake in the case of new driver / old SYCL
-           * runtime, we disable driver version check in case LIBSYCL_MAJOR_VERSION is below 8 and
-           * actual driver version doesn't start with 1.3. */
-#  if __LIBSYCL_MAJOR_VERSION < 8
-          if (check_driver_version &&
-              !string_startswith(device.get_info<sycl::info::device::driver_version>(), "1.3."))
-          {
-            check_driver_version = false;
-          }
-#  endif
-          if (check_driver_version) {
-            int driver_build_version = parse_driver_build_version(device);
-            const int lowest_supported_driver_version = (driver_build_version > 100000) ?
-                                                            lowest_supported_driver_version_win :
-                                                            lowest_supported_driver_version_neo;
-            if (driver_build_version < lowest_supported_driver_version) {
+          else {
+            /* Filtered-out defaults in-case these values aren't available. */
+            int number_of_eus = 96;
+            int threads_per_eu = 7;
+            if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
+              number_of_eus = device.get_info<sycl::ext::intel::info::device::gpu_eu_count>();
+            }
+            if (device.has(sycl::aspect::ext_intel_gpu_hw_threads_per_eu)) {
+              threads_per_eu =
+                  device.get_info<sycl::ext::intel::info::device::gpu_hw_threads_per_eu>();
+            }
+            /* This filters out all Level-Zero supported GPUs from older generation than Arc. */
+            if (number_of_eus <= 96 && threads_per_eu == 7) {
               filter_out = true;
+            }
+            /* if not already filtered out, check driver version. */
+            bool check_driver_version = !filter_out;
+            /* We don't know how to check driver version strings for non-Intel GPUs. */
+            if (check_driver_version &&
+                device.get_info<sycl::info::device::vendor>().find("Intel") == std::string::npos)
+            {
+              check_driver_version = false;
+            }
+            /* Because of https://github.com/oneapi-src/unified-runtime/issues/1777, future drivers
+             * may break parsing done by a SYCL runtime from before the fix we expect in major
+             * version 8. Parsed driver version would start with something different than current
+             * "1.3.". To avoid blocking a device by mistake in the case of new driver / old SYCL
+             * runtime, we disable driver version check in case LIBSYCL_MAJOR_VERSION is below 8
+             * and actual driver version doesn't start with 1.3. */
+#  if __LIBSYCL_MAJOR_VERSION < 8
+            if (check_driver_version &&
+                !string_startswith(device.get_info<sycl::info::device::driver_version>(), "1.3."))
+            {
+              check_driver_version = false;
+            }
+#  endif
+            if (check_driver_version) {
+              int driver_build_version = parse_driver_build_version(device);
+              const int lowest_supported_driver_version = (driver_build_version > 100000) ?
+                                                              lowest_supported_driver_version_win :
+                                                              lowest_supported_driver_version_neo;
+              if (driver_build_version < lowest_supported_driver_version) {
+                filter_out = true;
 
-              VLOG_WARNING << "Driver version for device \""
-                           << device.get_info<sycl::info::device::name>()
-                           << "\" is too old. Expected \"" << lowest_supported_driver_version
-                           << "\" or newer, but got \"" << driver_build_version << "\".";
+                VLOG_WARNING << "Driver version for device \""
+                             << device.get_info<sycl::info::device::name>()
+                             << "\" is too old. Expected \"" << lowest_supported_driver_version
+                             << "\" or newer, but got \"" << driver_build_version << "\".";
+              }
             }
           }
         }
-      }
-      if (!filter_out) {
-        available_devices.push_back(device);
+        if (!filter_out) {
+          available_devices.push_back(device);
+        }
       }
     }
   }
-
+  catch (sycl::exception &e) {
+    VLOG_WARNING << "An error has been encountered while enumerating SYCL devices: " << e.what();
+  }
   return available_devices;
 }
 
