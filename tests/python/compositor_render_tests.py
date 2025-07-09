@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2015-2022 Blender Authors
+# SPDX-FileCopyrightText: 2015-2025 Blender Authors
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -20,13 +20,18 @@ def get_compositor_device_setter_script(execution_device):
     return f"import bpy; bpy.data.scenes[0].render.compositor_device = '{execution_device}'"
 
 
-def get_arguments(filepath, output_filepath, execution_device):
+def get_arguments(filepath, output_filepath, backend):
     arguments = [
         "--background",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",
         "--debug-exit-on-error"]
+
+    execution_device = "CPU"
+    if backend != "CPU":
+        execution_device = "GPU"
+        arguments.extend(["--gpu-backend", backend])
 
     arguments.extend([
         filepath,
@@ -56,8 +61,8 @@ def main():
     args = parser.parse_args()
 
     from modules import render_report
-    execution_device = "GPU" if args.gpu_backend else "CPU"
-    report_title = f"Compositor {execution_device}"
+    backend = args.gpu_backend if args.gpu_backend else "CPU"
+    report_title = f"Compositor {backend.upper()}"
     report = render_report.Report(report_title, args.outdir, args.oiiotool)
     report.set_pixelated(True)
     report.set_reference_dir("compositor_renders")
@@ -73,7 +78,7 @@ def main():
         report.set_fail_threshold(0.06)
         report.set_fail_percent(2)
 
-    def arguments_callback(filepath, output_filepath): return get_arguments(filepath, output_filepath, execution_device)
+    def arguments_callback(filepath, output_filepath): return get_arguments(filepath, output_filepath, backend)
     ok = report.run(args.testdir, args.blender, arguments_callback, batch=args.batch)
 
     sys.exit(not ok)
