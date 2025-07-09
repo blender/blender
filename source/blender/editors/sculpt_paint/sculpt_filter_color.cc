@@ -44,7 +44,6 @@
 #include "UI_resources.hh"
 
 #include <cmath>
-#include <cstdlib>
 
 namespace blender::ed::sculpt_paint::color {
 

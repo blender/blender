@@ -38,7 +38,6 @@
 #include "bmesh.hh"
 
 #include <cmath>
-#include <cstdlib>
 
 namespace blender::ed::sculpt_paint::auto_mask {
 const Cache *active_cache_get(const SculptSession &ss)

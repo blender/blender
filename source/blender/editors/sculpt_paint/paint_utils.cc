@@ -7,9 +7,7 @@
  */
 
 #include <cmath>
-#include <cstdlib>
 
-#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
@@ -20,9 +18,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
-#include "BLI_math_vector.hh"
 #include "BLI_rect.h"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -30,29 +26,18 @@
 #include "BKE_bvhutils.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_customdata.hh"
-#include "BKE_image.hh"
 #include "BKE_layer.hh"
-#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
-#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
-
-#include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_prototypes.hh"
 
-#include "IMB_imbuf_types.hh"
-#include "IMB_interp.hh"
-
 #include "RE_texture.h"
 
-#include "ED_image.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"

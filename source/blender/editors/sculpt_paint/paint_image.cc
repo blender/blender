@@ -21,8 +21,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
-
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
@@ -35,7 +33,6 @@
 
 #include "BKE_brush.hh"
 #include "BKE_colorband.hh"
-#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
@@ -55,7 +52,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "UI_interface_types.hh"
 #include "UI_view2d.hh"
 
 #include "ED_grease_pencil.hh"

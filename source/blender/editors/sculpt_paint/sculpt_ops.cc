@@ -57,10 +57,8 @@
 #include "sculpt_automask.hh"
 #include "sculpt_color.hh"
 #include "sculpt_dyntopo.hh"
-#include "sculpt_face_set.hh"
 #include "sculpt_flood_fill.hh"
 #include "sculpt_intern.hh"
-#include "sculpt_islands.hh"
 #include "sculpt_undo.hh"
 
 #include "RNA_access.hh"
@@ -73,7 +71,6 @@
 #include "bmesh.hh"
 
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 
 namespace blender::ed::sculpt_paint {
