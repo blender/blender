@@ -289,7 +289,7 @@ class MeshTest(ABC):
             print("Compare evaluated and expected object in Blender.\n")
             return False
 
-        result = self.compare_meshes(
+        result = self.compare_object_data(
             self.evaluated_object,
             self.expected_object,
             self.threshold,
@@ -412,9 +412,9 @@ class MeshTest(ABC):
         self.expected_object = self.evaluated_object
 
     @staticmethod
-    def compare_meshes(evaluated_object, expected_object, threshold, allow_index_change):
+    def compare_object_data(evaluated_object, expected_object, threshold, allow_index_change):
         """
-        Compares evaluated object mesh with expected object mesh.
+        Compares evaluated object data with expected object data.
 
         :arg evaluated_object: first object for comparison.
         :arg expected_object: second object for comparison.
@@ -422,32 +422,48 @@ class MeshTest(ABC):
         :return: dict: Contains results of different comparisons.
         """
         objects = bpy.data.objects
-        evaluated_test_mesh = objects[evaluated_object.name].data
-        expected_mesh = expected_object.data
+        evaluated_test_data = objects[evaluated_object.name].data
+        expected_data = expected_object.data
         result_codes = {}
 
-        if threshold:
-            result_mesh = expected_mesh.unit_test_compare(
-                mesh=evaluated_test_mesh, threshold=threshold)
+        if evaluated_object.type == 'CURVE':
+            unit_test_compare_args = {"curves": evaluated_test_data}
+            report_name = "Curves"
+            validate_func = None
+        elif evaluated_object.type == 'MESH':
+            unit_test_compare_args = {"mesh": evaluated_test_data}
+            report_name = "Mesh"
+            def validate_func(): return evaluated_test_data.validate(verbose=True)
+        elif evaluated_object.type == 'LATTICE':
+            unit_test_compare_args = {"lattice": evaluated_test_data}
+            report_name = "Lattice"
+            validate_func = None
         else:
-            result_mesh = expected_mesh.unit_test_compare(
-                mesh=evaluated_test_mesh)
+            raise Exception("This object type is not yet supported!")
 
-        if result_mesh == "Same":
-            result_codes['Mesh Comparison'] = (True, result_mesh)
-        elif allow_index_change and result_mesh == "The geometries are the same up to a change of indices":
-            result_codes['Mesh Comparison'] = (True, result_mesh)
+        if threshold:
+            result_data = expected_data.unit_test_compare(
+                threshold=threshold, **unit_test_compare_args)
         else:
-            result_codes['Mesh Comparison'] = (False, result_mesh)
+            result_data = expected_data.unit_test_compare(
+                **unit_test_compare_args)
+
+        if result_data == "Same":
+            result_codes[f'{report_name} Comparison'] = (True, result_data)
+        elif allow_index_change and result_data == "The geometries are the same up to a change of indices":
+            result_codes[f'{report_name} Comparison'] = (True, result_data)
+        else:
+            result_codes[f'{report_name} Comparison'] = (False, result_data)
 
         # Validation check.
-        result_validation = evaluated_test_mesh.validate(verbose=True)
-        if result_validation:
-            result_validation = "Invalid Mesh"
-            result_codes['Mesh Validation'] = (False, result_validation)
-        else:
-            result_validation = "Valid"
-            result_codes['Mesh Validation'] = (True, result_validation)
+        if validate_func:
+            result_validation = validate_func()
+            if result_validation:
+                result_validation = f"Invalid {report_name}"
+                result_codes[f'{report_name} Validation'] = (False, result_validation)
+            else:
+                result_validation = "Valid"
+                result_codes[f'{report_name} Validation'] = (True, result_validation)
 
         return result_codes
 
@@ -614,16 +630,16 @@ class SpecMeshTest(MeshTest):
         scene.frame_set(modifier_spec.frame_end)
 
     def _apply_modifier(self, test_object, modifier_name):
-        # Modifier automatically gets applied when converting from Curve to Mesh.
         if test_object.type == 'CURVE':
+            # Cannot apply constructive modifiers on curves, convert to mesh entirely.
             bpy.ops.object.convert(target='MESH')
-        elif test_object.type == 'MESH':
+        elif test_object.type in ['MESH', 'LATTICE']:
             bpy.ops.object.modifier_apply(modifier=modifier_name)
         else:
             raise Exception("This object type is not yet supported!")
 
     def _apply_all_modifiers(self, test_object):
-        if test_object.type in ['CURVE', 'MESH']:
+        if test_object.type in ['CURVE', 'MESH', 'LATTICE']:
             bpy.ops.object.convert(target='MESH')
         else:
             raise Exception("This object type is not yet supported!")

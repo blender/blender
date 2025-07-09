@@ -18,6 +18,9 @@
 
 #include "BKE_geometry_compare.hh"
 
+#include "DNA_curve_types.h"
+#include "DNA_lattice_types.h"
+
 namespace blender::bke::compare_geometry {
 
 enum class GeoMismatch : int8_t {
@@ -1015,6 +1018,37 @@ std::optional<GeoMismatch> compare_curves(const CurvesGeometry &curves1,
   for (const int sorted_i : curves.from_sorted1.index_range()) {
     if (curves.from_sorted1[sorted_i] != curves.from_sorted2[sorted_i]) {
       return GeoMismatch::Indices;
+    }
+  }
+
+  /* No mismatches found. */
+  return std::nullopt;
+}
+
+std::optional<GeoMismatch> compare_lattices(const Lattice &lattice1,
+                                            const Lattice &lattice2,
+                                            float threshold)
+{
+  if (lattice1.pntsu != lattice2.pntsu) {
+    return GeoMismatch::NumPoints;
+  }
+  if (lattice1.pntsv != lattice2.pntsv) {
+    return GeoMismatch::NumPoints;
+  }
+  if (lattice1.pntsw != lattice2.pntsw) {
+    return GeoMismatch::NumPoints;
+  }
+
+  const int num_points = lattice1.pntsu * lattice1.pntsv * lattice1.pntsw;
+  const Span<BPoint> bpoints1 = {lattice1.def, num_points};
+  const Span<BPoint> bpoints2 = {lattice2.def, num_points};
+  for (const int i : IndexRange(num_points)) {
+    const float3 co1 = bpoints1[i].vec;
+    const float3 co2 = bpoints2[i].vec;
+    for (const int component : IndexRange(3)) {
+      if (values_different(co1, co2, threshold, component)) {
+        return GeoMismatch::PointAttributes;
+      }
     }
   }
 

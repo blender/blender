@@ -13,6 +13,21 @@
 #include "rna_internal.hh" /* own include */
 
 #ifdef RNA_RUNTIME
+
+#  include "BKE_geometry_compare.hh"
+
+static const char *rna_Lattice_unit_test_compare(Lattice *lt, Lattice *lt2, float threshold)
+{
+  using namespace blender::bke::compare_geometry;
+  const std::optional<GeoMismatch> mismatch = compare_lattices(*lt, *lt2, threshold);
+
+  if (!mismatch) {
+    return "Same";
+  }
+
+  return mismatch_to_string(mismatch.value());
+}
+
 static void rna_Lattice_transform(Lattice *lt, const float mat[16], bool shape_keys)
 {
   BKE_lattice_transform(lt, (const float(*)[4])mat, shape_keys);
@@ -39,6 +54,22 @@ void RNA_api_lattice(StructRNA *srna)
   RNA_def_boolean(func, "shape_keys", false, "", "Transform Shape Keys");
 
   RNA_def_function(srna, "update_gpu_tag", "rna_Lattice_update_gpu_tag");
+
+  func = RNA_def_function(srna, "unit_test_compare", "rna_Lattice_unit_test_compare");
+  RNA_def_pointer(func, "lattice", "Lattice", "", "Lattice to compare to");
+  RNA_def_float_factor(func,
+                       "threshold",
+                       FLT_EPSILON * 60,
+                       0.0f,
+                       FLT_MAX,
+                       "Threshold",
+                       "Comparison tolerance threshold",
+                       0.0f,
+                       FLT_MAX);
+  /* return value */
+  parm = RNA_def_string(
+      func, "result", "nothing", 64, "Return value", "String description of result of comparison");
+  RNA_def_function_return(func, parm);
 }
 
 #endif
