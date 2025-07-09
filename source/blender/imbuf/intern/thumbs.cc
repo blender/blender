@@ -629,8 +629,12 @@ static std::optional<std::string> thumb_online_asset_library_cache_dir_get(const
 
 static ImBuf *thumb_online_asset_get(const char *lib_path,
                                      const StringRefNull library_cache_dir,
-                                     const ThumbSize size)
+                                     const ThumbSize size,
+                                     bool *r_is_invalid)
 {
+  /* Only consider a preview invalid if we see it existing on disk, but can't load it. */
+  *r_is_invalid = false;
+
   char thumbs_dir_path[FILE_MAXDIR];
   BLI_path_join(thumbs_dir_path,
                 sizeof(thumbs_dir_path),
@@ -639,17 +643,19 @@ static ImBuf *thumb_online_asset_get(const char *lib_path,
                 /* Practically always "large" for asset previews. */
                 get_thumb_size_dir_name(size));
 
-  const char *extensions[] = {
-#ifdef WITH_IMAGE_WEBP
+  const StringRefNull extensions[] = {
+      /* Intentionally not guarded by `#ifdef WITH_IMAGE_WEBP` - If the preview file exists but we
+       * can't load it, we want to report this back with `r_is_invalid`. Otherwise the caller would
+       * have to assume the file just isn't done downloading yet, and keep trying to load it. */
       "webp",
-#endif
       "png",
   };
+  bool any_exists = false;
 
   /* Try for each supported extension. */
   for (int i = 0; i < ARRAY_SIZE(extensions); i++) {
     char thumb_name[40];
-    string_to_md5_hash_file_name(lib_path, extensions[i], thumb_name, sizeof(thumb_name));
+    string_to_md5_hash_file_name(lib_path, extensions[i].c_str(), thumb_name, sizeof(thumb_name));
 
     /* First two letters of the thumbnail name (MD5 hash of the URI) as sub-directory name. */
     char thumb_prefix[3];
@@ -660,23 +666,34 @@ static ImBuf *thumb_online_asset_get(const char *lib_path,
     /* Finally, the path of the thumbnail itself. */
     char thumb_path[FILE_MAX];
     BLI_path_join(thumb_path, sizeof(thumb_path), thumbs_dir_path, thumb_prefix, thumb_name + 2);
+
+    if (BLI_is_file(thumb_path)) {
+      any_exists = true;
+    }
+
     if (ImBuf *imbuf = IMB_load_image_from_filepath(thumb_path, IB_byte_data | IB_metadata)) {
       return imbuf;
     }
   }
 
+  /* The file is there but we can't load it. Let the caller know it doesn't have to requery it. */
+  if (any_exists && r_is_invalid) {
+    *r_is_invalid = true;
+  }
+
   return nullptr;
 }
 
-static ImBuf *thumb_online_asset_manage(const char *lib_path, ThumbSize size)
+static ImBuf *thumb_online_asset_manage(const char *lib_path, ThumbSize size, bool *r_is_invalid)
 {
   std::optional<std::string> library_cache_dir = thumb_online_asset_library_cache_dir_get(
       lib_path);
   if (!library_cache_dir) {
+    *r_is_invalid = true;
     return nullptr;
   }
 
-  if (ImBuf *thumb = thumb_online_asset_get(lib_path, *library_cache_dir, size)) {
+  if (ImBuf *thumb = thumb_online_asset_get(lib_path, *library_cache_dir, size, r_is_invalid)) {
     IMB_byte_from_float(thumb);
     IMB_free_float_pixels(thumb);
     return thumb;
@@ -685,11 +702,23 @@ static ImBuf *thumb_online_asset_manage(const char *lib_path, ThumbSize size)
   return nullptr;
 }
 
-ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSource source)
+ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
+                        ThumbSize size,
+                        ThumbSource source,
+                        bool *r_is_invalid)
 {
-  if (source == THB_SOURCE_ONLINE_ASSET) {
-    return thumb_online_asset_manage(file_or_lib_path, size);
+  bool own_is_invalid = false;
+  /* Ensure it's set, so we don't have to null-check on every access. */
+  if (!r_is_invalid) {
+    r_is_invalid = &own_is_invalid;
   }
+
+  if (source == THB_SOURCE_ONLINE_ASSET) {
+    return thumb_online_asset_manage(file_or_lib_path, size, r_is_invalid);
+  }
+
+  /* Set in case of early exit. */
+  *r_is_invalid = true;
 
   char path_buff[FILE_MAX_LIBEXTRA];
   char *blen_group = nullptr, *blen_id = nullptr;
@@ -723,7 +752,10 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
   if (file_attributes & FILE_ATTR_OFFLINE) {
     char thumb_path[FILE_MAX];
     if (thumbpath_from_uri(uri, thumb_path, sizeof(thumb_path), size)) {
-      return IMB_load_image_from_filepath(thumb_path, IB_byte_data | IB_metadata);
+      if (ImBuf *img = IMB_load_image_from_filepath(thumb_path, IB_byte_data | IB_metadata)) {
+        *r_is_invalid = false;
+        return img;
+      }
     }
     return nullptr;
   }
@@ -810,6 +842,7 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
   if (img) {
     IMB_byte_from_float(img);
     IMB_free_float_pixels(img);
+    *r_is_invalid = false;
   }
 
   return img;

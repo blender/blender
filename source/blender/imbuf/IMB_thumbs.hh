@@ -87,8 +87,18 @@ void IMB_thumb_delete(const char *file_or_lib_path, ThumbSize size);
  *
  * \param file_or_lib_path: File path or library-ID path (e.g. `/a/b.blend/Material/MyMaterial`) to
  *                          the thumbnail to be created/managed.
+ * \param r_is_invalid: If non-null, this will be set to true whenever it's known that the requested
+ *                    preview can't be loaded, and shouldn't be requeried for now. Usually this is
+ *                    indicated by a null return value, but for #THB_SOURCE_ONLINE_ASSET this is
+ *                    ambiguous: A null return value can mean the preview is either not ready yet
+ *                    (might still be pending download), or is known to be invalid, e.g. it is
+ *                    empty or uses an unsupported format. In the latter case #r_is_invalid will be
+ *                    true if non-null.
  */
-ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSource source);
+ImBuf *IMB_thumb_manage(const char *file_or_lib_path,
+                        ThumbSize size,
+                        ThumbSource source,
+                        bool *r_is_invalid = nullptr);
 
 /**
  * Create the necessary directories to store the thumbnails.

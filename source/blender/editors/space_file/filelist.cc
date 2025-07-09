@@ -16,6 +16,7 @@
 #include <memory>
 #include <optional>
 #include <sys/stat.h>
+#include <thread>
 
 #ifndef WIN32
 #  include <unistd.h>
@@ -214,6 +215,7 @@ struct FileListEntryPreview {
   uint flags;
   int index;
   int icon_id;
+  bool is_invalid;
 };
 
 /* Dummy wrapper around FileListEntryPreview to ensure we do not access freed memory when freeing
@@ -1571,7 +1573,7 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   IMB_thumb_path_lock(preview->filepath);
   /* Always generate biggest preview size for now, it's simpler and avoids having to re-generate
    * in case user switch to a bigger preview size. */
-  ImBuf *imbuf = IMB_thumb_manage(preview->filepath, THB_LARGE, source);
+  ImBuf *imbuf = IMB_thumb_manage(preview->filepath, THB_LARGE, source, &preview->is_invalid);
   IMB_thumb_path_unlock(preview->filepath);
   if (imbuf) {
     /* TODO(Julian): Is this okay here? Should be a separate fix in main if so. */
@@ -2693,7 +2695,11 @@ bool filelist_cache_previews_update(FileList *filelist)
 
     if (entry) {
       bool preview_done = false;
-      if (preview->icon_id) {
+
+      if (preview->is_invalid) {
+        preview_done = true;
+      }
+      else if (preview->icon_id) {
         /* The FILE_ENTRY_PREVIEW_LOADING flag should have prevented any other asynchronous
          * process from trying to generate the same preview icon. */
         BLI_assert_msg(!entry->preview_icon_id, "Preview icon should not have been generated yet");
