@@ -111,7 +111,7 @@ static int node_gpu_material(GPUMaterial *material,
 
 /* If straight_alpha is true, then the foreground is in straight alpha form and would need to be
  * premultiplied. */
-float4 preprocess_foreground(const float4 &foreground, const bool straight_alpha)
+static float4 preprocess_foreground(const float4 &foreground, const bool straight_alpha)
 {
   const float alpha = math::clamp(foreground.w, 0.0f, 1.0f);
   const float4 premultiplied_foreground = float4(foreground.xyz() * alpha, alpha);
