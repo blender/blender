@@ -27,6 +27,10 @@ void VKIndexBuffer::ensure_updated()
 
   if (!buffer_.is_allocated()) {
     allocate();
+    if (!buffer_.is_allocated()) {
+      CLOG_ERROR(&LOG, "Unable to allocate index buffer. Most likely an out of memory issue.");
+      return;
+    }
   }
 
   if (data_ == nullptr) {
