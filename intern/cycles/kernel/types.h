@@ -33,6 +33,7 @@ CCL_NAMESPACE_BEGIN
 #define FILTER_TABLE_SIZE 1024
 #define RAMP_TABLE_SIZE 256
 #define SHUTTER_TABLE_SIZE 256
+#define THIN_FILM_TABLE_SIZE 512
 
 #define BSSRDF_MIN_RADIUS 1e-8f
 #define BSSRDF_MAX_HITS 4
@@ -1433,7 +1434,7 @@ struct KernelTables {
   int sheen_ltc;
   int ggx_gen_schlick_ior_s;
   int ggx_gen_schlick_s;
-  int pad1;
+  int thin_film_table;
   int pad2;
 };
 static_assert_align(KernelTables, 16);

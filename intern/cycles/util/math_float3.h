@@ -399,6 +399,16 @@ ccl_device_inline float3 cos(const float3 v)
   return make_float3(cosf(v.x), cosf(v.y), cosf(v.z));
 }
 
+ccl_device_inline float3 atan2(const float3 y, const float3 x)
+{
+  return make_float3(atan2f(y.x, x.x), atan2f(y.y, x.y), atan2f(y.z, x.z));
+}
+
+ccl_device_inline float3 round(const float3 a)
+{
+  return make_float3(roundf(a.x), roundf(a.y), roundf(a.z));
+}
+
 ccl_device_inline float3 reflect(const float3 incident, const float3 unit_normal)
 {
   return incident - 2.0f * unit_normal * dot(incident, unit_normal);
