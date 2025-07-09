@@ -119,6 +119,7 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
   conversions.convert_to_initialized_n(get_result_single_value(input),
                                        get_result_single_value(output));
+  output.update_single_value_data();
 }
 
 /* Gets the CPU data of the given result as a GSpan. This calls the underlying cpu_data method,
