@@ -73,6 +73,7 @@ set(SRC
   paint_image_proj.cc
   paint_mask.cc
   paint_ops.cc
+  paint_sample_color.cc
   paint_stroke.cc
   paint_utils.cc
   paint_vertex.cc
