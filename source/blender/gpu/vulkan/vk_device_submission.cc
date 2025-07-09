@@ -53,7 +53,8 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
 {
   if (render_graph->is_empty()) {
     render_graph->reset();
-    BLI_thread_queue_push(unused_render_graphs_, render_graph);
+    BLI_thread_queue_push(
+        unused_render_graphs_, render_graph, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
     return 0;
   }
 
@@ -79,7 +80,8 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
     timeline = submit_task->timeline = submit_to_device ? ++timeline_value_ : timeline_value_ + 1;
     orphaned_data.timeline_ = timeline;
     orphaned_data.move_data(context_discard_pool, timeline);
-    BLI_thread_queue_push(submitted_render_graphs_, submit_task);
+    BLI_thread_queue_push(
+        submitted_render_graphs_, submit_task, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
   }
   submit_task = nullptr;
 
@@ -270,7 +272,9 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
     }
 
     render_graph.reset();
-    BLI_thread_queue_push(device->unused_render_graphs_, std::move(submit_task->render_graph));
+    BLI_thread_queue_push(device->unused_render_graphs_,
+                          std::move(submit_task->render_graph),
+                          BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
     MEM_delete<VKRenderGraphSubmitTask>(submit_task);
   }
   CLOG_INFO(&LOG, 3, "submission runner is being canceled");

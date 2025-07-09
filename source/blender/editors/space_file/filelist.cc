@@ -1563,7 +1563,7 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
   /* Move ownership to the done queue. */
   preview_taskdata->preview = nullptr;
 
-  BLI_thread_queue_push(cache->previews_done, preview);
+  BLI_thread_queue_push(cache->previews_done, preview, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
 
   //  printf("%s: End (%d)...\n", __func__, threadid);
 }
@@ -1713,7 +1713,7 @@ static bool filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
     if (imbuf) {
       preview->icon_id = BKE_icon_imbuf_create(imbuf);
     }
-    BLI_thread_queue_push(cache->previews_done, preview);
+    BLI_thread_queue_push(cache->previews_done, preview, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
   }
   else {
     if (entry->redirection_path) {

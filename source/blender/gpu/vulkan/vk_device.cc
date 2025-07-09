@@ -545,7 +545,8 @@ void VKDevice::context_unregister(VKContext &context)
     BLI_assert_msg(render_graph.is_empty(),
                    "Unregistering a context that still has an unsubmitted render graph.");
     render_graph.reset();
-    BLI_thread_queue_push(unused_render_graphs_, &render_graph);
+    BLI_thread_queue_push(
+        unused_render_graphs_, &render_graph, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
   }
   {
     std::scoped_lock lock(orphaned_data.mutex_get());

@@ -1832,7 +1832,8 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
   preview->runtime->tag |= PRV_TAG_DEFFERED_RENDERING;
 
   requested_previews_.emplace_back(preview, icon_size);
-  BLI_thread_queue_push(todo_queue_, &requested_previews_.back());
+  BLI_thread_queue_push(
+      todo_queue_, &requested_previews_.back(), BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
 }
 
 void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)
