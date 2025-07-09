@@ -376,7 +376,7 @@ void MetalDeviceQueue::init_execution()
       }
       else {
         /* The GPU address of a 1D buffer texture is written into the slot data field. */
-        write_resource(&texture_info[slot].data, id<MTLBuffer>(texture_slot_map[slot]), slot);
+        write_resource(&texture_info[slot].data, id<MTLBuffer>(texture_slot_map[slot]), 0);
       }
     }
   }
