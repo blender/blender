@@ -199,7 +199,13 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
   readFaceSetsSample(bmain, mesh, motionSampleTime);
 
   if (mesh_prim_.GetPointsAttr().ValueMightBeTimeVarying() ||
-      mesh_prim_.GetVelocitiesAttr().ValueMightBeTimeVarying())
+      mesh_prim_.GetNormalsAttr().ValueMightBeTimeVarying() ||
+      mesh_prim_.GetVelocitiesAttr().ValueMightBeTimeVarying() ||
+      mesh_prim_.GetCreaseSharpnessesAttr().ValueMightBeTimeVarying() ||
+      mesh_prim_.GetCreaseLengthsAttr().ValueMightBeTimeVarying() ||
+      mesh_prim_.GetCreaseIndicesAttr().ValueMightBeTimeVarying() ||
+      mesh_prim_.GetCornerSharpnessesAttr().ValueMightBeTimeVarying() ||
+      mesh_prim_.GetCornerIndicesAttr().ValueMightBeTimeVarying())
   {
     is_time_varying_ = true;
   }
