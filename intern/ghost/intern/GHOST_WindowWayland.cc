@@ -2026,6 +2026,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     window_->backend.vulkan_window_info = new GHOST_ContextVK_WindowInfo;
     window_->backend.vulkan_window_info->size[0] = window_->frame.size[0];
     window_->backend.vulkan_window_info->size[1] = window_->frame.size[1];
+    window_->backend.vulkan_window_info->is_color_managed = true;
   }
 #endif
 

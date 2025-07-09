@@ -633,7 +633,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   VkFence *next_frame_fence = &m_frame_data[next_render_frame].submission_fence;
   vkWaitForFences(device, 1, next_frame_fence, true, UINT64_MAX);
   submission_frame_data.discard_pile.destroy(device);
-
+  bool use_hdr_swapchain = false;
 #ifdef WITH_GHOST_WAYLAND
   /* Wayland doesn't provide a WSI with windowing capabilities, therefore cannot detect whether the
    * swap-chain needs to be recreated. But as a side effect we can recreate the swap chain before
@@ -644,10 +644,11 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
           std::max(m_render_extent.width, m_render_extent_min.width)) ||
          (m_wayland_window_info->size[1] !=
           std::max(m_render_extent.height, m_render_extent_min.height)));
+    use_hdr_swapchain = m_wayland_window_info->is_color_managed;
 
     if (recreate_swapchain) {
       /* Swap-chain is out of date. Recreate swap-chain. */
-      recreateSwapchain();
+      recreateSwapchain(use_hdr_swapchain);
     }
   }
 #endif
@@ -664,7 +665,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
                                            VK_NULL_HANDLE,
                                            &image_index);
     if (acquire_result == VK_ERROR_OUT_OF_DATE_KHR || acquire_result == VK_SUBOPTIMAL_KHR) {
-      recreateSwapchain();
+      recreateSwapchain(use_hdr_swapchain);
     }
   }
   CLOG_INFO(&LOG, 3, "render_frame=%lu, image_index=%u", m_render_frame, image_index);
@@ -699,7 +700,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   }
   m_render_frame = next_render_frame;
   if (present_result == VK_ERROR_OUT_OF_DATE_KHR || present_result == VK_SUBOPTIMAL_KHR) {
-    recreateSwapchain();
+    recreateSwapchain(use_hdr_swapchain);
     if (swap_buffers_post_callback_) {
       swap_buffers_post_callback_();
     }
@@ -845,6 +846,7 @@ static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
  */
 static bool selectSurfaceFormat(const VkPhysicalDevice physical_device,
                                 const VkSurfaceKHR surface,
+                                bool use_hdr_swapchain,
                                 VkSurfaceFormatKHR &r_surfaceFormat)
 {
   uint32_t format_count;
@@ -860,6 +862,9 @@ static bool selectSurfaceFormat(const VkPhysicalDevice physical_device,
   };
 
   for (pair<VkColorSpaceKHR, VkFormat> &pair : selection_order) {
+    if (pair.second == VK_FORMAT_R16G16B16A16_SFLOAT && !use_hdr_swapchain) {
+      continue;
+    }
     for (const VkSurfaceFormatKHR &format : formats) {
       if (format.colorSpace == pair.first && format.format == pair.second) {
         r_surfaceFormat = format;
@@ -904,14 +909,14 @@ GHOST_TSuccess GHOST_ContextVK::initializeFrameData()
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
+GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
 {
   assert(vulkan_device.has_value() && vulkan_device->device != VK_NULL_HANDLE);
 
   VkPhysicalDevice physical_device = vulkan_device->physical_device;
 
   m_surface_format = {};
-  if (!selectSurfaceFormat(physical_device, m_surface, m_surface_format)) {
+  if (!selectSurfaceFormat(physical_device, m_surface, use_hdr_swapchain, m_surface_format)) {
     return GHOST_kFailure;
   }
 
@@ -1163,6 +1168,7 @@ const char *GHOST_ContextVK::getPlatformSpecificSurfaceExtension() const
 
 GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 {
+  bool use_hdr_swapchain = false;
 #ifdef _WIN32
   const bool use_window_surface = (m_hwnd != nullptr);
 #elif defined(__APPLE__)
@@ -1178,6 +1184,9 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 #  ifdef WITH_GHOST_WAYLAND
     case GHOST_kVulkanPlatformWayland:
       use_window_surface = (m_wayland_display != nullptr) && (m_wayland_surface != nullptr);
+      if (m_wayland_window_info) {
+        use_hdr_swapchain = m_wayland_window_info->is_color_managed;
+      }
       break;
 #  endif
     case GHOST_kVulkanPlatformHeadless:
@@ -1327,7 +1336,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   if (use_window_surface) {
     vkGetDeviceQueue(
         vulkan_device->device, vulkan_device->generic_queue_family, 0, &m_present_queue);
-    recreateSwapchain();
+    recreateSwapchain(use_hdr_swapchain);
   }
 
   active_context_ = this;
