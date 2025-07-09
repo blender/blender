@@ -2720,6 +2720,18 @@ static std::optional<wp_cursor_shape_device_v1_shape> gwl_seat_cursor_find_wl_sh
     const GHOST_TStandardCursor shape)
 {
   /* Cases that return `std::nullopt` mean the cursor is not available. */
+
+  /* Unused WAYLAND cursors:
+   *
+   * #WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_PROGRESS.
+   * #WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_CELL.
+   * #WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_NO_DROP.
+   * #WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_NESW_RESIZE.
+   * #WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_NWSE_RESIZE.
+   * #WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_DND_ASK.
+   * #WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_ALL_RESIZE.
+   */
+
   switch (shape) {
     case GHOST_kStandardCursorDefault:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_DEFAULT;
@@ -2786,21 +2798,21 @@ static std::optional<wp_cursor_shape_device_v1_shape> gwl_seat_cursor_find_wl_sh
     case GHOST_kStandardCursorLeftRight:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_EW_RESIZE;
     case GHOST_kStandardCursorTopSide:
-      return std::nullopt;
+      return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_N_RESIZE;
     case GHOST_kStandardCursorBottomSide:
-      return std::nullopt;
+      return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_S_RESIZE;
     case GHOST_kStandardCursorLeftSide:
-      return std::nullopt;
+      return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_W_RESIZE;
     case GHOST_kStandardCursorRightSide:
-      return std::nullopt;
+      return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_E_RESIZE;
     case GHOST_kStandardCursorTopLeftCorner:
-      return std::nullopt;
+      return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_NW_RESIZE;
     case GHOST_kStandardCursorTopRightCorner:
-      return std::nullopt;
+      return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_NE_RESIZE;
     case GHOST_kStandardCursorBottomRightCorner:
-      return std::nullopt;
+      return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_SE_RESIZE;
     case GHOST_kStandardCursorBottomLeftCorner:
-      return std::nullopt;
+      return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_SW_RESIZE;
     case GHOST_kStandardCursorCopy:
       return WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_COPY;
     case GHOST_kStandardCursorLeftHandle:

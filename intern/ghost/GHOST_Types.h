@@ -341,9 +341,13 @@ typedef enum {
   GHOST_kStandardCursorHelp,
   GHOST_kStandardCursorWait,
   GHOST_kStandardCursorText,
+  /** Crosshair: default. */
   GHOST_kStandardCursorCrosshair,
+  /** Crosshair: with outline. */
   GHOST_kStandardCursorCrosshairA,
+  /** Crosshair: a single "dot" (not really a crosshair). */
   GHOST_kStandardCursorCrosshairB,
+  /** Crosshair: stippled/half-tone black/white. */
   GHOST_kStandardCursorCrosshairC,
   GHOST_kStandardCursorPencil,
   GHOST_kStandardCursorUpArrow,
