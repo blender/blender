@@ -402,6 +402,10 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/stable/viewporter/viewporter.xml"
     )
+    # Color management (HDR properties)
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/staging/color-management/color-management-v1.xml"
+    )
     # Pointer-constraints.
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml"
