@@ -264,7 +264,6 @@ class GHOST_SystemWayland : public GHOST_System {
   struct zwp_pointer_gestures_v1 *wp_pointer_gestures_get();
   struct wp_fractional_scale_manager_v1 *wp_fractional_scale_manager_get();
   struct wp_viewporter *wp_viewporter_get();
-  struct wp_color_manager_v1 *wp_color_manager_get();
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   libdecor *libdecor_context_get();
