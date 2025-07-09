@@ -132,12 +132,19 @@ void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph);
 void DRW_render_context_enable(Render *render);
 void DRW_render_context_disable(Render *render);
 
+void DRW_mutexes_init();
+void DRW_mutexes_exit();
+
+/* Mutex to lock the drw manager and avoid concurrent context usage.
+ * Equivalent to the old DST lock.
+ * Brought back to 4.5 due to unforeseen issues causing data races and race conditions with Images
+ * and GPUTextures. (See #141253) */
+void DRW_lock_start();
+void DRW_lock_end();
+
 /* Critical section for GPUShader usage. Can be removed when we have threadsafe GPUShader class. */
 void DRW_submission_start();
 void DRW_submission_end();
-
-void DRW_submission_mutex_init();
-void DRW_submission_mutex_exit();
 
 void DRW_gpu_context_create();
 void DRW_gpu_context_destroy();

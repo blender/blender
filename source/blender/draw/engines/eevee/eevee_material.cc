@@ -209,12 +209,16 @@ void MaterialModule::end_sync()
     for (auto i : range) {
       GPUMaterialTexture *tex = texture_loading_queue_[i];
       ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
-      BKE_image_tag_time(tex->ima);
       BKE_image_get_tile(tex->ima, 0);
       ImBuf *imbuf = BKE_image_acquire_ibuf(tex->ima, iuser, nullptr);
       BKE_image_release_ibuf(tex->ima, imbuf, nullptr);
     }
   });
+
+  /* Tag time is not thread-safe. */
+  for (GPUMaterialTexture *tex : texture_loading_queue_) {
+    BKE_image_tag_time(tex->ima);
+  }
 
   /* Upload to the GPU (create GPUTexture). This part still requires a valid GPU context and
    * is not easily parallelized. */
