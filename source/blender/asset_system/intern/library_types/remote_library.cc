@@ -178,6 +178,17 @@ std::optional<RemoteLibraryLoadingStatus::TimePoint> RemoteLibraryLoadingStatus:
   return status->last_new_pages_time_point_;
 }
 
+std::optional<RemoteLibraryLoadingStatus::TimePoint> RemoteLibraryLoadingStatus::
+    last_new_previews_time(const StringRef url)
+{
+  const RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);
+  if (!status) {
+    return {};
+  }
+
+  return status->last_new_previews_time_point_;
+}
+
 void RemoteLibraryLoadingStatus::set_finished(const StringRef url)
 {
   RemoteLibraryLoadingStatus *status = library_to_status_map().lookup_ptr(url);

@@ -73,6 +73,7 @@ class RemoteLibraryLoadingStatus {
   static std::optional<RemoteLibraryLoadingStatus::Status> status(StringRef url);
   static std::optional<bool> metafiles_in_place(StringRef url);
   static std::optional<TimePoint> last_new_pages_time(StringRef url);
+  static std::optional<TimePoint> last_new_previews_time(StringRef url);
 
   /**
    * Checks if the status storage timed out, because it hasn't received status updates for the

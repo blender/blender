@@ -10,9 +10,11 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <map>
 #include <memory>
 #include <optional>
 #include <sys/stat.h>
@@ -89,6 +91,8 @@
 #include "filelist.hh"
 
 using namespace blender;
+using RemoteLibraryLoadingStatus = asset_system::RemoteLibraryLoadingStatus;
+using TimePoint = std::chrono::steady_clock::time_point;
 
 #define FILEDIR_NBR_ENTRIES_UNSET -1
 
@@ -199,6 +203,10 @@ struct FileListEntryCache {
    * previews either in `previews_pool` or `previews_done`. #filelist_cache_previews_update() makes
    * previews in `preview_done` ready for display, so the counter is decremented there. */
   int previews_todo_count = 0;
+
+  struct RemoteAssetLibraryPreviewLoading {
+    std::map<std::string, TimePoint> last_new_previews_time_by_url;
+  } remote_preview_loading;
 
   FileListEntryCache();
   ~FileListEntryCache();
@@ -2676,6 +2684,10 @@ bool filelist_cache_previews_update(FileList *filelist)
 
   //  printf("%s: Update Previews...\n", __func__);
 
+  /* Used to update #FileListEntryCache.remote_loading.last_new_previews_time_by_url once all
+   * previews are processed. */
+  std::map<std::string, TimePoint> last_new_previews_time_by_url;
+
   while (!BLI_thread_queue_is_empty(cache->previews_done)) {
     FileListEntryPreview *preview = static_cast<FileListEntryPreview *>(
         BLI_thread_queue_pop(cache->previews_done));
@@ -2710,23 +2722,41 @@ bool filelist_cache_previews_update(FileList *filelist)
         preview_done = true;
       }
       else if (entry->asset && ((entry->typeflag & FILE_TYPE_ASSET_ONLINE) != 0)) {
-        using RemoteLibraryLoadingStatus = blender::asset_system::RemoteLibraryLoadingStatus;
-
         preview_done = true;
+
         const asset_system::AssetLibrary &library = entry->asset->owner_asset_library();
         if (std::optional remote_url = library.remote_url()) {
-          if (RemoteLibraryLoadingStatus::status(*remote_url) ==
-              RemoteLibraryLoadingStatus::Loading)
-          {
-            /* Couldn't find a preview but remote library is still loading. */
+          const std::optional new_time = RemoteLibraryLoadingStatus::last_new_previews_time(
+              *remote_url);
+          const bool is_still_loading = RemoteLibraryLoadingStatus::status(*remote_url) ==
+                                        RemoteLibraryLoadingStatus::Loading;
+          const bool has_new_previews =
+              cache->remote_preview_loading.last_new_previews_time_by_url[*remote_url] < new_time;
+          const bool should_retry_preview = is_still_loading || has_new_previews;
 
+          /* Couldn't find a preview but remote library is still loading or we've been notified
+           * that there are new previews meanwhile. */
+          if (should_retry_preview) {
+            auto &seen_time = last_new_previews_time_by_url[*remote_url];
+            if (new_time && (new_time > seen_time)) {
+              seen_time = *new_time;
+            }
             preview_done = false;
-
             entry->flags &= ~FILE_ENTRY_PREVIEW_LOADING;
-            /* Continuously requery the preview, until it's found or the remote library isn't
-             * loading anymore. */
             filelist_cache_previews_push(filelist, entry, preview->index);
+
+            // printf("Remote preview: Re-trying missing preview (still loading) for entry %s\n",
+            //        entry->name);
           }
+          // else {
+          //   printf("Remote preview: No new previews, not retrying for entry %s (local: %" PRIu64
+          //          ", remote: %" PRIu64 ")\n",
+          //          entry->name,
+          //          cache->remote_preview_loading.last_new_previews_time_by_url[*remote_url]
+          //              .time_since_epoch()
+          //              .count(),
+          //          new_time.has_value() ? new_time->time_since_epoch().count() : 0);
+          // }
         }
       }
 
@@ -2747,6 +2777,11 @@ bool filelist_cache_previews_update(FileList *filelist)
 
     MEM_freeN(preview);
     cache->previews_todo_count--;
+  }
+
+  for (const auto &[url, new_time] : last_new_previews_time_by_url) {
+    cache->remote_preview_loading.last_new_previews_time_by_url[url] = new_time;
+    // printf("Remote preview: Local timestamp updated for %s\n", url.c_str());
   }
 
   return changed;
@@ -4283,8 +4318,7 @@ static void filelist_remote_asset_library_update_loading_flags(FileListReadJob *
                                                     library->remote_url) ==
                                                 RemoteLibraryLoadingStatus::Loading;
   job_params->is_asset_library_metafiles_in_place =
-      asset_system::RemoteLibraryLoadingStatus::metafiles_in_place(library->remote_url)
-          .value_or(false);
+      RemoteLibraryLoadingStatus::metafiles_in_place(library->remote_url).value_or(false);
 }
 
 static void filelist_start_job_remote_asset_library(FileListReadJob *job_params)
