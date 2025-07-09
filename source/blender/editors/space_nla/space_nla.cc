@@ -258,7 +258,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   const int min_height = UI_ANIM_MINY;
 
   /* clear and setup matrix */
-  UI_ThemeClearColor(region->winy > min_height ? TH_BACK : TH_TIME_SCRUB_BACKGROUND);
+  UI_ThemeClearColor(TH_BACK);
 
   UI_view2d_view_ortho(v2d);
 
@@ -287,7 +287,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   /* markers */
   UI_view2d_view_orthoSpecial(region, v2d, true);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
-  if (snla->flag & SNLA_SHOW_MARKERS) {
+  if (snla->flag & SNLA_SHOW_MARKERS && region->winy > (UI_ANIM_MINY + UI_MARKER_MARGIN_Y)) {
     ED_markers_draw(C, marker_draw_flag);
   }
 

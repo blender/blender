@@ -784,21 +784,22 @@ GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
 {
   return GHOST_TCapabilityFlag(
       GHOST_CAPABILITY_FLAG_ALL &
+      /* NOTE: order the following flags as they they're declared in the source. */
       ~(
           /* This SDL back-end has not yet implemented primary clipboard. */
-          GHOST_kCapabilityPrimaryClipboard |
+          GHOST_kCapabilityClipboardPrimary |
+          /* This SDL back-end has not yet implemented image copy/paste. */
+          GHOST_kCapabilityClipboardImage |
           /* This SDL back-end has not yet implemented color sampling the desktop. */
           GHOST_kCapabilityDesktopSample |
-          /* This SDL back-end has not yet implemented image copy/paste. */
-          GHOST_kCapabilityClipboardImages |
           /* No support yet for IME input methods. */
           GHOST_kCapabilityInputIME |
-          /* No support yet for RGBA mouse cursors. */
-          GHOST_kCapabilityRGBACursors |
           /* No support for window decoration styles. */
           GHOST_kCapabilityWindowDecorationStyles |
           /* No support for a Hyper modifier key. */
-          GHOST_kCapabilityKeyboardHyperKey));
+          GHOST_kCapabilityKeyboardHyperKey |
+          /* No support yet for RGBA mouse cursors. */
+          GHOST_kCapabilityCursorRGBA));
 }
 
 char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const

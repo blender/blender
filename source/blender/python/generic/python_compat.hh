@@ -28,6 +28,19 @@
 #if PY_VERSION_HEX < 0x030d0000
 #  define PyObject_GetOptionalAttr _PyObject_LookupAttr
 
+[[nodiscard]] Py_LOCAL_INLINE(int)
+    PyObject_GetOptionalAttrString(PyObject *obj, const char *name, PyObject **result)
+{
+  PyObject *oname = PyUnicode_FromString(name);
+  if (oname == nullptr) {
+    *result = nullptr;
+    return -1;
+  }
+  const int status = PyObject_GetOptionalAttr(obj, oname, result);
+  Py_DECREF(oname);
+  return status;
+}
+
 #  define Py_IsFinalizing _Py_IsFinalizing
 #endif
 

@@ -338,7 +338,7 @@ bke::crazyspace::GeometryDeformation get_drawing_deformation(
     const GreasePencilStrokeParams &params)
 {
   return bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-      &params.ob_eval, params.ob_orig, params.layer_index, params.frame_number);
+      &params.ob_eval, params.ob_orig, params.drawing);
 }
 
 Array<float2> calculate_view_positions(const GreasePencilStrokeParams &params,

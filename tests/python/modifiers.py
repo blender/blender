@@ -377,6 +377,21 @@ def main():
                                         'use_vertex_groups': True,
                                         'vertex_group': "Mask",
                                         'use_multi_modifier': True})])]),
+        SpecMeshTest("ArmatureLatticeEnvelope", "testLatticeArmatureEnvelope", "expectedLatticeArmatureEnvelope",
+                     [ModifierSpec('armature', 'ARMATURE',
+                                   {'object': bpy.data.objects['testArmatureLatticeEnvelope'],
+                                    'use_vertex_groups': False,
+                                    'use_bone_envelopes': True})]),
+        SpecMeshTest("ArmatureLatticeVGroup", "testLatticeArmatureVGroup", "expectedLatticeArmatureVGroup",
+                     [ModifierSpec('armature', 'ARMATURE',
+                                   {'object': bpy.data.objects['testArmatureLatticeVGroup'],
+                                    'use_vertex_groups': True,
+                                    'use_bone_envelopes': False})]),
+        SpecMeshTest("ArmatureLatticeNoVGroup", "testLatticeArmatureNoVGroup", "expectedLatticeArmatureNoVGroup",
+                     [ModifierSpec('armature', 'ARMATURE',
+                                   {'object': bpy.data.objects['testArmatureLatticeNoVGroup'],
+                                    'use_vertex_groups': True,
+                                    'use_bone_envelopes': False})]),
     ]
 
     boolean_basename = "CubeBooleanDiffBMeshObject"

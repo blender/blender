@@ -37,12 +37,13 @@ namespace blender::ed::transform {
 static void transdata_elem_shrink_fatten(const TransInfo *t,
                                          const TransDataContainer * /*tc*/,
                                          TransData *td,
+                                         TransDataExtension *td_ext,
                                          const float distance)
 {
   /* Get the final offset. */
   float tdistance = distance * td->factor;
-  if (td->ext && (t->flag & T_ALT_TRANSFORM) != 0) {
-    tdistance *= td->ext->iscale[0]; /* Shell factor. */
+  if (td_ext && (t->flag & T_ALT_TRANSFORM) != 0) {
+    tdistance *= td_ext->iscale[0]; /* Shell factor. */
   }
 
   madd_v3_v3v3fl(td->loc, td->iloc, td->axismtx[2], tdistance);
@@ -118,10 +119,11 @@ static void applyShrinkFatten(TransInfo *t)
     threading::parallel_for(IndexRange(tc->data_len), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         TransData *td = &tc->data[i];
+        TransDataExtension *td_ext = tc->data_ext ? &tc->data_ext[i] : nullptr;
         if (td->flag & TD_SKIP) {
           continue;
         }
-        transdata_elem_shrink_fatten(t, tc, td, distance);
+        transdata_elem_shrink_fatten(t, tc, td, td_ext, distance);
       }
     });
   }

@@ -544,7 +544,6 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
       }
       else {
         PyErr_Print();
-        PyErr_Clear();
       }
       // Py_DECREF(mod); /* Ideally would decref, but in this case we never want to free. */
     }
@@ -779,7 +778,6 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
     PyObject *seq_fast = PySequence_Fast(item, "bpy_context_get sequence conversion");
     if (seq_fast == nullptr) {
       PyErr_Print();
-      PyErr_Clear();
     }
     else {
       const int len = PySequence_Fast_GET_SIZE(seq_fast);

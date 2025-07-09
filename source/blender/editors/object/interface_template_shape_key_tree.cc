@@ -197,6 +197,17 @@ class ShapeKeyItem : public ui::AbstractTreeViewItem {
     ED_undo_push(&C, "Set Active Shape Key");
   }
 
+  std::optional<bool> should_be_selected() const override
+  {
+    return shape_key_.kb->flag & KEYBLOCK_SEL;
+  }
+
+  void set_selected(const bool select) override
+  {
+    AbstractViewItem::set_selected(select);
+    SET_FLAG_FROM_TEST(shape_key_.kb->flag, select, KEYBLOCK_SEL);
+  }
+
   bool supports_renaming() const override
   {
     return true;
@@ -256,6 +267,7 @@ void template_tree(uiLayout *layout, bContext *C)
       std::make_unique<ed::object::shapekey::ShapeKeyTreeView>(*ob));
   tree_view->set_context_menu_title("Shape Key");
   tree_view->set_default_rows(4);
+  tree_view->allow_multiselect_items();
 
   ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }

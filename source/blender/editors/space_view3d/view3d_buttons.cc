@@ -828,7 +828,7 @@ static void v3d_editvertex_buts(
     UI_but_unit_type_set(but, PROP_UNIT_LENGTH);
 
     if (totcurvebweight == tot) {
-      float &weight = (ob->type == OB_CURVES || ob->type == OB_GREASE_PENCIL) ?
+      float &weight = (ELEM(ob->type, OB_CURVES, OB_GREASE_PENCIL)) ?
                           tfp->ve_median.curves.nurbs_weight :
                           tfp->ve_median.curve.b_weight;
       but = uiDefButF(block,

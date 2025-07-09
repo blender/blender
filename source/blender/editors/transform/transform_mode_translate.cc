@@ -68,6 +68,7 @@ struct TranslateCustomData {
 static void transdata_elem_translate(const TransInfo *t,
                                      const TransDataContainer *tc,
                                      TransData *td,
+                                     TransDataExtension *td_ext,
                                      const float3 &snap_source_local,
                                      const float3 &vec,
                                      enum eTranslateRotateMode rotate_mode)
@@ -104,7 +105,7 @@ static void transdata_elem_translate(const TransInfo *t,
       rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
     }
 
-    ElementRotation_ex(t, tc, td, mat, snap_source_local);
+    ElementRotation_ex(t, tc, td, td_ext, mat, snap_source_local);
 
     if (td->loc) {
       use_rotate_offset = true;
@@ -436,10 +437,11 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
     threading::parallel_for(IndexRange(tc->data_len), 1024, [&](const IndexRange range) {
       for (const int i : range) {
         TransData *td = &tc->data[i];
+        TransDataExtension *td_ext = tc->data_ext ? &tc->data_ext[i] : nullptr;
         if (td->flag & TD_SKIP) {
           continue;
         }
-        transdata_elem_translate(t, tc, td, snap_source_local, vec, rotate_mode);
+        transdata_elem_translate(t, tc, td, td_ext, snap_source_local, vec, rotate_mode);
       }
     });
   }

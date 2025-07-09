@@ -397,7 +397,6 @@ inline GLenum to_gl_data_format(eGPUTextureFormat format)
       return GL_RGBA_INTEGER;
     case GPU_RG8:
     case GPU_RG32F:
-    case GPU_RG16I:
     case GPU_RG16F:
     case GPU_RG16:
       return GL_RG;
@@ -405,6 +404,7 @@ inline GLenum to_gl_data_format(eGPUTextureFormat format)
     case GPU_RG8I:
     case GPU_RG32UI:
     case GPU_RG32I:
+    case GPU_RG16I:
     case GPU_RG16UI:
       return GL_RG_INTEGER;
     case GPU_R8:

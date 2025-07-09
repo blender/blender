@@ -383,7 +383,8 @@ static void restore_move_strips_state(wmOperator *op)
 
 static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
+  const Main *bmain = CTX_data_main(C);
+  const ARegion *region = CTX_wm_region(C);
 
   PropertyRNA *prop;
   const bool relative = (prop = RNA_struct_find_property(op->ptr, "relative_path")) &&
@@ -482,11 +483,15 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
     }
   }
 
-  /* Override strip position by current mouse position. */
-  if (RNA_boolean_get(op->ptr, "move_strips")) {
-    const wmWindow *win = CTX_wm_window(C);
-    const ARegion *region = CTX_wm_region(C);
+  if (region == nullptr) {
+    RNA_boolean_set(op->ptr, "move_strips", false);
+  }
 
+  /* Override strip position by current mouse position. */
+  if ((prop = RNA_struct_find_property(op->ptr, "move_strips")) &&
+      RNA_property_boolean_get(op->ptr, prop))
+  {
+    const wmWindow *win = CTX_wm_window(C);
     const float2 mouse_region(win->eventstate->xy[0] - region->winrct.xmin,
                               win->eventstate->xy[1] - region->winrct.ymin);
     float2 mouse_view;

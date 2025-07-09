@@ -18,6 +18,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
+#include "BKE_screen.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_modifier_types.h"
@@ -295,6 +296,8 @@ static void lineart_bake_startjob(void *customdata, wmJobWorkerStatus *worker_st
 
   guard_modifiers(*bj);
 
+  BKE_spacedata_draw_locks(true);
+
   for (int frame = bj->frame_begin; frame <= bj->frame_end; frame += bj->frame_increment) {
 
     if (G.is_break) {
@@ -331,6 +334,7 @@ static void lineart_bake_endjob(void *customdata)
 {
   LineartBakeJob *bj = static_cast<LineartBakeJob *>(customdata);
 
+  BKE_spacedata_draw_locks(false);
   WM_set_locked_interface(CTX_wm_manager(bj->C), false);
 
   WM_main_add_notifier(NC_SCENE | ND_FRAME, bj->scene);

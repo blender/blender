@@ -56,7 +56,8 @@ static void applyAlign(TransInfo *t)
 
       mul_m3_m3m3(mat, t->spacemtx, invmat);
 
-      ElementRotation(t, tc, td, mat, t->around);
+      TransDataExtension *td_ext = tc->data_ext ? &tc->data_ext[i] : nullptr;
+      ElementRotation(t, tc, td, td_ext, mat, t->around);
     }
     /* Restoring original center. */
     copy_v3_v3(tc->center_local, center);

@@ -258,10 +258,7 @@ ccl_device_forceinline void microfacet_fresnel(KernelGlobals kg,
      * Essentially, this is the usual Schlick Fresnel with an additional cosI*(1-cosI)^6
      * term which modulates the reflectivity around acos(1/7) degrees (ca. 82°). */
     ccl_private FresnelF82Tint *fresnel = (ccl_private FresnelF82Tint *)bsdf->fresnel;
-    const float mu = saturatef(1.0f - cos_theta_i);
-    const float mu5 = sqr(sqr(mu)) * mu;
-    const Spectrum F_schlick = mix(fresnel->f0, one_spectrum(), mu5);
-    *r_reflectance = saturate(F_schlick - fresnel->b * cos_theta_i * mu5 * mu);
+    *r_reflectance = fresnel_f82(cos_theta_i, fresnel->f0, fresnel->b);
     *r_transmittance = zero_spectrum();
   }
   else if (bsdf->fresnel_type == MicrofacetFresnel::GENERALIZED_SCHLICK) {

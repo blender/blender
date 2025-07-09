@@ -63,6 +63,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
+#include "BKE_paint_types.hh"
 #include "BKE_scene.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
@@ -592,7 +593,7 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
 bool BKE_paint_use_unified_color(const Paint *paint)
 {
   /* Grease pencil draw mode never uses unified paint. */
-  if (paint->runtime.ob_mode == OB_MODE_PAINT_GREASE_PENCIL) {
+  if (paint->runtime->ob_mode == OB_MODE_PAINT_GREASE_PENCIL) {
     return false;
   }
 
@@ -623,7 +624,7 @@ static bool paint_brush_update_from_asset_reference(Main *bmain, Paint *paint)
 
   /* Ensure we have a brush with appropriate mode to assign.
    * Could happen if contents of asset blend was manually changed. */
-  if (brush == nullptr || (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+  if (brush == nullptr || (paint->runtime->ob_mode & brush->ob_mode) == 0) {
     MEM_delete(paint->brush_asset_reference);
     paint->brush_asset_reference = nullptr;
     return false;
@@ -648,7 +649,7 @@ bool BKE_paint_brush_poll(const Paint *paint, const Brush *brush)
   if (paint == nullptr) {
     return false;
   }
-  return !brush || (paint->runtime.ob_mode & brush->ob_mode) != 0;
+  return !brush || (paint->runtime->ob_mode & brush->ob_mode) != 0;
 }
 
 static AssetWeakReference *asset_reference_create_from_brush(Brush *brush)
@@ -790,9 +791,9 @@ static void paint_brush_set_essentials_reference(Paint *paint, const char *name)
   /* Set brush asset reference to a named brush in the essentials asset library. */
   MEM_delete(paint->brush_asset_reference);
 
-  BLI_assert(paint->runtime.initialized);
+  BLI_assert(paint->runtime->initialized);
   paint->brush_asset_reference = paint_brush_asset_reference_ptr_from_essentials(
-      name, eObjectMode(paint->runtime.ob_mode));
+      name, eObjectMode(paint->runtime->ob_mode));
   paint->brush = nullptr;
 }
 
@@ -801,9 +802,9 @@ static void paint_eraser_brush_set_essentials_reference(Paint *paint, const char
   /* Set brush asset reference to a named brush in the essentials asset library. */
   MEM_delete(paint->eraser_brush_asset_reference);
 
-  BLI_assert(paint->runtime.initialized);
+  BLI_assert(paint->runtime->initialized);
   paint->eraser_brush_asset_reference = paint_brush_asset_reference_ptr_from_essentials(
-      name, eObjectMode(paint->runtime.ob_mode));
+      name, eObjectMode(paint->runtime->ob_mode));
   paint->eraser_brush = nullptr;
 }
 
@@ -1031,7 +1032,7 @@ static void paint_brush_set_default_reference(Paint *paint,
                                               const bool do_regular = true,
                                               const bool do_eraser = true)
 {
-  if (!paint->runtime.initialized) {
+  if (!paint->runtime->initialized) {
     /* Can happen when loading old file where toolsettings are created in versioning, without
      * calling #paint_runtime_init(). Will be done later when necessary. */
     return;
@@ -1041,7 +1042,7 @@ static void paint_brush_set_default_reference(Paint *paint,
   blender::StringRefNull eraser_name;
 
   paint_brush_default_essentials_name_get(
-      eObjectMode(paint->runtime.ob_mode), std::nullopt, &name, &eraser_name);
+      eObjectMode(paint->runtime->ob_mode), std::nullopt, &name, &eraser_name);
 
   if (do_regular && !name.is_empty()) {
     paint_brush_set_essentials_reference(paint, name.c_str());
@@ -1095,15 +1096,15 @@ bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name)
 void BKE_paint_previous_asset_reference_set(Paint *paint,
                                             AssetWeakReference &&asset_weak_reference)
 {
-  if (!paint->runtime.previous_active_brush_reference) {
-    paint->runtime.previous_active_brush_reference = MEM_new<AssetWeakReference>(__func__);
+  if (!paint->runtime->previous_active_brush_reference) {
+    paint->runtime->previous_active_brush_reference = MEM_new<AssetWeakReference>(__func__);
   }
-  *paint->runtime.previous_active_brush_reference = asset_weak_reference;
+  *paint->runtime->previous_active_brush_reference = asset_weak_reference;
 }
 
 void BKE_paint_previous_asset_reference_clear(Paint *paint)
 {
-  MEM_SAFE_DELETE(paint->runtime.previous_active_brush_reference);
+  MEM_SAFE_DELETE(paint->runtime->previous_active_brush_reference);
 }
 
 void BKE_paint_brushes_validate(Main *bmain, Paint *paint)
@@ -1111,13 +1112,13 @@ void BKE_paint_brushes_validate(Main *bmain, Paint *paint)
   /* Clear brush with invalid mode. Unclear if this can still happen,
    * but kept from old paint tool-slots code. */
   Brush *brush = BKE_paint_brush(paint);
-  if (brush && (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+  if (brush && (paint->runtime->ob_mode & brush->ob_mode) == 0) {
     BKE_paint_brush_set(paint, nullptr);
     BKE_paint_brush_set_default(bmain, paint);
   }
 
   Brush *eraser_brush = BKE_paint_eraser_brush(paint);
-  if (eraser_brush && (paint->runtime.ob_mode & eraser_brush->ob_mode) == 0) {
+  if (eraser_brush && (paint->runtime->ob_mode & eraser_brush->ob_mode) == 0) {
     BKE_paint_eraser_brush_set(paint, nullptr);
     BKE_paint_eraser_brush_set_default(bmain, paint);
   }
@@ -1143,7 +1144,7 @@ static bool paint_eraser_brush_set_from_asset_reference(Main *bmain, Paint *pain
 
   /* Ensure we have a brush with appropriate mode to assign.
    * Could happen if contents of asset blend was manually changed. */
-  if (brush == nullptr || (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+  if (brush == nullptr || (paint->runtime->ob_mode & brush->ob_mode) == 0) {
     MEM_delete(paint->eraser_brush_asset_reference);
     paint->eraser_brush_asset_reference = nullptr;
     return false;
@@ -1168,7 +1169,7 @@ bool BKE_paint_eraser_brush_set(Paint *paint, Brush *brush)
   if (paint == nullptr || paint->eraser_brush == brush) {
     return false;
   }
-  if (brush && (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+  if (brush && (paint->runtime->ob_mode & brush->ob_mode) == 0) {
     return false;
   }
 
@@ -1214,39 +1215,42 @@ bool BKE_paint_eraser_brush_set_essentials(Main *bmain, Paint *paint, const char
 
 static void paint_runtime_init(const ToolSettings *ts, Paint *paint)
 {
+  if (!paint->runtime) {
+    paint->runtime = MEM_new<blender::bke::PaintRuntime>(__func__);
+  }
+
   if (paint == &ts->imapaint.paint) {
-    paint->runtime.ob_mode = OB_MODE_TEXTURE_PAINT;
+    paint->runtime->ob_mode = OB_MODE_TEXTURE_PAINT;
   }
   else if (ts->sculpt && paint == &ts->sculpt->paint) {
-    paint->runtime.ob_mode = OB_MODE_SCULPT;
+    paint->runtime->ob_mode = OB_MODE_SCULPT;
   }
   else if (ts->vpaint && paint == &ts->vpaint->paint) {
-    paint->runtime.ob_mode = OB_MODE_VERTEX_PAINT;
+    paint->runtime->ob_mode = OB_MODE_VERTEX_PAINT;
   }
   else if (ts->wpaint && paint == &ts->wpaint->paint) {
-    paint->runtime.ob_mode = OB_MODE_WEIGHT_PAINT;
+    paint->runtime->ob_mode = OB_MODE_WEIGHT_PAINT;
   }
   else if (ts->gp_paint && paint == &ts->gp_paint->paint) {
-    paint->runtime.ob_mode = OB_MODE_PAINT_GREASE_PENCIL;
+    paint->runtime->ob_mode = OB_MODE_PAINT_GREASE_PENCIL;
   }
   else if (ts->gp_vertexpaint && paint == &ts->gp_vertexpaint->paint) {
-    paint->runtime.ob_mode = OB_MODE_VERTEX_GREASE_PENCIL;
+    paint->runtime->ob_mode = OB_MODE_VERTEX_GREASE_PENCIL;
   }
   else if (ts->gp_sculptpaint && paint == &ts->gp_sculptpaint->paint) {
-    paint->runtime.ob_mode = OB_MODE_SCULPT_GREASE_PENCIL;
+    paint->runtime->ob_mode = OB_MODE_SCULPT_GREASE_PENCIL;
   }
   else if (ts->gp_weightpaint && paint == &ts->gp_weightpaint->paint) {
-    paint->runtime.ob_mode = OB_MODE_WEIGHT_GREASE_PENCIL;
+    paint->runtime->ob_mode = OB_MODE_WEIGHT_GREASE_PENCIL;
   }
   else if (ts->curves_sculpt && paint == &ts->curves_sculpt->paint) {
-    paint->runtime.ob_mode = OB_MODE_SCULPT_CURVES;
+    paint->runtime->ob_mode = OB_MODE_SCULPT_CURVES;
   }
   else {
     BLI_assert_unreachable();
   }
 
-  paint->runtime.initialized = true;
-  paint->runtime.previous_active_brush_reference = nullptr;
+  paint->runtime->initialized = true;
 }
 
 uint BKE_paint_get_brush_type_offset_from_paintmode(const PaintMode mode)
@@ -1698,10 +1702,10 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
 {
   Paint *paint = nullptr;
   if (*r_paint) {
-    if (!(*r_paint)->runtime.initialized) {
-      /* Currently only image painting is initialized this way, others have to be allocated. */
-      BLI_assert(ELEM(*r_paint, (Paint *)&ts->imapaint));
-
+    if (!(*r_paint)->runtime) {
+      (*r_paint)->runtime = MEM_new<blender::bke::PaintRuntime>(__func__);
+    }
+    if (!(*r_paint)->runtime->initialized && *r_paint == (Paint *)&ts->imapaint) {
       paint_runtime_init(ts, *r_paint);
     }
     else {
@@ -1721,7 +1725,7 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
       paint_runtime_init(ts, *r_paint);
       /* Swap so debug doesn't hide errors when release fails. */
       std::swap(**r_paint, paint_test);
-      BLI_assert(paint_test.runtime.ob_mode == (*r_paint)->runtime.ob_mode);
+      BLI_assert(paint_test.runtime->ob_mode == (*r_paint)->runtime->ob_mode);
 #endif
     }
     return true;
@@ -1833,11 +1837,11 @@ void BKE_paint_free(Paint *paint)
     MEM_delete(brush_ref->brush_asset_reference);
     MEM_delete(brush_ref);
   }
-  MEM_delete(paint->runtime.previous_active_brush_reference);
 
   BKE_curvemapping_free(paint->unified_paint_settings.curve_rand_hue);
   BKE_curvemapping_free(paint->unified_paint_settings.curve_rand_saturation);
   BKE_curvemapping_free(paint->unified_paint_settings.curve_rand_value);
+  MEM_SAFE_DELETE(paint->runtime);
 }
 
 void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
@@ -1877,6 +1881,8 @@ void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
     id_us_plus((ID *)dst->palette);
   }
+
+  dst->runtime = MEM_new<blender::bke::PaintRuntime>(__func__);
 }
 
 void BKE_paint_stroke_get_average(const Paint *paint, const Object *ob, float stroke[3])
@@ -2057,6 +2063,8 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
    * these are also NaN, which could lead to crashes in painting. */
   zero_v3(ups->last_location);
   ups->last_hit = 0;
+
+  paint->runtime = MEM_new<blender::bke::PaintRuntime>(__func__);
 
   paint_runtime_init(scene->toolsettings, paint);
 }

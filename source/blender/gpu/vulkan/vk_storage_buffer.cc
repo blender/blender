@@ -13,6 +13,10 @@
 
 #include "vk_storage_buffer.hh"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"gpu.vulkan"};
+
 namespace blender::gpu {
 
 VKStorageBuffer::VKStorageBuffer(size_t size, GPUUsageType usage, const char *name)
@@ -33,8 +37,19 @@ void VKStorageBuffer::update(const void *data)
   VKContext &context = *VKContext::get();
   ensure_allocated();
   VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
-  staging_buffer.host_buffer_get().update_immediately(data);
-  staging_buffer.copy_to_device(context);
+  VKBuffer &buffer = staging_buffer.host_buffer_get();
+  if (buffer.is_allocated()) {
+    buffer.update_immediately(data);
+    staging_buffer.copy_to_device(context);
+  }
+  else {
+    CLOG_ERROR(
+        &LOG,
+        "Unable to upload data to storage buffer via a staging buffer as the staging buffer "
+        "could not be allocated. Storage buffer will be filled with on zeros to reduce "
+        "drawing artifacts due to read from uninitialized memory.");
+    buffer_.clear(context, 0u);
+  }
 }
 
 void VKStorageBuffer::ensure_allocated()

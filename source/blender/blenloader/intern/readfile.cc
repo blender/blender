@@ -3838,10 +3838,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
         }
         else {
           /* Add link placeholder to the main of the library it belongs to.
-           * The library is the most recently loaded ID_LI block, according
+           * The library is the most recently loaded #ID_LI block, according
            * to the file format definition. So we can use the entry at the
-           * end of fd->bmain->split_mains, typically the one last added added in
-           * direct_link_library. */
+           * end of `fd->bmain->split_mains`, typically the one last added in
+           * #direct_link_library. */
 
           Main *libmain = (*fd->bmain->split_mains)[fd->bmain->split_mains->size() - 1];
           bhead = read_libblock(fd, libmain, bhead, 0, {}, true, nullptr);

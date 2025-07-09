@@ -169,10 +169,11 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
 
       if (can_have_geometry || is_light) {
         const bool updated_geometry = b_update.is_updated_geometry();
+        const bool updated_transform = b_update.is_updated_transform();
 
         /* Geometry (mesh, hair, volume). */
         if (can_have_geometry) {
-          if (b_update.is_updated_transform() || b_update.is_updated_shading()) {
+          if (updated_transform || b_update.is_updated_shading()) {
             object_map.set_recalc(b_ob);
           }
 
@@ -180,7 +181,9 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
                                                b_ob, preview, use_adaptive_subdivision) !=
                                            Mesh::SUBDIVISION_NONE;
 
-          if (updated_geometry || use_adaptive_subdiv) {
+          /* Need to recompute geometry if the geometry changed, or the transform changed
+           * and using adaptive subdivision. */
+          if (updated_geometry || (updated_transform && use_adaptive_subdiv)) {
             BL::ID const key = BKE_object_is_modified(b_ob) ?
                                    b_ob :
                                    object_get_data(b_ob, use_adaptive_subdiv);

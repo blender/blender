@@ -46,14 +46,14 @@ class MetalKernelContext {
     float4 ccl_gpu_tex_object_read_2D(ccl_gpu_tex_object_2D tex, const float x, float y) const {
       const uint tid(tex);
       const uint sid(tex >> 32);
-      return metal_ancillaries->textures_2d[tid].tex.sample(metal_samplers[sid], float2(x, y));
+      return ((ccl_global Texture2DParamsMetal*)metal_ancillaries->textures)[tid].tex.sample(metal_samplers[sid], float2(x, y));
     }
     template<>
     inline __attribute__((__always_inline__))
     float ccl_gpu_tex_object_read_2D(ccl_gpu_tex_object_2D tex, const float x, float y) const {
       const uint tid(tex);
       const uint sid(tex >> 32);
-      return metal_ancillaries->textures_2d[tid].tex.sample(metal_samplers[sid], float2(x, y)).x;
+      return ((ccl_global Texture2DParamsMetal*)metal_ancillaries->textures)[tid].tex.sample(metal_samplers[sid], float2(x, y)).x;
     }
 
     // texture3d
@@ -62,14 +62,14 @@ class MetalKernelContext {
     float4 ccl_gpu_tex_object_read_3D(ccl_gpu_tex_object_3D tex, const float x, float y, const float z) const {
       const uint tid(tex);
       const uint sid(tex >> 32);
-      return metal_ancillaries->textures_3d[tid].tex.sample(metal_samplers[sid], float3(x, y, z));
+      return ((ccl_global Texture3DParamsMetal*)metal_ancillaries->textures)[tid].tex.sample(metal_samplers[sid], float3(x, y, z));
     }
     template<>
     inline __attribute__((__always_inline__))
     float ccl_gpu_tex_object_read_3D(ccl_gpu_tex_object_3D tex, const float x, float y, const float z) const {
       const uint tid(tex);
       const uint sid(tex >> 32);
-      return metal_ancillaries->textures_3d[tid].tex.sample(metal_samplers[sid], float3(x, y, z)).x;
+      return ((ccl_global Texture3DParamsMetal*)metal_ancillaries->textures)[tid].tex.sample(metal_samplers[sid], float3(x, y, z)).x;
     }
 #    include "kernel/device/gpu/image.h"
 

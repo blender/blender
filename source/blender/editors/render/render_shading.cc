@@ -181,6 +181,14 @@ static bool object_materials_supported_poll(bContext *C)
   return object_materials_supported_poll_ex(C, ob);
 }
 
+static bool material_slot_populated_poll(bContext *C)
+{
+  const Object *ob_active = CTX_data_active_object(C);
+  if (ob_active == nullptr) {
+    return false;
+  }
+  return ob_active->actcol > 0;
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -243,6 +251,9 @@ static bool material_slot_remove_poll(bContext *C)
   /* Removing material slots in edit mode screws things up, see bug #21822. */
   if (BKE_object_is_in_editmode(ob)) {
     CTX_wm_operator_poll_msg_set(C, "Unable to remove material slot in edit mode");
+    return false;
+  }
+  if (!material_slot_populated_poll(C)) {
     return false;
   }
 
@@ -593,6 +604,7 @@ void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = material_slot_copy_exec;
+  ot->poll = material_slot_populated_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -745,20 +757,6 @@ void OBJECT_OT_material_slot_remove_unused(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static bool material_slot_remove_all_poll(bContext *C)
-{
-  if (!material_slot_remove_poll(C)) {
-    return false;
-  }
-
-  const Object *ob_active = CTX_data_active_object(C);
-  if (ob_active->actcol <= 0) {
-    return false;
-  }
-
-  return true;
-}
-
 static wmOperatorStatus material_slot_remove_all_exec(bContext *C, wmOperator *op)
 {
   /* Removing material slots in edit mode screws things up, see bug #21822. */
@@ -814,7 +812,7 @@ void OBJECT_OT_material_slot_remove_all(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = material_slot_remove_all_exec;
-  ot->poll = material_slot_remove_all_poll;
+  ot->poll = material_slot_remove_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2750,6 +2748,7 @@ void MATERIAL_OT_copy(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = copy_material_exec;
+  ot->poll = material_slot_populated_poll;
 
   /* flags */
   /* no undo needed since no changes are made to the material */

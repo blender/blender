@@ -503,15 +503,16 @@ class GreasePencil : Overlay {
         }
         const int point_i = points_by_curve[stroke_i].first();
         const float3 fpt = math::transform_point(object.object_to_world(), positions[point_i]);
-        Material *ma = BKE_object_material_get_eval(&object, materials[stroke_i] + 1);
-        DRW_text_cache_add(state.dt,
-                           fpt,
-                           ma->id.name + 2,
-                           strlen(ma->id.name + 2),
-                           10,
-                           0,
-                           DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
-                           color);
+        if (Material *ma = BKE_object_material_get_eval(&object, materials[stroke_i] + 1)) {
+          DRW_text_cache_add(state.dt,
+                             fpt,
+                             ma->id.name + 2,
+                             strlen(ma->id.name + 2),
+                             10,
+                             0,
+                             DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
+                             color);
+        }
       }
     }
   }

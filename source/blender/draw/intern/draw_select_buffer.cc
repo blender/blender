@@ -80,7 +80,7 @@ uint *DRW_select_buffer_read(
   /* Make sure that the rect is within the bounds of the viewport.
    * Some GPUs have problems reading pixels off limits. */
   rcti rect_clamp = *rect;
-  if (BLI_rcti_isect(&r, &rect_clamp, &rect_clamp)) {
+  if (BLI_rcti_isect(&r, &rect_clamp, &rect_clamp) && !BLI_rcti_is_empty(&rect_clamp)) {
     SELECTID_Context *select_ctx = DRW_select_engine_context_get();
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 

@@ -29,6 +29,8 @@
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
 
+#include "GEO_curves_remove_and_split.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -951,58 +953,57 @@ struct EraseOperationExecutor {
     GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
 
     bool changed = false;
-    const auto execute_eraser_on_drawing =
-        [&](const int layer_index, const int frame_number, Drawing &drawing) {
-          const Layer &layer = grease_pencil.layer(layer_index);
-          const bke::CurvesGeometry &src = drawing.strokes();
+    const auto execute_eraser_on_drawing = [&](const int layer_index, Drawing &drawing) {
+      const Layer &layer = grease_pencil.layer(layer_index);
+      const bke::CurvesGeometry &src = drawing.strokes();
 
-          /* Evaluated geometry. */
-          bke::crazyspace::GeometryDeformation deformation =
-              bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-                  ob_eval, *obact, layer_index, frame_number);
+      /* Evaluated geometry. */
+      bke::crazyspace::GeometryDeformation deformation =
+          bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+              ob_eval, *obact, drawing);
 
-          /* Compute screen space positions. */
-          Array<float2> screen_space_positions(src.points_num());
-          threading::parallel_for(src.points_range(), 4096, [&](const IndexRange src_points) {
-            for (const int src_point : src_points) {
-              const int result = ED_view3d_project_float_global(
-                  region,
-                  math::transform_point(layer.to_world_space(*ob_eval),
-                                        deformation.positions[src_point]),
-                  screen_space_positions[src_point],
-                  V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR);
-              if (result != V3D_PROJ_RET_OK) {
-                /* Set the screen space position to a impossibly far coordinate for all the points
-                 * that are outside near/far clipping planes, this is to prevent accidental
-                 * intersections with strokes not visibly present in the camera. */
-                screen_space_positions[src_point] = float2(1e20);
-              }
-            }
-          });
-
-          /* Erasing operator. */
-          bke::CurvesGeometry dst;
-          bool erased = false;
-          switch (self.eraser_mode_) {
-            case GP_BRUSH_ERASER_STROKE:
-              erased = stroke_eraser(*obact, src, screen_space_positions, dst);
-              break;
-            case GP_BRUSH_ERASER_HARD:
-              erased = hard_eraser(*obact, src, screen_space_positions, dst, self.keep_caps_);
-              break;
-            case GP_BRUSH_ERASER_SOFT:
-              erased = soft_eraser(*obact, src, screen_space_positions, dst, self.keep_caps_);
-              break;
+      /* Compute screen space positions. */
+      Array<float2> screen_space_positions(src.points_num());
+      threading::parallel_for(src.points_range(), 4096, [&](const IndexRange src_points) {
+        for (const int src_point : src_points) {
+          const int result = ED_view3d_project_float_global(
+              region,
+              math::transform_point(layer.to_world_space(*ob_eval),
+                                    deformation.positions[src_point]),
+              screen_space_positions[src_point],
+              V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR);
+          if (result != V3D_PROJ_RET_OK) {
+            /* Set the screen space position to a impossibly far coordinate for all the points
+             * that are outside near/far clipping planes, this is to prevent accidental
+             * intersections with strokes not visibly present in the camera. */
+            screen_space_positions[src_point] = float2(1e20);
           }
+        }
+      });
 
-          if (erased) {
-            /* Set the new geometry. */
-            drawing.geometry.wrap() = std::move(dst);
-            drawing.tag_topology_changed();
-            changed = true;
-            self.affected_drawings_.add(&drawing);
-          }
-        };
+      /* Erasing operator. */
+      bke::CurvesGeometry dst;
+      bool erased = false;
+      switch (self.eraser_mode_) {
+        case GP_BRUSH_ERASER_STROKE:
+          erased = stroke_eraser(*obact, src, screen_space_positions, dst);
+          break;
+        case GP_BRUSH_ERASER_HARD:
+          erased = hard_eraser(*obact, src, screen_space_positions, dst, self.keep_caps_);
+          break;
+        case GP_BRUSH_ERASER_SOFT:
+          erased = soft_eraser(*obact, src, screen_space_positions, dst, self.keep_caps_);
+          break;
+      }
+
+      if (erased) {
+        /* Set the new geometry. */
+        drawing.geometry.wrap() = std::move(dst);
+        drawing.tag_topology_changed();
+        changed = true;
+        self.affected_drawings_.add(&drawing);
+      }
+    };
 
     if (self.active_layer_only_) {
       /* Erase only on the drawing at the current frame of the active layer. */
@@ -1016,15 +1017,14 @@ struct EraseOperationExecutor {
         return;
       }
 
-      execute_eraser_on_drawing(
-          *grease_pencil.get_layer_index(active_layer), scene->r.cfra, *drawing);
+      execute_eraser_on_drawing(*grease_pencil.get_layer_index(active_layer), *drawing);
     }
     else {
       /* Erase on all editable drawings. */
       const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
           ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
       for (const ed::greasepencil::MutableDrawingInfo &info : drawings) {
-        execute_eraser_on_drawing(info.layer_index, info.frame_number, info.drawing);
+        execute_eraser_on_drawing(info.layer_index, info.drawing);
       }
     }
 
@@ -1076,6 +1076,58 @@ void EraseOperation::on_stroke_extended(const bContext &C, const InputSample &ex
   executor.execute(*this, C, extension_sample);
 }
 
+static void simplify_opacities(blender::bke::CurvesGeometry &curves,
+                               const VArray<float> &opacities,
+                               const float epsilon)
+{
+  /* Simplify in between the ranges of inserted points. */
+  const VArray<bool> point_was_inserted = *curves.attributes().lookup<bool>(
+      "_eraser_inserted", bke::AttrDomain::Point);
+  BLI_assert(point_was_inserted);
+  IndexMaskMemory memory;
+  const IndexMask inserted_points = IndexMask::from_bools(point_was_inserted, memory);
+
+  /* Distance function for the simplification algorithm.
+   * It is computed as the difference in opacity that may result from removing the
+   * samples inside the range. */
+  const Span<float3> positions = curves.positions();
+  const auto opacity_distance = [&](int64_t first_index, int64_t last_index, int64_t index) {
+    const float3 &s0 = positions[first_index];
+    const float3 &s1 = positions[last_index];
+    const float segment_length = math::distance(s0, s1);
+    if (segment_length < 1e-6) {
+      return 0.0f;
+    }
+    const float t = math::distance(s0, positions[index]) / segment_length;
+    const float linear_opacity = math::interpolate(
+        opacities[first_index], opacities[last_index], t);
+    return math::abs(opacities[index] - linear_opacity);
+  };
+
+  Array<bool> dissolve_points(curves.points_num(), false);
+  inserted_points.foreach_range([&](const IndexRange &range) {
+    const IndexRange range_to_simplify(range.one_before_start(), range.size() + 2);
+    ed::greasepencil::ramer_douglas_peucker_simplify(
+        range_to_simplify, epsilon, opacity_distance, dissolve_points);
+  });
+
+  /* Remove the points. */
+  const IndexMask points_to_dissolve = IndexMask::from_bools(dissolve_points, memory);
+  curves.remove_points(points_to_dissolve, {});
+}
+
+static void remove_points_with_low_opacity(blender::bke::CurvesGeometry &curves,
+                                           const VArray<float> &opacities,
+                                           const float epsilon)
+{
+  IndexMaskMemory memory;
+  const IndexMask points_to_remove_and_split = IndexMask::from_predicate(
+      curves.points_range(), GrainSize(4096), memory, [&](const int64_t point) {
+        return opacities[point] < epsilon;
+      });
+  curves = geometry::remove_points_and_split(curves, points_to_remove_and_split);
+}
+
 void EraseOperation::on_stroke_done(const bContext &C)
 {
   Object *object = CTX_data_active_object(&C);
@@ -1087,56 +1139,22 @@ void EraseOperation::on_stroke_done(const bContext &C)
     grease_pencil.runtime->temp_eraser_size = 0.0f;
   }
 
-  /* Epsilon used for simplify. */
-  const float epsilon = 0.01f;
   for (GreasePencilDrawing *drawing_ : affected_drawings_) {
-    blender::bke::CurvesGeometry &curves = drawing_->geometry.wrap();
+    bke::greasepencil::Drawing &drawing = drawing_->wrap();
 
-    /* Simplify in between the ranges of inserted points. */
-    const VArray<bool> &point_was_inserted = *curves.attributes().lookup<bool>(
-        "_eraser_inserted", bke::AttrDomain::Point);
-    if (point_was_inserted.is_empty()) {
-      continue;
+    if (drawing.strokes().attributes().contains("_eraser_inserted")) {
+      simplify_opacities(drawing.strokes_for_write(), drawing.opacities(), 0.01f);
     }
-    IndexMaskMemory mem_inserted;
-    IndexMask inserted_points = IndexMask::from_bools(point_was_inserted, mem_inserted);
+    remove_points_with_low_opacity(drawing.strokes_for_write(), drawing.opacities(), 0.0001f);
 
-    /* Distance function for the simplification algorithm.
-     * It is computed as the difference in opacity that may result from removing the
-     * samples inside the range. */
-    VArray<float> opacities = drawing_->wrap().opacities();
-    Span<float3> positions = curves.positions();
-    const auto opacity_distance = [&](int64_t first_index, int64_t last_index, int64_t index) {
-      const float3 &s0 = positions[first_index];
-      const float3 &s1 = positions[last_index];
-      const float segment_length = math::distance(s0, s1);
-      if (segment_length < 1e-6) {
-        return 0.0f;
-      }
-      const float t = math::distance(s0, positions[index]) / segment_length;
-      const float linear_opacity = math::interpolate(
-          opacities[first_index], opacities[last_index], t);
-      return math::abs(opacities[index] - linear_opacity);
-    };
-
-    Array<bool> remove_points(curves.points_num(), false);
-    inserted_points.foreach_range([&](const IndexRange &range) {
-      IndexRange range_to_simplify(range.one_before_start(), range.size() + 2);
-      ed::greasepencil::ramer_douglas_peucker_simplify(
-          range_to_simplify, epsilon, opacity_distance, remove_points);
-    });
-
-    /* Remove the points. */
-    IndexMaskMemory mem_remove;
-    IndexMask points_to_remove = IndexMask::from_bools(remove_points, mem_remove);
-
-    curves.remove_points(points_to_remove, {});
-    drawing_->wrap().tag_topology_changed();
-
-    curves.attributes_for_write().remove("_eraser_inserted");
+    drawing.strokes_for_write().attributes_for_write().remove("_eraser_inserted");
+    drawing.tag_topology_changed();
   }
 
   affected_drawings_.clear();
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &grease_pencil.id);
 }
 
 std::unique_ptr<GreasePencilStrokeOperation> new_erase_operation(const bool temp_eraser)

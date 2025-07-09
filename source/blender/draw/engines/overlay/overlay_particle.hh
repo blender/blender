@@ -191,7 +191,7 @@ class Particles : Overlay {
 
     Object *ob = ob_ref.object;
 
-    ResourceHandleRange handle = {0};
+    ResourceHandleRange handle = {};
 
     for (ParticleSystem *psys : ListBaseWrapper<ParticleSystem>(&ob->particlesystem)) {
       if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {

@@ -374,7 +374,10 @@ eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event)
   return status;
 }
 
-static bool applyFaceProject(TransInfo *t, TransDataContainer *tc, TransData *td)
+static bool applyFaceProject(TransInfo *t,
+                             TransDataContainer *tc,
+                             TransData *td,
+                             TransDataExtension *td_ext)
 {
   float iloc[3], loc[3], no[3];
   float mval_fl[2];
@@ -435,7 +438,7 @@ static bool applyFaceProject(TransInfo *t, TransDataContainer *tc, TransData *td
 
     rotation_between_vecs_to_mat3(mat, original_normal, no);
 
-    transform_data_ext_rotate(td, mat, true);
+    transform_data_ext_rotate(td, td_ext, mat, true);
 
     /* TODO: support constraints for rotation too? see #ElementRotation. */
   }
@@ -512,6 +515,7 @@ void transform_snap_project_individual_apply(TransInfo *t)
   /* XXX: flickers in object mode. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
+    TransDataExtension *td_ext = tc->data_ext;
     for (int i = 0; i < tc->data_len; i++, td++) {
       if (td->flag & TD_SKIP) {
         continue;
@@ -525,7 +529,10 @@ void transform_snap_project_individual_apply(TransInfo *t)
        * fall back to face nearest ray-cast does not hit. */
       bool hit = false;
       if (t->tsnap.mode & SCE_SNAP_INDIVIDUAL_PROJECT) {
-        hit = applyFaceProject(t, tc, td);
+        hit = applyFaceProject(t, tc, td, td_ext);
+        if (td_ext) {
+          td_ext++;
+        }
       }
 
       if (!hit && t->tsnap.mode & SCE_SNAP_INDIVIDUAL_NEAREST) {
@@ -1478,7 +1485,6 @@ static void snap_source_closest_fn(TransInfo *t)
     /* Object mode. */
     if (t->options & CTX_OBJECT) {
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        BLI_assert(tc->sorted_index_map || !(t->flag & T_PROP_EDIT_ALL));
         tc->foreach_index_selected([&](const int i) {
           TransData *td = &tc->data[i];
 
@@ -1491,6 +1497,7 @@ static void snap_source_closest_fn(TransInfo *t)
 
           /* Use bound-box if possible. */
           if (bounds) {
+            TransDataExtension *td_ext = &tc->data_ext[i];
             const std::array<float3, 8> bounds_corners = bounds::corners(*bounds);
             int j;
 
@@ -1499,7 +1506,7 @@ static void snap_source_closest_fn(TransInfo *t)
               float dist;
 
               copy_v3_v3(loc, bounds_corners[j]);
-              mul_m4_v3(td->ext->obmat, loc);
+              mul_m4_v3(td_ext->obmat, loc);
 
               dist = t->mode_info->snap_distance_fn(t, loc, t->tsnap.snap_target);
 
@@ -1533,7 +1540,6 @@ static void snap_source_closest_fn(TransInfo *t)
     }
     else {
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-        BLI_assert(tc->sorted_index_map || !(t->flag & T_PROP_EDIT_ALL));
         tc->foreach_index_selected([&](const int i) {
           TransData *td = &tc->data[i];
 

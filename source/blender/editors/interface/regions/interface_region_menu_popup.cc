@@ -198,8 +198,15 @@ static void ui_popup_menu_create_block(bContext *C,
   if (!title.is_empty()) {
     pup->block->puphash = ui_popup_menu_hash(title);
   }
-  pup->layout = UI_block_layout(
-      pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, UI_MENU_PADDING, style);
+  pup->layout = &blender::ui::block_layout(pup->block,
+                                           blender::ui::LayoutDirection::Vertical,
+                                           blender::ui::LayoutType::Menu,
+                                           0,
+                                           0,
+                                           200,
+                                           0,
+                                           UI_MENU_PADDING,
+                                           style);
 
   /* NOTE: this intentionally differs from the menu & sub-menu default because many operators
    * use popups like this to select one of their options -
@@ -286,8 +293,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
   block->direction = direction;
 
-  int width, height;
-  UI_block_layout_resolve(block, &width, &height);
+  blender::ui::block_layout_resolve(block);
 
   UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_NUMSELECT);
 
@@ -529,7 +535,7 @@ bool UI_popup_menu_end_or_cancel(bContext *C, uiPopupMenu *pup)
     UI_popup_menu_end(C, pup);
     return true;
   }
-  UI_block_layout_resolve(pup->block, nullptr, nullptr);
+  blender::ui::block_layout_resolve(pup->block);
   MEM_delete(pup->block->handle);
   UI_block_free(C, pup->block);
   MEM_delete(pup);

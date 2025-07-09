@@ -1818,16 +1818,18 @@ GHOST_TSuccess GHOST_SystemX11::setCursorPosition(int32_t x, int32_t y)
 
 GHOST_TCapabilityFlag GHOST_SystemX11::getCapabilities() const
 {
-  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
-                               ~(
-                                   /* No support yet for image copy/paste. */
-                                   GHOST_kCapabilityClipboardImages |
-                                   /* No support yet for IME input methods. */
-                                   GHOST_kCapabilityInputIME |
-                                   /* No support yet for RGBA mouse cursors. */
-                                   GHOST_kCapabilityRGBACursors |
-                                   /* No support for window decoration styles. */
-                                   GHOST_kCapabilityWindowDecorationStyles));
+  return GHOST_TCapabilityFlag(
+      GHOST_CAPABILITY_FLAG_ALL &
+      /* NOTE: order the following flags as they they're declared in the source. */
+      ~(
+          /* No support yet for image copy/paste. */
+          GHOST_kCapabilityClipboardImage |
+          /* No support yet for IME input methods. */
+          GHOST_kCapabilityInputIME |
+          /* No support for window decoration styles. */
+          GHOST_kCapabilityWindowDecorationStyles |
+          /* No support yet for RGBA mouse cursors. */
+          GHOST_kCapabilityCursorRGBA));
 }
 
 void GHOST_SystemX11::addDirtyWindow(GHOST_WindowX11 *bad_wind)

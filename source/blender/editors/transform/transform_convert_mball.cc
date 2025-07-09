@@ -88,8 +88,6 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
         copy_m3_m3(td->smtx, smtx);
         copy_m3_m3(td->mtx, mtx);
 
-        td->ext = tx;
-
         /* Radius of MetaElem (mass of MetaElem influence). */
         if (ml->flag & MB_SCALE_RAD) {
           td->val = &ml->rad;

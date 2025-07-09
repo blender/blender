@@ -63,7 +63,6 @@ static int traceback_line_number(PyTracebackObject *tb)
     else {
       /* This should never happen, print the error. */
       PyErr_Print();
-      PyErr_Clear();
     }
   }
   return lineno;

@@ -16,6 +16,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 
+#include "DNA_node_types.h"
+
 #include "RNA_access.hh"
 
 #include "UI_interface_layout.hh"
@@ -24,6 +26,7 @@
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
+#include "COM_domain.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
@@ -59,6 +62,8 @@ static void node_composit_init_scale(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeScaleData *data = MEM_callocN<NodeScaleData>(__func__);
   data->interpolation = CMP_NODE_INTERPOLATION_BILINEAR;
+  data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
+  data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
   node->storage = data;
 }
 
@@ -76,16 +81,24 @@ static void node_composite_update_scale(bNodeTree *ntree, bNode *node)
 
 static void node_composit_buts_scale(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  layout->prop(ptr, "space", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  uiLayout &column = layout->column(true);
+  column.prop(ptr, "space", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "space") == CMP_NODE_SCALE_RENDER_SIZE) {
-    layout->prop(ptr,
-                 "frame_method",
-                 UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-                 std::nullopt,
-                 ICON_NONE);
+    column.prop(ptr,
+                "frame_method",
+                UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
+                std::nullopt,
+                ICON_NONE);
   }
+
+  uiLayout &column_interpolation_extension_modes = layout->column(true);
+
+  column_interpolation_extension_modes.prop(
+      ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  uiLayout &row = column_interpolation_extension_modes.row(true);
+  row.prop(ptr, "extension_x", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  row.prop(ptr, "extension_y", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -115,6 +128,8 @@ class ScaleOperation : public NodeOperation {
     output.transform(transformation);
 
     output.get_realization_options().interpolation = this->get_interpolation();
+    output.get_realization_options().extension_x = this->get_extension_mode_x();
+    output.get_realization_options().extension_y = this->get_extension_mode_y();
   }
 
   void execute_variable_size()
@@ -137,10 +152,14 @@ class ScaleOperation : public NodeOperation {
      * cases, as the logic used by the bicubic realization shader expects textures to use bilinear
      * interpolation. */
     const Interpolation interpolation = this->get_interpolation();
+    const ExtensionMode extension_mode_x = this->get_extension_mode_x();
+    const ExtensionMode extension_mode_y = this->get_extension_mode_y();
+
     /* For now the EWA sampling falls back to bicubic interpolation. */
     const bool use_bilinear = ELEM(interpolation, Interpolation::Bilinear, Interpolation::Bicubic);
     GPU_texture_filter_mode(input, use_bilinear);
-    GPU_texture_extend_mode(input, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    GPU_texture_extend_mode_x(input, map_extension_mode_to_extend_mode(extension_mode_x));
+    GPU_texture_extend_mode_y(input, map_extension_mode_to_extend_mode(extension_mode_y));
     input.bind_as_texture(shader, "input_tx");
 
     Result &x_scale = get_input("X");
@@ -171,6 +190,8 @@ class ScaleOperation : public NodeOperation {
 
     Result &output = this->get_result("Image");
     const Interpolation interpolation = this->get_interpolation();
+    const ExtensionMode extension_mode_x = this->get_extension_mode_x();
+    const ExtensionMode extension_mode_y = this->get_extension_mode_y();
     const Domain domain = compute_domain();
     const int2 size = domain.size;
     output.allocate_texture(domain);
@@ -183,19 +204,10 @@ class ScaleOperation : public NodeOperation {
                             y_scale.load_pixel<float, true>(texel));
       float2 scaled_coordinates = center +
                                   (coordinates - center) / math::max(scale, float2(0.0001f));
-      switch (interpolation) {
-        /* For now the EWA sampling falls back to bicubic interpolation. */
-        case Interpolation::Anisotropic:
-        case Interpolation::Bicubic:
-          output.store_pixel(texel, input.sample_cubic_wrap(scaled_coordinates, false, false));
-          break;
-        case Interpolation::Bilinear:
-          output.store_pixel(texel, input.sample_bilinear_wrap(scaled_coordinates, false, false));
-          break;
-        case Interpolation::Nearest:
-          output.store_pixel(texel, input.sample_nearest_wrap(scaled_coordinates, false, false));
-          break;
-      }
+
+      output.store_pixel(
+          texel,
+          input.sample(scaled_coordinates, interpolation, extension_mode_x, extension_mode_y));
     });
   }
 
@@ -207,9 +219,39 @@ class ScaleOperation : public NodeOperation {
     return "compositor_scale_variable";
   }
 
+  ExtensionMode get_extension_mode_x()
+  {
+    switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_x)) {
+      case CMP_NODE_EXTENSION_MODE_ZERO:
+        return ExtensionMode::Zero;
+      case CMP_NODE_EXTENSION_MODE_REPEAT:
+        return ExtensionMode::Repeat;
+      case CMP_NODE_EXTENSION_MODE_EXTEND:
+        return ExtensionMode::Extend;
+    }
+
+    BLI_assert_unreachable();
+    return ExtensionMode::Zero;
+  }
+
+  ExtensionMode get_extension_mode_y()
+  {
+    switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_y)) {
+      case CMP_NODE_EXTENSION_MODE_ZERO:
+        return ExtensionMode::Zero;
+      case CMP_NODE_EXTENSION_MODE_REPEAT:
+        return ExtensionMode::Repeat;
+      case CMP_NODE_EXTENSION_MODE_EXTEND:
+        return ExtensionMode::Extend;
+    }
+
+    BLI_assert_unreachable();
+    return ExtensionMode::Zero;
+  }
+
   Interpolation get_interpolation() const
   {
-    switch (node_storage(bnode()).interpolation) {
+    switch (static_cast<CMPNodeInterpolation>(node_storage(bnode()).interpolation)) {
       case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
       case CMP_NODE_INTERPOLATION_BILINEAR:

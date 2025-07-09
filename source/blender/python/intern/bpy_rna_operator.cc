@@ -68,7 +68,6 @@ static char *pyop_poll_message_get_fn(bContext * /*C*/, void *user_data)
 
     if (error) {
       PyErr_Print();
-      PyErr_Clear();
     }
   }
 

@@ -2212,7 +2212,7 @@ static wmOperatorStatus move_to_collection_exec(bContext *C, wmOperator *op)
   ListBase objects = selected_objects_get(C);
 
   if (is_new) {
-    char new_collection_name[MAX_NAME];
+    char new_collection_name[MAX_ID_NAME - 2];
     RNA_string_get(op->ptr, "new_collection_name", new_collection_name);
     collection = BKE_collection_add(bmain, collection, new_collection_name);
   }
@@ -2322,7 +2322,7 @@ static wmOperatorStatus move_to_collection_invoke(bContext *C,
 
   prop = RNA_struct_find_property(op->ptr, "new_collection_name");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    char name[MAX_NAME];
+    char name[MAX_ID_NAME - 2];
 
     BKE_collection_new_name_get(collection, name);
 
@@ -2470,7 +2470,7 @@ void OBJECT_OT_move_to_collection(wmOperatorType *ot)
   prop = RNA_def_string(ot->srna,
                         "new_collection_name",
                         nullptr,
-                        MAX_NAME,
+                        MAX_ID_NAME - 2,
                         "Name",
                         "Name of the newly added collection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -2509,7 +2509,7 @@ void OBJECT_OT_link_to_collection(wmOperatorType *ot)
   prop = RNA_def_string(ot->srna,
                         "new_collection_name",
                         nullptr,
-                        MAX_NAME,
+                        MAX_ID_NAME - 2,
                         "Name",
                         "Name of the newly added collection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);

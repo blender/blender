@@ -973,11 +973,6 @@ static void TRANSFORM_OT_trackball(wmOperatorType *ot)
   properties_register(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
-static void transform_set_orient_axis(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
-{
-  RNA_struct_property_unset(ptr, "constraint_axis");
-}
-
 static void TRANSFORM_OT_rotate(wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -1002,10 +997,6 @@ static void TRANSFORM_OT_rotate(wmOperatorType *ot)
   properties_register(ot,
                       P_ORIENT_AXIS | P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR |
                           P_GEO_SNAP | P_GPENCIL_EDIT | P_CENTER);
-
-  if (PropertyRNA *prop = RNA_struct_type_find_property(ot->srna, "orient_axis")) {
-    RNA_def_property_update_runtime(prop, transform_set_orient_axis);
-  }
 }
 
 static bool tilt_poll(bContext *C)
@@ -1420,6 +1411,7 @@ static void TRANSFORM_OT_rotate_normal(wmOperatorType *ot)
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
   ot->poll = ED_operator_editmesh;
+  ot->poll_property = transform_poll_property;
 
   RNA_def_float_rotation(
       ot->srna, "value", 0, nullptr, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);

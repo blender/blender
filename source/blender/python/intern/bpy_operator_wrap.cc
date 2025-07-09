@@ -39,7 +39,6 @@ static void operator_properties_init(wmOperatorType *ot)
 
   if (pyrna_deferred_register_class(ot->srna, py_class) != 0) {
     PyErr_Print(); /* failed to register operator props */
-    PyErr_Clear();
   }
 
   /* set the default property: ot->prop */
@@ -65,7 +64,6 @@ static void operator_properties_init(wmOperatorType *ot)
 
           /* this could be done cleaner, for now its OK */
           PyErr_Print();
-          PyErr_Clear();
         }
       }
       else {
@@ -76,7 +74,6 @@ static void operator_properties_init(wmOperatorType *ot)
 
         /* this could be done cleaner, for now its OK */
         PyErr_Print();
-        PyErr_Clear();
       }
     }
   }

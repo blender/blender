@@ -36,7 +36,9 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
 
   b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
   b.add_output<decl::Float>("Matte").structure_type(StructureType::Dynamic);
-  b.add_output<decl::Float>("Edges").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Float>("Edges")
+      .structure_type(StructureType::Dynamic)
+      .translation_context(BLT_I18NCONTEXT_ID_IMAGE);
 
   b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
@@ -83,7 +85,9 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
           "The matte gets remapped such matte values higher than the white level become white. "
           "Pixels at the identified edges are excluded from the remapping to preserve details");
 
-  PanelDeclarationBuilder &edges_panel = tweak_panel.add_panel("Edges").default_closed(true);
+  PanelDeclarationBuilder &edges_panel =
+      tweak_panel.add_panel("Edges").default_closed(true).translation_context(
+          BLT_I18NCONTEXT_ID_IMAGE);
   edges_panel.add_input<decl::Int>("Size", "Edge Search Size")
       .default_value(3)
       .min(0)

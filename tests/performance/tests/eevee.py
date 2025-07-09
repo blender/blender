@@ -18,6 +18,7 @@ WARMUP_SECONDS = 3
 WARMUP_FRAMES = 10
 SHADER_FALLBACK_SECONDS = 60
 RECORD_PLAYBACK_ITER = 3
+MIN_NUM_FRAMES_TOTAL = 250
 LOG_KEY = "ANIMATION_PERFORMANCE: "
 
 
@@ -41,6 +42,7 @@ def frame_change_handler(scene):
     global warmup_frame
     global stop_record_time
     global playback_iteration
+    global num_frames
 
     if record_stage == RecordStage.INIT:
         screen = bpy.context.window_manager.windows[0].screen
@@ -73,6 +75,7 @@ def frame_change_handler(scene):
         if time.perf_counter() - start_warmup_time > WARMUP_SECONDS and warmup_frame > WARMUP_FRAMES:
             start_record_time = time.perf_counter()
             playback_iteration = 0
+            num_frames = 0
             scene = bpy.context.scene
             scene.frame_set(scene.frame_start)
             record_stage = RecordStage.RECORD
@@ -80,18 +83,18 @@ def frame_change_handler(scene):
     elif record_stage == RecordStage.RECORD:
         current_time = time.perf_counter()
         scene = bpy.context.scene
+        num_frames += 1
         if scene.frame_current == scene.frame_end:
             playback_iteration += 1
 
-        if playback_iteration >= RECORD_PLAYBACK_ITER:
+        if playback_iteration >= RECORD_PLAYBACK_ITER and num_frames >= MIN_NUM_FRAMES_TOTAL:
             stop_record_time = current_time
             record_stage = RecordStage.FINISHED
 
     elif record_stage == RecordStage.FINISHED:
         bpy.ops.screen.animation_cancel()
-        num_frames = RECORD_PLAYBACK_ITER * ((scene.frame_end - scene.frame_start) + 1)
-        elapse_seconds = stop_record_time - start_record_time
-        avg_frame_time = elapse_seconds / num_frames
+        elapsed_seconds = stop_record_time - start_record_time
+        avg_frame_time = elapsed_seconds / num_frames
         fps = 1.0 / avg_frame_time
         print(f"{LOG_KEY}{{'time': {avg_frame_time}, 'fps': {fps} }}")
         bpy.app.handlers.frame_change_post.remove(frame_change_handler)

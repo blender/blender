@@ -148,6 +148,9 @@ enum eObjectInfoFlag : uint32_t {
   OBJECT_ACTIVE = (1u << 3u),
   OBJECT_NEGATIVE_SCALE = (1u << 4u),
   OBJECT_HOLDOUT = (1u << 5u),
+  /* Implies all objects that match the current active object's mode and able to be edited
+   * simultaneously. Currently only applicable for edit mode. */
+  OBJECT_ACTIVE_EDIT_MODE = (1u << 6u),
   /* Avoid skipped info to change culling. */
   OBJECT_NO_INFO = ~OBJECT_HOLDOUT
 };
@@ -172,7 +175,7 @@ struct ObjectInfos {
 
 #if !defined(GPU_SHADER) && defined(__cplusplus)
   void sync();
-  void sync(const blender::draw::ObjectRef ref, bool is_active_object);
+  void sync(const blender::draw::ObjectRef ref, bool is_active_object, bool is_active_edit_mode);
 #endif
 };
 BLI_STATIC_ASSERT_ALIGN(ObjectInfos, 16)

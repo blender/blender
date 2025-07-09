@@ -926,7 +926,7 @@ extern GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 /**
  * Return the data from the clipboard
  * \param selection: Boolean to return the selection instead.
- * The capability flag: #GHOST_kCapabilityPrimaryClipboard can be used to check for supported.
+ * The capability flag: #GHOST_kCapabilityClipboardPrimary can be used to check for supported.
  * \return clipboard data
  */
 extern char *GHOST_getClipboard(bool selection);

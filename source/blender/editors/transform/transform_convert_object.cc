@@ -139,7 +139,7 @@ static void trans_obchild_in_obmode_update_all(TransInfo *t)
 /**
  * Transcribe given object into TransData for Transforming.
  */
-static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
+static void ObjectToTransData(TransInfo *t, TransData *td, TransDataExtension *td_ext, Object *ob)
 {
   Scene *scene = t->scene;
   bool constinv;
@@ -154,17 +154,17 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
     if (BKE_rigidbody_check_sim_running(scene->rigidbody_world, ctime)) {
 
       /* Save original object transform. */
-      copy_v3_v3(td->ext->oloc, ob->loc);
+      copy_v3_v3(td_ext->oloc, ob->loc);
 
       if (ob->rotmode > 0) {
-        copy_v3_v3(td->ext->orot, ob->rot);
+        copy_v3_v3(td_ext->orot, ob->rot);
       }
       else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-        td->ext->orotAngle = ob->rotAngle;
-        copy_v3_v3(td->ext->orotAxis, ob->rotAxis);
+        td_ext->orotAngle = ob->rotAngle;
+        copy_v3_v3(td_ext->orotAxis, ob->rotAxis);
       }
       else {
-        copy_qt_qt(td->ext->oquat, ob->quat);
+        copy_qt_qt(td_ext->oquat, ob->quat);
       }
       /* Update object's loc/rot to get current rigid body transform. */
       mat4_to_loc_rot_size(ob->loc, rot, scale, ob->object_to_world().ptr());
@@ -176,8 +176,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   /* `axismtx` has the real orientation. */
   transform_orientations_create_from_axis(td->axismtx, UNPACK3(ob->object_to_world().ptr()));
   if (t->orient_type_mask & (1 << V3D_ORIENT_GIMBAL)) {
-    if (!gimbal_axis_object(ob, td->ext->axismtx_gimbal)) {
-      copy_m3_m3(td->ext->axismtx_gimbal, td->axismtx);
+    if (!gimbal_axis_object(ob, td_ext->axismtx_gimbal)) {
+      copy_m3_m3(td_ext->axismtx_gimbal, td->axismtx);
     }
   }
 
@@ -228,46 +228,46 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   copy_v3_v3(td->iloc, td->loc);
 
   if (ob->rotmode > 0) {
-    td->ext->rot = ob->rot;
-    td->ext->rotAxis = nullptr;
-    td->ext->rotAngle = nullptr;
-    td->ext->quat = nullptr;
+    td_ext->rot = ob->rot;
+    td_ext->rotAxis = nullptr;
+    td_ext->rotAngle = nullptr;
+    td_ext->quat = nullptr;
 
-    copy_v3_v3(td->ext->irot, ob->rot);
-    copy_v3_v3(td->ext->drot, ob->drot);
+    copy_v3_v3(td_ext->irot, ob->rot);
+    copy_v3_v3(td_ext->drot, ob->drot);
   }
   else if (ob->rotmode == ROT_MODE_AXISANGLE) {
-    td->ext->rot = nullptr;
-    td->ext->rotAxis = ob->rotAxis;
-    td->ext->rotAngle = &ob->rotAngle;
-    td->ext->quat = nullptr;
+    td_ext->rot = nullptr;
+    td_ext->rotAxis = ob->rotAxis;
+    td_ext->rotAngle = &ob->rotAngle;
+    td_ext->quat = nullptr;
 
-    td->ext->irotAngle = ob->rotAngle;
-    copy_v3_v3(td->ext->irotAxis, ob->rotAxis);
+    td_ext->irotAngle = ob->rotAngle;
+    copy_v3_v3(td_ext->irotAxis, ob->rotAxis);
 /* XXX, not implemented. */
 #if 0
-    td->ext->drotAngle = ob->drotAngle;
-    copy_v3_v3(td->ext->drotAxis, ob->drotAxis);
+    td_ext->drotAngle = ob->drotAngle;
+    copy_v3_v3(td_ext->drotAxis, ob->drotAxis);
 #endif
   }
   else {
-    td->ext->rot = nullptr;
-    td->ext->rotAxis = nullptr;
-    td->ext->rotAngle = nullptr;
-    td->ext->quat = ob->quat;
+    td_ext->rot = nullptr;
+    td_ext->rotAxis = nullptr;
+    td_ext->rotAngle = nullptr;
+    td_ext->quat = ob->quat;
 
-    copy_qt_qt(td->ext->iquat, ob->quat);
-    copy_qt_qt(td->ext->dquat, ob->dquat);
+    copy_qt_qt(td_ext->iquat, ob->quat);
+    copy_qt_qt(td_ext->dquat, ob->dquat);
   }
-  td->ext->rotOrder = ob->rotmode;
+  td_ext->rotOrder = ob->rotmode;
 
-  td->ext->scale = ob->scale;
-  copy_v3_v3(td->ext->iscale, ob->scale);
-  copy_v3_v3(td->ext->dscale, ob->dscale);
+  td_ext->scale = ob->scale;
+  copy_v3_v3(td_ext->iscale, ob->scale);
+  copy_v3_v3(td_ext->dscale, ob->dscale);
 
   copy_v3_v3(td->center, ob->object_to_world().location());
 
-  copy_m4_m4(td->ext->obmat, ob->object_to_world().ptr());
+  copy_m4_m4(td_ext->obmat, ob->object_to_world().ptr());
 
   /* Is there a need to set the global<->data space conversion matrices? */
   if (ob->parent || constinv) {
@@ -534,8 +534,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 
     td->flag = TD_SELECTED;
     td->protectflag = ob->protectflag;
-    td->ext = tx;
-    td->ext->rotOrder = ob->rotmode;
+    tx->rotOrder = ob->rotmode;
 
     if (base->flag & BA_TRANSFORM_CHILD) {
       td->flag |= TD_NOCENTER;
@@ -565,7 +564,7 @@ static void createTransObject(bContext *C, TransInfo *t)
       }
     }
 
-    ObjectToTransData(t, td, ob);
+    ObjectToTransData(t, td, tx, ob);
     td->val = nullptr;
     td++;
     tx++;
@@ -588,10 +587,9 @@ static void createTransObject(bContext *C, TransInfo *t)
           BASE_SELECTABLE(v3d, base))
       {
         td->protectflag = ob->protectflag;
-        td->ext = tx;
-        td->ext->rotOrder = ob->rotmode;
+        tx->rotOrder = ob->rotmode;
 
-        ObjectToTransData(t, td, ob);
+        ObjectToTransData(t, td, tx, ob);
         td->val = nullptr;
         td++;
         tx++;
@@ -906,6 +904,7 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 
   for (int i = 0; i < tc->data_len; i++) {
     TransData *td = tc->data + i;
+    TransDataExtension *td_ext = tc->data_ext + i;
     ListBase pidlist;
     ob = static_cast<Object *>(td->extra);
 
@@ -945,12 +944,8 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
     if (ob->rigidbody_object && canceled) {
       float ctime = BKE_scene_ctime_get(t->scene);
       if (BKE_rigidbody_check_sim_running(t->scene->rigidbody_world, ctime)) {
-        BKE_rigidbody_aftertrans_update(ob,
-                                        td->ext->oloc,
-                                        td->ext->orot,
-                                        td->ext->oquat,
-                                        td->ext->orotAxis,
-                                        td->ext->orotAngle);
+        BKE_rigidbody_aftertrans_update(
+            ob, td_ext->oloc, td_ext->orot, td_ext->oquat, td_ext->orotAxis, td_ext->orotAngle);
       }
     }
   }

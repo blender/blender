@@ -132,7 +132,7 @@ class Prepass : Overlay {
   {
     Object *ob = ob_ref.object;
 
-    ResourceHandleRange handle = {0};
+    ResourceHandleRange handle = {};
 
     LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
       if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
@@ -279,10 +279,16 @@ class Prepass : Overlay {
     ResourceHandleRange res_handle = manager.unique_handle(ob_ref);
 
     for (int material_id : geom_list.index_range()) {
+      /* Meshes with more than 16 materials can have nullptr in the geometry list as materials are
+       * not filled for unused materials indices. We should actually use `material_indices_used`
+       * but these are only available for meshes. */
+      if (geom_list[material_id] == nullptr) {
+        continue;
+      }
+
       select::ID select_id = use_material_slot_selection_ ?
                                  res.select_id(ob_ref, (material_id + 1) << 16) :
                                  res.select_id(ob_ref);
-
       if (res.is_selection() && (pass == mesh_ps_)) {
         /* Conservative shader needs expanded draw-call. */
         pass->draw_expand(

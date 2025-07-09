@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
 "PO-Revision-Date: 2025-06-17 02:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34425,36 +34425,12 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Clean Up"
-msgstr "Clean Up"
-
-
 msgid "Show/Hide"
 msgstr "Show/Hide"
 
 
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
+msgid "Clean Up"
+msgstr "Clean Up"
 
 
 msgid "Pivot Point"
@@ -34541,6 +34517,10 @@ msgid "Assign Material"
 msgstr "Assign Material"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Light"
 msgstr "Light"
 
@@ -34625,6 +34605,10 @@ msgid "Bone Collections"
 msgstr "Bone Collections"
 
 
+msgid "Names"
+msgstr "Names"
+
+
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
 
@@ -34655,6 +34639,22 @@ msgstr "Set Face Strength"
 
 msgid "Merge"
 msgstr "Merge"
+
+
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
 
 
 msgid "Keyframe Insert Pie"
@@ -52799,6 +52799,7 @@ msgid "Minimum value"
 msgstr "Minimum value"
 
 
+msgctxt "Unit"
 msgid "Subtype"
 msgstr "Subtype"
 
@@ -61777,10 +61778,6 @@ msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
 msgstr "Other geometry types, like curve, metaball, etc. (converted to meshes)"
 
 
-msgid "Path Mode"
-msgstr "Path Mode"
-
-
 msgid "Method used to reference paths"
 msgstr "Method used to reference paths"
 
@@ -61793,20 +61790,12 @@ msgid "Always write absolute paths"
 msgstr "Always write absolute paths"
 
 
-msgid "Always write relative paths (where possible)"
-msgstr "Always write relative paths (where possible)"
-
-
-msgid "Match"
-msgstr "Match"
+msgid "Write relative paths where possible"
+msgstr "Write relative paths where possible"
 
 
 msgid "Match absolute/relative setting with input path"
 msgstr "Match absolute/relative setting with input path"
-
-
-msgid "Strip Path"
-msgstr "Strip Path"
 
 
 msgid "Filename only"
@@ -88265,10 +88254,6 @@ msgid "Negative Z axis"
 msgstr "Negative Z axis"
 
 
-msgid "Write relative paths where possible"
-msgstr "Write relative paths where possible"
-
-
 msgid "Write filename only"
 msgstr "Write filename only"
 
@@ -88658,11 +88643,6 @@ msgstr "Soft Max"
 
 msgid "Soft Min"
 msgstr "Soft Min"
-
-
-msgctxt "Unit"
-msgid "Subtype"
-msgstr "Subtype"
 
 
 msgid "Soft Limits"
@@ -120054,6 +120034,14 @@ msgid "Mix Vector"
 msgstr "Mix Vector"
 
 
+msgid "For Each Element"
+msgstr "For Each Element"
+
+
+msgid "Determinant"
+msgstr "Determinant"
+
+
 msgid "Calculation Range"
 msgstr "Calculation Range"
 
@@ -122117,6 +122105,10 @@ msgstr "Calibration"
 msgctxt "Operator"
 msgid "Prefetch"
 msgstr "Prefetch"
+
+
+msgid "Match"
+msgstr "Match"
 
 
 msgctxt "Operator"
@@ -130112,6 +130104,10 @@ msgid "Control point belongs to another spline"
 msgstr "Control point belongs to another spline"
 
 
+msgid "Insert"
+msgstr "Insert"
+
+
 msgid "Unicode codepoint hex value"
 msgstr "Unicode codepoint hex value"
 
@@ -130732,10 +130728,6 @@ msgstr "Esc"
 
 msgid "Pause"
 msgstr "Pause"
-
-
-msgid "Insert"
-msgstr "Insert"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -131719,6 +131711,10 @@ msgstr "Smooth Group Bitflags"
 
 msgid "PBR Extensions"
 msgstr "PBR Extensions"
+
+
+msgid "Path Mode"
+msgstr "Path Mode"
 
 
 msgid "File exported successfully"
@@ -135809,6 +135805,10 @@ msgid "Menu Undefined"
 msgstr "Menu Undefined"
 
 
+msgid "Subtype"
+msgstr "Subtype"
+
+
 msgid "Could not determine type of group node"
 msgstr "Could not determine type of group node"
 
@@ -136175,10 +136175,6 @@ msgstr "Can't add a new collection to linked/override scene"
 
 msgid "No active collection"
 msgstr "No active collection"
-
-
-msgid "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
-msgstr "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
 
 
 msgid "Cannot add a collection to a linked/override collection/scene"
@@ -136911,10 +136907,6 @@ msgstr "Level Set"
 
 msgid "(Geometry)"
 msgstr "(Geometry)"
-
-
-msgid "For Each Element"
-msgstr "For Each Element"
 
 
 msgid ""
@@ -141873,10 +141865,6 @@ msgid "The string to find in the input string"
 msgstr "The string to find in the input string"
 
 
-msgid "Determinant"
-msgstr "Determinant"
-
-
 msgid "The string to replace each match with"
 msgstr "The string to replace each match with"
 
@@ -144499,11 +144487,6 @@ msgid "IOR Level"
 msgstr "IOR Level"
 
 
-msgctxt "NodeTree"
-msgid "Tint"
-msgstr "Tint"
-
-
 msgid "Subsurface"
 msgstr "Subsurface"
 
@@ -144514,6 +144497,11 @@ msgstr "Sheen"
 
 msgid "Thin Film"
 msgstr "Thin Film"
+
+
+msgctxt "NodeTree"
+msgid "Tint"
+msgstr "Tint"
 
 
 msgid "Strength of the bump mapping effect, interpolating between no bump mapping and full bump mapping"

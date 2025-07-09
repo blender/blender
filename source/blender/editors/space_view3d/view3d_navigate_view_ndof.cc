@@ -185,9 +185,22 @@ static void view3d_ndof_pan_zoom(const wmNDOFMotionData &ndof,
   }
 
   if (has_translate) {
-    const float speed = view3d_ndof_pan_speed_calc(rv3d);
 
-    pan_vec *= speed * ndof.time_delta;
+    if (U.ndof_navigation_mode == NDOF_NAVIGATION_MODE_FLY) {
+      /* For "Fly Mode" translations we use arbitrary defined, constant
+       * speed values for each axis. Normally, these values are defined
+       * by the 3Dconnexion navigation library. To recreate original navigation
+       * experience, the translation speed values were picked experimentally here.
+       * This is intended to apply only for the "Fly Mode" (3D viewport). */
+      const float fly_speed[3] = {6.5f, 3.3f, 8.0f};
+      pan_vec[0] *= fly_speed[0] * ndof.time_delta;
+      pan_vec[1] *= fly_speed[1] * ndof.time_delta;
+      pan_vec[2] *= fly_speed[2] * ndof.time_delta;
+    }
+    else {
+      const float speed = view3d_ndof_pan_speed_calc(rv3d);
+      pan_vec *= speed * ndof.time_delta;
+    }
 
     /* transform motion from view to world coordinates */
     float view_inv[4];

@@ -1410,15 +1410,20 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   build_bvh_spatial(&process, &process.metaball_bvh, 0, process.totelem, &process.allbb);
 
-  /* Don't polygonize meta-balls with too high resolution (base meta-ball too small).
-   * NOTE: Epsilon was 0.0001f but this was giving problems for blood animation for
-   * the open movie "Sintel", using 0.00001f. */
-  if (ob->scale[0] < 0.00001f * (process.allbb.max[0] - process.allbb.min[0]) ||
-      ob->scale[1] < 0.00001f * (process.allbb.max[1] - process.allbb.min[1]) ||
-      ob->scale[2] < 0.00001f * (process.allbb.max[2] - process.allbb.min[2]))
   {
-    freepolygonize(&process);
-    return nullptr;
+    /* Don't polygonize meta-balls with too high resolution (base meta-ball too small).
+     * NOTE: Epsilon was 0.0001f but this was giving problems for blood animation for
+     * the open movie "Sintel", using 0.00001f. */
+    const float eps = 0.00001f;
+    const blender::float4x4 &object_to_world = ob->object_to_world();
+    for (int i = 0; i < 3; i++) {
+      if (blender::math::length_squared(object_to_world[i].xyz()) <
+          blender::math::square(eps * (process.allbb.max[i] - process.allbb.min[i])))
+      {
+        freepolygonize(&process);
+        return nullptr;
+      }
+    }
   }
 
   polygonize(&process);

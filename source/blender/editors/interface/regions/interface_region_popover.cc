@@ -93,8 +93,15 @@ static void ui_popover_create_block(bContext *C,
   }
 #endif
 
-  pup->layout = UI_block_layout(
-      pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, pup->ui_size_x, 0, 0, style);
+  pup->layout = &blender::ui::block_layout(pup->block,
+                                           blender::ui::LayoutDirection::Vertical,
+                                           blender::ui::LayoutType::Panel,
+                                           0,
+                                           0,
+                                           pup->ui_size_x,
+                                           0,
+                                           0,
+                                           style);
 
   pup->layout->operator_context_set(opcontext);
 
@@ -124,7 +131,6 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 
   /* Setup and resolve UI layout for block. */
   uiBlock *block = pup->block;
-  int width, height;
 
   /* in some cases we create the block before the region,
    * so we set it delayed here if necessary */
@@ -132,7 +138,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
     UI_block_region_set(block, handle->region);
   }
 
-  UI_block_layout_resolve(block, &width, &height);
+  blender::ui::block_layout_resolve(block);
   UI_block_direction_set(block, UI_DIR_DOWN | UI_DIR_CENTER_X);
 
   const int block_margin = U.widget_unit / 2;

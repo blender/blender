@@ -36,6 +36,7 @@ static void createTransTexspace(bContext * /*C*/, TransInfo *t)
 {
   ViewLayer *view_layer = t->view_layer;
   TransData *td;
+  TransDataExtension *td_ext;
   Object *ob;
   ID *id;
   char *texspace_flag;
@@ -63,7 +64,7 @@ static void createTransTexspace(bContext * /*C*/, TransInfo *t)
     TransDataContainer *tc = t->data_container;
     tc->data_len = 1;
     td = tc->data = MEM_callocN<TransData>("TransTexspace");
-    td->ext = tc->data_ext = MEM_callocN<TransDataExtension>("TransTexspace");
+    td_ext = tc->data_ext = MEM_callocN<TransDataExtension>("TransTexspace");
   }
 
   td->flag = TD_SELECTED;
@@ -74,14 +75,14 @@ static void createTransTexspace(bContext * /*C*/, TransInfo *t)
   normalize_m3(td->axismtx);
   pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
-  if (BKE_object_obdata_texspace_get(ob, &texspace_flag, &td->loc, &td->ext->scale)) {
+  if (BKE_object_obdata_texspace_get(ob, &texspace_flag, &td->loc, &td_ext->scale)) {
     ob->dtx |= OB_TEXSPACE;
     *texspace_flag &= ~ME_TEXSPACE_FLAG_AUTO;
   }
 
   copy_v3_v3(td->iloc, td->loc);
   copy_v3_v3(td->center, td->loc);
-  copy_v3_v3(td->ext->iscale, td->ext->scale);
+  copy_v3_v3(td_ext->iscale, td_ext->scale);
 }
 
 /** \} */

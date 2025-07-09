@@ -1470,19 +1470,17 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
 static bool transinfo_show_overlay(TransInfo *t, ARegion *region)
 {
   /* Don't show overlays when not the active view and when overlay is disabled: #57139 */
-  bool ok = false;
   if (region == t->region) {
-    ok = true;
+    return true;
   }
-  else {
-    if (t->spacetype == SPACE_VIEW3D) {
-      View3D *v3d = static_cast<View3D *>(t->view);
-      if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
-        ok = true;
-      }
+
+  if (t->spacetype == SPACE_VIEW3D) {
+    View3D *v3d = static_cast<View3D *>(t->view);
+    if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
+      return true;
     }
   }
-  return ok;
+  return false;
 }
 
 static void drawTransformView(const bContext * /*C*/, ARegion *region, void *arg)
@@ -1602,24 +1600,24 @@ static void drawTransformPixel(const bContext * /*C*/, ARegion *region, void *ar
     return;
   }
 
-  if (region == t->region) {
-    Scene *scene = t->scene;
-    ViewLayer *view_layer = t->view_layer;
-    BKE_view_layer_synced_ensure(scene, view_layer);
-    Object *ob = BKE_view_layer_active_object_get(view_layer);
+  if (region != t->region) {
+    return;
+  }
 
-    /* Draw auto-key-framing hint in the corner
-     * - only draw if enabled (advanced users may be distracted/annoyed),
-     *   for objects that will be auto-keyframed (no point otherwise),
-     *   AND only for the active region (as showing all is too overwhelming)
-     */
-    if ((U.keying_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
-      if (region == t->region) {
-        if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
-          if (ob && animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
-            drawAutoKeyWarning(t, region);
-          }
-        }
+  /* Draw auto-key-framing hint in the corner
+   * - only draw if enabled (advanced users may be distracted/annoyed),
+   *   for objects that will be auto-keyframed (no point otherwise),
+   *   AND only for the active region (as showing all is too overwhelming)
+   */
+  if ((U.keying_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
+    if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
+      Scene *scene = t->scene;
+      ViewLayer *view_layer = t->view_layer;
+      BKE_view_layer_synced_ensure(scene, view_layer);
+      Object *ob = BKE_view_layer_active_object_get(view_layer);
+
+      if (ob && animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {
+        drawAutoKeyWarning(t, region);
       }
     }
   }
@@ -1780,6 +1778,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
         int orient_axis = constraintModeToIndex(t);
         if (orient_axis != -1) {
           RNA_property_enum_set(op->ptr, prop, orient_axis);
+          t->con.mode &= ~CON_APPLY;
         }
       }
       else {
@@ -1952,7 +1951,13 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         continue;
       }
 
-      BLI_assert(tc->sorted_index_map);
+      if (!tc->sorted_index_map) {
+        BLI_assert_msg(tc->data[0].flag & TD_SELECTED,
+                       "Without sorted_index_map, all items are expected to be selected");
+        has_selected_any = true;
+        break;
+      }
+
       const int first_selected_index = tc->sorted_index_map[0];
       TransData *td = &tc->data[first_selected_index];
       if (td->flag & TD_SELECTED) {
@@ -2213,6 +2218,17 @@ bool transform_apply_matrix(TransInfo *t, float mat[4][4])
 void transform_final_value_get(const TransInfo *t, float *value, const int value_num)
 {
   memcpy(value, t->values_final, sizeof(float) * value_num);
+}
+
+void view_vector_calc(const TransInfo *t, const float focus[3], float r_vec[3])
+{
+  if (t->persp != RV3D_ORTHO) {
+    sub_v3_v3v3(r_vec, t->viewinv[3], focus);
+  }
+  else {
+    copy_v3_v3(r_vec, t->viewinv[2]);
+  }
+  normalize_v3(r_vec);
 }
 
 }  // namespace blender::ed::transform

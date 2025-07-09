@@ -59,7 +59,6 @@ static TransData *SeqToTransData(const Scene *scene,
   tdseq->key_index = seq::retiming_key_index_get(strip, key);
 
   td->extra = static_cast<void *>(tdseq);
-  td->ext = nullptr;
   td->flag |= TD_SELECTED;
   td->dist = 0.0;
 

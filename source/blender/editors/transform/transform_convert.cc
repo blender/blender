@@ -232,7 +232,6 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
   /* Count number of selected. */
   int td_table_len = 0;
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    BLI_assert(tc->sorted_index_map);
     tc->foreach_index_selected([&](const int /*i*/) { td_table_len++; });
   }
 

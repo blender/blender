@@ -1147,7 +1147,9 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
-          do_version_normal_node_dot_product(node_tree, node);
+          if (node->type_legacy == CMP_NODE_NORMAL) {
+            do_version_normal_node_dot_product(node_tree, node);
+          }
         }
       }
     }
@@ -1280,6 +1282,48 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 34)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type_legacy != CMP_NODE_SCALE) {
+          continue;
+        }
+        if (node->storage == nullptr) {
+          continue;
+        }
+        NodeScaleData *data = static_cast<NodeScaleData *>(node->storage);
+        data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
+        data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+        node->storage = data;
+      }
+      FOREACH_NODETREE_END;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 35)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type_legacy != CMP_NODE_TRANSFORM) {
+          continue;
+        }
+        if (node->storage != nullptr) {
+          continue;
+        }
+        NodeTransformData *data = MEM_callocN<NodeTransformData>(__func__);
+        data->interpolation = node->custom1;
+        data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
+        data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+        node->storage = data;
+      }
+      FOREACH_NODETREE_END;
+    }
+  }
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

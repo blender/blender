@@ -237,22 +237,22 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
   const float padding_y = UI_SCALE_FAC;
 
   uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
-  uiLayout *layout = UI_block_layout(block,
-                                     UI_LAYOUT_VERTICAL,
-                                     UI_LAYOUT_HEADER,
-                                     rect.xmin + padding_x,
-                                     rect.ymin + UI_UNIT_Y + padding_y,
-                                     BLI_rcti_size_x(&rect) - 2 * padding_x,
-                                     1,
-                                     0,
-                                     style);
-  layout->scale_y_set((UI_UNIT_Y - padding_y) / UI_UNIT_Y);
-  UI_block_layout_set_current(block, layout);
+  uiLayout &layout = blender::ui::block_layout(block,
+                                               blender::ui::LayoutDirection::Vertical,
+                                               blender::ui::LayoutType::Header,
+                                               rect.xmin + padding_x,
+                                               rect.ymin + UI_UNIT_Y + padding_y,
+                                               BLI_rcti_size_x(&rect) - 2 * padding_x,
+                                               1,
+                                               0,
+                                               style);
+  layout.scale_y_set((UI_UNIT_Y - padding_y) / UI_UNIT_Y);
+  UI_block_layout_set_current(block, &layout);
   UI_block_align_begin(block);
-  layout->prop(&ptr, "filter_text", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(&ptr, "use_filter_invert", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  layout.prop(&ptr, "filter_text", UI_ITEM_NONE, "", ICON_NONE);
+  layout.prop(&ptr, "use_filter_invert", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   UI_block_align_end(block);
-  UI_block_layout_resolve(block, nullptr, nullptr);
+  blender::ui::block_layout_resolve(block);
 
   /* Make sure the events are consumed from the search and don't reach other UI blocks since this
    * is drawn on top of animation-channels. */

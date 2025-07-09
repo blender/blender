@@ -12,7 +12,9 @@
 #include "FN_multi_function_builder.hh"
 
 #include "NOD_multi_function.hh"
+#include "NOD_rna_define.hh"
 
+#include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
 #include "GPU_material.hh"
@@ -23,7 +25,7 @@
 
 namespace blender::nodes::node_composite_alpha_over_cc {
 
-static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
+static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Float>("Fac")
@@ -48,7 +50,45 @@ static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 }
 
-using namespace blender::compositor;
+static void node_rna(StructRNA *srna)
+{
+  static const EnumPropertyItem operation_type_items[] = {
+      {CMP_NODE_ALPHA_OVER_OPERATION_TYPE_OVER,
+       "OVER",
+       ICON_NONE,
+       "Over",
+       "The foreground goes over the background according to the alpha of the foreground"},
+      {CMP_NODE_ALPHA_OVER_OPERATION_TYPE_DISJOINT_OVER,
+       "DISJOINT_OVER",
+       ICON_NONE,
+       "Disjoint Over",
+       "The foreground goes over the background according to the alpha of the foreground while "
+       "assuming the background is being held out by the foreground"},
+      {CMP_NODE_ALPHA_OVER_OPERATION_TYPE_CONJOINT_OVER,
+       "CONJOINT_OVER",
+       ICON_NONE,
+       "Conjoint Over",
+       "The foreground goes over the background according to the alpha of the foreground but the "
+       "foreground completely covers the background if it is more opaque but not necessary "
+       "completely opaque"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "operation_type",
+                    "Operation Type",
+                    "The type of alpha over operation",
+                    operation_type_items,
+                    NOD_inline_enum_accessors(custom1),
+                    CMP_NODE_ALPHA_OVER_OPERATION_TYPE_OVER,
+                    nullptr,
+                    true);
+}
+
+static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  layout->prop(ptr, "operation_type", UI_ITEM_NONE, "", ICON_NONE);
+}
 
 static int node_gpu_material(GPUMaterial *material,
                              bNode *node,
@@ -56,28 +96,95 @@ static int node_gpu_material(GPUMaterial *material,
                              GPUNodeStack *inputs,
                              GPUNodeStack *outputs)
 {
-  return GPU_stack_link(material, node, "node_composite_alpha_over", inputs, outputs);
+  switch (static_cast<CMPNodeAlphaOverOperationType>(node->custom1)) {
+    case CMP_NODE_ALPHA_OVER_OPERATION_TYPE_OVER:
+      return GPU_stack_link(material, node, "node_composite_alpha_over", inputs, outputs);
+    case CMP_NODE_ALPHA_OVER_OPERATION_TYPE_DISJOINT_OVER:
+      return GPU_stack_link(material, node, "node_composite_alpha_over_disjoint", inputs, outputs);
+    case CMP_NODE_ALPHA_OVER_OPERATION_TYPE_CONJOINT_OVER:
+      return GPU_stack_link(material, node, "node_composite_alpha_over_conjoint", inputs, outputs);
+  }
+
+  BLI_assert_unreachable();
+  return 0;
 }
 
-/* Computes the Porter and Duff Over compositing operation. If straight_alpha is true, then the
- * foreground is in straight alpha form and would need to be premultiplied. */
+/* If straight_alpha is true, then the foreground is in straight alpha form and would need to be
+ * premultiplied. */
+static float4 preprocess_foreground(const float4 &foreground, const bool straight_alpha)
+{
+  const float alpha = math::clamp(foreground.w, 0.0f, 1.0f);
+  const float4 premultiplied_foreground = float4(foreground.xyz() * alpha, alpha);
+  return straight_alpha ? premultiplied_foreground : foreground;
+}
+
+/* Computes the Porter and Duff Over compositing operation. */
 static float4 alpha_over(const float factor,
                          const float4 &background,
                          const float4 &foreground,
                          const bool straight_alpha)
 {
-  /* Premultiply the alpha of the foreground if it is straight. */
-  const float alpha = math::clamp(foreground.w, 0.0f, 1.0f);
-  const float4 premultiplied_foreground = float4(foreground.xyz() * alpha, alpha);
-  const float4 foreground_color = straight_alpha ? premultiplied_foreground : foreground;
+  const float4 foreground_color = preprocess_foreground(foreground, straight_alpha);
 
-  const float4 mix_result = background * (1.0f - alpha) + foreground_color;
+  const float foreground_alpha = math::clamp(foreground.w, 0.0f, 1.0f);
+  const float4 mix_result = foreground_color + background * (1.0f - foreground_alpha);
+
+  return math::interpolate(background, mix_result, factor);
+}
+
+/* Computes the Porter and Duff Over compositing operation while assuming the background is being
+ * held out by the foreground. See for reference:
+ *
+ *   https://benmcewan.com/blog/disjoint-over-and-conjoint-over-explained */
+static float4 alpha_over_disjoint(const float factor,
+                                  const float4 &background,
+                                  const float4 &foreground,
+                                  const bool straight_alpha)
+{
+  const float4 foreground_color = preprocess_foreground(foreground, straight_alpha);
+
+  const float foreground_alpha = math::clamp(foreground.w, 0.0f, 1.0f);
+  const float background_alpha = math::clamp(background.w, 0.0f, 1.0f);
+
+  if (foreground_alpha + background_alpha < 1.0f) {
+    const float4 mix_result = foreground_color + background;
+    return math::interpolate(background, mix_result, factor);
+  }
+
+  const float4 straight_background = math::safe_divide(background, background_alpha);
+  const float4 mix_result = foreground_color + straight_background * (1.0f - foreground_alpha);
+
+  return math::interpolate(background, mix_result, factor);
+}
+
+/* Computes the Porter and Duff Over compositing operation but the foreground completely covers the
+ * background if it is more opaque but not necessary completely opaque. See for reference:
+ *
+ *   https://benmcewan.com/blog/disjoint-over-and-conjoint-over-explained */
+static float4 alpha_over_conjoint(const float factor,
+                                  const float4 &background,
+                                  const float4 &foreground,
+                                  const bool straight_alpha)
+{
+  const float4 foreground_color = preprocess_foreground(foreground, straight_alpha);
+
+  const float foreground_alpha = math::clamp(foreground.w, 0.0f, 1.0f);
+  const float background_alpha = math::clamp(background.w, 0.0f, 1.0f);
+
+  if (foreground_alpha > background_alpha) {
+    const float4 mix_result = foreground_color;
+    return math::interpolate(background, mix_result, factor);
+  }
+
+  const float alpha_ratio = math::safe_divide(foreground_alpha, background_alpha);
+  const float4 mix_result = foreground_color + background * (1.0f - alpha_ratio);
+
   return math::interpolate(background, mix_result, factor);
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto function = mf::build::SI4_SO<float, float4, float4, bool, float4>(
+  static auto over_function = mf::build::SI4_SO<float, float4, float4, bool, float4>(
       "Alpha Over",
       [=](const float factor,
           const float4 &background,
@@ -86,15 +193,44 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
         return alpha_over(factor, background, foreground, straight_alpha);
       },
       mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
-  builder.set_matching_fn(function);
-}
 
-}  // namespace blender::nodes::node_composite_alpha_over_cc
+  static auto disjoint_function = mf::build::SI4_SO<float, float4, float4, bool, float4>(
+      "Alpha Over Disjoint",
+      [=](const float factor,
+          const float4 &background,
+          const float4 &foreground,
+          const bool straight_alpha) -> float4 {
+        return alpha_over_disjoint(factor, background, foreground, straight_alpha);
+      },
+      mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
+
+  static auto conjoint_function = mf::build::SI4_SO<float, float4, float4, bool, float4>(
+      "Alpha Over Conjoint",
+      [=](const float factor,
+          const float4 &background,
+          const float4 &foreground,
+          const bool straight_alpha) -> float4 {
+        return alpha_over_conjoint(factor, background, foreground, straight_alpha);
+      },
+      mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
+
+  switch (static_cast<CMPNodeAlphaOverOperationType>(builder.node().custom1)) {
+    case CMP_NODE_ALPHA_OVER_OPERATION_TYPE_OVER:
+      builder.set_matching_fn(over_function);
+      return;
+    case CMP_NODE_ALPHA_OVER_OPERATION_TYPE_DISJOINT_OVER:
+      builder.set_matching_fn(disjoint_function);
+      return;
+    case CMP_NODE_ALPHA_OVER_OPERATION_TYPE_CONJOINT_OVER:
+      builder.set_matching_fn(conjoint_function);
+      return;
+  }
+
+  BLI_assert_unreachable();
+}
 
 static void register_node_type_cmp_alphaover()
 {
-  namespace file_ns = blender::nodes::node_composite_alpha_over_cc;
-
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeAlphaOver", CMP_NODE_ALPHAOVER);
@@ -102,10 +238,15 @@ static void register_node_type_cmp_alphaover()
   ntype.ui_description = "Overlay a foreground image onto a background image";
   ntype.enum_name_legacy = "ALPHAOVER";
   ntype.nclass = NODE_CLASS_OP_COLOR;
-  ntype.declare = file_ns::cmp_node_alphaover_declare;
-  ntype.gpu_fn = file_ns::node_gpu_material;
-  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.declare = node_declare;
+  ntype.draw_buttons = node_layout;
+  ntype.gpu_fn = node_gpu_material;
+  ntype.build_multi_function = node_build_multi_function;
 
   blender::bke::node_register_type(ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(register_node_type_cmp_alphaover)
+
+}  // namespace blender::nodes::node_composite_alpha_over_cc

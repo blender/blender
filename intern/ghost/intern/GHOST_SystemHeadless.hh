@@ -50,12 +50,33 @@ class GHOST_SystemHeadless : public GHOST_System {
   {
     return GHOST_TCapabilityFlag(
         GHOST_CAPABILITY_FLAG_ALL &
-        /* No windowing functionality supported. */
-        ~(GHOST_kCapabilityWindowPosition | GHOST_kCapabilityCursorWarp |
-          GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityDesktopSample |
-          GHOST_kCapabilityClipboardImages | GHOST_kCapabilityInputIME |
-          GHOST_kCapabilityWindowDecorationStyles | GHOST_kCapabilityKeyboardHyperKey |
-          GHOST_kCapabilityRGBACursors));
+        /* No windowing functionality supported.
+         * In most cases this value doesn't matter for the headless backend.
+         *
+         * Nevertheless, don't advertise support.
+         *
+         * NOTE: order the following flags as they they're declared in the source. */
+        ~(
+            /* Wrap. */
+            GHOST_kCapabilityWindowPosition |
+            /* Wrap. */
+            GHOST_kCapabilityCursorWarp |
+            /* Wrap. */
+            GHOST_kCapabilityClipboardPrimary |
+            /* Wrap. */
+            GHOST_kCapabilityClipboardImage |
+            /* Wrap. */
+            GHOST_kCapabilityDesktopSample |
+            /* Wrap. */
+            GHOST_kCapabilityInputIME |
+            /* Wrap. */
+            GHOST_kCapabilityWindowDecorationStyles |
+            /* Wrap. */
+            GHOST_kCapabilityKeyboardHyperKey |
+            /* Wrap. */
+            GHOST_kCapabilityCursorRGBA)
+
+    );
   }
   char *getClipboard(bool /*selection*/) const override
   {

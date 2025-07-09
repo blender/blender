@@ -55,6 +55,10 @@ GHOST_DECLARE_HANDLE(GHOST_XrContextHandle);
 
 typedef void (*GHOST_TBacktraceFn)(void *file_handle);
 
+typedef void *GHOST_TUserDataPtr;
+
+typedef enum { GHOST_kFailure = 0, GHOST_kSuccess } GHOST_TSuccess;
+
 /**
  * A reference to cursor bitmap data.
  */
@@ -74,10 +78,6 @@ typedef enum GHOST_DialogOptions {
   GHOST_DialogWarning = (1 << 0),
   GHOST_DialogError = (1 << 1),
 } GHOST_DialogOptions;
-
-typedef void *GHOST_TUserDataPtr;
-
-typedef enum { GHOST_kFailure = 0, GHOST_kSuccess } GHOST_TSuccess;
 
 /**
  * Static flag (relating to the back-ends support for features).
@@ -99,7 +99,7 @@ typedef enum {
    * Set when a separate primary clipboard is supported.
    * This is a convention for X11/WAYLAND, select text & MMB to paste (without an explicit copy).
    */
-  GHOST_kCapabilityPrimaryClipboard = (1 << 2),
+  GHOST_kCapabilityClipboardPrimary = (1 << 2),
   /**
    * Support for reading the front-buffer.
    */
@@ -107,7 +107,7 @@ typedef enum {
   /**
    * Set when there is support for system clipboard copy/paste.
    */
-  GHOST_kCapabilityClipboardImages = (1 << 4),
+  GHOST_kCapabilityClipboardImage = (1 << 4),
   /**
    * Support for sampling a color outside of the Blender windows.
    */
@@ -132,7 +132,7 @@ typedef enum {
    * Support for creation of RGBA mouse cursors. This flag is likely
    * to be temporary as our intention is to implement on all platforms.
    */
-  GHOST_kCapabilityRGBACursors = (1 << 10),
+  GHOST_kCapabilityCursorRGBA = (1 << 10),
 
 } GHOST_TCapabilityFlag;
 
@@ -142,11 +142,10 @@ typedef enum {
  */
 #define GHOST_CAPABILITY_FLAG_ALL \
   (GHOST_kCapabilityCursorWarp | GHOST_kCapabilityWindowPosition | \
-   GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityGPUReadFrontBuffer | \
-   GHOST_kCapabilityClipboardImages | GHOST_kCapabilityDesktopSample | \
-   GHOST_kCapabilityInputIME | GHOST_kCapabilityTrackpadPhysicalDirection | \
-   GHOST_kCapabilityWindowDecorationStyles | GHOST_kCapabilityKeyboardHyperKey | \
-   GHOST_kCapabilityRGBACursors)
+   GHOST_kCapabilityClipboardPrimary | GHOST_kCapabilityGPUReadFrontBuffer | \
+   GHOST_kCapabilityClipboardImage | GHOST_kCapabilityDesktopSample | GHOST_kCapabilityInputIME | \
+   GHOST_kCapabilityTrackpadPhysicalDirection | GHOST_kCapabilityWindowDecorationStyles | \
+   GHOST_kCapabilityKeyboardHyperKey | GHOST_kCapabilityCursorRGBA)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the
@@ -342,9 +341,13 @@ typedef enum {
   GHOST_kStandardCursorHelp,
   GHOST_kStandardCursorWait,
   GHOST_kStandardCursorText,
+  /** Crosshair: default. */
   GHOST_kStandardCursorCrosshair,
+  /** Crosshair: with outline. */
   GHOST_kStandardCursorCrosshairA,
+  /** Crosshair: a single "dot" (not really a crosshair). */
   GHOST_kStandardCursorCrosshairB,
+  /** Crosshair: stippled/half-tone black/white. */
   GHOST_kStandardCursorCrosshairC,
   GHOST_kStandardCursorPencil,
   GHOST_kStandardCursorUpArrow,

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
-"PO-Revision-Date: 2025-06-24 09:59+0000\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"PO-Revision-Date: 2025-07-01 05:20+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -34628,36 +34628,12 @@ msgid "Editor menu containing buttons"
 msgstr "Ponuka editora obsahujúca tlačidlá"
 
 
-msgid "Clean Up"
-msgstr "Prečistiť"
-
-
 msgid "Show/Hide"
 msgstr "Ukázať/skryť"
 
 
-msgid "Special Characters"
-msgstr "Špeciálne znaky"
-
-
-msgid "Kerning"
-msgstr "Zhustenie znakov"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Meta guľa"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Bone Roll"
-msgstr "Kývanie kosti"
+msgid "Clean Up"
+msgstr "Prečistiť"
 
 
 msgid "Pivot Point"
@@ -34744,6 +34720,10 @@ msgid "Assign Material"
 msgstr "Priradiť materiál"
 
 
+msgid "Metaball"
+msgstr "Meta guľa"
+
+
 msgid "Light"
 msgstr "Svetlo"
 
@@ -34828,6 +34808,10 @@ msgid "Bone Collections"
 msgstr "Kolekcie kostí"
 
 
+msgid "Names"
+msgstr "Názvy"
+
+
 msgid "Toggle Bone Options"
 msgstr "Prepínač možnosti kostí"
 
@@ -34858,6 +34842,22 @@ msgstr "Nastaviť vplyv plôšky"
 
 msgid "Merge"
 msgstr "Zlúčiť"
+
+
+msgid "Special Characters"
+msgstr "Špeciálne znaky"
+
+
+msgid "Kerning"
+msgstr "Zhustenie znakov"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Bone Roll"
+msgstr "Kývanie kosti"
 
 
 msgid "Keyframe Insert Pie"
@@ -53886,6 +53886,7 @@ msgid "Minimum value"
 msgstr "Minimálna hodnota"
 
 
+msgctxt "Unit"
 msgid "Subtype"
 msgstr "Podtyp"
 
@@ -62915,10 +62916,6 @@ msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
 msgstr "Ďalšie typy geometrie ako krivka, metaguľa, atď. (konvertované na povrchovú sieť)"
 
 
-msgid "Path Mode"
-msgstr "Režim cesty"
-
-
 msgid "Method used to reference paths"
 msgstr "Metóda používaná na referenčné cesty"
 
@@ -62931,20 +62928,12 @@ msgid "Always write absolute paths"
 msgstr "Vždy zapíše absolútne cesty"
 
 
-msgid "Always write relative paths (where possible)"
-msgstr "Vždy zapíše relatívne cesty (ak je to možné)"
-
-
-msgid "Match"
-msgstr "Prispôsobiť"
+msgid "Write relative paths where possible"
+msgstr "Ak je to možné, zapíše relatívne cesty"
 
 
 msgid "Match absolute/relative setting with input path"
 msgstr "Prispôsobí nastavenia absolútna/relatívna so vstupnou cestou"
-
-
-msgid "Strip Path"
-msgstr "Cesta pásu"
 
 
 msgid "Filename only"
@@ -89815,10 +89804,6 @@ msgid "Negative Z axis"
 msgstr "Záporná os Z"
 
 
-msgid "Write relative paths where possible"
-msgstr "Ak je to možné, zapíše relatívne cesty"
-
-
 msgid "Write filename only"
 msgstr "Zapíše iba názov súboru"
 
@@ -90212,11 +90197,6 @@ msgstr "Mäkkosť Maximum"
 
 msgid "Soft Min"
 msgstr "Mäkkosť Minimum"
-
-
-msgctxt "Unit"
-msgid "Subtype"
-msgstr "Podtyp"
 
 
 msgid "Soft Limits"
@@ -118953,6 +118933,26 @@ msgid "Error: {:s}"
 msgstr "Chyba: {:s}"
 
 
+msgctxt "Preferences"
+msgid "Extension"
+msgstr "Rozšírenie"
+
+
+msgctxt "Preferences"
+msgid "Core"
+msgstr "Jadro"
+
+
+msgctxt "Preferences"
+msgid "Legacy (User)"
+msgstr "Zdedené (užívateľské)"
+
+
+msgctxt "Preferences"
+msgid "Legacy (Other)"
+msgstr "Zdedené (iné)"
+
+
 msgid "Missing Built-in Add-ons"
 msgstr "Chýbajúce zabudované doplnky"
 
@@ -121395,6 +121395,10 @@ msgid "Active camera is not in this scene"
 msgstr "Aktívna kamera sa na tejto scéne nenachádza"
 
 
+msgid "No {:s} modifiers found"
+msgstr "Nenájdené {:s} modifikátory"
+
+
 msgid "Skipping '{:s}', not a mesh"
 msgstr "Preskočené '{:s}', nie povrchová sieť"
 
@@ -122113,6 +122117,14 @@ msgid "Mix Vector"
 msgstr "Vektor zmiešania"
 
 
+msgid "For Each Element"
+msgstr "Pre každý prvok"
+
+
+msgid "Determinant"
+msgstr "Vymedzovač"
+
+
 msgid "Calculation Range"
 msgstr "Rozsah výpočtu"
 
@@ -122725,6 +122737,11 @@ msgstr "Aktualizácia pri úprave"
 msgctxt "Operator"
 msgid "Search..."
 msgstr "Vyhľadať..."
+
+
+msgctxt "Speaker"
+msgid "Volume Min"
+msgstr "Hlasitosť Minimum"
 
 
 msgid "Distance Reference"
@@ -124188,6 +124205,10 @@ msgstr "Kalibrácia"
 msgctxt "Operator"
 msgid "Prefetch"
 msgstr "Predbežné načítanie"
+
+
+msgid "Match"
+msgstr "Prispôsobiť"
 
 
 msgctxt "Operator"
@@ -127032,6 +127053,14 @@ msgid "A restart of Blender is required"
 msgstr "Je potrebný reštart Blenderu"
 
 
+msgid "Current Vulkan backend limitations:"
+msgstr "Aktuálne obmedzenia backendu Vulkan:"
+
+
+msgid "• Low performance in VR"
+msgstr "• Nízky výkon VR"
+
+
 msgid "Open blend files with this Blender version"
 msgstr "Otvorí blend súbory touto verziou Blenderu"
 
@@ -127105,6 +127134,10 @@ msgstr "URL adresa úložiska"
 
 msgid "Enable Cycles Render Engine add-on to use Cycles"
 msgstr "Povoliť doplnok Cycles Render Engine (Mechanizmus prekreslenia Cycles) pre používanie Cycles"
+
+
+msgid "• Windows on ARM requires driver 31.0.112.0 or higher"
+msgstr "• Systém Windows na ARM vyžaduje ovládač 31.0.112.0 alebo vyšší"
 
 
 msgid "Microsoft Store installation"
@@ -131803,6 +131836,10 @@ msgid "Separated bones"
 msgstr "Oddelené kosti"
 
 
+msgid "Cannot join objects that share armature data: %s"
+msgstr "Nemožno spojiť objekty, ktoré majú spoločné údaje o armatúre: %s"
+
+
 msgid "Unselectable bone in chain"
 msgstr "Nevybrateľná kosť reťaze"
 
@@ -132343,6 +132380,10 @@ msgstr "Nevybraný riadiaci bod"
 
 msgid "Control point belongs to another spline"
 msgstr "Riadiaci bod patrí do inej drážky"
+
+
+msgid "Insert"
+msgstr "Vložiť"
 
 
 msgid "Unicode codepoint hex value"
@@ -132973,10 +133014,6 @@ msgstr "Esc"
 
 msgid "Pause"
 msgstr "Pauza"
-
-
-msgid "Insert"
-msgstr "Vložiť"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -133965,6 +134002,10 @@ msgstr "Príznaky bitov vyhladenej skupiny"
 
 msgid "PBR Extensions"
 msgstr "Rozšírenia PBR"
+
+
+msgid "Path Mode"
+msgstr "Režim cesty"
 
 
 msgid "File exported successfully"
@@ -138151,6 +138192,10 @@ msgid "Menu Undefined"
 msgstr "Nedefinovaná ponuka"
 
 
+msgid "Subtype"
+msgstr "Podtyp"
+
+
 msgid "Could not determine type of group node"
 msgstr "Nepodarilo sa určiť typ uzla skupiny"
 
@@ -138549,10 +138594,6 @@ msgstr "Nemožno pridať novú kolekciu na prepojenú/prepísanú scénu"
 
 msgid "No active collection"
 msgstr "Žiadna aktívna kolekcia"
-
-
-msgid "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
-msgstr "Nepodarilo sa nájsť platnú rodičovskú kolekciu pre novú kópiu, nebude prepojená so žiadnou vrstvou zobrazenia"
 
 
 msgid "Cannot add a collection to a linked/override collection/scene"
@@ -139337,10 +139378,6 @@ msgstr "(Geometria)"
 
 msgid "No Data-Block"
 msgstr "Žiadny blok údajov"
-
-
-msgid "For Each Element"
-msgstr "Pre každý prvok"
 
 
 msgid "No Active Context"
@@ -142347,6 +142384,10 @@ msgid "Cannot edit bone groups for library overrides"
 msgstr "Nemožno upravovať skupiny kostí pre prepis knižnice"
 
 
+msgid "Cannot use armature object as custom bone shape"
+msgstr "Nemožno použiť objekt armatúry ako vlastný tvar kosti"
+
+
 msgid "Constraint '%s' not found in pose bone '%s'"
 msgstr "Vynútenie '%s' sa v póze kosti '%s' nenašlo"
 
@@ -142369,6 +142410,18 @@ msgstr "Do funkcie prešiel nekonvexný kolízny tvar, používajte len konvexn�
 
 msgid "Rigidbody world was not properly initialized, need to step the simulation first"
 msgstr "Svet pevného telesa nebol správne inicializovaný, je potrebný najprv krok simulácie"
+
+
+msgid "Float (Half)"
+msgstr "Na pohyblivej čiarke (polovičná)"
+
+
+msgid "16-bit color channels. Data passes like Depth will still be saved using full 32-bit precision."
+msgstr "16-bitové farebné kanály. Prechody údajov, ako je napríklad hĺbka, sa budú stále ukladať s plnou 32-bitovou presnosťou."
+
+
+msgid "Float (Full)"
+msgstr "Na pohyblivej čiarke (plná)"
 
 
 msgid "Use the scene orientation"
@@ -144973,10 +145026,6 @@ msgstr "PRAVDA, ak je vstupná matrica invertovateľná"
 
 msgid "The string to find in the input string"
 msgstr "Reťazec na vyhľadanie vo vstupnom reťazci"
-
-
-msgid "Determinant"
-msgstr "Vymedzovač"
 
 
 msgid "The string to replace each match with"
@@ -147673,11 +147722,6 @@ msgid "IOR Level"
 msgstr "Úroveň IOR"
 
 
-msgctxt "NodeTree"
-msgid "Tint"
-msgstr "Odtieň"
-
-
 msgid "Subsurface"
 msgstr "Podpovrch"
 
@@ -147688,6 +147732,11 @@ msgstr "Lesk"
 
 msgid "Thin Film"
 msgstr "Tenký film"
+
+
+msgctxt "NodeTree"
+msgid "Tint"
+msgstr "Odtieň"
 
 
 msgid "Strength of the bump mapping effect, interpolating between no bump mapping and full bump mapping"

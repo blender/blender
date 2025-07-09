@@ -56,6 +56,7 @@ enum GHOST_TVulkanPlatformType {
 
 struct GHOST_ContextVK_WindowInfo {
   int size[2];
+  bool is_color_managed;
 };
 
 struct GHOST_FrameDiscard {
@@ -252,7 +253,7 @@ class GHOST_ContextVK : public GHOST_Context {
   std::function<void(GHOST_VulkanOpenXRData *)> openxr_release_framebuffer_image_callback_;
 
   const char *getPlatformSpecificSurfaceExtension() const;
-  GHOST_TSuccess recreateSwapchain();
+  GHOST_TSuccess recreateSwapchain(bool use_hdr_swapchain);
   GHOST_TSuccess initializeFrameData();
   GHOST_TSuccess destroySwapchain();
 };

@@ -880,34 +880,38 @@ Provided by SIL’s Non-Roman Script Initiative. Contact us at nrsi@sil.org.
 | ------- | ------- | --------- |
 | [Audaspace](https://audaspace.github.io/) | 1.6.0 (cb49 | `Copyright © 2009-2025 Jörg Müller. All rights reserved.` |
 | [Cuda Wrangler](https://github.com/CudaWrangler/cuew) | cbf465b | `Copyright 2011-2014 Blender Foundation` |
-| [DPC++](https://github.com/intel/llvm#oneapi-dpc-compiler) | v6.0.0-rc1 | `Copyright (C) 2021-2024 Intel Corporation` |
+| [Cython](https://cython.org/) | 3.0.11 | `Copyright Contributors to the Cython Project` |
+| [DPC++](https://github.com/intel/llvm#oneapi-dpc-compiler) | v6.1.0 | `Copyright (C) 2021-2025 Intel Corporation` |
 | [Draco](https://google.github.io/draco/) | 1.5.2 | `Copyright 2018 The Draco Authors` |
-| [Embree](https://github.com/embree/embree) | 4.3.3 | `Copyright 2009-2020 Intel Corporation` |
+| [Embree](https://github.com/RenderKit/embree) | 4.4.0 | `Copyright 2009-2024 Intel Corporation` |
 | [HIP Extension Wrangler Library (HIPEW)](https://projects.blender.org/blender/blender.git) | N/A | `Copyright 2011-2023 Blender Foundation` |
-| [Icdloader](https://github.com/KhronosGroup/OpenCL-ICD-Loader) | 9a3e962f16f | ` Copyright (c) 2020 The Khronos Group Inc.` |
+| [Icdloader](https://github.com/KhronosGroup/OpenCL-ICD-Loader) | 804b6f04050 | ` Copyright (c) 2020 The Khronos Group Inc.` |
 | [Igc Llvm](https://github.com/llvm/llvm-project/)¹ | llvmorg-14. | `Copyright (c) 2003-2019 University of Illinois at Urbana-Champaign. All rights reserved.` |
 | [Igc Opencl Clang](https://github.com/intel/opencl-clang/)¹ | v14.0.1 | `Copyright (c) Intel Corporation (2009-2017).` |
 | [LLVM](https://github.com/llvm/llvm-project/)¹ | 17.0.6 | `Copyright (c) 2003-2019 University of Illinois at Urbana-Champaign. All rights reserved.` |
-| [Manifold](https://github.com/elalish/manifold) | 3.0.1 | `Copyright 2021 The Manifold Authors.` |
+| [Manifold](https://github.com/elalish/manifold) | v3.1.0 | `Copyright 2021 The Manifold Authors.` |
 | [Mantaflow](http://mantaflow.com/) | 0.13 | `Copyright 2011 Tobias Pfaff, Nils Thuerey` |
 | [MaterialX](https://github.com/AcademySoftwareFoundation/MaterialX) | 1.39.2 | `Copyright Contributors to the MaterialX Project` |
 | [oneTBB](https://software.intel.com/en-us/oneapi/onetbb) | v2021.13.0 | `Copyright (c) 2005-2020 Intel Corporation` |
 | [Open PGL](http://www.openpgl.org/) | v0.6.0 | `Copyright 2020 Intel Corporation.` |
-| [OpenCL-Headers](https://github.com/KhronosGroup/OpenCL-Headers) | 9ddb236e6eb | `Copyright (c) 2023 The Khronos Group Inc.` |
-| [OpenImageDenoise](https://www.openimagedenoise.org/) | 2.3.2 | `Copyright 2009-2025 Intel Corporation` |
-| [OpenImageIO](https://github.com/AcademySoftwareFoundation/OpenImageIO) | v3.0.3.1 | `Copyright Contributors to the OpenImageIO project.` |
+| [OpenCL-Headers](https://github.com/KhronosGroup/OpenCL-Headers) | 542d7a8f65e | `Copyright (c) 2023 The Khronos Group Inc.` |
+| [OpenImageDenoise](https://www.openimagedenoise.org/) | 2.3.3 | `Copyright 2009-2025 Intel Corporation` |
+| [OpenImageIO](https://github.com/AcademySoftwareFoundation/OpenImageIO) | v3.0.6.1 | `Copyright Contributors to the OpenImageIO project.` |
 | [OpenSSL](https://www.openssl.org) | 3.1.5 | `Copyright (c) 1998-2024 The OpenSSL Project Authors. Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson; All rights reserved.` |
 | [OpenXR](https://khronos.org/openxr/) | 1.0.22 | `Copyright (c) 2017-2020 The Khronos Group Inc. Copyright (c) 2017-2019 Valve Corporation. Copyright (c) 2017-2019 LunarG, Inc. Copyright (c) 2019 Collabora, Ltd.` |
 | [Pthreads](https://github.com/fwbuilder/pthreads4w) | 3.0.0 | `Copyright 1998 John E. Bossom. Copyright 1999-2018, Pthreads4w contributors.` |
 | [RangeTree](https://github.com/ideasman42/rangetree-c) | 40ebed8aa20 | `Copyright (c) 2016, Campbell Barton` |
 | [ShaderC](https://github.com/google/shaderc) | v2024.3 | `Copyright 2015 The Shaderc Authors. All rights reserved.` |
 | [Shaderc Glslang](https://github.com/KhronosGroup/glslang) | 467ce01c71e | `Copyright 2020 The Khronos Group Inc. Copyright (C) 2015-2018 Google, Inc.` |
+| [SPIR-V Headers](https://github.com/KhronosGroup/SPIRV-Headers/) | 1.3.296 | `Copyright (c) 2015-2014 The Khronos Group Inc.` |
 | [SPIR-V Tools](https://github.com/KhronosGroup/SPIRV-Tools/) | v2023.6.rc1 | `Copyright (c) 2015-2016 The Khronos Group Inc.` |
 | [SPIR-V Tools](https://github.com/KhronosGroup/SPIRV-Tools/) | 01c8438ee4a | `Copyright (c) 2015-2016 The Khronos Group Inc.` |
-| [Unified Memory Framework](https://github.com/oneapi-src/unified-memory-framework)¹ | v0.9.0 | `Copyright (C) 2023-2024 Intel Corporation` |
-| [Unified Runtime](https://github.com/oneapi-src/unified-runtime)¹ | 04db1268314 | `Copyright (C) 2019-2024 Intel Corporation` |
-| [Vulkan-Headers](https://github.com/KhronosGroup/Vulkan-Headers) | v1.3.296 | `Copyright 2015-2023 The Khronos Group Inc.` |
-| [Vulkan-Loader](https://github.com/KhronosGroup/Vulkan-Loader) | v1.3.296 | `Copyright (c) 2019 The Khronos Group Inc. Copyright (c) 2019 Valve Corporation. Copyright (c) 2019 LunarG, Inc. Copyright (c) 2019 Google Inc.` |
+| [SPIRV-Reflect](https://github.com/KhronosGroup/SPIRV-Reflect) | 1.4.309.0 | `Copyright 2017-2018 Google Inc.` |
+| [Unified Memory Framework](https://github.com/oneapi-src/unified-memory-framework)¹ | v0.10.0 | `Copyright (C) 2023-2024 Intel Corporation` |
+| [Unified Runtime](https://github.com/oneapi-src/unified-runtime)¹ | v0.11.8 | `Copyright (C) 2019-2024 Intel Corporation` |
+| [Vulkan Utility Libraries](https://github.com/KhronosGroup/Vulkan-Utility-Libraries) | 1.3.296 | `Copyright 2015-2025 The Khronos Group Inc.` |
+| [Vulkan-Headers](https://github.com/KhronosGroup/Vulkan-Headers) | 1.3.296 | `Copyright 2015-2023 The Khronos Group Inc.` |
+| [Vulkan-Loader](https://github.com/KhronosGroup/Vulkan-Loader) | 1.3.296 | `Copyright (c) 2019 The Khronos Group Inc. Copyright (c) 2019 Valve Corporation. Copyright (c) 2019 LunarG, Inc. Copyright (c) 2019 Google Inc.` |
 <details>
 <summary>Apache License 2.0</summary>
 
@@ -1225,7 +1229,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 | [Vorbis](https://xiph.org/vorbis/) | 1.3.7 | `Copyright (c) 2002-2020 Xiph.org Foundation` |
 | [Vpx](https://github.com/webmproject/libvpx) | 1.14.0 | `Copyright (c) 2010, The WebM Project authors. All rights reserved.` |
 | [Webp](https://developers.google.com/speed/webp) | 1.3.2 | `Copyright (c) 2010, Google Inc. All rights reserved.` |
-| [Zstd](https://github.com/facebook/zstd) | 1.5.0 | `Copyright (c) 2016-present, Facebook, Inc. All rights reserved.` |
+| [Zstandard](https://github.com/indygreg/python-zstandard/) | 0.23.0 | `Copyright (c) 2016, Gregory Szorc. All rights reserved.` |
+| [Zstd](https://github.com/facebook/zstd) | 1.5.6 | `Copyright (c) 2016-present, Facebook, Inc. All rights reserved.` |
 <details>
 <summary>BSD 3-Clause "New" or "Revised" License</summary>
 
@@ -2504,7 +2509,7 @@ Public License instead of this License.  But first, please read
 
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
-| [FFmpeg](https://ffmpeg.org/) | 6.1.1 | `The FFmpeg contributors https://github.com/FFmpeg/FFmpeg/blob/master/CREDITS` |
+| [FFmpeg](https://ffmpeg.org/) | 7.1.1 | `The FFmpeg contributors https://github.com/FFmpeg/FFmpeg/blob/master/CREDITS` |
 | [Fribidi](https://github.com/fribidi/fribidi) | v1.0.12 | `Behdad Esfahbod <behdad@gnu.org>, Dov Grobgeld <dov.grobgeld@gmail.com>, Roozbeh Pournader <roozbeh@gnu.org>, Khaled Hosny <khaledhosny@eglug.org>` |
 | [Iconv](https://www.gnu.org/software/libiconv/) | 1.16 | `Copyright (C) 1998, 2022 Free Software Foundation, Inc.` |
 | [LAME](https://lame.sourceforge.io/) | 3.100 | `Copyrights (c) 1999-2011 by The LAME Project. Copyrights (c) 1999,2000,2001 by Mark Taylor. Copyrights (c) 1998 by Michael Cheng. Copyrights (c) 1995,1996,1997 by Michael Hipp: mpglib.` |
@@ -3107,14 +3112,15 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 | [Robinmap](https://github.com/Tessil/robin-map) | v1.3.0 | `Copyright (c) 2017 Thibaut Goetghebuer-Planchon <tessil@gmx.com>` |
 | [sse2neon](https://github.com/DLTcollab/sse2neon) | 227cc413fb2 | `Copyright sse2neon contributors` |
 | [TinyGLTF](https://github.com/syoyo/tinygltf) | 2.8.21, 4bf | `Copyright (c) 2017 Syoyo Fujita, Aurélien Chatelain and many contributors` |
-| [ufbx - Single source file FBX loader](https://github.com/ufbx/ufbx) | v0.18.1-dev | `Copyright (c) 2020 Samuli Raivio` |
+| [ufbx - Single source file FBX loader](https://github.com/ufbx/ufbx) | v0.19.0-dev | `Copyright (c) 2020 Samuli Raivio` |
 | [VC Intrinsics](https://github.com/intel/vc-intrinsics) | 0.20.1 | `Copyright (C) 2020-2021 Intel Corporation` |
-| [Vcintrinsics](https://github.com/intel/vc-intrinsics) | b2565a03eb3 | `Copyright (c) 2019-2024 Intel Corporation` |
+| [Vcintrinsics](https://github.com/intel/vc-intrinsics) | 2d78d580567 | `Copyright (c) 2019-2024 Intel Corporation` |
 | [Vulkan Memory Allocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) | 009ecd1 | `Copyright (c) 2017-2024 Advanced Micro Devices, Inc. All rights reserved.` |
-| [Wayland](https://gitlab.freedesktop.org/wayland/wayland) | 1.23.0 | `Copyright (c) 2017, NVIDIA CORPORATION. All rights reserved. Copyright © 2011 Kristian Høgsberg. Copyright © 2011 Benjamin Franzke. Copyright © 2010-2012 Intel Corporation. Copyright © 2012 Collabora, Ltd. Copyright © 2015 Giulio Camuffo. Copyright © 2016 Klarälvdalens Datakonsult AB, a KDAB Group company, info@kdab.com. Copyright © 2012 Jason Ekstrand. Copyright (c) 2014 Red Hat, Inc. Copyright © 2013 Marek Chalupa. Copyright © 2014 Jonas Ådahl. Copyright © 2016 Yong Bakos. Copyright © 2017 Samsung Electronics Co., Ltd. Copyright © 2002 Keith Packard. Copyright 1999 SuSE, Inc. Copyright © 2012 Philipp Brüschweiler. Copyright (c) 2020 Simon Ser. Copyright (c) 2006, 2008 Junio C Hamano.` |
+| [Vulkan-Memory-Allocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) | 3.2.1 | `Copyright (c) 2017-2025 Advanced Micro Devices, Inc. All rights reserved.` |
+| [Wayland](https://gitlab.freedesktop.org/wayland/wayland) | 1.23.1 | `Copyright (c) 2017, NVIDIA CORPORATION. All rights reserved. Copyright © 2011 Kristian Høgsberg. Copyright © 2011 Benjamin Franzke. Copyright © 2010-2012 Intel Corporation. Copyright © 2012 Collabora, Ltd. Copyright © 2015 Giulio Camuffo. Copyright © 2016 Klarälvdalens Datakonsult AB, a KDAB Group company, info@kdab.com. Copyright © 2012 Jason Ekstrand. Copyright (c) 2014 Red Hat, Inc. Copyright © 2013 Marek Chalupa. Copyright © 2014 Jonas Ådahl. Copyright © 2016 Yong Bakos. Copyright © 2017 Samsung Electronics Co., Ltd. Copyright © 2002 Keith Packard. Copyright 1999 SuSE, Inc. Copyright © 2012 Philipp Brüschweiler. Copyright (c) 2020 Simon Ser. Copyright (c) 2006, 2008 Junio C Hamano.` |
 | [Wayland Libdecor](https://gitlab.freedesktop.org/libdecor/libdecor) | 0.2.2 | `Copyright © 2010 Intel Corporation. Copyright © 2011 Benjamin Franzke. Copyright © 2018-2021 Jonas Ådahl. Copyright © 2019 Christian Rauch. Copyright (c) 2006, 2008 Junio C Hamano. Copyright © 2017-2018 Red Hat Inc. Copyright © 2012 Collabora, Ltd. Copyright © 2008 Kristian Høgsberg.` |
-| [Wayland Weston](https://gitlab.freedesktop.org/wayland/weston) | 13.0.3 | `Copyright © 2008-2012 Kristian Høgsberg. Copyright © 2010-2012 Intel Corporation. Copyright © 2010-2011 Benjamin Franzke. Copyright © 2011-2012 Collabora, Ltd. Copyright © 2010 Red Hat <mjg@redhat.com>.` |
-| [Wayland-Protocols](https://gitlab.freedesktop.org/wayland/wayland-protocols) | 1.36 | `Copyright © 2008-2013 Kristian Høgsberg. Copyright © 2010-2013 Intel Corporation. Copyright © 2013 Rafael Antognolli. Copyright © 2013 Jasper St. Pierre. Copyright © 2014 Jonas Ådahl. Copyright © 2014 Jason Ekstrand. Copyright © 2014-2015 Collabora, Ltd. Copyright © 2015 Red Hat Inc.` |
+| [Wayland Weston](https://gitlab.freedesktop.org/wayland/weston) | 14.0.2 | `Copyright © 2008-2012 Kristian Høgsberg. Copyright © 2010-2012 Intel Corporation. Copyright © 2010-2011 Benjamin Franzke. Copyright © 2011-2012 Collabora, Ltd. Copyright © 2010 Red Hat <mjg@redhat.com>.` |
+| [Wayland-Protocols](https://gitlab.freedesktop.org/wayland/wayland-protocols) | 1.44 | `Copyright © 2008-2013 Kristian Høgsberg. Copyright © 2010-2013 Intel Corporation. Copyright © 2013 Rafael Antognolli. Copyright © 2013 Jasper St. Pierre. Copyright © 2014 Jonas Ådahl. Copyright © 2014 Jason Ekstrand. Copyright © 2014-2015 Collabora, Ltd. Copyright © 2015 Red Hat Inc.` |
 | Yamlcpp | 0.7.0 | `Copyright (c) 2008-2015 Jesse Beder` |
 | [{fmt}](https://github.com/fmtlib/fmt) | 10.1.1 (f5e | `Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors` |
 <details>
@@ -3147,9 +3153,9 @@ IN THE SOFTWARE.
 
 | Library | Version | Copyright |
 | ------- | ------- | --------- |
+| [Dpcpp Spirv Headers](https://github.com/KhronosGroup/SPIRV-Headers) | efb6b4099dd | `Copyright (c) 2015-2024 The Khronos Group Inc.` |
 | [Shaderc Spirv Headers](https://github.com/KhronosGroup/SPIRV-Headers) | 2a9b6f951c7 | `Copyright (c) 2015-2024 The Khronos Group Inc.` |
 | [SPIR-V Headers](https://github.com/KhronosGroup/SPIRV-Headers) | vulkan-sdk- | `Copyright (c) 2015-2024 The Khronos Group Inc.` |
-| [Spirv Headers](https://github.com/KhronosGroup/SPIRV-Headers) | b73e168ca5e | `Copyright (c) 2015-2024 The Khronos Group Inc.` |
 <details>
 <summary>MIT Khronos - old variant</summary>
 
@@ -3556,6 +3562,7 @@ Public domain projects have no specific license or requirements in regards to co
 | [AutoPackage](http://autopackage.org/docs/binreloc (original, defunct)) | Unknown (La |
 | [LZMA SDK](https://www.7-zip.org/sdk.html) | 23.01 |
 | [Sqlite](https://www.sqlite.org) | 3.45.1 |
+| Wintab | Unknown |
 
 
 ## [Python License 2.0](https://spdx.org/licenses/Python-2.0.html)

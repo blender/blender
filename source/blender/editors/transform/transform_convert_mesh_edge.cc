@@ -104,8 +104,6 @@ static void createTransEdge(bContext * /*C*/, TransInfo *t)
         copy_m3_m3(td->smtx, smtx);
         copy_m3_m3(td->mtx, mtx);
 
-        td->ext = nullptr;
-
         fl_ptr = static_cast<float *>(BM_ELEM_CD_GET_VOID_P(eed, cd_edge_float_offset));
         td->val = fl_ptr;
         td->ival = *fl_ptr;

@@ -20,6 +20,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bounds.hh"
 #include "BLI_hash.h"
 #include "BLI_implicit_sharing.hh"
@@ -45,6 +46,7 @@
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_attribute_legacy_convert.hh"
+#include "BKE_attribute_math.hh"
 #include "BKE_attribute_storage.hh"
 #include "BKE_attribute_storage_blend_write.hh"
 #include "BKE_bake_data_block_id.hh"
@@ -66,11 +68,15 @@
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
+#include "BKE_paint_bvh.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "BLO_read_write.hh"
+
+/** Using STACK_FIXED_DEPTH to keep the implementation in line with pbvh.cc.*/
+#define STACK_FIXED_DEPTH 100
 
 using blender::float3;
 using blender::int2;
@@ -351,8 +357,14 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
         mesh->face_data, AttrDomain::Face, mesh->faces_num, face_layers, attribute_data);
     CustomData_blend_write_prepare(
         mesh->corner_data, AttrDomain::Corner, mesh->corners_num, loop_layers, attribute_data);
-    mesh->attribute_storage.dna_attributes = attribute_data.attributes.data();
-    mesh->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
+    if (attribute_data.attributes.is_empty()) {
+      mesh->attribute_storage.dna_attributes = nullptr;
+      mesh->attribute_storage.dna_attributes_num = 0;
+    }
+    else {
+      mesh->attribute_storage.dna_attributes = attribute_data.attributes.data();
+      mesh->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
+    }
   }
 
   const blender::bke::MeshRuntime *mesh_runtime = mesh->runtime;
@@ -599,6 +611,363 @@ void mesh_remove_invalid_attribute_strings(Mesh &mesh)
   {
     MEM_SAFE_FREE(mesh.default_color_attribute);
   }
+}
+
+static Bounds<float3> merge_bounds(const Bounds<float3> &a, const Bounds<float3> &b)
+{
+  return bounds::merge(a, b);
+}
+
+static Bounds<float3> negative_bounds()
+{
+  return {float3(std::numeric_limits<float>::max()), float3(std::numeric_limits<float>::lowest())};
+}
+
+struct NonContiguousGroup {
+  Array<int> unique_verts;
+  Array<int> faces;
+  Array<int> shared_verts;
+  int corner_count;
+  int parent;
+  int children_offset;
+};
+
+static void partition_faces_recursively(const Span<float3> face_centers,
+                                        MutableSpan<int> face_indices,
+                                        Vector<NonContiguousGroup> &groups,
+                                        int node_index,
+                                        int depth,
+                                        const std::optional<Bounds<float3>> &bounds_precalc,
+                                        const Span<int> material_indices,
+                                        int target_group_size)
+{
+  if (face_indices.size() <= target_group_size || depth >= STACK_FIXED_DEPTH - 1) {
+    if (!blender::bke::pbvh::leaf_needs_material_split(face_indices, material_indices)) {
+      groups[node_index].children_offset = 0;
+      groups[node_index].faces = Array<int>(face_indices.size(), NoInitialization());
+      std::copy(face_indices.begin(), face_indices.end(), groups[node_index].faces.begin());
+      return;
+    }
+  }
+
+  const int children_start = groups.size();
+  groups[node_index].children_offset = children_start;
+
+  groups.resize(groups.size() + 2);
+  groups[children_start].parent = node_index;
+  groups[children_start + 1].parent = node_index;
+
+  int split;
+  if (!(face_indices.size() <= target_group_size || depth >= STACK_FIXED_DEPTH - 1)) {
+    Bounds<float3> bounds;
+    if (bounds_precalc) {
+      bounds = *bounds_precalc;
+    }
+    else {
+      bounds = threading::parallel_reduce(
+          face_indices.index_range(),
+          1024,
+          negative_bounds(),
+          [&](const IndexRange range, Bounds<float3> value) {
+            for (const int face : face_indices.slice(range)) {
+              math::min_max(face_centers[face], value.min, value.max);
+            }
+            return value;
+          },
+          merge_bounds);
+    }
+    const int axis = math::dominant_axis(bounds.max - bounds.min);
+
+    split = blender::bke::pbvh::partition_along_axis(
+        face_centers, face_indices, axis, math::midpoint(bounds.min[axis], bounds.max[axis]));
+  }
+  else {
+    split = blender::bke::pbvh::partition_material_indices(material_indices, face_indices);
+  }
+
+  partition_faces_recursively(face_centers,
+                              face_indices.take_front(split),
+                              groups,
+                              children_start,
+                              depth + 1,
+                              std::nullopt,
+                              material_indices,
+                              target_group_size);
+  partition_faces_recursively(face_centers,
+                              face_indices.drop_front(split),
+                              groups,
+                              children_start + 1,
+                              depth + 1,
+                              std::nullopt,
+                              material_indices,
+                              target_group_size);
+}
+
+static void build_vertex_groups_for_leaves(const int verts_num,
+                                           const OffsetIndices<int> faces,
+                                           const Span<int> corner_verts,
+                                           Vector<NonContiguousGroup> &groups)
+{
+  Vector<int> leaf_indices;
+  for (const int i : groups.index_range()) {
+    if (groups[i].children_offset == 0 && !groups[i].faces.is_empty()) {
+      leaf_indices.append(i);
+    }
+  }
+
+  Array<Array<int>> verts_per_leaf(leaf_indices.size(), NoInitialization());
+
+  threading::parallel_for(leaf_indices.index_range(), 8, [&](const IndexRange range) {
+    Set<int> verts;
+    for (const int i : range) {
+      const int group_idx = leaf_indices[i];
+      NonContiguousGroup &group = groups[group_idx];
+      verts.clear();
+      int corners_count = 0;
+
+      for (const int face_index : group.faces) {
+        const IndexRange face = faces[face_index];
+        verts.add_multiple(corner_verts.slice(face));
+        corners_count += face.size();
+      }
+
+      new (&verts_per_leaf[i]) Array<int>(verts.size());
+      std::copy(verts.begin(), verts.end(), verts_per_leaf[i].begin());
+      std::sort(verts_per_leaf[i].begin(), verts_per_leaf[i].end());
+      group.corner_count = corners_count;
+    }
+  });
+
+  Vector<int> owned_verts;
+  Vector<int> shared_verts;
+  BitVector<> vert_used(verts_num);
+
+  for (const int i : leaf_indices.index_range()) {
+    const int group_idx = leaf_indices[i];
+    NonContiguousGroup &group = groups[group_idx];
+    owned_verts.clear();
+    shared_verts.clear();
+
+    for (const int vert : verts_per_leaf[i]) {
+      if (vert_used[vert]) {
+        shared_verts.append(vert);
+      }
+      else {
+        vert_used[vert].set();
+        owned_verts.append(vert);
+      }
+    }
+
+    if (!owned_verts.is_empty()) {
+      group.unique_verts = Array<int>(owned_verts.size());
+      std::copy(owned_verts.begin(), owned_verts.end(), group.unique_verts.begin());
+    }
+
+    if (!shared_verts.is_empty()) {
+      group.shared_verts = Array<int>(shared_verts.size());
+      std::copy(shared_verts.begin(), shared_verts.end(), group.shared_verts.begin());
+    }
+  }
+}
+
+static Vector<NonContiguousGroup> compute_local_mesh_groups(Mesh &mesh)
+{
+  const Span<float3> vert_positions = mesh.vert_positions();
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+
+  if (faces.is_empty()) {
+    return {};
+  }
+
+  Array<float3> face_centers(faces.size());
+  const Bounds<float3> bounds = threading::parallel_reduce(
+      faces.index_range(),
+      1024,
+      negative_bounds(),
+      [&](const IndexRange range, const Bounds<float3> &init) {
+        Bounds<float3> current = init;
+        for (const int face : range) {
+          const Bounds<float3> bounds = blender::bke::pbvh::calc_face_bounds(
+              vert_positions, corner_verts.slice(faces[face]));
+          face_centers[face] = bounds.center();
+          current = bounds::merge(current, bounds);
+        }
+        return current;
+      },
+      merge_bounds);
+
+  Array<int> prim_face_indices(mesh.faces_num);
+  array_utils::fill_index_range<int>(prim_face_indices);
+
+  Vector<NonContiguousGroup> groups;
+  groups.resize(1);
+  groups[0].parent = -1;
+  groups[0].children_offset = 0;
+
+  const AttributeAccessor attributes = mesh.attributes();
+  const VArraySpan material_index = *attributes.lookup<int>("material_index", AttrDomain::Face);
+
+  partition_faces_recursively(
+      face_centers, prim_face_indices, groups, 0, 0, bounds, material_index, 2500);
+
+  build_vertex_groups_for_leaves(mesh.verts_num, faces, corner_verts, groups);
+
+  return groups;
+}
+
+void mesh_apply_spatial_organization(Mesh &mesh)
+{
+  Vector<NonContiguousGroup> local_groups = compute_local_mesh_groups(mesh);
+
+  Vector<int> new_vert_order;
+  new_vert_order.reserve(mesh.verts_num);
+
+  Vector<int> new_face_order;
+  new_face_order.reserve(mesh.faces_num);
+
+  BitVector<> added_verts(mesh.verts_num, false);
+
+  Vector<int> group_unique_offsets;
+  group_unique_offsets.reserve(local_groups.size() + 1);
+  group_unique_offsets.append(0);
+
+  Vector<int> group_face_offsets;
+  group_face_offsets.reserve(local_groups.size() + 1);
+  group_face_offsets.append(0);
+
+  for (const int group_index : local_groups.index_range()) {
+    const NonContiguousGroup &local_group = local_groups[group_index];
+
+    for (const int vert_idx : local_group.unique_verts) {
+      if (!added_verts[vert_idx]) {
+        new_vert_order.append(vert_idx);
+        added_verts[vert_idx].set();
+      }
+    }
+    group_unique_offsets.append(new_vert_order.size());
+
+    for (const int vert_idx : local_group.shared_verts) {
+      if (!added_verts[vert_idx]) {
+        new_vert_order.append(vert_idx);
+        added_verts[vert_idx].set();
+      }
+    }
+
+    for (const int face_idx : local_group.faces) {
+      new_face_order.append(face_idx);
+    }
+    group_face_offsets.append(new_face_order.size());
+  }
+
+  Array<int> vert_reverse_map(mesh.verts_num);
+  for (const int i : IndexRange(mesh.verts_num)) {
+    vert_reverse_map[new_vert_order[i]] = i;
+  }
+
+  MutableSpan edges = mesh.edges_for_write();
+  for (int2 &edge : edges) {
+    edge.x = vert_reverse_map[edge.x];
+    edge.y = vert_reverse_map[edge.y];
+  }
+
+  MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
+  Array<int> new_corner_verts(corner_verts.size());
+  const OffsetIndices<int> old_faces = mesh.faces();
+
+  int new_corner_idx = 0;
+  for (const int old_face_idx : new_face_order) {
+    const IndexRange face = old_faces[old_face_idx];
+    for (const int corner : face) {
+      new_corner_verts[new_corner_idx] = vert_reverse_map[corner_verts[corner]];
+      new_corner_idx++;
+    }
+  }
+  corner_verts.copy_from(new_corner_verts);
+
+  MutableSpan<int> face_offsets = mesh.face_offsets_for_write();
+  MutableSpan<int> face_sizes_view = face_offsets.take_front(new_face_order.size());
+  gather_group_sizes(old_faces, new_face_order, face_sizes_view);
+  offset_indices::accumulate_counts_to_offsets(face_offsets);
+
+  MutableAttributeAccessor attributes_for_write = mesh.attributes_for_write();
+  attributes_for_write.foreach_attribute([&](const bke::AttributeIter &iter) {
+    if (iter.domain == bke::AttrDomain::Face) {
+      bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
+      const CPPType &type = attribute.span.type();
+      GArray<> new_values(type, new_face_order.size());
+      bke::attribute_math::gather(attribute.span, new_face_order, new_values.as_mutable_span());
+      attribute.span.copy_from(new_values.as_span());
+      attribute.finish();
+    }
+    else if (iter.domain == bke::AttrDomain::Point) {
+      bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
+      const CPPType &type = attribute.span.type();
+      GArray<> new_values(type, new_vert_order.size());
+      bke::attribute_math::gather(attribute.span, new_vert_order, new_values.as_mutable_span());
+      attribute.span.copy_from(new_values.as_span());
+      attribute.finish();
+    }
+    else if (iter.domain == bke::AttrDomain::Corner && iter.name != ".corner_vert") {
+      bke::GSpanAttributeWriter attribute = attributes_for_write.lookup_for_write_span(iter.name);
+      GMutableSpan attribute_data = attribute.span;
+      const CPPType &type = attribute_data.type();
+      GArray<> new_values(type, attribute_data.size());
+
+      int new_corner_idx = 0;
+      for (const int old_face_idx : new_face_order) {
+        const IndexRange face = old_faces[old_face_idx];
+        for (const int old_corner_idx : face) {
+          type.copy_construct(attribute_data[old_corner_idx], new_values[new_corner_idx]);
+          new_corner_idx++;
+        }
+      }
+      attribute_data.copy_from(new_values.as_span());
+      attribute.finish();
+    }
+  });
+
+  for (NonContiguousGroup &local_group : local_groups) {
+    for (int &vert_idx : local_group.unique_verts) {
+      vert_idx = vert_reverse_map[vert_idx];
+    }
+    for (int &vert_idx : local_group.shared_verts) {
+      vert_idx = vert_reverse_map[vert_idx];
+    }
+  }
+
+  Array<MeshGroup> nodes(local_groups.size());
+
+  for (const int node_idx : local_groups.index_range()) {
+    const NonContiguousGroup &local_group = local_groups[node_idx];
+    MeshGroup &node = nodes[node_idx];
+
+    node.parent = local_group.parent;
+    node.children_offset = local_group.children_offset;
+    node.corners_count = local_group.corner_count;
+    node.unique_verts = IndexRange(0, 0);
+    node.faces = IndexRange(0, 0);
+    if (local_group.children_offset == 0 && !local_group.faces.is_empty()) {
+      int unique_start = (node_idx == 0) ? 0 : group_unique_offsets[node_idx];
+      int unique_end = group_unique_offsets[node_idx + 1];
+      node.unique_verts = IndexRange(unique_start, unique_end - unique_start);
+
+      int face_start = (node_idx == 0) ? 0 : group_face_offsets[node_idx];
+      int face_end = group_face_offsets[node_idx + 1];
+      node.faces = IndexRange(face_start, face_end - face_start);
+
+      if (!local_group.shared_verts.is_empty()) {
+        node.shared_verts = Array<int>(local_group.shared_verts.size());
+        for (const int j : local_group.shared_verts.index_range()) {
+          node.shared_verts[j] = local_group.shared_verts[j];
+        }
+      }
+    }
+  }
+
+  mesh.tag_positions_changed();
+  mesh.tag_topology_changed();
+  mesh.runtime->spatial_groups = std::make_unique<Array<MeshGroup>>(std::move(nodes));
 }
 
 }  // namespace blender::bke

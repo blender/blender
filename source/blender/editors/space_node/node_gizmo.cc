@@ -423,10 +423,12 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *gzgro
     bNode *node = bke::node_get_active(*snode->edittree);
 
     crop_group->update_data.context = (bContext *)C;
+    bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Alpha Crop");
     crop_group->update_data.ptr = RNA_pointer_create_discrete(
-        (ID *)snode->edittree, &RNA_CompositorNodeCrop, node);
+        reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
     crop_group->update_data.prop = RNA_struct_find_property(&crop_group->update_data.ptr,
-                                                            "relative");
+                                                            "enabled");
+    BLI_assert(crop_group->update_data.prop != nullptr);
 
     wmGizmoPropertyFnParams params{};
     params.value_get_fn = gizmo_node_crop_prop_matrix_get;
@@ -623,9 +625,12 @@ static void WIDGETGROUP_node_mask_refresh(const bContext *C, wmGizmoGroup *gzgro
     bNode *node = bke::node_get_active(*snode->edittree);
 
     mask_group->update_data.context = (bContext *)C;
+    bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Mask");
     mask_group->update_data.ptr = RNA_pointer_create_discrete(
-        (ID *)snode->edittree, &RNA_CompositorNodeCrop, node);
-    mask_group->update_data.prop = RNA_struct_find_property(&mask_group->update_data.ptr, "x");
+        reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
+    mask_group->update_data.prop = RNA_struct_find_property(&mask_group->update_data.ptr,
+                                                            "enabled");
+    BLI_assert(mask_group->update_data.prop != nullptr);
 
     wmGizmoPropertyFnParams params{};
     params.value_get_fn = gizmo_node_box_mask_prop_matrix_get;

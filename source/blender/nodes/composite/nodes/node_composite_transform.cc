@@ -6,20 +6,37 @@
  * \ingroup cmpnodes
  */
 
+#include "BKE_node.hh"
+
 #include "BLI_assert.h"
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_matrix.hh"
 
+#include "COM_node_operation.hh"
+
+#include "DNA_node_types.h"
+
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-#include "COM_node_operation.hh"
+#include "MEM_guardedalloc.h"
 
 #include "node_composite_util.hh"
 
 /* **************** Transform  ******************** */
 
 namespace blender::nodes::node_composite_transform_cc {
+
+NODE_STORAGE_FUNCS(NodeTransformData)
+
+static void cmp_node_init_transform(bNodeTree * /*ntree*/, bNode *node)
+{
+  NodeTransformData *data = MEM_callocN<NodeTransformData>(__func__);
+  data->interpolation = CMP_NODE_INTERPOLATION_NEAREST;
+  data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
+  data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+  node->storage = data;
+}
 
 static void cmp_node_transform_declare(NodeDeclarationBuilder &b)
 {
@@ -37,7 +54,11 @@ static void cmp_node_transform_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_buts_transform(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  uiLayout &column = layout->column(true);
+  column.prop(ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  uiLayout &row = column.row(true);
+  row.prop(ptr, "extension_x", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  row.prop(ptr, "extension_y", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -60,11 +81,43 @@ class TransformOperation : public NodeOperation {
     output.share_data(input);
     output.transform(transformation);
     output.get_realization_options().interpolation = this->get_interpolation();
+    output.get_realization_options().extension_x = this->get_extension_mode_x();
+    output.get_realization_options().extension_y = this->get_extension_mode_y();
+  }
+
+  ExtensionMode get_extension_mode_x()
+  {
+    switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_x)) {
+      case CMP_NODE_EXTENSION_MODE_ZERO:
+        return ExtensionMode::Zero;
+      case CMP_NODE_EXTENSION_MODE_REPEAT:
+        return ExtensionMode::Repeat;
+      case CMP_NODE_EXTENSION_MODE_EXTEND:
+        return ExtensionMode::Extend;
+    }
+
+    BLI_assert_unreachable();
+    return ExtensionMode::Zero;
+  }
+
+  ExtensionMode get_extension_mode_y()
+  {
+    switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_y)) {
+      case CMP_NODE_EXTENSION_MODE_ZERO:
+        return ExtensionMode::Zero;
+      case CMP_NODE_EXTENSION_MODE_REPEAT:
+        return ExtensionMode::Repeat;
+      case CMP_NODE_EXTENSION_MODE_EXTEND:
+        return ExtensionMode::Extend;
+    }
+
+    BLI_assert_unreachable();
+    return ExtensionMode::Zero;
   }
 
   Interpolation get_interpolation()
   {
-    switch (static_cast<CMPNodeInterpolation>(bnode().custom1)) {
+    switch (static_cast<CMPNodeInterpolation>(node_storage(bnode()).interpolation)) {
       case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
       case CMP_NODE_INTERPOLATION_BILINEAR:
@@ -100,6 +153,9 @@ static void register_node_type_cmp_transform()
   ntype.declare = file_ns::cmp_node_transform_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_transform;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.initfunc = file_ns::cmp_node_init_transform;
+  blender::bke::node_type_storage(
+      ntype, "NodeTransformData", node_free_standard_storage, node_copy_standard_storage);
 
   blender::bke::node_register_type(ntype);
 }

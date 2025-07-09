@@ -13,6 +13,10 @@
 #include "vk_staging_buffer.hh"
 #include "vk_state_manager.hh"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"gpu.vulkan"};
+
 namespace blender::gpu {
 
 void VKUniformBuffer::update(const void *data)
@@ -55,6 +59,12 @@ void VKUniformBuffer::ensure_updated()
 {
   if (!buffer_.is_allocated()) {
     allocate();
+    if (!buffer_.is_allocated()) {
+      CLOG_ERROR(&LOG,
+                 "Unable to allocate uniform buffer [%s]. Most likely an out of memory issue.",
+                 name_);
+      return;
+    }
   }
 
   /* Upload attached data, during bind time. */

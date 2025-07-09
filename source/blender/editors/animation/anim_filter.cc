@@ -38,6 +38,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_light_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
@@ -769,6 +770,12 @@ static bAnimListElem *make_new_animlistelem(
       Volume *volume = static_cast<Volume *>(data);
       ale->flag = FILTER_VOLUME_OBJD(volume);
       key_data_from_adt(*ale, volume->adt);
+      break;
+    }
+    case ANIMTYPE_DSLIGHTPROBE: {
+      LightProbe *probe = static_cast<LightProbe *>(data);
+      ale->flag = FILTER_LIGHTPROBE_OBJD(probe);
+      key_data_from_adt(*ale, probe->adt);
       break;
     }
     case ANIMTYPE_DSSKEY: {
@@ -3060,6 +3067,18 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac,
       expanded = FILTER_VOLUME_OBJD(volume);
       break;
     }
+    case OB_LIGHTPROBE: /* ---------- LightProbe ----------- */
+    {
+      LightProbe *probe = static_cast<LightProbe *>(ob->data);
+
+      if (ads_filterflag2 & ADS_FILTER_NOLIGHTPROBE) {
+        return 0;
+      }
+
+      type = ANIMTYPE_DSLIGHTPROBE;
+      expanded = FILTER_LIGHTPROBE_OBJD(probe);
+      break;
+    }
   }
 
   /* add object data animation channels */
@@ -3551,11 +3570,11 @@ static bool animdata_filter_base_is_ok(bAnimContext *ac,
 
   /* Special case.
    * We don't do recursive checks for pin, but we need to deal with tricky
-   * setup like animated camera lens without animated camera location.
-   * Without such special handle here we wouldn't be able to bin such
-   * camera data only animation to the editor.
+   * setup like animated camera lens without (pinned) animated camera location.
+   * Without such special handle here we wouldn't be able to pin such
+   * camera data animation to the editor.
    */
-  if (ob->adt == nullptr && ob->data != nullptr) {
+  if (ob->data != nullptr) {
     AnimData *data_adt = BKE_animdata_from_id(static_cast<ID *>(ob->data));
     if (data_adt != nullptr && (data_adt->flag & ADT_CURVES_ALWAYS_VISIBLE)) {
       return true;

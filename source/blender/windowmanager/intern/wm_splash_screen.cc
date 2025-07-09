@@ -331,15 +331,15 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
   }
 
   const int layout_margin_x = UI_SCALE_FAC * 26;
-  uiLayout *layout = UI_block_layout(block,
-                                     UI_LAYOUT_VERTICAL,
-                                     UI_LAYOUT_PANEL,
-                                     layout_margin_x,
-                                     0,
-                                     splash_width - (layout_margin_x * 2),
-                                     UI_SCALE_FAC * 110,
-                                     0,
-                                     style);
+  uiLayout &layout = blender::ui::block_layout(block,
+                                               blender::ui::LayoutDirection::Vertical,
+                                               blender::ui::LayoutType::Panel,
+                                               layout_margin_x,
+                                               0,
+                                               splash_width - (layout_margin_x * 2),
+                                               UI_SCALE_FAC * 110,
+                                               0,
+                                               style);
 
   MenuType *mt;
 
@@ -358,7 +358,7 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
   UI_block_func_set(block, wm_block_splash_close_on_fileselect, block, nullptr);
 
   if (mt) {
-    UI_menutype_draw(C, mt, layout);
+    UI_menutype_draw(C, mt, &layout);
   }
 
 /* Displays a warning if blender is being emulated via Rosetta (macOS) or XTA (Windows) */
@@ -370,9 +370,9 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
   if (proc_id && strncmp(proc_id, "ARM", 3) == 0)
 #  endif
   {
-    layout->separator(2.0f, LayoutSeparatorType::Line);
+    layout.separator(2.0f, LayoutSeparatorType::Line);
 
-    uiLayout *split = &layout->split(0.725, true);
+    uiLayout *split = &layout.split(0.725, true);
     uiLayout *row1 = &split->row(true);
     uiLayout *row2 = &split->row(true);
 
@@ -395,7 +395,7 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
         "https://docs.blender.org/manual/en/latest/getting_started/installing/windows.html");
 #  endif
 
-    layout->separator();
+    layout.separator();
   }
 #endif
 
@@ -439,8 +439,15 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  uiLayout *layout = UI_block_layout(
-      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, dialog_width, 0, 0, style);
+  uiLayout &layout = blender::ui::block_layout(block,
+                                               blender::ui::LayoutDirection::Vertical,
+                                               blender::ui::LayoutType::Panel,
+                                               0,
+                                               0,
+                                               dialog_width,
+                                               0,
+                                               0,
+                                               style);
 
 /* Blender logo. */
 #ifndef WITH_HEADLESS
@@ -454,21 +461,21 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
     const uchar *color = btheme->tui.wcol_menu_back.text_sel;
 
     /* The top margin. */
-    uiLayout *row = &layout->row(false);
+    uiLayout *row = &layout.row(false);
     row->separator(0.2f);
 
     /* The logo image. */
-    row = &layout->row(false);
+    row = &layout.row(false);
     row->alignment_set(blender::ui::LayoutAlign::Left);
     uiDefButImage(block, ibuf, 0, U.widget_unit, ibuf->x, ibuf->y, show_color ? nullptr : color);
 
     /* Padding below the logo. */
-    row = &layout->row(false);
+    row = &layout.row(false);
     row->separator(2.7f);
   }
 #endif /* !WITH_HEADLESS */
 
-  uiLayout *col = &layout->column(true);
+  uiLayout *col = &layout.column(true);
 
   uiItemL_ex(col, IFACE_("Blender"), ICON_NONE, true, false);
 

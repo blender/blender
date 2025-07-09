@@ -39,7 +39,7 @@ BLOCKLIST_OSL_LIMITED = []
 # So blocking these tests doesn't lose any test permutations.
 BLOCKLIST_OSL_ALL = BLOCKLIST_OSL_LIMITED + [
     # AOVs are not supported. See 73266
-    'aov_position.blend',
+    'aov_.*.blend',
     'render_passes_aov.*.blend',
     # Image sampling is different from SVM. There are OSL variants of these tests
     'image_byte.*.blend',
@@ -70,6 +70,8 @@ BLOCKLIST_OPTIX_OSL_LIMITED = [
     'image_.*_osl.blend',
     # OptiX OSL doesn't support the trace function
     'osl_trace_shader.blend',
+    # Noise functions do not return color with OptiX OSL
+    'osl_camera_advanced.blend',
 ]
 
 # Blocklist for SVM tests that fail when forced to run with OptiX OSL

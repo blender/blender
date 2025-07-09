@@ -514,7 +514,7 @@ static void draw_marker(const uiFontStyle *fstyle,
   draw_marker_name(text_color, fstyle, marker, xpos, xmax, name_y);
 }
 
-static void draw_markers_background(const rctf *rect)
+static void draw_markers_background(const rctf *rect, const float alpha)
 {
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
@@ -522,6 +522,7 @@ static void draw_markers_background(const rctf *rect)
 
   uchar shade[4];
   UI_GetThemeColor4ubv(TH_TIME_SCRUB_BACKGROUND, shade);
+  shade[3] *= alpha;
 
   immUniformColor4ubv(shade);
 
@@ -584,7 +585,10 @@ void ED_markers_draw(const bContext *C, int flag)
   rctf markers_region_rect;
   get_marker_region_rect(v2d, &markers_region_rect);
 
-  draw_markers_background(&markers_region_rect);
+  const float fade = BLI_rctf_size_y(&markers_region_rect) + UI_ANIM_MINY;
+  const float dist = std::min(region->winy - fade, fade);
+  const float alpha = std::min(dist / fade, 1.0f);
+  draw_markers_background(&markers_region_rect, alpha);
 
   /* no time correction for framelen! space is drawn with old values */
   float xscale, dummy;

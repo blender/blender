@@ -2256,7 +2256,10 @@ static void grease_pencil_evaluate_layers(GreasePencil &grease_pencil)
    * cache. This will only copy the pointers to the layers, not the layers themselves. */
   Array<Layer *> layers = grease_pencil.layers_for_write();
 
-  for (Layer *layer : layers) {
+  for (const int layer_i : layers.index_range()) {
+    Layer *layer = layers[layer_i];
+    /* Store the original index of the layer. */
+    layer->runtime->orig_layer_index_ = layer_i;
     /* When the visibility is animated, the layer should be retained even when it is invisible.
      * Changing the visibility through the animation system does NOT create another evaluated copy,
      * and thus the layer has to be kept for this future use. */
@@ -3320,6 +3323,9 @@ void GreasePencil::move_duplicate_frames(
 const blender::bke::greasepencil::Drawing *GreasePencil::get_drawing_at(
     const blender::bke::greasepencil::Layer &layer, const int frame_number) const
 {
+  if (this->drawings().is_empty()) {
+    return nullptr;
+  }
   const int drawing_index = layer.drawing_index_at(frame_number);
   if (drawing_index == -1) {
     /* No drawing found. */
@@ -3337,6 +3343,9 @@ const blender::bke::greasepencil::Drawing *GreasePencil::get_drawing_at(
 blender::bke::greasepencil::Drawing *GreasePencil::get_drawing_at(
     const blender::bke::greasepencil::Layer &layer, const int frame_number)
 {
+  if (this->drawings().is_empty()) {
+    return nullptr;
+  }
   const int drawing_index = layer.drawing_index_at(frame_number);
   if (drawing_index == -1) {
     /* No drawing found. */
@@ -3357,7 +3366,9 @@ blender::bke::greasepencil::Drawing *GreasePencil::get_editable_drawing_at(
   if (!layer.is_editable()) {
     return nullptr;
   }
-
+  if (this->drawings().is_empty()) {
+    return nullptr;
+  }
   const int drawing_index = layer.drawing_index_at(frame_number);
   if (drawing_index == -1) {
     /* No drawing found. */

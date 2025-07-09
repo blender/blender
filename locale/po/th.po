@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
 "PO-Revision-Date: 2025-04-14 08:42+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1865,18 +1865,6 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
-msgid "Text"
-msgstr "ช้อความ"
-
-
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
 msgid "Pivot Point"
 msgstr "จุดหมุน"
 
@@ -1921,6 +1909,10 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
+msgid "Metaball"
+msgstr "เมตาบอล"
+
+
 msgid "Light"
 msgstr "แสง"
 
@@ -1941,12 +1933,20 @@ msgid "Hooks"
 msgstr "ตะขอ"
 
 
+msgid "Names"
+msgstr "ชื่อ"
+
+
 msgid "Face Data"
 msgstr "ข้อมูลด้าน"
 
 
 msgid "Merge"
 msgstr "ผสาน"
+
+
+msgid "Text"
+msgstr "ช้อความ"
 
 
 msgid "Zoom"
@@ -2552,14 +2552,6 @@ msgstr "คอลเลกชันฉาก"
 
 msgid "Lamp"
 msgstr "แสงไฟ"
-
-
-msgid "Path Mode"
-msgstr "โหมดเส้นทาง"
-
-
-msgid "Match"
-msgstr "จับคู่"
 
 
 msgid "-X Axis"
@@ -4032,6 +4024,10 @@ msgid "Calculate"
 msgstr "คำนวณ"
 
 
+msgid "Match"
+msgstr "จับคู่"
+
+
 msgctxt "Operator"
 msgid "More"
 msgstr "เพิ่มเติม"
@@ -4981,6 +4977,10 @@ msgstr "เพิ่มเติม..."
 
 msgid "Yesterday"
 msgstr "เมื่อวาน"
+
+
+msgid "Path Mode"
+msgstr "โหมดเส้นทาง"
 
 
 msgid "Rigging"

@@ -880,7 +880,7 @@ static std::optional<Bounds<float2>> get_boundary_bounds(const ARegion &region,
     const float4x4 layer_to_world = layer.to_world_space(object);
     const bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
-            &object_eval, object, info.layer_index, info.frame_number);
+            &object_eval, object, info.drawing);
     const bool only_boundary_strokes = boundary_layers[info.layer_index];
     const VArray<float> radii = info.drawing.radii();
     const bke::CurvesGeometry &strokes = info.drawing.strokes();

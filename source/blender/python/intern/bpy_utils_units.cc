@@ -212,7 +212,6 @@ static PyObject *bpyunits_to_value(PyObject * /*self*/, PyObject *args, PyObject
   if (!PyC_RunString_AsNumber(nullptr, str, "<bpy_units_api>", &result)) {
     if (PyErr_Occurred()) {
       PyErr_Print();
-      PyErr_Clear();
     }
 
     PyErr_Format(

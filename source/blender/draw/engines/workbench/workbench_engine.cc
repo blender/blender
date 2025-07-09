@@ -178,7 +178,7 @@ class Instance : public DrawEngine {
       }
     }
 
-    ResourceHandleRange emitter_handle(0);
+    ResourceHandleRange emitter_handle = {};
 
     if (is_object_data_visible) {
       if (object_state.sculpt_pbvh) {

@@ -1404,7 +1404,11 @@ static void std_node_socket_interface_draw(ID *id,
     }
     case SOCK_VECTOR: {
       col->prop(&ptr, "subtype", DEFAULT_FLAGS, IFACE_("Subtype"), ICON_NONE);
-      col->prop(&ptr, "dimensions", DEFAULT_FLAGS, IFACE_("Dimensions"), ICON_NONE);
+      col->prop(&ptr,
+                "dimensions",
+                DEFAULT_FLAGS,
+                CTX_IFACE_(BLT_I18NCONTEXT_ID_TEXTURE, "Dimensions"),
+                ICON_NONE);
       col->prop(&ptr, "default_value", UI_ITEM_R_EXPAND, IFACE_("Default"), ICON_NONE);
       uiLayout *sub = &col->column(true);
       sub->prop(&ptr, "min_value", DEFAULT_FLAGS, IFACE_("Min"), ICON_NONE);

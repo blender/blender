@@ -226,7 +226,7 @@ BLI_INLINE int space_text_pixel_x_to_column(const SpaceText *st, const int x)
 
 static void text_select_update_primary_clipboard(const Text *text)
 {
-  if ((WM_capabilities_flag() & WM_CAPABILITY_PRIMARY_CLIPBOARD) == 0) {
+  if ((WM_capabilities_flag() & WM_CAPABILITY_CLIPBOARD_PRIMARY) == 0) {
     return;
   }
   if (!txt_has_sel(text)) {

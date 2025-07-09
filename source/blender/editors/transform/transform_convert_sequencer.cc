@@ -213,7 +213,6 @@ static TransData *SeqToTransData(Scene *scene,
   memset(td->axismtx, 0, sizeof(td->axismtx));
   td->axismtx[2][2] = 1.0f;
 
-  td->ext = nullptr;
   td->val = nullptr;
 
   td->flag |= TD_SELECTED;

@@ -3222,6 +3222,19 @@ static void do_brush_action(const Depsgraph &depsgraph,
     push_undo_nodes(depsgraph, ob, brush, node_mask);
   }
 
+  /* There are issues with the underlying normals cache / mesh data that can cause the data to
+   * become out of date.
+   *
+   * For EEVEE and Workbench, this is partially mitigated by the fact that the Paint BVH is used
+   * to signal this update when drawing.
+   *
+   * TODO: See #141417
+   */
+  const bool external_engine = ss.rv3d && ss.rv3d->view_render != nullptr;
+  if (external_engine) {
+    bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+    bke::pbvh::update_normals(depsgraph, ob, pbvh);
+  }
   if (sculpt_brush_needs_normal(ss, brush)) {
     update_sculpt_normal(depsgraph, sd, ob, cursor_sample_result);
   }
@@ -5105,7 +5118,7 @@ void flush_update_step(const bContext *C, const UpdateType update_type)
 
   ED_region_tag_redraw(&region);
 
-  const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   if (update_type == UpdateType::Position && !ss.shapekey_active) {
     if (pbvh.type() == bke::pbvh::Type::Mesh) {
       tag_mesh_positions_changed(ob, use_pbvh_draw);

@@ -512,6 +512,56 @@ MINLINE bool compare_threshold_relative(const float value1, const float value2, 
   return abs_diff > thresh * fabsf(value2);
 }
 
+MINLINE float increment_ulp(const float value)
+{
+  if (!isfinite(value)) {
+    return value;
+  }
+
+  union {
+    float f;
+    uint i;
+  } v;
+  v.f = value;
+
+  if (v.f > 0.0f) {
+    v.i += 1;
+  }
+  else if (v.f < -0.0f) {
+    v.i -= 1;
+  }
+  else {
+    v.i = 0x00000001;
+  }
+
+  return v.f;
+}
+
+MINLINE float decrement_ulp(const float value)
+{
+  if (!isfinite(value)) {
+    return value;
+  }
+
+  union {
+    float f;
+    uint i;
+  } v;
+  v.f = value;
+
+  if (v.f > 0.0f) {
+    v.i -= 1;
+  }
+  else if (v.f < -0.0f) {
+    v.i += 1;
+  }
+  else {
+    v.i = 0x80000001;
+  }
+
+  return v.f;
+}
+
 MINLINE float signf(float f)
 {
   return (f < 0.0f) ? -1.0f : 1.0f;

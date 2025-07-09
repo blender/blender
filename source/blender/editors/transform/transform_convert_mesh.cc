@@ -1474,11 +1474,9 @@ static void VertsToTransData(TransInfo *t,
         td->axismtx[1][1] = td->axismtx[1][2] = 0.0f;
   }
 
-  td->ext = nullptr;
   td->val = nullptr;
   td->extra = eve;
   if (t->mode == TFM_SHRINKFATTEN) {
-    td->ext = tx;
     tx->iscale[0] = BM_vert_calc_shell_factor_ex(eve, no, BM_ELEM_SELECT);
   }
 }
@@ -1486,6 +1484,15 @@ static void VertsToTransData(TransInfo *t,
 static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    if (t->mode == TFM_NORMAL_ROTATION) {
+      /* Avoid freeing the container by creating a dummy TransData. The Rotate Normal mode uses a
+       * custom array and ignores any elements created for the mesh in transData and similar
+       * structures. */
+      tc->data_len = 1;
+      tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransData Dummy");
+      continue;
+    }
+
     TransDataExtension *tx = nullptr;
     BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
     Mesh *mesh = static_cast<Mesh *>(tc->obedit->data);
@@ -2054,6 +2061,15 @@ static void mesh_transdata_mirror_apply(TransDataContainer *tc)
 
 static void recalcData_mesh(TransInfo *t)
 {
+  if (t->mode == TFM_NORMAL_ROTATION) {
+    FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+      /* The Rotate Normal mode uses a  custom array and ignores any elements created for the mesh
+       * in transData and similar structures. */
+      DEG_id_tag_update(static_cast<ID *>(tc->obedit->data), ID_RECALC_GEOMETRY);
+    }
+    return;
+  }
+
   bool is_canceling = t->state == TRANS_CANCEL;
   /* Apply corrections. */
   if (!is_canceling) {

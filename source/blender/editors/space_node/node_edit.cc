@@ -1905,6 +1905,7 @@ static wmOperatorStatus node_activate_viewer_exec(bContext *C, wmOperator * /*op
     return OPERATOR_CANCELLED;
   }
 
+  BKE_ntree_update_tag_active_output_changed(snode->edittree);
   BKE_main_ensure_invariants(*bmain, snode->edittree->id);
   return OPERATOR_FINISHED;
 }

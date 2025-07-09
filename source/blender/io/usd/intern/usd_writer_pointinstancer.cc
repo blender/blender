@@ -182,7 +182,6 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
       ++iter;
     }
     usd_instancer.GetPrototypesRel().SetTargets(proto_wrapper_paths);
-    prototypesOver.GetPrim().SetSpecifier(pxr::SdfSpecifierOver);
     stage->GetRootLayer()->Save();
   }
 
@@ -442,7 +441,7 @@ static void ExpandAttributePerInstance(const GetterFunc &getter,
 
   pxr::VtArray<T> expanded_values;
   for (const auto &[instance_index, object_count] : instance_object_map) {
-    if (instance_index < static_cast<int>(original_values.size())) {
+    if (instance_index < int(original_values.size())) {
       for (int i = 0; i < object_count; ++i) {
         expanded_values.push_back(original_values[instance_index]);
       }
@@ -514,16 +513,17 @@ void USDPointInstancerWriter::handle_collection_prototypes(
           [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
     }
     else if (type == pxr::SdfValueTypeNames->UCharArray) {
-      ExpandAttributePerInstance<unsigned char>(
+      ExpandAttributePerInstance<uchar>(
           [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
     }
     else if (type == pxr::SdfValueTypeNames->Float2Array) {
       ExpandAttributePerInstance<pxr::GfVec2f>(
           [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
     }
-    else if (type == pxr::SdfValueTypeNames->Float3Array ||
-             type == pxr::SdfValueTypeNames->Color3fArray ||
-             type == pxr::SdfValueTypeNames->Color4fArray)
+    else if (ELEM(type,
+                  pxr::SdfValueTypeNames->Float3Array,
+                  pxr::SdfValueTypeNames->Color3fArray,
+                  pxr::SdfValueTypeNames->Color4fArray))
     {
       ExpandAttributePerInstance<pxr::GfVec3f>(
           [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
@@ -592,7 +592,7 @@ void USDPointInstancerWriter::write_attribute_data(const bke::AttributeIter &att
     }
 
     const GVArray attribute = *attr.get();
-    /// Retrieve mask values, store as int8_t to avoid std::vector<bool>.data() issues
+    /* Retrieve mask values, store as int8_t to avoid `std::vector<bool>.data()` issues. */
     std::vector<int8_t> mask_values(attribute.size());
     attribute.materialize(IndexMask(attribute.size()), mask_values.data());
 
@@ -600,7 +600,7 @@ void USDPointInstancerWriter::write_attribute_data(const bke::AttributeIter &att
     pxr::VtArray<int64_t> invisibleIds;
     ids.reserve(mask_values.size());
 
-    for (int64_t i = 0; i < static_cast<int64_t>(mask_values.size()); ++i) {
+    for (int64_t i = 0; i < int64_t(mask_values.size()); i++) {
       ids.push_back(i);
       if (mask_values[i] == 0) {
         invisibleIds.push_back(i);

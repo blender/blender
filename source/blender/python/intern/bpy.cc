@@ -625,13 +625,9 @@ static PyObject *bpy_wm_capabilities(PyObject *self)
 #define SetFlagItem(x) \
   PyDict_SetItemString(result, STRINGIFY(x), PyBool_FromLong((WM_CAPABILITY_##x) & flag));
 
-      SetFlagItem(CURSOR_WARP);
-      SetFlagItem(WINDOW_POSITION);
-      SetFlagItem(PRIMARY_CLIPBOARD);
-      SetFlagItem(GPU_FRONT_BUFFER_READ);
-      SetFlagItem(CLIPBOARD_IMAGES);
-      SetFlagItem(DESKTOP_SAMPLE);
-      SetFlagItem(INPUT_IME);
+      /* Only exposed flags which are used, by Blender's built-in scripts
+       * since this is a private API. */
+
       SetFlagItem(TRACKPAD_PHYSICAL_DIRECTION);
       SetFlagItem(KEYBOARD_HYPER_KEY);
 
@@ -714,7 +710,6 @@ static PyObject *bpy_import_test(const char *modname)
   }
   else {
     PyErr_Print();
-    PyErr_Clear();
   }
 
   return mod;

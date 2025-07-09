@@ -153,6 +153,15 @@ ccl_device_inline Spectrum fresnel_f82_B(const Spectrum F0, const Spectrum F82)
   return (7.0f / (f5 * f)) * (F_schlick - F82);
 }
 
+/* Evaluate the F82 metallic model for the given parameters. */
+ccl_device_inline Spectrum fresnel_f82(const float cosi, const Spectrum F0, const Spectrum B)
+{
+  const float s = saturatef(1.0f - cosi);
+  const float s5 = sqr(sqr(s)) * s;
+  const Spectrum F_schlick = mix(F0, one_spectrum(), s5);
+  return saturate(F_schlick - B * cosi * s5 * s);
+}
+
 /* Approximates the average single-scattering Fresnel for a physical conductor. */
 ccl_device_inline Spectrum fresnel_conductor_Fss(const Spectrum eta, const Spectrum k)
 {

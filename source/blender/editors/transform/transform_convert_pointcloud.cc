@@ -116,7 +116,6 @@ static void createTransPointCloudVerts(bContext * /*C*/, TransInfo *t)
           td.val = value;
           td.ival = *value;
         }
-        td.ext = nullptr;
 
         copy_m3_m3(td.smtx, smtx_base.ptr());
         copy_m3_m3(td.mtx, mtx_base.ptr());

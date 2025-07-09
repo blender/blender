@@ -194,6 +194,7 @@ enum eAnim_ChannelType {
   ANIMTYPE_DSHAIR,
   ANIMTYPE_DSPOINTCLOUD,
   ANIMTYPE_DSVOLUME,
+  ANIMTYPE_DSLIGHTPROBE,
 
   ANIMTYPE_SHAPEKEY,
 
@@ -440,6 +441,8 @@ ENUM_OPERATORS(eAnimFilter_Flags, ANIMFILTER_TMP_IGNORE_ONLYSEL);
 #define FILTER_CURVES_OBJD(ha) (CHECK_TYPE_INLINE(ha, Curves *), ((ha->flag & HA_DS_EXPAND)))
 #define FILTER_POINTS_OBJD(pt) (CHECK_TYPE_INLINE(pt, PointCloud *), ((pt->flag & PT_DS_EXPAND)))
 #define FILTER_VOLUME_OBJD(vo) (CHECK_TYPE_INLINE(vo, Volume *), ((vo->flag & VO_DS_EXPAND)))
+#define FILTER_LIGHTPROBE_OBJD(probe) \
+  (CHECK_TYPE_INLINE(probe, LightProbe *), ((probe->flag & LIGHTPROBE_DS_EXPAND)))
 /* Variable use expanders */
 #define FILTER_NTREE_DATA(ntree) \
   (CHECK_TYPE_INLINE(ntree, bNodeTree *), (((ntree)->flag & NTREE_DS_EXPAND)))

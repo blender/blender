@@ -608,7 +608,7 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
   ot->description = "Mirror the current shape key along the local X axis";
 
   /* API callbacks. */
-  ot->poll = shape_key_mode_poll;
+  ot->poll = shape_key_mode_exists_poll;
   ot->exec = shape_key_mirror_exec;
 
   /* flags */

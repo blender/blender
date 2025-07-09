@@ -253,6 +253,7 @@ set(SRC
   intern/packedFile.cc
   intern/paint.cc
   intern/paint_canvas.cc
+  intern/paint_runtime.cc
   intern/particle.cc
   intern/particle_child.cc
   intern/particle_distribute.cc
@@ -491,6 +492,7 @@ set(SRC
   BKE_outliner_treehash.hh
   BKE_packedFile.hh
   BKE_paint.hh
+  BKE_paint_types.hh
   BKE_paint_bvh.hh
   BKE_paint_bvh_pixels.hh
   BKE_particle.h
@@ -832,8 +834,8 @@ add_dependencies(bf_blenkernel bf_rna)
 if(WITH_GTESTS)
   set(TEST_SRC
     intern/action_test.cc
-    intern/armature_test.cc
     intern/armature_deform_test.cc
+    intern/armature_test.cc
     intern/asset_metadata_test.cc
     intern/attribute_storage_test.cc
     intern/bpath_test.cc

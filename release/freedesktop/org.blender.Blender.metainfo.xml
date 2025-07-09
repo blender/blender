@@ -48,6 +48,24 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.5" date="2025-07-15">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Vulkan backend with support for OpenXR, Subdivision, USD/Hydra and more</li>
+                    <li>New Manifold boolean solver</li>
+                    <li>New Geometry Nodes for mesh normals, file import, Grease Pencil and more</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Grease Pencil: Added a new supersampling anti-aliasing (SSAA) method for rendering</li>
+                    <li>File I/O: New experimental FBX importer and improvements to USD, glTF, OBJ and SVG</li>
+                    <li>Cycles: Improvements to Adaptive Subdivision, Bump Mapping and new custom cameras</li>
+                    <li>Compositor: New nodes and most options are exposed as single value inputs now</li>
+                    <li>Sculpt: Pen Tablet Tilt Support, brush and performance improvements</li>
+                </ul>
+            </description>
+        </release>
         <release version="4.4" date="2025-03-18">
             <description>
                 <p>New features:</p>

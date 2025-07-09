@@ -473,11 +473,15 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
   if (screen) {
     ED_screen_exit(C, win, screen);
   }
+  const bool is_single_editor = !WM_window_is_main_top_level(win) &&
+                                (screen && BLI_listbase_is_single(&screen->areabase));
 
   wm_window_free(C, wm, win);
 
-  /* If temp screen, delete it after window free (it stops jobs that can access it). */
-  if (screen && screen->temp) {
+  /* If temp screen, delete it after window free (it stops jobs that can access it).
+   * Also delete windows with single editor. If required, they are easy to restore, see: !132978.
+   */
+  if ((screen && screen->temp) || is_single_editor) {
     Main *bmain = CTX_data_main(C);
 
     BLI_assert(BKE_workspace_layout_screen_get(layout) == screen);
@@ -2205,14 +2209,14 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityWindowPosition) {
     flag |= WM_CAPABILITY_WINDOW_POSITION;
   }
-  if (ghost_flag & GHOST_kCapabilityPrimaryClipboard) {
-    flag |= WM_CAPABILITY_PRIMARY_CLIPBOARD;
+  if (ghost_flag & GHOST_kCapabilityClipboardPrimary) {
+    flag |= WM_CAPABILITY_CLIPBOARD_PRIMARY;
   }
   if (ghost_flag & GHOST_kCapabilityGPUReadFrontBuffer) {
     flag |= WM_CAPABILITY_GPU_FRONT_BUFFER_READ;
   }
-  if (ghost_flag & GHOST_kCapabilityClipboardImages) {
-    flag |= WM_CAPABILITY_CLIPBOARD_IMAGES;
+  if (ghost_flag & GHOST_kCapabilityClipboardImage) {
+    flag |= WM_CAPABILITY_CLIPBOARD_IMAGE;
   }
   if (ghost_flag & GHOST_kCapabilityDesktopSample) {
     flag |= WM_CAPABILITY_DESKTOP_SAMPLE;
@@ -2229,8 +2233,8 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityKeyboardHyperKey) {
     flag |= WM_CAPABILITY_KEYBOARD_HYPER_KEY;
   }
-  if (ghost_flag & GHOST_kCapabilityRGBACursors) {
-    flag |= WM_CAPABILITY_RGBA_CURSORS;
+  if (ghost_flag & GHOST_kCapabilityCursorRGBA) {
+    flag |= WM_CAPABILITY_CURSOR_RGBA;
   }
 
   return flag;
@@ -2668,6 +2672,18 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win,
                                       const int event_xy[2],
                                       int r_event_xy_other[2])
 {
+  if ((WM_capabilities_flag() & WM_CAPABILITY_WINDOW_POSITION) == 0) {
+    /* Window positions are unsupported, so this function can't work as intended.
+     * Perform the bare minimum, return the active window if the event is within it. */
+    rcti rect;
+    WM_window_rect_calc(win, &rect);
+    if (!BLI_rcti_isect_pt_v(&rect, event_xy)) {
+      return nullptr;
+    }
+    copy_v2_v2_int(r_event_xy_other, event_xy);
+    return win;
+  }
+
   int temp_xy[2];
   copy_v2_v2_int(temp_xy, event_xy);
   wm_cursor_position_to_ghost_screen_coords(win, &temp_xy[0], &temp_xy[1]);

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'b4eeddd11342')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-30 09:22+0000\n"
-"PO-Revision-Date: 2025-06-22 12:59+0000\n"
+"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"PO-Revision-Date: 2025-07-06 23:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -87,6 +87,10 @@ msgid "Slot"
 msgstr "Slot"
 
 
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "Lo Slot a cui sono destinati i dati di animazione del Channelbag"
+
+
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
 msgstr "Raccolta di Curve-F per uno specifico slot azione, su uno specifico spezzone"
 
@@ -105,6 +109,10 @@ msgstr "Per ciascuno slot azione, un elenco dei canali di animazione destinati a
 
 msgid "Action F-Curves"
 msgstr "Curve-F di Azione"
+
+
+msgid "Collection of action F-Curves. Note that this is a legacy API that is unaware of action slots, and will only consider the F-Curves for this action's first slot"
+msgstr "Raccolta di Curve-F azione. Nota che questa è un'API legacy che non riconosce gli slot di azione e considererà solo le Curve-F per il primo slot di questa azione"
 
 
 msgid "Action Group"
@@ -291,6 +299,10 @@ msgid "Strips"
 msgstr "Spezzoni"
 
 
+msgid "The list of strips that are on this animation layer"
+msgstr "L'elenco degli spezzoni presenti su questo livello di animazione"
+
+
 msgid "Action Layers"
 msgstr "Livelli di Azione"
 
@@ -327,8 +339,16 @@ msgid "Action slot"
 msgstr "Slot di azione"
 
 
+msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
+msgstr "Identificatore per un set di canali in questa Azione, che può essere utilizzato da un blocco-dati per specificare da cosa viene animato"
+
+
 msgid "Active"
 msgstr "Attivo"
+
+
+msgid "Whether this is the active slot, can be set by assigning to action.slots.active"
+msgstr "Se questo è lo slot attivo, può essere impostato assegnandolo a action.slots.active"
 
 
 msgid "Slot Handle"
@@ -24651,36 +24671,12 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
 msgid "Show/Hide"
 msgstr "Mostra/Nascondi"
 
 
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
-
-
-msgid "Text"
-msgstr "Testo"
-
-
-msgid "Metaball"
-msgstr "Metaball"
-
-
-msgid "Names"
-msgstr "Nomi"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
+msgid "Clean Up"
+msgstr "Ripulisci"
 
 
 msgid "Pivot Point"
@@ -24767,6 +24763,10 @@ msgid "Assign Material"
 msgstr "Assegna Materiale"
 
 
+msgid "Metaball"
+msgstr "Metaball"
+
+
 msgid "Light"
 msgstr "Luce"
 
@@ -24843,6 +24843,10 @@ msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
 
 
+msgid "Names"
+msgstr "Nomi"
+
+
 msgid "Toggle Bone Options"
 msgstr "Attiva/disattiva Opzioni Osso"
 
@@ -24873,6 +24877,22 @@ msgstr "Imposta Intensità Faccia"
 
 msgid "Merge"
 msgstr "Unisci"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
 
 
 msgid "Keyframe Insert Pie"
@@ -38072,10 +38092,6 @@ msgid "Other"
 msgstr "Altro"
 
 
-msgid "Path Mode"
-msgstr "Modalità Percorso"
-
-
 msgid "Method used to reference paths"
 msgstr "Metodo utilizzato per riferirsi ai percorsi"
 
@@ -38086,18 +38102,6 @@ msgstr "Utilizza i percorsi relativi solo con le sottodirectory"
 
 msgid "Always write absolute paths"
 msgstr "Scrivi sempre percorsi assoluti"
-
-
-msgid "Always write relative paths (where possible)"
-msgstr "Scrivi sempre percorsi relativi (se possibile)"
-
-
-msgid "Match"
-msgstr "Confronta"
-
-
-msgid "Strip Path"
-msgstr "Percorso Spezzone"
 
 
 msgid "Filename only"
@@ -62013,6 +62017,10 @@ msgid "Prefetch"
 msgstr "Pre-Carica"
 
 
+msgid "Match"
+msgstr "Confronta"
+
+
 msgid "Track:"
 msgstr "Tracce:"
 
@@ -66019,6 +66027,10 @@ msgstr "Gruppi Oggetto"
 
 msgid "Material Groups"
 msgstr "Gruppi Materiale"
+
+
+msgid "Path Mode"
+msgstr "Modalità Percorso"
 
 
 msgid "Rigging"

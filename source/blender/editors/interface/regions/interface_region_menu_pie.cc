@@ -55,7 +55,7 @@ static uiBlock *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, 
 {
   uiBlock *block;
   uiPieMenu *pie = static_cast<uiPieMenu *>(arg_pie);
-  int minwidth, width, height;
+  int minwidth;
 
   minwidth = UI_MENU_WIDTH_MIN;
   block = pie->pie_block;
@@ -66,7 +66,7 @@ static uiBlock *ui_block_func_PIE(bContext * /*C*/, uiPopupBlockHandle *handle, 
     UI_block_region_set(block, handle->region);
   }
 
-  UI_block_layout_resolve(block, &width, &height);
+  blender::ui::block_layout_resolve(block);
 
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_NUMSELECT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
@@ -131,8 +131,15 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
     win->pie_event_type_lock = event_type;
   }
 
-  pie->layout = UI_block_layout(
-      pie->pie_block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PIEMENU, 0, 0, 200, 0, 0, style);
+  pie->layout = &blender::ui::block_layout(pie->pie_block,
+                                           blender::ui::LayoutDirection::Vertical,
+                                           blender::ui::LayoutType::PieMenu,
+                                           0,
+                                           0,
+                                           200,
+                                           0,
+                                           0,
+                                           style);
 
   /* NOTE: #wmEvent.xy is where we started dragging in case of #KM_CLICK_DRAG. */
   pie->mx = event->xy[0];
@@ -214,60 +221,6 @@ wmOperatorStatus UI_pie_menu_invoke(bContext *C, const char *idname, const wmEve
   layout = UI_pie_menu_layout(pie);
 
   UI_menutype_draw(C, mt, layout);
-
-  UI_pie_menu_end(C, pie);
-
-  return OPERATOR_INTERFACE;
-}
-
-wmOperatorStatus UI_pie_menu_invoke_from_operator_enum(bContext *C,
-                                                       const StringRefNull title,
-                                                       const StringRefNull opname,
-                                                       const StringRefNull propname,
-                                                       const wmEvent *event)
-{
-  uiPieMenu *pie;
-  uiLayout *layout;
-
-  pie = UI_pie_menu_begin(C, IFACE_(title.c_str()), ICON_NONE, event);
-  layout = UI_pie_menu_layout(pie);
-
-  layout = &layout->menu_pie();
-  uiItemsEnumO(layout, opname, propname);
-
-  UI_pie_menu_end(C, pie);
-
-  return OPERATOR_INTERFACE;
-}
-
-wmOperatorStatus UI_pie_menu_invoke_from_rna_enum(bContext *C,
-                                                  const char *title,
-                                                  const char *path,
-                                                  const wmEvent *event)
-{
-  PointerRNA r_ptr;
-  PropertyRNA *r_prop;
-  uiPieMenu *pie;
-  uiLayout *layout;
-
-  PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, C);
-
-  if (!RNA_path_resolve(&ctx_ptr, path, &r_ptr, &r_prop)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  /* invalid property, only accept enums */
-  if (RNA_property_type(r_prop) != PROP_ENUM) {
-    BLI_assert(0);
-    return OPERATOR_CANCELLED;
-  }
-
-  pie = UI_pie_menu_begin(C, IFACE_(title), ICON_NONE, event);
-
-  layout = UI_pie_menu_layout(pie);
-
-  layout = &layout->menu_pie();
-  layout->prop(&r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   UI_pie_menu_end(C, pie);
 

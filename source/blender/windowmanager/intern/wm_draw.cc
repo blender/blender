@@ -256,7 +256,14 @@ static void wm_software_cursor_draw_bitmap(const int event_xy[2],
 
   /* The DPI as a scale without the UI scale preference. */
   const float system_scale = UI_SCALE_FAC / U.ui_scale;
-  const int scale = std::max(1, round_fl_to_int(system_scale));
+  /* With RGBA cursors, the cursor will have been generated at the correct size,
+   * there is no need to perform additional scaling.
+   *
+   * NOTE: *technically* if a window spans two output of different scales,
+   * we should scale to the output. This use case is currently not accounted for. */
+  const int scale = (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_RGBA) ?
+                        1 :
+                        std::max(1, round_fl_to_int(system_scale));
 
   unit_m4(gl_matrix);
 

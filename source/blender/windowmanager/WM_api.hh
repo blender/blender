@@ -166,19 +166,31 @@ const char *WM_ghost_backend();
 enum eWM_CapabilitiesFlag {
   /** Ability to warp the cursor (set its location). */
   WM_CAPABILITY_CURSOR_WARP = (1 << 0),
-  /** Ability to access window positions & move them. */
+  /**
+   * Window position access, support for the following.
+   * - Getting window positions.
+   * - Setting window positions.
+   * - Setting positions for new windows.
+   *
+   * Currently there is no need to distinguish between these different cases
+   * so a single flag is used.
+   *
+   * When omitted, it isn't possible to know where windows are located in relation to each other.
+   * Operations such as applying events from one window to another or detecting the non-active
+   * window under the cursor are not supported.
+   */
   WM_CAPABILITY_WINDOW_POSITION = (1 << 1),
   /**
    * The windowing system supports a separate primary clipboard
    * (typically set when interactively selecting text).
    */
-  WM_CAPABILITY_PRIMARY_CLIPBOARD = (1 << 2),
+  WM_CAPABILITY_CLIPBOARD_PRIMARY = (1 << 2),
   /**
    * Reading from the back-buffer is supported.
    */
   WM_CAPABILITY_GPU_FRONT_BUFFER_READ = (1 << 3),
   /** Ability to copy/paste system clipboard images. */
-  WM_CAPABILITY_CLIPBOARD_IMAGES = (1 << 4),
+  WM_CAPABILITY_CLIPBOARD_IMAGE = (1 << 4),
   /** Ability to sample a color outside of Blender windows. */
   WM_CAPABILITY_DESKTOP_SAMPLE = (1 << 5),
   /** Support for IME input methods. */
@@ -190,7 +202,7 @@ enum eWM_CapabilitiesFlag {
   /** Support for the "Hyper" modifier key. */
   WM_CAPABILITY_KEYBOARD_HYPER_KEY = (1 << 9),
   /** Support for RGBA Cursors. */
-  WM_CAPABILITY_RGBA_CURSORS = (1 << 10),
+  WM_CAPABILITY_CURSOR_RGBA = (1 << 10),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };
@@ -1864,7 +1876,7 @@ void WM_job_main_thread_lock_release(wmJob *wm_job);
 
 /**
  * Return text from the clipboard.
- * \param selection: Use the "primary" clipboard, see: #WM_CAPABILITY_PRIMARY_CLIPBOARD.
+ * \param selection: Use the "primary" clipboard, see: #WM_CAPABILITY_CLIPBOARD_PRIMARY.
  * \param ensure_utf8: Ensure the resulting string does not contain invalid UTF8 encoding.
  */
 char *WM_clipboard_text_get(bool selection, bool ensure_utf8, int *r_len);
