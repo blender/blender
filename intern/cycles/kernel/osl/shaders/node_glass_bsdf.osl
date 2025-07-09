@@ -9,6 +9,8 @@ shader node_glass_bsdf(color Color = 0.8,
                        string distribution = "ggx",
                        float Roughness = 0.2,
                        float IOR = 1.45,
+                       float ThinFilmThickness = 0.0,
+                       float ThinFilmIOR = 1.33,
                        normal Normal = N,
                        output closure color BSDF = 0)
 {
@@ -17,9 +19,22 @@ shader node_glass_bsdf(color Color = 0.8,
   r2 = r2 * r2;
   float eta = max(IOR, 1e-5);
   eta = backfacing() ? 1.0 / eta : eta;
+  float thinfilm_ior = backfacing() ? ThinFilmIOR / eta : ThinFilmIOR;
   color F0 = F0_from_ior(eta);
   color F90 = color(1.0);
 
-  BSDF = generalized_schlick_bsdf(
-      Normal, vector(0.0), base_color, base_color, r2, r2, F0, F90, -eta, distribution);
+  BSDF = generalized_schlick_bsdf(Normal,
+                                  vector(0.0),
+                                  base_color,
+                                  base_color,
+                                  r2,
+                                  r2,
+                                  F0,
+                                  F90,
+                                  -eta,
+                                  distribution,
+                                  "thinfilm_thickness",
+                                  ThinFilmThickness,
+                                  "thinfilm_ior",
+                                  thinfilm_ior);
 }

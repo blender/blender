@@ -658,6 +658,8 @@ class GlassBsdfNode : public BsdfNode {
 
   NODE_SOCKET_API(float, roughness)
   NODE_SOCKET_API(float, IOR)
+  NODE_SOCKET_API(float, thin_film_thickness)
+  NODE_SOCKET_API(float, thin_film_ior)
   NODE_SOCKET_API(ClosureType, distribution)
 };
 

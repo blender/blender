@@ -715,6 +715,10 @@ ccl_device
       const bool reflective_caustics = true;
       const bool refractive_caustics = true;
 #endif
+
+      const float thinfilm_thickness = fmaxf(stack_load_float(stack, data_node.z), 1e-5f);
+      const float thinfilm_ior = fmaxf(stack_load_float(stack, data_node.w), 1e-5f);
+
       ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
           sd, sizeof(MicrofacetBsdf), make_spectrum(mix_weight));
       ccl_private FresnelGeneralizedSchlick *fresnel =
@@ -737,9 +741,8 @@ ccl_device
         fresnel->reflection_tint = reflective_caustics ? rgb_to_spectrum(color) : zero_spectrum();
         fresnel->transmission_tint = refractive_caustics ? rgb_to_spectrum(color) :
                                                            zero_spectrum();
-        fresnel->thin_film.thickness = 0.0f;
-        fresnel->thin_film.ior = 0.0f;
-
+        fresnel->thin_film.thickness = thinfilm_thickness;
+        fresnel->thin_film.ior = (sd->flag & SD_BACKFACING) ? thinfilm_ior / ior : thinfilm_ior;
         /* setup bsdf */
         if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID) {
           sd->flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);

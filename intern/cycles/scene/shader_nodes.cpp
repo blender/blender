@@ -2334,6 +2334,9 @@ NODE_DEFINE(GlassBsdfNode)
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.0f);
   SOCKET_IN_FLOAT(IOR, "IOR", 1.5f);
 
+  SOCKET_IN_FLOAT(thin_film_thickness, "Thin Film Thickness", 0.0f);
+  SOCKET_IN_FLOAT(thin_film_ior, "Thin Film IOR", 1.3f);
+
   SOCKET_OUT_CLOSURE(BSDF, "BSDF");
 
   return type;
@@ -2347,7 +2350,12 @@ GlassBsdfNode::GlassBsdfNode() : BsdfNode(get_node_type())
 void GlassBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = distribution;
-  BsdfNode::compile(compiler, input("Roughness"), input("IOR"), input("Color"));
+  BsdfNode::compile(compiler,
+                    input("Roughness"),
+                    input("IOR"),
+                    input("Color"),
+                    input("Thin Film Thickness"),
+                    input("Thin Film IOR"));
 }
 
 void GlassBsdfNode::compile(OSLCompiler &compiler)
