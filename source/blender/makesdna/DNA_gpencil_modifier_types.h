@@ -635,8 +635,11 @@ typedef struct HookGpencilModifierData {
   char subtarget[/*MAX_NAME*/ 64];
   /** Layer name. */
   char layername[/*MAX_NAME*/ 64];
-  /** Material name. */
-  char materialname[/*MAX_ID_NAME - 2*/ 64] DNA_DEPRECATED;
+  /**
+   * Material name.
+   * \note as this is legacy there is no need to use the current size of an ID name.
+   */
+  char materialname[/*MAX_ID_NAME - 194*/ 64] DNA_DEPRECATED;
   /** Optional vertex-group name. */
   char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */

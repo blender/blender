@@ -227,7 +227,7 @@ void BLO_read_do_version_after_setup(Main *new_bmain,
  * \{ */
 
 struct BLODataBlockInfo {
-  char name[/*MAX_ID_NAME-2*/ 64];
+  char name[/*MAX_ID_NAME-2*/ 256];
   AssetMetaData *asset_data;
   /** Ownership over #asset_data above can be "stolen out" of this struct, for more permanent
    * storage. In that case, set this to false to avoid double freeing of the stolen data. */
