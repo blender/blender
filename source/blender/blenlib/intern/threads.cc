@@ -6,19 +6,17 @@
  * \ingroup bli
  */
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdlib>
-#include <cstring>
 #include <deque>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_gsqueue.h"
 #include "BLI_listbase.h"
-#include "BLI_system.h"
-#include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_time.h"
+#include "BLI_utildefines.h"
 
 /* for checking system threads - BLI_system_thread_count */
 #ifdef WIN32
