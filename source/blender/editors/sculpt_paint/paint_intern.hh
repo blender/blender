@@ -431,16 +431,6 @@ bool paint_convert_bb_to_rect(rcti *rect,
                               const RegionView3D &rv3d,
                               const Object &ob);
 
-/**
- * Get four planes in object-space that describe the projection of
- * screen_rect from screen into object-space (essentially converting a
- * 2D screens-space bounding box into four 3D planes).
- */
-void paint_calc_redraw_planes(float planes[4][4],
-                              const ARegion &region,
-                              const Object &ob,
-                              const rcti &screen_rect);
-
 float paint_calc_object_space_radius(const ViewContext &vc,
                                      const blender::float3 &center,
                                      float pixel_radius);

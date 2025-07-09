@@ -107,24 +107,6 @@ bool paint_convert_bb_to_rect(rcti *rect,
   return rect->xmin < rect->xmax && rect->ymin < rect->ymax;
 }
 
-void paint_calc_redraw_planes(float planes[4][4],
-                              const ARegion &region,
-                              const Object &ob,
-                              const rcti &screen_rect)
-{
-  BoundBox bb;
-  rcti rect;
-
-  /* use some extra space just in case */
-  rect = screen_rect;
-  rect.xmin -= 2;
-  rect.xmax += 2;
-  rect.ymin -= 2;
-  rect.ymax += 2;
-
-  ED_view3d_clipping_calc(&bb, planes, &region, &ob, &rect);
-}
-
 float paint_calc_object_space_radius(const ViewContext &vc,
                                      const blender::float3 &center,
                                      const float pixel_radius)
