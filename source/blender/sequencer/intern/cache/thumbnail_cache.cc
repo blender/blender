@@ -359,7 +359,8 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
 
             cur_anim_path = request.file_path;
             cur_stream = request.stream_index;
-            cur_anim = MOV_open_file(cur_anim_path.c_str(), IB_byte_data, cur_stream, nullptr);
+            cur_anim = MOV_open_file(
+                cur_anim_path.c_str(), IB_byte_data, cur_stream, true, nullptr);
           }
 
           /* Decode the movie frame. */

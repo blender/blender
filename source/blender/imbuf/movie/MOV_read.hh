@@ -38,6 +38,7 @@ struct MovieProxyBuilder;
 MovieReader *MOV_open_file(const char *filepath,
                            int ib_flags,
                            int streamindex,
+                           bool keep_original_colorspace,
                            char colorspace[IM_MAX_SPACE]);
 
 /**

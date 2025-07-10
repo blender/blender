@@ -1258,8 +1258,11 @@ MovieReader *movie_open_proxy(MovieReader *anim, IMB_Proxy_Size preview_size)
 
   get_proxy_filepath(anim, preview_size, filepath, false);
 
-  /* proxies are generated in the same color space as animation itself */
-  anim->proxy_anim[i] = MOV_open_file(filepath, 0, 0, anim->colorspace);
+  /* Proxies are generated in the same color space as animation itself.
+   *
+   * Also skip any colorspace conversion to the color pipeline design as it helps performance and
+   * the image buffers from the proxy builder are not used anywhere else in Blender. */
+  anim->proxy_anim[i] = MOV_open_file(filepath, 0, 0, true, anim->colorspace);
 
   anim->proxies_tried |= preview_size;
 

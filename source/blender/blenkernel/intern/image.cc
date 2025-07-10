@@ -2677,25 +2677,27 @@ bool BKE_imbuf_write_stamp(const Scene *scene,
 }
 
 MovieReader *openanim_noload(const char *filepath,
-                             int flags,
-                             int streamindex,
+                             const int flags,
+                             const int streamindex,
+                             const bool keep_original_colorspace,
                              char colorspace[IMA_MAX_SPACE])
 {
   MovieReader *anim;
 
-  anim = MOV_open_file(filepath, flags, streamindex, colorspace);
+  anim = MOV_open_file(filepath, flags, streamindex, keep_original_colorspace, colorspace);
   return anim;
 }
 
 MovieReader *openanim(const char *filepath,
-                      int flags,
-                      int streamindex,
+                      const int ibuf_flags,
+                      const int streamindex,
+                      const bool keep_original_colorspace,
                       char colorspace[IMA_MAX_SPACE])
 {
   MovieReader *anim;
   ImBuf *ibuf;
 
-  anim = MOV_open_file(filepath, flags, streamindex, colorspace);
+  anim = MOV_open_file(filepath, ibuf_flags, streamindex, keep_original_colorspace, colorspace);
   if (anim == nullptr) {
     return nullptr;
   }
@@ -4145,7 +4147,7 @@ static ImBuf *load_movie_single(Image *ima, ImageUser *iuser, int frame, const i
     BKE_image_user_file_path(&iuser_t, ima, filepath);
 
     /* FIXME: make several stream accessible in image editor, too. */
-    ia->anim = openanim(filepath, flags, 0, ima->colorspace_settings.name);
+    ia->anim = openanim(filepath, flags, 0, false, ima->colorspace_settings.name);
 
     /* let's initialize this user */
     if (ia->anim && iuser && iuser->frames == 0) {

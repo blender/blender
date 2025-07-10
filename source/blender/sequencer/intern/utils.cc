@@ -208,10 +208,13 @@ ListBase *get_seqbase_from_strip(Strip *strip, ListBase **r_channels, int *r_off
 
 static void open_anim_filepath(Strip *strip, StripAnim *sanim, const char *filepath, bool openfile)
 {
+  /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
+   * kept unchanged for the performance reasons. */
   if (openfile) {
     sanim->anim = openanim(filepath,
                            IB_byte_data | ((strip->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                            strip->streamindex,
+                           true,
                            strip->data->colorspace_settings.name);
   }
   else {
@@ -219,6 +222,7 @@ static void open_anim_filepath(Strip *strip, StripAnim *sanim, const char *filep
                                   IB_byte_data |
                                       ((strip->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                                   strip->streamindex,
+                                  true,
                                   strip->data->colorspace_settings.name);
   }
 }

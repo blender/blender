@@ -855,7 +855,7 @@ static void build_pict_list_from_anim(ListBase &picsbase,
                                       const int frame_offset)
 {
   /* OCIO_TODO: support different input color space. */
-  MovieReader *anim = MOV_open_file(filepath_first, IB_byte_data, 0, nullptr);
+  MovieReader *anim = MOV_open_file(filepath_first, IB_byte_data, 0, false, nullptr);
   if (anim == nullptr) {
     CLOG_WARN(&LOG, "couldn't open anim '%s'", filepath_first);
     return;
@@ -1823,7 +1823,9 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
       filepath = argv[0];
       if (MOV_is_movie_file(filepath)) {
         /* OCIO_TODO: support different input color spaces. */
-        MovieReader *anim = MOV_open_file(filepath, IB_byte_data, 0, nullptr);
+        /* Image buffer is used for display, which does support displaying any buffer from any
+         * colorspace. Skip colorspace conversions in the movie module to improve performance. */
+        MovieReader *anim = MOV_open_file(filepath, IB_byte_data, 0, true, nullptr);
         if (anim) {
           ibuf = MOV_decode_frame(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
           MOV_close(anim);
