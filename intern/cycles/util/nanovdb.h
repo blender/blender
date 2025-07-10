@@ -1,5 +1,6 @@
 /* SPDX-FileCopyrightText: Contributors to the OpenVDB Project
  * SPDX-FileCopyrightText: 2025 Blender Foundation
+ *
  * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
