@@ -3742,6 +3742,10 @@ blender::bke::greasepencil::Layer &GreasePencil::duplicate_layer(
   std::optional<int> duplicate_layer_idx = get_layer_index(duplicate_layer);
   BLI_assert(duplicate_layer_idx.has_value());
   const int numLayers = layers().size();
+  bke::greasepencil::Layer *new_layer = MEM_new<bke::greasepencil::Layer>(__func__,
+                                                                          duplicate_layer);
+  root_group().add_node(new_layer->as_node());
+
   this->attribute_storage.wrap().resize(bke::AttrDomain::Layer, numLayers + 1);
   bke::MutableAttributeAccessor attributes = this->attributes_for_write();
   attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
@@ -3749,9 +3753,7 @@ blender::bke::greasepencil::Layer &GreasePencil::duplicate_layer(
     GMutableSpan span = attr.span;
     span.type().copy_assign(span[*duplicate_layer_idx], span[numLayers]);
   });
-  bke::greasepencil::Layer *new_layer = MEM_new<bke::greasepencil::Layer>(__func__,
-                                                                          duplicate_layer);
-  root_group().add_node(new_layer->as_node());
+
   this->update_drawing_users_for_layer(*new_layer);
   new_layer->set_name(unique_name);
   return *new_layer;
