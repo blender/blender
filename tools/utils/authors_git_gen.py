@@ -30,6 +30,7 @@ import unicodedata
 
 from collections.abc import (
     Iterable,
+    Iterator,
 )
 
 from git_log import (
@@ -236,12 +237,12 @@ class Credits:
             if not (i % 100):
                 print(i)
 
-    def write_object(
+    def iter_authors(
             self,
-            fh: io.TextIOBase,
             *,
             use_metadata: bool = False,
-    ) -> None:
+            verbose: bool = False,
+    ) -> Iterator[str]:
         import fnmatch
         import re
 
@@ -256,44 +257,53 @@ class Credits:
         sorted_authors = dict(sorted(self.users.items()))
         for author_with_email, cu in sorted_authors.items():
             if author_with_email.endswith(" <>"):
-                print("Skipping:", author_with_email, "(no email)")
+                if verbose:
+                    print("Skipping:", author_with_email, "(no email)")
                 continue
             if cu.lines_change <= AUTHOR_LINES_SKIP:
-                print("Skipping:", author_with_email, cu.lines_change, "line(s) changed.")
+                if verbose:
+                    print("Skipping:", author_with_email, cu.lines_change, "line(s) changed.")
                 continue
             if author_with_email in author_exclude_individuals:
-                print("Skipping:", author_with_email, "explicit exclusion requested.")
+                if verbose:
+                    print("Skipping:", author_with_email, "explicit exclusion requested.")
                 continue
             if author_with_email in author_exclude_individuals:
-                print("Skipping:", author_with_email, "explicit exclusion requested.")
+                if verbose:
+                    print("Skipping:", author_with_email, "explicit exclusion requested.")
                 continue
             if match_glob_found := next(iter([
                     match_glob for match_glob, match_regex in author_exclude_regex
                     if match_regex.match(author_with_email)
             ]), None):
-                print("Skipping:", author_with_email, "glob exclusion \"{:s}\" requested.".format(match_glob_found))
+                if verbose:
+                    print("Skipping:", author_with_email, "glob exclusion \"{:s}\" requested.".format(match_glob_found))
                 continue
 
             if use_metadata:
-                fh.write("{:s} {:s}# lines={:,d} ({:s}), {:,d} {:s}\n".format(
+                yield "{:s} {:s}# lines={:,d} ({:s}), {:,d} {:s}".format(
                     author_with_email,
                     (" " * max(1, metadata_right_margin - len(author_with_email))),
                     min(cu.lines_change, AUTHOR_LINES_LIMIT),
                     "" if cu.lines_change >= AUTHOR_LINES_LIMIT else "<SKIP?>",
                     cu.commit_total,
                     commit_word[cu.commit_total > 1],
-                ))
+                )
             else:
-                fh.write("{:s}\n".format(author_with_email))
+                yield author_with_email
 
-    def write(
-            self,
-            filepath: str,
-            *,
-            use_metadata: bool = False,
-    ) -> None:
-        with open(filepath, 'w', encoding="utf8", errors='xmlcharrefreplace') as fh:
-            self.write_object(fh, use_metadata=use_metadata)
+    def report_warnings(self) -> None:
+        # Warn about authors that share an email field.
+        emails: dict[str, list[str]] = {}
+        for author in self.iter_authors(use_metadata=False):
+            name, email = author.rstrip(">").rsplit(" <", 1)
+            try:
+                emails[email].append(name)
+            except KeyError:
+                emails[email] = [name]
+        for email, names in emails.items():
+            if len(names) > 1:
+                print("Warning: multiple names for an email '{:s}' {!r}".format(email, names))
 
 
 # -----------------------------------------------------------------------------
@@ -359,7 +369,7 @@ def argparse_create() -> argparse.ArgumentParser:
 # -----------------------------------------------------------------------------
 # Main Function
 
-def main() -> None:
+def main() -> int:
 
     # ----------
     # Parse Args
@@ -379,17 +389,21 @@ def main() -> None:
 
     credits.process(GitCommitIter(args.source_dir, commit_range), jobs=jobs)
 
-    if args.output_filepath:
-        credits.write(args.output_filepath, use_metadata=args.use_metadata)
-        print("Written:", args.output_filepath)
-        return
-
-    filepath_authors = os.path.join(args.source_dir, "AUTHORS")
+    credits.report_warnings()
 
     authors_text_io = io.StringIO()
-    credits.write_object(authors_text_io, use_metadata=args.use_metadata)
+    for author in credits.iter_authors(use_metadata=args.use_metadata, verbose=True):
+        authors_text_io.write("{:s}\n".format(author))
     authors_text = authors_text_io.getvalue()
     del authors_text_io
+
+    if args.output_filepath:
+        with open(args.output_filepath, 'w', encoding="utf8", errors='xmlcharrefreplace') as fh:
+            fh.write(authors_text)
+        print("Written:", args.output_filepath)
+        return 0
+
+    filepath_authors = os.path.join(args.source_dir, "AUTHORS")
 
     text_beg = "# BEGIN individuals section.\n"
     text_end = "# Please DO NOT APPEND here. See comments at the top of the file.\n"
@@ -400,10 +414,10 @@ def main() -> None:
     text_end_index = authors_contents.index(text_end)
     if text_beg_index == -1:
         print("Text: {!r} not found in {!r}".format(text_beg, filepath_authors))
-        sys.exit(1)
+        return 1
     if text_end_index == -1:
         print("Text: {!r} not found in {!r}".format(text_end, filepath_authors))
-        sys.exit(1)
+        return 1
 
     text_beg_index += len(text_beg)
 
@@ -413,7 +427,8 @@ def main() -> None:
         fh.write(authors_contents[text_end_index:])
 
     print("Updated:", filepath_authors)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
