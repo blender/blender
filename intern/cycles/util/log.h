@@ -148,7 +148,7 @@ template<typename T> T DCheckNotNull(T &&t, const char *expression)
 #  define DCHECK_LT(a, b) DCHECK_OP(<, a, b)
 #  define DCHECK_LE(a, b) DCHECK_OP(<=, a, b)
 #else
-#  define LOG_SUPPRESS() LOG_IF(DEBUG, false)
+#  define LOG_SUPPRESS() LOG_IF(LOG_LEVEL_DEBUG, false)
 #  define DCHECK(expression) LOG_SUPPRESS()
 #  define DCHECK_NOTNULL(expression) (expression)
 #  define DCHECK_GE(a, b) LOG_SUPPRESS()
