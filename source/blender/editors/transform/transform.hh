@@ -994,6 +994,10 @@ wmOperatorStatus transformEnd(bContext *C, TransInfo *t);
 void setTransformViewMatrices(TransInfo *t);
 void setTransformViewAspect(TransInfo *t, float r_aspect[3]);
 void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy);
+/**
+ * If viewport projection fails, calculate a usable fallback.
+ */
+void projectFloatViewCenterFallback(TransInfo *t, float adr[2]);
 void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], eV3DProjTest flag);
 void projectIntView(TransInfo *t, const float vec[3], int adr[2]);
 void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], eV3DProjTest flag);
