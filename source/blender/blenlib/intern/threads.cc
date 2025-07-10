@@ -10,6 +10,7 @@
 #include <cerrno>
 #include <cstdlib>
 #include <deque>
+#include <cstdio> /* For `printf`. */
 
 #include "MEM_guardedalloc.h"
 
