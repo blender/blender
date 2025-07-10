@@ -241,7 +241,7 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
   assert(from && to);
 
   if (to->link) {
-    LOG(WARNING) << "Sraph connect: input already connected.";
+    LOG(WARNING) << "Graph connect: input already connected.";
     return;
   }
 
