@@ -174,8 +174,8 @@ bool OptiXDeviceQueue::enqueue(DeviceKernel kernel,
       break;
 
     default:
-      LOG(ERROR) << "Invalid kernel " << device_kernel_as_string(kernel)
-                 << " is attempted to be enqueued.";
+      LOG_ERROR << "Invalid kernel " << device_kernel_as_string(kernel)
+                << " is attempted to be enqueued.";
       return false;
   }
 

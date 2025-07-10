@@ -36,7 +36,7 @@ void LookupTables::device_update(Device * /*unused*/, DeviceScene *dscene, Scene
     }
   });
 
-  LOG(INFO) << "Total " << lookup_tables.size() << " lookup tables.";
+  LOG_INFO << "Total " << lookup_tables.size() << " lookup tables.";
 
   if (!lookup_tables.empty()) {
     dscene->lookup_table.copy_to_device();

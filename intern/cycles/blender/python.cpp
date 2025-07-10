@@ -727,7 +727,7 @@ static PyObject *set_device_override_func(PyObject * /*self*/, PyObject *arg)
     BlenderSession::device_override = DEVICE_MASK_ONEAPI;
   }
   else {
-    LOG(ERROR) << override << " is not a valid Cycles device.";
+    LOG_ERROR << override << " is not a valid Cycles device.";
     Py_RETURN_FALSE;
   }
 

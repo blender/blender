@@ -65,7 +65,7 @@ static bool rtc_memory_monitor_func(void *userPtr, const ssize_t bytes, const bo
 
 static void rtc_error_func(void * /*unused*/, enum RTCError /*unused*/, const char *str)
 {
-  LOG(WARNING) << str;
+  LOG_WARNING << str;
 }
 
 static double progress_start_time = 0.0;

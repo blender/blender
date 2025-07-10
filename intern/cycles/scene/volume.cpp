@@ -544,7 +544,7 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
 
   /* If nothing to build, early out. */
   if (builder.empty_grid()) {
-    LOG(WORK) << "Memory usage volume mesh: 0 Mb. (empty grid)";
+    LOG_WORK << "Memory usage volume mesh: 0 Mb. (empty grid)";
     return;
   }
 
@@ -575,10 +575,9 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
   }
 
   /* Print stats. */
-  LOG(WORK) << "Memory usage volume mesh: "
-            << (vertices.size() * sizeof(float3) + indices.size() * sizeof(int)) /
-                   (1024.0 * 1024.0)
-            << "Mb.";
+  LOG_WORK << "Memory usage volume mesh: "
+           << (vertices.size() * sizeof(float3) + indices.size() * sizeof(int)) / (1024.0 * 1024.0)
+           << "Mb.";
 #else
   (void)scene;
 #endif /* defined(WITH_OPENVDB) && defined(WITH_NANOVDB) */

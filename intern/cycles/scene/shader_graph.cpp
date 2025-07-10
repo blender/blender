@@ -241,16 +241,16 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
   assert(from && to);
 
   if (to->link) {
-    LOG(WARNING) << "Graph connect: input already connected.";
+    LOG_WARNING << "Graph connect: input already connected.";
     return;
   }
 
   if (from->type() != to->type()) {
     /* can't do automatic conversion from closure */
     if (from->type() == SocketType::CLOSURE) {
-      LOG(WARNING) << "Shader graph connect: can only connect closure to closure ("
-                   << from->parent->name.c_str() << "." << from->name().c_str() << " to "
-                   << to->parent->name.c_str() << "." << to->name().c_str() << ")";
+      LOG_WARNING << "Shader graph connect: can only connect closure to closure ("
+                  << from->parent->name.c_str() << "." << from->name().c_str() << " to "
+                  << to->parent->name.c_str() << "." << to->name().c_str() << ")";
       return;
     }
 
@@ -659,7 +659,7 @@ void ShaderGraph::deduplicate_nodes()
   }
 
   if (num_deduplicated > 0) {
-    LOG(DEBUG) << "Deduplicated " << num_deduplicated << " nodes.";
+    LOG_DEBUG << "Deduplicated " << num_deduplicated << " nodes.";
   }
 }
 
@@ -713,19 +713,19 @@ void ShaderGraph::optimize_volume_output()
     }
   }
 
-  if (LOG_IS_ON(DEBUG)) {
+  if (LOG_IS_ON(LOG_LEVEL_DEBUG)) {
     for (ShaderNode *node : nodes) {
       if (node->type == AttributeNode::get_node_type() &&
           static_cast<AttributeNode *>(node)->stochastic_sample)
       {
-        LOG(DEBUG) << "Volume attribute node " << node->name << " uses stochastic sampling";
+        LOG_DEBUG << "Volume attribute node " << node->name << " uses stochastic sampling";
       }
     }
   }
 
   if (!has_valid_volume) {
     /* We can remove the entire volume shader. */
-    LOG(DEBUG) << "Disconnect meaningless volume output.";
+    LOG_DEBUG << "Disconnect meaningless volume output.";
     disconnect(volume_in->link);
   }
 }
@@ -742,7 +742,7 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool> &visited, vector<b
       if (on_stack[depnode->id]) {
         /* break cycle */
         disconnect(input);
-        LOG(WARNING) << "Shader graph: detected cycle in graph, connection removed.";
+        LOG_WARNING << "Shader graph: detected cycle in graph, connection removed.";
       }
       else if (!visited[depnode->id]) {
         /* visit dependencies */
@@ -1221,7 +1221,7 @@ void ShaderGraph::dump_graph(const char *filename)
   FILE *fd = fopen(filename, "w");
 
   if (fd == nullptr) {
-    LOG(ERROR) << "Error opening file for dumping the graph: " << filename;
+    LOG_ERROR << "Error opening file for dumping the graph: " << filename;
     return;
   }
 

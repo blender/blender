@@ -157,8 +157,8 @@ void PathTraceWorkGPU::alloc_integrator_soa()
     if ((kernel_features & (feature))) { \
       string name_str = string_printf("%sintegrator_state_" #parent_struct "_" #name, \
                                       shadow ? "shadow_" : ""); \
-      LOG(DEBUG) << "Skipping " << name_str \
-                 << " -- data is packed inside integrator_state_" #parent_struct "_packed"; \
+      LOG_DEBUG << "Skipping " << name_str \
+                << " -- data is packed inside integrator_state_" #parent_struct "_packed"; \
     }
 #  define KERNEL_STRUCT_BEGIN_PACKED(parent_struct, feature) \
     KERNEL_STRUCT_BEGIN(parent_struct) \
@@ -206,13 +206,13 @@ void PathTraceWorkGPU::alloc_integrator_soa()
 #undef KERNEL_STRUCT_END_ARRAY
 #undef KERNEL_STRUCT_VOLUME_STACK_SIZE
 
-  if (LOG_IS_ON(STATS)) {
+  if (LOG_IS_ON(LOG_LEVEL_STATS)) {
     size_t total_soa_size = 0;
     for (auto &&soa_memory : integrator_state_soa_) {
       total_soa_size += soa_memory->memory_size();
     }
 
-    LOG(STATS) << "GPU SoA state size: " << string_human_readable_size(total_soa_size);
+    LOG_STATS << "GPU SoA state size: " << string_human_readable_size(total_soa_size);
   }
 }
 
@@ -571,8 +571,8 @@ void PathTraceWorkGPU::enqueue_path_iteration(DeviceKernel kernel, const int num
     }
 
     default:
-      LOG(FATAL) << "Unhandled kernel " << device_kernel_as_string(kernel)
-                 << " used for path iteration, should never happen.";
+      LOG_FATAL << "Unhandled kernel " << device_kernel_as_string(kernel)
+                << " used for path iteration, should never happen.";
       break;
   }
 }
@@ -943,10 +943,10 @@ bool PathTraceWorkGPU::should_use_graphics_interop(PathTraceDisplay *display)
                                                        true);
 
     if (interop_use_) {
-      LOG(INFO) << "Using graphics interop GPU display update.";
+      LOG_INFO << "Using graphics interop GPU display update.";
     }
     else {
-      LOG(INFO) << "Using naive GPU display update.";
+      LOG_INFO << "Using naive GPU display update.";
     }
 
     interop_use_checked_ = true;
@@ -966,7 +966,7 @@ void PathTraceWorkGPU::copy_to_display(PathTraceDisplay *display,
   }
 
   if (!buffers_->buffer.device_pointer) {
-    LOG(WARNING) << "Request for GPU display update without allocated render buffers.";
+    LOG_WARNING << "Request for GPU display update without allocated render buffers.";
     return;
   }
 

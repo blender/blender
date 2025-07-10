@@ -274,7 +274,7 @@ void LightManager::test_enabled_lights(Scene *scene)
     num_lights++;
   }
 
-  LOG(INFO) << "Total " << num_lights << " lights.";
+  LOG_INFO << "Total " << num_lights << " lights.";
 
   bool background_enabled = false;
   int background_resolution = 0;
@@ -287,7 +287,7 @@ void LightManager::test_enabled_lights(Scene *scene)
     Shader *shader = scene->background->get_shader(scene);
     const bool disable_mis = !(has_portal || shader->has_surface_spatial_varying);
     if (disable_mis) {
-      LOG(INFO) << "Background MIS has been disabled.";
+      LOG_INFO << "Background MIS has been disabled.";
     }
     for (Light *light : background_lights) {
       light->is_enabled = !disable_mis;
@@ -387,7 +387,7 @@ void LightManager::device_update_distribution(Device * /*unused*/,
   /* Distribution size. */
   kintegrator->num_distribution = num_distribution;
 
-  LOG(INFO) << "Use light distribution with " << num_distribution << " emitters.";
+  LOG_INFO << "Use light distribution with " << num_distribution << " emitters.";
 
   /* Emission area. */
   KernelLightDistribution *distribution = dscene->light_distribution.alloc(num_distribution + 1);
@@ -862,8 +862,8 @@ void LightManager::device_update_tree(Device * /*unused*/,
   KernelLightLinkSet *klight_link_sets = dscene->data.light_link_sets;
   memset(klight_link_sets, 0, sizeof(dscene->data.light_link_sets));
 
-  LOG(INFO) << "Use light tree with " << num_emitters << " emitters and " << light_tree.num_nodes
-            << " nodes.";
+  LOG_INFO << "Use light tree with " << num_emitters << " emitters and " << light_tree.num_nodes
+           << " nodes.";
 
   if (!use_light_linking) {
     /* Regular light tree without linking. */
@@ -908,8 +908,8 @@ void LightManager::device_update_tree(Device * /*unused*/,
     KernelLightTreeNode *knodes = dscene->light_tree_nodes.alloc(light_link_nodes.size());
     memcpy(knodes, light_link_nodes.data(), light_link_nodes.size() * sizeof(*knodes));
 
-    LOG(INFO) << "Specialized light tree for light linking, with "
-              << light_link_nodes.size() - light_tree.num_nodes << " additional nodes.";
+    LOG_INFO << "Specialized light tree for light linking, with "
+             << light_link_nodes.size() - light_tree.num_nodes << " additional nodes.";
   }
 
   /* Copy arrays to device. */
@@ -1074,13 +1074,13 @@ void LightManager::device_update_background(Device *device,
   if (res.x == 0) {
     res = environment_res;
     if (res.x > 0 && res.y > 0) {
-      LOG(INFO) << "Automatically set World MIS resolution to " << res.x << " by " << res.y;
+      LOG_INFO << "Automatically set World MIS resolution to " << res.x << " by " << res.y;
     }
   }
   /* If it's still unknown, just use the default. */
   if (res.x == 0 || res.y == 0) {
     res = make_int2(1024, 512);
-    LOG(INFO) << "Setting World MIS resolution to default";
+    LOG_INFO << "Setting World MIS resolution to default";
   }
   kbackground->map_res_x = res.x;
   kbackground->map_res_y = res.y;
@@ -1139,7 +1139,7 @@ void LightManager::device_update_background(Device *device,
 
   marg_cdf[res.y].y = 1.0f;
 
-  LOG(WORK) << "Background MIS build time " << time_dt() - time_start;
+  LOG_WORK << "Background MIS build time " << time_dt() - time_start;
 
   /* update device */
   dscene->light_background_marginal_cdf.copy_to_device();
@@ -1396,7 +1396,7 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
     light_index++;
   }
 
-  LOG(INFO) << "Number of lights sent to the device: " << num_lights;
+  LOG_INFO << "Number of lights sent to the device: " << num_lights;
 
   dscene->lights.copy_to_device();
 }

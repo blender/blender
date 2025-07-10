@@ -473,8 +473,8 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   double total_time;
   double render_time;
   session->progress.get_time(total_time, render_time);
-  LOG(INFO) << "Total render time: " << total_time;
-  LOG(INFO) << "Render time (without synchronization): " << render_time;
+  LOG_INFO << "Total render time: " << total_time;
+  LOG_INFO << "Render time (without synchronization): " << render_time;
 }
 
 void BlenderSession::render_frame_finish()

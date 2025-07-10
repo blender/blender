@@ -20,11 +20,11 @@ bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
 {
   /* Perform preliminary checks, with meaningful logging. */
   if (!path_exists(filepath.string())) {
-    LOG(WARNING) << "File '" << filepath.string() << "' does not exist.";
+    LOG_WARNING << "File '" << filepath.string() << "' does not exist.";
     return false;
   }
   if (path_is_directory(filepath.string())) {
-    LOG(WARNING) << "File '" << filepath.string() << "' is a directory, can't use as image.";
+    LOG_WARNING << "File '" << filepath.string() << "' is a directory, can't use as image.";
     return false;
   }
 

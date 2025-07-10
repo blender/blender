@@ -312,7 +312,7 @@ bool MD5Hash::append_file(const string &filepath)
   FILE *f = path_fopen(filepath, "rb");
 
   if (!f) {
-    LOG(ERROR) << "MD5: failed to open file " << filepath;
+    LOG_ERROR << "MD5: failed to open file " << filepath;
     return false;
   }
 

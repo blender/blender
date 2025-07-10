@@ -979,7 +979,7 @@ void ShaderManager::init_xyz_transforms()
     config = OCIO::GetCurrentConfig();
   }
   catch (OCIO::Exception &exception) {
-    LOG(WARNING) << "OCIO config error: " << exception.what();
+    LOG_WARNING << "OCIO config error: " << exception.what();
     return;
   }
 

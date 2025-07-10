@@ -15,7 +15,7 @@ const char *pass_type_as_string(const PassType type)
   const NodeEnum *type_enum = Pass::get_type_enum();
 
   if (!type_enum->exists(type_int)) {
-    LOG(DFATAL) << "Unhandled pass type " << static_cast<int>(type) << ", not supposed to happen.";
+    LOG_DFATAL << "Unhandled pass type " << static_cast<int>(type) << ", not supposed to happen.";
     return "UNKNOWN";
   }
 
@@ -31,7 +31,7 @@ const char *pass_mode_as_string(PassMode mode)
       return "DENOISED";
   }
 
-  LOG(DFATAL) << "Unhandled pass mode " << static_cast<int>(mode) << ", should never happen.";
+  LOG_DFATAL << "Unhandled pass mode " << static_cast<int>(mode) << ", should never happen.";
   return "UNKNOWN";
 }
 
@@ -347,7 +347,7 @@ PassInfo Pass::get_info(const PassType type, const bool include_albedo, const bo
     case PASS_CATEGORY_DATA_END:
     case PASS_CATEGORY_BAKE_END:
     case PASS_NUM:
-      LOG(DFATAL) << "Unexpected pass type is used " << type;
+      LOG_DFATAL << "Unexpected pass type is used " << type;
       pass_info.num_components = 0;
       break;
     case PASS_GUIDING_COLOR:

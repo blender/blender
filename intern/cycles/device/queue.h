@@ -159,7 +159,7 @@ class DeviceQueue {
    * resource as a buffer writable by kernels of this device. */
   virtual unique_ptr<DeviceGraphicsInterop> graphics_interop_create()
   {
-    LOG(FATAL) << "Request of GPU interop of a device which does not support it.";
+    LOG_FATAL << "Request of GPU interop of a device which does not support it.";
     return nullptr;
   }
 

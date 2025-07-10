@@ -103,7 +103,7 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info,
     return;
   }
 
-  if (LOG_IS_ON(DEBUG)) {
+  if (LOG_IS_ON(LOG_LEVEL_DEBUG)) {
     hiprtSetLogLevel(hiprtLogLevelInfo | hiprtLogLevelWarn | hiprtLogLevelError);
   }
   else {
@@ -154,9 +154,9 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
 
   if (!use_adaptive_compilation()) {
     const string fatbin = path_get(string_printf("lib/%s_rt_%s.hipfb.zst", name, arch.c_str()));
-    LOG(INFO) << "Testing for pre-compiled kernel " << fatbin << ".";
+    LOG_INFO << "Testing for pre-compiled kernel " << fatbin << ".";
     if (path_exists(fatbin)) {
-      LOG(INFO) << "Using precompiled kernel.";
+      LOG_INFO << "Using precompiled kernel.";
       return fatbin;
     }
   }
@@ -173,9 +173,9 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   const string fatbin = path_cache_get(path_join("kernels", fatbin_file));
   const string hiprt_include_path = path_join(source_path, "kernel/device/hiprt");
 
-  LOG(INFO) << "Testing for locally compiled kernel " << fatbin << ".";
+  LOG_INFO << "Testing for locally compiled kernel " << fatbin << ".";
   if (path_exists(fatbin)) {
-    LOG(INFO) << "Using locally compiled kernel.";
+    LOG_INFO << "Using locally compiled kernel.";
     return fatbin;
   }
 
@@ -208,10 +208,10 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   }
 
   const int hipcc_hip_version = hipewCompilerVersion();
-  LOG(INFO) << "Found hipcc " << hipcc << ", HIP version " << hipcc_hip_version << ".";
+  LOG_INFO << "Found hipcc " << hipcc << ", HIP version " << hipcc_hip_version << ".";
   if (hipcc_hip_version < 40) {
-    LOG(WARNING) << "Unsupported HIP version " << hipcc_hip_version / 10 << "."
-                 << hipcc_hip_version % 10 << ", you need HIP 4.0 or newer.\n";
+    LOG_WARNING << "Unsupported HIP version " << hipcc_hip_version / 10 << "."
+                << hipcc_hip_version % 10 << ", you need HIP 4.0 or newer.\n";
     return string();
   }
 
@@ -234,7 +234,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   options.append(" -D WITH_NANOVDB");
 #  endif
 
-  LOG(INFO_IMPORTANT) << "Compiling " << source_path << " and caching to " << fatbin;
+  LOG_INFO_IMPORTANT << "Compiling " << source_path << " and caching to " << fatbin;
 
   double starttime = time_dt();
 
@@ -257,8 +257,8 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
     return string();
   }
 
-  LOG(INFO_IMPORTANT) << "Kernel compilation finished in " << std::fixed << std::setprecision(2)
-                      << time_dt() - starttime << "s";
+  LOG_INFO_IMPORTANT << "Kernel compilation finished in " << std::fixed << std::setprecision(2)
+                     << time_dt() - starttime << "s";
 
   return fatbin;
 }
@@ -267,7 +267,7 @@ bool HIPRTDevice::load_kernels(const uint kernel_features)
 {
   if (hipModule) {
     if (use_adaptive_compilation()) {
-      LOG(INFO) << "Skipping HIP kernel reload for adaptive compilation, not currently supported.";
+      LOG_INFO << "Skipping HIP kernel reload for adaptive compilation, not currently supported.";
     }
     return true;
   }

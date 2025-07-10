@@ -50,8 +50,8 @@ static const char *FRAGMENT_SHADER =
 
 static void shader_print_errors(const char *task, const char *log, const char *code)
 {
-  LOG(ERROR) << "Shader: " << task << " error:";
-  LOG(ERROR) << "===== shader string ====";
+  LOG_ERROR << "Shader: " << task << " error:";
+  LOG_ERROR << "===== shader string ====";
 
   std::stringstream stream(code);
   string partial;
@@ -59,14 +59,14 @@ static void shader_print_errors(const char *task, const char *log, const char *c
   int line = 1;
   while (getline(stream, partial, '\n')) {
     if (line < 10) {
-      LOG(ERROR) << " " << line << " " << partial;
+      LOG_ERROR << " " << line << " " << partial;
     }
     else {
-      LOG(ERROR) << line << " " << partial;
+      LOG_ERROR << line << " " << partial;
     }
     line++;
   }
-  LOG(ERROR) << log;
+  LOG_ERROR << log;
 }
 
 static int compile_shader_program()
@@ -176,14 +176,14 @@ void OpenGLShader::create_shader_if_needed()
 
   image_texture_location_ = glGetUniformLocation(shader_program_, "image_texture");
   if (image_texture_location_ < 0) {
-    LOG(ERROR) << "Shader doesn't contain the 'image_texture' uniform.";
+    LOG_ERROR << "Shader doesn't contain the 'image_texture' uniform.";
     destroy_shader();
     return;
   }
 
   fullscreen_location_ = glGetUniformLocation(shader_program_, "fullscreen");
   if (fullscreen_location_ < 0) {
-    LOG(ERROR) << "Shader doesn't contain the 'fullscreen' uniform.";
+    LOG_ERROR << "Shader doesn't contain the 'fullscreen' uniform.";
     destroy_shader();
     return;
   }

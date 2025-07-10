@@ -244,7 +244,7 @@ void TopologyRefinerFactory<OsdMesh>::reportInvalidTopology(TopologyError /*err_
                                                             OsdMesh const &osd_mesh)
 {
   const Mesh &mesh = osd_mesh.mesh;
-  LOG(WARNING) << "Invalid subdivision topology for '" << mesh.name.c_str() << "': " << msg;
+  LOG_WARNING << "Invalid subdivision topology for '" << mesh.name.c_str() << "': " << msg;
 }
 }  // namespace OpenSubdiv::OPENSUBDIV_VERSION::Far
 

@@ -159,8 +159,8 @@ void xml_read_node(XMLReader &reader, Node *node, const xml_node xml_node)
           node->set(socket, value);
         }
         else {
-          LOG(ERROR) << "Unknown value \"" << value.c_str() << "\" for attribute \""
-                     << socket.name.c_str() << "\"";
+          LOG_ERROR << "Unknown value \"" << value.c_str() << "\" for attribute \""
+                    << socket.name.c_str() << "\"";
         }
         break;
       }

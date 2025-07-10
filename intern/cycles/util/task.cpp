@@ -68,7 +68,7 @@ void TaskScheduler::init(const int num_threads)
   }
   if (num_threads > 0) {
     /* Automatic number of threads. */
-    LOG(INFO) << "Overriding number of TBB threads to " << num_threads << ".";
+    LOG_INFO << "Overriding number of TBB threads to " << num_threads << ".";
     global_control = make_unique<tbb::global_control>(tbb::global_control::max_allowed_parallelism,
                                                       num_threads);
     active_num_threads = num_threads;

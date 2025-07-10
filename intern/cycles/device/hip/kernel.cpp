@@ -35,7 +35,7 @@ void HIPDeviceKernels::load(HIPDevice *device)
               &kernel.min_blocks, &kernel.num_threads_per_block, kernel.function, 0, 0));
     }
     else {
-      LOG(ERROR) << "Unable to load kernel " << function_name;
+      LOG_ERROR << "Unable to load kernel " << function_name;
     }
   }
 

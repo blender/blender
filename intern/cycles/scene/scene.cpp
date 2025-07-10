@@ -374,11 +374,11 @@ void Scene::device_update(Device *device_, Progress &progress)
     const size_t mem_used = util_guarded_get_mem_used();
     const size_t mem_peak = util_guarded_get_mem_peak();
 
-    LOG(INFO) << "System memory statistics after full device sync:\n"
-              << "  Usage: " << string_human_readable_number(mem_used) << " ("
-              << string_human_readable_size(mem_used) << ")\n"
-              << "  Peak: " << string_human_readable_number(mem_peak) << " ("
-              << string_human_readable_size(mem_peak) << ")";
+    LOG_INFO << "System memory statistics after full device sync:\n"
+             << "  Usage: " << string_human_readable_number(mem_used) << " ("
+             << string_human_readable_size(mem_used) << ")\n"
+             << "  Peak: " << string_human_readable_number(mem_peak) << " ("
+             << string_human_readable_size(mem_peak) << ")";
   }
 }
 
@@ -603,24 +603,24 @@ bool Scene::update_camera_resolution(Progress &progress, int width, int height)
 
 static void log_kernel_features(const uint features)
 {
-  LOG(INFO) << "Requested features:";
-  LOG(INFO) << "Use BSDF " << string_from_bool(features & KERNEL_FEATURE_NODE_BSDF);
-  LOG(INFO) << "Use Emission " << string_from_bool(features & KERNEL_FEATURE_NODE_EMISSION);
-  LOG(INFO) << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_NODE_VOLUME);
-  LOG(INFO) << "Use Bump " << string_from_bool(features & KERNEL_FEATURE_NODE_BUMP);
-  LOG(INFO) << "Use Voronoi " << string_from_bool(features & KERNEL_FEATURE_NODE_VORONOI_EXTRA);
-  LOG(INFO) << "Use Shader Raytrace " << string_from_bool(features & KERNEL_FEATURE_NODE_RAYTRACE);
-  LOG(INFO) << "Use MNEE " << string_from_bool(features & KERNEL_FEATURE_MNEE);
-  LOG(INFO) << "Use Transparent " << string_from_bool(features & KERNEL_FEATURE_TRANSPARENT);
-  LOG(INFO) << "Use Denoising " << string_from_bool(features & KERNEL_FEATURE_DENOISING);
-  LOG(INFO) << "Use Path Tracing " << string_from_bool(features & KERNEL_FEATURE_PATH_TRACING);
-  LOG(INFO) << "Use Hair " << string_from_bool(features & KERNEL_FEATURE_HAIR);
-  LOG(INFO) << "Use Pointclouds " << string_from_bool(features & KERNEL_FEATURE_POINTCLOUD);
-  LOG(INFO) << "Use Object Motion " << string_from_bool(features & KERNEL_FEATURE_OBJECT_MOTION);
-  LOG(INFO) << "Use Baking " << string_from_bool(features & KERNEL_FEATURE_BAKING);
-  LOG(INFO) << "Use Subsurface " << string_from_bool(features & KERNEL_FEATURE_SUBSURFACE);
-  LOG(INFO) << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_VOLUME);
-  LOG(INFO) << "Use Shadow Catcher " << string_from_bool(features & KERNEL_FEATURE_SHADOW_CATCHER);
+  LOG_INFO << "Requested features:";
+  LOG_INFO << "Use BSDF " << string_from_bool(features & KERNEL_FEATURE_NODE_BSDF);
+  LOG_INFO << "Use Emission " << string_from_bool(features & KERNEL_FEATURE_NODE_EMISSION);
+  LOG_INFO << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_NODE_VOLUME);
+  LOG_INFO << "Use Bump " << string_from_bool(features & KERNEL_FEATURE_NODE_BUMP);
+  LOG_INFO << "Use Voronoi " << string_from_bool(features & KERNEL_FEATURE_NODE_VORONOI_EXTRA);
+  LOG_INFO << "Use Shader Raytrace " << string_from_bool(features & KERNEL_FEATURE_NODE_RAYTRACE);
+  LOG_INFO << "Use MNEE " << string_from_bool(features & KERNEL_FEATURE_MNEE);
+  LOG_INFO << "Use Transparent " << string_from_bool(features & KERNEL_FEATURE_TRANSPARENT);
+  LOG_INFO << "Use Denoising " << string_from_bool(features & KERNEL_FEATURE_DENOISING);
+  LOG_INFO << "Use Path Tracing " << string_from_bool(features & KERNEL_FEATURE_PATH_TRACING);
+  LOG_INFO << "Use Hair " << string_from_bool(features & KERNEL_FEATURE_HAIR);
+  LOG_INFO << "Use Pointclouds " << string_from_bool(features & KERNEL_FEATURE_POINTCLOUD);
+  LOG_INFO << "Use Object Motion " << string_from_bool(features & KERNEL_FEATURE_OBJECT_MOTION);
+  LOG_INFO << "Use Baking " << string_from_bool(features & KERNEL_FEATURE_BAKING);
+  LOG_INFO << "Use Subsurface " << string_from_bool(features & KERNEL_FEATURE_SUBSURFACE);
+  LOG_INFO << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_VOLUME);
+  LOG_INFO << "Use Shadow Catcher " << string_from_bool(features & KERNEL_FEATURE_SHADOW_CATCHER);
 }
 
 bool Scene::load_kernels(Progress &progress)
@@ -675,8 +675,8 @@ int Scene::get_max_closure_count()
      * closures discarded due to mixing or low weights. We need to limit
      * to MAX_CLOSURE as this is hardcoded in CPU/mega kernels, and it
      * avoids excessive memory usage for split kernels. */
-    LOG(WARNING) << "Maximum number of closures exceeded: " << max_closure_global << " > "
-                 << MAX_CLOSURE;
+    LOG_WARNING << "Maximum number of closures exceeded: " << max_closure_global << " > "
+                << MAX_CLOSURE;
 
     max_closure_global = MAX_CLOSURE;
   }
@@ -726,7 +726,7 @@ int Scene::get_volume_stack_size() const
 
   volume_stack_size = min(volume_stack_size, MAX_VOLUME_STACK_SIZE);
 
-  LOG(WORK) << "Detected required volume stack size " << volume_stack_size;
+  LOG_WORK << "Detected required volume stack size " << volume_stack_size;
 
   return volume_stack_size;
 }

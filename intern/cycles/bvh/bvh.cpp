@@ -58,7 +58,7 @@ const char *bvh_layout_name(BVHLayout layout)
     case BVH_LAYOUT_ALL:
       return "ALL";
   }
-  LOG(DFATAL) << "Unsupported BVH layout was passed.";
+  LOG_DFATAL << "Unsupported BVH layout was passed.";
   return "";
 }
 
@@ -143,7 +143,7 @@ unique_ptr<BVH> BVH::create(const BVHParams &params,
     case BVH_LAYOUT_ALL:
       break;
   }
-  LOG(DFATAL) << "Requested unsupported BVH layout.";
+  LOG_DFATAL << "Requested unsupported BVH layout.";
   return nullptr;
 }
 

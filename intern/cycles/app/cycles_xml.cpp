@@ -263,12 +263,12 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
           }
 
           if (!output) {
-            LOG(ERROR) << "Unknown output socket name \"" << from_node_name << "\" on \""
-                       << from_socket_name << "\".";
+            LOG_ERROR << "Unknown output socket name \"" << from_node_name << "\" on \""
+                      << from_socket_name << "\".";
           }
         }
         else {
-          LOG(ERROR) << "Unknown shader node name \"" << from_node_name << "\"";
+          LOG_ERROR << "Unknown shader node name \"" << from_node_name << "\"";
         }
 
         if (graph_reader.node_map.find(to_node_name) != graph_reader.node_map.end()) {
@@ -281,12 +281,12 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
           }
 
           if (!input) {
-            LOG(ERROR) << "Unknown input socket name \"" << to_socket_name << "\" on \""
-                       << to_node_name << "\"";
+            LOG_ERROR << "Unknown input socket name \"" << to_socket_name << "\" on \""
+                      << to_node_name << "\"";
           }
         }
         else {
-          LOG(ERROR) << "Unknown shader node name \"" << to_node_name << "\"";
+          LOG_ERROR << "Unknown shader node name \"" << to_node_name << "\"";
         }
 
         /* connect */
@@ -295,7 +295,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
         }
       }
       else {
-        LOG(ERROR) << "Invalid from or to value for connect node.";
+        LOG_ERROR << "Invalid from or to value for connect node.";
       }
 
       continue;
@@ -318,17 +318,17 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
           snode = OSLShaderManager::osl_node(graph.get(), state.scene, filepath, "");
 
           if (!snode) {
-            LOG(ERROR) << "Failed to create OSL node from \"" << filepath << "\"";
+            LOG_ERROR << "Failed to create OSL node from \"" << filepath << "\"";
             continue;
           }
         }
         else {
-          LOG(ERROR) << "OSL node missing \"src\" attribute.";
+          LOG_ERROR << "OSL node missing \"src\" attribute.";
           continue;
         }
       }
       else {
-        LOG(ERROR) << "OSL node without using --shadingsys osl.";
+        LOG_ERROR << "OSL node without using --shadingsys osl.";
         continue;
       }
     }
@@ -343,16 +343,16 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
       const NodeType *node_type = NodeType::find(node_name);
 
       if (!node_type) {
-        LOG(ERROR) << "Unknown shader node \"" << node.name() << "\"";
+        LOG_ERROR << "Unknown shader node \"" << node.name() << "\"";
         continue;
       }
       if (node_type->type != NodeType::SHADER) {
-        LOG(ERROR) << "Node type \"" << node_type->name << "\" is not a shader node";
+        LOG_ERROR << "Node type \"" << node_type->name << "\" is not a shader node";
         continue;
       }
       if (node_type->create == nullptr) {
-        LOG(ERROR) << "Can't create abstract node type \""
-                   << "\"";
+        LOG_ERROR << "Can't create abstract node type \""
+                  << "\"";
         continue;
       }
 
@@ -697,7 +697,7 @@ static void xml_read_state(XMLReadState &state, const xml_node node)
     }
 
     if (!found) {
-      LOG(ERROR) << "Unknown shader \"" << shadername << "\"";
+      LOG_ERROR << "Unknown shader \"" << shadername << "\"";
     }
   }
 
@@ -716,7 +716,7 @@ static void xml_read_state(XMLReadState &state, const xml_node node)
     }
 
     if (!found) {
-      LOG(ERROR) << "Unknown object \"" << objectname << "\"";
+      LOG_ERROR << "Unknown object \"" << objectname << "\"";
     }
   }
 
@@ -807,7 +807,7 @@ static void xml_read_scene(XMLReadState &state, const xml_node scene_node)
     }
 #endif
     else {
-      LOG(ERROR) << "Unknown node \"" << node.name() << "\"";
+      LOG_ERROR << "Unknown node \"" << node.name() << "\"";
     }
   }
 }
@@ -831,7 +831,7 @@ static void xml_read_include(XMLReadState &state, const string &src)
     xml_read_scene(substate, cycles);
   }
   else {
-    LOG(ERROR) << "\"" << src << "\" read error: " << parse_result.description();
+    LOG_ERROR << "\"" << src << "\" read error: " << parse_result.description();
     exit(EXIT_FAILURE);
   }
 }

@@ -764,7 +764,7 @@ void BlenderSync::sync_camera_motion(BL::RenderSettings &b_render,
     /* TODO(sergey): De-duplicate calculation with camera sync. */
     const float fov = 2.0f * atanf((0.5f * sensor_size) / bcam.lens / aspectratio);
     if (fov != cam->get_fov()) {
-      LOG(WORK) << "Camera " << b_ob.name() << " FOV change detected.";
+      LOG_WORK << "Camera " << b_ob.name() << " FOV change detected.";
       if (motion_time == 0.0f) {
         cam->set_fov(fov);
       }

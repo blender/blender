@@ -35,25 +35,25 @@ bool device_cuda_init()
   initialized = true;
   int cuew_result = cuewInit(CUEW_INIT_CUDA);
   if (cuew_result == CUEW_SUCCESS) {
-    LOG(INFO) << "CUEW initialization succeeded";
+    LOG_INFO << "CUEW initialization succeeded";
     if (CUDADevice::have_precompiled_kernels()) {
-      LOG(INFO) << "Found precompiled kernels";
+      LOG_INFO << "Found precompiled kernels";
       result = true;
     }
     else if (cuewCompilerPath() != nullptr) {
-      LOG(INFO) << "Found CUDA compiler " << cuewCompilerPath();
+      LOG_INFO << "Found CUDA compiler " << cuewCompilerPath();
       result = true;
     }
     else {
-      LOG(INFO) << "Neither precompiled kernels nor CUDA compiler was found,"
-                << " unable to use CUDA";
+      LOG_INFO << "Neither precompiled kernels nor CUDA compiler was found,"
+               << " unable to use CUDA";
     }
   }
   else {
-    LOG(WARNING) << "CUEW initialization failed: "
-                 << ((cuew_result == CUEW_ERROR_ATEXIT_FAILED) ?
-                         "Error setting up atexit() handler" :
-                         "Error opening the library");
+    LOG_WARNING << "CUEW initialization failed: "
+                << ((cuew_result == CUEW_ERROR_ATEXIT_FAILED) ?
+                        "Error setting up atexit() handler" :
+                        "Error opening the library");
   }
 
   return result;
@@ -75,7 +75,7 @@ unique_ptr<Device> device_cuda_create(const DeviceInfo &info,
   (void)profiler;
   (void)headless;
 
-  LOG(FATAL) << "Request to create CUDA device without compiled-in support. Should never happen.";
+  LOG_FATAL << "Request to create CUDA device without compiled-in support. Should never happen.";
 
   return nullptr;
 #endif
@@ -109,7 +109,7 @@ void device_cuda_info(vector<DeviceInfo> &devices)
   CUresult result = device_cuda_safe_init();
   if (result != CUDA_SUCCESS) {
     if (result != CUDA_ERROR_NO_DEVICE) {
-      LOG(ERROR) << "CUDA cuInit: " << cuewErrorString(result);
+      LOG_ERROR << "CUDA cuInit: " << cuewErrorString(result);
     }
     return;
   }
@@ -117,7 +117,7 @@ void device_cuda_info(vector<DeviceInfo> &devices)
   int count = 0;
   result = cuDeviceGetCount(&count);
   if (result != CUDA_SUCCESS) {
-    LOG(ERROR) << "CUDA cuDeviceGetCount: " << cuewErrorString(result);
+    LOG_ERROR << "CUDA cuDeviceGetCount: " << cuewErrorString(result);
     return;
   }
 
@@ -128,13 +128,12 @@ void device_cuda_info(vector<DeviceInfo> &devices)
 
     result = cuDeviceGetName(name, 256, num);
     if (result != CUDA_SUCCESS) {
-      LOG(ERROR) << "CUDA cuDeviceGetName: " << cuewErrorString(result);
+      LOG_ERROR << "CUDA cuDeviceGetName: " << cuewErrorString(result);
       continue;
     }
 
     if (!cudaSupportsDevice(num)) {
-      LOG(INFO) << "Ignoring device \"" << name
-                << "\", this graphics card is no longer supported.";
+      LOG_INFO << "Ignoring device \"" << name << "\", this graphics card is no longer supported.";
       continue;
     }
 
@@ -194,26 +193,26 @@ void device_cuda_info(vector<DeviceInfo> &devices)
      * Windows 10 even when it is, due to an issue in application profiles.
      * Detect case where we expect it to be available and override. */
     if (preempt_attr == 0 && (major >= 6) && system_windows_version_at_least(10, 17134)) {
-      LOG(INFO) << "Assuming device has compute preemption on Windows 10.";
+      LOG_INFO << "Assuming device has compute preemption on Windows 10.";
       preempt_attr = 1;
     }
 #  endif
 
     if (timeout_attr && !preempt_attr) {
-      LOG(INFO) << "Device is recognized as display.";
+      LOG_INFO << "Device is recognized as display.";
       info.description += " (Display)";
       info.display_device = true;
       display_devices.push_back(info);
     }
     else {
-      LOG(INFO) << "Device has compute preemption or is not used for display.";
+      LOG_INFO << "Device has compute preemption or is not used for display.";
       devices.push_back(info);
     }
-    LOG(INFO) << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
+    LOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
 
     if (info.denoisers & DENOISER_OPENIMAGEDENOISE) {
-      LOG(INFO) << "Device with id \"" << info.id << "\" supports "
-                << denoiserTypeToHumanReadable(DENOISER_OPENIMAGEDENOISE) << ".";
+      LOG_INFO << "Device with id \"" << info.id << "\" supports "
+               << denoiserTypeToHumanReadable(DENOISER_OPENIMAGEDENOISE) << ".";
     }
   }
 

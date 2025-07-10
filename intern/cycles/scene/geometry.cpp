@@ -688,7 +688,7 @@ void GeometryManager::device_update(Device *device,
     return;
   }
 
-  LOG(INFO) << "Total " << scene->geometry.size() << " meshes.";
+  LOG_INFO << "Total " << scene->geometry.size() << " meshes.";
 
   bool true_displacement_used = false;
   bool curve_shadow_transparency_used = false;
@@ -972,7 +972,7 @@ void GeometryManager::device_update(Device *device,
 
     TaskPool::Summary summary;
     pool.wait_work(&summary);
-    LOG(WORK) << "Objects BVH build pool statistics:\n" << summary.full_report();
+    LOG_WORK << "Objects BVH build pool statistics:\n" << summary.full_report();
   }
 
   for (Shader *shader : scene->shaders) {

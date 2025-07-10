@@ -30,8 +30,8 @@ bool ConstantFolder::all_inputs_constant() const
 
 void ConstantFolder::make_constant(const float value) const
 {
-  LOG(DEBUG) << "Folding " << node->name << "::" << output->name() << " to constant (" << value
-             << ").";
+  LOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant (" << value
+            << ").";
 
   for (ShaderInput *sock : output->links) {
     sock->set(value);
@@ -43,8 +43,8 @@ void ConstantFolder::make_constant(const float value) const
 
 void ConstantFolder::make_constant(const float3 value) const
 {
-  LOG(DEBUG) << "Folding " << node->name << "::" << output->name() << " to constant " << value
-             << ".";
+  LOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant " << value
+            << ".";
 
   for (ShaderInput *sock : output->links) {
     sock->set(value);
@@ -56,8 +56,8 @@ void ConstantFolder::make_constant(const float3 value) const
 
 void ConstantFolder::make_constant(const int value) const
 {
-  LOG(DEBUG) << "Folding " << node->name << "::" << output->name() << " to constant (" << value
-             << ").";
+  LOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant (" << value
+            << ").";
 
   for (ShaderInput *sock : output->links) {
     sock->set(value);
@@ -113,8 +113,8 @@ void ConstantFolder::bypass(ShaderOutput *new_output) const
 {
   assert(new_output);
 
-  LOG(DEBUG) << "Folding " << node->name << "::" << output->name() << " to socket "
-             << new_output->parent->name << "::" << new_output->name() << ".";
+  LOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to socket "
+            << new_output->parent->name << "::" << new_output->name() << ".";
 
   /* Remove all outgoing links from socket and connect them to new_output instead.
    * The graph->relink method affects node inputs, so it's not safe to use in constant
@@ -132,7 +132,7 @@ void ConstantFolder::discard() const
 {
   assert(output->type() == SocketType::CLOSURE);
 
-  LOG(DEBUG) << "Discarding closure " << node->name << ".";
+  LOG_DEBUG << "Discarding closure " << node->name << ".";
 
   graph->disconnect(output);
 }

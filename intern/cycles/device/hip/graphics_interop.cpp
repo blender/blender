@@ -45,7 +45,7 @@ void HIPDeviceGraphicsInterop::set_buffer(GraphicsInteropBuffer &interop_buffer)
           &hip_graphics_resource_, interop_buffer.take_handle(), hipGraphicsRegisterFlagsNone);
 
       if (result != hipSuccess) {
-        LOG(ERROR) << "Error registering OpenGL buffer: " << hipewErrorString(result);
+        LOG_ERROR << "Error registering OpenGL buffer: " << hipewErrorString(result);
         break;
       }
 

@@ -245,9 +245,9 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   /* Attempt to use kernel provided with Blender. */
   if (!use_adaptive_compilation()) {
     const string fatbin = path_get(string_printf("lib/%s_%s.fatbin.zst", name, arch.c_str()));
-    LOG(INFO) << "Testing for pre-compiled kernel " << fatbin << ".";
+    LOG_INFO << "Testing for pre-compiled kernel " << fatbin << ".";
     if (path_exists(fatbin)) {
-      LOG(INFO) << "Using precompiled kernel.";
+      LOG_INFO << "Using precompiled kernel.";
       return fatbin;
     }
   }
@@ -283,9 +283,9 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   const string fatbin_file = string_printf(
       "cycles_%s_%s_%s", name, arch.c_str(), kernel_md5.c_str());
   const string fatbin = path_cache_get(path_join("kernels", fatbin_file));
-  LOG(INFO) << "Testing for locally compiled kernel " << fatbin << ".";
+  LOG_INFO << "Testing for locally compiled kernel " << fatbin << ".";
   if (path_exists(fatbin)) {
-    LOG(INFO) << "Using locally compiled kernel.";
+    LOG_INFO << "Using locally compiled kernel.";
     return fatbin;
   }
 
@@ -328,7 +328,7 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   }
 #  endif
   const int hipcc_hip_version = hipewCompilerVersion();
-  LOG(INFO) << "Found hipcc " << hipcc << ", HIP version " << hipcc_hip_version << ".";
+  LOG_INFO << "Found hipcc " << hipcc << ", HIP version " << hipcc_hip_version << ".";
 
   double starttime = time_dt();
 
@@ -346,8 +346,8 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
                                  fatbin.c_str(),
                                  common_cflags.c_str());
 
-  LOG(INFO_IMPORTANT) << "Compiling " << ((use_adaptive_compilation()) ? "adaptive " : "")
-                      << "HIP kernel ...";
+  LOG_INFO_IMPORTANT << "Compiling " << ((use_adaptive_compilation()) ? "adaptive " : "")
+                     << "HIP kernel ...";
 
 #  ifdef _WIN32
   command = "call " + command;
@@ -367,8 +367,8 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
     return string();
   }
 
-  LOG(INFO_IMPORTANT) << "Kernel compilation finished in " << std::fixed << std::setprecision(2)
-                      << time_dt() - starttime << "s";
+  LOG_INFO_IMPORTANT << "Kernel compilation finished in " << std::fixed << std::setprecision(2)
+                     << time_dt() - starttime << "s";
 
   return fatbin;
 }
@@ -381,7 +381,7 @@ bool HIPDevice::load_kernels(const uint kernel_features)
    */
   if (hipModule) {
     if (use_adaptive_compilation()) {
-      LOG(INFO) << "Skipping HIP kernel reload for adaptive compilation, not currently supported.";
+      LOG_INFO << "Skipping HIP kernel reload for adaptive compilation, not currently supported.";
     }
     return true;
   }
@@ -469,8 +469,8 @@ void HIPDevice::reserve_local_memory(const uint kernel_features)
     hipMemGetInfo(&free_after, &total);
   }
 
-  LOG(INFO) << "Local memory reserved " << string_human_readable_number(free_before - free_after)
-            << " bytes. (" << string_human_readable_size(free_before - free_after) << ")";
+  LOG_INFO << "Local memory reserved " << string_human_readable_number(free_before - free_after)
+           << " bytes. (" << string_human_readable_size(free_before - free_after) << ")";
 
 #  if 0
   /* For testing mapped host memory, fill up device memory. */
@@ -990,10 +990,10 @@ bool HIPDevice::should_use_graphics_interop(const GraphicsInteropDevice &interop
 
       if (log) {
         if (found) {
-          LOG(INFO) << "Graphics interop: found matching OpenGL device for HIP";
+          LOG_INFO << "Graphics interop: found matching OpenGL device for HIP";
         }
         else {
-          LOG(INFO) << "Graphics interop: no matching OpenGL device for HIP";
+          LOG_INFO << "Graphics interop: no matching OpenGL device for HIP";
         }
       }
 

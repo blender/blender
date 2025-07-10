@@ -780,7 +780,7 @@ void ObjectManager::device_update(Device *device,
     dscene->objects.tag_modified();
   }
 
-  LOG(INFO) << "Total " << scene->objects.size() << " objects.";
+  LOG_INFO << "Total " << scene->objects.size() << " objects.";
 
   device_free(device, dscene, false);
 

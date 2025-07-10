@@ -599,10 +599,10 @@ void Film::update_passes(Scene *scene)
   tag_modified();
 
   /* Debug logging. */
-  if (LOG_IS_ON(INFO)) {
-    LOG(INFO) << "Effective scene passes:";
+  if (LOG_IS_ON(LOG_LEVEL_INFO)) {
+    LOG_INFO << "Effective scene passes:";
     for (const Pass *pass : scene->passes) {
-      LOG(INFO) << "- " << *pass;
+      LOG_INFO << "- " << *pass;
     }
   }
 }
