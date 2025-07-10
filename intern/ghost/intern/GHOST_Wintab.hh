@@ -259,6 +259,12 @@ class GHOST_Wintab {
   GHOST_TButton mapWintabToGhostButton(UINT cursor, WORD physicalButton);
 
   /**
+   * Called by loadWintab to do the actual loading. A separate function is needed because the __try
+   * __except block in loadWintab cannot be combined with C++ stack variable destructors.
+   */
+  static GHOST_Wintab *loadWintabUnsafe(HWND hwnd);
+
+  /**
    * Applies common modifications to Wintab context.
    * \param lc: Wintab context to modify.
    */
