@@ -1496,9 +1496,9 @@ struct EdgeFeatData {
   float crease_threshold;
   bool use_auto_smooth;
   bool use_freestyle_face;
-  int freestyle_face_index;
+  const FreestyleFace *freestyle_face;
   bool use_freestyle_edge;
-  int freestyle_edge_index;
+  const FreestyleEdge *freestyle_edge;
   LineartEdgeNeighbor *edge_nabr;
 };
 
@@ -1521,7 +1521,6 @@ static void lineart_identify_corner_tri_feature_edges(void *__restrict userdata,
 {
   EdgeFeatData *e_feat_data = (EdgeFeatData *)userdata;
   EdgeFeatReduceData *reduce_data = (EdgeFeatReduceData *)tls->userdata_chunk;
-  Mesh *mesh = e_feat_data->mesh;
   Object *ob_eval = e_feat_data->ob_eval;
   LineartEdgeNeighbor *edge_nabr = e_feat_data->edge_nabr;
   const blender::Span<int3> corner_tris = e_feat_data->corner_tris;
@@ -1541,13 +1540,16 @@ static void lineart_identify_corner_tri_feature_edges(void *__restrict userdata,
                            e_feat_data->ld->conf.filter_face_mark);
   bool only_contour = false;
   if (enable_face_mark) {
-    FreestyleFace *ff1, *ff2;
-    int index = e_feat_data->freestyle_face_index;
-    if (index > -1) {
-      ff1 = &((FreestyleFace *)mesh->face_data.layers[index].data)[tri_faces[i / 3]];
+    bool ff1 = false;
+    bool ff2 = false;
+    if (const FreestyleFace *freestyle_face = e_feat_data->freestyle_face) {
+      if (freestyle_face[tri_faces[i / 3]].flag & FREESTYLE_FACE_MARK) {
+        ff1 = true;
+      }
     }
-    if (edge_nabr[i].e > -1) {
-      ff2 = &((FreestyleFace *)mesh->face_data.layers[index].data)[tri_faces[edge_nabr[i].e / 3]];
+    if (edge_nabr[i].e > -1 && e_feat_data->freestyle_face) {
+      ff2 = (e_feat_data->freestyle_face[tri_faces[edge_nabr[i].e / 3]].flag &
+             FREESTYLE_FACE_MARK) != 0;
     }
     else {
       /* Handle mesh boundary cases: We want mesh boundaries to respect
@@ -1558,12 +1560,12 @@ static void lineart_identify_corner_tri_feature_edges(void *__restrict userdata,
     if (e_feat_data->ld->conf.filter_face_mark_boundaries ^
         e_feat_data->ld->conf.filter_face_mark_invert)
     {
-      if ((ff1->flag & FREESTYLE_FACE_MARK) || (ff2->flag & FREESTYLE_FACE_MARK)) {
+      if (ff1 || ff2) {
         face_mark_filtered = true;
       }
     }
     else {
-      if ((ff1->flag & FREESTYLE_FACE_MARK) && (ff2->flag & FREESTYLE_FACE_MARK) && (ff2 != ff1)) {
+      if (ff1 && ff2 && (ff2 != ff1)) {
         face_mark_filtered = true;
       }
     }
@@ -1708,10 +1710,7 @@ static void lineart_identify_corner_tri_feature_edges(void *__restrict userdata,
     }
 
     if (ld->conf.use_edge_marks && e_feat_data->use_freestyle_edge) {
-      FreestyleEdge *fe;
-      int index = e_feat_data->freestyle_edge_index;
-      fe = &((FreestyleEdge *)mesh->edge_data.layers[index].data)[real_edges[i % 3]];
-      if (fe->flag & FREESTYLE_EDGE_MARK) {
+      if (e_feat_data->freestyle_edge[real_edges[i % 3]].flag & FREESTYLE_EDGE_MARK) {
         edge_flag_result |= MOD_LINEART_EDGE_FLAG_EDGE_MARK;
       }
     }
@@ -2132,12 +2131,12 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_data.use_freestyle_face = can_find_freestyle_face;
   edge_feat_data.use_freestyle_edge = can_find_freestyle_edge;
   if (edge_feat_data.use_freestyle_face) {
-    edge_feat_data.freestyle_face_index = CustomData_get_layer_index(&mesh->face_data,
-                                                                     CD_FREESTYLE_FACE);
+    edge_feat_data.freestyle_face = static_cast<const FreestyleFace *>(
+        CustomData_get_layer(&mesh->face_data, CD_FREESTYLE_FACE));
   }
   if (edge_feat_data.use_freestyle_edge) {
-    edge_feat_data.freestyle_edge_index = CustomData_get_layer_index(&mesh->edge_data,
-                                                                     CD_FREESTYLE_EDGE);
+    edge_feat_data.freestyle_edge = static_cast<const FreestyleEdge *>(
+        CustomData_get_layer(&mesh->edge_data, CD_FREESTYLE_EDGE));
   }
 
   BLI_task_parallel_range(0,
