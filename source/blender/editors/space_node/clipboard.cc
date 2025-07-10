@@ -375,21 +375,32 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
   for (NodeClipboardItem &item : clipboard.nodes) {
     const bNode &node = *item.node;
     const char *disabled_hint = nullptr;
-    if (node.typeinfo->poll_instance && node.typeinfo->poll_instance(&node, &tree, &disabled_hint))
+
+    /* Some poll functions (e.g. for the nodegroup node, see #node_group_poll_instance) do require
+     * fully valid node data, including the potential ID pointers. So first create the new copy of
+     * the clipboard node, make it as valid as possible, then call its #poll_instance function, and
+     * discard the new copy if it fails.
+     *
+     * See also #141415.
+     */
+
+    /* Do not access referenced ID pointers here, as they are still the old ones, which may be
+     * invalid. */
+    bNode *new_node = bke::node_copy_with_mapping(
+        &tree, node, LIB_ID_CREATE_NO_USER_REFCOUNT, true, socket_map);
+    /* Update the newly copied node's ID references. */
+    clipboard.paste_update_node_id_references(*new_node);
+    /* Reset socket shape in case a node is copied to a different tree type. */
+    LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->inputs) {
+      socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+    }
+    LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->outputs) {
+      socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+    }
+
+    if (!new_node->typeinfo->poll_instance ||
+        new_node->typeinfo->poll_instance(new_node, &tree, &disabled_hint))
     {
-      /* Do not access referenced ID pointers here, as they are still the old ones, which may be
-       * invalid. */
-      bNode *new_node = bke::node_copy_with_mapping(
-          &tree, node, LIB_ID_CREATE_NO_USER_REFCOUNT, true, socket_map);
-      /* Update the newly copied node's ID references. */
-      clipboard.paste_update_node_id_references(*new_node);
-      /* Reset socket shape in case a node is copied to a different tree type. */
-      LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->inputs) {
-        socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
-      }
-      LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->outputs) {
-        socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
-      }
       node_map.add_new(&node, new_node);
     }
     else {
@@ -408,6 +419,7 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
                     node.name,
                     tree.id.name + 2);
       }
+      bke::node_free_node(&tree, *new_node);
     }
   }
 
