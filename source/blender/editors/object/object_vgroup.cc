@@ -1745,12 +1745,23 @@ static void vgroup_smooth_subset(Object *ob,
 #define IS_BM_VERT_READ(v) (use_hide ? (BM_elem_flag_test(v, BM_ELEM_HIDDEN) == 0) : true)
 #define IS_BM_VERT_WRITE(v) (use_select ? (BM_elem_flag_test(v, BM_ELEM_SELECT) != 0) : true)
 
-  const bool *hide_vert = mesh ? (const bool *)CustomData_get_layer_named(
-                                     &mesh->vert_data, CD_PROP_BOOL, ".hide_vert") :
-                                 nullptr;
+  VArray<bool> hide_vert;
+  if (mesh && use_hide) {
+    hide_vert = *mesh->attributes().lookup_or_default<bool>(
+        ".hide_vert", bke::AttrDomain::Point, false);
+  }
+  else {
+    hide_vert = VArray<bool>::ForSingle(false, dvert_tot);
+  }
 
-#define IS_ME_VERT_READ(v) (use_hide ? !(hide_vert && hide_vert[v]) : true)
-#define IS_ME_VERT_WRITE(v) (use_select ? select_vert[v] : true)
+  VArray<bool> select_vert;
+  if (mesh && use_select) {
+    select_vert = *mesh->attributes().lookup_or_default<bool>(
+        ".select_vert", bke::AttrDomain::Point, false);
+  }
+  else {
+    select_vert = VArray<bool>::ForSingle(false, dvert_tot);
+  }
 
   /* initialize used verts */
   if (bm) {
@@ -1770,17 +1781,13 @@ static void vgroup_smooth_subset(Object *ob,
     }
   }
   else {
-    const bke::AttributeAccessor attributes = mesh->attributes();
-    const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-        ".select_vert", bke::AttrDomain::Point, false);
-
     const Span<int2> edges = mesh->edges();
     for (int i = 0; i < dvert_tot; i++) {
-      if (IS_ME_VERT_WRITE(i)) {
+      if (select_vert[i]) {
         for (int j = 0; j < emap[i].size(); j++) {
           const int2 &edge = edges[emap[i][j]];
           const int i_other = (edge[0] == i) ? edge[1] : edge[0];
-          if (IS_ME_VERT_READ(i_other)) {
+          if (!hide_vert[i_other]) {
             STACK_PUSH(verts_used, i);
             break;
           }
@@ -1846,20 +1853,16 @@ static void vgroup_smooth_subset(Object *ob,
           }
         }
         else {
-          const bke::AttributeAccessor attributes = mesh->attributes();
-          const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
-              ".select_vert", bke::AttrDomain::Point, false);
-
           int j;
           const Span<int2> edges = mesh->edges();
 
           /* checked already */
-          BLI_assert(IS_ME_VERT_WRITE(i));
+          BLI_assert(select_vert[i]);
 
           for (j = 0; j < emap[i].size(); j++) {
             const int2 &edge = edges[emap[i][j]];
             const int i_other = (edge[0] == i ? edge[1] : edge[0]);
-            if (IS_ME_VERT_READ(i_other)) {
+            if (!hide_vert[i_other]) {
               WEIGHT_ACCUMULATE;
             }
           }
@@ -1885,8 +1888,6 @@ static void vgroup_smooth_subset(Object *ob,
 
 #undef IS_BM_VERT_READ
 #undef IS_BM_VERT_WRITE
-#undef IS_ME_VERT_READ
-#undef IS_ME_VERT_WRITE
 
   MEM_freeN(weight_accum_curr);
   MEM_freeN(weight_accum_prev);
