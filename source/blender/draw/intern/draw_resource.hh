@@ -60,8 +60,6 @@ inline std::ostream &operator<<(std::ostream &stream, const ObjectMatrices &matr
 /** \name ObjectInfos
  * \{ */
 
-ENUM_OPERATORS(eObjectInfoFlag, OBJECT_NEGATIVE_SCALE)
-
 inline void ObjectInfos::sync()
 {
   object_attrs_len = 0;
