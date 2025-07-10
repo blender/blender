@@ -471,8 +471,6 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
   rv->c->color_trc = codec_ctx->color_trc;
   rv->c->colorspace = codec_ctx->colorspace;
 
-  ffmpeg_copy_display_matrix(st, rv->st);
-
   int ret = avio_open(&rv->of->pb, filepath, AVIO_FLAG_WRITE);
 
   if (ret < 0) {
@@ -505,6 +503,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
   }
 
   avcodec_parameters_from_context(rv->st->codecpar, rv->c);
+  ffmpeg_copy_display_matrix(st, rv->st);
 
   rv->orig_height = st->codecpar->height;
 
