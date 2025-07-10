@@ -25,12 +25,12 @@ function(add_node_discovery
       ${output_file}
     COMMAND
       ${PYTHON_EXECUTABLE}
-        ${DISCOVER_NODES_PATH}
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${output_file}
-        ${output_function}
-        ${sources}
-        ${extra_args}
+      ${DISCOVER_NODES_PATH}
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${output_file}
+      ${output_function}
+      ${sources}
+      ${extra_args}
     DEPENDS
       ${SRC}
       ${DISCOVER_NODES_PATH}
