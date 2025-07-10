@@ -285,7 +285,7 @@ int MetalDeviceQueue::num_concurrent_states(const size_t state_size) const
     size_t total_state_size = result * state_size;
     if (max_recommended_working_set - allocated_so_far - total_state_size * 2 >= min_headroom) {
       result *= 2;
-      metal_printf("Doubling state count to exploit available RAM (new size = %d)\n", result);
+      metal_printf("Doubling state count to exploit available RAM (new size = %d)", result);
     }
   }
   return result;
@@ -376,7 +376,7 @@ void MetalDeviceQueue::init_execution()
       }
       else {
         /* The GPU address of a 1D buffer texture is written into the slot data field. */
-        write_resource(&texture_info[slot].data, id<MTLBuffer>(texture_slot_map[slot]), slot);
+        write_resource(&texture_info[slot].data, id<MTLBuffer>(texture_slot_map[slot]), 0);
       }
     }
   }
@@ -398,8 +398,8 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
 
     debug_enqueue_begin(kernel, work_size);
 
-    VLOG_DEVICE_STATS << "Metal queue launch " << device_kernel_as_string(kernel) << ", work_size "
-                      << work_size;
+    LOG(STATS) << "Metal queue launch " << device_kernel_as_string(kernel) << ", work_size "
+               << work_size;
 
     id<MTLComputeCommandEncoder> mtlComputeCommandEncoder = get_compute_encoder(kernel);
 

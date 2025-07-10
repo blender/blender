@@ -7,6 +7,8 @@ void node_bsdf_glass(float4 color,
                      float ior,
                      float3 N,
                      float weight,
+                     float thin_film_thickness,
+                     float thin_film_ior,
                      const float do_multiscatter,
                      out Closure result)
 {

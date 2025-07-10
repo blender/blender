@@ -8,6 +8,10 @@ namespace blender::nodes::node_shader_bsdf_glass_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+
+  b.add_output<decl::Shader>("BSDF");
+
   b.add_input<decl::Color>("Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_input<decl::Float>("Roughness")
       .default_value(0.0f)
@@ -17,7 +21,19 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("IOR").default_value(1.5f).min(0.0f).max(1000.0f);
   b.add_input<decl::Vector>("Normal").hide_value();
   b.add_input<decl::Float>("Weight").available(false);
-  b.add_output<decl::Shader>("BSDF");
+
+  PanelDeclarationBuilder &film = b.add_panel("Thin Film").default_closed(true);
+  film.add_input<decl::Float>("Thin Film Thickness")
+      .default_value(0.0)
+      .min(0.0f)
+      .max(100000.0f)
+      .subtype(PROP_WAVELENGTH)
+      .description("Thickness of the film in nanometers");
+  film.add_input<decl::Float>("Thin Film IOR")
+      .default_value(1.33f)
+      .min(1.0f)
+      .max(1000.0f)
+      .description("Index of refraction (IOR) of the thin film");
 }
 
 static void node_shader_init_glass(bNodeTree * /*ntree*/, bNode *node)
@@ -53,14 +69,23 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeItem roughness = get_input_value("Roughness", NodeItem::Type::Vector2);
   NodeItem ior = get_input_value("IOR", NodeItem::Type::Float);
   NodeItem normal = get_input_link("Normal", NodeItem::Type::Vector3);
+  NodeItem thin_film_thickness = get_input_value("Thin Film Thickness", NodeItem::Type::Float);
+  NodeItem thin_film_ior = get_input_value("Thin Film IOR", NodeItem::Type::Float);
 
-  return create_node("dielectric_bsdf",
-                     NodeItem::Type::BSDF,
-                     {{"normal", normal},
-                      {"tint", color},
-                      {"roughness", roughness},
-                      {"ior", ior},
-                      {"scatter_mode", val(std::string("RT"))}});
+  NodeItem n_base_bsdf = create_node("dielectric_bsdf",
+                                     NodeItem::Type::BSDF,
+                                     {{"normal", normal},
+                                      {"tint", color},
+                                      {"roughness", roughness},
+                                      {"ior", ior},
+                                      {"scatter_mode", val(std::string("RT"))}});
+  NodeItem n_thin_film_bsdf = create_node(
+      "thin_film_bsdf",
+      NodeItem::Type::BSDF,
+      {{"thickness", thin_film_thickness}, {"ior", thin_film_ior}});
+
+  return create_node(
+      "layer", NodeItem::Type::BSDF, {{"top", n_thin_film_bsdf}, {"base", n_base_bsdf}});
 }
 #endif
 NODE_SHADER_MATERIALX_END

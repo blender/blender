@@ -7,6 +7,7 @@
 /* Minor modifications done to remove some code and change style. */
 
 #include "util/md5.h"
+#include "util/log.h"
 #include "util/path.h"
 
 #include <cstdio>
@@ -311,7 +312,7 @@ bool MD5Hash::append_file(const string &filepath)
   FILE *f = path_fopen(filepath, "rb");
 
   if (!f) {
-    fprintf(stderr, "MD5: failed to open file %s\n", filepath.c_str());
+    LOG(ERROR) << "MD5: failed to open file " << filepath;
     return false;
   }
 

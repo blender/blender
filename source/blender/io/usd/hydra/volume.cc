@@ -35,7 +35,7 @@ void VolumeData::init()
     return;
   }
   filepath_ = BKE_volume_grids_frame_filepath(volume);
-  ID_LOGN(1, "%s", filepath_.c_str());
+  ID_LOGN("%s", filepath_.c_str());
 
   if (volume->runtime->grids) {
     const int num_grids = BKE_volume_num_grids(volume);
@@ -61,22 +61,22 @@ void VolumeData::insert()
   scene_delegate_->GetRenderIndex().InsertRprim(
       pxr::HdPrimTypeTokens->volume, scene_delegate_, prim_id);
 
-  ID_LOGN(1, "");
+  ID_LOGN("");
 
   for (auto &desc : field_descriptors_) {
     scene_delegate_->GetRenderIndex().InsertBprim(
         desc.fieldPrimType, scene_delegate_, desc.fieldId);
-    ID_LOGN(2, "Volume field %s", desc.fieldId.GetText());
+    ID_LOGN("Volume field %s", desc.fieldId.GetText());
   }
 }
 
 void VolumeData::remove()
 {
   for (auto &desc : field_descriptors_) {
-    ID_LOG(2, "%s", desc.fieldId.GetText());
+    ID_LOG("%s", desc.fieldId.GetText());
     scene_delegate_->GetRenderIndex().RemoveBprim(desc.fieldPrimType, desc.fieldId);
   }
-  ID_LOG(1, "");
+  ID_LOG("");
   scene_delegate_->GetRenderIndex().RemoveRprim(prim_id);
 }
 
@@ -102,7 +102,7 @@ void VolumeData::update()
   }
 
   scene_delegate_->GetRenderIndex().GetChangeTracker().MarkRprimDirty(prim_id, bits);
-  ID_LOGN(1, "");
+  ID_LOGN("");
 }
 
 pxr::VtValue VolumeData::get_data(pxr::TfToken const &key) const

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "graph/node.h"
+#include "kernel/svm/types.h"
 #include "scene/image.h"
 #include "scene/shader_graph.h"
 
@@ -190,6 +191,11 @@ class OutputNode : public ShaderNode {
   {
     return false;
   }
+
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 };
 
 class OutputAOVNode : public ShaderNode {
@@ -206,6 +212,11 @@ class OutputAOVNode : public ShaderNode {
   bool equals(const ShaderNode & /*other*/) override
   {
     return false;
+  }
+
+  bool is_linear_operation() override
+  {
+    return true;
   }
 
   int offset;
@@ -386,6 +397,10 @@ class RGBToBWNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(RGBToBWNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   NODE_SOCKET_API(float3, color)
 };
@@ -397,6 +412,11 @@ class ConvertNode : public ShaderNode {
   SHADER_NODE_BASE_CLASS(ConvertNode)
 
   void constant_fold(const ConstantFolder &folder) override;
+
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
  private:
   SocketType::Type from, to;
@@ -422,6 +442,10 @@ class BsdfBaseNode : public ShaderNode {
  public:
   BsdfBaseNode(const NodeType *node_type);
 
+  bool is_linear_operation() override
+  {
+    return true;
+  }
   bool has_spatial_varying() override
   {
     return true;
@@ -467,6 +491,10 @@ class BsdfNode : public BsdfBaseNode {
 class DiffuseBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(DiffuseBsdfNode)
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   NODE_SOCKET_API(float, roughness)
 };
@@ -630,6 +658,8 @@ class GlassBsdfNode : public BsdfNode {
 
   NODE_SOCKET_API(float, roughness)
   NODE_SOCKET_API(float, IOR)
+  NODE_SOCKET_API(float, thin_film_thickness)
+  NODE_SOCKET_API(float, thin_film_ior)
   NODE_SOCKET_API(ClosureType, distribution)
 };
 
@@ -690,6 +720,10 @@ class EmissionNode : public ShaderNode {
   {
     return true;
   }
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   int get_feature() override
   {
@@ -708,6 +742,10 @@ class BackgroundNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(BackgroundNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   int get_feature() override
   {
@@ -725,6 +763,10 @@ class HoldoutNode : public ShaderNode {
   ClosureType get_closure_type() override
   {
     return CLOSURE_HOLDOUT_ID;
+  }
+  bool is_linear_operation() override
+  {
+    return true;
   }
 
   NODE_SOCKET_API(float, surface_mix_weight)
@@ -757,6 +799,10 @@ class VolumeNode : public ShaderNode {
  public:
   VolumeNode(const NodeType *node_type);
   SHADER_NODE_BASE_CLASS(VolumeNode)
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   void compile(SVMCompiler &compiler,
                ShaderInput *density,
@@ -1058,6 +1104,10 @@ class ValueNode : public ShaderNode {
   SHADER_NODE_CLASS(ValueNode)
 
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   NODE_SOCKET_API(float, value)
 };
@@ -1067,6 +1117,10 @@ class ColorNode : public ShaderNode {
   SHADER_NODE_CLASS(ColorNode)
 
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   NODE_SOCKET_API(float3, value)
 };
@@ -1075,12 +1129,20 @@ class AddClosureNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(AddClosureNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 };
 
 class MixClosureNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixClosureNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   NODE_SOCKET_API(float, fac)
 };
@@ -1088,6 +1150,10 @@ class MixClosureNode : public ShaderNode {
 class MixClosureWeightNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixClosureWeightNode)
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   NODE_SOCKET_API(float, weight)
   NODE_SOCKET_API(float, fac)
@@ -1100,12 +1166,18 @@ class InvertNode : public ShaderNode {
 
   NODE_SOCKET_API(float, fac)
   NODE_SOCKET_API(float3, color)
+
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 };
 
 class MixNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override;
 
   NODE_SOCKET_API(NodeMix, mix_type)
   NODE_SOCKET_API(bool, use_clamp)
@@ -1118,6 +1190,7 @@ class MixColorNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixColorNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override;
 
   NODE_SOCKET_API(float3, a)
   NODE_SOCKET_API(float3, b)
@@ -1131,6 +1204,7 @@ class MixFloatNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixFloatNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override;
 
   NODE_SOCKET_API(float, a)
   NODE_SOCKET_API(float, b)
@@ -1142,6 +1216,7 @@ class MixVectorNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixVectorNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override;
 
   NODE_SOCKET_API(float3, a)
   NODE_SOCKET_API(float3, b)
@@ -1153,6 +1228,7 @@ class MixVectorNonUniformNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixVectorNonUniformNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override;
 
   NODE_SOCKET_API(float3, a)
   NODE_SOCKET_API(float3, b)
@@ -1164,6 +1240,10 @@ class CombineColorNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(CombineColorNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   NODE_SOCKET_API(NodeCombSepColorType, color_type)
   NODE_SOCKET_API(float, r)
@@ -1175,6 +1255,10 @@ class CombineXYZNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(CombineXYZNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   NODE_SOCKET_API(float, x)
   NODE_SOCKET_API(float, y)
@@ -1204,6 +1288,10 @@ class SeparateColorNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(SeparateColorNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   NODE_SOCKET_API(NodeCombSepColorType, color_type)
   NODE_SOCKET_API(float3, color)
@@ -1213,6 +1301,10 @@ class SeparateXYZNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(SeparateXYZNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   NODE_SOCKET_API(float3, vector)
 };
@@ -1242,6 +1334,8 @@ class AttributeNode : public ShaderNode {
   }
 
   NODE_SOCKET_API(ustring, attribute)
+
+  bool stochastic_sample = true;
 };
 
 class CameraNode : public ShaderNode {
@@ -1308,6 +1402,7 @@ class VectorMapRangeNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(VectorMapRangeNode)
   void expand(ShaderGraph *graph) override;
+  bool is_linear_operation() override;
 
   NODE_SOCKET_API(float3, vector)
   NODE_SOCKET_API(float3, from_min)
@@ -1323,6 +1418,7 @@ class MapRangeNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MapRangeNode)
   void expand(ShaderGraph *graph) override;
+  bool is_linear_operation() override;
 
   NODE_SOCKET_API(float, value)
   NODE_SOCKET_API(float, from_min)
@@ -1349,6 +1445,7 @@ class MathNode : public ShaderNode {
   SHADER_NODE_CLASS(MathNode)
   void expand(ShaderGraph *graph) override;
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override;
 
   NODE_SOCKET_API(float, value1)
   NODE_SOCKET_API(float, value2)
@@ -1360,6 +1457,10 @@ class MathNode : public ShaderNode {
 class NormalNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(NormalNode)
+  bool is_linear_operation() override
+  {
+    return true;
+  }
 
   NODE_SOCKET_API(float3, direction)
   NODE_SOCKET_API(float3, normal)
@@ -1369,6 +1470,7 @@ class VectorMathNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(VectorMathNode)
   void constant_fold(const ConstantFolder &folder) override;
+  bool is_linear_operation() override;
 
   NODE_SOCKET_API(float3, vector1)
   NODE_SOCKET_API(float3, vector2)

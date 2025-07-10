@@ -10,6 +10,7 @@ leak:_PyUnicodeWriter_*
 leak:list_append
 leak:list_resize
 leak:unicode_resize
+leak:resize_compact
 leak:PyThread_allocate_lock
 leak:libpython*
 leak:python
@@ -33,5 +34,6 @@ leak:libusd*
 leak:*openvdb::v11_0*
 leak:*tbb::internal*
 leak:*libOpenColorIO*
+leak:*libOpenEXR*
 leak:pa_xmalloc
 leak:*::x265_malloc*

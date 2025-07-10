@@ -100,7 +100,7 @@
 /* Constraint Target Macros */
 #define VALID_CONS_TARGET(ct) ((ct) && (ct->tar))
 
-static CLG_LogRef LOG = {"bke.constraint"};
+static CLG_LogRef LOG = {"object.constraint"};
 
 /* ************************ Constraints - General Utilities *************************** */
 /* These functions here don't act on any specific constraints, and are therefore should/will
@@ -559,15 +559,12 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   else if (mesh_eval) {
     const blender::Span<blender::float3> positions = mesh_eval->vert_positions();
     const blender::Span<blender::float3> vert_normals = mesh_eval->vert_normals();
-    const MDeformVert *dvert = static_cast<const MDeformVert *>(
-        CustomData_get_layer(&mesh_eval->vert_data, CD_MDEFORMVERT));
-
+    const blender::Span<MDeformVert> dverts = mesh_eval->deform_verts();
     /* check that dvert is a valid pointers (just in case) */
-    if (dvert) {
-
+    if (!dverts.is_empty()) {
       /* get the average of all verts with that are in the vertex-group */
       for (const int i : positions.index_range()) {
-        const MDeformVert *dv = &dvert[i];
+        const MDeformVert *dv = &dverts[i];
         const MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
 
         if (dw && dw->weight > 0.0f) {
@@ -3504,8 +3501,9 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 
     dist = normalize_v3(vec);
 
-    /* Only Y constrained object axis scale should be used, to keep same length when scaling it. */
-    dist /= size[1];
+    /* Only Y constrained object axis scale should be used, to keep same length when scaling it.
+     * Use safe divide to avoid creating a matrix with NAN values, see: #141612. */
+    dist = blender::math::safe_divide(dist, size[1]);
 
     /* data->orglength==0 occurs on first run, and after 'R' button is clicked */
     if (data->orglength == 0) {

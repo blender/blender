@@ -144,10 +144,10 @@ static void device_iterator_cb(const char *id,
   info.has_execution_optimization = has_execution_optimization;
 
   devices->push_back(info);
-  VLOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
+  LOG(INFO) << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
 
   if (info.denoisers & DENOISER_OPENIMAGEDENOISE) {
-    VLOG_INFO << "Device with id \"" << info.id << "\" supports "
+    LOG(INFO) << "Device with id \"" << info.id << "\" supports "
               << denoiserTypeToHumanReadable(DENOISER_OPENIMAGEDENOISE) << ".";
   }
 }

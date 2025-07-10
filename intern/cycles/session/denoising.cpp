@@ -292,8 +292,6 @@ bool DenoiseTask::exec()
       }
       out += image.num_channels * image.width;
     }
-
-    printf("\n");
   }
 
   return true;

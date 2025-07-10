@@ -86,7 +86,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     auto usable_devices = MetalInfo::get_usable_devices();
     assert(mtlDevId < usable_devices.size());
     mtlDevice = usable_devices[mtlDevId];
-    metal_printf("Creating new Cycles Metal device: %s\n", info.description.c_str());
+    metal_printf("Creating new Cycles Metal device: %s", info.description.c_str());
 
     /* Ensure that back-compatability helpers for getting gpuAddress & gpuResourceID are set up. */
     metal_gpu_address_helper_init(mtlDevice);
@@ -156,7 +156,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     if (auto *envstr = getenv("CYCLES_METAL_SPECIALIZATION_LEVEL")) {
       kernel_specialization_level = (MetalPipelineType)atoi(envstr);
     }
-    metal_printf("kernel_specialization_level = %s\n",
+    metal_printf("kernel_specialization_level = %s",
                  kernel_type_as_string(
                      (MetalPipelineType)min((int)kernel_specialization_level, (int)PSO_NUM - 1)));
 
@@ -310,7 +310,7 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
 #  undef KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
 #  undef KERNEL_STRUCT_BEGIN
 
-      metal_printf("KernelData patching took %.1f ms\n", (time_dt() - starttime) * 1000.0);
+      metal_printf("KernelData patching took %.1f ms", (time_dt() - starttime) * 1000.0);
     }
 
     /* Opt in to all of available specializations. This can be made more granular for the
@@ -433,7 +433,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
       /* Check whether the device still exists. */
       MetalDevice *instance = get_device_by_ID(device_id, lock);
       if (!instance) {
-        metal_printf("Ignoring %s compilation request - device no longer exists\n",
+        metal_printf("Ignoring %s compilation request - device no longer exists",
                      kernel_type_as_string(pso_type));
         return;
       }
@@ -441,7 +441,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
       if (!MetalDeviceKernels::should_load_kernels(instance, pso_type)) {
         /* We already have a full set of matching pipelines which are cached or queued. Return
          * early to avoid redundant MTLLibrary compilation. */
-        metal_printf("Ignoreing %s compilation request - kernels already requested\n",
+        metal_printf("Ignoreing %s compilation request - kernels already requested",
                      kernel_type_as_string(pso_type));
         return;
       }
@@ -482,7 +482,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
                                                         options:options
                                                           error:&error];
 
-    metal_printf("Front-end compilation finished in %.1f seconds (%s)\n",
+    metal_printf("Front-end compilation finished in %.1f seconds (%s)",
                  time_dt() - starttime,
                  kernel_type_as_string(pso_type));
 
@@ -502,7 +502,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
       if (MetalDevice *instance = get_device_by_ID(device_id, lock)) {
         if (mtlLibrary) {
           if (error && [error localizedDescription]) {
-            VLOG_WARNING << "MSL compilation messages: "
+            LOG(WARNING) << "MSL compilation messages: "
                          << [[error localizedDescription] UTF8String];
           }
 
@@ -521,7 +521,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
     if (starttime && blocking_pso_build) {
       MetalDeviceKernels::wait_for_all();
 
-      metal_printf("Back-end compilation finished in %.1f seconds (%s)\n",
+      metal_printf("Back-end compilation finished in %.1f seconds (%s)",
                    time_dt() - starttime,
                    kernel_type_as_string(pso_type));
     }
@@ -530,7 +530,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
 
 bool MetalDevice::is_texture(const TextureInfo &tex)
 {
-  return (tex.depth > 0 || tex.height > 0);
+  return tex.height > 0;
 }
 
 void MetalDevice::load_texture_info() {}
@@ -586,7 +586,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
     }
 
     if (mem.name) {
-      VLOG_WORK << "Buffer allocate: " << mem.name << ", "
+      LOG(WORK) << "Buffer allocate: " << mem.name << ", "
                 << string_human_readable_number(mem.memory_size()) << " bytes. ("
                 << string_human_readable_size(mem.memory_size()) << ")";
     }
@@ -807,7 +807,7 @@ bool MetalDevice::is_ready(string &status) const
     status = "Using optimized kernels";
   }
 
-  metal_printf("MetalDevice::is_ready(...) --> true\n");
+  metal_printf("MetalDevice::is_ready(...) --> true");
   return true;
 }
 
@@ -848,7 +848,7 @@ void MetalDevice::optimize_for_scene(Scene *scene)
                      specialize_kernels_fn);
     }
     else {
-      metal_printf("\"optimize_for_scene\" request already in flight - dropping request\n");
+      metal_printf("\"optimize_for_scene\" request already in flight - dropping request");
     }
   }
   else {
@@ -937,11 +937,7 @@ void MetalDevice::tex_alloc_as_buffer(device_texture &mem)
   texture_info[slot] = mem.info;
   texture_slot_map[slot] = mmem->mtlBuffer;
 
-  if (mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT ||
-      mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3 ||
-      mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FPN ||
-      mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FP16)
-  {
+  if (is_nanovdb_type(mem.info.data_type)) {
     using_nanovdb = true;
   }
 }
@@ -1026,43 +1022,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
     id<MTLTexture> mtlTexture = nil;
     size_t src_pitch = mem.data_width * datatype_size(mem.data_type) * mem.data_elements;
 
-    if (mem.data_depth > 1) {
-      /* 3D texture using array */
-      MTLTextureDescriptor *desc;
-
-      desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format
-                                                                width:mem.data_width
-                                                               height:mem.data_height
-                                                            mipmapped:NO];
-
-      desc.storageMode = MTLStorageModeShared;
-      desc.usage = MTLTextureUsageShaderRead;
-
-      desc.textureType = MTLTextureType3D;
-      desc.depth = mem.data_depth;
-
-      VLOG_WORK << "Texture 3D allocate: " << mem.name << ", "
-                << string_human_readable_number(mem.memory_size()) << " bytes. ("
-                << string_human_readable_size(mem.memory_size()) << ")";
-
-      mtlTexture = [mtlDevice newTextureWithDescriptor:desc];
-      if (!mtlTexture) {
-        set_error("System is out of GPU memory");
-        return;
-      }
-
-      const size_t imageBytes = src_pitch * mem.data_height;
-      for (size_t d = 0; d < mem.data_depth; d++) {
-        const size_t offset = d * imageBytes;
-        [mtlTexture replaceRegion:MTLRegionMake3D(0, 0, d, mem.data_width, mem.data_height, 1)
-                      mipmapLevel:0
-                            slice:0
-                        withBytes:(uint8_t *)mem.host_pointer + offset
-                      bytesPerRow:src_pitch
-                    bytesPerImage:0];
-      }
-    }
-    else if (mem.data_height > 0) {
+    if (mem.data_height > 0) {
       /* 2D texture */
       MTLTextureDescriptor *desc;
 
@@ -1074,7 +1034,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
       desc.storageMode = MTLStorageModeShared;
       desc.usage = MTLTextureUsageShaderRead;
 
-      VLOG_WORK << "Texture 2D allocate: " << mem.name << ", "
+      LOG(WORK) << "Texture 2D allocate: " << mem.name << ", "
                 << string_human_readable_number(mem.memory_size()) << " bytes. ("
                 << string_human_readable_size(mem.memory_size()) << ")";
 
@@ -1149,24 +1109,7 @@ void MetalDevice::tex_copy_to(device_texture &mem)
   if (mem.is_resident(this)) {
     const size_t src_pitch = mem.data_width * datatype_size(mem.data_type) * mem.data_elements;
 
-    if (mem.data_depth > 0) {
-      id<MTLTexture> mtlTexture;
-      {
-        std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
-        mtlTexture = metal_mem_map.at(&mem)->mtlTexture;
-      }
-      const size_t imageBytes = src_pitch * mem.data_height;
-      for (size_t d = 0; d < mem.data_depth; d++) {
-        const size_t offset = d * imageBytes;
-        [mtlTexture replaceRegion:MTLRegionMake3D(0, 0, d, mem.data_width, mem.data_height, 1)
-                      mipmapLevel:0
-                            slice:0
-                        withBytes:(uint8_t *)mem.host_pointer + offset
-                      bytesPerRow:src_pitch
-                    bytesPerImage:0];
-      }
-    }
-    else if (mem.data_height > 0) {
+    if (mem.data_height > 0) {
       id<MTLTexture> mtlTexture;
       {
         std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
@@ -1186,7 +1129,7 @@ void MetalDevice::tex_copy_to(device_texture &mem)
 void MetalDevice::tex_free(device_texture &mem)
 {
   int slot = mem.slot;
-  if (mem.data_depth == 0 && mem.data_height == 0) {
+  if (mem.data_height == 0) {
     generic_free(mem);
   }
   else if (metal_mem_map.count(&mem)) {

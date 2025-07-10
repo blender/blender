@@ -84,6 +84,8 @@ void HdCyclesVolume::Populate(HdSceneDelegate *sceneDelegate, HdDirtyBits dirtyB
       }
     }
 
+    _geom->merge_grids(scene);
+
     rebuild = true;
   }
 }

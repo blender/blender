@@ -21,7 +21,7 @@ def cube_mask_first_modifier_list():
         ModifierSpec('solidify', 'SOLIDIFY', {}),
         ModifierSpec('triangulate', 'TRIANGULATE', {}),
         ModifierSpec('bevel', 'BEVEL', {'width': 0.1, 'limit_method': 'NONE'}),
-        ModifierSpec('boolean', 'BOOLEAN', {'object': bpy.data.objects["testCubeMaskFirst_boolean"], 'solver': 'FAST'}),
+        ModifierSpec('boolean', 'BOOLEAN', {'object': bpy.data.objects["testCubeMaskFirst_boolean"], 'solver': 'FLOAT'}),
         ModifierSpec('edge split', 'EDGE_SPLIT', {}),
         ModifierSpec('build', 'BUILD', {'frame_start': 1, 'frame_duration': 1}, 2),
         ModifierSpec('multires', 'MULTIRES', {}),
@@ -42,7 +42,7 @@ def cube_random_modifier_list():
         ModifierSpec('array', 'ARRAY', {}),
         ModifierSpec('bevel', 'BEVEL', {'width': 0.1, 'limit_method': 'NONE'}),
         ModifierSpec('multires', 'MULTIRES', {}),
-        ModifierSpec('boolean', 'BOOLEAN', {'object': bpy.data.objects["testCubeRandom_boolean"], 'solver': 'FAST'}),
+        ModifierSpec('boolean', 'BOOLEAN', {'object': bpy.data.objects["testCubeRandom_boolean"], 'solver': 'FLOAT'}),
         ModifierSpec('solidify', 'SOLIDIFY', {}),
         ModifierSpec('build', 'BUILD', {'frame_start': 1, 'frame_duration': 1}, 2),
         ModifierSpec('triangulate', 'TRIANGULATE', {}),
@@ -397,7 +397,7 @@ def main():
     boolean_basename = "CubeBooleanDiffBMeshObject"
     tests.append(SpecMeshTest("BooleandDiffBMeshObject", "test" + boolean_basename, "expected" + boolean_basename,
                               [ModifierSpec("boolean", 'BOOLEAN',
-                                            {"solver": 'FAST', "operation": 'DIFFERENCE', "operand_type": 'OBJECT',
+                                            {"solver": 'FLOAT', "operation": 'DIFFERENCE', "operand_type": 'OBJECT',
                                              "object": bpy.data.objects["test" + boolean_basename + "Operand"]})]))
     boolean_basename = "CubeBooleanDiffBMeshCollection"
     tests.append(SpecMeshTest("BooleandDiffBMeshCollection",
@@ -405,7 +405,7 @@ def main():
                               "expected" + boolean_basename,
                               [ModifierSpec("boolean",
                                             'BOOLEAN',
-                                            {"solver": 'FAST',
+                                            {"solver": 'FLOAT',
                                              "operation": 'DIFFERENCE',
                                              "operand_type": 'COLLECTION',
                                              "collection": bpy.data.collections["test" + boolean_basename + "Operands"]})]))

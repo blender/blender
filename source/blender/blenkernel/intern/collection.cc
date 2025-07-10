@@ -55,7 +55,7 @@
 
 #include "BLO_read_write.hh"
 
-static CLG_LogRef LOG = {"bke.collection"};
+static CLG_LogRef LOG = {"object.collection"};
 
 /**
  * Extra asserts that #Collection.gobject_hash is valid which are too slow even for debug mode.

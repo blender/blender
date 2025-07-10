@@ -52,7 +52,7 @@ MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
                                            Material *material,
                                            const ExportParams &export_params)
 {
-  CLOG_INFO(LOG_MATERIALX_SHADER, 0, "Material: %s", material->id.name);
+  CLOG_DEBUG(LOG_IO_MATERIALX, "Material: %s", material->id.name);
 
   MaterialX::DocumentPtr doc = MaterialX::createDocument();
   NodeItem output_item;
@@ -82,11 +82,10 @@ MaterialX::DocumentPtr export_to_materialx(Depsgraph *depsgraph,
   /* This node is expected to have a specific name to link up to USD. */
   graph.set_output_node_name(output_item);
 
-  CLOG_INFO(LOG_MATERIALX_SHADER,
-            1,
-            "Material: %s\n%s",
-            material->id.name,
-            MaterialX::writeToXmlString(doc).c_str());
+  CLOG_DEBUG(LOG_IO_MATERIALX,
+             "Material: %s\n%s",
+             material->id.name,
+             MaterialX::writeToXmlString(doc).c_str());
   return doc;
 }
 

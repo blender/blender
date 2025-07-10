@@ -7,6 +7,7 @@
 #  include <cstdio>
 #  include <cstdlib>
 #  include <cstring>
+#  include <iomanip>
 
 #  include "device/hip/device_impl.h"
 
@@ -244,9 +245,9 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   /* Attempt to use kernel provided with Blender. */
   if (!use_adaptive_compilation()) {
     const string fatbin = path_get(string_printf("lib/%s_%s.fatbin.zst", name, arch.c_str()));
-    VLOG_INFO << "Testing for pre-compiled kernel " << fatbin << ".";
+    LOG(INFO) << "Testing for pre-compiled kernel " << fatbin << ".";
     if (path_exists(fatbin)) {
-      VLOG_INFO << "Using precompiled kernel.";
+      LOG(INFO) << "Using precompiled kernel.";
       return fatbin;
     }
   }
@@ -282,9 +283,9 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   const string fatbin_file = string_printf(
       "cycles_%s_%s_%s", name, arch.c_str(), kernel_md5.c_str());
   const string fatbin = path_cache_get(path_join("kernels", fatbin_file));
-  VLOG_INFO << "Testing for locally compiled kernel " << fatbin << ".";
+  LOG(INFO) << "Testing for locally compiled kernel " << fatbin << ".";
   if (path_exists(fatbin)) {
-    VLOG_INFO << "Using locally compiled kernel.";
+    LOG(INFO) << "Using locally compiled kernel.";
     return fatbin;
   }
 
@@ -327,7 +328,7 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   }
 #  endif
   const int hipcc_hip_version = hipewCompilerVersion();
-  VLOG_INFO << "Found hipcc " << hipcc << ", HIP version " << hipcc_hip_version << ".";
+  LOG(INFO) << "Found hipcc " << hipcc << ", HIP version " << hipcc_hip_version << ".";
 
   double starttime = time_dt();
 
@@ -345,9 +346,8 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
                                  fatbin.c_str(),
                                  common_cflags.c_str());
 
-  printf("Compiling %sHIP kernel ...\n%s\n",
-         (use_adaptive_compilation()) ? "adaptive " : "",
-         command.c_str());
+  LOG(INFO_IMPORTANT) << "Compiling " << ((use_adaptive_compilation()) ? "adaptive " : "")
+                      << "HIP kernel ...";
 
 #  ifdef _WIN32
   command = "call " + command;
@@ -367,7 +367,8 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
     return string();
   }
 
-  printf("Kernel compilation finished in %.2lfs.\n", time_dt() - starttime);
+  LOG(INFO_IMPORTANT) << "Kernel compilation finished in " << std::fixed << std::setprecision(2)
+                      << time_dt() - starttime << "s";
 
   return fatbin;
 }
@@ -380,7 +381,7 @@ bool HIPDevice::load_kernels(const uint kernel_features)
    */
   if (hipModule) {
     if (use_adaptive_compilation()) {
-      VLOG_INFO << "Skipping HIP kernel reload for adaptive compilation, not currently supported.";
+      LOG(INFO) << "Skipping HIP kernel reload for adaptive compilation, not currently supported.";
     }
     return true;
   }
@@ -468,7 +469,7 @@ void HIPDevice::reserve_local_memory(const uint kernel_features)
     hipMemGetInfo(&free_after, &total);
   }
 
-  VLOG_INFO << "Local memory reserved " << string_human_readable_number(free_before - free_after)
+  LOG(INFO) << "Local memory reserved " << string_human_readable_number(free_before - free_after)
             << " bytes. (" << string_human_readable_size(free_before - free_after) << ")";
 
 #  if 0
@@ -718,23 +719,6 @@ static hip_Memcpy2D tex_2d_copy_param(const device_texture &mem, const int pitch
   return param;
 }
 
-static HIP_MEMCPY3D tex_3d_copy_param(const device_texture &mem)
-{
-  const size_t src_pitch = tex_src_pitch(mem);
-
-  HIP_MEMCPY3D param;
-  memset(&param, 0, sizeof(HIP_MEMCPY3D));
-  param.dstMemoryType = hipMemoryTypeArray;
-  param.dstArray = (hArray)mem.device_pointer;
-  param.srcMemoryType = hipMemoryTypeHost;
-  param.srcHost = mem.host_pointer;
-  param.srcPitch = src_pitch;
-  param.WidthInBytes = param.srcPitch;
-  param.Height = mem.data_height;
-  param.Depth = mem.data_depth;
-  return param;
-}
-
 void HIPDevice::tex_alloc(device_texture &mem)
 {
   HIPContextScope scope(this);
@@ -793,50 +777,11 @@ void HIPDevice::tex_alloc(device_texture &mem)
   }
 
   Mem *cmem = nullptr;
-  hArray array_3d = nullptr;
 
   if (!mem.is_resident(this)) {
     thread_scoped_lock lock(device_mem_map_mutex);
     cmem = &device_mem_map[&mem];
     cmem->texobject = 0;
-
-    if (mem.data_depth > 1) {
-      array_3d = (hArray)mem.device_pointer;
-      cmem->array = reinterpret_cast<arrayMemObject>(array_3d);
-    }
-  }
-  else if (mem.data_depth > 1) {
-    /* 3D texture using array, there is no API for linear memory. */
-    HIP_ARRAY3D_DESCRIPTOR desc;
-
-    desc.Width = mem.data_width;
-    desc.Height = mem.data_height;
-    desc.Depth = mem.data_depth;
-    desc.Format = format;
-    desc.NumChannels = mem.data_elements;
-    desc.Flags = 0;
-
-    VLOG_WORK << "Array 3D allocate: " << mem.name << ", "
-              << string_human_readable_number(mem.memory_size()) << " bytes. ("
-              << string_human_readable_size(mem.memory_size()) << ")";
-
-    hip_assert(hipArray3DCreate((hArray *)&array_3d, &desc));
-
-    if (!array_3d) {
-      return;
-    }
-
-    mem.device_pointer = (device_ptr)array_3d;
-    mem.device_size = mem.memory_size();
-    stats.mem_alloc(mem.memory_size());
-
-    const HIP_MEMCPY3D param = tex_3d_copy_param(mem);
-    hip_assert(hipDrvMemcpy3D(&param));
-
-    thread_scoped_lock lock(device_mem_map_mutex);
-    cmem = &device_mem_map[&mem];
-    cmem->texobject = 0;
-    cmem->array = reinterpret_cast<arrayMemObject>(array_3d);
   }
   else if (mem.data_height > 0) {
     /* 2D texture, using pitch aligned linear memory. */
@@ -864,21 +809,12 @@ void HIPDevice::tex_alloc(device_texture &mem)
   /* Set Mapping and tag that we need to (re-)upload to device */
   TextureInfo tex_info = mem.info;
 
-  if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16)
-  {
+  if (!is_nanovdb_type(mem.info.data_type)) {
     /* Bindless textures. */
     hipResourceDesc resDesc;
     memset(&resDesc, 0, sizeof(resDesc));
 
-    if (array_3d) {
-      resDesc.resType = hipResourceTypeArray;
-      resDesc.res.array.h_Array = array_3d;
-      resDesc.flags = 0;
-    }
-    else if (mem.data_height > 0) {
+    if (mem.data_height > 0) {
       const size_t dst_pitch = align_up(tex_src_pitch(mem), pitch_alignment);
 
       resDesc.resType = hipResourceTypePitch2D;
@@ -952,12 +888,7 @@ void HIPDevice::tex_copy_to(device_texture &mem)
   }
   else {
     /* Resident and fully allocated, only copy. */
-    if (mem.data_depth > 0) {
-      HIPContextScope scope(this);
-      const HIP_MEMCPY3D param = tex_3d_copy_param(mem);
-      hip_assert(hipDrvMemcpy3D(&param));
-    }
-    else if (mem.data_height > 0) {
+    if (mem.data_height > 0) {
       HIPContextScope scope(this);
       const hip_Memcpy2D param = tex_2d_copy_param(mem, pitch_alignment);
       hip_assert(hipDrvMemcpy2DUnaligned(&param));
@@ -1059,10 +990,10 @@ bool HIPDevice::should_use_graphics_interop(const GraphicsInteropDevice &interop
 
       if (log) {
         if (found) {
-          VLOG_INFO << "Graphics interop: found matching OpenGL device for HIP";
+          LOG(INFO) << "Graphics interop: found matching OpenGL device for HIP";
         }
         else {
-          VLOG_INFO << "Graphics interop: no matching OpenGL device for HIP";
+          LOG(INFO) << "Graphics interop: no matching OpenGL device for HIP";
         }
       }
 

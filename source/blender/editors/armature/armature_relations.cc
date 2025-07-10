@@ -1015,13 +1015,13 @@ static wmOperatorStatus armature_parent_set_invoke(bContext *C,
 
   uiLayout *row_offset = &layout->row(false);
   row_offset->enabled_set(enable_offset);
-  uiItemEnumO(
-      row_offset, "ARMATURE_OT_parent_set", std::nullopt, ICON_NONE, "type", ARM_PAR_OFFSET);
+  PointerRNA op_ptr = row_offset->op("ARMATURE_OT_parent_set", IFACE_("Keep Offset"), ICON_NONE);
+  RNA_enum_set(&op_ptr, "type", ARM_PAR_OFFSET);
 
   uiLayout *row_connect = &layout->row(false);
   row_connect->enabled_set(enable_connect);
-  uiItemEnumO(
-      row_connect, "ARMATURE_OT_parent_set", std::nullopt, ICON_NONE, "type", ARM_PAR_CONNECT);
+  op_ptr = row_connect->op("ARMATURE_OT_parent_set", IFACE_("Connected"), ICON_NONE);
+  RNA_enum_set(&op_ptr, "type", ARM_PAR_CONNECT);
 
   UI_popup_menu_end(C, pup);
 
@@ -1135,17 +1135,13 @@ static wmOperatorStatus armature_parent_clear_invoke(bContext *C,
 
   uiLayout *row_clear = &layout->row(false);
   row_clear->enabled_set(enable_clear);
-  uiItemEnumO(
-      row_clear, "ARMATURE_OT_parent_clear", std::nullopt, ICON_NONE, "type", ARM_PAR_CLEAR);
+  PointerRNA op_ptr = row_clear->op("ARMATURE_OT_parent_clear", IFACE_("Clear Parent"), ICON_NONE);
+  RNA_enum_set(&op_ptr, "type", ARM_PAR_CLEAR);
 
   uiLayout *row_disconnect = &layout->row(false);
   row_disconnect->enabled_set(enable_disconnect);
-  uiItemEnumO(row_disconnect,
-              "ARMATURE_OT_parent_clear",
-              std::nullopt,
-              ICON_NONE,
-              "type",
-              ARM_PAR_CLEAR_DISCONNECT);
+  op_ptr = row_clear->op("ARMATURE_OT_parent_clear", IFACE_("Disconnect Bone"), ICON_NONE);
+  RNA_enum_set(&op_ptr, "type", ARM_PAR_CLEAR_DISCONNECT);
 
   UI_popup_menu_end(C, pup);
 

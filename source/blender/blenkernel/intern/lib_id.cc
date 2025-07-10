@@ -84,7 +84,7 @@ using blender::Vector;
 
 using namespace blender::bke::id;
 
-static CLG_LogRef LOG = {"bke.lib_id"};
+static CLG_LogRef LOG = {"lib.id"};
 
 IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
     /*id_code*/ ID_LINK_PLACEHOLDER,

@@ -1810,9 +1810,9 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
         const GHOST_TStringArray *stra = static_cast<const GHOST_TStringArray *>(ddd->data);
 
         if (stra->count) {
-          CLOG_INFO(WM_LOG_EVENTS, 1, "Drop %d files:", stra->count);
+          CLOG_INFO(WM_LOG_EVENTS, "Drop %d files:", stra->count);
           for (const char *path : blender::Span((char **)stra->strings, stra->count)) {
-            CLOG_INFO(WM_LOG_EVENTS, 1, "%s", path);
+            CLOG_INFO(WM_LOG_EVENTS, "%s", path);
           }
           /* Try to get icon type from extension of the first path. */
           int icon = ED_file_extension_icon((char *)stra->strings[0]);

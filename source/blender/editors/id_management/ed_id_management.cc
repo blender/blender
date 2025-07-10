@@ -19,7 +19,7 @@
 #include "ED_id_management.hh"
 
 /** We only need this locally. */
-static CLG_LogRef LOG = {"ed.id_management"};
+static CLG_LogRef LOG = {"lib.id_management"};
 
 bool ED_id_rename(Main &bmain, ID &id, blender::StringRefNull name)
 {
@@ -30,26 +30,24 @@ bool ED_id_rename(Main &bmain, ID &id, blender::StringRefNull name)
 
   switch (result.action) {
     case IDNewNameResult::Action::UNCHANGED:
-      CLOG_INFO(&LOG, 4, "ID '%s' not renamed, already using the requested name", id.name + 2);
+      CLOG_DEBUG(&LOG, "ID '%s' not renamed, already using the requested name", id.name + 2);
       return false;
     case IDNewNameResult::Action::UNCHANGED_COLLISION:
-      CLOG_INFO(&LOG,
-                4,
-                "ID '%s' not renamed, requested new name '%s' would collide with an existing one",
-                id.name + 2,
-                name.c_str());
+      CLOG_DEBUG(&LOG,
+                 "ID '%s' not renamed, requested new name '%s' would collide with an existing one",
+                 id.name + 2,
+                 name.c_str());
       return false;
     case IDNewNameResult::Action::RENAMED_NO_COLLISION:
-      CLOG_INFO(&LOG, 4, "ID '%s' renamed without any collision", id.name + 2);
+      CLOG_DEBUG(&LOG, "ID '%s' renamed without any collision", id.name + 2);
       WM_main_add_notifier(NC_ID | NA_RENAME, &id);
       return true;
     case IDNewNameResult::Action::RENAMED_COLLISION_ADJUSTED:
-      CLOG_INFO(&LOG,
-                4,
-                "ID '%s' renamed with adjustment from requested name '%s', to avoid name "
-                "collision with another ID",
-                id.name + 2,
-                name.c_str());
+      CLOG_DEBUG(&LOG,
+                 "ID '%s' renamed with adjustment from requested name '%s', to avoid name "
+                 "collision with another ID",
+                 id.name + 2,
+                 name.c_str());
       WM_global_reportf(RPT_INFO,
                         "Data-block renamed to '%s', try again to force renaming it to '%s'",
                         id.name + 2,
@@ -57,9 +55,8 @@ bool ED_id_rename(Main &bmain, ID &id, blender::StringRefNull name)
       WM_main_add_notifier(NC_ID | NA_RENAME, &id);
       return true;
     case IDNewNameResult::Action::RENAMED_COLLISION_FORCED:
-      CLOG_INFO(
+      CLOG_DEBUG(
           &LOG,
-          4,
           "ID '%s' forcefully renamed, another ID had to also be renamed to avoid name collision",
           id.name + 2);
       WM_global_reportf(RPT_INFO,

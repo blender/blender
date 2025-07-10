@@ -40,7 +40,7 @@
  */
 #define IDP_ARRAY_REALLOC_LIMIT 200
 
-static CLG_LogRef LOG = {"bke.idprop"};
+static CLG_LogRef LOG = {"lib.idprop"};
 
 /** Local size table, aligned with #eIDPropertyType. */
 static size_t idp_size_table[] = {

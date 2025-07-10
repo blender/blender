@@ -26,7 +26,6 @@
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_screen.hh"
@@ -156,7 +155,7 @@ static wmOperatorStatus sculpt_detail_flood_fill_exec(bContext *C, wmOperator *o
     node_mask.foreach_index([&](const int i) { BKE_pbvh_node_mark_topology_update(nodes[i]); });
   }
 
-  CLOG_INFO(&LOG, 2, "Detail flood fill took %f seconds.", BLI_time_now_seconds() - start_time);
+  CLOG_DEBUG(&LOG, "Detail flood fill took %f seconds.", BLI_time_now_seconds() - start_time);
 
   undo::push_end(ob);
 

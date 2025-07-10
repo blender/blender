@@ -491,7 +491,7 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
          * default. */
         !STREQ(keymap->idname, "Asset Shelf"))
     {
-      CLOG_WARN(WM_LOG_KEYMAPS, "empty keymap '%s'", keymap->idname);
+      CLOG_WARN(WM_LOG_EVENTS, "empty keymap '%s'", keymap->idname);
     }
   }
 
@@ -1032,7 +1032,7 @@ void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
     ot->modalkeymap = km;
   }
   else {
-    CLOG_ERROR(WM_LOG_KEYMAPS, "unknown operator '%s'", opname);
+    CLOG_ERROR(WM_LOG_OPERATORS, "unknown operator '%s' in modal keymap", opname);
   }
 }
 

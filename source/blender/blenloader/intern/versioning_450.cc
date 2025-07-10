@@ -57,7 +57,7 @@
 
 #include "versioning_common.hh"
 
-// static CLG_LogRef LOG = {"blo.readfile.doversion"};
+// static CLG_LogRef LOG = {"blend.doversion"};
 
 static void version_fix_fcurve_noise_offset(FCurve &fcurve)
 {

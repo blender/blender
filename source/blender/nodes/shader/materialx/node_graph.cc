@@ -77,7 +77,7 @@ NodeGraph::NodeGraph(const NodeGraph &parent, const StringRef child_name)
   MaterialX::NodeGraphPtr graph = parent.graph_element_->getChildOfType<MaterialX::NodeGraph>(
       valid_child_name);
   if (!graph) {
-    CLOG_INFO(LOG_MATERIALX_SHADER, 1, "<nodegraph name=%s>", valid_child_name.c_str());
+    CLOG_DEBUG(LOG_IO_MATERIALX, "<nodegraph name=%s>", valid_child_name.c_str());
     graph = parent.graph_element_->addChild<MaterialX::NodeGraph>(valid_child_name);
   }
   graph_element_ = graph.get();

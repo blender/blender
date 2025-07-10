@@ -44,7 +44,7 @@ enum {
 
 /* GLOBALS */
 
-static CLG_LogRef LOG = {"bke.icons"};
+static CLG_LogRef LOG = {"lib.icons"};
 
 /* Protected by gIconMutex. */
 static GHash *gIcons = nullptr;

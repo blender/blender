@@ -172,8 +172,10 @@ struct TaskPool {
   ThreadQueue *background_queue;
   volatile bool background_is_canceling = false;
 
+  eTaskPriority priority;
+
   TaskPool(const TaskPoolType type, const eTaskPriority priority, void *userdata)
-      : type(type), userdata(userdata)
+      : type(type), userdata(userdata), priority(priority)
   {
     this->use_threads = BLI_task_scheduler_num_threads() > 1 && type != TASK_POOL_NO_THREADS;
 
@@ -196,8 +198,6 @@ struct TaskPool {
         if (use_threads) {
           this->tbb_group = std::make_unique<TBBTaskGroup>(priority);
         }
-#else
-        UNUSED_VARS(priority);
 #endif
         break;
       }
@@ -423,7 +423,11 @@ void TaskPool::background_task_pool_run(Task &&task)
   BLI_assert(ELEM(this->type, TASK_POOL_BACKGROUND, TASK_POOL_BACKGROUND_SERIAL));
 
   Task *task_mem = MEM_new<Task>(__func__, std::move(task));
-  BLI_thread_queue_push(this->background_queue, task_mem);
+  BLI_thread_queue_push(this->background_queue,
+                        task_mem,
+                        this->priority == TASK_PRIORITY_HIGH ?
+                            BLI_THREAD_QUEUE_WORK_PRIORITY_HIGH :
+                            BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
 
   if (BLI_available_threads(&this->background_threads)) {
     BLI_threadpool_insert(&this->background_threads, this);

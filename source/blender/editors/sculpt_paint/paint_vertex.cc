@@ -19,7 +19,6 @@
 #include "BLI_color_mix.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_listbase.h"
-#include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
@@ -41,7 +40,6 @@
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
@@ -73,8 +71,6 @@
 #include "mesh_brush_common.hh"
 #include "paint_intern.hh" /* own include */
 #include "sculpt_automask.hh"
-#include "sculpt_boundary.hh"
-#include "sculpt_cloth.hh"
 #include "sculpt_intern.hh"
 #include "sculpt_pose.hh"
 
@@ -85,7 +81,7 @@ using namespace blender::color;
 using namespace blender::ed::sculpt_paint; /* For vwpaint namespace. */
 using blender::ed::sculpt_paint::vwpaint::NormalAnglePrecalc;
 
-static CLG_LogRef LOG = {"ed.sculpt_paint"};
+static CLG_LogRef LOG = {"paint.vertex"};
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities

@@ -11,7 +11,7 @@ set(INC_SYS
 )
 
 set(SRC
-  clog.c
+  clog.cc
 
   CLG_log.h
 )

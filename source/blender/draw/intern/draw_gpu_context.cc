@@ -28,16 +28,31 @@
  * between render engine instances, we cannot allow pass submissions in a concurrent manner.
  * \{ */
 
+static TicketMutex *draw_mutex = nullptr;
 static TicketMutex *submission_mutex = nullptr;
 
-void DRW_submission_mutex_init()
+void DRW_mutexes_init()
 {
+  draw_mutex = BLI_ticket_mutex_alloc();
   submission_mutex = BLI_ticket_mutex_alloc();
 }
 
-void DRW_submission_mutex_exit()
+void DRW_mutexes_exit()
 {
+  BLI_ticket_mutex_free(draw_mutex);
   BLI_ticket_mutex_free(submission_mutex);
+}
+
+void DRW_lock_start()
+{
+  bool locked = BLI_ticket_mutex_lock_check_recursive(draw_mutex);
+  BLI_assert(locked);
+  UNUSED_VARS_NDEBUG(locked);
+}
+
+void DRW_lock_end()
+{
+  BLI_ticket_mutex_unlock(draw_mutex);
 }
 
 void DRW_submission_start()
@@ -95,6 +110,7 @@ class ContextShared {
 
   void enable()
   {
+    DRW_lock_start();
     /* IMPORTANT: We don't support immediate mode in render mode!
      * This shall remain in effect until immediate mode supports
      * multiple threads. */
@@ -124,6 +140,7 @@ class ContextShared {
     GPU_render_end();
 
     BLI_ticket_mutex_unlock(mutex_);
+    DRW_lock_end();
   }
 };
 
@@ -145,7 +162,7 @@ void DRW_gpu_context_create()
 {
   BLI_assert(viewport_context == nullptr); /* Ensure it's called once */
 
-  DRW_submission_mutex_init();
+  DRW_mutexes_init();
 
   viewport_context = MEM_new<ContextShared>(__func__);
   preview_context = MEM_new<ContextShared>(__func__);
@@ -164,7 +181,7 @@ void DRW_gpu_context_destroy()
   if (viewport_context == nullptr) {
     return;
   }
-  DRW_submission_mutex_exit();
+  DRW_mutexes_exit();
 
   MEM_SAFE_DELETE(viewport_context);
   MEM_SAFE_DELETE(preview_context);
@@ -237,12 +254,14 @@ void DRW_system_gpu_render_context_enable(void *re_system_gpu_context)
   /* If thread is main you should use DRW_gpu_context_enable(). */
   BLI_assert(!BLI_thread_is_main());
 
+  DRW_lock_start();
   WM_system_gpu_context_activate(re_system_gpu_context);
 }
 
 void DRW_system_gpu_render_context_disable(void *re_system_gpu_context)
 {
   WM_system_gpu_context_release(re_system_gpu_context);
+  DRW_lock_end();
 }
 
 void DRW_blender_gpu_render_context_enable(void *re_gpu_context)
@@ -346,6 +365,7 @@ void DRW_xr_drawing_begin()
 {
   /* XXX: See comment on #DRW_system_gpu_context_get(). */
 
+  DRW_lock_start();
   BLI_ticket_mutex_lock(viewport_context->mutex_);
 }
 
@@ -354,6 +374,7 @@ void DRW_xr_drawing_end()
   /* XXX: See comment on #DRW_system_gpu_context_get(). */
 
   BLI_ticket_mutex_unlock(viewport_context->mutex_);
+  DRW_lock_end();
 }
 
 #endif

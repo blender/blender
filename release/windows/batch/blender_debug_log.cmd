@@ -16,5 +16,5 @@ set PYTHONPATH=
 set DEBUGLOGS="%temp%\blender\debug_logs"
 mkdir "%DEBUGLOGS%" > NUL 2>&1
 
-"%~dp0\blender" --debug --debug-cycles --python-expr "import bpy; bpy.context.preferences.filepaths.temporary_directory=r'%DEBUGLOGS%'; bpy.ops.wm.sysinfo(filepath=r'%DEBUGLOGS%\blender_system_info.txt')" > "%DEBUGLOGS%\blender_debug_output.txt" 2>&1 < %0
+"%~dp0\blender" --debug --log cycles --python-expr "import bpy; bpy.context.preferences.filepaths.temporary_directory=r'%DEBUGLOGS%'; bpy.ops.wm.sysinfo(filepath=r'%DEBUGLOGS%\blender_system_info.txt')" > "%DEBUGLOGS%\blender_debug_output.txt" 2>&1 < %0
 explorer "%DEBUGLOGS%"

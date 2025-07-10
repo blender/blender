@@ -17,6 +17,7 @@
 
 #include "kernel/util/differential.h"
 #include "kernel/util/ies.h"
+#include "kernel/util/texture_3d.h"
 
 #include "util/hash.h"
 #include "util/transform.h"
@@ -763,7 +764,7 @@ ccl_device_inline bool get_object_attribute_impl(KernelGlobals kg,
   T dy = make_zero<T>();
 #ifdef __VOLUME__
   if (primitive_is_volume_attribute(sd)) {
-    v = primitive_volume_attribute<T>(kg, sd, desc);
+    v = primitive_volume_attribute<T>(kg, sd, desc, true);
   }
   else
 #endif
@@ -1146,7 +1147,7 @@ ccl_device_extern bool rs_texture3d(ccl_private ShaderGlobals *sg,
 
   switch (type) {
     case OSL_TEXTURE_HANDLE_TYPE_SVM: {
-      const float4 rgba = kernel_tex_image_interp_3d(nullptr, slot, *P, INTERPOLATION_NONE);
+      const float4 rgba = kernel_tex_image_interp_3d(nullptr, slot, *P, INTERPOLATION_NONE, -1.0f);
       if (nchannels > 0) {
         result[0] = rgba.x;
       }

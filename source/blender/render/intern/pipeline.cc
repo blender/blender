@@ -100,6 +100,10 @@
 #include "render_result.h"
 #include "render_types.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"render"};
+
 namespace path_templates = blender::bke::path_templates;
 
 /* render flow
@@ -195,47 +199,24 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
     return;
   }
 
-  uintptr_t mem_in_use, peak_memory;
-  float megs_used_memory, megs_peak_memory;
-  char info_time_str[32];
-
-  mem_in_use = MEM_get_memory_in_use();
-  peak_memory = MEM_get_peak_memory();
-
-  megs_used_memory = (mem_in_use) / (1024.0 * 1024.0);
-  megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
-
-  BLI_timecode_string_from_time_simple(
-      info_time_str, sizeof(info_time_str), BLI_time_now_seconds() - rs->starttime);
-
   /* Compositor calls this from multiple threads, mutex lock to ensure we don't
    * get garbled output. */
   static blender::Mutex mutex;
   std::scoped_lock lock(mutex);
 
-  char *message = BLI_sprintfN(RPT_("Fra:%d Mem:%.2fM (Peak %.2fM) | Time:%s | %s"),
-                               rs->cfra,
-                               megs_used_memory,
-                               megs_peak_memory,
-                               info_time_str,
-                               rs->infostr);
-
   if (!G.quiet) {
-    fprintf(stdout, "%s\n", message);
-
+    CLOG_STR_INFO(&LOG, rs->infostr);
     /* Flush stdout to be sure python callbacks are printing stuff after blender. */
     fflush(stdout);
   }
 
   /* NOTE: using G_MAIN seems valid here???
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
-  BKE_callback_exec_string(G_MAIN, BKE_CB_EVT_RENDER_STATS, message);
+  BKE_callback_exec_string(G_MAIN, BKE_CB_EVT_RENDER_STATS, rs->infostr);
 
   if (!G.quiet) {
     fflush(stdout);
   }
-
-  MEM_freeN(message);
 }
 
 void RE_ReferenceRenderResult(RenderResult *rr)
@@ -1383,6 +1364,7 @@ static void do_render_compositor(Render *re)
                             blender::compositor::OutputTypes::Previews;
         }
 
+        CLOG_STR_INFO(&LOG, "Executing compositor");
         blender::compositor::RenderContext compositor_render_context;
         LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
           COM_execute(re,
@@ -1524,6 +1506,8 @@ static void do_render_sequencer(Render *re)
   blender::seq::RenderData context;
   int view_id, tot_views;
   int re_x, re_y;
+
+  CLOG_STR_INFO(&LOG, "Executing sequencer");
 
   re->i.cfra = cfra;
 
@@ -2365,7 +2349,7 @@ static bool do_write_image_or_movie(
   }
 
   if (!G.quiet) {
-    printf("%s\n", message.c_str());
+    CLOG_STR_INFO(&LOG, message.c_str());
     /* Flush stdout to be sure python callbacks are printing stuff after blender. */
     fflush(stdout);
   }
@@ -2375,7 +2359,6 @@ static bool do_write_image_or_movie(
   render_callback_exec_string(re, G_MAIN, BKE_CB_EVT_RENDER_STATS, message.c_str());
 
   if (!G.quiet) {
-    fputc('\n', stdout);
     fflush(stdout);
   }
 
@@ -2423,6 +2406,13 @@ void RE_RenderAnim(Render *re,
                    int efra,
                    int tfra)
 {
+  if (sfra == efra) {
+    CLOG_INFO(&LOG, "Rendering single frame (frame %d)", sfra);
+  }
+  else {
+    CLOG_INFO(&LOG, "Rendering animation (frames %d..%d)", sfra, efra);
+  }
+
   /* Call hooks before taking a copy of scene->r, so user can alter the render settings prior to
    * copying (e.g. alter the output path). */
   render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_INIT);

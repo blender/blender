@@ -65,6 +65,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_compositor
   PRIVATE bf::intern::atomic
+  PRIVATE bf::intern::clog
   PRIVATE bf::nodes
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager

@@ -68,16 +68,16 @@ OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   options.logCallbackFunction = [](unsigned int level, const char *, const char *message, void *) {
     switch (level) {
       case 1:
-        LOG_IF(FATAL, VLOG_IS_ON(1)) << message;
+        LOG(FATAL) << message;
         break;
       case 2:
-        LOG_IF(ERROR, VLOG_IS_ON(1)) << message;
+        LOG(ERROR) << message;
         break;
       case 3:
-        LOG_IF(WARNING, VLOG_IS_ON(1)) << message;
+        LOG(WARNING) << message;
         break;
       case 4:
-        LOG_IF(INFO, VLOG_IS_ON(1)) << message;
+        LOG(INFO) << message;
         break;
       default:
         break;
@@ -85,7 +85,7 @@ OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   };
 #  endif
   if (DebugFlags().optix.use_debug) {
-    VLOG_INFO << "Using OptiX debug mode.";
+    LOG(INFO) << "Using OptiX debug mode.";
     options.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL;
   }
   optix_assert(optixDeviceContextCreate(cuContext, &options, &context));
@@ -1073,11 +1073,11 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
     use_fast_trace_bvh = true;
   }
   else if (use_fast_trace_bvh) {
-    VLOG_INFO << "Using fast to trace OptiX BVH";
+    LOG(INFO) << "Using fast to trace OptiX BVH";
     options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
   }
   else {
-    VLOG_INFO << "Using fast to update OptiX BVH";
+    LOG(INFO) << "Using fast to update OptiX BVH";
     options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_BUILD | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
   }
 

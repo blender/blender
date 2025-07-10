@@ -47,7 +47,7 @@ void ABCNurbsWriter::create_alembic_objects(const HierarchyContext *context)
     }
 
     std::string patch_name = patch_name_stream.str();
-    CLOG_INFO(&LOG, 2, "exporting %s/%s", abc_parent_path, patch_name.c_str());
+    CLOG_DEBUG(&LOG, "exporting %s/%s", abc_parent_path, patch_name.c_str());
 
     ONuPatch nurbs(abc_parent, patch_name, timesample_index_);
     abc_nurbs_.push_back(nurbs);

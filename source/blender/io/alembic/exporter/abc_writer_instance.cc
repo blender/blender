@@ -31,7 +31,7 @@ void ABCInstanceWriter::create_alembic_objects(const HierarchyContext *context)
     CLOG_WARN(&LOG, "unable to export %s as instance", args_.abc_path.c_str());
     return;
   }
-  CLOG_INFO(&LOG, 2, "exporting instance %s", args_.abc_path.c_str());
+  CLOG_DEBUG(&LOG, "exporting instance %s", args_.abc_path.c_str());
 }
 
 void ABCInstanceWriter::ensure_custom_properties_exporter(const HierarchyContext & /*context*/)

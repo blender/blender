@@ -50,15 +50,10 @@ class IdData {
   virtual pxr::VtValue get_data(pxr::TfToken const &key) const = 0;
 };
 
-#define ID_LOG(level, msg, ...) \
-  CLOG_INFO(LOG_HYDRA_SCENE, level, "%s: " msg, prim_id.GetText(), ##__VA_ARGS__);
+#define ID_LOG(msg, ...) CLOG_DEBUG(LOG_HYDRA_SCENE, "%s: " msg, prim_id.GetText(), ##__VA_ARGS__);
 
-#define ID_LOGN(level, msg, ...) \
-  CLOG_INFO(LOG_HYDRA_SCENE, \
-            level, \
-            "%s (%s): " msg, \
-            prim_id.GetText(), \
-            id ? id->name : "", \
-            ##__VA_ARGS__);
+#define ID_LOGN(msg, ...) \
+  CLOG_DEBUG( \
+      LOG_HYDRA_SCENE, "%s (%s): " msg, prim_id.GetText(), id ? id->name : "", ##__VA_ARGS__);
 
 }  // namespace blender::io::hydra

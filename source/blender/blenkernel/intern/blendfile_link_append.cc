@@ -64,7 +64,7 @@
 
 #include "BLO_writefile.hh"
 
-static CLG_LogRef LOG = {"bke.blendfile_link_append"};
+static CLG_LogRef LOG = {"lib.link_append"};
 
 using namespace blender::bke;
 
@@ -1055,11 +1055,10 @@ static int foreach_libblock_append_finalize_action_callback(LibraryIDLinkCallbac
   BLI_assert(data->item->action == LINK_APPEND_ACT_KEEP_LINKED);
 
   if (item->action == LINK_APPEND_ACT_MAKE_LOCAL) {
-    CLOG_INFO(&LOG,
-              3,
-              "Appended ID '%s' was to be made directly local, but is also used by data that is "
-              "kept linked, so duplicating it instead.",
-              id->name);
+    CLOG_DEBUG(&LOG,
+               "Appended ID '%s' was to be made directly local, but is also used by data that is "
+               "kept linked, so duplicating it instead.",
+               id->name);
     item->action = LINK_APPEND_ACT_COPY_LOCAL;
   }
   return IDWALK_RET_NOP;
@@ -1140,9 +1139,8 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
     }
     /* IDs exclusively used as liboverride reference should not be made local at all. */
     if ((item.tag & LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY) != 0) {
-      CLOG_INFO(
+      CLOG_DEBUG(
           &LOG,
-          3,
           "Appended ID '%s' is only used as a liboverride linked dependency, keeping it linked.",
           id->name);
       item.action = LINK_APPEND_ACT_KEEP_LINKED;
@@ -1151,11 +1149,10 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
     /* In non-recursive append case, only IDs from the same libraries as the directly appended
      * ones are made local. All dependencies from other libraries are kept linked. */
     if (!do_recursive && !direct_libraries.contains(id->lib)) {
-      CLOG_INFO(&LOG,
-                3,
-                "Appended ID '%s' belongs to another library and recursive append is disabled, "
-                "keeping it linked.",
-                id->name);
+      CLOG_DEBUG(&LOG,
+                 "Appended ID '%s' belongs to another library and recursive append is disabled, "
+                 "keeping it linked.",
+                 id->name);
       item.action = LINK_APPEND_ACT_KEEP_LINKED;
       item.reusable_local_id = nullptr;
     }
@@ -1215,17 +1212,16 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
     BLI_assert((item.tag & LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY) == 0);
 
     if (do_reuse_local_id && item.reusable_local_id != nullptr) {
-      CLOG_INFO(&LOG, 3, "Appended ID '%s' as a matching local one, re-using it.", id->name);
+      CLOG_DEBUG(&LOG, "Appended ID '%s' as a matching local one, re-using it.", id->name);
       item.action = LINK_APPEND_ACT_REUSE_LOCAL;
     }
     else if (id->tag & ID_TAG_PRE_EXISTING) {
-      CLOG_INFO(&LOG, 3, "Appended ID '%s' was already linked, duplicating it.", id->name);
+      CLOG_DEBUG(&LOG, "Appended ID '%s' was already linked, duplicating it.", id->name);
       item.action = LINK_APPEND_ACT_COPY_LOCAL;
     }
     else if (item.tag & LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY) {
-      CLOG_INFO(
+      CLOG_DEBUG(
           &LOG,
-          3,
           "Appended ID '%s' is also used as a liboverride linked dependency, duplicating it.",
           id->name);
       item.action = LINK_APPEND_ACT_COPY_LOCAL;
@@ -1236,7 +1232,7 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
        * made local, etc.
        *
        * So for now, simpler to always duplicate linked liboverrides. */
-      CLOG_INFO(&LOG, 3, "Appended ID '%s' is a liboverride, duplicating it.", id->name);
+      CLOG_DEBUG(&LOG, "Appended ID '%s' is a liboverride, duplicating it.", id->name);
       item.action = LINK_APPEND_ACT_COPY_LOCAL;
     }
     else {
@@ -1244,7 +1240,7 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
        * #LINK_APPEND_ACT_COPY_LOCAL in the last checks below. This can happen in rare cases with
        * complex relationships involving IDs that are kept linked and IDs that are made local,
        * both using some same dependencies. */
-      CLOG_INFO(&LOG, 3, "Appended ID '%s' will be made local.", id->name);
+      CLOG_DEBUG(&LOG, "Appended ID '%s' will be made local.", id->name);
       item.action = LINK_APPEND_ACT_MAKE_LOCAL;
     }
   }
@@ -1712,12 +1708,11 @@ static void blendfile_library_relocate_id_remap_do(Main *bmain,
     BLI_assert(new_id);
   }
   if (new_id) {
-    CLOG_INFO(&LOG,
-              4,
-              "Before remap of %s, old_id users: %d, new_id users: %d",
-              old_id->name,
-              old_id->us,
-              new_id->us);
+    CLOG_DEBUG(&LOG,
+               "Before remap of %s, old_id users: %d, new_id users: %d",
+               old_id->name,
+               old_id->us,
+               new_id->us);
     BKE_libblock_remap_locked(bmain, old_id, new_id, remap_flags);
 
     if (old_id->flag & ID_FLAG_FAKEUSER) {
@@ -1725,12 +1720,11 @@ static void blendfile_library_relocate_id_remap_do(Main *bmain,
       id_fake_user_set(new_id);
     }
 
-    CLOG_INFO(&LOG,
-              4,
-              "After remap of %s, old_id users: %d, new_id users: %d",
-              old_id->name,
-              old_id->us,
-              new_id->us);
+    CLOG_DEBUG(&LOG,
+               "After remap of %s, old_id users: %d, new_id users: %d",
+               old_id->name,
+               old_id->us,
+               new_id->us);
 
     /* In some cases, new_id might become direct link, remove parent of library in this case. */
     if (new_id->lib->runtime->parent && (new_id->tag & ID_TAG_INDIRECT) == 0) {
@@ -1986,7 +1980,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
             lapp_context, BKE_id_name(*id), idcode, id);
         item->libraries.fill(true);
 
-        CLOG_INFO(&LOG, 4, "Datablock to seek for: %s", id->name);
+        CLOG_DEBUG(&LOG, "Datablock to seek for: %s", id->name);
       }
     }
   }

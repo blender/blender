@@ -36,7 +36,7 @@
 /* own includes */
 #include "gizmo_library_intern.hh"
 
-static CLG_LogRef LOG = {"ed.gizmo.library_utils"};
+static CLG_LogRef LOG = {"tool.gizmo"};
 
 /* factor for precision tweaking */
 #define GIZMO_PRECISION_FAC 0.05f

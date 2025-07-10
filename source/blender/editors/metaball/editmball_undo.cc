@@ -37,7 +37,7 @@
 #include "WM_types.hh"
 
 /** We only need this locally. */
-static CLG_LogRef LOG = {"ed.undo.mball"};
+static CLG_LogRef LOG = {"undo.mball"};
 
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion

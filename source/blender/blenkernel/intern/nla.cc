@@ -48,7 +48,7 @@
 
 #include "nla_private.h"
 
-static CLG_LogRef LOG = {"bke.nla"};
+static CLG_LogRef LOG = {"anim.nla"};
 
 using namespace blender;
 

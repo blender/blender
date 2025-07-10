@@ -59,7 +59,7 @@ static const char _str_null[] = "(null)";
  * \{ */
 
 /* local */
-static CLG_LogRef LOG = {"bke.appdir"};
+static CLG_LogRef LOG = {"system.path"};
 
 static struct {
   /** Full path to program executable. */
@@ -286,16 +286,16 @@ static bool test_path(char *targetpath,
   const int path_array_num = (folder_name ? (subfolder_name ? 3 : 2) : 1);
   BLI_path_join_array(targetpath, targetpath_maxncpy, path_array, path_array_num);
   if (check_is_dir == false) {
-    CLOG_INFO(&LOG, 3, "using without test: '%s'", targetpath);
+    CLOG_DEBUG(&LOG, "Using (without test): '%s'", targetpath);
     return true;
   }
 
   if (BLI_is_dir(targetpath)) {
-    CLOG_INFO(&LOG, 3, "found '%s'", targetpath);
+    CLOG_DEBUG(&LOG, "Found '%s'", targetpath);
     return true;
   }
 
-  CLOG_INFO(&LOG, 3, "missing '%s'", targetpath);
+  CLOG_DEBUG(&LOG, "Missing '%s'", targetpath);
 
   /* Path not found, don't accidentally use it,
    * otherwise call this function with `check_is_dir` set to false. */
@@ -323,16 +323,16 @@ static bool test_env_path(char *path, const char *envvar, const bool check_is_di
   BLI_strncpy(path, env_path, FILE_MAX);
 
   if (check_is_dir == false) {
-    CLOG_INFO(&LOG, 3, "using env '%s' without test: '%s'", envvar, env_path);
+    CLOG_DEBUG(&LOG, "Using env '%s' (without test): '%s'", envvar, env_path);
     return true;
   }
 
   if (BLI_is_dir(env_path)) {
-    CLOG_INFO(&LOG, 3, "env '%s' found: %s", envvar, env_path);
+    CLOG_DEBUG(&LOG, "Env '%s' found: %s", envvar, env_path);
     return true;
   }
 
-  CLOG_INFO(&LOG, 3, "env '%s' missing: %s", envvar, env_path);
+  CLOG_DEBUG(&LOG, "Env '%s' missing: %s", envvar, env_path);
 
   /* Path not found, don't accidentally use it,
    * otherwise call this function with `check_is_dir` set to false. */
@@ -361,11 +361,10 @@ static bool get_path_local_ex(char *targetpath,
 {
   char relfolder[FILE_MAX];
 
-  CLOG_INFO(&LOG,
-            3,
-            "folder='%s', subfolder='%s'",
-            STR_OR_FALLBACK(folder_name),
-            STR_OR_FALLBACK(subfolder_name));
+  CLOG_DEBUG(&LOG,
+             "Get path local: folder='%s', subfolder='%s'",
+             STR_OR_FALLBACK(folder_name),
+             STR_OR_FALLBACK(subfolder_name));
 
   if (folder_name) { /* `subfolder_name` may be nullptr. */
     const char *path_array[] = {folder_name, subfolder_name};
@@ -518,12 +517,11 @@ static bool get_path_user_ex(char *targetpath,
     return false;
   }
 
-  CLOG_INFO(&LOG,
-            3,
-            "'%s', folder='%s', subfolder='%s'",
-            user_path,
-            STR_OR_FALLBACK(folder_name),
-            STR_OR_FALLBACK(subfolder_name));
+  CLOG_DEBUG(&LOG,
+             "Get path user: '%s', folder='%s', subfolder='%s'",
+             user_path,
+             STR_OR_FALLBACK(folder_name),
+             STR_OR_FALLBACK(subfolder_name));
 
   /* `subfolder_name` may be nullptr. */
   return test_path(
@@ -574,12 +572,11 @@ static bool get_path_system_ex(char *targetpath,
     return false;
   }
 
-  CLOG_INFO(&LOG,
-            3,
-            "'%s', folder='%s', subfolder='%s'",
-            system_path,
-            STR_OR_FALLBACK(folder_name),
-            STR_OR_FALLBACK(subfolder_name));
+  CLOG_DEBUG(&LOG,
+             "Get path system: '%s', folder='%s', subfolder='%s'",
+             system_path,
+             STR_OR_FALLBACK(folder_name),
+             STR_OR_FALLBACK(subfolder_name));
 
   /* Try `$BLENDERPATH/folder_name/subfolder_name`, `subfolder_name` may be nullptr. */
   return test_path(
@@ -880,7 +877,7 @@ static void where_am_i(char *program_filepath,
       conv_utf_16_to_8(fullname_16, program_filepath, program_filepath_maxncpy);
       if (!BLI_exists(program_filepath)) {
         CLOG_ERROR(&LOG,
-                   "path can't be found: \"%.*s\"",
+                   "Program path can't be found: \"%.*s\"",
                    int(program_filepath_maxncpy),
                    program_filepath);
         MessageBox(nullptr,
@@ -921,7 +918,7 @@ static void where_am_i(char *program_filepath,
 
 #  ifndef NDEBUG
     if (!STREQ(program_name, program_filepath)) {
-      CLOG_INFO(&LOG, 2, "guessing '%s' == '%s'", program_name, program_filepath);
+      CLOG_DEBUG(&LOG, "Program path guessing '%s' == '%s'", program_name, program_filepath);
     }
 #  endif
   }

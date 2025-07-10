@@ -20,6 +20,7 @@ bool GPU_backend_supported();
 void GPU_backend_type_selection_set(const eGPUBackendType backend);
 eGPUBackendType GPU_backend_type_selection_get();
 eGPUBackendType GPU_backend_get_type();
+const char *GPU_backend_get_name();
 
 /**
  * Detect the most suited eGPUBackendType.

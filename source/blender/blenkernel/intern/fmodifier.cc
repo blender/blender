@@ -29,7 +29,7 @@
 
 #include "BKE_fcurve.hh"
 
-static CLG_LogRef LOG = {"bke.fmodifier"};
+static CLG_LogRef LOG = {"anim.fmodifier"};
 
 /* -------------------------------------------------------------------- */
 /** \name F-Curve Modifier Types

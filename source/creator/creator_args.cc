@@ -69,10 +69,6 @@
 #    include "libmv-capi.h"
 #  endif
 
-#  ifdef WITH_CYCLES_LOGGING
-#    include "CCL_api.h"
-#  endif
-
 #  include "DEG_depsgraph.hh"
 
 #  include "WM_types.hh"
@@ -90,7 +86,6 @@
 struct BuildDefs {
   bool win32;
   bool with_cycles;
-  bool with_cycles_logging;
   bool with_ffmpeg;
   bool with_freestyle;
   bool with_libmv;
@@ -116,9 +111,6 @@ static void build_defs_init(BuildDefs *build_defs, bool force_all)
 #  endif
 #  ifdef WITH_CYCLES
   build_defs->with_cycles = true;
-#  endif
-#  ifdef WITH_CYCLES_LOGGING
-  build_defs->with_cycles_logging = true;
 #  endif
 #  ifdef WITH_FFMPEG
   build_defs->with_ffmpeg = true;
@@ -722,9 +714,9 @@ static void print_help(bArgs *ba, bool all)
   PRINT("Logging Options:\n");
   BLI_args_print_arg_doc(ba, "--log");
   BLI_args_print_arg_doc(ba, "--log-level");
-  BLI_args_print_arg_doc(ba, "--log-show-basename");
+  BLI_args_print_arg_doc(ba, "--log-show-memory");
+  BLI_args_print_arg_doc(ba, "--log-show-source");
   BLI_args_print_arg_doc(ba, "--log-show-backtrace");
-  BLI_args_print_arg_doc(ba, "--log-show-timestamp");
   BLI_args_print_arg_doc(ba, "--log-file");
 
   PRINT("\n");
@@ -740,9 +732,6 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--debug-handlers");
   if (defs.with_libmv) {
     BLI_args_print_arg_doc(ba, "--debug-libmv");
-  }
-  if (defs.with_cycles_logging) {
-    BLI_args_print_arg_doc(ba, "--debug-cycles");
   }
   BLI_args_print_arg_doc(ba, "--debug-memory");
   BLI_args_print_arg_doc(ba, "--debug-jobs");
@@ -1157,34 +1146,65 @@ static int arg_handle_disable_liboverride_auto_resync(int /*argc*/,
 
 static const char arg_handle_log_level_set_doc[] =
     "<level>\n"
-    "\tSet the logging verbosity level (higher for more details) defaults to 1,\n"
-    "\tuse -1 to log all levels.";
+    "\tSet the logging verbosity level.\n"
+    "\n"
+    "\tfatal: Fatal errors only\n"
+    "\terror: Errors only\n"
+    "\twarning: Warnings\n"
+    "\tinfo: Information about devices, files, configuration, operations\n"
+    "\tdebug: Verbose messages for developers\n"
+    "\ttrace: Very verbose code execution tracing";
 static int arg_handle_log_level_set(int argc, const char **argv, void * /*data*/)
 {
   const char *arg_id = "--log-level";
   if (argc > 1) {
     const char *err_msg = nullptr;
-    if (!parse_int_clamp(argv[1], nullptr, -1, INT_MAX, &G.log.level, &err_msg)) {
-      fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+
+    if (STRCASEEQ(argv[1], "fatal")) {
+      G.log.level = CLG_LEVEL_FATAL;
     }
-    else {
-      if (G.log.level == -1) {
+    else if (STRCASEEQ(argv[1], "error")) {
+      G.log.level = CLG_LEVEL_ERROR;
+    }
+    else if (STRCASEEQ(argv[1], "warning")) {
+      G.log.level = CLG_LEVEL_WARN;
+    }
+    else if (STRCASEEQ(argv[1], "info")) {
+      G.log.level = CLG_LEVEL_INFO;
+    }
+    else if (STRCASEEQ(argv[1], "debug")) {
+      G.log.level = CLG_LEVEL_DEBUG;
+    }
+    else if (STRCASEEQ(argv[1], "trace")) {
+      G.log.level = CLG_LEVEL_TRACE;
+    }
+    else if (parse_int_clamp(argv[1], nullptr, -1, INT_MAX, &G.log.level, &err_msg)) {
+      /* Numeric level for backwards compatibility. */
+      if (G.log.level < 0) {
         G.log.level = INT_MAX;
       }
-      CLG_level_set(G.log.level);
+      else {
+        G.log.level = std::min(CLG_LEVEL_INFO + G.log.level, CLG_LEVEL_LEN - 1);
+      }
     }
+    else {
+      fprintf(stderr, "\nError: Invalid log level '%s %s'.\n", arg_id, argv[1]);
+      return 1;
+    }
+
+    CLG_level_set(CLG_Level(G.log.level));
     return 1;
   }
   fprintf(stderr, "\nError: '%s' no args given.\n", arg_id);
   return 0;
 }
 
-static const char arg_handle_log_show_basename_set_doc[] =
+static const char arg_handle_log_show_source_set_doc[] =
     "\n\t"
-    "Only show file name in output (not the leading path).";
-static int arg_handle_log_show_basename_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
+    "Show source file and function name in output.";
+static int arg_handle_log_show_source_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
-  CLG_output_use_basename_set(true);
+  CLG_output_use_source_set(true);
   return 0;
 }
 
@@ -1199,12 +1219,12 @@ static int arg_handle_log_show_backtrace_set(int /*argc*/, const char ** /*argv*
   return 0;
 }
 
-static const char arg_handle_log_show_timestamp_set_doc[] =
+static const char arg_handle_log_show_memory_set_doc[] =
     "\n\t"
-    "Show a timestamp for each log message in seconds since start.";
-static int arg_handle_log_show_timestamp_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
+    "Show memory usage for each log message.";
+static int arg_handle_log_show_memory_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
-  CLG_output_use_timestamp_set(true);
+  CLG_output_use_memory_set(true);
   return 0;
 }
 
@@ -1237,13 +1257,12 @@ static int arg_handle_log_file_set(int argc, const char **argv, void * /*data*/)
 static const char arg_handle_log_set_doc[] =
     "<match>\n"
     "\tEnable logging categories, taking a single comma separated argument.\n"
-    "\tMultiple categories can be matched using a '.*' suffix,\n"
-    "\tso '--log \"wm.*\"' logs every kind of window-manager message.\n"
-    "\tSub-string can be matched using a '*' prefix and suffix,\n"
-    "\tso '--log \"*undo*\"' logs every kind of undo-related message.\n"
-    "\tUse \"^\" prefix to ignore, so '--log \"*,^wm.operator.*\"' logs all except for "
-    "'wm.operators.*'\n"
-    "\tUse \"*\" to log everything.";
+    "\n"
+    "\t--log \"*\": log everything\n"
+    "\t--log \"event\": logs every category starting with \"event\"\n"
+    "\t--log \"render,cycles\": log both render and cycles messages\n"
+    "\t--log \"*mesh*\": log every category containing \"mesh\" sub-string\n"
+    "\t--log \"*,^operator\": log everything except operators, with ^prefix to exclude";
 static int arg_handle_log_set(int argc, const char **argv, void * /*data*/)
 {
   const char *arg_id = "--log";
@@ -1394,9 +1413,6 @@ static int arg_handle_debug_mode_all(int /*argc*/, const char ** /*argv*/, void 
 #  ifdef WITH_LIBMV
   libmv_startDebugLogging();
 #  endif
-#  ifdef WITH_CYCLES_LOGGING
-  CCL_start_debug_logging();
-#  endif
   return 0;
 }
 
@@ -1416,9 +1432,8 @@ static const char arg_handle_debug_mode_cycles_doc[] =
     "Enable debug messages from Cycles.";
 static int arg_handle_debug_mode_cycles(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
-#  ifdef WITH_CYCLES_LOGGING
-  CCL_start_debug_logging();
-#  endif
+  const char *cycles_filter = "cycles.*";
+  CLG_type_filter_include(cycles_filter, strlen(cycles_filter));
   return 0;
 }
 
@@ -1526,7 +1541,7 @@ static const char arg_handle_gpu_backend_set_doc[] =
     ".";
 static int arg_handle_gpu_backend_set(int argc, const char **argv, void * /*data*/)
 {
-  if (argc == 0) {
+  if (argc < 2) {
     fprintf(stderr, "\nError: GPU backend must follow '--gpu-backend'.\n");
     return 0;
   }
@@ -2094,10 +2109,6 @@ static int arg_handle_verbosity_set(int argc, const char **argv, void * /*data*/
 
 #  ifdef WITH_LIBMV
     libmv_setLoggingVerbosity(level);
-#  elif defined(WITH_CYCLES_LOGGING)
-    CCL_logging_verbosity_set(level);
-#  else
-    (void)level;
 #  endif
 
     return 1;
@@ -2139,6 +2150,12 @@ static int arg_handle_extension_set(int argc, const char **argv, void *data)
   return 0;
 }
 
+static void add_log_render_filter()
+{
+  const char *render_filter = "render.*";
+  CLG_type_filter_include(render_filter, strlen(render_filter));
+}
+
 static const char arg_handle_render_frame_doc[] =
     "<frame>\n"
     "\tRender frame <frame> and save it.\n"
@@ -2153,6 +2170,8 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
   bContext *C = static_cast<bContext *>(data);
   Scene *scene = CTX_data_scene(C);
   if (scene) {
+    add_log_render_filter();
+
     Main *bmain = CTX_data_main(C);
 
     if (argc > 1) {
@@ -2207,6 +2226,8 @@ static int arg_handle_render_animation(int /*argc*/, const char ** /*argv*/, voi
   bContext *C = static_cast<bContext *>(data);
   Scene *scene = CTX_data_scene(C);
   if (scene) {
+    add_log_render_filter();
+
     Main *bmain = CTX_data_main(C);
     Render *re = RE_NewSceneRender(scene);
     ReportList reports;
@@ -2696,9 +2717,9 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
    * especially `bpy.appdir` since it's useful to show errors finding paths on startup. */
   BLI_args_add(ba, nullptr, "--log", CB(arg_handle_log_set), ba);
   BLI_args_add(ba, nullptr, "--log-level", CB(arg_handle_log_level_set), ba);
-  BLI_args_add(ba, nullptr, "--log-show-basename", CB(arg_handle_log_show_basename_set), ba);
+  BLI_args_add(ba, nullptr, "--log-show-source", CB(arg_handle_log_show_source_set), ba);
   BLI_args_add(ba, nullptr, "--log-show-backtrace", CB(arg_handle_log_show_backtrace_set), ba);
-  BLI_args_add(ba, nullptr, "--log-show-timestamp", CB(arg_handle_log_show_timestamp_set), ba);
+  BLI_args_add(ba, nullptr, "--log-show-memory", CB(arg_handle_log_show_memory_set), ba);
   BLI_args_add(ba, nullptr, "--log-file", CB(arg_handle_log_file_set), ba);
 
   /* GPU backend selection should be part of #ARG_PASS_ENVIRONMENT for correct GPU context
@@ -2821,7 +2842,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
   if (defs.with_libmv) {
     BLI_args_add(ba, nullptr, "--debug-libmv", CB(arg_handle_debug_mode_libmv), nullptr);
   }
-  if (defs.with_cycles_logging) {
+  if (defs.with_cycles) {
     BLI_args_add(ba, nullptr, "--debug-cycles", CB(arg_handle_debug_mode_cycles), nullptr);
   }
   BLI_args_add(ba, nullptr, "--debug-memory", CB(arg_handle_debug_mode_memory_set), nullptr);

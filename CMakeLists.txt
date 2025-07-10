@@ -625,7 +625,6 @@ option(WITH_CYCLES "Enable Cycles Render Engine" ON)
 option(WITH_CYCLES_OSL "Build Cycles with OpenShadingLanguage support" ON)
 option(WITH_CYCLES_PATH_GUIDING "Build Cycles with path guiding support" ON)
 option(WITH_CYCLES_EMBREE "Build Cycles with Embree support" ON)
-option(WITH_CYCLES_LOGGING "Build Cycles with logging support" ON)
 option(WITH_CYCLES_DEBUG "Build Cycles with options useful for debugging (e.g., MIS)" OFF)
 
 option(WITH_CYCLES_STANDALONE "Build Cycles standalone application" OFF)
@@ -655,7 +654,6 @@ Run additional Cycles test with OSL enabled"
   OFF
 )
 mark_as_advanced(WITH_CYCLES_KERNEL_ASAN)
-mark_as_advanced(WITH_CYCLES_LOGGING)
 mark_as_advanced(WITH_CYCLES_DEBUG_NAN)
 mark_as_advanced(WITH_CYCLES_NATIVE_ONLY)
 mark_as_advanced(WITH_CYCLES_PRECOMPUTE)
@@ -1711,7 +1709,7 @@ set_and_warn_incompatible(WITH_PYTHON_MODULE WITH_GTESTS OFF)
 # -----------------------------------------------------------------------------
 # Configure `GLog/GFlags`
 
-if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
+if(WITH_LIBMV OR WITH_GTESTS)
   if(WITH_SYSTEM_GFLAGS)
     find_package(Gflags)
     if(NOT GFLAGS_FOUND)
@@ -2686,12 +2684,6 @@ elseif(WITH_CYCLES_STANDALONE OR WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   add_subdirectory(intern/sky)
 
   add_subdirectory(intern/cycles)
-  if(WITH_CYCLES_LOGGING)
-    if(NOT WITH_SYSTEM_GFLAGS)
-      add_subdirectory(extern/gflags)
-    endif()
-    add_subdirectory(extern/glog)
-  endif()
   if(WITH_CUDA_DYNLOAD)
     add_subdirectory(extern/cuew)
   endif()

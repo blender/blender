@@ -8,7 +8,6 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_array.hh"
 #include "BLI_function_ref.hh"

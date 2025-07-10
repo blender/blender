@@ -39,7 +39,7 @@
 #include "WM_types.hh"
 
 /** We only need this locally. */
-static CLG_LogRef LOG = {"ed.undo.lattice"};
+static CLG_LogRef LOG = {"undo.lattice"};
 
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion

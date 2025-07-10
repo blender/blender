@@ -18,7 +18,6 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.hh"
-#include "BLI_rect.h"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
@@ -36,9 +35,7 @@
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_object.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
@@ -50,7 +47,6 @@
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
-#include "ED_image.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_paint.hh"

@@ -205,6 +205,12 @@ class ShaderNode : public Node {
   {
     return false;
   }
+  /* True if the node only multiplies or adds a constant values. */
+  virtual bool is_linear_operation()
+  {
+    return false;
+  }
+
   unique_ptr_vector<ShaderInput> inputs;
   unique_ptr_vector<ShaderOutput> outputs;
 
@@ -280,6 +286,15 @@ class ShaderNodeIDComparator {
   bool operator()(const ShaderNode *n1, const ShaderNode *n2) const
   {
     return n1->id < n2->id;
+  }
+};
+
+class ShaderNodeIDAndBoolComparator {
+ public:
+  bool operator()(const std::pair<ShaderNode *, bool> p1,
+                  const std::pair<ShaderNode *, bool> p2) const
+  {
+    return p1.first->id < p2.first->id || p1.second < p2.second;
   }
 };
 
@@ -369,7 +384,7 @@ class ShaderGraph : public NodeOwner {
   void constant_fold(Scene *scene);
   void simplify_settings(Scene *scene);
   void deduplicate_nodes();
-  void verify_volume_output();
+  void optimize_volume_output();
 };
 
 CCL_NAMESPACE_END

@@ -51,7 +51,7 @@ using blender::Set;
 using blender::Vector;
 
 /** We only need this locally. */
-static CLG_LogRef LOG = {"ed.undo"};
+static CLG_LogRef LOG = {"undo"};
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Undo System Access
@@ -96,7 +96,7 @@ void ED_undo_group_end(bContext *C)
 
 void ED_undo_push(bContext *C, const char *str)
 {
-  CLOG_INFO(&LOG, 1, "name='%s'", str);
+  CLOG_INFO(&LOG, "Push '%s'", str);
   WM_file_tag_modified();
 
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -139,7 +139,7 @@ void ED_undo_push(bContext *C, const char *str)
     BKE_undosys_stack_limit_steps_and_memory(wm->undo_stack, -1, memory_limit);
   }
 
-  if (CLOG_CHECK(&LOG, 1)) {
+  if (CLOG_CHECK(&LOG, CLG_LEVEL_DEBUG)) {
     BKE_undosys_print(wm->undo_stack);
   }
 
@@ -222,7 +222,7 @@ static void ed_undo_step_post(bContext *C,
 
   asset::list::storage_tag_main_data_dirty();
 
-  if (CLOG_CHECK(&LOG, 1)) {
+  if (CLOG_CHECK(&LOG, CLG_LEVEL_DEBUG)) {
     BKE_undosys_print(wm->undo_stack);
   }
 }
@@ -238,7 +238,7 @@ static wmOperatorStatus ed_undo_step_direction(bContext *C,
 {
   BLI_assert(ELEM(step, STEP_UNDO, STEP_REDO));
 
-  CLOG_INFO(&LOG, 1, "direction=%s", (step == STEP_UNDO) ? "STEP_UNDO" : "STEP_REDO");
+  CLOG_INFO(&LOG, "Step direction=%s", (step == STEP_UNDO) ? "STEP_UNDO" : "STEP_REDO");
 
   wmWindowManager *wm = CTX_wm_manager(C);
 
@@ -286,8 +286,7 @@ static int ed_undo_step_by_name(bContext *C, const char *undo_name, ReportList *
   const enum eUndoStepDir undo_dir = (undo_dir_i == -1) ? STEP_UNDO : STEP_REDO;
 
   CLOG_INFO(&LOG,
-            1,
-            "name='%s', found direction=%s",
+            "Step name='%s', found direction=%s",
             undo_name,
             (undo_dir == STEP_UNDO) ? "STEP_UNDO" : "STEP_REDO");
 
@@ -317,8 +316,7 @@ static int ed_undo_step_by_index(bContext *C, const int undo_index, ReportList *
   const enum eUndoStepDir undo_dir = (undo_index < active_step_index) ? STEP_UNDO : STEP_REDO;
 
   CLOG_INFO(&LOG,
-            1,
-            "index='%d', found direction=%s",
+            "Step index='%d', found direction=%s",
             undo_index,
             (undo_dir == STEP_UNDO) ? "STEP_UNDO" : "STEP_REDO");
 
@@ -419,7 +417,7 @@ bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id, PointerRNA &
         /* For all non-weight-paint paint modes: Don't store property changes when painting.
          * Weight Paint and Vertex Paint use global undo, and thus don't need to be special-cased
          * here. */
-        CLOG_INFO(&LOG, 1, "skipping undo for paint-mode");
+        CLOG_DEBUG(&LOG, "skipping undo for paint-mode");
         return false;
       }
       if (obact->mode & OB_MODE_EDIT) {
@@ -427,7 +425,7 @@ bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id, PointerRNA &
             (GS(id->name) != GS(((ID *)obact->data)->name)))
         {
           /* No undo push on id type mismatch in edit-mode. */
-          CLOG_INFO(&LOG, 1, "skipping undo for edit-mode");
+          CLOG_DEBUG(&LOG, "skipping undo for edit-mode");
           return false;
         }
       }
@@ -630,7 +628,7 @@ bool ED_undo_operator_repeat(bContext *C, wmOperator *op)
   bool success = false;
 
   if (op) {
-    CLOG_INFO(&LOG, 1, "idname='%s'", op->type->idname);
+    CLOG_INFO(&LOG, "Operator repeat idname='%s'", op->type->idname);
     wmWindowManager *wm = CTX_wm_manager(C);
     const ScrArea *area = CTX_wm_area(C);
     Scene *scene = CTX_data_scene(C);

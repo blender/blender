@@ -25,7 +25,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"pbvh.bmesh"};
+static CLG_LogRef LOG = {"sculpt.bmesh"};
 
 namespace blender::bke::pbvh {
 
@@ -1278,8 +1278,7 @@ static bool pbvh_bmesh_subdivide_long_edges(const EdgeQueueContext *eq_ctx,
   pbvh_bmesh_edge_tag_verify(pbvh);
 #endif
 
-  CLOG_INFO(
-      &LOG, 2, "Long edge subdivision took %f seconds.", BLI_time_now_seconds() - start_time);
+  CLOG_DEBUG(&LOG, "Long edge subdivision took %f seconds.", BLI_time_now_seconds() - start_time);
 
   return any_subdivided;
 }
@@ -1787,7 +1786,7 @@ static bool pbvh_bmesh_collapse_short_edges(const EdgeQueueContext *eq_ctx,
                              eq_ctx);
   }
 
-  CLOG_INFO(&LOG, 2, "Short edge collapse took %f seconds.", BLI_time_now_seconds() - start_time);
+  CLOG_DEBUG(&LOG, "Short edge collapse took %f seconds.", BLI_time_now_seconds() - start_time);
 
   return any_collapsed;
 }

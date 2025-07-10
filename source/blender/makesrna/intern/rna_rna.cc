@@ -1624,11 +1624,11 @@ static void rna_property_override_diff_propptr(Main *bmain,
               /* In case one of the owner of the checked property is tagged as needing resync, do
                * not change the 'match reference' status of its ID pointer properties overrides,
                * since many non-matching ones are likely due to missing resync. */
-              CLOG_INFO(&LOG_COMPARE_OVERRIDE,
-                        4,
-                        "Not checking matching ID pointer properties, since owner %s is tagged as "
-                        "needing resync.\n",
-                        id_a->name);
+              CLOG_DEBUG(
+                  &LOG_COMPARE_OVERRIDE,
+                  "Not checking matching ID pointer properties, since owner %s is tagged as "
+                  "needing resync.\n",
+                  id_a->name);
             }
             else if (id_a->override_library != nullptr &&
                      id_a->override_library->reference == id_b)

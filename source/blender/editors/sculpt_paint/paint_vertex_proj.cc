@@ -20,7 +20,6 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
-#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "ED_view3d.hh"

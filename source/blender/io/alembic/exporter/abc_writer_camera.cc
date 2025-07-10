@@ -35,7 +35,7 @@ bool ABCCameraWriter::is_supported(const HierarchyContext *context) const
 
 void ABCCameraWriter::create_alembic_objects(const HierarchyContext * /*context*/)
 {
-  CLOG_INFO(&LOG, 2, "exporting %s", args_.abc_path.c_str());
+  CLOG_DEBUG(&LOG, "exporting %s", args_.abc_path.c_str());
   abc_camera_ = OCamera(args_.abc_parent, args_.abc_name, timesample_index_);
   abc_camera_schema_ = abc_camera_.getSchema();
 

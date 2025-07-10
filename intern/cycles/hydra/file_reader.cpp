@@ -6,6 +6,7 @@
 #include "hydra/camera.h"
 #include "hydra/render_delegate.h"
 
+#include "util/log.h"
 #include "util/path.h"
 #include "util/unique_ptr.h"
 
@@ -59,7 +60,7 @@ void HdCyclesFileReader::read(Session *session, const char *filepath, const bool
   /* Open Stage. */
   const UsdStageRefPtr stage = UsdStage::Open(filepath);
   if (!stage) {
-    fprintf(stderr, "%s read error\n", filepath);
+    LOG(ERROR) << "USD failed to read " << filepath;
     return;
   }
 

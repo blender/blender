@@ -43,7 +43,7 @@ void SVMShaderManager::device_update_shader(Scene *scene,
   compiler.background = (shader == scene->background->get_shader(scene));
   compiler.compile(shader, *svm_nodes, 0, &summary);
 
-  VLOG_WORK << "Compilation summary:\n"
+  LOG(WORK) << "Compilation summary:\n"
             << "Shader name: " << shader->name << "\n"
             << summary.full_report();
 }
@@ -65,7 +65,7 @@ void SVMShaderManager::device_update_specific(Device *device,
 
   const int num_shaders = scene->shaders.size();
 
-  VLOG_INFO << "Total " << num_shaders << " shaders.";
+  LOG(INFO) << "Total " << num_shaders << " shaders.";
 
   const double start_time = time_dt();
 
@@ -136,7 +136,7 @@ void SVMShaderManager::device_update_specific(Device *device,
 
   update_flags = UPDATE_NONE;
 
-  VLOG_INFO << "Shader manager updated " << num_shaders << " shaders in " << time_dt() - start_time
+  LOG(INFO) << "Shader manager updated " << num_shaders << " shaders in " << time_dt() - start_time
             << " seconds.";
 }
 
@@ -217,9 +217,8 @@ int SVMCompiler::stack_find_offset(const int size)
 
   if (!compile_failed) {
     compile_failed = true;
-    fprintf(stderr,
-            "Cycles: out of SVM stack space, shader \"%s\" too big.\n",
-            current_shader->name.c_str());
+    LOG(ERROR) << "Shader graph: out of SVM stack space, shader \"" << current_shader->name
+               << "\" too big.";
   }
 
   return 0;
@@ -981,7 +980,7 @@ string SVMCompiler::Summary::full_report() const
   report += string_printf("Generate:            %f\n",
                           time_generate_surface + time_generate_bump + time_generate_volume +
                               time_generate_displacement);
-  report += string_printf("Total:               %f\n", time_total);
+  report += string_printf("Total:               %f", time_total);
 
   return report;
 }

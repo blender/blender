@@ -713,18 +713,18 @@ void RE_bake_pixels_populate(Mesh *mesh,
                              const char *uv_layer)
 {
   using namespace blender;
-  const float(*mloopuv)[2];
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  VArraySpan<float2> uv_map;
   if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
-    mloopuv = static_cast<const float(*)[2]>(
-        CustomData_get_layer(&mesh->corner_data, CD_PROP_FLOAT2));
+    const StringRef active_layer_name = CustomData_get_active_layer_name(&mesh->corner_data,
+                                                                         CD_PROP_FLOAT2);
+    uv_map = *attributes.lookup<float2>(active_layer_name, bke::AttrDomain::Corner);
   }
   else {
-    int uv_id = CustomData_get_named_layer(&mesh->corner_data, CD_PROP_FLOAT2, uv_layer);
-    mloopuv = static_cast<const float(*)[2]>(
-        CustomData_get_layer_n(&mesh->corner_data, CD_PROP_FLOAT2, uv_id));
+    uv_map = *attributes.lookup<float2>(uv_layer, bke::AttrDomain::Corner);
   }
 
-  if (mloopuv == nullptr) {
+  if (uv_map.is_empty()) {
     return;
   }
 
@@ -749,7 +749,6 @@ void RE_bake_pixels_populate(Mesh *mesh,
       mesh->vert_positions(), mesh->faces(), mesh->corner_verts(), {corner_tris, tottri});
 
   const blender::Span<int> tri_faces = mesh->corner_tri_faces();
-  const bke::AttributeAccessor attributes = mesh->attributes();
   const VArraySpan material_indices = *attributes.lookup<int>("material_index",
                                                               bke::AttrDomain::Face);
 
@@ -775,7 +774,7 @@ void RE_bake_pixels_populate(Mesh *mesh,
       /* Compute triangle vertex UV coordinates. */
       float vec[3][2];
       for (int a = 0; a < 3; a++) {
-        const float *uv = mloopuv[tri[a]];
+        const float2 &uv = uv_map[tri[a]];
 
         /* NOTE(@ideasman42): workaround for pixel aligned UVs which are common and can screw
          * up our intersection tests where a pixel gets in between 2 faces or the middle of a quad,

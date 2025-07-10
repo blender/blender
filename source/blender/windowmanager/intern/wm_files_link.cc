@@ -64,7 +64,7 @@
 
 #include "wm_files.hh"
 
-static CLG_LogRef LOG = {"wm.files_link"};
+static CLG_LogRef LOG = {"blend.link"};
 
 /* -------------------------------------------------------------------- */
 /** \name Link/Append Operator
@@ -924,7 +924,7 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
       &lapp_params, bmain, flag, 0, CTX_data_scene(C), CTX_data_view_layer(C), nullptr);
 
   if (BLI_path_cmp(lib->runtime->filepath_abs, filepath) == 0) {
-    CLOG_INFO(&LOG, 4, "We are supposed to reload '%s' lib (%d)", lib->filepath, lib->id.us);
+    CLOG_DEBUG(&LOG, "We are supposed to reload '%s' lib (%d)", lib->filepath, lib->id.us);
 
     do_reload = true;
 
@@ -934,8 +934,8 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
   else {
     int totfiles = 0;
 
-    CLOG_INFO(
-        &LOG, 4, "We are supposed to relocate '%s' lib to new '%s' one", lib->filepath, libname);
+    CLOG_DEBUG(
+        &LOG, "We are supposed to relocate '%s' lib to new '%s' one", lib->filepath, libname);
 
     /* Check if something is indicated for relocate. */
     prop = RNA_struct_find_property(op->ptr, "files");
@@ -963,13 +963,13 @@ static wmOperatorStatus wm_lib_relocate_exec_do(bContext *C, wmOperator *op, boo
           continue;
         }
 
-        CLOG_INFO(&LOG, 4, "\tCandidate new lib to reload datablocks from: %s", filepath);
+        CLOG_DEBUG(&LOG, "\tCandidate new lib to reload datablocks from: %s", filepath);
         BKE_blendfile_link_append_context_library_add(lapp_context, filepath, nullptr);
       }
       RNA_END;
     }
     else {
-      CLOG_INFO(&LOG, 4, "\tCandidate new lib to reload datablocks from: %s", filepath);
+      CLOG_DEBUG(&LOG, "\tCandidate new lib to reload datablocks from: %s", filepath);
       BKE_blendfile_link_append_context_library_add(lapp_context, filepath, nullptr);
     }
   }

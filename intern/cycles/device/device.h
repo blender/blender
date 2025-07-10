@@ -12,7 +12,6 @@
 #include "device/denoise.h"
 #include "device/memory.h"
 
-#include "util/log.h"
 #include "util/profiling.h"
 #include "util/stats.h"
 #include "util/string.h"
@@ -159,14 +158,7 @@ class Device {
   {
     return !error_message().empty();
   }
-  virtual void set_error(const string &error)
-  {
-    if (!have_error()) {
-      error_msg = error;
-    }
-    fprintf(stderr, "%s\n", error.c_str());
-    fflush(stderr);
-  }
+  virtual void set_error(const string &error);
   virtual BVHLayoutMask get_bvh_layout_mask(const uint kernel_features) const = 0;
 
   /* statistics */
@@ -270,11 +262,7 @@ class Device {
   /* Guiding */
 
   /* Returns path guiding device handle. */
-  virtual void *get_guiding_device() const
-  {
-    LOG(ERROR) << "Request guiding field from a device which does not support it.";
-    return nullptr;
-  }
+  virtual void *get_guiding_device() const;
 
   /* Sub-devices */
 

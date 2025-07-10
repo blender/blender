@@ -222,7 +222,10 @@ ImBuf *seq_proxy_fetch(const RenderData *context, Strip *strip, int timeline_fra
         return nullptr;
       }
 
-      proxy->anim = openanim(filepath, IB_byte_data, 0, strip->data->colorspace_settings.name);
+      /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
+       * kept unchanged for the performance reasons. */
+      proxy->anim = openanim(
+          filepath, IB_byte_data, 0, true, strip->data->colorspace_settings.name);
     }
     if (proxy->anim == nullptr) {
       return nullptr;

@@ -48,7 +48,7 @@
 #include "wm_xr_intern.hh"
 
 static wmSurface *g_xr_surface = nullptr;
-static CLG_LogRef LOG = {"wm.xr"};
+static CLG_LogRef LOG = {"xr"};
 
 /* -------------------------------------------------------------------- */
 

@@ -14,10 +14,13 @@
 #pragma once
 
 #include "kernel/globals.h"
-#include "kernel/image.h"
 
 #include "kernel/geom/attribute.h"
 #include "kernel/geom/object.h"
+
+#include "kernel/sample/lcg.h"
+
+#include "kernel/util/texture_3d.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -76,8 +79,9 @@ ccl_device float volume_attribute_alpha(const float4 value)
 }
 
 ccl_device float4 volume_attribute_float4(KernelGlobals kg,
-                                          const ccl_private ShaderData *sd,
-                                          const AttributeDescriptor desc)
+                                          ccl_private ShaderData *sd,
+                                          const AttributeDescriptor desc,
+                                          const bool stochastic)
 {
   if (desc.element & (ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
     return kernel_data_fetch(attributes_float4, desc.offset);
@@ -90,7 +94,8 @@ ccl_device float4 volume_attribute_float4(KernelGlobals kg,
     object_inverse_position_transform(kg, sd, &P);
     const InterpolationType interp = (sd->flag & SD_VOLUME_CUBIC) ? INTERPOLATION_CUBIC :
                                                                     INTERPOLATION_NONE;
-    return kernel_tex_image_interp_3d(kg, desc.offset, P, interp);
+    return kernel_tex_image_interp_3d(
+        kg, desc.offset, P, interp, (stochastic) ? lcg_step_float(&sd->lcg_state) : -1.0f);
   }
   return zero_float4();
 }

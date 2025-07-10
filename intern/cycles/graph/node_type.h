@@ -5,6 +5,7 @@
 #pragma once
 
 #include "graph/node_enum.h"
+
 #include "util/array.h"  // IWYU pragma: keep
 #include "util/map.h"
 #include "util/param.h"

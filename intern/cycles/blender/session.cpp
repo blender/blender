@@ -473,8 +473,8 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   double total_time;
   double render_time;
   session->progress.get_time(total_time, render_time);
-  VLOG_INFO << "Total render time: " << total_time;
-  VLOG_INFO << "Render time (without synchronization): " << render_time;
+  LOG(INFO) << "Total render time: " << total_time;
+  LOG(INFO) << "Render time (without synchronization): " << render_time;
 }
 
 void BlenderSession::render_frame_finish()
@@ -990,53 +990,36 @@ void BlenderSession::update_status_progress()
   string timestatus;
   string status;
   string substatus;
-  string scene_status;
-  double progress;
-  double total_time;
-  double remaining_time = 0;
-  double render_time;
-  const float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
-  const float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
-
   get_status(status, substatus);
-  get_progress(progress, total_time, render_time);
-
-  if (progress > 0) {
-    remaining_time = session->get_estimated_remaining_time();
+  if (background && !substatus.empty()) {
+    status += " | " + substatus;
   }
 
+  double progress;
+  double total_time;
+  double render_time;
+  get_progress(progress, total_time, render_time);
+
+  const float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
+  const float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
   if (background) {
-    if (scene) {
-      scene_status += " | " + scene->name;
-    }
-    if (!b_rlay_name.empty()) {
-      scene_status += ", " + b_rlay_name;
+
+    if (progress > 0) {
+      const double remaining_time = session->get_estimated_remaining_time();
+      if (remaining_time > 0) {
+        timestatus = "Remaining: " + time_human_readable_from_seconds(remaining_time) + " | ";
+      }
     }
 
-    if (!b_rview_name.empty()) {
-      scene_status += ", " + b_rview_name;
-    }
-
-    if (remaining_time > 0) {
-      timestatus += "Remaining:" + time_human_readable_from_seconds(remaining_time) + " | ";
-    }
-
-    timestatus += string_printf("Mem:%.2fM, Peak:%.2fM", (double)mem_used, (double)mem_peak);
-
-    if (!status.empty()) {
-      status = " | " + status;
-    }
-    if (!substatus.empty()) {
-      status += " | " + substatus;
-    }
+    timestatus += string_printf("Mem: %dM | ", (int)ceilf(mem_used));
   }
 
   const double current_time = time_dt();
-  /* When rendering in a window, redraw the status at least once per second to keep the elapsed
-   * and remaining time up-to-date. For headless rendering, only report when something
-   * significant changes to keep the console output readable. */
+  /* When rendering in a window, redraw the status at least once per second to keep things
+   * up to date. For headless rendering, only report when something significant changes to
+   * keep the console output readable. */
   if (status != last_status || (!headless && (current_time - last_status_time) > 1.0)) {
-    b_engine.update_stats("", (timestatus + scene_status + status).c_str());
+    b_engine.update_stats("", (timestatus + status).c_str());
     b_engine.update_memory_stats(mem_used, mem_peak);
     last_status = status;
     last_status_time = current_time;

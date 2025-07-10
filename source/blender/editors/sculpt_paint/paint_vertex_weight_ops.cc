@@ -851,20 +851,23 @@ static wmOperatorStatus paint_weight_gradient_exec(bContext *C, wmOperator *op)
   if (scene->toolsettings->auto_normalize) {
     const int vgroup_num = BLI_listbase_count(&mesh->vertex_group_names);
     bool *lock_flags = BKE_object_defgroup_lock_flags_get(ob, vgroup_num);
+    if (!lock_flags) {
+      lock_flags = MEM_malloc_arrayN<bool>(vgroup_num, "lock_flags");
+      std::memset(lock_flags, 0, vgroup_num); /* Clear to false. */
+      lock_flags[data.def_nr] = true;
+    }
     bool *vgroup_validmap = BKE_object_defgroup_validmap_get(ob, vgroup_num);
     if (vgroup_validmap != nullptr) {
       MDeformVert *dvert = dverts;
+      Span<bool> subset_flags_span = Span(vgroup_validmap, vgroup_num);
+      Span<bool> lock_flags_span = Span(lock_flags, vgroup_num);
+
       for (int i = 0; i < mesh->verts_num; i++) {
         if ((data.vert_cache->elem[i].flag & WPGradient_vertStore::VGRAD_STORE_IS_MODIFIED) != 0) {
-          if (lock_flags != nullptr) {
-            BKE_defvert_normalize_lock_map(
-                &dvert[i], vgroup_validmap, vgroup_num, lock_flags, vgroup_num);
-          }
-          else {
-            BKE_defvert_normalize_lock_single(&dvert[i], vgroup_validmap, vgroup_num, data.def_nr);
-          }
+          BKE_defvert_normalize_lock_map(dvert[i], subset_flags_span, lock_flags_span);
         }
       }
+      MEM_SAFE_FREE(lock_flags);
       MEM_freeN(vgroup_validmap);
     }
   }

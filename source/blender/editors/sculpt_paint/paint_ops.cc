@@ -36,7 +36,6 @@
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
-#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "RNA_access.hh"

@@ -37,7 +37,7 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-static CLG_LogRef LOG = {"bke.mesh"};
+static CLG_LogRef LOG = {"geom.mesh"};
 
 /* -------------------------------------------------------------------- */
 /** \name Some Generic Helpers

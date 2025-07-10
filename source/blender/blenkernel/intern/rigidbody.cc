@@ -54,7 +54,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #ifdef WITH_BULLET
-static CLG_LogRef LOG = {"bke.rigidbody"};
+static CLG_LogRef LOG = {"physics.rigidbody"};
 #endif
 
 #ifndef WITH_BULLET

@@ -1558,7 +1558,7 @@ void AlembicProcedural::build_caches(Progress &progress)
     }
   }
 
-  VLOG_WORK << "AlembicProcedural memory usage : " << string_human_readable_size(memory_used);
+  LOG(WORK) << "AlembicProcedural memory usage : " << string_human_readable_size(memory_used);
 }
 
 CCL_NAMESPACE_END

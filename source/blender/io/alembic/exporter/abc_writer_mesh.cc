@@ -78,12 +78,12 @@ void ABCGenericMeshWriter::create_alembic_objects(const HierarchyContext *contex
   }
 
   if (is_subd_) {
-    CLOG_INFO(&LOG, 2, "exporting OSubD %s", args_.abc_path.c_str());
+    CLOG_DEBUG(&LOG, "exporting OSubD %s", args_.abc_path.c_str());
     abc_subdiv_ = OSubD(args_.abc_parent, args_.abc_name, timesample_index_);
     abc_subdiv_schema_ = abc_subdiv_.getSchema();
   }
   else {
-    CLOG_INFO(&LOG, 2, "exporting OPolyMesh %s", args_.abc_path.c_str());
+    CLOG_DEBUG(&LOG, "exporting OPolyMesh %s", args_.abc_path.c_str());
     abc_poly_mesh_ = OPolyMesh(args_.abc_parent, args_.abc_name, timesample_index_);
     abc_poly_mesh_schema_ = abc_poly_mesh_.getSchema();
 

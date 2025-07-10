@@ -112,7 +112,7 @@
 
 namespace blender::ed::object {
 
-static CLG_LogRef LOG = {"ed.object.edit"};
+static CLG_LogRef LOG = {"object.edit"};
 
 /* prototypes */
 static ListBase selected_objects_get(bContext *C);

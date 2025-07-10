@@ -14,12 +14,12 @@ namespace blender::draw {
 void DrawOpenGLTest::SetUp()
 {
   GPUOpenGLTest::SetUp();
-  DRW_submission_mutex_init();
+  DRW_mutexes_init();
 }
 
 void DrawOpenGLTest::TearDown()
 {
-  DRW_submission_mutex_exit();
+  DRW_mutexes_exit();
   GPUOpenGLTest::TearDown();
 }
 #endif
@@ -28,12 +28,12 @@ void DrawOpenGLTest::TearDown()
 void DrawMetalTest::SetUp()
 {
   GPUMetalTest::SetUp();
-  DRW_submission_mutex_init();
+  DRW_mutexes_init();
 }
 
 void DrawMetalTest::TearDown()
 {
-  DRW_submission_mutex_exit();
+  DRW_mutexes_exit();
   GPUMetalTest::TearDown();
 }
 #endif
@@ -42,12 +42,12 @@ void DrawMetalTest::TearDown()
 void DrawVulkanTest::SetUp()
 {
   GPUVulkanTest::SetUp();
-  DRW_submission_mutex_init();
+  DRW_mutexes_init();
 }
 
 void DrawVulkanTest::TearDown()
 {
-  DRW_submission_mutex_exit();
+  DRW_mutexes_exit();
   GPUVulkanTest::TearDown();
 }
 #endif

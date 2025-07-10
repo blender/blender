@@ -214,7 +214,7 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
                                levels:NSMakeRange(mip_texture_base_level_, range_len)
                                slices:NSMakeRange(mip_texture_base_layer_, num_slices)
                               swizzle:mtl_swizzle_mask_];
-    MTL_LOG_INFO(
+    MTL_LOG_DEBUG(
         "Updating texture view - MIP TEXTURE BASE LEVEL: %d, MAX LEVEL: %d (Range len: %d)",
         mip_texture_base_level_,
         min_ii(mip_texture_max_level_, (int)texture_.mipmapLevelCount),
@@ -251,7 +251,7 @@ id<MTLTexture> gpu::MTLTexture::get_metal_handle()
 
     /* Source vertex buffer has been re-generated, require re-initialization. */
     if (buf != vert_buffer_mtl_) {
-      MTL_LOG_INFO(
+      MTL_LOG_DEBUG(
           "MTLTexture '%p' using MTL_TEXTURE_MODE_VBO requires re-generation due to updated "
           "Vertex-Buffer.",
           this);
@@ -1977,7 +1977,7 @@ void gpu::MTLTexture::read_internal(int mip,
 
             texture_array_relative_offset += bytes_per_image;
           }
-          MTL_LOG_INFO("Copying texture data to buffer GPU_TEXTURE_CUBE_ARRAY");
+          MTL_LOG_DEBUG("Copying texture data to buffer GPU_TEXTURE_CUBE_ARRAY");
           copy_successful = true;
         }
         else {
@@ -2009,7 +2009,7 @@ void gpu::MTLTexture::read_internal(int mip,
 
       /* Copy data from Shared Memory into ptr. */
       memcpy(r_data, destination_buffer_host_ptr, total_bytes);
-      MTL_LOG_INFO("gpu::MTLTexture::read_internal success! %lu bytes read", total_bytes);
+      MTL_LOG_DEBUG("gpu::MTLTexture::read_internal success! %lu bytes read", total_bytes);
     }
     else {
       MTL_LOG_WARNING(
@@ -2496,7 +2496,7 @@ void gpu::MTLTexture::ensure_baked()
 
 void gpu::MTLTexture::reset()
 {
-  MTL_LOG_INFO("Texture %s reset. Size %d, %d, %d", this->get_name(), w_, h_, d_);
+  MTL_LOG_DEBUG("Texture %s reset. Size %d, %d, %d", this->get_name(), w_, h_, d_);
   /* Delete associated METAL resources. */
   if (texture_ != nil) {
     [texture_ release];

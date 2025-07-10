@@ -1337,12 +1337,15 @@ static void shader_preview_startjob(void *customdata, bool *stop, bool *do_updat
 
 static void preview_id_copy_free(ID *id)
 {
-  IDProperty *properties;
-  /* get rid of copied ID */
-  properties = IDP_GetProperties(id);
-  if (properties) {
-    IDP_FreePropertyContent_ex(properties, false);
-    MEM_freeN(properties);
+  if (id->properties) {
+    IDP_FreePropertyContent_ex(id->properties, false);
+    MEM_freeN(id->properties);
+    id->properties = nullptr;
+  }
+  if (id->system_properties) {
+    IDP_FreePropertyContent_ex(id->system_properties, false);
+    MEM_freeN(id->system_properties);
+    id->system_properties = nullptr;
   }
   BKE_libblock_free_datablock(id, 0);
   MEM_freeN(id);
@@ -1832,7 +1835,8 @@ void PreviewLoadJob::push_load_request(PreviewImage *preview, const eIconSizes i
   preview->runtime->tag |= PRV_TAG_DEFFERED_RENDERING;
 
   requested_previews_.emplace_back(preview, icon_size);
-  BLI_thread_queue_push(todo_queue_, &requested_previews_.back());
+  BLI_thread_queue_push(
+      todo_queue_, &requested_previews_.back(), BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
 }
 
 void PreviewLoadJob::run_fn(void *customdata, wmJobWorkerStatus *worker_status)

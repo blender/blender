@@ -55,7 +55,7 @@ void VolumeModifierData::init()
 
   filepath_ = get_cached_file_path(modifier_->domain->cache_directory,
                                    scene_delegate_->scene->r.cfra);
-  ID_LOG(1, "%s", filepath_.c_str());
+  ID_LOG("%s", filepath_.c_str());
 
   static const pxr::TfToken grid_tokens[] = {pxr::TfToken("density", pxr::TfToken::Immortal),
                                              pxr::TfToken("flame", pxr::TfToken::Immortal),
@@ -97,7 +97,7 @@ void VolumeModifierData::update()
   }
 
   scene_delegate_->GetRenderIndex().GetChangeTracker().MarkRprimDirty(prim_id, bits);
-  ID_LOG(1, "");
+  ID_LOG("");
 }
 
 void VolumeModifierData::write_transform()

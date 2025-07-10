@@ -5,7 +5,10 @@
 #include <cstdlib>
 
 #include "device/device.h"
+
 #include "session/buffers.h"
+
+#include "util/log.h"
 
 CCL_NAMESPACE_BEGIN
 

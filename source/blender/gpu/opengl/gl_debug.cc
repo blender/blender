@@ -82,15 +82,15 @@ static void APIENTRY debug_callback(GLenum /*source*/,
   const bool use_color = CLG_color_support_get(&LOG);
 
   if (ELEM(severity, GL_DEBUG_SEVERITY_LOW, GL_DEBUG_SEVERITY_NOTIFICATION)) {
-    if ((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= CLG_SEVERITY_INFO)) {
+    if (CLOG_CHECK(&LOG, CLG_LEVEL_INFO)) {
       const char *format = use_color ? "\033[2m%s\033[0m" : "%s";
-      CLG_logf(LOG.type, CLG_SEVERITY_INFO, "Notification", "", format, message);
+      CLG_logf(LOG.type, CLG_LEVEL_INFO, "Notification", "", format, message);
     }
   }
   else {
     char debug_groups[512] = "";
     GPU_debug_get_groups_names(sizeof(debug_groups), debug_groups);
-    CLG_Severity clog_severity;
+    CLG_Level clog_level;
 
     if (GPU_debug_group_match(GPU_DEBUG_SHADER_COMPILATION_GROUP) ||
         GPU_debug_group_match(GPU_DEBUG_SHADER_SPECIALIZATION_GROUP))
@@ -103,19 +103,19 @@ static void APIENTRY debug_callback(GLenum /*source*/,
       case GL_DEBUG_TYPE_ERROR:
       case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
       case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-        clog_severity = CLG_SEVERITY_ERROR;
+        clog_level = CLG_LEVEL_ERROR;
         break;
       case GL_DEBUG_TYPE_PORTABILITY:
       case GL_DEBUG_TYPE_PERFORMANCE:
       case GL_DEBUG_TYPE_OTHER:
       case GL_DEBUG_TYPE_MARKER: /* KHR has this, ARB does not */
       default:
-        clog_severity = CLG_SEVERITY_WARN;
+        clog_level = CLG_LEVEL_WARN;
         break;
     }
 
-    if ((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level <= clog_severity)) {
-      CLG_logf(LOG.type, clog_severity, debug_groups, "", "%s", message);
+    if (CLOG_CHECK(&LOG, clog_level)) {
+      CLG_logf(LOG.type, clog_level, debug_groups, "", "%s", message);
       if (severity == GL_DEBUG_SEVERITY_HIGH) {
         /* Focus on error message. */
         if (use_color) {

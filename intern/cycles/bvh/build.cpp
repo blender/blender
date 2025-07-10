@@ -556,7 +556,7 @@ unique_ptr<BVHNode> BVHBuild::run()
   if (rootnode) {
     if (progress.get_cancel()) {
       rootnode.reset();
-      VLOG_WORK << "BVH build canceled.";
+      LOG(WORK) << "BVH build canceled.";
     }
     else {
       /*rotate(rootnode, 4, 5);*/
@@ -564,7 +564,7 @@ unique_ptr<BVHNode> BVHBuild::run()
       rootnode->update_time();
     }
     if (rootnode != nullptr) {
-      VLOG_WORK << "BVH build statistics:\n"
+      LOG(WORK) << "BVH build statistics:"
                 << "  Build time: " << time_dt() - build_start_time << "\n"
                 << "  Total number of nodes: "
                 << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_NODE_COUNT))
@@ -583,7 +583,7 @@ unique_ptr<BVHNode> BVHBuild::run()
                                                   1.0f)
                 << "\n"
                 << "  Maximum depth: "
-                << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_DEPTH)) << "\n";
+                << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_DEPTH));
     }
   }
 

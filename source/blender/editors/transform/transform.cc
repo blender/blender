@@ -9,6 +9,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
@@ -231,6 +232,56 @@ void convertViewVec(TransInfo *t, float r_vec[3], double dx, double dy)
   }
 }
 
+void projectFloatViewCenterFallback(TransInfo *t, float adr[2])
+{
+  const ARegion *region = t->region;
+
+  if (UNLIKELY(region == nullptr)) {
+    /* While this function probably wont be calved without a region.
+     * Doing so shouldn't cause errors. */
+    adr[0] = 0.0f;
+    adr[1] = 0.0f;
+    return;
+  }
+
+  bool changed = false;
+  switch (t->spacetype) {
+    case SPACE_VIEW3D: {
+      if (region->regiontype == RGN_TYPE_WINDOW) {
+        /* NOTE(@ideasman42): When picking a fallback there isn't a "correct" location.
+         * By default the region center is the fallback, use this unless there is a reason not to.
+         *
+         * One exception is when transforming the camera from the camera viewpoint.
+         * In this case it's logical to use the camera frames center, see: #141663. */
+        if (t->options & CTX_CAMERA) {
+          const View3D *v3d = static_cast<View3D *>(t->view);
+          const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+          if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+            /* Exclude any camera "shift" because the un-shifted point is the pivot.
+             *
+             * This may not be the case when transforming a cameras parent however
+             * in these situations it's not practical to find a screen space location
+             * for a 3D point that couldn't be projected. */
+            const bool no_shift = true;
+            rctf viewborder = {0};
+            ED_view3d_calc_camera_border(
+                t->scene, t->depsgraph, region, v3d, rv3d, no_shift, &viewborder);
+            adr[0] = BLI_rctf_cent_x(&viewborder);
+            adr[1] = BLI_rctf_cent_y(&viewborder);
+            changed = true;
+          }
+        }
+      }
+      break;
+    }
+  }
+
+  if (changed == false) {
+    adr[0] = region->winx / 2.0f;
+    adr[1] = region->winy / 2.0f;
+  }
+}
+
 void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DProjTest flag)
 {
   if (t->spacetype == SPACE_VIEW3D) {
@@ -361,8 +412,7 @@ void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV
         /* Allow points behind the view #33643. */
         if (ED_view3d_project_float_global(t->region, vec, adr, flag) != V3D_PROJ_RET_OK) {
           /* XXX, 2.64 and prior did this, weak! */
-          adr[0] = t->region->winx / 2.0f;
-          adr[1] = t->region->winy / 2.0f;
+          projectFloatViewCenterFallback(t, adr);
         }
         return;
       }

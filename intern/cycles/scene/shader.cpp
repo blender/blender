@@ -417,7 +417,7 @@ bool Shader::need_update_geometry() const
 
 /* Shader Manager */
 
-ShaderManager::ShaderManager()
+ShaderManager::ShaderManager() : thin_film_table_offset_(TABLE_OFFSET_INVALID)
 {
   update_flags = UPDATE_ALL;
 
@@ -629,6 +629,11 @@ void ShaderManager::device_update_common(Device * /*device*/,
   ktables->ggx_gen_schlick_ior_s = ensure_bsdf_table(dscene, scene, table_ggx_gen_schlick_ior_s);
   ktables->ggx_gen_schlick_s = ensure_bsdf_table(dscene, scene, table_ggx_gen_schlick_s);
 
+  if (thin_film_table_offset_ == TABLE_OFFSET_INVALID) {
+    thin_film_table_offset_ = scene->lookup_tables->add_table(dscene, thin_film_table);
+  }
+  dscene->data.tables.thin_film_table = (int)thin_film_table_offset_;
+
   /* integrator */
   KernelIntegrator *kintegrator = &dscene->data.integrator;
   kintegrator->use_volumes = has_volumes;
@@ -655,6 +660,8 @@ void ShaderManager::device_free_common(Device * /*device*/, DeviceScene *dscene,
     scene->lookup_tables->remove_table(&entry.second);
   }
   bsdf_tables.clear();
+  scene->lookup_tables->remove_table(&thin_film_table_offset_);
+  thin_film_table_offset_ = TABLE_OFFSET_INVALID;
 
   dscene->shaders.free();
 }
@@ -862,6 +869,79 @@ static bool to_scene_linear_transform(OCIO::ConstConfigRcPtr &config,
 }
 #endif
 
+void ShaderManager::compute_thin_film_table(const Transform &xyz_to_rgb)
+{
+  /* Our implementation of Thin Film Fresnel is based on
+   * "A Practical Extension to Microfacet Theory for the Modeling of Varying Iridescence"
+   * by Laurent Belcour and Pascal Barla
+   * (https://belcour.github.io/blog/research/publication/2017/05/01/brdf-thin-film.html).
+   *
+   * The idea there is that for a naive implementation of Thin Film interference, you'd compute
+   * the reflectivity for a given wavelength using Airy summation, and then numerically integrate
+   * the product of this reflectivity function and the Color Matching Functions of the colorspace
+   * you're working in to obtain the RGB (or XYZ) values.
+   * However, this integration would require too many evaluations to be practical.
+   * Therefore, they reformulate the computation as a rapidly converging series involving the
+   * Fourier transform of the CMFs.
+   *
+   * Specifically, we need to:
+   * - Compute the RGB CMFs from the XYZ CMFs using the working color space's XYZ-to-RGB matrix
+   * - Resample the RGB CMFs to be parametrized by frequency instead of wavelength as usual
+   * - Compute the FFT of the CMFs
+   * - Store the result as a LUT
+   * - Look up the values for each channel at runtime based on the optical path difference and
+   *   phase shift.
+   *
+   * Computing an FFT here would be annoying, so we'd like to precompute it, but we only know
+   * the XYZ-to-RGB matrix at runtime. Luckily, both resampling and FFT are linear operations,
+   * so we can precompute the FFT of the resampled XYZ CMFs and then multiply each entry with
+   * the XYZ-to-RGB matrix to get the RGB LUT.
+   *
+   * That's what this function does: We load the precomputed values, convert to RGB, normalize
+   * the result to make the DC term equal to 1, convert from real/imaginary to magnitude/phase
+   * since that form is smoother and therefore interpolates more nicely, and then store that
+   * into the final table that's used by the kernel.
+   */
+  assert(sizeof(table_thin_film_cmf) == 6 * THIN_FILM_TABLE_SIZE * sizeof(float));
+  thin_film_table.resize(6 * THIN_FILM_TABLE_SIZE);
+
+  float3 normalization;
+  float3 prevPhase = zero_float3();
+  for (int i = 0; i < THIN_FILM_TABLE_SIZE; i++) {
+    const float *table_row = table_thin_film_cmf[i];
+    /* Load precomputed resampled Fourier-transformed XYZ CMFs. */
+    const float3 xyzReal = make_float3(table_row[0], table_row[1], table_row[2]);
+    const float3 xyzImag = make_float3(table_row[3], table_row[4], table_row[5]);
+
+    /* Linearly combine precomputed data to produce the RGB equivalents. Works since both
+     * resampling and Fourier transformation are linear operations. */
+    const float3 rgbReal = transform_direction(&xyz_to_rgb, xyzReal);
+    const float3 rgbImag = transform_direction(&xyz_to_rgb, xyzImag);
+
+    /* We normalize all entries by the first element. Since that is the DC component, it normalizes
+     * the CMF (in non-Fourier space) to an area of 1. */
+    if (i == 0) {
+      normalization = 1.0f / rgbReal;
+    }
+
+    /* Convert the complex value into magnitude/phase representation. */
+    const float3 rgbMag = sqrt(sqr(rgbReal) + sqr(rgbImag));
+    float3 rgbPhase = atan2(rgbImag, rgbReal);
+
+    /* Unwrap phase to avoid jumps. */
+    rgbPhase -= M_2PI_F * round((rgbPhase - prevPhase) * M_1_2PI_F);
+    prevPhase = rgbPhase;
+
+    /* Store in lookup table. */
+    thin_film_table[i + 0 * THIN_FILM_TABLE_SIZE] = rgbMag.x * normalization.x;
+    thin_film_table[i + 1 * THIN_FILM_TABLE_SIZE] = rgbMag.y * normalization.y;
+    thin_film_table[i + 2 * THIN_FILM_TABLE_SIZE] = rgbMag.z * normalization.z;
+    thin_film_table[i + 3 * THIN_FILM_TABLE_SIZE] = rgbPhase.x;
+    thin_film_table[i + 4 * THIN_FILM_TABLE_SIZE] = rgbPhase.y;
+    thin_film_table[i + 5 * THIN_FILM_TABLE_SIZE] = rgbPhase.z;
+  }
+}
+
 void ShaderManager::init_xyz_transforms()
 {
   /* Default to ITU-BT.709 in case no appropriate transform found.
@@ -890,6 +970,8 @@ void ShaderManager::init_xyz_transforms()
   rec709_to_b = make_float3(0.0f, 0.0f, 1.0f);
   is_rec709 = true;
 
+  compute_thin_film_table(xyz_to_rec709);
+
 #ifdef WITH_OCIO
   /* Get from OpenColorO config if it has the required roles. */
   OCIO::ConstConfigRcPtr config = nullptr;
@@ -897,7 +979,7 @@ void ShaderManager::init_xyz_transforms()
     config = OCIO::GetCurrentConfig();
   }
   catch (OCIO::Exception &exception) {
-    VLOG_WARNING << "OCIO config error: " << exception.what();
+    LOG(WARNING) << "OCIO config error: " << exception.what();
     return;
   }
 
@@ -955,6 +1037,8 @@ void ShaderManager::init_xyz_transforms()
   rec709_to_g = make_float3(rec709_to_rgb.y);
   rec709_to_b = make_float3(rec709_to_rgb.z);
   is_rec709 = transform_equal_threshold(xyz_to_rgb, xyz_to_rec709, 0.0001f);
+
+  compute_thin_film_table(xyz_to_rgb);
 #endif
 }
 

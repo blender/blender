@@ -48,6 +48,8 @@ struct MovieReader {
 
   int streamindex = 0;
 
+  bool keep_original_colorspace = false;
+
 #ifdef WITH_FFMPEG
   AVFormatContext *pFormatCtx = nullptr;
   AVCodecContext *pCodecCtx = nullptr;

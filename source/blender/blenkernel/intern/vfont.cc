@@ -43,7 +43,7 @@
 
 #include "BLO_read_write.hh"
 
-static CLG_LogRef LOG = {"bke.vfont"};
+static CLG_LogRef LOG = {"geom.vfont"};
 
 /* -------------------------------------------------------------------- */
 /** \name Prototypes

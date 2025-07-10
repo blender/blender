@@ -22,12 +22,10 @@ template<typename T>
 void util_image_resize_pixels(const vector<T> &input_pixels,
                               const size_t input_width,
                               const size_t input_height,
-                              const size_t input_depth,
                               const size_t components,
                               vector<T> *output_pixels,
                               size_t *output_width,
-                              size_t *output_height,
-                              size_t *output_depth);
+                              size_t *output_height);
 
 /* Cast input pixel from unknown storage to float. */
 template<typename T> inline float util_image_cast_to_float(T value);

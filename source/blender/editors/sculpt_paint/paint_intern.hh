@@ -8,14 +8,9 @@
 
 #pragma once
 
-#include "BLI_array.hh"
-#include "BLI_compiler_compat.h"
-#include "BLI_function_ref.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_set.hh"
 #include "BLI_span.hh"
-#include "BLI_vector.hh"
 
 #include "DNA_object_enums.h"
 #include "DNA_scene_enums.h"
@@ -308,6 +303,7 @@ struct ImagePaintPartialRedraw {
 };
 
 bool image_texture_paint_poll(bContext *C);
+bool image_paint_poll_ignore_tool(bContext *C);
 void imapaint_image_update(
     SpaceImage *sima, Image *image, ImBuf *ibuf, ImageUser *iuser, short texpaint);
 ImagePaintPartialRedraw *get_imapaintpartial();
@@ -445,12 +441,6 @@ bool paint_get_tex_pixel(const MTex *mtex,
                          int thread,
                          float *r_intensity,
                          float r_rgba[4]);
-
-/**
- * Used for both 3D view and image window.
- */
-void paint_sample_color(
-    bContext *C, ARegion *region, int x, int y, bool texpaint_proj, bool palette);
 
 void paint_stroke_operator_properties(wmOperatorType *ot);
 

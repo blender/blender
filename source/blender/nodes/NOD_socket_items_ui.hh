@@ -90,10 +90,10 @@ static void draw_items_list_with_operators(const bContext *C,
   }
   {
     uiLayout *up_down_col = &ops_col->column(true);
-    uiItemEnumO(
-        up_down_col, Accessor::operator_idnames::move_item, "", ICON_TRIA_UP, "direction", 0);
-    uiItemEnumO(
-        up_down_col, Accessor::operator_idnames::move_item, "", ICON_TRIA_DOWN, "direction", 1);
+    PointerRNA op_ptr = up_down_col->op(Accessor::operator_idnames::move_item, "", ICON_TRIA_UP);
+    RNA_enum_set(&op_ptr, "direction", 0);
+    op_ptr = up_down_col->op(Accessor::operator_idnames::move_item, "", ICON_TRIA_DOWN);
+    RNA_enum_set(&op_ptr, "direction", 1);
   }
 }
 

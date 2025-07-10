@@ -51,7 +51,7 @@ void WorldData::init()
   if (scene_delegate_->shading_settings.use_scene_world) {
     const World *world = scene_delegate_->scene->world;
     pxr::GfVec3f color(1.0f, 1.0f, 1.0f);
-    ID_LOG(1, "%s", world->id.name);
+    ID_LOG("%s", world->id.name);
 
     if (world->use_nodes) {
       /* TODO: Create nodes parsing system */
@@ -117,7 +117,7 @@ void WorldData::init()
     }
   }
   else {
-    ID_LOG(1, "studiolight: %s", scene_delegate_->shading_settings.studiolight_name.c_str());
+    ID_LOG("studiolight: %s", scene_delegate_->shading_settings.studiolight_name.c_str());
 
     StudioLight *sl = BKE_studiolight_find(
         scene_delegate_->shading_settings.studiolight_name.c_str(),
@@ -139,7 +139,7 @@ void WorldData::init()
 
 void WorldData::update()
 {
-  ID_LOG(1, "");
+  ID_LOG("");
 
   if (!scene_delegate_->shading_settings.use_scene_world ||
       (scene_delegate_->shading_settings.use_scene_world && scene_delegate_->scene->world))

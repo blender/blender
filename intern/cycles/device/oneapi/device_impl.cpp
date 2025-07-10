@@ -73,7 +73,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
               oneapi_error_string_ + "\"");
   }
   else {
-    VLOG_DEBUG << "oneAPI queue has been successfully created for the device \""
+    LOG(DEBUG) << "oneAPI queue has been successfully created for the device \""
                << info.description << "\"";
     assert(device_queue_);
   }
@@ -85,7 +85,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
 #  endif
 
   if (use_hardware_raytracing) {
-    VLOG_INFO << "oneAPI will use hardware ray tracing for intersection acceleration.";
+    LOG(INFO) << "oneAPI will use hardware ray tracing for intersection acceleration.";
   }
 
   size_t globals_segment_size;
@@ -95,7 +95,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
               oneapi_error_string_ + "\"");
   }
   else {
-    VLOG_DEBUG << "Successfully created global/constant memory segment (kernel globals object)";
+    LOG(DEBUG) << "Successfully created global/constant memory segment (kernel globals object)";
   }
 
   kg_memory_ = usm_aligned_alloc_host(device_queue_, globals_segment_size, 16);
@@ -115,7 +115,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
     device_working_headroom = override_headroom;
     device_texture_headroom = override_headroom;
   }
-  VLOG_DEBUG << "oneAPI memory headroom size: "
+  LOG(DEBUG) << "oneAPI memory headroom size: "
              << string_human_readable_size(device_working_headroom);
 }
 
@@ -239,11 +239,11 @@ bool OneapiDevice::load_kernels(const uint requested_features)
               "\"");
     return false;
   }
-  VLOG_INFO << "Test kernel has been executed successfully for \"" << info.description << "\"";
+  LOG(INFO) << "Test kernel has been executed successfully for \"" << info.description << "\"";
   assert(device_queue_);
 
   if (use_hardware_raytracing && !can_use_hardware_raytracing_for_features(requested_features)) {
-    VLOG_INFO
+    LOG(INFO)
         << "Hardware ray tracing disabled, not supported yet by oneAPI for requested features.";
     use_hardware_raytracing = false;
   }
@@ -254,7 +254,7 @@ bool OneapiDevice::load_kernels(const uint requested_features)
     set_error("oneAPI kernels loading: got a runtime exception \"" + oneapi_error_string_ + "\"");
   }
   else {
-    VLOG_INFO << "Kernels loading (compilation) has been done for \"" << info.description << "\"";
+    LOG(INFO) << "Kernels loading (compilation) has been done for \"" << info.description << "\"";
   }
 
   if (is_finished_ok) {
@@ -294,7 +294,7 @@ void OneapiDevice::reserve_private_memory(const uint kernel_features)
 
   size_t free_after = get_free_mem();
 
-  VLOG_INFO << "For kernel execution were reserved "
+  LOG(INFO) << "For kernel execution were reserved "
             << string_human_readable_number(free_before - free_after) << " bytes. ("
             << string_human_readable_size(free_before - free_after) << ")";
 }
@@ -422,7 +422,7 @@ void OneapiDevice::mem_alloc(device_memory &mem)
   }
   else {
     if (mem.name) {
-      VLOG_DEBUG << "OneapiDevice::mem_alloc: \"" << mem.name << "\", "
+      LOG(DEBUG) << "OneapiDevice::mem_alloc: \"" << mem.name << "\", "
                  << string_human_readable_number(mem.memory_size()) << " bytes. ("
                  << string_human_readable_size(mem.memory_size()) << ")";
     }
@@ -433,7 +433,7 @@ void OneapiDevice::mem_alloc(device_memory &mem)
 void OneapiDevice::mem_copy_to(device_memory &mem)
 {
   if (mem.name) {
-    VLOG_DEBUG << "OneapiDevice::mem_copy_to: \"" << mem.name << "\", "
+    LOG(DEBUG) << "OneapiDevice::mem_copy_to: \"" << mem.name << "\", "
                << string_human_readable_number(mem.memory_size()) << " bytes. ("
                << string_human_readable_size(mem.memory_size()) << ")";
   }
@@ -461,7 +461,7 @@ void OneapiDevice::mem_copy_to(device_memory &mem)
 void OneapiDevice::mem_move_to_host(device_memory &mem)
 {
   if (mem.name) {
-    VLOG_DEBUG << "OneapiDevice::mem_move_to_host: \"" << mem.name << "\", "
+    LOG(DEBUG) << "OneapiDevice::mem_move_to_host: \"" << mem.name << "\", "
                << string_human_readable_number(mem.memory_size()) << " bytes. ("
                << string_human_readable_size(mem.memory_size()) << ")";
   }
@@ -496,7 +496,7 @@ void OneapiDevice::mem_copy_from(
     const size_t offset = elem * y * w;
 
     if (mem.name) {
-      VLOG_DEBUG << "OneapiDevice::mem_copy_from: \"" << mem.name << "\" object of "
+      LOG(DEBUG) << "OneapiDevice::mem_copy_from: \"" << mem.name << "\" object of "
                  << string_human_readable_number(mem.memory_size()) << " bytes. ("
                  << string_human_readable_size(mem.memory_size()) << ") from offset " << offset
                  << " data " << size << " bytes";
@@ -526,7 +526,7 @@ void OneapiDevice::mem_copy_from(
 void OneapiDevice::mem_zero(device_memory &mem)
 {
   if (mem.name) {
-    VLOG_DEBUG << "OneapiDevice::mem_zero: \"" << mem.name << "\", "
+    LOG(DEBUG) << "OneapiDevice::mem_zero: \"" << mem.name << "\", "
                << string_human_readable_number(mem.memory_size()) << " bytes. ("
                << string_human_readable_size(mem.memory_size()) << ")\n";
   }
@@ -556,7 +556,7 @@ void OneapiDevice::mem_zero(device_memory &mem)
 void OneapiDevice::mem_free(device_memory &mem)
 {
   if (mem.name) {
-    VLOG_DEBUG << "OneapiDevice::mem_free: \"" << mem.name << "\", "
+    LOG(DEBUG) << "OneapiDevice::mem_free: \"" << mem.name << "\", "
                << string_human_readable_number(mem.device_size) << " bytes. ("
                << string_human_readable_size(mem.device_size) << ")\n";
   }
@@ -584,7 +584,7 @@ void OneapiDevice::const_copy_to(const char *name, void *host, const size_t size
 {
   assert(name);
 
-  VLOG_DEBUG << "OneapiDevice::const_copy_to \"" << name << "\" object "
+  LOG(DEBUG) << "OneapiDevice::const_copy_to \"" << name << "\" object "
              << string_human_readable_number(size) << " bytes. ("
              << string_human_readable_size(size) << ")";
 
@@ -634,7 +634,7 @@ void OneapiDevice::global_alloc(device_memory &mem)
   assert(mem.name);
 
   size_t size = mem.memory_size();
-  VLOG_DEBUG << "OneapiDevice::global_alloc \"" << mem.name << "\" object "
+  LOG(DEBUG) << "OneapiDevice::global_alloc \"" << mem.name << "\" object "
              << string_human_readable_number(size) << " bytes. ("
              << string_human_readable_size(size) << ")";
 
@@ -688,7 +688,6 @@ static sycl::ext::oneapi::experimental::image_descriptor image_desc(const device
   sycl::ext::oneapi::experimental::image_descriptor param;
   param.width = mem.data_width;
   param.height = mem.data_height;
-  param.depth = mem.data_depth == 1 ? 0 : mem.data_depth;
   param.num_channels = mem.data_elements;
   param.channel_type = channel_type;
 
@@ -760,46 +759,24 @@ void OneapiDevice::tex_alloc(device_texture &mem)
 
     if (mem.data_height > 0) {
       const sycl::device &device = reinterpret_cast<sycl::queue *>(queue)->get_device();
-      if (mem.data_depth > 1) {
-        const size_t max_width = device.get_info<sycl::info::device::image3d_max_width>();
-        const size_t max_height = device.get_info<sycl::info::device::image3d_max_height>();
-        const size_t max_depth = device.get_info<sycl::info::device::image3d_max_depth>();
+      const size_t max_width = device.get_info<sycl::info::device::image2d_max_width>();
+      const size_t max_height = device.get_info<sycl::info::device::image2d_max_height>();
 
-        if (mem.data_width > max_width || mem.data_height > max_height ||
-            mem.data_depth > max_depth)
-        {
-          set_error(string_printf(
-              "Maximum GPU 3D texture size exceeded (max %zux%zux%zu, found %zux%zux%zu)",
-              max_width,
-              max_height,
-              max_depth,
-              mem.data_width,
-              mem.data_height,
-              mem.data_depth));
-          return;
-        }
-      }
-      else {
-        const size_t max_width = device.get_info<sycl::info::device::image2d_max_width>();
-        const size_t max_height = device.get_info<sycl::info::device::image2d_max_height>();
-
-        if (mem.data_width > max_width || mem.data_height > max_height) {
-          set_error(
-              string_printf("Maximum GPU 2D texture size exceeded (max %zux%zu, found %zux%zu)",
-                            max_width,
-                            max_height,
-                            mem.data_width,
-                            mem.data_height));
-          return;
-        }
+      if (mem.data_width > max_width || mem.data_height > max_height) {
+        set_error(
+            string_printf("Maximum GPU 2D texture size exceeded (max %zux%zu, found %zux%zu)",
+                          max_width,
+                          max_height,
+                          mem.data_width,
+                          mem.data_height));
+        return;
       }
 
-      /* 2D/3D texture -- Tile optimized */
-      size_t depth = mem.data_depth == 1 ? 0 : mem.data_depth;
+      /* 2D texture -- Tile optimized */
       desc = sycl::ext::oneapi::experimental::image_descriptor(
-          {mem.data_width, mem.data_height, depth}, mem.data_elements, channel_type);
+          {mem.data_width, mem.data_height, 0}, mem.data_elements, channel_type);
 
-      VLOG_WORK << "Array 2D/3D allocate: " << mem.name << ", "
+      LOG(WORK) << "Array 2D/3D allocate: " << mem.name << ", "
                 << string_human_readable_number(mem.memory_size()) << " bytes. ("
                 << string_human_readable_size(mem.memory_size()) << ")";
 
@@ -842,11 +819,7 @@ void OneapiDevice::tex_alloc(device_texture &mem)
     sycl::ext::oneapi::experimental::bindless_image_sampler samp(
         address_mode, sycl::coordinate_normalization_mode::normalized, filter_mode);
 
-    if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
-        mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
-        mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
-        mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16)
-    {
+    if (!is_nanovdb_type(mem.info.data_type)) {
       sycl::ext::oneapi::experimental::sampled_image_handle imgHandle;
 
       if (memHandle.raw_handle) {
@@ -1387,7 +1360,7 @@ int parse_driver_build_version(const sycl::device &device)
   }
 
   if (driver_build_version == 0) {
-    VLOG_WARNING << "Unable to parse unknown Intel GPU driver version. \"" << driver_version
+    LOG(WARNING) << "Unable to parse unknown Intel GPU driver version. \"" << driver_version
                  << "\" does not match xx.xx.xxxxx (Linux), x.x.xxxx (L0),"
                  << " xx.xx.xxx.xxxx (Windows) for device \""
                  << device.get_info<sycl::info::device::name>() << "\".";
@@ -1398,92 +1371,97 @@ int parse_driver_build_version(const sycl::device &device)
 
 std::vector<sycl::device> available_sycl_devices()
 {
+  std::vector<sycl::device> available_devices;
   bool allow_all_devices = false;
   if (getenv("CYCLES_ONEAPI_ALL_DEVICES") != nullptr) {
     allow_all_devices = true;
   }
 
-  const std::vector<sycl::platform> &oneapi_platforms = sycl::platform::get_platforms();
+  try {
+    const std::vector<sycl::platform> &oneapi_platforms = sycl::platform::get_platforms();
 
-  std::vector<sycl::device> available_devices;
-  for (const sycl::platform &platform : oneapi_platforms) {
-    /* ignore OpenCL platforms to avoid using the same devices through both Level-Zero and OpenCL.
-     */
-    if (platform.get_backend() == sycl::backend::opencl) {
-      continue;
-    }
+    for (const sycl::platform &platform : oneapi_platforms) {
+      /* ignore OpenCL platforms to avoid using the same devices through both Level-Zero and
+       * OpenCL.
+       */
+      if (platform.get_backend() == sycl::backend::opencl) {
+        continue;
+      }
 
-    const std::vector<sycl::device> &oneapi_devices =
-        (allow_all_devices) ? platform.get_devices(sycl::info::device_type::all) :
-                              platform.get_devices(sycl::info::device_type::gpu);
+      const std::vector<sycl::device> &oneapi_devices =
+          (allow_all_devices) ? platform.get_devices(sycl::info::device_type::all) :
+                                platform.get_devices(sycl::info::device_type::gpu);
 
-    for (const sycl::device &device : oneapi_devices) {
-      bool filter_out = false;
-      if (!allow_all_devices) {
-        /* For now we support all Intel(R) Arc(TM) devices and likely any future GPU,
-         * assuming they have either more than 96 Execution Units or not 7 threads per EU.
-         * Official support can be broaden to older and smaller GPUs once ready. */
-        if (!device.is_gpu() || platform.get_backend() != sycl::backend::ext_oneapi_level_zero) {
-          filter_out = true;
-        }
-        else {
-          /* Filtered-out defaults in-case these values aren't available. */
-          int number_of_eus = 96;
-          int threads_per_eu = 7;
-          if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
-            number_of_eus = device.get_info<sycl::ext::intel::info::device::gpu_eu_count>();
-          }
-          if (device.has(sycl::aspect::ext_intel_gpu_hw_threads_per_eu)) {
-            threads_per_eu =
-                device.get_info<sycl::ext::intel::info::device::gpu_hw_threads_per_eu>();
-          }
-          /* This filters out all Level-Zero supported GPUs from older generation than Arc. */
-          if (number_of_eus <= 96 && threads_per_eu == 7) {
+      for (const sycl::device &device : oneapi_devices) {
+        bool filter_out = false;
+        if (!allow_all_devices) {
+          /* For now we support all Intel(R) Arc(TM) devices and likely any future GPU,
+           * assuming they have either more than 96 Execution Units or not 7 threads per EU.
+           * Official support can be broaden to older and smaller GPUs once ready. */
+          if (!device.is_gpu() || platform.get_backend() != sycl::backend::ext_oneapi_level_zero) {
             filter_out = true;
           }
-          /* if not already filtered out, check driver version. */
-          bool check_driver_version = !filter_out;
-          /* We don't know how to check driver version strings for non-Intel GPUs. */
-          if (check_driver_version &&
-              device.get_info<sycl::info::device::vendor>().find("Intel") == std::string::npos)
-          {
-            check_driver_version = false;
-          }
-          /* Because of https://github.com/oneapi-src/unified-runtime/issues/1777, future drivers
-           * may break parsing done by a SYCL runtime from before the fix we expect in major
-           * version 8. Parsed driver version would start with something different than current
-           * "1.3.". To avoid blocking a device by mistake in the case of new driver / old SYCL
-           * runtime, we disable driver version check in case LIBSYCL_MAJOR_VERSION is below 8 and
-           * actual driver version doesn't start with 1.3. */
-#  if __LIBSYCL_MAJOR_VERSION < 8
-          if (check_driver_version &&
-              !string_startswith(device.get_info<sycl::info::device::driver_version>(), "1.3."))
-          {
-            check_driver_version = false;
-          }
-#  endif
-          if (check_driver_version) {
-            int driver_build_version = parse_driver_build_version(device);
-            const int lowest_supported_driver_version = (driver_build_version > 100000) ?
-                                                            lowest_supported_driver_version_win :
-                                                            lowest_supported_driver_version_neo;
-            if (driver_build_version < lowest_supported_driver_version) {
+          else {
+            /* Filtered-out defaults in-case these values aren't available. */
+            int number_of_eus = 96;
+            int threads_per_eu = 7;
+            if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
+              number_of_eus = device.get_info<sycl::ext::intel::info::device::gpu_eu_count>();
+            }
+            if (device.has(sycl::aspect::ext_intel_gpu_hw_threads_per_eu)) {
+              threads_per_eu =
+                  device.get_info<sycl::ext::intel::info::device::gpu_hw_threads_per_eu>();
+            }
+            /* This filters out all Level-Zero supported GPUs from older generation than Arc. */
+            if (number_of_eus <= 96 && threads_per_eu == 7) {
               filter_out = true;
+            }
+            /* if not already filtered out, check driver version. */
+            bool check_driver_version = !filter_out;
+            /* We don't know how to check driver version strings for non-Intel GPUs. */
+            if (check_driver_version &&
+                device.get_info<sycl::info::device::vendor>().find("Intel") == std::string::npos)
+            {
+              check_driver_version = false;
+            }
+            /* Because of https://github.com/oneapi-src/unified-runtime/issues/1777, future drivers
+             * may break parsing done by a SYCL runtime from before the fix we expect in major
+             * version 8. Parsed driver version would start with something different than current
+             * "1.3.". To avoid blocking a device by mistake in the case of new driver / old SYCL
+             * runtime, we disable driver version check in case LIBSYCL_MAJOR_VERSION is below 8
+             * and actual driver version doesn't start with 1.3. */
+#  if __LIBSYCL_MAJOR_VERSION < 8
+            if (check_driver_version &&
+                !string_startswith(device.get_info<sycl::info::device::driver_version>(), "1.3."))
+            {
+              check_driver_version = false;
+            }
+#  endif
+            if (check_driver_version) {
+              int driver_build_version = parse_driver_build_version(device);
+              const int lowest_supported_driver_version = (driver_build_version > 100000) ?
+                                                              lowest_supported_driver_version_win :
+                                                              lowest_supported_driver_version_neo;
+              if (driver_build_version < lowest_supported_driver_version) {
+                filter_out = true;
 
-              VLOG_WARNING << "Driver version for device \""
-                           << device.get_info<sycl::info::device::name>()
-                           << "\" is too old. Expected \"" << lowest_supported_driver_version
-                           << "\" or newer, but got \"" << driver_build_version << "\".";
+                LOG(WARNING) << "Driver version for device \""
+                             << device.get_info<sycl::info::device::name>()
+                             << "\" is too old. Expected \"" << lowest_supported_driver_version
+                             << "\" or newer, but got \"" << driver_build_version << "\".";
+              }
             }
           }
         }
-      }
-      if (!filter_out) {
-        available_devices.push_back(device);
+        if (!filter_out) {
+          available_devices.push_back(device);
+        }
       }
     }
   }
-
+  catch (sycl::exception &e) {
+    LOG(WARNING) << "An error has been encountered while enumerating SYCL devices: " << e.what();
+  }
   return available_devices;
 }
 

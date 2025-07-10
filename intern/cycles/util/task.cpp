@@ -68,7 +68,7 @@ void TaskScheduler::init(const int num_threads)
   }
   if (num_threads > 0) {
     /* Automatic number of threads. */
-    VLOG_INFO << "Overriding number of TBB threads to " << num_threads << ".";
+    LOG(INFO) << "Overriding number of TBB threads to " << num_threads << ".";
     global_control = make_unique<tbb::global_control>(tbb::global_control::max_allowed_parallelism,
                                                       num_threads);
     active_num_threads = num_threads;
@@ -234,7 +234,7 @@ string TaskPool::Summary::full_report() const
 {
   string report;
   report += string_printf("Total time:    %f\n", time_total);
-  report += string_printf("Tasks handled: %d\n", num_tasks_handled);
+  report += string_printf("Tasks handled: %d", num_tasks_handled);
   return report;
 }
 

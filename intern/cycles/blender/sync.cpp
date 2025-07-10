@@ -307,7 +307,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
    * false = don't delete unused shaders, not supported. */
   shader_map.post_sync(false);
 
-  VLOG_INFO << "Total time spent synchronizing data: " << timer.get_time();
+  LOG(INFO) << "Total time spent synchronizing data: " << timer.get_time();
 
   has_updates_ = false;
 }
@@ -458,7 +458,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
   }
 
   if (scrambling_distance != 1.0f) {
-    VLOG_INFO << "Using scrambling distance: " << scrambling_distance;
+    LOG(INFO) << "Using scrambling distance: " << scrambling_distance;
   }
   integrator->set_scrambling_distance(scrambling_distance);
 

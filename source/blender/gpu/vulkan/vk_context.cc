@@ -98,8 +98,7 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
 
       swap_chain_format_ = swap_chain_data.surface_format;
       vk_extent_ = swap_chain_data.extent;
-      GCaps.hdr_viewport_support = U.experimental.use_vulkan_hdr &&
-                                   (swap_chain_format_.format == VK_FORMAT_R16G16B16A16_SFLOAT) &&
+      GCaps.hdr_viewport_support = (swap_chain_format_.format == VK_FORMAT_R16G16B16A16_SFLOAT) &&
                                    ELEM(swap_chain_format_.colorSpace,
                                         VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT,
                                         VK_COLOR_SPACE_SRGB_NONLINEAR_KHR);

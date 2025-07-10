@@ -48,10 +48,14 @@ const char *name_from_type(ImageDataType type)
       return "nanovdb_float";
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
       return "nanovdb_float3";
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT4:
+      return "nanovdb_float4";
     case IMAGE_DATA_TYPE_NANOVDB_FPN:
       return "nanovdb_fpn";
     case IMAGE_DATA_TYPE_NANOVDB_FP16:
       return "nanovdb_fp16";
+    case IMAGE_DATA_TYPE_NANOVDB_EMPTY:
+      return "nanovdb_empty";
     case IMAGE_DATA_NUM_TYPES:
       assert(!"System enumerator type, should never be used");
       return "";
@@ -226,7 +230,6 @@ ImageMetaData::ImageMetaData()
     : channels(0),
       width(0),
       height(0),
-      depth(0),
       byte_size(0),
       type(IMAGE_DATA_NUM_TYPES),
       colorspace(u_colorspace_raw),
@@ -239,7 +242,7 @@ ImageMetaData::ImageMetaData()
 bool ImageMetaData::operator==(const ImageMetaData &other) const
 {
   return channels == other.channels && width == other.width && height == other.height &&
-         depth == other.depth && use_transform_3d == other.use_transform_3d &&
+         use_transform_3d == other.use_transform_3d &&
          (!use_transform_3d || transform_3d == other.transform_3d) && type == other.type &&
          colorspace == other.colorspace && compress_as_srgb == other.compress_as_srgb;
 }
@@ -367,10 +370,7 @@ void ImageManager::load_image_metadata(Image *img)
 
   metadata.detect_colorspace();
 
-  assert(features.has_nanovdb || (metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT ||
-                                  metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 ||
-                                  metadata.type != IMAGE_DATA_TYPE_NANOVDB_FPN ||
-                                  metadata.type != IMAGE_DATA_TYPE_NANOVDB_FP16));
+  assert(features.has_nanovdb || !is_nanovdb_type(metadata.type));
 
   img->need_metadata = false;
 }
@@ -544,13 +544,12 @@ bool ImageManager::file_load_image(Image *img, const int texture_limit)
   /* Get metadata. */
   const int width = img->metadata.width;
   const int height = img->metadata.height;
-  const int depth = img->metadata.depth;
   const int components = img->metadata.channels;
 
   /* Read pixels. */
   vector<StorageType> pixels_storage;
   StorageType *pixels;
-  const size_t max_size = max(max(width, height), depth);
+  const size_t max_size = max(width, height);
   if (max_size == 0) {
     /* Don't bother with empty images. */
     return false;
@@ -558,12 +557,12 @@ bool ImageManager::file_load_image(Image *img, const int texture_limit)
 
   /* Allocate memory as needed, may be smaller to resize down. */
   if (texture_limit > 0 && max_size > texture_limit) {
-    pixels_storage.resize(((size_t)width) * height * depth * 4);
+    pixels_storage.resize(((size_t)width) * height * 4);
     pixels = &pixels_storage[0];
   }
   else {
     const thread_scoped_lock device_lock(device_mutex);
-    pixels = (StorageType *)img->mem->alloc(width, height, depth);
+    pixels = (StorageType *)img->mem->alloc(width, height);
   }
 
   if (pixels == nullptr) {
@@ -571,7 +570,7 @@ bool ImageManager::file_load_image(Image *img, const int texture_limit)
     return false;
   }
 
-  const size_t num_pixels = ((size_t)width) * height * depth;
+  const size_t num_pixels = ((size_t)width) * height;
   img->loader->load_pixels(
       img->metadata, pixels, num_pixels * components, image_associate_alpha(img));
 
@@ -663,28 +662,25 @@ bool ImageManager::file_load_image(Image *img, const int texture_limit)
     while (max_size * scale_factor > texture_limit) {
       scale_factor *= 0.5f;
     }
-    VLOG_WORK << "Scaling image " << img->loader->name() << " by a factor of " << scale_factor
+    LOG(WORK) << "Scaling image " << img->loader->name() << " by a factor of " << scale_factor
               << ".";
     vector<StorageType> scaled_pixels;
     size_t scaled_width;
     size_t scaled_height;
-    size_t scaled_depth;
     util_image_resize_pixels(pixels_storage,
                              width,
                              height,
-                             depth,
                              is_rgba ? 4 : 1,
                              scale_factor,
                              &scaled_pixels,
                              &scaled_width,
-                             &scaled_height,
-                             &scaled_depth);
+                             &scaled_height);
 
     StorageType *texture_pixels;
 
     {
       const thread_scoped_lock device_lock(device_mutex);
-      texture_pixels = (StorageType *)img->mem->alloc(scaled_width, scaled_height, scaled_depth);
+      texture_pixels = (StorageType *)img->mem->alloc(scaled_width, scaled_height);
     }
 
     memcpy(texture_pixels, &scaled_pixels[0], scaled_pixels.size() * sizeof(StorageType));
@@ -811,9 +807,7 @@ void ImageManager::device_load_image(Device *device,
     }
   }
 #ifdef WITH_NANOVDB
-  else if (type == IMAGE_DATA_TYPE_NANOVDB_FLOAT || type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3 ||
-           type == IMAGE_DATA_TYPE_NANOVDB_FPN || type == IMAGE_DATA_TYPE_NANOVDB_FP16)
-  {
+  else if (is_nanovdb_type(type)) {
     const thread_scoped_lock device_lock(device_mutex);
     void *pixels = img->mem->alloc(img->metadata.byte_size, 0);
 

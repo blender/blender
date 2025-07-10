@@ -110,7 +110,7 @@ using blender::nodes::OutputFieldDependency;
 using blender::nodes::OutputSocketFieldType;
 using blender::nodes::SocketDeclaration;
 
-static CLG_LogRef LOG = {"bke.node"};
+static CLG_LogRef LOG = {"node"};
 
 namespace blender::bke {
 

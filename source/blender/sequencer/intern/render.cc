@@ -1030,7 +1030,10 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const RenderData *context
 
   if (proxy->anim == nullptr) {
     if (seq_proxy_get_custom_file_filepath(strip, filepath, context->view_id)) {
-      proxy->anim = openanim(filepath, IB_byte_data, 0, strip->data->colorspace_settings.name);
+      /* Sequencer takes care of colorspace conversion of the result. The input is the best to be
+       * kept unchanged for the performance reasons. */
+      proxy->anim = openanim(
+          filepath, IB_byte_data, 0, true, strip->data->colorspace_settings.name);
     }
     if (proxy->anim == nullptr) {
       return nullptr;
@@ -2001,7 +2004,7 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
   Scene *orig_scene = prefetch_get_original_scene(context);
   ImBuf *out = nullptr;
   if (!context->skip_cache && !context->is_proxy_render) {
-    out = final_image_cache_get(orig_scene, timeline_frame, context->view_id);
+    out = final_image_cache_get(orig_scene, timeline_frame, context->view_id, chanshown);
   }
 
   Vector<Strip *> strips = seq_shown_strips_get(
@@ -2023,7 +2026,7 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
     if (out && (orig_scene->ed->cache_flag & SEQ_CACHE_STORE_FINAL_OUT) && !context->skip_cache &&
         !context->is_proxy_render)
     {
-      final_image_cache_put(orig_scene, timeline_frame, context->view_id, out);
+      final_image_cache_put(orig_scene, timeline_frame, context->view_id, chanshown, out);
     }
   }
 

@@ -362,8 +362,7 @@ static void lattice_deform_coords_impl(const Object *ob_lattice,
         cd_dvert_offset = CustomData_get_offset(&em_target->bm->vdata, CD_MDEFORMVERT);
       }
       else if (me_target) {
-        dvert = static_cast<const MDeformVert *>(
-            CustomData_get_layer(&me_target->vert_data, CD_MDEFORMVERT));
+        dvert = me_target->deform_verts().data();
       }
       else if (ob_target->type == OB_LATTICE) {
         dvert = ((Lattice *)ob_target->data)->dvert;

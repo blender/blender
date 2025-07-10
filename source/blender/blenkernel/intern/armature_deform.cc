@@ -42,7 +42,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bke.armature_deform"};
+static CLG_LogRef LOG = {"geom.armature_deform"};
 
 /* -------------------------------------------------------------------- */
 /** \name Armature Deform Internal Utilities

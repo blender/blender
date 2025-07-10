@@ -3518,7 +3518,7 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 
   static const EnumPropertyItem prop_solver_items[] = {
       {eBooleanModifierSolver_Float,
-       "FAST",
+       "FLOAT",
        0,
        "Float",
        "Simple solver with good performance, without support for overlapping geometry"},

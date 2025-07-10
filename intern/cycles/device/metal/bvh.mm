@@ -25,7 +25,7 @@ CCL_NAMESPACE_BEGIN
     { \
       string str = string_printf(__VA_ARGS__); \
       progress.set_substatus(str); \
-      metal_printf("%s\n", str.c_str()); \
+      metal_printf("%s", str.c_str()); \
     }
 
 // #  define BVH_THROTTLE_DIAGNOSTICS

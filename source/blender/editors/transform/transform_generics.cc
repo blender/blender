@@ -937,8 +937,7 @@ void calculateCenterCursor(TransInfo *t, float r_center[3])
     if (ED_view3d_project_float_global(t->region, cursor, r_center, V3D_PROJ_TEST_NOP) !=
         V3D_PROJ_RET_OK)
     {
-      r_center[0] = t->region->winx / 2.0f;
-      r_center[1] = t->region->winy / 2.0f;
+      projectFloatViewCenterFallback(t, r_center);
     }
     r_center[2] = 0.0f;
   }

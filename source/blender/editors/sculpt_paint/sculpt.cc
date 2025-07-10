@@ -73,7 +73,6 @@
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
-#include "ED_gpencil_legacy.hh"
 #include "ED_paint.hh"
 #include "ED_screen.hh"
 #include "ED_sculpt.hh"
@@ -107,7 +106,7 @@ using blender::Set;
 using blender::Span;
 using blender::Vector;
 
-static CLG_LogRef LOG = {"ed.sculpt_paint"};
+static CLG_LogRef LOG = {"sculpt"};
 
 namespace blender::ed::sculpt_paint {
 

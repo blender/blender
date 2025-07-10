@@ -60,7 +60,7 @@ using blender::MutableSpan;
 using blender::Span;
 using blender::StringRefNull;
 
-static CLG_LogRef LOG = {"bke.mesh_convert"};
+static CLG_LogRef LOG = {"geom.mesh.convert"};
 
 static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispbase)
 {

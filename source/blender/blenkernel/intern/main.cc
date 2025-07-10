@@ -43,7 +43,7 @@
 
 using namespace blender::bke;
 
-static CLG_LogRef LOG = {"bke.main"};
+static CLG_LogRef LOG = {"lib.main"};
 
 Main::Main()
 {

@@ -41,7 +41,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"ed.anim.motion_paths"};
+static CLG_LogRef LOG = {"anim.motion_paths"};
 
 /* Motion path needing to be baked (mpt). */
 struct MPathTarget {
@@ -521,7 +521,6 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 
   /* Calculate path over requested range. */
   CLOG_INFO(&LOG,
-            1,
             "Calculating MotionPaths between frames %d - %d (%d frames)",
             sfra,
             efra,

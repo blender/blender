@@ -10,6 +10,7 @@
 #include "kernel/types.h"
 
 #include "kernel/util/colorspace.h"
+#include "kernel/util/lookup_table.h"
 
 #include "util/color.h"
 
@@ -351,20 +352,32 @@ ccl_device_inline Spectrum closure_layering_weight(const Spectrum layer_albedo,
  * transform and store them as a LUT that gets looked up here.
  * In practice, using the XYZ fit and converting the result from XYZ to RGB is easier.
  */
-ccl_device_inline Spectrum iridescence_lookup_sensitivity(const float OPD, const float shift)
+ccl_device_inline Spectrum iridescence_lookup_sensitivity(KernelGlobals kg,
+                                                          const float OPD,
+                                                          const float shift)
 {
-  const float phase = M_2PI_F * OPD * 1e-9f;
-  const float3 val = make_float3(5.4856e-13f, 4.4201e-13f, 5.2481e-13f);
-  const float3 pos = make_float3(1.6810e+06f, 1.7953e+06f, 2.2084e+06f);
-  const float3 var = make_float3(4.3278e+09f, 9.3046e+09f, 6.6121e+09f);
+  /* The LUT covers 0 to 60 um. */
+  float x = M_2PI_F * OPD / 60000.0f;
+  const int size = THIN_FILM_TABLE_SIZE;
 
-  float3 xyz = val * sqrt(M_2PI_F * var) * cos(pos * phase + shift) * exp(-sqr(phase) * var);
-  xyz.x += 1.64408e-8f * cosf(2.2399e+06f * phase + shift) * expf(-4.5282e+09f * sqr(phase));
-  return xyz / 1.0685e-7f;
+  const float3 mag = make_float3(
+      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 0 * size, size),
+      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 1 * size, size),
+      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 2 * size, size));
+  const float3 phase = make_float3(
+      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 3 * size, size),
+      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 4 * size, size),
+      lookup_table_read(kg, x, kernel_data.tables.thin_film_table + 5 * size, size));
+
+  return mag * cos(phase - shift);
 }
 
-ccl_device_inline float3 iridescence_airy_summation(
-    const float T121, const float R12, const float R23, const float OPD, const float phi)
+ccl_device_inline float3 iridescence_airy_summation(KernelGlobals kg,
+                                                    const float T121,
+                                                    const float R12,
+                                                    const float R23,
+                                                    const float OPD,
+                                                    const float phi)
 {
   if (R23 == 1.0f) {
     /* Shortcut for TIR on the bottom interface. */
@@ -381,7 +394,7 @@ ccl_device_inline float3 iridescence_airy_summation(
   /* Truncate after m=3, higher differences have barely any impact. */
   for (int m = 1; m < 4; m++) {
     Cm *= r123;
-    R += Cm * 2.0f * iridescence_lookup_sensitivity(m * OPD, m * phi);
+    R += Cm * 2.0f * iridescence_lookup_sensitivity(kg, m * OPD, m * phi);
   }
   return R;
 }
@@ -428,32 +441,11 @@ ccl_device Spectrum fresnel_iridescence(KernelGlobals kg,
   const float2 phi = make_float2(M_PI_F, M_PI_F) - phi12 + phi23;
 
   /* Perform Airy summation and average the polarizations. */
-  float3 R = mix(iridescence_airy_summation(T121.x, R12.x, R23.x, OPD, phi.x),
-                 iridescence_airy_summation(T121.y, R12.y, R23.y, OPD, phi.y),
+  float3 R = mix(iridescence_airy_summation(kg, T121.x, R12.x, R23.x, OPD, phi.x),
+                 iridescence_airy_summation(kg, T121.y, R12.y, R23.y, OPD, phi.y),
                  0.5f);
 
-  /* Color space conversion here is tricky.
-   * In theory, the correct thing would be to compute the spectral color matching functions
-   * for the RGB channels, take their Fourier transform in wavelength parametrization, and
-   * then use that in iridescence_lookup_sensitivity().
-   * To avoid this complexity, the code here instead uses the reference implementation's
-   * Gaussian fit of the CIE XYZ curves. However, this means that at this point, R is in
-   * XYZ values, not RGB.
-   * Additionally, since I is a reflectivity, not a luminance, the spectral color matching
-   * functions should be multiplied by the reference illuminant. Since the fit is based on
-   * the "raw" CIE XYZ curves, the reference illuminant implicitly is a constant spectrum,
-   * meaning Illuminant E.
-   * Therefore, we can't just use the regular XYZ->RGB conversion here, we need to include
-   * a chromatic adaption from E to whatever the white point of the working color space is.
-   * The proper way to do this would be a Von Kries-style transform, but to keep it simple,
-   * we just multiply by the white point here.
-   *
-   * NOTE: The reference implementation sidesteps all this by just hard-coding a XYZ->CIE RGB
-   * matrix. Since CIE RGB uses E as its white point, this sidesteps the chromatic adaption
-   * topic, but the primary colors don't match (unless you happen to actually work in CIE RGB.)
-   */
-  R *= make_float3(kernel_data.film.white_xyz);
-  return saturate(xyz_to_rgb(kg, R));
+  return saturate(R);
 }
 
 CCL_NAMESPACE_END

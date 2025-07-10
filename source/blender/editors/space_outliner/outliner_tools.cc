@@ -98,7 +98,7 @@
 
 namespace blender::ed::outliner {
 
-static CLG_LogRef LOG = {"ed.outliner.tools"};
+static CLG_LogRef LOG = {"outliner.tools"};
 
 /* -------------------------------------------------------------------- */
 /** \name ID/Library/Data Set/Un-link Utilities

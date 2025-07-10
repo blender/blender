@@ -32,7 +32,7 @@ void InstancerData::insert() {}
 
 void InstancerData::remove()
 {
-  CLOG_INFO(LOG_HYDRA_SCENE, 1, "%s", prim_id.GetText());
+  CLOG_DEBUG(LOG_HYDRA_SCENE, "Remove instancer prim \"%s\"", prim_id.GetText());
   for (auto &m_inst : mesh_instances_.values()) {
     m_inst.data->remove();
   }
@@ -52,7 +52,7 @@ void InstancerData::update() {}
 
 pxr::VtValue InstancerData::get_data(pxr::TfToken const &key) const
 {
-  ID_LOG(3, "%s", key.GetText());
+  ID_LOG("%s", key.GetText());
   if (key == pxr::HdInstancerTokens->instanceTransforms) {
     return pxr::VtValue(mesh_transforms_);
   }
@@ -153,7 +153,7 @@ void InstancerData::update_instance(DupliObject *dupli)
     else {
       m_inst->data->update();
     }
-    ID_LOG(2, "Mesh %s %d", m_inst->data->id->name, int(mesh_transforms_.size()));
+    ID_LOG("Mesh %s %d", m_inst->data->id->name, int(mesh_transforms_.size()));
     m_inst->indices.push_back(mesh_transforms_.size());
     mesh_transforms_.push_back(gf_matrix_from_transform(dupli->mat));
   }
@@ -163,7 +163,7 @@ void InstancerData::update_instance(DupliObject *dupli)
       nm_inst = &nonmesh_instances_.lookup_or_add_default(p_id);
       nm_inst->data = ObjectData::create(scene_delegate_, object, p_id);
     }
-    ID_LOG(2, "Nonmesh %s %d", nm_inst->data->id->name, int(nm_inst->transforms.size()));
+    ID_LOG("Nonmesh %s %d", nm_inst->data->id->name, int(nm_inst->transforms.size()));
     nm_inst->transforms.push_back(gf_matrix_from_transform(dupli->mat));
   }
 
@@ -179,7 +179,7 @@ void InstancerData::update_instance(DupliObject *dupli)
         nm_inst->data = std::make_unique<HairData>(scene_delegate_, object, h_id, psys);
         nm_inst->data->init();
       }
-      ID_LOG(2, "Nonmesh %s %d", nm_inst->data->id->name, int(nm_inst->transforms.size()));
+      ID_LOG("Nonmesh %s %d", nm_inst->data->id->name, int(nm_inst->transforms.size()));
       nm_inst->transforms.push_back(gf_matrix_from_transform(psys->imat) *
                                     gf_matrix_from_transform(dupli->mat));
     }
@@ -209,17 +209,17 @@ void InstancerData::post_update()
     /* Important: removing instancer when nonmesh_instances_ are empty too */
     if (index.HasInstancer(prim_id) && nonmesh_instances_.is_empty()) {
       index.RemoveInstancer(prim_id);
-      ID_LOG(1, "Remove instancer");
+      ID_LOG("Remove instancer");
     }
   }
   else {
     if (index.HasInstancer(prim_id)) {
       index.GetChangeTracker().MarkInstancerDirty(prim_id, pxr::HdChangeTracker::AllDirty);
-      ID_LOG(1, "Update instancer");
+      ID_LOG("Update instancer");
     }
     else {
       index.InsertInstancer(scene_delegate_, prim_id);
-      ID_LOG(1, "Insert instancer");
+      ID_LOG("Insert instancer");
     }
   }
 }

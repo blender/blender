@@ -221,13 +221,17 @@ static void ui_template_palette_menu(bContext * /*C*/, uiLayout *layout, void * 
 
   layout->label(IFACE_("Sort By:"), ICON_NONE);
   row = &layout->row(false);
-  uiItemEnumO_value(row, IFACE_("Hue"), ICON_NONE, "PALETTE_OT_sort", "type", 1);
+  PointerRNA op_ptr = row->op("PALETTE_OT_sort", IFACE_("Hue"), ICON_NONE);
+  RNA_enum_set(&op_ptr, "type", 1);
   row = &layout->row(false);
-  uiItemEnumO_value(row, IFACE_("Saturation"), ICON_NONE, "PALETTE_OT_sort", "type", 2);
+  op_ptr = row->op("PALETTE_OT_sort", IFACE_("Saturation"), ICON_NONE);
+  RNA_enum_set(&op_ptr, "type", 2);
   row = &layout->row(false);
-  uiItemEnumO_value(row, IFACE_("Value"), ICON_NONE, "PALETTE_OT_sort", "type", 3);
+  op_ptr = row->op("PALETTE_OT_sort", IFACE_("Value"), ICON_NONE);
+  RNA_enum_set(&op_ptr, "type", 3);
   row = &layout->row(false);
-  uiItemEnumO_value(row, IFACE_("Luminance"), ICON_NONE, "PALETTE_OT_sort", "type", 4);
+  op_ptr = row->op("PALETTE_OT_sort", IFACE_("Luminance"), ICON_NONE);
+  RNA_enum_set(&op_ptr, "type", 4);
 }
 
 void uiTemplatePalette(uiLayout *layout,

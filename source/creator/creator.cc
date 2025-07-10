@@ -93,7 +93,9 @@
 
 #ifdef WITH_LIBMV
 #  include "libmv-capi.h"
-#elif defined(WITH_CYCLES_LOGGING)
+#endif
+
+#ifdef WITH_CYCLES
 #  include "CCL_api.h"
 #endif
 
@@ -384,6 +386,10 @@ int main(int argc,
 
   /* Initialize logging. */
   CLG_init();
+  CLG_output_use_timestamp_set(true);
+  CLG_output_use_memory_set(false);
+  CLG_output_use_source_set(false);
+  CLG_output_use_basename_set(false);
   CLG_fatal_fn_set(callback_clg_fatal);
 
   C = CTX_create();
@@ -405,8 +411,6 @@ int main(int argc,
 
 #ifdef WITH_LIBMV
   libmv_initLogging(argv[0]);
-#elif defined(WITH_CYCLES_LOGGING)
-  CCL_init_logging(argv[0]);
 #endif
 
 #if defined(WITH_TBB_MALLOC) && defined(_MSC_VER) && defined(NDEBUG) && defined(WITH_GMP)
@@ -495,6 +499,10 @@ int main(int argc,
 
   /* Continue with regular initialization, no need to use "early" exit. */
   app_init_data.early_exit = nullptr;
+
+#ifdef WITH_CYCLES
+  CCL_log_init();
+#endif
 
   /* Must be initialized after #BKE_appdir_init to account for color-management paths. */
   IMB_init();

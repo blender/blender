@@ -25,7 +25,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bke.addon"};
+static CLG_LogRef LOG = {"addon"};
 
 /* -------------------------------------------------------------------- */
 /** \name Add-on New/Free

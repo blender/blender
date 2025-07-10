@@ -87,12 +87,11 @@ NodeItem GroupOutputNodeParser::compute()
 
 NodeItem GroupOutputNodeParser::compute_full()
 {
-  CLOG_INFO(LOG_MATERIALX_SHADER,
-            1,
-            "%s [%d] => %s",
-            node_->name,
-            node_->typeinfo->type_legacy,
-            NodeItem::type(to_type_).c_str());
+  CLOG_DEBUG(LOG_IO_MATERIALX,
+             "%s [%d] => %s",
+             node_->name,
+             node_->typeinfo->type_legacy,
+             NodeItem::type(to_type_).c_str());
 
 #ifdef USE_MATERIALX_NODEGRAPH
   /* Checking if output was already computed */
@@ -135,8 +134,7 @@ NodeItem GroupInputNodeParser::compute()
 
 NodeItem GroupInputNodeParser::compute_full()
 {
-  CLOG_INFO(LOG_MATERIALX_SHADER,
-            1,
+  CLOG_INFO(LOG_IO_MATERIALX,
             "%s [%d] => %s",
             node_->name,
             node_->typeinfo->type_legacy,

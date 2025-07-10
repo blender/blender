@@ -54,7 +54,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bke.packedfile"};
+static CLG_LogRef LOG = {"lib.packedfile"};
 
 using namespace blender;
 

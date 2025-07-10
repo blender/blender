@@ -84,11 +84,12 @@ ccl_device_forceinline bool primitive_is_volume_attribute(const ccl_private Shad
 
 template<typename T>
 ccl_device_inline T primitive_volume_attribute(KernelGlobals kg,
-                                               const ccl_private ShaderData *sd,
-                                               const AttributeDescriptor desc)
+                                               ccl_private ShaderData *sd,
+                                               const AttributeDescriptor desc,
+                                               const bool stochastic)
 {
   if (primitive_is_volume_attribute(sd)) {
-    return volume_attribute_value<T>(volume_attribute_float4(kg, sd, desc));
+    return volume_attribute_value<T>(volume_attribute_float4(kg, sd, desc, stochastic));
   }
   return make_zero<T>();
 }

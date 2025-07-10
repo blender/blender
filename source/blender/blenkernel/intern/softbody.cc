@@ -67,7 +67,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-static CLG_LogRef LOG = {"bke.softbody"};
+static CLG_LogRef LOG = {"physics.softbody"};
 
 /* callbacks for errors and interrupts and some goo */
 static int (*SB_localInterruptCallBack)() = nullptr;

@@ -33,7 +33,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"translation.language"};
+static CLG_LogRef LOG = {"translation"};
 
 #ifdef WITH_INTERNATIONAL
 

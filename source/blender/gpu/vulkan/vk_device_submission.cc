@@ -53,7 +53,8 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
 {
   if (render_graph->is_empty()) {
     render_graph->reset();
-    BLI_thread_queue_push(unused_render_graphs_, render_graph);
+    BLI_thread_queue_push(
+        unused_render_graphs_, render_graph, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
     return 0;
   }
 
@@ -79,7 +80,8 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
     timeline = submit_task->timeline = submit_to_device ? ++timeline_value_ : timeline_value_ + 1;
     orphaned_data.timeline_ = timeline;
     orphaned_data.move_data(context_discard_pool, timeline);
-    BLI_thread_queue_push(submitted_render_graphs_, submit_task);
+    BLI_thread_queue_push(
+        submitted_render_graphs_, submit_task, BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
   }
   submit_task = nullptr;
 
@@ -126,7 +128,7 @@ render_graph::VKRenderGraph *VKDevice::render_graph_new()
 
 void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
 {
-  CLOG_INFO(&LOG, 3, "submission runner has started");
+  CLOG_TRACE(&LOG, "Submission runner has started");
   UNUSED_VARS(task_data);
 
   VKDevice *device = static_cast<VKDevice *>(BLI_task_pool_user_data(pool));
@@ -148,7 +150,7 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
   submit_infos.reserve(2);
   std::optional<render_graph::VKCommandBufferWrapper> command_buffer;
 
-  CLOG_INFO(&LOG, 3, "submission runner initialized");
+  CLOG_TRACE(&LOG, "Submission runner initialized");
   while (!BLI_task_pool_current_canceled(pool)) {
     VKRenderGraphSubmitTask *submit_task = static_cast<VKRenderGraphSubmitTask *>(
         BLI_thread_queue_pop_timeout(device->submitted_render_graphs_, 1));
@@ -270,10 +272,12 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
     }
 
     render_graph.reset();
-    BLI_thread_queue_push(device->unused_render_graphs_, std::move(submit_task->render_graph));
+    BLI_thread_queue_push(device->unused_render_graphs_,
+                          std::move(submit_task->render_graph),
+                          BLI_THREAD_QUEUE_WORK_PRIORITY_NORMAL);
     MEM_delete<VKRenderGraphSubmitTask>(submit_task);
   }
-  CLOG_INFO(&LOG, 3, "submission runner is being canceled");
+  CLOG_TRACE(&LOG, "Submission runner is being canceled");
 
   /* Clear command buffers and pool */
   vkDeviceWaitIdle(device->vk_device_);
@@ -285,12 +289,12 @@ void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
                        command_buffers_unused.size(),
                        command_buffers_unused.data());
   vkDestroyCommandPool(device->vk_device_, vk_command_pool, nullptr);
-  CLOG_INFO(&LOG, 3, "submission runner finished");
+  CLOG_TRACE(&LOG, "Submission runner finished");
 }
 
 void VKDevice::init_submission_pool()
 {
-  CLOG_INFO(&LOG, 3, "create submission pool");
+  CLOG_TRACE(&LOG, "Create submission pool");
   submission_pool_ = BLI_task_pool_create_background_serial(this, TASK_PRIORITY_HIGH);
   BLI_task_pool_push(submission_pool_, VKDevice::submission_runner, nullptr, false, nullptr);
   submitted_render_graphs_ = BLI_thread_queue_init();
@@ -305,11 +309,11 @@ void VKDevice::init_submission_pool()
 
 void VKDevice::deinit_submission_pool()
 {
-  CLOG_INFO(&LOG, 3, "cancelling submission pool");
+  CLOG_TRACE(&LOG, "Cancelling submission pool");
   BLI_task_pool_cancel(submission_pool_);
-  CLOG_INFO(&LOG, 3, "waiting for completion");
+  CLOG_TRACE(&LOG, "Waiting for completion");
   BLI_task_pool_work_and_wait(submission_pool_);
-  CLOG_INFO(&LOG, 3, "freeing submission pool");
+  CLOG_TRACE(&LOG, "Freeing submission pool");
   BLI_task_pool_free(submission_pool_);
   submission_pool_ = nullptr;
 

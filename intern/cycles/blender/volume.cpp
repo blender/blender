@@ -10,42 +10,45 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
+#include "util/log.h"
+#include "util/vector.h"
+
 #include "BKE_volume_grid.hh"
 
 CCL_NAMESPACE_BEGIN
 
 /* TODO: verify this is not loading unnecessary attributes. */
-class BlenderSmokeLoader : public ImageLoader {
+class BlenderSmokeLoader : public VDBImageLoader {
  public:
-  BlenderSmokeLoader(BL::Object &b_ob, AttributeStandard attribute)
-      : b_domain(object_fluid_gas_domain_find(b_ob)), attribute(attribute)
+  BlenderSmokeLoader(BL::Object &b_ob, AttributeStandard attribute, const float clipping)
+      : VDBImageLoader(Attribute::standard_name(attribute), clipping),
+        b_domain(object_fluid_gas_domain_find(b_ob)),
+        attribute(attribute)
   {
     mesh_texture_space(
         *static_cast<const ::Mesh *>(b_ob.data().ptr.data), texspace_loc, texspace_size);
   }
 
-  bool load_metadata(const ImageDeviceFeatures & /*features*/, ImageMetaData &metadata) override
+  void load_grid() override
   {
     if (!b_domain) {
-      return false;
+      return;
     }
 
+    int channels;
     if (attribute == ATTR_STD_VOLUME_DENSITY || attribute == ATTR_STD_VOLUME_FLAME ||
         attribute == ATTR_STD_VOLUME_HEAT || attribute == ATTR_STD_VOLUME_TEMPERATURE)
     {
-      metadata.type = IMAGE_DATA_TYPE_FLOAT;
-      metadata.channels = 1;
+      channels = 1;
     }
     else if (attribute == ATTR_STD_VOLUME_COLOR) {
-      metadata.type = IMAGE_DATA_TYPE_FLOAT4;
-      metadata.channels = 4;
+      channels = 4;
     }
     else if (attribute == ATTR_STD_VOLUME_VELOCITY) {
-      metadata.type = IMAGE_DATA_TYPE_FLOAT4;
-      metadata.channels = 3;
+      channels = 3;
     }
     else {
-      return false;
+      return;
     }
 
     const int3 resolution = get_int3(b_domain.domain_resolution());
@@ -56,48 +59,41 @@ class BlenderSmokeLoader : public ImageLoader {
       amplify = 1;
     }
 
-    metadata.width = resolution.x * amplify;
-    metadata.height = resolution.y * amplify;
-    metadata.depth = resolution.z * amplify;
+    const size_t width = resolution.x * amplify;
+    const size_t height = resolution.y * amplify;
+    const size_t depth = resolution.z * amplify;
 
     /* Create a matrix to transform from object space to mesh texture space.
      * This does not work with deformations but that can probably only be done
      * well with a volume grid mapping of coordinates. */
-    metadata.transform_3d = transform_translate(-texspace_loc) * transform_scale(texspace_size);
-    metadata.use_transform_3d = true;
+    Transform transform_3d = transform_translate(-texspace_loc) * transform_scale(texspace_size);
 
-    return true;
+    vector<float> voxels;
+    if (!get_voxels(width, height, depth, channels, voxels)) {
+      return;
+    }
+
+    grid_from_dense_voxels(width, height, depth, channels, voxels.data(), transform_3d);
   }
 
-  bool load_pixels(const ImageMetaData & /*metadata*/,
-                   void *pixels,
-                   const size_t /*pixels_size*/,
-                   const bool /*associate_alpha*/) override
+  bool get_voxels(const size_t width,
+                  const size_t height,
+                  const size_t depth,
+                  const int channels,
+                  vector<float> &voxels)
   {
     if (!b_domain) {
       return false;
     }
+
 #ifdef WITH_FLUID
-    const int3 resolution = get_int3(b_domain.domain_resolution());
     int length;
-    int amplify = (b_domain.use_noise()) ? b_domain.noise_scale() : 1;
-
-    /* Velocity and heat data is always low-resolution. */
-    if (attribute == ATTR_STD_VOLUME_VELOCITY || attribute == ATTR_STD_VOLUME_HEAT) {
-      amplify = 1;
-    }
-
-    const int width = resolution.x * amplify;
-    const int height = resolution.y * amplify;
-    const int depth = resolution.z * amplify;
-    const size_t num_pixels = ((size_t)width) * height * depth;
-
-    float *fpixels = (float *)pixels;
+    voxels.resize(width * height * depth * channels);
 
     if (attribute == ATTR_STD_VOLUME_DENSITY) {
       FluidDomainSettings_density_grid_get_length(&b_domain.ptr, &length);
-      if (length == num_pixels) {
-        FluidDomainSettings_density_grid_get(&b_domain.ptr, fpixels);
+      if (length == voxels.size()) {
+        FluidDomainSettings_density_grid_get(&b_domain.ptr, voxels.data());
         return true;
       }
     }
@@ -105,51 +101,53 @@ class BlenderSmokeLoader : public ImageLoader {
       /* this is in range 0..1, and interpreted by the OpenGL smoke viewer
        * as 1500..3000 K with the first part faded to zero density */
       FluidDomainSettings_flame_grid_get_length(&b_domain.ptr, &length);
-      if (length == num_pixels) {
-        FluidDomainSettings_flame_grid_get(&b_domain.ptr, fpixels);
+      if (length == voxels.size()) {
+        FluidDomainSettings_flame_grid_get(&b_domain.ptr, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_COLOR) {
       /* the RGB is "premultiplied" by density for better interpolation results */
       FluidDomainSettings_color_grid_get_length(&b_domain.ptr, &length);
-      if (length == num_pixels * 4) {
-        FluidDomainSettings_color_grid_get(&b_domain.ptr, fpixels);
+      if (length == voxels.size()) {
+        FluidDomainSettings_color_grid_get(&b_domain.ptr, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_VELOCITY) {
       FluidDomainSettings_velocity_grid_get_length(&b_domain.ptr, &length);
-      if (length == num_pixels * 3) {
-        FluidDomainSettings_velocity_grid_get(&b_domain.ptr, fpixels);
+      if (length == voxels.size()) {
+        FluidDomainSettings_velocity_grid_get(&b_domain.ptr, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_HEAT) {
       FluidDomainSettings_heat_grid_get_length(&b_domain.ptr, &length);
-      if (length == num_pixels) {
-        FluidDomainSettings_heat_grid_get(&b_domain.ptr, fpixels);
+      if (length == voxels.size()) {
+        FluidDomainSettings_heat_grid_get(&b_domain.ptr, voxels.data());
         return true;
       }
     }
     else if (attribute == ATTR_STD_VOLUME_TEMPERATURE) {
       FluidDomainSettings_temperature_grid_get_length(&b_domain.ptr, &length);
-      if (length == num_pixels) {
-        FluidDomainSettings_temperature_grid_get(&b_domain.ptr, fpixels);
+      if (length == voxels.size()) {
+        FluidDomainSettings_temperature_grid_get(&b_domain.ptr, voxels.data());
         return true;
       }
     }
     else {
-      fprintf(stderr,
-              "Cycles error: unknown volume attribute %s, skipping\n",
-              Attribute::standard_name(attribute));
-      fpixels[0] = 0.0f;
+      LOG(ERROR) << "Unknown volume attribute " << Attribute::standard_name(attribute)
+                 << "skipping ";
+      voxels[0] = 0.0f;
       return false;
     }
+    LOG(ERROR) << "Unexpected smoke volume resolution, skipping";
 #else
-    (void)pixels;
+    (void)voxels;
+    (void)width;
+    (void)height;
+    (void)depth;
 #endif
-    fprintf(stderr, "Cycles error: unexpected smoke volume resolution, skipping\n");
     return false;
   }
 
@@ -208,7 +206,7 @@ static void sync_smoke_volume(
       continue;
     }
 
-    volume->set_clipping(b_domain.clipping());
+    const float clipping = b_domain.clipping();
 
     Attribute *attr = volume->attributes.add(std);
 
@@ -217,7 +215,8 @@ static void sync_smoke_volume(
       continue;
     }
 
-    unique_ptr<ImageLoader> loader = make_unique<BlenderSmokeLoader>(b_ob_info.real_object, std);
+    unique_ptr<ImageLoader> loader = make_unique<BlenderSmokeLoader>(
+        b_ob_info.real_object, std, clipping);
     ImageParams params;
     params.frame = frame;
 
@@ -230,8 +229,9 @@ class BlenderVolumeLoader : public VDBImageLoader {
   BlenderVolumeLoader(BL::BlendData &b_data,
                       BL::Volume &b_volume,
                       const string &grid_name,
-                      BL::VolumeRender::precision_enum precision_)
-      : VDBImageLoader(grid_name), b_volume(b_volume)
+                      BL::VolumeRender::precision_enum precision_,
+                      const float clipping)
+      : VDBImageLoader(grid_name, clipping), b_volume(b_volume)
   {
     b_volume.grids.load(b_data.ptr.data);
 
@@ -284,7 +284,6 @@ static void sync_volume_object(BL::BlendData &b_data,
 
   BL::VolumeRender b_render(b_volume.render());
 
-  volume->set_clipping(b_render.clipping());
   volume->set_step_size(b_render.step_size());
   volume->set_object_space((b_render.space() == BL::VolumeRender::space_OBJECT));
 
@@ -351,7 +350,7 @@ static void sync_volume_object(BL::BlendData &b_data,
                             volume->attributes.add(name, TypeFloat, ATTR_ELEMENT_VOXEL);
 
       unique_ptr<ImageLoader> loader = make_unique<BlenderVolumeLoader>(
-          b_data, b_volume, name.string(), b_render.precision());
+          b_data, b_volume, name.string(), b_render.precision(), b_render.clipping());
       ImageParams params;
       params.frame = b_volume.grids.frame();
 
@@ -375,6 +374,8 @@ void BlenderSync::sync_volume(BObjectInfo &b_ob_info, Volume *volume)
       sync_smoke_volume(b_scene, scene, b_ob_info, volume, b_scene.frame_current());
     }
   }
+
+  volume->merge_grids(scene);
 
   /* Tag update. */
   volume->tag_update(scene, true);

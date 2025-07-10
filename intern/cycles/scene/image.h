@@ -55,7 +55,7 @@ class ImageMetaData {
  public:
   /* Set by ImageLoader.load_metadata(). */
   int channels;
-  size_t width, height, depth;
+  size_t width, height;
   size_t byte_size;
   ImageDataType type;
 
@@ -80,7 +80,7 @@ class ImageMetaData {
 /* Information about supported features that Image loaders can use. */
 class ImageDeviceFeatures {
  public:
-  bool has_nanovdb;
+  bool has_nanovdb = true;
 };
 
 /* Image loader base class, that can be subclassed to load image data

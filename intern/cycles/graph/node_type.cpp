@@ -4,6 +4,7 @@
 
 #include "graph/node_type.h"
 
+#include "util/log.h"
 #include "util/transform.h"
 
 CCL_NAMESPACE_BEGIN
@@ -214,7 +215,7 @@ NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const
   const ustring name(name_);
 
   if (types().find(name) != types().end()) {
-    fprintf(stderr, "Node type %s registered twice!\n", name_);
+    LOG(ERROR) << "Node type " << name_ << " registered twice";
     assert(0);
     return nullptr;
   }

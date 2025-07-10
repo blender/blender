@@ -21,6 +21,8 @@
 
 #include "kernel/geom/shader_data.h"
 
+#include "kernel/sample/lcg.h"
+
 CCL_NAMESPACE_BEGIN
 
 #ifdef __VOLUME__
@@ -219,6 +221,12 @@ ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
   /* Load random number state. */
   RNGState rng_state;
   shadow_path_state_rng_load(state, &rng_state);
+
+  /* For stochastic texture sampling. */
+  sd->lcg_state = lcg_state_init(INTEGRATOR_STATE(state, shadow_path, rng_pixel),
+                                 INTEGRATOR_STATE(state, shadow_path, rng_offset),
+                                 INTEGRATOR_STATE(state, shadow_path, sample),
+                                 0xd9111870);
 
   Spectrum tp = *throughput;
 
@@ -987,6 +995,12 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   /* Load random number state. */
   RNGState rng_state;
   path_state_rng_load(state, &rng_state);
+
+  /* For stochastic texture sampling. */
+  sd.lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_pixel),
+                                INTEGRATOR_STATE(state, path, rng_offset),
+                                INTEGRATOR_STATE(state, path, sample),
+                                0x15b4f88d);
 
   /* Sample light ahead of volume stepping, for equiangular sampling. */
   /* TODO: distant lights are ignored now, but could instead use even distribution. */

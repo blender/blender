@@ -4,10 +4,10 @@
 
 #ifdef WITH_CUDA
 
-#  include <climits>
 #  include <cstdio>
 #  include <cstdlib>
 #  include <cstring>
+#  include <iomanip>
 
 #  include "device/cuda/device_impl.h"
 
@@ -17,6 +17,7 @@
 #  include "util/path.h"
 #  include "util/string.h"
 #  include "util/system.h"
+#  include "util/texture.h"
 #  include "util/time.h"
 #  include "util/types.h"
 
@@ -259,9 +260,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   if (!use_adaptive_compilation()) {
     if (!force_ptx) {
       const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin.zst", name, major, minor));
-      VLOG_INFO << "Testing for pre-compiled kernel " << cubin << ".";
+      LOG(INFO) << "Testing for pre-compiled kernel " << cubin << ".";
       if (path_exists(cubin)) {
-        VLOG_INFO << "Using precompiled kernel.";
+        LOG(INFO) << "Using precompiled kernel.";
         return cubin;
       }
     }
@@ -271,9 +272,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
     while (ptx_major >= 3) {
       const string ptx = path_get(
           string_printf("lib/%s_compute_%d%d.ptx.zst", name, ptx_major, ptx_minor));
-      VLOG_INFO << "Testing for pre-compiled kernel " << ptx << ".";
+      LOG(INFO) << "Testing for pre-compiled kernel " << ptx << ".";
       if (path_exists(ptx)) {
-        VLOG_INFO << "Using precompiled kernel.";
+        LOG(INFO) << "Using precompiled kernel.";
         return ptx;
       }
 
@@ -301,9 +302,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   const string cubin_file = string_printf(
       "cycles_%s_%s_%d%d_%s.%s", name, kernel_arch, major, minor, kernel_md5.c_str(), kernel_ext);
   const string cubin = path_cache_get(path_join("kernels", cubin_file));
-  VLOG_INFO << "Testing for locally compiled kernel " << cubin << ".";
+  LOG(INFO) << "Testing for locally compiled kernel " << cubin << ".";
   if (path_exists(cubin)) {
-    VLOG_INFO << "Using locally compiled kernel.";
+    LOG(INFO) << "Using locally compiled kernel.";
     return cubin;
   }
 
@@ -337,21 +338,15 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   }
 
   const int nvcc_cuda_version = cuewCompilerVersion();
-  VLOG_INFO << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
+  LOG(INFO) << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
   if (nvcc_cuda_version < 101) {
-    printf(
-        "Unsupported CUDA version %d.%d detected, "
-        "you need CUDA 10.1 or newer.\n",
-        nvcc_cuda_version / 10,
-        nvcc_cuda_version % 10);
+    LOG(WARNING) << "Unsupported CUDA version " << nvcc_cuda_version / 10 << "."
+                 << nvcc_cuda_version % 10 << ", you need CUDA 10.1 or newer";
     return string();
   }
   if (!(nvcc_cuda_version >= 102 && nvcc_cuda_version < 130)) {
-    printf(
-        "CUDA version %d.%d detected, build may succeed but only "
-        "CUDA 10.1 to 12 are officially supported.\n",
-        nvcc_cuda_version / 10,
-        nvcc_cuda_version % 10);
+    LOG(WARNING) << "CUDA version " << nvcc_cuda_version / 10 << "." << nvcc_cuda_version % 10
+                 << "CUDA 10.1 to 12 are officially supported.";
   }
 
   double starttime = time_dt();
@@ -376,9 +371,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
       cubin.c_str(),
       common_cflags.c_str());
 
-  printf("Compiling %sCUDA kernel ...\n%s\n",
-         (use_adaptive_compilation()) ? "adaptive " : "",
-         command.c_str());
+  LOG(INFO_IMPORTANT) << "Compiling " << ((use_adaptive_compilation()) ? "adaptive " : "")
+                      << "CUDA kernel ...";
+  LOG(INFO_IMPORTANT) << command;
 
 #  ifdef _WIN32
   command = "call " + command;
@@ -398,7 +393,8 @@ string CUDADevice::compile_kernel(const string &common_cflags,
     return string();
   }
 
-  printf("Kernel compilation finished in %.2lfs.\n", time_dt() - starttime);
+  LOG(INFO_IMPORTANT) << "Kernel compilation finished in " << std::fixed << std::setprecision(2)
+                      << time_dt() - starttime << "s";
 
   return cubin;
 }
@@ -412,7 +408,7 @@ bool CUDADevice::load_kernels(const uint kernel_features)
    */
   if (cuModule) {
     if (use_adaptive_compilation()) {
-      VLOG_INFO
+      LOG(INFO)
           << "Skipping CUDA kernel reload for adaptive compilation, not currently supported.";
     }
     return true;
@@ -502,7 +498,7 @@ void CUDADevice::reserve_local_memory(const uint kernel_features)
     cuMemGetInfo(&free_after, &total);
   }
 
-  VLOG_INFO << "Local memory reserved " << string_human_readable_number(free_before - free_after)
+  LOG(INFO) << "Local memory reserved " << string_human_readable_number(free_before - free_after)
             << " bytes. (" << string_human_readable_size(free_before - free_after) << ")";
 
 #  if 0
@@ -751,24 +747,6 @@ static CUDA_MEMCPY2D tex_2d_copy_param(const device_texture &mem, const int pitc
   return param;
 }
 
-static CUDA_MEMCPY3D tex_3d_copy_param(const device_texture &mem)
-{
-  const size_t src_pitch = tex_src_pitch(mem);
-
-  CUDA_MEMCPY3D param;
-  memset(&param, 0, sizeof(param));
-  param.dstMemoryType = CU_MEMORYTYPE_ARRAY;
-  param.dstArray = (CUarray)mem.device_pointer;
-  param.srcMemoryType = CU_MEMORYTYPE_HOST;
-  param.srcHost = mem.host_pointer;
-  param.srcPitch = src_pitch;
-  param.WidthInBytes = param.srcPitch;
-  param.Height = mem.data_height;
-  param.Depth = mem.data_depth;
-
-  return param;
-}
-
 void CUDADevice::tex_alloc(device_texture &mem)
 {
   CUDAContextScope scope(this);
@@ -830,50 +808,11 @@ void CUDADevice::tex_alloc(device_texture &mem)
   }
 
   Mem *cmem = nullptr;
-  CUarray array_3d = nullptr;
 
   if (!mem.is_resident(this)) {
     thread_scoped_lock lock(device_mem_map_mutex);
     cmem = &device_mem_map[&mem];
     cmem->texobject = 0;
-
-    if (mem.data_depth > 1) {
-      array_3d = (CUarray)mem.device_pointer;
-      cmem->array = reinterpret_cast<arrayMemObject>(array_3d);
-    }
-  }
-  else if (mem.data_depth > 1) {
-    /* 3D texture using array, there is no API for linear memory. */
-    CUDA_ARRAY3D_DESCRIPTOR desc;
-
-    desc.Width = mem.data_width;
-    desc.Height = mem.data_height;
-    desc.Depth = mem.data_depth;
-    desc.Format = format;
-    desc.NumChannels = mem.data_elements;
-    desc.Flags = 0;
-
-    VLOG_WORK << "Array 3D allocate: " << mem.name << ", "
-              << string_human_readable_number(mem.memory_size()) << " bytes. ("
-              << string_human_readable_size(mem.memory_size()) << ")";
-
-    cuda_assert(cuArray3DCreate(&array_3d, &desc));
-
-    if (!array_3d) {
-      return;
-    }
-
-    mem.device_pointer = (device_ptr)array_3d;
-    mem.device_size = mem.memory_size();
-    stats.mem_alloc(mem.memory_size());
-
-    const CUDA_MEMCPY3D param = tex_3d_copy_param(mem);
-    cuda_assert(cuMemcpy3D(&param));
-
-    thread_scoped_lock lock(device_mem_map_mutex);
-    cmem = &device_mem_map[&mem];
-    cmem->texobject = 0;
-    cmem->array = reinterpret_cast<arrayMemObject>(array_3d);
   }
   else if (mem.data_height > 0) {
     /* 2D texture, using pitch aligned linear memory. */
@@ -901,20 +840,11 @@ void CUDADevice::tex_alloc(device_texture &mem)
   /* Set Mapping and tag that we need to (re-)upload to device */
   TextureInfo tex_info = mem.info;
 
-  if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16)
-  {
+  if (!is_nanovdb_type(mem.info.data_type)) {
     CUDA_RESOURCE_DESC resDesc;
     memset(&resDesc, 0, sizeof(resDesc));
 
-    if (array_3d) {
-      resDesc.resType = CU_RESOURCE_TYPE_ARRAY;
-      resDesc.res.array.hArray = array_3d;
-      resDesc.flags = 0;
-    }
-    else if (mem.data_height > 0) {
+    if (mem.data_height > 0) {
       const size_t dst_pitch = align_up(tex_src_pitch(mem), pitch_alignment);
 
       resDesc.resType = CU_RESOURCE_TYPE_PITCH2D;
@@ -986,12 +916,7 @@ void CUDADevice::tex_copy_to(device_texture &mem)
   }
   else {
     /* Resident and fully allocated, only copy. */
-    if (mem.data_depth > 0) {
-      CUDAContextScope scope(this);
-      const CUDA_MEMCPY3D param = tex_3d_copy_param(mem);
-      cuda_assert(cuMemcpy3D(&param));
-    }
-    else if (mem.data_height > 0) {
+    if (mem.data_height > 0) {
       CUDAContextScope scope(this);
       const CUDA_MEMCPY2D param = tex_2d_copy_param(mem, pitch_alignment);
       cuda_assert(cuMemcpy2DUnaligned(&param));
@@ -1090,10 +1015,10 @@ bool CUDADevice::should_use_graphics_interop(const GraphicsInteropDevice &intero
 
       if (log) {
         if (found) {
-          VLOG_INFO << "Graphics interop: found matching OpenGL device for CUDA";
+          LOG(INFO) << "Graphics interop: found matching OpenGL device for CUDA";
         }
         else {
-          VLOG_INFO << "Graphics interop: no matching OpenGL device for CUDA";
+          LOG(INFO) << "Graphics interop: no matching OpenGL device for CUDA";
         }
       }
 
@@ -1108,13 +1033,13 @@ bool CUDADevice::should_use_graphics_interop(const GraphicsInteropDevice &intero
 
       if (log) {
         if (found) {
-          VLOG_INFO << "Graphics interop: found matching Vulkan device for CUDA";
+          LOG(INFO) << "Graphics interop: found matching Vulkan device for CUDA";
         }
         else {
-          VLOG_INFO << "Graphics interop: no matching Vulkan device for CUDA";
+          LOG(INFO) << "Graphics interop: no matching Vulkan device for CUDA";
         }
 
-        VLOG_INFO << "Graphics Interop: CUDA UUID "
+        LOG(INFO) << "Graphics Interop: CUDA UUID "
                   << string_hex(reinterpret_cast<uint8_t *>(uuid.bytes), sizeof(uuid.bytes))
                   << ", Vulkan UUID "
                   << string_hex(interop_device.uuid.data(), interop_device.uuid.size());

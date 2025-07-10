@@ -21,7 +21,7 @@
 #include "BKE_attribute_storage.hh"
 #include "BKE_attribute_storage_blend_write.hh"
 
-static CLG_LogRef LOG = {"bke.attribute_storage"};
+static CLG_LogRef LOG = {"geom.attribute"};
 
 namespace blender::bke {
 

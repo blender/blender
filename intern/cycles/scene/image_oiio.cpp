@@ -20,11 +20,11 @@ bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
 {
   /* Perform preliminary checks, with meaningful logging. */
   if (!path_exists(filepath.string())) {
-    VLOG_WARNING << "File '" << filepath.string() << "' does not exist.";
+    LOG(WARNING) << "File '" << filepath.string() << "' does not exist.";
     return false;
   }
   if (path_is_directory(filepath.string())) {
-    VLOG_WARNING << "File '" << filepath.string() << "' is a directory, can't use as image.";
+    LOG(WARNING) << "File '" << filepath.string() << "' is a directory, can't use as image.";
     return false;
   }
 
@@ -41,7 +41,6 @@ bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
 
   metadata.width = spec.width;
   metadata.height = spec.height;
-  metadata.depth = spec.depth;
   metadata.compress_as_srgb = false;
 
   /* Check the main format, and channel formats. */
@@ -98,7 +97,6 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
 {
   const size_t width = metadata.width;
   const size_t height = metadata.height;
-  const int depth = metadata.depth;
   const int components = metadata.channels;
 
   /* Read pixels through OpenImageIO. */
@@ -109,21 +107,16 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
     readpixels = &tmppixels[0];
   }
 
-  if (depth <= 1) {
-    const size_t scanlinesize = width * components * sizeof(StorageType);
-    in->read_image(0,
-                   0,
-                   0,
-                   components,
-                   FileFormat,
-                   (uchar *)readpixels + (height - 1) * scanlinesize,
-                   AutoStride,
-                   -scanlinesize,
-                   AutoStride);
-  }
-  else {
-    in->read_image(0, 0, 0, components, FileFormat, (uchar *)readpixels);
-  }
+  const size_t scanlinesize = width * components * sizeof(StorageType);
+  in->read_image(0,
+                 0,
+                 0,
+                 components,
+                 FileFormat,
+                 (uchar *)readpixels + (height - 1) * scanlinesize,
+                 AutoStride,
+                 -scanlinesize,
+                 AutoStride);
 
   if (components > 4) {
     const size_t dimensions = width * height;
@@ -141,7 +134,7 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
   if (cmyk) {
     const StorageType one = util_image_cast_from_float<StorageType>(1.0f);
 
-    const size_t num_pixels = width * height * depth;
+    const size_t num_pixels = width * height;
     for (size_t i = num_pixels - 1, pixel = 0; pixel < num_pixels; pixel++, i--) {
       const float c = util_image_cast_to_float(pixels[i * 4 + 0]);
       const float m = util_image_cast_to_float(pixels[i * 4 + 1]);
@@ -237,8 +230,10 @@ bool OIIOImageLoader::load_pixels(const ImageMetaData &metadata,
       break;
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT:
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT4:
     case IMAGE_DATA_TYPE_NANOVDB_FPN:
     case IMAGE_DATA_TYPE_NANOVDB_FP16:
+    case IMAGE_DATA_TYPE_NANOVDB_EMPTY:
     case IMAGE_DATA_NUM_TYPES:
       break;
   }

@@ -53,12 +53,7 @@
  * - 4+: May be used for more details than 3, should be avoided but not prevented.
  */
 
-#ifndef __CLG_LOG_H__
-#define __CLG_LOG_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+#pragma once
 
 #ifdef __GNUC__
 #  define _CLOG_ATTR_NONNULL(args...) __attribute__((nonnull(args)))
@@ -79,55 +74,53 @@ extern "C" {
 
 struct CLogContext;
 
-/* Don't typedef enums. */
-enum CLG_LogFlag {
-  CLG_FLAG_USE = (1 << 0),
+enum CLG_Level {
+  CLG_LEVEL_FATAL = 0, /* Fatal errors */
+  CLG_LEVEL_ERROR = 1, /* Errors */
+  CLG_LEVEL_WARN = 2,  /* Warnings */
+  CLG_LEVEL_INFO = 3,  /* Information about devices, files, configuration, user operations */
+  CLG_LEVEL_DEBUG = 4, /* Debugging information for developers */
+  CLG_LEVEL_TRACE = 5, /* Very verbose code execution tracing */
 };
-
-enum CLG_Severity {
-  CLG_SEVERITY_INFO = 0,
-  CLG_SEVERITY_WARN,
-  CLG_SEVERITY_ERROR,
-  CLG_SEVERITY_FATAL,
-};
-#define CLG_SEVERITY_LEN (CLG_SEVERITY_FATAL + 1)
+#define CLG_LEVEL_LEN (CLG_LEVEL_TRACE + 1)
 
 /* Each logger ID has one of these. */
-typedef struct CLG_LogType {
+struct CLG_LogType {
   struct CLG_LogType *next;
   char identifier[64];
   /** FILE output. */
   struct CLogContext *ctx;
   /** Control behavior. */
-  int level;
-  enum CLG_LogFlag flag;
-} CLG_LogType;
+  CLG_Level level;
+};
 
-typedef struct CLG_LogRef {
+struct CLG_LogRef {
   const char *identifier;
   CLG_LogType *type;
   struct CLG_LogRef *next;
-} CLG_LogRef;
+};
 
 void CLG_log_str(const CLG_LogType *lg,
-                 enum CLG_Severity severity,
+                 enum CLG_Level level,
                  const char *file_line,
                  const char *fn,
                  const char *message) _CLOG_ATTR_NONNULL(1, 3, 4, 5);
 void CLG_logf(const CLG_LogType *lg,
-              enum CLG_Severity severity,
+              enum CLG_Level level,
               const char *file_line,
               const char *fn,
               const char *format,
               ...) _CLOG_ATTR_NONNULL(1, 3, 4, 5) _CLOG_ATTR_PRINTF_FORMAT(5, 6);
 
 /* Main initializer and destructor (per session, not logger). */
-void CLG_init(void);
-void CLG_exit(void);
+void CLG_init();
+void CLG_exit();
 
 void CLG_output_set(void *file_handle);
+void CLG_output_use_source_set(int value);
 void CLG_output_use_basename_set(int value);
 void CLG_output_use_timestamp_set(int value);
+void CLG_output_use_memory_set(int value);
 void CLG_error_fn_set(void (*error_fn)(void *file_handle));
 void CLG_fatal_fn_set(void (*fatal_fn)(void *file_handle));
 void CLG_backtrace_fn_set(void (*fatal_fn)(void *file_handle));
@@ -135,7 +128,7 @@ void CLG_backtrace_fn_set(void (*fatal_fn)(void *file_handle));
 void CLG_type_filter_include(const char *type_match, int type_match_len);
 void CLG_type_filter_exclude(const char *type_match, int type_match_len);
 
-void CLG_level_set(int level);
+void CLG_level_set(CLG_Level level);
 
 void CLG_logref_init(CLG_LogRef *clg_ref);
 
@@ -151,45 +144,54 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
   ((clg_ref)->type ? (clg_ref)->type : (CLG_logref_init(clg_ref), (clg_ref)->type))
 
 #define CLOG_CHECK(clg_ref, verbose_level, ...) \
-  ((void)CLOG_ENSURE(clg_ref), \
-   ((clg_ref)->type->flag & CLG_FLAG_USE) && ((clg_ref)->type->level >= verbose_level))
+  ((void)CLOG_ENSURE(clg_ref), ((clg_ref)->type->level >= verbose_level))
 
-#define CLOG_AT_SEVERITY(clg_ref, severity, verbose_level, ...) \
+#define CLOG_AT_LEVEL(clg_ref, verbose_level, ...) \
   { \
     const CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
-    if (((_lg_ty->flag & CLG_FLAG_USE) && (_lg_ty->level >= verbose_level)) || \
-        (severity >= CLG_SEVERITY_WARN)) \
-    { \
-      CLG_logf(_lg_ty, severity, __FILE__ ":" STRINGIFY(__LINE__), __func__, __VA_ARGS__); \
+    if (_lg_ty->level >= verbose_level) { \
+      CLG_logf(_lg_ty, verbose_level, __FILE__ ":" STRINGIFY(__LINE__), __func__, __VA_ARGS__); \
     } \
   } \
   ((void)0)
 
-#define CLOG_STR_AT_SEVERITY(clg_ref, severity, verbose_level, str) \
+#define CLOG_AT_LEVEL_NOCHECK(clg_ref, verbose_level, ...) \
   { \
     const CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
-    if (((_lg_ty->flag & CLG_FLAG_USE) && (_lg_ty->level >= verbose_level)) || \
-        (severity >= CLG_SEVERITY_WARN)) \
-    { \
-      CLG_log_str(_lg_ty, severity, __FILE__ ":" STRINGIFY(__LINE__), __func__, str); \
+    CLG_logf(_lg_ty, verbose_level, __FILE__ ":" STRINGIFY(__LINE__), __func__, __VA_ARGS__); \
+  } \
+  ((void)0)
+
+#define CLOG_STR_AT_LEVEL(clg_ref, verbose_level, str) \
+  { \
+    const CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
+    if (_lg_ty->level >= verbose_level) { \
+      CLG_log_str(_lg_ty, verbose_level, __FILE__ ":" STRINGIFY(__LINE__), __func__, str); \
     } \
   } \
   ((void)0)
 
-#define CLOG_INFO(clg_ref, level, ...) \
-  CLOG_AT_SEVERITY(clg_ref, CLG_SEVERITY_INFO, level, __VA_ARGS__)
-#define CLOG_WARN(clg_ref, ...) CLOG_AT_SEVERITY(clg_ref, CLG_SEVERITY_WARN, 0, __VA_ARGS__)
-#define CLOG_ERROR(clg_ref, ...) CLOG_AT_SEVERITY(clg_ref, CLG_SEVERITY_ERROR, 0, __VA_ARGS__)
-#define CLOG_FATAL(clg_ref, ...) CLOG_AT_SEVERITY(clg_ref, CLG_SEVERITY_FATAL, 0, __VA_ARGS__)
+#define CLOG_STR_AT_LEVEL_NOCHECK(clg_ref, verbose_level, str) \
+  { \
+    const CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
+    CLG_log_str(_lg_ty, verbose_level, __FILE__ ":" STRINGIFY(__LINE__), __func__, str); \
+  } \
+  ((void)0)
 
-#define CLOG_STR_INFO(clg_ref, level, str) \
-  CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_INFO, level, str)
-#define CLOG_STR_WARN(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_WARN, 0, str)
-#define CLOG_STR_ERROR(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_ERROR, 0, str)
-#define CLOG_STR_FATAL(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_FATAL, 0, str)
+#define CLOG_FATAL(clg_ref, ...) CLOG_AT_LEVEL(clg_ref, CLG_LEVEL_FATAL, __VA_ARGS__)
+#define CLOG_ERROR(clg_ref, ...) CLOG_AT_LEVEL(clg_ref, CLG_LEVEL_ERROR, __VA_ARGS__)
+#define CLOG_WARN(clg_ref, ...) CLOG_AT_LEVEL(clg_ref, CLG_LEVEL_WARN, __VA_ARGS__)
+#define CLOG_INFO(clg_ref, ...) CLOG_AT_LEVEL(clg_ref, CLG_LEVEL_INFO, __VA_ARGS__)
+#define CLOG_DEBUG(clg_ref, ...) CLOG_AT_LEVEL(clg_ref, CLG_LEVEL_DEBUG, __VA_ARGS__)
+#define CLOG_TRACE(clg_ref, ...) CLOG_AT_LEVEL(clg_ref, CLG_LEVEL_TRACE, __VA_ARGS__)
 
-#ifdef __cplusplus
-}
-#endif
+#define CLOG_STR_FATAL(clg_ref, str) CLOG_STR_AT_LEVEL(clg_ref, CLG_LEVEL_FATAL, str)
+#define CLOG_STR_ERROR(clg_ref, str) CLOG_STR_AT_LEVEL(clg_ref, CLG_LEVEL_ERROR, str)
+#define CLOG_STR_WARN(clg_ref, str) CLOG_STR_AT_LEVEL(clg_ref, CLG_LEVEL_WARN, str)
+#define CLOG_STR_INFO(clg_ref, str) CLOG_STR_AT_LEVEL(clg_ref, CLG_LEVEL_INFO, str)
+#define CLOG_STR_DEBUG(clg_ref, str) CLOG_STR_AT_LEVEL(clg_ref, CLG_LEVEL_DEBUG, str)
+#define CLOG_STR_TRACE(clg_ref, str) CLOG_STR_AT_LEVEL(clg_ref, CLG_LEVEL_TRACE, str)
 
-#endif /* __CLG_LOG_H__ */
+#define CLOG_INFO_NOCHECK(clg_ref, format, ...) \
+  CLOG_AT_LEVEL_NOCHECK(clg_ref, CLG_LEVEL_INFO, format, __VA_ARGS__)
+#define CLOG_STR_INFO_NOCHECK(clg_ref, str) CLOG_STR_AT_LEVEL_NOCHECK(clg_ref, CLG_LEVEL_INFO, str)

@@ -544,8 +544,8 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
                                                                  const int num_elem_dst,
                                                                  const bool use_create,
                                                                  const bool use_delete,
-                                                                 const CustomData *cd_src,
-                                                                 CustomData *cd_dst,
+                                                                 const CustomData &cd_src,
+                                                                 CustomData &cd_dst,
                                                                  const int tolayers,
                                                                  const bool *use_layers_src,
                                                                  const int num_layers_src,
@@ -555,7 +555,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
   const void *data_src;
   void *data_dst = nullptr;
   int idx_src = num_layers_src;
-  int idx_dst, tot_dst = CustomData_number_of_layers(cd_dst, cddata_type);
+  int idx_dst, tot_dst = CustomData_number_of_layers(&cd_dst, cddata_type);
   bool *data_dst_to_delete = nullptr;
 
   if (!use_layers_src) {
@@ -563,7 +563,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
     if (use_delete) {
       idx_dst = tot_dst;
       while (idx_dst--) {
-        CustomData_free_layer(cd_dst, cddata_type, idx_dst);
+        CustomData_free_layer(&cd_dst, cddata_type, idx_dst);
       }
     }
     return true;
@@ -584,7 +584,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
           /* Create as much data layers as necessary! */
           for (; idx_dst < idx_src; idx_dst++) {
             CustomData_add_layer(
-                cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
+                &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
           }
         }
         else {
@@ -594,7 +594,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
       }
       else if (use_delete && idx_dst > idx_src) {
         while (idx_dst-- > idx_src) {
-          CustomData_free_layer(cd_dst, cddata_type, idx_dst);
+          CustomData_free_layer(&cd_dst, cddata_type, idx_dst);
         }
       }
       if (r_map) {
@@ -602,8 +602,8 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
           if (!use_layers_src[idx_src]) {
             continue;
           }
-          data_src = CustomData_get_layer_n(cd_src, cddata_type, idx_src);
-          data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_src, num_elem_dst);
+          data_src = CustomData_get_layer_n(&cd_src, cddata_type, idx_src);
+          data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_src, num_elem_dst);
           data_transfer_layersmapping_add_item_cd(r_map,
                                                   cddata_type,
                                                   mix_mode,
@@ -631,14 +631,14 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
           continue;
         }
 
-        name = CustomData_get_layer_name(cd_src, cddata_type, idx_src);
-        data_src = CustomData_get_layer_n(cd_src, cddata_type, idx_src);
-        idx_dst = CustomData_get_named_layer(cd_dst, cddata_type, name);
+        name = CustomData_get_layer_name(&cd_src, cddata_type, idx_src);
+        data_src = CustomData_get_layer_n(&cd_src, cddata_type, idx_src);
+        idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
         if (idx_dst == -1) {
           if (use_create) {
             CustomData_add_layer_named(
-                cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst, name);
-            idx_dst = CustomData_get_named_layer(cd_dst, cddata_type, name);
+                &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst, name);
+            idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
           }
           else {
             /* If we are not allowed to create missing dst data layers,
@@ -650,7 +650,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
           data_dst_to_delete[idx_dst] = false;
         }
         if (r_map) {
-          data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_dst, num_elem_dst);
+          data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
           data_transfer_layersmapping_add_item_cd(r_map,
                                                   cddata_type,
                                                   mix_mode,
@@ -670,7 +670,7 @@ static bool data_transfer_layersmapping_cdlayers_multisrc_to_dst(ListBase *r_map
          * from index shifting when deleting a layer. */
         for (idx_dst = tot_dst; idx_dst--;) {
           if (data_dst_to_delete[idx_dst]) {
-            CustomData_free_layer(cd_dst, cddata_type, idx_dst);
+            CustomData_free_layer(&cd_dst, cddata_type, idx_dst);
           }
         }
 
@@ -692,8 +692,8 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
                                                  const int num_elem_dst,
                                                  const bool use_create,
                                                  const bool use_delete,
-                                                 const CustomData *cd_src,
-                                                 CustomData *cd_dst,
+                                                 const CustomData &cd_src,
+                                                 CustomData &cd_dst,
                                                  const int fromlayers,
                                                  const int tolayers,
                                                  cd_datatransfer_interp interp,
@@ -702,21 +702,21 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
   void *data_dst = nullptr;
 
   if (CustomData_layertype_is_singleton(cddata_type)) {
-    const void *data_src = CustomData_get_layer(cd_src, cddata_type);
+    const void *data_src = CustomData_get_layer(&cd_src, cddata_type);
     if (!data_src) {
       if (use_delete) {
-        CustomData_free_layer(cd_dst, cddata_type, 0);
+        CustomData_free_layer(&cd_dst, cddata_type, 0);
       }
       return true;
     }
 
-    data_dst = CustomData_get_layer_for_write(cd_dst, cddata_type, num_elem_dst);
+    data_dst = CustomData_get_layer_for_write(&cd_dst, cddata_type, num_elem_dst);
     if (!data_dst) {
       if (!use_create) {
         return true;
       }
       data_dst = CustomData_add_layer(
-          cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
+          &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
     }
 
     if (r_map) {
@@ -739,12 +739,12 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
       idx_src = fromlayers;
     }
     else {
-      idx_src = CustomData_get_active_layer(cd_src, cddata_type);
+      idx_src = CustomData_get_active_layer(&cd_src, cddata_type);
       if (idx_src == -1) {
         return true;
       }
     }
-    const void *data_src = CustomData_get_layer_n(cd_src, cddata_type, idx_src);
+    const void *data_src = CustomData_get_layer_n(&cd_src, cddata_type, idx_src);
     if (!data_src) {
       return true;
     }
@@ -752,23 +752,23 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
     int idx_dst;
     if (tolayers >= 0) { /* Real-layer index */
       idx_dst = tolayers;
-      data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_dst, num_elem_dst);
+      data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
     }
     else if (tolayers == DT_LAYERS_ACTIVE_DST) {
-      idx_dst = CustomData_get_active_layer(cd_dst, cddata_type);
+      idx_dst = CustomData_get_active_layer(&cd_dst, cddata_type);
       if (idx_dst == -1) {
         if (!use_create) {
           return true;
         }
         data_dst = CustomData_add_layer(
-            cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
+            &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
       }
       else {
-        data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_dst, num_elem_dst);
+        data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
       }
     }
     else if (tolayers == DT_LAYERS_INDEX_DST) {
-      int num = CustomData_number_of_layers(cd_dst, cddata_type);
+      int num = CustomData_number_of_layers(&cd_dst, cddata_type);
       idx_dst = idx_src;
       if (num <= idx_dst) {
         if (!use_create) {
@@ -776,23 +776,24 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
         }
         /* Create as much data layers as necessary! */
         for (; num <= idx_dst; num++) {
-          CustomData_add_layer(cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
+          CustomData_add_layer(
+              &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst);
         }
       }
-      data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_dst, num_elem_dst);
+      data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
     }
     else if (tolayers == DT_LAYERS_NAME_DST) {
-      const char *name = CustomData_get_layer_name(cd_src, cddata_type, idx_src);
-      idx_dst = CustomData_get_named_layer(cd_dst, cddata_type, name);
+      const char *name = CustomData_get_layer_name(&cd_src, cddata_type, idx_src);
+      idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
       if (idx_dst == -1) {
         if (!use_create) {
           return true;
         }
         CustomData_add_layer_named(
-            cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst, name);
-        idx_dst = CustomData_get_named_layer(cd_dst, cddata_type, name);
+            &cd_dst, eCustomDataType(cddata_type), CD_SET_DEFAULT, num_elem_dst, name);
+        idx_dst = CustomData_get_named_layer(&cd_dst, cddata_type, name);
       }
-      data_dst = CustomData_get_layer_n_for_write(cd_dst, cddata_type, idx_dst, num_elem_dst);
+      data_dst = CustomData_get_layer_n_for_write(&cd_dst, cddata_type, idx_dst, num_elem_dst);
     }
     else {
       return false;
@@ -815,7 +816,7 @@ static bool data_transfer_layersmapping_cdlayers(ListBase *r_map,
     }
   }
   else if (fromlayers == DT_LAYERS_ALL_SRC) {
-    int num_src = CustomData_number_of_layers(cd_src, eCustomDataType(cddata_type));
+    int num_src = CustomData_number_of_layers(&cd_src, eCustomDataType(cddata_type));
     bool *use_layers_src = num_src ? MEM_malloc_arrayN<bool>(size_t(num_src), __func__) : nullptr;
     bool ret;
 
@@ -869,17 +870,12 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                  SpaceTransform *space_transform)
 {
   using namespace blender;
-  const CustomData *cd_src;
-  CustomData *cd_dst;
 
   cd_datatransfer_interp interp = nullptr;
   void *interp_data = nullptr;
 
   if (elem_type == ME_VERT) {
     if (!(cddata_type & CD_FAKE)) {
-      cd_src = &me_src->vert_data;
-      cd_dst = &me_dst->vert_data;
-
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 eCustomDataType(cddata_type),
                                                 mix_mode,
@@ -888,8 +884,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 num_elem_dst,
                                                 use_create,
                                                 use_delete,
-                                                cd_src,
-                                                cd_dst,
+                                                me_src->vert_data,
+                                                me_dst->vert_data,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,
@@ -901,26 +897,19 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (cddata_type == CD_FAKE_MDEFORMVERT) {
-      bool ret;
-
-      cd_src = &me_src->vert_data;
-      cd_dst = &me_dst->vert_data;
-
-      ret = data_transfer_layersmapping_vgroups(r_map,
-                                                mix_mode,
-                                                mix_factor,
-                                                mix_weights,
-                                                num_elem_dst,
-                                                use_create,
-                                                use_delete,
-                                                ob_src,
-                                                ob_dst,
-                                                cd_src,
-                                                cd_dst,
-                                                me_dst != ob_dst->data,
-                                                fromlayers,
-                                                tolayers);
-      return ret;
+      return data_transfer_layersmapping_vgroups(r_map,
+                                                 mix_mode,
+                                                 mix_factor,
+                                                 mix_weights,
+                                                 use_create,
+                                                 use_delete,
+                                                 ob_src,
+                                                 ob_dst,
+                                                 *me_src,
+                                                 *me_dst,
+                                                 me_dst != ob_dst->data,
+                                                 fromlayers,
+                                                 tolayers);
     }
     if (cddata_type == CD_FAKE_SHAPEKEY) {
       /* TODO: leaving shape-keys aside for now, quite specific case,
@@ -951,9 +940,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
   }
   else if (elem_type == ME_EDGE) {
     if (!(cddata_type & CD_FAKE)) { /* Unused for edges, currently... */
-      cd_src = &me_src->edge_data;
-      cd_dst = &me_dst->edge_data;
-
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 eCustomDataType(cddata_type),
                                                 mix_mode,
@@ -962,8 +948,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 num_elem_dst,
                                                 use_create,
                                                 use_delete,
-                                                cd_src,
-                                                cd_dst,
+                                                me_src->edge_data,
+                                                me_dst->edge_data,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,
@@ -1084,9 +1070,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     }
 
     if (!(cddata_type & CD_FAKE)) {
-      cd_src = &me_src->corner_data;
-      cd_dst = &me_dst->corner_data;
-
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 eCustomDataType(cddata_type),
                                                 mix_mode,
@@ -1095,8 +1078,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 num_elem_dst,
                                                 use_create,
                                                 use_delete,
-                                                cd_src,
-                                                cd_dst,
+                                                me_src->corner_data,
+                                                me_dst->corner_data,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,
@@ -1116,9 +1099,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     }
 
     if (!(cddata_type & CD_FAKE)) {
-      cd_src = &me_src->face_data;
-      cd_dst = &me_dst->face_data;
-
       if (!data_transfer_layersmapping_cdlayers(r_map,
                                                 eCustomDataType(cddata_type),
                                                 mix_mode,
@@ -1127,8 +1107,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                 num_elem_dst,
                                                 use_create,
                                                 use_delete,
-                                                cd_src,
-                                                cd_dst,
+                                                me_src->face_data,
+                                                me_dst->face_data,
                                                 fromlayers,
                                                 tolayers,
                                                 interp,
@@ -1366,8 +1346,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
   }
 
   if (vgroup_name) {
-    mdef = static_cast<const MDeformVert *>(
-        CustomData_get_layer(&me_dst->vert_data, CD_MDEFORMVERT));
+    mdef = me_dst->deform_verts().data();
     if (mdef) {
       vg_idx = BKE_id_defgroup_name_index(&me_dst->id, vgroup_name);
     }

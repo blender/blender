@@ -53,7 +53,7 @@
 
 #include "WM_api.hh"
 
-static CLG_LogRef LOG = {"ed.image.undo"};
+static CLG_LogRef LOG = {"undo.image"};
 
 /* -------------------------------------------------------------------- */
 /** \name Thread Locking

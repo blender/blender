@@ -59,7 +59,7 @@
 
 #include "BLO_read_write.hh"
 
-static CLG_LogRef LOG = {"bke.layercollection"};
+static CLG_LogRef LOG = {"object.layer"};
 
 /* Set of flags which are dependent on a collection settings. */
 static const short g_base_collection_flags = (BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |
@@ -864,15 +864,14 @@ static LayerCollectionResync *layer_collection_resync_create_recurse(
     }
   }
 
-  CLOG_INFO(&LOG,
-            4,
-            "Old LayerCollection for %s is...\n\tusable: %d\n\tvalid parent: %d\n\tvalid child: "
-            "%d\n\tused: %d\n",
-            layer_resync->collection ? layer_resync->collection->id.name : "<NONE>",
-            layer_resync->is_usable,
-            layer_resync->is_valid_as_parent,
-            layer_resync->is_valid_as_child,
-            layer_resync->is_used);
+  CLOG_DEBUG(&LOG,
+             "Old LayerCollection for %s is...\n\tusable: %d\n\tvalid parent: %d\n\tvalid child: "
+             "%d\n\tused: %d\n",
+             layer_resync->collection ? layer_resync->collection->id.name : "<NONE>",
+             layer_resync->is_usable,
+             layer_resync->is_valid_as_parent,
+             layer_resync->is_valid_as_child,
+             layer_resync->is_used);
 
   return layer_resync;
 }
@@ -966,11 +965,10 @@ static void layer_collection_resync_unused_layers_free(ViewLayer *view_layer,
   }
 
   if (!layer_resync->is_used) {
-    CLOG_INFO(&LOG,
-              4,
-              "Freeing unused LayerCollection for %s",
-              layer_resync->collection != nullptr ? layer_resync->collection->id.name :
-                                                    "<Deleted Collection>");
+    CLOG_DEBUG(&LOG,
+               "Freeing unused LayerCollection for %s",
+               layer_resync->collection != nullptr ? layer_resync->collection->id.name :
+                                                     "<Deleted Collection>");
 
     if (layer_resync->layer == view_layer->active_collection) {
       view_layer->active_collection = nullptr;
@@ -1130,18 +1128,16 @@ static void layer_collection_sync(ViewLayer *view_layer,
       BLI_assert(child_layer_resync->is_usable);
 
       if (child_layer_resync->is_used) {
-        CLOG_INFO(&LOG,
-                  4,
-                  "Found same existing LayerCollection for %s as child of %s",
-                  child_collection->id.name,
-                  layer_resync->collection->id.name);
+        CLOG_DEBUG(&LOG,
+                   "Found same existing LayerCollection for %s as child of %s",
+                   child_collection->id.name,
+                   layer_resync->collection->id.name);
       }
       else {
-        CLOG_INFO(&LOG,
-                  4,
-                  "Found a valid unused LayerCollection for %s as child of %s, re-using it",
-                  child_collection->id.name,
-                  layer_resync->collection->id.name);
+        CLOG_DEBUG(&LOG,
+                   "Found a valid unused LayerCollection for %s as child of %s, re-using it",
+                   child_collection->id.name,
+                   layer_resync->collection->id.name);
       }
 
       child_layer_resync->is_used = true;
@@ -1156,11 +1152,10 @@ static void layer_collection_sync(ViewLayer *view_layer,
       BLI_addtail(&new_lb_layer, child_layer_resync->layer);
     }
     else {
-      CLOG_INFO(&LOG,
-                4,
-                "No available LayerCollection for %s as child of %s, creating a new one",
-                child_collection->id.name,
-                layer_resync->collection->id.name);
+      CLOG_DEBUG(&LOG,
+                 "No available LayerCollection for %s as child of %s, creating a new one",
+                 child_collection->id.name,
+                 layer_resync->collection->id.name);
 
       LayerCollection *child_layer = layer_collection_add(&new_lb_layer, child_collection);
       child_layer->flag = parent_layer_flag;

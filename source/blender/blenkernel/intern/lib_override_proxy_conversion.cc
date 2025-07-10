@@ -29,7 +29,7 @@
 
 #include "BLO_readfile.hh"
 
-static CLG_LogRef LOG = {"bke.liboverride_proxy_conversion"};
+static CLG_LogRef LOG = {"lib.override.proxy_conversion"};
 
 bool BKE_lib_override_library_proxy_convert(Main *bmain,
                                             Scene *scene,
@@ -104,10 +104,8 @@ static void lib_override_library_proxy_convert_do(Main *bmain,
   const bool success = BKE_lib_override_library_proxy_convert(bmain, scene, nullptr, ob_proxy);
 
   if (success) {
-    CLOG_INFO(&LOG,
-              4,
-              "Proxy object '%s' successfully converted to library overrides",
-              ob_proxy->id.name);
+    CLOG_INFO(
+        &LOG, "Proxy object '%s' successfully converted to library overrides", ob_proxy->id.name);
     /* Remove the instance empty from this scene, the items now have an overridden collection
      * instead. */
     if (is_override_instancing_object) {

@@ -77,7 +77,7 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
     return false;
   }
 
-  VLOG_DEBUG << "Checking device " << device.description << " (" << device.id
+  LOG(DEBUG) << "Checking device " << device.description << " (" << device.id
              << ") for OIDN GPU support";
 
   int device_type = OIDN_DEVICE_TYPE_DEFAULT;
@@ -101,20 +101,20 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 #    ifdef OIDN_DEVICE_METAL
     case DEVICE_METAL: {
       const int num_devices = oidnGetNumPhysicalDevices();
-      VLOG_DEBUG << "Found " << num_devices << " OIDN device(s)";
+      LOG(DEBUG) << "Found " << num_devices << " OIDN device(s)";
       for (int i = 0; i < num_devices; i++) {
         const int type = oidnGetPhysicalDeviceInt(i, "type");
         const char *name = oidnGetPhysicalDeviceString(i, "name");
-        VLOG_DEBUG << "OIDN device " << i << ": name=\"" << name
+        LOG(DEBUG) << "OIDN device " << i << ": name=\"" << name
                    << "\", type=" << oidn_device_type_to_string(OIDNDeviceType(type));
         if (type == OIDN_DEVICE_TYPE_METAL) {
           if (device.id.find(name) != std::string::npos) {
-            VLOG_DEBUG << "OIDN device name matches the Cycles device name";
+            LOG(DEBUG) << "OIDN device name matches the Cycles device name";
             return true;
           }
         }
       }
-      VLOG_DEBUG << "No matched OIDN device found";
+      LOG(DEBUG) << "No matched OIDN device found";
       return false;
     }
 #    endif
@@ -127,11 +127,11 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 
   /* Match GPUs by their PCI ID. */
   const int num_devices = oidnGetNumPhysicalDevices();
-  VLOG_DEBUG << "Found " << num_devices << " OIDN device(s)";
+  LOG(DEBUG) << "Found " << num_devices << " OIDN device(s)";
   for (int i = 0; i < num_devices; i++) {
     const int type = oidnGetPhysicalDeviceInt(i, "type");
     const char *name = oidnGetPhysicalDeviceString(i, "name");
-    VLOG_DEBUG << "OIDN device " << i << ": name=\"" << name
+    LOG(DEBUG) << "OIDN device " << i << ": name=\"" << name
                << "\" type=" << oidn_device_type_to_string(OIDNDeviceType(type));
     if (type == device_type) {
       if (oidnGetPhysicalDeviceBool(i, "pciAddressSupported")) {
@@ -139,18 +139,18 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
         unsigned int pci_bus = oidnGetPhysicalDeviceInt(i, "pciBus");
         unsigned int pci_device = oidnGetPhysicalDeviceInt(i, "pciDevice");
         string pci_id = string_printf("%04x:%02x:%02x", pci_domain, pci_bus, pci_device);
-        VLOG_INFO << "OIDN device PCI-e identifier: " << pci_id;
+        LOG(INFO) << "OIDN device PCI-e identifier: " << pci_id;
         if (device.id.find(pci_id) != string::npos) {
-          VLOG_DEBUG << "OIDN device PCI-e identifier matches the Cycles device ID";
+          LOG(DEBUG) << "OIDN device PCI-e identifier matches the Cycles device ID";
           return true;
         }
       }
       else {
-        VLOG_DEBUG << "Device does not support pciAddressSupported";
+        LOG(DEBUG) << "Device does not support pciAddressSupported";
       }
     }
   }
-  VLOG_DEBUG << "No matched OIDN device found";
+  LOG(DEBUG) << "No matched OIDN device found";
   return false;
 #  endif
 }
@@ -335,7 +335,7 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
           oidn_filter_, "weights", custom_weights.data(), custom_weights.size());
     }
     else {
-      fprintf(stderr, "Cycles: Failed to load custom OIDN weights!");
+      LOG(ERROR) << "Failed to load custom OpenImageDenoise weights";
     }
   }
 

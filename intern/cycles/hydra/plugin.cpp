@@ -16,10 +16,8 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-#ifdef WITH_CYCLES_LOGGING
 TF_DEFINE_ENV_SETTING(CYCLES_LOGGING, false, "Enable Cycles logging")
-TF_DEFINE_ENV_SETTING(CYCLES_LOGGING_SEVERITY, 1, "Cycles logging verbosity")
-#endif
+TF_DEFINE_ENV_SETTING(CYCLES_LOGGING_LEVEL, "warning", "Cycles logging level")
 
 HdCyclesPlugin::HdCyclesPlugin()
 {
@@ -28,12 +26,9 @@ HdCyclesPlugin::HdCyclesPlugin()
   const std::string rootPath = PXR_NS::ArchAbsPath(plugin->GetResourcePath());
   CCL_NS::path_init(std::move(rootPath));
 
-#ifdef WITH_CYCLES_LOGGING
   if (TfGetEnvSetting(CYCLES_LOGGING)) {
-    CCL_NS::util_logging_start();
-    CCL_NS::util_logging_verbosity_set(TfGetEnvSetting(CYCLES_LOGGING_SEVERITY));
+    CCL_NS::log_level_set(TfGetEnvSetting(CYCLES_LOGGING_LEVEL));
   }
-#endif
 }
 
 HdCyclesPlugin::~HdCyclesPlugin() {}

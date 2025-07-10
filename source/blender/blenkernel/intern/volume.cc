@@ -58,7 +58,7 @@
 #include "CLG_log.h"
 
 #ifdef WITH_OPENVDB
-static CLG_LogRef LOG = {"bke.volume"};
+static CLG_LogRef LOG = {"geom.volume"};
 #endif
 
 #define VOLUME_FRAME_NONE INT_MAX
@@ -493,12 +493,12 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
   char filepath[FILE_MAX];
   volume_filepath_get(bmain, volume, filepath);
 
-  CLOG_INFO(&LOG, 1, "Volume %s: load %s", volume_name, filepath);
+  CLOG_INFO(&LOG, "Volume %s: load %s", volume_name, filepath);
 
   /* Test if file exists. */
   if (!BLI_exists(filepath)) {
     grids.error_msg = BLI_path_basename(filepath) + std::string(" not found");
-    CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
+    CLOG_INFO(&LOG, "Volume %s: %s", volume_name, grids.error_msg.c_str());
     return false;
   }
 
@@ -507,7 +507,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
 
   if (!grids_from_file.error_message.empty()) {
     grids.error_msg = grids_from_file.error_message;
-    CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
+    CLOG_INFO(&LOG, "Volume %s: %s", volume_name, grids.error_msg.c_str());
     return false;
   }
 
@@ -539,7 +539,7 @@ void BKE_volume_unload(Volume *volume)
   VolumeGridVector &grids = *volume->runtime->grids;
   if (grids.filepath[0] != '\0') {
     const char *volume_name = volume->id.name + 2;
-    CLOG_INFO(&LOG, 1, "Volume %s: unload", volume_name);
+    CLOG_INFO(&LOG, "Volume %s: unload", volume_name);
     grids.clear_all();
   }
 #else

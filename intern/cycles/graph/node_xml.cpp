@@ -7,6 +7,7 @@
 #  include "graph/node_xml.h"
 #  include "graph/node.h"
 
+#  include "util/log.h"
 #  include "util/string.h"
 #  include "util/transform.h"
 
@@ -158,10 +159,8 @@ void xml_read_node(XMLReader &reader, Node *node, const xml_node xml_node)
           node->set(socket, value);
         }
         else {
-          fprintf(stderr,
-                  "Unknown value \"%s\" for attribute \"%s\".\n",
-                  value.c_str(),
-                  socket.name.c_str());
+          LOG(ERROR) << "Unknown value \"" << value.c_str() << "\" for attribute \""
+                     << socket.name.c_str() << "\"";
         }
         break;
       }

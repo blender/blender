@@ -79,7 +79,7 @@
 
 #include "BLO_read_write.hh"
 
-static CLG_LogRef LOG = {"bke.material"};
+static CLG_LogRef LOG = {"material"};
 
 static void material_init_data(ID *id)
 {

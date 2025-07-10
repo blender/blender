@@ -31,7 +31,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-static CLG_LogRef LOG = {"ed.undo.greasepencil"};
+static CLG_LogRef LOG = {"undo.greasepencil"};
 
 namespace blender::ed::greasepencil::undo {
 

@@ -34,12 +34,12 @@ RenderTaskDelegate::RenderTaskDelegate(pxr::HdRenderIndex *parent_index,
    * the former seems to use multisample. */
   task_params_.useAovMultiSample = false;
 
-  CLOG_INFO(LOG_HYDRA_RENDER, 1, "%s", task_id_.GetText());
+  CLOG_DEBUG(LOG_HYDRA_RENDER, "%s", task_id_.GetText());
 }
 
 pxr::VtValue RenderTaskDelegate::Get(pxr::SdfPath const &id, pxr::TfToken const &key)
 {
-  CLOG_INFO(LOG_HYDRA_RENDER, 3, "%s, %s", id.GetText(), key.GetText());
+  CLOG_DEBUG(LOG_HYDRA_RENDER, "%s, %s", id.GetText(), key.GetText());
 
   if (key == pxr::HdTokens->params) {
     return pxr::VtValue(task_params_);
@@ -53,14 +53,14 @@ pxr::VtValue RenderTaskDelegate::Get(pxr::SdfPath const &id, pxr::TfToken const 
 
 pxr::TfTokenVector RenderTaskDelegate::GetTaskRenderTags(pxr::SdfPath const &id)
 {
-  CLOG_INFO(LOG_HYDRA_RENDER, 3, "%s", id.GetText());
+  CLOG_DEBUG(LOG_HYDRA_RENDER, "%s", id.GetText());
 
   return {pxr::HdRenderTagTokens->geometry};
 }
 
 pxr::HdRenderBufferDescriptor RenderTaskDelegate::GetRenderBufferDescriptor(pxr::SdfPath const &id)
 {
-  CLOG_INFO(LOG_HYDRA_RENDER, 3, "%s", id.GetText());
+  CLOG_DEBUG(LOG_HYDRA_RENDER, "%s", id.GetText());
 
   return buffer_descriptors_[id];
 }
@@ -140,7 +140,7 @@ void RenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
   task_params_.aovBindings.push_back(binding);
   render_index.GetChangeTracker().MarkTaskDirty(task_id_, pxr::HdChangeTracker::DirtyParams);
 
-  CLOG_INFO(LOG_HYDRA_RENDER, 1, "%s", aov_key.GetText());
+  CLOG_DEBUG(LOG_HYDRA_RENDER, "%s", aov_key.GetText());
 }
 
 void RenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
@@ -247,7 +247,7 @@ void GPURenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
                                GPU_TEXTURE_USAGE_GENERAL,
                                nullptr);
 
-  CLOG_INFO(LOG_HYDRA_RENDER, 1, "%s", aov_key.GetText());
+  CLOG_DEBUG(LOG_HYDRA_RENDER, "%s", aov_key.GetText());
 }
 
 void GPURenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
@@ -290,7 +290,7 @@ void GPURenderTaskDelegate::bind()
     glGenVertexArrays(1, &VAO_);
     glBindVertexArray(VAO_);
   }
-  CLOG_INFO(LOG_HYDRA_RENDER, 3, "bind");
+  CLOG_DEBUG(LOG_HYDRA_RENDER, "bind");
 }
 
 void GPURenderTaskDelegate::unbind()
@@ -303,7 +303,7 @@ void GPURenderTaskDelegate::unbind()
     GPU_framebuffer_free(framebuffer_);
     framebuffer_ = nullptr;
   }
-  CLOG_INFO(LOG_HYDRA_RENDER, 3, "unbind");
+  CLOG_DEBUG(LOG_HYDRA_RENDER, "unbind");
 }
 
 GPUTexture *GPURenderTaskDelegate::get_aov_texture(pxr::TfToken const &aov_key)

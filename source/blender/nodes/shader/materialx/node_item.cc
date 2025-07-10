@@ -554,7 +554,7 @@ NodeItem NodeItem::convert(Type to_type) const
   }
 
   if (!is_arithmetic(from_type) || !is_arithmetic(to_type)) {
-    CLOG_WARN(LOG_MATERIALX_SHADER,
+    CLOG_WARN(LOG_IO_MATERIALX,
               "Cannot convert: %s -> %s",
               type(from_type).c_str(),
               type(to_type).c_str());
@@ -832,7 +832,7 @@ NodeItem NodeItem::create_node(const std::string &category, Type type) const
 {
   const std::string name = NodeGraph::unique_anonymous_node_name(graph_);
   const std::string type_str = NodeItem::type(type);
-  CLOG_INFO(LOG_MATERIALX_SHADER, 2, "<%s type=%s>", category.c_str(), type_str.c_str());
+  CLOG_DEBUG(LOG_IO_MATERIALX, "<%s type=%s>", category.c_str(), type_str.c_str());
   NodeItem res = empty();
   /* Surface-shader nodes and materials are added directly to the document,
    * otherwise to the node-graph. */
@@ -915,7 +915,7 @@ void NodeItem::set_input(const std::string &in_name, const NodeItem &item)
     node->setConnectedOutput(in_name, item.output);
   }
   else {
-    CLOG_WARN(LOG_MATERIALX_SHADER, "Empty item to input: %s", in_name.c_str());
+    CLOG_WARN(LOG_IO_MATERIALX, "Empty item to input: %s", in_name.c_str());
   }
 }
 
@@ -972,7 +972,7 @@ NodeItem::Type NodeItem::cast_types(NodeItem &item1, NodeItem &item2)
   }
   if (!is_arithmetic(t1) || !is_arithmetic(t2)) {
     CLOG_WARN(
-        LOG_MATERIALX_SHADER, "Can't adjust types: %s <-> %s", type(t1).c_str(), type(t2).c_str());
+        LOG_IO_MATERIALX, "Can't adjust types: %s <-> %s", type(t1).c_str(), type(t2).c_str());
     return Type::Empty;
   }
   if (t1 < t2) {

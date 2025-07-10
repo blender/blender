@@ -664,13 +664,9 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
       }
 
       const ImageHandle &handle = attr.data_voxel();
-      /* We can build directly from OpenVDB data structures, no need to
-       * load such images early. */
-      if (!handle.vdb_loader()) {
-        const int slot = handle.svm_slot();
-        if (slot != -1) {
-          volume_images.insert(slot);
-        }
+      const int slot = handle.svm_slot();
+      if (slot != -1) {
+        volume_images.insert(slot);
       }
     }
   }
@@ -692,7 +688,7 @@ void GeometryManager::device_update(Device *device,
     return;
   }
 
-  VLOG_INFO << "Total " << scene->geometry.size() << " meshes.";
+  LOG(INFO) << "Total " << scene->geometry.size() << " meshes.";
 
   bool true_displacement_used = false;
   bool curve_shadow_transparency_used = false;
@@ -976,7 +972,7 @@ void GeometryManager::device_update(Device *device,
 
     TaskPool::Summary summary;
     pool.wait_work(&summary);
-    VLOG_WORK << "Objects BVH build pool statistics:\n" << summary.full_report();
+    LOG(WORK) << "Objects BVH build pool statistics:\n" << summary.full_report();
   }
 
   for (Shader *shader : scene->shaders) {

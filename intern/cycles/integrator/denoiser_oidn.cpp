@@ -121,7 +121,7 @@ class OIDNDenoiseContext {
     const char *custom_weight_path = getenv("CYCLES_OIDN_CUSTOM_WEIGHTS");
     if (custom_weight_path) {
       if (!path_read_binary(custom_weight_path, custom_weights)) {
-        fprintf(stderr, "Cycles: Failed to load custom OIDN weights!");
+        LOG(ERROR) << "Failed to load custom OpenImageDenoise weights";
       }
     }
   }
@@ -307,7 +307,7 @@ class OIDNDenoiseContext {
   /* Read pass pixels using PassAccessor into a temporary buffer which is owned by the pass.. */
   void read_pass_pixels_into_buffer(OIDNPass &oidn_pass)
   {
-    VLOG_WORK << "Allocating temporary buffer for pass " << oidn_pass.name << " ("
+    LOG(WORK) << "Allocating temporary buffer for pass " << oidn_pass.name << " ("
               << pass_type_as_string(oidn_pass.type) << ")";
 
     const int64_t width = buffer_params_.width;

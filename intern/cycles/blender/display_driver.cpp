@@ -866,8 +866,8 @@ void BlenderDisplayDriver::draw(const Params &params)
 
   gpu_context_unlock();
 
-  VLOG_DEVICE_STATS << "Display driver number of textures: " << DisplayGPUTexture::num_used;
-  VLOG_DEVICE_STATS << "Display driver number of PBOs: " << DisplayGPUPixelBuffer::num_used;
+  LOG(STATS) << "Display driver number of textures: " << DisplayGPUTexture::num_used;
+  LOG(STATS) << "Display driver number of PBOs: " << DisplayGPUPixelBuffer::num_used;
 }
 
 void BlenderDisplayDriver::gpu_context_create()
@@ -879,7 +879,7 @@ void BlenderDisplayDriver::gpu_context_create()
 
   /* Create global GPU resources for display driver. */
   if (!gpu_resources_create()) {
-    LOG(ERROR) << "Error creating GPU resources for Cycles Display Driver.";
+    LOG(ERROR) << "Error creating GPU resources for Display Driver.";
     return;
   }
 }
