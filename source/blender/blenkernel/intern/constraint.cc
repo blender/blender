@@ -3504,8 +3504,9 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 
     dist = normalize_v3(vec);
 
-    /* Only Y constrained object axis scale should be used, to keep same length when scaling it. */
-    dist /= size[1];
+    /* Only Y constrained object axis scale should be used, to keep same length when scaling it.
+     * Use safe divide to avoid creating a matrix with NAN values, see: #141612. */
+    dist = blender::math::safe_divide(dist, size[1]);
 
     /* data->orglength==0 occurs on first run, and after 'R' button is clicked */
     if (data->orglength == 0) {
