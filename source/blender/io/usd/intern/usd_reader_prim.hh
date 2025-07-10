@@ -94,7 +94,7 @@ class USDPrimReader {
   virtual bool valid() const;
 
   virtual void create_object(Main *bmain) = 0;
-  virtual void read_object_data(Main * /*bmain*/, double /*motionSampleTime*/){};
+  virtual void read_object_data(Main * /*bmain*/, pxr::UsdTimeCode /*time*/){};
 
   Object *object() const;
   void object(Object *ob);
@@ -175,10 +175,10 @@ class USDPrimReader {
    *
    * \param merge_with_parent: If true, set the properties of the prim's parent
    *                           on the object ID
-   * \param motionSampleTime: The time code for sampling the USD attributes.
+   * \param time: The time code for sampling the USD attributes.
    */
   void set_props(bool merge_with_parent = false,
-                 pxr::UsdTimeCode motionSampleTime = pxr::UsdTimeCode::Default());
+                 pxr::UsdTimeCode time = pxr::UsdTimeCode::Default());
 };
 
 }  // namespace blender::io::usd

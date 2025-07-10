@@ -88,7 +88,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
   const pxr::SdfPath &usd_path = usd_export_context_.usd_path;
   const pxr::UsdGeomPointInstancer usd_instancer = pxr::UsdGeomPointInstancer::Define(stage,
                                                                                       usd_path);
-  const pxr::UsdTimeCode timecode = get_export_time_code();
+  const pxr::UsdTimeCode time = get_export_time_code();
 
   Span<float4x4> transforms = instances->transforms();
   BLI_assert(transforms.size() >= instance_num);
@@ -109,7 +109,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
     const float3 &pos = transforms[i].location();
     positions[i] = pxr::GfVec3f(pos.x, pos.y, pos.z);
   }
-  blender::io::usd::set_attribute(position_attr, positions, timecode, usd_value_writer_);
+  blender::io::usd::set_attribute(position_attr, positions, time, usd_value_writer_);
 
   /* orientations */
   pxr::UsdAttribute orientations_attr = usd_instancer.CreateOrientationsAttr();
@@ -119,7 +119,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
     const math::Quaternion quat = math::to_quaternion(math::EulerXYZ(euler));
     orientation[i] = pxr::GfQuath(quat.w, pxr::GfVec3h(quat.x, quat.y, quat.z));
   }
-  blender::io::usd::set_attribute(orientations_attr, orientation, timecode, usd_value_writer_);
+  blender::io::usd::set_attribute(orientations_attr, orientation, time, usd_value_writer_);
 
   /* scales */
   pxr::UsdAttribute scales_attr = usd_instancer.CreateScalesAttr();
@@ -129,7 +129,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
     blender::float3 scale_vec = math::to_scale<true>(mat);
     scales[i] = pxr::GfVec3f(scale_vec.x, scale_vec.y, scale_vec.z);
   }
-  blender::io::usd::set_attribute(scales_attr, scales, timecode, usd_value_writer_);
+  blender::io::usd::set_attribute(scales_attr, scales, time, usd_value_writer_);
 
   /* other attr */
   bke::AttributeAccessor attributes_eval = *component->attributes();
@@ -142,7 +142,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
       return;
     }
 
-    this->write_attribute_data(iter, usd_instancer, timecode);
+    this->write_attribute_data(iter, usd_instancer, time);
   });
 
   /* prototypes relations */
@@ -208,12 +208,12 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
                                collection_instance_object_count_map);
   }
 
-  blender::io::usd::set_attribute(proto_indices_attr, proto_indices, timecode, usd_value_writer_);
+  blender::io::usd::set_attribute(proto_indices_attr, proto_indices, time, usd_value_writer_);
 
   /* Handle Collection Prototypes */
   if (!collection_instance_object_count_map.empty()) {
     handle_collection_prototypes(
-        usd_instancer, timecode, instance_num, collection_instance_object_count_map);
+        usd_instancer, time, instance_num, collection_instance_object_count_map);
   }
 
   /* Clean unused prototype. When finding prototype paths under the context of a point instancer,
@@ -221,7 +221,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
    * It can happen that different levels in nested PointInstancers share the same prototypes, but
    * if not, we need to clean the extra prototypes from the prototype relationship for a cleaner
    * USD export. */
-  compact_prototypes(usd_instancer, timecode, proto_wrapper_paths);
+  compact_prototypes(usd_instancer, time, proto_wrapper_paths);
 
   stage->GetRootLayer()->Save();
 }
@@ -330,12 +330,12 @@ void USDPointInstancerWriter::process_instance_reference(
 }
 
 void USDPointInstancerWriter::compact_prototypes(const pxr::UsdGeomPointInstancer &usd_instancer,
-                                                 const pxr::UsdTimeCode timecode,
+                                                 const pxr::UsdTimeCode time,
                                                  const pxr::SdfPathVector &proto_paths)
 {
   pxr::UsdAttribute proto_indices_attr = usd_instancer.GetProtoIndicesAttr();
   pxr::VtArray<int> proto_indices;
-  if (!proto_indices_attr.Get(&proto_indices, timecode)) {
+  if (!proto_indices_attr.Get(&proto_indices, time)) {
     return;
   }
 
@@ -354,7 +354,7 @@ void USDPointInstancerWriter::compact_prototypes(const pxr::UsdGeomPointInstance
   for (int &idx : proto_indices) {
     idx = remap[idx];
   }
-  proto_indices_attr.Set(proto_indices, timecode);
+  proto_indices_attr.Set(proto_indices, time);
 
   pxr::SdfPathVector compact_proto_paths;
   for (int i = 0; i < proto_paths.size(); ++i) {
@@ -410,12 +410,12 @@ template<typename T, typename GetterFunc, typename CreatorFunc>
 static void DuplicatePerInstanceAttribute(const GetterFunc &getter,
                                           const CreatorFunc &creator,
                                           size_t copies,
-                                          const pxr::UsdTimeCode &timecode)
+                                          const pxr::UsdTimeCode &time)
 {
   pxr::VtArray<T> values;
-  if (getter().Get(&values, timecode) && !values.empty()) {
+  if (getter().Get(&values, time) && !values.empty()) {
     auto newValues = DuplicateArray(values, copies);
-    creator().Set(newValues, timecode);
+    creator().Set(newValues, time);
   }
 }
 
@@ -423,7 +423,7 @@ template<typename T, typename GetterFunc, typename CreatorFunc>
 static void ExpandAttributePerInstance(const GetterFunc &getter,
                                        const CreatorFunc &creator,
                                        const std::vector<std::pair<int, int>> &instance_object_map,
-                                       const pxr::UsdTimeCode &timecode)
+                                       const pxr::UsdTimeCode &time)
 {
   // MARK: Handle Collection Prototypes
   // -----------------------------------------------------------------------------
@@ -435,7 +435,7 @@ static void ExpandAttributePerInstance(const GetterFunc &getter,
   // To ensure correct arrangement, reading, and drawing in OpenUSD, we need to explicitly
   // duplicate the instance attributes across all prototypes derived from the Collection.
   pxr::VtArray<T> original_values;
-  if (!getter().Get(&original_values, timecode) || original_values.empty()) {
+  if (!getter().Get(&original_values, time) || original_values.empty()) {
     return;
   }
 
@@ -448,12 +448,12 @@ static void ExpandAttributePerInstance(const GetterFunc &getter,
     }
   }
 
-  creator().Set(expanded_values, timecode);
+  creator().Set(expanded_values, time);
 }
 
 void USDPointInstancerWriter::handle_collection_prototypes(
     const pxr::UsdGeomPointInstancer &usd_instancer,
-    const pxr::UsdTimeCode timecode,
+    const pxr::UsdTimeCode time,
     int instance_num,
     const std::vector<std::pair<int, int>> &collection_instance_object_count_map)
 {
@@ -462,34 +462,34 @@ void USDPointInstancerWriter::handle_collection_prototypes(
     ExpandAttributePerInstance<pxr::GfVec3f>([&]() { return usd_instancer.GetPositionsAttr(); },
                                              [&]() { return usd_instancer.CreatePositionsAttr(); },
                                              collection_instance_object_count_map,
-                                             timecode);
+                                             time);
   }
   if (usd_instancer.GetOrientationsAttr().HasAuthoredValue()) {
     ExpandAttributePerInstance<pxr::GfQuath>(
         [&]() { return usd_instancer.GetOrientationsAttr(); },
         [&]() { return usd_instancer.CreateOrientationsAttr(); },
         collection_instance_object_count_map,
-        timecode);
+        time);
   }
   if (usd_instancer.GetScalesAttr().HasAuthoredValue()) {
     ExpandAttributePerInstance<pxr::GfVec3f>([&]() { return usd_instancer.GetScalesAttr(); },
                                              [&]() { return usd_instancer.CreateScalesAttr(); },
                                              collection_instance_object_count_map,
-                                             timecode);
+                                             time);
   }
   if (usd_instancer.GetVelocitiesAttr().HasAuthoredValue()) {
     ExpandAttributePerInstance<pxr::GfVec3f>(
         [&]() { return usd_instancer.GetVelocitiesAttr(); },
         [&]() { return usd_instancer.CreateVelocitiesAttr(); },
         collection_instance_object_count_map,
-        timecode);
+        time);
   }
   if (usd_instancer.GetAngularVelocitiesAttr().HasAuthoredValue()) {
     ExpandAttributePerInstance<pxr::GfVec3f>(
         [&]() { return usd_instancer.GetAngularVelocitiesAttr(); },
         [&]() { return usd_instancer.CreateAngularVelocitiesAttr(); },
         collection_instance_object_count_map,
-        timecode);
+        time);
   }
 
   // Duplicate Primvars
@@ -506,19 +506,19 @@ void USDPointInstancerWriter::handle_collection_prototypes(
 
     if (type == pxr::SdfValueTypeNames->FloatArray) {
       ExpandAttributePerInstance<float>(
-          [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
+          [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
     else if (type == pxr::SdfValueTypeNames->IntArray) {
       ExpandAttributePerInstance<int>(
-          [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
+          [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
     else if (type == pxr::SdfValueTypeNames->UCharArray) {
       ExpandAttributePerInstance<uchar>(
-          [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
+          [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
     else if (type == pxr::SdfValueTypeNames->Float2Array) {
       ExpandAttributePerInstance<pxr::GfVec2f>(
-          [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
+          [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
     else if (ELEM(type,
                   pxr::SdfValueTypeNames->Float3Array,
@@ -526,19 +526,19 @@ void USDPointInstancerWriter::handle_collection_prototypes(
                   pxr::SdfValueTypeNames->Color4fArray))
     {
       ExpandAttributePerInstance<pxr::GfVec3f>(
-          [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
+          [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
     else if (type == pxr::SdfValueTypeNames->QuatfArray) {
       ExpandAttributePerInstance<pxr::GfQuatf>(
-          [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
+          [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
     else if (type == pxr::SdfValueTypeNames->BoolArray) {
       ExpandAttributePerInstance<bool>(
-          [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
+          [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
     else if (type == pxr::SdfValueTypeNames->StringArray) {
       ExpandAttributePerInstance<std::string>(
-          [&]() { return primvar; }, create, collection_instance_object_count_map, timecode);
+          [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
   }
 
@@ -561,7 +561,7 @@ void USDPointInstancerWriter::handle_collection_prototypes(
 
 void USDPointInstancerWriter::write_attribute_data(const bke::AttributeIter &attr,
                                                    const pxr::UsdGeomPointInstancer &usd_instancer,
-                                                   const pxr::UsdTimeCode timecode)
+                                                   const pxr::UsdTimeCode time)
 {
   const std::optional<pxr::SdfValueTypeName> pv_type = convert_blender_type_to_usd(attr.data_type);
 
@@ -607,8 +607,8 @@ void USDPointInstancerWriter::write_attribute_data(const bke::AttributeIter &att
       }
     }
 
-    blender::io::usd::set_attribute(idsAttr, ids, timecode, usd_value_writer_);
-    blender::io::usd::set_attribute(invisibleIdsAttr, invisibleIds, timecode, usd_value_writer_);
+    blender::io::usd::set_attribute(idsAttr, ids, time, usd_value_writer_);
+    blender::io::usd::set_attribute(invisibleIdsAttr, invisibleIds, time, usd_value_writer_);
   }
 
   const pxr::TfToken pv_name(
@@ -617,8 +617,7 @@ void USDPointInstancerWriter::write_attribute_data(const bke::AttributeIter &att
 
   pxr::UsdGeomPrimvar pv_attr = pv_api.CreatePrimvar(pv_name, *pv_type);
 
-  copy_blender_attribute_to_primvar(
-      attribute, attr.data_type, timecode, pv_attr, usd_value_writer_);
+  copy_blender_attribute_to_primvar(attribute, attr.data_type, time, pv_attr, usd_value_writer_);
 }
 
 }  // namespace blender::io::usd

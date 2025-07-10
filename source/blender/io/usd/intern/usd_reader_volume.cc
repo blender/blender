@@ -26,7 +26,7 @@ void USDVolumeReader::create_object(Main *bmain)
   object_->data = volume;
 }
 
-void USDVolumeReader::read_object_data(Main *bmain, const double motionSampleTime)
+void USDVolumeReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
 {
   Volume *volume = static_cast<Volume *>(object_->data);
 
@@ -46,7 +46,7 @@ void USDVolumeReader::read_object_data(Main *bmain, const double motionSampleTim
 
     if (filepathAttr.IsAuthored()) {
       pxr::SdfAssetPath fp;
-      filepathAttr.Get(&fp, motionSampleTime);
+      filepathAttr.Get(&fp, time);
 
       const std::string filepath = fp.GetResolvedPath();
       STRNCPY(volume->filepath, filepath.c_str());
@@ -70,7 +70,7 @@ void USDVolumeReader::read_object_data(Main *bmain, const double motionSampleTim
     }
   }
 
-  USDXformReader::read_object_data(bmain, motionSampleTime);
+  USDXformReader::read_object_data(bmain, time);
 }
 
 }  // namespace blender::io::usd

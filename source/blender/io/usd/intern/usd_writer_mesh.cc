@@ -246,13 +246,12 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
     return;
   }
 
-  const pxr::UsdTimeCode timecode = get_export_time_code();
+  const pxr::UsdTimeCode time = get_export_time_code();
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_mesh);
 
   pxr::UsdGeomPrimvar pv_attr = pv_api.CreatePrimvar(pv_name, *pv_type, *pv_interp);
 
-  copy_blender_attribute_to_primvar(
-      attribute, attr.data_type, timecode, pv_attr, usd_value_writer_);
+  copy_blender_attribute_to_primvar(attribute, attr.data_type, time, pv_attr, usd_value_writer_);
 }
 
 void USDGenericMeshWriter::write_uv_data(const pxr::UsdGeomMesh &usd_mesh,
@@ -271,7 +270,7 @@ void USDGenericMeshWriter::write_uv_data(const pxr::UsdGeomMesh &usd_mesh,
                              "st" :
                              attr.name;
 
-  const pxr::UsdTimeCode timecode = get_export_time_code();
+  const pxr::UsdTimeCode time = get_export_time_code();
   const pxr::TfToken pv_name(
       make_safe_name(name, usd_export_context_.export_params.allow_unicode));
   const pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(usd_mesh);
@@ -279,7 +278,7 @@ void USDGenericMeshWriter::write_uv_data(const pxr::UsdGeomMesh &usd_mesh,
   pxr::UsdGeomPrimvar pv_uv = pv_api.CreatePrimvar(
       pv_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
 
-  copy_blender_buffer_to_primvar<float2, pxr::GfVec2f>(buffer, timecode, pv_uv, usd_value_writer_);
+  copy_blender_buffer_to_primvar<float2, pxr::GfVec2f>(buffer, time, pv_uv, usd_value_writer_);
 }
 
 void USDGenericMeshWriter::free_export_mesh(Mesh *mesh)
@@ -320,12 +319,12 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
                                       Mesh *mesh,
                                       const SubsurfModifierData *subsurfData)
 {
-  pxr::UsdTimeCode timecode = get_export_time_code();
+  pxr::UsdTimeCode time = get_export_time_code();
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
   const pxr::SdfPath &usd_path = usd_export_context_.usd_path;
 
   pxr::UsdGeomMesh usd_mesh = pxr::UsdGeomMesh::Define(stage, usd_path);
-  write_visibility(context, timecode, usd_mesh);
+  write_visibility(context, time, usd_mesh);
 
   USDMeshData usd_mesh_data;
   /* Ensure data exists if currently in edit mode. */
@@ -346,11 +345,11 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
     attr_face_vertex_indices.Set(usd_mesh_data.face_indices, pxr::UsdTimeCode::Default());
   }
 
-  usd_value_writer_.SetAttribute(attr_points, pxr::VtValue(usd_mesh_data.points), timecode);
+  usd_value_writer_.SetAttribute(attr_points, pxr::VtValue(usd_mesh_data.points), time);
   usd_value_writer_.SetAttribute(
-      attr_face_vertex_counts, pxr::VtValue(usd_mesh_data.face_vertex_counts), timecode);
+      attr_face_vertex_counts, pxr::VtValue(usd_mesh_data.face_vertex_counts), time);
   usd_value_writer_.SetAttribute(
-      attr_face_vertex_indices, pxr::VtValue(usd_mesh_data.face_indices), timecode);
+      attr_face_vertex_indices, pxr::VtValue(usd_mesh_data.face_indices), time);
 
   if (!usd_mesh_data.crease_lengths.empty()) {
     pxr::UsdAttribute attr_crease_lengths = usd_mesh.CreateCreaseLengthsAttr(pxr::VtValue(), true);
@@ -365,11 +364,11 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
     }
 
     usd_value_writer_.SetAttribute(
-        attr_crease_lengths, pxr::VtValue(usd_mesh_data.crease_lengths), timecode);
+        attr_crease_lengths, pxr::VtValue(usd_mesh_data.crease_lengths), time);
     usd_value_writer_.SetAttribute(
-        attr_crease_indices, pxr::VtValue(usd_mesh_data.crease_vertex_indices), timecode);
+        attr_crease_indices, pxr::VtValue(usd_mesh_data.crease_vertex_indices), time);
     usd_value_writer_.SetAttribute(
-        attr_crease_sharpness, pxr::VtValue(usd_mesh_data.crease_sharpnesses), timecode);
+        attr_crease_sharpness, pxr::VtValue(usd_mesh_data.crease_sharpnesses), time);
   }
 
   if (!usd_mesh_data.corner_indices.empty() &&
@@ -385,9 +384,9 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
     }
 
     usd_value_writer_.SetAttribute(
-        attr_corner_indices, pxr::VtValue(usd_mesh_data.corner_indices), timecode);
+        attr_corner_indices, pxr::VtValue(usd_mesh_data.corner_indices), time);
     usd_value_writer_.SetAttribute(
-        attr_corner_sharpnesses, pxr::VtValue(usd_mesh_data.corner_sharpnesses), timecode);
+        attr_corner_sharpnesses, pxr::VtValue(usd_mesh_data.corner_sharpnesses), time);
   }
 
   write_custom_data(context.object, mesh, usd_mesh);
@@ -404,7 +403,7 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
     write_normals(mesh, usd_mesh);
   }
 
-  this->author_extent(usd_mesh, mesh->bounds_min_max(), timecode);
+  this->author_extent(usd_mesh, mesh->bounds_min_max(), time);
 
   /* TODO(Sybren): figure out what happens when the face groups change. */
   if (frame_has_been_written_) {
@@ -649,7 +648,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
 
 void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh &usd_mesh)
 {
-  pxr::UsdTimeCode timecode = get_export_time_code();
+  pxr::UsdTimeCode time = get_export_time_code();
 
   pxr::VtVec3fArray loop_normals;
   loop_normals.resize(mesh->corners_num);
@@ -679,7 +678,7 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh &usd
   if (!attr_normals.HasValue()) {
     attr_normals.Set(loop_normals, pxr::UsdTimeCode::Default());
   }
-  usd_value_writer_.SetAttribute(attr_normals, pxr::VtValue(loop_normals), timecode);
+  usd_value_writer_.SetAttribute(attr_normals, pxr::VtValue(loop_normals), time);
   usd_mesh.SetNormalsInterpolation(pxr::UsdGeomTokens->faceVarying);
 }
 
@@ -699,13 +698,13 @@ void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh,
   pxr::VtVec3fArray usd_velocities;
   usd_velocities.assign(data.begin(), data.end());
 
-  pxr::UsdTimeCode timecode = get_export_time_code();
+  pxr::UsdTimeCode time = get_export_time_code();
   pxr::UsdAttribute attr_vel = usd_mesh.CreateVelocitiesAttr(pxr::VtValue(), true);
   if (!attr_vel.HasValue()) {
     attr_vel.Set(usd_velocities, pxr::UsdTimeCode::Default());
   }
 
-  usd_value_writer_.SetAttribute(attr_vel, usd_velocities, timecode);
+  usd_value_writer_.SetAttribute(attr_vel, usd_velocities, time);
 }
 
 USDMeshWriter::USDMeshWriter(const USDExporterContext &ctx)
@@ -886,7 +885,7 @@ void USDMeshWriter::add_shape_key_weights_sample(const Object *obj)
   }
 
   pxr::VtFloatArray weights = get_blendshape_weights(key);
-  pxr::UsdTimeCode timecode = get_export_time_code();
+  pxr::UsdTimeCode time = get_export_time_code();
 
   /* Save the weights samples to a temporary privar which will be copied to
    * a skeleton animation later. */
@@ -901,7 +900,7 @@ void USDMeshWriter::add_shape_key_weights_sample(const Object *obj)
     return;
   }
 
-  temp_weights_attr.Set(weights, timecode);
+  temp_weights_attr.Set(weights, time);
 }
 
 }  // namespace blender::io::usd

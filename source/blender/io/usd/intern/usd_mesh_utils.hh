@@ -10,7 +10,7 @@ namespace blender::io::usd {
 
 void read_generic_mesh_primvar(Mesh *mesh,
                                const pxr::UsdGeomPrimvar &primvar,
-                               double motionSampleTime,
+                               pxr::UsdTimeCode time,
                                bool is_left_handed);
 
 }  // namespace blender::io::usd

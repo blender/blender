@@ -32,12 +32,12 @@ void USDXformReader::create_object(Main *bmain)
   object_->data = nullptr;
 }
 
-void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampleTime)
+void USDXformReader::read_object_data(Main * /*bmain*/, const pxr::UsdTimeCode time)
 {
   bool is_constant;
   float transform_from_usd[4][4];
 
-  read_matrix(transform_from_usd, motionSampleTime, settings_->scene_scale, &is_constant);
+  read_matrix(transform_from_usd, time, settings_->scene_scale, &is_constant);
 
   if (!is_constant && settings_->get_cache_file) {
     bConstraint *con = BKE_constraint_add_for_object(
@@ -55,7 +55,7 @@ void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampl
   BKE_object_apply_mat4(object_, transform_from_usd, true, false);
 
   /* Make sure to collect custom attributes */
-  set_props(use_parent_xform(), motionSampleTime);
+  set_props(use_parent_xform(), time);
 }
 
 pxr::SdfPath USDXformReader::object_prim_path() const
@@ -64,7 +64,7 @@ pxr::SdfPath USDXformReader::object_prim_path() const
 }
 
 void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
-                                 const float time,
+                                 const pxr::UsdTimeCode time,
                                  const float scale,
                                  bool *r_is_constant) const
 {
@@ -152,7 +152,7 @@ bool USDXformReader::is_root_xform_prim() const
   return false;
 }
 
-std::optional<XformResult> USDXformReader::get_local_usd_xform(const float time) const
+std::optional<XformResult> USDXformReader::get_local_usd_xform(const pxr::UsdTimeCode time) const
 {
   const pxr::UsdGeomXformable xformable = get_xformable();
 

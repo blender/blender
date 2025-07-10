@@ -47,9 +47,9 @@ void USDShapeReader::create_object(Main *bmain)
   object_->data = mesh;
 }
 
-void USDShapeReader::read_object_data(Main *bmain, double motionSampleTime)
+void USDShapeReader::read_object_data(Main *bmain, pxr::UsdTimeCode time)
 {
-  const USDMeshReadParams params = create_mesh_read_params(motionSampleTime,
+  const USDMeshReadParams params = create_mesh_read_params(time.GetValue(),
                                                            import_params_.mesh_read_flag);
   Mesh *mesh = (Mesh *)object_->data;
   Mesh *read_mesh = this->read_mesh(mesh, params, nullptr);
@@ -61,23 +61,23 @@ void USDShapeReader::read_object_data(Main *bmain, double motionSampleTime)
     }
   }
 
-  USDXformReader::read_object_data(bmain, motionSampleTime);
+  USDXformReader::read_object_data(bmain, time);
 }
 
 template<typename Adapter>
-void USDShapeReader::read_values(const double motionSampleTime,
+void USDShapeReader::read_values(const pxr::UsdTimeCode time,
                                  pxr::VtVec3fArray &positions,
                                  pxr::VtIntArray &face_indices,
                                  pxr::VtIntArray &face_counts) const
 {
   Adapter adapter;
-  pxr::VtValue points_val = adapter.GetPoints(prim_, motionSampleTime);
+  pxr::VtValue points_val = adapter.GetPoints(prim_, time);
 
   if (points_val.IsHolding<pxr::VtVec3fArray>()) {
     positions = points_val.Get<pxr::VtVec3fArray>();
   }
 
-  pxr::VtValue topology_val = adapter.GetTopology(prim_, pxr::SdfPath(), motionSampleTime);
+  pxr::VtValue topology_val = adapter.GetTopology(prim_, pxr::SdfPath(), time);
 
   if (topology_val.IsHolding<pxr::HdMeshTopology>()) {
     const pxr::HdMeshTopology &topology = topology_val.Get<pxr::HdMeshTopology>();
@@ -86,44 +86,38 @@ void USDShapeReader::read_values(const double motionSampleTime,
   }
 }
 
-bool USDShapeReader::read_mesh_values(double motionSampleTime,
+bool USDShapeReader::read_mesh_values(pxr::UsdTimeCode time,
                                       pxr::VtVec3fArray &positions,
                                       pxr::VtIntArray &face_indices,
                                       pxr::VtIntArray &face_counts) const
 {
   if (prim_.IsA<pxr::UsdGeomCapsule>() || prim_.IsA<pxr::UsdGeomCapsule_1>()) {
-    read_values<pxr::UsdImagingCapsuleAdapter>(
-        motionSampleTime, positions, face_indices, face_counts);
+    read_values<pxr::UsdImagingCapsuleAdapter>(time, positions, face_indices, face_counts);
     return true;
   }
 
   if (prim_.IsA<pxr::UsdGeomCylinder>() || prim_.IsA<pxr::UsdGeomCylinder_1>()) {
-    read_values<pxr::UsdImagingCylinderAdapter>(
-        motionSampleTime, positions, face_indices, face_counts);
+    read_values<pxr::UsdImagingCylinderAdapter>(time, positions, face_indices, face_counts);
     return true;
   }
 
   if (prim_.IsA<pxr::UsdGeomCone>()) {
-    read_values<pxr::UsdImagingConeAdapter>(
-        motionSampleTime, positions, face_indices, face_counts);
+    read_values<pxr::UsdImagingConeAdapter>(time, positions, face_indices, face_counts);
     return true;
   }
 
   if (prim_.IsA<pxr::UsdGeomCube>()) {
-    read_values<pxr::UsdImagingCubeAdapter>(
-        motionSampleTime, positions, face_indices, face_counts);
+    read_values<pxr::UsdImagingCubeAdapter>(time, positions, face_indices, face_counts);
     return true;
   }
 
   if (prim_.IsA<pxr::UsdGeomSphere>()) {
-    read_values<pxr::UsdImagingSphereAdapter>(
-        motionSampleTime, positions, face_indices, face_counts);
+    read_values<pxr::UsdImagingSphereAdapter>(time, positions, face_indices, face_counts);
     return true;
   }
 
   if (prim_.IsA<pxr::UsdGeomPlane>()) {
-    read_values<pxr::UsdImagingPlaneAdapter>(
-        motionSampleTime, positions, face_indices, face_counts);
+    read_values<pxr::UsdImagingPlaneAdapter>(time, positions, face_indices, face_counts);
     return true;
   }
 
@@ -186,7 +180,7 @@ void USDShapeReader::read_geometry(bke::GeometrySet &geometry_set,
   }
 }
 
-void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const double motionSampleTime) const
+void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const pxr::UsdTimeCode time) const
 {
   /* TODO: also handle the displayOpacity primvar. */
   if (!mesh || !prim_) {
@@ -221,7 +215,7 @@ void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const double motionSampl
       }
     }
 
-    read_generic_mesh_primvar(mesh, pv, motionSampleTime, false);
+    read_generic_mesh_primvar(mesh, pv, time, false);
 
     /* Record whether the primvar attribute might be time varying. */
     if (!primvar_time_varying_map_.contains(name)) {

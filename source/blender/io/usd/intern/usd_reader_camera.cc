@@ -194,7 +194,7 @@ void USDCameraReader::create_object(Main *bmain)
   object_->data = camera;
 }
 
-void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTime)
+void USDCameraReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
 {
   pxr::UsdAttribute usd_focal_length = cam_prim_.GetFocalLengthAttr();
   pxr::UsdAttribute usd_focus_dist = cam_prim_.GetFocusDistanceAttr();
@@ -241,7 +241,7 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
   };
 
   AttributeData<float> data;
-  if (read_attribute_values(usd_focal_length, motionSampleTime, data)) {
+  if (read_attribute_values(usd_focal_length, time, data)) {
     camera->lens = scale_default(data.initial_value, tenth_unit_to_millimeters, camera->lens);
 
     if (!data.samples.is_empty()) {
@@ -253,7 +253,7 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
     }
   }
 
-  if (read_attribute_values(usd_focus_dist, motionSampleTime, data)) {
+  if (read_attribute_values(usd_focus_dist, time, data)) {
     camera->dof.focus_distance = scale_default(
         data.initial_value, this->settings_->scene_scale, camera->dof.focus_distance);
 
@@ -266,7 +266,7 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
     }
   }
 
-  if (read_attribute_values(usd_fstop, motionSampleTime, data)) {
+  if (read_attribute_values(usd_fstop, time, data)) {
     camera->dof.aperture_fstop = scale_default(data.initial_value, 1, camera->dof.aperture_fstop);
 
     if (!data.samples.is_empty()) {
@@ -279,7 +279,7 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
   }
 
   AttributeData<pxr::GfVec2f> clip_data;
-  if (read_attribute_values(usd_clipping_range, motionSampleTime, clip_data)) {
+  if (read_attribute_values(usd_clipping_range, time, clip_data)) {
     auto clamp_clip = [this](pxr::GfVec2f value) {
       /* Clamp the value for clip-start, matching the range defined in RNA. */
       return pxr::GfVec2f(max_ff(1e-6f, value[0] * settings_->scene_scale),
@@ -312,19 +312,19 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
                      usd_vert_aperture,
                      usd_horiz_offset,
                      usd_vert_offset,
-                     motionSampleTime,
+                     time,
                      tenth_unit_to_millimeters,
                      channelbag);
 
   /* USD Orthographic cameras have very limited support. Support a basic, non-animated, translation
    * between USD and Blender. */
   pxr::TfToken projection;
-  cam_prim_.GetProjectionAttr().Get(&projection, motionSampleTime);
+  cam_prim_.GetProjectionAttr().Get(&projection, time);
   camera->type = (projection.GetString() == "perspective") ? CAM_PERSP : CAM_ORTHO;
   if (camera->type == CAM_ORTHO) {
     float horiz_aperture, vert_aperture;
-    usd_horiz_aperture.Get(&horiz_aperture, motionSampleTime);
-    usd_vert_aperture.Get(&vert_aperture, motionSampleTime);
+    usd_horiz_aperture.Get(&horiz_aperture, time);
+    usd_vert_aperture.Get(&vert_aperture, time);
     camera->ortho_scale = max_ff(vert_aperture, horiz_aperture);
   }
 
@@ -337,7 +337,7 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
     BKE_fcurve_handles_recalc(fcu);
   }
 
-  USDXformReader::read_object_data(bmain, motionSampleTime);
+  USDXformReader::read_object_data(bmain, time);
 }
 
 }  // namespace blender::io::usd

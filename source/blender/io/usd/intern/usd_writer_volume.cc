@@ -90,7 +90,7 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
     }
   }
 
-  const pxr::UsdTimeCode timecode = get_export_time_code();
+  const pxr::UsdTimeCode time = get_export_time_code();
   const pxr::SdfPath &volume_path = usd_export_context_.usd_path;
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
   pxr::UsdVolVolume usd_volume = pxr::UsdVolVolume::Define(stage, volume_path);
@@ -114,13 +114,13 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
       attr_file.Set(asset_path, pxr::UsdTimeCode::Default());
     }
 
-    usd_value_writer_.SetAttribute(attr_field, grid_name_token, timecode);
-    usd_value_writer_.SetAttribute(attr_file, asset_path, timecode);
+    usd_value_writer_.SetAttribute(attr_field, grid_name_token, time);
+    usd_value_writer_.SetAttribute(attr_file, asset_path, time);
 
     usd_volume.CreateFieldRelationship(pxr::TfToken(grid_id), grid_path);
   }
 
-  this->author_extent(usd_volume, BKE_volume_min_max(volume), timecode);
+  this->author_extent(usd_volume, BKE_volume_min_max(volume), time);
 
   BKE_volume_unload(volume);
 }
@@ -185,9 +185,9 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_file_path(const Volume
 
   char vdb_file_name[FILE_MAXFILE];
   STRNCPY(vdb_file_name, volume->id.name + 2);
-  const pxr::UsdTimeCode timecode = get_export_time_code();
-  if (!timecode.IsDefault()) {
-    const int frame = int(timecode.GetValue());
+  const pxr::UsdTimeCode time = get_export_time_code();
+  if (!time.IsDefault()) {
+    const int frame = int(time.GetValue());
     BLI_path_frame(vdb_file_name, sizeof(vdb_file_name), frame, max_frame_digits);
   }
   BLI_strncat(vdb_file_name, ".vdb", sizeof(vdb_file_name));
