@@ -154,6 +154,7 @@ enum eObjectInfoFlag : uint32_t {
   /* Avoid skipped info to change culling. */
   OBJECT_NO_INFO = ~OBJECT_HOLDOUT
 };
+ENUM_OPERATORS(eObjectInfoFlag, OBJECT_ACTIVE_EDIT_MODE);
 
 struct ObjectInfos {
   /** Uploaded as center + size. Converted to mul+bias to local coord. */
