@@ -303,6 +303,7 @@ struct PaintOperationExecutor {
     }
     softness_ = 1.0f - settings_->hardness;
     aspect_ratio_ = settings_->aspect_ratio[0] / math::max(settings_->aspect_ratio[1], 1e-8f);
+    jitter_settings_ = BKE_brush_color_jitter_get_settings(scene_, paint, brush_);
   }
 
   void process_start_sample(PaintOperation &self,
