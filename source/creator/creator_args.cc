@@ -1541,7 +1541,7 @@ static const char arg_handle_gpu_backend_set_doc[] =
     ".";
 static int arg_handle_gpu_backend_set(int argc, const char **argv, void * /*data*/)
 {
-  if (argc == 0) {
+  if (argc < 2) {
     fprintf(stderr, "\nError: GPU backend must follow '--gpu-backend'.\n");
     return 0;
   }
