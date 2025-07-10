@@ -477,6 +477,7 @@ def canonical_author_map() -> dict[str, str]:
             "\x96kaspian.jakobssongmail.com <kaspian.jakobsson@gmail.com>",
         ),
         "Kazashi Yoshioka <kaz380@hotmail.co.jp>": (
+            "AgAmemnno <kaz380@hotmail.co.jp>",
             "Kazashi Yoshioka <vnapdv@noreply.localhost>",
             "vnapdv <kaz380@hotmail.co.jp>",
         ),
@@ -488,6 +489,7 @@ def canonical_author_map() -> dict[str, str]:
             "Kévin Dietrich <kevindietrich>",
         ),
         "Laurynas Duburas <laduem@gmail.com>": (
+            "Laurynas Duburas <laurynas>",
             "laurynas <laduem@gmail.com>",
         ),
         "Leon Schittek <leon.schittek@gmx.net>": (
@@ -570,6 +572,9 @@ def canonical_author_map() -> dict[str, str]:
         ),
         "Matthieu Carteron <rubisetcie@gmail.com>": (
             "Matthieu Carteron <matthieu-carteron@noreply.localhost>",
+        ),
+        "Mattias Fredriksson <mattias-fredriksson91@hotmail.se>": (
+            "Mattias Fredriksson <Osares>",
         ),
         "Max Schlecht <bobbe@noreply.localhost>": (
             "Max Schlecht <Bobbe>",
@@ -794,6 +799,7 @@ def canonical_author_map() -> dict[str, str]:
         ),
         "Sun Kim <perplexing.sun@gmail.com>": (
             "Sun Kim <persun@noreply.localhost>",
+            "persun <perplexing.sun@gmail.com>",
         ),
         "Sybren A. Stüvel <sybren@blender.org>": (
             "Sybren A. St\xC3\x83\xC2\xBCvel <sybren@stuvel.eu>",
@@ -896,9 +902,6 @@ def canonical_author_map() -> dict[str, str]:
         ),
         "jon denning <gfxcoder@gmail.com>": (
             "Jon Denning <gfxcoder>",
-        ),
-        "laurynas <laduem@gmail.com>": (
-            "Laurynas Duburas <laurynas>",
         ),
         "nBurn <nbwashburn@gmail.com>": (
             "nBurn <nBurn>",
