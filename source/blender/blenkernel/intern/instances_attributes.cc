@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_instances.hh"
 
 #include "attribute_access_intern.hh"

@@ -4,7 +4,6 @@
 
 #include "DNA_pointcloud_types.h"
 
-#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_attribute_storage.hh"
 #include "BKE_pointcloud.hh"
 
