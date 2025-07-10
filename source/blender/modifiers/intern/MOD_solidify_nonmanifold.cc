@@ -1972,20 +1972,19 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   blender::MutableSpan<int> face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
+  bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
   int *origindex_edge = static_cast<int *>(
       CustomData_get_layer_for_write(&result->edge_data, CD_ORIGINDEX, result->edges_num));
   int *origindex_face = static_cast<int *>(
       CustomData_get_layer_for_write(&result->face_data, CD_ORIGINDEX, result->faces_num));
 
-  float *result_edge_bweight = static_cast<float *>(CustomData_get_layer_named_for_write(
-      &result->edge_data, CD_PROP_FLOAT, "bevel_weight_edge", result->edges_num));
-  if (!result_edge_bweight && (bevel_convex != 0.0f || !orig_vert_bweight.is_empty())) {
-    result_edge_bweight = static_cast<float *>(CustomData_add_layer_named(&result->edge_data,
-                                                                          CD_PROP_FLOAT,
-                                                                          CD_SET_DEFAULT,
-                                                                          result->edges_num,
-                                                                          "bevel_weight_edge"));
+  bke::SpanAttributeWriter<float> result_edge_bweight;
+  if (orig_attributes.contains("bevel_weight_edge") ||
+      (bevel_convex != 0.0f || !orig_vert_bweight.is_empty()))
+  {
+    result_edge_bweight = result_attributes.lookup_or_add_for_write_span<float>(
+        "bevel_weight_edge", blender::bke::AttrDomain::Edge);
   }
 
   /* Checks that result has dvert data. */
@@ -1998,17 +1997,14 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
    * they will introduce edge creases in the used custom interpolation method. */
   const VArraySpan vertex_crease = *orig_attributes.lookup<float>("crease_vert",
                                                                   bke::AttrDomain::Point);
-  float *result_edge_crease = nullptr;
+  bke::SpanAttributeWriter<float> result_edge_crease;
+
   if (!vertex_crease.is_empty() || !orig_edge_crease.is_empty()) {
-    result_edge_crease = static_cast<float *>(CustomData_get_layer_named_for_write(
-        &result->edge_data, CD_PROP_FLOAT, "crease_edge", result->edges_num));
-    if (!result_edge_crease) {
-      result_edge_crease = (float *)CustomData_add_layer_named(
-          &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->edges_num, "crease_edge");
-    }
+    result_edge_crease = result_attributes.lookup_or_add_for_write_span<float>(
+        "crease_edge", blender::bke::AttrDomain::Edge);
     /* delete all vertex creases in the result if a rim is used. */
     if (do_rim) {
-      CustomData_free_layer_named(&result->vert_data, "crease_vert");
+      result_attributes.remove("crease_vert");
     }
   }
 
@@ -2061,24 +2057,25 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             edges[insert][0] = v1;
             edges[insert][1] = v2;
             if (result_edge_crease) {
-              result_edge_crease[insert] = !orig_edge_crease.is_empty() ?
-                                               orig_edge_crease[(*l)->old_edge] :
-                                               0.0f;
+              result_edge_crease.span[insert] = !orig_edge_crease.is_empty() ?
+                                                    orig_edge_crease[(*l)->old_edge] :
+                                                    0.0f;
             }
             if (result_edge_bweight) {
-              result_edge_bweight[insert] = !orig_edge_bweight.is_empty() ?
-                                                orig_edge_bweight[(*l)->old_edge] :
-                                                0.0f;
-            }
-            if (bevel_convex != 0.0f && (*l)->faces[1] != nullptr) {
-              result_edge_bweight[insert] = clamp_f(
-                  result_edge_bweight[insert] +
-                      ((*l)->angle > M_PI + FLT_EPSILON ?
-                           clamp_f(bevel_convex, 0.0f, 1.0f) :
-                           ((*l)->angle < M_PI - FLT_EPSILON ? clamp_f(bevel_convex, -1.0f, 0.0f) :
-                                                               0)),
-                  0.0f,
-                  1.0f);
+              result_edge_bweight.span[insert] = !orig_edge_bweight.is_empty() ?
+                                                     orig_edge_bweight[(*l)->old_edge] :
+                                                     0.0f;
+              if (bevel_convex != 0.0f && (*l)->faces[1] != nullptr) {
+                result_edge_bweight.span[insert] = clamp_f(
+                    result_edge_bweight.span[insert] +
+                        ((*l)->angle > M_PI + FLT_EPSILON ?
+                             clamp_f(bevel_convex, 0.0f, 1.0f) :
+                             ((*l)->angle < M_PI - FLT_EPSILON ?
+                                  clamp_f(bevel_convex, -1.0f, 0.0f) :
+                                  0)),
+                    0.0f,
+                    1.0f);
+              }
             }
             (*l)->new_edge = insert;
           }
@@ -2127,12 +2124,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
     }
   }
 #endif
-  const bke::AttributeAccessor src_attributes = mesh->attributes();
-  const VArraySpan src_material_index = *src_attributes.lookup<int>("material_index",
-                                                                    bke::AttrDomain::Face);
-  bke::MutableAttributeAccessor dst_attributes = result->attributes_for_write();
-  bke::SpanAttributeWriter dst_material_index = dst_attributes.lookup_or_add_for_write_span<int>(
-      "material_index", bke::AttrDomain::Face);
+  const VArraySpan src_material_index = *orig_attributes.lookup<int>("material_index",
+                                                                     bke::AttrDomain::Face);
+  bke::SpanAttributeWriter dst_material_index =
+      result_attributes.lookup_or_add_for_write_span<int>("material_index", bke::AttrDomain::Face);
 
   /* Make boundary edges/faces. */
   {
@@ -2183,7 +2178,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                 }
                 if (g->edges[k]->new_edge != MOD_SOLIDIFY_EMPTY_TAG) {
                   if (result_edge_bweight) {
-                    float bweight = result_edge_bweight[g->edges[k]->new_edge];
+                    float bweight = result_edge_bweight.span[g->edges[k]->new_edge];
                     max_bweight = std::max(bweight, max_bweight);
                   }
                 }
@@ -2221,12 +2216,12 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               edges[edge_index][0] = last_g->new_vert;
               edges[edge_index][1] = g->new_vert;
               if (result_edge_crease) {
-                result_edge_crease[edge_index] = max_ff(mv_crease,
-                                                        min_ff(last_max_crease, max_crease));
+                result_edge_crease.span[edge_index] = max_ff(mv_crease,
+                                                             min_ff(last_max_crease, max_crease));
               }
               if (result_edge_bweight) {
-                result_edge_bweight[edge_index] = max_ff(mv_bweight,
-                                                         min_ff(last_max_bweight, max_bweight));
+                result_edge_bweight.span[edge_index] = max_ff(
+                    mv_bweight, min_ff(last_max_bweight, max_bweight));
               }
               edge_index++;
             }
@@ -2252,11 +2247,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
               edges[edge_index][0] = last_g->new_vert;
               edges[edge_index][1] = first_g->new_vert;
               if (result_edge_crease) {
-                result_edge_crease[edge_index] = max_ff(mv_crease,
-                                                        min_ff(last_max_crease, first_max_crease));
+                result_edge_crease.span[edge_index] = max_ff(
+                    mv_crease, min_ff(last_max_crease, first_max_crease));
               }
               if (result_edge_bweight) {
-                result_edge_bweight[edge_index] = max_ff(
+                result_edge_bweight.span[edge_index] = max_ff(
                     mv_bweight, min_ff(last_max_bweight, first_max_bweight));
               }
               edge_index++;
@@ -2691,6 +2686,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 #undef MOD_SOLIDIFY_EMPTY_TAG
 
   dst_material_index.finish();
+  result_edge_bweight.finish();
+  result_edge_crease.finish();
 
   return result;
 }
