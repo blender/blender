@@ -839,33 +839,6 @@ bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
 
 /* items */
 
-void uiItemEnumO_ptr(uiLayout *layout,
-                     wmOperatorType *ot,
-                     std::optional<blender::StringRef> name,
-                     int icon,
-                     blender::StringRefNull propname,
-                     int value);
-void uiItemEnumO(uiLayout *layout,
-                 blender::StringRefNull opname,
-                 std::optional<blender::StringRef> name,
-                 int icon,
-                 blender::StringRefNull propname,
-                 int value);
-/**
- * For use in cases where we have.
- */
-void uiItemEnumO_value(uiLayout *layout,
-                       blender::StringRefNull name,
-                       int icon,
-                       blender::StringRefNull opname,
-                       blender::StringRefNull propname,
-                       int value);
-void uiItemEnumO_string(uiLayout *layout,
-                        blender::StringRef name,
-                        int icon,
-                        blender::StringRefNull opname,
-                        blender::StringRefNull propname,
-                        const char *value_str);
 void uiItemsEnumO(uiLayout *layout,
                   blender::StringRefNull opname,
                   blender::StringRefNull propname);

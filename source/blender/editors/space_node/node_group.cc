@@ -681,8 +681,10 @@ static wmOperatorStatus node_group_separate_invoke(bContext *C,
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   layout->operator_context_set(WM_OP_EXEC_DEFAULT);
-  uiItemEnumO(layout, "NODE_OT_group_separate", std::nullopt, ICON_NONE, "type", NODE_GS_COPY);
-  uiItemEnumO(layout, "NODE_OT_group_separate", std::nullopt, ICON_NONE, "type", NODE_GS_MOVE);
+  PointerRNA op_ptr = layout->op("NODE_OT_group_separate", IFACE_("Copy"), ICON_NONE);
+  RNA_enum_set(&op_ptr, "type", NODE_GS_COPY);
+  op_ptr = layout->op("NODE_OT_group_separate", IFACE_("Move"), ICON_NONE);
+  RNA_enum_set(&op_ptr, "type", NODE_GS_MOVE);
 
   UI_popup_menu_end(C, pup);
 

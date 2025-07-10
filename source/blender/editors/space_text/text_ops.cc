@@ -4183,53 +4183,34 @@ static wmOperatorStatus text_resolve_conflict_invoke(bContext *C,
         pup = UI_popup_menu_begin(
             C, IFACE_("File Modified Outside and Inside Blender"), ICON_NONE);
         layout = UI_popup_menu_layout(pup);
-        uiItemEnumO_ptr(layout,
-                        op->type,
-                        IFACE_("Reload from disk (ignore local changes)"),
-                        ICON_NONE,
-                        "resolution",
-                        RESOLVE_RELOAD);
-        uiItemEnumO_ptr(layout,
-                        op->type,
-                        IFACE_("Save to disk (ignore outside changes)"),
-                        ICON_NONE,
-                        "resolution",
-                        RESOLVE_SAVE);
-        uiItemEnumO_ptr(layout,
-                        op->type,
-                        IFACE_("Make text internal (separate copy)"),
-                        ICON_NONE,
-                        "resolution",
-                        RESOLVE_MAKE_INTERNAL);
+        PointerRNA op_ptr = layout->op(
+            op->type, IFACE_("Reload from disk (ignore local changes)"), ICON_NONE);
+        RNA_enum_set(&op_ptr, "resolution", RESOLVE_RELOAD);
+        op_ptr = layout->op(op->type, IFACE_("Save to disk (ignore outside changes)"), ICON_NONE);
+        RNA_enum_set(&op_ptr, "resolution", RESOLVE_SAVE);
+        op_ptr = layout->op(op->type, IFACE_("Make text internal (separate copy)"), ICON_NONE);
+        RNA_enum_set(&op_ptr, "resolution", RESOLVE_MAKE_INTERNAL);
         UI_popup_menu_end(C, pup);
       }
       else {
         pup = UI_popup_menu_begin(C, IFACE_("File Modified Outside Blender"), ICON_NONE);
         layout = UI_popup_menu_layout(pup);
-        uiItemEnumO_ptr(
-            layout, op->type, IFACE_("Reload from disk"), ICON_NONE, "resolution", RESOLVE_RELOAD);
-        uiItemEnumO_ptr(layout,
-                        op->type,
-                        IFACE_("Make text internal (separate copy)"),
-                        ICON_NONE,
-                        "resolution",
-                        RESOLVE_MAKE_INTERNAL);
-        uiItemEnumO_ptr(
-            layout, op->type, IFACE_("Ignore"), ICON_NONE, "resolution", RESOLVE_IGNORE);
+        PointerRNA op_ptr = layout->op(op->type, IFACE_("Reload from disk"), ICON_NONE);
+        RNA_enum_set(&op_ptr, "resolution", RESOLVE_RELOAD);
+        op_ptr = layout->op(op->type, IFACE_("Make text internal (separate copy)"), ICON_NONE);
+        RNA_enum_set(&op_ptr, "resolution", RESOLVE_MAKE_INTERNAL);
+        op_ptr = layout->op(op->type, IFACE_("Ignore"), ICON_NONE);
+        RNA_enum_set(&op_ptr, "resolution", RESOLVE_IGNORE);
         UI_popup_menu_end(C, pup);
       }
       break;
     case 2:
       pup = UI_popup_menu_begin(C, IFACE_("File Deleted Outside Blender"), ICON_NONE);
       layout = UI_popup_menu_layout(pup);
-      uiItemEnumO_ptr(layout,
-                      op->type,
-                      IFACE_("Make text internal"),
-                      ICON_NONE,
-                      "resolution",
-                      RESOLVE_MAKE_INTERNAL);
-      uiItemEnumO_ptr(
-          layout, op->type, IFACE_("Recreate file"), ICON_NONE, "resolution", RESOLVE_SAVE);
+      PointerRNA op_ptr = layout->op(op->type, IFACE_("Make text internal"), ICON_NONE);
+      RNA_enum_set(&op_ptr, "resolution", RESOLVE_MAKE_INTERNAL);
+      op_ptr = layout->op(op->type, IFACE_("Recreate file"), ICON_NONE);
+      RNA_enum_set(&op_ptr, "resolution", RESOLVE_SAVE);
       UI_popup_menu_end(C, pup);
       break;
   }
