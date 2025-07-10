@@ -450,8 +450,7 @@ static Sequence *rna_Sequences_new_effect(ID *id,
                                           int frame_start,
                                           int frame_end,
                                           Sequence *seq1,
-                                          Sequence *seq2,
-                                          Sequence *seq3)
+                                          Sequence *seq2)
 {
   Scene *scene = (Scene *)id;
   Sequence *seq;
@@ -476,17 +475,11 @@ static Sequence *rna_Sequences_new_effect(ID *id,
         return nullptr;
       }
       break;
-    case 3:
-      if (seq1 == nullptr || seq2 == nullptr || seq3 == nullptr) {
-        BKE_report(reports, RPT_ERROR, "Sequences.new_effect: effect takes 3 input sequences");
-        return nullptr;
-      }
-      break;
     default:
       BKE_reportf(
           reports,
           RPT_ERROR,
-          "Sequences.new_effect: effect expects more than 3 inputs (%d, should never happen!)",
+          "Sequences.new_effect: effect expects more than 2 inputs (%d, should never happen!)",
           num_inputs);
       return nullptr;
   }
@@ -497,7 +490,6 @@ static Sequence *rna_Sequences_new_effect(ID *id,
   load_data.effect.type = type;
   load_data.effect.seq1 = seq1;
   load_data.effect.seq2 = seq2;
-  load_data.effect.seq3 = seq3;
   seq = SEQ_add_effect_strip(scene, seqbase, &load_data);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -515,11 +507,10 @@ static Sequence *rna_Sequences_editing_new_effect(ID *id,
                                                   int frame_start,
                                                   int frame_end,
                                                   Sequence *seq1,
-                                                  Sequence *seq2,
-                                                  Sequence *seq3)
+                                                  Sequence *seq2)
 {
   return rna_Sequences_new_effect(
-      id, &ed->seqbase, reports, name, type, channel, frame_start, frame_end, seq1, seq2, seq3);
+      id, &ed->seqbase, reports, name, type, channel, frame_start, frame_end, seq1, seq2);
 }
 
 static Sequence *rna_Sequences_meta_new_effect(ID *id,
@@ -531,11 +522,10 @@ static Sequence *rna_Sequences_meta_new_effect(ID *id,
                                                int frame_start,
                                                int frame_end,
                                                Sequence *seq1,
-                                               Sequence *seq2,
-                                               Sequence *seq3)
+                                               Sequence *seq2)
 {
   return rna_Sequences_new_effect(
-      id, &seq->seqbase, reports, name, type, channel, frame_start, frame_end, seq1, seq2, seq3);
+      id, &seq->seqbase, reports, name, type, channel, frame_start, frame_end, seq1, seq2);
 }
 
 static void rna_Sequences_remove(
@@ -1075,7 +1065,6 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, const bool metastri
               INT_MAX);
   RNA_def_pointer(func, "seq1", "Sequence", "", "Sequence 1 for effect");
   RNA_def_pointer(func, "seq2", "Sequence", "", "Sequence 2 for effect");
-  RNA_def_pointer(func, "seq3", "Sequence", "", "Sequence 3 for effect");
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
   RNA_def_function_return(func, parm);

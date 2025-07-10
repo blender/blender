@@ -191,16 +191,14 @@ typedef struct Sequence {
   float startstill, endstill;
   /** Machine: the strip channel */
   int machine;
-  int _pad;
   /** Starting and ending points of the effect strip. Undefined for other strip types. */
   int startdisp, enddisp;
   float sat;
   float mul;
-  float _pad1;
 
-  short anim_preseek; /* UNUSED. */
   /** Stream-index for movie or sound files with several streams. */
   short streamindex;
+  short _pad;
   /** For multi-camera source selection. */
   int multicam_source;
   /** MOVIECLIP render flags. */
@@ -228,7 +226,12 @@ typedef struct Sequence {
   float speed_fader;
 
   /* pointers for effects: */
-  struct Sequence *seq1, *seq2, *seq3;
+  struct Sequence *seq1, *seq2;
+
+  /* This strange padding is needed due to how seqbasep deserialization is
+   * done right now in #scene_blend_read_data. */
+  void *_pad7;
+  int _pad8[2];
 
   /** List of strips for meta-strips. */
   ListBase seqbase;

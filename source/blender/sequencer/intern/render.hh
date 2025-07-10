@@ -34,8 +34,7 @@ ImBuf *seq_render_effect_execute_threaded(SeqEffectHandle *sh,
                                           float timeline_frame,
                                           float fac,
                                           ImBuf *ibuf1,
-                                          ImBuf *ibuf2,
-                                          ImBuf *ibuf3);
+                                          ImBuf *ibuf2);
 void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_float);
 blender::Vector<Sequence *> seq_get_shown_sequences(
     const Scene *scene, ListBase *channels, ListBase *seqbase, int timeline_frame, int chanshown);

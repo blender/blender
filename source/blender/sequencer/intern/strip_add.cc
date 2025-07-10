@@ -167,7 +167,6 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, SeqLoadData *loa
   sh.init(seq);
   seq->seq1 = load_data->effect.seq1;
   seq->seq2 = load_data->effect.seq2;
-  seq->seq3 = load_data->effect.seq3;
 
   if (SEQ_effect_get_num_inputs(seq->type) == 1) {
     seq->blend_mode = seq->seq1->blend_mode;
