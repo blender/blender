@@ -161,6 +161,15 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
   glare_panel.add_input<decl::Bool>("Diagonal", "Diagonal Star")
       .default_value(true)
       .description("Align the star diagonally");
+  glare_panel.add_input<decl::Vector>("Sun Position")
+      .subtype(PROP_FACTOR)
+      .dimensions(2)
+      .default_value({0.5f, 0.5f})
+      .min(0.0f)
+      .max(1.0f)
+      .description(
+          "The position of the source of the rays in normalized coordinates. 0 means lower left "
+          "corner and 1 means upper right corner");
 }
 
 static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
@@ -177,7 +186,9 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
   bNodeSocket *size_input = bke::node_find_socket(*node, SOCK_IN, "Size");
   blender::bke::node_set_socket_availability(
-      *ntree, *size_input, ELEM(glare_type, CMP_NODE_GLARE_FOG_GLOW, CMP_NODE_GLARE_BLOOM));
+      *ntree,
+      *size_input,
+      ELEM(glare_type, CMP_NODE_GLARE_FOG_GLOW, CMP_NODE_GLARE_BLOOM, CMP_NODE_GLARE_SUN_BEAMS));
 
   bNodeSocket *iterations_input = bke::node_find_socket(*node, SOCK_IN, "Iterations");
   blender::bke::node_set_socket_availability(
@@ -206,6 +217,10 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *diagonal_star_input = bke::node_find_socket(*node, SOCK_IN, "Diagonal Star");
   blender::bke::node_set_socket_availability(
       *ntree, *diagonal_star_input, glare_type == CMP_NODE_GLARE_SIMPLE_STAR);
+
+  bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Sun Position");
+  blender::bke::node_set_socket_availability(
+      *ntree, *source_input, glare_type == CMP_NODE_GLARE_SUN_BEAMS);
 }
 
 class SocketSearchOp {
@@ -231,6 +246,7 @@ static void gather_link_searches(GatherLinkSearchOpParams &params)
   params.add_item(IFACE_("Streaks"), SocketSearchOp{CMP_NODE_GLARE_STREAKS});
   params.add_item(IFACE_("Ghost"), SocketSearchOp{CMP_NODE_GLARE_GHOST});
   params.add_item(IFACE_("Bloom"), SocketSearchOp{CMP_NODE_GLARE_BLOOM});
+  params.add_item(IFACE_("Sun Beams"), SocketSearchOp{CMP_NODE_GLARE_SUN_BEAMS});
 }
 
 using namespace blender::compositor;
@@ -578,6 +594,8 @@ class GlareOperation : public NodeOperation {
         return this->execute_ghost(highlights_result);
       case CMP_NODE_GLARE_BLOOM:
         return this->execute_bloom(highlights_result);
+      case CMP_NODE_GLARE_SUN_BEAMS:
+        return this->execute_sun_beams(highlights_result);
       default:
         BLI_assert_unreachable();
         return this->context().create_result(ResultType::Color);
@@ -2199,6 +2217,112 @@ class GlareOperation : public NodeOperation {
   }
 
   /* ----------
+   * Sun Beams.
+   * ---------- */
+
+  Result execute_sun_beams(Result &highlights)
+  {
+    const int2 input_size = highlights.domain().size;
+    const int max_steps = int(this->get_size() * math::length(input_size));
+    if (max_steps == 0) {
+      Result sun_beams_result = context().create_result(ResultType::Color);
+      sun_beams_result.allocate_texture(highlights.domain());
+      if (this->context().use_gpu()) {
+        GPU_texture_copy(sun_beams_result, highlights);
+      }
+      else {
+        parallel_for(sun_beams_result.domain().size, [&](const int2 texel) {
+          sun_beams_result.store_pixel(texel, highlights.load_pixel<float4>(texel));
+        });
+      }
+      return sun_beams_result;
+    }
+
+    if (this->context().use_gpu()) {
+      return this->execute_sun_beams_gpu(highlights, max_steps);
+    }
+    else {
+      return this->execute_sun_beams_cpu(highlights, max_steps);
+    }
+  }
+
+  Result execute_sun_beams_gpu(Result &highlights, const int max_steps)
+  {
+    GPUShader *shader = context().get_shader("compositor_sun_beams");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_2fv(shader, "source", this->get_sun_position());
+    GPU_shader_uniform_1i(shader, "max_steps", max_steps);
+
+    GPU_texture_filter_mode(highlights, true);
+    GPU_texture_extend_mode(highlights, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    highlights.bind_as_texture(shader, "input_tx");
+
+    Result output_image = context().create_result(ResultType::Color);
+    const Domain domain = highlights.domain();
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    GPU_shader_unbind();
+    output_image.unbind_as_image();
+    highlights.unbind_as_texture();
+    return output_image;
+  }
+
+  Result execute_sun_beams_cpu(Result &highlights, const int max_steps)
+  {
+    const float2 source = this->get_sun_position();
+
+    Result output = context().create_result(ResultType::Color);
+    output.allocate_texture(highlights.domain());
+
+    const int2 input_size = highlights.domain().size;
+    parallel_for(input_size, [&](const int2 texel) {
+      /* The number of steps is the distance in pixels from the source to the current texel. With
+       * at least a single step and at most the user specified maximum ray length, which is
+       * proportional to the diagonal pixel count. */
+      float unbounded_steps = math::max(
+          1.0f, math::distance(float2(texel), source * float2(input_size)));
+      int steps = math::min(max_steps, int(unbounded_steps));
+
+      /* We integrate from the current pixel to the source pixel, so compute the start coordinates
+       * and step vector in the direction to source. Notice that the step vector is still computed
+       * from the unbounded steps, such that the total integration length becomes limited by the
+       * bounded steps, and thus by the maximum ray length. */
+      float2 coordinates = (float2(texel) + float2(0.5f)) / float2(input_size);
+      float2 vector_to_source = source - coordinates;
+      float2 step_vector = vector_to_source / unbounded_steps;
+
+      float accumulated_weight = 0.0f;
+      float4 accumulated_color = float4(0.0f);
+      for (int i = 0; i <= steps; i++) {
+        float2 position = coordinates + i * step_vector;
+
+        /* We are already past the image boundaries, and any future steps are also past the image
+         * boundaries, so break. */
+        if (position.x < 0.0f || position.y < 0.0f || position.x > 1.0f || position.y > 1.0f) {
+          break;
+        }
+
+        float4 sample_color = highlights.sample_bilinear_zero(position);
+
+        /* Attenuate the contributions of pixels that are further away from the source using a
+         * quadratic falloff. */
+        float weight = math::square(1.0f - i / float(steps));
+
+        accumulated_weight += weight;
+        accumulated_color += sample_color * weight;
+      }
+
+      accumulated_color /= accumulated_weight != 0.0f ? accumulated_weight : 1.0f;
+      output.store_pixel(texel, accumulated_color);
+    });
+    return output;
+  }
+
+  /* ----------
    * Glare Mix.
    * ---------- */
 
@@ -2364,6 +2488,7 @@ class GlareOperation : public NodeOperation {
       case CMP_NODE_GLARE_FOG_GLOW:
       case CMP_NODE_GLARE_STREAKS:
       case CMP_NODE_GLARE_GHOST:
+      case CMP_NODE_GLARE_SUN_BEAMS:
         return 1.0f;
     }
     return 1.0f;
@@ -2407,6 +2532,11 @@ class GlareOperation : public NodeOperation {
   {
     return math::clamp(
         this->get_input("Color Modulation").get_single_value_default(0.25f), 0.0f, 1.0f);
+  }
+
+  float2 get_sun_position()
+  {
+    return this->get_input("Sun Position").get_single_value_default(float2(0.5f));
   }
 
   /* As a performance optimization, the operation can compute the glare on a fraction of the input
