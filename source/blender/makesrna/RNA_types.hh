@@ -335,6 +335,13 @@ enum PropertyFlag {
   PROP_PROPORTIONAL = (1 << 26),
 
   /* pointers */
+
+  /**
+   * Automatically update the ID user count when the property changes value.
+   *
+   * This is done in the auto-generated setter function. If an RNA property has a custom setter,
+   * this flag is ignored, and the setter is responsible for correctly updating the user count.
+   */
   PROP_ID_REFCOUNT = (1 << 6),
 
   /**
