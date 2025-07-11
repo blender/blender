@@ -603,7 +603,7 @@ def fbx_data_light_elements(root, lamp, scene_data):
     elem_data_single_int32(light, b"GeometryVersion", FBX_GEOMETRY_VERSION)  # Sic...
 
     intensity = lamp.energy * 100.0 * pow(2.0, lamp.exposure)
-    color = lamp.color
+    color = lamp.color.copy()
     if lamp.use_temperature:
         temperature_color = lamp.temperature_color
         color[0] *= temperature_color[0]
