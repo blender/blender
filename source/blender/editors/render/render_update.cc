@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_light_types.h"
@@ -42,7 +43,10 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
+#include "SEQ_animation.hh"
+#include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"
+#include "SEQ_sequencer.hh"
 
 #include "ED_node.hh"
 #include "ED_node_preview.hh"
@@ -321,9 +325,21 @@ static void update_sequencer(const DEGEditorUpdateContext *update_ctx, Main *bma
   {
     return;
   }
+  Scene *changed_scene = update_ctx->scene;
 
   if (GS(id->name) != ID_SCE) {
-    blender::seq::relations_invalidate_scene_strips(bmain, update_ctx->scene);
+    blender::seq::relations_invalidate_scene_strips(bmain, changed_scene);
+  }
+
+  /* Invalidate VSE cache in `changed_scene`, because strip animation may have been updated. */
+  if (GS(id->name) == ID_AC) {
+    Editing *ed = blender::seq::editing_get(changed_scene);
+    if (ed != nullptr && blender::seq::animation_keyframes_exist(changed_scene) &&
+        &changed_scene->adt->action->id == id)
+    {
+      blender::seq::prefetch_stop(changed_scene);
+      blender::seq::cache_cleanup(changed_scene);
+    }
   }
 }
 
