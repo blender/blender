@@ -714,6 +714,15 @@ void WM_gizmo_properties_free(PointerRNA *ptr)
 /** \name General Utilities
  * \{ */
 
+bool WM_gizmo_group_is_modal(const wmGizmoGroup *gzgroup)
+{
+  wmGizmo *gz = WM_gizmomap_get_modal(gzgroup->parent_gzmap);
+  if (gz && gz->parent_gzgroup == gzgroup) {
+    return true;
+  }
+  return false;
+}
+
 bool WM_gizmo_context_check_drawstep(const bContext *C, eWM_GizmoFlagMapDrawStep step)
 {
   switch (step) {

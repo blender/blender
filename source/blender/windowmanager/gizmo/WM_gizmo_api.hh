@@ -461,6 +461,8 @@ void WM_gizmo_group_type_reinit(Main *bmain, blender::StringRef idname);
 
 /* Utilities. */
 
+bool WM_gizmo_group_is_modal(const wmGizmoGroup *gzgroup);
+
 bool WM_gizmo_context_check_drawstep(const bContext *C, eWM_GizmoFlagMapDrawStep step);
 
 void WM_gizmo_group_remove_by_tool(bContext *C,
