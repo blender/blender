@@ -234,23 +234,19 @@ static void free_operator_customdata(wmOperator *op)
 
 /* Ensure that the prim_path is not set to
  * the absolute root path '/'. */
-static void process_prim_path(char *prim_path)
+static void process_prim_path(std::string &prim_path)
 {
-  if (prim_path == nullptr || prim_path[0] == '\0') {
+  if (prim_path.empty()) {
     return;
   }
 
-  /* The absolute root "/" path indicates a no-op,
-   * so clear the string. */
-  if (prim_path[0] == '/' && prim_path[1] == '\0') {
-    prim_path[0] = '\0';
+  /* The absolute root "/" path indicates a no-op, so clear the string. */
+  if (prim_path == "/") {
+    prim_path.clear();
   }
-
-  /* If a prim path doesn't start with a "/" it
-   * is invalid when creating the prim. */
-  if (prim_path[0] != '/') {
-    const std::string prim_path_copy = std::string(prim_path);
-    BLI_snprintf(prim_path, FILE_MAX, "/%s", prim_path_copy.c_str());
+  /* If a prim path doesn't start with a "/" it is invalid when creating the prim. */
+  else if (prim_path[0] != '/') {
+    prim_path.insert(0, 1, '/');
   }
 }
 
@@ -277,12 +273,12 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  char filepath[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filepath);
-
-  USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
+  const USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
   const bool as_background_job = (options != nullptr && options->as_background_job);
   free_operator_customdata(op);
+
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   const bool selected_objects_only = RNA_boolean_get(op->ptr, "selected_objects_only");
   const bool visible_objects_only = RNA_boolean_get(op->ptr, "visible_objects_only");
@@ -369,13 +365,6 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
       RNA_enum_get(op->ptr, "convert_scene_units"));
   const float meters_per_unit = RNA_float_get(op->ptr, "meters_per_unit");
 
-  char root_prim_path[FILE_MAX];
-  RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
-  process_prim_path(root_prim_path);
-
-  char custom_properties_namespace[MAX_IDPROP_NAME];
-  RNA_string_get(op->ptr, "custom_properties_namespace", custom_properties_namespace);
-
   USDExportParams params;
   params.export_animation = export_animation;
   params.selected_objects_only = selected_objects_only;
@@ -431,8 +420,10 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
 
   params.merge_parent_xform = merge_parent_xform;
 
-  STRNCPY(params.root_prim_path, root_prim_path);
-  STRNCPY(params.custom_properties_namespace, custom_properties_namespace);
+  params.root_prim_path = RNA_string_get(op->ptr, "root_prim_path");
+  process_prim_path(params.root_prim_path);
+
+  RNA_string_get(op->ptr, "custom_properties_namespace", params.custom_properties_namespace);
   RNA_string_get(op->ptr, "collection", params.collection);
 
   bool ok = USD_export(C, filepath, &params, as_background_job, op->reports);
@@ -789,7 +780,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
   RNA_def_string(ot->srna,
                  "root_prim_path",
                  "/root",
-                 FILE_MAX,
+                 0,
                  "Root Prim",
                  "If set, add a transform primitive with the given path to the stage "
                  "as the parent of all exported data");
@@ -929,12 +920,12 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  char filepath[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filepath);
-
-  USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
+  const USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
   const bool as_background_job = (options != nullptr && options->as_background_job);
   free_operator_customdata(op);
+
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   const float scale = RNA_float_get(op->ptr, "scale");
   const float light_intensity_scale = RNA_float_get(op->ptr, "light_intensity_scale");
@@ -978,8 +969,6 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const bool create_collection = RNA_boolean_get(op->ptr, "create_collection");
 
-  char *prim_path_mask = RNA_string_get_alloc(op->ptr, "prim_path_mask", nullptr, 0, nullptr);
-
   const bool import_guide = RNA_boolean_get(op->ptr, "import_guide");
   const bool import_proxy = RNA_boolean_get(op->ptr, "import_proxy");
   const bool import_render = RNA_boolean_get(op->ptr, "import_render");
@@ -1011,14 +1000,10 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
   const eUSDTexImportMode import_textures_mode = eUSDTexImportMode(
       RNA_enum_get(op->ptr, "import_textures_mode"));
 
-  char import_textures_dir[FILE_MAXDIR];
-  RNA_string_get(op->ptr, "import_textures_dir", import_textures_dir);
-
   const eUSDTexNameCollisionMode tex_name_collision_mode = eUSDTexNameCollisionMode(
       RNA_enum_get(op->ptr, "tex_name_collision_mode"));
 
   USDImportParams params{};
-  params.prim_path_mask = prim_path_mask;
   params.scale = scale;
   params.light_intensity_scale = light_intensity_scale;
   params.apply_unit_conversion_scale = apply_unit_conversion_scale;
@@ -1066,10 +1051,12 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
 
   params.attr_import_mode = attr_import_mode;
 
-  STRNCPY(params.import_textures_dir, import_textures_dir);
+  params.prim_path_mask = RNA_string_get(op->ptr, "prim_path_mask");
+
+  RNA_string_get(op->ptr, "import_textures_dir", params.import_textures_dir);
 
   /* Switch out of edit mode to avoid being stuck in it (#54326). */
-  Object *obedit = CTX_data_edit_object(C);
+  const Object *obedit = CTX_data_edit_object(C);
   if (obedit) {
     blender::ed::object::mode_set(C, OB_MODE_EDIT);
   }

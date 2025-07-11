@@ -260,8 +260,7 @@ void world_material_to_dome_light(const USDExportParams &params,
 
   /* Create USD dome light. */
 
-  pxr::SdfPath env_light_path = get_unique_path(stage,
-                                                std::string(params.root_prim_path) + "/env_light");
+  pxr::SdfPath env_light_path = get_unique_path(stage, params.root_prim_path + "/env_light");
 
   pxr::UsdLuxDomeLight dome_light = pxr::UsdLuxDomeLight::Define(stage, env_light_path);
 

@@ -95,11 +95,9 @@ struct ExportJobData {
  * the requirements of the prim path manipulation logic
  * of the exporter. Also returns true if the path is
  * the empty string. Returns false otherwise. */
-static bool prim_path_valid(const char *path)
+static bool prim_path_valid(const std::string &path)
 {
-  BLI_assert(path);
-
-  if (path[0] == '\0') {
+  if (path.empty()) {
     /* Empty paths are ignored in the code,
      * so they can be passed through. */
     return true;
@@ -108,7 +106,8 @@ static bool prim_path_valid(const char *path)
   /* Check path syntax. */
   std::string errMsg;
   if (!pxr::SdfPath::IsValidPathString(path, &errMsg)) {
-    WM_global_reportf(RPT_ERROR, "USD Export: invalid path string '%s': %s", path, errMsg.c_str());
+    WM_global_reportf(
+        RPT_ERROR, "USD Export: invalid path string '%s': %s", path.c_str(), errMsg.c_str());
     return false;
   }
 
@@ -117,12 +116,12 @@ static bool prim_path_valid(const char *path)
 
   pxr::SdfPath sdf_path(path);
   if (!sdf_path.IsAbsolutePath()) {
-    WM_global_reportf(RPT_ERROR, "USD Export: path '%s' is not an absolute path", path);
+    WM_global_reportf(RPT_ERROR, "USD Export: path '%s' is not an absolute path", path.c_str());
     return false;
   }
 
   if (!sdf_path.IsPrimPath()) {
-    WM_global_reportf(RPT_ERROR, "USD Export: path string '%s' is not a prim path", path);
+    WM_global_reportf(RPT_ERROR, "USD Export: path string '%s' is not a prim path", path.c_str());
     return false;
   }
 
@@ -154,7 +153,7 @@ static bool export_params_valid(const USDExportParams &params)
  */
 static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &params)
 {
-  if (params.root_prim_path[0] == '\0') {
+  if (params.root_prim_path.empty()) {
     return;
   }
 

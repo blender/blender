@@ -166,14 +166,11 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   *data->do_update = true;
   *data->progress = 0.1f;
 
-  std::string prim_path_mask(data->params.prim_path_mask);
   pxr::UsdStagePopulationMask pop_mask;
-  if (!prim_path_mask.empty()) {
-    for (const std::string &mask_token : pxr::TfStringTokenize(prim_path_mask, ",;")) {
-      pxr::SdfPath prim_path(mask_token);
-      if (!prim_path.IsEmpty()) {
-        pop_mask.Add(prim_path);
-      }
+  for (const std::string &mask_token : pxr::TfStringTokenize(data->params.prim_path_mask, ",;")) {
+    pxr::SdfPath prim_path(mask_token);
+    if (!prim_path.IsEmpty()) {
+      pop_mask.Add(prim_path);
     }
   }
 
@@ -409,8 +406,6 @@ static void import_endjob(void *customdata)
                  "Could not open USD archive for reading, see console for detail");
       break;
   }
-
-  MEM_SAFE_FREE(data->params.prim_path_mask);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
   report_job_duration(data);

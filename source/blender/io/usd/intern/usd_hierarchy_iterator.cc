@@ -108,7 +108,7 @@ void USDHierarchyIterator::set_export_frame(float frame_nr)
 USDExporterContext USDHierarchyIterator::create_usd_export_context(const HierarchyContext *context)
 {
   pxr::SdfPath path;
-  if (params_.root_prim_path[0] != '\0') {
+  if (!params_.root_prim_path.empty()) {
     path = pxr::SdfPath(params_.root_prim_path + context->export_path);
   }
   else {
@@ -166,8 +166,8 @@ void USDHierarchyIterator::determine_point_instancers(const HierarchyContext *co
     bool is_referencing_self = false;
 
     pxr::SdfPath instancer_path;
-    if (strlen(params_.root_prim_path) != 0) {
-      instancer_path = pxr::SdfPath(std::string(params_.root_prim_path) + context->export_path);
+    if (!params_.root_prim_path.empty()) {
+      instancer_path = pxr::SdfPath(params_.root_prim_path + context->export_path);
     }
     else {
       instancer_path = pxr::SdfPath(context->export_path);
@@ -190,8 +190,8 @@ void USDHierarchyIterator::determine_point_instancers(const HierarchyContext *co
         if (child_context->is_instance() && child_context->duplicator != nullptr) {
           /* When the current child context is point instancer's instance, use reference path
            * (original_export_path) as the prototype path. */
-          if (strlen(params_.root_prim_path) != 0) {
-            prototype_path = pxr::SdfPath(std::string(params_.root_prim_path) +
+          if (!params_.root_prim_path.empty()) {
+            prototype_path = pxr::SdfPath(params_.root_prim_path +
                                           child_context->original_export_path);
           }
           else {
@@ -205,9 +205,8 @@ void USDHierarchyIterator::determine_point_instancers(const HierarchyContext *co
         else {
           /* When the current child context is point instancer's prototype, use its own export path
            * (export_path) as the prototype path. */
-          if (strlen(params_.root_prim_path) != 0) {
-            prototype_path = pxr::SdfPath(std::string(params_.root_prim_path) +
-                                          child_context->export_path);
+          if (!params_.root_prim_path.empty()) {
+            prototype_path = pxr::SdfPath(params_.root_prim_path + child_context->export_path);
           }
           else {
             prototype_path = pxr::SdfPath(child_context->export_path);
