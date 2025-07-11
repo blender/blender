@@ -5,11 +5,8 @@
 #include <cstdint>
 #include <memory>
 
-#include "BLI_array.hh"
 #include "BLI_hash.hh"
 #include "BLI_math_vector_types.hh"
-
-#include "GPU_texture.hh"
 
 #include "BKE_lib_id.hh"
 #include "BKE_mask.h"
@@ -114,7 +111,7 @@ CachedMask::CachedMask(Context &context,
   Vector<MaskRasterHandle *> handles = get_mask_raster_handles(
       mask, size, frame, use_feather, motion_blur_samples, motion_blur_shutter);
 
-  evaluated_mask_ = Array<float>(size.x * size.y);
+  this->result.allocate_texture(size, false, ResultStorageType::CPU);
   parallel_for(size, [&](const int2 texel) {
     /* Compute the coordinates in the [0, 1] range and add 0.5 to evaluate the mask at the
      * center of pixels. */
@@ -126,7 +123,7 @@ CachedMask::CachedMask(Context &context,
     for (MaskRasterHandle *handle : handles) {
       mask_value += BKE_maskrasterize_handle_sample(handle, coordinates);
     }
-    evaluated_mask_[texel.y * size.x + texel.x] = mask_value / handles.size();
+    this->result.store_pixel(texel, mask_value / handles.size());
   });
 
   for (MaskRasterHandle *handle : handles) {
@@ -134,14 +131,9 @@ CachedMask::CachedMask(Context &context,
   }
 
   if (context.use_gpu()) {
-    this->result.allocate_texture(Domain(size), false);
-    GPU_texture_update(this->result, GPU_DATA_FLOAT, evaluated_mask_.data());
-
-    /* CPU-side data no longer needed, so free it. */
-    evaluated_mask_ = Array<float>();
-  }
-  else {
-    this->result.wrap_external(evaluated_mask_.data(), size);
+    const Result gpu_result = this->result.upload_to_gpu(false);
+    this->result.release();
+    this->result = gpu_result;
   }
 }
 

@@ -48,9 +48,6 @@ bool operator==(const CachedMaskKey &a, const CachedMaskKey &b);
  * A cached resource that computes and caches a result containing the result of evaluating the
  * given mask ID on a space that spans the given size, parameterized by the given parameters. */
 class CachedMask : public CachedResource {
- private:
-  Array<float> evaluated_mask_;
-
  public:
   Result result;
 
