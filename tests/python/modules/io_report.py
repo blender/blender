@@ -59,7 +59,13 @@ class Report:
         'update_templates',
     )
 
-    def __init__(self, title: str, output_dir: pathlib.Path, input_dir: pathlib.Path, reference_dir: pathlib.Path):
+    def __init__(
+        self,
+        title: str,
+        output_dir: pathlib.Path,
+        input_dir: pathlib.Path,
+        reference_dir: pathlib.Path,
+    ):
         self.title = title
         self.output_dir = output_dir
         self.global_dir = os.path.dirname(output_dir)
@@ -108,7 +114,10 @@ class Report:
         """
         print(f"\n============")
         if self.update_templates:
-            print(f"{self.tested_count} input files tested, {len(self.updated_list)} references updated to new results")
+            print(
+                f"{self.tested_count} input files tested, "
+                f"{len(self.updated_list)} references updated to new results"
+            )
             for test in self.updated_list:
                 print(f"UPDATED {test}")
         else:
@@ -164,7 +173,9 @@ class Report:
         .place {{ color: #808080; font-style: italic; }}
         p {{ margin-bottom: 0.5rem; }}
     </style>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" \
+href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" \
+integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
     <div class="page_container"><div class="page_content">
@@ -415,7 +426,12 @@ class Report:
             for mesh in bpy.data.meshes:
                 # mesh overview
                 desc.write(
-                    f"- Mesh '{mesh.name}' vtx:{len(mesh.vertices)} face:{len(mesh.polygons)} loop:{len(mesh.loops)} edge:{len(mesh.edges)}\n")
+                    f"- Mesh '{mesh.name}' "
+                    f"vtx:{len(mesh.vertices)} "
+                    f"face:{len(mesh.polygons)} "
+                    f"loop:{len(mesh.loops)} "
+                    f"edge:{len(mesh.edges)}\n"
+                )
                 if len(mesh.loops) > 0:
                     Report._write_collection_single(mesh.loops, desc)
                 if len(mesh.edges) > 0:
@@ -465,10 +481,20 @@ class Report:
             for curve in bpy.data.curves:
                 # overview
                 desc.write(
-                    f"- Curve '{curve.name}' dim:{curve.dimensions} resu:{curve.resolution_u} resv:{curve.resolution_v} splines:{len(curve.splines)}\n")
+                    f"- Curve '{curve.name}' "
+                    f"dim:{curve.dimensions} "
+                    f"resu:{curve.resolution_u} "
+                    f"resv:{curve.resolution_v} "
+                    f"splines:{len(curve.splines)}\n"
+                )
                 for spline in curve.splines[:5]:
                     desc.write(
-                        f"  - spline type:{spline.type} pts:{spline.point_count_u}x{spline.point_count_v} order:{spline.order_u}x{spline.order_v} cyclic:{spline.use_cyclic_u},{spline.use_cyclic_v} endp:{spline.use_endpoint_u},{spline.use_endpoint_v}\n")
+                        f"  - spline type:{spline.type} "
+                        f"pts:{spline.point_count_u}x{spline.point_count_v} "
+                        f"order:{spline.order_u}x{spline.order_v} "
+                        f"cyclic:{spline.use_cyclic_u},{spline.use_cyclic_v} "
+                        f"endp:{spline.use_endpoint_u},{spline.use_endpoint_v}\n"
+                    )
                     Report._write_collection_multi(spline.points, desc)
                 # materials
                 if curve.materials:
@@ -501,7 +527,11 @@ class Report:
 
                 desc.write(f"  - pos {fmtf(obj.location[0])}, {fmtf(obj.location[1])}, {fmtf(obj.location[2])}\n")
                 desc.write(
-                    f"  - rot {fmtrot(obj.rotation_euler[0])}, {fmtrot(obj.rotation_euler[1])}, {fmtrot(obj.rotation_euler[2])} ({obj.rotation_mode})\n")
+                    f"  - rot {fmtrot(obj.rotation_euler[0])}, "
+                    f"{fmtrot(obj.rotation_euler[1])}, "
+                    f"{fmtrot(obj.rotation_euler[2])} "
+                    f"({obj.rotation_mode})\n"
+                )
                 desc.write(f"  - scl {obj.scale[0]:.3f}, {obj.scale[1]:.3f}, {obj.scale[2]:.3f}\n")
                 if obj.vertex_groups:
                     desc.write(f"  - {len(obj.vertex_groups)} vertex groups\n")
@@ -517,7 +547,10 @@ class Report:
                         desc.write(f"    - {mod.type} '{mod.name}'")
                         if isinstance(mod, bpy.types.SubsurfModifier):
                             desc.write(
-                                f" levels:{mod.levels}/{mod.render_levels} type:{mod.subdivision_type} crease:{mod.use_creases}")
+                                f" levels:{mod.levels}/{mod.render_levels} "
+                                f"type:{mod.subdivision_type} "
+                                f"crease:{mod.use_creases}"
+                            )
                         desc.write(f"\n")
                 # for a pose, only print bones that either have non-identity pose matrix, or custom properties
                 if obj.pose:
@@ -532,11 +565,14 @@ class Report:
                             desc.write(f"  - posed bone '{bone.name}'\n")
                             if not mtx_identity:
                                 desc.write(
-                                    f"      {fmtf(mtx[0][0])} {fmtf(mtx[0][1])} {fmtf(mtx[0][2])} {fmtf(mtx[0][3])}\n")
+                                    f"      {fmtf(mtx[0][0])} {fmtf(mtx[0][1])} {fmtf(mtx[0][2])} {fmtf(mtx[0][3])}\n"
+                                )
                                 desc.write(
-                                    f"      {fmtf(mtx[1][0])} {fmtf(mtx[1][1])} {fmtf(mtx[1][2])} {fmtf(mtx[1][3])}\n")
+                                    f"      {fmtf(mtx[1][0])} {fmtf(mtx[1][1])} {fmtf(mtx[1][2])} {fmtf(mtx[1][3])}\n"
+                                )
                                 desc.write(
-                                    f"      {fmtf(mtx[2][0])} {fmtf(mtx[2][1])} {fmtf(mtx[2][2])} {fmtf(mtx[2][3])}\n")
+                                    f"      {fmtf(mtx[2][0])} {fmtf(mtx[2][1])} {fmtf(mtx[2][2])} {fmtf(mtx[2][3])}\n"
+                                )
                             if len(props_str) > 0:
                                 desc.write(props_str)
 
@@ -549,13 +585,28 @@ class Report:
             desc.write(f"==== Cameras: {len(bpy.data.cameras)}\n")
             for cam in bpy.data.cameras:
                 desc.write(
-                    f"- Cam '{cam.name}' {cam.type} lens:{cam.lens:.1f} {cam.lens_unit} near:{cam.clip_start:.3f} far:{cam.clip_end:.1f} orthosize:{cam.ortho_scale:.1f}\n")
-                desc.write(f"  - fov {cam.angle:.3f} (h {cam.angle_x:.3f} v {cam.angle_y:.3f})\n")
+                    f"- Cam '{cam.name}' "
+                    f"{cam.type} "
+                    f"lens:{cam.lens:.1f} "
+                    f"{cam.lens_unit} "
+                    f"near:{cam.clip_start:.3f} "
+                    f"far:{cam.clip_end:.1f} "
+                    f"orthosize:{cam.ortho_scale:.1f}\n"
+                )
                 desc.write(
-                    f"  - sensor {cam.sensor_width:.1f}x{cam.sensor_height:.1f} shift {cam.shift_x:.3f},{cam.shift_y:.3f}\n")
+                    f"  - fov {cam.angle:.3f} "
+                    f"(h {cam.angle_x:.3f} v {cam.angle_y:.3f})\n"
+                )
+                desc.write(
+                    f"  - sensor {cam.sensor_width:.1f}x{cam.sensor_height:.1f} "
+                    f"shift {cam.shift_x:.3f},{cam.shift_y:.3f}\n"
+                )
                 if cam.dof.use_dof:
                     desc.write(
-                        f"  - dof dist:{cam.dof.focus_distance:.3f} fstop:{cam.dof.aperture_fstop:.1f} blades:{cam.dof.aperture_blades}\n")
+                        f"  - dof dist:{cam.dof.focus_distance:.3f} "
+                        f"fstop:{cam.dof.aperture_fstop:.1f} "
+                        f"blades:{cam.dof.aperture_blades}\n"
+                    )
                 Report._write_animdata_desc(cam.animation_data, desc)
                 Report._write_custom_props(cam, desc)
             desc.write(f"\n")
@@ -565,7 +616,11 @@ class Report:
             desc.write(f"==== Lights: {len(bpy.data.lights)}\n")
             for light in bpy.data.lights:
                 desc.write(
-                    f"- Light '{light.name}' {light.type} col:({light.color[0]:.3f}, {light.color[1]:.3f}, {light.color[2]:.3f}) energy:{light.energy:.3f}")
+                    f"- Light '{light.name}' "
+                    f"{light.type} "
+                    f"col:({light.color[0]:.3f}, {light.color[1]:.3f}, {light.color[2]:.3f}) "
+                    f"energy:{light.energy:.3f}"
+                )
                 if light.exposure != 0:
                     desc.write(f" exposure:{fmtf(light.exposure)}")
                 if light.use_temperature:
@@ -587,11 +642,21 @@ class Report:
                 desc.write(f"- Mat '{mat.name}'\n")
                 wrap = bpy_extras.node_shader_utils.PrincipledBSDFWrapper(mat)
                 desc.write(
-                    f"  - base color ({wrap.base_color[0]:.3f}, {wrap.base_color[1]:.3f}, {wrap.base_color[2]:.3f}){self._node_shader_image_desc(wrap.base_color_texture)}\n")
+                    f"  - base color ("
+                    f"{wrap.base_color[0]:.3f}, "
+                    f"{wrap.base_color[1]:.3f}, "
+                    f"{wrap.base_color[2]:.3f})"
+                    f"{self._node_shader_image_desc(wrap.base_color_texture)}\n"
+                )
                 desc.write(
                     f"  - specular ior {wrap.specular:.3f}{self._node_shader_image_desc(wrap.specular_texture)}\n")
                 desc.write(
-                    f"  - specular tint ({wrap.specular_tint[0]:.3f}, {wrap.specular_tint[1]:.3f}, {wrap.specular_tint[2]:.3f}){self._node_shader_image_desc(wrap.specular_tint_texture)}\n")
+                    f"  - specular tint ("
+                    f"{wrap.specular_tint[0]:.3f}, "
+                    f"{wrap.specular_tint[1]:.3f}, "
+                    f"{wrap.specular_tint[2]:.3f})"
+                    f"{self._node_shader_image_desc(wrap.specular_tint_texture)}\n"
+                )
                 desc.write(
                     f"  - roughness {wrap.roughness:.3f}{self._node_shader_image_desc(wrap.roughness_texture)}\n")
                 desc.write(
@@ -599,19 +664,37 @@ class Report:
                 desc.write(f"  - ior {wrap.ior:.3f}{self._node_shader_image_desc(wrap.ior_texture)}\n")
                 if wrap.transmission > 0.0 or (wrap.transmission_texture and wrap.transmission_texture.image):
                     desc.write(
-                        f"  - transmission {wrap.transmission:.3f}{self._node_shader_image_desc(wrap.transmission_texture)}\n")
+                        f"  - transmission {wrap.transmission:.3f}"
+                        f"{self._node_shader_image_desc(wrap.transmission_texture)}\n"
+                    )
                 if wrap.alpha < 1.0 or (wrap.alpha_texture and wrap.alpha_texture.image):
                     desc.write(
                         f"  - alpha {wrap.alpha:.3f}{self._node_shader_image_desc(wrap.alpha_texture)}\n")
-                if (wrap.emission_strength > 0.0 and wrap.emission_color[0] > 0.0 and wrap.emission_color[1] > 0.0 and wrap.emission_color[2] > 0.0) or (
-                        wrap.emission_strength_texture and wrap.emission_strength_texture.image):
+                if (
+                        wrap.emission_strength > 0.0 and
+                        wrap.emission_color[0] > 0.0 and
+                        wrap.emission_color[1] > 0.0 and
+                        wrap.emission_color[2] > 0.0
+                ) or (
+                        wrap.emission_strength_texture and
+                        wrap.emission_strength_texture.image
+                ):
                     desc.write(
-                        f"  - emission color ({wrap.emission_color[0]:.3f}, {wrap.emission_color[1]:.3f}, {wrap.emission_color[2]:.3f}){self._node_shader_image_desc(wrap.emission_color_texture)}\n")
+                        f"  - emission color "
+                        f"({wrap.emission_color[0]:.3f}, "
+                        f"{wrap.emission_color[1]:.3f}, "
+                        f"{wrap.emission_color[2]:.3f})"
+                        f"{self._node_shader_image_desc(wrap.emission_color_texture)}\n"
+                    )
                     desc.write(
-                        f"  - emission strength {wrap.emission_strength:.3f}{self._node_shader_image_desc(wrap.emission_strength_texture)}\n")
+                        f"  - emission strength {wrap.emission_strength:.3f}"
+                        f"{self._node_shader_image_desc(wrap.emission_strength_texture)}\n"
+                    )
                 if (wrap.normalmap_texture and wrap.normalmap_texture.image):
                     desc.write(
-                        f"  - normalmap {wrap.normalmap_strength:.3f}{self._node_shader_image_desc(wrap.normalmap_texture)}\n")
+                        f"  - normalmap {wrap.normalmap_strength:.3f}"
+                        f"{self._node_shader_image_desc(wrap.normalmap_texture)}\n"
+                    )
                 if mat.alpha_threshold != 0.5:
                     desc.write(f"  - alpha_threshold {fmtf(mat.alpha_threshold)}\n")
                 if mat.surface_render_method != 'DITHERED':
@@ -619,12 +702,29 @@ class Report:
                 if mat.displacement_method != 'BUMP':
                     desc.write(f"  - displacement {mat.displacement_method}\n")
                 desc.write(
-                    f"  - viewport diffuse ({fmtf(mat.diffuse_color[0])}, {fmtf(mat.diffuse_color[1])}, {fmtf(mat.diffuse_color[2])}, {fmtf(mat.diffuse_color[3])})\n")
+                    "  - viewport diffuse ("
+                    f"{fmtf(mat.diffuse_color[0])}, "
+                    f"{fmtf(mat.diffuse_color[1])}, "
+                    f"{fmtf(mat.diffuse_color[2])}, "
+                    f"{fmtf(mat.diffuse_color[3])})\n"
+                )
                 desc.write(
-                    f"  - viewport specular ({fmtf(mat.specular_color[0])}, {fmtf(mat.specular_color[1])}, {fmtf(mat.specular_color[2])}), intensity {fmtf(mat.specular_intensity)}\n")
-                desc.write(f"  - viewport metallic {fmtf(mat.metallic)}, roughness {fmtf(mat.roughness)}\n")
+                    "  - viewport specular ("
+                    f"{fmtf(mat.specular_color[0])}, "
+                    f"{fmtf(mat.specular_color[1])}, "
+                    f"{fmtf(mat.specular_color[2])}), "
+                    f"intensity {fmtf(mat.specular_intensity)}\n"
+                )
                 desc.write(
-                    f"  - backface {mat.use_backface_culling} probe {mat.use_backface_culling_lightprobe_volume} shadow {mat.use_backface_culling_shadow}\n")
+                    "  - viewport "
+                    f"metallic {fmtf(mat.metallic)}, "
+                    f"roughness {fmtf(mat.roughness)}\n"
+                )
+                desc.write(
+                    f"  - backface {mat.use_backface_culling} "
+                    f"probe {mat.use_backface_culling_lightprobe_volume} "
+                    f"shadow {mat.use_backface_culling_shadow}\n"
+                )
                 Report._write_animdata_desc(mat.animation_data, desc)
                 Report._write_custom_props(mat, desc)
                 desc.write(f"\n")
@@ -635,7 +735,10 @@ class Report:
             for act in sorted(bpy.data.actions, key=lambda a: a.name):
                 layers = sorted(act.layers, key=lambda l: l.name)
                 desc.write(
-                    f"- Action '{act.name}' curverange:({act.curve_frame_range[0]:.1f} .. {act.curve_frame_range[1]:.1f}) layers:{len(layers)}\n")
+                    f"- Action '{act.name}' "
+                    f"curverange:({act.curve_frame_range[0]:.1f} .. {act.curve_frame_range[1]:.1f}) "
+                    f"layers:{len(layers)}\n"
+                )
                 for layer in layers:
                     desc.write(f"- ActionLayer {layer.name} strips:{len(layer.strips)}\n")
                     for strip in layer.strips:
@@ -652,7 +755,11 @@ class Report:
                                     if fcu.group:
                                         grp = f" grp:'{fcu.group.name}'"
                                     desc.write(
-                                        f"  - fcu '{fcu.data_path}[{fcu.array_index}]' smooth:{fcu.auto_smoothing} extra:{fcu.extrapolation} keyframes:{len(fcu.keyframe_points)}{grp}\n")
+                                        f"  - fcu '{fcu.data_path}[{fcu.array_index}]' "
+                                        f"smooth:{fcu.auto_smoothing} "
+                                        f"extra:{fcu.extrapolation} "
+                                        f"keyframes:{len(fcu.keyframe_points)}{grp}\n"
+                                    )
                                     Report._write_collection_multi(fcu.keyframe_points, desc)
                 Report._write_custom_props(act, desc)
                 desc.write(f"\n")
@@ -671,7 +778,9 @@ class Report:
                     if bone.parent:
                         desc.write(f" parent:'{bone.parent.name}'")
                     desc.write(
-                        f" h:({fmtf(bone.head[0])}, {fmtf(bone.head[1])}, {fmtf(bone.head[2])}) t:({fmtf(bone.tail[0])}, {fmtf(bone.tail[1])}, {fmtf(bone.tail[2])})")
+                        f" h:({fmtf(bone.head[0])}, {fmtf(bone.head[1])}, {fmtf(bone.head[2])}) "
+                        f"t:({fmtf(bone.tail[0])}, {fmtf(bone.tail[1])}, {fmtf(bone.tail[2])})"
+                    )
                     if bone.use_connect:
                         desc.write(f" connect")
                     if not bone.use_deform:
