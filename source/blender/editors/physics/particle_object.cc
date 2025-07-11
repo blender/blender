@@ -761,8 +761,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     bvhtree = mesh->bvh_legacy_faces();
   }
   else if (mesh->edges_num != 0) {
-    edges = static_cast<const blender::int2 *>(
-        CustomData_get_layer_named(&mesh->edge_data, CD_PROP_INT32_2D, ".edge_verts"));
+    edges = mesh->edges().data();
     bvhtree = mesh->bvh_edges();
   }
   else {

@@ -32,7 +32,7 @@ class USDCurvesReader : public USDGeomReader {
   }
 
   void create_object(Main *bmain) override;
-  void read_object_data(Main *bmain, double motionSampleTime) override;
+  void read_object_data(Main *bmain, pxr::UsdTimeCode time) override;
 
   void read_geometry(bke::GeometrySet &geometry_set,
                      USDMeshReadParams params,
@@ -40,11 +40,11 @@ class USDCurvesReader : public USDGeomReader {
 
   void read_velocities(bke::CurvesGeometry &curves,
                        const pxr::UsdGeomCurves &usd_curves,
-                       const double motionSampleTime) const;
-  void read_custom_data(bke::CurvesGeometry &curves, const double motionSampleTime) const;
+                       const pxr::UsdTimeCode time) const;
+  void read_custom_data(bke::CurvesGeometry &curves, const pxr::UsdTimeCode time) const;
 
   virtual bool is_animated() const = 0;
-  virtual void read_curve_sample(Curves *curves_id, double motionSampleTime) = 0;
+  virtual void read_curve_sample(Curves *curves_id, pxr::UsdTimeCode time) = 0;
 };
 
 class USDBasisCurvesReader : public USDCurvesReader {
@@ -65,7 +65,7 @@ class USDBasisCurvesReader : public USDCurvesReader {
   }
 
   bool is_animated() const override;
-  void read_curve_sample(Curves *curves_id, double motionSampleTime) override;
+  void read_curve_sample(Curves *curves_id, pxr::UsdTimeCode time) override;
 };
 
 }  // namespace blender::io::usd

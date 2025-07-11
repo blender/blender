@@ -10,6 +10,7 @@
 #include "BKE_context.hh"
 #include "BKE_library.hh"
 
+#include "BLI_bounds.hh"
 #include "BLI_rect.h"
 #include "BLI_string_ref.hh"
 
@@ -29,67 +30,70 @@ using blender::StringRefNull;
 
 static bool curvemap_can_zoom_out(CurveMapping *cumap)
 {
-  return BLI_rctf_size_x(&cumap->curr) < BLI_rctf_size_x(&cumap->clipr);
+  return (cumap->flag & CUMA_DO_CLIP) == 0 ||
+         (BLI_rctf_size_x(&cumap->curr) < BLI_rctf_size_x(&cumap->clipr));
 }
 
 static bool curvemap_can_zoom_in(CurveMapping *cumap)
 {
-  return BLI_rctf_size_x(&cumap->curr) > CURVE_ZOOM_MAX * BLI_rctf_size_x(&cumap->clipr);
+  return (cumap->flag & CUMA_DO_CLIP) == 0 ||
+         (BLI_rctf_size_x(&cumap->curr) > CURVE_ZOOM_MAX * BLI_rctf_size_x(&cumap->clipr));
+}
+
+static void curvemap_zoom(CurveMapping &cumap, const float scale)
+{
+  using namespace blender;
+
+  const Bounds<float2> curr_bounds(float2(cumap.curr.xmin, cumap.curr.ymin),
+                                   float2(cumap.curr.xmax, cumap.curr.ymax));
+  const float2 offset = curr_bounds.size() * 0.5f * (scale - 1.0f);
+  const Bounds<float2> new_bounds(curr_bounds.min - offset, curr_bounds.max + offset);
+
+  Bounds<float2> clamped_bounds = new_bounds;
+  /* Clamp to clip bounds if enabled, snap if the difference is small. */
+  if (cumap.flag & CUMA_DO_CLIP) {
+    const Bounds<float2> clip_bounds(float2(cumap.clipr.xmin, cumap.clipr.ymin),
+                                     float2(cumap.clipr.xmax, cumap.clipr.ymax));
+    const float2 threshold = 0.01f * clip_bounds.size();
+    if (clamped_bounds.min.x < clip_bounds.min.x + threshold.x) {
+      clamped_bounds.min.x = clip_bounds.min.x;
+    }
+    if (clamped_bounds.min.y < clip_bounds.min.y + threshold.y) {
+      clamped_bounds.min.y = clip_bounds.min.y;
+    }
+    if (clamped_bounds.max.x > clip_bounds.max.x - threshold.x) {
+      clamped_bounds.max.x = clip_bounds.max.x;
+    }
+    if (clamped_bounds.max.y > clip_bounds.max.y - threshold.y) {
+      clamped_bounds.max.y = clip_bounds.max.y;
+    }
+  }
+  cumap.curr.xmin = clamped_bounds.min.x;
+  cumap.curr.ymin = clamped_bounds.min.y;
+  cumap.curr.xmax = clamped_bounds.max.x;
+  cumap.curr.ymax = clamped_bounds.max.y;
 }
 
 static void curvemap_buttons_zoom_in(bContext *C, CurveMapping *cumap)
 {
-  if (curvemap_can_zoom_in(cumap)) {
-    const float dx = 0.1154f * BLI_rctf_size_x(&cumap->curr);
-    cumap->curr.xmin += dx;
-    cumap->curr.xmax -= dx;
-    const float dy = 0.1154f * BLI_rctf_size_y(&cumap->curr);
-    cumap->curr.ymin += dy;
-    cumap->curr.ymax -= dy;
+  if (!curvemap_can_zoom_in(cumap)) {
+    return;
   }
+
+  curvemap_zoom(*cumap, 0.7692f);
 
   ED_region_tag_redraw(CTX_wm_region(C));
 }
 
 static void curvemap_buttons_zoom_out(bContext *C, CurveMapping *cumap)
 {
-  float d, d1;
+  using namespace blender;
 
-  if (curvemap_can_zoom_out(cumap)) {
-    d = d1 = 0.15f * BLI_rctf_size_x(&cumap->curr);
-
-    if (cumap->flag & CUMA_DO_CLIP) {
-      if (cumap->curr.xmin - d < cumap->clipr.xmin) {
-        d1 = cumap->curr.xmin - cumap->clipr.xmin;
-      }
-    }
-    cumap->curr.xmin -= d1;
-
-    d1 = d;
-    if (cumap->flag & CUMA_DO_CLIP) {
-      if (cumap->curr.xmax + d > cumap->clipr.xmax) {
-        d1 = -cumap->curr.xmax + cumap->clipr.xmax;
-      }
-    }
-    cumap->curr.xmax += d1;
-
-    d = d1 = 0.15f * BLI_rctf_size_y(&cumap->curr);
-
-    if (cumap->flag & CUMA_DO_CLIP) {
-      if (cumap->curr.ymin - d < cumap->clipr.ymin) {
-        d1 = cumap->curr.ymin - cumap->clipr.ymin;
-      }
-    }
-    cumap->curr.ymin -= d1;
-
-    d1 = d;
-    if (cumap->flag & CUMA_DO_CLIP) {
-      if (cumap->curr.ymax + d > cumap->clipr.ymax) {
-        d1 = -cumap->curr.ymax + cumap->clipr.ymax;
-      }
-    }
-    cumap->curr.ymax += d1;
+  if (!curvemap_can_zoom_out(cumap)) {
+    return;
   }
+
+  curvemap_zoom(*cumap, 1.3f);
 
   ED_region_tag_redraw(CTX_wm_region(C));
 }

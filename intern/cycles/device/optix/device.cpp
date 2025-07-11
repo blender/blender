@@ -44,12 +44,12 @@ bool device_optix_init()
   const OptixResult result = optixInit();
 
   if (result == OPTIX_ERROR_UNSUPPORTED_ABI_VERSION) {
-    LOG(WARNING) << "OptiX initialization failed because the installed NVIDIA driver is too old. "
-                    "Please update to the latest driver first!";
+    LOG_WARNING << "OptiX initialization failed because the installed NVIDIA driver is too old. "
+                   "Please update to the latest driver first!";
     return false;
   }
   if (result != OPTIX_SUCCESS) {
-    LOG(WARNING) << "OptiX initialization failed with error code " << (unsigned int)result;
+    LOG_WARNING << "OptiX initialization failed with error code " << (unsigned int)result;
     return false;
   }
 
@@ -114,7 +114,7 @@ unique_ptr<Device> device_optix_create(const DeviceInfo &info,
   (void)profiler;
   (void)headless;
 
-  LOG(FATAL) << "Request to create OptiX device without compiled-in support. Should never happen.";
+  LOG_FATAL << "Request to create OptiX device without compiled-in support. Should never happen.";
 
   return nullptr;
 #endif

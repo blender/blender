@@ -77,8 +77,8 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
     return false;
   }
 
-  LOG(DEBUG) << "Checking device " << device.description << " (" << device.id
-             << ") for OIDN GPU support";
+  LOG_DEBUG << "Checking device " << device.description << " (" << device.id
+            << ") for OIDN GPU support";
 
   int device_type = OIDN_DEVICE_TYPE_DEFAULT;
   switch (device.type) {
@@ -101,20 +101,20 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 #    ifdef OIDN_DEVICE_METAL
     case DEVICE_METAL: {
       const int num_devices = oidnGetNumPhysicalDevices();
-      LOG(DEBUG) << "Found " << num_devices << " OIDN device(s)";
+      LOG_DEBUG << "Found " << num_devices << " OIDN device(s)";
       for (int i = 0; i < num_devices; i++) {
         const int type = oidnGetPhysicalDeviceInt(i, "type");
         const char *name = oidnGetPhysicalDeviceString(i, "name");
-        LOG(DEBUG) << "OIDN device " << i << ": name=\"" << name
-                   << "\", type=" << oidn_device_type_to_string(OIDNDeviceType(type));
+        LOG_DEBUG << "OIDN device " << i << ": name=\"" << name
+                  << "\", type=" << oidn_device_type_to_string(OIDNDeviceType(type));
         if (type == OIDN_DEVICE_TYPE_METAL) {
           if (device.id.find(name) != std::string::npos) {
-            LOG(DEBUG) << "OIDN device name matches the Cycles device name";
+            LOG_DEBUG << "OIDN device name matches the Cycles device name";
             return true;
           }
         }
       }
-      LOG(DEBUG) << "No matched OIDN device found";
+      LOG_DEBUG << "No matched OIDN device found";
       return false;
     }
 #    endif
@@ -127,30 +127,30 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 
   /* Match GPUs by their PCI ID. */
   const int num_devices = oidnGetNumPhysicalDevices();
-  LOG(DEBUG) << "Found " << num_devices << " OIDN device(s)";
+  LOG_DEBUG << "Found " << num_devices << " OIDN device(s)";
   for (int i = 0; i < num_devices; i++) {
     const int type = oidnGetPhysicalDeviceInt(i, "type");
     const char *name = oidnGetPhysicalDeviceString(i, "name");
-    LOG(DEBUG) << "OIDN device " << i << ": name=\"" << name
-               << "\" type=" << oidn_device_type_to_string(OIDNDeviceType(type));
+    LOG_DEBUG << "OIDN device " << i << ": name=\"" << name
+              << "\" type=" << oidn_device_type_to_string(OIDNDeviceType(type));
     if (type == device_type) {
       if (oidnGetPhysicalDeviceBool(i, "pciAddressSupported")) {
         unsigned int pci_domain = oidnGetPhysicalDeviceInt(i, "pciDomain");
         unsigned int pci_bus = oidnGetPhysicalDeviceInt(i, "pciBus");
         unsigned int pci_device = oidnGetPhysicalDeviceInt(i, "pciDevice");
         string pci_id = string_printf("%04x:%02x:%02x", pci_domain, pci_bus, pci_device);
-        LOG(INFO) << "OIDN device PCI-e identifier: " << pci_id;
+        LOG_INFO << "OIDN device PCI-e identifier: " << pci_id;
         if (device.id.find(pci_id) != string::npos) {
-          LOG(DEBUG) << "OIDN device PCI-e identifier matches the Cycles device ID";
+          LOG_DEBUG << "OIDN device PCI-e identifier matches the Cycles device ID";
           return true;
         }
       }
       else {
-        LOG(DEBUG) << "Device does not support pciAddressSupported";
+        LOG_DEBUG << "Device does not support pciAddressSupported";
       }
     }
   }
-  LOG(DEBUG) << "No matched OIDN device found";
+  LOG_DEBUG << "No matched OIDN device found";
   return false;
 #  endif
 }
@@ -201,7 +201,7 @@ OIDNFilter OIDNDenoiserGPU::create_filter()
   if (filter == nullptr) {
     const OIDNError err = oidnGetDeviceError(oidn_device_, &error_message);
     if (OIDN_ERROR_NONE != err) {
-      LOG(ERROR) << "OIDN error: " << error_message;
+      LOG_ERROR << "OIDN error: " << error_message;
       set_error(error_message);
     }
   }
@@ -252,7 +252,7 @@ bool OIDNDenoiserGPU::commit_and_execute_filter(OIDNFilter filter, ExecMode mode
     if (error_message == nullptr) {
       error_message = "Unspecified OIDN error";
     }
-    LOG(ERROR) << "OIDN error: " << error_message;
+    LOG_ERROR << "OIDN error: " << error_message;
     set_error(error_message);
     return false;
   }
@@ -335,7 +335,7 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
           oidn_filter_, "weights", custom_weights.data(), custom_weights.size());
     }
     else {
-      LOG(ERROR) << "Failed to load custom OpenImageDenoise weights";
+      LOG_ERROR << "Failed to load custom OpenImageDenoise weights";
     }
   }
 

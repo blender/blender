@@ -7,7 +7,6 @@
 #include <cstdint>
 #include <memory>
 
-#include "BLI_array.hh"
 #include "BLI_map.hh"
 
 #include "COM_cached_resource.hh"
@@ -46,9 +45,6 @@ bool operator==(const SymmetricSeparableBlurWeightsKey &a,
  * \{ */
 
 class SymmetricSeparableBlurWeights : public CachedResource {
- private:
-  Array<float> weights_;
-
  public:
   Result result;
 

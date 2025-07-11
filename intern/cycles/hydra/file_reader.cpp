@@ -60,7 +60,7 @@ void HdCyclesFileReader::read(Session *session, const char *filepath, const bool
   /* Open Stage. */
   const UsdStageRefPtr stage = UsdStage::Open(filepath);
   if (!stage) {
-    LOG(ERROR) << "USD failed to read " << filepath;
+    LOG_ERROR << "USD failed to read " << filepath;
     return;
   }
 

@@ -163,7 +163,7 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       break;
   };
 #ifndef __KERNEL_ONEAPI__
-  LOG(FATAL) << "Unhandled kernel " << static_cast<int>(kernel) << ", should never happen.";
+  LOG_FATAL << "Unhandled kernel " << static_cast<int>(kernel) << ", should never happen.";
 #endif
   return "UNKNOWN";
 }

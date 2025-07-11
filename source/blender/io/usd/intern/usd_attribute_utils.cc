@@ -95,7 +95,7 @@ std::optional<bke::AttrType> convert_usd_type_to_blender(const pxr::SdfValueType
 }
 
 void copy_primvar_to_blender_attribute(const pxr::UsdGeomPrimvar &primvar,
-                                       const pxr::UsdTimeCode timecode,
+                                       const pxr::UsdTimeCode time,
                                        const bke::AttrType data_type,
                                        const bke::AttrDomain domain,
                                        const OffsetIndices<int> face_indices,
@@ -109,23 +109,23 @@ void copy_primvar_to_blender_attribute(const pxr::UsdGeomPrimvar &primvar,
   switch (data_type) {
     case bke::AttrType::Float:
       copy_primvar_to_blender_buffer<float>(
-          primvar, timecode, face_indices, attribute.span.typed<float>());
+          primvar, time, face_indices, attribute.span.typed<float>());
       break;
     case bke::AttrType::Int8:
       copy_primvar_to_blender_buffer<uchar>(
-          primvar, timecode, face_indices, attribute.span.typed<int8_t>());
+          primvar, time, face_indices, attribute.span.typed<int8_t>());
       break;
     case bke::AttrType::Int32:
       copy_primvar_to_blender_buffer<int32_t>(
-          primvar, timecode, face_indices, attribute.span.typed<int>());
+          primvar, time, face_indices, attribute.span.typed<int>());
       break;
     case bke::AttrType::Float2:
       copy_primvar_to_blender_buffer<pxr::GfVec2f>(
-          primvar, timecode, face_indices, attribute.span.typed<float2>());
+          primvar, time, face_indices, attribute.span.typed<float2>());
       break;
     case bke::AttrType::Float3:
       copy_primvar_to_blender_buffer<pxr::GfVec3f>(
-          primvar, timecode, face_indices, attribute.span.typed<float3>());
+          primvar, time, face_indices, attribute.span.typed<float3>());
       break;
     case bke::AttrType::ColorFloat: {
       const pxr::SdfValueTypeName pv_type = primvar.GetTypeName();
@@ -135,20 +135,20 @@ void copy_primvar_to_blender_attribute(const pxr::UsdGeomPrimvar &primvar,
                pxr::SdfValueTypeNames->Color3dArray))
       {
         copy_primvar_to_blender_buffer<pxr::GfVec3f>(
-            primvar, timecode, face_indices, attribute.span.typed<ColorGeometry4f>());
+            primvar, time, face_indices, attribute.span.typed<ColorGeometry4f>());
       }
       else {
         copy_primvar_to_blender_buffer<pxr::GfVec4f>(
-            primvar, timecode, face_indices, attribute.span.typed<ColorGeometry4f>());
+            primvar, time, face_indices, attribute.span.typed<ColorGeometry4f>());
       }
     } break;
     case bke::AttrType::Bool:
       copy_primvar_to_blender_buffer<bool>(
-          primvar, timecode, face_indices, attribute.span.typed<bool>());
+          primvar, time, face_indices, attribute.span.typed<bool>());
       break;
     case bke::AttrType::Quaternion:
       copy_primvar_to_blender_buffer<pxr::GfQuatf>(
-          primvar, timecode, face_indices, attribute.span.typed<math::Quaternion>());
+          primvar, time, face_indices, attribute.span.typed<math::Quaternion>());
       break;
 
     default:
@@ -160,58 +160,58 @@ void copy_primvar_to_blender_attribute(const pxr::UsdGeomPrimvar &primvar,
 
 void copy_blender_attribute_to_primvar(const GVArray &attribute,
                                        const bke::AttrType data_type,
-                                       const pxr::UsdTimeCode timecode,
+                                       const pxr::UsdTimeCode time,
                                        const pxr::UsdGeomPrimvar &primvar,
                                        pxr::UsdUtilsSparseValueWriter &value_writer)
 {
   switch (data_type) {
     case bke::AttrType::Float:
       copy_blender_buffer_to_primvar<float, float>(
-          attribute.typed<float>(), timecode, primvar, value_writer);
+          attribute.typed<float>(), time, primvar, value_writer);
       break;
     case bke::AttrType::Int8:
       copy_blender_buffer_to_primvar<int8_t, uchar>(
-          attribute.typed<int8_t>(), timecode, primvar, value_writer);
+          attribute.typed<int8_t>(), time, primvar, value_writer);
       break;
     case bke::AttrType::Int32:
       copy_blender_buffer_to_primvar<int, int32_t>(
-          attribute.typed<int>(), timecode, primvar, value_writer);
+          attribute.typed<int>(), time, primvar, value_writer);
       break;
     case bke::AttrType::Float2:
       copy_blender_buffer_to_primvar<float2, pxr::GfVec2f>(
-          attribute.typed<float2>(), timecode, primvar, value_writer);
+          attribute.typed<float2>(), time, primvar, value_writer);
       break;
     case bke::AttrType::Float3:
       copy_blender_buffer_to_primvar<float3, pxr::GfVec3f>(
-          attribute.typed<float3>(), timecode, primvar, value_writer);
+          attribute.typed<float3>(), time, primvar, value_writer);
       break;
     case bke::AttrType::Bool:
       copy_blender_buffer_to_primvar<bool, bool>(
-          attribute.typed<bool>(), timecode, primvar, value_writer);
+          attribute.typed<bool>(), time, primvar, value_writer);
       break;
     case bke::AttrType::ColorFloat:
       if (primvar.GetTypeName() == pxr::SdfValueTypeNames->Color3fArray) {
         copy_blender_buffer_to_primvar<ColorGeometry4f, pxr::GfVec3f>(
-            attribute.typed<ColorGeometry4f>(), timecode, primvar, value_writer);
+            attribute.typed<ColorGeometry4f>(), time, primvar, value_writer);
       }
       else {
         copy_blender_buffer_to_primvar<ColorGeometry4f, pxr::GfVec4f>(
-            attribute.typed<ColorGeometry4f>(), timecode, primvar, value_writer);
+            attribute.typed<ColorGeometry4f>(), time, primvar, value_writer);
       }
       break;
     case bke::AttrType::ColorByte:
       if (primvar.GetTypeName() == pxr::SdfValueTypeNames->Color3fArray) {
         copy_blender_buffer_to_primvar<ColorGeometry4b, pxr::GfVec3f>(
-            attribute.typed<ColorGeometry4b>(), timecode, primvar, value_writer);
+            attribute.typed<ColorGeometry4b>(), time, primvar, value_writer);
       }
       else {
         copy_blender_buffer_to_primvar<ColorGeometry4b, pxr::GfVec4f>(
-            attribute.typed<ColorGeometry4b>(), timecode, primvar, value_writer);
+            attribute.typed<ColorGeometry4b>(), time, primvar, value_writer);
       }
       break;
     case bke::AttrType::Quaternion:
       copy_blender_buffer_to_primvar<math::Quaternion, pxr::GfQuatf>(
-          attribute.typed<math::Quaternion>(), timecode, primvar, value_writer);
+          attribute.typed<math::Quaternion>(), time, primvar, value_writer);
       break;
     default:
       BLI_assert_unreachable();

@@ -260,9 +260,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   if (!use_adaptive_compilation()) {
     if (!force_ptx) {
       const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin.zst", name, major, minor));
-      LOG(INFO) << "Testing for pre-compiled kernel " << cubin << ".";
+      LOG_INFO << "Testing for pre-compiled kernel " << cubin << ".";
       if (path_exists(cubin)) {
-        LOG(INFO) << "Using precompiled kernel.";
+        LOG_INFO << "Using precompiled kernel.";
         return cubin;
       }
     }
@@ -272,9 +272,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
     while (ptx_major >= 3) {
       const string ptx = path_get(
           string_printf("lib/%s_compute_%d%d.ptx.zst", name, ptx_major, ptx_minor));
-      LOG(INFO) << "Testing for pre-compiled kernel " << ptx << ".";
+      LOG_INFO << "Testing for pre-compiled kernel " << ptx << ".";
       if (path_exists(ptx)) {
-        LOG(INFO) << "Using precompiled kernel.";
+        LOG_INFO << "Using precompiled kernel.";
         return ptx;
       }
 
@@ -302,9 +302,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   const string cubin_file = string_printf(
       "cycles_%s_%s_%d%d_%s.%s", name, kernel_arch, major, minor, kernel_md5.c_str(), kernel_ext);
   const string cubin = path_cache_get(path_join("kernels", cubin_file));
-  LOG(INFO) << "Testing for locally compiled kernel " << cubin << ".";
+  LOG_INFO << "Testing for locally compiled kernel " << cubin << ".";
   if (path_exists(cubin)) {
-    LOG(INFO) << "Using locally compiled kernel.";
+    LOG_INFO << "Using locally compiled kernel.";
     return cubin;
   }
 
@@ -338,15 +338,15 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   }
 
   const int nvcc_cuda_version = cuewCompilerVersion();
-  LOG(INFO) << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
+  LOG_INFO << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
   if (nvcc_cuda_version < 101) {
-    LOG(WARNING) << "Unsupported CUDA version " << nvcc_cuda_version / 10 << "."
-                 << nvcc_cuda_version % 10 << ", you need CUDA 10.1 or newer";
+    LOG_WARNING << "Unsupported CUDA version " << nvcc_cuda_version / 10 << "."
+                << nvcc_cuda_version % 10 << ", you need CUDA 10.1 or newer";
     return string();
   }
   if (!(nvcc_cuda_version >= 102 && nvcc_cuda_version < 130)) {
-    LOG(WARNING) << "CUDA version " << nvcc_cuda_version / 10 << "." << nvcc_cuda_version % 10
-                 << "CUDA 10.1 to 12 are officially supported.";
+    LOG_WARNING << "CUDA version " << nvcc_cuda_version / 10 << "." << nvcc_cuda_version % 10
+                << "CUDA 10.1 to 12 are officially supported.";
   }
 
   double starttime = time_dt();
@@ -371,9 +371,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
       cubin.c_str(),
       common_cflags.c_str());
 
-  LOG(INFO_IMPORTANT) << "Compiling " << ((use_adaptive_compilation()) ? "adaptive " : "")
-                      << "CUDA kernel ...";
-  LOG(INFO_IMPORTANT) << command;
+  LOG_INFO_IMPORTANT << "Compiling " << ((use_adaptive_compilation()) ? "adaptive " : "")
+                     << "CUDA kernel ...";
+  LOG_INFO_IMPORTANT << command;
 
 #  ifdef _WIN32
   command = "call " + command;
@@ -393,8 +393,8 @@ string CUDADevice::compile_kernel(const string &common_cflags,
     return string();
   }
 
-  LOG(INFO_IMPORTANT) << "Kernel compilation finished in " << std::fixed << std::setprecision(2)
-                      << time_dt() - starttime << "s";
+  LOG_INFO_IMPORTANT << "Kernel compilation finished in " << std::fixed << std::setprecision(2)
+                     << time_dt() - starttime << "s";
 
   return cubin;
 }
@@ -408,8 +408,7 @@ bool CUDADevice::load_kernels(const uint kernel_features)
    */
   if (cuModule) {
     if (use_adaptive_compilation()) {
-      LOG(INFO)
-          << "Skipping CUDA kernel reload for adaptive compilation, not currently supported.";
+      LOG_INFO << "Skipping CUDA kernel reload for adaptive compilation, not currently supported.";
     }
     return true;
   }
@@ -498,8 +497,8 @@ void CUDADevice::reserve_local_memory(const uint kernel_features)
     cuMemGetInfo(&free_after, &total);
   }
 
-  LOG(INFO) << "Local memory reserved " << string_human_readable_number(free_before - free_after)
-            << " bytes. (" << string_human_readable_size(free_before - free_after) << ")";
+  LOG_INFO << "Local memory reserved " << string_human_readable_number(free_before - free_after)
+           << " bytes. (" << string_human_readable_size(free_before - free_after) << ")";
 
 #  if 0
   /* For testing mapped host memory, fill up device memory. */
@@ -1015,10 +1014,10 @@ bool CUDADevice::should_use_graphics_interop(const GraphicsInteropDevice &intero
 
       if (log) {
         if (found) {
-          LOG(INFO) << "Graphics interop: found matching OpenGL device for CUDA";
+          LOG_INFO << "Graphics interop: found matching OpenGL device for CUDA";
         }
         else {
-          LOG(INFO) << "Graphics interop: no matching OpenGL device for CUDA";
+          LOG_INFO << "Graphics interop: no matching OpenGL device for CUDA";
         }
       }
 
@@ -1033,16 +1032,16 @@ bool CUDADevice::should_use_graphics_interop(const GraphicsInteropDevice &intero
 
       if (log) {
         if (found) {
-          LOG(INFO) << "Graphics interop: found matching Vulkan device for CUDA";
+          LOG_INFO << "Graphics interop: found matching Vulkan device for CUDA";
         }
         else {
-          LOG(INFO) << "Graphics interop: no matching Vulkan device for CUDA";
+          LOG_INFO << "Graphics interop: no matching Vulkan device for CUDA";
         }
 
-        LOG(INFO) << "Graphics Interop: CUDA UUID "
-                  << string_hex(reinterpret_cast<uint8_t *>(uuid.bytes), sizeof(uuid.bytes))
-                  << ", Vulkan UUID "
-                  << string_hex(interop_device.uuid.data(), interop_device.uuid.size());
+        LOG_INFO << "Graphics Interop: CUDA UUID "
+                 << string_hex(reinterpret_cast<uint8_t *>(uuid.bytes), sizeof(uuid.bytes))
+                 << ", Vulkan UUID "
+                 << string_hex(interop_device.uuid.data(), interop_device.uuid.size());
       }
 
       return found;

@@ -215,7 +215,7 @@ NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const
   const ustring name(name_);
 
   if (types().find(name) != types().end()) {
-    LOG(ERROR) << "Node type " << name_ << " registered twice";
+    LOG_ERROR << "Node type " << name_ << " registered twice";
     assert(0);
     return nullptr;
   }

@@ -28,15 +28,15 @@ class USDPointsWriter final : public USDAbstractWriter {
  private:
   void write_generic_data(const bke::AttributeIter &attr,
                           const pxr::UsdGeomPoints &usd_points,
-                          pxr::UsdTimeCode timecode);
+                          pxr::UsdTimeCode time);
 
   void write_custom_data(const PointCloud *points,
                          const pxr::UsdGeomPoints &usd_points,
-                         pxr::UsdTimeCode timecode);
+                         pxr::UsdTimeCode time);
 
   void write_velocities(const PointCloud *points,
                         const pxr::UsdGeomPoints &usd_points,
-                        pxr::UsdTimeCode timecode);
+                        pxr::UsdTimeCode time);
 };
 
 }  // namespace blender::io::usd

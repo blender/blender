@@ -39,6 +39,6 @@ void dome_light_to_world_material(const USDImportParams &params,
                                   Main *bmain,
                                   const USDImportDomeLightData &dome_light_data,
                                   const pxr::UsdPrim &prim,
-                                  const double motionSampleTime = 0.0);
+                                  const pxr::UsdTimeCode time = 0.0);
 
 }  // namespace blender::io::usd

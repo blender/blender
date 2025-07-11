@@ -5,8 +5,7 @@
 #pragma once
 
 #include <cstdint>
-#include <type_traits>
-#include <utility>
+#include <optional>
 #include <variant>
 
 #include "BLI_assert.h"
@@ -166,6 +165,9 @@ class Result {
    * fourth channel during processing. */
   static eGPUTextureFormat gpu_texture_format(ResultType type, ResultPrecision precision);
 
+  /* Returns the GPU data format that corresponds to the give result type. */
+  static eGPUDataFormat gpu_data_format(const ResultType type);
+
   /* Returns the GPU texture format that corresponds to the give one, but whose precision is the
    * given precision. */
   static eGPUTextureFormat gpu_texture_format(eGPUTextureFormat format, ResultPrecision precision);
@@ -198,18 +200,17 @@ class Result {
    * created by uploading data from CPU. */
   eGPUTextureFormat get_gpu_texture_format() const;
 
+  /* Identical to gpu_data_format but assumes the result's type. */
+  eGPUDataFormat get_gpu_data_format() const;
+
   /* Declare the result to be a texture result, allocate a texture of an appropriate type with
    * the size of the given domain, and set the domain of the result to the given domain.
    *
-   * If from_pool is true, the texture will be allocated from the texture pool of the context,
-   * otherwise, a new texture will be allocated. Pooling should not be used for persistent
-   * results that might span more than one evaluation, like cached resources. While pooling should
-   * be used for most other cases where the result will be allocated then later released in the
-   * same evaluation.
-   *
-   * If the context of the result uses GPU, then GPU allocation will be done, otherwise, CPU
-   * allocation will be done. */
-  void allocate_texture(Domain domain, bool from_pool = true);
+   * See the allocate_data method for more information on the from_pool and storage_type
+   * parameters. */
+  void allocate_texture(const Domain domain,
+                        const bool from_pool = true,
+                        const std::optional<ResultStorageType> storage_type = std::nullopt);
 
   /* Declare the result to be a single value result, allocate a texture of an appropriate type with
    * size 1x1 from the texture pool, and set the domain to be an identity domain. The value is zero
@@ -219,6 +220,11 @@ class Result {
   /* Allocate a single value result whose value is zero. This is called for results whose value
    * can't be computed and are considered invalid. */
   void allocate_invalid();
+
+  /* Creates and allocates a new result that matches the type and precision of this result and
+   * uploads the CPU data that exist in this result. The result is assumed to be allocated on the
+   * CPU. See the allocate_data method for more information on the from_pool parameters. */
+  Result upload_to_gpu(const bool from_pool);
 
   /* Bind the GPU texture of the result to the texture image unit with the given name in the
    * currently bound given shader. This also inserts a memory barrier for texture fetches to ensure
@@ -434,9 +440,20 @@ class Result {
                          const float2 &y_gradient) const;
 
  private:
-  /* Allocates the image data for the given size, either on the GPU or CPU based on the result's
-   * context. See the allocate_texture method for information about the from_pool argument. */
-  void allocate_data(int2 size, bool from_pool);
+  /* Allocates the image data for the given size.
+   *
+   * The data is allocated on the CPU or GPU depending on the given storage_type. A nullopt may be
+   * passed to storage_type, in which case, the data will be allocated on the device of the
+   * result's context as specified by context.use_gpu().
+   *
+   * If from_pool is true, GPU textures will be allocated from the texture pool of the context,
+   * otherwise, a new texture will be allocated. Pooling should not be used for persistent results
+   * that might span more than one evaluation, like cached resources. While pooling should be used
+   * for most other cases where the result will be allocated then later released in the same
+   * evaluation. */
+  void allocate_data(const int2 size,
+                     const bool from_pool = true,
+                     const std::optional<ResultStorageType> storage_type = std::nullopt);
 
   /* Same as get_pixel_index but can be used when the type of the result is not known at compile
    * time. */

@@ -52,7 +52,7 @@ void CUDADeviceGraphicsInterop::set_buffer(GraphicsInteropBuffer &interop_buffer
                                                          interop_buffer.take_handle(),
                                                          CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
       if (result != CUDA_SUCCESS) {
-        LOG(ERROR) << "Error registering OpenGL buffer: " << cuewErrorString(result);
+        LOG_ERROR << "Error registering OpenGL buffer: " << cuewErrorString(result);
         break;
       }
 
@@ -82,7 +82,7 @@ void CUDADeviceGraphicsInterop::set_buffer(GraphicsInteropBuffer &interop_buffer
 #  else
         close(external_memory_handle_desc.handle.fd);
 #  endif
-        LOG(ERROR) << "Error importing Vulkan memory: " << cuewErrorString(result);
+        LOG_ERROR << "Error importing Vulkan memory: " << cuewErrorString(result);
         break;
       }
 
@@ -101,7 +101,7 @@ void CUDADeviceGraphicsInterop::set_buffer(GraphicsInteropBuffer &interop_buffer
           external_memory_device_ptr = 0;
         }
 
-        LOG(ERROR) << "Error mapping Vulkan memory: " << cuewErrorString(result);
+        LOG_ERROR << "Error mapping Vulkan memory: " << cuewErrorString(result);
         break;
       }
 

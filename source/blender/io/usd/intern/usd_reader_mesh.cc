@@ -181,12 +181,12 @@ void USDMeshReader::create_object(Main *bmain)
   object_->data = mesh;
 }
 
-void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
+void USDMeshReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
 {
   Mesh *mesh = (Mesh *)object_->data;
 
   is_initial_load_ = true;
-  const USDMeshReadParams params = create_mesh_read_params(motionSampleTime,
+  const USDMeshReadParams params = create_mesh_read_params(time.GetValue(),
                                                            import_params_.mesh_read_flag);
 
   Mesh *read_mesh = this->read_mesh(mesh, params, nullptr);
@@ -196,7 +196,7 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
     BKE_mesh_nomain_to_mesh(read_mesh, mesh, object_);
   }
 
-  readFaceSetsSample(bmain, mesh, motionSampleTime);
+  readFaceSetsSample(bmain, mesh, time);
 
   if (mesh_prim_.GetPointsAttr().ValueMightBeTimeVarying() ||
       mesh_prim_.GetNormalsAttr().ValueMightBeTimeVarying() ||
@@ -216,7 +216,7 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
 
   if (import_params_.import_subdiv) {
     pxr::TfToken subdivScheme;
-    mesh_prim_.GetSubdivisionSchemeAttr().Get(&subdivScheme, motionSampleTime);
+    mesh_prim_.GetSubdivisionSchemeAttr().Get(&subdivScheme, time);
 
     if (subdivScheme == pxr::UsdGeomTokens->catmullClark) {
       add_subdiv_modifier();
@@ -232,17 +232,17 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
     import_mesh_skel_bindings(object_, prim_, reports());
   }
 
-  USDXformReader::read_object_data(bmain, motionSampleTime);
+  USDXformReader::read_object_data(bmain, time);
 }
 
-bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double motionSampleTime)
+bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const pxr::UsdTimeCode time)
 {
   /* TODO(makowalski): Is it the best strategy to cache the mesh
    * geometry in this function?  This needs to be revisited. */
 
-  mesh_prim_.GetFaceVertexIndicesAttr().Get(&face_indices_, motionSampleTime);
-  mesh_prim_.GetFaceVertexCountsAttr().Get(&face_counts_, motionSampleTime);
-  mesh_prim_.GetPointsAttr().Get(&positions_, motionSampleTime);
+  mesh_prim_.GetFaceVertexIndicesAttr().Get(&face_indices_, time);
+  mesh_prim_.GetFaceVertexCountsAttr().Get(&face_counts_, time);
+  mesh_prim_.GetPointsAttr().Get(&positions_, time);
 
   const pxr::UsdGeomPrimvarsAPI primvarsAPI(mesh_prim_);
 
@@ -252,11 +252,11 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
   /* If 'normals' and 'primvars:normals' are both specified, the latter has precedence. */
   const pxr::UsdGeomPrimvar primvar = primvarsAPI.GetPrimvar(usdtokens::normalsPrimvar);
   if (primvar.HasValue()) {
-    primvar.ComputeFlattened(&normals_, motionSampleTime);
+    primvar.ComputeFlattened(&normals_, time);
     normal_interpolation_ = primvar.GetInterpolation();
   }
   else {
-    mesh_prim_.GetNormalsAttr().Get(&normals_, motionSampleTime);
+    mesh_prim_.GetNormalsAttr().Get(&normals_, time);
     normal_interpolation_ = mesh_prim_.GetNormalsInterpolation();
   }
 
@@ -341,12 +341,12 @@ bool USDMeshReader::read_faces(Mesh *mesh) const
 
 void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
                                          const pxr::UsdGeomPrimvar &primvar,
-                                         const double motionSampleTime)
+                                         const pxr::UsdTimeCode time)
 {
   const StringRef primvar_name(
       pxr::UsdGeomPrimvar::StripPrimvarsName(primvar.GetName()).GetString());
 
-  const pxr::VtVec2fArray usd_uvs = get_primvar_array<pxr::GfVec2f>(primvar, motionSampleTime);
+  const pxr::VtVec2fArray usd_uvs = get_primvar_array<pxr::GfVec2f>(primvar, time);
   if (usd_uvs.empty()) {
     return;
   }
@@ -450,15 +450,15 @@ void USDMeshReader::read_subdiv()
   }
 }
 
-void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTime)
+void USDMeshReader::read_vertex_creases(Mesh *mesh, const pxr::UsdTimeCode time)
 {
   pxr::VtIntArray usd_corner_indices;
-  if (!mesh_prim_.GetCornerIndicesAttr().Get(&usd_corner_indices, motionSampleTime)) {
+  if (!mesh_prim_.GetCornerIndicesAttr().Get(&usd_corner_indices, time)) {
     return;
   }
 
   pxr::VtFloatArray usd_corner_sharpnesses;
-  if (!mesh_prim_.GetCornerSharpnessesAttr().Get(&usd_corner_sharpnesses, motionSampleTime)) {
+  if (!mesh_prim_.GetCornerSharpnessesAttr().Get(&usd_corner_sharpnesses, time)) {
     return;
   }
 
@@ -499,14 +499,14 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
   creases.finish();
 }
 
-void USDMeshReader::read_edge_creases(Mesh *mesh, const double motionSampleTime)
+void USDMeshReader::read_edge_creases(Mesh *mesh, const pxr::UsdTimeCode time)
 {
   pxr::VtArray<int> usd_crease_lengths;
   pxr::VtArray<int> usd_crease_indices;
   pxr::VtArray<float> usd_crease_sharpness;
-  mesh_prim_.GetCreaseLengthsAttr().Get(&usd_crease_lengths, motionSampleTime);
-  mesh_prim_.GetCreaseIndicesAttr().Get(&usd_crease_indices, motionSampleTime);
-  mesh_prim_.GetCreaseSharpnessesAttr().Get(&usd_crease_sharpness, motionSampleTime);
+  mesh_prim_.GetCreaseLengthsAttr().Get(&usd_crease_lengths, time);
+  mesh_prim_.GetCreaseIndicesAttr().Get(&usd_crease_indices, time);
+  mesh_prim_.GetCreaseSharpnessesAttr().Get(&usd_crease_sharpness, time);
 
   /* Prevent the creation of the `crease_edge` attribute if we have no data. */
   if (usd_crease_lengths.empty() || usd_crease_indices.empty() || usd_crease_sharpness.empty()) {
@@ -587,10 +587,10 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const double motionSampleTime)
   creases.finish();
 }
 
-void USDMeshReader::read_velocities(Mesh *mesh, const double motionSampleTime)
+void USDMeshReader::read_velocities(Mesh *mesh, const pxr::UsdTimeCode time)
 {
   pxr::VtVec3fArray velocities;
-  mesh_prim_.GetVelocitiesAttr().Get(&velocities, motionSampleTime);
+  mesh_prim_.GetVelocitiesAttr().Get(&velocities, time);
 
   if (!velocities.empty()) {
     bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
@@ -685,7 +685,7 @@ void USDMeshReader::process_normals_uniform(Mesh *mesh) const
 
 void USDMeshReader::read_mesh_sample(ImportSettings *settings,
                                      Mesh *mesh,
-                                     const double motionSampleTime,
+                                     const pxr::UsdTimeCode time,
                                      const bool new_mesh)
 {
   /* Note that for new meshes we always want to read verts and faces,
@@ -697,14 +697,14 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
     vert_positions.copy_from(Span(positions_.cdata(), positions_.size()).cast<float3>());
     mesh->tag_positions_changed();
 
-    read_vertex_creases(mesh, motionSampleTime);
+    read_vertex_creases(mesh, time);
   }
 
   if (new_mesh || (settings->read_flag & MOD_MESHSEQ_READ_POLY) != 0) {
     if (!read_faces(mesh)) {
       return;
     }
-    read_edge_creases(mesh, motionSampleTime);
+    read_edge_creases(mesh, time);
 
     if (normal_interpolation_ == pxr::UsdGeomTokens->faceVarying) {
       process_normals_face_varying(mesh);
@@ -726,14 +726,14 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
       (settings->read_flag & MOD_MESHSEQ_READ_COLOR) ||
       (settings->read_flag & MOD_MESHSEQ_READ_ATTRIBUTES))
   {
-    read_velocities(mesh, motionSampleTime);
-    read_custom_data(settings, mesh, motionSampleTime, new_mesh);
+    read_velocities(mesh, time);
+    read_custom_data(settings, mesh, time, new_mesh);
   }
 }
 
 void USDMeshReader::read_custom_data(const ImportSettings *settings,
                                      Mesh *mesh,
-                                     const double motionSampleTime,
+                                     const pxr::UsdTimeCode time,
                                      const bool new_mesh)
 {
   if (!(mesh && mesh->corners_num > 0)) {
@@ -786,7 +786,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
           active_color_name = name;
         }
 
-        read_generic_mesh_primvar(mesh, pv, motionSampleTime, is_left_handed_);
+        read_generic_mesh_primvar(mesh, pv, time, is_left_handed_);
       }
     }
 
@@ -804,14 +804,14 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
         if (active_uv_set_name.IsEmpty() || name == usdtokens::st) {
           active_uv_set_name = name;
         }
-        this->read_uv_data_primvar(mesh, pv, motionSampleTime);
+        this->read_uv_data_primvar(mesh, pv, time);
       }
     }
 
     /* Read all other primvars. */
     else {
       if ((settings->read_flag & MOD_MESHSEQ_READ_ATTRIBUTES) != 0) {
-        read_generic_mesh_primvar(mesh, pv, motionSampleTime, is_left_handed_);
+        read_generic_mesh_primvar(mesh, pv, time, is_left_handed_);
       }
     }
 
@@ -840,7 +840,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
   }
 }
 
-void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
+void USDMeshReader::assign_facesets_to_material_indices(pxr::UsdTimeCode time,
                                                         MutableSpan<int> material_indices,
                                                         blender::Map<pxr::SdfPath, int> *r_mat_map)
 {
@@ -873,7 +873,7 @@ void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
       }
 
       pxr::TfToken element_type;
-      subset.GetElementTypeAttr().Get(&element_type, motionSampleTime);
+      subset.GetElementTypeAttr().Get(&element_type, time);
       if (element_type != pxr::UsdGeomTokens->face) {
         CLOG_WARN(&LOG,
                   "UsdGeomSubset '%s' uses unsupported elementType: %s",
@@ -886,7 +886,7 @@ void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
       const int max_element_idx = std::max(0, int(material_indices.size() - 1));
 
       pxr::VtIntArray indices;
-      subset.GetIndicesAttr().Get(&indices, motionSampleTime);
+      subset.GetIndicesAttr().Get(&indices, time);
 
       int bad_element_count = 0;
       for (const int element_idx : indices.AsConst()) {
@@ -917,7 +917,7 @@ void USDMeshReader::assign_facesets_to_material_indices(double motionSampleTime,
   }
 }
 
-void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double motionSampleTime)
+void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const pxr::UsdTimeCode time)
 {
   if (!import_params_.import_materials) {
     return;
@@ -928,7 +928,7 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
       "material_index", bke::AttrDomain::Face);
-  this->assign_facesets_to_material_indices(motionSampleTime, material_indices.span, &mat_map);
+  this->assign_facesets_to_material_indices(time, material_indices.span, &mat_map);
   material_indices.finish();
   /* Build material name map if it's not built yet. */
   if (this->settings_->mat_name_to_mat.is_empty()) {
@@ -1019,7 +1019,7 @@ pxr::SdfPath USDMeshReader::get_skeleton_path() const
   return {};
 }
 
-std::optional<XformResult> USDMeshReader::get_local_usd_xform(const float time) const
+std::optional<XformResult> USDMeshReader::get_local_usd_xform(const pxr::UsdTimeCode time) const
 {
   if (!import_params_.import_skeletons || prim_.IsInstanceProxy()) {
     /* Use the standard transform computation, since we are ignoring

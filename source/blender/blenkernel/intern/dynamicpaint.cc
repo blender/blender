@@ -329,6 +329,8 @@ DynamicPaintSurface *get_activeSurface(DynamicPaintCanvasSettings *canvas)
 
 bool dynamicPaint_outputLayerExists(DynamicPaintSurface *surface, Object *ob, int output)
 {
+  using namespace blender;
+  using namespace blender::bke;
   const char *name;
 
   if (output == 0) {
@@ -344,8 +346,9 @@ bool dynamicPaint_outputLayerExists(DynamicPaintSurface *surface, Object *ob, in
   if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
     if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
       Mesh *mesh = static_cast<Mesh *>(ob->data);
-      return (CustomData_get_named_layer_index(&mesh->corner_data, CD_PROP_BYTE_COLOR, name) !=
-              -1);
+      const AttributeAccessor attributes = mesh->attributes();
+      const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
+      return meta_data == AttributeMetaData{AttrDomain::Corner, AttrType::ColorByte};
     }
     if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
       return (BKE_object_defgroup_name_index(ob, name) != -1);
@@ -1801,8 +1804,8 @@ struct DynamicPaintModifierApplyData {
   blender::Span<int> corner_verts;
 
   float (*fcolor)[4];
-  MLoopCol *mloopcol;
-  MLoopCol *mloopcol_wet;
+  blender::MutableSpan<blender::ColorGeometry4b> mloopcol;
+  blender::MutableSpan<blender::ColorGeometry4b> mloopcol_wet;
 };
 
 static void dynamic_paint_apply_surface_displace_cb(void *__restrict userdata,
@@ -1872,19 +1875,19 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
   PaintPoint *pPoint = (PaintPoint *)surface->data->type_data;
   float(*fcolor)[4] = data->fcolor;
 
-  MLoopCol *mloopcol = data->mloopcol;
-  MLoopCol *mloopcol_wet = data->mloopcol_wet;
+  blender::MutableSpan<blender::ColorGeometry4b> mloopcol = data->mloopcol;
+  blender::MutableSpan<blender::ColorGeometry4b> mloopcol_wet = data->mloopcol_wet;
 
   for (const int l_index : data->faces[p_index]) {
     const int v_index = corner_verts[l_index];
 
     /* save layer data to output layer */
     /* apply color */
-    if (mloopcol) {
-      rgba_float_to_uchar((uchar *)&mloopcol[l_index].r, fcolor[v_index]);
+    if (!mloopcol.is_empty()) {
+      rgba_float_to_uchar(mloopcol[l_index], fcolor[v_index]);
     }
     /* apply wetness */
-    if (mloopcol_wet) {
+    if (!mloopcol_wet.is_empty()) {
       const char c = unit_float_to_uchar_clamp(pPoint[v_index].wetness);
       mloopcol_wet[l_index].r = c;
       mloopcol_wet[l_index].g = c;
@@ -1911,6 +1914,8 @@ static void dynamic_paint_apply_surface_wave_cb(void *__restrict userdata,
  */
 static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *ob, Mesh *mesh)
 {
+  using namespace blender;
+  using namespace blender::bke;
   Mesh *result = BKE_mesh_copy_for_eval(*mesh);
 
   if (pmd->canvas && !(pmd->canvas->flags & MOD_DPAINT_BAKING) &&
@@ -1957,42 +1962,39 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
                                       &settings);
             }
 
+            MutableAttributeAccessor attributes = result->attributes_for_write();
+
             /* paint layer */
-            MLoopCol *mloopcol = static_cast<MLoopCol *>(
-                CustomData_get_layer_named_for_write(&result->corner_data,
-                                                     CD_PROP_BYTE_COLOR,
-                                                     surface->output_name,
-                                                     result->corners_num));
+            SpanAttributeWriter<ColorGeometry4b> mloopcol;
+            if (attributes.lookup_meta_data(surface->output_name) ==
+                AttributeMetaData{AttrDomain::Corner, AttrType::ColorByte})
+            {
+              mloopcol = attributes.lookup_for_write_span<ColorGeometry4b>(surface->output_name);
+            }
             /* if output layer is lost from a constructive modifier, re-add it */
             if (!mloopcol && dynamicPaint_outputLayerExists(surface, ob, 0)) {
-              mloopcol = static_cast<MLoopCol *>(CustomData_add_layer_named(&result->corner_data,
-                                                                            CD_PROP_BYTE_COLOR,
-                                                                            CD_SET_DEFAULT,
-                                                                            corner_verts.size(),
-                                                                            surface->output_name));
+              mloopcol = attributes.lookup_or_add_for_write_span<ColorGeometry4b>(
+                  surface->output_name, AttrDomain::Corner);
             }
 
-            /* wet layer */
-            MLoopCol *mloopcol_wet = static_cast<MLoopCol *>(
-                CustomData_get_layer_named_for_write(&result->corner_data,
-                                                     CD_PROP_BYTE_COLOR,
-                                                     surface->output_name2,
-                                                     result->corners_num));
+            SpanAttributeWriter<ColorGeometry4b> mloopcol_wet;
+            if (attributes.lookup_meta_data(surface->output_name2) ==
+                AttributeMetaData{AttrDomain::Corner, AttrType::ColorByte})
+            {
+              mloopcol_wet = attributes.lookup_for_write_span<ColorGeometry4b>(
+                  surface->output_name2);
+            }
             /* if output layer is lost from a constructive modifier, re-add it */
             if (!mloopcol_wet && dynamicPaint_outputLayerExists(surface, ob, 1)) {
-              mloopcol_wet = static_cast<MLoopCol *>(
-                  CustomData_add_layer_named(&result->corner_data,
-                                             CD_PROP_BYTE_COLOR,
-                                             CD_SET_DEFAULT,
-                                             corner_verts.size(),
-                                             surface->output_name2));
+              mloopcol_wet = attributes.lookup_or_add_for_write_span<ColorGeometry4b>(
+                  surface->output_name2, AttrDomain::Corner);
             }
 
             data.ob = ob;
             data.corner_verts = corner_verts;
             data.faces = faces;
-            data.mloopcol = mloopcol;
-            data.mloopcol_wet = mloopcol_wet;
+            data.mloopcol = mloopcol.span;
+            data.mloopcol_wet = mloopcol_wet.span;
 
             {
               TaskParallelSettings settings;
@@ -2001,6 +2003,9 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
               BLI_task_parallel_range(
                   0, faces.size(), &data, dynamic_paint_apply_surface_vpaint_cb, &settings);
             }
+
+            mloopcol.finish();
+            mloopcol_wet.finish();
 
             MEM_freeN(fcolor);
           }

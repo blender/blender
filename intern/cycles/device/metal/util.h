@@ -15,7 +15,7 @@
 
 #  include "util/thread.h"
 
-#  define metal_printf LOG(STATS) << string_printf
+#  define metal_printf LOG_STATS << string_printf
 
 CCL_NAMESPACE_BEGIN
 

@@ -335,6 +335,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   blender::MutableSpan<int> face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
+  bke::MutableAttributeAccessor result_attributes = result->attributes_for_write();
 
   if (do_shell) {
     CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, int(verts_num));
@@ -390,14 +391,12 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
   const VArraySpan orig_vert_bweight = *orig_attributes.lookup<float>("bevel_weight_vert",
                                                                       bke::AttrDomain::Point);
-  float *result_edge_bweight = static_cast<float *>(CustomData_get_layer_named_for_write(
-      &result->edge_data, CD_PROP_FLOAT, "bevel_weight_edge", result->edges_num));
-  if (!result_edge_bweight && (do_bevel_convex || !orig_vert_bweight.is_empty())) {
-    result_edge_bweight = static_cast<float *>(CustomData_add_layer_named(&result->edge_data,
-                                                                          CD_PROP_FLOAT,
-                                                                          CD_SET_DEFAULT,
-                                                                          result->edges_num,
-                                                                          "bevel_weight_edge"));
+  bke::SpanAttributeWriter<float> result_edge_bweight;
+  if (orig_attributes.contains("bevel_weight_edge") ||
+      (do_bevel_convex || !orig_vert_bweight.is_empty()))
+  {
+    result_edge_bweight = result_attributes.lookup_or_add_for_write_span<float>(
+        "bevel_weight_edge", blender::bke::AttrDomain::Edge);
   }
 
   /* Initializes: (`i_end`, `do_shell_align`, `vert_index`). */
@@ -420,9 +419,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   } \
   (void)0
 
-  bke::MutableAttributeAccessor dst_attributes = result->attributes_for_write();
-  bke::SpanAttributeWriter dst_material_index = dst_attributes.lookup_or_add_for_write_span<int>(
-      "material_index", bke::AttrDomain::Face);
+  bke::SpanAttributeWriter dst_material_index =
+      result_attributes.lookup_or_add_for_write_span<int>("material_index", bke::AttrDomain::Face);
 
   /* flip normals */
 
@@ -675,16 +673,16 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       for (uint i = 0; i < edges_num; i++) {
         if (edge_users[i] == INVALID_PAIR) {
           float angle = edge_angs[i];
-          result_edge_bweight[i] = clamp_f(result_edge_bweight[i] +
-                                               (angle < M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
-                                                               clamp_f(bevel_convex, -1.0f, 0.0f)),
-                                           0.0f,
-                                           1.0f);
+          result_edge_bweight.span[i] = clamp_f(
+              result_edge_bweight.span[i] + (angle < M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
+                                                            clamp_f(bevel_convex, -1.0f, 0.0f)),
+              0.0f,
+              1.0f);
           if (do_shell) {
-            result_edge_bweight[i + edges_num] = clamp_f(
-                result_edge_bweight[i + edges_num] + (angle > M_PI ?
-                                                          clamp_f(bevel_convex, 0.0f, 1.0f) :
-                                                          clamp_f(bevel_convex, -1.0f, 0.0f)),
+            result_edge_bweight.span[i + edges_num] = clamp_f(
+                result_edge_bweight.span[i + edges_num] + (angle > M_PI ?
+                                                               clamp_f(bevel_convex, 0.0f, 1.0f) :
+                                                               clamp_f(bevel_convex, -1.0f, 0.0f)),
                 0,
                 1.0f);
           }
@@ -907,14 +905,14 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       for (i = 0; i < edges_num; i++) {
         if (edge_users[i] == INVALID_PAIR) {
           float angle = edge_angs[i];
-          result_edge_bweight[i] = clamp_f(result_edge_bweight[i] +
-                                               (angle < M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
-                                                               clamp_f(bevel_convex, -1.0f, 0.0f)),
-                                           0.0f,
-                                           1.0f);
+          result_edge_bweight.span[i] = clamp_f(
+              result_edge_bweight.span[i] + (angle < M_PI ? clamp_f(bevel_convex, 0.0f, 1.0f) :
+                                                            clamp_f(bevel_convex, -1.0f, 0.0f)),
+              0.0f,
+              1.0f);
           if (do_shell) {
-            result_edge_bweight[i + edges_num] = clamp_f(
-                result_edge_bweight[i + edges_num] +
+            result_edge_bweight.span[i + edges_num] = clamp_f(
+                result_edge_bweight.span[i + edges_num] +
                     (angle > M_PI ? clamp_f(bevel_convex, 0, 1) : clamp_f(bevel_convex, -1, 0)),
                 0.0f,
                 1.0f);
@@ -1010,14 +1008,10 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     int *orig_ed;
     uint j;
 
-    float *result_edge_crease = nullptr;
+    bke::SpanAttributeWriter<float> result_edge_crease;
     if (crease_rim || crease_outer || crease_inner) {
-      result_edge_crease = static_cast<float *>(CustomData_get_layer_named_for_write(
-          &result->edge_data, CD_PROP_FLOAT, "crease_edge", result->edges_num));
-      if (!result_edge_crease) {
-        result_edge_crease = static_cast<float *>(CustomData_add_layer_named(
-            &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->edges_num, "crease_edge"));
-      }
+      result_edge_crease = result_attributes.lookup_or_add_for_write_span<float>(
+          "crease_edge", blender::bke::AttrDomain::Edge);
     }
 
     /* add faces & edges */
@@ -1030,8 +1024,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
       edges[new_edge_index][0] = new_vert_arr[i];
       edges[new_edge_index][1] = (do_shell ? new_vert_arr[i] : i) + verts_num;
 
-      if (!orig_vert_bweight.is_empty()) {
-        result_edge_bweight[new_edge_index] = orig_vert_bweight[new_vert_arr[i]];
+      if (result_edge_bweight && !orig_vert_bweight.is_empty()) {
+        result_edge_bweight.span[new_edge_index] = orig_vert_bweight[new_vert_arr[i]];
       }
 
       if (orig_ed) {
@@ -1039,8 +1033,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         orig_ed++;
       }
 
-      if (crease_rim) {
-        result_edge_crease[new_edge_index] = crease_rim;
+      if (result_edge_crease && crease_rim) {
+        result_edge_crease.span[new_edge_index] = crease_rim;
       }
       new_edge_index++;
     }
@@ -1124,16 +1118,16 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
         dst_material_index.span[new_face_index] += mat_ofs_rim;
         CLAMP(dst_material_index.span[new_face_index], 0, mat_nr_max);
       }
-      if (crease_outer) {
+      if (result_edge_crease && crease_outer) {
         /* crease += crease_outer; without wrapping */
-        float *cr = &(result_edge_crease[eidx]);
+        float *cr = &(result_edge_crease.span[eidx]);
         float tcr = *cr + crease_outer;
         *cr = tcr > 1.0f ? 1.0f : tcr;
       }
 
-      if (crease_inner) {
+      if (result_edge_crease && crease_inner) {
         /* crease += crease_inner; without wrapping */
-        float *cr = &(result_edge_crease[edges_num + (do_shell ? eidx : i)]);
+        float *cr = &(result_edge_crease.span[edges_num + (do_shell ? eidx : i)]);
         float tcr = *cr + crease_inner;
         *cr = tcr > 1.0f ? 1.0f : tcr;
       }
@@ -1146,12 +1140,15 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
     MEM_freeN(edge_users);
     MEM_freeN(edge_order);
+
+    result_edge_crease.finish();
   }
 
   if (old_vert_arr) {
     MEM_freeN(old_vert_arr);
   }
 
+  result_edge_bweight.finish();
   dst_material_index.finish();
 
   return result;

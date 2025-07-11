@@ -113,7 +113,7 @@ void GeometryManager::device_update_bvh(Device *device,
   bparams.bvh_type = scene->params.bvh_type;
   bparams.curve_subdivisions = scene->params.curve_subdivisions();
 
-  LOG(INFO) << "Using " << bvh_layout_name(bparams.bvh_layout) << " layout.";
+  LOG_INFO << "Using " << bvh_layout_name(bparams.bvh_layout) << " layout.";
 
   const bool can_refit = scene->bvh != nullptr && scene->params.bvh_type == BVH_TYPE_DYNAMIC &&
                          (bparams.bvh_layout == BVHLayout::BVH_LAYOUT_OPTIX ||

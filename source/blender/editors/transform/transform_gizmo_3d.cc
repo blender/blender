@@ -28,7 +28,6 @@
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_layer.hh"
 #include "BKE_library.hh"
@@ -1924,15 +1923,11 @@ static void gizmogroup_refresh_from_matrix(wmGizmoGroup *gzgroup,
 
 static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  ARegion *region = CTX_wm_region(C);
-
-  {
-    wmGizmo *gz = WM_gizmomap_get_modal(region->runtime->gizmo_map);
-    if (gz && gz->parent_gzgroup == gzgroup) {
-      return;
-    }
+  if (WM_gizmo_group_is_modal(gzgroup)) {
+    return;
   }
 
+  ARegion *region = CTX_wm_region(C);
   GizmoGroup *ggd = static_cast<GizmoGroup *>(gzgroup->customdata);
   Scene *scene = CTX_data_scene(C);
   ScrArea *area = CTX_wm_area(C);
@@ -1996,13 +1991,7 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
   float idot[3];
 
   /* Re-calculate hidden unless modal. */
-  bool is_modal = false;
-  {
-    wmGizmo *gz = WM_gizmomap_get_modal(region->runtime->gizmo_map);
-    if (gz && gz->parent_gzgroup == gzgroup) {
-      is_modal = true;
-    }
-  }
+  const bool is_modal = WM_gizmo_group_is_modal(gzgroup);
 
   /* When looking through a selected camera, the gizmo can be at the
    * exact same position as the view, skip so we don't break selection. */

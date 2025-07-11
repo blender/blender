@@ -21,7 +21,7 @@ void USDSkeletonReader::create_object(Main *bmain)
   object_->data = arm;
 }
 
-void USDSkeletonReader::read_object_data(Main *bmain, const double motionSampleTime)
+void USDSkeletonReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
 {
   if (!object_ || !object_->data) {
     return;
@@ -29,7 +29,7 @@ void USDSkeletonReader::read_object_data(Main *bmain, const double motionSampleT
 
   import_skeleton(bmain, object_, skel_, reports());
 
-  USDXformReader::read_object_data(bmain, motionSampleTime);
+  USDXformReader::read_object_data(bmain, time);
 }
 
 }  // namespace blender::io::usd

@@ -53,13 +53,13 @@ class USDMeshReader : public USDGeomReader {
   }
 
   void create_object(Main *bmain) override;
-  void read_object_data(Main *bmain, double motionSampleTime) override;
+  void read_object_data(Main *bmain, pxr::UsdTimeCode time) override;
 
   void read_geometry(bke::GeometrySet &geometry_set,
                      USDMeshReadParams params,
                      const char **r_err_str) override;
 
-  bool topology_changed(const Mesh *existing_mesh, double motionSampleTime) override;
+  bool topology_changed(const Mesh *existing_mesh, pxr::UsdTimeCode time) override;
 
   /**
    * If the USD mesh prim has a valid `UsdSkel` schema defined, return the USD path
@@ -76,20 +76,20 @@ class USDMeshReader : public USDGeomReader {
   void process_normals_face_varying(Mesh *mesh) const;
   /** Set USD uniform (per-face) normals as Blender loop normals. */
   void process_normals_uniform(Mesh *mesh) const;
-  void readFaceSetsSample(Main *bmain, Mesh *mesh, double motionSampleTime);
-  void assign_facesets_to_material_indices(double motionSampleTime,
+  void readFaceSetsSample(Main *bmain, Mesh *mesh, pxr::UsdTimeCode time);
+  void assign_facesets_to_material_indices(pxr::UsdTimeCode time,
                                            MutableSpan<int> material_indices,
                                            blender::Map<pxr::SdfPath, int> *r_mat_map);
 
   bool read_faces(Mesh *mesh) const;
   void read_subdiv();
-  void read_vertex_creases(Mesh *mesh, double motionSampleTime);
-  void read_edge_creases(Mesh *mesh, double motionSampleTime);
-  void read_velocities(Mesh *mesh, double motionSampleTime);
+  void read_vertex_creases(Mesh *mesh, pxr::UsdTimeCode time);
+  void read_edge_creases(Mesh *mesh, pxr::UsdTimeCode time);
+  void read_velocities(Mesh *mesh, pxr::UsdTimeCode time);
 
   void read_mesh_sample(ImportSettings *settings,
                         Mesh *mesh,
-                        double motionSampleTime,
+                        pxr::UsdTimeCode time,
                         bool new_mesh);
 
   Mesh *read_mesh(struct Mesh *existing_mesh,
@@ -98,18 +98,18 @@ class USDMeshReader : public USDGeomReader {
 
   void read_custom_data(const ImportSettings *settings,
                         Mesh *mesh,
-                        double motionSampleTime,
+                        pxr::UsdTimeCode time,
                         bool new_mesh);
 
   void read_uv_data_primvar(Mesh *mesh,
                             const pxr::UsdGeomPrimvar &primvar,
-                            const double motionSampleTime);
+                            const pxr::UsdTimeCode time);
 
   /**
    * Override transform computation to account for the binding
    * transformation for skinned meshes.
    */
-  std::optional<XformResult> get_local_usd_xform(float time) const override;
+  std::optional<XformResult> get_local_usd_xform(pxr::UsdTimeCode time) const override;
 };
 
 }  // namespace blender::io::usd

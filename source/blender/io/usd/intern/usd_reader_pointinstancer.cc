@@ -136,14 +136,14 @@ void USDPointInstancerReader::read_geometry(bke::GeometrySet &geometry_set,
   geometry_set.replace_pointcloud(pointcloud);
 }
 
-void USDPointInstancerReader::read_object_data(Main *bmain, const double motionSampleTime)
+void USDPointInstancerReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
 {
   PointCloud *pointcloud = static_cast<PointCloud *>(object_->data);
 
   bke::GeometrySet geometry_set = bke::GeometrySet::from_pointcloud(
       pointcloud, bke::GeometryOwnershipType::Editable);
 
-  const USDMeshReadParams params = create_mesh_read_params(motionSampleTime,
+  const USDMeshReadParams params = create_mesh_read_params(time.GetValue(),
                                                            import_params_.mesh_read_flag);
 
   read_geometry(geometry_set, params, nullptr);
@@ -255,7 +255,7 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const double motionS
 
   BKE_object_modifier_set_active(object_, md);
 
-  USDXformReader::read_object_data(bmain, motionSampleTime);
+  USDXformReader::read_object_data(bmain, time);
 }
 
 pxr::SdfPathVector USDPointInstancerReader::proto_paths() const

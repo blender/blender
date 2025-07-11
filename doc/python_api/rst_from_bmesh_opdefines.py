@@ -165,9 +165,12 @@ def main():
             l = l.replace("}", ")")
 
             # Skip `exec` & `init` functions. eg: `/*exec*/ bmo_rotate_edges_exec`,
-            if l.startswith("/*exec*/ "):
+            if l.startswith("/*opname*/"):
+                l = l.removeprefix("/*opname*/")
+
+            elif l.startswith("/*exec*/"):
                 l = "None,"
-            elif l.startswith("/*init*/ "):
+            elif l.startswith("/*init*/"):
                 l = "None,"
             else:
                 if l.startswith("/*"):

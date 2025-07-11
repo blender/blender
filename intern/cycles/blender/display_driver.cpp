@@ -108,20 +108,20 @@ void BlenderFallbackDisplayShader::create_shader_if_needed()
 
   shader_program_ = compile_fallback_shader();
   if (!shader_program_) {
-    LOG(ERROR) << "Failed to compile fallback shader";
+    LOG_ERROR << "Failed to compile fallback shader";
     return;
   }
 
   image_texture_location_ = GPU_shader_get_uniform(shader_program_, "image_texture");
   if (image_texture_location_ < 0) {
-    LOG(ERROR) << "Shader doesn't contain the 'image_texture' uniform.";
+    LOG_ERROR << "Shader doesn't contain the 'image_texture' uniform.";
     destroy_shader();
     return;
   }
 
   fullscreen_location_ = GPU_shader_get_uniform(shader_program_, "fullscreen");
   if (fullscreen_location_ < 0) {
-    LOG(ERROR) << "Shader doesn't contain the 'fullscreen' uniform.";
+    LOG_ERROR << "Shader doesn't contain the 'fullscreen' uniform.";
     destroy_shader();
     return;
   }
@@ -163,7 +163,7 @@ GPUShader *BlenderDisplaySpaceShader::get_shader_program()
     shader_program_ = GPU_shader_get_bound();
   }
   if (!shader_program_) {
-    LOG(ERROR) << "Error retrieving shader program for display space shader.";
+    LOG_ERROR << "Error retrieving shader program for display space shader.";
   }
 
   return shader_program_;
@@ -233,7 +233,7 @@ class DisplayGPUTexture {
                                         nullptr);
 
     if (!gpu_texture) {
-      LOG(ERROR) << "Error creating texture.";
+      LOG_ERROR << "Error creating texture.";
       return false;
     }
 
@@ -340,7 +340,7 @@ class DisplayGPUPixelBuffer {
     }
 
     if (gpu_pixel_buffer == nullptr) {
-      LOG(ERROR) << "Error creating texture pixel buffer object.";
+      LOG_ERROR << "Error creating texture pixel buffer object.";
       return false;
     }
 
@@ -470,7 +470,7 @@ BlenderDisplayDriver::~BlenderDisplayDriver()
 void BlenderDisplayDriver::next_tile_begin()
 {
   if (!tiles_->current_tile.tile.ready_to_draw()) {
-    LOG(ERROR)
+    LOG_ERROR
         << "Unexpectedly moving to the next tile without any data provided for current tile.";
     return;
   }
@@ -553,7 +553,7 @@ static void update_tile_texture_pixels(const DrawTileAndPBO &tile)
   const DisplayGPUTexture &texture = tile.tile.texture;
 
   if (!DCHECK_NOTNULL(tile.buffer_object.gpu_pixel_buffer)) {
-    LOG(ERROR) << "Display driver tile pixel buffer unavailable.";
+    LOG_ERROR << "Display driver tile pixel buffer unavailable.";
     return;
   }
   GPU_texture_update_sub_from_pixel_buffer(texture.gpu_texture,
@@ -608,12 +608,12 @@ half4 *BlenderDisplayDriver::map_texture_buffer()
 {
   GPUPixelBuffer *pix_buf = tiles_->current_tile.buffer_object.gpu_pixel_buffer;
   if (!DCHECK_NOTNULL(pix_buf)) {
-    LOG(ERROR) << "Display driver tile pixel buffer unavailable.";
+    LOG_ERROR << "Display driver tile pixel buffer unavailable.";
     return nullptr;
   }
   half4 *mapped_rgba_pixels = reinterpret_cast<half4 *>(GPU_pixel_buffer_map(pix_buf));
   if (!mapped_rgba_pixels) {
-    LOG(ERROR) << "Error mapping BlenderDisplayDriver pixel buffer object.";
+    LOG_ERROR << "Error mapping BlenderDisplayDriver pixel buffer object.";
   }
   return mapped_rgba_pixels;
 }
@@ -622,7 +622,7 @@ void BlenderDisplayDriver::unmap_texture_buffer()
 {
   GPUPixelBuffer *pix_buf = tiles_->current_tile.buffer_object.gpu_pixel_buffer;
   if (!DCHECK_NOTNULL(pix_buf)) {
-    LOG(ERROR) << "Display driver tile pixel buffer unavailable.";
+    LOG_ERROR << "Display driver tile pixel buffer unavailable.";
     return;
   }
   GPU_pixel_buffer_unmap(pix_buf);
@@ -751,7 +751,7 @@ static void draw_tile(const float2 &zoom,
   const DisplayGPUTexture &texture = draw_tile.texture;
 
   if (!DCHECK_NOTNULL(texture.gpu_texture)) {
-    LOG(ERROR) << "Display driver tile GPU texture resource unavailable.";
+    LOG_ERROR << "Display driver tile GPU texture resource unavailable.";
     return;
   }
 
@@ -866,20 +866,20 @@ void BlenderDisplayDriver::draw(const Params &params)
 
   gpu_context_unlock();
 
-  LOG(STATS) << "Display driver number of textures: " << DisplayGPUTexture::num_used;
-  LOG(STATS) << "Display driver number of PBOs: " << DisplayGPUPixelBuffer::num_used;
+  LOG_STATS << "Display driver number of textures: " << DisplayGPUTexture::num_used;
+  LOG_STATS << "Display driver number of PBOs: " << DisplayGPUPixelBuffer::num_used;
 }
 
 void BlenderDisplayDriver::gpu_context_create()
 {
   if (!RE_engine_gpu_context_create(reinterpret_cast<RenderEngine *>(b_engine_.ptr.data))) {
-    LOG(ERROR) << "Error creating GPU context.";
+    LOG_ERROR << "Error creating GPU context.";
     return;
   }
 
   /* Create global GPU resources for display driver. */
   if (!gpu_resources_create()) {
-    LOG(ERROR) << "Error creating GPU resources for Display Driver.";
+    LOG_ERROR << "Error creating GPU resources for Display Driver.";
     return;
   }
 }
@@ -913,7 +913,7 @@ bool BlenderDisplayDriver::gpu_resources_create()
 {
   /* Ensure context is active for resource creation. */
   if (!gpu_context_enable()) {
-    LOG(ERROR) << "Error enabling GPU context.";
+    LOG_ERROR << "Error enabling GPU context.";
     return false;
   }
 
@@ -921,7 +921,7 @@ bool BlenderDisplayDriver::gpu_resources_create()
   gpu_render_sync_ = GPU_fence_create();
 
   if (!DCHECK_NOTNULL(gpu_upload_sync_) || !DCHECK_NOTNULL(gpu_render_sync_)) {
-    LOG(ERROR) << "Error creating GPU synchronization primitives.";
+    LOG_ERROR << "Error creating GPU synchronization primitives.";
     assert(0);
     return false;
   }

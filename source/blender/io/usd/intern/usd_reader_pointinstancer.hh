@@ -32,7 +32,7 @@ class USDPointInstancerReader : public USDGeomReader {
 
   void create_object(Main *bmain) override;
 
-  void read_object_data(Main *bmain, double motionSampleTime) override;
+  void read_object_data(Main *bmain, pxr::UsdTimeCode time) override;
 
   /* This may be called by the cache modifier to update animated geometry. */
   void read_geometry(bke::GeometrySet &geometry_set,

@@ -11,7 +11,6 @@
 #include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
-#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.hh"

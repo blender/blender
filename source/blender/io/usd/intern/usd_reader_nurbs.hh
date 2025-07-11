@@ -34,9 +34,9 @@ class USDNurbsReader : public USDGeomReader {
   }
 
   void create_object(Main *bmain) override;
-  void read_object_data(Main *bmain, double motionSampleTime) override;
+  void read_object_data(Main *bmain, pxr::UsdTimeCode time) override;
 
-  void read_curve_sample(Curve *cu, double motionSampleTime);
+  void read_curve_sample(Curve *cu, pxr::UsdTimeCode time);
 
   void read_geometry(bke::GeometrySet &geometry_set,
                      USDMeshReadParams params,

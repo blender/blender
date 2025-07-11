@@ -22,7 +22,9 @@ set(SRC
   file_ops.cc
   file_panels.cc
   file_utils.cc
-  filelist.cc
+  filelist/filelist.cc
+  filelist/filelist_filter.cc
+  filelist/filelist_sort.cc
   filesel.cc
   folder_history.cc
   fsmenu.cc
@@ -32,6 +34,7 @@ set(SRC
   file_indexer.hh
   file_intern.hh
   filelist.hh
+  filelist/filelist_intern.hh
   fsmenu.h
 )
 

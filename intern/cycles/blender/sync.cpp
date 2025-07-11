@@ -307,7 +307,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
    * false = don't delete unused shaders, not supported. */
   shader_map.post_sync(false);
 
-  LOG(INFO) << "Total time spent synchronizing data: " << timer.get_time();
+  LOG_INFO << "Total time spent synchronizing data: " << timer.get_time();
 
   has_updates_ = false;
 }
@@ -458,7 +458,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
   }
 
   if (scrambling_distance != 1.0f) {
-    LOG(INFO) << "Using scrambling distance: " << scrambling_distance;
+    LOG_INFO << "Using scrambling distance: " << scrambling_distance;
   }
   integrator->set_scrambling_distance(scrambling_distance);
 
@@ -791,7 +791,7 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
 
     if (!get_known_pass_type(b_pass, pass_type, pass_mode)) {
       if (!expected_passes.count(b_pass.name())) {
-        LOG(ERROR) << "Unknown pass " << b_pass.name();
+        LOG_ERROR << "Unknown pass " << b_pass.name();
       }
       continue;
     }
@@ -1080,7 +1080,7 @@ DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
       break;
 
     default:
-      LOG(ERROR) << "Unhandled input passes enum " << input_passes;
+      LOG_ERROR << "Unhandled input passes enum " << input_passes;
       break;
   }
 

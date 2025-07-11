@@ -395,8 +395,7 @@ static void collect_point_instancer_prototypes_and_set_extent(
 {
   /* Compute extent of the current point instancer.*/
   pxr::VtArray<pxr::GfVec3f> extent;
-  instancer.ComputeExtentAtTime(
-      &extent, pxr::UsdTimeCode().Default(), pxr::UsdTimeCode().Default());
+  instancer.ComputeExtentAtTime(&extent, pxr::UsdTimeCode::Default(), pxr::UsdTimeCode::Default());
   instancer.CreateExtentAttr().Set(extent);
 
   pxr::UsdPrim wrapper_prim = stage->GetPrimAtPath(wrapper_path);

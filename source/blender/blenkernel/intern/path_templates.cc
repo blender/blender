@@ -179,17 +179,17 @@ std::optional<VariableMap> BKE_build_template_variables_for_prop(const bContext 
    * To add support for additional variables here:
    *
    * - For "general" variables, simply add them to
-   *   `BKE_add_template_variables_general()`. Nothing else special needs to be
+   *   #BKE_add_template_variables_general(). Nothing else special needs to be
    *   done.
    * - For "purpose-specific" variables, add them to the appropriate
    *   purpose-specific function (e.g.
-   *   `BKE_add_template_variables_for_render_path()`). If no function exists
-   *   for your purpose yet, add a new enum item to `PropertyPathTemplateType`
+   *   #BKE_add_template_variables_for_render_path()). If no function exists
+   *   for your purpose yet, add a new enum item to #PropertyPathTemplateType
    *   and a corresponding new function, add your variable to the new function,
-   *   and then call it from the `switch` on `RNA_property_path_template_type()`
+   *   and then call it from the `switch` on #RNA_property_path_template_type()
    *   below.
    * - For "type-specific" variables, add them to the appropriate type-specific
-   *   function (e.g. `BKE_add_template_variables_for_node()`). If no function
+   *   function (e.g. #BKE_add_template_variables_for_node()). If no function
    *   exists for that type yet, create a new function for it, add the variable
    *   there, and then call it from the bottom section of this function, with an
    *   appropriate guard on the struct type.
@@ -280,7 +280,7 @@ void BKE_add_template_variables_for_render_path(VariableMap &variables, const Sc
 
   /* FPS variable.
    *
-   * FPS eval code copied from `BKE_cachefile_filepath_get()`.
+   * FPS eval code copied from #BKE_cachefile_filepath_get().
    *
    * TODO: should probably use one function for this everywhere to ensure that
    * fps is computed consistently, but at the time of writing no such function

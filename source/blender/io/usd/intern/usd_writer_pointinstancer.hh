@@ -32,7 +32,7 @@ class USDPointInstancerWriter final : public USDAbstractWriter {
 
   void write_attribute_data(const bke::AttributeIter &attr,
                             const pxr::UsdGeomPointInstancer &usd_instancer,
-                            const pxr::UsdTimeCode timecode);
+                            const pxr::UsdTimeCode time);
 
   void process_instance_reference(
       const bke::InstanceReference &reference,
@@ -45,7 +45,7 @@ class USDPointInstancerWriter final : public USDAbstractWriter {
       std::vector<std::pair<int, int>> &collection_instance_object_count_map);
 
   void compact_prototypes(const pxr::UsdGeomPointInstancer &usd_instancer,
-                          const pxr::UsdTimeCode timecode,
+                          const pxr::UsdTimeCode time,
                           const pxr::SdfPathVector &proto_paths);
 
   void override_transform(pxr::UsdStageRefPtr stage,
@@ -54,7 +54,7 @@ class USDPointInstancerWriter final : public USDAbstractWriter {
 
   void handle_collection_prototypes(
       const pxr::UsdGeomPointInstancer &usd_instancer,
-      const pxr::UsdTimeCode timecode,
+      const pxr::UsdTimeCode time,
       int instance_num,
       const std::vector<std::pair<int, int>> &collection_instance_object_count_map);
 };

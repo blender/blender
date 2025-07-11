@@ -21,7 +21,7 @@ DeviceQueue::DeviceQueue(Device *device) : device(device)
 
 DeviceQueue::~DeviceQueue()
 {
-  if (LOG_IS_ON(STATS)) {
+  if (LOG_IS_ON(LOG_LEVEL_STATS)) {
     /* Print kernel execution times sorted by time. */
     vector<pair<DeviceKernelMask, double>> stats_sorted;
     for (const auto &stat : stats_kernel_time_) {
@@ -34,24 +34,23 @@ DeviceQueue::~DeviceQueue()
            return a.second > b.second;
          });
 
-    LOG(STATS) << "GPU queue stats:";
+    LOG_STATS << "GPU queue stats:";
     double total_time = 0.0;
     for (const auto &[mask, time] : stats_sorted) {
       total_time += time;
-      LOG(STATS) << "  " << std::setfill(' ') << std::setw(10) << std::fixed
-                 << std::setprecision(5) << std::right << time
-                 << "s: " << device_kernel_mask_as_string(mask);
+      LOG_STATS << "  " << std::setfill(' ') << std::setw(10) << std::fixed << std::setprecision(5)
+                << std::right << time << "s: " << device_kernel_mask_as_string(mask);
     }
 
     if (is_per_kernel_performance_) {
-      LOG(STATS) << "GPU queue total time: " << std::fixed << std::setprecision(5) << total_time;
+      LOG_STATS << "GPU queue total time: " << std::fixed << std::setprecision(5) << total_time;
     }
   }
 }
 
 void DeviceQueue::debug_init_execution()
 {
-  if (LOG_IS_ON(STATS)) {
+  if (LOG_IS_ON(LOG_LEVEL_STATS)) {
     last_sync_time_ = time_dt();
   }
 
@@ -60,9 +59,9 @@ void DeviceQueue::debug_init_execution()
 
 void DeviceQueue::debug_enqueue_begin(DeviceKernel kernel, const int work_size)
 {
-  if (LOG_IS_ON(STATS)) {
-    LOG(STATS) << "GPU queue launch " << device_kernel_as_string(kernel) << ", work_size "
-               << work_size;
+  if (LOG_IS_ON(LOG_LEVEL_STATS)) {
+    LOG_STATS << "GPU queue launch " << device_kernel_as_string(kernel) << ", work_size "
+              << work_size;
   }
 
   last_kernels_enqueued_.set(kernel, true);
@@ -70,17 +69,17 @@ void DeviceQueue::debug_enqueue_begin(DeviceKernel kernel, const int work_size)
 
 void DeviceQueue::debug_enqueue_end()
 {
-  if (LOG_IS_ON(STATS) && is_per_kernel_performance_) {
+  if (LOG_IS_ON(LOG_LEVEL_STATS) && is_per_kernel_performance_) {
     synchronize();
   }
 }
 
 void DeviceQueue::debug_synchronize()
 {
-  if (LOG_IS_ON(STATS)) {
+  if (LOG_IS_ON(LOG_LEVEL_STATS)) {
     const double new_time = time_dt();
     const double elapsed_time = new_time - last_sync_time_;
-    LOG(STATS) << "GPU queue synchronize, elapsed " << std::setw(10) << elapsed_time << "s";
+    LOG_STATS << "GPU queue synchronize, elapsed " << std::setw(10) << elapsed_time << "s";
 
     /* There is no sense to have an entries in the performance data
      * container without related kernel information. */

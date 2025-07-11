@@ -345,7 +345,7 @@ void dome_light_to_world_material(const USDImportParams &params,
                                   Main *bmain,
                                   const USDImportDomeLightData &dome_light_data,
                                   const pxr::UsdPrim &prim,
-                                  const double motionSampleTime)
+                                  const pxr::UsdTimeCode time)
 {
   if (!(scene && scene->world && prim)) {
     return;
@@ -479,7 +479,7 @@ void dome_light_to_world_material(const USDImportParams &params,
   tex->id = &image->id;
 
   /* Set the transform. */
-  pxr::UsdGeomXformCache xf_cache(motionSampleTime);
+  pxr::UsdGeomXformCache xf_cache(time);
   pxr::GfMatrix4d xf = xf_cache.GetLocalToWorldTransform(prim);
 
   pxr::UsdStageRefPtr stage = prim.GetStage();

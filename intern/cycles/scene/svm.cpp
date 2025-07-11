@@ -43,9 +43,9 @@ void SVMShaderManager::device_update_shader(Scene *scene,
   compiler.background = (shader == scene->background->get_shader(scene));
   compiler.compile(shader, *svm_nodes, 0, &summary);
 
-  LOG(WORK) << "Compilation summary:\n"
-            << "Shader name: " << shader->name << "\n"
-            << summary.full_report();
+  LOG_WORK << "Compilation summary:\n"
+           << "Shader name: " << shader->name << "\n"
+           << summary.full_report();
 }
 
 void SVMShaderManager::device_update_specific(Device *device,
@@ -65,7 +65,7 @@ void SVMShaderManager::device_update_specific(Device *device,
 
   const int num_shaders = scene->shaders.size();
 
-  LOG(INFO) << "Total " << num_shaders << " shaders.";
+  LOG_INFO << "Total " << num_shaders << " shaders.";
 
   const double start_time = time_dt();
 
@@ -136,8 +136,8 @@ void SVMShaderManager::device_update_specific(Device *device,
 
   update_flags = UPDATE_NONE;
 
-  LOG(INFO) << "Shader manager updated " << num_shaders << " shaders in " << time_dt() - start_time
-            << " seconds.";
+  LOG_INFO << "Shader manager updated " << num_shaders << " shaders in " << time_dt() - start_time
+           << " seconds.";
 }
 
 void SVMShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *scene)
@@ -217,8 +217,8 @@ int SVMCompiler::stack_find_offset(const int size)
 
   if (!compile_failed) {
     compile_failed = true;
-    LOG(ERROR) << "Shader graph: out of SVM stack space, shader \"" << current_shader->name
-               << "\" too big.";
+    LOG_ERROR << "Shader graph: out of SVM stack space, shader \"" << current_shader->name
+              << "\" too big.";
   }
 
   return 0;

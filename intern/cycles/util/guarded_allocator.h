@@ -152,7 +152,7 @@ size_t util_guarded_get_mem_peak();
       (func)(__VA_ARGS__); \
     } \
     catch (std::bad_alloc &) { \
-      LOG(ERROR) << "Out of memory"; \
+      LOG_ERROR << "Out of memory"; \
       fflush(stderr); \
       (progress)->set_error("Out of memory"); \
     } \

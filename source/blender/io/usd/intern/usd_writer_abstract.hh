@@ -88,7 +88,7 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
                              pxr::UsdTimeCode = pxr::UsdTimeCode::Default()) const;
 
   void write_visibility(const HierarchyContext &context,
-                        const pxr::UsdTimeCode timecode,
+                        const pxr::UsdTimeCode time,
                         const pxr::UsdGeomImageable &usd_geometry);
 
   /**
@@ -115,14 +115,14 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
    *
    * TODO: also provide method for authoring extentsHint on every prim in a hierarchy.
    */
-  void author_extent(const pxr::UsdGeomBoundable &boundable, const pxr::UsdTimeCode timecode);
+  void author_extent(const pxr::UsdGeomBoundable &boundable, const pxr::UsdTimeCode time);
 
   /**
    * Author the `extent` attribute for a boundable prim given the Blender `bounds`.
    */
   void author_extent(const pxr::UsdGeomBoundable &boundable,
                      const std::optional<Bounds<float3>> &bounds,
-                     const pxr::UsdTimeCode timecode);
+                     const pxr::UsdTimeCode time);
 };
 
 }  // namespace blender::io::usd

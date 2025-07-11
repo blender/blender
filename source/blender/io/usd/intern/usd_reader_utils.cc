@@ -19,14 +19,14 @@ template<typename VECT>
 void set_array_prop(IDProperty *idgroup,
                     const blender::StringRefNull prop_name,
                     const pxr::UsdAttribute &attr,
-                    const pxr::UsdTimeCode motionSampleTime)
+                    const pxr::UsdTimeCode time)
 {
   if (!idgroup || !attr) {
     return;
   }
 
   VECT vec;
-  if (!attr.Get<VECT>(&vec, motionSampleTime)) {
+  if (!attr.Get<VECT>(&vec, time)) {
     return;
   }
 

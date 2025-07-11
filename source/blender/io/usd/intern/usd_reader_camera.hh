@@ -34,7 +34,7 @@ class USDCameraReader : public USDXformReader {
   }
 
   void create_object(Main *bmain) override;
-  void read_object_data(Main *bmain, double motionSampleTime) override;
+  void read_object_data(Main *bmain, pxr::UsdTimeCode time) override;
 };
 
 }  // namespace blender::io::usd

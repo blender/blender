@@ -23,7 +23,7 @@ void USDHairWriter::do_write(HierarchyContext &context)
     return;
   }
 
-  pxr::UsdTimeCode timecode = get_export_time_code();
+  pxr::UsdTimeCode time = get_export_time_code();
   pxr::UsdGeomBasisCurves curves = pxr::UsdGeomBasisCurves::Define(usd_export_context_.stage,
                                                                    usd_export_context_.usd_path);
 
@@ -53,8 +53,8 @@ void USDHairWriter::do_write(HierarchyContext &context)
     attr_points.Set(points, pxr::UsdTimeCode::Default());
     attr_vertex_counts.Set(curve_point_counts, pxr::UsdTimeCode::Default());
   }
-  usd_value_writer_.SetAttribute(attr_points, pxr::VtValue(points), timecode);
-  usd_value_writer_.SetAttribute(attr_vertex_counts, pxr::VtValue(curve_point_counts), timecode);
+  usd_value_writer_.SetAttribute(attr_points, pxr::VtValue(points), time);
+  usd_value_writer_.SetAttribute(attr_vertex_counts, pxr::VtValue(curve_point_counts), time);
 
   if (psys->totpart > 0) {
     pxr::VtArray<pxr::GfVec3f> colors;
@@ -64,10 +64,10 @@ void USDHairWriter::do_write(HierarchyContext &context)
 
   if (psys->part) {
     auto prim = curves.GetPrim();
-    write_id_properties(prim, psys->part->id, timecode);
+    write_id_properties(prim, psys->part->id, time);
   }
 
-  this->author_extent(curves, timecode);
+  this->author_extent(curves, time);
 }
 
 bool USDHairWriter::check_is_animated(const HierarchyContext & /*context*/) const

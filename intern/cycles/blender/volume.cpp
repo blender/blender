@@ -136,12 +136,12 @@ class BlenderSmokeLoader : public VDBImageLoader {
       }
     }
     else {
-      LOG(ERROR) << "Unknown volume attribute " << Attribute::standard_name(attribute)
-                 << "skipping ";
+      LOG_ERROR << "Unknown volume attribute " << Attribute::standard_name(attribute)
+                << "skipping ";
       voxels[0] = 0.0f;
       return false;
     }
-    LOG(ERROR) << "Unexpected smoke volume resolution, skipping";
+    LOG_ERROR << "Unexpected smoke volume resolution, skipping";
 #else
     (void)voxels;
     (void)width;

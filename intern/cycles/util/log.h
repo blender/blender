@@ -15,18 +15,18 @@ CCL_NAMESPACE_BEGIN
 /* Log Levels */
 
 enum LogLevel {
-  FATAL = 0,          /* Fatal error, application will abort */
-  DFATAL = 1,         /* Fatal error in debug build only */
-  ERROR = 2,          /* Error */
-  DERROR = 3,         /* Error in debug build only */
-  WARNING = 4,        /* Warning */
-  DWARNING = 5,       /* Warning in debug build only */
-  INFO_IMPORTANT = 6, /* Important info that is printed by default */
-  INFO = 7,           /* Info about devices, scene contents and features used. */
-  WORK = 8,           /* Work being performed and timing/memory stats about that work. */
-  STATS = 9,          /* Detailed device timing stats. */
-  DEBUG = 10,         /* Verbose debug messages. */
-  UNKNOWN = -1,
+  LOG_LEVEL_FATAL = 0,          /* Fatal error, application will abort */
+  LOG_LEVEL_DFATAL = 1,         /* Fatal error in debug build only */
+  LOG_LEVEL_ERROR = 2,          /* Error */
+  LOG_LEVEL_DERROR = 3,         /* Error in debug build only */
+  LOG_LEVEL_WARNING = 4,        /* Warning */
+  LOG_LEVEL_DWARNING = 5,       /* Warning in debug build only */
+  LOG_LEVEL_INFO_IMPORTANT = 6, /* Important info that is printed by default */
+  LOG_LEVEL_INFO = 7,           /* Info about devices, scene contents and features used. */
+  LOG_LEVEL_WORK = 8,           /* Work being performed and timing/memory stats about that work. */
+  LOG_LEVEL_STATS = 9,          /* Detailed device timing stats. */
+  LOG_LEVEL_DEBUG = 10,         /* Verbose debug messages. */
+  LOG_LEVEL_UNKNOWN = -1,
 };
 
 const char *log_level_to_string(const LogLevel level);
@@ -82,7 +82,8 @@ extern LogLevel LOG_LEVEL;
 /* Macro to ensure lazy evaluation of both condition and logging text. */
 #ifdef NDEBUG
 #  define LOG_IF(level, condition) \
-    if constexpr (level != DFATAL && level != DERROR && level != DWARNING) \
+    if constexpr (level != LOG_LEVEL_DFATAL && level != LOG_LEVEL_DERROR && \
+                  level != LOG_LEVEL_DWARNING) \
       if (UNLIKELY(level <= LOG_LEVEL && (condition))) \
     LogMessage(level, __FILE__ ":" LOG_STRINGIFY(__LINE__), __func__).stream()
 #else
@@ -93,8 +94,20 @@ extern LogLevel LOG_LEVEL;
 
 /* Log a message at the desired level.
  *
- * Example: LOG(INFO) << "This is a log message"; */
+ * Example: LOG_INFO << "This is a log message"; */
 #define LOG(level) LOG_IF(level, true)
+
+#define LOG_FATAL LOG(LOG_LEVEL_FATAL)
+#define LOG_DFATAL LOG(LOG_LEVEL_DFATAL)
+#define LOG_ERROR LOG(LOG_LEVEL_ERROR)
+#define LOG_DERROR LOG(LOG_LEVEL_DERROR)
+#define LOG_WARNING LOG(LOG_LEVEL_WARNING)
+#define LOG_DWARNING LOG(LOG_LEVEL_DWARNING)
+#define LOG_INFO_IMPORTANT LOG(LOG_LEVEL_INFO_IMPORTANT)
+#define LOG_INFO LOG(LOG_LEVEL_INFO)
+#define LOG_WORK LOG(LOG_LEVEL_WORK)
+#define LOG_STATS LOG(LOG_LEVEL_STATS)
+#define LOG_DEBUG LOG(LOG_LEVEL_DEBUG)
 
 /* Check if logging is enabled, to avoid doing expensive work to compute
  * the logging message. Note that any work to the right of LOG(level) will
@@ -102,8 +115,8 @@ extern LogLevel LOG_LEVEL;
 #define LOG_IS_ON(level) ((level) <= LOG_LEVEL)
 
 /* Check if expression and conditions hold true, failure will exit the program. */
-#define CHECK(expression) LOG_IF(FATAL, !(expression))
-#define CHECK_OP(op, a, b) LOG_IF(FATAL, !((a)op(b)))
+#define CHECK(expression) LOG_IF(LOG_LEVEL_FATAL, !(expression))
+#define CHECK_OP(op, a, b) LOG_IF(LOG_LEVEL_FATAL, !((a)op(b)))
 #define CHECK_GE(a, b) CHECK_OP(>=, a, b)
 #define CHECK_NE(a, b) CHECK_OP(!=, a, b)
 #define CHECK_EQ(a, b) CHECK_OP(==, a, b)
@@ -116,17 +129,18 @@ extern LogLevel LOG_LEVEL;
 template<typename T> T DCheckNotNull(T &&t, const char *expression)
 {
   if (t == nullptr) {
-    LOG(FATAL) << "Failed " << expression << "is not null";
+    LOG_FATAL << "Failed " << expression << "is not null";
   }
   return std::forward<T>(t);
 }
 
-#  define DCHECK(expression) LOG_IF(DFATAL, !(expression)) << LOG_STRINGIFY(expression) << " "
+#  define DCHECK(expression) \
+    LOG_IF(LOG_LEVEL_DFATAL, !(expression)) << LOG_STRINGIFY(expression) << " "
 #  define DCHECK_NOTNULL(expression) DCheckNotNull(expression, LOG_STRINGIFY(expression))
 #  define DCHECK_OP(op, a, b) \
-    LOG_IF(DFATAL, !((a)op(b))) << "Failed " << LOG_STRINGIFY(a) << " (" << a << ") " \
-                                << LOG_STRINGIFY(op) << " " << LOG_STRINGIFY(b) << " (" << b \
-                                << ") "
+    LOG_IF(LOG_LEVEL_DFATAL, !((a)op(b))) \
+        << "Failed " << LOG_STRINGIFY(a) << " (" << a << ") " << LOG_STRINGIFY(op) << " " \
+        << LOG_STRINGIFY(b) << " (" << b << ") "
 #  define DCHECK_GE(a, b) DCHECK_OP(>=, a, b)
 #  define DCHECK_NE(a, b) DCHECK_OP(!=, a, b)
 #  define DCHECK_EQ(a, b) DCHECK_OP(==, a, b)
@@ -134,7 +148,7 @@ template<typename T> T DCheckNotNull(T &&t, const char *expression)
 #  define DCHECK_LT(a, b) DCHECK_OP(<, a, b)
 #  define DCHECK_LE(a, b) DCHECK_OP(<=, a, b)
 #else
-#  define LOG_SUPPRESS() LOG_IF(DEBUG, false)
+#  define LOG_SUPPRESS() LOG_IF(LOG_LEVEL_DEBUG, false)
 #  define DCHECK(expression) LOG_SUPPRESS()
 #  define DCHECK_NOTNULL(expression) (expression)
 #  define DCHECK_GE(a, b) LOG_SUPPRESS()

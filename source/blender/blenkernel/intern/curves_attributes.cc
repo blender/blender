@@ -6,7 +6,6 @@
 
 #include "DNA_object_types.h"
 
-#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_attribute_storage.hh"
 #include "BKE_curves.hh"
 #include "BKE_deform.hh"
@@ -422,8 +421,10 @@ static AttributeAccessorFunctions get_curves_accessor_functions()
       return false;
     }
     storage.add(name, domain, type, attribute_init_to_data(type, domain_size, initializer));
-    if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
-      (*fn)(owner);
+    if (initializer.type != AttributeInit::Type::Construct) {
+      if (const std::optional<AttrUpdateOnChange> fn = changed_tags().lookup_try(name)) {
+        (*fn)(owner);
+      }
     }
     return true;
   };

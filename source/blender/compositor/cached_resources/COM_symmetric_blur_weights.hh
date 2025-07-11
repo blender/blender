@@ -7,7 +7,6 @@
 #include <cstdint>
 #include <memory>
 
-#include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -41,9 +40,6 @@ bool operator==(const SymmetricBlurWeightsKey &a, const SymmetricBlurWeightsKey 
  * evaluated on the normalized distance to the center. Consequently, only the upper right quadrant
  * are computed and the user takes that into consideration. */
 class SymmetricBlurWeights : public CachedResource {
- private:
-  Array<float> weights_;
-
  public:
   Result result;
 

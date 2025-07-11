@@ -29,7 +29,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
 {
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
   const pxr::SdfPath &usd_path = usd_export_context_.usd_path;
-  pxr::UsdTimeCode timecode = get_export_time_code();
+  pxr::UsdTimeCode time = get_export_time_code();
 
   const Light *light = static_cast<const Light *>(context.object->data);
   pxr::UsdLuxLightAPI usd_light_api;
@@ -41,11 +41,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
           pxr::UsdLuxRectLight rect_light = pxr::UsdLuxRectLight::Define(stage, usd_path);
           set_attribute(rect_light.CreateWidthAttr(pxr::VtValue(), true),
                         light->area_size,
-                        timecode,
+                        time,
                         usd_value_writer_);
           set_attribute(rect_light.CreateHeightAttr(pxr::VtValue(), true),
                         light->area_sizey,
-                        timecode,
+                        time,
                         usd_value_writer_);
           usd_light_api = rect_light.LightAPI();
           break;
@@ -54,11 +54,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
           pxr::UsdLuxRectLight rect_light = pxr::UsdLuxRectLight::Define(stage, usd_path);
           set_attribute(rect_light.CreateWidthAttr(pxr::VtValue(), true),
                         light->area_size,
-                        timecode,
+                        time,
                         usd_value_writer_);
           set_attribute(rect_light.CreateHeightAttr(pxr::VtValue(), true),
                         light->area_size,
-                        timecode,
+                        time,
                         usd_value_writer_);
           usd_light_api = rect_light.LightAPI();
           break;
@@ -67,7 +67,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
           pxr::UsdLuxDiskLight disk_light = pxr::UsdLuxDiskLight::Define(stage, usd_path);
           set_attribute(disk_light.CreateRadiusAttr(pxr::VtValue(), true),
                         light->area_size / 2.0f,
-                        timecode,
+                        time,
                         usd_value_writer_);
           usd_light_api = disk_light.LightAPI();
           break;
@@ -77,7 +77,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
           pxr::UsdLuxDiskLight disk_light = pxr::UsdLuxDiskLight::Define(stage, usd_path);
           set_attribute(disk_light.CreateRadiusAttr(pxr::VtValue(), true),
                         (light->area_size + light->area_sizey) / 4.0f,
-                        timecode,
+                        time,
                         usd_value_writer_);
           usd_light_api = disk_light.LightAPI();
           break;
@@ -90,11 +90,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
       pxr::UsdLuxSphereLight sphere_light = pxr::UsdLuxSphereLight::Define(stage, usd_path);
       set_attribute(sphere_light.CreateRadiusAttr(pxr::VtValue(), true),
                     light->radius,
-                    timecode,
+                    time,
                     usd_value_writer_);
       set_attribute(sphere_light.CreateTreatAsPointAttr(pxr::VtValue(), true),
                     light->radius == 0.0f,
-                    timecode,
+                    time,
                     usd_value_writer_);
 
       if (light->type == LA_SPOT) {
@@ -102,11 +102,11 @@ void USDLightWriter::do_write(HierarchyContext &context)
         if (shaping_api) {
           set_attribute(shaping_api.CreateShapingConeAngleAttr(pxr::VtValue(), true),
                         RAD2DEGF(light->spotsize) / 2.0f,
-                        timecode,
+                        time,
                         usd_value_writer_);
           set_attribute(shaping_api.CreateShapingConeSoftnessAttr(pxr::VtValue(), true),
                         light->spotblend,
-                        timecode,
+                        time,
                         usd_value_writer_);
         }
       }
@@ -118,7 +118,7 @@ void USDLightWriter::do_write(HierarchyContext &context)
       pxr::UsdLuxDistantLight distant_light = pxr::UsdLuxDistantLight::Define(stage, usd_path);
       set_attribute(distant_light.CreateAngleAttr(pxr::VtValue(), true),
                     RAD2DEGF(light->sun_angle / 2.0f),
-                    timecode,
+                    time,
                     usd_value_writer_);
       usd_light_api = distant_light.LightAPI();
       break;
@@ -138,48 +138,46 @@ void USDLightWriter::do_write(HierarchyContext &context)
     intensity = light->energy / M_PI;
   }
 
-  set_attribute(usd_light_api.CreateIntensityAttr(pxr::VtValue(), true),
-                intensity,
-                timecode,
-                usd_value_writer_);
+  set_attribute(
+      usd_light_api.CreateIntensityAttr(pxr::VtValue(), true), intensity, time, usd_value_writer_);
   set_attribute(usd_light_api.CreateExposureAttr(pxr::VtValue(), true),
                 light->exposure,
-                timecode,
+                time,
                 usd_value_writer_);
 
   set_attribute(usd_light_api.CreateColorAttr(pxr::VtValue(), true),
                 pxr::GfVec3f(light->r, light->g, light->b),
-                timecode,
+                time,
                 usd_value_writer_);
   set_attribute(usd_light_api.CreateEnableColorTemperatureAttr(
                     pxr::VtValue(), (light->mode & LA_USE_TEMPERATURE) != 0),
                 true,
-                timecode,
+                time,
                 usd_value_writer_);
   set_attribute(usd_light_api.CreateColorTemperatureAttr(pxr::VtValue(), true),
                 light->temperature,
-                timecode,
+                time,
                 usd_value_writer_);
 
   set_attribute(usd_light_api.CreateDiffuseAttr(pxr::VtValue(), true),
                 light->diff_fac,
-                timecode,
+                time,
                 usd_value_writer_);
   set_attribute(usd_light_api.CreateSpecularAttr(pxr::VtValue(), true),
                 light->spec_fac,
-                timecode,
+                time,
                 usd_value_writer_);
   set_attribute(usd_light_api.CreateNormalizeAttr(pxr::VtValue(), true),
                 (light->mode & LA_UNNORMALIZED) == 0,
-                timecode,
+                time,
                 usd_value_writer_);
 
   pxr::UsdPrim prim = usd_light_api.GetPrim();
-  write_id_properties(prim, light->id, timecode);
+  write_id_properties(prim, light->id, time);
 
   /* Only a subset of light types are "boundable". */
   if (auto boundable = pxr::UsdGeomBoundable(prim)) {
-    this->author_extent(boundable, timecode);
+    this->author_extent(boundable, time);
   }
 }
 

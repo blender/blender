@@ -25,7 +25,6 @@
 
 #include "BKE_curve.hh"
 #include "BKE_global.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_scene.hh"

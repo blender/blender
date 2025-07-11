@@ -1215,8 +1215,10 @@ bool BVHMetal::build_TLAS(Progress &progress,
 #  if defined(MAC_OS_VERSION_15_0)
           if (use_pcmi) {
             if (ob->get_geometry()->is_instanced()) {
+              DecomposedTransform decomp;
+              transform_motion_decompose(&decomp, &ob->get_tfm(), 1);
               decomposed_motion_transforms[motion_transform_index++] =
-                  decomposed_to_component_transform(decomp[0]);
+                  decomposed_to_component_transform(decomp);
             }
             else {
               decomposed_motion_transforms[motion_transform_index++] =

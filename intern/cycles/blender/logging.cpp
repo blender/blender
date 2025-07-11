@@ -16,24 +16,24 @@ void CCL_log_init()
       [](const ccl::LogLevel level, const char *file_line, const char *func, const char *msg) {
         const CLG_LogType *log_type = CLOG_ENSURE(&LOG);
         switch (level) {
-          case ccl::FATAL:
-          case ccl::DFATAL:
+          case ccl::LOG_LEVEL_FATAL:
+          case ccl::LOG_LEVEL_DFATAL:
             CLG_log_str(log_type, CLG_LEVEL_FATAL, file_line, func, msg);
             return;
-          case ccl::ERROR:
-          case ccl::DERROR:
+          case ccl::LOG_LEVEL_ERROR:
+          case ccl::LOG_LEVEL_DERROR:
             CLG_log_str(log_type, CLG_LEVEL_ERROR, file_line, func, msg);
             return;
-          case ccl::WARNING:
-          case ccl::DWARNING:
+          case ccl::LOG_LEVEL_WARNING:
+          case ccl::LOG_LEVEL_DWARNING:
             CLG_log_str(log_type, CLG_LEVEL_WARN, file_line, func, msg);
             return;
-          case ccl::INFO:
-          case ccl::INFO_IMPORTANT:
-          case ccl::WORK:
-          case ccl::STATS:
-          case ccl::DEBUG:
-          case ccl::UNKNOWN:
+          case ccl::LOG_LEVEL_INFO:
+          case ccl::LOG_LEVEL_INFO_IMPORTANT:
+          case ccl::LOG_LEVEL_WORK:
+          case ccl::LOG_LEVEL_STATS:
+          case ccl::LOG_LEVEL_DEBUG:
+          case ccl::LOG_LEVEL_UNKNOWN:
             CLG_log_str(log_type, CLG_LEVEL_INFO, file_line, func, msg);
             return;
         }
@@ -43,22 +43,22 @@ void CCL_log_init()
   const CLG_LogType *log_type = CLOG_ENSURE(&LOG);
   switch (log_type->level) {
     case CLG_LEVEL_FATAL:
-      ccl::log_level_set(ccl::FATAL);
+      ccl::log_level_set(ccl::LOG_LEVEL_FATAL);
       break;
     case CLG_LEVEL_ERROR:
-      ccl::log_level_set(ccl::ERROR);
+      ccl::log_level_set(ccl::LOG_LEVEL_ERROR);
       break;
     case CLG_LEVEL_WARN:
-      ccl::log_level_set(ccl::WARNING);
+      ccl::log_level_set(ccl::LOG_LEVEL_WARNING);
       break;
     case CLG_LEVEL_INFO:
-      ccl::log_level_set(ccl::INFO);
+      ccl::log_level_set(ccl::LOG_LEVEL_INFO);
       break;
     case CLG_LEVEL_DEBUG:
-      ccl::log_level_set(ccl::WORK);
+      ccl::log_level_set(ccl::LOG_LEVEL_WORK);
       break;
     case CLG_LEVEL_TRACE:
-      ccl::log_level_set(ccl::DEBUG);
+      ccl::log_level_set(ccl::LOG_LEVEL_DEBUG);
       break;
   }
 }

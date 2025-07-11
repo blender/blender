@@ -5,14 +5,11 @@
 #include <cstdint>
 #include <memory>
 
-#include "BLI_array.hh"
 #include "BLI_hash.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_base.hh"
 
 #include "RE_pipeline.h"
-
-#include "GPU_texture.hh"
 
 #include "COM_context.hh"
 #include "COM_result.hh"
@@ -53,39 +50,35 @@ SymmetricSeparableBlurWeights::SymmetricSeparableBlurWeights(Context &context,
    * compute half of it and no doubling happens. We add 1 to make sure the filter size is always
    * odd and there is a center weight. */
   const int size = math::ceil(radius) + 1;
-  weights_ = Array<float>(size);
+  this->result.allocate_texture(Domain(int2(size, 1)), false, ResultStorageType::CPU);
 
   float sum = 0.0f;
 
   /* First, compute the center weight. */
   const float center_weight = RE_filter_value(type, 0.0f);
-  weights_[0] = center_weight;
+  this->result.store_pixel(int2(0, 0), center_weight);
   sum += center_weight;
 
   /* Second, compute the other weights in the positive direction, making sure to add double the
    * weight to the sum of weights because the filter is symmetric and we only loop over half of
    * it. Skip the center weight already computed by dropping the front index. */
   const float scale = radius > 0.0f ? 1.0f / radius : 0.0f;
-  for (const int i : weights_.index_range().drop_front(1)) {
+  for (const int i : IndexRange(size).drop_front(1)) {
     const float weight = RE_filter_value(type, i * scale);
-    weights_[i] = weight;
+    this->result.store_pixel(int2(i, 0), weight);
     sum += weight * 2.0f;
   }
 
   /* Finally, normalize the weights. */
-  for (const int i : weights_.index_range()) {
-    weights_[i] /= sum;
+  for (const int i : IndexRange(size)) {
+    const int2 texel = int2(i, 0);
+    this->result.store_pixel(texel, this->result.load_pixel<float>(texel) / sum);
   }
 
   if (context.use_gpu()) {
-    this->result.allocate_texture(Domain(int2(size, 1)), false);
-    GPU_texture_update(this->result, GPU_DATA_FLOAT, weights_.data());
-
-    /* CPU-side data no longer needed, so free it. */
-    weights_ = Array<float>();
-  }
-  else {
-    this->result.wrap_external(weights_.data(), int2(size, 1));
+    const Result gpu_result = this->result.upload_to_gpu(false);
+    this->result.release();
+    this->result = gpu_result;
   }
 }
 

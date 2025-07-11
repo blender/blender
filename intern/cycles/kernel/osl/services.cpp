@@ -134,7 +134,7 @@ OSLRenderServices::OSLRenderServices(OSL::TextureSystem *texture_system, const i
 OSLRenderServices::~OSLRenderServices()
 {
   if (m_texturesys) {
-    LOG(INFO) << "OSL texture system stats:\n" << m_texturesys->getstats();
+    LOG_INFO << "OSL texture system stats:\n" << m_texturesys->getstats();
   }
 }
 
