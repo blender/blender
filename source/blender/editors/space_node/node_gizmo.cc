@@ -955,4 +955,166 @@ void NODE_GGT_backdrop_corner_pin(wmGizmoGroupType *gzgt)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Split
+ * \{ */
+
+static bool WIDGETGROUP_node_split_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
+{
+  if (!node_gizmo_is_set_visible(C)) {
+    return false;
+  }
+
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNode *node = bke::node_get_active(*snode->edittree);
+
+  if (node && node->is_type("CompositorNodeSplit")) {
+    snode->edittree->ensure_topology_cache();
+    LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+      if (STR_ELEM(input->name, "Position", "Rotation") && input->is_directly_linked()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return false;
+}
+
+static void WIDGETGROUP_node_split_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
+{
+  NodeBBoxWidgetGroup *split_group = MEM_new<NodeBBoxWidgetGroup>(__func__);
+  split_group->border = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
+
+  RNA_enum_set(split_group->border->ptr,
+               "transform",
+               ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE_XFORM_FLAG_ROTATE);
+  RNA_enum_set(split_group->border->ptr, "draw_options", ED_GIZMO_CAGE_DRAW_FLAG_NOP);
+
+  gzgroup->customdata = split_group;
+  gzgroup->customdata_free = [](void *customdata) {
+    MEM_delete(static_cast<NodeBBoxWidgetGroup *>(customdata));
+  };
+}
+
+static void gizmo_node_split_prop_matrix_get(const wmGizmo *gz,
+                                             wmGizmoProperty *gz_prop,
+                                             void *value_p)
+{
+  float(*matrix)[4] = reinterpret_cast<float(*)[4]>(value_p);
+  BLI_assert(gz_prop->type->array_length == 16);
+  NodeBBoxWidgetGroup *split_group = (NodeBBoxWidgetGroup *)gz->parent_gzgroup->customdata;
+  const float2 dims = split_group->state.dims;
+  const float2 offset = split_group->state.offset;
+  const bNode *node = (const bNode *)gz_prop->custom_func.user_data;
+
+  float loc[3], rot[3][3], size[3];
+  mat4_to_loc_rot_size(loc, rot, size, matrix);
+
+  const bNodeSocket *pos_input = bke::node_find_socket(*node, SOCK_IN, "Position");
+  const float2 pos = pos_input->default_value_typed<bNodeSocketValueVector>()->value;
+
+  const bNodeSocket *rotation_input = bke::node_find_socket(*node, SOCK_IN, "Rotation");
+  const float rotation = rotation_input->default_value_typed<bNodeSocketValueFloat>()->value;
+
+  const float gizmo_width = 0.1f;
+  axis_angle_to_mat3_single(rot, 'Z', rotation);
+  loc_rot_size_to_mat4(
+      matrix,
+      float3{(pos.x - 0.5f) * dims.x + offset.x, (pos.y - 0.5f) * dims.y + offset.y, 0.0f},
+      rot,
+      float3{gizmo_width, std::numeric_limits<float>::epsilon(), 1.0f});
+}
+
+static void gizmo_node_split_prop_matrix_set(const wmGizmo *gz,
+                                             wmGizmoProperty *gz_prop,
+                                             const void *value_p)
+{
+  const float(*matrix)[4] = reinterpret_cast<const float(*)[4]>(value_p);
+  BLI_assert(gz_prop->type->array_length == 16);
+  NodeBBoxWidgetGroup *split_group = reinterpret_cast<NodeBBoxWidgetGroup *>(
+      gz->parent_gzgroup->customdata);
+  const float2 dims = split_group->state.dims;
+  const float2 offset = split_group->state.offset;
+  bNode *node = reinterpret_cast<bNode *>(gz_prop->custom_func.user_data);
+
+  bNodeSocket *position_input = bke::node_find_socket(*node, SOCK_IN, "Position");
+  bNodeSocket *rotation_input = bke::node_find_socket(*node, SOCK_IN, "Rotation");
+
+  float pos_x = (matrix[3][0] - offset.x) + dims.x * 0.5;
+  float pos_y = (matrix[3][1] - offset.y) + dims.y * 0.5;
+
+  /* Prevent dragging the gizmo outside the image. */
+  pos_x = math::clamp(pos_x, 0.0f, dims.x);
+  pos_y = math::clamp(pos_y, 0.0f, dims.y);
+
+  position_input->default_value_typed<bNodeSocketValueVector>()->value[0] = pos_x / dims.x;
+  position_input->default_value_typed<bNodeSocketValueVector>()->value[1] = pos_y / dims.y;
+
+  float3 eul;
+  mat4_to_eul(eul, matrix);
+
+  rotation_input->default_value_typed<bNodeSocketValueFloat>()->value = eul[2];
+
+  gizmo_node_bbox_update(split_group);
+}
+
+static void WIDGETGROUP_node_split_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+{
+  Main *bmain = CTX_data_main(C);
+  NodeBBoxWidgetGroup *split_group = reinterpret_cast<NodeBBoxWidgetGroup *>(gzgroup->customdata);
+  wmGizmo *gz = split_group->border;
+
+  void *lock;
+  Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Render Result");
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+
+  if (ibuf) {
+    split_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
+    split_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
+    copy_v2_v2(split_group->state.offset, ima->runtime->backdrop_offset);
+
+    RNA_float_set_array(gz->ptr, "dimensions", split_group->state.dims);
+    WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
+
+    SpaceNode *snode = CTX_wm_space_node(C);
+    bNode *node = bke::node_get_active(*snode->edittree);
+
+    split_group->update_data.context = (bContext *)C;
+    bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Position");
+    split_group->update_data.ptr = RNA_pointer_create_discrete(
+        reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
+    split_group->update_data.prop = RNA_struct_find_property(&split_group->update_data.ptr,
+                                                             "enabled");
+
+    wmGizmoPropertyFnParams params{};
+    params.value_get_fn = gizmo_node_split_prop_matrix_get;
+    params.value_set_fn = gizmo_node_split_prop_matrix_set;
+    params.range_get_fn = nullptr;
+    params.user_data = node;
+    WM_gizmo_target_property_def_func(gz, "matrix", &params);
+  }
+  else {
+    WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+  }
+
+  BKE_image_release_ibuf(ima, ibuf, lock);
+}
+
+void NODE_GGT_backdrop_split(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Split Widget";
+  gzgt->idname = "NODE_GGT_backdrop_split";
+
+  gzgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
+
+  gzgt->poll = WIDGETGROUP_node_split_poll;
+  gzgt->setup = WIDGETGROUP_node_split_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
+  gzgt->draw_prepare = WIDGETGROUP_bbox_draw_prepare;
+  gzgt->refresh = WIDGETGROUP_node_split_refresh;
+}
+
+/** \} */
+
 }  // namespace blender::ed::space_node
