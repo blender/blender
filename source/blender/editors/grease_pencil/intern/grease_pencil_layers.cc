@@ -115,10 +115,7 @@ static wmOperatorStatus grease_pencil_layer_add_exec(bContext *C, wmOperator *op
   Scene *scene = CTX_data_scene(C);
   GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
 
-  int new_layer_name_length;
-  char *new_layer_name = RNA_string_get_alloc(
-      op->ptr, "new_layer_name", nullptr, 0, &new_layer_name_length);
-  BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(new_layer_name); });
+  std::string new_layer_name = RNA_string_get(op->ptr, "new_layer_name");
   Layer &new_layer = grease_pencil.add_layer(new_layer_name);
   WM_msg_publish_rna_prop(
       CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layers);
@@ -343,9 +340,7 @@ static wmOperatorStatus grease_pencil_layer_group_add_exec(bContext *C, wmOperat
   using namespace blender::bke::greasepencil;
   GreasePencil &grease_pencil = *blender::ed::greasepencil::from_context(*C);
 
-  int new_layer_group_name_length;
-  char *new_layer_group_name = RNA_string_get_alloc(
-      op->ptr, "new_layer_group_name", nullptr, 0, &new_layer_group_name_length);
+  std::string new_layer_group_name = RNA_string_get(op->ptr, "new_layer_group_name");
 
   LayerGroup &new_group = grease_pencil.add_layer_group(new_layer_group_name);
   WM_msg_publish_rna_prop(
@@ -366,7 +361,6 @@ static wmOperatorStatus grease_pencil_layer_group_add_exec(bContext *C, wmOperat
                             active);
   }
 
-  MEM_SAFE_FREE(new_layer_group_name);
   grease_pencil.set_active_node(&new_group.as_node());
 
   WM_msg_publish_rna_prop(
@@ -892,9 +886,7 @@ static wmOperatorStatus grease_pencil_layer_mask_add_exec(bContext *C, wmOperato
   }
   Layer &active_layer = *grease_pencil.get_active_layer();
 
-  int mask_name_length;
-  char *mask_name = RNA_string_get_alloc(op->ptr, "name", nullptr, 0, &mask_name_length);
-  BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(mask_name); });
+  std::string mask_name = RNA_string_get(op->ptr, "name");
 
   if (TreeNode *node = grease_pencil.find_node_by_name(mask_name)) {
     if (grease_pencil.is_layer_active(&node->as_layer())) {
@@ -903,7 +895,7 @@ static wmOperatorStatus grease_pencil_layer_mask_add_exec(bContext *C, wmOperato
     }
 
     if (BLI_findstring_ptr(&active_layer.masks,
-                           mask_name,
+                           mask_name.c_str(),
                            offsetof(GreasePencilLayerMask, layer_name)) != nullptr)
     {
       BKE_report(op->reports, RPT_ERROR, "Layer already added");

@@ -151,14 +151,13 @@ static int depthdropper_init(bContext *C, wmOperator *op)
   if ((prop = RNA_struct_find_property(op->ptr, "prop_data_path")) &&
       RNA_property_is_set(op->ptr, prop))
   {
-    char *prop_data_path = RNA_string_get_alloc(op->ptr, "prop_data_path", nullptr, 0, nullptr);
-    BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(prop_data_path); });
-    if (!prop_data_path) {
+    std::string prop_data_path = RNA_string_get(op->ptr, "prop_data_path");
+    if (prop_data_path.empty()) {
       MEM_delete(ddr);
       return false;
     }
     PointerRNA ctx_ptr = RNA_pointer_create_discrete(nullptr, &RNA_Context, C);
-    if (!depthdropper_get_path(&ctx_ptr, op, prop_data_path, &ddr->ptr, &ddr->prop)) {
+    if (!depthdropper_get_path(&ctx_ptr, op, prop_data_path.c_str(), &ddr->ptr, &ddr->prop)) {
       MEM_delete(ddr);
       return false;
     }

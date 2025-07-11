@@ -394,10 +394,8 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
                          attribute_search_exec_fn,
                          nullptr);
 
-  char *attribute_name = RNA_string_get_alloc(
-      ctx.properties_ptr, rna_path_attribute_name.c_str(), nullptr, 0, nullptr);
+  std::string attribute_name = RNA_string_get(ctx.properties_ptr, rna_path_attribute_name.c_str());
   const bool access_allowed = bke::allow_procedural_attribute_access(attribute_name);
-  MEM_freeN(attribute_name);
   if (!access_allowed) {
     UI_but_flag_enable(but, UI_BUT_REDALERT);
   }

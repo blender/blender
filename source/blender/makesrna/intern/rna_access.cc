@@ -5798,6 +5798,16 @@ bool RNA_enum_name_from_value(const EnumPropertyItem *item, int value, const cha
   return false;
 }
 
+std::string RNA_string_get(PointerRNA *ptr, const char *name)
+{
+  PropertyRNA *prop = RNA_struct_find_property(ptr, name);
+  if (!prop) {
+    printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name);
+    return {};
+  }
+  return RNA_property_string_get(ptr, prop);
+}
+
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, name);

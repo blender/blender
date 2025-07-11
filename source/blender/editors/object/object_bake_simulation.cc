@@ -920,13 +920,8 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
   if (object == nullptr) {
     return {};
   }
-  char *modifier_name = RNA_string_get_alloc(op->ptr, "modifier_name", nullptr, 0, nullptr);
-  if (modifier_name == nullptr) {
-    return {};
-  }
-  BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(modifier_name); });
-
-  ModifierData *md = BKE_modifiers_findby_name(object, modifier_name);
+  std::string modifier_name = RNA_string_get(op->ptr, "modifier_name");
+  ModifierData *md = BKE_modifiers_findby_name(object, modifier_name.c_str());
   if (md == nullptr) {
     return {};
   }
@@ -1034,13 +1029,8 @@ static wmOperatorStatus delete_single_bake_exec(bContext *C, wmOperator *op)
   if (object == nullptr) {
     return OPERATOR_CANCELLED;
   }
-  char *modifier_name = RNA_string_get_alloc(op->ptr, "modifier_name", nullptr, 0, nullptr);
-  if (modifier_name == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
-  BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(modifier_name); });
-
-  ModifierData *md = BKE_modifiers_findby_name(object, modifier_name);
+  std::string modifier_name = RNA_string_get(op->ptr, "modifier_name");
+  ModifierData *md = BKE_modifiers_findby_name(object, modifier_name.c_str());
   if (md == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -1063,13 +1053,8 @@ static wmOperatorStatus pack_single_bake_exec(bContext *C, wmOperator *op)
   if (object == nullptr) {
     return OPERATOR_CANCELLED;
   }
-  char *modifier_name = RNA_string_get_alloc(op->ptr, "modifier_name", nullptr, 0, nullptr);
-  if (modifier_name == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
-  BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(modifier_name); });
-
-  ModifierData *md = BKE_modifiers_findby_name(object, modifier_name);
+  std::string modifier_name = RNA_string_get(op->ptr, "modifier_name");
+  ModifierData *md = BKE_modifiers_findby_name(object, modifier_name.c_str());
   if (md == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -1123,13 +1108,8 @@ static wmOperatorStatus unpack_single_bake_exec(bContext *C, wmOperator *op)
   if (object == nullptr) {
     return OPERATOR_CANCELLED;
   }
-  char *modifier_name = RNA_string_get_alloc(op->ptr, "modifier_name", nullptr, 0, nullptr);
-  if (modifier_name == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
-  BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(modifier_name); });
-
-  ModifierData *md = BKE_modifiers_findby_name(object, modifier_name);
+  std::string modifier_name = RNA_string_get(op->ptr, "modifier_name");
+  ModifierData *md = BKE_modifiers_findby_name(object, modifier_name.c_str());
   if (md == nullptr) {
     return OPERATOR_CANCELLED;
   }

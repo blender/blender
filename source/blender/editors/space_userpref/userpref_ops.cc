@@ -784,9 +784,10 @@ static wmOperatorStatus preferences_extension_url_drop_invoke(bContext *C,
                                                               wmOperator *op,
                                                               const wmEvent *event)
 {
-  char *url = RNA_string_get_alloc(op->ptr, "url", nullptr, 0, nullptr);
-  const bool url_is_file = STRPREFIX(url, "file://");
-  const bool url_is_online = STRPREFIX(url, "http://") || STRPREFIX(url, "https://");
+  std::string url = RNA_string_get(op->ptr, "url");
+  const bool url_is_file = STRPREFIX(url.c_str(), "file://");
+  const bool url_is_online = STRPREFIX(url.c_str(), "http://") ||
+                             STRPREFIX(url.c_str(), "https://");
   const bool url_is_remote = url_is_file | url_is_online;
 
   /* NOTE: searching for hard-coded add-on name isn't great.
@@ -806,7 +807,7 @@ static wmOperatorStatus preferences_extension_url_drop_invoke(bContext *C,
     PointerRNA props_ptr;
     WM_operator_properties_create_ptr(&props_ptr, ot);
     if (use_url) {
-      RNA_string_set(&props_ptr, "url", url);
+      RNA_string_set(&props_ptr, "url", url.c_str());
     }
     WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, event);
     WM_operator_properties_free(&props_ptr);
@@ -816,7 +817,6 @@ static wmOperatorStatus preferences_extension_url_drop_invoke(bContext *C,
     BKE_reportf(op->reports, RPT_ERROR, "Extension operator not found \"%s\"", idname_external);
     retval = OPERATOR_CANCELLED;
   }
-  MEM_freeN(url);
   return retval;
 }
 

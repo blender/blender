@@ -480,7 +480,7 @@ static wmOperatorStatus asset_catalog_new_exec(bContext *C, wmOperator *op)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
-  char *parent_path = RNA_string_get_alloc(op->ptr, "parent_path", nullptr, 0, nullptr);
+  std::string parent_path = RNA_string_get(op->ptr, "parent_path");
 
   asset_system::AssetCatalog *new_catalog = catalog_add(
       asset_library, DATA_("Catalog"), parent_path);
@@ -488,8 +488,6 @@ static wmOperatorStatus asset_catalog_new_exec(bContext *C, wmOperator *op)
   if (sfile) {
     ED_fileselect_activate_asset_catalog(sfile, new_catalog->catalog_id);
   }
-
-  MEM_freeN(parent_path);
 
   WM_event_add_notifier_ex(
       CTX_wm_manager(C), CTX_wm_window(C), NC_ASSET | ND_ASSET_CATALOGS, nullptr);
@@ -520,15 +518,13 @@ static wmOperatorStatus asset_catalog_delete_exec(bContext *C, wmOperator *op)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
   asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
-  char *catalog_id_str = RNA_string_get_alloc(op->ptr, "catalog_id", nullptr, 0, nullptr);
+  std::string catalog_id_str = RNA_string_get(op->ptr, "catalog_id");
   asset_system::CatalogID catalog_id;
-  if (!BLI_uuid_parse_string(&catalog_id, catalog_id_str)) {
+  if (!BLI_uuid_parse_string(&catalog_id, catalog_id_str.c_str())) {
     return OPERATOR_CANCELLED;
   }
 
   catalog_remove(asset_library, catalog_id);
-
-  MEM_freeN(catalog_id_str);
 
   WM_event_add_notifier_ex(
       CTX_wm_manager(C), CTX_wm_window(C), NC_ASSET | ND_ASSET_CATALOGS, nullptr);
