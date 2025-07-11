@@ -10,8 +10,6 @@
 #include "DNA_shader_fx_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_gpencil_legacy.h"
-
 #include "BLI_link_utils.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"

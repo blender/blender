@@ -42,7 +42,6 @@
 #include "RNA_prototypes.hh"
 
 #include "BKE_callbacks.hh"
-#include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"

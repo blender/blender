@@ -24,7 +24,6 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_paint.hh"
 #include "BKE_tracking.h"
 
