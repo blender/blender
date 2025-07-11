@@ -227,7 +227,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
   }
   else {
     /* Sync recalculations to do just the required updates. */
-    sync->sync_recalc(b_depsgraph, b_v3d);
+    sync->sync_recalc(b_depsgraph, b_v3d, b_rv3d);
   }
 
   BL::Object b_camera_override(b_engine.camera_override());
@@ -798,7 +798,7 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
 
   /* copy recalc flags, outside of mutex so we can decide to do the real
    * synchronization at a later time to not block on running updates */
-  sync->sync_recalc(b_depsgraph_, b_v3d);
+  sync->sync_recalc(b_depsgraph_, b_v3d, b_rv3d);
 
   /* don't do synchronization if on pause */
   if (session_pause) {

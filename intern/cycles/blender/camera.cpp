@@ -717,6 +717,28 @@ void BlenderSync::sync_camera(BL::RenderSettings &b_render,
   }
 }
 
+BL::Object BlenderSync::get_dicing_camera_object(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d)
+{
+  PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  BL::Object b_ob = BL::Object(RNA_pointer_get(&cscene, "dicing_camera"));
+  if (b_ob) {
+    return b_ob;
+  }
+
+  BL::Object b_camera_override = b_engine.camera_override();
+  if (b_camera_override) {
+    return b_camera_override;
+  }
+
+  if (b_v3d && b_rv3d && b_rv3d.view_perspective() == BL::RegionView3D::view_perspective_CAMERA &&
+      b_v3d.use_local_camera())
+  {
+    return b_v3d.camera();
+  }
+
+  return b_scene.camera();
+}
+
 void BlenderSync::sync_camera_motion(BL::RenderSettings &b_render,
                                      BL::Object &b_ob,
                                      const int width,
