@@ -62,11 +62,11 @@ using blender::StringRefNull;
 /** \name Structs and Defines
  * \{ */
 
-#define UI_OPERATOR_ERROR_RET(_ot, _opname, return_statement) \
+#define UI_OPERATOR_ERROR_RET(_ot, _opname) \
   if (ot == nullptr) { \
-    ui_item_disabled(layout, _opname); \
+    ui_item_disabled(this, _opname); \
     RNA_warning("'%s' unknown operator", _opname); \
-    return_statement; \
+    return PointerRNA_NULL; \
   } \
   (void)0
 
@@ -1388,8 +1388,7 @@ PointerRNA uiLayout::op(const blender::StringRefNull opname,
                         const eUI_Item_Flag flag)
 {
   wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
-  uiLayout *layout = this;
-  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), { return PointerRNA_NULL; });
+  UI_OPERATOR_ERROR_RET(ot, opname.c_str());
   return this->op(ot, name, icon, context, flag);
 }
 
@@ -3272,10 +3271,11 @@ static void menu_item_enum_opname_menu(bContext *C, uiLayout *layout, void *arg)
   uiBut *but = static_cast<uiBut *>(arg);
   MenuItemLevel *lvl = static_cast<MenuItemLevel *>(but->func_argN);
   /* Use the operator properties from the button owning the menu. */
-  IDProperty *op_props = but->opptr ? static_cast<IDProperty *>(but->opptr->data) : nullptr;
+  BLI_assert(but->opptr);
+  IDProperty *op_props = but->opptr->data_as<IDProperty>();
 
   /* The calling but's str _probably_ contains the active
-   * menu item name, set in uiItemMenuEnumFullO_ptr. */
+   * menu item name, set in #uiLayout::op_menu_enum. */
   const int active = menu_item_enum_opname_menu_active(C, but, lvl);
 
   layout->operator_context_set(lvl->opcontext);
@@ -3285,13 +3285,11 @@ static void menu_item_enum_opname_menu(bContext *C, uiLayout *layout, void *arg)
   UI_block_direction_set(layout->block(), UI_DIR_DOWN);
 }
 
-void uiItemMenuEnumFullO_ptr(uiLayout *layout,
-                             const bContext *C,
-                             wmOperatorType *ot,
-                             const StringRefNull propname,
-                             std::optional<StringRefNull> name,
-                             int icon,
-                             PointerRNA *r_opptr)
+PointerRNA uiLayout::op_menu_enum(const bContext *C,
+                                  wmOperatorType *ot,
+                                  const StringRefNull propname,
+                                  std::optional<StringRefNull> name,
+                                  int icon)
 {
   /* Caller must check */
   BLI_assert(ot->srna != nullptr);
@@ -3302,16 +3300,16 @@ void uiItemMenuEnumFullO_ptr(uiLayout *layout,
     name = operator_name.c_str();
   }
 
-  if (layout->root_->type == blender::ui::LayoutType::Menu && !icon) {
+  if (root_->type == blender::ui::LayoutType::Menu && !icon) {
     icon = ICON_BLANK1;
   }
 
   MenuItemLevel *lvl = MEM_new<MenuItemLevel>("MenuItemLevel");
   STRNCPY(lvl->opname, ot->idname);
   STRNCPY(lvl->propname, propname.c_str());
-  lvl->opcontext = layout->root_->opcontext;
+  lvl->opcontext = root_->opcontext;
 
-  uiBut *but = ui_item_menu(layout,
+  uiBut *but = ui_item_menu(this,
                             *name,
                             icon,
                             menu_item_enum_opname_menu,
@@ -3323,53 +3321,39 @@ void uiItemMenuEnumFullO_ptr(uiLayout *layout,
                             but_func_argN_copy<MenuItemLevel>);
   /* Use the menu button as owner for the operator properties, which will then be passed to the
    * individual menu items. */
-  if (r_opptr) {
-    but->opptr = MEM_new<PointerRNA>("uiButOpPtr");
-    WM_operator_properties_create_ptr(but->opptr, ot);
-    BLI_assert(but->opptr->data == nullptr);
-    WM_operator_properties_alloc(&but->opptr, (IDProperty **)&but->opptr->data, ot->idname);
-    *r_opptr = *but->opptr;
-  }
+  but->opptr = MEM_new<PointerRNA>("uiButOpPtr");
+  WM_operator_properties_create_ptr(but->opptr, ot);
+  BLI_assert(but->opptr->data == nullptr);
+  WM_operator_properties_alloc(&but->opptr, (IDProperty **)&but->opptr->data, ot->idname);
 
   /* add hotkey here, lower UI code can't detect it */
-  if ((layout->block()->flag & UI_BLOCK_LOOP) && (ot->prop && ot->invoke)) {
+  if ((this->block()->flag & UI_BLOCK_LOOP) && (ot->prop && ot->invoke)) {
     if (std::optional<std::string> shortcut_str = WM_key_event_operator_string(
-            C, ot->idname, layout->root_->opcontext, nullptr, false))
+            C, ot->idname, root_->opcontext, nullptr, false))
     {
       ui_but_add_shortcut(but, shortcut_str->c_str(), false);
     }
   }
+  return *but->opptr;
 }
 
-void uiItemMenuEnumFullO(uiLayout *layout,
-                         const bContext *C,
-                         const StringRefNull opname,
-                         const StringRefNull propname,
-                         StringRefNull name,
-                         int icon,
-                         PointerRNA *r_opptr)
+PointerRNA uiLayout::op_menu_enum(const bContext *C,
+                                  const StringRefNull opname,
+                                  const StringRefNull propname,
+                                  StringRefNull name,
+                                  int icon)
 {
   wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
 
-  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), return);
+  UI_OPERATOR_ERROR_RET(ot, opname.c_str());
 
   if (!ot->srna) {
-    ui_item_disabled(layout, opname.c_str());
+    ui_item_disabled(this, opname.c_str());
     RNA_warning("operator missing srna '%s'", opname.c_str());
-    return;
+    return PointerRNA_NULL;
   }
 
-  uiItemMenuEnumFullO_ptr(layout, C, ot, propname, name, icon, r_opptr);
-}
-
-void uiItemMenuEnumO(uiLayout *layout,
-                     const bContext *C,
-                     const StringRefNull opname,
-                     const StringRefNull propname,
-                     StringRefNull name,
-                     int icon)
-{
-  uiItemMenuEnumFullO(layout, C, opname, propname, name, icon, nullptr);
+  return this->op_menu_enum(C, ot, propname, name, icon);
 }
 
 static void menu_item_enum_rna_menu(bContext * /*C*/, uiLayout *layout, void *arg)

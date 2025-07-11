@@ -455,9 +455,7 @@ static PointerRNA rna_uiItemMenuEnumO(uiLayout *layout,
   std::optional<StringRefNull> text = rna_translate_ui_text(
       name, text_ctxt, ot->srna, nullptr, translate);
 
-  PointerRNA opptr;
-  uiItemMenuEnumFullO_ptr(layout, C, ot, propname, text, icon, &opptr);
-  return opptr;
+  return layout->op_menu_enum(C, ot, propname, text, icon);
 }
 
 static void rna_uiItemL(uiLayout *layout,

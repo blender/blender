@@ -240,12 +240,11 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
     bContext *mutable_ctx = CTX_copy(C);
     if (WM_operator_name_poll(mutable_ctx, "asset.bundle_install")) {
       col->separator();
-      uiItemMenuEnumO(col,
-                      C,
-                      "asset.bundle_install",
-                      "asset_library_reference",
-                      IFACE_("Copy Bundle to Asset Library..."),
-                      ICON_IMPORT);
+      col->op_menu_enum(C,
+                        "asset.bundle_install",
+                        "asset_library_reference",
+                        IFACE_("Copy Bundle to Asset Library..."),
+                        ICON_IMPORT);
     }
     CTX_free(mutable_ctx);
   }

@@ -481,6 +481,26 @@ struct uiLayout : uiItem, blender::NonCopyable, blender::NonMovable {
                      int active = -1);
 
   /**
+   * Adds a #op_enum menu.
+   * \returns Operator pointer to write extra properties to set when menu buttons are
+   * displayed, might be #PointerRNA_NULL if operator does not exist.
+   */
+  PointerRNA op_menu_enum(const bContext *C,
+                          wmOperatorType *ot,
+                          blender::StringRefNull propname,
+                          std::optional<blender::StringRefNull> name,
+                          int icon);
+  /**
+   * Adds a #op_enum menu.
+   * \returns Operator pointer to write extra properties to set when menu buttons are
+   * displayed, might be #PointerRNA_NULL if operator does not exist.
+   */
+  PointerRNA op_menu_enum(const bContext *C,
+                          blender::StringRefNull opname,
+                          blender::StringRefNull propname,
+                          blender::StringRefNull name,
+                          int icon);
+  /**
    * Adds a operator item, places a button in the layout to call the operator, if the button is
    * held down, a menu will be displayed instead.
    * \param ot: Operator to add.
@@ -905,30 +925,6 @@ uiLayout *uiItemL_respect_property_split(uiLayout *layout, blender::StringRef te
  * Label icon for dragging.
  */
 void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, blender::StringRef name, int icon);
-
-/**
- * Level items.
- */
-void uiItemMenuEnumFullO_ptr(uiLayout *layout,
-                             const bContext *C,
-                             wmOperatorType *ot,
-                             blender::StringRefNull propname,
-                             std::optional<blender::StringRefNull> name,
-                             int icon,
-                             PointerRNA *r_opptr);
-void uiItemMenuEnumFullO(uiLayout *layout,
-                         const bContext *C,
-                         blender::StringRefNull opname,
-                         blender::StringRefNull propname,
-                         blender::StringRefNull name,
-                         int icon,
-                         PointerRNA *r_opptr);
-void uiItemMenuEnumO(uiLayout *layout,
-                     const bContext *C,
-                     blender::StringRefNull opname,
-                     blender::StringRefNull propname,
-                     blender::StringRefNull name,
-                     int icon);
 
 /* Only for testing, inspecting layouts. */
 /**
