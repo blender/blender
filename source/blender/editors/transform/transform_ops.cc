@@ -202,7 +202,7 @@ static wmOperatorStatus select_orientation_invoke(bContext *C,
 
   pup = UI_popup_menu_begin(C, IFACE_("Orientation"), ICON_NONE);
   layout = UI_popup_menu_layout(pup);
-  uiItemsEnumO(layout, "TRANSFORM_OT_select_orientation", "orientation");
+  layout->op_enum("TRANSFORM_OT_select_orientation", "orientation");
   UI_popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;

@@ -446,6 +446,41 @@ struct uiLayout : uiItem, blender::NonCopyable, blender::NonMovable {
                 wmOperatorCallContext context,
                 eUI_Item_Flag flag);
   /**
+   * Expands and sets each enum property value as an operator button.
+   * \param propname: Name of the operator's enum property.
+   * \param properties: Extra operator properties values to set.
+   * \param active: an optional item to highlight.
+   */
+  void op_enum(blender::StringRefNull opname,
+               blender::StringRefNull propname,
+               IDProperty *properties,
+               wmOperatorCallContext context,
+               eUI_Item_Flag flag,
+               const int active = -1);
+
+  /**
+   * Expands and sets each enum property value as an operator button.
+   * \param propname: Name of the operator's enum property.
+   */
+  void op_enum(blender::StringRefNull opname, blender::StringRefNull propname);
+  /**
+   * Expands and sets each enum property value as an operator button.
+   * \param prop: Operator's enum property.
+   * \param properties: Extra operator properties values to set.
+   * \param item_array: Precalculated item array, could be a subset of the enum property values.
+   * \param active: an optional item to highlight.
+   */
+  void op_enum_items(wmOperatorType *ot,
+                     const PointerRNA &ptr,
+                     PropertyRNA *prop,
+                     IDProperty *properties,
+                     wmOperatorCallContext context,
+                     eUI_Item_Flag flag,
+                     const EnumPropertyItem *item_array,
+                     int totitem,
+                     int active = -1);
+
+  /**
    * Adds a operator item, places a button in the layout to call the operator, if the button is
    * held down, a menu will be displayed instead.
    * \param ot: Operator to add.
@@ -836,41 +871,6 @@ void uiLayoutListItemAddPadding(uiLayout *layout);
 /* Layout create functions. */
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
-
-/* items */
-
-void uiItemsEnumO(uiLayout *layout,
-                  blender::StringRefNull opname,
-                  blender::StringRefNull propname);
-
-/**
- * Create a list of enum items.
- *
- * \param active: an optional item to highlight.
- */
-void uiItemsFullEnumO(uiLayout *layout,
-                      blender::StringRefNull opname,
-                      blender::StringRefNull propname,
-                      IDProperty *properties,
-                      wmOperatorCallContext context,
-                      eUI_Item_Flag flag,
-                      const int active = -1);
-/**
- * Create UI items for enum items in \a item_array.
- *
- * A version of #uiItemsFullEnumO that takes pre-calculated item array.
- * \param active: if not -1, will highlight that item.
- */
-void uiItemsFullEnumO_items(uiLayout *layout,
-                            wmOperatorType *ot,
-                            const PointerRNA &ptr,
-                            PropertyRNA *prop,
-                            IDProperty *properties,
-                            wmOperatorCallContext context,
-                            eUI_Item_Flag flag,
-                            const EnumPropertyItem *item_array,
-                            int totitem,
-                            int active = -1);
 
 struct uiPropertySplitWrapper {
   uiLayout *label_column;

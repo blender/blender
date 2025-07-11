@@ -1104,12 +1104,11 @@ static wmOperatorStatus unpack_single_bake_invoke(bContext *C,
   layout = UI_popup_menu_layout(pup);
 
   layout->operator_context_set(WM_OP_EXEC_DEFAULT);
-  uiItemsFullEnumO(layout,
-                   op->type->idname,
-                   "method",
-                   static_cast<IDProperty *>(op->ptr->data),
-                   WM_OP_EXEC_REGION_WIN,
-                   UI_ITEM_NONE);
+  layout->op_enum(op->type->idname,
+                  "method",
+                  static_cast<IDProperty *>(op->ptr->data),
+                  WM_OP_EXEC_REGION_WIN,
+                  UI_ITEM_NONE);
 
   UI_popup_menu_end(C, pup);
 

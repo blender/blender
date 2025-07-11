@@ -1107,12 +1107,11 @@ wmOperatorStatus WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallCo
     uiLayout *layout = UI_popup_menu_layout(pup);
     /* Set this so the default execution context is the same as submenus. */
     layout->operator_context_set(opcontext);
-    uiItemsFullEnumO(layout,
-                     op->type->idname,
-                     RNA_property_identifier(prop),
-                     static_cast<IDProperty *>(op->ptr->data),
-                     opcontext,
-                     UI_ITEM_NONE);
+    layout->op_enum(op->type->idname,
+                    RNA_property_identifier(prop),
+                    static_cast<IDProperty *>(op->ptr->data),
+                    opcontext,
+                    UI_ITEM_NONE);
     UI_popup_menu_end(C, pup);
     return OPERATOR_INTERFACE;
   }

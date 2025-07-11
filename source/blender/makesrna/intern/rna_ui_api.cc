@@ -432,7 +432,7 @@ static void rna_uiItemsEnumO(uiLayout *layout,
                              const bool icon_only)
 {
   eUI_Item_Flag flag = icon_only ? UI_ITEM_R_ICON_ONLY : UI_ITEM_NONE;
-  uiItemsFullEnumO(layout, opname, propname, nullptr, layout->operator_context(), flag);
+  layout->op_enum(opname, propname, nullptr, layout->operator_context(), flag);
 }
 
 static PointerRNA rna_uiItemMenuEnumO(uiLayout *layout,

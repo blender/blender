@@ -273,7 +273,7 @@ static wmOperatorStatus unpack_all_invoke(bContext *C, wmOperator *op, const wmE
   layout = UI_popup_menu_layout(pup);
 
   layout->operator_context_set(WM_OP_EXEC_DEFAULT);
-  uiItemsEnumO(layout, "FILE_OT_unpack_all", "method");
+  layout->op_enum("FILE_OT_unpack_all", "method");
 
   UI_popup_menu_end(C, pup);
 
@@ -367,12 +367,11 @@ static wmOperatorStatus unpack_item_invoke(bContext *C, wmOperator *op, const wm
   layout = UI_popup_menu_layout(pup);
 
   layout->operator_context_set(WM_OP_EXEC_DEFAULT);
-  uiItemsFullEnumO(layout,
-                   op->type->idname,
-                   "method",
-                   static_cast<IDProperty *>(op->ptr->data),
-                   WM_OP_EXEC_REGION_WIN,
-                   UI_ITEM_NONE);
+  layout->op_enum(op->type->idname,
+                  "method",
+                  static_cast<IDProperty *>(op->ptr->data),
+                  WM_OP_EXEC_REGION_WIN,
+                  UI_ITEM_NONE);
 
   UI_popup_menu_end(C, pup);
 
