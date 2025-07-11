@@ -56,7 +56,7 @@ class BlenderSync {
   void sync_data(BL::RenderSettings &b_render,
                  BL::Depsgraph &b_depsgraph,
                  BL::SpaceView3D &b_v3d,
-                 BL::Object &b_override,
+                 BL::RegionView3D &b_rv3d,
                  const int width,
                  const int height,
                  void **python_thread_state,
@@ -67,7 +67,6 @@ class BlenderSync {
                        bool background,
                        const DeviceInfo &denoise_device_info);
   void sync_camera(BL::RenderSettings &b_render,
-                   BL::Object &b_override,
                    const int width,
                    const int height,
                    const char *viewname);
@@ -117,7 +116,7 @@ class BlenderSync {
   void sync_motion(BL::RenderSettings &b_render,
                    BL::Depsgraph &b_depsgraph,
                    BL::SpaceView3D &b_v3d,
-                   BL::Object &b_override,
+                   BL::RegionView3D &b_rv3d,
                    const int width,
                    const int height,
                    void **python_thread_state);
@@ -213,6 +212,8 @@ class BlenderSync {
   bool object_can_have_geometry(BL::Object &b_ob);
   bool object_is_light(BL::Object &b_ob);
   bool object_is_camera(BL::Object &b_ob);
+
+  BL::Object get_camera_object(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d);
   BL::Object get_dicing_camera_object(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d);
 
   /* variables */
