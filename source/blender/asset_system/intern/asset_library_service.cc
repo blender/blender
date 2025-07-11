@@ -132,7 +132,7 @@ AssetLibrary *AssetLibraryService::get_remote_asset_library(
 
   std::unique_ptr<RemoteAssetLibrary> *lib_uptr_ptr = remote_libraries_.lookup_ptr(remote_url);
   if (lib_uptr_ptr != nullptr) {
-    CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", remote_url.c_str());
+    CLOG_DEBUG(&LOG, "get \"%s\" (cached)", remote_url.c_str());
     AssetLibrary *lib = lib_uptr_ptr->get();
     lib->load_or_reload_catalogs();
     return lib;
@@ -146,7 +146,7 @@ AssetLibrary *AssetLibraryService::get_remote_asset_library(
   lib->load_or_reload_catalogs();
 
   remote_libraries_.add_new(remote_url, std::move(lib_uptr));
-  CLOG_INFO(&LOG, 2, "get \"%s\" (loaded)", remote_url.c_str());
+  CLOG_DEBUG(&LOG, "get \"%s\" (loaded)", remote_url.c_str());
   return lib;
 }
 

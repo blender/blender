@@ -8,7 +8,9 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstdint>
+#include <map>
 #include <memory>
 
 #include "BLI_fileops.h"
@@ -35,11 +37,15 @@ namespace blender {
 namespace asset_system {
 class AssetLibrary;
 class AssetRepresentation;
+class RemoteLibraryLoadingStatus;
 }  // namespace asset_system
 namespace ed::asset_browser {
 class AssetCatalogFilterSettings;
 }
 }  // namespace blender
+
+using RemoteLibraryLoadingStatus = blender::asset_system::RemoteLibraryLoadingStatus;
+using TimePoint = std::chrono::steady_clock::time_point;
 
 /* ------------------FILELIST------------------------ */
 
@@ -149,6 +155,10 @@ struct FileListEntryCache {
    * previews in `preview_done` ready for display, so the counter is decremented there. */
   int previews_todo_count = 0;
 
+  struct RemoteAssetLibraryPreviewLoading {
+    std::map<std::string, TimePoint> last_new_previews_time_by_url;
+  } remote_preview_loading;
+
   FileListEntryCache();
   ~FileListEntryCache();
 };
@@ -164,6 +174,7 @@ struct FileListEntryPreview {
   uint flags;
   int index;
   int icon_id;
+  bool is_invalid;
 };
 
 /* Dummy wrapper around FileListEntryPreview to ensure we do not access freed memory when freeing
@@ -242,6 +253,10 @@ struct FileList {
                        char dirpath[FILE_MAX_LIBEXTRA],
                        const bool do_change);
 
+  /** Called from the main thread when starting the job. */
+  void (*start_job_fn)(FileListReadJob *job_params);
+  /** Called from the main thread in regular intervals. */
+  void (*timer_step_fn)(FileListReadJob *job_params);
   /** Fill `filelist` (to be called by read job). */
   void (*read_job_fn)(FileListReadJob *job_params, bool *stop, bool *do_update, float *progress);
 
