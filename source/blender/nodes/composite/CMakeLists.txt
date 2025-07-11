@@ -45,6 +45,7 @@ set(SRC
   nodes/node_composite_curves.cc
   nodes/node_composite_defocus.cc
   nodes/node_composite_denoise.cc
+  nodes/node_composite_depth_combine.cc
   nodes/node_composite_despeckle.cc
   nodes/node_composite_diff_matte.cc
   nodes/node_composite_dilate.cc
@@ -103,7 +104,6 @@ set(SRC
   nodes/node_composite_val_to_rgb.cc
   nodes/node_composite_vec_blur.cc
   nodes/node_composite_viewer.cc
-  nodes/node_composite_zcombine.cc
 
   node_composite_tree.cc
   node_composite_util.cc
