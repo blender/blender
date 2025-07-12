@@ -21,6 +21,8 @@
 #include "BKE_global.hh"
 #include "BKE_main.hh"
 
+#include "BLF_api.hh"
+
 #include "nanosvgrast.h"
 #include "svg_cursors.h"
 
@@ -227,7 +229,10 @@ static bool window_set_custom_cursor(wmWindow *win, const BCursor &cursor)
   const bool use_rgba = !use_only_1bpp_cursors &&
                         (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_RGBA);
 
-  const int max_size = use_rgba ? 128 : 32;
+  /* Currently using the Win32 limit of 255 for RGBA cursors. Wayland probably
+   * has a limit of 256. MacOS is likely 256 or larger, but unconfirmed. 255 is
+   * probably large enough for now. */
+  const int max_size = use_rgba ? 255 : 32;
   const int size = std::min(cursor_size(), max_size);
 
   int bitmap_size[2];
@@ -592,6 +597,79 @@ static void wm_cursor_time_small(wmWindow *win, int nr)
                              false);
 }
 
+static void wm_cursor_text(wmWindow *win, const std::string &text, int font_id)
+{
+  /* A bit smaller than full cursor size since this is wider. */
+  float size = cursor_size() * 0.8f;
+  BLF_size(font_id, size);
+
+  float width;
+  float height;
+  BLF_width_and_height(font_id, text.c_str(), text.size(), &width, &height);
+  float padding = size * 0.15f;
+  width += padding * 2.0f;
+  height += padding * 2.0f;
+
+  if (width > 255.0f || height > 255.0f) {
+    float longest = std::max(width, height);
+    size *= 253.0f / longest;
+    BLF_size(font_id, size);
+    BLF_width_and_height(font_id, text.c_str(), text.size(), &width, &height);
+    padding = size * 0.15f;
+    width += padding * 2.0f;
+    height += padding * 2.0f;
+  }
+
+  const int bitmap_width = int(std::ceil(width));
+  const int bitmap_height = int(std::ceil(height));
+  blender::Array<uint> bitmap(bitmap_width * bitmap_height, 0xA0000000);
+
+  float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  BLF_buffer_col(font_id, color);
+  BLF_buffer(font_id, nullptr, (uchar *)bitmap.data(), bitmap_width, bitmap_height, nullptr);
+  BLF_position(font_id, padding, padding, 0.0f);
+  BLF_draw_buffer(font_id, text.c_str(), text.size());
+
+  /* Flip Y. */
+  {
+    size_t x_size, y_size;
+    uint *top, *bottom, *line;
+    x_size = bitmap_width;
+    y_size = bitmap_height;
+    const size_t stride = x_size * sizeof(int);
+
+    top = (uint *)bitmap.data();
+    bottom = top + ((y_size - 1) * x_size);
+    line = MEM_malloc_arrayN<uint>(x_size, "linebuf");
+
+    y_size >>= 1;
+
+    for (; y_size > 0; y_size--) {
+      memcpy(line, top, stride);
+      memcpy(top, bottom, stride);
+      memcpy(bottom, line, stride);
+      bottom -= x_size;
+      top += x_size;
+    }
+
+    MEM_freeN(line);
+  }
+
+  const int hot_spot[2] = {
+      int(0.5f * (bitmap_width - 1)),
+      int(0.5f * (bitmap_height - 1)),
+  };
+  const int icon_size[2] = {bitmap_width, bitmap_height};
+  GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
+                             (uchar *)bitmap.data(),
+                             nullptr,
+                             icon_size,
+                             hot_spot,
+                             true);
+
+  BLF_buffer(font_id, nullptr, nullptr, 0, 0, nullptr);
+}
+
 void WM_cursor_time(wmWindow *win, int nr)
 {
   if (win->lastcursor == 0) {
@@ -599,7 +677,10 @@ void WM_cursor_time(wmWindow *win, int nr)
   }
 
   /* Use `U.ui_scale` instead of `UI_SCALE_FAC` here to ignore HiDPI/Retina scaling. */
-  if (U.ui_scale < 1.45f || !wm_cursor_time_large(win, nr)) {
+  if (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_RGBA) {
+    wm_cursor_text(win, std::to_string(nr), blf_mono_font);
+  }
+  else if (U.ui_scale < 1.45f || !wm_cursor_time_large(win, nr)) {
     wm_cursor_time_small(win, nr);
   }
 
