@@ -152,25 +152,26 @@ static int cursor_size()
   return std::lround(WM_cursor_preferred_logical_size() * system_scale);
 }
 
-static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
-                                                      const int size,
-                                                      int r_bitmap_size[2])
+static uint8_t *cursor_bitmap_from_svg(const char *svg,
+                                       const int size,
+                                       uint8_t *(*alloc_fn)(size_t size),
+                                       int r_bitmap_size[2])
 {
   /* #nsvgParse alters the source string. */
   std::string svg_source = svg;
 
   NSVGimage *image = nsvgParse(svg_source.data(), "px", 96.0f);
   if (image == nullptr) {
-    return {};
+    return nullptr;
   }
   if (image->width == 0 || image->height == 0) {
     nsvgDelete(image);
-    return {};
+    return nullptr;
   }
   NSVGrasterizer *rast = nsvgCreateRasterizer();
   if (rast == nullptr) {
     nsvgDelete(image);
-    return {};
+    return nullptr;
   }
 
   const float scale = float(size) / 1600.0f;
@@ -179,17 +180,13 @@ static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
       std::min(size_t(ceil(image->height * scale)), size_t(size)),
   };
 
-  blender::Array<uint8_t> bitmap_rgba(dest_size[0] * dest_size[1] * 4);
+  uint8_t *bitmap_rgba = alloc_fn(sizeof(uint8_t[4]) * dest_size[0] * dest_size[1]);
+  if (bitmap_rgba == nullptr) {
+    return nullptr;
+  }
 
-  nsvgRasterize(rast,
-                image,
-                0.0f,
-                0.0f,
-                scale,
-                bitmap_rgba.data(),
-                dest_size[0],
-                dest_size[1],
-                dest_size[0] * 4);
+  nsvgRasterize(
+      rast, image, 0.0f, 0.0f, scale, bitmap_rgba, dest_size[0], dest_size[1], dest_size[0] * 4);
 
   nsvgDeleteRasterizer(rast);
   nsvgDelete(image);
@@ -203,7 +200,7 @@ static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
 /**
  * Convert 32-bit RGBA bitmap (1-32 x 1-32) to 32x32 1bpp XBitMap bitmap and mask.
  */
-static void cursor_rgba_to_xbm_32(const blender::Array<uint8_t> &rgba,
+static void cursor_rgba_to_xbm_32(const uint8_t *rgba,
                                   const int bitmap_size[2],
                                   uint8_t *bitmap,
                                   uint8_t *mask)
@@ -223,7 +220,7 @@ static void cursor_rgba_to_xbm_32(const blender::Array<uint8_t> &rgba,
   }
 }
 
-static bool window_set_custom_cursor(wmWindow *win, const BCursor &cursor)
+static bool window_set_custom_cursor_pixmap(wmWindow *win, const BCursor &cursor)
 {
   /* Option to force use of 1bpp XBitMap cursors is needed for testing. */
   const bool use_only_1bpp_cursors = false;
@@ -237,10 +234,13 @@ static bool window_set_custom_cursor(wmWindow *win, const BCursor &cursor)
   const int max_size = use_rgba ? 255 : 32;
   const int size = std::min(cursor_size(), max_size);
 
-  int bitmap_size[2];
-  blender::Array<uint8_t> bitmap_rgba = cursor_bitmap_from_svg(
-      cursor.svg_source, size, bitmap_size);
-  if (UNLIKELY(bitmap_rgba.is_empty())) {
+  int bitmap_size[2] = {0, 0};
+  uint8_t *bitmap_rgba = cursor_bitmap_from_svg(
+      cursor.svg_source,
+      size,
+      [](size_t size) -> uint8_t * { return MEM_malloc_arrayN<uint8_t>(size, "wm.cursor"); },
+      bitmap_size);
+  if (UNLIKELY(bitmap_rgba == nullptr)) {
     return false;
   }
 
@@ -252,7 +252,7 @@ static bool window_set_custom_cursor(wmWindow *win, const BCursor &cursor)
   GHOST_TSuccess success;
   if (use_rgba) {
     success = GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
-                                         bitmap_rgba.data(),
+                                         bitmap_rgba,
                                          nullptr,
                                          bitmap_size,
                                          hot_spot,
@@ -271,7 +271,15 @@ static bool window_set_custom_cursor(wmWindow *win, const BCursor &cursor)
                                          hot_spot,
                                          cursor.can_invert);
   }
+
+  MEM_freeN(bitmap_rgba);
   return (success == GHOST_kSuccess) ? true : false;
+}
+
+static bool window_set_custom_cursor(wmWindow *win, const BCursor &cursor)
+{
+  /* Keep this wrapper until other types are supported, see: !141597. */
+  return window_set_custom_cursor_pixmap(win, cursor);
 }
 
 void WM_cursor_set(wmWindow *win, int curs)
@@ -599,48 +607,57 @@ static void wm_cursor_time_small(wmWindow *win, int nr)
                              false);
 }
 
-static void wm_cursor_text(wmWindow *win, const std::string &text, int font_id)
+static uint8_t *cursor_bitmap_from_text(const std::string &text,
+                                        int font_id,
+                                        uint8_t *(*alloc_fn)(size_t size),
+                                        int r_bitmap_size[2])
 {
   /* A bit smaller than full cursor size since this is wider. */
   float size = cursor_size() * 0.8f;
   BLF_size(font_id, size);
 
-  float width;
-  float height;
-  BLF_width_and_height(font_id, text.c_str(), text.size(), &width, &height);
+  float blf_size[2] = {0.0f, 0.0f};
+  BLF_width_and_height(font_id, text.c_str(), text.size(), &blf_size[0], &blf_size[1]);
   float padding = size * 0.15f;
-  width += padding * 2.0f;
-  height += padding * 2.0f;
+  blf_size[0] += padding * 2.0f;
+  blf_size[1] += padding * 2.0f;
 
-  if (width > 255.0f || height > 255.0f) {
-    float longest = std::max(width, height);
-    size *= 253.0f / longest;
+  if (blf_size[0] > 255.0f || blf_size[1] > 255.0f) {
+    const float blf_size_max = std::max(blf_size[0], blf_size[1]);
+    size *= 253.0f / blf_size_max;
     BLF_size(font_id, size);
-    BLF_width_and_height(font_id, text.c_str(), text.size(), &width, &height);
+    BLF_width_and_height(font_id, text.c_str(), text.size(), &blf_size[0], &blf_size[1]);
     padding = size * 0.15f;
-    width += padding * 2.0f;
-    height += padding * 2.0f;
+    blf_size[0] += padding * 2.0f;
+    blf_size[1] += padding * 2.0f;
   }
 
-  const int bitmap_width = int(std::ceil(width));
-  const int bitmap_height = int(std::ceil(height));
-  blender::Array<uint> bitmap(bitmap_width * bitmap_height, 0xA0000000);
+  const int dest_size[2] = {
+      int(std::ceil(blf_size[0])),
+      int(std::ceil(blf_size[1])),
+  };
+
+  uint8_t *bitmap_rgba = alloc_fn(sizeof(uint8_t[4]) * dest_size[0] * dest_size[1]);
+  if (bitmap_rgba == nullptr) {
+    return nullptr;
+  }
+  std::fill_n(reinterpret_cast<uint32_t *>(bitmap_rgba), dest_size[0] * dest_size[1], 0xA0000000);
 
   float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   BLF_buffer_col(font_id, color);
-  BLF_buffer(font_id, nullptr, (uchar *)bitmap.data(), bitmap_width, bitmap_height, nullptr);
+  BLF_buffer(font_id, nullptr, bitmap_rgba, dest_size[0], dest_size[1], nullptr);
   BLF_position(font_id, padding, padding, 0.0f);
   BLF_draw_buffer(font_id, text.c_str(), text.size());
+  BLF_buffer(font_id, nullptr, nullptr, 0, 0, nullptr);
 
   /* Flip Y. */
   {
-    size_t x_size, y_size;
     uint *top, *bottom, *line;
-    x_size = bitmap_width;
-    y_size = bitmap_height;
+    const size_t x_size = dest_size[0];
+    size_t y_size = dest_size[1];
     const size_t stride = x_size * sizeof(int);
 
-    top = bitmap.data();
+    top = reinterpret_cast<uint *>(bitmap_rgba);
     bottom = top + ((y_size - 1) * x_size);
     line = MEM_malloc_arrayN<uint>(x_size, "linebuf");
 
@@ -657,19 +674,44 @@ static void wm_cursor_text(wmWindow *win, const std::string &text, int font_id)
     MEM_freeN(line);
   }
 
-  const int hot_spot[2] = {
-      int(0.5f * (bitmap_width - 1)),
-      int(0.5f * (bitmap_height - 1)),
-  };
-  const int icon_size[2] = {bitmap_width, bitmap_height};
-  GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
-                             (const uchar *)bitmap.data(),
-                             nullptr,
-                             icon_size,
-                             hot_spot,
-                             true);
+  r_bitmap_size[0] = dest_size[0];
+  r_bitmap_size[1] = dest_size[1];
 
-  BLF_buffer(font_id, nullptr, nullptr, 0, 0, nullptr);
+  return bitmap_rgba;
+}
+
+static bool wm_cursor_text_pixmap(wmWindow *win, const std::string &text, int font_id)
+{
+  int bitmap_size[2];
+  uint8_t *bitmap_rgba = cursor_bitmap_from_text(
+      text,
+      font_id,
+      [](size_t size) -> uint8_t * { return MEM_malloc_arrayN<uint8_t>(size, "wm.cursor"); },
+      bitmap_size);
+  if (bitmap_rgba == nullptr) {
+    return false;
+  }
+
+  const int hot_spot[2] = {
+      bitmap_size[0] / 2,
+      bitmap_size[1] / 2,
+  };
+  GHOST_TSuccess success = GHOST_SetCustomCursorShape(
+      static_cast<GHOST_WindowHandle>(win->ghostwin),
+      bitmap_rgba,
+      nullptr,
+      bitmap_size,
+      hot_spot,
+      true);
+  MEM_freeN(bitmap_rgba);
+
+  return (success == GHOST_kSuccess) ? true : false;
+}
+
+static bool wm_cursor_text(wmWindow *win, const std::string &text, int font_id)
+{
+  /* Keep this wrapper until other types are supported, see: !141597. */
+  return wm_cursor_text_pixmap(win, text, font_id);
 }
 
 void WM_cursor_time(wmWindow *win, int nr)
