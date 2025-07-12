@@ -133,7 +133,7 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
   }
 }
 
-static int cursor_size()
+static int wm_cursor_size()
 {
   /* Keep for testing. */
   if (false) {
@@ -153,7 +153,7 @@ static int cursor_size()
 }
 
 static uint8_t *cursor_bitmap_from_svg(const char *svg,
-                                       const int size,
+                                       const int cursor_size,
                                        uint8_t *(*alloc_fn)(size_t size),
                                        int r_bitmap_size[2])
 {
@@ -174,10 +174,10 @@ static uint8_t *cursor_bitmap_from_svg(const char *svg,
     return nullptr;
   }
 
-  const float scale = float(size) / 1600.0f;
+  const float scale = float(cursor_size) / 1600.0f;
   const size_t dest_size[2] = {
-      std::min(size_t(ceil(image->width * scale)), size_t(size)),
-      std::min(size_t(ceil(image->height * scale)), size_t(size)),
+      std::min(size_t(ceil(image->width * scale)), size_t(cursor_size)),
+      std::min(size_t(ceil(image->height * scale)), size_t(cursor_size)),
   };
 
   uint8_t *bitmap_rgba = alloc_fn(sizeof(uint8_t[4]) * dest_size[0] * dest_size[1]);
@@ -232,7 +232,7 @@ static bool window_set_custom_cursor_pixmap(wmWindow *win, const BCursor &cursor
    * has a limit of 256. MacOS is likely 256 or larger, but unconfirmed. 255 is
    * probably large enough for now. */
   const int max_size = use_rgba ? 255 : 32;
-  const int size = std::min(cursor_size(), max_size);
+  const int size = std::min(wm_cursor_size(), max_size);
 
   int bitmap_size[2] = {0, 0};
   uint8_t *bitmap_rgba = cursor_bitmap_from_svg(
@@ -608,12 +608,13 @@ static void wm_cursor_time_small(wmWindow *win, int nr)
 }
 
 static uint8_t *cursor_bitmap_from_text(const std::string &text,
+                                        const int cursor_size,
                                         int font_id,
                                         uint8_t *(*alloc_fn)(size_t size),
                                         int r_bitmap_size[2])
 {
   /* A bit smaller than full cursor size since this is wider. */
-  float size = cursor_size() * 0.8f;
+  float size = cursor_size * 0.8f;
   BLF_size(font_id, size);
 
   float blf_size[2] = {0.0f, 0.0f};
@@ -685,6 +686,7 @@ static bool wm_cursor_text_pixmap(wmWindow *win, const std::string &text, int fo
   int bitmap_size[2];
   uint8_t *bitmap_rgba = cursor_bitmap_from_text(
       text,
+      wm_cursor_size(),
       font_id,
       [](size_t size) -> uint8_t * { return MEM_malloc_arrayN<uint8_t>(size, "wm.cursor"); },
       bitmap_size);
@@ -724,7 +726,7 @@ void WM_cursor_time(wmWindow *win, int nr)
   if (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_RGBA) {
     wm_cursor_text(win, std::to_string(nr), blf_mono_font);
   }
-  else if (cursor_size() < 24 || !wm_cursor_time_large(win, nr)) {
+  else if (wm_cursor_size() < 24 || !wm_cursor_time_large(win, nr)) {
     wm_cursor_time_small(win, nr);
   }
 
