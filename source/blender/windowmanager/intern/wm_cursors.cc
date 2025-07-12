@@ -138,8 +138,11 @@ static int cursor_size()
   /* Scaling with UI scale can be useful for magnified captures. */
   const bool scale_cursor_with_ui_scale = false;
 
+  /* The DPI as a scale without the UI scale preference. */
+  const float system_scale = UI_SCALE_FAC / U.ui_scale;
+
   if (scale_cursor_with_ui_scale) {
-    return std::lround(21.0f * UI_SCALE_FAC);
+    return std::lround(21.0f * system_scale);
   }
 
 #if (OS_MAC)
@@ -147,7 +150,7 @@ static int cursor_size()
   return 21;
 #endif
 
-  return std::lround(WM_cursor_preferred_logical_size() * (UI_SCALE_FAC / U.ui_scale));
+  return std::lround(WM_cursor_preferred_logical_size() * system_scale);
 }
 
 static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
@@ -680,7 +683,7 @@ void WM_cursor_time(wmWindow *win, int nr)
   if (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_RGBA) {
     wm_cursor_text(win, std::to_string(nr), blf_mono_font);
   }
-  else if (U.ui_scale < 1.45f || !wm_cursor_time_large(win, nr)) {
+  else if (cursor_size() < 24 || !wm_cursor_time_large(win, nr)) {
     wm_cursor_time_small(win, nr);
   }
 
