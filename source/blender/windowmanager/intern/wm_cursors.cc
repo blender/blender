@@ -135,15 +135,14 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
 
 static int cursor_size()
 {
-  /* Scaling with UI scale can be useful for magnified captures. */
-  const bool scale_cursor_with_ui_scale = false;
+  /* Keep for testing. */
+  if (false) {
+    /* Scaling with UI scale can be useful for magnified captures. */
+    return std::lround(21.0f * UI_SCALE_FAC);
+  }
 
   /* The DPI as a scale without the UI scale preference. */
   const float system_scale = UI_SCALE_FAC / U.ui_scale;
-
-  if (scale_cursor_with_ui_scale) {
-    return std::lround(21.0f * system_scale);
-  }
 
 #if (OS_MAC)
   /* MacOS always scales up this type of cursor for high-dpi displays. */
