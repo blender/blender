@@ -53,7 +53,7 @@ struct BCursor {
  * of the document size).
  */
 
-static BCursor BlenderCursor[WM_CURSOR_NUM] = {{nullptr}};
+static BCursor g_cursors[WM_CURSOR_NUM] = {{nullptr}};
 
 /* Blender cursor to GHOST standard cursor conversion. */
 static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
@@ -156,7 +156,7 @@ static blender::Array<uint8_t> cursor_bitmap_from_svg(const char *svg,
                                                       const int size,
                                                       int r_bitmap_size[2])
 {
-  /* Nano alters the source string. */
+  /* #nsvgParse alters the source string. */
   std::string svg_source = svg;
 
   NSVGimage *image = nsvgParse(svg_source.data(), "px", 96.0f);
@@ -314,7 +314,7 @@ void WM_cursor_set(wmWindow *win, int curs)
     GHOST_SetCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin), ghost_cursor);
   }
   else {
-    const BCursor &bcursor = BlenderCursor[curs];
+    const BCursor &bcursor = g_cursors[curs];
     if (!bcursor.svg_source || !window_set_custom_cursor(win, bcursor)) {
       /* Fall back to default cursor if no bitmap found. */
       GHOST_SetCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
@@ -640,7 +640,7 @@ static void wm_cursor_text(wmWindow *win, const std::string &text, int font_id)
     y_size = bitmap_height;
     const size_t stride = x_size * sizeof(int);
 
-    top = (uint *)bitmap.data();
+    top = bitmap.data();
     bottom = top + ((y_size - 1) * x_size);
     line = MEM_malloc_arrayN<uint>(x_size, "linebuf");
 
@@ -663,7 +663,7 @@ static void wm_cursor_text(wmWindow *win, const std::string &text, int font_id)
   };
   const int icon_size[2] = {bitmap_width, bitmap_height};
   GHOST_SetCustomCursorShape(static_cast<GHOST_WindowHandle>(win->ghostwin),
-                             (uchar *)bitmap.data(),
+                             (const uchar *)bitmap.data(),
                              nullptr,
                              icon_size,
                              hot_spot,
@@ -695,9 +695,9 @@ static void wm_add_cursor(WMCursorType cursor,
                           const blender::float2 &hotspot,
                           bool can_invert = true)
 {
-  BlenderCursor[cursor].svg_source = svg_source;
-  BlenderCursor[cursor].hotspot = hotspot;
-  BlenderCursor[cursor].can_invert = can_invert;
+  g_cursors[cursor].svg_source = svg_source;
+  g_cursors[cursor].hotspot = hotspot;
+  g_cursors[cursor].can_invert = can_invert;
 }
 
 void wm_init_cursor_data()
