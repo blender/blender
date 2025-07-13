@@ -6,6 +6,16 @@
  * \ingroup wm
  *
  * Cursor pixmap and cursor utility functions to change the cursor.
+ *
+ * Multiple types of mouse cursors are supported.
+ * Cursors provided by the OS are preferred.
+ * The availability of these are checked with #GHOST_HasCursorShape().
+ * These cursors can include platform-specific custom cursors.
+ * For example, on MacOS we provide vector PDF files.
+ *
+ * If the OS cannot provide a built-in or custom platform cursor,
+ * then we use our own internal custom cursors. These are defined in SVG files.
+ * The hot-spot for these are set during definition in #wm_init_cursor_data.
  */
 
 #include <cstring>
@@ -33,29 +43,24 @@
 
 /* Blender custom cursor. */
 struct BCursor {
+  /**
+   * An SVG document size of 1600x1600 being the "normal" size,
+   * cropped to the image size and without any padding.
+   */
   const char *svg_source;
+  /**
+   * A factor (0-1) from the top-left corner of the image (not of the document size).
+   */
   blender::float2 hotspot;
   bool can_invert;
 };
 
-/* We currently support multiple types of mouse cursors. Preferred
- * is to use one provided by the OS. The availability of these are
- * checked with GHOST_HasCursorShape(). These cursors can include
- * platform-specific custom cursors. For example, on MacOS we provide
- * vector PDF files and on Windows we have CUR files.
- *
- * If the OS cannot provide a built-in or custom platform cursor,
- * then we use our own internal custom cursors. These are defined in
- * SVG files, using a document size of 1600x1600 being the "normal"
- * size, cropped to the image size and without any padding.  The hotspot
- * for these are set during definition at the bottom of this file, and
- * are a float factor (0-1) from the top-left corner of the image (not
- * of the document size).
+/**
+ * A static array aligned with #WMCursorType for simple lookups.
  */
-
 static BCursor g_cursors[WM_CURSOR_NUM] = {{nullptr}};
 
-/* Blender cursor to GHOST standard cursor conversion. */
+/** Blender cursor to GHOST standard cursor conversion. */
 static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
 {
   switch (curs) {
