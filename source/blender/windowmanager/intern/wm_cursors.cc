@@ -637,24 +637,28 @@ static uint8_t *cursor_bitmap_from_text(const std::string &text,
                                         uint8_t *(*alloc_fn)(size_t size),
                                         int r_bitmap_size[2])
 {
-  /* A bit smaller than full cursor size since this is wider. */
-  float size = cursor_size * 0.8f;
-  BLF_size(font_id, size);
+  /* Smaller than a full cursor size since this is typically wider.
+   * Also, use a small scale to avoid scaling single numbers up
+   * which are then shrunk when more digits are added since this seems strange. */
+  float size = floorf(cursor_size * 0.5f);
+  float blf_size[2];
+  float padding;
 
-  float blf_size[2] = {0.0f, 0.0f};
-  BLF_width_and_height(font_id, text.c_str(), text.size(), &blf_size[0], &blf_size[1]);
-  float padding = size * 0.15f;
-  blf_size[0] += padding * 2.0f;
-  blf_size[1] += padding * 2.0f;
-
-  if (blf_size[0] > 255.0f || blf_size[1] > 255.0f) {
-    const float blf_size_max = std::max(blf_size[0], blf_size[1]);
-    size *= 253.0f / blf_size_max;
+  for (int pass = 0; pass < 2; pass++) {
     BLF_size(font_id, size);
     BLF_width_and_height(font_id, text.c_str(), text.size(), &blf_size[0], &blf_size[1]);
     padding = size * 0.15f;
     blf_size[0] += padding * 2.0f;
     blf_size[1] += padding * 2.0f;
+
+    if (pass == 0) {
+      const float blf_size_max = std::max(blf_size[0], blf_size[1]);
+      if (blf_size_max <= cursor_size) {
+        break;
+      }
+      /* +1 to scale down more than a small fraction. */
+      size = floorf(size * (cursor_size / (blf_size_max + 1.0f)));
+    }
   }
 
   /* Camping by `cursor_size` is a safeguard to ensure the size *never* exceeds the bounds.
