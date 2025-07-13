@@ -138,7 +138,10 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
   }
 }
 
-static int wm_cursor_size()
+/**
+ * Calculate the cursor in pixels to use when setting the cursor.
+ */
+static int wm_cursor_size(const wmWindow *win)
 {
   /* Keep for testing. */
   if (false) {
@@ -146,13 +149,13 @@ static int wm_cursor_size()
     return std::lround(21.0f * UI_SCALE_FAC);
   }
 
-  /* The DPI as a scale without the UI scale preference. */
-  const float system_scale = UI_SCALE_FAC / U.ui_scale;
-
 #if (OS_MAC)
   /* MacOS always scales up this type of cursor for high-dpi displays. */
   return 21;
 #endif
+
+  /* The DPI as a scale without the UI scale preference. */
+  const float system_scale = WM_window_dpi_get_scale(win);
 
   return std::lround(WM_cursor_preferred_logical_size() * system_scale);
 }
@@ -237,7 +240,7 @@ static bool window_set_custom_cursor_pixmap(wmWindow *win, const BCursor &cursor
    * has a limit of 256. MacOS is likely 256 or larger, but unconfirmed. 255 is
    * probably large enough for now. */
   const int max_size = use_rgba ? 255 : 32;
-  const int size = std::min(wm_cursor_size(), max_size);
+  const int size = std::min(wm_cursor_size(win), max_size);
 
   int bitmap_size[2] = {0, 0};
   uint8_t *bitmap_rgba = cursor_bitmap_from_svg(
@@ -691,7 +694,7 @@ static bool wm_cursor_text_pixmap(wmWindow *win, const std::string &text, int fo
   int bitmap_size[2];
   uint8_t *bitmap_rgba = cursor_bitmap_from_text(
       text,
-      wm_cursor_size(),
+      wm_cursor_size(win),
       font_id,
       [](size_t size) -> uint8_t * { return MEM_malloc_arrayN<uint8_t>(size, "wm.cursor"); },
       bitmap_size);
@@ -731,7 +734,7 @@ void WM_cursor_time(wmWindow *win, int nr)
   if (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_RGBA) {
     wm_cursor_text(win, std::to_string(nr), blf_mono_font);
   }
-  else if (wm_cursor_size() < 24 || !wm_cursor_time_large(win, nr)) {
+  else if (wm_cursor_size(win) < 24 || !wm_cursor_time_large(win, nr)) {
     wm_cursor_time_small(win, nr);
   }
 

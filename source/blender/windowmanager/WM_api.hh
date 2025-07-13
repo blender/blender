@@ -390,6 +390,12 @@ wmWindow *WM_window_open(bContext *C,
                          void *area_setup_user_data) ATTR_NONNULL(1, 3);
 
 void WM_window_dpi_set_userdef(const wmWindow *win);
+/**
+ * Return the windows DPI as a scale, bypassing UI scale preference.
+ *
+ * \note Use for calculating cursor size which doesn't use the UI scale.
+ */
+float WM_window_dpi_get_scale(const wmWindow *win);
 
 /**
  * Give a title to a window. With "Title" unspecified or nullptr, it is generated

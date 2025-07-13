@@ -651,6 +651,18 @@ void WM_window_dpi_set_userdef(const wmWindow *win)
   U.widget_unit = int(roundf(18.0f * U.scale_factor)) + (2 * pixelsize);
 }
 
+float WM_window_dpi_get_scale(const wmWindow *win)
+{
+  GHOST_WindowHandle win_handle = static_cast<GHOST_WindowHandle>(win->ghostwin);
+  const uint16_t dpi_base = 96;
+  const uint16_t dpi_fixed = std::max<uint16_t>(dpi_base, GHOST_GetDPIHint(win_handle));
+  float dpi = float(dpi_fixed);
+  if (OS_MAC) {
+    dpi *= GHOST_GetNativePixelSize(win_handle);
+  }
+  return dpi / float(dpi_base);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
