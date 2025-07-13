@@ -56,7 +56,6 @@
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
 
-
 /* Disable, as this can "lock" the GUI even with the *pending* version of dispatch is used. */
 #if 0
 /**
@@ -73,7 +72,7 @@
  * - Won't re-display at all (on KDE 6.4).
  *   Note that this could be a bug in KDE as it works in GNOME & WLROOTS based compositors.
  */
-#define USE_CURSOR_IMMEDIATE_DISPATCH
+#  define USE_CURSOR_IMMEDIATE_DISPATCH
 #endif
 
 /**
