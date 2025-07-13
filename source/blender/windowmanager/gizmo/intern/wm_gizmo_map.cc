@@ -569,7 +569,7 @@ static void gizmo_draw_select_3d_loop(const bContext *C,
     gz->type->draw_select(C, gz, select_id << 8);
   }
 
-  /* Reset depth state.*/
+  /* Reset depth state. */
 
   if (is_depth_prev || use_intel_gpu_workaround) {
     GPU_depth_test(GPU_DEPTH_NONE);

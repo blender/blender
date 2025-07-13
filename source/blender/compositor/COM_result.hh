@@ -386,7 +386,7 @@ class Result {
   /* Similar to load_pixel, but can load a result whose type is not known at compile time. If the
    * number of channels in the result are less than 4, then the rest of the returned float4 will
    * have its vales initialized as follows: float4(0, 0, 0, 1). This is similar to how the
-   * texelFetch function in GLSL works.  */
+   * texelFetch function in GLSL works. */
   float4 load_pixel_generic_type(const int2 &texel) const;
 
   /* Stores the given pixel value in the pixel at the given texel coordinates. Assumes the result

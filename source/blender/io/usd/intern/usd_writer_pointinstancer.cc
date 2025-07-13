@@ -170,7 +170,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
       pxr::UsdPrim prim = stage->DefinePrim(proto_path);
 
       /* To avoid USD error of Unresolved reference prim path, make sure the referenced path
-       * exists.  */
+       * exists. */
       stage->DefinePrim(source_path);
       prim.GetReferences().AddReference(pxr::SdfReference("", source_path));
       proto_wrapper_paths.push_back(proto_path);

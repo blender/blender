@@ -416,7 +416,7 @@ static void store_result_geometry(const bContext &C,
       else {
         if (Key *key = mesh.key) {
           /* Make sure to free the attributes before converting to #BMesh for edit mode; removing
-           * attributes on #BMesh requires reallocating the dynamic AoS storage.*/
+           * attributes on #BMesh requires reallocating the dynamic AoS storage. */
           remove_shape_key_attributes(*new_mesh, *key);
         }
         if (object.mode == OB_MODE_EDIT) {

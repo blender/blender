@@ -1463,7 +1463,7 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(
      * worst-case allocation and increasing thread occupancy.
      *
      * NOTE: This is only enabled on Apple M1 and M2 GPUs. Apple M3 GPUs feature dynamic caching
-     * which controls register allocation dynamically based on the runtime state.  */
+     * which controls register allocation dynamically based on the runtime state. */
     const MTLCapabilities &capabilities = MTLBackend::get_capabilities();
     if (ELEM(capabilities.gpu, APPLE_GPU_M1, APPLE_GPU_M2)) {
       if (maxTotalThreadsPerThreadgroup_Tuning_ > 0) {
@@ -1485,7 +1485,7 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(
      * ideally the source shader should be modified to reduce local register pressure, or, local
      * work-group size should be reduced.
      * Similarly, the custom tuning parameter "mtl_max_total_threads_per_threadgroup" can be
-     * specified to a sufficiently large value to avoid this.  */
+     * specified to a sufficiently large value to avoid this. */
     if (pso) {
       uint num_required_threads_per_threadgroup = compute_pso_common_state_.threadgroup_x_len *
                                                   compute_pso_common_state_.threadgroup_y_len *

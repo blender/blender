@@ -79,7 +79,7 @@ void DRW_submission_end()
 /* Context that can be shared across threads. Usage is guarded by a ticket mutex.
  * Should eventually be moved to GPU module after we get rid of the WM calls. */
 class ContextShared {
-  /* Should be private but needs to be public for XR workaround.*/
+  /* Should be private but needs to be public for XR workaround. */
  public:
   TicketMutex *mutex_ = nullptr;
   /** Unique ghost context used by Viewports. */

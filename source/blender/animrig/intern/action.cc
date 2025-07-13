@@ -1380,7 +1380,7 @@ Slot *generic_slot_for_autoassign(const ID &animated_id,
      * the `OBSlot` should be chosen. This means that `XXSlot` NOT being auto-assigned if there is
      * an alternative. Since untyped slots are bound on assignment, this design keeps the Action
      * as-is, which means that the `XXSlot` remains untyped and thus the user is free to assign
-     * this to another ID type if desired.  */
+     * this to another ID type if desired. */
 
     const bool last_used_identifier_is_typed = last_slot_identifier.substr(0, 2) !=
                                                slot_untyped_prefix;

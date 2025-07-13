@@ -1153,7 +1153,7 @@ static float3 accumulate_fan_normal(const Span<VertCornerInfo> corner_infos,
 {
   if (local_corners_in_fan.size() == 1) {
     /* Logically this special case is unnecessary, but due to floating point precision it is
-     * required for the output to be the same as previous versions of the algorithm.*/
+     * required for the output to be the same as previous versions of the algorithm. */
     return face_normals[corner_infos[local_corners_in_fan.first()].face];
   }
   float3 fan_normal(0);
@@ -1167,7 +1167,7 @@ static float3 accumulate_fan_normal(const Span<VertCornerInfo> corner_infos,
   return math::normalize(fan_normal);
 }
 
-/* Don't inline this function to simplify the code path without custom normals.*/
+/** Don't inline this function to simplify the code path without custom normals. */
 BLI_NOINLINE static void handle_fan_result_and_custom_normals(
     const Span<short2> custom_normals,
     const Span<VertCornerInfo> corner_infos,

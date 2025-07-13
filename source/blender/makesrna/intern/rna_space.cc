@@ -6893,8 +6893,8 @@ static void rna_def_space_graph(BlenderRNA *brna)
        ICON_PIVOT_INDIVIDUAL,
        "Individual Centers",
        ""},
-      /*{V3D_AROUND_CENTER_MEDIAN, "MEDIAN_POINT", 0, "Median Point", ""}, */
-      /*{V3D_AROUND_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""}, */
+      // {V3D_AROUND_CENTER_MEDIAN, "MEDIAN_POINT", 0, "Median Point", ""},
+      // {V3D_AROUND_ACTIVE, "ACTIVE_ELEMENT", 0, "Active Element", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

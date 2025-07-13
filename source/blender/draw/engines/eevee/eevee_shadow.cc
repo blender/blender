@@ -418,7 +418,7 @@ IndexRange ShadowDirectional::clipmap_level_range(const Camera &cam)
   max_level = max(min_level, max_level) + 1;
   IndexRange range(min_level, max_level - min_level + 1);
   /* 32 to be able to pack offset into a single int2.
-   * The maximum level count is bounded by the mantissa of a 32bit float.  */
+   * The maximum level count is bounded by the mantissa of a 32bit float. */
   const int max_tilemap_per_shadows = 24;
   /* Take top-most level to still cover the whole view. */
   range = range.take_back(max_tilemap_per_shadows);

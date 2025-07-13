@@ -1275,7 +1275,7 @@ void bonecolls_copy_expanded_flag(Span<BoneCollection *> bcolls_dest,
     }
 
     /* Try to find by name as a last resort. This function only works with
-     * non-const pointers, hence the const_cast.  */
+     * non-const pointers, hence the const_cast. */
     const BoneCollection *bcoll = bonecolls_get_by_name(bcolls_source, name);
     return bcoll;
   };

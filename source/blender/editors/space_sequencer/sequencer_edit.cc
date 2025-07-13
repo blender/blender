@@ -696,7 +696,7 @@ static void slip_strips_delta(wmOperator *op, Scene *scene, SlipData *data, cons
   /* Only apply subframe delta if the input is not an integer. */
   if (std::trunc(delta) != delta) {
     /* Note that `subframe_delta` has opposite sign to `frame_delta`
-     * when `abs(delta)` < `abs(frame_delta)` to undo its effect.  */
+     * when `abs(delta)` < `abs(frame_delta)` to undo its effect. */
     subframe_delta = delta - frame_delta;
   }
 

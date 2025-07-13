@@ -28,7 +28,7 @@ class Display {
   virtual StringRefNull name() const = 0;
 
   /**
-   * Get default view of this display.   */
+   * Get default view of this display. */
   virtual const View *get_default_view() const = 0;
 
   /**

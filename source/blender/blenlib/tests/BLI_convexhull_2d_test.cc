@@ -36,7 +36,7 @@ using namespace blender;
  */
 #define DEFAULT_TEST_ITER 8
 
-/** The size of a polygon when generating data.  */
+/** The size of a polygon when generating data. */
 #define DEFAULT_TEST_POLY_NUM 12
 
 #define DEFAULT_TEST_RANDOM_SEED 123

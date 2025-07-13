@@ -662,7 +662,7 @@ static void file_draw_preview(const FileDirEntry *file,
       imb->x, imb->y, *layout);
 
   /* Additional offset to keep the scaled image centered. Difference between maximum
-   * width/height and the actual width/height, divided by two for centering.  */
+   * width/height and the actual width/height, divided by two for centering. */
   const float ofs_x = (float(layout->prv_w) - float(scaled_width)) / 2.0f;
   const float ofs_y = (float(layout->prv_h) - float(scaled_height)) / 2.0f;
   const int xmin = tile_draw_rect->xmin + layout->prv_border_x + int(ofs_x + 0.5f);

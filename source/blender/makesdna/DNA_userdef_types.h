@@ -419,7 +419,7 @@ typedef struct UserDef {
 
   /** Index of the extension repo in the Preferences UI. */
   short active_extension_repo;
-  /** Flag for all extensions (#eUserPref_ExtensionFlag).  */
+  /** Flag for all extensions (#eUserPref_ExtensionFlag). */
   char extension_flag;
 
   /* Network settings, used by extensions but not specific to extensions. */

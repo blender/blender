@@ -2761,7 +2761,7 @@ void BKE_nla_liboverride_post_process(ID *id, AnimData *adt)
 
   /* In tweak mode, with tracks, so ensure that the active track/strip pointers are correct. Since
    * these pointers may come from a library, but the override may have added other tracks and
-   * strips (one of which is in tweak mode), always look up the current pointer values.  */
+   * strips (one of which is in tweak mode), always look up the current pointer values. */
   nla_tweakmode_find_active(&adt->nla_tracks, &adt->act_track, &adt->actstrip);
   if (!adt->act_track || !adt->actstrip) {
     /* Could not find the active track/strip, so better to exit tweak mode. */

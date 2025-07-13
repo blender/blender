@@ -289,7 +289,7 @@ class Tree {
    */
   void tag_positions_changed(const IndexMask &node_mask);
 
-  /** Tag nodes where face or vertex visibility has changed.  */
+  /** Tag nodes where face or vertex visibility has changed. */
   void tag_visibility_changed(const IndexMask &node_mask);
 
   /**

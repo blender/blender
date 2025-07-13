@@ -392,7 +392,7 @@ static void collect_point_instancer_prototypes_and_set_extent(
     const pxr::SdfPath &wrapper_path,
     std::vector<pxr::UsdPrim> &proto_list)
 {
-  /* Compute extent of the current point instancer.*/
+  /* Compute extent of the current point instancer. */
   pxr::VtArray<pxr::GfVec3f> extent;
   instancer.ComputeExtentAtTime(&extent, pxr::UsdTimeCode::Default(), pxr::UsdTimeCode::Default());
   instancer.CreateExtentAttr().Set(extent);

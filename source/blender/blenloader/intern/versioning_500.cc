@@ -617,7 +617,7 @@ static void do_version_mix_color_use_alpha(bNodeTree *node_tree, bNode *node)
   }
   else {
     /* Otherwise, the factor is unlinked and we just copy the factor value to the first input in
-     * the multiply.*/
+     * the multiply. */
     static_cast<bNodeSocketValueFloat *>(multiply_input_a->default_value)->value =
         static_cast<bNodeSocketValueFloat *>(factor_input->default_value)->value;
   }
@@ -644,7 +644,7 @@ static void do_version_mix_color_use_alpha(bNodeTree *node_tree, bNode *node)
   }
   else {
     /* Otherwise, the B input is unlinked and we just copy the alpha value to the second input in
-     * the multiply.*/
+     * the multiply. */
     static_cast<bNodeSocketValueFloat *>(multiply_input_b->default_value)->value =
         static_cast<bNodeSocketValueRGBA *>(b_input->default_value)->value[3];
   }
@@ -987,7 +987,7 @@ static void do_version_split_node_rotation(bNodeTree *node_tree, bNode *node)
           -math::numbers::pi_v<float> / 2.0f;
       position_input->default_value_typed<bNodeSocketValueVector>()->value[0] = factor;
       /* The y-coordinate doesn't matter in this case, so set the value to 0.5 so that the gizmo
-       * appears nicely at the center.*/
+       * appears nicely at the center. */
       position_input->default_value_typed<bNodeSocketValueVector>()->value[1] = 0.5f;
       break;
     }

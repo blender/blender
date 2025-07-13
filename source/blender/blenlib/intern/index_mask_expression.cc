@@ -881,7 +881,7 @@ static IndexMaskSegment evaluate_exact_with_indices(const Expr &root_expression,
           const IndexMaskSegment term_segment = results[term.index];
           if (term_segment.size() == bounds.size()) {
             /* Can skip computing the union if we know that one of the inputs contains all possible
-             * indices already.  */
+             * indices already. */
             results[expression->index] = term_segment;
             used_short_circuit = true;
             break;
@@ -1200,7 +1200,7 @@ static void evaluate_short_unknown_segments_exactly(
   }
   else {
     /* Do exact evaluation in multiple threads. The allocators and evaluated segments created by
-     * each thread are merged in the end.  */
+     * each thread are merged in the end. */
     struct LocalData {
       LinearAllocator<> allocator;
       Vector<EvaluatedSegment, 16> evaluated_segments;

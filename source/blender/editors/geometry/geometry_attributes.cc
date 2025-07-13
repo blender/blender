@@ -553,7 +553,7 @@ bool convert_attribute(AttributeOwner &owner,
 
   if (was_active) {
     /* The attribute active status is stored as an index. Changing the attribute's domain will
-     * change its index, so reassign the active attribute if necessary.*/
+     * change its index, so reassign the active attribute if necessary. */
     BKE_attributes_active_set(owner, name_copy);
   }
 

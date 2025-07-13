@@ -56,7 +56,8 @@ class World {
  public:
   /**
    * Buffer containing the sun light for the world.
-   * Filled by #LightProbeModule and read by #LightModule.  */
+   * Filled by #LightProbeModule and read by #LightModule.
+   */
   UniformBuffer<LightData> sunlight = {"sunlight"};
 
  private:

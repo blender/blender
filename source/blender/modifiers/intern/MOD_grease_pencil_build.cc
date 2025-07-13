@@ -511,7 +511,7 @@ static float get_factor_from_draw_speed(const bke::CurvesGeometry &curves,
   /* Calculates the maximum time of this frame, which is the time between the beginning of the
    * first stroke and the end of the last stroke. `start_times.last()` gives the starting time of
    * the last stroke related to frame beginning, and `delta_time.last()` gives how long that stroke
-   * lasted.  */
+   * lasted. */
   const float max_time = start_times.last() + delta_times.last();
 
   /* If the time needed for building the frame is shorter than frame length, this gives the

@@ -1049,7 +1049,7 @@ void IrradianceBake::surfels_create(const Object &probe_object)
       int total_mem_kb, free_mem_kb;
       GPU_mem_stats_get(&total_mem_kb, &free_mem_kb);
       /* Leave at least 128MByte for OS and stuffs.
-       * Try to avoid crashes because of OUT_OF_MEMORY errors.  */
+       * Try to avoid crashes because of OUT_OF_MEMORY errors. */
       size_t max_alloc = (size_t(total_mem_kb) - 128 * 1024) * 1024;
       /* Cap to 95% of available memory. */
       size_t max_free = size_t((size_t(free_mem_kb) * 1024) * 0.95f);
