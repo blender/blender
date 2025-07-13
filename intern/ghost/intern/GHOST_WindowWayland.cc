@@ -56,8 +56,11 @@
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
 
+
+/* Disable, as this can "lock" the GUI even with the *pending* version of dispatch is used. */
+#if 0
 /**
- * Note that for almost all cases a call to `wl_display_dispatch` is *not* needed.
+ * Note that for almost all cases a call to `wl_display_dispatch_pending` is *not* needed.
  * Without the dispatch though, calls to set the cursor while the event loop is
  * not being processed causes a resource allocation failure - disconnecting the
  * WAYLAND compositor (effectively crashing).
@@ -71,6 +74,7 @@
  *   Note that this could be a bug in KDE as it works in GNOME & WLROOTS based compositors.
  */
 #define USE_CURSOR_IMMEDIATE_DISPATCH
+#endif
 
 /**
  * LIBDECOR support committing a window-configuration in the main-thread that was
@@ -2262,7 +2266,7 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor s
 #ifdef USE_CURSOR_IMMEDIATE_DISPATCH
     if (ok == GHOST_kSuccess || ok_test == GHOST_kSuccess) {
       wl_display_flush(display);
-      wl_display_dispatch(display);
+      wl_display_dispatch_pending(display);
     }
     else
 #endif /* USE_CURSOR_IMMEDIATE_DISPATCH */
@@ -2319,7 +2323,7 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(
       /* For the cursor to display when the event queue isn't being handled. */
       wl_display_flush(display);
 #ifdef USE_CURSOR_IMMEDIATE_DISPATCH
-      wl_display_dispatch(display);
+      wl_display_dispatch_pending(display);
 #endif
     }
   }
@@ -2437,7 +2441,7 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorVisibility(bool visible)
     /* For the cursor to display when the event queue isn't being handled. */
     wl_display_flush(display);
 #ifdef USE_CURSOR_IMMEDIATE_DISPATCH
-    wl_display_dispatch(display);
+    wl_display_dispatch_pending(display);
 #endif
   }
   return ok;
