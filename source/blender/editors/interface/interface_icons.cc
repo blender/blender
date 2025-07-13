@@ -232,7 +232,7 @@ static void vicon_rgb_red_draw(
 {
   const float color[4] = {0.5f, 0.0f, 0.0f, 1.0f * alpha};
   vicon_rgb_color_draw(x, y, w, h, color, 0.25f * alpha);
-  const char *text = TIP_("R");
+  const char *text = CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "R");
   vicon_rgb_text_draw(x, y, w, h, text, mono_rgba);
 }
 
@@ -241,7 +241,7 @@ static void vicon_rgb_green_draw(
 {
   const float color[4] = {0.0f, 0.4f, 0.0f, 1.0f * alpha};
   vicon_rgb_color_draw(x, y, w, h, color, 0.2f * alpha);
-  const char *text = TIP_("G");
+  const char *text = CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "G");
   vicon_rgb_text_draw(x, y, w, h, text, mono_rgba);
 }
 
@@ -250,7 +250,7 @@ static void vicon_rgb_blue_draw(
 {
   const float color[4] = {0.0f, 0.0f, 1.0f, 1.0f * alpha};
   vicon_rgb_color_draw(x, y, w, h, color, 0.3f * alpha);
-  const char *text = TIP_("B");
+  const char *text = CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "B");
   vicon_rgb_text_draw(x, y, w, h, text, mono_rgba);
 }
 
