@@ -160,6 +160,14 @@ static int wm_cursor_size(const wmWindow *win)
   return std::lround(WM_cursor_preferred_logical_size() * system_scale);
 }
 
+/**
+ * \param svg: The contents of an SVG file.
+ * \param cursor_size: The maximum dimension in pixels for the resulting cursors width or height.
+ * \param alloc_fn: A caller defined allocation functions.
+ * \param r_bitmap_size: The width & height of the cursor data (never exceeding `cursor_size`).
+ * \return the pixel data as a `sizeof(uint8_t[4]) * r_bitmap_size[0] * r_bitmap_size[1]` array
+ * or null on failure.
+ */
 static uint8_t *cursor_bitmap_from_svg(const char *svg,
                                        const int cursor_size,
                                        uint8_t *(*alloc_fn)(size_t size),
@@ -615,6 +623,14 @@ static void wm_cursor_time_small(wmWindow *win, int nr)
                              false);
 }
 
+/**
+ * \param text: The text display in the cursor.
+ * \param cursor_size: The maximum dimension in pixels for the resulting cursors width or height.
+ * \param alloc_fn: A caller defined allocation functions.
+ * \param r_bitmap_size: The width & height of the cursor data (never exceeding `cursor_size`).
+ * \return the pixel data as a `sizeof(uint8_t[4]) * r_bitmap_size[0] * r_bitmap_size[1]` array
+ * or null on failure.
+ */
 static uint8_t *cursor_bitmap_from_text(const std::string &text,
                                         const int cursor_size,
                                         int font_id,
@@ -641,9 +657,11 @@ static uint8_t *cursor_bitmap_from_text(const std::string &text,
     blf_size[1] += padding * 2.0f;
   }
 
-  const int dest_size[2] = {
-      int(std::ceil(blf_size[0])),
-      int(std::ceil(blf_size[1])),
+  /* Camping by `cursor_size` is a safeguard to ensure the size *never* exceeds the bounds.
+   * In practice this should happen rarely - if at all. */
+  const size_t dest_size[2] = {
+      std::min(size_t(std::ceil(blf_size[0])), size_t(cursor_size)),
+      std::min(size_t(std::ceil(blf_size[1])), size_t(cursor_size)),
   };
 
   uint8_t *bitmap_rgba = alloc_fn(sizeof(uint8_t[4]) * dest_size[0] * dest_size[1]);
