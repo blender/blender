@@ -16,10 +16,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_buffer.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_vector.hh"
 
 #include "BKE_context.hh"
 #include "BKE_main.hh"
@@ -215,7 +215,7 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
 void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
                                                 const wmGizmoGroup *gzgroup,
                                                 const int event_modifier,
-                                                BLI_Buffer *visible_gizmos)
+                                                blender::Vector<wmGizmo *, 128> *r_visible_gizmos)
 {
   int gzgroup_keymap_uses_modifier = -1;
   LISTBASE_FOREACH_BACKWARD (wmGizmo *, gz, &gzgroup->gizmos) {
@@ -231,7 +231,7 @@ void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
           continue;
         }
 
-        BLI_buffer_append(visible_gizmos, wmGizmo *, gz);
+        r_visible_gizmos->append(gz);
       }
     }
   }

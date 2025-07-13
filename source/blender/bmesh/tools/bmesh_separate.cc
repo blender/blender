@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_buffer.h"
+#include "BLI_vector.hh"
 
 #include "bmesh.hh"
 #include "intern/bmesh_structure.hh"
@@ -61,7 +61,7 @@ void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_da
     } while ((l_iter = l_iter->next) != l_first);
   }
 
-  BLI_buffer_declare_static(BMLoop **, loop_split, 0, 128);
+  blender::Vector<BMLoop *, 128> loop_split;
 
   /* Check shared verts ('faces_a' tag and disable) */
   for (uint i = 0; i < faces_a_len; i++) {
@@ -86,7 +86,7 @@ void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_da
               do {
                 if (l_radial_iter->v == v) {
                   if (filter_fn(l_radial_iter->f, user_data)) {
-                    BLI_buffer_append(&loop_split, BMLoop *, l_radial_iter);
+                    loop_split.append(l_radial_iter);
                   }
                 }
               } while ((l_radial_iter = l_radial_iter->radial_next) != l_radial_first);
@@ -95,14 +95,12 @@ void BM_mesh_separate_faces(BMesh *bm, BMFaceFilterFunc filter_fn, void *user_da
         }
 
         /* Perform the split */
-        BM_face_loop_separate_multi(bm, static_cast<BMLoop **>(loop_split.data), loop_split.count);
+        BM_face_loop_separate_multi(bm, loop_split.data(), loop_split.size());
 
-        BLI_buffer_clear(&loop_split);
+        loop_split.clear();
       }
     } while ((l_iter = l_iter->next) != l_first);
   }
-
-  BLI_buffer_free(&loop_split);
 
   MEM_freeN(faces_array_all);
 }

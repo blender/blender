@@ -41,6 +41,7 @@
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_boids.h"
@@ -1784,7 +1785,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
   SPHRangeData pfr;
   SPHNeighbor *pfn;
   const float *gravity = sphdata->gravity;
-  const std::optional<blender::Map<blender::OrderedEdge, int>> &springhash = sphdata->eh;
+  const blender::Map<blender::OrderedEdge, int> *springhash = sphdata->eh;
 
   float q, u, rij, dv[3];
   float pressure, near_pressure;
@@ -1868,8 +1869,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 
     if (spring_constant > 0.0f) {
       /* Viscoelastic spring force */
-      if (pfn->psys == psys[0] && fluid->flag & SPH_VISCOELASTIC_SPRINGS && springhash.has_value())
-      {
+      if (pfn->psys == psys[0] && fluid->flag & SPH_VISCOELASTIC_SPRINGS && springhash) {
         spring_index = springhash->lookup_default({index, pfn->index}, 0);
 
         if (spring_index) {
@@ -1888,7 +1888,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
           temp_spring.rest_length = (fluid->flag & SPH_CURRENT_REST_LENGTH) ? rij : rest_length;
           temp_spring.delete_flag = 0;
 
-          BLI_buffer_append(&sphdata->new_springs, ParticleSpring, temp_spring);
+          sphdata->new_springs.append(temp_spring);
         }
       }
       else { /* PART_SPRING_HOOKES - Hooke's spring force */
@@ -2106,12 +2106,12 @@ static void sphclassical_calc_dens(ParticleData *pa, float /*dfra*/, SPHData *sp
   pa->sphdensity = min_ff(max_ff(data[0], fluid->rest_density * 0.9f), fluid->rest_density * 1.1f);
 }
 
-void psys_sph_init(ParticleSimulationData *sim, SPHData *sphdata)
+static void psys_sph_init(ParticleSimulationData *sim,
+                          SPHData *sphdata,
+                          blender::Map<blender::OrderedEdge, int> &r_eh)
 {
   ParticleTarget *pt;
   int i;
-
-  BLI_buffer_field_init(&sphdata->new_springs, ParticleSpring);
 
   /* Add other coupled particle systems. */
   sphdata->psys[0] = sim->psys;
@@ -2127,7 +2127,8 @@ void psys_sph_init(ParticleSimulationData *sim, SPHData *sphdata)
   else {
     sphdata->gravity = nullptr;
   }
-  sphdata->eh = sph_springhash_build(sim->psys);
+  r_eh = sph_springhash_build(sim->psys);
+  sphdata->eh = &r_eh;
 
   /* These per-particle values should be overridden later, but just for
    * completeness we give them default values now. */
@@ -2149,12 +2150,12 @@ void psys_sph_init(ParticleSimulationData *sim, SPHData *sphdata)
 
 static void psys_sph_flush_springs(SPHData *sphdata)
 {
-  for (int i = 0; i < sphdata->new_springs.count; i++) {
+  for (int i = 0; i < sphdata->new_springs.size(); i++) {
     /* sph_spring_add is not thread-safe. - z0r */
-    sph_spring_add(sphdata->psys[0], &BLI_buffer_at(&sphdata->new_springs, ParticleSpring, i));
+    sph_spring_add(sphdata->psys[0], &sphdata->new_springs[i]);
   }
 
-  BLI_buffer_field_free(&sphdata->new_springs);
+  sphdata->new_springs.clear_and_shrink();
 }
 
 void psys_sph_finalize(SPHData *sphdata)
@@ -3697,33 +3698,20 @@ struct DynamicStepSolverTaskData {
   SpinLock spin;
 };
 
-static void dynamics_step_sphdata_reduce(const void *__restrict /*userdata*/,
-                                         void *__restrict join_v,
-                                         void *__restrict chunk_v)
+static SPHData dynamics_step_sphdata_reduce(const SPHData &sphdata_to, const SPHData &sphdata_from)
 {
-  SPHData *sphdata_to = static_cast<SPHData *>(join_v);
-  SPHData *sphdata_from = static_cast<SPHData *>(chunk_v);
-
-  if (sphdata_from->new_springs.count > 0) {
-    BLI_buffer_append_array(&sphdata_to->new_springs,
-                            ParticleSpring,
-                            &BLI_buffer_at(&sphdata_from->new_springs, ParticleSpring, 0),
-                            sphdata_from->new_springs.count);
-  }
-
-  BLI_buffer_field_free(&sphdata_from->new_springs);
+  SPHData result = sphdata_to;
+  result.new_springs.extend(sphdata_from.new_springs);
+  return result;
 }
 
-static void dynamics_step_sph_ddr_task_cb_ex(void *__restrict userdata,
+static void dynamics_step_sph_ddr_task_cb_ex(DynamicStepSolverTaskData *data,
                                              const int p,
-                                             const TaskParallelTLS *__restrict tls)
+                                             SPHData *sphdata)
 {
-  DynamicStepSolverTaskData *data = static_cast<DynamicStepSolverTaskData *>(userdata);
   ParticleSimulationData *sim = data->sim;
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = psys->part;
-
-  SPHData *sphdata = static_cast<SPHData *>(tls->userdata_chunk);
 
   ParticleData *pa;
 
@@ -3820,6 +3808,7 @@ static void dynamics_step_sph_classical_integrate_task_cb_ex(void *__restrict us
 /* unbaked particles are calculated dynamically */
 static void dynamics_step(ParticleSimulationData *sim, float cfra)
 {
+  using namespace blender;
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = psys->part;
   BoidBrainData bbd;
@@ -3982,8 +3971,9 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
       break;
     }
     case PART_PHYS_FLUID: {
+      blender::Map<blender::OrderedEdge, int> eh;
       SPHData sphdata;
-      psys_sph_init(sim, &sphdata);
+      psys_sph_init(sim, &sphdata, eh);
 
       DynamicStepSolverTaskData task_data{};
       task_data.sim = sim;
@@ -3996,15 +3986,17 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
       if (part->fluid->solver == SPH_SOLVER_DDR) {
         /* Apply SPH forces using double-density relaxation algorithm
          * (Clavat et al.) */
-
-        TaskParallelSettings settings;
-        BLI_parallel_range_settings_defaults(&settings);
-        settings.use_threading = (psys->totpart > 100);
-        settings.userdata_chunk = &sphdata;
-        settings.userdata_chunk_size = sizeof(sphdata);
-        settings.func_reduce = dynamics_step_sphdata_reduce;
-        BLI_task_parallel_range(
-            0, psys->totpart, &task_data, dynamics_step_sph_ddr_task_cb_ex, &settings);
+        threading::parallel_reduce(
+            IndexRange(psys->totpart),
+            100,
+            sphdata,
+            [&](const IndexRange range, SPHData data) {
+              for (const int i : range) {
+                dynamics_step_sph_ddr_task_cb_ex(&task_data, i, &data);
+              }
+              return data;
+            },
+            dynamics_step_sphdata_reduce);
 
         sph_springs_modify(psys, timestep);
       }

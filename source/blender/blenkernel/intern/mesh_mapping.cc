@@ -17,12 +17,12 @@
 
 #include "BLI_array.hh"
 #include "BLI_bitmap.h"
-#include "BLI_buffer.h"
 #include "BLI_function_ref.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
@@ -51,8 +51,6 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
   UvMapVert *buf;
   int i, totuv, nverts;
 
-  BLI_buffer_declare_static(blender::float2, tf_uv_buf, BLI_BUFFER_NOP, 32);
-
   totuv = 0;
 
   /* generate UvMapVert array */
@@ -80,14 +78,13 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
     winding = MEM_calloc_arrayN<bool>(size_t(faces.size()), "winding");
   }
 
+  blender::Vector<blender::float2, 32> face_uvs;
   for (const int64_t a : faces.index_range()) {
     const blender::IndexRange face = faces[a];
     if (!selected || (!(hide_poly && hide_poly[a]) && (select_poly && select_poly[a]))) {
-      float(*tf_uv)[2] = nullptr;
 
       if (use_winding) {
-        tf_uv = (float(*)[2])BLI_buffer_reinit_data(
-            &tf_uv_buf, blender::float2, size_t(face.size()));
+        face_uvs.resize(face.size());
       }
 
       nverts = int(face.size());
@@ -100,14 +97,15 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
         vmap->vert[corner_verts[face[i]]] = buf;
 
         if (use_winding) {
-          copy_v2_v2(tf_uv[i], mloopuv[face[i]]);
+          copy_v2_v2(face_uvs[i], mloopuv[face[i]]);
         }
 
         buf++;
       }
 
       if (use_winding) {
-        winding[a] = cross_poly_v2(tf_uv, uint(nverts)) < 0;
+        winding[a] = cross_poly_v2(reinterpret_cast<const float(*)[2]>(face_uvs.data()),
+                                   uint(nverts)) < 0;
       }
     }
   }
@@ -163,8 +161,6 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
   if (use_winding) {
     MEM_freeN(winding);
   }
-
-  BLI_buffer_free(&tf_uv_buf);
 
   return vmap;
 }
