@@ -11,8 +11,8 @@
 /**
  * Scaling factor for all UI elements, based on the "Resolution Scale" user preference and the
  * DPI/OS Scale of each monitor. This is a read-only, run-time value calculated by
- * `WM_window_set_dpi` at various times, including between the drawing of each window and so can
- * vary between monitors.
+ * `WM_window_dpi_set_userdef` at various times, including between the drawing of each window and
+ * so can vary between monitors.
  */
 #define UI_SCALE_FAC ((void)0, U.scale_factor)
 
