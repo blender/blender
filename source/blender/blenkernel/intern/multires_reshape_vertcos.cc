@@ -35,7 +35,7 @@ static void multires_reshape_vertcos_foreach_single_vertex(
   ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(
       reshape_vertcos_context->reshape_context, grid_coord);
   BLI_assert(grid_element.displacement != nullptr);
-  copy_v3_v3(grid_element.displacement, coordinate);
+  *grid_element.displacement = coordinate;
 }
 
 /* TODO(sergey): De-duplicate with similar function in multires_reshape_smooth.cc */
