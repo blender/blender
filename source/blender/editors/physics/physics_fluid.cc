@@ -329,7 +329,6 @@ static void fluid_bake_endjob(void *customdata)
   DEG_id_tag_update(&job->ob->id, ID_RECALC_GEOMETRY);
 
   G.is_rendering = false;
-  BKE_spacedata_draw_locks(false);
   WM_set_locked_interface(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
 
   /* Bake was successful:
@@ -367,7 +366,7 @@ static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_stat
 
   G.is_break = false;
   G.is_rendering = true;
-  BKE_spacedata_draw_locks(true);
+  BKE_spacedata_draw_locks(REGION_DRAW_LOCK_BAKING);
 
   if (fluid_is_bake_noise(job) || fluid_is_bake_all(job)) {
     BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_NOISE);
@@ -436,7 +435,6 @@ static void fluid_free_endjob(void *customdata)
   FluidDomainSettings *fds = job->fmd->domain;
 
   G.is_rendering = false;
-  BKE_spacedata_draw_locks(false);
   WM_set_locked_interface(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
 
   /* Reflect the now empty cache in the viewport too. */
@@ -474,7 +472,7 @@ static void fluid_free_startjob(void *customdata, wmJobWorkerStatus *worker_stat
 
   G.is_break = false;
   G.is_rendering = true;
-  BKE_spacedata_draw_locks(true);
+  BKE_spacedata_draw_locks(REGION_DRAW_LOCK_BAKING);
 
   int cache_map = 0;
 
@@ -571,7 +569,7 @@ static wmOperatorStatus fluid_bake_invoke(bContext *C, wmOperator *op, const wmE
   WM_jobs_timer(wm_job, 0.01, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
   WM_jobs_callbacks(wm_job, fluid_bake_startjob, nullptr, nullptr, fluid_bake_endjob);
 
-  WM_set_locked_interface(CTX_wm_manager(C), true);
+  WM_set_locked_interface_with_flags(CTX_wm_manager(C), REGION_DRAW_LOCK_BAKING);
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
   WM_event_add_modal_handler(C, op);
@@ -653,7 +651,7 @@ static wmOperatorStatus fluid_free_exec(bContext *C, wmOperator *op)
   WM_jobs_timer(wm_job, 0.01, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
   WM_jobs_callbacks(wm_job, fluid_free_startjob, nullptr, nullptr, fluid_free_endjob);
 
-  WM_set_locked_interface(CTX_wm_manager(C), true);
+  WM_set_locked_interface_with_flags(CTX_wm_manager(C), REGION_DRAW_LOCK_BAKING);
 
   /*  Free Fluid Geometry */
   WM_jobs_start(CTX_wm_manager(C), wm_job);

@@ -2790,7 +2790,9 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
                             0,
                             nullptr);
   UI_but_func_quick_tooltip_set(
-      but, [warnings](const uiBut * /*but*/) { return node_errors_tooltip_fn(warnings); });
+      but, [warnings = Array<geo_log::NodeWarning>(warnings)](const uiBut * /*but*/) {
+        return node_errors_tooltip_fn(warnings);
+      });
   UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
 }
 

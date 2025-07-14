@@ -6456,7 +6456,7 @@ static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot)
   return true;
 }
 
-void WM_set_locked_interface(wmWindowManager *wm, bool lock)
+void WM_set_locked_interface_with_flags(wmWindowManager *wm, short lock_flags)
 {
   /* This will prevent events from being handled while interface is locked
    *
@@ -6465,16 +6465,14 @@ void WM_set_locked_interface(wmWindowManager *wm, bool lock)
    * wouldn't be useful anywhere outside of window manager, so let's not
    * pollute global context with such an information for now).
    */
-  wm->runtime->is_interface_locked = lock;
+  wm->runtime->is_interface_locked = (lock_flags != 0);
 
-  /* This will prevent drawing regions which uses non-thread-safe data.
-   * Currently it'll be just a 3D viewport.
-   *
-   * TODO(sergey): Make it different locked states, so different jobs
-   *               could lock different areas of blender and allow
-   *               interaction with others?
-   */
-  BKE_spacedata_draw_locks(lock);
+  BKE_spacedata_draw_locks(static_cast<ARegionDrawLockFlags>(lock_flags));
+}
+
+void WM_set_locked_interface(wmWindowManager *wm, bool lock)
+{
+  WM_set_locked_interface_with_flags(wm, lock ? REGION_DRAW_LOCK_ALL : 0);
 }
 
 /** \} */

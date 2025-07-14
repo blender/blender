@@ -1621,7 +1621,7 @@ void ED_spacetype_view3d()
   art->listener = view3d_main_region_listener;
   art->message_subscribe = view3d_main_region_message_subscribe;
   art->cursor = view3d_main_region_cursor;
-  art->lock = 1; /* can become flag, see BKE_spacedata_draw_locks */
+  art->lock = REGION_DRAW_LOCK_ALL;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: list-view/buttons */
