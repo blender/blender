@@ -39,8 +39,12 @@ class AbstractGridViewItem : public AbstractViewItem {
   friend class GridViewLayoutBuilder;
 
  protected:
-  /** Reference to a string that uniquely identifies this item in the view. */
-  StringRef identifier_{};
+  /**
+   * A string that uniquely identifies this item in the view.
+   *
+   * Ideally this would just be a StringRef to save memory. This was made a
+   * std::string to fix #141882 in a relatively safe way. */
+  std::string identifier_{};
 
  public:
   /* virtual */ ~AbstractGridViewItem() override = default;
