@@ -910,6 +910,8 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
         fd->id_asset_data_offset = DNA_struct_member_offset_by_name_with_alias(
             fd->filesdna, "ID", "AssetMetaData", "*asset_data");
 
+        fd->filesubversion = subversion;
+
         return true;
       }
 

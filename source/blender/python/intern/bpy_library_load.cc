@@ -17,10 +17,12 @@
 #include <cstddef>
 
 #include "BLI_linklist.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_blender_version.h"
 #include "BKE_blendfile_link_append.hh"
 #include "BKE_context.hh"
 #include "BKE_idtype.hh"
@@ -438,7 +440,8 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
 {
   PyObject *ret;
   BPy_Library *self_from;
-  PyObject *from_dict = _PyDict_NewPresized(INDEX_ID_MAX);
+  /* Add +1 for the "version". */
+  PyObject *from_dict = _PyDict_NewPresized(INDEX_ID_MAX + 1);
   ReportList *reports = &self->reports;
   BlendFileReadReport *bf_reports = &self->bf_reports;
 
@@ -475,6 +478,28 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   self_from = PyObject_New(BPy_Library, &bpy_lib_Type);
   STRNCPY(self_from->relpath, self->relpath);
   STRNCPY(self_from->abspath, self->abspath);
+
+  /* Library blendfile version. */
+  {
+    PyObject *version;
+    PyObject *identifier = PyUnicode_FromString("version");
+    blender::int3 blendfile_version;
+
+    /* From. */
+    blendfile_version = BLO_blendhandle_get_version(self->blo_handle);
+    version = PyC_Tuple_PackArray_I32(&blendfile_version[0], 3);
+    PyDict_SetItem(from_dict, identifier, version);
+    Py_DECREF(version);
+
+    /* To. */
+    blendfile_version = blender::int3(
+        BLENDER_FILE_VERSION / 100, BLENDER_FILE_VERSION % 100, BLENDER_FILE_SUBVERSION);
+    version = PyC_Tuple_PackArray_I32(&blendfile_version[0], 3);
+    PyDict_SetItem(self->dict, identifier, version);
+    Py_DECREF(version);
+
+    Py_DECREF(identifier);
+  }
 
   self_from->blo_handle = nullptr;
   self_from->flag = 0;

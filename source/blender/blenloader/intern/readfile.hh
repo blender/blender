@@ -107,6 +107,12 @@ struct FileData {
   DNA_ReconstructInfo *reconstruct_info = nullptr;
 
   int fileversion = 0;
+  /**
+   * Unlike the `fileversion` which is read from the header,
+   * this is initialized from #read_file_dna.
+   */
+  int filesubversion = 0;
+
   /** Used to retrieve ID names from (bhead+1). */
   int id_name_offset = 0;
   /** Used to retrieve asset data from (bhead+1). NOTE: This may not be available in old files,
