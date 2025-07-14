@@ -248,7 +248,7 @@ void Shader::print_log(Span<StringRefNull> sources,
 
   CLG_Level level = error ? CLG_LEVEL_ERROR : CLG_LEVEL_WARN;
 
-  if (CLOG_CHECK(&LOG, CLG_LEVEL_INFO) && level >= CLG_LEVEL_WARN) {
+  if (CLOG_CHECK(&LOG, level)) {
     if (DEBUG_LOG_SHADER_SRC_ON_ERROR && error) {
       CLG_log_str(LOG.type, level, this->name, stage, sources_combined.c_str());
     }

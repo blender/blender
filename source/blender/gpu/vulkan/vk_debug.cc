@@ -241,7 +241,7 @@ messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
                 callback_data->pMessage);
   const bool do_labels = (callback_data->objectCount + callback_data->cmdBufLabelCount +
                           callback_data->queueLabelCount) > 0;
-  const bool log_active = CLOG_CHECK(&LOG, CLG_LEVEL_INFO) || level >= CLG_LEVEL_WARN;
+  const bool log_active = CLOG_CHECK(&LOG, level);
   if (do_labels && log_active) {
     VKDebuggingTools &debugging_tools = *reinterpret_cast<VKDebuggingTools *>(user_data);
     debugging_tools.print_labels(callback_data);
