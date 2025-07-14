@@ -1004,7 +1004,8 @@ bool OneapiDevice::create_queue(SyclQueue *&external_queue,
       sycl::context device_context(devices[device_index]);
       created_queue = new sycl::queue(
           device_context, devices[device_index], sycl::property::queue::in_order());
-      LOG_DEBUG << "Separate context was generated for the new queue, as several available SYCL devices were detected";
+      LOG_DEBUG << "Separate context was generated for the new queue, as several available SYCL "
+                   "devices were detected";
     }
     external_queue = reinterpret_cast<SyclQueue *>(created_queue);
 
