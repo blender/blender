@@ -922,7 +922,7 @@ static void rna_NodeTreeInterfaceSocketVector_dimensions_update(Main *bmain,
   bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
 
   /* Store a copy of the existing default value since it will be freed when setting the socket type
-   * below.*/
+   * below. */
   const bNodeSocketValueVector default_value = *static_cast<bNodeSocketValueVector *>(
       socket->socket_data);
 

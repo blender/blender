@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-07-04 19:59+0000\n"
 "Last-Translator: Adam Dominec <ad@m.dominec.eu>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13974,12 +13974,32 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
 
 
-msgid "Clean Up"
-msgstr "Vyčistit"
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
 
 
 msgid "Pivot Point"
@@ -14022,10 +14042,6 @@ msgid "Assign Material"
 msgstr "Přiřadit Materiál"
 
 
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
 msgid "Light"
 msgstr "Světlo"
 
@@ -14066,10 +14082,6 @@ msgid "Propagate"
 msgstr "Vložit"
 
 
-msgid "Names"
-msgstr "Názvy"
-
-
 msgid "Mesh Select Mode"
 msgstr "Síťový mód výběru"
 
@@ -14080,18 +14092,6 @@ msgstr "Data Ploch"
 
 msgid "Merge"
 msgstr "Sloučit"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
 
 
 msgid "Basic"

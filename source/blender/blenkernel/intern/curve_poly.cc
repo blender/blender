@@ -136,7 +136,7 @@ static float3 calculate_next_normal(const float3 &last_normal,
     if (LIKELY(!math::is_zero(axis))) {
       /* The iterative process here (computing the current normal by rotating the previous one) can
        * accumulate small floating point errors, leading to 'not enough' normalized results at some
-       * point (see #121169).  */
+       * point (see #121169). */
       return math::normalize(math::rotate_direction_around_axis(last_normal, axis, angle));
     }
   }

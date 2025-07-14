@@ -2502,12 +2502,9 @@ static bool drop_name_poll(bContext *C)
 static wmOperatorStatus drop_name_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   uiBut *but = UI_but_active_drop_name_button(C);
-  char *str = RNA_string_get_alloc(op->ptr, "string", nullptr, 0, nullptr);
+  std::string str = RNA_string_get(op->ptr, "string");
 
-  if (str) {
-    ui_but_set_string_interactive(C, but, str);
-    MEM_freeN(str);
-  }
+  ui_but_set_string_interactive(C, but, str.c_str());
 
   return OPERATOR_FINISHED;
 }

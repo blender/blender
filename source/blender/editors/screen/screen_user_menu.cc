@@ -235,8 +235,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
           else {
             /* umi_op->prop could be used to set other properties but it's currently unsupported.
              */
-            uiItemMenuEnumFullO_ptr(
-                menu->layout, C, ot, umi_op->op_prop_enum, ui_name, ICON_NONE, nullptr);
+            menu->layout->op_menu_enum(C, ot, umi_op->op_prop_enum, ui_name, ICON_NONE);
           }
           is_empty = false;
         }

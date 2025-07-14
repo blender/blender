@@ -2201,7 +2201,7 @@ typedef struct NodeGeometryClosureInputItem {
   char *name;
   /** #eNodeSocketDatatype. */
   short socket_type;
-  /** #NodeSocketInterfaceStructureType.  */
+  /** #NodeSocketInterfaceStructureType. */
   int8_t structure_type;
   char _pad[1];
   int identifier;
@@ -2240,7 +2240,7 @@ typedef struct NodeGeometryEvaluateClosureInputItem {
   char *name;
   /** #eNodeSocketDatatype */
   short socket_type;
-  /** #NodeSocketInterfaceStructureType.  */
+  /** #NodeSocketInterfaceStructureType. */
   int8_t structure_type;
   char _pad[1];
   int identifier;
@@ -2250,7 +2250,7 @@ typedef struct NodeGeometryEvaluateClosureOutputItem {
   char *name;
   /** #eNodeSocketDatatype */
   short socket_type;
-  /** #NodeSocketInterfaceStructureType.  */
+  /** #NodeSocketInterfaceStructureType. */
   int8_t structure_type;
   char _pad[1];
   int identifier;
@@ -2342,7 +2342,7 @@ typedef struct NodeGeometryDialGizmo {
 } NodeGeometryDialGizmo;
 
 typedef struct NodeGeometryTransformGizmo {
-  /** #NodeGeometryTransformGizmoFlag.  */
+  /** #NodeGeometryTransformGizmoFlag. */
   uint32_t flag;
 } NodeGeometryTransformGizmo;
 

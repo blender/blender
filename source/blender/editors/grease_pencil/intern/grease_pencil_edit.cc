@@ -1867,10 +1867,7 @@ static wmOperatorStatus grease_pencil_move_to_layer_exec(bContext *C, wmOperator
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  int target_layer_name_length;
-  char *target_layer_name = RNA_string_get_alloc(
-      op->ptr, "target_layer_name", nullptr, 0, &target_layer_name_length);
-  BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(target_layer_name); });
+  std::string target_layer_name = RNA_string_get(op->ptr, "target_layer_name");
   const bool add_new_layer = RNA_boolean_get(op->ptr, "add_new_layer");
   TreeNode *target_node = nullptr;
 
@@ -1882,13 +1879,13 @@ static wmOperatorStatus grease_pencil_move_to_layer_exec(bContext *C, wmOperator
   }
 
   if (target_node == nullptr || !target_node->is_layer()) {
-    BKE_reportf(op->reports, RPT_ERROR, "There is no layer '%s'", target_layer_name);
+    BKE_reportf(op->reports, RPT_ERROR, "There is no layer '%s'", target_layer_name.c_str());
     return OPERATOR_CANCELLED;
   }
 
   Layer &layer_dst = target_node->as_layer();
   if (layer_dst.is_locked()) {
-    BKE_reportf(op->reports, RPT_ERROR, "'%s' Layer is locked", target_layer_name);
+    BKE_reportf(op->reports, RPT_ERROR, "'%s' Layer is locked", target_layer_name.c_str());
     return OPERATOR_CANCELLED;
   }
 
@@ -3051,7 +3048,7 @@ static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometr
    *
    * This will lead to the extruded control point always having both handles selected, if it's a
    * bezier type stroke. This is to circumvent the issue of source curves handles not being
-   * deselected when the user extrudes a bezier control point with both handles selected*/
+   * deselected when the user extrudes a bezier control point with both handles selected. */
   for (const StringRef selection_attribute_name :
        ed::curves::get_curves_selection_attribute_names(src))
   {

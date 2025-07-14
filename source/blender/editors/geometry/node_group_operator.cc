@@ -416,7 +416,7 @@ static void store_result_geometry(const bContext &C,
       else {
         if (Key *key = mesh.key) {
           /* Make sure to free the attributes before converting to #BMesh for edit mode; removing
-           * attributes on #BMesh requires reallocating the dynamic AoS storage.*/
+           * attributes on #BMesh requires reallocating the dynamic AoS storage. */
           remove_shape_key_attributes(*new_mesh, *key);
         }
         if (object.mode == OB_MODE_EDIT) {
@@ -913,16 +913,12 @@ static bool run_node_ui_poll(wmOperatorType * /*ot*/, PointerRNA *ptr)
 
 static std::string run_node_group_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
 {
-  int len;
-  char *local_name = RNA_string_get_alloc(ptr, "name", nullptr, 0, &len);
-  BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(local_name); })
-  if (len > 0) {
-    return std::string(local_name, len);
+  std::string local_name = RNA_string_get(ptr, "name");
+  if (!local_name.empty()) {
+    return local_name;
   }
-  char *library_asset_identifier = RNA_string_get_alloc(
-      ptr, "relative_asset_identifier", nullptr, 0, &len);
-  BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(library_asset_identifier); })
-  StringRef ref(library_asset_identifier, len);
+  std::string library_asset_identifier = RNA_string_get(ptr, "relative_asset_identifier");
+  StringRef ref(library_asset_identifier);
   return ref.drop_prefix(ref.find_last_of(SEP_STR) + 1);
 }
 

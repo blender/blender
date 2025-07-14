@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-04-14 08:40+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8589,6 +8589,22 @@ msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
 
 
+msgid "Special Characters"
+msgstr "Специјални знаци"
+
+
+msgid "Metaball"
+msgstr "Мета лопта"
+
+
+msgid "Names"
+msgstr "Имена"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
+
+
 msgid "Snap"
 msgstr "Лепљење"
 
@@ -8615,10 +8631,6 @@ msgstr "Поравнај поглед"
 
 msgid "Select Linked"
 msgstr "Изабери повезано"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
 
 
 msgid "Light"
@@ -8661,10 +8673,6 @@ msgid "Propagate"
 msgstr "Пренеси"
 
 
-msgid "Names"
-msgstr "Имена"
-
-
 msgid "Toggle Bone Options"
 msgstr "Мање/више информација"
 
@@ -8683,14 +8691,6 @@ msgstr "Мод избора мреже"
 
 msgid "Merge"
 msgstr "Сједини"
-
-
-msgid "Special Characters"
-msgstr "Специјални знаци"
-
-
-msgid "Bone Roll"
-msgstr "Ролна костију"
 
 
 msgid "Basic"

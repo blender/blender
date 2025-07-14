@@ -52,7 +52,7 @@ class BlenderSync {
   void set_bake_target(BL::Object &b_object);
 
   /* sync */
-  void sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d);
+  void sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, BL::RegionView3D &b_rv3d);
   void sync_data(BL::RenderSettings &b_render,
                  BL::Depsgraph &b_depsgraph,
                  BL::SpaceView3D &b_v3d,
@@ -213,6 +213,7 @@ class BlenderSync {
   bool object_can_have_geometry(BL::Object &b_ob);
   bool object_is_light(BL::Object &b_ob);
   bool object_is_camera(BL::Object &b_ob);
+  BL::Object get_dicing_camera_object(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d);
 
   /* variables */
   BL::RenderEngine b_engine;

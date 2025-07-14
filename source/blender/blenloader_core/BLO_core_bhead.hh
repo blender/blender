@@ -12,7 +12,7 @@
 struct FileReader;
 
 struct BHead {
-  /** Identifier for this #BHead. Can be any of BLO_CODE_* or an ID code like ID_OB.  */
+  /** Identifier for this #BHead. Can be any of BLO_CODE_* or an ID code like ID_OB. */
   int code;
   /** Identifier of the struct type that is stored in this block. */
   int SDNAnr;

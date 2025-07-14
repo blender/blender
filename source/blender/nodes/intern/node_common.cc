@@ -786,7 +786,7 @@ static void group_input_declare(NodeDeclarationBuilder &b)
            * "dependency cycle" between this and the structure type inferencing which uses node
            * declarations. The compromise is to not use the proper structure type in the group
            * input/output declarations and instead use a special case for the choice of socket
-           * shapes.*/
+           * shapes. */
           build_interface_socket_declaration(*node_tree, socket, std::nullopt, SOCK_OUT, b);
         }
         break;

@@ -118,7 +118,7 @@ class Instance : public DrawEngine {
 
   void end_sync() final {}
 
-  void draw(Manager & /*manager */) final
+  void draw(Manager & /*manager*/) final
   {
     DRW_submission_start();
     drawing_mode_.draw_viewport();

@@ -387,6 +387,6 @@ void BKE_report_path_template_errors(ReportList *reports,
 std::optional<std::string> BKE_path_template_format_float(blender::StringRef format_specifier,
                                                           double value);
 
-/** Same as #BKE_path_template_format_float but for formatting an integer value.  */
+/** Same as #BKE_path_template_format_float but for formatting an integer value. */
 std::optional<std::string> BKE_path_template_format_int(blender::StringRef format_specifier,
                                                         int64_t value);

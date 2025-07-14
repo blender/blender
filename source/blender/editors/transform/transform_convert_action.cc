@@ -53,9 +53,9 @@ static bool is_td2d_int(TransData2D *td2d)
 /** \name Grease Pencil Transform helpers
  * \{ */
 
-/* Add a user to ensure drawings are not deleted during transform when a frame is overwritten
+/* Add a fake user to ensure drawings are not deleted during transform when a frame is overwritten
  * temporarily. The drawing_index of any existing frame will also remain valid. */
-static void grease_pencil_transdata_add_drawing_users(const GreasePencil &grease_pencil)
+static void grease_pencil_transdata_add_fake_drawing_users(const GreasePencil &grease_pencil)
 {
   using namespace bke::greasepencil;
 
@@ -66,13 +66,13 @@ static void grease_pencil_transdata_add_drawing_users(const GreasePencil &grease
     }
 
     const Drawing &drawing = reinterpret_cast<const GreasePencilDrawing *>(drawing_base)->wrap();
-    drawing.add_user();
+    drawing.runtime->fake_user = true;
   }
 }
 
-/* Remove users from drawings after frame data has been restored. After this drawing data can be
- * freed and drawing indices may become invalid. */
-static void grease_pencil_transdata_remove_drawing_users(const GreasePencil &grease_pencil)
+/* Remove fake users from drawings after frame data has been restored. After this drawing data can
+ * be freed and drawing indices may become invalid. */
+static void grease_pencil_transdata_remove_fake_drawing_users(const GreasePencil &grease_pencil)
 {
   using namespace bke::greasepencil;
 
@@ -83,7 +83,7 @@ static void grease_pencil_transdata_remove_drawing_users(const GreasePencil &gre
     }
 
     const Drawing &drawing = reinterpret_cast<const GreasePencilDrawing *>(drawing_base)->wrap();
-    drawing.remove_user();
+    drawing.runtime->fake_user = false;
   }
 }
 
@@ -99,10 +99,10 @@ static bool grease_pencil_layer_initialize_trans_data(const GreasePencil &grease
     return false;
   }
 
-  /* "Freeze" drawing indices by adding a user to each drawing. This ensures the draw_index in
-   * frame data remains valid and no data is lost if the drawing is temporarily unused during
+  /* "Freeze" drawing indices by adding a fake user to each drawing. This ensures the drawing_index
+   * in frame data remains valid and no data is lost if the drawing is temporarily unused during
    * transform. */
-  grease_pencil_transdata_add_drawing_users(grease_pencil);
+  grease_pencil_transdata_add_fake_drawing_users(grease_pencil);
 
   /* Initialize the transformation data structure, by storing in separate maps frames that will
    * remain static during the transformation, and frames that are affected by the
@@ -247,7 +247,7 @@ static bool grease_pencil_layer_apply_trans_data(GreasePencil &grease_pencil,
   }
 
   /* All frame data is updated, safe to remove the fake user and remove unused drawings. */
-  grease_pencil_transdata_remove_drawing_users(grease_pencil);
+  grease_pencil_transdata_remove_fake_drawing_users(grease_pencil);
   grease_pencil.remove_drawings_with_no_users();
 
   /* Clear the frames copy. */

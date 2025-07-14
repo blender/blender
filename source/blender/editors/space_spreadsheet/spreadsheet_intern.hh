@@ -60,7 +60,7 @@ SpreadsheetColumn *find_hovered_column_header_edge(SpaceSpreadsheet &sspreadshee
                                                    ARegion &region,
                                                    const int2 &cursor_re);
 
-/** Find the column that the cursor is hovering in the header row.*/
+/** Find the column that the cursor is hovering in the header row. */
 SpreadsheetColumn *find_hovered_column_header(SpaceSpreadsheet &sspreadsheet,
                                               ARegion &region,
                                               const int2 &cursor_re);

@@ -121,7 +121,9 @@ void SubdAttributeInterpolation::setup_attribute(const Attribute &subd_attr, Att
   else if (Attribute::same_storage(subd_attr.type, TypeVector)) {
     setup_attribute_type<SubdFloat<float3>>(subd_attr, mesh_attr);
   }
-  else if (Attribute::same_storage(subd_attr.type, TypeFloat4)) {
+  else if (Attribute::same_storage(subd_attr.type, TypeFloat4) ||
+           Attribute::same_storage(subd_attr.type, TypeRGBA))
+  {
     setup_attribute_type<SubdFloat<float4>>(subd_attr, mesh_attr);
   }
 }

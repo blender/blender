@@ -61,7 +61,7 @@ class USDShapeReader : public USDGeomReader {
                      const char ** /*r_err_str*/) override;
 
   /* Returns the generated mesh might be affected by time-varying attributes.
-   * This assumes mesh_from_prim() has been called.  */
+   * This assumes mesh_from_prim() has been called. */
   bool is_time_varying();
 
   bool topology_changed(const Mesh * /*existing_mesh*/, pxr::UsdTimeCode /*time*/) override

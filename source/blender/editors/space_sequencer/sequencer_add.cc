@@ -422,19 +422,18 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
     STRNCPY(load_data->name, basename);
   }
   else if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
-    char *directory = RNA_string_get_alloc(op->ptr, "directory", nullptr, 0, nullptr);
+    std::string directory = RNA_string_get(op->ptr, "directory");
 
     if ((prop = RNA_struct_find_property(op->ptr, "files"))) {
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
-        char *filename = RNA_string_get_alloc(&itemptr, "name", nullptr, 0, nullptr);
-        STRNCPY(load_data->name, filename);
-        BLI_path_join(load_data->path, sizeof(load_data->path), directory, filename);
-        MEM_freeN(filename);
+        std::string filename = RNA_string_get(&itemptr, "name");
+        STRNCPY(load_data->name, filename.c_str());
+        BLI_path_join(
+            load_data->path, sizeof(load_data->path), directory.c_str(), filename.c_str());
         break;
       }
       RNA_PROP_END;
     }
-    MEM_freeN(directory);
   }
 
   if (relative) {
@@ -1535,17 +1534,14 @@ int sequencer_image_seq_get_minmax_frame(wmOperator *op,
   int numdigits = 0;
 
   RNA_BEGIN (op->ptr, itemptr, "files") {
-    char *filename;
     int frame;
-    filename = RNA_string_get_alloc(&itemptr, "name", nullptr, 0, nullptr);
+    std::string filename = RNA_string_get(&itemptr, "name");
 
-    if (filename) {
-      if (BLI_path_frame_get(filename, &frame, &numdigits)) {
+    if (!filename.empty()) {
+      if (BLI_path_frame_get(filename.c_str(), &frame, &numdigits)) {
         minframe = min_ii(minframe, frame);
         maxframe = max_ii(maxframe, frame);
       }
-
-      MEM_freeN(filename);
     }
   }
   RNA_END;
@@ -1619,9 +1615,8 @@ static void sequencer_add_image_strip_load_files(wmOperator *op,
   else {
     size_t strip_frame = 0;
     RNA_BEGIN (op->ptr, itemptr, "files") {
-      char *filename = RNA_string_get_alloc(&itemptr, "name", nullptr, 0, nullptr);
-      seq::add_image_load_file(scene, strip, strip_frame, filename);
-      MEM_freeN(filename);
+      std::string filename = RNA_string_get(&itemptr, "name");
+      seq::add_image_load_file(scene, strip, strip_frame, filename.c_str());
       strip_frame++;
     }
     RNA_END;

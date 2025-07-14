@@ -8,12 +8,12 @@
 
 #include <cstring>
 
-#include "BLI_buffer.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
+#include "BLI_vector.hh"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -569,7 +569,7 @@ static void gizmo_draw_select_3d_loop(const bContext *C,
     gz->type->draw_select(C, gz, select_id << 8);
   }
 
-  /* Reset depth state.*/
+  /* Reset depth state. */
 
   if (is_depth_prev || use_intel_gpu_workaround) {
     GPU_depth_test(GPU_DEPTH_NONE);
@@ -776,7 +776,7 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmGizmo *gz = nullptr;
-  BLI_buffer_declare_static(wmGizmo *, visible_3d_gizmos, BLI_BUFFER_NOP, 128);
+  blender::Vector<wmGizmo *, 128> visible_3d_gizmos;
   bool do_step[WM_GIZMOMAP_DRAWSTEP_MAX];
 
   int mval[2];
@@ -822,17 +822,13 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
     }
   }
 
-  if (visible_3d_gizmos.count) {
+  if (!visible_3d_gizmos.is_empty()) {
     /* 2D gizmos get priority. */
     if (gz == nullptr) {
-      gz = gizmo_find_intersected_3d(C,
-                                     mval,
-                                     static_cast<wmGizmo **>(visible_3d_gizmos.data),
-                                     visible_3d_gizmos.count,
-                                     r_part);
+      gz = gizmo_find_intersected_3d(
+          C, mval, visible_3d_gizmos.data(), visible_3d_gizmos.size(), r_part);
     }
   }
-  BLI_buffer_free(&visible_3d_gizmos);
 
   gzmap->update_flag[WM_GIZMOMAP_DRAWSTEP_3D] &= ~GIZMOMAP_IS_REFRESH_CALLBACK;
   gzmap->update_flag[WM_GIZMOMAP_DRAWSTEP_2D] &= ~GIZMOMAP_IS_REFRESH_CALLBACK;

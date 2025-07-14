@@ -314,7 +314,7 @@ float bxdf_ggx_perceived_roughness_transmission(float roughness, float ior)
 {
   /* This is a very rough mapping used by manually curve fitting the apparent roughness
    * (blurriness) of GGX reflections and GGX refraction.
-   * A better fit is desirable if it is in the same order of complexity.  */
+   * A better fit is desirable if it is in the same order of complexity. */
   return roughness *
          sqrt_fast((ior > 1.0f) ? (1.0f - 1.0f / ior) : (saturate(1.0f - ior) * 0.64f));
 }

@@ -125,7 +125,7 @@ static float bmo_vert_calc_edge_angle_blended(const BMVert *v)
     BM_face_calc_normal(f_pair[0], no_a);
     BM_face_calc_normal(f_pair[1], no_b);
 
-    /* Now determine the raw factor based on how folded the faces are.*/
+    /* Now determine the raw factor based on how folded the faces are. */
     const float raw_factor = std::clamp(-dot_v3v3(no_a, no_b), 0.0f, 1.0f);
 
     /* Blend the two ways of computing the angle. */
@@ -303,7 +303,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
       if (UNLIKELY(f_double)) {
         /* `BM_faces_join()` succeeded, but there is a double. Keep the pre-existing face
-         * and retain its custom-data. Remove the newly made merge result.  */
+         * and retain its custom-data. Remove the newly made merge result. */
         BM_face_kill(bm, f_new);
         totface_target -= 1;
         f_new = f_double;

@@ -1884,7 +1884,7 @@ Shader *GLSubprocessShaderCompiler::compile_shader(const shader::ShaderCreateInf
   GPU_debug_group_begin("Subprocess Compilation");
 
   /* This path is always called for the default shader compilation. Not for specialization.
-   * Use the default constant template.*/
+   * Use the default constant template. */
   const shader::SpecializationConstants &constants = GPU_shader_get_default_constant_state(
       wrap(shader));
 
@@ -1932,7 +1932,7 @@ void GLSubprocessShaderCompiler::specialize_shader(ShaderSpecialization &special
     std::lock_guard lock(mutex);
 
     if (program_get()) {
-      /*Already compiled*/
+      /* Already compiled. */
       return;
     }
 

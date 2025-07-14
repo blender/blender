@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-06-17 02:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -34425,12 +34425,36 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
 msgid "Show/Hide"
 msgstr "Show/Hide"
 
 
-msgid "Clean Up"
-msgstr "Clean Up"
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Names"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
 
 
 msgid "Pivot Point"
@@ -34517,10 +34541,6 @@ msgid "Assign Material"
 msgstr "Assign Material"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Light"
 msgstr "Light"
 
@@ -34605,10 +34625,6 @@ msgid "Bone Collections"
 msgstr "Bone Collections"
 
 
-msgid "Names"
-msgstr "Names"
-
-
 msgid "Toggle Bone Options"
 msgstr "Toggle Bone Options"
 
@@ -34639,22 +34655,6 @@ msgstr "Set Face Strength"
 
 msgid "Merge"
 msgstr "Merge"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
 
 
 msgid "Keyframe Insert Pie"
@@ -120698,11 +120698,6 @@ msgstr "Base Thickness"
 
 msgid "Spacing Along Stroke"
 msgstr "Spacing Along Stroke"
-
-
-msgctxt "Operator"
-msgid "Go to Linestyle Textures Properties"
-msgstr "Go to Linestyle Textures Properties"
 
 
 msgid "Priority"

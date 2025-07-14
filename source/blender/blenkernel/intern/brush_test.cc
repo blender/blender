@@ -55,7 +55,7 @@ TEST_F(BrushTest, deep_copy)
 {
   Brush *brush = BKE_brush_add(bmain, "UnitTestBrush", OB_MODE_SCULPT);
   /* TODO: Ideally this shouldn't be needed, but BKE_brush_add generates an extra user. Remove this
-   * once that has been fixed.*/
+   * once that has been fixed. */
   id_us_min(&brush->id);
 
   /* Normal Linked Data */
@@ -85,8 +85,8 @@ TEST_F(BrushTest, deep_copy_grease_pencil_brush)
   /* Grease pencil brushes potentially have more ID linked to them, hence a separate test */
 
   Brush *brush = BKE_brush_add(bmain, "UnitTestBrush", OB_MODE_PAINT_GREASE_PENCIL);
-  /* TODO: Ideally this shouldn't be needed, but BKE_brush_add generates an extra user. Remove this
-   * once that has been fixed.*/
+  /* TODO: Ideally this shouldn't be needed, but #BKE_brush_add generates an extra user.
+   * Remove this once that has been fixed. */
   id_us_min(&brush->id);
 
   /* Normal Linked Data */

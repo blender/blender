@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-04-14 08:42+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1865,6 +1865,18 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
+msgid "Text"
+msgstr "ช้อความ"
+
+
+msgid "Metaball"
+msgstr "เมตาบอล"
+
+
+msgid "Names"
+msgstr "ชื่อ"
+
+
 msgid "Pivot Point"
 msgstr "จุดหมุน"
 
@@ -1909,10 +1921,6 @@ msgid "View Regions"
 msgstr "ขอบเขตมุมมอง"
 
 
-msgid "Metaball"
-msgstr "เมตาบอล"
-
-
 msgid "Light"
 msgstr "แสง"
 
@@ -1933,20 +1941,12 @@ msgid "Hooks"
 msgstr "ตะขอ"
 
 
-msgid "Names"
-msgstr "ชื่อ"
-
-
 msgid "Face Data"
 msgstr "ข้อมูลด้าน"
 
 
 msgid "Merge"
 msgstr "ผสาน"
-
-
-msgid "Text"
-msgstr "ช้อความ"
 
 
 msgid "Zoom"

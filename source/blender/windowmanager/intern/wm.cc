@@ -560,7 +560,7 @@ static void wm_xr_data_free(wmWindowManager *wm)
    * It's necessary to prevent leaks when XR data is created or loaded into non XR builds.
    * This can occur when Python reads all properties (see the `bl_rna_paths` test). */
 
-  /* Note that non-runtime data in `wm->xr` is freed as part of freeing the window manager.  */
+  /* Note that non-runtime data in `wm->xr` is freed as part of freeing the window manager. */
   if (wm->xr.session_settings.shading.prop) {
     IDP_FreeProperty(wm->xr.session_settings.shading.prop);
     wm->xr.session_settings.shading.prop = nullptr;

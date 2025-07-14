@@ -165,7 +165,7 @@ static wmOperatorStatus voxel_remesh_exec(bContext *C, wmOperator *op)
     sculpt_paint::undo::geometry_end(*ob);
     BKE_sculptsession_free_pbvh(*ob);
   }
-  /** Spatially organize the mesh after remesh.*/
+  /* Spatially organize the mesh after remesh. */
   blender::bke::mesh_apply_spatial_organization(*static_cast<Mesh *>(ob->data));
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -915,7 +915,7 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
     sculpt_paint::undo::geometry_end(*ob);
     BKE_sculptsession_free_pbvh(*ob);
   }
-  /** Spatially organize the mesh after remesh.*/
+  /* Spatially organize the mesh after remesh. */
   blender::bke::mesh_apply_spatial_organization(*static_cast<Mesh *>(ob->data));
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
 

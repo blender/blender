@@ -1107,12 +1107,11 @@ wmOperatorStatus WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallCo
     uiLayout *layout = UI_popup_menu_layout(pup);
     /* Set this so the default execution context is the same as submenus. */
     layout->operator_context_set(opcontext);
-    uiItemsFullEnumO(layout,
-                     op->type->idname,
-                     RNA_property_identifier(prop),
-                     static_cast<IDProperty *>(op->ptr->data),
-                     opcontext,
-                     UI_ITEM_NONE);
+    layout->op_enum(op->type->idname,
+                    RNA_property_identifier(prop),
+                    static_cast<IDProperty *>(op->ptr->data),
+                    opcontext,
+                    UI_ITEM_NONE);
     UI_popup_menu_end(C, pup);
     return OPERATOR_INTERFACE;
   }
@@ -2110,16 +2109,10 @@ static wmOperatorStatus wm_search_menu_invoke(bContext *C, wmOperator *op, const
   static SearchPopupInit_Data data{};
 
   if (search_type == SEARCH_TYPE_SINGLE_MENU) {
-    {
-      char *buffer = RNA_string_get_alloc(op->ptr, "menu_idname", nullptr, 0, nullptr);
-      data.single_menu_idname = buffer;
-      MEM_SAFE_FREE(buffer);
-    }
-    {
-      char *buffer = RNA_string_get_alloc(op->ptr, "initial_query", nullptr, 0, nullptr);
-      STRNCPY(g_search_text, buffer);
-      MEM_SAFE_FREE(buffer);
-    }
+    data.single_menu_idname = RNA_string_get(op->ptr, "menu_idname");
+
+    std::string buffer = RNA_string_get(op->ptr, "initial_query");
+    STRNCPY(g_search_text, buffer.c_str());
   }
   else {
     g_search_text[0] = '\0';
@@ -2300,8 +2293,7 @@ static wmOperatorStatus asset_shelf_popover_invoke(bContext *C,
                                                    wmOperator *op,
                                                    const wmEvent * /*event*/)
 {
-  char *asset_shelf_id = RNA_string_get_alloc(op->ptr, "name", nullptr, 0, nullptr);
-  BLI_SCOPED_DEFER([&]() { MEM_freeN(asset_shelf_id); });
+  std::string asset_shelf_id = RNA_string_get(op->ptr, "name");
 
   if (!blender::ui::asset_shelf_popover_invoke(*C, asset_shelf_id, *op->reports)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
@@ -2962,16 +2954,11 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
   }
 
   /* Get an rna string path from the operator's properties. */
-  char *str;
-  if (!(str = RNA_string_get_alloc(op->ptr, name, nullptr, 0, nullptr))) {
-    return 1;
-  }
-
-  if (str[0] == '\0') {
+  std::string str = RNA_string_get(op->ptr, name);
+  if (str.empty()) {
     if (r_prop) {
       *r_prop = nullptr;
     }
-    MEM_freeN(str);
     return 1;
   }
 
@@ -2980,8 +2967,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
   }
 
   /* Get rna from path. */
-  if (!RNA_path_resolve(ctx_ptr, str, r_ptr, r_prop)) {
-    MEM_freeN(str);
+  if (!RNA_path_resolve(ctx_ptr, str.c_str(), r_ptr, r_prop)) {
     if (flags & RC_PROP_ALLOW_MISSING) {
       return 1;
     }
@@ -2996,7 +2982,6 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
     if (((flags & RC_PROP_REQUIRE_BOOL) && (prop_type != PROP_BOOLEAN)) ||
         ((flags & RC_PROP_REQUIRE_FLOAT) && (prop_type != PROP_FLOAT)))
     {
-      MEM_freeN(str);
       BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' is not a float", name);
       return 0;
     }
@@ -3005,7 +2990,6 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
   /* Check property's array length. */
   int len;
   if (*r_prop && (len = RNA_property_array_length(r_ptr, *r_prop)) != req_length) {
-    MEM_freeN(str);
     BKE_reportf(op->reports,
                 RPT_ERROR,
                 "Property from path '%s' has length %d instead of %d",
@@ -3016,7 +3000,6 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
   }
 
   /* Success. */
-  MEM_freeN(str);
   return 1;
 }
 

@@ -56,6 +56,25 @@
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
 
+/* Disable, as this can "lock" the GUI even with the *pending* version of dispatch is used. */
+#if 0
+/**
+ * Note that for almost all cases a call to `wl_display_dispatch_pending` is *not* needed.
+ * Without the dispatch though, calls to set the cursor while the event loop is
+ * not being processed causes a resource allocation failure - disconnecting the
+ * WAYLAND compositor (effectively crashing).
+ * While this only happens when many calls are made, that's exactly what happens in the
+ * case of the "progress" feature which uses the cursor to display a number.
+ * See: #141846.
+ *
+ * Observed behavior when changing cursors without a dispatch:
+ * - Eventually exits with an error on all compositors tested (KDE/GNOME/WLROOTS based).
+ * - Won't re-display at all (on KDE 6.4).
+ *   Note that this could be a bug in KDE as it works in GNOME & WLROOTS based compositors.
+ */
+#  define USE_CURSOR_IMMEDIATE_DISPATCH
+#endif
+
 /**
  * LIBDECOR support committing a window-configuration in the main-thread that was
  * handled in a non-main-thread.
@@ -2248,10 +2267,18 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor s
       ok_test = system_->cursor_shape_set(m_cursorShape);
     }
 
-    if (ok_test == GHOST_kFailure) {
-      /* For the cursor to display when the event queue isn't being handled. */
-      wl_display_flush(system_->wl_display_get());
+    wl_display *display = system_->wl_display_get();
+#ifdef USE_CURSOR_IMMEDIATE_DISPATCH
+    if (ok == GHOST_kSuccess || ok_test == GHOST_kSuccess) {
+      wl_display_flush(display);
+      wl_display_dispatch_pending(display);
     }
+    else
+#endif /* USE_CURSOR_IMMEDIATE_DISPATCH */
+      if (ok_test == GHOST_kFailure) {
+        /* For the cursor to display when the event queue isn't being handled. */
+        wl_display_flush(display);
+      }
   }
   else {
     /* Set later when activating the window. */
@@ -2298,8 +2325,12 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(const uint8_t *bi
       ok_test = system_->cursor_shape_set(m_cursorShape);
     }
     if (ok_test == GHOST_kSuccess) {
+      wl_display *display = system_->wl_display_get();
       /* For the cursor to display when the event queue isn't being handled. */
-      wl_display_flush(system_->wl_display_get());
+      wl_display_flush(display);
+#ifdef USE_CURSOR_IMMEDIATE_DISPATCH
+      wl_display_dispatch_pending(display);
+#endif
     }
   }
   else {
@@ -2412,8 +2443,12 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorVisibility(bool visible)
 #endif
   const GHOST_TSuccess ok = system_->cursor_visibility_set(visible);
   if (ok == GHOST_kSuccess) {
+    wl_display *display = system_->wl_display_get();
     /* For the cursor to display when the event queue isn't being handled. */
-    wl_display_flush(system_->wl_display_get());
+    wl_display_flush(display);
+#ifdef USE_CURSOR_IMMEDIATE_DISPATCH
+    wl_display_dispatch_pending(display);
+#endif
   }
   return ok;
 }

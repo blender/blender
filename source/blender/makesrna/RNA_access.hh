@@ -683,6 +683,12 @@ bool RNA_enum_icon_from_value(const EnumPropertyItem *item, int value, int *r_ic
 bool RNA_enum_name_from_value(const EnumPropertyItem *item, int value, const char **r_name);
 
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value);
+/**
+ * Retrieve string from a string property, or an empty string if the property does not exist.
+ * \note This mostly exists as a C++ replacement for #RNA_string_get_alloc or a simpler replacement
+ * for the overload with a return pointer argument with easy support for arbitrary length strings.
+ */
+std::string RNA_string_get(PointerRNA *ptr, const char *name);
 char *RNA_string_get_alloc(PointerRNA *ptr,
                            const char *name,
                            char *fixedbuf,

@@ -305,7 +305,7 @@ void WM_window_native_pixel_coords(const wmWindow *win, int *x, int *y);
 void WM_window_rect_calc(const wmWindow *win, rcti *r_rect);
 /**
  * Get boundaries usable by screen-layouts, excluding global areas.
- * \note Depends on #UI_SCALE_FAC. Should that be outdated, call #WM_window_set_dpi first.
+ * \note Depends on #UI_SCALE_FAC. Should that be outdated, call #WM_window_dpi_set_userdef first.
  */
 void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect);
 bool WM_window_is_main_top_level(const wmWindow *win);
@@ -389,7 +389,13 @@ wmWindow *WM_window_open(bContext *C,
                          void (*area_setup_fn)(bScreen *screen, ScrArea *area, void *user_data),
                          void *area_setup_user_data) ATTR_NONNULL(1, 3);
 
-void WM_window_set_dpi(const wmWindow *win);
+void WM_window_dpi_set_userdef(const wmWindow *win);
+/**
+ * Return the windows DPI as a scale, bypassing UI scale preference.
+ *
+ * \note Use for calculating cursor size which doesn't use the UI scale.
+ */
+float WM_window_dpi_get_scale(const wmWindow *win);
 
 /**
  * Give a title to a window. With "Title" unspecified or nullptr, it is generated

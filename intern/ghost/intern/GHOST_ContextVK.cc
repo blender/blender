@@ -827,7 +827,7 @@ static GHOST_TSuccess selectPresentMode(VkPhysicalDevice device,
    * some lag on NVIDIA/Intel GPUs. */
   /* TODO: select the correct presentation mode based on the actual being performed by the user.
    * When low latency is required (paint cursor) we should select mailbox, otherwise we can do FIFO
-   * to reduce CPU/GPU usage.*/
+   * to reduce CPU/GPU usage. */
   for (auto present_mode : presents) {
     if (present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
       *r_presentMode = present_mode;

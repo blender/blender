@@ -234,23 +234,19 @@ static void free_operator_customdata(wmOperator *op)
 
 /* Ensure that the prim_path is not set to
  * the absolute root path '/'. */
-static void process_prim_path(char *prim_path)
+static void process_prim_path(std::string &prim_path)
 {
-  if (prim_path == nullptr || prim_path[0] == '\0') {
+  if (prim_path.empty()) {
     return;
   }
 
-  /* The absolute root "/" path indicates a no-op,
-   * so clear the string. */
-  if (prim_path[0] == '/' && prim_path[1] == '\0') {
-    prim_path[0] = '\0';
+  /* The absolute root "/" path indicates a no-op, so clear the string. */
+  if (prim_path == "/") {
+    prim_path.clear();
   }
-
-  /* If a prim path doesn't start with a "/" it
-   * is invalid when creating the prim. */
-  if (prim_path[0] != '/') {
-    const std::string prim_path_copy = std::string(prim_path);
-    BLI_snprintf(prim_path, FILE_MAX, "/%s", prim_path_copy.c_str());
+  /* If a prim path doesn't start with a "/" it is invalid when creating the prim. */
+  else if (prim_path[0] != '/') {
+    prim_path.insert(0, 1, '/');
   }
 }
 
@@ -277,69 +273,12 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  char filepath[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filepath);
-
-  USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
+  const USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
   const bool as_background_job = (options != nullptr && options->as_background_job);
   free_operator_customdata(op);
 
-  const bool selected_objects_only = RNA_boolean_get(op->ptr, "selected_objects_only");
-  const bool visible_objects_only = RNA_boolean_get(op->ptr, "visible_objects_only");
-  const bool export_animation = RNA_boolean_get(op->ptr, "export_animation");
-  const bool export_hair = RNA_boolean_get(op->ptr, "export_hair");
-  const bool export_uvmaps = RNA_boolean_get(op->ptr, "export_uvmaps");
-  const bool rename_uvmaps = RNA_boolean_get(op->ptr, "rename_uvmaps");
-  const bool export_mesh_colors = RNA_boolean_get(op->ptr, "export_mesh_colors");
-  const bool export_normals = RNA_boolean_get(op->ptr, "export_normals");
-  const bool export_materials = RNA_boolean_get(op->ptr, "export_materials");
-  const eSubdivExportMode export_subdiv = eSubdivExportMode(
-      RNA_enum_get(op->ptr, "export_subdivision"));
-
-  const bool export_meshes = RNA_boolean_get(op->ptr, "export_meshes");
-  const bool export_lights = RNA_boolean_get(op->ptr, "export_lights");
-  const bool export_cameras = RNA_boolean_get(op->ptr, "export_cameras");
-  const bool export_curves = RNA_boolean_get(op->ptr, "export_curves");
-  const bool export_points = RNA_boolean_get(op->ptr, "export_points");
-  const bool export_volumes = RNA_boolean_get(op->ptr, "export_volumes");
-
-  const bool use_instancing = RNA_boolean_get(op->ptr, "use_instancing");
-  const bool evaluation_mode = RNA_enum_get(op->ptr, "evaluation_mode");
-
-  const bool generate_preview_surface = RNA_boolean_get(op->ptr, "generate_preview_surface");
-  const bool generate_materialx_network = RNA_boolean_get(op->ptr, "generate_materialx_network");
-  const bool overwrite_textures = RNA_boolean_get(op->ptr, "overwrite_textures");
-  const bool relative_paths = RNA_boolean_get(op->ptr, "relative_paths");
-
-  const bool export_armatures = RNA_boolean_get(op->ptr, "export_armatures");
-  const bool export_shapekeys = RNA_boolean_get(op->ptr, "export_shapekeys");
-  const bool only_deform_bones = RNA_boolean_get(op->ptr, "only_deform_bones");
-
-  const bool export_custom_properties = RNA_boolean_get(op->ptr, "export_custom_properties");
-  const bool author_blender_name = RNA_boolean_get(op->ptr, "author_blender_name");
-
-  const bool triangulate_meshes = RNA_boolean_get(op->ptr, "triangulate_meshes");
-  const int quad_method = RNA_enum_get(op->ptr, "quad_method");
-  const int ngon_method = RNA_enum_get(op->ptr, "ngon_method");
-
-  const bool convert_orientation = RNA_boolean_get(op->ptr, "convert_orientation");
-
-  const int global_forward = RNA_enum_get(op->ptr, "export_global_forward_selection");
-  const int global_up = RNA_enum_get(op->ptr, "export_global_up_selection");
-
-  const bool convert_world_material = RNA_boolean_get(op->ptr, "convert_world_material") &&
-                                      export_lights;
-
-  const eUSDXformOpMode xform_op_mode = eUSDXformOpMode(RNA_enum_get(op->ptr, "xform_op_mode"));
-
-  const eUSDZTextureDownscaleSize usdz_downscale_size = eUSDZTextureDownscaleSize(
-      RNA_enum_get(op->ptr, "usdz_downscale_size"));
-
-  const int usdz_downscale_custom_size = RNA_int_get(op->ptr, "usdz_downscale_custom_size");
-
-  const bool merge_parent_xform = RNA_boolean_get(op->ptr, "merge_parent_xform");
-
-  const bool allow_unicode = RNA_boolean_get(op->ptr, "allow_unicode");
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   /* When the texture export settings were moved into an enum this bit
    * became more involved, but it needs to stick around for API backwards
@@ -365,74 +304,66 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
     }
   }
 
-  const eUSDSceneUnits convert_scene_units = eUSDSceneUnits(
-      RNA_enum_get(op->ptr, "convert_scene_units"));
-  const float meters_per_unit = RNA_float_get(op->ptr, "meters_per_unit");
-
-  char root_prim_path[FILE_MAX];
-  RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
-  process_prim_path(root_prim_path);
-
-  char custom_properties_namespace[MAX_IDPROP_NAME];
-  RNA_string_get(op->ptr, "custom_properties_namespace", custom_properties_namespace);
-
   USDExportParams params;
-  params.export_animation = export_animation;
-  params.selected_objects_only = selected_objects_only;
-  params.visible_objects_only = visible_objects_only;
+  params.export_animation = RNA_boolean_get(op->ptr, "export_animation");
+  params.selected_objects_only = RNA_boolean_get(op->ptr, "selected_objects_only");
+  params.visible_objects_only = RNA_boolean_get(op->ptr, "visible_objects_only");
 
-  params.export_meshes = export_meshes;
-  params.export_lights = export_lights;
-  params.export_cameras = export_cameras;
-  params.export_curves = export_curves;
-  params.export_points = export_points;
-  params.export_volumes = export_volumes;
-  params.export_hair = export_hair;
-  params.export_uvmaps = export_uvmaps;
-  params.rename_uvmaps = rename_uvmaps;
-  params.export_normals = export_normals;
-  params.export_mesh_colors = export_mesh_colors;
-  params.export_materials = export_materials;
+  params.export_meshes = RNA_boolean_get(op->ptr, "export_meshes");
+  params.export_lights = RNA_boolean_get(op->ptr, "export_lights");
+  params.convert_world_material = params.export_lights &&
+                                  RNA_boolean_get(op->ptr, "convert_world_material");
+  params.export_cameras = RNA_boolean_get(op->ptr, "export_cameras");
+  params.export_curves = RNA_boolean_get(op->ptr, "export_curves");
+  params.export_points = RNA_boolean_get(op->ptr, "export_points");
+  params.export_volumes = RNA_boolean_get(op->ptr, "export_volumes");
+  params.export_hair = RNA_boolean_get(op->ptr, "export_hair");
+  params.export_uvmaps = RNA_boolean_get(op->ptr, "export_uvmaps");
+  params.rename_uvmaps = RNA_boolean_get(op->ptr, "rename_uvmaps");
+  params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
+  params.export_mesh_colors = RNA_boolean_get(op->ptr, "export_mesh_colors");
+  params.export_materials = RNA_boolean_get(op->ptr, "export_materials");
 
-  params.export_armatures = export_armatures;
-  params.export_shapekeys = export_shapekeys;
-  params.only_deform_bones = only_deform_bones;
+  params.export_armatures = RNA_boolean_get(op->ptr, "export_armatures");
+  params.export_shapekeys = RNA_boolean_get(op->ptr, "export_shapekeys");
+  params.only_deform_bones = RNA_boolean_get(op->ptr, "only_deform_bones");
 
-  params.convert_world_material = convert_world_material;
+  params.use_instancing = RNA_boolean_get(op->ptr, "use_instancing");
+  params.export_custom_properties = RNA_boolean_get(op->ptr, "export_custom_properties");
+  params.author_blender_name = RNA_boolean_get(op->ptr, "author_blender_name");
+  params.allow_unicode = RNA_boolean_get(op->ptr, "allow_unicode");
 
-  params.use_instancing = use_instancing;
-  params.export_custom_properties = export_custom_properties;
-  params.author_blender_name = author_blender_name;
-  params.allow_unicode = allow_unicode;
+  params.export_subdiv = eSubdivExportMode(RNA_enum_get(op->ptr, "export_subdivision"));
+  params.evaluation_mode = eEvaluationMode(RNA_enum_get(op->ptr, "evaluation_mode"));
 
-  params.export_subdiv = export_subdiv;
-  params.evaluation_mode = eEvaluationMode(evaluation_mode);
-
-  params.generate_preview_surface = generate_preview_surface;
-  params.generate_materialx_network = generate_materialx_network;
+  params.generate_preview_surface = RNA_boolean_get(op->ptr, "generate_preview_surface");
+  params.generate_materialx_network = RNA_boolean_get(op->ptr, "generate_materialx_network");
+  params.overwrite_textures = RNA_boolean_get(op->ptr, "overwrite_textures");
+  params.relative_paths = RNA_boolean_get(op->ptr, "relative_paths");
   params.export_textures = export_textures;
-  params.overwrite_textures = overwrite_textures;
-  params.relative_paths = relative_paths;
   params.use_original_paths = use_original_paths;
 
-  params.triangulate_meshes = triangulate_meshes;
-  params.quad_method = quad_method;
-  params.ngon_method = ngon_method;
+  params.triangulate_meshes = RNA_boolean_get(op->ptr, "triangulate_meshes");
+  params.quad_method = RNA_enum_get(op->ptr, "quad_method");
+  params.ngon_method = RNA_enum_get(op->ptr, "ngon_method");
 
-  params.convert_orientation = convert_orientation;
-  params.forward_axis = eIOAxis(global_forward);
-  params.up_axis = eIOAxis(global_up);
-  params.xform_op_mode = xform_op_mode;
+  params.convert_orientation = RNA_boolean_get(op->ptr, "convert_orientation");
+  params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "export_global_forward_selection"));
+  params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "export_global_up_selection"));
+  params.xform_op_mode = eUSDXformOpMode(RNA_enum_get(op->ptr, "xform_op_mode"));
 
-  params.usdz_downscale_size = usdz_downscale_size;
-  params.usdz_downscale_custom_size = usdz_downscale_custom_size;
-  params.convert_scene_units = convert_scene_units;
-  params.custom_meters_per_unit = meters_per_unit;
+  params.usdz_downscale_size = eUSDZTextureDownscaleSize(
+      RNA_enum_get(op->ptr, "usdz_downscale_size"));
+  params.usdz_downscale_custom_size = RNA_int_get(op->ptr, "usdz_downscale_custom_size");
+  params.convert_scene_units = eUSDSceneUnits(RNA_enum_get(op->ptr, "convert_scene_units"));
+  params.custom_meters_per_unit = RNA_float_get(op->ptr, "meters_per_unit");
 
-  params.merge_parent_xform = merge_parent_xform;
+  params.merge_parent_xform = RNA_boolean_get(op->ptr, "merge_parent_xform");
 
-  STRNCPY(params.root_prim_path, root_prim_path);
-  STRNCPY(params.custom_properties_namespace, custom_properties_namespace);
+  params.root_prim_path = RNA_string_get(op->ptr, "root_prim_path");
+  process_prim_path(params.root_prim_path);
+
+  RNA_string_get(op->ptr, "custom_properties_namespace", params.custom_properties_namespace);
   RNA_string_get(op->ptr, "collection", params.collection);
 
   bool ok = USD_export(C, filepath, &params, as_background_job, op->reports);
@@ -789,7 +720,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
   RNA_def_string(ot->srna,
                  "root_prim_path",
                  "/root",
-                 FILE_MAX,
+                 0,
                  "Root Prim",
                  "If set, add a transform primitive with the given path to the stage "
                  "as the parent of all exported data");
@@ -929,18 +860,12 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  char filepath[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filepath);
-
-  USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
+  const USDOperatorOptions *options = static_cast<USDOperatorOptions *>(op->customdata);
   const bool as_background_job = (options != nullptr && options->as_background_job);
   free_operator_customdata(op);
 
-  const float scale = RNA_float_get(op->ptr, "scale");
-  const float light_intensity_scale = RNA_float_get(op->ptr, "light_intensity_scale");
-  const bool apply_unit_conversion_scale = RNA_boolean_get(op->ptr, "apply_unit_conversion_scale");
-
-  const bool set_frame_range = RNA_boolean_get(op->ptr, "set_frame_range");
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   const bool read_mesh_uvs = RNA_boolean_get(op->ptr, "read_mesh_uvs");
   const bool read_mesh_colors = RNA_boolean_get(op->ptr, "read_mesh_colors");
@@ -957,119 +882,65 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
     mesh_read_flag |= MOD_MESHSEQ_READ_ATTRIBUTES;
   }
 
-  const bool import_cameras = RNA_boolean_get(op->ptr, "import_cameras");
-  const bool import_curves = RNA_boolean_get(op->ptr, "import_curves");
-  const bool import_lights = RNA_boolean_get(op->ptr, "import_lights");
-  const bool import_materials = RNA_boolean_get(op->ptr, "import_materials");
-  const bool import_meshes = RNA_boolean_get(op->ptr, "import_meshes");
-  const bool import_volumes = RNA_boolean_get(op->ptr, "import_volumes");
-  const bool import_shapes = RNA_boolean_get(op->ptr, "import_shapes");
-  const bool import_skeletons = RNA_boolean_get(op->ptr, "import_skeletons");
-  const bool import_blendshapes = RNA_boolean_get(op->ptr, "import_blendshapes");
-  const bool import_points = RNA_boolean_get(op->ptr, "import_points");
-
-  const bool import_subdiv = RNA_boolean_get(op->ptr, "import_subdiv");
-
-  const bool support_scene_instancing = RNA_boolean_get(op->ptr, "support_scene_instancing");
-
-  const bool import_visible_only = RNA_boolean_get(op->ptr, "import_visible_only");
-
-  const bool import_defined_only = RNA_boolean_get(op->ptr, "import_defined_only");
-
-  const bool create_collection = RNA_boolean_get(op->ptr, "create_collection");
-
-  char *prim_path_mask = RNA_string_get_alloc(op->ptr, "prim_path_mask", nullptr, 0, nullptr);
-
-  const bool import_guide = RNA_boolean_get(op->ptr, "import_guide");
-  const bool import_proxy = RNA_boolean_get(op->ptr, "import_proxy");
-  const bool import_render = RNA_boolean_get(op->ptr, "import_render");
-
-  const bool import_all_materials = RNA_boolean_get(op->ptr, "import_all_materials");
-
-  const bool import_usd_preview = RNA_boolean_get(op->ptr, "import_usd_preview");
-  const bool set_material_blend = RNA_boolean_get(op->ptr, "set_material_blend");
-
-  const eUSDMtlPurpose mtl_purpose = eUSDMtlPurpose(RNA_enum_get(op->ptr, "mtl_purpose"));
-  const eUSDMtlNameCollisionMode mtl_name_collision_mode = eUSDMtlNameCollisionMode(
-      RNA_enum_get(op->ptr, "mtl_name_collision_mode"));
-
-  const eUSDAttrImportMode attr_import_mode = eUSDAttrImportMode(
-      RNA_enum_get(op->ptr, "attr_import_mode"));
-
-  const bool validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
-
-  const bool create_world_material = RNA_boolean_get(op->ptr, "create_world_material") &&
-                                     import_lights;
-
-  const bool merge_parent_xform = RNA_boolean_get(op->ptr, "merge_parent_xform");
-
-  /* TODO(makowalski): Add support for sequences. */
-  const bool is_sequence = false;
-  int offset = 0;
-  int sequence_len = 1;
-
-  const eUSDTexImportMode import_textures_mode = eUSDTexImportMode(
-      RNA_enum_get(op->ptr, "import_textures_mode"));
-
-  char import_textures_dir[FILE_MAXDIR];
-  RNA_string_get(op->ptr, "import_textures_dir", import_textures_dir);
-
-  const eUSDTexNameCollisionMode tex_name_collision_mode = eUSDTexNameCollisionMode(
-      RNA_enum_get(op->ptr, "tex_name_collision_mode"));
-
   USDImportParams params{};
-  params.prim_path_mask = prim_path_mask;
-  params.scale = scale;
-  params.light_intensity_scale = light_intensity_scale;
-  params.apply_unit_conversion_scale = apply_unit_conversion_scale;
+  params.scale = RNA_float_get(op->ptr, "scale");
+  params.light_intensity_scale = RNA_float_get(op->ptr, "light_intensity_scale");
+  params.apply_unit_conversion_scale = RNA_boolean_get(op->ptr, "apply_unit_conversion_scale");
 
   params.mesh_read_flag = mesh_read_flag;
-  params.set_frame_range = set_frame_range;
-  params.is_sequence = is_sequence;
-  params.sequence_len = sequence_len;
-  params.offset = offset;
+  params.set_frame_range = RNA_boolean_get(op->ptr, "set_frame_range");
 
-  params.import_visible_only = import_visible_only;
-  params.import_defined_only = import_defined_only;
+  /* TODO(makowalski): Add support for sequences. */
+  params.is_sequence = false;
+  params.sequence_len = 1;
+  params.offset = 0;
 
-  params.import_cameras = import_cameras;
-  params.import_curves = import_curves;
-  params.import_lights = import_lights;
-  params.import_materials = import_materials;
-  params.import_all_materials = import_all_materials;
-  params.import_meshes = import_meshes;
-  params.import_points = import_points;
-  params.import_subdiv = import_subdiv;
-  params.import_volumes = import_volumes;
+  params.import_visible_only = RNA_boolean_get(op->ptr, "import_visible_only");
+  params.import_defined_only = RNA_boolean_get(op->ptr, "import_defined_only");
 
-  params.create_collection = create_collection;
-  params.create_world_material = create_world_material;
-  params.support_scene_instancing = support_scene_instancing;
+  params.import_cameras = RNA_boolean_get(op->ptr, "import_cameras");
+  params.import_curves = RNA_boolean_get(op->ptr, "import_curves");
+  params.import_lights = RNA_boolean_get(op->ptr, "import_lights");
+  params.create_world_material = params.import_lights &&
+                                 RNA_boolean_get(op->ptr, "create_world_material");
+  params.import_materials = RNA_boolean_get(op->ptr, "import_materials");
+  params.import_all_materials = RNA_boolean_get(op->ptr, "import_all_materials");
+  params.import_meshes = RNA_boolean_get(op->ptr, "import_meshes");
+  params.import_points = RNA_boolean_get(op->ptr, "import_points");
+  params.import_subdiv = RNA_boolean_get(op->ptr, "import_subdiv");
+  params.import_volumes = RNA_boolean_get(op->ptr, "import_volumes");
 
-  params.import_shapes = import_shapes;
-  params.import_skeletons = import_skeletons;
-  params.import_blendshapes = import_blendshapes;
+  params.create_collection = RNA_boolean_get(op->ptr, "create_collection");
+  params.support_scene_instancing = RNA_boolean_get(op->ptr, "support_scene_instancing");
 
-  params.validate_meshes = validate_meshes;
-  params.merge_parent_xform = merge_parent_xform;
+  params.import_shapes = RNA_boolean_get(op->ptr, "import_shapes");
+  params.import_skeletons = RNA_boolean_get(op->ptr, "import_skeletons");
+  params.import_blendshapes = RNA_boolean_get(op->ptr, "import_blendshapes");
 
-  params.import_guide = import_guide;
-  params.import_proxy = import_proxy;
-  params.import_render = import_render;
+  params.validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
+  params.merge_parent_xform = RNA_boolean_get(op->ptr, "merge_parent_xform");
 
-  params.import_usd_preview = import_usd_preview;
-  params.set_material_blend = set_material_blend;
-  params.mtl_purpose = mtl_purpose;
-  params.mtl_name_collision_mode = mtl_name_collision_mode;
-  params.import_textures_mode = import_textures_mode;
-  params.tex_name_collision_mode = tex_name_collision_mode;
+  params.import_guide = RNA_boolean_get(op->ptr, "import_guide");
+  params.import_proxy = RNA_boolean_get(op->ptr, "import_proxy");
+  params.import_render = RNA_boolean_get(op->ptr, "import_render");
 
-  params.attr_import_mode = attr_import_mode;
+  params.import_usd_preview = RNA_boolean_get(op->ptr, "import_usd_preview");
+  params.set_material_blend = RNA_boolean_get(op->ptr, "set_material_blend");
+  params.mtl_purpose = eUSDMtlPurpose(RNA_enum_get(op->ptr, "mtl_purpose"));
+  params.mtl_name_collision_mode = eUSDMtlNameCollisionMode(
+      RNA_enum_get(op->ptr, "mtl_name_collision_mode"));
+  params.import_textures_mode = eUSDTexImportMode(RNA_enum_get(op->ptr, "import_textures_mode"));
+  params.tex_name_collision_mode = eUSDTexNameCollisionMode(
+      RNA_enum_get(op->ptr, "tex_name_collision_mode"));
 
-  STRNCPY(params.import_textures_dir, import_textures_dir);
+  params.attr_import_mode = eUSDAttrImportMode(RNA_enum_get(op->ptr, "attr_import_mode"));
+
+  params.prim_path_mask = RNA_string_get(op->ptr, "prim_path_mask");
+
+  RNA_string_get(op->ptr, "import_textures_dir", params.import_textures_dir);
 
   /* Switch out of edit mode to avoid being stuck in it (#54326). */
-  Object *obedit = CTX_data_edit_object(C);
+  const Object *obedit = CTX_data_edit_object(C);
   if (obedit) {
     blender::ed::object::mode_set(C, OB_MODE_EDIT);
   }

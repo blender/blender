@@ -281,7 +281,7 @@ void ShaderOperation::link_node_input_implicit(const DInputSocket input, const D
   input_descriptor.implicit_input = implicit_input;
 
   /* An input was already declared for that implicit input, so no need to declare it again and we
-   * just link it.  */
+   * just link it. */
   if (implicit_input_to_material_attribute_map_.contains(implicit_input)) {
     /* But first we update the domain priority of the input descriptor to be the higher priority of
      * the existing descriptor and the descriptor of the new input socket. That's because the same

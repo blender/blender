@@ -1079,12 +1079,12 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
     std::optional<std::string> rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr, prop);
     if (!rna_path_id_to_prop.has_value()) {
       /* In the case of nested RNA properties the path cannot be reconstructed in all cases. There
-       * may be a system in place in the future, see #122427.*/
+       * may be a system in place in the future, see #122427. */
       if (struct_pointer->data != id) {
         continue;
       }
       /* However if the struct pointer happens to be an ID pointer we can use the path that was
-       * passed in. This fixes issues like #132195.*/
+       * passed in. This fixes issues like #132195. */
       rna_path_id_to_prop = rna_path.path;
     }
 

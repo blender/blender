@@ -358,7 +358,8 @@ class NWAttributeMenu(bpy.types.Menu):
         return (space.type == 'NODE_EDITOR'
                 and space.node_tree is not None
                 and space.node_tree.library is None
-                and space.tree_type == 'ShaderNodeTree')
+                and space.tree_type == 'ShaderNodeTree'
+                and space.shader_type == 'OBJECT')
 
     def draw(self, context):
         l = self.layout

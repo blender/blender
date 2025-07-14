@@ -392,7 +392,7 @@ struct HullAngleStep {
   /** The current angle value. */
   AngleCanonical angle;
 
-  /** The next index value to step into.  */
+  /** The next index value to step into. */
   int index;
   /** Do not seek past this index. */
   int index_max;

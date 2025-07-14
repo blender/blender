@@ -94,46 +94,14 @@ void BlenderSync::set_bake_target(BL::Object &b_object)
 
 /* Sync */
 
-void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d)
+void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
+                              BL::SpaceView3D &b_v3d,
+                              BL::RegionView3D &b_rv3d)
 {
   /* Sync recalc flags from blender to cycles. Actual update is done separate,
    * so we can do it later on if doing it immediate is not suitable. */
-
-  if (use_adaptive_subdivision) {
-    /* Mark all meshes as needing to be exported again if dicing changed. */
-    PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-    bool dicing_prop_changed = false;
-
-    const float updated_dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate") :
-                                                RNA_float_get(&cscene, "dicing_rate");
-
-    if (dicing_rate != updated_dicing_rate) {
-      dicing_rate = updated_dicing_rate;
-      dicing_prop_changed = true;
-    }
-
-    const int updated_max_subdivisions = RNA_int_get(&cscene, "max_subdivisions");
-
-    if (max_subdivisions != updated_max_subdivisions) {
-      max_subdivisions = updated_max_subdivisions;
-      dicing_prop_changed = true;
-    }
-
-    if (dicing_prop_changed) {
-      has_updates_ = true;
-
-      for (const pair<const GeometryKey, Geometry *> &iter : geometry_map.key_to_scene_data()) {
-        Geometry *geom = iter.second;
-        if (geom->is_mesh()) {
-          Mesh *mesh = static_cast<Mesh *>(geom);
-          if (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE) {
-            const PointerRNA id_ptr = RNA_id_pointer_create((::ID *)iter.first.id);
-            geometry_map.set_recalc(BL::ID(id_ptr));
-          }
-        }
-      }
-    }
-  }
+  BL::Object b_dicing_camera_object = get_dicing_camera_object(b_v3d, b_rv3d);
+  bool dicing_camera_updated = false;
 
   /* Iterate over all IDs in this depsgraph. */
   for (BL::DepsgraphUpdate &b_update : b_depsgraph.updates) {
@@ -223,6 +191,10 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
       else if (object_is_camera(b_ob)) {
         shader_map.set_recalc(b_ob);
       }
+
+      if (b_dicing_camera_object == b_ob) {
+        dicing_camera_updated = true;
+      }
     }
     /* Mesh */
     else if (b_id.is_a(&RNA_Mesh)) {
@@ -245,6 +217,48 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     else if (b_id.is_a(&RNA_Volume)) {
       const BL::Volume b_volume(b_id);
       geometry_map.set_recalc(b_volume);
+    }
+    /* Camera */
+    else if (b_id.is_a(&RNA_Camera)) {
+      if (b_dicing_camera_object && b_dicing_camera_object.data() == b_id) {
+        dicing_camera_updated = true;
+      }
+    }
+  }
+
+  if (use_adaptive_subdivision) {
+    /* Mark all meshes as needing to be exported again if dicing changed. */
+    PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+    bool dicing_prop_changed = false;
+
+    const float updated_dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate") :
+                                                RNA_float_get(&cscene, "dicing_rate");
+
+    if (dicing_rate != updated_dicing_rate) {
+      dicing_rate = updated_dicing_rate;
+      dicing_prop_changed = true;
+    }
+
+    const int updated_max_subdivisions = RNA_int_get(&cscene, "max_subdivisions");
+
+    if (max_subdivisions != updated_max_subdivisions) {
+      max_subdivisions = updated_max_subdivisions;
+      dicing_prop_changed = true;
+    }
+
+    if (dicing_camera_updated || dicing_prop_changed) {
+      has_updates_ = true;
+
+      for (const pair<const GeometryKey, Geometry *> &iter : geometry_map.key_to_scene_data()) {
+        Geometry *geom = iter.second;
+        if (geom->is_mesh()) {
+          Mesh *mesh = static_cast<Mesh *>(geom);
+          if (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE) {
+            const PointerRNA id_ptr = RNA_id_pointer_create((::ID *)iter.first.id);
+            geometry_map.set_recalc(BL::ID(id_ptr));
+          }
+        }
+      }
     }
   }
 

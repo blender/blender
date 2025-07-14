@@ -462,7 +462,7 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
         if (!BKE_viewer_path_equal(
                 &viewer_path, &tmp_viewer_path, VIEWER_PATH_EQUAL_FLAG_CONSIDER_UI_NAME))
         {
-          /* Only swap, without triggering a depsgraph update.*/
+          /* Only swap, without triggering a depsgraph update. */
           std::swap(viewer_path, tmp_viewer_path);
           return UpdateActiveGeometryNodesViewerResult::Updated;
         }

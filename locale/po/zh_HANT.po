@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-06-19 13:59+0000\n"
 "Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -22608,12 +22608,36 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Clean Up"
+msgstr "清理"
+
+
 msgid "Show/Hide"
 msgstr "顯示/隱藏"
 
 
-msgid "Clean Up"
-msgstr "清理"
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Kerning"
+msgstr "字間微調"
+
+
+msgid "Text"
+msgstr "文字"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
 
 
 msgid "Pivot Point"
@@ -22678,10 +22702,6 @@ msgstr "選取相似者"
 
 msgid "Select Linked"
 msgstr "選取連結項"
-
-
-msgid "Metaball"
-msgstr "變幻球"
 
 
 msgid "Light"
@@ -22756,10 +22776,6 @@ msgid "Bone Collections"
 msgstr "骨骼集盒"
 
 
-msgid "Names"
-msgstr "名稱"
-
-
 msgid "Toggle Bone Options"
 msgstr "開關骨骼選項"
 
@@ -22782,22 +22798,6 @@ msgstr "面資料"
 
 msgid "Merge"
 msgstr "合併"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Text"
-msgstr "文字"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
 
 
 msgid "Basic"
@@ -63271,11 +63271,6 @@ msgstr "基礎粗細"
 
 msgid "Spacing Along Stroke"
 msgstr "沿筆觸間距"
-
-
-msgctxt "Operator"
-msgid "Go to Linestyle Textures Properties"
-msgstr "前往線條樣式紋理屬性"
 
 
 msgid "Priority"

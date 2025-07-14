@@ -310,7 +310,7 @@ void foreach_element_on_inverse_eval_path(
    * this case, parts of the evaluation path has to be discarded again. This is done using a second
    * pass. Now we start the evaluation at the discovered upstream targets and propagate the changed
    * socket elements downstream. We only care about the sockets that have already been used by
-   * upstream evaluation, therefor the downstream evaluation is filtered.  */
+   * upstream evaluation, therefor the downstream evaluation is filtered. */
 
   /* Gather all upstream evaluation targets to start downstream evaluation there. */
   Vector<SocketInContext> initial_downstream_evaluation_sockets;

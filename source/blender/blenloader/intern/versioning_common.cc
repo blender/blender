@@ -764,8 +764,8 @@ void do_versions_after_setup(Main *new_bmain,
 
       BKE_libblock_management_main_add(new_bmain, ntree);
 
-      /* Note: The user count remains zero at this point. It will get automatically updated after
-       * blend file reading is done.*/
+      /* NOTE: The user count remains zero at this point. It will get automatically updated after
+       * blend file reading is done. */
     }
   }
 }

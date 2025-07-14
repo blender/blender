@@ -300,7 +300,7 @@ GHOST_TVulkanXRModes GHOST_XrGraphicsBindingVulkan::choseDataTransferMode()
 
   /* When the physical device properties match between the Vulkan device and the Xr devices we
    * assume that they are the same physical device in the machine and we can use shared memory.
-   * If not we fall back to CPU based data transfer.*/
+   * If not we fall back to CPU based data transfer. */
   const bool is_same_physical_device = memcmp(&vk_physical_device_vulkan11_properties,
                                               &xr_physical_device_vulkan11_properties,
                                               sizeof(VkPhysicalDeviceVulkan11Properties)) == 0;

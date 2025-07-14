@@ -5971,7 +5971,7 @@ static wmOperatorStatus toggle_cyclic_invoke(bContext *C,
         if (nu->type == CU_NURBS) {
           pup = UI_popup_menu_begin(C, IFACE_("Direction"), ICON_NONE);
           layout = UI_popup_menu_layout(pup);
-          uiItemsEnumO(layout, op->type->idname, "direction");
+          layout->op_enum(op->type->idname, "direction");
           UI_popup_menu_end(C, pup);
           return OPERATOR_INTERFACE;
         }

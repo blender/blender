@@ -193,9 +193,9 @@ pxr::SdfPath USDAbstractWriter::get_material_library_path() const
 {
   static std::string material_library_path("/_materials");
 
-  const char *root_prim_path = usd_export_context_.export_params.root_prim_path;
+  const std::string &root_prim_path = usd_export_context_.export_params.root_prim_path;
 
-  if (root_prim_path[0] != '\0') {
+  if (!root_prim_path.empty()) {
     return pxr::SdfPath(root_prim_path + material_library_path);
   }
 

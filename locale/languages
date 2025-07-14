@@ -37,7 +37,7 @@
 31:Hungarian - Magyar:hu_HU:11%
 27:Indonesian - Bahasa indonesia:id_ID:21%
 4:Italian - Italiano:it_IT:46%
-2:Japanese - 日本語:ja_JP:99%
+2:Japanese - 日本語:ja_JP:100%
 # Skipped (see IMPORT_LANGUAGES_SKIP in settings.py). #44:Kazakh - Қазақша:kk_KZ:0%
 50:Khmer - ខ្មែរ:km:0%
 24:Korean - 한국어:ko_KR:53%
@@ -47,7 +47,7 @@
 26:Persian - ﯽﺳﺭﺎﻓ:fa_IR:3%
 19:Polish - Polski:pl_PL:19%
 32:Portuguese (Brazil) - Português brasileiro:pt_BR:46%
-12:Portuguese (Portugal) - Português europeu:pt_PT:70%
+12:Portuguese (Portugal) - Português europeu:pt_PT:71%
 20:Romanian - Român:ro_RO:2%
 15:Russian - Русский:ru_RU:100%
 17:Serbian (Cyrillic) - Српски:sr_RS:17%

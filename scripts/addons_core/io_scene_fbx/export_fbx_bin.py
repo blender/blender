@@ -603,7 +603,7 @@ def fbx_data_light_elements(root, lamp, scene_data):
     elem_data_single_int32(light, b"GeometryVersion", FBX_GEOMETRY_VERSION)  # Sic...
 
     intensity = lamp.energy * 100.0 * pow(2.0, lamp.exposure)
-    color = lamp.color
+    color = lamp.color.copy()
     if lamp.use_temperature:
         temperature_color = lamp.temperature_color
         color[0] *= temperature_color[0]
@@ -1247,13 +1247,12 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                     num_loops = len(me.loops)
                     t_ln = np.empty(num_loops * 3, dtype=normal_bl_dtype)
                     # t_lnw = np.zeros(len(me.loops), dtype=np.float64)
-                    uv_names = [uvlayer.name for uvlayer in me.uv_layers]
-                    # Annoying, `me.calc_tangent` errors in case there is no geometry...
-                    if num_loops > 0:
-                        for name in uv_names:
-                            me.calc_tangents(uvmap=name)
                     for idx, uvlayer in enumerate(me.uv_layers):
                         name = uvlayer.name
+                        # Annoying, `me.calc_tangent` errors in case there is no geometry...
+                        if num_loops > 0:
+                            me.calc_tangents(uvmap=name)
+
                         # Loop bitangents (aka binormals).
                         # NOTE: this is not supported by importer currently.
                         me.loops.foreach_get("bitangent", t_ln)

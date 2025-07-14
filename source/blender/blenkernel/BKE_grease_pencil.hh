@@ -76,6 +76,12 @@ class DrawingRuntime {
    * and remove a drawing if it has zero users.
    */
   mutable std::atomic<int> user_count = 1;
+
+  /**
+   * Ensures that the drawing is not deleted and can be used temporarily (e.g. by the transform
+   * code).
+   */
+  mutable bool fake_user = false;
 };
 
 class Drawing : public ::GreasePencilDrawing {

@@ -75,7 +75,7 @@
 
 #include "BLO_read_write.hh"
 
-/** Using STACK_FIXED_DEPTH to keep the implementation in line with pbvh.cc.*/
+/** Using STACK_FIXED_DEPTH to keep the implementation in line with `pbvh.cc`. */
 #define STACK_FIXED_DEPTH 100
 
 using blender::float3;

@@ -167,7 +167,7 @@ void VKVertexBuffer::upload_data()
 {
   if (!buffer_.is_allocated()) {
     allocate();
-    /* If allocation fails, don't upload.*/
+    /* If allocation fails, don't upload. */
     if (!buffer_.is_allocated()) {
       CLOG_ERROR(&LOG, "Unable to allocate vertex buffer. Most likely an out of memory issue.");
       return;

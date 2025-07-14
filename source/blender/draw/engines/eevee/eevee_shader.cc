@@ -890,7 +890,7 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     frag_gen << global_vars.str() << attr_load.str();
   }
 
-  /* TODO(fclem): This should become part of the dependency system.  */
+  /* TODO(fclem): This should become part of the dependency system. */
   std::string deps_concat;
   for (const StringRefNull &str : info.dependencies_generated) {
     deps_concat += str;

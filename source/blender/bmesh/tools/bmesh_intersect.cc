@@ -28,10 +28,10 @@
 #include "BLI_memarena.h"
 #include "BLI_sort_utils.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BLI_utildefines_stack.h"
 
-#include "BLI_buffer.h"
 #include "BLI_kdopbvh.hh"
 
 #include "bmesh.hh"
@@ -844,7 +844,7 @@ finally:
 
 struct RaycastData {
   const float **looptris;
-  BLI_Buffer *z_buffer;
+  blender::Vector<float, 64> *z_buffer;
 };
 
 #  ifdef USE_KDOPBVH_WATERTIGHT
@@ -886,14 +886,14 @@ static void raycast_callback(void *userdata,
 #  ifdef USE_DUMP
       printf("%s: Adding depth %f\n", __func__, dist);
 #  endif
-      BLI_buffer_append(raycast_data->z_buffer, float, dist);
+      raycast_data->z_buffer->append(dist);
     }
   }
 }
 
 static int isect_bvhtree_point_v3(BVHTree *tree, const float **looptris, const float co[3])
 {
-  BLI_buffer_declare_static(float, z_buffer, BLI_BUFFER_NOP, 64);
+  blender::Vector<float, 64> z_buffer;
 
   RaycastData raycast_data = {
       looptris,
@@ -917,10 +917,10 @@ static int isect_bvhtree_point_v3(BVHTree *tree, const float **looptris, const f
 
   int num_isect;
 
-  if (z_buffer.count == 0) {
+  if (z_buffer.is_empty()) {
     num_isect = 0;
   }
-  else if (z_buffer.count == 1) {
+  else if (z_buffer.size() == 1) {
     num_isect = 1;
   }
   else {
@@ -928,19 +928,17 @@ static int isect_bvhtree_point_v3(BVHTree *tree, const float **looptris, const f
     const float eps = FLT_EPSILON * 10;
     num_isect = 1; /* always count first */
 
-    qsort(z_buffer.data, z_buffer.count, sizeof(float), BLI_sortutil_cmp_float);
+    std::sort(z_buffer.begin(), z_buffer.end());
 
-    const float *depth_arr = static_cast<const float *>(z_buffer.data);
+    const float *depth_arr = z_buffer.data();
     float depth_last = depth_arr[0];
 
-    for (uint i = 1; i < z_buffer.count; i++) {
+    for (uint i = 1; i < z_buffer.size(); i++) {
       if (depth_arr[i] - depth_last > eps) {
         depth_last = depth_arr[i];
         num_isect++;
       }
     }
-
-    BLI_buffer_free(&z_buffer);
   }
 
   //  return (num_isect & 1) == 1;

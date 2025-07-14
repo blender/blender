@@ -323,7 +323,7 @@ static void add_image_texture(Main *bmain,
 
   /* UV transform. */
   if (ftex->has_uv_transform) {
-    /*@TODO: which UV set to use. */
+    /* TODO: which UV set to use. */
     bNode *uvmap = add_node(ntree, SH_NODE_UVMAP, node_locx_texcoord, node_locy);
     bNode *mapping = add_node(ntree, SH_NODE_MAPPING, node_locx_mapping, node_locy);
     mapping->custom1 = TEXMAP_TYPE_TEXTURE;

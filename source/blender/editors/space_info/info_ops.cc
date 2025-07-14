@@ -273,7 +273,7 @@ static wmOperatorStatus unpack_all_invoke(bContext *C, wmOperator *op, const wmE
   layout = UI_popup_menu_layout(pup);
 
   layout->operator_context_set(WM_OP_EXEC_DEFAULT);
-  uiItemsEnumO(layout, "FILE_OT_unpack_all", "method");
+  layout->op_enum("FILE_OT_unpack_all", "method");
 
   UI_popup_menu_end(C, pup);
 
@@ -367,12 +367,11 @@ static wmOperatorStatus unpack_item_invoke(bContext *C, wmOperator *op, const wm
   layout = UI_popup_menu_layout(pup);
 
   layout->operator_context_set(WM_OP_EXEC_DEFAULT);
-  uiItemsFullEnumO(layout,
-                   op->type->idname,
-                   "method",
-                   static_cast<IDProperty *>(op->ptr->data),
-                   WM_OP_EXEC_REGION_WIN,
-                   UI_ITEM_NONE);
+  layout->op_enum(op->type->idname,
+                  "method",
+                  static_cast<IDProperty *>(op->ptr->data),
+                  WM_OP_EXEC_REGION_WIN,
+                  UI_ITEM_NONE);
 
   UI_popup_menu_end(C, pup);
 
@@ -530,11 +529,10 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 static wmOperatorStatus find_missing_files_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  const char *searchpath = RNA_string_get_alloc(op->ptr, "directory", nullptr, 0, nullptr);
+  const std::string searchpath = RNA_string_get(op->ptr, "directory");
   const bool find_all = RNA_boolean_get(op->ptr, "find_all");
 
-  BKE_bpath_missing_files_find(bmain, searchpath, op->reports, find_all);
-  MEM_freeN(searchpath);
+  BKE_bpath_missing_files_find(bmain, searchpath.c_str(), op->reports, find_all);
   /* Redraw sequencer since media presence cache might have changed. */
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 

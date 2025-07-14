@@ -11,7 +11,8 @@
 #include "DNA_listBase.h"
 #include "WM_gizmo_types.hh"
 
-struct BLI_Buffer;
+#include "BLI_vector.hh"
+
 struct wmGizmoMap;
 struct wmGizmoGroupType;
 struct wmGizmoMapType;
@@ -78,7 +79,7 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
 void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
                                                 const wmGizmoGroup *gzgroup,
                                                 int event_modifier,
-                                                BLI_Buffer *visible_gizmos);
+                                                blender::Vector<wmGizmo *, 128> *r_visible_gizmos);
 bool wm_gizmogroup_is_visible_in_drawstep(const wmGizmoGroup *gzgroup,
                                           eWM_GizmoFlagMapDrawStep drawstep);
 
