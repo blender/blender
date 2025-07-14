@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-07-06 23:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24671,12 +24671,36 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
 msgid "Show/Hide"
 msgstr "Mostra/Nascondi"
 
 
-msgid "Clean Up"
-msgstr "Ripulisci"
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Names"
+msgstr "Nomi"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
 
 
 msgid "Pivot Point"
@@ -24763,10 +24787,6 @@ msgid "Assign Material"
 msgstr "Assegna Materiale"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Light"
 msgstr "Luce"
 
@@ -24843,10 +24863,6 @@ msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
 
 
-msgid "Names"
-msgstr "Nomi"
-
-
 msgid "Toggle Bone Options"
 msgstr "Attiva/disattiva Opzioni Osso"
 
@@ -24877,22 +24893,6 @@ msgstr "Imposta Intensità Faccia"
 
 msgid "Merge"
 msgstr "Unisci"
-
-
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
-
-
-msgid "Text"
-msgstr "Testo"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
 
 
 msgid "Keyframe Insert Pie"
@@ -61473,11 +61473,6 @@ msgstr "Spessore Base"
 
 msgid "Spacing Along Stroke"
 msgstr "Spaziatura Lungo il Tratto"
-
-
-msgctxt "Operator"
-msgid "Go to Linestyle Textures Properties"
-msgstr "Vai alle Proprietà Texture Linestyle"
 
 
 msgid "Priority"

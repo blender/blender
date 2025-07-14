@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-04-14 08:19+0000\n"
 "Last-Translator: soheil ali-pasha <sapachannel.ir@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -2957,6 +2957,10 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
+msgid "Text"
+msgstr "ﻦﺘﻣ"
+
+
 msgid "Pivot Point"
 msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
 
@@ -2979,10 +2983,6 @@ msgstr "ﻝﺎﻤﻋﺍ"
 
 msgid "Convert"
 msgstr "ﻞﯾﺪﺒﺗ"
-
-
-msgid "Text"
-msgstr "ﻦﺘﻣ"
 
 
 msgid "Key"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-04-14 08:31+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23829,12 +23829,36 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
+msgid "Clean Up"
+msgstr "정리"
+
+
 msgid "Show/Hide"
 msgstr "표시/숨기기"
 
 
-msgid "Clean Up"
-msgstr "정리"
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Text"
+msgstr "텍스트"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Names"
+msgstr "이름"
+
+
+msgid "Bone Roll"
+msgstr "본 롤"
 
 
 msgid "Pivot Point"
@@ -23909,10 +23933,6 @@ msgid "Assign Material"
 msgstr "매테리얼을 할당"
 
 
-msgid "Metaball"
-msgstr "메타볼"
-
-
 msgid "Light"
 msgstr "라이트"
 
@@ -23973,10 +23993,6 @@ msgid "Propagate"
 msgstr "전파"
 
 
-msgid "Names"
-msgstr "이름"
-
-
 msgid "Toggle Bone Options"
 msgstr "본 옵션을 토글"
 
@@ -24007,22 +24023,6 @@ msgstr "페이스 강도를 설정"
 
 msgid "Merge"
 msgstr "병합"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Text"
-msgstr "텍스트"
-
-
-msgid "Bone Roll"
-msgstr "본 롤"
 
 
 msgid "Basic"
@@ -69591,11 +69591,6 @@ msgstr "디테일"
 
 msgid "Spacing Along Stroke"
 msgstr "스트로크를 따라 간격"
-
-
-msgctxt "Operator"
-msgid "Go to Linestyle Textures Properties"
-msgstr "라인스타일 택스처 속성으로 이동"
 
 
 msgid "Priority"

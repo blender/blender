@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-04-14 08:15+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -519,6 +519,14 @@ msgid "Keyboard"
 msgstr "Πληκτρολόγιο"
 
 
+msgid "Text"
+msgstr "Κείμενο"
+
+
+msgid "Metaball"
+msgstr "Μετα-σφαίρα"
+
+
 msgid "Snap"
 msgstr "Προσκόλληση"
 
@@ -529,10 +537,6 @@ msgstr "Καθρέφτισμα"
 
 msgid "Select Linked"
 msgstr "Επιλογή Συνδεδεμένων"
-
-
-msgid "Metaball"
-msgstr "Μετα-σφαίρα"
 
 
 msgid "Light"
@@ -557,10 +561,6 @@ msgstr "Ορισμός Ενός Χρήστη"
 
 msgid "Merge"
 msgstr "Συγχώνευση"
-
-
-msgid "Text"
-msgstr "Κείμενο"
 
 
 msgid "Key"

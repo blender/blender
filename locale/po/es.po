@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
-"PO-Revision-Date: 2025-07-07 06:59+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"PO-Revision-Date: 2025-07-07 20:59+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -10791,6 +10791,14 @@ msgstr "Mostrar jaulas"
 
 msgid "Include visualization of lattice related animation data"
 msgstr "Incluir la visualización de los datos de animación relativos a jaulas"
+
+
+msgid "Display Light Probe"
+msgstr "Mostrar sondas de luz"
+
+
+msgid "Include visualization of lightprobe related animation data"
+msgstr "Incluir la visualización de los datos de animación relativos a sondas de luz"
 
 
 msgid "Display Light"
@@ -34628,12 +34636,36 @@ msgid "Editor menu containing buttons"
 msgstr "Menú del editor que contiene botones"
 
 
+msgid "Clean Up"
+msgstr "Limpiar"
+
+
 msgid "Show/Hide"
 msgstr "Mostrar / Ocultar"
 
 
-msgid "Clean Up"
-msgstr "Limpiar"
+msgid "Special Characters"
+msgstr "Caracteres especiales"
+
+
+msgid "Kerning"
+msgstr "Espaciado"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Names"
+msgstr "Nombres"
+
+
+msgid "Bone Roll"
+msgstr "Giro de huesos"
 
 
 msgid "Pivot Point"
@@ -34720,10 +34752,6 @@ msgid "Assign Material"
 msgstr "Asignar material"
 
 
-msgid "Metaball"
-msgstr "Metabola"
-
-
 msgid "Light"
 msgstr "Luz"
 
@@ -34808,10 +34836,6 @@ msgid "Bone Collections"
 msgstr "Colecciones de huesos"
 
 
-msgid "Names"
-msgstr "Nombres"
-
-
 msgid "Toggle Bone Options"
 msgstr "Alternar opciones de huesos"
 
@@ -34842,22 +34866,6 @@ msgstr "Definir intensidad de caras"
 
 msgid "Merge"
 msgstr "Fusionar"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiales"
-
-
-msgid "Kerning"
-msgstr "Espaciado"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Bone Roll"
-msgstr "Giro de huesos"
 
 
 msgid "Keyframe Insert Pie"
@@ -53895,6 +53903,11 @@ msgid "Subtype of the default value"
 msgstr "Subtipo del valor predefinido"
 
 
+msgctxt "Unit"
+msgid "Default"
+msgstr "Predefinido"
+
+
 msgid "Geometry Node Socket Interface"
 msgstr "Interfaz del conector de geometría del nodo"
 
@@ -62916,28 +62929,63 @@ msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
 msgstr "Otros tipos de geometría como curvas, metabolas, etc. (convertidos a mallas)"
 
 
+msgctxt "File browser"
+msgid "Path Mode"
+msgstr "Modo de rutas"
+
+
 msgid "Method used to reference paths"
 msgstr "Método usado para referenciar las rutas de acceso"
+
+
+msgctxt "File browser"
+msgid "Auto"
+msgstr "Auto"
 
 
 msgid "Use relative paths with subdirectories only"
 msgstr "Usar rutas relativas sólo con sub carpetas"
 
 
+msgctxt "File browser"
+msgid "Absolute"
+msgstr "Absolutas"
+
+
 msgid "Always write absolute paths"
 msgstr "Siempre guardar rutas absolutas"
+
+
+msgctxt "File browser"
+msgid "Relative"
+msgstr "Relativas"
 
 
 msgid "Write relative paths where possible"
 msgstr "Guardar siempre rutas relativas cuando sea posible"
 
 
+msgctxt "File browser"
+msgid "Match"
+msgstr "Coincidir"
+
+
 msgid "Match absolute/relative setting with input path"
 msgstr "Hace coincidir la opción Absoluto o Relativo con la de la ruta de entrada"
 
 
+msgctxt "File browser"
+msgid "Strip"
+msgstr "Quitar"
+
+
 msgid "Filename only"
 msgstr "Dejar sólo el nombre del archivo"
+
+
+msgctxt "File browser"
+msgid "Copy"
+msgstr "Copiar"
 
 
 msgid "Copy the file to the destination path (or subdirectory)"
@@ -119325,8 +119373,32 @@ msgid "Blender was compiled without a viewport denoiser"
 msgstr "Blender fue compilado sin soporte para reducción de ruido en las vistas"
 
 
+msgid "Do not use compute device"
+msgstr "No usar un dispositivo para cálculos"
+
+
 msgid " (Unoptimized Performance)"
 msgstr " (rendimiento no optimizado)"
+
+
+msgid "Use CUDA for GPU acceleration"
+msgstr "Usar CUDA para la aceleración por GPU"
+
+
+msgid "Use OptiX for GPU acceleration"
+msgstr "Usar OptiX para la aceleración por GPU"
+
+
+msgid "Use HIP for GPU acceleration"
+msgstr "Usar HIP para la aceleración por GPU"
+
+
+msgid "Use Metal for GPU acceleration"
+msgstr "Usar Metal para la aceleración por GPU"
+
+
+msgid "Use oneAPI for GPU acceleration"
+msgstr "Usar oneAPI para la aceleración por GPU"
 
 
 msgid "No compatible GPUs found for Cycles"
@@ -122117,6 +122189,30 @@ msgid "Mix Vector"
 msgstr "Mezclar (vectores)"
 
 
+msgid "CSV (.csv)"
+msgstr "CSV (.csv)"
+
+
+msgid "Wavefront (.obj)"
+msgstr "Wavefront (.obj)"
+
+
+msgid "Stanford PLY (.ply)"
+msgstr "PLY de Stanford (.ply)"
+
+
+msgid "STL (.stl)"
+msgstr "STL (.stl)"
+
+
+msgid "Text (.txt)"
+msgstr "Texto (.txt)"
+
+
+msgid "OpenVDB (.vdb)"
+msgstr "OpenVDB (.vdb)"
+
+
 msgid "For Each Element"
 msgstr "Para cada elemento"
 
@@ -122786,11 +122882,6 @@ msgstr "Grosor base"
 
 msgid "Spacing Along Stroke"
 msgstr "Espaciado a lo largo del trazo"
-
-
-msgctxt "Operator"
-msgid "Go to Linestyle Textures Properties"
-msgstr "Ir a las propiedades de texturas de estilo de línea"
 
 
 msgid "Priority"
@@ -126149,6 +126240,10 @@ msgstr "Empacar"
 
 msgid "Original frame range: {:d}-{:d} ({:d})"
 msgstr "Rango de fot. original: {:d}-{:d} ({:d})"
+
+
+msgid "{:d} MB"
+msgstr "{:d} MB"
 
 
 msgid "Hz"
@@ -131245,6 +131340,10 @@ msgid "Error: Too many lights in the scene."
 msgstr "Error: Demasiadas luces en la escena."
 
 
+msgid "Bake Lighting"
+msgstr "Capturar iluminación"
+
+
 msgid "Warning: Could not allocate light probes volume pool of {} MB, using {} MB instead."
 msgstr "Advertencia: No fue posible asignar un área de memoria de {} MB para las sondas de luz de tipo Volumen, se usarán {} MB en su lugar."
 
@@ -133004,6 +133103,10 @@ msgid "G"
 msgstr "V"
 
 
+msgid "StudioLight Icon"
+msgstr "Ícono de iluminación de estudio"
+
+
 msgid "OS"
 msgstr "S.O."
 
@@ -133819,6 +133922,10 @@ msgid "Stop animation playback"
 msgstr "Detener reproducción de la animación"
 
 
+msgid "Canceling..."
+msgstr "Cancelando..."
+
+
 msgid "Split/Dock"
 msgstr "Dividir / Empotrar"
 
@@ -134313,6 +134420,14 @@ msgid "Select and use mesh item"
 msgstr "Seleccionar y usar elemento de malla"
 
 
+msgid "Removed %d vertex"
+msgstr "Se eliminó %d vértice"
+
+
+msgid "Removed %d vertices"
+msgstr "Se eliminaron %d vértices"
+
+
 msgid "Invalid selection order"
 msgstr "Orden de selección inválido"
 
@@ -134746,6 +134861,10 @@ msgid "No objects found to bake from"
 msgstr "No se encontraron objetos desde donde capturar"
 
 
+msgid "Multires Bake"
+msgstr "Capturar multires"
+
+
 msgid "Combined bake pass requires Emit, or a light pass with Direct or Indirect contributions enabled"
 msgstr "La pasada de captura Combinada requiere tener habilitada la Emisión o una pasada con contribuciones de luz Directa o Indirecta"
 
@@ -134882,6 +135001,10 @@ msgid "Problem baking object \"%s\""
 msgstr "Problema al capturar el objeto \"%s\""
 
 
+msgid "Texture Bake"
+msgstr "Capturar textura"
+
+
 msgid "Overwrite existing bake data?"
 msgstr "¿Sobrescribir datos de captura existentes?"
 
@@ -134912,6 +135035,14 @@ msgstr "Conflicto en la ruta: cachés de %d definidos a la ruta %s"
 
 msgid "Cache has to be enabled"
 msgstr "El caché debe estar habilitado"
+
+
+msgid "Calculate Simulation"
+msgstr "Calcular simulación"
+
+
+msgid "Bake Nodes"
+msgstr "Capturar nodos"
 
 
 msgid "Remove exporter?"
@@ -135374,6 +135505,10 @@ msgid "Active object has no modifiers"
 msgstr "El objeto activo no contiene modificadores"
 
 
+msgid "Ocean Simulation"
+msgstr "Simulación de océano"
+
+
 msgid "Reshape can work only with higher levels of subdivisions"
 msgstr "Reformar sólo puede funcionar con niveles mayores de subdivisión"
 
@@ -135568,6 +135703,10 @@ msgstr "No es posible rehacer una malla mientras se encuentre activa la topolog�
 
 msgid "The remesher cannot run with a Multires modifier in the modifier stack"
 msgstr "No es posible rehacer una malla que contenga el modificador Multi-resolución"
+
+
+msgid "QuadriFlow Remesh"
+msgstr "Rehacer malla usando cuadriláteros"
 
 
 msgid "Select Collection"
@@ -135834,6 +135973,10 @@ msgid "Bake failed: invalid canvas"
 msgstr "Captura fallida: lienzo inválido"
 
 
+msgid "Dynamic Paint Bake"
+msgstr "Capturar pintura dinámica"
+
+
 msgid "Removed %d double particle(s)"
 msgstr "%d partículas duplicadas eliminadas"
 
@@ -135880,6 +136023,14 @@ msgstr "Fluido: no fue posible crear carpeta de caché '%s', restableciéndola a
 
 msgid "Fluid: Could not use default cache directory '%s', please define a valid cache path manually"
 msgstr "Fluido: no fue posible usar carpeta de caché predefinida '%s', por favor definir manualmente una ruta de caché válida"
+
+
+msgid "Fluid Bake"
+msgstr "Capturar fluido"
+
+
+msgid "Fluid Free"
+msgstr "Liberar fluido"
 
 
 msgid "Library override data-blocks only support Disk Cache storage"
@@ -136142,6 +136293,14 @@ msgid "Mem:%.2fM, Peak: %.2fM"
 msgstr "Mem:%.2fM, Pico: %.2fM"
 
 
+msgid "Rendering sequence..."
+msgstr "Procesando secuencia..."
+
+
+msgid "Render..."
+msgstr "Procesar..."
+
+
 msgid "Cannot write a single file with an animation format selected"
 msgstr "No es posible guardar un único archivo con el formato de animación seleccionado"
 
@@ -136174,6 +136333,10 @@ msgid "Skipping existing frame \"%s\""
 msgstr "Omitiendo fotograma ya existente \"%s\""
 
 
+msgid "Viewport Render"
+msgstr "Procesar vista"
+
+
 msgid "Node groups do not support automatic previews"
 msgstr "Los grupos de nodos no soportan previsualizaciones automáticas"
 
@@ -136188,6 +136351,18 @@ msgstr "La colección no contiene tipos de objetos que puedan ser procesados par
 
 msgid "Data-block type does not support automatic previews"
 msgstr "El tipo de bloque de datos no soporta previsualizaciones automáticas"
+
+
+msgid "Load Previews"
+msgstr "Cargar previsualizaciones"
+
+
+msgid "Icon Preview"
+msgstr "Previsualización de ícono"
+
+
+msgid "Shader Preview"
+msgstr "Previsualización de sombreador"
 
 
 msgid "Unable to remove material slot in edit mode"
@@ -136645,6 +136820,10 @@ msgstr "No se ha seleccionado un objeto vacío de imagen"
 
 msgid "No valid image format selected"
 msgstr "No se ha seleccionado un formato de imagen válido"
+
+
+msgid "Trace Image"
+msgstr "Trazar imagen"
 
 
 msgid "PaintCurve"
@@ -137115,6 +137294,10 @@ msgid "File: %s"
 msgstr "Archivo: %s"
 
 
+msgid "Prefetching"
+msgstr "Precarga"
+
+
 msgid "Delete track corresponding to the selected curve?"
 msgstr "¿Borrar el rastro correspondiente a la curva seleccionada?"
 
@@ -137129,6 +137312,10 @@ msgstr "Ningún archivo seleccionado para abrir"
 
 msgid "Cannot read '%s': %s"
 msgstr "No es posible leer '%s': %s"
+
+
+msgid "Building Proxies"
+msgstr "Creando reemplazos"
 
 
 msgid "Place Marker"
@@ -137187,6 +137374,10 @@ msgid "Average re-projection error: %.2f px"
 msgstr "Error promedio de re-proyección: %.2f px"
 
 
+msgid "Solve Camera"
+msgstr "Calcular cámara"
+
+
 msgid "Track the selected markers backward for the entire clip"
 msgstr "Rastrear los marcadores seleccionados hacia atrás en todo el clip"
 
@@ -137201,6 +137392,10 @@ msgstr "Rastrear los marcadores seleccionados hacia adelante en todo el clip"
 
 msgid "Track the selected markers forward by one frame"
 msgstr "Rastrear los marcadores seleccionados hacia adelante un fotograma"
+
+
+msgid "Track Markers"
+msgstr "Marcadores de rastreo"
 
 
 msgid "New lines unsupported, call this operator multiple times"
@@ -137383,8 +137578,16 @@ msgid "Asset Catalogs"
 msgstr "Catálogos de recursos"
 
 
+msgid "Listing Dirs..."
+msgstr "Listando carpetas..."
+
+
 msgid "Date Modified"
 msgstr "Fecha de modificación"
+
+
+msgid "Validating Bookmarks..."
+msgstr "Validando marcadores..."
 
 
 msgid "Home"
@@ -138468,6 +138671,22 @@ msgid "Dangling reroute is ignored, default value of target socket is used"
 msgstr "La redirección trunca será ignorada, se usará el valor predefinido del conector de destino"
 
 
+msgid "(Single Value)"
+msgstr "(valor individual)"
+
+
+msgid "(Dynamic Structure Type)"
+msgstr "(tipo de estructura dinámica)"
+
+
+msgid "(Field)"
+msgstr "(campo)"
+
+
+msgid "(Volume Grid)"
+msgstr "(cuadrícula volumétrica)"
+
+
 msgid "Connect a link to create a new socket"
 msgstr "Realizar una conexión para crear un nuevo conector"
 
@@ -138548,6 +138767,10 @@ msgid "There is no parent group node in this context"
 msgstr "No existe ningún grupo de nodos superior en este contexto"
 
 
+msgid "Shader Previews"
+msgstr "Previsualizaciones de sombreadores"
+
+
 msgid "Disconnect"
 msgstr "Desconectar"
 
@@ -138606,6 +138829,10 @@ msgstr "No es posible agregar una etiqueta de color a una colección vinculada"
 
 msgid "Cannot delete collection '%s', it is either a linked one used by other linked scenes/collections, or a library override one"
 msgstr "No es posible borrar la colección '%s', debido a que se encuentra vinculada desde otras escenas/colecciones, o es una colección de redefiniciones de biblioteca"
+
+
+msgid "Unable to duplicate %d of the selected collections. Could not find a valid parent collection for the new duplicate, they won't be linked to any view layer"
+msgstr "No es posible duplicar %d de las colecciones seleccionadas. No se pudo encontrar una colección superior válida para el nuevo duplicado, no serán vinculadas a ninguna capa de visualización"
 
 
 msgid "Reorder"
@@ -139274,6 +139501,10 @@ msgstr "Seleccionar uno o más clips"
 
 msgid "Can't set a negative range"
 msgstr "No es posible definir un rango negativo"
+
+
+msgid "Strip Previews"
+msgstr "Previsualizaciones de clips"
 
 
 msgid "Set Selected Strip Proxies"
@@ -140636,6 +140867,10 @@ msgid "Unwrap failed to solve %d of %d island(s), edge seams may need to be adde
 msgstr "La operación de desplegado falló al resolver %d de %d islas, es posible que deban agregarse costuras a algunos bordes de la malla"
 
 
+msgid "Packing UVs"
+msgstr "Empacando UV"
+
+
 msgid "Freestyle: Mesh loading"
 msgstr "Freestyle: Carga de mallas"
 
@@ -140698,6 +140933,10 @@ msgstr "El formato de imagen no es un formato de video"
 
 msgid "Audio sample format unsupported"
 msgstr "Formato de muestras de audio no soportado"
+
+
+msgid "Alembic Export"
+msgstr "Exportar Alembic"
 
 
 msgid "Object type mismatch, Alembic object path pointed to Camera when importing, but not any more"
@@ -140774,6 +141013,10 @@ msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apunta hacia X
 
 msgid "Invalid object: verify object path"
 msgstr "Objeto inválido: verificar la ruta al objeto"
+
+
+msgid "Alembic Import"
+msgstr "Importar Alembic"
 
 
 msgid "CSV Import: Cannot open file '%s'"
@@ -140952,12 +141195,20 @@ msgid "USD Export: Unable to find collection '%s'"
 msgstr "Exportación a USD: No es posible encontrar la colección '%s'"
 
 
+msgid "USD Export"
+msgstr "Exportar USD"
+
+
 msgid "Could not open USD archive for reading, see console for detail"
 msgstr "No fue posible abrir el archivo USD para su lectura, ver la consola para más detalles"
 
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "Importación de USD: No es posible abrir un escenario para leer %s"
+
+
+msgid "USD Import"
+msgstr "Importar USD"
 
 
 msgid "One or more objects used as prototypes in 'Instance on Points' nodes either do not have 'As Instance' enabled in their 'Object Info' nodes, or the prototype is the base geometry input itself. Both cases prevent valid point instancer export. If it's the former, enable 'As Instance' to avoid incorrect self-referencing."
@@ -144503,6 +144754,11 @@ msgid "Feather Size"
 msgstr "Tamaño esfumado"
 
 
+msgctxt "Image"
+msgid "Edges"
+msgstr "Bordes"
+
+
 msgid "Blur the color of the input image in YCC color space before keying while leaving the luminance intact using a Gaussian blur of the given size"
 msgstr "Desenfoca el color de la imagen de entrada en espacio de color YCC antes del recorte, manteniendo la luminancia intacta y usando un desenfoque gaussiano del tamaño indicado"
 
@@ -144565,6 +144821,11 @@ msgstr "Pos procesamiento"
 
 msgid "Despill"
 msgstr "Supresión de derrame"
+
+
+msgctxt "NodeTree"
+msgid "Key"
+msgstr "Recorte"
 
 
 msgid "Specifies the smoothness of the keying screen"
@@ -145122,6 +145383,11 @@ msgstr "Desviación estándar"
 
 msgid "Variance"
 msgstr "Varianza"
+
+
+msgctxt "NodeTree"
+msgid "Median"
+msgstr "Mediana"
 
 
 msgid "Bake Items"
@@ -148487,6 +148753,10 @@ msgstr "Al leer el resultado del procesamiento: no se encontraron los canales es
 
 msgid "Reading render result: expected channel \"%s.%s\" not found"
 msgstr "Al leer el resultado del procesamiento: no se encontró el canal esperado \"%s.%s\""
+
+
+msgid "Strip Thumbnails"
+msgstr "Miniaturas de clips"
 
 
 msgid "Channel %d"

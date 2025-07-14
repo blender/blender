@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-04-14 08:44+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26571,12 +26571,36 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
 msgid "Show/Hide"
 msgstr "Показати/приховати"
 
 
-msgid "Clean Up"
-msgstr "Вичищення"
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgid "Names"
+msgstr "Назви"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
 
 
 msgid "Pivot Point"
@@ -26663,10 +26687,6 @@ msgid "Assign Material"
 msgstr "Призначити Матеріал"
 
 
-msgid "Metaball"
-msgstr "Метакуля"
-
-
 msgid "Light"
 msgstr "Слабко"
 
@@ -26739,10 +26759,6 @@ msgid "Propagate"
 msgstr "Поширити"
 
 
-msgid "Names"
-msgstr "Назви"
-
-
 msgid "Toggle Bone Options"
 msgstr "Перемкнути параметри кісток"
 
@@ -26773,22 +26789,6 @@ msgstr "Задати Силу Грані"
 
 msgid "Merge"
 msgstr "Об'єднання"
-
-
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Text"
-msgstr "Текст"
-
-
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
 
 
 msgid "Basic"
@@ -79922,11 +79922,6 @@ msgstr "Збій завантаження об'єму:"
 
 msgid "Spacing Along Stroke"
 msgstr "Інтервал Уздовж Штриха"
-
-
-msgctxt "Operator"
-msgid "Go to Linestyle Textures Properties"
-msgstr "Перейти до Властивостей Текстур Стилю лінії"
 
 
 msgid "Priority"

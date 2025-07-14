@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
-"PO-Revision-Date: 2025-06-21 21:59+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"PO-Revision-Date: 2025-07-13 16:59+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
@@ -570,12 +570,24 @@ msgid "Translation Root"
 msgstr "Översättningsrot"
 
 
+msgid "The bf-translation repository"
+msgstr "Arkivet för bf-translation"
+
+
 msgid "Import Paths"
 msgstr "Import-sökvägar"
 
 
 msgid "Additional paths to add to sys.path (';' separated)"
 msgstr "Ytterligare sökvägar att lägga till i sys.path (separerade med ';')"
+
+
+msgid "Warn about messages not starting by a capitalized letter (with a few allowed exceptions!)"
+msgstr "Varna för meddelanden som inte inleds med en versal bokstav (med några få tillåtna undantag!)"
+
+
+msgid "Persistent Data Path"
+msgstr "Beständig datasökväg"
 
 
 msgid "User Add-ons"
@@ -9311,12 +9323,28 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Clean Up"
+msgstr "Städa upp"
+
+
 msgid "Show/Hide"
 msgstr "Visa/dölj"
 
 
-msgid "Clean Up"
-msgstr "Städa upp"
+msgid "Special Characters"
+msgstr "Specialtecken"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Names"
+msgstr "Namn"
 
 
 msgid "Pivot Point"
@@ -9357,10 +9385,6 @@ msgstr "Markera mera/mindre"
 
 msgid "Assign Material"
 msgstr "Tilldela material"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
 
 
 msgid "Light"
@@ -9411,20 +9435,8 @@ msgid "Propagate"
 msgstr "Propagera"
 
 
-msgid "Names"
-msgstr "Namn"
-
-
 msgid "Merge"
 msgstr "Sammanfoga"
-
-
-msgid "Special Characters"
-msgstr "Specialtecken"
-
-
-msgid "Text"
-msgstr "Text"
 
 
 msgid "Animals"

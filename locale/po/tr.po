@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-05-17 17:56+0000\n"
 "Last-Translator: Ugur Saglam <saglamugur556@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -29266,12 +29266,36 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Clean Up"
+msgstr "Temizle"
+
+
 msgid "Show/Hide"
 msgstr "Göster/Gizle"
 
 
-msgid "Clean Up"
-msgstr "Temizle"
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Text"
+msgstr "Metin"
+
+
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Names"
+msgstr "Adlar"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
 
 
 msgid "Pivot Point"
@@ -29358,10 +29382,6 @@ msgid "Assign Material"
 msgstr "Malzeme Atamak"
 
 
-msgid "Metaball"
-msgstr "Metabol"
-
-
 msgid "Light"
 msgstr "Işık"
 
@@ -29446,10 +29466,6 @@ msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
 
 
-msgid "Names"
-msgstr "Adlar"
-
-
 msgid "Toggle Bone Options"
 msgstr "Kemik Seçeneklerini Değiştir"
 
@@ -29480,22 +29496,6 @@ msgstr "Yüz Gücünü Ayarla"
 
 msgid "Merge"
 msgstr "Birleştir"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Text"
-msgstr "Metin"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
 
 
 msgid "Keyframe Insert Pie"
@@ -104861,11 +104861,6 @@ msgstr "Taban Kalınlığı"
 
 msgid "Spacing Along Stroke"
 msgstr "Vuruş Boyunca Aralık"
-
-
-msgctxt "Operator"
-msgid "Go to Linestyle Textures Properties"
-msgstr "Çizgi Stili Doku Özelliklerine Git"
 
 
 msgid "Priority"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-04-14 08:20+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7320,6 +7320,18 @@ msgid "Show/Hide"
 msgstr "Näytä/Piilota"
 
 
+msgid "Text"
+msgstr "Teksti"
+
+
+msgid "Metaball"
+msgstr "Metapallo"
+
+
+msgid "Names"
+msgstr "Nimet"
+
+
 msgid "UV Mapping"
 msgstr "UV-kartoittaminen"
 
@@ -7338,10 +7350,6 @@ msgstr "Valitse kaikki piirteen mukaan"
 
 msgid "Select Loops"
 msgstr "Valitse silmukat"
-
-
-msgid "Metaball"
-msgstr "Metapallo"
 
 
 msgid "Light"
@@ -7368,16 +7376,8 @@ msgid "Random Mask"
 msgstr "Satunnainen maski"
 
 
-msgid "Names"
-msgstr "Nimet"
-
-
 msgid "Mesh Select Mode"
 msgstr "Muodon valintatila"
-
-
-msgid "Text"
-msgstr "Teksti"
 
 
 msgid "Basic"
