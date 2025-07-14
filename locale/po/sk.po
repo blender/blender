@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
-"PO-Revision-Date: 2025-07-01 05:20+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"PO-Revision-Date: 2025-07-08 07:59+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -10791,6 +10791,14 @@ msgstr "Zobraziť drôtené mriežky"
 
 msgid "Include visualization of lattice related animation data"
 msgstr "Zahrnie zviditeľnenie súvisiacich údajov animácie častíc"
+
+
+msgid "Display Light Probe"
+msgstr "Zobraziť snímač svetla"
+
+
+msgid "Include visualization of lightprobe related animation data"
+msgstr "Zahrnúť vizualizáciu údajov animácie súvisiacej so snímačom svetla"
 
 
 msgid "Display Light"
@@ -34628,12 +34636,36 @@ msgid "Editor menu containing buttons"
 msgstr "Ponuka editora obsahujúca tlačidlá"
 
 
+msgid "Clean Up"
+msgstr "Prečistiť"
+
+
 msgid "Show/Hide"
 msgstr "Ukázať/skryť"
 
 
-msgid "Clean Up"
-msgstr "Prečistiť"
+msgid "Special Characters"
+msgstr "Špeciálne znaky"
+
+
+msgid "Kerning"
+msgstr "Zhustenie znakov"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Meta guľa"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Bone Roll"
+msgstr "Kývanie kosti"
 
 
 msgid "Pivot Point"
@@ -34720,10 +34752,6 @@ msgid "Assign Material"
 msgstr "Priradiť materiál"
 
 
-msgid "Metaball"
-msgstr "Meta guľa"
-
-
 msgid "Light"
 msgstr "Svetlo"
 
@@ -34808,10 +34836,6 @@ msgid "Bone Collections"
 msgstr "Kolekcie kostí"
 
 
-msgid "Names"
-msgstr "Názvy"
-
-
 msgid "Toggle Bone Options"
 msgstr "Prepínač možnosti kostí"
 
@@ -34842,22 +34866,6 @@ msgstr "Nastaviť vplyv plôšky"
 
 msgid "Merge"
 msgstr "Zlúčiť"
-
-
-msgid "Special Characters"
-msgstr "Špeciálne znaky"
-
-
-msgid "Kerning"
-msgstr "Zhustenie znakov"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Bone Roll"
-msgstr "Kývanie kosti"
 
 
 msgid "Keyframe Insert Pie"
@@ -53895,6 +53903,11 @@ msgid "Subtype of the default value"
 msgstr "Podtyp predvolenej hodnoty"
 
 
+msgctxt "Unit"
+msgid "Default"
+msgstr "Predvolené"
+
+
 msgid "Geometry Node Socket Interface"
 msgstr "Rozhranie zásuvky uzla geometrie"
 
@@ -62916,28 +62929,63 @@ msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
 msgstr "Ďalšie typy geometrie ako krivka, metaguľa, atď. (konvertované na povrchovú sieť)"
 
 
+msgctxt "File browser"
+msgid "Path Mode"
+msgstr "Režim cesty"
+
+
 msgid "Method used to reference paths"
 msgstr "Metóda používaná na referenčné cesty"
+
+
+msgctxt "File browser"
+msgid "Auto"
+msgstr "Automaticky"
 
 
 msgid "Use relative paths with subdirectories only"
 msgstr "Použije iba relatívne cesty s podpriečinkami"
 
 
+msgctxt "File browser"
+msgid "Absolute"
+msgstr "Absolútne"
+
+
 msgid "Always write absolute paths"
 msgstr "Vždy zapíše absolútne cesty"
+
+
+msgctxt "File browser"
+msgid "Relative"
+msgstr "Relatívne"
 
 
 msgid "Write relative paths where possible"
 msgstr "Ak je to možné, zapíše relatívne cesty"
 
 
+msgctxt "File browser"
+msgid "Match"
+msgstr "Prispôsobiť"
+
+
 msgid "Match absolute/relative setting with input path"
 msgstr "Prispôsobí nastavenia absolútna/relatívna so vstupnou cestou"
 
 
+msgctxt "File browser"
+msgid "Strip"
+msgstr "Pás"
+
+
 msgid "Filename only"
 msgstr "Len názov súboru"
+
+
+msgctxt "File browser"
+msgid "Copy"
+msgstr "Kopírovať"
 
 
 msgid "Copy the file to the destination path (or subdirectory)"
@@ -119325,8 +119373,32 @@ msgid "Blender was compiled without a viewport denoiser"
 msgstr "Blender bol skompilovaný bez odstraňovača šumu záberu"
 
 
+msgid "Do not use compute device"
+msgstr "Nepoužívať výpočtové zariadenie"
+
+
 msgid " (Unoptimized Performance)"
 msgstr " (Neoptimalizovaný výkon)"
+
+
+msgid "Use CUDA for GPU acceleration"
+msgstr "Používať CUDA na akceleráciu GPU"
+
+
+msgid "Use OptiX for GPU acceleration"
+msgstr "Používať OptiX na akceleráciu GPU"
+
+
+msgid "Use HIP for GPU acceleration"
+msgstr "Používať HIP na akceleráciu GPU"
+
+
+msgid "Use Metal for GPU acceleration"
+msgstr "Používať Metal na akceleráciu GPU"
+
+
+msgid "Use oneAPI for GPU acceleration"
+msgstr "Používať oneAPI na akceleráciu GPU"
 
 
 msgid "No compatible GPUs found for Cycles"
@@ -122117,6 +122189,30 @@ msgid "Mix Vector"
 msgstr "Vektor zmiešania"
 
 
+msgid "CSV (.csv)"
+msgstr "CSV (.csv)"
+
+
+msgid "Wavefront (.obj)"
+msgstr "Wavefront (.obj)"
+
+
+msgid "Stanford PLY (.ply)"
+msgstr "Stanford PLY (.ply)"
+
+
+msgid "STL (.stl)"
+msgstr "STL (.stl)"
+
+
+msgid "Text (.txt)"
+msgstr "Text (.txt)"
+
+
+msgid "OpenVDB (.vdb)"
+msgstr "OpenVDB (.vdb)"
+
+
 msgid "For Each Element"
 msgstr "Pre každý prvok"
 
@@ -122786,11 +122882,6 @@ msgstr "Základná hrúbka"
 
 msgid "Spacing Along Stroke"
 msgstr "Rozostup pozdĺž ťahu"
-
-
-msgctxt "Operator"
-msgid "Go to Linestyle Textures Properties"
-msgstr "Prejsť na vlastnosti textúry Štýlu čiary"
 
 
 msgid "Priority"
@@ -126149,6 +126240,10 @@ msgstr "Zbaliť"
 
 msgid "Original frame range: {:d}-{:d} ({:d})"
 msgstr "Pôvodný rozsah snímky: {:d}-{:d} ({:d})"
+
+
+msgid "{:d} MB"
+msgstr "{:d} MB"
 
 
 msgid "Hz"
@@ -131245,6 +131340,10 @@ msgid "Error: Too many lights in the scene."
 msgstr "Chyba: Príliš veľa svetiel v scéne."
 
 
+msgid "Bake Lighting"
+msgstr "Zapiecť osvetlenie"
+
+
 msgid "Warning: Could not allocate light probes volume pool of {} MB, using {} MB instead."
 msgstr "Upozornenie: Nepodarilo sa prideliť nádrž objemu snímačov svetla {} MB, s použitím {} MB."
 
@@ -133004,6 +133103,10 @@ msgid "G"
 msgstr "G"
 
 
+msgid "StudioLight Icon"
+msgstr "Ikona Štúdiové svetlo"
+
+
 msgid "OS"
 msgstr "OS"
 
@@ -133819,6 +133922,10 @@ msgid "Stop animation playback"
 msgstr "Zastavenie prehrávania animácie"
 
 
+msgid "Canceling..."
+msgstr "Zrušovanie..."
+
+
 msgid "Split/Dock"
 msgstr "Rozdeliť/Dokovať"
 
@@ -134313,6 +134420,14 @@ msgid "Select and use mesh item"
 msgstr "Vybrať a použiť položku povrchovej siete"
 
 
+msgid "Removed %d vertex"
+msgstr "Odstránený %d vrchol"
+
+
+msgid "Removed %d vertices"
+msgstr "Odstránených %d vrcholov"
+
+
 msgid "Invalid selection order"
 msgstr "Neplatný výber poradia"
 
@@ -134746,6 +134861,10 @@ msgid "No objects found to bake from"
 msgstr "Nenájdené žiadne objekty na zapečenie"
 
 
+msgid "Multires Bake"
+msgstr "Viacnásobné zapečenie"
+
+
 msgid "Combined bake pass requires Emit, or a light pass with Direct or Indirect contributions enabled"
 msgstr "Kombinované zapečenie prechodu vyžadovaného emitovaním, alebo prechod svetla s povolenými priamymi alebo nepriamymi príspevkami"
 
@@ -134882,6 +135001,10 @@ msgid "Problem baking object \"%s\""
 msgstr "Problémové zapečenie objektu \"%s\""
 
 
+msgid "Texture Bake"
+msgstr "Zapiecť textúru"
+
+
 msgid "Overwrite existing bake data?"
 msgstr "Prepísať existujúce údaje zapečenia?"
 
@@ -134912,6 +135035,14 @@ msgstr "Konflikt ciest: %d zásobník nastavený na cestu %s"
 
 msgid "Cache has to be enabled"
 msgstr "Zásobník musí byť povolený"
+
+
+msgid "Calculate Simulation"
+msgstr "Vypočítať simuláciu"
+
+
+msgid "Bake Nodes"
+msgstr "Uzly zapečenia"
 
 
 msgid "Remove exporter?"
@@ -135374,6 +135505,10 @@ msgid "Active object has no modifiers"
 msgstr "Aktívny objekt nemá žiadne modifikátory"
 
 
+msgid "Ocean Simulation"
+msgstr "Simulácia oceána"
+
+
 msgid "Reshape can work only with higher levels of subdivisions"
 msgstr "Pretváranie môže pracovať len s vyššou úrovňou delení"
 
@@ -135568,6 +135703,10 @@ msgstr "Pretvárač povrchovej siete nemôže bežať s aktivovanou dynamickou t
 
 msgid "The remesher cannot run with a Multires modifier in the modifier stack"
 msgstr "Pretvárač povrchovej siete nemôže byť spustený s modifikátorom Viacnásobné rozlíšenie v zásobníku modifikátorov"
+
+
+msgid "QuadriFlow Remesh"
+msgstr "Štvorprúdové pretvorenie povrchovej siete"
 
 
 msgid "Select Collection"
@@ -135834,6 +135973,10 @@ msgid "Bake failed: invalid canvas"
 msgstr "Zapečenie zlyhalo: neplatné plátno"
 
 
+msgid "Dynamic Paint Bake"
+msgstr "Zapiecť dynamickú maľbu"
+
+
 msgid "Removed %d double particle(s)"
 msgstr "Odstránených %d dvojitých častíc"
 
@@ -135880,6 +136023,14 @@ msgstr "Kvapalina: Nepodarilo sa vytvoriť priečinok zásobníka '%s', znovu na
 
 msgid "Fluid: Could not use default cache directory '%s', please define a valid cache path manually"
 msgstr "Kvapalina: Nepodarilo sa použiť predvolený priečinok vyrovnávacej pamäte '%s', definujte, prosím, platnú cestu zásobníka manuálne"
+
+
+msgid "Fluid Bake"
+msgstr "Zapiecť kvapalinu"
+
+
+msgid "Fluid Free"
+msgstr "Voľná kvapalina"
 
 
 msgid "Library override data-blocks only support Disk Cache storage"
@@ -136142,6 +136293,14 @@ msgid "Mem:%.2fM, Peak: %.2fM"
 msgstr "Pamäť: %.2fM, Špička: %.2fM"
 
 
+msgid "Rendering sequence..."
+msgstr "Prekresľovanie sekvencie...."
+
+
+msgid "Render..."
+msgstr "Prekresliť..."
+
+
 msgid "Cannot write a single file with an animation format selected"
 msgstr "Nemožno zapísať samostatný súbor s vybratým formátom animácie"
 
@@ -136174,6 +136333,10 @@ msgid "Skipping existing frame \"%s\""
 msgstr "Preskočenie existujúcej snímky \"%s\""
 
 
+msgid "Viewport Render"
+msgstr "Prekresliť záber"
+
+
 msgid "Node groups do not support automatic previews"
 msgstr "Skupiny uzlov nepodporujú automatické náhľady"
 
@@ -136188,6 +136351,18 @@ msgstr "Kolekcia neobsahuje typy objektov, ktoré možno prekresliť pre automat
 
 msgid "Data-block type does not support automatic previews"
 msgstr "Typ bloku údajov nepodporuje automatické náhľady"
+
+
+msgid "Load Previews"
+msgstr "Načítať náhľad"
+
+
+msgid "Icon Preview"
+msgstr "Náhľad ikony"
+
+
+msgid "Shader Preview"
+msgstr "Náhľad tieňovača"
 
 
 msgid "Unable to remove material slot in edit mode"
@@ -136645,6 +136820,10 @@ msgstr "Nie je vybratý žiadny prázdny obrázok"
 
 msgid "No valid image format selected"
 msgstr "Nie je vybraný žiadny platný formát obrázka"
+
+
+msgid "Trace Image"
+msgstr "Obrázok trasovania"
 
 
 msgid "PaintCurve"
@@ -137115,6 +137294,10 @@ msgid "File: %s"
 msgstr "Súbor: %s"
 
 
+msgid "Prefetching"
+msgstr "Predbežné načítanie"
+
+
 msgid "Delete track corresponding to the selected curve?"
 msgstr "Odstrániť stopu zodpovedajúcu vybranej krivke?"
 
@@ -137129,6 +137312,10 @@ msgstr "Nie sú vybraté žiadne súbory na otvorenie"
 
 msgid "Cannot read '%s': %s"
 msgstr "Nemožno načítať '%s': %s"
+
+
+msgid "Building Proxies"
+msgstr "Vybudovať náhrady"
 
 
 msgid "Place Marker"
@@ -137187,6 +137374,10 @@ msgid "Average re-projection error: %.2f px"
 msgstr "Priemerná chyba opätovného premietnutia: %.2f px"
 
 
+msgid "Solve Camera"
+msgstr "Vyriešiť kameru"
+
+
 msgid "Track the selected markers backward for the entire clip"
 msgstr "Snímanie vybraných značiek dozadu pre celý klip"
 
@@ -137201,6 +137392,10 @@ msgstr "Snímanie vybraných značiek dopredu pre celý klip"
 
 msgid "Track the selected markers forward by one frame"
 msgstr "Snímanie vybraných značiek dopredu o jednu snímku"
+
+
+msgid "Track Markers"
+msgstr "Značky stopy"
 
 
 msgid "New lines unsupported, call this operator multiple times"
@@ -137383,8 +137578,16 @@ msgid "Asset Catalogs"
 msgstr "Katalógy aktív"
 
 
+msgid "Listing Dirs..."
+msgstr "Výpis priečinkov..."
+
+
 msgid "Date Modified"
 msgstr "Zmenený dátum"
+
+
+msgid "Validating Bookmarks..."
+msgstr "Overovanie záložiek..."
 
 
 msgid "Home"
@@ -138468,6 +138671,22 @@ msgid "Dangling reroute is ignored, default value of target socket is used"
 msgstr "Nespojené presmerovanie je ignorované, použije sa predvolená hodnota cieľovej zásuvky"
 
 
+msgid "(Single Value)"
+msgstr "(Jedna hodnota)"
+
+
+msgid "(Dynamic Structure Type)"
+msgstr "(Typ dynamickej štruktúry)"
+
+
+msgid "(Field)"
+msgstr "(Pole)"
+
+
+msgid "(Volume Grid)"
+msgstr "(Mriežka objemu)"
+
+
 msgid "Connect a link to create a new socket"
 msgstr "Pripojenie odkazu na vytvorenie novej zásuvky"
 
@@ -138548,6 +138767,10 @@ msgid "There is no parent group node in this context"
 msgstr "V tomto kontexte neexistuje žiadny uzol rodičovskej skupiny"
 
 
+msgid "Shader Previews"
+msgstr "Náhľady tieňovačov"
+
+
 msgid "Disconnect"
 msgstr "Odpojiť"
 
@@ -138606,6 +138829,10 @@ msgstr "Príznak farby nemožno pridať do prepojenej kolekcie"
 
 msgid "Cannot delete collection '%s', it is either a linked one used by other linked scenes/collections, or a library override one"
 msgstr "Nemožno odstrániť kolekciu '%s', je to buď prepojená kolekcia používaná inými prepojenými scénami/kolekciami, alebo je to prepis knižnice"
+
+
+msgid "Unable to duplicate %d of the selected collections. Could not find a valid parent collection for the new duplicate, they won't be linked to any view layer"
+msgstr "Nemožno vytvárať kópie %d vybraných kolekcií. Nepodarilo sa nájsť platnú rodičovskú kolekciu pre nové kópie, nebudú prepojené so žiadnou vrstvou zobrazenia"
 
 
 msgid "Reorder"
@@ -139274,6 +139501,10 @@ msgstr "Vyberte jeden alebo viac pásov"
 
 msgid "Can't set a negative range"
 msgstr "Nemožno nastaviť záporný rozsah"
+
+
+msgid "Strip Previews"
+msgstr "Náhľady pásov"
 
 
 msgid "Set Selected Strip Proxies"
@@ -140636,6 +140867,10 @@ msgid "Unwrap failed to solve %d of %d island(s), edge seams may need to be adde
 msgstr "Rozvinutie zlyhalo pri riešení %d z %d ostrovov, možno bude potrebné pridať okrajové švy"
 
 
+msgid "Packing UVs"
+msgstr "Zbalenie UV"
+
+
 msgid "Freestyle: Mesh loading"
 msgstr "Freestyle: Nahrávanie povrchovej siete"
 
@@ -140698,6 +140933,10 @@ msgstr "Formát obrázku nie je formát filmu"
 
 msgid "Audio sample format unsupported"
 msgstr "Nepodporovaný formát snímky zvuku"
+
+
+msgid "Alembic Export"
+msgstr "Exportovať Alembic"
 
 
 msgid "Object type mismatch, Alembic object path pointed to Camera when importing, but not any more"
@@ -140774,6 +141013,10 @@ msgstr "Nesúlad typu objektu, cesta k objektu Alembic pri importe ukazovala na 
 
 msgid "Invalid object: verify object path"
 msgstr "Neplatný objekt: overiť cestu k objektu"
+
+
+msgid "Alembic Import"
+msgstr "Importovať Alembic"
 
 
 msgid "CSV Import: Cannot open file '%s'"
@@ -140952,12 +141195,20 @@ msgid "USD Export: Unable to find collection '%s'"
 msgstr "Export USD: Nepodarilo sa nájsť kolekciu '%s'"
 
 
+msgid "USD Export"
+msgstr "Exportovať USD"
+
+
 msgid "Could not open USD archive for reading, see console for detail"
 msgstr "Nepodarilo sa otvoriť archív USD na čítanie! Podrobnosti nájdete v časti konzola"
 
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "Import USD: nemožné otvoriť oblasť na čítanie %s"
+
+
+msgid "USD Import"
+msgstr "Importovať USD"
 
 
 msgid "One or more objects used as prototypes in 'Instance on Points' nodes either do not have 'As Instance' enabled in their 'Object Info' nodes, or the prototype is the base geometry input itself. Both cases prevent valid point instancer export. If it's the former, enable 'As Instance' to avoid incorrect self-referencing."
@@ -144503,6 +144754,11 @@ msgid "Feather Size"
 msgstr "Veľkosť odľahčenia"
 
 
+msgctxt "Image"
+msgid "Edges"
+msgstr "Hrany"
+
+
 msgid "Blur the color of the input image in YCC color space before keying while leaving the luminance intact using a Gaussian blur of the given size"
 msgstr "Rozostrenie farby vstupného obrázka vo farebnom priestore YCC pred kľúčovaním, pričom jas zostane nedotknutý, použitím Gaussovho rozostrenia danej veľkosti"
 
@@ -144565,6 +144821,11 @@ msgstr "Následné spracovanie"
 
 msgid "Despill"
 msgstr "Rozpíjanie"
+
+
+msgctxt "NodeTree"
+msgid "Key"
+msgstr "Kľúč"
 
 
 msgid "Specifies the smoothness of the keying screen"
@@ -145122,6 +145383,11 @@ msgstr "Štandardná odchýlka"
 
 msgid "Variance"
 msgstr "Odchýlka"
+
+
+msgctxt "NodeTree"
+msgid "Median"
+msgstr "Medián"
 
 
 msgid "Bake Items"
@@ -148487,6 +148753,10 @@ msgstr "Čítanie výsledku prekresľovania: očakávaný kanál \"%s.%s\" alebo
 
 msgid "Reading render result: expected channel \"%s.%s\" not found"
 msgstr "Čítanie výsledku prekresľovania: očakávaný kanál \"%s.%s\" nebol nájdený"
+
+
+msgid "Strip Thumbnails"
+msgstr "Pásy miniatúr"
 
 
 msgid "Channel %d"

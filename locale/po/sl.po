@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-06-20 17:59+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -24425,12 +24425,36 @@ msgid "Mask"
 msgstr "Maska"
 
 
+msgid "Clean Up"
+msgstr "Počisti"
+
+
 msgid "Show/Hide"
 msgstr "Pokaži / skrij"
 
 
-msgid "Clean Up"
-msgstr "Počisti"
+msgid "Special Characters"
+msgstr "Posebni znaki"
+
+
+msgid "Kerning"
+msgstr "Spodsekavanje"
+
+
+msgid "Text"
+msgstr "Besedilo"
+
+
+msgid "Metaball"
+msgstr "Metažoga"
+
+
+msgid "Names"
+msgstr "Imena"
+
+
+msgid "Bone Roll"
+msgstr "Zasukaj kost"
 
 
 msgid "Pivot Point"
@@ -24503,10 +24527,6 @@ msgstr "Izberi zanke"
 
 msgid "Assign Material"
 msgstr "Dodeli material"
-
-
-msgid "Metaball"
-msgstr "Metažoga"
 
 
 msgid "Light"
@@ -24585,10 +24605,6 @@ msgid "Bone Collections"
 msgstr "Zbirke kosti"
 
 
-msgid "Names"
-msgstr "Imena"
-
-
 msgid "Face Data"
 msgstr "Podatki lic"
 
@@ -24603,22 +24619,6 @@ msgstr "Nastavi moč lica"
 
 msgid "Merge"
 msgstr "Združi"
-
-
-msgid "Special Characters"
-msgstr "Posebni znaki"
-
-
-msgid "Kerning"
-msgstr "Spodsekavanje"
-
-
-msgid "Text"
-msgstr "Besedilo"
-
-
-msgid "Bone Roll"
-msgstr "Zasukaj kost"
 
 
 msgid "Animals"
@@ -60187,11 +60187,6 @@ msgstr "Osnovna debelina"
 
 msgid "Spacing Along Stroke"
 msgstr "Razmiki vzdolž poteze"
-
-
-msgctxt "Operator"
-msgid "Go to Linestyle Textures Properties"
-msgstr "Pojdi na lastnosti tekstur slogov potez"
 
 
 msgid "Priority"

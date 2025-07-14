@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-04-14 08:24+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6585,12 +6585,20 @@ msgid "Mask"
 msgstr "Maszk"
 
 
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
 msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
 
-msgid "Clean Up"
-msgstr "Tisztítás"
+msgid "Text"
+msgstr "Szöveg"
+
+
+msgid "Metaball"
+msgstr "Meta test"
 
 
 msgid "Mirror"
@@ -6607,10 +6615,6 @@ msgstr "Navigáció"
 
 msgid "Align View"
 msgstr "Nézet igazítása"
-
-
-msgid "Metaball"
-msgstr "Meta test"
 
 
 msgid "Light"
@@ -6635,10 +6639,6 @@ msgstr "Nyom"
 
 msgid "Merge"
 msgstr "Összefésülés"
-
-
-msgid "Text"
-msgstr "Szöveg"
 
 
 msgctxt "MovieClip"

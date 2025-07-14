@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
-"PO-Revision-Date: 2025-07-06 02:59+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"PO-Revision-Date: 2025-07-07 20:59+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -482,7 +482,7 @@ msgstr "Éclairage"
 
 msgctxt "ID"
 msgid "Light Probe"
-msgstr "Sonde lumière"
+msgstr "Sonde d’éclairage"
 
 
 msgctxt "ID"
@@ -665,7 +665,7 @@ msgstr "Préférences des add-ons"
 
 
 msgid "Compute Device Type"
-msgstr "Type de périphérique de calculs"
+msgstr "Type de périphérique de calcul"
 
 
 msgid "Device to use for computation (rendering with Cycles)"
@@ -2818,11 +2818,11 @@ msgstr "Blocs de données bibliothèques"
 
 
 msgid "Light Probes"
-msgstr "Sondes lumière"
+msgstr "Sondes d’éclairage"
 
 
 msgid "Light Probe data-blocks"
-msgstr "Blocs de données sondes lumière"
+msgstr "Blocs de données sondes d’éclairage"
 
 
 msgid "Lights"
@@ -3250,11 +3250,11 @@ msgstr "Collection de nuages de points"
 
 
 msgid "Main Light Probes"
-msgstr "Sondes lumière du Main"
+msgstr "Sondes d’éclairage du Main"
 
 
 msgid "Collection of light probes"
-msgstr "Collection de sondes lumière"
+msgstr "Collection de sondes d’éclairage"
 
 
 msgid "Main Scenes"
@@ -10793,6 +10793,14 @@ msgid "Include visualization of lattice related animation data"
 msgstr "Inclure la visualisation de données d’animation relatives aux lattices"
 
 
+msgid "Display Light Probe"
+msgstr "Afficher les sondes d’éclairage"
+
+
+msgid "Include visualization of lightprobe related animation data"
+msgstr "Inclure la visualisation des données d’animation relatives aux sondes d’éclairage"
+
+
 msgid "Display Light"
 msgstr "Afficher les éclairages"
 
@@ -13843,7 +13851,7 @@ msgstr "Afficher les blocs de données éclairages"
 
 
 msgid "Show Light Probe data-blocks"
-msgstr "Afficher les blocs de données sondes lumière"
+msgstr "Afficher les blocs de données sondes d’éclairage"
 
 
 msgid "Freestyle Linestyles"
@@ -23955,7 +23963,7 @@ msgstr "Distance finale de la carte d’ombrage en cascade (uniquement en vue pe
 
 
 msgid "Light Probe data-block for lighting capture objects"
-msgstr "Bloc de données de sonde lumière pour éclairer les objets de capture"
+msgstr "Bloc de données de sonde d’éclairage pour éclairer les objets de capture"
 
 
 msgid "Probe clip start, below which objects will not appear in reflections"
@@ -24003,19 +24011,19 @@ msgstr "Afficher le volume d’influence dans la vue 3D"
 
 
 msgid "Type of light probe"
-msgstr "Type de sonde lumière"
+msgstr "Type de sonde d’éclairage"
 
 
 msgid "Light probe that captures precise lighting from all directions at a single point in space"
-msgstr "Sonde lumière capturant précisément l’éclairage dans toutes les directions depuis un seul point dans l’espace"
+msgstr "Sonde d’éclairage capturant précisément l’éclairage dans toutes les directions depuis un seul point dans l’espace"
 
 
 msgid "Light probe that captures incoming light from a single direction on a plane"
-msgstr "Sonde lumière capturant la lumière incidente depuis une seule direction sur un plan"
+msgstr "Sonde d’éclairage capturant la lumière incidente depuis une seule direction sur un plan"
 
 
 msgid "Light probe that captures low frequency lighting inside a volume"
-msgstr "Sonde lumière capturant un éclairage basse-fréquence à l’intérieur d’un volume"
+msgstr "Sonde d’éclairage capturant un éclairage basse-fréquence à l’intérieur d’un volume"
 
 
 msgid "Display Data"
@@ -24676,11 +24684,11 @@ msgstr "Transmission par lancer de rendu"
 
 
 msgid "Use raytracing to determine transmitted color instead of using only light probes. This prevents the surface from contributing to the lighting of surfaces not using this setting."
-msgstr "Utiliser le lancer de rayon pour déterminer la couleur transmise, plutôt que seulement les sondes lumière. Empêche la surface de contribuer à l’éclairage des surfaces n’utilisant pas ce réglage."
+msgstr "Utiliser le lancer de rayon pour déterminer la couleur transmise, plutôt que seulement les sondes d’éclairage. Empêche la surface de contribuer à l’éclairage des surfaces n’utilisant pas ce réglage."
 
 
 msgid "Use raytracing to determine transmitted color instead of using only light probes. This prevents the surface from contributing to the lighting of surfaces not using this setting. Deprecated: use 'use_raytrace_refraction'."
-msgstr "Utiliser le lancer de rayon pour déterminer la couleur transmise, plutôt que seulement les sondes lumière. Empêche la surface de contribuer à l’éclairage des surfaces n’utilisant pas ce réglage. Obsolète : utiliser « use_raytrace_refraction »."
+msgstr "Utiliser le lancer de rayon pour déterminer la couleur transmise, plutôt que seulement les sondes d’éclairage. Empêche la surface de contribuer à l’éclairage des surfaces n’utilisant pas ce réglage. Obsolète : utiliser « use_raytrace_refraction »."
 
 
 msgid "Subsurface Translucency"
@@ -25196,7 +25204,7 @@ msgstr "Filtre"
 
 
 msgid "Matte"
-msgstr "Incrustation"
+msgstr "Cache"
 
 
 msgid "Script"
@@ -25680,19 +25688,19 @@ msgstr "Réglages pour utiliser l’objet comme un champ de force dans une simul
 
 
 msgid "Disable in Planar Light Probes"
-msgstr "Désactiver dans les sondes de lumière planes"
+msgstr "Désactiver dans les sondes d’éclairage planes"
 
 
 msgid "Globally disable in planar light probes"
-msgstr "Désactiver globalement dans les sondes de lumière planes"
+msgstr "Désactiver globalement dans les sondes d’éclairage planes"
 
 
 msgid "Disable in Spherical Light Probes"
-msgstr "Désactiver dans les sondes de lumière sphériques"
+msgstr "Désactiver dans les sondes d’éclairage sphériques"
 
 
 msgid "Globally disable in spherical light probes"
-msgstr "Désactiver globalement dans les sondes de lumière sphériques"
+msgstr "Désactiver globalement dans les sondes d’éclairage sphériques"
 
 
 msgid "Disable in Volume Probes"
@@ -29926,7 +29934,7 @@ msgstr "Seuil du soleil"
 
 
 msgid "If non-zero, the maximum value for world contribution that will be recorded inside the world light probe. The excess contribution is converted to a sun light. This reduces the light bleeding caused by very bright light sources."
-msgstr "Si non-nul, la valeur maximale des contributions du monde qui sera enregistrée dans la sonde lumière du monde. Les contributions supplémentaires sont converties en lumière du soleil. Réduit les bavures de lumière provoquées par des sources lumineuses très puissantes."
+msgstr "Si non-nul, la valeur maximale des contributions du monde qui sera enregistrée dans la sonde d’éclairage du monde. Les contributions supplémentaires sont converties en lumière du soleil. Réduit les bavures de lumière provoquées par des sources lumineuses très puissantes."
 
 
 msgid "Finite Volume"
@@ -34628,12 +34636,36 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
+msgid "Clean Up"
+msgstr "Nettoyer"
+
+
 msgid "Show/Hide"
 msgstr "Afficher/cacher"
 
 
-msgid "Clean Up"
-msgstr "Nettoyer"
+msgid "Special Characters"
+msgstr "Caractères spéciaux"
+
+
+msgid "Kerning"
+msgstr "Approche"
+
+
+msgid "Text"
+msgstr "Texte"
+
+
+msgid "Metaball"
+msgstr "Métaballe"
+
+
+msgid "Names"
+msgstr "Noms"
+
+
+msgid "Bone Roll"
+msgstr "Roulis de l’os"
 
 
 msgid "Pivot Point"
@@ -34720,16 +34752,12 @@ msgid "Assign Material"
 msgstr "Assigner un matériau"
 
 
-msgid "Metaball"
-msgstr "Métaballe"
-
-
 msgid "Light"
 msgstr "Éclairage"
 
 
 msgid "Light Probe"
-msgstr "Sonde lumière"
+msgstr "Sonde d’éclairage"
 
 
 msgid "Add Image"
@@ -34808,10 +34836,6 @@ msgid "Bone Collections"
 msgstr "Collections d’os"
 
 
-msgid "Names"
-msgstr "Noms"
-
-
 msgid "Toggle Bone Options"
 msgstr "(Dés)activer des options d’os"
 
@@ -34842,22 +34866,6 @@ msgstr "Définir la force de face"
 
 msgid "Merge"
 msgstr "Fusionner"
-
-
-msgid "Special Characters"
-msgstr "Caractères spéciaux"
-
-
-msgid "Kerning"
-msgstr "Approche"
-
-
-msgid "Text"
-msgstr "Texte"
-
-
-msgid "Bone Roll"
-msgstr "Roulis de l’os"
 
 
 msgid "Keyframe Insert Pie"
@@ -44853,7 +44861,7 @@ msgstr "Masque rectangulaire"
 
 
 msgid "Create rectangular mask suitable for use as a simple matte"
-msgstr "Créer un masque rectangulaire adapté pour une utilisation comme simple masque"
+msgstr "Créer un masque rectangulaire adapté pour une utilisation comme simple cache"
 
 
 msgid "Height of the box. (Deprecated: Use Size input instead.)"
@@ -44901,7 +44909,7 @@ msgstr "Incrustation par canal"
 
 
 msgid "Create matte based on differences in color channels"
-msgstr "Créer un masque d’après les différences entre les canaux de couleur"
+msgstr "Créer un cache d’après les différences entre les canaux de couleur"
 
 
 msgid "RGB (Red, Green, Blue) color space"
@@ -44979,7 +44987,7 @@ msgstr "Canal"
 
 
 msgid "Channel used to determine matte"
-msgstr "Canal utilisé pour déterminer l’incrustation"
+msgstr "Canal utilisé pour déterminer le cache"
 
 
 msgid "Chroma Key"
@@ -44987,7 +44995,7 @@ msgstr "Incrustation chroma"
 
 
 msgid "Create matte based on chroma values"
-msgstr "Créer un masque d’après les valeurs de chroma"
+msgstr "Créer un cache d’après les valeurs de chroma"
 
 
 msgid "Alpha falloff. (Deprecated: Use Minimum input instead.)"
@@ -45336,7 +45344,7 @@ msgstr "Incrustation par couleur"
 
 
 msgid "Create matte using a given color, for green or blue screen footage"
-msgstr "Créer un masque utilisant une couleur donnée, pour les médias en fond vert ou bleu"
+msgstr "Créer un cache utilisant une couleur donnée, pour les médias en fond vert ou bleu"
 
 
 msgid "H"
@@ -45632,19 +45640,19 @@ msgstr "Obsolète. Utiliser plutôt le nœud Cryptomatte"
 
 
 msgid "Add object or material to matte, by picking a color from the Pick output"
-msgstr "Ajouter des objets ou des matériaux au masque, en sélectionnant une couleur depuis la sortie Choisir"
+msgstr "Ajouter des objets ou des matériaux au cache, en sélectionnant une couleur depuis la sortie Choisir"
 
 
 msgid "Matte Objects"
-msgstr "Objets cache"
+msgstr "Objets caches"
 
 
 msgid "List of object and material crypto IDs to include in matte"
-msgstr "Liste d’ID crypto d’objets et de matériaux à inclure dans le masque"
+msgstr "Liste d’ID Crypto d’objets et de matériaux à inclure dans le cache"
 
 
 msgid "Remove object or material from matte, by picking a color from the Pick output"
-msgstr "Retirer un objet ou matériau du masque, en sélectionnant une couleur depuis la sortie Choisir"
+msgstr "Retirer un objet ou matériau du cache, en sélectionnant une couleur depuis la sortie Choisir"
 
 
 msgid "Cryptomatte"
@@ -45652,11 +45660,11 @@ msgstr "Cryptomatte"
 
 
 msgid "Generate matte for individual objects and materials using Cryptomatte render passes"
-msgstr "Générer un masque pour des objets et matériaux choisis, en utilisant les passes de rendu Cryptomatte"
+msgstr "Générer un cache pour des objets et matériaux choisis, en utilisant les passes de rendu Cryptomatte"
 
 
 msgid "Mattes"
-msgstr "Masques"
+msgstr "Caches"
 
 
 msgid "Has Layers"
@@ -45968,7 +45976,7 @@ msgstr "Incrustation par différence"
 
 
 msgid "Produce a matte that isolates foreground content by comparing it with a reference background image"
-msgstr "Produire un masque pour isoler le contenu d’avant-plan, en le comparant à une image d’arrière-plan de référence"
+msgstr "Produire un cache pour isoler le contenu d’avant-plan, en le comparant à une image d’arrière-plan de référence"
 
 
 msgid "Color distances below this additional threshold are partially keyed. (Deprecated: Use Falloff input instead.)"
@@ -46017,7 +46025,7 @@ msgstr "Incrustation par distance"
 
 
 msgid "Create matte based on 3D distance between colors"
-msgstr "Créer un masque d’après la distance 3D entre les couleurs"
+msgstr "Créer un cache d’après la distance 3D entre les couleurs"
 
 
 msgid "RGB color space"
@@ -46077,7 +46085,7 @@ msgstr "Masque elliptique"
 
 
 msgid "Create elliptical mask suitable for use as a simple matte or vignette mask"
-msgstr "Créer un masque elliptique adapté pour une utilisation comme simple masque ou pour un vignettage"
+msgstr "Créer un cache elliptique adapté pour une utilisation comme simple cache ou pour un vignettage"
 
 
 msgid "Height of the ellipse. (Deprecated: Use Size input instead.)"
@@ -46281,7 +46289,7 @@ msgstr "Masque d’ID"
 
 
 msgid "Create a matte from an object or material index pass"
-msgstr "Créer un masque à partir d’une passe d’indice d’objet ou de matériau"
+msgstr "Créer un cache à partir d’une passe d’indice d’objet ou de matériau"
 
 
 msgid "Pass index number to convert to alpha. (Deprecated: Use Index input instead.)"
@@ -46357,7 +46365,7 @@ msgstr "Post-flou"
 
 
 msgid "Matte blur size which applies after clipping and dilate/eroding. (Deprecated: Use Postprocess Blur Size input instead.)"
-msgstr "Taille du flou de masque appliqué avant limitation et dilatation/érosion. (Obsolète : Utiliser l’entrée Postprocess taille du flou.)"
+msgstr "Taille du flou de cache appliqué avant limitation et dilatation/érosion. (Obsolète : Utiliser l’entrée Postprocess taille du flou.)"
 
 
 msgid "Pre Blur"
@@ -46373,7 +46381,7 @@ msgstr "Tronquer noir"
 
 
 msgid "Value of non-scaled matte pixel which considers as fully background pixel. (Deprecated: Use Black Level input instead.)"
-msgstr "Valeur de pixel d’incrustation non-redimensionné considéré comme totalement à l’arrière-plan. (Obsolète : utiliser l’entrée Niveau de noir.)"
+msgstr "Valeur de pixel de cache non-redimensionné considéré comme totalement à l’arrière-plan. (Obsolète : utiliser l’entrée Niveau de noir.)"
 
 
 msgid "Clip White"
@@ -46381,7 +46389,7 @@ msgstr "Tronquer blanc"
 
 
 msgid "Value of non-scaled matte pixel which considers as fully foreground pixel. (Deprecated: Use White Level input instead.)"
-msgstr "Valeur de pixel d’incrustation non-redimensionné considéré comme totalement à l’avant-plan. (Obsolète : utiliser l’entrée Niveau de blanc.)"
+msgstr "Valeur de pixel de cache non-redimensionné considéré comme totalement à l’avant-plan. (Obsolète : utiliser l’entrée Niveau de blanc.)"
 
 
 msgid "Despill Balance"
@@ -46401,7 +46409,7 @@ msgstr "Facteur avec lequel retirer de l’image la couleur de l’écran, par d
 
 
 msgid "Distance to grow/shrink the matte. (Deprecated: Use Postprocess Dilate Size input instead.)"
-msgstr "Distance à laquelle étendre ou réduire le masque. (Obsolète : utiliser l’entrée Taille de dilatation post-traitement.)"
+msgstr "Distance à laquelle étendre ou réduire le cache. (Obsolète : utiliser l’entrée Taille de dilatation post-traitement.)"
 
 
 msgid "Edge Kernel Radius"
@@ -46583,7 +46591,7 @@ msgstr "Incrustation par luminance"
 
 
 msgid "Create a matte based on luminance (brightness) difference"
-msgstr "Créer un masque d’après la différence de luminance (luminosité)"
+msgstr "Créer un cache d’après la différence de luminance (luminosité)"
 
 
 msgid "Values higher than this setting are 100% opaque"
@@ -53895,6 +53903,11 @@ msgstr "Sous-type"
 
 msgid "Subtype of the default value"
 msgstr "Sous-type de la valeur par défaut"
+
+
+msgctxt "Unit"
+msgid "Default"
+msgstr "Par défaut"
 
 
 msgid "Geometry Node Socket Interface"
@@ -62919,28 +62932,63 @@ msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
 msgstr "Autres types de géométrie, comme les courbes, métaballes, etc. (converties en maillages)"
 
 
+msgctxt "File browser"
+msgid "Path Mode"
+msgstr "Mode de chemin"
+
+
 msgid "Method used to reference paths"
 msgstr "Méthode utilisée pour désigner les chemins"
+
+
+msgctxt "File browser"
+msgid "Auto"
+msgstr "Auto"
 
 
 msgid "Use relative paths with subdirectories only"
 msgstr "Utiliser des chemins relatifs avec les sous-dossiers seulement"
 
 
+msgctxt "File browser"
+msgid "Absolute"
+msgstr "Absolu"
+
+
 msgid "Always write absolute paths"
 msgstr "Toujours écrire des chemins absolus"
+
+
+msgctxt "File browser"
+msgid "Relative"
+msgstr "Relatif"
 
 
 msgid "Write relative paths where possible"
 msgstr "Écrire des chemins relatifs si possible"
 
 
+msgctxt "File browser"
+msgid "Match"
+msgstr "Correspondance"
+
+
 msgid "Match absolute/relative setting with input path"
 msgstr "Faire correspondre le réglage absolu/relatif avec le chemin d’entrée"
 
 
+msgctxt "File browser"
+msgid "Strip"
+msgstr "Nom de fichier"
+
+
 msgid "Filename only"
 msgstr "Nom de fichier uniquement"
+
+
+msgctxt "File browser"
+msgid "Copy"
+msgstr "Copier"
 
 
 msgid "Copy the file to the destination path (or subdirectory)"
@@ -75506,11 +75554,11 @@ msgstr "Enlever cet objet ou collection de la collection de liaison de lumière"
 
 msgctxt "Operator"
 msgid "Add Light Probe"
-msgstr "Ajouter une sonde lumière"
+msgstr "Ajouter une sonde d’éclairage"
 
 
 msgid "Add a light probe object"
-msgstr "Ajouter un objet sonde lumière"
+msgstr "Ajouter un objet sonde d’éclairage"
 
 
 msgctxt "Operator"
@@ -75535,7 +75583,7 @@ msgstr "Tous les volumes"
 
 
 msgid "Bake all light probe volumes"
-msgstr "Précalculer tous les volumes des sondes lumière"
+msgstr "Précalculer tous les volumes des sondes d’éclairage"
 
 
 msgid "Selected Only"
@@ -75543,11 +75591,11 @@ msgstr "Sélectionnés uniquement"
 
 
 msgid "Only bake selected light probe volumes"
-msgstr "Ne précalculer que les volumes des sondes lumière sélectionnées"
+msgstr "Ne précalculer que les volumes des sondes d’éclairage sélectionnées"
 
 
 msgid "Only bake the active light probe volume"
-msgstr "Ne précalculer que le volume de la sonde lumière active"
+msgstr "Ne précalculer que le volume de la sonde d’éclairage active"
 
 
 msgctxt "Operator"
@@ -75560,19 +75608,19 @@ msgstr "Supprimer l’éclairage indirect en cache"
 
 
 msgid "All Light Probes"
-msgstr "Toutes les sondes lumière"
+msgstr "Toutes les sondes d’éclairage"
 
 
 msgid "Delete all light probes' baked lighting data"
-msgstr "Supprimer les données d’éclairage précalculées de toutes les sondes lumière"
+msgstr "Supprimer les données d’éclairage précalculées de toutes les sondes d’éclairage"
 
 
 msgid "Only delete selected light probes' baked lighting data"
-msgstr "Ne supprimer que les données d’éclairage précalculées des sondes lumière sélectionnées"
+msgstr "Ne supprimer que les données d’éclairage précalculées des sondes d’éclairage sélectionnées"
 
 
 msgid "Only delete the active light probe's baked lighting data"
-msgstr "Ne supprimer que les données d’éclairage précalculées de la sonde lumière active"
+msgstr "Ne supprimer que les données d’éclairage précalculées de la sonde d’éclairage active"
 
 
 msgctxt "Operator"
@@ -88861,7 +88909,7 @@ msgstr "Éclairages"
 
 msgctxt "ID"
 msgid "Light Probes"
-msgstr "Sondes lumière"
+msgstr "Sondes d’éclairage"
 
 
 msgctxt "ID"
@@ -95865,11 +95913,11 @@ msgstr "Les données d’éclairage seront dupliquées avec l’objet"
 
 
 msgid "Duplicate Light Probe"
-msgstr "Dupliquer la sonde lumière"
+msgstr "Dupliquer la sonde d’éclairage"
 
 
 msgid "Causes light probe data to be duplicated with the object"
-msgstr "Les données de sonde lumière seront dupliquées avec l’objet"
+msgstr "Les données de sonde d’éclairage seront dupliquées avec l’objet"
 
 
 msgid "Duplicate Material"
@@ -97247,7 +97295,7 @@ msgstr "Cette installation de Blender est-elle une version bac à sable du Micro
 
 
 msgid "Legacy Compute Device Type"
-msgstr "Type de périphérique de calculs hérité"
+msgstr "Type de périphérique de calcul hérité"
 
 
 msgid "For backwards compatibility only"
@@ -99410,7 +99458,7 @@ msgstr "Calculs GPU"
 
 
 msgid "Use GPU compute device for rendering, configured in the system tab in the user preferences"
-msgstr "Utiliser un périphérique de calculs GPU pour le rendu, configuré dans l’onglet système des préférences utilisateur"
+msgstr "Utiliser un périphérique de calcul GPU pour le rendu, configuré dans l’onglet système des préférences utilisateur"
 
 
 msgid "Dicing Camera"
@@ -103602,7 +103650,7 @@ msgstr "Limiter pour surface, indirect"
 
 
 msgid "If non-zero, the maximum value for indirect lighting on surface. Higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy. Used by ray-tracing and light-probes."
-msgstr "Si non-nulle, la valeur maximale de l’éclairage indirect sur une surface. Les valeurs plus élevées seront réduites pour éviter trop de bruit et une convergence trop lente, au prix de la précision. Utilisé par le lancer de rayon et les sondes lumière."
+msgstr "Si non-nulle, la valeur maximale de l’éclairage indirect sur une surface. Les valeurs plus élevées seront réduites pour éviter trop de bruit et une convergence trop lente, au prix de la précision. Utilisé par le lancer de rayon et les sondes d’éclairage."
 
 
 msgid "Clamp Volume Direct"
@@ -103618,7 +103666,7 @@ msgstr "Limiter pour volumes, indirect"
 
 
 msgid "If non-zero, the maximum value for indirect lighting in volumes. Higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy. Used by light-probes."
-msgstr "Si non-nulle, la valeur maximale de l’éclairage indirect dans les volumes. Les valeurs plus élevées seront réduites pour éviter trop de bruit et une convergence trop lente, au prix de la précision. Utilisé par le lancer de rayon et les sondes lumière."
+msgstr "Si non-nulle, la valeur maximale de l’éclairage indirect dans les volumes. Les valeurs plus élevées seront réduites pour éviter trop de bruit et une convergence trop lente, au prix de la précision. Utilisé par le lancer de rayon et les sondes d’éclairage."
 
 
 msgid "Bias the shading normal to reduce self intersection artifacts"
@@ -103842,7 +103890,7 @@ msgstr "Sélectionner la méthode de lancer à utiliser pour trouver les interse
 
 
 msgid "Use light probes to find scene intersection"
-msgstr "Utiliser des sondes lumières pour trouver les intersections de scène"
+msgstr "Utiliser des sondes d’éclairage pour trouver les intersections de scène"
 
 
 msgid "Screen-Trace"
@@ -103850,7 +103898,7 @@ msgstr "Lancer en espace écran"
 
 
 msgid "Raytrace against the depth buffer. Fallback to light probes for invalid rays."
-msgstr "Lancer les rayons dans le tampon de profondeur. Se rabat sur les sondes lumières pour les rayons invalides."
+msgstr "Lancer les rayons dans le tampon de profondeur. Se rabat sur les sondes d’éclairage pour les rayons invalides."
 
 
 msgid "Reflection Trace Options"
@@ -106736,7 +106784,7 @@ msgstr "Afficher les autres objets"
 
 
 msgid "Show curves, lattices, light probes, fonts, ..."
-msgstr "Afficher les courbes, lattices, sondes lumière, polices, …"
+msgstr "Afficher les courbes, lattices, sondes d’éclairage, polices, …"
 
 
 msgid "Show All View Layers"
@@ -107563,7 +107611,7 @@ msgstr "Permettre la sélection des éclairages"
 
 
 msgid "Allow selection of light probes"
-msgstr "Permettre la sélection des sondes lumière"
+msgstr "Permettre la sélection des sondes d’éclairage"
 
 
 msgid "Allow selection of mesh objects"
@@ -107627,7 +107675,7 @@ msgstr "Afficher les éclairages"
 
 
 msgid "Show light probes"
-msgstr "Afficher les sondes lumière"
+msgstr "Afficher les sondes d’éclairage"
 
 
 msgid "Show metaballs"
@@ -111125,7 +111173,7 @@ msgstr "Nœud de disposition"
 
 
 msgid "Matte Node"
-msgstr "Nœud d’incrustation"
+msgstr "Nœud de cache"
 
 
 msgid "Node Backdrop"
@@ -114445,7 +114493,7 @@ msgstr "Éclairages de la scène"
 
 
 msgid "Render lights and light probes of the scene"
-msgstr "Rendre les éclairages et sondes lumière de la scène"
+msgstr "Rendre les éclairages et sondes d’éclairage de la scène"
 
 
 msgid "Scene World"
@@ -114613,7 +114661,7 @@ msgstr "Cryptomatte exact"
 
 
 msgid "Generate a more accurate cryptomatte pass"
-msgstr "Générer une passe cryptomatte plus exacte"
+msgstr "Générer une passe Cryptomatte plus exacte"
 
 
 msgid "Cryptomatte Asset"
@@ -114621,7 +114669,7 @@ msgstr "Cryptomatte d’asset"
 
 
 msgid "Render cryptomatte asset pass, for isolating groups of objects with the same parent"
-msgstr "Rendre une passe cryptomatte d’assets, pour isoler des groupes d’objets ayant le même parent"
+msgstr "Rendre une passe Cryptomatte d’assets, pour isoler des groupes d’objets ayant le même parent"
 
 
 msgid "Cryptomatte Material"
@@ -114629,7 +114677,7 @@ msgstr "Cryptomatte de matériau"
 
 
 msgid "Render cryptomatte material pass, for isolating materials in compositing"
-msgstr "Rendre une passe cryptomatte de matériau, pour isoler des matériaux au compositing"
+msgstr "Rendre une passe Cryptomatte de matériaux, pour isoler des matériaux au compositing"
 
 
 msgid "Cryptomatte Object"
@@ -114637,7 +114685,7 @@ msgstr "Cryptomatte d’objet"
 
 
 msgid "Render cryptomatte object pass, for isolating objects in compositing"
-msgstr "Rendre une passe cryptomatte d’objet, pour isoler des objets au compositing"
+msgstr "Rendre une passe Cryptomatte d’objets, pour isoler des objets au compositing"
 
 
 msgid "Deliver Grease Pencil render result in a separate pass"
@@ -119328,8 +119376,32 @@ msgid "Blender was compiled without a viewport denoiser"
 msgstr "Blender a été compilé sans débruiteur de la vue 3D"
 
 
+msgid "Do not use compute device"
+msgstr "Ne pas utiliser de périphérique de calcul"
+
+
 msgid " (Unoptimized Performance)"
 msgstr " (Performances non-optimisées)"
+
+
+msgid "Use CUDA for GPU acceleration"
+msgstr "Utiliser CUDA pour l’accélération GPU"
+
+
+msgid "Use OptiX for GPU acceleration"
+msgstr "Utiliser OptiX pour l’accélération GPU"
+
+
+msgid "Use HIP for GPU acceleration"
+msgstr "Utiliser HIP pour l’accélération GPU"
+
+
+msgid "Use Metal for GPU acceleration"
+msgstr "Utiliser Metal pour l’accélération GPU"
+
+
+msgid "Use oneAPI for GPU acceleration"
+msgstr "Utiliser oneAPI pour l’accélération GPU"
 
 
 msgid "No compatible GPUs found for Cycles"
@@ -122120,6 +122192,30 @@ msgid "Mix Vector"
 msgstr "Mélanger les vecteurs"
 
 
+msgid "CSV (.csv)"
+msgstr "CSV (.csv)"
+
+
+msgid "Wavefront (.obj)"
+msgstr "Wavefront (.obj)"
+
+
+msgid "Stanford PLY (.ply)"
+msgstr "Stanford PLY (.ply)"
+
+
+msgid "STL (.stl)"
+msgstr "STL (.stl)"
+
+
+msgid "Text (.txt)"
+msgstr "Texte (.txt)"
+
+
+msgid "OpenVDB (.vdb)"
+msgstr "OpenVDB (.vdb)"
+
+
 msgid "For Each Element"
 msgstr "Pour chaque élément"
 
@@ -122791,11 +122887,6 @@ msgid "Spacing Along Stroke"
 msgstr "Espacement le long du trait"
 
 
-msgctxt "Operator"
-msgid "Go to Linestyle Textures Properties"
-msgstr "Aller aux propriétés des textures de style de ligne"
-
-
 msgid "Priority"
 msgstr "Priorité"
 
@@ -122987,7 +123078,7 @@ msgstr "Cacher non-sélectionnés"
 
 
 msgid "Light Probe Volume"
-msgstr "Volume de sonde lumière"
+msgstr "Volume de sonde d’éclairage"
 
 
 msgid "Intersection"
@@ -124031,7 +124122,7 @@ msgstr "Pool d’ombre"
 
 
 msgid "Light Probes Volume Pool"
-msgstr "Pool de volume des sondes lumière"
+msgstr "Pool de volume des sondes d’éclairage"
 
 
 msgid "SMAA Threshold"
@@ -124096,7 +124187,7 @@ msgstr "Regroupement de F-courbes"
 
 msgctxt "Operator"
 msgid "Bake All Light Probe Volumes"
-msgstr "Précalculer tous les volumes des sondes lumière"
+msgstr "Précalculer tous les volumes des sondes d’éclairage"
 
 
 msgid "Compositing Node Tree"
@@ -126152,6 +126243,10 @@ msgstr "Empaqueter"
 
 msgid "Original frame range: {:d}-{:d} ({:d})"
 msgstr "Intervalle de frame original : {:d}–{:d} ({:d})"
+
+
+msgid "{:d} MB"
+msgstr "{:d} Mo"
 
 
 msgid "Hz"
@@ -130260,7 +130355,7 @@ msgstr "Impossible de dé-lier « %s » non pris en charge de la collection de
 
 
 msgid "lightprobes"
-msgstr "sondes lumière"
+msgstr "sondes d’éclairage"
 
 
 msgid "linestyles"
@@ -130384,7 +130479,7 @@ msgstr "NuagePoints"
 
 
 msgid "LightProbe"
-msgstr "SondeLumière"
+msgstr "SondeÉclairage"
 
 
 msgid "GreasePencil"
@@ -131248,8 +131343,12 @@ msgid "Error: Too many lights in the scene."
 msgstr "Erreur : Trop d’éclairages dans la scène."
 
 
+msgid "Bake Lighting"
+msgstr "Précalcul d’éclairage"
+
+
 msgid "Warning: Could not allocate light probes volume pool of {} MB, using {} MB instead."
-msgstr "Attention : Impossible d’allouer {} Mo au pool de volume des sondes lumières, {} Mo seront utilisés à la place."
+msgstr "Attention : Impossible d’allouer {} Mo au pool de volume des sondes d’éclairage, {} Mo seront utilisés à la place."
 
 
 msgid "Irradiance Atlas texture could not be created"
@@ -133007,6 +133106,10 @@ msgid "G"
 msgstr "V"
 
 
+msgid "StudioLight Icon"
+msgstr "Icône d’éclairage studio"
+
+
 msgid "OS"
 msgstr "OS"
 
@@ -133570,7 +133673,7 @@ msgstr "Parcourir l’espace de travail à lier"
 
 
 msgid "Browse LightProbe to be linked"
-msgstr "Parcourir la sonde lumière à lier"
+msgstr "Parcourir la sonde d’éclairage à lier"
 
 
 msgid "Browse Curves Data to be linked"
@@ -133820,6 +133923,10 @@ msgstr "Arrêter cette tâche"
 
 msgid "Stop animation playback"
 msgstr "Arrêter la lecture d’animation"
+
+
+msgid "Canceling..."
+msgstr "Annulation…"
 
 
 msgid "Split/Dock"
@@ -134316,6 +134423,14 @@ msgid "Select and use mesh item"
 msgstr "Sélectionner et utiliser l’élément de maillage"
 
 
+msgid "Removed %d vertex"
+msgstr "%d sommet supprimé"
+
+
+msgid "Removed %d vertices"
+msgstr "%d sommets supprimés"
+
+
 msgid "Invalid selection order"
 msgstr "Ordre de sélection invalide"
 
@@ -134541,7 +134656,7 @@ msgstr "Sphère"
 
 msgctxt "Light"
 msgid "LightProbe"
-msgstr "SondeLumière"
+msgstr "SondeÉclairage"
 
 
 msgctxt "Object"
@@ -134749,6 +134864,10 @@ msgid "No objects found to bake from"
 msgstr "Aucun objet trouvé duquel précalculer"
 
 
+msgid "Multires Bake"
+msgstr "Précalcul de multirésolutions"
+
+
 msgid "Combined bake pass requires Emit, or a light pass with Direct or Indirect contributions enabled"
 msgstr "La passe de précalcul combinée nécessite la passe d’émission, ou la contribution d’une passe d’éclairage direct ou indirect"
 
@@ -134885,6 +135004,10 @@ msgid "Problem baking object \"%s\""
 msgstr "Problème lors du précalcul de l’objet « %s »"
 
 
+msgid "Texture Bake"
+msgstr "Précalcul de texture"
+
+
 msgid "Overwrite existing bake data?"
 msgstr "Écraser les données de précalcul existantes ?"
 
@@ -134915,6 +135038,14 @@ msgstr "Conflit de chemin : %d caches pointent vers le chemin %s"
 
 msgid "Cache has to be enabled"
 msgstr "Le cache doit être activé"
+
+
+msgid "Calculate Simulation"
+msgstr "Calcul de simulation"
+
+
+msgid "Bake Nodes"
+msgstr "Précalcul des nœuds"
 
 
 msgid "Remove exporter?"
@@ -135377,6 +135508,10 @@ msgid "Active object has no modifiers"
 msgstr "L’objet actif n’a aucun modificateur"
 
 
+msgid "Ocean Simulation"
+msgstr "Simulation de l’océan"
+
+
 msgid "Reshape can work only with higher levels of subdivisions"
 msgstr "Le changement de forme ne peut fonctionner qu’avec de plus hauts niveaux de subdivision"
 
@@ -135571,6 +135706,10 @@ msgstr "Le remailleur ne fonctionne pas quand la topologie dynamique est activé
 
 msgid "The remesher cannot run with a Multires modifier in the modifier stack"
 msgstr "Le remailleur ne fonctionne pas si un modificateur Multirésolutions se trouve dans la pile de modificateurs"
+
+
+msgid "QuadriFlow Remesh"
+msgstr "Remaillage avec QuadriFlow"
 
 
 msgid "Select Collection"
@@ -135837,6 +135976,10 @@ msgid "Bake failed: invalid canvas"
 msgstr "Le précalcul a échoué : toile invalide"
 
 
+msgid "Dynamic Paint Bake"
+msgstr "Précalcul de la peinture dynamique"
+
+
 msgid "Removed %d double particle(s)"
 msgstr "%d particule(s) en double enlevées"
 
@@ -135883,6 +136026,14 @@ msgstr "Fluide : impossible de créer le dossier de cache « %s », réinitia
 
 msgid "Fluid: Could not use default cache directory '%s', please define a valid cache path manually"
 msgstr "Fluide : impossible d’utiliser le dossier de cache par défaut « %s », veuillez définir un chemin de cache valide manuellement"
+
+
+msgid "Fluid Bake"
+msgstr "Précalcul du fluide"
+
+
+msgid "Fluid Free"
+msgstr "Libération du fluide"
 
 
 msgid "Library override data-blocks only support Disk Cache storage"
@@ -136145,6 +136296,14 @@ msgid "Mem:%.2fM, Peak: %.2fM"
 msgstr "Mem : %.2fM, Pointe : %.2fM"
 
 
+msgid "Rendering sequence..."
+msgstr "Rendu de la séquence…"
+
+
+msgid "Render..."
+msgstr "Rendu…"
+
+
 msgid "Cannot write a single file with an animation format selected"
 msgstr "Impossible d’écrire un fichier unique avec un format d’animation sélectionné"
 
@@ -136177,6 +136336,10 @@ msgid "Skipping existing frame \"%s\""
 msgstr "La frame existante « %s » est ignorée"
 
 
+msgid "Viewport Render"
+msgstr "Rendu de la vue 3D"
+
+
 msgid "Node groups do not support automatic previews"
 msgstr "Les aperçus automatiques ne sont pas pris en charge pour les groupes de nœuds"
 
@@ -136193,12 +136356,24 @@ msgid "Data-block type does not support automatic previews"
 msgstr "Ce type de bloc de données ne prend pas en charge les aperçus automatiques"
 
 
+msgid "Load Previews"
+msgstr "Chargement des aperçus"
+
+
+msgid "Icon Preview"
+msgstr "Aperçus des icônes"
+
+
+msgid "Shader Preview"
+msgstr "Aperçu des shaders"
+
+
 msgid "Unable to remove material slot in edit mode"
 msgstr "Impossible de supprimer un emplacement de matériau en mode édition"
 
 
 msgid "Can't bake light probe while rendering"
-msgstr "Impossible de précalculer la sonde lumière pendant un rendu"
+msgstr "Impossible de précalculer la sonde d’éclairage pendant un rendu"
 
 
 msgid "No active lineset and associated line style to manipulate the modifier"
@@ -136648,6 +136823,10 @@ msgstr "Aucun objet vide image sélectionné"
 
 msgid "No valid image format selected"
 msgstr "Aucun format d’image valide sélectionné"
+
+
+msgid "Trace Image"
+msgstr "Traçage de l’image"
 
 
 msgid "PaintCurve"
@@ -137118,6 +137297,10 @@ msgid "File: %s"
 msgstr "Fichier : %s"
 
 
+msgid "Prefetching"
+msgstr "Préchargement"
+
+
 msgid "Delete track corresponding to the selected curve?"
 msgstr "Supprimer la piste correspondant à la courbe sélectionnée ?"
 
@@ -137132,6 +137315,10 @@ msgstr "Aucun fichier sélectionné à ouvrir"
 
 msgid "Cannot read '%s': %s"
 msgstr "Impossible de lire « %s », %s"
+
+
+msgid "Building Proxies"
+msgstr "Génération des proxies"
 
 
 msgid "Place Marker"
@@ -137190,6 +137377,10 @@ msgid "Average re-projection error: %.2f px"
 msgstr "Erreur de reprojection moyenne : %.2f px"
 
 
+msgid "Solve Camera"
+msgstr "Résolution de la caméra"
+
+
 msgid "Track the selected markers backward for the entire clip"
 msgstr "Suivre les marqueurs sélectionnés vers l’arrière, sur toute la durée du clip"
 
@@ -137204,6 +137395,10 @@ msgstr "Suivre les marqueurs sélectionnés vers l’avant, sur toute la durée 
 
 msgid "Track the selected markers forward by one frame"
 msgstr "Suivre les marqueurs sélectionnés vers l’avant, sur une frame"
+
+
+msgid "Track Markers"
+msgstr "Suivi des marqueurs"
 
 
 msgid "New lines unsupported, call this operator multiple times"
@@ -137386,8 +137581,16 @@ msgid "Asset Catalogs"
 msgstr "Catalogues d’assets"
 
 
+msgid "Listing Dirs..."
+msgstr "Listage des dossiers…"
+
+
 msgid "Date Modified"
 msgstr "Date de modification"
+
+
+msgid "Validating Bookmarks..."
+msgstr "Validation des signets…"
 
 
 msgid "Home"
@@ -138160,19 +138363,19 @@ msgstr "Frame : %d"
 
 
 msgid "Matte Objects:"
-msgstr "Objets masques :"
+msgstr "Objets caches :"
 
 
 msgid "Add Crypto Layer"
-msgstr "Ajouter un calque crypto"
+msgstr "Ajouter un calque Crypto"
 
 
 msgid "Remove Crypto Layer"
-msgstr "Supprimer le calque crypto"
+msgstr "Supprimer le calque Crypto"
 
 
 msgid "Matte ID:"
-msgstr "ID de masque :"
+msgstr "ID de cache :"
 
 
 msgid "Squash"
@@ -138471,6 +138674,22 @@ msgid "Dangling reroute is ignored, default value of target socket is used"
 msgstr "Le nœud de reroutage non-connecté sera ignoré, la valeur par défaut de la prise cible sera utilisée"
 
 
+msgid "(Single Value)"
+msgstr "(une seule valeur)"
+
+
+msgid "(Dynamic Structure Type)"
+msgstr "(type à structure dynamique)"
+
+
+msgid "(Field)"
+msgstr "(champ)"
+
+
+msgid "(Volume Grid)"
+msgstr "(grille de volume)"
+
+
 msgid "Connect a link to create a new socket"
 msgstr "Connecter un lien pour créer une nouvelle prise"
 
@@ -138551,6 +138770,10 @@ msgid "There is no parent group node in this context"
 msgstr "Il n’y a pas de groupe de nœuds parent dans ce contexte"
 
 
+msgid "Shader Previews"
+msgstr "Aperçus des shaders"
+
+
 msgid "Disconnect"
 msgstr "Déconnecter"
 
@@ -138609,6 +138832,10 @@ msgstr "Impossible d’ajouter une étiquette de couleur à une collection liée
 
 msgid "Cannot delete collection '%s', it is either a linked one used by other linked scenes/collections, or a library override one"
 msgstr "Impossible de supprimer la collection « %s », elle est soit liée et utilisée par d’autres scènes ou collections liées, soit une redéfinition de bibliothèque"
+
+
+msgid "Unable to duplicate %d of the selected collections. Could not find a valid parent collection for the new duplicate, they won't be linked to any view layer"
+msgstr "Impossible de dupliquer %d des collections sélectionnées. Aucune collection parente valide n’a été trouvée pour les nouveaux duplicats, elles ne seront liées à aucun calque de vue"
 
 
 msgid "Reorder"
@@ -139277,6 +139504,10 @@ msgstr "Sélectionner une ou plusieurs bandes"
 
 msgid "Can't set a negative range"
 msgstr "Impossible de définir un intervalle négatif"
+
+
+msgid "Strip Previews"
+msgstr "Prévisualisation des bandes"
 
 
 msgid "Set Selected Strip Proxies"
@@ -140639,6 +140870,10 @@ msgid "Unwrap failed to solve %d of %d island(s), edge seams may need to be adde
 msgstr "Le dépliage n’a pas pu résoudre %d îlot(s) sur %d, il faut peut-être ajouter des coutures d’arêtes"
 
 
+msgid "Packing UVs"
+msgstr "Empilement des UV"
+
+
 msgid "Freestyle: Mesh loading"
 msgstr "Freestyle : Chargement du maillage"
 
@@ -140701,6 +140936,10 @@ msgstr "Le format d’image n’est pas un format vidéo"
 
 msgid "Audio sample format unsupported"
 msgstr "Format d’échantillonnage audio non pris en charge"
+
+
+msgid "Alembic Export"
+msgstr "Export Alembic"
 
 
 msgid "Object type mismatch, Alembic object path pointed to Camera when importing, but not any more"
@@ -140777,6 +141016,10 @@ msgstr "Incohérence du type d’objet, le chemin d’objet Alembic pointe vers 
 
 msgid "Invalid object: verify object path"
 msgstr "Objet invalide : vérifier le chemin d’objet"
+
+
+msgid "Alembic Import"
+msgstr "Import Alembic"
 
 
 msgid "CSV Import: Cannot open file '%s'"
@@ -140955,12 +141198,20 @@ msgid "USD Export: Unable to find collection '%s'"
 msgstr "Export USD : collection « %s » introuvable"
 
 
+msgid "USD Export"
+msgstr "Export USD"
+
+
 msgid "Could not open USD archive for reading, see console for detail"
 msgstr "Ouverture en lecture de l’archive USD impossible, voir la console pour plus de détails"
 
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "Import USD : impossible d’ouvrir l’étage pour lire %s"
+
+
+msgid "USD Import"
+msgstr "Import USD"
 
 
 msgid "One or more objects used as prototypes in 'Instance on Points' nodes either do not have 'As Instance' enabled in their 'Object Info' nodes, or the prototype is the base geometry input itself. Both cases prevent valid point instancer export. If it's the former, enable 'As Instance' to avoid incorrect self-referencing."
@@ -144491,11 +144742,11 @@ msgstr "Balance"
 
 
 msgid "Garbage Matte"
-msgstr "Masque patate"
+msgstr "Cache patate"
 
 
 msgid "Core Matte"
-msgstr "Masque central"
+msgstr "Cache central"
 
 
 msgid "Dilate Size"
@@ -144504,6 +144755,11 @@ msgstr "Taille de dilatation"
 
 msgid "Feather Size"
 msgstr "Taille de l’adoucissement"
+
+
+msgctxt "Image"
+msgid "Edges"
+msgstr "Contours"
 
 
 msgid "Blur the color of the input image in YCC color space before keying while leaving the luminance intact using a Gaussian blur of the given size"
@@ -144515,11 +144771,11 @@ msgstr "Fait une balance entre les deux canaux de couleur non-primaires auquel l
 
 
 msgid "The matte gets remapped such matte values lower than the black level become black. Pixels at the identified edges are excluded from the remapping to preserve details"
-msgstr "Le masque est converti de façon à ce que les valeurs plus basses que le niveau de noir deviennent noires. Les pixels placés sur les contours identifiés sont exclus de la conversion pour conserver les détails"
+msgstr "Le cache est converti de façon à ce que les valeurs plus basses que le niveau de noir deviennent noires. Les pixels placés sur les contours identifiés sont exclus de la conversion pour conserver les détails"
 
 
 msgid "The matte gets remapped such matte values higher than the white level become white. Pixels at the identified edges are excluded from the remapping to preserve details"
-msgstr "Le masque est converti de façon à ce que les valeurs plus hautes que le niveau de blanc deviennent blanches. Les pixels placés sur les contours identifiés sont exclus de la conversion pour conserver les détails"
+msgstr "Le cache est converti de façon à ce que les valeurs plus hautes que le niveau de blanc deviennent blanches. Les pixels placés sur les contours identifiés sont exclus de la conversion pour conserver les détails"
 
 
 msgid "Size of the search window used to identify edges. Higher search size corresponds to less noisy and higher quality edges, not necessarily bigger edges. Edge tolerance can be used to expend the size of the edges"
@@ -144527,27 +144783,27 @@ msgstr "Taille de la fenêtre de recherche pour identifier les contours. Une tai
 
 
 msgid "Pixels are considered part of the edges if more than 10% of the neighbouring pixels have matte values that differ from the pixel's matte value by this tolerance"
-msgstr "On considère que les pixels font partie des contours si plus de 10% des pixels voisins ont des valeurs de masque différentes de celle du pixel de cette valeur de tolérance"
+msgstr "On considère que les pixels font partie des contours si plus de 10% des pixels voisins ont des valeurs de cache différentes de celle du pixel de cette valeur de tolérance"
 
 
 msgid "Areas in the garbage matte mask are excluded from the matte"
-msgstr "Les zones dans le masque patate sont exclues du masque"
+msgstr "Les zones dans le masque patate sont exclues du cache"
 
 
 msgid "Areas in the core matte mask are included in the matte"
-msgstr "Les zones dans le masque centrale sont incluses dans le masque"
+msgstr "Les zones dans le cache central sont incluses dans le cache"
 
 
 msgid "Blur the computed matte using a Gaussian blur of the given size"
-msgstr "Flouter le masque calculé en utilisant un flou gaussien de la taille donnée"
+msgstr "Flouter le cache calculé en utilisant un flou gaussien de la taille donnée"
 
 
 msgid "Dilate or erode the computed matte using a circular structuring element of the specified size. Negative sizes means erosion while positive means dilation"
-msgstr "Dilater ou éroder le masque calculé en utilisant un élément circulaire structurant de la taille spécifiée. Les tailles négatives donnent une érosion, et les tailles positives, une dilatation"
+msgstr "Dilater ou éroder le cache calculé en utilisant un élément circulaire structurant de la taille spécifiée. Les tailles négatives donnent une érosion, et les tailles positives, une dilatation"
 
 
 msgid "Dilate or erode the computed matte using an inverse distance operation evaluated at the given falloff of the specified size. Negative sizes means erosion while positive means dilation"
-msgstr "Dilater ou éroder le masque calculé en utilisant une opération de distance inverse, évaluée à l’atténuation donnée, de la taille spécifiée. Les tailles négatives donnent une érosion, et les tailles positives, une dilatation"
+msgstr "Dilater ou éroder le cache calculé en utilisant une opération de distance inverse, évaluée à l’atténuation donnée, de la taille spécifiée. Les tailles négatives donnent une érosion, et les tailles positives, une dilatation"
 
 
 msgid "Specifies the strength of the despill"
@@ -144568,6 +144824,11 @@ msgstr "Post-traitement"
 
 msgid "Despill"
 msgstr "Despill"
+
+
+msgctxt "NodeTree"
+msgid "Key"
+msgstr "Incrustation"
 
 
 msgid "Specifies the smoothness of the keying screen"
@@ -145125,6 +145386,11 @@ msgstr "Écart type"
 
 msgid "Variance"
 msgstr "Variance"
+
+
+msgctxt "NodeTree"
+msgid "Median"
+msgstr "Médiane"
 
 
 msgid "Bake Items"
@@ -148490,6 +148756,10 @@ msgstr "Lecture du résultat de rendu : canaux attendus « %s.%s » ou « %s
 
 msgid "Reading render result: expected channel \"%s.%s\" not found"
 msgstr "Lecture du résultat de rendu : canal attendu « %s.%s » introuvable"
+
+
+msgid "Strip Thumbnails"
+msgstr "Miniatures des bandes"
 
 
 msgid "Channel %d"

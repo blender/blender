@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
 "PO-Revision-Date: 2025-04-14 08:33+0000\n"
 "Last-Translator: Brecht Van Lommel <brechtvanlommel@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2702,6 +2702,14 @@ msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
 
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
 msgid "Mirror"
 msgstr "Spiegel"
 
@@ -2752,14 +2760,6 @@ msgstr "Haken"
 
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgctxt "MovieClip"

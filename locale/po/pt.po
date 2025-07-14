@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'ca38e3be9467')\n"
+"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-07-07 10:02+0000\n"
-"PO-Revision-Date: 2025-07-04 19:59+0000\n"
+"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"PO-Revision-Date: 2025-07-11 23:59+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -10796,6 +10796,14 @@ msgstr "Mostrar treliças"
 
 msgid "Include visualization of lattice related animation data"
 msgstr "Inclui a visualização dos dados de animação relacionados a treliças."
+
+
+msgid "Display Light Probe"
+msgstr "Mostrar Sonda de Luz"
+
+
+msgid "Include visualization of lightprobe related animation data"
+msgstr "Incluir visualização de dados de animação relacionados com sondas de luz"
 
 
 msgid "Display Light"
@@ -34631,12 +34639,36 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Metaball"
+msgstr "Esfera-meta"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem do osso"
 
 
 msgid "Pivot Point"
@@ -34723,10 +34755,6 @@ msgid "Assign Material"
 msgstr "Aplicar Material"
 
 
-msgid "Metaball"
-msgstr "Esfera-meta"
-
-
 msgid "Light"
 msgstr "Leve"
 
@@ -34811,10 +34839,6 @@ msgid "Bone Collections"
 msgstr "Colecções de Ossos"
 
 
-msgid "Names"
-msgstr "Nomes"
-
-
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
@@ -34845,22 +34869,6 @@ msgstr "Definir Força das Faces"
 
 msgid "Merge"
 msgstr "Fundir"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem do osso"
 
 
 msgid "Keyframe Insert Pie"
@@ -53888,8 +53896,18 @@ msgid "Minimum value"
 msgstr "Valor mínimo"
 
 
+msgctxt "Unit"
+msgid "Subtype"
+msgstr "Subtipo"
+
+
 msgid "Subtype of the default value"
 msgstr "Subtipo do valor pré definido"
+
+
+msgctxt "Unit"
+msgid "Default"
+msgstr "Padrão"
 
 
 msgid "Geometry Node Socket Interface"
@@ -62914,24 +62932,63 @@ msgid "Other geometry types, like curve, metaball, etc. (converted to meshes)"
 msgstr "Outros tipos de geometria, como curvas, esferas-meta, etc (convertida em malhas)."
 
 
+msgctxt "File browser"
+msgid "Path Mode"
+msgstr "Modo de Caminho"
+
+
 msgid "Method used to reference paths"
 msgstr "Método usado para referenciar caminhos"
+
+
+msgctxt "File browser"
+msgid "Auto"
+msgstr "Auto"
 
 
 msgid "Use relative paths with subdirectories only"
 msgstr "Usa apenas caminhos relativos com subpastas"
 
 
+msgctxt "File browser"
+msgid "Absolute"
+msgstr "Absoluto"
+
+
 msgid "Always write absolute paths"
 msgstr "Sempre escrever caminhos absolutos"
+
+
+msgctxt "File browser"
+msgid "Relative"
+msgstr "Relativo"
+
+
+msgid "Write relative paths where possible"
+msgstr "Guardar caminhos relativos onde for possível"
+
+
+msgctxt "File browser"
+msgid "Match"
+msgstr "Corresponder"
 
 
 msgid "Match absolute/relative setting with input path"
 msgstr "Combinar definições absolutas/relativas com o caminho de entrada"
 
 
+msgctxt "File browser"
+msgid "Strip"
+msgstr "Remover"
+
+
 msgid "Filename only"
 msgstr "Apenas nome de ficheiro"
+
+
+msgctxt "File browser"
+msgid "Copy"
+msgstr "Copiar"
 
 
 msgid "Copy the file to the destination path (or subdirectory)"
@@ -83482,9 +83539,26 @@ msgid "Alpha Under"
 msgstr "Alfa por baixo"
 
 
+msgid "Blend alpha below another video"
+msgstr "Misturar alpha por baixo de outro vídeo"
+
+
+msgctxt "Sequence"
+msgid "Gamma Crossfade"
+msgstr "Transição de Desvanecimento Gama"
+
+
+msgid "Crossfade with color correction"
+msgstr "Transição de desvanecimento com correcção de cor"
+
+
 msgctxt "Sequence"
 msgid "Multiply"
 msgstr "Multiplicar"
+
+
+msgid "Multiply color channels from two videos"
+msgstr "Multiplicar canais de cor de dois vídeos"
 
 
 msgctxt "Sequence"
@@ -83492,9 +83566,17 @@ msgid "Wipe"
 msgstr "Varredura"
 
 
+msgid "Sweep a transition line across the frame"
+msgstr "Varrer uma linha de transição ao longo da tela"
+
+
 msgctxt "Sequence"
 msgid "Glow"
 msgstr "Incandescência"
+
+
+msgid "Add blur and brightness to light areas"
+msgstr "Adicionar desfoque e brilho a áreas iluminadas"
 
 
 msgctxt "Sequence"
@@ -83502,14 +83584,26 @@ msgid "Transform"
 msgstr "Transformar"
 
 
+msgid "Apply scale, rotation, or translation"
+msgstr "Aplicar escala, rotação ou translação"
+
+
 msgctxt "Sequence"
 msgid "Color"
 msgstr "Cor"
 
 
+msgid "Add a simple color strip"
+msgstr "Adicionar uma faixa de cor simples"
+
+
 msgctxt "Sequence"
 msgid "Speed"
 msgstr "Velocidade"
+
+
+msgid "Timewarp video strips, modifying playback speed"
+msgstr "Saltar no tempo de faixas vídeo, modificando a velocidade de reprodução"
 
 
 msgctxt "Sequence"
@@ -83737,6 +83831,10 @@ msgid "Fade In and Out"
 msgstr "Desvanecimento de Entrada e Saída"
 
 
+msgid "Fade selected strips in and out"
+msgstr "Desvanecer entrada e saída das faixas seleccionadas"
+
+
 msgid "Fade In"
 msgstr "Desvanecimento de Entrada"
 
@@ -83919,8 +84017,20 @@ msgid "Adjust Playback Rate"
 msgstr "Ajustar Velocidade de Reprodução"
 
 
+msgid "Play at normal speed regardless of scene FPS"
+msgstr "Reproduzir velocidade normal independentemente dos fotogramas por segundo da cena"
+
+
 msgid "Load sound with the movie"
 msgstr "Carrega o som junto com o filme."
+
+
+msgid "Set Scene Frame Rate"
+msgstr "Definir Taxa de Fotogramas da Cena"
+
+
+msgid "Set frame rate of the current scene to the frame rate of the movie"
+msgstr "Definir a taxa de fotogramas da cena conforme a taxa do filme"
 
 
 msgctxt "Operator"
@@ -83963,6 +84073,10 @@ msgid "Paste strips from the internal clipboard"
 msgstr "Colar faixas da área de transferência interna"
 
 
+msgid "Keep strip offset relative to the current frame when pasting"
+msgstr "Manter deslocamento da faixa relativo ao fotograma actual ao colar"
+
+
 msgctxt "Operator"
 msgid "Reassign Inputs"
 msgstr "Reatribuir entradas"
@@ -83970,6 +84084,10 @@ msgstr "Reatribuir entradas"
 
 msgid "Reassign the inputs for the effect strip"
 msgstr "Reatribui as entradas para a faixa de efeito."
+
+
+msgid "Rebuild all selected proxies and timecode indices"
+msgstr "Reconstruir todas as aproximações seleccionadas e os índices de códigos temporais"
 
 
 msgctxt "Operator"
@@ -84003,8 +84121,134 @@ msgid "Set Render Size"
 msgstr "Definir tamanho de renderização"
 
 
+msgid "Set render size and aspect from active strip"
+msgstr "Definir tamanho de renderização e o proporções a partir da sequência activa"
+
+
+msgctxt "Operator"
+msgid "Add Freeze Frame And Slide"
+msgstr "Adicionar fotograma congelado e deslise"
+
+
+msgid "Add freeze frame and move it"
+msgstr "Adicionar fotograma congelado e movê-lo"
+
+
+msgid "Add Freeze Frame"
+msgstr "Adicionar Fotograma Congelado"
+
+
+msgid "Add freeze frame"
+msgstr "Adicionar um fotograma congelado"
+
+
+msgctxt "Operator"
+msgid "Add Speed Transition And Slide"
+msgstr "Adicionar Transição de velocidade e Deslize"
+
+
+msgid "Add smooth transition between 2 retimed segments and change its duration"
+msgstr "Adicionar uma transição suave entre dois segmentos recronometrados e alterar a sua duração"
+
+
+msgid "Add Speed Transition"
+msgstr "Adicionar Transição de Velocidade"
+
+
+msgid "Add smooth transition between 2 retimed segments"
+msgstr "Adicionar uma transição suave entre dois segmentos recronometrados"
+
+
+msgctxt "Operator"
+msgid "Add Freeze Frame"
+msgstr "Adicionar um Fotograma Congelado"
+
+
+msgid "Duration of freeze frame segment"
+msgstr "Duração do segmento congelado"
+
+
+msgctxt "Operator"
+msgid "Add Retiming Key"
+msgstr "Adicionar Chave de Recronometragem"
+
+
+msgid "Add retiming Key"
+msgstr "Adicionar chave de recronometragem"
+
+
+msgid "Timeline Frame"
+msgstr "Fotograma da Linha de Tempo"
+
+
+msgid "Frame where key will be added"
+msgstr "Fotograma onde a chave será adicionada"
+
+
+msgctxt "Operator"
+msgid "Delete Retiming Keys"
+msgstr "Apagar Chaves de Recronometragem"
+
+
+msgid "Delete selected retiming keys from the sequencer"
+msgstr "Apagar chaves de recronometragem seleccionadas do editor de sequências"
+
+
+msgctxt "Operator"
+msgid "Reset Retiming"
+msgstr "Repor Recronometragem"
+
+
+msgid "Reset strip retiming"
+msgstr "Repor ajustes de tempo da faixa"
+
+
+msgctxt "Operator"
+msgid "Set Speed"
+msgstr "Definir Velocidade"
+
+
+msgid "Set speed of retimed segment"
+msgstr "Definir tempo do segmento recronometrado"
+
+
+msgid "Preserve Current Retiming"
+msgstr "Manter Recronometragem Actual"
+
+
+msgid "Keep speed of other segments unchanged, change strip length instead"
+msgstr "Manter velocidade dos outros segmentos inalterada, alterar comprimento da faixa"
+
+
+msgid "New speed of retimed segment"
+msgstr "Nova velocidade do segmento recronometrado"
+
+
+msgctxt "Operator"
+msgid "Retime Strips"
+msgstr "Recronometrar Faixas"
+
+
+msgid "Show retiming keys in selected strips"
+msgstr "Mostrar chaves de ajuste de tempo nas faixas seleccionadas"
+
+
+msgctxt "Operator"
+msgid "Add Speed Transition"
+msgstr "Adicionar Transição de Velocidade"
+
+
 msgid "Use mouse to sample color in current frame"
 msgstr "Usa o rato para obter uma amostra de cor no fotograma actual."
+
+
+msgctxt "Operator"
+msgid "Update Scene Frame Range"
+msgstr "Actualizar Intervalo de Fotogramas a Cena"
+
+
+msgid "Update frame range of scene strip"
+msgstr "Actualizar intervalo de fotogramas da faixa de cena"
 
 
 msgctxt "Operator"
@@ -84012,8 +84256,49 @@ msgid "Add Scene Strip"
 msgstr "Adicionar faixa de cena"
 
 
+msgid "Add a strip to the sequencer using a Blender scene as a source"
+msgstr "Adicionar uma faixa ao editor de sequências usando uma cena Blender como origem"
+
+
+msgctxt "Operator"
+msgid "Add Strip with a new Scene"
+msgstr "Adicionar uma Faixa com uma nova Cena"
+
+
+msgid "Create a new Strip and assign a new Scene as source"
+msgstr "Criar nova faixa e atribuir nova cena como origem"
+
+
+msgid "Add new Strip with a new empty Scene with default settings"
+msgstr "Criar nova faixa com nova cena vazia como origem"
+
+
+msgid "Add a new Strip, with an empty scene, and copy settings from the current scene"
+msgstr "Adicionar nova faixa, com uma cena vazia, copiar definições da cena actual"
+
+
+msgid "Add a Strip and link in the collections from the current scene (shallow copy)"
+msgstr "Adicionar faixa e vincular colecções da cena actual (copia rápida)"
+
+
+msgid "Add a Strip and make a full copy of the current scene"
+msgstr "Adicionar faixa e fazer cópia completa da cena actual"
+
+
 msgid "Select a strip (last selected becomes the \"active strip\")"
 msgstr "Selecciona uma faixa (a última seleccionada se torna a \"faixa activa\")."
+
+
+msgid "Use the object center when selecting, in edit mode used to extend object selection"
+msgstr "Usar centro do objecto durante a selecção, usado para expandir selecção em modo de edição"
+
+
+msgid "Ignore Connections"
+msgstr "Ignorar Conexões"
+
+
+msgid "Select strips individually whether or not they are connected"
+msgstr "Seleccionar faixas individualmente, quer estejam conectadas quer não"
 
 
 msgid "Linked Handle"
@@ -84028,12 +84313,36 @@ msgid "Linked Time"
 msgstr "Tempo conectado"
 
 
+msgid "Select other strips or handles at the same time, or all retiming keys after the current in retiming mode"
+msgstr "Seleccionar outras faixas ou manípulos ao mesmo tempo, ou todas as chaves de recronometragem após o actual modo de recronometragem"
+
+
+msgid "Side of Frame"
+msgstr "Lado do Fotograma"
+
+
+msgid "Select all strips on same side of the current frame as the mouse cursor"
+msgstr "Seleccionar faixas do mesmo lado do cursor do rato em relação ao fotograma actual"
+
+
 msgid "Select or deselect all strips"
 msgstr "Selecciona ou desseleciona todas as faixas."
 
 
 msgid "Select strips using box selection"
 msgstr "Seleccionar faixas usando rectângulo de selecção"
+
+
+msgid "Select Handles"
+msgstr "Seleccionar Manípulos"
+
+
+msgid "Select the strips and their handles"
+msgstr "Seleccionar as faixas e os seus manípulos"
+
+
+msgid "Make box select pass through to sequence slide when the cursor is hovering on a strip"
+msgstr "Fazer o rectângulo de selecção converter em acção de deslisar ao pairar cursor sobre faixa"
 
 
 msgid "Select all strips grouped by various properties"
@@ -84046,6 +84355,10 @@ msgstr "Tipo de faixa partilhado"
 
 msgid "Global Type"
 msgstr "Tipo global"
+
+
+msgid "All strips of same basic type (graphical or sound)"
+msgstr "Todas as faixas do mesmo tipo básico (gráficos ou sons)"
 
 
 msgid "Shared strip effect type (if active strip is not an effect one, select all non-effect strips)"
@@ -84089,12 +84402,37 @@ msgstr "Considera apenas as faixas que estão no mesmo canal que a faixa activa.
 
 
 msgctxt "Operator"
+msgid "Select Handle"
+msgstr "Seleccionar Manípulo"
+
+
+msgid "Select strip handle"
+msgstr "Seleccionar manípulo da faixa"
+
+
+msgctxt "Operator"
 msgid "Select Handles"
 msgstr "Seleccionar hastes"
 
 
+msgid "Select gizmo handles on the sides of the selected strip"
+msgstr "Selecciona manipulador em ambos os lados da faixa seleccionada"
+
+
 msgid "The side of the handle that is selected"
 msgstr "O tamanho do manipulador que está seleccionado."
+
+
+msgid "Left Neighbor"
+msgstr "Vizinho Esquerdo"
+
+
+msgid "Right Neighbor"
+msgstr "Vizinho Direito"
+
+
+msgid "Both Neighbors"
+msgstr "Ambos os Vizinhos"
 
 
 msgid "Shrink the current selection of adjacent selected strips"
@@ -84118,12 +84456,76 @@ msgid "Select more strips adjacent to the current selection"
 msgstr "Selecciona mais faixas adjacentes a selecção actual."
 
 
+msgctxt "Operator"
+msgid "Select Side"
+msgstr "Lado de Selecção"
+
+
 msgid "Select strips on the nominated side of the selected strips"
 msgstr "Seleccionar faixas do lado denominado das faixas seleccionadas"
 
 
+msgid "The side to which the selection is applied"
+msgstr "O lado para o qual a selecção é aplicada"
+
+
+msgid "No Change"
+msgstr "Inalterado"
+
+
+msgctxt "Operator"
+msgid "Select Side of Frame"
+msgstr "Seleccionar Lado do Fotograma"
+
+
+msgid "Select strips relative to the current frame"
+msgstr "Seleccionar faixas relativas ao fotograma actual"
+
+
+msgid "Select to the left of the current frame"
+msgstr "Seleccionar à esquerda do fotograma actual"
+
+
+msgid "Select to the right of the current frame"
+msgstr "Seleccionar à direita do fotograma actual"
+
+
+msgid "Select intersecting with the current frame"
+msgstr "Seleccionar intersectante com o fotograma actual"
+
+
+msgctxt "Operator"
+msgid "Set Range to Strips"
+msgstr "Definir Intervalo a Partir das Faixas"
+
+
+msgid "Set the frame range to the selected strips start and end"
+msgstr "Definir intervalo de fotogramas como início e fim das faixas seleccionadas"
+
+
+msgid "Set the preview range instead"
+msgstr "Definir Intervalo de Pré-Visualização"
+
+
+msgctxt "Operator"
+msgid "Slip Strips"
+msgstr "Desliza Faixas"
+
+
+msgid "Slip the contents of selected strips"
+msgstr "Deslizar conteúdos das faixas seleccionadas"
+
+
 msgid "Offset to the data of the strip"
 msgstr "Deslocamento dos dados da faixa."
+
+
+msgid "Slip Keyframes"
+msgstr "Deslizar Fotogramas Chave"
+
+
+msgid "Move the keyframes alongside the media"
+msgstr "Mover fotogramas chave ao longo da media"
 
 
 msgctxt "Operator"
@@ -84152,6 +84554,50 @@ msgid "Merge all the sound's channels into one"
 msgstr "Funde todos os canais de som em um único canal."
 
 
+msgid "Split the selected strips in two"
+msgstr "Dividir as faixas seleccionadas em dois"
+
+
+msgid "Channel in which strip will be cut"
+msgstr "Canal no qual a faixa será cortada"
+
+
+msgid "Frame where selected strips will be split"
+msgstr "Fotograma no qual as faixas seleccionadas serão cortadas"
+
+
+msgid "Ignore Selection"
+msgstr "Ignorar Selecção"
+
+
+msgid "Make cut even if strip is not selected preserving selection state after cut"
+msgstr "Efectuar corte mesmo que a faixa não esteja seleccionada, preservando selecção após corte"
+
+
+msgid "The side that remains selected after splitting"
+msgstr "O lado que permanece seleccionado após o corte"
+
+
+msgid "The type of split operation to perform on strips"
+msgstr "O tipo de operação de corte a efectuar nas faixas"
+
+
+msgid "Use Cursor Position"
+msgstr "Usar Posição do Cursor"
+
+
+msgid "Split at position of the cursor instead of current frame"
+msgstr "Separar pela posição do cursor em vez do fotograma actual"
+
+
+msgid "Set a color tag for the selected strips"
+msgstr "Seleccionar etiqueta de cor para as faixas seleccionadas"
+
+
+msgid "Color 09"
+msgstr "Cor 09"
+
+
 msgctxt "Operator"
 msgid "Jump to Strip"
 msgstr "Saltar para faixa"
@@ -84159,6 +84605,10 @@ msgstr "Saltar para faixa"
 
 msgid "Move frame to previous edit point"
 msgstr "Mover fotograma para o ponto de edição anterior."
+
+
+msgid "Use Strip Center"
+msgstr "Usar Centro da Faixa"
 
 
 msgid "Next Strip"
@@ -84192,6 +84642,47 @@ msgstr "Anexa os modificadores activos às faixas seleccionadas."
 
 
 msgctxt "Operator"
+msgid "Redefine Equalizer Graphs"
+msgstr "Redefinir Gráficos do Equalizador"
+
+
+msgid "Redefine equalizer graphs"
+msgstr "Redefinir gráficos do equalizador"
+
+
+msgid "Graphs"
+msgstr "Gráficos"
+
+
+msgid "Number of graphs"
+msgstr "Número de gráficos"
+
+
+msgid "Unique"
+msgstr "Único"
+
+
+msgid "One unique graphical definition"
+msgstr "Uma definição gráfica única"
+
+
+msgid "Graphical definition in 2 sections"
+msgstr "Definição gráfica em 2 secções"
+
+
+msgid "Triplet"
+msgstr "Triplo"
+
+
+msgid "Graphical definition in 3 sections"
+msgstr "Definição gráfica em 3 secções"
+
+
+msgid "Name of modifier to redefine"
+msgstr "Nome do modificador para redefinir"
+
+
+msgctxt "Operator"
 msgid "Move Strip Modifier"
 msgstr "Mover modificador de faixa"
 
@@ -84213,8 +84704,58 @@ msgid "Remove a modifier from the strip"
 msgstr "Remove um modificador da faixa."
 
 
+msgctxt "Operator"
+msgid "Clear Strip Transform"
+msgstr "Limpar Transformações da Faixa"
+
+
+msgid "Reset image transformation to default value"
+msgstr "Repor transformação da imagem para os valores pré definidos"
+
+
 msgid "Property"
 msgstr "Propriedade"
+
+
+msgid "Strip transform property to be reset"
+msgstr "Propriedade de transformação da faixa a ser reposta"
+
+
+msgid "Reset strip transform location"
+msgstr "Repor transformação de posição da faixa"
+
+
+msgid "Reset strip transform scale"
+msgstr "Repor transformação de escala da faixa"
+
+
+msgid "Reset strip transform rotation"
+msgstr "Repor transformação de rotação da faixa"
+
+
+msgid "Reset strip transform location, scale and rotation"
+msgstr "Repor transformação de posição, escala e rotação da faixa"
+
+
+msgctxt "Operator"
+msgid "Strip Transform Set Fit"
+msgstr "Transformar Faixa Ajustar Tamanho"
+
+
+msgid "Scale fit fit_method"
+msgstr "Método de ajuste de tamanho fit_method"
+
+
+msgid "Scale image so fits in preview"
+msgstr "Redimensionar imagem de modo a que caiba na pré visualização"
+
+
+msgid "Scale image so it fills preview completely"
+msgstr "Redimensionar imagem para preencher a pré visualização completamente"
+
+
+msgid "Stretch image so it fills preview"
+msgstr "Esticar imagem de modo a preencher pré visualização"
 
 
 msgctxt "Operator"
@@ -84244,9 +84785,91 @@ msgid "Swap Inputs"
 msgstr "Trocar entradas"
 
 
+msgid "Swap the two inputs of the effect strip"
+msgstr "Trocar as duas entradas da faixa de efeitos"
+
+
+msgid "Move cursor in text"
+msgstr "Mover cursor no texto"
+
+
+msgid "Select Text"
+msgstr "Seleccionar Texto"
+
+
+msgid "Select text while moving cursor"
+msgstr "Seleccionar texto durante movimentação do cursor"
+
+
+msgid "Set cursor position in text"
+msgstr "Definir posição do cursor no texto"
+
+
+msgctxt "Operator"
+msgid "Delete Character"
+msgstr "Apagar Carácter"
+
+
+msgid "Delete text at cursor position"
+msgstr "Apagar texto na posição do cursor"
+
+
 msgctxt "Operator"
 msgid "Deselect All"
 msgstr "Deseleccionar Tudo"
+
+
+msgid "Deselect all characters"
+msgstr "Desseleccionar todos os caracteres"
+
+
+msgid "Copy text to clipboard"
+msgstr "Copia texto para a área de transferência"
+
+
+msgid "Cut text to clipboard"
+msgstr "Cortar o texto para a área de transferência"
+
+
+msgctxt "Operator"
+msgid "Edit Text"
+msgstr "Editar Texto"
+
+
+msgid "Toggle text editing"
+msgstr "Alternar edição de texto"
+
+
+msgctxt "Operator"
+msgid "Insert Character"
+msgstr "Inserir Carácter"
+
+
+msgid "String to be inserted at cursor position"
+msgstr "Texto a inserir na posição do cursor"
+
+
+msgctxt "Operator"
+msgid "Insert Line Break"
+msgstr "Inserir Quebra de Linha"
+
+
+msgid "Select all characters"
+msgstr "Seleccionar Todos os Caracteres"
+
+
+msgctxt "Operator"
+msgid "Unlock Strips"
+msgstr "Destrancar Faixas"
+
+
+msgid "Unlock strips so they can be transformed"
+msgstr "Destrancar Faixas de maneira para que possam ser transformadas"
+
+
+msgctxt "Operator"
+msgid "Unmute Strips"
+msgstr "De-silenciar Faixas"
 
 
 msgid "Unmute (un)selected strips"
@@ -84268,6 +84891,10 @@ msgstr "Ampliar pré visualização para caber dentro na área"
 msgctxt "Operator"
 msgid "Border Offset View"
 msgstr "Deslocar através das margens de visão"
+
+
+msgid "Set the boundaries of the border used for offset view"
+msgstr "Definir limites das margens usadas no deslocamento da visualização"
 
 
 msgid "Zoom the sequencer on the selected strips"
@@ -84309,6 +84936,38 @@ msgid "Bitrate in kbit/s"
 msgstr "Taxa de bits em kbits/s"
 
 
+msgid "Single audio channel"
+msgstr "Canal Audio Individual"
+
+
+msgid "Stereo audio channels"
+msgstr "Canais Audio Estereofónicos"
+
+
+msgid "Stereo with LFE channel"
+msgstr "Estéreo com canal LFE"
+
+
+msgid "4 channel surround sound"
+msgstr "Som Surround de 4 canais"
+
+
+msgid "5 channel surround sound"
+msgstr "Som Surround de 5 canais"
+
+
+msgid "5.1 surround sound"
+msgstr "Som Surround 5.1"
+
+
+msgid "6.1 surround sound"
+msgstr "Som Surround 6.1"
+
+
+msgid "7.1 surround sound"
+msgstr "Som Surround 7.1"
+
+
 msgid "Advanced Audio Coding"
 msgstr "Codificação de áudio avançada"
 
@@ -84341,6 +85000,10 @@ msgid "File format"
 msgstr "Formato de ficheiro"
 
 
+msgid "MKV"
+msgstr "MKV"
+
+
 msgid "Xiph.Org Ogg Container"
 msgstr "Contêiner Xiph.Org Ogg"
 
@@ -84351,6 +85014,34 @@ msgstr "Ficheiro de áudio contendo formatos de onda."
 
 msgid "Sample format"
 msgstr "Formato de amostragem"
+
+
+msgid "8-bit unsigned"
+msgstr "8-bits sem sinal"
+
+
+msgid "16-bit signed"
+msgstr "16-bits sem sinal"
+
+
+msgid "24-bit signed"
+msgstr "24-bits com sinal"
+
+
+msgid "32-bit signed"
+msgstr "32-bits com sinal"
+
+
+msgid "32-bit floating-point"
+msgstr "Ponto flutuante de 32 bits"
+
+
+msgid "64-bit floating-point"
+msgstr "Ponto flutuante de 64 bits"
+
+
+msgid "Sample rate in samples/s"
+msgstr "Taxa de amostras em amostras/s"
 
 
 msgid "Split channels"
@@ -84416,6 +85107,68 @@ msgstr "Actualizar animação"
 
 msgid "Update animation flags"
 msgstr "Actualiza as bandeiras de animação."
+
+
+msgctxt "Operator"
+msgid "Add Row Filter"
+msgstr "Adicionar Filtro de Linha"
+
+
+msgid "Add a filter to remove rows from the displayed data"
+msgstr "Adicionar um filtro para remover linhas dos dados exibidos"
+
+
+msgctxt "Operator"
+msgid "Change Visible Data Source"
+msgstr "Alterar Origem de Dados Visíveis"
+
+
+msgid "Change visible data source in the spreadsheet"
+msgstr "Alterar origem de dados visíveis na tabela"
+
+
+msgid "Attribute Domain Type"
+msgstr "Tipo de Domínio De Atributos"
+
+
+msgid "Component Type"
+msgstr "Tipo de Componente"
+
+
+msgctxt "Operator"
+msgid "Fit Column"
+msgstr "Ajustar Coluna"
+
+
+msgid "Resize a spreadsheet column to the width of the data"
+msgstr "Redimensionar a coluna da tabela à largura dos dados"
+
+
+msgctxt "Operator"
+msgid "Remove Row Filter"
+msgstr "Remover Filtro de Linha"
+
+
+msgid "Remove a row filter from the rules"
+msgstr "Remover um filtro de linha das regras"
+
+
+msgctxt "Operator"
+msgid "Reorder Columns"
+msgstr "Reordenar Colunas"
+
+
+msgid "Change the order of columns"
+msgstr "Alterar ordem das colunas"
+
+
+msgctxt "Operator"
+msgid "Resize Column"
+msgstr "Redimensionar Colunas"
+
+
+msgid "Resize a spreadsheet column"
+msgstr "Redimensionar coluna da tabela"
 
 
 msgctxt "Operator"
@@ -84518,6 +85271,27 @@ msgstr "Mostra uma lista de textos usados no documento aberto."
 
 
 msgctxt "Operator"
+msgid "Toggle Comments"
+msgstr "Alternar Comentários"
+
+
+msgid "Add or remove comments"
+msgstr "Adicionar ou remover comentários"
+
+
+msgid "Toggle Comments"
+msgstr "Alternar Comentários"
+
+
+msgid "Comment"
+msgstr "Comentar"
+
+
+msgid "Un-Comment"
+msgstr "Remover Comentário"
+
+
+msgctxt "Operator"
 msgid "Convert Whitespace"
 msgstr "Converter os espaços em branco"
 
@@ -84563,6 +85337,11 @@ msgstr "Localizar próximo"
 
 msgid "Find specified text"
 msgstr "Localiza o texto especificado."
+
+
+msgctxt "Operator"
+msgid "Find & Set Selection"
+msgstr "Encontrar e Seleccionar"
 
 
 msgid "Find specified text and set as selected"
@@ -98969,11 +99748,6 @@ msgstr "Detalhes"
 
 msgid "Spacing Along Stroke"
 msgstr "Espaçamento ao longo do traço"
-
-
-msgctxt "Operator"
-msgid "Go to Linestyle Textures Properties"
-msgstr "Por favor, vá às propriedades de textura para estilos de linha."
 
 
 msgid "Priority"
