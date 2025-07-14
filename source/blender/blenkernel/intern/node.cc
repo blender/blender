@@ -1077,6 +1077,9 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
     }
 
     if (node->type_legacy == CMP_NODE_ALPHAOVER) {
+      if (!node->storage) {
+        node->storage = MEM_callocN<NodeTwoFloats>(__func__);
+      }
       write_input_to_property_bool_short("Straight Alpha", node->custom1);
     }
 
@@ -1274,6 +1277,10 @@ static void write_compositor_legacy_storage(BlendWriter *writer, bNode &node)
     case CMP_NODE_BILATERALBLUR:
       BLO_write_struct_by_name(writer, "NodeBilateralBlurData", node.storage);
       MEM_freeN(static_cast<NodeBilateralBlurData *>(node.storage));
+      break;
+    case CMP_NODE_ALPHAOVER:
+      BLO_write_struct_by_name(writer, "NodeTwoFloats", node.storage);
+      MEM_freeN(static_cast<NodeTwoFloats *>(node.storage));
       break;
     case CMP_NODE_CROP:
       BLO_write_struct_by_name(writer, "NodeTwoXYs", node.storage);
