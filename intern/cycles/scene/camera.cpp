@@ -22,6 +22,11 @@
 
 #include "kernel/camera/camera.h"
 
+/* Custom cameras don't work with adaptive subdivision currently, and it's a bit tricky
+ * to fix for the OptiX case as there is no OSL shader compiled for the CPU. This is a temporary
+ * workaround to fall back to a perspective camera for that case. */
+#define FIX_CUSTOM_CAMERA_CRASH
+
 CCL_NAMESPACE_BEGIN
 
 static float shutter_curve_eval(float x, array<float> &shutter_curve)
@@ -263,6 +268,14 @@ void Camera::update(Scene *scene)
   rastertocamera = screentocamera * rastertoscreen;
   full_rastertocamera = screentocamera * full_rastertoscreen;
 
+#ifdef FIX_CUSTOM_CAMERA_CRASH
+  if (camera_type == CAMERA_CUSTOM) {
+    const ProjectionTransform full_cameratoscreen = projection_perspective(fov, nearclip, farclip);
+    const ProjectionTransform full_screentocamera = projection_inverse(full_cameratoscreen);
+    full_rastertocamera = full_screentocamera * full_rastertoscreen;
+  }
+#endif
+
   cameratoworld = matrix;
   screentoworld = cameratoworld * screentocamera;
   rastertoworld = cameratoworld * rastertocamera;
@@ -294,6 +307,14 @@ void Camera::update(Scene *scene)
               transform_perspective(&full_rastertocamera, make_float3(0, 0, 0));
   }
   else {
+#ifdef FIX_CUSTOM_CAMERA_CRASH
+    if (camera_type == CAMERA_CUSTOM) {
+      full_dx = transform_perspective(&full_rastertocamera, make_float3(1, 0, 0)) -
+                transform_perspective(&full_rastertocamera, make_float3(0, 0, 0));
+      full_dy = transform_perspective(&full_rastertocamera, make_float3(0, 1, 0)) -
+                transform_perspective(&full_rastertocamera, make_float3(0, 0, 0));
+    }
+#endif
     dx = zero_float3();
     dy = zero_float3();
   }
@@ -303,7 +324,11 @@ void Camera::update(Scene *scene)
   full_dx = transform_direction(&cameratoworld, full_dx);
   full_dy = transform_direction(&cameratoworld, full_dy);
 
+#ifdef FIX_CUSTOM_CAMERA_CRASH
+  if (camera_type == CAMERA_PERSPECTIVE || camera_type == CAMERA_CUSTOM) {
+#else
   if (camera_type == CAMERA_PERSPECTIVE) {
+#endif
     float3 v = transform_perspective(&full_rastertocamera,
                                      make_float3(full_width, full_height, 0.0f));
     frustum_right_normal = normalize(make_float3(v.z, 0.0f, -v.x));
@@ -696,7 +721,11 @@ float Camera::world_to_raster_size(const float3 P)
       }
     }
   }
+#ifdef FIX_CUSTOM_CAMERA_CRASH
+  else if (camera_type == CAMERA_PERSPECTIVE || camera_type == CAMERA_CUSTOM) {
+#else
   else if (camera_type == CAMERA_PERSPECTIVE) {
+#endif
     /* Calculate as if point is directly ahead of the camera. */
     const float3 raster = make_float3(0.5f * full_width, 0.5f * full_height, 0.0f);
     const float3 Pcamera = transform_perspective(&full_rastertocamera, raster);
