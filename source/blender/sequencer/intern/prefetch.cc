@@ -68,7 +68,6 @@ struct PrefetchJob {
   RenderData context = {};
   RenderData context_cpy = {};
   ListBase *seqbasep = nullptr;
-  ListBase *seqbasep_cpy = nullptr;
 
   /* prefetch area */
   int cfra = 0;
@@ -420,7 +419,8 @@ static bool strip_is_cached(PrefetchJob *pfjob, Strip *strip, bool can_have_fina
   }
 
   if (can_have_final_image) {
-    ibuf = final_image_cache_get(pfjob->context.scene, cfra, pfjob->context.view_id, 0);
+    ibuf = final_image_cache_get(
+        pfjob->context.scene, pfjob->seqbasep, cfra, pfjob->context.view_id, 0);
     if (ibuf != nullptr) {
       IMB_freeImBuf(ibuf);
       return true;
@@ -585,6 +585,7 @@ static PrefetchJob *seq_prefetch_start_ex(const RenderData *context, float cfra)
 
     pfjob->bmain_eval = BKE_main_new();
     pfjob->scene = context->scene;
+    pfjob->seqbasep = context->scene->ed->seqbasep;
     seq_prefetch_init_depsgraph(pfjob);
   }
   pfjob->bmain = context->bmain;
