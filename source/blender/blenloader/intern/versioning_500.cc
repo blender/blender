@@ -1002,7 +1002,7 @@ static void do_version_split_node_rotation(bNodeTree *node_tree, bNode *node)
   }
 }
 
-void do_version_remove_lzo_and_lzma_compression(Object *object)
+static void do_version_remove_lzo_and_lzma_compression(Object *object)
 {
   constexpr int PTCACHE_COMPRESS_LZO = 1;
   constexpr int PTCACHE_COMPRESS_LZMA = 2;
