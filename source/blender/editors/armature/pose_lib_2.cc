@@ -144,7 +144,12 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
     blender::Set<bPoseChannel *> keyed_pose_bones;
     auto autokey_pose_bones = [&](FCurve * /* fcu */, const char *bone_name) {
       bPoseChannel *pchan = BKE_pose_channel_find_name(pose, bone_name);
-      BLI_assert(pchan != nullptr);
+      if (!pchan) {
+        /* This bone cannot be found any more. This is fine, this can happen
+         * when F-Curves for a bone are included in a pose asset, and later the
+         * bone itself was renamed or removed. */
+        return;
+      }
       if (BKE_pose_backup_is_selection_relevant(pbd->pose_backup) &&
           !PBONE_SELECTED(armature, pchan->bone))
       {
