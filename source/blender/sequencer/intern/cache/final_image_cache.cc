@@ -28,19 +28,20 @@ static Mutex final_image_cache_mutex;
 
 struct FinalImageCache {
   struct Key {
+    const ListBase *seqbasep;
     int timeline_frame;
     int view_id;
     int display_channel;
 
     const uint64_t hash() const
     {
-      return blender::get_default_hash(timeline_frame, view_id, display_channel);
+      return get_default_hash(seqbasep, timeline_frame, view_id, display_channel);
     }
 
-    bool operator==(const FinalImageCache::Key &other) const
+    bool operator==(const Key &other) const
     {
-      return timeline_frame == other.timeline_frame && view_id == other.view_id &&
-             display_channel == other.display_channel;
+      return seqbasep == other.seqbasep && timeline_frame == other.timeline_frame &&
+             view_id == other.view_id && display_channel == other.display_channel;
     }
   };
   Map<Key, ImBuf *> map_;
@@ -76,9 +77,14 @@ static FinalImageCache *query_final_image_cache(const Scene *scene)
   return scene->ed->runtime.final_image_cache;
 }
 
-ImBuf *final_image_cache_get(Scene *scene, float timeline_frame, int view_id, int display_channel)
+ImBuf *final_image_cache_get(Scene *scene,
+                             const ListBase *seqbasep,
+                             const float timeline_frame,
+                             const int view_id,
+                             const int display_channel)
 {
-  const FinalImageCache::Key key = {int(math::round(timeline_frame)), view_id, display_channel};
+  const FinalImageCache::Key key = {
+      seqbasep, int(math::round(timeline_frame)), view_id, display_channel};
 
   ImBuf *res = nullptr;
   {
@@ -96,10 +102,15 @@ ImBuf *final_image_cache_get(Scene *scene, float timeline_frame, int view_id, in
   return res;
 }
 
-void final_image_cache_put(
-    Scene *scene, float timeline_frame, int view_id, int display_channel, ImBuf *image)
+void final_image_cache_put(Scene *scene,
+                           const ListBase *seqbasep,
+                           const float timeline_frame,
+                           const int view_id,
+                           const int display_channel,
+                           ImBuf *image)
 {
-  const FinalImageCache::Key key = {int(math::round(timeline_frame)), view_id, display_channel};
+  const FinalImageCache::Key key = {
+      seqbasep, int(math::round(timeline_frame)), view_id, display_channel};
 
   IMB_refImBuf(image);
 
