@@ -309,7 +309,7 @@ ARegionType *ED_area_type_hud(int space_type)
 
   hud_panels_register(art, space_type, art->regionid);
 
-  art->lock = 1; /* can become flag, see BKE_spacedata_draw_locks */
+  art->lock = REGION_DRAW_LOCK_ALL;
   return art;
 }
 

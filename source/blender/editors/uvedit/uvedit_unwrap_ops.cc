@@ -46,6 +46,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_object_types.hh"
 #include "BKE_report.hh"
+#include "BKE_screen.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 #include "BKE_subdiv_modifier.hh"
@@ -1800,7 +1801,7 @@ static wmOperatorStatus pack_islands_exec(bContext *C, wmOperator *op)
         pid->wm, CTX_wm_window(C), scene, "Packing UVs", WM_JOB_PROGRESS, WM_JOB_TYPE_UV_PACK);
     WM_jobs_customdata_set(wm_job, pid, pack_islands_freejob);
     WM_jobs_timer(wm_job, 0.1, 0, 0);
-    WM_set_locked_interface(pid->wm, true);
+    WM_set_locked_interface_with_flags(pid->wm, REGION_DRAW_LOCK_RENDER);
     WM_jobs_callbacks(wm_job, pack_islands_startjob, nullptr, nullptr, pack_islands_endjob);
 
     WM_cursor_wait(true);
