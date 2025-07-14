@@ -733,7 +733,7 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
   };
 
   auto topology_count_matches = [](const Mesh &a, const Mesh &b) {
-    return a.verts_num == b.verts_num && a.edges_num == b.edges_num && a.faces_num == b.faces_num;
+    return a.verts_num == b.verts_num;
   };
 
   bool found_object = false;
@@ -773,9 +773,7 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
   }
 
   if (found_non_equal_count) {
-    BKE_report(reports,
-               RPT_WARNING,
-               "Selected meshes must have equal numbers of vertices, edges, and faces");
+    BKE_report(reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices");
     return OPERATOR_CANCELLED;
   }
 
