@@ -792,10 +792,12 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
   }
 
   int keys_changed = 0;
+  bool any_keys_added = false;
   for (const ObjectInfo &info : compatible_objects) {
     if (ensure_keys_exist) {
       KeyBlock *kb = BKE_keyblock_add(active_mesh.key, info.name.c_str());
       BKE_keyblock_convert_from_mesh(&info.mesh, active_mesh.key, kb);
+      any_keys_added = true;
     }
     else if (KeyBlock *kb = BKE_keyblock_find_name(active_mesh.key, info.name.c_str())) {
       keys_changed++;
@@ -813,6 +815,11 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
 
   DEG_id_tag_update(&active_mesh.id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &active_mesh.id);
+
+  if (any_keys_added && bmain) {
+    /* Adding a new shape key should trigger a rebuild of relationships. */
+    DEG_relations_tag_update(bmain);
+  }
 
   return OPERATOR_FINISHED;
 }
