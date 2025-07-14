@@ -290,6 +290,11 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
                           MTLAccelerationStructureUsagePreferFastBuild);
     }
+#  if defined(MAC_OS_VERSION_26_0)
+    else if (@available(macos 26.0, *)) {
+      accelDesc.usage |= MTLAccelerationStructureUsagePreferFastIntersection;
+    }
+#  endif
 
     MTLAccelerationStructureSizes accelSizes = [mtl_device
         accelerationStructureSizesWithDescriptor:accelDesc];
@@ -602,11 +607,17 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
           "Building hair BLAS | %7d curves | %s", (int)hair->num_curves(), geom->name.c_str());
     }
 
+    accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+
     if (!use_fast_trace_bvh) {
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
                           MTLAccelerationStructureUsagePreferFastBuild);
     }
-    accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+#    if defined(MAC_OS_VERSION_26_0)
+    else if (@available(macos 26.0, *)) {
+      accelDesc.usage |= MTLAccelerationStructureUsagePreferFastIntersection;
+    }
+#    endif
 
     MTLAccelerationStructureSizes accelSizes = [mtl_device
         accelerationStructureSizesWithDescriptor:accelDesc];
@@ -836,6 +847,11 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
                           MTLAccelerationStructureUsagePreferFastBuild);
     }
+#  if defined(MAC_OS_VERSION_26_0)
+    else if (@available(macos 26.0, *)) {
+      accelDesc.usage |= MTLAccelerationStructureUsagePreferFastIntersection;
+    }
+#  endif
 
     MTLAccelerationStructureSizes accelSizes = [mtl_device
         accelerationStructureSizesWithDescriptor:accelDesc];
@@ -1308,6 +1324,11 @@ bool BVHMetal::build_TLAS(Progress &progress,
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
                           MTLAccelerationStructureUsagePreferFastBuild);
     }
+#  if defined(MAC_OS_VERSION_26_0)
+    else if (@available(macos 26.0, *)) {
+      accelDesc.usage |= MTLAccelerationStructureUsagePreferFastIntersection;
+    }
+#  endif
 
     MTLAccelerationStructureSizes accelSizes = [mtl_device
         accelerationStructureSizesWithDescriptor:accelDesc];
