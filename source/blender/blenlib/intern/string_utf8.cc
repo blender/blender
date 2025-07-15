@@ -1373,4 +1373,9 @@ int BLI_str_utf8_offset_from_column_with_tabs(const char *str,
   return int(offset);
 }
 
+int BLI_str_utf8_column_count(const char *str, size_t str_len)
+{
+  return BLI_str_utf8_offset_to_column(str, str_len, int(str_len));
+}
+
 /** \} */
