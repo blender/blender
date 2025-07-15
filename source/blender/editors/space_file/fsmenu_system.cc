@@ -212,8 +212,22 @@ static void fsmenu_add_windows_quick_access(FSMenu *fsmenu,
     char utf_path[FILE_MAXDIR];
     conv_utf_16_to_8(path, utf_path, FILE_MAXDIR);
 
-    /* Skip library folders since they are not currently supported. */
-    if (!BLI_strcasestr(utf_path, ".library-ms")) {
+    /* Despite the above IsFolder check, Windows considers libraries and archives to be folders.
+     * However, as Blender does not support opening them, they must be filtered out. #138863.
+     */
+    const char *ext_folderlike[] = {".library-ms",
+                                    ".zip",
+                                    ".rar",
+                                    ".7z",
+                                    ".tar",
+                                    ".gz",
+                                    ".bz2",
+                                    ".zst",
+                                    ".xz",
+                                    ".cab",
+                                    ".iso",
+                                    nullptr};
+    if (!BLI_path_extension_check_array(utf_path, ext_folderlike)) {
       /* Add folder to the fsmenu. */
       fsmenu_insert_entry(fsmenu, category, utf_path, NULL, ICON_FILE_FOLDER, flag);
     }
