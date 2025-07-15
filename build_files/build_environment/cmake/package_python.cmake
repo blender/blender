@@ -48,7 +48,6 @@ if(MSVC)
         external_python
         external_numpy
         external_python_site_packages
-        external_python_site_packages_binary
         external_zstandard
         external_cython
       OUTPUT
@@ -98,7 +97,6 @@ if(MSVC)
         external_python
         external_numpy
         external_python_site_packages
-        external_python_site_packages_binary
         external_zstandard
         external_cython
       OUTPUT
