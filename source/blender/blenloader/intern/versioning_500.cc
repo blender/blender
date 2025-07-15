@@ -409,7 +409,7 @@ static void do_version_scene_remove_use_nodes(Scene *scene)
      * should not disable compositing. */
     return;
   }
-  else if (scene->use_nodes == false && scene->r.scemode & R_DOCOMP) {
+  if (scene->use_nodes == false && scene->r.scemode & R_DOCOMP) {
     /* A compositing node tree exists but users explicitly disabled compositing. */
     scene->r.scemode &= ~R_DOCOMP;
   }
