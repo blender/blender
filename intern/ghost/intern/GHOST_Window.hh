@@ -119,6 +119,9 @@ class GHOST_Window : public GHOST_IWindow {
                                       const int hot_spot[2],
                                       bool canInvertColor) override;
 
+  /** \copydoc #GHOST_IWindow::setCustomCursorGenerator */
+  GHOST_TSuccess setCustomCursorGenerator(GHOST_CursorGenerator *cursor_generator) override;
+
   GHOST_TSuccess getCursorBitmap(GHOST_CursorBitmapRef *bitmap) override;
 
   /** \copydoc #GHOST_IWindow::getCursorVisibility */
@@ -292,6 +295,12 @@ class GHOST_Window : public GHOST_IWindow {
                                                     const int size[2],
                                                     const int hot_size[2],
                                                     bool canInvertColor) = 0;
+  /** \copydoc #GHOST_IWindow::setWindowCustomCursorGenerator */
+  virtual GHOST_TSuccess setWindowCustomCursorGenerator(GHOST_CursorGenerator *cursor_generator)
+  {
+    cursor_generator->free_fn(cursor_generator);
+    return GHOST_kFailure;
+  };
 
   GHOST_TSuccess releaseNativeHandles();
 

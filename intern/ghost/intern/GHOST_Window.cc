@@ -247,6 +247,15 @@ GHOST_TSuccess GHOST_Window::setCustomCursorShape(const uint8_t *bitmap,
   return GHOST_kFailure;
 }
 
+GHOST_TSuccess GHOST_Window::setCustomCursorGenerator(GHOST_CursorGenerator *cursor_generator)
+{
+  if (setWindowCustomCursorGenerator(cursor_generator)) {
+    m_cursorShape = GHOST_kStandardCursorCustom;
+    return GHOST_kSuccess;
+  }
+  return GHOST_kFailure;
+}
+
 GHOST_TSuccess GHOST_Window::getCursorBitmap(GHOST_CursorBitmapRef * /*bitmap*/)
 {
   /* Sub-classes may override. */

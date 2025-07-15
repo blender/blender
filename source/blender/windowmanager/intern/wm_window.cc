@@ -2235,6 +2235,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityCursorRGBA) {
     flag |= WM_CAPABILITY_CURSOR_RGBA;
   }
+  if (ghost_flag & GHOST_kCapabilityCursorGenerator) {
+    flag |= WM_CAPABILITY_CURSOR_GENERATOR;
+  }
 
   return flag;
 }

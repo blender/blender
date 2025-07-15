@@ -799,7 +799,9 @@ GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
           /* No support for a Hyper modifier key. */
           GHOST_kCapabilityKeyboardHyperKey |
           /* No support yet for RGBA mouse cursors. */
-          GHOST_kCapabilityCursorRGBA));
+          GHOST_kCapabilityCursorRGBA |
+          /* No support yet for dynamic cursor generation. */
+          GHOST_kCapabilityCursorGenerator));
 }
 
 char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const

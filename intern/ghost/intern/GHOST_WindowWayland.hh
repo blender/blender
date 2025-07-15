@@ -95,6 +95,8 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   GHOST_TSuccess setWindowCursorShape(GHOST_TStandardCursor shape) override;
 
+  GHOST_TSuccess setWindowCustomCursorGenerator(GHOST_CursorGenerator *cursor_generator) override;
+
   GHOST_TSuccess setWindowCustomCursorShape(const uint8_t *bitmap,
                                             const uint8_t *mask,
                                             const int size[2],

@@ -305,6 +305,13 @@ GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle,
   return window->setCustomCursorShape(bitmap, mask, size, hot_spot, canInvertColor);
 }
 
+GHOST_TSuccess GHOST_SetCustomCursorGenerator(GHOST_WindowHandle windowhandle,
+                                              GHOST_CursorGenerator *cursor_generator)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  return window->setCustomCursorGenerator(cursor_generator);
+}
+
 GHOST_TSuccess GHOST_GetCursorBitmap(GHOST_WindowHandle windowhandle,
                                      GHOST_CursorBitmapRef *bitmap)
 {

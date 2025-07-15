@@ -278,6 +278,47 @@ static void cursor_rgba_to_xbm_32(const uint8_t *rgba,
   }
 }
 
+static bool window_set_custom_cursor_generator(wmWindow *win, const BCursor &cursor)
+{
+  GHOST_CursorGenerator *cursor_generator = MEM_callocN<GHOST_CursorGenerator>(__func__);
+  cursor_generator->generate_fn = [](const GHOST_CursorGenerator *cursor_generator,
+                                     const int cursor_size,
+                                     const int cursor_size_max,
+                                     uint8_t *(*alloc_fn)(size_t size),
+                                     int r_bitmap_size[2],
+                                     int r_hot_spot[2]) -> uint8_t * {
+    const BCursor &cursor = *(const BCursor *)(cursor_generator->user_data);
+    /* Currently SVG uses the `cursor_size` as the maximum. */
+    UNUSED_VARS(cursor_size_max);
+
+    int bitmap_size[2];
+    uint8_t *bitmap_rgba = cursor_bitmap_from_svg(
+        cursor.svg_source, cursor_size, alloc_fn, bitmap_size);
+
+    if (UNLIKELY(bitmap_rgba == nullptr)) {
+      return nullptr;
+    }
+
+    r_bitmap_size[0] = bitmap_size[0];
+    r_bitmap_size[1] = bitmap_size[1];
+
+    r_hot_spot[0] = int(cursor.hotspot[0] * (bitmap_size[0] - 1));
+    r_hot_spot[1] = int(cursor.hotspot[1] * (bitmap_size[1] - 1));
+
+    return bitmap_rgba;
+  };
+
+  cursor_generator->user_data = (void *)&cursor;
+  cursor_generator->free_fn = [](GHOST_CursorGenerator *cursor_generator) {
+    MEM_freeN(cursor_generator);
+  };
+
+  GHOST_TSuccess success = GHOST_SetCustomCursorGenerator(
+      static_cast<GHOST_WindowHandle>(win->ghostwin), cursor_generator);
+
+  return (success == GHOST_kSuccess) ? true : false;
+}
+
 static bool window_set_custom_cursor_pixmap(wmWindow *win, const BCursor &cursor)
 {
   /* Option to force use of 1bpp XBitMap cursors is needed for testing. */
@@ -333,7 +374,9 @@ static bool window_set_custom_cursor_pixmap(wmWindow *win, const BCursor &cursor
 
 static bool window_set_custom_cursor(wmWindow *win, const BCursor &cursor)
 {
-  /* Keep this wrapper until other types are supported, see: !141597. */
+  if (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_GENERATOR) {
+    return window_set_custom_cursor_generator(win, cursor);
+  }
   return window_set_custom_cursor_pixmap(win, cursor);
 }
 
@@ -749,6 +792,60 @@ static uint8_t *cursor_bitmap_from_text(const std::string &text,
   return bitmap_rgba;
 }
 
+static bool wm_cursor_text_generator(wmWindow *win, const std::string &text, int font_id)
+{
+  struct WMCursorText {
+    std::string text;
+    int font_id;
+  };
+
+  GHOST_CursorGenerator *cursor_generator = MEM_callocN<GHOST_CursorGenerator>(__func__);
+  cursor_generator->generate_fn = [](const GHOST_CursorGenerator *cursor_generator,
+                                     const int cursor_size,
+                                     const int cursor_size_max,
+                                     uint8_t *(*alloc_fn)(size_t size),
+                                     int r_bitmap_size[2],
+                                     int r_hot_spot[2]) -> uint8_t * {
+    const WMCursorText &cursor_text = *(const WMCursorText *)(cursor_generator->user_data);
+
+    int bitmap_size[2];
+    uint8_t *bitmap_rgba = cursor_bitmap_from_text(cursor_text.text,
+                                                   cursor_size,
+                                                   cursor_size_max,
+                                                   cursor_text.font_id,
+                                                   alloc_fn,
+                                                   bitmap_size);
+
+    if (UNLIKELY(bitmap_rgba == nullptr)) {
+      return nullptr;
+    }
+
+    r_bitmap_size[0] = bitmap_size[0];
+    r_bitmap_size[1] = bitmap_size[1];
+
+    r_hot_spot[0] = bitmap_size[0] / 2;
+    r_hot_spot[1] = bitmap_size[1] / 2;
+
+    return bitmap_rgba;
+  };
+
+  WMCursorText *cursor_text = MEM_new<WMCursorText>(__func__);
+  cursor_text->text = text;
+  cursor_text->font_id = font_id;
+
+  cursor_generator->user_data = (void *)cursor_text;
+  cursor_generator->free_fn = [](GHOST_CursorGenerator *cursor_generator) {
+    const WMCursorText *cursor_text = (WMCursorText *)(cursor_generator->user_data);
+    MEM_delete(cursor_text);
+    MEM_freeN(cursor_generator);
+  };
+
+  GHOST_TSuccess success = GHOST_SetCustomCursorGenerator(
+      static_cast<GHOST_WindowHandle>(win->ghostwin), cursor_generator);
+
+  return (success == GHOST_kSuccess) ? true : false;
+}
+
 static bool wm_cursor_text_pixmap(wmWindow *win, const std::string &text, int font_id)
 {
   const int cursor_size = wm_cursor_size(win);
@@ -788,7 +885,9 @@ static bool wm_cursor_text_pixmap(wmWindow *win, const std::string &text, int fo
 
 static bool wm_cursor_text(wmWindow *win, const std::string &text, int font_id)
 {
-  /* Keep this wrapper until other types are supported, see: !141597. */
+  if (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_GENERATOR) {
+    return wm_cursor_text_generator(win, text, font_id);
+  }
   return wm_cursor_text_pixmap(win, text, font_id);
 }
 

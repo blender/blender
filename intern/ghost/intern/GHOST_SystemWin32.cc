@@ -616,7 +616,9 @@ GHOST_TCapabilityFlag GHOST_SystemWin32::getCapabilities() const
           GHOST_kCapabilityClipboardPrimary |
           /* WIN32 doesn't define a Hyper modifier key,
            * it's possible another modifier could be optionally used in it's place. */
-          GHOST_kCapabilityKeyboardHyperKey));
+          GHOST_kCapabilityKeyboardHyperKey |
+          /* No support yet for cursors generated on demand. */
+          GHOST_kCapabilityCursorGenerator));
 }
 
 GHOST_TSuccess GHOST_SystemWin32::init()
