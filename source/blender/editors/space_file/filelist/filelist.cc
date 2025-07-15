@@ -3151,7 +3151,7 @@ static void filelist_readjob_asset_library(FileListReadJob *job_params,
 static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *job_params,
                                                              bool *stop,
                                                              bool *do_update,
-                                                             float *progress)
+                                                             float * /*progress*/)
 {
   using namespace ed::asset;
 
