@@ -623,6 +623,16 @@ struct GPUSamplerState {
     return serialized_parameters;
   }
 
+  uint32_t as_uint() const
+  {
+    uint32_t value = filtering;
+    value = (value << 4) | extend_x;
+    value = (value << 4) | extend_yz;
+    value = (value << 8) | custom_type;
+    value = (value << 8) | type;
+    return value;
+  }
+
   bool operator==(GPUSamplerState const &rhs) const
   {
     return this->filtering == rhs.filtering && this->extend_x == rhs.extend_x &&

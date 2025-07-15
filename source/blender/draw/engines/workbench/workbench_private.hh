@@ -278,7 +278,22 @@ struct SceneResources {
 
 class MeshPass : public PassMain {
  private:
-  using TextureSubPassKey = std::pair<GPUTexture *, eGeometryType>;
+  struct TextureSubPassKey {
+    GPUTexture *texture;
+    GPUSamplerState sampler_state;
+    eGeometryType geom_type;
+
+    uint64_t hash() const
+    {
+      return get_default_hash(texture, sampler_state.as_uint(), geom_type);
+    }
+
+    bool operator==(TextureSubPassKey const &rhs) const
+    {
+      return this->texture == rhs.texture && this->sampler_state == rhs.sampler_state &&
+             this->geom_type == rhs.geom_type;
+    }
+  };
 
   Map<TextureSubPassKey, PassMain::Sub *> texture_subpass_map_;
 
