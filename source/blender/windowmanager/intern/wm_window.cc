@@ -2003,21 +2003,7 @@ void wm_window_events_process(const bContext *C)
   /* Skip sleeping when simulating events so tests don't idle unnecessarily as simulated
    * events are typically generated from a timer that runs in the main loop. */
   if ((has_event == false) && (sleep_us != 0) && !(G.f & G_FLAG_EVENT_SIMULATE)) {
-    if (sleep_us == sleep_us_default) {
-      /* NOTE(@ideasman42): prefer #BLI_time_sleep_ms over `sleep_for(..)` in the common case
-       * because this function uses lower resolution (millisecond) resolution sleep timers
-       * which are tried & true for the idle loop. We could move to C++ `sleep_for(..)`
-       * if this works well on all platforms but this needs further testing. */
-      BLI_time_sleep_ms(sleep_us_default / 1000);
-    }
-    else {
-      /* The time was shortened to resume for the upcoming timer, use a high resolution sleep.
-       * Mainly happens during animation playback but could happen immediately before any timer.
-       *
-       * NOTE(@ideasman42): At time of writing Windows-10-22H2 doesn't give higher precision sleep.
-       * Keep the functionality as it doesn't have noticeable down sides either. */
-      std::this_thread::sleep_for(std::chrono::microseconds(sleep_us));
-    }
+    BLI_time_sleep_precise_us(sleep_us);
   }
 }
 
