@@ -427,7 +427,11 @@ static void dial_draw_intern(const bContext *C,
 
     copy_v3_v3(clip_plane, rv3d->viewinv[2]);
     clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], gz->matrix_basis[3]);
-    clip_plane[3] += DIAL_CLIP_BIAS;
+    /* NOTE: scaling by the pixel size has been needed since v3.4x,
+     * afterwards the behavior of the `ClipPlane` seems to have changed.
+     * While this works, it may be worth restoring the old behavior, see #111060. */
+    clip_plane[3] += (DIAL_CLIP_BIAS *
+                      ED_view3d_pixel_size_no_ui_scale(rv3d, gz->matrix_basis[2]));
   }
 
   const float arc_partial_angle = RNA_float_get(gz->ptr, "arc_partial_angle");
