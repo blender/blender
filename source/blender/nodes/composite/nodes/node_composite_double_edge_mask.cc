@@ -331,6 +331,7 @@ static void register_node_type_cmp_doubleedgemask()
   ntype.declare = file_ns::cmp_node_double_edge_mask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_double_edge_mask;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  blender::bke::node_type_size(ntype, 145, 140, NODE_DEFAULT_MAX_WIDTH);
 
   blender::bke::node_register_type(ntype);
 }

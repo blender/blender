@@ -407,6 +407,7 @@ static void register_node_type_cmp_bokehblur()
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_bokehblur_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  blender::bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
 
   blender::bke::node_register_type(ntype);
 }

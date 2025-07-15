@@ -349,6 +349,7 @@ void register_node_type_sh_tex_wave()
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_wave;
   ntype.build_multi_function = file_ns::sh_node_wave_tex_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
+  blender::bke::node_type_size(ntype, 160, 140, NODE_DEFAULT_MAX_WIDTH);
 
   blender::bke::node_register_type(ntype);
 }

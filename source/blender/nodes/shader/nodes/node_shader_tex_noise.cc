@@ -475,6 +475,7 @@ void register_node_type_sh_tex_noise()
   ntype.updatefunc = file_ns::node_shader_update_tex_noise;
   ntype.build_multi_function = file_ns::sh_node_noise_build_multi_function;
   ntype.materialx_fn = file_ns::node_shader_materialx;
+  blender::bke::node_type_size(ntype, 145, 140, NODE_DEFAULT_MAX_WIDTH);
 
   blender::bke::node_register_type(ntype);
 }

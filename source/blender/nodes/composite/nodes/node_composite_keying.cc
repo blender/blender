@@ -827,6 +827,7 @@ static void register_node_type_cmp_keying()
   blender::bke::node_type_storage(
       ntype, "NodeKeyingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  blender::bke::node_type_size(ntype, 155, 140, NODE_DEFAULT_MAX_WIDTH);
 
   blender::bke::node_register_type(ntype);
 }
