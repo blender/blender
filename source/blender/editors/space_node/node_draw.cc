@@ -2386,7 +2386,7 @@ static void node_toggle_button_cb(bContext *C, void *node_argv, void *op_argv)
   /* Select & activate only the button's node. */
   node_select_single(*C, node);
 
-  WM_operator_name_call(C, opname, WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
+  WM_operator_name_call(C, opname, wm::OpCallContext::InvokeDefault, nullptr, nullptr);
 }
 
 static void node_draw_shadow(const SpaceNode &snode,

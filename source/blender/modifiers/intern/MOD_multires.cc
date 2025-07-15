@@ -343,7 +343,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
   op_ptr = layout->op("OBJECT_OT_multires_subdivide",
                       IFACE_("Subdivide"),
                       ICON_NONE,
-                      WM_OP_EXEC_DEFAULT,
+                      blender::wm::OpCallContext::ExecDefault,
                       UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::CatmullClark));
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
@@ -352,14 +352,14 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
   op_ptr = row->op("OBJECT_OT_multires_subdivide",
                    IFACE_("Simple"),
                    ICON_NONE,
-                   WM_OP_EXEC_DEFAULT,
+                   blender::wm::OpCallContext::ExecDefault,
                    UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::Simple));
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
   op_ptr = row->op("OBJECT_OT_multires_subdivide",
                    IFACE_("Linear"),
                    ICON_NONE,
-                   WM_OP_EXEC_DEFAULT,
+                   blender::wm::OpCallContext::ExecDefault,
                    UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::Linear));
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);

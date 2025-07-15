@@ -104,7 +104,7 @@ static wmOperatorStatus report_replay_exec(bContext *C, wmOperator * /*op*/)
         (report->flag & SELECT))
     {
       console_history_add_str(sc, report->message, 0);
-      WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, nullptr, nullptr);
+      WM_operator_name_call(C, "CONSOLE_OT_execute", blender::wm::OpCallContext::ExecDefault, nullptr, nullptr);
 
       ED_area_tag_redraw(CTX_wm_area(C));
     }

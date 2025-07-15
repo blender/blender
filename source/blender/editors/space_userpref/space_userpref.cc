@@ -124,8 +124,12 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
     BLI_str_tolower_ascii(id_lower, strlen(id_lower));
   }
 
-  ED_region_panels_layout_ex(
-      C, region, &region->runtime->type->paneltypes, WM_OP_INVOKE_REGION_WIN, contexts, nullptr);
+  ED_region_panels_layout_ex(C,
+                             region,
+                             &region->runtime->type->paneltypes,
+                             blender::wm::OpCallContext::InvokeRegionWin,
+                             contexts,
+                             nullptr);
 }
 
 static void userpref_operatortypes() {}

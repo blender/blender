@@ -78,7 +78,7 @@ struct uiLayoutRoot {
   uiLayoutRoot *next, *prev;
 
   blender::ui::LayoutType type;
-  wmOperatorCallContext opcontext;
+  blender::wm::OpCallContext opcontext;
 
   int emw, emh;
   int padding;
@@ -1065,7 +1065,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                   UI_BTYPE_BUT,
                   subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" :
                                             "BUTTONS_OT_file_browse",
-                  WM_OP_INVOKE_DEFAULT,
+                  blender::wm::OpCallContext::InvokeDefault,
                   ICON_FILEBROWSER,
                   x,
                   y,
@@ -1236,7 +1236,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
                                  wmOperatorType *ot,
                                  std::optional<StringRef> name,
                                  int icon,
-                                 const wmOperatorCallContext context,
+                                 const blender::wm::OpCallContext context,
                                  const eUI_Item_Flag flag,
                                  PointerRNA *r_opptr)
 {
@@ -1360,7 +1360,7 @@ static void ui_item_menu_hold(bContext *C, ARegion *butregion, uiBut *but)
 PointerRNA uiLayout::op(wmOperatorType *ot,
                         std::optional<StringRef> name,
                         const int icon,
-                        const wmOperatorCallContext context,
+                        const blender::wm::OpCallContext context,
                         const eUI_Item_Flag flag)
 {
   PointerRNA ptr;
@@ -1371,7 +1371,7 @@ PointerRNA uiLayout::op(wmOperatorType *ot,
 PointerRNA uiLayout::op_menu_hold(wmOperatorType *ot,
                                   std::optional<StringRef> name,
                                   int icon,
-                                  const wmOperatorCallContext context,
+                                  const blender::wm::OpCallContext context,
                                   const eUI_Item_Flag flag,
                                   const char *menu_id)
 {
@@ -1384,7 +1384,7 @@ PointerRNA uiLayout::op_menu_hold(wmOperatorType *ot,
 PointerRNA uiLayout::op(const blender::StringRefNull opname,
                         const std::optional<StringRef> name,
                         int icon,
-                        wmOperatorCallContext context,
+                        blender::wm::OpCallContext context,
                         const eUI_Item_Flag flag)
 {
   wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
@@ -1403,7 +1403,7 @@ void uiLayout::op_enum_items(wmOperatorType *ot,
                              const PointerRNA &ptr,
                              PropertyRNA *prop,
                              IDProperty *properties,
-                             wmOperatorCallContext context,
+                             blender::wm::OpCallContext context,
                              eUI_Item_Flag flag,
                              const EnumPropertyItem *item_array,
                              int totitem,
@@ -1541,7 +1541,7 @@ void uiLayout::op_enum_items(wmOperatorType *ot,
 void uiLayout::op_enum(const StringRefNull opname,
                        const StringRefNull propname,
                        IDProperty *properties,
-                       wmOperatorCallContext context,
+                       blender::wm::OpCallContext context,
                        eUI_Item_Flag flag,
                        const int active)
 {
@@ -3229,7 +3229,7 @@ void uiLayout::menu_fn_argN_free(const StringRefNull name,
 }
 
 struct MenuItemLevel {
-  wmOperatorCallContext opcontext;
+  blender::wm::OpCallContext opcontext;
   /* don't use pointers to the strings because python can dynamically
    * allocate strings and free before the menu draws, see #27304. */
   char opname[OP_MAX_TYPENAME];
@@ -5427,7 +5427,7 @@ uiLayout &block_layout(uiBlock *block,
   root->style = style;
   root->block = block;
   root->padding = padding;
-  root->opcontext = WM_OP_INVOKE_REGION_WIN;
+  root->opcontext = wm::OpCallContext::InvokeRegionWin;
 
   uiLayout *layout = MEM_new<uiLayout>(__func__);
   layout->type_ = (type == LayoutType::VerticalBar) ? uiItemType::LayoutColumn :
@@ -5474,7 +5474,7 @@ uiBlock *uiLayout::block() const
   return root_->block;
 }
 
-wmOperatorCallContext uiLayout::operator_context() const
+blender::wm::OpCallContext uiLayout::operator_context() const
 {
   return root_->opcontext;
 }
@@ -5583,7 +5583,7 @@ bool uiLayout::fixed_size() const
   return bool(flag_ & uiItemInternalFlag::FixedSize);
 }
 
-void uiLayout::operator_context_set(wmOperatorCallContext opcontext)
+void uiLayout::operator_context_set(blender::wm::OpCallContext opcontext)
 {
   root_->opcontext = opcontext;
 }

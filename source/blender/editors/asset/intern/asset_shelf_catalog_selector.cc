@@ -184,7 +184,7 @@ void AssetCatalogSelectorTree::update_shelf_settings_from_enabled_catalogs()
 
 void library_selector_draw(const bContext *C, uiLayout *layout, AssetShelf &shelf)
 {
-  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(wm::OpCallContext::InvokeDefault);
 
   PointerRNA shelf_ptr = RNA_pointer_create_discrete(
       &CTX_wm_screen(C)->id, &RNA_AssetShelf, &shelf);

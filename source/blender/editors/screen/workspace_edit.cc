@@ -463,7 +463,7 @@ static void workspace_append_button(uiLayout *layout,
   opptr = layout->op(ot_append,
                      CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2),
                      ICON_NONE,
-                     WM_OP_EXEC_DEFAULT,
+                     blender::wm::OpCallContext::ExecDefault,
                      UI_ITEM_NONE);
   RNA_string_set(&opptr, "idname", id->name + 2);
   RNA_string_set(&opptr, "filepath", filepath);

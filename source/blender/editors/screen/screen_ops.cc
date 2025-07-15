@@ -4601,7 +4601,7 @@ static wmOperatorStatus screen_area_options_invoke(bContext *C,
   ptr = layout->op("SCREEN_OT_area_split",
                    IFACE_("Vertical Split"),
                    ICON_SPLIT_VERTICAL,
-                   WM_OP_INVOKE_DEFAULT,
+                   blender::wm::OpCallContext::InvokeDefault,
                    UI_ITEM_NONE);
   /* store initial mouse cursor position. */
   RNA_int_set_array(&ptr, "cursor", event->xy);
@@ -4611,7 +4611,7 @@ static wmOperatorStatus screen_area_options_invoke(bContext *C,
   ptr = layout->op("SCREEN_OT_area_split",
                    IFACE_("Horizontal Split"),
                    ICON_SPLIT_HORIZONTAL,
-                   WM_OP_INVOKE_DEFAULT,
+                   blender::wm::OpCallContext::InvokeDefault,
                    UI_ITEM_NONE);
   /* store initial mouse cursor position. */
   RNA_int_set_array(&ptr, "cursor", event->xy);
@@ -4629,7 +4629,7 @@ static wmOperatorStatus screen_area_options_invoke(bContext *C,
                        ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S) ? IFACE_("Join Up") :
                                                                IFACE_("Join Right"),
                        ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S) ? ICON_AREA_JOIN_UP : ICON_AREA_JOIN,
-                       WM_OP_EXEC_DEFAULT,
+                       blender::wm::OpCallContext::ExecDefault,
                        UI_ITEM_NONE);
       RNA_int_set_array(&ptr, "source_xy", blender::int2{sa2->totrct.xmin, sa2->totrct.ymin});
       RNA_int_set_array(&ptr, "target_xy", blender::int2{sa1->totrct.xmin, sa1->totrct.ymin});
@@ -4638,7 +4638,7 @@ static wmOperatorStatus screen_area_options_invoke(bContext *C,
           "SCREEN_OT_area_join",
           ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S) ? IFACE_("Join Down") : IFACE_("Join Left"),
           ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S) ? ICON_AREA_JOIN_DOWN : ICON_AREA_JOIN_LEFT,
-          WM_OP_EXEC_DEFAULT,
+          blender::wm::OpCallContext::ExecDefault,
           UI_ITEM_NONE);
       RNA_int_set_array(&ptr, "source_xy", blender::int2{sa1->totrct.xmin, sa1->totrct.ymin});
       RNA_int_set_array(&ptr, "target_xy", blender::int2{sa2->totrct.xmin, sa2->totrct.ymin});
@@ -4652,7 +4652,7 @@ static wmOperatorStatus screen_area_options_invoke(bContext *C,
     ptr = layout->op("SCREEN_OT_area_swap",
                      IFACE_("Swap Areas"),
                      ICON_AREA_SWAP,
-                     WM_OP_EXEC_DEFAULT,
+                     blender::wm::OpCallContext::ExecDefault,
                      UI_ITEM_NONE);
     RNA_int_set_array(&ptr, "cursor", event->xy);
   }
@@ -5208,7 +5208,7 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
   ptr = layout->op("SCREEN_OT_area_join",
                    IFACE_("Move/Split Area"),
                    ICON_AREA_DOCK,
-                   WM_OP_INVOKE_DEFAULT,
+                   blender::wm::OpCallContext::InvokeDefault,
                    UI_ITEM_NONE);
 
   layout->separator();
@@ -5221,7 +5221,7 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
     ptr = layout->op("SCREEN_OT_screen_full_area",
                      IFACE_("Full Screen Area"),
                      ICON_NONE,
-                     WM_OP_INVOKE_DEFAULT,
+                     blender::wm::OpCallContext::InvokeDefault,
                      UI_ITEM_NONE);
     RNA_boolean_set(&ptr, "use_hide_panels", true);
   }
@@ -5287,8 +5287,8 @@ void ED_screens_region_flip_menu_create(bContext *C, uiLayout *layout, void * /*
                              region_alignment == RGN_ALIGN_BOTTOM ? IFACE_("Flip to Top") :
                                                                     IFACE_("Flip to Bottom");
 
-  /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
-  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
+  /* default is blender::wm::OpCallContext::InvokeRegionWin, which we don't want here. */
+  layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
 
   layout->op("SCREEN_OT_region_flip", but_flip_str, ICON_NONE);
 }
@@ -5338,8 +5338,9 @@ static wmOperatorStatus screen_context_menu_invoke(bContext *C,
       uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Navigation Bar"), ICON_NONE);
       uiLayout *layout = UI_popup_menu_layout(pup);
 
-      /* We need WM_OP_INVOKE_DEFAULT in case menu item is over another area. */
-      layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
+      /* We need blender::wm::OpCallContext::InvokeDefault in case menu item is over another area.
+       */
+      layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
       layout->op("SCREEN_OT_region_toggle", IFACE_("Hide"), ICON_NONE);
 
       ED_screens_region_flip_menu_create(C, layout, nullptr);

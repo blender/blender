@@ -394,7 +394,8 @@ void WM_init_splash(bContext *C)
 
   wmWindow *prevwin = CTX_wm_window(C);
   CTX_wm_window_set(C, static_cast<wmWindow *>(wm->windows.first));
-  WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
+  WM_operator_name_call(
+      C, "WM_OT_splash", blender::wm::OpCallContext::InvokeDefault, nullptr, nullptr);
   CTX_wm_window_set(C, prevwin);
 }
 

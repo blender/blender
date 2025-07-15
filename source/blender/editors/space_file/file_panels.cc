@@ -178,10 +178,10 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
 
   if (params->flag & FILE_CHECK_EXISTING) {
     but_extra_rna_ptr = UI_but_extra_operator_icon_add(
-        but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_REMOVE);
+        but, "FILE_OT_filenum", blender::wm::OpCallContext::ExecRegionWin, ICON_REMOVE);
     RNA_int_set(but_extra_rna_ptr, "increment", -1);
     but_extra_rna_ptr = UI_but_extra_operator_icon_add(
-        but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_ADD);
+        but, "FILE_OT_filenum", blender::wm::OpCallContext::ExecRegionWin, ICON_ADD);
     RNA_int_set(but_extra_rna_ptr, "increment", 1);
   }
 
@@ -193,7 +193,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
 
   {
     uiLayout *sub = &row->row(false);
-    sub->operator_context_set(WM_OP_EXEC_REGION_WIN);
+    sub->operator_context_set(blender::wm::OpCallContext::ExecRegionWin);
 
     if (windows_layout) {
       file_panel_execution_execute_button(sub, params->title);

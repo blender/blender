@@ -286,7 +286,7 @@ struct uiBut {
   /* Operator data */
   wmOperatorType *optype = nullptr;
   PointerRNA *opptr = nullptr;
-  wmOperatorCallContext opcontext = WM_OP_INVOKE_DEFAULT;
+  blender::wm::OpCallContext opcontext = blender::wm::OpCallContext::InvokeDefault;
   /**
    * Keep an operator attached but never actually call it through the button. See
    * #UI_but_operator_set_never_call().
@@ -1080,7 +1080,7 @@ void ui_pie_menu_level_create(uiBlock *block,
                               IDProperty *properties,
                               const EnumPropertyItem *items,
                               int totitem,
-                              wmOperatorCallContext context,
+                              blender::wm::OpCallContext context,
                               eUI_Item_Flag flag);
 
 /* `interface_region_popup.cc` */
@@ -1195,7 +1195,7 @@ const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_curs
 
 void ui_but_handle_data_free(uiHandleButtonData **data);
 
-void ui_handle_afterfunc_add_operator(wmOperatorType *ot, wmOperatorCallContext opcontext);
+void ui_handle_afterfunc_add_operator(wmOperatorType *ot, blender::wm::OpCallContext opcontext);
 /**
  * Assumes event type is MOUSEPAN.
  */

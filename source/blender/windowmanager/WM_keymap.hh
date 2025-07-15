@@ -218,14 +218,14 @@ std::optional<std::string> WM_keymap_item_raw_to_string(int8_t shift,
  */
 wmKeyMapItem *WM_key_event_operator(const bContext *C,
                                     const char *opname,
-                                    wmOperatorCallContext opcontext,
+                                    blender::wm::OpCallContext opcontext,
                                     IDProperty *properties,
                                     short include_mask,
                                     short exclude_mask,
                                     wmKeyMap **r_keymap);
 std::optional<std::string> WM_key_event_operator_string(const bContext *C,
                                                         const char *opname,
-                                                        wmOperatorCallContext opcontext,
+                                                        blender::wm::OpCallContext opcontext,
                                                         IDProperty *properties,
                                                         bool is_strict);
 

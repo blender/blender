@@ -213,8 +213,11 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (BLI_listbase_is_empty(&sc->scrollback)) {
-    WM_operator_name_call(
-        (bContext *)C, "CONSOLE_OT_banner", WM_OP_EXEC_DEFAULT, nullptr, nullptr);
+    WM_operator_name_call((bContext *)C,
+                          "CONSOLE_OT_banner",
+                          blender::wm::OpCallContext::ExecDefault,
+                          nullptr,
+                          nullptr);
   }
 
   /* clear and setup matrix */

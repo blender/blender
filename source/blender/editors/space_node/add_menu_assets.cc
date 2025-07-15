@@ -193,7 +193,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
     PointerRNA op_ptr = layout->op("NODE_OT_add_group_asset",
                                    IFACE_(asset->get_name()),
                                    ICON_NONE,
-                                   WM_OP_INVOKE_REGION_WIN,
+                                   wm::OpCallContext::InvokeRegionWin,
                                    UI_ITEM_NONE);
     asset::operator_asset_reference_props_set(*asset, op_ptr);
   }
@@ -229,7 +229,7 @@ static void node_add_unassigned_assets_draw(const bContext *C, Menu *menu)
     PointerRNA op_ptr = menu->layout->op("NODE_OT_add_group_asset",
                                          IFACE_(asset->get_name()),
                                          ICON_NONE,
-                                         WM_OP_INVOKE_REGION_WIN,
+                                         wm::OpCallContext::InvokeRegionWin,
                                          UI_ITEM_NONE);
     asset::operator_asset_reference_props_set(*asset, op_ptr);
   }

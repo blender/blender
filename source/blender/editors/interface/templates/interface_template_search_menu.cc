@@ -93,7 +93,7 @@ struct MenuSearch_Item {
   struct OperatorData {
     wmOperatorType *type;
     PointerRNA *opptr;
-    wmOperatorCallContext opcontext;
+    blender::wm::OpCallContext opcontext;
     const bContextStore *context;
     ~OperatorData()
     {
@@ -376,7 +376,7 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
       item.data = MenuSearch_Item::OperatorData();
       auto &op_data = std::get<MenuSearch_Item::OperatorData>(item.data);
       op_data.type = ot;
-      op_data.opcontext = WM_OP_INVOKE_DEFAULT;
+      op_data.opcontext = blender::wm::OpCallContext::InvokeDefault;
       op_data.context = nullptr;
 
       char idname_as_py[OP_MAX_TYPENAME];
@@ -680,7 +680,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
       if (current_menu.context.has_value()) {
         layout.context_copy(&*current_menu.context);
       }
-      layout.operator_context_set(WM_OP_INVOKE_REGION_WIN);
+      layout.operator_context_set(blender::wm::OpCallContext::InvokeRegionWin);
       UI_menutype_draw(C, mt, &layout);
 
       UI_block_end(C, block);
@@ -784,7 +784,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
           UI_block_flag_enable(sub_block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
 
-          sub_layout.operator_context_set(WM_OP_INVOKE_REGION_WIN);
+          sub_layout.operator_context_set(blender::wm::OpCallContext::InvokeRegionWin);
 
           /* If this is a panel, check it's poll function succeeds before drawing.
            * otherwise draw(..) may be called in an unsupported context and crash, see: #130744.

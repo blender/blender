@@ -123,11 +123,13 @@ static wmOperatorStatus viewdolly_modal(bContext *C, wmOperator *op, const wmEve
         event_code = VIEW_CONFIRM;
         break;
       case VIEWROT_MODAL_SWITCH_MOVE:
-        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, nullptr, event);
+        WM_operator_name_call(
+            C, "VIEW3D_OT_move", blender::wm::OpCallContext::InvokeDefault, nullptr, event);
         event_code = VIEW_CONFIRM;
         break;
       case VIEWROT_MODAL_SWITCH_ROTATE:
-        WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, nullptr, event);
+        WM_operator_name_call(
+            C, "VIEW3D_OT_rotate", blender::wm::OpCallContext::InvokeDefault, nullptr, event);
         event_code = VIEW_CONFIRM;
         break;
     }

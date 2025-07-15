@@ -16,6 +16,8 @@
 #include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
 
+#include "DNA_screen_types.h"
+
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 

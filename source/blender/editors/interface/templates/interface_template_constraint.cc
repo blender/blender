@@ -47,7 +47,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
 
   PointerRNA ptr = RNA_pointer_create_discrete(&ob->id, &RNA_Constraint, con);
   layout->context_ptr_set("constraint", &ptr);
-  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
 
   layout->ui_units_x_set(4.0f);
 
@@ -72,7 +72,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
   op_ptr = row->op("CONSTRAINT_OT_move_to_index",
                    IFACE_("Move to First"),
                    ICON_TRIA_UP,
-                   WM_OP_INVOKE_DEFAULT,
+                   blender::wm::OpCallContext::InvokeDefault,
                    UI_ITEM_NONE);
   RNA_int_set(&op_ptr, "index", 0);
   if (!con->prev) {
@@ -84,7 +84,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
   op_ptr = row->op("CONSTRAINT_OT_move_to_index",
                    IFACE_("Move to Last"),
                    ICON_TRIA_DOWN,
-                   WM_OP_INVOKE_DEFAULT,
+                   blender::wm::OpCallContext::InvokeDefault,
                    UI_ITEM_NONE);
   ListBase *constraint_list = blender::ed::object::constraint_list_from_constraint(
       ob, con, nullptr);
@@ -134,7 +134,7 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
   /* Close 'button' - emboss calls here disable drawing of 'button' behind X */
   sub = &row->row(false);
   sub->emboss_set(blender::ui::EmbossType::None);
-  sub->operator_context_set(WM_OP_INVOKE_DEFAULT);
+  sub->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
   sub->op("CONSTRAINT_OT_delete", "", ICON_X);
 
   /* Some extra padding at the end, so the 'x' icon isn't too close to drag button. */
@@ -203,7 +203,7 @@ static void constraint_reorder(bContext *C, Panel *panel, int new_index)
   RNA_int_set(&props_ptr, "index", new_index);
   /* Set owner to #EDIT_CONSTRAINT_OWNER_OBJECT or #EDIT_CONSTRAINT_OWNER_BONE. */
   RNA_enum_set(&props_ptr, "owner", constraint_from_bone ? 1 : 0);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
+  WM_operator_name_call_ptr(C, ot, blender::wm::OpCallContext::InvokeDefault, &props_ptr, nullptr);
   WM_operator_properties_free(&props_ptr);
 }
 

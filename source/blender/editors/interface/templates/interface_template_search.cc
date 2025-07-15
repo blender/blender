@@ -116,7 +116,7 @@ static void template_search_add_button_name(uiBlock *block,
 static void template_search_add_button_operator(
     uiBlock *block,
     const char *const operator_name,
-    const wmOperatorCallContext opcontext,
+    const blender::wm::OpCallContext opcontext,
     const int icon,
     const bool editable,
     const std::optional<StringRefNull> button_text = {})
@@ -198,14 +198,18 @@ static void template_search_buttons(const bContext *C,
    * case this type-specific code will be removed. */
   const bool may_show_new_button = (type == &RNA_ActionSlot);
   if (may_show_new_button && !active_ptr.data) {
-    template_search_add_button_operator(
-        block, newop, WM_OP_INVOKE_DEFAULT, ICON_ADD, editable, IFACE_("New"));
+    template_search_add_button_operator(block,
+                                        newop,
+                                        blender::wm::OpCallContext::InvokeDefault,
+                                        ICON_ADD,
+                                        editable,
+                                        IFACE_("New"));
   }
   else {
     template_search_add_button_operator(
-        block, newop, WM_OP_INVOKE_DEFAULT, ICON_DUPLICATE, editable);
+        block, newop, blender::wm::OpCallContext::InvokeDefault, ICON_DUPLICATE, editable);
     template_search_add_button_operator(
-        block, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, editable);
+        block, unlinkop, blender::wm::OpCallContext::InvokeRegionWin, ICON_X, editable);
   }
 
   UI_block_align_end(block);

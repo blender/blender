@@ -114,7 +114,8 @@ static wmOperatorStatus wm_drop_import_file_exec(bContext *C, wmOperator *op)
   WM_operator_properties_create_ptr(&file_props, ot);
   file_handler_import_operator_write_ptr(file_handlers[0], file_props, paths);
 
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &file_props, nullptr);
+  WM_operator_name_call_ptr(
+      C, ot, blender::wm::OpCallContext::InvokeDefault, &file_props, nullptr);
   WM_operator_properties_free(&file_props);
   return OPERATOR_FINISHED;
 }
@@ -139,14 +140,14 @@ static wmOperatorStatus wm_drop_import_file_invoke(bContext *C,
    */
   uiPopupMenu *pup = UI_popup_menu_begin(C, "", ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
-  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
 
   for (auto *file_handler : file_handlers) {
     wmOperatorType *ot = WM_operatortype_find(file_handler->import_operator, false);
     PointerRNA file_props = layout->op(ot,
                                        CTX_TIP_(ot->translation_context, ot->name),
                                        ICON_NONE,
-                                       WM_OP_INVOKE_DEFAULT,
+                                       blender::wm::OpCallContext::InvokeDefault,
                                        UI_ITEM_NONE);
     file_handler_import_operator_write_ptr(file_handler, file_props, paths);
   }

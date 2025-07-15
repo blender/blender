@@ -24,6 +24,7 @@
 #include "UI_resources.hh"
 
 #include "RNA_prototypes.hh"
+#include "RNA_types.hh"
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"

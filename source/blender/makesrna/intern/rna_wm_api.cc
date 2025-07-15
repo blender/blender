@@ -589,7 +589,7 @@ static PointerRNA rna_KeyConfig_find_item_from_operator(wmWindowManager *wm,
   wmKeyMap *km = nullptr;
   wmKeyMapItem *kmi = WM_key_event_operator(C,
                                             idname_bl,
-                                            wmOperatorCallContext(opcontext),
+                                            blender::wm::OpCallContext(opcontext),
                                             static_cast<IDProperty *>(properties->data),
                                             include_mask,
                                             exclude_mask,

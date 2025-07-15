@@ -759,7 +759,8 @@ static wmOperatorStatus text_save_invoke(bContext *C, wmOperator *op, const wmEv
 
   /* Internal and texts without a filepath will go to "Save As". */
   if (text->filepath == nullptr || (text->flags & TXT_ISMEM)) {
-    WM_operator_name_call(C, "TEXT_OT_save_as", WM_OP_INVOKE_DEFAULT, nullptr, event);
+    WM_operator_name_call(
+        C, "TEXT_OT_save_as", blender::wm::OpCallContext::InvokeDefault, nullptr, event);
     return OPERATOR_CANCELLED;
   }
   return text_save_exec(C, op);
@@ -1143,10 +1144,12 @@ static wmOperatorStatus text_indent_or_autocomplete_exec(bContext *C, wmOperator
   TextLine *line = text->curl;
   bool text_before_cursor = text->curc != 0 && !ELEM(line->line[text->curc - 1], ' ', '\t');
   if (text_before_cursor && (txt_has_sel(text) == false)) {
-    WM_operator_name_call(C, "TEXT_OT_autocomplete", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
+    WM_operator_name_call(
+        C, "TEXT_OT_autocomplete", blender::wm::OpCallContext::InvokeDefault, nullptr, nullptr);
   }
   else {
-    WM_operator_name_call(C, "TEXT_OT_indent", WM_OP_EXEC_DEFAULT, nullptr, nullptr);
+    WM_operator_name_call(
+        C, "TEXT_OT_indent", blender::wm::OpCallContext::ExecDefault, nullptr, nullptr);
   }
   return OPERATOR_FINISHED;
 }

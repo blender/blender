@@ -671,7 +671,7 @@ static wmOperatorStatus collection_exporter_export(bContext *C,
   RNA_string_set(&properties, "filepath", filepath);
   RNA_string_set(&properties, "collection", collection_name);
   wmOperatorStatus op_result = WM_operator_name_call_ptr(
-      C, ot, WM_OP_EXEC_DEFAULT, &properties, nullptr);
+      C, ot, wm::OpCallContext::ExecDefault, &properties, nullptr);
 
   /* Free the "last used" properties that were just set from the collection export and restore the
    * original "last used" properties. */

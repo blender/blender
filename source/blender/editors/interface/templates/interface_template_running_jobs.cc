@@ -45,7 +45,11 @@ static void do_running_jobs(bContext *C, void * /*arg*/, int event)
       WM_jobs_stop_all_from_owner(CTX_wm_manager(C), CTX_wm_screen(C));
       break;
     case B_STOPANIM:
-      WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, nullptr, nullptr);
+      WM_operator_name_call(C,
+                            "SCREEN_OT_animation_play",
+                            blender::wm::OpCallContext::InvokeScreen,
+                            nullptr,
+                            nullptr);
       break;
     case B_STOPCOMPO:
       WM_jobs_stop_all_from_owner(CTX_wm_manager(C), CTX_data_scene(C));
@@ -236,7 +240,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
       uiDefIconButO(block,
                     UI_BTYPE_BUT,
                     op_name,
-                    WM_OP_INVOKE_DEFAULT,
+                    blender::wm::OpCallContext::InvokeDefault,
                     icon,
                     0,
                     0,

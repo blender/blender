@@ -483,7 +483,7 @@ static wmDropBox *dropbox_active(bContext *C,
             continue;
           }
 
-          const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
+          const blender::wm::OpCallContext opcontext = wm_drop_operator_context_get(drop);
           if (drop->ot && WM_operator_poll_context(C, drop->ot, opcontext)) {
             /* Get dropbox tooltip now, #wm_drag_draw_tooltip can use a different draw context. */
             drag->drop_state.tooltip = dropbox_tooltip(C, drag, event->xy, drop);
@@ -573,7 +573,7 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
 
 void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
-  const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
+  const blender::wm::OpCallContext opcontext = wm_drop_operator_context_get(drop);
 
   if (drag->drop_state.ui_context) {
     CTX_store_set(C, drag->drop_state.ui_context.get());
@@ -614,9 +614,9 @@ void wm_drags_check_ops(bContext *C, const wmEvent *event)
   }
 }
 
-wmOperatorCallContext wm_drop_operator_context_get(const wmDropBox * /*drop*/)
+blender::wm::OpCallContext wm_drop_operator_context_get(const wmDropBox * /*drop*/)
 {
-  return WM_OP_INVOKE_DEFAULT;
+  return blender::wm::OpCallContext::InvokeDefault;
 }
 
 /* ************** IDs ***************** */
