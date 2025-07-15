@@ -72,20 +72,15 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeItem thin_film_thickness = get_input_value("Thin Film Thickness", NodeItem::Type::Float);
   NodeItem thin_film_ior = get_input_value("Thin Film IOR", NodeItem::Type::Float);
 
-  NodeItem n_base_bsdf = create_node("dielectric_bsdf",
-                                     NodeItem::Type::BSDF,
-                                     {{"normal", normal},
-                                      {"tint", color},
-                                      {"roughness", roughness},
-                                      {"ior", ior},
-                                      {"scatter_mode", val(std::string("RT"))}});
-  NodeItem n_thin_film_bsdf = create_node(
-      "thin_film_bsdf",
-      NodeItem::Type::BSDF,
-      {{"thickness", thin_film_thickness}, {"ior", thin_film_ior}});
-
-  return create_node(
-      "layer", NodeItem::Type::BSDF, {{"top", n_thin_film_bsdf}, {"base", n_base_bsdf}});
+  return create_node("dielectric_bsdf",
+                     NodeItem::Type::BSDF,
+                     {{"normal", normal},
+                      {"tint", color},
+                      {"roughness", roughness},
+                      {"ior", ior},
+                      {"thinfilm_thickness", thin_film_thickness},
+                      {"thinfilm_ior", thin_film_ior},
+                      {"scatter_mode", val(std::string("RT"))}});
 }
 #endif
 NODE_SHADER_MATERIALX_END
