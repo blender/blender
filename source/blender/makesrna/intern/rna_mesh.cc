@@ -489,7 +489,7 @@ static void rna_MeshLoop_tangent_get(PointerRNA *ptr, float *values)
 {
   Mesh *mesh = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
-  const float(*layer)[4] = static_cast<const float(*)[4]>(
+  const blender::float4 *layer = static_cast<const blender::float4 *>(
       CustomData_get_layer(&mesh->corner_data, CD_MLOOPTANGENT));
 
   if (!layer) {
@@ -504,7 +504,7 @@ static float rna_MeshLoop_bitangent_sign_get(PointerRNA *ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
-  const float(*vec)[4] = static_cast<const float(*)[4]>(
+  const blender::float4 *vec = static_cast<const blender::float4 *>(
       CustomData_get_layer(&mesh->corner_data, CD_MLOOPTANGENT));
 
   return (vec) ? vec[index][3] : 0.0f;
@@ -514,7 +514,7 @@ static void rna_MeshLoop_bitangent_get(PointerRNA *ptr, float *values)
 {
   Mesh *mesh = rna_mesh(ptr);
   const int index = rna_MeshLoop_index_get(ptr);
-  const float(*vec)[4] = static_cast<const float(*)[4]>(
+  const blender::float4 *vec = static_cast<const blender::float4 *>(
       CustomData_get_layer(&mesh->corner_data, CD_MLOOPTANGENT));
 
   if (vec) {
@@ -761,7 +761,7 @@ static void rna_MeshVertex_undeformed_co_get(PointerRNA *ptr, float values[3])
 {
   Mesh *mesh = rna_mesh(ptr);
   const float *position = (const float *)ptr->data;
-  const float(*orco)[3] = static_cast<const float(*)[3]>(
+  const blender::float3 *orco = static_cast<const blender::float3 *>(
       CustomData_get_layer(&mesh->vert_data, CD_ORCO));
 
   if (orco) {
