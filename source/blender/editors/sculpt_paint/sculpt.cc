@@ -4681,7 +4681,6 @@ bool cursor_geometry_info_update(bContext *C,
   if (!pbvh || !vc.rv3d || !BKE_base_is_visible(v3d, base)) {
     out->location = float3(0.0f);
     out->normal = float3(0.0f);
-    out->active_vertex_co = float3(0.0f);
     ss.clear_active_elements(false);
     return false;
   }
@@ -4727,14 +4726,12 @@ bool cursor_geometry_info_update(bContext *C,
   if (!srd.hit) {
     out->location = float3(0.0f);
     out->normal = float3(0.0f);
-    out->active_vertex_co = float3(0.0f);
     ss.clear_active_elements(true);
     return false;
   }
 
   /* Update the active vertex of the SculptSession. */
   ss.set_active_vert(srd.active_vertex);
-  out->active_vertex_co = ss.active_vert_position(*depsgraph, ob);
 
   switch (pbvh->type()) {
     case bke::pbvh::Type::Mesh:
