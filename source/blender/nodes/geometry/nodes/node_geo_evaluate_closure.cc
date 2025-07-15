@@ -40,8 +40,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       const std::string identifier =
           EvaluateClosureOutputItemsAccessor::socket_identifier_for_item(item);
       b.add_output(socket_type, item.name, identifier)
-          .propagate_all()
-          .reference_pass_all()
           .structure_type(StructureType(item.structure_type));
     }
   }

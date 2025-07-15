@@ -281,7 +281,12 @@ typedef struct View3D_Runtime {
   /** Runtime only flags. */
   int flag;
 
-  char _pad1[4];
+  /**
+   * The previously calculated selection center.
+   * Only use when `flag` #V3D_RUNTIME_OFS_LAST_IS_VALID is set.
+   */
+  float ofs_last_center[3];
+
   /* Only used for overlay stats while in local-view. */
   struct SceneStats *local_stats;
 } View3D_Runtime;
@@ -422,6 +427,9 @@ enum {
   V3D_RUNTIME_DEPTHBUF_OVERRIDDEN = (1 << 1),
   /** Local view may have become empty, and may need to be exited. */
   V3D_RUNTIME_LOCAL_MAYBE_EMPTY = (1 << 2),
+  /** Last offset is valid. */
+  V3D_RUNTIME_OFS_LAST_CENTER_IS_VALID = (1 << 3),
+
 };
 
 /** #RegionView3D::persp */

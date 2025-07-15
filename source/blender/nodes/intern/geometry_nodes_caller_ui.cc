@@ -949,7 +949,7 @@ void draw_geometry_nodes_modifier_ui(const bContext &C, PointerRNA *modifier_ptr
         PointerRNA props = layout.op("object.geometry_nodes_input_attribute_toggle",
                                      "",
                                      icon,
-                                     WM_OP_INVOKE_DEFAULT,
+                                     wm::OpCallContext::InvokeDefault,
                                      UI_ITEM_NONE);
         RNA_string_set(&props, "modifier_name", nmd.modifier.name);
         RNA_string_set(&props, "input_name", io_socket.identifier);

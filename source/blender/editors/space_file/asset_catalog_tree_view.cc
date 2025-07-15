@@ -288,7 +288,7 @@ void AssetCatalogTreeViewItem::build_row(uiLayout &row)
   PointerRNA *props;
 
   props = UI_but_extra_operator_icon_add(
-      (uiBut *)view_item_but, "ASSET_OT_catalog_new", WM_OP_INVOKE_DEFAULT, ICON_ADD);
+      (uiBut *)view_item_but, "ASSET_OT_catalog_new", wm::OpCallContext::InvokeDefault, ICON_ADD);
   RNA_string_set(props, "parent_path", catalog_item_.catalog_path().c_str());
 }
 
@@ -299,14 +299,14 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
   props = column.op("ASSET_OT_catalog_new",
                     IFACE_("New Catalog"),
                     ICON_NONE,
-                    WM_OP_INVOKE_DEFAULT,
+                    wm::OpCallContext::InvokeDefault,
                     UI_ITEM_NONE);
   RNA_string_set(&props, "parent_path", catalog_item_.catalog_path().c_str());
 
   props = column.op("ASSET_OT_catalog_delete",
                     IFACE_("Delete Catalog"),
                     ICON_NONE,
-                    WM_OP_INVOKE_DEFAULT,
+                    wm::OpCallContext::InvokeDefault,
                     UI_ITEM_NONE);
   RNA_string_set(&props, "catalog_id", catalog_item_.get_catalog_id().str().c_str());
   column.op("UI_OT_view_item_rename", IFACE_("Rename"), ICON_NONE);
@@ -573,12 +573,12 @@ void AssetCatalogTreeViewAllItem::build_row(uiLayout &row)
 
   UI_but_extra_operator_icon_add(reinterpret_cast<uiBut *>(this->view_item_button()),
                                  "ASSET_OT_catalogs_save",
-                                 WM_OP_INVOKE_DEFAULT,
+                                 wm::OpCallContext::InvokeDefault,
                                  ICON_FILE_TICK);
 
   props = UI_but_extra_operator_icon_add(reinterpret_cast<uiBut *>(this->view_item_button()),
                                          "ASSET_OT_catalog_new",
-                                         WM_OP_INVOKE_DEFAULT,
+                                         wm::OpCallContext::InvokeDefault,
                                          ICON_ADD);
   /* No parent path to use the root level. */
   RNA_string_set(props, "parent_path", nullptr);

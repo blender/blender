@@ -56,7 +56,7 @@ typedef struct bUserMenuItem_Op {
   char op_idname[64];
   struct IDProperty *prop;
   char op_prop_enum[64];
-  char opcontext; /* #wmOperatorCallContext */
+  char opcontext; /* #blender::wm::OpCallContext */
   char _pad0[7];
 } bUserMenuItem_Op;
 

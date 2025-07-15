@@ -28,6 +28,7 @@
 #include "UI_resources.hh"
 
 #include "RNA_prototypes.hh"
+#include "RNA_types.hh"
 
 #include "DEG_depsgraph_query.hh"
 

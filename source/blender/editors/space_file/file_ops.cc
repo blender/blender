@@ -1848,7 +1848,7 @@ static wmOperatorStatus file_external_operation_exec(bContext *C, wmOperator *op
   WM_operator_properties_create_ptr(&op_props, ot);
   RNA_string_set(&op_props, "filepath", filepath);
   const wmOperatorStatus retval = WM_operator_name_call_ptr(
-      C, ot, WM_OP_INVOKE_DEFAULT, &op_props, nullptr);
+      C, ot, blender::wm::OpCallContext::InvokeDefault, &op_props, nullptr);
   WM_operator_properties_free(&op_props);
 
   if (retval == OPERATOR_FINISHED) {
@@ -1920,7 +1920,7 @@ static void file_os_operations_menu_item(uiLayout *layout,
   RNA_enum_name(file_external_operation, operation, &title);
 
   PointerRNA props_ptr = layout->op(
-      ot, IFACE_(title), ICON_NONE, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE);
+      ot, IFACE_(title), ICON_NONE, blender::wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
   RNA_string_set(&props_ptr, "filepath", path);
   if (operation) {
     RNA_enum_set(&props_ptr, "operation", operation);
@@ -1967,7 +1967,7 @@ static void file_os_operations_menu_draw(const bContext *C_const, Menu *menu)
   const char *root = filelist_dir(sfile->files);
 
   uiLayout *layout = menu->layout;
-  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
   wmOperatorType *ot = WM_operatortype_find("FILE_OT_external_operation", true);
 
   if (fileentry->typeflag & FILE_TYPE_DIR) {
@@ -2540,7 +2540,8 @@ static wmOperatorStatus file_smoothscroll_invoke(bContext *C,
   RNA_int_set(&op_ptr, "deltax", deltax);
   RNA_int_set(&op_ptr, "deltay", deltay);
 
-  WM_operator_name_call(C, "VIEW2D_OT_pan", WM_OP_EXEC_DEFAULT, &op_ptr, event);
+  WM_operator_name_call(
+      C, "VIEW2D_OT_pan", blender::wm::OpCallContext::ExecDefault, &op_ptr, event);
   WM_operator_properties_free(&op_ptr);
 
   ED_region_tag_redraw(region);
@@ -2965,7 +2966,7 @@ void file_directory_enter_handle(bContext *C, void * /*arg_unused*/, void * /*ar
         STRNCPY(params->dir, lastdir);
       }
 
-      WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
+      WM_operator_name_call_ptr(C, ot, blender::wm::OpCallContext::InvokeDefault, &ptr, nullptr);
       WM_operator_properties_free(&ptr);
     }
   }

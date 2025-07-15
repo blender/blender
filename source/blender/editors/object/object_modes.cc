@@ -153,7 +153,7 @@ bool mode_compat_set(bContext *C, Object *ob, eObjectMode mode, ReportList *repo
   if (!ELEM(ob->mode, mode, OB_MODE_OBJECT)) {
     const char *opstring = object_mode_op_string(eObjectMode(ob->mode));
 
-    WM_operator_name_call(C, opstring, WM_OP_EXEC_REGION_WIN, nullptr, nullptr);
+    WM_operator_name_call(C, opstring, wm::OpCallContext::ExecRegionWin, nullptr, nullptr);
     ok = ELEM(ob->mode, mode, OB_MODE_OBJECT);
     if (!ok) {
       wmOperatorType *ot = WM_operatortype_find(opstring, false);
@@ -204,7 +204,7 @@ bool mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportList *repor
   if (!use_undo) {
     wm->op_undo_depth++;
   }
-  WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_REGION_WIN, nullptr, nullptr);
+  WM_operator_name_call_ptr(C, ot, wm::OpCallContext::ExecRegionWin, nullptr, nullptr);
   if (!use_undo) {
     wm->op_undo_depth--;
   }

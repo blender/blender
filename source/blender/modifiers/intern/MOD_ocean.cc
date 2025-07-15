@@ -625,13 +625,16 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
     PointerRNA op_ptr = layout->op("OBJECT_OT_ocean_bake",
                                    IFACE_("Delete Bake"),
                                    ICON_NONE,
-                                   WM_OP_INVOKE_DEFAULT,
+                                   blender::wm::OpCallContext::InvokeDefault,
                                    UI_ITEM_NONE);
     RNA_boolean_set(&op_ptr, "free", true);
   }
   else {
-    PointerRNA op_ptr = layout->op(
-        "OBJECT_OT_ocean_bake", IFACE_("Bake"), ICON_NONE, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE);
+    PointerRNA op_ptr = layout->op("OBJECT_OT_ocean_bake",
+                                   IFACE_("Bake"),
+                                   ICON_NONE,
+                                   blender::wm::OpCallContext::InvokeDefault,
+                                   UI_ITEM_NONE);
     RNA_boolean_set(&op_ptr, "free", false);
   }
 

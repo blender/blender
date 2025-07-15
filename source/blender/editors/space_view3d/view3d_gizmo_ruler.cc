@@ -1391,10 +1391,9 @@ static wmOperatorStatus view3d_ruler_add_invoke(bContext *C, wmOperator *op, con
 
   /* This is a little weak, but there is no real good way to tweak directly. */
   WM_gizmo_highlight_set(gzmap, &ruler_item->gz);
-  if (WM_operator_name_call(
-          C, "GIZMOGROUP_OT_gizmo_tweak", WM_OP_INVOKE_REGION_WIN, nullptr, event) ==
-      OPERATOR_RUNNING_MODAL)
-  {
+  const wmOperatorStatus status = WM_operator_name_call(
+      C, "GIZMOGROUP_OT_gizmo_tweak", blender::wm::OpCallContext::InvokeRegionWin, nullptr, event);
+  if (status == OPERATOR_RUNNING_MODAL) {
     RulerInfo *ruler_info = static_cast<RulerInfo *>(gzgroup->customdata);
     RulerInteraction *inter = static_cast<RulerInteraction *>(ruler_item->gz.interaction_data);
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);

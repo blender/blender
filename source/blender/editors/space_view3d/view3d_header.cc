@@ -88,19 +88,19 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
   op_ptr = row->op(ot,
                    "",
                    ICON_VERTEXSEL,
-                   WM_OP_INVOKE_DEFAULT,
+                   blender::wm::OpCallContext::InvokeDefault,
                    (em->selectmode & SCE_SELECT_VERTEX) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_VERTEX);
   op_ptr = row->op(ot,
                    "",
                    ICON_EDGESEL,
-                   WM_OP_INVOKE_DEFAULT,
+                   blender::wm::OpCallContext::InvokeDefault,
                    (em->selectmode & SCE_SELECT_EDGE) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_EDGE);
   op_ptr = row->op(ot,
                    "",
                    ICON_FACESEL,
-                   WM_OP_INVOKE_DEFAULT,
+                   blender::wm::OpCallContext::InvokeDefault,
                    (em->selectmode & SCE_SELECT_FACE) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_FACE);
 }

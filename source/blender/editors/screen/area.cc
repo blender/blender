@@ -2908,7 +2908,7 @@ static void ed_panel_draw(const bContext *C,
                           int em,
                           char *unique_panel_str,
                           const char *search_filter,
-                          wmOperatorCallContext op_context)
+                          blender::wm::OpCallContext op_context)
 {
   const uiStyle *style = UI_style_get_dpi();
 
@@ -3160,7 +3160,7 @@ static int panel_draw_width_from_max_width_get(const ARegion *region,
 void ED_region_panels_layout_ex(const bContext *C,
                                 ARegion *region,
                                 ListBase *paneltypes,
-                                wmOperatorCallContext op_context,
+                                blender::wm::OpCallContext op_context,
                                 const char *contexts[],
                                 const char *category_override)
 {
@@ -3339,8 +3339,12 @@ void ED_region_panels_layout_ex(const bContext *C,
 
 void ED_region_panels_layout(const bContext *C, ARegion *region)
 {
-  ED_region_panels_layout_ex(
-      C, region, &region->runtime->type->paneltypes, WM_OP_INVOKE_REGION_WIN, nullptr, nullptr);
+  ED_region_panels_layout_ex(C,
+                             region,
+                             &region->runtime->type->paneltypes,
+                             blender::wm::OpCallContext::InvokeRegionWin,
+                             nullptr,
+                             nullptr);
 }
 
 void ED_region_panels_draw(const bContext *C, ARegion *region)
@@ -3401,7 +3405,7 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
 
 void ED_region_panels_ex(const bContext *C,
                          ARegion *region,
-                         wmOperatorCallContext op_context,
+                         blender::wm::OpCallContext op_context,
                          const char *contexts[])
 {
   /* TODO: remove? */

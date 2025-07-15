@@ -573,6 +573,43 @@ template<> bool has_animations(Alembic::AbcGeom::IPolyMeshSchema &schema, Import
   return false;
 }
 
+template<> bool has_animations(Alembic::AbcGeom::ISubDSchema &schema, ImportSettings *settings)
+{
+  if (settings->is_sequence || !schema.isConstant()) {
+    return true;
+  }
+
+  IV2fGeomParam uvsParam = schema.getUVsParam();
+  if (uvsParam.valid() && !uvsParam.isConstant()) {
+    return true;
+  }
+
+  Alembic::AbcGeom::IInt32ArrayProperty creaseIndices = schema.getCreaseIndicesProperty();
+  if (creaseIndices.valid() && !creaseIndices.isConstant()) {
+    return true;
+  }
+  Alembic::AbcGeom::IFloatArrayProperty creaseSharpnesses = schema.getCreaseSharpnessesProperty();
+  if (creaseSharpnesses.valid() && !creaseSharpnesses.isConstant()) {
+    return true;
+  }
+
+  Alembic::AbcGeom::IInt32ArrayProperty cornerIndices = schema.getCornerIndicesProperty();
+  if (cornerIndices.valid() && !cornerIndices.isConstant()) {
+    return true;
+  }
+  Alembic::AbcGeom::IFloatArrayProperty cornerSharpnesses = schema.getCornerSharpnessesProperty();
+  if (cornerSharpnesses.valid() && !cornerSharpnesses.isConstant()) {
+    return true;
+  }
+
+  ICompoundProperty arbGeomParams = schema.getArbGeomParams();
+  if (has_animated_geom_params(arbGeomParams)) {
+    return true;
+  }
+
+  return false;
+}
+
 void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
   Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
@@ -922,8 +959,11 @@ static void read_vertex_creases(Mesh *mesh,
     return;
   }
 
-  float *vertex_crease_data = (float *)CustomData_add_layer_named(
-      &mesh->vert_data, CD_PROP_FLOAT, CD_SET_DEFAULT, mesh->verts_num, "crease_vert");
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter creases = attributes.lookup_or_add_for_write_only_span<float>(
+      "crease_vert", bke::AttrDomain::Point);
+  creases.span.fill(0.0f);
+
   const int totvert = mesh->verts_num;
 
   for (int i = 0, v = indices->size(); i < v; ++i) {
@@ -936,8 +976,10 @@ static void read_vertex_creases(Mesh *mesh,
     const float crease = settings->blender_archive_version_prior_44 ?
                              (*sharpnesses)[i] :
                              bke::subdiv::sharpness_to_crease((*sharpnesses)[i]);
-    vertex_crease_data[idx] = std::clamp(crease, 0.0f, 1.0f);
+    creases.span[idx] = std::clamp(crease, 0.0f, 1.0f);
   }
+
+  creases.finish();
 }
 
 static void read_edge_creases(Mesh *mesh,
@@ -1027,23 +1069,6 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
     BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object);
   }
 
-  ISubDSchema::Sample sample;
-  try {
-    sample = m_schema.getValue(sample_sel);
-  }
-  catch (Alembic::Util::Exception &ex) {
-    printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
-           m_iobject.getFullName().c_str(),
-           m_schema.getName().c_str(),
-           sample_sel.getRequestedTime(),
-           ex.what());
-    return;
-  }
-
-  read_edge_creases(mesh, sample.getCreaseIndices(), sample.getCreaseSharpnesses(), m_settings);
-
-  read_vertex_creases(mesh, sample.getCornerIndices(), sample.getCornerSharpnesses(), m_settings);
-
   if (m_settings->validate_meshes) {
     BKE_mesh_validate(mesh, false, false);
   }
@@ -1116,6 +1141,12 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
   config.time = sample_sel.getRequestedTime();
   config.modifier_error_message = r_err_str;
   read_subd_sample(m_iobject.getFullName(), &settings, m_schema, sample_sel, config);
+
+  read_edge_creases(
+      mesh_to_export, sample.getCreaseIndices(), sample.getCreaseSharpnesses(), m_settings);
+
+  read_vertex_creases(
+      mesh_to_export, sample.getCornerIndices(), sample.getCornerSharpnesses(), m_settings);
 
   return mesh_to_export;
 }

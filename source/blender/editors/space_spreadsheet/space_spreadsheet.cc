@@ -793,7 +793,7 @@ void register_spacetype()
   art = MEM_callocN<ARegionType>("spacetype spreadsheet region");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
-  art->lock = 1;
+  art->lock = REGION_DRAW_LOCK_ALL;
 
   art->init = spreadsheet_main_region_init;
   art->draw = spreadsheet_main_region_draw;
@@ -808,7 +808,7 @@ void register_spacetype()
   art->prefsizey = HEADERY;
   art->keymapflag = 0;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER | ED_KEYMAP_FRAMES;
-  art->lock = 1;
+  art->lock = REGION_DRAW_LOCK_ALL;
 
   art->init = spreadsheet_header_region_init;
   art->draw = spreadsheet_header_region_draw;
@@ -822,7 +822,7 @@ void register_spacetype()
   art->prefsizey = HEADERY;
   art->keymapflag = 0;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER | ED_KEYMAP_FRAMES;
-  art->lock = 1;
+  art->lock = REGION_DRAW_LOCK_ALL;
 
   art->init = spreadsheet_footer_region_init;
   art->draw = spreadsheet_footer_region_draw;
@@ -835,7 +835,7 @@ void register_spacetype()
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
-  art->lock = 1;
+  art->lock = REGION_DRAW_LOCK_ALL;
 
   art->init = spreadsheet_sidebar_init;
   art->layout = ED_region_panels_layout;
@@ -851,7 +851,7 @@ void register_spacetype()
   art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = 150 + V2D_SCROLL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
-  art->lock = 1;
+  art->lock = REGION_DRAW_LOCK_ALL;
   art->init = ED_region_panels_init;
   art->draw = spreadsheet_dataset_region_draw;
   art->listener = spreadsheet_dataset_region_listener;

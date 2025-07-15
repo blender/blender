@@ -6,6 +6,7 @@
 #include "DNA_listBase.h"
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 #include "BLI_utility_mixins.hh"
@@ -268,6 +269,9 @@ BlendHandle *BLO_blendhandle_from_file(const char *filepath, BlendFileReadReport
 BlendHandle *BLO_blendhandle_from_memory(const void *mem,
                                          int memsize,
                                          BlendFileReadReport *reports);
+
+/** Returns the major and minor version number of Blender used to create the file. */
+blender::int3 BLO_blendhandle_get_version(const BlendHandle *bh);
 
 /**
  * Gets the names of all the data-blocks in a file of a certain type

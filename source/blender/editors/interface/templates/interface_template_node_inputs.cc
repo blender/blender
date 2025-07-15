@@ -160,8 +160,20 @@ void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr)
         blender::ui::nodes::draw_node_inputs_recursive(C, layout, node, ptr, *panel_decl);
       }
       else if (const auto *socket_decl = dynamic_cast<const SocketDeclaration *>(item_decl)) {
-        if (socket_decl->in_out == SOCK_IN) {
-          blender::ui::nodes::draw_node_input(C, layout, ptr, node.socket_by_decl(*socket_decl));
+        bNodeSocket &socket = node.socket_by_decl(*socket_decl);
+        if (socket_decl->custom_draw_fn) {
+          CustomSocketDrawParams params{
+              *C,
+              *layout,
+              tree,
+              node,
+              socket,
+              *ptr,
+              RNA_pointer_create_discrete(ptr->owner_id, &RNA_NodeSocket, &socket)};
+          (*socket_decl->custom_draw_fn)(params);
+        }
+        else if (socket_decl->in_out == SOCK_IN) {
+          blender::ui::nodes::draw_node_input(C, layout, ptr, socket);
         }
       }
       else if (const auto *layout_decl = dynamic_cast<const LayoutDeclaration *>(item_decl)) {

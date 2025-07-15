@@ -96,7 +96,7 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
                                                          const wmOperatorType *ot,
                                                          IDProperty *prop,
                                                          const char *op_prop_enum,
-                                                         wmOperatorCallContext opcontext)
+                                                         blender::wm::OpCallContext opcontext)
 {
   LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_OPERATOR) {
@@ -105,7 +105,8 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
       const bool ok_prop_enum = (umi_op->op_prop_enum[0] != '\0') ?
                                     STREQ(umi_op->op_prop_enum, op_prop_enum) :
                                     true;
-      if (STREQ(ot->idname, umi_op->op_idname) && (opcontext == umi_op->opcontext) && ok_idprop &&
+      if (STREQ(ot->idname, umi_op->op_idname) &&
+          (opcontext == blender::wm::OpCallContext(umi_op->opcontext)) && ok_idprop &&
           ok_prop_enum)
       {
         return umi_op;
@@ -151,11 +152,11 @@ void ED_screen_user_menu_item_add_operator(ListBase *lb,
                                            const wmOperatorType *ot,
                                            const IDProperty *prop,
                                            const char *op_prop_enum,
-                                           wmOperatorCallContext opcontext)
+                                           blender::wm::OpCallContext opcontext)
 {
   bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)BKE_blender_user_menu_item_add(
       lb, USER_MENU_TYPE_OPERATOR);
-  umi_op->opcontext = opcontext;
+  umi_op->opcontext = int8_t(opcontext);
   if (!STREQ(ui_name, ot->name)) {
     STRNCPY(umi_op->item.ui_name, ui_name);
   }
@@ -226,8 +227,11 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
             ui_name = CTX_IFACE_(ot->translation_context, ui_name->c_str());
           }
           if (umi_op->op_prop_enum[0] == '\0') {
-            PointerRNA ptr = menu->layout->op(
-                ot, ui_name, ICON_NONE, wmOperatorCallContext(umi_op->opcontext), UI_ITEM_NONE);
+            PointerRNA ptr = menu->layout->op(ot,
+                                              ui_name,
+                                              ICON_NONE,
+                                              blender::wm::OpCallContext(umi_op->opcontext),
+                                              UI_ITEM_NONE);
             if (umi_op->prop) {
               IDP_CopyPropertyContent(ptr.data_as<IDProperty>(), umi_op->prop);
             }

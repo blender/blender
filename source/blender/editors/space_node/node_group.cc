@@ -680,7 +680,7 @@ static wmOperatorStatus node_group_separate_invoke(bContext *C,
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  layout->operator_context_set(WM_OP_EXEC_DEFAULT);
+  layout->operator_context_set(wm::OpCallContext::ExecDefault);
   PointerRNA op_ptr = layout->op("NODE_OT_group_separate", IFACE_("Copy"), ICON_NONE);
   RNA_enum_set(&op_ptr, "type", NODE_GS_COPY);
   op_ptr = layout->op("NODE_OT_group_separate", IFACE_("Move"), ICON_NONE);

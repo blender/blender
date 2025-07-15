@@ -166,9 +166,9 @@ void paint_stroke_set_mode_data(PaintStroke *stroke, std::unique_ptr<PaintModeDa
 
 bool paint_stroke_started(PaintStroke *stroke);
 void paint_stroke_jitter_pos(const PaintStroke &stroke,
-                             const PaintMode mode,
+                             PaintMode mode,
                              const Brush &brush,
-                             const float pressure,
+                             float pressure,
                              const float mval[2],
                              float r_mouse_out[2]);
 
@@ -261,7 +261,7 @@ struct WPaintVGroupIndex {
  */
 bool ED_wpaint_ensure_data(bContext *C,
                            ReportList *reports,
-                           enum eWPaintFlag flag,
+                           eWPaintFlag flag,
                            WPaintVGroupIndex *vgroup_index);
 /** Return -1 when invalid. */
 int ED_wpaint_mirror_vgroup_ensure(Object *ob, int vgroup_active);
@@ -568,7 +568,7 @@ void view_angle_limits_init(NormalAnglePrecalc *a, float angle, bool do_mask_nor
 float view_angle_limits_apply_falloff(const NormalAnglePrecalc *a, float angle_cos, float *mask_p);
 bool test_brush_angle_falloff(const Brush &brush,
                               const NormalAnglePrecalc &normal_angle_precalc,
-                              const float angle_cos,
+                              float angle_cos,
                               float *brush_strength);
 bool use_normal(const VPaint &vp);
 

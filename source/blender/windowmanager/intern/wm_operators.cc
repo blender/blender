@@ -1083,7 +1083,9 @@ int WM_operator_smooth_viewtx_get(const wmOperator *op)
   return (op->flag & OP_IS_INVOKE) ? U.smooth_viewtx : 0;
 }
 
-wmOperatorStatus WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallContext opcontext)
+wmOperatorStatus WM_menu_invoke_ex(bContext *C,
+                                   wmOperator *op,
+                                   blender::wm::OpCallContext opcontext)
 {
   PropertyRNA *prop = op->type->prop;
 
@@ -1121,7 +1123,7 @@ wmOperatorStatus WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallCo
 
 wmOperatorStatus WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  return WM_menu_invoke_ex(C, op, WM_OP_INVOKE_REGION_WIN);
+  return WM_menu_invoke_ex(C, op, blender::wm::OpCallContext::InvokeRegionWin);
 }
 
 struct EnumSearchMenu {
@@ -1198,7 +1200,7 @@ wmOperatorStatus WM_operator_confirm_message_ex(bContext *C,
                                                 const char *title,
                                                 const int icon,
                                                 const char *message,
-                                                const wmOperatorCallContext /*opcontext*/)
+                                                const blender::wm::OpCallContext /*opcontext*/)
 {
   int alert_icon = ALERT_ICON_QUESTION;
   switch (icon) {
@@ -4080,7 +4082,7 @@ static wmOperatorStatus doc_view_manual_ui_context_exec(bContext *C, wmOperator 
 
     retval = WM_operator_name_call_ptr(C,
                                        WM_operatortype_find("WM_OT_doc_view_manual", false),
-                                       WM_OP_EXEC_DEFAULT,
+                                       blender::wm::OpCallContext::ExecDefault,
                                        &ptr_props,
                                        nullptr);
 

@@ -15,6 +15,7 @@
 #include "DNA_grease_pencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 
@@ -39,6 +40,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_pointcache.h"
 
 #include "SEQ_iterator.hh"
 
@@ -1000,6 +1002,26 @@ static void do_version_split_node_rotation(bNodeTree *node_tree, bNode *node)
   }
 }
 
+static void do_version_remove_lzo_and_lzma_compression(Object *object)
+{
+  constexpr int PTCACHE_COMPRESS_LZO = 1;
+  constexpr int PTCACHE_COMPRESS_LZMA = 2;
+  ListBase pidlist;
+
+  BKE_ptcache_ids_from_object(&pidlist, object, nullptr, 0);
+
+  LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
+    if (pid->cache->compression == PTCACHE_COMPRESS_LZO) {
+      pid->cache->compression = PTCACHE_COMPRESS_ZSTD_FAST;
+    }
+    else if (pid->cache->compression == PTCACHE_COMPRESS_LZMA) {
+      pid->cache->compression = PTCACHE_COMPRESS_ZSTD_SLOW;
+    }
+  }
+
+  BLI_freelistN(&pidlist);
+}
+
 void do_versions_after_linking_500(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 9)) {
@@ -1017,6 +1039,12 @@ void do_versions_after_linking_500(FileData * /*fd*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 37)) {
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      do_version_remove_lzo_and_lzma_compression(object);
+    }
   }
 
   /**

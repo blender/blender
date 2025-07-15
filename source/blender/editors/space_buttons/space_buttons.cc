@@ -201,7 +201,7 @@ void ED_buttons_visible_tabs_menu(bContext *C, uiLayout *layout, void * /*arg*/)
 void ED_buttons_navbar_menu(bContext *C, uiLayout *layout, void * /*arg*/)
 {
   ED_screens_region_flip_menu_create(C, layout, nullptr);
-  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
   layout->op("SCREEN_OT_region_toggle", IFACE_("Hide"), ICON_NONE);
 }
 
@@ -311,8 +311,12 @@ static void buttons_main_region_layout_properties(const bContext *C,
 
   const char *contexts[2] = {buttons_main_region_context_string(sbuts->mainb), nullptr};
 
-  ED_region_panels_layout_ex(
-      C, region, &region->runtime->type->paneltypes, WM_OP_INVOKE_REGION_WIN, contexts, nullptr);
+  ED_region_panels_layout_ex(C,
+                             region,
+                             &region->runtime->type->paneltypes,
+                             blender::wm::OpCallContext::InvokeRegionWin,
+                             contexts,
+                             nullptr);
 }
 
 /** \} */
@@ -1100,7 +1104,7 @@ void ED_spacetype_buttons()
   art->draw = ED_region_panels_draw;
   art->listener = buttons_main_region_listener;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
-  art->lock = true;
+  art->lock = REGION_DRAW_LOCK_ALL;
   buttons_context_register(art);
   BLI_addhead(&st->regiontypes, art);
 

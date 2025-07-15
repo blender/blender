@@ -950,12 +950,16 @@ static wmOperatorStatus parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Set Parent To"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  PointerRNA opptr = layout->op(ot, IFACE_("Object"), ICON_NONE, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE);
+  PointerRNA opptr = layout->op(
+      ot, IFACE_("Object"), ICON_NONE, wm::OpCallContext::ExecDefault, UI_ITEM_NONE);
   RNA_enum_set(&opptr, "type", PAR_OBJECT);
   RNA_boolean_set(&opptr, "keep_transform", false);
 
-  opptr = layout->op(
-      ot, IFACE_("Object (Keep Transform)"), ICON_NONE, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE);
+  opptr = layout->op(ot,
+                     IFACE_("Object (Keep Transform)"),
+                     ICON_NONE,
+                     wm::OpCallContext::ExecDefault,
+                     UI_ITEM_NONE);
   RNA_enum_set(&opptr, "type", PAR_OBJECT);
   RNA_boolean_set(&opptr, "keep_transform", true);
 

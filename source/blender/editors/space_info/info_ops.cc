@@ -272,7 +272,7 @@ static wmOperatorStatus unpack_all_invoke(bContext *C, wmOperator *op, const wmE
   pup = UI_popup_menu_begin(C, title.c_str(), ICON_NONE);
   layout = UI_popup_menu_layout(pup);
 
-  layout->operator_context_set(WM_OP_EXEC_DEFAULT);
+  layout->operator_context_set(blender::wm::OpCallContext::ExecDefault);
   layout->op_enum("FILE_OT_unpack_all", "method");
 
   UI_popup_menu_end(C, pup);
@@ -366,11 +366,11 @@ static wmOperatorStatus unpack_item_invoke(bContext *C, wmOperator *op, const wm
   pup = UI_popup_menu_begin(C, IFACE_("Unpack"), ICON_NONE);
   layout = UI_popup_menu_layout(pup);
 
-  layout->operator_context_set(WM_OP_EXEC_DEFAULT);
+  layout->operator_context_set(blender::wm::OpCallContext::ExecDefault);
   layout->op_enum(op->type->idname,
                   "method",
                   static_cast<IDProperty *>(op->ptr->data),
-                  WM_OP_EXEC_REGION_WIN,
+                  blender::wm::OpCallContext::ExecRegionWin,
                   UI_ITEM_NONE);
 
   UI_popup_menu_end(C, pup);

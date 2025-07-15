@@ -995,9 +995,20 @@ bool OneapiDevice::create_queue(SyclQueue *&external_queue,
     if (device_index < 0 || device_index >= devices.size()) {
       return false;
     }
-    sycl::queue *created_queue = new sycl::queue(devices[device_index],
-                                                 sycl::property::queue::in_order());
+
+    sycl::queue *created_queue = nullptr;
+    if (devices.size() == 1) {
+      created_queue = new sycl::queue(devices[device_index], sycl::property::queue::in_order());
+    }
+    else {
+      sycl::context device_context(devices[device_index]);
+      created_queue = new sycl::queue(
+          device_context, devices[device_index], sycl::property::queue::in_order());
+      LOG_DEBUG << "Separate context was generated for the new queue, as several available SYCL "
+                   "devices were detected";
+    }
     external_queue = reinterpret_cast<SyclQueue *>(created_queue);
+
 #  ifdef WITH_EMBREE_GPU
     if (embree_device_pointer) {
       RTCDevice *device_object_ptr = reinterpret_cast<RTCDevice *>(embree_device_pointer);

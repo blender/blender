@@ -68,7 +68,7 @@ static PyObject *pyop_poll(PyObject * /*self*/, PyObject *args)
   const char *context_str = nullptr;
   PyObject *ret;
 
-  wmOperatorCallContext context = WM_OP_EXEC_DEFAULT;
+  blender::wm::OpCallContext context = blender::wm::OpCallContext::ExecDefault;
 
   /* XXX TODO: work out a better solution for passing on context,
    * could make a tuple from self and pack the name and Context into it. */
@@ -105,7 +105,7 @@ static PyObject *pyop_poll(PyObject * /*self*/, PyObject *args)
   }
 
   if (context_str) {
-    int context_int = context;
+    int context_int = int(context);
 
     if (RNA_enum_value_from_id(rna_enum_operator_context_items, context_str, &context_int) == 0) {
       char *enum_str = pyrna_enum_repr(rna_enum_operator_context_items);
@@ -118,7 +118,7 @@ static PyObject *pyop_poll(PyObject * /*self*/, PyObject *args)
       return nullptr;
     }
     /* Copy back to the properly typed enum. */
-    context = wmOperatorCallContext(context_int);
+    context = blender::wm::OpCallContext(context_int);
   }
 
   /* main purpose of this function */
@@ -138,7 +138,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
   const char *context_str = nullptr;
   PyObject *kw = nullptr; /* optional args */
 
-  wmOperatorCallContext context = WM_OP_EXEC_DEFAULT;
+  blender::wm::OpCallContext context = blender::wm::OpCallContext::ExecDefault;
   int is_undo = false;
 
   /* XXX TODO: work out a better solution for passing on context,
@@ -188,7 +188,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
   }
 
   if (context_str) {
-    int context_int = context;
+    int context_int = int(context);
 
     if (RNA_enum_value_from_id(rna_enum_operator_context_items, context_str, &context_int) == 0) {
       char *enum_str = pyrna_enum_repr(rna_enum_operator_context_items);
@@ -201,7 +201,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
       return nullptr;
     }
     /* Copy back to the properly typed enum. */
-    context = wmOperatorCallContext(context_int);
+    context = blender::wm::OpCallContext(context_int);
   }
 
   if (WM_operator_poll_context(C, ot, context) == false) {
@@ -285,7 +285,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
         return nullptr;
       }
 
-      WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, nullptr, nullptr);
+      WM_operator_name_call(C, opname, blender::wm::OpCallContext::ExecDefault, nullptr, nullptr);
     }
 #endif
   }

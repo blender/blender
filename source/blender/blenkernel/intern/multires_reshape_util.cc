@@ -476,7 +476,8 @@ ReshapeGridElement multires_reshape_grid_element_for_grid_coord(
 
   if (reshape_context->mdisps != nullptr) {
     MDisps *displacement_grid = &reshape_context->mdisps[grid_coord->grid_index];
-    grid_element.displacement = displacement_grid->disps[grid_element_index];
+    grid_element.displacement = reinterpret_cast<blender::float3 *>(
+        displacement_grid->disps[grid_element_index]);
   }
 
   if (reshape_context->grid_paint_masks != nullptr) {
@@ -507,7 +508,7 @@ ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
       const int grid_x = lround(grid_coord->u * (grid_size - 1));
       const int grid_y = lround(grid_coord->v * (grid_size - 1));
       const int grid_element_index = grid_y * grid_size + grid_x;
-      copy_v3_v3(grid_element.displacement, displacement_grid->disps[grid_element_index]);
+      grid_element.displacement = displacement_grid->disps[grid_element_index];
     }
   }
 
@@ -741,12 +742,11 @@ static void object_grid_element_to_tangent_displacement(
   ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(reshape_context,
                                                                                  grid_coord);
 
-  blender::float3 D;
-  sub_v3_v3v3(D, grid_element.displacement, P);
+  blender::float3 D = *grid_element.displacement - P;
 
   blender::float3 tangent_D = blender::math::transform_direction(inv_tangent_matrix, D);
 
-  copy_v3_v3(grid_element.displacement, tangent_D);
+  *grid_element.displacement = tangent_D;
 }
 
 void multires_reshape_object_grids_to_tangent_displacement(
@@ -777,10 +777,10 @@ static void assign_final_coords_from_mdisps(const MultiresReshapeContext *reshap
 
   ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(reshape_context,
                                                                                  grid_coord);
-  blender::float3 D;
-  mul_v3_m3v3(D, tangent_matrix.ptr(), grid_element.displacement);
+  const blender::float3 D = blender::math::transform_direction(tangent_matrix,
+                                                               *grid_element.displacement);
 
-  add_v3_v3v3(grid_element.displacement, P, D);
+  *grid_element.displacement = P + D;
 }
 
 void multires_reshape_assign_final_coords_from_mdisps(
@@ -801,12 +801,12 @@ static void assign_final_elements_from_orig_mdisps(const MultiresReshapeContext 
   const ReshapeConstGridElement orig_grid_element =
       multires_reshape_orig_grid_element_for_grid_coord(reshape_context, grid_coord);
 
-  blender::float3 D;
-  mul_v3_m3v3(D, tangent_matrix.ptr(), orig_grid_element.displacement);
+  blender::float3 D = blender::math::transform_direction(tangent_matrix,
+                                                         orig_grid_element.displacement);
 
   ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(reshape_context,
                                                                                  grid_coord);
-  add_v3_v3v3(grid_element.displacement, P, D);
+  *grid_element.displacement = P + D;
 
   if (grid_element.mask != nullptr) {
     *grid_element.mask = orig_grid_element.mask;

@@ -477,7 +477,7 @@ static wmOperatorStatus node_add_group_asset_invoke(bContext *C,
   BLI_assert(ot);
   PointerRNA ptr;
   WM_operator_properties_create_ptr(&ptr, ot);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
+  WM_operator_name_call_ptr(C, ot, wm::OpCallContext::InvokeDefault, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 
   return OPERATOR_FINISHED;

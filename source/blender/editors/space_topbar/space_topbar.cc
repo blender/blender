@@ -188,7 +188,7 @@ static void topbar_header_region_message_subscribe(const wmRegionMessageSubscrib
 static void recent_files_menu_draw(const bContext * /*C*/, Menu *menu)
 {
   uiLayout *layout = menu->layout;
-  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(blender::wm::OpCallContext::InvokeDefault);
   if (uiTemplateRecentFiles(layout, U.recent_files) != 0) {
     layout->separator();
     layout->op("WM_OT_clear_recent_files", IFACE_("Clear Recent Files List..."), ICON_TRASH);

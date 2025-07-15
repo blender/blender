@@ -2968,14 +2968,16 @@ static wmOperatorStatus outliner_id_operation_exec(bContext *C, wmOperator *op)
     }
     case OUTLINER_IDOP_COPY: {
       wm->op_undo_depth++;
-      WM_operator_name_call(C, "OUTLINER_OT_id_copy", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
+      WM_operator_name_call(
+          C, "OUTLINER_OT_id_copy", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
       wm->op_undo_depth--;
       /* No need for undo, this operation does not change anything... */
       break;
     }
     case OUTLINER_IDOP_PASTE: {
       wm->op_undo_depth++;
-      WM_operator_name_call(C, "OUTLINER_OT_id_paste", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
+      WM_operator_name_call(
+          C, "OUTLINER_OT_id_paste", wm::OpCallContext::InvokeDefault, nullptr, nullptr);
       wm->op_undo_depth--;
       ED_outliner_select_sync_from_all_tag(C);
       ED_undo_push(C, "Paste");
@@ -3308,7 +3310,7 @@ static wmOperatorStatus outliner_animdata_operation_exec(bContext *C, wmOperator
       /* delegate once again... */
       wm->op_undo_depth++;
       WM_operator_name_call(
-          C, "OUTLINER_OT_action_set", WM_OP_INVOKE_REGION_WIN, nullptr, nullptr);
+          C, "OUTLINER_OT_action_set", wm::OpCallContext::InvokeRegionWin, nullptr, nullptr);
       wm->op_undo_depth--;
       ED_undo_push(C, "Set active action");
       break;
@@ -3621,7 +3623,7 @@ static wmOperatorStatus outliner_operator_menu(bContext *C, const char *opname)
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   /* Set this so the default execution context is the same as sub-menus. */
-  layout->operator_context_set(WM_OP_INVOKE_REGION_WIN);
+  layout->operator_context_set(wm::OpCallContext::InvokeRegionWin);
 
   if (WM_operator_poll(C, ot)) {
     layout->op_enum(ot->idname, RNA_property_identifier(ot->prop));
@@ -3662,13 +3664,13 @@ static wmOperatorStatus do_outliner_operation_event(bContext *C,
     return outliner_operator_menu(C, "OUTLINER_OT_scene_operation");
   }
   if (objectlevel) {
-    WM_menu_name_call(C, "OUTLINER_MT_object", WM_OP_INVOKE_REGION_WIN);
+    WM_menu_name_call(C, "OUTLINER_MT_object", wm::OpCallContext::InvokeRegionWin);
     return OPERATOR_FINISHED;
   }
   if (idlevel) {
     switch (idlevel) {
       case ID_GR:
-        WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
+        WM_menu_name_call(C, "OUTLINER_MT_collection", wm::OpCallContext::InvokeRegionWin);
         return OPERATOR_FINISHED;
         break;
       case ID_LI:
@@ -3688,11 +3690,11 @@ static wmOperatorStatus do_outliner_operation_event(bContext *C,
       return OPERATOR_CANCELLED;
     }
     if (datalevel == TSE_LAYER_COLLECTION) {
-      WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
+      WM_menu_name_call(C, "OUTLINER_MT_collection", wm::OpCallContext::InvokeRegionWin);
       return OPERATOR_FINISHED;
     }
     if (ELEM(datalevel, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
-      WM_menu_name_call(C, "OUTLINER_MT_collection_new", WM_OP_INVOKE_REGION_WIN);
+      WM_menu_name_call(C, "OUTLINER_MT_collection_new", wm::OpCallContext::InvokeRegionWin);
       return OPERATOR_FINISHED;
     }
     if (datalevel == TSE_ID_BASE) {

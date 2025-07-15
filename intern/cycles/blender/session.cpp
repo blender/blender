@@ -133,12 +133,11 @@ void BlenderSession::create_session()
   /* create sync */
   sync = make_unique<BlenderSync>(
       b_engine, b_data, b_scene, scene, !background, use_developer_ui, session->progress);
-  BL::Object b_camera_override(b_engine.camera_override());
   if (b_v3d) {
     sync->sync_view(b_v3d, b_rv3d, width, height);
   }
   else {
-    sync->sync_camera(b_render, b_camera_override, width, height, "");
+    sync->sync_camera(b_render, width, height, "");
   }
 
   /* set buffer parameters */
@@ -230,8 +229,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
     sync->sync_recalc(b_depsgraph, b_v3d, b_rv3d);
   }
 
-  BL::Object b_camera_override(b_engine.camera_override());
-  sync->sync_camera(b_render, b_camera_override, width, height, "");
+  sync->sync_camera(b_render, width, height, "");
 
   BL::SpaceView3D b_null_space_view3d(PointerRNA_NULL);
   BL::RegionView3D b_null_region_view3d(PointerRNA_NULL);
@@ -392,12 +390,11 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
     }
 
     /* update scene */
-    BL::Object b_camera_override(b_engine.camera_override());
-    sync->sync_camera(b_render, b_camera_override, width, height, b_rview_name.c_str());
+    sync->sync_camera(b_render, width, height, b_rview_name.c_str());
     sync->sync_data(b_render,
                     b_depsgraph,
                     b_v3d,
-                    b_camera_override,
+                    b_rv3d,
                     width,
                     height,
                     &python_thread_state,
@@ -689,13 +686,12 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   session->full_buffer_written_cb = [&](string_view filename) { full_buffer_written(filename); };
 
   /* Sync scene. */
-  BL::Object b_camera_override(b_engine.camera_override());
   sync->set_bake_target(b_object);
-  sync->sync_camera(b_render, b_camera_override, width, height, "");
+  sync->sync_camera(b_render, width, height, "");
   sync->sync_data(b_render,
                   b_depsgraph,
                   b_v3d,
-                  b_camera_override,
+                  b_rv3d,
                   width,
                   height,
                   &python_thread_state,
@@ -815,11 +811,10 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
   /* data and camera synchronize */
   b_depsgraph = b_depsgraph_;
 
-  BL::Object b_camera_override(b_engine.camera_override());
   sync->sync_data(b_render,
                   b_depsgraph,
                   b_v3d,
-                  b_camera_override,
+                  b_rv3d,
                   width,
                   height,
                   &python_thread_state,
@@ -829,7 +824,7 @@ void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)
     sync->sync_view(b_v3d, b_rv3d, width, height);
   }
   else {
-    sync->sync_camera(b_render, b_camera_override, width, height, "");
+    sync->sync_camera(b_render, width, height, "");
   }
 
   /* get buffer parameters */

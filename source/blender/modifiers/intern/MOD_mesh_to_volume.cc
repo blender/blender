@@ -32,6 +32,7 @@
 #include "BLI_math_matrix_types.hh"
 
 #include "RNA_prototypes.hh"
+#include "RNA_types.hh"
 
 static void init_data(ModifierData *md)
 {

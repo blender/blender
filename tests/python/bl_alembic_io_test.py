@@ -277,6 +277,63 @@ class CameraExportImportTest(unittest.TestCase):
         for name in self.names:
             self.assertIsNone(objects[name].parent)
 
+    def test_mesh_subd_varying(self):
+        """Test meshes with subdivision crease values varying over time."""
+
+        abc_path = str(self.tempdir / "mesh_subd_varying.abc")
+
+        # Export
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "mesh_subd_varying.blend"))
+        self.assertIn('FINISHED', bpy.ops.wm.alembic_export(
+            filepath=abc_path,
+            subdiv_schema=True
+        ))
+
+        # Re-import what we just exported into an empty file.
+        bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "empty.blend"))
+        bpy.ops.wm.alembic_import(
+            filepath=abc_path,
+            as_background_job=False)
+
+        #
+        # Validate Mesh data
+        #
+        blender_mesh1 = bpy.data.objects["mesh_edge_crease"]
+        blender_mesh2 = bpy.data.objects["mesh_vert_crease"]
+
+        # A MeshSequenceCache modifier should be present on every imported object
+        for blender_mesh in [blender_mesh1, blender_mesh2]:
+            self.assertTrue(len(blender_mesh.modifiers) == 1 and blender_mesh.modifiers[0].type ==
+                            'MESH_SEQUENCE_CACHE', f"{blender_mesh.name} has incorrect modifiers")
+
+        # Conversion from USD to Blender convention
+        def sharpness_to_crease(sharpness):
+            return math.sqrt(sharpness * 0.1)
+
+        # Compare Blender data against the expected value for every frame
+        for frame in range(1, 25):
+            bpy.context.scene.frame_set(frame)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            blender_mesh1_eval = bpy.data.objects["mesh_edge_crease"].evaluated_get(depsgraph)
+            blender_mesh2_eval = bpy.data.objects["mesh_vert_crease"].evaluated_get(depsgraph)
+
+            # The file was written using a simple formula for each frame's crease value
+            expected_edge_creases = [round(frame / 24.0, 3)] * 12
+            expected_vert_creases = [round(frame / 24.0, 3)] * 4
+
+            # Check crease values
+            blender_crease_data = [round(d.value, 3) for d in blender_mesh1_eval.data.attributes["crease_edge"].data]
+            self.assertEqual(
+                blender_crease_data,
+                expected_edge_creases,
+                f"Frame {frame}: {blender_mesh1_eval.name} crease values do not match")
+
+            blender_crease_data = [round(d.value, 3) for d in blender_mesh2_eval.data.attributes["crease_vert"].data]
+            self.assertEqual(
+                blender_crease_data,
+                expected_vert_creases,
+                f"Frame {frame}: {blender_mesh2_eval.name} crease values do not match")
+
     def do_export_import_test(self, *, flatten: bool):
         bpy.ops.wm.open_mainfile(filepath=str(args.testdir / "camera_transforms.blend"))
 

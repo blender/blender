@@ -1250,8 +1250,12 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
     paneltypes = &art->paneltypes;
   }
 
-  ED_region_panels_layout_ex(
-      C, region, paneltypes, WM_OP_INVOKE_REGION_WIN, contexts_base, category_override);
+  ED_region_panels_layout_ex(C,
+                             region,
+                             paneltypes,
+                             blender::wm::OpCallContext::InvokeRegionWin,
+                             contexts_base,
+                             category_override);
 }
 
 static void view3d_buttons_region_layout(const bContext *C, ARegion *region)
@@ -1381,7 +1385,7 @@ static void view3d_tools_region_init(wmWindowManager *wm, ARegion *region)
 static void view3d_tools_region_draw(const bContext *C, ARegion *region)
 {
   const char *contexts[] = {CTX_data_mode_string(C), nullptr};
-  ED_region_panels_ex(C, region, WM_OP_INVOKE_REGION_WIN, contexts);
+  ED_region_panels_ex(C, region, blender::wm::OpCallContext::InvokeRegionWin, contexts);
 }
 
 static void view3d_tools_header_region_draw(const bContext *C, ARegion *region)
@@ -1621,7 +1625,7 @@ void ED_spacetype_view3d()
   art->listener = view3d_main_region_listener;
   art->message_subscribe = view3d_main_region_message_subscribe;
   art->cursor = view3d_main_region_cursor;
-  art->lock = 1; /* can become flag, see BKE_spacedata_draw_locks */
+  art->lock = REGION_DRAW_LOCK_ALL;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: list-view/buttons */

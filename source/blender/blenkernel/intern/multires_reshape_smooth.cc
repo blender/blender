@@ -1024,8 +1024,8 @@ static void reshape_subdiv_refine_orig_P(
   const ReshapeConstGridElement orig_grid_element =
       multires_reshape_orig_grid_element_for_grid_coord(reshape_context, grid_coord);
 
-  blender::float3 D;
-  mul_v3_m3v3(D, tangent_matrix.ptr(), orig_grid_element.displacement);
+  const blender::float3 D = blender::math::transform_direction(tangent_matrix,
+                                                               orig_grid_element.displacement);
 
   r_P = limit_P + D;
 }
@@ -1054,7 +1054,7 @@ static void reshape_subdiv_refine_final_P(
 
   /* NOTE: At this point in reshape/propagate pipeline grid displacement is actually storing object
    * vertices coordinates. */
-  copy_v3_v3(r_P, grid_element.displacement);
+  r_P = *grid_element.displacement;
 }
 static void reshape_subdiv_refine_final(const MultiresReshapeSmoothContext *reshape_smooth_context)
 {
@@ -1254,8 +1254,8 @@ static void evaluate_final_original_point(
       reshape_context, grid_coord, base_mesh_limit_P, base_mesh_tangent_matrix);
 
   /* Convert original displacement from tangent space to object space. */
-  blender::float3 orig_displacement;
-  mul_v3_m3v3(orig_displacement, base_mesh_tangent_matrix.ptr(), orig_grid_element.displacement);
+  const blender::float3 orig_displacement = blender::math::transform_direction(
+      base_mesh_tangent_matrix, orig_grid_element.displacement);
 
   /* Final point = limit surface + displacement. */
   r_orig_final_P = base_mesh_limit_P + orig_displacement;
@@ -1301,7 +1301,7 @@ static void evaluate_higher_grid_positions_with_details(
         ReshapeGridElement grid_element = multires_reshape_grid_element_for_grid_coord(
             reshape_context, grid_coord);
 
-        add_v3_v3v3(grid_element.displacement, smooth_limit_P, smooth_delta);
+        *grid_element.displacement = smooth_limit_P + smooth_delta;
 
         /* Propagate non-coordinate data. */
         propagate_linear_data_delta(reshape_smooth_context, &grid_element, grid_coord);
@@ -1323,7 +1323,7 @@ static void evaluate_higher_grid_positions(MultiresReshapeSmoothContext *reshape
         blender::bke::subdiv::eval_limit_point(
             reshape_subdiv, ptex_coord->ptex_face_index, ptex_coord->u, ptex_coord->v, P);
 
-        copy_v3_v3(grid_element.displacement, P);
+        *grid_element.displacement = P;
 
         /* Propagate non-coordinate data. */
         propagate_linear_data_delta(reshape_smooth_context, &grid_element, grid_coord);

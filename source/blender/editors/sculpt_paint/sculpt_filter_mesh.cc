@@ -1933,6 +1933,7 @@ static void mesh_filter_surface_smooth_init(Object &object,
   filter::Cache *filter_cache = ss.filter_cache;
 
   filter_cache->surface_smooth_laplacian_disp.reinitialize(totvert);
+  filter_cache->surface_smooth_laplacian_disp.fill(float3(0.0f));
   filter_cache->surface_smooth_shape_preservation = shape_preservation;
   filter_cache->surface_smooth_current_vertex = current_vertex_displacement;
 }
