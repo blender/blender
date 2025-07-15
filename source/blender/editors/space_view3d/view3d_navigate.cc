@@ -191,7 +191,11 @@ static eViewOpsFlag navigate_pivot_get(bContext *C,
 
     /* Uses the `lastofs` in #view3d_orbit_calc_center. */
     BLI_assert(viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT);
-    return VIEWOPS_FLAG_ORBIT_SELECT;
+    if (v3d->runtime.flag & V3D_RUNTIME_OFS_LAST_CENTER_IS_VALID) {
+      return VIEWOPS_FLAG_ORBIT_SELECT;
+    }
+    /* No valid pivot, don't use any dynamic offset. */
+    return VIEWOPS_FLAG_NONE;
   }
 
   if (dyn_ofs_override) {
@@ -230,6 +234,8 @@ void ViewOpsData::init_navigation(bContext *C,
   using namespace blender;
   this->nav_type = nav_type;
   eViewOpsFlag viewops_flag = nav_type->flag & viewops_flag_from_prefs();
+  constexpr eViewOpsFlag viewops_flag_dynamic_ofs = VIEWOPS_FLAG_DEPTH_NAVIGATE |
+                                                    VIEWOPS_FLAG_ORBIT_SELECT;
 
   if (!use_cursor_init) {
     viewops_flag &= ~(VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ZOOM_TO_MOUSE);
@@ -269,64 +275,68 @@ void ViewOpsData::init_navigation(bContext *C,
     }
   }
 
-  if (viewops_flag & (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ORBIT_SELECT)) {
+  if (viewops_flag & viewops_flag_dynamic_ofs) {
     float pivot_new[3];
     eViewOpsFlag pivot_type = navigate_pivot_get(
         C, depsgraph, region, v3d, event, viewops_flag, dyn_ofs_override, pivot_new);
 
-    viewops_flag &= ~(VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ORBIT_SELECT);
+    viewops_flag &= ~viewops_flag_dynamic_ofs;
     viewops_flag |= pivot_type;
 
-    negate_v3_v3(this->dyn_ofs, pivot_new);
-    this->use_dyn_ofs = true;
+    /* It's possible no offset can be found, see: #111098. */
+    if (viewops_flag & viewops_flag_dynamic_ofs) {
+      negate_v3_v3(this->dyn_ofs, pivot_new);
+      this->use_dyn_ofs = true;
 
-    if (pivot_type == VIEWOPS_FLAG_DEPTH_NAVIGATE) {
-      /* Ensure we'll always be able to zoom into the new pivot point and panning won't go bad when
-       * dist is zero. Therefore, set a new #RegionView3D::ofs and #RegionView3D::dist so that the
-       * dist value becomes the distance from the new pivot point. */
+      if (pivot_type == VIEWOPS_FLAG_DEPTH_NAVIGATE) {
+        /* Ensure we'll always be able to zoom into the new pivot point and panning won't go bad
+         * when dist is zero. Therefore, set a new #RegionView3D::ofs and #RegionView3D::dist so
+         * that the dist value becomes the distance from the new pivot point. */
 
-      if (rv3d->is_persp) {
-        float my_origin[3]; /* Original #RegionView3D.ofs. */
-        float my_pivot[3];  /* View pivot. */
-        float dvec[3];
+        if (rv3d->is_persp) {
+          float my_origin[3]; /* Original #RegionView3D.ofs. */
+          float my_pivot[3];  /* View pivot. */
+          float dvec[3];
 
-        negate_v3_v3(my_origin, rv3d->ofs); /* ofs is flipped */
+          negate_v3_v3(my_origin, rv3d->ofs); /* ofs is flipped */
 
-        /* remove dist value */
-        float3 upvec;
-        upvec[0] = upvec[1] = 0;
-        upvec[2] = rv3d->dist;
-        float3x3 mat = float3x3(float4x4(rv3d->viewinv));
+          /* remove dist value */
+          float3 upvec;
+          upvec[0] = upvec[1] = 0;
+          upvec[2] = rv3d->dist;
+          float3x3 mat = float3x3(float4x4(rv3d->viewinv));
 
-        upvec = math::transform_point(mat, upvec);
-        add_v3_v3v3(my_pivot, my_origin, upvec);
+          upvec = math::transform_point(mat, upvec);
+          add_v3_v3v3(my_pivot, my_origin, upvec);
 
-        /* find a new ofs value that is along the view axis
-         * (rather than the mouse location) */
-        float lambda = closest_to_line_v3(dvec, pivot_new, my_pivot, my_origin);
+          /* find a new ofs value that is along the view axis
+           * (rather than the mouse location) */
+          float lambda = closest_to_line_v3(dvec, pivot_new, my_pivot, my_origin);
 
-        negate_v3_v3(rv3d->ofs, dvec);
-        rv3d->dist = len_v3v3(my_pivot, dvec);
+          negate_v3_v3(rv3d->ofs, dvec);
+          rv3d->dist = len_v3v3(my_pivot, dvec);
 
-        if (lambda < 0.0f) {
-          /* The distance is actually negative. */
-          rv3d->dist *= -1;
+          if (lambda < 0.0f) {
+            /* The distance is actually negative. */
+            rv3d->dist *= -1;
+          }
+        }
+        else {
+          const float mval_region_mid[2] = {float(region->winx) / 2.0f,
+                                            float(region->winy) / 2.0f};
+          ED_view3d_win_to_3d(v3d, region, pivot_new, mval_region_mid, rv3d->ofs);
+          negate_v3(rv3d->ofs);
         }
       }
-      else {
-        const float mval_region_mid[2] = {float(region->winx) / 2.0f, float(region->winy) / 2.0f};
-        ED_view3d_win_to_3d(v3d, region, pivot_new, mval_region_mid, rv3d->ofs);
-        negate_v3(rv3d->ofs);
-      }
-    }
 
-    /* Reinitialize `this->init.dist` and `this->init.ofs` as these values may have changed
-     * when #ED_view3d_persp_ensure was called or when the operator uses `Auto Depth`.
-     *
-     * XXX: The initial state captured by #ViewOpsData::state_backup is being modified here.
-     * This causes the state not to be fully restored when canceling a navigation operation. */
-    this->init.dist = rv3d->dist;
-    copy_v3_v3(this->init.ofs, rv3d->ofs);
+      /* Reinitialize `this->init.dist` and `this->init.ofs` as these values may have changed
+       * when #ED_view3d_persp_ensure was called or when the operator uses `Auto Depth`.
+       *
+       * XXX: The initial state captured by #ViewOpsData::state_backup is being modified here.
+       * This causes the state not to be fully restored when canceling a navigation operation. */
+      this->init.dist = rv3d->dist;
+      copy_v3_v3(this->init.ofs, rv3d->ofs);
+    }
   }
 
   if (viewops_flag & VIEWOPS_FLAG_INIT_ZFAC) {
@@ -803,7 +813,7 @@ void viewrotate_apply_dyn_ofs(ViewOpsData *vod, const float viewquat_new[4])
 bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 {
   using namespace blender;
-  static float3 lastofs = float3(0);
+  float3 ofs = float3(0);
   bool is_set = false;
 
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -815,11 +825,15 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   Object *ob_act_eval = BKE_view_layer_active_object_get(view_layer_eval);
   Object *ob_act = DEG_get_original(ob_act_eval);
 
+  if (v3d->runtime.flag & V3D_RUNTIME_OFS_LAST_CENTER_IS_VALID) {
+    ofs = -float3(v3d->runtime.ofs_last_center);
+  }
+
   if (ob_act && (ob_act->mode & OB_MODE_ALL_PAINT) &&
       /* with weight-paint + pose-mode, fall through to using calculateTransformCenter */
       ((ob_act->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(ob_act)) == 0)
   {
-    BKE_paint_stroke_get_average(paint, ob_act_eval, lastofs);
+    BKE_paint_stroke_get_average(paint, ob_act_eval, ofs);
     is_set = true;
   }
   else if (ob_act && ELEM(ob_act->mode,
@@ -829,20 +843,20 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
                           OB_MODE_VERTEX_GREASE_PENCIL,
                           OB_MODE_WEIGHT_GREASE_PENCIL))
   {
-    BKE_paint_stroke_get_average(paint, ob_act_eval, lastofs);
+    BKE_paint_stroke_get_average(paint, ob_act_eval, ofs);
     is_set = true;
   }
   else if (ob_act && (ob_act->mode & OB_MODE_EDIT) && (ob_act->type == OB_FONT)) {
     Curve *cu = static_cast<Curve *>(ob_act_eval->data);
     EditFont *ef = cu->editfont;
 
-    lastofs = float3(0);
+    ofs = float3(0);
     for (int i = 0; i < 4; i++) {
-      lastofs += ef->textcurs[i];
+      ofs += ef->textcurs[i];
     }
-    lastofs *= 0.25f;
+    ofs *= 0.25f;
 
-    lastofs = math::transform_point(ob_act_eval->object_to_world(), lastofs);
+    ofs = math::transform_point(ob_act_eval->object_to_world(), ofs);
 
     is_set = true;
   }
@@ -869,16 +883,22 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     }
     if (total) {
       mul_v3_fl(select_center, 1.0f / float(total));
-      copy_v3_v3(lastofs, select_center);
+      copy_v3_v3(ofs, select_center);
       is_set = true;
     }
   }
   else {
-    /* If there's no selection, `lastofs` is unmodified and last value since static. */
-    is_set = blender::ed::transform::calc_pivot_pos(C, V3D_AROUND_CENTER_MEDIAN, lastofs);
+    /* If there's no selection, `ofs` is unmodified, the last offset will be used if set.
+     * Otherwise the value of `ofs` is zero and should not be used. */
+    is_set = blender::ed::transform::calc_pivot_pos(C, V3D_AROUND_CENTER_MEDIAN, ofs);
   }
 
-  copy_v3_v3(r_dyn_ofs, lastofs);
+  if (is_set) {
+    v3d->runtime.flag |= V3D_RUNTIME_OFS_LAST_CENTER_IS_VALID;
+    negate_v3_v3(v3d->runtime.ofs_last_center, ofs);
+  }
+
+  copy_v3_v3(r_dyn_ofs, ofs);
 
   return is_set;
 }
