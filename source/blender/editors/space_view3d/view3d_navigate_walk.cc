@@ -1080,6 +1080,8 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
         walk->gravity_state != WALK_GRAVITY_STATE_OFF ||
         walk->teleport.state == WALK_TELEPORT_STATE_ON || is_confirm)
     {
+      /* Apply the "scene" grid scale to support navigation around scenes of different sizes. */
+      bool dvec_grid_scale = true;
       float dvec_tmp[3];
 
       /* Time how fast it takes for us to redraw,
@@ -1404,10 +1406,14 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 
         copy_v3_v3(cur_loc, walk->rv3d->viewinv[3]);
         sub_v3_v3v3(dvec, cur_loc, new_loc);
+
+        /* It doesn't make sense to scale the direction for teleport
+         * as this value is interpolate between two points. */
+        dvec_grid_scale = false;
       }
 
       /* Scale the movement to the scene size. */
-      mul_v3_v3fl(dvec_tmp, dvec, walk->grid);
+      mul_v3_v3fl(dvec_tmp, dvec, dvec_grid_scale ? walk->grid : 1.0f);
       add_v3_v3(rv3d->ofs, dvec_tmp);
 
       if (rv3d->persp == RV3D_CAMOB) {
