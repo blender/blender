@@ -1992,6 +1992,7 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
     count = max_ii(count + chanshown, 0);
     seqbasep = ((MetaStack *)BLI_findlink(&ed->metastack, count))->oldbasep;
     channels = ((MetaStack *)BLI_findlink(&ed->metastack, count))->old_channels;
+    chanshown = 0;
   }
   else {
     seqbasep = ed->seqbasep;

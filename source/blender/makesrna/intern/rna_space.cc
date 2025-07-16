@@ -6449,7 +6449,8 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Display Channel",
-      "The channel number shown in the image preview. 0 is the result of all strips combined");
+      "Preview all channels less than or equal to this value. 0 shows every channel, and negative "
+      "values climb that many metastrip levels if applicable, showing every channel there.");
   RNA_def_property_range(prop, -5, blender::seq::MAX_CHANNELS);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_update_cache");
 
