@@ -10,10 +10,10 @@ set(INC
   ../../makesrna
   ../../../../intern/guardedalloc
   ../../../../intern/utfconv
-  ../../../../extern/fmtlib/include
 )
 
 set(INC_SYS
+  ../../../../extern/fmtlib/include
 )
 
 set(SRC

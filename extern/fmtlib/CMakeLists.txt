@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  PUBLIC include
 )
 
 set(INC_SYS
+  PUBLIC include
 )
 
 set(SRC
