@@ -5713,6 +5713,40 @@ void uiLayoutSetTooltipFunc(uiLayout *layout,
   }
 }
 
+void uiLayoutSetTooltipCustomFunc(uiLayout *layout,
+                                  uiButToolTipCustomFunc func,
+                                  void *arg,
+                                  uiCopyArgFunc copy_arg,
+                                  uiFreeArgFunc free_arg)
+{
+  bool arg_used = false;
+
+  for (uiItem *item : layout->items_) {
+    /* Each button will call free_arg for "its" argument, so we need to
+     * duplicate the allocation for each button after the first. */
+    if (copy_arg != nullptr && arg_used) {
+      arg = copy_arg(arg);
+    }
+
+    if (item->type_ == uiItemType::Button) {
+      uiButtonItem *bitem = static_cast<uiButtonItem *>(item);
+      if (bitem->but->type == UI_BTYPE_DECORATOR) {
+        continue;
+      }
+      UI_but_func_tooltip_custom_set(bitem->but, func, arg, free_arg);
+    }
+    else {
+      uiLayoutSetTooltipCustomFunc(static_cast<uiLayout *>(item), func, arg, copy_arg, free_arg);
+    }
+    arg_used = true;
+  }
+
+  if (free_arg != nullptr && !arg_used) {
+    /* Free the original copy of arg in case the layout is empty. */
+    free_arg(arg);
+  }
+}
+
 void uiLayout::context_set_from_but(const uiBut *but)
 {
   if (but->opptr) {

@@ -133,7 +133,10 @@ static FileTooltipData *file_tooltip_data_create(const SpaceFile *sfile, const F
   return data;
 }
 
-static void file_draw_tooltip_custom_func(bContext & /*C*/, uiTooltipData &tip, void *argN)
+static void file_draw_tooltip_custom_func(bContext & /*C*/,
+                                          uiTooltipData &tip,
+                                          uiBut * /*but*/,
+                                          void *argN)
 {
   FileTooltipData *file_data = static_cast<FileTooltipData *>(argN);
   const SpaceFile *sfile = file_data->sfile;
@@ -337,7 +340,10 @@ static void file_draw_tooltip_custom_func(bContext & /*C*/, uiTooltipData &tip, 
   }
 }
 
-static void file_draw_asset_tooltip_custom_func(bContext & /*C*/, uiTooltipData &tip, void *argN)
+static void file_draw_asset_tooltip_custom_func(bContext & /*C*/,
+                                                uiTooltipData &tip,
+                                                uiBut * /*but*/,
+                                                void *argN)
 {
   const auto *asset = static_cast<blender::asset_system::AssetRepresentation *>(argN);
   blender::ed::asset::asset_tooltip(*asset, tip);

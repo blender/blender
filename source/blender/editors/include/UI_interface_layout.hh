@@ -887,6 +887,16 @@ void uiLayoutSetTooltipFunc(uiLayout *layout,
                             uiCopyArgFunc copy_arg,
                             uiFreeArgFunc free_arg);
 
+/**
+ * Same as above but should be used when building a fully custom tooltip instead of just
+ * generating a description.
+ */
+void uiLayoutSetTooltipCustomFunc(uiLayout *layout,
+                                  uiButToolTipCustomFunc func,
+                                  void *arg,
+                                  uiCopyArgFunc copy_arg,
+                                  uiFreeArgFunc free_arg);
+
 void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout);
 
 /**

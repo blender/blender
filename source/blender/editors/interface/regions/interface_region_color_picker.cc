@@ -784,27 +784,28 @@ static void ui_block_colorpicker(uiBlock *block,
                 0,
                 cpicker->has_alpha ? 10 : 8,
                 std::nullopt);
-  const auto bt_tooltip_func = [](bContext & /*C*/, uiTooltipData &tip, void *has_alpha_ptr) {
-    const bool *has_alpha = static_cast<bool *>(has_alpha_ptr);
-    if (*has_alpha) {
-      UI_tooltip_text_field_add(tip,
-                                "Hex triplet for color with alpha (#RRGGBBAA).",
-                                {},
-                                UI_TIP_STYLE_HEADER,
-                                UI_TIP_LC_NORMAL,
-                                false);
-    }
-    else {
-      UI_tooltip_text_field_add(tip,
-                                "Hex triplet for color (#RRGGBB).",
-                                {},
-                                UI_TIP_STYLE_HEADER,
-                                UI_TIP_LC_NORMAL,
-                                false);
-    }
-    UI_tooltip_text_field_add(
-        tip, "Gamma corrected", {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL, false);
-  };
+  const auto bt_tooltip_func =
+      [](bContext & /*C*/, uiTooltipData &tip, uiBut * /*but*/, void *has_alpha_ptr) {
+        const bool *has_alpha = static_cast<bool *>(has_alpha_ptr);
+        if (*has_alpha) {
+          UI_tooltip_text_field_add(tip,
+                                    "Hex triplet for color with alpha (#RRGGBBAA).",
+                                    {},
+                                    UI_TIP_STYLE_HEADER,
+                                    UI_TIP_LC_NORMAL,
+                                    false);
+        }
+        else {
+          UI_tooltip_text_field_add(tip,
+                                    "Hex triplet for color (#RRGGBB).",
+                                    {},
+                                    UI_TIP_STYLE_HEADER,
+                                    UI_TIP_LC_NORMAL,
+                                    false);
+        }
+        UI_tooltip_text_field_add(
+            tip, "Gamma corrected", {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL, false);
+      };
   UI_but_func_tooltip_custom_set(
       bt, bt_tooltip_func, static_cast<void *>(&cpicker->has_alpha), nullptr);
   UI_but_flag_disable(bt, UI_BUT_UNDO);

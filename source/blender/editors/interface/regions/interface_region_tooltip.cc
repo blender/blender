@@ -1333,7 +1333,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_custom_func(bContext 
   std::unique_ptr<uiTooltipData> data = std::make_unique<uiTooltipData>();
 
   /* Create fields from custom callback. */
-  but->tip_custom_func(*C, *data, but->tip_arg);
+  but->tip_custom_func(*C, *data, but, but->tip_arg);
 
   return data->fields.is_empty() ? nullptr : std::move(data);
 }
