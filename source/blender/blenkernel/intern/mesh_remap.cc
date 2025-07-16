@@ -39,6 +39,9 @@
 
 static CLG_LogRef LOG = {"geom.mesh"};
 
+using blender::float3;
+using blender::Span;
+
 /* -------------------------------------------------------------------- */
 /** \name Some Generic Helpers
  * \{ */
@@ -114,8 +117,7 @@ static bool mesh_remap_bvhtree_query_raycast(blender::bke::BVHTreeFromMesh *tree
  * \{ */
 
 float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_transform,
-                                               const float (*vert_positions_dst)[3],
-                                               const int numverts_dst,
+                                               const Span<float3> vert_positions_dst,
                                                const Mesh *me_src)
 {
   BVHTreeNearest nearest = {0};
@@ -127,7 +129,7 @@ float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_trans
   blender::bke::BVHTreeFromMesh treedata = me_src->bvh_verts();
   nearest.index = -1;
 
-  for (i = 0; i < numverts_dst; i++) {
+  for (i = 0; i < vert_positions_dst.size(); i++) {
     float tmp_co[3];
 
     copy_v3_v3(tmp_co, vert_positions_dst[i]);
@@ -146,7 +148,7 @@ float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_trans
     }
   }
 
-  result = (float(numverts_dst) / result) - 1.0f;
+  result = (float(vert_positions_dst.size()) / result) - 1.0f;
 
 #if 0
   printf("%s: Computed difference between meshes (the lower the better): %f\n", __func__, result);
@@ -167,36 +169,23 @@ float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_trans
  * axes in those cases. We default to dummy generated orthogonal vectors in this case,
  * instead of using eigen vectors.
  */
-static void mesh_calc_eigen_matrix(const float (*positions)[3],
-                                   const float (*vcos)[3],
-                                   const int numverts,
-                                   float r_mat[4][4])
+static void mesh_calc_eigen_matrix(const Span<float3> positions, float r_mat[4][4])
 {
   float center[3], covmat[3][3];
   float eigen_val[3], eigen_vec[3][3];
-  float(*cos)[3] = nullptr;
 
   bool eigen_success;
   int i;
 
-  if (positions) {
-    cos = MEM_malloc_arrayN<float[3]>(size_t(numverts), __func__);
-    memcpy(cos, positions, sizeof(float[3]) * size_t(numverts));
-    /* TODO(sergey): For until we officially drop all compilers which
-     * doesn't handle casting correct we use workaround to avoid explicit
-     * cast here.
-     */
-    vcos = static_cast<const float(*)[3]>((void *)cos);
-  }
   unit_m4(r_mat);
 
   /* NOTE: here we apply sample correction to covariance matrix, since we consider the vertices
    *       as a sample of the whole 'surface' population of our mesh. */
-  BLI_covariance_m3_v3n(vcos, numverts, true, covmat, center);
-
-  if (cos) {
-    MEM_freeN(cos);
-  }
+  BLI_covariance_m3_v3n(reinterpret_cast<const float(*)[3]>(positions.data()),
+                        int(positions.size()),
+                        true,
+                        covmat,
+                        center);
 
   eigen_success = BLI_eigen_solve_selfadjoint_m3((const float(*)[3])covmat, eigen_val, eigen_vec);
   BLI_assert(eigen_success);
@@ -242,8 +231,7 @@ static void mesh_calc_eigen_matrix(const float (*positions)[3],
   copy_v3_v3(r_mat[3], center);
 }
 
-void BKE_mesh_remap_find_best_match_from_mesh(const float (*vert_positions_dst)[3],
-                                              const int numverts_dst,
+void BKE_mesh_remap_find_best_match_from_mesh(const Span<float3> vert_positions_dst,
                                               const Mesh *me_src,
                                               SpaceTransform *r_space_transform)
 {
@@ -264,15 +252,12 @@ void BKE_mesh_remap_find_best_match_from_mesh(const float (*vert_positions_dst)[
   float mat_src[4][4], mat_dst[4][4], best_mat_dst[4][4];
   float best_match = FLT_MAX, match;
 
-  const int numverts_src = me_src->verts_num;
-  const blender::Span<blender::float3> positions_src = me_src->vert_positions();
-  mesh_calc_eigen_matrix(
-      nullptr, reinterpret_cast<const float(*)[3]>(positions_src.data()), numverts_src, mat_src);
-  mesh_calc_eigen_matrix(vert_positions_dst, nullptr, numverts_dst, mat_dst);
+  const Span<float3> positions_src = me_src->vert_positions();
+  mesh_calc_eigen_matrix(positions_src, mat_src);
+  mesh_calc_eigen_matrix(vert_positions_dst, mat_dst);
 
   BLI_space_transform_global_from_matrices(r_space_transform, mat_dst, mat_src);
-  match = BKE_mesh_remap_calc_difference_from_mesh(
-      r_space_transform, vert_positions_dst, numverts_dst, me_src);
+  match = BKE_mesh_remap_calc_difference_from_mesh(r_space_transform, vert_positions_dst, me_src);
   best_match = match;
   copy_m4_m4(best_mat_dst, mat_dst);
 
@@ -284,7 +269,7 @@ void BKE_mesh_remap_find_best_match_from_mesh(const float (*vert_positions_dst)[
 
     BLI_space_transform_global_from_matrices(r_space_transform, mat_dst, mat_src);
     match = BKE_mesh_remap_calc_difference_from_mesh(
-        r_space_transform, vert_positions_dst, numverts_dst, me_src);
+        r_space_transform, vert_positions_dst, me_src);
     if (match < best_match) {
       best_match = match;
       copy_m4_m4(best_mat_dst, mat_dst);
@@ -450,8 +435,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
                                          const SpaceTransform *space_transform,
                                          const float max_dist,
                                          const float ray_radius,
-                                         const float (*vert_positions_dst)[3],
-                                         const int numverts_dst,
+                                         const Span<float3> vert_positions_dst,
                                          const Mesh *me_src,
                                          Mesh *me_dst,
                                          MeshPairRemap *r_map)
@@ -462,11 +446,11 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
 
   BLI_assert(mode & MREMAP_MODE_VERT);
 
-  BKE_mesh_remap_init(r_map, numverts_dst);
+  BKE_mesh_remap_init(r_map, int(vert_positions_dst.size()));
 
   if (mode == MREMAP_MODE_TOPOLOGY) {
-    BLI_assert(numverts_dst == me_src->verts_num);
-    for (i = 0; i < numverts_dst; i++) {
+    BLI_assert(vert_positions_dst.size() == me_src->verts_num);
+    for (i = 0; i < vert_positions_dst.size(); i++) {
       mesh_remap_item_define(r_map, i, FLT_MAX, 0, 1, &i, &full_weight);
     }
   }
@@ -481,7 +465,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       treedata = me_src->bvh_verts();
       nearest.index = -1;
 
-      for (i = 0; i < numverts_dst; i++) {
+      for (i = 0; i < vert_positions_dst.size(); i++) {
         copy_v3_v3(tmp_co, vert_positions_dst[i]);
 
         /* Convert the vertex to tree coordinates, if needed. */
@@ -506,7 +490,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       treedata = me_src->bvh_edges();
       nearest.index = -1;
 
-      for (i = 0; i < numverts_dst; i++) {
+      for (i = 0; i < vert_positions_dst.size(); i++) {
         copy_v3_v3(tmp_co, vert_positions_dst[i]);
 
         /* Convert the vertex to tree coordinates, if needed. */
@@ -566,7 +550,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       treedata = me_src->bvh_corner_tris();
 
       if (mode == MREMAP_MODE_VERT_POLYINTERP_VNORPROJ) {
-        for (i = 0; i < numverts_dst; i++) {
+        for (i = 0; i < vert_positions_dst.size(); i++) {
           copy_v3_v3(tmp_co, vert_positions_dst[i]);
           copy_v3_v3(tmp_no, vert_normals_dst[i]);
 
@@ -603,7 +587,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       else {
         nearest.index = -1;
 
-        for (i = 0; i < numverts_dst; i++) {
+        for (i = 0; i < vert_positions_dst.size(); i++) {
           copy_v3_v3(tmp_co, vert_positions_dst[i]);
 
           /* Convert the vertex to tree coordinates, if needed. */
@@ -661,7 +645,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
     }
     else {
       CLOG_WARN(&LOG, "Unsupported mesh-to-mesh vertex mapping mode (%d)!", mode);
-      memset(r_map->items, 0, sizeof(*r_map->items) * size_t(numverts_dst));
+      memset(r_map->items, 0, sizeof(*r_map->items) * size_t(vert_positions_dst.size()));
     }
   }
 }
@@ -670,10 +654,8 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
                                          const SpaceTransform *space_transform,
                                          const float max_dist,
                                          const float ray_radius,
-                                         const float (*vert_positions_dst)[3],
-                                         const int numverts_dst,
-                                         const blender::int2 *edges_dst,
-                                         const int numedges_dst,
+                                         const Span<float3> vert_positions_dst,
+                                         const Span<blender::int2> edges_dst,
                                          const Mesh *me_src,
                                          Mesh *me_dst,
                                          MeshPairRemap *r_map)
@@ -685,11 +667,11 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
 
   BLI_assert(mode & MREMAP_MODE_EDGE);
 
-  BKE_mesh_remap_init(r_map, numedges_dst);
+  BKE_mesh_remap_init(r_map, int(edges_dst.size()));
 
   if (mode == MREMAP_MODE_TOPOLOGY) {
-    BLI_assert(numedges_dst == me_src->edges_num);
-    for (i = 0; i < numedges_dst; i++) {
+    BLI_assert(edges_dst.size() == me_src->edges_num);
+    for (i = 0; i < edges_dst.size(); i++) {
       mesh_remap_item_define(r_map, i, FLT_MAX, 0, 1, &i, &full_weight);
     }
   }
@@ -709,9 +691,10 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
         float hit_dist;
         int index;
       };
-      HitData *v_dst_to_src_map = MEM_malloc_arrayN<HitData>(size_t(numverts_dst), __func__);
+      HitData *v_dst_to_src_map = MEM_malloc_arrayN<HitData>(size_t(vert_positions_dst.size()),
+                                                             __func__);
 
-      for (i = 0; i < numverts_dst; i++) {
+      for (i = 0; i < vert_positions_dst.size(); i++) {
         v_dst_to_src_map[i].hit_dist = -1.0f;
       }
 
@@ -723,7 +706,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       treedata = me_src->bvh_verts();
       nearest.index = -1;
 
-      for (i = 0; i < numedges_dst; i++) {
+      for (i = 0; i < edges_dst.size(); i++) {
         const blender::int2 &e_dst = edges_dst[i];
         float best_totdist = FLT_MAX;
         int best_eidx_src = -1;
@@ -826,7 +809,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       treedata = me_src->bvh_edges();
       nearest.index = -1;
 
-      for (i = 0; i < numedges_dst; i++) {
+      for (i = 0; i < edges_dst.size(); i++) {
         interp_v3_v3v3(tmp_co,
                        vert_positions_dst[edges_dst[i][0]],
                        vert_positions_dst[edges_dst[i][1]],
@@ -856,7 +839,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
 
       treedata = me_src->bvh_corner_tris();
 
-      for (i = 0; i < numedges_dst; i++) {
+      for (i = 0; i < edges_dst.size(); i++) {
         interp_v3_v3v3(tmp_co,
                        vert_positions_dst[edges_dst[i][0]],
                        vert_positions_dst[edges_dst[i][1]],
@@ -913,7 +896,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
 
       const blender::Span<blender::float3> vert_normals_dst = me_dst->vert_normals();
 
-      for (i = 0; i < numedges_dst; i++) {
+      for (i = 0; i < edges_dst.size(); i++) {
         /* For each dst edge, we sample some rays from it (interpolated from its vertices)
          * and use their hits to interpolate from source edges. */
         const blender::int2 &edge = edges_dst[i];
@@ -1004,7 +987,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
     }
     else {
       CLOG_WARN(&LOG, "Unsupported mesh-to-mesh edge mapping mode (%d)!", mode);
-      memset(r_map->items, 0, sizeof(*r_map->items) * size_t(numedges_dst));
+      memset(r_map->items, 0, sizeof(*r_map->items) * size_t(edges_dst.size()));
     }
   }
 }
@@ -1202,10 +1185,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                          const float max_dist,
                                          const float ray_radius,
                                          const Mesh *mesh_dst,
-                                         const float (*vert_positions_dst)[3],
-                                         const int numverts_dst,
-                                         const int *corner_verts_dst,
-                                         const int numloops_dst,
+                                         const Span<float3> vert_positions_dst,
+                                         const Span<int> corner_verts_dst,
                                          const blender::OffsetIndices<int> faces_dst,
                                          const Mesh *me_src,
                                          MeshRemapIslandsCalc gen_islands_src,
@@ -1219,12 +1200,12 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
   BLI_assert(mode & MREMAP_MODE_LOOP);
   BLI_assert((islands_precision_src >= 0.0f) && (islands_precision_src <= 1.0f));
 
-  BKE_mesh_remap_init(r_map, numloops_dst);
+  BKE_mesh_remap_init(r_map, int(corner_verts_dst.size()));
 
   if (mode == MREMAP_MODE_TOPOLOGY) {
     /* In topology mapping, we assume meshes are identical, islands included! */
-    BLI_assert(numloops_dst == me_src->corners_num);
-    for (int i = 0; i < numloops_dst; i++) {
+    BLI_assert(corner_verts_dst.size() == me_src->corners_num);
+    for (int i = 0; i < corner_verts_dst.size(); i++) {
       mesh_remap_item_define(r_map, i, FLT_MAX, 0, 1, &i, &full_weight);
     }
   }
@@ -1547,9 +1528,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
                   if (!pcent_dst_valid) {
                     pcent_dst = blender::bke::mesh::face_center_calc(
-                        {reinterpret_cast<const blender::float3 *>(vert_positions_dst),
-                         numverts_dst},
-                        blender::Span(corner_verts_dst, numloops_dst).slice(face_dst));
+                        vert_positions_dst, corner_verts_dst.slice(face_dst));
                     pcent_dst_valid = true;
                   }
                   pcent_src = face_cents_src[pidx_src];
@@ -2008,9 +1987,8 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
                                          const float max_dist,
                                          const float ray_radius,
                                          const Mesh *mesh_dst,
-                                         const float (*vert_positions_dst)[3],
-                                         const int numverts_dst,
-                                         const int *corner_verts_dst,
+                                         const Span<float3> vert_positions_dst,
+                                         const Span<int> corner_verts_dst,
                                          const blender::OffsetIndices<int> faces_dst,
                                          const Mesh *me_src,
                                          MeshPairRemap *r_map)
@@ -2048,9 +2026,8 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
 
       for (const int64_t i : faces_dst.index_range()) {
         const blender::IndexRange face = faces_dst[i];
-        tmp_co = blender::bke::mesh::face_center_calc(
-            {reinterpret_cast<const blender::float3 *>(vert_positions_dst), numverts_dst},
-            {&corner_verts_dst[face.start()], face.size()});
+        tmp_co = blender::bke::mesh::face_center_calc(vert_positions_dst,
+                                                      corner_verts_dst.slice(face));
 
         /* Convert the vertex to tree coordinates, if needed. */
         if (space_transform) {
@@ -2072,9 +2049,8 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
       for (const int64_t i : faces_dst.index_range()) {
         const blender::IndexRange face = faces_dst[i];
 
-        tmp_co = blender::bke::mesh::face_center_calc(
-            {reinterpret_cast<const blender::float3 *>(vert_positions_dst), numverts_dst},
-            {&corner_verts_dst[face.start()], face.size()});
+        tmp_co = blender::bke::mesh::face_center_calc(vert_positions_dst,
+                                                      corner_verts_dst.slice(face));
         copy_v3_v3(tmp_no, face_normals_dst[i]);
 
         /* Convert the vertex to tree coordinates, if needed. */
@@ -2132,9 +2108,8 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
         const int tris_num = int(face.size()) - 2;
         int j;
 
-        pcent_dst = blender::bke::mesh::face_center_calc(
-            {reinterpret_cast<const blender::float3 *>(vert_positions_dst), numverts_dst},
-            {&corner_verts_dst[face.start()], face.size()});
+        pcent_dst = blender::bke::mesh::face_center_calc(vert_positions_dst,
+                                                         corner_verts_dst.slice(face));
 
         copy_v3_v3(tmp_no, face_normals_dst[i]);
 

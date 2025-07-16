@@ -42,6 +42,7 @@
 
 #include "data_transfer_intern.hh"
 
+using blender::Span;
 using blender::StringRef;
 
 bDeformGroup *BKE_object_defgroup_new(Object *ob, const StringRef name)
@@ -1107,17 +1108,16 @@ void BKE_defvert_extract_vgroup_to_vertweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int verts_num,
-                                               const blender::int2 *edges,
-                                               const int edges_num,
+                                               blender::Span<blender::int2> edges,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
   if (UNLIKELY(!dvert || defgroup == -1)) {
-    copy_vn_fl(r_weights, edges_num, 0.0f);
+    copy_vn_fl(r_weights, edges.size(), 0.0f);
     return;
   }
 
-  int i = edges_num;
+  int i = edges.size();
   float *tmp_weights = MEM_malloc_arrayN<float>(size_t(verts_num), __func__);
 
   BKE_defvert_extract_vgroup_to_vertweights(
@@ -1135,17 +1135,16 @@ void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int verts_num,
-                                               const int *corner_verts,
-                                               const int loops_num,
+                                               const Span<int> corner_verts,
                                                const bool invert_vgroup,
                                                float *r_weights)
 {
   if (UNLIKELY(!dvert || defgroup == -1)) {
-    copy_vn_fl(r_weights, loops_num, 0.0f);
+    copy_vn_fl(r_weights, corner_verts.size(), 0.0f);
     return;
   }
 
-  int i = loops_num;
+  int i = corner_verts.size();
   float *tmp_weights = MEM_malloc_arrayN<float>(size_t(verts_num), __func__);
 
   BKE_defvert_extract_vgroup_to_vertweights(
@@ -1161,8 +1160,7 @@ void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_faceweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int verts_num,
-                                               const int *corner_verts,
-                                               const int /*loops_num*/,
+                                               const Span<int> corner_verts,
                                                const blender::OffsetIndices<int> faces,
                                                const bool invert_vgroup,
                                                float *r_weights)

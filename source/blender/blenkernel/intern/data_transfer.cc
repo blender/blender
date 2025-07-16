@@ -1397,11 +1397,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
       space_transform = &auto_space_transform;
     }
 
-    BKE_mesh_remap_find_best_match_from_mesh(
-        reinterpret_cast<const float(*)[3]>(me_dst->vert_positions().data()),
-        me_dst->verts_num,
-        me_src,
-        space_transform);
+    BKE_mesh_remap_find_best_match_from_mesh(me_dst->vert_positions(), me_src, space_transform);
   }
 
   /* Check all possible data types.
@@ -1462,16 +1458,14 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
           continue;
         }
 
-        BKE_mesh_remap_calc_verts_from_mesh(
-            map_vert_mode,
-            space_transform,
-            max_distance,
-            ray_radius,
-            reinterpret_cast<const float(*)[3]>(positions_dst.data()),
-            num_verts_dst,
-            me_src,
-            me_dst,
-            &geom_map[VDATA]);
+        BKE_mesh_remap_calc_verts_from_mesh(map_vert_mode,
+                                            space_transform,
+                                            max_distance,
+                                            ray_radius,
+                                            positions_dst,
+                                            me_src,
+                                            me_dst,
+                                            &geom_map[VDATA]);
         geom_map_init[VDATA] = true;
       }
 
@@ -1538,30 +1532,22 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
           continue;
         }
 
-        BKE_mesh_remap_calc_edges_from_mesh(
-            map_edge_mode,
-            space_transform,
-            max_distance,
-            ray_radius,
-            reinterpret_cast<const float(*)[3]>(positions_dst.data()),
-            num_verts_dst,
-            edges_dst.data(),
-            edges_dst.size(),
-            me_src,
-            me_dst,
-            &geom_map[EDATA]);
+        BKE_mesh_remap_calc_edges_from_mesh(map_edge_mode,
+                                            space_transform,
+                                            max_distance,
+                                            ray_radius,
+                                            positions_dst,
+                                            edges_dst,
+                                            me_src,
+                                            me_dst,
+                                            &geom_map[EDATA]);
         geom_map_init[EDATA] = true;
       }
 
       if (mdef && vg_idx != -1 && !weights[EDATA]) {
         weights[EDATA] = MEM_malloc_arrayN<float>(size_t(edges_dst.size()), __func__);
-        BKE_defvert_extract_vgroup_to_edgeweights(mdef,
-                                                  vg_idx,
-                                                  num_verts_dst,
-                                                  edges_dst.data(),
-                                                  edges_dst.size(),
-                                                  invert_vgroup,
-                                                  weights[EDATA]);
+        BKE_defvert_extract_vgroup_to_edgeweights(
+            mdef, vg_idx, num_verts_dst, edges_dst, invert_vgroup, weights[EDATA]);
       }
 
       if (data_transfer_layersmapping_generate(&lay_map,
@@ -1624,33 +1610,25 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
           continue;
         }
 
-        BKE_mesh_remap_calc_loops_from_mesh(
-            map_loop_mode,
-            space_transform,
-            max_distance,
-            ray_radius,
-            me_dst,
-            reinterpret_cast<const float(*)[3]>(positions_dst.data()),
-            num_verts_dst,
-            corner_verts_dst.data(),
-            corner_verts_dst.size(),
-            faces_dst,
-            me_src,
-            island_callback,
-            islands_handling_precision,
-            &geom_map[LDATA]);
+        BKE_mesh_remap_calc_loops_from_mesh(map_loop_mode,
+                                            space_transform,
+                                            max_distance,
+                                            ray_radius,
+                                            me_dst,
+                                            positions_dst,
+                                            corner_verts_dst,
+                                            faces_dst,
+                                            me_src,
+                                            island_callback,
+                                            islands_handling_precision,
+                                            &geom_map[LDATA]);
         geom_map_init[LDATA] = true;
       }
 
       if (mdef && vg_idx != -1 && !weights[LDATA]) {
         weights[LDATA] = MEM_malloc_arrayN<float>(size_t(corner_verts_dst.size()), __func__);
-        BKE_defvert_extract_vgroup_to_loopweights(mdef,
-                                                  vg_idx,
-                                                  num_verts_dst,
-                                                  corner_verts_dst.data(),
-                                                  corner_verts_dst.size(),
-                                                  invert_vgroup,
-                                                  weights[LDATA]);
+        BKE_defvert_extract_vgroup_to_loopweights(
+            mdef, vg_idx, num_verts_dst, corner_verts_dst, invert_vgroup, weights[LDATA]);
       }
 
       if (data_transfer_layersmapping_generate(&lay_map,
@@ -1710,18 +1688,16 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
           continue;
         }
 
-        BKE_mesh_remap_calc_faces_from_mesh(
-            map_face_mode,
-            space_transform,
-            max_distance,
-            ray_radius,
-            me_dst,
-            reinterpret_cast<const float(*)[3]>(positions_dst.data()),
-            num_verts_dst,
-            corner_verts_dst.data(),
-            faces_dst,
-            me_src,
-            &geom_map[PDATA]);
+        BKE_mesh_remap_calc_faces_from_mesh(map_face_mode,
+                                            space_transform,
+                                            max_distance,
+                                            ray_radius,
+                                            me_dst,
+                                            positions_dst,
+                                            corner_verts_dst,
+                                            faces_dst,
+                                            me_src,
+                                            &geom_map[PDATA]);
         geom_map_init[PDATA] = true;
       }
 
@@ -1730,8 +1706,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
         BKE_defvert_extract_vgroup_to_faceweights(mdef,
                                                   vg_idx,
                                                   num_verts_dst,
-                                                  corner_verts_dst.data(),
-                                                  corner_verts_dst.size(),
+                                                  corner_verts_dst,
                                                   faces_dst,
                                                   invert_vgroup,
                                                   weights[PDATA]);
