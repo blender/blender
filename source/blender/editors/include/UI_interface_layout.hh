@@ -657,6 +657,13 @@ struct uiLayout : uiItem, blender::NonCopyable, blender::NonMovable {
                       int icon,
                       const char *menu_type);
 
+  /** Simple button executing \a func on click. */
+  uiBut *button(uiLayout *layout,
+                blender::StringRef name,
+                int icon,
+                std::function<void(bContext &)> func,
+                std::optional<blender::StringRef> tooltip = std::nullopt);
+
   /** Adds a separator item, that adds empty space between items. */
   void separator(float factor = 1.0f, LayoutSeparatorType type = LayoutSeparatorType::Auto);
 

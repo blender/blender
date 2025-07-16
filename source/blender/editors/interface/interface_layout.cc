@@ -2969,8 +2969,15 @@ void uiLayout::popover_group(
   }
 }
 
-/* label item */
-static uiBut *uiItemL_(uiLayout *layout, const StringRef name, int icon)
+/**
+ * Single button with an icon and/or text, using the given button type and no further data/behavior
+ * attached.
+ */
+static uiBut *uiItem_simple(uiLayout *layout,
+                            const StringRef name,
+                            int icon,
+                            std::optional<blender::StringRef> tooltip = std::nullopt,
+                            const eButType but_type = UI_BTYPE_LABEL)
 {
   uiBlock *block = layout->block();
 
@@ -2985,15 +2992,13 @@ static uiBut *uiItemL_(uiLayout *layout, const StringRef name, int icon)
   uiBut *but;
   if (icon && !name.is_empty()) {
     but = uiDefIconTextBut(
-        block, UI_BTYPE_LABEL, 0, icon, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, std::nullopt);
+        block, but_type, 0, icon, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, tooltip);
   }
   else if (icon) {
-    but = uiDefIconBut(
-        block, UI_BTYPE_LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, std::nullopt);
+    but = uiDefIconBut(block, but_type, 0, icon, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, tooltip);
   }
   else {
-    but = uiDefBut(
-        block, UI_BTYPE_LABEL, 0, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, std::nullopt);
+    but = uiDefBut(block, but_type, 0, name, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, tooltip);
   }
 
   /* to compensate for string size padding in ui_text_icon_width,
@@ -3019,7 +3024,7 @@ static uiBut *uiItemL_(uiLayout *layout, const StringRef name, int icon)
 uiBut *uiItemL_ex(
     uiLayout *layout, const StringRef name, int icon, const bool highlight, const bool redalert)
 {
-  uiBut *but = uiItemL_(layout, name, icon);
+  uiBut *but = uiItem_simple(layout, name, icon);
 
   if (highlight) {
     /* TODO: add another flag for this. */
@@ -3035,7 +3040,7 @@ uiBut *uiItemL_ex(
 
 void uiLayout::label(const StringRef name, int icon)
 {
-  uiItemL_(this, name, icon);
+  uiItem_simple(this, name, icon);
 }
 
 uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout)
@@ -3062,7 +3067,7 @@ uiLayout *uiItemL_respect_property_split(uiLayout *layout, StringRef text, int i
     const uiPropertySplitWrapper split_wrapper = uiItemPropertySplitWrapperCreate(layout);
     /* Further items added to 'layout' will automatically be added to split_wrapper.property_row */
 
-    uiItemL_(split_wrapper.label_column, text, icon);
+    uiItem_simple(split_wrapper.label_column, text, icon);
     UI_block_layout_set_current(block, split_wrapper.property_row);
 
     return split_wrapper.decorate_column;
@@ -3070,20 +3075,31 @@ uiLayout *uiItemL_respect_property_split(uiLayout *layout, StringRef text, int i
 
   char namestr[UI_MAX_NAME_STR];
   text = ui_item_name_add_colon(text, namestr);
-  uiItemL_(layout, text, icon);
+  uiItem_simple(layout, text, icon);
 
   return nullptr;
 }
 
 void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, StringRef name, int icon)
 {
-  uiBut *but = uiItemL_(layout, name, icon);
+  uiBut *but = uiItem_simple(layout, name, icon);
 
   if (ptr && ptr->type) {
     if (RNA_struct_is_ID(ptr->type)) {
       UI_but_drag_set_id(but, ptr->owner_id);
     }
   }
+}
+
+uiBut *uiLayout::button(uiLayout *layout,
+                        const StringRef name,
+                        const int icon,
+                        std::function<void(bContext &)> func,
+                        std::optional<blender::StringRef> tooltip)
+{
+  uiBut *but = uiItem_simple(layout, name, icon, tooltip, UI_BTYPE_BUT);
+  UI_but_func_set(but, std::move(func));
+  return but;
 }
 
 void uiLayout::separator(float factor, const LayoutSeparatorType type)
