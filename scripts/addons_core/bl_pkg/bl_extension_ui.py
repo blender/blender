@@ -230,10 +230,6 @@ def addon_draw_item_expanded(
         item_tracker_url,  # `str`
         show_developer_ui,  # `bool`
 ):
-    from bpy.app.translations import (
-        contexts as i18n_contexts,
-    )
-
     split = layout.split(factor=0.8)
     col_a = split.column()
     col_b = split.column()
@@ -2310,7 +2306,6 @@ def tags_refresh(wm, tags_attr, *, default_value):
 
 def tags_panel_draw(layout, context, tags_attr):
     from bpy.utils import escape_identifier
-    from bpy.app.translations import contexts as i18n_contexts
     wm = context.window_manager
 
     split = layout.split(factor=0.5)
