@@ -2192,13 +2192,16 @@ struct FileListReadJob {
   bool only_main_data = false;
   /** Trigger a call to #AS_asset_library_load() to update asset catalogs (won't reload the actual
    * assets) */
-  bool reload_asset_library = false;
+  std::atomic<bool> reload_asset_library = false;
   /** Is this asset library tagged as loading externally? Used for remote asset libraries to keep
    * the filelist loading running while the library is being downloaded by other code. */
   std::atomic<bool> is_asset_library_loading_extern = false;
   std::atomic<bool> is_asset_library_metafiles_in_place = false;
   RemoteLibraryLoadingStatus::TimePoint last_new_pages_time;
   std::atomic<bool> is_asset_library_new_pages_available = false;
+
+  std::optional<std::function<void(const asset_system::AssetRepresentation &)>> on_asset_added =
+      std::nullopt;
 
   /** Shallow copy of #filelist for thread-safe access.
    *
@@ -2413,6 +2416,9 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
                                entry->relpath, datablock_info->name, idcode, std::move(metadata)) :
                            job_params->load_asset_library->add_external_on_disk_asset(
                                entry->relpath, datablock_info->name, idcode, std::move(metadata));
+        if (job_params->on_asset_added) {
+          (*job_params->on_asset_added)(*entry->get_asset());
+        }
       }
     }
   }
@@ -3148,10 +3154,12 @@ static void filelist_readjob_asset_library(FileListReadJob *job_params,
 }
 
 /* TODO handle \a progress. */
-static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *job_params,
-                                                             bool *stop,
-                                                             bool *do_update,
-                                                             float * /*progress*/)
+static void filelist_readjob_remote_asset_library_index_read(
+    FileListReadJob *job_params,
+    bool *stop,
+    bool *do_update,
+    float * /*progress*/,
+    const Set<StringRef> already_downloaded_asset_identifiers)
 {
   using namespace ed::asset;
 
@@ -3182,13 +3190,32 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
       return false;
     }
 
+    const char *group_name = BKE_idtype_idcode_to_name(movable_entry.idcode);
+
+    /* Skip assets that are already listed with the downloaded assets. */
+    {
+      BLI_assert(StringRef(movable_entry.file_path).endswith(".blend"));
+
+      /* Matches #asset_system::AssetRepresentation.library_relative_identifier(). */
+      char asset_identifier[FILE_MAX_LIBEXTRA];
+      BLI_string_join(asset_identifier,
+                      sizeof(asset_identifier),
+                      movable_entry.file_path.c_str(),
+                      SEP_STR,
+                      group_name,
+                      SEP_STR,
+                      movable_entry.datablock_info.name);
+      if (already_downloaded_asset_identifiers.contains(asset_identifier)) {
+        return true;
+      }
+    }
+
     /* Move into own storage for later access. */
     entries_store.append(
         std::make_unique<index::RemoteListingAssetEntry>(std::move(movable_entry)));
 
     index::RemoteListingAssetEntry &entry = *entries_store.last();
 
-    const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
     ListBase entries = {nullptr};
 
     BLI_strncpy(job_params->cur_relbase, entry.file_path.c_str(), sizeof(job_params->cur_relbase));
@@ -3291,6 +3318,19 @@ static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
   /* A valid, but empty file-list from now. */
   filelist->filelist.entries_num = 0;
 
+  Set<StringRef> already_downloaded_asset_identifiers;
+  /* Get assets that were downloaded already. */
+  {
+    job_params->on_asset_added =
+        [&already_downloaded_asset_identifiers](const asset_system::AssetRepresentation &asset) {
+          already_downloaded_asset_identifiers.add(asset.library_relative_identifier());
+        };
+
+    filelist_readjob_load_asset_library_data(job_params, do_update);
+    filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
+    job_params->on_asset_added = std::nullopt;
+  }
+
   BLI_assert(job_params->filelist->asset_library_ref != nullptr);
 
   while (job_params->is_asset_library_loading_extern &&
@@ -3305,21 +3345,16 @@ static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
     }
   }
 
-  /* NOP if already read. */
+  /* Enforce latest catalogs from the downloader to be used. */
+  job_params->reload_asset_library = true;
   filelist_readjob_load_asset_library_data(job_params, do_update);
 
   if (*stop || job_params->cancel) {
     return;
   }
 
-  /* TODO if the library is fully downloaded. How to recognize that? */
-  const bool full_library_downloaded = false;
-  if (full_library_downloaded) {
-    filelist_readjob_recursive_dir_add_items(true, job_params, stop, do_update, progress);
-  }
-  else {
-    filelist_readjob_remote_asset_library_index_read(job_params, stop, do_update, progress);
-  }
+  filelist_readjob_remote_asset_library_index_read(
+      job_params, stop, do_update, progress, already_downloaded_asset_identifiers);
 }
 
 static bUserAssetLibrary *lookup_remote_library(const FileListReadJob *job_params)
