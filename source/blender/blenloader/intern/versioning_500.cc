@@ -42,6 +42,10 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_pointcache.h"
 
+#include "BLT_translation.hh"
+
+#include "BLO_read_write.hh"
+
 #include "SEQ_iterator.hh"
 
 #include "readfile.hh"
@@ -1058,7 +1062,7 @@ static void do_version_split_node_rotation(bNodeTree *node_tree, bNode *node)
   }
 }
 
-static void do_version_remove_lzo_and_lzma_compression(Object *object)
+static void do_version_remove_lzo_and_lzma_compression(FileData *fd, Object *object)
 {
   constexpr int PTCACHE_COMPRESS_LZO = 1;
   constexpr int PTCACHE_COMPRESS_LZMA = 2;
@@ -1067,18 +1071,63 @@ static void do_version_remove_lzo_and_lzma_compression(Object *object)
   BKE_ptcache_ids_from_object(&pidlist, object, nullptr, 0);
 
   LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
+    bool found_incompatible_cache = false;
     if (pid->cache->compression == PTCACHE_COMPRESS_LZO) {
       pid->cache->compression = PTCACHE_COMPRESS_ZSTD_FAST;
+      found_incompatible_cache = true;
     }
     else if (pid->cache->compression == PTCACHE_COMPRESS_LZMA) {
       pid->cache->compression = PTCACHE_COMPRESS_ZSTD_SLOW;
+      found_incompatible_cache = true;
     }
+
+    if (pid->type == PTCACHE_TYPE_DYNAMICPAINT) {
+      /* Dynamicpaint was hardcoded to use LZO. */
+      found_incompatible_cache = true;
+    }
+
+    if (!found_incompatible_cache) {
+      continue;
+    }
+
+    std::string cache_type;
+    switch (pid->type) {
+      case PTCACHE_TYPE_SOFTBODY:
+        cache_type = RPT_("Softbody");
+        break;
+      case PTCACHE_TYPE_PARTICLES:
+        cache_type = RPT_("Particle");
+        break;
+      case PTCACHE_TYPE_CLOTH:
+        cache_type = RPT_("Cloth");
+        break;
+      case PTCACHE_TYPE_SMOKE_DOMAIN:
+        cache_type = RPT_("Smoke Domain");
+        break;
+      case PTCACHE_TYPE_SMOKE_HIGHRES:
+        cache_type = RPT_("Smoke");
+        break;
+      case PTCACHE_TYPE_DYNAMICPAINT:
+        cache_type = RPT_("Dynamic Paint");
+        break;
+      case PTCACHE_TYPE_RIGIDBODY:
+        /* Rigidbody caches shouldn't have any disk caches, but keep it here just in case. */
+        cache_type = RPT_("Rigidbody");
+        break;
+    }
+    BLO_reportf_wrap(
+        fd->reports,
+        RPT_WARNING,
+        RPT_("%s Cache in object %s can not be read because it uses an "
+             "outdated compression method. You need to delete the caches and rebake."),
+        cache_type.c_str(),
+        pid->owner_id->name + 2);
   }
 
   BLI_freelistN(&pidlist);
 }
 
-void do_versions_after_linking_500(FileData * /*fd*/, Main *bmain)
+void do_versions_after_linking_500(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 9)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
@@ -1099,7 +1148,7 @@ void do_versions_after_linking_500(FileData * /*fd*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 37)) {
     LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      do_version_remove_lzo_and_lzma_compression(object);
+      do_version_remove_lzo_and_lzma_compression(fd, object);
     }
   }
 
