@@ -709,8 +709,10 @@ static void draw_interface_panel_content(
             nullptr,
             nullptr);
         if (panel_layout.body) {
+          const StringRefNull panel_name = sub_interface_panel.name ? sub_interface_panel.name :
+                                                                      "";
           draw_interface_panel_content(
-              ctx, panel_layout.body, sub_interface_panel, skip_first, sub_interface_panel.name);
+              ctx, panel_layout.body, sub_interface_panel, skip_first, panel_name);
         }
         break;
       }
