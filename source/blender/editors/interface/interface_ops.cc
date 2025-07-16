@@ -1156,7 +1156,15 @@ bool UI_context_copy_to_selected_list(bContext *C,
   }
 
   if (RNA_struct_is_a(ptr->type, &RNA_EditBone)) {
-    *r_lb = CTX_data_collection_get(C, "selected_editable_bones");
+    /* Special case when we do this for #edit_bone.lock.
+     * (if the edit_bone is locked, it is not included in "selected_editable_bones"). */
+    const char *prop_id = RNA_property_identifier(prop);
+    if (STREQ(prop_id, "lock")) {
+      *r_lb = CTX_data_collection_get(C, "selected_bones");
+    }
+    else {
+      *r_lb = CTX_data_collection_get(C, "selected_editable_bones");
+    }
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_PoseBone)) {
     *r_lb = CTX_data_collection_get(C, "selected_pose_bones");
