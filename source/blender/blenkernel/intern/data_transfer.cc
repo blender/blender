@@ -185,8 +185,6 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
   switch (dtdata_type) {
     case DT_TYPE_MDEFORMVERT:
       return CD_FAKE_MDEFORMVERT;
-    case DT_TYPE_SHAPEKEY:
-      return CD_FAKE_SHAPEKEY;
     case DT_TYPE_SKIN:
       return CD_MVERT_SKIN;
     case DT_TYPE_BWEIGHT_VERT:
@@ -228,8 +226,6 @@ int BKE_object_data_transfer_dttype_to_srcdst_index(const int dtdata_type)
   switch (dtdata_type) {
     case DT_TYPE_MDEFORMVERT:
       return DT_MULTILAYER_INDEX_MDEFORMVERT;
-    case DT_TYPE_SHAPEKEY:
-      return DT_MULTILAYER_INDEX_SHAPEKEY;
     case DT_TYPE_UV:
       return DT_MULTILAYER_INDEX_UV;
     case DT_TYPE_MPROPCOL_VERT:
@@ -902,11 +898,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                                  fromlayers,
                                                  tolayers);
     }
-    if (cddata_type == CD_FAKE_SHAPEKEY) {
-      /* TODO: leaving shape-keys aside for now, quite specific case,
-       * since we can't access them from mesh vertices :/ */
-      return false;
-    }
     if (r_map && cddata_type == CD_FAKE_BWEIGHT) {
       if (!CustomData_get_layer_named(&me_dst->vert_data, CD_PROP_FLOAT, "bevel_weight_vert")) {
         CustomData_add_layer_named(&me_dst->vert_data,
@@ -930,27 +921,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     }
   }
   else if (elem_type == ME_EDGE) {
-    if (!(cddata_type & CD_FAKE)) { /* Unused for edges, currently... */
-      if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                eCustomDataType(cddata_type),
-                                                mix_mode,
-                                                mix_factor,
-                                                mix_weights,
-                                                num_elem_dst,
-                                                use_create,
-                                                use_delete,
-                                                me_src->edge_data,
-                                                me_dst->edge_data,
-                                                fromlayers,
-                                                tolayers,
-                                                interp,
-                                                interp_data))
-      {
-        /* We handle specific source selection cases here. */
-        return false;
-      }
-      return true;
-    }
     if (r_map && cddata_type == CD_FAKE_SEAM) {
       if (!CustomData_has_layer_named(&me_dst->edge_data, CD_PROP_BOOL, "uv_seam")) {
         CustomData_add_layer_named(
@@ -1103,31 +1073,6 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     return false;
   }
   else if (elem_type == ME_POLY) {
-    if (cddata_type == CD_FAKE_UV) {
-      cddata_type = CD_PROP_FLOAT2;
-    }
-
-    if (!(cddata_type & CD_FAKE)) {
-      if (!data_transfer_layersmapping_cdlayers(r_map,
-                                                eCustomDataType(cddata_type),
-                                                mix_mode,
-                                                mix_factor,
-                                                mix_weights,
-                                                num_elem_dst,
-                                                use_create,
-                                                use_delete,
-                                                me_src->face_data,
-                                                me_dst->face_data,
-                                                fromlayers,
-                                                tolayers,
-                                                interp,
-                                                interp_data))
-      {
-        /* We handle specific source selection cases here. */
-        return false;
-      }
-      return true;
-    }
     if (r_map && cddata_type == CD_FAKE_SHARP) {
       if (!CustomData_has_layer_named(&me_dst->face_data, CD_PROP_BOOL, "sharp_face")) {
         CustomData_add_layer_named(
