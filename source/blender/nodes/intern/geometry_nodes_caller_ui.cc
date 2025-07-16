@@ -471,7 +471,7 @@ static NodesModifierPanel *find_panel_by_id(NodesModifierData &nmd, const int id
 static void draw_property_for_socket(DrawGroupInputsContext &ctx,
                                      uiLayout *layout,
                                      const bNodeTreeInterfaceSocket &socket,
-                                     const std::optional<StringRefNull> parent_name = std::nullopt)
+                                     const std::optional<StringRef> parent_name = std::nullopt)
 {
   const StringRefNull identifier = socket.identifier;
   /* The property should be created in #MOD_nodes_update_interface with the correct type. */
@@ -508,7 +508,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
   /* If the property has a prefix that's the same string as the name of the panel it's in, remove
    * the prefix so it appears less verbose. */
   if (parent_name.has_value()) {
-    const StringRefNull prefix_to_remove = *parent_name;
+    const StringRef prefix_to_remove = *parent_name;
     int pos = name.find(prefix_to_remove);
     if (pos == 0 && name != prefix_to_remove) {
       /* Needs to trim remainig space characters if any. Use the `trim()` from `StringRefNull`
@@ -648,12 +648,11 @@ static bool interface_panel_affects_output(DrawGroupInputsContext &ctx,
   return false;
 }
 
-static void draw_interface_panel_content(
-    DrawGroupInputsContext &ctx,
-    uiLayout *layout,
-    const bNodeTreeInterfacePanel &interface_panel,
-    const bool skip_first = false,
-    const std::optional<StringRefNull> parent_name = std::nullopt)
+static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
+                                         uiLayout *layout,
+                                         const bNodeTreeInterfacePanel &interface_panel,
+                                         const bool skip_first = false,
+                                         const std::optional<StringRef> parent_name = std::nullopt)
 {
   for (const bNodeTreeInterfaceItem *item : interface_panel.items().drop_front(skip_first ? 1 : 0))
   {
@@ -668,6 +667,7 @@ static void draw_interface_panel_content(
         bool skip_first = false;
         /* Check if the panel should have a toggle in the header. */
         const bNodeTreeInterfaceSocket *toggle_socket = sub_interface_panel.header_toggle_socket();
+        const StringRef panel_name = sub_interface_panel.name;
         if (toggle_socket && !(toggle_socket->flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER)) {
           const StringRefNull identifier = toggle_socket->identifier;
           IDProperty *property = ctx.properties.lookup_key_default_as(identifier, nullptr);
@@ -689,12 +689,12 @@ static void draw_interface_panel_content(
                                                              open_property.name,
                                                              ctx.properties_ptr,
                                                              rna_path,
-                                                             IFACE_(sub_interface_panel.name));
+                                                             IFACE_(panel_name));
           skip_first = true;
         }
         else {
           panel_layout = layout->panel_prop(&ctx.C, &open_property.ptr, open_property.name);
-          panel_layout.header->label(IFACE_(sub_interface_panel.name), ICON_NONE);
+          panel_layout.header->label(IFACE_(panel_name), ICON_NONE);
         }
         if (!interface_panel_affects_output(ctx, sub_interface_panel)) {
           panel_layout.header->active_set(false);
@@ -709,8 +709,6 @@ static void draw_interface_panel_content(
             nullptr,
             nullptr);
         if (panel_layout.body) {
-          const StringRefNull panel_name = sub_interface_panel.name ? sub_interface_panel.name :
-                                                                      "";
           draw_interface_panel_content(
               ctx, panel_layout.body, sub_interface_panel, skip_first, panel_name);
         }

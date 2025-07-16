@@ -172,7 +172,7 @@ struct uiLayoutItemBx : public uiLayout {
 
 struct uiLayoutItemPanelHeader : public uiLayout {
   PointerRNA open_prop_owner;
-  char open_prop_name[64];
+  std::string open_prop_name;
 };
 
 struct uiLayoutItemPanelBody : public uiLayout {};
@@ -4677,7 +4677,7 @@ PanelLayout uiLayout::panel_prop(const bContext *C,
     header_litem->type_ = uiItemType::LayoutPanelHeader;
 
     header_litem->open_prop_owner = *open_prop_owner;
-    STRNCPY(header_litem->open_prop_name, open_prop_name.c_str());
+    header_litem->open_prop_name = open_prop_name;
 
     uiLayout *row = &header_litem->row(true);
     row->ui_units_y_set(1.2f);
@@ -4710,7 +4710,7 @@ PanelLayout uiLayout::panel_prop_with_bool_header(const bContext *C,
                                                   const StringRefNull open_prop_name,
                                                   PointerRNA *bool_prop_owner,
                                                   const StringRefNull bool_prop_name,
-                                                  const std::optional<StringRefNull> label)
+                                                  const std::optional<StringRef> label)
 {
   PanelLayout panel_layout = this->panel_prop(C, open_prop_owner, open_prop_name);
 
