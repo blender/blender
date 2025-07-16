@@ -774,6 +774,11 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
         return false;
       }
       return t->vod != nullptr;
+    case TFM_MODAL_STRIP_CLAMP:
+      if (t->spacetype != SPACE_SEQ) {
+        return false;
+      }
+      break;
   }
   return true;
 }
@@ -830,6 +835,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_PRECISION, "PRECISION", 0, "Precision Mode", ""},
       {TFM_MODAL_PASSTHROUGH_NAVIGATE, "PASSTHROUGH_NAVIGATE", 0, "Navigate", ""},
       {TFM_MODAL_NODE_FRAME, "NODE_FRAME", 0, "Attach/Detach Frame", ""},
+      {TFM_MODAL_STRIP_CLAMP, "STRIP_CLAMP_TOGGLE", 0, "Clamp Strips", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -1375,6 +1381,10 @@ wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *eve
           transform_mode_snap_source_init(t, nullptr);
           t->redraw |= TREDRAW_HARD;
         }
+        break;
+      case TFM_MODAL_STRIP_CLAMP:
+        t->modifiers ^= MOD_STRIP_CLAMP_HOLDS;
+        t->redraw |= TREDRAW_HARD;
         break;
       default:
         break;
