@@ -10053,7 +10053,21 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
     return nullptr;
   }
 
-  if (G.debug & G_DEBUG_PYTHON) {
+  if (!pyrna_write_check()) {
+    PyErr_Format(PyExc_RuntimeError,
+                 "%s can't run in readonly state '%.200s'",
+                 error_prefix,
+                 ((PyTypeObject *)py_class)->tp_name);
+    return nullptr;
+  }
+
+  /* WARNING: gets parent classes srna, only for the register function. */
+  srna = pyrna_struct_as_srna(py_class, true, "register_class(...):");
+  if (srna == nullptr) {
+    return nullptr;
+  }
+
+  if (UNLIKELY(G.debug & G_DEBUG_PYTHON)) {
     /* Warn if a class being registered uses an already registered base-class or sub-class,
      * both checks are needed otherwise the order of registering could suppress the warning.
      *
@@ -10079,20 +10093,21 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
               ((PyTypeObject *)py_class)->tp_name,
               sub_cls_test->tp_name);
     }
-  }
 
-  if (!pyrna_write_check()) {
-    PyErr_Format(PyExc_RuntimeError,
-                 "%s can't run in readonly state '%.200s'",
-                 error_prefix,
-                 ((PyTypeObject *)py_class)->tp_name);
-    return nullptr;
-  }
-
-  /* WARNING: gets parent classes srna, only for the register function. */
-  srna = pyrna_struct_as_srna(py_class, true, "register_class(...):");
-  if (srna == nullptr) {
-    return nullptr;
+    /* In practice it isn't useful to manipulate Python properties for `PropertyGroup`
+     * instances since the Python objects themselves are not shared,
+     * meaning a new Python instance is returned on each attribute access.
+     * It may be useful to include other classes in this check - extend as needed.
+     * See #141948. */
+    if (RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
+      if (!PyDict_GetItem(((PyTypeObject *)py_class)->tp_dict, bpy_intern_str___slots__)) {
+        fprintf(stderr,
+                "%s warning, %.200s: is expected to contain a \"__slots__\" member "
+                "to prevent arbitrary assignments.\n",
+                error_prefix,
+                ((PyTypeObject *)py_class)->tp_name);
+      }
+    }
   }
 
 /* Fails in some cases, so can't use this check, but would like to :| */
