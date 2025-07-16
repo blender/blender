@@ -5,6 +5,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_string_utf8.h"
 
+#include "BKE_node_runtime.hh"
+
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
