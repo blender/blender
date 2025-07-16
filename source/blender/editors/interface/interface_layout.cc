@@ -3091,13 +3091,12 @@ void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, StringRef name, int icon)
   }
 }
 
-uiBut *uiLayout::button(uiLayout *layout,
-                        const StringRef name,
+uiBut *uiLayout::button(const StringRef name,
                         const int icon,
                         std::function<void(bContext &)> func,
                         std::optional<blender::StringRef> tooltip)
 {
-  uiBut *but = uiItem_simple(layout, name, icon, tooltip, UI_BTYPE_BUT);
+  uiBut *but = uiItem_simple(this, name, icon, tooltip, UI_BTYPE_BUT);
   UI_but_func_set(but, std::move(func));
   return but;
 }

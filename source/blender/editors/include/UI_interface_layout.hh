@@ -659,8 +659,7 @@ struct uiLayout : uiItem, blender::NonCopyable, blender::NonMovable {
                       const char *menu_type);
 
   /** Simple button executing \a func on click. */
-  uiBut *button(uiLayout *layout,
-                blender::StringRef name,
+  uiBut *button(blender::StringRef name,
                 int icon,
                 std::function<void(bContext &)> func,
                 std::optional<blender::StringRef> tooltip = std::nullopt);
