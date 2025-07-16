@@ -6,6 +6,7 @@
  * \ingroup glsl_preprocess
  */
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <regex>
@@ -30,6 +31,19 @@ int main(int argc, char **argv)
   if (!input_file) {
     std::cerr << "Error: Could not open input file " << input_file_name << std::endl;
     exit(1);
+  }
+
+  /* We make the required directories here rather than having the build system
+   * do the work for us, as having cmake do it leads to several thousand cmake
+   * instances being launched, leading to significant overhead, see pr #141404
+   * for details. */
+  std::filesystem::path parent_dir = std::filesystem::path(output_file_name).parent_path();
+  std::error_code ec;
+  if (!std::filesystem::create_directories(parent_dir, ec)) {
+    if (ec) {
+      std::cerr << "Unable to create " << parent_dir << " : " << ec.message() << std::endl;
+      exit(1);
+    }
   }
 
   /* Open the output file for writing */
