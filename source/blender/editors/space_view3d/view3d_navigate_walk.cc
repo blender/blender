@@ -505,8 +505,11 @@ static bool walk_ray_cast(RegionView3D *rv3d,
 /** Keep the previous speed and jump height until user changes preferences. */
 static struct {
   float base_speed;
+  /** Only used to detect change. */
   float userdef_speed;
+
   float jump_height;
+  /** Only used to detect change. */
   float userdef_jump_height;
 } g_walk = {
     /*base_speed*/ -1.0f,
@@ -556,13 +559,20 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
 
   walk->state = WALK_RUNNING;
 
+  walk->grid = (walk->scene->unit.system == USER_UNIT_NONE) ?
+                   1.0f :
+                   1.0f / walk->scene->unit.scale_length;
+
+  const float userdef_jump_height = U.walk_navigation.jump_height * walk->grid;
+  const float userdef_view_height = U.walk_navigation.view_height * walk->grid;
+
   if (fabsf(U.walk_navigation.walk_speed - g_walk.userdef_speed) > 0.1f) {
     g_walk.base_speed = U.walk_navigation.walk_speed;
     g_walk.userdef_speed = U.walk_navigation.walk_speed;
   }
 
   if (fabsf(U.walk_navigation.jump_height - g_walk.userdef_jump_height) > 0.1f) {
-    g_walk.jump_height = U.walk_navigation.jump_height;
+    g_walk.jump_height = userdef_jump_height;
     g_walk.userdef_jump_height = U.walk_navigation.jump_height;
   }
 
@@ -571,9 +581,6 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   walk->speed = 0.0f;
   walk->is_fast = false;
   walk->is_slow = false;
-  walk->grid = (walk->scene->unit.system == USER_UNIT_NONE) ?
-                   1.0f :
-                   1.0f / walk->scene->unit.scale_length;
 
   /* User preference settings. */
   walk->teleport.duration = U.walk_navigation.teleport_time;
@@ -586,8 +593,8 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
     walk_navigation_mode_set(walk, WALK_MODE_FREE);
   }
 
-  walk->view_height = U.walk_navigation.view_height;
-  walk->jump_height = U.walk_navigation.jump_height;
+  walk->view_height = userdef_view_height;
+  walk->jump_height = userdef_jump_height;
   walk->speed = U.walk_navigation.walk_speed;
   walk->speed_factor = U.walk_navigation.walk_speed_factor;
   walk->zlock = WALK_AXISLOCK_STATE_OFF;
@@ -595,10 +602,10 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   walk->gravity_state = WALK_GRAVITY_STATE_OFF;
 
   if (walk->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
-    walk->gravity = fabsf(walk->scene->physics_settings.gravity[2]);
+    walk->gravity = fabsf(walk->scene->physics_settings.gravity[2]) * walk->grid;
   }
   else {
-    walk->gravity = 9.80668f; /* m/s2 */
+    walk->gravity = 9.80668f * walk->grid; /* m/s2 */
   }
 
   walk->is_reversed = ((U.walk_navigation.flag & USER_WALK_MOUSE_REVERSE) != 0);
