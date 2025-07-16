@@ -29,6 +29,8 @@ from bpy.app.translations import (
 
 
 class NodeSetting(PropertyGroup):
+    __slots__ = ()
+
     value: StringProperty(
         name="Value",
         description="Python expression to be evaluated "

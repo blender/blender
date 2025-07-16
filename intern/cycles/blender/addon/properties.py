@@ -374,6 +374,7 @@ def update_pause(self, context):
 
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
+    __slots__ = ()
 
     device: EnumProperty(
         name="Device",
@@ -1111,6 +1112,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
 
 class CyclesCustomCameraSettings(bpy.types.PropertyGroup):
+    __slots__ = ()
 
     @classmethod
     def register(cls):
@@ -1126,6 +1128,7 @@ class CyclesCustomCameraSettings(bpy.types.PropertyGroup):
 
 
 class CyclesMaterialSettings(bpy.types.PropertyGroup):
+    __slots__ = ()
 
     emission_sampling: EnumProperty(
         name="Emission Sampling",
@@ -1182,6 +1185,7 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
 
 
 class CyclesLightSettings(bpy.types.PropertyGroup):
+    __slots__ = ()
 
     max_bounces: IntProperty(
         name="Max Bounces",
@@ -1222,6 +1226,7 @@ class CyclesLightSettings(bpy.types.PropertyGroup):
 
 
 class CyclesWorldSettings(bpy.types.PropertyGroup):
+    __slots__ = ()
 
     is_caustics_light: BoolProperty(
         name="Shadow Caustics",
@@ -1288,6 +1293,7 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
 
 
 class CyclesVisibilitySettings(bpy.types.PropertyGroup):
+    __slots__ = ()
 
     camera: BoolProperty(
         name="Camera",
@@ -1340,6 +1346,8 @@ class CyclesVisibilitySettings(bpy.types.PropertyGroup):
 
 
 class CyclesMeshSettings(bpy.types.PropertyGroup):
+    __slots__ = ()
+
     @classmethod
     def register(cls):
         bpy.types.Mesh.cycles = PointerProperty(
@@ -1366,6 +1374,7 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
 
 
 class CyclesObjectSettings(bpy.types.PropertyGroup):
+    __slots__ = ()
 
     use_motion_blur: BoolProperty(
         name="Use Motion Blur",
@@ -1464,6 +1473,7 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
 
 
 class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
+    __slots__ = ()
 
     shape: EnumProperty(
         name="Shape",
@@ -1492,6 +1502,7 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
 
 
 class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
+    __slots__ = ()
 
     pass_debug_sample_count: BoolProperty(
         name="Debug Sample Count",
@@ -1546,6 +1557,8 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
 
 
 class CyclesDeviceSettings(bpy.types.PropertyGroup):
+    __slots__ = ()
+
     id: StringProperty(name="ID")
     name: StringProperty(name="Name")
     use: BoolProperty(name="Use", default=True)
@@ -1929,6 +1942,8 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
 
 class CyclesView3DShadingSettings(bpy.types.PropertyGroup):
+    __slots__ = ()
+
     render_pass: EnumProperty(
         name="Render Pass",
         description="Render pass to show in the 3D Viewport",

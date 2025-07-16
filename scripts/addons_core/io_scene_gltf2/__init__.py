@@ -2113,6 +2113,8 @@ def import_panel_user_extension(context, layout):
 
 
 class GLTF2_filter_action(bpy.types.PropertyGroup):
+    __slots__ = ()
+
     keep: bpy.props.BoolProperty(name="Keep Animation")
     action: bpy.props.PointerProperty(type=bpy.types.Action)
 

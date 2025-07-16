@@ -673,8 +673,7 @@ def cli_extension(argv):
 
 
 class BlExtDummyGroup(bpy.types.PropertyGroup):
-    # Dummy.
-    pass
+    __slots__ = ()
 
 
 # -----------------------------------------------------------------------------
