@@ -129,8 +129,34 @@ static void bli_windows_system_backtrace_exception_record(FILE *fp, PEXCEPTION_R
   fprintf(fp, "Exception Module      : %s\n", module);
   fprintf(fp, "Exception Flags       : 0x%.8x\n", record->ExceptionFlags);
   fprintf(fp, "Exception Parameters  : 0x%x\n", record->NumberParameters);
-  for (DWORD idx = 0; idx < record->NumberParameters; idx++) {
-    fprintf(fp, "\tParameters[%d] : 0x%p\n", idx, (LPVOID *)record->ExceptionInformation[idx]);
+
+  /* Special handling for access violations to make them a little easier to read. */
+  if (record->ExceptionCode == EXCEPTION_ACCESS_VIOLATION && record->NumberParameters == 2) {
+    const char *action;
+    switch (record->ExceptionInformation[0]) {
+      case 0:
+        action = "read";
+        break;
+      case 1:
+        action = "write";
+        break;
+      case 8:
+        action = "execute";
+        break;
+      default:
+        action = "unknown";
+        break;
+    }
+    fprintf(fp,
+            "\tParameters[0] (action)  : 0x%p (%s)\n",
+            (LPVOID *)record->ExceptionInformation[0],
+            action);
+    fprintf(fp, "\tParameters[1] (address) : 0x%p\n", (LPVOID *)record->ExceptionInformation[1]);
+  }
+  else {
+    for (DWORD idx = 0; idx < record->NumberParameters; idx++) {
+      fprintf(fp, "\tParameters[%d] : 0x%p\n", idx, (LPVOID *)record->ExceptionInformation[idx]);
+    }
   }
   if (record->ExceptionRecord) {
     fprintf(fp, "Nested ");
