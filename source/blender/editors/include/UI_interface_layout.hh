@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <optional>
 
 #include "BLI_math_vector_types.hh"
