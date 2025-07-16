@@ -829,64 +829,6 @@ static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, CustomData *data, int
   CustomData_set_layer_clone_index(data, eCustomDataType(type), n);
 }
 
-static bool rna_MEdge_freestyle_edge_mark_get(PointerRNA *ptr)
-{
-  const Mesh *mesh = rna_mesh(ptr);
-  const int index = rna_MeshEdge_index_get(ptr);
-  const FreestyleEdge *fed = static_cast<const FreestyleEdge *>(
-      CustomData_get_layer(&mesh->edge_data, CD_FREESTYLE_EDGE));
-
-  return fed && (fed[index].flag & FREESTYLE_EDGE_MARK) != 0;
-}
-
-static void rna_MEdge_freestyle_edge_mark_set(PointerRNA *ptr, bool value)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  const int index = rna_MeshEdge_index_get(ptr);
-  FreestyleEdge *fed = static_cast<FreestyleEdge *>(
-      CustomData_get_layer_for_write(&mesh->edge_data, CD_FREESTYLE_EDGE, mesh->edges_num));
-
-  if (!fed) {
-    fed = static_cast<FreestyleEdge *>(CustomData_add_layer(
-        &mesh->edge_data, CD_FREESTYLE_EDGE, CD_SET_DEFAULT, mesh->edges_num));
-  }
-  if (value) {
-    fed[index].flag |= FREESTYLE_EDGE_MARK;
-  }
-  else {
-    fed[index].flag &= ~FREESTYLE_EDGE_MARK;
-  }
-}
-
-static bool rna_MPoly_freestyle_face_mark_get(PointerRNA *ptr)
-{
-  const Mesh *mesh = rna_mesh(ptr);
-  const int index = rna_MeshPolygon_index_get(ptr);
-  const FreestyleFace *ffa = static_cast<const FreestyleFace *>(
-      CustomData_get_layer(&mesh->face_data, CD_FREESTYLE_FACE));
-
-  return ffa && (ffa[index].flag & FREESTYLE_FACE_MARK) != 0;
-}
-
-static void rna_MPoly_freestyle_face_mark_set(PointerRNA *ptr, bool value)
-{
-  Mesh *mesh = rna_mesh(ptr);
-  const int index = rna_MeshPolygon_index_get(ptr);
-  FreestyleFace *ffa = static_cast<FreestyleFace *>(
-      CustomData_get_layer_for_write(&mesh->face_data, CD_FREESTYLE_FACE, mesh->faces_num));
-
-  if (!ffa) {
-    ffa = static_cast<FreestyleFace *>(CustomData_add_layer(
-        &mesh->face_data, CD_FREESTYLE_FACE, CD_SET_DEFAULT, mesh->faces_num));
-  }
-  if (value) {
-    ffa[index].flag |= FREESTYLE_FACE_MARK;
-  }
-  else {
-    ffa[index].flag &= ~FREESTYLE_FACE_MARK;
-  }
-}
-
 /* uv_layers */
 
 DEFINE_CUSTOMDATA_LAYER_COLLECTION(uv_layer, ldata, CD_PROP_FLOAT2)
@@ -2085,12 +2027,6 @@ static void rna_def_medge(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_MeshEdge_is_loose_get", nullptr);
   RNA_def_property_ui_text(prop, "Loose", "Edge is not connected to any faces");
 
-  prop = RNA_def_property(srna, "use_freestyle_mark", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(
-      prop, "rna_MEdge_freestyle_edge_mark_get", "rna_MEdge_freestyle_edge_mark_set");
-  RNA_def_property_ui_text(prop, "Freestyle Edge Mark", "Edge mark for Freestyle line rendering");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
-
   prop = RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_int_funcs(prop, "rna_MeshEdge_index_get", nullptr, nullptr);
@@ -2296,12 +2232,6 @@ static void rna_def_mpolygon(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(
       prop, "rna_MeshPolygon_use_smooth_get", "rna_MeshPolygon_use_smooth_set");
   RNA_def_property_ui_text(prop, "Smooth", "");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
-
-  prop = RNA_def_property(srna, "use_freestyle_mark", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(
-      prop, "rna_MPoly_freestyle_face_mark_get", "rna_MPoly_freestyle_face_mark_set");
-  RNA_def_property_ui_text(prop, "Freestyle Face Mark", "Face mark for Freestyle line rendering");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
   prop = RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);

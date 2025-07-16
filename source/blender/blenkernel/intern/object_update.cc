@@ -142,13 +142,6 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       cddata_masks.fmask |= CD_MASK_PROP_ALL;
       cddata_masks.pmask |= CD_MASK_PROP_ALL;
       cddata_masks.lmask |= CD_MASK_PROP_ALL;
-
-      /* Make sure Freestyle edge/face marks appear in evaluated mesh (see #40315).
-       * Due to Line Art implementation, edge marks should also be shown in viewport. */
-#ifdef WITH_FREESTYLE
-      cddata_masks.emask |= CD_MASK_FREESTYLE_EDGE;
-      cddata_masks.pmask |= CD_MASK_FREESTYLE_FACE;
-#endif
       if (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER) {
         /* Always compute orcos for render. */
         cddata_masks.vmask |= CD_MASK_ORCO;

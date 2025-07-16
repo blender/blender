@@ -357,6 +357,10 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
         mesh->face_data, AttrDomain::Face, mesh->faces_num, face_layers, attribute_data);
     CustomData_blend_write_prepare(
         mesh->corner_data, AttrDomain::Corner, mesh->corners_num, loop_layers, attribute_data);
+    if (!is_undo) {
+      mesh_freestyle_marks_to_legacy(
+          attribute_data, mesh->edge_data, mesh->face_data, edge_layers, face_layers);
+    }
     if (attribute_data.attributes.is_empty()) {
       mesh->attribute_storage.dna_attributes = nullptr;
       mesh->attribute_storage.dna_attributes_num = 0;

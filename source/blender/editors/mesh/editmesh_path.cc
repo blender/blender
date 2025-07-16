@@ -307,10 +307,7 @@ static bool edgetag_test_cb(BMEdge *e, void *user_data_v)
       return BM_ELEM_CD_GET_FLOAT(e, user_data->cd_offset);
 #ifdef WITH_FREESTYLE
     case EDGE_MODE_TAG_FREESTYLE: {
-      BMesh *bm = user_data->bm;
-      FreestyleEdge *fed = static_cast<FreestyleEdge *>(
-          CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE));
-      return (!fed) ? false : (fed->flag & FREESTYLE_EDGE_MARK) ? true : false;
+      return BM_ELEM_CD_GET_BOOL(e, user_data->cd_offset);
     }
 #endif
   }
@@ -338,15 +335,7 @@ static void edgetag_set_cb(BMEdge *e, bool val, void *user_data_v)
       break;
 #ifdef WITH_FREESTYLE
     case EDGE_MODE_TAG_FREESTYLE: {
-      FreestyleEdge *fed;
-      fed = static_cast<FreestyleEdge *>(
-          CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE));
-      if (!val) {
-        fed->flag &= ~FREESTYLE_EDGE_MARK;
-      }
-      else {
-        fed->flag |= FREESTYLE_EDGE_MARK;
-      }
+      BM_ELEM_CD_SET_BOOL(e, user_data->cd_offset, val);
       break;
     }
 #endif
@@ -370,8 +359,8 @@ static void edgetag_ensure_cd_flag(Mesh *mesh, const char edge_mode)
       break;
 #ifdef WITH_FREESTYLE
     case EDGE_MODE_TAG_FREESTYLE:
-      if (!CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
-        BM_data_layer_add(bm, &bm->edata, CD_FREESTYLE_EDGE);
+      if (!CustomData_has_layer_named(&bm->edata, CD_PROP_BOOL, "freestyle_edge")) {
+        BM_data_layer_add_named(bm, &bm->edata, CD_PROP_BOOL, "freestyle_edge");
       }
       break;
 #endif
@@ -396,6 +385,7 @@ static void mouse_mesh_shortest_path_edge(
     case EDGE_MODE_TAG_SHARP:
 #ifdef WITH_FREESTYLE
     case EDGE_MODE_TAG_FREESTYLE:
+      cd_offset = CustomData_get_offset_named(&bm->edata, CD_PROP_BOOL, "freestyle_edge");
 #endif
       break;
     case EDGE_MODE_TAG_CREASE:

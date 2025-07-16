@@ -2489,6 +2489,118 @@ void mesh_sculpt_mask_to_generic(Mesh &mesh)
   }
 }
 
+void mesh_freestyle_marks_to_generic(Mesh &mesh)
+{
+  {
+    void *data = nullptr;
+    const ImplicitSharingInfo *sharing_info = nullptr;
+    for (const int i : IndexRange(mesh.edge_data.totlayer)) {
+      CustomDataLayer &layer = mesh.edge_data.layers[i];
+      if (layer.type == CD_FREESTYLE_EDGE) {
+        data = layer.data;
+        sharing_info = layer.sharing_info;
+        layer.data = nullptr;
+        layer.sharing_info = nullptr;
+        CustomData_free_layer(&mesh.edge_data, CD_FREESTYLE_EDGE, i);
+        break;
+      }
+    }
+    if (data != nullptr) {
+      static_assert(sizeof(FreestyleEdge) == sizeof(bool));
+      static_assert(char(FREESTYLE_EDGE_MARK) == char(true));
+      CustomData_add_layer_named_with_data(
+          &mesh.edge_data, CD_PROP_BOOL, data, mesh.edges_num, "freestyle_edge", sharing_info);
+    }
+    if (sharing_info != nullptr) {
+      sharing_info->remove_user_and_delete_if_last();
+    }
+  }
+  {
+    void *data = nullptr;
+    const ImplicitSharingInfo *sharing_info = nullptr;
+    for (const int i : IndexRange(mesh.face_data.totlayer)) {
+      CustomDataLayer &layer = mesh.face_data.layers[i];
+      if (layer.type == CD_FREESTYLE_FACE) {
+        data = layer.data;
+        sharing_info = layer.sharing_info;
+        layer.data = nullptr;
+        layer.sharing_info = nullptr;
+        CustomData_free_layer(&mesh.face_data, CD_FREESTYLE_FACE, i);
+        break;
+      }
+    }
+    if (data != nullptr) {
+      static_assert(sizeof(FreestyleFace) == sizeof(bool));
+      static_assert(char(FREESTYLE_FACE_MARK) == char(true));
+      CustomData_add_layer_named_with_data(
+          &mesh.face_data, CD_PROP_BOOL, data, mesh.faces_num, "freestyle_face", sharing_info);
+    }
+    if (sharing_info != nullptr) {
+      sharing_info->remove_user_and_delete_if_last();
+    }
+  }
+}
+
+void mesh_freestyle_marks_to_legacy(AttributeStorage::BlendWriteData &attr_write_data,
+                                    CustomData &edge_data,
+                                    CustomData &face_data,
+                                    Vector<CustomDataLayer, 16> &edge_layers,
+                                    Vector<CustomDataLayer, 16> &face_layers)
+{
+  Array<bool, 64> attrs_to_remove(attr_write_data.attributes.size(), false);
+  for (const int i : attr_write_data.attributes.index_range()) {
+    const ::Attribute &dna_attr = attr_write_data.attributes[i];
+    if (dna_attr.data_type != int8_t(AttrType::Bool)) {
+      continue;
+    }
+    if (dna_attr.storage_type != int8_t(AttrStorageType::Array)) {
+      continue;
+    }
+    if (dna_attr.domain == int8_t(AttrDomain::Edge)) {
+      if (STREQ(dna_attr.name, "freestyle_edge")) {
+        const auto &array_dna = *static_cast<const ::AttributeArray *>(dna_attr.data);
+        static_assert(sizeof(FreestyleEdge) == sizeof(bool));
+        static_assert(char(FREESTYLE_EDGE_MARK) == char(true));
+        CustomDataLayer layer{};
+        layer.type = CD_FREESTYLE_EDGE;
+        layer.data = array_dna.data;
+        layer.sharing_info = array_dna.sharing_info;
+        edge_layers.append(layer);
+        std::stable_sort(
+            edge_layers.begin(),
+            edge_layers.end(),
+            [](const CustomDataLayer &a, const CustomDataLayer &b) { return a.type < b.type; });
+        edge_data.totlayer = edge_layers.size();
+        edge_data.maxlayer = edge_data.totlayer;
+        attrs_to_remove[i] = true;
+      }
+    }
+    else if (dna_attr.domain == int8_t(AttrDomain::Face)) {
+      if (STREQ(dna_attr.name, "freestyle_face")) {
+        const auto &array_dna = *static_cast<const ::AttributeArray *>(dna_attr.data);
+        static_assert(sizeof(FreestyleFace) == sizeof(bool));
+        static_assert(char(FREESTYLE_FACE_MARK) == char(true));
+        CustomDataLayer layer{};
+        layer.type = CD_FREESTYLE_FACE;
+        layer.data = array_dna.data;
+        layer.sharing_info = array_dna.sharing_info;
+        face_layers.append(layer);
+        std::stable_sort(
+            face_layers.begin(),
+            face_layers.end(),
+            [](const CustomDataLayer &a, const CustomDataLayer &b) { return a.type < b.type; });
+        face_data.totlayer = face_layers.size();
+        face_data.maxlayer = face_data.totlayer;
+        attrs_to_remove[i] = true;
+      }
+    }
+  }
+  attr_write_data.attributes.remove_if([&](const ::Attribute &attr) {
+    const int i = &attr - attr_write_data.attributes.begin();
+    return attrs_to_remove[i];
+  });
+}
+
 void mesh_custom_normals_to_generic(Mesh &mesh)
 {
   if (mesh.attributes().contains("custom_normal")) {

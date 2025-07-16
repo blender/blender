@@ -394,7 +394,10 @@ int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3
   return 0;
 }
 
-static bool testEdgeMark(Mesh *mesh, const FreestyleEdge *fed, const blender::int3 &tri, int i)
+static bool testEdgeMark(Mesh *mesh,
+                         const blender::VArray<bool> &fed,
+                         const blender::int3 &tri,
+                         int i)
 {
   const Span<blender::int2> edges = mesh->edges();
   const Span<int> corner_verts = mesh->corner_verts();
@@ -409,7 +412,7 @@ static bool testEdgeMark(Mesh *mesh, const FreestyleEdge *fed, const blender::in
     return false;
   }
 
-  return (fed[corner_edges[corner]].flag & FREESTYLE_EDGE_MARK) != 0;
+  return fed[corner_edges[corner]];
 }
 
 void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
@@ -428,12 +431,13 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
       vert_positions, mesh_polys, corner_verts, {corner_tris, tottri});
   const blender::Span<int> tri_faces = mesh->corner_tri_faces();
   const blender::Span<blender::float3> corner_normals = mesh->corner_normals();
+  const bke::AttributeAccessor attributes = mesh->attributes();
 
   // Get other mesh data
-  const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&mesh->edge_data,
-                                                                         CD_FREESTYLE_EDGE);
-  const FreestyleFace *ffa = (const FreestyleFace *)CustomData_get_layer(&mesh->face_data,
-                                                                         CD_FREESTYLE_FACE);
+  const VArray<bool> fed = *attributes.lookup_or_default<bool>(
+      "freestyle_edge", bke::AttrDomain::Edge, false);
+  const VArray<bool> ffa = *attributes.lookup_or_default<bool>(
+      "freestyle_face", bke::AttrDomain::Face, false);
 
   // Compute view matrix
   Object *ob_camera_eval = DEG_get_evaluated(_depsgraph, RE_GetCamera(_re));
@@ -519,7 +523,6 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
 
   FrsMaterial tmpMat;
 
-  const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", bke::AttrDomain::Face, 0);
   const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
@@ -570,7 +573,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
       continue;
     }
 
-    bool fm = (ffa) ? (ffa[poly_i].flag & FREESTYLE_FACE_MARK) != 0 : false;
+    bool fm = ffa[poly_i];
     bool em1 = false, em2 = false, em3 = false;
 
     if (fed) {

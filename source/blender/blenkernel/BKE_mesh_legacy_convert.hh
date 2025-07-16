@@ -8,6 +8,10 @@
  * \ingroup bke
  */
 
+#include "BKE_attribute_storage.hh"
+
+#include "BLI_vector.hh"
+
 struct CustomData;
 struct Main;
 struct Mesh;
@@ -19,6 +23,13 @@ namespace blender::bke {
 void mesh_custom_normals_to_generic(Mesh &mesh);
 
 void mesh_sculpt_mask_to_generic(Mesh &mesh);
+
+void mesh_freestyle_marks_to_generic(Mesh &mesh);
+void mesh_freestyle_marks_to_legacy(AttributeStorage::BlendWriteData &attr_write_data,
+                                    CustomData &edge_data,
+                                    CustomData &face_data,
+                                    Vector<CustomDataLayer, 16> &edge_layers,
+                                    Vector<CustomDataLayer, 16> &face_layers);
 
 }  // namespace blender::bke
 

@@ -201,14 +201,14 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_BWEIGHT_EDGE:
       return CD_FAKE_BWEIGHT;
     case DT_TYPE_FREESTYLE_EDGE:
-      return CD_FREESTYLE_EDGE;
+      return CD_FAKE_FREESTYLE_EDGE;
 
     case DT_TYPE_UV:
       return CD_FAKE_UV;
     case DT_TYPE_SHARP_FACE:
       return CD_FAKE_SHARP;
     case DT_TYPE_FREESTYLE_FACE:
-      return CD_FREESTYLE_FACE;
+      return CD_FAKE_FREESTYLE_FACE;
     case DT_TYPE_LNOR:
       return CD_FAKE_LNOR;
     case DT_TYPE_MLOOPCOL_VERT:
@@ -503,15 +503,6 @@ static void data_transfer_layersmapping_add_item_cd(ListBase *r_map,
                                                     cd_datatransfer_interp interp,
                                                     void *interp_data)
 {
-  uint64_t data_flag = 0;
-
-  if (cddata_type == CD_FREESTYLE_EDGE) {
-    data_flag = FREESTYLE_EDGE_MARK;
-  }
-  else if (cddata_type == CD_FREESTYLE_FACE) {
-    data_flag = FREESTYLE_FACE_MARK;
-  }
-
   data_transfer_layersmapping_add_item(r_map,
                                        cddata_type,
                                        mix_mode,
@@ -524,7 +515,7 @@ static void data_transfer_layersmapping_add_item_cd(ListBase *r_map,
                                        0,
                                        0,
                                        0,
-                                       data_flag,
+                                       0,
                                        interp,
                                        interp_data);
 }
@@ -1035,6 +1026,24 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           interp_data);
       return true;
     }
+    if (r_map && cddata_type == CD_FAKE_FREESTYLE_EDGE) {
+      if (!CustomData_get_layer_named(&me_dst->edge_data, CD_PROP_BOOL, "freestyle_edge")) {
+        CustomData_add_layer_named(
+            &me_dst->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->edges_num, "freestyle_edge");
+      }
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_PROP_BOOL,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          CustomData_get_layer_named(&me_src->edge_data, CD_PROP_BOOL, "freestyle_edge"),
+          CustomData_get_layer_named_for_write(
+              &me_dst->edge_data, CD_PROP_BOOL, "freestyle_edge", me_dst->edges_num),
+          interp,
+          interp_data);
+      return true;
+    }
 
     return false;
   }
@@ -1133,6 +1142,24 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           CustomData_get_layer_named(&me_src->face_data, CD_PROP_BOOL, "sharp_face"),
           CustomData_get_layer_named_for_write(
               &me_dst->face_data, CD_PROP_BOOL, "sharp_face", num_elem_dst),
+          interp,
+          interp_data);
+      return true;
+    }
+    if (r_map && cddata_type == CD_FAKE_FREESTYLE_FACE) {
+      if (!CustomData_has_layer_named(&me_dst->face_data, CD_PROP_BOOL, "freestyle_face")) {
+        CustomData_add_layer_named(
+            &me_dst->face_data, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->faces_num, "freestyle_face");
+      }
+      data_transfer_layersmapping_add_item_cd(
+          r_map,
+          CD_PROP_BOOL,
+          mix_mode,
+          mix_factor,
+          mix_weights,
+          CustomData_get_layer_named(&me_src->face_data, CD_PROP_BOOL, "freestyle_face"),
+          CustomData_get_layer_named_for_write(
+              &me_dst->face_data, CD_PROP_BOOL, "freestyle_face", me_dst->faces_num),
           interp,
           interp_data);
       return true;

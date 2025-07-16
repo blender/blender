@@ -43,9 +43,7 @@ void mesh_render_data_face_flag(const MeshRenderData &mr,
 
 #ifdef WITH_FREESTYLE
   if (mr.freestyle_face_ofs != -1) {
-    const FreestyleFace *ffa = (const FreestyleFace *)BM_ELEM_CD_GET_VOID_P(efa,
-                                                                            mr.freestyle_face_ofs);
-    if (ffa->flag & FREESTYLE_FACE_MARK) {
+    if (BM_ELEM_CD_GET_BOOL(efa, mr.freestyle_face_ofs)) {
       eattr.v_flag |= VFLAG_FACE_FREESTYLE;
     }
   }

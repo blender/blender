@@ -590,8 +590,10 @@ MeshRenderData mesh_render_data_create(Object &object,
     mr.bweight_ofs = CustomData_get_offset_named(
         &mr.bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
 #ifdef WITH_FREESTYLE
-    mr.freestyle_edge_ofs = CustomData_get_offset(&mr.bm->edata, CD_FREESTYLE_EDGE);
-    mr.freestyle_face_ofs = CustomData_get_offset(&mr.bm->pdata, CD_FREESTYLE_FACE);
+    mr.freestyle_edge_ofs = CustomData_get_offset_named(
+        &mr.bm->edata, CD_PROP_BOOL, "freestyle_edge");
+    mr.freestyle_face_ofs = CustomData_get_offset_named(
+        &mr.bm->pdata, CD_PROP_BOOL, "freestyle_face");
 #endif
 
     /* Use bmesh directly when the object is unchanged by any modifiers. For non-final UVs, always

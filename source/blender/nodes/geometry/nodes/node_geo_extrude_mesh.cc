@@ -114,16 +114,6 @@ static void remove_unsupported_vert_data(Mesh &mesh)
   CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN);
 }
 
-static void remove_unsupported_edge_data(Mesh &mesh)
-{
-  CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE);
-}
-
-static void remove_unsupported_face_data(Mesh &mesh)
-{
-  CustomData_free_layers(&mesh.face_data, CD_FREESTYLE_FACE);
-}
-
 static void remove_unsupported_corner_data(Mesh &mesh)
 {
   CustomData_free_layers(&mesh.corner_data, CD_MDISPS);
@@ -417,7 +407,6 @@ static void extrude_mesh_vertices(Mesh &mesh,
   }
 
   remove_unsupported_vert_data(mesh);
-  remove_unsupported_edge_data(mesh);
   expand_mesh(mesh, selection.size(), selection.size(), 0, 0);
 
   const IndexRange new_vert_range{orig_vert_size, selection.size()};
@@ -629,8 +618,6 @@ static void extrude_mesh_edges(Mesh &mesh,
   }
 
   remove_unsupported_vert_data(mesh);
-  remove_unsupported_edge_data(mesh);
-  remove_unsupported_face_data(mesh);
   remove_unsupported_corner_data(mesh);
   expand_mesh(mesh,
               new_vert_range.size(),
@@ -971,8 +958,6 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   remove_non_propagated_attributes(attributes, attribute_filter);
 
   remove_unsupported_vert_data(mesh);
-  remove_unsupported_edge_data(mesh);
-  remove_unsupported_face_data(mesh);
   remove_unsupported_corner_data(mesh);
   expand_mesh(mesh,
               new_vert_range.size(),
@@ -1266,8 +1251,6 @@ static void extrude_individual_mesh_faces(Mesh &mesh,
   remove_non_propagated_attributes(attributes, attribute_filter);
 
   remove_unsupported_vert_data(mesh);
-  remove_unsupported_edge_data(mesh);
-  remove_unsupported_face_data(mesh);
   remove_unsupported_corner_data(mesh);
   expand_mesh(mesh,
               new_vert_range.size(),
