@@ -4658,6 +4658,8 @@ class subcmd_author:
                     ".*",
                     # Any packages built in-source.
                     "/*.zip",
+                    # Backup `.blend` files.
+                    "*.blend[1-9]",
                 ],
             )
 
