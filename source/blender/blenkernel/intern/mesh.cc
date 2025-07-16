@@ -886,8 +886,9 @@ void mesh_apply_spatial_organization(Mesh &mesh)
   corner_verts.copy_from(new_corner_verts);
 
   MutableSpan<int> face_offsets = mesh.face_offsets_for_write();
-  MutableSpan<int> face_sizes_view = face_offsets.take_front(new_face_order.size());
-  gather_group_sizes(old_faces, new_face_order, face_sizes_view);
+  Vector<int> face_sizes(new_face_order.size());
+  gather_group_sizes(old_faces, new_face_order, face_sizes);
+  face_offsets.take_front(face_sizes.size()).copy_from(face_sizes);
   offset_indices::accumulate_counts_to_offsets(face_offsets);
 
   MutableAttributeAccessor attributes_for_write = mesh.attributes_for_write();
