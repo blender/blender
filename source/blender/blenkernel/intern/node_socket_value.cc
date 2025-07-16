@@ -401,6 +401,9 @@ bool SocketValueVariant::valid_for_socket(eNodeSocketDatatype socket_type) const
   if (kind_ == Kind::None) {
     return false;
   }
+  if (socket_type == SOCK_MENU) {
+    return socket_type_ == SOCK_INT;
+  }
   return socket_type_ == socket_type;
 }
 

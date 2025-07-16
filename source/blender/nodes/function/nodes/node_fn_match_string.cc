@@ -8,11 +8,8 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
-#include "RNA_enum_types.hh"
-
 #include "node_function_util.hh"
 
-#include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
 
 namespace blender::nodes::node_fn_match_string_cc {
@@ -40,63 +37,33 @@ const EnumPropertyItem rna_enum_node_match_string_items[] = {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::String>("String").hide_label();
+  b.add_input<decl::Menu>("Operation").static_items(rna_enum_node_match_string_items);
+  b.add_input<decl::String>("String").hide_label().is_default_link_socket();
   b.add_input<decl::String>("Key").hide_label().description(
       "The string to find in the input string");
   b.add_output<decl::Bool>("Result");
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "operation", UI_ITEM_NONE, "", ICON_NONE);
-}
-
-static void node_init(bNodeTree * /*tree*/, bNode *node)
-{
-  node->custom1 = int(MatchStringOperation::StartsWith);
-}
-
-static const mf::MultiFunction *get_multi_function(const bNode &bnode)
-{
-  const MatchStringOperation operation = MatchStringOperation(bnode.custom1);
-
-  switch (operation) {
-    case MatchStringOperation::StartsWith: {
-      static auto fn = mf::build::SI2_SO<std::string, std::string, bool>(
-          "Starts With", [](const std::string &a, const std::string &b) {
-            const StringRef strref_a(a);
-            const StringRef strref_b(b);
-            return strref_a.startswith(strref_b);
-          });
-      return &fn;
-    }
-    case MatchStringOperation::EndsWith: {
-      static auto fn = mf::build::SI2_SO<std::string, std::string, bool>(
-          "Ends With", [](const std::string &a, const std::string &b) {
-            const StringRef strref_a(a);
-            const StringRef strref_b(b);
-            return strref_a.endswith(strref_b);
-          });
-      return &fn;
-    }
-    case MatchStringOperation::Contains: {
-      static auto fn = mf::build::SI2_SO<std::string, std::string, bool>(
-          "Contains", [](const std::string &a, const std::string &b) {
-            const StringRef strref_a(a);
-            const StringRef strref_b(b);
-            return strref_a.find(strref_b) != StringRef::not_found;
-          });
-      return &fn;
-    }
-  }
-  BLI_assert_unreachable();
-  return nullptr;
-}
-
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  const mf::MultiFunction *fn = get_multi_function(builder.node());
-  builder.set_matching_fn(fn);
+  static auto fn = mf::build::SI3_SO<int, std::string, std::string, bool>(
+      "Starts With", [](const int mode, const std::string &a, const std::string &b) {
+        const StringRef strref_a(a);
+        const StringRef strref_b(b);
+        switch (MatchStringOperation(mode)) {
+          case MatchStringOperation::StartsWith: {
+            return strref_a.startswith(strref_b);
+          }
+          case MatchStringOperation::EndsWith: {
+            return strref_a.endswith(strref_b);
+          }
+          case MatchStringOperation::Contains: {
+            return strref_a.find(strref_b) != StringRef::not_found;
+          }
+        }
+        return false;
+      });
+  builder.set_matching_fn(&fn);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -113,8 +80,10 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
           MatchStringOperation operation = MatchStringOperation(item->value);
           params.add_item(IFACE_(item->name), [operation](LinkSearchOpParams &params) {
             bNode &node = params.add_node("FunctionNodeMatchString");
-            node.custom1 = int8_t(operation);
             params.update_and_connect_available_socket(node, "String");
+            bke::node_find_socket(node, SOCK_IN, "Operation")
+                ->default_value_typed<bNodeSocketValueMenu>()
+                ->value = int(operation);
           });
         }
       }
@@ -142,17 +111,6 @@ static void node_label(const bNodeTree * /*tree*/,
   BLI_strncpy_utf8(label, IFACE_(name), label_maxncpy);
 }
 
-static void node_rna(StructRNA *srna)
-{
-  RNA_def_node_enum(srna,
-                    "operation",
-                    "Operation",
-                    "",
-                    rna_enum_node_match_string_items,
-                    NOD_inline_enum_accessors(custom1),
-                    int(MatchStringOperation::StartsWith));
-}
-
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -163,12 +121,9 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
   ntype.gather_link_search_ops = node_gather_link_searches;
-  ntype.initfunc = node_init;
-  ntype.draw_buttons = node_layout;
   ntype.build_multi_function = node_build_multi_function;
 
   blender::bke::node_register_type(ntype);
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

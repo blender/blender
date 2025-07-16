@@ -502,6 +502,62 @@ static void do_version_normal_node_dot_product(bNodeTree *node_tree, bNode *node
   }
 }
 
+static void do_version_transform_geometry_options_to_inputs(bNodeTree &ntree, bNode &node)
+{
+  if (blender::bke::node_find_socket(node, SOCK_IN, "Mode")) {
+    return;
+  }
+  bNodeSocket &socket = version_node_add_socket(ntree, node, SOCK_IN, "NodeSocketMenu", "Mode");
+  socket.default_value_typed<bNodeSocketValueMenu>()->value = node.custom1;
+}
+
+static void do_version_points_to_volume_options_to_inputs(bNodeTree &ntree, bNode &node)
+{
+  if (blender::bke::node_find_socket(node, SOCK_IN, "Resolution Mode")) {
+    return;
+  }
+  const NodeGeometryPointsToVolume &storage = *static_cast<NodeGeometryPointsToVolume *>(
+      node.storage);
+  bNodeSocket &socket = version_node_add_socket(
+      ntree, node, SOCK_IN, "NodeSocketMenu", "Resolution Mode");
+  socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.resolution_mode;
+}
+
+static void do_version_triangulate_options_to_inputs(bNodeTree &ntree, bNode &node)
+{
+  if (!blender::bke::node_find_socket(node, SOCK_IN, "Quad Method")) {
+    bNodeSocket &socket = version_node_add_socket(
+        ntree, node, SOCK_IN, "NodeSocketMenu", "Quad Method");
+    socket.default_value_typed<bNodeSocketValueMenu>()->value = node.custom1;
+  }
+  if (!blender::bke::node_find_socket(node, SOCK_IN, "N-gon Method")) {
+    bNodeSocket &socket = version_node_add_socket(
+        ntree, node, SOCK_IN, "NodeSocketMenu", "N-gon Method");
+    socket.default_value_typed<bNodeSocketValueMenu>()->value = node.custom2;
+  }
+}
+
+static void do_version_volume_to_mesh_options_to_inputs(bNodeTree &ntree, bNode &node)
+{
+  if (blender::bke::node_find_socket(node, SOCK_IN, "Resolution Mode")) {
+    return;
+  }
+  const NodeGeometryVolumeToMesh &storage = *static_cast<NodeGeometryVolumeToMesh *>(node.storage);
+  bNodeSocket &socket = version_node_add_socket(
+      ntree, node, SOCK_IN, "NodeSocketMenu", "Resolution Mode");
+  socket.default_value_typed<bNodeSocketValueMenu>()->value = storage.resolution_mode;
+}
+
+static void do_version_match_string_options_to_inputs(bNodeTree &ntree, bNode &node)
+{
+  if (blender::bke::node_find_socket(node, SOCK_IN, "Operation")) {
+    return;
+  }
+  bNodeSocket &socket = version_node_add_socket(
+      ntree, node, SOCK_IN, "NodeSocketMenu", "Operation");
+  socket.default_value_typed<bNodeSocketValueMenu>()->value = node.custom1;
+}
+
 static void version_seq_text_from_legacy(Main *bmain)
 {
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
@@ -1368,6 +1424,32 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
     FOREACH_NODETREE_END;
   }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 38)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == GEO_NODE_TRANSFORM_GEOMETRY) {
+            do_version_transform_geometry_options_to_inputs(*node_tree, *node);
+          }
+          else if (node->type_legacy == GEO_NODE_POINTS_TO_VOLUME) {
+            do_version_points_to_volume_options_to_inputs(*node_tree, *node);
+          }
+          else if (node->type_legacy == GEO_NODE_TRIANGULATE) {
+            do_version_triangulate_options_to_inputs(*node_tree, *node);
+          }
+          else if (node->type_legacy == GEO_NODE_VOLUME_TO_MESH) {
+            do_version_volume_to_mesh_options_to_inputs(*node_tree, *node);
+          }
+          else if (STREQ(node->idname, "FunctionNodeMatchString")) {
+            do_version_match_string_options_to_inputs(*node_tree, *node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

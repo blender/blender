@@ -5,8 +5,10 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
+#include "NOD_socket_usage_inference.hh"
 
 #include "BLI_assert.h"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_geometry_fields.hh"
@@ -770,6 +772,56 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::make_available(
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::custom_draw(CustomSocketDrawFn fn)
 {
   decl_base_->custom_draw_fn = std::make_unique<CustomSocketDrawFn>(std::move(fn));
+  return *this;
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_inference(
+    InputSocketUsageInferenceFn fn)
+{
+  decl_base_->usage_inference_fn = std::make_unique<InputSocketUsageInferenceFn>(std::move(fn));
+  return *this;
+}
+
+static const bNodeSocket &find_single_menu_input(const bNode &node)
+{
+#ifndef NDEBUG
+  int menu_input_count = 0;
+  /* Topology cache may not be available here and this function may be called while doing tree
+   * modifications. */
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+    if (socket->type == SOCK_MENU) {
+      menu_input_count++;
+    }
+  }
+  BLI_assert(menu_input_count == 1);
+#endif
+
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
+    if (!socket->is_available()) {
+      continue;
+    }
+    if (socket->type != SOCK_MENU) {
+      continue;
+    }
+    return *socket;
+  }
+  BLI_assert_unreachable();
+  return node.input_socket(0);
+}
+
+BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::usage_by_single_menu(
+    const int menu_value)
+{
+  this->make_available([menu_value](bNode &node) {
+    bNodeSocket &socket = const_cast<bNodeSocket &>(find_single_menu_input(node));
+    bNodeSocketValueMenu *value = socket.default_value_typed<bNodeSocketValueMenu>();
+    value->value = menu_value;
+  });
+  this->usage_inference([menu_value](const socket_usage_inference::InputSocketUsageParams &params)
+                            -> std::optional<bool> {
+    const bNodeSocket &socket = find_single_menu_input(params.node);
+    return params.menu_input_may_be(socket.identifier, menu_value);
+  });
   return *this;
 }
 

@@ -38,6 +38,7 @@
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
+#include "NOD_socket_declarations.hh"
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph_build.hh"
@@ -1030,6 +1031,24 @@ class NodeTreeMainUpdater {
           enum_items->remove_user_and_delete_if_last();
         }
         locally_defined_enums.append(&enum_input);
+      }
+      else {
+        for (bNodeSocket *input_socket : node->input_sockets()) {
+          if (!input_socket->is_available()) {
+            continue;
+          }
+          if (input_socket->type != SOCK_MENU) {
+            continue;
+          }
+          const auto *socket_decl = dynamic_cast<const nodes::decl::Menu *>(
+              input_socket->runtime->declaration);
+          if (!socket_decl) {
+            continue;
+          }
+          this->set_enum_ptr(*input_socket->default_value_typed<bNodeSocketValueMenu>(),
+                             socket_decl->items.get());
+          locally_defined_enums.append(input_socket);
+        }
       }
 
       /* Clear current enum references. */
