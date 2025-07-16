@@ -41,7 +41,6 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_multi_value_map.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_stack.h"
 #include "BLI_string.h"
@@ -3175,53 +3174,39 @@ static void filelist_readjob_remote_asset_library_index_read(
     return;
   }
 
-  /* Reconstruct file hierarchy, so we know which .blend files to expect where, and which assets
-   * they should contain. */
-  MultiValueMap<StringRef, index::RemoteListingAssetEntry *> assets_per_blend_path;
-  /* Keeps the entries alive for further processing. These are moved out of #read_remote_listing()
-   * below, which is allowed by the API. */
-  Vector<std::unique_ptr<index::RemoteListingAssetEntry>> entries_store;
-
   /* #index::read_remote_listing() below calls this for every asset entry it finished reading from
    * the asset listing pages. */
-  const auto process_asset_fn = [&](index::RemoteListingAssetEntry &movable_entry) {
+  const auto process_asset_fn = [&](index::RemoteListingAssetEntry &entry) {
     if (*stop || job_params->cancel) {
       /* Cancel reading when requested. */
       return false;
     }
 
-    const char *group_name = BKE_idtype_idcode_to_name(movable_entry.idcode);
+    const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
 
     /* Skip assets that are already listed with the downloaded assets. */
     {
-      BLI_assert(StringRef(movable_entry.file_path).endswith(".blend"));
+      BLI_assert(StringRef(entry.file_path).endswith(".blend"));
 
       /* Matches #asset_system::AssetRepresentation.library_relative_identifier(). */
       char asset_identifier[FILE_MAX_LIBEXTRA];
       BLI_string_join(asset_identifier,
                       sizeof(asset_identifier),
-                      movable_entry.file_path.c_str(),
+                      entry.file_path.c_str(),
                       SEP_STR,
                       group_name,
                       SEP_STR,
-                      movable_entry.datablock_info.name);
+                      entry.datablock_info.name);
       if (already_downloaded_asset_identifiers.contains(asset_identifier)) {
         return true;
       }
     }
-
-    /* Move into own storage for later access. */
-    entries_store.append(
-        std::make_unique<index::RemoteListingAssetEntry>(std::move(movable_entry)));
-
-    index::RemoteListingAssetEntry &entry = *entries_store.last();
 
     ListBase entries = {nullptr};
 
     BLI_strncpy(job_params->cur_relbase, entry.file_path.c_str(), sizeof(job_params->cur_relbase));
     filelist_readjob_list_lib_add_datablock(
         job_params, &entries, &entry.datablock_info, true, entry.idcode, group_name, true);
-    assets_per_blend_path.add(entry.file_path, &entry);
 
     int entries_num = 0;
     LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {
@@ -3264,45 +3249,6 @@ static void filelist_readjob_remote_asset_library_index_read(
   if (!index::read_remote_listing(dirpath, process_asset_fn, wait_for_pages_fn)) {
     return;
   }
-
-  /* Lastly, update local asset index from the current remote index. */
-/* TODO, this doesn't seem like what we want to do. Also crashes because it's accessing moved out
- * RemoteListingAssetEntry.datablock_info. */
-#if 0
-
-  FileIndexer local_indexer_runtime{};
-  local_indexer_runtime.callbacks = &index::file_indexer_asset;
-  local_indexer_runtime.user_data = local_indexer_runtime.callbacks->init_user_data(
-      dirpath, sizeof(dirpath));
-
-  for (const auto [blend_path_rel, mapped_asset_entries] : assets_per_blend_path.items()) {
-    BLI_assert(dirpath[strlen(dirpath) - 1] == SEP);
-    const std::string blend_path_abs = dirpath + blend_path_rel;
-
-    /* Check if the local index file for this .blend needs updating. Function is called
-     * `read_index()` but by passing null for the entries to be returned, actual reading will be
-     * skipped. */
-    eFileIndexerResult indexer_result = local_indexer_runtime.callbacks->read_index(
-        blend_path_abs.c_str(), nullptr, nullptr, local_indexer_runtime.user_data);
-
-    if (indexer_result == FILE_INDEXER_NEEDS_UPDATE) {
-      /* Not so nice, but populate #FileIndexerEntries from the asset entries for the indexer
-       * to work with. */
-      FileIndexerEntries indexer_entries = {nullptr};
-      for (index::RemoteListingAssetEntry *entry : mapped_asset_entries) {
-        ED_file_indexer_entries_extend_from_datablock_info(
-            &indexer_entries, &entry->datablock_info, entry->idcode);
-      }
-      local_indexer_runtime.callbacks->update_index(
-          blend_path_abs.c_str(), &indexer_entries, local_indexer_runtime.user_data);
-      ED_file_indexer_entries_clear(&indexer_entries);
-    }
-  }
-
-  local_indexer_runtime.callbacks->filelist_finished(local_indexer_runtime.user_data);
-  local_indexer_runtime.callbacks->free_user_data(local_indexer_runtime.user_data);
-  local_indexer_runtime.user_data = nullptr;
-#endif
 }
 
 static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,
