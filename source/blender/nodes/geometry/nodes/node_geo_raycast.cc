@@ -31,7 +31,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input<decl::Geometry>("Target Geometry")
       .only_realized_data()
-      .supported_type(GeometryComponent::Type::Mesh);
+      .supported_type(GeometryComponent::Type::Mesh)
+      .description("Geometry to cast rays onto");
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
     /* TODO: Field interfacing depends on the offset of the next declarations! */

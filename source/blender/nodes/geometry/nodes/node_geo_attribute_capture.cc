@@ -33,7 +33,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_default_layout();
 
-  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Geometry")
+      .description(
+          "Geometry to evaluate the given fields and store the resulting attributes on. All "
+          "geometry types except volumes are supported");
   b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   if (node != nullptr) {
     const NodeGeometryAttributeCapture &storage = node_storage(*node);

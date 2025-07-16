@@ -15,7 +15,9 @@ namespace blender::nodes::node_geo_instances_to_points_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Instances").only_instances();
+  b.add_input<decl::Geometry>("Instances")
+      .only_instances()
+      .description("Instances that converted to a point per instance");
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Vector>("Position").implicit_field_on_all(NODE_DEFAULT_INPUT_POSITION_FIELD);
   b.add_input<decl::Float>("Radius")

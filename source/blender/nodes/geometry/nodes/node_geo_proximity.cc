@@ -25,7 +25,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry", "Target")
       .only_realized_data()
-      .supported_type({GeometryComponent::Type::Mesh, GeometryComponent::Type::PointCloud});
+      .supported_type({GeometryComponent::Type::Mesh, GeometryComponent::Type::PointCloud})
+      .description("Geometry to find the closest point on");
   b.add_input<decl::Int>("Group ID")
       .hide_value()
       .field_on_all()

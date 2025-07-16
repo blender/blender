@@ -28,7 +28,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supported_type({GeometryComponent::Type::Mesh,
                        GeometryComponent::Type::PointCloud,
                        GeometryComponent::Type::Curve,
-                       GeometryComponent::Type::Instance});
+                       GeometryComponent::Type::Instance})
+      .description("Geometry to split into instances");
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
   b.add_input<decl::Int>("Group ID").field_on_all().hide_value();
   b.add_output<decl::Geometry>("Instances")

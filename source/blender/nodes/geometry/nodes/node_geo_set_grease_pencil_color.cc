@@ -28,7 +28,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_default_layout();
   b.add_input<decl::Geometry>("Grease Pencil")
       .supported_type(GeometryComponent::Type::GreasePencil)
-      .align_with_previous();
+      .align_with_previous()
+      .description("Grease Pencil to change the color of");
   b.add_output<decl::Geometry>("Grease Pencil").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Color>("Color")

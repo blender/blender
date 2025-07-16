@@ -70,7 +70,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Method for splitting the n-gons into triangles");
   b.add_input<decl::Geometry>("Mesh")
       .supported_type(GeometryComponent::Type::Mesh)
-      .is_default_link_socket();
+      .is_default_link_socket()
+      .description("Mesh to triangulate");
   b.add_output<decl::Geometry>("Mesh").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
 }

@@ -17,7 +17,8 @@ namespace blender::nodes::node_geo_grease_pencil_to_curves_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Grease Pencil")
-      .supported_type(bke::GeometryComponent::Type::GreasePencil);
+      .supported_type(bke::GeometryComponent::Type::GreasePencil)
+      .description("Grease pencil data to convert to curves");
   b.add_input<decl::Bool>("Selection")
       .default_value(true)
       .hide_value()

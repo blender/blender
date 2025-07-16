@@ -32,7 +32,7 @@ NODE_STORAGE_FUNCS(NodeGeometryDuplicateElements);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Geometry").description("Geometry to duplicate elements of");
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Int>("Amount").min(0).default_value(1).field_on_all().description(
       "The number of duplicates to create for each element");

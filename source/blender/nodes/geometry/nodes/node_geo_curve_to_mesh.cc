@@ -19,11 +19,13 @@ namespace blender::nodes::node_geo_curve_to_mesh_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(
-      {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
+  b.add_input<decl::Geometry>("Curve")
+      .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil})
+      .description("Curve to convert to a mesh using the given profile");
   b.add_input<decl::Geometry>("Profile Curve")
       .only_realized_data()
-      .supported_type(GeometryComponent::Type::Curve);
+      .supported_type(GeometryComponent::Type::Curve)
+      .description("Curves that are sweeped along the main curve");
   b.add_input<decl::Float>("Scale").default_value(1.0f).min(0.0f).field_on({0}).description(
       "Scale of the profile at each point");
   b.add_input<decl::Bool>("Fill Caps")

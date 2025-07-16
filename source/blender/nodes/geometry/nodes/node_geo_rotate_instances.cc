@@ -16,7 +16,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_input<decl::Geometry>("Instances").only_instances();
+  b.add_input<decl::Geometry>("Instances")
+      .only_instances()
+      .description("Instances to rotate individually");
   b.add_output<decl::Geometry>("Instances").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Rotation>("Rotation").field_on_all();

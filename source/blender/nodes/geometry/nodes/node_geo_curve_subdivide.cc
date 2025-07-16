@@ -15,8 +15,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_input<decl::Geometry>("Curve").supported_type(
-      {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
+  b.add_input<decl::Geometry>("Curve")
+      .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil})
+      .description("Curves to subdivide");
   b.add_output<decl::Geometry>("Curve").propagate_all().align_with_previous();
   b.add_input<decl::Int>("Cuts").default_value(1).min(0).max(1000).field_on_all().description(
       "The number of control points to create on the segment following each point");

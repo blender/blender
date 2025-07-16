@@ -14,7 +14,9 @@ namespace blender::nodes::node_geo_edge_paths_to_curves_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
+  b.add_input<decl::Geometry>("Mesh")
+      .supported_type(GeometryComponent::Type::Mesh)
+      .description("Edges to convert to curves");
   b.add_input<decl::Bool>("Start Vertices").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Int>("Next Vertex Index").default_value(-1).hide_value().field_on_all();
   b.add_output<decl::Geometry>("Curves").propagate_all();

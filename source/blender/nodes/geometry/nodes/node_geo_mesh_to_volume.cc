@@ -22,7 +22,9 @@ NODE_STORAGE_FUNCS(NodeGeometryMeshToVolume)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
+  b.add_input<decl::Geometry>("Mesh")
+      .supported_type(GeometryComponent::Type::Mesh)
+      .description("Mesh to convert the inner volume of to a fog volume geometry");
   b.add_input<decl::Float>("Density").default_value(1.0f).min(0.01f).max(FLT_MAX);
   auto &voxel_size = b.add_input<decl::Float>("Voxel Size")
                          .default_value(0.3f)

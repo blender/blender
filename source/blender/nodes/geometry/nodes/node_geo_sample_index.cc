@@ -25,7 +25,8 @@ static void node_declare(NodeDeclarationBuilder &b)
                        GeometryComponent::Type::PointCloud,
                        GeometryComponent::Type::Curve,
                        GeometryComponent::Type::Instance,
-                       GeometryComponent::Type::GreasePencil});
+                       GeometryComponent::Type::GreasePencil})
+      .description("Geometry to sample a value on");
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
     b.add_input(data_type, "Value").hide_value().field_on_all();

@@ -26,7 +26,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   const bNode *node = b.node_or_null();
 
-  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
+  b.add_input<decl::Geometry>("Mesh")
+      .supported_type(GeometryComponent::Type::Mesh)
+      .description("Mesh to find the closest surface point on");
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom1);
     b.add_input(data_type, "Value").hide_value().field_on_all();

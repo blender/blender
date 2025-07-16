@@ -10,7 +10,9 @@ namespace blender::nodes::node_geo_geometry_to_instance_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry").multi_input();
+  b.add_input<decl::Geometry>("Geometry")
+      .multi_input()
+      .description("Each input geometry is turned into a separate instance");
   b.add_output<decl::Geometry>("Instances").propagate_all();
 }
 

@@ -25,7 +25,10 @@ static void node_declare(NodeDeclarationBuilder &b)
                        GeometryComponent::Type::PointCloud,
                        GeometryComponent::Type::Curve,
                        GeometryComponent::Type::GreasePencil});
-  b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
+  b.add_output<decl::Geometry>("Geometry")
+      .propagate_all()
+      .align_with_previous()
+      .description("Geometry to assign a material to");
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Material>("Material").hide_label();
 }

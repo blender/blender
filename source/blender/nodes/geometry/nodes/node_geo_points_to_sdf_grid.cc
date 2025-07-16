@@ -13,7 +13,8 @@ namespace blender::nodes::node_geo_points_to_sdf_grid_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Points");
+  b.add_input<decl::Geometry>("Points").description(
+      "Points whose volume is converted to a signed distance field grid");
   b.add_input<decl::Float>("Radius")
       .default_value(0.5f)
       .min(0.0f)

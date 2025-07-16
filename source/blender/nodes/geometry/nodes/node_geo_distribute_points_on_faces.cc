@@ -35,7 +35,9 @@ static void node_declare(NodeDeclarationBuilder &b)
     node.custom1 = GEO_NODE_POINT_DISTRIBUTE_POINTS_ON_FACES_POISSON;
   };
 
-  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
+  b.add_input<decl::Geometry>("Mesh")
+      .supported_type(GeometryComponent::Type::Mesh)
+      .description("Mesh on whose faces to distribute points on");
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   auto &distance_min = b.add_input<decl::Float>("Distance Min")
                            .min(0.0f)

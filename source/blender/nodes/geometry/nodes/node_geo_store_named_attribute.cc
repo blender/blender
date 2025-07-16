@@ -33,7 +33,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_default_layout();
   const bNode *node = b.node_or_null();
 
-  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Geometry")
+      .description("Geometry to store a new attribute with the given name on");
   b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::String>("Name").is_attribute_name().hide_label();

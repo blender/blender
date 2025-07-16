@@ -24,8 +24,10 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveSample)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curves").only_realized_data().supported_type(
-      GeometryComponent::Type::Curve);
+  b.add_input<decl::Geometry>("Curves")
+      .only_realized_data()
+      .supported_type(GeometryComponent::Type::Curve)
+      .description("Curves to sample positions on");
 
   if (const bNode *node = b.node_or_null()) {
     const NodeGeometryCurveSample &storage = node_storage(*node);
