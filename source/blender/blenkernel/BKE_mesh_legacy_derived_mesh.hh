@@ -69,8 +69,6 @@ struct DerivedMesh {
   /* Always owned by this object. */
   int *face_offsets;
 
-  short tangent_mask; /* which tangent layers are calculated */
-
   /* Misc. Queries */
 
   /* Also called in Editmode */

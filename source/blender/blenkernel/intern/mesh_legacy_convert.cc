@@ -650,9 +650,6 @@ static bool check_matching_legacy_layer_counts(CustomData *fdata_legacy,
   if (!LAYER_CMP(ldata, CD_NORMAL, fdata_legacy, CD_TESSLOOPNORMAL)) {
     return false;
   }
-  if (!LAYER_CMP(ldata, CD_TANGENT, fdata_legacy, CD_TANGENT)) {
-    return false;
-  }
 
 #  undef LAYER_CMP
 
@@ -683,10 +680,6 @@ static void add_mface_layers(Mesh &mesh, CustomData *fdata_legacy, CustomData *l
     else if (ldata->layers[i].type == CD_NORMAL) {
       CustomData_add_layer_named(
           fdata_legacy, CD_TESSLOOPNORMAL, CD_SET_DEFAULT, total, ldata->layers[i].name);
-    }
-    else if (ldata->layers[i].type == CD_TANGENT) {
-      CustomData_add_layer_named(
-          fdata_legacy, CD_TANGENT, CD_SET_DEFAULT, total, ldata->layers[i].name);
     }
   }
 
@@ -860,7 +853,6 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
   const int numCol = CustomData_number_of_layers(corner_data, CD_PROP_BYTE_COLOR);
   const bool hasOrigSpace = CustomData_has_layer(corner_data, CD_ORIGSPACE_MLOOP);
   const bool hasLoopNormal = CustomData_has_layer(corner_data, CD_NORMAL);
-  const bool hasLoopTangent = CustomData_has_layer(corner_data, CD_TANGENT);
   int findex, i, j;
   const int *pidx;
   uint(*lidx)[4];
@@ -914,21 +906,6 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, face_normals++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
         normal_float_to_short_v3((*face_normals)[j], loop_normals[(*lidx)[j]]);
-      }
-    }
-  }
-
-  if (hasLoopTangent) {
-    /* Need to do for all UV maps at some point. */
-    float(*ftangents)[4] = (float(*)[4])CustomData_get_layer(fdata_legacy, CD_TANGENT);
-    const float(*ltangents)[4] = (const float(*)[4])CustomData_get_layer(corner_data, CD_TANGENT);
-
-    for (findex = 0, pidx = polyindices, lidx = loopindices; findex < num_faces;
-         pidx++, lidx++, findex++)
-    {
-      int nverts = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3;
-      for (j = nverts; j--;) {
-        copy_v4_v4(ftangents[findex * 4 + j], ltangents[(*lidx)[j]]);
       }
     }
   }

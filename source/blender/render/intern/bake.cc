@@ -88,18 +88,10 @@ struct BakeDataZSpan {
   float dv_dx, dv_dy;
 };
 
-/**
- * struct wrapping up tangent space data
- */
-struct TSpace {
-  float tangent[3];
-  float sign;
-};
-
 struct TriTessFace {
   const float *positions[3];
   const float *vert_normals[3];
-  const TSpace *tspace[3];
+  blender::float4 tspace[3];
   const float *loop_normal[3];
   float normal[3]; /* for flat faces */
   bool is_smooth;
@@ -485,14 +477,23 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *mesh_
     blender::bke::mesh::corner_tris_calc(positions, faces, corner_verts, {corner_tris, tottri});
   }
 
-  const TSpace *tspace = nullptr;
+  Array<float4> tspace;
   blender::Span<blender::float3> corner_normals;
   if (tangent) {
-    BKE_mesh_calc_loop_tangents(mesh_eval, true, nullptr, 0);
-
-    tspace = static_cast<const TSpace *>(
-        CustomData_get_layer(&mesh_eval->corner_data, CD_TANGENT));
-    BLI_assert(tspace);
+    const StringRef active_uv_map = CustomData_get_active_layer_name(&mesh_eval->corner_data,
+                                                                     CD_PROP_FLOAT2);
+    const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_map, bke::AttrDomain::Corner);
+    Array<Array<float4>> result = bke::mesh::calc_uv_tangents(positions,
+                                                              faces,
+                                                              corner_verts,
+                                                              {corner_tris, tottri},
+                                                              mesh->corner_tri_faces(),
+                                                              VArraySpan(sharp_faces),
+                                                              mesh->vert_normals(),
+                                                              mesh->face_normals(),
+                                                              mesh->corner_normals(),
+                                                              {uv_map});
+    tspace = std::move(result[0]);
 
     corner_normals = mesh_eval->corner_normals();
   }
@@ -512,9 +513,9 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *mesh_
     triangles[i].is_smooth = !sharp_faces[face_i];
 
     if (tangent) {
-      triangles[i].tspace[0] = &tspace[tri[0]];
-      triangles[i].tspace[1] = &tspace[tri[1]];
-      triangles[i].tspace[2] = &tspace[tri[2]];
+      triangles[i].tspace[0] = tspace[tri[0]];
+      triangles[i].tspace[1] = tspace[tri[1]];
+      triangles[i].tspace[2] = tspace[tri[2]];
     }
 
     if (!corner_normals.is_empty()) {
@@ -899,7 +900,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
     is_smooth = triangle->is_smooth;
 
     for (j = 0; j < 3; j++) {
-      const TSpace *ts;
+      const blender::float4 *ts;
 
       if (is_smooth) {
         if (triangle->loop_normal[j]) {
@@ -910,9 +911,9 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
         }
       }
 
-      ts = triangle->tspace[j];
-      copy_v3_v3(tangents[j], ts->tangent);
-      signs[j] = ts->sign;
+      ts = &triangle->tspace[j];
+      copy_v3_v3(tangents[j], ts->xyz());
+      signs[j] = ts->w;
     }
 
     u = pixel_array[i].uv[0];

@@ -117,7 +117,6 @@ static void remove_unsupported_vert_data(Mesh &mesh)
 static void remove_unsupported_corner_data(Mesh &mesh)
 {
   CustomData_free_layers(&mesh.corner_data, CD_MDISPS);
-  CustomData_free_layers(&mesh.corner_data, CD_TANGENT);
   CustomData_free_layers(&mesh.corner_data, CD_MLOOPTANGENT);
   CustomData_free_layers(&mesh.corner_data, CD_GRID_PAINT_MASK);
 }

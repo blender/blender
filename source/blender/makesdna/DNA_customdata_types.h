@@ -120,6 +120,10 @@ typedef enum eCustomDataType {
   CD_MLOOPUV = 16,
 #endif
   CD_PROP_BYTE_COLOR = 17,
+  /**
+   * Previously used for runtime corner tangent storage in mesh #CustomData. Currently only used
+   * as an identifier to choose tangents in a few places.
+   */
   CD_TANGENT = 18,
   CD_MDISPS = 19,
   CD_PROP_FLOAT4X4 = 20,
@@ -193,7 +197,6 @@ using eCustomDataMask = uint64_t;
 #define CD_MASK_ORIGSPACE (1 << CD_ORIGSPACE)
 #define CD_MASK_ORCO (1 << CD_ORCO)
 #define CD_MASK_PROP_BYTE_COLOR (1 << CD_PROP_BYTE_COLOR)
-#define CD_MASK_TANGENT (1 << CD_TANGENT)
 #define CD_MASK_MDISPS (1 << CD_MDISPS)
 #define CD_MASK_CLOTH_ORCO (1 << CD_CLOTH_ORCO)
 

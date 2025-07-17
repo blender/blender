@@ -1759,17 +1759,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      nullptr},
-    /* 18: CD_TANGENT */
-    {sizeof(float[4]),
-     alignof(float[4]),
-     "",
-     0,
-     N_("Tangent"),
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr,
-     nullptr},
+    /* 18: CD_TANGENT */ /* DEPRECATED */
+    {sizeof(float[4]), alignof(float[4]), "", 0, N_("Tangent")},
     /* 19: CD_MDISPS */
     {sizeof(MDisps),
      alignof(MDisps),
@@ -2202,7 +2193,7 @@ const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
                CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL),
     /*emask*/
     (CD_MASK_ORIGINDEX | CD_MASK_PROP_ALL),
-    /*fmask*/ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_TANGENT),
+    /*fmask*/ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE),
     /*pmask*/
     (CD_MASK_ORIGINDEX | CD_MASK_PROP_ALL),
     /*lmask*/
@@ -2226,7 +2217,7 @@ const CustomData_MeshMasks CD_MASK_EVERYTHING = {
     (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_PROP_ALL),
     /*fmask*/
     (CD_MASK_MFACE | CD_MASK_ORIGINDEX | CD_MASK_NORMAL | CD_MASK_MTFACE | CD_MASK_MCOL |
-     CD_MASK_ORIGSPACE | CD_MASK_TANGENT | CD_MASK_TESSLOOPNORMAL | CD_MASK_PROP_ALL),
+     CD_MASK_ORIGSPACE | CD_MASK_TESSLOOPNORMAL | CD_MASK_PROP_ALL),
     /*pmask*/
     (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_PROP_ALL),
     /*lmask*/
