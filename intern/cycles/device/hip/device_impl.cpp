@@ -48,9 +48,8 @@ void HIPDevice::set_error(const string &error)
   Device::set_error(error);
 
   if (first_error) {
-    fprintf(stderr, "\nRefer to the Cycles GPU rendering documentation for possible solutions:\n");
-    fprintf(stderr,
-            "https://docs.blender.org/manual/en/latest/render/cycles/gpu_rendering.html\n\n");
+    LOG_ERROR << "Refer to the Cycles GPU rendering documentation for possible solutions:\n"
+                 "https://docs.blender.org/manual/en/latest/render/cycles/gpu_rendering.html\n";
     first_error = false;
   }
 }
