@@ -28,8 +28,8 @@ public:
 	virtual const e_matrix& getJu(unsigned int frameIndex) const;
     virtual const e_vector& getXudot() const {return m_xudot;}
 	virtual void updateCoordinates(const Timestamp& timestamp)=0;
-    virtual const unsigned int getNrOfCoordinates(){return m_nu;};
-    virtual const unsigned int getNrOfFrames(){return m_nf;};
+    virtual unsigned int getNrOfCoordinates(){return m_nu;};
+    virtual unsigned int getNrOfFrames(){return m_nf;};
 
 };
 

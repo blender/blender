@@ -140,20 +140,6 @@ PyDoc_STRVAR(
     "Accessor for skin layer.\n"
     "\n"
     ":type: :class:`BMLayerCollection` of :class:`bmesh.types.BMVertSkin`");
-#ifdef WITH_FREESTYLE
-PyDoc_STRVAR(
-    /* Wrap. */
-    bpy_bmlayeraccess_collection__freestyle_edge_doc,
-    "Accessor for Freestyle edge layer.\n"
-    "\n"
-    ":type: :class:`BMLayerCollection`");
-PyDoc_STRVAR(
-    /* Wrap. */
-    bpy_bmlayeraccess_collection__freestyle_face_doc,
-    "Accessor for Freestyle face layer.\n"
-    "\n"
-    ":type: :class:`BMLayerCollection`");
-#endif
 
 static PyObject *bpy_bmlayeraccess_collection_get(BPy_BMLayerAccess *self, void *flag)
 {

@@ -62,8 +62,8 @@ public:
 
     virtual const e_vector& getWy() const {return m_Wy;};
 
-    virtual const unsigned int getNrOfCoordinates(){return m_nq;};
-    virtual const unsigned int getNrOfConstraints(){return m_nc;};
+    virtual unsigned int getNrOfCoordinates(){return m_nq;};
+    virtual unsigned int getNrOfConstraints(){return m_nc;};
 };
 
 }

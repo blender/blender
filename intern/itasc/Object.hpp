@@ -39,8 +39,8 @@ public:
 		(void)end_effector;
 		return m_internalPose;
 	};
-    virtual const ObjectType getType(){return m_type;};
-    virtual const unsigned int getNrOfCoordinates(){return 0;};
+    virtual ObjectType getType(){return m_type;};
+    virtual unsigned int getNrOfCoordinates(){return 0;};
     virtual void updateKinematics(const Timestamp& /*timestamp*/)=0;
     virtual void pushCache(const Timestamp& /*timestamp*/)=0;
 	virtual void initCache(Cache * /*cache*/) = 0;

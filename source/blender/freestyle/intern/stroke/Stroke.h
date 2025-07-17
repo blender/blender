@@ -98,19 +98,19 @@ class StrokeAttribute {
   }
 
   /** Returns the R color component. */
-  inline const float getColorR() const
+  inline float getColorR() const
   {
     return _color[0];
   }
 
   /** Returns the G color component. */
-  inline const float getColorG() const
+  inline float getColorG() const
   {
     return _color[1];
   }
 
   /** Returns the B color component. */
-  inline const float getColorB() const
+  inline float getColorB() const
   {
     return _color[2];
   }
@@ -137,13 +137,13 @@ class StrokeAttribute {
   }
 
   /** Returns the thickness on the right of the vertex when following the stroke. */
-  inline const float getThicknessR() const
+  inline float getThicknessR() const
   {
     return _thickness[0];
   }
 
   /** Returns the thickness on the left of the vertex when following the stroke. */
-  inline const float getThicknessL() const
+  inline float getThicknessL() const
   {
     return _thickness[1];
   }
