@@ -799,6 +799,15 @@ static IDProperty **rna_Bone_idprops(PointerRNA *ptr)
   return &bone->prop;
 }
 
+static std::optional<std::string> rna_EditBone_path(const PointerRNA *ptr)
+{
+  EditBone *ebone = static_cast<EditBone *>(ptr->data);
+  char name_esc[sizeof(ebone->name) * 2];
+
+  BLI_str_escape(name_esc, ebone->name, sizeof(name_esc));
+  return fmt::format("edit_bones[\"{}\"]", name_esc);
+}
+
 static IDProperty **rna_EditBone_idprops(PointerRNA *ptr)
 {
   EditBone *ebone = static_cast<EditBone *>(ptr->data);
@@ -1848,6 +1857,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "EditBone", nullptr);
   RNA_def_struct_sdna(srna, "EditBone");
+  RNA_def_struct_path_func(srna, "rna_EditBone_path");
   RNA_def_struct_idprops_func(srna, "rna_EditBone_idprops");
   RNA_def_struct_ui_text(srna, "Edit Bone", "Edit mode bone in an armature data-block");
   RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
