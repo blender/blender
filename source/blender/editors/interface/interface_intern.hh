@@ -50,11 +50,6 @@ struct wmKeyConfig;
 struct wmOperatorType;
 struct wmTimer;
 
-namespace blender::ocio {
-class Display;
-}  // namespace blender::ocio
-using ColorManagedDisplay = blender::ocio::Display;
-
 /* ****************** general defines ************** */
 
 #define RNA_NO_INDEX -1

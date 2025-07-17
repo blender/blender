@@ -6087,6 +6087,16 @@ void UI_but_color_set(uiBut *but, const uchar color[4])
   copy_v4_v4_uchar(but->col, color);
 }
 
+const ColorManagedDisplay *UI_but_cm_display_get(uiBut &but)
+{
+  return ui_block_cm_display_get(but.block);
+}
+
+bool UI_but_is_color_gamma(uiBut &but)
+{
+  return ui_but_is_color_gamma(&but);
+}
+
 void UI_but_placeholder_set(uiBut *but, const StringRef placeholder_text)
 {
   MEM_SAFE_FREE(but->placeholder);

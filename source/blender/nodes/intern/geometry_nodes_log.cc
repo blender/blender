@@ -208,9 +208,8 @@ struct GridIsEmptyOp {
 };
 #endif /* WITH_OPENVDB */
 
-GeometryInfoLog::GeometryInfoLog(const bke::GVolumeGrid &grid)
+GridInfoLog::GridInfoLog(const bke::GVolumeGrid &grid)
 {
-  GridInfo &info = this->grid_info.emplace();
 #ifdef WITH_OPENVDB
   bke::VolumeTreeAccessToken token;
   const openvdb::GridBase &vdb_grid = grid->grid(token);
@@ -218,14 +217,14 @@ GeometryInfoLog::GeometryInfoLog(const bke::GVolumeGrid &grid)
 
   GridIsEmptyOp is_empty_op{vdb_grid};
   if (BKE_volume_grid_type_operation(grid_type, is_empty_op)) {
-    info.is_empty = is_empty_op.result;
+    this->is_empty = is_empty_op.result;
   }
   else {
-    info.is_empty = true;
+    this->is_empty = true;
   }
 #else
   UNUSED_VARS(grid);
-  info.is_empty = true;
+  this->is_empty = true;
 #endif
 }
 
@@ -312,7 +311,7 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
 #ifdef WITH_OPENVDB
     else if (value_variant.is_volume_grid()) {
       const bke::GVolumeGrid grid = value_variant.extract<bke::GVolumeGrid>();
-      store_logged_value(this->allocator->construct<GeometryInfoLog>(grid));
+      store_logged_value(this->allocator->construct<GridInfoLog>(grid));
     }
 #endif
     else if (value_variant.valid_for_socket(SOCK_BUNDLE)) {

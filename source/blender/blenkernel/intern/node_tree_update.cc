@@ -532,7 +532,7 @@ class NodeTreeMainUpdater {
       if (node_tree_reference_lifetimes::analyse_reference_lifetimes(ntree)) {
         result.interface_changed = true;
       }
-      if (nodes::gizmos::update_tree_gizmo_propagation(ntree)) {
+      if (gizmos::update_tree_gizmo_propagation(ntree)) {
         result.interface_changed = true;
       }
     }

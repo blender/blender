@@ -58,6 +58,7 @@
 #include "GPU_immediate_util.hh"
 #include "GPU_state.hh"
 
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_thumbs.hh"
@@ -834,6 +835,125 @@ static std::string ui_tooltip_color_string(const blender::float4 &color,
   return fmt::format("{}:  {:.3f}  {:.3f}  {:.3f}", TIP_(title), color[0], color[1], color[2]);
 };
 
+void UI_tooltip_color_field_add(uiTooltipData &data,
+                                const blender::float4 &original_color,
+                                const bool has_alpha,
+                                const bool is_gamma,
+                                const ColorManagedDisplay *display,
+                                const uiTooltipColorID color_id)
+{
+  blender::float4 color = original_color;
+  if (!is_gamma && display) {
+    IMB_colormanagement_scene_linear_to_display_v3(color, display);
+  }
+
+  const std::string hex_st = ui_tooltip_color_string(color, "Hex", has_alpha, true);
+
+  const std::string rgba_st = ui_tooltip_color_string(
+      color, has_alpha ? "RGBA" : "RGB", has_alpha);
+
+  float hsva[4];
+  rgb_to_hsv_v(color, hsva);
+  hsva[3] = color[3];
+  const std::string hsva_st = ui_tooltip_color_string(hsva, has_alpha ? "HSVA" : "HSV", has_alpha);
+
+  const uiFontStyle *fs = &UI_style_get()->tooltip;
+  BLF_size(blf_mono_font, fs->points * UI_SCALE_FAC);
+  float w = BLF_width(blf_mono_font, hsva_st.c_str(), hsva_st.size());
+
+  uiTooltipImage image_data;
+  image_data.width = int(w);
+  image_data.height = int(w / (has_alpha ? 4.0f : 3.0f));
+  image_data.ibuf = IMB_allocImBuf(image_data.width, image_data.height, 32, IB_byte_data);
+  image_data.border = true;
+  image_data.premultiplied = false;
+
+  if (color[3] == 1.0f) {
+    /* No transparency so draw the entire area solid without checkerboard. */
+    image_data.background = uiTooltipImageBackground::None;
+    IMB_rectfill_area(image_data.ibuf, color, 1, 1, image_data.width, image_data.height, display);
+  }
+  else {
+    image_data.background = uiTooltipImageBackground::Checkerboard_Fixed;
+    /* Draw one half with transparency. */
+    IMB_rectfill_area(image_data.ibuf,
+                      color,
+                      image_data.width / 2,
+                      1,
+                      image_data.width,
+                      image_data.height,
+                      display);
+    /* Draw the other half with a solid color. */
+    color[3] = 1.0f;
+    IMB_rectfill_area(
+        image_data.ibuf, color, 1, 1, image_data.width / 2, image_data.height, display);
+  }
+
+  UI_tooltip_text_field_add(data, {}, {}, UI_TIP_STYLE_SPACER, color_id, false);
+  UI_tooltip_text_field_add(data, {}, {}, UI_TIP_STYLE_SPACER, color_id, false);
+  UI_tooltip_image_field_add(data, image_data);
+  UI_tooltip_text_field_add(data, {}, {}, UI_TIP_STYLE_SPACER, color_id, false);
+  UI_tooltip_text_field_add(data, hex_st, {}, UI_TIP_STYLE_MONO, color_id, false);
+  UI_tooltip_text_field_add(data, {}, {}, UI_TIP_STYLE_SPACER, color_id, false);
+  UI_tooltip_text_field_add(data, rgba_st, {}, UI_TIP_STYLE_MONO, color_id, false);
+  UI_tooltip_text_field_add(data, hsva_st, {}, UI_TIP_STYLE_MONO, color_id, false);
+
+  /* Tooltip now owns a copy of the ImBuf, so we can delete ours. */
+  IMB_freeImBuf(image_data.ibuf);
+}
+
+void UI_tooltip_uibut_python_add(uiTooltipData &data,
+                                 bContext &C,
+                                 uiBut &but,
+                                 uiButExtraOpIcon *extra_icon)
+{
+  wmOperatorType *optype = extra_icon ? UI_but_extra_operator_icon_optype_get(extra_icon) :
+                                        but.optype;
+  PropertyRNA *rnaprop = extra_icon ? nullptr : but.rnaprop;
+  std::string rna_struct = UI_but_string_get_rna_struct_identifier(but);
+  std::string rna_prop = UI_but_string_get_rna_property_identifier(but);
+
+  if (optype && !rnaprop) {
+    PointerRNA *opptr = extra_icon ? UI_but_extra_operator_icon_opptr_get(extra_icon) :
+                                     /* Allocated when needed, the button owns it. */
+                                     UI_but_operator_ptr_ensure(&but);
+
+    /* So the context is passed to field functions (some Python field functions use it). */
+    WM_operator_properties_sanitize(opptr, false);
+
+    std::string str = ui_tooltip_text_python_from_op(&C, optype, opptr);
+
+    /* Operator info. */
+    UI_tooltip_text_field_add(data,
+                              fmt::format(fmt::runtime(TIP_("Python: {}")), str),
+                              {},
+                              UI_TIP_STYLE_MONO,
+                              UI_TIP_LC_PYTHON,
+                              true);
+  }
+
+  if (!optype && !rna_struct.empty()) {
+    {
+      UI_tooltip_text_field_add(
+          data,
+          rna_prop.empty() ?
+              fmt::format(fmt::runtime(TIP_("Python: {}")), rna_struct) :
+              fmt::format(fmt::runtime(TIP_("Python: {}.{}")), rna_struct, rna_prop),
+          {},
+          UI_TIP_STYLE_MONO,
+          UI_TIP_LC_PYTHON,
+          (data.fields.size() > 0));
+    }
+
+    if (but.rnapoin.owner_id) {
+      std::optional<std::string> str = rnaprop ? RNA_path_full_property_py_ex(
+                                                     &but.rnapoin, rnaprop, but.rnaindex, true) :
+                                                 RNA_path_full_struct_py(&but.rnapoin);
+      UI_tooltip_text_field_add(data, str.value_or(""), {}, UI_TIP_STYLE_MONO, UI_TIP_LC_PYTHON);
+    }
+  }
+}
+
 static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     bContext *C, uiBut *but, uiButExtraOpIcon *extra_icon, const bool is_quick_tip)
 {
@@ -1128,47 +1248,12 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     }
   }
 
-  if (U.flag & USER_TOOLTIPS_PYTHON && optype && !rnaprop) {
-    PointerRNA *opptr = extra_icon ? UI_but_extra_operator_icon_opptr_get(extra_icon) :
-                                     /* Allocated when needed, the button owns it. */
-                                     UI_but_operator_ptr_ensure(but);
-
-    /* So the context is passed to field functions (some Python field functions use it). */
-    WM_operator_properties_sanitize(opptr, false);
-
-    std::string str = ui_tooltip_text_python_from_op(C, optype, opptr);
-
-    /* Operator info. */
-    UI_tooltip_text_field_add(*data,
-                              fmt::format(fmt::runtime(TIP_("Python: {}")), str),
-                              {},
-                              UI_TIP_STYLE_MONO,
-                              UI_TIP_LC_PYTHON,
-                              true);
-  }
-
-  if ((U.flag & USER_TOOLTIPS_PYTHON) && !optype && !rna_struct.empty()) {
-    {
-      UI_tooltip_text_field_add(
-          *data,
-          rna_prop.empty() ?
-              fmt::format(fmt::runtime(TIP_("Python: {}")), rna_struct) :
-              fmt::format(fmt::runtime(TIP_("Python: {}.{}")), rna_struct, rna_prop),
-          {},
-          UI_TIP_STYLE_MONO,
-          UI_TIP_LC_PYTHON,
-          (data->fields.size() > 0));
-    }
-
-    if (but->rnapoin.owner_id) {
-      std::optional<std::string> str = rnaprop ? RNA_path_full_property_py_ex(
-                                                     &but->rnapoin, rnaprop, but->rnaindex, true) :
-                                                 RNA_path_full_struct_py(&but->rnapoin);
-      UI_tooltip_text_field_add(*data, str.value_or(""), {}, UI_TIP_STYLE_MONO, UI_TIP_LC_PYTHON);
-    }
+  if (U.flag & USER_TOOLTIPS_PYTHON) {
+    UI_tooltip_uibut_python_add(*data, *C, *but, extra_icon);
   }
 
   if (but->type == UI_BTYPE_COLOR) {
+    const ColorManagedDisplay *display = UI_but_cm_display_get(*but);
 
     float color[4];
     ui_but_v3_get(but, color);
@@ -1183,66 +1268,8 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
       }
     }
 
-    if (!ui_but_is_color_gamma(but)) {
-      ui_block_cm_to_display_space_v3(but->block, color);
-    }
-
-    const std::string hex_st = ui_tooltip_color_string(color, "Hex", has_alpha, true);
-
-    const std::string rgba_st = ui_tooltip_color_string(
-        color, has_alpha ? "RGBA" : "RGB", has_alpha);
-
-    float hsva[4];
-    rgb_to_hsv_v(color, hsva);
-    hsva[3] = color[3];
-    const std::string hsva_st = ui_tooltip_color_string(
-        hsva, has_alpha ? "HSVA" : "HSV", has_alpha);
-
-    const uiFontStyle *fs = &UI_style_get()->tooltip;
-    BLF_size(blf_mono_font, fs->points * UI_SCALE_FAC);
-    float w = BLF_width(blf_mono_font, hsva_st.c_str(), hsva_st.size());
-
-    uiTooltipImage image_data;
-    image_data.width = int(w);
-    image_data.height = int(w / (has_alpha ? 4.0f : 3.0f));
-    image_data.ibuf = IMB_allocImBuf(image_data.width, image_data.height, 32, IB_byte_data);
-    image_data.border = true;
-    image_data.premultiplied = false;
-
-    const ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
-    if (color[3] == 1.0f) {
-      /* No transparency so draw the entire area solid without checkerboard. */
-      image_data.background = uiTooltipImageBackground::None;
-      IMB_rectfill_area(
-          image_data.ibuf, color, 1, 1, image_data.width, image_data.height, display);
-    }
-    else {
-      image_data.background = uiTooltipImageBackground::Checkerboard_Fixed;
-      /* Draw one half with transparency. */
-      IMB_rectfill_area(image_data.ibuf,
-                        color,
-                        image_data.width / 2,
-                        1,
-                        image_data.width,
-                        image_data.height,
-                        display);
-      /* Draw the other half with a solid color. */
-      color[3] = 1.0f;
-      IMB_rectfill_area(
-          image_data.ibuf, color, 1, 1, image_data.width / 2, image_data.height, display);
-    }
-
-    UI_tooltip_text_field_add(*data, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
-    UI_tooltip_text_field_add(*data, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
-    UI_tooltip_image_field_add(*data, image_data);
-    UI_tooltip_text_field_add(*data, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
-    UI_tooltip_text_field_add(*data, hex_st, {}, UI_TIP_STYLE_MONO, UI_TIP_LC_NORMAL, false);
-    UI_tooltip_text_field_add(*data, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL, false);
-    UI_tooltip_text_field_add(*data, rgba_st, {}, UI_TIP_STYLE_MONO, UI_TIP_LC_NORMAL, false);
-    UI_tooltip_text_field_add(*data, hsva_st, {}, UI_TIP_STYLE_MONO, UI_TIP_LC_NORMAL, false);
-
-    /* Tooltip now owns a copy of the ImBuf, so we can delete ours. */
-    IMB_freeImBuf(image_data.ibuf);
+    UI_tooltip_color_field_add(
+        *data, color, has_alpha, ui_but_is_color_gamma(but), display, UI_TIP_LC_NORMAL);
   }
 
   /* If the last field is a spacer, remove it. */

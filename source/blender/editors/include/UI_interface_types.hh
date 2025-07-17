@@ -44,3 +44,8 @@ using uiButToolTipFunc = std::string (*)(bContext *C, void *argN, blender::Strin
  *   Mostly useful when using #uiLayoutSetTooltipCustomFunc.
  */
 using uiButToolTipCustomFunc = void (*)(bContext &C, uiTooltipData &data, uiBut *but, void *argN);
+
+namespace blender::ocio {
+class Display;
+}  // namespace blender::ocio
+using ColorManagedDisplay = blender::ocio::Display;
