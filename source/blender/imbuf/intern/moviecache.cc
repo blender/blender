@@ -412,13 +412,13 @@ ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey, bool *r_is_cached_em
 
   if (item) {
     if (item->ibuf) {
-      limitor_lock.lock();
-      MEM_CacheLimiter_touch(item->c_handle);
-      limitor_lock.unlock();
-
-      IMB_refImBuf(item->ibuf);
-
-      return item->ibuf;
+      std::lock_guard lock(limitor_lock);
+      /* Check again, the condition might have changed before we acquired the lock. */
+      if (item->ibuf) {
+        MEM_CacheLimiter_touch(item->c_handle);
+        IMB_refImBuf(item->ibuf);
+        return item->ibuf;
+      }
     }
     if (r_is_cached_empty && item->added_empty) {
       *r_is_cached_empty = true;
