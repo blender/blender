@@ -330,7 +330,7 @@ PointCloud *import_csv_as_pointcloud(const CSVImportParams &import_params)
   threading::memory_bandwidth_bound_task(points_num * 16, [&]() {
     threading::parallel_invoke(
         [&]() {
-          array_utils::copy(VArray<float3>::ForSingle(float3(0), points_num),
+          array_utils::copy(VArray<float3>::from_single(float3(0), points_num),
                             pointcloud->positions_for_write());
         },
         [&]() {

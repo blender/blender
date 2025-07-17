@@ -86,7 +86,7 @@ class InstanceBoundsField final : public bke::InstancesFieldInput {
       output_bounds[instance_index] = reference_bounds[handles[instance_index]];
     });
 
-    return VArray<float3>::ForContainer(std::move(output_bounds));
+    return VArray<float3>::from_container(std::move(output_bounds));
   }
 
   uint64_t hash() const override

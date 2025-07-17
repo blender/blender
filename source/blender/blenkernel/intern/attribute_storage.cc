@@ -57,8 +57,8 @@ class ArrayDataImplicitSharing : public ImplicitSharingInfo {
   }
 };
 
-Attribute::ArrayData Attribute::ArrayData::ForValue(const GPointer &value,
-                                                    const int64_t domain_size)
+Attribute::ArrayData Attribute::ArrayData::from_value(const GPointer &value,
+                                                      const int64_t domain_size)
 {
   Attribute::ArrayData data{};
   const CPPType &type = *value.type();
@@ -79,14 +79,14 @@ Attribute::ArrayData Attribute::ArrayData::ForValue(const GPointer &value,
   return data;
 }
 
-Attribute::ArrayData Attribute::ArrayData::ForDefaultValue(const CPPType &type,
-                                                           const int64_t domain_size)
+Attribute::ArrayData Attribute::ArrayData::from_default_value(const CPPType &type,
+                                                              const int64_t domain_size)
 {
-  return ForValue(GPointer(type, type.default_value()), domain_size);
+  return from_value(GPointer(type, type.default_value()), domain_size);
 }
 
-Attribute::ArrayData Attribute::ArrayData::ForUninitialized(const CPPType &type,
-                                                            const int64_t domain_size)
+Attribute::ArrayData Attribute::ArrayData::from_uninitialized(const CPPType &type,
+                                                              const int64_t domain_size)
 {
   Attribute::ArrayData data{};
   data.data = MEM_malloc_arrayN_aligned(domain_size, type.size, type.alignment, __func__);
@@ -96,15 +96,15 @@ Attribute::ArrayData Attribute::ArrayData::ForUninitialized(const CPPType &type,
   return data;
 }
 
-Attribute::ArrayData Attribute::ArrayData::ForConstructed(const CPPType &type,
-                                                          const int64_t domain_size)
+Attribute::ArrayData Attribute::ArrayData::from_constructed(const CPPType &type,
+                                                            const int64_t domain_size)
 {
-  Attribute::ArrayData data = Attribute::ArrayData::ForUninitialized(type, domain_size);
+  Attribute::ArrayData data = Attribute::ArrayData::from_uninitialized(type, domain_size);
   type.default_construct_n(data.data, domain_size);
   return data;
 }
 
-Attribute::SingleData Attribute::SingleData::ForValue(const GPointer &value)
+Attribute::SingleData Attribute::SingleData::from_value(const GPointer &value)
 {
   Attribute::SingleData data{};
   const CPPType &type = *value.type();
@@ -115,9 +115,9 @@ Attribute::SingleData Attribute::SingleData::ForValue(const GPointer &value)
   return data;
 }
 
-Attribute::SingleData Attribute::SingleData::ForDefaultValue(const CPPType &type)
+Attribute::SingleData Attribute::SingleData::from_default_value(const CPPType &type)
 {
-  return ForValue(GPointer(type, type.default_value()));
+  return from_value(GPointer(type, type.default_value()));
 }
 
 void AttributeStorage::foreach(FunctionRef<void(Attribute &)> fn)
@@ -170,7 +170,7 @@ Attribute::DataVariant &Attribute::data_for_write()
       return data_;
     }
     const CPPType &type = attribute_type_to_cpp_type(type_);
-    ArrayData new_data = ArrayData::ForUninitialized(type, data->size);
+    ArrayData new_data = ArrayData::from_uninitialized(type, data->size);
     type.copy_construct_n(data->data, new_data.data, data->size);
     *data = std::move(new_data);
   }
@@ -180,7 +180,7 @@ Attribute::DataVariant &Attribute::data_for_write()
       return data_;
     }
     const CPPType &type = attribute_type_to_cpp_type(type_);
-    *data = SingleData::ForValue(GPointer(type, data->value));
+    *data = SingleData::from_value(GPointer(type, data->value));
   }
   return data_;
 }
@@ -326,7 +326,7 @@ void AttributeStorage::resize(const AttrDomain domain, const int64_t new_size)
         const auto &data = std::get<bke::Attribute::ArrayData>(attr.data());
         const int64_t old_size = data.size;
 
-        auto new_data = bke::Attribute::ArrayData::ForUninitialized(type, new_size);
+        auto new_data = bke::Attribute::ArrayData::from_uninitialized(type, new_size);
         type.copy_construct_n(data.data, new_data.data, std::min(old_size, new_size));
         if (old_size < new_size) {
           type.default_construct_n(POINTER_OFFSET(new_data.data, type.size * old_size),

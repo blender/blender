@@ -32,7 +32,7 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
     Array<int> counts(mesh.edges_num, 0);
     array_utils::count_indices(mesh.corner_edges(), counts);
     return mesh.attributes().adapt_domain<int>(
-        VArray<int>::ForContainer(std::move(counts)), AttrDomain::Edge, domain);
+        VArray<int>::from_container(std::move(counts)), AttrDomain::Edge, domain);
   }
 
   uint64_t hash() const override

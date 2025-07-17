@@ -514,14 +514,15 @@ static void set_transform_position(float4x4 &transform, const float3 position)
 
 VArray<float3> instance_position_varray(const Instances &instances)
 {
-  return VArray<float3>::ForDerivedSpan<float4x4, get_transform_position>(instances.transforms());
+  return VArray<float3>::from_derived_span<float4x4, get_transform_position>(
+      instances.transforms());
 }
 
 VMutableArray<float3> instance_position_varray_for_write(Instances &instances)
 {
   MutableSpan<float4x4> transforms = instances.transforms_for_write();
   return VMutableArray<float3>::
-      ForDerivedSpan<float4x4, get_transform_position, set_transform_position>(transforms);
+      from_derived_span<float4x4, get_transform_position, set_transform_position>(transforms);
 }
 
 }  // namespace blender::bke

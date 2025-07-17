@@ -97,7 +97,7 @@ static std::string ensure_weight_attribute_meta_data(Mesh &mesh,
   const std::string new_name = BKE_attribute_calc_unique_name(AttributeOwner::from_id(&mesh.id),
                                                               name);
   attributes.add<float>(
-      new_name, domain, bke::AttributeInitVArray(VArray<float>::ForSpan(weight)));
+      new_name, domain, bke::AttributeInitVArray(VArray<float>::from_span(weight)));
   r_attr_converted = true;
   return new_name;
 }

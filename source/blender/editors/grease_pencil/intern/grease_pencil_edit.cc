@@ -327,7 +327,7 @@ static wmOperatorStatus grease_pencil_stroke_simplify_exec(bContext *C, wmOperat
       case SimplifyMode::SAMPLE: {
         const float resample_length = RNA_float_get(op->ptr, "length");
         info.drawing.strokes_for_write() = geometry::resample_to_length(
-            curves, strokes, VArray<float>::ForSingle(resample_length, curves.curves_num()), {});
+            curves, strokes, VArray<float>::from_single(resample_length, curves.curves_num()), {});
         info.drawing.tag_topology_changed();
         changed = true;
         break;
@@ -839,7 +839,7 @@ static bke::CurvesGeometry subdivide_last_segement(const bke::CurvesGeometry &cu
     }
   });
 
-  const VArray<int> cuts = VArray<int>::ForSpan(use_cuts.as_span());
+  const VArray<int> cuts = VArray<int>::from_span(use_cuts.as_span());
 
   return geometry::subdivide_curves(curves, strokes, cuts);
 }
@@ -1620,7 +1620,7 @@ static wmOperatorStatus gpencil_stroke_subdivide_exec(bContext *C, wmOperator *o
 
     if (selection_domain == bke::AttrDomain::Curve || !only_selected) {
       /* Subdivide entire selected curve, every stroke subdivides to the same cut. */
-      vcuts = VArray<int>::ForSingle(cuts, curves.points_num());
+      vcuts = VArray<int>::from_single(cuts, curves.points_num());
     }
     else if (selection_domain == bke::AttrDomain::Point) {
       /* Subdivide between selected points. Only cut between selected points.
@@ -1657,7 +1657,7 @@ static wmOperatorStatus gpencil_stroke_subdivide_exec(bContext *C, wmOperator *o
           }
         }
       }
-      vcuts = VArray<int>::ForContainer(std::move(use_cuts));
+      vcuts = VArray<int>::from_container(std::move(use_cuts));
     }
 
     curves = geometry::subdivide_curves(curves, strokes, vcuts);
@@ -2489,7 +2489,7 @@ static bke::GeometrySet join_geometries_with_transform(Span<bke::GeometrySet> ge
                                                        const float4x4 &transform)
 {
   return join_geometries_with_transforms(
-      geometries, VArray<float4x4>::ForSingle(transform, geometries.size()));
+      geometries, VArray<float4x4>::from_single(transform, geometries.size()));
 }
 
 static wmOperatorStatus grease_pencil_copy_strokes_exec(bContext *C, wmOperator *op)
@@ -2642,7 +2642,7 @@ static IndexRange clipboard_paste_strokes_ex(Main &bmain,
   const Array<float4x4> transforms = paste_back ? Span<float4x4>{transform, float4x4::identity()} :
                                                   Span<float4x4>{float4x4::identity(), transform};
   bke::GeometrySet joined_curves = join_geometries_with_transforms(
-      geometry_sets, VArray<float4x4>::ForContainer(transforms));
+      geometry_sets, VArray<float4x4>::from_container(transforms));
 
   drawing.strokes_for_write() = std::move(joined_curves.get_curves_for_write()->geometry.wrap());
 
@@ -4430,9 +4430,9 @@ static bke::CurvesGeometry fit_poly_curves(bke::CurvesGeometry &curves,
                                            const IndexMask &selection,
                                            const float threshold)
 {
-  const VArray<float> thresholds = VArray<float>::ForSingle(threshold, curves.curves_num());
+  const VArray<float> thresholds = VArray<float>::from_single(threshold, curves.curves_num());
   /* TODO: Detect or manually provide corners. */
-  const VArray<bool> corners = VArray<bool>::ForSingle(false, curves.points_num());
+  const VArray<bool> corners = VArray<bool>::from_single(false, curves.points_num());
   return geometry::fit_poly_to_bezier_curves(
       curves, selection, thresholds, corners, geometry::FitMethod::Refit, {});
 }
@@ -4818,7 +4818,7 @@ static bke::AttributeStorage merge_attributes(const bke::AttributeAccessor &a,
   bke::AttributeStorage new_storage;
   for (const auto &[name, type] : new_types.items()) {
     const CPPType &cpp_type = bke::attribute_type_to_cpp_type(type);
-    auto new_data = bke::Attribute::ArrayData::ForUninitialized(cpp_type, dst_size);
+    auto new_data = bke::Attribute::ArrayData::from_uninitialized(cpp_type, dst_size);
 
     const GVArray data_a = *a.lookup_or_default(name, bke::AttrDomain::Layer, type);
     data_a.materialize_to_uninitialized(new_data.data);

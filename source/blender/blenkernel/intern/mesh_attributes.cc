@@ -90,7 +90,7 @@ static GVArray adapt_mesh_domain_corner_to_point(const Mesh &mesh, const GVArray
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return GVArray::ForGArray(std::move(values));
+  return GVArray::from_garray(std::move(values));
 }
 
 /**
@@ -103,7 +103,7 @@ static GVArray adapt_mesh_domain_point_to_corner(const Mesh &mesh, const GVArray
   GVArray new_varray;
   attribute_math::convert_to_static_type(varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    new_varray = VArray<T>::ForFunc(
+    new_varray = VArray<T>::from_func(
         mesh.corners_num, [corner_verts, varray = varray.typed<T>()](const int64_t corner) {
           return varray[corner_verts[corner]];
         });
@@ -120,7 +120,7 @@ static GVArray adapt_mesh_domain_corner_to_face(const Mesh &mesh, const GVArray 
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       if constexpr (std::is_same_v<T, bool>) {
-        new_varray = VArray<T>::ForFunc(
+        new_varray = VArray<T>::from_func(
             faces.size(), [faces, varray = varray.typed<bool>()](const int face_index) {
               /* A face is selected if all of its corners were selected. */
               for (const int corner : faces[face_index]) {
@@ -132,7 +132,7 @@ static GVArray adapt_mesh_domain_corner_to_face(const Mesh &mesh, const GVArray 
             });
       }
       else {
-        new_varray = VArray<T>::ForFunc(
+        new_varray = VArray<T>::from_func(
             faces.size(), [faces, varray = varray.typed<T>()](const int face_index) {
               T return_value;
               attribute_math::DefaultMixer<T> mixer({&return_value, 1});
@@ -221,7 +221,7 @@ static GVArray adapt_mesh_domain_corner_to_edge(const Mesh &mesh, const GVArray 
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return GVArray::ForGArray(std::move(values));
+  return GVArray::from_garray(std::move(values));
 }
 
 template<typename T>
@@ -271,7 +271,7 @@ static GVArray adapt_mesh_domain_face_to_point(const Mesh &mesh, const GVArray &
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return GVArray::ForGArray(std::move(values));
+  return GVArray::from_garray(std::move(values));
 }
 
 /* Each corner's value is simply a copy of the value at its face. */
@@ -301,7 +301,7 @@ static GVArray adapt_mesh_domain_face_to_corner(const Mesh &mesh, const GVArray 
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return GVArray::ForGArray(std::move(values));
+  return GVArray::from_garray(std::move(values));
 }
 
 template<typename T>
@@ -356,7 +356,7 @@ static GVArray adapt_mesh_domain_face_to_edge(const Mesh &mesh, const GVArray &v
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return GVArray::ForGArray(std::move(values));
+  return GVArray::from_garray(std::move(values));
 }
 
 static GVArray adapt_mesh_domain_point_to_face(const Mesh &mesh, const GVArray &varray)
@@ -369,7 +369,7 @@ static GVArray adapt_mesh_domain_point_to_face(const Mesh &mesh, const GVArray &
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       if constexpr (std::is_same_v<T, bool>) {
-        new_varray = VArray<T>::ForFunc(
+        new_varray = VArray<T>::from_func(
             mesh.faces_num,
             [corner_verts, faces, varray = varray.typed<bool>()](const int face_index) {
               /* A face is selected if all of its vertices were selected. */
@@ -382,7 +382,7 @@ static GVArray adapt_mesh_domain_point_to_face(const Mesh &mesh, const GVArray &
             });
       }
       else {
-        new_varray = VArray<T>::ForFunc(
+        new_varray = VArray<T>::from_func(
             mesh.faces_num,
             [corner_verts, faces, varray = varray.typed<T>()](const int face_index) {
               T return_value;
@@ -409,14 +409,14 @@ static GVArray adapt_mesh_domain_point_to_edge(const Mesh &mesh, const GVArray &
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       if constexpr (std::is_same_v<T, bool>) {
         /* An edge is selected if both of its vertices were selected. */
-        new_varray = VArray<bool>::ForFunc(
+        new_varray = VArray<bool>::from_func(
             edges.size(), [edges, varray = varray.typed<bool>()](const int edge_index) {
               const int2 &edge = edges[edge_index];
               return varray[edge[0]] && varray[edge[1]];
             });
       }
       else {
-        new_varray = VArray<T>::ForFunc(
+        new_varray = VArray<T>::from_func(
             edges.size(), [edges, varray = varray.typed<T>()](const int edge_index) {
               const int2 &edge = edges[edge_index];
               return attribute_math::mix2(0.5f, varray[edge[0]], varray[edge[1]]);
@@ -491,7 +491,7 @@ static GVArray adapt_mesh_domain_edge_to_corner(const Mesh &mesh, const GVArray 
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return GVArray::ForGArray(std::move(values));
+  return GVArray::from_garray(std::move(values));
 }
 
 template<typename T>
@@ -547,7 +547,7 @@ static GVArray adapt_mesh_domain_edge_to_point(const Mesh &mesh, const GVArray &
           mesh, varray.typed<T>(), values.as_mutable_span().typed<T>());
     }
   });
-  return GVArray::ForGArray(std::move(values));
+  return GVArray::from_garray(std::move(values));
 }
 
 static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &varray)
@@ -561,7 +561,7 @@ static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &v
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       if constexpr (std::is_same_v<T, bool>) {
         /* A face is selected if all of its edges are selected. */
-        new_varray = VArray<bool>::ForFunc(
+        new_varray = VArray<bool>::from_func(
             faces.size(), [corner_edges, faces, varray = varray.typed<T>()](const int face_index) {
               for (const int edge : corner_edges.slice(faces[face_index])) {
                 if (!varray[edge]) {
@@ -572,7 +572,7 @@ static GVArray adapt_mesh_domain_edge_to_face(const Mesh &mesh, const GVArray &v
             });
       }
       else {
-        new_varray = VArray<T>::ForFunc(
+        new_varray = VArray<T>::from_func(
             faces.size(), [corner_edges, faces, varray = varray.typed<T>()](const int face_index) {
               T return_value;
               attribute_math::DefaultMixer<T> mixer({&return_value, 1});
@@ -644,7 +644,7 @@ static GVArray adapt_mesh_attribute_domain(const Mesh &mesh,
     if (can_simple_adapt_for_single(mesh, from_domain, to_domain)) {
       BUFFER_FOR_CPP_TYPE_VALUE(varray.type(), value);
       varray.get_internal_single(value);
-      return GVArray::ForSingle(varray.type(), mesh.attributes().domain_size(to_domain), value);
+      return GVArray::from_single(varray.type(), mesh.attributes().domain_size(to_domain), value);
     }
   }
 
@@ -756,7 +756,7 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
   {
     BLI_assert(vertex_group_index >= 0);
     if (dverts.is_empty()) {
-      return {VArray<float>::ForSingle(0.0f, mesh.verts_num), AttrDomain::Point};
+      return {VArray<float>::from_single(0.0f, mesh.verts_num), AttrDomain::Point};
     }
     return {varray_for_deform_verts(dverts, vertex_group_index), AttrDomain::Point};
   }

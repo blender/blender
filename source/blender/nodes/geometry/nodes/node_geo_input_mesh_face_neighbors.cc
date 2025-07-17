@@ -68,7 +68,7 @@ static VArray<int> construct_neighbor_count_varray(const Mesh &mesh, const AttrD
     }
   });
   return mesh.attributes().adapt_domain<int>(
-      VArray<int>::ForContainer(std::move(face_count)), AttrDomain::Face, domain);
+      VArray<int>::from_container(std::move(face_count)), AttrDomain::Face, domain);
 }
 
 class FaceNeighborCountFieldInput final : public bke::MeshFieldInput {
@@ -107,8 +107,8 @@ static VArray<int> construct_vertex_count_varray(const Mesh &mesh, const AttrDom
 {
   const OffsetIndices faces = mesh.faces();
   return mesh.attributes().adapt_domain<int>(
-      VArray<int>::ForFunc(faces.size(),
-                           [faces](const int i) -> float { return faces[i].size(); }),
+      VArray<int>::from_func(faces.size(),
+                             [faces](const int i) -> float { return faces[i].size(); }),
       AttrDomain::Face,
       domain);
 }

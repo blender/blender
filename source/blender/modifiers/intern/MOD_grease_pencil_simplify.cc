@@ -137,7 +137,7 @@ static void simplify_drawing(const GreasePencilSimplifyModifierData &mmd,
     }
     case MOD_GREASE_PENCIL_SIMPLIFY_SAMPLE: {
       drawing.strokes_for_write() = geometry::resample_to_length(
-          curves, strokes, VArray<float>::ForSingle(mmd.length, curves.curves_num()), {});
+          curves, strokes, VArray<float>::from_single(mmd.length, curves.curves_num()), {});
       break;
     }
     case MOD_GREASE_PENCIL_SIMPLIFY_MERGE: {

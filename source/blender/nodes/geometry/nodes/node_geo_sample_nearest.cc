@@ -313,7 +313,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Field<float3> positions = params.extract_input<Field<float3>>("Sample Position");
   auto fn = std::make_shared<SampleNearestFunction>(std::move(geometry), domain);
-  auto op = FieldOperation::Create(std::move(fn), {std::move(positions)});
+  auto op = FieldOperation::from(std::move(fn), {std::move(positions)});
   params.set_output<Field<int>>("Index", Field<int>(std::move(op)));
 }
 

@@ -33,9 +33,9 @@ static VArray<int> construct_edge_verts_gvarray(const Mesh &mesh,
   const Span<int2> edges = mesh.edges();
   if (domain == AttrDomain::Edge) {
     if (vertex == VertNumber::V1) {
-      return VArray<int>::ForFunc(edges.size(), [edges](const int i) { return edges[i][0]; });
+      return VArray<int>::from_func(edges.size(), [edges](const int i) { return edges[i][0]; });
     }
-    return VArray<int>::ForFunc(edges.size(), [edges](const int i) { return edges[i][1]; });
+    return VArray<int>::from_func(edges.size(), [edges](const int i) { return edges[i][1]; });
   }
   return {};
 }
@@ -86,14 +86,14 @@ static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
 
   if (vertex == VertNumber::V1) {
     return mesh.attributes().adapt_domain<float3>(
-        VArray<float3>::ForFunc(
+        VArray<float3>::from_func(
             edges.size(), [positions, edges](const int i) { return positions[edges[i][0]]; }),
         AttrDomain::Edge,
         domain);
   }
   return mesh.attributes().adapt_domain<float3>(
-      VArray<float3>::ForFunc(edges.size(),
-                              [positions, edges](const int i) { return positions[edges[i][1]]; }),
+      VArray<float3>::from_func(
+          edges.size(), [positions, edges](const int i) { return positions[edges[i][1]]; }),
       AttrDomain::Edge,
       domain);
 }

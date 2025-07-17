@@ -107,7 +107,7 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
             CustomData_get_layer(&mesh.vert_data, CD_ORIGINDEX));
         if (data) {
           return std::make_unique<ColumnValues>(name,
-                                                VArray<int>::ForSpan({data, mesh.verts_num}));
+                                                VArray<int>::from_span({data, mesh.verts_num}));
         }
       }
       return {};
@@ -118,7 +118,7 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
             CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX));
         if (data) {
           return std::make_unique<ColumnValues>(name,
-                                                VArray<int>::ForSpan({data, mesh.edges_num}));
+                                                VArray<int>::from_span({data, mesh.edges_num}));
         }
       }
       return {};
@@ -129,17 +129,17 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
             CustomData_get_layer(&mesh.face_data, CD_ORIGINDEX));
         if (data) {
           return std::make_unique<ColumnValues>(name,
-                                                VArray<int>::ForSpan({data, mesh.faces_num}));
+                                                VArray<int>::from_span({data, mesh.faces_num}));
         }
       }
       if (name == "Corner Start") {
         return std::make_unique<ColumnValues>(
-            name, VArray<int>::ForSpan(mesh.face_offsets().drop_back(1)));
+            name, VArray<int>::from_span(mesh.face_offsets().drop_back(1)));
       }
       if (name == "Corner Size") {
         const OffsetIndices faces = mesh.faces();
         return std::make_unique<ColumnValues>(
-            name, VArray<int>::ForFunc(faces.size(), [faces](int64_t index) {
+            name, VArray<int>::from_func(faces.size(), [faces](int64_t index) {
               return faces[index].size();
             }));
       }
@@ -244,7 +244,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
         Span<bke::InstanceReference> references = instances->references();
         return std::make_unique<ColumnValues>(
             column_id.name,
-            VArray<bke::InstanceReference>::ForFunc(
+            VArray<bke::InstanceReference>::from_func(
                 domain_num, [reference_handles, references](int64_t index) {
                   return references[reference_handles[index]];
                 }));
@@ -252,19 +252,19 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       Span<float4x4> transforms = instances->transforms();
       if (STREQ(column_id.name, "Position")) {
         return std::make_unique<ColumnValues>(
-            column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
+            column_id.name, VArray<float3>::from_func(domain_num, [transforms](int64_t index) {
               return transforms[index].location();
             }));
       }
       if (STREQ(column_id.name, "Rotation")) {
         return std::make_unique<ColumnValues>(
-            column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
+            column_id.name, VArray<float3>::from_func(domain_num, [transforms](int64_t index) {
               return float3(math::to_euler(math::normalize(transforms[index])));
             }));
       }
       if (STREQ(column_id.name, "Scale")) {
         return std::make_unique<ColumnValues>(
-            column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
+            column_id.name, VArray<float3>::from_func(domain_num, [transforms](int64_t index) {
               return math::to_scale<true>(transforms[index]);
             }));
       }
@@ -277,7 +277,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       if (domain_ == bke::AttrDomain::Layer && STREQ(column_id.name, "Name")) {
         const Span<const bke::greasepencil::Layer *> layers = grease_pencil->layers();
         return std::make_unique<ColumnValues>(
-            column_id.name, VArray<std::string>::ForFunc(domain_num, [layers](int64_t index) {
+            column_id.name, VArray<std::string>::from_func(domain_num, [layers](int64_t index) {
               StringRefNull name = layers[index]->name();
               if (name.is_empty()) {
                 name = IFACE_("(Layer)");
@@ -464,7 +464,7 @@ static IndexMask calc_mesh_selection_mask(const Mesh &mesh_eval,
       face_mask.to_bools(face_selection);
 
       const VArray<bool> corner_selection = attributes_eval.adapt_domain<bool>(
-          VArray<bool>::ForSpan(face_selection), bke::AttrDomain::Face, bke::AttrDomain::Corner);
+          VArray<bool>::from_span(face_selection), bke::AttrDomain::Face, bke::AttrDomain::Corner);
       return IndexMask::from_bools(corner_selection, memory);
     }
     default:
@@ -562,14 +562,14 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
   const int size = this->tot_rows();
   if (STREQ(column_id.name, "Grid Name")) {
     return std::make_unique<ColumnValues>(
-        IFACE_("Grid Name"), VArray<std::string>::ForFunc(size, [volume](int64_t index) {
+        IFACE_("Grid Name"), VArray<std::string>::from_func(size, [volume](int64_t index) {
           const bke::VolumeGridData *volume_grid = BKE_volume_grid_get(volume, index);
           return volume_grid->name();
         }));
   }
   if (STREQ(column_id.name, "Data Type")) {
     return std::make_unique<ColumnValues>(
-        IFACE_("Data Type"), VArray<std::string>::ForFunc(size, [volume](int64_t index) {
+        IFACE_("Data Type"), VArray<std::string>::from_func(size, [volume](int64_t index) {
           const bke::VolumeGridData *volume_grid = BKE_volume_grid_get(volume, index);
           const VolumeGridType type = volume_grid->grid_type();
           const char *name = nullptr;
@@ -579,7 +579,7 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
   }
   if (STREQ(column_id.name, "Class")) {
     return std::make_unique<ColumnValues>(
-        IFACE_("Class"), VArray<std::string>::ForFunc(size, [volume](int64_t index) {
+        IFACE_("Class"), VArray<std::string>::from_func(size, [volume](int64_t index) {
           const bke::VolumeGridData *volume_grid = BKE_volume_grid_get(volume, index);
           openvdb::GridClass grid_class = volume_grid->grid_class();
           if (grid_class == openvdb::GridClass::GRID_FOG_VOLUME) {

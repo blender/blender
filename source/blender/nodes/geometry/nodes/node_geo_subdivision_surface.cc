@@ -100,7 +100,7 @@ static fn::Field<float> clamp_crease(fn::Field<float> crease_field)
       "Clamp",
       [](float value) { return std::clamp(value, 0.0f, 1.0f); },
       mf::build::exec_presets::AllSpanOrSingle());
-  return fn::Field<float>(fn::FieldOperation::Create(clamp_fn, {std::move(crease_field)}));
+  return fn::Field<float>(fn::FieldOperation::from(clamp_fn, {std::move(crease_field)}));
 }
 
 static Mesh *mesh_subsurf_calc(const Mesh *mesh,

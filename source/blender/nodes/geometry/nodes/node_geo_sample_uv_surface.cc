@@ -167,7 +167,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       params.extract_input<Field<float3>>("Source UV Map"), float2_type);
   Field<float2> sample_uvs = conversions.try_convert(
       params.extract_input<Field<float3>>("Sample UV"), float2_type);
-  auto uv_op = FieldOperation::Create(
+  auto uv_op = FieldOperation::from(
       std::make_shared<ReverseUVSampleFunction>(geometry, std::move(source_uv_map)),
       {std::move(sample_uvs)});
   params.set_output("Is Valid", Field<bool>(uv_op, 0));
@@ -175,7 +175,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   /* Use the output of the UV sampling to interpolate the mesh attribute. */
   GField field = params.extract_input<GField>("Value");
 
-  auto sample_op = FieldOperation::Create(
+  auto sample_op = FieldOperation::from(
       std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(std::move(geometry),
                                                                      std::move(field)),
       {Field<int>(uv_op, 1), Field<float3>(uv_op, 2)});

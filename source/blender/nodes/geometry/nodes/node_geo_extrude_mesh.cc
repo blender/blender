@@ -1465,7 +1465,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       [](const float3 &offset, const float scale) { return offset * scale; },
       mf::build::exec_presets::AllSpanOrSingle());
   const Field<float3> final_offset{
-      FieldOperation::Create(multiply_fn, {std::move(offset_field), std::move(scale_field)})};
+      FieldOperation::from(multiply_fn, {std::move(offset_field), std::move(scale_field)})};
 
   AttributeOutputs attribute_outputs;
   attribute_outputs.top_id = params.get_output_anonymous_attribute_id_if_needed("Top");

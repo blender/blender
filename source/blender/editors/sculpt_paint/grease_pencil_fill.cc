@@ -609,19 +609,19 @@ static bke::CurvesGeometry boundary_to_curves(const Scene &scene,
   bke::SpanAttributeWriter<float> hardnesses = attributes.lookup_or_add_for_write_span<float>(
       "hardness",
       bke::AttrDomain::Curve,
-      bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num())));
+      bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
   bke::SpanAttributeWriter<float> fill_opacities = attributes.lookup_or_add_for_write_span<float>(
       "fill_opacity",
       bke::AttrDomain::Curve,
-      bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num())));
+      bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
   bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_span<float>(
       "radius",
       bke::AttrDomain::Point,
-      bke::AttributeInitVArray(VArray<float>::ForSingle(0.01f, curves.points_num())));
+      bke::AttributeInitVArray(VArray<float>::from_single(0.01f, curves.points_num())));
   bke::SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
       "opacity",
       bke::AttrDomain::Point,
-      bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.points_num())));
+      bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.points_num())));
 
   cyclic.span.fill(true);
   materials.span.fill(material_index);
@@ -828,7 +828,7 @@ static VArray<ColorGeometry4f> get_stroke_colors(const Object &object,
                                                  const std::optional<float> alpha_threshold)
 {
   if (!alpha_threshold) {
-    return VArray<ColorGeometry4f>::ForSingle(tint_color, curves.points_num());
+    return VArray<ColorGeometry4f>::from_single(tint_color, curves.points_num());
   }
 
   Array<ColorGeometry4f> colors(curves.points_num());
@@ -846,7 +846,7 @@ static VArray<ColorGeometry4f> get_stroke_colors(const Object &object,
       }
     }
   });
-  return VArray<ColorGeometry4f>::ForContainer(colors);
+  return VArray<ColorGeometry4f>::from_container(colors);
 }
 
 static Bounds<float2> get_region_bounds(const ARegion &region)
@@ -1092,7 +1092,7 @@ static Image *render_strokes(const ViewContext &view_context,
 
     const IndexRange lines_range = extensions.lines.starts.index_range();
     if (!lines_range.is_empty()) {
-      const VArray<ColorGeometry4f> line_colors = VArray<ColorGeometry4f>::ForSingle(
+      const VArray<ColorGeometry4f> line_colors = VArray<ColorGeometry4f>::from_single(
           draw_boundary_color, lines_range.size());
       const float line_width = 1.0f;
 

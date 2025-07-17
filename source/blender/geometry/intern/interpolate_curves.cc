@@ -475,22 +475,22 @@ void interpolate_curves_with_samples(const CurvesGeometry &from_curves,
                                         CD_PROP_FLOAT2,
                                         CD_PROP_FLOAT3);
     if (can_mix_attribute && !src_from.is_empty() && !src_to.is_empty()) {
-      array_utils::copy(GVArray::ForSpan(src_from), from_curve_mask, dst);
-      array_utils::copy(GVArray::ForSpan(src_to), to_curve_mask, dst);
+      array_utils::copy(GVArray::from_span(src_from), from_curve_mask, dst);
+      array_utils::copy(GVArray::from_span(src_to), to_curve_mask, dst);
 
       GArray<> from_samples(dst.type(), dst.size());
       GArray<> to_samples(dst.type(), dst.size());
-      array_utils::copy(GVArray::ForSpan(src_from), mix_curve_mask, from_samples);
-      array_utils::copy(GVArray::ForSpan(src_to), mix_curve_mask, to_samples);
+      array_utils::copy(GVArray::from_span(src_from), mix_curve_mask, from_samples);
+      array_utils::copy(GVArray::from_span(src_to), mix_curve_mask, to_samples);
       mix_arrays(from_samples, to_samples, mix_factors, mix_curve_mask, dst);
     }
     else if (!src_from.is_empty()) {
-      array_utils::copy(GVArray::ForSpan(src_from), from_curve_mask, dst);
-      array_utils::copy(GVArray::ForSpan(src_from), mix_curve_mask, dst);
+      array_utils::copy(GVArray::from_span(src_from), from_curve_mask, dst);
+      array_utils::copy(GVArray::from_span(src_from), mix_curve_mask, dst);
     }
     else if (!src_to.is_empty()) {
-      array_utils::copy(GVArray::ForSpan(src_to), to_curve_mask, dst);
-      array_utils::copy(GVArray::ForSpan(src_to), mix_curve_mask, dst);
+      array_utils::copy(GVArray::from_span(src_to), to_curve_mask, dst);
+      array_utils::copy(GVArray::from_span(src_to), mix_curve_mask, dst);
     }
   }
 

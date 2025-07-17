@@ -118,7 +118,7 @@ class CornersOfEdgeInput final : public bke::MeshFieldInput {
       }
     });
 
-    return VArray<int>::ForContainer(std::move(corner_of_edge));
+    return VArray<int>::from_container(std::move(corner_of_edge));
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -150,7 +150,7 @@ class CornersOfEdgeCountInput final : public bke::MeshFieldInput {
     }
     Array<int> counts(mesh.edges_num, 0);
     array_utils::count_indices(mesh.corner_edges(), counts);
-    return VArray<int>::ForContainer(std::move(counts));
+    return VArray<int>::from_container(std::move(counts));
   }
 
   uint64_t hash() const final

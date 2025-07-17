@@ -361,7 +361,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
       attribute_writer = attributes.lookup_or_add_for_write_span<float>(
           "radius",
           bke::AttrDomain::Point,
-          bke::AttributeInitVArray(VArray<float>::ForSingle(0.01f, curves.points_num())));
+          bke::AttributeInitVArray(VArray<float>::from_single(0.01f, curves.points_num())));
       value_attribute = attribute_writer.span;
     }
     else if (t->mode == TFM_TILT) {

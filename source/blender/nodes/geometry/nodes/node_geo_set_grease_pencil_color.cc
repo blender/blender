@@ -83,7 +83,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           curves.attributes_for_write().add<float>(
               opacity_attr_name,
               domain,
-              bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, domain_size)));
+              bke::AttributeInitVArray(VArray<float>::from_single(1.0f, domain_size)));
         }
         bke::try_capture_fields_on_geometry(curves.attributes_for_write(),
                                             layer_field_context,

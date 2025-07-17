@@ -724,7 +724,7 @@ static wmOperatorStatus vertex_group_smooth_exec(bContext *C, wmOperator *op)
           object_defgroup->name);
       geometry::smooth_curve_attribute(curves.curves_range(),
                                        curves.points_by_curve(),
-                                       VArray<bool>::ForSingle(true, curves.points_num()),
+                                       VArray<bool>::from_single(true, curves.points_num()),
                                        curves.cyclic(),
                                        repeat,
                                        smooth_factor,

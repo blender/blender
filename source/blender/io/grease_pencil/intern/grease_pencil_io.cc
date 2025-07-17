@@ -529,7 +529,7 @@ void GreasePencilExporter::foreach_stroke_in_layer(const Object &object,
 
         /* Sample the outline stroke. */
         if (params_.outline_resample_length > 0.0f) {
-          VArray<float> resample_lengths = VArray<float>::ForSingle(
+          VArray<float> resample_lengths = VArray<float>::from_single(
               params_.outline_resample_length, outline.curves_num());
           outline = geometry::resample_to_length(
               outline, outline.curves_range(), resample_lengths);

@@ -32,7 +32,7 @@ bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)
     attributes.add(".selection",
                    domain,
                    bke::AttrType::Float,
-                   bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, size)));
+                   bke::AttributeInitVArray(VArray<float>::from_single(1.0f, size)));
   }
 
   return curves.attributes_for_write().lookup_for_write_span<float>(".selection");

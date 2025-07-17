@@ -517,10 +517,10 @@ static void execute_multi_function_on_value_variant__field(
   /* Construct the new field node. */
   std::shared_ptr<fn::FieldOperation> operation;
   if (owned_fn) {
-    operation = fn::FieldOperation::Create(owned_fn, std::move(input_fields));
+    operation = fn::FieldOperation::from(owned_fn, std::move(input_fields));
   }
   else {
-    operation = fn::FieldOperation::Create(fn, std::move(input_fields));
+    operation = fn::FieldOperation::from(fn, std::move(input_fields));
   }
 
   /* Store the new fields in the output. */

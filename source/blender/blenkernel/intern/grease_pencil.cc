@@ -704,7 +704,7 @@ void Drawing::set_texture_matrices(Span<float4x2> matrices, const IndexMask &sel
   SpanAttributeWriter<float2> uv_scales = attributes.lookup_or_add_for_write_span<float2>(
       "uv_scale",
       AttrDomain::Curve,
-      AttributeInitVArray(VArray<float2>::ForSingle(float2(1.0f, 1.0f), curves.curves_num())));
+      AttributeInitVArray(VArray<float2>::from_single(float2(1.0f, 1.0f), curves.curves_num())));
 
   if (!uv_rotations || !uv_translations || !uv_scales) {
     /* FIXME: It might be better to ensure the attributes exist and are on the right domain. */
@@ -3841,7 +3841,7 @@ static void reorder_attribute_domain(blender::bke::AttributeStorage &data,
     switch (attr.storage_type()) {
       case bke::AttrStorageType::Array: {
         const auto &data = std::get<bke::Attribute::ArrayData>(attr.data());
-        auto new_data = bke::Attribute::ArrayData::ForConstructed(type, new_by_old_map.size());
+        auto new_data = bke::Attribute::ArrayData::from_constructed(type, new_by_old_map.size());
         bke::attribute_math::gather(GSpan(type, data.data, data.size),
                                     new_by_old_map,
                                     GMutableSpan(type, new_data.data, new_data.size));
@@ -4182,7 +4182,7 @@ static void shrink_attribute_storage(blender::bke::AttributeStorage &storage,
       case bke::AttrStorageType::Array: {
         const auto &data = std::get<bke::Attribute::ArrayData>(attr.data());
 
-        auto new_data = bke::Attribute::ArrayData::ForUninitialized(type, size - 1);
+        auto new_data = bke::Attribute::ArrayData::from_uninitialized(type, size - 1);
         type.copy_construct_n(data.data, new_data.data, range_before.size());
         type.copy_construct_n(POINTER_OFFSET(data.data, type.size * range_after.start()),
                               POINTER_OFFSET(new_data.data, type.size * index_to_remove),

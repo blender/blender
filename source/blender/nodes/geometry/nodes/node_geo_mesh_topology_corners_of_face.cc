@@ -104,7 +104,7 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
       }
     });
 
-    return VArray<int>::ForContainer(std::move(corner_of_face));
+    return VArray<int>::from_container(std::move(corner_of_face));
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -149,8 +149,8 @@ class CornersOfFaceCountInput final : public bke::MeshFieldInput {
       return {};
     }
     const OffsetIndices faces = mesh.faces();
-    return VArray<int>::ForFunc(mesh.faces_num,
-                                [faces](const int64_t i) { return faces[i].size(); });
+    return VArray<int>::from_func(mesh.faces_num,
+                                  [faces](const int64_t i) { return faces[i].size(); });
   }
 
   uint64_t hash() const final

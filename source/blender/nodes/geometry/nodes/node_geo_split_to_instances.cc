@@ -121,7 +121,7 @@ static void split_mesh_groups(const MeshComponent &component,
     /* Need task isolation because of the thread local variable. */
     threading::isolate_task([&]() {
       MutableSpan<bool> group_selection = group_selection_per_thread.local();
-      const VArray<bool> group_selection_varray = VArray<bool>::ForSpan(group_selection);
+      const VArray<bool> group_selection_varray = VArray<bool>::from_span(group_selection);
       for (const int group_index : range) {
         const IndexMask &mask = split_groups.group_masks[group_index];
         index_mask::masked_fill(group_selection, true, mask);

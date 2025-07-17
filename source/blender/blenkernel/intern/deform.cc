@@ -1745,12 +1745,12 @@ class VArrayImpl_For_VertexWeights final : public VMutableArrayImpl<float> {
 
 VArray<float> varray_for_deform_verts(Span<MDeformVert> dverts, const int defgroup_index)
 {
-  return VArray<float>::For<VArrayImpl_For_VertexWeights>(dverts, defgroup_index);
+  return VArray<float>::from<VArrayImpl_For_VertexWeights>(dverts, defgroup_index);
 }
 VMutableArray<float> varray_for_mutable_deform_verts(MutableSpan<MDeformVert> dverts,
                                                      const int defgroup_index)
 {
-  return VMutableArray<float>::For<VArrayImpl_For_VertexWeights>(dverts, defgroup_index);
+  return VMutableArray<float>::from<VArrayImpl_For_VertexWeights>(dverts, defgroup_index);
 }
 
 void remove_defgroup_index(MutableSpan<MDeformVert> dverts, const int defgroup_index)

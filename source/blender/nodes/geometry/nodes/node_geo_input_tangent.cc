@@ -73,18 +73,18 @@ static VArray<float3> construct_curve_tangent_gvarray(const bke::CurvesGeometry 
   const VArray<int8_t> types = curves.curve_types();
   if (curves.is_single_type(CURVE_TYPE_POLY)) {
     return curves.adapt_domain<float3>(
-        VArray<float3>::ForSpan(curves.evaluated_tangents()), AttrDomain::Point, domain);
+        VArray<float3>::from_span(curves.evaluated_tangents()), AttrDomain::Point, domain);
   }
 
   Array<float3> tangents = curve_tangent_point_domain(curves);
 
   if (domain == AttrDomain::Point) {
-    return VArray<float3>::ForContainer(std::move(tangents));
+    return VArray<float3>::from_container(std::move(tangents));
   }
 
   if (domain == AttrDomain::Curve) {
     return curves.adapt_domain<float3>(
-        VArray<float3>::ForContainer(std::move(tangents)), AttrDomain::Point, AttrDomain::Curve);
+        VArray<float3>::from_container(std::move(tangents)), AttrDomain::Point, AttrDomain::Curve);
   }
 
   return nullptr;

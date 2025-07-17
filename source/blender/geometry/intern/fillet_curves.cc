@@ -543,7 +543,7 @@ bke::CurvesGeometry fillet_curves_bezier(const bke::CurvesGeometry &src_curves,
   return fillet_curves(src_curves,
                        curve_selection,
                        radius,
-                       VArray<int>::ForSingle(1, src_curves.points_num()),
+                       VArray<int>::from_single(1, src_curves.points_num()),
                        limit_radius,
                        true,
                        attribute_filter);

@@ -297,13 +297,13 @@ bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves
       attributes.add(attribute_name,
                      selection_domain,
                      bke::AttrType::Bool,
-                     bke::AttributeInitVArray(VArray<bool>::ForSingle(true, domain_size)));
+                     bke::AttributeInitVArray(VArray<bool>::from_single(true, domain_size)));
       break;
     case bke::AttrType::Float:
       attributes.add(attribute_name,
                      selection_domain,
                      bke::AttrType::Float,
-                     bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, domain_size)));
+                     bke::AttributeInitVArray(VArray<float>::from_single(1.0f, domain_size)));
       break;
     default:
       BLI_assert_unreachable();

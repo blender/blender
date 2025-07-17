@@ -62,7 +62,7 @@ static GField clamp_selection(const GField &selection)
   }
   static auto clamp = mf::build::SI1_SO<float, float>(
       "Clamp", [](const float value) { return std::clamp(value, 0.0f, 1.0f); });
-  return Field<float>(FieldOperation::Create(clamp, {selection}));
+  return Field<float>(FieldOperation::from(clamp, {selection}));
 }
 
 static GField invert_selection(const GField &selection)
@@ -70,12 +70,12 @@ static GField invert_selection(const GField &selection)
   if (selection.cpp_type().is<bool>()) {
     static auto invert = mf::build::SI1_SO<bool, bool>("Invert Selection",
                                                        [](const bool value) { return !value; });
-    return GField(FieldOperation::Create(invert, {selection}));
+    return GField(FieldOperation::from(invert, {selection}));
   }
 
   static auto invert = mf::build::SI1_SO<float, float>(
       "Invert Selection", [](const float value) { return 1.0f - value; });
-  return GField(FieldOperation::Create(invert, {selection}));
+  return GField(FieldOperation::from(invert, {selection}));
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

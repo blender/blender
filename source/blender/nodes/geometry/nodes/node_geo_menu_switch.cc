@@ -316,7 +316,7 @@ class LazyFunctionForMenuSwitchNode : public LazyFunction {
     }
     std::unique_ptr<MultiFunction> multi_function = std::make_unique<MenuSwitchFn>(
         enum_def_, *field_base_type_);
-    GField output_field{FieldOperation::Create(std::move(multi_function), std::move(item_fields))};
+    GField output_field{FieldOperation::from(std::move(multi_function), std::move(item_fields))};
 
     void *output_ptr = params.get_output_data_ptr(0);
     SocketValueVariant::ConstructIn(output_ptr, std::move(output_field));

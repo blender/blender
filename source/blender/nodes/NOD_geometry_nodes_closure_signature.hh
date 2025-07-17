@@ -28,8 +28,8 @@ class ClosureSignature {
   bool matches_exactly(const ClosureSignature &other) const;
   static bool all_matching_exactly(Span<ClosureSignature> signatures);
 
-  static ClosureSignature FromClosureOutputNode(const bNode &node);
-  static ClosureSignature FromEvaluateClosureNode(const bNode &node);
+  static ClosureSignature from_closure_output_node(const bNode &node);
+  static ClosureSignature from_evaluate_closure_node(const bNode &node);
 };
 
 }  // namespace blender::nodes

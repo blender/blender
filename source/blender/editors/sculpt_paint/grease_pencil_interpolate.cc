@@ -877,7 +877,7 @@ static void grease_pencil_interpolate_update(bContext &C, const wmOperator &op)
       geometry::smooth_curve_attribute(
           interpolated_curves.curves_range(),
           interpolated_curves.points_by_curve(),
-          VArray<bool>::ForSingle(true, interpolated_curves.points_num()),
+          VArray<bool>::from_single(true, interpolated_curves.points_num()),
           interpolated_curves.cyclic(),
           opdata.smooth_steps,
           opdata.smooth_factor,
@@ -1419,7 +1419,7 @@ static wmOperatorStatus grease_pencil_interpolate_sequence_exec(bContext *C, wmO
         geometry::smooth_curve_attribute(
             interpolated_curves.curves_range(),
             interpolated_curves.points_by_curve(),
-            VArray<bool>::ForSingle(true, interpolated_curves.points_num()),
+            VArray<bool>::from_single(true, interpolated_curves.points_num()),
             interpolated_curves.cyclic(),
             opdata.smooth_steps,
             opdata.smooth_factor,

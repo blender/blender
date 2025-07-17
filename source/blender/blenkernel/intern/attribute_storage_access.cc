@@ -17,13 +17,13 @@ GAttributeReader attribute_to_reader(const Attribute &attribute,
   switch (attribute.storage_type()) {
     case AttrStorageType::Array: {
       const auto &data = std::get<Attribute::ArrayData>(attribute.data());
-      return GAttributeReader{GVArray::ForSpan(GSpan(cpp_type, data.data, data.size)),
+      return GAttributeReader{GVArray::from_span(GSpan(cpp_type, data.data, data.size)),
                               domain,
                               data.sharing_info.get()};
     }
     case AttrStorageType::Single: {
       const auto &data = std::get<Attribute::SingleData>(attribute.data());
-      return GAttributeReader{GVArray::ForSingleRef(cpp_type, domain_size, data.value),
+      return GAttributeReader{GVArray::from_single_ref(cpp_type, domain_size, data.value),
                               domain,
                               data.sharing_info.get()};
     }
@@ -51,7 +51,7 @@ GAttributeWriter attribute_to_writer(void *owner,
       };
 
       return GAttributeWriter{
-          GVMutableArray::ForSpan(GMutableSpan(cpp_type, data.data, domain_size)),
+          GVMutableArray::from_span(GMutableSpan(cpp_type, data.data, domain_size)),
           attribute.domain(),
           std::move(tag_modified_fn)};
     }
@@ -71,11 +71,11 @@ Attribute::DataVariant attribute_init_to_data(const bke::AttrType data_type,
   switch (initializer.type) {
     case AttributeInit::Type::Construct: {
       const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
-      return Attribute::ArrayData::ForConstructed(type, domain_size);
+      return Attribute::ArrayData::from_constructed(type, domain_size);
     }
     case AttributeInit::Type::DefaultValue: {
       const CPPType &type = bke::attribute_type_to_cpp_type(data_type);
-      return Attribute::ArrayData::ForDefaultValue(type, domain_size);
+      return Attribute::ArrayData::from_default_value(type, domain_size);
     }
     case AttributeInit::Type::VArray: {
       const auto &init = static_cast<const AttributeInitVArray &>(initializer);
@@ -121,7 +121,7 @@ GVArray get_varray_attribute(const AttributeStorage &storage,
   const bke::Attribute *attr = storage.wrap().lookup(name);
 
   const auto return_default = [&]() {
-    return GVArray::ForSingle(cpp_type, domain_size, default_value);
+    return GVArray::from_single(cpp_type, domain_size, default_value);
   };
 
   if (!attr) {
@@ -137,11 +137,11 @@ GVArray get_varray_attribute(const AttributeStorage &storage,
     case bke::AttrStorageType::Array: {
       const auto &data = std::get<bke::Attribute::ArrayData>(attr->data());
       const GSpan span(cpp_type, data.data, data.size);
-      return GVArray::ForSpan(span);
+      return GVArray::from_span(span);
     }
     case bke::AttrStorageType::Single: {
       const auto &data = std::get<bke::Attribute::SingleData>(attr->data());
-      return GVArray::ForSingle(cpp_type, domain_size, data.value);
+      return GVArray::from_single(cpp_type, domain_size, data.value);
     }
   }
   return return_default();
@@ -184,7 +184,7 @@ GMutableSpan get_mutable_attribute(AttributeStorage &storage,
       if (const auto *single_data = std::get_if<bke::Attribute::SingleData>(&attr->data())) {
         /* Convert single value storage to array storage. */
         const GPointer g_value(cpp_type, single_data->value);
-        attr->assign_data(bke::Attribute::ArrayData::ForValue(g_value, domain_size));
+        attr->assign_data(bke::Attribute::ArrayData::from_value(g_value, domain_size));
       }
       auto &array_data = std::get<bke::Attribute::ArrayData>(attr->data_for_write());
       return GMutableSpan(cpp_type, array_data.data, domain_size);
@@ -199,7 +199,7 @@ GMutableSpan get_mutable_attribute(AttributeStorage &storage,
       name,
       domain,
       type,
-      bke::Attribute::ArrayData::ForValue({cpp_type, default_value}, domain_size));
+      bke::Attribute::ArrayData::from_value({cpp_type, default_value}, domain_size));
   auto &array_data = std::get<bke::Attribute::ArrayData>(attr.data_for_write());
   BLI_assert(array_data.size == domain_size);
   return GMutableSpan(cpp_type, array_data.data, domain_size);

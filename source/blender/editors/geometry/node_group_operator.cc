@@ -240,7 +240,7 @@ static void add_shape_keys_as_attributes(Mesh &mesh, const Key &key)
     const Span<float3> key_data(static_cast<float3 *>(kb->data), kb->totelem);
     attributes.add<float3>(shape_key_attribute_name(*kb),
                            bke::AttrDomain::Point,
-                           bke::AttributeInitVArray(VArray<float3>::ForSpan(key_data)));
+                           bke::AttributeInitVArray(VArray<float3>::from_span(key_data)));
   }
 }
 

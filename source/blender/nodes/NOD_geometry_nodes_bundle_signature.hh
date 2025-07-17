@@ -22,8 +22,8 @@ struct BundleSignature {
 
   static bool all_matching_exactly(const Span<BundleSignature> signatures);
 
-  static BundleSignature FromCombineBundleNode(const bNode &node);
-  static BundleSignature FromSeparateBundleNode(const bNode &node);
+  static BundleSignature from_combine_bundle_node(const bNode &node);
+  static BundleSignature from_separate_bundle_node(const bNode &node);
 };
 
 }  // namespace blender::nodes

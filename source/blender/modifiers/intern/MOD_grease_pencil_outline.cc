@@ -221,8 +221,8 @@ static void modify_drawing(const GreasePencilOutlineModifierData &omd,
 
   /* Resampling feature. */
   if (omd.sample_length > 0.0f) {
-    VArray<float> sample_lengths = VArray<float>::ForSingle(omd.sample_length,
-                                                            curves.curves_num());
+    VArray<float> sample_lengths = VArray<float>::from_single(omd.sample_length,
+                                                              curves.curves_num());
     curves = geometry::resample_to_length(curves, curves.curves_range(), sample_lengths);
   }
 

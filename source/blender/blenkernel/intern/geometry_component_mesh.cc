@@ -128,12 +128,12 @@ VArray<float3> mesh_normals_varray(const Mesh &mesh,
 {
   switch (domain) {
     case AttrDomain::Face: {
-      return VArray<float3>::ForSpan(true_normals ? mesh.face_normals_true() :
-                                                    mesh.face_normals());
+      return VArray<float3>::from_span(true_normals ? mesh.face_normals_true() :
+                                                      mesh.face_normals());
     }
     case AttrDomain::Point: {
-      return VArray<float3>::ForSpan(true_normals ? mesh.vert_normals_true() :
-                                                    mesh.vert_normals());
+      return VArray<float3>::from_span(true_normals ? mesh.vert_normals_true() :
+                                                      mesh.vert_normals());
     }
     case AttrDomain::Edge: {
       /* In this case, start with vertex normals and convert to the edge domain, since the
@@ -149,16 +149,17 @@ VArray<float3> mesh_normals_varray(const Mesh &mesh,
             math::interpolate(vert_normals[edge[0]], vert_normals[edge[1]], 0.5f));
       });
 
-      return VArray<float3>::ForContainer(std::move(edge_normals));
+      return VArray<float3>::from_container(std::move(edge_normals));
     }
     case AttrDomain::Corner: {
       if (no_corner_normals || true_normals) {
         return mesh.attributes().adapt_domain(
-            VArray<float3>::ForSpan(true_normals ? mesh.face_normals_true() : mesh.face_normals()),
+            VArray<float3>::from_span(true_normals ? mesh.face_normals_true() :
+                                                     mesh.face_normals()),
             AttrDomain::Face,
             AttrDomain::Corner);
       }
-      return VArray<float3>::ForSpan(mesh.corner_normals());
+      return VArray<float3>::from_span(mesh.corner_normals());
     }
     default:
       return {};

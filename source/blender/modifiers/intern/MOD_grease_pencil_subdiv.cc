@@ -89,7 +89,7 @@ static void subdivide_drawing(ModifierData &md, Object &ob, bke::greasepencil::D
     modifier::greasepencil::ensure_no_bezier_curves(drawing);
     bke::CurvesGeometry subdivided_curves = drawing.strokes();
     for ([[maybe_unused]] const int level_i : IndexRange(mmd.level)) {
-      VArray<int> one_cut = VArray<int>::ForSingle(1, subdivided_curves.points_num());
+      VArray<int> one_cut = VArray<int>::from_single(1, subdivided_curves.points_num());
       subdivided_curves = geometry::subdivide_curves(
           subdivided_curves, strokes, std::move(one_cut), {});
 
@@ -110,8 +110,8 @@ static void subdivide_drawing(ModifierData &md, Object &ob, bke::greasepencil::D
     drawing.strokes_for_write() = subdivided_curves;
   }
   else {
-    VArray<int> cuts = VArray<int>::ForSingle(math::pow(mmd.level, 2),
-                                              drawing.strokes().points_num());
+    VArray<int> cuts = VArray<int>::from_single(math::pow(mmd.level, 2),
+                                                drawing.strokes().points_num());
     drawing.strokes_for_write() = geometry::subdivide_curves(drawing.strokes(), strokes, cuts, {});
   }
 

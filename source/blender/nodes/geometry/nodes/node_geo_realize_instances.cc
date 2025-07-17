@@ -52,7 +52,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         return realize_all_field ? geometry::VariedDepthOptions::MAX_DEPTH : std::max(depth, 0);
       });
 
-  Field<int> depth_field_overridden(FieldOperation::Create(
+  Field<int> depth_field_overridden(FieldOperation::from(
       depth_override, {std::move(depth_field), std::move(realize_all_field)}));
 
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
@@ -61,7 +61,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       "selection_override",
       [](int depth_override, bool selection) { return depth_override == 0 ? false : selection; });
 
-  Field<bool> selection_field_overrided(FieldOperation::Create(
+  Field<bool> selection_field_overrided(FieldOperation::from(
       selection_override, {depth_field_overridden, std::move(selection_field)}));
 
   const bke::Instances &instances = *geometry_set.get_instances();

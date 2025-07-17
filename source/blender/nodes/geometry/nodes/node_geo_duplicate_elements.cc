@@ -1165,7 +1165,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       [](int value) { return std::max(0, value); },
       mf::build::exec_presets::AllSpanOrSingle());
   Field<int> count_field(
-      FieldOperation::Create(max_zero_fn, {params.extract_input<Field<int>>("Amount")}));
+      FieldOperation::from(max_zero_fn, {params.extract_input<Field<int>>("Amount")}));
 
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   IndexAttributes attribute_outputs;

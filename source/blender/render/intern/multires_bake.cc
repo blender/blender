@@ -529,14 +529,14 @@ static void do_multires_bake(MultiresBakeRender *bkr,
       bke::MutableAttributeAccessor attributes = temp_mesh->attributes_for_write();
       attributes.add<bool>("sharp_edge",
                            bke::AttrDomain::Edge,
-                           bke::AttributeInitVArray(VArray<bool>::ForSpan(
+                           bke::AttributeInitVArray(VArray<bool>::from_span(
                                Span<bool>(sharp_edges, temp_mesh->edges_num))));
     }
     if (sharp_faces != nullptr) {
       bke::MutableAttributeAccessor attributes = temp_mesh->attributes_for_write();
       attributes.add<bool>("sharp_face",
                            bke::AttrDomain::Face,
-                           bke::AttributeInitVArray(VArray<bool>::ForSpan(
+                           bke::AttributeInitVArray(VArray<bool>::from_span(
                                Span<bool>(sharp_faces, temp_mesh->faces_num))));
     }
 

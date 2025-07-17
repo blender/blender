@@ -85,7 +85,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
       KDTree_3d *tree = build_kdtree(positions, IndexRange(domain_size));
       find_neighbors(*tree, positions, mask, result);
       BLI_kdtree_3d_free(tree);
-      return VArray<int>::ForContainer(std::move(result));
+      return VArray<int>::from_container(std::move(result));
     }
     const VArraySpan<int> group_ids_span(group_ids);
 
@@ -126,7 +126,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
       }
     });
 
-    return VArray<int>::ForContainer(std::move(result));
+    return VArray<int>::from_container(std::move(result));
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -174,7 +174,7 @@ class HasNeighborFieldInput final : public bke::GeometryFieldInput {
     }
     const int domain_size = context.attributes()->domain_size(context.domain());
     if (domain_size == 1) {
-      return VArray<bool>::ForSingle(false, mask.min_array_size());
+      return VArray<bool>::from_single(false, mask.min_array_size());
     }
 
     fn::FieldEvaluator evaluator{context, domain_size};
@@ -183,7 +183,7 @@ class HasNeighborFieldInput final : public bke::GeometryFieldInput {
     const VArray<int> group = evaluator.get_evaluated<int>(0);
 
     if (group.is_single()) {
-      return VArray<bool>::ForSingle(true, mask.min_array_size());
+      return VArray<bool>::from_single(true, mask.min_array_size());
     }
 
     Map<int, int> counts;
@@ -194,7 +194,7 @@ class HasNeighborFieldInput final : public bke::GeometryFieldInput {
     });
     Array<bool> result(mask.min_array_size());
     mask.foreach_index([&](const int i) { result[i] = counts.lookup(group_span[i]) > 1; });
-    return VArray<bool>::ForContainer(std::move(result));
+    return VArray<bool>::from_container(std::move(result));
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override

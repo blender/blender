@@ -815,9 +815,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Normalize up fields so that is done as part of field evaluation. */
   Field<float3> guides_up_field(
-      FieldOperation::Create(normalize_fn, {params.extract_input<Field<float3>>("Guide Up")}));
+      FieldOperation::from(normalize_fn, {params.extract_input<Field<float3>>("Guide Up")}));
   Field<float3> points_up_field(
-      FieldOperation::Create(normalize_fn, {params.extract_input<Field<float3>>("Point Up")}));
+      FieldOperation::from(normalize_fn, {params.extract_input<Field<float3>>("Point Up")}));
 
   Field<int> guide_group_field = params.extract_input<Field<int>>("Guide Group ID");
   Field<int> point_group_field = params.extract_input<Field<int>>("Point Group ID");

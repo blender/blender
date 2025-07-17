@@ -107,7 +107,7 @@ class Grid3DFieldContext : public FieldContext {
         }
       }
     });
-    return VArray<float3>::ForContainer(std::move(positions));
+    return VArray<float3>::from_container(std::move(positions));
   }
 };
 

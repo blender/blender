@@ -229,18 +229,18 @@ VArray<float3> curve_normals_varray(const CurvesGeometry &curves, const AttrDoma
   const VArray<int8_t> types = curves.curve_types();
   if (curves.is_single_type(CURVE_TYPE_POLY)) {
     return curves.adapt_domain<float3>(
-        VArray<float3>::ForSpan(curves.evaluated_normals()), AttrDomain::Point, domain);
+        VArray<float3>::from_span(curves.evaluated_normals()), AttrDomain::Point, domain);
   }
 
   Array<float3> normals = curve_normal_point_domain(curves);
 
   if (domain == AttrDomain::Point) {
-    return VArray<float3>::ForContainer(std::move(normals));
+    return VArray<float3>::from_container(std::move(normals));
   }
 
   if (domain == AttrDomain::Curve) {
     return curves.adapt_domain<float3>(
-        VArray<float3>::ForContainer(std::move(normals)), AttrDomain::Point, AttrDomain::Curve);
+        VArray<float3>::from_container(std::move(normals)), AttrDomain::Point, AttrDomain::Curve);
   }
 
   return nullptr;
@@ -258,7 +258,7 @@ static VArray<float> construct_curve_length_gvarray(const CurvesGeometry &curves
   curves.ensure_evaluated_lengths();
 
   VArray<bool> cyclic = curves.cyclic();
-  VArray<float> lengths = VArray<float>::ForFunc(
+  VArray<float> lengths = VArray<float>::from_func(
       curves.curves_num(), [&curves, cyclic = std::move(cyclic)](int64_t index) {
         return curves.evaluated_length_total_for_curve(index, cyclic[index]);
       });

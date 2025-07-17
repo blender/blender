@@ -1537,7 +1537,7 @@ static wmOperatorStatus exec(bContext *C, wmOperator *op)
     });
 
     curves = geometry::subdivide_curves(
-        curves, curves.curves_range(), VArray<int>::ForSpan(segment_cuts), {});
+        curves, curves.curves_range(), VArray<int>::from_span(segment_cuts), {});
 
     DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);

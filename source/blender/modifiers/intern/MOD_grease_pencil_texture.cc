@@ -94,7 +94,7 @@ static void write_stroke_transforms(bke::greasepencil::Drawing &drawing,
   bke::SpanAttributeWriter<float> u_scales = attributes.lookup_or_add_for_write_span<float>(
       "u_scale",
       bke::AttrDomain::Curve,
-      bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num())));
+      bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num())));
   if (!u_translations || !rotations || !u_scales) {
     return;
   }

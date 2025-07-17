@@ -4829,8 +4829,8 @@ static void node_draw_zones_and_frames(const ARegion &region,
     fillet_curve_by_zone[zone_i] = geometry::fillet_curves_poly(
         boundary_curve,
         IndexRange(1),
-        VArray<float>::ForSingle(BASIS_RAD, boundary_positions_num),
-        VArray<int>::ForSingle(5, boundary_positions_num),
+        VArray<float>::from_single(BASIS_RAD, boundary_positions_num),
+        VArray<int>::from_single(5, boundary_positions_num),
         true,
         {});
   }

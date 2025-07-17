@@ -252,7 +252,7 @@ class AccumulateFieldInput final : public bke::GeometryFieldInput {
           }
         }
 
-        g_output = VArray<T>::ForContainer(std::move(outputs));
+        g_output = VArray<T>::from_container(std::move(outputs));
       }
     });
 
@@ -327,7 +327,7 @@ class TotalFieldInput final : public bke::GeometryFieldInput {
           for (const int i : values.index_range()) {
             accumulation = AccumulationInfo<T>::accumulate(accumulation, values[i]);
           }
-          g_outputs = VArray<T>::ForSingle(accumulation, domain_size);
+          g_outputs = VArray<T>::from_single(accumulation, domain_size);
         }
         else {
           Map<int, T> accumulations;
@@ -340,7 +340,7 @@ class TotalFieldInput final : public bke::GeometryFieldInput {
           for (const int i : values.index_range()) {
             outputs[i] = accumulations.lookup(group_indices[i]);
           }
-          g_outputs = VArray<T>::ForContainer(std::move(outputs));
+          g_outputs = VArray<T>::from_container(std::move(outputs));
         }
       }
     });

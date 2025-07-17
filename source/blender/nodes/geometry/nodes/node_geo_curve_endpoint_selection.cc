@@ -79,7 +79,7 @@ class EndpointFieldInput final : public bke::GeometryFieldInput {
       });
     });
 
-    return VArray<bool>::ForContainer(std::move(selection));
+    return VArray<bool>::from_container(std::move(selection));
   };
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const final

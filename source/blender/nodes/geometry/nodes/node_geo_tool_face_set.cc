@@ -19,8 +19,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!check_tool_context_and_error(params)) {
     return;
   }
-  params.set_output("Face Set", bke::AttributeFieldInput::Create<int>(".sculpt_face_set"));
-  params.set_output("Exists", bke::AttributeExistsFieldInput::Create(".sculpt_face_set"));
+  params.set_output("Face Set", bke::AttributeFieldInput::from<int>(".sculpt_face_set"));
+  params.set_output("Exists", bke::AttributeExistsFieldInput::from(".sculpt_face_set"));
 }
 
 static void node_register()

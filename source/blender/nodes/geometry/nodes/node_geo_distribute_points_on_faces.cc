@@ -345,7 +345,7 @@ static void compute_normal_outputs(const Mesh &mesh,
     }
     case bke::MeshNormalDomain::Face: {
       const Span<int> tri_faces = mesh.corner_tri_faces();
-      VArray<float3> face_normals = VArray<float3>::ForSpan(mesh.face_normals());
+      VArray<float3> face_normals = VArray<float3>::from_span(mesh.face_normals());
       threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
         bke::mesh_surface_sample::sample_face_attribute(
             tri_faces, tri_indices, face_normals, range, r_normals);

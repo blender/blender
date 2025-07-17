@@ -43,10 +43,10 @@ class Attribute {
     /* The number of elements in the array. */
     int64_t size;
     ImplicitSharingPtr<> sharing_info;
-    static ArrayData ForValue(const GPointer &value, int64_t domain_size);
-    static ArrayData ForDefaultValue(const CPPType &type, int64_t domain_size);
-    static ArrayData ForUninitialized(const CPPType &type, int64_t domain_size);
-    static ArrayData ForConstructed(const CPPType &type, int64_t domain_size);
+    static ArrayData from_value(const GPointer &value, int64_t domain_size);
+    static ArrayData from_default_value(const CPPType &type, int64_t domain_size);
+    static ArrayData from_uninitialized(const CPPType &type, int64_t domain_size);
+    static ArrayData from_constructed(const CPPType &type, int64_t domain_size);
   };
   /** Data for an attribute stored as a single value for the entire domain. */
   struct SingleData {
@@ -54,8 +54,8 @@ class Attribute {
      * It's not necessary to manage a single value. */
     void *value;
     ImplicitSharingPtr<> sharing_info;
-    static SingleData ForValue(const GPointer &value);
-    static SingleData ForDefaultValue(const CPPType &type);
+    static SingleData from_value(const GPointer &value);
+    static SingleData from_default_value(const CPPType &type);
   };
   using DataVariant = std::variant<ArrayData, SingleData>;
   friend AttributeStorage;

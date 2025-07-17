@@ -227,13 +227,13 @@ static void node_geo_exec(GeoNodeExecParams params)
       "Normalize",
       [](const float3 &v) { return math::normalize(v); },
       mf::build::exec_presets::AllSpanOrSingle());
-  auto direction_op = FieldOperation::Create(
-      normalize_fn, {params.extract_input<Field<float3>>("Ray Direction")});
+  auto direction_op = FieldOperation::from(normalize_fn,
+                                           {params.extract_input<Field<float3>>("Ray Direction")});
 
-  auto op = FieldOperation::Create(std::make_unique<RaycastFunction>(target),
-                                   {params.extract_input<Field<float3>>("Source Position"),
-                                    Field<float3>(direction_op),
-                                    params.extract_input<Field<float>>("Ray Length")});
+  auto op = FieldOperation::from(std::make_unique<RaycastFunction>(target),
+                                 {params.extract_input<Field<float3>>("Source Position"),
+                                  Field<float3>(direction_op),
+                                  params.extract_input<Field<float>>("Ray Length")});
 
   Field<float3> hit_position(op, 1);
   params.set_output("Is Hit", Field<bool>(op, 0));
@@ -250,17 +250,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float3> bary_weights;
   switch (mapping) {
     case GEO_NODE_RAYCAST_INTERPOLATED:
-      bary_weights = Field<float3>(FieldOperation::Create(
+      bary_weights = Field<float3>(FieldOperation::from(
           std::make_shared<bke::mesh_surface_sample::BaryWeightFromPositionFn>(target),
           {hit_position, triangle_index}));
       break;
     case GEO_NODE_RAYCAST_NEAREST:
-      bary_weights = Field<float3>(FieldOperation::Create(
+      bary_weights = Field<float3>(FieldOperation::from(
           std::make_shared<bke::mesh_surface_sample::CornerBaryWeightFromPositionFn>(target),
           {hit_position, triangle_index}));
       break;
   }
-  auto sample_op = FieldOperation::Create(
+  auto sample_op = FieldOperation::from(
       std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(std::move(target),
                                                                      std::move(field)),
       {triangle_index, bary_weights});

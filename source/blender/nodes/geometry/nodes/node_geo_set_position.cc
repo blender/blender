@@ -70,12 +70,12 @@ static void set_curves_position(bke::CurvesGeometry &curves,
   fields.append(position_field);
 
   if (attributes.contains("handle_right") && attributes.contains("handle_left")) {
-    fn::Field<float3> delta(fn::FieldOperation::Create(
-        get_sub_fn(), {position_field, bke::AttributeFieldInput::Create<float3>("position")}));
+    fn::Field<float3> delta(fn::FieldOperation::from(
+        get_sub_fn(), {position_field, bke::AttributeFieldInput::from<float3>("position")}));
     for (const StringRef name : {"handle_left", "handle_right"}) {
       attribute_names.append(name);
-      fields.append(Field<float3>(fn::FieldOperation::Create(
-          get_add_fn(), {bke::AttributeFieldInput::Create<float3>(name), delta})));
+      fields.append(Field<float3>(fn::FieldOperation::from(
+          get_add_fn(), {bke::AttributeFieldInput::from<float3>(name), delta})));
     }
   }
 
@@ -130,9 +130,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   const fn::Field<float3> position_field(
-      fn::FieldOperation::Create(get_add_fn(),
-                                 {params.extract_input<Field<float3>>("Position"),
-                                  params.extract_input<Field<float3>>("Offset")}));
+      fn::FieldOperation::from(get_add_fn(),
+                               {params.extract_input<Field<float3>>("Position"),
+                                params.extract_input<Field<float3>>("Offset")}));
 
   if (Mesh *mesh = geometry.get_mesh_for_write()) {
     set_points_position(mesh->attributes_for_write(),

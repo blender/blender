@@ -192,7 +192,7 @@ void Bundle::delete_self()
   MEM_delete(this);
 }
 
-BundleSignature BundleSignature::FromCombineBundleNode(const bNode &node)
+BundleSignature BundleSignature::from_combine_bundle_node(const bNode &node)
 {
   BLI_assert(node.is_type("GeometryNodeCombineBundle"));
   const auto &storage = *static_cast<const NodeGeometryCombineBundle *>(node.storage);
@@ -206,7 +206,7 @@ BundleSignature BundleSignature::FromCombineBundleNode(const bNode &node)
   return signature;
 }
 
-BundleSignature BundleSignature::FromSeparateBundleNode(const bNode &node)
+BundleSignature BundleSignature::from_separate_bundle_node(const bNode &node)
 {
   BLI_assert(node.is_type("GeometryNodeSeparateBundle"));
   const auto &storage = *static_cast<const NodeGeometrySeparateBundle *>(node.storage);

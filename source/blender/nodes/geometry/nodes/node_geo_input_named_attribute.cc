@@ -101,8 +101,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
 
-  params.set_output<GField>("Attribute", AttributeFieldInput::Create(name, type));
-  params.set_output("Exists", bke::AttributeExistsFieldInput::Create(std::move(name)));
+  params.set_output<GField>("Attribute", AttributeFieldInput::from(name, type));
+  params.set_output("Exists", bke::AttributeExistsFieldInput::from(std::move(name)));
 }
 
 static void node_rna(StructRNA *srna)

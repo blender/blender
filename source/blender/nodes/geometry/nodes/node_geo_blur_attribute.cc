@@ -392,11 +392,11 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
 
     /* Blurring does not make sense with a less than 2 elements. */
     if (domain_size <= 1) {
-      return GVArray::ForGArray(std::move(buffer_a));
+      return GVArray::from_garray(std::move(buffer_a));
     }
 
     if (iterations_ <= 0) {
-      return GVArray::ForGArray(std::move(buffer_a));
+      return GVArray::from_garray(std::move(buffer_a));
     }
 
     VArraySpan<float> neighbor_weights = evaluator.get_evaluated<float>(1);
@@ -427,9 +427,9 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
 
     BLI_assert(ELEM(result_buffer.data(), buffer_a.data(), buffer_b.data()));
     if (result_buffer.data() == buffer_a.data()) {
-      return GVArray::ForGArray(std::move(buffer_a));
+      return GVArray::from_garray(std::move(buffer_a));
     }
-    return GVArray::ForGArray(std::move(buffer_b));
+    return GVArray::from_garray(std::move(buffer_b));
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override

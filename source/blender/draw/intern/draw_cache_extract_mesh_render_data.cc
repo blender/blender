@@ -456,16 +456,18 @@ static bke::MeshNormalDomain bmesh_normals_domain(BMesh *bm)
   }
 
   BM_mesh_elem_table_ensure(bm, BM_FACE);
-  const VArray<bool> sharp_faces = VArray<bool>::ForDerivedSpan<const BMFace *, bm_face_is_sharp>(
-      Span(bm->ftable, bm->totface));
+  const VArray<bool> sharp_faces =
+      VArray<bool>::from_derived_span<const BMFace *, bm_face_is_sharp>(
+          Span(bm->ftable, bm->totface));
   const array_utils::BooleanMix face_mix = array_utils::booleans_mix_calc(sharp_faces);
   if (face_mix == array_utils::BooleanMix::AllTrue) {
     return bke::MeshNormalDomain::Face;
   }
 
   BM_mesh_elem_table_ensure(bm, BM_EDGE);
-  const VArray<bool> sharp_edges = VArray<bool>::ForDerivedSpan<const BMEdge *, bm_edge_is_sharp>(
-      Span(bm->etable, bm->totedge));
+  const VArray<bool> sharp_edges =
+      VArray<bool>::from_derived_span<const BMEdge *, bm_edge_is_sharp>(
+          Span(bm->etable, bm->totedge));
   const array_utils::BooleanMix edge_mix = array_utils::booleans_mix_calc(sharp_edges);
   if (edge_mix == array_utils::BooleanMix::AllTrue) {
     return bke::MeshNormalDomain::Face;

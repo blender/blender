@@ -95,7 +95,7 @@ static GAttributeReader reader_for_vertex_group_index(const CurvesGeometry &curv
 {
   BLI_assert(vertex_group_index >= 0);
   if (dverts.is_empty()) {
-    return {VArray<float>::ForSingle(0.0f, curves.points_num()), AttrDomain::Point};
+    return {VArray<float>::from_single(0.0f, curves.points_num()), AttrDomain::Point};
   }
   return {varray_for_deform_verts(dverts, vertex_group_index), AttrDomain::Point};
 }

@@ -187,7 +187,7 @@ class FieldMinMaxInput final : public bke::GeometryFieldInput {
             for (const int i : values.index_range()) {
               result = math::min(result, values[i]);
             }
-            g_outputs = VArray<T>::ForSingle(result, domain_size);
+            g_outputs = VArray<T>::from_single(result, domain_size);
           }
           else {
             Map<int, T> results;
@@ -199,7 +199,7 @@ class FieldMinMaxInput final : public bke::GeometryFieldInput {
             for (const int i : values.index_range()) {
               outputs[i] = results.lookup(group_indices[i]);
             }
-            g_outputs = VArray<T>::ForContainer(std::move(outputs));
+            g_outputs = VArray<T>::from_container(std::move(outputs));
           }
         }
         else {
@@ -208,7 +208,7 @@ class FieldMinMaxInput final : public bke::GeometryFieldInput {
             for (const int i : values.index_range()) {
               result = math::max(result, values[i]);
             }
-            g_outputs = VArray<T>::ForSingle(result, domain_size);
+            g_outputs = VArray<T>::from_single(result, domain_size);
           }
           else {
             Map<int, T> results;
@@ -220,7 +220,7 @@ class FieldMinMaxInput final : public bke::GeometryFieldInput {
             for (const int i : values.index_range()) {
               outputs[i] = results.lookup(group_indices[i]);
             }
-            g_outputs = VArray<T>::ForContainer(std::move(outputs));
+            g_outputs = VArray<T>::from_container(std::move(outputs));
           }
         }
       }

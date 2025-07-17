@@ -13,7 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<float> tilt_field = AttributeFieldInput::Create<float>("tilt");
+  Field<float> tilt_field = AttributeFieldInput::from<float>("tilt");
   params.set_output("Tilt", std::move(tilt_field));
 }
 

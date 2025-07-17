@@ -660,8 +660,8 @@ static void initialize_group_input(const bNodeTree &tree,
 
   const std::optional<StringRef> attribute_name = input_attribute_name_get(properties, io_input);
   if (attribute_name && bke::allow_procedural_attribute_access(*attribute_name)) {
-    fn::GField attribute_field = bke::AttributeFieldInput::Create(*attribute_name,
-                                                                  *typeinfo->base_cpp_type);
+    fn::GField attribute_field = bke::AttributeFieldInput::from(*attribute_name,
+                                                                *typeinfo->base_cpp_type);
     bke::SocketValueVariant::ConstructIn(r_value, std::move(attribute_field));
   }
   else if (is_layer_selection_field(io_input)) {

@@ -662,7 +662,7 @@ static PointerRNA rna_AttributeGroupID_new(
         attributes.unique_name_calc(name),
         AttrDomain(domain),
         *bke::custom_data_type_to_attr_type(eCustomDataType(type)),
-        bke::Attribute::ArrayData::ForDefaultValue(cpp_type, domain_size));
+        bke::Attribute::ArrayData::from_default_value(cpp_type, domain_size));
 
     DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -1201,7 +1201,7 @@ static PointerRNA rna_AttributeGroupGreasePencilDrawing_new(ID *grease_pencil_id
       attributes.unique_name_calc(name),
       AttrDomain(domain),
       *bke::custom_data_type_to_attr_type(eCustomDataType(type)),
-      bke::Attribute::ArrayData::ForDefaultValue(cpp_type, domain_size));
+      bke::Attribute::ArrayData::from_default_value(cpp_type, domain_size));
 
   DEG_id_tag_update(grease_pencil_id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, grease_pencil_id);
