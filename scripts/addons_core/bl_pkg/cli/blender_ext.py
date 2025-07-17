@@ -4652,6 +4652,17 @@ class subcmd_author:
             # Make default build options if none are provided.
             manifest_build = PkgManifest_Build(
                 paths=None,
+                # Limit exclusions to:
+                # - Python cache since extensions are written in Python.
+                # - Dot-files since this is standard *enough*.
+                # - ZIP archives to exclude packages that have been build.
+                # - BLEND file backups since this is for Blender extensions,
+                #   it makes sense to skip them.
+                #
+                # Further, it's not the purpose of this exclusion list to support all known file-system lint,
+                # as it changes over time and *could* result in false positives.
+                #
+                # Extension authors are expected to declare exclude patterns based on their development environment.
                 paths_exclude_pattern=[
                     "__pycache__/",
                     # Hidden dot-files.
