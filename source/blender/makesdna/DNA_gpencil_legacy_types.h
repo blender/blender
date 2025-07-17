@@ -800,10 +800,3 @@ typedef enum eGP_DrawMode {
   GP_DRAWMODE_2D = 0,
   GP_DRAWMODE_3D = 1,
 } eGP_DrawMode;
-
-/* ***************************************** */
-/* Mode Checking Macros */
-
-#define GPENCIL_ANY_VERTEX_MASK(flag) \
-  ((flag & (GP_VERTEX_MASK_SELECTMODE_POINT | GP_VERTEX_MASK_SELECTMODE_STROKE | \
-            GP_VERTEX_MASK_SELECTMODE_SEGMENT)))

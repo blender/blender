@@ -101,6 +101,11 @@ blender::bke::AttrDomain ED_grease_pencil_vertex_selection_domain_get(
 blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings,
                                                                const Object *object);
 /**
+ * True if any vertex mask selection is used.
+ */
+bool ED_grease_pencil_any_vertex_mask_selection(const ToolSettings *tool_settings);
+
+/**
  * True if segment selection is enabled.
  */
 bool ED_grease_pencil_edit_segment_selection_enabled(const ToolSettings *tool_settings);

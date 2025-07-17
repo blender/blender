@@ -1097,6 +1097,17 @@ blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSetting
   return blender::bke::AttrDomain::Point;
 }
 
+bool ED_grease_pencil_any_vertex_mask_selection(const ToolSettings *tool_settings)
+{
+  const int selectmode = tool_settings->gpencil_selectmode_vertex;
+  if (selectmode & (GP_VERTEX_MASK_SELECTMODE_POINT | GP_VERTEX_MASK_SELECTMODE_STROKE |
+                    GP_VERTEX_MASK_SELECTMODE_SEGMENT))
+  {
+    return true;
+  }
+  return false;
+}
+
 bool ED_grease_pencil_edit_segment_selection_enabled(const ToolSettings *tool_settings)
 {
   return tool_settings->gpencil_selectmode_edit == GP_SELECTMODE_SEGMENT;

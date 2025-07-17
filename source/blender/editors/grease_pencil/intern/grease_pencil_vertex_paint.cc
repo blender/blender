@@ -20,8 +20,6 @@
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 
-#include "DNA_gpencil_legacy_types.h"
-
 namespace blender::ed::greasepencil {
 
 enum class VertexColorMode : int8_t {
@@ -98,8 +96,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_brightness_contrast_exec(bCon
   const float brightness = RNA_float_get(op->ptr, "brightness");
   const float contrast = RNA_float_get(op->ptr, "contrast");
   float delta = contrast / 2.0f;
-  const bool use_selection_mask = GPENCIL_ANY_VERTEX_MASK(
-      eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
+  const bool use_selection_mask = ED_grease_pencil_any_vertex_mask_selection(scene.toolsettings);
 
   /*
    * The algorithm is by Werner D. Streidt
@@ -175,8 +172,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_hsv_exec(bContext *C, wmOpera
   const float hue = RNA_float_get(op->ptr, "h");
   const float sat = RNA_float_get(op->ptr, "s");
   const float val = RNA_float_get(op->ptr, "v");
-  const bool use_selection_mask = GPENCIL_ANY_VERTEX_MASK(
-      eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
+  const bool use_selection_mask = ED_grease_pencil_any_vertex_mask_selection(scene.toolsettings);
 
   std::atomic<bool> any_changed;
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
@@ -246,8 +242,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_invert_exec(bContext *C, wmOp
   Object &object = *CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
   const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
-  const bool use_selection_mask = GPENCIL_ANY_VERTEX_MASK(
-      eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
+  const bool use_selection_mask = ED_grease_pencil_any_vertex_mask_selection(scene.toolsettings);
 
   std::atomic<bool> any_changed;
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
@@ -302,8 +297,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_levels_exec(bContext *C, wmOp
   const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
   const float gain = RNA_float_get(op->ptr, "gain");
   const float offset = RNA_float_get(op->ptr, "offset");
-  const bool use_selection_mask = GPENCIL_ANY_VERTEX_MASK(
-      eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
+  const bool use_selection_mask = ED_grease_pencil_any_vertex_mask_selection(scene.toolsettings);
 
   std::atomic<bool> any_changed;
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
@@ -364,8 +358,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_set_exec(bContext *C, wmOpera
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
   const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
   const float factor = RNA_float_get(op->ptr, "factor");
-  const bool use_selection_mask = GPENCIL_ANY_VERTEX_MASK(
-      eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
+  const bool use_selection_mask = ED_grease_pencil_any_vertex_mask_selection(scene.toolsettings);
 
   float3 color_linear;
   srgb_to_linearrgb_v3_v3(color_linear, BKE_brush_color_get(&paint, &brush));
@@ -432,8 +425,7 @@ static wmOperatorStatus grease_pencil_vertex_paint_reset_exec(bContext *C, wmOpe
   Object &object = *CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
   const VertexColorMode mode = VertexColorMode(RNA_enum_get(op->ptr, "mode"));
-  const bool use_selection_mask = GPENCIL_ANY_VERTEX_MASK(
-      eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
+  const bool use_selection_mask = ED_grease_pencil_any_vertex_mask_selection(scene.toolsettings);
 
   std::atomic<bool> any_changed;
   Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
