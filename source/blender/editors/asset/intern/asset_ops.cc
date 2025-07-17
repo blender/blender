@@ -6,6 +6,11 @@
  * \ingroup edasset
  */
 
+#include <algorithm>
+#include <iostream>
+
+#include <fmt/format.h>
+
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
@@ -25,6 +30,10 @@
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_set.hh"
+
+#ifdef WITH_PYTHON
+#  include "BPY_extern_run.hh"
+#endif
 
 #include "ED_asset.hh"
 #include "ED_screen.hh"
@@ -1508,6 +1517,121 @@ static void ASSET_OT_screenshot_preview(wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 
+static Vector<const asset_system::AssetRepresentation *> selected_or_active_assets(
+    const bContext *C)
+{
+  Vector<PointerRNA> asset_pointers = CTX_data_collection_get(C, "selected_assets");
+
+  Vector<const asset_system::AssetRepresentation *> assets(asset_pointers.size());
+
+  std::transform(
+      asset_pointers.begin(), asset_pointers.end(), assets.begin(), [](const PointerRNA &ptr) {
+        return static_cast<asset_system::AssetRepresentation *>(ptr.data);
+      });
+
+  if (!assets.is_empty()) {
+    return assets;
+  }
+
+  if (const asset_system::AssetRepresentation *active_asset = CTX_wm_asset(C)) {
+    assets.append(active_asset);
+  }
+
+  return assets;
+}
+
+static bool assets_download_poll(bContext *C)
+{
+#ifndef WITH_PYTHON
+  UNUSED_VARS(C);
+  CTX_wm_operator_poll_msg_set(C, "Asset downloading requires Python");
+  return false;
+#endif
+
+  const Vector<const asset_system::AssetRepresentation *> assets = selected_or_active_assets(C);
+  if (assets.is_empty()) {
+    CTX_wm_operator_poll_msg_set(C, "No asset selected or active");
+    return false;
+  }
+
+  const bool has_online_asset = [&]() {
+    for (const asset_system::AssetRepresentation *asset : assets) {
+      if (asset->is_online()) {
+        return true;
+      }
+    }
+    return false;
+  }();
+
+  if (!has_online_asset) {
+    CTX_wm_operator_poll_msg_set(C, "None of the selected assets requires downloading");
+    return false;
+  }
+
+  return true;
+}
+
+static wmOperatorStatus assets_download_exec(bContext *C, wmOperator *op)
+{
+#ifdef WITH_PYTHON
+  const Vector<const asset_system::AssetRepresentation *> assets = selected_or_active_assets(C);
+
+  for (const asset_system::AssetRepresentation *asset : assets) {
+    const std::optional<StringRef> dst_filepath = asset->download_dst_filepath();
+    if (!dst_filepath) {
+      continue;
+    }
+    const asset_system::AssetLibrary &library = asset->owner_asset_library();
+    const std::optional<StringRef> library_url = library.remote_url();
+    if (!library_url) {
+      BKE_reportf(op->reports,
+                  RPT_WARNING,
+                  "Could not find asset library URL for asset '%s'",
+                  asset->get_name().c_str());
+      continue;
+    }
+
+    const StringRef library_path = library.root_path();
+
+    /* TODO move to remote_library.cc? */
+    {
+      const char *expr_imports[] = {"_bpy_internal",
+                                    "_bpy_internal.assets.remote_library_index.asset_downloader",
+                                    "pathlib",
+                                    nullptr};
+      const std::string expr = fmt::format(
+          "_bpy_internal.assets.remote_library_index.asset_downloader.download_asset('{}', "
+          "pathlib.Path('{}'), '{}', pathlib.Path('{}'))",
+          *library_url,
+          library_path,
+          *dst_filepath,
+          *dst_filepath);
+
+      BPY_run_string_exec(C, expr_imports, expr.c_str());
+    }
+  }
+
+  return OPERATOR_FINISHED;
+#else
+  UNUSED_VARS(C, op);
+  return OPERATOR_CANCELLED;
+#endif
+}
+
+static void ASSET_OT_assets_download(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Download Assets";
+  ot->description = "Download the selected asset(s)";
+  ot->idname = "ASSET_OT_assets_download";
+
+  /* API callbacks. */
+  ot->exec = assets_download_exec;
+  ot->poll = assets_download_poll;
+}
+
+/* -------------------------------------------------------------------- */
+
 void operatortypes_asset()
 {
   WM_operatortype_append(ASSET_OT_mark);
@@ -1526,6 +1650,8 @@ void operatortypes_asset()
   WM_operatortype_append(ASSET_OT_library_refresh);
 
   WM_operatortype_append(ASSET_OT_screenshot_preview);
+
+  WM_operatortype_append(ASSET_OT_assets_download);
 }
 
 }  // namespace blender::ed::asset

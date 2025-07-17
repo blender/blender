@@ -2369,13 +2369,14 @@ static FileListInternEntry *filelist_readjob_list_lib_group_create(
  * \warning: This "steals" the asset metadata from \a datablock_info. Not great design but fixing
  *           this requires redesigning things on the caller side for proper ownership management.
  */
-static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
-                                                    ListBase *entries,
-                                                    BLODataBlockInfo *datablock_info,
-                                                    const bool prefix_relpath_with_group_name,
-                                                    const int idcode,
-                                                    const char *group_name,
-                                                    const bool is_online_asset = false)
+static void filelist_readjob_list_lib_add_datablock(
+    FileListReadJob *job_params,
+    ListBase *entries,
+    BLODataBlockInfo *datablock_info,
+    const bool prefix_relpath_with_group_name,
+    const int idcode,
+    const char *group_name,
+    const std::optional<std::string> download_dst_filepath = std::nullopt)
 {
   FileListInternEntry *entry = MEM_new<FileListInternEntry>(__func__);
   if (prefix_relpath_with_group_name) {
@@ -2394,6 +2395,8 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
     }
 
     if (datablock_info->asset_data) {
+      const bool is_online_asset = download_dst_filepath.has_value();
+
       entry->typeflag |= FILE_TYPE_ASSET;
       if (is_online_asset) {
         entry->typeflag |= FILE_TYPE_ASSET_ONLINE;
@@ -2412,7 +2415,11 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
 
         entry->asset = is_online_asset ?
                            job_params->load_asset_library->add_external_online_asset(
-                               entry->relpath, datablock_info->name, idcode, std::move(metadata)) :
+                               entry->relpath,
+                               datablock_info->name,
+                               idcode,
+                               std::move(metadata),
+                               *download_dst_filepath) :
                            job_params->load_asset_library->add_external_on_disk_asset(
                                entry->relpath, datablock_info->name, idcode, std::move(metadata));
         if (job_params->on_asset_added) {
@@ -3205,8 +3212,13 @@ static void filelist_readjob_remote_asset_library_index_read(
     ListBase entries = {nullptr};
 
     BLI_strncpy(job_params->cur_relbase, entry.file_path.c_str(), sizeof(job_params->cur_relbase));
-    filelist_readjob_list_lib_add_datablock(
-        job_params, &entries, &entry.datablock_info, true, entry.idcode, group_name, true);
+    filelist_readjob_list_lib_add_datablock(job_params,
+                                            &entries,
+                                            &entry.datablock_info,
+                                            true,
+                                            entry.idcode,
+                                            group_name,
+                                            entry.file_path);
 
     int entries_num = 0;
     LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {

@@ -444,6 +444,12 @@ static int rna_AssetRepresentation_full_path_length(PointerRNA *ptr)
   return full_path.size();
 }
 
+static bool rna_AssetRepresentation_is_online_get(PointerRNA *ptr)
+{
+  const AssetRepresentation *asset = static_cast<const AssetRepresentation *>(ptr->data);
+  return asset->is_online();
+}
+
 const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
                                                           PointerRNA * /*ptr*/,
                                                           PropertyRNA * /*prop*/,
@@ -669,12 +675,17 @@ static void rna_def_asset_representation(BlenderRNA *brna)
                                 "rna_AssetRepresentation_full_path_get",
                                 "rna_AssetRepresentation_full_path_length",
                                 nullptr);
-
   RNA_def_property_ui_text(
       prop,
       "Full Path",
       "Absolute path to the .blend file containing this asset extended with the path "
       "of the asset inside the file");
+
+  prop = RNA_def_property(srna, "is_online", PROP_BOOLEAN, PROP_BOOLEAN);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_AssetRepresentation_is_online_get", nullptr);
+  RNA_def_property_ui_text(
+      prop, "Is Online", "True if this asset is accessed via internet, not stored on disk");
 }
 
 static void rna_def_asset_catalog_path(BlenderRNA *brna)

@@ -28,12 +28,27 @@ AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
                                          StringRef name,
                                          const int id_type,
                                          std::unique_ptr<AssetMetaData> metadata,
+                                         AssetLibrary &owner_asset_library)
+    : owner_asset_library_(owner_asset_library),
+      relative_identifier_(relative_asset_path),
+      asset_(AssetRepresentation::ExternalAsset{name, id_type, std::move(metadata)})
+{
+}
+
+AssetRepresentation::AssetRepresentation(StringRef relative_asset_path,
+                                         StringRef name,
+                                         const int id_type,
+                                         std::unique_ptr<AssetMetaData> metadata,
                                          AssetLibrary &owner_asset_library,
-                                         const bool is_online)
+                                         StringRef download_dst_filepath)
     : owner_asset_library_(owner_asset_library),
       relative_identifier_(relative_asset_path),
       asset_(AssetRepresentation::ExternalAsset{
-          name, id_type, std::move(metadata), nullptr, is_online})
+          name,
+          id_type,
+          std::move(metadata),
+          nullptr,
+          std::make_unique<OnlineAssetInfo>(OnlineAssetInfo{download_dst_filepath})})
 {
 }
 
@@ -75,7 +90,8 @@ void AssetRepresentation::ensure_previewable()
 
   /* Use the full path as preview name, it's the only unique identifier we have. */
   const std::string full_path = this->full_path();
-  const ThumbSource source = extern_asset.is_online_ ? THB_SOURCE_ONLINE_ASSET : THB_SOURCE_BLEND;
+  const ThumbSource source = extern_asset.online_info_ ? THB_SOURCE_ONLINE_ASSET :
+                                                         THB_SOURCE_BLEND;
   /* Doesn't do the actual reading, just allocates and attaches the derived load info. */
   extern_asset.preview_ = BKE_previewimg_cached_thumbnail_read(
       full_path.c_str(), full_path.c_str(), source, false);
@@ -143,6 +159,14 @@ std::string AssetRepresentation::full_library_path() const
   return blend_path;
 }
 
+std::optional<StringRef> AssetRepresentation::download_dst_filepath() const
+{
+  if (!this->is_online()) {
+    return {};
+  }
+  return std::get<ExternalAsset>(asset_).online_info_->download_dst_filepath_;
+}
+
 std::optional<eAssetImportMethod> AssetRepresentation::get_import_method() const
 {
   return owner_asset_library_.import_method_;
@@ -174,7 +198,7 @@ bool AssetRepresentation::is_local_id() const
 bool AssetRepresentation::is_online() const
 {
   if (const ExternalAsset *extern_asset = std::get_if<ExternalAsset>(&asset_)) {
-    return extern_asset->is_online_;
+    return extern_asset->online_info_ != nullptr;
   }
   return false;
 }

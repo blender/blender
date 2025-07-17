@@ -41,12 +41,21 @@ class AssetRepresentation : NonCopyable, NonMovable {
    */
   std::string relative_identifier_;
 
+  /** Information specific to online assets. */
+  struct OnlineAssetInfo {
+    /** The path this file should be downloaded to. Usually relative, but isn't required to. The
+     * downloader accepts both cases, see #download_asset() in Python. */
+    std::string download_dst_filepath_;
+  };
+
   struct ExternalAsset {
     std::string name;
     int id_type = 0;
     std::unique_ptr<AssetMetaData> metadata_ = nullptr;
     PreviewImage *preview_ = nullptr;
-    bool is_online_;
+
+    /** Set if this is an online asset only. */
+    std::unique_ptr<OnlineAssetInfo> online_info_ = nullptr;
   };
   std::variant<ExternalAsset, ID *> asset_;
 
@@ -54,16 +63,29 @@ class AssetRepresentation : NonCopyable, NonMovable {
 
  public:
   /**
-   * Constructs an asset representation for an external ID. The asset will not be editable.
-   * \param is_online: The asset is stored online, not on disk. Previews will use specialized
-   * handling see #THB_SOURCE_ONLINE_ASSET.
+   * Constructs an asset representation for an external ID stored on disk. The asset will not be
+   * editable.
+   *
+   * For online assets, use the version with #download_dst_filepath below.
+   */
+  AssetRepresentation(StringRef relative_asset_path,
+                      StringRef name,
+                      int id_type,
+                      std::unique_ptr<AssetMetaData> metadata,
+                      AssetLibrary &owner_asset_library);
+  /**
+   * Constructs an asset representation for an external ID stored online (requiring download).
+   *
+   * Previews will use specialized handling see #THB_SOURCE_ONLINE_ASSET.
+   *
+   * \param download_dst_filepath: See #download_dst_filepath() getter.
    */
   AssetRepresentation(StringRef relative_asset_path,
                       StringRef name,
                       int id_type,
                       std::unique_ptr<AssetMetaData> metadata,
                       AssetLibrary &owner_asset_library,
-                      bool is_online);
+                      StringRef download_dst_filepath);
   /**
    * Constructs an asset representation for an ID stored in the current file. This makes the asset
    * local and fully editable.
@@ -102,6 +124,15 @@ class AssetRepresentation : NonCopyable, NonMovable {
   StringRefNull library_relative_identifier() const;
   std::string full_path() const;
   std::string full_library_path() const;
+
+  /**
+   * For online assets (see #is_online()), the path this file should be downloaded to when
+   * requested. Usually relative, but isn't required to. The downloader accepts both cases, see
+   * #download_asset() in Python.
+   *
+   * Will return an empty value if this is not an online asset.
+   */
+  std::optional<StringRef> download_dst_filepath() const;
 
   /**
    * Get the import method to use for this asset. A different one may be used if
