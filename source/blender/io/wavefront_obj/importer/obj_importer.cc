@@ -22,6 +22,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 #include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 
 #include "DEG_depsgraph_build.hh"
@@ -97,6 +98,9 @@ static void geometry_to_blender_geometry_set(const OBJImportParams &import_param
       Curve *curve = curve_ob_from_geometry.create_curve(import_params);
       Curves *curves_id = bke::curve_legacy_to_curves(*curve);
       geometry_set = bke::GeometrySet::from_curves(curves_id);
+
+      /* Free temporary legacy curve object. */
+      BKE_id_free(nullptr, curve);
     }
 
     geometry_set.name = geometry->geometry_name_;

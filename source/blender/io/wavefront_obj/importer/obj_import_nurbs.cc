@@ -27,9 +27,8 @@ Curve *blender::io::obj::CurveFromGeometry::create_curve(const OBJImportParams &
 {
   BLI_assert(!curve_geometry_.nurbs_element_.curv_indices.is_empty());
 
+  /* Use of #BKE_id_new_nomain<Curve>(nullptr) limits use for the Curve, see #BKE_curve_add. */
   Curve *curve = BKE_id_new_nomain<Curve>(nullptr);
-
-  BKE_curve_init(curve, OB_CURVES_LEGACY);
 
   curve->flag = CU_3D;
   curve->resolu = curve->resolv = 12;
