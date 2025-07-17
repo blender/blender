@@ -3789,6 +3789,7 @@ blender::bke::greasepencil::Layer &GreasePencil::duplicate_layer(
     bke::GSpanAttributeWriter attr = attributes.lookup_for_write_span(iter.name);
     GMutableSpan span = attr.span;
     span.type().copy_assign(span[*duplicate_layer_idx], span[numLayers]);
+    attr.finish();
   });
 
   this->update_drawing_users_for_layer(*new_layer);
