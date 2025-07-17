@@ -72,6 +72,11 @@ bool PDFExporter::export_scene(Scene &scene, StringRefNull filepath)
     case ExportParams::FrameMode::Selected: {
       case ExportParams::FrameMode::Scene:
         const bool only_selected = (params_.frame_mode == ExportParams::FrameMode::Selected);
+        if (only_selected && ob_eval.type != OB_GREASE_PENCIL) {
+          /* For exporting "Selected Frames", the active object is required to be a grease pencil
+           * object, from which we will read selected frames from. */
+          break;
+        }
         const int orig_frame = scene.r.cfra;
         for (int frame_number = scene.r.sfra; frame_number <= scene.r.efra; frame_number++) {
           GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_eval.data);
