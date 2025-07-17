@@ -221,6 +221,7 @@ void import_skeleton_curves(Main *bmain,
   }
 
   /* Set the curve samples. */
+  blender::Array<pxr::GfQuatf> prev_rot(joint_order.size());
   uint bezt_index = 0;
   for (const double frame : samples) {
     pxr::VtMatrix4dArray joint_local_xforms;
@@ -250,6 +251,17 @@ void import_skeleton_curves(Main *bmain,
         CLOG_WARN(&LOG, "Error decomposing matrix on frame %f", frame);
         continue;
       }
+
+      if (bezt_index > 0) {
+        /* Quaternion "neighborhood" check to prevent most cases of discontinuous rotations.
+         * Note: An alternate method, comparing to the rotation of the rest position rather than
+         * to the previous rotation, was attempted but yielded much worse results for joints
+         * representing objects that are supposed to spin, like wheels and propellers. */
+        if (pxr::GfDot(prev_rot[i], qrot) < 0.0f) {
+          qrot = -qrot;
+        }
+      }
+      prev_rot[i] = qrot;
 
       const float re = qrot.GetReal();
       const pxr::GfVec3f &im = qrot.GetImaginary();
