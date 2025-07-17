@@ -82,7 +82,7 @@ struct MResolvePixelData {
   const bool *sharp_faces;
 
   float uv_offset[2];
-  float *pvtangent;
+  blender::Span<blender::float4> pvtangent;
   int w, h;
   int tri_index;
 
@@ -162,7 +162,6 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
   const float st[2] = {(x + 0.5f) / data->w + data->uv_offset[0],
                        (y + 0.5f) / data->h + data->uv_offset[1]};
   const float *st0, *st1, *st2;
-  const float *tang0, *tang1, *tang2;
   float no0[3], no1[3], no2[3];
   float fUV[2], from_tang[3][3], to_tang[3][3];
   float u, v, w, sign;
@@ -182,10 +181,10 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
   v = fUV[1];
   w = 1 - u - v;
 
-  if (data->pvtangent) {
-    tang0 = data->pvtangent + data->corner_tris[data->tri_index][0] * 4;
-    tang1 = data->pvtangent + data->corner_tris[data->tri_index][1] * 4;
-    tang2 = data->pvtangent + data->corner_tris[data->tri_index][2] * 4;
+  if (!data->pvtangent.is_empty()) {
+    const blender::float4 &tang0 = data->pvtangent[data->corner_tris[data->tri_index][0]];
+    const blender::float4 &tang1 = data->pvtangent[data->corner_tris[data->tri_index][1]];
+    const blender::float4 &tang2 = data->pvtangent[data->corner_tris[data->tri_index][2]];
 
     /* the sign is the same at all face vertices for any non degenerate face.
      * Just in case we clamp the interpolated value though. */
@@ -596,7 +595,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
         CustomData_get_layer_named(&dm->polyData, CD_PROP_BOOL, "sharp_face"));
     handle->data.uv_map = uv_map;
     BKE_image_get_tile_uv(ima, tile->tile_number, handle->data.uv_offset);
-    handle->data.pvtangent = reinterpret_cast<float *>(pvtangent.data());
+    handle->data.pvtangent = pvtangent;
     handle->data.w = ibuf->x;
     handle->data.h = ibuf->y;
     handle->data.hires_dm = bkr->hires_dm;
