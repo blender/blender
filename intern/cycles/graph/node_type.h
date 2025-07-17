@@ -9,6 +9,7 @@
 #include "util/array.h"  // IWYU pragma: keep
 #include "util/map.h"
 #include "util/param.h"
+#include "util/thread.h"
 #include "util/unique_ptr.h"
 #include "util/vector.h"
 
@@ -144,17 +145,25 @@ struct NodeType {
   static const NodeType *get_node_type(); \
   template<typename T> static const NodeType *register_type(); \
   static unique_ptr<Node> create(const NodeType *type); \
-  static const NodeType *node_type;
+  static const NodeType *node_type_; \
+  static thread_mutex node_type_mutex_;
 
 #define NODE_DEFINE(structname) \
-  const NodeType *structname::node_type = structname::register_type<structname>(); \
+  const NodeType *structname::node_type_ = nullptr; \
+  thread_mutex structname::node_type_mutex_; \
   unique_ptr<Node> structname::create(const NodeType *) \
   { \
     return make_unique<structname>(); \
   } \
   const NodeType *structname::get_node_type() \
   { \
-    return node_type; \
+    if (node_type_ == nullptr) { \
+      thread_scoped_lock lock(node_type_mutex_); \
+      if (node_type_ == nullptr) { \
+        node_type_ = structname::register_type<structname>(); \
+      } \
+    } \
+    return node_type_; \
   } \
   template<typename T> const NodeType *structname::register_type()
 

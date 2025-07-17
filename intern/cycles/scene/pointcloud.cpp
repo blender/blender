@@ -89,7 +89,7 @@ NODE_DEFINE(PointCloud)
   return type;
 }
 
-PointCloud::PointCloud() : Geometry(node_type, Geometry::POINTCLOUD) {}
+PointCloud::PointCloud() : Geometry(get_node_type(), Geometry::POINTCLOUD) {}
 
 PointCloud::~PointCloud() = default;
 
