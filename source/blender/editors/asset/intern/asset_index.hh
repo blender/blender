@@ -10,6 +10,8 @@
 
 #include "ED_asset_indexer.hh"
 
+#include <memory>
+
 struct AssetMetaData;
 namespace blender {
 class StringRefNull;
