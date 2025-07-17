@@ -26,7 +26,9 @@ NODE_STORAGE_FUNCS(NodeGeometryMeshToPoints)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
+  b.add_input<decl::Geometry>("Mesh")
+      .supported_type(GeometryComponent::Type::Mesh)
+      .description("Mesh whose elements are converted to points");
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
   b.add_input<decl::Vector>("Position").implicit_field_on_all(NODE_DEFAULT_INPUT_POSITION_FIELD);
   b.add_input<decl::Float>("Radius")
@@ -152,7 +154,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       __func__,
       [](float value) { return std::max(0.0f, value); },
       mf::build::exec_presets::AllSpanOrSingle());
-  const Field<float> positive_radius(FieldOperation::Create(max_zero_fn, {std::move(radius)}), 0);
+  const Field<float> positive_radius(FieldOperation::from(max_zero_fn, {std::move(radius)}), 0);
 
   const NodeGeometryMeshToPoints &storage = node_storage(params.node());
   const GeometryNodeMeshToPointsMode mode = (GeometryNodeMeshToPointsMode)storage.mode;

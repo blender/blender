@@ -34,7 +34,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Volume")
       .supported_type(GeometryComponent::Type::Volume)
-      .translation_context(BLT_I18NCONTEXT_ID_ID);
+      .translation_context(BLT_I18NCONTEXT_ID_ID)
+      .description("Volume with fog grids that points are scattered in");
   auto &density = b.add_input<decl::Float>("Density")
                       .default_value(1.0f)
                       .min(0.0f)

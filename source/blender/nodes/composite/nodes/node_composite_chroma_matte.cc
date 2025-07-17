@@ -148,6 +148,7 @@ static void register_node_type_cmp_chroma_matte()
   ntype.flag |= NODE_PREVIEW;
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
+  blender::bke::node_type_size(ntype, 155, 140, NODE_DEFAULT_MAX_WIDTH);
 
   blender::bke::node_register_type(ntype);
 }

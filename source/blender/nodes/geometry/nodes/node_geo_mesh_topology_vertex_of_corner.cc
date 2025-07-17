@@ -32,7 +32,7 @@ class CornerVertFieldInput final : public bke::MeshFieldInput {
     if (domain != AttrDomain::Corner) {
       return {};
     }
-    return VArray<int>::ForSpan(mesh.corner_verts());
+    return VArray<int>::from_span(mesh.corner_verts());
   }
 
   uint64_t hash() const final

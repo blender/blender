@@ -13,7 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Field<float3> position_field{AttributeFieldInput::Create<float3>("position")};
+  Field<float3> position_field{AttributeFieldInput::from<float3>("position")};
   params.set_output("Position", std::move(position_field));
 }
 

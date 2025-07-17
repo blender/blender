@@ -779,8 +779,8 @@ template<typename T> class VMutableArray;
 
 /**
  * Various tags to disambiguate constructors of virtual arrays.
- * Generally it is easier to use `VArray::For*` functions to construct virtual arrays, but
- * sometimes being able to use the constructor can result in better performance For example, when
+ * Generally it is easier to use `VArray::from_*` functions to construct virtual arrays, but
+ * sometimes being able to use the constructor can result in better performance. For example, when
  * constructing the virtual array directly in a vector. Without the constructor one would have to
  * construct the virtual array first and then move it into the vector.
  */
@@ -820,7 +820,7 @@ template<typename T> class VArray : public VArrayCommon<T> {
   /**
    * Construct a new virtual array for a custom #VArrayImpl.
    */
-  template<typename ImplT, typename... Args> static VArray For(Args &&...args)
+  template<typename ImplT, typename... Args> static VArray from(Args &&...args)
   {
     static_assert(std::is_base_of_v<VArrayImpl<T>, ImplT>);
     VArray varray;
@@ -831,7 +831,7 @@ template<typename T> class VArray : public VArrayCommon<T> {
   /**
    * Construct a new virtual array that has the same value at every index.
    */
-  static VArray ForSingle(T value, const int64_t size)
+  static VArray from_single(T value, const int64_t size)
   {
     return VArray(varray_tag::single{}, std::move(value), size);
   }
@@ -840,7 +840,7 @@ template<typename T> class VArray : public VArrayCommon<T> {
    * Construct a new virtual array for an existing span. This does not take ownership of the
    * underlying memory.
    */
-  static VArray ForSpan(Span<T> values)
+  static VArray from_span(Span<T> values)
   {
     return VArray(varray_tag::span{}, values);
   }
@@ -849,9 +849,9 @@ template<typename T> class VArray : public VArrayCommon<T> {
    * Construct a new virtual that will invoke the provided function whenever an element is
    * accessed.
    */
-  template<typename GetFunc> static VArray ForFunc(const int64_t size, GetFunc get_func)
+  template<typename GetFunc> static VArray from_func(const int64_t size, GetFunc get_func)
   {
-    return VArray::For<VArrayImpl_For_Func<T, decltype(get_func)>>(size, std::move(get_func));
+    return VArray::from<VArrayImpl_For_Func<T, decltype(get_func)>>(size, std::move(get_func));
   }
 
   /**
@@ -859,22 +859,22 @@ template<typename T> class VArray : public VArrayCommon<T> {
    * ownership of the span.
    */
   template<typename StructT, T (*GetFunc)(const StructT &)>
-  static VArray ForDerivedSpan(Span<StructT> values)
+  static VArray from_derived_span(Span<StructT> values)
   {
     /* Cast const away, because the virtual array implementation for const and non const derived
      * spans is shared. */
     MutableSpan<StructT> span{const_cast<StructT *>(values.data()), values.size()};
-    return VArray::For<VArrayImpl_For_DerivedSpan<StructT, T, GetFunc>>(span);
+    return VArray::from<VArrayImpl_For_DerivedSpan<StructT, T, GetFunc>>(span);
   }
 
   /**
    * Construct a new virtual array for an existing container. Every container that lays out the
    * elements in a plain array works. This takes ownership of the passed in container. If that is
-   * not desired, use #ForSpan instead.
+   * not desired, use #from_span instead.
    */
-  template<typename ContainerT> static VArray ForContainer(ContainerT container)
+  template<typename ContainerT> static VArray from_container(ContainerT container)
   {
-    return VArray::For<VArrayImpl_For_ArrayContainer<ContainerT>>(std::move(container));
+    return VArray::from<VArrayImpl_For_ArrayContainer<ContainerT>>(std::move(container));
   }
 
   VArray &operator=(const VArray &other)
@@ -909,7 +909,7 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   /**
    * Construct a new virtual array for a custom #VMutableArrayImpl.
    */
-  template<typename ImplT, typename... Args> static VMutableArray For(Args &&...args)
+  template<typename ImplT, typename... Args> static VMutableArray from(Args &&...args)
   {
     static_assert(std::is_base_of_v<VMutableArrayImpl<T>, ImplT>);
     VMutableArray varray;
@@ -920,9 +920,9 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   /**
    * Construct a new virtual array for an existing span. This does not take ownership of the span.
    */
-  static VMutableArray ForSpan(MutableSpan<T> values)
+  static VMutableArray from_span(MutableSpan<T> values)
   {
-    return VMutableArray::For<VArrayImpl_For_Span_final<T>>(values);
+    return VMutableArray::from<VArrayImpl_For_Span_final<T>>(values);
   }
 
   /**
@@ -930,19 +930,19 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
    * ownership of the span.
    */
   template<typename StructT, T (*GetFunc)(const StructT &), void (*SetFunc)(StructT &, T)>
-  static VMutableArray ForDerivedSpan(MutableSpan<StructT> values)
+  static VMutableArray from_derived_span(MutableSpan<StructT> values)
   {
-    return VMutableArray::For<VArrayImpl_For_DerivedSpan<StructT, T, GetFunc, SetFunc>>(values);
+    return VMutableArray::from<VArrayImpl_For_DerivedSpan<StructT, T, GetFunc, SetFunc>>(values);
   }
 
   /**
    * Construct a new virtual array for an existing container. Every container that lays out the
    * elements in a plain array works. This takes ownership of the passed in container. If that is
-   * not desired, use #ForSpan instead.
+   * not desired, use #from_span instead.
    */
-  template<typename ContainerT> static VMutableArray ForContainer(ContainerT container)
+  template<typename ContainerT> static VMutableArray from_container(ContainerT container)
   {
-    return VMutableArray::For<VArrayImpl_For_ArrayContainer<ContainerT>>(std::move(container));
+    return VMutableArray::from<VArrayImpl_For_ArrayContainer<ContainerT>>(std::move(container));
   }
 
   /** Convert to a #VArray by copying. */

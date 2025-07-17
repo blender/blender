@@ -25,7 +25,8 @@ static void node_declare(NodeDeclarationBuilder &b)
                        GeometryComponent::Type::PointCloud,
                        GeometryComponent::Type::Curve,
                        GeometryComponent::Type::Instance,
-                       GeometryComponent::Type::GreasePencil});
+                       GeometryComponent::Type::GreasePencil})
+      .description("Geometry to sample a value on");
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
     b.add_input(data_type, "Value").hide_value().field_on_all();
@@ -207,7 +208,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     /* If the index is a field, the output has to be a field that still depends on the input. */
     auto fn = std::make_shared<SampleIndexFunction>(
         std::move(geometry), std::move(value_field), domain, use_clamp);
-    auto op = FieldOperation::Create(std::move(fn), {index_value_variant.extract<Field<int>>()});
+    auto op = FieldOperation::from(std::move(fn), {index_value_variant.extract<Field<int>>()});
     params.set_output("Value", GField(std::move(op)));
   }
   else if (const GeometryComponent *component = find_source_component(geometry, domain)) {

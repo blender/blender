@@ -122,7 +122,7 @@ static wmOperatorStatus set_persistent_base_exec(bContext *C, wmOperator * /*op*
       const Span<float3> vert_normals = bke::pbvh::vert_normals_eval(*depsgraph, ob);
       attributes.add<float3>(".sculpt_persistent_no",
                              bke::AttrDomain::Point,
-                             bke::AttributeInitVArray(VArray<float3>::ForSpan(vert_normals)));
+                             bke::AttributeInitVArray(VArray<float3>::from_span(vert_normals)));
       break;
     }
     case bke::pbvh::Type::Grids: {

@@ -12,9 +12,6 @@
 
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
-#include "BLI_task.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
@@ -26,11 +23,14 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+using blender::Array;
 using blender::float2;
 using blender::float3;
+using blender::float4;
 using blender::int3;
 using blender::OffsetIndices;
 using blender::Span;
+using blender::StringRef;
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Tangent Calculations (Single Layer)
@@ -160,6 +160,8 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
 /* Necessary complexity to handle corner_tris as quads for correct tangents. */
 #define USE_TRI_DETECT_QUADS
 
+namespace blender::bke::mesh {
+
 struct SGLSLMeshToTangent {
   uint GetNumFaces()
   {
@@ -288,14 +290,14 @@ struct SGLSLMeshToTangent {
 
   bool has_uv() const
   {
-    return mloopuv != nullptr;
+    return !mloopuv.is_empty();
   }
 
   Span<float3> face_normals;
   Span<float3> corner_normals;
   const int3 *corner_tris;
   const int *tri_faces;
-  const float2 *mloopuv; /* texture coordinates */
+  Span<float2> mloopuv; /* texture coordinates */
   OffsetIndices<int> faces;
   const int *corner_verts; /* indices */
   Span<float3> positions;  /* vertex coordinates */
@@ -313,313 +315,138 @@ struct SGLSLMeshToTangent {
 #endif
 };
 
-static void DM_calc_loop_tangents_thread(TaskPool *__restrict /*pool*/, void *taskdata)
+static void calc_face_as_quad_map(const OffsetIndices<int> &faces,
+                                  const Span<int3> &corner_tris,
+                                  const Span<int> &corner_tri_faces,
+                                  int &num_face_as_quad_map,
+                                  int *&face_as_quad_map)
 {
-  SGLSLMeshToTangent *mesh_data = static_cast<SGLSLMeshToTangent *>(taskdata);
+#ifdef USE_TRI_DETECT_QUADS
+  if (corner_tris.size() != faces.size()) {
+    /* Over allocate, since we don't know how many ngon or quads we have. */
 
-  mikk::Mikktspace<SGLSLMeshToTangent> mikk(*mesh_data);
+    /* Map fake face index to corner_tris. */
+    face_as_quad_map = MEM_malloc_arrayN<int>(size_t(corner_tris.size()), __func__);
+    int k, j;
+    for (k = 0, j = 0; j < int(corner_tris.size()); k++, j++) {
+      face_as_quad_map[k] = j;
+      /* step over all quads */
+      if (faces[corner_tri_faces[j]].size() == 4) {
+        j++; /* Skips the next corner_tri. */
+      }
+    }
+    num_face_as_quad_map = k;
+  }
+  else {
+    num_face_as_quad_map = int(corner_tris.size());
+  }
+#else
+  num_face_as_quad_map = 0;
+  face_as_quad_map = nullptr;
+#endif
+}
+
+Array<Array<float4>> calc_uv_tangents(const Span<float3> vert_positions,
+                                      const OffsetIndices<int> faces,
+                                      const Span<int> corner_verts,
+                                      const Span<int3> corner_tris,
+                                      const Span<int> corner_tri_faces,
+                                      const Span<bool> sharp_faces,
+                                      const Span<float3> vert_normals,
+                                      const Span<float3> face_normals,
+                                      const Span<float3> corner_normals,
+                                      const Span<Span<float2>> uv_maps)
+{
+  if (corner_tris.is_empty()) {
+    return {};
+  }
+
+  int num_face_as_quad_map;
+  int *face_as_quad_map = nullptr;
+  calc_face_as_quad_map(
+      faces, corner_tris, corner_tri_faces, num_face_as_quad_map, face_as_quad_map);
+
+  Array<Array<float4>> results(uv_maps.size());
+  threading::parallel_for(uv_maps.index_range(), 1, [&](const IndexRange range) {
+    for (const int64_t i : range) {
+      SGLSLMeshToTangent mesh2tangent{};
+      mesh2tangent.numTessFaces = int(corner_tris.size());
+      mesh2tangent.face_as_quad_map = face_as_quad_map;
+      mesh2tangent.num_face_as_quad_map = num_face_as_quad_map;
+      mesh2tangent.positions = vert_positions;
+      mesh2tangent.vert_normals = vert_normals;
+      mesh2tangent.faces = faces;
+      mesh2tangent.corner_verts = corner_verts.data();
+      mesh2tangent.corner_tris = corner_tris.data();
+      mesh2tangent.tri_faces = corner_tri_faces.data();
+      mesh2tangent.sharp_faces = sharp_faces;
+      /* NOTE: we assume we do have tessellated loop normals at this point
+       * (in case it is object-enabled), have to check this is valid. */
+      mesh2tangent.corner_normals = corner_normals;
+      mesh2tangent.face_normals = face_normals;
+      mesh2tangent.mloopuv = uv_maps[i];
+
+      results[i].reinitialize(corner_verts.size());
+      mesh2tangent.tangent = reinterpret_cast<float(*)[4]>(results[i].data());
+
+      mikk::Mikktspace<SGLSLMeshToTangent> mikk(mesh2tangent);
+      mikk.genTangSpace();
+    }
+  });
+
+  MEM_SAFE_FREE(face_as_quad_map);
+
+  return results;
+}
+
+Array<float4> calc_orco_tangents(const Span<float3> vert_positions,
+                                 const OffsetIndices<int> faces,
+                                 const Span<int> corner_verts,
+                                 const Span<int3> corner_tris,
+                                 const Span<int> corner_tri_faces,
+                                 const Span<bool> sharp_faces,
+                                 const Span<float3> vert_normals,
+                                 const Span<float3> face_normals,
+                                 const Span<float3> corner_normals,
+                                 const Span<float3> vert_orco)
+{
+  if (corner_tris.is_empty()) {
+    return {};
+  }
+
+  int num_face_as_quad_map;
+  int *face_as_quad_map = nullptr;
+  calc_face_as_quad_map(
+      faces, corner_tris, corner_tri_faces, num_face_as_quad_map, face_as_quad_map);
+
+  Array<float4> results(corner_verts.size());
+  SGLSLMeshToTangent mesh2tangent{};
+  mesh2tangent.numTessFaces = int(corner_tris.size());
+  mesh2tangent.face_as_quad_map = face_as_quad_map;
+  mesh2tangent.num_face_as_quad_map = num_face_as_quad_map;
+  mesh2tangent.positions = vert_positions;
+  mesh2tangent.vert_normals = vert_normals;
+  mesh2tangent.faces = faces;
+  mesh2tangent.corner_verts = corner_verts.data();
+  mesh2tangent.corner_tris = corner_tris.data();
+  mesh2tangent.tri_faces = corner_tri_faces.data();
+  mesh2tangent.sharp_faces = sharp_faces;
+  /* NOTE: we assume we do have tessellated loop normals at this point
+   * (in case it is object-enabled), have to check this is valid. */
+  mesh2tangent.corner_normals = corner_normals;
+  mesh2tangent.face_normals = face_normals;
+  mesh2tangent.orco = vert_orco;
+
+  mesh2tangent.tangent = reinterpret_cast<float(*)[4]>(results.data());
+
+  mikk::Mikktspace<SGLSLMeshToTangent> mikk(mesh2tangent);
   mikk.genTangSpace();
+
+  MEM_SAFE_FREE(face_as_quad_map);
+
+  return results;
 }
 
-void BKE_mesh_add_loop_tangent_named_layer_for_uv(const CustomData *uv_data,
-                                                  CustomData *tan_data,
-                                                  int numLoopData,
-                                                  const char *layer_name)
-{
-  if (CustomData_get_named_layer_index(tan_data, CD_TANGENT, layer_name) == -1 &&
-      CustomData_get_named_layer_index(uv_data, CD_PROP_FLOAT2, layer_name) != -1)
-  {
-    CustomData_add_layer_named(tan_data, CD_TANGENT, CD_SET_DEFAULT, numLoopData, layer_name);
-  }
-}
-
-void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
-                                       bool calc_active_tangent,
-                                       const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
-                                       int tangent_names_count,
-                                       bool *rcalc_act,
-                                       bool *rcalc_ren,
-                                       int *ract_uv_n,
-                                       int *rren_uv_n,
-                                       char *ract_uv_name,
-                                       char *rren_uv_name,
-                                       short *rtangent_mask)
-{
-  /* Active uv in viewport */
-  int layer_index = CustomData_get_layer_index(loopData, CD_PROP_FLOAT2);
-  *ract_uv_n = CustomData_get_active_layer(loopData, CD_PROP_FLOAT2);
-  ract_uv_name[0] = 0;
-  if (*ract_uv_n != -1) {
-    BLI_strncpy(
-        ract_uv_name, loopData->layers[*ract_uv_n + layer_index].name, MAX_CUSTOMDATA_LAYER_NAME);
-  }
-
-  /* Active tangent in render */
-  *rren_uv_n = CustomData_get_render_layer(loopData, CD_PROP_FLOAT2);
-  rren_uv_name[0] = 0;
-  if (*rren_uv_n != -1) {
-    BLI_strncpy(
-        rren_uv_name, loopData->layers[*rren_uv_n + layer_index].name, MAX_CUSTOMDATA_LAYER_NAME);
-  }
-
-  /* If active tangent not in tangent_names we take it into account */
-  *rcalc_act = false;
-  *rcalc_ren = false;
-  for (int i = 0; i < tangent_names_count; i++) {
-    if (tangent_names[i][0] == 0) {
-      calc_active_tangent = true;
-    }
-  }
-  if (calc_active_tangent) {
-    *rcalc_act = true;
-    *rcalc_ren = true;
-    for (int i = 0; i < tangent_names_count; i++) {
-      if (STREQ(ract_uv_name, tangent_names[i])) {
-        *rcalc_act = false;
-      }
-      if (STREQ(rren_uv_name, tangent_names[i])) {
-        *rcalc_ren = false;
-      }
-    }
-  }
-  *rtangent_mask = 0;
-
-  const int uv_layer_num = CustomData_number_of_layers(loopData, CD_PROP_FLOAT2);
-  for (int n = 0; n < uv_layer_num; n++) {
-    const char *name = CustomData_get_layer_name(loopData, CD_PROP_FLOAT2, n);
-    bool add = false;
-    for (int i = 0; i < tangent_names_count; i++) {
-      if (tangent_names[i][0] && STREQ(tangent_names[i], name)) {
-        add = true;
-        break;
-      }
-    }
-    if (!add && ((*rcalc_act && ract_uv_name[0] && STREQ(ract_uv_name, name)) ||
-                 (*rcalc_ren && rren_uv_name[0] && STREQ(rren_uv_name, name))))
-    {
-      add = true;
-    }
-    if (add) {
-      *rtangent_mask |= short(1 << n);
-    }
-  }
-
-  if (uv_layer_num == 0) {
-    *rtangent_mask |= DM_TANGENT_MASK_ORCO;
-  }
-}
-
-void BKE_mesh_calc_loop_tangent_ex(const Span<float3> vert_positions,
-                                   const OffsetIndices<int> faces,
-                                   const Span<int> corner_verts,
-                                   const Span<int3> corner_tris,
-                                   const Span<int> corner_tri_faces,
-                                   const Span<bool> sharp_faces,
-                                   const CustomData *loopdata,
-                                   bool calc_active_tangent,
-                                   const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
-                                   int tangent_names_len,
-                                   const Span<float3> vert_normals,
-                                   const Span<float3> face_normals,
-                                   const Span<float3> corner_normals,
-                                   const Span<float3> vert_orco,
-                                   /* result */
-                                   CustomData *loopdata_out,
-                                   const uint loopdata_out_len,
-                                   short *tangent_mask_curr_p)
-{
-  int act_uv_n = -1;
-  int ren_uv_n = -1;
-  bool calc_act = false;
-  bool calc_ren = false;
-  char act_uv_name[MAX_CUSTOMDATA_LAYER_NAME];
-  char ren_uv_name[MAX_CUSTOMDATA_LAYER_NAME];
-  short tangent_mask = 0;
-  short tangent_mask_curr = *tangent_mask_curr_p;
-
-  BKE_mesh_calc_loop_tangent_step_0(loopdata,
-                                    calc_active_tangent,
-                                    tangent_names,
-                                    tangent_names_len,
-                                    &calc_act,
-                                    &calc_ren,
-                                    &act_uv_n,
-                                    &ren_uv_n,
-                                    act_uv_name,
-                                    ren_uv_name,
-                                    &tangent_mask);
-  if ((tangent_mask_curr | tangent_mask) != tangent_mask_curr) {
-    /* Check we have all the needed layers */
-    /* Allocate needed tangent layers */
-    for (int i = 0; i < tangent_names_len; i++) {
-      if (tangent_names[i][0]) {
-        BKE_mesh_add_loop_tangent_named_layer_for_uv(
-            loopdata, loopdata_out, int(loopdata_out_len), tangent_names[i]);
-      }
-    }
-    if ((tangent_mask & DM_TANGENT_MASK_ORCO) &&
-        CustomData_get_named_layer_index(loopdata, CD_TANGENT, "") == -1)
-    {
-      CustomData_add_layer_named(
-          loopdata_out, CD_TANGENT, CD_SET_DEFAULT, int(loopdata_out_len), "");
-    }
-    if (calc_act && act_uv_name[0]) {
-      BKE_mesh_add_loop_tangent_named_layer_for_uv(
-          loopdata, loopdata_out, int(loopdata_out_len), act_uv_name);
-    }
-    if (calc_ren && ren_uv_name[0]) {
-      BKE_mesh_add_loop_tangent_named_layer_for_uv(
-          loopdata, loopdata_out, int(loopdata_out_len), ren_uv_name);
-    }
-
-#ifdef USE_TRI_DETECT_QUADS
-    int num_face_as_quad_map;
-    int *face_as_quad_map = nullptr;
-
-    /* map faces to quads */
-    if (corner_tris.size() != faces.size()) {
-      /* Over allocate, since we don't know how many ngon or quads we have. */
-
-      /* Map fake face index to corner_tris. */
-      face_as_quad_map = MEM_malloc_arrayN<int>(size_t(corner_tris.size()), __func__);
-      int k, j;
-      for (k = 0, j = 0; j < int(corner_tris.size()); k++, j++) {
-        face_as_quad_map[k] = j;
-        /* step over all quads */
-        if (faces[corner_tri_faces[j]].size() == 4) {
-          j++; /* Skips the next corner_tri. */
-        }
-      }
-      num_face_as_quad_map = k;
-    }
-    else {
-      num_face_as_quad_map = int(corner_tris.size());
-    }
-#endif
-
-    /* Calculation */
-    if (corner_tris.size() != 0) {
-      TaskPool *task_pool = BLI_task_pool_create(nullptr, TASK_PRIORITY_HIGH);
-
-      tangent_mask_curr = 0;
-      /* Calculate tangent layers */
-      SGLSLMeshToTangent data_array[MAX_MTFACE];
-      const int tangent_layer_num = CustomData_number_of_layers(loopdata_out, CD_TANGENT);
-      for (int n = 0; n < tangent_layer_num; n++) {
-        int index = CustomData_get_layer_index_n(loopdata_out, CD_TANGENT, n);
-        BLI_assert(n < MAX_MTFACE);
-        SGLSLMeshToTangent *mesh2tangent = &data_array[n];
-        mesh2tangent->numTessFaces = int(corner_tris.size());
-#ifdef USE_TRI_DETECT_QUADS
-        mesh2tangent->face_as_quad_map = face_as_quad_map;
-        mesh2tangent->num_face_as_quad_map = num_face_as_quad_map;
-#endif
-        mesh2tangent->positions = vert_positions;
-        mesh2tangent->vert_normals = vert_normals;
-        mesh2tangent->faces = faces;
-        mesh2tangent->corner_verts = corner_verts.data();
-        mesh2tangent->corner_tris = corner_tris.data();
-        mesh2tangent->tri_faces = corner_tri_faces.data();
-        mesh2tangent->sharp_faces = sharp_faces;
-        /* NOTE: we assume we do have tessellated loop normals at this point
-         * (in case it is object-enabled), have to check this is valid. */
-        mesh2tangent->corner_normals = corner_normals;
-        mesh2tangent->face_normals = face_normals;
-
-        mesh2tangent->orco = {};
-        mesh2tangent->mloopuv = static_cast<const float2 *>(CustomData_get_layer_named(
-            loopdata, CD_PROP_FLOAT2, loopdata_out->layers[index].name));
-
-        /* Fill the resulting tangent_mask */
-        if (!mesh2tangent->mloopuv) {
-          mesh2tangent->orco = vert_orco;
-          if (mesh2tangent->orco.is_empty()) {
-            continue;
-          }
-
-          tangent_mask_curr |= DM_TANGENT_MASK_ORCO;
-        }
-        else {
-          int uv_ind = CustomData_get_named_layer_index(
-              loopdata, CD_PROP_FLOAT2, loopdata_out->layers[index].name);
-          int uv_start = CustomData_get_layer_index(loopdata, CD_PROP_FLOAT2);
-          BLI_assert(uv_ind != -1 && uv_start != -1);
-          BLI_assert(uv_ind - uv_start < MAX_MTFACE);
-          tangent_mask_curr |= short(1 << (uv_ind - uv_start));
-        }
-
-        mesh2tangent->tangent = static_cast<float(*)[4]>(loopdata_out->layers[index].data);
-        BLI_task_pool_push(task_pool, DM_calc_loop_tangents_thread, mesh2tangent, false, nullptr);
-      }
-
-      BLI_assert(tangent_mask_curr == tangent_mask);
-      BLI_task_pool_work_and_wait(task_pool);
-      BLI_task_pool_free(task_pool);
-    }
-    else {
-      tangent_mask_curr = tangent_mask;
-    }
-#ifdef USE_TRI_DETECT_QUADS
-    if (face_as_quad_map) {
-      MEM_freeN(face_as_quad_map);
-    }
-#  undef USE_TRI_DETECT_QUADS
-
-#endif
-
-    *tangent_mask_curr_p = tangent_mask_curr;
-
-    /* Update active layer index */
-    if (const char *active_uv_name = CustomData_get_active_layer_name(loopdata, CD_PROP_FLOAT2)) {
-      int tan_index = CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, active_uv_name);
-      if (tan_index != -1) {
-        CustomData_set_layer_active_index(loopdata_out, CD_TANGENT, tan_index);
-      }
-    } /* else tangent has been built from orco */
-
-    /* Update render layer index */
-    if (const char *render_uv_name = CustomData_get_render_layer_name(loopdata, CD_PROP_FLOAT2)) {
-      int tan_index = CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, render_uv_name);
-      if (tan_index != -1) {
-        CustomData_set_layer_render_index(loopdata_out, CD_TANGENT, tan_index);
-      }
-    } /* else tangent has been built from orco */
-  }
-}
-
-void BKE_mesh_calc_loop_tangents(Mesh *mesh_eval,
-                                 bool calc_active_tangent,
-                                 const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
-                                 int tangent_names_len)
-{
-  /* TODO(@ideasman42): store in Mesh.runtime to avoid recalculation. */
-  using namespace blender;
-  using namespace blender::bke;
-  const Span<int3> corner_tris = mesh_eval->corner_tris();
-  const bke::AttributeAccessor attributes = mesh_eval->attributes();
-  const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
-  const float3 *orco = static_cast<const float3 *>(
-      CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO));
-  short tangent_mask = 0;
-  BKE_mesh_calc_loop_tangent_ex(mesh_eval->vert_positions(),
-                                mesh_eval->faces(),
-                                mesh_eval->corner_verts(),
-                                corner_tris,
-                                mesh_eval->corner_tri_faces(),
-                                sharp_face,
-                                &mesh_eval->corner_data,
-                                calc_active_tangent,
-                                tangent_names,
-                                tangent_names_len,
-                                mesh_eval->vert_normals(),
-                                mesh_eval->face_normals(),
-                                mesh_eval->corner_normals(),
-                                /* may be nullptr */
-                                orco ? Span(orco, mesh_eval->verts_num) : Span<float3>(),
-                                /* result */
-                                &mesh_eval->corner_data,
-                                uint(mesh_eval->corners_num),
-                                &tangent_mask);
-}
+}  // namespace blender::bke::mesh
 
 /** \} */

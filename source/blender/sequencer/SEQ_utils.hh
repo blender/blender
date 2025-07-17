@@ -67,7 +67,7 @@ void fontmap_clear();
  * will be created on demand.
  *
  * \param scene: Scene to query.
- * \param seq: Sequencer strip.
+ * \param strip: Sequencer strip.
  * \return True if media file is missing.
  */
 bool media_presence_is_missing(Scene *scene, const Strip *strip);

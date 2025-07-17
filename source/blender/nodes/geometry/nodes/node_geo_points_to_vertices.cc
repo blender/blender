@@ -15,7 +15,9 @@ namespace blender::nodes::node_geo_points_to_vertices_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Points").supported_type(GeometryComponent::Type::PointCloud);
+  b.add_input<decl::Geometry>("Points")
+      .supported_type(GeometryComponent::Type::PointCloud)
+      .description("Points that are converted to vertices in a mesh");
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
   b.add_output<decl::Geometry>("Mesh").propagate_all();
 }

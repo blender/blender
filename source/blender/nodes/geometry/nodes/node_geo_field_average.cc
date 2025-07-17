@@ -195,7 +195,7 @@ class FieldAverageInput final : public bke::GeometryFieldInput {
         if (operation_ == Operation::Mean) {
           if (group_indices.is_single()) {
             const T mean = std::reduce(values.begin(), values.end(), T()) / domain_size;
-            g_outputs = VArray<T>::ForSingle(mean, domain_size);
+            g_outputs = VArray<T>::from_single(mean, domain_size);
           }
           else {
             Map<int, std::pair<T, int>> sum_and_counts;
@@ -210,14 +210,14 @@ class FieldAverageInput final : public bke::GeometryFieldInput {
               const auto &pair = sum_and_counts.lookup(group_indices[i]);
               outputs[i] = pair.first / pair.second;
             }
-            g_outputs = VArray<T>::ForContainer(std::move(outputs));
+            g_outputs = VArray<T>::from_container(std::move(outputs));
           }
         }
         else {
           if (group_indices.is_single()) {
             Array<T> sorted_values(values);
             T median = calculate_median<T>(sorted_values);
-            g_outputs = VArray<T>::ForSingle(median, domain_size);
+            g_outputs = VArray<T>::from_single(median, domain_size);
           }
           else {
             Map<int, Vector<T>> groups;
@@ -234,7 +234,7 @@ class FieldAverageInput final : public bke::GeometryFieldInput {
             for (const int i : values.index_range()) {
               outputs[i] = medians.lookup(group_indices[i]);
             }
-            g_outputs = VArray<T>::ForContainer(std::move(outputs));
+            g_outputs = VArray<T>::from_container(std::move(outputs));
           }
         }
       }

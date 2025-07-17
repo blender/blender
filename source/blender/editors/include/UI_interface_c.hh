@@ -627,8 +627,6 @@ using uiButSearchTooltipFn =
     ARegion *(*)(bContext *C, ARegion *region, const rcti *item_rect, void *arg, void *active);
 using uiButSearchListenFn = void (*)(const wmRegionListenerParams *params, void *arg);
 
-using uiButToolTipCustomFunc = void (*)(bContext &C, uiTooltipData &data, void *argN);
-
 using uiBlockHandleFunc = void (*)(bContext *C, void *arg, int event);
 
 /* -------------------------------------------------------------------- */

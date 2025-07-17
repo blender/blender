@@ -28,7 +28,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .supported_type({GeometryComponent::Type::Mesh,
                        GeometryComponent::Type::PointCloud,
                        GeometryComponent::Type::Curve,
-                       GeometryComponent::Type::Instance});
+                       GeometryComponent::Type::Instance})
+      .description("Geometry to split into instances");
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
   b.add_input<decl::Int>("Group ID").field_on_all().hide_value();
   b.add_output<decl::Geometry>("Instances")
@@ -120,7 +121,7 @@ static void split_mesh_groups(const MeshComponent &component,
     /* Need task isolation because of the thread local variable. */
     threading::isolate_task([&]() {
       MutableSpan<bool> group_selection = group_selection_per_thread.local();
-      const VArray<bool> group_selection_varray = VArray<bool>::ForSpan(group_selection);
+      const VArray<bool> group_selection_varray = VArray<bool>::from_span(group_selection);
       for (const int group_index : range) {
         const IndexMask &mask = split_groups.group_masks[group_index];
         index_mask::masked_fill(group_selection, true, mask);

@@ -406,8 +406,11 @@ static void dial_ghostarc_draw_with_helplines(const float angle_ofs,
   dial_ghostarc_draw_helpline(angle_ofs + angle_delta, co_outer, color_helpline, line_width);
 }
 
-static void dial_draw_intern(
-    const bContext *C, wmGizmo *gz, const bool select, const bool highlight, float clip_plane[4])
+static void dial_draw_intern(const bContext *C,
+                             wmGizmo *gz,
+                             const bool select,
+                             const bool highlight,
+                             const bool use_clip_plane)
 {
   float matrix_final[4][4];
   float color[4];
@@ -418,6 +421,20 @@ static void dial_draw_intern(
   gizmo_color_get(gz, highlight, color);
 
   WM_gizmo_calc_matrix_final(gz, matrix_final);
+
+  float clip_plane[4];
+  if (use_clip_plane) {
+    ARegion *region = CTX_wm_region(C);
+    RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+
+    copy_v3_v3(clip_plane, rv3d->viewinv[2]);
+    clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], gz->matrix_basis[3]);
+    /* NOTE: scaling by the pixel size has been needed since v3.4x,
+     * afterwards the behavior of the `ClipPlane` seems to have changed.
+     * While this works, it may be worth restoring the old behavior, see #111060. */
+    clip_plane[3] += (DIAL_CLIP_BIAS *
+                      ED_view3d_pixel_size_no_ui_scale(rv3d, gz->matrix_basis[2]));
+  }
 
   const float arc_partial_angle = RNA_float_get(gz->ptr, "arc_partial_angle");
   const float arc_inner_factor = RNA_float_get(gz->ptr, "arc_inner_factor");
@@ -455,7 +472,7 @@ static void dial_draw_intern(
   params.angle_increment = angle_increment;
   params.arc_partial_angle = arc_partial_angle;
   params.arc_inner_factor = arc_inner_factor;
-  params.clip_plane = clip_plane;
+  params.clip_plane = use_clip_plane ? clip_plane : nullptr;
 
   const float line_width = (gz->line_width * U.pixelsize) + WM_gizmo_select_bias(select);
   dial_3d_draw_util(matrix_final, line_width, color, select, &params);
@@ -463,44 +480,22 @@ static void dial_draw_intern(
 
 static void gizmo_dial_draw_select(const bContext *C, wmGizmo *gz, int select_id)
 {
-  float clip_plane_buf[4];
   const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
-  float *clip_plane = (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_CLIP) ? clip_plane_buf : nullptr;
-
-  if (clip_plane) {
-    ARegion *region = CTX_wm_region(C);
-    RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-
-    copy_v3_v3(clip_plane, rv3d->viewinv[2]);
-    clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], gz->matrix_basis[3]);
-    clip_plane[3] += DIAL_CLIP_BIAS;
-  }
+  const bool use_clip_plane = (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_CLIP);
 
   GPU_select_load_id(select_id);
-  dial_draw_intern(C, gz, true, false, clip_plane);
+  dial_draw_intern(C, gz, true, false, use_clip_plane);
 }
 
 static void gizmo_dial_draw(const bContext *C, wmGizmo *gz)
 {
   const bool is_modal = gz->state & WM_GIZMO_STATE_MODAL;
   const bool is_highlight = (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
-  float clip_plane_buf[4];
   const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
-  float *clip_plane = (!is_modal && (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_CLIP)) ?
-                          clip_plane_buf :
-                          nullptr;
-
-  if (clip_plane) {
-    ARegion *region = CTX_wm_region(C);
-    RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-
-    copy_v3_v3(clip_plane, rv3d->viewinv[2]);
-    clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], gz->matrix_basis[3]);
-    clip_plane[3] += DIAL_CLIP_BIAS;
-  }
+  const bool use_clip_plane = !is_modal && (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_CLIP);
 
   GPU_blend(GPU_BLEND_ALPHA);
-  dial_draw_intern(C, gz, false, is_highlight, clip_plane);
+  dial_draw_intern(C, gz, false, is_highlight, use_clip_plane);
   GPU_blend(GPU_BLEND_NONE);
 }
 

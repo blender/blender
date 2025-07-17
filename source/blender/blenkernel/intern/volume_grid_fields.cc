@@ -39,7 +39,7 @@ GVArray VoxelFieldContext::get_varray_for_input(const fn::FieldInput &field_inpu
       positions[i] = float3(position.x(), position.y(), position.z());
     }
   });
-  return VArray<float3>::ForContainer(std::move(positions));
+  return VArray<float3>::from_container(std::move(positions));
 }
 
 TilesFieldContext::TilesFieldContext(const openvdb::math::Transform &transform,
@@ -70,7 +70,7 @@ GVArray TilesFieldContext::get_varray_for_input(const fn::FieldInput &field_inpu
       positions[i] = float3(position.x(), position.y(), position.z());
     }
   });
-  return VArray<float3>::ForContainer(std::move(positions));
+  return VArray<float3>::from_container(std::move(positions));
 }
 
 }  // namespace blender::bke

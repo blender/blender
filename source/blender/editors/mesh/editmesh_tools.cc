@@ -7990,7 +7990,6 @@ static wmOperatorStatus edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *o
 {
   BMEdge *eed;
   BMIter iter;
-  FreestyleEdge *fed;
   const bool clear = RNA_boolean_get(op->ptr, "clear");
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -8010,25 +8009,23 @@ static wmOperatorStatus edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *o
       continue;
     }
 
-    if (!CustomData_has_layer(&em->bm->edata, CD_FREESTYLE_EDGE)) {
-      BM_data_layer_add(em->bm, &em->bm->edata, CD_FREESTYLE_EDGE);
+    BM_data_layer_ensure_named(bm, &em->bm->edata, CD_PROP_BOOL, "freestyle_edge");
+    const int offset = CustomData_get_offset_named(&em->bm->edata, CD_PROP_BOOL, "freestyle_edge");
+    if (offset == -1) {
+      continue;
     }
 
     if (clear) {
       BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
         if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-          fed = static_cast<FreestyleEdge *>(
-              CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_FREESTYLE_EDGE));
-          fed->flag &= ~FREESTYLE_EDGE_MARK;
+          BM_ELEM_CD_SET_BOOL(eed, offset, false);
         }
       }
     }
     else {
       BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
         if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-          fed = static_cast<FreestyleEdge *>(
-              CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_FREESTYLE_EDGE));
-          fed->flag |= FREESTYLE_EDGE_MARK;
+          BM_ELEM_CD_SET_BOOL(eed, offset, true);
         }
       }
     }
@@ -8070,7 +8067,6 @@ static wmOperatorStatus edbm_mark_freestyle_face_exec(bContext *C, wmOperator *o
 {
   BMFace *efa;
   BMIter iter;
-  FreestyleFace *ffa;
   const bool clear = RNA_boolean_get(op->ptr, "clear");
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -8088,25 +8084,23 @@ static wmOperatorStatus edbm_mark_freestyle_face_exec(bContext *C, wmOperator *o
       continue;
     }
 
-    if (!CustomData_has_layer(&em->bm->pdata, CD_FREESTYLE_FACE)) {
-      BM_data_layer_add(em->bm, &em->bm->pdata, CD_FREESTYLE_FACE);
+    BM_data_layer_ensure_named(em->bm, &em->bm->edata, CD_PROP_BOOL, "freestyle_edge");
+    const int offset = CustomData_get_offset_named(&em->bm->edata, CD_PROP_BOOL, "freestyle_edge");
+    if (offset == -1) {
+      continue;
     }
 
     if (clear) {
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-          ffa = static_cast<FreestyleFace *>(
-              CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_FREESTYLE_FACE));
-          ffa->flag &= ~FREESTYLE_FACE_MARK;
+          BM_ELEM_CD_SET_BOOL(efa, offset, false);
         }
       }
     }
     else {
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-          ffa = static_cast<FreestyleFace *>(
-              CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_FREESTYLE_FACE));
-          ffa->flag |= FREESTYLE_FACE_MARK;
+          BM_ELEM_CD_SET_BOOL(efa, offset, true);
         }
       }
     }

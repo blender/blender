@@ -65,7 +65,6 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
 
 static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edge_map)
 {
-  CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE);
   CustomData_realloc(&mesh.edge_data, mesh.edges_num, mesh.edges_num + new_to_old_edge_map.size());
   mesh.edges_num += new_to_old_edge_map.size();
 

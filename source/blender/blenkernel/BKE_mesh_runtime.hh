@@ -33,8 +33,6 @@ void BKE_mesh_runtime_ensure_edit_data(Mesh *mesh);
  *
  * For "smaller" changes to meshes like updating positions, consider calling a more specific update
  * function like #Mesh::tag_positions_changed().
- *
- * Also note that some derived caches like #CD_TANGENT are stored directly in #CustomData.
  */
 void BKE_mesh_runtime_clear_geometry(Mesh *mesh);
 

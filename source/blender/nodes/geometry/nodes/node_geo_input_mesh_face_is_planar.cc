@@ -73,7 +73,7 @@ class PlanarFieldInput final : public bke::MeshFieldInput {
     };
 
     return mesh.attributes().adapt_domain<bool>(
-        VArray<bool>::ForFunc(faces.size(), planar_fn), AttrDomain::Face, domain);
+        VArray<bool>::from_func(faces.size(), planar_fn), AttrDomain::Face, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override

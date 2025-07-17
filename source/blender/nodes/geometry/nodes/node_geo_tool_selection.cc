@@ -121,20 +121,20 @@ class SculptSelectionFieldInput final : public bke::GeometryFieldInput {
       case GeometryComponent::Type::Mesh: {
         const VArraySpan<float> attribute = *attributes.lookup<float>(".sculpt_mask", domain);
         if (attribute.is_empty()) {
-          return GVArray::ForSingle(*type_, mask.min_array_size(), true_value(data_type));
+          return GVArray::from_single(*type_, mask.min_array_size(), true_value(data_type));
         }
         switch (data_type) {
           case bke::AttrType::Bool: {
             Array<bool> selection(mask.min_array_size());
             mask.foreach_index_optimized<int>(
                 GrainSize(4096), [&](const int i) { selection[i] = attribute[i] < 1.0f; });
-            return VArray<bool>::ForContainer(std::move(selection));
+            return VArray<bool>::from_container(std::move(selection));
           }
           case bke::AttrType::Float: {
             Array<float> selection(mask.min_array_size());
             mask.foreach_index_optimized<int>(
                 GrainSize(4096), [&](const int i) { selection[i] = 1.0f - attribute[i]; });
-            return VArray<float>::ForContainer(std::move(selection));
+            return VArray<float>::from_container(std::move(selection));
           }
           default: {
             BLI_assert_unreachable();

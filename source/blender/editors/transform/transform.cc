@@ -774,6 +774,11 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
         return false;
       }
       return t->vod != nullptr;
+    case TFM_MODAL_STRIP_CLAMP:
+      if (t->spacetype != SPACE_SEQ) {
+        return false;
+      }
+      break;
   }
   return true;
 }
@@ -830,6 +835,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_PRECISION, "PRECISION", 0, "Precision Mode", ""},
       {TFM_MODAL_PASSTHROUGH_NAVIGATE, "PASSTHROUGH_NAVIGATE", 0, "Navigate", ""},
       {TFM_MODAL_NODE_FRAME, "NODE_FRAME", 0, "Attach/Detach Frame", ""},
+      {TFM_MODAL_STRIP_CLAMP, "STRIP_CLAMP_TOGGLE", 0, "Clamp Strips", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -1028,6 +1034,23 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
   return true;
 }
 
+static void tool_settings_update_snap_toggle(TransInfo *t)
+{
+  bool is_snap_enabled = (t->modifiers & MOD_SNAP) != 0;
+
+  /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
+  short *snap_flag_ptr;
+
+  wmMsgParams_RNA msg_key_params = {{}};
+  msg_key_params.ptr = RNA_pointer_create_discrete(&t->scene->id, &RNA_ToolSettings, t->settings);
+  if ((snap_flag_ptr = transform_snap_flag_from_spacetype_ptr(t, &msg_key_params.prop)) &&
+      (is_snap_enabled != bool(*snap_flag_ptr & SCE_SNAP)))
+  {
+    SET_FLAG_FROM_TEST(*snap_flag_ptr, is_snap_enabled, SCE_SNAP);
+    WM_msg_publish_rna_params(t->mbus, &msg_key_params);
+  }
+}
+
 wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *event)
 {
   bool is_navigating = t->vod ? ((RegionView3D *)t->region->regiondata)->rflag & RV3D_NAVIGATING :
@@ -1174,6 +1197,7 @@ wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *eve
       case TFM_MODAL_SNAP_TOGGLE:
         t->modifiers ^= MOD_SNAP;
         transform_snap_flag_from_modifiers_set(t);
+        tool_settings_update_snap_toggle(t);
         t->redraw |= TREDRAW_HARD;
         break;
       case TFM_MODAL_AXIS_X:
@@ -1357,6 +1381,10 @@ wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *eve
           transform_mode_snap_source_init(t, nullptr);
           t->redraw |= TREDRAW_HARD;
         }
+        break;
+      case TFM_MODAL_STRIP_CLAMP:
+        t->modifiers ^= MOD_STRIP_CLAMP_HOLDS;
+        t->redraw |= TREDRAW_HARD;
         break;
       default:
         break;
@@ -1775,7 +1803,6 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
   /* Save snapping settings. */
   if ((prop = RNA_struct_find_property(op->ptr, "snap"))) {
-    bool is_snap_enabled = (t->modifiers & MOD_SNAP) != 0;
 
     /* Update the snap toggle in `ToolSettings`. */
     if (
@@ -1788,19 +1815,10 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
         /* Skip updating the snap toggle if snapping was enabled via operator properties. */
         !RNA_property_is_set(op->ptr, prop))
     {
-      /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
-      short *snap_flag_ptr;
-
-      wmMsgParams_RNA msg_key_params = {{}};
-      msg_key_params.ptr = RNA_pointer_create_discrete(&t->scene->id, &RNA_ToolSettings, ts);
-      if ((snap_flag_ptr = transform_snap_flag_from_spacetype_ptr(t, &msg_key_params.prop)) &&
-          (is_snap_enabled != bool(*snap_flag_ptr & SCE_SNAP)))
-      {
-        SET_FLAG_FROM_TEST(*snap_flag_ptr, is_snap_enabled, SCE_SNAP);
-        WM_msg_publish_rna_params(t->mbus, &msg_key_params);
-      }
+      tool_settings_update_snap_toggle(t);
     }
 
+    bool is_snap_enabled = (t->modifiers & MOD_SNAP) != 0;
     RNA_property_boolean_set(op->ptr, prop, is_snap_enabled);
 
     if ((prop = RNA_struct_find_property(op->ptr, "snap_elements"))) {

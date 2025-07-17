@@ -158,10 +158,10 @@ static int wm_cursor_size(const wmWindow *win)
     return std::lround(21.0f * UI_SCALE_FAC);
   }
 
-#if (OS_MAC)
-  /* MacOS always scales up this type of cursor for high-dpi displays. */
-  return 21;
-#endif
+  if (OS_MAC) {
+    /* MacOS always scales up this type of cursor for high-dpi displays. */
+    return 21;
+  }
 
   /* The DPI as a scale without the UI scale preference. */
   const float system_scale = WM_window_dpi_get_scale(win);
@@ -335,8 +335,13 @@ void WM_cursor_set(wmWindow *win, int curs)
   /* Option to not use any OS-supplied cursors is needed for testing. */
   const bool use_only_custom_cursors = false;
 
-  if (win == nullptr || G.background) {
-    return; /* Can't set custom cursor before Window init. */
+  if (G.background) {
+    return;
+  }
+
+  if (win == nullptr) {
+    /* Can't set custom cursor before window initialization. */
+    return;
   }
 
   if (curs == WM_CURSOR_DEFAULT && win->modalcursor) {
@@ -511,7 +516,7 @@ void WM_cursor_grab_disable(wmWindow *win, const int mouse_ungrab_xy[2])
 
 static void wm_cursor_warp_relative(wmWindow *win, int x, int y)
 {
-  /* NOTE: don't use wmEvent coords because of continuous grab #36409. */
+  /* NOTE: don't use #wmEvent coords because of continuous grab, see: #36409. */
   int cx, cy;
   if (wm_cursor_position_get(win, &cx, &cy)) {
     WM_cursor_warp(win, cx + x, cy + y);
@@ -523,7 +528,7 @@ bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
   /* TODO: give it a modal keymap? Hard coded for now. */
 
   if (win && event->val == KM_PRESS) {
-    /* Must move at least this much to avoid rounding in WM_cursor_warp. */
+    /* Must move at least this much to avoid rounding in #WM_cursor_warp. */
     float fac = GHOST_GetNativePixelSize(static_cast<GHOST_WindowHandle>(win->ghostwin));
 
     if (event->type == EVT_UPARROWKEY) {
@@ -791,7 +796,6 @@ void WM_cursor_time(wmWindow *win, int nr)
    * which *can't* be negated. */
   const uint32_t nr_abs = nr >= 0 ? uint32_t(nr) : -uint32_t(nr);
 
-  /* Use `U.ui_scale` instead of `UI_SCALE_FAC` here to ignore HiDPI/Retina scaling. */
   if (WM_capabilities_flag() & WM_CAPABILITY_CURSOR_RGBA) {
     wm_cursor_text(win, std::to_string(nr_abs), blf_mono_font);
   }
@@ -799,7 +803,7 @@ void WM_cursor_time(wmWindow *win, int nr)
     wm_cursor_time_small(win, nr_abs);
   }
 
-  /* Unset current cursor value so it's properly reset to wmWindow.lastcursor. */
+  /* Unset current cursor value so it's properly reset to #wmWindow::lastcursor. */
   win->cursor = 0;
 }
 

@@ -28,7 +28,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_default_layout();
   b.add_input<decl::Geometry>("Grease Pencil")
       .supported_type(GeometryComponent::Type::GreasePencil)
-      .align_with_previous();
+      .align_with_previous()
+      .description("Grease Pencil to change the color of");
   b.add_output<decl::Geometry>("Grease Pencil").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Color>("Color")
@@ -82,7 +83,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           curves.attributes_for_write().add<float>(
               opacity_attr_name,
               domain,
-              bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, domain_size)));
+              bke::AttributeInitVArray(VArray<float>::from_single(1.0f, domain_size)));
         }
         bke::try_capture_fields_on_geometry(curves.attributes_for_write(),
                                             layer_field_context,

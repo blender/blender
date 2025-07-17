@@ -95,7 +95,7 @@ class HandleTypeFieldInput final : public bke::CurvesFieldInput {
     }
     Array<bool> selection(mask.min_array_size());
     select_by_handle_type(curves, type_, mode_, selection);
-    return VArray<bool>::ForContainer(std::move(selection));
+    return VArray<bool>::from_container(std::move(selection));
   }
 
   uint64_t hash() const final

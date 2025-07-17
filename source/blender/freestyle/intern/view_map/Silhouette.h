@@ -865,7 +865,7 @@ class FEdge : public Interface1D {
   const SShape *shape() const;
   float shape_importance() const;
 
-  inline const int qi() const
+  inline int qi() const
   {
     return invisibility();
   }

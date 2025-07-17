@@ -84,7 +84,7 @@ class PathToEdgeSelectionFieldInput final : public bke::MeshFieldInput {
     edge_paths_to_selection(mesh, start_verts, next_vert, selection);
 
     return mesh.attributes().adapt_domain<bool>(
-        VArray<bool>::ForContainer(std::move(selection)), AttrDomain::Edge, domain);
+        VArray<bool>::from_container(std::move(selection)), AttrDomain::Edge, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override

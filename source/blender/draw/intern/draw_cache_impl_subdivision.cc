@@ -199,7 +199,7 @@ static void draw_patch_map_free(DRWPatchMap *gpu_patch_map)
   gpu_patch_map->min_patch_face = 0;
   gpu_patch_map->max_patch_face = 0;
   gpu_patch_map->max_depth = 0;
-  gpu_patch_map->patches_are_triangular = 0;
+  gpu_patch_map->patches_are_triangular = false;
 }
 
 /** \} */

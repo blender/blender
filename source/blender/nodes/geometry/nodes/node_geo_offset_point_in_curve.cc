@@ -77,7 +77,7 @@ class ControlPointNeighborFieldInput final : public bke::GeometryFieldInput {
       output[i_selection] = std::clamp(shifted_point, 0, curves.points_num() - 1);
     });
 
-    return VArray<int>::ForContainer(std::move(output));
+    return VArray<int>::from_container(std::move(output));
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
@@ -137,7 +137,7 @@ class OffsetValidFieldInput final : public bke::GeometryFieldInput {
       }
       output[i_selection] = curve_points.contains(i_point + offsets[i_selection]);
     });
-    return VArray<bool>::ForContainer(std::move(output));
+    return VArray<bool>::from_container(std::move(output));
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override

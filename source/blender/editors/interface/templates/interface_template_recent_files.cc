@@ -30,7 +30,10 @@
 #include "UI_interface_layout.hh"
 #include "interface_intern.hh"
 
-static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/, uiTooltipData &tip, void *argN)
+static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/,
+                                               uiTooltipData &tip,
+                                               uiBut * /*but*/,
+                                               void *argN)
 {
   char *path = (char *)argN;
 

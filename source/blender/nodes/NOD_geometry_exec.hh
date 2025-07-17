@@ -119,7 +119,10 @@ class GeoNodeExecParams {
    */
   template<typename T> T extract_input(StringRef identifier)
   {
-    if constexpr (stored_as_SocketValueVariant_v<T>) {
+    if constexpr (std::is_enum_v<T>) {
+      return T(this->extract_input<int>(identifier));
+    }
+    else if constexpr (stored_as_SocketValueVariant_v<T>) {
       SocketValueVariant value_variant = this->extract_input<SocketValueVariant>(identifier);
       return value_variant.extract<T>();
     }
@@ -148,7 +151,10 @@ class GeoNodeExecParams {
    */
   template<typename T> T get_input(StringRef identifier) const
   {
-    if constexpr (stored_as_SocketValueVariant_v<T>) {
+    if constexpr (std::is_enum_v<T>) {
+      return T(this->get_input<int>(identifier));
+    }
+    else if constexpr (stored_as_SocketValueVariant_v<T>) {
       auto value_variant = this->get_input<SocketValueVariant>(identifier);
       return value_variant.extract<T>();
     }

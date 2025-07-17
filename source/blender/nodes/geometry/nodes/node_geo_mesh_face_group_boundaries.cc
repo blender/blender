@@ -101,7 +101,7 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
       }
     });
     return mesh.attributes().adapt_domain<bool>(
-        VArray<bool>::ForContainer(std::move(boundary)), AttrDomain::Edge, domain);
+        VArray<bool>::from_container(std::move(boundary)), AttrDomain::Edge, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override

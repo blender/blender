@@ -28,56 +28,11 @@
 
 namespace blender::nodes::socket_usage_inference {
 
-/**
- * During socket usage inferencing, some socket values are computed. This class represents such a
- * computed value. Not all possible values can be presented here, only "basic" once (like int, but
- * not int-field). A value can also be unknown if it can't be determined statically.
- */
-class InferenceValue {
- private:
-  /**
-   * Non-owning pointer to a value of type #bNodeSocketType.base_cpp_type of the corresponding
-   * socket. If this is null, the value is assumed to be unknown (aka, it can't be determined
-   * statically).
-   */
-  const void *value_ = nullptr;
-
- public:
-  explicit InferenceValue(const void *value) : value_(value) {}
-
-  static InferenceValue Unknown()
-  {
-    return InferenceValue(nullptr);
-  }
-
-  bool is_unknown() const
-  {
-    return value_ == nullptr;
-  }
-
-  const void *data() const
-  {
-    return value_;
-  }
-
-  template<typename T> T get_known() const
-  {
-    BLI_assert(!this->is_unknown());
-    return *static_cast<const T *>(this->value_);
-  }
-
-  template<typename T> std::optional<T> get() const
-  {
-    if (this->is_unknown()) {
-      return std::nullopt;
-    }
-    return this->get_known<T>();
-  }
-};
-
 /** Utility class to simplify passing global state into all the functions during inferencing. */
 struct SocketUsageInferencer {
  private:
+  friend InputSocketUsageParams;
+
   /** Owns e.g. intermediate evaluated values. */
   ResourceScope scope_;
   bke::ComputeContextCache compute_context_cache_;
@@ -477,23 +432,23 @@ struct SocketUsageInferencer {
 
   void usage_task__input__fallback(const SocketInContext &socket)
   {
-    Vector<const bNodeSocket *> dependent_boolean_inputs;
-    /* For built-in nodes we assume that sockets in a panel with a panel-toggle are disabled when
-     * the panel is disabled. */
-    if (const SocketDeclaration *socket_decl = socket->runtime->declaration) {
-      for (const PanelDeclaration *panel_decl = socket_decl->parent; panel_decl;
-           panel_decl = panel_decl->parent)
-      {
-        if (const SocketDeclaration *panel_toggle_decl = panel_decl->panel_input_decl()) {
-          if (panel_toggle_decl != socket_decl) {
-            dependent_boolean_inputs.append(
-                &socket->owner_node().socket_by_decl(*panel_toggle_decl));
-          }
-        }
-      }
+    const SocketDeclaration *socket_decl = socket->runtime->declaration;
+    if (!socket_decl) {
+      all_socket_usages_.add_new(socket, true);
+      return;
     }
-    this->usage_task__with_dependent_sockets(
-        socket, socket->owner_node().output_sockets(), dependent_boolean_inputs, socket.context);
+    if (!socket_decl->usage_inference_fn) {
+      all_socket_usages_.add_new(socket, true);
+      return;
+    }
+    InputSocketUsageParams params{
+        *this, socket.context, socket->owner_tree(), socket->owner_node(), *socket};
+    const std::optional<bool> is_used = (*socket_decl->usage_inference_fn)(params);
+    if (!is_used.has_value()) {
+      /* Some value was requested, come back later when that value is available. */
+      return;
+    }
+    all_socket_usages_.add_new(socket, *is_used);
   }
 
   void usage_task__input__foreach_element_input_node(const SocketInContext &socket)
@@ -1555,6 +1510,38 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
   nodes::get_geometry_nodes_input_base_values(group, properties, scope, input_values);
   nodes::socket_usage_inference::infer_group_interface_inputs_usage(
       group, input_values, r_input_usages);
+}
+
+InputSocketUsageParams::InputSocketUsageParams(SocketUsageInferencer &inferencer,
+                                               const ComputeContext *compute_context,
+                                               const bNodeTree &tree,
+                                               const bNode &node,
+                                               const bNodeSocket &socket)
+    : inferencer_(inferencer),
+      compute_context_(compute_context),
+      tree(tree),
+      node(node),
+      socket(socket)
+{
+}
+
+InferenceValue InputSocketUsageParams::get_input(const StringRef identifier) const
+{
+  const SocketInContext input_socket{compute_context_,
+                                     &this->node.input_by_identifier(identifier)};
+  return inferencer_.get_socket_value(input_socket);
+}
+
+bool InputSocketUsageParams::menu_input_may_be(const StringRef identifier,
+                                               const int enum_value) const
+{
+  BLI_assert(this->node.input_by_identifier(identifier).type == SOCK_MENU);
+  const InferenceValue value = this->get_input(identifier);
+  if (value.is_unknown()) {
+    /* The value is unknown, so it may be the requested enum value. */
+    return true;
+  }
+  return value.get_known<int>() == enum_value;
 }
 
 }  // namespace blender::nodes::socket_usage_inference

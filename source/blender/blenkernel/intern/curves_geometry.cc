@@ -1793,7 +1793,7 @@ static GVArray adapt_curve_domain_point_to_curve(const CurvesGeometry &curves,
     if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
       Array<T> values(curves.curves_num());
       adapt_curve_domain_point_to_curve_impl<T>(curves, varray.typed<T>(), values);
-      new_varray = VArray<T>::ForContainer(std::move(values));
+      new_varray = VArray<T>::from_container(std::move(values));
     }
   });
   return new_varray;
@@ -1825,7 +1825,7 @@ static GVArray adapt_curve_domain_curve_to_point(const CurvesGeometry &curves,
     using T = decltype(dummy);
     Array<T> values(curves.points_num());
     adapt_curve_domain_curve_to_point_impl<T>(curves, varray.typed<T>(), values);
-    new_varray = VArray<T>::ForContainer(std::move(values));
+    new_varray = VArray<T>::from_container(std::move(values));
   });
   return new_varray;
 }
@@ -1846,7 +1846,7 @@ GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
   if (varray.is_single()) {
     BUFFER_FOR_CPP_TYPE_VALUE(varray.type(), value);
     varray.get_internal_single(value);
-    return GVArray::ForSingle(varray.type(), this->attributes().domain_size(to), value);
+    return GVArray::from_single(varray.type(), this->attributes().domain_size(to), value);
   }
 
   if (from == AttrDomain::Point && to == AttrDomain::Curve) {

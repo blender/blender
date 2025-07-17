@@ -24,8 +24,10 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveSample)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curves").only_realized_data().supported_type(
-      GeometryComponent::Type::Curve);
+  b.add_input<decl::Geometry>("Curves")
+      .only_realized_data()
+      .supported_type(GeometryComponent::Type::Curve)
+      .description("Curves to sample positions on");
 
   if (const bNode *node = b.node_or_null()) {
     const NodeGeometryCurveSample &storage = node_storage(*node);
@@ -484,7 +486,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   std::shared_ptr<FieldOperation> sample_op;
   if (curves.curves_num() == 1) {
-    sample_op = FieldOperation::Create(
+    sample_op = FieldOperation::from(
         std::make_unique<SampleCurveFunction>(
             std::move(geometry_set), mode, std::move(src_values_field)),
         {fn::make_constant_field<int>(0), std::move(length_field)});
@@ -493,10 +495,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (storage.use_all_curves) {
       auto index_fn = std::make_unique<SampleFloatSegmentsFunction>(
           curve_accumulated_lengths(curves), mode);
-      auto index_op = FieldOperation::Create(std::move(index_fn), {std::move(length_field)});
+      auto index_op = FieldOperation::from(std::move(index_fn), {std::move(length_field)});
       Field<int> curve_index = Field<int>(index_op, 0);
       Field<float> length_in_curve = Field<float>(index_op, 1);
-      sample_op = FieldOperation::Create(
+      sample_op = FieldOperation::from(
           std::make_unique<SampleCurveFunction>(
               std::move(geometry_set), GEO_NODE_CURVE_SAMPLE_LENGTH, std::move(src_values_field)),
           {std::move(curve_index), std::move(length_in_curve)});
@@ -504,7 +506,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     else {
       Field<int> curve_index = params.extract_input<Field<int>>("Curve Index");
       Field<float> length_in_curve = std::move(length_field);
-      sample_op = FieldOperation::Create(
+      sample_op = FieldOperation::from(
           std::make_unique<SampleCurveFunction>(
               std::move(geometry_set), mode, std::move(src_values_field)),
           {std::move(curve_index), std::move(length_in_curve)});

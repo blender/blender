@@ -975,8 +975,8 @@ static void select_linked_time(const Scene *scene,
  * Similar to `strip_handle_draw_size_get()`, but returns a larger clickable area that is
  * the same for a given zoom level no matter whether "simplified tweaking" is turned off or on.
  * `strip_clickable_areas_get` will pad this past strip bounds by 1/3 of the inner handle size,
- * making the full handle size either 15 + 5 = 20px or 1/4 + 1/12 = 1/3 of the strip size.
- */
+ * making the full size 15 + 5 = 20px in frames for large strips, 1/4 + 1/12 = 1/3 of the strip
+ * size for small ones. */
 static float inner_clickable_handle_size_get(const Scene *scene,
                                              const Strip *strip,
                                              const View2D *v2d)

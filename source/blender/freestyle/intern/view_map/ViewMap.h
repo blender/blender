@@ -1301,7 +1301,7 @@ class ViewEdge : public Interface1D {
 
   inline const SShape *occluded_shape() const;
 
-  inline const bool occludee_empty() const
+  inline bool occludee_empty() const
   {
     if (_aShape == 0) {
       return true;

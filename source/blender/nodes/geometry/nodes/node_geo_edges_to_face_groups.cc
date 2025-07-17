@@ -68,7 +68,7 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
     islands.calc_reduced_ids(output);
 
     return mesh.attributes().adapt_domain(
-        VArray<int>::ForContainer(std::move(output)), AttrDomain::Face, domain);
+        VArray<int>::from_container(std::move(output)), AttrDomain::Face, domain);
   }
 
   uint64_t hash() const override

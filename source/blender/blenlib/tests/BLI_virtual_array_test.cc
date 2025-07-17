@@ -16,7 +16,7 @@ namespace blender::tests {
 TEST(virtual_array, Span)
 {
   std::array<int, 5> data = {3, 4, 5, 6, 7};
-  VArray<int> varray = VArray<int>::ForSpan(data);
+  VArray<int> varray = VArray<int>::from_span(data);
   EXPECT_EQ(varray.size(), 5);
   EXPECT_EQ(varray.get(0), 3);
   EXPECT_EQ(varray.get(4), 7);
@@ -27,7 +27,7 @@ TEST(virtual_array, Span)
 
 TEST(virtual_array, Single)
 {
-  VArray<int> varray = VArray<int>::ForSingle(10, 4);
+  VArray<int> varray = VArray<int>::from_single(10, 4);
   EXPECT_EQ(varray.size(), 4);
   EXPECT_EQ(varray.get(0), 10);
   EXPECT_EQ(varray.get(3), 10);
@@ -40,7 +40,7 @@ TEST(virtual_array, Array)
 {
   Array<int> array = {1, 2, 3, 5, 8};
   {
-    VArray<int> varray = VArray<int>::ForContainer(array);
+    VArray<int> varray = VArray<int>::from_container(array);
     EXPECT_EQ(varray.size(), 5);
     EXPECT_EQ(varray[0], 1);
     EXPECT_EQ(varray[2], 3);
@@ -48,7 +48,7 @@ TEST(virtual_array, Array)
     EXPECT_TRUE(varray.is_span());
   }
   {
-    VArray<int> varray = VArray<int>::ForContainer(std::move(array));
+    VArray<int> varray = VArray<int>::from_container(std::move(array));
     EXPECT_EQ(varray.size(), 5);
     EXPECT_EQ(varray[0], 1);
     EXPECT_EQ(varray[2], 3);
@@ -56,7 +56,7 @@ TEST(virtual_array, Array)
     EXPECT_TRUE(varray.is_span());
   }
   {
-    VArray<int> varray = VArray<int>::ForContainer(array); /* NOLINT: bugprone-use-after-move */
+    VArray<int> varray = VArray<int>::from_container(array); /* NOLINT: bugprone-use-after-move */
     EXPECT_TRUE(varray.is_empty());
   }
 }
@@ -65,7 +65,7 @@ TEST(virtual_array, MutableArray)
 {
   Array<int, 0> array = {1, 2, 3, 5, 8};
   const Span<int> array_span = array;
-  VMutableArray<int> varray = VMutableArray<int>::ForContainer(std::move(array));
+  VMutableArray<int> varray = VMutableArray<int>::from_container(std::move(array));
   EXPECT_TRUE(varray.is_span());
   EXPECT_EQ(varray.size(), 5);
   EXPECT_EQ(varray[0], 1);
@@ -83,7 +83,7 @@ TEST(virtual_array, MutableArray)
 TEST(virtual_array, Vector)
 {
   Vector<int> vector = {9, 8, 7, 6};
-  VArray<int> varray = VArray<int>::ForContainer(std::move(vector));
+  VArray<int> varray = VArray<int>::from_container(std::move(vector));
   EXPECT_EQ(varray.size(), 4);
   EXPECT_EQ(varray[0], 9);
   EXPECT_EQ(varray[3], 6);
@@ -92,7 +92,7 @@ TEST(virtual_array, Vector)
 TEST(virtual_array, StdVector)
 {
   std::vector<int> vector = {5, 6, 7, 8};
-  VArray<int> varray = VArray<int>::ForContainer(std::move(vector));
+  VArray<int> varray = VArray<int>::from_container(std::move(vector));
   EXPECT_EQ(varray.size(), 4);
   EXPECT_EQ(varray[0], 5);
   EXPECT_EQ(varray[1], 6);
@@ -101,7 +101,7 @@ TEST(virtual_array, StdVector)
 TEST(virtual_array, StdArray)
 {
   std::array<int, 4> array = {2, 3, 4, 5};
-  VArray<int> varray = VArray<int>::ForContainer(std::move(array));
+  VArray<int> varray = VArray<int>::from_container(std::move(array));
   EXPECT_EQ(varray.size(), 4);
   EXPECT_EQ(varray[0], 2);
   EXPECT_EQ(varray[1], 3);
@@ -110,7 +110,7 @@ TEST(virtual_array, StdArray)
 TEST(virtual_array, VectorSet)
 {
   VectorSet<int> vector_set = {5, 3, 7, 3, 3, 5, 1};
-  VArray<int> varray = VArray<int>::ForContainer(std::move(vector_set));
+  VArray<int> varray = VArray<int>::from_container(std::move(vector_set));
   EXPECT_TRUE(vector_set.is_empty()); /* NOLINT: bugprone-use-after-move. */
   EXPECT_EQ(varray.size(), 4);
   EXPECT_EQ(varray[0], 5);
@@ -122,7 +122,7 @@ TEST(virtual_array, VectorSet)
 TEST(virtual_array, Func)
 {
   auto func = [](int64_t index) { return int(index * index); };
-  VArray<int> varray = VArray<int>::ForFunc(10, func);
+  VArray<int> varray = VArray<int>::from_func(10, func);
   EXPECT_EQ(varray.size(), 10);
   EXPECT_EQ(varray[0], 0);
   EXPECT_EQ(varray[3], 9);
@@ -132,7 +132,7 @@ TEST(virtual_array, Func)
 TEST(virtual_array, AsSpan)
 {
   auto func = [](int64_t index) { return int(10 * index); };
-  VArray<int> func_varray = VArray<int>::ForFunc(10, func);
+  VArray<int> func_varray = VArray<int>::from_func(10, func);
   VArraySpan span_varray{func_varray};
   EXPECT_EQ(span_varray.size(), 10);
   Span<int> span = span_varray;
@@ -158,14 +158,14 @@ TEST(virtual_array, DerivedSpan)
   vector.append({3, 4, 5});
   vector.append({1, 1, 1});
   {
-    VArray<int> varray = VArray<int>::ForDerivedSpan<std::array<int, 3>, get_x>(vector);
+    VArray<int> varray = VArray<int>::from_derived_span<std::array<int, 3>, get_x>(vector);
     EXPECT_EQ(varray.size(), 2);
     EXPECT_EQ(varray[0], 3);
     EXPECT_EQ(varray[1], 1);
   }
   {
     VMutableArray<int> varray =
-        VMutableArray<int>::ForDerivedSpan<std::array<int, 3>, get_x, set_x>(vector);
+        VMutableArray<int>::from_derived_span<std::array<int, 3>, get_x, set_x>(vector);
     EXPECT_EQ(varray.size(), 2);
     EXPECT_EQ(varray[0], 3);
     EXPECT_EQ(varray[1], 1);
@@ -180,7 +180,7 @@ TEST(virtual_array, MutableToImmutable)
 {
   std::array<int, 4> array = {4, 2, 6, 4};
   {
-    VMutableArray<int> mutable_varray = VMutableArray<int>::ForSpan(array);
+    VMutableArray<int> mutable_varray = VMutableArray<int>::from_span(array);
     VArray<int> varray = mutable_varray;
     EXPECT_TRUE(varray.is_span());
     EXPECT_EQ(varray.size(), 4);
@@ -188,7 +188,7 @@ TEST(virtual_array, MutableToImmutable)
     EXPECT_EQ(mutable_varray.size(), 4);
   }
   {
-    VMutableArray<int> mutable_varray = VMutableArray<int>::ForSpan(array);
+    VMutableArray<int> mutable_varray = VMutableArray<int>::from_span(array);
     EXPECT_EQ(mutable_varray.size(), 4);
     VArray<int> varray = std::move(mutable_varray);
     EXPECT_TRUE(varray.is_span());
@@ -197,7 +197,7 @@ TEST(virtual_array, MutableToImmutable)
     EXPECT_EQ(mutable_varray.size(), 0); /* NOLINT: bugprone-use-after-move */
   }
   {
-    VArray<int> varray = VMutableArray<int>::ForSpan(array);
+    VArray<int> varray = VMutableArray<int>::from_span(array);
     EXPECT_TRUE(varray.is_span());
     EXPECT_EQ(varray.size(), 4);
     EXPECT_EQ(varray[1], 2);
@@ -209,7 +209,7 @@ TEST(virtual_array, MaterializeCompressed)
   IndexMaskMemory memory;
   {
     std::array<int, 10> array = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90};
-    VArray<int> varray = VArray<int>::ForSpan(array);
+    VArray<int> varray = VArray<int>::from_span(array);
     std::array<int, 3> compressed_array;
     varray.materialize_compressed(IndexMask::from_indices<int>({3, 6, 7}, memory),
                                   compressed_array);
@@ -223,7 +223,7 @@ TEST(virtual_array, MaterializeCompressed)
     EXPECT_EQ(compressed_array[2], 90);
   }
   {
-    VArray<int> varray = VArray<int>::ForSingle(4, 10);
+    VArray<int> varray = VArray<int>::from_single(4, 10);
     std::array<int, 3> compressed_array;
     varray.materialize_compressed(IndexMask::from_indices<int>({2, 6, 7}, memory),
                                   compressed_array);
@@ -238,7 +238,7 @@ TEST(virtual_array, MaterializeCompressed)
     EXPECT_EQ(compressed_array[2], 4);
   }
   {
-    VArray<int> varray = VArray<int>::ForFunc(10, [](const int64_t i) { return int(i * i); });
+    VArray<int> varray = VArray<int>::from_func(10, [](const int64_t i) { return int(i * i); });
     std::array<int, 3> compressed_array;
     varray.materialize_compressed(IndexMask::from_indices<int>({5, 7, 8}, memory),
                                   compressed_array);

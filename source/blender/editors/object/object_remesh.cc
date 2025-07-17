@@ -160,13 +160,13 @@ static wmOperatorStatus voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
+  /* Spatially organize the mesh after remesh. */
+  blender::bke::mesh_apply_spatial_organization(*mesh);
 
   if (ob->mode == OB_MODE_SCULPT) {
     sculpt_paint::undo::geometry_end(*ob);
     BKE_sculptsession_free_pbvh(*ob);
   }
-  /* Spatially organize the mesh after remesh. */
-  blender::bke::mesh_apply_spatial_organization(*static_cast<Mesh *>(ob->data));
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
@@ -915,8 +915,6 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
     sculpt_paint::undo::geometry_end(*ob);
     BKE_sculptsession_free_pbvh(*ob);
   }
-  /* Spatially organize the mesh after remesh. */
-  blender::bke::mesh_apply_spatial_organization(*static_cast<Mesh *>(ob->data));
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
 
   worker_status->do_update = true;
@@ -936,6 +934,8 @@ static void quadriflow_end_job(void *customdata)
   ReportList *reports = qj->worker_status->reports;
   switch (qj->status) {
     case QUADRIFLOW_STATUS_SUCCESS:
+      /* Spatially organize the mesh after remesh. */
+      bke::mesh_apply_spatial_organization(*static_cast<Mesh *>(ob->data));
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       BKE_reportf(reports, RPT_INFO, "QuadriFlow: Remeshing completed");
       break;

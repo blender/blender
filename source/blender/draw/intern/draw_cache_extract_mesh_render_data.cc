@@ -456,16 +456,18 @@ static bke::MeshNormalDomain bmesh_normals_domain(BMesh *bm)
   }
 
   BM_mesh_elem_table_ensure(bm, BM_FACE);
-  const VArray<bool> sharp_faces = VArray<bool>::ForDerivedSpan<const BMFace *, bm_face_is_sharp>(
-      Span(bm->ftable, bm->totface));
+  const VArray<bool> sharp_faces =
+      VArray<bool>::from_derived_span<const BMFace *, bm_face_is_sharp>(
+          Span(bm->ftable, bm->totface));
   const array_utils::BooleanMix face_mix = array_utils::booleans_mix_calc(sharp_faces);
   if (face_mix == array_utils::BooleanMix::AllTrue) {
     return bke::MeshNormalDomain::Face;
   }
 
   BM_mesh_elem_table_ensure(bm, BM_EDGE);
-  const VArray<bool> sharp_edges = VArray<bool>::ForDerivedSpan<const BMEdge *, bm_edge_is_sharp>(
-      Span(bm->etable, bm->totedge));
+  const VArray<bool> sharp_edges =
+      VArray<bool>::from_derived_span<const BMEdge *, bm_edge_is_sharp>(
+          Span(bm->etable, bm->totedge));
   const array_utils::BooleanMix edge_mix = array_utils::booleans_mix_calc(sharp_edges);
   if (edge_mix == array_utils::BooleanMix::AllTrue) {
     return bke::MeshNormalDomain::Face;
@@ -590,8 +592,10 @@ MeshRenderData mesh_render_data_create(Object &object,
     mr.bweight_ofs = CustomData_get_offset_named(
         &mr.bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
 #ifdef WITH_FREESTYLE
-    mr.freestyle_edge_ofs = CustomData_get_offset(&mr.bm->edata, CD_FREESTYLE_EDGE);
-    mr.freestyle_face_ofs = CustomData_get_offset(&mr.bm->pdata, CD_FREESTYLE_FACE);
+    mr.freestyle_edge_ofs = CustomData_get_offset_named(
+        &mr.bm->edata, CD_PROP_BOOL, "freestyle_edge");
+    mr.freestyle_face_ofs = CustomData_get_offset_named(
+        &mr.bm->pdata, CD_PROP_BOOL, "freestyle_face");
 #endif
 
     /* Use bmesh directly when the object is unchanged by any modifiers. For non-final UVs, always

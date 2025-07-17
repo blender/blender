@@ -7,11 +7,9 @@
  * \ingroup bke
  */
 
-#include "DNA_customdata_types.h"
-
+#include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_sys_types.h"
 
 struct ReportList;
 struct Mesh;
@@ -44,54 +42,31 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
                                        float (*r_looptangents)[4],
                                        ReportList *reports);
 
+namespace blender::bke::mesh {
+
 /**
- * See: #BKE_editmesh_loop_tangent_calc (matching logic).
+ * See: #BKE_editmesh_uv_tangents_calc (matching logic).
  */
-void BKE_mesh_calc_loop_tangent_ex(blender::Span<blender::float3> vert_positions,
-                                   blender::OffsetIndices<int> faces,
-                                   blender::Span<int> corner_verts,
-                                   blender::Span<blender::int3> corner_tris,
-                                   blender::Span<int> corner_tri_faces,
-                                   blender::Span<bool> sharp_faces,
-                                   const CustomData *loopdata,
-                                   bool calc_active_tangent,
-                                   const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
-                                   int tangent_names_len,
-                                   blender::Span<blender::float3> vert_normals,
-                                   blender::Span<blender::float3> face_normals,
-                                   blender::Span<blender::float3> corner_normals,
-                                   blender::Span<blender::float3> vert_orco,
-                                   /* result */
-                                   CustomData *loopdata_out,
-                                   uint loopdata_out_len,
-                                   short *tangent_mask_curr_p);
+Array<Array<float4>> calc_uv_tangents(Span<float3> vert_positions,
+                                      OffsetIndices<int> faces,
+                                      Span<int> corner_verts,
+                                      Span<int3> corner_tris,
+                                      Span<int> corner_tri_faces,
+                                      Span<bool> sharp_faces,
+                                      Span<float3> vert_normals,
+                                      Span<float3> face_normals,
+                                      Span<float3> corner_normals,
+                                      Span<Span<float2>> uv_maps);
 
-void BKE_mesh_calc_loop_tangents(Mesh *mesh_eval,
-                                 bool calc_active_tangent,
-                                 const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
-                                 int tangent_names_len);
+Array<float4> calc_orco_tangents(Span<float3> vert_positions,
+                                 OffsetIndices<int> faces,
+                                 Span<int> corner_verts,
+                                 Span<int3> corner_tris,
+                                 Span<int> corner_tri_faces,
+                                 Span<bool> sharp_faces,
+                                 Span<float3> vert_normals,
+                                 Span<float3> face_normals,
+                                 Span<float3> corner_normals,
+                                 Span<float3> vert_orco);
 
-/* Helpers */
-void BKE_mesh_add_loop_tangent_named_layer_for_uv(const CustomData *uv_data,
-                                                  CustomData *tan_data,
-                                                  int numLoopData,
-                                                  const char *layer_name);
-
-#define DM_TANGENT_MASK_ORCO (1 << 9)
-/**
- * Here we get some useful information such as active uv layer name and
- * search if it is already in tangent_names.
- * Also, we calculate tangent_mask that works as a descriptor of tangents state.
- * If tangent_mask has changed, then recalculate tangents.
- */
-void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
-                                       bool calc_active_tangent,
-                                       const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
-                                       int tangent_names_count,
-                                       bool *rcalc_act,
-                                       bool *rcalc_ren,
-                                       int *ract_uv_n,
-                                       int *rren_uv_n,
-                                       char *ract_uv_name,
-                                       char *rren_uv_name,
-                                       short *rtangent_mask);
+}  // namespace blender::bke::mesh

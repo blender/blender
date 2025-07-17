@@ -32,7 +32,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.use_custom_socket_order();
   b.allow_any_socket_order();
   b.add_default_layout();
-  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
+  b.add_input<decl::Geometry>("Mesh")
+      .supported_type(GeometryComponent::Type::Mesh)
+      .description("Mesh to subdivide");
   b.add_output<decl::Geometry>("Mesh").propagate_all().align_with_previous();
   b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
   b.add_input<decl::Float>("Edge Crease")
@@ -98,7 +100,7 @@ static fn::Field<float> clamp_crease(fn::Field<float> crease_field)
       "Clamp",
       [](float value) { return std::clamp(value, 0.0f, 1.0f); },
       mf::build::exec_presets::AllSpanOrSingle());
-  return fn::Field<float>(fn::FieldOperation::Create(clamp_fn, {std::move(crease_field)}));
+  return fn::Field<float>(fn::FieldOperation::from(clamp_fn, {std::move(crease_field)}));
 }
 
 static Mesh *mesh_subsurf_calc(const Mesh *mesh,

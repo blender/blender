@@ -62,8 +62,8 @@
       } \
     } \
     ((void)0)
-/* Assert in non-release builds too. */
-#elif defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))
+/* Show the failure in non-release builds too. */
+#elif !defined(NDEBUG)
 #  define GHOST_ASSERT(x, info) \
     { \
       if (!(x)) { \

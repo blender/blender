@@ -25,7 +25,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry", "Target")
       .only_realized_data()
-      .supported_type({GeometryComponent::Type::Mesh, GeometryComponent::Type::PointCloud});
+      .supported_type({GeometryComponent::Type::Mesh, GeometryComponent::Type::PointCloud})
+      .description("Geometry to find the closest point on");
   b.add_input<decl::Int>("Group ID")
       .hide_value()
       .field_on_all()
@@ -265,7 +266,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   auto proximity_fn = std::make_unique<ProximityFunction>(
       std::move(target), GeometryNodeProximityTargetType(storage.target_element), group_id_field);
-  auto proximity_op = FieldOperation::Create(
+  auto proximity_op = FieldOperation::from(
       std::move(proximity_fn), {std::move(position_field), std::move(sample_id_field)});
 
   params.set_output("Position", Field<float3>(proximity_op, 0));

@@ -9,6 +9,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
+#include "DNA_sequence_types.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
@@ -611,9 +612,7 @@ static SlipData *slip_data_init(const Scene *scene)
   VectorSet<Strip *> strips = seq::query_selected_strips(ed->seqbasep);
   ListBase *channels = seq::channels_displayed_get(seq::editing_get(scene));
   strips.remove_if([&](Strip *strip) {
-    return ((strip->type & STRIP_TYPE_EFFECT) ||
-            ((strip->type == STRIP_TYPE_IMAGE) && seq::transform_single_image_check(strip)) ||
-            seq::transform_is_locked(channels, strip));
+    return (seq::transform_single_image_check(strip) || seq::transform_is_locked(channels, strip));
   });
   if (strips.is_empty()) {
     return nullptr;
@@ -704,6 +703,19 @@ static void slip_strips_delta(wmOperator *op, Scene *scene, SlipData *data, cons
   for (Strip *strip : data->strips) {
     seq::time_slip_strip(scene, strip, frame_delta, subframe_delta, slip_keyframes);
     seq::relations_invalidate_cache(scene, strip);
+
+    strip->runtime.flag &= ~(STRIP_CLAMPED_LH | STRIP_CLAMPED_RH);
+    /* Reconstruct handle clamp state from first principles.  */
+    if (data->clamp == true) {
+      if (seq::time_left_handle_frame_get(scene, strip) == seq::time_start_frame_get(strip)) {
+        strip->runtime.flag |= STRIP_CLAMPED_LH;
+      }
+      if (seq::time_right_handle_frame_get(scene, strip) ==
+          seq::time_content_end_frame_get(scene, strip))
+      {
+        strip->runtime.flag |= STRIP_CLAMPED_RH;
+      }
+    }
   }
 
   RNA_float_set(op->ptr, "offset", new_offset);
@@ -716,6 +728,7 @@ static void slip_cleanup(bContext *C, wmOperator *op, Scene *scene)
   SlipData *data = static_cast<SlipData *>(op->customdata);
 
   for (Strip *strip : data->strips) {
+    strip->runtime.flag &= ~(STRIP_CLAMPED_LH | STRIP_CLAMPED_RH);
     strip->flag &= ~SEQ_SHOW_OFFSETS;
   }
 
@@ -1957,7 +1970,7 @@ void SEQUENCER_OT_offset_clear(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Clear Strip Offset";
   ot->idname = "SEQUENCER_OT_offset_clear";
-  ot->description = "Clear strip offsets from the start and end frames";
+  ot->description = "Clear strip in/out offsets from the start and end of content";
 
   /* API callbacks. */
   ot->exec = sequencer_offset_clear_exec;

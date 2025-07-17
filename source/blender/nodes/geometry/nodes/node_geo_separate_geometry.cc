@@ -19,7 +19,7 @@ NODE_STORAGE_FUNCS(NodeGeometrySeparateGeometry)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Geometry").description("Geometry to split into two parts");
   b.add_input<decl::Bool>("Selection")
       .default_value(true)
       .hide_value()

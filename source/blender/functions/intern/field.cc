@@ -94,7 +94,7 @@ static Vector<GVArray> get_field_context_inputs(
     GVArray varray = context.get_varray_for_input(field_input, mask, scope);
     if (!varray) {
       const CPPType &type = field_input.cpp_type();
-      varray = GVArray::ForSingleDefault(type, mask.min_array_size());
+      varray = GVArray::from_single_default(type, mask.min_array_size());
     }
     field_context_inputs.append(varray);
   }
@@ -291,7 +291,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
   if (mask.is_empty()) {
     for (const int i : fields_to_evaluate.index_range()) {
       const CPPType &type = fields_to_evaluate[i].cpp_type();
-      r_varrays[i] = GVArray::ForEmpty(type);
+      r_varrays[i] = GVArray::from_empty(type);
     }
     return r_varrays;
   }
@@ -331,7 +331,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
       }
       case FieldNodeType::Constant: {
         const FieldConstant &field_constant = static_cast<const FieldConstant &>(field.node());
-        r_varrays[out_index] = GVArray::ForSingleRef(
+        r_varrays[out_index] = GVArray::from_single_ref(
             field_constant.type(), mask.min_array_size(), field_constant.value().get());
         break;
       }
@@ -399,7 +399,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
               [buffer, mask, &type]() { type.destruct_indices(buffer, mask); });
         }
 
-        r_varrays[out_index] = GVArray::ForSpan({type, buffer, array_size});
+        r_varrays[out_index] = GVArray::from_span({type, buffer, array_size});
       }
       else {
         /* Write the result into the existing span. */
@@ -444,7 +444,7 @@ Vector<GVArray> evaluate_fields(ResourceScope &scope,
 
       /* Create virtual array that can be used after the procedure has been executed below. */
       const int out_index = constant_field_indices[i];
-      r_varrays[out_index] = GVArray::ForSingleRef(type, array_size, buffer);
+      r_varrays[out_index] = GVArray::from_single_ref(type, array_size, buffer);
     }
 
     procedure_executor.call(mask, mf_params, mf_context);
@@ -521,7 +521,7 @@ Field<bool> invert_boolean_field(const Field<bool> &field)
 {
   static auto not_fn = mf::build::SI1_SO<bool, bool>(
       "Not", [](bool a) { return !a; }, mf::build::exec_presets::AllSpanOrSingle());
-  auto not_op = FieldOperation::Create(not_fn, {field});
+  auto not_op = FieldOperation::from(not_fn, {field});
   return Field<bool>(not_op);
 }
 
@@ -548,7 +548,7 @@ IndexFieldInput::IndexFieldInput() : FieldInput(CPPType::get<int>(), "Index")
 GVArray IndexFieldInput::get_index_varray(const IndexMask &mask)
 {
   auto index_func = [](int i) { return i; };
-  return VArray<int>::ForFunc(mask.min_array_size(), index_func);
+  return VArray<int>::from_func(mask.min_array_size(), index_func);
 }
 
 GVArray IndexFieldInput::get_varray_for_context(const fn::FieldContext & /*context*/,
@@ -745,7 +745,7 @@ int FieldEvaluator::add_with_destination(GField field, GVMutableArray dst)
 
 int FieldEvaluator::add_with_destination(GField field, GMutableSpan dst)
 {
-  return this->add_with_destination(std::move(field), GVMutableArray::ForSpan(dst));
+  return this->add_with_destination(std::move(field), GVMutableArray::from_span(dst));
 }
 
 int FieldEvaluator::add(GField field, GVArray *varray_ptr)

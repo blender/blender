@@ -19,6 +19,8 @@
 
 #include "RNA_types.hh"
 
+#include "NOD_socket_usage_inference_fwd.hh"
+
 struct bContext;
 struct bNode;
 struct uiLayout;
@@ -190,6 +192,8 @@ struct CustomSocketDrawParams {
 };
 
 using CustomSocketDrawFn = std::function<void(CustomSocketDrawParams &params)>;
+using InputSocketUsageInferenceFn = std::function<std::optional<bool>(
+    const socket_usage_inference::InputSocketUsageParams &params)>;
 
 /**
  * Describes a single input or output socket. This is subclassed for different socket types.
@@ -252,6 +256,11 @@ class SocketDeclaration : public ItemDeclaration {
    * Draw function that overrides how the socket is drawn for a specific node.
    */
   std::unique_ptr<CustomSocketDrawFn> custom_draw_fn;
+  /**
+   * Determines whether this input socket is used based on other input values and based on which
+   * outputs are used.
+   */
+  std::unique_ptr<InputSocketUsageInferenceFn> usage_inference_fn;
 
   friend NodeDeclarationBuilder;
   friend class BaseSocketDeclarationBuilder;
@@ -406,6 +415,18 @@ class BaseSocketDeclarationBuilder {
    * Provide a fully custom draw function for the socket that overrides any default behavior.
    */
   BaseSocketDeclarationBuilder &custom_draw(CustomSocketDrawFn fn);
+
+  /**
+   * Provide a function that determines whether this input socket is used based on other input
+   * values and based on which outputs are used.
+   */
+  BaseSocketDeclarationBuilder &usage_inference(InputSocketUsageInferenceFn fn);
+
+  /**
+   * Utility method for the case when the node has a single menu input and this socket is only used
+   * when the menu input has a specific value.
+   */
+  BaseSocketDeclarationBuilder &usage_by_single_menu(const int menu_value);
 
   /**
    * Puts this socket on the same row as the previous socket. This only works when one of them is

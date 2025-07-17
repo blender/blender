@@ -356,6 +356,7 @@ void SubdAttributeInterpolation::setup_attribute_corner_linear(const Attribute &
       for (int j = 1; j < face.num_corners; j++) {
         value_center += T::read(subd_data[face.start_corner + j]);
       }
+      value_center /= (float)face.num_corners;
 
       /* Compute value at corner at adjacent vertices. */
       const typename T::AccumType value_corner = T::read(subd_data[face.start_corner + corner]);

@@ -544,6 +544,11 @@ static bool snap_calc_timeline(TransInfo *t, const TransSeqSnapData *snap_data)
     return false;
   }
 
+  float2 best_offset(static_cast<float>(best_target_frame - best_source_frame), 0.0f);
+  if (transform_convert_sequencer_clamp(t, best_offset)) {
+    return false;
+  }
+
   t->tsnap.snap_target[0] = best_target_frame;
   t->tsnap.snap_source[0] = best_source_frame;
   return true;

@@ -80,7 +80,7 @@ class AngleFieldInput final : public bke::MeshFieldInput {
       return angle_normalized_v3v3(normal_1, normal_2);
     };
 
-    VArray<float> angles = VArray<float>::ForFunc(mesh.edges_num, angle_fn);
+    VArray<float> angles = VArray<float>::from_func(mesh.edges_num, angle_fn);
     return mesh.attributes().adapt_domain<float>(std::move(angles), AttrDomain::Edge, domain);
   }
 
@@ -181,7 +181,7 @@ class SignedAngleFieldInput final : public bke::MeshFieldInput {
       return -angle;
     };
 
-    VArray<float> angles = VArray<float>::ForFunc(mesh.edges_num, angle_fn);
+    VArray<float> angles = VArray<float>::from_func(mesh.edges_num, angle_fn);
     return mesh.attributes().adapt_domain<float>(std::move(angles), AttrDomain::Edge, domain);
   }
 

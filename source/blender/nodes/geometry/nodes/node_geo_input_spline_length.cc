@@ -25,10 +25,10 @@ static VArray<int> construct_curve_point_count_gvarray(const bke::CurvesGeometry
   auto count_fn = [points_by_curve](int64_t i) { return points_by_curve[i].size(); };
 
   if (domain == AttrDomain::Curve) {
-    return VArray<int>::ForFunc(curves.curves_num(), count_fn);
+    return VArray<int>::from_func(curves.curves_num(), count_fn);
   }
   if (domain == AttrDomain::Point) {
-    VArray<int> count = VArray<int>::ForFunc(curves.curves_num(), count_fn);
+    VArray<int> count = VArray<int>::from_func(curves.curves_num(), count_fn);
     return curves.adapt_domain<int>(std::move(count), AttrDomain::Curve, AttrDomain::Point);
   }
 

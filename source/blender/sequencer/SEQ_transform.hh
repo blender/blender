@@ -21,8 +21,9 @@ namespace blender::seq {
 
 bool transform_strip_can_be_translated(const Strip *strip);
 /**
- * Used so we can do a quick check for single image strip
- * since they work a bit differently to normal image strips (during transform).
+ * Checks whether the strip functions as a single static display,
+ * which means it has only one unique frame of content and does not draw holds.
+ * This includes non-sequence image strips and all effect strips with no inputs (e.g. color, text).
  */
 bool transform_single_image_check(const Strip *strip);
 bool transform_test_overlap(const Scene *scene, ListBase *seqbasep, Strip *test);

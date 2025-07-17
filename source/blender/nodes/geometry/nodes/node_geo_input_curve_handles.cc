@@ -60,7 +60,7 @@ class HandlePositionFieldInput final : public bke::GeometryFieldInput {
           output[i] = handles[i] - positions[i];
         }
         return attributes.adapt_domain<float3>(
-            VArray<float3>::ForContainer(std::move(output)), AttrDomain::Point, domain);
+            VArray<float3>::from_container(std::move(output)), AttrDomain::Point, domain);
       }
       return attributes.adapt_domain<float3>(handles, AttrDomain::Point, domain);
     }
@@ -75,7 +75,7 @@ class HandlePositionFieldInput final : public bke::GeometryFieldInput {
       }
     }
     return attributes.adapt_domain<float3>(
-        VArray<float3>::ForContainer(std::move(output)), AttrDomain::Point, domain);
+        VArray<float3>::from_container(std::move(output)), AttrDomain::Point, domain);
   }
 
   void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const final

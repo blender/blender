@@ -230,10 +230,6 @@ def addon_draw_item_expanded(
         item_tracker_url,  # `str`
         show_developer_ui,  # `bool`
 ):
-    from bpy.app.translations import (
-        contexts as i18n_contexts,
-    )
-
     split = layout.split(factor=0.8)
     col_a = split.column()
     col_b = split.column()
@@ -817,7 +813,7 @@ def addons_panel_draw(panel, context):
     del split, row_a, row_b, rowsub
 
     # Create a set of tags marked False to simplify exclusion & avoid it altogether when all tags are enabled.
-    addon_tags_exclude = {k for (k, v) in wm.get("addon_tags", {}).items() if v is False}
+    addon_tags_exclude = tags_exclude_get(wm, "addon_tags")
 
     addons_panel_draw_impl(
         panel,
@@ -927,7 +923,7 @@ class ExtensionUI_FilterParams:
             active_theme_info = None  # Unused.
 
         # Create a set of tags marked False to simplify exclusion & avoid it altogether when all tags are enabled.
-        extension_tags_exclude = {k for (k, v) in wm.get("extension_tags", {}).items() if v is False}
+        extension_tags_exclude = tags_exclude_get(wm, "extension_tags")
 
         return ExtensionUI_FilterParams(
             search_casefold=wm.extension_search.casefold(),
@@ -2273,26 +2269,14 @@ def tags_current(wm, tags_attr):
 
 
 def tags_clear(wm, tags_attr):
-    import idprop
-    tags_idprop = wm.get(tags_attr)
-    if tags_idprop is None:
-        pass
-    elif isinstance(tags_idprop, idprop.types.IDPropertyGroup):
-        tags_idprop.clear()
-    else:
-        wm[tags_attr] = {}
+    tags_collection = getattr(wm, tags_attr)
+    tags_collection.clear()
 
 
 def tags_refresh(wm, tags_attr, *, default_value):
-    import idprop
-    tags_idprop = wm.get(tags_attr)
-    if isinstance(tags_idprop, idprop.types.IDPropertyGroup):
-        pass
-    else:
-        wm[tags_attr] = {}
-        tags_idprop = wm[tags_attr]
+    tags_collection = getattr(wm, tags_attr)
 
-    tags_curr = set(tags_idprop.keys())
+    tags_curr = set(tags_collection.keys())
 
     # Calculate tags.
     tags_next = tags_current(wm, tags_attr)
@@ -2300,17 +2284,25 @@ def tags_refresh(wm, tags_attr, *, default_value):
     tags_to_add = tags_next - tags_curr
     tags_to_rem = tags_curr - tags_next
 
-    for tag in tags_to_rem:
-        del tags_idprop[tag]
+    if tags_to_rem:
+        # Remove last indices first.
+        for i in reversed([i for i, item in enumerate(tags_collection) if item.name in tags_to_rem]):
+            tags_collection.remove(i)
+
     for tag in tags_to_add:
-        tags_idprop[tag] = default_value
+        item = tags_collection.add()
+        item.name = tag
+        item.show_tag = default_value
 
     return list(sorted(tags_next))
 
 
+def tags_exclude_get(wm, tags_attr):
+    tags_collection = getattr(wm, tags_attr)
+    return {item.name for item in tags_collection if item.show_tag is False}
+
+
 def tags_panel_draw(layout, context, tags_attr):
-    from bpy.utils import escape_identifier
-    from bpy.app.translations import contexts as i18n_contexts
     wm = context.window_manager
 
     split = layout.split(factor=0.5)
@@ -2340,13 +2332,13 @@ def tags_panel_draw(layout, context, tags_attr):
         tags_len_half = (len(tags_sorted) + 1) // 2
         split = layout.split(factor=0.5)
         col = split.column()
-        tags_prop = getattr(wm, tags_attr)
+        tags_collection_map = dict(getattr(wm, tags_attr).items())
         for i, t in enumerate(sorted(tags_sorted)):
             if i == tags_len_half:
                 col = split.column()
             col.prop(
-                tags_prop,
-                "[\"{:s}\"]".format(escape_identifier(t)),
+                tags_collection_map[t],
+                "show_tag",
                 text=t,
                 text_ctxt=i18n_contexts.editor_preferences,
             )

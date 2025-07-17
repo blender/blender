@@ -230,7 +230,7 @@ void AssetViewItem::build_grid_tile(const bContext & /*C*/, uiLayout &layout) co
 
   UI_but_func_tooltip_custom_set(
       item_but,
-      [](bContext & /*C*/, uiTooltipData &tip, void *argN) {
+      [](bContext & /*C*/, uiTooltipData &tip, uiBut * /*but*/, void *argN) {
         const asset_system::AssetRepresentation *asset =
             static_cast<const asset_system::AssetRepresentation *>(argN);
         asset_tooltip(*asset, tip);

@@ -785,7 +785,7 @@ static wmOperatorStatus select_grow_modal(bContext *C, wmOperator *op, const wmE
               ".selection",
               bke::AttrDomain(curves_id.selection_domain),
               bke::cpp_type_to_attribute_type(curve_op_data->original_selection.type()),
-              bke::AttributeInitVArray(GVArray::ForSpan(curve_op_data->original_selection)));
+              bke::AttributeInitVArray(GVArray::from_span(curve_op_data->original_selection)));
         }
 
         /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic

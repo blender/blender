@@ -25,10 +25,14 @@ from bpy.props import (
 
 
 class SelectionEntry(PropertyGroup):
+    __slots__ = ()
+
     name: StringProperty(name="Bone Name", override={'LIBRARY_OVERRIDABLE'})
 
 
 class SelectionSet(PropertyGroup):
+    __slots__ = ()
+
     name: StringProperty(name="Set Name", override={'LIBRARY_OVERRIDABLE'})
     bone_ids: CollectionProperty(
         type=SelectionEntry,

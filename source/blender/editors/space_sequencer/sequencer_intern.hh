@@ -125,7 +125,7 @@ struct TimelineDrawContext {
 
 /* `sequencer_timeline_draw.cc` */
 
-/** Get handle width in frames (in view-space). */
+/* Returns value in frames (view-space), 5px for large strips, 1/4 of the strip for smaller. */
 float strip_handle_draw_size_get(const Scene *scene, Strip *strip, float pixelx);
 void draw_timeline_seq(const bContext *C, ARegion *region);
 void draw_timeline_seq_display(const bContext *C, ARegion *region);

@@ -133,7 +133,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   delete (handle);
 
   return mesh.attributes().adapt_domain<float3>(
-      VArray<float3>::ForContainer(std::move(uv)), AttrDomain::Corner, domain);
+      VArray<float3>::from_container(std::move(uv)), AttrDomain::Corner, domain);
 }
 
 class UnwrapFieldInput final : public bke::MeshFieldInput {

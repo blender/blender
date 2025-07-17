@@ -120,6 +120,10 @@ typedef enum eCustomDataType {
   CD_MLOOPUV = 16,
 #endif
   CD_PROP_BYTE_COLOR = 17,
+  /**
+   * Previously used for runtime corner tangent storage in mesh #CustomData. Currently only used
+   * as an identifier to choose tangents in a few places.
+   */
   CD_TANGENT = 18,
   CD_MDISPS = 19,
   CD_PROP_FLOAT4X4 = 20,
@@ -147,8 +151,10 @@ typedef enum eCustomDataType {
 #endif
   CD_GRID_PAINT_MASK = 35,
   CD_MVERT_SKIN = 36,
+#ifdef DNA_DEPRECATED_ALLOW
   CD_FREESTYLE_EDGE = 37,
   CD_FREESTYLE_FACE = 38,
+#endif
   CD_MLOOPTANGENT = 39,
   CD_TESSLOOPNORMAL = 40,
 #ifdef DNA_DEPRECATED_ALLOW
@@ -191,7 +197,6 @@ using eCustomDataMask = uint64_t;
 #define CD_MASK_ORIGSPACE (1 << CD_ORIGSPACE)
 #define CD_MASK_ORCO (1 << CD_ORCO)
 #define CD_MASK_PROP_BYTE_COLOR (1 << CD_PROP_BYTE_COLOR)
-#define CD_MASK_TANGENT (1 << CD_TANGENT)
 #define CD_MASK_MDISPS (1 << CD_MDISPS)
 #define CD_MASK_CLOTH_ORCO (1 << CD_CLOTH_ORCO)
 
@@ -202,8 +207,6 @@ using eCustomDataMask = uint64_t;
 
 #define CD_MASK_GRID_PAINT_MASK (1LL << CD_GRID_PAINT_MASK)
 #define CD_MASK_MVERT_SKIN (1LL << CD_MVERT_SKIN)
-#define CD_MASK_FREESTYLE_EDGE (1LL << CD_FREESTYLE_EDGE)
-#define CD_MASK_FREESTYLE_FACE (1LL << CD_FREESTYLE_FACE)
 #define CD_MASK_MLOOPTANGENT (1LL << CD_MLOOPTANGENT)
 #define CD_MASK_TESSLOOPNORMAL (1LL << CD_TESSLOOPNORMAL)
 #define CD_MASK_PROP_COLOR (1ULL << CD_PROP_COLOR)

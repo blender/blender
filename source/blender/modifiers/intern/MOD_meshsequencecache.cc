@@ -136,6 +136,8 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
       {
         return true;
       }
+#  else
+      UNUSED_VARS(frame_offset);
 #  endif
       break;
     case CACHE_FILE_TYPE_INVALID:

@@ -26,7 +26,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.use_custom_socket_order();
   b.allow_any_socket_order();
   b.add_default_layout();
-  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
+  b.add_input<decl::Geometry>("Mesh")
+      .supported_type(GeometryComponent::Type::Mesh)
+      .description("Mesh to set the custom normals on");
   b.add_output<decl::Geometry>("Mesh").propagate_all().align_with_previous();
   if (const bNode *node = b.node_or_null()) {
     switch (Mode(node->custom1)) {

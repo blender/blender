@@ -37,6 +37,8 @@ struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefa
   static constexpr StringRefNull node_idname = "GeometryNodeCombineBundle";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
+  static constexpr bool has_name_validation = true;
+  static constexpr char unique_name_separator = '_';
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_combine_bundle_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_combine_bundle_item_remove";
@@ -100,6 +102,8 @@ struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefa
   {
     return "Item_" + std::to_string(item.identifier);
   }
+
+  static std::string validate_name(const StringRef name);
 };
 
 struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
@@ -109,6 +113,8 @@ struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDef
   static constexpr StringRefNull node_idname = "GeometryNodeSeparateBundle";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
+  static constexpr bool has_name_validation = true;
+  static constexpr char unique_name_separator = '_';
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_separate_bundle_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_separate_bundle_item_remove";
@@ -171,6 +177,11 @@ struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDef
   static std::string socket_identifier_for_item(const ItemT &item)
   {
     return "Item_" + std::to_string(item.identifier);
+  }
+
+  static std::string validate_name(const StringRef name)
+  {
+    return CombineBundleItemsAccessor::validate_name(name);
   }
 };
 

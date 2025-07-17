@@ -184,9 +184,9 @@ class CurveParameterFieldInput final : public bke::CurvesFieldInput {
   {
     switch (domain) {
       case AttrDomain::Point:
-        return VArray<float>::ForContainer(calculate_point_parameters(curves));
+        return VArray<float>::from_container(calculate_point_parameters(curves));
       case AttrDomain::Curve:
-        return VArray<float>::ForContainer(calculate_curve_parameters(curves));
+        return VArray<float>::from_container(calculate_curve_parameters(curves));
       default:
         BLI_assert_unreachable();
         return {};
@@ -218,10 +218,10 @@ class CurveLengthParameterFieldInput final : public bke::CurvesFieldInput {
   {
     switch (domain) {
       case AttrDomain::Point:
-        return VArray<float>::ForContainer(calculate_point_lengths(
+        return VArray<float>::from_container(calculate_point_lengths(
             curves, [](MutableSpan<float> /*lengths*/, const float /*total*/) {}));
       case AttrDomain::Curve:
-        return VArray<float>::ForContainer(accumulated_lengths_curve_domain(curves));
+        return VArray<float>::from_container(accumulated_lengths_curve_domain(curves));
       default:
         BLI_assert_unreachable();
         return {};
@@ -261,7 +261,7 @@ class IndexOnSplineFieldInput final : public bke::CurvesFieldInput {
         array_utils::fill_index_range(indices);
       }
     });
-    return VArray<int>::ForContainer(std::move(result));
+    return VArray<int>::from_container(std::move(result));
   }
 
   uint64_t hash() const final

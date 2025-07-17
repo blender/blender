@@ -411,7 +411,7 @@ GVArray AttributeFieldInput::get_varray_for_context(const GeometryFieldContext &
         BLI_SCOPED_DEFER([&]() { cpp_type.destruct(value); });
         reader.varray.get_to_uninitialized(layer_index, value);
         const int domain_size = curves_attributes.domain_size(domain);
-        return GVArray::ForSingle(cpp_type, domain_size, value);
+        return GVArray::from_single(cpp_type, domain_size, value);
       }
     }
   }
@@ -435,17 +435,17 @@ GVArray AttributeExistsFieldInput::get_varray_for_context(const bke::GeometryFie
     if (context.domain() == AttrDomain::Layer) {
       const bool exists = layer_attributes.contains(name_);
       const int domain_size = layer_attributes.domain_size(AttrDomain::Layer);
-      return VArray<bool>::ForSingle(exists, domain_size);
+      return VArray<bool>::from_single(exists, domain_size);
     }
     const greasepencil::Drawing *drawing = context.grease_pencil_layer_drawing();
     const AttributeAccessor curve_attributes = drawing->strokes().attributes();
     const bool exists = layer_attributes.contains(name_) || curve_attributes.contains(name_);
     const int domain_size = curve_attributes.domain_size(domain);
-    return VArray<bool>::ForSingle(exists, domain_size);
+    return VArray<bool>::from_single(exists, domain_size);
   }
   const bool exists = context.attributes()->contains(name_);
   const int domain_size = context.attributes()->domain_size(domain);
-  return VArray<bool>::ForSingle(exists, domain_size);
+  return VArray<bool>::from_single(exists, domain_size);
 }
 
 std::string AttributeFieldInput::socket_inspection_name() const
@@ -553,10 +553,10 @@ GVArray NamedLayerSelectionFieldInput::get_varray_for_context(
   if (ELEM(domain, AttrDomain::Point, AttrDomain::Curve)) {
     const int layer_i = context.grease_pencil_layer_index();
     const bool selected = layer_is_selected(layer_i);
-    return VArray<bool>::ForSingle(selected, mask.min_array_size());
+    return VArray<bool>::from_single(selected, mask.min_array_size());
   }
 
-  return VArray<bool>::ForFunc(mask.min_array_size(), layer_is_selected);
+  return VArray<bool>::from_func(mask.min_array_size(), layer_is_selected);
 }
 
 uint64_t NamedLayerSelectionFieldInput::hash() const
@@ -642,7 +642,7 @@ GVArray EvaluateAtIndexInput::get_varray_for_context(const bke::GeometryFieldCon
 
   GArray<> dst_array(values.type(), mask.min_array_size());
   copy_with_checked_indices(values, indices, mask, dst_array);
-  return GVArray::ForGArray(std::move(dst_array));
+  return GVArray::from_garray(std::move(dst_array));
 }
 
 EvaluateOnDomainInput::EvaluateOnDomainInput(fn::GField field, AttrDomain domain)
@@ -677,10 +677,10 @@ GVArray EvaluateOnDomainInput::get_varray_for_context(const bke::GeometryFieldCo
       BUFFER_FOR_CPP_TYPE_VALUE(cpp_type, value);
       BLI_SCOPED_DEFER([&]() { cpp_type.destruct(value); });
       values.get_to_uninitialized(layer_index, value);
-      return GVArray::ForSingle(cpp_type, dst_domain_size, value);
+      return GVArray::from_single(cpp_type, dst_domain_size, value);
     }
     /* We don't adapt from curve to layer domain currently. */
-    return GVArray::ForSingleDefault(cpp_type, dst_domain_size);
+    return GVArray::from_single_default(cpp_type, dst_domain_size);
   }
 
   const bke::AttributeAccessor attributes = *context.attributes();
@@ -691,7 +691,7 @@ GVArray EvaluateOnDomainInput::get_varray_for_context(const bke::GeometryFieldCo
   fn::FieldEvaluator value_evaluator{other_domain_context, src_domain_size};
   value_evaluator.add_with_destination(src_field_, values.as_mutable_span());
   value_evaluator.evaluate();
-  return attributes.adapt_domain(GVArray::ForGArray(std::move(values)), src_domain_, dst_domain);
+  return attributes.adapt_domain(GVArray::from_garray(std::move(values)), src_domain_, dst_domain);
 }
 
 void EvaluateOnDomainInput::for_each_field_input_recursive(

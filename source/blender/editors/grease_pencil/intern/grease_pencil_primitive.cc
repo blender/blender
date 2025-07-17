@@ -623,7 +623,7 @@ static void grease_pencil_primitive_init_curves(PrimitiveToolOperation &ptd)
             attributes.lookup_or_add_for_write_span<float>(
                 "fill_opacity",
                 bke::AttrDomain::Curve,
-                bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num()))))
+                bke::AttributeInitVArray(VArray<float>::from_single(1.0f, curves.curves_num()))))
     {
       fill_opacities.span[target_curve_index] = ptd.fill_opacity;
       fill_opacities.finish();

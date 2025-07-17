@@ -193,7 +193,8 @@ void main()
 
     /* 2px outline for all overlapping strips. */
     bool overlaps = (strip.flags & GPU_SEQ_FLAG_OVERLAP) != 0;
-    if (overlaps) {
+    bool clamped = (strip.flags & GPU_SEQ_FLAG_CLAMPED) != 0;
+    if (overlaps || clamped) {
       col = add_outline(sdf, 1.0f, 3.0f, col, col_outline);
     }
 

@@ -1495,9 +1495,9 @@ struct EdgeFeatData {
   float crease_threshold;
   bool use_auto_smooth;
   bool use_freestyle_face;
-  const FreestyleFace *freestyle_face;
+  blender::VArray<bool> freestyle_face;
   bool use_freestyle_edge;
-  const FreestyleEdge *freestyle_edge;
+  blender::VArray<bool> freestyle_edge;
   LineartEdgeNeighbor *edge_nabr;
 };
 
@@ -1541,14 +1541,13 @@ static void lineart_identify_corner_tri_feature_edges(void *__restrict userdata,
   if (enable_face_mark) {
     bool ff1 = false;
     bool ff2 = false;
-    if (const FreestyleFace *freestyle_face = e_feat_data->freestyle_face) {
-      if (freestyle_face[tri_faces[i / 3]].flag & FREESTYLE_FACE_MARK) {
+    if (const blender::VArray<bool> &freestyle_face = e_feat_data->freestyle_face) {
+      if (freestyle_face[tri_faces[i / 3]]) {
         ff1 = true;
       }
     }
     if (edge_nabr[i].e > -1 && e_feat_data->freestyle_face) {
-      ff2 = (e_feat_data->freestyle_face[tri_faces[edge_nabr[i].e / 3]].flag &
-             FREESTYLE_FACE_MARK) != 0;
+      ff2 = e_feat_data->freestyle_face[tri_faces[edge_nabr[i].e / 3]];
     }
     else {
       /* Handle mesh boundary cases: We want mesh boundaries to respect
@@ -1709,7 +1708,7 @@ static void lineart_identify_corner_tri_feature_edges(void *__restrict userdata,
     }
 
     if (ld->conf.use_edge_marks && e_feat_data->use_freestyle_edge) {
-      if (e_feat_data->freestyle_edge[real_edges[i % 3]].flag & FREESTYLE_EDGE_MARK) {
+      if (e_feat_data->freestyle_edge[real_edges[i % 3]]) {
         edge_flag_result |= MOD_LINEART_EDGE_FLAG_EDGE_MARK;
       }
     }
@@ -1978,19 +1977,6 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   const AttributeAccessor attributes = mesh->attributes();
   const VArraySpan material_indices = *attributes.lookup<int>("material_index", AttrDomain::Face);
 
-  /* Check if we should look for custom data tags like Freestyle edges or faces. */
-  bool can_find_freestyle_edge = false;
-  int layer_index = CustomData_get_active_layer_index(&mesh->edge_data, CD_FREESTYLE_EDGE);
-  if (layer_index != -1) {
-    can_find_freestyle_edge = true;
-  }
-
-  bool can_find_freestyle_face = false;
-  layer_index = CustomData_get_active_layer_index(&mesh->face_data, CD_FREESTYLE_FACE);
-  if (layer_index != -1) {
-    can_find_freestyle_face = true;
-  }
-
   /* If we allow duplicated edges, one edge should get added multiple times if is has been
    * classified as more than one edge type. This is so we can create multiple different line type
    * chains containing the same edge. */
@@ -2127,16 +2113,10 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_data.v_array = la_v_arr;
   edge_feat_data.crease_threshold = crease_angle;
   edge_feat_data.use_auto_smooth = use_auto_smooth;
-  edge_feat_data.use_freestyle_face = can_find_freestyle_face;
-  edge_feat_data.use_freestyle_edge = can_find_freestyle_edge;
-  if (edge_feat_data.use_freestyle_face) {
-    edge_feat_data.freestyle_face = static_cast<const FreestyleFace *>(
-        CustomData_get_layer(&mesh->face_data, CD_FREESTYLE_FACE));
-  }
-  if (edge_feat_data.use_freestyle_edge) {
-    edge_feat_data.freestyle_edge = static_cast<const FreestyleEdge *>(
-        CustomData_get_layer(&mesh->edge_data, CD_FREESTYLE_EDGE));
-  }
+  edge_feat_data.freestyle_face = *attributes.lookup<bool>("freestyle_face", AttrDomain::Face);
+  edge_feat_data.freestyle_edge = *attributes.lookup<bool>("freestyle_edge", AttrDomain::Edge);
+  edge_feat_data.use_freestyle_face = bool(edge_feat_data.freestyle_face);
+  edge_feat_data.use_freestyle_edge = bool(edge_feat_data.freestyle_edge);
 
   BLI_task_parallel_range(0,
                           total_edges,

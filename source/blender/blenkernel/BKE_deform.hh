@@ -312,23 +312,20 @@ void BKE_defvert_extract_vgroup_to_vertweights(
 void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
                                                int defgroup,
                                                int verts_num,
-                                               const blender::int2 *edges,
-                                               int edges_num,
+                                               blender::Span<blender::int2> edges,
                                                bool invert_vgroup,
                                                float *r_weights);
 void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
                                                int defgroup,
                                                int verts_num,
-                                               const int *corner_verts,
-                                               int loops_num,
+                                               blender::Span<int> corner_verts,
                                                bool invert_vgroup,
                                                float *r_weights);
 
 void BKE_defvert_extract_vgroup_to_faceweights(const MDeformVert *dvert,
                                                int defgroup,
                                                int verts_num,
-                                               const int *corner_verts,
-                                               int loops_num,
+                                               const blender::Span<int> corner_verts,
                                                blender::OffsetIndices<int> faces,
                                                bool invert_vgroup,
                                                float *r_weights);

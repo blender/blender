@@ -357,6 +357,10 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
         mesh->face_data, AttrDomain::Face, mesh->faces_num, face_layers, attribute_data);
     CustomData_blend_write_prepare(
         mesh->corner_data, AttrDomain::Corner, mesh->corners_num, loop_layers, attribute_data);
+    if (!is_undo) {
+      mesh_freestyle_marks_to_legacy(
+          attribute_data, mesh->edge_data, mesh->face_data, edge_layers, face_layers);
+    }
     if (attribute_data.attributes.is_empty()) {
       mesh->attribute_storage.dna_attributes = nullptr;
       mesh->attribute_storage.dna_attributes_num = 0;
@@ -886,8 +890,9 @@ void mesh_apply_spatial_organization(Mesh &mesh)
   corner_verts.copy_from(new_corner_verts);
 
   MutableSpan<int> face_offsets = mesh.face_offsets_for_write();
-  MutableSpan<int> face_sizes_view = face_offsets.take_front(new_face_order.size());
-  gather_group_sizes(old_faces, new_face_order, face_sizes_view);
+  Vector<int> face_sizes(new_face_order.size());
+  gather_group_sizes(old_faces, new_face_order, face_sizes);
+  face_offsets.take_front(face_sizes.size()).copy_from(face_sizes);
   offset_indices::accumulate_counts_to_offsets(face_offsets);
 
   MutableAttributeAccessor attributes_for_write = mesh.attributes_for_write();
@@ -1673,7 +1678,7 @@ void mesh_smooth_set(Mesh &mesh, const bool use_smooth, const bool keep_sharp_ed
   if (!use_smooth) {
     attributes.add<bool>("sharp_face",
                          AttrDomain::Face,
-                         AttributeInitVArray(VArray<bool>::ForSingle(true, mesh.faces_num)));
+                         AttributeInitVArray(VArray<bool>::from_single(true, mesh.faces_num)));
   }
 }
 

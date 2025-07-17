@@ -252,6 +252,8 @@ typedef struct OrigSpaceLoop {
 
 /** \} */
 
+#ifdef DNA_DEPRECATED_ALLOW
+
 /* -------------------------------------------------------------------- */
 /** \name Custom Data (FreeStyle for Edge, Face)
  * \{ */
@@ -279,8 +281,6 @@ enum {
 /* -------------------------------------------------------------------- */
 /** \name Deprecated Structs
  * \{ */
-
-#ifdef DNA_DEPRECATED_ALLOW
 
 /**
  * Mesh Edges.

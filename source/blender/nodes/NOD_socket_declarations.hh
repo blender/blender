@@ -8,7 +8,10 @@
 
 #include "RNA_types.hh"
 
+#include "BKE_node_enum.hh"
+
 #include "BLI_color.hh"
+#include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_math_euler_types.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -227,6 +230,7 @@ class Menu : public SocketDeclaration {
 
   int32_t default_value;
   bool is_expanded = false;
+  ImplicitSharingPtr<bke::RuntimeNodeEnumItems> items;
 
   friend MenuBuilder;
 
@@ -244,6 +248,9 @@ class MenuBuilder : public SocketDeclarationBuilder<Menu> {
 
   /** Draw the menu items next to each other instead of as a drop-down menu. */
   MenuBuilder &expanded(bool value = true);
+
+  /** Set the available items in the menu. The items array must have static lifetime. */
+  MenuBuilder &static_items(const EnumPropertyItem *items);
 };
 
 class BundleBuilder;

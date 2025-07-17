@@ -351,7 +351,7 @@ VArray<float> get_influence_vertex_weights(const bke::CurvesGeometry &curves,
 {
   if (influence_data.vertex_group_name[0] == '\0') {
     /* If vertex group is not set, use full weight for all vertices. */
-    return VArray<float>::ForSingle(1.0f, curves.point_num);
+    return VArray<float>::from_single(1.0f, curves.point_num);
   }
   /* Vertex group weights, with zero weight as a fallback. */
   VArray<float> influence_weights = *curves.attributes().lookup_or_default<float>(
@@ -365,7 +365,7 @@ VArray<float> get_influence_vertex_weights(const bke::CurvesGeometry &curves,
             influence_weights_inverted[i] = 1.0f - influence_weights[i];
           }
         });
-    return VArray<float>::ForContainer(influence_weights_inverted);
+    return VArray<float>::from_container(influence_weights_inverted);
   }
 
   return influence_weights;

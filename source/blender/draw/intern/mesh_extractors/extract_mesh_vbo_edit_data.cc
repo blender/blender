@@ -72,9 +72,7 @@ static void mesh_render_data_edge_flag(const MeshRenderData &mr,
   }
 #ifdef WITH_FREESTYLE
   if (mr.freestyle_edge_ofs != -1) {
-    const FreestyleEdge *fed = (const FreestyleEdge *)BM_ELEM_CD_GET_VOID_P(eed,
-                                                                            mr.freestyle_edge_ofs);
-    if (fed->flag & FREESTYLE_EDGE_MARK) {
+    if (BM_ELEM_CD_GET_BOOL(eed, mr.freestyle_edge_ofs)) {
       eattr.e_flag |= VFLAG_EDGE_FREESTYLE;
     }
   }

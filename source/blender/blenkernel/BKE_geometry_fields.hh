@@ -286,20 +286,20 @@ class AttributeFieldInput : public GeometryFieldInput {
                                                      Category::NamedAttribute;
   }
 
-  static fn::GField Create(std::string name,
-                           const CPPType &type,
-                           std::optional<std::string> socket_inspection_name = std::nullopt)
+  static fn::GField from(std::string name,
+                         const CPPType &type,
+                         std::optional<std::string> socket_inspection_name = std::nullopt)
   {
     auto field_input = std::make_shared<AttributeFieldInput>(
         std::move(name), type, std::move(socket_inspection_name));
     return fn::GField(field_input);
   }
   template<typename T>
-  static fn::Field<T> Create(std::string name,
-                             std::optional<std::string> socket_inspection_name = std::nullopt)
+  static fn::Field<T> from(std::string name,
+                           std::optional<std::string> socket_inspection_name = std::nullopt)
   {
     return fn::Field<T>(
-        Create(std::move(name), CPPType::get<T>(), std::move(socket_inspection_name)));
+        from(std::move(name), CPPType::get<T>(), std::move(socket_inspection_name)));
   }
 
   StringRefNull attribute_name() const
@@ -328,7 +328,7 @@ class AttributeExistsFieldInput final : public bke::GeometryFieldInput {
     category_ = Category::Generated;
   }
 
-  static fn::Field<bool> Create(std::string name)
+  static fn::Field<bool> from(std::string name)
   {
     const CPPType &type = CPPType::get<bool>();
     auto field_input = std::make_shared<AttributeExistsFieldInput>(std::move(name), type);

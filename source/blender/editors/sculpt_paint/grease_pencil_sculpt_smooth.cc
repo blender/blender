@@ -133,7 +133,7 @@ void SmoothOperation::on_stroke_extended(const bContext &C, const InputSample &e
         const VArray<bool> cyclic = curves.cyclic();
         const int iterations = 2;
 
-        const VArray<float> influences = VArray<float>::ForFunc(
+        const VArray<float> influences = VArray<float>::from_func(
             view_positions.size(), [&](const int64_t point_) {
               return brush_point_influence(paint,
                                            brush,
@@ -143,7 +143,7 @@ void SmoothOperation::on_stroke_extended(const bContext &C, const InputSample &e
             });
         Array<bool> selection_array(curves.points_num());
         point_mask.to_bools(selection_array);
-        const VArray<bool> selection_varray = VArray<bool>::ForSpan(selection_array);
+        const VArray<bool> selection_varray = VArray<bool>::from_span(selection_array);
 
         bool changed = false;
         if (sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_POSITION) {

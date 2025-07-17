@@ -675,6 +675,43 @@ static void update_node_location_legacy(bNodeTree &ntree)
   }
 }
 
+static void write_legacy_properties(bNodeTree &ntree)
+{
+  switch (ntree.type) {
+    case NTREE_GEOMETRY: {
+      for (bNode *node : ntree.all_nodes()) {
+        if (node->type_legacy == GEO_NODE_TRANSFORM_GEOMETRY) {
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Mode");
+          node->custom1 = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_POINTS_TO_VOLUME) {
+          auto &storage = *static_cast<NodeGeometryPointsToVolume *>(node->storage);
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Resolution Mode");
+          storage.resolution_mode = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_TRIANGULATE) {
+          const bNodeSocket *quad_method_socket = node_find_socket(*node, SOCK_IN, "Quad Method");
+          const bNodeSocket *ngon_method_socket = node_find_socket(*node, SOCK_IN, "N-gon Method");
+          node->custom1 = quad_method_socket->default_value_typed<bNodeSocketValueMenu>()->value;
+          node->custom2 = ngon_method_socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_VOLUME_TO_MESH) {
+          auto &storage = *static_cast<NodeGeometryVolumeToMesh *>(node->storage);
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Resolution Mode");
+          storage.resolution_mode = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (STREQ(node->idname, "FunctionNodeMatchString")) {
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Operation");
+          node->custom1 = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
 }  // namespace forward_compat
 
 static void write_node_socket_default_value(BlendWriter *writer, const bNodeSocket *sock)
@@ -841,6 +878,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
 
   if (!BLO_write_is_undo(writer)) {
     forward_compat::update_node_location_legacy(*ntree);
+    forward_compat::write_legacy_properties(*ntree);
   }
 
   for (bNode *node : ntree->all_nodes()) {

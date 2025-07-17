@@ -86,7 +86,7 @@ bool ClosureSignature::all_matching_exactly(const Span<ClosureSignature> signatu
   return true;
 }
 
-ClosureSignature ClosureSignature::FromClosureOutputNode(const bNode &node)
+ClosureSignature ClosureSignature::from_closure_output_node(const bNode &node)
 {
   BLI_assert(node.is_type("GeometryNodeClosureOutput"));
   const auto &storage = *static_cast<const NodeGeometryClosureOutput *>(node.storage);
@@ -106,7 +106,7 @@ ClosureSignature ClosureSignature::FromClosureOutputNode(const bNode &node)
   return signature;
 }
 
-ClosureSignature ClosureSignature::FromEvaluateClosureNode(const bNode &node)
+ClosureSignature ClosureSignature::from_evaluate_closure_node(const bNode &node)
 {
   BLI_assert(node.is_type("GeometryNodeEvaluateClosure"));
   const auto &storage = *static_cast<const NodeGeometryEvaluateClosure *>(node.storage);

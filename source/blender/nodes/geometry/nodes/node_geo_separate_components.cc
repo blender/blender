@@ -8,7 +8,8 @@ namespace blender::nodes::node_geo_separate_components_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Geometry");
+  b.add_input<decl::Geometry>("Geometry")
+      .description("Geometry to split into separate components");
   b.add_output<decl::Geometry>("Mesh").propagate_all();
   b.add_output<decl::Geometry>("Curve").propagate_all();
   b.add_output<decl::Geometry>("Grease Pencil").propagate_all();

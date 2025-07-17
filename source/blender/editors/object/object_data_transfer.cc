@@ -52,14 +52,6 @@ static const EnumPropertyItem DT_layer_items[] = {
      0,
      "Vertex Group(s)",
      "Transfer active or all vertex groups"},
-#if 0 /* XXX For now, would like to finish/merge work from 2014 GSOC first. */
-    {DT_TYPE_SHAPEKEY, "SHAPEKEYS", 0, "Shapekey(s)", "Transfer active or all shape keys"},
-#endif
-/* XXX When SkinModifier is enabled,
- * it seems to erase its own CD_MVERT_SKIN layer from final DM :( */
-#if 0
-    {DT_TYPE_SKIN, "SKIN", 0, "Skin Weight", "Transfer skin weights"},
-#endif
     {DT_TYPE_BWEIGHT_VERT, "BEVEL_WEIGHT_VERT", 0, "Bevel Weight", "Transfer bevel weights"},
     {DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT,
      "COLOR_VERTEX",
@@ -175,9 +167,6 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
       tmp_item.identifier = tmp_item.name = dg->name;
       RNA_enum_item_add(&item, &totitem, &tmp_item);
     }
-  }
-  else if (data_type == DT_TYPE_SHAPEKEY) {
-    /* TODO */
   }
   else if (data_type == DT_TYPE_UV) {
     const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);

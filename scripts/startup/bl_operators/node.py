@@ -29,6 +29,8 @@ from bpy.app.translations import (
 
 
 class NodeSetting(PropertyGroup):
+    __slots__ = ()
+
     value: StringProperty(
         name="Value",
         description="Python expression to be evaluated "
@@ -487,6 +489,11 @@ class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
                         interface.remove(first_child)
             interface.remove(item)
             interface.active_index = min(interface.active_index, len(interface.items_tree) - 1)
+
+            # If the active selection lands on internal toggle socket, move selection to parent instead.
+            new_active = interface.active
+            if isinstance(new_active, bpy.types.NodeTreeInterfaceSocket) and new_active.is_panel_toggle:
+                interface.active_index = new_active.parent.index
 
         return {'FINISHED'}
 

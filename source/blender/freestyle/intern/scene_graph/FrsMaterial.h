@@ -59,25 +59,25 @@ class FrsMaterial {
   }
 
   /** Returns the red component of the line color */
-  inline const float lineR() const
+  inline float lineR() const
   {
     return Line[0];
   }
 
   /** Returns the green component of the line color */
-  inline const float lineG() const
+  inline float lineG() const
   {
     return Line[1];
   }
 
   /** Returns the blue component of the line color */
-  inline const float lineB() const
+  inline float lineB() const
   {
     return Line[2];
   }
 
   /** Returns the alpha component of the line color */
-  inline const float lineA() const
+  inline float lineA() const
   {
     return Line[3];
   }
@@ -89,25 +89,25 @@ class FrsMaterial {
   }
 
   /** Returns the red component of the diffuse color */
-  inline const float diffuseR() const
+  inline float diffuseR() const
   {
     return Diffuse[0];
   }
 
   /** Returns the green component of the diffuse color */
-  inline const float diffuseG() const
+  inline float diffuseG() const
   {
     return Diffuse[1];
   }
 
   /** Returns the blue component of the diffuse color */
-  inline const float diffuseB() const
+  inline float diffuseB() const
   {
     return Diffuse[2];
   }
 
   /** Returns the alpha component of the diffuse color */
-  inline const float diffuseA() const
+  inline float diffuseA() const
   {
     return Diffuse[3];
   }
@@ -119,25 +119,25 @@ class FrsMaterial {
   }
 
   /** Returns the red component of the specular color */
-  inline const float specularR() const
+  inline float specularR() const
   {
     return Specular[0];
   }
 
   /** Returns the green component of the specular color */
-  inline const float specularG() const
+  inline float specularG() const
   {
     return Specular[1];
   }
 
   /** Returns the blue component of the specular color */
-  inline const float specularB() const
+  inline float specularB() const
   {
     return Specular[2];
   }
 
   /** Returns the alpha component of the specular color */
-  inline const float specularA() const
+  inline float specularA() const
   {
     return Specular[3];
   }
@@ -149,25 +149,25 @@ class FrsMaterial {
   }
 
   /** Returns the red component of the ambient color */
-  inline const float ambientR() const
+  inline float ambientR() const
   {
     return Ambient[0];
   }
 
   /** Returns the green component of the ambient color */
-  inline const float ambientG() const
+  inline float ambientG() const
   {
     return Ambient[1];
   }
 
   /** Returns the blue component of the ambient color */
-  inline const float ambientB() const
+  inline float ambientB() const
   {
     return Ambient[2];
   }
 
   /** Returns the alpha component of the ambient color */
-  inline const float ambientA() const
+  inline float ambientA() const
   {
     return Ambient[3];
   }
@@ -179,37 +179,37 @@ class FrsMaterial {
   }
 
   /** Returns the red component of the emissive color */
-  inline const float emissionR() const
+  inline float emissionR() const
   {
     return Emission[0];
   }
 
   /** Returns the green component of the emissive color */
-  inline const float emissionG() const
+  inline float emissionG() const
   {
     return Emission[1];
   }
 
   /** Returns the blue component of the emissive color */
-  inline const float emissionB() const
+  inline float emissionB() const
   {
     return Emission[2];
   }
 
   /** Returns the alpha component of the emissive color */
-  inline const float emissionA() const
+  inline float emissionA() const
   {
     return Emission[3];
   }
 
   /** Returns the shininess coefficient */
-  inline const float shininess() const
+  inline float shininess() const
   {
     return Shininess;
   }
 
   /** Returns the line color priority */
-  inline const int priority() const
+  inline int priority() const
   {
     return Priority;
   }

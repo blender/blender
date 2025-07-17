@@ -1107,7 +1107,7 @@ static void grease_pencil_fill_overlay_cb(const bContext *C, ARegion * /*region*
 
     for (const ed::greasepencil::DrawingInfo &info : drawings) {
       const IndexMask curve_mask = info.drawing.strokes().curves_range();
-      const VArray<ColorGeometry4f> colors = VArray<ColorGeometry4f>::ForSingle(
+      const VArray<ColorGeometry4f> colors = VArray<ColorGeometry4f>::from_single(
           stroke_curves_color, info.drawing.strokes().points_num());
       const float4x4 layer_to_world = grease_pencil.layer(info.layer_index).to_world_space(object);
       const bool use_xray = false;
@@ -1133,7 +1133,7 @@ static void grease_pencil_fill_overlay_cb(const bContext *C, ARegion * /*region*
 
     const IndexRange lines_range = extensions.lines.starts.index_range();
     if (!lines_range.is_empty()) {
-      const VArray<ColorGeometry4f> line_colors = VArray<ColorGeometry4f>::ForSingle(
+      const VArray<ColorGeometry4f> line_colors = VArray<ColorGeometry4f>::from_single(
           extension_lines_color, lines_range.size());
 
       ed::greasepencil::image_render::draw_lines(world_to_view,
@@ -1145,14 +1145,14 @@ static void grease_pencil_fill_overlay_cb(const bContext *C, ARegion * /*region*
     }
     const IndexRange circles_range = extensions.circles.centers.index_range();
     if (!circles_range.is_empty()) {
-      const VArray<ColorGeometry4f> circle_colors = VArray<ColorGeometry4f>::ForSingle(
+      const VArray<ColorGeometry4f> circle_colors = VArray<ColorGeometry4f>::from_single(
           extension_circles_color, circles_range.size());
 
       ed::greasepencil::image_render::draw_circles(
           world_to_view,
           circles_range,
           extensions.circles.centers,
-          VArray<float>::ForSpan(extensions.circles.radii),
+          VArray<float>::from_span(extensions.circles.radii),
           circle_colors,
           float2(region.winx, region.winy),
           line_width,
@@ -1197,27 +1197,27 @@ static VArray<bool> get_fill_boundary_layers(const GreasePencil &grease_pencil,
 
   switch (fill_layer_mode) {
     case GP_FILL_GPLMODE_ACTIVE:
-      return VArray<bool>::ForFunc(all_layers.size(), [active_layer_index](const int index) {
+      return VArray<bool>::from_func(all_layers.size(), [active_layer_index](const int index) {
         return index != active_layer_index;
       });
     case GP_FILL_GPLMODE_ABOVE:
-      return VArray<bool>::ForFunc(all_layers.size(), [active_layer_index](const int index) {
+      return VArray<bool>::from_func(all_layers.size(), [active_layer_index](const int index) {
         return index != active_layer_index + 1;
       });
     case GP_FILL_GPLMODE_BELOW:
-      return VArray<bool>::ForFunc(all_layers.size(), [active_layer_index](const int index) {
+      return VArray<bool>::from_func(all_layers.size(), [active_layer_index](const int index) {
         return index != active_layer_index - 1;
       });
     case GP_FILL_GPLMODE_ALL_ABOVE:
-      return VArray<bool>::ForFunc(all_layers.size(), [active_layer_index](const int index) {
+      return VArray<bool>::from_func(all_layers.size(), [active_layer_index](const int index) {
         return index <= active_layer_index;
       });
     case GP_FILL_GPLMODE_ALL_BELOW:
-      return VArray<bool>::ForFunc(all_layers.size(), [active_layer_index](const int index) {
+      return VArray<bool>::from_func(all_layers.size(), [active_layer_index](const int index) {
         return index >= active_layer_index;
       });
     case GP_FILL_GPLMODE_VISIBLE:
-      return VArray<bool>::ForFunc(all_layers.size(), [grease_pencil](const int index) {
+      return VArray<bool>::from_func(all_layers.size(), [grease_pencil](const int index) {
         return !grease_pencil.layers()[index]->is_visible();
       });
   }
@@ -1312,7 +1312,7 @@ static void smooth_fill_strokes(bke::CurvesGeometry &curves, const IndexMask &st
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<bool> cyclic = curves.cyclic();
-  const VArray<bool> point_selection = VArray<bool>::ForSingle(true, curves.points_num());
+  const VArray<bool> point_selection = VArray<bool>::from_single(true, curves.points_num());
 
   bke::GSpanAttributeWriter positions = attributes.lookup_for_write_span("position");
   geometry::smooth_curve_attribute(stroke_mask,
@@ -1439,7 +1439,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
           dst_curves.attributes_for_write().lookup_or_add_for_write_span<float>(
               "fill_opacity",
               bke::AttrDomain::Curve,
-              bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, dst_curves.curves_num())));
+              bke::AttributeInitVArray(VArray<float>::from_single(1.0f, dst_curves.curves_num())));
       fill_opacities.finish();
     }
 

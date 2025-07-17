@@ -483,7 +483,6 @@ bool stroke_get_location_bvh(bContext *C, float out[3], const float mval[2], boo
 struct CursorGeometryInfo {
   float3 location;
   float3 normal;
-  float3 active_vertex_co;
 };
 
 /**

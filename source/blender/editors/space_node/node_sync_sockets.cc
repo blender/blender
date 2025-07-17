@@ -62,8 +62,8 @@ static BundleSyncState get_sync_state_separate_bundle(const SpaceNode &snode,
     return {NodeSyncState::ConflictingSyncSources};
   }
   const nodes::BundleSignature &source_signature = source_signatures[0];
-  const nodes::BundleSignature &current_signature = nodes::BundleSignature::FromSeparateBundleNode(
-      separate_bundle_node);
+  const nodes::BundleSignature &current_signature =
+      nodes::BundleSignature::from_separate_bundle_node(separate_bundle_node);
   if (!source_signature.matches_exactly(current_signature)) {
     return {NodeSyncState::CanBeSynced, source_signature};
   }
@@ -90,8 +90,8 @@ static BundleSyncState get_sync_state_combine_bundle(const SpaceNode &snode,
     return {NodeSyncState::ConflictingSyncSources};
   }
   const nodes::BundleSignature &source_signature = source_signatures[0];
-  const nodes::BundleSignature &current_signature = nodes::BundleSignature::FromCombineBundleNode(
-      combine_bundle_node);
+  const nodes::BundleSignature &current_signature =
+      nodes::BundleSignature::from_combine_bundle_node(combine_bundle_node);
   if (!source_signature.matches_exactly(current_signature)) {
     return {NodeSyncState::CanBeSynced, source_signature};
   }
@@ -118,7 +118,7 @@ static ClosureSyncState get_sync_state_closure_output(const SpaceNode &snode,
   }
   const nodes::ClosureSignature &source_signature = source_signatures[0];
   const nodes::ClosureSignature &current_signature =
-      nodes::ClosureSignature::FromClosureOutputNode(closure_output_node);
+      nodes::ClosureSignature::from_closure_output_node(closure_output_node);
   if (!source_signature.matches_exactly(current_signature)) {
     return {NodeSyncState::CanBeSynced, source_signature};
   }
@@ -145,7 +145,7 @@ static ClosureSyncState get_sync_state_evaluate_closure(const SpaceNode &snode,
   }
   const nodes::ClosureSignature &source_signature = source_signatures[0];
   const nodes::ClosureSignature &current_signature =
-      nodes::ClosureSignature::FromEvaluateClosureNode(evaluate_closure_node);
+      nodes::ClosureSignature::from_evaluate_closure_node(evaluate_closure_node);
   if (!source_signature.matches_exactly(current_signature)) {
     return {NodeSyncState::CanBeSynced, source_signature};
   }

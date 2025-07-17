@@ -135,13 +135,8 @@ static void mix_normals(const float mix_factor,
 
   if (dvert) {
     facs = MEM_malloc_arrayN<float>(size_t(corner_verts.size()), __func__);
-    BKE_defvert_extract_vgroup_to_loopweights(dvert,
-                                              defgrp_index,
-                                              verts_num,
-                                              corner_verts.data(),
-                                              corner_verts.size(),
-                                              use_invert_vgroup,
-                                              facs);
+    BKE_defvert_extract_vgroup_to_loopweights(
+        dvert, defgrp_index, verts_num, corner_verts, use_invert_vgroup, facs);
   }
 
   for (i = corner_verts.size(), no_new = nos_new, no_old = nos_old, wfac = facs; i--;

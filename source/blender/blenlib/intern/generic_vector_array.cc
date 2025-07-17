@@ -50,7 +50,7 @@ void GVectorArray::extend(const int64_t index, const GVArray &values)
 
 void GVectorArray::extend(const int64_t index, const GSpan values)
 {
-  this->extend(index, GVArray::ForSpan(values));
+  this->extend(index, GVArray::from_span(values));
 }
 
 void GVectorArray::extend(const IndexMask &mask, const GVVectorArray &values)

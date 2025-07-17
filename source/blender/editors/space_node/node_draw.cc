@@ -4100,7 +4100,7 @@ struct FrameNodeLayout {
   float margin_top = 0;
   float label_height = 0;
   float label_baseline = 0;
-  bool has_label = 0;
+  bool has_label = false;
 };
 
 static FrameNodeLayout frame_node_layout(const bNode &frame_node)
@@ -4829,8 +4829,8 @@ static void node_draw_zones_and_frames(const ARegion &region,
     fillet_curve_by_zone[zone_i] = geometry::fillet_curves_poly(
         boundary_curve,
         IndexRange(1),
-        VArray<float>::ForSingle(BASIS_RAD, boundary_positions_num),
-        VArray<int>::ForSingle(5, boundary_positions_num),
+        VArray<float>::from_single(BASIS_RAD, boundary_positions_num),
+        VArray<int>::from_single(5, boundary_positions_num),
         true,
         {});
   }

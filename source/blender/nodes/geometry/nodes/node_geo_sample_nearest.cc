@@ -57,7 +57,8 @@ namespace blender::nodes::node_geo_sample_nearest_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry")
-      .supported_type({GeometryComponent::Type::Mesh, GeometryComponent::Type::PointCloud});
+      .supported_type({GeometryComponent::Type::Mesh, GeometryComponent::Type::PointCloud})
+      .description("Mesh or point cloud to find the nearest point on");
   b.add_input<decl::Vector>("Sample Position").implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
   b.add_output<decl::Int>("Index").dependent_field({1});
 }
@@ -312,7 +313,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Field<float3> positions = params.extract_input<Field<float3>>("Sample Position");
   auto fn = std::make_shared<SampleNearestFunction>(std::move(geometry), domain);
-  auto op = FieldOperation::Create(std::move(fn), {std::move(positions)});
+  auto op = FieldOperation::from(std::move(fn), {std::move(positions)});
   params.set_output<Field<int>>("Index", Field<int>(std::move(op)));
 }
 

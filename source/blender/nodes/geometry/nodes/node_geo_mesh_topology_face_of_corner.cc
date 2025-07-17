@@ -35,7 +35,7 @@ class CornerFaceIndexInput final : public bke::MeshFieldInput {
     if (domain != AttrDomain::Corner) {
       return {};
     }
-    return VArray<int>::ForSpan(mesh.corner_to_face_map());
+    return VArray<int>::from_span(mesh.corner_to_face_map());
   }
 
   uint64_t hash() const final
@@ -65,7 +65,7 @@ class CornerIndexInFaceInput final : public bke::MeshFieldInput {
     }
     const OffsetIndices faces = mesh.faces();
     const Span<int> corner_to_face = mesh.corner_to_face_map();
-    return VArray<int>::ForFunc(mesh.corners_num, [faces, corner_to_face](const int corner) {
+    return VArray<int>::from_func(mesh.corners_num, [faces, corner_to_face](const int corner) {
       const int face_i = corner_to_face[corner];
       return corner - faces[face_i].start();
     });

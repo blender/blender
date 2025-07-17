@@ -239,13 +239,13 @@ class FieldOperation : public FieldNode {
 
   const CPPType &output_cpp_type(int output_index) const override;
 
-  static std::shared_ptr<FieldOperation> Create(std::shared_ptr<const mf::MultiFunction> function,
-                                                Vector<GField> inputs = {})
+  static std::shared_ptr<FieldOperation> from(std::shared_ptr<const mf::MultiFunction> function,
+                                              Vector<GField> inputs = {})
   {
     return std::make_shared<FieldOperation>(FieldOperation(std::move(function), inputs));
   }
-  static std::shared_ptr<FieldOperation> Create(const mf::MultiFunction &function,
-                                                Vector<GField> inputs = {})
+  static std::shared_ptr<FieldOperation> from(const mf::MultiFunction &function,
+                                              Vector<GField> inputs = {})
   {
     return std::make_shared<FieldOperation>(FieldOperation(function, inputs));
   }
@@ -413,7 +413,7 @@ class FieldEvaluator : NonMovable, NonCopyable {
    */
   template<typename T> int add_with_destination(Field<T> field, MutableSpan<T> dst)
   {
-    return this->add_with_destination(std::move(field), VMutableArray<T>::ForSpan(dst));
+    return this->add_with_destination(std::move(field), VMutableArray<T>::from_span(dst));
   }
 
   int add(GField field, GVArray *varray_ptr);
