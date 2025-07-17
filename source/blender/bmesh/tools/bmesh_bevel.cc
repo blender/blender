@@ -334,7 +334,7 @@ enum AngleKind {
 /** Container for loops representing UV verts which should be merged together in a UV map. */
 using UVVertBucket = Set<BMLoop *>;
 
-/** Mapping of vertex to UV vert buckets (i.e. loops belonging to that key `BMVert`). */
+/** Mapping of vertex to UV vert buckets (i.e. loops belonging to that `BMVert` key). */
 using UVVertMap = Map<BMVert *, Vector<UVVertBucket>>;
 
 /** Bevel parameters and state. */
@@ -7970,8 +7970,8 @@ void BM_mesh_bevel(BMesh *bm,
       bv = bevel_vert_construct(bm, &bp, v);
       if (!limit_offset && bv) {
         build_boundary(&bp, bv, true);
+        determine_uv_vert_connectivity(&bp, bm, v);
       }
-      determine_uv_vert_connectivity(&bp, bm, v);
     }
   }
 
@@ -7985,6 +7985,7 @@ void BM_mesh_bevel(BMesh *bm,
         bv = find_bevvert(&bp, v);
         if (bv) {
           build_boundary(&bp, bv, true);
+          determine_uv_vert_connectivity(&bp, bm, v);
         }
       }
     }
