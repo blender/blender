@@ -201,7 +201,7 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
 
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Shapekey %s has an invalid 'from' pointer (%p), it will be deleted",
+                "ShapeKey %s has an invalid 'from' pointer (%p), it will be deleted",
                 shapekey->id.name,
                 shapekey->from);
     /* NOTE: also need to remap UI data ID pointers here, since `bmain` is not the current

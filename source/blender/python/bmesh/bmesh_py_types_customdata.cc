@@ -125,7 +125,7 @@ PyDoc_STRVAR(
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmlayeraccess_collection__shape_doc,
-    "Vertex shapekey absolute location (as a 3D Vector).\n"
+    "Vertex shape-key absolute location (as a 3D Vector).\n"
     "\n"
     ":type: :class:`BMLayerCollection` of :class:`mathutils.Vector`");
 PyDoc_STRVAR(

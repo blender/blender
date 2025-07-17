@@ -1119,7 +1119,7 @@ static void do_version_remove_lzo_and_lzma_compression(FileData *fd, Object *obj
         fd->reports,
         RPT_WARNING,
         RPT_("%s Cache in object %s can not be read because it uses an "
-             "outdated compression method. You need to delete the caches and rebake."),
+             "outdated compression method. You need to delete the caches and re-bake."),
         cache_type.c_str(),
         pid->owner_id->name + 2);
   }
