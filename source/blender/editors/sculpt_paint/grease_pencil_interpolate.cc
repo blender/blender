@@ -459,116 +459,6 @@ static bool compute_auto_flip(const Span<float3> from_positions, const Span<floa
   return math::dot(from_last - from_first, to_last - to_first) < 0.0f;
 }
 
-static void assign_samples_to_segments(const int num_dst_points,
-                                       const Span<float3> src_positions,
-                                       const bool cyclic,
-                                       MutableSpan<int> dst_sample_offsets)
-{
-  const IndexRange src_points = src_positions.index_range();
-  /* Extra segment at the end for cyclic curves. */
-  const int num_src_segments = src_points.size() - 1 + cyclic;
-  /* Extra points of the destination curve that need to be distributed on source segments. */
-  const int num_free_samples = num_dst_points - num_src_segments - 1;
-  BLI_assert(dst_sample_offsets.size() == num_src_segments + 1);
-
-  Array<float> segment_lengths(num_src_segments + 1);
-  segment_lengths[0] = 0.0f;
-  for (const int i : src_points.drop_front(1)) {
-    segment_lengths[i] = segment_lengths[i - 1] + math::distance(src_positions[src_points[i - 1]],
-                                                                 src_positions[src_points[i]]);
-  }
-  if (cyclic) {
-    const int i = src_points.size();
-    segment_lengths[i] = segment_lengths[i - 1] + math::distance(src_positions[src_points[i - 1]],
-                                                                 src_positions[src_points[0]]);
-  }
-  const float total_length = segment_lengths.last();
-
-  constexpr float length_epsilon = 1e-4f;
-  if (total_length > length_epsilon) {
-    /* Factor for computing the fraction of remaining samples in a segment. */
-    const float length_to_free_sample_count = math::safe_divide(float(num_free_samples),
-                                                                total_length);
-    int samples_start = 0;
-    for (const int segment : IndexRange(num_src_segments)) {
-      const int free_samples_start = math::round(segment_lengths[segment] *
-                                                 length_to_free_sample_count);
-      const int free_samples_end = math::round(segment_lengths[segment + 1] *
-                                               length_to_free_sample_count);
-      dst_sample_offsets[segment] = samples_start;
-      samples_start += 1 + free_samples_end - free_samples_start;
-    }
-  }
-  else {
-    /* If source segment lengths are zero use uniform mapping by index as a fallback. */
-    const float index_to_free_sample_count = math::safe_divide(float(num_free_samples),
-                                                               float(num_src_segments));
-    int samples_start = 0;
-    for (const int segment : IndexRange(num_src_segments)) {
-      dst_sample_offsets[segment] = samples_start;
-      const int free_samples_start = math::round(segment * index_to_free_sample_count);
-      const int free_samples_end = math::round((segment + 1) * index_to_free_sample_count);
-      samples_start += 1 + free_samples_end - free_samples_start;
-    }
-  }
-  /* This also assigns any remaining samples in case of rounding error. */
-  dst_sample_offsets.last() = num_dst_points;
-}
-
-/**
- * Copy existing sample positions and insert new samples in between to reach the final count.
- */
-static void sample_curve_padded(const bke::CurvesGeometry &curves,
-                                const int curve_index,
-                                const bool cyclic,
-                                const bool reverse,
-                                MutableSpan<int> r_segment_indices,
-                                MutableSpan<float> r_factors)
-{
-  const int num_dst_points = r_segment_indices.size();
-  const IndexRange src_points = curves.points_by_curve()[curve_index];
-  if (src_points.is_empty()) {
-    return;
-  }
-  if (src_points.size() == 1) {
-    r_segment_indices.fill(0);
-    r_factors.fill(0.0f);
-    return;
-  }
-
-  /* Extra segment at the end for cyclic curves. */
-  const int num_src_segments = src_points.size() - 1 + cyclic;
-  /* There should be at least one source point for every output sample. */
-  BLI_assert(num_dst_points >= num_src_segments);
-
-  /* First destination point in each source segment. */
-  Array<int> dst_sample_offsets(num_src_segments + 1);
-  assign_samples_to_segments(
-      num_dst_points, curves.positions().slice(src_points), cyclic, dst_sample_offsets);
-
-  OffsetIndices dst_samples_by_src_segment = OffsetIndices<int>(dst_sample_offsets);
-  for (const int segment : IndexRange(num_src_segments)) {
-    const IndexRange samples = dst_samples_by_src_segment[segment];
-    BLI_assert(samples.size() >= 1);
-
-    const int point_index = segment < src_points.size() ? segment : 0;
-    r_segment_indices.slice(samples).fill(point_index);
-    for (const int sample_i : samples.index_range()) {
-      const int sample = reverse ? samples[samples.size() - 1 - sample_i] : samples[sample_i];
-      const float factor = float(sample_i) / samples.size();
-      r_factors[sample] = reverse ? 1.0f - factor : factor;
-    }
-  }
-  if (cyclic) {
-    r_segment_indices.last() = 0;
-    r_factors.last() = 0.0f;
-  }
-  else {
-    r_segment_indices.last() = src_points.size() - 1;
-    r_factors.last() = 0.0f;
-  }
-}
-
 static bke::CurvesGeometry interpolate_between_curves(const GreasePencil &grease_pencil,
                                                       const bke::greasepencil::Layer &layer,
                                                       const InterpolationPairs &curve_pairs,
@@ -748,22 +638,22 @@ static bke::CurvesGeometry interpolate_between_curves(const GreasePencil &grease
         BLI_assert(from_points.size() == dst_points.size());
         array_utils::fill_index_range(from_sample_indices.as_mutable_span().slice(dst_points));
         from_sample_factors.as_mutable_span().slice(dst_points).fill(0.0f);
-        sample_curve_padded(to_drawing->strokes(),
-                            to_curve,
-                            to_curves_cyclic[to_curve],
-                            dst_curve_flip[pair_index],
-                            to_sample_indices.as_mutable_span().slice(dst_points),
-                            to_sample_factors.as_mutable_span().slice(dst_points));
+        geometry::sample_curve_padded(to_drawing->strokes(),
+                                      to_curve,
+                                      to_curves_cyclic[to_curve],
+                                      dst_curve_flip[pair_index],
+                                      to_sample_indices.as_mutable_span().slice(dst_points),
+                                      to_sample_factors.as_mutable_span().slice(dst_points));
       }
       else {
         /* Target curve samples match 'to' points. */
         BLI_assert(to_points.size() == dst_points.size());
-        sample_curve_padded(from_drawing->strokes(),
-                            from_curve,
-                            from_curves_cyclic[from_curve],
-                            dst_curve_flip[pair_index],
-                            from_sample_indices.as_mutable_span().slice(dst_points),
-                            from_sample_factors.as_mutable_span().slice(dst_points));
+        geometry::sample_curve_padded(from_drawing->strokes(),
+                                      from_curve,
+                                      from_curves_cyclic[from_curve],
+                                      dst_curve_flip[pair_index],
+                                      from_sample_indices.as_mutable_span().slice(dst_points),
+                                      from_sample_factors.as_mutable_span().slice(dst_points));
         array_utils::fill_index_range(to_sample_indices.as_mutable_span().slice(dst_points));
         to_sample_factors.fill(0.0f);
       }
