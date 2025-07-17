@@ -312,6 +312,10 @@ typedef struct wmWindow {
    * it causes the window size to be initialized to `wm_init_state.size`.
    * These default to the main screen size but can be overridden by the `--window-geometry`
    * command line argument.
+   *
+   * \warning Using these values directly can result in errors on macOS due to HiDPI displays
+   * influencing the window native pixel size. See #WM_window_native_pixel_size for a general use
+   * alternative.
    */
   short sizex, sizey;
   /** Normal, maximized, full-screen, #GHOST_TWindowState. */
