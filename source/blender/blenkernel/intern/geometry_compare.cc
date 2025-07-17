@@ -284,7 +284,7 @@ static bool update_set_ids(MutableSpan<int> set_ids,
                            const Span<T> values1,
                            const Span<T> values2,
                            const Span<int> sorted_to_values1,
-                           MutableSpan<int> sorted_to_values2,
+                           const Span<int> sorted_to_values2,
                            const float threshold,
                            const int component_i)
 {
