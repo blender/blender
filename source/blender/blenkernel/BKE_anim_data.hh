@@ -75,11 +75,6 @@ AnimData *BKE_animdata_ensure_id(ID *id);
  */
 bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act);
 
-/**
- * Same as BKE_animdata_set_action(), except sets `tmpact` instead of `action`.
- */
-bool BKE_animdata_set_tmpact(ReportList *reports, ID *id, bAction *act);
-
 bool BKE_animdata_action_editable(const AnimData *adt);
 
 /**
