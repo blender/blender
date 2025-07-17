@@ -668,7 +668,7 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
             SNPRINTF(line, "%s%s", filepath, dirname);
             fsmenu_insert_entry(
                 fsmenu, FS_CATEGORY_SYSTEM, line, label, ICON_NETWORK_DRIVE, FS_INSERT_SORTED);
-            found = 1;
+            found = true;
           }
           BLI_filelist_free(dirs, dirs_num);
         }

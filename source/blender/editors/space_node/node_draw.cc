@@ -4100,7 +4100,7 @@ struct FrameNodeLayout {
   float margin_top = 0;
   float label_height = 0;
   float label_baseline = 0;
-  bool has_label = 0;
+  bool has_label = false;
 };
 
 static FrameNodeLayout frame_node_layout(const bNode &frame_node)

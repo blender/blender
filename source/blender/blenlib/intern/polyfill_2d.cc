@@ -262,7 +262,7 @@ static uint32_t kdtree2d_balance_recursive(KDTreeNode2D *nodes,
     i = neg - 1;
     j = pos;
 
-    while (1) {
+    while (true) {
       while (coords[nodes[++i].index][axis] < co) { /* pass */
       }
       while (coords[nodes[--j].index][axis] > co && j > neg) { /* pass */

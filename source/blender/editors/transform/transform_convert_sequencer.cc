@@ -854,18 +854,18 @@ bool transform_convert_sequencer_clamp(const TransInfo *t, float r_val[2])
   /* Unconditional channel and handle clamping. Should never be ignored. */
   if (BLI_rcti_clamp_pt_v(&ts->offset_clamp, val)) {
     r_val[0] = static_cast<float>(val[0]);
-    r_val[1] = static_cast<float>(val[1]);
+    r_val[1] = float(val[1]);
     clamped = true;
   }
 
   /* Optional clamping of handles to underlying holds. Can be disabled by the user. */
   if (t->modifiers & MOD_STRIP_CLAMP_HOLDS) {
     if (val[0] < ts->hold_clamp_min) {
-      r_val[0] = static_cast<float>(ts->hold_clamp_min);
+      r_val[0] = float(ts->hold_clamp_min);
       clamped = true;
     }
     else if (val[0] > ts->hold_clamp_max) {
-      r_val[0] = static_cast<float>(ts->hold_clamp_max);
+      r_val[0] = float(ts->hold_clamp_max);
       clamped = true;
     }
   }
