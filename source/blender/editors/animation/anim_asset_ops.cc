@@ -122,6 +122,19 @@ static blender::animrig::Action &extract_pose(Main &bmain,
     BLI_assert(pose_object->pose);
     Slot &slot = action.slot_add_for_id(pose_object->id);
     const bArmature *armature = static_cast<bArmature *>(pose_object->data);
+
+    Set<RNAPath> existing_paths;
+    if (pose_object->adt && pose_object->adt->action &&
+        pose_object->adt->slot_handle != Slot::unassigned)
+    {
+      Action &pose_object_action = pose_object->adt->action->wrap();
+      const slot_handle_t pose_object_slot = pose_object->adt->slot_handle;
+      foreach_fcurve_in_action_slot(pose_object_action, pose_object_slot, [&](FCurve &fcurve) {
+        RNAPath existing_path = {fcurve.rna_path, std::nullopt, fcurve.array_index};
+        existing_paths.add(existing_path);
+      });
+    }
+
     LISTBASE_FOREACH (bPoseChannel *, pose_bone, &pose_object->pose->chanbase) {
       if (!(pose_bone->bone->flag & BONE_SELECTED) ||
           !blender::animrig::bone_is_visible(armature, pose_bone->bone))
@@ -147,6 +160,12 @@ static blender::animrig::Action &extract_pose(Main &bmain,
           continue;
         }
         for (const int i : values.index_range()) {
+          if (RNA_property_is_idprop(resolved_property) &&
+              !existing_paths.contains({rna_path_id_to_prop.value(), std::nullopt, i}))
+          {
+            /* Skipping custom properties without animation. */
+            continue;
+          }
           strip_data.keyframe_insert(
               &bmain, slot, {rna_path_id_to_prop.value(), i}, {1, values[i]}, key_settings);
         }
