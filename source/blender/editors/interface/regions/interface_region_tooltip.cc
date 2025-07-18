@@ -797,7 +797,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
     }
   }
 #else
-  UNUSED_VARS(is_label, has_valid_context, has_valid_context_error);
+  UNUSED_VARS(is_quick_tip, has_valid_context, has_valid_context_error);
 #endif /* WITH_PYTHON */
 
   return data->fields.is_empty() ? nullptr : std::move(data);

@@ -34,8 +34,10 @@
 
 #include "BLF_api.hh"
 
-#include "nanosvgrast.h"
-#include "svg_cursors.h"
+#ifndef WITH_HEADLESS
+#  include "nanosvgrast.h"
+#  include "svg_cursors.h"
+#endif
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -208,6 +210,10 @@ static uint8_t *cursor_bitmap_from_svg(const char *svg,
                                        uint8_t *(*alloc_fn)(size_t size),
                                        int r_bitmap_size[2])
 {
+#ifdef WITH_HEADLESS
+  UNUSED_VARS(svg, cursor_size, alloc_fn, r_bitmap_size);
+  return nullptr;
+#else
   /* #nsvgParse alters the source string. */
   std::string svg_source = svg;
 
@@ -246,6 +252,7 @@ static uint8_t *cursor_bitmap_from_svg(const char *svg,
   r_bitmap_size[1] = dest_size[1];
 
   return bitmap_rgba;
+#endif /* !WITH_HEADLESS */
 }
 
 /**
@@ -807,6 +814,7 @@ void WM_cursor_time(wmWindow *win, int nr)
   win->cursor = 0;
 }
 
+#ifndef WITH_HEADLESS
 static void wm_add_cursor(WMCursorType cursor,
                           const char *svg_source,
                           const blender::float2 &hotspot,
@@ -816,9 +824,11 @@ static void wm_add_cursor(WMCursorType cursor,
   g_cursors[cursor].hotspot = hotspot;
   g_cursors[cursor].can_invert = can_invert;
 }
+#endif /* !WITH_HEADLESS */
 
 void wm_init_cursor_data()
 {
+#ifndef WITH_HEADLESS
   wm_add_cursor(WM_CURSOR_DEFAULT, datatoc_cursor_pointer_svg, {0.0f, 0.0f});
   wm_add_cursor(WM_CURSOR_NW_ARROW, datatoc_cursor_pointer_svg, {0.0f, 0.0f});
   wm_add_cursor(WM_CURSOR_COPY, datatoc_cursor_pointer_svg, {0.0f, 0.0f});
@@ -861,4 +871,5 @@ void wm_init_cursor_data()
   wm_add_cursor(WM_CURSOR_BOTH_HANDLES, datatoc_cursor_both_handles_svg, {0.5f, 0.5f});
   wm_add_cursor(WM_CURSOR_RIGHT_HANDLE, datatoc_cursor_right_handle_svg, {0.5f, 0.5f});
   wm_add_cursor(WM_CURSOR_LEFT_HANDLE, datatoc_cursor_left_handle_svg, {0.5f, 0.5f});
+#endif /* !WITH_HEADLESS */
 }
