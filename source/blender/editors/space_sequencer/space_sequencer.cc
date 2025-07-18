@@ -327,7 +327,7 @@ static int /*eContextResult*/ sequencer_context(const bContext *C,
                                                 const char *member,
                                                 bContextDataResult *result)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
 
   if (CTX_data_dir(member)) {
     CTX_data_dir_set(result, sequencer_context_dir);
@@ -474,7 +474,7 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
   }
 
   View2D *v2d = &region->v2d;
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
 
   /* Transformation uses edge panning to move view. Also if smooth view is running, don't apply
    * clamping to prevent overriding this functionality. */

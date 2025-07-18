@@ -91,7 +91,7 @@ Strip *special_preview_get()
 
 void special_preview_set(bContext *C, const int mval[2])
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   ARegion *region = CTX_wm_region(C);
   Strip *strip = strip_under_mouse_get(scene, &region->v2d, mval);
   if (strip != nullptr && strip->type != STRIP_TYPE_SOUND_RAM) {
@@ -109,7 +109,7 @@ ImBuf *sequencer_ibuf_get(const bContext *C, const int timeline_frame, const cha
   Main *bmain = CTX_data_main(C);
   ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   bScreen *screen = CTX_wm_screen(C);
 
@@ -281,7 +281,7 @@ void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *region, S
       float aspx = 1.0f, aspy = 1.0f;
       // ED_mask_get_size(C, &width, &height);
 
-      // Scene *scene = CTX_data_scene(C);
+      // Scene *scene = CTX_data_sequencer_scene(C);
       BKE_render_resolution(&scene->r, false, &width, &height);
 
       ED_mask_draw_region(mask,
@@ -917,7 +917,7 @@ static void strip_draw_image_origin_and_outline(const bContext *C,
   }
 
   const blender::float2 origin = seq::image_transform_origin_offset_pixelspace_get(
-      CTX_data_scene(C), strip);
+      CTX_data_sequencer_scene(C), strip);
 
   /* Origin. */
   GPUVertFormat *format = immVertexFormat();
@@ -934,7 +934,7 @@ static void strip_draw_image_origin_and_outline(const bContext *C,
 
   /* Outline. */
   const blender::Array<blender::float2> strip_image_quad = seq::image_transform_final_quad_get(
-      CTX_data_scene(C), strip);
+      CTX_data_sequencer_scene(C), strip);
 
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -965,7 +965,7 @@ static void text_selection_draw(const bContext *C, const Strip *strip, uint pos)
 {
   const TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const TextVarsRuntime *text = data->runtime;
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
 
   if (data->selection_start_offset == -1 || strip_text_selection_range_get(data).is_empty()) {
     return;
@@ -1034,7 +1034,7 @@ static void text_edit_draw_cursor(const bContext *C, const Strip *strip, uint po
 {
   const TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const TextVarsRuntime *text = data->runtime;
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
 
   const blender::float2 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f};
   const float view_aspect = scene->r.xasp / scene->r.yasp;
@@ -1082,7 +1082,7 @@ static void text_edit_draw(const bContext *C)
   if (!sequencer_text_editing_active_poll(const_cast<bContext *>(C))) {
     return;
   }
-  const Strip *strip = seq::select_active_get(CTX_data_scene(C));
+  const Strip *strip = seq::select_active_get(CTX_data_sequencer_scene(C));
   if (!seq::effects_can_render_text(strip)) {
     return;
   }
@@ -1130,7 +1130,7 @@ static bool preview_draw_begin(const bContext *C,
                                const ColorManagedDisplaySettings &display_settings,
                                ARegion &region)
 {
-  sequencer_stop_running_jobs(C, CTX_data_scene(C));
+  sequencer_stop_running_jobs(C, CTX_data_sequencer_scene(C));
   if (G.is_rendering) {
     return false;
   }
@@ -1159,7 +1159,7 @@ static bool preview_draw_begin(const bContext *C,
 static void preview_draw_end(const bContext *C)
 {
   UI_view2d_view_restore(C);
-  seq_prefetch_wm_notify(C, CTX_data_scene(C));
+  seq_prefetch_wm_notify(C, CTX_data_sequencer_scene(C));
 }
 
 /* Configure current GPU state to draw on the color render frame-buffer of the viewport. */
@@ -1632,7 +1632,7 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
 
   const ScrArea *area = CTX_wm_area(C);
   const SpaceSeq &space_sequencer = *static_cast<const SpaceSeq *>(area->spacedata.first);
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
 
   if (!scene->ed || space_sequencer.render_size == SEQ_RENDER_SIZE_NONE) {
     sequencer_preview_draw_empty(*region);

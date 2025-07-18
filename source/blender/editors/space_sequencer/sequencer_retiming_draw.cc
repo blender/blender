@@ -109,7 +109,7 @@ rctf strip_retiming_keys_box_get(const Scene *scene, const View2D *v2d, const St
 
 int left_fake_key_frame_get(const bContext *C, const Strip *strip)
 {
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const int sound_offset = seq::time_get_rounded_sound_offset(strip, scene_fps);
   const int content_start = seq::time_start_frame_get(strip) + sound_offset;
@@ -118,7 +118,7 @@ int left_fake_key_frame_get(const bContext *C, const Strip *strip)
 
 int right_fake_key_frame_get(const bContext *C, const Strip *strip)
 {
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
   const float scene_fps = float(scene->r.frs_sec) / float(scene->r.frs_sec_base);
   const int sound_offset = seq::time_get_rounded_sound_offset(strip, scene_fps);
   const int content_end = seq::time_content_end_frame_get(scene, strip) - 1 + sound_offset;
@@ -130,7 +130,7 @@ static bool retiming_fake_key_frame_clicked(const bContext *C,
                                             const int mval[2],
                                             int &r_frame)
 {
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
   const View2D *v2d = UI_view2d_fromcontext(C);
 
   rctf box = strip_retiming_keys_box_get(scene, v2d, strip);
@@ -167,7 +167,7 @@ void realize_fake_keys(const Scene *scene, Strip *strip)
 
 SeqRetimingKey *try_to_realize_fake_keys(const bContext *C, Strip *strip, const int mval[2])
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   SeqRetimingKey *key = nullptr;
 
   int key_frame;
@@ -182,7 +182,7 @@ static SeqRetimingKey *mouse_over_key_get_from_strip(const bContext *C,
                                                      const Strip *strip,
                                                      const int mval[2])
 {
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
   const View2D *v2d = UI_view2d_fromcontext(C);
 
   int best_distance = INT_MAX;
@@ -210,7 +210,7 @@ static SeqRetimingKey *mouse_over_key_get_from_strip(const bContext *C,
 
 SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2], Strip **r_strip)
 {
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
   const View2D *v2d = UI_view2d_fromcontext(C);
   for (Strip *strip : sequencer_visible_strips_get(C)) {
     rctf box = strip_retiming_keys_box_get(scene, v2d, strip);

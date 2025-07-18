@@ -1158,6 +1158,16 @@ Scene *CTX_data_scene(const bContext *C)
   return C->data.scene;
 }
 
+Scene *CTX_data_sequencer_scene(const bContext *C)
+{
+  Scene *scene;
+  if (ctx_data_pointer_verify(C, "sequencer_scene", (void **)&scene)) {
+    return scene;
+  }
+  /* TODO: Use sequencer scene. */
+  return C->data.scene;
+}
+
 ViewLayer *CTX_data_view_layer(const bContext *C)
 {
   ViewLayer *view_layer;

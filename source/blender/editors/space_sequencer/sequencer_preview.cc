@@ -184,7 +184,7 @@ void sequencer_preview_add_sound(const bContext *C, const Strip *strip)
 
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
-                       CTX_data_scene(C),
+                       CTX_data_sequencer_scene(C),
                        "Strip Previews",
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_SEQ_BUILD_PREVIEW);
@@ -201,7 +201,7 @@ void sequencer_preview_add_sound(const bContext *C, const Strip *strip)
 
       /* Clear the sound loading tag to that it can be reattempted. */
       clear_sound_waveform_loading_tag(strip->sound);
-      WM_event_add_notifier(C, NC_SCENE | ND_SPACE_SEQUENCER, CTX_data_scene(C));
+      WM_event_add_notifier(C, NC_SCENE | ND_SPACE_SEQUENCER, CTX_data_sequencer_scene(C));
       return;
     }
   }
@@ -210,7 +210,7 @@ void sequencer_preview_add_sound(const bContext *C, const Strip *strip)
 
     pj->mutex = BLI_mutex_alloc();
     BLI_condition_init(&pj->preview_suspend_cond);
-    pj->scene = CTX_data_scene(C);
+    pj->scene = CTX_data_sequencer_scene(C);
     pj->running = true;
     BLI_mutex_lock(pj->mutex);
 

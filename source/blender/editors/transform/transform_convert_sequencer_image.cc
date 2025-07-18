@@ -11,6 +11,8 @@
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 
+#include "BKE_context.hh"
+
 #include "BLI_array.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
@@ -138,9 +140,10 @@ static void freeSeqData(TransInfo * /*t*/,
   }
 }
 
-static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
+static void createTransSeqImageData(bContext *C, TransInfo *t)
 {
-  Editing *ed = seq::editing_get(t->scene);
+  Scene *scene = CTX_data_sequencer_scene(C);
+  Editing *ed = seq::editing_get(scene);
   const SpaceSeq *sseq = static_cast<const SpaceSeq *>(t->area->spacedata.first);
   const ARegion *region = t->region;
 
@@ -156,7 +159,7 @@ static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
 
   ListBase *seqbase = seq::active_seqbase_get(ed);
   ListBase *channels = seq::channels_displayed_get(ed);
-  VectorSet strips = seq::query_rendered_strips(t->scene, channels, seqbase, t->scene->r.cfra, 0);
+  VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
 
   if (strips.is_empty()) {
@@ -175,9 +178,9 @@ static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
     /* One `Sequence` needs 3 `TransData` entries - center point placed in image origin, then 2
      * points offset by 1 in X and Y direction respectively, so rotation and scale can be
      * calculated from these points. */
-    SeqToTransData(t->scene, strip, td++, td2d++, 0);
-    SeqToTransData(t->scene, strip, td++, td2d++, 1);
-    SeqToTransData(t->scene, strip, td++, td2d++, 2);
+    SeqToTransData(scene, strip, td++, td2d++, 0);
+    SeqToTransData(scene, strip, td++, td2d++, 1);
+    SeqToTransData(scene, strip, td++, td2d++, 2);
   }
 }
 
@@ -233,11 +236,12 @@ static TransformResult transform_result_get(TransInfo *t,
                                             TransData2D *td2d,
                                             Strip *strip)
 {
+  Scene *scene = CTX_data_sequencer_scene(t->context);
   float2 handle_origin = {td2d->loc[0], td2d->loc[1]};
   /* X and Y control points used to read scale and rotation. */
   float2 handle_x = float2((td2d + 1)->loc) - handle_origin;
   float2 handle_y = float2((td2d + 2)->loc) - handle_origin;
-  float2 aspect = {t->scene->r.yasp / t->scene->r.xasp, 1.0f};
+  float2 aspect = {scene->r.yasp / scene->r.xasp, 1.0f};
   float2 mirror = seq::image_transform_mirror_factor_get(strip);
   float2 orig_strip_origin_pixelspace = tdseq->orig_origin_pixelspace;
 
@@ -251,7 +255,8 @@ static void image_transform_set(TransInfo *t)
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   TransData *td = nullptr;
   TransData2D *td2d = nullptr;
-  Editing *ed = seq::editing_get(t->scene);
+  Scene *scene = CTX_data_sequencer_scene(t->context);
+  Editing *ed = seq::editing_get(scene);
   int i;
 
   for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i += 3, td += 3, td2d += 3) {
@@ -302,17 +307,18 @@ static void image_transform_set(TransInfo *t)
       }
     }
 
-    if ((t->animtimer) && animrig::is_autokey_on(t->scene)) {
-      animrecord_check_state(t, &t->scene->id);
-      autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
+    if ((t->animtimer) && animrig::is_autokey_on(scene)) {
+      animrecord_check_state(t, &scene->id);
+      autokeyframe_sequencer_image(t->context, scene, transform, t->mode);
     }
 
-    seq::relations_invalidate_cache(t->scene, strip);
+    seq::relations_invalidate_cache(scene, strip);
   }
 }
 
 static float2 calculate_translation_offset(TransInfo *t, TransDataSeq *tdseq)
 {
+  Scene *scene = CTX_data_sequencer_scene(t->context);
   Strip *strip = tdseq->strip;
   StripTransform *transform = strip->data->transform;
 
@@ -321,20 +327,21 @@ static float2 calculate_translation_offset(TransInfo *t, TransDataSeq *tdseq)
   transform->xofs = tdseq->orig_translation[0];
   transform->yofs = tdseq->orig_translation[1];
 
-  const float2 viewport_pixel_aspect = {t->scene->r.xasp / t->scene->r.yasp, 1.0f};
+  const float2 viewport_pixel_aspect = {scene->r.xasp / scene->r.yasp, 1.0f};
   float2 mirror = seq::image_transform_mirror_factor_get(strip);
 
-  Array<float2> quad_new = seq::image_transform_final_quad_get(t->scene, strip);
+  Array<float2> quad_new = seq::image_transform_final_quad_get(scene, strip);
   return (quad_new[0] - tdseq->quad_orig[0]) * mirror / viewport_pixel_aspect;
 }
 
 static float2 calculate_new_origin_position(TransInfo *t, TransDataSeq *tdseq, TransData2D *td2d)
 {
+  Scene *scene = CTX_data_sequencer_scene(t->context);
   Strip *strip = tdseq->strip;
 
-  const float2 image_size = seq::transform_image_raw_size_get(t->scene, strip);
+  const float2 image_size = seq::transform_image_raw_size_get(scene, strip);
 
-  const float2 viewport_pixel_aspect = {t->scene->r.xasp / t->scene->r.yasp, 1.0f};
+  const float2 viewport_pixel_aspect = {scene->r.xasp / scene->r.yasp, 1.0f};
   const float2 mirror = seq::image_transform_mirror_factor_get(strip);
 
   const float2 origin = tdseq->orig_origin_pixelspace;
@@ -352,6 +359,7 @@ static void image_origin_set(TransInfo *t)
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   TransData *td = nullptr;
   TransData2D *td2d = nullptr;
+  Scene *scene = CTX_data_sequencer_scene(t->context);
   int i;
 
   for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i += 3, td += 3, td2d += 3) {
@@ -368,7 +376,7 @@ static void image_origin_set(TransInfo *t)
     transform->xofs = tdseq->orig_translation.x - delta_translation.x;
     transform->yofs = tdseq->orig_translation.y - delta_translation.y;
 
-    seq::relations_invalidate_cache(t->scene, strip);
+    seq::relations_invalidate_cache(scene, strip);
   }
 }
 
@@ -382,12 +390,13 @@ static void recalcData_sequencer_image(TransInfo *t)
   }
 }
 
-static void special_aftertrans_update__sequencer_image(bContext * /*C*/, TransInfo *t)
+static void special_aftertrans_update__sequencer_image(bContext *C, TransInfo *t)
 {
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   TransData *td = nullptr;
   TransData2D *td2d = nullptr;
+  Scene *scene = CTX_data_sequencer_scene(C);
   int i;
 
   for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i += 3, td += 3, td2d += 3) {
@@ -406,8 +415,8 @@ static void special_aftertrans_update__sequencer_image(bContext * /*C*/, TransIn
       continue;
     }
 
-    if (animrig::is_autokey_on(t->scene)) {
-      autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
+    if (animrig::is_autokey_on(scene)) {
+      autokeyframe_sequencer_image(t->context, scene, transform, t->mode);
     }
   }
 }

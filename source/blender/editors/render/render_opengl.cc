@@ -711,7 +711,9 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   wmWindow *win = CTX_wm_window(C);
   WorkSpace *workspace = CTX_wm_workspace(C);
 
-  Scene *scene = CTX_data_scene(C);
+  const bool is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
+
+  Scene *scene = !is_sequencer ? CTX_data_scene(C) : CTX_data_sequencer_scene(C);
   ScrArea *prev_area = CTX_wm_area(C);
   ARegion *prev_region = CTX_wm_region(C);
   GPUOffScreen *ofs;
@@ -720,7 +722,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   bool is_view_context = RNA_boolean_get(op->ptr, "view_context");
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
   const bool is_render_keyed_only = RNA_boolean_get(op->ptr, "render_keyed_only");
-  const bool is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
   const eImageFormatDepth color_depth = static_cast<eImageFormatDepth>(
       (is_animation) ? (eImageFormatDepth)scene->r.im_format.depth : R_IMF_CHAN_DEPTH_32);

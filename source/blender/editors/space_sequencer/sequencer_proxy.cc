@@ -39,7 +39,7 @@ namespace blender::ed::vse {
 
 static void seq_proxy_build_job(const bContext *C, ReportList *reports)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
   ScrArea *area = CTX_wm_area(C);
 
@@ -103,7 +103,7 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
 {
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
 
   if (ed == nullptr) {
@@ -162,7 +162,7 @@ static wmOperatorStatus sequencer_enable_proxies_invoke(bContext *C,
 
 static wmOperatorStatus sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
   bool proxy_25 = RNA_boolean_get(op->ptr, "proxy_25");
   bool proxy_50 = RNA_boolean_get(op->ptr, "proxy_50");

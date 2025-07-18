@@ -81,7 +81,7 @@ constexpr float ICON_SIZE = 12.0f;
 
 Vector<Strip *> sequencer_visible_strips_get(const bContext *C)
 {
-  return sequencer_visible_strips_get(CTX_data_scene(C), UI_view2d_fromcontext(C));
+  return sequencer_visible_strips_get(CTX_data_sequencer_scene(C), UI_view2d_fromcontext(C));
 }
 
 Vector<Strip *> sequencer_visible_strips_get(const Scene *scene, const View2D *v2d)
@@ -117,7 +117,7 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuads
 
   ctx.C = C;
   ctx.region = CTX_wm_region(C);
-  ctx.scene = CTX_data_scene(C);
+  ctx.scene = CTX_data_sequencer_scene(C);
   ctx.sseq = CTX_wm_space_seq(C);
   ctx.v2d = UI_view2d_fromcontext(C);
 
@@ -1712,7 +1712,7 @@ static void draw_cache_stripe(const Scene *scene,
 
 static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
 {
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
   const View2D *v2d = UI_view2d_fromcontext(C);
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
 
@@ -1751,7 +1751,7 @@ static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
 
 static void draw_cache_view(const bContext *C)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   const View2D *v2d = UI_view2d_fromcontext(C);
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
 
@@ -1889,7 +1889,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
 
 void draw_timeline_seq_display(const bContext *C, ARegion *region)
 {
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &region->v2d;
 

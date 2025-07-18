@@ -1491,7 +1491,7 @@ static StripModifierData *rna_Strip_modifier_new(
     return nullptr;
   }
   else {
-    Scene *scene = CTX_data_scene(C);
+    Scene *scene = CTX_data_sequencer_scene(C);
     StripModifierData *smd;
 
     smd = blender::seq::modifier_new(strip, name, type);
@@ -1510,7 +1510,7 @@ static void rna_Strip_modifier_remove(Strip *strip,
                                       PointerRNA *smd_ptr)
 {
   StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
 
   if (blender::seq::modifier_remove(strip, smd) == false) {
     BKE_report(reports, RPT_ERROR, "Modifier was not found in the stack");
@@ -1525,7 +1525,7 @@ static void rna_Strip_modifier_remove(Strip *strip,
 
 static void rna_Strip_modifier_clear(Strip *strip, bContext *C)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
 
   blender::seq::modifier_clear(strip);
 

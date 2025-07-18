@@ -58,7 +58,7 @@ static void metadata_panel_context_draw(const bContext *C, Panel *panel)
     return;
   }
 
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   SpaceSeq *space_sequencer = CTX_wm_space_seq(C);
   /* NOTE: We can only reliably show metadata for the original (current)
    * frame when split view is used. */

@@ -71,7 +71,7 @@ Scene *ED_scene_sequencer_add(Main *bmain,
                               const bool assign_strip)
 {
   Strip *strip = nullptr;
-  Scene *scene_active = CTX_data_scene(C);
+  Scene *scene_active = CTX_data_sequencer_scene(C);
   Scene *scene_strip = nullptr;
   /* Sequencer need to use as base the scene defined in the strip, not the main scene. */
   Editing *ed = scene_active->ed;
@@ -309,7 +309,7 @@ static wmOperatorStatus scene_new_sequencer_exec(bContext *C, wmOperator *op)
 
 static bool scene_new_sequencer_poll(bContext *C)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   const Strip *strip = blender::seq::select_active_get(scene);
   return (strip && (strip->type == STRIP_TYPE_SCENE));
 }
@@ -332,7 +332,7 @@ static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
     has_scene_or_no_context = true;
   }
   else {
-    Scene *scene = CTX_data_scene(C);
+    Scene *scene = CTX_data_sequencer_scene(C);
     Strip *strip = blender::seq::select_active_get(scene);
     if (strip && (strip->type == STRIP_TYPE_SCENE) && (strip->scene != nullptr)) {
       has_scene_or_no_context = true;

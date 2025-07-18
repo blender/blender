@@ -172,7 +172,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
 {
   SeqDropCoords *coords = &g_drop_coords;
   ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   View2D *v2d = &region->v2d;
 
   /* Update the position were we would place the strip if we complete the drag and drop action.
@@ -265,7 +265,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
   else {
     /* We are dropped inside the preview region. Put the strip on top of the
      * current displayed frame. */
-    Scene *scene = CTX_data_scene(C);
+    Scene *scene = CTX_data_sequencer_scene(C);
     Editing *ed = seq::editing_ensure(scene);
     ListBase *seqbase = seq::active_seqbase_get(ed);
     ListBase *channels = seq::channels_displayed_get(ed);
@@ -585,7 +585,7 @@ static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
 
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
 
   wmJob *wm_job = WM_jobs_get(
       wm, win, nullptr, "Load Previews", eWM_JobFlag(0), WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);

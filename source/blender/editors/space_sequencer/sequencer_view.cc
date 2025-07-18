@@ -81,8 +81,9 @@ void SEQ_get_timeline_region_padding(const bContext *C, float *r_pad_top, float 
     *r_pad_top += UI_TIME_CACHE_MARGIN_Y;
   }
 
-  *r_pad_bottom = BLI_listbase_is_empty(ED_context_get_markers(C)) ? V2D_SCROLL_HANDLE_HEIGHT :
-                                                                     UI_MARKER_MARGIN_Y;
+  *r_pad_bottom = BLI_listbase_is_empty(ED_sequencer_context_get_markers(C)) ?
+                      V2D_SCROLL_HANDLE_HEIGHT :
+                      UI_MARKER_MARGIN_Y;
 }
 
 void SEQ_add_timeline_region_padding(const bContext *C, rctf *view_box)
@@ -104,7 +105,7 @@ static wmOperatorStatus sequencer_view_all_exec(bContext *C, wmOperator *op)
   rctf box;
 
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   const Editing *ed = seq::editing_get(scene);
 
   seq::timeline_init_boundbox(scene, &box);
@@ -179,7 +180,7 @@ static wmOperatorStatus sequencer_view_all_preview_exec(bContext *C, wmOperator 
   ScrArea *area = CTX_wm_area(C);
 #if 0
   ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
 #endif
   View2D *v2d = UI_view2d_fromcontext(C);
 
@@ -244,7 +245,7 @@ void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
 
 static wmOperatorStatus sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 {
-  const RenderData *rd = &CTX_data_scene(C)->r;
+  const RenderData *rd = &CTX_data_sequencer_scene(C)->r;
   View2D *v2d = UI_view2d_fromcontext(C);
 
   float ratio = RNA_float_get(op->ptr, "ratio");
@@ -320,7 +321,7 @@ static void seq_view_collection_rect_timeline(const bContext *C,
                                               blender::Span<Strip *> strips,
                                               rctf *rect)
 {
-  const Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_sequencer_scene(C);
   int xmin = MAXFRAME * 2;
   int xmax = -MAXFRAME * 2;
   int ymin = seq::MAX_CHANNELS + 1;
@@ -387,7 +388,7 @@ static void seq_view_collection_rect_timeline(const bContext *C,
 
 static wmOperatorStatus sequencer_view_selected_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   ARegion *region = CTX_wm_region(C);
   blender::VectorSet strips = selected_strips_from_context(C);
   View2D *v2d = UI_view2d_fromcontext(C);
@@ -437,7 +438,7 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 
 static wmOperatorStatus view_ghost_border_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   View2D *v2d = UI_view2d_fromcontext(C);
 
   rctf rect;

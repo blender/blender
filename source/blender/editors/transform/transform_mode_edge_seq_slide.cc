@@ -13,6 +13,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
+#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
@@ -41,11 +42,12 @@ namespace blender::ed::transform {
 
 static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRAW_STR])
 {
+  Scene *scene = CTX_data_sequencer_scene(t->context);
   char tvec[NUM_STR_REP_LEN * 3];
   size_t ofs = 0;
 
   if (hasNumInput(&t->num)) {
-    outputNumInput(&(t->num), tvec, t->scene->unit);
+    outputNumInput(&(t->num), tvec, scene->unit);
   }
   else {
     BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.0f, %.0f", val[0], val[1]);
@@ -124,17 +126,19 @@ static void initSeqSlide(TransInfo *t, wmOperator *op)
     ssp->use_restore_handle_selection = RNA_property_boolean_get(op->ptr, prop);
   }
 
+  Scene *scene = CTX_data_sequencer_scene(t->context);
+
   initMouseInputMode(t, &t->mouse, INPUT_VECTOR);
 
   t->idx_max = 1;
   t->num.flag = 0;
   t->num.idx_max = t->idx_max;
 
-  t->increment = float3(floorf(t->scene->r.frs_sec / t->scene->r.frs_sec_base));
+  t->increment = float3(floorf(scene->r.frs_sec / scene->r.frs_sec_base));
   t->increment_precision = 10.0f / t->increment[0];
 
   copy_v3_fl(t->num.val_inc, t->increment[0]);
-  t->num.unit_sys = t->scene->unit.system;
+  t->num.unit_sys = scene->unit.system;
   /* Would be nice to have a time handling in units as well
    * (supporting frames in addition to "natural" time...). */
   t->num.unit_type[0] = B_UNIT_NONE;

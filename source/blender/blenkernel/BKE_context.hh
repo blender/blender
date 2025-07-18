@@ -364,6 +364,7 @@ int ctx_data_list_count(const bContext *C,
 
 Main *CTX_data_main(const bContext *C);
 Scene *CTX_data_scene(const bContext *C);
+Scene *CTX_data_sequencer_scene(const bContext *C);
 /**
  * This is tricky. Sometimes the user overrides the render_layer
  * but not the scene_collection. In this case what to do?

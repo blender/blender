@@ -91,6 +91,11 @@ ListBase *ED_context_get_markers(const bContext *C)
   return ED_scene_markers_get(CTX_data_scene(C), CTX_wm_area(C));
 }
 
+ListBase *ED_sequencer_context_get_markers(const bContext *C)
+{
+  return ED_scene_markers_get(CTX_data_sequencer_scene(C), CTX_wm_area(C));
+}
+
 ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
 {
   if (ac) {

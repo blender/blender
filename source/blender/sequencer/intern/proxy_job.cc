@@ -69,7 +69,7 @@ static void proxy_endjob(void *pjv)
 
 ProxyJob *ED_seq_proxy_job_get(const bContext *C, wmJob *wm_job)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ProxyJob *pj = static_cast<ProxyJob *>(WM_jobs_customdata_get(wm_job));
   if (!pj) {
@@ -86,7 +86,7 @@ ProxyJob *ED_seq_proxy_job_get(const bContext *C, wmJob *wm_job)
 
 wmJob *ED_seq_proxy_wm_job_get(const bContext *C)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
                               scene,

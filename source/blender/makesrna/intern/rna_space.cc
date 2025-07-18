@@ -2519,7 +2519,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
   }
 
   SpaceSeq *sseq = static_cast<SpaceSeq *>(ptr->data);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   ListBase *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
 
   blender::Set<std::string> processed_paths;
@@ -2552,7 +2552,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
 static void rna_SequenceEditor_render_size_update(bContext *C, PointerRNA *ptr)
 {
   seq_build_proxy(C, ptr);
-  rna_SequenceEditor_update_cache(CTX_data_main(C), CTX_data_scene(C), ptr);
+  rna_SequenceEditor_update_cache(CTX_data_main(C), CTX_data_sequencer_scene(C), ptr);
 }
 
 static bool rna_SequenceEditor_clamp_view_get(PointerRNA *ptr)
