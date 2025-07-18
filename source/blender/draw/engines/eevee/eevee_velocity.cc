@@ -207,7 +207,7 @@ bool VelocityModule::step_object_sync(ObjectKey &object_key,
 
     const VelocityGeometryData &data = geometry_map.lookup_or_add_cb(vel.id, add_cb);
 
-    if (!data.pos_buf_get()) {
+    if (!data.has_data()) {
       has_deform = false;
     }
   }
