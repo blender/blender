@@ -89,18 +89,12 @@ namespace blender::ed::space_node {
 /** \name Composite Job Manager
  * \{ */
 
-enum {
-  COM_RECALC_COMPOSITE = 1,
-  COM_RECALC_VIEWER = 2,
-};
-
 struct CompoJob {
   /* Input parameters. */
   Main *bmain;
   Scene *scene;
   ViewLayer *view_layer;
   bNodeTree *ntree;
-  int recalc_flags;
   /* Evaluated state/ */
   Depsgraph *compositor_depsgraph;
   bNodeTree *localtree;
@@ -133,59 +127,6 @@ float2 node_link_calculate_multi_input_position(const float2 &socket_position,
   const float offset = (total_inputs * NODE_MULTI_INPUT_LINK_GAP - NODE_MULTI_INPUT_LINK_GAP) *
                        0.5f;
   return {socket_position.x, socket_position.y - offset + index * NODE_MULTI_INPUT_LINK_GAP};
-}
-
-static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)
-{
-  for (bNode *node : nodetree->all_nodes()) {
-    if (node->type_legacy == CMP_NODE_COMPOSITE) {
-      if (recalc_flags & COM_RECALC_COMPOSITE) {
-        node->flag |= NODE_DO_OUTPUT_RECALC;
-      }
-    }
-    else if (node->type_legacy == CMP_NODE_VIEWER) {
-      if (recalc_flags & COM_RECALC_VIEWER) {
-        node->flag |= NODE_DO_OUTPUT_RECALC;
-      }
-    }
-    else if (node->type_legacy == NODE_GROUP) {
-      if (node->id) {
-        compo_tag_output_nodes((bNodeTree *)node->id, recalc_flags);
-      }
-    }
-  }
-}
-
-static int compo_get_recalc_flags(const bContext *C)
-{
-  wmWindowManager *wm = CTX_wm_manager(C);
-  int recalc_flags = 0;
-
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    const bScreen *screen = WM_window_get_active_screen(win);
-
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->spacetype == SPACE_IMAGE) {
-        SpaceImage *sima = (SpaceImage *)area->spacedata.first;
-        if (sima->image) {
-          if (sima->image->type == IMA_TYPE_R_RESULT) {
-            recalc_flags |= COM_RECALC_COMPOSITE;
-          }
-          else if (sima->image->type == IMA_TYPE_COMPOSITE) {
-            recalc_flags |= COM_RECALC_VIEWER;
-          }
-        }
-      }
-      else if (area->spacetype == SPACE_NODE) {
-        SpaceNode *snode = (SpaceNode *)area->spacedata.first;
-        if (snode->flag & SNODE_BACKDRAW) {
-          recalc_flags |= COM_RECALC_VIEWER;
-        }
-      }
-    }
-  }
-
-  return recalc_flags;
 }
 
 /* Called by compositor, only to check job 'stop' value. */
@@ -267,10 +208,6 @@ static void compo_initjob(void *cjv)
   bNodeTree *ntree_eval = DEG_get_evaluated(cj->compositor_depsgraph, cj->ntree);
 
   cj->localtree = bke::node_tree_localize(ntree_eval, nullptr);
-
-  if (cj->recalc_flags) {
-    compo_tag_output_nodes(cj->localtree, cj->recalc_flags);
-  }
 
   cj->re = RE_NewInteractiveCompositorRender(scene);
   if (scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU) {
@@ -483,7 +420,6 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
   cj->scene = scene;
   cj->view_layer = view_layer;
   cj->ntree = nodetree;
-  cj->recalc_flags = compo_get_recalc_flags(C);
   cj->needed_outputs = needed_outputs;
 
   /* Set up job. */

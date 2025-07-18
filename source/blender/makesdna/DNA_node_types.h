@@ -629,11 +629,6 @@ enum {
    * until the node type is registered.
    */
   NODE_INIT = 1 << 16,
-  /**
-   * Do recalculation of output, used to skip recalculation of unwanted
-   * composite out nodes when editing tree
-   */
-  NODE_DO_OUTPUT_RECALC = 1 << 17,
   /** A preview for the data in this node can be displayed in the spreadsheet editor. */
   // NODE_ACTIVE_PREVIEW = 1 << 18, /* deprecated */
   /** Active node that is used to paint on. */
