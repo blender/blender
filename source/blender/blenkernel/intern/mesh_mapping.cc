@@ -22,7 +22,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
-#include "BLI_vector.hh"
 
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
@@ -44,22 +43,13 @@ UvVertMap *BKE_mesh_uv_vert_map_create(blender::OffsetIndices<int> faces,
 {
   using namespace blender;
   /* NOTE: N-gon version WIP, based on #BM_uv_vert_map_create. */
-
-  int i, totuv, nverts;
-
-  totuv = 0;
-
-  /* generate UvMapVert array */
-  for (const int64_t a : faces.index_range()) {
-    totuv += int(faces[a].size());
-  }
-
-  if (totuv == 0) {
+  if (faces.is_empty()) {
     return nullptr;
   }
+  const int corners_num = faces.total_size();
 
   UvVertMap *vmap = MEM_callocN<UvVertMap>("UvVertMap");
-  UvMapVert *buf = vmap->buf = MEM_calloc_arrayN<UvMapVert>(size_t(totuv), "UvMapVert");
+  UvMapVert *buf = vmap->buf = MEM_calloc_arrayN<UvMapVert>(size_t(corners_num), "UvMapVert");
   vmap->vert = MEM_calloc_arrayN<UvMapVert *>(size_t(verts_num), "UvMapVert*");
 
   if (!vmap->vert || !vmap->buf) {
@@ -67,38 +57,27 @@ UvVertMap *BKE_mesh_uv_vert_map_create(blender::OffsetIndices<int> faces,
     return nullptr;
   }
 
-  bool *winding = nullptr;
+  Array<bool> winding;
   if (use_winding) {
-    winding = MEM_calloc_arrayN<bool>(size_t(faces.size()), "winding");
+    winding = Array<bool>(faces.size(), false);
+    threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+      for (const int64_t face : range) {
+        const Span<float2> face_uvs = uv_map.slice(faces[face]);
+        winding[face] = cross_poly_v2(reinterpret_cast<const float(*)[2]>(face_uvs.data()),
+                                      uint(faces[face].size())) < 0.0f;
+      }
+    });
   }
 
-  Vector<float2, 32> face_uvs;
   for (const int64_t a : faces.index_range()) {
     const IndexRange face = faces[a];
-
-    if (use_winding) {
-      face_uvs.resize(face.size());
-    }
-
-    nverts = int(face.size());
-
-    for (i = 0; i < nverts; i++) {
+    for (const int64_t i : face.index_range()) {
       buf->loop_of_face_index = ushort(i);
       buf->face_index = uint(a);
       buf->separate = false;
       buf->next = vmap->vert[corner_verts[face[i]]];
       vmap->vert[corner_verts[face[i]]] = buf;
-
-      if (use_winding) {
-        copy_v2_v2(face_uvs[i], uv_map[face[i]]);
-      }
-
       buf++;
-    }
-
-    if (use_winding) {
-      winding[a] = cross_poly_v2(reinterpret_cast<const float(*)[2]>(face_uvs.data()),
-                                 uint(nverts)) < 0;
     }
   }
 
@@ -148,10 +127,6 @@ UvVertMap *BKE_mesh_uv_vert_map_create(blender::OffsetIndices<int> faces,
     }
 
     vmap->vert[vert] = newvlist;
-  }
-
-  if (use_winding) {
-    MEM_freeN(winding);
   }
 
   return vmap;
