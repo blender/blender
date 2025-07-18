@@ -112,7 +112,7 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
 
   UI_block_emboss_set(block, blender::ui::EmbossType::None);
   uiBut *but = uiDefIconButR_prop(block,
-                                  UI_BTYPE_TOGGLE,
+                                  ButType::Toggle,
                                   1,
                                   icon,
                                   context->v2d->cur.xmax / context->scale - offset,
@@ -151,7 +151,7 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
 
   UI_block_emboss_set(block, blender::ui::EmbossType::None);
   uiBut *but = uiDefIconButR_prop(block,
-                                  UI_BTYPE_TOGGLE,
+                                  ButType::Toggle,
                                   1,
                                   icon,
                                   context->v2d->cur.xmax / context->scale - offset,
@@ -228,7 +228,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
 
     UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
     uiBut *but = uiDefButR(block,
-                           UI_BTYPE_TEXT,
+                           ButType::Text,
                            1,
                            "",
                            rect.xmin,
@@ -252,7 +252,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
   else {
     const char *label = seq::channel_name_get(context->channels, channel_index);
     uiDefBut(block,
-             UI_BTYPE_LABEL,
+             ButType::Label,
              0,
              label,
              rect.xmin,

@@ -1990,8 +1990,8 @@ static bool jump_to_target_button(bContext *C, bool poll)
     }
     /* For string properties with prop_search, look up the search collection item. */
     if (type == PROP_STRING) {
-      const uiButSearch *search_but = (but->type == UI_BTYPE_SEARCH_MENU) ? (uiButSearch *)but :
-                                                                            nullptr;
+      const uiButSearch *search_but = (but->type == ButType::SearchMenu) ? (uiButSearch *)but :
+                                                                           nullptr;
 
       if (search_but && search_but->items_update_fn == ui_rna_collection_search_update_fn) {
         uiRNACollectionSearch *coll_search = static_cast<uiRNACollectionSearch *>(search_but->arg);
@@ -2427,7 +2427,7 @@ static wmOperatorStatus drop_color_invoke(bContext *C, wmOperator *op, const wmE
    * if it does copy the data */
   but = ui_region_find_active_but(region);
 
-  if (but && but->type == UI_BTYPE_COLOR && but->rnaprop) {
+  if (but && but->type == ButType::Color && but->rnaprop) {
     if (!has_alpha) {
       color[3] = 1.0f;
     }

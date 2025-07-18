@@ -76,7 +76,7 @@ static Vector<rcti> button_section_bounds_calc(const ARegion *region, const bool
       }
 
       for (const std::unique_ptr<uiBut> &but : block->buttons) {
-        if (but->type == UI_BTYPE_SEPR_SPACER) {
+        if (but->type == ButType::SeprSpacer) {
           /* Start a new section. */
           if (has_section_content) {
             finish_section_fn(cur_section_bounds);

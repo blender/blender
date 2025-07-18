@@ -1430,7 +1430,7 @@ static void node_socket_tooltip_set(uiBlock &block,
   /* Ideally sockets themselves should be buttons, but they aren't currently. So add an invisible
    * button on top of them for the tooltip. */
   uiBut *but = uiDefIconBut(&block,
-                            UI_BTYPE_LABEL,
+                            ButType::Label,
                             0,
                             ICON_NONE,
                             location.x - size.x / 2.0f,
@@ -1872,7 +1872,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
     const int header_but_margin = NODE_MARGIN_X / 3;
     uiBut *toggle_action_but = uiDefIconBut(
         &block,
-        UI_BTYPE_BUT_TOGGLE,
+        ButType::ButToggle,
         0,
         ICON_NONE,
         header_rect.xmin + header_but_margin,
@@ -1895,7 +1895,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
     const int but_padding = NODE_MARGIN_X / 4;
     int offsetx = draw_bounds.xmin + (NODE_MARGIN_X / 3);
     uiDefIconBut(&block,
-                 UI_BTYPE_LABEL,
+                 ButType::Label,
                  0,
                  panel_state.is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
                  offsetx,
@@ -1915,7 +1915,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
       PointerRNA socket_ptr = RNA_pointer_create_discrete(
           &ntree.id, &RNA_NodeSocket, input_socket);
       uiBut *panel_toggle_but = uiDefButR(&block,
-                                          UI_BTYPE_CHECKBOX,
+                                          ButType::Checkbox,
                                           -1,
                                           "",
                                           offsetx,
@@ -1949,7 +1949,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
                                                  nullptr);
     uiBut *label_but = uiDefBut(
         &block,
-        UI_BTYPE_LABEL,
+        ButType::Label,
         0,
         CTX_IFACE_(panel_translation_context, panel_decl.name),
         offsetx,
@@ -2010,7 +2010,7 @@ static void node_add_unsupported_compositor_operation_error_message_button(const
   icon_offset -= NODE_HEADER_ICON_SIZE;
   UI_block_emboss_set(&block, blender::ui::EmbossType::None);
   uiDefIconBut(&block,
-               UI_BTYPE_BUT,
+               ButType::But,
                0,
                ICON_ERROR,
                icon_offset,
@@ -2063,7 +2063,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
   icon_offset -= NODE_HEADER_ICON_SIZE;
   UI_block_emboss_set(&block, blender::ui::EmbossType::None);
   uiBut *but = uiDefIconBut(&block,
-                            UI_BTYPE_BUT,
+                            ButType::But,
                             0,
                             nodes::node_warning_type_icon(display_type),
                             icon_offset,
@@ -2468,7 +2468,7 @@ static void node_draw_extra_info_row(const bNode &node,
 
   UI_block_emboss_set(&block, blender::ui::EmbossType::None);
   uiBut *but_icon = uiDefIconBut(&block,
-                                 UI_BTYPE_BUT,
+                                 ButType::But,
                                  0,
                                  extra_info_row.icon,
                                  int(but_icon_left),
@@ -2492,7 +2492,7 @@ static void node_draw_extra_info_row(const bNode &node,
   const float but_text_width = but_text_right - but_text_left;
 
   uiBut *but_text = uiDefBut(&block,
-                             UI_BTYPE_LABEL,
+                             ButType::Label,
                              0,
                              extra_info_row.text.c_str(),
                              int(but_text_left),
@@ -2815,7 +2815,7 @@ static void node_draw_basis(const bContext &C,
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, blender::ui::EmbossType::None);
     uiBut *but = uiDefIconBut(&block,
-                              UI_BTYPE_BUT_TOGGLE,
+                              ButType::ButToggle,
                               0,
                               ICON_NODETREE,
                               iconofs,
@@ -2841,7 +2841,7 @@ static void node_draw_basis(const bContext &C,
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, blender::ui::EmbossType::None);
     uiBut *but = uiDefIconBut(&block,
-                              UI_BTYPE_BUT_TOGGLE,
+                              ButType::ButToggle,
                               0,
                               is_active ? ICON_HIDE_OFF : ICON_HIDE_ON,
                               iconofs,
@@ -2864,7 +2864,7 @@ static void node_draw_basis(const bContext &C,
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, blender::ui::EmbossType::None);
     uiDefIconBut(&block,
-                 UI_BTYPE_BUT,
+                 ButType::But,
                  0,
                  node.typeinfo->ui_icon,
                  iconofs,
@@ -2882,7 +2882,7 @@ static void node_draw_basis(const bContext &C,
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, blender::ui::EmbossType::None);
     uiBut *but = uiDefIconBut(&block,
-                              UI_BTYPE_BUT,
+                              ButType::But,
                               0,
                               is_active ? ICON_RESTRICT_VIEW_OFF : ICON_RESTRICT_VIEW_ON,
                               iconofs,
@@ -2901,7 +2901,7 @@ static void node_draw_basis(const bContext &C,
 
     short shortcut_icon = get_viewer_shortcut_icon(node);
     uiDefIconBut(&block,
-                 UI_BTYPE_BUT,
+                 ButType::But,
                  0,
                  shortcut_icon,
                  iconofs - 1.2 * iconbutw,
@@ -2921,7 +2921,7 @@ static void node_draw_basis(const bContext &C,
     const bool is_active = node.flag & NODE_DO_OUTPUT;
     UI_block_emboss_set(&block, blender::ui::EmbossType::None);
     uiBut *but = uiDefIconBut(&block,
-                              UI_BTYPE_BUT,
+                              ButType::But,
                               0,
                               is_active ? ICON_RESTRICT_VIEW_OFF : ICON_RESTRICT_VIEW_ON,
                               iconofs,
@@ -2939,7 +2939,7 @@ static void node_draw_basis(const bContext &C,
                     (void *)"NODE_OT_activate_viewer");
 
     uiDefIconBut(&block,
-                 UI_BTYPE_BUT,
+                 ButType::But,
                  0,
                  shortcut_icon,
                  iconofs - 1.2 * iconbutw,
@@ -2969,7 +2969,7 @@ static void node_draw_basis(const bContext &C,
     UI_block_emboss_set(&block, blender::ui::EmbossType::None);
 
     uiBut *but = uiDefIconBut(&block,
-                              UI_BTYPE_BUT_TOGGLE,
+                              ButType::ButToggle,
                               0,
                               ICON_DOWNARROW_HLT,
                               rct.xmin + (NODE_MARGIN_X / 3),
@@ -2991,7 +2991,7 @@ static void node_draw_basis(const bContext &C,
   const std::string showname = bke::node_label(ntree, node);
 
   uiBut *but = uiDefBut(&block,
-                        UI_BTYPE_LABEL,
+                        ButType::Label,
                         0,
                         showname,
                         int(rct.xmin + NODE_MARGIN_X + 0.4f),
@@ -3210,7 +3210,7 @@ static void node_draw_collapsed(const bContext &C,
     UI_block_emboss_set(&block, blender::ui::EmbossType::None);
 
     uiBut *but = uiDefIconBut(&block,
-                              UI_BTYPE_BUT_TOGGLE,
+                              ButType::ButToggle,
                               0,
                               ICON_RIGHTARROW,
                               rct.xmin + (NODE_MARGIN_X / 3),
@@ -3232,7 +3232,7 @@ static void node_draw_collapsed(const bContext &C,
   const std::string showname = bke::node_label(ntree, node);
 
   uiBut *but = uiDefBut(&block,
-                        UI_BTYPE_LABEL,
+                        ButType::Label,
                         0,
                         showname,
                         round_fl_to_int(rct.xmin + NODE_MARGIN_X),
@@ -3926,7 +3926,7 @@ static void reroute_node_draw_label(TreeDrawContext &tree_draw_ctx,
   const int y = node.runtime->draw_bounds.ymax;
 
   uiBut *label_but = uiDefBut(
-      &block, UI_BTYPE_LABEL, 0, text, x, y, width, NODE_DY, nullptr, 0, 0, std::nullopt);
+      &block, ButType::Label, 0, text, x, y, width, NODE_DY, nullptr, 0, 0, std::nullopt);
 
   UI_but_drawflag_disable(label_but, UI_BUT_TEXT_LEFT);
 
@@ -4405,7 +4405,7 @@ static void draw_link_errors(const bContext &C,
   /* Draw the icon itself with a tooltip. */
   UI_block_emboss_set(&invalid_links_block, ui::EmbossType::None);
   uiBut *but = uiDefIconBut(&invalid_links_block,
-                            UI_BTYPE_BUT,
+                            ButType::But,
                             0,
                             ICON_ERROR,
                             draw_position.x - icon_size / 2,

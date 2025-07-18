@@ -204,7 +204,7 @@ static void ui_update_color_picker_buts_rgba(uiBut *from_but,
        * push, so disable it on RNA buttons in the color picker block */
       UI_but_flag_disable(bt.get(), UI_BUT_UNDO);
     }
-    else if (bt->type == UI_BTYPE_TEXT) {
+    else if (bt->type == ButType::Text) {
       /* Hex text input field. */
       float rgba_hex[4];
       uchar rgba_hex_uchar[4];
@@ -338,7 +338,7 @@ static void ui_colorpicker_hide_reveal(uiBlock *block, ePickerType colormode)
 {
   /* tag buttons */
   for (const std::unique_ptr<uiBut> &bt : block->buttons) {
-    if ((bt->func == ui_colorpicker_rgba_update_cb) && (bt->type == UI_BTYPE_NUM_SLIDER) &&
+    if ((bt->func == ui_colorpicker_rgba_update_cb) && (bt->type == ButType::NumSlider) &&
         (bt->rnaindex != 3))
     {
       /* RGB sliders (color circle and alpha are always shown) */
@@ -374,7 +374,7 @@ static void ui_colorpicker_circle(uiBlock *block,
 
   /* HS circle */
   bt = uiDefButR_prop(block,
-                      UI_BTYPE_HSVCIRCLE,
+                      ButType::HsvCircle,
                       0,
                       "",
                       0,
@@ -393,7 +393,7 @@ static void ui_colorpicker_circle(uiBlock *block,
   /* value */
   if (U.color_picker_type == USER_CP_CIRCLE_HSL) {
     hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                             UI_BTYPE_HSVCUBE,
+                                             ButType::HsvCube,
                                              0,
                                              "",
                                              PICKER_W + PICKER_SPACE,
@@ -411,7 +411,7 @@ static void ui_colorpicker_circle(uiBlock *block,
   }
   else {
     hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                             UI_BTYPE_HSVCUBE,
+                                             ButType::HsvCube,
                                              0,
                                              "",
                                              PICKER_W + PICKER_SPACE,
@@ -442,7 +442,7 @@ static void ui_colorpicker_square(uiBlock *block,
 
   /* HS square */
   hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                           UI_BTYPE_HSVCUBE,
+                                           ButType::HsvCube,
                                            0,
                                            "",
                                            0,
@@ -461,7 +461,7 @@ static void ui_colorpicker_square(uiBlock *block,
 
   /* value */
   hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                           UI_BTYPE_HSVCUBE,
+                                           ButType::HsvCube,
                                            0,
                                            "",
                                            0,
@@ -534,7 +534,7 @@ static void ui_block_colorpicker(uiBlock *block,
   yco = -1.5f * UI_UNIT_Y;
   UI_block_align_begin(block);
   bt = uiDefButC(block,
-                 UI_BTYPE_ROW,
+                 ButType::Row,
                  0,
                  IFACE_("RGB"),
                  0,
@@ -550,7 +550,7 @@ static void ui_block_colorpicker(uiBlock *block,
   UI_but_func_set(bt, ui_colorpicker_create_mode_cb, bt, nullptr);
   bt->custom_data = cpicker;
   bt = uiDefButC(block,
-                 UI_BTYPE_ROW,
+                 ButType::Row,
                  0,
                  IFACE_((U.color_picker_type == USER_CP_CIRCLE_HSL) ? "HSL" : "HSV"),
                  picker_width / 2,
@@ -575,7 +575,7 @@ static void ui_block_colorpicker(uiBlock *block,
   /* RGB values */
   UI_block_align_begin(block);
   bt = uiDefButR_prop(block,
-                      UI_BTYPE_NUM_SLIDER,
+                      ButType::NumSlider,
                       0,
                       IFACE_("Red:"),
                       0,
@@ -593,7 +593,7 @@ static void ui_block_colorpicker(uiBlock *block,
   UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
   bt = uiDefButR_prop(block,
-                      UI_BTYPE_NUM_SLIDER,
+                      ButType::NumSlider,
                       0,
                       IFACE_("Green:"),
                       0,
@@ -611,7 +611,7 @@ static void ui_block_colorpicker(uiBlock *block,
   UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
   bt = uiDefButR_prop(block,
-                      UI_BTYPE_NUM_SLIDER,
+                      ButType::NumSlider,
                       0,
                       IFACE_("Blue:"),
                       0,
@@ -636,7 +636,7 @@ static void ui_block_colorpicker(uiBlock *block,
   /* HSV values */
   yco = -3.0f * UI_UNIT_Y;
   bt = uiDefButF(block,
-                 UI_BTYPE_NUM_SLIDER,
+                 ButType::NumSlider,
                  0,
                  IFACE_("Hue:"),
                  0,
@@ -653,7 +653,7 @@ static void ui_block_colorpicker(uiBlock *block,
   UI_but_func_set(bt, ui_colorpicker_hsv_update_cb, bt, from_but);
   bt->custom_data = cpicker;
   bt = uiDefButF(block,
-                 UI_BTYPE_NUM_SLIDER,
+                 ButType::NumSlider,
                  0,
                  IFACE_("Saturation:"),
                  0,
@@ -671,7 +671,7 @@ static void ui_block_colorpicker(uiBlock *block,
   bt->custom_data = cpicker;
   if (U.color_picker_type == USER_CP_CIRCLE_HSL) {
     bt = uiDefButF(block,
-                   UI_BTYPE_NUM_SLIDER,
+                   ButType::NumSlider,
                    0,
                    IFACE_("Lightness:"),
                    0,
@@ -687,7 +687,7 @@ static void ui_block_colorpicker(uiBlock *block,
   }
   else {
     bt = uiDefButF(block,
-                   UI_BTYPE_NUM_SLIDER,
+                   ButType::NumSlider,
                    0,
                    CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "Value:"),
                    0,
@@ -709,7 +709,7 @@ static void ui_block_colorpicker(uiBlock *block,
 
   if (cpicker->has_alpha) {
     bt = uiDefButR_prop(block,
-                        UI_BTYPE_NUM_SLIDER,
+                        ButType::NumSlider,
                         0,
                         IFACE_("Alpha:"),
                         0,
@@ -760,7 +760,7 @@ static void ui_block_colorpicker(uiBlock *block,
   const int text_width = picker_width - label_width - eyedropper_offset;
 
   uiDefBut(block,
-           UI_BTYPE_LABEL,
+           ButType::Label,
            0,
            IFACE_("Hex"),
            0,
@@ -773,7 +773,7 @@ static void ui_block_colorpicker(uiBlock *block,
            std::nullopt);
 
   bt = uiDefBut(block,
-                UI_BTYPE_TEXT,
+                ButType::Text,
                 0,
                 IFACE_(""),
                 label_width,
@@ -814,7 +814,7 @@ static void ui_block_colorpicker(uiBlock *block,
 
   if (show_picker) {
     bt = uiDefIconButO(block,
-                       UI_BTYPE_BUT,
+                       ButType::But,
                        "UI_OT_eyedropper_color",
                        blender::wm::OpCallContext::InvokeDefault,
                        ICON_EYEDROPPER,
@@ -853,7 +853,7 @@ static int ui_colorpicker_wheel_cb(const bContext * /*C*/, uiBlock *block, const
 
   if (add != 0.0f) {
     for (const std::unique_ptr<uiBut> &but : block->buttons) {
-      if (but->type == UI_BTYPE_HSVCUBE && but->active == nullptr) {
+      if (but->type == ButType::HsvCube && but->active == nullptr) {
         uiPopupBlockHandle *popup = block->handle;
         ColorPicker *cpicker = static_cast<ColorPicker *>(but->custom_data);
         float *hsv_perceptual = cpicker->hsv_perceptual;

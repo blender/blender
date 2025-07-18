@@ -358,7 +358,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       uiBlock *block = sub->block();
       static int apply_on_spline_always_off_hack = 0;
       uiBut *but = uiDefIconButBitI(block,
-                                    UI_BTYPE_TOGGLE,
+                                    ButType::Toggle,
                                     eModifierMode_ApplyOnSpline,
                                     0,
                                     ICON_SURFACE_DATA,
@@ -382,7 +382,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       uiBlock *block = sub->block();
       static int apply_on_spline_always_on_hack = eModifierMode_ApplyOnSpline;
       uiBut *but = uiDefIconButBitI(block,
-                                    UI_BTYPE_TOGGLE,
+                                    ButType::Toggle,
                                     eModifierMode_ApplyOnSpline,
                                     0,
                                     ICON_SURFACE_DATA,

@@ -426,7 +426,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     {
       uiItemL_respect_property_split(col, IFACE_("Key Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      UI_BTYPE_NUM,
+                      ButType::Num,
                       B_REDR,
                       "",
                       0,
@@ -443,7 +443,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      UI_BTYPE_NUM,
+                      ButType::Num,
                       B_REDR,
                       "",
                       0,
@@ -466,7 +466,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       col = &layout->column(true);
       uiItemL_respect_property_split(col, IFACE_("Left Handle Type"), ICON_NONE);
       but = uiDefButR(block,
-                      UI_BTYPE_MENU,
+                      ButType::Menu,
                       B_REDR,
                       std::nullopt,
                       0,
@@ -483,7 +483,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      UI_BTYPE_NUM,
+                      ButType::Num,
                       B_REDR,
                       "",
                       0,
@@ -500,7 +500,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      UI_BTYPE_NUM,
+                      ButType::Num,
                       B_REDR,
                       "",
                       0,
@@ -524,7 +524,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       col = &layout->column(true);
       uiItemL_respect_property_split(col, IFACE_("Right Handle Type"), ICON_NONE);
       but = uiDefButR(block,
-                      UI_BTYPE_MENU,
+                      ButType::Menu,
                       B_REDR,
                       std::nullopt,
                       0,
@@ -541,7 +541,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(col, IFACE_("Frame"), ICON_NONE);
       but = uiDefButR(block,
-                      UI_BTYPE_NUM,
+                      ButType::Num,
                       B_REDR,
                       "",
                       0,
@@ -558,7 +558,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
       uiItemL_respect_property_split(col, IFACE_("Value"), ICON_NONE);
       but = uiDefButR(block,
-                      UI_BTYPE_NUM,
+                      ButType::Num,
                       B_REDR,
                       "",
                       0,
@@ -929,7 +929,7 @@ static void graph_draw_driven_property_enabled_btn(uiLayout *layout,
 
   uiBlock *block = layout->block();
   uiDefButR(block,
-            UI_BTYPE_CHECKBOX_N,
+            ButType::CheckboxN,
             0,
             label,
             0,
@@ -1100,7 +1100,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   block = row->block();
   but = uiDefIconTextBut(
       block,
-      UI_BTYPE_BUT,
+      ButType::But,
       B_IPO_DEPCHANGE,
       ICON_ADD,
       IFACE_("Add Input Variable"),
@@ -1170,7 +1170,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
 
     if (dvar->flag & DVAR_FLAG_INVALID_NAME) {
       but = uiDefIconBut(block,
-                         UI_BTYPE_BUT,
+                         ButType::But,
                          B_IPO_DEPCHANGE,
                          ICON_ERROR,
                          290,
@@ -1186,7 +1186,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
 
     /* 1.3) remove button */
     but = uiDefIconBut(block,
-                       UI_BTYPE_BUT,
+                       ButType::But,
                        B_IPO_DEPCHANGE,
                        ICON_X,
                        290,
@@ -1262,7 +1262,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   block = row->block();
   but = uiDefIconTextBut(
       block,
-      UI_BTYPE_BUT,
+      ButType::But,
       B_IPO_DEPCHANGE,
       ICON_FILE_REFRESH,
       IFACE_("Update Dependencies"),

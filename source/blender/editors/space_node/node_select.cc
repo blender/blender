@@ -1389,7 +1389,7 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_optype)
   /* Fake button holds space for search items. */
   const int height = UI_searchbox_size_y() - UI_SEARCHBOX_BOUNDS;
   uiDefBut(
-      block, UI_BTYPE_LABEL, 0, "", 0, -height, box_width, height, nullptr, 0, 0, std::nullopt);
+      block, ButType::Label, 0, "", 0, -height, box_width, height, nullptr, 0, 0, std::nullopt);
 
   /* Move it downwards, mouse over button. */
   std::array<int, 2> bounds_offset = {0, -UI_UNIT_Y};

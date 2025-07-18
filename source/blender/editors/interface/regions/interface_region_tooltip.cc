@@ -1059,7 +1059,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     }
 
     /* special case enum rna buttons */
-    if ((but->type & UI_BTYPE_ROW) && rnaprop && RNA_property_flag(rnaprop) & PROP_ENUM_FLAG) {
+    if ((but->type == ButType::Row) && rnaprop && RNA_property_flag(rnaprop) & PROP_ENUM_FLAG) {
       UI_tooltip_text_field_add(*data,
                                 TIP_("(Shift-Click/Drag to select multiple)"),
                                 {},
@@ -1104,7 +1104,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
                               true);
   }
 
-  if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
+  if (ELEM(but->type, ButType::Text, ButType::SearchMenu)) {
     /* Better not show the value of a password. */
     if ((rnaprop && (RNA_property_subtype(rnaprop) == PROP_PASSWORD)) == 0) {
       /* Full string. */
@@ -1162,7 +1162,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
   }
 
   /* Warn on path validity errors. */
-  if (ELEM(but->type, UI_BTYPE_TEXT) &&
+  if (ELEM(but->type, ButType::Text) &&
       /* Check red-alert, if the flag is not set, then this was suppressed. */
       (but->flag & UI_BUT_REDALERT))
   {
@@ -1252,7 +1252,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     UI_tooltip_uibut_python_add(*data, *C, *but, extra_icon);
   }
 
-  if (but->type == UI_BTYPE_COLOR) {
+  if (but->type == ButType::Color) {
     const ColorManagedDisplay *display = UI_but_cm_display_get(*but);
 
     float color[4];
@@ -1667,7 +1667,7 @@ ARegion *UI_tooltip_create_from_button_or_extra_icon(
     }
     BLI_rcti_rctf_copy_round(&init_rect, &overlap_rect_fl);
   }
-  else if (but->type == UI_BTYPE_LABEL && BLI_rctf_size_y(&but->rect) > UI_UNIT_Y) {
+  else if (but->type == ButType::Label && BLI_rctf_size_y(&but->rect) > UI_UNIT_Y) {
     init_position[0] = win->eventstate->xy[0];
     init_position[1] = win->eventstate->xy[1] - (UI_POPUP_MARGIN / 2);
   }

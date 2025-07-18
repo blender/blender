@@ -177,8 +177,8 @@ struct uiBut {
   int flag = 0;
   int flag2 = 0;
   int drawflag = 0;
-  eButType type = eButType(0);
-  eButPointerType pointype = UI_BUT_POIN_NONE;
+  ButType type = ButType(0);
+  ButPointerType pointype = ButPointerType::None;
   short bit = 0, bitnr = 0, retval = 0, strwidth = 0, alignnr = 0;
   short ofs = 0, pos = 0, selsta = 0, selend = 0;
 
@@ -263,10 +263,10 @@ struct uiBut {
   /** Affects the order if this uiBut is used in menu-search. */
   float search_weight = 0.0f;
 
-  /** #UI_BTYPE_BLOCK data */
+  /** #ButType::Block data */
   uiBlockCreateFunc block_create_func = nullptr;
 
-  /** #UI_BTYPE_PULLDOWN / #UI_BTYPE_MENU data */
+  /** #ButType::Pulldown / #ButType::Menu data */
   uiMenuCreateFunc menu_create_func = nullptr;
 
   uiMenuStepFunc menu_step_func = nullptr;
@@ -342,30 +342,30 @@ struct uiBut {
   virtual ~uiBut() = default;
 };
 
-/** Derived struct for #UI_BTYPE_NUM */
+/** Derived struct for #ButType::Num */
 struct uiButNumber : public uiBut {
   float step_size = 0.0f;
   float precision = 0.0f;
 };
 
-/** Derived struct for #UI_BTYPE_NUM_SLIDER */
+/** Derived struct for #ButType::NumSlider */
 struct uiButNumberSlider : public uiBut {
   float step_size = 0.0f;
   float precision = 0.0f;
 };
 
-/** Derived struct for #UI_BTYPE_COLOR */
+/** Derived struct for #ButType::Color */
 struct uiButColor : public uiBut {
   bool is_pallete_color = false;
   int palette_color_index = -1;
 };
 
-/** Derived struct for #UI_BTYPE_TAB */
+/** Derived struct for #ButType::Tab */
 struct uiButTab : public uiBut {
   MenuType *menu = nullptr;
 };
 
-/** Derived struct for #UI_BTYPE_SEARCH_MENU */
+/** Derived struct for #ButType::SearchMenu */
 struct uiButSearch : public uiBut {
   uiButSearchCreateFn popup_create_fn = nullptr;
   uiButSearchUpdateFn items_update_fn = nullptr;
@@ -396,7 +396,7 @@ struct uiButSearch : public uiBut {
 };
 
 /**
- * Derived struct for #UI_BTYPE_DECORATOR
+ * Derived struct for #ButType::Decorator
  * Decorators have their own RNA data, using the normal #uiBut RNA members has many side-effects.
  */
 struct uiButDecorator : public uiBut {
@@ -405,7 +405,7 @@ struct uiButDecorator : public uiBut {
   int decorated_rnaindex = -1;
 };
 
-/** Derived struct for #UI_BTYPE_PROGRESS. */
+/** Derived struct for #ButType::Progress. */
 struct uiButProgress : public uiBut {
   /** Progress in  0..1 range */
   float progress_factor = 0.0f;
@@ -413,17 +413,17 @@ struct uiButProgress : public uiBut {
   blender::ui::ButProgressType progress_type = blender::ui::ButProgressType::Bar;
 };
 
-/** Derived struct for #UI_BTYPE_SEPR_LINE. */
+/** Derived struct for #ButType::SeprLine. */
 struct uiButSeparatorLine : public uiBut {
   bool is_vertical;
 };
 
-/** Derived struct for #UI_BTYPE_LABEL. */
+/** Derived struct for #ButType::Label. */
 struct uiButLabel : public uiBut {
   float alpha_factor = 1.0f;
 };
 
-/** Derived struct for #UI_BTYPE_SCROLL. */
+/** Derived struct for #ButType::Scroll. */
 struct uiButScrollBar : public uiBut {
   /** Actual visual height of UI list (in rows). */
   float visual_height = -1.0f;
@@ -440,28 +440,28 @@ struct uiButViewItem : public uiBut {
   int draw_height = 0;
 };
 
-/** Derived struct for #UI_BTYPE_HSVCUBE. */
+/** Derived struct for #ButType::HsvCube. */
 struct uiButHSVCube : public uiBut {
   eButGradientType gradient_type = UI_GRAD_SV;
 };
 
-/** Derived struct for #UI_BTYPE_COLORBAND. */
+/** Derived struct for #ButType::ColorBand. */
 struct uiButColorBand : public uiBut {
   ColorBand *edit_coba = nullptr;
 };
 
-/** Derived struct for #UI_BTYPE_CURVEPROFILE. */
+/** Derived struct for #ButType::CurveProfile. */
 struct uiButCurveProfile : public uiBut {
   CurveProfile *edit_profile = nullptr;
 };
 
-/** Derived struct for #UI_BTYPE_CURVE. */
+/** Derived struct for #ButType::Curve. */
 struct uiButCurveMapping : public uiBut {
   CurveMapping *edit_cumap = nullptr;
   eButGradientType gradient_type = UI_GRAD_SV;
 };
 
-/** Derived struct for #UI_BTYPE_HOTKEY_EVENT. */
+/** Derived struct for #ButType::HotkeyEvent. */
 struct uiButHotkeyEvent : public uiBut {
   wmEventModifierFlag modifier_key = wmEventModifierFlag(0);
 };
@@ -750,7 +750,7 @@ void ui_block_add_dynamic_listener(uiBlock *block,
  * \note Only the #uiBut data can be kept. If the old button used a derived type (e.g. #uiButTab),
  *       the data that is not inside #uiBut will be lost.
  */
-uiBut *ui_but_change_type(uiBut *but, eButType new_type);
+uiBut *ui_but_change_type(uiBut *but, ButType new_type);
 
 double ui_but_value_get(uiBut *but);
 void ui_but_value_set(uiBut *but, double value);
@@ -1479,7 +1479,7 @@ bool ui_but_is_toggle(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 /**
  * Can we mouse over the button or is it hidden/disabled/layout.
  * \note ctrl is kind of a hack currently,
- * so that non-embossed UI_BTYPE_TEXT button behaves as a label when ctrl is not pressed.
+ * so that non-embossed ButType::Text button behaves as a label when ctrl is not pressed.
  */
 bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool for_tooltip);
 bool ui_but_is_interactive(const uiBut *but, bool labeledit) ATTR_WARN_UNUSED_RESULT;

@@ -2667,7 +2667,7 @@ int ui_handler_panel_region(bContext *C,
 
   const uiBut *region_active_but = ui_region_find_active_but(region);
   const bool region_has_active_button = region_active_but &&
-                                        region_active_but->type != UI_BTYPE_LABEL;
+                                        region_active_but->type != ButType::Label;
 
   LISTBASE_FOREACH (uiBlock *, block, &region->runtime->uiblocks) {
     Panel *panel = block->panel;

@@ -517,7 +517,7 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*a
     }
 
     but = uiDefIconTextBut(block,
-                           UI_BTYPE_BUT,
+                           ButType::But,
                            0,
                            user->icon,
                            name,
@@ -692,7 +692,7 @@ void uiTemplateTextureShow(uiLayout *layout, const bContext *C, PointerRNA *ptr,
   uiBlock *block = layout->block();
   uiBut *but;
   but = uiDefIconBut(block,
-                     UI_BTYPE_BUT,
+                     ButType::But,
                      0,
                      ICON_PROPERTIES,
                      0,

@@ -237,7 +237,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
 
   uiBlock *block = prop_row->block();
   uiBut *but = uiDefIconTextButR(block,
-                                 UI_BTYPE_SEARCH_MENU,
+                                 ButType::SearchMenu,
                                  0,
                                  ICON_OUTLINER_DATA_GP_LAYER,
                                  "",
@@ -357,7 +357,7 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
 
   uiBlock *block = layout->block();
   uiBut *but = uiDefIconTextButR(block,
-                                 UI_BTYPE_SEARCH_MENU,
+                                 ButType::SearchMenu,
                                  0,
                                  ICON_NONE,
                                  "",

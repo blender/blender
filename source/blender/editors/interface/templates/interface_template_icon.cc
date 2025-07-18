@@ -49,7 +49,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
     uiBut *but;
     if (args.show_labels) {
       but = uiDefIconTextButR_prop(block,
-                                   UI_BTYPE_ROW,
+                                   ButType::Row,
                                    0,
                                    icon,
                                    item[a].name,
@@ -66,7 +66,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
     }
     else {
       but = uiDefIconButR_prop(block,
-                               UI_BTYPE_ROW,
+                               ButType::Row,
                                0,
                                icon,
                                x,
@@ -97,7 +97,7 @@ void uiTemplateIcon(uiLayout *layout, int icon_value, float icon_scale)
 {
   uiBlock *block = layout->absolute_block();
   uiBut *but = uiDefIconBut(block,
-                            UI_BTYPE_LABEL,
+                            ButType::Label,
                             0,
                             ICON_X,
                             0,
@@ -160,7 +160,7 @@ void uiTemplateIconView(uiLayout *layout,
   }
   else {
     but = uiDefIconBut(block,
-                       UI_BTYPE_LABEL,
+                       ButType::Label,
                        0,
                        ICON_X,
                        0,

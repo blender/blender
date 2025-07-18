@@ -714,7 +714,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   layout.label(RPT_("Enter a Unicode codepoint hex value"), ICON_NONE);
 
   uiBut *text_but = uiDefBut(block,
-                             UI_BTYPE_TEXT,
+                             ButType::Text,
                              0,
                              "",
                              0,
@@ -746,7 +746,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
 
   if (windows_layout) {
     confirm = uiDefIconTextBut(block,
-                               UI_BTYPE_BUT,
+                               ButType::But,
                                0,
                                0,
                                IFACE_("Insert"),
@@ -762,7 +762,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   }
 
   cancel = uiDefIconTextBut(block,
-                            UI_BTYPE_BUT,
+                            ButType::But,
                             0,
                             0,
                             IFACE_("Cancel"),
@@ -778,7 +778,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   if (!windows_layout) {
     split->column(false);
     confirm = uiDefIconTextBut(block,
-                               UI_BTYPE_BUT,
+                               ButType::But,
                                0,
                                0,
                                IFACE_("Insert"),

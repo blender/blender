@@ -457,7 +457,7 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
 
   /* Fake button to hold space for the search items. */
   uiDefBut(block,
-           UI_BTYPE_LABEL,
+           ButType::Label,
            0,
            "",
            storage.in_out() == SOCK_OUT ? 10 : 10 - UI_searchbox_size_x(),

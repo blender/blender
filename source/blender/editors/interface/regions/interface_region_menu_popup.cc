@@ -52,7 +52,7 @@ using blender::StringRefNull;
 
 bool ui_but_menu_step_poll(const uiBut *but)
 {
-  BLI_assert(but->type == UI_BTYPE_MENU);
+  BLI_assert(but->type == ButType::Menu);
 
   /* currently only RNA buttons */
   return ((but->menu_step_func != nullptr) ||
@@ -131,7 +131,7 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
     /* Prevent labels (typically headings), from being returned in the case the text
      * happens to matches one of the menu items.
      * Skip separators too as checking them is redundant. */
-    if (ELEM(but_iter->type, UI_BTYPE_LABEL, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
+    if (ELEM(but_iter->type, ButType::Label, ButType::Sepr, ButType::SeprLine)) {
       continue;
     }
     if (mem[hash_mod] == ui_popup_string_hash(but_iter->str, but_iter->flag & UI_BUT_HAS_SEP_CHAR))
@@ -411,7 +411,7 @@ static uiPopupBlockHandle *ui_popup_menu_create_impl(
     pup->slideout = ui_block_is_menu(but->block);
     pup->but = but;
 
-    if (but->type == UI_BTYPE_PULLDOWN) {
+    if (but->type == ButType::Pulldown) {
       WorkspaceStatus status(C);
       status.item(IFACE_("Search"), ICON_EVENT_SPACEKEY);
     }
@@ -462,11 +462,11 @@ static void create_title_button(uiLayout *layout, const char *title, int icon)
   if (icon) {
     SNPRINTF(titlestr, " %s", title);
     uiDefIconTextBut(
-        block, UI_BTYPE_LABEL, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+        block, ButType::Label, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
   }
   else {
     uiBut *but = uiDefBut(
-        block, UI_BTYPE_LABEL, 0, title, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+        block, ButType::Label, 0, title, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
     but->drawflag = UI_BUT_TEXT_LEFT;
   }
 
@@ -834,7 +834,7 @@ void UI_popup_block_template_confirm_op(uiLayout *layout,
     }
     uiBlock *block = row->block();
     uiBut *but = uiDefIconTextBut(block,
-                                  UI_BTYPE_BUT,
+                                  ButType::But,
                                   1,
                                   ICON_NONE,
                                   cancel_text,

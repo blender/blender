@@ -101,7 +101,7 @@ static void ui_imageuser_slot_menu(bContext *C, uiLayout *layout, void *image_p)
       icon = ICON_DOT;
     }
     uiDefIconTextButS(block,
-                      UI_BTYPE_BUT_MENU,
+                      ButType::ButMenu,
                       B_NOP,
                       icon,
                       str,
@@ -117,7 +117,7 @@ static void ui_imageuser_slot_menu(bContext *C, uiLayout *layout, void *image_p)
 
   layout->separator();
   uiDefBut(block,
-           UI_BTYPE_LABEL,
+           ButType::Label,
            0,
            IFACE_("Slot"),
            0,
@@ -193,7 +193,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
   const char *fake_name = ui_imageuser_layer_fake_name(rr);
   if (fake_name) {
     uiDefButS(block,
-              UI_BTYPE_BUT_MENU,
+              ButType::ButMenu,
               B_NOP,
               fake_name,
               0,
@@ -209,7 +209,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
   int nr = fake_name ? 1 : 0;
   for (RenderLayer *rl = static_cast<RenderLayer *>(rr->layers.first); rl; rl = rl->next, nr++) {
     uiDefButS(block,
-              UI_BTYPE_BUT_MENU,
+              ButType::ButMenu,
               B_NOP,
               rl->name,
               0,
@@ -224,7 +224,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
 
   layout->separator();
   uiDefBut(block,
-           UI_BTYPE_LABEL,
+           ButType::Label,
            0,
            IFACE_("Layer"),
            0,
@@ -282,7 +282,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd
     BLI_addtail(&added_passes, BLI_genericNodeN(rpass->name));
 
     uiDefButS(block,
-              UI_BTYPE_BUT_MENU,
+              ButType::ButMenu,
               B_NOP,
               IFACE_(rpass->name),
               0,
@@ -297,7 +297,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd
 
   layout->separator();
   uiDefBut(block,
-           UI_BTYPE_LABEL,
+           ButType::Label,
            0,
            IFACE_("Pass"),
            0,
@@ -337,7 +337,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *
   layout->column(false);
 
   uiDefBut(block,
-           UI_BTYPE_LABEL,
+           ButType::Label,
            0,
            IFACE_("View"),
            0,
@@ -356,7 +356,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *
        rview = rview->prev, nr--)
   {
     uiDefButS(block,
-              UI_BTYPE_BUT_MENU,
+              ButType::ButMenu,
               B_NOP,
               IFACE_(rview->name),
               0,
@@ -385,7 +385,7 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, uiLayout *layout,
   layout->column(false);
 
   uiDefBut(block,
-           UI_BTYPE_LABEL,
+           ButType::Label,
            0,
            IFACE_("View"),
            0,
@@ -402,7 +402,7 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, uiLayout *layout,
   nr = BLI_listbase_count(&image->views) - 1;
   for (iv = static_cast<ImageView *>(image->views.last); iv; iv = iv->prev, nr--) {
     uiDefButS(block,
-              UI_BTYPE_BUT_MENU,
+              ButType::ButMenu,
               B_NOP,
               IFACE_(iv->name),
               0,

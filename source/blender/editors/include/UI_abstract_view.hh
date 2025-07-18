@@ -284,7 +284,7 @@ class AbstractViewItem {
   AbstractView &get_view() const;
 
   /**
-   * Get the view item button (button of type #UI_BTYPE_VIEW_ITEM) created for this item. Every
+   * Get the view item button (button of type #ButType::ViewItem) created for this item. Every
    * visible item gets one during the layout building. Items that are not visible may not have one,
    * so null is a valid return value.
    */

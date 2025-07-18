@@ -125,7 +125,7 @@ void uiTemplatePreview(uiLayout *layout,
 
   /* add preview */
   uiDefBut(
-      block, UI_BTYPE_EXTRA, 0, "", 0, 0, UI_UNIT_X * 10, ui_preview->height, pid, 0.0, 0.0, "");
+      block, ButType::Extra, 0, "", 0, 0, UI_UNIT_X * 10, ui_preview->height, pid, 0.0, 0.0, "");
   UI_but_func_drawextra_set(block,
                             [pid, pparent, slot, ui_preview](const bContext *C, rcti *rect) {
                               ED_preview_draw(C, pid, pparent, slot, ui_preview, rect);
@@ -133,7 +133,7 @@ void uiTemplatePreview(uiLayout *layout,
   UI_block_func_handle_set(block, do_preview_buttons, nullptr);
 
   uiDefIconButS(block,
-                UI_BTYPE_GRIP,
+                ButType::Grip,
                 0,
                 ICON_GRIP,
                 0,
@@ -176,7 +176,7 @@ void uiTemplatePreview(uiLayout *layout,
 
       layout->row(true);
       uiDefButS(block,
-                UI_BTYPE_ROW,
+                ButType::Row,
                 B_MATPRV,
                 IFACE_("Texture"),
                 0,
@@ -189,7 +189,7 @@ void uiTemplatePreview(uiLayout *layout,
                 "");
       if (GS(parent->name) == ID_MA) {
         uiDefButS(block,
-                  UI_BTYPE_ROW,
+                  ButType::Row,
                   B_MATPRV,
                   IFACE_("Material"),
                   0,
@@ -203,7 +203,7 @@ void uiTemplatePreview(uiLayout *layout,
       }
       else if (GS(parent->name) == ID_LA) {
         uiDefButS(block,
-                  UI_BTYPE_ROW,
+                  ButType::Row,
                   B_MATPRV,
                   CTX_IFACE_(BLT_I18NCONTEXT_ID_LIGHT, "Light"),
                   0,
@@ -217,7 +217,7 @@ void uiTemplatePreview(uiLayout *layout,
       }
       else if (GS(parent->name) == ID_WO) {
         uiDefButS(block,
-                  UI_BTYPE_ROW,
+                  ButType::Row,
                   B_MATPRV,
                   CTX_IFACE_(BLT_I18NCONTEXT_ID_WORLD, "World"),
                   0,
@@ -231,7 +231,7 @@ void uiTemplatePreview(uiLayout *layout,
       }
       else if (GS(parent->name) == ID_LS) {
         uiDefButS(block,
-                  UI_BTYPE_ROW,
+                  ButType::Row,
                   B_MATPRV,
                   IFACE_("Line Style"),
                   0,
@@ -244,7 +244,7 @@ void uiTemplatePreview(uiLayout *layout,
                   "");
       }
       uiDefButS(block,
-                UI_BTYPE_ROW,
+                ButType::Row,
                 B_MATPRV,
                 IFACE_("Both"),
                 0,

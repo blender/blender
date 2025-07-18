@@ -120,7 +120,7 @@ static bool depthdropper_test(bContext *C, wmOperator *op)
   /* check if there's an active button taking depth value */
   if ((CTX_wm_window(C) != nullptr) &&
       (but = UI_context_active_but_prop_get(C, &ptr, &prop, &index_dummy)) &&
-      (but->type == UI_BTYPE_NUM) && (prop != nullptr))
+      (but->type == ButType::Num) && (prop != nullptr))
   {
     if ((RNA_property_type(prop) == PROP_FLOAT) &&
         (RNA_property_subtype(prop) & PROP_UNIT_LENGTH) &&
@@ -445,7 +445,7 @@ static bool depthdropper_poll(bContext *C)
       return true;
     }
 
-    if ((but->type == UI_BTYPE_NUM) && (prop != nullptr) &&
+    if ((but->type == ButType::Num) && (prop != nullptr) &&
         (RNA_property_type(prop) == PROP_FLOAT) &&
         (RNA_property_subtype(prop) & PROP_UNIT_LENGTH) &&
         (RNA_property_array_check(prop) == false))

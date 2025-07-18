@@ -553,7 +553,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
           /* XXX Do not use uiLayout::label here,
            * it would add an empty icon as we are in a menu! */
           uiDefBut(block,
-                   UI_BTYPE_LABEL,
+                   ButType::Label,
                    0,
                    IFACE_(cur_node_name),
                    0,
@@ -575,7 +575,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
       }
 
       but = uiDefIconTextBut(block,
-                             UI_BTYPE_BUT,
+                             ButType::But,
                              0,
                              icon,
                              name,
@@ -635,7 +635,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
     but->drawflag = UI_BUT_TEXT_LEFT;
 
     but = uiDefBut(block,
-                   UI_BTYPE_BUT,
+                   ButType::But,
                    0,
                    CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove"),
                    0,
@@ -649,7 +649,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
     UI_but_funcN_set(but, ui_node_link, MEM_dupallocN(arg), POINTER_FROM_INT(UI_NODE_LINK_REMOVE));
 
     but = uiDefBut(block,
-                   UI_BTYPE_BUT,
+                   ButType::But,
                    0,
                    IFACE_("Disconnect"),
                    0,

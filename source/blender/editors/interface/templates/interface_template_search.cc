@@ -132,7 +132,7 @@ static void template_search_add_button_operator(
         UI_UNIT_X * 5);
 
     but = uiDefIconTextButO(block,
-                            UI_BTYPE_BUT,
+                            ButType::But,
                             operator_name,
                             opcontext,
                             icon,
@@ -145,7 +145,7 @@ static void template_search_add_button_operator(
   }
   else {
     but = uiDefIconButO(block,
-                        UI_BTYPE_BUT,
+                        ButType::But,
                         operator_name,
                         opcontext,
                         icon,

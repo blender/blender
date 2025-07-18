@@ -2825,7 +2825,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
   PointerRNA areaptr = RNA_pointer_create_discrete(&(screen->id), &RNA_Area, area);
 
   uiDefButR(block,
-            UI_BTYPE_MENU,
+            ButType::Menu,
             0,
             "",
             xco,

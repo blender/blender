@@ -523,7 +523,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   using namespace blender::ed;
   /* ui_but_is_interactive() may let some buttons through that should not get a context menu - it
    * doesn't make sense for them. */
-  if (ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_IMAGE)) {
+  if (ELEM(but->type, ButType::Label, ButType::Image)) {
     return false;
   }
 
@@ -543,7 +543,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   if (is_disabled) {
     /* Suppress editing commands. */
   }
-  else if (but->type == UI_BTYPE_TAB) {
+  else if (but->type == ButType::Tab) {
     uiButTab *tab = (uiButTab *)but;
     if (tab->menu) {
       UI_menutype_draw(C, tab->menu, layout);
@@ -989,12 +989,12 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
   {
     const ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
-    uiButViewItem *view_item_but = (but->type == UI_BTYPE_VIEW_ITEM) ?
+    uiButViewItem *view_item_but = (but->type == ButType::ViewItem) ?
                                        static_cast<uiButViewItem *>(but) :
                                        static_cast<uiButViewItem *>(
                                            ui_view_item_find_mouse_over(region, event->xy));
     if (view_item_but) {
-      BLI_assert(view_item_but->type == UI_BTYPE_VIEW_ITEM);
+      BLI_assert(view_item_but->type == ButType::ViewItem);
 
       const bContextStore *prev_ctx = CTX_store_get(C);
       /* Sub-layout for context override. */
@@ -1047,7 +1047,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   if (but->rnapoin.data && but->rnaprop) {
     const PropertyType prop_type = RNA_property_type(but->rnaprop);
     if (((prop_type == PROP_POINTER) ||
-         (prop_type == PROP_STRING && but->type == UI_BTYPE_SEARCH_MENU &&
+         (prop_type == PROP_STRING && but->type == ButType::SearchMenu &&
           ((uiButSearch *)but)->items_update_fn == ui_rna_collection_search_update_fn)) &&
         ui_jump_to_target_button_poll(C))
     {
@@ -1075,7 +1075,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       if (umi != nullptr) {
         uiBut *but2 = uiDefIconTextBut(
             block,
-            UI_BTYPE_BUT,
+            ButType::But,
             0,
             ICON_MENU_PANEL,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Quick Favorites"),
@@ -1101,7 +1101,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     if (!item_found) {
       uiBut *but2 = uiDefIconTextBut(
           block,
-          UI_BTYPE_BUT,
+          ButType::But,
           0,
           ICON_MENU_PANEL,
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Quick Favorites"),
@@ -1152,7 +1152,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
         uiBut *but2 = uiDefIconTextBut(
             block,
-            UI_BTYPE_BUT,
+            ButType::But,
             0,
             ICON_HAND,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"),
@@ -1170,7 +1170,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       }
       else {
         uiBut *but2 = uiDefIconTextBut(block,
-                                       UI_BTYPE_BUT,
+                                       ButType::But,
                                        0,
                                        ICON_HAND,
                                        IFACE_("Non-Keyboard Shortcut"),
@@ -1188,7 +1188,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
       uiBut *but2 = uiDefIconTextBut(
           block,
-          UI_BTYPE_BUT,
+          ButType::But,
           0,
           ICON_BLANK1,
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Shortcut"),
@@ -1206,7 +1206,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     else if (WM_keymap_guess_opname(C, idname)) {
       uiBut *but2 = uiDefIconTextBut(
           block,
-          UI_BTYPE_BUT,
+          ButType::But,
           0,
           ICON_HAND,
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut"),

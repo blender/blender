@@ -161,7 +161,7 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
     int y = 0;
     UI_block_align_begin(block);
     but = uiDefButF(block,
-                    UI_BTYPE_NUM,
+                    ButType::Num,
                     B_UVEDIT_VERTEX,
                     IFACE_("X:"),
                     0,
@@ -174,7 +174,7 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
     UI_but_number_step_size_set(but, step);
     UI_but_number_precision_set(but, digits);
     but = uiDefButF(block,
-                    UI_BTYPE_NUM,
+                    ButType::Num,
                     B_UVEDIT_VERTEX,
                     IFACE_("Y:"),
                     0,
