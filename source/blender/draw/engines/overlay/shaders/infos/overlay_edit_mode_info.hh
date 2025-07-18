@@ -22,6 +22,11 @@
 
 #include "overlay_common_info.hh"
 
+GPU_SHADER_INTERFACE_INFO(overlay_edit_flat_wire_iface)
+NO_PERSPECTIVE(float2, edge_pos)
+FLAT(float2, edge_start)
+FLAT(float4, final_color)
+GPU_SHADER_INTERFACE_END()
 GPU_SHADER_INTERFACE_INFO(overlay_edit_flat_color_iface)
 FLAT(float4, final_color)
 GPU_SHADER_INTERFACE_END()
@@ -531,8 +536,8 @@ VERTEX_IN(1, float3, nor)
 VERTEX_IN(2, float3, tangent)
 VERTEX_IN(3, float, rad)
 PUSH_CONSTANT(float, normal_size)
-VERTEX_OUT(overlay_edit_flat_color_iface)
-DEFINE("LINE_OUTPUT")
+VERTEX_OUT(overlay_edit_flat_wire_iface)
+DEFINE("LINE_OUTPUT_NO_DUMMY") /* TODO(fclem): Should be the default. */
 FRAGMENT_OUT(0, float4, frag_color)
 FRAGMENT_OUT(1, float4, line_output)
 VERTEX_SOURCE("overlay_edit_curve_wire_vert.glsl")
