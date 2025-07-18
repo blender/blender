@@ -58,6 +58,18 @@ class VelocityModule {
       }
       return nullptr;
     }
+
+    /* Returns true if the data is or **will** be available after the end of sync. */
+    bool has_data() const
+    {
+      if (std::holds_alternative<gpu::VertBuf *>(this->pos_buf)) {
+        return true;
+      }
+      if (std::holds_alternative<gpu::Batch *>(this->pos_buf)) {
+        return true;
+      }
+      return false;
+    }
   };
   /**
    * The map contains indirection indices to the obmat and geometry in each step buffer.
