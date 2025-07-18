@@ -36,13 +36,10 @@
  * \{ */
 
 UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
-                                       const bool *hide_poly,
-                                       const bool *select_poly,
                                        const int *corner_verts,
                                        const float (*mloopuv)[2],
                                        uint totvert,
                                        const float limit[2],
-                                       const bool selected,
                                        const bool use_winding)
 {
   /* NOTE: N-gon version WIP, based on #BM_uv_vert_map_create. */
@@ -55,9 +52,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
 
   /* generate UvMapVert array */
   for (const int64_t a : faces.index_range()) {
-    if (!selected || (!(hide_poly && hide_poly[a]) && (select_poly && select_poly[a]))) {
-      totuv += int(faces[a].size());
-    }
+    totuv += int(faces[a].size());
   }
 
   if (totuv == 0) {
@@ -81,32 +76,30 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
   blender::Vector<blender::float2, 32> face_uvs;
   for (const int64_t a : faces.index_range()) {
     const blender::IndexRange face = faces[a];
-    if (!selected || (!(hide_poly && hide_poly[a]) && (select_poly && select_poly[a]))) {
+
+    if (use_winding) {
+      face_uvs.resize(face.size());
+    }
+
+    nverts = int(face.size());
+
+    for (i = 0; i < nverts; i++) {
+      buf->loop_of_face_index = ushort(i);
+      buf->face_index = uint(a);
+      buf->separate = false;
+      buf->next = vmap->vert[corner_verts[face[i]]];
+      vmap->vert[corner_verts[face[i]]] = buf;
 
       if (use_winding) {
-        face_uvs.resize(face.size());
+        copy_v2_v2(face_uvs[i], mloopuv[face[i]]);
       }
 
-      nverts = int(face.size());
+      buf++;
+    }
 
-      for (i = 0; i < nverts; i++) {
-        buf->loop_of_face_index = ushort(i);
-        buf->face_index = uint(a);
-        buf->separate = false;
-        buf->next = vmap->vert[corner_verts[face[i]]];
-        vmap->vert[corner_verts[face[i]]] = buf;
-
-        if (use_winding) {
-          copy_v2_v2(face_uvs[i], mloopuv[face[i]]);
-        }
-
-        buf++;
-      }
-
-      if (use_winding) {
-        winding[a] = cross_poly_v2(reinterpret_cast<const float(*)[2]>(face_uvs.data()),
-                                   uint(nverts)) < 0;
-      }
+    if (use_winding) {
+      winding[a] = cross_poly_v2(reinterpret_cast<const float(*)[2]>(face_uvs.data()),
+                                 uint(nverts)) < 0;
     }
   }
 
