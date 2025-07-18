@@ -339,7 +339,7 @@ void *sound_equalizermodifier_recreator(Strip *strip,
 
   return sound_out;
 #else
-  UNUSED_VARS(strip, smd, sound);
+  UNUSED_VARS(strip, smd, sound_in, needs_update);
   return nullptr;
 #endif
 }
