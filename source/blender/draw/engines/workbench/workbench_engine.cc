@@ -641,7 +641,7 @@ static void write_render_z_output(RenderLayer *layer,
                                   const rcti *rect,
                                   const float4x4 &winmat)
 {
-  RenderPass *rp = RE_pass_find_by_name(layer, RE_PASSNAME_Z, viewname);
+  RenderPass *rp = RE_pass_find_by_name(layer, RE_PASSNAME_DEPTH, viewname);
   if (rp) {
     GPU_framebuffer_bind(fb);
     GPU_framebuffer_read_depth(fb,
@@ -750,8 +750,8 @@ static void workbench_render_update_passes(RenderEngine *engine,
   if (view_layer->passflag & SCE_PASS_COMBINED) {
     RE_engine_register_pass(engine, scene, view_layer, RE_PASSNAME_COMBINED, 4, "RGBA", SOCK_RGBA);
   }
-  if (view_layer->passflag & SCE_PASS_Z) {
-    RE_engine_register_pass(engine, scene, view_layer, RE_PASSNAME_Z, 1, "Z", SOCK_FLOAT);
+  if (view_layer->passflag & SCE_PASS_DEPTH) {
+    RE_engine_register_pass(engine, scene, view_layer, RE_PASSNAME_DEPTH, 1, "Z", SOCK_FLOAT);
   }
 }
 

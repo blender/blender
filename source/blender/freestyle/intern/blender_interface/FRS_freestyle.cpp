@@ -444,7 +444,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
       controller->setPassDiffuse(rpass_buffer_data, rpass->rectx, rpass->recty);
       diffuse = true;
     }
-    if (STREQ(rpass->name, RE_PASSNAME_Z)) {
+    if (STREQ(rpass->name, RE_PASSNAME_DEPTH)) {
       controller->setPassZ(rpass_buffer_data, rpass->rectx, rpass->recty);
       z = true;
     }

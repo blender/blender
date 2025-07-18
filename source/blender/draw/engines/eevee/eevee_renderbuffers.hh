@@ -49,7 +49,7 @@ class RenderBuffers {
   static ePassStorageType pass_storage_type(eViewLayerEEVEEPassType pass_type)
   {
     switch (pass_type) {
-      case EEVEE_RENDER_PASS_Z:
+      case EEVEE_RENDER_PASS_DEPTH:
       case EEVEE_RENDER_PASS_MIST:
       case EEVEE_RENDER_PASS_SHADOW:
       case EEVEE_RENDER_PASS_AO:

@@ -220,7 +220,7 @@ static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
       buffer_data[x] = PASS_VECTOR_MAX;
     }
   }
-  else if (STREQ(rp->name, RE_PASSNAME_Z)) {
+  else if (STREQ(rp->name, RE_PASSNAME_DEPTH)) {
     for (int x = rectsize - 1; x >= 0; x--) {
       buffer_data[x] = 10e10;
     }
@@ -545,7 +545,7 @@ static int passtype_from_name(const char *name)
   ((void)0)
 
   CHECK_PASS(COMBINED);
-  CHECK_PASS(Z);
+  CHECK_PASS(DEPTH);
   CHECK_PASS(VECTOR);
   CHECK_PASS(NORMAL);
   CHECK_PASS(UV);

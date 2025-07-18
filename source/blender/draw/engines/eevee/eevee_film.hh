@@ -194,7 +194,7 @@ class Film {
   static ePassStorageType pass_storage_type(eViewLayerEEVEEPassType pass_type)
   {
     switch (pass_type) {
-      case EEVEE_RENDER_PASS_Z:
+      case EEVEE_RENDER_PASS_DEPTH:
       case EEVEE_RENDER_PASS_MIST:
         return PASS_STORAGE_VALUE;
       case EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT:
@@ -221,7 +221,7 @@ class Film {
     switch (pass_type) {
       case EEVEE_RENDER_PASS_COMBINED:
         return data_.combined_id;
-      case EEVEE_RENDER_PASS_Z:
+      case EEVEE_RENDER_PASS_DEPTH:
         return data_.depth_id;
       case EEVEE_RENDER_PASS_MIST:
         return data_.mist_id;
@@ -283,8 +283,8 @@ class Film {
       case EEVEE_RENDER_PASS_COMBINED:
         result.append(RE_PASSNAME_COMBINED);
         break;
-      case EEVEE_RENDER_PASS_Z:
-        result.append(RE_PASSNAME_Z);
+      case EEVEE_RENDER_PASS_DEPTH:
+        result.append(RE_PASSNAME_DEPTH);
         break;
       case EEVEE_RENDER_PASS_MIST:
         result.append(RE_PASSNAME_MIST);

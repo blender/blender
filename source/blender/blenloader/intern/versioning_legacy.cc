@@ -1557,7 +1557,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         if (srl->layflag & SCE_LAY_SOLID) {
           srl->layflag |= SCE_LAY_SKY;
         }
-        srl->passflag &= (SCE_PASS_COMBINED | SCE_PASS_Z | SCE_PASS_NORMAL | SCE_PASS_VECTOR);
+        srl->passflag &= (SCE_PASS_COMBINED | SCE_PASS_DEPTH | SCE_PASS_NORMAL | SCE_PASS_VECTOR);
       }
 
       /* node version changes */

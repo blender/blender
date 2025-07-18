@@ -77,7 +77,7 @@ static void render_init_buffers(const DRWContext *draw_ctx,
 
   /* Create depth texture & color texture from render result. */
   const char *viewname = RE_GetActiveRenderView(engine->re);
-  RenderPass *rpass_z_src = RE_pass_find_by_name(render_layer, RE_PASSNAME_Z, viewname);
+  RenderPass *rpass_z_src = RE_pass_find_by_name(render_layer, RE_PASSNAME_DEPTH, viewname);
   RenderPass *rpass_col_src = RE_pass_find_by_name(render_layer, RE_PASSNAME_COMBINED, viewname);
 
   float *pix_z = (rpass_z_src) ? rpass_z_src->ibuf->float_buffer.data : nullptr;
@@ -159,10 +159,10 @@ static void render_result_z(const DRWContext *draw_ctx,
                             const rcti *rect)
 {
   ViewLayer *view_layer = draw_ctx->view_layer;
-  if ((view_layer->passflag & SCE_PASS_Z) == 0) {
+  if ((view_layer->passflag & SCE_PASS_DEPTH) == 0) {
     return;
   }
-  RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
+  RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_DEPTH, viewname);
   if (rp == nullptr) {
     return;
   }
