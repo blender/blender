@@ -2683,6 +2683,30 @@ static bool node_undefined_or_unsupported(const bNodeTree &node_tree, const bNod
   return false;
 }
 
+static void node_header_custom_tooltip(const bNode &node, uiBut &but)
+{
+  UI_but_func_tooltip_custom_set(
+      &but,
+      [](bContext & /*C*/, uiTooltipData &data, uiBut * /*but*/, void *argN) {
+        const bNode &node = *static_cast<const bNode *>(argN);
+        const std::string description = node.typeinfo->ui_description_fn ?
+                                            node.typeinfo->ui_description_fn(node) :
+                                            node.typeinfo->ui_description;
+        UI_tooltip_text_field_add(
+            data, std::move(description), "", UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+        if (U.flag & USER_TOOLTIPS_PYTHON) {
+          UI_tooltip_text_field_add(data,
+                                    fmt::format("Python: {}", node.idname),
+                                    "",
+                                    UI_TIP_STYLE_MONO,
+                                    UI_TIP_LC_PYTHON,
+                                    true);
+        }
+      },
+      &const_cast<bNode &>(node),
+      nullptr);
+}
+
 static void node_draw_basis(const bContext &C,
                             TreeDrawContext &tree_draw_ctx,
                             const View2D &v2d,
@@ -2978,17 +3002,7 @@ static void node_draw_basis(const bContext &C,
                         0,
                         0,
                         TIP_(node.typeinfo->ui_description.c_str()));
-  UI_but_func_tooltip_set(
-      but,
-      [](bContext * /*C*/, void *arg, const StringRef tip) -> std::string {
-        const bNode &node = *static_cast<const bNode *>(arg);
-        if (node.typeinfo->ui_description_fn) {
-          return node.typeinfo->ui_description_fn(node);
-        }
-        return tip;
-      },
-      const_cast<bNode *>(&node),
-      nullptr);
+  node_header_custom_tooltip(node, *but);
 
   if (node.is_muted()) {
     UI_but_flag_enable(but, UI_BUT_INACTIVE);
@@ -3229,6 +3243,7 @@ static void node_draw_collapsed(const bContext &C,
                         0,
                         0,
                         TIP_(node.typeinfo->ui_description.c_str()));
+  node_header_custom_tooltip(node, *but);
 
   /* Outline. */
   {
