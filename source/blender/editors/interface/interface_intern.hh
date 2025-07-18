@@ -99,7 +99,7 @@ enum {
 };
 
 /** #uiBut.pie_dir */
-enum RadialDirection {
+enum RadialDirection : int8_t {
   UI_RADIAL_NONE = -1,
   UI_RADIAL_N = 0,
   UI_RADIAL_NE = 1,
@@ -175,12 +175,26 @@ struct uiBut {
   /** Pointer back to the layout item holding this button. */
   uiLayout *layout = nullptr;
   int flag = 0;
-  int flag2 = 0;
   int drawflag = 0;
+  char flag2 = 0;
+
   ButType type = ButType(0);
   ButPointerType pointype = ButPointerType::None;
-  short bit = 0, bitnr = 0, retval = 0, strwidth = 0, alignnr = 0;
+  bool bit = 0;
+  /* 0-31 bit index. */
+  char bitnr = 0;
+
+  /** When non-zero, this is the key used to activate a menu items (`a-z` always lower case). */
+  uchar menu_key = 0;
+
+  short retval = 0, strwidth = 0, alignnr = 0;
   short ofs = 0, pos = 0, selsta = 0, selend = 0;
+
+  /**
+   * Optional color for monochrome icon. Also used as text
+   * color for labels without icons. Set with #UI_but_color_set().
+   */
+  uchar col[4] = {0};
 
   std::string str;
 
@@ -193,12 +207,6 @@ struct uiBut {
 
   char *poin = nullptr;
   float hardmin = 0, hardmax = 0, softmin = 0, softmax = 0;
-
-  /**
-   * Optional color for monochrome icon. Also used as text
-   * color for labels without icons. Set with #UI_but_color_set().
-   */
-  uchar col[4] = {0};
 
   /** See \ref UI_but_func_identity_compare_set(). */
   uiButIdentityCompareFunc identity_cmp_func = nullptr;
@@ -249,19 +257,27 @@ struct uiBut {
   /** info on why button is disabled, displayed in tooltip */
   const char *disabled_info = nullptr;
 
-  BIFIconID icon = ICON_NONE;
+  /** Little indicator (e.g., counter) displayed on top of some icons. */
+  IconTextOverlay icon_overlay_text = {};
+
   /** Copied from the #uiBlock.emboss */
   blender::ui::EmbossType emboss = blender::ui::EmbossType::Emboss;
   /** direction in a pie menu, used for collision detection. */
   RadialDirection pie_dir = UI_RADIAL_NONE;
   /** could be made into a single flag */
   bool changed = false;
-  /** so buttons can support unit systems which are not RNA */
-  uchar unit_type = 0;
-  short iconadd = 0;
+
+  BIFIconID icon = ICON_NONE;
 
   /** Affects the order if this uiBut is used in menu-search. */
   float search_weight = 0.0f;
+
+  short iconadd = 0;
+  /** so buttons can support unit systems which are not RNA */
+  uchar unit_type = 0;
+
+  /** See #UI_but_menu_disable_hover_open(). */
+  bool menu_no_hover_open = false;
 
   /** #ButType::Block data */
   uiBlockCreateFunc block_create_func = nullptr;
@@ -270,35 +286,30 @@ struct uiBut {
   uiMenuCreateFunc menu_create_func = nullptr;
 
   uiMenuStepFunc menu_step_func = nullptr;
-  /** See #UI_but_menu_disable_hover_open(). */
-  bool menu_no_hover_open = false;
 
   /* RNA data */
   PointerRNA rnapoin = {};
   PropertyRNA *rnaprop = nullptr;
   int rnaindex = 0;
 
-  /* Operator data */
-  wmOperatorType *optype = nullptr;
-  PointerRNA *opptr = nullptr;
-  blender::wm::OpCallContext opcontext = blender::wm::OpCallContext::InvokeDefault;
+  BIFIconID drag_preview_icon_id;
+  void *dragpoin = nullptr;
+  const ImBuf *imb = nullptr;
+  float imb_scale = 0;
+  eWM_DragDataType dragtype = WM_DRAG_ID;
+  int8_t dragflag = 0;
+
   /**
    * Keep an operator attached but never actually call it through the button. See
    * #UI_but_operator_set_never_call().
    */
   bool operator_never_call = false;
-
-  /** When non-zero, this is the key used to activate a menu items (`a-z` always lower case). */
-  uchar menu_key = 0;
+  /* Operator data */
+  blender::wm::OpCallContext opcontext = blender::wm::OpCallContext::InvokeDefault;
+  wmOperatorType *optype = nullptr;
+  PointerRNA *opptr = nullptr;
 
   ListBase extra_op_icons = {nullptr, nullptr}; /** #uiButExtraOpIcon */
-
-  eWM_DragDataType dragtype = WM_DRAG_ID;
-  short dragflag = 0;
-  void *dragpoin = nullptr;
-  BIFIconID drag_preview_icon_id;
-  const ImBuf *imb = nullptr;
-  float imb_scale = 0;
 
   /**
    * Active button data, set when the user is hovering or interacting with a button (#UI_HOVER and
@@ -326,9 +337,6 @@ struct uiBut {
   float *editvec = nullptr;
 
   std::function<bool(const uiBut &)> pushed_state_func;
-
-  /** Little indicator (e.g., counter) displayed on top of some icons. */
-  IconTextOverlay icon_overlay_text = {};
 
   /* pointer back */
   uiBlock *block = nullptr;

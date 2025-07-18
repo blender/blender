@@ -1197,7 +1197,7 @@ using wmPaintCursorDraw = void (*)(bContext *C,
 
 /* *************** Drag and drop *************** */
 
-enum eWM_DragDataType {
+enum eWM_DragDataType : int8_t {
   WM_DRAG_ID,
   WM_DRAG_ASSET,
   /** The user is dragging multiple assets. This is only supported in few specific cases, proper
