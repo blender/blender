@@ -1805,7 +1805,6 @@ void BKE_paint_init(
 
   BKE_paint_ensure_from_paintmode(sce, mode);
   Paint *paint = BKE_paint_get_active_from_paintmode(sce, mode);
-  UnifiedPaintSettings *ups = &paint->unified_paint_settings;
 
   if (ensure_brushes) {
     BKE_paint_brushes_ensure(bmain, paint);
@@ -1813,9 +1812,6 @@ void BKE_paint_init(
 
   copy_v3_v3_uchar(paint->paint_cursor_col, col);
   paint->paint_cursor_col[3] = 128;
-  ups->last_stroke_valid = false;
-  zero_v3(ups->average_stroke_accum);
-  ups->average_stroke_counter = 0;
   if (!paint->cavity_curve) {
     BKE_paint_cavity_curve_preset(paint, CURVE_PRESET_LINE);
   }
@@ -1886,10 +1882,10 @@ void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
 
 void BKE_paint_stroke_get_average(const Paint *paint, const Object *ob, float stroke[3])
 {
-  const UnifiedPaintSettings *ups = &paint->unified_paint_settings;
-  if (ups->last_stroke_valid && ups->average_stroke_counter > 0) {
-    float fac = 1.0f / ups->average_stroke_counter;
-    mul_v3_v3fl(stroke, ups->average_stroke_accum, fac);
+  const blender::bke::PaintRuntime &paint_runtime = *paint->runtime;
+  if (paint_runtime.last_stroke_valid && paint_runtime.average_stroke_counter > 0) {
+    float fac = 1.0f / paint_runtime.average_stroke_counter;
+    mul_v3_v3fl(stroke, paint_runtime.average_stroke_accum, fac);
   }
   else {
     copy_v3_v3(stroke, ob->object_to_world().location());
@@ -2058,11 +2054,6 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
 
   paint->paint_cursor = nullptr;
 
-  /* Reset last_location and last_hit, so they are not remembered across sessions. In some files
-   * these are also NaN, which could lead to crashes in painting. */
-  zero_v3(ups->last_location);
-  ups->last_hit = 0;
-
   paint->runtime = MEM_new<blender::bke::PaintRuntime>(__func__);
 
   paint_runtime_init(scene->toolsettings, paint);
@@ -2103,22 +2094,21 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y
 }
 
 /* Threshold to move before updating the brush rotation, reduces jitter. */
-static float paint_rake_rotation_spacing(const UnifiedPaintSettings & /*ups*/, const Brush &brush)
+static float paint_rake_rotation_spacing(const Paint & /*ups*/, const Brush &brush)
 {
   return brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_CLAY_STRIPS ? 1.0f : 20.0f;
 }
 
-void paint_update_brush_rake_rotation(UnifiedPaintSettings &ups,
-                                      const Brush &brush,
-                                      float rotation)
+void paint_update_brush_rake_rotation(Paint &paint, const Brush &brush, float rotation)
 {
-  ups.brush_rotation = rotation;
+  blender::bke::PaintRuntime &paint_runtime = *paint.runtime;
+  paint_runtime.brush_rotation = rotation;
 
   if (brush.mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE) {
-    ups.brush_rotation_sec = rotation;
+    paint_runtime.brush_rotation_sec = rotation;
   }
   else {
-    ups.brush_rotation_sec = 0.0f;
+    paint_runtime.brush_rotation_sec = 0.0f;
   }
 }
 
@@ -2133,15 +2123,17 @@ static bool paint_rake_rotation_active(const Brush &brush, PaintMode paint_mode)
          BKE_brush_has_cube_tip(&brush, paint_mode);
 }
 
-bool paint_calculate_rake_rotation(UnifiedPaintSettings &ups,
+bool paint_calculate_rake_rotation(Paint &paint,
                                    const Brush &brush,
                                    const float mouse_pos[2],
                                    const PaintMode paint_mode,
                                    bool stroke_has_started)
 {
+  blender::bke::PaintRuntime &paint_runtime = *paint.runtime;
+
   bool ok = false;
   if (paint_rake_rotation_active(brush, paint_mode)) {
-    float r = paint_rake_rotation_spacing(ups, brush);
+    float r = paint_rake_rotation_spacing(paint, brush);
     float rotation;
 
     /* Use a smaller limit if the stroke hasn't started to prevent excessive pre-roll. */
@@ -2150,28 +2142,28 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings &ups,
     }
 
     float dpos[2];
-    sub_v2_v2v2(dpos, mouse_pos, ups.last_rake);
+    sub_v2_v2v2(dpos, mouse_pos, paint_runtime.last_rake);
 
     /* Limit how often we update the angle to prevent jitter. */
     if (len_squared_v2(dpos) >= r * r) {
       rotation = atan2f(dpos[1], dpos[0]) + float(0.5f * M_PI);
 
-      copy_v2_v2(ups.last_rake, mouse_pos);
+      copy_v2_v2(paint_runtime.last_rake, mouse_pos);
 
-      ups.last_rake_angle = rotation;
+      paint_runtime.last_rake_angle = rotation;
 
-      paint_update_brush_rake_rotation(ups, brush, rotation);
+      paint_update_brush_rake_rotation(paint, brush, rotation);
       ok = true;
     }
     /* Make sure we reset here to the last rotation to avoid accumulating
      * values in case a random rotation is also added. */
     else {
-      paint_update_brush_rake_rotation(ups, brush, ups.last_rake_angle);
+      paint_update_brush_rake_rotation(paint, brush, paint_runtime.last_rake_angle);
       ok = false;
     }
   }
   else {
-    ups.brush_rotation = ups.brush_rotation_sec = 0.0f;
+    paint_runtime.brush_rotation = paint_runtime.brush_rotation_sec = 0.0f;
     ok = true;
   }
   return ok;

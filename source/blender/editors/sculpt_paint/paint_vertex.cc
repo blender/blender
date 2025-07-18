@@ -434,7 +434,7 @@ void update_cache_invariants(
     bContext *C, VPaint &vp, SculptSession &ss, wmOperator *op, const float mval[2])
 {
   StrokeCache *cache;
-  UnifiedPaintSettings &ups = vp.paint.unified_paint_settings;
+  bke::PaintRuntime &paint_runtime = *vp.paint.runtime;
   ViewContext *vc = paint_stroke_view_context((PaintStroke *)op->customdata);
   Object &ob = *CTX_data_active_object(C);
   float mat[3][3];
@@ -464,10 +464,10 @@ void update_cache_invariants(
   /* not very nice, but with current events system implementation
    * we can't handle brush appearance inversion hotkey separately (sergey) */
   if (cache->invert) {
-    ups.draw_inverted = true;
+    paint_runtime.draw_inverted = true;
   }
   else {
-    ups.draw_inverted = false;
+    paint_runtime.draw_inverted = false;
   }
 
   if (cache->alt_smooth) {
@@ -565,10 +565,10 @@ void get_brush_alpha_data(const SculptSession &ss,
 
 void last_stroke_update(const float location[3], Paint &paint)
 {
-  UnifiedPaintSettings &ups = paint.unified_paint_settings;
-  ups.average_stroke_counter++;
-  add_v3_v3(ups.average_stroke_accum, location);
-  ups.last_stroke_valid = true;
+  bke::PaintRuntime &paint_runtime = *paint.runtime;
+  paint_runtime.average_stroke_counter++;
+  add_v3_v3(paint_runtime.average_stroke_accum, location);
+  paint_runtime.last_stroke_valid = true;
 }
 
 /* -------------------------------------------------------------------- */

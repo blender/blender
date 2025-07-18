@@ -59,6 +59,7 @@
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
+#include "BKE_paint_types.hh"
 #include "BKE_report.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
@@ -2157,16 +2158,16 @@ static float brush_flip(const Brush &brush, const blender::ed::sculpt_paint::Str
 static float brush_strength(const Sculpt &sd,
                             const blender::ed::sculpt_paint::StrokeCache &cache,
                             const float feather,
-                            const UnifiedPaintSettings &ups,
                             const PaintModeSettings & /*paint_mode_settings*/)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
+  const blender::bke::PaintRuntime &paint_runtime = *sd.paint.runtime;
 
   /* Primary strength input; square it to make lower values more sensitive. */
   const float root_alpha = BKE_brush_alpha_get(&sd.paint, &brush);
   const float alpha = root_alpha * root_alpha;
   const float pressure = BKE_brush_use_alpha_pressure(&brush) ? cache.pressure : 1.0f;
-  float overlap = ups.overlap_factor;
+  float overlap = paint_runtime.overlap_factor;
   /* Spacing is integer percentage of radius, divide by 50 to get
    * normalized diameter. */
 
@@ -2988,10 +2989,9 @@ namespace blender::ed::sculpt_paint {
 
 static void dynamic_topology_update(const Depsgraph &depsgraph,
                                     const Scene & /*scene*/,
-                                    const Sculpt &sd,
+                                    Sculpt &sd,
                                     Object &ob,
                                     const Brush &brush,
-                                    UnifiedPaintSettings & /*ups*/,
                                     PaintModeSettings & /*paint_mode_settings*/)
 {
   SculptSession &ss = *ob.sculpt;
@@ -3177,10 +3177,9 @@ static void push_undo_nodes(const Depsgraph &depsgraph,
 
 static void do_brush_action(const Depsgraph &depsgraph,
                             const Scene & /*scene*/,
-                            const Sculpt &sd,
+                            Sculpt &sd,
                             Object &ob,
                             const Brush &brush,
-                            UnifiedPaintSettings &ups,
                             PaintModeSettings &paint_mode_settings)
 {
   SculptSession &ss = *ob.sculpt;
@@ -3433,10 +3432,11 @@ static void do_brush_action(const Depsgraph &depsgraph,
   /* Update average stroke position. */
   const float3 world_location = math::project_point(ob.object_to_world(), ss.cache->location);
 
-  add_v3_v3(ups.average_stroke_accum, world_location);
-  ups.average_stroke_counter++;
+  bke::PaintRuntime &paint_runtime = *sd.paint.runtime;
+  add_v3_v3(paint_runtime.average_stroke_accum, world_location);
+  paint_runtime.average_stroke_counter++;
   /* Update last stroke position. */
-  ups.last_stroke_valid = true;
+  paint_runtime.last_stroke_valid = true;
 }
 
 }  // namespace blender::ed::sculpt_paint
@@ -3503,18 +3503,16 @@ namespace blender::ed::sculpt_paint {
 
 using BrushActionFunc = void (*)(const Depsgraph &depsgraph,
                                  const Scene &scene,
-                                 const Sculpt &sd,
+                                 Sculpt &sd,
                                  Object &ob,
                                  const Brush &brush,
-                                 UnifiedPaintSettings &ups,
                                  PaintModeSettings &paint_mode_settings);
 
 static void do_tiled(const Depsgraph &depsgraph,
                      const Scene &scene,
-                     const Sculpt &sd,
+                     Sculpt &sd,
                      Object &ob,
                      const Brush &brush,
-                     UnifiedPaintSettings &ups,
                      PaintModeSettings &paint_mode_settings,
                      const BrushActionFunc action)
 {
@@ -3550,7 +3548,7 @@ static void do_tiled(const Depsgraph &depsgraph,
 
   /* First do the "un-tiled" position to initialize the stroke for this location. */
   cache->tile_pass = 0;
-  action(depsgraph, scene, sd, ob, brush, ups, paint_mode_settings);
+  action(depsgraph, scene, sd, ob, brush, paint_mode_settings);
 
   /* Now do it for all the tiles. */
   copy_v3_v3_int(cur, start);
@@ -3570,7 +3568,7 @@ static void do_tiled(const Depsgraph &depsgraph,
           cache->initial_location_symm[dim] = cur[dim] * step[dim] +
                                               original_initial_location[dim];
         }
-        action(depsgraph, scene, sd, ob, brush, ups, paint_mode_settings);
+        action(depsgraph, scene, sd, ob, brush, paint_mode_settings);
       }
     }
   }
@@ -3578,10 +3576,9 @@ static void do_tiled(const Depsgraph &depsgraph,
 
 static void do_radial_symmetry(const Depsgraph &depsgraph,
                                const Scene &scene,
-                               const Sculpt &sd,
+                               Sculpt &sd,
                                Object &ob,
                                const Brush &brush,
-                               UnifiedPaintSettings &ups,
                                PaintModeSettings &paint_mode_settings,
                                const BrushActionFunc action,
                                const ePaintSymmetryFlags symm,
@@ -3595,7 +3592,7 @@ static void do_radial_symmetry(const Depsgraph &depsgraph,
     const float angle = 2.0f * M_PI * i / mesh.radial_symmetry[axis - 'X'];
     ss.cache->radial_symmetry_pass = i;
     SCULPT_cache_calc_brushdata_symm(*ss.cache, symm, axis, angle);
-    do_tiled(depsgraph, scene, sd, ob, brush, ups, paint_mode_settings, action);
+    do_tiled(depsgraph, scene, sd, ob, brush, paint_mode_settings, action);
   }
 }
 
@@ -3616,10 +3613,9 @@ static void sculpt_fix_noise_tear(const Sculpt &sd, Object &ob)
 
 static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
                                          const Scene &scene,
-                                         const Sculpt &sd,
+                                         Sculpt &sd,
                                          Object &ob,
                                          const BrushActionFunc action,
-                                         UnifiedPaintSettings &ups,
                                          PaintModeSettings &paint_mode_settings)
 {
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -3630,7 +3626,7 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
 
   float feather = calc_symmetry_feather(sd, mesh, *ss.cache);
 
-  cache.bstrength = brush_strength(sd, cache, feather, ups, paint_mode_settings);
+  cache.bstrength = brush_strength(sd, cache, feather, paint_mode_settings);
   cache.symmetry = symm;
 
   /* `symm` is a bit combination of XYZ -
@@ -3644,14 +3640,14 @@ static void do_symmetrical_brush_actions(const Depsgraph &depsgraph,
     cache.radial_symmetry_pass = 0;
 
     SCULPT_cache_calc_brushdata_symm(cache, symm, 0, 0);
-    do_tiled(depsgraph, scene, sd, ob, brush, ups, paint_mode_settings, action);
+    do_tiled(depsgraph, scene, sd, ob, brush, paint_mode_settings, action);
 
     do_radial_symmetry(
-        depsgraph, scene, sd, ob, brush, ups, paint_mode_settings, action, symm, 'X', feather);
+        depsgraph, scene, sd, ob, brush, paint_mode_settings, action, symm, 'X', feather);
     do_radial_symmetry(
-        depsgraph, scene, sd, ob, brush, ups, paint_mode_settings, action, symm, 'Y', feather);
+        depsgraph, scene, sd, ob, brush, paint_mode_settings, action, symm, 'Y', feather);
     do_radial_symmetry(
-        depsgraph, scene, sd, ob, brush, ups, paint_mode_settings, action, symm, 'Z', feather);
+        depsgraph, scene, sd, ob, brush, paint_mode_settings, action, symm, 'Z', feather);
   }
 }
 
@@ -3923,7 +3919,7 @@ static void sculpt_update_cache_invariants(
     bContext *C, Sculpt &sd, SculptSession &ss, const wmOperator &op, const float mval[2])
 {
   StrokeCache *cache = MEM_new<StrokeCache>(__func__);
-  UnifiedPaintSettings *ups = &sd.paint.unified_paint_settings;
+  bke::PaintRuntime *paint_runtime = sd.paint.runtime;
   ToolSettings *tool_settings = CTX_data_tool_settings(C);
   const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
   ViewContext *vc = paint_stroke_view_context(static_cast<PaintStroke *>(op.customdata));
@@ -3973,10 +3969,10 @@ static void sculpt_update_cache_invariants(
   /* Not very nice, but with current events system implementation
    * we can't handle brush appearance inversion hotkey separately (sergey). */
   if (cache->invert) {
-    ups->draw_inverted = true;
+    paint_runtime->draw_inverted = true;
   }
   else {
-    ups->draw_inverted = false;
+    paint_runtime->draw_inverted = false;
   }
 
   /* Alt-Smooth. */
@@ -3988,7 +3984,7 @@ static void sculpt_update_cache_invariants(
 
   cache->mouse = cache->initial_mouse;
   cache->mouse_event = cache->initial_mouse;
-  copy_v2_v2(ups->tex_mouse, cache->initial_mouse);
+  copy_v2_v2(paint_runtime->tex_mouse, cache->initial_mouse);
 
   cache->initial_direction_flipped = brush_flip(*brush, *cache) < 0.0f;
 
@@ -4123,10 +4119,11 @@ static bool need_delta_for_tip_orientation(const Brush &brush)
 }
 
 static void brush_delta_update(const Depsgraph &depsgraph,
-                               UnifiedPaintSettings &ups,
+                               Paint &paint,
                                const Object &ob,
                                const Brush &brush)
 {
+  bke::PaintRuntime &paint_runtime = *paint.runtime;
   SculptSession &ss = *ob.sculpt;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   StrokeCache *cache = ss.cache;
@@ -4222,9 +4219,9 @@ static void brush_delta_update(const Depsgraph &depsgraph,
     /* Location stays the same for finding vertices in brush radius. */
     copy_v3_v3(cache->location, cache->orig_grab_location);
 
-    ups.draw_anchored = true;
-    copy_v2_v2(ups.anchored_initial_mouse, cache->initial_mouse);
-    ups.anchored_size = ups.pixel_radius;
+    paint_runtime.draw_anchored = true;
+    copy_v2_v2(paint_runtime.anchored_initial_mouse, cache->initial_mouse);
+    paint_runtime.anchored_size = paint_runtime.pixel_radius;
   }
 
   /* Handle 'rake' */
@@ -4318,7 +4315,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, Po
 {
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Paint &paint = *BKE_paint_get_active_from_context(C);
-  UnifiedPaintSettings &ups = paint.unified_paint_settings;
+  bke::PaintRuntime &paint_runtime = *paint.runtime;
   SculptSession &ss = *ob.sculpt;
   StrokeCache &cache = *ss.cache;
   Brush &brush = *BKE_paint_brush(&sd.paint);
@@ -4375,11 +4372,12 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, Po
   if (BKE_brush_use_size_pressure(&brush) && paint_supports_dynamic_size(brush, PaintMode::Sculpt))
   {
     cache.radius = brush_dynamic_size_get(brush, cache, cache.initial_radius);
-    cache.dyntopo_pixel_radius = brush_dynamic_size_get(brush, cache, ups.initial_pixel_radius);
+    cache.dyntopo_pixel_radius = brush_dynamic_size_get(
+        brush, cache, paint_runtime.initial_pixel_radius);
   }
   else {
     cache.radius = cache.initial_radius;
-    cache.dyntopo_pixel_radius = ups.initial_pixel_radius;
+    cache.dyntopo_pixel_radius = paint_runtime.initial_pixel_radius;
   }
 
   cache_paint_invariants_update(cache, brush);
@@ -4392,21 +4390,22 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, Po
       RNA_float_get_array(ptr, "location", cache.location);
     }
 
-    cache.radius = paint_calc_object_space_radius(*cache.vc, cache.location, ups.pixel_radius);
+    cache.radius = paint_calc_object_space_radius(
+        *cache.vc, cache.location, paint_runtime.pixel_radius);
     cache.radius_squared = cache.radius * cache.radius;
   }
 
-  brush_delta_update(depsgraph, ups, ob, brush);
+  brush_delta_update(depsgraph, paint, ob, brush);
 
   if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_ROTATE) {
     cache.vertex_rotation = -BLI_dial_angle(cache.dial, cache.mouse) * cache.bstrength;
 
-    ups.draw_anchored = true;
-    copy_v2_v2(ups.anchored_initial_mouse, cache.initial_mouse);
-    ups.anchored_size = ups.pixel_radius;
+    paint_runtime.draw_anchored = true;
+    copy_v2_v2(paint_runtime.anchored_initial_mouse, cache.initial_mouse);
+    paint_runtime.anchored_size = paint_runtime.pixel_radius;
   }
 
-  cache.special_rotation = ups.brush_rotation;
+  cache.special_rotation = paint_runtime.brush_rotation;
 
   cache.iteration_count++;
 }
@@ -5510,7 +5509,6 @@ static void stroke_update_step(bContext *C,
   const Scene &scene = *CTX_data_scene(C);
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
   Sculpt &sd = *CTX_data_tool_settings(C)->sculpt;
-  UnifiedPaintSettings &ups = sd.paint.unified_paint_settings;
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
@@ -5524,11 +5522,11 @@ static void stroke_update_step(bContext *C,
 
   if (dyntopo::stroke_is_dyntopo(ob, brush)) {
     do_symmetrical_brush_actions(
-        depsgraph, scene, sd, ob, dynamic_topology_update, ups, tool_settings.paint_mode);
+        depsgraph, scene, sd, ob, dynamic_topology_update, tool_settings.paint_mode);
   }
 
   do_symmetrical_brush_actions(
-      depsgraph, scene, sd, ob, do_brush_action, ups, tool_settings.paint_mode);
+      depsgraph, scene, sd, ob, do_brush_action, tool_settings.paint_mode);
 
   /* Hack to fix noise texture tearing mesh. */
   sculpt_fix_noise_tear(sd, ob);
@@ -5575,10 +5573,10 @@ static void stroke_done(const bContext *C, PaintStroke * /*stroke*/)
     brush_exit_tex(sd);
     return;
   }
-  UnifiedPaintSettings *ups = &sd.paint.unified_paint_settings;
+  bke::PaintRuntime *paint_runtime = sd.paint.runtime;
   Brush *brush = BKE_paint_brush(&sd.paint);
   BLI_assert(brush == ss.cache->brush); /* const, so we shouldn't change. */
-  ups->draw_inverted = false;
+  paint_runtime->draw_inverted = false;
 
   SCULPT_stroke_modifiers_check(C, ob, *brush);
 
