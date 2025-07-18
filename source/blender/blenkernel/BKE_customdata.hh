@@ -88,7 +88,10 @@ enum eCDAllocType {
   CD_CONSTRUCT = 5,
 };
 
-#define CD_TYPE_AS_MASK(_type) (eCustomDataMask)((eCustomDataMask)1 << (eCustomDataMask)(_type))
+inline eCustomDataMask CD_TYPE_AS_MASK(eCustomDataType type)
+{
+  return eCustomDataMask(1) << eCustomDataMask(type);
+}
 
 void customData_mask_layers__print(const CustomData_MeshMasks *mask);
 

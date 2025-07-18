@@ -533,7 +533,7 @@ static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRN
   }
 
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  if (!(CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL)) {
+  if (!(CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_PROP_ALL)) {
     iter->valid = false;
   }
 
@@ -726,7 +726,7 @@ static void rna_AttributeGroupID_remove(ID *id, ReportList *reports, PointerRNA 
 static bool rna_Attributes_layer_skip(CollectionPropertyIterator * /*iter*/, void *data)
 {
   CustomDataLayer *layer = (CustomDataLayer *)data;
-  return !(CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL);
+  return !(CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_PROP_ALL);
 }
 
 static bool rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter, void *data)
@@ -741,7 +741,8 @@ static bool rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter,
     return true;
   }
 
-  return !(CD_TYPE_AS_MASK(layer->type) & CD_MASK_COLOR_ALL) || (layer->flag & CD_FLAG_TEMPORARY);
+  return !(CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_COLOR_ALL) ||
+         (layer->flag & CD_FLAG_TEMPORARY);
 }
 
 /* Attributes are spread over multiple domains in separate CustomData, we use repeated
@@ -855,7 +856,9 @@ int rna_AttributeGroup_color_length(PointerRNA *ptr)
       if (!(ATTR_DOMAIN_AS_MASK(attr.domain()) & ATTR_DOMAIN_MASK_COLOR)) {
         return;
       }
-      if (!(CD_TYPE_AS_MASK(attr.data_type()) & CD_MASK_COLOR_ALL)) {
+      if (!(CD_TYPE_AS_MASK(*bke::attr_type_to_custom_data_type(attr.data_type())) &
+            CD_MASK_COLOR_ALL))
+      {
         return;
       }
       count++;

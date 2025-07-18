@@ -968,7 +968,8 @@ static bool geometry_color_attribute_convert_poll(bContext *C)
     return false;
   }
   if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
-      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL))
+      !(CD_TYPE_AS_MASK(*bke::attr_type_to_custom_data_type(meta_data->data_type)) &
+        CD_MASK_COLOR_ALL))
   {
     return false;
   }

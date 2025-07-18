@@ -249,7 +249,7 @@ static bool dyntopo_supports_layer(const CustomDataLayer &layer)
   if (layer.type == CD_PROP_FLOAT && STREQ(layer.name, ".sculpt_mask")) {
     return true;
   }
-  if (CD_TYPE_AS_MASK(layer.type) & CD_MASK_PROP_ALL) {
+  if (CD_TYPE_AS_MASK(eCustomDataType(layer.type)) & CD_MASK_PROP_ALL) {
     return BM_attribute_stored_in_bmesh_builtin(layer.name);
   }
   return ELEM(layer.type, CD_ORIGINDEX);
