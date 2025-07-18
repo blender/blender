@@ -77,8 +77,9 @@ static void store_transform_properties(const Scene *scene,
   tdseq->orig_rotation = transform->rotation;
   tdseq->orig_flag = strip->flag;
   tdseq->orig_mirror = seq::image_transform_mirror_factor_get(strip);
-  tdseq->active_seq_orig_rotation = ed->act_strip ? ed->act_strip->data->transform->rotation :
-                                                    transform->rotation;
+  tdseq->active_seq_orig_rotation = ed->act_strip && ed->act_strip->data->transform ?
+                                        ed->act_strip->data->transform->rotation :
+                                        transform->rotation;
   tdseq->strip = strip;
   td->extra = static_cast<void *>(tdseq);
 }
