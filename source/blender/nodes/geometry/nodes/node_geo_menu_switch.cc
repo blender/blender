@@ -28,35 +28,13 @@
 
 #include "WM_api.hh"
 
+#include "COM_node_operation.hh"
+#include "COM_result.hh"
+#include "COM_utilities.hh"
+
 namespace blender::nodes::node_geo_menu_switch_cc {
 
 NODE_STORAGE_FUNCS(NodeMenuSwitch)
-
-static bool is_supported_socket_type(const eNodeSocketDatatype data_type)
-{
-  if (!U.experimental.use_bundle_and_closure_nodes) {
-    if (ELEM(data_type, SOCK_BUNDLE, SOCK_CLOSURE)) {
-      return false;
-    }
-  }
-  return ELEM(data_type,
-              SOCK_FLOAT,
-              SOCK_INT,
-              SOCK_BOOLEAN,
-              SOCK_ROTATION,
-              SOCK_VECTOR,
-              SOCK_STRING,
-              SOCK_RGBA,
-              SOCK_GEOMETRY,
-              SOCK_OBJECT,
-              SOCK_COLLECTION,
-              SOCK_MATERIAL,
-              SOCK_IMAGE,
-              SOCK_MATRIX,
-              SOCK_BUNDLE,
-              SOCK_CLOSURE,
-              SOCK_MENU);
-}
 
 static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
 {
@@ -67,7 +45,13 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
   }
   const NodeMenuSwitch &storage = node_storage(*node);
   const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
-  const bool supports_fields = socket_type_supports_fields(data_type);
+  const bool supports_fields = socket_type_supports_fields(data_type) &&
+                               ntree->type == NTREE_GEOMETRY;
+  const bool is_single_compositor_type = compositor::Result::is_single_value_only_type(
+      compositor::socket_data_type_to_result_type(data_type));
+  const StructureType compositor_structure_type = is_single_compositor_type ?
+                                                      StructureType::Single :
+                                                      StructureType::Dynamic;
 
   auto &menu = b.add_input<decl::Menu>("Menu");
   if (supports_fields) {
@@ -78,10 +62,13 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
     const std::string identifier = MenuSwitchItemsAccessor::socket_identifier_for_item(enum_item);
     auto &input = b.add_input(data_type, enum_item.name, std::move(identifier))
                       .socket_name_ptr(
-                          &ntree->id, MenuSwitchItemsAccessor::item_srna, &enum_item, "name");
-    ;
+                          &ntree->id, MenuSwitchItemsAccessor::item_srna, &enum_item, "name")
+                      .compositor_realization_mode(CompositorInputRealizationMode::None);
     if (supports_fields) {
       input.supports_field();
+    }
+    if (ntree->type == NTREE_COMPOSIT) {
+      input.structure_type(compositor_structure_type);
     }
     /* Labels are ugly in combination with data-block pickers and are usually disabled. */
     input.hide_label(ELEM(data_type, SOCK_OBJECT, SOCK_IMAGE, SOCK_COLLECTION, SOCK_MATERIAL));
@@ -94,6 +81,9 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
   else if (data_type == SOCK_GEOMETRY) {
     output.propagate_all();
   }
+  if (ntree->type == NTREE_COMPOSIT) {
+    output.structure_type(compositor_structure_type);
+  }
 
   b.add_input<decl::Extend>("", "__extend__").structure_type(StructureType::Dynamic);
 }
@@ -103,10 +93,10 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
-static void node_init(bNodeTree * /*tree*/, bNode *node)
+static void node_init(bNodeTree *tree, bNode *node)
 {
   NodeMenuSwitch *data = MEM_callocN<NodeMenuSwitch>(__func__);
-  data->data_type = SOCK_GEOMETRY;
+  data->data_type = tree->type == NTREE_GEOMETRY ? SOCK_GEOMETRY : SOCK_RGBA;
   data->enum_definition.next_identifier = 0;
   data->enum_definition.items_array = nullptr;
   data->enum_definition.items_num = 0;
@@ -362,6 +352,40 @@ class LazyFunctionForMenuSwitchSocketUsage : public lf::LazyFunction {
   }
 };
 
+using namespace blender::compositor;
+
+class MenuSwitchOperation : public NodeOperation {
+ public:
+  using NodeOperation::NodeOperation;
+
+  void execute() override
+  {
+    Result &output = this->get_result("Output");
+    const int32_t menu_identifier = this->get_input("Menu").get_single_value<int32_t>();
+    const NodeEnumDefinition &enum_definition = node_storage(bnode()).enum_definition;
+
+    for (const int i : IndexRange(enum_definition.items_num)) {
+      const NodeEnumItem &enum_item = enum_definition.items()[i];
+      if (enum_item.identifier != menu_identifier) {
+        continue;
+      }
+      const std::string identifier = MenuSwitchItemsAccessor::socket_identifier_for_item(
+          enum_item);
+      const Result &input = this->get_input(identifier);
+      output.share_data(input);
+      return;
+    }
+
+    /* The menu identifier didn't match any item, so allocate an invalid output. */
+    output.allocate_invalid();
+  }
+};
+
+static NodeOperation *get_compositor_operation(Context &context, DNode node)
+{
+  return new MenuSwitchOperation(context, node);
+}
+
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
   bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
@@ -414,30 +438,38 @@ static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*
   return &node.input_socket(1);
 }
 
+static const EnumPropertyItem *data_type_items_callback(bContext * /*C*/,
+                                                        PointerRNA *ptr,
+                                                        PropertyRNA * /*prop*/,
+                                                        bool *r_free)
+{
+  *r_free = true;
+  const bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
+  blender::bke::bNodeTreeType *ntree_type = ntree.typeinfo;
+  return enum_items_filter(
+      rna_enum_node_socket_data_type_items, [&](const EnumPropertyItem &item) -> bool {
+        bke::bNodeSocketType *socket_type = bke::node_socket_type_find_static(item.value);
+        return ntree_type->valid_socket_type(ntree_type, socket_type);
+      });
+}
+
 static void node_rna(StructRNA *srna)
 {
-  RNA_def_node_enum(
-      srna,
-      "data_type",
-      "Data Type",
-      "",
-      rna_enum_node_socket_data_type_items,
-      NOD_storage_enum_accessors(data_type),
-      SOCK_GEOMETRY,
-      [](bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
-        *r_free = true;
-        return enum_items_filter(
-            rna_enum_node_socket_data_type_items, [](const EnumPropertyItem &item) -> bool {
-              return is_supported_socket_type(eNodeSocketDatatype(item.value));
-            });
-      });
+  RNA_def_node_enum(srna,
+                    "data_type",
+                    "Data Type",
+                    "",
+                    rna_enum_node_socket_data_type_items,
+                    NOD_storage_enum_accessors(data_type),
+                    SOCK_GEOMETRY,
+                    data_type_items_callback);
 }
 
 static void register_node()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeMenuSwitch", GEO_NODE_MENU_SWITCH);
+  geo_cmp_node_type_base(&ntype, "GeometryNodeMenuSwitch", GEO_NODE_MENU_SWITCH);
   ntype.ui_name = "Menu Switch";
   ntype.ui_description = "Select from multiple inputs by name";
   ntype.enum_name_legacy = "MENU_SWITCH";
@@ -454,6 +486,7 @@ static void register_node()
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.internally_linked_input = node_internally_linked_input;
+  ntype.get_compositor_operation = get_compositor_operation;
   blender::bke::node_register_type(ntype);
 
   node_rna(ntype.rna_ext.srna);

@@ -40,6 +40,9 @@ enum class ResultType : uint8_t {
   Int2,
   Color,
   Bool,
+
+  /* Single value only types. See Result::is_single_value_only_type. */
+  Menu,
 };
 
 /* The precision of the data. CPU data is always stored using full precision at the moment. */
@@ -158,6 +161,10 @@ class Result {
   /* Construct a result of an appropriate type and precision based on the given GPU texture format
    * within the given context. */
   Result(Context &context, eGPUTextureFormat format);
+
+  /* Returns true if the given type can only be used with single value results. Consequently, it is
+   * always allocated on the CPU and GPU code paths needn't support the type. */
+  static bool is_single_value_only_type(ResultType type);
 
   /* Returns the appropriate GPU texture format based on the given result type and precision. A
    * special case is given to ResultType::Float3, because 3-component textures can't be used as
@@ -484,7 +491,14 @@ BLI_INLINE_METHOD int64_t Result::channels_count() const
     case ResultType::Color:
     case ResultType::Float4:
       return 4;
+    case ResultType::Menu:
+      /* Single only types do not have channels. */
+      BLI_assert(Result::is_single_value_only_type(type_));
+      BLI_assert_unreachable();
+      break;
   }
+
+  BLI_assert_unreachable();
   return 4;
 }
 

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
@@ -35,6 +37,11 @@ DSocket get_input_origin_socket(DInputSocket input);
  * a null output is returned.
  */
 DOutputSocket get_output_linked_to_input(DInputSocket input);
+
+/** Get the result type that corresponds to the given socket data type. For vector sockets, the
+ * dimensions of the socket can be provided, but if not provided, 3 will be assumed. */
+ResultType socket_data_type_to_result_type(const eNodeSocketDatatype data_type,
+                                           const std::optional<int> dimensions = std::nullopt);
 
 /** Get the result type that corresponds to the type of the given socket. */
 ResultType get_node_socket_result_type(const bNodeSocket *socket);

@@ -104,6 +104,11 @@ class GroupInputOperation : public NodeOperation {
       case ResultType::Bool:
         /* Not supported. */
         break;
+      case ResultType::Menu:
+        /* Single only types do not support GPU code path. */
+        BLI_assert(Result::is_single_value_only_type(pass.type()));
+        BLI_assert_unreachable();
+        break;
     }
 
     BLI_assert_unreachable();

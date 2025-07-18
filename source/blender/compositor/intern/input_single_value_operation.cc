@@ -72,6 +72,11 @@ void InputSingleValueOperation::execute()
       result.set_single_value(value);
       break;
     }
+    case SOCK_MENU: {
+      const int32_t value = input_socket_->default_value_typed<bNodeSocketValueMenu>()->value;
+      result.set_single_value(value);
+      break;
+    }
     default:
       BLI_assert_unreachable();
       break;

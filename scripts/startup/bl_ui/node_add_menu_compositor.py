@@ -303,6 +303,7 @@ class NODE_MT_category_compositor_utilities(Menu):
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodeSplit")
         node_add_menu.add_node_type(layout, "CompositorNodeSwitch")
+        node_add_menu.add_node_type(layout, "GeometryNodeMenuSwitch")
         node_add_menu.add_node_type(
             layout, "CompositorNodeSwitchView",
             label="Switch Stereo View")
