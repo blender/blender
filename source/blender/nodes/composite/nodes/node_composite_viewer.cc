@@ -41,8 +41,6 @@ static void node_composit_init_viewer(bNodeTree * /*ntree*/, bNode *node)
   node->storage = iuser;
   iuser->sfra = 1;
   node->custom1 = NODE_VIEWER_SHORTCUT_NONE;
-
-  node->id = (ID *)BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 }
 
 using namespace blender::compositor;

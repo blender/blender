@@ -832,9 +832,6 @@ void ED_node_set_active(
         BKE_ntree_update_tag_active_output_changed(ntree);
         BKE_main_ensure_invariants(*bmain, ntree->id);
       }
-
-      /* Adding a node doesn't link this yet. */
-      node->id = (ID *)BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
     }
     else if (node->type_legacy == CMP_NODE_COMPOSITE) {
       if (was_output == 0) {
