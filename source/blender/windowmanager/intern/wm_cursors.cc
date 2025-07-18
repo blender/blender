@@ -63,6 +63,9 @@ struct BCursor {
    * A factor (0-1) from the top-left corner of the image (not of the document size).
    */
   blender::float2 hotspot;
+  /**
+   * By default cursors are "light", allow dark themes to invert.
+   */
   bool can_invert;
 };
 
@@ -172,7 +175,7 @@ static int wm_cursor_size(const wmWindow *win)
 }
 
 /**
- * Flip and RGBA byte buffer in-place.
+ * Flip an RGBA byte buffer in-place.
  */
 static void cursor_bitmap_rgba_flip_y(uint8_t *buffer, const size_t size[2])
 {
@@ -286,7 +289,8 @@ static bool window_set_custom_cursor_generator(wmWindow *win, const BCursor &cur
                                      const int cursor_size_max,
                                      uint8_t *(*alloc_fn)(size_t size),
                                      int r_bitmap_size[2],
-                                     int r_hot_spot[2]) -> uint8_t * {
+                                     int r_hot_spot[2],
+                                     bool *r_can_invert_color) -> uint8_t * {
     const BCursor &cursor = *(const BCursor *)(cursor_generator->user_data);
     /* Currently SVG uses the `cursor_size` as the maximum. */
     UNUSED_VARS(cursor_size_max);
@@ -304,6 +308,8 @@ static bool window_set_custom_cursor_generator(wmWindow *win, const BCursor &cur
 
     r_hot_spot[0] = int(cursor.hotspot[0] * (bitmap_size[0] - 1));
     r_hot_spot[1] = int(cursor.hotspot[1] * (bitmap_size[1] - 1));
+
+    *r_can_invert_color = cursor.can_invert;
 
     return bitmap_rgba;
   };
@@ -805,7 +811,8 @@ static bool wm_cursor_text_generator(wmWindow *win, const std::string &text, int
                                      const int cursor_size_max,
                                      uint8_t *(*alloc_fn)(size_t size),
                                      int r_bitmap_size[2],
-                                     int r_hot_spot[2]) -> uint8_t * {
+                                     int r_hot_spot[2],
+                                     bool *r_can_invert_color) -> uint8_t * {
     const WMCursorText &cursor_text = *(const WMCursorText *)(cursor_generator->user_data);
 
     int bitmap_size[2];
@@ -825,6 +832,9 @@ static bool wm_cursor_text_generator(wmWindow *win, const std::string &text, int
 
     r_hot_spot[0] = bitmap_size[0] / 2;
     r_hot_spot[1] = bitmap_size[1] / 2;
+
+    /* Always use a dark background, not optional. */
+    *r_can_invert_color = false;
 
     return bitmap_rgba;
   };
@@ -877,7 +887,8 @@ static bool wm_cursor_text_pixmap(wmWindow *win, const std::string &text, int fo
       nullptr,
       bitmap_size,
       hot_spot,
-      true);
+      /* Always use a black background. */
+      false);
   MEM_freeN(bitmap_rgba);
 
   return (success == GHOST_kSuccess) ? true : false;

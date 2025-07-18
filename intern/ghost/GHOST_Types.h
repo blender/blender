@@ -86,15 +86,19 @@ typedef struct GHOST_CursorGenerator {
    * The generator must guarantee the resulting size (dimensions written to `r_bitmap_size`)
    * never exceeds `cursor_size_max`.
    * \param r_hot_spot: The cursor hot-spot.
+   * \param r_can_invert_color: When true, the call it can be inverted too much dark themes.
+   *
    * \return the bitmap data or null if it could not be generated.
-   * Must be at least: `sizeof(uint8_t[4]) * r_bitmap_size[0] * r_bitmap_size[1]` allocated bytes.
+   * - The color is "straight" (alpha is not pre-multiplied).
+   * - At least: `sizeof(uint8_t[4]) * r_bitmap_size[0] * r_bitmap_size[1]` allocated bytes.
    */
   uint8_t *(*generate_fn)(const struct GHOST_CursorGenerator *cursor_generator,
                           int cursor_size,
                           int cursor_size_max,
                           uint8_t *(*alloc_fn)(size_t size),
                           int r_bitmap_size[2],
-                          int r_hot_spot[2]);
+                          int r_hot_spot[2],
+                          bool *r_can_invert_color);
   /**
    * Called once GHOST has finished with this object,
    * Typically this would free `user_data`.

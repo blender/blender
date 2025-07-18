@@ -334,7 +334,7 @@ extern GHOST_TSuccess GHOST_HasCursorShape(GHOST_WindowHandle windowhandle,
  * \param mask: The mask for 1bpp cursor, nullptr if RGBA cursor.
  * \param size: The width & height of the cursor.
  * \param hot_spot: The X,Y coordinates of the cursor hot-spot.
- * \param can_invert_color: Let macOS invert cursor color to match platform convention.
+ * \param can_invert_color: Let the cursor colors be inverted to match platform convention.
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle,

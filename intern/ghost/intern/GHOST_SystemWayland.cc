@@ -481,6 +481,10 @@ struct GWL_Cursor {
    * See #update_cursor_scale.
    */
   int theme_size = 0;
+  /**
+   * Prefer dark theme cursors where possible.
+   */
+  bool use_dark_theme = false;
 };
 
 /** \} */
@@ -1911,6 +1915,26 @@ static void gwl_registry_entry_update_all(GWL_Display *display, const int interf
 static uint32_t round_up_uint(const uint32_t x, const uint32_t multiple)
 {
   return ((x + multiple - 1) / multiple) * multiple;
+}
+
+static uint32_t rgba_straight_to_premul(uint32_t rgba_uint)
+{
+  uint8_t *rgba = reinterpret_cast<uint8_t *>(&rgba_uint);
+  const uint32_t alpha = uint32_t(rgba[3]);
+  rgba[0] = uint8_t(((alpha * rgba[0]) + (0xff / 2)) / 0xff);
+  rgba[1] = uint8_t(((alpha * rgba[1]) + (0xff / 2)) / 0xff);
+  rgba[2] = uint8_t(((alpha * rgba[2]) + (0xff / 2)) / 0xff);
+  return rgba_uint;
+}
+
+static uint32_t rgba_straight_to_premul_inverted(uint32_t rgba_uint)
+{
+  uint8_t *rgba = reinterpret_cast<uint8_t *>(&rgba_uint);
+  const uint32_t alpha = uint32_t(rgba[3]);
+  rgba[0] = uint8_t(((alpha * (0xff - rgba[0])) + (0xff / 2)) / 0xff);
+  rgba[1] = uint8_t(((alpha * (0xff - rgba[1])) + (0xff / 2)) / 0xff);
+  rgba[2] = uint8_t(((alpha * (0xff - rgba[2])) + (0xff / 2)) / 0xff);
+  return rgba_uint;
 }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
@@ -6066,6 +6090,10 @@ static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
         seat->cursor.theme_size = int(value);
       }
     }
+
+    /* TODO: detect this from the system.
+     * We *could* have weak support based on checking for known themes. */
+    seat->cursor.use_dark_theme = true;
   }
 }
 
@@ -8622,6 +8650,7 @@ static wl_buffer *ghost_wl_buffer_from_cursor_generator(const GHOST_CursorGenera
                                                         size_t *buffer_data_size_p,
                                                         const int cursor_size,
                                                         const int cursor_size_max,
+                                                        const int use_dark_theme,
                                                         const int scale,
                                                         int r_bitmap_size[2],
                                                         int r_hot_spot[2])
@@ -8634,6 +8663,7 @@ static wl_buffer *ghost_wl_buffer_from_cursor_generator(const GHOST_CursorGenera
 
   int bitmap_size_src[2];
   int hot_spot[2];
+  bool can_invert_color = false;
 
   uint8_t *bitmap_src = cg.generate_fn(
       &cg,
@@ -8641,11 +8671,14 @@ static wl_buffer *ghost_wl_buffer_from_cursor_generator(const GHOST_CursorGenera
       cursor_size_max,
       [](size_t size) -> uint8_t * { return new uint8_t[size]; },
       bitmap_size_src,
-      hot_spot);
+      hot_spot,
+      &can_invert_color);
 
   if (bitmap_src == nullptr) {
     return nullptr;
   }
+
+  const bool invert_color = can_invert_color && use_dark_theme;
 
   /* There is no need to adjust the hot-spot when resizing. */
   int bitmap_size_dst[2] = {
@@ -8662,12 +8695,21 @@ static wl_buffer *ghost_wl_buffer_from_cursor_generator(const GHOST_CursorGenera
     /* NOTE: the copy could be skipped in trivial cases.
      * Since it's such a small amount of data it hardly seems worth it. */
     if (is_trivial_copy) {
-      /* RGBA color, direct copy. */
+      /* RGBA color. */
       const uint32_t *px_src = reinterpret_cast<const uint32_t *>(bitmap_src);
       uint32_t *px_dst = static_cast<uint32_t *>(*buffer_data_p);
-      for (int y = 0; y < bitmap_size_src[1]; y++) {
-        for (int x = 0; x < bitmap_size_src[0]; x++) {
-          *px_dst++ = *px_src++;
+      if (invert_color) {
+        for (int y = 0; y < bitmap_size_src[1]; y++) {
+          for (int x = 0; x < bitmap_size_src[0]; x++) {
+            *px_dst++ = rgba_straight_to_premul_inverted(*px_src++);
+          }
+        }
+      }
+      else {
+        for (int y = 0; y < bitmap_size_src[1]; y++) {
+          for (int x = 0; x < bitmap_size_src[0]; x++) {
+            *px_dst++ = rgba_straight_to_premul(*px_src++);
+          }
         }
       }
     }
@@ -8675,13 +8717,21 @@ static wl_buffer *ghost_wl_buffer_from_cursor_generator(const GHOST_CursorGenera
       /* RGBA color, copy into an expanded buffer. */
       const uint32_t *px_src = reinterpret_cast<const uint32_t *>(bitmap_src);
       uint32_t *px_dst = static_cast<uint32_t *>(*buffer_data_p);
-      for (int y = 0; y < bitmap_size_dst[1]; y++) {
-        for (int x = 0; x < bitmap_size_dst[0]; x++) {
-          if (x >= bitmap_size_src[0] || y >= bitmap_size_src[1]) {
-            *px_dst++ = 0x0;
+      if (invert_color) {
+        for (int y = 0; y < bitmap_size_dst[1]; y++) {
+          for (int x = 0; x < bitmap_size_dst[0]; x++) {
+            *px_dst++ = (x >= bitmap_size_src[0] || y >= bitmap_size_src[1]) ?
+                            0x0 :
+                            rgba_straight_to_premul_inverted(*px_src++);
           }
-          else {
-            *px_dst++ = *px_src++;
+        }
+      }
+      else {
+        for (int y = 0; y < bitmap_size_dst[1]; y++) {
+          for (int x = 0; x < bitmap_size_dst[0]; x++) {
+            *px_dst++ = (x >= bitmap_size_src[0] || y >= bitmap_size_src[1]) ?
+                            0x0 :
+                            rgba_straight_to_premul(*px_src++);
           }
         }
       }
@@ -8744,6 +8794,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const GHOST_CursorGe
                                                             &cursor.custom_data_size,
                                                             cursor_size,
                                                             cursor_size_max,
+                                                            cursor.use_dark_theme,
                                                             scale,
                                                             bitmap_size,
                                                             hot_spot);
