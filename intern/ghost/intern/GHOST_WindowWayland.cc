@@ -2280,7 +2280,7 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(const uint8_t *bi
                                                                const uint8_t *mask,
                                                                const int size[2],
                                                                const int hot_spot[2],
-                                                               const bool canInvertColor)
+                                                               const bool can_invert_color)
 {
   /* This is no longer needed as all cursors are generated on demand. */
   GHOST_ASSERT(false, "All cursors must be generated!");
@@ -2288,7 +2288,7 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(const uint8_t *bi
   (void)mask;
   (void)size;
   (void)hot_spot;
-  (void)canInvertColor;
+  (void)can_invert_color;
 
   return GHOST_kFailure;
 }

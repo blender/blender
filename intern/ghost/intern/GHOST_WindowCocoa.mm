@@ -1250,7 +1250,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(const uint8_t *bitm
                                                              const uint8_t *mask,
                                                              const int size[2],
                                                              const int hot_spot[2],
-                                                             const bool canInvertColor)
+                                                             const bool can_invert_color)
 {
   @autoreleasepool {
     if (m_customCursor) {
@@ -1284,7 +1284,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(const uint8_t *bitm
 
       /* Flip white cursor with black outline to black cursor with white outline
        * to match macOS platform conventions. */
-      if (canInvertColor) {
+      if (can_invert_color) {
         cursorBitmap[y] = ~cursorBitmap[y];
       }
     }

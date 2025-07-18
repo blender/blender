@@ -620,7 +620,7 @@ GHOST_TSuccess GHOST_WindowSDL::setWindowCustomCursorShape(const uint8_t *bitmap
                                                            const uint8_t *mask,
                                                            const int size[2],
                                                            const int hot_spot[2],
-                                                           bool /*canInvertColor*/)
+                                                           bool /*can_invert_color*/)
 {
   if (m_sdl_custom_cursor) {
     SDL_FreeCursor(m_sdl_custom_cursor);

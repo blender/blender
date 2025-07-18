@@ -330,7 +330,7 @@ class GHOST_IWindow {
                                               const uint8_t *mask,
                                               const int size[2],
                                               const int hot_spot[2],
-                                              bool canInvertColor) = 0;
+                                              bool can_invert_color) = 0;
 
   /**
    * Set the cursor generator.
