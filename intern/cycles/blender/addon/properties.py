@@ -1557,11 +1557,13 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
 
 
 class CyclesDeviceSettings(bpy.types.PropertyGroup):
-    __slots__ = ()
+    # Runtime properties
+    __slots__ = ("is_optimized")
 
-    id: StringProperty(name="ID")
-    name: StringProperty(name="Name")
-    use: BoolProperty(name="Use", default=True)
+    # Properties saved in preferences
+    id: StringProperty(name="ID", description="Unique identifier of the device")
+    name: StringProperty(name="Name", description="Name of the device")
+    use: BoolProperty(name="Use", description="Use device for rendering", default=True)
     type: EnumProperty(name="Type", items=enum_device_type, default='CUDA')
 
 
@@ -1693,7 +1695,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         cpu_devices = []
         for device in device_list:
             entry = self.find_existing_device_entry(device)
-            entry.optimized = device[7]
+            entry.is_optimized = device[7]
             if entry.type == compute_device_type:
                 devices.append(entry)
             elif entry.type == 'CPU':
@@ -1867,7 +1869,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         for device in devices:
             name = self._format_device_name(device.name)
-            if not device.optimized:
+            if not device.is_optimized:
                 name += rpt_(" (Unoptimized Performance)")
             box.prop(device, "use", text=name, translate=False)
 
