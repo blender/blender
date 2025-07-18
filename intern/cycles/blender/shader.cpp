@@ -1456,7 +1456,7 @@ void BlenderSync::resolve_view_layer_attributes(Shader *shader,
   bool updated = false;
 
   for (ShaderNode *node : graph->nodes) {
-    if (node->is_a(AttributeNode::node_type)) {
+    if (node->is_a(AttributeNode::get_node_type())) {
       AttributeNode *attr_node = static_cast<AttributeNode *>(node);
 
       std::string real_name;

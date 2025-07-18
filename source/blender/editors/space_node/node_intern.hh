@@ -447,4 +447,12 @@ MenuType add_root_catalogs_menu_type();
 
 void NODE_OT_sockets_sync(wmOperatorType *ot);
 
+/* node_socket_tooltip.cc */
+
+void build_socket_tooltip(uiTooltipData &tip_data,
+                          bContext &C,
+                          uiBut *but,
+                          const bNodeTree &tree,
+                          const bNodeSocket &socket);
+
 }  // namespace blender::ed::space_node

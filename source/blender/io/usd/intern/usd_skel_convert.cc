@@ -221,6 +221,7 @@ void import_skeleton_curves(Main *bmain,
   }
 
   /* Set the curve samples. */
+  blender::Array<pxr::GfQuatf> prev_rot(joint_order.size());
   uint bezt_index = 0;
   for (const double frame : samples) {
     pxr::VtMatrix4dArray joint_local_xforms;
@@ -250,6 +251,17 @@ void import_skeleton_curves(Main *bmain,
         CLOG_WARN(&LOG, "Error decomposing matrix on frame %f", frame);
         continue;
       }
+
+      if (bezt_index > 0) {
+        /* Quaternion "neighborhood" check to prevent most cases of discontinuous rotations.
+         * Note: An alternate method, comparing to the rotation of the rest position rather than
+         * to the previous rotation, was attempted but yielded much worse results for joints
+         * representing objects that are supposed to spin, like wheels and propellers. */
+        if (pxr::GfDot(prev_rot[i], qrot) < 0.0f) {
+          qrot = -qrot;
+        }
+      }
+      prev_rot[i] = qrot;
 
       const float re = qrot.GetReal();
       const pxr::GfVec3f &im = qrot.GetImaginary();
@@ -653,6 +665,7 @@ static void set_rest_pose(Main *bmain,
                           bArmature *arm,
                           const pxr::VtArray<pxr::GfMatrix4d> &bind_xforms,
                           const pxr::VtTokenArray &joint_order,
+                          const blender::Map<pxr::TfToken, std::string> &joint_to_bone_map,
                           const pxr::UsdSkelTopology &skel_topology,
                           const pxr::UsdSkelSkeletonQuery &skel_query)
 {
@@ -666,9 +679,13 @@ static void set_rest_pose(Main *bmain,
 
     int64_t i = 0;
     for (const pxr::TfToken &joint : joint_order) {
-      const pxr::SdfPath joint_path(joint);
-      const std::string &name = joint_path.GetName();
-      bPoseChannel *pchan = BKE_pose_channel_find_name(arm_obj->pose, name.c_str());
+      const std::string *name = joint_to_bone_map.lookup_ptr(joint);
+      if (name == nullptr) {
+        /* This joint doesn't correspond to any bone we created. Skip. */
+        continue;
+      }
+
+      bPoseChannel *pchan = BKE_pose_channel_find_name(arm_obj->pose, name->c_str());
 
       pxr::GfMatrix4d xf = rest_xforms.AsConst()[i];
       pxr::GfMatrix4d bind_xf = bind_xforms[i];
@@ -717,6 +734,23 @@ void import_skeleton(Main *bmain,
     BKE_reportf(reports,
                 RPT_WARNING,
                 "%s: Topology and joint order size mismatch for skeleton %s",
+                __func__,
+                skel.GetPath().GetAsString().c_str());
+    return;
+  }
+
+  /* Each joint path should be valid and unique. */
+  blender::Set<pxr::TfToken> unique_joint_paths;
+  unique_joint_paths.reserve(joint_order.size());
+  const bool all_valid_paths = std::all_of(
+      joint_order.cbegin(), joint_order.cend(), [&unique_joint_paths](const pxr::TfToken &val) {
+        const bool is_valid = pxr::SdfPath::IsValidPathString(val);
+        return is_valid && unique_joint_paths.add(val);
+      });
+  if (!all_valid_paths) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "%s: USD joint order array contains invalid or duplicated paths for skeleton %s",
                 __func__,
                 skel.GetPath().GetAsString().c_str());
     return;
@@ -950,7 +984,8 @@ void import_skeleton(Main *bmain,
   ED_armature_from_edit(bmain, arm);
   ED_armature_edit_free(arm);
 
-  set_rest_pose(bmain, arm_obj, arm, bind_xforms, joint_order, skel_topology, skel_query);
+  set_rest_pose(
+      bmain, arm_obj, arm, bind_xforms, joint_order, joint_to_bone_map, skel_topology, skel_query);
 
   if (import_anim && valid_skeleton) {
     import_skeleton_curves(bmain, arm_obj, skel_query, joint_to_bone_map, reports);

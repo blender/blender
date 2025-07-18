@@ -134,6 +134,10 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
       case ResultType::Int2:
       case ResultType::Bool:
         /* Not supported. */
+      case ResultType::Menu:
+        /* Single only types do not support GPU code path. */
+        BLI_assert(Result::is_single_value_only_type(this->get_input().type()));
+        BLI_assert_unreachable();
         break;
     }
   }
@@ -151,6 +155,10 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
       case ResultType::Int2:
       case ResultType::Bool:
         /* Not supported. */
+      case ResultType::Menu:
+        /* Single only types do not support GPU code path. */
+        BLI_assert(Result::is_single_value_only_type(this->get_input().type()));
+        BLI_assert_unreachable();
         break;
     }
   }

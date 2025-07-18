@@ -60,9 +60,8 @@ void MetalDevice::set_error(const string &error)
   Device::set_error(error);
 
   if (!has_error) {
-    fprintf(stderr, "\nRefer to the Cycles GPU rendering documentation for possible solutions:\n");
-    fprintf(stderr,
-            "https://docs.blender.org/manual/en/latest/render/cycles/gpu_rendering.html\n\n");
+    LOG_ERROR << "Refer to the Cycles GPU rendering documentation for possible solutions:\n"
+                 "https://docs.blender.org/manual/en/latest/render/cycles/gpu_rendering.html\n";
     has_error = true;
   }
 }
@@ -309,6 +308,10 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
 #  undef KERNEL_STRUCT_MEMBER
 #  undef KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
 #  undef KERNEL_STRUCT_BEGIN
+
+      /* Replace "kernel_data.kernel_features" memory fetches with a function constant. */
+      string_replace_same_length(
+          *source, "kernel_data.kernel_features", "kernel_data_kernel_features");
 
       metal_printf("KernelData patching took %.1f ms", (time_dt() - starttime) * 1000.0);
     }

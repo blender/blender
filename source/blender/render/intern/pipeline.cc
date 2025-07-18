@@ -2902,7 +2902,7 @@ RenderPass *RE_pass_find_by_type(RenderLayer *rl, int passtype, const char *view
   ((void)0)
 
   CHECK_PASS(COMBINED);
-  CHECK_PASS(Z);
+  CHECK_PASS(DEPTH);
   CHECK_PASS(VECTOR);
   CHECK_PASS(NORMAL);
   CHECK_PASS(UV);

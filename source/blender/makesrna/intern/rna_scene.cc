@@ -5031,8 +5031,8 @@ void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, const bool sce
   }
 
   prop = RNA_def_property(srna, "use_pass_z", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "passflag", SCE_PASS_Z);
-  RNA_def_property_ui_text(prop, "Z", "Deliver Z values pass");
+  RNA_def_property_boolean_sdna(prop, nullptr, "passflag", SCE_PASS_DEPTH);
+  RNA_def_property_ui_text(prop, "Depth", "Deliver depth values pass");
   if (scene) {
     RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
   }

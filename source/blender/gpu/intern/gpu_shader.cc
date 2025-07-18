@@ -605,7 +605,7 @@ int GPU_shader_get_sampler_binding(GPUShader *shader, const char *name)
 uint GPU_shader_get_attribute_len(const GPUShader *shader)
 {
   const ShaderInterface *interface = unwrap(shader)->interface;
-  return interface->attr_len_;
+  return interface->valid_bindings_get(interface->inputs_, interface->attr_len_);
 }
 
 uint GPU_shader_get_ssbo_input_len(const GPUShader *shader)

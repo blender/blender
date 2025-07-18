@@ -27,7 +27,7 @@
 /* Deprecated, only provided for API compatibility. */
 const EnumPropertyItem rna_enum_render_pass_type_items[] = {
     {SCE_PASS_COMBINED, "COMBINED", 0, "Combined", ""},
-    {SCE_PASS_Z, "Z", 0, "Z", ""},
+    {SCE_PASS_DEPTH, "Z", 0, "Z", ""},
     {SCE_PASS_SHADOW, "SHADOW", 0, "Shadow", ""},
     {SCE_PASS_AO, "AO", 0, "Ambient Occlusion", ""},
     {SCE_PASS_POSITION, "POSITION", 0, "Position", ""},

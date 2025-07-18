@@ -802,7 +802,7 @@ void Instance::update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view
   } \
   ((void)0)
 
-  CHECK_PASS_LEGACY(Z, SOCK_FLOAT, 1, "Z");
+  CHECK_PASS_LEGACY(DEPTH, SOCK_FLOAT, 1, "Z");
   CHECK_PASS_LEGACY(MIST, SOCK_FLOAT, 1, "Z");
   CHECK_PASS_LEGACY(NORMAL, SOCK_VECTOR, 3, "XYZ");
   CHECK_PASS_LEGACY(POSITION, SOCK_VECTOR, 3, "XYZ");

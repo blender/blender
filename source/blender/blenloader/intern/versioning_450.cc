@@ -4147,7 +4147,11 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 14)) {
+  /* Because this was backported to 4.4 (f1e829a459) we need to exclude anything that was already
+   * saved with that version otherwise we would apply the fix twice. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 32) ||
+      (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 14) && bmain->versionfile >= 405))
+  {
     LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
       blender::animrig::Action &action = dna_action->wrap();
       blender::animrig::foreach_fcurve_in_action(

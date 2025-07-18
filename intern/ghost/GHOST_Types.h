@@ -69,6 +69,49 @@ typedef struct {
   int hot_spot[2];
 } GHOST_CursorBitmapRef;
 
+/**
+ * Pass this as an argument to GHOST so each ghost back-end
+ * can generate cursors on demand.
+ */
+typedef struct GHOST_CursorGenerator {
+  /**
+   * The main cursor generation callback.
+   *
+   * \note only supports RGBA cursors.
+   *
+   * \param cursor_generator: Pass in to allow accessing the user argument.
+   * \param cursor_size: The cursor size to generate.
+   * \param cursor_size_max: The maximum dimension (width or height).
+   * \param r_bitmap_size: The bitmap width & height in pixels.
+   * The generator must guarantee the resulting size (dimensions written to `r_bitmap_size`)
+   * never exceeds `cursor_size_max`.
+   * \param r_hot_spot: The cursor hot-spot.
+   * \param r_can_invert_color: When true, the call it can be inverted too much dark themes.
+   *
+   * \return the bitmap data or null if it could not be generated.
+   * - The color is "straight" (alpha is not pre-multiplied).
+   * - At least: `sizeof(uint8_t[4]) * r_bitmap_size[0] * r_bitmap_size[1]` allocated bytes.
+   */
+  uint8_t *(*generate_fn)(const struct GHOST_CursorGenerator *cursor_generator,
+                          int cursor_size,
+                          int cursor_size_max,
+                          uint8_t *(*alloc_fn)(size_t size),
+                          int r_bitmap_size[2],
+                          int r_hot_spot[2],
+                          bool *r_can_invert_color);
+  /**
+   * Called once GHOST has finished with this object,
+   * Typically this would free `user_data`.
+   */
+  void (*free_fn)(struct GHOST_CursorGenerator *cursor_generator);
+  /**
+   * Implementation specific data used for rasterization
+   * (could contain SVG data for example).
+   */
+  GHOST_TUserDataPtr user_data;
+
+} GHOST_CursorGenerator;
+
 typedef enum {
   GHOST_gpuStereoVisual = (1 << 0),
   GHOST_gpuDebugContext = (1 << 1),
@@ -133,6 +176,10 @@ typedef enum {
    * to be temporary as our intention is to implement on all platforms.
    */
   GHOST_kCapabilityCursorRGBA = (1 << 10),
+  /**
+   * Setting cursors via #GHOST_SetCursorGenerator is supported.
+   */
+  GHOST_kCapabilityCursorGenerator = (1 << 11),
 
 } GHOST_TCapabilityFlag;
 
@@ -145,7 +192,8 @@ typedef enum {
    GHOST_kCapabilityClipboardPrimary | GHOST_kCapabilityGPUReadFrontBuffer | \
    GHOST_kCapabilityClipboardImage | GHOST_kCapabilityDesktopSample | GHOST_kCapabilityInputIME | \
    GHOST_kCapabilityTrackpadPhysicalDirection | GHOST_kCapabilityWindowDecorationStyles | \
-   GHOST_kCapabilityKeyboardHyperKey | GHOST_kCapabilityCursorRGBA)
+   GHOST_kCapabilityKeyboardHyperKey | GHOST_kCapabilityCursorRGBA | \
+   GHOST_kCapabilityCursorGenerator)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the

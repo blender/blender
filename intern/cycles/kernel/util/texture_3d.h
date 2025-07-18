@@ -323,6 +323,12 @@ ccl_device float4 kernel_tex_image_interp_3d(
   if (data_type == IMAGE_DATA_TYPE_NANOVDB_EMPTY) {
     return zero_float4();
   }
+#else
+  (void)kg;
+  (void)id;
+  (void)P;
+  (void)interp;
+  (void)randu;
 #endif
 
   return make_float4(

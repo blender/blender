@@ -362,7 +362,7 @@ class GHOST_WindowWin32 : public GHOST_Window {
                                             const uint8_t *mask,
                                             const int size[2],
                                             const int hot_spot[2],
-                                            bool canInvertColor);
+                                            bool can_invert_color);
 
   /* Registration of the AppModel Properties that govern the taskbar button and jump lists. */
   void registerWindowAppUserModelProperties();

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <optional>
+
 #include "BLI_assert.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -56,9 +58,10 @@ DOutputSocket get_output_linked_to_input(DInputSocket input)
   return DOutputSocket(origin);
 }
 
-ResultType get_node_socket_result_type(const bNodeSocket *socket)
+ResultType socket_data_type_to_result_type(const eNodeSocketDatatype data_type,
+                                           const std::optional<int> dimensions)
 {
-  switch (socket->type) {
+  switch (data_type) {
     case SOCK_FLOAT:
       return ResultType::Float;
     case SOCK_INT:
@@ -66,7 +69,7 @@ ResultType get_node_socket_result_type(const bNodeSocket *socket)
     case SOCK_BOOLEAN:
       return ResultType::Bool;
     case SOCK_VECTOR:
-      switch (socket->default_value_typed<bNodeSocketValueVector>()->dimensions) {
+      switch (dimensions.value_or(3)) {
         case 2:
           return ResultType::Float2;
         case 3:
@@ -79,10 +82,23 @@ ResultType get_node_socket_result_type(const bNodeSocket *socket)
       }
     case SOCK_RGBA:
       return ResultType::Color;
+    case SOCK_MENU:
+      return ResultType::Menu;
     default:
       BLI_assert_unreachable();
       return ResultType::Float;
   }
+}
+
+ResultType get_node_socket_result_type(const bNodeSocket *socket)
+{
+  const eNodeSocketDatatype socket_type = static_cast<eNodeSocketDatatype>(socket->type);
+  if (socket_type == SOCK_VECTOR) {
+    return socket_data_type_to_result_type(
+        socket_type, socket->default_value_typed<bNodeSocketValueVector>()->dimensions);
+  }
+
+  return socket_data_type_to_result_type(socket_type);
 }
 
 bool is_output_linked_to_node_conditioned(DOutputSocket output, FunctionRef<bool(DNode)> condition)

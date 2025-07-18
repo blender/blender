@@ -238,9 +238,18 @@ GHOST_TSuccess GHOST_Window::setCustomCursorShape(const uint8_t *bitmap,
                                                   const uint8_t *mask,
                                                   const int size[2],
                                                   const int hot_spot[2],
-                                                  bool canInvertColor)
+                                                  bool can_invert_color)
 {
-  if (setWindowCustomCursorShape(bitmap, mask, size, hot_spot, canInvertColor)) {
+  if (setWindowCustomCursorShape(bitmap, mask, size, hot_spot, can_invert_color)) {
+    m_cursorShape = GHOST_kStandardCursorCustom;
+    return GHOST_kSuccess;
+  }
+  return GHOST_kFailure;
+}
+
+GHOST_TSuccess GHOST_Window::setCustomCursorGenerator(GHOST_CursorGenerator *cursor_generator)
+{
+  if (setWindowCustomCursorGenerator(cursor_generator)) {
     m_cursorShape = GHOST_kStandardCursorCustom;
     return GHOST_kSuccess;
   }

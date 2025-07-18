@@ -1056,7 +1056,7 @@ int RE_pass_depth(const eScenePassType pass_type)
   return 4;
 
   switch (pass_type) {
-    case SCE_PASS_Z:
+    case SCE_PASS_DEPTH:
     case SCE_PASS_AO:
     case SCE_PASS_MIST: {
       return 1;

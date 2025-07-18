@@ -4,8 +4,6 @@
 
 #include "BLI_math_color.hh"
 
-#include "DNA_gpencil_legacy_types.h"
-
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
@@ -39,8 +37,8 @@ void VertexPaintOperation::on_stroke_extended(const bContext &C,
   const Brush &brush = *BKE_paint_brush(&paint);
   const bool invert = this->is_inverted(brush);
 
-  const bool use_selection_masking = GPENCIL_ANY_VERTEX_MASK(
-      eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
+  const bool use_selection_masking = ED_grease_pencil_any_vertex_mask_selection(
+      scene.toolsettings);
 
   const bool do_points = do_vertex_color_points(brush);
   const bool do_fill = do_vertex_color_fill(brush);

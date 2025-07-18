@@ -420,9 +420,13 @@ void constraint_copy_for_pose(Main *bmain, Object *ob_dst, bPoseChannel *pchan, 
  */
 bool mode_compat_test(const Object *ob, eObjectMode mode);
 /**
- * Sets the mode to a compatible state (use before entering the mode).
+ * Set the provided object's mode to one that is compatible with the provided mode.
  *
- * This is so each mode's exec function can call
+ * \returns true if the provided object's mode matches the provided mode, or if the function was
+ * able to set the object back into Object Mode.
+ *
+ * This is so each mode toggle operator exec function can call this function to ensure the current
+ * mode runtime data is cleaned up prior to entering a new mode.
  */
 bool mode_compat_set(bContext *C, Object *ob, eObjectMode mode, ReportList *reports);
 bool mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportList *reports);

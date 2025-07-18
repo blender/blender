@@ -203,6 +203,8 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_KEYBOARD_HYPER_KEY = (1 << 9),
   /** Support for RGBA Cursors. */
   WM_CAPABILITY_CURSOR_RGBA = (1 << 10),
+  /** Support on demand cursor generation. */
+  WM_CAPABILITY_CURSOR_GENERATOR = (1 << 11),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };

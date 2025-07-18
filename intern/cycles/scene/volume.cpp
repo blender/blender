@@ -587,6 +587,8 @@ void Volume::merge_grids(const Scene *scene)
 {
 #ifdef WITH_OPENVDB
   merge_scalar_grids_for_velocity(scene, this);
+#else
+  (void)scene;
 #endif
 }
 

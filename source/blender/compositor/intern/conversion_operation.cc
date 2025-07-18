@@ -33,10 +33,50 @@ ConversionOperation::ConversionOperation(Context &context,
   this->populate_result(context.create_result(expected_type));
 }
 
+/* Returns true if conversion between the given from and to types is supported. This should be
+ * consistent and up to date with the compositor node tree's validate_link fallback. */
+static bool is_conversion_supported(const ResultType from_type, const ResultType to_type)
+{
+  switch (from_type) {
+    case ResultType::Float:
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Float4:
+    case ResultType::Int:
+    case ResultType::Int2:
+    case ResultType::Color:
+    case ResultType::Bool:
+      switch (to_type) {
+        case ResultType::Float:
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Float4:
+        case ResultType::Int:
+        case ResultType::Int2:
+        case ResultType::Color:
+        case ResultType::Bool:
+          return true;
+        case ResultType::Menu:
+          return false;
+      }
+      break;
+    case ResultType::Menu:
+      return to_type == ResultType::Menu;
+  }
+
+  BLI_assert_unreachable();
+  return false;
+}
+
 void ConversionOperation::execute()
 {
   Result &result = this->get_result();
   const Result &input = this->get_input();
+
+  if (!is_conversion_supported(input.type(), result.type())) {
+    result.allocate_invalid();
+    return;
+  }
 
   if (input.is_single_value()) {
     result.allocate_single_value();

@@ -299,10 +299,17 @@ GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle,
                                           const uint8_t *mask,
                                           const int size[2],
                                           const int hot_spot[2],
-                                          bool canInvertColor)
+                                          bool can_invert_color)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
-  return window->setCustomCursorShape(bitmap, mask, size, hot_spot, canInvertColor);
+  return window->setCustomCursorShape(bitmap, mask, size, hot_spot, can_invert_color);
+}
+
+GHOST_TSuccess GHOST_SetCustomCursorGenerator(GHOST_WindowHandle windowhandle,
+                                              GHOST_CursorGenerator *cursor_generator)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  return window->setCustomCursorGenerator(cursor_generator);
 }
 
 GHOST_TSuccess GHOST_GetCursorBitmap(GHOST_WindowHandle windowhandle,

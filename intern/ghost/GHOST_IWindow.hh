@@ -330,7 +330,15 @@ class GHOST_IWindow {
                                               const uint8_t *mask,
                                               const int size[2],
                                               const int hot_spot[2],
-                                              bool canInvertColor) = 0;
+                                              bool can_invert_color) = 0;
+
+  /**
+   * Set the cursor generator.
+   *
+   * \param cursor_generator: An object which generates cursors.
+   * Ownership is transferred to GHOST which is responsible for calling it's free method.
+   */
+  virtual GHOST_TSuccess setCustomCursorGenerator(GHOST_CursorGenerator *cursor_generator) = 0;
 
   virtual GHOST_TSuccess getCursorBitmap(GHOST_CursorBitmapRef *bitmap) = 0;
 

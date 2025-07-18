@@ -800,20 +800,3 @@ typedef enum eGP_DrawMode {
   GP_DRAWMODE_2D = 0,
   GP_DRAWMODE_3D = 1,
 } eGP_DrawMode;
-
-/* ***************************************** */
-/* Mode Checking Macros */
-
-#define GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd) \
-  ((gpd) && ((gpd)->flag & (GP_DATA_STROKE_EDITMODE)) && ((gpd)->flag & GP_DATA_CURVE_EDIT_MODE))
-
-/* Macros to check grease pencil modes */
-#define GPENCIL_VERTEX_MODE(gpd) ((gpd) && (gpd->flag & GP_DATA_STROKE_VERTEXMODE))
-
-#define GPENCIL_ANY_SCULPT_MASK(flag) \
-  ((flag & (GP_SCULPT_MASK_SELECTMODE_POINT | GP_SCULPT_MASK_SELECTMODE_STROKE | \
-            GP_SCULPT_MASK_SELECTMODE_SEGMENT)))
-
-#define GPENCIL_ANY_VERTEX_MASK(flag) \
-  ((flag & (GP_VERTEX_MASK_SELECTMODE_POINT | GP_VERTEX_MASK_SELECTMODE_STROKE | \
-            GP_VERTEX_MASK_SELECTMODE_SEGMENT)))

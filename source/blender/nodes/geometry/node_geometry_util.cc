@@ -4,6 +4,8 @@
 
 #include <optional>
 
+#include "BLI_string.h"
+
 #include "node_geometry_util.hh"
 #include "node_util.hh"
 
@@ -127,6 +129,27 @@ void geo_node_type_base(blender::bke::bNodeType *ntype,
 {
   blender::bke::node_type_base(*ntype, idname, legacy_type);
   ntype->poll = geo_node_poll_default;
+  ntype->insert_link = node_insert_link_default;
+  ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
+}
+
+static bool geo_cmp_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
+                                      const bNodeTree *ntree,
+                                      const char **r_disabled_hint)
+{
+  if (!STR_ELEM(ntree->idname, "GeometryNodeTree", "CompositorNodeTree")) {
+    *r_disabled_hint = RPT_("Not a geometry or compositor node tree");
+    return false;
+  }
+  return true;
+}
+
+void geo_cmp_node_type_base(blender::bke::bNodeType *ntype,
+                            std::string idname,
+                            const std::optional<int16_t> legacy_type)
+{
+  blender::bke::node_type_base(*ntype, idname, legacy_type);
+  ntype->poll = geo_cmp_node_poll_default;
   ntype->insert_link = node_insert_link_default;
   ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
 }

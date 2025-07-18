@@ -1518,6 +1518,7 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
         col = layout.column()
         heading = col.column(align=True, heading="Temperature")
         row = heading.column(align=True).row(align=True)
+        row.use_property_decorate = False
         row.prop(light, "use_temperature", text="")
         # Don't show color preview for now, it is grayed out so the color
         # is not accurate. Would not a change in the UI code to allow
@@ -1531,6 +1532,7 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
             sub = row.row()
             sub.active = light.use_temperature
             sub.prop(light, "temperature", text="")
+            row.prop_decorator(light, "temperature")
 
         if light.use_temperature:
             col.prop(light, "color", text="Tint")

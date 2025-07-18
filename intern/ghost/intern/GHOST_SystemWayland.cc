@@ -471,13 +471,20 @@ struct GWL_Cursor {
   void *custom_data = nullptr;
   /** The size of `custom_data` in bytes. */
   size_t custom_data_size = 0;
+
+  /** The current displayed size, use to check if the cursor need to be re-generated. */
+  int custom_cursor_scale = 0;
+
   /**
-   * The size of the cursor (when looking up a cursor theme).
-   * This must be scaled by the maximum output scale when passing to wl_cursor_theme_load.
+   * The size of the cursor in logical pixels.
+   * This must be scaled by the maximum output scale when calculating the physical pixels.
    * See #update_cursor_scale.
    */
   int theme_size = 0;
-  int custom_scale = 1;
+  /**
+   * Prefer dark theme cursors where possible.
+   */
+  bool use_dark_theme = false;
 };
 
 /** \} */
@@ -705,7 +712,7 @@ struct GWL_SeatStatePointer {
   /** Outputs on which the cursor is visible. */
   std::unordered_set<const GWL_Output *> outputs;
 
-  int theme_scale = 1;
+  int buffer_scale = 1;
 
   /**
    * The serial of the last used pointer or tablet.
@@ -1905,6 +1912,31 @@ static void gwl_registry_entry_update_all(GWL_Display *display, const int interf
 /** \name Private Utility Functions
  * \{ */
 
+static uint32_t round_up_uint(const uint32_t x, const uint32_t multiple)
+{
+  return ((x + multiple - 1) / multiple) * multiple;
+}
+
+static uint32_t rgba_straight_to_premul(uint32_t rgba_uint)
+{
+  uint8_t *rgba = reinterpret_cast<uint8_t *>(&rgba_uint);
+  const uint32_t alpha = uint32_t(rgba[3]);
+  rgba[0] = uint8_t(((alpha * rgba[0]) + (0xff / 2)) / 0xff);
+  rgba[1] = uint8_t(((alpha * rgba[1]) + (0xff / 2)) / 0xff);
+  rgba[2] = uint8_t(((alpha * rgba[2]) + (0xff / 2)) / 0xff);
+  return rgba_uint;
+}
+
+static uint32_t rgba_straight_to_premul_inverted(uint32_t rgba_uint)
+{
+  uint8_t *rgba = reinterpret_cast<uint8_t *>(&rgba_uint);
+  const uint32_t alpha = uint32_t(rgba[3]);
+  rgba[0] = uint8_t(((alpha * (0xff - rgba[0])) + (0xff / 2)) / 0xff);
+  rgba[1] = uint8_t(((alpha * (0xff - rgba[1])) + (0xff / 2)) / 0xff);
+  rgba[2] = uint8_t(((alpha * (0xff - rgba[2])) + (0xff / 2)) / 0xff);
+  return rgba_uint;
+}
+
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
 static const char *strchr_or_end(const char *str, const char ch)
 {
@@ -2693,8 +2725,6 @@ static void cursor_buffer_set_surface_impl(const wl_cursor_image *wl_image,
   const int32_t image_size_y = int32_t(wl_image->height);
   GHOST_ASSERT((image_size_x % scale) == 0 && (image_size_y % scale) == 0,
                "The size must be a multiple of the scale!");
-  (void)image_size_x;
-  (void)image_size_y;
 
   wl_surface_set_buffer_scale(wl_surface, scale);
   wl_surface_attach(wl_surface, buffer, 0, 0);
@@ -2832,6 +2862,24 @@ static std::optional<wp_cursor_shape_device_v1_shape> gwl_seat_cursor_find_wl_sh
 }
 
 /**
+ * Currently account for all cursors as the buffer is shared.
+ *
+ * Note that a per pointing device buffer would be better,
+ * this is more of a low priority to-do.
+ */
+static int gwl_seat_cursor_buffer_scale_calc(const GWL_Seat *seat)
+{
+  int scale = 1;
+  if (seat->wl.pointer) {
+    scale = std::max(scale, seat->pointer.buffer_scale);
+  }
+  if (seat->wp.tablet_seat) {
+    scale = std::max(scale, seat->tablet.buffer_scale);
+  }
+  return scale;
+}
+
+/**
  * Show the buffer defined by #gwl_seat_cursor_buffer_set without changing anything else,
  * so #gwl_seat_cursor_buffer_hide can be used to display it again.
  *
@@ -2847,8 +2895,9 @@ static void gwl_seat_cursor_buffer_show(GWL_Seat *seat)
           seat->cursor.shape.device, seat->pointer.serial, seat->cursor.shape.enum_id);
     }
     else {
-      /* TODO: support scale for custom cursors. */
-      const int scale = 1;
+      /* TODO: use `seat->pointer.buffer_scale`, give each device it's own buffer. */
+      const int scale = gwl_seat_cursor_buffer_scale_calc(seat);
+
       const int32_t hotspot_x = int32_t(cursor->wl.image.hotspot_x) / scale;
       const int32_t hotspot_y = int32_t(cursor->wl.image.hotspot_y) / scale;
       wl_pointer_set_cursor(
@@ -2857,8 +2906,8 @@ static void gwl_seat_cursor_buffer_show(GWL_Seat *seat)
   }
 
   if (!seat->wp.tablet_tools.empty()) {
-    /* TODO: support scale for custom cursors. */
-    const int scale = 1;
+    /* TODO: use `seat->tablet.buffer_scale`, give each device it's own buffer. */
+    const int scale = gwl_seat_cursor_buffer_scale_calc(seat);
     const int32_t hotspot_x = int32_t(cursor->wl.image.hotspot_x) / scale;
     const int32_t hotspot_y = int32_t(cursor->wl.image.hotspot_y) / scale;
     for (zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->wp.tablet_tools) {
@@ -2905,8 +2954,7 @@ static void gwl_seat_cursor_buffer_set(const GWL_Seat *seat,
   const GWL_Cursor *cursor = &seat->cursor;
   const bool visible = (cursor->visible && cursor->is_hardware);
 
-  /* TODO: support scale for custom cursors. */
-  const int scale = 1;
+  const int scale = gwl_seat_cursor_buffer_scale_calc(seat);
 
   /* This is a requirement of WAYLAND, when this isn't the case,
    * it causes Blender's window to close intermittently. */
@@ -3688,58 +3736,36 @@ static const wl_buffer_listener cursor_buffer_listener = {
 static CLG_LogRef LOG_WL_CURSOR_SURFACE = {"ghost.wl.handle.cursor_surface"};
 #define LOG (&LOG_WL_CURSOR_SURFACE)
 
-static bool update_cursor_scale(GWL_Cursor &cursor,
-                                wl_shm *shm,
-                                GWL_SeatStatePointer *seat_state_pointer,
-                                wl_surface *wl_surface_cursor)
+static bool update_cursor_scale(GWL_Seat *seat,
+                                GWL_Cursor &cursor,
+                                GWL_SeatStatePointer *seat_state_pointer)
 {
-  /* TODO: do cursor scaling correctly. */
-  (void)cursor;
-  (void)shm;
-  (void)seat_state_pointer;
-  (void)wl_surface_cursor;
-#if 0
+  /* NOTE: currently there is no special handling for fractional scaling.
+   * This could be supported however the default behavior of generating a cursor
+   * rounded up to the nearest integer scaling works fairly well. */
   int scale = 0;
   for (const GWL_Output *output : seat_state_pointer->outputs) {
-    int output_scale_floor = output->scale;
-
-    /* It's important to round down in the case of fractional scale,
-     * otherwise the cursor can be scaled down to be unusably small.
-     * This is especially a problem when:
-     * - The cursor theme has one size (24px for the default cursor).
-     * - The fractional scaling is set just above 1 (typically 125%).
-     *
-     * In this case the `output->scale` is rounded up to 2 and a larger cursor is requested.
-     * It's assumed a large cursor is available but that's not always the case.
-     * When only a smaller cursor is available it's still assumed to be large,
-     * fractional scaling causes the cursor to be scaled down making it ~10px. see #105895. */
-    if (output_scale_floor > 1 && output->has_scale_fractional) {
-      output_scale_floor = std::max(1, output->scale_fractional / FRACTIONAL_DENOMINATOR);
-    }
-
-    scale = std::max(output_scale_floor, scale);
+    scale = std::max(scale, output->scale);
+  }
+  if (scale > 0 && seat_state_pointer->buffer_scale != scale) {
+    seat_state_pointer->buffer_scale = scale;
   }
 
-  if (scale > 0 && seat_state_pointer->theme_scale != scale) {
-    seat_state_pointer->theme_scale = scale;
-    if (!cursor.is_custom) {
-      if (wl_surface_cursor) {
-        wl_surface_set_buffer_scale(wl_surface_cursor, scale);
+  scale = gwl_seat_cursor_buffer_scale_calc(seat);
+
+  if (scale > 0 && cursor.custom_cursor_scale != scale) {
+    cursor.custom_cursor_scale = scale;
+    if (cursor.is_custom) {
+      wl_surface *wl_surface_focus = seat_state_pointer->wl.surface_window;
+      if (wl_surface_focus) {
+        GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
+        if (win) {
+          win->cursor_shape_refresh();
+        }
       }
     }
-    wl_cursor_theme_destroy(cursor.wl.theme);
-    cursor.wl.theme = wl_cursor_theme_load(
-        (cursor.theme_name.empty() ? nullptr : cursor.theme_name.c_str()),
-        scale * cursor.theme_size,
-        shm);
-    if (cursor.wl.theme_cursor) {
-      cursor.wl.theme_cursor = wl_cursor_theme_get_cursor(cursor.wl.theme,
-                                                          cursor.wl.theme_cursor_name);
-    }
-
     return true;
   }
-#endif
   return false;
 }
 
@@ -3756,7 +3782,7 @@ static void cursor_surface_handle_enter(void *data, wl_surface *wl_surface, wl_o
       seat, wl_surface);
   const GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   seat_state_pointer->outputs.insert(reg_output);
-  update_cursor_scale(seat->cursor, seat->system->wl_shm_get(), seat_state_pointer, wl_surface);
+  update_cursor_scale(seat, seat->cursor, seat_state_pointer);
 }
 
 static void cursor_surface_handle_leave(void *data, wl_surface *wl_surface, wl_output *wl_output)
@@ -3772,7 +3798,7 @@ static void cursor_surface_handle_leave(void *data, wl_surface *wl_surface, wl_o
       seat, wl_surface);
   const GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   seat_state_pointer->outputs.erase(reg_output);
-  update_cursor_scale(seat->cursor, seat->system->wl_shm_get(), seat_state_pointer, wl_surface);
+  update_cursor_scale(seat, seat->cursor, seat_state_pointer);
 }
 
 static void cursor_surface_handle_preferred_buffer_scale(void * /*data*/,
@@ -6064,6 +6090,10 @@ static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
         seat->cursor.theme_size = int(value);
       }
     }
+
+    /* TODO: detect this from the system.
+     * We *could* have weak support based on checking for known themes. */
+    seat->cursor.use_dark_theme = true;
   }
 }
 
@@ -8614,11 +8644,111 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_check(const GHOST_TStandardCurs
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const uint8_t *bitmap,
-                                                            const uint8_t *mask,
-                                                            const int size[2],
-                                                            const int hot_spot[2],
-                                                            const bool /*canInvertColor*/)
+static wl_buffer *ghost_wl_buffer_from_cursor_generator(const GHOST_CursorGenerator &cg,
+                                                        wl_shm *shm,
+                                                        void **buffer_data_p,
+                                                        size_t *buffer_data_size_p,
+                                                        const int cursor_size,
+                                                        const int cursor_size_max,
+                                                        const int use_dark_theme,
+                                                        const int scale,
+                                                        int r_bitmap_size[2],
+                                                        int r_hot_spot[2])
+{
+  if (*buffer_data_p) {
+    munmap(*buffer_data_p, *buffer_data_size_p);
+    *buffer_data_p = nullptr;
+    *buffer_data_size_p = 0; /* Not needed, but the value is no longer meaningful. */
+  }
+
+  int bitmap_size_src[2];
+  int hot_spot[2];
+  bool can_invert_color = false;
+
+  uint8_t *bitmap_src = cg.generate_fn(
+      &cg,
+      cursor_size,
+      cursor_size_max,
+      [](size_t size) -> uint8_t * { return new uint8_t[size]; },
+      bitmap_size_src,
+      hot_spot,
+      &can_invert_color);
+
+  if (bitmap_src == nullptr) {
+    return nullptr;
+  }
+
+  const bool invert_color = can_invert_color && use_dark_theme;
+
+  /* There is no need to adjust the hot-spot when resizing. */
+  int bitmap_size_dst[2] = {
+      int(round_up_uint(bitmap_size_src[0], scale)),
+      int(round_up_uint(bitmap_size_src[1], scale)),
+  };
+
+  wl_buffer *buffer = ghost_wl_buffer_create_for_image(
+      shm, bitmap_size_dst, WL_SHM_FORMAT_ARGB8888, buffer_data_p, buffer_data_size_p);
+
+  if (buffer != nullptr) {
+    const bool is_trivial_copy = (bitmap_size_src[0] == bitmap_size_dst[0]) &&
+                                 (bitmap_size_src[1] == bitmap_size_dst[1]);
+    /* NOTE: the copy could be skipped in trivial cases.
+     * Since it's such a small amount of data it hardly seems worth it. */
+    if (is_trivial_copy) {
+      /* RGBA color. */
+      const uint32_t *px_src = reinterpret_cast<const uint32_t *>(bitmap_src);
+      uint32_t *px_dst = static_cast<uint32_t *>(*buffer_data_p);
+      if (invert_color) {
+        for (int y = 0; y < bitmap_size_src[1]; y++) {
+          for (int x = 0; x < bitmap_size_src[0]; x++) {
+            *px_dst++ = rgba_straight_to_premul_inverted(*px_src++);
+          }
+        }
+      }
+      else {
+        for (int y = 0; y < bitmap_size_src[1]; y++) {
+          for (int x = 0; x < bitmap_size_src[0]; x++) {
+            *px_dst++ = rgba_straight_to_premul(*px_src++);
+          }
+        }
+      }
+    }
+    else {
+      /* RGBA color, copy into an expanded buffer. */
+      const uint32_t *px_src = reinterpret_cast<const uint32_t *>(bitmap_src);
+      uint32_t *px_dst = static_cast<uint32_t *>(*buffer_data_p);
+      if (invert_color) {
+        for (int y = 0; y < bitmap_size_dst[1]; y++) {
+          for (int x = 0; x < bitmap_size_dst[0]; x++) {
+            *px_dst++ = (x >= bitmap_size_src[0] || y >= bitmap_size_src[1]) ?
+                            0x0 :
+                            rgba_straight_to_premul_inverted(*px_src++);
+          }
+        }
+      }
+      else {
+        for (int y = 0; y < bitmap_size_dst[1]; y++) {
+          for (int x = 0; x < bitmap_size_dst[0]; x++) {
+            *px_dst++ = (x >= bitmap_size_src[0] || y >= bitmap_size_src[1]) ?
+                            0x0 :
+                            rgba_straight_to_premul(*px_src++);
+          }
+        }
+      }
+    }
+
+    r_bitmap_size[0] = bitmap_size_dst[0];
+    r_bitmap_size[1] = bitmap_size_dst[1];
+
+    r_hot_spot[0] = hot_spot[0];
+    r_hot_spot[1] = hot_spot[1];
+  }
+
+  delete[] bitmap_src;
+  return buffer;
+}
+
+GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const GHOST_CursorGenerator &cg)
 {
   /* Caller needs to lock `server_mutex`. */
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
@@ -8643,115 +8773,45 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_custom_set(const uint8_t *bitma
     }
   }
 
-  GWL_Cursor *cursor = &seat->cursor;
-  if (cursor->custom_data) {
-    munmap(cursor->custom_data, cursor->custom_data_size);
-    cursor->custom_data = nullptr;
-    cursor->custom_data_size = 0; /* Not needed, but the value is no longer meaningful. */
-  }
+  /* Generate the buffer. */
+  GWL_Cursor &cursor = seat->cursor;
 
-  wl_buffer *buffer = ghost_wl_buffer_create_for_image(display_->wl.shm,
-                                                       size,
-                                                       WL_SHM_FORMAT_ARGB8888,
-                                                       &cursor->custom_data,
-                                                       &cursor->custom_data_size);
-  if (buffer == nullptr) {
+  int bitmap_size[2] = {0, 0};
+  int hot_spot[2] = {0, 0};
+
+  const int scale = gwl_seat_cursor_buffer_scale_calc(seat);
+  const int cursor_size = seat->cursor.theme_size * scale;
+  /* NOTE: Regarding the maximum cursor size.
+   * - 256 seems to be a hardware limit.
+   * - Twice the cursor size to allow "text" cursor to display wider than a typical cursor
+   *   without being *very* large - as that looks strange.
+   */
+  const int cursor_size_max = std::min(256, cursor_size * 2);
+
+  wl_buffer *buffer = ghost_wl_buffer_from_cursor_generator(cg,
+                                                            display_->wl.shm,
+                                                            &cursor.custom_data,
+                                                            &cursor.custom_data_size,
+                                                            cursor_size,
+                                                            cursor_size_max,
+                                                            cursor.use_dark_theme,
+                                                            scale,
+                                                            bitmap_size,
+                                                            hot_spot);
+  if (UNLIKELY(buffer == nullptr)) {
     return GHOST_kFailure;
   }
 
-  wl_buffer_add_listener(buffer, &cursor_buffer_listener, cursor);
+  wl_buffer_add_listener(buffer, &cursor_buffer_listener, &cursor);
 
-  if (mask) {
-    /* Monochrome & mask (expand to RGBA). */
-    static constexpr uint32_t black = 0xFF000000;
-    static constexpr uint32_t white = 0xFFFFFFFF;
-    static constexpr uint32_t transparent = 0x00000000;
+  cursor.visible = true;
+  cursor.is_custom = true;
 
-    uint8_t datab = 0, maskb = 0;
-    uint32_t *px_dst = static_cast<uint32_t *>(cursor->custom_data);
-
-    for (int y = 0; y < size[1]; y++) {
-      for (int x = 0; x < size[0]; x++) {
-        if ((x % 8) == 0) {
-          datab = *bitmap++;
-          maskb = *mask++;
-
-          /* Reverse bit order. */
-          datab = uint8_t((datab * 0x0202020202ULL & 0x010884422010ULL) % 1023);
-          maskb = uint8_t((maskb * 0x0202020202ULL & 0x010884422010ULL) % 1023);
-        }
-
-        if (maskb & 0x80) {
-          *px_dst++ = (datab & 0x80) ? white : black;
-        }
-        else {
-          *px_dst++ = (datab & 0x80) ? white : transparent;
-        }
-        datab <<= 1;
-        maskb <<= 1;
-      }
-    }
-  }
-  else {
-    /* RGBA color (direct copy). */
-    const uint32_t *px_src = reinterpret_cast<const uint32_t *>(bitmap);
-    uint32_t *px_dst = static_cast<uint32_t *>(cursor->custom_data);
-    for (int y = 0; y < size[1]; y++) {
-      for (int x = 0; x < size[0]; x++) {
-        *px_dst++ = *px_src++;
-      }
-    }
-  }
-
-  cursor->visible = true;
-  cursor->is_custom = true;
-
-  /* Calculate the cursor size to use based on the theme setting. */
-  {
-
-    /* WARNING: Weak logic, if we can't use vector cursors - ideally the custom cursor
-     * function would receive multiple sizes which WAYLAND could then switch between
-     * as it does with themes. The following logic is fairly weak but works perfectly
-     * when all outputs have the same scale.
-     *
-     * There is nothing preventing multiple sized cursors from being passed in,
-     * it's just a matter of refactoring and adding support to WAYLAND. */
-
-    /* Get the lowest scale so in the case of mixed-scale-outputs,
-     * the cursor will be too big on some of the outputs instead of too small.
-     *
-     * Note that getting the min/max scale for all outputs be made into an function
-     * however it's bad practice because it means the cursor size will be wrong
-     * when there are multiple outputs with different scale.
-     * So this is not something to encouraged. */
-    int output_scale = -1;
-    for (const GWL_Output *output : display_->outputs) {
-      output_scale = (output_scale == -1) ? output->scale : std::min(output_scale, output->scale);
-    }
-    if (output_scale == -1) {
-      output_scale = 1;
-    }
-
-    const int custom_size = std::max(size[0], size[1]);
-    const int target_size = seat->cursor.theme_size * output_scale;
-
-    cursor->custom_scale = std::max(1, (output_scale * custom_size) / target_size);
-    /* It would make more sense to adjust the buffer size instead of the scale.
-     * In practice with custom cursors of 16x16, 24x24 & 32x32 its only likely to cause
-     * problems with odd-scaling (HI-DPI scale of 300% or 500% for example).
-     * In these cases the custom cursor will be a little too large. */
-    while ((cursor->custom_scale > 1) &&
-           !((size[0] % cursor->custom_scale) == 0 && (size[1] % cursor->custom_scale) == 0))
-    {
-      cursor->custom_scale -= 1;
-    }
-  }
-
-  cursor->wl.buffer = buffer;
-  cursor->wl.image.width = uint32_t(size[0]);
-  cursor->wl.image.height = uint32_t(size[1]);
-  cursor->wl.image.hotspot_x = uint32_t(hot_spot[0]);
-  cursor->wl.image.hotspot_y = uint32_t(hot_spot[1]);
+  cursor.wl.buffer = buffer;
+  cursor.wl.image.width = uint32_t(bitmap_size[0]);
+  cursor.wl.image.height = uint32_t(bitmap_size[1]);
+  cursor.wl.image.hotspot_x = uint32_t(hot_spot[0]);
+  cursor.wl.image.hotspot_y = uint32_t(hot_spot[1]);
 
   gwl_seat_cursor_buffer_set_current(seat);
 
@@ -9372,21 +9432,11 @@ void GHOST_SystemWayland::output_scale_update(GWL_Output *output)
   }
   for (GWL_Seat *seat : display_->seats) {
     if (seat->pointer.outputs.count(output)) {
-      update_cursor_scale(seat->cursor,
-                          seat->system->wl_shm_get(),
-                          &seat->pointer,
-                          seat->cursor.wl.surface_cursor);
+      update_cursor_scale(seat, seat->cursor, &seat->pointer);
     }
 
     if (seat->tablet.outputs.count(output)) {
-      for (zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : seat->wp.tablet_tools) {
-        GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(
-            zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
-        update_cursor_scale(seat->cursor,
-                            seat->system->wl_shm_get(),
-                            &seat->tablet,
-                            tablet_tool->wl.surface_cursor);
-      }
+      update_cursor_scale(seat, seat->cursor, &seat->tablet);
     }
   }
 }

@@ -1458,7 +1458,7 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCustomCursorShape(const uint8_t *bitmap
                                                            const uint8_t *mask,
                                                            const int size[2],
                                                            const int hot_spot[2],
-                                                           bool /*canInvertColor*/)
+                                                           bool /*can_invert_color*/)
 {
   Colormap colormap = DefaultColormap(m_display, m_visualInfo->screen);
   Pixmap bitmap_pix, mask_pix;

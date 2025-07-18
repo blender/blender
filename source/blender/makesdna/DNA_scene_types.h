@@ -289,7 +289,7 @@ enum {
 /** #SceneRenderLayer::passflag */
 typedef enum eScenePassType {
   SCE_PASS_COMBINED = (1 << 0),
-  SCE_PASS_Z = (1 << 1),
+  SCE_PASS_DEPTH = (1 << 1),
   SCE_PASS_UNUSED_1 = (1 << 2), /* RGBA */
   SCE_PASS_UNUSED_2 = (1 << 3), /* DIFFUSE */
   SCE_PASS_UNUSED_3 = (1 << 4), /* SPEC */
@@ -325,7 +325,7 @@ typedef enum eScenePassType {
 #define RE_PASSNAME_DEPRECATED "Deprecated"
 
 #define RE_PASSNAME_COMBINED "Combined"
-#define RE_PASSNAME_Z "Depth"
+#define RE_PASSNAME_DEPTH "Depth"
 #define RE_PASSNAME_VECTOR "Vector"
 #define RE_PASSNAME_POSITION "Position"
 #define RE_PASSNAME_NORMAL "Normal"

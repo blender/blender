@@ -821,8 +821,25 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
     mask.lmask |= CD_MASK_ORIGINDEX;
     mask.pmask |= CD_MASK_ORIGINDEX;
   }
+
   Mesh *result = blender::bke::mesh_create_eval_final(depsgraph, scene, &object_for_eval, &mask);
-  return (ensure_subdivision) ? BKE_mesh_wrapper_ensure_subdivision(result) : result;
+
+  if (ensure_subdivision) {
+    /* Returns a borrowed reference which is still owned by `result`.
+     * Steal the reference from `result` which can then be freed. */
+    Mesh *result_maybe_subdiv = BKE_mesh_wrapper_ensure_subdivision(result);
+    if (result != result_maybe_subdiv) {
+      /* Expected, but assert this is the case. */
+      BLI_assert(result->runtime->mesh_eval == result_maybe_subdiv);
+      if (result->runtime->mesh_eval == result_maybe_subdiv) {
+        result->runtime->mesh_eval = nullptr;
+        BKE_id_free(nullptr, result);
+        result = result_maybe_subdiv;
+      }
+    }
+  }
+
+  return result;
 }
 
 static Mesh *mesh_new_from_mesh_object(Depsgraph *depsgraph,

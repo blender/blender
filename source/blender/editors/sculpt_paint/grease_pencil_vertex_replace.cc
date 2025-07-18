@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_gpencil_legacy_types.h"
-
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
@@ -36,8 +34,8 @@ void VertexReplaceOperation::on_stroke_extended(const bContext &C,
   Paint &paint = *BKE_paint_get_active_from_context(&C);
   const Brush &brush = *BKE_paint_brush(&paint);
 
-  const bool use_selection_masking = GPENCIL_ANY_VERTEX_MASK(
-      eGP_vertex_SelectMaskFlag(scene.toolsettings->gpencil_selectmode_vertex));
+  const bool use_selection_masking = ED_grease_pencil_any_vertex_mask_selection(
+      scene.toolsettings);
 
   const bool do_points = do_vertex_color_points(brush);
   const bool do_fill = do_vertex_color_fill(brush);

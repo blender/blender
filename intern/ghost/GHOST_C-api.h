@@ -334,7 +334,7 @@ extern GHOST_TSuccess GHOST_HasCursorShape(GHOST_WindowHandle windowhandle,
  * \param mask: The mask for 1bpp cursor, nullptr if RGBA cursor.
  * \param size: The width & height of the cursor.
  * \param hot_spot: The X,Y coordinates of the cursor hot-spot.
- * \param canInvertColor: Let macOS invert cursor color to match platform convention.
+ * \param can_invert_color: Let the cursor colors be inverted to match platform convention.
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle,
@@ -342,7 +342,19 @@ extern GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle
                                                  const uint8_t *mask,
                                                  const int size[2],
                                                  const int hot_spot[2],
-                                                 bool canInvertColor);
+                                                 bool can_invert_color);
+/**
+ * Set a cursor "generator", allowing the GHOST back-end to dynamically
+ * generate cursors at different sizes as needed, depending on the monitor DPI.
+ *
+ * \param cursor_generator: An object which generates cursors.
+ * Ownership is transferred to GHOST which is responsible for calling it's free method.
+ *
+ * The capability flag: #GHOST_kCapabilityCursorGenerator should be checked,
+ * otherwise this call is a no-op.
+ */
+extern GHOST_TSuccess GHOST_SetCustomCursorGenerator(GHOST_WindowHandle windowhandle,
+                                                     GHOST_CursorGenerator *cursor_generator);
 
 extern GHOST_TSuccess GHOST_GetCursorBitmap(GHOST_WindowHandle windowhandle,
                                             GHOST_CursorBitmapRef *bitmap);

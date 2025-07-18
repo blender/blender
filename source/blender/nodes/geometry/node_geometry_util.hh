@@ -36,6 +36,12 @@ bool geo_node_poll_default(const blender::bke::bNodeType *ntype,
                            const bNodeTree *ntree,
                            const char **r_disabled_hint);
 
+/* Same as geo_node_type_base but allows node use in the compositor by allowing compositor node
+ * trees in the poll function. */
+void geo_cmp_node_type_base(blender::bke::bNodeType *ntype,
+                            std::string idname,
+                            std::optional<int16_t> legacy_type = std::nullopt);
+
 namespace blender::nodes {
 
 bool check_tool_context_and_error(GeoNodeExecParams &params);

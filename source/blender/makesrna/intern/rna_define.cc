@@ -791,7 +791,9 @@ void RNA_struct_free_extension(StructRNA *srna, ExtensionRNA *rna_ext)
 
   /* Decrease the reference and set to null so #RNA_struct_free doesn't warn of a leak. */
   if (srna->py_type) {
+#  ifdef WITH_PYTHON
     BPY_DECREF(srna->py_type);
+#  endif
     RNA_struct_py_type_set(srna, nullptr);
   }
 #else

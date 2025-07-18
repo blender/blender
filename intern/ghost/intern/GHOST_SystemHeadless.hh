@@ -74,7 +74,9 @@ class GHOST_SystemHeadless : public GHOST_System {
             /* Wrap. */
             GHOST_kCapabilityKeyboardHyperKey |
             /* Wrap. */
-            GHOST_kCapabilityCursorRGBA)
+            GHOST_kCapabilityCursorRGBA |
+            /* Wrap. */
+            GHOST_kCapabilityCursorGenerator)
 
     );
   }

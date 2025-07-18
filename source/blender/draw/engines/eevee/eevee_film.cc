@@ -206,7 +206,7 @@ static eViewLayerEEVEEPassType enabled_passes(const ViewLayer *view_layer)
                      (view_layer->passflag & SCE_PASS_##name_legacy) != 0, \
                      EEVEE_RENDER_PASS_##name_eevee);
 
-  ENABLE_FROM_LEGACY(Z, Z)
+  ENABLE_FROM_LEGACY(DEPTH, DEPTH)
   ENABLE_FROM_LEGACY(MIST, MIST)
   ENABLE_FROM_LEGACY(NORMAL, NORMAL)
   ENABLE_FROM_LEGACY(POSITION, POSITION)
@@ -306,7 +306,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
       if (inst_.overlays_enabled() || inst_.gpencil_engine_enabled()) {
         /* Overlays and Grease Pencil needs the depth for correct compositing.
          * Using the render pass ensure we store the center depth. */
-        enabled_passes |= EEVEE_RENDER_PASS_Z;
+        enabled_passes |= EEVEE_RENDER_PASS_DEPTH;
       }
 
       if (assign_if_different(enabled_passes_, enabled_passes)) {
@@ -384,7 +384,8 @@ void Film::init(const int2 &extent, const rcti *output_rect)
       data_.background_opacity = inst_.v3d->shading.studiolight_background;
     }
 
-    const eViewLayerEEVEEPassType data_passes = EEVEE_RENDER_PASS_Z | EEVEE_RENDER_PASS_NORMAL |
+    const eViewLayerEEVEEPassType data_passes = EEVEE_RENDER_PASS_DEPTH |
+                                                EEVEE_RENDER_PASS_NORMAL |
                                                 EEVEE_RENDER_PASS_POSITION |
                                                 EEVEE_RENDER_PASS_VECTOR;
     const eViewLayerEEVEEPassType color_passes_1 = EEVEE_RENDER_PASS_DIFFUSE_LIGHT |
@@ -422,7 +423,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     /* Combined is in a separate buffer. */
     data_.combined_id = (enabled_passes_ & EEVEE_RENDER_PASS_COMBINED) ? 0 : -1;
     /* Depth is in a separate buffer. */
-    data_.depth_id = (enabled_passes_ & EEVEE_RENDER_PASS_Z) ? 0 : -1;
+    data_.depth_id = (enabled_passes_ & EEVEE_RENDER_PASS_DEPTH) ? 0 : -1;
 
     data_.color_len = 0;
     data_.value_len = 0;
@@ -922,7 +923,7 @@ GPUTexture *Film::get_pass_texture(eViewLayerEEVEEPassType pass_type, int layer_
 
   Texture &accum_tx = (pass_type == EEVEE_RENDER_PASS_COMBINED) ?
                           combined_tx_.current() :
-                      (pass_type == EEVEE_RENDER_PASS_Z) ?
+                      (pass_type == EEVEE_RENDER_PASS_DEPTH) ?
                           depth_tx_ :
                           (is_cryptomatte ? cryptomatte_tx_ :
                                             (is_value ? value_accum_tx_ : color_accum_tx_));
@@ -943,7 +944,7 @@ static eShaderType get_write_pass_shader_type(eViewLayerEEVEEPassType pass_type)
   switch (pass_type) {
     case EEVEE_RENDER_PASS_COMBINED:
       return FILM_PASS_CONVERT_COMBINED;
-    case EEVEE_RENDER_PASS_Z:
+    case EEVEE_RENDER_PASS_DEPTH:
       return FILM_PASS_CONVERT_DEPTH;
     default:
       break;
