@@ -256,7 +256,7 @@ class USDImportTest(AbstractUSDTest):
 
         # Reload the empty file and import back in
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
-        res = bpy.ops.wm.usd_import(filepath=testfile, import_subdiv=True)
+        res = bpy.ops.wm.usd_import(filepath=testfile, import_subdivision=True)
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
 
         # Validate crease attributes
@@ -2012,7 +2012,7 @@ class USDImportComparisonTest(unittest.TestCase):
                 bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
                 ok = report.import_and_check(
                     input_file, lambda filepath, params: bpy.ops.wm.usd_import(
-                        filepath=str(input_file), import_subdiv=True, **params))
+                        filepath=str(input_file), import_subdivision=True, **params))
                 if not ok:
                     self.fail(f"{input_file.stem} import result does not match expectations")
 

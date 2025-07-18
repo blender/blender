@@ -209,7 +209,7 @@ struct USDImportParams {
   bool import_all_materials;
   bool import_meshes;
   bool import_points;
-  bool import_subdiv;
+  bool import_subdivision;
   bool import_volumes;
 
   bool import_shapes;

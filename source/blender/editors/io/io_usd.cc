@@ -907,7 +907,7 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
   params.import_all_materials = RNA_boolean_get(op->ptr, "import_all_materials");
   params.import_meshes = RNA_boolean_get(op->ptr, "import_meshes");
   params.import_points = RNA_boolean_get(op->ptr, "import_points");
-  params.import_subdiv = RNA_boolean_get(op->ptr, "import_subdiv");
+  params.import_subdivision = RNA_boolean_get(op->ptr, "import_subdivision");
   params.import_volumes = RNA_boolean_get(op->ptr, "import_volumes");
 
   params.create_collection = RNA_boolean_get(op->ptr, "create_collection");
@@ -1014,7 +1014,7 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
     col->prop(ptr, "read_mesh_uvs", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "read_mesh_colors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "read_mesh_attributes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "import_subdiv", UI_ITEM_NONE, IFACE_("Subdivision"), ICON_NONE);
+    col->prop(ptr, "import_subdivision", UI_ITEM_NONE, IFACE_("Subdivision"), ICON_NONE);
 
     col = &panel->column(false);
     col->prop(ptr, "validate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1117,7 +1117,7 @@ void WM_OT_usd_import(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "import_points", true, "Point Clouds", "");
 
   RNA_def_boolean(ot->srna,
-                  "import_subdiv",
+                  "import_subdivision",
                   false,
                   "Import Subdivision Scheme",
                   "Create subdivision surface modifiers based on the USD "

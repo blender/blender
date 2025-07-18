@@ -214,7 +214,7 @@ void USDMeshReader::read_object_data(Main *bmain, const pxr::UsdTimeCode time)
     add_cache_modifier();
   }
 
-  if (import_params_.import_subdiv) {
+  if (import_params_.import_subdivision) {
     pxr::TfToken subdivScheme;
     mesh_prim_.GetSubdivisionSchemeAttr().Get(&subdivScheme, time);
 
