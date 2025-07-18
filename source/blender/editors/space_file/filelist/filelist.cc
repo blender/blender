@@ -484,6 +484,16 @@ static bool filelist_checkdir_return_always_valid(const FileList * /*filelist*/,
   return true;
 }
 
+static bool filelist_checkdir_remote_asset_library(const FileList * /*filelist*/,
+                                                   char /*dirpath*/[FILE_MAX_LIBEXTRA],
+                                                   const bool /*do_change*/)
+{
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    return false;
+  }
+  return true;
+}
+
 static void filelist_entry_clear(FileDirEntry *entry)
 {
   if (entry->name && ((entry->flags & FILE_ENTRY_NAME_FREE) != 0)) {
@@ -916,7 +926,8 @@ void filelist_settype(FileList *filelist, short type)
       filelist->tags |= FILELIST_TAGS_USES_MAIN_DATA | FILELIST_TAGS_NO_THREADS;
       break;
     case FILE_ASSET_LIBRARY_REMOTE:
-      filelist->check_dir_fn = filelist_checkdir_return_always_valid;
+      /* TODO rename to something like #is_valid_fn(). */
+      filelist->check_dir_fn = filelist_checkdir_remote_asset_library;
       filelist->start_job_fn = filelist_start_job_remote_asset_library;
       filelist->timer_step_fn = filelist_timer_step_remote_asset_library;
       filelist->read_job_fn = filelist_readjob_remote_asset_library;
