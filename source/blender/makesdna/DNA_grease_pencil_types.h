@@ -563,11 +563,15 @@ typedef struct GreasePencil {
       bool check_name_is_unique = true);
   /** Duplicates a layer from the same object to the top of the root group. */
   blender::bke::greasepencil::Layer &duplicate_layer(
-      const blender::bke::greasepencil::Layer &duplicate_layer);
+      const blender::bke::greasepencil::Layer &duplicate_layer,
+      bool duplicate_frames = false,
+      bool duplicate_drawings = false);
   /** Duplicates a layer from the same object to the top of the given group. */
   blender::bke::greasepencil::Layer &duplicate_layer(
       blender::bke::greasepencil::LayerGroup &parent_group,
-      const blender::bke::greasepencil::Layer &duplicate_layer);
+      const blender::bke::greasepencil::Layer &duplicate_layer,
+      bool duplicate_frames = false,
+      bool duplicate_drawings = false);
   /** Add new layer group into the root group. */
   blender::bke::greasepencil::LayerGroup &add_layer_group(blender::StringRef name,
                                                           bool check_name_is_unique = true);
