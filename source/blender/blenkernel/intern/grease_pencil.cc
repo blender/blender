@@ -3903,7 +3903,7 @@ static void reorder_layer_data(GreasePencil &grease_pencil,
     const bke::greasepencil::Layer *layer = layers[layer_i_new];
     BLI_assert(old_layer_index_by_layer.contains(layer));
     const int layer_i_old = old_layer_index_by_layer.pop(layer);
-    new_by_old_map[layer_i_old] = layer_i_new;
+    new_by_old_map[layer_i_new] = layer_i_old;
   }
   BLI_assert(old_layer_index_by_layer.is_empty());
 
