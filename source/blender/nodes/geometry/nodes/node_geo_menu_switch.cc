@@ -47,11 +47,14 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
   const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
   const bool supports_fields = socket_type_supports_fields(data_type) &&
                                ntree->type == NTREE_GEOMETRY;
-  const bool is_single_compositor_type = compositor::Result::is_single_value_only_type(
-      compositor::socket_data_type_to_result_type(data_type));
-  const StructureType compositor_structure_type = is_single_compositor_type ?
-                                                      StructureType::Single :
-                                                      StructureType::Dynamic;
+
+  StructureType compositor_structure_type = StructureType::Dynamic;
+  if (ntree->type == NTREE_COMPOSIT) {
+    const bool is_single_compositor_type = compositor::Result::is_single_value_only_type(
+        compositor::socket_data_type_to_result_type(data_type));
+    compositor_structure_type = is_single_compositor_type ? StructureType::Single :
+                                                            StructureType::Dynamic;
+  }
 
   auto &menu = b.add_input<decl::Menu>("Menu");
   if (supports_fields) {
