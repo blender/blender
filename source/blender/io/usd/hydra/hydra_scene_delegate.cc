@@ -14,6 +14,7 @@
 #include "BLI_listbase.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
+#include "camera_delegate.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -36,8 +37,11 @@ bool HydraSceneDelegate::ShadingSettings::operator==(const ShadingSettings &othe
 
 HydraSceneDelegate::HydraSceneDelegate(pxr::HdRenderIndex *parent_index,
                                        pxr::SdfPath const &delegate_id,
+                                       CameraDelegate *camera_delegate,
                                        const bool use_materialx)
-    : HdSceneDelegate(parent_index, delegate_id), use_materialx(use_materialx)
+    : HdSceneDelegate(parent_index, delegate_id),
+      use_materialx(use_materialx),
+      camera_delegate_(camera_delegate)
 {
   instancer_data_ = std::make_unique<InstancerData>(this, instancer_prim_id());
   world_data_ = std::make_unique<WorldData>(this, world_prim_id());
@@ -391,6 +395,10 @@ void HydraSceneDelegate::check_updates()
         if (mat_data) {
           mat_data->update();
         }
+        break;
+      }
+      case ID_CA: {
+        camera_delegate_->update(id);
         break;
       }
       case ID_WO: {

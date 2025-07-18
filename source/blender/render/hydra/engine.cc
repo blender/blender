@@ -66,7 +66,7 @@ Engine::Engine(RenderEngine *bl_engine, const std::string &render_delegate_name)
   }
 
   render_index_.reset(pxr::HdRenderIndex::New(render_delegate_.Get(), hd_drivers));
-  free_camera_delegate_ = std::make_unique<pxr::HdxFreeCameraSceneDelegate>(
+  free_camera_delegate_ = std::make_unique<io::hydra::CameraDelegate>(
       render_index_.get(), pxr::SdfPath::AbsoluteRootPath().AppendElementString("freeCamera"));
 
   if (bl_engine->type->flag & RE_USE_GPU_CONTEXT && GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
@@ -103,7 +103,7 @@ void Engine::sync(Depsgraph *depsgraph, bContext *context)
     if (!hydra_scene_delegate_) {
       pxr::SdfPath scene_path = pxr::SdfPath::AbsoluteRootPath().AppendElementString("scene");
       hydra_scene_delegate_ = std::make_unique<io::hydra::HydraSceneDelegate>(
-          render_index_.get(), scene_path, use_materialx);
+          render_index_.get(), scene_path, free_camera_delegate_.get(), use_materialx);
     }
     hydra_scene_delegate_->populate(depsgraph, context ? CTX_wm_view3d(context) : nullptr);
   }
@@ -122,6 +122,7 @@ void Engine::sync(Depsgraph *depsgraph, bContext *context)
     }
     usd_scene_delegate_->populate(depsgraph);
   }
+  free_camera_delegate_->sync(scene_);
 }
 
 void Engine::set_render_setting(const std::string &key, const pxr::VtValue &val)

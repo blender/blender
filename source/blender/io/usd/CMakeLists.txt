@@ -165,6 +165,7 @@ set(SRC
 
 if(WITH_HYDRA)
   list(APPEND SRC
+    hydra/camera_delegate.cc
     hydra/curves.cc
     hydra/hydra_scene_delegate.cc
     hydra/id.cc
@@ -179,6 +180,7 @@ if(WITH_HYDRA)
     hydra/volume_modifier.cc
     hydra/world.cc
 
+    hydra/camera_delegate.hh
     hydra/curves.hh
     hydra/hydra_scene_delegate.hh
     hydra/id.hh
