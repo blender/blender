@@ -35,17 +35,16 @@
 /** \name Mesh Connectivity Mapping
  * \{ */
 
-UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
-                                       const int *corner_verts,
-                                       const float (*mloopuv)[2],
-                                       uint totvert,
-                                       const float limit[2],
-                                       const bool use_winding)
+UvVertMap *BKE_mesh_uv_vert_map_create(blender::OffsetIndices<int> faces,
+                                       blender::Span<int> corner_verts,
+                                       blender::Span<blender::float2> uv_map,
+                                       int verts_num,
+                                       const blender::float2 &limit,
+                                       bool use_winding)
 {
+  using namespace blender;
   /* NOTE: N-gon version WIP, based on #BM_uv_vert_map_create. */
 
-  UvVertMap *vmap;
-  UvMapVert *buf;
   int i, totuv, nverts;
 
   totuv = 0;
@@ -59,9 +58,9 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
     return nullptr;
   }
 
-  vmap = MEM_callocN<UvVertMap>("UvVertMap");
-  buf = vmap->buf = MEM_calloc_arrayN<UvMapVert>(size_t(totuv), "UvMapVert");
-  vmap->vert = MEM_calloc_arrayN<UvMapVert *>(totvert, "UvMapVert*");
+  UvVertMap *vmap = MEM_callocN<UvVertMap>("UvVertMap");
+  UvMapVert *buf = vmap->buf = MEM_calloc_arrayN<UvMapVert>(size_t(totuv), "UvMapVert");
+  vmap->vert = MEM_calloc_arrayN<UvMapVert *>(size_t(verts_num), "UvMapVert*");
 
   if (!vmap->vert || !vmap->buf) {
     BKE_mesh_uv_vert_map_free(vmap);
@@ -73,9 +72,9 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
     winding = MEM_calloc_arrayN<bool>(size_t(faces.size()), "winding");
   }
 
-  blender::Vector<blender::float2, 32> face_uvs;
+  Vector<float2, 32> face_uvs;
   for (const int64_t a : faces.index_range()) {
-    const blender::IndexRange face = faces[a];
+    const IndexRange face = faces[a];
 
     if (use_winding) {
       face_uvs.resize(face.size());
@@ -91,7 +90,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
       vmap->vert[corner_verts[face[i]]] = buf;
 
       if (use_winding) {
-        copy_v2_v2(face_uvs[i], mloopuv[face[i]]);
+        copy_v2_v2(face_uvs[i], uv_map[face[i]]);
       }
 
       buf++;
@@ -104,8 +103,8 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
   }
 
   /* sort individual uvs for each vert */
-  for (uint a = 0; a < totvert; a++) {
-    UvMapVert *newvlist = nullptr, *vlist = vmap->vert[a];
+  for (const int64_t vert : IndexRange(verts_num)) {
+    UvMapVert *newvlist = nullptr, *vlist = vmap->vert[vert];
     UvMapVert *iterv, *v, *lastv, *next;
     const float *uv, *uv2;
     float uvdiff[2];
@@ -116,14 +115,14 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
       v->next = newvlist;
       newvlist = v;
 
-      uv = mloopuv[faces[v->face_index].start() + v->loop_of_face_index];
+      uv = uv_map[faces[v->face_index].start() + v->loop_of_face_index];
       lastv = nullptr;
       iterv = vlist;
 
       while (iterv) {
         next = iterv->next;
 
-        uv2 = mloopuv[faces[iterv->face_index].start() + iterv->loop_of_face_index];
+        uv2 = uv_map[faces[iterv->face_index].start() + iterv->loop_of_face_index];
         sub_v2_v2v2(uvdiff, uv2, uv);
 
         if (fabsf(uv[0] - uv2[0]) < limit[0] && fabsf(uv[1] - uv2[1]) < limit[1] &&
@@ -148,7 +147,7 @@ UvVertMap *BKE_mesh_uv_vert_map_create(const blender::OffsetIndices<int> faces,
       newvlist->separate = true;
     }
 
-    vmap->vert[a] = newvlist;
+    vmap->vert[vert] = newvlist;
   }
 
   if (use_winding) {
