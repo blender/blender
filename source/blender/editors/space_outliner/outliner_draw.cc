@@ -874,11 +874,11 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BLI_uniquename(
               &gpd->layers, gpl, "GP Layer", '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
 
-          WM_msg_publish_rna_prop(mbus, &gpd->id, gpl, GPencilLayer, info);
+          WM_msg_publish_rna_prop(mbus, &gpd->id, gpl, AnnotationLayer, info);
           DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
           WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
           DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
-          undo_str = "Rename Grease Pencil Layer";
+          undo_str = "Rename Annotation Layer";
           break;
         }
         case TSE_GREASE_PENCIL_NODE: {

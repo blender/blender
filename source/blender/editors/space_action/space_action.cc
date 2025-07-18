@@ -445,9 +445,9 @@ static void saction_channel_region_message_subscribe(const wmRegionMessageSubscr
         &RNA_Keyframe,
         &RNA_FCurveSample,
 
-        &RNA_GreasePencil, /* Grease Pencil */
-        &RNA_GPencilLayer,
-        &RNA_GPencilFrame,
+        &RNA_Annotation, /* Grease Pencil */
+        &RNA_AnnotationLayer,
+        &RNA_AnnotationFrame,
     };
 
     for (int i = 0; i < ARRAY_SIZE(type_array); i++) {

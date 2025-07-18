@@ -263,12 +263,12 @@ def fake_main():
     bpy.types.Operator = Operator
 
     # ID Subclasses
+    bpy.types.Annotation = type("Annotation", (), {})
     bpy.types.Armature = type("Armature", (), {})
     bpy.types.Brush = type("Brush", (), {})
     bpy.types.Brush.bl_rna = NewAttr("bpy.types.Brush.bl_rna", "bl_rna")
     bpy.types.Camera = type("Camera", (), {})
     bpy.types.Curve = type("Curve", (), {})
-    bpy.types.GreasePencil = type("GreasePencil", (), {})
     bpy.types.Lattice = type("Lattice", (), {})
     bpy.types.Light = type("Light", (), {})
     bpy.types.Material = type("Material", (), {})
@@ -383,7 +383,7 @@ def fake_runtime():
     bpy.data.movieclips = ()
     bpy.data.armatures = ()
     bpy.data.particles = ()
-    bpy.data.grease_pencils = ()
+    bpy.data.annotations = ()
     bpy.data.cache_files = ()
     bpy.data.workspaces = ()
 

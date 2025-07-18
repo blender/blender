@@ -847,7 +847,7 @@ static eContextResult screen_ctx_active_annotation_layer(const bContext *C,
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
 
     if (gpl) {
-      CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilLayer, gpl);
+      CTX_data_pointer_set(result, &gpd->id, &RNA_AnnotationLayer, gpl);
       return CTX_RESULT_OK;
     }
   }
