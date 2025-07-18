@@ -27,6 +27,15 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
                                         StackReadOp stack_read,
                                         StackWriteOp stack_write)
 {
+#  ifdef __KERNEL_USE_DATA_CONSTANTS__
+  /* If we're using data constants, this fetch disappears.
+   * On Apple GPUs, scenes without volumetric features can render 1 or 2% faster by dead-stripping
+   * this function. */
+  if (!(kernel_data.kernel_features & KERNEL_FEATURE_VOLUME)) {
+    return;
+  }
+#  endif
+
   /* todo: we should have some way for objects to indicate if they want the
    * world shader to work inside them. excluding it by default is problematic
    * because non-volume objects can't be assumed to be closed manifolds */
