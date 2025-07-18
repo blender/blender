@@ -47,6 +47,8 @@
 #include "BLO_read_write.hh"
 
 #include "SEQ_iterator.hh"
+#include "SEQ_modifier.hh"
+#include "SEQ_sequencer.hh"
 
 #include "readfile.hh"
 
@@ -1497,6 +1499,21 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 39)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = seq::editing_get(scene);
+
+      if (ed != nullptr) {
+        seq::for_each_callback(&ed->seqbase, [](Strip *strip) -> bool {
+          LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
+            seq::modifier_persistent_uid_init(*strip, *smd);
+          }
+          return true;
+        });
+      }
+    }
   }
 
   /**

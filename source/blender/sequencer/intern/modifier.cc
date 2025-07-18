@@ -11,9 +11,12 @@
 #include <cstring>
 
 #include "BLI_array.hh"
+#include "BLI_hash.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.hh"
+#include "BLI_rand.hh"
+#include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
@@ -37,11 +40,56 @@
 
 #include "BLO_read_write.hh"
 
+#include "modifier.hh"
 #include "render.hh"
 
 namespace blender::seq {
 
 /* -------------------------------------------------------------------- */
+
+static bool modifier_has_persistent_uid(const Strip &strip, int uid)
+{
+  LISTBASE_FOREACH (StripModifierData *, smd, &strip.modifiers) {
+    if (smd->persistent_uid == uid) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void modifier_persistent_uid_init(const Strip &strip, StripModifierData &smd)
+{
+  uint64_t hash = blender::get_default_hash(blender::StringRef(smd.name));
+  blender::RandomNumberGenerator rng{uint32_t(hash)};
+  while (true) {
+    const int new_uid = rng.get_int32();
+    if (new_uid <= 0) {
+      continue;
+    }
+    if (modifier_has_persistent_uid(strip, new_uid)) {
+      continue;
+    }
+    smd.persistent_uid = new_uid;
+    break;
+  }
+}
+
+bool modifier_persistent_uids_are_valid(const Strip &strip)
+{
+  Set<int> uids;
+  int modifiers_num = 0;
+  LISTBASE_FOREACH (StripModifierData *, smd, &strip.modifiers) {
+    if (smd->persistent_uid <= 0) {
+      return false;
+    }
+    uids.add(smd->persistent_uid);
+    modifiers_num++;
+  }
+  if (uids.size() != modifiers_num) {
+    return false;
+  }
+  return true;
+}
 
 static float4 load_pixel_premul(const uchar *ptr)
 {
@@ -1341,25 +1389,29 @@ void modifier_apply_stack(const RenderData *context,
   }
 }
 
+StripModifierData *modifier_copy(Strip &strip_dst, StripModifierData *mod_src)
+{
+  const StripModifierTypeInfo *smti = modifier_type_info_get(mod_src->type);
+  StripModifierData *mod_new = static_cast<StripModifierData *>(MEM_dupallocN(mod_src));
+
+  if (smti && smti->copy_data) {
+    smti->copy_data(mod_new, mod_src);
+  }
+
+  BLI_addtail(&strip_dst.modifiers, mod_new);
+  BLI_uniquename(&strip_dst.modifiers,
+                 mod_new,
+                 "Strip Modifier",
+                 '.',
+                 offsetof(StripModifierData, name),
+                 sizeof(StripModifierData::name));
+  return mod_new;
+}
+
 void modifier_list_copy(Strip *strip_new, Strip *strip)
 {
   LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
-    StripModifierData *smdn;
-    const StripModifierTypeInfo *smti = modifier_type_info_get(smd->type);
-
-    smdn = static_cast<StripModifierData *>(MEM_dupallocN(smd));
-
-    if (smti && smti->copy_data) {
-      smti->copy_data(smdn, smd);
-    }
-
-    BLI_addtail(&strip_new->modifiers, smdn);
-    BLI_uniquename(&strip_new->modifiers,
-                   smdn,
-                   "Strip Modifier",
-                   '.',
-                   offsetof(StripModifierData, name),
-                   sizeof(StripModifierData::name));
+    modifier_copy(*strip_new, smd);
   }
 }
 

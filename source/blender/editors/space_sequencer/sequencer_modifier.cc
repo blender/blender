@@ -42,7 +42,8 @@ static wmOperatorStatus strip_modifier_add_exec(bContext *C, wmOperator *op)
   Strip *strip = seq::select_active_get(scene);
   int type = RNA_enum_get(op->ptr, "type");
 
-  seq::modifier_new(strip, nullptr, type);
+  StripModifierData *smd = seq::modifier_new(strip, nullptr, type);
+  seq::modifier_persistent_uid_init(*strip, *smd);
 
   seq::relations_invalidate_cache(scene, strip);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -241,52 +242,52 @@ enum {
 static wmOperatorStatus strip_modifier_copy_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
-  Editing *ed = scene->ed;
-  Strip *strip = seq::select_active_get(scene);
+  Strip *active_strip = seq::select_active_get(scene);
   const int type = RNA_enum_get(op->ptr, "type");
 
-  if (!strip || !strip->modifiers.first) {
+  if (!active_strip || !active_strip->modifiers.first) {
     return OPERATOR_CANCELLED;
   }
 
-  int isSound = ELEM(strip->type, STRIP_TYPE_SOUND_RAM);
+  int isSound = ELEM(active_strip->type, STRIP_TYPE_SOUND_RAM);
 
-  LISTBASE_FOREACH (Strip *, strip_iter, seq::active_seqbase_get(ed)) {
-    if (strip_iter->flag & SELECT) {
-      if (strip_iter == strip) {
-        continue;
-      }
-      int strip_iter_is_sound = ELEM(strip_iter->type, STRIP_TYPE_SOUND_RAM);
-      /* If original is sound, only copy to "sound" strips
-       * If original is not sound, only copy to "not sound" strips
-       */
-      if (isSound != strip_iter_is_sound) {
-        continue;
-      }
+  VectorSet<Strip *> selected = selected_strips_from_context(C);
+  selected.remove(active_strip);
 
-      if (type == SEQ_MODIFIER_COPY_REPLACE) {
-        if (strip_iter->modifiers.first) {
-          StripModifierData *smd_tmp,
-              *smd = static_cast<StripModifierData *>(strip_iter->modifiers.first);
-          while (smd) {
-            smd_tmp = smd->next;
-            BLI_remlink(&strip_iter->modifiers, smd);
-            seq::modifier_free(smd);
-            smd = smd_tmp;
-          }
-          BLI_listbase_clear(&strip_iter->modifiers);
+  for (Strip *strip_iter : selected) {
+    int strip_iter_is_sound = ELEM(strip_iter->type, STRIP_TYPE_SOUND_RAM);
+    /* If original is sound, only copy to "sound" strips
+     * If original is not sound, only copy to "not sound" strips
+     */
+    if (isSound != strip_iter_is_sound) {
+      continue;
+    }
+
+    if (type == SEQ_MODIFIER_COPY_REPLACE) {
+      if (strip_iter->modifiers.first) {
+        StripModifierData *smd_tmp,
+            *smd = static_cast<StripModifierData *>(strip_iter->modifiers.first);
+        while (smd) {
+          smd_tmp = smd->next;
+          BLI_remlink(&strip_iter->modifiers, smd);
+          seq::modifier_free(smd);
+          smd = smd_tmp;
         }
+        BLI_listbase_clear(&strip_iter->modifiers);
       }
+    }
 
-      seq::modifier_list_copy(strip_iter, strip);
+    LISTBASE_FOREACH (StripModifierData *, smd, &active_strip->modifiers) {
+      StripModifierData *smd_new = seq::modifier_copy(*strip_iter, smd);
+      seq::modifier_persistent_uid_init(*strip_iter, *smd_new);
     }
   }
 
-  if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM)) {
+  if (ELEM(active_strip->type, STRIP_TYPE_SOUND_RAM)) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
   }
   else {
-    seq::relations_invalidate_cache(scene, strip);
+    seq::relations_invalidate_cache(scene, active_strip);
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);

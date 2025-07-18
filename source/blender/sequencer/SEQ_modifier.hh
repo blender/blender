@@ -58,10 +58,12 @@ void modifier_apply_stack(const RenderData *context,
                           const Strip *strip,
                           ImBuf *ibuf,
                           int timeline_frame);
+StripModifierData *modifier_copy(Strip &strip_dst, StripModifierData *mod_src);
 void modifier_list_copy(Strip *strip_new, Strip *strip);
 int sequence_supports_modifiers(Strip *strip);
 
 void modifier_blend_write(BlendWriter *writer, ListBase *modbase);
 void modifier_blend_read_data(BlendDataReader *reader, ListBase *lb);
+void modifier_persistent_uid_init(const Strip &strip, StripModifierData &smd);
 
 }  // namespace blender::seq

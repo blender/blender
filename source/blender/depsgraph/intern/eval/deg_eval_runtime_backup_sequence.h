@@ -10,11 +10,30 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_map.hh"
+
 struct Strip;
+struct StripModifierData;
 
 namespace blender::deg {
 
 struct Depsgraph;
+
+class StripModifierDataBackup {
+ public:
+  StripModifierDataBackup();
+
+  void reset();
+
+  void init_from_modifier(StripModifierData *smd);
+  void restore_to_modifier(StripModifierData *smd);
+
+  bool isEmpty() const;
+
+  void *sound_in;
+  void *sound_out;
+  float *last_buf;
+};
 
 /* Backup of a single strip. */
 class StripBackup {
@@ -30,6 +49,7 @@ class StripBackup {
 
   void *scene_sound;
   ListBase anims;
+  Map<int, StripModifierDataBackup> modifiers;
 };
 
 }  // namespace blender::deg
