@@ -38,10 +38,18 @@ body:
 
                **Exact steps for others to reproduce the error**
                Based on the default startup or an attached .blend file (as simple as possible).
-
   - type: markdown
     attributes:
       value: |
                 ### Help the developers
 
-                Bug fixing is important, the developers will handle reports swiftly. For that reason, carefully provide exact steps and a **small and simple .blend file** to reproduce the problem. You do your half of the work, then we do our half!
+                For developers to handle reports swiftly, please provide crash logs, a clear description, exact steps, and a **simple .blend file** to reproduce the problem. You do your half of the work, then we do our half!
+  - type: checkboxes
+    id: filled_form
+    attributes:
+      label: "Confirmation"
+      hide_label: true
+      options:
+        - label: "I confirm that I have filled out the bug report form with all the requested information."
+          required: true
+          visible: [form]
