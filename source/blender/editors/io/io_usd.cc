@@ -77,7 +77,7 @@ const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-const EnumPropertyItem rna_enum_usd_attr_import_mode_items[] = {
+const EnumPropertyItem rna_enum_usd_property_import_mode_items[] = {
     {USD_ATTR_IMPORT_NONE, "NONE", 0, "None", "Do not import USD custom attributes"},
     {USD_ATTR_IMPORT_USER,
      "USER",
@@ -933,7 +933,8 @@ static wmOperatorStatus wm_usd_import_exec(bContext *C, wmOperator *op)
   params.tex_name_collision_mode = eUSDTexNameCollisionMode(
       RNA_enum_get(op->ptr, "tex_name_collision_mode"));
 
-  params.attr_import_mode = eUSDAttrImportMode(RNA_enum_get(op->ptr, "attr_import_mode"));
+  params.property_import_mode = eUSDPropertyImportMode(
+      RNA_enum_get(op->ptr, "property_import_mode"));
 
   params.prim_path_mask = RNA_string_get(op->ptr, "prim_path_mask");
 
@@ -980,7 +981,7 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
     col->prop(ptr, "apply_unit_conversion_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "light_intensity_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    col->prop(ptr, "attr_import_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "property_import_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = layout->panel(C, "USD_import_types", false, IFACE_("Object Types"))) {
@@ -1240,8 +1241,8 @@ void WM_OT_usd_import(wmOperatorType *ot)
       "Behavior when the name of an imported texture file conflicts with an existing file");
 
   RNA_def_enum(ot->srna,
-               "attr_import_mode",
-               rna_enum_usd_attr_import_mode_items,
+               "property_import_mode",
+               rna_enum_usd_property_import_mode_items,
                USD_ATTR_IMPORT_ALL,
                "Custom Properties",
                "Behavior when importing USD attributes as Blender custom properties");

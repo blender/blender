@@ -24,9 +24,9 @@ void USDPrimReader::set_props(const bool merge_with_parent, const pxr::UsdTimeCo
     return;
   }
 
-  eUSDAttrImportMode attr_import_mode = this->import_params_.attr_import_mode;
+  eUSDPropertyImportMode property_import_mode = this->import_params_.property_import_mode;
 
-  if (attr_import_mode == USD_ATTR_IMPORT_NONE) {
+  if (property_import_mode == USD_ATTR_IMPORT_NONE) {
     return;
   }
 
@@ -34,19 +34,19 @@ void USDPrimReader::set_props(const bool merge_with_parent, const pxr::UsdTimeCo
     /* This object represents a parent Xform merged with its child prim.
      * Set the parent prim's custom properties on the Object ID. */
     if (const pxr::UsdPrim parent_prim = prim_.GetParent()) {
-      set_id_props_from_prim(&object_->id, parent_prim, attr_import_mode, time);
+      set_id_props_from_prim(&object_->id, parent_prim, property_import_mode, time);
     }
   }
   if (!object_->data) {
     /* If the object has no data, set the prim's custom properties on the object.
      * This applies to Xforms that have been converted to Empty objects. */
-    set_id_props_from_prim(&object_->id, prim_, attr_import_mode, time);
+    set_id_props_from_prim(&object_->id, prim_, property_import_mode, time);
   }
 
   if (object_->data) {
     /* If the object has data, the data represents the USD prim, so set the prim's custom
      * properties on the data directly. */
-    set_id_props_from_prim(static_cast<ID *>(object_->data), prim_, attr_import_mode, time);
+    set_id_props_from_prim(static_cast<ID *>(object_->data), prim_, property_import_mode, time);
   }
 }
 

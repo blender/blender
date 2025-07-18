@@ -157,7 +157,7 @@ static void set_double_prop(IDProperty *idgroup, const StringRefNull prop_name, 
 
 void set_id_props_from_prim(ID *id,
                             const pxr::UsdPrim &prim,
-                            const eUSDAttrImportMode attr_import_mode,
+                            const eUSDPropertyImportMode property_import_mode,
                             const pxr::UsdTimeCode time_code)
 {
   pxr::UsdAttributeVector attribs = prim.GetAuthoredAttributes();
@@ -165,7 +165,7 @@ void set_id_props_from_prim(ID *id,
     return;
   }
 
-  bool all_custom_attrs = (attr_import_mode == USD_ATTR_IMPORT_ALL);
+  bool all_custom_attrs = (property_import_mode == USD_ATTR_IMPORT_ALL);
 
   for (const pxr::UsdAttribute &attr : attribs) {
     if (!attr.IsCustom()) {

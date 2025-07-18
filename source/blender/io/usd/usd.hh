@@ -51,7 +51,7 @@ enum eUSDMtlPurpose {
  *  attributes / properties outside
  *  a prim's regular schema.
  */
-enum eUSDAttrImportMode {
+enum eUSDPropertyImportMode {
   USD_ATTR_IMPORT_NONE = 0,
   USD_ATTR_IMPORT_USER = 1,
   USD_ATTR_IMPORT_ALL = 2,
@@ -236,7 +236,7 @@ struct USDImportParams {
   std::string prim_path_mask;
   char import_textures_dir[/*FILE_MAXDIR*/ 768];
   eUSDTexNameCollisionMode tex_name_collision_mode;
-  eUSDAttrImportMode attr_import_mode;
+  eUSDPropertyImportMode property_import_mode;
 
   /**
    * Communication structure between the wmJob management code and the worker code. Currently used
