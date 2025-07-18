@@ -63,7 +63,7 @@
   "``POINT_FLAT_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: float size\n" \
-  "``POLYLINE_UNIFORM_COLOR``\n" \
+  "``POINT_UNIFORM_COLOR``\n" \
   "   :Attributes: vec3 pos\n" \
   "   :Uniforms: vec4 color, float size\n"
 
