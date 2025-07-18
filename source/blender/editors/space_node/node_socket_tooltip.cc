@@ -579,7 +579,7 @@ class SocketTooltipBuilder {
       return;
     }
 
-    this->add_text_field_mono(TIP_("Field dependending on:"));
+    this->add_text_field_mono(TIP_("Field depending on:"));
 
     for (const std::string &input_tooltip : input_tooltips) {
       this->add_space();
