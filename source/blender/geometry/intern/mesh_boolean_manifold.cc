@@ -1661,7 +1661,10 @@ static void get_intersecting_edges(Vector<int> *r_intersecting_edges,
  * the plane's normal, and *r_origin_offset to be the vector that goes
  * from the origin to the plane in the normal direction.
  */
-static bool is_plane(const Mesh *mesh, float3 *r_normal, float *r_origin_offset)
+static bool is_plane(const Mesh *mesh,
+                     float4x4 transform,
+                     float3 *r_normal,
+                     float *r_origin_offset)
 {
   if (mesh->faces_num != 1 && mesh->verts_num != 4) {
     return false;
@@ -1670,7 +1673,7 @@ static bool is_plane(const Mesh *mesh, float3 *r_normal, float *r_origin_offset)
   const Span<float3> positions = mesh->vert_positions();
   const Span<int> f_corners = mesh->corner_verts().slice(mesh->faces()[0]);
   for (int i = 0; i < 4; i++) {
-    vpos[i] = positions[f_corners[i]];
+    mul_v3_m4v3(vpos[i], transform.ptr(), positions[f_corners[i]]);
   }
   float3 norm1 = math::normal_tri(vpos[0], vpos[1], vpos[2]);
   float3 norm2 = math::normal_tri(vpos[0], vpos[2], vpos[3]);
@@ -1949,7 +1952,7 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
       float origin_offset;
       if (meshes_num == 2 && op == Operation::Difference &&
           manifolds[0].Status() == Manifold::Error::NoError &&
-          is_plane(meshes[1], &normal, &origin_offset))
+          is_plane(meshes[1], transforms[1], &normal, &origin_offset))
       {
 #  ifdef DEBUG_TIME
         timeit::ScopedTimer timer_trim("DOING BOOLEAN SLICE, GETTING MESH_GL RESULT");
