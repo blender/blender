@@ -165,6 +165,10 @@ AttrStorageType Attribute::storage_type() const
 Attribute::DataVariant &Attribute::data_for_write()
 {
   if (auto *data = std::get_if<Attribute::ArrayData>(&data_)) {
+    if (!data->sharing_info) {
+      BLI_assert(data->size == 0);
+      return data_;
+    }
     if (data->sharing_info->is_mutable()) {
       data->sharing_info->tag_ensured_mutable();
       return data_;
