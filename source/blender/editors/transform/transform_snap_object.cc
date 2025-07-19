@@ -1165,10 +1165,10 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
       }
     }
   }
+  sctx->runtime.hit_list = hit_list;
 
   sctx->ret.ray_depth_max = sctx->ret.ray_depth_max_in_front = ray_depth;
   sctx->ret.index = -1;
-  sctx->ret.hit_list = hit_list;
   sctx->ret.ob = nullptr;
   sctx->ret.data = nullptr;
   sctx->ret.dist_px_sq = dist_px_sq;
@@ -1424,6 +1424,16 @@ eSnapMode snap_object_project_view3d_ex(SnapObjectContext *sctx,
     /* Remove what has already been computed. */
     sctx->runtime.snap_to_flag &= ~(SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST);
 
+    SnapObjectContext::Output ret_bak{};
+    if (!(sctx->runtime.snap_to_flag & SCE_SNAP_TO_EDGE) &&
+        (sctx->runtime.snap_to_flag &
+         (SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_ENDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR)))
+    {
+      /* 'Snap to Edge' may occur even if it is not included among the selected snap types.
+       * Save a backup to restore the previous result if needed. */
+      ret_bak = sctx->ret;
+    }
+
     if (use_occlusion_plane && has_hit) {
       /* Compute the new clip_pane but do not add it yet. */
       BLI_ASSERT_UNIT_V3(sctx->ret.no);
@@ -1454,11 +1464,18 @@ eSnapMode snap_object_project_view3d_ex(SnapObjectContext *sctx,
       elem = elem_test;
     }
 
-    if ((elem == SCE_SNAP_TO_EDGE) &&
-        (snap_to_flag &
-         (SCE_SNAP_TO_EDGE_ENDPOINT | SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR)))
-    {
-      elem = snap_edge_points(sctx, square_f(*dist_px));
+    if (elem == SCE_SNAP_TO_EDGE) {
+      if (snap_to_flag &
+          (SCE_SNAP_TO_EDGE_ENDPOINT | SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR))
+      {
+        elem = snap_edge_points(sctx, square_f(*dist_px));
+      }
+
+      if (!(elem & snap_to_flag)) {
+        /* Restore the previous snap. */
+        elem = SCE_SNAP_TO_NONE;
+        sctx->ret = ret_bak;
+      }
     }
 
     if (elem != SCE_SNAP_TO_NONE) {
