@@ -4,7 +4,7 @@ diff -Naur tinyxml.orig/CMakeLists.txt tinyxml/CMakeLists.txt
 @@ -0,0 +1,30 @@
 +project(tinyxml)
 +
-+cmake_minimum_required(VERSION 2.8)
++cmake_minimum_required(VERSION 3.10)
 +
 +add_library(tinyxml
 +    STATIC
