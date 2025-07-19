@@ -11,12 +11,16 @@
 #include <sstream>
 
 #if defined(WITH_GHOST_X11)
-#  include "GHOST_ContextEGL.hh"
-#  include "GHOST_ContextGLX.hh"
+#  if defined(WITH_OPENGL_BACKEND)
+#    include "GHOST_ContextEGL.hh"
+#    include "GHOST_ContextGLX.hh"
+#  endif
 #  include "GHOST_SystemX11.hh"
 #endif
 #if defined(WITH_GHOST_WAYLAND)
-#  include "GHOST_ContextEGL.hh"
+#  if defined(WITH_OPENGL_BACKEND)
+#    include "GHOST_ContextEGL.hh"
+#  endif
 #  include "GHOST_SystemWayland.hh"
 #endif
 #if defined(WIN32)
@@ -35,6 +39,7 @@
 
 #include "GHOST_IXrGraphicsBinding.hh"
 
+#if defined(WITH_OPENGL_BACKEND)
 static std::optional<int64_t> choose_swapchain_format_from_candidates(
     const std::vector<int64_t> &gpu_binding_formats, const std::vector<int64_t> &runtime_formats)
 {
@@ -68,24 +73,24 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
                                 std::string *r_requirement_info) const override
   {
     int gl_major_version, gl_minor_version;
-#if defined(WIN32)
+#  if defined(WIN32)
     GHOST_ContextWGL &ctx_gl = static_cast<GHOST_ContextWGL &>(ghost_ctx);
     gl_major_version = ctx_gl.m_contextMajorVersion;
     gl_minor_version = ctx_gl.m_contextMinorVersion;
-#elif defined(WITH_GHOST_X11) || defined(WITH_GHOST_WAYLAND)
+#  elif defined(WITH_GHOST_X11) || defined(WITH_GHOST_WAYLAND)
     if (dynamic_cast<GHOST_ContextEGL *>(&ghost_ctx)) {
       GHOST_ContextEGL &ctx_gl = static_cast<GHOST_ContextEGL &>(ghost_ctx);
       gl_major_version = ctx_gl.m_contextMajorVersion;
       gl_minor_version = ctx_gl.m_contextMinorVersion;
     }
-#  if defined(WITH_GHOST_X11)
+#    if defined(WITH_GHOST_X11)
     else {
       GHOST_ContextGLX &ctx_gl = static_cast<GHOST_ContextGLX &>(ghost_ctx);
       gl_major_version = ctx_gl.m_contextMajorVersion;
       gl_minor_version = ctx_gl.m_contextMinorVersion;
     }
+#    endif
 #  endif
-#endif
     static PFN_xrGetOpenGLGraphicsRequirementsKHR s_xrGetOpenGLGraphicsRequirementsKHR_fn =
         nullptr;
     // static XrInstance s_instance = XR_NULL_HANDLE;
@@ -132,7 +137,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
                             XrInstance /*instance*/,
                             XrSystemId /*system_id*/) override
   {
-#if defined(WITH_GHOST_X11) || defined(WITH_GHOST_WAYLAND)
+#  if defined(WITH_GHOST_X11) || defined(WITH_GHOST_WAYLAND)
     /* WAYLAND/X11 may be dynamically selected at load time but both may also be
      * supported at compile time individually.
      * Without `is_ctx_egl` & `is_wayland` preprocessor checks become an unmanageable soup. */
@@ -140,43 +145,43 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     if (is_ctx_egl) {
       GHOST_ContextEGL &ctx_egl = static_cast<GHOST_ContextEGL &>(ghost_ctx);
       const bool is_wayland = (
-#  if defined(WITH_GHOST_WAYLAND)
+#    if defined(WITH_GHOST_WAYLAND)
           dynamic_cast<const GHOST_SystemWayland *const>(ctx_egl.m_system) != nullptr
-#  else
+#    else
           false
-#  endif
+#    endif
       );
 
       if (is_wayland) {
-#  if defined(WITH_GHOST_WAYLAND)
+#    if defined(WITH_GHOST_WAYLAND)
         /* #GHOST_SystemWayland */
         oxr_binding.wl.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WAYLAND_KHR;
         oxr_binding.wl.display = (wl_display *)ctx_egl.m_nativeDisplay;
-#  else
+#    else
         GHOST_ASSERT(false, "Unexpected State: logical error, unreachable!");
-#  endif /* !WITH_GHOST_WAYLAND */
+#    endif /* !WITH_GHOST_WAYLAND */
       }
       else { /* `!is_wayland` */
-#  if defined(WITH_GHOST_X11)
+#    if defined(WITH_GHOST_X11)
         /* #GHOST_SystemX11. */
         oxr_binding.egl.type = XR_TYPE_GRAPHICS_BINDING_EGL_MNDX;
-#    if XR_CURRENT_API_VERSION >= XR_MAKE_VERSION(1, 0, 29)
+#      if XR_CURRENT_API_VERSION >= XR_MAKE_VERSION(1, 0, 29)
         oxr_binding.egl.getProcAddress = reinterpret_cast<PFN_xrEglGetProcAddressMNDX>(
             eglGetProcAddress);
-#    else
+#      else
         oxr_binding.egl.getProcAddress = reinterpret_cast<PFNEGLGETPROCADDRESSPROC>(
             eglGetProcAddress);
-#    endif
+#      endif
         oxr_binding.egl.display = ctx_egl.getDisplay();
         oxr_binding.egl.config = ctx_egl.getConfig();
         oxr_binding.egl.context = ctx_egl.getContext();
-#  else
+#    else
         GHOST_ASSERT(false, "Unexpected State: built with only WAYLAND and no System found!");
-#  endif /* !WITH_GHOST_X11 */
+#    endif /* !WITH_GHOST_X11 */
       }
     }
     else { /* `!is_ctx_egl` */
-#  if defined(WITH_GHOST_X11)
+#    if defined(WITH_GHOST_X11)
       GHOST_ContextGLX &ctx_glx = static_cast<GHOST_ContextGLX &>(ghost_ctx);
       XVisualInfo *visual_info = glXGetVisualFromFBConfig(ctx_glx.m_display, ctx_glx.m_fbconfig);
 
@@ -188,17 +193,17 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
       oxr_binding.glx.visualid = visual_info->visualid;
 
       XFree(visual_info);
-#  else
+#    else
       GHOST_ASSERT(false, "Unexpected State: built without X11 and no EGL context is available!");
-#  endif /* !WITH_GHOST_X11 */
+#    endif /* !WITH_GHOST_X11 */
     }
-#elif defined(WIN32)
+#  elif defined(WIN32)
     GHOST_ContextWGL &ctx_wgl = static_cast<GHOST_ContextWGL &>(ghost_ctx);
 
     oxr_binding.wgl.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR;
     oxr_binding.wgl.hDC = ctx_wgl.m_hDC;
     oxr_binding.wgl.hGLRC = ctx_wgl.m_hGLRC;
-#endif /* WIN32 */
+#  endif /* WIN32 */
 
     /* Generate a frame-buffer to use for blitting into the texture. */
     glGenFramebuffers(1, &m_fbo);
@@ -209,16 +214,16 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
                                                bool &r_is_srgb_format) const override
   {
     std::vector<int64_t> gpu_binding_formats = {
-#if 0 /* RGB10A2, RGBA16 don't seem to work with Oculus head-sets, \
-       * so move them after RGBA16F for the time being. */
+#  if 0 /* RGB10A2, RGBA16 don't seem to work with Oculus head-sets, \
+         * so move them after RGBA16F for the time being. */
         GL_RGB10_A2,
         GL_RGBA16,
-#endif
+#  endif
       GL_RGBA16F,
-#if 1
+#  if 1
       GL_RGB10_A2,
       GL_RGBA16,
-#endif
+#  endif
       GL_RGBA8,
       GL_SRGB8_ALPHA8,
     };
@@ -305,6 +310,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
   std::list<std::vector<XrSwapchainImageOpenGLKHR>> m_image_cache;
   GLuint m_fbo = 0;
 };
+#endif
 
 std::unique_ptr<GHOST_IXrGraphicsBinding> GHOST_XrGraphicsBindingCreateFromType(
     GHOST_TXrGraphicsBinding type, GHOST_Context &context)
