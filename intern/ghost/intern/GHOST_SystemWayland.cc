@@ -8840,7 +8840,7 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_bitmap_get(GHOST_CursorBitmapRef *bit
   bitmap->hot_spot[0] = cursor->wl.image.hotspot_x;
   bitmap->hot_spot[1] = cursor->wl.image.hotspot_y;
 
-  bitmap->data = static_cast<uint8_t *>(cursor->custom_data);
+  bitmap->data = static_cast<const uint8_t *>(cursor->custom_data);
 
   return GHOST_kSuccess;
 }
