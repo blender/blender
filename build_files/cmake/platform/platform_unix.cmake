@@ -104,6 +104,22 @@ if(DEFINED LIBDIR)
   set(MaterialX_DIR ${LIBDIR}/materialx/lib/cmake/MaterialX)
 endif()
 
+# Add COLLADA-specific libraries if available
+if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "amd64")
+  set(_collada_lib_dir ${CMAKE_SOURCE_DIR}/lib/linux_x64_collada)
+elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+  set(_collada_lib_dir ${CMAKE_SOURCE_DIR}/lib/linux_arm64_collada)
+endif()
+
+if(DEFINED _collada_lib_dir AND EXISTS ${_collada_lib_dir})
+  file(GLOB COLLADA_LIB_SUBDIRS ${_collada_lib_dir}/*)
+  list(APPEND CMAKE_PREFIX_PATH ${COLLADA_LIB_SUBDIRS})
+  if(FIRST_RUN)
+    message(STATUS "Adding COLLADA libraries: ${_collada_lib_dir}")
+  endif()
+endif()
+unset(_collada_lib_dir)
+
 # Wrapper to prefer static libraries
 macro(find_package_wrapper)
   if(WITH_STATIC_LIBS)

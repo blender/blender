@@ -223,21 +223,37 @@ def initialize_precompiled_libraries(args: argparse.Namespace) -> str:
     print(f"Detected architecture : {arch}")
     print()
 
-    submodule_dir = f"lib/{platform}_{arch}"
-
+    # Standard submodule
+    standard_submodule_dir = f"lib/{platform}_{arch}"
+    
+    # Additional COLLADA-specific submodule
+    collada_submodule_dir = f"lib/{platform}_{arch}_collada"
+    
     submodule_directories = get_submodule_directories(args)
+    
+    enabled_any = False
+    
+    # Enable standard submodule if it exists
+    if Path(standard_submodule_dir) in submodule_directories:
+        print(f"* Enabling standard precompiled libraries at {standard_submodule_dir}")
+        make_utils.git_enable_submodule(args.git_command, Path(standard_submodule_dir))
+        enabled_any = True
+    
+    # Enable COLLADA submodule if it exists (additional libraries)
+    if Path(collada_submodule_dir) in submodule_directories:
+        print(f"* Enabling COLLADA libraries at {collada_submodule_dir}")
+        make_utils.git_enable_submodule(args.git_command, Path(collada_submodule_dir))
+        enabled_any = True
 
+    # Upstream notice for macOS Intel users.
     if platform == "macos" and arch == "x64":
         return ("WARNING: macOS x64/Intel support was dropped in Blender 5.0.\n"
                 "         As such, pre-compiled dependencies are no longer provided.\n"
                 "         You may build the dependencies yourself, or downgrade to Blender 4.5.\n"
                 "         For more details, please see: https://devtalk.blender.org/t/38835")
 
-    if Path(submodule_dir) not in submodule_directories:
+    if not enabled_any:
         return "Skipping libraries update: no configured submodule\n"
-
-    print(f"* Enabling precompiled libraries at {submodule_dir}")
-    make_utils.git_enable_submodule(args.git_command, Path(submodule_dir))
 
     return ""
 

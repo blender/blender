@@ -18,3 +18,6 @@
 	path = lib/windows_arm64
 	url = https://projects.blender.org/blender/lib-windows_arm64.git
 	branch = blender-v5.0-release
+[submodule "lib/linux_x64_collada"]
+	path = lib/linux_x64_collada
+	url = https://github.com/Blenux/lib-linux_x64-collada.git
