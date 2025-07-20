@@ -1548,8 +1548,8 @@ float radius_from_input_sample(const RegionView3D *rv3d,
                                const ARegion *region,
                                const Brush *brush,
                                const float pressure,
-                               const float3 location,
-                               const float4x4 to_world,
+                               const float3 &location,
+                               const float4x4 &to_world,
                                const BrushGpencilSettings *settings)
 {
   float radius = brush_radius_at_location(rv3d, region, brush, location, to_world);

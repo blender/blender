@@ -640,7 +640,7 @@ static float3x2 get_stroke_to_texture_matrix(const float uv_rotation,
   return texture_matrix;
 }
 
-static float4x3 expand_4x2_mat(float4x2 strokemat)
+static float4x3 expand_4x2_mat(const float4x2 &strokemat)
 {
   float4x3 strokemat4x3 = float4x3(strokemat);
 

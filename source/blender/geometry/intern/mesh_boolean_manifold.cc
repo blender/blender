@@ -1662,7 +1662,7 @@ static void get_intersecting_edges(Vector<int> *r_intersecting_edges,
  * from the origin to the plane in the normal direction.
  */
 static bool is_plane(const Mesh *mesh,
-                     float4x4 transform,
+                     const float4x4 &transform,
                      float3 *r_normal,
                      float *r_origin_offset)
 {
