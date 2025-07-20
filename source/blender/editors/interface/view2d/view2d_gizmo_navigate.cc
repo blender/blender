@@ -125,6 +125,9 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gz
   if (area == nullptr) {
     return false;
   }
+  if (CTX_wm_screen(C)->state == SCREENFULL) {
+    return false;
+  }
   switch (area->spacetype) {
     case SPACE_SEQ: {
       const SpaceSeq *sseq = static_cast<const SpaceSeq *>(area->spacedata.first);
