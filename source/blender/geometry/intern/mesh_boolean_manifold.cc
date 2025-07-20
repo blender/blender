@@ -1689,24 +1689,41 @@ static bool is_plane(const Mesh *mesh,
  * Handle special case of one manifold mesh, which has been converted to
  * \a manifold 0, and one plane, which has normalized normal \a normal
  * and distance from origin \a origin_offset.
+ * If there is an error, set *r_error appropriately.
  */
 static MeshGL mesh_trim_manifold(Manifold &manifold0,
                                  float3 normal,
                                  float origin_offset,
-                                 const MeshOffsets &mesh_offsets)
+                                 const MeshOffsets &mesh_offsets,
+                                 BooleanError *r_error)
 {
   Manifold man_result = manifold0.TrimByPlane(manifold::vec3(normal[0], normal[1], normal[2]),
                                               double(origin_offset));
   MeshGL meshgl = man_result.GetMeshGL();
+  if (man_result.Status() != Manifold::Error::NoError) {
+    if (man_result.Status() == Manifold::Error::ResultTooLarge) {
+      *r_error = BooleanError::ResultTooBig;
+    }
+    else if (man_result.Status() == Manifold::Error::NotManifold) {
+      *r_error = BooleanError::NonManifold;
+    }
+    else {
+      *r_error = BooleanError::UnknownError;
+    }
+    return meshgl;
+  }
   /* This meshgl_result has a non-standard (but non-zero) original ID for the
-   * plane faces, and faceIDs that make no sense for them. Fix this. */
-  BLI_assert(meshgl.runOriginalID.size() == 2 && meshgl.runOriginalID[1] > 0);
-  meshgl.runOriginalID[1] = 1;
-  BLI_assert(meshgl.runIndex.size() == 3);
-  int plane_face_start = meshgl.runIndex[1] / 3;
-  int plane_face_end = meshgl.runIndex[2] / 3;
-  for (int i = plane_face_start; i < plane_face_end; i++) {
-    meshgl.faceID[i] = mesh_offsets.face_offsets[1][0];
+   * plane faces, and faceIDs that make no sense for them. Fix this.
+   * But only do this if the result is not empty. */
+  if (meshgl.vertProperties.size() > 0) {
+    BLI_assert(meshgl.runOriginalID.size() == 2 && meshgl.runOriginalID[1] > 0);
+    meshgl.runOriginalID[1] = 1;
+    BLI_assert(meshgl.runIndex.size() == 3);
+    int plane_face_start = meshgl.runIndex[1] / 3;
+    int plane_face_end = meshgl.runIndex[2] / 3;
+    for (int i = plane_face_start; i < plane_face_end; i++) {
+      meshgl.faceID[i] = mesh_offsets.face_offsets[1][0];
+    }
   }
   return meshgl;
 }
@@ -1957,10 +1974,22 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
 #  ifdef DEBUG_TIME
         timeit::ScopedTimer timer_trim("DOING BOOLEAN SLICE, GETTING MESH_GL RESULT");
 #  endif
-        meshgl_result = mesh_trim_manifold(manifolds[0], normal, origin_offset, mesh_offsets);
+        meshgl_result = mesh_trim_manifold(
+            manifolds[0], normal, origin_offset, mesh_offsets, r_error);
+        if (*r_error != BooleanError::NoError) {
+          return nullptr;
+        }
       }
       else {
-        *r_error = BooleanError::NonManifold;
+        if (std::any_of(manifolds.begin(), manifolds.end(), [](const Manifold &m) {
+              return m.Status() == Manifold::Error::NotManifold;
+            }))
+        {
+          *r_error = BooleanError::NonManifold;
+        }
+        else {
+          *r_error = BooleanError::UnknownError;
+        }
         return nullptr;
       }
     }
