@@ -1253,11 +1253,32 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
         dissolve[v] = fsize <= 3 ? false : true;
       }
       else {
-        /* Some previous face had v. Disable dissolve unless if neighbors are the same, reversed.
+        /* Some previous face had v. Disable dissolve unless if neighbors are the same, reversed,
+         * or if this face is a triangle.
          */
-        if (!(vprev == v_nbrs.second && vnext == v_nbrs.first)) {
+        if (fsize == 3 || !(vprev == v_nbrs.second && vnext == v_nbrs.first)) {
           dissolve[v] = false;
         }
+      }
+    }
+  }
+  /* We can't dissolve so many verts in a face that it leaves less than a triangle.
+   * This should be rare, since the above logic will prevent dissolving a vert from a triangle,
+   * but it is possible that two or more verts are to be dissolved from a quad or ngon.
+   * Do a pass to remove the possiblitiy of dissolving anything from such faces.
+   */
+  for (const int f : ma.new_faces.index_range()) {
+    const OutFace &face = ma.new_faces[f];
+    const int fsize = face.verts.size();
+    int num_dissolved = 0;
+    for (const int i : IndexRange(fsize)) {
+      if (dissolve[face.verts[i]]) {
+        num_dissolved++;
+      }
+    }
+    if (fsize - num_dissolved < 3) {
+      for (const int i : IndexRange(fsize)) {
+        dissolve[face.verts[i]] = false;
       }
     }
   }
@@ -1328,17 +1349,7 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
         }
       }
       if (i_to < face.verts.size()) {
-        if (i_to < 3) {
-          /* Should be very rare. Means we dissolved two or more vertices from
-           * a degenerate ngon. Since its too late to really undo that, just make
-           * a valid triangle with undeleted verts. */
-          if (i_to == 0) {
-            face.verts[i_to++] = 0;
-          }
-          while (i_to < 3) {
-            face.verts[i_to++] = face.verts[0];
-          }
-        }
+        BLI_assert(i_to >= 3);
         face.verts.resize(i_to);
       }
     }
@@ -1901,6 +1912,8 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
 
   mesh->tag_loose_verts_none();
   mesh->tag_overlapping_none();
+
+  BLI_assert(BKE_mesh_is_valid(mesh));
 
   return mesh;
 }
