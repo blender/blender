@@ -5813,7 +5813,8 @@ static void text_input_handle_enter(void *data,
                                     zwp_text_input_v3 * /*zwp_text_input_v3*/,
                                     wl_surface *surface)
 {
-  if (!ghost_wl_surface_own(surface)) {
+  /* Can be null when closing a window, see: #141777. */
+  if (!ghost_wl_surface_own_with_null_check(surface)) {
     return;
   }
   CLOG_INFO(LOG, 2, "enter");
