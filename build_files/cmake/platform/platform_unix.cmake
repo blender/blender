@@ -104,21 +104,23 @@ if(DEFINED LIBDIR)
   set(MaterialX_DIR ${LIBDIR}/materialx/lib/cmake/MaterialX)
 endif()
 
-# Add COLLADA-specific libraries if available
-if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "amd64")
-  set(_collada_lib_dir ${CMAKE_SOURCE_DIR}/lib/linux_x64_collada)
-elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
-  set(_collada_lib_dir ${CMAKE_SOURCE_DIR}/lib/linux_arm64_collada)
-endif()
-
-if(DEFINED _collada_lib_dir AND EXISTS ${_collada_lib_dir})
-  file(GLOB COLLADA_LIB_SUBDIRS ${_collada_lib_dir}/*)
-  list(APPEND CMAKE_PREFIX_PATH ${COLLADA_LIB_SUBDIRS})
+# Add COLLADA-specific libraries if available  
+if(EXISTS ${CMAKE_SOURCE_DIR}/lib/linux_x64_collada/opencollada)
+  set(OPENCOLLADA_ROOT_DIR ${CMAKE_SOURCE_DIR}/lib/linux_x64_collada/opencollada)
+  
+  # Set include directories explicitly
+  set(OPENCOLLADA_INCLUDE_DIRS
+    ${CMAKE_SOURCE_DIR}/lib/linux_x64_collada/opencollada/include/COLLADAFWAnimation
+    ${CMAKE_SOURCE_DIR}/lib/linux_x64_collada/opencollada/include/COLLADABaseUtils
+    ${CMAKE_SOURCE_DIR}/lib/linux_x64_collada/opencollada/include/COLLADAFramework
+    ${CMAKE_SOURCE_DIR}/lib/linux_x64_collada/opencollada/include/COLLADASaxFrameworkLoader
+    ${CMAKE_SOURCE_DIR}/lib/linux_x64_collada/opencollada/include/GeneratedSaxParser
+  )
+  
   if(FIRST_RUN)
-    message(STATUS "Adding COLLADA libraries: ${_collada_lib_dir}")
+    message(STATUS "Using COLLADA libraries from: ${OPENCOLLADA_ROOT_DIR}")
   endif()
 endif()
-unset(_collada_lib_dir)
 
 # Wrapper to prefer static libraries
 macro(find_package_wrapper)
