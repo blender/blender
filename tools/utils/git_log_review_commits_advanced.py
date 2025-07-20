@@ -195,6 +195,7 @@ BUGFIX_CATEGORIES = (
 
     ("System / Misc", (
         "Audio",
+        "Collada",
         "File I/O",
         "Other",
         "Python",

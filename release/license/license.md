@@ -3070,8 +3070,9 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 | [libffi](https://github.com/libffi/libffi/) | 3.4.4 | `Copyright (c) 1996-2024  Anthony Green, Red Hat, Inc and others.` |
 | [libxml2](https://gitlab.gnome.org/GNOME/libxml2) | 2.14.5 | `Copyright (C) 1998-2012 Daniel Veillard. All Rights Reserved.` |
 | [Mesa](https://www.mesa3d.org/) | 23.3.0 | `Copyright (C) 1999-2007  Brian Paul   All Rights Reserved.` |
-| [Ocloc](https://github.com/intel/compute-runtime) | 25.31.34666 | `Copyright (C) 2018-2023 Intel Corporation` |
-| [oneAPI Level Zero](https://github.com/oneapi-src/level-zero) | 1.21.9 | `Copyright (C) 2019-2024 Intel Corporation` |
+| [Ocloc](https://github.com/intel/compute-runtime) | 24.45.31740 | `Copyright (C) 2018-2023 Intel Corporation` |
+| [oneAPI Level Zero](https://github.com/oneapi-src/level-zero) | 1.19.2 | `Copyright (C) 2019-2024 Intel Corporation` |
+| Opencollada | dfc341ab0b3 | `Copyright (c) 2008-2009 NetAllied Systems GmbH` |
 | [Pugixml](https://pugixml.org/) | 1.10 | `Copyright (c) 2006-2020 Arseny Kapoulkine` |
 | [QuadriFlow](https://github.com/hjwdzh/QuadriFlow) | 27a6867 | `Copyright (c) 2018 Jingwei Huang, Yichao Zhou, Matthias Niessner, Jonathan Shewchuk and Leonidas Guibas. All rights reserved.` |
 | [RenderDoc](https://github.com/baldurk/renderdoc/) | d47e79ae079 | `Copyright (c) 2015-2024 Baldur Karlsson; Copyright (c) 2014 Crytek` |

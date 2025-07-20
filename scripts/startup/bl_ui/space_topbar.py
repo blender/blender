@@ -381,7 +381,9 @@ class TOPBAR_MT_file_import(Menu):
             self.layout.operator("wm.stl_import", text="STL (.stl)")
 
         if bpy.app.build_options.io_fbx:
-            self.layout.operator("wm.fbx_import", text="FBX (.fbx)")
+            self.layout.operator("wm.fbx_import", text="FBX (.fbx) (experimental)")
+        if bpy.app.build_options.collada:
+            self.layout.operator("wm.collada_import", text="Collada (.dae) (Legacy)")
 
 
 class TOPBAR_MT_file_export(Menu):
@@ -410,6 +412,8 @@ class TOPBAR_MT_file_export(Menu):
             self.layout.operator("wm.ply_export", text="Stanford PLY (.ply)")
         if bpy.app.build_options.io_stl:
             self.layout.operator("wm.stl_export", text="STL (.stl)")
+        if bpy.app.build_options.collada:
+            self.layout.operator("wm.collada_export", text="Collada (.dae) (Legacy)")
 
 
 class TOPBAR_MT_file_external_data(Menu):

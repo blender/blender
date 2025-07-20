@@ -516,6 +516,7 @@ class SpellChecker:
         "clearcoat",
         "codec", "codecs",
         "codepoint",
+        "collada",
         "colorspace",
         "compositing",
         "crossfade",

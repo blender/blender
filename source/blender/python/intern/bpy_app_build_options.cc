@@ -46,6 +46,7 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
     {"libmv", nullptr},
     {"mod_oceansim", nullptr},
     {"mod_remesh", nullptr},
+    {"collada", nullptr},
     {"io_wavefront_obj", nullptr},
     {"io_ply", nullptr},
     {"io_stl", nullptr},
@@ -234,6 +235,12 @@ static PyObject *make_builtopts_info()
 #endif
 
 #ifdef WITH_MOD_REMESH
+  SetObjIncref(Py_True);
+#else
+  SetObjIncref(Py_False);
+#endif
+
+#ifdef WITH_COLLADA
   SetObjIncref(Py_True);
 #else
   SetObjIncref(Py_False);
