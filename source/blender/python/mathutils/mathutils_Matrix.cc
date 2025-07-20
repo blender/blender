@@ -652,7 +652,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 PyDoc_STRVAR(
     /* Wrap. */
     C_Matrix_Identity_doc,
-    ".. classmethod:: Identity(size)\n"
+    ".. classmethod:: Identity(size, /)\n"
     "\n"
     "   Create an identity matrix.\n"
     "\n"
@@ -682,7 +682,7 @@ static PyObject *C_Matrix_Identity(PyObject *cls, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     C_Matrix_Rotation_doc,
-    ".. classmethod:: Rotation(angle, size, axis)\n"
+    ".. classmethod:: Rotation(angle, size, axis, /)\n"
     "\n"
     "   Create a matrix representing a rotation.\n"
     "\n"
@@ -690,9 +690,9 @@ PyDoc_STRVAR(
     "   :type angle: float\n"
     "   :arg size: The size of the rotation matrix to construct [2, 4].\n"
     "   :type size: int\n"
-    "   :arg axis: a string in ['X', 'Y', 'Z'] or a 3D Vector Object\n"
+    "   :arg axis: an axis string or a 3D Vector Object\n"
     "      (optional when size is 2).\n"
-    "   :type axis: str | :class:`Vector`\n"
+    "   :type axis: Literal['X', 'Y', 'Z'] | :class:`Vector`\n"
     "   :return: A new rotation matrix.\n"
     "   :rtype: :class:`Matrix`\n");
 static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
@@ -773,7 +773,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     C_Matrix_Translation_doc,
-    ".. classmethod:: Translation(vector)\n"
+    ".. classmethod:: Translation(vector, /)\n"
     "\n"
     "   Create a matrix representing a translation.\n"
     "\n"
@@ -799,7 +799,7 @@ static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     C_Matrix_Diagonal_doc,
-    ".. classmethod:: Diagonal(vector)\n"
+    ".. classmethod:: Diagonal(vector, /)\n"
     "\n"
     "   Create a diagonal (scaling) matrix using the values from the vector.\n"
     "\n"
@@ -831,7 +831,7 @@ static PyObject *C_Matrix_Diagonal(PyObject *cls, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     C_Matrix_Scale_doc,
-    ".. classmethod:: Scale(factor, size, axis)\n"
+    ".. classmethod:: Scale(factor, size, axis, /)\n"
     "\n"
     "   Create a matrix representing a scaling.\n"
     "\n"
@@ -921,14 +921,14 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     C_Matrix_OrthoProjection_doc,
-    ".. classmethod:: OrthoProjection(axis, size)\n"
+    ".. classmethod:: OrthoProjection(axis, size, /)\n"
     "\n"
     "   Create a matrix to represent an orthographic projection.\n"
     "\n"
-    "   :arg axis: Can be any of the following: ['X', 'Y', 'XY', 'XZ', 'YZ'],\n"
+    "   :arg axis: An axis string,\n"
     "      where a single axis is for a 2D matrix.\n"
     "      Or a vector for an arbitrary axis\n"
-    "   :type axis: str | :class:`Vector`\n"
+    "   :type axis: Literal['X', 'Y', 'XY', 'XZ', 'YZ'] | :class:`Vector`\n"
     "   :arg size: The size of the projection matrix to construct [2, 4].\n"
     "   :type size: int\n"
     "   :return: A new projection matrix.\n"
@@ -1043,13 +1043,13 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     C_Matrix_Shear_doc,
-    ".. classmethod:: Shear(plane, size, factor)\n"
+    ".. classmethod:: Shear(plane, size, factor, /)\n"
     "\n"
-    "   Create a matrix to represent an shear transformation.\n"
+    "   Create a matrix to represent a shear transformation.\n"
     "\n"
-    "   :arg plane: Can be any of the following: ['X', 'Y', 'XY', 'XZ', 'YZ'],\n"
+    "   :arg plane: An axis string,\n"
     "      where a single axis is for a 2D matrix only.\n"
-    "   :type plane: str\n"
+    "   :type plane: Literal['X', 'Y', 'XY', 'XZ', 'YZ']\n"
     "   :arg size: The size of the shear matrix to construct [2, 4].\n"
     "   :type size: int\n"
     "   :arg factor: The factor of shear to apply. "
@@ -1145,7 +1145,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     C_Matrix_LocRotScale_doc,
-    ".. classmethod:: LocRotScale(location, rotation, scale)\n"
+    ".. classmethod:: LocRotScale(location, rotation, scale, /)\n"
     "\n"
     "   Create a matrix combining translation, rotation and scale,\n"
     "   acting as the inverse of the decompose() method.\n"
@@ -1292,14 +1292,13 @@ static PyObject *Matrix_to_quaternion(MatrixObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Matrix_to_euler_doc,
-    ".. method:: to_euler(order, euler_compat)\n"
+    ".. method:: to_euler(order='XYZ', euler_compat=None, /)\n"
     "\n"
     "   Return an Euler representation of the rotation matrix\n"
     "   (3x3 or 4x4 matrix only).\n"
     "\n"
-    "   :arg order: Optional rotation order argument in\n"
-    "      ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX'].\n"
-    "   :type order: str\n"
+    "   :arg order: A rotation order string."
+    "   :type order: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n"
     "   :arg euler_compat: Optional euler argument the new euler will be made\n"
     "      compatible with (no axis flipping between them).\n"
     "      Useful for converting a series of matrices to animation curves.\n"
@@ -1639,7 +1638,7 @@ static void matrix_invert_raise_degenerate()
 PyDoc_STRVAR(
     /* Wrap. */
     Matrix_invert_doc,
-    ".. method:: invert(fallback=None)\n"
+    ".. method:: invert(fallback=None, /)\n"
     "\n"
     "   Set the matrix to its inverse.\n"
     "\n"
@@ -1691,7 +1690,7 @@ static PyObject *Matrix_invert(MatrixObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Matrix_inverted_doc,
-    ".. method:: inverted(fallback=None)\n"
+    ".. method:: inverted(fallback=None, /)\n"
     "\n"
     "   Return an inverted copy of the matrix.\n"
     "\n"
@@ -1825,7 +1824,7 @@ PyDoc_STRVAR(
     "\n"
     "   Set the matrix to its adjugate.\n"
     "\n"
-    "   :raises ValueError: if the matrix cannot be adjugate.\n"
+    "   :raises ValueError: if the matrix cannot be adjugated.\n"
     "\n"
     "   .. seealso:: `Adjugate matrix <https://en.wikipedia.org/wiki/Adjugate_matrix>`__ on "
     "Wikipedia.\n");
@@ -1874,7 +1873,7 @@ static PyObject *Matrix_adjugated(MatrixObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Matrix_rotate_doc,
-    ".. method:: rotate(other)\n"
+    ".. method:: rotate(other, /)\n"
     "\n"
     "   Rotates the matrix by another mathutils value.\n"
     "\n"
@@ -1964,7 +1963,7 @@ static PyObject *Matrix_decompose(MatrixObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Matrix_lerp_doc,
-    ".. function:: lerp(other, factor)\n"
+    ".. function:: lerp(other, factor, /)\n"
     "\n"
     "   Returns the interpolation of two matrices. Uses polar decomposition, see"
     "   \"Matrix Animation and Polar Decomposition\", Shoemake and Duff, 1992.\n"
@@ -3461,12 +3460,12 @@ static PyMethodDef Matrix_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     matrix_doc,
-    ".. class:: Matrix([rows])\n"
+    ".. class:: Matrix(rows=Matrix.Identity(4), /)\n"
     "\n"
     "   This object gives access to Matrices in Blender, supporting square and rectangular\n"
     "   matrices from 2x2 up to 4x4.\n"
     "\n"
-    "   :arg rows: Sequence of rows. When omitted, a 4x4 identity matrix is constructed.\n"
+    "   :arg rows: Sequence of rows.\n"
     "   :type rows: Sequence[Sequence[float]]\n");
 PyTypeObject matrix_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
