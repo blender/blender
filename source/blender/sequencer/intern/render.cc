@@ -1454,10 +1454,10 @@ static ImBuf *seq_render_scene_strip(const RenderData *context,
     use_gpencil = false;
   }
 
-  /* prevent eternal loop */
+  /* Prevent eternal loop. */
   scene->r.scemode &= ~R_DOSEQ;
 
-  /* stooping to new low's in hackyness :( */
+  /* Temporarily disable camera switching to enforce using `camera`. */
   scene->r.mode |= R_NO_CAMERA_SWITCH;
 
   is_frame_update = (orig_data.timeline_frame != scene->r.cfra) ||
@@ -1606,7 +1606,6 @@ finally:
     BKE_scene_graph_update_for_newframe(depsgraph);
   }
 
-  /* stooping to new low's in hackyness :( */
   scene->r.mode &= orig_data.mode | ~R_NO_CAMERA_SWITCH;
 
   return ibuf;

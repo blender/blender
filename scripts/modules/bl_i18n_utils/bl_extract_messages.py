@@ -1248,7 +1248,7 @@ def main():
     parser.add_argument('-m', '--no_messages', default=True, action="store_false", help="No export of UI messages.")
     parser.add_argument('-o', '--output', default=None, help="Output POT file path.")
     parser.add_argument('-s', '--settings', default=None,
-                        help="Override (some) default settings. Either a JSon file name, or a JSon string.")
+                        help="Override (some) default settings. Either a JSON file name, or a JSON string.")
     args = parser.parse_args(argv)
 
     settings = settings_i18n.I18nSettings()
