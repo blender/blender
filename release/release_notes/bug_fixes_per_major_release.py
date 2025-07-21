@@ -30,7 +30,7 @@ some missing commits), but it's significantly better than nothing.
   - --backport-tasks (-bpt) (Optional, but recommended)
 - Here is an example if you wish to collect the list for Blender 5.0 during
 the Alpha stage of development.
-  - `python bug_fixes_per_major_release.py -cv 5.0 -pv 4.5 -ct main -pt blender-v4.5-release -bpt 124452 135860`
+  - `python bug_fixes_per_major_release.py -cv 5.0 -pv 4.5 -ct main -pt blender-v4.5-release -bpt 124452 135860 141871`
 - Here is an example if you wish to collect the list for Blender 4.5 during
 the Beta stage of development.
   - `python bug_fixes_per_major_release.py -cv 4.5 -pv 4.4 -ct blender-v4.5-release -pt blender-v4.4-release -bpt 109399 124452 135860`
@@ -192,10 +192,6 @@ VALID_CLASSIFICATIONS = [FIXED_NEW_ISSUE, NEEDS_MANUAL_SORTING, FIXED_OLD_ISSUE,
 OLDER_VERION = "OLDER"
 NEWER_VERION = "NEWER"
 SAME_VERION = "SAME"
-
-dir_of_script = Path(__file__).parent.resolve()
-PATH_TO_CACHED_COMMITS = dir_of_script.joinpath('cached_commits.json')
-del dir_of_script
 
 # Add recent Blender versions to this list, including in-development versions.
 # This list is used to identify if a version number found in a report is a valid version number.
@@ -746,7 +742,7 @@ def classify_commits(
 
 # ---
 
-def prepare_for_print(list_of_commits: list[CommitInfo]) -> dict[str, dict[str, list[CommitInfo]]]:
+def organize_commits(list_of_commits: list[CommitInfo]) -> dict[str, dict[str, list[CommitInfo]]]:
     # This function takes in a list of commits, and sorts them based on their classification and module.
 
     dict_of_sorted_commits: dict[str, dict[str, list[CommitInfo]]] = {}
@@ -802,7 +798,7 @@ def print_list_of_commits(title: str, dict_of_commits: dict[str, list[CommitInfo
 # ---
 
 def print_release_notes(list_of_commits: list[CommitInfo]) -> None:
-    dict_of_sorted_commits = prepare_for_print(list_of_commits)
+    dict_of_sorted_commits = organize_commits(list_of_commits)
 
     print_list_of_commits("Commits that fixed old issues:", dict_of_sorted_commits[FIXED_OLD_ISSUE])
 
@@ -847,16 +843,16 @@ def print_release_notes(list_of_commits: list[CommitInfo]) -> None:
 # -----------------------------------------------------------------------------
 # Caching Utilities
 
-def cached_commits_load(list_of_commits: list[CommitInfo]) -> None:
-    if PATH_TO_CACHED_COMMITS.exists():
-        with open(str(PATH_TO_CACHED_COMMITS), 'r', encoding='utf-8') as file:
+def cached_commits_load(list_of_commits: list[CommitInfo], path_to_cached_commits: Path) -> None:
+    if path_to_cached_commits.exists():
+        with open(str(path_to_cached_commits), 'r', encoding='utf-8') as file:
             cached_data = json.load(file)
         for commit in list_of_commits:
             if commit.hash in cached_data:
                 commit.read_from_cache(cached_data[commit.hash])
 
 
-def cached_commits_store(list_of_commits: list[CommitInfo]) -> None:
+def cached_commits_store(list_of_commits: list[CommitInfo], path_to_cached_commits: Path) -> None:
     # Cache information for commits that have been sorted.
     # Commits that still need sorting are not cached.
     # This is done so if a user is repeatably running this script so they can sort
@@ -869,7 +865,7 @@ def cached_commits_store(list_of_commits: list[CommitInfo]) -> None:
             commit_hash, data = commit.prepare_for_cache()
             data_to_cache[commit_hash] = data
 
-    with open(str(PATH_TO_CACHED_COMMITS), 'w', encoding='utf-8') as file:
+    with open(str(path_to_cached_commits), 'w', encoding='utf-8') as file:
         json.dump(data_to_cache, file, indent=4)
 
 
@@ -1044,6 +1040,45 @@ def validate_arguments(args: argparse.Namespace) -> bool:
 # -----------------------------------------------------------------------------
 # Main Function
 
+def gather_and_sort_commits(current_release_tag: str,
+                            current_version: str,
+                            previous_release_tag: str,
+                            previous_version: str,
+                            backport_tasks: list[str],
+                            cache: bool = False,
+                            silence: bool = False,
+                            single_thread: bool = False) -> list[CommitInfo]:
+    set_crawl_delay()
+
+    dir_of_sciprt = Path(__file__).parent.resolve()
+    # Replace "/" with "-" to avoid issues with directories in case someone
+    # uses "remote/branch" as their current or previous tag.
+    path_to_cached_commits = dir_of_sciprt.joinpath(
+        f'cached_commits_{previous_release_tag.replace("/", "-")}..{current_release_tag.replace("/", "-")}.json')
+
+    list_of_commits = get_fix_commits(
+        current_release_tag=current_release_tag,
+        previous_release_tag=previous_release_tag,
+        single_thread=single_thread,
+    )
+
+    if cache:
+        cached_commits_load(list_of_commits, path_to_cached_commits)
+
+    overrides_apply(list_of_commits, silence)
+
+    classify_commits(
+        backport_tasks,
+        list_of_commits,
+        current_version=current_version,
+        previous_version=previous_version,
+    )
+
+    if cache:
+        cached_commits_store(list_of_commits, path_to_cached_commits)
+
+    return list_of_commits
+
 
 def main() -> int:
     args = argparse_create().parse_args()
@@ -1051,28 +1086,15 @@ def main() -> int:
     if not validate_arguments(args):
         return 0
 
-    set_crawl_delay()
-
-    list_of_commits = get_fix_commits(
-        current_release_tag=args.current_release_tag,
-        previous_release_tag=args.previous_release_tag,
-        single_thread=args.single_thread,
-    )
-
-    if args.cache:
-        cached_commits_load(list_of_commits)
-
-    overrides_apply(list_of_commits, args.silence)
-
-    classify_commits(
+    list_of_commits = gather_and_sort_commits(
+        args.current_release_tag,
+        args.current_version,
+        args.previous_release_tag,
+        args.previous_version,
         args.backport_tasks,
-        list_of_commits,
-        current_version=args.current_version,
-        previous_version=args.previous_version,
-    )
-
-    if args.cache:
-        cached_commits_store(list_of_commits)
+        args.cache,
+        args.silence,
+        args.single_thread)
 
     print_release_notes(list_of_commits)
     return 0
