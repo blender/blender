@@ -286,7 +286,7 @@ def git_ls_files(directory: Path = Path(".")) -> Iterable[Path]:
     Only lines that are actually files (so no directories, sockets, etc.) are
     returned, and never one from SKIP_NAMES.
     """
-    for line in git_command(f"-C '{directory}' ls-files"):
+    for line in git_command(f"-C '{directory}' ls-files -z", "\x00"):
         path = directory / line
         if not path.is_file() or path.name in SKIP_NAMES:
             continue
@@ -294,7 +294,7 @@ def git_ls_files(directory: Path = Path(".")) -> Iterable[Path]:
             yield path
 
 
-def git_command(cli_args: str) -> Iterable[str]:
+def git_command(cli_args: str, split_char="\n") -> Iterable[str]:
     """Generator, yields lines of output from a Git command."""
     command = "git " + cli_args
 
@@ -304,7 +304,7 @@ def git_command(cli_args: str) -> Iterable[str]:
     git = subprocess.run(
         command, stdout=subprocess.PIPE, shell=True, check=True, text=True, timeout=30
     )
-    for line in git.stdout.split("\n"):
+    for line in git.stdout.split(split_char):
         if line:
             yield line
 
