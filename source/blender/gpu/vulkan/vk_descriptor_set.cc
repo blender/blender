@@ -92,7 +92,13 @@ void VKDescriptorSetUpdator::bind_texture_resource(const VKDevice &device,
                                                    const VKResourceBinding &resource_binding,
                                                    render_graph::VKResourceAccessInfo &access_info)
 {
-  const BindSpaceTextures::Elem &elem = state_manager.textures_.get(resource_binding.binding);
+  const BindSpaceTextures::Elem *elem_ptr = state_manager.textures_.get(resource_binding.binding);
+  if (!elem_ptr) {
+    /* Unbound resource. */
+    BLI_assert_unreachable();
+    return;
+  }
+  const BindSpaceTextures::Elem &elem = *elem_ptr;
   switch (elem.resource_type) {
     case BindSpaceTextures::Type::VertexBuffer: {
       VKVertexBuffer &vertex_buffer = *static_cast<VKVertexBuffer *>(elem.resource);
@@ -162,7 +168,14 @@ void VKDescriptorSetUpdator::bind_input_attachment_resource(
   }
   else {
     bool supports_dynamic_rendering = device.extensions_get().dynamic_rendering;
-    const BindSpaceTextures::Elem &elem = state_manager.textures_.get(resource_binding.binding);
+    const BindSpaceTextures::Elem *elem_ptr = state_manager.textures_.get(
+        resource_binding.binding);
+    if (!elem_ptr) {
+      /* Unbound resource. */
+      BLI_assert_unreachable();
+      return;
+    }
+    const BindSpaceTextures::Elem &elem = *elem_ptr;
     VKTexture *texture = static_cast<VKTexture *>(elem.resource);
     BLI_assert(texture);
     BLI_assert(elem.resource_type == BindSpaceTextures::Type::Texture);
