@@ -3758,6 +3758,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   STRNCPY(bfd->filepath, filepath);
 
   fd->bmain = bfd->main;
+  fd->fd_bmain = bfd->main;
 
   bfd->type = BLENFILETYPE_BLEND;
 
@@ -4548,6 +4549,7 @@ static Main *library_link_begin(Main *mainvar,
 
   /* which one do we need? */
   mainl = blo_find_main(fd, filepath, BKE_main_blendfile_path(mainvar));
+  fd->fd_bmain = mainl;
   if (mainl->curlib) {
     mainl->curlib->runtime->filedata = fd;
   }
@@ -4950,45 +4952,46 @@ static void read_library_clear_weak_links(FileData *basefd, Main *mainvar)
   }
 }
 
-static FileData *read_library_file_data(FileData *basefd, Main *mainl, Main *mainptr)
+static FileData *read_library_file_data(FileData *basefd, Main *bmain, Main *lib_bmain)
 {
-  FileData *fd = mainptr->curlib->runtime->filedata;
+  FileData *fd = lib_bmain->curlib->runtime->filedata;
 
   if (fd != nullptr) {
     /* File already open. */
     return fd;
   }
 
-  if (mainptr->curlib->packedfile) {
+  if (lib_bmain->curlib->packedfile) {
     /* Read packed file. */
-    const PackedFile *pf = mainptr->curlib->packedfile;
+    const PackedFile *pf = lib_bmain->curlib->packedfile;
 
     BLO_reportf_wrap(basefd->reports,
                      RPT_INFO,
                      RPT_("Read packed library: '%s', parent '%s'"),
-                     mainptr->curlib->filepath,
-                     library_parent_filepath(mainptr->curlib));
+                     lib_bmain->curlib->filepath,
+                     library_parent_filepath(lib_bmain->curlib));
     fd = blo_filedata_from_memory(pf->data, pf->size, basefd->reports);
 
     /* Needed for library_append and read_libraries. */
-    STRNCPY(fd->relabase, mainptr->curlib->runtime->filepath_abs);
+    STRNCPY(fd->relabase, lib_bmain->curlib->runtime->filepath_abs);
   }
   else {
     /* Read file on disk. */
     BLO_reportf_wrap(basefd->reports,
                      RPT_INFO,
                      RPT_("Read library: '%s', '%s', parent '%s'"),
-                     mainptr->curlib->runtime->filepath_abs,
-                     mainptr->curlib->filepath,
-                     library_parent_filepath(mainptr->curlib));
-    fd = blo_filedata_from_file(mainptr->curlib->runtime->filepath_abs, basefd->reports);
+                     lib_bmain->curlib->runtime->filepath_abs,
+                     lib_bmain->curlib->filepath,
+                     library_parent_filepath(lib_bmain->curlib));
+    fd = blo_filedata_from_file(lib_bmain->curlib->runtime->filepath_abs, basefd->reports);
   }
 
   if (fd) {
     /* `mainptr` is sharing the same `split_mains`, so all libraries are added immediately in a
      * single vectorset. It used to be that all FileData's had their own list, but with indirectly
      * linking this meant that not all duplicate libraries were catched properly. */
-    fd->bmain = mainptr;
+    fd->bmain = bmain;
+    fd->fd_bmain = lib_bmain;
 
     fd->reports = basefd->reports;
 
@@ -4998,26 +5001,26 @@ static FileData *read_library_file_data(FileData *basefd, Main *mainl, Main *mai
 
     fd->libmap = oldnewmap_new();
 
-    mainptr->curlib->runtime->filedata = fd;
-    mainptr->versionfile = fd->fileversion;
+    lib_bmain->curlib->runtime->filedata = fd;
+    lib_bmain->versionfile = fd->fileversion;
 
     /* subversion */
-    read_file_version(fd, mainptr);
+    read_file_version(fd, lib_bmain);
     read_file_bhead_idname_map_create(fd);
   }
   else {
-    mainptr->curlib->runtime->filedata = nullptr;
-    mainptr->curlib->id.tag |= ID_TAG_MISSING;
+    lib_bmain->curlib->runtime->filedata = nullptr;
+    lib_bmain->curlib->id.tag |= ID_TAG_MISSING;
     /* Set lib version to current main one... Makes assert later happy. */
-    mainptr->versionfile = mainptr->curlib->runtime->versionfile = mainl->versionfile;
-    mainptr->subversionfile = mainptr->curlib->runtime->subversionfile = mainl->subversionfile;
+    lib_bmain->versionfile = lib_bmain->curlib->runtime->versionfile = bmain->versionfile;
+    lib_bmain->subversionfile = lib_bmain->curlib->runtime->subversionfile = bmain->subversionfile;
   }
 
   if (fd == nullptr) {
     BLO_reportf_wrap(basefd->reports,
                      RPT_INFO,
                      RPT_("Cannot find lib '%s'"),
-                     mainptr->curlib->runtime->filepath_abs);
+                     lib_bmain->curlib->runtime->filepath_abs);
     basefd->reports->count.missing_libraries++;
   }
 
