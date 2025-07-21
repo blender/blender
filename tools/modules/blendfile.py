@@ -525,8 +525,6 @@ class BlendFileRaw:
         "header",
         # struct.Struct
         "block_header_struct",
-        # namedtuple
-        "block_header_fields",
         # BlendFileBlock
         "blocks",
         # dict {addr_old: block}
@@ -543,7 +541,7 @@ class BlendFileRaw:
         log.debug("initializing reading blend-file")
         self.handle = handle
         self.header = BlendFileHeader(handle)
-        self.block_header_struct, self.block_header_fields = self.header.create_block_header_struct()
+        self.block_header_struct = self.header.create_block_header_struct()
         self.blocks = []
         self.code_index = {}
 
@@ -613,7 +611,7 @@ class BlendFileRaw:
                                 self.structs[sdna_index_next].dna_type_id.decode('ascii')))
 
 
-class BlendFileBlockRaw:
+class BlendFileBlockRaw(_blendfile_header.BlockHeader):
     """
     Instance of a raw blend-file block (only contains its header currently).
     """
@@ -641,46 +639,10 @@ class BlendFileBlockRaw:
                  ))
 
     def __init__(self, handle, bfile):
+        super().__init__(handle, bfile.block_header_struct)
         self.file = bfile
         self.user_data = None
-
-        data = handle.read(bfile.block_header_struct.size)
-
-        if len(data) != bfile.block_header_struct.size:
-            print("WARNING! Blend file seems to be badly truncated!")
-            self.code = b'ENDB'
-            self.size = 0
-            self.addr_old = 0
-            self.sdna_index = 0
-            self.count = 0
-            self.file_offset = 0
-            return
-        # Header can be just 8 byte because of ENDB block in old .blend files.
-        if len(data) > 8:
-            blockheader = bfile.block_header_fields(*bfile.block_header_struct.unpack(data))
-            self.code = blockheader[0].partition(b'\0')[0]
-            if self.code != b'ENDB':
-                self.size = blockheader.len
-                self.addr_old = blockheader.old
-                self.sdna_index = blockheader.SDNAnr
-                self.count = blockheader.nr
-                self.file_offset = handle.tell()
-            else:
-                self.size = 0
-                self.addr_old = 0
-                self.sdna_index = 0
-                self.count = 0
-                self.file_offset = 0
-        else:
-            OLDBLOCK = struct.Struct(b'4sI')
-            blockheader = OLDBLOCK.unpack(data)
-            self.code = blockheader[0].partition(b'\0')[0]
-            self.code = DNA_IO.read_data0(blockheader[0])
-            self.size = 0
-            self.addr_old = 0
-            self.sdna_index = 0
-            self.count = 0
-            self.file_offset = 0
+        self.file_offset = handle.tell()
 
     def get_data_hash(self, seed=1):
         """
