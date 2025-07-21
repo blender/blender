@@ -252,7 +252,8 @@ Strip *add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
     strip->views_format = load_data->views_format;
   }
   if (load_data->stereo3d_format) {
-    strip->stereo3d_format = load_data->stereo3d_format;
+    strip->stereo3d_format = MEM_mallocN<Stereo3dFormat>("strip stereo3d format");
+    *strip->stereo3d_format = *load_data->stereo3d_format;
   }
 
   /* Set initial scale based on load_data->fit_method. */
@@ -473,7 +474,8 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
     strip->views_format = load_data->views_format;
   }
   if (load_data->stereo3d_format) {
-    strip->stereo3d_format = load_data->stereo3d_format;
+    strip->stereo3d_format = MEM_mallocN<Stereo3dFormat>("strip stereo3d format");
+    *strip->stereo3d_format = *load_data->stereo3d_format;
   }
 
   for (i = 0; i < totfiles; i++) {
