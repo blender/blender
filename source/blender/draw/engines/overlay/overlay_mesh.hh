@@ -638,6 +638,7 @@ class MeshUVs : Overlay {
 
       if (space_mode_is_uv && object_mode_is_edit) {
         show_wireframe_ = show_wireframe_uv_edit;
+        show_face_overlay_ = !(space_image->flag & SI_NO_DRAWFACES);
       }
       else {
         show_wireframe_ = show_wireframe_uv_guide;
