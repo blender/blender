@@ -199,11 +199,14 @@ void ED_screen_draw_edges(wmWindow *win)
   float outline1[4];
   float outline2[4];
   rctf bounds;
+  /* Outset by 1/2 pixel, regardless of UI scale or pixel size. #141550. */
+  const float padding = 0.5f;
   UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, outline1);
   UI_GetThemeColor4fv(TH_EDITOR_OUTLINE_ACTIVE, outline2);
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     BLI_rctf_rcti_copy(&bounds, &area->totrct);
+    BLI_rctf_pad(&bounds, padding, padding);
     UI_draw_roundbox_4fv_ex(&bounds,
                             nullptr,
                             nullptr,
