@@ -2240,6 +2240,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
 
   Object *ob = (Object *)tselem->id;
   Object *ob_active = tvc.obact;
+  const int x_pad = 3 * UI_SCALE_FAC;
 
   /* Not all objects support particle systems. */
   if (ob_active->mode == OB_MODE_PARTICLE_EDIT && !psys_get_current(ob)) {
@@ -2257,7 +2258,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
                               ButType::But,
                               0,
                               UI_icon_from_object_mode(ob_active->mode),
-                              0,
+                              x_pad,
                               te->ys,
                               UI_UNIT_X,
                               UI_UNIT_Y,
@@ -2300,7 +2301,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
                             ButType::IconToggle,
                             0,
                             icon,
-                            0,
+                            x_pad,
                             te->ys,
                             UI_UNIT_X,
                             UI_UNIT_Y,
