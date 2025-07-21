@@ -4244,6 +4244,7 @@ static wmOperatorStatus grease_pencil_remove_fill_guides_exec(bContext *C, wmOpe
   }
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     if (ed::greasepencil::remove_fill_guides(info.drawing.strokes_for_write())) {
+      info.drawing.tag_topology_changed();
       changed.store(true, std::memory_order_relaxed);
     }
   });
