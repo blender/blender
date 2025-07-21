@@ -40,7 +40,7 @@ struct SourceImageCache {
 
   struct StripEntry {
     /** Map key is {source media frame index (i.e. movie frame), view ID}. */
-    Map<std::pair<int, int>, FrameEntry> frames;
+    Map<std::pair<float, int>, FrameEntry> frames;
   };
 
   Map<const Strip *, StripEntry> map_;
@@ -90,6 +90,20 @@ static SourceImageCache *query_source_image_cache(const Scene *scene)
   return scene->ed->runtime.source_image_cache;
 }
 
+static float give_cache_frame_index(const Scene *scene, const Strip *strip, float timeline_frame)
+{
+  float frame_index = give_frame_index(scene, strip, timeline_frame);
+  if (strip->type != STRIP_TYPE_SCENE) {
+    /* Scene strips that are slowed down need fractional frame index for animation interpolation;
+     * for others use integer index for better cache hit rates. */
+    frame_index = std::trunc(frame_index);
+  }
+  if (strip->type == STRIP_TYPE_MOVIE) {
+    frame_index += strip->anim_startofs;
+  }
+  return frame_index;
+}
+
 ImBuf *source_image_cache_get(const RenderData *context, const Strip *strip, float timeline_frame)
 {
   if (context->skip_cache || context->is_proxy_render || strip == nullptr) {
@@ -98,10 +112,7 @@ ImBuf *source_image_cache_get(const RenderData *context, const Strip *strip, flo
 
   Scene *scene = prefetch_get_original_scene_and_strip(context, strip);
   timeline_frame = math::round(timeline_frame);
-  int frame_index = give_frame_index(scene, strip, timeline_frame);
-  if (strip->type == STRIP_TYPE_MOVIE) {
-    frame_index += strip->anim_startofs;
-  }
+  const float frame_index = give_cache_frame_index(scene, strip, timeline_frame);
   const int view_id = context->view_id;
 
   ImBuf *res = nullptr;
@@ -153,10 +164,7 @@ void source_image_cache_put(const RenderData *context,
   Scene *scene = prefetch_get_original_scene_and_strip(context, strip);
   timeline_frame = math::round(timeline_frame);
 
-  int frame_index = give_frame_index(scene, strip, timeline_frame);
-  if (strip->type == STRIP_TYPE_MOVIE) {
-    frame_index += strip->anim_startofs;
-  }
+  const float frame_index = give_cache_frame_index(scene, strip, timeline_frame);
   const int view_id = context->view_id;
 
   IMB_refImBuf(image);
