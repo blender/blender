@@ -159,10 +159,12 @@ if(WITH_GTESTS)
   set(TEST_INC
   )
   set(TEST_SRC
-    tests/GEO_merge_curves_test.cc
     tests/GEO_interpolate_curves_test.cc
+    tests/GEO_merge_curves_test.cc
+    tests/GEO_realize_instances_test.cc
   )
   set(TEST_LIB
+    PRIVATE bf::intern::clog
   )
   blender_add_test_suite_lib(bf_geometry_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()

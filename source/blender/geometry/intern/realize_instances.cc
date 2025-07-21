@@ -515,7 +515,11 @@ static void copy_generic_attributes_to_result(
           const bke::AttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
           const IndexRange element_slice = range_fn(domain);
 
-          GMutableSpan dst_span = dst_attribute_writers[attribute_index].span.slice(element_slice);
+          GSpanAttributeWriter &writer = dst_attribute_writers[attribute_index];
+          if (!writer) {
+            continue;
+          }
+          GMutableSpan dst_span = writer.span.slice(element_slice);
           if (src_attributes[attribute_index].has_value()) {
             threaded_copy(*src_attributes[attribute_index], dst_span);
           }
