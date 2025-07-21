@@ -1450,7 +1450,7 @@ static void node_socket_tooltip_set(uiBlock &block,
         const int index_in_tree = POINTER_AS_INT(argN);
         ntree.ensure_topology_cache();
         const bNodeSocket &socket = *ntree.all_sockets()[index_in_tree];
-        build_socket_tooltip(tip, C, but, ntree, socket);
+        build_socket_tooltip(tip, C, but, socket);
       },
       POINTER_FROM_INT(socket_index_in_tree),
       nullptr);
@@ -1509,7 +1509,7 @@ static void node_socket_add_tooltip_in_node_editor(const bNodeSocket &sock, uiLa
         const int index_in_tree = POINTER_AS_INT(argN);
         ntree.ensure_topology_cache();
         const bNodeSocket &socket = *ntree.all_sockets()[index_in_tree];
-        build_socket_tooltip(tip, C, but, ntree, socket);
+        build_socket_tooltip(tip, C, but, socket);
       },
       POINTER_FROM_INT(sock.index_in_tree()),
       nullptr,
@@ -1531,7 +1531,7 @@ void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, ui
       &layout,
       [](bContext &C, uiTooltipData &tip, uiBut *but, void *argN) {
         SocketTooltipData *data = static_cast<SocketTooltipData *>(argN);
-        build_socket_tooltip(tip, C, but, *data->ntree, *data->socket);
+        build_socket_tooltip(tip, C, but, *data->socket);
       },
       data,
       MEM_dupallocN,
@@ -1936,7 +1936,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
             const int index_in_tree = POINTER_AS_INT(argN);
             ntree.ensure_topology_cache();
             const bNodeSocket &socket = *ntree.all_sockets()[index_in_tree];
-            build_socket_tooltip(tip, C, but, ntree, socket);
+            build_socket_tooltip(tip, C, but, socket);
           },
           POINTER_FROM_INT(input_socket->index_in_tree()),
           nullptr);
