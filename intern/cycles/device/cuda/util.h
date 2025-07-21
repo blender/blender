@@ -52,7 +52,7 @@ static inline bool cudaSupportsDevice(const int cudaDevID)
 {
   int major;
   cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cudaDevID);
-  if (major >= 3) {
+  if (major >= 5) {
     return true;
   }
   return false;
