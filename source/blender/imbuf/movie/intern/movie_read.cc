@@ -115,6 +115,7 @@ static void probe_video_colorspace(MovieReader *anim, char r_colorspace_name[IM_
     }
   }
 
+#ifdef WITH_FFMPEG
   const AVColorTransferCharacteristic color_trc = anim->pCodecCtx->color_trc;
   const AVColorSpace colorspace = anim->pCodecCtx->colorspace;
   const AVColorPrimaries color_primaries = anim->pCodecCtx->color_primaries;
@@ -138,6 +139,7 @@ static void probe_video_colorspace(MovieReader *anim, char r_colorspace_name[IM_
     }
     return;
   }
+#endif /* WITH_FFMPEG */
 }
 
 MovieReader *MOV_open_file(const char *filepath,
