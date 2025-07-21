@@ -78,10 +78,12 @@ gpu::Batch *pointcloud_sub_pass_setup_implementation(PassT &sub_ps,
   bool is_empty = pointcloud.totpoint == 0;
 
   PointCloudModule &module = *drw_get().data->pointcloud_module;
-  /* Fix issue with certain driver not drawing anything if there is no texture bound to
-   * "ac", "au", "u" or "c". */
+  /* Ensure we have no unbound resources.
+   * Required for Vulkan.
+   * Fixes issues with certain GL drivers not drawing anything. */
   sub_ps.bind_texture("u", module.dummy_vbo);
   sub_ps.bind_texture("au", module.dummy_vbo);
+  sub_ps.bind_texture("a", module.dummy_vbo);
   sub_ps.bind_texture("c", module.dummy_vbo);
   sub_ps.bind_texture("ac", module.dummy_vbo);
 
