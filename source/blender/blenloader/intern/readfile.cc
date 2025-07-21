@@ -2431,6 +2431,19 @@ static void lib_link_scenes_check_set(Main *bmain)
 /** \name Read ID: Library
  * \{ */
 
+static void library_filedata_release(Library *lib)
+{
+  if (lib->runtime->filedata) {
+    BLI_assert(lib->runtime->versionfile != 0);
+    if (lib->runtime->is_filedata_owner) {
+      blo_filedata_free(lib->runtime->filedata);
+    }
+
+    lib->runtime->filedata = nullptr;
+  }
+  lib->runtime->is_filedata_owner = false;
+}
+
 static void direct_link_library(FileData *fd, Library *lib, Main *main)
 {
   /* Make sure we have full path in lib->runtime->filepath_abs */
@@ -3995,11 +4008,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     LISTBASE_FOREACH_MUTABLE (Library *, lib, &bfd->main->libraries) {
       /* Now we can clear this runtime library filedata, it is not needed anymore. */
-      if (lib->runtime->filedata) {
-        BLI_assert(lib->runtime->versionfile != 0);
-        blo_filedata_free(lib->runtime->filedata);
-        lib->runtime->filedata = nullptr;
-      }
+      library_filedata_release(lib);
       /* If no data-blocks were read from a library (should only happen when all references to a
        * library's data are `ID_FLAG_INDIRECT_WEAK_LINK`), its versionfile will still be zero and
        * it can be deleted.
@@ -4010,7 +4019,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
        *    valid version number as the file was read to search for the linked IDs.
        *  - In case the library blendfile does not exist, its local Library ID will get the version
        *    of the current local Main (i.e. the loaded blendfile). */
-      else if (lib->runtime->versionfile == 0) {
+      if (lib->runtime->versionfile == 0) {
 #ifndef NDEBUG
         ID *id_iter;
         FOREACH_MAIN_ID_BEGIN (bfd->main, id_iter) {
@@ -4552,6 +4561,8 @@ static Main *library_link_begin(Main *mainvar,
   fd->fd_bmain = mainl;
   if (mainl->curlib) {
     mainl->curlib->runtime->filedata = fd;
+    /* This filedata is owned and managed by the calling code. */
+    mainl->curlib->runtime->is_filedata_owner = false;
   }
 
   /* needed for do_version */
@@ -4759,20 +4770,10 @@ void BLO_library_link_end(Main *mainl,
 
   LISTBASE_FOREACH (Library *, lib, &params->bmain->libraries) {
     /* Now we can clear this runtime library filedata, it is not needed anymore. */
-    if (lib->runtime->filedata == reinterpret_cast<FileData *>(*bh)) {
-      /* The filedata is owned and managed by caller code, only clear matching library pointer. */
-      lib->runtime->filedata = nullptr;
-    }
-    else if (lib->runtime->filedata) {
-      /* In case other libraries had to be read as dependencies of the main linked one, they need
-       * to be cleared here.
-       *
-       * TODO: In the future, could be worth keeping them in case data are linked from several
-       * libraries at once? To avoid closing and re-opening the same file several times. Would need
-       * a global cleanup callback then once all linking is done, though. */
-      blo_filedata_free(lib->runtime->filedata);
-      lib->runtime->filedata = nullptr;
-    }
+    /* TODO: In the future, could be worth keeping them in case data are linked from several
+     * libraries at once? To avoid closing and re-opening the same file several times. Would need
+     * a global cleanup callback then once all linking is done, though. */
+    library_filedata_release(lib);
   }
 
   *bh = reinterpret_cast<BlendHandle *>(fd);
@@ -5002,6 +5003,7 @@ static FileData *read_library_file_data(FileData *basefd, Main *bmain, Main *lib
     fd->libmap = oldnewmap_new();
 
     lib_bmain->curlib->runtime->filedata = fd;
+    lib_bmain->curlib->runtime->is_filedata_owner = true;
     lib_bmain->versionfile = fd->fileversion;
 
     /* subversion */
@@ -5010,6 +5012,7 @@ static FileData *read_library_file_data(FileData *basefd, Main *bmain, Main *lib
   }
   else {
     lib_bmain->curlib->runtime->filedata = nullptr;
+    lib_bmain->curlib->runtime->is_filedata_owner = false;
     lib_bmain->curlib->id.tag |= ID_TAG_MISSING;
     /* Set lib version to current main one... Makes assert later happy. */
     lib_bmain->versionfile = lib_bmain->curlib->runtime->versionfile = bmain->versionfile;

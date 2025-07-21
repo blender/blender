@@ -23,7 +23,15 @@ struct LibraryRuntime {
   /* Used for efficient calculations of unique names. */
   UniqueName_Map *name_map = nullptr;
 
+  /**
+   * Filedata (i.e. opened blendfile) source of this library data.
+   */
   FileData *filedata = nullptr;
+  /**
+   * Whether this library is owning its filedata pointer (and therefore should take care of
+   * releasing it as part of the readfile process).
+   */
+  bool is_filedata_owner = false;
 
   /**
    * Run-time only, absolute file-path (set on read).
