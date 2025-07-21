@@ -1760,72 +1760,159 @@ include(dependency_targets)
 # Only supported by Ninja build system currently.
 
 if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
-  if(NOT NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS AND
-     NOT NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS AND
-     NOT NINJA_MAX_NUM_PARALLEL_LINK_JOBS)
-    # Try to define good default values.
-    # Max mem of heavy cpp files compilation: about 2.5GB
-    # Max mem during linking: about 3.3GB
-    cmake_host_system_information(RESULT _NUM_CORES QUERY NUMBER_OF_LOGICAL_CORES)
-    # Note: this gives mem in MB.
-    cmake_host_system_information(RESULT _TOT_MEM QUERY TOTAL_PHYSICAL_MEMORY)
+  message(STATUS "Using NINJA_POOL_JOBS:")
 
-    # Heuristics: Assume 12Gb of RAM is needed per heavy compile job.
-    # Typical RAM peak usage of these is actually around 3-4GB currently,
-    # but this also accounts for the part of the physical RAM being used by other unrelated
-    # processes on the system, and the part being used by the 'regular' compile and linking jobs.
-    # Further more, some cycles kernel files can require almost 12GB in debug builds.
-    #
-    # Also always cap heavy jobs amount to `number of available threads - 1`,
-    # to ensure that even if there would be enough RAM, the machine never ends up
-    # handling only heavy jobs at some point.
-    # This can have annoying sides effects, like lack of output in the console for several
-    # minutes, which can lead to a wrong detection of 'unresponsive' state by the build-bots e.g.
-    #
-    # Currently, these settings applied to a 64GB/16threads linux machine will use,
-    # for a full build:
-    #   - release build:
-    #      * RAM: typically less than 20%, with some peaks at 25%.
-    #      * CPU: over 90% of usage on average over the whole build time.
-    #   - debug with ASAN build:
-    #      * RAM: typically less than 40%, with some peaks at 50%.
-    #      * CPU: over 90% of usage on average over the whole build time.
-    math(EXPR _compile_heavy_jobs "${_TOT_MEM} / 12000")
-    math(EXPR _compile_heavy_jobs_max "${_NUM_CORES} - 1")
+  if(NOT NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS)
+    set(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS "0" CACHE STRING "\
+Define the maximum number of concurrent regular compilation jobs, for ninja build system. \
+Keep at '0' to automatically compute optimal values for each build."
+      FORCE
+    )
+    mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS)
+  endif()
+
+  if(NOT NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
+    set(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS "0" CACHE STRING "\
+Define the maximum number of concurrent memory-heavy compilation jobs, for ninja build system. \
+Keep at '0' to automatically compute optimal values for each build."
+      FORCE
+    )
+    mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
+  endif()
+
+  if(NOT NINJA_MAX_NUM_PARALLEL_LINK_JOBS)
+    set(NINJA_MAX_NUM_PARALLEL_LINK_JOBS "0" CACHE STRING "\
+Define the maximum number of concurrent link jobs, for ninja build system. \
+Keep at '0' to automatically compute optimal values for each build."
+      FORCE
+    )
+    mark_as_advanced(NINJA_MAX_NUM_PARALLEL_LINK_JOBS)
+  endif()
+
+  # Try to compute good default values, unless some are enforced in the user-exposed CMake cached variables.
+
+  cmake_host_system_information(RESULT _NUM_CORES QUERY NUMBER_OF_LOGICAL_CORES)
+  # Note: this gives mem in MB.
+  cmake_host_system_information(RESULT _TOT_MEM QUERY TOTAL_PHYSICAL_MEMORY)
+
+  set(_link_jobs 0)
+  if(NINJA_MAX_NUM_PARALLEL_LINK_JOBS)
+    set(_link_jobs ${NINJA_MAX_NUM_PARALLEL_LINK_JOBS})
+    message(STATUS "  NINJA_MAX_NUM_PARALLEL_LINK_JOBS: max concurrent linking jobs (from settings): ${_link_jobs}")
+  endif()
+  if (${_link_jobs} LESS 1)
+    # Heuristics: Maximum amount of memory needed per linking task.
+    # Note: These values are purposedly over-estimated by 10-15% at least, to account
+    #       for other types of jobs' memory usage, other system memory usages, etc.
+    set(_link_mem 10000)
+    if (WITH_COMPILER_ASAN)
+      set(_link_mem 30000)
+    elseif ("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+      set(_link_mem 20000)
+    endif()
+
+    # In practice, even when there is RAM available,
+    # more than 2 linking tasks running in parallel gets slower (due to slow disks accesses).
+    if(${_NUM_CORES} GREATER 7)
+      set(_link_jobs_max 2)
+    else()
+      set(_link_jobs_max 1)
+    endif()
+
+    math(EXPR _link_jobs "${_TOT_MEM} / ${_link_mem}")
+    if(${_link_jobs} GREATER ${_link_jobs_max})
+      set(_link_jobs ${_link_jobs_max})
+    elseif(${_link_jobs} LESS 1)
+      set(_link_jobs 1)
+    endif()
+
+    message(STATUS "  NINJA_MAX_NUM_PARALLEL_LINK_JOBS: max concurrent linking jobs (computed): ${_link_jobs}")
+
+    set(_link_mem)
+    set(_link_jobs_max)
+  endif()
+  set_property(
+    GLOBAL APPEND PROPERTY
+    JOB_POOLS link_job_pool=${_link_jobs}
+  )
+  set(CMAKE_JOB_POOL_LINK link_job_pool)
+
+  set(_compile_heavy_jobs 0)
+  if(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
+    set(_compile_heavy_jobs ${NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS})
+    message(STATUS "  NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS: \
+max concurrent heavy compile jobs (from settings): ${_compile_heavy_jobs}")
+  endif()
+  if (${_compile_heavy_jobs} LESS 1)
+    # Heuristics: Maximum amount of memory needed per heavy compile task.
+    # Note: These values are purposedly over-estimated by 10-15% at least, to account
+    #       for other types of jobs' memory usage, other system memory usages, etc.
+    set(_compile_heavy_mem 2000)
+    if (WITH_COMPILER_ASAN)
+      set(_compile_heavy_mem 15000)
+    elseif ("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+      set(_compile_heavy_mem 2000)
+    endif()
+
+    math(EXPR _compile_heavy_jobs "${_TOT_MEM} / ${_compile_heavy_mem}")
+    if(${_NUM_CORES} GREATER 3)
+      # Heuristics: Cap max number of heavy compile jobs to 80% the amount of available cores,
+      # to ensure neither linking nor regular compile jobs are starved from cores.
+      # It also ensures that even if there would be enough RAM, the machine never ends up
+      # handling only heavy jobs at some point.
+      # This can have annoying sides effects, like lack of output in the console for several
+      # minutes, which can lead to a wrong detection of 'unresponsive' state by the build-bots e.g.
+      math(EXPR _compile_heavy_jobs_max "(${_NUM_CORES} * 8) / 10")
+    else()
+      set(_compile_heavy_jobs_max ${_NUM_CORES})
+    endif()
     if(${_compile_heavy_jobs} GREATER ${_compile_heavy_jobs_max})
       set(_compile_heavy_jobs ${_compile_heavy_jobs_max})
     elseif(${_compile_heavy_jobs} LESS 1)
       set(_compile_heavy_jobs 1)
     endif()
-    set(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS "${_compile_heavy_jobs}" CACHE STRING "\
-Define the maximum number of concurrent heavy compilation jobs, for ninja build system \
-(used for some targets which cpp files can take several GB each during compilation)."
-      FORCE
-    )
-    mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
-    message(STATUS "Using NINJA_POOL_JOBS: max heavy compile jobs: ${NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS}")
-    set(_compile_heavy_jobs)
-    set(_compile_heavy_jobs_max)
 
-    # Heuristics: Assume 4Gb of RAM is needed per regular compile job.
-    # Typical RAM peak usage of these is actually way less than 1GB usually,
-    # but this also accounts for the part of the physical RAM being used by other unrelated
-    # processes on the system, and the part being used by the 'heavy' compile and linking jobs.
+    message(STATUS "  NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS: \
+max concurrent heavy compile jobs (computed): ${_compile_heavy_jobs}")
+
+    set(_compile_heavy_mem)
+    set(_compile_heavy_jobs_max)
+  endif()
+  set_property(
+    GLOBAL APPEND PROPERTY
+    JOB_POOLS compile_heavy_job_pool=${_compile_heavy_jobs}
+  )
+
+  set(_compile_jobs 0)
+  if(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS)
+    set(_compile_jobs ${NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS})
+    message(STATUS "  NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS: \
+max concurrent regular compile jobs (from settings): ${_compile_jobs}")
+  endif()
+  if (${_compile_jobs} LESS 1)
+    # Heuristics: Maximum amount of memory needed per regular compile task.
+    # Note: These values are purposedly over-estimated by 10-15% at least, to account
+    #       for other types of jobs' memory usage, other system memory usages, etc.
     #
     # FIXME:
     # There are a few files in 'normal' compile job pool now that require a significant amount of RAM
     # (e.g. `blenkernel/intern/volume.cc` can require almost 5GB of RAM in debug + ASAN builds). Until
     # we can add individual files to the heavy compile pool job (not possible currently with CMake),
-    # this is the best that can be done. Alternative solution would be to put several whole targets
-    # (like `bf_blenkernel`) into the heavy pool, but that is likely even worse of a workaround.
-    #
-    # If there are 'enough' cores available, cap the maximum number of regular jobs to
-    # `number of cores - 1`, otherwise allow using all cores if there is enough RAM available.
-    # This allows to ensure that the heavy jobs won't get starved by too many normal jobs,
-    # since the former usually take a long time to process.
-    math(EXPR _compile_jobs "${_TOT_MEM} / 4000")
+    # using overly-big values in ASAN build cases is the best that can be done.
+    # Alternative solution would be to put several whole targets (like `bf_blenkernel`) into the heavy pool,
+    # but that is likely even worse of a workaround.
+    set(_compile_mem 500)
+    if (WITH_COMPILER_ASAN)
+      set(_compile_mem 4000)
+    elseif ("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+      set(_compile_mem 500)
+    endif()
+
+    math(EXPR _compile_jobs "${_TOT_MEM} / ${_compile_mem}")
     if(${_NUM_CORES} GREATER 3)
-      math(EXPR _compile_jobs_max "${_NUM_CORES} - 1")
+      # Heuristics: Cap max number of regular compile jobs to less than the total available anount of cores,
+      # to ensure neither linking nor heavy compile jobs are starved from cores.
+      math(EXPR _compile_jobs_max "${_NUM_CORES} - ${_link_jobs} - (${_compile_heavy_jobs} / 8)")
     else()
       set(_compile_jobs_max ${_NUM_CORES})
     endif()
@@ -1834,46 +1921,24 @@ Define the maximum number of concurrent heavy compilation jobs, for ninja build 
     elseif(${_compile_jobs} LESS 1)
       set(_compile_jobs 1)
     endif()
-    set(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS "${_compile_jobs}" CACHE STRING
-        "Define the maximum number of concurrent compilation jobs, for ninja build system." FORCE)
-    mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS)
-    message(STATUS "Using NINJA_POOL_JOBS: max regular compile jobs: ${NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS}")
-    set(_compile_jobs)
+
+    message(STATUS "  NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS: \
+max concurrent regular compile jobs (computed): ${_compile_jobs}")
+
+    set(_compile_mem)
     set(_compile_jobs_max)
-
-    # In practice, even when there is RAM available,
-    # this proves to be quicker than running in parallel (due to slow disks accesses).
-    set(NINJA_MAX_NUM_PARALLEL_LINK_JOBS "1" CACHE STRING
-        "Define the maximum number of concurrent link jobs, for ninja build system." FORCE)
-    mark_as_advanced(NINJA_MAX_NUM_PARALLEL_LINK_JOBS)
-    message(STATUS "Using NINJA_POOL_JOBS: max linking jobs: ${NINJA_MAX_NUM_PARALLEL_LINK_JOBS}")
-
-    set(_NUM_CORES)
-    set(_TOT_MEM)
   endif()
+  set_property(
+    GLOBAL APPEND PROPERTY
+    JOB_POOLS compile_job_pool=${_compile_jobs}
+  )
+  set(CMAKE_JOB_POOL_COMPILE compile_job_pool)
 
-  if(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS)
-    set_property(
-      GLOBAL APPEND PROPERTY
-      JOB_POOLS compile_job_pool=${NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS}
-    )
-    set(CMAKE_JOB_POOL_COMPILE compile_job_pool)
-  endif()
-
-  if(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
-    set_property(
-      GLOBAL APPEND PROPERTY
-      JOB_POOLS compile_heavy_job_pool=${NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS}
-    )
-  endif()
-
-  if(NINJA_MAX_NUM_PARALLEL_LINK_JOBS)
-    set_property(
-      GLOBAL APPEND PROPERTY
-      JOB_POOLS link_job_pool=${NINJA_MAX_NUM_PARALLEL_LINK_JOBS}
-    )
-    set(CMAKE_JOB_POOL_LINK link_job_pool)
-  endif()
+  set(_link_jobs)
+  set(_compile_heavy_jobs)
+  set(_compile_jobs)
+  set(_NUM_CORES)
+  set(_TOT_MEM)
 endif()
 
 
