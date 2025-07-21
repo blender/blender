@@ -5448,7 +5448,7 @@ uiLayout &block_layout(uiBlock *block,
   layout->active_ = true;
   layout->enabled_ = true;
   layout->context_ = nullptr;
-  layout->emboss_ = blender::ui::EmbossType::Undefined;
+  layout->emboss_ = EmbossType::Undefined;
 
   if (ELEM(type, LayoutType::Menu, LayoutType::PieMenu)) {
     layout->space_ = 0;

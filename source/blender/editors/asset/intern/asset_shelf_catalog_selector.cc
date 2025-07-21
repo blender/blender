@@ -140,7 +140,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
       AssetCatalogSelectorTree &tree = dynamic_cast<AssetCatalogSelectorTree &>(get_tree_view());
       uiBlock *block = row.block();
 
-      row.emboss_set(blender::ui::EmbossType::Emboss);
+      row.emboss_set(ui::EmbossType::Emboss);
 
       uiLayout *subrow = &row.row(false);
       subrow->active_set(catalog_path_enabled_);

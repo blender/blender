@@ -357,7 +357,7 @@ static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *
     const bNode &node = *nodes[i];
     std::string block_name = "node_" + std::string(node.name);
     uiBlock *block = UI_block_begin(
-        &C, scene, window, region, std::move(block_name), blender::ui::EmbossType::Emboss);
+        &C, scene, window, region, std::move(block_name), ui::EmbossType::Emboss);
     blocks[node.index()] = block;
     /* This cancels events for background nodes. */
     UI_block_flag_enable(block, UI_BLOCK_CLIP_EVENTS);
@@ -418,15 +418,15 @@ static bool node_update_basis_buttons(const bContext &C,
 
   dy -= NODE_DYS / 4;
 
-  uiLayout &layout = blender::ui::block_layout(&block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               loc.x + NODE_DYS,
-                                               dy,
-                                               NODE_WIDTH(node) - NODE_DY,
-                                               0,
-                                               0,
-                                               UI_style_get_dpi());
+  uiLayout &layout = ui::block_layout(&block,
+                                      ui::LayoutDirection::Vertical,
+                                      ui::LayoutType::Panel,
+                                      loc.x + NODE_DYS,
+                                      dy,
+                                      NODE_WIDTH(node) - NODE_DY,
+                                      0,
+                                      0,
+                                      UI_style_get_dpi());
 
   if (node.is_muted()) {
     layout.active_set(false);
@@ -437,7 +437,7 @@ static bool node_update_basis_buttons(const bContext &C,
   draw_buttons(&layout, (bContext *)&C, &nodeptr);
 
   UI_block_align_end(&block);
-  const int buty = blender::ui::block_layout_resolve(&block).y;
+  const int buty = ui::block_layout_resolve(&block).y;
 
   dy = buty - NODE_DYS / 4;
   return true;
@@ -500,15 +500,15 @@ static bool node_update_basis_socket(const bContext &C,
                                               0.0f;
   locy -= multi_input_socket_offset * 0.5f;
 
-  uiLayout &layout = blender::ui::block_layout(&block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               locx + NODE_DYS,
-                                               locy,
-                                               NODE_WIDTH(node) - NODE_DY,
-                                               NODE_DY,
-                                               0,
-                                               UI_style_get_dpi());
+  uiLayout &layout = ui::block_layout(&block,
+                                      ui::LayoutDirection::Vertical,
+                                      ui::LayoutType::Panel,
+                                      locx + NODE_DYS,
+                                      locy,
+                                      NODE_WIDTH(node) - NODE_DY,
+                                      NODE_DY,
+                                      0,
+                                      UI_style_get_dpi());
 
   if (node.is_muted()) {
     layout.active_set(false);
@@ -523,7 +523,7 @@ static bool node_update_basis_socket(const bContext &C,
     PointerRNA sockptr = RNA_pointer_create_discrete(&ntree.id, &RNA_NodeSocket, input_socket);
     row->context_ptr_set("socket", &sockptr);
 
-    row->alignment_set(blender::ui::LayoutAlign::Expand);
+    row->alignment_set(ui::LayoutAlign::Expand);
 
     input_socket->typeinfo->draw(
         (bContext *)&C, row, &sockptr, &nodeptr, node_socket_get_label(input_socket, panel_label));
@@ -534,7 +534,7 @@ static bool node_update_basis_socket(const bContext &C,
     row->context_ptr_set("socket", &sockptr);
 
     /* Align output buttons to the right. */
-    row->alignment_set(blender::ui::LayoutAlign::Right);
+    row->alignment_set(ui::LayoutAlign::Right);
 
     output_socket->typeinfo->draw((bContext *)&C,
                                   row,
@@ -557,7 +557,7 @@ static bool node_update_basis_socket(const bContext &C,
 
   UI_block_align_end(&block);
 
-  int buty = blender::ui::block_layout_resolve(&block).y;
+  int buty = ui::block_layout_resolve(&block).y;
   /* Ensure minimum socket height in case layout is empty. */
   buty = min_ii(buty, topy - NODE_DY);
   locy = buty - multi_input_socket_offset * 0.5;
@@ -1133,15 +1133,15 @@ static void node_update_basis_from_declaration(
             const nodes::LayoutDeclaration &decl = *item.decl;
             /* Round the node origin because text contents are always pixel-aligned. */
             const float2 loc = math::round(node_to_view(node.location));
-            uiLayout &layout = blender::ui::block_layout(&block,
-                                                         blender::ui::LayoutDirection::Vertical,
-                                                         blender::ui::LayoutType::Panel,
-                                                         loc.x + NODE_DYS,
-                                                         locy,
-                                                         NODE_WIDTH(node) - NODE_DY,
-                                                         0,
-                                                         0,
-                                                         UI_style_get_dpi());
+            uiLayout &layout = ui::block_layout(&block,
+                                                ui::LayoutDirection::Vertical,
+                                                ui::LayoutType::Panel,
+                                                loc.x + NODE_DYS,
+                                                locy,
+                                                NODE_WIDTH(node) - NODE_DY,
+                                                0,
+                                                0,
+                                                UI_style_get_dpi());
             if (node.is_muted()) {
               layout.active_set(false);
             }
@@ -1149,20 +1149,20 @@ static void node_update_basis_from_declaration(
             layout.context_ptr_set("node", &node_ptr);
             decl.draw(&layout, const_cast<bContext *>(&C), &node_ptr);
             UI_block_align_end(&block);
-            locy = blender::ui::block_layout_resolve(&block).y;
+            locy = ui::block_layout_resolve(&block).y;
           }
           else if constexpr (std::is_same_v<ItemT, flat_item::Separator>) {
-            uiLayout &layout = blender::ui::block_layout(&block,
-                                                         blender::ui::LayoutDirection::Vertical,
-                                                         blender::ui::LayoutType::Panel,
-                                                         locx + NODE_DYS,
-                                                         locy,
-                                                         NODE_WIDTH(node) - NODE_DY,
-                                                         NODE_DY,
-                                                         0,
-                                                         UI_style_get_dpi());
+            uiLayout &layout = ui::block_layout(&block,
+                                                ui::LayoutDirection::Vertical,
+                                                ui::LayoutType::Panel,
+                                                locx + NODE_DYS,
+                                                locy,
+                                                NODE_WIDTH(node) - NODE_DY,
+                                                NODE_DY,
+                                                0,
+                                                UI_style_get_dpi());
             layout.separator(1.0, LayoutSeparatorType::Line);
-            blender::ui::block_layout_resolve(&block);
+            ui::block_layout_resolve(&block);
           }
           else if constexpr (std::is_same_v<ItemT, flat_item::PanelHeader>) {
             const nodes::PanelDeclaration &node_decl = *item.decl;
@@ -1866,7 +1866,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
                               draw_bounds.xmax,
                               *panel_runtime.header_center_y - NODE_DYS,
                               *panel_runtime.header_center_y + NODE_DYS};
-    UI_block_emboss_set(&block, blender::ui::EmbossType::None);
+    UI_block_emboss_set(&block, ui::EmbossType::None);
 
     /* Invisible button covering the entire header for collapsing/expanding. */
     const int header_but_margin = NODE_MARGIN_X / 3;
@@ -1908,7 +1908,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
                  "");
     offsetx += but_size + but_padding;
 
-    UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
+    UI_block_emboss_set(&block, ui::EmbossType::Emboss);
 
     /* Panel toggle. */
     if (input_socket && !input_socket->is_logically_linked()) {
@@ -2008,7 +2008,7 @@ static void node_add_unsupported_compositor_operation_error_message_button(const
                                                                            float &icon_offset)
 {
   icon_offset -= NODE_HEADER_ICON_SIZE;
-  UI_block_emboss_set(&block, blender::ui::EmbossType::None);
+  UI_block_emboss_set(&block, ui::EmbossType::None);
   uiDefIconBut(&block,
                ButType::But,
                0,
@@ -2021,7 +2021,7 @@ static void node_add_unsupported_compositor_operation_error_message_button(const
                0,
                0,
                TIP_(node.typeinfo->compositor_unsupported_message));
-  UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
+  UI_block_emboss_set(&block, ui::EmbossType::Emboss);
 }
 
 static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
@@ -2061,7 +2061,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
   const nodes::NodeWarningType display_type = node_error_highest_priority(warnings);
 
   icon_offset -= NODE_HEADER_ICON_SIZE;
-  UI_block_emboss_set(&block, blender::ui::EmbossType::None);
+  UI_block_emboss_set(&block, ui::EmbossType::None);
   uiBut *but = uiDefIconBut(&block,
                             ButType::But,
                             0,
@@ -2078,7 +2078,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
       but, [warnings = Array<geo_log::NodeWarning>(warnings)](const uiBut * /*but*/) {
         return node_errors_tooltip_fn(warnings);
       });
-  UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
+  UI_block_emboss_set(&block, ui::EmbossType::Emboss);
 }
 
 static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
@@ -2466,7 +2466,7 @@ static void node_draw_extra_info_row(const bNode &node,
   const float but_icon_width = NODE_HEADER_ICON_SIZE * 0.8f;
   const float but_icon_right = but_icon_left + but_icon_width;
 
-  UI_block_emboss_set(&block, blender::ui::EmbossType::None);
+  UI_block_emboss_set(&block, ui::EmbossType::None);
   uiBut *but_icon = uiDefIconBut(&block,
                                  ButType::But,
                                  0,
@@ -2485,7 +2485,7 @@ static void node_draw_extra_info_row(const bNode &node,
                             extra_info_row.tooltip_fn_arg,
                             extra_info_row.tooltip_fn_free_arg);
   }
-  UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
+  UI_block_emboss_set(&block, ui::EmbossType::Emboss);
 
   const float but_text_left = but_icon_right + 6.0f * UI_SCALE_FAC;
   const float but_text_right = rect.xmax;
@@ -2813,7 +2813,7 @@ static void node_draw_basis(const bContext &C,
    * don't check for NODE_GROUP_CUSTOM here. */
   if (node.type_legacy == NODE_GROUP) {
     iconofs -= iconbutw;
-    UI_block_emboss_set(&block, blender::ui::EmbossType::None);
+    UI_block_emboss_set(&block, ui::EmbossType::None);
     uiBut *but = uiDefIconBut(&block,
                               ButType::ButToggle,
                               0,
@@ -2833,13 +2833,13 @@ static void node_draw_basis(const bContext &C,
     if (node.id) {
       UI_but_icon_indicator_number_set(but, ID_REAL_USERS(node.id));
     }
-    UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
+    UI_block_emboss_set(&block, ui::EmbossType::Emboss);
   }
   /* Preview. */
   if (node_is_previewable(snode, ntree, node)) {
     const bool is_active = node.flag & NODE_PREVIEW;
     iconofs -= iconbutw;
-    UI_block_emboss_set(&block, blender::ui::EmbossType::None);
+    UI_block_emboss_set(&block, ui::EmbossType::None);
     uiBut *but = uiDefIconBut(&block,
                               ButType::ButToggle,
                               0,
@@ -2856,13 +2856,13 @@ static void node_draw_basis(const bContext &C,
                     node_toggle_button_cb,
                     POINTER_FROM_INT(node.identifier),
                     (void *)"NODE_OT_preview_toggle");
-    UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
+    UI_block_emboss_set(&block, ui::EmbossType::Emboss);
   }
   if (ELEM(node.type_legacy, NODE_CUSTOM, NODE_CUSTOM_GROUP) &&
       node.typeinfo->ui_icon != ICON_NONE)
   {
     iconofs -= iconbutw;
-    UI_block_emboss_set(&block, blender::ui::EmbossType::None);
+    UI_block_emboss_set(&block, ui::EmbossType::None);
     uiDefIconBut(&block,
                  ButType::But,
                  0,
@@ -2875,12 +2875,12 @@ static void node_draw_basis(const bContext &C,
                  0,
                  0,
                  "");
-    UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
+    UI_block_emboss_set(&block, ui::EmbossType::Emboss);
   }
   if (node.type_legacy == GEO_NODE_VIEWER) {
     const bool is_active = &node == tree_draw_ctx.active_geometry_nodes_viewer;
     iconofs -= iconbutw;
-    UI_block_emboss_set(&block, blender::ui::EmbossType::None);
+    UI_block_emboss_set(&block, ui::EmbossType::None);
     uiBut *but = uiDefIconBut(&block,
                               ButType::But,
                               0,
@@ -2912,14 +2912,14 @@ static void node_draw_basis(const bContext &C,
                  0,
                  0,
                  "");
-    UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
+    UI_block_emboss_set(&block, ui::EmbossType::Emboss);
   }
   /* Viewer node shortcuts. */
   if (node.is_type("CompositorNodeViewer")) {
     short shortcut_icon = get_viewer_shortcut_icon(node);
     iconofs -= iconbutw;
     const bool is_active = node.flag & NODE_DO_OUTPUT;
-    UI_block_emboss_set(&block, blender::ui::EmbossType::None);
+    UI_block_emboss_set(&block, ui::EmbossType::None);
     uiBut *but = uiDefIconBut(&block,
                               ButType::But,
                               0,
@@ -2950,7 +2950,7 @@ static void node_draw_basis(const bContext &C,
                  0,
                  0,
                  "");
-    UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
+    UI_block_emboss_set(&block, ui::EmbossType::Emboss);
   }
 
   node_add_error_message_button(tree_draw_ctx, node, block, rct, iconofs);
@@ -2966,7 +2966,7 @@ static void node_draw_basis(const bContext &C,
   /* Collapse/expand icon. */
   {
     const int but_size = U.widget_unit * 0.8f;
-    UI_block_emboss_set(&block, blender::ui::EmbossType::None);
+    UI_block_emboss_set(&block, ui::EmbossType::None);
 
     uiBut *but = uiDefIconBut(&block,
                               ButType::ButToggle,
@@ -2985,7 +2985,7 @@ static void node_draw_basis(const bContext &C,
                     node_toggle_button_cb,
                     POINTER_FROM_INT(node.identifier),
                     (void *)"NODE_OT_hide_toggle");
-    UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
+    UI_block_emboss_set(&block, ui::EmbossType::Emboss);
   }
 
   const std::string showname = bke::node_label(ntree, node);
@@ -3207,7 +3207,7 @@ static void node_draw_collapsed(const bContext &C,
   /* Collapse/expand icon. */
   {
     const int but_size = U.widget_unit * 1.0f;
-    UI_block_emboss_set(&block, blender::ui::EmbossType::None);
+    UI_block_emboss_set(&block, ui::EmbossType::None);
 
     uiBut *but = uiDefIconBut(&block,
                               ButType::ButToggle,
@@ -3226,7 +3226,7 @@ static void node_draw_collapsed(const bContext &C,
                     node_toggle_button_cb,
                     POINTER_FROM_INT(node.identifier),
                     (void *)"NODE_OT_hide_toggle");
-    UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
+    UI_block_emboss_set(&block, ui::EmbossType::Emboss);
   }
 
   const std::string showname = bke::node_label(ntree, node);
@@ -4425,8 +4425,7 @@ static uiBlock &invalid_links_uiblock_init(const bContext &C)
   Scene *scene = CTX_data_scene(&C);
   wmWindow *window = CTX_wm_window(&C);
   ARegion *region = CTX_wm_region(&C);
-  return *UI_block_begin(
-      &C, scene, window, region, "invalid_links", blender::ui::EmbossType::None);
+  return *UI_block_begin(&C, scene, window, region, "invalid_links", ui::EmbossType::None);
 }
 
 #define USE_DRAW_TOT_UPDATE
@@ -4513,21 +4512,14 @@ static void draw_tree_path(const bContext &C, ARegion &region)
   const int y = region.winy - UI_UNIT_Y * 0.6f;
   const int width = BLI_rcti_size_x(rect) - 2 * padding_x;
 
-  uiBlock *block = UI_block_begin(&C, &region, __func__, blender::ui::EmbossType::None);
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               x,
-                                               y,
-                                               width,
-                                               1,
-                                               0,
-                                               style);
+  uiBlock *block = UI_block_begin(&C, &region, __func__, ui::EmbossType::None);
+  uiLayout &layout = ui::block_layout(
+      block, ui::LayoutDirection::Vertical, ui::LayoutType::Panel, x, y, width, 1, 0, style);
 
   const Vector<ui::ContextPathItem> context_path = ed::space_node::context_path_for_space_node(C);
   ui::template_breadcrumbs(layout, context_path);
 
-  blender::ui::block_layout_resolve(block);
+  ui::block_layout_resolve(block);
   UI_block_end(&C, block);
   UI_block_draw(&C, block);
 

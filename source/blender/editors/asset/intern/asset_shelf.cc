@@ -514,24 +514,24 @@ void region_layout(const bContext *C, ARegion *region)
     return;
   }
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, __func__, ui::EmbossType::Emboss);
 
   const uiStyle *style = UI_style_get_dpi();
   const int padding_y = main_region_padding_y();
   const int padding_x = main_region_padding_x();
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               padding_x,
-                                               -padding_y,
-                                               region->winx - 2 * padding_x,
-                                               0,
-                                               0,
-                                               style);
+  uiLayout &layout = ui::block_layout(block,
+                                      ui::LayoutDirection::Vertical,
+                                      ui::LayoutType::Panel,
+                                      padding_x,
+                                      -padding_y,
+                                      region->winx - 2 * padding_x,
+                                      0,
+                                      0,
+                                      style);
 
   build_asset_view(layout, active_shelf->settings.asset_library_reference, *active_shelf, *C);
 
-  int layout_height = blender::ui::block_layout_resolve(block).y;
+  int layout_height = ui::block_layout_resolve(block).y;
   BLI_assert(layout_height <= 0);
   UI_view2d_totRect_set(&region->v2d, region->winx - 1, layout_height - padding_y);
   UI_view2d_curRect_validate(&region->v2d);
@@ -840,9 +840,9 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
 
   list::storage_fetch(library_ref, C);
 
-  UI_block_emboss_set(block, blender::ui::EmbossType::None);
+  UI_block_emboss_set(block, ui::EmbossType::None);
   layout->popover(C, "ASSETSHELF_PT_catalog_selector", "", ICON_COLLAPSEMENU);
-  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+  UI_block_emboss_set(block, ui::EmbossType::Emboss);
 
   layout->separator();
 

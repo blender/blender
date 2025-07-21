@@ -648,21 +648,21 @@ static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
 
   UI_ThemeClearColor(TH_BACK);
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, __func__, ui::EmbossType::Emboss);
   const uiStyle *style = UI_style_get_dpi();
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Horizontal,
-                                               blender::ui::LayoutType::Header,
-                                               UI_HEADER_OFFSET,
-                                               region->winy - (region->winy - UI_UNIT_Y) / 2.0f,
-                                               region->winx,
-                                               1,
-                                               0,
-                                               style);
+  uiLayout &layout = ui::block_layout(block,
+                                      ui::LayoutDirection::Horizontal,
+                                      ui::LayoutType::Header,
+                                      UI_HEADER_OFFSET,
+                                      region->winy - (region->winy - UI_UNIT_Y) / 2.0f,
+                                      region->winx,
+                                      1,
+                                      0,
+                                      style);
   layout.separator_spacer();
-  layout.alignment_set(blender::ui::LayoutAlign::Right);
+  layout.alignment_set(ui::LayoutAlign::Right);
   layout.label(stats_str, ICON_NONE);
-  blender::ui::block_layout_resolve(block);
+  ui::block_layout_resolve(block);
   UI_block_align_end(block);
   UI_block_end(C, block);
   UI_block_draw(C, block);

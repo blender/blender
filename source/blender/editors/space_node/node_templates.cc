@@ -862,7 +862,7 @@ static void ui_node_draw_input(uiLayout &layout,
     uiLayout *sub = &split_wrapper.label_column->row(true);
 
     if (depth > 0) {
-      UI_block_emboss_set(block, blender::ui::EmbossType::None);
+      UI_block_emboss_set(block, ui::EmbossType::None);
 
       if (lnode && (lnode->inputs.first ||
                     (lnode->typeinfo->draw_buttons && lnode->type_legacy != NODE_GROUP)))
@@ -871,11 +871,11 @@ static void ui_node_draw_input(uiLayout &layout,
         sub->prop(&inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);
       }
 
-      UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+      UI_block_emboss_set(block, ui::EmbossType::Emboss);
     }
 
     sub = &sub->row(true);
-    sub->alignment_set(blender::ui::LayoutAlign::Right);
+    sub->alignment_set(ui::LayoutAlign::Right);
     sub->label(node_socket_get_label(&input, panel_label), ICON_NONE);
   }
 

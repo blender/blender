@@ -22,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_output<decl::String>("String").custom_draw([](CustomSocketDrawParams &params) {
-    params.layout.alignment_set(blender::ui::LayoutAlign::Expand);
+    params.layout.alignment_set(ui::LayoutAlign::Expand);
     PropertyRNA *prop = RNA_struct_find_property(&params.node_ptr, "string");
     params.layout.prop(
         &params.node_ptr, prop, -1, 0, UI_ITEM_NONE, "", ICON_NONE, IFACE_("String"));

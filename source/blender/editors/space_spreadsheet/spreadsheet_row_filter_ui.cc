@@ -150,7 +150,7 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
   }
 
   uiLayout *row = &layout->row(true);
-  row->emboss_set(blender::ui::EmbossType::None);
+  row->emboss_set(ui::EmbossType::None);
   row->prop(filter_ptr, "enabled", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   if (column_name.is_empty()) {
@@ -171,7 +171,7 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
   }
 
   row = &layout->row(true);
-  row->emboss_set(blender::ui::EmbossType::None);
+  row->emboss_set(ui::EmbossType::None);
   const int current_index = BLI_findindex(&sspreadsheet->row_filters, filter);
   PointerRNA op_ptr = row->op("SPREADSHEET_OT_remove_row_filter_rule", "", ICON_X);
   RNA_int_set(&op_ptr, "index", current_index);
