@@ -39,6 +39,8 @@
 #  include "MOV_enums.hh"
 #  include "MOV_util.hh"
 
+#  include "IMB_colormanagement.hh"
+
 #  include "ffmpeg_swscale.hh"
 #  include "movie_util.hh"
 
@@ -200,15 +202,167 @@ static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *
   return success;
 }
 
-/* read and encode a frame of video from the buffer */
-static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
+/* Allocate new ImBuf of the size of the given input which only contains float buffer with pixels
+ * from the input.
+ *
+ * For the float image buffers it is similar to IMB_dupImBuf() but it ensures that the byte buffer
+ * is not allocated.
+ *
+ * For the byte image buffers it is similar to IMB_dupImBuf() followed by IMB_float_from_byte(),
+ * but without temporary allocation, and result containing only single float buffer.
+ *
+ * No color space conversion is performed. The result float buffer might be in a non-linear space
+ * denoted by the float_buffer.colorspace. */
+static ImBuf *alloc_imbuf_for_hdr_transform(const ImBuf *input_ibuf)
 {
+  if (!input_ibuf) {
+    return nullptr;
+  }
+
+  /* Allocate new image buffer without float buffer just yet.
+   * This allows to properly initialize the number of channels used in the buffer. */
+  /* TODO(sergey): Make it a reusable function.
+   * This is a common pattern used in few areas with the goal to bypass the hardcoded number of
+   * channels used by IMB_allocImBuf(). */
+  ImBuf *result_ibuf = IMB_allocImBuf(input_ibuf->x, input_ibuf->y, input_ibuf->planes, 0);
+  result_ibuf->channels = input_ibuf->float_buffer.data ? input_ibuf->channels : 4;
+
+  /* Allocate float buffer with the proper number of channels. */
+  const size_t num_pixels = IMB_get_pixel_count(input_ibuf);
+  float *buffer = MEM_malloc_arrayN<float>(num_pixels * result_ibuf->channels, "movie hdr image");
+  IMB_assign_float_buffer(result_ibuf, buffer, IB_TAKE_OWNERSHIP);
+
+  /* Transfer flags related to color space conversion from the original image buffer. */
+  result_ibuf->flags |= (input_ibuf->flags & IB_alphamode_channel_packed);
+
+  if (input_ibuf->float_buffer.data) {
+    /* Simple case: copy pixels from the source image as-is, without any conversion.
+     * The result has the same colorspace as the input. */
+    memcpy(result_ibuf->float_buffer.data,
+           input_ibuf->float_buffer.data,
+           num_pixels * input_ibuf->channels * sizeof(float));
+    result_ibuf->float_buffer.colorspace = input_ibuf->float_buffer.colorspace;
+  }
+  else {
+    /* Convert byte buffer to float buffer.
+     * The exact profile is not important here: it should match for the source and destination so
+     * that the function only does alpha and byte->float conversions. */
+    const bool predivide = IMB_alpha_affects_rgb(input_ibuf);
+    IMB_buffer_float_from_byte(buffer,
+                               input_ibuf->byte_buffer.data,
+                               IB_PROFILE_SRGB,
+                               IB_PROFILE_SRGB,
+                               predivide,
+                               input_ibuf->x,
+                               input_ibuf->y,
+                               result_ibuf->x,
+                               input_ibuf->x);
+  }
+
+  return result_ibuf;
+}
+
+static ImBuf *do_pq_transform(const ImBuf *input_ibuf)
+{
+  ImBuf *ibuf = alloc_imbuf_for_hdr_transform(input_ibuf);
+  if (!ibuf) {
+    /* Error in input or allocation has failed. */
+    return nullptr;
+  }
+
+  /* Get `Rec.2100-PQ Display` or its alias from the OpenColorIO configuration. */
+  const char *rec2100_pq_colorspace = IMB_colormanagement_get_rec2100_pq_display_colorspace();
+  if (!rec2100_pq_colorspace) {
+    /* TODO(sergey): Error reporting if the colorspace is not found. */
+    return ibuf;
+  }
+
+  /* Convert from the current floating point buffer colorspace to Rec.2100-PQ. */
+  IMB_colormanagement_transform_float(ibuf->float_buffer.data,
+                                      ibuf->x,
+                                      ibuf->y,
+                                      ibuf->channels,
+                                      IMB_colormanagement_get_float_colorspace(input_ibuf),
+                                      rec2100_pq_colorspace,
+                                      IMB_alpha_affects_rgb(ibuf));
+
+  return ibuf;
+}
+
+static ImBuf *do_hlg_transform(const ImBuf *input_ibuf)
+{
+  ImBuf *ibuf = alloc_imbuf_for_hdr_transform(input_ibuf);
+  if (!ibuf) {
+    /* Error in input or allocation has failed. */
+    return nullptr;
+  }
+
+  /* Get `Rec.2100-HLG Display` or its alias from the OpenColorIO configuration.
+   * The color space is supposed to be Rec.2100-HLG, 1000 nit. */
+  const char *rec2100_hlg_colorspace = IMB_colormanagement_get_rec2100_hlg_display_colorspace();
+  if (!rec2100_hlg_colorspace) {
+    /* TODO(sergey): Error reporting if the colorspace is not found. */
+    return ibuf;
+  }
+
+  /* Convert from the current floating point buffer colorspace to Rec.2100-HLG, 1000 nit. */
+  IMB_colormanagement_transform_float(ibuf->float_buffer.data,
+                                      ibuf->x,
+                                      ibuf->y,
+                                      ibuf->channels,
+                                      IMB_colormanagement_get_float_colorspace(input_ibuf),
+                                      rec2100_hlg_colorspace,
+                                      IMB_alpha_affects_rgb(ibuf));
+
+  return ibuf;
+}
+
+static const ImBuf *do_hdr_transform_if_needed(MovieWriter *context, const ImBuf *input_ibuf)
+{
+  if (!input_ibuf) {
+    return nullptr;
+  }
+
+  if (!context || !context->video_codec) {
+    return input_ibuf;
+  }
+
+  const AVCodecContext &codec = *context->video_codec;
+
+  const AVColorTransferCharacteristic color_trc = codec.color_trc;
+  const AVColorSpace colorspace = codec.colorspace;
+  const AVColorPrimaries color_primaries = codec.color_primaries;
+
+  if (color_trc == AVCOL_TRC_SMPTEST2084 && color_primaries == AVCOL_PRI_BT2020 &&
+      colorspace == AVCOL_SPC_BT2020_NCL)
+  {
+    return do_pq_transform(input_ibuf);
+  }
+
+  if (color_trc == AVCOL_TRC_ARIB_STD_B67 && color_primaries == AVCOL_PRI_BT2020 &&
+      colorspace == AVCOL_SPC_BT2020_NCL)
+  {
+    return do_hlg_transform(input_ibuf);
+  }
+
+  return input_ibuf;
+}
+
+/* read and encode a frame of video from the buffer */
+static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *input_ibuf)
+{
+  const ImBuf *image = do_hdr_transform_if_needed(context, input_ibuf);
+
   const uint8_t *pixels = image->byte_buffer.data;
   const float *pixels_fl = image->float_buffer.data;
+
   /* Use float input if needed. */
   const bool use_float = context->img_convert_frame != nullptr &&
                          context->img_convert_frame->format != AV_PIX_FMT_RGBA;
   if ((!use_float && (pixels == nullptr)) || (use_float && (pixels_fl == nullptr))) {
+    if (image != input_ibuf) {
+      IMB_freeImBuf(const_cast<ImBuf *>(image));
+    }
     return nullptr;
   }
 
@@ -289,6 +443,10 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
     /* Ensure the frame we are scaling to is writable as well. */
     av_frame_make_writable(context->current_frame);
     ffmpeg_sws_scale_frame(context->img_convert_ctx, context->current_frame, rgb_frame);
+  }
+
+  if (image != input_ibuf) {
+    IMB_freeImBuf(const_cast<ImBuf *>(image));
   }
 
   return context->current_frame;
@@ -770,6 +928,15 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   const bool is_10_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_10;
   const bool is_12_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_12;
   const bool is_16_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_16;
+
+  eFFMpegVideoHdr hdr = eFFMpegVideoHdr(rd->ffcodecdata.video_hdr);
+  /* Never use HDR for non-10/12 bpp or grayscale outputs. */
+  if ((!is_10_bpp && !is_12_bpp) || rd->im_format.planes == R_IMF_PLANES_BW) {
+    hdr = FFM_VIDEO_HDR_NONE;
+  }
+  const bool is_hdr_pq = hdr == FFM_VIDEO_HDR_REC2100_PQ;
+  const bool is_hdr_hlg = hdr == FFM_VIDEO_HDR_REC2100_HLG;
+
   if (is_10_bpp) {
     c->pix_fmt = AV_PIX_FMT_YUV420P10LE;
   }
@@ -916,7 +1083,21 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   /* If output pixel format is not RGB(A), setup colorspace metadata. */
   const AVPixFmtDescriptor *pix_fmt_desc = av_pix_fmt_desc_get(c->pix_fmt);
   const bool set_bt709 = (pix_fmt_desc->flags & AV_PIX_FMT_FLAG_RGB) == 0;
-  if (set_bt709) {
+  if (is_hdr_pq) {
+    /* TODO(sergey): Consider making the range an option to cover more use-cases. */
+    c->color_range = AVCOL_RANGE_JPEG;
+    c->color_primaries = AVCOL_PRI_BT2020;
+    c->color_trc = AVCOL_TRC_SMPTEST2084;
+    c->colorspace = AVCOL_SPC_BT2020_NCL;
+  }
+  else if (is_hdr_hlg) {
+    /* TODO(sergey): Consider making the range an option to cover more use-cases. */
+    c->color_range = AVCOL_RANGE_JPEG;
+    c->color_primaries = AVCOL_PRI_BT2020;
+    c->color_trc = AVCOL_TRC_ARIB_STD_B67;
+    c->colorspace = AVCOL_SPC_BT2020_NCL;
+  }
+  else if (set_bt709) {
     c->color_range = AVCOL_RANGE_MPEG;
     c->color_primaries = AVCOL_PRI_BT709;
     c->color_trc = AVCOL_TRC_BT709;
@@ -966,22 +1147,40 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     context->img_convert_ctx = nullptr;
   }
   else {
-    /* Output pixel format is different, allocate frame for conversion. */
-    AVPixelFormat src_format = is_10_bpp || is_12_bpp || is_16_bpp ? AV_PIX_FMT_GBRAPF32LE :
-                                                                     AV_PIX_FMT_RGBA;
+    /* Output pixel format is different, allocate frame for conversion.
+     * Setup RGB->YUV conversion with proper coefficients (depending on whether it is SDR BT.709,
+     * or HDR BT.2020). */
+    const AVPixelFormat src_format = is_10_bpp || is_12_bpp || is_16_bpp ? AV_PIX_FMT_GBRAPF32LE :
+                                                                           AV_PIX_FMT_RGBA;
     context->img_convert_frame = alloc_frame(src_format, c->width, c->height);
-    /* Setup BT.709 coefficients for RGB->YUV conversion, if needed. */
-    context->img_convert_ctx = ffmpeg_sws_get_context(c->width,
-                                                      c->height,
-                                                      src_format,
-                                                      false,
-                                                      -1,
-                                                      c->width,
-                                                      c->height,
-                                                      c->pix_fmt,
-                                                      false,
-                                                      set_bt709 ? AVCOL_SPC_BT709 : -1,
-                                                      SWS_BICUBIC);
+    if (is_hdr_pq || is_hdr_hlg) {
+      /* Special conversion for the Rec.2100 PQ and HLG output: the result color space is BT.2020,
+       * and also use full range. */
+      context->img_convert_ctx = ffmpeg_sws_get_context(c->width,
+                                                        c->height,
+                                                        src_format,
+                                                        true,
+                                                        -1,
+                                                        c->width,
+                                                        c->height,
+                                                        c->pix_fmt,
+                                                        true,
+                                                        AVCOL_SPC_BT2020_NCL,
+                                                        SWS_BICUBIC);
+    }
+    else {
+      context->img_convert_ctx = ffmpeg_sws_get_context(c->width,
+                                                        c->height,
+                                                        src_format,
+                                                        false,
+                                                        -1,
+                                                        c->width,
+                                                        c->height,
+                                                        c->pix_fmt,
+                                                        false,
+                                                        set_bt709 ? AVCOL_SPC_BT709 : -1,
+                                                        SWS_BICUBIC);
+    }
   }
 
   avcodec_parameters_from_context(st->codecpar, c);

@@ -16,6 +16,7 @@
 #include <sys/types.h>
 
 #include "BLI_path_utils.hh"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
@@ -54,6 +55,8 @@ extern "C" {
 #ifdef WITH_FFMPEG
 static void free_anim_ffmpeg(MovieReader *anim);
 #endif
+
+static bool anim_getnew(MovieReader *anim);
 
 void MOV_close(MovieReader *anim)
 {
@@ -98,6 +101,45 @@ IDProperty *MOV_load_metadata(MovieReader *anim)
   return anim->metadata;
 }
 
+static void probe_video_colorspace(MovieReader *anim, char r_colorspace_name[IM_MAX_SPACE])
+{
+  /* Use default role as fallback (i.e. it is an unknown combination of colorspace and primaries)
+   */
+  BLI_strncpy(r_colorspace_name,
+              IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE),
+              IM_MAX_SPACE);
+
+  if (anim->state == MovieReader::State::Uninitialized) {
+    if (!anim_getnew(anim)) {
+      return;
+    }
+  }
+
+  const AVColorTransferCharacteristic color_trc = anim->pCodecCtx->color_trc;
+  const AVColorSpace colorspace = anim->pCodecCtx->colorspace;
+  const AVColorPrimaries color_primaries = anim->pCodecCtx->color_primaries;
+
+  if (color_trc == AVCOL_TRC_ARIB_STD_B67 && color_primaries == AVCOL_PRI_BT2020 &&
+      colorspace == AVCOL_SPC_BT2020_NCL)
+  {
+    const char *hlg_name = IMB_colormanagement_get_rec2100_hlg_display_colorspace();
+    if (hlg_name) {
+      BLI_strncpy(r_colorspace_name, hlg_name, IM_MAX_SPACE);
+    }
+    return;
+  }
+
+  if (color_trc == AVCOL_TRC_SMPTEST2084 && color_primaries == AVCOL_PRI_BT2020 &&
+      colorspace == AVCOL_SPC_BT2020_NCL)
+  {
+    const char *pq_name = IMB_colormanagement_get_rec2100_pq_display_colorspace();
+    if (pq_name) {
+      BLI_strncpy(r_colorspace_name, pq_name, IM_MAX_SPACE);
+    }
+    return;
+  }
+}
+
 MovieReader *MOV_open_file(const char *filepath,
                            const int ib_flags,
                            const int streamindex,
@@ -110,20 +152,27 @@ MovieReader *MOV_open_file(const char *filepath,
 
   anim = MEM_new<MovieReader>("anim struct");
   if (anim != nullptr) {
-    /* Initialize colorspace to default if not yet set. */
-    const char *default_colorspace = IMB_colormanagement_role_colorspace_name_get(
-        COLOR_ROLE_DEFAULT_BYTE);
-    if (colorspace && colorspace[0] == '\0') {
-      BLI_strncpy(colorspace, default_colorspace, IM_MAX_SPACE);
-    }
-
-    /* Inherit colorspace from argument if provided. */
-    STRNCPY(anim->colorspace, colorspace ? colorspace : default_colorspace);
 
     STRNCPY(anim->filepath, filepath);
     anim->ib_flags = ib_flags;
     anim->streamindex = streamindex;
     anim->keep_original_colorspace = keep_original_colorspace;
+
+    if (colorspace && colorspace[0] != '\0') {
+      /* Use colorspace from argument, if provided. */
+      STRNCPY(anim->colorspace, colorspace);
+    }
+    else {
+      /* Try to initialize colorspace from the FFmpeg stream by interpreting color information from
+       * it. */
+      char file_colorspace[IM_MAX_SPACE];
+      probe_video_colorspace(anim, file_colorspace);
+      STRNCPY(anim->colorspace, file_colorspace);
+      if (colorspace) {
+        /* Copy the used colorspace into output argument. */
+        BLI_strncpy(colorspace, file_colorspace, IM_MAX_SPACE);
+      }
+    }
   }
   return anim;
 }

@@ -155,6 +155,12 @@ typedef enum IMB_Ffmpeg_Codec_ID {
   FFMPEG_CODEC_ID_OPUS = 86076,
 } IMB_Ffmpeg_Codec_ID;
 
+typedef enum eFFMpegVideoHdr {
+  FFM_VIDEO_HDR_NONE = 0,
+  FFM_VIDEO_HDR_REC2100_HLG = 1,
+  FFM_VIDEO_HDR_REC2100_PQ = 2,
+} eFFMpegVideoHdr;
+
 typedef struct FFMpegCodecData {
   int type;
   int codec;       /* Use `codec_id_get()` instead! IMB_Ffmpeg_Codec_ID */
@@ -178,7 +184,7 @@ typedef struct FFMpegCodecData {
   int rc_buffer_size;
   int mux_packet_size;
   int mux_rate;
-  char _pad0[4];
+  int video_hdr; /* eFFMpegVideoHdr */
 
 #ifdef __cplusplus
   IMB_Ffmpeg_Codec_ID codec_id_get() const

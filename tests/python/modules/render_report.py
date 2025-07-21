@@ -550,6 +550,7 @@ class Report:
                 remaining_filepaths.pop(0)
                 file_crashed = False
                 for test in self._get_filepath_tests(filepath):
+                    self.postprocess_test(blender, test)
                     if not os.path.exists(test.tmp_out_img) or os.path.getsize(test.tmp_out_img) == 0:
                         if crash:
                             # In case of crash, stop after missing files and re-render remaining
@@ -588,6 +589,14 @@ class Report:
                 os.remove(test.tmp_out_img)
 
         return test_results
+
+    def postprocess_test(self, blender, test):
+        """
+        Post-process test result after the Blender has run.
+        For example, this function is where conversion from video to a still image suitable for image diffing.
+        """
+
+        pass
 
     def _run_all_tests(self, dirname, dirpath, blender, arguments_cb, batch, fail_silently):
         passed_tests = []
