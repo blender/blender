@@ -189,7 +189,7 @@ class SocketTooltipBuilder {
     if (geo_tree_log && this->build_tooltip_value_from_geometry_nodes_log(*geo_tree_log)) {
       return;
     }
-    const bool always_show_value = socket_.owner_tree().type == NTREE_GEOMETRY;
+    const bool always_show_value = tree_.type == NTREE_GEOMETRY;
     if (node_.is_reroute()) {
       if (always_show_value) {
         this->start_block(TooltipBlockType::Value);
