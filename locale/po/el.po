@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"POT-Creation-Date: 2025-07-21 08:48+0000\n"
 "PO-Revision-Date: 2025-04-14 08:15+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -71,12 +71,16 @@ msgid "Start Frame"
 msgstr "Καρέ εκκίνησης"
 
 
-msgid "Empty"
-msgstr "Κενό"
+msgid "Hide"
+msgstr "Απόκρυψη"
 
 
 msgid "Info"
 msgstr "Πληροφ"
+
+
+msgid "Empty"
+msgstr "Κενό"
 
 
 msgid "Active Bone"
@@ -113,10 +117,6 @@ msgstr "Εκπομπή"
 
 msgid "Clear"
 msgstr "Καθαρισμός"
-
-
-msgid "Hide"
-msgstr "Απόκρυψη"
 
 
 msgid "Speed"
@@ -483,10 +483,6 @@ msgid "Hard"
 msgstr "Σκληρό"
 
 
-msgid "Area"
-msgstr "Περιοχή"
-
-
 msgid "Themes"
 msgstr "Θέματα"
 
@@ -519,14 +515,6 @@ msgid "Keyboard"
 msgstr "Πληκτρολόγιο"
 
 
-msgid "Text"
-msgstr "Κείμενο"
-
-
-msgid "Metaball"
-msgstr "Μετα-σφαίρα"
-
-
 msgid "Snap"
 msgstr "Προσκόλληση"
 
@@ -537,6 +525,10 @@ msgstr "Καθρέφτισμα"
 
 msgid "Select Linked"
 msgstr "Επιλογή Συνδεδεμένων"
+
+
+msgid "Metaball"
+msgstr "Μετα-σφαίρα"
 
 
 msgid "Light"
@@ -563,6 +555,14 @@ msgid "Merge"
 msgstr "Συγχώνευση"
 
 
+msgid "Text"
+msgstr "Κείμενο"
+
+
+msgid "Cache"
+msgstr "Προσωρινή μνήμη"
+
+
 msgid "Key"
 msgstr "Κλειδί"
 
@@ -574,10 +574,6 @@ msgstr "Καθρέφτισμα"
 
 msgid "Import"
 msgstr "Εισαγωγή"
-
-
-msgid "Cache"
-msgstr "Προσωρινή μνήμη"
 
 
 msgid "System"
@@ -646,10 +642,6 @@ msgstr "Μετα"
 
 msgid "Alpha Over"
 msgstr "Επικάλυψη βάσει διαφάνειας"
-
-
-msgid "Spin"
-msgstr "Περιστροφή"
 
 
 msgid "Shadow"
@@ -815,11 +807,6 @@ msgstr "Ορισμός Ενός Χρήστη"
 
 
 msgctxt "Operator"
-msgid "Hide"
-msgstr "Απόκρυψη"
-
-
-msgctxt "Operator"
 msgid "Bake"
 msgstr "Φτιάξε"
 
@@ -836,6 +823,11 @@ msgstr "Καθαρισμός Διαδρομής"
 msgctxt "Operator"
 msgid "Make Track"
 msgstr "Δημιουργία Διαδρομής"
+
+
+msgctxt "Operator"
+msgid "Hide"
+msgstr "Απόκρυψη"
 
 
 msgctxt "Operator"

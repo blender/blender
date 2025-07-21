@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"POT-Creation-Date: 2025-07-21 08:48+0000\n"
 "PO-Revision-Date: 2025-04-14 08:10+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -124,16 +124,32 @@ msgid "Hold"
 msgstr "Задържане"
 
 
+msgid "Hide"
+msgstr "Скриване"
+
+
+msgid "Frames"
+msgstr "Кадри"
+
+
+msgid "Info"
+msgstr "Информация"
+
+
+msgid "Thickness"
+msgstr "Дебелина"
+
+
+msgid "Onion Skinning"
+msgstr "Onion Skinning"
+
+
 msgid "Empty"
 msgstr "Празно"
 
 
 msgid "Node Editor"
 msgstr "Възлов Редактор"
-
-
-msgid "Info"
-msgstr "Информация"
 
 
 msgid "Author"
@@ -170,10 +186,6 @@ msgstr "Излч."
 
 msgid "Clear"
 msgstr "Изчистване"
-
-
-msgid "Hide"
-msgstr "Скриване"
 
 
 msgid "Tilt"
@@ -300,6 +312,14 @@ msgid "Collection of actions"
 msgstr "Колекция от действия"
 
 
+msgid "Main Annotations"
+msgstr "Главни анотации"
+
+
+msgid "Collection of annotations"
+msgstr "Колекция от анотации"
+
+
 msgid "Main Brushes"
 msgstr "Главни четки"
 
@@ -346,14 +366,6 @@ msgstr "Главни шрифтове"
 
 msgid "Collection of fonts"
 msgstr "Колекция от шрифтове"
-
-
-msgid "Main Annotations"
-msgstr "Главни анотации"
-
-
-msgid "Collection of annotations"
-msgstr "Колекция от анотации"
 
 
 msgid "Main Images"
@@ -570,10 +582,6 @@ msgstr "Материал"
 
 msgid "All"
 msgstr "Всички"
-
-
-msgid "Thickness"
-msgstr "Дебелина"
 
 
 msgid "Active Layer"
@@ -868,14 +876,6 @@ msgid "Line Style"
 msgstr "Стил на линията"
 
 
-msgid "Frames"
-msgstr "Кадри"
-
-
-msgid "Onion Skinning"
-msgstr "Onion Skinning"
-
-
 msgid "Grid"
 msgstr "Мрежа"
 
@@ -1024,10 +1024,6 @@ msgid "Hard"
 msgstr "Остр"
 
 
-msgid "Area"
-msgstr "Площ"
-
-
 msgid "Window Manager"
 msgstr "Управител на прозорците"
 
@@ -1140,10 +1136,6 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
-msgid "Text"
-msgstr "Текст"
-
-
 msgid "UV Mapping"
 msgstr "UV Картиране"
 
@@ -1176,8 +1168,16 @@ msgid "Merge"
 msgstr "Слей"
 
 
+msgid "Text"
+msgstr "Текст"
+
+
 msgid "Languages..."
 msgstr "Езици..."
+
+
+msgid "Cache"
+msgstr "Кеш"
 
 
 msgid "Key"
@@ -1186,10 +1186,6 @@ msgstr "Клавиш"
 
 msgid "Import"
 msgstr "Внеси"
-
-
-msgid "Cache"
-msgstr "Кеш"
 
 
 msgid "System"
@@ -1264,10 +1260,6 @@ msgid "Lines"
 msgstr "Линии"
 
 
-msgid "Spin"
-msgstr "Завъртане"
-
-
 msgid "Soften"
 msgstr "Мекост"
 
@@ -1302,10 +1294,6 @@ msgstr "Оклузия"
 
 msgid "Subsurface Scattering"
 msgstr "Подповърхностно Разпръскване"
-
-
-msgid "Turbidity"
-msgstr "Мътност"
 
 
 msgid "Triangle"
@@ -1678,11 +1666,6 @@ msgstr "Направи с Единствен Потребител"
 
 
 msgctxt "Operator"
-msgid "Hide"
-msgstr "Скриване"
-
-
-msgctxt "Operator"
 msgid "Bake"
 msgstr "Изпечи"
 
@@ -1749,6 +1732,11 @@ msgstr "Добавяне ключ на форма"
 
 msgid "Apply the relative positional offset"
 msgstr "Приложи осносителното отместване на местоположението"
+
+
+msgctxt "Operator"
+msgid "Hide"
+msgstr "Скриване"
 
 
 msgid "Unlink"
@@ -2358,14 +2346,6 @@ msgstr "Кадър:"
 
 msgid "Fields"
 msgstr "Полета"
-
-
-msgid "{} (Integer)"
-msgstr "{} (Integer)"
-
-
-msgid "{} (String)"
-msgstr "{} (String)"
 
 
 msgid "Layer:"

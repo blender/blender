@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"POT-Creation-Date: 2025-07-21 08:48+0000\n"
 "PO-Revision-Date: 2025-06-20 17:59+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -1056,10 +1056,6 @@ msgid "Tweak Mode Action Storage"
 msgstr "Akcijska shramba dopolnjevalnega načina"
 
 
-msgid "Slot to temporarily hold the main action while in tweak mode"
-msgstr "Polje, ki začasno hrani glavno akcijo v dopolnjevalnem načinu"
-
-
 msgid "Drivers"
 msgstr "Vodniki"
 
@@ -1304,6 +1300,150 @@ msgid "Motion path points will be baked into the camera space of the active came
 msgstr "Točke poti gibanja bodo vpete v prostor aktivne kamere. To pomeni, da se bodo pravilno prikazovale le, če jih boste gledali skozi to kamero. Preklapljanje kamer z oznakami ni podprto."
 
 
+msgid "Annotation Frame"
+msgstr "Okvir zaznamka"
+
+
+msgid "Frame Number"
+msgstr "Številka okvirja"
+
+
+msgid "Strokes"
+msgstr "Poteze"
+
+
+msgid "Annotation Frames"
+msgstr "Okvirji zaznamkov"
+
+
+msgid "Collection of annotation frames"
+msgstr "Zbirka okvirjev zaznamkov"
+
+
+msgid "Annotation Layer"
+msgstr "Plast zaznamka"
+
+
+msgid "Active Frame"
+msgstr "Aktivni okvir"
+
+
+msgid "Frame currently being displayed for this layer"
+msgstr "Okvir, ki je trenutno prikazan za to plast"
+
+
+msgid "Hide"
+msgstr "Skrij"
+
+
+msgid "Set annotation Visibility"
+msgstr "Nastavi vidnost zaznamkov"
+
+
+msgid "After Color"
+msgstr "Bodoča barva"
+
+
+msgid "Base color for ghosts after the active frame"
+msgstr "Temeljna barva za fantome"
+
+
+msgid "Frames After"
+msgstr "Okvirji potem"
+
+
+msgid "Before Color"
+msgstr "Pretekla barva"
+
+
+msgid "Frames Before"
+msgstr "Okvirji prej"
+
+
+msgid "Custom Onion Skin Colors"
+msgstr "Čebulne barve po meri"
+
+
+msgid "Opacity"
+msgstr "Neprosojnost"
+
+
+msgid "Annotation Layer Opacity"
+msgstr "Motnost plasti zaznamka"
+
+
+msgid "Frames"
+msgstr "Okvirji"
+
+
+msgid "Info"
+msgstr "Informacije"
+
+
+msgid "Layer name"
+msgstr "Ime plasti"
+
+
+msgid "Ruler"
+msgstr "Ravnilo"
+
+
+msgid "Locked"
+msgstr "Zaklenjeno"
+
+
+msgid "Frame Locked"
+msgstr "Okvir zaklenjen"
+
+
+msgid "In Front"
+msgstr "V ospredje"
+
+
+msgid "Thickness"
+msgstr "Debelina"
+
+
+msgid "Onion Skinning"
+msgstr "Čebuljenje"
+
+
+msgid "Annotation Layers"
+msgstr "Plasti zaznamkov"
+
+
+msgid "Collection of annotation layers"
+msgstr "Zbirka plasti zaznamkov"
+
+
+msgid "Active Layer Index"
+msgstr "Indeks aktivne plasti"
+
+
+msgid "Active Note"
+msgstr "Aktivni zaznamek"
+
+
+msgid "Default"
+msgstr "Privzeto"
+
+
+msgid "Annotation Stroke"
+msgstr "Poteza zaznamka"
+
+
+msgid "Stroke Points"
+msgstr "Točke poteze"
+
+
+msgid "Annotation Stroke Point"
+msgstr "Točka poteze zaznamka"
+
+
+msgid "Coordinates"
+msgstr "Koordinate"
+
+
 msgid "Any Type"
 msgstr "Poljuben tip"
 
@@ -1438,10 +1578,6 @@ msgstr "Python konzola"
 
 msgid "Interactive programmatic console for advanced editing and script development"
 msgstr "Interaktivna programska konzola, namenjena naprednemu urejanju in razvijanju programov"
-
-
-msgid "Info"
-msgstr "Informacije"
 
 
 msgid "Log of operations, warnings and error messages"
@@ -2081,6 +2217,14 @@ msgid "Name of the Attribute"
 msgstr "Ime atributa"
 
 
+msgid "Array"
+msgstr "Vrsta"
+
+
+msgid "Single"
+msgstr "Ena sama"
+
+
 msgid "Bool Attribute"
 msgstr "Logični atribut"
 
@@ -2613,10 +2757,6 @@ msgid "Handle 2 Type"
 msgstr "Tip druge ročice"
 
 
-msgid "Hide"
-msgstr "Skrij"
-
-
 msgid "Visibility status"
 msgstr "Vidnost"
 
@@ -2685,6 +2825,14 @@ msgid "Action data-blocks"
 msgstr "Akcijski podatkovni bloki"
 
 
+msgid "Annotation"
+msgstr "Zaznamek"
+
+
+msgid "Annotation data-blocks (legacy Grease Pencil)"
+msgstr "Podatkovni bloki zaznamkov (predhodnik Grease Pencila)"
+
+
 msgid "Armatures"
 msgstr "Skeleti"
 
@@ -2747,14 +2895,6 @@ msgstr "Vektorske pisave"
 
 msgid "Vector font data-blocks"
 msgstr "Podatkovni bloki vektorskih pisav"
-
-
-msgid "Annotation"
-msgstr "Zaznamek"
-
-
-msgid "Annotation data-blocks (legacy Grease Pencil)"
-msgstr "Podatkovni bloki zaznamkov (predhodnik Grease Pencila)"
 
 
 msgid "Grease Pencil"
@@ -3037,6 +3177,14 @@ msgid "Collection of actions"
 msgstr "Zbirka akcij"
 
 
+msgid "Main Annotations"
+msgstr "Glavni zaznamki"
+
+
+msgid "Collection of annotations"
+msgstr "Zbirka zaznamkov"
+
+
 msgid "Main Armatures"
 msgstr "Glavni skeleti"
 
@@ -3091,14 +3239,6 @@ msgstr "Glavne pisave"
 
 msgid "Collection of fonts"
 msgstr "Zbirka pisav"
-
-
-msgid "Main Annotations"
-msgstr "Glavni zaznamki"
-
-
-msgid "Collection of annotations"
-msgstr "Zbirka zaznamkov"
 
 
 msgid "Main Grease Pencils"
@@ -5178,10 +5318,6 @@ msgid "Use both visible strokes and edit lines as fill boundary limits"
 msgstr "Za polnilne meje uporabi vidne poteze in urejevalne črte"
 
 
-msgid "Strokes"
-msgstr "Poteze"
-
-
 msgid "Use visible strokes as fill boundary limits"
 msgstr "Za polnilne meje uporabi vidne poteze"
 
@@ -5315,10 +5451,6 @@ msgstr "Material potez, ki so bile narisane s tem čopičem"
 
 msgid "Material used for secondary uses for this brush"
 msgstr "Material za drugotno uporabo tega čopiča"
-
-
-msgid "Thickness"
-msgstr "Debelina"
 
 
 msgid "Thickness of the outline stroke relative to current brush thickness"
@@ -5743,10 +5875,6 @@ msgstr "Slika ozadja"
 
 msgid "Image and settings for display in the 3D View background"
 msgstr "Slika in njene nastavitve za prikaz v ozadju 3D pogleda"
-
-
-msgid "Opacity"
-msgstr "Neprosojnost"
 
 
 msgid "Image opacity to blend the image against the background color"
@@ -8311,10 +8439,6 @@ msgstr "Vrstni red rotacij"
 
 msgid "Explicitly specify the euler rotation order"
 msgstr "Izrecno določi zaporedje Eulerjevih rotacij"
-
-
-msgid "Default"
-msgstr "Privzeto"
 
 
 msgid "Euler using the default rotation order"
@@ -13378,10 +13502,6 @@ msgid "Show/hide Point Cloud data-blocks"
 msgstr "Pokaže/skrije podatkovne bloke oblakov točk"
 
 
-msgid "Show Scene data-blocks"
-msgstr "Pokaže podatkovne bloke scen"
-
-
 msgid "Show Sound data-blocks"
 msgstr "Pokaže podatkovne bloke zvokov"
 
@@ -13432,6 +13552,10 @@ msgstr "Pokaže podatkovne bloke vozliščnih dreves"
 
 msgid "Show Object data-blocks"
 msgstr "Pokaže podatkovne bloke objektov"
+
+
+msgid "Show Scene data-blocks"
+msgstr "Pokaže podatkovne bloke scen"
 
 
 msgid "Show World data-blocks"
@@ -13492,10 +13616,6 @@ msgstr "Oznaka datotečnega krmilnika"
 
 msgid "Open images"
 msgstr "Odpri slike"
-
-
-msgid "FBX"
-msgstr "FBX"
 
 
 msgid "glTF 2.0"
@@ -15014,100 +15134,12 @@ msgid "View Map Cache"
 msgstr "Predpomnilnik glediščne teksture"
 
 
-msgid "Annotation Frame"
-msgstr "Okvir zaznamka"
-
-
-msgid "Frame Number"
-msgstr "Številka okvirja"
-
-
-msgid "Annotation Frames"
-msgstr "Okvirji zaznamkov"
-
-
-msgid "Collection of annotation frames"
-msgstr "Zbirka okvirjev zaznamkov"
-
-
 msgid "Grease Pencil Interpolate Settings"
 msgstr "Interpolacijske nastavitve Grease Pencil"
 
 
 msgid "Interpolation Curve"
 msgstr "Interpolacijska krivulja"
-
-
-msgid "Annotation Layer"
-msgstr "Plast zaznamka"
-
-
-msgid "Active Frame"
-msgstr "Aktivni okvir"
-
-
-msgid "Frame currently being displayed for this layer"
-msgstr "Okvir, ki je trenutno prikazan za to plast"
-
-
-msgid "Set annotation Visibility"
-msgstr "Nastavi vidnost zaznamkov"
-
-
-msgid "After Color"
-msgstr "Bodoča barva"
-
-
-msgid "Base color for ghosts after the active frame"
-msgstr "Temeljna barva za fantome"
-
-
-msgid "Frames After"
-msgstr "Okvirji potem"
-
-
-msgid "Before Color"
-msgstr "Pretekla barva"
-
-
-msgid "Frames Before"
-msgstr "Okvirji prej"
-
-
-msgid "Custom Onion Skin Colors"
-msgstr "Čebulne barve po meri"
-
-
-msgid "Annotation Layer Opacity"
-msgstr "Motnost plasti zaznamka"
-
-
-msgid "Frames"
-msgstr "Okvirji"
-
-
-msgid "Layer name"
-msgstr "Ime plasti"
-
-
-msgid "Ruler"
-msgstr "Ravnilo"
-
-
-msgid "Locked"
-msgstr "Zaklenjeno"
-
-
-msgid "Frame Locked"
-msgstr "Okvir zaklenjen"
-
-
-msgid "In Front"
-msgstr "V ospredje"
-
-
-msgid "Onion Skinning"
-msgstr "Čebuljenje"
 
 
 msgid "Grease Pencil Sculpt Guide"
@@ -15212,22 +15244,6 @@ msgstr "Skaliranje debeline poteze"
 
 msgid "Use Curve"
 msgstr "Uporabi krivuljo"
-
-
-msgid "Annotation Stroke"
-msgstr "Poteza zaznamka"
-
-
-msgid "Stroke Points"
-msgstr "Točke poteze"
-
-
-msgid "Annotation Stroke Point"
-msgstr "Točka poteze zaznamka"
-
-
-msgid "Coordinates"
-msgstr "Koordinate"
 
 
 msgctxt "Operator"
@@ -15553,22 +15569,6 @@ msgstr "Zbirka maskirnih plasti Grease Pencil"
 
 msgid "Active Layer Mask Index"
 msgstr "Aktivni indeks plastne maske"
-
-
-msgid "Annotation Layers"
-msgstr "Plasti zaznamkov"
-
-
-msgid "Collection of annotation layers"
-msgstr "Zbirka plasti zaznamkov"
-
-
-msgid "Active Layer Index"
-msgstr "Indeks aktivne plasti"
-
-
-msgid "Active Note"
-msgstr "Aktivni zaznamek"
 
 
 msgid "Time Modifier Segment"
@@ -16398,10 +16398,6 @@ msgid "Constant"
 msgstr "Konstantno"
 
 
-msgid "Curves Sculpt Settings"
-msgstr "Nastavitve krivuljnega kiparjenja"
-
-
 msgctxt "Curves"
 msgid "Brush Type"
 msgstr "Tip čopiča"
@@ -16462,6 +16458,10 @@ msgid "Slide"
 msgstr "Drsenje"
 
 
+msgid "Curves Sculpt Settings"
+msgstr "Nastavitve krivuljnega kiparjenja"
+
+
 msgid "Dash Ratio"
 msgstr "Črtkanost"
 
@@ -16517,6 +16517,31 @@ msgid "Fill Threshold"
 msgstr "Prag polnila"
 
 
+msgctxt "Brush"
+msgid "Brush Type"
+msgstr "Tip čopiča"
+
+
+msgctxt "Brush"
+msgid "Draw"
+msgstr "Risanje"
+
+
+msgctxt "Brush"
+msgid "Fill"
+msgstr "Polnilo"
+
+
+msgctxt "Brush"
+msgid "Erase"
+msgstr "Radirka"
+
+
+msgctxt "Brush"
+msgid "Tint"
+msgstr "Niansiranje"
+
+
 msgctxt "GPencil"
 msgid "Brush Type"
 msgstr "Tip čopiča"
@@ -16566,31 +16591,6 @@ msgid "Gpencil Settings"
 msgstr "Nastavitve Grease Pencil"
 
 
-msgctxt "Brush"
-msgid "Brush Type"
-msgstr "Tip čopiča"
-
-
-msgctxt "Brush"
-msgid "Draw"
-msgstr "Risanje"
-
-
-msgctxt "Brush"
-msgid "Fill"
-msgstr "Polnilo"
-
-
-msgctxt "Brush"
-msgid "Erase"
-msgstr "Radirka"
-
-
-msgctxt "Brush"
-msgid "Tint"
-msgstr "Niansiranje"
-
-
 msgid "Brush Type"
 msgstr "Tip čopiča"
 
@@ -16633,10 +16633,6 @@ msgstr "Višina čopiča"
 
 msgid "Hue Jitter"
 msgstr "Tresenje nianse"
-
-
-msgid "Brush Icon Filepath"
-msgstr "Pot ikone čopiča"
 
 
 msgctxt "Brush"
@@ -16798,30 +16794,6 @@ msgid "Saturation Jitter"
 msgstr "Tresenje nasičenosti"
 
 
-msgid "Sculpt Plane"
-msgstr "Kiparska ravnina"
-
-
-msgid "Area Plane"
-msgstr "Površinska ravnina"
-
-
-msgid "View Plane"
-msgstr "Glediščna ravnina"
-
-
-msgid "X Plane"
-msgstr "Ravnina X"
-
-
-msgid "Y Plane"
-msgstr "Ravnina Y"
-
-
-msgid "Z Plane"
-msgstr "Ravnina Z"
-
-
 msgctxt "Brush"
 msgid "Draw Sharp"
 msgstr "Ostro risanje"
@@ -16935,6 +16907,30 @@ msgstr "Razmaz večločljiv. odmikanja"
 msgctxt "Brush"
 msgid "Paint"
 msgstr "Slikanje"
+
+
+msgid "Sculpt Plane"
+msgstr "Kiparska ravnina"
+
+
+msgid "Area Plane"
+msgstr "Površinska ravnina"
+
+
+msgid "View Plane"
+msgstr "Glediščna ravnina"
+
+
+msgid "X Plane"
+msgstr "Ravnina X"
+
+
+msgid "Y Plane"
+msgstr "Ravnina Y"
+
+
+msgid "Z Plane"
+msgstr "Ravnina Z"
 
 
 msgid "Secondary Color"
@@ -17143,10 +17139,6 @@ msgstr "Prekrij s kazalcem"
 
 msgid "Override Overlay"
 msgstr "Povozi prekrivanje"
-
-
-msgid "Custom Icon"
-msgstr "Ikona po meri"
 
 
 msgid "Use Pressure for Density"
@@ -18324,14 +18316,6 @@ msgstr "Vnaprej množeno"
 
 msgid "Channel Packed"
 msgstr "Zapakirano v kanale"
-
-
-msgid "Bindcode"
-msgstr "Vezna šifra"
-
-
-msgid "OpenGL bindcode"
-msgstr "Vezna šifra OpenGL"
 
 
 msgid "Color Space Settings"
@@ -20387,6 +20371,10 @@ msgid "Relative Object"
 msgstr "Objekt sorazmernosti"
 
 
+msgid "Annotations"
+msgstr "Zaznamki"
+
+
 msgid "Distance Model"
 msgstr "Model oddaljevanja"
 
@@ -20457,10 +20445,6 @@ msgstr "Končni okvir predoglednega intervala"
 
 msgid "Preview Range Start Frame"
 msgstr "Začetni okvir predoglednega intervala"
-
-
-msgid "Annotations"
-msgstr "Zaznamki"
 
 
 msgid "Hydra"
@@ -21145,36 +21129,8 @@ msgid "Cause the image to repeat in checker board pattern"
 msgstr "Sliko ponavlja v vzorcu šahovnice"
 
 
-msgid "Filter Eccentricity"
-msgstr "Filter izsrednosti"
-
-
-msgid "Maximum eccentricity (higher gives less blur at distant/oblique angles, but is also slower)"
-msgstr "Največja izsrednost (večja pomeni manj zabrisanosti na daljših/poševnih robovih, vendar je tudi počasnejša)"
-
-
-msgid "Filter Probes"
-msgstr "Filter sond"
-
-
-msgid "Maximum number of samples (higher gives less blur at distant/oblique angles, but is also slower)"
-msgstr "Največja količina vzorcev (večja pomeni manj zabrisanosti na daljših/poševnih robovih, vendar je tudi počasnejša)"
-
-
 msgid "Filter Size"
 msgstr "Velikost filtra"
-
-
-msgid "EWA"
-msgstr "EWA"
-
-
-msgid "FELINE"
-msgstr "FELINE"
-
-
-msgid "Area"
-msgstr "Ploščina"
 
 
 msgid "Invert Alpha"
@@ -21199,14 +21155,6 @@ msgstr "Sodi del šahovnice"
 
 msgid "Checker Odd"
 msgstr "Lihi del šahovnice"
-
-
-msgid "Minimum Filter Size"
-msgstr "Minimalna velikost filtra"
-
-
-msgid "MIP Map"
-msgstr "Preslikava MIP"
 
 
 msgid "Mirror X"
@@ -22011,6 +21959,10 @@ msgstr "Realnoštevilski piksli ikone"
 
 msgid "Image Size"
 msgstr "Velikost slike"
+
+
+msgid "Custom Icon"
+msgstr "Ikona po meri"
 
 
 msgid "Custom Image"
@@ -24425,38 +24377,6 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Clean Up"
-msgstr "Počisti"
-
-
-msgid "Show/Hide"
-msgstr "Pokaži / skrij"
-
-
-msgid "Special Characters"
-msgstr "Posebni znaki"
-
-
-msgid "Kerning"
-msgstr "Spodsekavanje"
-
-
-msgid "Text"
-msgstr "Besedilo"
-
-
-msgid "Metaball"
-msgstr "Metažoga"
-
-
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Bone Roll"
-msgstr "Zasukaj kost"
-
-
 msgid "Pivot Point"
 msgstr "Osišče"
 
@@ -24529,6 +24449,10 @@ msgid "Assign Material"
 msgstr "Dodeli material"
 
 
+msgid "Metaball"
+msgstr "Metažoga"
+
+
 msgid "Light"
 msgstr "Luč"
 
@@ -24559,6 +24483,14 @@ msgstr "Obriši"
 
 msgid "Quick Effects"
 msgstr "Učinki na hitro"
+
+
+msgid "Show/Hide"
+msgstr "Pokaži / skrij"
+
+
+msgid "Clean Up"
+msgstr "Počisti"
 
 
 msgid "Asset"
@@ -24605,6 +24537,10 @@ msgid "Bone Collections"
 msgstr "Zbirke kosti"
 
 
+msgid "Names"
+msgstr "Imena"
+
+
 msgid "Face Data"
 msgstr "Podatki lic"
 
@@ -24619,6 +24555,22 @@ msgstr "Nastavi moč lica"
 
 msgid "Merge"
 msgstr "Združi"
+
+
+msgid "Special Characters"
+msgstr "Posebni znaki"
+
+
+msgid "Kerning"
+msgstr "Spodsekavanje"
+
+
+msgid "Text"
+msgstr "Besedilo"
+
+
+msgid "Bone Roll"
+msgstr "Zasukaj kost"
 
 
 msgid "Animals"
@@ -24705,6 +24657,10 @@ msgstr "Dodajanje atributa"
 
 msgid "Attribute Specials"
 msgstr "Operacije atributov"
+
+
+msgid "Cache"
+msgstr "Predpomnilnik"
 
 
 msgid "Channel"
@@ -24979,10 +24935,6 @@ msgid "Python"
 msgstr "Python"
 
 
-msgid "Cache"
-msgstr "Predpomnilnik"
-
-
 msgid "Blender"
 msgstr "Blender"
 
@@ -25170,8 +25122,8 @@ msgid "Polygon"
 msgstr "Večkotnik"
 
 
-msgid "Split Normals"
-msgstr "Razcepi normale"
+msgid "Custom Normals"
+msgstr "Normale po meri"
 
 
 msgid "Smooth"
@@ -25432,10 +25384,6 @@ msgstr "Zamakne ključne okvirje"
 
 msgid "Texture Mapping"
 msgstr "Teksturiranje"
-
-
-msgid "Array"
-msgstr "Vrsta"
 
 
 msgid "Bevel"
@@ -25896,10 +25844,6 @@ msgstr "Teža poševnine"
 
 msgid "Freestyle"
 msgstr "Freestyle"
-
-
-msgid "Custom Normals"
-msgstr "Normale po meri"
 
 
 msgid "UVs"
@@ -28606,6 +28550,10 @@ msgid "Height of the node"
 msgstr "Višina vozlišča"
 
 
+msgid "Collapse"
+msgstr "Sesedi"
+
+
 msgid "Internal Links"
 msgstr "Notranje povezave"
 
@@ -28694,36 +28642,12 @@ msgid "Alpha Over"
 msgstr "Alfa zgoraj"
 
 
-msgid "Convert Premultiplied"
-msgstr "Pretvori vnaprej množeno alfo"
-
-
 msgid "Smooth away jagged edges"
 msgstr "Zgladi nazobčane robove"
 
 
-msgid "Contrast Limit"
-msgstr "Omejitev kontrasta"
-
-
-msgid "Corner Rounding"
-msgstr "Zaobljenje robov"
-
-
 msgid "Bilateral Blur"
 msgstr "Dvostranski zabris"
-
-
-msgid "Color Sigma"
-msgstr "Barvna sigma"
-
-
-msgid "Space Sigma"
-msgstr "Prostorska sigma"
-
-
-msgid "Aspect Correction"
-msgstr "Popravek razmerja"
 
 
 msgctxt "NodeTree"
@@ -28771,44 +28695,12 @@ msgid "Mitch"
 msgstr "Mitchev"
 
 
-msgid "Bokeh"
-msgstr "Boke"
-
-
-msgid "Extend Bounds"
-msgstr "Razširi meje"
-
-
-msgid "Variable Size"
-msgstr "Spremenljiva velikost"
-
-
 msgid "Bokeh Blur"
 msgstr "Zabris boke"
 
 
-msgid "Max Blur"
-msgstr "Maksimum zabrisa"
-
-
 msgid "Bokeh Image"
 msgstr "Slika boke"
-
-
-msgid "Catadioptric"
-msgstr "Katadioptričnost"
-
-
-msgid "Flaps"
-msgstr "Lističi"
-
-
-msgid "Rounding"
-msgstr "Zaobljenost"
-
-
-msgid "Lens Shift"
-msgstr "Zamik leče"
 
 
 msgid "Box Mask"
@@ -28844,20 +28736,8 @@ msgid "Limit Channel"
 msgstr "Omejitveni kanal"
 
 
-msgid "High"
-msgstr "Visoko"
-
-
 msgid "Algorithm"
 msgstr "Algoritem"
-
-
-msgid "Single"
-msgstr "Ena sama"
-
-
-msgid "Low"
-msgstr "Nizko"
 
 
 msgctxt "Color"
@@ -28867,18 +28747,6 @@ msgstr "Kanal"
 
 msgid "Chroma Key"
 msgstr "Kromatični ključ"
-
-
-msgid "Lift"
-msgstr "Privzdig"
-
-
-msgid "Shadow Adjust"
-msgstr "Prilagoditev senc"
-
-
-msgid "Acceptance"
-msgstr "Dopustnost"
 
 
 msgid "Color Balance"
@@ -28897,133 +28765,16 @@ msgid "Offset/Power/Slope (ASC-CDL)"
 msgstr "Odmik / moč / nagib (ASC-CDL)"
 
 
-msgid "Basis"
-msgstr "Osnova"
-
-
-msgctxt "MovieClip"
-msgid "Power"
-msgstr "Moč"
-
-
-msgid "Slope"
-msgstr "Klančina"
-
-
 msgid "Color Correction"
 msgstr "Popravek barve"
-
-
-msgid "Highlights Contrast"
-msgstr "Kontrast svetlih tonov"
-
-
-msgid "Highlights Gain"
-msgstr "Ojačanje svetlih tonov"
-
-
-msgid "Highlights Gamma"
-msgstr "Gama svetlih tonov"
-
-
-msgid "Highlights Lift"
-msgstr "Privzdig svetlih tonov"
-
-
-msgid "Highlights Saturation"
-msgstr "Nasičenje svetlih tonov"
-
-
-msgid "Master Contrast"
-msgstr "Glavni kontrast"
-
-
-msgid "Master Gain"
-msgstr "Glavno ojačanje"
-
-
-msgid "Master Gamma"
-msgstr "Glavna gama"
-
-
-msgid "Master Lift"
-msgstr "Glavni privzdig"
-
-
-msgid "Master Saturation"
-msgstr "Glavno nasičenje"
-
-
-msgid "Midtones Contrast"
-msgstr "Kontrast srednjih tonov"
-
-
-msgid "Midtones End"
-msgstr "Zaključek srednjih tonov"
-
-
-msgid "Midtones Gain"
-msgstr "Ojačanje srednjih tonov"
-
-
-msgid "Midtones Gamma"
-msgstr "Gama srednjih tonov"
-
-
-msgid "Midtones Lift"
-msgstr "Privzdig srednjih tonov"
-
-
-msgid "Midtones Saturation"
-msgstr "Nasičenje srednjih tonov"
-
-
-msgid "Midtones Start"
-msgstr "Začetek srednjih tonov"
-
-
-msgid "Shadows Contrast"
-msgstr "Kontrast senc"
-
-
-msgid "Shadows Gain"
-msgstr "Ojačanje senc"
-
-
-msgid "Shadows Gamma"
-msgstr "Gama senc"
-
-
-msgid "Shadows Lift"
-msgstr "Privzdig senc"
-
-
-msgid "Shadows Saturation"
-msgstr "Nasičenje senc"
 
 
 msgid "Color Key"
 msgstr "Barvni ključ"
 
 
-msgid "H"
-msgstr "H"
-
-
-msgid "S"
-msgstr "S"
-
-
 msgid "Color Spill"
 msgstr "Barvno razlivanje"
-
-
-msgid "Unspill"
-msgstr "Popravi razlivanje"
-
-
-msgid "Combine YCbCrA (Legacy)"
-msgstr "Združi YCbCrA (zastarelo)"
 
 
 msgid "ITU 601"
@@ -29036,10 +28787,6 @@ msgstr "ITU 709"
 
 msgid "Combine Color"
 msgstr "Združi barvo"
-
-
-msgid "Combine XYZ"
-msgstr "Združi XYZ"
 
 
 msgid "Composite"
@@ -29082,22 +28829,6 @@ msgid "Anisotropic"
 msgstr "Anizotropija"
 
 
-msgid "X2"
-msgstr "X2"
-
-
-msgid "Y2"
-msgstr "Y2"
-
-
-msgid "X1"
-msgstr "X1"
-
-
-msgid "Y1"
-msgstr "Y1"
-
-
 msgid "Cryptomatte (Legacy)"
 msgstr "Cryptomatte (zastarelo)"
 
@@ -29138,28 +28869,16 @@ msgid "RGB Curves"
 msgstr "Krivulje RGB"
 
 
-msgid "Vector Curves"
-msgstr "Vektorske krivulje"
-
-
 msgid "Directional Blur"
 msgstr "Usmerjeni zabris"
 
 
-msgid "Center X"
-msgstr "Središče X"
-
-
-msgid "Center Y"
-msgstr "Središče Y"
-
-
-msgid "Spin"
-msgstr "Zasuk"
-
-
 msgid "Defocus"
 msgstr "Defokus"
+
+
+msgid "Max Blur"
+msgstr "Maksimum zabrisa"
 
 
 msgid "Bokeh Type"
@@ -29210,10 +28929,6 @@ msgid "3 sides"
 msgstr "3 stranice"
 
 
-msgid "Gamma Correction"
-msgstr "Gama korekcija"
-
-
 msgid "Use Z-Buffer"
 msgstr "Uporabi globinski medpomnilnik"
 
@@ -29234,6 +28949,10 @@ msgid "Denoising quality"
 msgstr "Kakovost razšumljenja"
 
 
+msgid "High"
+msgstr "Visoko"
+
+
 msgid "High quality"
 msgstr "Visoka kakovost"
 
@@ -29242,16 +28961,8 @@ msgid "Balanced"
 msgstr "Uravnoteženo"
 
 
-msgid "HDR"
-msgstr "HDR"
-
-
 msgid "Despeckle"
 msgstr "Odstranitev madežev"
-
-
-msgid "Neighbor"
-msgstr "Sosed"
 
 
 msgid "Difference Key"
@@ -29260,11 +28971,6 @@ msgstr "Razlikovni ključ"
 
 msgid "Dilate/Erode"
 msgstr "Razširjanje / spodjedanje"
-
-
-msgctxt "Image"
-msgid "Edge"
-msgstr "Rob"
 
 
 msgid "Growing/shrinking mode"
@@ -29351,18 +29057,6 @@ msgid "Flip an image along a defined axis"
 msgstr "Preobrne sliko vzdolž podane osi"
 
 
-msgid "Flip X"
-msgstr "Preobrni X"
-
-
-msgid "Flip Y"
-msgstr "Preobrni Y"
-
-
-msgid "Flip X & Y"
-msgstr "Preobrni X in Y"
-
-
 msgid "Apply gamma correction"
 msgstr "Nanese gama korekcijo"
 
@@ -29373,18 +29067,6 @@ msgstr "Blesk"
 
 msgid "Add lens flares, fog and glows around bright parts of the image"
 msgstr "Doda odsev leče, meglo ali žarenje okoli svetlih delov slike"
-
-
-msgid "Angle Offset"
-msgstr "Kotni odmik"
-
-
-msgid "Color Modulation"
-msgstr "Modulacija barve"
-
-
-msgid "Amount of Color Modulation, modulates colors of streaks and ghosts for a spectral dispersion effect. (Deprecated: Use Color Modulation input instead)"
-msgstr "Količina modulacije barve. Prilagodi barve prog in fantomov tako, da ustvarja učinek spektralnega razklona. (Zastarelo: Namesto tega uporabite vhod Modulacije barve)"
 
 
 msgid "Glare Type"
@@ -29411,24 +29093,16 @@ msgid "Simple Star"
 msgstr "Preprosta zvezda"
 
 
-msgid "1 is original image only, 0 is exact 50/50 mix, 1 is processed image only. (Deprecated: Use Strength input instead)"
-msgstr "-1 je samo izvirna slika, 0 je mešanica natanko enakih deležev, 1 je samo obdelana slika. (Zastarelo: namesto tega uporabite vhod Moči)"
+msgid "Sun Beams"
+msgstr "Sončni žarki"
 
 
 msgid "If not set to high quality, the effect will be applied to a low-res copy of the source image"
 msgstr "Če ni nastavljeno na visoko kakovost, bo učinek nanesen na nizkoločljivostno kopijo izvorne slike"
 
 
-msgid "Glow/glare size (not actual size; relative to initial size of bright area of pixels). (Deprecated: Use Size input instead)"
-msgstr "Velikost žarenja/bleska (ne dejanska velikost, temveč relativna na začetno velikost območja svetlih pikslov). (Zastarelo: Uporabite vhod Velikosti)"
-
-
-msgid "The glare filter will only be applied to pixels brighter than this value. (Deprecated: Use Threshold input instead)"
-msgstr "Filter bleska bo nanesen le na piksle, ki so svetlejši od te vrednosti. (Zastarelo: namesto tega uporabite vhod Pragu)"
-
-
-msgid "Rotate 45°"
-msgstr "Rotiraj za 45°"
+msgid "Low"
+msgstr "Nizko"
 
 
 msgid "Hue Correct"
@@ -29467,41 +29141,9 @@ msgid "Invert Color"
 msgstr "Obrnitev barve"
 
 
-msgid "Post Blur"
-msgstr "Po zabrisu"
-
-
-msgid "Pre Blur"
-msgstr "Pred zabrisom"
-
-
-msgid "Clip Black"
-msgstr "Prirezana črna"
-
-
-msgid "Clip White"
-msgstr "Prirezana bela"
-
-
-msgid "Despill Balance"
-msgstr "Ravnovesje popravljanja razlivanja"
-
-
-msgid "Despill Factor"
-msgstr "Faktor popravljanja razlivanja"
-
-
-msgid "Feather Distance"
-msgstr "Razdalja mehčanja"
-
-
 msgctxt "Curve"
 msgid "Feather Falloff"
 msgstr "Slabljenje mehčanja"
-
-
-msgid "Screen Balance"
-msgstr "Zaslonsko ravnovesje"
 
 
 msgid "Keying Screen"
@@ -29514,22 +29156,6 @@ msgstr "Obrisovalni objekt"
 
 msgid "Kuwahara"
 msgstr "Kuwahara"
-
-
-msgid "Eccentricity"
-msgstr "Izsrednost"
-
-
-msgid "Uniformity"
-msgstr "Enoličnost"
-
-
-msgid "High Precision"
-msgstr "Visoka natančnost"
-
-
-msgid "Uses a more precise but slower method. Use if the output contains undesirable noise. (Deprecated: Use High Precision input instead.)"
-msgstr "Uporabi natančnejšo, a počasnejšo metodo. Vklopite, če siceršnji izhod vsebuje nezaželen šum. (Zastarelo: Namesto tega uporabite vhod visoke natančnosti.)"
 
 
 msgid "Variation of Kuwahara filter to use"
@@ -29554,19 +29180,6 @@ msgstr "Popačenje leče"
 
 msgid "Simulate distortion and dispersion from camera lenses"
 msgstr "Simulira popačenje in razklon, ki ga povzroči leča kamere"
-
-
-msgctxt "NodeTree"
-msgid "Jitter"
-msgstr "Tresenje"
-
-
-msgid "Projector"
-msgstr "Projektor"
-
-
-msgid "Enable/disable projector mode (the effect is applied in horizontal direction only). (Deprecated: Use distortion_type property instead.)"
-msgstr "Omogoči/onemogoči način projektorja (učinek deluje le v vodoravni smeri). (Zastarelo: Namesto tega uporabite lastnost distortion_type.)"
 
 
 msgid "Compute average and standard deviation of pixel values"
@@ -29609,14 +29222,6 @@ msgid "Create a matte based on luminance (brightness) difference"
 msgstr "Ustvari optično masko glede na razlike v svetlosti"
 
 
-msgid "Map Range"
-msgstr "Preslikava intervala"
-
-
-msgid "Map an input value range into a destination range"
-msgstr "Preslika vhodni interval vrednosti v ciljni interval"
-
-
 msgid "Map UV"
 msgstr "Preslikava UV"
 
@@ -29631,26 +29236,6 @@ msgid "Anisotropic"
 msgstr "Anizotropija"
 
 
-msgid "Map Value"
-msgstr "Preslikava vrednosti"
-
-
-msgid "Scale, offset and clamp values"
-msgstr "Skalira, premakne in obreže vrednosti"
-
-
-msgid "Use Maximum"
-msgstr "Uporabi maksimum"
-
-
-msgid "Use Minimum"
-msgstr "Uporabi minimum"
-
-
-msgid "Shutter"
-msgstr "Zaklop"
-
-
 msgid "Size Source"
 msgstr "Vir velikosti"
 
@@ -29663,402 +29248,12 @@ msgid "Fixed/Scene"
 msgstr "Fiksno / scena"
 
 
-msgid "Motion Blur"
-msgstr "Zabris gibanja"
-
-
-msgctxt "NodeTree"
-msgid "Operation"
-msgstr "Operacija"
-
-
-msgctxt "NodeTree"
-msgid "Add"
-msgstr "Seštej"
-
-
-msgid "A + B"
-msgstr "A + B"
-
-
-msgctxt "NodeTree"
-msgid "Subtract"
-msgstr "Odštej"
-
-
-msgid "A - B"
-msgstr "A - B"
-
-
-msgctxt "NodeTree"
-msgid "Multiply"
-msgstr "Zmnoži"
-
-
-msgid "A * B"
-msgstr "A * B"
-
-
-msgctxt "NodeTree"
-msgid "Divide"
-msgstr "Deli"
-
-
-msgid "A / B"
-msgstr "A / B"
-
-
-msgctxt "NodeTree"
-msgid "Multiply Add"
-msgstr "Zmnoži in seštej"
-
-
-msgid "A * B + C"
-msgstr "A * B + C"
-
-
-msgctxt "NodeTree"
-msgid "Power"
-msgstr "Potenca"
-
-
-msgid "A power B"
-msgstr "A na B"
-
-
-msgctxt "NodeTree"
-msgid "Logarithm"
-msgstr "Logaritem"
-
-
-msgid "Logarithm A base B"
-msgstr "Logaritem A z osnovo B"
-
-
-msgctxt "NodeTree"
-msgid "Square Root"
-msgstr "Kvadratni koren"
-
-
-msgid "Square root of A"
-msgstr "Kvadratni koren A"
-
-
-msgctxt "NodeTree"
-msgid "Inverse Square Root"
-msgstr "Inverz kvadratnega korena"
-
-
-msgid "1 / Square root of A"
-msgstr "1 / kvadratni koren A"
-
-
-msgctxt "NodeTree"
-msgid "Absolute"
-msgstr "Absolutna vrednost"
-
-
-msgid "Magnitude of A"
-msgstr "Velikost A"
-
-
-msgctxt "NodeTree"
-msgid "Exponent"
-msgstr "Eksponent"
-
-
-msgid "exp(A)"
-msgstr "exp(A)"
-
-
-msgctxt "NodeTree"
-msgid "Minimum"
-msgstr "Minimum"
-
-
-msgid "The minimum from A and B"
-msgstr "Manjši izmed A in B"
-
-
-msgctxt "NodeTree"
-msgid "Maximum"
-msgstr "Maksimum"
-
-
-msgid "The maximum from A and B"
-msgstr "Večji izmed A in B"
-
-
-msgctxt "NodeTree"
-msgid "Less Than"
-msgstr "Je manjše kot"
-
-
-msgid "1 if A < B else 0"
-msgstr "1, če A < B, sicer 0"
-
-
-msgctxt "NodeTree"
-msgid "Greater Than"
-msgstr "Je večje kot"
-
-
-msgid "1 if A > B else 0"
-msgstr "1, če A > B, sicer 0"
-
-
-msgctxt "NodeTree"
-msgid "Sign"
-msgstr "Predznak"
-
-
-msgid "Returns the sign of A"
-msgstr "Vrne predznak A"
-
-
-msgctxt "NodeTree"
-msgid "Compare"
-msgstr "Primerjaj"
-
-
-msgid "1 if (A == B) within tolerance C else 0"
-msgstr "1, če (A == B) znotraj meje, ki jo določa C, sicer 0"
-
-
-msgctxt "NodeTree"
-msgid "Smooth Minimum"
-msgstr "Zglajen minimum"
-
-
-msgid "The minimum from A and B with smoothing C"
-msgstr "Manjši izmed A in B z glajenjem C"
-
-
-msgctxt "NodeTree"
-msgid "Smooth Maximum"
-msgstr "Zglajena višja vrednost"
-
-
-msgid "The maximum from A and B with smoothing C"
-msgstr "Večji izmed A in B z glajenjem C"
-
-
-msgctxt "NodeTree"
-msgid "Round"
-msgstr "Zaokroži"
-
-
-msgid "Round A to the nearest integer. Round upward if the fraction part is 0.5"
-msgstr "Zaokroži A na najbližje celo število. Če je decimalni del 0,5, potem zaokroži navzgor"
-
-
-msgctxt "NodeTree"
-msgid "Floor"
-msgstr "Spodnje celo"
-
-
-msgid "The largest integer smaller than or equal A"
-msgstr "Najvišje celo število, ki je manjše ali enako A"
-
-
-msgctxt "NodeTree"
-msgid "Ceil"
-msgstr "Zgornji celi del"
-
-
-msgid "The smallest integer greater than or equal A"
-msgstr "Najnižje celo število, ki je večje ali enako A"
-
-
-msgctxt "NodeTree"
-msgid "Truncate"
-msgstr "Prireži"
-
-
-msgid "The integer part of A, removing fractional digits"
-msgstr "Celoštevilski del A, decimalne števke zavržemo"
-
-
-msgctxt "NodeTree"
-msgid "Fraction"
-msgstr "Neceli delež"
-
-
-msgid "The fraction part of A"
-msgstr "Decimalni del A"
-
-
-msgctxt "NodeTree"
-msgid "Truncated Modulo"
-msgstr "Prirezano po modulu"
-
-
-msgid "The remainder of truncated division using fmod(A,B)"
-msgstr "Ostanek pri prirezanem deljenju z fmod(A, B)"
-
-
-msgctxt "NodeTree"
-msgid "Floored Modulo"
-msgstr "Spodnje celo po modulu"
-
-
-msgid "The remainder of floored division"
-msgstr "Ostanek deljenja, zaokroženega navzdol"
-
-
-msgctxt "NodeTree"
-msgid "Wrap"
-msgstr "Ovij"
-
-
-msgid "Wrap value to range, wrap(A,B)"
-msgstr "Ovij vrednost z intervalom, wrap(A, B)"
-
-
-msgctxt "NodeTree"
-msgid "Snap"
-msgstr "Pritrdi"
-
-
-msgid "Snap to increment, snap(A,B)"
-msgstr "Pritrdi na inkrement, snap(A, B)"
-
-
-msgctxt "NodeTree"
-msgid "Ping-Pong"
-msgstr "Pingpong"
-
-
-msgid "Wraps a value and reverses every other cycle (A,B)"
-msgstr "Ovije vrednost in obrne vsak drugi cikel (A, B)"
-
-
-msgctxt "NodeTree"
-msgid "Sine"
-msgstr "Sinus"
-
-
-msgid "sin(A)"
-msgstr "sin(A)"
-
-
-msgctxt "NodeTree"
-msgid "Cosine"
-msgstr "Kosinus"
-
-
-msgid "cos(A)"
-msgstr "cos(A)"
-
-
-msgctxt "NodeTree"
-msgid "Tangent"
-msgstr "Tangens"
-
-
-msgid "tan(A)"
-msgstr "tan(A)"
-
-
-msgctxt "NodeTree"
-msgid "Arcsine"
-msgstr "Arkus sinus"
-
-
-msgid "arcsin(A)"
-msgstr "arcsin(A)"
-
-
-msgctxt "NodeTree"
-msgid "Arccosine"
-msgstr "Arkus kosinus"
-
-
-msgid "arccos(A)"
-msgstr "arccos(A)"
-
-
-msgctxt "NodeTree"
-msgid "Arctangent"
-msgstr "Arkus tangens"
-
-
-msgid "arctan(A)"
-msgstr "arctan(A)"
-
-
-msgctxt "NodeTree"
-msgid "Arctan2"
-msgstr "Atan2"
-
-
-msgid "The signed angle arctan(A / B)"
-msgstr "Predznačeni kot arctan(A / B)"
-
-
-msgctxt "NodeTree"
-msgid "Hyperbolic Sine"
-msgstr "Hiperbolični sinus"
-
-
-msgid "sinh(A)"
-msgstr "sinh(A)"
-
-
-msgctxt "NodeTree"
-msgid "Hyperbolic Cosine"
-msgstr "Hiperbolični kosinus"
-
-
-msgid "cosh(A)"
-msgstr "cosh(A)"
-
-
-msgctxt "NodeTree"
-msgid "Hyperbolic Tangent"
-msgstr "Hiperbolični tangens"
-
-
-msgid "tanh(A)"
-msgstr "tanh(A)"
-
-
-msgctxt "NodeTree"
-msgid "To Radians"
-msgstr "V radiane"
-
-
-msgid "Convert from degrees to radians"
-msgstr "Pretvori iz stopinj v radiane"
-
-
-msgctxt "NodeTree"
-msgid "To Degrees"
-msgstr "V stopinje"
-
-
-msgid "Convert from radians to degrees"
-msgstr "Pretvori iz radianov v stopinje"
-
-
-msgid "Clamp result of the node to 0.0 to 1.0 range"
-msgstr "Prireže rezultat vozlišča na interval od 0.0 do 1.0"
-
-
-msgid "Blend two images together using various blending modes"
-msgstr "Zlije dve sliki skupaj z različnimi načini mešanja"
-
-
 msgid "Movie Distortion"
 msgstr "Popačenje posnetka"
 
 
 msgid "Distortion to use to filter image"
 msgstr "Popačenje za filtriranje slike"
-
-
-msgid "Generate a normal vector and a dot product"
-msgstr "Generira normalni vektor in skalarni produkt"
 
 
 msgid "Map values to 0 to 1 range, based on the minimum and maximum pixel values"
@@ -30103,10 +29298,6 @@ msgstr "Shrani kot upodobitev"
 
 msgid "Pixelate"
 msgstr "Pikseliranje"
-
-
-msgid "Pixel Size"
-msgstr "Velikost piksla"
 
 
 msgid "Plane Track Deform"
@@ -30209,24 +29400,12 @@ msgid "Input the current scene time in seconds or frames"
 msgstr "Vnese trenutni scenski čas v sekundah ali okvirjih"
 
 
-msgid "Separate YCbCrA (Legacy)"
-msgstr "Loči YCbCrA (zastarelo)"
-
-
 msgid "Separate Color"
 msgstr "Loči bavo"
 
 
 msgid "Split an image into its composite color channels"
 msgstr "Razdeli sliko v posamezne barvne kanale"
-
-
-msgid "Separate XYZ"
-msgstr "Loči XYZ"
-
-
-msgid "Split a vector into its individual components"
-msgstr "Razdeli vektor na posamezne komponente"
 
 
 msgid "Set Alpha"
@@ -30249,14 +29428,6 @@ msgid "Stabilize 2D"
 msgstr "2D stabilizacija"
 
 
-msgid "Sun Beams"
-msgstr "Sončni žarki"
-
-
-msgid "Ray Length"
-msgstr "Dolžina žarka"
-
-
 msgid "Switch"
 msgstr "Preklopi"
 
@@ -30269,20 +29440,12 @@ msgid "Switch View"
 msgstr "Preklopi pogled"
 
 
-msgid "Node Output"
-msgstr "Izhod vozlišča"
-
-
 msgid "Time Curve"
 msgstr "Časovna krivulja"
 
 
 msgid "Tonemap"
 msgstr "Tonska preslikava"
-
-
-msgid "Adaptation"
-msgstr "Prireditev"
 
 
 msgid "Tonemap Type"
@@ -30321,52 +29484,12 @@ msgid "Offset an image"
 msgstr "Premakne sliko"
 
 
-msgid "Use relative (fraction of input image size) values to define translation. (Deprecated: Unused.)"
-msgstr "Premestitev definiraj z relativnimi vrednostmi (delež velikosti vhodne slike). (Zastarelo: Se ne uporablja.)"
-
-
-msgid "Repeats image on a specific axis"
-msgstr "Ponovi sliko na podani osi"
-
-
-msgid "X Axis"
-msgstr "Os X"
-
-
-msgid "Y Axis"
-msgstr "Os Y"
-
-
-msgid "Both Axes"
-msgstr "Obe osi"
-
-
 msgid "Vector Blur"
 msgstr "Vektorski zabris"
 
 
-msgid "Blur Factor"
-msgstr "Faktor zabrisa"
-
-
-msgid "Max Speed"
-msgstr "Največja hitrost"
-
-
-msgid "Min Speed"
-msgstr "Najmanjša hitrost"
-
-
 msgid "Viewer"
 msgstr "Prikazovalnik"
-
-
-msgid "Z Combine"
-msgstr "Globinsko združevanje"
-
-
-msgid "Anti-Alias Z"
-msgstr "Zgladi robove Z"
 
 
 msgid "Function Node"
@@ -30575,8 +29698,23 @@ msgstr "Metoda za pretvorbo realnega števila v celo število"
 
 
 msgctxt "NodeTree"
+msgid "Round"
+msgstr "Zaokroži"
+
+
+msgctxt "NodeTree"
+msgid "Floor"
+msgstr "Spodnje celo"
+
+
+msgctxt "NodeTree"
 msgid "Ceiling"
 msgstr "Navzgor"
+
+
+msgctxt "NodeTree"
+msgid "Truncate"
+msgstr "Prireži"
 
 
 msgid "Hash Value"
@@ -30585,6 +29723,61 @@ msgstr "Zgostitev"
 
 msgid "Integer Math"
 msgstr "Celoštevilska matematika"
+
+
+msgctxt "NodeTree"
+msgid "Operation"
+msgstr "Operacija"
+
+
+msgctxt "NodeTree"
+msgid "Add"
+msgstr "Seštej"
+
+
+msgid "A + B"
+msgstr "A + B"
+
+
+msgctxt "NodeTree"
+msgid "Subtract"
+msgstr "Odštej"
+
+
+msgid "A - B"
+msgstr "A - B"
+
+
+msgctxt "NodeTree"
+msgid "Multiply"
+msgstr "Zmnoži"
+
+
+msgid "A * B"
+msgstr "A * B"
+
+
+msgctxt "NodeTree"
+msgid "Divide"
+msgstr "Deli"
+
+
+msgid "A / B"
+msgstr "A / B"
+
+
+msgctxt "NodeTree"
+msgid "Multiply Add"
+msgstr "Zmnoži in seštej"
+
+
+msgid "A * B + C"
+msgstr "A * B + C"
+
+
+msgctxt "NodeTree"
+msgid "Absolute"
+msgstr "Absolutna vrednost"
 
 
 msgid "Non-negative value of A, abs(A)"
@@ -30600,8 +29793,28 @@ msgid "-A"
 msgstr "-A"
 
 
+msgctxt "NodeTree"
+msgid "Power"
+msgstr "Potenca"
+
+
 msgid "A power B, pow(A,B)"
 msgstr "A na B, pow(A, B)"
+
+
+msgctxt "NodeTree"
+msgid "Minimum"
+msgstr "Minimum"
+
+
+msgctxt "NodeTree"
+msgid "Maximum"
+msgstr "Maksimum"
+
+
+msgctxt "NodeTree"
+msgid "Sign"
+msgstr "Predznak"
 
 
 msgctxt "NodeTree"
@@ -30617,6 +29830,11 @@ msgstr "Deli in spodnje celo"
 msgctxt "NodeTree"
 msgid "Divide Ceiling"
 msgstr "Deli in zgornje celo"
+
+
+msgctxt "NodeTree"
+msgid "Floored Modulo"
+msgstr "Spodnje celo po modulu"
 
 
 msgctxt "NodeTree"
@@ -30640,10 +29858,6 @@ msgstr "Obrni matriko"
 
 msgid "Invert Rotation"
 msgstr "Obrni rotacijo"
-
-
-msgid "Contains"
-msgstr "Vsebuje"
 
 
 msgid "Matrix Determinant"
@@ -31715,10 +30929,6 @@ msgid "Transform Geometry"
 msgstr "Transformiraj geometrijo"
 
 
-msgid "Components"
-msgstr "Komponente"
-
-
 msgid "Translate Instances"
 msgstr "Premesti primerke"
 
@@ -31729,6 +30939,10 @@ msgstr "Poreži krivuljo"
 
 msgid "Pack UV Islands"
 msgstr "Zapakiraj otoke UV"
+
+
+msgid "Shape Method"
+msgstr "Metoda oblikovanja"
 
 
 msgid "UV Unwrap"
@@ -31960,6 +31174,10 @@ msgid "Min Max"
 msgstr "Min / maks"
 
 
+msgid "Combine XYZ"
+msgstr "Združi XYZ"
+
+
 msgid "Object Space"
 msgstr "Objektni prostor"
 
@@ -31996,6 +31214,10 @@ msgid "Light Path"
 msgstr "Pot svetlobe"
 
 
+msgid "Map Range"
+msgstr "Preslikava intervala"
+
+
 msgid "Interpolation Type"
 msgstr "Vrsta interpolacije"
 
@@ -32010,6 +31232,289 @@ msgstr "Gladki koraki"
 
 msgid "Smoother Step"
 msgstr "Gladkejši koraki"
+
+
+msgid "A power B"
+msgstr "A na B"
+
+
+msgctxt "NodeTree"
+msgid "Logarithm"
+msgstr "Logaritem"
+
+
+msgid "Logarithm A base B"
+msgstr "Logaritem A z osnovo B"
+
+
+msgctxt "NodeTree"
+msgid "Square Root"
+msgstr "Kvadratni koren"
+
+
+msgid "Square root of A"
+msgstr "Kvadratni koren A"
+
+
+msgctxt "NodeTree"
+msgid "Inverse Square Root"
+msgstr "Inverz kvadratnega korena"
+
+
+msgid "1 / Square root of A"
+msgstr "1 / kvadratni koren A"
+
+
+msgid "Magnitude of A"
+msgstr "Velikost A"
+
+
+msgctxt "NodeTree"
+msgid "Exponent"
+msgstr "Eksponent"
+
+
+msgid "exp(A)"
+msgstr "exp(A)"
+
+
+msgid "The minimum from A and B"
+msgstr "Manjši izmed A in B"
+
+
+msgid "The maximum from A and B"
+msgstr "Večji izmed A in B"
+
+
+msgctxt "NodeTree"
+msgid "Less Than"
+msgstr "Je manjše kot"
+
+
+msgid "1 if A < B else 0"
+msgstr "1, če A < B, sicer 0"
+
+
+msgctxt "NodeTree"
+msgid "Greater Than"
+msgstr "Je večje kot"
+
+
+msgid "1 if A > B else 0"
+msgstr "1, če A > B, sicer 0"
+
+
+msgid "Returns the sign of A"
+msgstr "Vrne predznak A"
+
+
+msgctxt "NodeTree"
+msgid "Compare"
+msgstr "Primerjaj"
+
+
+msgid "1 if (A == B) within tolerance C else 0"
+msgstr "1, če (A == B) znotraj meje, ki jo določa C, sicer 0"
+
+
+msgctxt "NodeTree"
+msgid "Smooth Minimum"
+msgstr "Zglajen minimum"
+
+
+msgid "The minimum from A and B with smoothing C"
+msgstr "Manjši izmed A in B z glajenjem C"
+
+
+msgctxt "NodeTree"
+msgid "Smooth Maximum"
+msgstr "Zglajena višja vrednost"
+
+
+msgid "The maximum from A and B with smoothing C"
+msgstr "Večji izmed A in B z glajenjem C"
+
+
+msgid "Round A to the nearest integer. Round upward if the fraction part is 0.5"
+msgstr "Zaokroži A na najbližje celo število. Če je decimalni del 0,5, potem zaokroži navzgor"
+
+
+msgid "The largest integer smaller than or equal A"
+msgstr "Najvišje celo število, ki je manjše ali enako A"
+
+
+msgctxt "NodeTree"
+msgid "Ceil"
+msgstr "Zgornji celi del"
+
+
+msgid "The smallest integer greater than or equal A"
+msgstr "Najnižje celo število, ki je večje ali enako A"
+
+
+msgid "The integer part of A, removing fractional digits"
+msgstr "Celoštevilski del A, decimalne števke zavržemo"
+
+
+msgctxt "NodeTree"
+msgid "Fraction"
+msgstr "Neceli delež"
+
+
+msgid "The fraction part of A"
+msgstr "Decimalni del A"
+
+
+msgctxt "NodeTree"
+msgid "Truncated Modulo"
+msgstr "Prirezano po modulu"
+
+
+msgid "The remainder of truncated division using fmod(A,B)"
+msgstr "Ostanek pri prirezanem deljenju z fmod(A, B)"
+
+
+msgid "The remainder of floored division"
+msgstr "Ostanek deljenja, zaokroženega navzdol"
+
+
+msgctxt "NodeTree"
+msgid "Wrap"
+msgstr "Ovij"
+
+
+msgid "Wrap value to range, wrap(A,B)"
+msgstr "Ovij vrednost z intervalom, wrap(A, B)"
+
+
+msgctxt "NodeTree"
+msgid "Snap"
+msgstr "Pritrdi"
+
+
+msgid "Snap to increment, snap(A,B)"
+msgstr "Pritrdi na inkrement, snap(A, B)"
+
+
+msgctxt "NodeTree"
+msgid "Ping-Pong"
+msgstr "Pingpong"
+
+
+msgid "Wraps a value and reverses every other cycle (A,B)"
+msgstr "Ovije vrednost in obrne vsak drugi cikel (A, B)"
+
+
+msgctxt "NodeTree"
+msgid "Sine"
+msgstr "Sinus"
+
+
+msgid "sin(A)"
+msgstr "sin(A)"
+
+
+msgctxt "NodeTree"
+msgid "Cosine"
+msgstr "Kosinus"
+
+
+msgid "cos(A)"
+msgstr "cos(A)"
+
+
+msgctxt "NodeTree"
+msgid "Tangent"
+msgstr "Tangens"
+
+
+msgid "tan(A)"
+msgstr "tan(A)"
+
+
+msgctxt "NodeTree"
+msgid "Arcsine"
+msgstr "Arkus sinus"
+
+
+msgid "arcsin(A)"
+msgstr "arcsin(A)"
+
+
+msgctxt "NodeTree"
+msgid "Arccosine"
+msgstr "Arkus kosinus"
+
+
+msgid "arccos(A)"
+msgstr "arccos(A)"
+
+
+msgctxt "NodeTree"
+msgid "Arctangent"
+msgstr "Arkus tangens"
+
+
+msgid "arctan(A)"
+msgstr "arctan(A)"
+
+
+msgctxt "NodeTree"
+msgid "Arctan2"
+msgstr "Atan2"
+
+
+msgid "The signed angle arctan(A / B)"
+msgstr "Predznačeni kot arctan(A / B)"
+
+
+msgctxt "NodeTree"
+msgid "Hyperbolic Sine"
+msgstr "Hiperbolični sinus"
+
+
+msgid "sinh(A)"
+msgstr "sinh(A)"
+
+
+msgctxt "NodeTree"
+msgid "Hyperbolic Cosine"
+msgstr "Hiperbolični kosinus"
+
+
+msgid "cosh(A)"
+msgstr "cosh(A)"
+
+
+msgctxt "NodeTree"
+msgid "Hyperbolic Tangent"
+msgstr "Hiperbolični tangens"
+
+
+msgid "tanh(A)"
+msgstr "tanh(A)"
+
+
+msgctxt "NodeTree"
+msgid "To Radians"
+msgstr "V radiane"
+
+
+msgid "Convert from degrees to radians"
+msgstr "Pretvori iz stopinj v radiane"
+
+
+msgctxt "NodeTree"
+msgid "To Degrees"
+msgstr "V stopinje"
+
+
+msgid "Convert from radians to degrees"
+msgstr "Pretvori iz radianov v stopinje"
+
+
+msgid "Clamp result of the node to 0.0 to 1.0 range"
+msgstr "Prireže rezultat vozlišča na interval od 0.0 do 1.0"
 
 
 msgid "Clamp Factor"
@@ -32030,6 +31535,10 @@ msgstr "Neenakomerno"
 
 msgid "Mix Shader"
 msgstr "Mešanje senčilnikov"
+
+
+msgid "Generate a normal vector and a dot product"
+msgstr "Generira normalni vektor in skalarni produkt"
 
 
 msgid "AOV Output"
@@ -32078,6 +31587,10 @@ msgstr "Vir programa"
 
 msgid "Auto Update"
 msgstr "Samodejno posodobi"
+
+
+msgid "Separate XYZ"
+msgstr "Loči XYZ"
 
 
 msgid "Shader to RGB"
@@ -32198,30 +31711,6 @@ msgid "Dimensions"
 msgstr "Dimenzije"
 
 
-msgid "Color Source"
-msgstr "Izvor barve"
-
-
-msgid "Particle Age"
-msgstr "Starost delca"
-
-
-msgid "Particle Speed"
-msgstr "Hitrost delca"
-
-
-msgid "Particle Velocity"
-msgstr "Vektor hitrosti delca"
-
-
-msgid "Point Source"
-msgstr "Točkasti izvor"
-
-
-msgid "Object Vertices"
-msgstr "Oglišča objekta"
-
-
 msgid "Sky Texture"
 msgstr "Nebesna tekstura"
 
@@ -32238,10 +31727,6 @@ msgid "Dust"
 msgstr "Prah"
 
 
-msgid "Ground Albedo"
-msgstr "Albedo na tleh"
-
-
 msgid "Ozone"
 msgstr "Ozon"
 
@@ -32250,20 +31735,8 @@ msgid "Sky Type"
 msgstr "Tip neba"
 
 
-msgid "Preetham"
-msgstr "Preetham"
-
-
-msgid "Preetham 1999"
-msgstr "Preetham 1999"
-
-
 msgid "Nishita"
 msgstr "Nishita"
-
-
-msgid "Sun Direction"
-msgstr "Smer sonca"
 
 
 msgid "Sun Disc"
@@ -32284,14 +31757,6 @@ msgstr "Rotacija sonca"
 
 msgid "Sun Size"
 msgstr "Velikost sonca"
-
-
-msgid "Turbidity"
-msgstr "Kalnost"
-
-
-msgid "Atmospheric turbidity"
-msgstr "Motnost zraka"
 
 
 msgid "Voronoi Texture"
@@ -32392,6 +31857,10 @@ msgstr "Tekstura belega šuma"
 
 msgid "Use Tips"
 msgstr "Uporabi konice"
+
+
+msgid "Vector Curves"
+msgstr "Vektorske krivulje"
 
 
 msgid "Vector Math"
@@ -32508,6 +31977,14 @@ msgid "Vector Rotate"
 msgstr "Vektorsko rotiranje"
 
 
+msgid "X Axis"
+msgstr "Os X"
+
+
+msgid "Y Axis"
+msgstr "Os Y"
+
+
 msgid "Z Axis"
 msgstr "Os Z"
 
@@ -32589,8 +32066,8 @@ msgid "Checker"
 msgstr "Šahovnica"
 
 
-msgid "Separate RGBA"
-msgstr "Loči RGBA"
+msgid "Node Output"
+msgstr "Izhod vozlišča"
 
 
 msgid "Value to Normal"
@@ -32615,6 +32092,10 @@ msgstr "Domena atributa"
 
 msgid "Is Attribute"
 msgstr "Je atribut"
+
+
+msgid "Structure Type"
+msgstr "Tip strukture"
 
 
 msgid "Collection of combine bundle items"
@@ -32815,10 +32296,6 @@ msgstr "Izbira plasti"
 
 msgid "Menu Expanded"
 msgstr "Razprti meni"
-
-
-msgid "Structure Type"
-msgstr "Tip strukture"
 
 
 msgid "Maximum value"
@@ -35501,10 +34978,6 @@ msgid "Filter btx files"
 msgstr "Filtriraj datoteke btx"
 
 
-msgid "Filter COLLADA files"
-msgstr "Filtriraj datoteke COLLADA"
-
-
 msgid "Filter font files"
 msgstr "Filtriraj datoteke pisav"
 
@@ -36074,10 +35547,6 @@ msgid "Add Exporter"
 msgstr "Dodaj izvoznik"
 
 
-msgid "Add Exporter"
-msgstr "Dodaj izvoznik"
-
-
 msgid "FileHandler idname"
 msgstr "FileHandler idname"
 
@@ -36096,10 +35565,6 @@ msgstr "Indeks izvoznika"
 
 
 msgctxt "Operator"
-msgid "Remove Exporter"
-msgstr "Odstrani izvoznik"
-
-
 msgid "Remove Exporter"
 msgstr "Odstrani izvoznik"
 
@@ -39255,11 +38720,6 @@ msgstr "Primerjaj UV-je"
 
 
 msgctxt "Operator"
-msgid "Add Custom Split Normals Data"
-msgstr "Dodaj podatke o razcepljenih normalah po meri"
-
-
-msgctxt "Operator"
 msgid "Clear Sculpt Mask Data"
 msgstr "Počisti kiparske maske"
 
@@ -39627,10 +39087,6 @@ msgstr "V središču"
 
 msgid "At Cursor"
 msgstr "Na kazalcu"
-
-
-msgid "Collapse"
-msgstr "Sesedi"
 
 
 msgid "At First"
@@ -40732,8 +40188,8 @@ msgstr "Razpusti skupino"
 
 
 msgctxt "Operator"
-msgid "Hide"
-msgstr "Skrij"
+msgid "Collapse"
+msgstr "Skrči"
 
 
 msgctxt "Operator"
@@ -40778,6 +40234,10 @@ msgstr "Začetek vleke"
 
 msgid "Inside Padding"
 msgstr "Notranji zarobek"
+
+
+msgid "Max Speed"
+msgstr "Največja hitrost"
 
 
 msgid "Outside Padding"
@@ -41165,6 +40625,10 @@ msgstr "CINEON"
 
 msgid "OPEN_EXR"
 msgstr "OPEN_EXR"
+
+
+msgid "HDR"
+msgstr "HDR"
 
 
 msgid "Select Children"
@@ -42598,6 +42062,11 @@ msgstr "Izbriši vodnike za izbrano"
 msgctxt "Operator"
 msgid "Expand/Collapse All"
 msgstr "Razširi / skrči vse"
+
+
+msgctxt "Operator"
+msgid "Hide"
+msgstr "Skrij"
 
 
 msgctxt "Operator"
@@ -45619,10 +45088,6 @@ msgid "Axis-aligned (Vertical)"
 msgstr "Poravnano z osjo (navpično)"
 
 
-msgid "Shape Method"
-msgstr "Metoda oblikovanja"
-
-
 msgid "Pack to"
 msgstr "Zapakira v"
 
@@ -45688,10 +45153,6 @@ msgstr "Šivi iz otokov"
 
 msgid "Pinned"
 msgstr "Pripeto"
-
-
-msgid "Island"
-msgstr "Otok"
 
 
 msgctxt "Operator"
@@ -46547,88 +46008,6 @@ msgstr "Ni elementov"
 
 
 msgctxt "Operator"
-msgid "Export COLLADA (Legacy)"
-msgstr "Izvozi COLLADA (zastarelo)"
-
-
-msgid "Only Selected UV Map"
-msgstr "Samo izbrana preslikava UV"
-
-
-msgid "Export only the selected UV Map"
-msgstr "Izvozi samo izbrano preslikavo UV"
-
-
-msgid "Apply Global Orientation"
-msgstr "Nanesi globalno usmerjenost"
-
-
-msgid "Deform Bones Only"
-msgstr "Samo deformacijske kosti"
-
-
-msgid "Decomposed"
-msgstr "Razgrajeno"
-
-
-msgid "Key Type"
-msgstr "Tip ključa"
-
-
-msgid "Include Animations"
-msgstr "Vključi animacije"
-
-
-msgid "Include Armatures"
-msgstr "Vključi skelete"
-
-
-msgid "Include Children"
-msgstr "Vključi otroke"
-
-
-msgid "Keep Keyframes"
-msgstr "Ohrani ključne okvirje"
-
-
-msgid "Limit Precision"
-msgstr "Omeji natančnost"
-
-
-msgid "Export Section"
-msgstr "Izvozi razdelek"
-
-
-msgid "Geom"
-msgstr "Geom"
-
-
-msgid "Arm"
-msgstr "Roka"
-
-
-msgid "Extra"
-msgstr "Dodatno"
-
-
-msgid "Selection Only"
-msgstr "Samo izbor"
-
-
-msgctxt "Operator"
-msgid "Import COLLADA (Legacy)"
-msgstr "Uvozi COLLADA (zastarelo)"
-
-
-msgid "Auto Connect"
-msgstr "Samodejno poveži"
-
-
-msgid "Import Units"
-msgstr "Uvozi enote"
-
-
-msgctxt "Operator"
 msgid "Export All Collections"
 msgstr "Izvozi vse zbirke"
 
@@ -46781,6 +46160,14 @@ msgstr "Naloži sceno formata Wavefront OBJ"
 
 msgid "Path Separator"
 msgstr "Ločilo poti"
+
+
+msgid "Make Unique"
+msgstr "Naredi edinstveno"
+
+
+msgid "Reference Existing"
+msgstr "Sklicuj na obstoječe"
 
 
 msgctxt "Operator"
@@ -47518,6 +46905,10 @@ msgid "Root Prim"
 msgstr "Korenski primitiv"
 
 
+msgid "Selection Only"
+msgstr "Samo izbor"
+
+
 msgid "Triangulate Meshes"
 msgstr "Trianguliraj mreže"
 
@@ -47591,14 +46982,6 @@ msgid "Import USD stage into current scene"
 msgstr "V trenutno sceno uvozi prizorišče v formatu USD (Universal Scene Descriptor)"
 
 
-msgid "Do not import USD custom attributes"
-msgstr "Ne uvozi prilagojenih atributov iz formata USD"
-
-
-msgid "All Custom"
-msgstr "Vse po meri"
-
-
 msgid "Create Collection"
 msgstr "Ustvari zbirko"
 
@@ -47619,20 +47002,20 @@ msgid "Import USD Preview"
 msgstr "Predogled uvoza USD"
 
 
-msgid "Make Unique"
-msgstr "Naredi edinstveno"
-
-
-msgid "Reference Existing"
-msgstr "Sklicuj na obstoječe"
-
-
 msgid "Material Purpose"
 msgstr "Namen materiala"
 
 
 msgid "Path Mask"
 msgstr "Maska poti"
+
+
+msgid "Do not import USD custom attributes"
+msgstr "Ne uvozi prilagojenih atributov iz formata USD"
+
+
+msgid "All Custom"
+msgstr "Vse po meri"
 
 
 msgid "Mesh Attributes"
@@ -48487,6 +47870,10 @@ msgid "Beam Shape"
 msgstr "Oblika žarka"
 
 
+msgid "Motion Blur"
+msgstr "Zabris gibanja"
+
+
 msgid "Caustics"
 msgstr "Kavstika"
 
@@ -48994,6 +48381,10 @@ msgid "Forces"
 msgstr "Sile"
 
 
+msgid "Extra"
+msgstr "Dodatno"
+
+
 msgid "Border Collisions"
 msgstr "Mejni trki"
 
@@ -49436,10 +48827,6 @@ msgstr "Nabori barv kosti"
 
 msgid "Theme Space"
 msgstr "Tema prostora"
-
-
-msgid "Panel Colors"
-msgstr "Barve plošče"
 
 
 msgid "Collection Colors"
@@ -49982,6 +49369,10 @@ msgid "Previous Rotation"
 msgstr "Prejšnja rotacija"
 
 
+msgid "Particle Velocity"
+msgstr "Vektor hitrosti delca"
+
+
 msgid "Particle Brush"
 msgstr "Čopič delcev"
 
@@ -50133,14 +49524,6 @@ msgstr "Primerjave poti"
 
 msgid "Cache Compression"
 msgstr "Stiskanje predpomnilnika"
-
-
-msgid "Lite"
-msgstr "Šibka"
-
-
-msgid "Heavy"
-msgstr "Močna"
 
 
 msgid "Cache Step"
@@ -50368,10 +49751,6 @@ msgid "Allow Negative Frames"
 msgstr "Dovoli negativne okvirje"
 
 
-msgid "Tweak Handles"
-msgstr "Cukanje ročic"
-
-
 msgid "Auto Close Character Pairs"
 msgstr "Samodejno zaključi pare znakov"
 
@@ -50548,6 +49927,10 @@ msgstr "Izbrani elementi"
 
 msgid "Orbit Sensitivity"
 msgstr "Občutljivost kroženja"
+
+
+msgid "Pan Sensitivity"
+msgstr "Občutljivost premika"
 
 
 msgid "Zoom direction"
@@ -50848,10 +50231,6 @@ msgstr "Omogoči Blenderju, da dostopa do interneta. Dodatki, ki upoštevajo to 
 
 msgid "Region Overlap"
 msgstr "Prekrivanje področij"
-
-
-msgid "GPU Depth Picking"
-msgstr "Globinska izbira z GPE"
 
 
 msgid "Edit Studio Light"
@@ -51464,14 +50843,6 @@ msgstr "Sprožilec A"
 
 msgid "Trigger B"
 msgstr "Sprožilec B"
-
-
-msgid "Asset Handle"
-msgstr "Določitelj sredstva"
-
-
-msgid "File Entry"
-msgstr "Datotečni zapis"
 
 
 msgid "Case"
@@ -52095,6 +51466,10 @@ msgid "Limb Type"
 msgstr "Tip uda"
 
 
+msgid "Arm"
+msgstr "Roka"
+
+
 msgid "Leg"
 msgstr "Noga"
 
@@ -52547,12 +51922,20 @@ msgid "End on Frame"
 msgstr "Končaj na okvirju"
 
 
+msgid "Shutter"
+msgstr "Zaklop"
+
+
 msgid "PPM Base"
 msgstr "Podlaga PPM"
 
 
 msgid "PPM Factor"
 msgstr "Faktor PPM"
+
+
+msgid "Pixel Size"
+msgstr "Velikost piksla"
 
 
 msgid "1×"
@@ -53107,10 +52490,6 @@ msgid "64 px"
 msgstr "64 px"
 
 
-msgid "Distance of object that contribute to the ambient occlusion effect"
-msgstr "Oddaljenost objektov, ki prispevajo k učinku ambientnega zastiranja"
-
-
 msgid "Light Threshold"
 msgstr "Prag svetlobe"
 
@@ -53145,10 +52524,6 @@ msgstr "Vzorci upodabljanja"
 
 msgid "Jitter Camera"
 msgstr "Tresenje kamere"
-
-
-msgid "Enable ambient occlusion to simulate medium scale indirect shadowing"
-msgstr "Omogoči ambientno zastiranje, s katerim simulira posredne sence srednje velikosti"
 
 
 msgid "Use Ray-Tracing"
@@ -55093,6 +54468,14 @@ msgid "Strobe"
 msgstr "Zatikanje"
 
 
+msgid "Flip X"
+msgstr "Preobrni X"
+
+
+msgid "Flip Y"
+msgstr "Preobrni Y"
+
+
 msgid "Convert Float"
 msgstr "Pretvori v realno število"
 
@@ -55402,6 +54785,19 @@ msgid "Inverse Slope"
 msgstr "Inverzna klančina"
 
 
+msgid "Lift"
+msgstr "Privzdig"
+
+
+msgctxt "MovieClip"
+msgid "Power"
+msgstr "Moč"
+
+
+msgid "Slope"
+msgstr "Klančina"
+
+
 msgid "Strip Color Balance"
 msgstr "Uravnoteženje barve traku"
 
@@ -55440,6 +54836,10 @@ msgstr "Tonsko slikanje"
 
 msgid "Sound Equalizer"
 msgstr "Izenačevalnik zvoka"
+
+
+msgid "Adaptation"
+msgstr "Prireditev"
 
 
 msgid "Equalize audio"
@@ -55961,36 +55361,16 @@ msgid "Window Background"
 msgstr "Ozadje okna"
 
 
-msgid "Region Background"
-msgstr "Ozadje področja"
-
-
-msgid "Region Text"
-msgstr "Besedilo področja"
-
-
-msgid "Tab Active"
-msgstr "Aktivni zavihek"
-
-
-msgid "Tab Background"
-msgstr "Ozadje zavihka"
-
-
-msgid "Tab Inactive"
-msgstr "Neaktivni zavihek"
-
-
-msgid "Tab Outline"
-msgstr "Obris zavihka"
-
-
 msgid "Text Highlight"
 msgstr "Poudarek besedila"
 
 
 msgid "Source List"
 msgstr "Hitri seznam"
+
+
+msgid "Region Background"
+msgstr "Ozadje področja"
 
 
 msgid "Theme Spreadsheet"
@@ -56065,6 +55445,10 @@ msgid "File Folders"
 msgstr "Datotečni imeniki"
 
 
+msgid "Panel Title"
+msgstr "Naslov plošče"
+
+
 msgid "Primary Color"
 msgstr "Primarna barva"
 
@@ -56075,6 +55459,10 @@ msgstr "Pot kamere"
 
 msgid "Inner"
 msgstr "Znotraj"
+
+
+msgid "Outline Selected"
+msgstr "Obris izbora"
 
 
 msgid "Roundness"
@@ -56544,10 +55932,6 @@ msgid "Light Colors"
 msgstr "Barve luči"
 
 
-msgid "HDRI Preview"
-msgstr "Predogled HDRI"
-
-
 msgid "Object Origins"
 msgstr "Izhodišča objektov"
 
@@ -56558,10 +55942,6 @@ msgstr "Čebuljenje"
 
 msgid "Display Grid"
 msgstr "Prikaži regularno mrežo"
-
-
-msgid "Outline Selected"
-msgstr "Obris izbora"
 
 
 msgid "Show Wire"
@@ -56840,6 +56220,10 @@ msgstr "Glediščna plast"
 
 msgid "Material Override"
 msgstr "Povoženi material"
+
+
+msgid "Distance of object that contribute to the ambient occlusion effect"
+msgstr "Oddaljenost objektov, ki prispevajo k učinku ambientnega zastiranja"
 
 
 msgid "Volume Light"
@@ -58813,12 +58197,12 @@ msgid "Documentation"
 msgstr "Dokumentacija"
 
 
-msgid "File:"
-msgstr "Datoteka:"
-
-
 msgid " (not installed)"
 msgstr " (ni nameščeno)"
+
+
+msgid "File:"
+msgstr "Datoteka:"
 
 
 msgid "Status:"
@@ -60580,10 +59964,6 @@ msgid "Sculpt Curves"
 msgstr "Kiparjenje krivulj"
 
 
-msgid "Legacy Icon"
-msgstr "Nekdanja ikona"
-
-
 msgid "Sample Bias"
 msgstr "Popravek vzorčenja"
 
@@ -60607,10 +59987,6 @@ msgstr "Neprosojnost teksture maske"
 msgctxt "Operator"
 msgid "Create Mask"
 msgstr "Ustvari masko"
-
-
-msgid "Brush icons have moved to the asset preview image"
-msgstr "Ikone čopičev so se premaknile v sliko predogleda sredstva"
 
 
 msgid "Thickness Profile"
@@ -61078,6 +60454,14 @@ msgid "Use Max Angle"
 msgstr "Uporabi največji kot"
 
 
+msgid "Use Minimum"
+msgstr "Uporabi minimum"
+
+
+msgid "Use Maximum"
+msgstr "Uporabi maksimum"
+
+
 msgid "Field Absorption"
 msgstr "Ublažitev"
 
@@ -61440,25 +60824,13 @@ msgid "Bake All Light Probe Volumes"
 msgstr "Zapeci vse volumne svetlobnih sond"
 
 
-msgid "Compositing Node Tree"
-msgstr "Vozliščno drevo stavljenja"
-
-
 msgctxt "Operator"
 msgid "Export to File"
 msgstr "Izvozi v datoteko"
 
 
-msgid "Minimum Size"
-msgstr "Najmanjša velikost"
-
-
 msgid "Second Basis"
 msgstr "Druga podlaga"
-
-
-msgid "Gaussian Filter"
-msgstr "Gaussov filter"
 
 
 msgid "Calculate"
@@ -62352,6 +61724,10 @@ msgid "Selection"
 msgstr "Izbor"
 
 
+msgid "Island"
+msgstr "Otok"
+
+
 msgid "Modified Edges"
 msgstr "Modificirani robovi"
 
@@ -62508,11 +61884,6 @@ msgstr "Rob"
 msgctxt "Operator"
 msgid "Face"
 msgstr "Lice"
-
-
-msgctxt "Operator"
-msgid "Island"
-msgstr "Otok"
 
 
 msgctxt "Operator"
@@ -62743,11 +62114,6 @@ msgstr "Možnosti vozlišča"
 msgctxt "Operator"
 msgid "Unconnected Sockets"
 msgstr "Nepovezane vtičnice"
-
-
-msgctxt "Operator"
-msgid "Collapse"
-msgstr "Skrči"
 
 
 msgid "Projection X"
@@ -63117,6 +62483,11 @@ msgstr "Preliv zvoka"
 
 
 msgctxt "Operator"
+msgid "Change Keying Set..."
+msgstr "Zamenjaj množico ključev ..."
+
+
+msgctxt "Operator"
 msgid "Change Path/Files"
 msgstr "Spremeni pot/datoteke"
 
@@ -63305,6 +62676,11 @@ msgstr "Gaussov zabris"
 msgctxt "Operator"
 msgid "Show Hidden Strips"
 msgstr "Pokaži skrite trakove"
+
+
+msgctxt "Operator"
+msgid "Insert Keyframe with Keying Set"
+msgstr "Vstavi ključni okvir z množico ključev"
 
 
 msgctxt "Operator"
@@ -63618,6 +62994,11 @@ msgid "File: {:s}"
 msgstr "Datoteka: {:s}"
 
 
+msgctxt "WindowManager"
+msgid "Keying"
+msgstr "Ključenje"
+
+
 msgctxt "Operator"
 msgid "Move Marker"
 msgstr "Premakni oznako"
@@ -63626,11 +63007,6 @@ msgstr "Premakni oznako"
 msgctxt "Operator"
 msgid "Duplicate Marker"
 msgstr "Podvoji oznako"
-
-
-msgctxt "WindowManager"
-msgid "Keying"
-msgstr "Ključenje"
 
 
 msgctxt "Operator"
@@ -63966,16 +63342,6 @@ msgstr "STL (.stl)"
 
 
 msgctxt "Operator"
-msgid "FBX (.fbx) (experimental)"
-msgstr "FBX (.fbx) (poskusno)"
-
-
-msgctxt "Operator"
-msgid "Collada (.dae) (Legacy)"
-msgstr "Collada (.dae) (zastarelo)"
-
-
-msgctxt "Operator"
 msgid "Render Image"
 msgstr "Upodobi sliko"
 
@@ -64288,10 +63654,6 @@ msgid "Shadow Offset X"
 msgstr "Senčni odmik X"
 
 
-msgid "Panel Title"
-msgstr "Naslov plošče"
-
-
 msgid "Temporary Files"
 msgstr "Začasne datoteke"
 
@@ -64435,10 +63797,6 @@ msgstr "Središče krožnice"
 
 msgid "Orbit Axis"
 msgstr "Os kroženja"
-
-
-msgid "Pan Sensitivity"
-msgstr "Občutljivost premika"
 
 
 msgid "Invert Pan"
@@ -64901,11 +64259,6 @@ msgstr "Izbriši ključne okvirje ..."
 msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "Počisti ključne okvirje ..."
-
-
-msgctxt "Operator"
-msgid "Change Keying Set..."
-msgstr "Zamenjaj množico ključev ..."
 
 
 msgctxt "Operator"
@@ -65855,11 +65208,6 @@ msgstr "Ozadje"
 msgctxt "Operator"
 msgid "Delete Global"
 msgstr "Izbriši globalno"
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe with Keying Set"
-msgstr "Vstavi ključni okvir z množico ključev"
 
 
 msgctxt "Operator"
@@ -67169,6 +66517,10 @@ msgid "ipos"
 msgstr "ipos"
 
 
+msgid "Basis"
+msgstr "Osnova"
+
+
 msgid "Key %d"
 msgstr "Ključ %d"
 
@@ -67868,10 +67220,6 @@ msgstr "Ni bilo mogoče odpreti"
 
 msgid "Failed to read blend file '%s': %s"
 msgstr "Datoteke '%s' ni bilo mogoče prebrati: %s"
-
-
-msgid "Blend file '%s' created by a Big Endian version of Blender, support for these files will be removed in Blender 5.0"
-msgstr "Blenderjeva datoteka '%s' je bila ustvarjena z različico programa, ki podatke zapisuje po pravilu debelega konca (big endian). Podporo za te datoteke bomo umaknili v Blenderju 5.0"
 
 
 msgid "Cannot read blend file '%s', incomplete header, may be from a newer version of Blender"
@@ -69111,6 +68459,10 @@ msgid "Tool Keymap:"
 msgstr "Bližnjica orodja:"
 
 
+msgid "Python: {}.{}"
+msgstr "Python: {}.{}"
+
+
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Več hkrati izberete z dvigalko+klik in povlecite)"
 
@@ -69133,10 +68485,6 @@ msgstr "Vgrajeno sredstvo"
 
 msgid "Disabled: {}"
 msgstr "Onemogočeno: {}"
-
-
-msgid "Python: {}.{}"
-msgstr "Python: {}.{}"
 
 
 msgid "Movie"
@@ -69255,6 +68603,14 @@ msgstr "Razširi ekstrapolirano"
 
 msgid "Reset Curve"
 msgstr "Ponastavi krivuljo"
+
+
+msgid "H"
+msgstr "H"
+
+
+msgid "S"
+msgstr "S"
 
 
 msgid "Combined channels"
@@ -69594,54 +68950,6 @@ msgstr "Zaprto"
 
 msgid "No filepath given"
 msgstr "Datotečna pot ni podana"
-
-
-msgid "Global Orientation"
-msgstr "Globalna usmerjenost"
-
-
-msgid "Texture Options"
-msgstr "Možnosti teksture"
-
-
-msgid "Only Selected Map"
-msgstr "Samo izbrana tekstura"
-
-
-msgid "Export Data Options"
-msgstr "Možnosti izvoza podatkov"
-
-
-msgid "Armature Options"
-msgstr "Možnosti skeleta"
-
-
-msgid "Collada Options"
-msgstr "Možnosti Collada"
-
-
-msgid "Import Data Options"
-msgstr "Možnosti uvoza podatkov"
-
-
-msgid "Can't create export file"
-msgstr "Ne morem ustvariti izvozne datoteke"
-
-
-msgid "Can't overwrite export file"
-msgstr "Ne morem prepisati izvozne datoteke"
-
-
-msgid "No objects selected -- Created empty export file"
-msgstr "Ni izbranih objektov -- Ustvarjena prazna izvozna datoteka"
-
-
-msgid "Error during export (see Console)"
-msgstr "Napaka med izvozom (glej konzolo)"
-
-
-msgid "Parsing errors in Document (see Blender Console)"
-msgstr "Obdelujem napake v dokumentu (glej Blenderjevo konzolo)"
 
 
 msgid "Scene Options"
@@ -70126,6 +69434,10 @@ msgid "Remove exporter?"
 msgstr "Naj odstranim izvoznika?"
 
 
+msgid "Add Exporter"
+msgstr "Dodaj izvoznik"
+
+
 msgid "Exported '%s'"
 msgstr "Izvoz '%s' je uspel"
 
@@ -70587,10 +69899,6 @@ msgid "PaintCurve"
 msgstr "RisalnaKrivulja"
 
 
-msgid "Sample color for %s"
-msgstr "Vzorči barvo za %s"
-
-
 msgid " UVs,"
 msgstr " UV-ji,"
 
@@ -70617,6 +69925,10 @@ msgstr "Nobena aktivna kamera ni nastavljena"
 
 msgid "Palette created"
 msgstr "Paleta ustvarjena"
+
+
+msgid "Sample color for %s"
+msgstr "Vzorči barvo za %s"
 
 
 msgid "Sample Mode"
@@ -71308,182 +70620,6 @@ msgid "Subtype"
 msgstr "Podtip"
 
 
-msgid "{} (Menu)"
-msgstr "{} (meni)"
-
-
-msgid "{} (Integer)"
-msgstr "{} (celo število)"
-
-
-msgid "{:.10} (Float)"
-msgstr "{:.10} (realno število)"
-
-
-msgid "{} (Float)"
-msgstr "{} (realno število)"
-
-
-msgid "({}, {}, {}) (Vector)"
-msgstr "({}, {}, {}) (vektor)"
-
-
-msgid "({}, {}, {}, {}) (Color)"
-msgstr "({}, {}, {}, {}) (barva)"
-
-
-msgid "(Rotation)"
-msgstr "(Rotacija)"
-
-
-msgid "{} (Boolean)"
-msgstr "{} (logična vrednost)"
-
-
-msgid "True"
-msgstr "Drži"
-
-
-msgid "False"
-msgstr "Ne drži"
-
-
-msgid "(Matrix)"
-msgstr "(Matrika)"
-
-
-msgid "Value has not been logged"
-msgstr "Vrednost ni bila zabeležena"
-
-
-msgid "Integer field based on:"
-msgstr "Celoštevilsko polje temelji na:"
-
-
-msgid "Float field based on:"
-msgstr "Realnoštevilsko polje temelji na:"
-
-
-msgid "Vector field based on:"
-msgstr "Vektorsko polje temelji na:"
-
-
-msgid "Boolean field based on:"
-msgstr "Logično polje temelji na:"
-
-
-msgid "String field based on:"
-msgstr "Polje niza temelji na:"
-
-
-msgid "Color field based on:"
-msgstr "Barvno polje temelji na:"
-
-
-msgid "Rotation field based on:"
-msgstr "Rotacijsko polje temelji na:"
-
-
-msgid "• {}"
-msgstr "• {}"
-
-
-msgid "Empty Grid"
-msgstr "Prazna regularna mreža"
-
-
-msgid "• Grid"
-msgstr "• Regularna mreža"
-
-
-msgid "Empty Geometry"
-msgstr "Prazna geometrija"
-
-
-msgid "Geometry:"
-msgstr "Geometrija:"
-
-
-msgid "• Mesh: {} vertices, {} edges, {} faces"
-msgstr "• Mreža: {} oglišč, {} robov, {} lic"
-
-
-msgid "• Point Cloud: {} points"
-msgstr "• Oblak točk: {} točk"
-
-
-msgid "• Curve: {} points, {} splines"
-msgstr "• Krivulja: {} točk, {} zlepkov"
-
-
-msgid "• Instances: {}"
-msgstr "• Primerki: {}"
-
-
-msgid "• Volume: {} grids"
-msgstr "• Volumen: {} vokselskih mrež"
-
-
-msgid "• Edit: {}, {}, {}"
-msgstr "• Urejanje: {}, {}, {}"
-
-
-msgid "positions"
-msgstr "položaji"
-
-
-msgid "no positions"
-msgstr "ni položajev"
-
-
-msgid "matrices"
-msgstr "matrike"
-
-
-msgid "no matrices"
-msgstr "ni matrik"
-
-
-msgid "gizmos"
-msgstr "manipulatorji"
-
-
-msgid "no gizmos"
-msgstr "ni manipulatorjev"
-
-
-msgid "• Grease Pencil: {} layers"
-msgstr "• Grease Pencil: {} plasti"
-
-
-msgid "Supported: All Types"
-msgstr "Podprto: vsi tipi"
-
-
-msgid "Supported: "
-msgstr "Podprto: "
-
-
-msgid "Empty Bundle"
-msgstr "Prazen sveženj"
-
-
-msgid "Bundle values:"
-msgstr "Vrednosti svežnja:"
-
-
-msgid "Empty Closure"
-msgstr "Prazna sklenitev"
-
-
-msgid "{}... (String)"
-msgstr "{}... (niz)"
-
-
-msgid "{} (String)"
-msgstr "{} (niz)"
-
-
 msgid "Accessed named attributes:"
 msgstr "Pridobljeni imenovani atributi:"
 
@@ -71518,6 +70654,38 @@ msgstr "Ni v skupini vozlišč"
 
 msgid "Cannot separate nodes"
 msgstr "Ne morem ločiti vozlišč"
+
+
+msgid "True"
+msgstr "Drži"
+
+
+msgid "False"
+msgstr "Ne drži"
+
+
+msgid "positions"
+msgstr "položaji"
+
+
+msgid "no positions"
+msgstr "ni položajev"
+
+
+msgid "matrices"
+msgstr "matrike"
+
+
+msgid "no matrices"
+msgstr "ni matrik"
+
+
+msgid "gizmos"
+msgstr "manipulatorji"
+
+
+msgid "no gizmos"
+msgstr "ni manipulatorjev"
 
 
 msgid "Disconnect"
@@ -71670,6 +70838,10 @@ msgstr "Loči sekvenčne slike"
 
 msgid "MetaStrip"
 msgstr "MetaTrak"
+
+
+msgid "Can't overwrite export file"
+msgstr "Ne morem prepisati izvozne datoteke"
 
 
 msgid "Cannot create transition"
@@ -71934,28 +71106,28 @@ msgid "Mean Crease:"
 msgstr "Srednji pregib:"
 
 
-msgid "Weight:"
-msgstr "Teža:"
-
-
 msgid "Radius:"
 msgstr "Radij:"
-
-
-msgid "Tilt:"
-msgstr "Nagib:"
-
-
-msgid "Mean Weight:"
-msgstr "Srednja teža:"
 
 
 msgid "Mean Radius:"
 msgstr "Srednji polmer:"
 
 
+msgid "Tilt:"
+msgstr "Nagib:"
+
+
 msgid "Mean Tilt:"
 msgstr "Srednji nagib:"
+
+
+msgid "Weight:"
+msgstr "Teža:"
+
+
+msgid "Mean Weight:"
+msgstr "Srednja teža:"
 
 
 msgid "Dimensions:"
@@ -73144,16 +72316,36 @@ msgid "Fac"
 msgstr "Fakt"
 
 
+msgid "Contrast Limit"
+msgstr "Omejitev kontrasta"
+
+
+msgid "Corner Rounding"
+msgstr "Zaobljenje robov"
+
+
 msgid "Determinator"
 msgstr "Določevalnik"
+
+
+msgid "Extend Bounds"
+msgstr "Razširi meje"
 
 
 msgid "Separable"
 msgstr "Ločeno"
 
 
+msgid "Bokeh"
+msgstr "Boke"
+
+
 msgid "Bounding box"
 msgstr "Očrtani okvir"
+
+
+msgid "Flaps"
+msgstr "Lističi"
 
 
 msgid "Catadioptric Size"
@@ -73188,6 +72380,14 @@ msgid "Power"
 msgstr "Potenca"
 
 
+msgid "Midtones Start"
+msgstr "Začetek srednjih tonov"
+
+
+msgid "Midtones End"
+msgstr "Zaključek srednjih tonov"
+
+
 msgid "Master"
 msgstr "Glavno"
 
@@ -73218,6 +72418,18 @@ msgstr "Predfiltriranje:"
 
 msgid "Quality:"
 msgstr "Kakovost:"
+
+
+msgid "A"
+msgstr "A"
+
+
+msgid "Anti-Alias"
+msgstr "Zgladi robove"
+
+
+msgid "Result"
+msgstr "Rezultat"
 
 
 msgid "Neighbor Threshold"
@@ -73284,6 +72496,10 @@ msgid "Streaks Angle"
 msgstr "Nagnjenost prog"
 
 
+msgid "Color Modulation"
+msgstr "Modulacija barve"
+
+
 msgid "Adjusts the brightness of the glare"
 msgstr "Prilagodi svetlost bleska"
 
@@ -73302,10 +72518,6 @@ msgstr "Faktor izginjanja prog"
 
 msgid "Modulates colors of streaks and ghosts for a spectral dispersion effect"
 msgstr "Prilagodi barve prog in fantomov tako, da ustvarja učinek spektralnega razklona"
-
-
-msgid "Anti-Alias"
-msgstr "Zgladi robove"
 
 
 msgid "Blur Size"
@@ -73336,12 +72548,28 @@ msgid "Despill"
 msgstr "Popravljanje razlivanja"
 
 
+msgid "Uniformity"
+msgstr "Enoličnost"
+
+
+msgid "Eccentricity"
+msgstr "Izsrednost"
+
+
+msgid "High Precision"
+msgstr "Visoka natančnost"
+
+
 msgid "Uses a more precise but slower method. Use if the output contains undesirable noise."
 msgstr "Uporabi natančnejšo, a počasnejšo metodo. Vklopite, če siceršnji izhod vsebuje nezaželen šum."
 
 
 msgid "Dispersion"
 msgstr "Razklon"
+
+
+msgid "Standard Deviation"
+msgstr "Standardni odklon"
 
 
 msgid "Number of motion blur samples"
@@ -73352,14 +72580,6 @@ msgid "Offset Y"
 msgstr "Odmik Y"
 
 
-msgid "Dot"
-msgstr "Skalarni"
-
-
-msgid "Degr"
-msgstr "Kot"
-
-
 msgid "Cb"
 msgstr "Cb"
 
@@ -73368,41 +72588,12 @@ msgid "Cr"
 msgstr "Cr"
 
 
-msgctxt "Color"
-msgid "H"
-msgstr "H"
-
-
-msgctxt "Color"
-msgid "S"
-msgstr "S"
-
-
-msgctxt "Color"
-msgid "V"
-msgstr "V"
-
-
-msgctxt "Color"
-msgid "Y"
-msgstr "Y"
-
-
-msgctxt "Color"
-msgid "U"
-msgstr "U"
-
-
 msgid "Light Adaptation"
 msgstr "Prireditev svetlobe"
 
 
 msgid "Val"
 msgstr "Vred"
-
-
-msgid "A"
-msgstr "A"
 
 
 msgid "Column 1 Row 1"
@@ -73489,10 +72680,6 @@ msgid "C"
 msgstr "C"
 
 
-msgid "Result"
-msgstr "Rezultat"
-
-
 msgctxt "NodeTree"
 msgid "A"
 msgstr "A"
@@ -73567,10 +72754,6 @@ msgstr "Količina vogalov lic"
 
 msgid "Sum"
 msgstr "Vsota"
-
-
-msgid "Standard Deviation"
-msgstr "Standardni odklon"
 
 
 msgid "Variance"
@@ -73803,6 +72986,10 @@ msgid "Source Position"
 msgstr "Začetni položaj"
 
 
+msgid "Ray Length"
+msgstr "Dolžina žarka"
+
+
 msgid "Is Hit"
 msgstr "Je zadel"
 
@@ -73923,6 +73110,10 @@ msgid "IOR"
 msgstr "Lomni količnik"
 
 
+msgid "Thin Film"
+msgstr "Tenka plast"
+
+
 msgid "Anisotropy"
 msgstr "Anizotropija"
 
@@ -73989,10 +73180,6 @@ msgstr "Podpovršinsko sipanje"
 
 msgid "Sheen"
 msgstr "Lesk"
-
-
-msgid "Thin Film"
-msgstr "Tenka plast"
 
 
 msgctxt "NodeTree"
@@ -74102,6 +73289,10 @@ msgstr "Barva 1"
 
 msgid "Color2"
 msgstr "Barva 2"
+
+
+msgid "Dot"
+msgstr "Skalarni"
 
 
 msgid "Object Index"
@@ -74448,22 +73639,6 @@ msgid " (Recovered)"
 msgstr " (Obnovljeno)"
 
 
-msgid "Python script uses OpenGL for drawing"
-msgstr "Program Python uporablja OpenGL za risanje"
-
-
-msgid "One of the add-ons or scripts is using OpenGL and will not work correct on Metal"
-msgstr "Eden izmed dodatkov ali programov uporablja OpenGL, zato na vmesniku Metal ne bo deloval pravilno"
-
-
-msgid "Please contact the developer of the add-on to migrate to use 'gpu' module"
-msgstr "Razvijalca dodatka zaprosite, naj migrira na modul 'gpu'"
-
-
-msgid "See system tab in preferences to switch to OpenGL backend"
-msgstr "V zavihku Sistem v nastavitvah lahko preklopite na zaledje OpenGL"
-
-
 msgid "Failed to load using Vulkan, using OpenGL instead."
 msgstr "Ni bilo mogoče naložiti z Vulkanom, zatekam se k uporabi OpenGL."
 
@@ -74478,10 +73653,6 @@ msgstr "Grafično zaledje lahko spremenite v zavihku Sistem v nastavitvah."
 
 msgid "Failed to create window"
 msgstr "Okna ni bilo mogoče ustvariti"
-
-
-msgid "One of the add-ons or scripts is using OpenGL and will not work correct on Metal. Please contact the developer of the add-on to migrate to use 'gpu' module"
-msgstr "Eden izmed dodatkov ali programov uporablja OpenGL, zato na vmesniku Metal ne bo deloval pravilno. Razvijalca dodatka zaprosite, naj migrira na modul 'gpu'"
 
 
 msgid "1 inch"

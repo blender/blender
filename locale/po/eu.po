@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"POT-Creation-Date: 2025-07-21 08:48+0000\n"
 "PO-Revision-Date: 2025-04-14 08:18+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -195,6 +195,18 @@ msgid "Tails"
 msgstr "Isatsak"
 
 
+msgid "Info"
+msgstr "Informazioa"
+
+
+msgid "Onion Skinning"
+msgstr "Tipula-azapa"
+
+
+msgid "Default"
+msgstr "Lehenetsia"
+
+
 msgid "Height"
 msgstr "Altuera"
 
@@ -217,10 +229,6 @@ msgstr "Grafo Editorea"
 
 msgid "Text Editor"
 msgstr "Testu Editorea"
-
-
-msgid "Info"
-msgstr "Informazioa"
 
 
 msgid "Outliner"
@@ -335,10 +343,6 @@ msgid "Z"
 msgstr "Z"
 
 
-msgid "Default"
-msgstr "Lehenetsia"
-
-
 msgid "Camera"
 msgstr "Kamera"
 
@@ -409,10 +413,6 @@ msgstr "Ezabatu"
 
 msgid "Normal"
 msgstr "Normala"
-
-
-msgid "Onion Skinning"
-msgstr "Tipula-azapa"
 
 
 msgid "Grid"
@@ -500,10 +500,6 @@ msgid "Filter Size"
 msgstr "Filtroaren tamaina"
 
 
-msgid "Area"
-msgstr "Azalera"
-
-
 msgid "Repeat X"
 msgstr "X Errepikatu"
 
@@ -557,16 +553,16 @@ msgid "Min Angle"
 msgstr "Angelu Minimoa"
 
 
+msgid "Relations"
+msgstr "Loturak"
+
+
 msgid "Show/Hide"
 msgstr "Erakutsi/Ezkutatu"
 
 
 msgid "Text"
 msgstr "Testua"
-
-
-msgid "Relations"
-msgstr "Loturak"
 
 
 msgid "UV"
@@ -639,14 +635,6 @@ msgid "Translate"
 msgstr "Mugitu"
 
 
-msgid "X Axis"
-msgstr "X Ardatza"
-
-
-msgid "Y Axis"
-msgstr "Y Ardatza"
-
-
 msgid "Original"
 msgstr "Jatorrizkoa"
 
@@ -673,6 +661,14 @@ msgstr "Y ardatza"
 
 msgid "Z axis"
 msgstr "Z ardatza"
+
+
+msgid "X Axis"
+msgstr "X Ardatza"
+
+
+msgid "Y Axis"
+msgstr "Y Ardatza"
 
 
 msgid "Z Axis"
@@ -1447,11 +1443,6 @@ msgid "Duplicate Linked"
 msgstr "Bikoiztu Estekatua"
 
 
-msgctxt "Operator"
-msgid "Hide"
-msgstr "Ezkutatu"
-
-
 msgid "Mouse location"
 msgstr "Arratoiaren lokalizazioa"
 
@@ -1467,6 +1458,11 @@ msgstr "Umea"
 
 msgid "Hierarchy"
 msgstr "Hierarkia"
+
+
+msgctxt "Operator"
+msgid "Hide"
+msgstr "Ezkutatu"
 
 
 msgid "Reset"

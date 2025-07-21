@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"POT-Creation-Date: 2025-07-21 08:48+0000\n"
 "PO-Revision-Date: 2025-04-14 08:32+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Nepali <https://translate.blender.org/projects/blender-ui/ui/ne/>\n"
@@ -43,6 +43,10 @@ msgid "Motion Paths"
 msgstr "चालको बाटो/तरिकाहरु "
 
 
+msgid "Hide"
+msgstr "लुकाउ"
+
+
 msgid "Quaternion"
 msgstr "Quaternion"
 
@@ -53,10 +57,6 @@ msgstr "fileको ठेगाना "
 
 msgid "Extend"
 msgstr "फैल्याउ"
-
-
-msgid "Hide"
-msgstr "लुकाउ"
 
 
 msgid "Weight"
@@ -365,11 +365,6 @@ msgid "Extend the existing selection"
 msgstr "अहिलेको फैल्याउ"
 
 
-msgctxt "Operator"
-msgid "Hide"
-msgstr "लुकाउ"
-
-
 msgid "Align to axis"
 msgstr "अक्ष संग पंक्तिबद्ध "
 
@@ -456,6 +451,11 @@ msgstr "तुलनात्मक पाटो "
 
 msgid "Relative Edge"
 msgstr "तुनालात्मक धार"
+
+
+msgctxt "Operator"
+msgid "Hide"
+msgstr "लुकाउ"
 
 
 msgid "Property Name"

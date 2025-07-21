@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"POT-Creation-Date: 2025-07-21 08:48+0000\n"
 "PO-Revision-Date: 2025-04-14 08:33+0000\n"
 "Last-Translator: Brecht Van Lommel <brechtvanlommel@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -441,6 +441,42 @@ msgid "In Range"
 msgstr "In Bereik"
 
 
+msgid "Frame Number"
+msgstr "Framenummer"
+
+
+msgid "Active Frame"
+msgstr "Actieve Frame"
+
+
+msgid "Hide"
+msgstr "Verberg"
+
+
+msgid "Before Color"
+msgstr "Voor Kleur"
+
+
+msgid "Opacity"
+msgstr "Ondoorzichtigheid"
+
+
+msgid "Frames"
+msgstr "Frames"
+
+
+msgid "Info"
+msgstr "Info"
+
+
+msgid "Locked"
+msgstr "Vergrendeld"
+
+
+msgid "Coordinates"
+msgstr "Coördinaten"
+
+
 msgid "Any Type"
 msgstr "Elk Type"
 
@@ -475,10 +511,6 @@ msgstr "Videobewerkingsgereedschap"
 
 msgid "Text Editor"
 msgstr "Tekstbewerker"
-
-
-msgid "Info"
-msgstr "Info"
 
 
 msgid "Status Bar"
@@ -577,6 +609,10 @@ msgid "Layer"
 msgstr "Laag"
 
 
+msgid "Array"
+msgstr "Reeks"
+
+
 msgid "File Path"
 msgstr "Bestandspad"
 
@@ -641,16 +677,16 @@ msgid "Free"
 msgstr "Vrij"
 
 
-msgid "Hide"
-msgstr "Verberg"
-
-
 msgid "Weight"
 msgstr "Invloed"
 
 
 msgid "Actions"
 msgstr "Acties"
+
+
+msgid "Annotation"
+msgstr "Annotatie"
 
 
 msgid "Armatures"
@@ -675,10 +711,6 @@ msgstr "Krommes"
 
 msgid "Filename"
 msgstr "Bestandsnaam"
-
-
-msgid "Annotation"
-msgstr "Annotatie"
 
 
 msgid "Grease Pencil"
@@ -961,10 +993,6 @@ msgstr "Vul"
 
 msgid "Object Path"
 msgstr "Object Pad"
-
-
-msgid "Opacity"
-msgstr "Ondoorzichtigheid"
 
 
 msgid "Fit"
@@ -1768,26 +1796,6 @@ msgid "Freestyle Module"
 msgstr "Freestyle Module"
 
 
-msgid "Frame Number"
-msgstr "Framenummer"
-
-
-msgid "Active Frame"
-msgstr "Actieve Frame"
-
-
-msgid "Before Color"
-msgstr "Voor Kleur"
-
-
-msgid "Frames"
-msgstr "Frames"
-
-
-msgid "Locked"
-msgstr "Vergrendeld"
-
-
 msgid "Grid"
 msgstr "Rooster"
 
@@ -1806,10 +1814,6 @@ msgstr "Zijkant (Y-Z)"
 
 msgid "Top (X-Y)"
 msgstr "Bovenkant (X-Y)"
-
-
-msgid "Coordinates"
-msgstr "Coördinaten"
 
 
 msgid "Show Value"
@@ -1989,10 +1993,6 @@ msgstr "Elastisch"
 
 msgid "Texture Slot"
 msgstr "Textuur Plek"
-
-
-msgid "Custom Icon"
-msgstr "Aangepast Icoon"
 
 
 msgid "Forward"
@@ -2407,6 +2407,10 @@ msgid "Mirror Object"
 msgstr "Spiegel Object"
 
 
+msgid "Annotations"
+msgstr "Annotaties"
+
+
 msgid "Speed of Sound"
 msgstr "Snelheid van Geluid"
 
@@ -2417,10 +2421,6 @@ msgstr "3D Cursor"
 
 msgid "Current Frame"
 msgstr "Huidige Frame"
-
-
-msgid "Annotations"
-msgstr "Annotaties"
 
 
 msgid "Rigid Body World"
@@ -2452,10 +2452,6 @@ msgid "Sound"
 msgstr "Geluid"
 
 
-msgid "Area"
-msgstr "Gebied"
-
-
 msgid "Mirror X"
 msgstr "Spiegel X"
 
@@ -2482,6 +2478,10 @@ msgstr "Kleurdiepte"
 
 msgid "Deflate"
 msgstr "Verminderen"
+
+
+msgid "Custom Icon"
+msgstr "Aangepast Icoon"
 
 
 msgid "Custom Image"
@@ -2698,18 +2698,6 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
 msgid "Mirror"
 msgstr "Spiegel"
 
@@ -2750,6 +2738,10 @@ msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
 
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
 msgid "Convert"
 msgstr "Converteer"
 
@@ -2760,6 +2752,14 @@ msgstr "Haken"
 
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Text"
+msgstr "Tekst"
 
 
 msgctxt "MovieClip"
@@ -2875,8 +2875,8 @@ msgid "Vertex indices"
 msgstr "Punt indexen"
 
 
-msgid "Split Normals"
-msgstr "Splits Normalen"
+msgid "Custom Normals"
+msgstr "Eigen Normalen"
 
 
 msgid "Smooth"
@@ -2903,10 +2903,6 @@ msgid "Time Offset"
 msgstr "Tijdsverschuiving"
 
 
-msgid "Array"
-msgstr "Reeks"
-
-
 msgid "Build"
 msgstr "Bouw"
 
@@ -2925,10 +2921,6 @@ msgstr "Nieuw"
 
 msgid "Hair Grid Resolution"
 msgstr "Haar Rooster Resolutie"
-
-
-msgid "Custom Normals"
-msgstr "Eigen Normalen"
 
 
 msgid "All Layers"
@@ -3106,30 +3098,6 @@ msgid "Alpha Over"
 msgstr "Alpha Over"
 
 
-msgid "X2"
-msgstr "X2"
-
-
-msgid "Y2"
-msgstr "Y2"
-
-
-msgid "X1"
-msgstr "X1"
-
-
-msgid "Y1"
-msgstr "Y1"
-
-
-msgid "Center X"
-msgstr "Center X"
-
-
-msgid "Center Y"
-msgstr "Center Y"
-
-
 msgid "Denoise"
 msgstr "Ruisonderdrukking"
 
@@ -3171,10 +3139,6 @@ msgid "Blue Channel"
 msgstr "Blauwe Kanaal"
 
 
-msgid "Motion Blur"
-msgstr "Bewegingsonscherpte"
-
-
 msgid "Render Layers"
 msgstr "Render Lagen"
 
@@ -3189,14 +3153,6 @@ msgstr "Roteren"
 
 msgid "Translate"
 msgstr "Verplaats"
-
-
-msgid "X Axis"
-msgstr "X As"
-
-
-msgid "Y Axis"
-msgstr "Y As"
 
 
 msgid "Triangles"
@@ -3233,6 +3189,14 @@ msgstr "Rotatie Zon"
 
 msgid "Triangle"
 msgstr "Driehoek"
+
+
+msgid "X Axis"
+msgstr "X As"
+
+
+msgid "Y Axis"
+msgstr "Y As"
 
 
 msgid "Z Axis"
@@ -4792,11 +4756,6 @@ msgstr "Maak Groep"
 
 
 msgctxt "Operator"
-msgid "Hide"
-msgstr "Verberg"
-
-
-msgctxt "Operator"
 msgid "Join Nodes"
 msgstr "Koppel Nodes"
 
@@ -5290,6 +5249,11 @@ msgstr "Verwijder Hiërarchie"
 
 msgid "Delete selected objects and collections"
 msgstr "Verwijder geselecteerde objecten en collecties"
+
+
+msgctxt "Operator"
+msgid "Hide"
+msgstr "Verberg"
 
 
 msgid "Unlink"
@@ -6084,10 +6048,6 @@ msgid "Pinned"
 msgstr "Vastgeprikt"
 
 
-msgid "Island"
-msgstr "Eiland"
-
-
 msgctxt "Operator"
 msgid "Select Split"
 msgstr "Selecteer Splits"
@@ -6171,22 +6131,6 @@ msgstr "Hou Open"
 
 msgid "Remove"
 msgstr "Verwijder"
-
-
-msgid "Key Type"
-msgstr "Sleuteltype"
-
-
-msgid "Include Armatures"
-msgstr "Inclusief Skeletten"
-
-
-msgid "Include Children"
-msgstr "Inclusief Kinderen"
-
-
-msgid "Keep Keyframes"
-msgstr "Hou Sleutelframes"
 
 
 msgctxt "Operator"
@@ -6419,6 +6363,10 @@ msgstr "Palet Kleur"
 
 msgid "Custom Shape"
 msgstr "Aangepaste Vorm"
+
+
+msgid "Motion Blur"
+msgstr "Bewegingsonscherpte"
 
 
 msgid "Custom Distance"
@@ -6979,10 +6927,6 @@ msgstr "Groepeer Node"
 
 msgid "Selected Text"
 msgstr "Geselecteerde Tekst"
-
-
-msgid "Split Normal"
-msgstr "Splits Normaal"
 
 
 msgid "Changed"
@@ -7718,6 +7662,10 @@ msgid "Selection"
 msgstr "Selectie"
 
 
+msgid "Island"
+msgstr "Eiland"
+
+
 msgctxt "Operator"
 msgid "Save As..."
 msgstr "Opslaan Als..."
@@ -7741,11 +7689,6 @@ msgstr "Rand"
 msgctxt "Operator"
 msgid "Face"
 msgstr "Vlak"
-
-
-msgctxt "Operator"
-msgid "Island"
-msgstr "Eiland"
 
 
 msgid "Repeat Image"
@@ -7829,6 +7772,11 @@ msgstr "Film"
 msgctxt "Operator"
 msgid "Fade"
 msgstr "Vervagen"
+
+
+msgctxt "Operator"
+msgid "Change Keying Set..."
+msgstr "Pas Sleutel Set..."
 
 
 msgctxt "Operator"
@@ -8181,11 +8129,6 @@ msgstr "Verwijder Sleutelframes..."
 msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "Maak Sleutelframes Leeg..."
-
-
-msgctxt "Operator"
-msgid "Change Keying Set..."
-msgstr "Pas Sleutel Set..."
 
 
 msgctxt "Operator"
@@ -8803,10 +8746,6 @@ msgstr "Vandaag"
 
 msgid "Yesterday"
 msgstr "Gisteren"
-
-
-msgid "Armature Options"
-msgstr "Skelet Opties"
 
 
 msgctxt "Mesh"

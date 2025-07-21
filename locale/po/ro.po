@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
-"PO-Revision-Date: 2025-04-14 08:37+0000\n"
-"Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
+"POT-Creation-Date: 2025-07-21 08:48+0000\n"
+"PO-Revision-Date: 2025-07-21 00:59+0000\n"
+"Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -20,11 +20,11 @@ msgstr "Shader AOV"
 
 
 msgid "Valid"
-msgstr "Valid"
+msgstr "Valabil"
 
 
 msgid "Is the name of the AOV conflicting"
-msgstr "Este numele VIA-urilor în conflict"
+msgstr "Numele AOV este în conflict"
 
 
 msgid "Name"
@@ -59,16 +59,44 @@ msgid "Collection of AOVs"
 msgstr "Colecție de AOV-uri"
 
 
+msgid "Animation Channel Bag"
+msgstr "Canal de animație"
+
+
+msgid "Collection of animation channels, typically associated with an action slot"
+msgstr "Colecție de canale de animație, de obicei asociate cu un slot de acțiune"
+
+
+msgid "F-Curves"
+msgstr "Curbe-F"
+
+
+msgid "The individual F-Curves that animate the slot"
+msgstr "Curbele-F individuale care animează slotul"
+
+
+msgid "F-Curve Groups"
+msgstr "Grupuri de curbe-F"
+
+
+msgid "Slot"
+msgstr "Slot"
+
+
+msgid "For each action slot, a list of animation channels that are meant for that slot"
+msgstr "Pentru fiecare slot de acțiune, o listă a canalelor de animație care sunt destinate slotului respectiv"
+
+
 msgid "Action F-Curves"
-msgstr "F-Curbe de Acțiune"
+msgstr "Curbe-F de acțiune"
 
 
 msgid "Action Group"
-msgstr "Grup de Acțiune"
+msgstr "Grup de acțiune"
 
 
 msgid "Groups of F-Curves"
-msgstr "Grup de F-Curbe"
+msgstr "Grup de curbe-F"
 
 
 msgid "Channels"
@@ -76,11 +104,11 @@ msgstr "Canale"
 
 
 msgid "F-Curves in this group"
-msgstr "F-Curbe în acest grup"
+msgstr "Curbe-F în acest grup"
 
 
 msgid "Color Set"
-msgstr "Setare Culoare"
+msgstr "Set de culori"
 
 
 msgid "Custom color set to use"
@@ -88,7 +116,7 @@ msgstr "Set de culori personalizat de folosit"
 
 
 msgid "Default Colors"
-msgstr "Culori Implicite"
+msgstr "Culori implicite"
 
 
 msgid "01 - Theme Color Set"
@@ -762,6 +790,18 @@ msgid "Display Paths of poses within specified range"
 msgstr "Afișare Căi de poziții în intervalul specificat"
 
 
+msgid "Hide"
+msgstr "Ascundere"
+
+
+msgid "Frames"
+msgstr "Cadre"
+
+
+msgid "Info"
+msgstr "Informații"
+
+
 msgid "Any Type"
 msgstr "Orice Tip"
 
@@ -851,7 +891,7 @@ msgstr "Unelte de editare video"
 
 
 msgid "Movie Clip Editor"
-msgstr "Editor Clip Video"
+msgstr "Editor de clipuri video"
 
 
 msgid "Motion tracking tools"
@@ -859,7 +899,7 @@ msgstr "Unelte pentru Urmărirea mișcării"
 
 
 msgid "Dope Sheet"
-msgstr "Dope sheet"
+msgstr "Foaia de expoziție"
 
 
 msgid "Adjust timing of keyframes"
@@ -867,7 +907,7 @@ msgstr "Reglați sincronizarea cadrelor cheie"
 
 
 msgid "Graph Editor"
-msgstr "Editor Grafice"
+msgstr "Editor de diagrame"
 
 
 msgid "Edit drivers and keyframe interpolation"
@@ -883,7 +923,7 @@ msgstr "Combinare și Acțiunile stratului"
 
 
 msgid "Text Editor"
-msgstr "Editor Text"
+msgstr "Editor de text"
 
 
 msgid "Edit scripts and in-file documentation"
@@ -896,10 +936,6 @@ msgstr "Consola Python"
 
 msgid "Interactive programmatic console for advanced editing and script development"
 msgstr "Consolă programatică interactivă pentru editare avansată și dezvoltare de scripturi"
-
-
-msgid "Info"
-msgstr "Info"
 
 
 msgid "Log of operations, warnings and error messages"
@@ -1100,6 +1136,10 @@ msgstr "Atributul pe marginea mesh-ului"
 
 msgid "Name of the Attribute"
 msgstr "Numele Atributului"
+
+
+msgid "Array"
+msgstr "Matrice"
 
 
 msgid "Byte Color Attribute"
@@ -1410,10 +1450,6 @@ msgid "Handle 2 Type"
 msgstr "Tipul Handle 2"
 
 
-msgid "Hide"
-msgstr "Ascundere"
-
-
 msgid "Visibility status"
 msgstr "Starea vizibilității"
 
@@ -1722,8 +1758,16 @@ msgid "Textures"
 msgstr "Texturi"
 
 
+msgid "Deflectors"
+msgstr "Deflectoare"
+
+
 msgid "Distance"
 msgstr "Distanță"
+
+
+msgid "B-Bone"
+msgstr "Os-B"
 
 
 msgid "Envelope"
@@ -1808,6 +1852,10 @@ msgid "Right"
 msgstr "Dreapta"
 
 
+msgid "Angular"
+msgstr "Unghiular"
+
+
 msgid "Curve"
 msgstr "Curbă"
 
@@ -1834,6 +1882,10 @@ msgstr "Setează interpolare între opriri de culoare"
 
 msgid "Alpha"
 msgstr "Alpha"
+
+
+msgid "Camera"
+msgstr "Cameră"
 
 
 msgid "Bone"
@@ -1933,10 +1985,6 @@ msgid "Delete"
 msgstr "Ștergere"
 
 
-msgid "Frames"
-msgstr "Cadre"
-
-
 msgid "Window"
 msgstr "Fereastră"
 
@@ -2010,6 +2058,10 @@ msgid "Corner"
 msgstr "Colț"
 
 
+msgid "Attribute"
+msgstr "Atribut"
+
+
 msgid "Script"
 msgstr "Script"
 
@@ -2019,7 +2071,11 @@ msgstr "Editare"
 
 
 msgid "Tool"
-msgstr "Unealtă"
+msgstr "Instrument"
+
+
+msgid "Line Art"
+msgstr "Artă liniară"
 
 
 msgid "Object Mode"
@@ -2137,6 +2193,10 @@ msgid "Scene"
 msgstr "Scenă"
 
 
+msgid "Blender"
+msgstr "Blender"
+
+
 msgid "System"
 msgstr "Sistem"
 
@@ -2171,14 +2231,6 @@ msgstr "Lume"
 
 msgid "Starting"
 msgstr "Pornire"
-
-
-msgid "Aspect Correction"
-msgstr "Corecție Aspect"
-
-
-msgid "Lift"
-msgstr "Ridicare"
 
 
 msgid "Composite"
@@ -2646,6 +2698,10 @@ msgid "Use Viewport Denoising"
 msgstr "Folosiți Denoising în Fereastra de Vizualizare"
 
 
+msgid "Antialiasing"
+msgstr "Antidedublare"
+
+
 msgid "Trace Precision"
 msgstr "Precizia Urmei"
 
@@ -2680,6 +2736,10 @@ msgstr "Scenă"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Film"
+
+
+msgid "Lift"
+msgstr "Ridicare"
 
 
 msgid "Summary"
@@ -3691,16 +3751,16 @@ msgid "Mean Crease:"
 msgstr "Cută medie:"
 
 
-msgid "Mean Weight:"
-msgstr "Greutate Medie:"
-
-
 msgid "Mean Radius:"
 msgstr "Rază Medie:"
 
 
 msgid "Mean Tilt:"
 msgstr "Aplecare Medie:"
+
+
+msgid "Mean Weight:"
+msgstr "Greutate Medie:"
 
 
 msgid "4L"

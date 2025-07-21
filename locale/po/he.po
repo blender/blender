@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"POT-Creation-Date: 2025-07-21 08:48+0000\n"
 "PO-Revision-Date: 2025-04-14 08:22+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -142,6 +142,10 @@ msgstr "יחכונה ירחא"
 
 msgid "Before Current"
 msgstr "יחכונה ינפל"
+
+
+msgid "Default"
+msgstr "לדחמ תרירב"
 
 
 msgid "Width"
@@ -300,10 +304,6 @@ msgstr "האיגש"
 
 msgid "Head/Tail"
 msgstr "בנז/שאר"
-
-
-msgid "Default"
-msgstr "לדחמ תרירב"
 
 
 msgid "Location"
@@ -643,25 +643,12 @@ msgid "World"
 msgstr "םלוע"
 
 
-msgid "Lift"
-msgstr "יוליע"
-
-
 msgid "Combine Color"
 msgstr "עבצ בלש"
 
 
-msgctxt "Image"
-msgid "Edge"
-msgstr "עלצ"
-
-
 msgid "Combined"
 msgstr "בלשמ"
-
-
-msgid "Y Axis"
-msgstr "Y ריצ"
 
 
 msgid "Background"
@@ -674,6 +661,10 @@ msgstr "תופקתשה"
 
 msgid "Emission"
 msgstr "הטילפ"
+
+
+msgid "Y Axis"
+msgstr "Y ריצ"
 
 
 msgid "Generated"
@@ -809,6 +800,10 @@ msgstr "הנומת"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "טרס"
+
+
+msgid "Lift"
+msgstr "יוליע"
 
 
 msgid "Grease Pencil Sculpt"
@@ -1034,16 +1029,16 @@ msgid "Edge Data:"
 msgstr ":עלצ ינותנ"
 
 
-msgid "Weight:"
-msgstr ":לקשמ"
-
-
 msgid "Radius:"
 msgstr ":סוידר"
 
 
 msgid "Mean Radius:"
 msgstr ":עצוממ סוידר"
+
+
+msgid "Weight:"
+msgstr ":לקשמ"
 
 
 msgid "Modify"
@@ -1076,10 +1071,6 @@ msgstr ":ביתנ"
 
 msgid "Add Input"
 msgstr "טלק ףסוה"
-
-
-msgid "Std Dev"
-msgstr "ןקת תייטס"
 
 
 msgctxt "NodeTree"

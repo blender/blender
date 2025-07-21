@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"POT-Creation-Date: 2025-07-21 08:48+0000\n"
 "PO-Revision-Date: 2025-04-14 08:54+0000\n"
 "Last-Translator: Martynas Žiemys <martynasziemys@gmail.com>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -476,6 +476,30 @@ msgid "Show Frame Numbers"
 msgstr "Rodyti kadrų numerius"
 
 
+msgid "Hide"
+msgstr "Paslėpti"
+
+
+msgid "Opacity"
+msgstr "Neskaidrumas"
+
+
+msgid "Info"
+msgstr "Informacija"
+
+
+msgid "Ruler"
+msgstr "Liniuotė"
+
+
+msgid "Locked"
+msgstr "Užrakinta/-s"
+
+
+msgid "Thickness"
+msgstr "Storis"
+
+
 msgid "Height"
 msgstr "Aukštis"
 
@@ -538,10 +562,6 @@ msgstr "„Python“ konsolė"
 
 msgid "Interactive programmatic console for advanced editing and script development"
 msgstr "Interaktyvi programavimo konsolė išplėstiniam redagavimui ir skriptų vystymui"
-
-
-msgid "Info"
-msgstr "Informacija"
 
 
 msgid "Top Bar"
@@ -961,10 +981,6 @@ msgid "Aligned"
 msgstr "Lygiuotas"
 
 
-msgid "Hide"
-msgstr "Paslėpti"
-
-
 msgid "Weight"
 msgstr "Svoris"
 
@@ -1253,10 +1269,6 @@ msgid "Hardness"
 msgstr "Kietumas"
 
 
-msgid "Thickness"
-msgstr "Storis"
-
-
 msgctxt "Brush"
 msgid "Jitter"
 msgstr "Virpėjimas"
@@ -1286,10 +1298,6 @@ msgstr "Kelias"
 
 msgid "Background Image"
 msgstr "Fono paveikslas"
-
-
-msgid "Opacity"
-msgstr "Neskaidrumas"
 
 
 msgid "MovieClip"
@@ -2095,10 +2103,6 @@ msgid "Operator"
 msgstr "Operatorius"
 
 
-msgid "FBX"
-msgstr "„FBX“"
-
-
 msgid "A file viewable in the File Browser"
 msgstr "Failas, peržiūrimas failų naršyklėje"
 
@@ -2263,14 +2267,6 @@ msgstr "Naudoti"
 
 msgid "Control Mode"
 msgstr "Valdymo/-senos veiksena"
-
-
-msgid "Ruler"
-msgstr "Liniuotė"
-
-
-msgid "Locked"
-msgstr "Užrakinta/-s"
 
 
 msgctxt "Operator"
@@ -2809,14 +2805,6 @@ msgid "Modified"
 msgstr "Redaguota/-s"
 
 
-msgid "EWA"
-msgstr "„EWA“"
-
-
-msgid "FELINE"
-msgstr "„FELINE“"
-
-
 msgid "fBM"
 msgstr "„fBM“"
 
@@ -3149,20 +3137,20 @@ msgid "Dots"
 msgstr "Taškai"
 
 
-msgid "Show/Hide"
-msgstr "Rodyti/Slėpti"
-
-
-msgid "Text"
-msgstr "Tekstas"
-
-
 msgid "Apply"
 msgstr "Pritaikyti"
 
 
 msgid "Track"
 msgstr "Sekti"
+
+
+msgid "Show/Hide"
+msgstr "Rodyti/Slėpti"
+
+
+msgid "Text"
+msgstr "Tekstas"
 
 
 msgid "Animals"
@@ -3621,10 +3609,6 @@ msgid "View"
 msgstr "Rodymas"
 
 
-msgid "Use Blender Profile"
-msgstr "Naudoti „Blender“ profilį"
-
-
 msgctxt "Operator"
 msgid "Open"
 msgstr "Atidaryti"
@@ -4079,10 +4063,6 @@ msgstr "Vaizdo efektų savybės"
 
 msgid "Display Channel"
 msgstr "Rodomas kanalas"
-
-
-msgid "The channel number shown in the image preview. 0 is the result of all strips combined"
-msgstr "Kanalas, rodomas peržiūros lange. 0 rodo galutinį vaizdą"
 
 
 msgid "View mode to use for displaying sequencer output"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"POT-Creation-Date: 2025-07-21 08:48+0000\n"
 "PO-Revision-Date: 2025-06-11 19:59+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -971,10 +971,6 @@ msgid "Tweak Mode Action Storage"
 msgstr "Juster mode handlings _opbevaring"
 
 
-msgid "Slot to temporarily hold the main action while in tweak mode"
-msgstr "Slot for midlertidigt at holde hovedhandlingen, mens du er i tweak-tilstand"
-
-
 msgid "Drivers"
 msgstr "Drivere"
 
@@ -1215,6 +1211,18 @@ msgid "Motion path points will be baked into the camera space of the active came
 msgstr "Bevægelsesstipunkter vil blive indbygget i kamerarummet på det aktive kamera. Det betyder, at de kun ser rigtigt ud, når de ser gennem det kamera. Skift kamera ved hjælp af markører er ikke understøttet."
 
 
+msgid "Hide"
+msgstr "Skjule"
+
+
+msgid "Opacity"
+msgstr "Gennemsigtighed"
+
+
+msgid "Info"
+msgstr "Infomation"
+
+
 msgid "Any Type"
 msgstr "Enhver type"
 
@@ -1345,10 +1353,6 @@ msgstr "Python konsol"
 
 msgid "Interactive programmatic console for advanced editing and script development"
 msgstr "Interaktiv programmatisk konsol til avanceret redigering og scriptudvikling"
-
-
-msgid "Info"
-msgstr "Infomation"
 
 
 msgid "Log of operations, warnings and error messages"
@@ -2488,10 +2492,6 @@ msgid "Handle 2 Type"
 msgstr "Håndtag 2 Type"
 
 
-msgid "Hide"
-msgstr "Skjule"
-
-
 msgid "Visibility status"
 msgstr "Synlighedsstatus"
 
@@ -2560,6 +2560,14 @@ msgid "Action data-blocks"
 msgstr "Handlingsdatablokke"
 
 
+msgid "Annotation"
+msgstr "Anmærkning"
+
+
+msgid "Annotation data-blocks (legacy Grease Pencil)"
+msgstr "Annotationsdatablokke (legacy Grease Pencil)"
+
+
 msgid "Armatures"
 msgstr "Armaturer"
 
@@ -2622,14 +2630,6 @@ msgstr "Vektor skrifttyper"
 
 msgid "Vector font data-blocks"
 msgstr "Vektor skrifttyper"
-
-
-msgid "Annotation"
-msgstr "Anmærkning"
-
-
-msgid "Annotation data-blocks (legacy Grease Pencil)"
-msgstr "Annotationsdatablokke (legacy Grease Pencil)"
 
 
 msgid "Grease Pencil"
@@ -3208,10 +3208,6 @@ msgid "Image and settings for display in the 3D View background"
 msgstr "Billede og indstillinger til visning i 3D View-baggrunden"
 
 
-msgid "Opacity"
-msgstr "Gennemsigtighed"
-
-
 msgid "Image opacity to blend the image against the background color"
 msgstr "Billed opacitet for at blande billedet mod baggrundsfarven"
 
@@ -3706,18 +3702,6 @@ msgid "To"
 msgstr "Til"
 
 
-msgid "Motion Blur"
-msgstr "Bevægelsessløring"
-
-
-msgid "X Axis"
-msgstr "X akse"
-
-
-msgid "Y Axis"
-msgstr "Y akse"
-
-
 msgid "Layer Weight"
 msgstr "Lag vægtning"
 
@@ -3734,28 +3718,12 @@ msgid "Z axis"
 msgstr "Z akse"
 
 
-msgid "Color Source"
-msgstr "Farvekilde"
-
-
-msgid "Particle Speed"
-msgstr "Partikel fart"
-
-
-msgid "Particle Velocity"
-msgstr "Partikel hastighed"
-
-
 msgid "Sky Texture"
 msgstr "Himmel struktur"
 
 
 msgid "Sky Type"
 msgstr "Himmel type"
-
-
-msgid "Sun Direction"
-msgstr "Sol retning"
 
 
 msgid "Wave Texture"
@@ -3788,6 +3756,14 @@ msgstr "Brug tip"
 
 msgid "Vector Math"
 msgstr "Vektor matematik"
+
+
+msgid "X Axis"
+msgstr "X akse"
+
+
+msgid "Y Axis"
+msgstr "Y akse"
 
 
 msgid "Z Axis"
@@ -3862,6 +3838,10 @@ msgid "State"
 msgstr "Tilstand"
 
 
+msgid "Motion Blur"
+msgstr "Bevægelsessløring"
+
+
 msgid "Sensitivity"
 msgstr "Følsomhed"
 
@@ -3880,6 +3860,10 @@ msgstr "Udvikling"
 
 msgid "Pie Menu"
 msgstr "Lagkage menu"
+
+
+msgid "Particle Velocity"
+msgstr "Partikel hastighed"
 
 
 msgid "Screenshot"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
+"POT-Creation-Date: 2025-07-21 08:48+0000\n"
 "PO-Revision-Date: 2025-04-14 08:32+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -104,6 +104,22 @@ msgid "Drivers"
 msgstr "Драйверлер"
 
 
+msgid "Hide"
+msgstr "Жашыруу"
+
+
+msgid "Opacity"
+msgstr "Күңүрттүк"
+
+
+msgid "Info"
+msgstr "Маалымат"
+
+
+msgid "Default"
+msgstr "Жарыяланбас"
+
+
 msgid "Empty"
 msgstr "Боштук"
 
@@ -122,10 +138,6 @@ msgstr "Текст редактору"
 
 msgid "Python Console"
 msgstr "Python консолу"
-
-
-msgid "Info"
-msgstr "Маалымат"
 
 
 msgid "Properties"
@@ -162,6 +174,10 @@ msgstr "Каптал"
 
 msgid "Layer"
 msgstr "Кат"
+
+
+msgid "Array"
+msgstr "Массив"
 
 
 msgid "Margin"
@@ -214,10 +230,6 @@ msgstr "Тазалоо"
 
 msgid "Free"
 msgstr "Бош"
-
-
-msgid "Hide"
-msgstr "Жашыруу"
 
 
 msgid "Weight"
@@ -340,10 +352,6 @@ msgstr "Жөнөкөйлөө"
 
 msgid "Background Image"
 msgstr "Фон сүрөтү"
-
-
-msgid "Opacity"
-msgstr "Күңүрттүк"
 
 
 msgid "MovieClip"
@@ -505,10 +513,6 @@ msgstr "Y"
 
 msgid "Z"
 msgstr "Z"
-
-
-msgid "Default"
-msgstr "Жарыяланбас"
 
 
 msgid "Camera"
@@ -1302,16 +1306,16 @@ msgid "Mask"
 msgstr "Маска"
 
 
-msgid "Text"
-msgstr "Текст"
-
-
 msgid "Mirror"
 msgstr "Чагылтуу"
 
 
 msgid "Apply"
 msgstr "Колдонуу"
+
+
+msgid "Text"
+msgstr "Текст"
 
 
 msgctxt "MovieClip"
@@ -1333,6 +1337,10 @@ msgstr "Консоль"
 
 msgid "Languages..."
 msgstr "Тилдер..."
+
+
+msgid "Cache"
+msgstr "Кэш"
 
 
 msgid "Channel"
@@ -1384,10 +1392,6 @@ msgid "Sequencer"
 msgstr "Секвенсор"
 
 
-msgid "Cache"
-msgstr "Кэш"
-
-
 msgid "System"
 msgstr "Система"
 
@@ -1418,10 +1422,6 @@ msgstr "Активдүү элемент"
 
 msgid "Ellipsoid"
 msgstr "Эллипсоид"
-
-
-msgid "Array"
-msgstr "Массив"
 
 
 msgid "Build"
@@ -1530,22 +1530,6 @@ msgstr "ITU 709"
 
 msgid "To"
 msgstr "Кимге"
-
-
-msgid "X2"
-msgstr "X2"
-
-
-msgid "Y2"
-msgstr "Y2"
-
-
-msgid "X1"
-msgstr "X1"
-
-
-msgid "Y1"
-msgstr "Y1"
 
 
 msgid "Shadow"
@@ -2107,11 +2091,6 @@ msgstr "Чыгуу"
 
 
 msgctxt "Operator"
-msgid "Hide"
-msgstr "Жашыруу"
-
-
-msgctxt "Operator"
 msgid "Add Armature"
 msgstr "Скелетти кошуу"
 
@@ -2220,6 +2199,11 @@ msgstr "Бардык топтор"
 
 msgid "Hierarchy"
 msgstr "Иерархия"
+
+
+msgctxt "Operator"
+msgid "Hide"
+msgstr "Жашыруу"
 
 
 msgid "Reload"
@@ -2539,10 +2523,6 @@ msgid "Reset"
 msgstr "Түшүрүү"
 
 
-msgid "Island"
-msgstr "Арал"
-
-
 msgid "Remove"
 msgstr "Өчүрүү"
 
@@ -2651,10 +2631,6 @@ msgstr "Аудио"
 
 msgid "Development"
 msgstr "Иштетүү"
-
-
-msgid "Panel Colors"
-msgstr "Панель түстөрү"
 
 
 msgid "Styles"
@@ -3167,6 +3143,10 @@ msgid "Back"
 msgstr "Артынан"
 
 
+msgid "Island"
+msgstr "Арал"
+
+
 msgctxt "Operator"
 msgid "Save As..."
 msgstr "Ат коюп сактоо..."
@@ -3185,11 +3165,6 @@ msgstr "Кыр"
 msgctxt "Operator"
 msgid "Face"
 msgstr "Каптал"
-
-
-msgctxt "Operator"
-msgid "Island"
-msgstr "Арал"
 
 
 msgid "Image*"
