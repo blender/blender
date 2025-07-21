@@ -672,10 +672,8 @@ void ShaderManager::add_default(Scene *scene)
   {
     unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
-    DiffuseBsdfNode *diffuse = graph->create_node<DiffuseBsdfNode>();
-    diffuse->set_color(make_float3(0.8f, 0.8f, 0.8f));
-
-    graph->connect(diffuse->output("BSDF"), graph->output()->input("Surface"));
+    PrincipledBsdfNode *bsdf = graph->create_node<PrincipledBsdfNode>();
+    graph->connect(bsdf->output("BSDF"), graph->output()->input("Surface"));
 
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_surface";
