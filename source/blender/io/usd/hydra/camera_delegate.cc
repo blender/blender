@@ -21,6 +21,8 @@ static pxr::VtValue vt_value(const IDProperty *prop)
       return pxr::VtValue{IDP_Int(prop)};
     case IDP_FLOAT:
       return pxr::VtValue{IDP_Float(prop)};
+    case IDP_DOUBLE:
+      return pxr::VtValue{IDP_Double(prop)};
     case IDP_BOOLEAN:
       return pxr::VtValue{bool(IDP_Bool(prop))};
   }
