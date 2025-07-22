@@ -246,7 +246,7 @@ static gpu::IndexBufPtr extract_edituv_lines_mesh(const MeshRenderData &mr,
   /* Only upload the part of the index buffer that is used. Alternatively it might be beneficial to
    * count the number of visible edges first, especially if that allows parallelizing filling the
    * data array. */
-  builder.index_len = line_index;
+  builder.index_len = line_index * 2;
   builder.index_min = 0;
   builder.index_max = mr.corners_num;
   builder.uses_restart_indices = false;
@@ -345,8 +345,16 @@ static gpu::IndexBufPtr extract_edituv_lines_subdiv_mesh(const MeshRenderData &m
     }
   }
 
-  return gpu::IndexBufPtr(
-      GPU_indexbuf_build_ex(&builder, 0, subdiv_cache.num_subdiv_loops, false));
+  /* Only upload the part of the index buffer that is used. Alternatively it might be beneficial to
+   * count the number of visible edges first, especially if that allows parallelizing filling the
+   * data array. */
+  builder.index_len = line_index * 2;
+  builder.index_min = 0;
+  builder.index_max = subdiv_cache.num_subdiv_loops;
+  builder.uses_restart_indices = false;
+  gpu::IndexBufPtr result = gpu::IndexBufPtr(GPU_indexbuf_calloc());
+  GPU_indexbuf_build_in_place(&builder, result.get());
+  return result;
 }
 
 gpu::IndexBufPtr extract_edituv_lines_subdiv(const MeshRenderData &mr,
