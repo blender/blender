@@ -91,12 +91,26 @@ namespace blender::bke::path_templates {
  * transient for collecting data that is relevant/available in a given
  * templating context.
  *
- * There are currently three supported variable types: string, integer, and
- * float. Names must be unique across all types: you can't have a string *and*
+ * There are currently four supported variable types:
+ *
+ * - String
+ * - Filepath
+ * - Integer
+ * - Float
+ *
+ * Names must be unique across all variable types: you can't have a string *and*
  * integer both with the name "bob".
+ *
+ * A filepath variable can contain either a full or partial filepath. The
+ * distinction between string and filepath variables exists because non-path
+ * strings may include phrases like "and/or" or "A:Left", which shouldn't be
+ * interpreted with path semantics. When used in path templating, the contents
+ * of string variables are therefore sanitized (replacing "/", etc.), but the
+ * contents of filepath variables are left as-is.
  */
 class VariableMap {
   blender::Map<std::string, std::string> strings_;
+  blender::Map<std::string, std::string> filepaths_;
   blender::Map<std::string, int64_t> integers_;
   blender::Map<std::string, double> floats_;
 
@@ -124,6 +138,17 @@ class VariableMap {
    * already a variable with that name.
    */
   bool add_string(blender::StringRef name, blender::StringRef value);
+
+  /**
+   * Add a filepath variable with the given name and value.
+   *
+   * If there is already a variable with that name, regardless of type, the new
+   * variable is *not* added (no overwriting).
+   *
+   * \return True if the variable was successfully added, false if there was
+   * already a variable with that name.
+   */
+  bool add_filepath(blender::StringRef name, blender::StringRef value);
 
   /**
    * Add an integer variable with the given name and value.
@@ -154,6 +179,14 @@ class VariableMap {
    * #std::nullopt otherwise.
    */
   std::optional<blender::StringRefNull> get_string(blender::StringRef name) const;
+
+  /**
+   * Fetch the value of the filepath variable with the given name.
+   *
+   * \return The value if a filepath variable with that name exists,
+   * #std::nullopt otherwise.
+   */
+  std::optional<blender::StringRefNull> get_filepath(blender::StringRef name) const;
 
   /**
    * Fetch the value of the integer variable with the given name.
@@ -189,9 +222,9 @@ class VariableMap {
    * \return True if the variable was successfully added, false if there was
    * already a variable with that name.
    */
-  bool add_filename(blender::StringRef var_name,
-                    blender::StringRefNull full_path,
-                    blender::StringRef fallback);
+  bool add_filename_only(blender::StringRef var_name,
+                         blender::StringRefNull full_path,
+                         blender::StringRef fallback);
 
   /**
    * Add the path up-to-but-not-including the filename as a variable.
