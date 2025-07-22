@@ -564,6 +564,9 @@ class SocketTooltipBuilder {
     if (base_type.is<math::Quaternion>()) {
       return TIP_("Rotation Field");
     }
+    if (base_type.is<blender::float4x4>()) {
+      return TIP_("Matrix Field");
+    }
     BLI_assert_unreachable();
     return TIP_("Field");
   }
