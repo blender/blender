@@ -17,7 +17,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -146,7 +146,7 @@ void render_result_views_shallowcopy(RenderResult *dst, RenderResult *src)
     rv = MEM_callocN<RenderView>("new render view");
     BLI_addtail(&dst->views, rv);
 
-    STRNCPY(rv->name, rview->name);
+    STRNCPY_UTF8(rv->name, rview->name);
 
     rv->ibuf = rview->ibuf;
   }
@@ -625,7 +625,7 @@ static void *ml_addview_cb(void *base, const char *str)
   RenderResult *rr = static_cast<RenderResult *>(base);
 
   RenderView *rv = MEM_callocN<RenderView>("new render view");
-  STRNCPY(rv->name, str);
+  STRNCPY_UTF8(rv->name, str);
 
   /* For stereo drawing we need to ensure:
    * STEREO_LEFT_NAME  == STEREO_LEFT_ID and
@@ -756,7 +756,7 @@ void render_result_view_new(RenderResult *rr, const char *viewname)
 {
   RenderView *rv = MEM_callocN<RenderView>("new render view");
   BLI_addtail(&rr->views, rv);
-  STRNCPY(rv->name, viewname);
+  STRNCPY_UTF8(rv->name, viewname);
 }
 
 void render_result_views_new(RenderResult *rr, const RenderData *rd)

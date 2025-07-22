@@ -79,7 +79,7 @@ void FileOutput::add_view(const char *view_name)
 
   RenderView *render_view = MEM_callocN<RenderView>("Render View For File Output.");
   BLI_addtail(&render_result_->views, render_view);
-  STRNCPY(render_view->name, view_name);
+  STRNCPY_UTF8(render_view->name, view_name);
 }
 
 void FileOutput::add_view(const char *view_name, int channels, float *buffer)
