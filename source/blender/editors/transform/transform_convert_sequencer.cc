@@ -308,7 +308,7 @@ static ListBase *seqbase_active_get(const TransInfo *t)
 bool seq_transform_check_overlap(Span<Strip *> transformed_strips)
 {
   for (Strip *strip : transformed_strips) {
-    if (strip->flag & SEQ_OVERLAP) {
+    if (strip->runtime.flag & STRIP_OVERLAP) {
       return true;
     }
   }
@@ -341,7 +341,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 
   for (Strip *strip : transformed_strips) {
     strip->runtime.flag &= ~(STRIP_CLAMPED_LH | STRIP_CLAMPED_RH);
-    strip->flag &= ~SEQ_IGNORE_CHANNEL_LOCK;
+    strip->runtime.flag &= ~STRIP_IGNORE_CHANNEL_LOCK;
   }
 
   if (t->state == TRANS_CANCEL) {
@@ -773,9 +773,9 @@ static void flushTransSeq(TransInfo *t)
 
   for (Strip *strip : transformed_strips) {
     /* Test overlap, displays red outline. */
-    strip->flag &= ~SEQ_OVERLAP;
+    strip->runtime.flag &= ~STRIP_OVERLAP;
     if (seq::transform_test_overlap(scene, seqbasep, strip)) {
-      strip->flag |= SEQ_OVERLAP;
+      strip->runtime.flag |= STRIP_OVERLAP;
     }
   }
 }

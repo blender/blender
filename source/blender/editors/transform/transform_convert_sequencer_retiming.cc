@@ -161,9 +161,9 @@ static void recalcData_sequencer_retiming(TransInfo *t)
   seq::iterator_set_expand(
       t->scene, seq::active_seqbase_get(ed), transformed_strips, seq::query_strip_effect_chain);
   for (Strip *strip : transformed_strips) {
-    strip->flag &= ~SEQ_OVERLAP;
+    strip->runtime.flag &= ~STRIP_OVERLAP;
     if (seq::transform_test_overlap(t->scene, seq::active_seqbase_get(ed), strip)) {
-      strip->flag |= SEQ_OVERLAP;
+      strip->runtime.flag |= STRIP_OVERLAP;
     }
   }
 }

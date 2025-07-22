@@ -231,7 +231,7 @@ bool transform_seqbase_shuffle_time(blender::Span<Strip *> strips_to_shuffle,
   if (offset) {
     for (Strip *strip : strips_to_shuffle) {
       transform_translate_strip(evil_scene, strip, offset);
-      strip->flag &= ~SEQ_OVERLAP;
+      strip->runtime.flag &= ~STRIP_OVERLAP;
     }
 
     if (!time_dependent_strips.is_empty()) {
@@ -541,7 +541,7 @@ void transform_handle_overlap(Scene *scene,
     if (transform_test_overlap(scene, seqbasep, strip)) {
       transform_seqbase_shuffle(seqbasep, strip, scene);
     }
-    strip->flag &= ~SEQ_OVERLAP;
+    strip->runtime.flag &= ~STRIP_OVERLAP;
   }
 }
 
@@ -575,7 +575,7 @@ bool transform_is_locked(ListBase *channels, const Strip *strip)
 {
   const SeqTimelineChannel *channel = channel_get_by_index(channels, strip->channel);
   return strip->flag & SEQ_LOCK ||
-         (channel_is_locked(channel) && ((strip->flag & SEQ_IGNORE_CHANNEL_LOCK) == 0));
+         (channel_is_locked(channel) && ((strip->runtime.flag & STRIP_IGNORE_CHANNEL_LOCK) == 0));
 }
 
 float2 image_transform_mirror_factor_get(const Strip *strip)

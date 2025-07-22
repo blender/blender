@@ -1749,12 +1749,6 @@ static bool version_merge_still_offsets(Strip *strip, void * /*user_data*/)
   return true;
 }
 
-static bool version_fix_delete_flag(Strip *strip, void * /*user_data*/)
-{
-  strip->flag &= ~SEQ_FLAG_DELETE;
-  return true;
-}
-
 static bool version_set_seq_single_frame_content(Strip *strip, void * /*user_data*/)
 {
   if ((strip->len == 1) &&
@@ -4075,14 +4069,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             v3d->overlay.sculpt_curves_cage_opacity = 0.5f;
           }
         }
-      }
-    }
-
-    /* Fix possible uncleared `SEQ_FLAG_DELETE` flag */
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = blender::seq::editing_get(scene);
-      if (ed != nullptr) {
-        blender::seq::for_each_callback(&ed->seqbase, version_fix_delete_flag, nullptr);
       }
     }
 

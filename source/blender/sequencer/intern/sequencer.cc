@@ -890,7 +890,7 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
   BLO_read_struct(reader, Stereo3dFormat, &strip->stereo3d_format);
 
   if (strip->type & STRIP_TYPE_EFFECT) {
-    strip->flag |= SEQ_EFFECT_NOT_LOADED;
+    strip->runtime.flag |= STRIP_EFFECT_NOT_LOADED;
   }
 
   if (strip->type == STRIP_TYPE_TEXT) {

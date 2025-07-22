@@ -151,9 +151,9 @@ static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, St
       }
     }
 
-    /* Remove effects, that use strip. */
+    /* Mark effects for removal that use the strip. */
     if (relation_is_effect_of_strip(user_strip, strip)) {
-      user_strip->flag |= SEQ_FLAG_DELETE;
+      user_strip->runtime.flag |= STRIP_MARK_FOR_DELETE;
       /* Strips can be used as mask even if not in same seqbase. */
       sequencer_flag_users_for_removal(scene, &scene->ed->seqbase, user_strip);
     }
@@ -162,7 +162,7 @@ static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, St
 
 void edit_flag_for_removal(Scene *scene, ListBase *seqbase, Strip *strip)
 {
-  if (strip == nullptr || (strip->flag & SEQ_FLAG_DELETE) != 0) {
+  if (strip == nullptr || (strip->runtime.flag & STRIP_MARK_FOR_DELETE) != 0) {
     return;
   }
 
@@ -173,14 +173,14 @@ void edit_flag_for_removal(Scene *scene, ListBase *seqbase, Strip *strip)
     }
   }
 
-  strip->flag |= SEQ_FLAG_DELETE;
+  strip->runtime.flag |= STRIP_MARK_FOR_DELETE;
   sequencer_flag_users_for_removal(scene, seqbase, strip);
 }
 
 void edit_remove_flagged_strips(Scene *scene, ListBase *seqbase)
 {
   LISTBASE_FOREACH_MUTABLE (Strip *, strip, seqbase) {
-    if (strip->flag & SEQ_FLAG_DELETE) {
+    if (strip->runtime.flag & STRIP_MARK_FOR_DELETE) {
       if (strip->type == STRIP_TYPE_META) {
         edit_remove_flagged_strips(scene, &strip->seqbase);
       }
