@@ -1003,7 +1003,8 @@ static inline void sort_points(int2 &p1, int2 &p2)
 /* Clamps the point to the window bounds. */
 static inline int2 clamp_point_to_window(const int2 &point, const wmWindow *window)
 {
-  return {clamp_i(point.x, 0, window->sizex - 1), clamp_i(point.y, 0, window->sizey - 1)};
+  const int2 win_size = WM_window_native_pixel_size(window);
+  return {clamp_i(point.x, 0, win_size.x - 1), clamp_i(point.y, 0, win_size.y - 1)};
 }
 
 /* Ensures that the x and y distance to from p1 to p2 is equal and the resulting square remains
@@ -1022,8 +1023,9 @@ static inline void square_points_clamp_to_window(const int2 &p1, int2 &p2, const
   int square_size = std::max(size_x, size_y);
 
   /* Compute maximum size that fits within window bounds in the drag direction. */
-  const int max_size_x = (dir_x > 0) ? window->sizex - p1.x - 1 : p1.x;
-  const int max_size_y = (dir_y > 0) ? window->sizey - p1.y - 1 : p1.y;
+  const int2 win_size = WM_window_native_pixel_size(window);
+  const int max_size_x = (dir_x > 0) ? win_size.x - p1.x - 1 : p1.x;
+  const int max_size_y = (dir_y > 0) ? win_size.y - p1.y - 1 : p1.y;
 
   /* Clamp the square size so it does not exceed window bounds. */
   square_size = std::min(square_size, std::min(max_size_x, max_size_y));
@@ -1241,15 +1243,16 @@ static void screenshot_preview_draw(const wmWindow *window, void *operator_data)
 
   /* Drawing a semi-transparent mask to highlight the area that will be captured. */
   float4 mask_color = {1, 1, 1, 0.25};
-  const rctf mask_rect_bottom = {0, float(window->sizex), 0, screenshot_rect.ymin};
+  const int2 win_size = WM_window_native_pixel_size(window);
+  const rctf mask_rect_bottom = {0, float(win_size.x), 0, screenshot_rect.ymin};
   UI_draw_roundbox_aa(&mask_rect_bottom, true, 0, mask_color);
-  const rctf mask_rect_top = {0, float(window->sizex), screenshot_rect.ymax, float(window->sizey)};
+  const rctf mask_rect_top = {0, float(win_size.x), screenshot_rect.ymax, float(win_size.y)};
   UI_draw_roundbox_aa(&mask_rect_top, true, 0, mask_color);
   const rctf mask_rect_left = {
       0, screenshot_rect.xmin, screenshot_rect.ymin, screenshot_rect.ymax};
   UI_draw_roundbox_aa(&mask_rect_left, true, 0, mask_color);
   const rctf mask_rect_right = {
-      screenshot_rect.xmax, float(window->sizex), screenshot_rect.ymin, screenshot_rect.ymax};
+      screenshot_rect.xmax, float(win_size.x), screenshot_rect.ymin, screenshot_rect.ymax};
   UI_draw_roundbox_aa(&mask_rect_right, true, 0, mask_color);
 
   float4 color;
@@ -1356,7 +1359,8 @@ static wmOperatorStatus screenshot_preview_modal(bContext *C, wmOperator *op, co
         const int2 new_p2 = data->p2 + delta;
 
         auto is_within_window = [win](const int2 &pt) -> bool {
-          return pt.x >= 0 && pt.x < win->sizex && pt.y >= 0 && pt.y < win->sizey;
+          const int2 win_size = WM_window_native_pixel_size(win);
+          return pt.x >= 0 && pt.x < win_size.x && pt.y >= 0 && pt.y < win_size.y;
         };
 
         /* Apply movement only if the entire rectangle stays within window bounds. */
