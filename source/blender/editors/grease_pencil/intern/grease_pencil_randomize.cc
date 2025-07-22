@@ -148,7 +148,7 @@ ColorGeometry4f randomize_color(const BrushGpencilSettings &settings,
   blender::float3 jittered = BKE_paint_randomize_color(
       *jitter, initial_hsv_jitter, distance, pressure, {color.r, color.g, color.b});
 
-  return {jittered[0], jittered[1], jittered[2], 1};
+  return {jittered[0], jittered[1], jittered[2], color.a};
 }
 
 }  // namespace blender::ed::greasepencil
