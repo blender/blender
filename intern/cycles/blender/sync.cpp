@@ -246,7 +246,9 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph,
       dicing_prop_changed = true;
     }
 
-    if (dicing_camera_updated || dicing_prop_changed) {
+    if ((dicing_camera_updated && !region_view3d_navigating_or_transforming(b_rv3d)) ||
+        dicing_prop_changed)
+    {
       has_updates_ = true;
 
       for (const pair<const GeometryKey, Geometry *> &iter : geometry_map.key_to_scene_data()) {

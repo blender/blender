@@ -19,7 +19,9 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_view3d_types.h"
 
+#include "BKE_global.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.h"
@@ -803,6 +805,13 @@ static inline bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *s
   /* Motion pass which implies 3 motion steps, or motion blur which is not disabled on object
    * level. */
   return true;
+}
+
+static inline bool region_view3d_navigating_or_transforming(const BL::RegionView3D &b_rv3d)
+{
+  ::RegionView3D *rv3d = static_cast<::RegionView3D *>(b_rv3d.ptr.data);
+  return rv3d && ((rv3d->rflag & (RV3D_NAVIGATING | RV3D_PAINTING)) ||
+                  (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)));
 }
 
 class EdgeMap {
