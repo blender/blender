@@ -2614,6 +2614,16 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
   BKE_screen_area_free(tmp);
   MEM_delete(tmp);
 
+  /* The areas being swapped could be between different windows,
+   * so clear screen active region pointers. This is set later
+   * through regular operations. #141313. */
+  wmWindowManager *wm = CTX_wm_manager(C);
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    if (bScreen *screen = WM_window_get_active_screen(win)) {
+      screen->active_region = nullptr;
+    }
+  }
+
   /* tell WM to refresh, cursor types etc */
   WM_event_add_mousemove(win);
 
