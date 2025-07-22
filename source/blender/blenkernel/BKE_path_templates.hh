@@ -385,7 +385,7 @@ blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
  * - Format specifications that don't apply to the type of variable they're
  *   paired with.
  *
- * \param path_max_length The maximum length that template expansion is allowed
+ * \param path_max_length: The maximum length that template expansion is allowed
  * to make the template-expanded path (in bytes), including the null terminator.
  * In general, this should be the size of the underlying allocation of `path`.
  *

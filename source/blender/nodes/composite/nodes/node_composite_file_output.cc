@@ -951,7 +951,7 @@ class FileOutputOperation : public NodeOperation {
    * If there are any errors processing the path, the resulting path will be
    * empty.
    *
-   * \param apply_template Whether to run templating on the path or not. This is
+   * \param apply_template: Whether to run templating on the path or not. This is
    * needed because this function is called from more than one place, some of
    * which have already applied templating to the path and some of which
    * haven't. Double-applying templating can give incorrect results.

@@ -639,12 +639,11 @@ static FormatSpecifier parse_format_specifier(blender::StringRef format_specifie
  * Find and parse the next valid token in `path` starting from index
  * `from_char`.
  *
- * \param path The path string to parse.
+ * \param path: The path string to parse.
  *
- * \param from_char The char index to start from.
+ * \param from_char: The char index to start from.
  *
- * \return The parsed token information, or nullopt if no token is found in
- * `path`.
+ * \return The parsed token information, or #std::nullopt if no token is found in `path`.
  */
 static std::optional<Token> next_token(blender::StringRef path, const int from_char)
 {

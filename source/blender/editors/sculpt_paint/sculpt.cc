@@ -4795,9 +4795,10 @@ bool cursor_geometry_info_update(bContext *C,
 }
 
 /**
- * \param check_closest if true and the ray test fails a point closest to the ray will be found.
- * \param limit_closest_radius if true then the closest point will be tested against the active
- * brush radius. */
+ * \param check_closest: if true and the ray test fails a point closest to the ray will be found.
+ * \param limit_closest_radius: if true then the closest point will be tested against the active
+ * brush radius.
+ */
 static bool stroke_get_location_bvh_ex(bContext *C,
                                        float3 &out,
                                        const float2 &mval,

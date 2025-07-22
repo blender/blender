@@ -1469,7 +1469,7 @@ static void flush_delayed_frames(AVCodecContext *c, AVStream *stream, AVFormatCo
 /**
  * Get the output filename-- similar to the other output formats.
  *
- * \param reports If non-null, will report errors with `RPT_ERROR` level reports.
+ * \param reports: If non-null, will report errors with `RPT_ERROR` level reports.
  *
  * \return true on success, false on failure due to errors.
  */
