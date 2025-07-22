@@ -509,7 +509,6 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
   clear_selection_attribute(working_range_collection);
 
   bke::CurvesGeometry &dst_curves = dst_drawing->strokes_for_write();
-  const OffsetIndices stuff = dst_curves.points_by_curve();
   if (active_layer_behavior == ActiveLayerBehavior::JoinSelection) {
     remove_selected_points(ranges_selected);
   }
