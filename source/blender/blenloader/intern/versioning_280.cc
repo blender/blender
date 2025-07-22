@@ -17,6 +17,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_mempool.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 /* Define macros in `DNA_genfile.h`. */
@@ -3770,7 +3771,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         if (ima->type == IMA_TYPE_R_RESULT) {
           for (int i = 0; i < 8; i++) {
             RenderSlot *slot = MEM_callocN<RenderSlot>("Image Render Slot Init");
-            SNPRINTF(slot->name, "Slot %d", i + 1);
+            SNPRINTF_UTF8(slot->name, "Slot %d", i + 1);
             BLI_addtail(&ima->renderslots, slot);
           }
         }

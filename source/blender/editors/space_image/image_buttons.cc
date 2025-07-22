@@ -17,6 +17,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -85,10 +86,10 @@ static void ui_imageuser_slot_menu(bContext *C, uiLayout *layout, void *image_p)
   LISTBASE_FOREACH_INDEX (RenderSlot *, slot, &image->renderslots, slot_id) {
     char str[64];
     if (slot->name[0] != '\0') {
-      STRNCPY(str, slot->name);
+      STRNCPY_UTF8(str, slot->name);
     }
     else {
-      SNPRINTF(str, IFACE_("Slot %d"), slot_id + 1);
+      SNPRINTF_UTF8(str, IFACE_("Slot %d"), slot_id + 1);
     }
     /* Default to "blank" for nicer alignment. */
     int icon = ICON_BLANK1;
@@ -595,13 +596,13 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
 
   /* menu buts */
   if (render_slot) {
-    char str[64];
     RenderSlot *slot = BKE_image_get_renderslot(image, *render_slot);
+    char str[sizeof(slot->name)];
     if (slot && slot->name[0] != '\0') {
-      STRNCPY(str, slot->name);
+      STRNCPY_UTF8(str, slot->name);
     }
     else {
-      SNPRINTF(str, IFACE_("Slot %d"), *render_slot + 1);
+      SNPRINTF_UTF8(str, IFACE_("Slot %d"), *render_slot + 1);
     }
 
     rnd_pt = ui_imageuser_data_copy(&rnd_pt_local);
