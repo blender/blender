@@ -59,7 +59,7 @@ def main() -> int:
                 blender_bin = blender_app_path
 
     icons_blend = (
-        os.path.join(ROOTDIR, "release", "datafiles", "assets", "icons", "toolbar.blend"),
+        os.path.join(ROOTDIR, "release", "datafiles", "icons_blend", "toolbar.blend"),
     )
 
     def names_and_time_from_path(path: str) -> Iterator[tuple[str, float]]:
