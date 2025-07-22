@@ -402,7 +402,9 @@ static void icon_node_socket_draw(
   float color_inner[4];
   blender::ed::space_node::std_node_socket_colors_get(socket_type, color_inner);
 
-  float color_outer[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  float color_outer[4] = {0};
+  UI_GetThemeColorType4fv(TH_WIRE, SPACE_NODE, color_outer);
+  color_outer[3] = 1.0f;
 
   blender::ed::space_node::node_draw_nodesocket(
       &rect, color_inner, color_outer, U.pixelsize, SOCK_DISPLAY_SHAPE_CIRCLE, 1.0f);

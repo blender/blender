@@ -1462,8 +1462,11 @@ static void node_socket_outline_color_get(const bool selected,
                                           const int socket_type,
                                           float r_outline_color[4])
 {
+  /* Explicitly use the node editor theme for the outline color to ensure consistency even when
+   * sockets are drawn in other editors.
+   */
   if (selected) {
-    UI_GetThemeColor4fv(TH_ACTIVE, r_outline_color);
+    UI_GetThemeColorType4fv(TH_ACTIVE, SPACE_NODE, r_outline_color);
   }
   else if (socket_type == SOCK_CUSTOM) {
     /* Until there is a better place for per socket color,
@@ -1471,7 +1474,7 @@ static void node_socket_outline_color_get(const bool selected,
     copy_v4_v4(r_outline_color, virtual_node_socket_outline_color);
   }
   else {
-    UI_GetThemeColor4fv(TH_WIRE, r_outline_color);
+    UI_GetThemeColorType4fv(TH_WIRE, SPACE_NODE, r_outline_color);
     r_outline_color[3] = 1.0f;
   }
 }
