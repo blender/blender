@@ -45,6 +45,7 @@ static void cmp_node_dilate_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Falloff Size")
       .default_value(0.0f)
       .min(0.0f)
+      .make_available([](bNode &node) { node.custom1 = CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD; })
       .description(
           "The size of the falloff from the edges in pixels. If less than two pixels, the edges "
           "will be anti-aliased");
