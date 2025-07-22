@@ -43,12 +43,16 @@ int BLI_system_memory_max_in_megabytes_int(void);
 #  define BLI_SYSTEM_PID_H <process.h>
 
 /**
- * \note Use `void *` for `exception` since we really do not want to drag Windows.h
+ * \note Use `void *` for `os_info` since we really do not want to drag Windows.h
  * in to get the proper `typedef`.
  */
-void BLI_windows_exception_capture(void *exception);
-void BLI_windows_exception_show_dialog(const void *exception,
-                                       const char *filepath_crashlog,
+void BLI_windows_exception_print_message(const void *os_info);
+
+/**
+ * Displays a crash report dialog with options to open the crash log, restart the application, and
+ * report a bug. This is based on the `showMessageBox` function in `GHOST_SystemWin32.cc`.
+ */
+void BLI_windows_exception_show_dialog(const char *filepath_crashlog,
                                        const char *filepath_relaunch,
                                        const char *gpu_name,
                                        const char *build_version);
