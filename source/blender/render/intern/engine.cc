@@ -792,7 +792,7 @@ bool RE_bake_engine(Render *re,
 
   /* set render info */
   re->i.cfra = re->scene->r.cfra;
-  BLI_strncpy(re->i.scene_name, re->scene->id.name + 2, sizeof(re->i.scene_name) - 2);
+  STRNCPY(re->i.scene_name, re->scene->id.name + 2);
 
   /* render */
   engine = re->engine;
