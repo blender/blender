@@ -505,9 +505,9 @@ static void draw_waveform_graticule(ARegion *region, SeqQuadsBatch &quads, const
   for (int i = 0; i < 3; i++) {
     const float y = area.ymin + (area.ymax - area.ymin) * lines[i];
     char buf[10];
-    SNPRINTF(buf, "%.1f", lines[i]);
+    const size_t buf_len = SNPRINTF_RLEN(buf, "%.1f", lines[i]);
     quads.add_line(x0, y, x1, y, col_grid);
-    UI_view2d_text_cache_add(&region->v2d, x0 + 8, y + 8, buf, strlen(buf), col_grid);
+    UI_view2d_text_cache_add(&region->v2d, x0 + 8, y + 8, buf, buf_len, col_grid);
   }
   /* Border. */
   uchar col_border[4] = {64, 64, 64, 128};

@@ -197,7 +197,8 @@ struct StringCmp {
 static int cmpstringp(const void *p1, const void *p2)
 {
   /* Case-insensitive comparison. */
-  return BLI_strcasecmp(((StringCmp *)p1)->name, ((StringCmp *)p2)->name);
+  return BLI_strcasecmp(static_cast<const StringCmp *>(p1)->name,
+                        static_cast<const StringCmp *>(p2)->name);
 }
 
 void UI_list_filter_and_sort_items(uiList *ui_list,

@@ -489,10 +489,11 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
 
     BLI_assert(len_text_arr <= ARRAY_SIZE(text_array));
 
-    BLI_string_join_array(text_display, FILE_MAX, text_array, len_text_arr);
+    const size_t text_display_len = BLI_string_join_array(
+        text_display, FILE_MAX, text_array, len_text_arr);
 
     UI_view2d_text_cache_add_rectf(
-        &region->v2d, &rect, text_display, strlen(text_display), text_color);
+        &region->v2d, &rect, text_display, text_display_len, text_color);
   }
   batch.flush_batch();
 
