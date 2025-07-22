@@ -650,6 +650,112 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Test #BLI_snprintf_utf8
+ * \{ */
+
+TEST(string, StrPrintfUTF8_ASCII)
+{
+#define SNPRINTF_UTF8_ASCII(...) \
+  { \
+    const char src[] = {__VA_ARGS__, 0}; \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    SNPRINTF_UTF8(dst, "%s", src); \
+    EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, src); \
+  }
+
+  SNPRINTF_UTF8_ASCII('a');
+  SNPRINTF_UTF8_ASCII('a', 'b', 'c');
+
+#undef SNPRINTF_UTF8_ASCII
+}
+
+TEST(string, StrPrintfUTF8_TerminateEncodingEarly)
+{
+  /* A UTF8 sequence that has a null byte before the sequence ends.
+   * Ensure the UTF8 sequence does not step over the null byte. */
+#define SNPRINTF_UTF8_TERMINATE_EARLY(byte_size, ...) \
+  { \
+    char src[] = {__VA_ARGS__, 0}; \
+    EXPECT_EQ(BLI_str_utf8_size_or_error(src), byte_size); \
+    char dst[sizeof(src)]; \
+    memset(dst, 0xff, sizeof(dst)); \
+    SNPRINTF_UTF8(dst, "%s", src); \
+    EXPECT_EQ(strlen(dst), sizeof(dst) - 1); \
+    EXPECT_STREQ(dst, src); \
+    for (int i = sizeof(dst) - 1; i > 1; i--) { \
+      src[i] = '\0'; \
+      memset(dst, 0xff, sizeof(dst)); \
+      const int dst_copied = SNPRINTF_UTF8_RLEN(dst, "%s", src); \
+      EXPECT_STREQ(dst, src); \
+      EXPECT_EQ(strlen(dst), i); \
+      EXPECT_EQ(dst_copied, i); \
+    } \
+  }
+
+  SNPRINTF_UTF8_TERMINATE_EARLY(6, 252, 1, 1, 1, 1, 1);
+  SNPRINTF_UTF8_TERMINATE_EARLY(5, 248, 1, 1, 1, 1);
+  SNPRINTF_UTF8_TERMINATE_EARLY(4, 240, 1, 1, 1);
+  SNPRINTF_UTF8_TERMINATE_EARLY(3, 224, 1, 1);
+  SNPRINTF_UTF8_TERMINATE_EARLY(2, 192, 1);
+  SNPRINTF_UTF8_TERMINATE_EARLY(1, 96);
+
+#undef STRNCPY_UTF8_TERMINATE_EARLY
+}
+
+TEST(string, StrPrintfUTF8_TruncateEncodingMulti)
+{
+#define SNPRINTF_UTF8_TRUNC_EXPECT(src, dst_expect, dst_maxncpy) \
+  { \
+    char dst[dst_maxncpy + 1]; \
+    dst[dst_maxncpy] = 0xff; \
+    size_t len = BLI_snprintf_utf8_rlen(dst, dst_maxncpy, "%s", src); \
+    EXPECT_EQ(len, strlen(dst)); \
+    EXPECT_STREQ(dst, dst_expect); \
+    EXPECT_EQ(dst[dst_maxncpy], 0xff); \
+  }
+
+  /* Single characters. */
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_1, STR_MB_ALPHA_1, 2);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_1, "", 1);
+
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_2, STR_MB_ALPHA_2, 3);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_2, "", 2);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_2, "", 1);
+
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3, STR_MB_ALPHA_3, 4);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3, "", 3);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3, "", 2);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_3, "", 1);
+
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4, STR_MB_ALPHA_4, 5);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4, "", 4);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4, "", 3);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4, "", 2);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_4, "", 1);
+
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, STR_MB_ALPHA_5, 6);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, "", 5);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, "", 4);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, "", 3);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, "", 2);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_5, "", 1);
+
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, STR_MB_ALPHA_6, 7);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 6);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 5);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 4);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 3);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 2);
+  SNPRINTF_UTF8_TRUNC_EXPECT(STR_MB_ALPHA_6, "", 1);
+
+#undef STRNCPY_UTF8_TRUNC_EXPECT
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Test #BLI_str_utf8_offset_from_index
  * \{ */
 
