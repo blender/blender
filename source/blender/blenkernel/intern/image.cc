@@ -248,14 +248,14 @@ static void image_foreach_cache(ID *id,
 
   auto gputexture_offset = [image](int target, int eye) {
     constexpr size_t base_offset = offsetof(Image, gputexture);
-    GPUTexture **first = &image->gputexture[0][0];
+    blender::gpu::Texture **first = &image->gputexture[0][0];
     const size_t array_offset = sizeof(*first) * (&image->gputexture[target][eye] - first);
     return base_offset + array_offset;
   };
 
   for (int eye = 0; eye < 2; eye++) {
     for (int a = 0; a < TEXTARGET_COUNT; a++) {
-      GPUTexture *texture = image->gputexture[a][eye];
+      blender::gpu::Texture *texture = image->gputexture[a][eye];
       if (texture == nullptr) {
         continue;
       }

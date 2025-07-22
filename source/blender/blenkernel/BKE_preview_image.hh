@@ -16,7 +16,9 @@
 
 struct BlendDataReader;
 struct BlendWriter;
-struct GPUTexture;
+namespace blender::gpu {
+class Texture;
+}
 struct ID;
 struct ImBuf;
 struct PreviewImage;
@@ -32,7 +34,7 @@ struct PreviewImageRuntime {
   int icon_id = 0;
   int16_t tag = 0;
 
-  std::array<GPUTexture *, NUM_ICON_SIZES> gputexture = {};
+  std::array<blender::gpu::Texture *, NUM_ICON_SIZES> gputexture = {};
 
   /** Used to store data to defer the loading of the preview. If empty, loading is not deferred. */
   std::unique_ptr<PreviewDeferredLoadingData> deferred_loading_data;

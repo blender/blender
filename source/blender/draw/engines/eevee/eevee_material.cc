@@ -220,7 +220,7 @@ void MaterialModule::end_sync()
     BKE_image_tag_time(tex->ima);
   }
 
-  /* Upload to the GPU (create GPUTexture). This part still requires a valid GPU context and
+  /* Upload to the GPU (create gpu::Texture). This part still requires a valid GPU context and
    * is not easily parallelized. */
   for (GPUMaterialTexture *tex : texture_loading_queue_) {
     BLI_assert(tex->ima);

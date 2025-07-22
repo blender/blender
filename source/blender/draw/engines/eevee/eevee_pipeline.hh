@@ -292,7 +292,7 @@ class DeferredLayer : DeferredLayerBase {
   /* Used when there is no indirect radiance buffer. */
   Texture dummy_black = {"dummy_black"};
   /* Reference to ray-tracing results. */
-  GPUTexture *radiance_feedback_tx_ = nullptr;
+  gpu::Texture *radiance_feedback_tx_ = nullptr;
 
   /**
    * Tile texture containing several bool per tile indicating presence of feature.
@@ -343,14 +343,14 @@ class DeferredLayer : DeferredLayerBase {
   static bool do_split_direct_indirect_radiance(const Instance &inst);
 
   /* Returns the radiance buffer to feed the next layer. */
-  GPUTexture *render(View &main_view,
-                     View &render_view,
-                     Framebuffer &prepass_fb,
-                     Framebuffer &combined_fb,
-                     Framebuffer &gbuffer_fb,
-                     int2 extent,
-                     RayTraceBuffer &rt_buffer,
-                     GPUTexture *radiance_behind_tx);
+  gpu::Texture *render(View &main_view,
+                       View &render_view,
+                       Framebuffer &prepass_fb,
+                       Framebuffer &combined_fb,
+                       Framebuffer &gbuffer_fb,
+                       int2 extent,
+                       RayTraceBuffer &rt_buffer,
+                       gpu::Texture *radiance_behind_tx);
 };
 
 class DeferredPipeline {
@@ -600,7 +600,7 @@ class PlanarProbePipeline : DeferredLayerBase {
   PassMain::Sub *material_add(::Material *blender_mat, GPUMaterial *gpumat);
 
   void render(View &view,
-              GPUTexture *depth_layer_tx,
+              gpu::Texture *depth_layer_tx,
               Framebuffer &gbuffer,
               Framebuffer &combined_fb,
               int2 extent);

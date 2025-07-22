@@ -628,13 +628,13 @@ void immUniform1i(const char *name, int x)
   GPU_shader_uniform_1i(imm->shader, name, x);
 }
 
-void immBindTexture(const char *name, GPUTexture *tex)
+void immBindTexture(const char *name, blender::gpu::Texture *tex)
 {
   int binding = GPU_shader_get_sampler_binding(imm->shader, name);
   GPU_texture_bind(tex, binding);
 }
 
-void immBindTextureSampler(const char *name, GPUTexture *tex, GPUSamplerState state)
+void immBindTextureSampler(const char *name, blender::gpu::Texture *tex, GPUSamplerState state)
 {
   int binding = GPU_shader_get_sampler_binding(imm->shader, name);
   GPU_texture_bind_ex(tex, state, binding);

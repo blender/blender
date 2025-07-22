@@ -47,9 +47,9 @@ class SphereProbeModule {
   /** Convolve the octahedral map to fill the Mip-map levels. */
   PassSimple convolve_ps_ = {"Probe.Convolve"};
   /** Input mip level for the convolution. */
-  GPUTexture *convolve_input_ = nullptr;
+  gpu::Texture *convolve_input_ = nullptr;
   /** Output mip level for the convolution. */
-  GPUTexture *convolve_output_ = nullptr;
+  gpu::Texture *convolve_output_ = nullptr;
   int convolve_lod_ = 0;
   /* True if we extract spherical harmonic during `remap_ps_`. */
   bool extract_sh_ = false;

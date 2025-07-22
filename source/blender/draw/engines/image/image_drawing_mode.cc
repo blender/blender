@@ -148,7 +148,7 @@ void ScreenSpaceDrawingMode::do_partial_update(
       if (info.need_full_update) {
         continue;
       }
-      GPUTexture *texture = info.texture;
+      gpu::Texture *texture = info.texture;
       const float texture_width = GPU_texture_width(texture);
       const float texture_height = GPU_texture_height(texture);
       /* TODO: early bound check. */

@@ -252,18 +252,18 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
   return data_rect;
 }
 
-GPUTexture *IMB_touch_gpu_texture(const char *name,
-                                  ImBuf *ibuf,
-                                  int w,
-                                  int h,
-                                  int layers,
-                                  bool use_high_bitdepth,
-                                  bool use_grayscale)
+blender::gpu::Texture *IMB_touch_gpu_texture(const char *name,
+                                             ImBuf *ibuf,
+                                             int w,
+                                             int h,
+                                             int layers,
+                                             bool use_high_bitdepth,
+                                             bool use_grayscale)
 {
   eGPUTextureFormat tex_format;
   imb_gpu_get_format(ibuf, use_high_bitdepth, use_grayscale, &tex_format);
 
-  GPUTexture *tex;
+  blender::gpu::Texture *tex;
   if (layers > 0) {
     tex = GPU_texture_create_2d_array(
         name, w, h, layers, 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
@@ -278,7 +278,7 @@ GPUTexture *IMB_touch_gpu_texture(const char *name,
   return tex;
 }
 
-void IMB_update_gpu_texture_sub(GPUTexture *tex,
+void IMB_update_gpu_texture_sub(blender::gpu::Texture *tex,
                                 ImBuf *ibuf,
                                 int x,
                                 int y,
@@ -309,12 +309,12 @@ void IMB_update_gpu_texture_sub(GPUTexture *tex,
   }
 }
 
-GPUTexture *IMB_create_gpu_texture(const char *name,
-                                   ImBuf *ibuf,
-                                   bool use_high_bitdepth,
-                                   bool use_premult)
+blender::gpu::Texture *IMB_create_gpu_texture(const char *name,
+                                              ImBuf *ibuf,
+                                              bool use_high_bitdepth,
+                                              bool use_premult)
 {
-  GPUTexture *tex = nullptr;
+  blender::gpu::Texture *tex = nullptr;
   int size[2] = {GPU_texture_size_with_limit(ibuf->x), GPU_texture_size_with_limit(ibuf->y)};
   bool do_rescale = (ibuf->x != size[0]) || (ibuf->y != size[1]);
 

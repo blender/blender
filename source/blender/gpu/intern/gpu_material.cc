@@ -80,11 +80,11 @@ struct GPUMaterial {
   /* Source material, might be null. */
   Material *source_material = nullptr;
   /* 1D Texture array containing all color bands. */
-  GPUTexture *coba_tex = nullptr;
+  blender::gpu::Texture *coba_tex = nullptr;
   /* Builder for coba_tex. */
   GPUColorBandBuilder *coba_builder = nullptr;
   /* 2D Texture array containing all sky textures. */
-  GPUTexture *sky_tex = nullptr;
+  blender::gpu::Texture *sky_tex = nullptr;
   /* Builder for sky_tex. */
   GPUSkyBuilder *sky_builder = nullptr;
   /* Low level node graph(s). Also contains resources needed by the material. */
@@ -408,7 +408,7 @@ GPUNodeGraph *gpu_material_node_graph(GPUMaterial *material)
 
 /* Resources */
 
-GPUTexture **gpu_material_sky_texture_layer_set(
+blender::gpu::Texture **gpu_material_sky_texture_layer_set(
     GPUMaterial *mat, int width, int height, const float *pixels, float *row)
 {
   /* In order to put all sky textures into one 2D array texture,
@@ -437,10 +437,10 @@ GPUTexture **gpu_material_sky_texture_layer_set(
   return &mat->sky_tex;
 }
 
-GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
-                                               int size,
-                                               const float *pixels,
-                                               float *r_row)
+blender::gpu::Texture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
+                                                          int size,
+                                                          const float *pixels,
+                                                          float *r_row)
 {
   /* In order to put all the color-bands into one 1D array texture,
    * we need them to be the same size. */

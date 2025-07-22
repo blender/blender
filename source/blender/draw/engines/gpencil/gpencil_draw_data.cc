@@ -42,10 +42,10 @@ static MaterialPool *gpencil_material_pool_add(Instance *inst)
   return matpool;
 }
 
-static GPUTexture *gpencil_image_texture_get(::Image *image, bool *r_alpha_premult)
+static gpu::Texture *gpencil_image_texture_get(::Image *image, bool *r_alpha_premult)
 {
   ImageUser iuser = {nullptr};
-  GPUTexture *gpu_tex = nullptr;
+  gpu::Texture *gpu_tex = nullptr;
 
   gpu_tex = BKE_image_get_gpu_texture(image, &iuser);
   *r_alpha_premult = (gpu_tex) ? (image->alpha_mode == IMA_ALPHA_PREMUL) : false;
@@ -302,8 +302,8 @@ MaterialPool *gpencil_material_pool_create(Instance *inst,
 
 void gpencil_material_resources_get(MaterialPool *first_pool,
                                     int mat_id,
-                                    GPUTexture **r_tex_stroke,
-                                    GPUTexture **r_tex_fill,
+                                    gpu::Texture **r_tex_stroke,
+                                    gpu::Texture **r_tex_fill,
                                     GPUUniformBuf **r_ubo_mat)
 {
   MaterialPool *matpool = first_pool;

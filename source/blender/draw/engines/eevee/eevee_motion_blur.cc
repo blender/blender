@@ -186,7 +186,7 @@ void MotionBlurModule::sync()
   }
 }
 
-void MotionBlurModule::render(View &view, GPUTexture **input_tx, GPUTexture **output_tx)
+void MotionBlurModule::render(View &view, gpu::Texture **input_tx, gpu::Texture **output_tx)
 {
   if (!motion_blur_fx_enabled_) {
     return;

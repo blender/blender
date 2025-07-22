@@ -739,7 +739,7 @@ static void sequencer_draw_scopes(const SpaceSeq &space_sequencer, ARegion &regi
     eGPUTextureFormat format = GPU_RGBA8;
     eGPUDataFormat data = GPU_DATA_UBYTE;
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-    GPUTexture *texture = GPU_texture_create_2d(
+    blender::gpu::Texture *texture = GPU_texture_create_2d(
         "seq_display_buf", scope_image->x, scope_image->y, 1, format, usage, nullptr);
     GPU_texture_update(texture, data, scope_image->byte_buffer.data);
     GPU_texture_filter_mode(texture, false);
@@ -1193,7 +1193,7 @@ static void preview_draw_overlay_begin(ARegion &region)
  * The position denotes coordinates of a rectangle used to display the texture.
  * The texture_coord contains UV coordinates of the input texture which are mapped to the corners
  * of the rectangle. */
-static void preview_draw_texture_simple(GPUTexture &texture,
+static void preview_draw_texture_simple(blender::gpu::Texture &texture,
                                         const rctf &position,
                                         const rctf &texture_coord)
 {
@@ -1220,7 +1220,7 @@ static void preview_draw_texture_simple(GPUTexture &texture,
  * The position denotes coordinates of a rectangle used to display the texture.
  * The texture_coord contains UV coordinates of the input texture which are mapped to the corners
  * of the rectangle. */
-static void preview_draw_texture_to_linear(GPUTexture &texture,
+static void preview_draw_texture_to_linear(blender::gpu::Texture &texture,
                                            const char *texture_colorspace_name,
                                            const bool predivide,
                                            const rctf &position,
@@ -1375,19 +1375,19 @@ static int get_reference_frame_offset(const Editing &editing, const RenderData &
   return editing.overlay_frame_ofs;
 }
 
-/* Create GPUTexture from the given image buffer for drawing rendered sequencer frame on the
- * color render frame buffer.
+/* Create blender::gpu::Texture from the given image buffer for drawing rendered sequencer frame on
+ * the color render frame buffer.
  *
  * The texture format and color space matches the CPU-side buffer.
  *
  * If both float and byte buffers are missing nullptr is returned.
  * If channel configuration is incompatible with the texture nullptr is returned. */
-static GPUTexture *create_texture(const ImBuf &ibuf)
+static blender::gpu::Texture *create_texture(const ImBuf &ibuf)
 {
   const eGPUTextureUsage texture_usage = GPU_TEXTURE_USAGE_SHADER_READ |
                                          GPU_TEXTURE_USAGE_ATTACHMENT;
 
-  GPUTexture *texture = nullptr;
+  blender::gpu::Texture *texture = nullptr;
 
   if (ibuf.float_buffer.data) {
     eGPUTextureFormat texture_format;
@@ -1456,9 +1456,9 @@ static void sequencer_preview_draw_color_render(const SpaceSeq &space_sequencer,
                                                 const Editing &editing,
                                                 ARegion &region,
                                                 const ImBuf *current_ibuf,
-                                                GPUTexture *current_texture,
+                                                blender::gpu::Texture *current_texture,
                                                 const ImBuf *reference_ibuf,
-                                                GPUTexture *reference_texture)
+                                                blender::gpu::Texture *reference_texture)
 {
   preview_draw_color_render_begin(region);
 
@@ -1505,8 +1505,8 @@ static void sequencer_preview_draw_overlays(const bContext *C,
                                             const ColorManagedViewSettings &view_settings,
                                             const ColorManagedDisplaySettings &display_settings,
                                             ARegion &region,
-                                            GPUTexture *current_texture,
-                                            GPUTexture *reference_texture,
+                                            blender::gpu::Texture *current_texture,
+                                            blender::gpu::Texture *reference_texture,
                                             const ImBuf *overlay_ibuf,
                                             const int timeline_frame)
 {
@@ -1667,8 +1667,8 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
    *
    * When non-nullptr they are to be drawn (in other words, when they are non-nullptr the
    * corresponding draw_current_frame and draw_reference_frame is true). */
-  GPUTexture *current_texture = nullptr;
-  GPUTexture *reference_texture = nullptr;
+  blender::gpu::Texture *current_texture = nullptr;
+  blender::gpu::Texture *reference_texture = nullptr;
 
   /* Get image buffers before setting up GPU state for drawing.  This is because
    * sequencer_ibuf_get() might not properly restore the state.

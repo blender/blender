@@ -1577,7 +1577,7 @@ void DRW_render_set_time(RenderEngine *engine, Depsgraph *depsgraph, int frame, 
 
 static struct DRWSelectBuffer {
   GPUFrameBuffer *framebuffer_depth_only;
-  GPUTexture *texture_depth;
+  blender::gpu::Texture *texture_depth;
 } g_select_buffer = {nullptr};
 
 static void draw_select_framebuffer_depth_only_setup(const int size[2])
@@ -1820,7 +1820,7 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
   });
 
   /* Setup frame-buffer. */
-  GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
+  blender::gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
   GPUFrameBuffer *depth_fb = nullptr;
   GPU_framebuffer_ensure_config(&depth_fb,
                                 {

@@ -249,7 +249,7 @@ static void wm_software_cursor_draw_bitmap(const float system_scale,
 
   float gl_matrix[4][4];
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
-  GPUTexture *texture = GPU_texture_create_2d(
+  blender::gpu::Texture *texture = GPU_texture_create_2d(
       "software_cursor", bitmap->data_size[0], bitmap->data_size[1], 1, GPU_RGBA8, usage, nullptr);
   GPU_texture_update(texture, GPU_DATA_UBYTE, bitmap->data);
   GPU_texture_filter_mode(texture, false);
@@ -682,7 +682,7 @@ static void wm_draw_region_buffer_free(ARegion *region)
 static void wm_draw_offscreen_texture_parameters(GPUOffScreen *offscreen)
 {
   /* Setup offscreen color texture for drawing. */
-  GPUTexture *texture = GPU_offscreen_color_texture(offscreen);
+  blender::gpu::Texture *texture = GPU_offscreen_color_texture(offscreen);
 
   /* No mipmaps or filtering. */
   GPU_texture_mipmap_mode(texture, false, false);
@@ -822,7 +822,7 @@ static void wm_draw_region_blit(ARegion *region, int view)
   }
 }
 
-GPUTexture *wm_draw_region_texture(ARegion *region, int view)
+blender::gpu::Texture *wm_draw_region_texture(ARegion *region, int view)
 {
   if (!region->runtime->draw_buffer) {
     return nullptr;
@@ -892,7 +892,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   }
 
   /* Setup actual texture. */
-  GPUTexture *texture = wm_draw_region_texture(region, view);
+  blender::gpu::Texture *texture = wm_draw_region_texture(region, view);
 
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
   GPU_shader_bind(shader);
@@ -1247,7 +1247,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
                                                    nullptr);
 
     if (offscreen) {
-      GPUTexture *texture = GPU_offscreen_color_texture(offscreen);
+      blender::gpu::Texture *texture = GPU_offscreen_color_texture(offscreen);
       wm_draw_offscreen_texture_parameters(offscreen);
 
       for (int view = 0; view < 2; view++) {

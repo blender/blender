@@ -14,8 +14,8 @@
 #include "BKE_volume_grid_fwd.hh"
 
 struct GPUMaterial;
-struct GPUTexture;
 namespace blender::gpu {
+class Texture;
 class Batch;
 class VertBuf;
 }  // namespace blender::gpu
@@ -129,7 +129,7 @@ struct DRWVolumeGrid {
   char *name;
 
   /* 3D texture. */
-  GPUTexture *texture;
+  gpu::Texture *texture;
 
   /* Transform between 0..1 texture space and object space. */
   float4x4 texture_to_object;

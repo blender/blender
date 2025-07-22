@@ -811,14 +811,14 @@ PassMain::Sub *DeferredLayer::material_add(::Material *blender_mat, GPUMaterial 
   return material_pass;
 }
 
-GPUTexture *DeferredLayer::render(View &main_view,
-                                  View &render_view,
-                                  Framebuffer &prepass_fb,
-                                  Framebuffer &combined_fb,
-                                  Framebuffer &gbuffer_fb,
-                                  int2 extent,
-                                  RayTraceBuffer &rt_buffer,
-                                  GPUTexture *radiance_behind_tx)
+gpu::Texture *DeferredLayer::render(View &main_view,
+                                    View &render_view,
+                                    Framebuffer &prepass_fb,
+                                    Framebuffer &combined_fb,
+                                    Framebuffer &gbuffer_fb,
+                                    int2 extent,
+                                    RayTraceBuffer &rt_buffer,
+                                    gpu::Texture *radiance_behind_tx)
 {
   if (closure_count_ == 0) {
     return nullptr;
@@ -997,7 +997,7 @@ void DeferredPipeline::render(View &main_view,
                               RayTraceBuffer &rt_buffer_opaque_layer,
                               RayTraceBuffer &rt_buffer_refract_layer)
 {
-  GPUTexture *feedback_tx = nullptr;
+  gpu::Texture *feedback_tx = nullptr;
 
   GPU_debug_group_begin("Deferred.Opaque");
   feedback_tx = opaque_layer_.render(main_view,
@@ -1445,7 +1445,7 @@ PassMain::Sub *PlanarProbePipeline::material_add(::Material *blender_mat, GPUMat
 }
 
 void PlanarProbePipeline::render(View &view,
-                                 GPUTexture *depth_layer_tx,
+                                 gpu::Texture *depth_layer_tx,
                                  Framebuffer &gbuffer_fb,
                                  Framebuffer &combined_fb,
                                  int2 extent)

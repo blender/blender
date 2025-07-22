@@ -442,7 +442,7 @@ static void studiolight_create_equirect_radiance_gputexture(StudioLight *sl)
                                                              GPU_RGBA16F,
                                                              GPU_TEXTURE_USAGE_SHADER_READ,
                                                              ibuf->float_buffer.data);
-    GPUTexture *tex = sl->equirect_radiance_gputexture;
+    blender::gpu::Texture *tex = sl->equirect_radiance_gputexture;
     GPU_texture_filter_mode(tex, true);
     GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
   }

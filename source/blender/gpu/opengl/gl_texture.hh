@@ -115,7 +115,10 @@ class GLTexture : public Texture {
   /** Return true on success. */
   bool init_internal(VertBuf *vbo) override;
   /** Return true on success. */
-  bool init_internal(GPUTexture *src, int mip_offset, int layer_offset, bool use_stencil) override;
+  bool init_internal(gpu::Texture *src,
+                     int mip_offset,
+                     int layer_offset,
+                     bool use_stencil) override;
 
  private:
   bool proxy_check(int mip);

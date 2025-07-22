@@ -241,7 +241,7 @@ void AntiAliasingPass::draw(const DRWContext *draw_ctx,
                             View &view,
                             const SceneState &scene_state,
                             SceneResources &resources,
-                            GPUTexture *depth_in_front_tx)
+                            gpu::Texture *depth_in_front_tx)
 {
   if (resources.depth_in_front_tx.is_valid() && scene_state.sample == 0) {
     overlay_depth_fb_.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_tx));

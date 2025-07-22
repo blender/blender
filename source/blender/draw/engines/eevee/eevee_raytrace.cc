@@ -391,7 +391,7 @@ void RayTraceModule::debug_pass_sync() {}
 void RayTraceModule::debug_draw(View & /*view*/, GPUFrameBuffer * /*view_fb*/) {}
 
 RayTraceResult RayTraceModule::render(RayTraceBuffer &rt_buffer,
-                                      GPUTexture *screen_radiance_back_tx,
+                                      gpu::Texture *screen_radiance_back_tx,
                                       eClosureBits active_closures,
                                       /* TODO(fclem): Maybe wrap these two in some other class. */
                                       View &main_view,

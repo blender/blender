@@ -2353,7 +2353,7 @@ static void validate_object_select_id(Depsgraph *depsgraph,
  * synchronization (which can be very slow). */
 static void view3d_gpu_read_Z_pixels(GPUViewport *viewport, rcti *rect, void *data)
 {
-  GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
+  blender::gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
 
   GPUFrameBuffer *depth_read_fb = nullptr;
   GPU_framebuffer_ensure_config(&depth_read_fb,
@@ -2438,7 +2438,7 @@ static ViewDepths *view3d_depths_create(ARegion *region)
   ViewDepths *d = MEM_callocN<ViewDepths>("ViewDepths");
 
   GPUViewport *viewport = WM_draw_region_get_viewport(region);
-  GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
+  blender::gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
   d->w = GPU_texture_width(depth_tx);
   d->h = GPU_texture_height(depth_tx);
   d->depths = static_cast<float *>(GPU_texture_read(depth_tx, GPU_DATA_FLOAT, 0));
@@ -2842,7 +2842,7 @@ bool ViewportColorSampleSession::init(ARegion *region)
     return false;
   }
 
-  GPUTexture *color_tex = GPU_viewport_color_texture(viewport, 0);
+  blender::gpu::Texture *color_tex = GPU_viewport_color_texture(viewport, 0);
   if (color_tex == nullptr) {
     return false;
   }

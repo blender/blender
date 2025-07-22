@@ -22,7 +22,8 @@
 
 namespace blender::gpu {
 class Batch;
-}
+class Texture;
+}  // namespace blender::gpu
 struct ARegion;
 struct bContext;
 struct Depsgraph;
@@ -31,7 +32,6 @@ struct DefaultTextureList;
 struct DupliObject;
 struct GPUMaterial;
 struct GPUShader;
-struct GPUTexture;
 struct GPUUniformBuf;
 struct Mesh;
 struct Object;

@@ -45,8 +45,8 @@ class DepthOfField {
   class Instance &inst_;
 
   /** Input/Output texture references. */
-  GPUTexture *input_color_tx_ = nullptr;
-  GPUTexture *output_color_tx_ = nullptr;
+  gpu::Texture *input_color_tx_ = nullptr;
+  gpu::Texture *output_color_tx_ = nullptr;
 
   /** Bokeh LUT precompute pass. */
   TextureFromPool bokeh_gather_lut_tx_ = {"dof_bokeh_gather_lut"};
@@ -66,7 +66,7 @@ class DepthOfField {
 
   /** Stabilization (flicker attenuation) of Color and CoC output of the setup pass. */
   TextureFromPool stabilize_output_tx_ = {"dof_taa"};
-  GPUTexture *stabilize_input_ = nullptr;
+  gpu::Texture *stabilize_input_ = nullptr;
   bool32_t stabilize_valid_history_ = false;
   int3 dispatch_stabilize_size_ = int3(-1);
   PassSimple stabilize_ps_ = {"Stabilize"};
@@ -124,7 +124,7 @@ class DepthOfField {
   PassSimple scatter_bg_ps_ = {"ScatterBg"};
 
   /** Recombine the results and also perform a slight out of focus gather. */
-  GPUTexture *resolve_stable_color_tx_ = nullptr;
+  gpu::Texture *resolve_stable_color_tx_ = nullptr;
   int3 dispatch_resolve_size_ = int3(-1);
   PassSimple resolve_ps_ = {"Resolve"};
 
@@ -167,8 +167,8 @@ class DepthOfField {
    * is in input_tx.
    */
   void render(View &view,
-              GPUTexture **input_tx,
-              GPUTexture **output_tx,
+              gpu::Texture **input_tx,
+              gpu::Texture **output_tx,
               DepthOfFieldBuffer &dof_buffer);
 
   bool postfx_enabled() const

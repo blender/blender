@@ -32,9 +32,12 @@ static void test_texture_read()
   GPU_render_begin();
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *rgba32u = GPU_texture_create_2d("rgba32u", 1, 1, 1, GPU_RGBA32UI, usage, nullptr);
-  GPUTexture *rgba16u = GPU_texture_create_2d("rgba16u", 1, 1, 1, GPU_RGBA16UI, usage, nullptr);
-  GPUTexture *rgba32f = GPU_texture_create_2d("rgba32f", 1, 1, 1, GPU_RGBA32F, usage, nullptr);
+  blender::gpu::Texture *rgba32u = GPU_texture_create_2d(
+      "rgba32u", 1, 1, 1, GPU_RGBA32UI, usage, nullptr);
+  blender::gpu::Texture *rgba16u = GPU_texture_create_2d(
+      "rgba16u", 1, 1, 1, GPU_RGBA16UI, usage, nullptr);
+  blender::gpu::Texture *rgba32f = GPU_texture_create_2d(
+      "rgba32f", 1, 1, 1, GPU_RGBA32F, usage, nullptr);
 
   const float4 fcol = {0.0f, 1.3f, -231.0f, 1000.0f};
   const uint4 ucol = {0, 1, 2, 12223};
@@ -74,7 +77,7 @@ static void test_texture_1d()
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ |
                            GPU_TEXTURE_USAGE_SHADER_WRITE;
-  GPUTexture *tex = GPU_texture_create_1d("tex", SIZE, 1, GPU_RGBA32F, usage, nullptr);
+  blender::gpu::Texture *tex = GPU_texture_create_1d("tex", SIZE, 1, GPU_RGBA32F, usage, nullptr);
   float4 clear_color(0.9f, 0.7f, 0.2f, 1.0f);
   GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
 
@@ -103,7 +106,7 @@ static void test_texture_1d_array()
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ |
                            GPU_TEXTURE_USAGE_SHADER_WRITE;
-  GPUTexture *tex = GPU_texture_create_1d_array(
+  blender::gpu::Texture *tex = GPU_texture_create_1d_array(
       "tex", SIZE, LAYERS, 1, GPU_RGBA32F, usage, nullptr);
   float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
   GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
@@ -135,7 +138,7 @@ static void test_texture_1d_array_upload()
   float *data_in = MEM_calloc_arrayN<float>(total_size, __func__);
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *tex = GPU_texture_create_1d_array(
+  blender::gpu::Texture *tex = GPU_texture_create_1d_array(
       "tex", SIZE, LAYERS, 1, GPU_RGBA32F, usage, data_in);
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
@@ -158,7 +161,7 @@ static void test_texture_2d_array()
   GPU_render_begin();
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *tex = GPU_texture_create_2d_array(
+  blender::gpu::Texture *tex = GPU_texture_create_2d_array(
       "tex", SIZE, SIZE, LAYERS, 1, GPU_RGBA32F, usage, nullptr);
   float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
   GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
@@ -187,7 +190,7 @@ static void test_texture_2d_array_upload()
   float *data_in = MEM_calloc_arrayN<float>(total_size, __func__);
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *tex = GPU_texture_create_2d_array(
+  blender::gpu::Texture *tex = GPU_texture_create_2d_array(
       "tex", SIZE, SIZE, LAYERS, 1, GPU_RGBA32F, usage, data_in);
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
@@ -209,7 +212,8 @@ static void test_texture_cube()
   GPU_render_begin();
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *tex = GPU_texture_create_cube("tex", SIZE, 1, GPU_RGBA32F, usage, nullptr);
+  blender::gpu::Texture *tex = GPU_texture_create_cube(
+      "tex", SIZE, 1, GPU_RGBA32F, usage, nullptr);
   float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
   GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
 
@@ -234,7 +238,7 @@ static void test_texture_cube_array()
   GPU_render_begin();
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *tex = GPU_texture_create_cube_array(
+  blender::gpu::Texture *tex = GPU_texture_create_cube_array(
       "tex", SIZE, LAYERS, 1, GPU_RGBA32F, usage, nullptr);
   float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
   GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
@@ -257,7 +261,8 @@ static void test_texture_3d()
   GPU_render_begin();
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *tex = GPU_texture_create_3d("tex", SIZE, SIZE, SIZE, 1, GPU_RGBA32F, usage, nullptr);
+  blender::gpu::Texture *tex = GPU_texture_create_3d(
+      "tex", SIZE, SIZE, SIZE, 1, GPU_RGBA32F, usage, nullptr);
   float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
   GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
 
@@ -281,8 +286,10 @@ static void test_texture_copy()
   GPU_render_begin();
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *src_tx = GPU_texture_create_2d("src", SIZE, SIZE, 1, GPU_RGBA32F, usage, nullptr);
-  GPUTexture *dst_tx = GPU_texture_create_2d("dst", SIZE, SIZE, 1, GPU_RGBA32F, usage, nullptr);
+  blender::gpu::Texture *src_tx = GPU_texture_create_2d(
+      "src", SIZE, SIZE, 1, GPU_RGBA32F, usage, nullptr);
+  blender::gpu::Texture *dst_tx = GPU_texture_create_2d(
+      "dst", SIZE, SIZE, 1, GPU_RGBA32F, usage, nullptr);
 
   const float4 color(0.0, 1.0f, 2.0f, 123.0f);
   const float4 clear_color(0.0f);
@@ -329,7 +336,7 @@ static void texture_create_upload_read()
   static_assert(!std::is_same<DataType, float>());
   static_assert(validate_data_format(DeviceFormat, HostFormat));
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *texture = GPU_texture_create_2d(
+  blender::gpu::Texture *texture = GPU_texture_create_2d(
       "texture", Size, Size, 1, DeviceFormat, usage, nullptr);
   if (texture == nullptr) {
     GTEST_SKIP() << "Platform doesn't support texture format [" << STRINGIFY(DeviceFormat) << "]";
@@ -362,7 +369,7 @@ static void texture_create_upload_read_with_bias(float max_allowed_bias)
 {
   static_assert(validate_data_format(DeviceFormat, HostFormat));
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *texture = GPU_texture_create_2d(
+  blender::gpu::Texture *texture = GPU_texture_create_2d(
       "texture", Size, Size, 1, DeviceFormat, usage, nullptr);
   if (texture == nullptr) {
     GTEST_SKIP() << "Platform doesn't support texture format [" << STRINGIFY(DeviceFormat) << "]";
@@ -394,7 +401,7 @@ static void texture_create_upload_read_pixel()
   using DataType = uint32_t;
   static_assert(validate_data_format(DeviceFormat, HostFormat));
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *texture = GPU_texture_create_2d(
+  blender::gpu::Texture *texture = GPU_texture_create_2d(
       "texture", Size, Size, 1, DeviceFormat, usage, nullptr);
   ASSERT_NE(texture, nullptr);
 
@@ -1007,7 +1014,7 @@ static void test_texture_update_sub_no_unpack_row_length()
   const int2 sub_size(256);
   const int2 sub_offset(256);
 
-  GPUTexture *texture = GPU_texture_create_2d(
+  blender::gpu::Texture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 2, GPU_RGBA32F, GPU_TEXTURE_USAGE_GENERAL, nullptr);
   const float4 clear_color(0.0f, 0.0f, 0.0f, 0.0f);
   GPU_texture_clear(texture, GPU_DATA_FLOAT, &clear_color);
@@ -1061,7 +1068,7 @@ static void test_texture_update_sub_unpack_row_length()
   const int2 sub_size(256);
   const int2 sub_offset(256);
 
-  GPUTexture *texture = GPU_texture_create_2d(
+  blender::gpu::Texture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 2, GPU_RGBA32F, GPU_TEXTURE_USAGE_GENERAL, nullptr);
   const float4 clear_color(0.0f, 0.0f, 0.0f, 0.0f);
   GPU_texture_clear(texture, GPU_DATA_FLOAT, &clear_color);
@@ -1134,8 +1141,8 @@ static void test_texture_pool()
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
 
   auto test_acquire =
-      [&](int2 size, eGPUTextureFormat format, eGPUTextureUsage usage) -> GPUTexture * {
-    GPUTexture *tex = pool.acquire_texture(size.x, size.y, format, usage);
+      [&](int2 size, eGPUTextureFormat format, eGPUTextureUsage usage) -> blender::gpu::Texture * {
+    blender::gpu::Texture *tex = pool.acquire_texture(size.x, size.y, format, usage);
     EXPECT_EQ(GPU_texture_format(tex), format);
     EXPECT_EQ(GPU_texture_width(tex), size.x);
     EXPECT_EQ(GPU_texture_height(tex), size.y);
@@ -1143,10 +1150,10 @@ static void test_texture_pool()
   };
 
   /* Tests multiple acquire. */
-  GPUTexture *tex1 = test_acquire(size1, format1, usage);
-  GPUTexture *tex2 = test_acquire(size2, format1, usage);
-  GPUTexture *tex3 = test_acquire(size3, format2, usage);
-  GPUTexture *tex4 = test_acquire(size3, format3, usage);
+  blender::gpu::Texture *tex1 = test_acquire(size1, format1, usage);
+  blender::gpu::Texture *tex2 = test_acquire(size2, format1, usage);
+  blender::gpu::Texture *tex3 = test_acquire(size3, format2, usage);
+  blender::gpu::Texture *tex4 = test_acquire(size3, format3, usage);
 
   pool.release_texture(tex1);
 

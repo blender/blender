@@ -175,8 +175,8 @@ class VolumeModule {
   /* Final occupancy after resolve. Used by object volume material evaluation. */
   struct {
     /** References to the textures in the module. */
-    GPUTexture *scattering_tx_ = nullptr;
-    GPUTexture *transmittance_tx_ = nullptr;
+    gpu::Texture *scattering_tx_ = nullptr;
+    gpu::Texture *transmittance_tx_ = nullptr;
 
     template<typename PassType> void bind_resources(PassType &pass)
     {
@@ -188,12 +188,12 @@ class VolumeModule {
   /* Volume property buffers that are populated by objects or world volume shaders. */
   struct {
     /** References to the textures in the module. */
-    GPUTexture *scattering_tx_ = nullptr;
-    GPUTexture *extinction_tx_ = nullptr;
-    GPUTexture *emission_tx_ = nullptr;
-    GPUTexture *phase_tx_ = nullptr;
-    GPUTexture *phase_weight_tx_ = nullptr;
-    GPUTexture *occupancy_tx_ = nullptr;
+    gpu::Texture *scattering_tx_ = nullptr;
+    gpu::Texture *extinction_tx_ = nullptr;
+    gpu::Texture *emission_tx_ = nullptr;
+    gpu::Texture *phase_tx_ = nullptr;
+    gpu::Texture *phase_weight_tx_ = nullptr;
+    gpu::Texture *occupancy_tx_ = nullptr;
 
     template<typename PassType> void bind_resources(PassType &pass)
     {
@@ -209,9 +209,9 @@ class VolumeModule {
   /* Textures used for object volume occupancy computation. */
   struct {
     /** References to the textures in the module. */
-    GPUTexture *occupancy_tx_ = nullptr;
-    GPUTexture *hit_depth_tx_ = nullptr;
-    GPUTexture *hit_count_tx_ = nullptr;
+    gpu::Texture *occupancy_tx_ = nullptr;
+    gpu::Texture *hit_depth_tx_ = nullptr;
+    gpu::Texture *hit_count_tx_ = nullptr;
 
     template<typename PassType> void bind_resources(PassType &pass)
     {

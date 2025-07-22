@@ -87,7 +87,7 @@
  */
 
 struct TexSnapshot {
-  GPUTexture *overlay_texture;
+  blender::gpu::Texture *overlay_texture;
   int winx;
   int winy;
   int old_size;
@@ -96,7 +96,7 @@ struct TexSnapshot {
 };
 
 struct CursorSnapshot {
-  GPUTexture *overlay_texture;
+  blender::gpu::Texture *overlay_texture;
   int size;
   int zoom;
   int curve_preset;
@@ -693,8 +693,8 @@ static bool paint_draw_tex_overlay(Paint *paint,
     mul_v4_fl(final_color, overlay_alpha * 0.01f);
     immUniformColor4fv(final_color);
 
-    GPUTexture *texture = (primary) ? primary_snap.overlay_texture :
-                                      secondary_snap.overlay_texture;
+    blender::gpu::Texture *texture = (primary) ? primary_snap.overlay_texture :
+                                                 secondary_snap.overlay_texture;
 
     GPUSamplerExtendMode extend_mode = (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) ?
                                            GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER :

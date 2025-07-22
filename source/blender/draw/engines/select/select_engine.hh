@@ -29,7 +29,7 @@ struct Engine : public DrawEngine::Pointer {
 
 struct SELECTID_Context *DRW_select_engine_context_get();
 struct GPUFrameBuffer *DRW_engine_select_framebuffer_get();
-struct GPUTexture *DRW_engine_select_texture_get();
+blender::gpu::Texture *DRW_engine_select_texture_get();
 
 /* select_instance.cc */
 

@@ -22,7 +22,9 @@ struct GPUMaterial;
 struct GPUNodeLink;
 struct GPUNodeStack;
 struct GPUPass;
-struct GPUTexture;
+namespace blender::gpu {
+class Texture;
+}
 struct GPUUniformBuf;
 struct Image;
 struct ImageUser;
@@ -232,8 +234,8 @@ struct GPUMaterialTexture {
   Image *ima;
   ImageUser iuser;
   bool iuser_available;
-  GPUTexture **colorband;
-  GPUTexture **sky;
+  blender::gpu::Texture **colorband;
+  blender::gpu::Texture **sky;
   char sampler_name[32];       /* Name of sampler in GLSL. */
   char tiled_mapping_name[32]; /* Name of tile mapping sampler in GLSL. */
   int users;

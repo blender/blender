@@ -221,7 +221,7 @@ void GPURenderTaskDelegate::set_viewport(pxr::GfVec4d const &viewport)
 void GPURenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
 {
   eGPUTextureFormat format;
-  GPUTexture **tex;
+  blender::gpu::Texture **tex;
   if (aov_key == pxr::HdAovTokens->color) {
     format = GPU_RGBA32F;
     tex = &tex_color_;
@@ -252,7 +252,7 @@ void GPURenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
 
 void GPURenderTaskDelegate::read_aov(pxr::TfToken const &aov_key, void *data)
 {
-  GPUTexture *tex = nullptr;
+  blender::gpu::Texture *tex = nullptr;
   int c;
   if (aov_key == pxr::HdAovTokens->color) {
     tex = tex_color_;
@@ -306,7 +306,7 @@ void GPURenderTaskDelegate::unbind()
   CLOG_DEBUG(LOG_HYDRA_RENDER, "unbind");
 }
 
-GPUTexture *GPURenderTaskDelegate::get_aov_texture(pxr::TfToken const &aov_key)
+blender::gpu::Texture *GPURenderTaskDelegate::get_aov_texture(pxr::TfToken const &aov_key)
 {
   if (aov_key == pxr::HdAovTokens->color) {
     return tex_color_;

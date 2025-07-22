@@ -356,11 +356,11 @@ PyDoc_STRVAR(
     pygpu_offscreen_texture_color_doc,
     "The color texture attached.\n"
     "\n"
-    ":type: :class:`gpu.types.GPUTexture`");
+    ":type: :class:`gpu.types.blender::gpu::Texture`");
 static PyObject *pygpu_offscreen_texture_color_get(BPyGPUOffScreen *self, void * /*type*/)
 {
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
-  GPUTexture *texture = GPU_offscreen_color_texture(self->ofs);
+  blender::gpu::Texture *texture = GPU_offscreen_color_texture(self->ofs);
   return BPyGPUTexture_CreatePyObject(texture, true);
 }
 

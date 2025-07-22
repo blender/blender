@@ -63,7 +63,7 @@ class Instance : public DrawEngine {
 
   void draw(blender::draw::Manager &manager) final
   {
-    GPUTexture *texture_u32 = DRW_engine_select_texture_get();
+    gpu::Texture *texture_u32 = DRW_engine_select_texture_get();
     if (texture_u32 == nullptr) {
       return;
     }

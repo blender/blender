@@ -938,7 +938,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   MEM_SAFE_FREE(cache->col_layer_names);
 
   cache->proc_col_buf = MEM_calloc_arrayN<gpu::VertBuf *>(cache->num_col_layers, "proc_col_buf");
-  cache->col_tex = MEM_calloc_arrayN<GPUTexture *>(cache->num_col_layers, "col_tex");
+  cache->col_tex = MEM_calloc_arrayN<gpu::Texture *>(cache->num_col_layers, "col_tex");
   cache->col_layer_names = MEM_calloc_arrayN<char[4][14]>(cache->num_col_layers,
                                                           "col_layer_names");
 

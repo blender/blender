@@ -43,7 +43,7 @@ class VKContext : public Context, NonCopyable {
  private:
   VkExtent2D vk_extent_ = {};
   VkSurfaceFormatKHR swap_chain_format_ = {};
-  GPUTexture *surface_texture_ = nullptr;
+  gpu::Texture *surface_texture_ = nullptr;
   void *ghost_context_;
 
   /* Reusable data. Stored inside context to limit reallocations. */

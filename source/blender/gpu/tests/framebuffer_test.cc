@@ -24,7 +24,7 @@ static void test_framebuffer_clear_color_single_attachment()
 {
   const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *texture = GPU_texture_create_2d(
+  blender::gpu::Texture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_RGBA32F, usage, nullptr);
 
   GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -51,9 +51,9 @@ static void test_framebuffer_clear_color_multiple_attachments()
 {
   const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *texture1 = GPU_texture_create_2d(
+  blender::gpu::Texture *texture1 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_RGBA32F, usage, nullptr);
-  GPUTexture *texture2 = GPU_texture_create_2d(
+  blender::gpu::Texture *texture2 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_RGBA32UI, usage, nullptr);
 
   GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -92,9 +92,9 @@ static void test_framebuffer_clear_multiple_color_multiple_attachments()
 {
   const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *texture1 = GPU_texture_create_2d(
+  blender::gpu::Texture *texture1 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_RGBA32F, usage, nullptr);
-  GPUTexture *texture2 = GPU_texture_create_2d(
+  blender::gpu::Texture *texture2 = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_RGBA32F, usage, nullptr);
 
   GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -130,7 +130,7 @@ static void test_framebuffer_clear_depth()
 {
   const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *texture = GPU_texture_create_2d(
+  blender::gpu::Texture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_DEPTH_COMPONENT32F, usage, nullptr);
 
   GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -158,7 +158,7 @@ static void test_framebuffer_scissor_test()
 {
   const int2 size(2, 2);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *texture = GPU_texture_create_2d(
+  blender::gpu::Texture *texture = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_RGBA32F, usage, nullptr);
 
   GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -201,7 +201,8 @@ static void test_framebuffer_cube()
   GPU_render_begin();
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *tex = GPU_texture_create_cube("tex", SIZE, 1, GPU_RGBA32F, usage, nullptr);
+  blender::gpu::Texture *tex = GPU_texture_create_cube(
+      "tex", SIZE, 1, GPU_RGBA32F, usage, nullptr);
 
   const float4 clear_colors[6] = {
       {0.5f, 0.0f, 0.0f, 1.0f},
@@ -259,7 +260,7 @@ static void test_framebuffer_multi_viewport()
   const int2 size(4, 4);
   const int layers = 256;
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *texture = GPU_texture_create_2d_array(
+  blender::gpu::Texture *texture = GPU_texture_create_2d_array(
       __func__, UNPACK2(size), layers, 1, GPU_RG32I, usage, nullptr);
 
   GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);
@@ -336,9 +337,9 @@ static void test_framebuffer_subpass_input()
 
   const int2 size(1, 1);
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUTexture *texture_a = GPU_texture_create_2d(
+  blender::gpu::Texture *texture_a = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_R32I, usage, nullptr);
-  GPUTexture *texture_b = GPU_texture_create_2d(
+  blender::gpu::Texture *texture_b = GPU_texture_create_2d(
       __func__, UNPACK2(size), 1, GPU_R32I, usage, nullptr);
 
   GPUFrameBuffer *framebuffer = GPU_framebuffer_create(__func__);

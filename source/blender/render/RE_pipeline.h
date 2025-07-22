@@ -12,7 +12,9 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
-struct GPUTexture;
+namespace blender::gpu {
+class Texture;
+}
 struct ImBuf;
 struct Image;
 struct ImageFormatData;
@@ -478,7 +480,8 @@ void RE_pass_set_buffer_data(struct RenderPass *pass, float *data);
 /**
  * Ensure a GPU texture corresponding to the render buffer data exists.
  */
-struct GPUTexture *RE_pass_ensure_gpu_texture_cache(struct Render *re, struct RenderPass *rpass);
+blender::gpu::Texture *RE_pass_ensure_gpu_texture_cache(struct Render *re,
+                                                        struct RenderPass *rpass);
 
 /* shaded view or baking options */
 #define RE_BAKE_NORMALS 0

@@ -92,7 +92,7 @@ static void create_color_ramp(const ColorBand *coba, float *data)
   }
 }
 
-static GPUTexture *create_transfer_function(int type, const ColorBand *coba)
+static blender::gpu::Texture *create_transfer_function(int type, const ColorBand *coba)
 {
   float *data = (float *)MEM_mallocN(sizeof(float[4]) * TFUNC_WIDTH, __func__);
 
@@ -105,7 +105,7 @@ static GPUTexture *create_transfer_function(int type, const ColorBand *coba)
       break;
   }
 
-  GPUTexture *tex = GPU_texture_create_1d(
+  blender::gpu::Texture *tex = GPU_texture_create_1d(
       "transf_func", TFUNC_WIDTH, 1, GPU_SRGB8_A8, GPU_TEXTURE_USAGE_SHADER_READ, data);
 
   MEM_freeN(data);
@@ -113,7 +113,7 @@ static GPUTexture *create_transfer_function(int type, const ColorBand *coba)
   return tex;
 }
 
-static void swizzle_texture_channel_single(GPUTexture *tex)
+static void swizzle_texture_channel_single(blender::gpu::Texture *tex)
 {
   /* Swizzle texture channels so that we get useful RGBA values when sampling
    * a texture with fewer channels, e.g. when using density as color. */
@@ -165,12 +165,12 @@ static float *rescale_3d(const int dim[3],
 }
 
 /* Will resize input to fit GL system limits. */
-static GPUTexture *create_volume_texture(const int dim[3],
-                                         eGPUTextureFormat texture_format,
-                                         eGPUDataFormat data_format,
-                                         const void *data)
+static blender::gpu::Texture *create_volume_texture(const int dim[3],
+                                                    eGPUTextureFormat texture_format,
+                                                    eGPUDataFormat data_format,
+                                                    const void *data)
 {
-  GPUTexture *tex = nullptr;
+  blender::gpu::Texture *tex = nullptr;
   blender::int3 final_dim = {UNPACK3(dim)};
 
   if (data == nullptr) {
@@ -223,7 +223,7 @@ static GPUTexture *create_volume_texture(const int dim[3],
   return tex;
 }
 
-static GPUTexture *create_field_texture(FluidDomainSettings *fds, bool single_precision)
+static blender::gpu::Texture *create_field_texture(FluidDomainSettings *fds, bool single_precision)
 {
   void *field = nullptr;
   eGPUDataFormat data_format = GPU_DATA_FLOAT;
@@ -309,12 +309,12 @@ static GPUTexture *create_field_texture(FluidDomainSettings *fds, bool single_pr
     return nullptr;
   }
 
-  GPUTexture *tex = create_volume_texture(fds->res, texture_format, data_format, field);
+  blender::gpu::Texture *tex = create_volume_texture(fds->res, texture_format, data_format, field);
   swizzle_texture_channel_single(tex);
   return tex;
 }
 
-static GPUTexture *create_density_texture(FluidDomainSettings *fds, int highres)
+static blender::gpu::Texture *create_density_texture(FluidDomainSettings *fds, int highres)
 {
   int *dim = (highres) ? fds->res_noise : fds->res;
 
@@ -330,12 +330,12 @@ static GPUTexture *create_density_texture(FluidDomainSettings *fds, int highres)
     return nullptr;
   }
 
-  GPUTexture *tex = create_volume_texture(dim, GPU_R8, GPU_DATA_FLOAT, data);
+  blender::gpu::Texture *tex = create_volume_texture(dim, GPU_R8, GPU_DATA_FLOAT, data);
   swizzle_texture_channel_single(tex);
   return tex;
 }
 
-static GPUTexture *create_color_texture(FluidDomainSettings *fds, int highres)
+static blender::gpu::Texture *create_color_texture(FluidDomainSettings *fds, int highres)
 {
   const bool has_color = (highres) ? manta_noise_has_colors(fds->fluid) :
                                      manta_smoke_has_colors(fds->fluid);
@@ -359,14 +359,14 @@ static GPUTexture *create_color_texture(FluidDomainSettings *fds, int highres)
     manta_smoke_get_rgba(fds->fluid, data, 0);
   }
 
-  GPUTexture *tex = create_volume_texture(dim, GPU_RGBA8, GPU_DATA_FLOAT, data);
+  blender::gpu::Texture *tex = create_volume_texture(dim, GPU_RGBA8, GPU_DATA_FLOAT, data);
 
   MEM_freeN(data);
 
   return tex;
 }
 
-static GPUTexture *create_flame_texture(FluidDomainSettings *fds, int highres)
+static blender::gpu::Texture *create_flame_texture(FluidDomainSettings *fds, int highres)
 {
   float *source = nullptr;
   const bool has_fuel = (highres) ? manta_noise_has_fuel(fds->fluid) :
@@ -384,7 +384,7 @@ static GPUTexture *create_flame_texture(FluidDomainSettings *fds, int highres)
     source = manta_smoke_get_flame(fds->fluid);
   }
 
-  GPUTexture *tex = create_volume_texture(dim, GPU_R8, GPU_DATA_FLOAT, source);
+  blender::gpu::Texture *tex = create_volume_texture(dim, GPU_R8, GPU_DATA_FLOAT, source);
   swizzle_texture_channel_single(tex);
   return tex;
 }
@@ -565,7 +565,7 @@ void DRW_smoke_exit(DRWData *drw_data)
    * modifier is not used for display. We should share them for
    * all viewport in a redraw at least. */
   LISTBASE_FOREACH (LinkData *, link, &drw_data->smoke_textures) {
-    GPU_TEXTURE_FREE_SAFE(*(GPUTexture **)link->data);
+    GPU_TEXTURE_FREE_SAFE(*(blender::gpu::Texture **)link->data);
   }
   BLI_freelistN(&drw_data->smoke_textures);
 }

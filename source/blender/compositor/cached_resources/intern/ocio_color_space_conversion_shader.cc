@@ -230,7 +230,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
      * resource names, instead, use the name that is stored in resource_names_. */
     const std::string &resource_name = *resource_names_[resource_names_.size() - 1];
 
-    GPUTexture *texture;
+    blender::gpu::Texture *texture;
     const eGPUTextureFormat base_format = (channel == TEXTURE_RGB_CHANNEL) ? GPU_RGB32F : GPU_R32F;
     const eGPUTextureFormat texture_format = Result::gpu_texture_format(base_format, precision_);
     /* A height of 1 indicates a 1D texture according to the OCIO API. */
@@ -270,14 +270,15 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     const std::string &resource_name = *resource_names_[resource_names_.size() - 1];
     shader_create_info_.sampler(textures_.size() + 1, ImageType::Float3D, resource_name);
 
-    GPUTexture *texture = GPU_texture_create_3d(texture_name,
-                                                size,
-                                                size,
-                                                size,
-                                                1,
-                                                Result::gpu_texture_format(GPU_RGB32F, precision_),
-                                                GPU_TEXTURE_USAGE_SHADER_READ,
-                                                values);
+    blender::gpu::Texture *texture = GPU_texture_create_3d(
+        texture_name,
+        size,
+        size,
+        size,
+        1,
+        Result::gpu_texture_format(GPU_RGB32F, precision_),
+        GPU_TEXTURE_USAGE_SHADER_READ,
+        values);
     GPU_texture_filter_mode(texture, interpolation != OCIO::INTERP_NEAREST);
 
     textures_.add(sampler_name, texture);
@@ -370,7 +371,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
       GPU_uniformbuf_free(buffer);
     }
 
-    for (GPUTexture *texture : textures_.values()) {
+    for (blender::gpu::Texture *texture : textures_.values()) {
       GPU_texture_unbind(texture);
     }
 
@@ -389,7 +390,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   ~GPUShaderCreator() override
   {
-    for (GPUTexture *texture : textures_.values()) {
+    for (blender::gpu::Texture *texture : textures_.values()) {
       GPU_texture_free(texture);
     }
 
@@ -423,7 +424,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   /* A map that associates the name of a sampler with its corresponding texture. Initialized in the
    * addTexture() and add3DTexture() methods. */
-  Map<std::string, GPUTexture *> textures_;
+  Map<std::string, blender::gpu::Texture *> textures_;
 
   /* A vector set that stores the names of all the resources used by the shader. This is used to:
    *   1. Check for name collisions when adding new resources.

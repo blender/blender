@@ -91,7 +91,7 @@ class Context : public compositor::Context {
   /* Cached GPU and CPU passes that the compositor took ownership of. Those had their reference
    * count incremented when accessed and need to be freed/have their reference count decremented
    * when destroying the context. */
-  Vector<GPUTexture *> cached_gpu_passes_;
+  Vector<blender::gpu::Texture *> cached_gpu_passes_;
   Vector<ImBuf *> cached_cpu_passes_;
 
  public:
@@ -107,7 +107,7 @@ class Context : public compositor::Context {
   {
     output_result_.release();
     viewer_output_result_.release();
-    for (GPUTexture *pass : cached_gpu_passes_) {
+    for (blender::gpu::Texture *pass : cached_gpu_passes_) {
       GPU_texture_free(pass);
     }
     for (ImBuf *pass : cached_cpu_passes_) {
@@ -277,7 +277,7 @@ class Context : public compositor::Context {
         *this, this->result_type_from_pass(render_pass), compositor::ResultPrecision::Full);
 
     if (this->use_gpu()) {
-      GPUTexture *pass_texture = RE_pass_ensure_gpu_texture_cache(render, render_pass);
+      blender::gpu::Texture *pass_texture = RE_pass_ensure_gpu_texture_cache(render, render_pass);
       /* Don't assume render will keep pass data stored, add our own reference. */
       GPU_texture_ref(pass_texture);
       pass.wrap_external(pass_texture);

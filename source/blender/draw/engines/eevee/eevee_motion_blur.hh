@@ -92,8 +92,8 @@ class MotionBlurModule {
   /** Velocity tiles used to guide and speedup the gather pass. */
   TextureFromPool tiles_tx_;
 
-  GPUTexture *input_color_tx_ = nullptr;
-  GPUTexture *output_color_tx_ = nullptr;
+  gpu::Texture *input_color_tx_ = nullptr;
+  gpu::Texture *output_color_tx_ = nullptr;
 
   PassSimple motion_blur_ps_ = {"MotionBlur"};
 
@@ -120,7 +120,7 @@ class MotionBlurModule {
     return motion_blur_fx_enabled_;
   }
 
-  void render(View &view, GPUTexture **input_tx, GPUTexture **output_tx);
+  void render(View &view, gpu::Texture **input_tx, gpu::Texture **output_tx);
 
  private:
   float shutter_time_to_scene_time(float time);

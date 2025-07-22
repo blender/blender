@@ -10,6 +10,15 @@
 
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+namespace blender::gpu {
+class Texture;
+}  // namespace blender::gpu
+using GPUTexture = blender::gpu::Texture;
+#else
+typedef struct GPUTexture GPUTexture;
+#endif
+
 /**
  * #FluidDomainSettings.flags
  * Domain flags.
@@ -473,19 +482,19 @@ typedef struct FluidDomainSettings {
   struct Collection *fluid_group;
   struct Collection *force_group;    /* UNUSED */
   struct Collection *effector_group; /* Effector objects group. */
-  struct GPUTexture *tex_density;
-  struct GPUTexture *tex_color;
-  struct GPUTexture *tex_wt;
-  struct GPUTexture *tex_shadow;
-  struct GPUTexture *tex_flame;
-  struct GPUTexture *tex_flame_coba;
-  struct GPUTexture *tex_coba;
-  struct GPUTexture *tex_field;
-  struct GPUTexture *tex_velocity_x;
-  struct GPUTexture *tex_velocity_y;
-  struct GPUTexture *tex_velocity_z;
-  struct GPUTexture *tex_flags;
-  struct GPUTexture *tex_range_field;
+  GPUTexture *tex_density;
+  GPUTexture *tex_color;
+  GPUTexture *tex_wt;
+  GPUTexture *tex_shadow;
+  GPUTexture *tex_flame;
+  GPUTexture *tex_flame_coba;
+  GPUTexture *tex_coba;
+  GPUTexture *tex_field;
+  GPUTexture *tex_velocity_x;
+  GPUTexture *tex_velocity_y;
+  GPUTexture *tex_velocity_z;
+  GPUTexture *tex_flags;
+  GPUTexture *tex_range_field;
   struct Object *guide_parent;
   struct EffectorWeights *effector_weights;
 

@@ -53,7 +53,7 @@ enum class ResultPrecision : uint8_t {
 
 /* The type of storage used to hold the result data. */
 enum class ResultStorageType : uint8_t {
-  /* Stored as a GPUTexture on the GPU. */
+  /* Stored as a blender::gpu::Texture on the GPU. */
   GPU,
   /* Stored as a buffer on the CPU and wrapped in a GMutableSpan. */
   CPU,
@@ -112,7 +112,7 @@ class Result {
    * value of which will be identical to that of the value member. See class description for more
    * information. */
   union {
-    GPUTexture *gpu_texture_ = nullptr;
+    blender::gpu::Texture *gpu_texture_ = nullptr;
     GMutableSpan cpu_data_;
   };
   /* The number of users that currently needs this result. Operations initializes this by calling
@@ -195,7 +195,7 @@ class Result {
   static const char *type_name(const ResultType type);
 
   /* Implicit conversion to the internal GPU texture. */
-  operator GPUTexture *() const;
+  operator blender::gpu::Texture *() const;
 
   /* Returns the CPP type of the result. */
   const CPPType &get_cpp_type() const;
@@ -271,7 +271,7 @@ class Result {
    * size as the texture, and the texture will be set to the given texture. See the is_external_
    * member for more information. The given texture should have the same format as the result and
    * is assumed to have a lifetime that covers the evaluation of the compositor. */
-  void wrap_external(GPUTexture *texture);
+  void wrap_external(blender::gpu::Texture *texture);
 
   /* Identical to GPU variant of wrap_external but wraps a CPU buffer instead. */
   void wrap_external(void *data, int2 size);
@@ -344,7 +344,7 @@ class Result {
   /* Computes the number of channels of the result based on its type. */
   int64_t channels_count() const;
 
-  GPUTexture *gpu_texture() const;
+  blender::gpu::Texture *gpu_texture() const;
 
   GSpan cpu_data() const;
   GMutableSpan cpu_data();
@@ -502,7 +502,7 @@ BLI_INLINE_METHOD int64_t Result::channels_count() const
   return 4;
 }
 
-BLI_INLINE_METHOD GPUTexture *Result::gpu_texture() const
+BLI_INLINE_METHOD blender::gpu::Texture *Result::gpu_texture() const
 {
   BLI_assert(storage_type_ == ResultStorageType::GPU);
   return gpu_texture_;

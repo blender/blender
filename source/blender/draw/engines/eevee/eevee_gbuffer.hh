@@ -142,9 +142,9 @@ struct GBuffer {
    * These will point to either the dummy textures bellow or to a layer range view of the above
    * textures. In the later case, these layers are written with imageStore instead of being part
    * of the #Framebuffer. */
-  GPUTexture *closure_opt_layers_ = nullptr;
-  GPUTexture *normal_opt_layers_ = nullptr;
-  GPUTexture *header_opt_layers_ = nullptr;
+  gpu::Texture *closure_opt_layers_ = nullptr;
+  gpu::Texture *normal_opt_layers_ = nullptr;
+  gpu::Texture *header_opt_layers_ = nullptr;
 
   /* Textures used to fulfill the GBuffer optional layers binding when textures do not have enough
    * layers for the optional layers image views. The shader are then expected to never write to

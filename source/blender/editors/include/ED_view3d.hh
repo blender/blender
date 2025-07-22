@@ -963,7 +963,7 @@ bool ED_view3d_depth_read_cached_seg(const ViewDepths *vd,
  * Returns viewport color in linear space, matching #ED_space_node_color_sample().
  */
 class ViewportColorSampleSession {
-  GPUTexture *tex = nullptr;
+  blender::gpu::Texture *tex = nullptr;
   blender::ushort4 *data = nullptr;
   int tex_w, tex_h;
   rcti valid_rect;

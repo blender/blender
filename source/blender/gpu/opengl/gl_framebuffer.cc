@@ -165,7 +165,7 @@ void GLFrameBuffer::update_attachments()
       glFramebufferTexture(GL_FRAMEBUFFER, gl_attachment, 0, 0);
       continue;
     }
-    GLuint gl_tex = static_cast<GLTexture *>(unwrap(attach.tex))->tex_id_;
+    GLuint gl_tex = static_cast<GLTexture *>(attach.tex)->tex_id_;
     if (attach.layer > -1 && GPU_texture_is_cube(attach.tex) && !GPU_texture_is_array(attach.tex))
     {
       /* Could be avoided if ARB_direct_state_access is required. In this case
@@ -195,7 +195,7 @@ void GLFrameBuffer::update_attachments()
       GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0 + i;
       GPUAttachment &attach = attachments_[type];
       if (attach.tex != nullptr) {
-        gl_tex = static_cast<GLTexture *>(unwrap(attach.tex))->tex_id_;
+        gl_tex = static_cast<GLTexture *>(attach.tex)->tex_id_;
       }
       else if (gl_tex != 0) {
         GLenum gl_attachment = to_gl(type);
@@ -253,7 +253,7 @@ void GLFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attac
     GLenum attachments[GPU_FB_MAX_COLOR_ATTACHMENT] = {GL_NONE};
     for (int i : color_attachment_states.index_range()) {
       GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0 + i;
-      GPUTexture *attach_tex = this->attachments_[type].tex;
+      gpu::Texture *attach_tex = this->attachments_[type].tex;
       if (color_attachment_states[i] == GPU_ATTACHMENT_READ) {
         tmp_detached_[type] = this->attachments_[type]; /* Bypass feedback loop check. */
         GPU_texture_bind_ex(attach_tex, GPUSamplerState::default_sampler(), i);
@@ -287,7 +287,7 @@ void GLFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attac
       }
       else if (color_attachment_states[i] == GPU_ATTACHMENT_READ) {
         tmp_detached_[type] = this->attachments_[type];
-        unwrap(tmp_detached_[type].tex)->detach_from(this);
+        tmp_detached_[type].tex->detach_from(this);
         GPU_texture_bind_ex(tmp_detached_[type].tex, GPUSamplerState::default_sampler(), i);
       }
     }

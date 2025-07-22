@@ -132,7 +132,7 @@ class Texture {
   bool init_3D(int w, int h, int d, int mip_len, eGPUTextureFormat format);
   bool init_cubemap(int w, int layers, int mip_len, eGPUTextureFormat format);
   bool init_buffer(VertBuf *vbo, eGPUTextureFormat format);
-  bool init_view(GPUTexture *src,
+  bool init_view(blender::gpu::Texture *src,
                  eGPUTextureFormat format,
                  eGPUTextureType type,
                  int mip_start,
@@ -311,25 +311,11 @@ class Texture {
  protected:
   virtual bool init_internal() = 0;
   virtual bool init_internal(VertBuf *vbo) = 0;
-  virtual bool init_internal(GPUTexture *src,
+  virtual bool init_internal(blender::gpu::Texture *src,
                              int mip_offset,
                              int layer_offset,
                              bool use_stencil) = 0;
 };
-
-/* Syntactic sugar. */
-static inline GPUTexture *wrap(Texture *vert)
-{
-  return reinterpret_cast<GPUTexture *>(vert);
-}
-static inline Texture *unwrap(GPUTexture *vert)
-{
-  return reinterpret_cast<Texture *>(vert);
-}
-static inline const Texture *unwrap(const GPUTexture *vert)
-{
-  return reinterpret_cast<const Texture *>(vert);
-}
 
 /* GPU pixel Buffer. */
 class PixelBuffer {

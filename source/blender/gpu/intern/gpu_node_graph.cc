@@ -485,8 +485,8 @@ static GPULayerAttr *gpu_node_graph_add_layer_attribute(GPUNodeGraph *graph, con
 static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
                                                       Image *ima,
                                                       ImageUser *iuser,
-                                                      GPUTexture **colorband,
-                                                      GPUTexture **sky,
+                                                      blender::gpu::Texture **colorband,
+                                                      blender::gpu::Texture **sky,
                                                       bool is_tiled,
                                                       GPUSamplerState sampler_state)
 {
@@ -670,7 +670,8 @@ GPUNodeLink *GPU_image_sky(GPUMaterial *mat,
                            float *layer,
                            GPUSamplerState sampler_state)
 {
-  GPUTexture **sky = gpu_material_sky_texture_layer_set(mat, width, height, pixels, layer);
+  blender::gpu::Texture **sky = gpu_material_sky_texture_layer_set(
+      mat, width, height, pixels, layer);
 
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUNodeLink *link = gpu_node_link_create();
@@ -702,7 +703,7 @@ void GPU_image_tiled(GPUMaterial *mat,
 
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *r_row)
 {
-  GPUTexture **colorband = gpu_material_ramp_texture_row_set(mat, size, pixels, r_row);
+  blender::gpu::Texture **colorband = gpu_material_ramp_texture_row_set(mat, size, pixels, r_row);
   MEM_freeN(pixels);
 
   GPUNodeGraph *graph = gpu_material_node_graph(mat);

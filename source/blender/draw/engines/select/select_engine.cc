@@ -63,7 +63,7 @@ struct Instance : public DrawEngine {
  public:
   struct StaticData {
     GPUFrameBuffer *framebuffer_select_id;
-    GPUTexture *texture_u32;
+    blender::gpu::Texture *texture_u32;
 
     struct Shaders {
       /* Depth Pre Pass */
@@ -521,7 +521,7 @@ GPUFrameBuffer *DRW_engine_select_framebuffer_get()
   return e_data.framebuffer_select_id;
 }
 
-GPUTexture *DRW_engine_select_texture_get()
+blender::gpu::Texture *DRW_engine_select_texture_get()
 {
   Instance::StaticData &e_data = Instance::StaticData::get();
   return e_data.texture_u32;

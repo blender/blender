@@ -99,7 +99,7 @@ void Film::init_aovs(const Set<std::string> &passes_used_by_viewport_compositor)
 
 float *Film::read_aov(ViewLayerAOV *aov)
 {
-  GPUTexture *pass_tx = this->get_aov_texture(aov);
+  gpu::Texture *pass_tx = this->get_aov_texture(aov);
 
   if (pass_tx == nullptr) {
     return nullptr;
@@ -110,7 +110,7 @@ float *Film::read_aov(ViewLayerAOV *aov)
   return (float *)GPU_texture_read(pass_tx, GPU_DATA_FLOAT, 0);
 }
 
-GPUTexture *Film::get_aov_texture(ViewLayerAOV *aov)
+gpu::Texture *Film::get_aov_texture(ViewLayerAOV *aov)
 {
   bool is_value = (aov->type == AOV_TYPE_VALUE);
   Texture &accum_tx = is_value ? value_accum_tx_ : color_accum_tx_;
@@ -833,7 +833,7 @@ void Film::update_sample_table()
   }
 }
 
-void Film::accumulate(View &view, GPUTexture *combined_final_tx)
+void Film::accumulate(View &view, gpu::Texture *combined_final_tx)
 {
   if (inst_.is_viewport()) {
     DefaultFramebufferList *dfbl = inst_.draw_ctx->viewport_framebuffer_list_get();
@@ -898,7 +898,7 @@ void Film::cryptomatte_sort()
 
 float *Film::read_pass(eViewLayerEEVEEPassType pass_type, int layer_offset)
 {
-  GPUTexture *pass_tx = this->get_pass_texture(pass_type, layer_offset);
+  gpu::Texture *pass_tx = this->get_pass_texture(pass_type, layer_offset);
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
@@ -915,7 +915,7 @@ float *Film::read_pass(eViewLayerEEVEEPassType pass_type, int layer_offset)
   return result;
 }
 
-GPUTexture *Film::get_pass_texture(eViewLayerEEVEEPassType pass_type, int layer_offset)
+gpu::Texture *Film::get_pass_texture(eViewLayerEEVEEPassType pass_type, int layer_offset)
 {
   ePassStorageType storage_type = pass_storage_type(pass_type);
   const bool is_value = storage_type == PASS_STORAGE_VALUE;
@@ -996,7 +996,7 @@ void Film::write_viewport_compositor_passes()
 
     Vector<std::string> pass_names = Film::pass_to_render_pass_names(pass_type, inst_.view_layer);
     for (const int64_t pass_offset : IndexRange(pass_names.size())) {
-      GPUTexture *pass_texture = this->get_pass_texture(pass_type, pass_offset);
+      gpu::Texture *pass_texture = this->get_pass_texture(pass_type, pass_offset);
       if (!pass_texture) {
         continue;
       }
@@ -1028,7 +1028,7 @@ void Film::write_viewport_compositor_passes()
     if ((aov->flag & AOV_CONFLICT) != 0) {
       continue;
     }
-    GPUTexture *pass_texture = this->get_aov_texture(aov);
+    gpu::Texture *pass_texture = this->get_aov_texture(aov);
     if (!pass_texture) {
       continue;
     }

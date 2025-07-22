@@ -350,8 +350,8 @@ tObject *Instance::object_sync_do(Object *ob, ResourceHandleRange res_handle)
   int mat_ofs = 0;
   MaterialPool *matpool = gpencil_material_pool_create(this, ob, &mat_ofs, is_vertex_mode);
 
-  GPUTexture *tex_fill = this->dummy_tx;
-  GPUTexture *tex_stroke = this->dummy_tx;
+  gpu::Texture *tex_fill = this->dummy_tx;
+  gpu::Texture *tex_stroke = this->dummy_tx;
 
   gpu::Batch *iter_geom = nullptr;
   PassSimple *last_pass = nullptr;
@@ -503,8 +503,8 @@ tObject *Instance::object_sync_do(Object *ob, ResourceHandleRange res_handle)
       }
 
       GPUUniformBuf *new_ubo_mat;
-      GPUTexture *new_tex_fill = nullptr;
-      GPUTexture *new_tex_stroke = nullptr;
+      gpu::Texture *new_tex_fill = nullptr;
+      gpu::Texture *new_tex_stroke = nullptr;
       gpencil_material_resources_get(
           matpool, mat_ofs + material_index, &new_tex_stroke, &new_tex_fill, &new_ubo_mat);
 

@@ -142,7 +142,7 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
      * check should only validate the range */
     const gpu::Texture *tex_view_src = this;
     if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW) {
-      tex_view_src = unwrap(source_texture_);
+      tex_view_src = source_texture_;
     }
 
     /* Determine num slices */
@@ -397,7 +397,7 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   GPU_shader_uniform_2f(shader, "size", width, height);
 
   GPU_shader_uniform_1i(shader, "mip", src_mip);
-  GPU_batch_texture_bind(quad, "imageTexture", wrap(this));
+  GPU_batch_texture_bind(quad, "imageTexture", this);
 
   /* Caching previous pipeline state. */
   bool depth_write_prev = GPU_depth_mask_get();
@@ -458,8 +458,7 @@ GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mi
       /* DEPTH TEX */
       GPU_framebuffer_ensure_config(
           &blit_fb_,
-          {GPU_ATTACHMENT_TEXTURE_LAYER_MIP(
-               wrap(static_cast<Texture *>(this)), int(dst_slice), int(dst_mip)),
+          {GPU_ATTACHMENT_TEXTURE_LAYER_MIP(this, int(dst_slice), int(dst_mip)),
            GPU_ATTACHMENT_NONE});
     }
     else {
@@ -467,8 +466,7 @@ GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(int dst_slice, uint dst_mi
       GPU_framebuffer_ensure_config(
           &blit_fb_,
           {GPU_ATTACHMENT_NONE,
-           GPU_ATTACHMENT_TEXTURE_LAYER_MIP(
-               wrap(static_cast<Texture *>(this)), int(dst_slice), int(dst_mip))});
+           GPU_ATTACHMENT_TEXTURE_LAYER_MIP(this, int(dst_slice), int(dst_mip))});
     }
     blit_fb_slice_ = dst_slice;
     blit_fb_mip_ = dst_mip;
@@ -2150,7 +2148,7 @@ bool gpu::MTLTexture::init_internal(VertBuf *vbo)
   return true;
 }
 
-bool gpu::MTLTexture::init_internal(GPUTexture *src,
+bool gpu::MTLTexture::init_internal(gpu::Texture *src,
                                     int mip_offset,
                                     int layer_offset,
                                     bool use_stencil)
@@ -2171,7 +2169,7 @@ bool gpu::MTLTexture::init_internal(GPUTexture *src,
   internal_gpu_image_usage_flags_ = GPU_texture_usage(src);
 
   /* Assign texture as view. */
-  gpu::MTLTexture *mtltex = static_cast<gpu::MTLTexture *>(unwrap(src));
+  gpu::MTLTexture *mtltex = static_cast<gpu::MTLTexture *>(src);
   mtltex->ensure_baked();
   texture_ = mtltex->texture_;
   BLI_assert(texture_);

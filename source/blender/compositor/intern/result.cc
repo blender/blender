@@ -350,7 +350,7 @@ const char *Result::type_name(const ResultType type)
   return "";
 }
 
-Result::operator GPUTexture *() const
+Result::operator blender::gpu::Texture *() const
 {
   return this->gpu_texture();
 }
@@ -521,7 +521,8 @@ void Result::steal_data(Result &source)
 
 /* Returns true if the given GPU texture is compatible with the type and precision of the given
  * result. */
-[[maybe_unused]] static bool is_compatible_texture(const GPUTexture *texture, const Result &result)
+[[maybe_unused]] static bool is_compatible_texture(const blender::gpu::Texture *texture,
+                                                   const Result &result)
 {
   /* Float3 types are an exception, see the documentation on the get_gpu_texture_format method for
    * more information. */
@@ -535,7 +536,7 @@ void Result::steal_data(Result &source)
   return GPU_texture_format(texture) == result.get_gpu_texture_format();
 }
 
-void Result::wrap_external(GPUTexture *texture)
+void Result::wrap_external(blender::gpu::Texture *texture)
 {
   BLI_assert(is_compatible_texture(texture, *this));
   BLI_assert(!this->is_allocated());

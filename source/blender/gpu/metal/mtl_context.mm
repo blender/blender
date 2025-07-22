@@ -113,9 +113,9 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
     /* Check if the GHOST Context provides a default framebuffer: */
     if (default_fbo_mtltexture_) {
 
-      /* Release old GPUTexture handle */
+      /* Release old gpu::Texture handle */
       if (default_fbo_gputexture_) {
-        GPU_texture_free(wrap(static_cast<Texture *>(default_fbo_gputexture_)));
+        GPU_texture_free(default_fbo_gputexture_);
         default_fbo_gputexture_ = nullptr;
       }
 
@@ -138,8 +138,8 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
 
       /* Add default texture for cases where no other framebuffer is bound */
       if (!default_fbo_gputexture_) {
-        default_fbo_gputexture_ = static_cast<gpu::MTLTexture *>(unwrap(GPU_texture_create_2d(
-            __func__, 16, 16, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_GENERAL, nullptr)));
+        default_fbo_gputexture_ = static_cast<gpu::MTLTexture *>(GPU_texture_create_2d(
+            __func__, 16, 16, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_GENERAL, nullptr));
       }
       mtl_back_left->add_color_attachment(default_fbo_gputexture_, 0, 0, 0);
 
@@ -289,7 +289,7 @@ MTLContext::~MTLContext()
 
   /* Release context textures. */
   if (default_fbo_gputexture_) {
-    GPU_texture_free(wrap(static_cast<Texture *>(default_fbo_gputexture_)));
+    GPU_texture_free(default_fbo_gputexture_);
     default_fbo_gputexture_ = nullptr;
   }
   if (default_fbo_mtltexture_) {
@@ -630,7 +630,7 @@ gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type,
   }
 
   /* Create dummy texture based on desired type. */
-  GPUTexture *tex = nullptr;
+  gpu::Texture *tex = nullptr;
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
   switch (type) {
     case GPU_TEXTURE_1D:
@@ -697,8 +697,8 @@ void MTLContext::free_dummy_resources()
   for (int format = 0; format < GPU_SAMPLER_TYPE_MAX; format++) {
     for (int tex = 0; tex < GPU_TEXTURE_BUFFER; tex++) {
       if (dummy_textures_[format][tex]) {
-        GPU_texture_free(
-            reinterpret_cast<GPUTexture *>(static_cast<Texture *>(dummy_textures_[format][tex])));
+        GPU_texture_free(reinterpret_cast<gpu::Texture *>(
+            static_cast<Texture *>(dummy_textures_[format][tex])));
         dummy_textures_[format][tex] = nullptr;
       }
     }

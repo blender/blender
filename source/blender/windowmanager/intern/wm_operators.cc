@@ -2561,7 +2561,7 @@ struct RadialControl {
   int slow_mouse[2] = {};
   bool slow_mode = false;
   Dial *dial = nullptr;
-  GPUTexture *texture = nullptr;
+  blender::gpu::Texture *texture = nullptr;
   ListBase orig_paintcursors = {};
   bool use_secondary_tex = false;
   void *cursor = nullptr;

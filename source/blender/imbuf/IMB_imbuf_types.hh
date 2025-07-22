@@ -16,7 +16,9 @@
 #include "IMB_imbuf_enums.h"
 
 struct ColormanageCache;
-struct GPUTexture;
+namespace blender::gpu {
+class Texture;
+}
 struct IDProperty;
 
 namespace blender::ocio {
@@ -166,7 +168,7 @@ struct ImBufGPU {
    * De-referencing the ImBuf or its GPU texture can happen from any state. */
   /* TODO(sergey): This should become a list of textures, to support having high-res ImBuf on GPU
    * without hitting hardware limitations. */
-  GPUTexture *texture;
+  blender::gpu::Texture *texture;
 };
 
 /** \} */

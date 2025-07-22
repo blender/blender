@@ -28,7 +28,7 @@ class MTLVertBuf : public VertBuf {
   /** Metal buffer allocation. */
   gpu::MTLBuffer *vbo_ = nullptr;
   /** Texture used if the buffer is bound as buffer texture. Init on first use. */
-  ::GPUTexture *buffer_texture_ = nullptr;
+  gpu::Texture *buffer_texture_ = nullptr;
   /** Defines whether the buffer handle is wrapped by this MTLVertBuf, i.e. we do not own it and
    * should not free it. */
   bool is_wrapper_ = false;

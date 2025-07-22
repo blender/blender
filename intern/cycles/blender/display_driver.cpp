@@ -261,7 +261,7 @@ class DisplayGPUTexture {
   /* Texture resource allocated by the GPU module.
    *
    * NOTE: Allocated on the render engine's context. */
-  GPUTexture *gpu_texture = nullptr;
+  blender::gpu::Texture *gpu_texture = nullptr;
 
   /* Dimensions of the texture in pixels. */
   int width = 0;

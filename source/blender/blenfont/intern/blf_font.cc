@@ -283,7 +283,7 @@ void blf_batch_draw_begin(FontBLF *font)
   }
 }
 
-static GPUTexture *blf_batch_cache_texture_load()
+static blender::gpu::Texture *blf_batch_cache_texture_load()
 {
   GlyphCacheBLF *gc = g_batch.glyph_cache;
   BLI_assert(gc);
@@ -336,7 +336,7 @@ void blf_batch_draw()
     blf_draw_cache_flush();
   }
 
-  GPUTexture *texture = blf_batch_cache_texture_load();
+  blender::gpu::Texture *texture = blf_batch_cache_texture_load();
   GPU_vertbuf_data_len_set(*g_batch.verts, g_batch.glyph_len);
   GPU_vertbuf_use(g_batch.verts); /* Send data. */
 

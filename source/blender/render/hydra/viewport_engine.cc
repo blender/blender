@@ -198,7 +198,7 @@ void DrawTexture::create_from_buffer(pxr::HdRenderBuffer *buffer)
   buffer->Unmap();
 }
 
-void DrawTexture::draw(GPUShader *shader, const pxr::GfVec4d &viewport, GPUTexture *tex)
+void DrawTexture::draw(GPUShader *shader, const pxr::GfVec4d &viewport, blender::gpu::Texture *tex)
 {
   if (!tex) {
     tex = texture_;
@@ -215,7 +215,7 @@ void DrawTexture::draw(GPUShader *shader, const pxr::GfVec4d &viewport, GPUTextu
   GPU_matrix_pop();
 }
 
-GPUTexture *DrawTexture::texture() const
+blender::gpu::Texture *DrawTexture::texture() const
 {
   return texture_;
 }

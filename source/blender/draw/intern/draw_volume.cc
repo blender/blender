@@ -77,7 +77,7 @@ struct VolumeModule {
     GPU_texture_extend_mode(dummy_one, GPU_SAMPLER_EXTEND_MODE_REPEAT);
   }
 
-  GPUTexture *grid_default_texture(eGPUDefaultValue default_value)
+  gpu::Texture *grid_default_texture(eGPUDefaultValue default_value)
   {
     switch (default_value) {
       case GPU_DEFAULT_0:
@@ -155,11 +155,12 @@ PassType *volume_object_grids_init(PassType &ps,
      * - Grid exists and texture was loaded -> use texture.
      * - Grid exists but has zero size or failed to load -> use zero.
      * - Grid does not exist -> use default value. */
-    const GPUTexture *grid_tex = (drw_grid)    ? drw_grid->texture :
-                                 (volume_grid) ? module.dummy_zero :
-                                                 module.grid_default_texture(attr->default_value);
+    const gpu::Texture *grid_tex = (drw_grid) ? drw_grid->texture :
+                                   (volume_grid) ?
+                                                module.dummy_zero :
+                                                module.grid_default_texture(attr->default_value);
     /* TODO(@pragma37): bind_texture const support ? */
-    sub->bind_texture(attr->input_name, (GPUTexture *)grid_tex);
+    sub->bind_texture(attr->input_name, (gpu::Texture *)grid_tex);
 
     volume_infos.grids_xform[grid_id++] = drw_grid ? float4x4(drw_grid->object_to_texture) :
                                                      float4x4::identity();

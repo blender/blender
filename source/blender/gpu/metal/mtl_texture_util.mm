@@ -606,22 +606,22 @@ void gpu::MTLTexture::update_sub_depth_2d(
   }
 
   /* Push contents into an r32_tex and render contents to depth using a shader. */
-  GPUTexture *r32_tex_tmp = GPU_texture_create_2d("depth_intermediate_copy_tex",
-                                                  w_,
-                                                  h_,
-                                                  1,
-                                                  format,
-                                                  GPU_TEXTURE_USAGE_SHADER_READ |
-                                                      GPU_TEXTURE_USAGE_ATTACHMENT,
-                                                  nullptr);
+  gpu::Texture *r32_tex_tmp = GPU_texture_create_2d("depth_intermediate_copy_tex",
+                                                    w_,
+                                                    h_,
+                                                    1,
+                                                    format,
+                                                    GPU_TEXTURE_USAGE_SHADER_READ |
+                                                        GPU_TEXTURE_USAGE_ATTACHMENT,
+                                                    nullptr);
   GPU_texture_filter_mode(r32_tex_tmp, false);
   GPU_texture_extend_mode(r32_tex_tmp, GPU_SAMPLER_EXTEND_MODE_EXTEND);
-  gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(unwrap(r32_tex_tmp));
+  gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(r32_tex_tmp);
   mtl_tex->update_sub(mip, offset, extent, type, data);
 
   GPUFrameBuffer *restore_fb = GPU_framebuffer_active_get();
   GPUFrameBuffer *depth_fb_temp = GPU_framebuffer_create("depth_intermediate_copy_fb");
-  GPU_framebuffer_texture_attach(depth_fb_temp, wrap(static_cast<Texture *>(this)), 0, mip);
+  GPU_framebuffer_texture_attach(depth_fb_temp, this, 0, mip);
   GPU_framebuffer_bind(depth_fb_temp);
   if (extent[0] == w_ && extent[1] == h_) {
     /* Skip load if the whole texture is being updated. */

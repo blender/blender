@@ -107,7 +107,7 @@ bool LookdevWorld::sync(const LookdevParameters &new_parameters)
                                            STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE);
     if (sl) {
       BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
-      GPUTexture *texture = sl->equirect_radiance_gputexture;
+      gpu::Texture *texture = sl->equirect_radiance_gputexture;
       if (texture != nullptr) {
         GPU_texture_ref(texture);
         image->gputexture[TEXTARGET_2D][0] = texture;

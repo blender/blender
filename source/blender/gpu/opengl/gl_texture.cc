@@ -114,9 +114,12 @@ bool GLTexture::init_internal(VertBuf *vbo)
   return true;
 }
 
-bool GLTexture::init_internal(GPUTexture *src, int mip_offset, int layer_offset, bool use_stencil)
+bool GLTexture::init_internal(gpu::Texture *src,
+                              int mip_offset,
+                              int layer_offset,
+                              bool use_stencil)
 {
-  const GLTexture *gl_src = static_cast<const GLTexture *>(unwrap(src));
+  const GLTexture *gl_src = static_cast<const GLTexture *>(src);
   GLenum internal_format = to_gl_internal_format(format_);
   target_ = to_gl_target(type_);
 
@@ -455,7 +458,7 @@ FrameBuffer *GLTexture::framebuffer_get()
   }
   BLI_assert(!(type_ & GPU_TEXTURE_1D));
   framebuffer_ = unwrap(GPU_framebuffer_create(name_));
-  framebuffer_->attachment_set(this->attachment_type(0), GPU_ATTACHMENT_TEXTURE(wrap(this)));
+  framebuffer_->attachment_set(this->attachment_type(0), GPU_ATTACHMENT_TEXTURE(this));
   has_pixels_ = true;
   return framebuffer_;
 }

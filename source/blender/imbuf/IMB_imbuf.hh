@@ -597,10 +597,10 @@ void IMB_transform(const ImBuf *src,
                    const blender::float3x3 &transform_matrix,
                    const rctf *src_crop);
 
-GPUTexture *IMB_create_gpu_texture(const char *name,
-                                   ImBuf *ibuf,
-                                   bool use_high_bitdepth,
-                                   bool use_premult);
+blender::gpu::Texture *IMB_create_gpu_texture(const char *name,
+                                              ImBuf *ibuf,
+                                              bool use_high_bitdepth,
+                                              bool use_premult);
 
 eGPUTextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
                                              bool high_bitdepth,
@@ -617,20 +617,19 @@ void IMB_gpu_clamp_half_float(ImBuf *image_buffer);
  * The `ibuf` is only here to detect the storage type. The produced texture will have undefined
  * content. It will need to be populated by using #IMB_update_gpu_texture_sub().
  */
-GPUTexture *IMB_touch_gpu_texture(const char *name,
-                                  ImBuf *ibuf,
-                                  int w,
-                                  int h,
-                                  int layers,
-                                  bool use_high_bitdepth,
-                                  bool use_grayscale);
+blender::gpu::Texture *IMB_touch_gpu_texture(const char *name,
+                                             ImBuf *ibuf,
+                                             int w,
+                                             int h,
+                                             int layers,
+                                             bool use_high_bitdepth,
+                                             bool use_grayscale);
 
 /**
- * Will update a #GPUTexture using the content of the #ImBuf. Only one layer will be updated.
- * Will resize the ibuf if needed.
- * Z is the layer to update. Unused if the texture is 2D.
+ * Will update a #blender::gpu::Texture using the content of the #ImBuf. Only one layer will be
+ * updated. Will resize the ibuf if needed. Z is the layer to update. Unused if the texture is 2D.
  */
-void IMB_update_gpu_texture_sub(GPUTexture *tex,
+void IMB_update_gpu_texture_sub(blender::gpu::Texture *tex,
                                 ImBuf *ibuf,
                                 int x,
                                 int y,

@@ -219,7 +219,7 @@ class ShadowModule {
   PassMain::Sub *tilemap_usage_transparent_ps_ = nullptr;
   gpu::Batch *box_batch_ = nullptr;
   /* Source texture for depth buffer analysis. */
-  GPUTexture *src_depth_tx_ = nullptr;
+  gpu::Texture *src_depth_tx_ = nullptr;
 
   Framebuffer usage_tag_fb;
 

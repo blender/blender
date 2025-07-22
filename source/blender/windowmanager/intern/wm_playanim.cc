@@ -597,7 +597,7 @@ static void draw_display_buffer(const PlayDisplayContext &display_ctx,
 
   /* NOTE: This may fail, especially for large images that exceed the GPU's texture size limit.
    * Large images could be supported although this isn't so common for animation playback. */
-  GPUTexture *texture = GPU_texture_create_2d(
+  blender::gpu::Texture *texture = GPU_texture_create_2d(
       "display_buf", ibuf->x, ibuf->y, 1, format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
 
   if (texture) {

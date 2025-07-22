@@ -15,7 +15,9 @@
 
 #include "GPU_framebuffer.hh"
 
-struct GPUTexture;
+namespace blender::gpu {
+class Texture;
+}
 
 enum GPUAttachmentType : int {
   GPU_FB_DEPTH_ATTACHMENT = 0,
@@ -231,7 +233,7 @@ class FrameBuffer {
     scissor_set(scissor_rect);
   }
 
-  GPUTexture *depth_tex() const
+  blender::gpu::Texture *depth_tex() const
   {
     if (attachments_[GPU_FB_DEPTH_ATTACHMENT].tex) {
       return attachments_[GPU_FB_DEPTH_ATTACHMENT].tex;
@@ -239,7 +241,7 @@ class FrameBuffer {
     return attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT].tex;
   };
 
-  GPUTexture *color_tex(int slot) const
+  blender::gpu::Texture *color_tex(int slot) const
   {
     return attachments_[GPU_FB_COLOR_ATTACHMENT0 + slot].tex;
   };

@@ -165,7 +165,7 @@ struct GlyphCacheBLF {
   blender::Map<GlyphCacheKey, std::unique_ptr<GlyphBLF>> glyphs;
 
   /** Texture array, to draw the glyphs. */
-  GPUTexture *texture;
+  blender::gpu::Texture *texture;
   char *bitmap_result;
   int bitmap_len;
   int bitmap_len_landed;

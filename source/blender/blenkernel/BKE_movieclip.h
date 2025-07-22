@@ -16,6 +16,10 @@ struct MovieClipScopes;
 struct MovieClipUser;
 struct MovieDistortion;
 
+namespace blender::gpu {
+class Texture;
+}  // namespace blender::gpu
+
 /**
  * Checks if image was already loaded, then returns same image otherwise creates new.
  * does not load ibuf itself pass on optional frame for `filepath` images.
@@ -119,8 +123,8 @@ bool BKE_movieclip_put_frame_if_possible(struct MovieClip *clip,
                                          const struct MovieClipUser *user,
                                          struct ImBuf *ibuf);
 
-struct GPUTexture *BKE_movieclip_get_gpu_texture(struct MovieClip *clip,
-                                                 struct MovieClipUser *cuser);
+blender::gpu::Texture *BKE_movieclip_get_gpu_texture(struct MovieClip *clip,
+                                                     struct MovieClipUser *cuser);
 
 void BKE_movieclip_free_gputexture(struct MovieClip *clip);
 
