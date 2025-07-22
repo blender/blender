@@ -180,7 +180,7 @@ class AttributeTexts : Overlay {
 
         if constexpr (std::is_same_v<T, bool>) {
           char numstr[64];
-          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%s", value ? "True" : "False");
+          const size_t numstr_len = STRNCPY_RLEN(numstr, value ? "True" : "False");
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, int8_t>) {

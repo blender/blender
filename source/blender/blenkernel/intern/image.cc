@@ -1735,7 +1735,7 @@ static void stampdata(
 
   if (scene->r.stamp & R_STAMP_NOTE) {
     /* Never do prefix for Note */
-    SNPRINTF(stamp_data->note, "%s", scene->r.stamp_udata);
+    STRNCPY(stamp_data->note, scene->r.stamp_udata);
   }
   else {
     stamp_data->note[0] = '\0';

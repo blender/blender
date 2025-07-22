@@ -137,11 +137,13 @@ namespace path_templates = blender::bke::path_templates;
 /* here we store all renders */
 static struct {
   std::forward_list<Render *> render_list;
-  /* Special renders that can be used for interactive compositing, each scene has its own render,
-   * keyed with the scene name returned from scene_render_name_get and matches the same name in
+  /**
+   * Special renders that can be used for interactive compositing, each scene has its own render,
+   * keyed with the scene name returned from #scene_render_name_get and matches the same name in
    * render_list. Those renders are separate from standard renders because the GPU context can't be
    * bound for compositing and rendering at the same time, so those renders are essentially used to
-   * get a persistent dedicated GPU context to interactive compositor execution. */
+   * get a persistent dedicated GPU context to interactive compositor execution.
+   */
   blender::Map<std::string, Render *> interactive_compositor_renders;
 } RenderGlobal;
 
@@ -529,34 +531,37 @@ ViewRender *RE_NewViewRender(RenderEngineType *engine_type)
 /* MAX_ID_NAME + sizeof(Library->name) + space + null-terminator. */
 #define MAX_SCENE_RENDER_NAME (MAX_ID_NAME + 1024 + 2)
 
-static void scene_render_name_get(const Scene *scene, const size_t max_size, char *render_name)
+static void scene_render_name_get(const Scene *scene,
+                                  char *render_name,
+                                  const size_t render_name_maxncpy)
 {
   if (ID_IS_LINKED(scene)) {
-    BLI_snprintf(render_name, max_size, "%s %s", scene->id.lib->id.name, scene->id.name);
+    BLI_snprintf(
+        render_name, render_name_maxncpy, "%s %s", scene->id.lib->id.name, scene->id.name);
   }
   else {
-    BLI_snprintf(render_name, max_size, "%s", scene->id.name);
+    BLI_strncpy(render_name, scene->id.name, render_name_maxncpy);
   }
 }
 
 Render *RE_GetSceneRender(const Scene *scene)
 {
   char render_name[MAX_SCENE_RENDER_NAME];
-  scene_render_name_get(scene, sizeof(render_name), render_name);
+  scene_render_name_get(scene, render_name, sizeof(render_name));
   return RE_GetRender(render_name);
 }
 
 Render *RE_NewSceneRender(const Scene *scene)
 {
   char render_name[MAX_SCENE_RENDER_NAME];
-  scene_render_name_get(scene, sizeof(render_name), render_name);
+  scene_render_name_get(scene, render_name, sizeof(render_name));
   return RE_NewRender(render_name);
 }
 
 Render *RE_NewInteractiveCompositorRender(const Scene *scene)
 {
   char render_name[MAX_SCENE_RENDER_NAME];
-  scene_render_name_get(scene, sizeof(render_name), render_name);
+  scene_render_name_get(scene, render_name, sizeof(render_name));
 
   return RenderGlobal.interactive_compositor_renders.lookup_or_add_cb(render_name, [&]() {
     Render *render = MEM_new<Render>("New Interactive Compositor Render");

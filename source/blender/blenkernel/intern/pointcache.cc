@@ -1406,7 +1406,7 @@ static size_t ptcache_filepath_ext_append(PTCacheID *pid,
             filename_ext, MAX_PTCACHE_FILE - len, "_%02u%s", pid->stack_index, ext);
       }
       else {
-        len += BLI_snprintf_rlen(filename_ext, MAX_PTCACHE_FILE - len, "%s", ext);
+        len += BLI_strncpy_rlen(filename_ext, ext, MAX_PTCACHE_FILE - len);
       }
     }
     else {

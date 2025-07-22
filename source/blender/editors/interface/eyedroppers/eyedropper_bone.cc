@@ -333,7 +333,7 @@ static BoneSampleData bonedropper_sample_pt(
   }
 
   if (sample_data.name) {
-    SNPRINTF(bdr.name, "%s", sample_data.name);
+    STRNCPY(bdr.name, sample_data.name);
     copy_v2_v2_int(bdr.name_pos, mval);
   }
 

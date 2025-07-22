@@ -566,7 +566,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
                    "");
         }
 
-        SNPRINTF(name, "%s", IFACE_(item.socket_name));
+        STRNCPY_UTF8(name, IFACE_(item.socket_name));
         icon = ICON_BLANK1;
       }
       else {

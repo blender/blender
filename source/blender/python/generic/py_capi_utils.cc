@@ -591,7 +591,7 @@ void PyC_ObSpitStr(char *result, size_t result_maxncpy, PyObject *var)
   /* No name, creator of string can manage that. */
   const char *null_str = "<null>";
   if (var == nullptr) {
-    BLI_snprintf(result, result_maxncpy, "%s", null_str);
+    BLI_strncpy(result, null_str,  result_maxncpy);
   }
   else {
     const PyTypeObject *type = Py_TYPE(var);
