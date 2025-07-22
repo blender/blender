@@ -103,8 +103,10 @@ class TestPropArray(unittest.TestCase):
         return (expected_dtype, wrong_kind_dtype, wrong_size_dtype, expected_length, too_short_length,
                 get_flat_iterable_all_dimensions)
 
-    def do_test_foreach_getset_current_dimension(self, prop_array, expected_dtype, wrong_kind_dtype, wrong_size_dtype,
-                                                 expected_length, too_short_length, get_flat_iterable_all_dimensions):
+    def do_test_foreach_getset_current_dimension(
+            self, prop_array, expected_dtype, wrong_kind_dtype, wrong_size_dtype,
+            expected_length, too_short_length, get_flat_iterable_all_dimensions,
+    ):
         with self.assertRaises(TypeError):
             prop_array.foreach_set(range(too_short_length))
 

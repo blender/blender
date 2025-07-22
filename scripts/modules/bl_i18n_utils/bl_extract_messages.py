@@ -298,8 +298,10 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                     if item.name and prop_name_validate(cls, item.name, item.identifier):
                         process_msg(msgs, msgctxt, item.name, msgsrc, reports, check_ctxt_rna, settings)
                     if item.description:
-                        process_msg(msgs, default_context, item.description, msgsrc, reports, check_ctxt_rna_tip,
-                                    settings)
+                        process_msg(
+                            msgs, default_context, item.description, msgsrc, reports, check_ctxt_rna_tip,
+                            settings,
+                        )
                 for item in prop.enum_items_static:
                     if item.identifier in done_items:
                         continue
@@ -308,8 +310,10 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                     if item.name and prop_name_validate(cls, item.name, item.identifier):
                         process_msg(msgs, msgctxt, item.name, msgsrc, reports, check_ctxt_rna, settings)
                     if item.description:
-                        process_msg(msgs, default_context, item.description, msgsrc, reports, check_ctxt_rna_tip,
-                                    settings)
+                        process_msg(
+                            msgs, default_context, item.description, msgsrc, reports, check_ctxt_rna_tip,
+                            settings,
+                        )
 
     def walk_tools_definitions(cls):
         from bl_ui.space_toolsystem_common import ToolDef
@@ -954,8 +958,10 @@ def dump_template_messages(msgs, reports, settings):
     for workspace_name in sorted(workspace_names):
         for msgsrc in sorted(workspace_names[workspace_name]):
             msgsrc = "Workspace from template " + msgsrc
-            process_msg(msgs, msgctxt, workspace_name, msgsrc,
-                        reports, None, settings)
+            process_msg(
+                msgs, msgctxt, workspace_name, msgsrc,
+                reports, None, settings,
+            )
 
 
 def dump_asset_messages(msgs, reports, settings):
@@ -977,8 +983,10 @@ def dump_asset_messages(msgs, reports, settings):
 
     msgsrc = "Asset catalog from " + settings.ASSET_CATALOG_FILE
     for catalog in sorted(catalogs):
-        process_msg(msgs, settings.DEFAULT_CONTEXT, catalog, msgsrc,
-                    reports, None, settings)
+        process_msg(
+            msgs, settings.DEFAULT_CONTEXT, catalog, msgsrc,
+            reports, None, settings,
+        )
 
     # Parse the asset blend files
     asset_files = {}
@@ -1015,20 +1023,28 @@ def dump_asset_messages(msgs, reports, settings):
         for asset in sorted(asset_files[asset_file], key=lambda a: a["name"]):
             name, description = asset["name"], asset["description"]
             msgsrc = "Asset name from file " + asset_file
-            process_msg(msgs, settings.DEFAULT_CONTEXT, name, msgsrc,
-                        reports, None, settings)
+            process_msg(
+                msgs, settings.DEFAULT_CONTEXT, name, msgsrc,
+                reports, None, settings,
+            )
             msgsrc = "Asset description from file " + asset_file
-            process_msg(msgs, settings.DEFAULT_CONTEXT, description, msgsrc,
-                        reports, None, settings)
+            process_msg(
+                msgs, settings.DEFAULT_CONTEXT, description, msgsrc,
+                reports, None, settings,
+            )
 
             if "sockets" in asset:
                 for socket_name, socket_description in asset["sockets"]:
                     msgsrc = f"Socket name from node group {name}, file {asset_file}"
-                    process_msg(msgs, settings.DEFAULT_CONTEXT, socket_name, msgsrc,
-                                reports, None, settings)
+                    process_msg(
+                        msgs, settings.DEFAULT_CONTEXT, socket_name, msgsrc,
+                        reports, None, settings,
+                    )
                     msgsrc = f"Socket description from node group {name}, file {asset_file}"
-                    process_msg(msgs, settings.DEFAULT_CONTEXT, socket_description, msgsrc,
-                                reports, None, settings)
+                    process_msg(
+                        msgs, settings.DEFAULT_CONTEXT, socket_description, msgsrc,
+                        reports, None, settings,
+                    )
 
 
 def dump_addon_bl_info(msgs, reports, module, settings):
@@ -1137,8 +1153,10 @@ def dump_messages(do_messages, do_checks, settings):
 
     # Get strings specific to translations' menu.
     for lng in settings.LANGUAGES:
-        process_msg(msgs, settings.DEFAULT_CONTEXT, lng[1], "Languages’ labels from bl_i18n_utils/settings.py",
-                    reports, None, settings)
+        process_msg(
+            msgs, settings.DEFAULT_CONTEXT, lng[1], "Languages’ labels from bl_i18n_utils/settings.py",
+            reports, None, settings,
+        )
 
     # Get strings from asset catalogs and blend files.
     # This loads each asset blend file in turn.

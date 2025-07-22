@@ -311,12 +311,15 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
         raise Exception("Invalid axis arguments passed, "
                         "can't use up/forward on the same axis")
 
-    value = reduce(int.__or__, (_axis_convert_num[a] << (i * 3)
-                                for i, a in enumerate((from_forward,
-                                                       from_up,
-                                                       to_forward,
-                                                       to_up,
-                                                       ))))
+    value = reduce(
+        int.__or__,
+        (_axis_convert_num[a] << (i * 3) for i, a in enumerate((
+            from_forward,
+            from_up,
+            to_forward,
+            to_up,
+        )))
+    )
 
     for i, axis_lut in enumerate(_axis_convert_lut):
         if value in axis_lut:

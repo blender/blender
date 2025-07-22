@@ -860,8 +860,11 @@ def cached_commits_store(list_of_commits: list[CommitInfo], path_to_cached_commi
     # on commits that are already sorted (and they're not interested in).
     data_to_cache = {}
     for commit in list_of_commits:
-        if (commit.classification not in (NEEDS_MANUAL_SORTING, IGNORED)) and not (
-                commit.has_been_overwritten) and (commit.module != UNKNOWN):
+        if (
+            (commit.classification not in (NEEDS_MANUAL_SORTING, IGNORED)) and
+            (commit.has_been_overwritten is False) and
+            (commit.module != UNKNOWN)
+        ):
             commit_hash, data = commit.prepare_for_cache()
             data_to_cache[commit_hash] = data
 
@@ -1040,14 +1043,16 @@ def validate_arguments(args: argparse.Namespace) -> bool:
 # -----------------------------------------------------------------------------
 # Main Function
 
-def gather_and_sort_commits(current_release_tag: str,
-                            current_version: str,
-                            previous_release_tag: str,
-                            previous_version: str,
-                            backport_tasks: list[str],
-                            cache: bool = False,
-                            silence: bool = False,
-                            single_thread: bool = False) -> list[CommitInfo]:
+def gather_and_sort_commits(
+        current_release_tag: str,
+        current_version: str,
+        previous_release_tag: str,
+        previous_version: str,
+        backport_tasks: list[str],
+        cache: bool = False,
+        silence: bool = False,
+        single_thread: bool = False,
+) -> list[CommitInfo]:
     set_crawl_delay()
 
     dir_of_sciprt = Path(__file__).parent.resolve()
@@ -1094,7 +1099,8 @@ def main() -> int:
         args.backport_tasks,
         args.cache,
         args.silence,
-        args.single_thread)
+        args.single_thread,
+    )
 
     print_release_notes(list_of_commits)
     return 0

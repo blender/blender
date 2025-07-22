@@ -1346,9 +1346,11 @@ def process(layer_name, lineset_name):
         if len(pattern) > 0:
             sampling = 1.0
             controller = SplitPatternController(pattern, sampling)
-            Operators.sequential_split(SplitPatternStartingUP0D(controller),
-                                       SplitPatternStoppingUP0D(controller),
-                                       sampling)
+            Operators.sequential_split(
+                SplitPatternStartingUP0D(controller),
+                SplitPatternStoppingUP0D(controller),
+                sampling,
+            )
     # sort selected chains
     if linestyle.use_sorting:
         integration = integration_types.get(linestyle.integration_type, IntegrationType.MEAN)
