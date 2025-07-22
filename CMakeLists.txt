@@ -124,25 +124,29 @@ enable_testing()
 
 if(CMAKE_COMPILER_IS_GNUCC)
   if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "11.0.0")
-    message(FATAL_ERROR "\
-The minimum supported version of GCC is 11.0.0, found C compiler: ${CMAKE_C_COMPILER_VERSION}"
+    message(FATAL_ERROR
+      "The minimum supported version of GCC is 11.0.0, found C compiler: "
+      "${CMAKE_C_COMPILER_VERSION}"
     )
   endif()
   if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "11.0.0")
-    message(FATAL_ERROR "\
-The minimum supported version of GCC is 11.0.0, found C++ compiler${CMAKE_CXX_COMPILER_VERSION}"
+    message(FATAL_ERROR
+      "The minimum supported version of GCC is 11.0.0, found C++ compiler: "
+      "${CMAKE_CXX_COMPILER_VERSION}"
     )
   endif()
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   if(CMAKE_COMPILER_IS_GNUCC)
     if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "8.0")
-      message(FATAL_ERROR "\
-The minimum supported version of CLANG is 8.0, found C compiler ${CMAKE_C_COMPILER_VERSION}"
+      message(FATAL_ERROR
+        "The minimum supported version of CLANG is 8.0, found C compiler: "
+        "${CMAKE_C_COMPILER_VERSION}"
       )
     endif()
     if("${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "8.0")
-      message(FATAL_ERROR "\
-The minimum supported version of CLANG is 8.0, found C++ compiler ${CMAKE_CXX_COMPILER_VERSION}"
+      message(FATAL_ERROR
+        "The minimum supported version of CLANG is 8.0, found C++ compiler: "
+        "${CMAKE_CXX_COMPILER_VERSION}"
       )
     endif()
   endif()
@@ -1789,7 +1793,8 @@ Keep at '0' to automatically compute optimal values for each build."
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_LINK_JOBS)
   endif()
 
-  # Try to compute good default values, unless some are enforced in the user-exposed CMake cached variables.
+  # Try to compute good default values,
+  # unless some are enforced in the user-exposed CMake cached variables.
 
   cmake_host_system_information(RESULT _NUM_CORES QUERY NUMBER_OF_LOGICAL_CORES)
   # Note: this gives mem in MB.
@@ -1798,16 +1803,19 @@ Keep at '0' to automatically compute optimal values for each build."
   set(_link_jobs 0)
   if(NINJA_MAX_NUM_PARALLEL_LINK_JOBS)
     set(_link_jobs ${NINJA_MAX_NUM_PARALLEL_LINK_JOBS})
-    message(STATUS "  NINJA_MAX_NUM_PARALLEL_LINK_JOBS: max concurrent linking jobs (from settings): ${_link_jobs}")
+    message(STATUS
+      "  NINJA_MAX_NUM_PARALLEL_LINK_JOBS: "
+      "max concurrent linking jobs (from settings): ${_link_jobs}"
+    )
   endif()
-  if (${_link_jobs} LESS 1)
+  if(${_link_jobs} LESS 1)
     # Heuristics: Maximum amount of memory needed per linking task.
     # Note: These values are purposedly over-estimated by 10-15% at least, to account
     #       for other types of jobs' memory usage, other system memory usages, etc.
     set(_link_mem 10000)
-    if (WITH_COMPILER_ASAN)
+    if(WITH_COMPILER_ASAN)
       set(_link_mem 30000)
-    elseif ("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+    elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
       set(_link_mem 20000)
     endif()
 
@@ -1826,8 +1834,10 @@ Keep at '0' to automatically compute optimal values for each build."
       set(_link_jobs 1)
     endif()
 
-    message(STATUS "  NINJA_MAX_NUM_PARALLEL_LINK_JOBS: max concurrent linking jobs (computed): ${_link_jobs}")
-
+    message(STATUS
+      "  NINJA_MAX_NUM_PARALLEL_LINK_JOBS: "
+      "max concurrent linking jobs (computed): ${_link_jobs}"
+    )
     set(_link_mem)
     set(_link_jobs_max)
   endif()
@@ -1840,17 +1850,19 @@ Keep at '0' to automatically compute optimal values for each build."
   set(_compile_heavy_jobs 0)
   if(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
     set(_compile_heavy_jobs ${NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS})
-    message(STATUS "  NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS: \
-max concurrent heavy compile jobs (from settings): ${_compile_heavy_jobs}")
+    message(STATUS
+      "  NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS: "
+      "max concurrent heavy compile jobs (from settings): ${_compile_heavy_jobs}"
+    )
   endif()
-  if (${_compile_heavy_jobs} LESS 1)
+  if(${_compile_heavy_jobs} LESS 1)
     # Heuristics: Maximum amount of memory needed per heavy compile task.
     # Note: These values are purposedly over-estimated by 10-15% at least, to account
     #       for other types of jobs' memory usage, other system memory usages, etc.
     set(_compile_heavy_mem 2000)
-    if (WITH_COMPILER_ASAN)
+    if(WITH_COMPILER_ASAN)
       set(_compile_heavy_mem 15000)
-    elseif ("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+    elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
       set(_compile_heavy_mem 2000)
     endif()
 
@@ -1872,8 +1884,10 @@ max concurrent heavy compile jobs (from settings): ${_compile_heavy_jobs}")
       set(_compile_heavy_jobs 1)
     endif()
 
-    message(STATUS "  NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS: \
-max concurrent heavy compile jobs (computed): ${_compile_heavy_jobs}")
+    message(STATUS
+      "  NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS: "
+      "max concurrent heavy compile jobs (computed): ${_compile_heavy_jobs}"
+    )
 
     set(_compile_heavy_mem)
     set(_compile_heavy_jobs_max)
@@ -1886,31 +1900,36 @@ max concurrent heavy compile jobs (computed): ${_compile_heavy_jobs}")
   set(_compile_jobs 0)
   if(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS)
     set(_compile_jobs ${NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS})
-    message(STATUS "  NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS: \
-max concurrent regular compile jobs (from settings): ${_compile_jobs}")
+    message(STATUS
+      "  NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS: "
+      "max concurrent regular compile jobs (from settings): ${_compile_jobs}"
+    )
   endif()
-  if (${_compile_jobs} LESS 1)
+  if(${_compile_jobs} LESS 1)
     # Heuristics: Maximum amount of memory needed per regular compile task.
-    # Note: These values are purposedly over-estimated by 10-15% at least, to account
-    #       for other types of jobs' memory usage, other system memory usages, etc.
+    # NOTE: These values are purposefully over-estimated by 10-15% at least,
+    #       to account for other types of jobs' memory usage, other system memory usages, etc.
     #
     # FIXME:
-    # There are a few files in 'normal' compile job pool now that require a significant amount of RAM
-    # (e.g. `blenkernel/intern/volume.cc` can require almost 5GB of RAM in debug + ASAN builds). Until
-    # we can add individual files to the heavy compile pool job (not possible currently with CMake),
-    # using overly-big values in ASAN build cases is the best that can be done.
-    # Alternative solution would be to put several whole targets (like `bf_blenkernel`) into the heavy pool,
-    # but that is likely even worse of a workaround.
+    # There are a few files in 'normal' compile job pool now
+    # that require a significant amount of RAM
+    # (e.g. `blenkernel/intern/volume.cc` can require almost 5GB of RAM in debug + ASAN builds).
+    # Until we can add individual files to the heavy compile pool job
+    # (not possible currently with CMake), using overly-big
+    # values in ASAN build cases is the best that can be done.
+    # Alternative solution would be to put several whole targets (like `bf_blenkernel`)
+    # into the heavy pool, but that is likely even worse of a workaround.
     set(_compile_mem 500)
-    if (WITH_COMPILER_ASAN)
+    if(WITH_COMPILER_ASAN)
       set(_compile_mem 4000)
-    elseif ("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+    elseif("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
       set(_compile_mem 500)
     endif()
 
     math(EXPR _compile_jobs "${_TOT_MEM} / ${_compile_mem}")
     if(${_NUM_CORES} GREATER 3)
-      # Heuristics: Cap max number of regular compile jobs to less than the total available anount of cores,
+      # Heuristics: Cap max number of regular compile jobs
+      # to less than the total available amount of cores,
       # to ensure neither linking nor heavy compile jobs are starved from cores.
       math(EXPR _compile_jobs_max "${_NUM_CORES} - ${_link_jobs} - (${_compile_heavy_jobs} / 8)")
     else()
@@ -1922,9 +1941,10 @@ max concurrent regular compile jobs (from settings): ${_compile_jobs}")
       set(_compile_jobs 1)
     endif()
 
-    message(STATUS "  NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS: \
-max concurrent regular compile jobs (computed): ${_compile_jobs}")
-
+    message(STATUS
+      "  NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS: "
+      "max concurrent regular compile jobs (computed): ${_compile_jobs}"
+    )
     set(_compile_mem)
     set(_compile_jobs_max)
   endif()
