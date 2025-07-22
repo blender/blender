@@ -23,7 +23,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "zbuf.h"  // for rasterizer
+#include "zbuf.h" /* For rasterizer (#ZSpan and associated functions). */
 
 #include "RE_texture_margin.h"
 

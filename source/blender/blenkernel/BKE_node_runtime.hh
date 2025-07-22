@@ -314,9 +314,11 @@ struct bNodePanelExtent {
 
 class bNodePanelRuntime : NonCopyable, NonMovable {
  public:
-  /* The vertical location of the panel in the tree, calculated while drawing the nodes and invalid
+  /**
+   * The vertical location of the panel in the tree, calculated while drawing the nodes and invalid
    * if the node tree hasn't been drawn yet. In the node tree's "world space" (the same as
-   * #bNode::runtime::draw_bounds). */
+   * #bNode::runtime::draw_bounds).
+   */
   std::optional<float> header_center_y;
   std::optional<bNodePanelExtent> content_extent;
   /** Optional socket that is part of the panel header. */
@@ -402,7 +404,7 @@ class bNodeRuntime : NonCopyable, NonMovable {
   int toposort_left_to_right_index = -1;
   int toposort_right_to_left_index = -1;
 
-  /* Panel runtime state */
+  /** Panel runtime state. */
   Array<bNodePanelRuntime> panels;
 };
 

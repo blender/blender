@@ -20,7 +20,7 @@ struct UniqueName_Map;
 namespace blender::bke::library {
 
 struct LibraryRuntime {
-  /* Used for efficient calculations of unique names. */
+  /** Used for efficient calculations of unique names. */
   UniqueName_Map *name_map = nullptr;
 
   /**

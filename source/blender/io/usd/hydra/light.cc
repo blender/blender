@@ -87,7 +87,7 @@ void LightData::init()
   }
 
   pxr::GfVec3f color(light->r, light->g, light->b);
-  data_[pxr::HdLightTokens->color] = color;  // We multiply the Temperature by 1
+  data_[pxr::HdLightTokens->color] = color; /* We multiply the Temperature by 1. */
   data_[pxr::HdLightTokens->enableColorTemperature] = (light->mode & LA_USE_TEMPERATURE) != 0;
   data_[pxr::HdLightTokens->colorTemperature] = light->temperature;
 

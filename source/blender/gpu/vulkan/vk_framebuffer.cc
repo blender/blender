@@ -635,7 +635,7 @@ void VKFrameBuffer::rendering_ensure_render_pass(VKContext &context)
         srgb_ && enabled_srgb_,
         VKImageViewArrayed::DONT_CARE};
     const VKImageView &image_view = color_texture.image_view_get(image_view_info);
-    // TODO: Use VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL for readonly attachments.
+    /* TODO: Use VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL for read-only attachments. */
     VkImageLayout vk_image_layout = (attachment_state == GPU_ATTACHMENT_READ) ?
                                         VK_IMAGE_LAYOUT_GENERAL :
                                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;

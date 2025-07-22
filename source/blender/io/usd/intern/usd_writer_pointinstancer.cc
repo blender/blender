@@ -425,15 +425,15 @@ static void ExpandAttributePerInstance(const GetterFunc &getter,
                                        const std::vector<std::pair<int, int>> &instance_object_map,
                                        const pxr::UsdTimeCode &time)
 {
-  // MARK: Handle Collection Prototypes
-  // -----------------------------------------------------------------------------
-  // In Blender, a Collection is not an actual Object type. When exporting, the iterator
-  // flattens the Collection hierarchy, treating each object inside the Collection as an
-  // individual prototype. However, all these prototypes share the same instance attributes
-  // (e.g., positions, orientations, scales).
-  //
-  // To ensure correct arrangement, reading, and drawing in OpenUSD, we need to explicitly
-  // duplicate the instance attributes across all prototypes derived from the Collection.
+  /* MARK: Handle Collection Prototypes
+   * ----------------------------------
+   * In Blender, a Collection is not an actual Object type. When exporting, the iterator
+   * flattens the Collection hierarchy, treating each object inside the Collection as an
+   * individual prototype. However, all these prototypes share the same instance attributes
+   * (e.g., positions, orientations, scales).
+   *
+   * To ensure correct arrangement, reading, and drawing in OpenUSD, we need to explicitly
+   * duplicate the instance attributes across all prototypes derived from the Collection. */
   pxr::VtArray<T> original_values;
   if (!getter().Get(&original_values, time) || original_values.empty()) {
     return;
@@ -542,11 +542,11 @@ void USDPointInstancerWriter::handle_collection_prototypes(
     }
   }
 
-  // MARK: Ensure Instance Indices Exist
-  // -----------------------------------------------------------------------------
-  // If the PointInstancer has no authored instance indices, manually generate a default
-  // sequence of indices to ensure the PointInstancer functions correctly in OpenUSD.
-  // This guarantees that each instance can correctly reference its prototype.
+  /* MARK: Ensure Instance Indices Exist
+   * -----------------------------------
+   * If the PointInstancer has no authored instance indices, manually generate a default
+   * sequence of indices to ensure the PointInstancer functions correctly in OpenUSD.
+   * This guarantees that each instance can correctly reference its prototype. */
   pxr::UsdAttribute proto_indices_attr = usd_instancer.GetProtoIndicesAttr();
   if (!proto_indices_attr.HasAuthoredValue()) {
     std::vector<int> index;

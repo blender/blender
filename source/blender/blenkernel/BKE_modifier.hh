@@ -41,7 +41,7 @@ struct StructRNA;
 struct IDCacheKey;
 
 enum class ModifierTypeType {
-  /* Should not be used, only for None modifier type */
+  /** Should not be used, only for None modifier type. */
   None,
 
   /**
@@ -54,7 +54,7 @@ enum class ModifierTypeType {
 
   /** Modifier adds geometry. */
   Constructive,
-  /* Modifier can add and remove geometry. */
+  /** Modifier can add and remove geometry. */
   Nonconstructive,
 
   /**
@@ -249,7 +249,7 @@ struct ModifierTypeInfo {
                           Mesh *mesh,
                           blender::MutableSpan<blender::float3> positions);
 
-  /* Set deform matrix per vertex for crazy-space correction */
+  /** Set deform matrix per vertex for crazy-space correction. */
   void (*deform_matrices_EM)(ModifierData *md,
                              const ModifierEvalContext *ctx,
                              const BMEditMesh *em,

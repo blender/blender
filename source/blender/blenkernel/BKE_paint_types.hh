@@ -32,9 +32,11 @@ struct PaintRuntime : NonCopyable, NonMovable {
   blender::float3 average_stroke_accum = float3(0.0f, 0.0f, 0.0f);
   int average_stroke_counter = 0;
 
-  /* How much brush should be rotated in the view plane, 0 means x points right, y points up.
+  /**
+   * How much brush should be rotated in the view plane, 0 means x points right, y points up.
    * The convention is that the brush's _negative_ Y axis points in the tangent direction (of the
-   * mouse curve, Bezier curve, etc.) */
+   * mouse curve, Bezier curve, etc.)
+   */
   float brush_rotation = 0.0f;
   float brush_rotation_sec = 0.0f;
 
