@@ -153,8 +153,8 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gz
   View3D *v3d = CTX_wm_view3d(C);
   if ((((U.uiflag & USER_SHOW_GIZMO_NAVIGATE) == 0) &&
        (U.mini_axis_type != USER_MINI_AXIS_TYPE_GIZMO)) ||
-      (CTX_wm_screen(C)->state == SCREENFULL) ||
-      (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)))
+      (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)) ||
+      (CTX_wm_screen(C)->state == SCREENFULL))
   {
     return false;
   }

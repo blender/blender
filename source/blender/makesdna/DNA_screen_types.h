@@ -591,7 +591,12 @@ enum {
   SCREENNORMAL = 0,
   /** One editor taking over the screen. */
   SCREENMAXIMIZED = 1,
-  /** One editor taking over the screen with no bare-minimum UI elements. */
+  /**
+   * One editor taking over the screen with no bare-minimum UI elements.
+   *
+   * Besides making the area full-screen this disables navigation & statistics because
+   * this is part of a stereo 3D pipeline where these elements would interfere, see: !142418.
+   */
   SCREENFULL = 2,
 };
 
