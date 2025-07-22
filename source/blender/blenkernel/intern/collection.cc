@@ -799,7 +799,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
 /** \name Collection Naming
  * \{ */
 
-void BKE_collection_new_name_get(Collection *collection_parent, char *rname)
+void BKE_collection_new_name_get(Collection *collection_parent, char r_name[MAX_ID_NAME - 2])
 {
   char *name;
 
@@ -818,7 +818,7 @@ void BKE_collection_new_name_get(Collection *collection_parent, char *rname)
     name = BLI_sprintfN("%.*s %d", max_len, collection_parent->id.name + 2, number);
   }
 
-  BLI_strncpy(rname, name, MAX_ID_NAME - 2);
+  BLI_strncpy(r_name, name, MAX_ID_NAME - 2);
   MEM_freeN(name);
 }
 

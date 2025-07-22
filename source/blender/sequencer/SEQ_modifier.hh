@@ -22,10 +22,10 @@ struct RenderData;
 
 struct StripModifierTypeInfo {
   /* default name for the modifier */
-  char name[64]; /* MAX_NAME */
+  char name[/*MAX_NAME*/ 64];
 
   /* DNA structure name used on load/save filed */
-  char struct_name[64]; /* MAX_NAME */
+  char struct_name[/*MAX_NAME*/ 64];
 
   /* size of modifier data structure, used by allocation */
   int struct_size;

@@ -97,15 +97,20 @@ namespace blender::bke {
  */
 struct bNodeSocketTemplate {
   int type;
-  char name[64];                /* MAX_NAME */
-  float val1, val2, val3, val4; /* default alloc value for inputs */
+  char name[/*MAX_NAME*/ 64];
+  /** Default alloc value for inputs. */
+  float val1, val2, val3, val4;
   float min, max;
-  int subtype; /* would use PropertySubType but this is a bad level include to use RNA */
+  /** Would use PropertySubType but this is a bad level include to use RNA. */
+  int subtype;
   int flag;
 
-  /* after this line is used internal only */
-  bNodeSocket *sock;   /* used to hold verified socket */
-  char identifier[64]; /* generated from name */
+  /* After this line is used internal only. */
+
+  /** Used to hold verified socket. */
+  bNodeSocket *sock;
+  /** Generated from name. */
+  char identifier[/*MAX_NAME*/ 64];
 };
 
 /* Use `void *` for callbacks that require C++. This is rather ugly, but works well for now. This

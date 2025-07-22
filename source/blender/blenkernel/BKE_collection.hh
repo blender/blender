@@ -323,7 +323,8 @@ Collection *BKE_collection_from_session_uid(Main *bmain,
 /**
  * The automatic/fallback name of a new collection.
  */
-void BKE_collection_new_name_get(Collection *collection_parent, char *rname);
+void BKE_collection_new_name_get(Collection *collection_parent,
+                                 char r_name[/*MAX_ID_NAME - 2*/ 256]);
 /**
  * The name to show in the interface.
  */

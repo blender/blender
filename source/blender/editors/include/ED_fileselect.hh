@@ -236,7 +236,7 @@ struct FSMenuEntry {
   FSMenuEntry *next;
 
   char *path;
-  char name[256]; /* FILE_MAXFILE */
+  char name[/*FILE_MAXFILE*/ 256];
   short save;
   short valid;
   int icon;

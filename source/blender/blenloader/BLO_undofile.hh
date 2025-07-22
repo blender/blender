@@ -66,7 +66,7 @@ struct MemFileWriteData {
 };
 
 struct MemFileUndoData {
-  char filepath[1024]; /* FILE_MAX */
+  char filepath[/*FILE_MAX*/ 1024];
   MemFile memfile;
   size_t undo_size;
 };

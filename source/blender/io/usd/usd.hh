@@ -321,7 +321,7 @@ struct USDHook {
   /* Identifier used as label. */
   char name[64];
   /* Short help/description. */
-  char description[1024]; /* #RNA_DYN_DESCR_MAX */
+  char description[/*RNA_DYN_DESCR_MAX*/ 1024];
 
   /* rna_ext.data points to the USDHook class PyObject. */
   ExtensionRNA rna_ext;

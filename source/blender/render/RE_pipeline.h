@@ -38,34 +38,39 @@ struct ViewLayer;
 /* only used as handle */
 struct RenderView {
   struct RenderView *next, *prev;
-  char name[64]; /* EXR_VIEW_MAXNAME */
+  char name[/*EXR_VIEW_MAXNAME*/ 64];
 
-  /* Image buffer of a composited layer or a sequencer output.
-   * The ibuf is only allocated if it has an actual data in one of its buffers (float, byte, or
-   * GPU). */
+  /**
+   * Image buffer of a composited layer or a sequencer output.
+   * The `ibuf` is only allocated if it has an actual data in one of its buffers
+   * (float, byte, or GPU).
+   */
   struct ImBuf *ibuf;
 };
 
 struct RenderPass {
   struct RenderPass *next, *prev;
   int channels;
-  char name[64];   /* amount defined in IMB_openexr.hh */
+  char name[/*EXR_PASS_MAXNAME*/ 64];
   char chan_id[8]; /* amount defined in IMB_openexr.hh */
 
-  /* Image buffer which contains data of this pass.
+  /**
+   * Image buffer which contains data of this pass.
    *
    * The data can be either CPU side stored in ibuf->float_buffer, or a GPU-side stored in
    * ibuf->gpu (during rendering, i.e.).
    *
-   * The pass data storage is lazily allocated, and until data is actually provided (via either CPU
-   * buffer of GPU texture) the ibuf is not allocated. */
+   * The pass data storage is lazily allocated, and until data is actually provided
+   * (via either CPU buffer of GPU texture) the ibuf is not allocated.
+   */
   struct ImBuf *ibuf;
 
   int rectx, recty;
 
-  char fullname[64]; /* EXR_PASS_MAXNAME */
-  char view[64];     /* EXR_VIEW_MAXNAME */
-  int view_id;       /* quick lookup */
+  char fullname[/*EXR_PASS_MAXNAME*/ 64];
+  char view[/*EXR_VIEW_MAXNAME*/ 64];
+  /** Quick lookup. */
+  int view_id;
 
   char _pad0[4];
 };

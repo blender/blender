@@ -53,7 +53,7 @@ struct KeyingSetInfo {
   /** identifier so that user can hook this up to a KeyingSet (used as label). */
   char name[/*MAX_NAME*/ 64];
   /** Short help/description. */
-  char description[1024]; /* #RNA_DYN_DESCR_MAX */
+  char description[/*RNA_DYN_DESCR_MAX*/ 1024];
   /** Keying settings. */
   short keyingflag;
 

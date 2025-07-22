@@ -90,8 +90,9 @@ struct MovieReader {
   MovieIndex *record_run = nullptr;
   MovieIndex *no_gaps = nullptr;
 
-  char colorspace[64] = {};
-  char suffix[64] = {}; /* MAX_NAME - multiview */
+  char colorspace[/*MAX_COLORSPACE_NAME*/ 64] = {};
+  /** The maximum name from multi-view. */
+  char suffix[/*MAX_NAME*/ 64] = {};
 
   IDProperty *metadata = nullptr;
 };
