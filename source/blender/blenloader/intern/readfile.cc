@@ -15,6 +15,7 @@
 #include <cstring>
 #include <ctime>   /* for gmtime. */
 #include <fcntl.h> /* for open flags (O_BINARY, O_RDONLY). */
+#include <queue>
 
 #ifndef WIN32
 #  include <unistd.h> /* for read close */
@@ -4275,13 +4276,20 @@ static void read_libraries_report_invalid_id_names(FileData *fd,
 /** \name Library Linking (expand pointers)
  * \{ */
 
+using BLOExpandDoitCallback = void (*)(void *fdhandle,
+                                       std::queue<ID *> &ids_to_expand,
+                                       Main *mainvar,
+                                       void *idv);
+
 struct BlendExpander {
   FileData *fd;
+  std::queue<ID *> ids_to_expand;
   Main *main;
   BLOExpandDoitCallback callback;
 };
 
 static void read_id_in_lib(FileData *fd,
+                           std::queue<ID *> &ids_to_expand,
                            Main *libmain,
                            Library *parent_lib,
                            BHead *bhead,
@@ -4303,6 +4311,12 @@ static void read_id_in_lib(FileData *fd,
     /* For outliner dependency only. */
     if (parent_lib) {
       libmain->curlib->runtime->parent = parent_lib;
+    }
+
+    /* Only newly read ID needs to be added to the expand TODO queue, existing ones should already
+     * be in it - or already have been expanded. */
+    if (id_read_tags.needs_expanding) {
+      ids_to_expand.push(id);
     }
   }
   else {
@@ -4337,7 +4351,10 @@ static void read_id_in_lib(FileData *fd,
   }
 }
 
-static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
+static void expand_doit_library(void *fdhandle,
+                                std::queue<ID *> &ids_to_expand,
+                                Main *mainvar,
+                                void *old)
 {
   FileData *fd = static_cast<FileData *>(fdhandle);
 
@@ -4385,13 +4402,15 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       return;
     }
 
-    read_id_in_lib(fd, libmain, mainvar->curlib, bhead, {});
+    /* Placeholders never need expanding, as they are a mere reference to ID from another
+     * library/blendfile. */
+    read_id_in_lib(fd, ids_to_expand, libmain, mainvar->curlib, bhead, {});
   }
   else {
     /* Data-block in same library. */
     ID_Readfile_Data::Tags id_read_tags{};
     id_read_tags.needs_expanding = true;
-    read_id_in_lib(fd, mainvar, nullptr, bhead, id_read_tags);
+    read_id_in_lib(fd, ids_to_expand, mainvar, nullptr, bhead, id_read_tags);
   }
 }
 
@@ -4421,41 +4440,42 @@ static int expand_cb(LibraryIDLinkCallbackData *cb_data)
   ID *id = *(cb_data->id_pointer);
 
   if (id) {
-    expander->callback(expander->fd, expander->main, id);
+    expander->callback(expander->fd, expander->ids_to_expand, expander->main, id);
   }
 
   return IDWALK_RET_NOP;
 }
 
-void BLO_expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback callback)
+static void expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback callback)
 {
   FileData *fd = static_cast<FileData *>(fdhandle);
-  BlendExpander expander = {fd, mainvar, callback};
+  BlendExpander expander = {fd, {}, mainvar, callback};
 
-  for (bool do_it = true; do_it;) {
-    do_it = false;
-    ID *id_iter;
-
-    FOREACH_MAIN_ID_BEGIN (mainvar, id_iter) {
-      if (!BLO_readfile_id_runtime_tags(*id_iter).needs_expanding) {
-        continue;
-      }
-
-      /* Original (current) ID pointer can be considered as valid, but _not_ its own pointers to
-       * other IDs - the already loaded ones will be valid, but the yet-to-be-read ones will not.
-       * Expanding should _not_ require processing of UI ID pointers.
-       * Expanding should never modify ID pointers themselves.
-       * Handling of DNA deprecated data should never be needed in undo case. */
-      const LibraryForeachIDFlag flag = IDWALK_READONLY | IDWALK_NO_ORIG_POINTERS_ACCESS |
-                                        ((!fd || (fd->flags & FD_FLAGS_IS_MEMFILE)) ?
-                                             IDWALK_NOP :
-                                             IDWALK_DO_DEPRECATED_POINTERS);
-      BKE_library_foreach_ID_link(nullptr, id_iter, expand_cb, &expander, flag);
-
-      do_it = true;
-      BLO_readfile_id_runtime_tags_for_write(*id_iter).needs_expanding = false;
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (mainvar, id_iter) {
+    if (BLO_readfile_id_runtime_tags(*id_iter).needs_expanding) {
+      expander.ids_to_expand.push(id_iter);
     }
-    FOREACH_MAIN_ID_END;
+  }
+  FOREACH_MAIN_ID_END;
+
+  while (!expander.ids_to_expand.empty()) {
+    id_iter = expander.ids_to_expand.front();
+    expander.ids_to_expand.pop();
+    BLI_assert(BLO_readfile_id_runtime_tags(*id_iter).needs_expanding);
+
+    /* Original (current) ID pointer can be considered as valid, but _not_ its own pointers to
+     * other IDs - the already loaded ones will be valid, but the yet-to-be-read ones will not.
+     * Expanding should _not_ require processing of UI ID pointers.
+     * Expanding should never modify ID pointers themselves.
+     * Handling of DNA deprecated data should never be needed in undo case. */
+    const LibraryForeachIDFlag flag = IDWALK_READONLY | IDWALK_NO_ORIG_POINTERS_ACCESS |
+                                      ((!fd || (fd->flags & FD_FLAGS_IS_MEMFILE)) ?
+                                           IDWALK_NOP :
+                                           IDWALK_DO_DEPRECATED_POINTERS);
+    BKE_library_foreach_ID_link(nullptr, id_iter, expand_cb, &expander, flag);
+
+    BLO_readfile_id_runtime_tags_for_write(*id_iter).needs_expanding = false;
   }
 }
 
@@ -4644,7 +4664,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag, ReportL
   }
 
   /* make main consistent */
-  BLO_expand_main(*fd, mainl, expand_doit_library);
+  expand_main(*fd, mainl, expand_doit_library);
 
   read_libraries_report_invalid_id_names(
       *fd, reports, mainl->has_forward_compatibility_issues, mainl->curlib->runtime->filepath_abs);
@@ -5076,7 +5096,7 @@ static void read_libraries(FileData *basefd)
 
         /* Test if linked data-blocks need to read further linked data-blocks
          * and create link placeholders for them. */
-        BLO_expand_main(fd, libmain, expand_doit_library);
+        expand_main(fd, libmain, expand_doit_library);
       }
     }
   }
