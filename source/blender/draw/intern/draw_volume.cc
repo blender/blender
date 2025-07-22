@@ -71,8 +71,8 @@ struct VolumeModule {
     const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     const float one[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
-    dummy_zero.ensure_3d(GPU_RGBA32F, int3(1), usage, zero);
-    dummy_one.ensure_3d(GPU_RGBA32F, int3(1), usage, one);
+    dummy_zero.ensure_3d(blender::gpu::TextureFormat::SFLOAT_32_32_32_32, int3(1), usage, zero);
+    dummy_one.ensure_3d(blender::gpu::TextureFormat::SFLOAT_32_32_32_32, int3(1), usage, one);
     GPU_texture_extend_mode(dummy_zero, GPU_SAMPLER_EXTEND_MODE_REPEAT);
     GPU_texture_extend_mode(dummy_one, GPU_SAMPLER_EXTEND_MODE_REPEAT);
   }

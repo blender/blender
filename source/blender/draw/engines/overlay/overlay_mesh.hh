@@ -1086,7 +1086,8 @@ class MeshUVs : Overlay {
     BKE_maskrasterize_handle_free(handle);
 
     mask_texture_.free();
-    mask_texture_.ensure_2d(GPU_R16F, int2(width, height), GPU_TEXTURE_USAGE_SHADER_READ, buffer);
+    mask_texture_.ensure_2d(
+        gpu::TextureFormat::SFLOAT_16, int2(width, height), GPU_TEXTURE_USAGE_SHADER_READ, buffer);
 
     MEM_freeN(buffer);
   }

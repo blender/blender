@@ -228,7 +228,7 @@ class DisplayGPUTexture {
                                         max(width, 1),
                                         max(height, 1),
                                         1,
-                                        GPU_RGBA16F,
+                                        blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
                                         GPU_TEXTURE_USAGE_GENERAL,
                                         nullptr);
 

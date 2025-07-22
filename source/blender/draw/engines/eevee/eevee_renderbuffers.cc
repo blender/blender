@@ -66,10 +66,10 @@ void RenderBuffers::acquire(int2 extent)
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
 
   /* Depth and combined are always needed. */
-  depth_tx.ensure_2d(GPU_DEPTH32F_STENCIL8, extent, usage);
+  depth_tx.ensure_2d(gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8, extent, usage);
   /* TODO(fclem): depth_tx should ideally be a texture from pool but we need stencil_view
    * which is currently unsupported by pool textures. */
-  // depth_tx.acquire(extent, GPU_DEPTH32F_STENCIL8);
+  // depth_tx.acquire(extent, gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8);
   combined_tx.acquire(extent, color_format);
 
   eGPUTextureUsage usage_attachment_read_write = GPU_TEXTURE_USAGE_ATTACHMENT |
@@ -79,7 +79,7 @@ void RenderBuffers::acquire(int2 extent)
   /* TODO(fclem): Make vector pass allocation optional if no TAA or motion blur is needed. */
   vector_tx.acquire(extent, vector_tx_format(), usage_attachment_read_write);
 
-  const bool do_motion_vectors_swizzle = vector_tx_format() == GPU_RG16F;
+  const bool do_motion_vectors_swizzle = vector_tx_format() == gpu::TextureFormat::SFLOAT_16_16;
   if (do_motion_vectors_swizzle) {
     /* Change texture swizzling to avoid complexity in shaders. */
     GPU_texture_swizzle_set(vector_tx, "rgrg");
@@ -97,7 +97,7 @@ void RenderBuffers::acquire(int2 extent)
                               math::max(1, value_len),
                               usage_attachment_read_write);
 
-  const eGPUTextureFormat cryptomatte_format = GPU_RGBA32F;
+  const gpu::TextureFormat cryptomatte_format = gpu::TextureFormat::SFLOAT_32_32_32_32;
   cryptomatte_tx.acquire(pass_extent(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT |
                                      EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
                                      EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL),
@@ -112,7 +112,7 @@ void RenderBuffers::release()
   // depth_tx.release();
   combined_tx.release();
 
-  const bool do_motion_vectors_swizzle = vector_tx_format() == GPU_RG16F;
+  const bool do_motion_vectors_swizzle = vector_tx_format() == gpu::TextureFormat::SFLOAT_16_16;
   if (do_motion_vectors_swizzle) {
     /* Reset swizzle since this texture might be reused in other places. */
     GPU_texture_swizzle_set(vector_tx, "rgba");
@@ -122,7 +122,7 @@ void RenderBuffers::release()
   cryptomatte_tx.release();
 }
 
-eGPUTextureFormat RenderBuffers::vector_tx_format()
+gpu::TextureFormat RenderBuffers::vector_tx_format()
 {
   const eViewLayerEEVEEPassType enabled_passes = inst_.film.enabled_passes_get();
   bool do_full_vector_render_pass = ((enabled_passes & EEVEE_RENDER_PASS_VECTOR) ||
@@ -130,7 +130,8 @@ eGPUTextureFormat RenderBuffers::vector_tx_format()
                                     !inst_.is_viewport();
 
   /* Only RG16F (`motion.prev`) for the viewport. */
-  return do_full_vector_render_pass ? GPU_RGBA16F : GPU_RG16F;
+  return do_full_vector_render_pass ? gpu::TextureFormat::SFLOAT_16_16_16_16 :
+                                      gpu::TextureFormat::SFLOAT_16_16;
 }
 
 }  // namespace blender::eevee

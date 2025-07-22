@@ -220,14 +220,14 @@ void GPURenderTaskDelegate::set_viewport(pxr::GfVec4d const &viewport)
 
 void GPURenderTaskDelegate::add_aov(pxr::TfToken const &aov_key)
 {
-  eGPUTextureFormat format;
+  blender::gpu::TextureFormat format;
   blender::gpu::Texture **tex;
   if (aov_key == pxr::HdAovTokens->color) {
-    format = GPU_RGBA32F;
+    format = blender::gpu::TextureFormat::SFLOAT_32_32_32_32;
     tex = &tex_color_;
   }
   else if (aov_key == pxr::HdAovTokens->depth) {
-    format = GPU_DEPTH_COMPONENT32F;
+    format = blender::gpu::TextureFormat::SFLOAT_32_DEPTH;
     tex = &tex_depth_;
   }
   else {

@@ -479,7 +479,7 @@ static void gpu_material_ramp_texture_build(GPUMaterial *mat)
                                               CM_TABLE + 1,
                                               builder->current_layer,
                                               1,
-                                              GPU_RGBA16F,
+                                              blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
                                               GPU_TEXTURE_USAGE_SHADER_READ,
                                               (float *)builder->pixels);
 
@@ -498,7 +498,7 @@ static void gpu_material_sky_texture_build(GPUMaterial *mat)
                                              GPU_SKY_HEIGHT,
                                              mat->sky_builder->current_layer,
                                              1,
-                                             GPU_RGBA32F,
+                                             blender::gpu::TextureFormat::SFLOAT_32_32_32_32,
                                              GPU_TEXTURE_USAGE_SHADER_READ,
                                              (float *)mat->sky_builder->pixels);
 

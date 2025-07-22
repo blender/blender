@@ -82,10 +82,20 @@ TEST(VulkanDataConversion, texture_rgb16f_as_floats_to_rgba16f)
   };
 
   uint64_t device[num_pixels];
-  convert_host_to_device(device, input, num_pixels, GPU_DATA_FLOAT, GPU_RGB16F, GPU_RGBA16F);
+  convert_host_to_device(device,
+                         input,
+                         num_pixels,
+                         GPU_DATA_FLOAT,
+                         TextureFormat::SFLOAT_16_16_16,
+                         TextureFormat::SFLOAT_16_16_16_16);
 
   float read_back[num_pixels * 3];
-  convert_device_to_host(read_back, device, num_pixels, GPU_DATA_FLOAT, GPU_RGB16F, GPU_RGBA16F);
+  convert_device_to_host(read_back,
+                         device,
+                         num_pixels,
+                         GPU_DATA_FLOAT,
+                         TextureFormat::SFLOAT_16_16_16,
+                         TextureFormat::SFLOAT_16_16_16_16);
 
   for (int i : IndexRange(num_pixels * 3)) {
     EXPECT_NEAR(input[i], read_back[i], 0.01);
@@ -114,10 +124,20 @@ TEST(VulkanDataConversion, texture_rgb32f_as_floats_to_rgba32f)
   };
 
   float device[num_pixels * 4];
-  convert_host_to_device(device, input, num_pixels, GPU_DATA_FLOAT, GPU_RGB32F, GPU_RGBA32F);
+  convert_host_to_device(device,
+                         input,
+                         num_pixels,
+                         GPU_DATA_FLOAT,
+                         TextureFormat::SFLOAT_32_32_32,
+                         TextureFormat::SFLOAT_32_32_32_32);
 
   float read_back[num_pixels * 3];
-  convert_device_to_host(read_back, device, num_pixels, GPU_DATA_FLOAT, GPU_RGB32F, GPU_RGBA32F);
+  convert_device_to_host(read_back,
+                         device,
+                         num_pixels,
+                         GPU_DATA_FLOAT,
+                         TextureFormat::SFLOAT_32_32_32,
+                         TextureFormat::SFLOAT_32_32_32_32);
 
   for (int i : IndexRange(num_pixels * 3)) {
     EXPECT_NEAR(input[i], read_back[i], 0.01);

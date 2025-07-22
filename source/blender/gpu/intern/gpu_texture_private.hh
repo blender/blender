@@ -101,7 +101,7 @@ class Texture {
   /** Width & Height & Depth. For cube-map arrays, d is number of face-layers. */
   int w_, h_, d_;
   /** Internal data format. */
-  eGPUTextureFormat format_;
+  TextureFormat format_;
   /** Format characteristics. */
   eGPUTextureFormatFlag format_flag_;
   /** Texture type. */
@@ -127,13 +127,13 @@ class Texture {
   virtual ~Texture();
 
   /* Return true on success. */
-  bool init_1D(int w, int layers, int mip_len, eGPUTextureFormat format);
-  bool init_2D(int w, int h, int layers, int mip_len, eGPUTextureFormat format);
-  bool init_3D(int w, int h, int d, int mip_len, eGPUTextureFormat format);
-  bool init_cubemap(int w, int layers, int mip_len, eGPUTextureFormat format);
-  bool init_buffer(VertBuf *vbo, eGPUTextureFormat format);
-  bool init_view(blender::gpu::Texture *src,
-                 eGPUTextureFormat format,
+  bool init_1D(int w, int layers, int mip_len, TextureFormat format);
+  bool init_2D(int w, int h, int layers, int mip_len, TextureFormat format);
+  bool init_3D(int w, int h, int d, int mip_len, TextureFormat format);
+  bool init_cubemap(int w, int layers, int mip_len, TextureFormat format);
+  bool init_buffer(VertBuf *vbo, TextureFormat format);
+  bool init_view(Texture *src,
+                 TextureFormat format,
                  eGPUTextureType type,
                  int mip_start,
                  int mip_len,
@@ -251,7 +251,7 @@ class Texture {
     return mipmaps_;
   }
 
-  eGPUTextureFormat format_get() const
+  TextureFormat format_get() const
   {
     return format_;
   }
@@ -266,43 +266,43 @@ class Texture {
   GPUAttachmentType attachment_type(int slot) const
   {
     switch (format_) {
-      case GPU_DEPTH_COMPONENT32F:
-      case GPU_DEPTH_COMPONENT16:
+      case TextureFormat::SFLOAT_32_DEPTH:
+      case TextureFormat::UNORM_16_DEPTH:
         BLI_assert(slot == 0);
         return GPU_FB_DEPTH_ATTACHMENT;
-      case GPU_DEPTH32F_STENCIL8:
+      case TextureFormat::SFLOAT_32_DEPTH_UINT_8:
         BLI_assert(slot == 0);
         return GPU_FB_DEPTH_STENCIL_ATTACHMENT;
       default:
         /* Valid color attachment formats. */
         return GPU_FB_COLOR_ATTACHMENT0 + slot;
 
-      case GPU_RGB16F:
-      case GPU_RGBA16_SNORM:
-      case GPU_RGBA8_SNORM:
-      case GPU_RGB32F:
-      case GPU_RGB32I:
-      case GPU_RGB32UI:
-      case GPU_RGB16_SNORM:
-      case GPU_RGB16I:
-      case GPU_RGB16UI:
-      case GPU_RGB16:
-      case GPU_RGB8_SNORM:
-      case GPU_RGB8:
-      case GPU_RGB8I:
-      case GPU_RGB8UI:
-      case GPU_RG16_SNORM:
-      case GPU_RG8_SNORM:
-      case GPU_R16_SNORM:
-      case GPU_R8_SNORM:
-      case GPU_SRGB8_A8_DXT1:
-      case GPU_SRGB8_A8_DXT3:
-      case GPU_SRGB8_A8_DXT5:
-      case GPU_RGBA8_DXT1:
-      case GPU_RGBA8_DXT3:
-      case GPU_RGBA8_DXT5:
-      case GPU_SRGB8:
-      case GPU_RGB9_E5:
+      case TextureFormat::SFLOAT_16_16_16:
+      case TextureFormat::SNORM_16_16_16_16:
+      case TextureFormat::SNORM_8_8_8_8:
+      case TextureFormat::SFLOAT_32_32_32:
+      case TextureFormat::SINT_32_32_32:
+      case TextureFormat::UINT_32_32_32:
+      case TextureFormat::SNORM_16_16_16:
+      case TextureFormat::SINT_16_16_16:
+      case TextureFormat::UINT_16_16_16:
+      case TextureFormat::UNORM_16_16_16:
+      case TextureFormat::SNORM_8_8_8:
+      case TextureFormat::UNORM_8_8_8:
+      case TextureFormat::SINT_8_8_8:
+      case TextureFormat::UINT_8_8_8:
+      case TextureFormat::SNORM_16_16:
+      case TextureFormat::SNORM_8_8:
+      case TextureFormat::SNORM_16:
+      case TextureFormat::SNORM_8:
+      case TextureFormat::SRGB_DXT1:
+      case TextureFormat::SRGB_DXT3:
+      case TextureFormat::SRGB_DXT5:
+      case TextureFormat::SNORM_DXT1:
+      case TextureFormat::SNORM_DXT3:
+      case TextureFormat::SNORM_DXT5:
+      case TextureFormat::SRGBA_8_8_8:
+      case TextureFormat::UFLOAT_9_9_9_EXP_5:
         BLI_assert_msg(0, "Texture cannot be attached to a framebuffer because of its type");
         return GPU_FB_COLOR_ATTACHMENT0;
     }
@@ -348,125 +348,127 @@ static inline const PixelBuffer *unwrap(const GPUPixelBuffer *pixbuf)
 
 #undef DEBUG_NAME_LEN
 
-inline size_t to_bytesize(eGPUTextureFormat format)
+inline size_t to_bytesize(TextureFormat format)
 {
   switch (format) {
     /* Formats texture & render-buffer */
-    case GPU_RGBA8UI:
-    case GPU_RGBA8I:
-    case GPU_RGBA8:
+    case TextureFormat::UINT_8_8_8_8:
+    case TextureFormat::SINT_8_8_8_8:
+    case TextureFormat::UNORM_8_8_8_8:
       return (4 * 8) / 8;
-    case GPU_RGBA32UI:
-    case GPU_RGBA32I:
-    case GPU_RGBA32F:
+    case TextureFormat::UINT_32_32_32_32:
+    case TextureFormat::SINT_32_32_32_32:
+    case TextureFormat::SFLOAT_32_32_32_32:
       return (4 * 32) / 8;
-    case GPU_RGBA16UI:
-    case GPU_RGBA16I:
-    case GPU_RGBA16F:
-    case GPU_RGBA16:
+    case TextureFormat::UINT_16_16_16_16:
+    case TextureFormat::SINT_16_16_16_16:
+    case TextureFormat::SFLOAT_16_16_16_16:
+    case TextureFormat::UNORM_16_16_16_16:
       return (4 * 16) / 8;
-    case GPU_RG8UI:
-    case GPU_RG8I:
-    case GPU_RG8:
+    case TextureFormat::UINT_8_8:
+    case TextureFormat::SINT_8_8:
+    case TextureFormat::UNORM_8_8:
       return (2 * 8) / 8;
-    case GPU_RG32UI:
-    case GPU_RG32I:
-    case GPU_RG32F:
+    case TextureFormat::UINT_32_32:
+    case TextureFormat::SINT_32_32:
+    case TextureFormat::SFLOAT_32_32:
       return (2 * 32) / 8;
-    case GPU_RG16UI:
-    case GPU_RG16I:
-    case GPU_RG16F:
-    case GPU_RG16:
+    case TextureFormat::UINT_16_16:
+    case TextureFormat::SINT_16_16:
+    case TextureFormat::SFLOAT_16_16:
+    case TextureFormat::UNORM_16_16:
       return (2 * 16) / 8;
-    case GPU_R8UI:
-    case GPU_R8I:
-    case GPU_R8:
+    case TextureFormat::UINT_8:
+    case TextureFormat::SINT_8:
+    case TextureFormat::UNORM_8:
       return 8 / 8;
-    case GPU_R32UI:
-    case GPU_R32I:
-    case GPU_R32F:
+    case TextureFormat::UINT_32:
+    case TextureFormat::SINT_32:
+    case TextureFormat::SFLOAT_32:
       return 32 / 8;
-    case GPU_R16UI:
-    case GPU_R16I:
-    case GPU_R16F:
-    case GPU_R16:
+    case TextureFormat::UINT_16:
+    case TextureFormat::SINT_16:
+    case TextureFormat::SFLOAT_16:
+    case TextureFormat::UNORM_16:
       return 16 / 8;
 
     /* Special formats texture & render-buffer */
-    case GPU_RGB10_A2:
-    case GPU_RGB10_A2UI:
+    case TextureFormat::UNORM_10_10_10_2:
+    case TextureFormat::UINT_10_10_10_2:
       return (3 * 10 + 2) / 8;
-    case GPU_R11F_G11F_B10F:
+    case TextureFormat::UFLOAT_11_11_10:
       return (11 + 11 + 10) / 8;
-    case GPU_DEPTH32F_STENCIL8:
+    case TextureFormat::SFLOAT_32_DEPTH_UINT_8:
       /* 32-bit depth, 8 bits stencil, and 24 unused bits. */
       return (32 + 8 + 24) / 8;
-    case GPU_SRGB8_A8:
+    case TextureFormat::SRGBA_8_8_8_8:
       return (3 * 8 + 8) / 8;
 
     /* Texture only formats. */
-    case GPU_RGB16F:
-    case GPU_RGB16_SNORM:
-    case GPU_RGB16I:
-    case GPU_RGB16UI:
-    case GPU_RGB16:
+    case TextureFormat::SFLOAT_16_16_16:
+    case TextureFormat::SNORM_16_16_16:
+    case TextureFormat::SINT_16_16_16:
+    case TextureFormat::UINT_16_16_16:
+    case TextureFormat::UNORM_16_16_16:
       return (3 * 16) / 8;
-    case GPU_RGBA16_SNORM:
+    case TextureFormat::SNORM_16_16_16_16:
       return (4 * 16) / 8;
-    case GPU_RGBA8_SNORM:
+    case TextureFormat::SNORM_8_8_8_8:
       return (4 * 8) / 8;
-    case GPU_RGB32F:
-    case GPU_RGB32I:
-    case GPU_RGB32UI:
+    case TextureFormat::SFLOAT_32_32_32:
+    case TextureFormat::SINT_32_32_32:
+    case TextureFormat::UINT_32_32_32:
       return (3 * 32) / 8;
-    case GPU_RGB8_SNORM:
-    case GPU_RGB8:
-    case GPU_RGB8I:
-    case GPU_RGB8UI:
+    case TextureFormat::SNORM_8_8_8:
+    case TextureFormat::UNORM_8_8_8:
+    case TextureFormat::SINT_8_8_8:
+    case TextureFormat::UINT_8_8_8:
       return (3 * 8) / 8;
-    case GPU_RG16_SNORM:
+    case TextureFormat::SNORM_16_16:
       return (2 * 16) / 8;
-    case GPU_RG8_SNORM:
+    case TextureFormat::SNORM_8_8:
       return (2 * 8) / 8;
-    case GPU_R16_SNORM:
+    case TextureFormat::SNORM_16:
       return (1 * 16) / 8;
-    case GPU_R8_SNORM:
+    case TextureFormat::SNORM_8:
       return (1 * 8) / 8;
 
     /* Special formats, texture only. */
-    case GPU_SRGB8_A8_DXT1:
-    case GPU_SRGB8_A8_DXT3:
-    case GPU_SRGB8_A8_DXT5:
-    case GPU_RGBA8_DXT1:
-    case GPU_RGBA8_DXT3:
-    case GPU_RGBA8_DXT5:
+    case TextureFormat::SRGB_DXT1:
+    case TextureFormat::SRGB_DXT3:
+    case TextureFormat::SRGB_DXT5:
+    case TextureFormat::SNORM_DXT1:
+    case TextureFormat::SNORM_DXT3:
+    case TextureFormat::SNORM_DXT5:
       /* Incorrect but actual size is fractional. */
       return 1;
-    case GPU_SRGB8:
+    case TextureFormat::SRGBA_8_8_8:
       return (3 * 8) / 8;
-    case GPU_RGB9_E5:
+    case TextureFormat::UFLOAT_9_9_9_EXP_5:
       return (3 * 9 + 5) / 8;
 
     /* Depth Formats. */
-    case GPU_DEPTH_COMPONENT32F:
+    case TextureFormat::SFLOAT_32_DEPTH:
       return 32 / 8;
-    case GPU_DEPTH_COMPONENT16:
+    case TextureFormat::UNORM_16_DEPTH:
       return 16 / 8;
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
   }
   BLI_assert_unreachable();
   return 0;
 }
 
-inline size_t to_block_size(eGPUTextureFormat data_type)
+inline size_t to_block_size(TextureFormat data_type)
 {
   switch (data_type) {
-    case GPU_SRGB8_A8_DXT1:
-    case GPU_RGBA8_DXT1:
+    case TextureFormat::SRGB_DXT1:
+    case TextureFormat::SNORM_DXT1:
       return 8;
-    case GPU_SRGB8_A8_DXT3:
-    case GPU_SRGB8_A8_DXT5:
-    case GPU_RGBA8_DXT3:
-    case GPU_RGBA8_DXT5:
+    case TextureFormat::SRGB_DXT3:
+    case TextureFormat::SRGB_DXT5:
+    case TextureFormat::SNORM_DXT3:
+    case TextureFormat::SNORM_DXT5:
       return 16;
     default:
       BLI_assert_msg(0, "Texture format is not a compressed format");
@@ -474,231 +476,237 @@ inline size_t to_block_size(eGPUTextureFormat data_type)
   }
 }
 
-inline eGPUTextureFormatFlag to_format_flag(eGPUTextureFormat format)
+inline eGPUTextureFormatFlag to_format_flag(TextureFormat format)
 {
   switch (format) {
     /* Formats texture & render-buffer */
-    case GPU_RGBA8UI:
+    case TextureFormat::UINT_8_8_8_8:
       return GPU_FORMAT_INTEGER;
-    case GPU_RGBA8I:
+    case TextureFormat::SINT_8_8_8_8:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RGBA8:
+    case TextureFormat::UNORM_8_8_8_8:
       return GPU_FORMAT_NORMALIZED_INTEGER;
-    case GPU_RGBA32UI:
+    case TextureFormat::UINT_32_32_32_32:
       return GPU_FORMAT_INTEGER;
-    case GPU_RGBA32I:
+    case TextureFormat::SINT_32_32_32_32:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RGBA32F:
+    case TextureFormat::SFLOAT_32_32_32_32:
       return GPU_FORMAT_FLOAT | GPU_FORMAT_SIGNED;
-    case GPU_RGBA16UI:
+    case TextureFormat::UINT_16_16_16_16:
       return GPU_FORMAT_INTEGER;
-    case GPU_RGBA16I:
+    case TextureFormat::SINT_16_16_16_16:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RGBA16F:
+    case TextureFormat::SFLOAT_16_16_16_16:
       return GPU_FORMAT_FLOAT | GPU_FORMAT_SIGNED;
-    case GPU_RGBA16:
+    case TextureFormat::UNORM_16_16_16_16:
       return GPU_FORMAT_NORMALIZED_INTEGER;
-    case GPU_RG8UI:
+    case TextureFormat::UINT_8_8:
       return GPU_FORMAT_INTEGER;
-    case GPU_RG8I:
+    case TextureFormat::SINT_8_8:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RG8:
+    case TextureFormat::UNORM_8_8:
       return GPU_FORMAT_NORMALIZED_INTEGER;
-    case GPU_RG32UI:
+    case TextureFormat::UINT_32_32:
       return GPU_FORMAT_INTEGER;
-    case GPU_RG32I:
+    case TextureFormat::SINT_32_32:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RG32F:
+    case TextureFormat::SFLOAT_32_32:
       return GPU_FORMAT_FLOAT | GPU_FORMAT_SIGNED;
-    case GPU_RG16UI:
+    case TextureFormat::UINT_16_16:
       return GPU_FORMAT_INTEGER;
-    case GPU_RG16I:
+    case TextureFormat::SINT_16_16:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RG16F:
+    case TextureFormat::SFLOAT_16_16:
       return GPU_FORMAT_FLOAT | GPU_FORMAT_SIGNED;
-    case GPU_RG16:
+    case TextureFormat::UNORM_16_16:
       return GPU_FORMAT_NORMALIZED_INTEGER;
-    case GPU_R8UI:
+    case TextureFormat::UINT_8:
       return GPU_FORMAT_INTEGER;
-    case GPU_R8I:
+    case TextureFormat::SINT_8:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_R8:
+    case TextureFormat::UNORM_8:
       return GPU_FORMAT_NORMALIZED_INTEGER;
-    case GPU_R32UI:
+    case TextureFormat::UINT_32:
       return GPU_FORMAT_INTEGER;
-    case GPU_R32I:
+    case TextureFormat::SINT_32:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_R32F:
+    case TextureFormat::SFLOAT_32:
       return GPU_FORMAT_FLOAT | GPU_FORMAT_SIGNED;
-    case GPU_R16UI:
+    case TextureFormat::UINT_16:
       return GPU_FORMAT_INTEGER;
-    case GPU_R16I:
+    case TextureFormat::SINT_16:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_R16F:
+    case TextureFormat::SFLOAT_16:
       return GPU_FORMAT_FLOAT | GPU_FORMAT_SIGNED;
-    case GPU_R16:
+    case TextureFormat::UNORM_16:
       return GPU_FORMAT_NORMALIZED_INTEGER;
 
     /* Special formats texture & render-buffer */
-    case GPU_RGB10_A2:
+    case TextureFormat::UNORM_10_10_10_2:
       return GPU_FORMAT_NORMALIZED_INTEGER;
-    case GPU_RGB10_A2UI:
+    case TextureFormat::UINT_10_10_10_2:
       return GPU_FORMAT_INTEGER;
-    case GPU_R11F_G11F_B10F:
+    case TextureFormat::UFLOAT_11_11_10:
       return GPU_FORMAT_FLOAT;
-    case GPU_DEPTH32F_STENCIL8:
+    case TextureFormat::SFLOAT_32_DEPTH_UINT_8:
       return GPU_FORMAT_DEPTH_STENCIL;
-    case GPU_SRGB8_A8:
+    case TextureFormat::SRGBA_8_8_8_8:
       return GPU_FORMAT_NORMALIZED_INTEGER | GPU_FORMAT_SRGB;
 
     /* Texture only formats. */
-    case GPU_RGB16F:
+    case TextureFormat::SFLOAT_16_16_16:
       return GPU_FORMAT_FLOAT | GPU_FORMAT_SIGNED;
-    case GPU_RGB16_SNORM:
+    case TextureFormat::SNORM_16_16_16:
       return GPU_FORMAT_NORMALIZED_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RGB16I:
+    case TextureFormat::SINT_16_16_16:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RGB16UI:
+    case TextureFormat::UINT_16_16_16:
       return GPU_FORMAT_INTEGER;
-    case GPU_RGB16:
+    case TextureFormat::UNORM_16_16_16:
       return GPU_FORMAT_NORMALIZED_INTEGER;
-    case GPU_RGBA16_SNORM:
-    case GPU_RGBA8_SNORM:
+    case TextureFormat::SNORM_16_16_16_16:
+    case TextureFormat::SNORM_8_8_8_8:
       return GPU_FORMAT_NORMALIZED_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RGB32F:
+    case TextureFormat::SFLOAT_32_32_32:
       return GPU_FORMAT_FLOAT | GPU_FORMAT_SIGNED;
-    case GPU_RGB32I:
+    case TextureFormat::SINT_32_32_32:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RGB32UI:
+    case TextureFormat::UINT_32_32_32:
       return GPU_FORMAT_INTEGER;
-    case GPU_RGB8_SNORM:
+    case TextureFormat::SNORM_8_8_8:
       return GPU_FORMAT_NORMALIZED_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RGB8:
+    case TextureFormat::UNORM_8_8_8:
       return GPU_FORMAT_NORMALIZED_INTEGER;
-    case GPU_RGB8I:
+    case TextureFormat::SINT_8_8_8:
       return GPU_FORMAT_INTEGER | GPU_FORMAT_SIGNED;
-    case GPU_RGB8UI:
+    case TextureFormat::UINT_8_8_8:
       return GPU_FORMAT_INTEGER;
-    case GPU_RG16_SNORM:
-    case GPU_RG8_SNORM:
-    case GPU_R16_SNORM:
-    case GPU_R8_SNORM:
+    case TextureFormat::SNORM_16_16:
+    case TextureFormat::SNORM_8_8:
+    case TextureFormat::SNORM_16:
+    case TextureFormat::SNORM_8:
       return GPU_FORMAT_NORMALIZED_INTEGER | GPU_FORMAT_SIGNED;
 
     /* Special formats, texture only. */
-    case GPU_SRGB8_A8_DXT1:
-    case GPU_SRGB8_A8_DXT3:
-    case GPU_SRGB8_A8_DXT5:
+    case TextureFormat::SRGB_DXT1:
+    case TextureFormat::SRGB_DXT3:
+    case TextureFormat::SRGB_DXT5:
       return GPU_FORMAT_NORMALIZED_INTEGER | GPU_FORMAT_COMPRESSED | GPU_FORMAT_SRGB;
-    case GPU_RGBA8_DXT1:
-    case GPU_RGBA8_DXT3:
-    case GPU_RGBA8_DXT5:
+    case TextureFormat::SNORM_DXT1:
+    case TextureFormat::SNORM_DXT3:
+    case TextureFormat::SNORM_DXT5:
       return GPU_FORMAT_NORMALIZED_INTEGER | GPU_FORMAT_COMPRESSED;
-    case GPU_SRGB8:
+    case TextureFormat::SRGBA_8_8_8:
       return GPU_FORMAT_NORMALIZED_INTEGER | GPU_FORMAT_SRGB;
-    case GPU_RGB9_E5:
+    case TextureFormat::UFLOAT_9_9_9_EXP_5:
       return GPU_FORMAT_FLOAT;
 
     /* Depth Formats. */
-    case GPU_DEPTH_COMPONENT32F:
-    case GPU_DEPTH_COMPONENT16:
+    case TextureFormat::SFLOAT_32_DEPTH:
+    case TextureFormat::UNORM_16_DEPTH:
       return GPU_FORMAT_DEPTH;
+
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
   }
   BLI_assert_unreachable();
   return GPU_FORMAT_FLOAT;
 }
 
-inline int to_component_len(eGPUTextureFormat format)
+inline int to_component_len(TextureFormat format)
 {
   switch (format) {
     /* Formats texture & render-buffer */
-    case GPU_RGBA8UI:
-    case GPU_RGBA8I:
-    case GPU_RGBA8:
-    case GPU_RGBA32UI:
-    case GPU_RGBA32I:
-    case GPU_RGBA32F:
-    case GPU_RGBA16UI:
-    case GPU_RGBA16I:
-    case GPU_RGBA16F:
-    case GPU_RGBA16:
+    case TextureFormat::UINT_8_8_8_8:
+    case TextureFormat::SINT_8_8_8_8:
+    case TextureFormat::UNORM_8_8_8_8:
+    case TextureFormat::UINT_32_32_32_32:
+    case TextureFormat::SINT_32_32_32_32:
+    case TextureFormat::SFLOAT_32_32_32_32:
+    case TextureFormat::UINT_16_16_16_16:
+    case TextureFormat::SINT_16_16_16_16:
+    case TextureFormat::SFLOAT_16_16_16_16:
+    case TextureFormat::UNORM_16_16_16_16:
       return 4;
-    case GPU_RG8UI:
-    case GPU_RG8I:
-    case GPU_RG8:
-    case GPU_RG32UI:
-    case GPU_RG32I:
-    case GPU_RG32F:
-    case GPU_RG16UI:
-    case GPU_RG16I:
-    case GPU_RG16F:
-    case GPU_RG16:
+    case TextureFormat::UINT_8_8:
+    case TextureFormat::SINT_8_8:
+    case TextureFormat::UNORM_8_8:
+    case TextureFormat::UINT_32_32:
+    case TextureFormat::SINT_32_32:
+    case TextureFormat::SFLOAT_32_32:
+    case TextureFormat::UINT_16_16:
+    case TextureFormat::SINT_16_16:
+    case TextureFormat::SFLOAT_16_16:
+    case TextureFormat::UNORM_16_16:
       return 2;
-    case GPU_R8UI:
-    case GPU_R8I:
-    case GPU_R8:
-    case GPU_R32UI:
-    case GPU_R32I:
-    case GPU_R32F:
-    case GPU_R16UI:
-    case GPU_R16I:
-    case GPU_R16F:
-    case GPU_R16:
+    case TextureFormat::UINT_8:
+    case TextureFormat::SINT_8:
+    case TextureFormat::UNORM_8:
+    case TextureFormat::UINT_32:
+    case TextureFormat::SINT_32:
+    case TextureFormat::SFLOAT_32:
+    case TextureFormat::UINT_16:
+    case TextureFormat::SINT_16:
+    case TextureFormat::SFLOAT_16:
+    case TextureFormat::UNORM_16:
       return 1;
 
     /* Special formats texture & render-buffer */
-    case GPU_RGB10_A2:
-    case GPU_RGB10_A2UI:
+    case TextureFormat::UNORM_10_10_10_2:
+    case TextureFormat::UINT_10_10_10_2:
       return 4;
-    case GPU_R11F_G11F_B10F:
+    case TextureFormat::UFLOAT_11_11_10:
       return 3;
-    case GPU_DEPTH32F_STENCIL8:
+    case TextureFormat::SFLOAT_32_DEPTH_UINT_8:
       /* Only count depth component. */
       return 1;
-    case GPU_SRGB8_A8:
+    case TextureFormat::SRGBA_8_8_8_8:
       return 4;
 
     /* Texture only formats. */
-    case GPU_RGB16F:
-    case GPU_RGB16_SNORM:
-    case GPU_RGB16I:
-    case GPU_RGB16UI:
-    case GPU_RGB16:
+    case TextureFormat::SFLOAT_16_16_16:
+    case TextureFormat::SNORM_16_16_16:
+    case TextureFormat::SINT_16_16_16:
+    case TextureFormat::UINT_16_16_16:
+    case TextureFormat::UNORM_16_16_16:
       return 3;
-    case GPU_RGBA16_SNORM:
-    case GPU_RGBA8_SNORM:
+    case TextureFormat::SNORM_16_16_16_16:
+    case TextureFormat::SNORM_8_8_8_8:
       return 4;
-    case GPU_RGB32F:
-    case GPU_RGB32I:
-    case GPU_RGB32UI:
-    case GPU_RGB8_SNORM:
-    case GPU_RGB8:
-    case GPU_RGB8I:
-    case GPU_RGB8UI:
+    case TextureFormat::SFLOAT_32_32_32:
+    case TextureFormat::SINT_32_32_32:
+    case TextureFormat::UINT_32_32_32:
+    case TextureFormat::SNORM_8_8_8:
+    case TextureFormat::UNORM_8_8_8:
+    case TextureFormat::SINT_8_8_8:
+    case TextureFormat::UINT_8_8_8:
       return 3;
-    case GPU_RG16_SNORM:
-    case GPU_RG8_SNORM:
+    case TextureFormat::SNORM_16_16:
+    case TextureFormat::SNORM_8_8:
       return 2;
-    case GPU_R16_SNORM:
-    case GPU_R8_SNORM:
+    case TextureFormat::SNORM_16:
+    case TextureFormat::SNORM_8:
       return 1;
 
     /* Special formats, texture only. */
-    case GPU_SRGB8_A8_DXT1:
-    case GPU_SRGB8_A8_DXT3:
-    case GPU_SRGB8_A8_DXT5:
-    case GPU_RGBA8_DXT1:
-    case GPU_RGBA8_DXT3:
-    case GPU_RGBA8_DXT5:
+    case TextureFormat::SRGB_DXT1:
+    case TextureFormat::SRGB_DXT3:
+    case TextureFormat::SRGB_DXT5:
+    case TextureFormat::SNORM_DXT1:
+    case TextureFormat::SNORM_DXT3:
+    case TextureFormat::SNORM_DXT5:
       return 4;
-    case GPU_SRGB8:
-    case GPU_RGB9_E5:
+    case TextureFormat::SRGBA_8_8_8:
+    case TextureFormat::UFLOAT_9_9_9_EXP_5:
       return 3;
 
     /* Depth Formats. */
-    case GPU_DEPTH_COMPONENT32F:
-    case GPU_DEPTH_COMPONENT16:
+    case TextureFormat::SFLOAT_32_DEPTH:
+    case TextureFormat::UNORM_16_DEPTH:
       return 1;
+
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
   }
   BLI_assert_unreachable();
   return 1;
@@ -724,13 +732,14 @@ inline size_t to_bytesize(eGPUDataFormat data_format)
   return 0;
 }
 
-inline size_t to_bytesize(eGPUTextureFormat tex_format, eGPUDataFormat data_format)
+inline size_t to_bytesize(TextureFormat tex_format, eGPUDataFormat data_format)
 {
   /* Special case for compacted types.
    * Standard component len calculation does not apply, as the texture formats contain multiple
    * channels, but associated data format contains several compacted components. */
-  if ((tex_format == GPU_R11F_G11F_B10F && data_format == GPU_DATA_10_11_11_REV) ||
-      ((tex_format == GPU_RGB10_A2 || tex_format == GPU_RGB10_A2UI) &&
+  if ((tex_format == TextureFormat::UFLOAT_11_11_10 && data_format == GPU_DATA_10_11_11_REV) ||
+      ((tex_format == TextureFormat::UNORM_10_10_10_2 ||
+        tex_format == TextureFormat::UINT_10_10_10_2) &&
        data_format == GPU_DATA_2_10_10_10_REV))
   {
     return 4;
@@ -740,319 +749,327 @@ inline size_t to_bytesize(eGPUTextureFormat tex_format, eGPUDataFormat data_form
 }
 
 /* Definitely not complete, edit according to the gl specification. */
-constexpr bool validate_data_format(eGPUTextureFormat tex_format, eGPUDataFormat data_format)
+constexpr bool validate_data_format(TextureFormat tex_format, eGPUDataFormat data_format)
 {
   switch (tex_format) {
     /* Formats texture & render-buffer */
-    case GPU_RGBA32UI:
-    case GPU_RG32UI:
-    case GPU_R32UI:
+    case TextureFormat::UINT_32_32_32_32:
+    case TextureFormat::UINT_32_32:
+    case TextureFormat::UINT_32:
       return ELEM(data_format, GPU_DATA_UINT);
-    case GPU_RGBA16UI:
-    case GPU_RG16UI:
-    case GPU_R16UI:
+    case TextureFormat::UINT_16_16_16_16:
+    case TextureFormat::UINT_16_16:
+    case TextureFormat::UINT_16:
       return ELEM(data_format, GPU_DATA_UINT); /* Also GPU_DATA_USHORT if needed. */
-    case GPU_RGBA8UI:
-    case GPU_RG8UI:
-    case GPU_R8UI:
+    case TextureFormat::UINT_8_8_8_8:
+    case TextureFormat::UINT_8_8:
+    case TextureFormat::UINT_8:
       return ELEM(data_format, GPU_DATA_UINT, GPU_DATA_UBYTE);
 
-    case GPU_RGBA32I:
-    case GPU_RG32I:
-    case GPU_R32I:
+    case TextureFormat::SINT_32_32_32_32:
+    case TextureFormat::SINT_32_32:
+    case TextureFormat::SINT_32:
       return ELEM(data_format, GPU_DATA_INT);
-    case GPU_RGBA16I:
-    case GPU_RG16I:
-    case GPU_R16I:
+    case TextureFormat::SINT_16_16_16_16:
+    case TextureFormat::SINT_16_16:
+    case TextureFormat::SINT_16:
       return ELEM(data_format, GPU_DATA_INT); /* Also GPU_DATA_SHORT if needed. */
-    case GPU_RGBA8I:
-    case GPU_RG8I:
-    case GPU_R8I:
+    case TextureFormat::SINT_8_8_8_8:
+    case TextureFormat::SINT_8_8:
+    case TextureFormat::SINT_8:
       return ELEM(data_format, GPU_DATA_INT); /* Also GPU_DATA_BYTE if needed. */
 
-    case GPU_RGBA32F:
-    case GPU_RG32F:
-    case GPU_R32F:
+    case TextureFormat::SFLOAT_32_32_32_32:
+    case TextureFormat::SFLOAT_32_32:
+    case TextureFormat::SFLOAT_32:
       return ELEM(data_format, GPU_DATA_FLOAT);
-    case GPU_RGBA16F:
-    case GPU_RG16F:
-    case GPU_R16F:
+    case TextureFormat::SFLOAT_16_16_16_16:
+    case TextureFormat::SFLOAT_16_16:
+    case TextureFormat::SFLOAT_16:
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_HALF_FLOAT);
-    case GPU_RGBA16:
-    case GPU_RG16:
-    case GPU_R16:
+    case TextureFormat::UNORM_16_16_16_16:
+    case TextureFormat::UNORM_16_16:
+    case TextureFormat::UNORM_16:
       return ELEM(data_format, GPU_DATA_FLOAT); /* Also GPU_DATA_USHORT if needed. */
-    case GPU_RGBA8:
-    case GPU_RG8:
-    case GPU_R8:
+    case TextureFormat::UNORM_8_8_8_8:
+    case TextureFormat::UNORM_8_8:
+    case TextureFormat::UNORM_8:
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UBYTE);
 
     /* Special formats texture & render-buffer */
-    case GPU_RGB10_A2:
-    case GPU_RGB10_A2UI:
+    case TextureFormat::UNORM_10_10_10_2:
+    case TextureFormat::UINT_10_10_10_2:
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_2_10_10_10_REV);
-    case GPU_R11F_G11F_B10F:
+    case TextureFormat::UFLOAT_11_11_10:
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_10_11_11_REV);
-    case GPU_DEPTH32F_STENCIL8:
+    case TextureFormat::SFLOAT_32_DEPTH_UINT_8:
       /* Should have its own type. For now, we rely on the backend to do the conversion. */
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UINT_24_8_DEPRECATED, GPU_DATA_UINT);
-    case GPU_SRGB8_A8:
+    case TextureFormat::SRGBA_8_8_8_8:
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UBYTE);
 
     /* Texture only formats. */
-    case GPU_RGB32UI:
+    case TextureFormat::UINT_32_32_32:
       return ELEM(data_format, GPU_DATA_UINT);
-    case GPU_RGB16UI:
+    case TextureFormat::UINT_16_16_16:
       return ELEM(data_format, GPU_DATA_UINT); /* Also GPU_DATA_SHORT if needed. */
-    case GPU_RGB8UI:
+    case TextureFormat::UINT_8_8_8:
       return ELEM(data_format, GPU_DATA_UINT); /* Also GPU_DATA_BYTE if needed. */
-    case GPU_RGB32I:
+    case TextureFormat::SINT_32_32_32:
       return ELEM(data_format, GPU_DATA_INT);
-    case GPU_RGB16I:
+    case TextureFormat::SINT_16_16_16:
       return ELEM(data_format, GPU_DATA_INT); /* Also GPU_DATA_USHORT if needed. */
-    case GPU_RGB8I:
+    case TextureFormat::SINT_8_8_8:
       return ELEM(data_format, GPU_DATA_INT, GPU_DATA_UBYTE);
-    case GPU_RGB16:
+    case TextureFormat::UNORM_16_16_16:
       return ELEM(data_format, GPU_DATA_FLOAT); /* Also GPU_DATA_USHORT if needed. */
-    case GPU_RGB8:
+    case TextureFormat::UNORM_8_8_8:
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UBYTE);
-    case GPU_RGBA16_SNORM:
-    case GPU_RGB16_SNORM:
-    case GPU_RG16_SNORM:
-    case GPU_R16_SNORM:
+    case TextureFormat::SNORM_16_16_16_16:
+    case TextureFormat::SNORM_16_16_16:
+    case TextureFormat::SNORM_16_16:
+    case TextureFormat::SNORM_16:
       return ELEM(data_format, GPU_DATA_FLOAT); /* Also GPU_DATA_SHORT if needed. */
-    case GPU_RGBA8_SNORM:
-    case GPU_RGB8_SNORM:
-    case GPU_RG8_SNORM:
-    case GPU_R8_SNORM:
+    case TextureFormat::SNORM_8_8_8_8:
+    case TextureFormat::SNORM_8_8_8:
+    case TextureFormat::SNORM_8_8:
+    case TextureFormat::SNORM_8:
       return ELEM(data_format, GPU_DATA_FLOAT); /* Also GPU_DATA_BYTE if needed. */
-    case GPU_RGB32F:
+    case TextureFormat::SFLOAT_32_32_32:
       return ELEM(data_format, GPU_DATA_FLOAT);
-    case GPU_RGB16F:
+    case TextureFormat::SFLOAT_16_16_16:
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_HALF_FLOAT);
 
     /* Special formats, texture only. */
-    case GPU_SRGB8_A8_DXT1:
-    case GPU_SRGB8_A8_DXT3:
-    case GPU_SRGB8_A8_DXT5:
-    case GPU_RGBA8_DXT1:
-    case GPU_RGBA8_DXT3:
-    case GPU_RGBA8_DXT5:
+    case TextureFormat::SRGB_DXT1:
+    case TextureFormat::SRGB_DXT3:
+    case TextureFormat::SRGB_DXT5:
+    case TextureFormat::SNORM_DXT1:
+    case TextureFormat::SNORM_DXT3:
+    case TextureFormat::SNORM_DXT5:
       /* TODO(fclem): GPU_DATA_COMPRESSED for each compression? Wouldn't it be overkill?
        * For now, expect format to be set to float. */
       return ELEM(data_format, GPU_DATA_FLOAT);
-    case GPU_SRGB8:
+    case TextureFormat::SRGBA_8_8_8:
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UBYTE);
-    case GPU_RGB9_E5:
+    case TextureFormat::UFLOAT_9_9_9_EXP_5:
       return ELEM(data_format, GPU_DATA_FLOAT);
 
     /* Depth Formats. */
-    case GPU_DEPTH_COMPONENT32F:
-    case GPU_DEPTH_COMPONENT16:
+    case TextureFormat::SFLOAT_32_DEPTH:
+    case TextureFormat::UNORM_16_DEPTH:
       return ELEM(data_format, GPU_DATA_FLOAT, GPU_DATA_UINT);
+
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
   }
   BLI_assert_unreachable();
   return data_format == GPU_DATA_FLOAT;
 }
 
 /* Return default data format for an internal texture format. */
-inline eGPUDataFormat to_data_format(eGPUTextureFormat tex_format)
+inline eGPUDataFormat to_texture_data_format(TextureFormat tex_format)
 {
   switch (tex_format) {
     /* Formats texture & render-buffer */
-    case GPU_RGBA32UI:
-    case GPU_RG32UI:
-    case GPU_R32UI:
-    case GPU_RGBA16UI:
-    case GPU_RG16UI:
-    case GPU_R16UI:
-    case GPU_RGBA8UI:
-    case GPU_RG8UI:
-    case GPU_R8UI:
+    case TextureFormat::UINT_32_32_32_32:
+    case TextureFormat::UINT_32_32:
+    case TextureFormat::UINT_32:
+    case TextureFormat::UINT_16_16_16_16:
+    case TextureFormat::UINT_16_16:
+    case TextureFormat::UINT_16:
+    case TextureFormat::UINT_8_8_8_8:
+    case TextureFormat::UINT_8_8:
+    case TextureFormat::UINT_8:
       return GPU_DATA_UINT;
 
-    case GPU_RGBA32I:
-    case GPU_RG32I:
-    case GPU_R32I:
-    case GPU_RGBA16I:
-    case GPU_RG16I:
-    case GPU_R16I:
-    case GPU_RGBA8I:
-    case GPU_RG8I:
-    case GPU_R8I:
+    case TextureFormat::SINT_32_32_32_32:
+    case TextureFormat::SINT_32_32:
+    case TextureFormat::SINT_32:
+    case TextureFormat::SINT_16_16_16_16:
+    case TextureFormat::SINT_16_16:
+    case TextureFormat::SINT_16:
+    case TextureFormat::SINT_8_8_8_8:
+    case TextureFormat::SINT_8_8:
+    case TextureFormat::SINT_8:
       return GPU_DATA_INT;
 
-    case GPU_RGBA32F:
-    case GPU_RG32F:
-    case GPU_R32F:
-    case GPU_RGBA16F:
-    case GPU_RG16F:
-    case GPU_R16F:
-    case GPU_RGBA16:
-    case GPU_RG16:
-    case GPU_R16:
-    case GPU_RGBA8:
-    case GPU_RG8:
-    case GPU_R8:
+    case TextureFormat::SFLOAT_32_32_32_32:
+    case TextureFormat::SFLOAT_32_32:
+    case TextureFormat::SFLOAT_32:
+    case TextureFormat::SFLOAT_16_16_16_16:
+    case TextureFormat::SFLOAT_16_16:
+    case TextureFormat::SFLOAT_16:
+    case TextureFormat::UNORM_16_16_16_16:
+    case TextureFormat::UNORM_16_16:
+    case TextureFormat::UNORM_16:
+    case TextureFormat::UNORM_8_8_8_8:
+    case TextureFormat::UNORM_8_8:
+    case TextureFormat::UNORM_8:
       return GPU_DATA_FLOAT;
 
     /* Special formats texture & render-buffer */
-    case GPU_RGB10_A2:
-    case GPU_RGB10_A2UI:
+    case TextureFormat::UNORM_10_10_10_2:
+    case TextureFormat::UINT_10_10_10_2:
       return GPU_DATA_2_10_10_10_REV;
-    case GPU_R11F_G11F_B10F:
+    case TextureFormat::UFLOAT_11_11_10:
       return GPU_DATA_10_11_11_REV;
-    case GPU_DEPTH32F_STENCIL8:
+    case TextureFormat::SFLOAT_32_DEPTH_UINT_8:
       /* Should have its own type. For now, we rely on the backend to do the conversion. */
       return GPU_DATA_UINT_24_8_DEPRECATED;
-    case GPU_SRGB8_A8:
+    case TextureFormat::SRGBA_8_8_8_8:
       return GPU_DATA_FLOAT;
 
     /* Texture only formats. */
-    case GPU_RGB32UI:
-    case GPU_RGB16UI:
-    case GPU_RGB8UI:
+    case TextureFormat::UINT_32_32_32:
+    case TextureFormat::UINT_16_16_16:
+    case TextureFormat::UINT_8_8_8:
       return GPU_DATA_UINT;
-    case GPU_RGB32I:
-    case GPU_RGB16I:
-    case GPU_RGB8I:
+    case TextureFormat::SINT_32_32_32:
+    case TextureFormat::SINT_16_16_16:
+    case TextureFormat::SINT_8_8_8:
       return GPU_DATA_INT;
-    case GPU_RGB16:
-    case GPU_RGB8:
+    case TextureFormat::UNORM_16_16_16:
+    case TextureFormat::UNORM_8_8_8:
       return GPU_DATA_FLOAT;
-    case GPU_RGBA16_SNORM:
-    case GPU_RGB16_SNORM:
-    case GPU_RG16_SNORM:
-    case GPU_R16_SNORM:
+    case TextureFormat::SNORM_16_16_16_16:
+    case TextureFormat::SNORM_16_16_16:
+    case TextureFormat::SNORM_16_16:
+    case TextureFormat::SNORM_16:
       return GPU_DATA_FLOAT;
-    case GPU_RGBA8_SNORM:
-    case GPU_RGB8_SNORM:
-    case GPU_RG8_SNORM:
-    case GPU_R8_SNORM:
+    case TextureFormat::SNORM_8_8_8_8:
+    case TextureFormat::SNORM_8_8_8:
+    case TextureFormat::SNORM_8_8:
+    case TextureFormat::SNORM_8:
       return GPU_DATA_FLOAT;
-    case GPU_RGB32F:
-    case GPU_RGB16F:
+    case TextureFormat::SFLOAT_32_32_32:
+    case TextureFormat::SFLOAT_16_16_16:
       return GPU_DATA_FLOAT;
 
     /* Special formats, texture only. */
-    case GPU_SRGB8_A8_DXT1:
-    case GPU_SRGB8_A8_DXT3:
-    case GPU_SRGB8_A8_DXT5:
-    case GPU_RGBA8_DXT1:
-    case GPU_RGBA8_DXT3:
-    case GPU_RGBA8_DXT5:
+    case TextureFormat::SRGB_DXT1:
+    case TextureFormat::SRGB_DXT3:
+    case TextureFormat::SRGB_DXT5:
+    case TextureFormat::SNORM_DXT1:
+    case TextureFormat::SNORM_DXT3:
+    case TextureFormat::SNORM_DXT5:
       /* TODO(fclem): GPU_DATA_COMPRESSED for each compression? Wouldn't it be overkill?
        * For now, expect format to be set to float. */
       return GPU_DATA_FLOAT;
-    case GPU_SRGB8:
+    case TextureFormat::SRGBA_8_8_8:
       return GPU_DATA_FLOAT;
-    case GPU_RGB9_E5:
+    case TextureFormat::UFLOAT_9_9_9_EXP_5:
       return GPU_DATA_FLOAT;
 
     /* Depth Formats. */
-    case GPU_DEPTH_COMPONENT32F:
-    case GPU_DEPTH_COMPONENT16:
+    case TextureFormat::SFLOAT_32_DEPTH:
+    case TextureFormat::UNORM_16_DEPTH:
       return GPU_DATA_FLOAT;
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
   }
   BLI_assert_unreachable();
   return GPU_DATA_FLOAT;
 }
 
-inline eGPUFrameBufferBits to_framebuffer_bits(eGPUTextureFormat tex_format)
+inline eGPUFrameBufferBits to_framebuffer_bits(TextureFormat tex_format)
 {
   switch (tex_format) {
     /* Formats texture & render-buffer */
-    case GPU_RGBA32UI:
-    case GPU_RG32UI:
-    case GPU_R32UI:
-    case GPU_RGBA16UI:
-    case GPU_RG16UI:
-    case GPU_R16UI:
-    case GPU_RGBA8UI:
-    case GPU_RG8UI:
-    case GPU_R8UI:
-    case GPU_RGBA32I:
-    case GPU_RG32I:
-    case GPU_R32I:
-    case GPU_RGBA16I:
-    case GPU_RG16I:
-    case GPU_R16I:
-    case GPU_RGBA8I:
-    case GPU_RG8I:
-    case GPU_R8I:
-    case GPU_RGBA32F:
-    case GPU_RG32F:
-    case GPU_R32F:
-    case GPU_RGBA16F:
-    case GPU_RG16F:
-    case GPU_R16F:
-    case GPU_RGBA16:
-    case GPU_RG16:
-    case GPU_R16:
-    case GPU_RGBA8:
-    case GPU_RG8:
-    case GPU_R8:
+    case TextureFormat::UINT_32_32_32_32:
+    case TextureFormat::UINT_32_32:
+    case TextureFormat::UINT_32:
+    case TextureFormat::UINT_16_16_16_16:
+    case TextureFormat::UINT_16_16:
+    case TextureFormat::UINT_16:
+    case TextureFormat::UINT_8_8_8_8:
+    case TextureFormat::UINT_8_8:
+    case TextureFormat::UINT_8:
+    case TextureFormat::SINT_32_32_32_32:
+    case TextureFormat::SINT_32_32:
+    case TextureFormat::SINT_32:
+    case TextureFormat::SINT_16_16_16_16:
+    case TextureFormat::SINT_16_16:
+    case TextureFormat::SINT_16:
+    case TextureFormat::SINT_8_8_8_8:
+    case TextureFormat::SINT_8_8:
+    case TextureFormat::SINT_8:
+    case TextureFormat::SFLOAT_32_32_32_32:
+    case TextureFormat::SFLOAT_32_32:
+    case TextureFormat::SFLOAT_32:
+    case TextureFormat::SFLOAT_16_16_16_16:
+    case TextureFormat::SFLOAT_16_16:
+    case TextureFormat::SFLOAT_16:
+    case TextureFormat::UNORM_16_16_16_16:
+    case TextureFormat::UNORM_16_16:
+    case TextureFormat::UNORM_16:
+    case TextureFormat::UNORM_8_8_8_8:
+    case TextureFormat::UNORM_8_8:
+    case TextureFormat::UNORM_8:
       return GPU_COLOR_BIT;
 
     /* Special formats texture & render-buffer */
-    case GPU_RGB10_A2:
-    case GPU_RGB10_A2UI:
-    case GPU_R11F_G11F_B10F:
-    case GPU_SRGB8_A8:
+    case TextureFormat::UNORM_10_10_10_2:
+    case TextureFormat::UINT_10_10_10_2:
+    case TextureFormat::UFLOAT_11_11_10:
+    case TextureFormat::SRGBA_8_8_8_8:
       return GPU_COLOR_BIT;
-    case GPU_DEPTH32F_STENCIL8:
+    case TextureFormat::SFLOAT_32_DEPTH_UINT_8:
       return GPU_DEPTH_BIT | GPU_STENCIL_BIT;
 
     /* Depth Formats. */
-    case GPU_DEPTH_COMPONENT32F:
-    case GPU_DEPTH_COMPONENT16:
+    case TextureFormat::SFLOAT_32_DEPTH:
+    case TextureFormat::UNORM_16_DEPTH:
       return GPU_DEPTH_BIT;
 
     /* Texture only formats. */
-    case GPU_RGB32UI:
-    case GPU_RGB16UI:
-    case GPU_RGB8UI:
-    case GPU_RGB32I:
-    case GPU_RGB16I:
-    case GPU_RGB8I:
-    case GPU_RGB16:
-    case GPU_RGB8:
-    case GPU_RGBA16_SNORM:
-    case GPU_RGB16_SNORM:
-    case GPU_RG16_SNORM:
-    case GPU_R16_SNORM:
-    case GPU_RGBA8_SNORM:
-    case GPU_RGB8_SNORM:
-    case GPU_RG8_SNORM:
-    case GPU_R8_SNORM:
-    case GPU_RGB32F:
-    case GPU_RGB16F:
+    case TextureFormat::UINT_32_32_32:
+    case TextureFormat::UINT_16_16_16:
+    case TextureFormat::UINT_8_8_8:
+    case TextureFormat::SINT_32_32_32:
+    case TextureFormat::SINT_16_16_16:
+    case TextureFormat::SINT_8_8_8:
+    case TextureFormat::UNORM_16_16_16:
+    case TextureFormat::UNORM_8_8_8:
+    case TextureFormat::SNORM_16_16_16_16:
+    case TextureFormat::SNORM_16_16_16:
+    case TextureFormat::SNORM_16_16:
+    case TextureFormat::SNORM_16:
+    case TextureFormat::SNORM_8_8_8_8:
+    case TextureFormat::SNORM_8_8_8:
+    case TextureFormat::SNORM_8_8:
+    case TextureFormat::SNORM_8:
+    case TextureFormat::SFLOAT_32_32_32:
+    case TextureFormat::SFLOAT_16_16_16:
       BLI_assert_msg(0, "This texture format is not compatible with framebuffer attachment.");
       return GPU_COLOR_BIT;
 
     /* Special formats, texture only. */
-    case GPU_SRGB8_A8_DXT1:
-    case GPU_SRGB8_A8_DXT3:
-    case GPU_SRGB8_A8_DXT5:
-    case GPU_RGBA8_DXT1:
-    case GPU_RGBA8_DXT3:
-    case GPU_RGBA8_DXT5:
-    case GPU_SRGB8:
-    case GPU_RGB9_E5:
+    case TextureFormat::SRGB_DXT1:
+    case TextureFormat::SRGB_DXT3:
+    case TextureFormat::SRGB_DXT5:
+    case TextureFormat::SNORM_DXT1:
+    case TextureFormat::SNORM_DXT3:
+    case TextureFormat::SNORM_DXT5:
+    case TextureFormat::SRGBA_8_8_8:
+    case TextureFormat::UFLOAT_9_9_9_EXP_5:
       BLI_assert_msg(0, "This texture format is not compatible with framebuffer attachment.");
       return GPU_COLOR_BIT;
+
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
   }
   BLI_assert_unreachable();
   return GPU_COLOR_BIT;
 }
 
-static inline eGPUTextureFormat to_texture_format(const GPUVertFormat *format)
+static inline TextureFormat to_texture_format(const GPUVertFormat *format)
 {
   if (format->attr_len == 0) {
     BLI_assert_msg(0, "Incorrect vertex format for buffer texture");
-    return eGPUTextureFormat(0);
+    return TextureFormat(0);
   }
-  return eGPUTextureFormat(format->attrs[0].type.format);
+  return TextureFormat(format->attrs[0].type.format);
 }
 
 }  // namespace blender::gpu

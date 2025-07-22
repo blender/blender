@@ -250,7 +250,13 @@ static void wm_software_cursor_draw_bitmap(const float system_scale,
   float gl_matrix[4][4];
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
   blender::gpu::Texture *texture = GPU_texture_create_2d(
-      "software_cursor", bitmap->data_size[0], bitmap->data_size[1], 1, GPU_RGBA8, usage, nullptr);
+      "software_cursor",
+      bitmap->data_size[0],
+      bitmap->data_size[1],
+      1,
+      blender::gpu::TextureFormat::UNORM_8_8_8_8,
+      usage,
+      nullptr);
   GPU_texture_update(texture, GPU_DATA_UBYTE, bitmap->data);
   GPU_texture_filter_mode(texture, false);
 
@@ -688,13 +694,15 @@ static void wm_draw_offscreen_texture_parameters(GPUOffScreen *offscreen)
   GPU_texture_mipmap_mode(texture, false, false);
 }
 
-static eGPUTextureFormat get_hdr_framebuffer_format(const Scene *scene)
+static blender::gpu::TextureFormat get_hdr_framebuffer_format(const Scene *scene)
 {
   bool use_hdr = false;
   if (scene && ((scene->view_settings.flag & COLORMANAGE_VIEW_USE_HDR) != 0)) {
     use_hdr = GPU_hdr_support();
   }
-  eGPUTextureFormat desired_format = (use_hdr) ? GPU_RGBA16F : GPU_RGBA8;
+  blender::gpu::TextureFormat desired_format =
+      (use_hdr) ? blender::gpu::TextureFormat::SFLOAT_16_16_16_16 :
+                  blender::gpu::TextureFormat::UNORM_8_8_8_8;
   return desired_format;
 }
 
@@ -705,7 +713,7 @@ static void wm_draw_region_buffer_create(Scene *scene,
 {
 
   /* Determine desired offscreen format depending on HDR availability. */
-  eGPUTextureFormat desired_format = get_hdr_framebuffer_format(scene);
+  blender::gpu::TextureFormat desired_format = get_hdr_framebuffer_format(scene);
 
   if (region->runtime->draw_buffer) {
     if (region->runtime->draw_buffer->stereo != stereo) {
@@ -1232,7 +1240,8 @@ static void wm_draw_window(bContext *C, wmWindow *win)
   }
   else {
     /* Determine desired offscreen format depending on HDR availability. */
-    eGPUTextureFormat desired_format = get_hdr_framebuffer_format(WM_window_get_active_scene(win));
+    blender::gpu::TextureFormat desired_format = get_hdr_framebuffer_format(
+        WM_window_get_active_scene(win));
 
     /* For side-by-side and top-bottom, we need to render each view to an
      * an off-screen texture and then draw it. This used to happen for all
@@ -1405,7 +1414,8 @@ uint8_t *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_
   const blender::int2 win_size = WM_window_native_pixel_size(win);
 
   /* Determine desired offscreen format depending on HDR availability. */
-  eGPUTextureFormat desired_format = get_hdr_framebuffer_format(WM_window_get_active_scene(win));
+  blender::gpu::TextureFormat desired_format = get_hdr_framebuffer_format(
+      WM_window_get_active_scene(win));
 
   GPUOffScreen *offscreen = GPU_offscreen_create(win_size[0],
                                                  win_size[1],
@@ -1446,8 +1456,13 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
     return false;
   }
 
-  GPUOffScreen *offscreen = GPU_offscreen_create(
-      win_size[0], win_size[1], false, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, false, nullptr);
+  GPUOffScreen *offscreen = GPU_offscreen_create(win_size[0],
+                                                 win_size[1],
+                                                 false,
+                                                 blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                                                 GPU_TEXTURE_USAGE_SHADER_READ,
+                                                 false,
+                                                 nullptr);
   if (UNLIKELY(!offscreen)) {
     return false;
   }

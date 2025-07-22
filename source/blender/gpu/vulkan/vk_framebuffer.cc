@@ -188,7 +188,7 @@ void VKFrameBuffer::build_clear_attachments_color(
         clear_attachments.attachments[clear_attachments.attachment_count++];
     clear_attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     clear_attachment.colorAttachment = color_slot;
-    eGPUDataFormat data_format = to_data_format(GPU_texture_format(attachment.tex));
+    eGPUDataFormat data_format = to_texture_data_format(GPU_texture_format(attachment.tex));
     clear_attachment.clearValue.color = to_vk_clear_color_value(data_format,
                                                                 &clear_colors[color_index]);
 

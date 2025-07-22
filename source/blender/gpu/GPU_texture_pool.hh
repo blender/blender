@@ -45,7 +45,7 @@ class TexturePool {
   /* Acquire a texture from the pool with the given characteristics. */
   blender::gpu::Texture *acquire_texture(int width,
                                          int height,
-                                         eGPUTextureFormat format,
+                                         blender::gpu::TextureFormat format,
                                          eGPUTextureUsage usage);
   /* Release the texture so that its memory can be reused at some other point. */
   void release_texture(blender::gpu::Texture *tmp_tex);

@@ -81,8 +81,13 @@ GPUOffScreen *image_render_begin(const int2 &win_size)
   }
 
   char err_out[256] = "unknown";
-  GPUOffScreen *offscreen = GPU_offscreen_create(
-      win_size.x, win_size.y, true, GPU_RGBA8, GPU_TEXTURE_USAGE_HOST_READ, false, err_out);
+  GPUOffScreen *offscreen = GPU_offscreen_create(win_size.x,
+                                                 win_size.y,
+                                                 true,
+                                                 blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                                                 GPU_TEXTURE_USAGE_HOST_READ,
+                                                 false,
+                                                 err_out);
   if (offscreen == nullptr) {
     return nullptr;
   }

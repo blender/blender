@@ -466,9 +466,9 @@ void VKContext::openxr_acquire_framebuffer_image_handler(GHOST_VulkanOpenXRData 
   openxr_data.extent.height = color_attachment->height_get();
 
   /* Determine the data format for data transfer. */
-  const eGPUTextureFormat device_format = color_attachment->device_format_get();
+  const TextureFormat device_format = color_attachment->device_format_get();
   eGPUDataFormat data_format = GPU_DATA_HALF_FLOAT;
-  if (ELEM(device_format, GPU_RGBA8)) {
+  if (ELEM(device_format, TextureFormat::UNORM_8_8_8_8)) {
     data_format = GPU_DATA_UBYTE;
   }
 

@@ -89,8 +89,8 @@ void SubsurfaceModule::render(gpu::Texture *direct_diffuse_light_tx,
   indirect_light_tx_ = indirect_diffuse_light_tx;
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
-  object_id_tx_.acquire(render_extent, SUBSURFACE_OBJECT_ID_FORMAT, usage);
-  radiance_tx_.acquire(render_extent, SUBSURFACE_RADIANCE_FORMAT, usage);
+  object_id_tx_.acquire(render_extent, gpu::TextureFormat::SUBSURFACE_OBJECT_ID_FORMAT, usage);
+  radiance_tx_.acquire(render_extent, gpu::TextureFormat::SUBSURFACE_RADIANCE_FORMAT, usage);
 
   convolve_dispatch_buf_.clear_to_zero();
 

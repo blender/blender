@@ -308,7 +308,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
                                      bbox.ymax,
                                      field->image->ibuf->x,
                                      field->image->ibuf->y,
-                                     GPU_RGBA8,
+                                     blender::gpu::TextureFormat::UNORM_8_8_8_8,
                                      true,
                                      field->image->ibuf->byte_buffer.data,
                                      1.0f,

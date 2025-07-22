@@ -1090,7 +1090,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
                                   y,
                                   drag->imb->x,
                                   drag->imb->y,
-                                  GPU_RGBA8,
+                                  blender::gpu::TextureFormat::UNORM_8_8_8_8,
                                   false,
                                   drag->imb->byte_buffer.data,
                                   drag->imbuf_scale,

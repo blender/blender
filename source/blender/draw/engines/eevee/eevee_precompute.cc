@@ -18,7 +18,7 @@ Precompute::Precompute(draw::Manager &manager, PrecomputeType type, int3 table_e
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_HOST_READ;
   Texture table_tx = {"Precompute"};
-  table_tx.ensure_3d(GPU_RGBA32F, table_extent, usage);
+  table_tx.ensure_3d(gpu::TextureFormat::SFLOAT_32_32_32_32, table_extent, usage);
 
   GPUShader *shader = GPU_shader_create_from_info_name("eevee_lut");
 

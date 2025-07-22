@@ -161,15 +161,18 @@ struct GBuffer {
     data_count = max_ii(closure_fb_layer_count, data_count);
     normal_count = max_ii(normal_fb_layer_count, normal_count);
 
-    dummy_header_tx_.ensure_2d_array(GPU_R32UI, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
-    dummy_closure_tx_.ensure_2d_array(GPU_RGB10_A2, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
-    dummy_normal_tx_.ensure_2d_array(GPU_RG16, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
+    dummy_header_tx_.ensure_2d_array(
+        gpu::TextureFormat::UINT_32, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
+    dummy_closure_tx_.ensure_2d_array(
+        gpu::TextureFormat::UNORM_10_10_10_2, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
+    dummy_normal_tx_.ensure_2d_array(
+        gpu::TextureFormat::UNORM_16_16, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                              GPU_TEXTURE_USAGE_ATTACHMENT;
-    header_tx.ensure_2d_array(GPU_R32UI, extent, header_count, usage);
-    closure_tx.ensure_2d_array(GPU_RGB10_A2, extent, data_count, usage);
-    normal_tx.ensure_2d_array(GPU_RG16, extent, normal_count, usage);
+    header_tx.ensure_2d_array(gpu::TextureFormat::UINT_32, extent, header_count, usage);
+    closure_tx.ensure_2d_array(gpu::TextureFormat::UNORM_10_10_10_2, extent, data_count, usage);
+    normal_tx.ensure_2d_array(gpu::TextureFormat::UNORM_16_16, extent, normal_count, usage);
     /* Ensure layer view for frame-buffer attachment. */
     header_tx.ensure_layer_views();
     closure_tx.ensure_layer_views();

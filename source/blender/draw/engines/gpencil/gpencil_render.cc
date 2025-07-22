@@ -110,7 +110,7 @@ static void render_init_buffers(const DRWContext *draw_ctx,
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
                              GPU_TEXTURE_USAGE_HOST_READ;
     inst.render_depth_tx.ensure_2d(
-        GPU_DEPTH_COMPONENT32F, int2(size), usage, do_region ? nullptr : pix_z);
+        gpu::TextureFormat::SFLOAT_32_DEPTH, int2(size), usage, do_region ? nullptr : pix_z);
   }
   if (inst.render_color_tx.is_valid() && !do_clear_col) {
     GPU_texture_update(inst.render_color_tx, GPU_DATA_FLOAT, pix_col);
@@ -118,7 +118,8 @@ static void render_init_buffers(const DRWContext *draw_ctx,
   else {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
                              GPU_TEXTURE_USAGE_HOST_READ;
-    inst.render_color_tx.ensure_2d(GPU_RGBA16F, int2(size), usage, do_region ? nullptr : pix_col);
+    inst.render_color_tx.ensure_2d(
+        gpu::TextureFormat::SFLOAT_16_16_16_16, int2(size), usage, do_region ? nullptr : pix_col);
   }
 
   inst.render_fb.ensure(GPU_ATTACHMENT_TEXTURE(inst.render_depth_tx),

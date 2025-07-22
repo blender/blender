@@ -111,7 +111,13 @@ static blender::gpu::Texture *gpu_texture_create_tile_mapping(Image *ima, const 
   }
 
   blender::gpu::Texture *tex = GPU_texture_create_1d_array(
-      ima->id.name + 2, width, 2, 1, GPU_RGBA32F, GPU_TEXTURE_USAGE_SHADER_READ, data);
+      ima->id.name + 2,
+      width,
+      2,
+      1,
+      blender::gpu::TextureFormat::SFLOAT_32_32_32_32,
+      GPU_TEXTURE_USAGE_SHADER_READ,
+      data);
   GPU_texture_mipmap_mode(tex, false, false);
 
   MEM_freeN(data);

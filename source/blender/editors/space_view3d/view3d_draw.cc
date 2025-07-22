@@ -2014,7 +2014,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
   float winmat[4][4];
 
   /* Guess format based on output buffer. */
-  eGPUTextureFormat desired_format = (imbuf_flag & IB_float_data) ? GPU_RGBA16F : GPU_RGBA8;
+  blender::gpu::TextureFormat desired_format =
+      (imbuf_flag & IB_float_data) ? blender::gpu::TextureFormat::SFLOAT_16_16_16_16 :
+                                     blender::gpu::TextureFormat::UNORM_8_8_8_8;
 
   if (ofs && ((GPU_offscreen_width(ofs) != sizex) || (GPU_offscreen_height(ofs) != sizey))) {
     /* If offscreen has already been created, recreate with the same format. */
@@ -2857,8 +2859,13 @@ bool ViewportColorSampleSession::init(ARegion *region)
    * copy that back to the host.
    * Since color picking is a fairly rare operation, the inefficiency here doesn't really
    * matter, and it means the viewport doesn't need HOST_READ. */
-  tex = GPU_texture_create_2d(
-      "copy_tex", tex_w, tex_h, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_HOST_READ, nullptr);
+  tex = GPU_texture_create_2d("copy_tex",
+                              tex_w,
+                              tex_h,
+                              1,
+                              blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
+                              GPU_TEXTURE_USAGE_HOST_READ,
+                              nullptr);
   if (tex == nullptr) {
     return false;
   }

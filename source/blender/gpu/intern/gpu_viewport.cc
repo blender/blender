@@ -136,28 +136,40 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
 
     /* NOTE: dtxl_color texture requires write support as it may be written to by the viewport
      * compositor. */
-    viewport->color_render_tx[0] = GPU_texture_create_2d("dtxl_color",
-                                                         UNPACK2(size),
-                                                         1,
-                                                         GPU_RGBA16F,
-                                                         usage | GPU_TEXTURE_USAGE_SHADER_WRITE,
-                                                         nullptr);
+    viewport->color_render_tx[0] = GPU_texture_create_2d(
+        "dtxl_color",
+        UNPACK2(size),
+        1,
+        blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
+        usage | GPU_TEXTURE_USAGE_SHADER_WRITE,
+        nullptr);
     viewport->color_overlay_tx[0] = GPU_texture_create_2d(
-        "dtxl_color_overlay", UNPACK2(size), 1, GPU_SRGB8_A8, usage, nullptr);
+        "dtxl_color_overlay",
+        UNPACK2(size),
+        1,
+        blender::gpu::TextureFormat::SRGBA_8_8_8_8,
+        usage,
+        nullptr);
 
     GPU_texture_clear(viewport->color_render_tx[0], GPU_DATA_FLOAT, empty_pixel);
     GPU_texture_clear(viewport->color_overlay_tx[0], GPU_DATA_FLOAT, empty_pixel);
   }
 
   if ((viewport->flag & GPU_VIEWPORT_STEREO) != 0 && viewport->color_render_tx[1] == nullptr) {
-    viewport->color_render_tx[1] = GPU_texture_create_2d("dtxl_color_stereo",
-                                                         UNPACK2(size),
-                                                         1,
-                                                         GPU_RGBA16F,
-                                                         usage | GPU_TEXTURE_USAGE_SHADER_WRITE,
-                                                         nullptr);
+    viewport->color_render_tx[1] = GPU_texture_create_2d(
+        "dtxl_color_stereo",
+        UNPACK2(size),
+        1,
+        blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
+        usage | GPU_TEXTURE_USAGE_SHADER_WRITE,
+        nullptr);
     viewport->color_overlay_tx[1] = GPU_texture_create_2d(
-        "dtxl_color_overlay_stereo", UNPACK2(size), 1, GPU_SRGB8_A8, usage, nullptr);
+        "dtxl_color_overlay_stereo",
+        UNPACK2(size),
+        1,
+        blender::gpu::TextureFormat::SRGBA_8_8_8_8,
+        usage,
+        nullptr);
 
     GPU_texture_clear(viewport->color_render_tx[1], GPU_DATA_FLOAT, empty_pixel);
     GPU_texture_clear(viewport->color_overlay_tx[1], GPU_DATA_FLOAT, empty_pixel);
@@ -170,7 +182,7 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
     viewport->depth_tx = GPU_texture_create_2d("dtxl_depth",
                                                UNPACK2(size),
                                                1,
-                                               GPU_DEPTH32F_STENCIL8,
+                                               blender::gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
                                                usage | GPU_TEXTURE_USAGE_HOST_READ |
                                                    GPU_TEXTURE_USAGE_FORMAT_VIEW,
                                                nullptr);

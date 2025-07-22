@@ -373,8 +373,13 @@ void draw_strip_thumbnails(TimelineDrawContext *ctx,
     IMB_freeImBuf(info.ibuf);
     info.ibuf = nullptr;
   }
-  blender::gpu::Texture *atlas = GPU_texture_create_2d(
-      "thumb_atlas", tex_width, tex_height, 1, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+  blender::gpu::Texture *atlas = GPU_texture_create_2d("thumb_atlas",
+                                                       tex_width,
+                                                       tex_height,
+                                                       1,
+                                                       blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                                                       GPU_TEXTURE_USAGE_SHADER_READ,
+                                                       nullptr);
   GPU_texture_update(atlas, GPU_DATA_UBYTE, tex_data.data());
   GPU_texture_filter_mode(atlas, true);
   GPU_texture_extend_mode(atlas, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);

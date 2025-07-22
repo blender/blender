@@ -37,7 +37,7 @@ namespace blender::compositor {
  * definitions. */
 static float *parallel_reduction_dispatch(blender::gpu::Texture *texture,
                                           GPUShader *shader,
-                                          eGPUTextureFormat format)
+                                          blender::gpu::TextureFormat format)
 {
   GPU_shader_uniform_1b(shader, "is_initial_reduction", true);
 

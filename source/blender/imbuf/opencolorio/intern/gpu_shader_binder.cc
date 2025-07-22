@@ -94,8 +94,12 @@ bool GPUCurveMappping::initialize_common(const bool use_curve_mapping)
     return true;
   }
 
-  texture = GPU_texture_create_1d(
-      "OCIOCurveMap", lut_size, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+  texture = GPU_texture_create_1d("OCIOCurveMap",
+                                  lut_size,
+                                  1,
+                                  blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
+                                  GPU_TEXTURE_USAGE_SHADER_READ,
+                                  nullptr);
   GPU_texture_filter_mode(texture, false);
   GPU_texture_extend_mode(texture, GPU_SAMPLER_EXTEND_MODE_EXTEND);
 

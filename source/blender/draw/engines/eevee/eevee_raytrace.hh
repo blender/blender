@@ -69,7 +69,9 @@ struct RayTraceBuffer {
   gpu::Texture *feedback_ensure(bool is_dummy, int2 extent)
   {
     eGPUTextureUsage usage_rw = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
-    if (radiance_feedback_tx.ensure_2d(GPU_RGBA16F, is_dummy ? int2(1) : extent, usage_rw)) {
+    if (radiance_feedback_tx.ensure_2d(
+            gpu::TextureFormat::SFLOAT_16_16_16_16, is_dummy ? int2(1) : extent, usage_rw))
+    {
       radiance_feedback_tx.clear(float4(0.0f));
     }
     return radiance_feedback_tx;

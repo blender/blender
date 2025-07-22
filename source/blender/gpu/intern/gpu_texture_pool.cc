@@ -27,7 +27,7 @@ TexturePool::~TexturePool()
 
 blender::gpu::Texture *TexturePool::acquire_texture(int width,
                                                     int height,
-                                                    eGPUTextureFormat format,
+                                                    blender::gpu::TextureFormat format,
                                                     eGPUTextureUsage usage)
 {
   int64_t match_index = -1;

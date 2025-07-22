@@ -96,10 +96,10 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   const int2 extent(1);
   constexpr eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE |
                                      GPU_TEXTURE_USAGE_SHADER_READ;
-  dummy_cryptomatte_tx_.ensure_2d(GPU_RGBA32F, extent, usage);
-  dummy_renderpass_tx_.ensure_2d(GPU_RGBA16F, extent, usage);
-  dummy_aov_color_tx_.ensure_2d_array(GPU_RGBA16F, extent, 1, usage);
-  dummy_aov_value_tx_.ensure_2d_array(GPU_R16F, extent, 1, usage);
+  dummy_cryptomatte_tx_.ensure_2d(gpu::TextureFormat::SFLOAT_32_32_32_32, extent, usage);
+  dummy_renderpass_tx_.ensure_2d(gpu::TextureFormat::SFLOAT_16_16_16_16, extent, usage);
+  dummy_aov_color_tx_.ensure_2d_array(gpu::TextureFormat::SFLOAT_16_16_16_16, extent, 1, usage);
+  dummy_aov_value_tx_.ensure_2d_array(gpu::TextureFormat::SFLOAT_16, extent, 1, usage);
 
   PassSimple &pass = cubemap_face_ps_;
   pass.init();
@@ -850,8 +850,9 @@ gpu::Texture *DeferredLayer::render(View &main_view,
   inst_.manager->submit(gbuffer_ps_, render_view);
 
   for (int i = 0; i < ARRAY_SIZE(direct_radiance_txs_); i++) {
-    direct_radiance_txs_[i].acquire(
-        (closure_count_ > i) ? extent : int2(1), DEFERRED_RADIANCE_FORMAT, usage_rw);
+    direct_radiance_txs_[i].acquire((closure_count_ > i) ? extent : int2(1),
+                                    gpu::TextureFormat::DEFERRED_RADIANCE_FORMAT,
+                                    usage_rw);
   }
 
   if (use_raytracing_) {

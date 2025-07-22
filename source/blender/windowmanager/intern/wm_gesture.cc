@@ -357,8 +357,17 @@ static void draw_filled_lasso(wmGesture *gt, const blender::int2 *lasso_pt_extra
     GPU_shader_uniform_float_ex(
         state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
 
-    immDrawPixelsTexTiled(
-        &state, rect.xmin, rect.ymin, w, h, GPU_R8, false, pixel_buf, 1.0f, 1.0f, nullptr);
+    immDrawPixelsTexTiled(&state,
+                          rect.xmin,
+                          rect.ymin,
+                          w,
+                          h,
+                          blender::gpu::TextureFormat::UNORM_8,
+                          false,
+                          pixel_buf,
+                          1.0f,
+                          1.0f,
+                          nullptr);
 
     GPU_shader_unbind();
 

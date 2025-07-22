@@ -169,9 +169,18 @@
     .sampler(slot, ImageType::type, #name, Frequency::freq)
 
 #  define IMAGE(slot, format, qualifiers, type, name) \
-    .image(slot, format, Qualifier::qualifiers, ImageReadWriteType::type, #name)
+    .image(slot, \
+           blender::gpu::TextureFormat::format, \
+           Qualifier::qualifiers, \
+           ImageReadWriteType::type, \
+           #name)
 #  define IMAGE_FREQ(slot, format, qualifiers, type, name, freq) \
-    .image(slot, format, Qualifier::qualifiers, ImageReadWriteType::type, #name, Frequency::freq)
+    .image(slot, \
+           blender::gpu::TextureFormat::format, \
+           Qualifier::qualifiers, \
+           ImageReadWriteType::type, \
+           #name, \
+           Frequency::freq)
 
 #  define BUILTINS(builtin) .builtins(builtin)
 
@@ -812,7 +821,7 @@ struct ShaderCreateInfo {
   };
 
   struct Image {
-    eGPUTextureFormat format;
+    TextureFormat format;
     ImageType type;
     Qualifier qualifiers;
     StringRefNull name;
@@ -1174,7 +1183,7 @@ struct ShaderCreateInfo {
   }
 
   Self &image(int slot,
-              eGPUTextureFormat format,
+              TextureFormat format,
               Qualifier qualifiers,
               ImageReadWriteType type,
               StringRefNull name,

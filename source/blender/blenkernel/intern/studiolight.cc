@@ -435,13 +435,14 @@ static void studiolight_create_equirect_radiance_gputexture(StudioLight *sl)
     BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EXTERNAL_IMAGE_LOADED);
     ImBuf *ibuf = sl->equirect_radiance_buffer;
 
-    sl->equirect_radiance_gputexture = GPU_texture_create_2d("studiolight_radiance",
-                                                             ibuf->x,
-                                                             ibuf->y,
-                                                             1,
-                                                             GPU_RGBA16F,
-                                                             GPU_TEXTURE_USAGE_SHADER_READ,
-                                                             ibuf->float_buffer.data);
+    sl->equirect_radiance_gputexture = GPU_texture_create_2d(
+        "studiolight_radiance",
+        ibuf->x,
+        ibuf->y,
+        1,
+        blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
+        GPU_TEXTURE_USAGE_SHADER_READ,
+        ibuf->float_buffer.data);
     blender::gpu::Texture *tex = sl->equirect_radiance_gputexture;
     GPU_texture_filter_mode(tex, true);
     GPU_texture_extend_mode(tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
@@ -462,8 +463,13 @@ static void studiolight_create_matcap_gputexture(StudioLightImage *sli)
     copy_v3_v3(*offset3, *offset4);
   }
 
-  sli->gputexture = GPU_texture_create_2d(
-      "matcap", ibuf->x, ibuf->y, 1, GPU_R11F_G11F_B10F, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+  sli->gputexture = GPU_texture_create_2d("matcap",
+                                          ibuf->x,
+                                          ibuf->y,
+                                          1,
+                                          blender::gpu::TextureFormat::UFLOAT_11_11_10,
+                                          GPU_TEXTURE_USAGE_SHADER_READ,
+                                          nullptr);
   GPU_texture_update(sli->gputexture, GPU_DATA_FLOAT, gpu_matcap_3components);
 
   MEM_SAFE_FREE(gpu_matcap_3components);

@@ -731,7 +731,7 @@ static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
 GPUOffScreen *GPU_offscreen_create(int width,
                                    int height,
                                    bool with_depth_buffer,
-                                   eGPUTextureFormat format,
+                                   blender::gpu::TextureFormat format,
                                    eGPUTextureUsage usage,
                                    bool clear,
                                    char err_out[256])
@@ -751,8 +751,13 @@ GPUOffScreen *GPU_offscreen_create(int width,
   if (with_depth_buffer) {
     /* Format view flag is needed by Workbench Volumes to read the stencil view. */
     eGPUTextureUsage depth_usage = usage | GPU_TEXTURE_USAGE_FORMAT_VIEW;
-    ofs->depth = GPU_texture_create_2d(
-        "ofs_depth", width, height, 1, GPU_DEPTH32F_STENCIL8, depth_usage, nullptr);
+    ofs->depth = GPU_texture_create_2d("ofs_depth",
+                                       width,
+                                       height,
+                                       1,
+                                       blender::gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
+                                       depth_usage,
+                                       nullptr);
   }
 
   if ((with_depth_buffer && !ofs->depth) || !ofs->color) {
@@ -876,7 +881,7 @@ blender::gpu::Texture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen
   return offscreen->color;
 }
 
-eGPUTextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen)
+blender::gpu::TextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen)
 {
   return GPU_texture_format(offscreen->color);
 }

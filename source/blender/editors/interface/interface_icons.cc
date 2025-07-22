@@ -1464,8 +1464,19 @@ static void icon_draw_rect(float x,
     immUniform1f("factor", desaturate);
   }
 
-  immDrawPixelsTexScaledFullSize(
-      &state, draw_x, draw_y, rw, rh, GPU_RGBA8, true, rect, scale_x, scale_y, 1.0f, 1.0f, col);
+  immDrawPixelsTexScaledFullSize(&state,
+                                 draw_x,
+                                 draw_y,
+                                 rw,
+                                 rh,
+                                 blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                                 true,
+                                 rect,
+                                 scale_x,
+                                 scale_y,
+                                 1.0f,
+                                 1.0f,
+                                 col);
 }
 
 /* Drawing size for preview images */

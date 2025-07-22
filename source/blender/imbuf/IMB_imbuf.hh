@@ -602,9 +602,9 @@ blender::gpu::Texture *IMB_create_gpu_texture(const char *name,
                                               bool use_high_bitdepth,
                                               bool use_premult);
 
-eGPUTextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
-                                             bool high_bitdepth,
-                                             bool use_grayscale);
+blender::gpu::TextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf,
+                                                       bool high_bitdepth,
+                                                       bool use_grayscale);
 
 /**
  * Ensures that values stored in the float rect can safely loaded into half float gpu textures.

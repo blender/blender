@@ -185,7 +185,7 @@ gpu::Texture *ShadingView::render_postfx(gpu::Texture *input_tx)
   if (!inst_.depth_of_field.postfx_enabled() && !inst_.motion_blur.postfx_enabled()) {
     return input_tx;
   }
-  postfx_tx_.acquire(extent_, GPU_RGBA16F);
+  postfx_tx_.acquire(extent_, gpu::TextureFormat::SFLOAT_16_16_16_16);
 
   /* Fix a sync bug on AMD + Mesa when volume + motion blur create artifacts
    * except if there is a clear event between them. */

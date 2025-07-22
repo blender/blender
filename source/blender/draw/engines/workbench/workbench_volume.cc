@@ -22,9 +22,12 @@ void VolumePass::sync(SceneResources &resources)
   ps_.init();
   ps_.bind_ubo(WB_WORLD_SLOT, resources.world_buf);
 
-  dummy_shadow_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(1));
-  dummy_volume_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(0));
-  dummy_coba_tx_.ensure_1d(GPU_RGBA8, 1, GPU_TEXTURE_USAGE_SHADER_READ, float4(0));
+  dummy_shadow_tx_.ensure_3d(
+      gpu::TextureFormat::UNORM_8_8_8_8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(1));
+  dummy_volume_tx_.ensure_3d(
+      gpu::TextureFormat::UNORM_8_8_8_8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(0));
+  dummy_coba_tx_.ensure_1d(
+      gpu::TextureFormat::UNORM_8_8_8_8, 1, GPU_TEXTURE_USAGE_SHADER_READ, float4(0));
 }
 
 void VolumePass::object_sync_volume(Manager &manager,

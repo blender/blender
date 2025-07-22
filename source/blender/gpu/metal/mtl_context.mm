@@ -124,8 +124,10 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
 
       /*** Create front and back-buffers ***/
       /* Create gpu::MTLTexture objects */
-      default_fbo_gputexture_ = new gpu::MTLTexture(
-          "MTL_BACKBUFFER", GPU_RGBA16F, GPU_TEXTURE_2D, default_fbo_mtltexture_);
+      default_fbo_gputexture_ = new gpu::MTLTexture("MTL_BACKBUFFER",
+                                                    TextureFormat::SFLOAT_16_16_16_16,
+                                                    GPU_TEXTURE_2D,
+                                                    default_fbo_mtltexture_);
 
       /* Update frame-buffers with new texture attachments. */
       mtl_front_left->add_color_attachment(default_fbo_gputexture_, 0, 0, 0);
@@ -138,8 +140,14 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
 
       /* Add default texture for cases where no other framebuffer is bound */
       if (!default_fbo_gputexture_) {
-        default_fbo_gputexture_ = static_cast<gpu::MTLTexture *>(GPU_texture_create_2d(
-            __func__, 16, 16, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_GENERAL, nullptr));
+        default_fbo_gputexture_ = static_cast<gpu::MTLTexture *>(
+            GPU_texture_create_2d(__func__,
+                                  16,
+                                  16,
+                                  1,
+                                  TextureFormat::SFLOAT_16_16_16_16,
+                                  GPU_TEXTURE_USAGE_GENERAL,
+                                  nullptr));
       }
       mtl_back_left->add_color_attachment(default_fbo_gputexture_, 0, 0, 0);
 
@@ -611,19 +619,19 @@ gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type,
     return dummy_tex;
   }
   /* Determine format for dummy texture. */
-  eGPUTextureFormat format = GPU_RGBA8;
+  TextureFormat format = TextureFormat::UNORM_8_8_8_8;
   switch (sampler_format) {
     case GPU_SAMPLER_TYPE_FLOAT:
-      format = GPU_RGBA8;
+      format = TextureFormat::UNORM_8_8_8_8;
       break;
     case GPU_SAMPLER_TYPE_INT:
-      format = GPU_RGBA8I;
+      format = TextureFormat::SINT_8_8_8_8;
       break;
     case GPU_SAMPLER_TYPE_UINT:
-      format = GPU_RGBA8UI;
+      format = TextureFormat::UINT_8_8_8_8;
       break;
     case GPU_SAMPLER_TYPE_DEPTH:
-      format = GPU_DEPTH32F_STENCIL8;
+      format = TextureFormat::SFLOAT_32_DEPTH_UINT_8;
       break;
     default:
       BLI_assert_unreachable();

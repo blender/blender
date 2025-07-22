@@ -32,153 +32,155 @@ namespace blender::gpu {
 /** \name Texture Utility Functions
  * \{ */
 
-MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
+MTLPixelFormat gpu_texture_format_to_metal(TextureFormat tex_format)
 {
   switch (tex_format) {
     /* Texture & Render-Buffer Formats. */
-    case GPU_RGBA8UI:
+    case TextureFormat::UINT_8_8_8_8:
       return MTLPixelFormatRGBA8Uint;
-    case GPU_RGBA8I:
+    case TextureFormat::SINT_8_8_8_8:
       return MTLPixelFormatRGBA8Sint;
-    case GPU_RGBA8:
+    case TextureFormat::UNORM_8_8_8_8:
       return MTLPixelFormatRGBA8Unorm;
-    case GPU_RGBA32UI:
+    case TextureFormat::UINT_32_32_32_32:
       return MTLPixelFormatRGBA32Uint;
-    case GPU_RGBA32I:
+    case TextureFormat::SINT_32_32_32_32:
       return MTLPixelFormatRGBA32Sint;
-    case GPU_RGBA32F:
+    case TextureFormat::SFLOAT_32_32_32_32:
       return MTLPixelFormatRGBA32Float;
-    case GPU_RGBA16UI:
+    case TextureFormat::UINT_16_16_16_16:
       return MTLPixelFormatRGBA16Uint;
-    case GPU_RGBA16I:
+    case TextureFormat::SINT_16_16_16_16:
       return MTLPixelFormatRGBA16Sint;
-    case GPU_RGBA16F:
+    case TextureFormat::SFLOAT_16_16_16_16:
       return MTLPixelFormatRGBA16Float;
-    case GPU_RGBA16:
+    case TextureFormat::UNORM_16_16_16_16:
       return MTLPixelFormatRGBA16Unorm;
-    case GPU_RG8UI:
+    case TextureFormat::UINT_8_8:
       return MTLPixelFormatRG8Uint;
-    case GPU_RG8I:
+    case TextureFormat::SINT_8_8:
       return MTLPixelFormatRG8Sint;
-    case GPU_RG8:
+    case TextureFormat::UNORM_8_8:
       return MTLPixelFormatRG8Unorm;
-    case GPU_RG32UI:
+    case TextureFormat::UINT_32_32:
       return MTLPixelFormatRG32Uint;
-    case GPU_RG32I:
+    case TextureFormat::SINT_32_32:
       return MTLPixelFormatRG32Sint;
-    case GPU_RG32F:
+    case TextureFormat::SFLOAT_32_32:
       return MTLPixelFormatRG32Float;
-    case GPU_RG16UI:
+    case TextureFormat::UINT_16_16:
       return MTLPixelFormatRG16Uint;
-    case GPU_RG16I:
+    case TextureFormat::SINT_16_16:
       return MTLPixelFormatRG16Sint;
-    case GPU_RG16F:
+    case TextureFormat::SFLOAT_16_16:
       return MTLPixelFormatRG16Float;
-    case GPU_RG16:
+    case TextureFormat::UNORM_16_16:
       return MTLPixelFormatRG16Unorm;
-    case GPU_R8UI:
+    case TextureFormat::UINT_8:
       return MTLPixelFormatR8Uint;
-    case GPU_R8I:
+    case TextureFormat::SINT_8:
       return MTLPixelFormatR8Sint;
-    case GPU_R8:
+    case TextureFormat::UNORM_8:
       return MTLPixelFormatR8Unorm;
-    case GPU_R32UI:
+    case TextureFormat::UINT_32:
       return MTLPixelFormatR32Uint;
-    case GPU_R32I:
+    case TextureFormat::SINT_32:
       return MTLPixelFormatR32Sint;
-    case GPU_R32F:
+    case TextureFormat::SFLOAT_32:
       return MTLPixelFormatR32Float;
-    case GPU_R16UI:
+    case TextureFormat::UINT_16:
       return MTLPixelFormatR16Uint;
-    case GPU_R16I:
+    case TextureFormat::SINT_16:
       return MTLPixelFormatR16Sint;
-    case GPU_R16F:
+    case TextureFormat::SFLOAT_16:
       return MTLPixelFormatR16Float;
-    case GPU_R16:
+    case TextureFormat::UNORM_16:
       return MTLPixelFormatR16Unorm;
     /* Special formats texture & render-buffer. */
-    case GPU_RGB10_A2:
+    case TextureFormat::UNORM_10_10_10_2:
       return MTLPixelFormatRGB10A2Unorm;
-    case GPU_RGB10_A2UI:
+    case TextureFormat::UINT_10_10_10_2:
       return MTLPixelFormatRGB10A2Uint;
-    case GPU_R11F_G11F_B10F:
+    case TextureFormat::UFLOAT_11_11_10:
       return MTLPixelFormatRG11B10Float;
-    case GPU_DEPTH32F_STENCIL8:
+    case TextureFormat::SFLOAT_32_DEPTH_UINT_8:
       return MTLPixelFormatDepth32Float_Stencil8;
-    case GPU_SRGB8_A8:
+    case TextureFormat::SRGBA_8_8_8_8:
       return MTLPixelFormatRGBA8Unorm_sRGB;
     /* Texture only formats. */
-    case GPU_RGB16F:
+    case TextureFormat::SFLOAT_16_16_16:
       /* 48-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA16Float;
-    case GPU_RGBA16_SNORM:
+    case TextureFormat::SNORM_16_16_16_16:
       return MTLPixelFormatRGBA16Snorm;
-    case GPU_RGBA8_SNORM:
+    case TextureFormat::SNORM_8_8_8_8:
       return MTLPixelFormatRGBA8Snorm;
-    case GPU_RGB32F:
+    case TextureFormat::SFLOAT_32_32_32:
       /* 96-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA32Float;
-    case GPU_RGB32I:
+    case TextureFormat::SINT_32_32_32:
       /* 96-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA32Sint;
-    case GPU_RGB32UI:
+    case TextureFormat::UINT_32_32_32:
       /* 96-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA32Uint;
-    case GPU_RGB16_SNORM:
+    case TextureFormat::SNORM_16_16_16:
       /* 48-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA16Snorm;
-    case GPU_RGB16I:
+    case TextureFormat::SINT_16_16_16:
       /* 48-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA16Sint;
-    case GPU_RGB16UI:
+    case TextureFormat::UINT_16_16_16:
       /* 48-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA16Uint;
-    case GPU_RGB16:
+    case TextureFormat::UNORM_16_16_16:
       /* 48-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA16Unorm;
-    case GPU_RGB8_SNORM:
+    case TextureFormat::SNORM_8_8_8:
       /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA8Snorm;
-    case GPU_RGB8:
+    case TextureFormat::UNORM_8_8_8:
       /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA8Unorm;
-    case GPU_RGB8I:
+    case TextureFormat::SINT_8_8_8:
       /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA8Sint;
-    case GPU_RGB8UI:
+    case TextureFormat::UINT_8_8_8:
       /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA8Uint;
-    case GPU_RG16_SNORM:
+    case TextureFormat::SNORM_16_16:
       return MTLPixelFormatRG16Snorm;
-    case GPU_RG8_SNORM:
+    case TextureFormat::SNORM_8_8:
       return MTLPixelFormatRG8Snorm;
-    case GPU_R16_SNORM:
+    case TextureFormat::SNORM_16:
       return MTLPixelFormatR16Snorm;
-    case GPU_R8_SNORM:
+    case TextureFormat::SNORM_8:
       return MTLPixelFormatR8Snorm;
     /* Special formats, texture only. */
-    case GPU_SRGB8_A8_DXT1:
+    case TextureFormat::SRGB_DXT1:
       return MTLPixelFormatBC1_RGBA_sRGB;
-    case GPU_SRGB8_A8_DXT3:
+    case TextureFormat::SRGB_DXT3:
       return MTLPixelFormatBC2_RGBA_sRGB;
-    case GPU_SRGB8_A8_DXT5:
+    case TextureFormat::SRGB_DXT5:
       return MTLPixelFormatBC3_RGBA_sRGB;
-    case GPU_RGBA8_DXT1:
+    case TextureFormat::SNORM_DXT1:
       return MTLPixelFormatBC1_RGBA;
-    case GPU_RGBA8_DXT3:
+    case TextureFormat::SNORM_DXT3:
       return MTLPixelFormatBC2_RGBA;
-    case GPU_RGBA8_DXT5:
+    case TextureFormat::SNORM_DXT5:
       return MTLPixelFormatBC3_RGBA;
-    case GPU_SRGB8:
+    case TextureFormat::SRGBA_8_8_8:
       /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA8Unorm_sRGB;
-    case GPU_RGB9_E5:
+    case TextureFormat::UFLOAT_9_9_9_EXP_5:
       return MTLPixelFormatRGB9E5Float;
     /* Depth Formats. */
-    case GPU_DEPTH_COMPONENT32F:
+    case TextureFormat::SFLOAT_32_DEPTH:
       return MTLPixelFormatDepth32Float;
-    case GPU_DEPTH_COMPONENT16:
+    case TextureFormat::UNORM_16_DEPTH:
       return MTLPixelFormatDepth16Unorm;
+    case TextureFormat::Invalid:
+      BLI_assert_msg(false, "Unrecognised GPU pixel format!\n");
   }
   BLI_assert_msg(false, "Unrecognised GPU pixel format!\n");
   return MTLPixelFormatRGBA8Unorm;
@@ -577,13 +579,16 @@ void gpu::MTLTexture::update_sub_depth_2d(
     int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data)
 {
   /* Verify we are in a valid configuration. */
-  BLI_assert(ELEM(format_, GPU_DEPTH_COMPONENT32F, GPU_DEPTH_COMPONENT16, GPU_DEPTH32F_STENCIL8));
+  BLI_assert(ELEM(format_,
+                  TextureFormat::SFLOAT_32_DEPTH,
+                  TextureFormat::UNORM_16_DEPTH,
+                  TextureFormat::SFLOAT_32_DEPTH_UINT_8));
   BLI_assert(validate_data_format(format_, type));
   BLI_assert(ELEM(type, GPU_DATA_FLOAT, GPU_DATA_UINT_24_8_DEPRECATED, GPU_DATA_UINT));
 
   /* Determine whether we are in GPU_DATA_UINT_24_8_DEPRECATED or GPU_DATA_FLOAT mode. */
   bool is_float = (type == GPU_DATA_FLOAT);
-  eGPUTextureFormat format = (is_float) ? GPU_R32F : GPU_R32I;
+  TextureFormat format = (is_float) ? TextureFormat::SFLOAT_32 : TextureFormat::SINT_32;
 
   /* Shader key - Add parameters here for different configurations. */
   DepthTextureUpdateRoutineSpecialisation specialization;

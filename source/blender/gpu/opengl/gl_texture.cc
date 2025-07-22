@@ -135,7 +135,7 @@ bool GLTexture::init_internal(gpu::Texture *src,
   debug::object_label(GL_TEXTURE, tex_id_, name_);
 
   /* Stencil view support. */
-  if (ELEM(format_, GPU_DEPTH32F_STENCIL8)) {
+  if (ELEM(format_, TextureFormat::SFLOAT_32_DEPTH_UINT_8)) {
     stencil_texture_mode_set(use_stencil);
   }
 
@@ -378,8 +378,8 @@ void *GLTexture::read(int mip, eGPUDataFormat type)
    * if the texture is big. (see #66573) */
   void *data = MEM_mallocN(texture_size + 8, "GPU_texture_read");
 
-  GLenum gl_format = to_gl_data_format(format_ == GPU_DEPTH32F_STENCIL8 ? GPU_DEPTH_COMPONENT32F :
-                                                                          format_);
+  GLenum gl_format = to_gl_data_format(
+      format_ == TextureFormat::SFLOAT_32_DEPTH_UINT_8 ? TextureFormat::SFLOAT_32_DEPTH : format_);
   GLenum gl_type = to_gl(type);
 
   if (GLContext::direct_state_access_support) {
@@ -672,7 +672,7 @@ bool GLTexture::proxy_check(int mip)
   GLenum gl_proxy = to_gl_proxy(type_);
   GLenum internal_format = to_gl_internal_format(format_);
   GLenum gl_format = to_gl_data_format(format_);
-  GLenum gl_type = to_gl(to_data_format(format_));
+  GLenum gl_type = to_gl(to_texture_data_format(format_));
   /* Small exception. */
   int dimensions = (type_ == GPU_TEXTURE_CUBE) ? 2 : this->dimensions_count();
 

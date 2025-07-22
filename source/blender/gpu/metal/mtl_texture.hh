@@ -267,7 +267,7 @@ class MTLTexture : public Texture {
  public:
   MTLTexture(const char *name);
   MTLTexture(const char *name,
-             eGPUTextureFormat format,
+             TextureFormat format,
              eGPUTextureType type,
              id<MTLTexture> metal_texture);
   ~MTLTexture() override;
@@ -500,7 +500,7 @@ class MTLPixelBuffer : public PixelBuffer {
 };
 
 /* Utility */
-MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format);
+MTLPixelFormat gpu_texture_format_to_metal(TextureFormat tex_format);
 size_t get_mtl_format_bytesize(MTLPixelFormat tex_format);
 int get_mtl_format_num_components(MTLPixelFormat tex_format);
 bool mtl_format_supports_blending(MTLPixelFormat format);

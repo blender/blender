@@ -116,8 +116,12 @@ void VKTexture::clear(eGPUDataFormat format, const void *data)
 {
   if (format == GPU_DATA_UINT_24_8_DEPRECATED) {
     float clear_depth = 0.0f;
-    convert_host_to_device(
-        &clear_depth, data, 1, format, GPU_DEPTH32F_STENCIL8, GPU_DEPTH32F_STENCIL8);
+    convert_host_to_device(&clear_depth,
+                           data,
+                           1,
+                           format,
+                           TextureFormat::SFLOAT_32_DEPTH_UINT_8,
+                           TextureFormat::SFLOAT_32_DEPTH_UINT_8);
     clear_depth_stencil(GPU_DEPTH_BIT | GPU_STENCIL_BIT, clear_depth, 0u);
     return;
   }
@@ -429,11 +433,11 @@ bool VKTexture::init_internal()
 {
   device_format_ = format_;
   /* R16G16F16 formats are typically not supported (<1%). */
-  if (device_format_ == GPU_RGB16F) {
-    device_format_ = GPU_RGBA16F;
+  if (device_format_ == TextureFormat::SFLOAT_16_16_16) {
+    device_format_ = TextureFormat::SFLOAT_16_16_16_16;
   }
-  if (device_format_ == GPU_RGB32F) {
-    device_format_ = GPU_RGBA32F;
+  if (device_format_ == TextureFormat::SFLOAT_32_32_32) {
+    device_format_ = TextureFormat::SFLOAT_32_32_32_32;
   }
 
   if (!allocate()) {

@@ -563,7 +563,8 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
   PYGPU_FRAMEBUFFER_CHECK_OBJ(self);
   int x, y, w, h, channels;
   uint slot;
-  PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items, GPU_RGBA8};
+  PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items,
+                                     int(blender::gpu::TextureFormat::UNORM_8_8_8_8)};
   BPyGPUBuffer *py_buffer = nullptr;
 
   static const char *_keywords[] = {

@@ -65,7 +65,7 @@ void GLUniformBuf::clear_to_zero()
   }
 
   uint32_t data = 0;
-  eGPUTextureFormat internal_format = GPU_R32UI;
+  TextureFormat internal_format = TextureFormat::UINT_32;
   eGPUDataFormat data_format = GPU_DATA_UINT;
 
   if (GLContext::direct_state_access_support) {

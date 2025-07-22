@@ -157,7 +157,7 @@ ShadowTileMapPool::ShadowTileMapPool()
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                            GPU_TEXTURE_USAGE_ATTACHMENT;
-  tilemap_tx.ensure_2d(GPU_R32UI, extent, usage);
+  tilemap_tx.ensure_2d(gpu::TextureFormat::UINT_32, extent, usage);
   tilemap_tx.clear(uint4(0));
 }
 
@@ -1301,8 +1301,10 @@ void ShadowModule::set_view(View &view, int2 extent)
   }
   else if (shadow_technique == ShadowTechnique::TILE_COPY) {
     /* Create memoryless depth attachment for on-tile surface depth accumulation. */
-    shadow_depth_fb_tx_.ensure_2d_array(GPU_DEPTH_COMPONENT32F, fb_size, fb_layers, usage);
-    shadow_depth_accum_tx_.ensure_2d_array(GPU_R32F, fb_size, fb_layers, usage);
+    shadow_depth_fb_tx_.ensure_2d_array(
+        gpu::TextureFormat::SFLOAT_32_DEPTH, fb_size, fb_layers, usage);
+    shadow_depth_accum_tx_.ensure_2d_array(
+        gpu::TextureFormat::SFLOAT_32, fb_size, fb_layers, usage);
     render_fb_.ensure(GPU_ATTACHMENT_TEXTURE(shadow_depth_fb_tx_),
                       GPU_ATTACHMENT_TEXTURE(shadow_depth_accum_tx_));
   }

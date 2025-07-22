@@ -507,7 +507,7 @@ static int pupdate_time()
 static void *ocio_transform_ibuf(const PlayDisplayContext &display_ctx,
                                  ImBuf *ibuf,
                                  bool *r_glsl_used,
-                                 eGPUTextureFormat *r_format,
+                                 blender::gpu::TextureFormat *r_format,
                                  eGPUDataFormat *r_data,
                                  void **r_buffer_cache_handle)
 {
@@ -518,7 +518,7 @@ static void *ocio_transform_ibuf(const PlayDisplayContext &display_ctx,
   force_fallback |= (ibuf->dither != 0.0f);
 
   /* Default. */
-  *r_format = GPU_RGBA8;
+  *r_format = blender::gpu::TextureFormat::UNORM_8_8_8_8;
   *r_data = GPU_DATA_UBYTE;
 
   /* Fallback to CPU based color space conversion. */
@@ -531,11 +531,11 @@ static void *ocio_transform_ibuf(const PlayDisplayContext &display_ctx,
 
     *r_data = GPU_DATA_FLOAT;
     if (ibuf->channels == 4) {
-      *r_format = GPU_RGBA16F;
+      *r_format = blender::gpu::TextureFormat::SFLOAT_16_16_16_16;
     }
     else if (ibuf->channels == 3) {
       /* Alpha is implicitly 1. */
-      *r_format = GPU_RGB16F;
+      *r_format = blender::gpu::TextureFormat::SFLOAT_16_16_16;
     }
 
     if (ibuf->float_buffer.colorspace) {
@@ -569,7 +569,7 @@ static void *ocio_transform_ibuf(const PlayDisplayContext &display_ctx,
   if ((ibuf->byte_buffer.data || ibuf->float_buffer.data) && !*r_glsl_used) {
     display_buffer = IMB_display_buffer_acquire(
         ibuf, &display_ctx.view_settings, &display_ctx.display_settings, r_buffer_cache_handle);
-    *r_format = GPU_RGBA8;
+    *r_format = blender::gpu::TextureFormat::UNORM_8_8_8_8;
     *r_data = GPU_DATA_UBYTE;
   }
 
@@ -583,7 +583,7 @@ static void draw_display_buffer(const PlayDisplayContext &display_ctx,
 {
   /* Format needs to be created prior to any #immBindShader call.
    * Do it here because OCIO binds its own shader. */
-  eGPUTextureFormat format;
+  blender::gpu::TextureFormat format;
   eGPUDataFormat data;
   bool glsl_used = false;
   GPUVertFormat *imm_format = immVertexFormat();

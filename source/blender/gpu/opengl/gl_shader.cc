@@ -231,72 +231,72 @@ static Type UNUSED_FUNCTION(to_component_type)(const Type &type)
   return Type::float_t;
 }
 
-static const char *to_string(const eGPUTextureFormat &type)
+static const char *to_string(const TextureFormat &type)
 {
   switch (type) {
-    case GPU_RGBA8UI:
+    case TextureFormat::UINT_8_8_8_8:
       return "rgba8ui";
-    case GPU_RGBA8I:
+    case TextureFormat::SINT_8_8_8_8:
       return "rgba8i";
-    case GPU_RGBA8:
+    case TextureFormat::UNORM_8_8_8_8:
       return "rgba8";
-    case GPU_RGBA32UI:
+    case TextureFormat::UINT_32_32_32_32:
       return "rgba32ui";
-    case GPU_RGBA32I:
+    case TextureFormat::SINT_32_32_32_32:
       return "rgba32i";
-    case GPU_RGBA32F:
+    case TextureFormat::SFLOAT_32_32_32_32:
       return "rgba32f";
-    case GPU_RGBA16UI:
+    case TextureFormat::UINT_16_16_16_16:
       return "rgba16ui";
-    case GPU_RGBA16I:
+    case TextureFormat::SINT_16_16_16_16:
       return "rgba16i";
-    case GPU_RGBA16F:
+    case TextureFormat::SFLOAT_16_16_16_16:
       return "rgba16f";
-    case GPU_RGBA16:
+    case TextureFormat::UNORM_16_16_16_16:
       return "rgba16";
-    case GPU_RG8UI:
+    case TextureFormat::UINT_8_8:
       return "rg8ui";
-    case GPU_RG8I:
+    case TextureFormat::SINT_8_8:
       return "rg8i";
-    case GPU_RG8:
+    case TextureFormat::UNORM_8_8:
       return "rg8";
-    case GPU_RG32UI:
+    case TextureFormat::UINT_32_32:
       return "rg32ui";
-    case GPU_RG32I:
+    case TextureFormat::SINT_32_32:
       return "rg32i";
-    case GPU_RG32F:
+    case TextureFormat::SFLOAT_32_32:
       return "rg32f";
-    case GPU_RG16UI:
+    case TextureFormat::UINT_16_16:
       return "rg16ui";
-    case GPU_RG16I:
+    case TextureFormat::SINT_16_16:
       return "rg16i";
-    case GPU_RG16F:
+    case TextureFormat::SFLOAT_16_16:
       return "rg16f";
-    case GPU_RG16:
+    case TextureFormat::UNORM_16_16:
       return "rg16";
-    case GPU_R8UI:
+    case TextureFormat::UINT_8:
       return "r8ui";
-    case GPU_R8I:
+    case TextureFormat::SINT_8:
       return "r8i";
-    case GPU_R8:
+    case TextureFormat::UNORM_8:
       return "r8";
-    case GPU_R32UI:
+    case TextureFormat::UINT_32:
       return "r32ui";
-    case GPU_R32I:
+    case TextureFormat::SINT_32:
       return "r32i";
-    case GPU_R32F:
+    case TextureFormat::SFLOAT_32:
       return "r32f";
-    case GPU_R16UI:
+    case TextureFormat::UINT_16:
       return "r16ui";
-    case GPU_R16I:
+    case TextureFormat::SINT_16:
       return "r16i";
-    case GPU_R16F:
+    case TextureFormat::SFLOAT_16:
       return "r16f";
-    case GPU_R16:
+    case TextureFormat::UNORM_16:
       return "r16";
-    case GPU_R11F_G11F_B10F:
+    case TextureFormat::UFLOAT_11_11_10:
       return "r11f_g11f_b10f";
-    case GPU_RGB10_A2:
+    case TextureFormat::UNORM_10_10_10_2:
       return "rgb10_a2";
     default:
       return "unknown";

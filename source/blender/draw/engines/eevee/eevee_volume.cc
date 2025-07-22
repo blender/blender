@@ -203,17 +203,18 @@ void VolumeModule::end_sync()
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                            GPU_TEXTURE_USAGE_ATTACHMENT;
 
-  prop_scattering_tx_.ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
-  prop_extinction_tx_.ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
-  prop_emission_tx_.ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
+  prop_scattering_tx_.ensure_3d(gpu::TextureFormat::UFLOAT_11_11_10, data_.tex_size, usage);
+  prop_extinction_tx_.ensure_3d(gpu::TextureFormat::UFLOAT_11_11_10, data_.tex_size, usage);
+  prop_emission_tx_.ensure_3d(gpu::TextureFormat::UFLOAT_11_11_10, data_.tex_size, usage);
   /* We need 2 separate images to prevent bugs in Nvidia drivers (See #122454). */
-  prop_phase_tx_.ensure_3d(GPU_R16F, data_.tex_size, usage);
-  prop_phase_weight_tx_.ensure_3d(GPU_R16F, data_.tex_size, usage);
+  prop_phase_tx_.ensure_3d(gpu::TextureFormat::SFLOAT_16, data_.tex_size, usage);
+  prop_phase_weight_tx_.ensure_3d(gpu::TextureFormat::SFLOAT_16, data_.tex_size, usage);
 
   int occupancy_layers = divide_ceil_u(data_.tex_size.z, 32u);
   eGPUTextureUsage occupancy_usage = GPU_TEXTURE_USAGE_SHADER_READ |
                                      GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_ATOMIC;
-  occupancy_tx_.ensure_3d(GPU_R32UI, int3(data_.tex_size.xy(), occupancy_layers), occupancy_usage);
+  occupancy_tx_.ensure_3d(
+      gpu::TextureFormat::UINT_32, int3(data_.tex_size.xy(), occupancy_layers), occupancy_usage);
 
   {
     eGPUTextureUsage hit_count_usage = GPU_TEXTURE_USAGE_SHADER_READ |
@@ -226,29 +227,35 @@ void VolumeModule::end_sync()
       hit_list_layer = clamp_i(inst_.scene->eevee.volumetric_ray_depth, 1, 16);
       hit_list_size = data_.tex_size.xy();
     }
-    hit_depth_tx_.ensure_3d(GPU_R32F, int3(hit_list_size, hit_list_layer), hit_depth_usage);
-    if (hit_count_tx_.ensure_2d(GPU_R32UI, hit_list_size, hit_count_usage)) {
+    hit_depth_tx_.ensure_3d(
+        gpu::TextureFormat::SFLOAT_32, int3(hit_list_size, hit_list_layer), hit_depth_usage);
+    if (hit_count_tx_.ensure_2d(gpu::TextureFormat::UINT_32, hit_list_size, hit_count_usage)) {
       hit_count_tx_.clear(uint4(0u));
     }
   }
 
   eGPUTextureUsage front_depth_usage = GPU_TEXTURE_USAGE_SHADER_READ |
                                        GPU_TEXTURE_USAGE_ATTACHMENT;
-  front_depth_tx_.ensure_2d(GPU_DEPTH32F_STENCIL8, data_.tex_size.xy(), front_depth_usage);
+  front_depth_tx_.ensure_2d(
+      gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8, data_.tex_size.xy(), front_depth_usage);
   occupancy_fb_.ensure(GPU_ATTACHMENT_TEXTURE(front_depth_tx_));
 
   bool created = false;
-  created |= scatter_tx_.current().ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
-  created |= extinction_tx_.current().ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
-  created |= scatter_tx_.previous().ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
-  created |= extinction_tx_.previous().ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
+  created |= scatter_tx_.current().ensure_3d(
+      gpu::TextureFormat::UFLOAT_11_11_10, data_.tex_size, usage);
+  created |= extinction_tx_.current().ensure_3d(
+      gpu::TextureFormat::UFLOAT_11_11_10, data_.tex_size, usage);
+  created |= scatter_tx_.previous().ensure_3d(
+      gpu::TextureFormat::UFLOAT_11_11_10, data_.tex_size, usage);
+  created |= extinction_tx_.previous().ensure_3d(
+      gpu::TextureFormat::UFLOAT_11_11_10, data_.tex_size, usage);
 
   if (created) {
     valid_history_ = false;
   }
 
-  integrated_scatter_tx_.ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
-  integrated_transmit_tx_.ensure_3d(GPU_R11F_G11F_B10F, data_.tex_size, usage);
+  integrated_scatter_tx_.ensure_3d(gpu::TextureFormat::UFLOAT_11_11_10, data_.tex_size, usage);
+  integrated_transmit_tx_.ensure_3d(gpu::TextureFormat::UFLOAT_11_11_10, data_.tex_size, usage);
 
   /* Update references for bindings. */
   result.scattering_tx_ = integrated_scatter_tx_;

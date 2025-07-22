@@ -693,9 +693,9 @@ void MTLFrameBuffer::update_attachments(bool /*update_viewport*/)
           }
 
           /* Check stencil component -- if supplied texture format supports stencil. */
-          eGPUTextureFormat format = GPU_texture_format(attach.tex);
+          TextureFormat format = GPU_texture_format(attach.tex);
           bool use_stencil = (type == GPU_FB_DEPTH_STENCIL_ATTACHMENT) &&
-                             (format == GPU_DEPTH32F_STENCIL8);
+                             (format == TextureFormat::SFLOAT_32_DEPTH_UINT_8);
           if (use_stencil) {
             if (this->has_stencil_attachment()) {
               MTLAttachment stencil_attachment_prev = this->get_stencil_attachment();
@@ -782,7 +782,7 @@ void MTLFrameBuffer::update_attachments(bool /*update_viewport*/)
     int size[3];
     GPU_texture_get_mipmap_size(attach.tex, attach.mip, size);
     this->size_set(size[0], size[1]);
-    srgb_ = (GPU_texture_format(attach.tex) == GPU_SRGB8_A8);
+    srgb_ = (GPU_texture_format(attach.tex) == TextureFormat::SRGBA_8_8_8_8);
   }
 
   /* We have now updated our internal structures. */

@@ -481,9 +481,11 @@ blender::gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *
     return nullptr;
   }
 
-  const eGPUTextureFormat format = (rpass->channels == 1) ? GPU_R32F :
-                                   (rpass->channels == 3) ? GPU_RGB32F :
-                                                            GPU_RGBA32F;
+  const blender::gpu::TextureFormat format = (rpass->channels == 1) ?
+                                                 blender::gpu::TextureFormat::SFLOAT_32 :
+                                             (rpass->channels == 3) ?
+                                                 blender::gpu::TextureFormat::SFLOAT_32_32_32 :
+                                                 blender::gpu::TextureFormat::SFLOAT_32_32_32_32;
 
   /* TODO(sergey): Use utility to assign the texture. */
   ibuf->gpu.texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",

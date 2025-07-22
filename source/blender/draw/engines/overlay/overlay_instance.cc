@@ -131,7 +131,8 @@ void Instance::init()
 
   {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
-    if (resources.dummy_depth_tx.ensure_2d(GPU_DEPTH_COMPONENT32F, int2(1, 1), usage)) {
+    if (resources.dummy_depth_tx.ensure_2d(gpu::TextureFormat::SFLOAT_32_DEPTH, int2(1, 1), usage))
+    {
       float data = 1.0f;
       GPU_texture_update_sub(resources.dummy_depth_tx, GPU_DATA_FLOAT, &data, 0, 0, 0, 1, 1, 1);
     }
@@ -210,7 +211,8 @@ void Instance::ensure_weight_ramp_texture()
     unit_float_to_uchar_clamp_v4(pixels_ubyte[i], pixels[i]);
   }
 
-  resources.weight_ramp_tx.ensure_1d(GPU_SRGB8_A8, res, GPU_TEXTURE_USAGE_SHADER_READ);
+  resources.weight_ramp_tx.ensure_1d(
+      gpu::TextureFormat::SRGBA_8_8_8_8, res, GPU_TEXTURE_USAGE_SHADER_READ);
   GPU_texture_update(resources.weight_ramp_tx, GPU_DATA_UBYTE, pixels_ubyte);
 }
 
@@ -686,7 +688,7 @@ void Instance::end_sync()
                                                    size.x,
                                                    size.y,
                                                    1,
-                                                   GPU_DEPTH32F_STENCIL8,
+                                                   gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
                                                    GPU_TEXTURE_USAGE_GENERAL,
                                                    nullptr);
     }

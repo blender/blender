@@ -10,7 +10,7 @@ SAMPLER(0, sampler2D, input_tx)
 SAMPLER(1, sampler2D, displacement_tx)
 SAMPLER(2, sampler2D, x_scale_tx)
 SAMPLER(3, sampler2D, y_scale_tx)
-IMAGE(0, GPU_RGBA16F, write, image2D, output_img)
+IMAGE(0, SFLOAT_16_16_16_16, write, image2D, output_img)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_displace)

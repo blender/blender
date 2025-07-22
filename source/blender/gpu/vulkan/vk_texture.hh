@@ -37,7 +37,7 @@ class VKTexture : public Texture {
    * This can be a different format then #Texture.format_ in case the texture format isn't natively
    * supported by the device.
    */
-  eGPUTextureFormat device_format_ = (eGPUTextureFormat)-1;
+  TextureFormat device_format_ = TextureFormat::Invalid;
 
   /** When set the instance is considered to be a texture view from `source_texture_` */
   VKTexture *source_texture_ = nullptr;
@@ -125,7 +125,7 @@ class VKTexture : public Texture {
   /**
    * Get the texture format how the texture is stored on the device.
    */
-  eGPUTextureFormat device_format_get() const
+  TextureFormat device_format_get() const
   {
     return device_format_;
   }

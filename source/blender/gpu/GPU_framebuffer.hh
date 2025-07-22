@@ -653,7 +653,7 @@ struct GPUOffScreen;
 GPUOffScreen *GPU_offscreen_create(int width,
                                    int height,
                                    bool with_depth_buffer,
-                                   eGPUTextureFormat format,
+                                   blender::gpu::TextureFormat format,
                                    eGPUTextureUsage usage,
                                    bool clear,
                                    char err_out[256]);
@@ -715,7 +715,7 @@ blender::gpu::Texture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen
 /**
  * Return the texture format of a #GPUOffScreen.
  */
-eGPUTextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen);
+blender::gpu::TextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen);
 
 /**
  * Return the internals of a #GPUOffScreen. Does not give ownership.

@@ -231,8 +231,11 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     const std::string &resource_name = *resource_names_[resource_names_.size() - 1];
 
     blender::gpu::Texture *texture;
-    const eGPUTextureFormat base_format = (channel == TEXTURE_RGB_CHANNEL) ? GPU_RGB32F : GPU_R32F;
-    const eGPUTextureFormat texture_format = Result::gpu_texture_format(base_format, precision_);
+    const blender::gpu::TextureFormat base_format =
+        (channel == TEXTURE_RGB_CHANNEL) ? blender::gpu::TextureFormat::SFLOAT_32_32_32 :
+                                           blender::gpu::TextureFormat::SFLOAT_32;
+    const blender::gpu::TextureFormat texture_format = Result::gpu_texture_format(base_format,
+                                                                                  precision_);
     /* A height of 1 indicates a 1D texture according to the OCIO API. */
 #  if OCIO_VERSION_HEX >= 0x02030000
     if (dimensions == OCIO::GpuShaderDesc::TEXTURE_1D)
@@ -276,7 +279,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
         size,
         size,
         1,
-        Result::gpu_texture_format(GPU_RGB32F, precision_),
+        Result::gpu_texture_format(blender::gpu::TextureFormat::SFLOAT_32_32_32, precision_),
         GPU_TEXTURE_USAGE_SHADER_READ,
         values);
     GPU_texture_filter_mode(texture, interpolation != OCIO::INTERP_NEAREST);

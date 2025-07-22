@@ -315,7 +315,7 @@ class DeferredLayer : DeferredLayerBase {
   DeferredLayer(Instance &inst) : inst_(inst)
   {
     float4 data(0.0f);
-    dummy_black.ensure_2d(RAYTRACE_RADIANCE_FORMAT,
+    dummy_black.ensure_2d(gpu::TextureFormat::RAYTRACE_RADIANCE_FORMAT,
                           int2(1),
                           GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE,
                           data);
@@ -648,7 +648,7 @@ class UtilityTexture : public Texture {
  public:
   UtilityTexture()
       : Texture("UtilityTx",
-                GPU_RGBA16F,
+                gpu::TextureFormat::SFLOAT_16_16_16_16,
                 GPU_TEXTURE_USAGE_SHADER_READ,
                 int2(lut_size),
                 layer_count,

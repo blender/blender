@@ -112,12 +112,15 @@ static void setup_taa_weights(const float2 offset, float r_weights[9], float &r_
 
 AntiAliasingPass::AntiAliasingPass()
 {
-  smaa_search_tx_.ensure_2d(
-      GPU_R8, {SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT}, GPU_TEXTURE_USAGE_SHADER_READ);
+  smaa_search_tx_.ensure_2d(gpu::TextureFormat::UNORM_8,
+                            {SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT},
+                            GPU_TEXTURE_USAGE_SHADER_READ);
   GPU_texture_update(smaa_search_tx_, GPU_DATA_UBYTE, searchTexBytes);
   GPU_texture_filter_mode(smaa_search_tx_, true);
 
-  smaa_area_tx_.ensure_2d(GPU_RG8, {AREATEX_WIDTH, AREATEX_HEIGHT}, GPU_TEXTURE_USAGE_SHADER_READ);
+  smaa_area_tx_.ensure_2d(gpu::TextureFormat::UNORM_8_8,
+                          {AREATEX_WIDTH, AREATEX_HEIGHT},
+                          GPU_TEXTURE_USAGE_SHADER_READ);
   GPU_texture_update(smaa_area_tx_, GPU_DATA_UBYTE, areaTexBytes);
   GPU_texture_filter_mode(smaa_area_tx_, true);
 }
@@ -146,10 +149,10 @@ void AntiAliasingPass::sync(const SceneState &scene_state, SceneResources &resou
                                   scene_state.resolution);
   smaa_mix_factor_ = 1.0f - clamp_f(scene_state.sample / 4.0f, 0.0f, 1.0f);
 
-  taa_accumulation_tx_.ensure_2d(GPU_RGBA16F,
+  taa_accumulation_tx_.ensure_2d(gpu::TextureFormat::SFLOAT_16_16_16_16,
                                  scene_state.resolution,
                                  GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
-  sample0_depth_tx_.ensure_2d(GPU_DEPTH32F_STENCIL8,
+  sample0_depth_tx_.ensure_2d(gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
                               scene_state.resolution,
                               GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
 
@@ -259,8 +262,9 @@ void AntiAliasingPass::draw(const DRWContext *draw_ctx,
     if (scene_state.sample == 0) {
       GPU_texture_copy(sample0_depth_tx_, resources.depth_tx);
       if (resources.depth_in_front_tx.is_valid()) {
-        sample0_depth_in_front_tx_.ensure_2d(
-            GPU_DEPTH32F_STENCIL8, scene_state.resolution, GPU_TEXTURE_USAGE_ATTACHMENT);
+        sample0_depth_in_front_tx_.ensure_2d(gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
+                                             scene_state.resolution,
+                                             GPU_TEXTURE_USAGE_ATTACHMENT);
         GPU_texture_copy(sample0_depth_in_front_tx_, resources.depth_in_front_tx);
       }
       else {
@@ -295,10 +299,10 @@ void AntiAliasingPass::draw(const DRWContext *draw_ctx,
 
   /** Always acquire to avoid constant allocation/deallocation. */
   smaa_weight_tx_.acquire(scene_state.resolution,
-                          GPU_RGBA8,
+                          gpu::TextureFormat::UNORM_8_8_8_8,
                           GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
   smaa_edge_tx_.acquire(scene_state.resolution,
-                        GPU_RG8,
+                        gpu::TextureFormat::UNORM_8_8,
                         GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
 
   if (!draw_ctx->is_image_render() || last_sample || taa_finished) {
