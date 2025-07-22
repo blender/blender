@@ -452,6 +452,7 @@ void NODE_OT_sockets_sync(wmOperatorType *ot);
 void build_socket_tooltip(uiTooltipData &tip_data,
                           bContext &C,
                           uiBut *but,
+                          const bNodeTree &tree,
                           const bNodeSocket &socket);
 
 }  // namespace blender::ed::space_node

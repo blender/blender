@@ -33,6 +33,7 @@ namespace blender::ed::space_node {
 class SocketTooltipBuilder {
  private:
   uiTooltipData &tip_data_;
+  const bNodeTree &tree_;
   const bNode &node_;
   const bNodeSocket &socket_;
   uiBut *but_ = nullptr;
@@ -49,8 +50,17 @@ class SocketTooltipBuilder {
   std::optional<TooltipBlockType> last_block_type_;
 
  public:
-  SocketTooltipBuilder(uiTooltipData &tip_data, const bNodeSocket &socket, bContext &C, uiBut *but)
-      : tip_data_(tip_data), node_(socket.owner_node()), socket_(socket), but_(but), C_(C)
+  SocketTooltipBuilder(uiTooltipData &tip_data,
+                       const bNodeTree &tree,
+                       const bNodeSocket &socket,
+                       bContext &C,
+                       uiBut *but)
+      : tip_data_(tip_data),
+        tree_(tree),
+        node_(socket.owner_node()),
+        socket_(socket),
+        but_(but),
+        C_(C)
   {
   }
 
@@ -864,9 +874,10 @@ class SocketTooltipBuilder {
 void build_socket_tooltip(uiTooltipData &tip_data,
                           bContext &C,
                           uiBut *but,
+                          const bNodeTree &tree,
                           const bNodeSocket &socket)
 {
-  SocketTooltipBuilder builder(tip_data, socket, C, but);
+  SocketTooltipBuilder builder(tip_data, tree, socket, C, but);
   builder.build();
 }
 
