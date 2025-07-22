@@ -395,12 +395,21 @@ void clear_selection_attribute(Span<PointsRange> ranges_selected)
 
 void remove_selected_points(Span<PointsRange> ranges_selected)
 {
-  IndexMaskMemory memory;
+  /* Removing points from a drawing invalidates subsequent ranges for the same drawing.
+   * Combine all ranges for the same drawings first to prevent removing the wrong points. */
+  using RangesMap = Map<bke::greasepencil::Drawing *, Vector<IndexMask>>;
+  RangesMap ranges_by_drawing;
   for (const PointsRange &points_range : ranges_selected) {
     BLI_assert(points_range.from_drawing != nullptr);
+    Vector<IndexMask> &ranges = ranges_by_drawing.lookup_or_add(points_range.from_drawing, {});
+    ranges.append(points_range.range);
+  }
 
-    bke::CurvesGeometry &dst_curves = points_range.from_drawing->strokes_for_write();
-    dst_curves.remove_points(points_range.range, {});
+  for (const RangesMap::Item &item : ranges_by_drawing.items()) {
+    bke::CurvesGeometry &dst_curves = item.key->strokes_for_write();
+    IndexMaskMemory memory;
+    const IndexMask combined_mask = IndexMask::from_union(item.value, memory);
+    dst_curves.remove_points(combined_mask, {});
   }
 }
 
@@ -500,6 +509,7 @@ wmOperatorStatus grease_pencil_join_selection_exec(bContext *C, wmOperator *op)
   clear_selection_attribute(working_range_collection);
 
   bke::CurvesGeometry &dst_curves = dst_drawing->strokes_for_write();
+  const OffsetIndices stuff = dst_curves.points_by_curve();
   if (active_layer_behavior == ActiveLayerBehavior::JoinSelection) {
     remove_selected_points(ranges_selected);
   }
