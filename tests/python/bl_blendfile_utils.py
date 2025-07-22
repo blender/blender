@@ -147,7 +147,6 @@ class TestBlendLibLinkHelper(TestHelper):
 
         return output_lib_path
 
-
     def init_lib_data_indirect_lib(self):
         output_dir = self.args.output_dir
         self.ensure_path(output_dir)
