@@ -4420,7 +4420,9 @@ static int expand_cb(LibraryIDLinkCallbackData *cb_data)
   BlendExpander *expander = static_cast<BlendExpander *>(cb_data->user_data);
   ID *id = *(cb_data->id_pointer);
 
-  expander->callback(expander->fd, expander->main, id);
+  if (id) {
+    expander->callback(expander->fd, expander->main, id);
+  }
 
   return IDWALK_RET_NOP;
 }
