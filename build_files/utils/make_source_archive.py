@@ -294,7 +294,7 @@ def git_ls_files(directory: Path = Path(".")) -> Iterable[Path]:
             yield path
 
 
-def git_command(cli_args: str, split_char="\n") -> Iterable[str]:
+def git_command(cli_args: str, split_char: str = "\n") -> Iterable[str]:
     """Generator, yields lines of output from a Git command."""
     command = "git " + cli_args
 
