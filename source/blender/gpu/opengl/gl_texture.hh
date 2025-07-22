@@ -280,6 +280,8 @@ inline GLenum to_gl_internal_format(TextureFormat format)
       return GL_DEPTH_COMPONENT32F;
     case TextureFormat::UNORM_16_DEPTH:
       return GL_DEPTH_COMPONENT16;
+    case TextureFormat::Invalid:
+      break;
   }
   BLI_assert_msg(0, "Texture format incorrect or unsupported");
   return 0;
@@ -474,6 +476,8 @@ inline GLenum to_gl_data_format(TextureFormat format)
     case TextureFormat::SFLOAT_32_DEPTH:
     case TextureFormat::UNORM_16_DEPTH:
       return GL_DEPTH_COMPONENT;
+    case TextureFormat::Invalid:
+      break;
   }
   BLI_assert_msg(0, "Texture format incorrect or unsupported\n");
   return 0;

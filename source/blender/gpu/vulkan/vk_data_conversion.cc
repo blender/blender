@@ -185,6 +185,10 @@ static ConversionType type_of_conversion_float(const TextureFormat host_format,
     case TextureFormat::UFLOAT_9_9_9_EXP_5:
     case TextureFormat::UNORM_16_DEPTH:
       return ConversionType::UNSUPPORTED;
+
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
+      break;
   }
   return ConversionType::UNSUPPORTED;
 }
@@ -262,6 +266,10 @@ static ConversionType type_of_conversion_int(TextureFormat device_format)
     case TextureFormat::SFLOAT_32_DEPTH:
     case TextureFormat::UNORM_16_DEPTH:
       return ConversionType::UNSUPPORTED;
+
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
+      break;
   }
   return ConversionType::UNSUPPORTED;
 }
@@ -341,6 +349,10 @@ static ConversionType type_of_conversion_uint(TextureFormat device_format)
     case TextureFormat::UFLOAT_9_9_9_EXP_5:
     case TextureFormat::UNORM_16_DEPTH:
       return ConversionType::UNSUPPORTED;
+
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
+      break;
   }
   return ConversionType::UNSUPPORTED;
 }
@@ -414,6 +426,10 @@ static ConversionType type_of_conversion_half(TextureFormat device_format)
     case TextureFormat::SFLOAT_32_DEPTH:
     case TextureFormat::UNORM_16_DEPTH:
       return ConversionType::UNSUPPORTED;
+
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
+      break;
   }
   return ConversionType::UNSUPPORTED;
 }
@@ -489,6 +505,10 @@ static ConversionType type_of_conversion_ubyte(TextureFormat device_format)
     case TextureFormat::SFLOAT_32_DEPTH:
     case TextureFormat::UNORM_16_DEPTH:
       return ConversionType::UNSUPPORTED;
+
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
+      break;
   }
   return ConversionType::UNSUPPORTED;
 }
@@ -564,6 +584,10 @@ static ConversionType type_of_conversion_uint248(const TextureFormat device_form
     case TextureFormat::UFLOAT_9_9_9_EXP_5:
     case TextureFormat::UNORM_16_DEPTH:
       return ConversionType::UNSUPPORTED;
+
+    case TextureFormat::Invalid:
+      BLI_assert_unreachable();
+      break;
   }
   return ConversionType::UNSUPPORTED;
 }
