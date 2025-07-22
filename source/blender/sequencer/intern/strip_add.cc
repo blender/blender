@@ -276,8 +276,6 @@ Strip *add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
     IMB_freeImBuf(ibuf);
   }
 
-  /* Set Last active directory. */
-  STRNCPY(scene->ed->act_imagedir, strip->data->dirpath);
   strip_add_set_view_transform(scene, strip, load_data);
   strip_add_set_name(scene, strip, load_data);
   strip_add_generic_update(scene, strip);
@@ -350,8 +348,6 @@ Strip *add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
     strip->flag |= SEQ_AUDIO_DRAW_WAVEFORM;
   }
 
-  /* Set Last active directory. */
-  BLI_strncpy(scene->ed->act_sounddir, data->dirpath, FILE_MAXDIR);
   strip_add_set_name(scene, strip, load_data);
   strip_add_generic_update(scene, strip);
 

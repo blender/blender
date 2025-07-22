@@ -288,24 +288,12 @@ void select_surround_from_last(Scene *scene)
 
 void select_strip_single(Scene *scene, Strip *strip, bool deselect_all)
 {
-  Editing *ed = seq::editing_get(scene);
-
   if (deselect_all) {
     deselect_all_strips(scene);
   }
 
   seq::select_active_set(scene, strip);
 
-  if (ELEM(strip->type, STRIP_TYPE_IMAGE, STRIP_TYPE_MOVIE)) {
-    if (strip->data) {
-      BLI_strncpy(ed->act_imagedir, strip->data->dirpath, FILE_MAXDIR);
-    }
-  }
-  else if (strip->type == STRIP_TYPE_SOUND_RAM) {
-    if (strip->data) {
-      BLI_strncpy(ed->act_sounddir, strip->data->dirpath, FILE_MAXDIR);
-    }
-  }
   strip->flag |= SELECT;
   recurs_sel_strip(strip);
 }
@@ -563,20 +551,7 @@ void SEQUENCER_OT_select_inverse(wmOperatorType *ot)
 
 static void sequencer_select_set_active(Scene *scene, Strip *strip)
 {
-  Editing *ed = seq::editing_get(scene);
-
   seq::select_active_set(scene, strip);
-
-  if (ELEM(strip->type, STRIP_TYPE_IMAGE, STRIP_TYPE_MOVIE)) {
-    if (strip->data) {
-      BLI_strncpy(ed->act_imagedir, strip->data->dirpath, FILE_MAXDIR);
-    }
-  }
-  else if (strip->type == STRIP_TYPE_SOUND_RAM) {
-    if (strip->data) {
-      BLI_strncpy(ed->act_sounddir, strip->data->dirpath, FILE_MAXDIR);
-    }
-  }
   recurs_sel_strip(strip);
 }
 

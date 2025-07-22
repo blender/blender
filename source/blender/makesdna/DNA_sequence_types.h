@@ -348,10 +348,7 @@ typedef struct Editing {
   ListBase metastack;
   ListBase channels; /* SeqTimelineChannel */
 
-  /* Context vars, used to be static */
   Strip *act_strip;
-  char act_imagedir[/*FILE_MAX*/ 1024];
-  char act_sounddir[/*FILE_MAX*/ 1024];
   char proxy_dir[/*FILE_MAX*/ 1024];
 
   int proxy_storage;
