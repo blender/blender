@@ -72,8 +72,8 @@ class TestBlendLibLinkHelper(TestHelper):
                                                "reference",
                                                "jpeg-rgb-90__from__rgba08.jpg"))
         im.name = "LibMaterial"
-        assert len(im.pixels)
-        assert im.has_data
+        self.assertTrue(len(im.pixels) > 0)
+        self.assertTrue(im.has_data)
 
         ma = bpy.data.materials.new("LibMaterial")
         ma.use_fake_user = True
