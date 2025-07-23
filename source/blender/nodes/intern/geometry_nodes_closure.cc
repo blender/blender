@@ -8,22 +8,22 @@
 
 namespace blender::nodes {
 
-std::optional<int> ClosureSignature::find_input_index(const SocketInterfaceKey &key) const
+std::optional<int> ClosureSignature::find_input_index(const StringRef key) const
 {
   for (const int i : this->inputs.index_range()) {
     const Item &item = this->inputs[i];
-    if (item.key.matches(key)) {
+    if (item.key == key) {
       return i;
     }
   }
   return std::nullopt;
 }
 
-std::optional<int> ClosureSignature::find_output_index(const SocketInterfaceKey &key) const
+std::optional<int> ClosureSignature::find_output_index(const StringRef key) const
 {
   for (const int i : this->outputs.index_range()) {
     const Item &item = this->outputs[i];
-    if (item.key.matches(key)) {
+    if (item.key == key) {
       return i;
     }
   }
@@ -32,7 +32,7 @@ std::optional<int> ClosureSignature::find_output_index(const SocketInterfaceKey 
 
 static bool items_equal(const ClosureSignature::Item &a, const ClosureSignature::Item &b)
 {
-  if (!a.key.matches_exactly(b.key)) {
+  if (a.key != b.key) {
     return false;
   }
   if (a.type != b.type) {
@@ -94,13 +94,13 @@ ClosureSignature ClosureSignature::from_closure_output_node(const bNode &node)
   for (const int i : IndexRange(storage.input_items.items_num)) {
     const NodeGeometryClosureInputItem &item = storage.input_items.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
-      signature.inputs.append({nodes::SocketInterfaceKey(item.name), stype});
+      signature.inputs.append({item.name, stype});
     }
   }
   for (const int i : IndexRange(storage.output_items.items_num)) {
     const NodeGeometryClosureOutputItem &item = storage.output_items.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
-      signature.outputs.append({nodes::SocketInterfaceKey(item.name), stype});
+      signature.outputs.append({item.name, stype});
     }
   }
   return signature;
@@ -114,17 +114,13 @@ ClosureSignature ClosureSignature::from_evaluate_closure_node(const bNode &node)
   for (const int i : IndexRange(storage.input_items.items_num)) {
     const NodeGeometryEvaluateClosureInputItem &item = storage.input_items.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
-      signature.inputs.append({nodes::SocketInterfaceKey(item.name),
-                               stype,
-                               nodes::StructureType(item.structure_type)});
+      signature.inputs.append({item.name, stype, nodes::StructureType(item.structure_type)});
     }
   }
   for (const int i : IndexRange(storage.output_items.items_num)) {
     const NodeGeometryEvaluateClosureOutputItem &item = storage.output_items.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
-      signature.outputs.append({nodes::SocketInterfaceKey(item.name),
-                                stype,
-                                nodes::StructureType(item.structure_type)});
+      signature.outputs.append({item.name, stype, nodes::StructureType(item.structure_type)});
     }
   }
   return signature;

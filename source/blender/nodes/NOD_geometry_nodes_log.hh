@@ -43,7 +43,6 @@
 
 #include "NOD_geometry_nodes_closure_location.hh"
 #include "NOD_geometry_nodes_warning.hh"
-#include "NOD_socket_interface_key.hh"
 
 #include "FN_field.hh"
 
@@ -190,7 +189,7 @@ class GridInfoLog : public ValueLog {
 class BundleValueLog : public ValueLog {
  public:
   struct Item {
-    SocketInterfaceKey key;
+    std::string key;
     const bke::bNodeSocketType *type;
   };
 
@@ -202,7 +201,7 @@ class BundleValueLog : public ValueLog {
 class ClosureValueLog : public ValueLog {
  public:
   struct Item {
-    SocketInterfaceKey key;
+    std::string key;
     const bke::bNodeSocketType *type;
   };
 

@@ -58,10 +58,10 @@ TEST_F(BundleTest, AddItems)
 {
   BundlePtr bundle_ptr = Bundle::create();
   Bundle &bundle = const_cast<Bundle &>(*bundle_ptr);
-  bundle.add(SocketInterfaceKey{"a"}, 3);
+  bundle.add("a", 3);
   EXPECT_EQ(bundle.size(), 1);
-  EXPECT_TRUE(bundle.contains(SocketInterfaceKey{"a"}));
-  EXPECT_EQ(bundle.lookup<int>(SocketInterfaceKey{"a"}), 3);
+  EXPECT_TRUE(bundle.contains("a"));
+  EXPECT_EQ(bundle.lookup<int>("a"), 3);
 }
 
 TEST_F(BundleTest, AddLookupPath)

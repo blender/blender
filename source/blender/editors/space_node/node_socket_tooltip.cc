@@ -694,14 +694,13 @@ class SocketTooltipBuilder {
       this->add_text_field_mono(TIP_("Values:"));
       Vector<geo_log::BundleValueLog::Item> sorted_items = bundle_log.items;
       std::sort(sorted_items.begin(), sorted_items.end(), [](const auto &a, const auto &b) {
-        return BLI_strcasecmp_natural(a.key.identifiers().first().c_str(),
-                                      b.key.identifiers().first().c_str()) < 0;
+        return BLI_strcasecmp_natural(a.key.c_str(), b.key.c_str()) < 0;
       });
       for (const geo_log::BundleValueLog::Item &item : sorted_items) {
         this->add_space();
         const std::string type_name = TIP_(item.type->label);
-        this->add_text_field_mono(fmt::format(
-            fmt::runtime("\u2022 \"{}\" ({})\n"), item.key.identifiers().first(), type_name));
+        this->add_text_field_mono(
+            fmt::format(fmt::runtime("\u2022 \"{}\" ({})\n"), item.key, type_name));
       }
     }
     this->add_space();
@@ -719,8 +718,8 @@ class SocketTooltipBuilder {
         for (const geo_log::ClosureValueLog::Item &item : closure_log.inputs) {
           this->add_space();
           const std::string type_name = TIP_(item.type->label);
-          this->add_text_field_mono(fmt::format(
-              fmt::runtime("\u2022 \"{}\" ({})\n"), item.key.identifiers().first(), type_name));
+          this->add_text_field_mono(
+              fmt::format(fmt::runtime("\u2022 \"{}\" ({})\n"), item.key, type_name));
         }
       }
       if (!closure_log.outputs.is_empty()) {
@@ -729,8 +728,8 @@ class SocketTooltipBuilder {
         for (const geo_log::ClosureValueLog::Item &item : closure_log.outputs) {
           this->add_space();
           const std::string type_name = TIP_(item.type->label);
-          this->add_text_field_mono(fmt::format(
-              fmt::runtime("\u2022 \"{}\" ({})\n"), item.key.identifiers().first(), type_name));
+          this->add_text_field_mono(
+              fmt::format(fmt::runtime("\u2022 \"{}\" ({})\n"), item.key, type_name));
         }
       }
     }

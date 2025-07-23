@@ -9,7 +9,6 @@
 #include "BKE_node_socket_value.hh"
 #include "NOD_geometry_nodes_bundle_fwd.hh"
 #include "NOD_geometry_nodes_values.hh"
-#include "NOD_socket_interface_key.hh"
 
 #include "DNA_node_types.h"
 
@@ -24,7 +23,7 @@ namespace blender::nodes {
 class Bundle : public ImplicitSharingMixin {
  public:
   struct StoredItem {
-    SocketInterfaceKey key;
+    std::string key;
     const bke::bNodeSocketType *type;
     void *value;
   };
@@ -54,28 +53,26 @@ class Bundle : public ImplicitSharingMixin {
 
   static BundlePtr create();
 
-  bool add(const SocketInterfaceKey &key, const bke::bNodeSocketType &type, const void *value);
-  void add_new(SocketInterfaceKey key, const bke::bNodeSocketType &type, const void *value);
-  void add_override(const SocketInterfaceKey &key,
-                    const bke::bNodeSocketType &type,
-                    const void *value);
+  bool add(StringRef key, const bke::bNodeSocketType &type, const void *value);
+  void add_new(StringRef key, const bke::bNodeSocketType &type, const void *value);
+  void add_override(StringRef key, const bke::bNodeSocketType &type, const void *value);
   bool add_path(StringRef path, const bke::bNodeSocketType &type, const void *value);
   void add_path_new(StringRef path, const bke::bNodeSocketType &type, const void *value);
   void add_path_override(StringRef path, const bke::bNodeSocketType &type, const void *value);
 
-  template<typename T> void add(const SocketInterfaceKey &key, T value);
-  template<typename T> void add_override(const SocketInterfaceKey &key, T value);
+  template<typename T> void add(StringRef key, T value);
+  template<typename T> void add_override(StringRef key, T value);
   template<typename T> void add_path(StringRef path, T value);
   template<typename T> void add_path_override(StringRef path, T value);
 
-  bool remove(const SocketInterfaceKey &key);
-  bool contains(const SocketInterfaceKey &key) const;
+  bool remove(StringRef key);
+  bool contains(StringRef key) const;
   bool contains_path(StringRef path) const;
 
-  std::optional<Item> lookup(const SocketInterfaceKey &key) const;
+  std::optional<Item> lookup(StringRef key) const;
   std::optional<Item> lookup_path(Span<StringRef> path) const;
   std::optional<Item> lookup_path(StringRef path) const;
-  template<typename T> std::optional<T> lookup(const SocketInterfaceKey &key) const;
+  template<typename T> std::optional<T> lookup(StringRef key) const;
   template<typename T> std::optional<T> lookup_path(StringRef path) const;
 
   bool is_empty() const;
@@ -155,7 +152,7 @@ template<typename T> inline std::optional<T> Bundle::Item::as() const
   return std::nullopt;
 }
 
-template<typename T> inline std::optional<T> Bundle::lookup(const SocketInterfaceKey &key) const
+template<typename T> inline std::optional<T> Bundle::lookup(const StringRef key) const
 {
   const std::optional<Item> item = this->lookup(key);
   if (!item) {
@@ -188,7 +185,7 @@ template<typename T, typename Fn> inline void to_stored_type(T &&value, Fn &&fn)
   }
 }
 
-template<typename T> inline void Bundle::add(const SocketInterfaceKey &key, T value)
+template<typename T> inline void Bundle::add(const StringRef key, T value)
 {
   to_stored_type(value, [&](const bke::bNodeSocketType &type, const void *value) {
     this->add(key, type, value);
@@ -202,7 +199,7 @@ template<typename T> inline void Bundle::add_path(const StringRef path, T value)
   });
 }
 
-template<typename T> inline void Bundle::add_override(const SocketInterfaceKey &key, T value)
+template<typename T> inline void Bundle::add_override(const StringRef key, T value)
 {
   to_stored_type(value, [&](const bke::bNodeSocketType &type, const void *value) {
     this->add_override(key, type, value);
