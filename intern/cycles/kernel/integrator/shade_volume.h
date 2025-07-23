@@ -278,21 +278,25 @@ ccl_device float volume_equiangular_sample(const ccl_private Ray *ccl_restrict r
                                            ccl_private float *pdf)
 {
   const float delta = dot((coeffs.P - ray->P), ray->D);
-  const float D = safe_sqrtf(len_squared(coeffs.P - ray->P) - delta * delta);
+  const float D = len(coeffs.P - ray->P - ray->D * delta);
   if (UNLIKELY(D == 0.0f)) {
     *pdf = 0.0f;
     return 0.0f;
   }
   const float tmin = coeffs.t_range.min;
   const float tmax = coeffs.t_range.max;
+
   const float theta_a = atan2f(tmin - delta, D);
   const float theta_b = atan2f(tmax - delta, D);
-  const float t_ = D * tanf((xi * theta_b) + (1 - xi) * theta_a);
-  if (UNLIKELY(theta_b == theta_a)) {
-    *pdf = 0.0f;
-    return 0.0f;
+  const float theta_d = theta_b - theta_a;
+  if (UNLIKELY(theta_d < 1e-6f)) {
+    /* Use uniform sampling when `theta_d` is too small. */
+    *pdf = safe_divide(1.0f, tmax - tmin);
+    return mix(tmin, tmax, xi);
   }
-  *pdf = D / ((theta_b - theta_a) * (D * D + t_ * t_));
+
+  const float t_ = D * tanf((xi * theta_b) + (1 - xi) * theta_a);
+  *pdf = D / (theta_d * (D * D + t_ * t_));
 
   return clamp(delta + t_, tmin, tmax); /* clamp is only for float precision errors */
 }
@@ -302,22 +306,23 @@ ccl_device float volume_equiangular_pdf(const ccl_private Ray *ccl_restrict ray,
                                         const float sample_t)
 {
   const float delta = dot((coeffs.P - ray->P), ray->D);
-  const float D = safe_sqrtf(len_squared(coeffs.P - ray->P) - delta * delta);
+  const float D = len(coeffs.P - ray->P - ray->D * delta);
   if (UNLIKELY(D == 0.0f)) {
     return 0.0f;
   }
 
   const float tmin = coeffs.t_range.min;
   const float tmax = coeffs.t_range.max;
-  const float t_ = sample_t - delta;
 
   const float theta_a = atan2f(tmin - delta, D);
   const float theta_b = atan2f(tmax - delta, D);
-  if (UNLIKELY(theta_b == theta_a)) {
-    return 0.0f;
+  const float theta_d = theta_b - theta_a;
+  if (UNLIKELY(theta_d < 1e-6f)) {
+    return safe_divide(1.0f, tmax - tmin);
   }
 
-  const float pdf = D / ((theta_b - theta_a) * (D * D + t_ * t_));
+  const float t_ = sample_t - delta;
+  const float pdf = D / (theta_d * (D * D + t_ * t_));
 
   return pdf;
 }
@@ -342,7 +347,7 @@ ccl_device_inline bool volume_equiangular_valid_ray_segment(KernelGlobals kg,
 
   /* Point light, the whole range of the ray is visible. */
   kernel_assert(ls->type == LIGHT_POINT);
-  return true;
+  return !t_range->is_empty();
 }
 
 /* Emission */
