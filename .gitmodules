@@ -19,7 +19,7 @@
 	url = https://projects.blender.org/blender/lib-windows_x64.git
 	branch = main
 [submodule "lib/windows_arm64"]
-    update = none
+	update = none
 	path = lib/windows_arm64
 	url = https://projects.blender.org/blender/lib-windows_arm64.git
 	branch = main
