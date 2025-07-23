@@ -252,7 +252,7 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
     def _val_to_str(val) -> str:
         if isinstance(val, bpy.types.BoolAttributeValue):
             return f"{1 if val.value else 0}"
-        if isinstance(val, bpy.types.IntAttributeValue):
+        if isinstance(val, (bpy.types.IntAttributeValue, bpy.types.ByteIntAttributeValue)):
             return f"{val.value}"
         if isinstance(val, bpy.types.FloatAttributeValue):
             return f"{fmtf(val.value)}"
@@ -323,12 +323,11 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
             return
         desc.write(f"  - attr '{attr.name}' {attr.data_type} {attr.domain}\n")
         if isinstance(
-                attr,
-                bpy.types.BoolAttribute) or isinstance(
-                attr,
-                bpy.types.IntAttribute) or isinstance(
-                attr,
-                bpy.types.FloatAttribute):
+            attr,
+            (bpy.types.BoolAttribute,
+             bpy.types.IntAttribute,
+             bpy.types.ByteIntAttribute,
+             bpy.types.FloatAttribute)):
             Report._write_collection_single(attr.data, desc)
         else:
             Report._write_collection_multi(attr.data, desc)
@@ -496,6 +495,28 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
                         f"endp:{spline.use_endpoint_u},{spline.use_endpoint_v}\n"
                     )
                     Report._write_collection_multi(spline.points, desc)
+                # materials
+                if curve.materials:
+                    desc.write(f"  - {len(curve.materials)} materials\n")
+                    Report._write_collection_single(curve.materials, desc)
+                Report._write_animdata_desc(curve.animation_data, desc)
+                Report._write_custom_props(curve, desc)
+                desc.write(f"\n")
+
+        # curves(new) / hair
+        if len(bpy.data.hair_curves):
+            desc.write(f"==== Curves(new): {len(bpy.data.hair_curves)}\n")
+            for curve in bpy.data.hair_curves:
+                # overview
+                desc.write(
+                    f"- Curve '{curve.name}' "
+                    f"splines:{len(curve.curves)} "
+                    f"control-points:{len(curve.points)}\n"
+                )
+                # attributes
+                for attr in sorted(curve.attributes, key=lambda x: x.name):
+                    if not attr.is_internal:
+                        Report._write_attr(attr, desc)
                 # materials
                 if curve.materials:
                     desc.write(f"  - {len(curve.materials)} materials\n")
