@@ -3553,7 +3553,8 @@ std::optional<Bounds<float3>> BKE_object_evaluated_geometry_bounds(const Object 
 {
   if (const blender::bke::GeometrySet *geometry = ob->runtime->geometry_set_eval) {
     const bool use_radius = ob->type != OB_CURVES_LEGACY;
-    return geometry->compute_boundbox_without_instances(use_radius);
+    const bool use_subdiv = true;
+    return geometry->compute_boundbox_without_instances(use_radius, use_subdiv);
   }
   if (const CurveCache *curve_cache = ob->runtime->curve_cache) {
     float3 min(std::numeric_limits<float>::max());
