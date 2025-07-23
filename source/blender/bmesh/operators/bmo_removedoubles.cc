@@ -311,7 +311,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
     BLI_ghash_free(targetmap_all, nullptr, nullptr);
   }
 
-  BMO_mesh_delete_oflag_context(bm, ELE_DEL, DEL_ONLYTAGGED);
+  BMO_mesh_delete_oflag_context(bm, ELE_DEL, DEL_ONLYTAGGED, nullptr);
 }
 
 #define VERT_KEEP 8
