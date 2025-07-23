@@ -280,28 +280,27 @@ static wmOperatorStatus wm_usd_export_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  /* When the texture export settings were moved into an enum this bit
-   * became more involved, but it needs to stick around for API backwards
-   * compatibility until Blender 5.0. */
-
   const eUSDTexExportMode textures_mode = eUSDTexExportMode(
       RNA_enum_get(op->ptr, "export_textures_mode"));
-  bool export_textures = RNA_boolean_get(op->ptr, "export_textures");
+  bool export_textures = false;
   bool use_original_paths = false;
 
-  if (!export_textures) {
-    switch (textures_mode) {
-      case eUSDTexExportMode::USD_TEX_EXPORT_PRESERVE:
-        export_textures = false;
-        use_original_paths = true;
-        break;
-      case eUSDTexExportMode::USD_TEX_EXPORT_NEW_PATH:
-        export_textures = true;
-        use_original_paths = false;
-        break;
-      default:
-        use_original_paths = false;
-    }
+  switch (textures_mode) {
+    case eUSDTexExportMode::USD_TEX_EXPORT_PRESERVE:
+      export_textures = false;
+      use_original_paths = true;
+      break;
+    case eUSDTexExportMode::USD_TEX_EXPORT_NEW_PATH:
+      export_textures = true;
+      use_original_paths = false;
+      break;
+    case eUSDTexExportMode::USD_TEX_EXPORT_KEEP:
+      export_textures = false;
+      use_original_paths = false;
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
   }
 
   USDExportParams params;
@@ -682,13 +681,6 @@ void WM_OT_usd_export(wmOperatorType *ot)
   prop = RNA_def_enum(
       ot->srna, "export_global_up_selection", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
   RNA_def_property_update_runtime(prop, up_axis_update);
-
-  RNA_def_boolean(ot->srna,
-                  "export_textures",
-                  false,
-                  "Export Textures",
-                  "If exporting materials, export textures referenced by material nodes "
-                  "to a 'textures' directory in the same directory as the USD file");
 
   RNA_def_enum(ot->srna,
                "export_textures_mode",
