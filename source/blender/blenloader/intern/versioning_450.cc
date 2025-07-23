@@ -49,6 +49,7 @@
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
 #include "ANIM_armature_iter.hh"
+#include "BKE_colortools.hh"
 
 #include "RNA_access.hh"
 
@@ -4545,6 +4546,38 @@ static void clamp_subdivision_node_level_input(bNodeTree &tree)
   version_socket_update_is_used(&tree);
 }
 
+static void do_version_convert_gp_jitter_values(Brush *brush)
+{
+  BrushGpencilSettings *settings = brush->gpencil_settings;
+  float old_hsv_jitter[3] = {
+      settings->random_hue, settings->random_saturation, settings->random_value};
+  if (!is_zero_v3(old_hsv_jitter)) {
+    brush->flag2 |= BRUSH_JITTER_COLOR;
+  }
+  copy_v3_v3(brush->hsv_jitter, old_hsv_jitter);
+  if (brush->curve_rand_hue) {
+    BKE_curvemapping_free_data(brush->curve_rand_hue);
+    BKE_curvemapping_copy_data(brush->curve_rand_hue, settings->curve_rand_hue);
+  }
+  else {
+    brush->curve_rand_hue = BKE_curvemapping_copy(settings->curve_rand_hue);
+  }
+  if (brush->curve_rand_saturation) {
+    BKE_curvemapping_free_data(brush->curve_rand_saturation);
+    BKE_curvemapping_copy_data(brush->curve_rand_saturation, settings->curve_rand_saturation);
+  }
+  else {
+    brush->curve_rand_saturation = BKE_curvemapping_copy(settings->curve_rand_saturation);
+  }
+  if (brush->curve_rand_value) {
+    BKE_curvemapping_free_data(brush->curve_rand_value);
+    BKE_curvemapping_copy_data(brush->curve_rand_value, settings->curve_rand_value);
+  }
+  else {
+    brush->curve_rand_value = BKE_curvemapping_copy(settings->curve_rand_value);
+  }
+}
+
 void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 8)) {
@@ -6434,6 +6467,14 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 88)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->gpencil_settings) {
+        do_version_convert_gp_jitter_values(brush);
+      }
+    }
   }
 
   /* Always run this versioning (keep at the bottom of the function). Meshes are written with the

@@ -155,9 +155,9 @@ static Brush *create_fill_guide_brush()
   BKE_curvemapping_init(settings->curve_rand_pressure);
   BKE_curvemapping_init(settings->curve_rand_strength);
   BKE_curvemapping_init(settings->curve_rand_uv);
-  BKE_curvemapping_init(settings->curve_rand_hue);
-  BKE_curvemapping_init(settings->curve_rand_saturation);
-  BKE_curvemapping_init(settings->curve_rand_value);
+  BKE_curvemapping_init(fill_guides_brush->curve_rand_hue);
+  BKE_curvemapping_init(fill_guides_brush->curve_rand_saturation);
+  BKE_curvemapping_init(fill_guides_brush->curve_rand_value);
 
   fill_guides_brush->flag |= BRUSH_LOCK_SIZE;
   fill_guides_brush->unprojected_radius = 0.005f;
@@ -1179,9 +1179,9 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   BKE_curvemapping_init(settings->curve_rand_pressure);
   BKE_curvemapping_init(settings->curve_rand_strength);
   BKE_curvemapping_init(settings->curve_rand_uv);
-  BKE_curvemapping_init(settings->curve_rand_hue);
-  BKE_curvemapping_init(settings->curve_rand_saturation);
-  BKE_curvemapping_init(settings->curve_rand_value);
+  BKE_curvemapping_init(brush->curve_rand_hue);
+  BKE_curvemapping_init(brush->curve_rand_saturation);
+  BKE_curvemapping_init(brush->curve_rand_value);
 
   BLI_assert(grease_pencil->has_active_layer());
   const bke::greasepencil::Layer &layer = *grease_pencil->get_active_layer();
