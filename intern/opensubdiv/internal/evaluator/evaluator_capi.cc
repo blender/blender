@@ -6,7 +6,9 @@
 
 #include "opensubdiv_evaluator_capi.hh"
 
-#include <opensubdiv/osd/glslPatchShaderSource.h>
+#ifndef WITH_APPLE_CROSSPLATFORM
+#  include <opensubdiv/osd/glslPatchShaderSource.h>
+#endif
 
 #include "MEM_guardedalloc.h"
 
@@ -29,6 +31,7 @@ void openSubdiv_deleteEvaluatorCache(OpenSubdiv_EvaluatorCache *evaluator_cache)
   MEM_delete(evaluator_cache);
 }
 
+#ifndef WITH_APPLE_CROSSPLATFORM
 const char *openSubdiv_getGLSLPatchBasisSource()
 {
   /* Using a global string to avoid dealing with memory allocation/ownership. */
@@ -38,3 +41,4 @@ const char *openSubdiv_getGLSLPatchBasisSource()
   }
   return patch_basis_source.c_str();
 }
+#endif

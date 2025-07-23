@@ -11,6 +11,7 @@ set(INC_SYS
   ${PYTHON_INCLUDE_DIRS}
 )
 
+
 set(SRC
   bl_math_py_api.cc
   blf_py_api.cc
@@ -33,6 +34,11 @@ set(SRC
   python_compat.hh
   python_utildefines.hh
 )
+
+if(WITH_OPENGL_BACKEND)
+  list(APPEND SRC bgl.cc)
+  list(APPEND SRC bgl.h)
+endif()
 
 set(LIB
   ${PYTHON_LINKFLAGS}

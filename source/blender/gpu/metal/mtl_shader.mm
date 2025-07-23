@@ -328,14 +328,18 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
     options.fastMathEnabled = YES;
     options.preserveInvariance = YES;
 
+#ifndef WITH_APPLE_CROSSPLATFORM
     /* Raster order groups for tile data in struct require Metal 2.3.
      * Retaining Metal 2.2. for old shaders to maintain backwards
      * compatibility for existing features. */
-    if (info->subpass_inputs_.is_empty() == false) {
+    if (info->subpass_inputs_.is_empty() == false)
+#endif 
+    {
       options.languageVersion = MTLLanguageVersion2_3;
     }
-#if defined(MAC_OS_VERSION_14_0)
-    if (@available(macOS 14.00, *)) {
+
+#if defined(MAC_OS_VERSION_14_0) || defined(WITH_APPLE_CROSSPLATFORM)
+    if (@available(macOS 14.00, ios 17.00, *)) {
       /* Texture atomics require Metal 3.1. */
       if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC)) {
         options.languageVersion = MTLLanguageVersion3_1;
@@ -367,7 +371,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
        * Required on macOS 11.0. */
       NSString *source_with_header = source_with_header_a;
       [source_with_header retain];
-
+      
       /* Prepare Shader Library. */
       NSError *error = nullptr;
       id<MTLLibrary> library = [device newLibraryWithSource:source_with_header

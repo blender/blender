@@ -86,6 +86,32 @@ if(WIN32)
   )
 else()
   if(APPLE)
+
+    if(WITH_APPLE_CROSSPLATFORM)
+      # Building for non-local architecture.
+      set(CROSS_COMPILE_FLAGS "--host=aarch64-apple-darwin20.0.0")
+
+      # Disabling extra functionality!
+      set(CROSS_COMPILE_FUNC_CONFIGS
+        && export enable_ipv6=no &&
+        export ac_cv_file__dev_ptmx=no  &&
+        export ac_cv_file__dev_ptc=no &&
+        # system() calls unsupported on iOS.
+        export ac_cv_func_system=no &&
+        # TODO: Ensure paths are correct, pointing to build system tools.
+        export ac_cv_prog_READELF=""  &&
+        # Disable nis module
+        export py_cv_module_nis=n/a &&
+        # Disable posix shmem module
+        export py_cv_module__posixshmem=n/a
+      )
+      set(PYTHON_IOS_CFLAGS "-I${LIBDIR}/ffi/include -I${LIBDIR}/ssl/include -I${LIBDIR}/lzma/include")
+    else()
+      set(CROSS_COMPILE_FLAGS)
+      set(CROSS_COMPILE_FUNC_CONFIGS)
+      set(PYTHON_IOS_CFLAGS "")
+    endif()
+
     # Disable functions that can be in 10.13 sdk but aren't available on 10.9 target.
     #
     # Disable libintl (gettext library) as it might come from Homebrew, which makes
@@ -106,6 +132,7 @@ else()
       export ac_cv_func_timingsafe_bcmp=no &&
       export ac_cv_header_libintl_h=no &&
       export ac_cv_lib_intl_textdomain=no
+      ${CROSS_COMPILE_FUNC_CONFIGS}
     )
     if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
       set(PYTHON_FUNC_CONFIGS ${PYTHON_FUNC_CONFIGS} && export PYTHON_DECIMAL_WITH_MACHINE=ansi64)
@@ -114,23 +141,37 @@ else()
   else()
     set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV})
   endif()
-  set(PYTHON_BINARY ${LIBDIR}/python/bin/python${PYTHON_SHORT_VERSION})
 
   # Various flags to convince Python to use our own versions of:
   # `ffi`, `sqlite`, `ssl`, `bzip2`, `lzma` and `zlib`.
   # Using pkg-config is only supported for some, and even then we need to work around issues.
   set(PYTHON_CONFIGURE_EXTRA_ARGS --with-openssl=${LIBDIR}/ssl)
-  set(PYTHON_CFLAGS "${PLATFORM_CFLAGS} ")
-  # Manually specify some library paths. For ffi there is no other way,
-  # for sqlite is needed because LIBSQLITE3_LIBS does not work,
-  # and ssl because it uses the wrong ssl/lib dir instead of ssl/lib64.
-  set(PYTHON_LDFLAGS "-L${LIBDIR}/ffi/lib -L${LIBDIR}/sqlite/lib -L${LIBDIR}/ssl/lib -L${LIBDIR}/ssl/lib64 ${PLATFORM_LDFLAGS} ")
+  set(PYTHON_CFLAGS "-I${LIBDIR}/sqlite/include -I${LIBDIR}/bzip2/include -I${LIBDIR}/lzma/include -I${LIBDIR}/zlib/include -I${LIBDIR}/libb2/include ${PLATFORM_CFLAGS} ${PYTHON_IOS_CFLAGS}")
+  # Manually specify some library paths. For ffi there is no other way, for sqlite is needed because
+  # LIBSQLITE3_LIBS does not work, and ssl because it uses the wrong ssl/lib dir instead of ssl/lib64.
+  set(PYTHON_LDFLAGS "-L${LIBDIR}/ffi/lib -L${LIBDIR}/sqlite/lib -L${LIBDIR}/bzip2/lib -L${LIBDIR}/lzma/lib -L${LIBDIR}/zlib/lib -L${LIBDIR}/ssl/lib -L${LIBDIR}/ssl/lib64 -L${LIBDIR}/libb2/lib ${PLATFORM_LDFLAGS}")
+  
+  if(WITH_APPLE_CROSSPLATFORM)
+    set(PYTHON_BINARY ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/python/bin/python${PYTHON_SHORT_VERSION})
+    set(PYTHON_CONFIGURE_EXTRA_ARGS 
+        ${PYTHON_CONFIGURE_EXTRA_ARGS} 
+        --with-force-crosscompile 
+        --with-static-libpython=yes 
+        --disable-test-modules 
+        --enable-test-modules=no 
+        --with-ensurepip=no
+        --with-build-python=${PYTHON_BINARY}
+      )
+  else()
+    set(PYTHON_BINARY ${LIBDIR}/python/bin/python${PYTHON_SHORT_VERSION})
+  endif()
+
   set(PYTHON_CONFIGURE_EXTRA_ENV
     export CFLAGS=${PYTHON_CFLAGS} &&
     export CPPFLAGS=${PYTHON_CFLAGS} &&
     export LDFLAGS=${PYTHON_LDFLAGS} &&
     # Use pkg-config for libraries that support it.
-    export PKG_CONFIG_PATH=${LIBDIR}/ffi/lib/pkgconfig:${LIBDIR}/sqlite/lib/pkgconfig:${LIBDIR}/ssl/lib/pkgconfig:${LIBDIR}/ssl/lib64/pkgconfig
+    export PKG_CONFIG_PATH=${LIBDIR}/ffi/lib/pkgconfig:${LIBDIR}/sqlite/lib/pkgconfig:${LIBDIR}/ssl/lib/pkgconfig:${LIBDIR}/ssl/lib64/pkgconfig:${LIBDIR}/libb2/lib/pkgconfig
     # Use flags documented by ./configure for other libs.
     export BZIP2_CFLAGS=-I${LIBDIR}/bzip2/include
     export BZIP2_LIBS=${LIBDIR}/bzip2/lib/${LIBPREFIX}bz2${LIBEXT}
@@ -140,14 +181,21 @@ else()
     export ZLIB_LIBS=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
   )
 
+
   # This patch includes changes to fix missing `-lm` for SQLITE
   # and fix the order of `-ldl` flags for SSL to avoid link errors.
   if(APPLE)
-    set(PYTHON_PATCH
-      ${PATCH_CMD} --verbose -p1 -d
-        ${BUILD_DIR}/python/src/external_python <
+    if(WITH_APPLE_CROSSPLATFORM)
+      set(PYTHON_PATCH ${PATCH_CMD} --verbose -p1 -d 
+        ${BUILD_DIR}/python/src/external_python < 
+        ${PATCH_DIR}/python_ios.diff
+      )
+    else()
+      set(PYTHON_PATCH ${PATCH_CMD} --verbose -p1 -d 
+        ${BUILD_DIR}/python/src/external_python < 
         ${PATCH_DIR}/python_apple.diff
-    )
+      )
+    endif()
   else()
     set(PYTHON_PATCH
       ${PATCH_CMD} --verbose -p1 -d
@@ -174,20 +222,19 @@ else()
     URL_HASH ${PYTHON_HASH_TYPE}=${PYTHON_HASH}
     PREFIX ${BUILD_DIR}/python
     PATCH_COMMAND ${PYTHON_PATCH}
-
-    CONFIGURE_COMMAND ${PYTHON_CONFIGURE_ENV} &&
-      ${PYTHON_CONFIGURE_EXTRA_ENV} &&
-      cd ${BUILD_DIR}/python/src/external_python/ &&
-      ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/python ${PYTHON_CONFIGURE_EXTRA_ARGS}
-
-    BUILD_COMMAND ${PYTHON_CONFIGURE_ENV} &&
-      cd ${BUILD_DIR}/python/src/external_python/ &&
+    CONFIGURE_COMMAND ${PYTHON_CONFIGURE_ENV} && 
+      ${PYTHON_CONFIGURE_EXTRA_ENV} && 
+      cd ${BUILD_DIR}/python/src/external_python/ && 
+      ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/python ${PYTHON_CONFIGURE_EXTRA_ARGS} ${CROSS_COMPILE_FLAGS}
+    
+    BUILD_COMMAND ${PYTHON_CONFIGURE_ENV} && 
+      cd ${BUILD_DIR}/python/src/external_python/ && 
       make -j${MAKE_THREADS}
-
-    INSTALL_COMMAND ${PYTHON_CONFIGURE_ENV} &&
-      cd ${BUILD_DIR}/python/src/external_python/ &&
+    
+    INSTALL_COMMAND ${PYTHON_CONFIGURE_ENV} && 
+      cd ${BUILD_DIR}/python/src/external_python/ && 
       make install
-
+    
     INSTALL_DIR ${LIBDIR}/python)
 endif()
 
@@ -203,6 +250,7 @@ if(UNIX)
     external_ffi
     external_lzma
     external_sqlite
+    external_libb2
   )
 endif()
 
@@ -225,4 +273,12 @@ else()
   harvest(external_python python/bin python/bin "python${PYTHON_SHORT_VERSION}")
   harvest(external_python python/include python/include "*h")
   harvest(external_python python/lib python/lib "*")
+endif()
+
+if(WITH_APPLE_CROSSPLATFORM)
+  # Harvest Numpy from darwin_arm64
+  ExternalProject_Add_Step(external_python after_install
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_DEPS_CROSSCOMPILE_INSTALLDIR}/python/lib/python${PYTHON_SHORT_VERSION}/site-packages/numpy ${LIBDIR}/python/lib/python${PYTHON_SHORT_VERSION}/site-packages/numpy 
+    DEPENDEES install
+  )
 endif()

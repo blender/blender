@@ -140,12 +140,12 @@ void main()
     int2 offset = int2(floor(offset_f + 0.5f));
     int2 sample_texel = texel + offset;
 
-    float4 ray_data = imageLoad(ray_data_img, sample_texel);
+    float4 ray_info = imageLoad(ray_data_img, sample_texel);
     float ray_time = imageLoad(ray_time_img, sample_texel).r;
     float4 ray_radiance = imageLoad(ray_radiance_img, sample_texel);
 
-    float3 ray_direction = ray_data.xyz;
-    float ray_pdf_inv = abs(ray_data.w);
+    float3 ray_direction = ray_info.xyz;
+    float ray_pdf_inv = abs(ray_info.w);
     /* Skip invalid pixels. */
     if (ray_pdf_inv == 0.0f) {
       continue;

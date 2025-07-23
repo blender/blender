@@ -130,8 +130,12 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
   /* Allocate new MTL Buffer */
   MTLResourceOptions options;
   if (cpu_visible) {
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
     options = ([device_ hasUnifiedMemory]) ? MTLResourceStorageModeShared :
                                              MTLResourceStorageModeManaged;
+#else
+    options = MTLResourceStorageModeShared;
+#endif
   }
   else {
     options = MTLResourceStorageModePrivate;
@@ -750,7 +754,11 @@ uint64_t gpu::MTLBuffer::get_size_used() const
 bool gpu::MTLBuffer::requires_flush()
 {
   /* We do not need to flush shared memory, as addressable buffer is shared. */
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
   return options_ & MTLResourceStorageModeManaged;
+#else
+  return false;
+#endif
 }
 
 void gpu::MTLBuffer::set_label(NSString *str)
@@ -770,18 +778,25 @@ void gpu::MTLBuffer::debug_ensure_used()
 void gpu::MTLBuffer::flush()
 {
   this->debug_ensure_used();
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
   if (this->requires_flush()) {
     [metal_buffer_ didModifyRange:NSMakeRange(0, size_)];
   }
+#endif
 }
 
 void gpu::MTLBuffer::flush_range(uint64_t offset, uint64_t length)
 {
   this->debug_ensure_used();
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
   if (this->requires_flush()) {
     BLI_assert((offset + length) <= size_);
     [metal_buffer_ didModifyRange:NSMakeRange(offset, length)];
   }
+#else
+  UNUSED_VARS(offset);
+  UNUSED_VARS(length);
+#endif
 }
 
 void gpu::MTLBuffer::flag_in_use(bool used)
@@ -812,12 +827,17 @@ uint64_t gpu::MTLBuffer::get_alignment()
 
 bool MTLBufferRange::requires_flush()
 {
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
   /* We do not need to flush shared memory. */
   return this->options & MTLResourceStorageModeManaged;
+#else
+  return false;
+#endif
 }
 
 void MTLBufferRange::flush()
 {
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
   if (this->requires_flush()) {
     BLI_assert(this->metal_buffer);
     BLI_assert((this->buffer_offset + this->size) <= [this->metal_buffer length]);
@@ -825,6 +845,7 @@ void MTLBufferRange::flush()
     [this->metal_buffer
         didModifyRange:NSMakeRange(this->buffer_offset, this->size - this->buffer_offset)];
   }
+#endif
 }
 
 /** \} */
@@ -940,6 +961,7 @@ MTLCircularBuffer::MTLCircularBuffer(MTLContext &ctx, uint64_t initial_size, boo
     : own_context_(ctx)
 {
   BLI_assert(this);
+
   ssbo_source_ = new gpu::MTLStorageBuf(initial_size);
   cbuffer_ = ssbo_source_->metal_buffer_;
   current_offset_ = 0;

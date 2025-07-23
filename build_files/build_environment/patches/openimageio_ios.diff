@@ -1,0 +1,119 @@
+diff -Naur orig/CMakeLists.txt external_openimageio/CMakeLists.txt
+--- orig/CMakeLists.txt	2020-05-10 21:43:52 -0600
++++ external_openimageio/CMakeLists.txt	2020-05-13 17:03:35 -0600
+@@ -237,7 +237,7 @@
+     add_subdirectory (src/iinfo)
+     add_subdirectory (src/maketx)
+     add_subdirectory (src/oiiotool)
+-    add_subdirectory (src/testtex)
++    #add_subdirectory (src/testtex)
+     add_subdirectory (src/iv)
+ endif ()
+
+--- a/src/cmake/externalpackages.cmake	2025-04-24 13:29:16
++++ b/src/cmake/externalpackages.cmake	2025-04-24 13:21:59
+@@ -61,13 +61,13 @@
+     PRINT IMATH_INCLUDES OPENEXR_INCLUDES Imath_VERSION
+     )
+ 
+ # Force Imath includes to be before everything else to ensure that we have
+ # the right Imath/OpenEXR version, not some older version in the system
+ # library.
+-include_directories(BEFORE ${IMATH_INCLUDES} ${OPENEXR_INCLUDES})
++include_directories(BEFORE SYSTEM ${IMATH_INCLUDES} ${IMATH_INCLUDES}/Imath ${OPENEXR_INCLUDES} ${TBB_INCLUDE_DIRS})
+ set (OPENIMAGEIO_IMATH_TARGETS Imath::Imath)
+ set (OPENIMAGEIO_OPENEXR_TARGETS OpenEXR::OpenEXR)
+ set (OPENIMAGEIO_IMATH_DEPENDENCY_VISIBILITY "PRIVATE" CACHE STRING
+      "Should we expose Imath library dependency as PUBLIC or PRIVATE")
+ set (OPENIMAGEIO_CONFIG_DO_NOT_FIND_IMATH OFF CACHE BOOL
+      "Exclude find_dependency(Imath) from the exported OpenImageIOConfig.cmake")
+ 
+--- a/src/cmake/pythonutils.cmake	2023-06-26 13:29:16
++++ b/src/cmake/pythonutils.cmake	2023-06-25 19:36:00
+@@ -138,6 +138,7 @@
+ 
+     install (TARGETS ${target_name}
+              RUNTIME DESTINATION ${PYTHON_SITE_DIR} COMPONENT user
++             BUNDLE DESTINATION ${PYTHON_SITE_DIR} COMPONENT user
+              LIBRARY DESTINATION ${PYTHON_SITE_DIR} COMPONENT user)
+ 
+     install(FILES __init__.py DESTINATION ${PYTHON_SITE_DIR})
+
+--- a/src/libOpenImageIO/CMakeLists.txt	2025-04-24 13:29:16
++++ b/src/libOpenImageIO/CMakeLists.txt	2025-04-24 13:02:36
+@@ -88,13 +88,13 @@
+                                 PRIVATE
+                                     EMBED_PLUGINS=1
+                                     ${format_plugin_definitions})
+     target_compile_options (OpenImageIO
+                             PRIVATE ${format_plugin_compile_options})
+     target_include_directories (OpenImageIO BEFORE
+-                                PRIVATE ${format_plugin_include_dirs})
++                                PUBLIC ${format_plugin_include_dirs})
+ 
+     # Organize the embedded plugins into source folders
+     set (plugin_types "")
+     foreach (src ${libOpenImageIO_srcs})
+         if (src MATCHES "^.+/([^/]+)\\.imageio/.+$")
+             set (plugin_types ${plugin_types} ${CMAKE_MATCH_1})
+
+--- a/src/openexr.imageio/CMakeLists.txt	2025-04-24 13:29:16
++++ b/src/openexr.imageio/CMakeLists.txt	2025-04-24 13:03:18
+@@ -11,7 +11,7 @@
+ endif()
+ 
+ add_oiio_plugin (${openexr_src}
+-    INCLUDE_DIRS ${OPENEXR_INCLUDES} ${IMATH_INCLUDE_DIR}/OpenEXR
++    INCLUDE_DIRS ${OPENEXR_INCLUDES} ${IMATH_INCLUDE_DIR}/OpenEXR ${IMATH_INCLUDE_DIR} ${OPENEXR_INCLUDES}/OpenEXR ${TBB_INCLUDE_DIRS}
+     LINK_LIBRARIES
+         $<TARGET_NAME_IF_EXISTS:OpenEXR::OpenEXR>
+         $<TARGET_NAME_IF_EXISTS:OpenEXR::OpenEXRCore>
+
+--- a/src/cmake/add_oiio_plugin.cmake	2023-06-26 13:42:31
++++ b/src/cmake/add_oiio_plugin.cmake	2023-06-26 13:41:29
+@@ -72,6 +72,9 @@
+                                         OpenImageIO_EXPORTS)
+             target_include_directories (${_plugin_NAME} PRIVATE ${_plugin_INCLUDE_DIRS})
+             target_link_libraries (${_plugin_NAME} PUBLIC OpenImageIO
++                                                   ${OPENEXR_LIBRARIES}
++                                                   ${Boost_LIBRARIES}
++                                                   ${IMATH_LIBRARIES} ${TBB_LIBRARIES}
+                                                    PRIVATE ${_plugin_LINK_LIBRARIES})
+             set_target_properties (${_plugin_NAME} PROPERTIES PREFIX "" FOLDER "Plugins")
+             install_targets (${_plugin_NAME})
+
+--- a/src/libOpenImageIO/CMakeLists.txt	2023-06-26 13:42:32
++++ b/src/libOpenImageIO/CMakeLists.txt	2023-06-26 13:40:31
+@@ -130,7 +130,6 @@
+             OpenImageIO_Util
+             ${OPENIMAGEIO_IMATH_DEPENDENCY_VISIBILITY}
+             ${OPENIMAGEIO_IMATH_TARGETS}
+-        PRIVATE
+             ${OPENIMAGEIO_OPENEXR_TARGETS}
+             ${OpenCV_LIBRARIES}
+             ${format_plugin_libs} # Add all the target link libraries from the plugins
+@@ -139,6 +138,9 @@
+             $<TARGET_NAME_IF_EXISTS:pugixml::pugixml>
+             $<TARGET_NAME_IF_EXISTS:TBB::tbb>
+             ${BZIP2_LIBRARIES}
++            ${OPENEXR_LIBRARIES}
++            ${Boost_LIBRARIES}
++            ${IMATH_LIBRARIES} ${TBB_LIBRARIES}
+             ZLIB::ZLIB
+             $<TARGET_NAME_IF_EXISTS:Boost::thread>
+             ${CMAKE_DL_LIBS}
+
+--- b/src/cmake/compiler.cmake	2024-02-05 10:14:37
++++ a/src/cmake/compiler.cmake	2024-02-05 10:15:02
+@@ -738,9 +738,10 @@
+     endif()
+ 
+     # Use the install command with the appropriate options
+     install (TARGETS ${INSTALL_TARGETS_UNPARSED_ARGUMENTS}
+              EXPORT ${PROJ_NAME}_EXPORTED_TARGETS
+              RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT user
++             BUNDLE DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT user
+              LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT user ${namelink_option}
+              ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT developer)
+ endmacro()
+

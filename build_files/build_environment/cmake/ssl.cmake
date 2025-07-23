@@ -66,3 +66,8 @@ else()
     INSTALL_DIR ${LIBDIR}/ssl
   )
 endif()
+
+if(WITH_APPLE_CROSSPLATFORM)
+  # Required to provide libs for IOS_PYTHON_STATIC_LIBS
+  harvest_rpath_lib(external_ssl ssl/lib ssl/lib "*.a")
+endif()

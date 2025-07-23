@@ -103,6 +103,10 @@
 
 BLI_STATIC_ASSERT(ENDIAN_ORDER == L_ENDIAN, "Blender only builds on little endian systems")
 
+void WM_main_entry(bContext *C);
+int GHOST_iosmain(int argc, const char **argv);
+void GHOST_iosfinalize(bContext *C);
+
 /* -------------------------------------------------------------------- */
 /** \name Local Defines
  * \{ */
@@ -292,13 +296,23 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[]);
  * - run #WM_main() event loop,
  *   or exit immediately when running in background-mode.
  */
-int main(int argc,
-#ifdef USE_WIN32_UNICODE_ARGS
-         const char ** /*argv_c*/
+
+#ifdef WITH_APPLE_CROSSPLATFORM
+int main(int argc, const char **argv)
+{
+  return GHOST_iosmain(argc, argv);
+}
+
+int main_ios_callback(int argc, const char **argv)
 #else
+int main(int argc,
+#  ifdef USE_WIN32_UNICODE_ARGS
+         const char ** /*argv_c*/
+#  else
          const char **argv
-#endif
+#  endif
 )
+#endif
 {
   bContext *C;
 #ifndef WITH_PYTHON_MODULE
@@ -605,10 +619,18 @@ int main(int argc,
     /* Shows the splash as needed. */
     WM_init_splash_on_startup(C);
 
+#  ifdef WITH_APPLE_CROSSPLATFORM
+    /* iOS Main loop handled differently. */
+    WM_main_entry(C);
+    GHOST_iosfinalize(C);
+#  else
     WM_main(C);
+#  endif
   }
+#  ifndef WITH_APPLE_CROSSPLATFORM
   /* Neither #WM_exit, #WM_main return, this quiets CLANG's `unreachable-code-return` warning. */
   BLI_assert_unreachable();
+#  endif
 
 #endif /* !WITH_PYTHON_MODULE */
 

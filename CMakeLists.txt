@@ -118,6 +118,36 @@ enable_testing()
 
 
 # -----------------------------------------------------------------------------
+# Cross-platform build support for Apple platforms.
+if(APPLE)
+  # IOS_FIXME: TODO: Set to ios by default for this branch, but should be macos.
+  set(APPLE_TARGET_DEVICE ios CACHE STRING "Target build device for Apple platforms ('macos' or 'ios'). Default: macos")
+  #set(APPLE_TARGET_DEVICE macos CACHE STRING "Target build device for Apple platforms ('macos' or 'ios'). Default: macos")
+  mark_as_advanced(APPLE_TARGET_DEVICE)
+
+  if(APPLE_TARGET_DEVICE STREQUAL ios)
+    set(WITH_APPLE_CROSSPLATFORM ON CACHE BOOL "Build for iOS devices. WARNING: CMake Cache must be manually cleared when toggling this setting as find_package will not update paths to host dependencies." FORCE)
+     set(CMAKE_SYSTEM_NAME "iOS" CACHE INTERNAL "" FORCE)
+  elseif (APPLE_TARGET_DEVICE STREQUAL macos)
+    set(WITH_APPLE_CROSSPLATFORM OFF CACHE BOOL "" FORCE)
+    set(CMAKE_SYSTEM_NAME "Darwin" CACHE INTERNAL "" FORCE)
+  else()
+    message(FATAL_ERROR "Valid values for APPLE_TARGET_DEVICE are 'macos' or 'ios'")
+  endif()
+
+  if(WITH_APPLE_CROSSPLATFORM)
+    message(STATUS "Building for cross-compilation platform target: ${APPLE_TARGET_DEVICE}, CMAKE_SYSTEM_NAME:${CMAKE_SYSTEM_NAME}")
+    if (NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+       message(FATAL_ERROR "CMAKE_SYSTEM_NAME should be 'iOS' if WITH_APPLE_CROSSPLATFORM set. CMAKE_SYSTEM_NAME='${CMAKE_SYSTEM_NAME}'")
+    endif()
+    add_definitions(-DWITH_APPLE_CROSSPLATFORM)
+  else()
+    message(STATUS "Building for native platform target: ${APPLE_TARGET_DEVICE}, CMAKE_SYSTEM_NAME:${CMAKE_SYSTEM_NAME}")
+  endif()
+endif()
+
+
+# -----------------------------------------------------------------------------
 # Test Compiler Support
 #
 # Keep in sync with: https://developer.blender.org/docs/handbook/building_blender/
@@ -222,11 +252,19 @@ intended for use by file-managers to extract PNG images from `.blend` files."
     ON
   )
 elseif(APPLE)
-  option(WITH_BLENDER_THUMBNAILER "\
+  if (WITH_APPLE_CROSSPLATFORM)
+    option(WITH_BLENDER_THUMBNAILER "\
 Build \"blender-thumbnailer.appex\" extension for Finder/ QuickLook thumbnail \
 support for blend files."
-    ON
-  )
+      OFF
+    )
+  else()
+     option(WITH_BLENDER_THUMBNAILER "\
+Build \"blender-thumbnailer.appex\" extension for Finder/ QuickLook thumbnail \
+support for blend files."
+       ON
+     )
+  endif()
 endif()
 
 option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
@@ -2941,6 +2979,12 @@ if(FIRST_RUN)
       info_cfg_option(WITH_CYCLES_HIP_BINARIES)
       info_cfg_option(WITH_CYCLES_DEVICE_HIPRT)
     endif()
+  endif()
+
+  if(APPLE)
+    info_cfg_text("Apple Platform Configuration Options:")
+    info_cfg_option(APPLE_TARGET_DEVICE)
+    info_cfg_option(WITH_APPLE_CROSSPLATFORM)
   endif()
 
   info_cfg_text("")

@@ -25,6 +25,8 @@ ExternalProject_Add(external_python_site_packages
   # setuptools is downgraded to 63.2.0 (same as python 3.10.8) since numpy 1.23.x seemingly has
   # issues building on windows with the newer versions that ships with python 3.10.9+.
   # We do not build numpy, cython, or zstandard here as the pip builds are not reproducible.
+  #
+  # XXX: It installs tothe host Python, not to the iOS one.
   INSTALL_COMMAND ${PYTHON_BINARY} -m pip install --no-cache-dir ${SITE_PACKAGES_EXTRA}
   setuptools==63.2.0
   idna==${IDNA_VERSION}

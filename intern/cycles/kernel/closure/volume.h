@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device void volume_extinction_setup(ccl_private ShaderData *sd, Spectrum weight)
 {
   if (sd->flag & SD_EXTINCTION) {
-    sd->closure_transparent_extinction += weight;
+    sd->closure_transparent_extinction = Spectrum(sd->closure_transparent_extinction) + weight;
   }
   else {
     sd->flag |= SD_EXTINCTION;

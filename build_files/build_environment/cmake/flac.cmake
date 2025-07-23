@@ -3,6 +3,18 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(NOT WIN32)
+
+  if(WITH_APPLE_CROSSPLATFORM)
+    # Building for non-local architecture.
+    set(CROSS_COMPILE_FLAGS 
+      --host=arm
+      --with-ogg-includes=${LIBDIR}/ogg/include
+      --with-ogg-libraries=${LIBDIR}/ogg/lib
+    )
+  else()
+    set(CROSS_COMPILE_FLAGS)
+  endif()
+
   ExternalProject_Add(external_flac
     URL file://${PACKAGE_DIR}/${FLAC_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -11,7 +23,7 @@ if(NOT WIN32)
 
     CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/flac/src/external_flac/ &&
-      ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/flac --disable-shared --enable-static
+      ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/flac --disable-shared --enable-static  ${CROSS_COMPILE_FLAGS}
 
     BUILD_COMMAND ${CONFIGURE_ENV} &&
       cd ${BUILD_DIR}/flac/src/external_flac/ &&

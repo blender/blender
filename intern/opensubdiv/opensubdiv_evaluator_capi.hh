@@ -28,6 +28,8 @@ OpenSubdiv_EvaluatorCache *openSubdiv_createEvaluatorCache(eOpenSubdivEvaluator 
 
 void openSubdiv_deleteEvaluatorCache(OpenSubdiv_EvaluatorCache *evaluator_cache);
 
+#ifdef WITH_OPENGL_BACKEND
 // Return the GLSL source code from the OpenSubDiv library used for patch evaluation.
 // This function is not thread-safe.
 const char *openSubdiv_getGLSLPatchBasisSource();
+#endif

@@ -113,9 +113,11 @@ void device_metal_info(vector<DeviceInfo> &devices)
 
 string device_metal_capabilities()
 {
-  string result;
+  string result = "";
+#  ifndef WITH_APPLE_CROSSPLATFORM
   auto allDevices = MTLCopyAllDevices();
   uint32_t num_devices = (uint32_t)allDevices.count;
+
   if (num_devices == 0) {
     return "No Metal devices found\n";
   }
@@ -125,6 +127,12 @@ string device_metal_capabilities()
     string device_name = MetalInfo::get_device_name(device);
     result += string_printf("\t\tDevice: %s\n", device_name.c_str());
   }
+#  else
+  /* Single device on iOS. */
+  id<MTLDevice> default_mtl_device = MTLCreateSystemDefaultDevice();
+  string device_name = MetalInfo::get_device_name(default_mtl_device);
+  result += string_printf("\t\tDevice: %s\n", device_name.c_str());
+#  endif
 
   return result;
 }

@@ -35,10 +35,16 @@ SolverStatus RunCNF(const std::string &fin_name, int n_variable, int timeout,
 
     char cmd[100];
     snprintf(cmd, 99, "rm %s > /dev/null 2>&1", fout_name.c_str());
+#ifndef WITH_APPLE_CROSSPLATFORM
     system(cmd);
+#endif
     snprintf(cmd, 99, "timeout %d minisat %s %s > /dev/null 2>&1", timeout, fin_name.c_str(),
              fout_name.c_str());
+#ifndef WITH_APPLE_CROSSPLATFORM
     int exit_code = system(cmd);
+#else
+    int exit_code = 0;
+#endif
 
     FILE *fin = fopen(fout_name.c_str(), "r");
     char buf[16] = {0};

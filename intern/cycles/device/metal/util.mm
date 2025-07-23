@@ -88,6 +88,7 @@ const vector<id<MTLDevice>> &MetalInfo::get_usable_devices()
   }
 
   metal_printf("Usable Metal devices:");
+#  ifndef WITH_APPLE_CROSSPLATFORM
   for (id<MTLDevice> device in MTLCopyAllDevices()) {
     string device_name = get_device_name(device);
     bool usable = false;
@@ -113,6 +114,11 @@ const vector<id<MTLDevice>> &MetalInfo::get_usable_devices()
       metal_printf("  (skipping \"%s\")", device_name.c_str());
     }
   }
+#  else
+  /* Single GPU device for iOS. */
+  id<MTLDevice> system_default_device = MTLCreateSystemDefaultDevice();
+  usable_devices.push_back(system_default_device);
+#  endif
   if (usable_devices.empty()) {
     metal_printf("   No usable Metal devices found");
   }
@@ -155,7 +161,7 @@ struct GPUAddressHelper {
   uint64_t gpuAddress(id<MTLBuffer> buffer)
   {
 #  ifdef CYCLES_USE_TIER2D_BINDLESS
-    if (@available(macos 13.0, *)) {
+    if (@available(macos 13.0, ios 16.00, *)) {
       return buffer.gpuAddress;
     }
 #  endif
@@ -166,7 +172,7 @@ struct GPUAddressHelper {
   uint64_t gpuResourceID(id<MTLTexture> texture)
   {
 #  ifdef CYCLES_USE_TIER2D_BINDLESS
-    if (@available(macos 13.0, *)) {
+    if (@available(macos 13.0, ios 16.00, *)) {
       MTLResourceID resourceID = texture.gpuResourceID;
       return (uint64_t &)resourceID;
     }
@@ -178,7 +184,7 @@ struct GPUAddressHelper {
   uint64_t gpuResourceID(id<MTLAccelerationStructure> accel_struct)
   {
 #  ifdef CYCLES_USE_TIER2D_BINDLESS
-    if (@available(macos 13.0, *)) {
+    if (@available(macos 13.0, ios 16.00, *)) {
       MTLResourceID resourceID = accel_struct.gpuResourceID;
       return (uint64_t &)resourceID;
     }
@@ -190,7 +196,7 @@ struct GPUAddressHelper {
   uint64_t gpuResourceID(id<MTLIntersectionFunctionTable> ift)
   {
 #  ifdef CYCLES_USE_TIER2D_BINDLESS
-    if (@available(macos 13.0, *)) {
+    if (@available(macos 13.0, ios 16.00, *)) {
       MTLResourceID resourceID = ift.gpuResourceID;
       return (uint64_t &)resourceID;
     }

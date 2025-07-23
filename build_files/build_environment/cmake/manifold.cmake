@@ -18,6 +18,20 @@ set(MANIFOLD_EXTRA_ARGS
   -DCMAKE_DEBUG_POSTFIX=_d
 )
 
+#Override library search dirs for iOS, as these are not correctly found.
+if(WITH_APPLE_CROSSPLATFORM)
+
+  # Use iOS utility to set some env vars to help us build for iOS
+  include(cmake/ios_defines.cmake)
+  ios_get_dependency_env_vars(TBB)
+  
+  set(MANIFOLD_EXTRA_ARGS
+    ${MANIFOLD_EXTRA_ARGS}
+    ${IOSDEP_DEFINES}
+    -DTBB_FOUND=TRUE
+  )
+endif()
+
 ExternalProject_Add(external_manifold
   URL file://${PACKAGE_DIR}/${MANIFOLD_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}

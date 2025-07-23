@@ -16,7 +16,6 @@
 #include "GPU_vertex_format.hh"
 
 #include <Metal/Metal.h>
-#include <QuartzCore/QuartzCore.h>
 #include <functional>
 #include <unordered_map>
 

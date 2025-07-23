@@ -20,7 +20,7 @@ ccl_device ccl_private ShaderClosure *closure_alloc(ccl_private ShaderData *sd,
     return nullptr;
   }
 
-  ccl_private ShaderClosure *sc = &sd->closure[sd->num_closure];
+  ccl_private ShaderClosure *sc = sd->get_closure(sd->num_closure);
 
   sc->type = type;
   sc->weight = weight;

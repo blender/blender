@@ -4,7 +4,9 @@
 
 /* The Carbon API is still needed to check if the Input Source (Input Method or IME) is valid. */
 #ifdef WITH_INPUT_IME
-#  import <Carbon/Carbon.h>
+#  ifndef WITH_APPLE_CROSSPLATFORM
+#    import <Carbon/Carbon.h>
+#  endif
 #endif
 
 /* NSView subclass for drawing and handling input.

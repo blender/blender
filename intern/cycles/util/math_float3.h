@@ -606,6 +606,35 @@ ccl_device_inline void make_orthonormals(const float3 N,
   *b = cross(N, *a);
 }
 
+/* Packed float3 version. */
+ccl_device_inline void make_orthonormals(const packed_float3 N,
+                                         ccl_private packed_float3 *a,
+                                         ccl_private packed_float3 *b)
+{
+#if 0
+  if (fabsf(N.y) >= 0.999f) {
+    *a = make_float3(1, 0, 0);
+    *b = make_float3(0, 0, 1);
+    return;
+  }
+  if (fabsf(N.z) >= 0.999f) {
+    *a = make_float3(1, 0, 0);
+    *b = make_float3(0, 1, 0);
+    return;
+  }
+#endif
+
+  if (N.x != N.y || N.x != N.z) {
+    *a = make_float3(N.z - N.y, N.x - N.z, N.y - N.x);  //(1,1,1)x N
+  }
+  else {
+    *a = make_float3(N.z - N.y, N.x + N.z, -N.y - N.x);  //(-1,1,1)x N
+  }
+
+  *a = normalize(*a);
+  *b = cross(N, *a);
+}
+
 /* Rotation of point around axis and angle */
 
 ccl_device_inline float3 rotate_around_axis(const float3 p, const float3 axis, const float angle)

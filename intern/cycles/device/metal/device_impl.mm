@@ -92,9 +92,11 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
 
     /* Enable increased concurrent shader compiler limit.
      * This is also done by MTLContext::MTLContext, but only in GUI mode. */
+#  ifndef WITH_APPLE_CROSSPLATFORM
     if (@available(macOS 13.3, *)) {
       [mtlDevice setShouldMaximizeConcurrentCompilation:YES];
     }
+#  endif
 
     max_threads_per_threadgroup = 512;
 
@@ -255,9 +257,16 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
       global_defines += "#define __METALRT_MOTION__\n";
     }
   }
+#  ifndef WITH_APPLE_CROSSPLATFORM
+  if (@available(macos 14.0, *)) {
+    /* Use Program Scope Global Built-ins, when available. */
+    global_defines += "#define __METAL_GLOBAL_BUILTINS__\n";
+  }
 
-#  ifdef WITH_CYCLES_DEBUG
-  global_defines += "#define WITH_CYCLES_DEBUG\n";
+
+#    ifdef WITH_CYCLES_DEBUG
+   global_defines += "#define WITH_CYCLES_DEBUG\n";
+#    endif
 #  endif
 
   global_defines += "#define __KERNEL_METAL_APPLE__\n";
@@ -459,16 +468,25 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
     MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
 
     options.fastMathEnabled = YES;
+#  ifndef WITH_APPLE_CROSSPLATFORM
     if (@available(macos 12.0, *)) {
       options.languageVersion = MTLLanguageVersion2_4;
     }
-#  if defined(MAC_OS_VERSION_13_0)
+#    if defined(MAC_OS_VERSION_13_0)
     if (@available(macos 13.0, *)) {
       options.languageVersion = MTLLanguageVersion3_0;
     }
-#  endif
-#  if defined(MAC_OS_VERSION_14_0)
+#    endif
+#    if defined(MAC_OS_VERSION_14_0)
     if (@available(macos 14.0, *)) {
+      options.languageVersion = MTLLanguageVersion3_1;
+    }
+#    endif
+#  else
+    if (@available(ios 16.0, *)) {
+      options.languageVersion = MTLLanguageVersion3_0;
+    }
+    if (@available(ios 17.0, *)) {
       options.languageVersion = MTLLanguageVersion3_1;
     }
 #  endif
@@ -561,7 +579,14 @@ bool MetalDevice::max_working_set_exceeded(const size_t safety_margin) const
 {
   /* We're allowed to allocate beyond the safe working set size, but then if all resources are made
    * resident we will get command buffer failures at render time. */
+#  ifndef WITH_APPLE_CROSSPLATFORM
   size_t available = [mtlDevice recommendedMaxWorkingSetSize] - safety_margin;
+#  else
+  /* TEMP: iOS Working set in Bytes. Default to 6 GB.
+   * TODO: Do properly. */
+  size_t available = 6LL * 1024LL * 1024LL * 1024LL;
+  (void)safety_margin;
+#  endif
   return (stats.mem_used > available);
 }
 

@@ -112,6 +112,15 @@ class Vector {
 #  define UPDATE_VECTOR_SIZE(ptr) (ptr)->debug_size_ = int64_t((ptr)->end_ - (ptr)->begin_)
 #else
 #  define UPDATE_VECTOR_SIZE(ptr) ((void)0)
+#  if defined(WITH_APPLE_CROSSPLATFORM) || defined(WITH_CROSSCOMPILED_TOOLS)
+  /*
+   IOS_FIXME: We need Blender and the cross-compiled tools to agree on the size of a vector or bad
+   things will happen when we attempt to unpack the RNA packets (i.e. in rna_ui_gen.cc),
+   so make sure this is always defined. A better way to fix this might be to
+   make sure that we match build-type (Release, Debug etc.) for the cross-compiled tools.
+   */
+  int64_t debug_size_;
+#  endif
 #endif
 
   /**

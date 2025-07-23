@@ -91,6 +91,14 @@ static wmOperatorStatus viewmove_invoke_impl(bContext *C,
   eV3D_OpEvent event_code = event->type == MOUSEPAN ? VIEW_CONFIRM : VIEW_PASS;
 
   if (event_code == VIEW_CONFIRM) {
+
+#ifdef WITH_APPLE_CROSSPLATFORM
+    /* Only handle inverted events for 3D view interaction on iOS */
+    if (!(event->flag & WM_EVENT_MULTITOUCH_TWO_FINGERS)) {
+      return OPERATOR_FINISHED;
+    }
+#endif
+
     /* Invert it, trackpad scroll follows same principle as 2d windows this way. */
     int mx = 2 * event->xy[0] - event->prev_xy[0];
     int my = 2 * event->xy[1] - event->prev_xy[1];

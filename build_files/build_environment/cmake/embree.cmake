@@ -71,6 +71,18 @@ if(NOT APPLE AND NOT BLENDER_PLATFORM_ARM)
       ${EMBREE_EXTRA_ARGS}
     )
   endif()
+else()
+  if(WITH_APPLE_CROSSPLATFORM)
+    # NOTE: Looks like We build TBB 2020.3, while Embree requires TBB 2021.Eembre
+    set(EMBREE_EXTRA_ARGS
+      ${EMBREE_EXTRA_ARGS}
+      -DTBB_INCLUDE_DIR=${LIBDIR}/tbb/include
+      -DTBB_DIR=${LIBDIR}/tbb/
+      -Dtbb_LIBRARY_RELEASE=${LIBDIR}/tbb/lib/libtbb.dylib
+      -DEMBREE_MAX_ISA=NEON
+      -DEMBREE_STATIC_LIB=ON
+    )
+  endif()
 endif()
 
 if(TBB_STATIC_LIBRARY)
@@ -78,6 +90,12 @@ if(TBB_STATIC_LIBRARY)
     ${EMBREE_EXTRA_ARGS}
     -DEMBREE_TBB_COMPONENT=tbb_static
   )
+endif()
+
+if(WITH_APPLE_CROSSPLATFORM)
+  set(EMBREE_PATCH_PATH ${PATCH_DIR}/embree_ios.diff)
+else()
+  set(EMBREE_PATCH_PATH ${PATCH_DIR}/embree.diff)
 endif()
 
 ExternalProject_Add(external_embree
@@ -90,7 +108,7 @@ ExternalProject_Add(external_embree
   PATCH_COMMAND
     ${PATCH_CMD} -p 1 -d
       ${BUILD_DIR}/embree/src/external_embree <
-      ${PATCH_DIR}/embree.diff
+      ${EMBREE_PATCH_PATH}
 
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree

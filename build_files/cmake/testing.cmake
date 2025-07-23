@@ -153,7 +153,13 @@ function(blender_add_ctests)
   # Figure out the release dir, as some tests need files from there.
   get_blender_test_install_dir(TEST_INSTALL_DIR)
   if(APPLE)
-    set(_test_release_dir ${TEST_INSTALL_DIR}/Blender.app/Contents/Resources/${BLENDER_VERSION})
+    if(WITH_APPLE_CROSSPLATFORM)
+      # Apple Cross platform
+      set(_test_release_dir ${TEST_INSTALL_DIR}/Blender.app/Assets/${BLENDER_VERSION})
+    else()
+      # MacOS
+      set(_test_release_dir ${TEST_INSTALL_DIR}/Blender.app/Contents/Resources/${BLENDER_VERSION})
+    endif()
   else()
     if(WIN32 OR WITH_INSTALL_PORTABLE)
       set(_test_release_dir ${TEST_INSTALL_DIR}/${BLENDER_VERSION})

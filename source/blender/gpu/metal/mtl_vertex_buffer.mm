@@ -171,11 +171,13 @@ void MTLVertBuf::bind()
           destinationOffset:0
                        size:min_ulul([copy_new_buffer length], [copy_prev_buffer length])];
 
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
       /* Flush newly copied data back to host-side buffer, if one exists.
        * Ensures data and cache coherency for managed MTLBuffers. */
       if (copy_new_buffer.storageMode == MTLStorageModeManaged) {
         [enc synchronizeResource:copy_new_buffer];
       }
+#endif
 
       /* For VBOs flagged as static, release host data as it will no longer be needed. */
       if (usage_ == GPU_USAGE_STATIC) {
@@ -215,8 +217,10 @@ void MTLVertBuf::update_sub(uint start, uint len, const void *data)
   MTLTemporaryBuffer scratch_allocation =
       ctx->get_scratchbuffer_manager().scratch_buffer_allocate_range_aligned(len, 256);
   memcpy(scratch_allocation.data, data, len);
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
   [scratch_allocation.metal_buffer
       didModifyRange:NSMakeRange(scratch_allocation.buffer_offset, len)];
+#endif
   id<MTLBuffer> data_buffer = scratch_allocation.metal_buffer;
   uint64_t data_buffer_offset = scratch_allocation.buffer_offset;
 
@@ -234,10 +238,12 @@ void MTLVertBuf::update_sub(uint start, uint len, const void *data)
       destinationOffset:start
                    size:len];
 
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
   /* Flush modified buffer back to host buffer, if one exists. */
   if (dst_buffer.storageMode == MTLStorageModeManaged) {
     [enc synchronizeResource:dst_buffer];
   }
+#endif
 }
 
 void MTLVertBuf::bind_as_ssbo(uint binding)
@@ -292,11 +298,13 @@ void MTLVertBuf::read(void *data) const
   if (usage_ != GPU_USAGE_DEVICE_ONLY) {
 
     /* Ensure data is flushed for host caches. */
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
     id<MTLBuffer> source_buffer = vbo_->get_metal_buffer();
     if (source_buffer.storageMode == MTLStorageModeManaged) {
       id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
       [enc synchronizeResource:source_buffer];
     }
+#endif
 
     /* Ensure GPU has finished operating on commands which may modify data. */
     GPU_finish();
@@ -323,11 +331,13 @@ void MTLVertBuf::read(void *data) const
         destinationOffset:0
                      size:min_ulul([dest_buffer length], [dest_buffer length])];
 
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
     /* Flush newly copied data back to host-side buffer, if one exists.
      * Ensures data and cache coherency for managed MTLBuffers. */
     if (dest_buffer.storageMode == MTLStorageModeManaged) {
       [enc synchronizeResource:dest_buffer];
     }
+#endif
 
     /* wait for GPU. */
     GPU_finish();

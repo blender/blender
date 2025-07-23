@@ -1,0 +1,12 @@
+--- Orig/CMakeLists.txt	2025-04-15 10:59:40
++++ external_xml2/CMakeLists.txt	2025-04-15 10:43:58
+@@ -136,7 +136,8 @@
+     check_include_files(fcntl.h HAVE_FCNTL_H)
+     check_function_exists(fpclass HAVE_FPCLASS)
+     check_function_exists(ftime HAVE_FTIME)
+-    check_function_exists(getentropy HAVE_GETENTROPY)
++    #check_function_exists(getentropy HAVE_GETENTROPY)
++    check_symbol_exists(getentropy "sys/random.h" HAVE_GETENTROPY)
+     check_function_exists(gettimeofday HAVE_GETTIMEOFDAY)
+     check_library_exists(history append_history "" HAVE_LIBHISTORY)
+     check_library_exists(readline readline "" HAVE_LIBREADLINE)

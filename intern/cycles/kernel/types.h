@@ -926,7 +926,11 @@ struct AttributeMap {
 /* Closure data */
 
 #ifndef __MAX_CLOSURE__
-#  define MAX_CLOSURE 64
+#  if defined(__KERNEL_METAL_IOS__)
+#    define MAX_CLOSURE 48
+#  else
+#    define MAX_CLOSURE 64
+#  endif
 #else
 #  define MAX_CLOSURE __MAX_CLOSURE__
 #endif
@@ -963,10 +967,10 @@ struct AttributeMap {
  * padded to be 16 bytes, while it's only 12 bytes on the GPU. */
 
 #define SHADER_CLOSURE_BASE \
-  Spectrum weight; \
+  PackedSpectrum weight; \
   ClosureType type; \
   float sample_weight; \
-  float3 N
+  packed_float3 N
 
 /* To save some space, volume closures (phase functions) don't store a normal.
  * They are still allocated as ShaderClosures first, but get assigned to
@@ -1160,8 +1164,8 @@ struct ccl_align(16) ShaderData
 #ifdef __DPDU__
   /* differential of P w.r.t. parametric coordinates. note that dPdu is
    * not readily suitable as a tangent for shading on triangles. */
-  float3 dPdu;
-  float3 dPdv;
+  packed_float3 dPdu;
+  packed_float3 dPdv;
 #endif
 
 #ifdef __OBJECT_MOTION__
@@ -1180,11 +1184,21 @@ struct ccl_align(16) ShaderData
 
   /* Closure weights summed directly, so we can evaluate
    * emission and shadow transparency with MAX_CLOSURE 0. */
-  Spectrum closure_emission_background;
-  Spectrum closure_transparent_extinction;
+  PackedSpectrum closure_emission_background;
+  PackedSpectrum closure_transparent_extinction;
 
   /* At the end so we can adjust size in ShaderDataTinyStorage. */
   struct ShaderClosure closure[MAX_CLOSURE];
+
+  inline ccl_private struct ShaderClosure *get_closure(int N)
+  {
+    return &closure[N];
+  }
+
+  inline ccl_private const struct ShaderClosure *get_closure_const(int N) const
+  {
+    return &closure[N];
+  }
 };
 
 #ifdef __KERNEL_GPU__

@@ -42,6 +42,12 @@ if(WIN32)
     DEPENDEES install
   )
 else()
+   if(WITH_APPLE_CROSSPLATFORM)
+    ExternalProject_Add_Step(external_imath after_install
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/imath/lib/libImath.dylib ${LIBDIR}/imath/lib/libImath.29.dylib 
+      DEPENDEES install
+    )
+  endif()
   harvest(external_imath imath/include imath/include "*.h")
   harvest_rpath_lib(external_imath imath/lib imath/lib "*${SHAREDLIBEXT}*")
 endif()

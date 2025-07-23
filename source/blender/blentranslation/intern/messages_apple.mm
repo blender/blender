@@ -8,7 +8,11 @@
 
 #include "messages.hh"
 
-#import <Cocoa/Cocoa.h>
+#ifdef WITH_APPLE_CROSSPLATFORM
+#  include <Foundation/Foundation.h>
+#else
+#  include <Cocoa/Cocoa.h>
+#endif
 
 #include <cstdlib>
 #include <string>

@@ -75,6 +75,14 @@ set(LIB
   PRIVATE bf::intern::clog
 )
 
+if(WITH_APPLE_CROSSPLATFORM)
+  add_definitions(-DWITH_APPLE_CROSSPLATFORM)
+endif()
+
+if(WITH_METAL_BACKEND)
+  add_definitions(-DWITH_METAL_BACKEND)
+endif()
+
 if(WITH_INPUT_IME)
   add_definitions(-DWITH_INPUT_IME)
 endif()
@@ -177,21 +185,41 @@ elseif(WITH_GHOST_SDL)
     ${SDL_LIBRARY}
   )
 elseif(APPLE AND NOT WITH_GHOST_X11)
-  list(APPEND SRC
-    intern/GHOST_SystemCocoa.mm
-    intern/GHOST_WindowCocoa.mm
+ 
+  if(WITH_APPLE_CROSSPLATFORM)
+    message(STATUS "Configure Ghost for Apple Cross platform: iOS")
+    
+    if(APPLE_TARGET_DEVICE STREQUAL ios)
+      # GHOST modules for iPadOS.
+      list(APPEND SRC
+        intern/GHOST_SystemIOS.h
+        intern/GHOST_WindowIOS.h
 
-    intern/GHOST_SystemCocoa.hh
-    intern/GHOST_WindowCocoa.hh
-    intern/GHOST_WindowViewCocoa.hh
-  )
+        intern/GHOST_SystemIOS.mm
+        intern/GHOST_WindowIOS.mm
 
-  if(WITH_INPUT_NDOF)
+        intern/GHOST_ContextIOS.mm
+        intern/GHOST_ContextIOS.hh
+      )
+    endif()
+  else()
+    # MacOS
     list(APPEND SRC
-      intern/GHOST_NDOFManagerCocoa.mm
+      intern/GHOST_SystemCocoa.mm
+      intern/GHOST_WindowCocoa.mm
 
-      intern/GHOST_NDOFManagerCocoa.hh
+      intern/GHOST_SystemCocoa.hh
+      intern/GHOST_WindowCocoa.hh
+      intern/GHOST_WindowViewCocoa.hh
     )
+
+    if(WITH_INPUT_NDOF)
+      list(APPEND SRC
+        intern/GHOST_NDOFManagerCocoa.mm
+
+        intern/GHOST_NDOFManagerCocoa.hh
+      )
+    endif()
   endif()
 
 elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
@@ -514,7 +542,7 @@ if(UNIX AND NOT APPLE)
   endif()
 endif()
 
-if(APPLE)
+if(APPLE AND NOT WITH_APPLE_CROSSPLATFORM)
   if(WITH_METAL_BACKEND)
     list(APPEND SRC
       intern/GHOST_ContextCGL.mm

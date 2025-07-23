@@ -56,6 +56,13 @@ else()
   set(GMP_OPTIONS --enable-static --disable-shared )
 endif()
 
+if(WITH_APPLE_CROSSPLATFORM)
+  # Building for non-local architecture.
+  set(CROSS_COMPILE_FLAGS "--host=arm")
+else()
+  set(CROSS_COMPILE_FLAGS)
+endif()
+
 if(UNIX)
   if(NOT (APPLE AND BLENDER_PLATFORN_ARM))
     set(GMP_OPTIONS ${GMP_OPTIONS} --with-pic)
@@ -85,7 +92,7 @@ ExternalProject_Add(external_gmp
 
   CONFIGURE_COMMAND ${GMP_CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/gmp/src/external_gmp/ &&
-    ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/gmp ${GMP_OPTIONS} ${GMP_EXTRA_ARGS}
+    ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/gmp ${GMP_OPTIONS} ${GMP_EXTRA_ARGS} ${CROSS_COMPILE_FLAGS}
 
   BUILD_COMMAND ${CONFIGURE_ENV_NO_PERL} &&
     cd ${BUILD_DIR}/gmp/src/external_gmp/ &&

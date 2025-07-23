@@ -27,7 +27,11 @@
 #elif defined(WIN32)
 #  include "GHOST_SystemWin32.hh"
 #elif defined(__APPLE__)
-#  include "GHOST_SystemCocoa.hh"
+#  if defined(WITH_APPLE_CROSSPLATFORM)
+#    include "GHOST_SystemIOS.h"
+#  else
+#    include "GHOST_SystemCocoa.hh"
+#  endif
 #endif
 
 #include "CLG_log.h"
@@ -157,9 +161,15 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
     CLOG_INFO(&LOG, "Create Windows system");
     m_system = new GHOST_SystemWin32();
 #elif defined(__APPLE__)
+#  if defined(WITH_APPLE_CROSSPLATFORM)
+    backends_attempted.push_back({"IOS"});
+    m_system = new GHOST_SystemIOS();
+#  else
     backends_attempted.push_back({"COCOA"});
     CLOG_INFO(&LOG, "Create Cocoa system");
     m_system = new GHOST_SystemCocoa();
+#  endif
+
 #endif
 
     if (m_system) {

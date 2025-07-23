@@ -98,7 +98,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   mtl_front_left->remove_all_attachments();
   mtl_back_left->remove_all_attachments();
 
-  GHOST_ContextCGL *ghost_cgl_ctx = dynamic_cast<GHOST_ContextCGL *>(ghost_ctx);
+  GHOST_ContextMTL *ghost_cgl_ctx = dynamic_cast<GHOST_ContextMTL *>(ghost_ctx);
   if (ghost_cgl_ctx != nullptr) {
     default_fbo_mtltexture_ = ghost_cgl_ctx->metalOverlayTexture();
 
@@ -163,8 +163,8 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   }
   else {
     MTL_LOG_DEBUG(
-        " Failed to bind GHOST context to MTLContext -- GHOST_ContextCGL is null "
-        "(GhostContext: %p, GhostContext_CGL: %p)",
+        "Failed to bind GHOST context to MTLContext -- GHOST_ContextMTL is null "
+        "(GhostContext: %p, GhostContext_CGL: %p)\n",
         ghost_ctx,
         ghost_cgl_ctx);
     BLI_assert(false);
@@ -221,7 +221,7 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
     ghost_context = (ghostWin ? ghostWin->getContext() : nullptr);
   }
   BLI_assert(ghost_context);
-  this->ghost_context_ = static_cast<GHOST_ContextCGL *>(ghost_context);
+  this->ghost_context_ = static_cast<GHOST_ContextMTL *>(ghost_context);
   this->queue = (id<MTLCommandQueue>)this->ghost_context_->metalCommandQueue();
   this->device = (id<MTLDevice>)this->ghost_context_->metalDevice();
   BLI_assert(this->queue);
@@ -234,9 +234,11 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
   /* Enable increased concurrent shader compiler limit.
    * NOTE: Disable warning for missing method when building on older OS's, as compiled code will
    * still work correctly when run on a system with the API available. */
+#ifndef WITH_APPLE_CROSSPLATFORM
   if (@available(macOS 13.3, *)) {
     [this->device setShouldMaximizeConcurrentCompilation:YES];
   }
+#endif
 #pragma clang diagnostic pop
 
   /* Register present callback. */
@@ -578,12 +580,19 @@ id<MTLBuffer> MTLContext::get_null_buffer()
    * buffer. The null buffer needs to at least cover the size of these
    * UBOs to avoid any GPU memory issues. */
   static const int null_buffer_size = 20480;
-  null_buffer_ = [this->device newBufferWithLength:null_buffer_size
-                                           options:MTLResourceStorageModeManaged];
+
+  MTLResourceOptions options = MTLResourceStorageModeShared;
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
+  options = MTLResourceStorageModeManaged;
+#endif
+
+  null_buffer_ = [this->device newBufferWithLength:null_buffer_size options:options];
   [null_buffer_ retain];
   uint32_t *null_data = (uint32_t *)calloc(1, null_buffer_size);
   memcpy([null_buffer_ contents], null_data, null_buffer_size);
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
   [null_buffer_ didModifyRange:NSMakeRange(0, null_buffer_size)];
+#endif
   free(null_data);
 
   BLI_assert(null_buffer_ != nil);
@@ -599,14 +608,19 @@ id<MTLBuffer> MTLContext::get_null_attribute_buffer()
   /* Allocate Null buffer if it has not yet been created.
    * Min buffer size is 256 bytes -- though we only need 64 bytes of data. */
   static const int null_buffer_size = 256;
-  null_attribute_buffer_ = [this->device newBufferWithLength:null_buffer_size
-                                                     options:MTLResourceStorageModeManaged];
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
+  MTLResourceOptions options = MTLResourceStorageModeManaged;
+#else
+  MTLResourceOptions options = MTLResourceStorageModeShared;
+#endif
+  null_attribute_buffer_ = [this->device newBufferWithLength:null_buffer_size options:options];
   BLI_assert(null_attribute_buffer_ != nil);
   [null_attribute_buffer_ retain];
   float data[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   memcpy([null_attribute_buffer_ contents], data, sizeof(float) * 4);
+#if MTL_BACKEND_SUPPORTS_MANAGED_BUFFERS
   [null_attribute_buffer_ didModifyRange:NSMakeRange(0, null_buffer_size)];
-
+#endif
   return null_attribute_buffer_;
 }
 
@@ -2470,7 +2484,11 @@ static inline MTLSamplerAddressMode to_mtl_type(GPUSamplerExtendMode wrap_mode)
     case GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT:
       return MTLSamplerAddressModeMirrorRepeat;
     case GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER:
+#if MTL_BACKEND_SUPPORTS_BORDER_COLOR
       return MTLSamplerAddressModeClampToBorderColor;
+#else
+      return MTLSamplerAddressModeClampToEdge;
+#endif
     default:
       BLI_assert_unreachable();
       return MTLSamplerAddressModeClampToEdge;
@@ -2495,7 +2513,9 @@ void MTLContext::sampler_state_cache_init()
         descriptor.sAddressMode = extend_s;
         descriptor.tAddressMode = extend_t;
         descriptor.rAddressMode = extend_t;
+#if MTL_BACKEND_SUPPORTS_BORDER_COLOR
         descriptor.borderColor = MTLSamplerBorderColorTransparentBlack;
+#endif
         descriptor.minFilter = (filtering & GPU_SAMPLER_FILTERING_LINEAR) ?
                                    MTLSamplerMinMagFilterLinear :
                                    MTLSamplerMinMagFilterNearest;

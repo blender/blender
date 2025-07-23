@@ -1,0 +1,62 @@
+diff --git a/kernels/CMakeLists.txt b/kernels/CMakeLists.txt
+index 7c2f43d..106b1d5 100644
+--- a/kernels/CMakeLists.txt
++++ b/kernels/CMakeLists.txt
+@@ -201,6 +201,12 @@ embree_files(EMBREE_LIBRARY_FILES_AVX512 ${AVX512})
+ #message("AVX2: ${EMBREE_LIBRARY_FILES_AVX2}")
+ #message("AVX512: ${EMBREE_LIBRARY_FILES_AVX512}")
+ 
++# Bundle Neon2x into the main static library.
++IF(EMBREE_ISA_NEON2X AND EMBREE_STATIC_LIB)
++  LIST(APPEND EMBREE_LIBRARY_FILES ${EMBREE_LIBRARY_FILES_AVX2})
++  LIST(REMOVE_DUPLICATES EMBREE_LIBRARY_FILES)
++ENDIF()
++
+ # replaces all .cpp files with a dummy file that includes that .cpp file
+ # this is to work around an ICC name mangling issue related to lambda functions under windows
+ MACRO (CreateISADummyFiles list isa)
+@@ -277,7 +283,7 @@ IF (EMBREE_ISA_AVX  AND EMBREE_LIBRARY_FILES_AVX)
+   ENDIF()
+ ENDIF()
+ 
+-IF (EMBREE_ISA_AVX2 AND EMBREE_LIBRARY_FILES_AVX2)
++IF (EMBREE_ISA_AVX2 AND EMBREE_LIBRARY_FILES_AVX2 AND NOT (EMBREE_ISA_NEON2X AND EMBREE_STATIC_LIB))
+   DISABLE_STACK_PROTECTOR_FOR_INTERSECTORS(${EMBREE_LIBRARY_FILES_AVX2})
+   ADD_LIBRARY(embree_avx2 STATIC ${EMBREE_LIBRARY_FILES_AVX2})
+   TARGET_LINK_LIBRARIES(embree_avx2 PRIVATE tasking)
+diff -N -r -u a/common/cmake/clang.cmake b/common/cmake/clang.cmake
+--- a/common/cmake/clang.cmake	2023-06-18 20:00:13
++++ b/common/cmake/clang.cmake	2023-06-19 11:33:17
+@@ -127,7 +127,7 @@
+   SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")             # enable full optimizations
+ 
+   IF (APPLE)
+-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.7")   # makes sure code runs on older MacOSX versions
++      # makes sure code runs on older MacOSX versions
+     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")             # link against libc++ which supports C++11 features
+   ELSE(APPLE)
+     IF (NOT EMBREE_ADDRESS_SANITIZER) # for address sanitizer this causes link errors
+diff -N -r -u a/common/cmake/gnu.cmake b/common/cmake/gnu.cmake
+--- a/common/cmake/gnu.cmake	2023-06-18 20:00:13
++++ b/common/cmake/gnu.cmake	2023-06-19 11:33:12
+@@ -84,7 +84,7 @@
+ SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")             # enable full optimizations
+ 
+ IF (APPLE)
+-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.7")   # makes sure code runs on older MacOSX versions
++    # makes sure code runs on older MacOSX versions
+   # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")             # link against libc++ which supports C++11 features
+   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flax-vector-conversions")
+ ELSE(APPLE)
+diff -N -r -u a/common/cmake/intel.cmake b/common/cmake/intel.cmake
+--- a/common/cmake/intel.cmake	2023-06-18 20:00:13
++++ b/common/cmake/intel.cmake	2023-06-19 11:33:09
+@@ -162,7 +162,7 @@
+   SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")             # enable full optimizations
+   
+   IF (APPLE)
+-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=10.7")   # makes sure code runs on older MacOSX versions
++      # makes sure code runs on older MacOSX versions
+     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")             # link against libc++ which supports C++11 features
+   ELSE(APPLE)
+     SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined") # issues link error for undefined symbols in shared library

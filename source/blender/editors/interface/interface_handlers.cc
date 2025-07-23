@@ -3577,6 +3577,44 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
      * that region to ensure it is in view can't work and causes issues. #97530 */
     UI_but_ensure_in_view(C, data->region, but);
   }
+  
+#if (WITH_APPLE_CROSSPLATFORM)
+  /*
+   IOS_FIXME - this seems a long winded way to generate window coords,
+   there must be a better way
+   */
+  rcti button_pixel_rect;
+  ARegion *region = CTX_wm_region(C);
+  ui_but_to_pixelrect(&button_pixel_rect,  region, but->block, but);
+  GHOST_Rect text_box(button_pixel_rect.xmin + region->winrct.xmin,
+                      button_pixel_rect.ymin + region->winrct.ymin,
+                      button_pixel_rect.xmax + region->winrct.xmin,
+                      button_pixel_rect.ymax + region->winrct.ymin);
+  
+  /* IOS_FIXME - Is this the right place to get the font? */
+  uiFontStyle fstyle = UI_style_get()->widget;
+  
+  GHOST_KeyboardProperties keyboard_properties;
+  keyboard_properties.keyboard_type = is_num_but ? GHOST_KeyboardProperties::decimal_numpad_keyboard_type : GHOST_KeyboardProperties::ascii_keyboard_type;
+  keyboard_properties.font_size = fstyle.points;
+  /* IOS_FIXME - get the font colour from some appropriate place.. */
+  keyboard_properties.font_color[0] = 1.0f;
+  keyboard_properties.font_color[1] = 1.0f;
+  keyboard_properties.font_color[2] = 1.0f;
+  keyboard_properties.font_color[3] = 1.0f;
+  keyboard_properties.inital_text_state = GHOST_KeyboardProperties::select_all_text;
+  keyboard_properties.text_select_range[0] = 0;
+  keyboard_properties.text_select_range[1] = 0;
+  keyboard_properties.text_box_origin[0] = text_box.m_l;
+  keyboard_properties.text_box_origin[1] = text_box.m_b;
+  keyboard_properties.text_box_size[0] = text_box.getWidth();
+  keyboard_properties.text_box_size[1] = text_box.getHeight();
+  keyboard_properties.tip_text = but->tip.data();
+  keyboard_properties.text_string = text_edit.edit_string;
+  
+  GHOST_popupOnScreenKeyboard(static_cast<GHOST_WindowHandle>(win->ghostwin),
+                              keyboard_properties);
+#endif
 
   WM_cursor_modal_set(win, WM_CURSOR_TEXT_EDIT);
 
@@ -3597,6 +3635,22 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 
   ED_workspace_status_text(C, nullptr);
 
+#if (WITH_APPLE_CROSSPLATFORM)
+  /* Hide keyboard and retrieve keyboard text */
+  GHOST_hideOnScreenKeyboard(static_cast<GHOST_WindowHandle>(win->ghostwin));
+  const char *keyboard_string = GHOST_getKeyboardInput(static_cast<GHOST_WindowHandle>(win->ghostwin));
+  
+  /*
+   * IOS_FIXME:
+   * This doesn't seem ideal but dynamically generating keyboard events to modify the 
+   * text is tricky on iOS since you also need to take into account cuts, pastes and
+   * any other editing you can do with an iOS keyboard 
+  */
+  if (but) {
+    ui_textedit_string_set(but, but->active->text_edit, keyboard_string);
+  }
+#endif
+  
   if (but) {
     if (UI_but_is_utf8(but)) {
       const int strip = BLI_str_utf8_invalid_strip(but->editstr, strlen(but->editstr));
@@ -4053,6 +4107,19 @@ static int ui_do_but_textedit(
         }
         break;
       }
+#if (WITH_APPLE_CROSSPLATFORM)
+      case EVT_TEXTEDIT: {
+        if (but) {
+          const char *keyboard_string = GHOST_getKeyboardInput(static_cast<GHOST_WindowHandle>(win->ghostwin));
+          if (but->active->text_edit.edit_string) {
+            ui_textedit_string_set(but, but->active->text_edit, keyboard_string);
+          }
+          changed = true;
+          update = true;
+        }
+        break;
+      }
+#endif
       default: {
         break;
       }

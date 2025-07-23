@@ -30,6 +30,37 @@ if(WIN32)
     -DCMAKE_C_FLAGS=${SNDFILE_C_FLAGS}
   )
 else()
+  if(WITH_APPLE_CROSSPLATFORM)
+    # Building for non-local architecture.
+    set(CROSS_COMPILE_FLAGS 
+      --host=arm
+    )
+
+    set(EXP_OGG_LIBS -L${LIBDIR}/ogg/lib\ -logg) 
+    set(EXP_OPUS_LIBS -L${LIBDIR}/opus/lib\ -lopus) 
+    set(EXP_VORBIS_LIBS -L${LIBDIR}/vorbis/lib\ -lvorbis)
+    set(EXP_VORBISENC_LIBS -L${LIBDIR}/vorbis/lib\ -lvorbisenc)
+    set(EXP_FLAC_LIBS -L${LIBDIR}/flac/lib\ -lFLAC)
+    
+    set(SNDFILE_ENV
+      export OGG_CFLAGS=-I"${LIBDIR}/ogg/include" &&   
+      export OPUS_CFLAGS=-I"${LIBDIR}/opus/include" &&   
+      export VORBIS_CFLAGS=-I"${LIBDIR}/vorbis/include" &&   
+      export VORBISENC_CFLAGS=-I"${LIBDIR}/vorbis/include" &&   
+      export FLAC_CFLAGS=-I"${LIBDIR}/flac/include" &&   
+      export OGG_LIBS=${EXP_OGG_LIBS} &&
+      export OPUS_LIBS=${EXP_OPUS_LIBS} &&
+      export VORBIS_LIBS=${EXP_VORBIS_LIBS} && 
+      export VORBISENC_LIBS=${EXP_VORBISENC_LIBS} &&
+      export FLAC_LIBS=${EXP_FLAC_LIBS} &&
+      export LIBS=${EXP_OGG_LIBS}\ ${EXP_OPUS_LIBS}\ ${EXP_VORBIS_LIBS}\ ${EXP_VORBISENC_LIBS}\ ${EXP_FLAC_LIBS} &&
+    )
+  else()
+    set(CROSS_COMPILE_FLAGS)
+  endif()
+
+  set(SNDFILE_OPTIONS --enable-static --disable-shared ${CROSS_COMPILE_FLAGS})
+
   set(SNDFILE_EXTRA_ARGS
     ${SNDFILE_EXTRA_ARGS}
     -DBUILD_SHARED_LIBS=OFF

@@ -9,6 +9,13 @@ set(SRC
   datatoc.cc
 )
 
-# `SRC_DNA_INC` is defined in the parent directory.
-add_executable(datatoc ${SRC})
-optimize_debug_target(datatoc)
+# -------------- IPAD CROSS COMPILE TOOLS ----------- #
+if(NOT WITH_CROSSCOMPILED_TOOLS)
+  # `SRC_DNA_INC` is defined in the parent directory.
+  add_executable(datatoc ${SRC}) 
+  optimize_debug_target(datatoc)
+endif()
+
+
+
+

@@ -9,6 +9,14 @@ else()
 endif()
 
 if(NOT WIN32)
+
+  if(WITH_APPLE_CROSSPLATFORM)
+    # Building for non-local architecture.
+    set(CROSS_COMPILE_FLAGS "--host=arm")
+  else()
+    set(CROSS_COMPILE_FLAGS)
+  endif()
+
   ExternalProject_Add(external_theora
     URL file://${PACKAGE_DIR}/${THEORA_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -29,9 +37,10 @@ if(NOT WIN32)
         --with-ogg=${LIBDIR}/ogg
         --with-vorbis=${LIBDIR}/vorbis
         --disable-examples
-
-    BUILD_COMMAND ${THEORA_CONFIGURE_ENV} &&
-      cd ${BUILD_DIR}/theora/src/external_theora/ &&
+        ${CROSS_COMPILE_FLAGS}
+    
+    BUILD_COMMAND ${THEORA_CONFIGURE_ENV} && 
+      cd ${BUILD_DIR}/theora/src/external_theora/ && 
       make -j${MAKE_THREADS}
 
     INSTALL_COMMAND ${THEORA_CONFIGURE_ENV} &&

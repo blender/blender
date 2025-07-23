@@ -623,24 +623,32 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
   MEM_delete(wm->runtime);
 }
 
-void WM_main(bContext *C)
+void WM_main_entry(bContext *C)
 {
   /* Single refresh before handling events.
    * This ensures we don't run operators before the depsgraph has been evaluated. */
   wm_event_do_refresh_wm_and_depsgraph(C);
+}
 
+void WM_main_loop_body(bContext *C)
+{
+  /* Get events from ghost, handle window events, add to window queues. */
+  wm_window_events_process(C);
+
+  /* Per window, all events to the window, screen, area and region handlers. */
+  wm_event_do_handlers(C);
+
+  /* Events have left notes about changes, we handle and cache it. */
+  wm_event_do_notifiers(C);
+
+  /* Execute cached changes draw. */
+  wm_draw_update(C);
+}
+
+void WM_main(bContext *C)
+{
+  WM_main_entry(C);
   while (true) {
-
-    /* Get events from ghost, handle window events, add to window queues. */
-    wm_window_events_process(C);
-
-    /* Per window, all events to the window, screen, area and region handlers. */
-    wm_event_do_handlers(C);
-
-    /* Events have left notes about changes, we handle and cache it. */
-    wm_event_do_notifiers(C);
-
-    /* Execute cached changes draw. */
-    wm_draw_update(C);
+    WM_main_loop_body(C);
   }
 }

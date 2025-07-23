@@ -2334,7 +2334,9 @@ static PyObject *Matrix_repr(MatrixObject *self)
           rows[3]);
   }
 
+#ifndef WITH_APPLE_CROSSPLATFORM
   Py_FatalError("Matrix(): invalid row size!");
+#endif
   return nullptr;
 }
 

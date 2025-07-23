@@ -695,6 +695,14 @@ enum eWM_EventFlag {
    * even when the threshold has not been met.
    */
   WM_EVENT_FORCE_DRAG_THRESHOLD = (1 << 3),
+  /**
+   * Mouse-move on trackpad/touch screen where two fingers triggered the event.
+   */
+  WM_EVENT_MULTITOUCH_TWO_FINGERS = (1 << 3),
+  /**
+   * Mouse-move on trackpad/touch screen where three fingers triggered the event.
+   */
+  WM_EVENT_MULTITOUCH_THREE_FINGERS = (1 << 4),
 };
 ENUM_OPERATORS(eWM_EventFlag, WM_EVENT_FORCE_DRAG_THRESHOLD);
 

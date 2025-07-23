@@ -6,20 +6,37 @@ set(OIDN_EXTRA_ARGS
   -DCMAKE_BUILD_TYPE=Release
   -DOIDN_APPS=OFF
   -DTBB_ROOT=${LIBDIR}/tbb
-  -DISPC_EXECUTABLE=${LIBDIR}/ispc/bin/ispc
+  
   -DOIDN_FILTER_RTLIGHTMAP=OFF
   -DPython_EXECUTABLE=${PYTHON_BINARY}
 )
 if(APPLE)
-  set(OIDN_EXTRA_ARGS
-    ${OIDN_EXTRA_ARGS}
-    -DOIDN_DEVICE_METAL=ON
-  )
+  if(WITH_APPLE_CROSSPLATFORM)
+    # Use cross-compiled host ISPC
+    set(ISPC_EXECUTABLE_PATH ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/ispc/bin/ispc)
+    if( NOT EXISTS ${ISPC_EXECUTABLE_PATH})
+      message(FATAL_ERROR "Could not find cross-compiled ISPC executable at: ${ISPC_EXECUTABLE_PATH}. Please ensure host dependencies are built before attempting to build for ios.")
+    endif()
+
+    # TODO: Enable OIDN_DEVICE_METAL for cross-platform builds.
+    set(OIDN_EXTRA_ARGS
+      ${OIDN_EXTRA_ARGS}
+      -DISPC_EXECUTABLE=${ISPC_EXECUTABLE_PATH}
+    )
+  else()
+    set(OIDN_EXTRA_ARGS
+      ${OIDN_EXTRA_ARGS}
+      -DISPC_EXECUTABLE=${LIBDIR}/ispc/bin/ispc
+      -DOIDN_DEVICE_METAL=ON
+    )
+  endif()
+
 else()
   set(OIDN_EXTRA_ARGS
     ${OIDN_EXTRA_ARGS}
     -DOIDN_DEVICE_CPU=ON
     -DLEVEL_ZERO_ROOT=${LIBDIR}/level-zero
+    -DISPC_EXECUTABLE=${LIBDIR}/ispc/bin/ispc
   )
 
   # x64 platforms support SyCL and HIP, ARM64 doesn't
@@ -101,8 +118,15 @@ add_dependencies(
   external_openimagedenoise
   external_tbb
   external_ispc
-  external_python
 )
+
+# Only require host python
+if(NOT WITH_APPLE_CROSSPLATFORM)
+  add_dependencies(
+    external_openimagedenoise
+    external_python
+  )
+endif()
 
 if(NOT (APPLE OR WIN32 OR BLENDER_PLATFORM_ARM))
   add_dependencies(

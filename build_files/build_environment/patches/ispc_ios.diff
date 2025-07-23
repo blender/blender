@@ -1,0 +1,111 @@
+diff -Naur ispc-1.17.0.org/CMakeLists.txt ispc-1.17.0/CMakeLists.txt
+--- ispc-1.17.0.org/CMakeLists.txt	2022-01-15 01:35:15 -0700
++++ ispc-1.17.0/CMakeLists.txt	2022-02-12 12:44:24 -0700
+@@ -443,7 +447,7 @@
+ 
+ # Include directories
+ target_include_directories(${PROJECT_NAME} PRIVATE
+-                           ${LLVM_INCLUDE_DIRS}
++                           ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS}
+                            ${XE_DEPS_DIR}/include
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src
+                            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR})
+@@ -607,7 +607,7 @@
+                  NAMES
+                     "${CMAKE_STATIC_LIBRARY_PREFIX}${clangLib}${CMAKE_STATIC_LIBRARY_SUFFIX}"
+                     clang-cpp
+-                 HINTS ${LLVM_LIBRARY_DIRS})
++                 HINTS ${LLVM_LIBRARY_DIRS} ${CLANG_LIBRARY_DIR})
+     if (NOT ${${clangLib}Path} IN_LIST CLANG_LIBRARY_FULL_PATH_LIST)
+         list(APPEND CLANG_LIBRARY_FULL_PATH_LIST ${${clangLib}Path})
+     endif()
+@@ -546,6 +550,29 @@
+     endif()
+ endif()
+ 
++# Link against libstdc++.a which must be provided to the linker after
++# LLVM and CLang libraries.
++# This is needed because some of LLVM/CLang dependencies are using
++# std::make_shared, which is defined in one of those:
++#  - libclang-cpp.so
++#  - libstdc++.a
++# Using the former one is tricky because then generated binary depends
++# on a library which is outside of the LD_LIBRARY_PATH.
++#
++# Hence, using C++ implementation from G++ which seems to work just fine.
++# In fact, from investigation seems that libclang-cpp.so itself is pulling
++# std::_Sp_make_shared_tag from G++'s libstdc++.a.
++if(UNIX AND NOT APPLE)
++    execute_process(
++        COMMAND g++ --print-file-name libstdc++.a
++        OUTPUT_VARIABLE GCC_LIBSTDCXX_A
++        OUTPUT_STRIP_TRAILING_WHITESPACE
++    )
++    if(GCC_LIBSTDCXX_A AND EXISTS ${GCC_LIBSTDCXX_A})
++        target_link_libraries(${PROJECT_NAME} ${GCC_LIBSTDCXX_A})
++    endif()
++endif()
++
+ # Build target for utility checking host ISA
+ if (ISPC_INCLUDE_UTILS)
+     add_executable(check_isa "")
+diff -Naur ispc-1.17.0.org/cmake/GenerateBuiltins.cmake ispc-1.17.0/cmake/GenerateBuiltins.cmake
+--- ispc-1.17.0.org/cmake/GenerateBuiltins.cmake	2022-01-15 01:35:15 -0700
++++ ispc-1.17.0/cmake/GenerateBuiltins.cmake	2022-02-12 12:44:24 -0700
+@@ -124,6 +124,8 @@
+ 
+     if ("${bit}" STREQUAL "32" AND ${arch} STREQUAL "x86")
+         set(target_arch "i686")
++        # Blender: disable 32bit due to build issues on Linux and being unnecessary.
++        set(SKIP ON)
+     elseif ("${bit}" STREQUAL "64" AND ${arch} STREQUAL "x86")
+         set(target_arch "x86_64")
+     elseif ("${bit}" STREQUAL "32" AND ${arch} STREQUAL "arm")
+
+--- a/src/ispc_version.h	2023-06-17 02:10:13
++++ b/src/ispc_version.h	2023-06-17 11:25:26
+@@ -42,6 +42,14 @@
+ #define ISPC_VERSION "1.17.0"
+ #include <llvm/Config/llvm-config.h>
+ 
++#undef LLVM_VERSION_MAJOR
++#undef LLVM_VERSION_MINOR
++#undef LLVM_VERSION_PATCH
++
++#define LLVM_VERSION_MAJOR 17
++#define LLVM_VERSION_MINOR 0
++#define LLVM_VERSION_PATCH 0
++
+ #define ISPC_LLVM_VERSION (LLVM_VERSION_MAJOR * 10000 + LLVM_VERSION_MINOR * 100)
+ 
+ #define ISPC_LLVM_10_0 100000
+
+--- a/CMakeLists.txt	2024-02-04 22:12:13
++++ b/CMakeLists.txt	2024-02-05 09:54:41
+@@ -580,12 +580,11 @@
+     target_link_options(${PROJECT_NAME}
+         PUBLIC "SHELL: -z noexecstack"
+                "SHELL: -z relro"
+-               "SHELL: -z now"
+-               "SHELL: -Wl,--gc-sections")
++               "SHELL: -z now")
+ endif()
+ 
+ if (ISPC_STATIC_STDCXX_LINK OR ISPC_STATIC_LINK)
+-    target_link_options(${PROJECT_NAME} PUBLIC -static-libgcc -static-libstdc++)
++    #target_link_options(${PROJECT_NAME} PUBLIC -static-libgcc -static-libstdc++)
+ endif()
+ 
+ if (ISPC_USE_ASAN)
+
+--- a/CMakeLists.txt	2024-02-04 22:12:13
++++ b/CMakeLists.txt	2024-02-05 09:54:41
+@@ -634,7 +634,7 @@
+     target_link_libraries(${PROJECT_NAME} version.lib shlwapi.lib odbc32.lib odbccp32.lib)
+ else()
+     if (ISPC_STATIC_LINK)
+-        target_link_libraries(${PROJECT_NAME} pthread tinfo.a curses.a)
++        target_link_libraries(${PROJECT_NAME} pthread )
+     else()
+         find_package(Curses REQUIRED)
+         if (CURSES_EXTRA_LIBRARY)

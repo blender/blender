@@ -123,6 +123,29 @@ ccl_device_inline void sort_intersections_and_normals(ccl_private Intersection *
   } while (swapped);
 }
 
+/* Packed float3 version. */
+ccl_device_inline void sort_intersections_and_normals(ccl_private Intersection *hits,
+                                                      ccl_private packed_float3 *Ng,
+                                                      uint num_hits)
+{
+  bool swapped;
+  do {
+    swapped = false;
+    for (int j = 0; j < num_hits - 1; ++j) {
+      if (hits[j].t > hits[j + 1].t) {
+        Intersection tmp_hit = hits[j];
+        float3 tmp_Ng = Ng[j];
+        hits[j] = hits[j + 1];
+        Ng[j] = Ng[j + 1];
+        hits[j + 1] = tmp_hit;
+        Ng[j + 1] = tmp_Ng;
+        swapped = true;
+      }
+    }
+    --num_hits;
+  } while (swapped);
+}
+
 /* Utility to quickly get flags from an intersection. */
 
 ccl_device_forceinline int intersection_get_shader_flags(KernelGlobals kg,

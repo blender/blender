@@ -156,7 +156,7 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
   *eval = zero_spectrum();
   *pdf = 0.f;
   int label = LABEL_NONE;
-  const float3 Ng = (sd->type & PRIMITIVE_CURVE) ? sc->N : sd->Ng;
+  const float3 Ng = (sd->type & PRIMITIVE_CURVE) ? Spectrum(sc->N) : Spectrum(sd->Ng);
   const float2 rand_xy = make_float2(rand);
 
   switch (sc->type) {

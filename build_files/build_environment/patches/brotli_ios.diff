@@ -1,0 +1,68 @@
+--- a/CMakeLists.txt	2020-08-27 15:12:55
++++ b/CMakeLists.txt	2023-03-17 21:47:57
+@@ -215,17 +215,22 @@
+ endif()
+ 
+ # Build the brotli executable
+-add_executable(brotli ${BROTLI_CLI_C})
+-target_link_libraries(brotli ${BROTLI_LIBRARIES_STATIC})
++if(NOT WITH_APPLE_CROSSPLATFORM)
++  add_executable(brotli ${BROTLI_CLI_C})
++  target_link_libraries(brotli ${BROTLI_LIBRARIES_STATIC})
++endif()
+ 
+ # Installation
+ if(NOT BROTLI_EMSCRIPTEN)
+ if(NOT BROTLI_BUNDLED_MODE)
+-  install(
+-    TARGETS brotli
+-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+-  )
+ 
++  if(NOT WITH_APPLE_CROSSPLATFORM)
++    install(
++      TARGETS brotli
++      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
++    )
++  endif()
++
+   install(
+     TARGETS ${BROTLI_LIBRARIES_CORE}
+     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+@@ -246,7 +251,6 @@
+   )
+ endif()  # BROTLI_BUNDLED_MODE
+ endif()  # BROTLI_EMSCRIPTEN
+-
+ # Tests
+ 
+ # If we're targeting Windows but not running on Windows, we need Wine
+@@ -284,6 +288,10 @@
+   endif()
+ endif()
+ 
++if(NOT WITH_APPLE_CROSSPLATFORM)
++  set(BROTLI_EXECUTABLE $<TARGET_FILE:brotli>)
++endif()
++
+ if(NOT BROTLI_DISABLE_TESTS)
+   include(CTest)
+   enable_testing()
+@@ -309,7 +317,7 @@
+           COMMAND "${CMAKE_COMMAND}"
+             -DBROTLI_WRAPPER=${BROTLI_WRAPPER}
+             -DBROTLI_WRAPPER_LD_PREFIX=${BROTLI_WRAPPER_LD_PREFIX}
+-            -DBROTLI_CLI=$<TARGET_FILE:brotli>
++            -DBROTLI_CLI=${BROTLI_EXECUTABLE}
+             -DQUALITY=${quality}
+             -DINPUT=${INPUT_FILE}
+             -DOUTPUT=${OUTPUT_FILE}.${quality}
+@@ -330,7 +338,7 @@
+       COMMAND "${CMAKE_COMMAND}"
+         -DBROTLI_WRAPPER=${BROTLI_WRAPPER}
+         -DBROTLI_WRAPPER_LD_PREFIX=${BROTLI_WRAPPER_LD_PREFIX}
+-        -DBROTLI_CLI=$<TARGET_FILE:brotli>
++        -DBROTLI_CLI=${BROTLI_EXECUTABLE}
+         -DINPUT=${CMAKE_CURRENT_SOURCE_DIR}/${INPUT}
+         -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-compatibility-test.cmake)
+   endforeach()

@@ -26,6 +26,19 @@ if(NOT BUILD_MODE)
 endif()
 message(STATUS "BuildMode = ${BUILD_MODE}")
 
+if(WITH_APPLE_CROSSPLATFORM)
+  message("\n------- Building libraries for Apple Crossplatform: ${APPLE_TARGET_DEVICE} -----\n")
+  message("\n-- ${APPLE_TARGET_DEVICE}  Cross-compilation source directory --")
+  message(" * Some ${APPLE_TARGET_DEVICE}  library build processes require tools which have been compiled on the native build machine. To support these, we can use the regular macOS builds to run these tools locally. The cross-compile directory points to the build directories used by make deps for macOS.\n")
+  message("CMAKE_DEPS_CROSSCOMPILE_BUILDDIR = ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}")
+  message("CMAKE_DEPS_CROSSCOMPILE_INSTALLDIR = ${CMAKE_DEPS_CROSSCOMPILE_INSTALLDIR}")
+
+  # Set python to cross-compiled binary
+  set(PYTHON_BINARY ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/python/bin/python${PYTHON_SHORT_VERSION})
+  message("PYTHON_BINARY = ${PYTHON_BINARY}")
+  message("")
+endif()
+
 if(BUILD_MODE STREQUAL "Debug")
   set(LIBDIR ${CMAKE_CURRENT_BINARY_DIR}/Debug)
   set(MESON_BUILD_TYPE -Dbuildtype=debug)
@@ -208,30 +221,168 @@ else()
   set(PATCH_CMD patch)
   set(LIBEXT ".a")
   set(LIBPREFIX "lib")
-  set(MESON ${LIBDIR}/python/bin/meson)
+
+  # For Python Meson, use crosscompiled tool.
+  if(WITH_APPLE_CROSSPLATFORM)
+    set(MESON ${CMAKE_DEPS_CROSSCOMPILE_BUILDDIR}/deps_arm64/Release/python/bin/meson)
+  else()
+    set(MESON ${LIBDIR}/python/bin/meson)
+  endif()
   if(APPLE)
     set(SHAREDLIBEXT ".dylib")
 
     # Use same Xcode detection as Blender itself.
     include(../cmake/platform/platform_apple_xcode.cmake)
+    message("\n\n--- Begin Preparing sources --\n")
 
     if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
       set(BLENDER_PLATFORM_ARM ON)
     endif()
 
-    set(PLATFORM_CFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
-    set(PLATFORM_CXXFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -std=c++17 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
-    set(PLATFORM_LDFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES} -headerpad_max_install_names")
-    if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
-      set(PLATFORM_BUILD_TARGET --build=x86_64-apple-darwin19.0.0) # OS X 10.15
+    if(WITH_APPLE_CROSSPLATFORM)
+      # All Apple platform-specific settings - some may be redundant.
+      set (CMAKE_SHARED_LIBRARY_PREFIX "lib")
+      set (CMAKE_SHARED_LIBRARY_SUFFIX ".dylib")
+      set (CMAKE_SHARED_MODULE_PREFIX "lib")
+      set (CMAKE_SHARED_MODULE_SUFFIX ".so")
+      set (CMAKE_MODULE_EXISTS 1)
+      set (CMAKE_DL_LIBS "")
+
+      set (CMAKE_C_LINK_FLAGS "-Wl,-search_paths_first ${CMAKE_C_LINK_FLAGS}")
+      set (CMAKE_CXX_LINK_FLAGS "-Wl,-search_paths_first ${CMAKE_CXX_LINK_FLAGS}")
+
+      set (CMAKE_PLATFORM_HAS_INSTALLNAME 1)
+      set (CMAKE_SHARED_LIBRARY_CREATE_C_FLAGS "-dynamiclib -headerpad_max_install_names")
+      set (CMAKE_SHARED_MODULE_CREATE_C_FLAGS "-bundle -headerpad_max_install_names")
+      set (CMAKE_SHARED_MODULE_LOADER_C_FLAG "-Wl,-bundle_loader,")
+      set (CMAKE_SHARED_MODULE_LOADER_CXX_FLAG "-Wl,-bundle_loader,")
+      set (CMAKE_FIND_LIBRARY_SUFFIXES ".dylib" ".so" ".a")
+
+      # Set Crossplatform Apple-arm64 specific cmake flags with SDKs.
+      set(PLATFORM_CFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -Wno-declaration-after-statement -arch ${CMAKE_OSX_ARCHITECTURES}")
+      set(PLATFORM_CXXFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -std=c++17 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
+      set(PLATFORM_LDFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -arch ${CMAKE_OSX_ARCHITECTURES}")
+      # Apple ARM64 target.
+      set(PLATFORM_BUILD_TARGET --build=aarch64-apple-darwin20.0.0) 
+
+      set(DCMAKE_FIND_ROOT_PATH
+        ${DCMAKE_FIND_ROOT_PATH}
+        ${LIBDIR})
+
+      set(PLATFORM_CMAKE_FLAGS
+        -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+        -DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}
+        -DCMAKE_XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH=NO
+        -DCMAKE_IOS_INSTALL_COMBINED=YES
+        -DCMAKE_APPLE_CROSSPLATFORM_SDK_ROOT:STRING=${CMAKE_APPLE_CROSSPLATFORM_SDK_ROOT}
+        -DCMAKE_OSX_SYSROOT:STRING=${CMAKE_OSX_SYSROOT}
+        -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
+
+        -DCMAKE_FIND_ROOT_PATH:STRING=${CMAKE_FIND_ROOT_PATH}
+        -DCMAKE_SYSTEM_FRAMEWORK_PATH:STRING=${CMAKE_SYSTEM_FRAMEWORK_PATH}
+        -DCMAKE_FIND_LIBRARY_SUFFIXES:STRING=${CMAKE_FIND_LIBRARY_SUFFIXES}
+        -DCMAKE_FIND_FRAMEWORK:STRING=${CMAKE_FIND_FRAMEWORK}
+        -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM:STRING=${CMAKE_FIND_ROOT_PATH_MODE_PROGRAM}
+        -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY:STRING=${CMAKE_FIND_ROOT_PATH_MODE_LIBRARY}
+        -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE:STRING=${CMAKE_FIND_ROOT_PATH_MODE_INCLUDE}
+        -DCMAKE_SYSTEM_PROCESSOR:STRING=aarch64
+        -DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}
+        -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
+        -DWITH_APPLE_CROSSPLATFORM=YES
+        -DCMAKE_SIZEOF_VOID_P=8
+
+        -DCMAKE_LINKER:STRING=${CMAKE_LINKER}
+        -DCMAKE_AR:STRING=${CMAKE_AR}
+        -DCMAKE_NM:STRING=${CMAKE_NM}
+        -DCMAKE_OBJDUMP:STRING=${CMAKE_OBJDUMP}
+        -DCMAKE_STRIP:STRING=${CMAKE_STRIP}
+      )
+
+      if(APPLE_TARGET_DEVICE STREQUAL "ios")
+        set(PLATFORM_CMAKE_FLAGS
+          ${PLATFORM_CMAKE_FLAGS}
+          -DCMAKE_IPHONEOS_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
+        )
+      endif()
+
+      # Locate system installaton of pkgconfig
+      include(FindPkgConfig)
+      
+      # Prepare Meson cross file
+      # Note: Cmake will issue a developer warning about the use of triple quotes but the code seems OK.
+      set(MESON_APPLE_CONFIGURATION_FILE ${BUILD_DIR}/apple_cp/meson_apple_cross_config.ini)
+      set(MESON_APPLE_CP_CONTENTS
+        """
+        [binaries]
+        c = 'clang'
+        cpp = 'clang++'
+        objc = 'clang'
+        objcpp = 'clang++'
+        ar = 'ar'
+        strip = 'strip'
+        ld = 'ld'
+        pkgconfig = 'pkg-config'
+
+        [built-in options]
+        c_args = [
+          '-arch', 'arm64',
+          '-isysroot', '${CMAKE_OSX_SYSROOT}',
+          '${APPLE_OS_MINVERSION_CFLAG}',
+          '-fembed-bitcode']
+
+        cpp_args = [
+          '-arch', 'arm64',
+          '-isysroot', '${CMAKE_OSX_SYSROOT}',
+          '${APPLE_OS_MINVERSION_CFLAG}',
+          '-fembed-bitcode']
+
+        objc_args = [
+          '-arch', 'arm64',
+          '-isysroot', '${CMAKE_OSX_SYSROOT}',
+          '${APPLE_OS_MINVERSION_CFLAG}',
+          '-fembed-bitcode']
+
+        objcpp_args = [
+          '-arch', 'arm64',
+          '-isysroot', '${CMAKE_OSX_SYSROOT}',
+          '${APPLE_OS_MINVERSION_CFLAG}',
+          '-fembed-bitcode']
+
+        c_link_args = [
+          '-arch', 'arm64',
+          '-isysroot', '${CMAKE_OSX_SYSROOT}',
+          '${APPLE_OS_MINVERSION_CFLAG}']
+
+        cpp_link_args = [
+          '-arch', 'arm64',
+          '-isysroot', '${CMAKE_OSX_SYSROOT}',
+          '${APPLE_OS_MINVERSION_CFLAG}']
+        
+        [host_machine]
+        system = 'darwin'
+        cpu_family = 'aarch64'
+        cpu = 'arm64'
+        endian = 'little'
+        """
+      )
+      file(WRITE ${MESON_APPLE_CONFIGURATION_FILE} ${MESON_APPLE_CP_CONTENTS})
+      
     else()
-      set(PLATFORM_BUILD_TARGET --build=aarch64-apple-darwin20.0.0) # macOS 11.00
+      # MacOS flags
+      set(PLATFORM_CFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -arch ${CMAKE_OSX_ARCHITECTURES}")
+      set(PLATFORM_CXXFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG} -std=c++17 -stdlib=libc++ -arch ${CMAKE_OSX_ARCHITECTURES}")
+    set(PLATFORM_LDFLAGS "-isysroot ${CMAKE_OSX_SYSROOT} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET} -arch ${CMAKE_OSX_ARCHITECTURES}")
+      if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64")
+        set(PLATFORM_BUILD_TARGET --build=x86_64-apple-darwin19.0.0) # OS X 10.13
+      else()
+        set(PLATFORM_BUILD_TARGET --build=aarch64-apple-darwin20.0.0) # macOS 11.00
+      endif()
+
+      set(PLATFORM_CMAKE_FLAGS
+        -DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}
+        -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
+        -DCMAKE_OSX_SYSROOT:PATH=${CMAKE_OSX_SYSROOT})
     endif()
-    set(PLATFORM_CMAKE_FLAGS
-      -DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}
-      -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
-      -DCMAKE_OSX_SYSROOT:PATH=${CMAKE_OSX_SYSROOT}
-    )
   else()
     set(SHAREDLIBEXT ".so")
 

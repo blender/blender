@@ -70,6 +70,35 @@ void GHOST_ShowMessageBox(GHOST_SystemHandle systemhandle,
   system->showMessageBox(title, message, help_label, continue_label, link, dialog_options);
 }
 
+#if (WITH_APPLE_CROSSPLATFORM)
+void GHOST_popupOnScreenKeyboard(GHOST_WindowHandle windowhandle,
+                                 const GHOST_KeyboardProperties &keyboard_properties)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  
+  system->popupOnScreenKeyboard(window, keyboard_properties);
+}
+
+void GHOST_hideOnScreenKeyboard(GHOST_WindowHandle windowhandle)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  
+  system->hideOnScreenKeyboard(window);
+}
+
+const char* GHOST_getKeyboardInput(GHOST_WindowHandle windowhandle)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  
+  return system->getKeyboardInput(window);
+}
+
+
+#endif
+
 GHOST_EventConsumerHandle GHOST_CreateEventConsumer(GHOST_EventCallbackProcPtr eventCallback,
                                                     GHOST_TUserDataPtr user_data)
 {

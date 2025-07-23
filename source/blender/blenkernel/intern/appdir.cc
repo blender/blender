@@ -157,11 +157,28 @@ const char *BKE_appdir_folder_root()
 
 const char *BKE_appdir_folder_default_or_root()
 {
+#ifdef WITH_APPLE_CROSSPLATFORM
+  const std::optional<std::string> def_path = BKE_appdir_resource_path_id_with_version(
+      BLENDER_RESOURCE_PATH_LOCAL, true, BLENDER_VERSION);
+  if (def_path.has_value()) {
+    return def_path->c_str();
+  }
+#endif
+
   const char *path = BKE_appdir_folder_default();
   if (path == nullptr) {
     path = BKE_appdir_folder_root();
   }
   return path;
+}
+
+const char *BKE_appdir_folder_home()
+{
+#ifdef WITH_APPLE_CROSSPLATFORM
+  return BKE_appdir_folder_default_or_root();
+#else
+  return  BLI_dir_home();
+#endif
 }
 
 bool BKE_appdir_folder_documents(char *dir)
@@ -179,7 +196,7 @@ bool BKE_appdir_folder_documents(char *dir)
 
   /* Ghost couldn't give us a documents path, let's try if we can find it ourselves. */
 
-  const char *home_path = BLI_dir_home();
+  const char *home_path = BKE_appdir_folder_home();
   if (!home_path || !BLI_is_dir(home_path)) {
     return false;
   }
@@ -236,7 +253,7 @@ bool BKE_appdir_font_folder_default(char *dir, size_t dir_maxncpy)
     BLI_strncpy_wchar_as_utf8(test_dir, wpath, sizeof(test_dir));
   }
 #elif defined(__APPLE__)
-  if (const char *home_dir = BLI_dir_home()) {
+  if (const char *home_dir = BKE_appdir_folder_home()) {
     BLI_path_join(test_dir, sizeof(test_dir), home_dir, "Library/Fonts");
   }
 #else
@@ -383,7 +400,13 @@ static bool get_path_local_ex(char *targetpath,
    * we must move the blender_version dir with contents to Resources.
    * Add 4 + 9 for the temporary `/../` path & `Resources`. */
   char osx_resourses[FILE_MAX + 4 + 9];
+#  if WITH_APPLE_CROSSPLATFORM
+  /* Ipad resources not in resources folder. */
+  BLI_path_join(osx_resourses, sizeof(osx_resourses), g_app.program_dirname, "Assets");
+#  else
+  /* Ipad resources not in resources folder. */
   BLI_path_join(osx_resourses, sizeof(osx_resourses), g_app.program_dirname, "..", "Resources");
+#  endif
   /* Remove the '/../' added above. */
   BLI_path_normalize_native(osx_resourses);
   path_base = osx_resourses;
@@ -670,6 +693,11 @@ bool BKE_appdir_folder_id_ex(const int folder_id,
       if (get_path_local(path, path_maxncpy, "scripts", subfolder)) {
         break;
       }
+#ifdef WITH_APPLE_CROSSPLATFORM
+      if (get_path_user(path, path_maxncpy, "scripts", subfolder)) {
+        break;
+      }
+#endif
       return false;
 
     case BLENDER_USER_EXTENSIONS:
@@ -703,6 +731,11 @@ bool BKE_appdir_folder_id_ex(const int folder_id,
       if (get_path_local(path, path_maxncpy, "python", subfolder)) {
         break;
       }
+#ifdef WITH_APPLE_CROSSPLATFORM
+      if (get_path_user(path, path_maxncpy, "python", subfolder)) {
+        break;
+      }
+#endif
       return false;
 
     default:

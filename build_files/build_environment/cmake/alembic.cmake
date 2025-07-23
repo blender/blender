@@ -15,6 +15,14 @@ set(ALEMBIC_EXTRA_ARGS
   -DALEMBIC_SHARED_LIBS=OFF
 )
 
+# Could not find Imath libs on its own so specify path
+if(WITH_APPLE_CROSSPLATFORM)
+  set(ALEMBIC_EXTRA_ARGS
+    ${ALEMBIC_EXTRA_ARGS}
+    -DImath_DIR=${LIBDIR}/imath/lib/cmake/Imath
+  )
+endif()
+
 ExternalProject_Add(external_alembic
   URL file://${PACKAGE_DIR}/${ALEMBIC_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}

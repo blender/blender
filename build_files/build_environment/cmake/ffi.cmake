@@ -2,6 +2,14 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+if(WITH_APPLE_CROSSPLATFORM)
+  # Building for non-local architecture.
+  set(CROSS_COMPILE_FLAGS "--host=aarch64")
+else()
+  set(CROSS_COMPILE_FLAGS)
+endif()
+set(FFI_PATCH_FILE ${PATCH_DIR}/ffi.diff)
+
 ExternalProject_Add(external_ffi
   URL file://${PACKAGE_DIR}/${FFI_FILE}
   URL_HASH ${FFI_HASH_TYPE}=${FFI_HASH}
@@ -15,6 +23,7 @@ ExternalProject_Add(external_ffi
       --enable-static=yes
       --with-pic
       --libdir=${LIBDIR}/ffi/lib/
+      ${CROSS_COMPILE_FLAGS}
 
   BUILD_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/ffi/src/external_ffi/ &&
@@ -26,7 +35,7 @@ ExternalProject_Add(external_ffi
 
   PATCH_COMMAND ${PATCH_CMD} -p 0 -d
     ${BUILD_DIR}/ffi/src/external_ffi <
-    ${PATCH_DIR}/ffi.diff &&
+    ${FFI_PATCH_FILE} &&
     # Fix compilation errors on Apple Clang >= 17, remove when FFI is updated beyond 3.4.7, see PR #136934 for details.
     ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/ffi/src/external_ffi <
@@ -43,4 +52,9 @@ if(UNIX AND NOT APPLE)
 
     DEPENDEES install
   )
+endif()
+
+if(WITH_APPLE_CROSSPLATFORM)
+  # Required to provide libs for IOS_PYTHON_STATIC_LIBS
+  harvest_rpath_lib(external_ffi ffi/lib ffi/lib "*.a")
 endif()

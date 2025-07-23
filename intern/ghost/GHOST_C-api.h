@@ -9,6 +9,7 @@
 #pragma once
 
 #include "GHOST_Types.h"
+#include "GHOST_Rect.hh"
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,6 +64,19 @@ extern void GHOST_ShowMessageBox(GHOST_SystemHandle systemhandle,
                                  const char *continue_label,
                                  const char *link,
                                  GHOST_DialogOptions dialog_options);
+
+
+#if (WITH_APPLE_CROSSPLATFORM)
+
+extern void GHOST_popupOnScreenKeyboard(GHOST_WindowHandle window_handle,
+                                        const GHOST_KeyboardProperties &keyboard_properties);
+
+extern void GHOST_hideOnScreenKeyboard(GHOST_WindowHandle window_handle);
+
+extern const char* GHOST_getKeyboardInput(GHOST_WindowHandle window_handle);
+
+#endif
+
 
 /**
  * Creates an event consumer object

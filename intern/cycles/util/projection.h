@@ -56,6 +56,12 @@ template<class T> ccl_device_inline float3 to_local(const T p, const T X, const 
   return make_float3(dot(p, X), dot(p, Y), dot(p, Z));
 }
 
+/* Packed float3 version  */
+template<class T, class S> ccl_device_inline float3 to_local(const T p, const S X, const S Y, const S Z)
+{
+  return make_float3(dot(p, X), dot(p, Y), dot(p, Z));
+}
+
 ccl_device_inline float3 disk_to_hemisphere(const float2 p)
 {
   return make_float3(p.x, p.y, safe_sqrtf(1.0f - len_squared(p)));

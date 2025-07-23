@@ -45,12 +45,16 @@ struct BVHMetalBuildThrottler {
 
   BVHMetalBuildThrottler()
   {
+    /* Set a conservative limit, but which will still only throttle in extreme cases. */
+#  ifdef WITH_APPLE_CROSSPLATFORM
+    /* TEMP: lets assume 1GB for now. */
+    safe_wired_limit = 1LL * 1024LL * 1024LL * 1024LL;
+#  else
     /* The default device will always be the one that supports MetalRT if the machine supports it.
      */
     id<MTLDevice> mtlDevice = MTLCreateSystemDefaultDevice();
-
-    /* Set a conservative limit, but which will still only throttle in extreme cases. */
     safe_wired_limit = [mtlDevice recommendedMaxWorkingSetSize] / 4;
+#  endif
     bvh_throttle_printf("safe_wired_limit = %zu\n", safe_wired_limit);
   }
 
@@ -389,7 +393,7 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
                                bool refit)
 {
 #  if defined(MAC_OS_VERSION_14_0)
-  if (@available(macos 14.0, *)) {
+  if (@available(macos 14.0, ios 17.0, *)) {
     /* Build BLAS for hair curves */
     Hair *hair = static_cast<Hair *>(geom);
     if (hair->num_curves() == 0) {
@@ -1311,7 +1315,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
       accelDesc.motionTransformBuffer = motion_transforms_buf;
       accelDesc.motionTransformCount = num_motion_transforms;
 #  if defined(MAC_OS_VERSION_15_0)
-      if (@available(macos 15.0, *)) {
+      if (@available(macos 15.0, ios 18.00, *)) {
         accelDesc.motionTransformStride = 0;
         accelDesc.motionTransformType = use_pcmi ? MTLTransformTypeComponent :
                                                    MTLTransformTypePackedFloat4x3;

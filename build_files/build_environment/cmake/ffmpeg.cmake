@@ -59,11 +59,15 @@ ucrt.lib"
   # so this patch removes those checks in favour of looking for the libs directly.
   set(FFMPEG_PATCH_FILE ${PATCH_DIR}/ffmpeg_windows.diff)
 else()
-  # OpenJpeg is compiled with pthread support on Linux, which is all fine and is what we
-  # want for maximum runtime performance, but due to static nature of that library we
-  # need to force ffmpeg to link against pthread, otherwise test program used by autoconf
-  # will fail. This patch does that in a way that is compatible with multiple distributions.
-  set(FFMPEG_PATCH_FILE ${PATCH_DIR}/ffmpeg.diff)
+  if(WITH_APPLE_CROSSPLATFORM)
+    set(FFMPEG_PATCH_FILE ${PATCH_DIR}/ffmpeg_ios.diff)
+  else()
+    # OpenJpeg is compiled with pthread support on Linux, which is all fine and is what we
+    # want for maximum runtime performance, but due to static nature of that library we
+    # need to force ffmpeg to link against pthread, otherwise test program used by autoconf
+    # will fail. This patch does that in a way that is compatible with multiple distributions.
+    set(FFMPEG_PATCH_FILE ${PATCH_DIR}/ffmpeg.diff)
+  endif()
 endif()
 
 set(FFMPEG_EXTRA_FLAGS
@@ -136,15 +140,39 @@ else()
 endif()
 
 if(APPLE)
-  set(FFMPEG_EXTRA_FLAGS
+  if(WITH_APPLE_CROSSPLATFORM)
+    set(FFMPEG_EXTRA_FLAGS
+      ${FFMPEG_EXTRA_FLAGS}
+      --enable-cross-compile
+      --arch=aarch64
+      --target-os=ios
+
+      --sysroot=${CMAKE_OSX_SYSROOT} 
+      --extra-ldflags=${PLATFORM_LDFLAGS} 
+      --extra-ldsoflags=${PLATFORM_LDFLAGS} 
+      --extra-cflags=${PLATFORM_C_FLAGS}
+      --extra-cxxflags=${PLATFORM_CXX_FLAGS}
+      --extra-objcflags=${PLATFORM_C_FLAGS}
+
+    )
+  else()
+    set(FFMPEG_EXTRA_FLAGS
     ${FFMPEG_EXTRA_FLAGS}
     --target-os=darwin
     --x86asmexe=${LIBDIR}/nasm/bin/nasm
-  )
+    )
+  endif()
 elseif(UNIX)
   set(FFMPEG_EXTRA_FLAGS
     ${FFMPEG_EXTRA_FLAGS}
     --x86asmexe=${LIBDIR}/nasm/bin/nasm
+  )
+endif()
+
+if(NOT WITH_APPLE_CROSSPLATFORM)
+  set(FFMPEG_EXTRA_FLAGS
+    ${FFMPEG_EXTRA_FLAGS}
+    --enable-libvpx
   )
 endif()
 
@@ -168,7 +196,6 @@ ExternalProject_Add(external_ffmpeg
       --disable-bzlib
       --disable-libgsm
       --disable-libspeex
-      --enable-libvpx
       --enable-libopus
       --prefix=${LIBDIR}/ffmpeg
       --enable-libtheora

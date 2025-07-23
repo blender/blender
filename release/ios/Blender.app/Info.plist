@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.9.0</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>blend</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>Blender_Legacy_Document_Icon.icns</string>
+			<key>CFBundleTypeName</key>
+			<string>Blender File</string>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>BLND</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSIsAppleDefaultForType</key>
+			<true/>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.blenderfoundation.blender.file</string>
+			</array>
+			<key>CFBundleTypeIconSystemGenerated</key>
+			<true/>
+		</dict>
+	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>CFBundleExecutable</key>
+	<string>Blender</string>
+	<key>CFBundleGetInfoString</key>
+	<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}, Blender Foundation</string>
+	<key>CFBundleIconFile</key>
+	<string>Assets/blender_icon.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.blenderfoundation.blender</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Blender</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	<key>UIStatusBarHidden</key>
+	<true/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeIdentifier</key>
+			<string>org.blenderfoundation.blender.file</string>
+			<key>UTTypeDescription</key>
+			<string>Blender File</string>
+			<key>UTTypeIcons</key>
+			<dict>
+				<key>UTTypeIconName</key>
+				<string>Blender File</string>
+				<key>UTTypeIconText</key>
+				<string>blend</string>
+			</dict>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>blend</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+	<key>com.apple.developer.kernel.increased-memory-limit</key>
+	<true/>
+</dict>
+</plist>

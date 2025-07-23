@@ -19,6 +19,31 @@ project("BlenderDependencies")
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW) # CMake 3.24+ Set the date/time for extracted files to time of extraction
 endif()
+
+# Option for building dependencies for non-macOS Apple platforms.
+if(APPLE)
+  set(APPLE_TARGET_DEVICE macos CACHE STRING "Target build device for Apple platforms. Default: macos")
+  mark_as_advanced(WITH_APPLE_CROSSPLATFORM)
+
+  if(APPLE_TARGET_DEVICE STREQUAL ios)
+    set(WITH_APPLE_CROSSPLATFORM ON CACHE BOOL "Build dependencies for non-host Apple platforms" FORCE)
+    # Override system name which will be inherited from CMAKE_HOST_SYSTEM_NAME
+    set(CMAKE_SYSTEM_NAME "iOS")
+  elseif(APPLE_TARGET_DEVICE STREQUAL macos)
+    set(WITH_APPLE_CROSSPLATFORM OFF CACHE BOOL "" FORCE)
+  else()
+    message(FATAL_ERROR "Unrecognised Apple platform '${APPLE_TARGET_DEVICE}'")
+  endif()
+else()
+  set(WITH_APPLE_CROSSPLATFORM OFF)
+endif()
+
+if(WITH_APPLE_CROSSPLATFORM)
+  # NOTE: All supported Apple platforms will be arm64.
+  set(CMAKE_OSX_ARCHITECTURES "arm64")
+endif()
+
+
 include(ExternalProject)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake/Modules")
@@ -54,7 +79,10 @@ include(cmake/imath.cmake)
 include(cmake/openexr.cmake)
 include(cmake/brotli.cmake)
 include(cmake/freetype.cmake)
-include(cmake/epoxy.cmake)
+if(NOT WITH_APPLE_CROSSPLATFORM)
+  # Epoxy is a library for handling OpenGL function wrapping and is not required for Apple ARM64 platforms.
+  include(cmake/epoxy.cmake)
+endif()
 include(cmake/alembic.cmake)
 include(cmake/opensubdiv.cmake)
 include(cmake/sdl.cmake)
@@ -69,11 +97,17 @@ elseif(UNIX AND NOT APPLE)
 endif()
 include(cmake/tbb.cmake)
 include(cmake/python.cmake)
+if(UNIX)
+  include(cmake/libb2.cmake)
+endif()
 include(cmake/llvm.cmake)
 include(cmake/osl.cmake)
 include(cmake/cython.cmake)
 include(cmake/numpy.cmake)
-include(cmake/zstandard.cmake)
+if(NOT WITH_APPLE_CROSSPLATFORM)
+  # Requires SSL libs which we don't have on iOS yet
+  include(cmake/zstandard.cmake)
+endif()
 include(cmake/python_site_packages.cmake)
 include(cmake/package_python.cmake)
 include(cmake/openimageio.cmake)

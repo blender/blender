@@ -224,6 +224,22 @@ ccl_device_inline void object_dir_transform(KernelGlobals kg,
   *D = transform_direction(&tfm, *D);
 }
 
+/* Packed float3 version */
+ccl_device_inline void object_dir_transform(KernelGlobals kg,
+                                            const ccl_private ShaderData *sd,
+                                            ccl_private packed_float3 *D)
+{
+#ifdef __OBJECT_MOTION__
+  if (sd->object_flag & SD_OBJECT_MOTION) {
+    *D = transform_direction_auto(&sd->ob_tfm_motion, *D);
+    return;
+  }
+
+  const Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
+  *D = transform_direction(&tfm, *D);
+}
+#endif
+
 /* Transform direction vector from world to object space */
 
 ccl_device_inline void object_inverse_dir_transform(KernelGlobals kg,

@@ -1575,7 +1575,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         import platform
         # Default to selecting the Metal compute device on Apple Silicon GPUs
         # (drivers are tightly integrated with macOS so pose no stability risk)
-        if (platform.system() == 'Darwin') and (platform.machine() == 'arm64'):
+        if ((platform.system() == 'Darwin') and (platform.machine() == 'arm64')) or ("iPad" in platform.machine()):
             return 5
         return 0
 

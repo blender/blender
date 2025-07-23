@@ -271,22 +271,32 @@ int MetalDeviceQueue::num_concurrent_states(const size_t state_size) const
   }
 
   result = 4194304;
+#  ifdef WITH_APPLE_CROSSPLATFORM
+  /* Return minimal default working set.
+   * TODO: Tune based on device and runtime status on iOS. */
+  return result;
+#  endif
+
 
   /* Increasing the state count doesn't notably benefit M1-family systems. */
   if (MetalInfo::get_apple_gpu_architecture(metal_device_->mtlDevice) != APPLE_M1) {
     size_t system_ram = system_physical_ram();
     size_t allocated_so_far = [metal_device_->mtlDevice currentAllocatedSize];
-    size_t max_recommended_working_set = [metal_device_->mtlDevice recommendedMaxWorkingSetSize];
 
-    /* Determine whether we can double the state count, and leave enough GPU-available memory
-     * (1/8 the system RAM or 1GB - whichever is largest). Enlarging the state size allows us to
-     * keep dispatch sizes high and minimize work submission overheads. */
-    size_t min_headroom = std::max(system_ram / 8, size_t(1024 * 1024 * 1024));
-    size_t total_state_size = result * state_size;
-    if (max_recommended_working_set - allocated_so_far - total_state_size * 2 >= min_headroom) {
-      result *= 2;
-      metal_printf("Doubling state count to exploit available RAM (new size = %d)", result);
-    }
+      if (@available(iOS 16.0, *)) {
+        size_t max_recommended_working_set =
+        [metal_device_->mtlDevice recommendedMaxWorkingSetSize];
+        
+        /* Determine whether we can double the state count, and leave enough GPU-available memory
+         * (1/8 the system RAM or 1GB - whichever is largest). Enlarging the state size allows us
+         * to keep dispatch sizes high and minimize work submission overheads. */
+        size_t min_headroom = std::max(system_ram / 8, size_t(1024LL * 1024LL * 1024LL));
+        size_t total_state_size = result * state_size;
+        if (max_recommended_working_set - allocated_so_far - total_state_size * 2 >= min_headroom) {
+          result *= 2;
+          metal_printf("Doubling state count to exploit available RAM (new size = %d)\n", result);
+        }
+      }
   }
   return result;
 }

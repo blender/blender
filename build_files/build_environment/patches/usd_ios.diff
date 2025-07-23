@@ -1,0 +1,292 @@
+diff -Naur orig/cmake/defaults/Packages.cmake external_usd/cmake/defaults/Packages.cmake
+--- orig/cmake/defaults/Packages.cmake	2022-10-27 12:56:33 -0600
++++ external_usd/cmake/defaults/Packages.cmake	2022-10-27 13:05:08 -0600
+@@ -129,7 +129,7 @@
+ endif()
+ 
+ # --TBB
+-find_package(TBB REQUIRED COMPONENTS tbb)
++find_package(TBB)
+ add_definitions(${TBB_DEFINITIONS})
+ 
+ # --math
+diff -Naur orig/cmake/defaults/msvcdefaults.cmake external_usd/cmake/defaults/msvcdefaults.cmake
+--- orig/cmake/defaults/msvcdefaults.cmake	2022-10-27 12:56:33 -0600
++++ external_usd/cmake/defaults/msvcdefaults.cmake	2022-10-27 13:05:08 -0600
+@@ -120,9 +120,6 @@
+ # for all translation units.
+ set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /bigobj")
+ 
+-# Enable PDB generation.
+-set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /Zi")
+-
+ # Enable multiprocessor builds.
+ set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /MP")
+ set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /Gm-")
+diff -Naur orig/pxr/base/arch/timing.h external_usd/pxr/base/arch/timing.h
+--- orig/pxr/base/arch/timing.h	2022-10-27 12:56:34 -0600
++++ external_usd/pxr/base/arch/timing.h	2022-10-27 13:05:08 -0600
+@@ -84,6 +84,10 @@
+ inline uint64_t
+ ArchGetStartTickTime()
+ {
++    // BLENDER: avoid using rdtsc instruction that is not supported on older CPUs.
++    return ArchGetTickTime();
++
++#if 0
+     uint64_t t;
+ #if defined (ARCH_OS_DARWIN)
+     return ArchGetTickTime();
+@@ -116,6 +120,7 @@
+ #error "Unsupported architecture."
+ #endif
+   return t;
++#endif
+ }
+ 
+ /// Get a "stop" tick time for measuring an interval of time.  See
+@@ -125,6 +130,10 @@
+ inline uint64_t
+ ArchGetStopTickTime()
+ {
++    // BLENDER: avoid using rdtsc instruction that is not supported on older CPUs.
++    return ArchGetTickTime();
++
++#if 0
+     uint64_t t;
+ #if defined (ARCH_OS_DARWIN)
+     return ArchGetTickTime();
+@@ -155,11 +164,11 @@
+ #error "Unsupported architecture."
+ #endif
+   return t;
++#endif
+ }
+ 
+-#if defined (doxygen) ||                                                       \
+-    (!defined(ARCH_OS_DARWIN) && defined(ARCH_CPU_INTEL) &&                    \
+-     (defined(ARCH_COMPILER_CLANG) || defined(ARCH_COMPILER_GCC)))
++// BLENDER: avoid using rdtsc instruction that is not supported on older CPUs.
++#if 0
+ 
+ /// A simple timer class for measuring an interval of time using the
+ /// ArchTickTimer facilities.
+diff -Naur orig/pxr/imaging/hioOpenVDB/CMakeLists.txt external_usd/pxr/imaging/hioOpenVDB/CMakeLists.txt
+--- orig/pxr/imaging/hioOpenVDB/CMakeLists.txt	2022-10-27 12:56:35 -0600
++++ external_usd/pxr/imaging/hioOpenVDB/CMakeLists.txt	2022-10-27 13:05:08 -0600
+@@ -20,6 +20,12 @@
+     LIST(APPEND __VDB_IMATH_LIBS ${OPENEXR_Half_LIBRARY})
+ endif()
+ 
++if (WIN32)
++    # OpenVDB uses constants from <cmath> that aren't available on
++    # Windows unless this is defined.
++    add_definitions(-D_USE_MATH_DEFINES)
++endif()
++
+ pxr_library(hioOpenVDB
+     LIBRARIES
+         ar
+diff -Naur orig/pxr/usdImaging/CMakeLists.txt external_usd/pxr/usdImaging/CMakeLists.txt
+--- orig/pxr/usdImaging/CMakeLists.txt	2022-10-27 12:56:37 -0600
++++ external_usd/pxr/usdImaging/CMakeLists.txt	2022-10-27 13:05:08 -0600
+@@ -7,7 +7,7 @@
+     usdVolImaging
+     usdAppUtils
+     usdviewq
+-    bin
++#    bin
+     plugin
+ )
+ 
+diff -Naur orig/cmake/macros/Private.cmake external_usd/cmake/macros/Private.cmake
+--- orig/cmake/macros/Private.cmake     2022-02-18 14:49:09 -0700
++++ external_usd/cmake/macros/Private.cmake     2022-08-05 10:42:03 -0600
+@@ -900,8 +900,10 @@
+         return()
+     endif()
+
+-    if (WIN32 AND PXR_USE_DEBUG_PYTHON)
++    if (WIN32 AND PXR_USE_DEBUG_PYTHON AND NOT CMAKE_DEBUG_POSTFIX)
+         # On Windows when compiling with debug python the library must be named with _d.
++        # Blender: but this can be skipped if CMAKE_DEBUG_POSTFIX is set, it knows
++        # what it is doing and we don't want libraries ending in _d_d.pyd 
+         set(LIBRARY_NAME "_${NAME}_d")
+     else()
+         set(LIBRARY_NAME "_${NAME}")
+
+diff -Naur a/pxr/base/arch/pch.h b/pxr/base/arch/pch.h
+--- a/pxr/base/arch/pch.h	2023-11-30 14:40:06
++++ b/pxr/base/arch/pch.h	2023-11-30 14:40:59
+@@ -32,7 +32,11 @@
+ #include <execinfo.h>
+ #include <glob.h>
+ #include <limits.h>
+-#include <sys/malloc.h>
++#if defined(ARCH_OS_IOS)
++#   include <stdlib.h>
++#else
++#   include <sys/malloc.h>
++#endif
+ #include <sys/mount.h>
+ #include <sys/param.h>
+ #include <sys/resource.h>
+ 
+
+diff -Naur a/cmake/defaults/Packages.cmake b/cmake/defaults/Packages.cmake
+--- a/cmake/defaults/Packages.cmake	2023-11-30 14:25:40
++++ b/cmake/defaults/Packages.cmake	2023-11-30 14:28:47
+@@ -320,7 +320,7 @@
+ endif()
+ 
+ if (PXR_ENABLE_MATERIALX_SUPPORT)
+-    find_package(MaterialX REQUIRED)
++    find_package(MaterialX)
+     add_definitions(-DPXR_MATERIALX_SUPPORT_ENABLED)
+ endif()
+ 
+--- a/pxr/imaging/hdSt/CMakeLists.txt	2025-05-09 14:22:51.000000000 
++++ b/pxr/imaging/hdSt/CMakeLists.txt	2025-05-09 15:21:25.000000000 
+@@ -12,18 +12,19 @@
+ set(optionalLibs "")
+ set(optionalIncludeDirs "")
+ set(optionalPublicClasses "")
+ set(optionalPrivateClasses "")
+ if (${PXR_ENABLE_MATERIALX_SUPPORT})
+     list(APPEND optionalLibs
+-        MaterialXGenShader
+-        MaterialXRender
+-        MaterialXCore
+-        MaterialXFormat
+-        MaterialXGenGlsl
+-        MaterialXGenMsl
++        # iOS Builds MaterialX as a monolithic library
++	#MaterialXGenShader
++        #MaterialXRender
++        #MaterialXCore
++        #MaterialXFormat
++        #MaterialXGenGlsl
++        #MaterialXGenMsl
+         hdMtlx
+     )
+     list(APPEND optionalPrivateClasses
+          materialXFilter
+          materialXShaderGen
+     )
+
+--- a/pxr/usd/usdMtlx/CMakeLists.txt	2025-05-09 14:22:52.000000000 
++++ b/pxr/usd/usdMtlx/CMakeLists.txt	2025-05-09 15:26:15.000000000 
+@@ -2,12 +2,13 @@
+ set(PXR_PACKAGE usdMtlx)
+ 
+ if (MATERIALX_STDLIB_DIR)
+     add_definitions(-DPXR_MATERIALX_STDLIB_DIR="${MATERIALX_STDLIB_DIR}")
+ endif()
+ 
++# Remove MaterialXCore and MaterialXFormat from iOS builds as we build a monolithic MaterialX
+ pxr_library(usdMtlx
+     INCLUDE_SCHEMA_FILES
+ 
+     LIBRARIES
+         arch
+         gf
+@@ -18,14 +19,12 @@
+         vt
+         usd
+         usdGeom
+         usdShade
+         usdUI
+         usdUtils
+-        MaterialXCore
+-        MaterialXFormat
+ 
+     CPPFILES
+         discovery.cpp
+         parser.cpp
+ 
+     PRIVATE_CLASSES
+
+
+--- a/pxr/imaging/hdMtlx/CMakeLists.txt	2025-05-09 14:22:51.000000000 
++++ b/pxr/imaging/hdMtlx/CMakeLists.txt	2025-05-09 15:28:17.000000000 
+@@ -1,23 +1,22 @@
+ set(PXR_PREFIX pxr/imaging)
+ set(PXR_PACKAGE hdMtlx)
+ 
++# Remove MaterialXCore and MaterialXFormat from iOS builds as we build a monolithic MaterialX
+ pxr_library(hdMtlx
+     LIBRARIES
+         gf
+         hd
+         sdf
+         sdr
+         tf
+         trace
+         usdMtlx
+         vt
+-        MaterialXCore
+-        MaterialXFormat
+ 
+     PUBLIC_CLASSES
+         hdMtlx
+         debugCodes
+ 
+     PUBLIC_HEADERS
+         api.h
+ )
+
+--- a/pxr/usdImaging/bin/usdBakeMtlx/CMakeLists.txt	2025-05-09 15:42:54.000000000 
++++ b/pxr/usdImaging/bin/usdBakeMtlx/CMakeLists.txt	2025-05-09 15:43:01.000000000 
+@@ -6,24 +6,24 @@
+ if (NOT ${PXR_ENABLE_GL_SUPPORT} OR PXR_APPLE_EMBEDDED)
+     message(STATUS
+         "Skipping ${PXR_PACKAGE} because PXR_ENABLE_GL_SUPPORT is OFF or PXR_APPLE_EMBEDDED is ON")
+     return()
+ endif()
+ 
++
++# Remove MaterialXCore and MaterialXFormat from iOS builds as we build a monolithic MaterialX
+ pxr_library(usdBakeMtlx
+     LIBRARIES
+         tf
+         sdr
+         usdMtlx
+         usdShade
+         hd
+         hdMtlx
+         usdImaging
+-        MaterialXCore
+-        MaterialXFormat
+-        MaterialXRenderGlsl
++	MaterialX
+ 
+     PUBLIC_CLASSES
+         bakeMaterialX
+ 
+     PUBLIC_HEADERS
+         api.h
+
+--- a/third_party/renderman-26/plugin/hdPrman/CMakeLists.txt	2025-05-09 15:31:45.000000000 
++++ b/third_party/renderman-26/plugin/hdPrman/CMakeLists.txt	2025-05-09 15:45:43.000000000 
+@@ -36,19 +36,16 @@
+ elseif(APPLE)
+     set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -undefined dynamic_lookup -headerpad_max_install_names" )
+ endif()
+ 
+ set(optionalIncludeDirs "")
+ set(optionalPublicClasses "")
++# Remove extra MaterialX libs fof iOS builds as we build a monolithic MaterialX
+ if (${PXR_ENABLE_MATERIALX_SUPPORT})
+     list(APPEND optionalLibs
+-        MaterialXCore
+-        MaterialXFormat
+-        MaterialXGenShader
+-        MaterialXGenOsl
+-        MaterialXRender
++        MaterialX
+         hdMtlx
+     )
+     list(APPEND optionalPublicClasses matfiltMaterialX)
+ 
+     if (${PXR_ENABLE_OSL_SUPPORT})
+         if (DEFINED OSL_SHADER_INSTALL_DIR)

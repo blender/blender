@@ -13,9 +13,7 @@
 
 #include "mtl_context.hh"
 
-#include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>
-#include <QuartzCore/QuartzCore.h>
 
 namespace blender::gpu {
 

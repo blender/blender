@@ -1,0 +1,34 @@
+diff -Naur multicoreware-x265_git-3cf6c1e53037_Original/build/aarch64-darwin/crosscompile.cmake multicoreware-x265_git-3cf6c1e53037/build/aarch64-darwin/crosscompile.cmake
+--- multicoreware-x265_git-3cf6c1e53037_Original/build/aarch64-darwin/crosscompile.cmake	2024-03-15 03:44:45
++++ multicoreware-x265_git-3cf6c1e53037/build/aarch64-darwin/crosscompile.cmake	2025-04-17 14:32:00
+@@ -4,12 +4,12 @@
+ # Run cmake with: cmake -DCMAKE_TOOLCHAIN_FILE=crosscompile.cmake -G "Unix Makefiles" ../../source && ccmake ../../source
+ 
+ set(CROSS_COMPILE_ARM64 1)
+-set(CMAKE_SYSTEM_NAME Darwin)
++set(CMAKE_SYSTEM_NAME iOS)
+ set(CMAKE_SYSTEM_PROCESSOR aarch64)
+ 
+ # specify the cross compiler
+-set(CMAKE_C_COMPILER gcc-12)
+-set(CMAKE_CXX_COMPILER g++-12)
++set(CMAKE_C_COMPILER gcc)
++set(CMAKE_CXX_COMPILER g++)
+ 
+ # specify the target environment
+ SET(CMAKE_FIND_ROOT_PATH  /opt/homebrew/bin/)
+diff -Naur multicoreware-x265_git-3cf6c1e53037_Original/source/CMakeLists.txt multicoreware-x265_git-3cf6c1e53037/source/CMakeLists.txt
+--- multicoreware-x265_git-3cf6c1e53037_Original/source/CMakeLists.txt	2024-03-15 03:44:45
++++ multicoreware-x265_git-3cf6c1e53037/source/CMakeLists.txt	2025-04-17 14:31:30
+@@ -478,6 +478,11 @@
+   endif()
+ endif(ARM64)
+ 
++if(APPLE)
++  # IOS_FIXME: minversion should come from a define like CMAKE_OSX_DEPLOYMENT_TARGET	
++  list(APPEND ASM_FLAGS -isysroot ${CMAKE_OSX_SYSROOT}  -miphoneos-version-min=15.0)
++endif()
++
+ option(WARNINGS_AS_ERRORS "Stop compiles on first warning" OFF)
+ if(WARNINGS_AS_ERRORS)
+     if(GCC)

@@ -17,9 +17,19 @@ if(UNIX AND NOT APPLE)
   )
 else()
   set(BZIP2_CONFIGURE_ENV ${CONFIGURE_ENV})
+  if(WITH_APPLE_CROSSPLATFORM)
+    set(BZIP2_CFLAGS ${PLATFORM_CFLAGS})
+  endif()
 endif()
 
-ExternalProject_Add(external_bzip2
+if(WITH_APPLE_CROSSPLATFORM)
+  # Skip testing phase.
+  set(BZIP_MAKE_ACTION libbz2.a bzip2 bzip2recover)
+else()
+  set(BZIP_MAKE_ACTION)
+endif()
+
+ExternalProject_Add(external_bzip2 
   URL file://${PACKAGE_DIR}/${BZIP2_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${BZIP2_HASH_TYPE}=${BZIP2_HASH}
@@ -28,11 +38,16 @@ ExternalProject_Add(external_bzip2
 
   BUILD_COMMAND ${BZIP2_CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/bzip2/src/external_bzip2/ &&
-    make CFLAGS=${BZIP2_CFLAGS} LDFLAGS=${BZIP2_LDFLAGS} -j${MAKE_THREADS}
+    make CFLAGS=${BZIP2_CFLAGS} LDFLAGS=${BZIP2_LDFLAGS} -j${MAKE_THREADS} ${BZIP_MAKE_ACTION}
 
   INSTALL_COMMAND ${BZIP2_CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/bzip2/src/external_bzip2/ &&
     make CFLAGS=${BZIP2_CFLAGS} LDFLAGS=${BZIP2_LDFLAGS} PREFIX=${BZIP2_PREFIX} install
-
+  
   INSTALL_DIR ${LIBDIR}/bzip2
 )
+
+if(WITH_APPLE_CROSSPLATFORM)
+  # Required to provide libs for IOS_PYTHON_STATIC_LIBS
+  harvest_rpath_lib(external_bzip2 bzip2/lib bzip2/lib "*.a")
+endif()

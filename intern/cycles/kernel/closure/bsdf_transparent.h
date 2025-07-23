@@ -23,15 +23,15 @@ ccl_device void bsdf_transparent_setup(ccl_private ShaderData *sd,
     return;
   }
 
-  sd->closure_transparent_extinction += weight;
+  sd->closure_transparent_extinction = Spectrum(sd->closure_transparent_extinction) + weight;
 
   if (sd->flag & SD_TRANSPARENT) {
     /* Add weight to existing transparent BSDF. */
     for (int i = 0; i < sd->num_closure; i++) {
-      ccl_private ShaderClosure *sc = &sd->closure[i];
+      ccl_private ShaderClosure *sc = sd->get_closure(i);
 
       if (sc->type == CLOSURE_BSDF_TRANSPARENT_ID) {
-        sc->weight += weight;
+        sc->weight = Spectrum(sc->weight) + weight;
         sc->sample_weight += sample_weight;
         break;
       }

@@ -24,7 +24,12 @@ set(LIB
   draco
 )
 
-add_library(extern_draco SHARED "${SRC}")
+if(WITH_APPLE_CROSSPLATFORM)
+  # Use static lib to resolve nested signing issues on cross-platform device builds.
+  add_library(extern_draco STATIC "${SRC}")
+else()
+  add_library(extern_draco SHARED "${SRC}")
+endif()
 target_include_directories(extern_draco PUBLIC "${INC}")
 target_link_libraries(extern_draco PUBLIC "${LIB}")
 

@@ -103,6 +103,8 @@ set(OPENIMAGEIO_EXTRA_ARGS
   -DTBB_ROOT=${LIBDIR}/tbb
   -Dlibdeflate_ROOT=${LIBDIR}/deflate
   -Dfmt_ROOT=${LIBDIR}/fmt
+  -DPython3_ROOT=${LIBDIR}/python
+  -DPython3_INCLUDE_DIR=${LIBDIR}/python/include/python${PYTHON_SHORT_VERSION}/
 )
 
 if(WIN32)
@@ -120,6 +122,31 @@ if(WIN32)
   endif()
 endif()
 
+#Override library search dirs for iOS, as these are not correctly found.
+if(WITH_APPLE_CROSSPLATFORM)
+
+  # Use iOS utility to set some env vars to help us build for iOS
+  include(cmake/ios_defines.cmake)
+  ios_get_dependency_env_vars(OPENEXR IMATH ROBINMAP DEFLATE PYBIND11 JPEG OPENJPEG WEBP FMT TBB)
+  
+  set(OPENIMAGEIO_EXTRA_ARGS
+    ${OPENIMAGEIO_EXTRA_ARGS}
+    -DCMAKE_POLICY_DEFAULT_CMP0111:STRING=OLD
+    -DCMAKE_C_FLAGS="-DIMATH_HALF_NO_LOOKUP_TABLE ${IOSDEP_INCLUDES_STRING}"
+    -DCMAKE_CXX_FLAGS="-DIMATH_HALF_NO_LOOKUP_TABLE ${IOSDEP_INCLUDES_STRING}"
+    -DEXTRA_DSO_LINK_ARGS=${IOSDEP_LIBDIRS_STRING}
+    -DUSE_WEBP=OFF
+    ${IOSDEP_DEFINES}
+  )
+endif()
+
+# Patch
+if(WITH_APPLE_CROSSPLATFORM)
+  set(OIIO_PATCH_PATH ${PATCH_DIR}/openimageio_ios.diff)
+else()
+  set(OIIO_PATCH_PATH ${PATCH_DIR}/openimageio.diff)
+endif()
+
 ExternalProject_Add(external_openimageio
   URL file://${PACKAGE_DIR}/${OPENIMAGEIO_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -130,7 +157,7 @@ ExternalProject_Add(external_openimageio
   PATCH_COMMAND
     ${PATCH_CMD} -p 1 -N -d
       ${BUILD_DIR}/openimageio/src/external_openimageio/ <
-      ${PATCH_DIR}/openimageio.diff &&
+      ${OIIO_PATCH_PATH} &&
     ${PATCH_CMD} -p 1 -N -d
       ${BUILD_DIR}/openimageio/src/external_openimageio/ <
       ${PATCH_DIR}/oiio_windows_arm64.diff

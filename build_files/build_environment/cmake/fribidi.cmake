@@ -6,6 +6,16 @@ if(WIN32)
   set(CONFIGURE_ENV ${CONFIGURE_ENV_MSVC})
 endif()
 
+if(WITH_APPLE_CROSSPLATFORM)
+  if(NOT EXISTS "${MESON_APPLE_CONFIGURATION_FILE}")
+    message(FATAL_ERROR "Fribidi requires cross=compilation config file at: '${MESON_APPLE_CONFIGURATION_FILE}'")
+  endif()
+
+  set(CROSS_COMPILE_COMMANDS --cross-file ${MESON_APPLE_CONFIGURATION_FILE})
+else()
+  set(CROSS_COMPILE_COMMANDS)
+endif()
+
 ExternalProject_Add(external_fribidi
   URL file://${PACKAGE_DIR}/${FRIBIDI_FILE}
   URL_HASH ${FRIBIDI_HASH_TYPE}=${FRIBIDI_HASH}
@@ -19,6 +29,7 @@ ExternalProject_Add(external_fribidi
       -Ddocs=false
       --default-library static
       --libdir lib
+      ${CROSS_COMPILE_COMMANDS}
       ${BUILD_DIR}/fribidi/src/external_fribidi-build
       ${BUILD_DIR}/fribidi/src/external_fribidi
 
@@ -27,12 +38,15 @@ ExternalProject_Add(external_fribidi
   INSTALL_DIR ${LIBDIR}/fribidi
 )
 
-add_dependencies(
-  external_fribidi
-  external_python
-  # Needed for `MESON`.
-  external_python_site_packages
-)
+# NOTE: For Apple-crossplatform builds, we will rely on host python being built for cross-compilation
+if(NOT WITH_APPLE_CROSSPLATFORM)
+  add_dependencies(
+    external_fribidi
+    external_python
+    # Needed for `MESON`.
+    external_python_site_packages
+  )
+endif()
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)

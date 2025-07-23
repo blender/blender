@@ -14,6 +14,18 @@ set(INC
 set(INC_SYS
 )
 
+if(WITH_APPLE_CROSSPLATFORM)
+  set(FSMENU_SRC
+    fsmenu_system.mm
+  )
+else()
+  set(FSMENU_SRC
+    fsmenu_system.cc
+  )
+endif()
+
+
+
 set(SRC
   asset_catalog_tree_view.cc
   file_context.cc
@@ -28,7 +40,7 @@ set(SRC
   filesel.cc
   folder_history.cc
   fsmenu.cc
-  fsmenu_system.cc
+  ${FSMENU_SRC}
   space_file.cc
 
   file_indexer.hh

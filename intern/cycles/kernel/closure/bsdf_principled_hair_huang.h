@@ -23,10 +23,10 @@ struct HuangHairExtra {
   float R, TT, TRT;
 
   /* Local coordinate system. X is stored as `bsdf->N`. */
-  float3 Y, Z;
+  packed_float3 Y, Z;
 
   /* Incident direction in local coordinate system. */
-  float3 wi;
+  packed_float3 wi;
 
   /* Projected radius from the view direction. */
   float radius;

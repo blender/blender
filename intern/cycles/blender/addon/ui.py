@@ -2220,10 +2220,10 @@ class CYCLES_RENDER_PT_debug(CyclesDebugButtonsPanel, Panel):
         col.prop(cscene, "debug_bvh_layout", text="BVH")
 
         import platform
-        is_macos = platform.system() == 'Darwin'
+        is_apple = ((platform.system() == 'Darwin') or (platform.system() == 'iOS') or (platform.system() == 'iPadOS'))
         col.separator()
 
-        if is_macos:
+        if is_apple:
             col = layout.column(heading="Metal")
             col.prop(cscene, "debug_use_metal_adaptive_compile")
         else:

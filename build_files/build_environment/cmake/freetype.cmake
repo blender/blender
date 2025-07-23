@@ -16,6 +16,14 @@ set(FREETYPE_EXTRA_ARGS
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include
 )
 
+if(WITH_APPLE_CROSSPLATFORM)
+  set(FREETYPE_EXTRA_ARGS
+    ${FREETYPE_EXTRA_ARGS}
+    -DBROTLIDEC_INCLUDE_DIRS=${LIBDIR}/brotli/include
+    -DBROTLIDEC_LIBRARIES=${LIBDIR}/brotli/lib
+  )
+endif()
+
 ExternalProject_Add(external_freetype
   URL file://${PACKAGE_DIR}/${FREETYPE_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -29,6 +37,15 @@ ExternalProject_Add(external_freetype
 
   INSTALL_DIR ${LIBDIR}/freetype
 )
+
+if(WITH_APPLE_CROSSPLATFORM)
+  # Library name alias. 
+  ExternalProject_Add_Step(external_freetype after_install
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/freetype/lib/libfreetype2st.a ${LIBDIR}/freetype/lib/libfreetype.a
+
+    DEPENDEES install
+  )
+endif()
 
 add_dependencies(
   external_freetype

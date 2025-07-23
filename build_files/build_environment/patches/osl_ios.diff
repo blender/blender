@@ -1,0 +1,192 @@
+diff --git a/src/cmake/externalpackages.cmake b/src/cmake/externalpackages.cmake
+index a7e098b..dad11d0 100644
+--- a/src/cmake/externalpackages.cmake
++++ b/src/cmake/externalpackages.cmake
+@@ -53,16 +53,16 @@
+ 
+ checked_find_package (pugixml REQUIRED
+                       VERSION_MIN 1.8)
+ 
+ 
+ # LLVM library setup
+-checked_find_package (LLVM REQUIRED
+-                      VERSION_MIN 11.0
+-                      VERSION_MAX 19.9
+-                      PRINT LLVM_SYSTEM_LIBRARIES CLANG_LIBRARIES)
++#checked_find_package (LLVM REQUIRED
++#                      VERSION_MIN 11.0
++#                      VERSION_MAX 19.9
++#                      PRINT LLVM_SYSTEM_LIBRARIES CLANG_LIBRARIES)
+ # ensure include directory is added (in case of non-standard locations
+ include_directories (BEFORE SYSTEM "${LLVM_INCLUDES}")
+ link_directories ("${LLVM_LIB_DIR}")
+ # Extract and concatenate major & minor, remove wayward patches,
+ # dots, and "svn" or other suffixes.
+ string (REGEX REPLACE "([0-9]+)\\.([0-9]+).*" "\\1\\2" OSL_LLVM_VERSION ${LLVM_VERSION})
+
+
+diff --git a/src/liboslcomp/oslcomp.cpp b/src/liboslcomp/oslcomp.cpp
+index 8c2e77b..211b8a7 100644
+--- a/src/liboslcomp/oslcomp.cpp
++++ b/src/liboslcomp/oslcomp.cpp
+@@ -21,6 +21,13 @@
+ #if !defined(__STDC_CONSTANT_MACROS)
+ #    define __STDC_CONSTANT_MACROS 1
+ #endif
++
++// clang uses CALLBACK in its templates which causes issues if it is already defined
++#ifdef _WIN32 && defined(CALLBACK)
++#    undef CALLBACK
++#endif
++
++//
+ #include <clang/Basic/TargetInfo.h>
+ #include <clang/Frontend/CompilerInstance.h>
+ #include <clang/Frontend/TextDiagnosticPrinter.h>
+
+--- a/src/cmake/compiler.cmake	2025-04-29 14:42:31.000000000 
++++ b/src/cmake/compiler.cmake	2025-04-29 15:21:45.000000000 
+@@ -611,9 +611,10 @@
+ #    install_targets (target1 [target2 ...])
+ #
+ macro (install_targets)
+     install (TARGETS ${ARGN}
+              EXPORT ${PROJ_NAME}_EXPORTED_TARGETS
+              RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT user
++	      BUNDLE DESTINATION  "${CMAKE_INSTALL_BINDIR}" COMPONENT user
+              LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT user
+              ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT developer)
+ endmacro()
+
+--- a/src/cmake/pythonutils.cmake	2025-04-29 14:42:31.000000000 
++++ b/src/cmake/pythonutils.cmake	2025-04-29 15:25:45.000000000 
+@@ -106,12 +106,13 @@
+             LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/python/site-packages
+             ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/python/site-packages
+             )
+ 
+     install (TARGETS ${target_name}
+              RUNTIME DESTINATION ${PYTHON_SITE_DIR}/${lib_MODULE} COMPONENT user
+-             LIBRARY DESTINATION ${PYTHON_SITE_DIR}/${lib_MODULE} COMPONENT user)
++             BUNDLE DESTINATION  ${PYTHON_SITE_DIR}/${lib_MODULE} COMPONENT user
++             LIBRARY DESTINATION ${PYTHON_SITE_DIR}/${lib_MODULE} COMPONENT user)
+ 
+     install(FILES __init__.py DESTINATION ${PYTHON_SITE_DIR}/${lib_MODULE})
+ 
+ endmacro ()
+
+--- a/src/liboslcomp/CMakeLists.txt	2025-04-29 15:37:54.000000000 
++++ b/src/liboslcomp/CMakeLists.txt	2025-04-30 15:35:55.000000000 
+@@ -20,13 +20,13 @@
+ target_include_directories(${local_lib}
+     PUBLIC
+         ${CMAKE_INSTALL_FULL_INCLUDEDIR}
+     )
+ target_link_libraries (${local_lib}
+     PUBLIC
+-        OpenImageIO::OpenImageIO
++        ${OpenImageIO_LIBRARIES}
+         $<TARGET_NAME_IF_EXISTS:Imath::Imath>
+         $<TARGET_NAME_IF_EXISTS:Imath::Half>
+     PRIVATE
+         ${CMAKE_DL_LIBS}
+         ${CLANG_LIBRARIES} ${LLVM_LIBRARIES} ${LLVM_LDFLAGS}
+         ${LLVM_SYSTEM_LIBRARIES})
+ 
+--- a/src/liboslexec/CMakeLists.txt	2025-04-29 15:37:54.000000000 
++++ b/src/liboslexec/CMakeLists.txt	2025-04-30 15:38:43.000000000 
+@@ -518,13 +518,13 @@
+             ${IMATH_INCLUDES}
+         PRIVATE
+             ${ROBINMAP_INCLUDES}
+         )
+     target_link_libraries (${batched_target_lib}
+         PUBLIC
+-            OpenImageIO::OpenImageIO
++            ${OpenImageIO_LIBRARIES}
+         )
+     if (partio_FOUND)
+         target_link_libraries(${batched_target_lib} PRIVATE partio::partio ZLIB::ZLIB)
+         target_compile_definitions (${batched_target_lib} PRIVATE USE_PARTIO=1)
+     endif ()
+         
+@@ -566,13 +566,13 @@
+     target_link_libraries (${local_lib} PRIVATE "Version.lib")
+ endif()
+ 
+ target_link_libraries (${local_lib}
+     PUBLIC
+         oslquery oslnoise
+-        OpenImageIO::OpenImageIO
++        ${OpenImageIO_LIBRARIES}
+         $<TARGET_NAME_IF_EXISTS:Imath::Imath>
+         $<TARGET_NAME_IF_EXISTS:Imath::Half>
+     PRIVATE
+         pugixml::pugixml
+         ${CMAKE_DL_LIBS}
+         ${LLVM_LIBRARIES} ${LLVM_LDFLAGS} ${LLVM_SYSTEM_LIBRARIES}
+@@ -608,15 +608,15 @@
+     add_executable (accum_test accum_test.cpp)
+     target_link_libraries (accum_test PRIVATE oslexec ${CMAKE_DL_LIBS})
+     set_target_properties (accum_test PROPERTIES FOLDER "Unit Tests")
+     add_test (unit_accum ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/accum_test)
+ 
+     add_executable (dual_test dual_test.cpp)
+-    target_link_libraries (dual_test PRIVATE OpenImageIO::OpenImageIO Imath::Imath ${CMAKE_DL_LIBS})
++    target_link_libraries (dual_test PRIVATE ${OpenImageIO_LIBRARIES} Imath::Imath ${CMAKE_DL_LIBS})
+     set_target_properties (dual_test PROPERTIES FOLDER "Unit Tests")
+     add_test (unit_dual ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dual_test)
+ 
+     add_executable (llvmutil_test llvmutil_test.cpp)
+     target_link_libraries (llvmutil_test PRIVATE oslexec ${CMAKE_DL_LIBS})
+     set_target_properties (llvmutil_test PROPERTIES FOLDER "Unit Tests")
+     add_test (unit_llvmutil ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/llvmutil_test)
+ endif ()
+
+--- a/src/liboslnoise/CMakeLists.txt	2025-04-29 15:37:54.000000000 
++++ b/src/liboslnoise/CMakeLists.txt	2025-04-30 15:39:31.000000000 
+@@ -12,13 +12,13 @@
+     PUBLIC
+         ${CMAKE_INSTALL_FULL_INCLUDEDIR}
+     PRIVATE
+         ../liboslexec)
+ target_link_libraries (${local_lib}
+     PUBLIC
+-        OpenImageIO::OpenImageIO
++        ${OpenImageIO_LIBRARIES}
+         $<TARGET_NAME_IF_EXISTS:Imath::Imath>
+         $<TARGET_NAME_IF_EXISTS:Imath::Half>
+     PRIVATE
+         ${CMAKE_DL_LIBS}
+     )
+
+ 
+--- a/src/liboslexec/shadingsys.cpp	2025-04-29 15:37:54.000000000 
++++ b/src/liboslexec/shadingsys.cpp	2025-04-30 16:08:59.000000000 
+@@ -4282,22 +4282,24 @@
+     if (extension == ".tar" || extension == ".tar.gz" || extension == ".tgz") {
+         std::string z   = Strutil::ends_with(extension, "gz") ? "-z" : "";
+         std::string cmd = fmtformat("tar -c {} -C \"{}\" -f \"{}\" {}", z,
+                                     Strutil::escape_chars(tmpdir),
+                                     full_filename, filename_list);
+         // std::cout << "Command =\n" << cmd << "\n";
+-        if (system(cmd.c_str()) != 0) {
++        //if (system(cmd.c_str()) != 0) 
++		{
+             error("archive_shadergroup: executing tar command failed");
+             ok = false;
+         }
+ 
+     } else if (extension == ".zip") {
+         std::string cmd = fmtformat("zip -q \"{}\" {}", full_filename,
+                                     filename_list);
+         // std::cout << "Command =\n" << cmd << "\n";
+-        if (system(cmd.c_str()) != 0) {
++        //if (system(cmd.c_str()) != 0) 
++		{
+             error("archive_shadergroup: executing zip command failed");
+             ok = false;
+         }
+     } else {
+         error("archive_shadergroup: no archiving/compressing command");
+         ok = false;

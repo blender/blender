@@ -16,7 +16,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device void background_setup(ccl_private ShaderData *sd, const Spectrum weight)
 {
   if (sd->flag & SD_EMISSION) {
-    sd->closure_emission_background += weight;
+    sd->closure_emission_background = Spectrum(sd->closure_emission_background) + weight;
   }
   else {
     sd->flag |= SD_EMISSION;
@@ -29,7 +29,7 @@ ccl_device void background_setup(ccl_private ShaderData *sd, const Spectrum weig
 ccl_device void emission_setup(ccl_private ShaderData *sd, const Spectrum weight)
 {
   if (sd->flag & SD_EMISSION) {
-    sd->closure_emission_background += weight;
+    sd->closure_emission_background = Spectrum(sd->closure_emission_background) + weight;
   }
   else {
     sd->flag |= SD_EMISSION;

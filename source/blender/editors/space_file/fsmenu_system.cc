@@ -43,7 +43,11 @@
 #include "UI_resources.hh"
 
 #ifdef __APPLE__
-#  include <Carbon/Carbon.h>
+#  ifdef WITH_APPLE_CROSSPLATFORM
+#    include <Foundation/Foundation.h>
+#  else
+#    include <Carbon/Carbon.h>
+#  endif
 #endif /* __APPLE__ */
 
 #ifdef __linux__

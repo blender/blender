@@ -1,0 +1,47 @@
+--- a/src/OpenColorIO/SystemMonitor_macos.cpp	2025-04-23 21:07:01
++++ b/src/OpenColorIO/SystemMonitor_macos.cpp	2025-04-24 13:16:53
+@@ -11,7 +11,7 @@
+ 
+ #include <ColorSync/ColorSync.h>
+ #include <CoreGraphics/CoreGraphics.h>
+-#include <IOKit/graphics/IOGraphicsLib.h>
++//#include <IOKit/graphics/IOGraphicsLib.h>
+ 
+ #include "Logging.h"
+ 
+@@ -50,6 +50,7 @@
+     bool m_released = false;
+ };
+ 
++#if 0
+ std::string GetICCProfilePath(CGDirectDisplayID dispId)
+ {
+     CFUUIDRef displayUUID = CGDisplayCreateUUIDFromDisplayID(dispId);
+@@ -118,6 +119,7 @@
+ 
+     return result ? std::string(path) : throw Exception(ErrorMsg);
+ }
++#endif
+ 
+ // Some references for 'Quartz Display Services' part of the 'Core Graphics' framework:
+ //  * https://developer.apple.com/library/archive/documentation/GraphicsImaging/Conceptual/QuartzDisplayServicesConceptual/Introduction/Introduction.html#//apple_ref/doc/uid/TP40004245-SW1 
+@@ -125,6 +127,7 @@
+ 
+ void SystemMonitorsImpl::getAllMonitors()
+ {
++#if 0
+     m_monitors.clear();
+ 
+     // TODO: Needs to have all displays with a status to indicate the active ones?
+@@ -220,6 +223,11 @@
+             LogDebug(oss.str());
+         }
+     }
++#else
++  std::ostringstream oss;
++  oss << "Failed to access ICC profile for the monitor - Unsupported on iOS";
++  LogDebug(oss.str());
++#endif
+ }
+ 
+ } // namespace OCIO_NAMESPACE

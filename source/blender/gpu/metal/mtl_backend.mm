@@ -28,10 +28,15 @@
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
 
-#include <Cocoa/Cocoa.h>
+#ifdef WITH_APPLE_CROSSPLATFORM
+#  include <Foundation/Foundation.h>
+#  include <sys/sysctl.h>
+#else
+#  include <Cocoa/Cocoa.h>
+#endif
+
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
-#include <sys/sysctl.h>
 
 namespace blender::gpu {
 
@@ -368,6 +373,10 @@ static int get_num_efficiency_cpu_cores(id<MTLDevice> device)
 
 bool MTLBackend::metal_is_supported()
 {
+#if MTL_BACKEND_ALWAYS_SUPPORTED
+  return true;
+#endif
+
   /* Device compatibility information using Metal Feature-set tables.
    * See: https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf */
 
@@ -387,6 +396,7 @@ bool MTLBackend::metal_is_supported()
 
   id<MTLDevice> device = MTLCreateSystemDefaultDevice();
 
+#if MTL_BACKEND_LOW_POWER_GPU_SUPPORT
   /* Debug: Enable low power GPU with Environment Var: METAL_FORCE_INTEL. */
   static const char *forceIntelStr = getenv("METAL_FORCE_INTEL");
   bool forceIntel = forceIntelStr ? (atoi(forceIntelStr) != 0) : false;
@@ -399,6 +409,7 @@ bool MTLBackend::metal_is_supported()
       }
     }
   }
+#endif
 
   /* Metal Viewport requires argument buffer tier-2 support and Barycentric Coordinates.
    * These are available on most hardware configurations supporting Metal 2.2. */
@@ -525,10 +536,15 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
 
   GCaps.geometry_shader_support = false;
 
+#ifdef WITH_APPLE_CROSSPLATFORM
+  /* IOS_FIXME: Limit parallel compilation for now. */
+  GCaps.max_parallel_compilations = 2;
+#else
   /* Compile shaders on performance cores but leave one free so UI is still responsive.
    * Also respect command line option to reduce number of threads. */
   GCaps.max_parallel_compilations = std::min(BLI_system_thread_count(),
                                              MTLBackend::capabilities.num_performance_cores - 1);
+#endif
 
   /* Maximum buffer bindings: 31. Consider required slot for uniforms/UBOs/Vertex attributes.
    * Can use argument buffers if a higher limit is required. */

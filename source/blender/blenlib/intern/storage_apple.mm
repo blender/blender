@@ -178,7 +178,11 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
   /* Can't just copy to the *dir pointer, as [path getCString gets grumpy. */
   char path_expanded[PATH_MAX];
   @autoreleasepool {
+#ifdef WITH_APPLE_CROSSPLATFORM
+    NSString *path = [[NSBundle mainBundle] bundlePath];
+#else
     NSString *path = [[NSFileManager defaultManager] currentDirectoryPath];
+#endif
     const size_t length = maxncpy > PATH_MAX ? PATH_MAX : maxncpy;
     [path getCString:path_expanded maxLength:length encoding:NSUTF8StringEncoding];
     BLI_strncpy(dir, path_expanded, maxncpy);

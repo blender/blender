@@ -1,0 +1,169 @@
+diff -Naur ll.org/llvm/lib/Support/Unix/Path.inc ll/llvm/lib/Support/Unix/Path.inc
+--- ll.org/llvm/lib/Support/Unix/Path.inc	2023-08-01 06:41:14.360891600 -0600
++++ ll/llvm/lib/Support/Unix/Path.inc	2023-08-01 07:20:02.063130200 -0600
+@@ -1476,7 +1476,9 @@
+ std::error_code copy_file(const Twine &From, const Twine &To) {
+   std::string FromS = From.str();
+   std::string ToS = To.str();
+-#if __has_builtin(__builtin_available)
++  // BLENDER: This optimization makes LLVM not build on older Xcode versions,
++  // just disable until everyone has new enough Xcode versions.
++#if 0
+   if (__builtin_available(macos 10.12, *)) {
+     // Optimistically try to use clonefile() and handle errors, rather than
+     // calling stat() to see if it'll work.
+
+--- a/llvm/cmake/modules/AddLLVM.cmake	2021-04-06 17:38:18
++++ b/llvm/cmake/modules/AddLLVM.cmake	2023-06-14 09:44:26
+@@ -291,7 +291,7 @@
+           set_property(TARGET ${target_name} APPEND_STRING PROPERTY
+                        LINK_FLAGS " -Wl,-z,discard-unused=sections")
+         endif()
+-      elseif(NOT MSVC AND NOT CMAKE_SYSTEM_NAME MATCHES "AIX|OS390")
++      elseif(NOT MSVC AND NOT CMAKE_SYSTEM_NAME MATCHES "AIX|OS390|iOS")
+         # TODO Revisit this later on z/OS.
+         set_property(TARGET ${target_name} APPEND_STRING PROPERTY
+                      LINK_FLAGS " -Wl,--gc-sections")
+@@ -878,7 +878,8 @@
+               ${export_to_llvmexports}
+               LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX} COMPONENT ${name}
+               ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX} COMPONENT ${name}
+-              RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT ${name})
++              RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT ${name}
++              BUNDLE DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT ${name})
+ 
+       if (NOT LLVM_ENABLE_IDE)
+         add_llvm_install_targets(install-${name}
+@@ -1355,6 +1356,8 @@
+         install(TARGETS ${name}
+                 ${export_to_llvmexports}
+                 RUNTIME DESTINATION ${${project}_TOOLS_INSTALL_DIR}
++                COMPONENT ${name}
++                BUNDLE DESTINATION ${${project}_TOOLS_INSTALL_DIR}
+                 COMPONENT ${name})
+ 
+         if (NOT LLVM_ENABLE_IDE)
+@@ -1382,7 +1385,9 @@
+   endif()
+   add_llvm_executable(${name} ${ARGN})
+   if( LLVM_BUILD_EXAMPLES )
+-    install(TARGETS ${name} RUNTIME DESTINATION "${LLVM_EXAMPLES_INSTALL_DIR}")
++    install(TARGETS ${name} 
++            RUNTIME DESTINATION "${LLVM_EXAMPLES_INSTALL_DIR}"
++            BUNDLE DESTINATION "${LLVM_EXAMPLES_INSTALL_DIR}")
+   endif()
+   set_target_properties(${name} PROPERTIES FOLDER "Examples")
+ endmacro(add_llvm_example name)
+@@ -1413,6 +1418,8 @@
+       install(TARGETS ${name}
+               ${export_to_llvmexports}
+               RUNTIME DESTINATION ${LLVM_UTILS_INSTALL_DIR}
++              COMPONENT ${name}
++              BUNDLE DESTINATION ${LLVM_UTILS_INSTALL_DIR}
+               COMPONENT ${name})
+ 
+       if (NOT LLVM_ENABLE_IDE)
+
+--- a/llvm/lib/Transforms/Hello/CMakeLists.txt	2021-04-06 17:38:18
++++ b/llvm/lib/Transforms/Hello/CMakeLists.txt	2023-06-14 10:24:15
+@@ -2,7 +2,8 @@
+ # from the hello plugin.
+ if( NOT LLVM_REQUIRES_RTTI )
+   if( NOT LLVM_REQUIRES_EH )
+-    set(LLVM_EXPORTED_SYMBOL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Hello.exports)
++    # Disable exports file as no exports are specified causing compilation failure on IOS
++    #set(LLVM_EXPORTED_SYMBOL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Hello.exports)
+   endif()
+ endif()
+
+--- a/llvm/cmake/modules/HandleLLVMOptions.cmake	2023-06-16 15:45:00
++++ b/llvm/cmake/modules/HandleLLVMOptions.cmake	2023-06-16 15:33:07
+@@ -236,7 +236,7 @@
+ 
+ # Pass -Wl,-z,defs. This makes sure all symbols are defined. Otherwise a DSO
+ # build might work on ELF but fail on MachO/COFF.
+-if(NOT (CMAKE_SYSTEM_NAME MATCHES "Darwin|FreeBSD|OpenBSD|DragonFly|AIX|OS390" OR
++if(NOT (CMAKE_SYSTEM_NAME MATCHES "Darwin|FreeBSD|OpenBSD|DragonFly|AIX|OS390|iOS" OR
+         WIN32 OR CYGWIN) AND
+    NOT LLVM_USE_SANITIZER)
+   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs")
+
+--- a/clang/cmake/modules/AddClang.cmake	2023-06-14 17:40:52
++++ b/clang/cmake/modules/AddClang.cmake	2023-06-16 15:23:56
+@@ -121,7 +121,8 @@
+           ${export_to_clangtargets}
+           LIBRARY DESTINATION lib${LLVM_LIBDIR_SUFFIX}
+           ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX}
+-          RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
++          RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
++          BUNDLE DESTINATION "${CMAKE_INSTALL_BINDIR}")
+ 
+         if (NOT LLVM_ENABLE_IDE)
+           add_llvm_install_targets(install-${lib}
+@@ -170,6 +171,8 @@
+       install(TARGETS ${name}
+         ${export_to_clangtargets}
+         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
++        COMPONENT ${name}
++        BUNDLE DESTINATION "${CMAKE_INSTALL_BINDIR}"
+         COMPONENT ${name})
+ 
+       if(NOT LLVM_ENABLE_IDE)
+--- a/clang-tools-extra/modularize/CMakeLists.txt	2023-06-14 17:40:52
++++ b/clang-tools-extra/modularize/CMakeLists.txt	2023-06-16 15:24:35
+@@ -25,4 +25,6 @@
+ 
+ install(TARGETS modularize
+         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
++        COMPONENT clang-extras
++        BUNDLE DESTINATION "${CMAKE_INSTALL_BINDIR}"
+         COMPONENT clang-extras)
+--- a/llvm/test/CMakeLists.txt	2023-06-16 20:24:48
++++ b/llvm/test/CMakeLists.txt	2023-06-16 20:24:48
+@@ -47,7 +47,7 @@
+ # Set the depends list as a variable so that it can grow conditionally.
+ # NOTE: Sync the substitutions in test/lit.cfg when adding to this list.
+ set(LLVM_TEST_DEPENDS
+-          BugpointPasses
++          #BugpointPasses
+           FileCheck
+           LLVMHello
+           UnitTests
+
+--- a/llvm/cmake/modules/TableGen.cmake	2023-06-16 21:25:22
++++ b/llvm/cmake/modules/TableGen.cmake	2023-06-16 21:25:22
+@@ -202,7 +202,8 @@
+     install(TARGETS ${target}
+             ${export_arg}
+             COMPONENT ${target}
+-            RUNTIME DESTINATION "${ADD_TABLEGEN_DESTINATION}")
++            RUNTIME DESTINATION "${ADD_TABLEGEN_DESTINATION}"
++            BUNDLE DESTINATION "${ADD_TABLEGEN_DESTINATION}")
+     if(NOT LLVM_ENABLE_IDE)
+       add_llvm_install_targets("install-${target}"
+                                DEPENDS ${target}
+--- a/clang/tools/c-index-test/CMakeLists.txt	2023-06-16 21:25:19
++++ b/clang/tools/c-index-test/CMakeLists.txt	2023-06-16 21:25:19
+@@ -59,6 +59,7 @@
+ 
+   install(TARGETS c-index-test
+     RUNTIME DESTINATION "${INSTALL_DESTINATION}"
++    BUNDLE DESTINATION "${INSTALL_DESTINATION}"
+     COMPONENT c-index-test)
+ 
+   if (NOT LLVM_ENABLE_IDE)
+
+--- a/llvm/tools/bugpoint-passes/CMakeLists.txt	2023-06-17 00:31:37
++++ b/llvm/tools/bugpoint-passes/CMakeLists.txt	2023-06-17 00:31:37
+@@ -13,11 +13,3 @@
+ if(WIN32 OR CYGWIN)
+   set(LLVM_LINK_COMPONENTS Core Support)
+ endif()
+-
+-add_llvm_library( BugpointPasses MODULE BUILDTREE_ONLY
+-  TestPasses.cpp
+-
+-  DEPENDS
+-  intrinsics_gen
+-  bugpoint
+-  )

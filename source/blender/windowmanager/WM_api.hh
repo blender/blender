@@ -142,6 +142,8 @@ void WM_exit_ex(bContext *C, bool do_python_exit, bool do_user_exit_actions);
 void WM_exit(bContext *C, int exit_code) ATTR_NORETURN;
 
 void WM_main(bContext *C) ATTR_NORETURN;
+void WM_main_loop_body(bContext *C);
+void WM_main_do_refresh(bContext *C);
 
 /**
  * Show the splash screen as needed on startup.

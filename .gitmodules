@@ -23,3 +23,8 @@
 	path = lib/windows_arm64
 	url = https://projects.blender.org/blender/lib-windows_arm64.git
 	branch = main
+[submodule "lib/ios_arm64"]
+	update = none
+	path = lib/ios_arm64
+	url = https://projects.blender.org/blender/lib-ios_arm64.git
+	branch = main

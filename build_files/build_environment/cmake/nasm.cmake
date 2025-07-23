@@ -1,6 +1,12 @@
 # SPDX-FileCopyrightText: 2002-2022 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
+if(WITH_APPLE_CROSSPLATFORM)
+  # Building for non-local architecture.
+  set(CROSS_COMPILE_FLAGS "--host=arm")
+else()
+  set(CROSS_COMPILE_FLAGS)
+endif()
 
 ExternalProject_Add(external_nasm
   URL file://${PACKAGE_DIR}/${NASM_FILE}
@@ -15,7 +21,7 @@ ExternalProject_Add(external_nasm
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/nasm/src/external_nasm/ &&
     ./autogen.sh &&
-    ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/nasm
+    ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/nasm  ${CROSS_COMPILE_FLAGS}
 
   BUILD_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/nasm/src/external_nasm/ &&

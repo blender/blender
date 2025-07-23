@@ -50,7 +50,7 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
   float sum_nonspecular_weight = 0.0f;
 
   for (int i = 0; i < sd->num_closure; i++) {
-    const ccl_private ShaderClosure *sc = &sd->closure[i];
+    ccl_private const ShaderClosure *sc = &sd->closure[i];
 
     if (!CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
       continue;
@@ -58,7 +58,8 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
 
     /* All closures contribute to the normal feature, but only diffuse-like ones to the albedo. */
     /* If far-field hair, use fiber tangent as feature instead of normal. */
-    normal += (sc->type == CLOSURE_BSDF_HAIR_HUANG_ID ? safe_normalize(sd->dPdu) : sc->N) *
+    normal += (sc->type == CLOSURE_BSDF_HAIR_HUANG_ID ? safe_normalize(Spectrum(sd->dPdu)) :
+                                                        Spectrum(sc->N)) *
               sc->sample_weight;
     sum_weight += sc->sample_weight;
 

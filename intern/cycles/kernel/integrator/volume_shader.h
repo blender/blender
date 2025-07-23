@@ -44,7 +44,7 @@ ccl_device_inline void volume_shader_merge_closures(ccl_private ShaderData *sd)
         continue;
       }
 
-      sci->weight += scj->weight;
+      sci->weight = sci->weight + scj->weight;
       sci->sample_weight += scj->sample_weight;
 
       const int size = sd->num_closure - (j + 1);

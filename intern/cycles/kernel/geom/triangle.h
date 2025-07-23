@@ -190,6 +190,25 @@ ccl_device_inline void triangle_dPdudv(KernelGlobals kg,
   *dPdv = (p2 - p0);
 }
 
+/* Packed float3 version */
+/* Ray differentials on triangle */
+
+ccl_device_inline void triangle_dPdudv(KernelGlobals kg,
+                                       const int prim,
+                                       ccl_private packed_float3 *dPdu,
+                                       ccl_private packed_float3 *dPdv)
+{
+  /* fetch triangle vertex coordinates */
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  const float3 p0 = kernel_data_fetch(tri_verts, tri_vindex.x);
+  const float3 p1 = kernel_data_fetch(tri_verts, tri_vindex.y);
+  const float3 p2 = kernel_data_fetch(tri_verts, tri_vindex.z);
+
+  /* compute derivatives of P w.r.t. uv */
+  *dPdu = (p1 - p0);
+  *dPdv = (p2 - p0);
+}
+
 /* Partial derivative of f w.r.t. x, namely ∂f/∂x.
  * f is a function of barycentric coordinates u, v, given by
  *       f(u, v) = f1 * u + f2 * v + f0 * (1 - u - v),

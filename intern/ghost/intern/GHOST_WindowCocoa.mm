@@ -21,7 +21,12 @@
 #  include "GHOST_ContextVK.hh"
 #endif
 
-#import <Cocoa/Cocoa.h>
+#ifdef WITH_APPLE_CROSSPLATFORM
+#  include <Foundation/Foundation.h>
+#else
+#  include <Cocoa/Cocoa.h>
+#endif
+
 #import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>
 
