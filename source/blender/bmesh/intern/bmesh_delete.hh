@@ -10,6 +10,8 @@
 
 #include "bmesh_class.hh"
 
+#include "BLI_function_ref.hh"
+
 void BMO_mesh_delete_oflag_tagged(BMesh *bm, short oflag, char htype);
 void BM_mesh_delete_hflag_tagged(BMesh *bm, char hflag, char htype);
 
@@ -17,7 +19,11 @@ void BM_mesh_delete_hflag_tagged(BMesh *bm, char hflag, char htype);
  * \warning oflag applies to different types in some contexts,
  * not just the type being removed.
  */
-void BMO_mesh_delete_oflag_context(BMesh *bm, short oflag, int type);
+void BMO_mesh_delete_oflag_context(BMesh *bm,
+                                   short oflag,
+                                   int type,
+                                   blender::FunctionRef<void()> prepare_fn);
+
 /**
  * \warning oflag applies to different types in some contexts,
  * not just the type being removed.
