@@ -23,7 +23,7 @@
 /** Blender release cycle stage: alpha/beta/rc/release. */
 #define BLENDER_VERSION_CYCLE release
 /** Blender release type suffix. LTS or blank. */
-#define BLENDER_VERSION_SUFFIX
+#define BLENDER_VERSION_SUFFIX LTS
 
 /* Blender file format version. */
 #define BLENDER_FILE_VERSION BLENDER_VERSION
