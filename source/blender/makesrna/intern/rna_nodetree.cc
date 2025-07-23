@@ -7614,8 +7614,6 @@ static void def_cmp_vector_blur(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeBlurData", "storage");
-
   prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
   RNA_def_property_int_funcs(prop,
                              "rna_node_property_to_input_getter<int, node_input_samples>",
@@ -7626,7 +7624,7 @@ static void def_cmp_vector_blur(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "speed_min", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "minspeed");
+  RNA_def_property_int_sdna(prop, nullptr, "custom1");
   RNA_def_property_range(prop, 0, 1024);
   RNA_def_property_ui_text(prop,
                            "Min Speed",
@@ -7635,7 +7633,7 @@ static void def_cmp_vector_blur(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "speed_max", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "maxspeed");
+  RNA_def_property_int_sdna(prop, nullptr, "custom2");
   RNA_def_property_range(prop, 0, 1024);
   RNA_def_property_ui_text(prop, "Max Speed", "Maximum speed, or zero for none. (Deprecated.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
@@ -7652,7 +7650,7 @@ static void def_cmp_vector_blur(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_curved", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "curved", 1);
+  RNA_def_property_boolean_sdna(prop, nullptr, "custom2", 1);
   RNA_def_property_ui_text(
       prop,
       "Curved",
@@ -8822,8 +8820,6 @@ static void def_cmp_crop(BlenderRNA * /*brna*/, StructRNA *srna)
       prop, "Relative", "Use relative values to crop image. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  RNA_def_struct_sdna_from(srna, "NodeTwoXYs", "storage");
-
   prop = RNA_def_property(srna, "min_x", PROP_INT, PROP_NONE);
   RNA_def_property_int_funcs(prop,
                              "rna_node_property_to_input_getter<int, node_input_x>",
@@ -8861,28 +8857,28 @@ static void def_cmp_crop(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rel_min_x", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "fac_x1");
+  RNA_def_property_float_sdna(prop, nullptr, "custom3");
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(
       prop, "X1", "Left edge of the cropping rectangle. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rel_max_x", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "fac_x2");
+  RNA_def_property_float_sdna(prop, nullptr, "custom3");
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(
       prop, "X2", "Right edge of the cropping rectangle. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rel_min_y", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "fac_y1");
+  RNA_def_property_float_sdna(prop, nullptr, "custom3");
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(
       prop, "Y1", "Top edge of the cropping rectangle. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rel_max_y", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "fac_y2");
+  RNA_def_property_float_sdna(prop, nullptr, "custom3");
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(
       prop, "Y2", "Bottom edge of the cropping rectangle. (Deprecated: Unused.)");
