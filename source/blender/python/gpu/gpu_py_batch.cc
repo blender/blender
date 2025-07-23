@@ -417,7 +417,7 @@ static PyObject *pygpu_batch_draw_instanced(BPyGPUBatch *self, PyObject *args, P
       "O!" /* `program` */
       "|$" /* Optional keyword only arguments. */
       "i"  /* `instance_start` */
-      "i"  /* `instance_count' */
+      "i"  /* `instance_count` */
       ":GPUBatch.draw_instanced",
       _keywords,
       nullptr,
@@ -461,8 +461,8 @@ static PyObject *pygpu_batch_draw_range(BPyGPUBatch *self, PyObject *args, PyObj
       PY_ARG_PARSER_HEAD_COMPAT()
       "O!" /* `program` */
       "|$" /* Optional keyword only arguments. */
-      "i"  /* `elem_start' */
-      "i"  /* `elem_count' */
+      "i"  /* `elem_start` */
+      "i"  /* `elem_count` */
       ":GPUBatch.draw_range",
       _keywords,
       nullptr,

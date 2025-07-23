@@ -2273,7 +2273,7 @@ static StructRNA *bpy_prop_deferred_data_or_srna(PyObject *self,
     self = PyTuple_GET_ITEM(args, 0);
     args = PyTuple_New(0);
 
-    /* This will be #BPy_BoolProperty` or one of the functions that define a type. */
+    /* This will be #BPy_BoolProperty or one of the functions that define a type. */
     PyCFunctionWithKeywords method_fn = (PyCFunctionWithKeywords)(void *)method_def->ml_meth;
     *r_deferred_result = method_fn(self, args, kw);
     Py_DECREF(args);

@@ -3758,9 +3758,9 @@ std::string RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop)
   }
 
   std::string string_ret{};
-  /* Note: after `resize()` the underlying buffer is actually at least `length +
-   * 1` bytes long, because (since C++11) `std::string` guarantees a terminating
-   * null byte, but that is not considered part of the length. */
+  /* Note: after `resize()` the underlying buffer is actually at least
+   * `length + 1` bytes long, because (since C++11) `std::string` guarantees
+   * a terminating null byte, but that is not considered part of the length. */
   string_ret.resize(length);
 
   if (sprop->get) {

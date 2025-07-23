@@ -993,8 +993,8 @@ enum wmPopupPosition {
  * Communication/status data owned by the wmJob, and passed to the worker code when calling
  * `startjob` callback.
  *
- * 'OUTPUT' members mean that they are defined by the worker thread, and read/used by the wmJob
- * management code from the main thread. And vice-versa for `INPUT' members.
+ * `OUTPUT` members mean that they are defined by the worker thread, and read/used by the wmJob
+ * management code from the main thread. And vice-versa for `INPUT` members.
  *
  * \warning There is currently no thread-safety or synchronization when accessing these values.
  * This is fine as long as:

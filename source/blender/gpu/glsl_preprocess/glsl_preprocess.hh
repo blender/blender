@@ -850,7 +850,7 @@ class Preprocessor {
 
   std::string preprocessor_directive_mutation(const std::string &str)
   {
-    /* Remove unsupported directives.` */
+    /* Remove unsupported directives. */
     std::regex regex(R"(#\s*(?:include|pragma once|pragma runtime_generated)[^\n]*)");
     return std::regex_replace(str, regex, "");
   }

@@ -570,7 +570,7 @@ static void unpin_file_local_grease_pencil_brush_materials(const ReuseOldBMainDa
 }
 
 /**
- * Does a complete replacement of data in `new_bmain` by data from `old_bmain. Original new data
+ * Does a complete replacement of data in `new_bmain` by data from `old_bmain`. Original new data
  * are moved to the `old_bmain`, and will be freed together with it.
  *
  * WARNING: Currently only expects to work on local data, won't work properly if some of the IDs of

@@ -798,8 +798,8 @@ static PyMethodDef pygpu_framebuffer__tp_methods[] = {
 #  endif
 #endif
 
-/* Ideally type aliases would de-duplicate: `blender::gpu::Texture | dict[str, int |
- * blender::gpu::Texture]` in this doc-string. */
+/* Ideally type aliases would de-duplicate:
+ * `blender::gpu::Texture | dict[str, int | blender::gpu::Texture]` in this doc-string. */
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_framebuffer__tp_doc,

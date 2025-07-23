@@ -451,7 +451,7 @@ struct LibQueryUnusedIDsData {
  *
  * By default only consider IDs with `0` user count.
  * If `do_recursive` is set, it will check dependencies to detect all IDs that are not actually
- * used in current file, including 'archipelagos` (i.e. set of IDs referencing each other in
+ * used in current file, including `archipelagos` (i.e. set of IDs referencing each other in
  * loops, but without any 'external' valid usages.
  *
  * Valid usages here are defined as ref-counting usages, which are not towards embedded or
@@ -473,7 +473,7 @@ void BKE_lib_query_unused_ids_amounts(Main *bmain, LibQueryUnusedIDsData &parame
  *
  * By default only tag IDs with `0` user count.
  * If `do_recursive` is set, it will check dependencies to detect all IDs that are not actually
- * used in current file, including 'archipelagos` (i.e. set of IDs referencing each other in
+ * used in current file, including `archipelagos` (i.e. set of IDs referencing each other in
  * loops, but without any 'external' valid usages.
  *
  * Valid usages here are defined as ref-counting usages, which are not towards embedded or

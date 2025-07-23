@@ -2080,10 +2080,13 @@ struct FileListReadJob {
   Main *current_main = nullptr;
   FileList *filelist = nullptr;
 
-  /** The path currently being read, relative to the filelist root directory. Needed for recursive
-   * reading. The full file path is then composed like: `<filelist root>/<cur_relbase>/<file name>.
+  /**
+   * The path currently being read, relative to the filelist root directory.
+   * Needed for recursive reading. The full file path is then composed like:
+   * `<filelist root>/<cur_relbase>/<file name>`.
    * (whereby the file name may also be a library path within a .blend, e.g.
-   * `Materials/Material.001`). */
+   * `Materials/Material.001`).
+   */
   char cur_relbase[FILE_MAX_LIBEXTRA] = "";
 
   /** The current asset library to load. Usually the same as #FileList.asset_library, however

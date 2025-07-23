@@ -501,7 +501,7 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
       [&bm, &dupeop, &splitop]() {
         /* Now we make our outputs by copying the dupe output. */
 
-        /* NOTE: `boundary_map.out` can't use #BMO_slot_copy` because some of the "source"
+        /* NOTE: `boundary_map.out` can't use #BMO_slot_copy because some of the "source"
          * geometry has been removed. In this case the (source -> destination) map doesn't work.
          * In this case there is isn't an especially good option.
          * The geometry needs to be included so the boundary is accessible.

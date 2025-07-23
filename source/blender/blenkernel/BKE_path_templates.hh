@@ -19,14 +19,14 @@
  *
  * An example of what step 3 might look like:
  *
- * ```
+ * \code{.cc}
  * VariableMap template_variables;
  * BKE_add_template_variables_general(template_variables, owner_id);
  * BKE_add_template_variables_for_render_path(template_variables, scene);
  * BKE_add_template_variables_for_node(template_variables, owner_node);
  *
  * BKE_path_apply_template(filepath, FILE_MAX, template_variables);
- * ```
+ * \endcode
  *
  * This calls three functions to build the #VariableMap, one for each "kind" of
  * variable (see below).
@@ -359,7 +359,7 @@ blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
  * This mutates the path in-place. `path` must be a null-terminated string.
  *
  * The syntax for template expressions is `{variable_name}` or
- * {variable_name:format_spec}`. The format specification syntax currently only
+ * `{variable_name:format_spec}`. The format specification syntax currently only
  * applies to numerical values (integer or float), and uses hash symbols (#) to
  * indicate the number of digits to print the number with. It can be in any of
  * the following forms:
