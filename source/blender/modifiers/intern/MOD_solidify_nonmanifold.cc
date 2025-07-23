@@ -210,7 +210,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 #define MOD_SOLIDIFY_EMPTY_TAG uint(-1)
 
   /* Calculate only face normals. Copied because they are modified directly below. */
-  blender::Array<blender::float3> face_nors = mesh->face_normals();
+  blender::Array<blender::float3> face_nors = mesh->face_normals_true();
 
   blender::Array<NewFaceRef> face_sides_arr(faces_num * 2);
   bool *null_faces = (smd->nonmanifold_offset_mode ==
