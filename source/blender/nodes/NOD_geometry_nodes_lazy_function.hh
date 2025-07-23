@@ -630,23 +630,6 @@ std::string zone_wrapper_output_name(const ZoneBuildInfo &zone_info,
                                      const int lf_socket_i);
 
 /**
- * Performs implicit conversion between socket types. Returns false if the conversion is not
- * possible. In that case, r_to_value is left uninitialized.
- */
-[[nodiscard]] bool implicitly_convert_socket_value(const bke::bNodeSocketType &from_type,
-                                                   const void *from_value,
-                                                   const bke::bNodeSocketType &to_type,
-                                                   void *r_to_value);
-
-/**
- * Builds a lazy-function that can convert between socket types. Returns null if the conversion is
- * never possible.
- */
-const LazyFunction *build_implicit_conversion_lazy_function(const bke::bNodeSocketType &from_type,
-                                                            const bke::bNodeSocketType &to_type,
-                                                            ResourceScope &scope);
-
-/**
  * Report an error from a multi-function evaluation within a Geometry Nodes evaluation.
  *
  * NOTE: Currently, this the error is only actually reported under limited circumstances. It's

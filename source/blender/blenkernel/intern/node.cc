@@ -4883,6 +4883,25 @@ std::optional<eNodeSocketDatatype> geo_nodes_base_cpp_type_to_socket_type(const 
   if (type.is<nodes::ClosurePtr>()) {
     return SOCK_CLOSURE;
   }
+  if (type.is<GeometrySet>()) {
+    return SOCK_GEOMETRY;
+  }
+  if (type.is<Material *>()) {
+    return SOCK_MATERIAL;
+  }
+  if (type.is<Tex *>()) {
+    return SOCK_TEXTURE;
+  }
+  if (type.is<Object *>()) {
+    return SOCK_OBJECT;
+  }
+  if (type.is<Collection *>()) {
+    return SOCK_COLLECTION;
+  }
+  if (type.is<Image *>()) {
+    return SOCK_IMAGE;
+  }
+
   return std::nullopt;
 }
 

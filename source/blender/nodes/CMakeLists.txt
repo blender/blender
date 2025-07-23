@@ -240,6 +240,7 @@ if(WITH_GTESTS)
   )
   set(TEST_SRC
     intern/node_iterator_tests.cc
+    intern/geometry_nodes_bundle_tests.cc
   )
   set(TEST_LIB
     bf_nodes

@@ -15,6 +15,7 @@
 
 #include "NOD_geo_closure.hh"
 #include "NOD_geometry_nodes_closure.hh"
+#include "NOD_geometry_nodes_values.hh"
 
 #include "DEG_depsgraph_query.hh"
 
