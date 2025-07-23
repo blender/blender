@@ -46,17 +46,6 @@ static OffsetIndices<int> build_bmesh_face_offsets(const BMesh &bm, Array<int> &
   return offset_indices::accumulate_counts_to_offsets(r_offset_data);
 }
 
-static OffsetIndices<int> gather_or_reference_offsets(const OffsetIndices<int> faces,
-                                                      const IndexMask &selection,
-                                                      Array<int> &r_offset_data)
-{
-  if (selection.size() == faces.size()) {
-    return faces;
-  }
-  r_offset_data.reinitialize(selection.size() + 1);
-  return offset_indices::gather_selected_offsets(faces, selection, r_offset_data);
-}
-
 static gpu::IndexBufPtr extract_edituv_tris_bm(const MeshRenderData &mr, const bool sync_selection)
 {
   const Span<std::array<BMLoop *, 3>> looptris = mr.edit_bmesh->looptris;
@@ -68,11 +57,25 @@ static gpu::IndexBufPtr extract_edituv_tris_bm(const MeshRenderData &mr, const b
         return !skip_bm_face(*BM_face_at_index(&const_cast<BMesh &>(bm), face), sync_selection);
       });
 
+  if (selection.size() == bm.totface) {
+    GPUIndexBufBuilder builder;
+    GPU_indexbuf_init(&builder, GPU_PRIM_TRIS, looptris.size(), mr.corners_num);
+    MutableSpan<uint3> data = GPU_indexbuf_get_data(&builder).cast<uint3>();
+    threading::parallel_for(looptris.index_range(), 4096, [&](const IndexRange range) {
+      for (const int i : range) {
+        data[i] = uint3(BM_elem_index_get(looptris[i][0]),
+                        BM_elem_index_get(looptris[i][1]),
+                        BM_elem_index_get(looptris[i][2]));
+      }
+    });
+    return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, mr.corners_num, false));
+  }
+
   Array<int> face_offset_data;
   const OffsetIndices faces = build_bmesh_face_offsets(bm, face_offset_data);
 
-  Array<int> selected_face_offset_data;
-  const OffsetIndices selected_faces = gather_or_reference_offsets(
+  Array<int> selected_face_offset_data(selection.size() + 1);
+  const OffsetIndices selected_faces = offset_indices::gather_selected_offsets(
       faces, selection, selected_face_offset_data);
 
   const int tris_num = poly_to_tri_count(selected_faces.size(), selected_faces.total_size());
@@ -113,8 +116,17 @@ static gpu::IndexBufPtr extract_edituv_tris_mesh(const MeshRenderData &mr,
         return true;
       });
 
-  Array<int> selected_face_offset_data;
-  const OffsetIndices selected_faces = gather_or_reference_offsets(
+  if (selection.size() == faces.size()) {
+    return gpu::IndexBufPtr(GPU_indexbuf_build_from_memory(GPU_PRIM_TRIS,
+                                                           corner_tris.cast<uint32_t>().data(),
+                                                           corner_tris.size(),
+                                                           0,
+                                                           mr.corners_num,
+                                                           false));
+  }
+
+  Array<int> selected_face_offset_data(selection.size() + 1);
+  const OffsetIndices selected_faces = offset_indices::gather_selected_offsets(
       faces, selection, selected_face_offset_data);
 
   const int tris_num = poly_to_tri_count(selected_faces.size(), selected_faces.total_size());
