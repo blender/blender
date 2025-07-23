@@ -11,11 +11,11 @@
 /* API for reading and writing multi-layer EXR files. */
 
 /* XXX layer+pass name max 64? */
-/* This API also supports max 8 channels per pass now. easy to fix! */
 #define EXR_LAY_MAXNAME 64
 #define EXR_PASS_MAXNAME 64
 #define EXR_VIEW_MAXNAME 64
 #define EXR_TOT_MAXNAME 64
+/** Number of supported channels per pass (easy to change). */
 #define EXR_PASS_MAXCHAN 24
 
 struct StampData;

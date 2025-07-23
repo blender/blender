@@ -52,7 +52,7 @@ struct RenderPass {
   struct RenderPass *next, *prev;
   int channels;
   char name[/*EXR_PASS_MAXNAME*/ 64];
-  char chan_id[8]; /* amount defined in IMB_openexr.hh */
+  char chan_id[/*EXR_PASS_MAXCHAN*/ 24];
 
   /**
    * Image buffer which contains data of this pass.
