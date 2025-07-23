@@ -19,6 +19,7 @@
 #include "BLI_math_base.h"
 #include "BLI_mutex.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -427,7 +428,7 @@ static Collection *collection_add(Main *bmain,
   char name[MAX_ID_NAME - 2];
 
   if (name_custom) {
-    STRNCPY(name, name_custom);
+    STRNCPY_UTF8(name, name_custom);
   }
   else {
     BKE_collection_new_name_get(collection_parent, name);
@@ -801,25 +802,24 @@ Collection *BKE_collection_duplicate(Main *bmain,
 
 void BKE_collection_new_name_get(Collection *collection_parent, char r_name[MAX_ID_NAME - 2])
 {
-  char *name;
-
+  const size_t name_maxncpy = MAX_ID_NAME - 2;
   if (!collection_parent) {
-    name = BLI_strdup(DATA_("Collection"));
+    BLI_strncpy_utf8(r_name, DATA_("Collection"), name_maxncpy);
   }
   else if (collection_parent->flag & COLLECTION_IS_MASTER) {
-    name = BLI_sprintfN(DATA_("Collection %d"),
-                        BLI_listbase_count(&collection_parent->children) + 1);
+    BLI_snprintf_utf8(r_name,
+                      name_maxncpy,
+                      DATA_("Collection %d"),
+                      BLI_listbase_count(&collection_parent->children) + 1);
   }
   else {
     const int number = BLI_listbase_count(&collection_parent->children) + 1;
     const int digits = integer_digits_i(number);
-    const int max_len = sizeof(collection_parent->id.name) - 1 /* Null terminator. */ -
-                        (1 + digits) /* " %d" */ - 2 /* ID */;
-    name = BLI_sprintfN("%.*s %d", max_len, collection_parent->id.name + 2, number);
+    const size_t name_part_maxncpy = name_maxncpy - (1 + digits);
+    const size_t name_part_len = BLI_strncpy_utf8_rlen(
+        r_name, collection_parent->id.name + 2, name_part_maxncpy);
+    BLI_snprintf(r_name + name_part_len, name_maxncpy - name_part_len, " %d", number);
   }
-
-  BLI_strncpy(r_name, name, MAX_ID_NAME - 2);
-  MEM_freeN(name);
 }
 
 const char *BKE_collection_ui_name_get(Collection *collection)
