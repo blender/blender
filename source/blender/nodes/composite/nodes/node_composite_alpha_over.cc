@@ -69,8 +69,7 @@ static void node_rna(StructRNA *srna)
        ICON_NONE,
        "Conjoint Over",
        "The foreground goes over the background according to the alpha of the foreground but the "
-       "foreground completely covers the background if it is more opaque but not necessary "
-       "completely opaque"},
+       "foreground completely covers the background if it is more opaque"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
