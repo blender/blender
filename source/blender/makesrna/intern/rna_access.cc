@@ -1116,14 +1116,25 @@ void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type)
   srna->blender_type = blender_type;
 }
 
+char *RNA_struct_name_get_alloc_ex(
+    PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len, PropertyRNA **r_nameprop)
+{
+  if (ptr->data) {
+    if (PropertyRNA *nameprop = RNA_struct_name_property(ptr->type)) {
+      *r_nameprop = nameprop;
+      return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen, r_len);
+    }
+  }
+  return nullptr;
+}
+
 char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len)
 {
-  PropertyRNA *nameprop;
-
-  if (ptr->data && (nameprop = RNA_struct_name_property(ptr->type))) {
-    return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen, r_len);
+  if (ptr->data) {
+    if (PropertyRNA *nameprop = RNA_struct_name_property(ptr->type)) {
+      return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen, r_len);
+    }
   }
-
   return nullptr;
 }
 
