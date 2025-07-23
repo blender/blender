@@ -137,4 +137,14 @@ ccl_device_forceinline void svm_unpack_node_uchar4(const uint i,
   *w = ((i >> 24) & 0xFF);
 }
 
+ccl_device_forceinline float3 dPdx(const ccl_private ShaderData *sd)
+{
+  return sd->dPdu * sd->du.dx + sd->dPdv * sd->dv.dx;
+}
+
+ccl_device_forceinline float3 dPdy(const ccl_private ShaderData *sd)
+{
+  return sd->dPdu * sd->du.dy + sd->dPdv * sd->dv.dy;
+}
+
 CCL_NAMESPACE_END

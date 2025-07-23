@@ -226,14 +226,14 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
 ccl_device_forceinline float3 svm_node_bump_P_dx(const ccl_private ShaderData *sd,
                                                  const float bump_filter_width)
 {
-  return sd->P + differential_from_compact(sd->Ng, sd->dP).dx * bump_filter_width;
+  return sd->P + dPdx(sd) * bump_filter_width;
 }
 
 /* Position offsetted in y direction. */
 ccl_device_forceinline float3 svm_node_bump_P_dy(const ccl_private ShaderData *sd,
                                                  const float bump_filter_width)
 {
-  return sd->P + differential_from_compact(sd->Ng, sd->dP).dy * bump_filter_width;
+  return sd->P + dPdy(sd) * bump_filter_width;
 }
 
 /* Evaluate attributes at a position shifted in x direction. */
