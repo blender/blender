@@ -1296,6 +1296,12 @@ bool UI_context_copy_to_selected_list(bContext *C,
     *r_lb = lb;
     *r_path = path;
   }
+  else if (RNA_struct_is_a(ptr->type, &RNA_AssetMetaData)) {
+    /* Remap from #AssetRepresentation to #AssetMetaData. */
+    blender::Vector<PointerRNA> list_of_things = CTX_data_collection_get(C, "selected_assets");
+    CTX_data_collection_remap_property(list_of_things, "metadata");
+    *r_lb = list_of_things;
+  }
   else if (CTX_wm_space_outliner(C)) {
     const ID *id = ptr->owner_id;
     if (!(id && (GS(id->name) == ID_OB))) {
