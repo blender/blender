@@ -18,7 +18,10 @@ typedef struct View2D {
   rctf tot, cur;
   /** Vert - vertical scroll-bar region; hor - horizontal scroll-bar region. */
   rcti vert, hor;
-  /** Mask - region (in screen-space) within which 'cur' can be viewed. */
+  /**
+   * Mask - region (in screen-space) within which 'cur' can be viewed. Note that the coordinates
+   * are inclusive; to get pixel size you need to use #BLI_rcti_size + 1.
+   */
   rcti mask;
 
   /** Min/max sizes of 'cur' rect (only when keepzoom not set). */

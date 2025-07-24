@@ -495,7 +495,7 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
    */
   float pad_top, pad_bottom;
   SEQ_get_timeline_region_padding(C, &pad_top, &pad_bottom);
-  const float pixel_view_size_y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
+  const float pixel_view_size_y = BLI_rctf_size_y(&v2d->cur) / (BLI_rcti_size_y(&v2d->mask) + 1);
   /* Add padding to be able to scroll the view so that the collapsed redo panel doesn't occlude any
    * strips. */
   float bottom_channel_padding = UI_MARKER_MARGIN_Y * pixel_view_size_y;

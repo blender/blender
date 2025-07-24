@@ -127,8 +127,8 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuads
   ctx.viewport = WM_draw_region_get_viewport(ctx.region);
   ctx.framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(ctx.viewport);
 
-  ctx.pixely = BLI_rctf_size_y(&ctx.v2d->cur) / BLI_rcti_size_y(&ctx.v2d->mask);
-  ctx.pixelx = BLI_rctf_size_x(&ctx.v2d->cur) / BLI_rcti_size_x(&ctx.v2d->mask);
+  ctx.pixely = BLI_rctf_size_y(&ctx.v2d->cur) / (BLI_rcti_size_y(&ctx.v2d->mask) + 1);
+  ctx.pixelx = BLI_rctf_size_x(&ctx.v2d->cur) / (BLI_rcti_size_x(&ctx.v2d->mask) + 1);
 
   ctx.retiming_selection = seq::retiming_selection_get(ctx.ed);
 
