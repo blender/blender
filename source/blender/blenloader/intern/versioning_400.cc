@@ -23,6 +23,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
 
@@ -46,6 +47,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_texture.h"
 #include "BKE_tracking.h"

@@ -13,6 +13,8 @@ struct GSet;
 struct wmIMEData;
 #endif
 
+#include "BKE_report.hh"
+
 #include "DNA_windowmanager_types.h"
 
 namespace blender::bke {

@@ -16,6 +16,8 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "DNA_object_types.h"
+
 #include "ANIM_action.hh"
 #include "ANIM_pose.hh"
 

@@ -27,6 +27,8 @@
 
 #include "DNA_defaults.h"
 #include "DNA_mask_types.h"
+#include "DNA_movieclip_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_curve.hh"

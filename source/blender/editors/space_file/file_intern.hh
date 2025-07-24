@@ -9,7 +9,8 @@
 #pragma once
 
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
+
+#include "BKE_report.hh"
 
 #include "ED_fileselect.hh"
 

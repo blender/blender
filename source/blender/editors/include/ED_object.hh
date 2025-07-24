@@ -17,16 +17,16 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "DNA_key_types.h"
 #include "DNA_object_enums.h"
 #include "DNA_userdef_enums.h"
-#include "DNA_windowmanager_types.h"
 
 struct Base;
 struct Depsgraph;
 struct EnumPropertyItem;
 struct ID;
+struct KeyBlock;
 struct GpencilModifierData;
+struct ListBase;
 struct Main;
 struct ModifierData;
 struct Object;
@@ -43,6 +43,7 @@ struct uiLayout;
 struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
+enum eReportType : uint16_t;
 
 namespace blender::ed::object {
 

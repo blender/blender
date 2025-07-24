@@ -16,6 +16,7 @@
 #include "BKE_nla.hh"
 
 #include "DNA_constraint_types.h"
+#include "DNA_object_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"

@@ -13,6 +13,7 @@
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_particle.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph_query.hh"
 

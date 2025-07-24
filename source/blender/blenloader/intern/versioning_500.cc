@@ -42,6 +42,7 @@
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_pointcache.h"
+#include "BKE_report.hh"
 
 #include "BLT_translation.hh"
 
