@@ -845,7 +845,7 @@ ccl_device
       const AttributeDescriptor attr_descr_random = find_attribute(kg, sd, data_node2.y);
       float random = 0.0f;
       if (attr_descr_random.offset != ATTR_STD_NOT_FOUND) {
-        random = primitive_surface_attribute<float>(kg, sd, attr_descr_random, nullptr, nullptr);
+        random = primitive_surface_attribute<float>(kg, sd, attr_descr_random).val;
       }
       else {
         random = stack_load_float_default(stack, random_ofs, data_node3.y);
@@ -977,7 +977,7 @@ ccl_device
           if (bsdf->aspect_ratio != 1.0f) {
             /* Align ellipse major axis with the curve normal direction. */
             const AttributeDescriptor attr_descr_normal = find_attribute(kg, sd, shared_ofs2);
-            bsdf->N = curve_attribute<float3>(kg, sd, attr_descr_normal, nullptr, nullptr);
+            bsdf->N = curve_attribute<float3>(kg, sd, attr_descr_normal).val;
           }
 
           bsdf->roughness = roughness;

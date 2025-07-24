@@ -24,11 +24,7 @@ ccl_device_inline float3 stack_load_float3(const ccl_private float *stack, const
 ccl_device_inline void stack_store_float3(ccl_private float *stack, const uint a, const float3 f)
 {
   kernel_assert(a + 2 < SVM_STACK_SIZE);
-
-  ccl_private float *stack_a = stack + a;
-  stack_a[0] = f.x;
-  stack_a[1] = f.y;
-  stack_a[2] = f.z;
+  copy_v3_v3(stack + a, f);
 }
 
 ccl_device_inline float stack_load_float(const ccl_private float *stack, const uint a)

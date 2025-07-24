@@ -400,6 +400,7 @@ set(SRC_UTIL_HEADERS
   ../util/math_int3.h
   ../util/math_int4.h
   ../util/math_int8.h
+  ../util/math_dual.h
   ../util/projection.h
   ../util/projection_inverse.h
   ../util/rect.h
@@ -424,6 +425,7 @@ set(SRC_UTIL_HEADERS
   ../util/types_uint3.h
   ../util/types_uint4.h
   ../util/types_ushort4.h
+  ../util/types_dual.h
 )
 
 set(LIB

@@ -749,4 +749,11 @@ ccl_device_inline float2 map_to_sphere(const float3 co)
   return make_float2(u, v);
 }
 
+ccl_device_inline void copy_v3_v3(ccl_private float *r, const float3 val)
+{
+  r[0] = val.x;
+  r[1] = val.y;
+  r[2] = val.z;
+}
+
 CCL_NAMESPACE_END

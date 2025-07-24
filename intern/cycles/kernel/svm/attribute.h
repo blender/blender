@@ -122,7 +122,7 @@ ccl_device_inline void svm_surface_attr(KernelGlobals kg,
                                         ccl_private float *stack,
                                         const uint out_offset)
 {
-  T f = primitive_surface_attribute<T>(kg, sd, desc, nullptr, nullptr);
+  T f = primitive_surface_attribute<T>(kg, sd, desc).val;
   svm_node_attr_store(type, stack, out_offset, f);
 }
 
@@ -135,10 +135,9 @@ ccl_device_inline void svm_surface_attr_dx(KernelGlobals kg,
                                            ccl_private float *stack,
                                            const uint out_offset)
 {
-  T dfdx;
-  T f = primitive_surface_attribute<T>(kg, sd, desc, &dfdx, nullptr);
-  f += dfdx * bump_filter_width;
-  svm_node_attr_store(type, stack, out_offset, f);
+  dual<T> f = primitive_surface_attribute<T>(kg, sd, desc, true, false);
+  f.val += f.dx * bump_filter_width;
+  svm_node_attr_store(type, stack, out_offset, f.val);
 }
 
 template<class T>
@@ -150,10 +149,9 @@ ccl_device_inline void svm_surface_attr_dy(KernelGlobals kg,
                                            ccl_private float *stack,
                                            const uint out_offset)
 {
-  T dfdy;
-  T f = primitive_surface_attribute<T>(kg, sd, desc, nullptr, &dfdy);
-  f += dfdy * bump_filter_width;
-  svm_node_attr_store(type, stack, out_offset, f);
+  dual<T> f = primitive_surface_attribute<T>(kg, sd, desc, false, true);
+  f.val += f.dy * bump_filter_width;
+  svm_node_attr_store(type, stack, out_offset, f.val);
 }
 
 template<uint node_feature_mask>

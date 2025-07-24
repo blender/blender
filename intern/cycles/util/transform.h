@@ -55,32 +55,72 @@ ccl_device_inline float3 transform_point(const ccl_global Transform *t, const fl
 
 ccl_device_inline float3 transform_point(const ccl_private Transform *t, const float3 a)
 {
-  /* TODO(sergey): Disabled for now, causes crashes in certain cases. */
 #if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
   const float4 aa(a.m128);
-
-  float4 x(_mm_loadu_ps(&t->x.x));
-  float4 y(_mm_loadu_ps(&t->y.x));
-  float4 z(_mm_loadu_ps(&t->z.x));
+  float4 x = t->x;
+  float4 y = t->y;
+  float4 z = t->z;
   float4 w(_mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f));
-
   _MM_TRANSPOSE4_PS(x.m128, y.m128, z.m128, w.m128);
-
   float4 tmp = w;
   tmp = madd(shuffle<2>(aa), z, tmp);
   tmp = madd(shuffle<1>(aa), y, tmp);
   tmp = madd(shuffle<0>(aa), x, tmp);
-
   return float3(tmp.m128);
 #elif defined(__KERNEL_METAL__)
   const ccl_private float3x3 &b(*(const ccl_private float3x3 *)t);
   return (a * b).xyz + make_float3(t->x.w, t->y.w, t->z.w);
 #else
-  float3 c = make_float3(a.x * t->x.x + a.y * t->x.y + a.z * t->x.z + t->x.w,
-                         a.x * t->y.x + a.y * t->y.y + a.z * t->y.z + t->y.w,
-                         a.x * t->z.x + a.y * t->z.y + a.z * t->z.z + t->z.w);
+  const float4 a_ = make_homogeneous(a);
+  return make_float3(dot(a_, t->x), dot(a_, t->y), dot(a_, t->z));
+#endif
+}
 
-  return c;
+ccl_device_inline dual3 transform_point(const ccl_private Transform *t, const dual3 a)
+{
+#if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
+  /* NOTE: `dot()` has large lantency on Intel platforms, the following method of transpose + madd
+   * is faster. However, we did not measure on Neon platforms, it might be that `dot()` is fine
+   * there, and we can use the simpler implementation at the end of the function. */
+  float4 x = t->x;
+  float4 y = t->y;
+  float4 z = t->z;
+  float4 w(_mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f));
+  _MM_TRANSPOSE4_PS(x.m128, y.m128, z.m128, w.m128);
+
+  float4 tmp = w;
+  dual3 result;
+  {
+    const float4 aa(a.val.m128);
+    tmp = madd(shuffle<2>(aa), z, tmp);
+    tmp = madd(shuffle<1>(aa), y, tmp);
+    tmp = madd(shuffle<0>(aa), x, tmp);
+    result.val = float3(tmp.m128);
+  }
+
+  {
+    const float4 dx(a.dx.m128);
+    tmp = shuffle<2>(dx) * z;
+    tmp = madd(shuffle<1>(dx), y, tmp);
+    tmp = madd(shuffle<0>(dx), x, tmp);
+    result.dx = float3(tmp.m128);
+  }
+
+  {
+    const float4 dy(a.dy.m128);
+    tmp = shuffle<2>(dy) * z;
+    tmp = madd(shuffle<1>(dy), y, tmp);
+    tmp = madd(shuffle<0>(dy), x, tmp);
+    result.dy = float3(tmp.m128);
+  }
+
+  return result;
+#elif defined(__KERNEL_METAL__)
+  const ccl_private float3x3 &b(*(const ccl_private float3x3 *)t);
+  return {(a.val * b).xyz + make_float3(t->x.w, t->y.w, t->z.w), (a.dx * b).xyz, (a.dy * b).xyz};
+#else
+  const dual4 a_ = make_homogeneous(a);
+  return make_float3(dot(a_, t->x), dot(a_, t->y), dot(a_, t->z));
 #endif
 }
 
@@ -88,28 +128,21 @@ ccl_device_inline float3 transform_direction(const ccl_private Transform *t, con
 {
 #if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE2__)
   const float4 aa(a.m128);
-
-  float4 x(_mm_loadu_ps(&t->x.x));
-  float4 y(_mm_loadu_ps(&t->y.x));
-  float4 z(_mm_loadu_ps(&t->z.x));
+  float4 x = t->x;
+  float4 y = t->y;
+  float4 z = t->z;
   float4 w(_mm_setzero_ps());
-
   _MM_TRANSPOSE4_PS(x.m128, y.m128, z.m128, w.m128);
-
   float4 tmp = shuffle<2>(aa) * z;
   tmp = madd(shuffle<1>(aa), y, tmp);
   tmp = madd(shuffle<0>(aa), x, tmp);
-
   return float3(tmp.m128);
 #elif defined(__KERNEL_METAL__)
   const ccl_private float3x3 &b(*(const ccl_private float3x3 *)t);
   return (a * b).xyz;
 #else
-  float3 c = make_float3(a.x * t->x.x + a.y * t->x.y + a.z * t->x.z,
-                         a.x * t->y.x + a.y * t->y.y + a.z * t->y.z,
-                         a.x * t->z.x + a.y * t->z.y + a.z * t->z.z);
-
-  return c;
+  const float4 a_ = make_float4(a, 0.0f);
+  return make_float3(dot(a_, t->x), dot(a_, t->y), dot(a_, t->z));
 #endif
 }
 
