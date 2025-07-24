@@ -1126,7 +1126,7 @@ static bool skip_fcurve_with_name(
   /* get type info for channel */
   acf = ANIM_channel_get_typeinfo(&ale_dummy);
   if (acf && acf->name) {
-    char name[256]; /* hopefully this will be enough! */
+    char name[ANIM_CHAN_NAME_SIZE];
 
     /* get name */
     acf->name(&ale_dummy, name);
