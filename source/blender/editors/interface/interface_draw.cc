@@ -1225,7 +1225,9 @@ void ui_draw_but_VECTORSCOPE(ARegion *region,
     }
     else if (scopes->vecscope_mode == SCOPES_VECSCOPE_LUMA) {
       GPU_blend(GPU_BLEND_ADDITIVE);
+      immUnbindProgram();
       waveform_draw_one(scopes->vecscope, scopes->waveform_tot, col);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     }
 
     GPU_matrix_pop();
