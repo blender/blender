@@ -325,7 +325,7 @@ const Display *LibOCIOConfig::get_default_display() const
 
 const Display *LibOCIOConfig::get_display_by_name(const StringRefNull name) const
 {
-  //* TODO(sergey): Is there faster way to lookup Blender-side display?
+  /* TODO(@sergey): Is there faster way to lookup Blender-side display? */
   for (const LibOCIODisplay &display : displays_) {
     if (display.name() == name) {
       return &display;

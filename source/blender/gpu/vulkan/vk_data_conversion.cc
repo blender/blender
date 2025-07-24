@@ -151,8 +151,9 @@ static ConversionType type_of_conversion_float(const TextureFormat host_format,
        * pretends that host data is a float. It is actually raw BCn bits. */
       return ConversionType::PASS_THROUGH;
 
-    case TextureFormat::SFLOAT_32_32_32: /* TextureFormat::SFLOAT_32_32_32
-                                            Not supported by vendors. */
+      /* #TextureFormat::SFLOAT_32_32_32 Not supported by vendors. */
+    case TextureFormat::SFLOAT_32_32_32:
+
     case TextureFormat::UINT_8_8_8_8:
     case TextureFormat::SINT_8_8_8_8:
     case TextureFormat::UINT_16_16_16_16:
@@ -550,8 +551,9 @@ static ConversionType type_of_conversion_uint248(const TextureFormat device_form
     case TextureFormat::SNORM_DXT3:
     case TextureFormat::SNORM_DXT5:
 
-    case TextureFormat::SFLOAT_32_32_32: /* TextureFormat::SFLOAT_32_32_32
-                                            Not supported by vendors. */
+      /* #TextureFormat::SFLOAT_32_32_32 Not supported by vendors. */
+    case TextureFormat::SFLOAT_32_32_32:
+
     case TextureFormat::UINT_8_8_8_8:
     case TextureFormat::SINT_8_8_8_8:
     case TextureFormat::UINT_16_16_16_16:
