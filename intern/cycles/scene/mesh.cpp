@@ -742,25 +742,31 @@ void Mesh::add_vertex_normals()
   }
 }
 
-void Mesh::add_undisplaced()
+void Mesh::add_undisplaced(Scene *scene)
 {
-  AttributeSet &attrs = (subdivision_type == SUBDIVISION_NONE) ? attributes : subd_attributes;
+  if (need_attribute(scene, ATTR_STD_POSITION_UNDISPLACED) &&
+      !attributes.find(ATTR_STD_POSITION_UNDISPLACED))
+  {
+    /* Copy position to attribute. */
+    Attribute *attr = attributes.add(ATTR_STD_POSITION_UNDISPLACED);
 
-  /* don't compute if already there */
-  if (attrs.find(ATTR_STD_POSITION_UNDISPLACED)) {
-    return;
+    size_t size = attr->buffer_size(this, ATTR_PRIM_GEOMETRY) / sizeof(float3);
+    std::copy_n(verts.data(), size, attr->data_float3());
   }
 
-  /* get attribute */
-  Attribute *attr = attrs.add(ATTR_STD_POSITION_UNDISPLACED);
+  /* Keep "N" attribute undisplaced for backwards compatibility in Blender 4.5. */
+  if (((need_attribute(scene, ATTR_STD_VERTEX_NORMAL) && has_true_displacement()) ||
+       need_attribute(scene, ATTR_STD_NORMAL_UNDISPLACED)) &&
+      !attributes.find(ATTR_STD_NORMAL_UNDISPLACED))
+  {
+    /* Copy vertex normal to attribute */
+    Attribute *attr_N = attributes.find(ATTR_STD_VERTEX_NORMAL);
+    if (attr_N) {
+      Attribute *attr = attributes.add(ATTR_STD_NORMAL_UNDISPLACED);
 
-  float3 *data = attr->data_float3();
-
-  /* copy verts */
-  size_t size = attr->buffer_size(this, ATTR_PRIM_GEOMETRY) / sizeof(float3);
-
-  if (size) {
-    std::copy_n(verts.data(), size, data);
+      size_t size = attr->buffer_size(this, ATTR_PRIM_GEOMETRY) / sizeof(float3);
+      std::copy_n(attr_N->data_float3(), size, attr->data_float3());
+    }
   }
 }
 

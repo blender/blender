@@ -142,6 +142,9 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
     return false;
   }
 
+  /* Add undisplaced attributes right before doing displacement. */
+  mesh->add_undisplaced(scene);
+
   const size_t num_verts = mesh->verts.size();
   const size_t num_triangles = mesh->num_triangles();
 
