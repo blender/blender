@@ -608,6 +608,11 @@ float2 bsdf_lut(float cos_theta, float roughness, float ior, bool do_multiscatte
  *
  * \{ */
 
+#ifndef GPU_METAL
+/* Prototype. */
+float derivative_scale_get();
+#endif
+
 #ifdef MAT_DISPLACEMENT_BUMP
 /* Return new shading normal. */
 float3 displacement_bump()
@@ -620,8 +625,8 @@ float3 displacement_bump()
   float2 dHd;
   dF_branch(dot(nodetree_displacement(), g_data.N + dF_impl(g_data.N)), bump_filter_width, dHd);
 
-  float3 dPdx = gpu_dfdx(g_data.P);
-  float3 dPdy = gpu_dfdy(g_data.P);
+  float3 dPdx = gpu_dfdx(g_data.P) * derivative_scale_get();
+  float3 dPdy = gpu_dfdy(g_data.P) * derivative_scale_get();
 
   /* Get surface tangents from normal. */
   float3 Rx = cross(dPdy, g_data.N);
@@ -723,6 +728,17 @@ float3 coordinate_incoming(float3 P)
 float texture_lod_bias_get()
 {
   return uniform_buf.film.texture_lod_bias;
+}
+
+/**
+ * Scale hardware derivatives depending on render resolution.
+ * This is because the distance between pixels increases as we lower the resolution. The hardware
+ * uses neighboring pixels to compute derivatives and thus the value increases as we lower the
+ * resolution. So we compensate by scaling them back to the expected amplitude at full resolution.
+ */
+float derivative_scale_get()
+{
+  return 1.0 / float(uniform_buf.film.scaling_factor);
 }
 
 /** \} */
