@@ -32,7 +32,7 @@
 #include "gpu_py_texture.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
-/** \name blender::gpu::Texture Common Utilities
+/** \name GPUTexture Common Utilities
  * \{ */
 
 const PyC_StringEnumItems pygpu_textureformat_items[] = {
@@ -110,7 +110,7 @@ static int pygpu_texture_valid_check(BPyGPUTexture *bpygpu_tex)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name blender::gpu::Texture Type
+/** \name GPUTexture Type
  * \{ */
 
 static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, PyObject *kwds)
@@ -135,7 +135,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
       "p"  /* `is_cubemap` */
       "O&" /* `format` */
       "O!" /* `data` */
-      ":blender::gpu::Texture.__new__",
+      ":GPUTexture.__new__",
       _keywords,
       nullptr,
   };
@@ -169,16 +169,12 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
   if (PySequence_Check(py_size)) {
     len = PySequence_Size(py_size);
     if ((len < 1) || (len > 3)) {
-      PyErr_Format(
-          PyExc_ValueError,
-          "blender::gpu::Texture.__new__: \"size\" must be between 1 and 3 in length (got %d)",
-          len);
+      PyErr_Format(PyExc_ValueError,
+                   "GPUTexture.__new__: \"size\" must be between 1 and 3 in length (got %d)",
+                   len);
       return nullptr;
     }
-    if (PyC_AsArray(
-            size, sizeof(*size), py_size, len, &PyLong_Type, "blender::gpu::Texture.__new__") ==
-        -1)
-    {
+    if (PyC_AsArray(size, sizeof(*size), py_size, len, &PyLong_Type, "GPUTexture.__new__") == -1) {
       return nullptr;
     }
   }
@@ -186,17 +182,15 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
     size[0] = PyLong_AsLong(py_size);
   }
   else {
-    PyErr_SetString(PyExc_ValueError,
-                    "blender::gpu::Texture.__new__: Expected an int or tuple as first arg");
+    PyErr_SetString(PyExc_ValueError, "GPUTexture.__new__: Expected an int or tuple as first arg");
     return nullptr;
   }
 
   void *data = nullptr;
   if (pybuffer_obj) {
     if (pybuffer_obj->format != GPU_DATA_FLOAT) {
-      PyErr_SetString(
-          PyExc_ValueError,
-          "blender::gpu::Texture.__new__: Only Buffer of format `FLOAT` is currently supported");
+      PyErr_SetString(PyExc_ValueError,
+                      "GPUTexture.__new__: Only Buffer of format `FLOAT` is currently supported");
       return nullptr;
     }
 
@@ -210,8 +204,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
     }
 
     if (bpygpu_Buffer_size(pybuffer_obj) < data_space_expected) {
-      PyErr_SetString(PyExc_ValueError,
-                      "blender::gpu::Texture.__new__: Buffer size smaller than requested");
+      PyErr_SetString(PyExc_ValueError, "GPUTexture.__new__: Buffer size smaller than requested");
       return nullptr;
     }
     data = pybuffer_obj->buf.as_void;
@@ -570,7 +563,7 @@ static PyMethodDef pygpu_texture__tp_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_texture__tp_doc,
-    ".. class:: blender::gpu::Texture(size, layers=0, is_cubemap=False, format='RGBA8', "
+    ".. class:: GPUTexture(size, layers=0, is_cubemap=False, format='RGBA8', "
     "data=None)\n"
     "\n"
     "   This object gives access to off GPU textures.\n"
@@ -631,7 +624,7 @@ PyDoc_STRVAR(
     "   :type data: :class:`gpu.types.Buffer`\n");
 PyTypeObject BPyGPUTexture_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
-    /*tp_name*/ "blender::gpu::Texture",
+    /*tp_name*/ "GPUTexture",
     /*tp_basicsize*/ sizeof(BPyGPUTexture),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ (destructor)BPyGPUTexture__tp_dealloc,
@@ -692,7 +685,7 @@ PyDoc_STRVAR(
     pygpu_texture_from_image_doc,
     ".. function:: from_image(image)\n"
     "\n"
-    "   Get blender::gpu::Texture corresponding to an Image datablock. The blender::gpu::Texture "
+    "   Get GPUTexture corresponding to an Image datablock. The GPUTexture "
     "memory is "
     "shared with Blender.\n"
     "   Note: Colors read from the texture will be in scene linear color space and have "
@@ -700,8 +693,8 @@ PyDoc_STRVAR(
     "\n"
     "   :arg image: The Image datablock.\n"
     "   :type image: :class:`bpy.types.Image`\n"
-    "   :return: The blender::gpu::Texture used by the image.\n"
-    "   :rtype: :class:`gpu.types.blender::gpu::Texture`\n");
+    "   :return: The GPUTexture used by the image.\n"
+    "   :rtype: :class:`gpu.types.GPUTexture`\n");
 static PyObject *pygpu_texture_from_image(PyObject * /*self*/, PyObject *arg)
 {
   Image *ima = static_cast<Image *>(PyC_RNA_AsPointer(arg, "Image"));

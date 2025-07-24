@@ -730,7 +730,7 @@ PyDoc_STRVAR(
     "\n"
     "   :arg slot: The image resource index.\n"
     "   :type slot: int\n"
-    "   :arg format: The blender::gpu::Texture format that is passed to the shader. Possible "
+    "   :arg format: The GPUTexture format that is passed to the shader. Possible "
     "values are:\n"
     "\n" PYDOC_TEX_FORMAT_ITEMS
     "   :type format: str\n"
