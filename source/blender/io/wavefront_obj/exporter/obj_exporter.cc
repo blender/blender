@@ -320,10 +320,10 @@ static void write_materials(MTLWriter *mtl_writer, const OBJExportParams &export
                               export_params.export_pbr_extensions);
 }
 
-void export_objects(const OBJExportParams &export_params,
-                    const Span<std::unique_ptr<OBJMesh>> meshes,
-                    const Span<std::unique_ptr<OBJCurve>> curves,
-                    const char *filepath)
+static void export_objects(const OBJExportParams &export_params,
+                           const Span<std::unique_ptr<OBJMesh>> meshes,
+                           const Span<std::unique_ptr<OBJCurve>> curves,
+                           const char *filepath)
 {
   /* Open */
   std::unique_ptr<OBJWriter> obj_writer;
