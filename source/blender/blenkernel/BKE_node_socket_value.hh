@@ -56,6 +56,8 @@ class SocketValueVariant {
      * Indicates that there is a `GVolumeGrid` stored.
      */
     Grid,
+    /** Indicates that there is a `ListPtr` stored. */
+    List,
   };
 
   /**
@@ -147,6 +149,11 @@ class SocketValueVariant {
    * The stored value is a single value.
    */
   bool is_single() const;
+
+  /**
+   * The stored value is a list.
+   */
+  bool is_list() const;
 
   /**
    * Convert the stored value into a single value. For simple value access, this is not necessary,

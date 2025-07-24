@@ -246,6 +246,15 @@ ClosureValueLog::ClosureValueLog(Vector<Item> inputs,
   }
 }
 
+ListInfoLog::ListInfoLog(const List *list)
+{
+  if (!list) {
+    this->size = 0;
+    return;
+  }
+  this->size = list->size();
+}
+
 NodeWarning::NodeWarning(const Report &report)
 {
   switch (report.type) {
@@ -314,6 +323,10 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
       store_logged_value(this->allocator->construct<GridInfoLog>(grid));
     }
 #endif
+    else if (value_variant.is_list()) {
+      const ListPtr list = value_variant.extract<ListPtr>();
+      store_logged_value(this->allocator->construct<ListInfoLog>(list.get()));
+    }
     else if (value_variant.valid_for_socket(SOCK_BUNDLE)) {
       Vector<BundleValueLog::Item> items;
       if (const BundlePtr bundle = value_variant.extract<BundlePtr>()) {

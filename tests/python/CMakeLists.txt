@@ -1051,6 +1051,7 @@ if(TEST_SRC_DIR_EXISTS)
     grease_pencil
     import
     instance
+    list
     repeat_zone
     mesh_primitives
     mesh

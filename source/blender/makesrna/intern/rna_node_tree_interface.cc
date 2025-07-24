@@ -39,6 +39,7 @@ const EnumPropertyItem rna_enum_node_socket_structure_type_items[] = {
      "Socket can work with different kinds of structures"},
     {NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_FIELD, "FIELD", 0, "Field", "Socket expects a field"},
     {NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_GRID, "GRID", 0, "Grid", "Socket expects a grid"},
+    {NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_LIST, "LIST", 0, "List", "Socket expects a list"},
     {NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE,
      "SINGLE",
      0,
@@ -529,6 +530,14 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_structure_type_itemf(
       }
       case NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_GRID: {
         if (U.experimental.use_socket_structure_type) {
+          if (supports_grids) {
+            RNA_enum_item_add(&items, &items_count, item);
+          }
+        }
+        break;
+      }
+      case NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_LIST: {
+        if (U.experimental.use_socket_structure_type && U.experimental.use_geometry_nodes_lists) {
           if (supports_grids) {
             RNA_enum_item_add(&items, &items_count, item);
           }

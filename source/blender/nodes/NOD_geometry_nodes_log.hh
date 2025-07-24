@@ -42,6 +42,7 @@
 #include "BKE_volume_grid_fwd.hh"
 
 #include "NOD_geometry_nodes_closure_location.hh"
+#include "NOD_geometry_nodes_list.hh"
 #include "NOD_geometry_nodes_warning.hh"
 
 #include "FN_field.hh"
@@ -224,6 +225,13 @@ class ClosureValueLog : public ValueLog {
                   Vector<Item> outputs,
                   const std::optional<ClosureSourceLocation> &source_location,
                   std::shared_ptr<ClosureEvalLog> eval_log);
+};
+
+class ListInfoLog : public ValueLog {
+ public:
+  int64_t size;
+
+  ListInfoLog(const List *list);
 };
 
 /**

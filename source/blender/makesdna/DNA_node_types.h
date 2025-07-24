@@ -329,6 +329,7 @@ typedef enum eNodeSocketDisplayShape {
   SOCK_DISPLAY_SHAPE_DIAMOND_DOT = 5,
   SOCK_DISPLAY_SHAPE_LINE = 6,
   SOCK_DISPLAY_SHAPE_VOLUME_GRID = 7,
+  SOCK_DISPLAY_SHAPE_LIST = 8,
 } eNodeSocketDisplayShape;
 
 /** Socket side (input/output). */
