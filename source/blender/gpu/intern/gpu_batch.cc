@@ -39,6 +39,7 @@ void GPU_batch_zero(Batch *batch)
   batch->flag = eGPUBatchFlag(0);
   batch->prim_type = GPUPrimType(0);
   batch->shader = nullptr;
+  batch->procedural_vertices = 0;
 }
 
 Batch *GPU_batch_calloc()
@@ -80,6 +81,24 @@ void GPU_batch_init_ex(Batch *batch,
   batch->prim_type = primitive_type;
   batch->flag = owns_flag | GPU_BATCH_INIT | GPU_BATCH_DIRTY;
   batch->shader = nullptr;
+  batch->procedural_vertices = 0;
+}
+
+Batch *GPU_batch_create_procedural(GPUPrimType primitive_type, int32_t vertex_count)
+{
+  Batch *batch = GPU_batch_calloc();
+  for (auto &v : batch->verts) {
+    v = nullptr;
+  }
+  for (auto &v : batch->inst) {
+    v = nullptr;
+  }
+  batch->elem = nullptr;
+  batch->prim_type = primitive_type;
+  batch->flag = GPU_BATCH_INIT | GPU_BATCH_DIRTY;
+  batch->shader = nullptr;
+  batch->procedural_vertices = vertex_count;
+  return batch;
 }
 
 void GPU_batch_copy(Batch *batch_dst, Batch *batch_src)
@@ -92,6 +111,7 @@ void GPU_batch_copy(Batch *batch_dst, Batch *batch_src)
   for (int v = 1; v < GPU_BATCH_VBO_MAX_LEN; v++) {
     batch_dst->verts[v] = batch_src->verts[v];
   }
+  batch_dst->procedural_vertices = batch_src->procedural_vertices;
 }
 
 void GPU_batch_clear(Batch *batch)
@@ -114,6 +134,7 @@ void GPU_batch_clear(Batch *batch)
     }
   }
   batch->flag = GPU_BATCH_INVALID;
+  batch->procedural_vertices = 0;
 }
 
 void GPU_batch_discard(Batch *batch)
@@ -461,7 +482,10 @@ void GPU_batch_draw_advanced(
   Context::get()->assert_framebuffer_shader_compatibility(Context::get()->shader);
 
   if (vertex_count == 0) {
-    if (batch->elem) {
+    if (batch->procedural_vertices > 0) {
+      vertex_count = batch->procedural_vertices;
+    }
+    else if (batch->elem) {
       vertex_count = batch->elem_()->index_len_get();
     }
     else {

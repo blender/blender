@@ -97,13 +97,8 @@ struct ShaderSpecializationConst {
       GPU_framebuffer_default_size(fb, 1, 1);
       GPU_framebuffer_bind(fb);
 
-      /* TODO(fclem): remove this boilerplate. */
-      GPUVertFormat format{};
-      GPU_vertformat_attr_add(&format, "dummy", VertAttrType::UINT_32);
-      VertBuf *verts = GPU_vertbuf_create_with_format(format);
+      Batch *batch = GPU_batch_create_procedural(GPU_PRIM_POINTS, 1);
 
-      GPU_vertbuf_data_alloc(*verts, 1);
-      Batch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, verts, nullptr, GPU_BATCH_OWNS_VBO);
       GPU_batch_set_shader(batch, shader, &constants);
       GPU_batch_draw_advanced(batch, 0, 1, 0, 1);
       GPU_batch_discard(batch);
