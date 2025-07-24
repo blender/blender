@@ -6075,6 +6075,28 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
       wm_event_add_trackpad(win, &event, delta[0], delta[1]);
       break;
     }
+      /* Multi touch */
+    case GHOST_kEventTwoFingerTap:
+      /* TODO: Undo: Not implemented yet. */
+      printf("%s: two fingers\n", __func__);
+      event.type = TOUCH_TWO_FINGER_TAP;
+      event.val = KM_PRESS;
+      wm_event_add_intern(win, &event);
+      break;
+    case GHOST_kEventThreeFingerTap:
+      /* TODO: Redo: Not implemented yet. */
+      printf("%s: three fingers\n", __func__);
+      event.type = TOUCH_THREE_FINGER_TAP;
+      event.val = KM_PRESS;
+      wm_event_add_intern(win, &event);
+      break;
+    case GHOST_kEventFourFingerTap:
+      /* TODO: Clear view. */
+      printf("%s: four fingers\n", __func__);
+      event.type = TOUCH_FOUR_FINGER_TAP;
+      event.val = KM_PRESS;
+      wm_event_add_intern(win, &event);
+      break;
     /* Mouse button. */
     case GHOST_kEventButtonDown:
     case GHOST_kEventButtonUp: {

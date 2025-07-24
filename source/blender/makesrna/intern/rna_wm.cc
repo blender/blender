@@ -192,6 +192,13 @@ static const EnumPropertyItem event_ndof_type_items[] = {
 #  endif
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+static const EnumPropertyItem event_touch_type_items[] = {
+    {TOUCH_TWO_FINGER_TAP, "TOUCH_TWO_FINGER_TAP", 0, "2 Fingers Tap", ""},
+    {TOUCH_THREE_FINGER_TAP, "TOUCH_THREE_FINGER_TAP", 0, "3 Fingers Tap", ""},
+    {TOUCH_FOUR_FINGER_TAP, "TOUCH_FOUR_FINGER_TAP", 0, "4 Fingers Tap", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 #endif /* RNA_RUNTIME */
 
 /**
@@ -452,6 +459,10 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {NDOF_BUTTON_10, "NDOF_BUTTON_10", 0, "NDOF Button 10", "NdofB10"},
     {NDOF_BUTTON_11, "NDOF_BUTTON_11", 0, "NDOF Button 11", "NdofB11"},
     {NDOF_BUTTON_12, "NDOF_BUTTON_12", 0, "NDOF Button 12", "NdofB12"},
+    /* Touch events. */
+    {TOUCH_TWO_FINGER_TAP, "TOUCH_TWO_FINGER_TAP", 0, "2 Fingers Tap"},
+    {TOUCH_THREE_FINGER_TAP, "TOUCH_THREE_FINGER_TAP", 0, "3 Fingers Tap"},
+    {TOUCH_FOUR_FINGER_TAP, "TOUCH_FOUR_FINGER_TAP", 0, "4 Fingers Tap"},
 
     /* Action Zones. */
     {EVT_ACTIONZONE_AREA, "ACTIONZONE_AREA", 0, "ActionZone Area", "AZone Area"},
@@ -1130,6 +1141,10 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
         kmi->type = NDOF_MOTION;
         kmi->val = KM_NOTHING;
         break;
+      case KMI_TYPE_TOUCH:
+        kmi->type = TOUCH_TWO_FINGER_TAP;
+        kmi->val = KM_NOTHING;
+        break;
     }
   }
 }
@@ -1171,6 +1186,9 @@ static const EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext * /*C*/,
   }
   if (map_type == KMI_TYPE_NDOF) {
     return event_ndof_type_items;
+  }
+  if (map_type == KMI_TYPE_TOUCH) {
+    return event_touch_type_items;
   }
   if (map_type == KMI_TYPE_TEXTINPUT) {
     return event_textinput_type_items;
@@ -2923,6 +2941,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   static const EnumPropertyItem map_type_items[] = {
       {KMI_TYPE_KEYBOARD, "KEYBOARD", 0, "Keyboard", ""},
       {KMI_TYPE_MOUSE, "MOUSE", 0, "Mouse", ""},
+      {KMI_TYPE_TOUCH, "TOUCH", 0, "Touch", ""},
       {KMI_TYPE_NDOF, "NDOF", 0, "NDOF", ""},
       {KMI_TYPE_TEXTINPUT, "TEXTINPUT", 0, "Text Input", ""},
       {KMI_TYPE_TIMER, "TIMER", 0, "Timer", ""},

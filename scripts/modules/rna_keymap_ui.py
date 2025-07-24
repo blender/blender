@@ -162,6 +162,8 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
         row.prop(kmi, "type", text="", full_event=True)
     elif map_type == 'NDOF':
         row.prop(kmi, "type", text="", full_event=True)
+    elif map_type == 'TOUCH':
+        row.prop(kmi, "type", text="", full_event=True)
     elif map_type == 'TWEAK':
         subrow = row.row()
         subrow.prop(kmi, "type", text="")
@@ -217,6 +219,8 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
             elif map_type in {'MOUSE', 'NDOF'}:
                 subrow.prop(kmi, "type", text="")
                 subrow.prop(kmi, "value", text="")
+            elif map_type == 'TOUCH':
+                subrow.prop(kmi, "type", text="")
 
             if map_type in {'KEYBOARD', 'MOUSE'} and kmi.value == 'CLICK_DRAG':
                 subrow = sub.row()

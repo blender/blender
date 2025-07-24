@@ -13,7 +13,6 @@
 #include "GHOST_SystemIOS.h"
 #include "GHOST_TimerManager.hh"
 #include "GHOST_TimerTask.hh"
-#include "GHOST_WindowIOS.h"
 #include "GHOST_WindowManager.hh"
 
 #include "GHOST_ContextIOS.hh"
@@ -248,6 +247,9 @@ GHOST_WindowIOS *main_window = nullptr;
   std::unordered_map<uint64_t, TouchData> touchmap;
 
   GHOSTUITapGestureRecognizer *tap_gesture_recognizer;
+  GHOSTUITapGestureRecognizer *tap2f_gesture_recognizer;
+  GHOSTUITapGestureRecognizer *tap3f_gesture_recognizer;
+  GHOSTUITapGestureRecognizer *tap4f_gesture_recognizer;
   GHOSTUIPanGestureRecognizer *pan_gesture_recognizer;
   GHOSTUIPanGestureRecognizer *pan2f_gesture_recognizer;
   GHOSTUIPinchGestureRecognizer *zoom_gesture_recognizer;
@@ -356,6 +358,36 @@ GHOST_WindowIOS *main_window = nullptr;
   tap_gesture_recognizer.cancelsTouchesInView = false;
   tap_gesture_recognizer.allowedTouchTypes = @[ @(UITouchTypePencil), @(UITouchTypeDirect) ];
   [window->getView() addGestureRecognizer:tap_gesture_recognizer];
+
+  /* Two-finger tap gesture recognizer. */
+  tap2f_gesture_recognizer = [[GHOSTUITapGestureRecognizer alloc]
+      initWithTarget:self
+              action:@selector(handleTap2F:)];
+  tap2f_gesture_recognizer.delegate = self;
+  tap2f_gesture_recognizer.cancelsTouchesInView = false;
+  tap2f_gesture_recognizer.delaysTouchesBegan = YES;
+  tap2f_gesture_recognizer.numberOfTouchesRequired = 2;
+  [window->getView() addGestureRecognizer:tap2f_gesture_recognizer];
+
+  /* Three-finger tap gesture recognizer. */
+  tap3f_gesture_recognizer = [[GHOSTUITapGestureRecognizer alloc]
+      initWithTarget:self
+              action:@selector(handleTap3F:)];
+  tap3f_gesture_recognizer.delegate = self;
+  tap3f_gesture_recognizer.cancelsTouchesInView = false;
+  tap3f_gesture_recognizer.delaysTouchesBegan = YES;
+  tap3f_gesture_recognizer.numberOfTouchesRequired = 3;
+  [window->getView() addGestureRecognizer:tap3f_gesture_recognizer];
+
+  /* Four-finger tap gesture recognizer. */
+  tap4f_gesture_recognizer = [[GHOSTUITapGestureRecognizer alloc]
+      initWithTarget:self
+              action:@selector(handleTap4F:)];
+  tap4f_gesture_recognizer.delegate = self;
+  tap4f_gesture_recognizer.cancelsTouchesInView = false;
+  tap4f_gesture_recognizer.delaysTouchesBegan = YES;
+  tap4f_gesture_recognizer.numberOfTouchesRequired = 4;
+  [window->getView() addGestureRecognizer:tap4f_gesture_recognizer];
 
   /* Pan gesture recognizer - static UI. */
   pan_gesture_recognizer = [[GHOSTUIPanGestureRecognizer alloc]
@@ -580,6 +612,51 @@ GHOST_WindowIOS *main_window = nullptr;
   }
 
   [self generateUserInputEvents:event_info];
+}
+
+- (void)handleTap2F:(GHOSTUITapGestureRecognizer *)sender
+{
+  if (sender.state != UIGestureRecognizerStateEnded) {
+    return;
+  }
+
+  CGPoint touch_point = [sender locationInView:window->getView()];
+  CGFloat scale = [window->getView() contentScaleFactor];
+  touch_point.x *= scale;
+  touch_point.y *= scale;
+
+  system->pushEvent(new GHOST_Event(
+      GHOST_GetMilliSeconds((GHOST_SystemHandle)system), GHOST_kEventTwoFingerTap, window));
+}
+
+- (void)handleTap3F:(GHOSTUITapGestureRecognizer *)sender
+{
+  if (sender.state != UIGestureRecognizerStateEnded) {
+    return;
+  }
+
+  CGPoint touch_point = [sender locationInView:window->getView()];
+  CGFloat scale = [window->getView() contentScaleFactor];
+  touch_point.x *= scale;
+  touch_point.y *= scale;
+
+  system->pushEvent(new GHOST_Event(
+      GHOST_GetMilliSeconds((GHOST_SystemHandle)system), GHOST_kEventThreeFingerTap, window));
+}
+
+- (void)handleTap4F:(GHOSTUITapGestureRecognizer *)sender
+{
+  if (sender.state != UIGestureRecognizerStateEnded) {
+    return;
+  }
+
+  CGPoint touch_point = [sender locationInView:window->getView()];
+  CGFloat scale = [window->getView() contentScaleFactor];
+  touch_point.x *= scale;
+  touch_point.y *= scale;
+
+  system->pushEvent(new GHOST_Event(
+      GHOST_GetMilliSeconds((GHOST_SystemHandle)system), GHOST_kEventFourFingerTap, window));
 }
 
 - (void)handlePan:(GHOSTUIPanGestureRecognizer *)sender
