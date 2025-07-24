@@ -13,6 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h" /* for handling geometry nodes properties */
 #include "DNA_object_types.h"   /* for OB_DATA_SUPPORT_ID */
@@ -1090,6 +1091,22 @@ static void ui_context_fcurve_modifiers_via_fcurve(bContext *C,
   }
 }
 
+static void ui_context_selected_key_blocks(ID *owner_id_key, blender::Vector<PointerRNA> *r_lb)
+{
+  /* This function chooses to return the selected keyblocks of the owning Key ID.
+   * The other option would be to return identically named keyblocks from selected objects. I
+   * (christoph) think that the first case is more useful which is why the function works as it
+   * does. */
+  Key *containing_key = reinterpret_cast<Key *>(owner_id_key);
+  LISTBASE_FOREACH (KeyBlock *, key_block, &containing_key->block) {
+    /* This does not use the function `shape_key_is_selected` since that would include the active
+     * shapekey which is not required for this function to work. */
+    if (key_block->flag & KEYBLOCK_SEL) {
+      r_lb->append(RNA_pointer_create_discrete(owner_id_key, &RNA_ShapeKey, key_block));
+    }
+  }
+}
+
 bool UI_context_copy_to_selected_list(bContext *C,
                                       PointerRNA *ptr,
                                       PropertyRNA *prop,
@@ -1250,6 +1267,9 @@ bool UI_context_copy_to_selected_list(bContext *C,
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_MovieTrackingTrack)) {
     *r_lb = CTX_data_collection_get(C, "selected_movieclip_tracks");
+  }
+  else if (RNA_struct_is_a(ptr->type, &RNA_ShapeKey)) {
+    ui_context_selected_key_blocks(ptr->owner_id, r_lb);
   }
   else if (const std::optional<std::string> path_from_bone =
                RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_PoseBone);
