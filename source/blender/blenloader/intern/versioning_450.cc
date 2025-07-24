@@ -3669,6 +3669,10 @@ static void do_version_translate_node_remove_relative(bNodeTree *node_tree)
     }
 
     const NodeTranslateData *data = static_cast<NodeTranslateData *>(node->storage);
+    if (!data) {
+      continue;
+    }
+
     if (!bool(data->relative)) {
       continue;
     }
