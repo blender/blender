@@ -35,6 +35,8 @@ class BVHMetal : public BVH {
   /* Per-component Motion Interpolation in macOS 15. */
   bool use_pcmi = false;
 
+  bool extended_limits = false;
+
   bool build(Progress &progress, id<MTLDevice> device, id<MTLCommandQueue> queue, bool refit);
 
   BVHMetal(const BVHParams &params,

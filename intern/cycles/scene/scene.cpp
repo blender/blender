@@ -504,6 +504,10 @@ void Scene::update_kernel_features()
     kernel_features |= KERNEL_FEATURE_HAIR_THICK;
   }
 
+  /* Track the max prim count in case the backend needs to rebuild BVHs or
+   * kernels to support different limits. */
+  size_t kernel_max_prim_count = 0;
+
   /* Figure out whether the scene will use shader ray-trace we need at least
    * one caustic light, one caustic caster and one caustic receiver to use
    * and enable the MNEE code path. */
@@ -529,9 +533,17 @@ void Scene::update_kernel_features()
     }
     if (geom->is_hair()) {
       kernel_features |= KERNEL_FEATURE_HAIR;
+      kernel_max_prim_count = max(kernel_max_prim_count,
+                                  static_cast<Hair *>(geom)->num_segments());
     }
     else if (geom->is_pointcloud()) {
       kernel_features |= KERNEL_FEATURE_POINTCLOUD;
+      kernel_max_prim_count = max(kernel_max_prim_count,
+                                  static_cast<PointCloud *>(geom)->num_points());
+    }
+    else if (geom->is_mesh()) {
+      kernel_max_prim_count = max(kernel_max_prim_count,
+                                  static_cast<Mesh *>(geom)->num_triangles());
     }
     else if (geom->is_light()) {
       const Light *light = static_cast<const Light *>(object->get_geometry());
@@ -573,6 +585,16 @@ void Scene::update_kernel_features()
   const uint max_closures = (params.background) ? get_max_closure_count() : MAX_CLOSURE;
   dscene.data.max_closures = max_closures;
   dscene.data.max_shaders = shaders.size();
+
+  /* Inform the device of the BVH limits. If this returns true, all BVHs
+   * and kernels need to be rebuilt. */
+  if (device->set_bvh_limits(objects.size(), kernel_max_prim_count)) {
+    kernels_loaded = false;
+    for (Geometry *geom : geometry) {
+      geom->need_update_rebuild = true;
+      geom->tag_modified();
+    }
+  }
 }
 
 bool Scene::update(Progress &progress)
