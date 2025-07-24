@@ -855,8 +855,9 @@ static void sequencer_select_connected_strips(const StripSelection &selection)
   }
 }
 
-static void sequencer_copy_handles_to_selected_strips(const StripSelection &selection,
-                                                      const VectorSet<Strip *> prev_selection)
+static void sequencer_copy_handles_to_selected_strips(const Scene *scene,
+                                                      const StripSelection &selection,
+                                                      VectorSet<Strip *> copy_to)
 {
   /* TODO(john): Dual handle propagation is not supported for now due to its complexity,
    * but once we simplify selection assumptions in 5.0 we can add support for it. */
@@ -865,9 +866,33 @@ static void sequencer_copy_handles_to_selected_strips(const StripSelection &sele
   }
 
   Strip *source = selection.strip1;
-  /* For left or right handle selection only, simply copy selection state. */
-  /* NOTE that this must be `ALLSEL` since `prev_selection` was deselected earlier. */
-  for (Strip *strip : prev_selection) {
+  /* Test for neighboring strips in the `copy_to` list. If any border one another, remove them,
+   * since we don't want to mess with dual handles. */
+  blender::VectorSet<Strip *> test(copy_to);
+  test.add(source);
+  for (Strip *strip_a : test) {
+    for (Strip *strip_b : test) {
+      if (strip_a == strip_b || strip_a->channel != strip_b->channel) {
+        continue;
+      }
+
+      /* Don't copy left handle over to a `strip_b` that has `strip_a` directly on its left. */
+      if ((source->flag & SEQ_LEFTSEL) && (seq::time_right_handle_frame_get(scene, strip_a) ==
+                                           seq::time_left_handle_frame_get(scene, strip_b)))
+      {
+        copy_to.remove(strip_b);
+      }
+      /* Don't copy right handle over to a `strip_a` that has `strip_b` directly on its right. */
+      if ((source->flag & SEQ_RIGHTSEL) && (seq::time_right_handle_frame_get(scene, strip_a) ==
+                                            seq::time_left_handle_frame_get(scene, strip_b)))
+      {
+        copy_to.remove(strip_a);
+      }
+    }
+  }
+
+  for (Strip *strip : copy_to) {
+    /* NOTE that this can be `ALLSEL` since `prev_selection` was deselected earlier. */
     strip->flag &= ~STRIP_ALLSEL;
     strip->flag |= source->flag & STRIP_ALLSEL;
   }
@@ -1306,7 +1331,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   if (copy_handles_to_sel) {
     copy_to = seq::query_selected_strips(seq::active_seqbase_get(scene->ed));
     copy_to.remove(selection.strip1);
-    copy_to.remove_if([](Strip *strip) { return strip->type == STRIP_TYPE_EFFECT; });
+    copy_to.remove_if([](Strip *strip) { return (strip->type & STRIP_TYPE_EFFECT); });
   }
 
   bool changed = false;
@@ -1339,7 +1364,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   }
 
   if (copy_handles_to_sel) {
-    sequencer_copy_handles_to_selected_strips(selection, copy_to);
+    sequencer_copy_handles_to_selected_strips(scene, selection, copy_to);
   }
 
   if (!ignore_connections) {
