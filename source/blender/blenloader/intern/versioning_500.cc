@@ -1407,7 +1407,7 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         if (node->type_legacy != CMP_NODE_TRANSLATE) {
           continue;
         }
-        if (node->storage != nullptr) {
+        if (node->storage == nullptr) {
           continue;
         }
         NodeTranslateData *data = static_cast<NodeTranslateData *>(node->storage);
@@ -1430,7 +1430,6 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
             data->extension_y = CMP_NODE_EXTENSION_MODE_REPEAT;
             break;
         }
-        node->storage = data;
       }
       FOREACH_NODETREE_END;
     }
@@ -1475,7 +1474,6 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         NodeScaleData *data = static_cast<NodeScaleData *>(node->storage);
         data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
         data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
-        node->storage = data;
       }
       FOREACH_NODETREE_END;
     }
