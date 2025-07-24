@@ -5490,7 +5490,7 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter,
     data = nullptr;
     itemsize = 0;
   }
-  else if (length < 0 || length > std::numeric_limits<uint64_t>::max() / itemsize) {
+  else if (UNLIKELY(length < 0 || length > std::numeric_limits<uint64_t>::max() / itemsize)) {
     /* This path is never expected to execute. Assert and trace if it ever does. */
     BLI_assert_unreachable();
     data = nullptr;
@@ -5556,7 +5556,7 @@ PointerRNA rna_array_lookup_int(
   if (index < 0 || index >= length) {
     return PointerRNA_NULL;
   }
-  if (index > std::numeric_limits<uint64_t>::max() / itemsize) {
+  if (UNLIKELY(index > std::numeric_limits<uint64_t>::max() / itemsize)) {
     /* This path is never expected to execute. Assert and trace if it ever does. */
     BLI_assert_unreachable();
     return PointerRNA_NULL;
