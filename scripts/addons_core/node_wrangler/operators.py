@@ -1964,7 +1964,7 @@ class NWLinkToOutputNode(Operator):
                           'LINESTYLE': 'ShaderNodeOutputLineStyle'}
         output_type = {
             'ShaderNodeTree': shader_outputs[context.space_data.shader_type],
-            'CompositorNodeTree': 'CompositorNodeComposite',
+            'CompositorNodeTree': 'NodeGroupOutput',
             'TextureNodeTree': 'TextureNodeOutput',
             'GeometryNodeTree': 'NodeGroupOutput',
         }[tree_type]

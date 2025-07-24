@@ -483,7 +483,7 @@ void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         continue;
       }
       LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
-        if (ELEM(node->type_legacy, CMP_NODE_VIEWER, CMP_NODE_COMPOSITE)) {
+        if (ELEM(node->type_legacy, CMP_NODE_VIEWER, CMP_NODE_COMPOSITE_DEPRECATED)) {
           node->flag &= ~NODE_PREVIEW;
         }
       }

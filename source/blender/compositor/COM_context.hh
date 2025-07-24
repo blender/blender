@@ -106,7 +106,7 @@ class Context {
 
   /* True if the compositor should treat viewers as composite outputs because it has no concept of
    * or support for viewers. */
-  virtual bool treat_viewer_as_composite_output() const;
+  virtual bool treat_viewer_as_compositor_output() const;
 
   /* Populates the given meta data from the render stamp information of the given render pass. */
   virtual void populate_meta_data_for_pass(const Scene *scene,

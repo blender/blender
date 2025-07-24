@@ -2695,7 +2695,7 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
 
   /* Find links going into the composite and viewer nodes. */
   LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
-    if (!ELEM(link->tonode->type_legacy, CMP_NODE_COMPOSITE, CMP_NODE_VIEWER)) {
+    if (!ELEM(link->tonode->type_legacy, CMP_NODE_COMPOSITE_DEPRECATED, CMP_NODE_VIEWER)) {
       continue;
     }
 
@@ -2708,7 +2708,7 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
   }
 
   LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-    if (!ELEM(node->type_legacy, CMP_NODE_COMPOSITE, CMP_NODE_VIEWER)) {
+    if (!ELEM(node->type_legacy, CMP_NODE_COMPOSITE_DEPRECATED, CMP_NODE_VIEWER)) {
       continue;
     }
 

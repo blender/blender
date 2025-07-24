@@ -658,6 +658,15 @@ bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines)
   return true;
 }
 
+bNodeTree *version_get_scene_compositor_node_tree(Main *bmain, Scene *scene)
+{
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 4)) {
+    return scene->nodetree;
+  }
+
+  return scene->compositing_node_group;
+}
+
 static bool blendfile_or_libraries_versions_atleast(Main *bmain,
                                                     const short versionfile,
                                                     const short subversionfile)

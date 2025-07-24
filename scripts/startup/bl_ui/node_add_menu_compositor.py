@@ -20,6 +20,7 @@ class NODE_MT_category_compositor_input(Menu):
         layout = self.layout
         layout.menu("NODE_MT_category_compositor_input_constant")
         layout.separator()
+        node_add_menu.add_node_type(layout, "NodeGroupInput")
         node_add_menu.add_node_type(layout, "CompositorNodeBokehImage")
         node_add_menu.add_node_type(layout, "CompositorNodeImage")
         node_add_menu.add_node_type(layout, "CompositorNodeImageInfo")
@@ -27,9 +28,6 @@ class NODE_MT_category_compositor_input(Menu):
         node_add_menu.add_node_type(layout, "CompositorNodeMask")
         node_add_menu.add_node_type(layout, "CompositorNodeMovieClip")
 
-        if is_group:
-            layout.separator()
-            node_add_menu.add_node_type(layout, "NodeGroupInput")
         layout.separator()
         layout.menu("NODE_MT_category_compositor_input_scene")
 
@@ -71,14 +69,10 @@ class NODE_MT_category_compositor_output(Menu):
         is_group = (len(snode.path) > 1)
 
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeComposite")
+        node_add_menu.add_node_type(layout, "NodeGroupOutput")
         node_add_menu.add_node_type(layout, "CompositorNodeViewer")
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodeOutputFile")
-
-        if is_group:
-            layout.separator()
-            node_add_menu.add_node_type(layout, "NodeGroupOutput")
 
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 

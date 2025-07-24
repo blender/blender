@@ -20,7 +20,7 @@
 
 namespace blender::compositor {
 
-bool Context::treat_viewer_as_composite_output() const
+bool Context::treat_viewer_as_compositor_output() const
 {
   return false;
 }

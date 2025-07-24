@@ -252,7 +252,6 @@ struct SocketUsageInferencer {
       case SH_NODE_OUTPUT_LINESTYLE:
       case SH_NODE_OUTPUT_MATERIAL:
       case CMP_NODE_OUTPUT_FILE:
-      case CMP_NODE_COMPOSITE:
       case TEX_NODE_OUTPUT: {
         this->usage_task__input__output_node(socket);
         break;
