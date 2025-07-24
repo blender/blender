@@ -389,7 +389,7 @@ bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
   return false;
 }
 
-static bool wm_cursor_time_large(wmWindow *win, int nr)
+static bool wm_cursor_time_large(wmWindow *win, uint32_t nr)
 {
   /* 10 16x16 digits. */
   const uchar number_bitmaps[][32] = {
@@ -455,7 +455,7 @@ static bool wm_cursor_time_large(wmWindow *win, int nr)
                                     false) == GHOST_kSuccess;
 }
 
-static void wm_cursor_time_small(wmWindow *win, int nr)
+static void wm_cursor_time_small(wmWindow *win, uint32_t nr)
 {
   /* 10 8x8 digits. */
   const char number_bitmaps[10][8] = {
@@ -504,9 +504,15 @@ void WM_cursor_time(wmWindow *win, int nr)
     win->lastcursor = win->cursor;
   }
 
+  /* Negative numbers not supported by #wm_cursor_time_large & #wm_cursor_time_small.
+   * Make absolute to show *something* although in typical usage this shouldn't be negative.
+   * NOTE: Use of unsigned here to allow negation when `nr` is `std::numeric_limits<int>::min()`
+   * which *can't* be negated. */
+  const uint32_t nr_abs = nr >= 0 ? uint32_t(nr) : -uint32_t(nr);
+
   /* Use `U.ui_scale` instead of `UI_SCALE_FAC` here to ignore HiDPI/Retina scaling. */
-  if (U.ui_scale < 1.45f || !wm_cursor_time_large(win, nr)) {
-    wm_cursor_time_small(win, nr);
+  if (U.ui_scale < 1.45f || !wm_cursor_time_large(win, nr_abs)) {
+    wm_cursor_time_small(win, nr_abs);
   }
 
   /* Unset current cursor value so it's properly reset to wmWindow.lastcursor. */
