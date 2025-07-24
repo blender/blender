@@ -457,6 +457,11 @@ bool WM_cursor_set_from_tool(wmWindow *win, const ScrArea *area, const ARegion *
   return false;
 }
 
+bool WM_cursor_modal_is_set_ok(const wmWindow *win)
+{
+  return (win->grabcursor == 0 && win->modalcursor == 0);
+}
+
 void WM_cursor_modal_set(wmWindow *win, int val)
 {
   if (win->lastcursor == 0) {
