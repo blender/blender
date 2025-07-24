@@ -5,7 +5,7 @@
 /** \file
  * \ingroup GHOST
  *
- * Definition of GHOST_ContextCGL class.
+ * Definition of GHOST_ContextMTL class.
  */
 
 /* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
@@ -14,7 +14,7 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "GHOST_ContextCGL.hh"
+#include "GHOST_ContextMTL.hh"
 
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
@@ -43,10 +43,10 @@ static void ghost_fatal_error_dialog(const char *msg)
   exit(1);
 }
 
-MTLCommandQueue *GHOST_ContextCGL::s_sharedMetalCommandQueue = nil;
-int GHOST_ContextCGL::s_sharedCount = 0;
+MTLCommandQueue *GHOST_ContextMTL::s_sharedMetalCommandQueue = nil;
+int GHOST_ContextMTL::s_sharedCount = 0;
 
-GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
+GHOST_ContextMTL::GHOST_ContextMTL(bool stereoVisual,
                                    NSView *metalView,
                                    CAMetalLayer *metalLayer,
                                    int debug)
@@ -114,7 +114,7 @@ GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
   }
 }
 
-GHOST_ContextCGL::~GHOST_ContextCGL()
+GHOST_ContextMTL::~GHOST_ContextMTL()
 {
   metalFree();
 
@@ -133,7 +133,7 @@ GHOST_ContextCGL::~GHOST_ContextCGL()
   }
 }
 
-GHOST_TSuccess GHOST_ContextCGL::swapBuffers()
+GHOST_TSuccess GHOST_ContextMTL::swapBuffers()
 {
   if (m_metalView) {
     metalSwapBuffers();
@@ -141,37 +141,37 @@ GHOST_TSuccess GHOST_ContextCGL::swapBuffers()
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_ContextCGL::setSwapInterval(int interval)
+GHOST_TSuccess GHOST_ContextMTL::setSwapInterval(int interval)
 {
   mtl_SwapInterval = interval;
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_ContextCGL::getSwapInterval(int &intervalOut)
+GHOST_TSuccess GHOST_ContextMTL::getSwapInterval(int &intervalOut)
 {
   intervalOut = mtl_SwapInterval;
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_ContextCGL::activateDrawingContext()
+GHOST_TSuccess GHOST_ContextMTL::activateDrawingContext()
 {
   active_context_ = this;
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_ContextCGL::releaseDrawingContext()
+GHOST_TSuccess GHOST_ContextMTL::releaseDrawingContext()
 {
   active_context_ = nullptr;
   return GHOST_kSuccess;
 }
 
-unsigned int GHOST_ContextCGL::getDefaultFramebuffer()
+unsigned int GHOST_ContextMTL::getDefaultFramebuffer()
 {
   /* NOTE(Metal): This is not valid. */
   return 0;
 }
 
-GHOST_TSuccess GHOST_ContextCGL::updateDrawingContext()
+GHOST_TSuccess GHOST_ContextMTL::updateDrawingContext()
 {
   if (m_metalView) {
     metalUpdateFramebuffer();
@@ -180,7 +180,7 @@ GHOST_TSuccess GHOST_ContextCGL::updateDrawingContext()
   return GHOST_kFailure;
 }
 
-id<MTLTexture> GHOST_ContextCGL::metalOverlayTexture()
+id<MTLTexture> GHOST_ContextMTL::metalOverlayTexture()
 {
   /* Increment Swap-chain - Only needed if context is requesting a new texture */
   current_swapchain_index = (current_swapchain_index + 1) % METAL_SWAPCHAIN_SIZE;
@@ -192,23 +192,23 @@ id<MTLTexture> GHOST_ContextCGL::metalOverlayTexture()
   return m_defaultFramebufferMetalTexture[current_swapchain_index].texture;
 }
 
-MTLCommandQueue *GHOST_ContextCGL::metalCommandQueue()
+MTLCommandQueue *GHOST_ContextMTL::metalCommandQueue()
 {
   return s_sharedMetalCommandQueue;
 }
-MTLDevice *GHOST_ContextCGL::metalDevice()
+MTLDevice *GHOST_ContextMTL::metalDevice()
 {
   id<MTLDevice> device = m_metalLayer.device;
   return (MTLDevice *)device;
 }
 
-void GHOST_ContextCGL::metalRegisterPresentCallback(void (*callback)(
+void GHOST_ContextMTL::metalRegisterPresentCallback(void (*callback)(
     MTLRenderPassDescriptor *, id<MTLRenderPipelineState>, id<MTLTexture>, id<CAMetalDrawable>))
 {
   this->contextPresentCallback = callback;
 }
 
-GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
+GHOST_TSuccess GHOST_ContextMTL::initializeDrawingContext()
 {
   @autoreleasepool {
     if (m_metalView) {
@@ -219,14 +219,14 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_ContextCGL::releaseNativeHandles()
+GHOST_TSuccess GHOST_ContextMTL::releaseNativeHandles()
 {
   m_metalView = nil;
 
   return GHOST_kSuccess;
 }
 
-void GHOST_ContextCGL::metalInit()
+void GHOST_ContextMTL::metalInit()
 {
   @autoreleasepool {
     id<MTLDevice> device = m_metalLayer.device;
@@ -236,7 +236,7 @@ void GHOST_ContextCGL::metalInit()
      * to ensure correct ordering of work submitted from multiple contexts. */
     if (s_sharedMetalCommandQueue == nil) {
       s_sharedMetalCommandQueue = (MTLCommandQueue *)[device
-          newCommandQueueWithMaxCommandBufferCount:GHOST_ContextCGL::max_command_buffer_count];
+          newCommandQueueWithMaxCommandBufferCount:GHOST_ContextMTL::max_command_buffer_count];
     }
     /* Ensure active GHOSTContext retains a reference to the shared context. */
     [s_sharedMetalCommandQueue retain];
@@ -284,7 +284,7 @@ void GHOST_ContextCGL::metalInit()
     id<MTLLibrary> library = [device newLibraryWithSource:source options:options error:&error];
     if (error) {
       ghost_fatal_error_dialog(
-          "GHOST_ContextCGL::metalInit: newLibraryWithSource:options:error: failed!");
+          "GHOST_ContextMTL::metalInit: newLibraryWithSource:options:error: failed!");
     }
 
     /* Create a render pipeline for blit operation. */
@@ -303,7 +303,7 @@ void GHOST_ContextCGL::metalInit()
                                        error:&error];
     if (error) {
       ghost_fatal_error_dialog(
-          "GHOST_ContextCGL::metalInit: newRenderPipelineStateWithDescriptor:error: failed!");
+          "GHOST_ContextMTL::metalInit: newRenderPipelineStateWithDescriptor:error: failed!");
     }
 
     /* Create a render pipeline to composite things rendered with Metal on top
@@ -316,7 +316,7 @@ void GHOST_ContextCGL::metalInit()
 
     if (error) {
       ghost_fatal_error_dialog(
-          "GHOST_ContextCGL::metalInit: newRenderPipelineStateWithDescriptor:error: failed (when "
+          "GHOST_ContextMTL::metalInit: newRenderPipelineStateWithDescriptor:error: failed (when "
           "creating the Metal overlay pipeline)!");
     }
 
@@ -325,7 +325,7 @@ void GHOST_ContextCGL::metalInit()
   }
 }
 
-void GHOST_ContextCGL::metalFree()
+void GHOST_ContextMTL::metalFree()
 {
   if (m_metalRenderPipeline) {
     [m_metalRenderPipeline release];
@@ -340,12 +340,12 @@ void GHOST_ContextCGL::metalFree()
   }
 }
 
-void GHOST_ContextCGL::metalInitFramebuffer()
+void GHOST_ContextMTL::metalInitFramebuffer()
 {
   updateDrawingContext();
 }
 
-void GHOST_ContextCGL::metalUpdateFramebuffer()
+void GHOST_ContextMTL::metalUpdateFramebuffer()
 {
   @autoreleasepool {
     const NSRect bounds = [m_metalView bounds];
@@ -375,7 +375,7 @@ void GHOST_ContextCGL::metalUpdateFramebuffer()
     id<MTLTexture> overlayTex = [device newTextureWithDescriptor:overlayDesc];
     if (!overlayTex) {
       ghost_fatal_error_dialog(
-          "GHOST_ContextCGL::metalUpdateFramebuffer: failed to create Metal overlay texture!");
+          "GHOST_ContextMTL::metalUpdateFramebuffer: failed to create Metal overlay texture!");
     }
     else {
       overlayTex.label = [NSString
@@ -405,7 +405,7 @@ void GHOST_ContextCGL::metalUpdateFramebuffer()
   }
 }
 
-void GHOST_ContextCGL::metalSwapBuffers()
+void GHOST_ContextMTL::metalSwapBuffers()
 {
   @autoreleasepool {
     updateDrawingContext();

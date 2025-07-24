@@ -19,12 +19,9 @@
 @class MTLDevice;
 @class MTLRenderPipelineState;
 @class MTLTexture;
-@class NSOpenGLContext;
-@class NSOpenGLView;
 @class NSView;
 
-class GHOST_ContextCGL : public GHOST_Context {
-
+class GHOST_ContextMTL : public GHOST_Context {
  public:
   /* Defines the number of simultaneous command buffers which can be in flight.
    * The default limit of `64` is considered to be optimal for Blender. Too many command buffers
@@ -44,12 +41,12 @@ class GHOST_ContextCGL : public GHOST_Context {
   /**
    * Constructor.
    */
-  GHOST_ContextCGL(bool stereoVisual, NSView *metalView, CAMetalLayer *metalLayer, int debug);
+  GHOST_ContextMTL(bool stereoVisual, NSView *metalView, CAMetalLayer *metalLayer, int debug);
 
   /**
    * Destructor.
    */
-  ~GHOST_ContextCGL() override;
+  ~GHOST_ContextMTL() override;
 
   /**
    * Swaps front and back buffers of a window.

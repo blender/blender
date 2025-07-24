@@ -98,13 +98,13 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   mtl_front_left->remove_all_attachments();
   mtl_back_left->remove_all_attachments();
 
-  GHOST_ContextCGL *ghost_cgl_ctx = dynamic_cast<GHOST_ContextCGL *>(ghost_ctx);
-  if (ghost_cgl_ctx != nullptr) {
-    default_fbo_mtltexture_ = ghost_cgl_ctx->metalOverlayTexture();
+  GHOST_ContextMTL *ghost_mtl_ctx = dynamic_cast<GHOST_ContextMTL *>(ghost_ctx);
+  if (ghost_mtl_ctx != nullptr) {
+    default_fbo_mtltexture_ = ghost_mtl_ctx->metalOverlayTexture();
 
     MTL_LOG_DEBUG(
-        "Binding GHOST context CGL %p to GPU context %p. (Device: %p, queue: %p, texture: %p)",
-        ghost_cgl_ctx,
+        "Binding GHOST context MTL %p to GPU context %p. (Device: %p, queue: %p, texture: %p)",
+        ghost_mtl_ctx,
         this,
         this->device,
         this->queue,
@@ -154,7 +154,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
       MTL_LOG_DEBUG(
           "-- Bound context %p for GPU context: %p is offscreen and does not have a default "
           "framebuffer",
-          ghost_cgl_ctx,
+          ghost_mtl_ctx,
           this);
 #ifndef NDEBUG
       this->label = @"Offscreen Metal Context";
@@ -163,10 +163,10 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   }
   else {
     MTL_LOG_DEBUG(
-        " Failed to bind GHOST context to MTLContext -- GHOST_ContextCGL is null "
-        "(GhostContext: %p, GhostContext_CGL: %p)",
+        " Failed to bind GHOST context to MTLContext -- GHOST_ContextMTL is null "
+        "(GhostContext: %p, GhostContext_MTL: %p)",
         ghost_ctx,
-        ghost_cgl_ctx);
+        ghost_mtl_ctx);
     BLI_assert(false);
   }
 }
@@ -221,7 +221,7 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
     ghost_context = (ghostWin ? ghostWin->getContext() : nullptr);
   }
   BLI_assert(ghost_context);
-  this->ghost_context_ = static_cast<GHOST_ContextCGL *>(ghost_context);
+  this->ghost_context_ = static_cast<GHOST_ContextMTL *>(ghost_context);
   this->queue = (id<MTLCommandQueue>)this->ghost_context_->metalCommandQueue();
   this->device = (id<MTLDevice>)this->ghost_context_->metalDevice();
   BLI_assert(this->queue);

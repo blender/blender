@@ -14,7 +14,7 @@
 #endif
 
 #ifdef WITH_METAL_BACKEND
-#  include "GHOST_ContextCGL.hh"
+#  include "GHOST_ContextMTL.hh"
 #endif
 
 #ifdef WITH_VULKAN_BACKEND
@@ -911,7 +911,7 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
 
 #ifdef WITH_METAL_BACKEND
     case GHOST_kDrawingContextTypeMetal: {
-      GHOST_Context *context = new GHOST_ContextCGL(
+      GHOST_Context *context = new GHOST_ContextMTL(
           m_wantStereoVisual, m_metalView, m_metalLayer, false);
       if (context->initializeDrawingContext()) {
         return context;
