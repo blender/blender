@@ -225,7 +225,7 @@ void GLBackend::platform_init()
         if (ver0 < 30 || (ver0 == 30 && ver1 == 0 && ver2 < 3820)) {
           std::cout
               << "=====================================\n"
-              << "Qualcomm drivers older than 30.0.3820.x are not capable of running Blender 4.0\n"
+              << "Qualcomm drivers older than 30.0.3820.x cannot run Blender 4.0 or later.\n"
               << "If your device is older than an 8cx Gen3, you must use a 3.x LTS release.\n"
               << "If you have an 8cx Gen3 or newer device, a driver update may be available.\n"
               << "=====================================\n";
