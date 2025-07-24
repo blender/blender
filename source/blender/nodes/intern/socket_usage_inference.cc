@@ -438,7 +438,8 @@ struct SocketUsageInferencer {
       return;
     }
     if (!socket_decl->usage_inference_fn) {
-      all_socket_usages_.add_new(socket, true);
+      this->usage_task__with_dependent_sockets(
+          socket, socket->owner_node().output_sockets(), {}, socket.context);
       return;
     }
     InputSocketUsageParams params{
