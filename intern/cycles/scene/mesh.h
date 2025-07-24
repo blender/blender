@@ -210,7 +210,7 @@ class Mesh : public Geometry {
   void compute_bounds() override;
   void apply_transform(const Transform &tfm, const bool apply_to_motion) override;
   void add_vertex_normals();
-  void add_undisplaced();
+  void add_undisplaced(Scene *scene);
   void update_generated(Scene *scene);
   void update_tangents(Scene *scene);
 
