@@ -1531,7 +1531,7 @@ def url_retrieve_exception_as_message(
 
 def pkg_idname_is_valid_or_error(pkg_idname: str) -> str | None:
     if not pkg_idname.isidentifier():
-        return "Not a valid identifier"
+        return "Not a valid Python identifier"
     if "__" in pkg_idname:
         return "Only single separators are supported"
     if pkg_idname.startswith("_"):
