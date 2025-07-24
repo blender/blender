@@ -154,6 +154,18 @@ struct TreeDrawContext {
    * during drawing. The array is indexed by `bNode::index()`.
    */
   Array<Vector<NodeExtraInfoRow>> extra_info_rows_per_node;
+
+  ~TreeDrawContext()
+  {
+    for (MutableSpan<NodeExtraInfoRow> rows : this->extra_info_rows_per_node) {
+      for (NodeExtraInfoRow &row : rows) {
+        if (row.tooltip_fn_free_arg) {
+          BLI_assert(row.tooltip_fn_copy_arg);
+          row.tooltip_fn_free_arg(row.tooltip_fn_arg);
+        }
+      }
+    }
+  }
 };
 
 float grid_size_get()
@@ -2321,6 +2333,9 @@ static NodeExtraInfoRow row_from_used_named_attribute(
   row.tooltip_fn = named_attribute_tooltip;
   row.tooltip_fn_arg = new NamedAttributeTooltipArg{usage_by_attribute_name};
   row.tooltip_fn_free_arg = [](void *arg) { delete static_cast<NamedAttributeTooltipArg *>(arg); };
+  row.tooltip_fn_copy_arg = [](void *arg) -> void * {
+    return new NamedAttributeTooltipArg(*static_cast<NamedAttributeTooltipArg *>(arg));
+  };
   return row;
 }
 
@@ -2469,6 +2484,12 @@ static void node_draw_extra_info_row(const bNode &node,
   const float but_icon_width = NODE_HEADER_ICON_SIZE * 0.8f;
   const float but_icon_right = but_icon_left + but_icon_width;
 
+  void *tooltip_arg = extra_info_row.tooltip_fn_arg;
+  if (tooltip_arg && extra_info_row.tooltip_fn_free_arg) {
+    BLI_assert(extra_info_row.tooltip_fn_copy_arg);
+    tooltip_arg = extra_info_row.tooltip_fn_copy_arg(tooltip_arg);
+  }
+
   UI_block_emboss_set(&block, ui::EmbossType::None);
   uiBut *but_icon = uiDefIconBut(&block,
                                  ButType::But,
@@ -2483,10 +2504,8 @@ static void node_draw_extra_info_row(const bNode &node,
                                  0,
                                  extra_info_row.tooltip);
   if (extra_info_row.tooltip_fn != nullptr) {
-    UI_but_func_tooltip_set(but_icon,
-                            extra_info_row.tooltip_fn,
-                            extra_info_row.tooltip_fn_arg,
-                            extra_info_row.tooltip_fn_free_arg);
+    UI_but_func_tooltip_set(
+        but_icon, extra_info_row.tooltip_fn, tooltip_arg, extra_info_row.tooltip_fn_free_arg);
   }
   UI_block_emboss_set(&block, ui::EmbossType::Emboss);
 
@@ -2509,8 +2528,7 @@ static void node_draw_extra_info_row(const bNode &node,
 
   if (extra_info_row.tooltip_fn != nullptr) {
     /* Don't pass tooltip free function because it's already used on the uiBut above. */
-    UI_but_func_tooltip_set(
-        but_text, extra_info_row.tooltip_fn, extra_info_row.tooltip_fn_arg, nullptr);
+    UI_but_func_tooltip_set(but_text, extra_info_row.tooltip_fn, tooltip_arg, nullptr);
   }
 
   if (node.is_muted()) {
