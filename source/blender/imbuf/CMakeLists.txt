@@ -168,5 +168,4 @@ if(WITH_GTESTS)
     tests/IMB_transform_test.cc
   )
   blender_add_test_suite_lib(imbuf "${TEST_SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-  add_subdirectory(tests/performance)
 endif()
