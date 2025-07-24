@@ -6396,16 +6396,16 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem geometry_items[] = {
-    {MOD_OCEAN_GEOM_GENERATE,
-     "GENERATE",
-     0,
-     "Generate",
-     "Generate ocean surface geometry at the specified resolution"},
-    {MOD_OCEAN_GEOM_DISPLACE,
-     "DISPLACE",
-     0,
-     "Displace",
-     "Displace existing geometry according to simulation"},
+      {MOD_OCEAN_GEOM_GENERATE,
+       "GENERATE",
+       0,
+       "Generate",
+       "Generate ocean surface geometry at the specified resolution"},
+      {MOD_OCEAN_GEOM_DISPLACE,
+       "DISPLACE",
+       0,
+       "Displace",
+       "Displace existing geometry according to simulation"},
 #  if 0
     {MOD_OCEAN_GEOM_SIM_ONLY,
      "SIM_ONLY",
@@ -6413,7 +6413,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
      "Sim Only",
      "Leaves geometry unchanged, but still runs simulation (to be used from texture)"},
 #  endif
-    {0, nullptr, 0, nullptr, nullptr},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem spectrum_items[] = {
@@ -6643,7 +6643,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "sharpen_peak_jonswap");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 0.0, 1.0);
-  RNA_def_property_ui_text(prop, "Sharpen peak", "Peak sharpening for 'JONSWAP' and 'TMA' models");
+  RNA_def_property_ui_text(prop, "Sharpen Peak", "Peak sharpening for 'JONSWAP' and 'TMA' models");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
   prop = RNA_def_property(srna, "random_seed", PROP_INT, PROP_UNSIGNED);
