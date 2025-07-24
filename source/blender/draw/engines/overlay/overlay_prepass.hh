@@ -130,6 +130,10 @@ class Prepass : Overlay {
 
   void particle_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res, const State &state)
   {
+    if (state.skip_particles) {
+      return;
+    }
+
     Object *ob = ob_ref.object;
 
     ResourceHandleRange handle = {};

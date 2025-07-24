@@ -145,6 +145,8 @@ struct State {
   bool is_image_render = false;
   /** True if rendering only to query the depth. Can be for auto-depth rotation. */
   bool is_depth_only_drawing = false;
+  /** Skip drawing particle systems. Prevents self-occlusion issues in Particle Edit mode. */
+  bool skip_particles = false;
   /** When drag-dropping material onto objects to assignment. */
   bool is_material_select = false;
   /** Whether we should render the background or leave it transparent. */
