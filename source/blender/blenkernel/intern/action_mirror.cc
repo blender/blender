@@ -21,6 +21,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -446,7 +447,7 @@ static void action_flip_pchan_rna_paths(bAction *act)
     char name_flip[MAXBONENAME];
     BLI_string_flip_side_name(name_flip, agrp->name, false, sizeof(name_flip));
     if (!STREQ(name_flip, agrp->name)) {
-      STRNCPY(agrp->name, name_flip);
+      STRNCPY_UTF8(agrp->name, name_flip);
     }
   }
 }

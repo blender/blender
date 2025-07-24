@@ -16,6 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_span.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -1635,7 +1636,7 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
   *tgrp = bActionGroup{};
   tgrp->cs = ThemeWireColor{};
   tgrp->flag |= (AGRP_EXPANDED | AGRP_TEMP | AGRP_EXPANDED_G);
-  STRNCPY(tgrp->name, "#TempGroup");
+  STRNCPY_UTF8(tgrp->name, "#TempGroup");
 
   /* Move any action-channels not already moved, to the temp group */
   if (act->curves.first) {

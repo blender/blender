@@ -1793,7 +1793,7 @@ bActionGroup *BKE_pose_add_group(bPose *pose, const char *name)
   }
 
   grp = MEM_callocN<bActionGroup>("PoseGroup");
-  STRNCPY(grp->name, name);
+  STRNCPY_UTF8(grp->name, name);
   BLI_addtail(&pose->agroups, grp);
   BLI_uniquename(&pose->agroups, grp, name, '.', offsetof(bActionGroup, name), sizeof(grp->name));
 
