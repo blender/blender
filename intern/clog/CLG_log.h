@@ -111,6 +111,7 @@ void CLG_logf(const CLG_LogType *lg,
               const char *fn,
               const char *format,
               ...) _CLOG_ATTR_NONNULL(1, 3, 4, 5) _CLOG_ATTR_PRINTF_FORMAT(5, 6);
+void CLG_log_raw(const CLG_LogType *lg, const char *message);
 
 /* Main initializer and destructor (per session, not logger). */
 void CLG_init();
