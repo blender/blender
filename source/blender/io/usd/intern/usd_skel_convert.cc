@@ -485,6 +485,10 @@ void import_blendshapes(Main *bmain,
     /* Add the key block. */
     kb = BKE_keyblock_add(key, blendshapes[i].GetString().c_str());
     BKE_keyblock_convert_from_mesh(mesh, key, kb);
+    if (!kb->data) {
+      /* Nothing to do. This can happen if the mesh has no vertices. */
+      continue;
+    }
 
     /* if authored, point indices are indices into the original mesh
      * that correspond to the values in the offsets array. */
