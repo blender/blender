@@ -25,18 +25,18 @@
 
 #include <sys/sysctl.h>
 
+#import <GameController/GameController.h>
 #import <MetalKit/MTKDefines.h>
 #import <MetalKit/MTKView.h>
 #import <UIKit/UIKit.h>
-#import <GameController/GameController.h>
 
 #include <unordered_map>
 
-//#define IOS_INPUT_LOGGING
+// #define IOS_INPUT_LOGGING
 #if defined(IOS_INPUT_LOGGING)
-#define IOS_INPUT_LOG(format, ...) NSLog(format, __VA_ARGS__)
+#  define IOS_INPUT_LOG(format, ...) NSLog(format, __VA_ARGS__)
 #else
-#define IOS_INPUT_LOG(format, ...)
+#  define IOS_INPUT_LOG(format, ...)
 #endif
 
 extern "C" {
@@ -72,24 +72,27 @@ typedef struct UserInputEvent {
   CGPoint translation;
   CGFloat distance;
   bool pencil_used;
-  
-  UserInputEvent(CGPoint *loc, CGPoint *tran, CGFloat *dist, bool pencil) {
+
+  UserInputEvent(CGPoint *loc, CGPoint *tran, CGFloat *dist, bool pencil)
+  {
     num_events = 0;
     location = loc ? *loc : CGPointMake(-1.0f, -1.0f);
-    translation = tran ? *tran :  CGPointMake(0.0f, 0.0f);
+    translation = tran ? *tran : CGPointMake(0.0f, 0.0f);
     distance = dist ? *dist : 0.0f;
     pencil_used = pencil;
   }
-  
-  void add_event(EventTypes event_type) {
+
+  void add_event(EventTypes event_type)
+  {
     GHOST_ASSERT(num_events <= sizeof(event_list) / sizeof(*event_list),
                  "add_event: Failed to add event");
     event_list[num_events] = event_type;
     num_events++;
   }
-  
-  NSString *getEventTypeDesc(EventTypes event_type) const {
-    switch(event_type) {
+
+  NSString *getEventTypeDesc(EventTypes event_type) const
+  {
+    switch (event_type) {
       case CURSOR_MOVE:
         return @"CM";
       case PAN_GESTURE:
@@ -102,9 +105,9 @@ typedef struct UserInputEvent {
         return @"LB-DOWN";
       case LEFT_BUTTON_UP:
         return @"LB-UP";
-     }
+    }
   }
-  
+
 } UserInputEvent;
 
 GHOST_WindowIOS *main_window = nullptr;
@@ -174,7 +177,6 @@ GHOST_WindowIOS *main_window = nullptr;
 @interface GHOSTUIHoverGestureRecognizer : UIHoverGestureRecognizer
 - (CGPoint)getScaledTouchPoint:(GHOST_WindowIOS *)window;
 @end
-
 
 @implementation GHOSTUIHoverGestureRecognizer
 
@@ -250,13 +252,13 @@ GHOST_WindowIOS *main_window = nullptr;
   GHOSTUIPanGestureRecognizer *pan2f_gesture_recognizer;
   GHOSTUIPinchGestureRecognizer *zoom_gesture_recognizer;
   GHOSTUIHoverGestureRecognizer *hover_gesture_recognizer;
-  //GHOSTUILongPressGestureRecognizer *long_press_gesture_recognizer;
-  
+  // GHOSTUILongPressGestureRecognizer *long_press_gesture_recognizer;
+
   /* Data from the Apple pencil */
   UITouch *current_pencil_touch;
   GHOST_TabletData tablet_data;
   bool last_tap_with_pencil;
-  
+
   /* Keyboard handling. */
   UITextField *text_field;
   NSString *original_text;
@@ -264,7 +266,7 @@ GHOST_WindowIOS *main_window = nullptr;
   const char *text_field_string;
   GHOST_KeyboardProperties current_keyboard_properties;
   bool external_keyboard_connected;
-  
+
   /* Toolbar */
   bool toolbar_enabled;
   UIToolbar *toolbar;
@@ -292,9 +294,9 @@ GHOST_WindowIOS *main_window = nullptr;
 /* On screen keyboard handling */
 - (UITextField *)getUITextField;
 - (const GHOST_TabletData)getTabletData;
-- (GHOST_TSuccess)popupOnscreenKeyboard:(const GHOST_KeyboardProperties&)keyboard_properties;
+- (GHOST_TSuccess)popupOnscreenKeyboard:(const GHOST_KeyboardProperties &)keyboard_properties;
 - (GHOST_TSuccess)hideOnscreenKeyboard;
-- (const char*)getLastKeyboardString;
+- (const char *)getLastKeyboardString;
 @end
 
 @implementation GHOSTUIWindow
@@ -313,7 +315,7 @@ GHOST_WindowIOS *main_window = nullptr;
   toolbar = nil;
   last_tap_with_pencil = false;
   external_keyboard_connected = [GCKeyboard coalescedKeyboard] != nil;
-         
+
   /* Register for notifications of chnanges to the onscreen keyboard. */
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(keyboardWillChange:)
@@ -327,7 +329,7 @@ GHOST_WindowIOS *main_window = nullptr;
                                            selector:@selector(keyboardWillChange:)
                                                name:UIKeyboardWillHideNotification
                                              object:nil];
-  
+
   /* Check whether we've linked the GameController framework. */
   if (&GCKeyboardDidConnectNotification != NULL) {
     /* Register for notifcations an external keyboard has been added/removed. */
@@ -335,7 +337,7 @@ GHOST_WindowIOS *main_window = nullptr;
                                              selector:@selector(externalKeyboardChange:)
                                                  name:GCKeyboardDidConnectNotification
                                                object:nil];
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(externalKeyboardChange:)
                                                  name:GCKeyboardDidDisconnectNotification
@@ -348,51 +350,52 @@ GHOST_WindowIOS *main_window = nullptr;
   /** Create Gesture recognisers. */
   /* Tap gesture recognizer. */
   tap_gesture_recognizer = [[GHOSTUITapGestureRecognizer alloc]
-                            initWithTarget:self
-                            action:@selector(handleTap:)];
+      initWithTarget:self
+              action:@selector(handleTap:)];
   tap_gesture_recognizer.delegate = self;
   tap_gesture_recognizer.cancelsTouchesInView = false;
-  tap_gesture_recognizer.allowedTouchTypes = @[@(UITouchTypePencil), @(UITouchTypeDirect)];
+  tap_gesture_recognizer.allowedTouchTypes = @[ @(UITouchTypePencil), @(UITouchTypeDirect) ];
   [window->getView() addGestureRecognizer:tap_gesture_recognizer];
-  
+
   /* Pan gesture recognizer - static UI. */
   pan_gesture_recognizer = [[GHOSTUIPanGestureRecognizer alloc]
-                            initWithTarget:self
-                            action:@selector(handlePan:)];
+      initWithTarget:self
+              action:@selector(handlePan:)];
   pan_gesture_recognizer.delegate = self;
   pan_gesture_recognizer.cancelsTouchesInView = false;
   /* Allow scrolling only with a single finger. */
   pan_gesture_recognizer.minimumNumberOfTouches = 1;
   pan_gesture_recognizer.maximumNumberOfTouches = 1;
   /* Allow finger and pencil. */
-  pan_gesture_recognizer.allowedTouchTypes = @[@(UITouchTypePencil), @(UITouchTypeDirect)];
+  pan_gesture_recognizer.allowedTouchTypes = @[ @(UITouchTypePencil), @(UITouchTypeDirect) ];
   [window->getView() addGestureRecognizer:pan_gesture_recognizer];
-  
+
   /* Pan gesture recognizer - two fingers 3D UI. */
   pan2f_gesture_recognizer = [[GHOSTUIPanGestureRecognizer alloc]
-                              initWithTarget:self
-                              action:@selector(handlePan2f:)];
+      initWithTarget:self
+              action:@selector(handlePan2f:)];
   pan2f_gesture_recognizer.delegate = self;
   pan2f_gesture_recognizer.cancelsTouchesInView = false;
   /* Two finger gestures only.  */
   pan2f_gesture_recognizer.minimumNumberOfTouches = 2;
   pan2f_gesture_recognizer.maximumNumberOfTouches = 2;
   [window->getView() addGestureRecognizer:pan2f_gesture_recognizer];
-  
+
   /* Pinch/Zoom gesture recognizer. */
   zoom_gesture_recognizer = [[GHOSTUIPinchGestureRecognizer alloc]
-                             initWithTarget:self
-                             action:@selector(handleZoom:)];
+      initWithTarget:self
+              action:@selector(handleZoom:)];
   zoom_gesture_recognizer.delegate = self;
   zoom_gesture_recognizer.cancelsTouchesInView = false;
   [window->getView() addGestureRecognizer:zoom_gesture_recognizer];
-  
+
   /* Apple Pencil hover recognizer. */
   hover_gesture_recognizer = [[GHOSTUIHoverGestureRecognizer alloc]
-                              initWithTarget:self action:@selector(handleHover:)];
+      initWithTarget:self
+              action:@selector(handleHover:)];
   hover_gesture_recognizer.delegate = self;
   [window->getView() addGestureRecognizer:hover_gesture_recognizer];
-  
+
   current_pencil_touch = nil;
 }
 
@@ -406,63 +409,73 @@ GHOST_WindowIOS *main_window = nullptr;
   @synchronized(self) {
     for (int i = 0; i < event_info.num_events; i++) {
       UserInputEvent::EventTypes event_type = event_info.event_list[i];
-      IOS_INPUT_LOG(@"%d-%@ %f,%f",i,event_info.getEventTypeDesc(event_type),event_info.location.x,event_info.location.y);
-      
-      switch(event_type) {
+      IOS_INPUT_LOG(@"%d-%@ %f,%f",
+                    i,
+                    event_info.getEventTypeDesc(event_type),
+                    event_info.location.x,
+                    event_info.location.y);
+
+      switch (event_type) {
         case UserInputEvent::EventTypes::CURSOR_MOVE:
-          system->pushEvent(new GHOST_EventCursor(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                                  GHOST_kEventCursorMove,
-                                                  window,
-                                                  event_info.location.x,
-                                                  event_info.location.y,
-                                                  tablet_data));
+          system->pushEvent(
+              new GHOST_EventCursor(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
+                                    GHOST_kEventCursorMove,
+                                    window,
+                                    event_info.location.x,
+                                    event_info.location.y,
+                                    tablet_data));
           break;
         case UserInputEvent::EventTypes::PAN_GESTURE:
-          system->pushEvent(new GHOST_EventTrackpad(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                                    window,
-                                                    GHOST_kTrackpadEventScroll,
-                                                    event_info.location.x,
-                                                    event_info.location.y,
-                                                    event_info.translation.x,
-                                                    event_info.translation.y,
-                                                    false,
-                                                    1));
+          system->pushEvent(
+              new GHOST_EventTrackpad(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
+                                      window,
+                                      GHOST_kTrackpadEventScroll,
+                                      event_info.location.x,
+                                      event_info.location.y,
+                                      event_info.translation.x,
+                                      event_info.translation.y,
+                                      false,
+                                      1));
           break;
         case UserInputEvent::EventTypes::PAN_GESTURE_TWO_FINGERS:
-          system->pushEvent(new GHOST_EventTrackpad(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                                    window,
-                                                    GHOST_kTrackpadEventScroll,
-                                                    event_info.location.x,
-                                                    event_info.location.y,
-                                                    event_info.translation.x,
-                                                    event_info.translation.y,
-                                                    true,
-                                                    2));
+          system->pushEvent(
+              new GHOST_EventTrackpad(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
+                                      window,
+                                      GHOST_kTrackpadEventScroll,
+                                      event_info.location.x,
+                                      event_info.location.y,
+                                      event_info.translation.x,
+                                      event_info.translation.y,
+                                      true,
+                                      2));
           break;
         case UserInputEvent::EventTypes::LEFT_BUTTON_DOWN:
-          system->pushEvent(new GHOST_EventButton(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                                  GHOST_kEventButtonDown,
-                                                  window,
-                                                  GHOST_kButtonMaskLeft,
-                                                  tablet_data));
+          system->pushEvent(
+              new GHOST_EventButton(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
+                                    GHOST_kEventButtonDown,
+                                    window,
+                                    GHOST_kButtonMaskLeft,
+                                    tablet_data));
           break;
         case UserInputEvent::EventTypes::LEFT_BUTTON_UP:
-          system->pushEvent(new GHOST_EventButton(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                                  GHOST_kEventButtonUp,
-                                                  window,
-                                                  GHOST_kButtonMaskLeft,
-                                                  tablet_data));
+          system->pushEvent(
+              new GHOST_EventButton(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
+                                    GHOST_kEventButtonUp,
+                                    window,
+                                    GHOST_kButtonMaskLeft,
+                                    tablet_data));
           break;
         case UserInputEvent::EventTypes::PINCH_GESTURE:
-          system->pushEvent(new GHOST_EventTrackpad(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
-                                                    window,
-                                                    GHOST_kTrackpadEventMagnify,
-                                                    event_info.location.x,
-                                                    event_info.location.y,
-                                                    event_info.distance,
-                                                    0,
-                                                    false,
-                                                    2));
+          system->pushEvent(
+              new GHOST_EventTrackpad(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
+                                      window,
+                                      GHOST_kTrackpadEventMagnify,
+                                      event_info.location.x,
+                                      event_info.location.y,
+                                      event_info.distance,
+                                      0,
+                                      false,
+                                      2));
           break;
         default:
           GHOST_ASSERT(FALSE, "GHOST_SystemIOS::generateUserInputEvents unsupported event type");
@@ -473,8 +486,8 @@ GHOST_WindowIOS *main_window = nullptr;
 
 /* Allow simultaneous gestures for two finger pans and zooms but nothing else. */
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
-shouldRecognizeSimultaneouslyWithGestureRecognizer:
-(UIGestureRecognizer *)otherGestureRecognizer
+    shouldRecognizeSimultaneouslyWithGestureRecognizer:
+        (UIGestureRecognizer *)otherGestureRecognizer
 {
   if (gestureRecognizer == pan2f_gesture_recognizer &&
       otherGestureRecognizer == zoom_gesture_recognizer)
@@ -493,7 +506,7 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
   [super touchesBegan:touches withEvent:event];
-  
+
   for (UITouch *touch in touches) {
     if (touch.type == UITouchTypePencil) {
       current_pencil_touch = touch;
@@ -506,29 +519,31 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
 - (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
   [super touchesMoved:touches withEvent:event];
-  
+
   /* Check if one of the touches was from a pencil. */
   if (current_pencil_touch) {
     /* Iterate through all pencil touches. */
     for (UITouch *touch in touches) {
       if (touch.type == UITouchTypePencil) {
         current_pencil_touch = touch;
-        
+
         tablet_data.Active = GHOST_kTabletModeStylus;
-        
+
         /* Map apple pessure Range to Blender range: 0.0 (not touching) to 1.0 (full pressure). */
-        tablet_data.Pressure = current_pencil_touch.force / current_pencil_touch.maximumPossibleForce;
-        
+        tablet_data.Pressure = current_pencil_touch.force /
+                               current_pencil_touch.maximumPossibleForce;
+
         CGFloat azimuthAngle = [current_pencil_touch azimuthAngleInView:window->getView()];
         CGFloat altitudeAngle = [current_pencil_touch altitudeAngle];
-        
+
         /* Calculate the maximum possible tilt (1.0) when altitude is 0. */
         CGFloat maxTilt = cos(0);
-        
+
         /* Convert to x and y tilt - range -1.0 (left) to +1.0 (right). */
-        tablet_data.Xtilt =  sin(azimuthAngle) * cos(altitudeAngle) / maxTilt;
+        tablet_data.Xtilt = sin(azimuthAngle) * cos(altitudeAngle) / maxTilt;
         tablet_data.Ytilt = -cos(azimuthAngle) * cos(altitudeAngle) / maxTilt;
-        IOS_INPUT_LOG(@"TABLET: X:%f,Y:%f,P:%f",tablet_data.Xtilt, tablet_data.Ytilt, tablet_data.Pressure);
+        IOS_INPUT_LOG(
+            @"TABLET: X:%f,Y:%f,P:%f", tablet_data.Xtilt, tablet_data.Ytilt, tablet_data.Pressure);
         break;
       }
     }
@@ -536,14 +551,16 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
 }
 
 /* Reset tablet data. */
-- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
   [super touchesEnded:touches withEvent:event];
   current_pencil_touch = nil;
   tablet_data = GHOST_TABLET_DATA_NONE;
 }
 
 /* Reset tablet data. */
-- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
   [super touchesCancelled:touches withEvent:event];
   current_pencil_touch = nil;
   tablet_data = GHOST_TABLET_DATA_NONE;
@@ -554,14 +571,14 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   CGPoint touch_point = [sender getScaledTouchPoint:window];
   last_tap_with_pencil = current_pencil_touch ? true : false;
   UserInputEvent event_info(&touch_point, nullptr, nullptr, last_tap_with_pencil);
-  
+
   /* Send events to indicate a 'click' on event end. */
   if (sender.state == UIGestureRecognizerStateEnded) {
     event_info.add_event(UserInputEvent::EventTypes::CURSOR_MOVE);
     event_info.add_event(UserInputEvent::EventTypes::LEFT_BUTTON_DOWN);
     event_info.add_event(UserInputEvent::EventTypes::LEFT_BUTTON_UP);
   }
-  
+
   [self generateUserInputEvents:event_info];
 }
 
@@ -570,9 +587,9 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   CGPoint touch_point = [sender getScaledTouchPoint:window];
   CGPoint translation = [sender getScaledTranslation:window];
   bool pencil_pan = current_pencil_touch ? true : false;
-  
+
   UserInputEvent event_info(&touch_point, nullptr, nullptr, pencil_pan);
-  
+
   if (sender.state == UIGestureRecognizerStateBegan ||
       sender.state == UIGestureRecognizerStateChanged)
   {
@@ -583,23 +600,23 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
       event_info.add_event(UserInputEvent::EventTypes::CURSOR_MOVE);
       event_info.add_event(UserInputEvent::EventTypes::LEFT_BUTTON_DOWN);
     }
-    
+
     /* Calculate translation change since last begin/change event */
     CGPoint relative_translation = [sender getRelativeTranslation:translation];
     /* Update cached translation */
     [sender setCachedTranslation:translation];
     /* Send pan event if non zero */
-    if (!CGPointEqualToPoint(relative_translation,CGPointMake(0.0f,0.0f))) {
+    if (!CGPointEqualToPoint(relative_translation, CGPointMake(0.0f, 0.0f))) {
       event_info.translation = relative_translation;
       event_info.add_event(UserInputEvent::EventTypes::PAN_GESTURE);
     }
-    
+
     /* Update cursor position on change */
     if (sender.state == UIGestureRecognizerStateChanged) {
       event_info.add_event(UserInputEvent::EventTypes::CURSOR_MOVE);
     }
   }
-  
+
   /* Mouse release for pan. */
   if (sender.state == UIGestureRecognizerStateEnded ||
       sender.state == UIGestureRecognizerStateCancelled ||
@@ -617,15 +634,15 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
       sender.state == UIGestureRecognizerStateChanged)
   {
     CGPoint translation = [sender getScaledTranslation:window];
-    
+
     /* Calculate translation relative to previous cached value. */
     CGPoint relative_translation = [sender getRelativeTranslation:translation];
-    
+
     /* Cache new translation. */
     [sender setCachedTranslation:translation];
-    
+
     /* Generate pan event if translation is non zero. */
-    if (!CGPointEqualToPoint(relative_translation,CGPointMake(0.0f,0.0f))) {
+    if (!CGPointEqualToPoint(relative_translation, CGPointMake(0.0f, 0.0f))) {
       CGPoint touch_point = [sender getScaledTouchPoint:window];
       bool pencil_pan = current_pencil_touch ? true : false;
       UserInputEvent event_info(&touch_point, &relative_translation, nullptr, pencil_pan);
@@ -634,8 +651,9 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
     }
   }
   else if (sender.state == UIGestureRecognizerStateEnded ||
-           sender.state == UIGestureRecognizerStateCancelled||
-           sender.state == UIGestureRecognizerStateFailed) {
+           sender.state == UIGestureRecognizerStateCancelled ||
+           sender.state == UIGestureRecognizerStateFailed)
+  {
     /* Set translation back to zero. */
     [sender setCachedTranslation:CGPointMake(0.0f, 0.0f)];
   }
@@ -657,7 +675,8 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   }
   else if (sender.state == UIGestureRecognizerStateEnded ||
            sender.state == UIGestureRecognizerStateCancelled ||
-           sender.state == UIGestureRecognizerStateFailed) {
+           sender.state == UIGestureRecognizerStateFailed)
+  {
     tablet_data = GHOST_TABLET_DATA_NONE;
   }
 }
@@ -668,28 +687,27 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   if ([sender numberOfTouches] < 2) {
     return;
   }
-  
+
   /* Pinch/Zoom gestures */
-  if (sender.state == UIGestureRecognizerStateBegan)
-  {
+  if (sender.state == UIGestureRecognizerStateBegan) {
     /* Set an initial distance value. */
     CGFloat point_distance = [sender getScaledDistance:window];
     [sender setCachedDistance:point_distance];
   }
-  else if(sender.state == UIGestureRecognizerStateChanged) {
-    
+  else if (sender.state == UIGestureRecognizerStateChanged) {
+
     /* Calculate change in distance since last event */
     CGFloat point_distance = [sender getScaledDistance:window];
     CGFloat relative_dist = point_distance - [sender getCachedDistance];
-    
+
     /* Updated cached distance. */
     [sender setCachedDistance:point_distance];
-    
+
     /* Send pinch/zoom event. */
     if (fabs(relative_dist) > 0.0) {
       /* Calculate midpoint between the two touch points. */
       CGPoint midPoint = [sender getPinchMidpoint:window];
-      
+
       UserInputEvent event_info(&midPoint, nullptr, &relative_dist, false);
       event_info.add_event(UserInputEvent::EventTypes::PINCH_GESTURE);
       [self generateUserInputEvents:event_info];
@@ -698,7 +716,8 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   /* Nothing to do here. */
   else if (sender.state == UIGestureRecognizerStateEnded ||
            sender.state == UIGestureRecognizerStateCancelled ||
-           sender.state == UIGestureRecognizerStateFailed) {
+           sender.state == UIGestureRecognizerStateFailed)
+  {
   }
 }
 
@@ -725,38 +744,42 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   toolbar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
   toolbar.translatesAutoresizingMaskIntoConstraints = NO;
   [toolbar sizeToFit];
-  
+
   toolbar_tip_item = [[UIBarButtonItem alloc] initWithTitle:@""
                                                       style:UIBarButtonItemStylePlain
                                                      target:nil
                                                      action:nil];
-  
+
   toolbar_live_text_item = [[UIBarButtonItem alloc] initWithTitle:@""
                                                             style:UIBarButtonItemStylePlain
                                                            target:nil
                                                            action:nil];
-  
-  toolbar_done_editing_item = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
-                                                                            target:nil
-                                                                            action:@selector(handleDoneButton)];
-  
-  toolbar_cancel_editing_item = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
-                                                                              target:nil
-                                                                              action:@selector(handleCancelButton)];
-  
+
+  toolbar_done_editing_item = [[UIBarButtonItem alloc]
+      initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+                           target:nil
+                           action:@selector(handleDoneButton)];
+
+  toolbar_cancel_editing_item = [[UIBarButtonItem alloc]
+      initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
+                           target:nil
+                           action:@selector(handleCancelButton)];
+
   /* Prevents editing of tip and live text fields. */
   toolbar_tip_item.enabled = NO;
   toolbar_live_text_item.enabled = NO;
   toolbar_live_text_item.tintColor = UIColor.blackColor;
-  
+
   /* Set the live text to a fixed width. */
   /* IOS_FIXME - should this be set dynamically? Need to move out of init if so. */
   toolbar_live_text_item.width = 150.0f;
-  
-  toolbar.items = @[toolbar_tip_item,
-                    toolbar_live_text_item,
-                    toolbar_done_editing_item,
-                    toolbar_cancel_editing_item];
+
+  toolbar.items = @[
+    toolbar_tip_item,
+    toolbar_live_text_item,
+    toolbar_done_editing_item,
+    toolbar_cancel_editing_item
+  ];
 }
 
 - (void)generateKeyboardReturnEvent
@@ -793,7 +816,7 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
 - (void)handleKeyboardEditChange:(UITextField *)text_field
 {
   @synchronized(self) {
-    
+
     /* Update the text in the tool bar as the edits arrive. */
     if (toolbar_live_text_item) {
       toolbar_live_text_item.title = text_field.text;
@@ -802,13 +825,13 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
       [toolbar layoutIfNeeded];
     }
     IOS_INPUT_LOG(@"Keyboard Edit change detected %@", text_field.text);
-    
+
     /* IOS_FIXME - Enabling this will propogate text changes back into the Blender text field
      as they happen. Since pushing back individual key presses appears to be difficult this
      might be the best we can do. However this currently causes a segmentation fault if you delete
      text as the Blender-side string ends up being NULL in some cases. */
     bool push_edits_back_to_blender = false;
-    
+
     if (push_edits_back_to_blender) {
       system->pushEvent(new GHOST_EventKey(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
                                            GHOST_kEventKeyDown,
@@ -864,31 +887,31 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   /* Initialise it if we have not already done so. */
   if (!text_field) {
     text_field = [[UITextField alloc] init];
-    
+
     text_field.contentScaleFactor = window->getWindowScaleFactor();
-    
+
     if (toolbar_enabled) {
       [self initToolbar];
       text_field.inputAccessoryView = toolbar;
     }
-    
+
     [window->rootWindow addSubview:text_field];
-    
+
     /* Add a handler for when 'return' is pressed on keyboard. */
     [text_field addTarget:self
                    action:@selector(handleKeyboardReturn:)
          forControlEvents:UIControlEventEditingDidEndOnExit];
-    
+
     /* Add a handler for when the text field changes. */
     [text_field addTarget:self
                    action:@selector(handleKeyboardEditChange:)
          forControlEvents:UIControlEventEditingChanged];
-    
+
     /* Add a handler for when user edits a text field. */
     [text_field addTarget:self
                    action:@selector(handleKeyboardEditBegin:)
          forControlEvents:UIControlEventEditingDidBegin];
-    
+
     /* Add a handler for when user finishes editing a text field. */
     [text_field addTarget:self
                    action:@selector(handleKeyboardEditEnd:)
@@ -904,10 +927,10 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
 {
   float pixelScale = window->getWindowScaleFactor();
   CGSize logicalWindowSize = window->getLogicalWindowSize();
-  
+
   *displayX = (double)windowX / pixelScale;
   *displayY = (double)windowY / pixelScale;
-  
+
   if (flipY) {
     *displayY = logicalWindowSize.height - *displayY;
   }
@@ -918,16 +941,16 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   return text_field;
 }
 
-- (void)setupKeyboard:(const GHOST_KeyboardProperties&)keyboard_properties
+- (void)setupKeyboard:(const GHOST_KeyboardProperties &)keyboard_properties
 {
   /* Initialise it if we have not already done so */
   if (!text_field) {
     [self initUITextField];
   }
-  
+
   /* Save this set of keyboard properties */
   current_keyboard_properties = keyboard_properties;
-  
+
   /* Convert the text box coords to display coords */
   CGRect displayRect;
   [self convertWindowCoordToDisplayCoordWithWindow:keyboard_properties.text_box_origin[0]
@@ -935,21 +958,25 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
                                           displayX:&displayRect.origin.x
                                           displayY:&displayRect.origin.y
                                              flipY:true];
-  
+
   [self convertWindowCoordToDisplayCoordWithWindow:keyboard_properties.text_box_size[0]
                                            windowY:keyboard_properties.text_box_size[1]
                                           displayX:&displayRect.size.width
                                           displayY:&displayRect.size.height
                                              flipY:false];
-  
+
   /* Where to display the text on-screen. */
   text_field.frame = displayRect;
-  
+
   /* Initialise text with existing string. */
-  text_field.text = keyboard_properties.text_string ? [NSString stringWithUTF8String:keyboard_properties.text_string] : @"";
+  text_field.text = keyboard_properties.text_string ?
+                        [NSString stringWithUTF8String:keyboard_properties.text_string] :
+                        @"";
   /* Take a copy of the string so we can restore it if neccessary */
-  original_text = keyboard_properties.text_string ? [NSString stringWithUTF8String:keyboard_properties.text_string] : @"";
-  
+  original_text = keyboard_properties.text_string ?
+                      [NSString stringWithUTF8String:keyboard_properties.text_string] :
+                      @"";
+
   /* Set keyboard type and text alignment.
    * NOTE - the keyboard type is only honoured if using an Apple
    * pencil or if the keyboard is floating.
@@ -979,79 +1006,80 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   /* Reset keyboard type to default if not using Apple Pencil
    * or it's not floating. (Need to add floating detection.) */
   if (!last_tap_with_pencil) {
-    //text_field.keyboardType = UIKeyboardTypeDefault;
+    // text_field.keyboardType = UIKeyboardTypeDefault;
   }
-  
+
   /* Set light/dark mode or adopt system default. */
   text_field.keyboardAppearance = UIKeyboardAppearanceDefault;
-  
+
   /* This seems sensible given Blender's typical behaviour. */
   text_field.autocorrectionType = UITextAutocorrectionTypeNo;
   text_field.spellCheckingType = UITextSpellCheckingTypeNo;
-  
+
   /* Set font size. */
   float fontSize = keyboard_properties.font_size / window->getWindowScaleFactor();
   text_field.font = [UIFont systemFontOfSize:fontSize];
-  
+
   /* Set font color. */
   text_field.textColor = [UIColor colorWithRed:keyboard_properties.font_color[0]
                                          green:keyboard_properties.font_color[1]
                                           blue:keyboard_properties.font_color[2]
                                          alpha:keyboard_properties.font_color[3]];
-  
+
   /* Initial highlighting and text-cursor position. */
-  switch (keyboard_properties.inital_text_state)
-  {
-    case GHOST_KeyboardProperties::select_all_text:
-    {
+  switch (keyboard_properties.inital_text_state) {
+    case GHOST_KeyboardProperties::select_all_text: {
       [text_field selectAll:nil];
       break;
     }
-    case GHOST_KeyboardProperties::select_text_range:
-    {
+    case GHOST_KeyboardProperties::select_text_range: {
       UITextPosition *startPosition = [text_field
-                                       positionFromPosition:text_field.beginningOfDocument
-                                       offset:keyboard_properties.text_select_range[0]];
+          positionFromPosition:text_field.beginningOfDocument
+                        offset:keyboard_properties.text_select_range[0]];
       UITextPosition *endPosition = [text_field
-                                     positionFromPosition:text_field.beginningOfDocument
-                                     offset:keyboard_properties.text_select_range[1]];
-      text_field.selectedTextRange = [text_field textRangeFromPosition:startPosition toPosition:endPosition];
+          positionFromPosition:text_field.beginningOfDocument
+                        offset:keyboard_properties.text_select_range[1]];
+      text_field.selectedTextRange = [text_field textRangeFromPosition:startPosition
+                                                            toPosition:endPosition];
       break;
     }
-    case GHOST_KeyboardProperties::move_cursor_to_start:
-    {
+    case GHOST_KeyboardProperties::move_cursor_to_start: {
       UITextPosition *beginning = text_field.beginningOfDocument;
-      text_field.selectedTextRange = [text_field textRangeFromPosition:beginning toPosition:beginning];
+      text_field.selectedTextRange = [text_field textRangeFromPosition:beginning
+                                                            toPosition:beginning];
       break;
     }
-    case GHOST_KeyboardProperties::move_cursor_to_end:
-    {
+    case GHOST_KeyboardProperties::move_cursor_to_end: {
       UITextPosition *end = text_field.endOfDocument;
       text_field.selectedTextRange = [text_field textRangeFromPosition:end toPosition:end];
       break;
     }
-    default:
-    {
+    default: {
       GHOST_ASSERT(FALSE, "GHOST_SystemIOS::setupTextField unsupported text select option");
     }
   }
-  
+
   /* Setup the tool bar if it's enabled. */
   if (toolbar_enabled) {
     toolbar_live_text_item.title = text_field.text;
-    toolbar_tip_item.title  = keyboard_properties.tip_text ? [NSString stringWithCString:keyboard_properties.tip_text
-                                                                                encoding:NSUTF8StringEncoding] : @"";
+    toolbar_tip_item.title = keyboard_properties.tip_text ?
+                                 [NSString stringWithCString:keyboard_properties.tip_text
+                                                    encoding:NSUTF8StringEncoding] :
+                                 @"";
   }
 }
 
-- (void)externalKeyboardChange:(NSNotification *)notification {
+- (void)externalKeyboardChange:(NSNotification *)notification
+{
   external_keyboard_connected = [GCKeyboard coalescedKeyboard] != nil;
-  IOS_INPUT_LOG(@"External Keyboard %@", external_keyboard_connected ? "Connected" : "Disconnected");
+  IOS_INPUT_LOG(@"External Keyboard %@",
+                external_keyboard_connected ? "Connected" : "Disconnected");
 }
 
 /* IOS_FIXME - Not currently used, could be removed. */
-- (void)keyboardWillChange:(NSNotification *)notification {
-  
+- (void)keyboardWillChange:(NSNotification *)notification
+{
+
   CGRect keyboardRect = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
   /* Sometimes we see a zero value for the end-frame value, possibly because... timing? */
   if (keyboardRect.size.width == 0 || keyboardRect.size.height == 0) {
@@ -1064,12 +1092,12 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   return tablet_data;
 }
 
-- (GHOST_TSuccess)popupOnscreenKeyboard:(const GHOST_KeyboardProperties&)keyboard_properties
+- (GHOST_TSuccess)popupOnscreenKeyboard:(const GHOST_KeyboardProperties &)keyboard_properties
 {
   @synchronized(self) {
     IOS_INPUT_LOG(@"Keyboard popup request received %@", text_field.text);
     [self setupKeyboard:keyboard_properties];
-    
+
     if (!onscreen_keyboard_active) {
       text_field.userInteractionEnabled = YES;
       if (![text_field becomeFirstResponder]) {
@@ -1077,7 +1105,6 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
       }
       onscreen_keyboard_active = true;
     }
-    
   }
   return GHOST_kSuccess;
 }
@@ -1087,7 +1114,7 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   /* Lock access around keyboard handling events. */
   @synchronized(self) {
     IOS_INPUT_LOG(@"Keyboard hide request received %@", text_field.text);
-    
+
     if (onscreen_keyboard_active) {
       /*
        This must come first so that any of the keyboard event handlers that get
@@ -1095,15 +1122,16 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
        (like generating events back to Blender)
        */
       onscreen_keyboard_active = false;
-      
+
       /* Shut down the keyboard. */
       [text_field resignFirstResponder];
       /*
        IOS_FIXME - Note: This may cause the console to display the warning message:
        "-[UIApplication _touchesEvent] will no longer work as expected. Please stop using it."
-       But since this is being generated by Apple OS code there's nothing obvious to fix it right now.
+       But since this is being generated by Apple OS code there's nothing obvious to fix it right
+       now.
        */
-      
+
       IOS_INPUT_LOG(@"Resigned keyboard responder");
       /*
        This is required to disable any subsequent interactions with the text field that could
@@ -1111,10 +1139,10 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
        on the view)
        */
       text_field.userInteractionEnabled = NO;
-      
+
       /* Save the input to a c-string */
       text_field_string = [[text_field text] UTF8String];
-      
+
       /* Delete the text field copy of the string */
       text_field.text = nil;
     }
@@ -1123,7 +1151,7 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   return GHOST_kSuccess;
 }
 
-- (const char*)getLastKeyboardString
+- (const char *)getLastKeyboardString
 {
   /* Lock access around keyboard handling events */
   @synchronized(self) {
@@ -1239,19 +1267,19 @@ shouldRecognizeSimultaneouslyWithGestureRecognizer:
   /* Only run loop a single time for the main window. */
   if (main_window) {
     main_window->beginFrame();
-    
+
     /* MAIN LOOP */
     if (C) {
       WM_main_loop_body(C);
     }
-    
+
     /* IOS_FIXME - this utilises the deferred swap buffers path. Will
      * remove when we have proper fix. */
     GHOST_Context *context = main_window->getContext();
     if (context) {
       reinterpret_cast<GHOST_ContextIOS *>(context)->metalSwapBuffers();
     }
-    
+
     main_window->endFrame();
   }
 }
@@ -1406,7 +1434,7 @@ GHOST_WindowIOS::~GHOST_WindowIOS()
     free(m_window_title);
     m_window_title = nullptr;
   }
-  
+
   [pool drain];
 }
 
@@ -1441,7 +1469,7 @@ void GHOST_WindowIOS::setTitle(const char *title)
     free(m_window_title);
     m_window_title = nullptr;
   }
-  m_window_title = (char *)malloc(strlen(title)+1);
+  m_window_title = (char *)malloc(strlen(title) + 1);
   if (!m_window_title) {
     GHOST_ASSERT(getValid(), "GHOST_WindowIOS::setTitle(): Failed to alloc mem for window title");
   }
@@ -1650,7 +1678,7 @@ GHOST_TSuccess GHOST_WindowIOS::setWindowCursorShape(GHOST_TStandardCursor /*sha
 
 GHOST_TSuccess GHOST_WindowIOS::hasCursorShape(GHOST_TStandardCursor /*shape*/)
 {
-   return GHOST_kSuccess;
+  return GHOST_kSuccess;
 }
 
 /** Reverse the bits in a uint16_t */
@@ -1684,7 +1712,8 @@ uint16_t GHOST_WindowIOS::getDPIHint()
   return 144;
 }
 
-GHOST_TSuccess GHOST_WindowIOS::popupOnscreenKeyboard(const GHOST_KeyboardProperties &keyboard_properties)
+GHOST_TSuccess GHOST_WindowIOS::popupOnscreenKeyboard(
+    const GHOST_KeyboardProperties &keyboard_properties)
 {
   GHOSTUIWindow *ghost_rootWindow = (GHOSTUIWindow *)rootWindow;
   return [ghost_rootWindow popupOnscreenKeyboard:keyboard_properties];
@@ -1696,18 +1725,20 @@ GHOST_TSuccess GHOST_WindowIOS::hideOnscreenKeyboard()
   return [ghost_rootWindow hideOnscreenKeyboard];
 }
 
-const char* GHOST_WindowIOS::getLastKeyboardString()
+const char *GHOST_WindowIOS::getLastKeyboardString()
 {
   GHOSTUIWindow *ghost_rootWindow = (GHOSTUIWindow *)rootWindow;
   return [ghost_rootWindow getLastKeyboardString];
 }
 
-UITextField *GHOST_WindowIOS::getUITextField() {
+UITextField *GHOST_WindowIOS::getUITextField()
+{
   GHOSTUIWindow *ghost_rootWindow = (GHOSTUIWindow *)rootWindow;
   return [ghost_rootWindow getUITextField];
 }
 
-const GHOST_TabletData GHOST_WindowIOS::getTabletData() {
+const GHOST_TabletData GHOST_WindowIOS::getTabletData()
+{
   GHOSTUIWindow *ghost_rootWindow = (GHOSTUIWindow *)rootWindow;
   return [ghost_rootWindow getTabletData];
 }
@@ -1724,12 +1755,13 @@ CGSize GHOST_WindowIOS::getNativeWindowSize()
   return m_metalView.drawableSize;
 }
 
-float  GHOST_WindowIOS::getWindowScaleFactor()
+float GHOST_WindowIOS::getWindowScaleFactor()
 {
   return m_metalView.contentScaleFactor;
 }
 
-CGPoint GHOST_WindowIOS::scalePointToWindow(CGPoint &point) {
+CGPoint GHOST_WindowIOS::scalePointToWindow(CGPoint &point)
+{
   CGPoint scaled_point;
   scaled_point.x = point.x * getWindowScaleFactor();
   scaled_point.y = point.y * getWindowScaleFactor();

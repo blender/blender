@@ -177,7 +177,7 @@ const char *BKE_appdir_folder_home()
 #ifdef WITH_APPLE_CROSSPLATFORM
   return BKE_appdir_folder_default_or_root();
 #else
-  return  BLI_dir_home();
+  return BLI_dir_home();
 #endif
 }
 

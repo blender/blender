@@ -19,7 +19,6 @@
 #  define MTL_BACKEND_DESKTOP 1
 #endif
 
-
 /* Flag to skip backend compatibility checks. */
 #define MTL_BACKEND_ALWAYS_SUPPORTED (METAL_PLATFORM_ARM)
 /* Whether we can optionally enable the low-powered iGPU on x86 platforms. */
@@ -32,7 +31,6 @@
 #define MTL_BACKEND_SUPPORTS_D24_S8_SYMBOLS (MTL_BACKEND_DESKTOP)
 /* Whether border colour is supported on the given platform. */
 #define MTL_BACKEND_SUPPORTS_BORDER_COLOR (MTL_BACKEND_DESKTOP)
-
 
 #ifdef WITH_APPLE_CROSSPLATFORM
 #  define GHOST_ContextMTL GHOST_ContextIOS

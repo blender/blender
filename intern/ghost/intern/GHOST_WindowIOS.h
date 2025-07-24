@@ -277,7 +277,7 @@ class GHOST_WindowIOS : public GHOST_Window {
 
   /** \copydoc #GHOST_IWindow::getDPIHint */
   uint16_t getDPIHint();
-  
+
   /** The mother SystemCocoa class to send events */
   GHOST_SystemIOS *m_systemIOS;
 
@@ -291,7 +291,7 @@ class GHOST_WindowIOS : public GHOST_Window {
   bool m_is_dialog;
 
   GHOST_WindowIOS *parent_window_;
-  
+
   char *m_window_title;
 
  public:
@@ -300,21 +300,21 @@ class GHOST_WindowIOS : public GHOST_Window {
     return m_uiview;
   }
   CGPoint scalePointToWindow(CGPoint &point);
-  
+
   void beginFrame();
   void endFrame();
-  
+
   /* Keyboard handling */
   GHOST_TSuccess popupOnscreenKeyboard(const GHOST_KeyboardProperties &keyboard_properties);
   GHOST_TSuccess hideOnscreenKeyboard();
   const GHOST_TabletData getTabletData();
-  UITextField* getUITextField();
-  const char* getLastKeyboardString();
+  UITextField *getUITextField();
+  const char *getLastKeyboardString();
   /* This is the size of the window pre-scaled */
   CGSize getLogicalWindowSize();
   /* This is the size of the window post-scaled */
   CGSize getNativeWindowSize();
-  float  getWindowScaleFactor();
+  float getWindowScaleFactor();
 };
 
 #ifdef WITH_INPUT_IME

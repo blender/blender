@@ -32,7 +32,6 @@ ccl_device void bsdf_ray_portal_setup(ccl_private ShaderData *sd,
 
   sd->closure_transparent_extinction = Spectrum(sd->closure_transparent_extinction) + weight;
 
-
   ccl_private RayPortalClosure *pc = (ccl_private RayPortalClosure *)closure_alloc(
       sd, sizeof(RayPortalClosure), CLOSURE_BSDF_RAY_PORTAL_ID, weight);
 

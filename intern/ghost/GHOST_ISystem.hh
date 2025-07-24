@@ -463,14 +463,14 @@ class GHOST_ISystem {
    * \param selection: The clipboard to copy too only used on X11.
    */
   virtual void putClipboard(const char *buffer, bool selection) const = 0;
-  
+
 #if (WITH_APPLE_CROSSPLATFORM)
-  virtual GHOST_TSuccess popupOnScreenKeyboard(GHOST_IWindow *window,
-                                               const GHOST_KeyboardProperties &keyboard_properties) = 0;
-  
+  virtual GHOST_TSuccess popupOnScreenKeyboard(
+      GHOST_IWindow *window, const GHOST_KeyboardProperties &keyboard_properties) = 0;
+
   virtual GHOST_TSuccess hideOnScreenKeyboard(GHOST_IWindow *window) = 0;
-  
-  virtual const char* getKeyboardInput(GHOST_IWindow *window) = 0;
+
+  virtual const char *getKeyboardInput(GHOST_IWindow *window) = 0;
 #endif
 
   /**

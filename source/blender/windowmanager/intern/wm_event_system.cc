@@ -5430,12 +5430,12 @@ static wmEventType wm_event_type_from_ghost_key(GHOST_TKey key)
 
     case GHOST_kKeyUnknown:
       return EVT_UNKNOWNKEY;
-      
+
 #if (WITH_APPLE_CROSSPLATFORM)
       /* IOS_FIXME - Event to get multi text edit events from iOS into Blender */
     case GHOST_kKeyTextEdit:
       return EVT_TEXTEDIT;
-  
+
 #else
     case GHOST_kKeyF24:
 #endif
@@ -6086,7 +6086,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
        * GHOST should never generate unknown events and this logic can probably be removed. */
       event.val = (type == GHOST_kEventButtonDown) ? KM_PRESS : KM_RELEASE;
       event.type = wm_event_type_from_ghost_button(bd->button, MIDDLEMOUSE);
-      
+
       /* Get tablet data. */
       wm_tablet_data_from_ghost(&bd->tablet, &event.tablet);
 

@@ -108,7 +108,8 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals kg,
   coeff->sigma_s = zero_spectrum();
   coeff->sigma_t = (sd->flag & SD_EXTINCTION) ? Spectrum(sd->closure_transparent_extinction) :
                                                 zero_spectrum();
-  coeff->emission = (sd->flag & SD_EMISSION) ? Spectrum(sd->closure_emission_background): zero_spectrum();
+  coeff->emission = (sd->flag & SD_EMISSION) ? Spectrum(sd->closure_emission_background) :
+                                               zero_spectrum();
 
   if (sd->flag & SD_SCATTER) {
     for (int i = 0; i < sd->num_closure; i++) {

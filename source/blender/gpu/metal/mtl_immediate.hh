@@ -14,7 +14,6 @@
 
 #include "gpu_immediate_private.hh"
 
-
 #include <Metal/Metal.h>
 
 namespace blender::gpu {

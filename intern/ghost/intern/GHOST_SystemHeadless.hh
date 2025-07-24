@@ -88,18 +88,19 @@ class GHOST_SystemHeadless : public GHOST_System {
   { /* nop */
   }
 #if (WITH_APPLE_CROSSPLATFORM)
-  GHOST_TSuccess popupOnScreenKeyboard(GHOST_IWindow */*window*/ ,
-                                       const GHOST_KeyboardProperties &/*keyboard_properties*/) override
+  GHOST_TSuccess popupOnScreenKeyboard(
+      GHOST_IWindow * /*window*/,
+      const GHOST_KeyboardProperties & /*keyboard_properties*/) override
   {
     return GHOST_kSuccess;
   }
 
-  GHOST_TSuccess hideOnScreenKeyboard(GHOST_IWindow */*window*/) override
+  GHOST_TSuccess hideOnScreenKeyboard(GHOST_IWindow * /*window*/) override
   {
     return GHOST_kSuccess;
   }
-  
-  const char* getKeyboardInput(GHOST_IWindow */*window*/) override
+
+  const char *getKeyboardInput(GHOST_IWindow * /*window*/) override
   {
     return nullptr;
   }

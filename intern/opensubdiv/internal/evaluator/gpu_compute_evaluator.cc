@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifdef WITH_OPENGL_BACKEND
-#include <epoxy/gl.h>
+#  include <epoxy/gl.h>
 #endif
 
 #include "gpu_compute_evaluator.h"
@@ -12,7 +12,7 @@
 #include <opensubdiv/far/patchDescriptor.h>
 #include <opensubdiv/far/stencilTable.h>
 #ifdef WITH_OPENGL_BACKEND
-#include <opensubdiv/osd/glslPatchShaderSource.h>
+#  include <opensubdiv/osd/glslPatchShaderSource.h>
 #endif
 
 #include <cassert>

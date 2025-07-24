@@ -333,7 +333,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
      * Retaining Metal 2.2. for old shaders to maintain backwards
      * compatibility for existing features. */
     if (info->subpass_inputs_.is_empty() == false)
-#endif 
+#endif
     {
       options.languageVersion = MTLLanguageVersion2_3;
     }
@@ -371,7 +371,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
        * Required on macOS 11.0. */
       NSString *source_with_header = source_with_header_a;
       [source_with_header retain];
-      
+
       /* Prepare Shader Library. */
       NSError *error = nullptr;
       id<MTLLibrary> library = [device newLibraryWithSource:source_with_header

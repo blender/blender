@@ -57,7 +57,8 @@ template<class T> ccl_device_inline float3 to_local(const T p, const T X, const 
 }
 
 /* Packed float3 version  */
-template<class T, class S> ccl_device_inline float3 to_local(const T p, const S X, const S Y, const S Z)
+template<class T, class S>
+ccl_device_inline float3 to_local(const T p, const S X, const S Y, const S Z)
 {
   return make_float3(dot(p, X), dot(p, Y), dot(p, Z));
 }

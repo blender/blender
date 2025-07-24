@@ -204,7 +204,6 @@ def prune_stale_files(args: argparse.Namespace) -> None:
         print("Checkout looks pristine")
 
 
-
 def initialize_precompiled_libraries_for_platform(args: argparse.Namespace, platform: str, arch: str) -> str:
     """
     Configure submodule for precompiled libraries of the given platform and arcitecture
@@ -242,7 +241,6 @@ def initialize_precompiled_libraries(args: argparse.Namespace) -> str:
     print(f"Detected platform     : {platform}")
     print(f"Detected architecture : {arch}")
     print()
-
 
     msg = initialize_precompiled_libraries_for_platform(args, platform, arch)
 

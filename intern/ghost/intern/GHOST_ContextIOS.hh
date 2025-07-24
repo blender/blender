@@ -182,7 +182,7 @@ class GHOST_ContextIOS : public GHOST_Context {
   void metalFree();
   void metalInitFramebuffer();
   void metalUpdateFramebuffer();
-  
+
   /* IOS_FIXME: Temp fix for swapbuffers issue causing sporadic lockups.
    * Deferring the swap until the main loop has finished seems to fix the issue.
    * Not currently clear why. Repros on loading assets screen. */

@@ -208,7 +208,7 @@ class GHOST_SystemIOS : public GHOST_System {
    * \param selection: Indicates which buffer to copy too, only used on X11.
    */
   void putClipboard(const char *buffer, bool selection) const;
-  
+
   /**
    * Pops up a keybaord on screen. Called by GHOST_WindowIOS window subclass
    * \param mouseX: x mouse coordinate (in cocoa base window coordinates).
@@ -218,7 +218,7 @@ class GHOST_SystemIOS : public GHOST_System {
    */
   GHOST_TSuccess popupOnScreenKeyboard(GHOST_IWindow *window,
                                        const GHOST_KeyboardProperties &keyboard_properties);
-  
+
   /**
    * Hides a popup a keybaord. Called by GHOST_WindowIOS window subclass
    * \param mouseX: x mouse coordinate (in cocoa base window coordinates).
@@ -227,9 +227,8 @@ class GHOST_SystemIOS : public GHOST_System {
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess hideOnScreenKeyboard(GHOST_IWindow *window);
-  
-  const char* getKeyboardInput(GHOST_IWindow *window);
 
+  const char *getKeyboardInput(GHOST_IWindow *window);
 
   /**
    * Handles a window event. Called by GHOST_WindowIOS window delegate
@@ -289,7 +288,7 @@ class GHOST_SystemIOS : public GHOST_System {
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess handleKeyEvent(void *eventPtr);
-  
+
 #endif
 
  protected:
@@ -307,7 +306,7 @@ class GHOST_SystemIOS : public GHOST_System {
    * \return Indication of success.
    */
   GHOST_TSuccess setMouseCursorPosition(int32_t x, int32_t y);
-  
+
   /** Start time at initialization. */
   uint64_t m_start_time;
 

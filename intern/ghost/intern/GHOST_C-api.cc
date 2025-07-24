@@ -76,7 +76,7 @@ void GHOST_popupOnScreenKeyboard(GHOST_WindowHandle windowhandle,
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
-  
+
   system->popupOnScreenKeyboard(window, keyboard_properties);
 }
 
@@ -84,18 +84,17 @@ void GHOST_hideOnScreenKeyboard(GHOST_WindowHandle windowhandle)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
-  
+
   system->hideOnScreenKeyboard(window);
 }
 
-const char* GHOST_getKeyboardInput(GHOST_WindowHandle windowhandle)
+const char *GHOST_getKeyboardInput(GHOST_WindowHandle windowhandle)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
-  
+
   return system->getKeyboardInput(window);
 }
-
 
 #endif
 

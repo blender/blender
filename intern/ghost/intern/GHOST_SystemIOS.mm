@@ -23,9 +23,9 @@
 
 #include "AssertMacros.h"
 
+#import <GameController/GameController.h>
 #import <MetalKit/MTKDefines.h>
 #import <UIKit/UIKit.h>
-#import <GameController/GameController.h>
 
 #include <sys/sysctl.h>
 #include <sys/time.h>
@@ -433,13 +433,13 @@ GHOST_TSuccess GHOST_SystemIOS::disposeContext(GHOST_IContext *context)
  * \note : returns 0,0 on ios as no cursor is present.
  * TODO: If external mouse or trackpad is connected, we can query cursor position.
  */
-GHOST_TSuccess GHOST_SystemIOS::getCursorPosition(int32_t &/*x*/, int32_t &/*y*/) const
+GHOST_TSuccess GHOST_SystemIOS::getCursorPosition(int32_t & /*x*/, int32_t & /*y*/) const
 {
   /* iOS Passthrough. */
   GHOST_IWindow *window = this->m_windowManager->getActiveWindow();
   if (!window)
     return GHOST_kFailure;
-  //GHOST_ASSERT(FALSE,"GHOST_SystemIOS::getCursorPosition unsupported on iOS");
+  // GHOST_ASSERT(FALSE,"GHOST_SystemIOS::getCursorPosition unsupported on iOS");
   return GHOST_kSuccess;
 }
 
@@ -585,8 +585,8 @@ GHOST_TSuccess GHOST_SystemIOS::handleWindowEvent(GHOST_TEventType eventType,
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_SystemIOS::popupOnScreenKeyboard(GHOST_IWindow *window,
-                                                      const GHOST_KeyboardProperties &keyboard_properties)
+GHOST_TSuccess GHOST_SystemIOS::popupOnScreenKeyboard(
+    GHOST_IWindow *window, const GHOST_KeyboardProperties &keyboard_properties)
 {
   if (!validWindow((GHOST_IWindow *)window)) {
     return GHOST_kFailure;
@@ -600,20 +600,20 @@ GHOST_TSuccess GHOST_SystemIOS::hideOnScreenKeyboard(GHOST_IWindow *window)
   if (!validWindow((GHOST_IWindow *)window)) {
     return GHOST_kFailure;
   }
-  
+
   GHOST_WindowIOS *windowIOS = (GHOST_WindowIOS *)window;
-  
+
   return windowIOS->hideOnscreenKeyboard();
 }
 
-const char* GHOST_SystemIOS::getKeyboardInput(GHOST_IWindow *window)
+const char *GHOST_SystemIOS::getKeyboardInput(GHOST_IWindow *window)
 {
   if (!validWindow((GHOST_IWindow *)window)) {
     return nullptr;
   }
-  
+
   GHOST_WindowIOS *windowIOS = (GHOST_WindowIOS *)window;
-    
+
   return windowIOS->getLastKeyboardString();
 }
 
@@ -717,7 +717,7 @@ GHOST_TSuccess GHOST_SystemIOS::handleDraggingEvent(GHOST_TEventType eventType,
       }
 
       pushEvent(new GHOST_EventDragnDrop(
-           getMilliSeconds(), eventType, draggedObjectType, window, mouseX, mouseY, eventData));
+          getMilliSeconds(), eventType, draggedObjectType, window, mouseX, mouseY, eventData));
 
       break;
     }
@@ -773,7 +773,7 @@ GHOST_TSuccess GHOST_SystemIOS::handleMouseEvent(void * /*eventPtr*/)
   return GHOST_kSuccess;
 }
 
-#include <Metal/Metal.h>
+#  include <Metal/Metal.h>
 bool frame_capture = false;
 extern id<MTLDevice> extern_device;
 GHOST_TSuccess GHOST_SystemIOS::handleKeyEvent(void * /*eventPtr*/)
@@ -826,6 +826,6 @@ void GHOST_SystemIOS::putClipboard(const char *buffer, bool selection) const
 
 GHOST_IWindow *GHOST_SystemIOS::getWindowUnderCursor(int32_t /*x*/, int32_t /*y*/)
 {
-  GHOST_ASSERT(FALSE,"GHOST_SystemIOS::getWindowUnderCursor unsupported on iOS");
+  GHOST_ASSERT(FALSE, "GHOST_SystemIOS::getWindowUnderCursor unsupported on iOS");
   return NULL;
 }

@@ -263,9 +263,8 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
     global_defines += "#define __METAL_GLOBAL_BUILTINS__\n";
   }
 
-
 #    ifdef WITH_CYCLES_DEBUG
-   global_defines += "#define WITH_CYCLES_DEBUG\n";
+  global_defines += "#define WITH_CYCLES_DEBUG\n";
 #    endif
 #  endif
 

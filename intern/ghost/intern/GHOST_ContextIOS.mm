@@ -102,8 +102,7 @@ GHOST_ContextIOS::GHOST_ContextIOS(UIView *uiView, MTKView *metalView)
 
   /* Initialise swapinterval */
   mtl_SwapInterval = 60;
-  
-  
+
   /* IOS_FIXME: Temp fix for swapbuffers issue causing sporadic lockups.
    * Repros on loading assets screen */
   defer_swap_buffers = true;
@@ -408,7 +407,7 @@ void GHOST_ContextIOS::metalSwapBuffers()
   if (defer_swap_buffers && !swap_buffers_requested) {
     return;
   }
-  
+
   /* Avoid double present from separate windows. */
   if (m_metalView.currentDrawable != GHOST_ContextIOS::prevDrawable) {
     GHOST_ContextIOS::current_drawable_presented = false;
@@ -417,7 +416,7 @@ void GHOST_ContextIOS::metalSwapBuffers()
   if (current_drawable_presented) {
     return;
   }
-  
+
   /* Get a renderpass descriptor for the current view. */
   MTLRenderPassDescriptor *passDescriptor = m_metalView.currentRenderPassDescriptor;
   if (passDescriptor == nil) {
@@ -447,7 +446,7 @@ void GHOST_ContextIOS::metalSwapBuffers()
                               drawable);
     GHOST_ContextIOS::current_drawable_presented = true;
   }
-  
+
   if (defer_swap_buffers) {
     swap_buffers_requested = false;
   }

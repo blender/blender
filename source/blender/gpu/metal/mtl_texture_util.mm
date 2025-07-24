@@ -158,41 +158,47 @@ MTLPixelFormat gpu_texture_format_to_metal(TextureFormat tex_format)
       return MTLPixelFormatR8Snorm;
     /* Special formats, texture only. */
     case TextureFormat::SRGB_DXT1:
-          if (@available(iOS 16.4, *)) {
-              return MTLPixelFormatBC1_RGBA_sRGB;
-          } else {
-              // Fallback on earlier versions
-          }
+      if (@available(iOS 16.4, *)) {
+        return MTLPixelFormatBC1_RGBA_sRGB;
+      }
+      else {
+        // Fallback on earlier versions
+      }
     case TextureFormat::SRGB_DXT3:
-          if (@available(iOS 16.4, *)) {
-              return MTLPixelFormatBC2_RGBA_sRGB;
-          } else {
-              // Fallback on earlier versions
-          }
+      if (@available(iOS 16.4, *)) {
+        return MTLPixelFormatBC2_RGBA_sRGB;
+      }
+      else {
+        // Fallback on earlier versions
+      }
     case TextureFormat::SRGB_DXT5:
-          if (@available(iOS 16.4, *)) {
-              return MTLPixelFormatBC3_RGBA_sRGB;
-          } else {
-              // Fallback on earlier versions
-          }
+      if (@available(iOS 16.4, *)) {
+        return MTLPixelFormatBC3_RGBA_sRGB;
+      }
+      else {
+        // Fallback on earlier versions
+      }
     case TextureFormat::SNORM_DXT1:
-          if (@available(iOS 16.4, *)) {
-              return MTLPixelFormatBC1_RGBA;
-          } else {
-              // Fallback on earlier versions
-          }
+      if (@available(iOS 16.4, *)) {
+        return MTLPixelFormatBC1_RGBA;
+      }
+      else {
+        // Fallback on earlier versions
+      }
     case TextureFormat::SNORM_DXT3:
-          if (@available(iOS 16.4, *)) {
-              return MTLPixelFormatBC2_RGBA;
-          } else {
-              // Fallback on earlier versions
-          }
+      if (@available(iOS 16.4, *)) {
+        return MTLPixelFormatBC2_RGBA;
+      }
+      else {
+        // Fallback on earlier versions
+      }
     case TextureFormat::SNORM_DXT5:
-          if (@available(iOS 16.4, *)) {
-              return MTLPixelFormatBC3_RGBA;
-          } else {
-              // Fallback on earlier versions
-          }
+      if (@available(iOS 16.4, *)) {
+        return MTLPixelFormatBC3_RGBA;
+      }
+      else {
+        // Fallback on earlier versions
+      }
     case TextureFormat::SRGBA_8_8_8:
       /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA8Unorm_sRGB;
