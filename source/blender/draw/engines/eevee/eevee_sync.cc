@@ -264,18 +264,28 @@ void SyncModule::sync_pointcloud(Object *ob, ObjectHandle &ob_handle, const Obje
   Material &material = inst_.materials.material_get(
       ob, has_motion, material_slot - 1, MAT_GEOM_POINTCLOUD);
 
-  auto drawcall_add = [&](MaterialPass &matpass) {
+  auto drawcall_add = [&](MaterialPass &matpass, bool dual_sided = false) {
     if (matpass.sub_pass == nullptr) {
       return;
     }
     PassMain::Sub &object_pass = matpass.sub_pass->sub("Point Cloud Sub Pass");
     gpu::Batch *geometry = pointcloud_sub_pass_setup(object_pass, ob, matpass.gpumat);
-    object_pass.draw(geometry, res_handle);
+    if (dual_sided) {
+      /* WORKAROUND: Hack to generate backfaces. Should also be baked into the Index Buf too at
+       * some point in the future. */
+      object_pass.push_constant("ptcloud_backface", false);
+      object_pass.draw(geometry, res_handle);
+      object_pass.push_constant("ptcloud_backface", true);
+      object_pass.draw(geometry, res_handle);
+    }
+    else {
+      object_pass.draw(geometry, res_handle);
+    }
   };
 
   if (material.has_volume) {
     /* Only support single volume material for now. */
-    drawcall_add(material.volume_occupancy);
+    drawcall_add(material.volume_occupancy, true);
     drawcall_add(material.volume_material);
     inst_.volume.object_sync(ob_handle);
 

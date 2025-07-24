@@ -64,6 +64,7 @@ GPU_SHADER_NAMED_INTERFACE_END(pointcloud_interp_flat)
 
 GPU_SHADER_CREATE_INFO(eevee_geom_pointcloud)
 ADDITIONAL_INFO(eevee_shared)
+PUSH_CONSTANT(bool, ptcloud_backface)
 DEFINE("MAT_GEOM_POINTCLOUD")
 VERTEX_SOURCE("eevee_geom_pointcloud_vert.glsl")
 VERTEX_OUT(eevee_surf_iface)
