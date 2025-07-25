@@ -16,7 +16,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_math_base.h"
 #include "BLI_math_base.hh"
-#include "BLI_math_numbers.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 
@@ -28,46 +28,50 @@ namespace blender::compositor {
  * Fog Glow Kernel Key.
  */
 
-FogGlowKernelKey::FogGlowKernelKey(int kernel_size, int2 spatial_size)
-    : kernel_size(kernel_size), spatial_size(spatial_size)
+FogGlowKernelKey::FogGlowKernelKey(int kernel_size,
+                                   int2 spatial_size,
+                                   math::AngleRadian field_of_view)
+    : kernel_size(kernel_size), spatial_size(spatial_size), field_of_view(field_of_view)
 {
 }
 
 uint64_t FogGlowKernelKey::hash() const
 {
-  return get_default_hash(kernel_size, spatial_size);
+  return get_default_hash(kernel_size, spatial_size, field_of_view.degree());
 }
 
 bool operator==(const FogGlowKernelKey &a, const FogGlowKernelKey &b)
 {
-  return a.kernel_size == b.kernel_size && a.spatial_size == b.spatial_size;
+  return a.kernel_size == b.kernel_size && a.spatial_size == b.spatial_size &&
+         a.field_of_view == b.field_of_view;
 }
 
 /* --------------------------------------------------------------------
  * Fog Glow Kernel.
  */
 
-/* Given the x and y location in the range from 0 to kernel_size - 1, where kernel_size is odd,
- * compute the fog glow kernel value. The equations are arbitrary and were chosen using visual
- * judgment. The kernel is not normalized and need normalization. */
-[[maybe_unused]] static float compute_fog_glow_kernel_value(int x, int y, int kernel_size)
+/* Given the texel coordinates and the constant field-of-view-per-pixel value, under the assumption
+ * of a relatively small field of view as discussed in Section 3.2, this function computes the
+ * fog glow kernel value. The kernel value is derived from Equation (5) of the following paper:
+ *
+ *   Spencer, Greg, et al. "Physically-Based Glare Effects for Digital Images."
+ *   Proceedings of the 22nd Annual Conference on Computer Graphics and Interactive Techniques,
+ *   1995.
+ */
+
+[[maybe_unused]] static float compute_fog_glow_kernel_value(
+    int2 texel, math::AngleRadian field_of_view_per_pixel)
 {
-  const int half_kernel_size = kernel_size / 2;
-  const float scale = 0.25f * math::sqrt(math::square(kernel_size));
-  const float v = ((y - half_kernel_size) / float(half_kernel_size));
-  const float u = ((x - half_kernel_size) / float(half_kernel_size));
-  const float r = (math::square(u) + math::square(v)) * scale;
-  const float d = -math::sqrt(math::sqrt(math::sqrt(r))) * 9.0f;
-  const float kernel_value = math::exp(d);
+  const float theta_degree = math::length(float2(texel)) * field_of_view_per_pixel.degree();
+  const float f0 = 2.61f * 1e6f * math::exp(-math::square(theta_degree / 0.02f));
+  const float f1 = 20.91f / math::cube(theta_degree + 0.02f);
+  const float f2 = 72.37f / math::square(theta_degree + 0.02f);
+  const float kernel_value = 0.384f * f0 + 0.478f * f1 + 0.138f * f2;
 
-  const float window = (0.5f + 0.5f * math::cos(u * math::numbers::pi)) *
-                       (0.5f + 0.5f * math::cos(v * math::numbers::pi));
-  const float windowed_kernel_value = window * kernel_value;
-
-  return windowed_kernel_value;
+  return kernel_value;
 }
 
-FogGlowKernel::FogGlowKernel(int kernel_size, int2 spatial_size)
+FogGlowKernel::FogGlowKernel(int kernel_size, int2 spatial_size, math::AngleRadian field_of_view)
 {
 #if defined(WITH_FFTW3)
 
@@ -91,27 +95,26 @@ FogGlowKernel::FogGlowKernel(int kernel_size, int2 spatial_size)
   /* Use a double to sum the kernel since floats are not stable with threaded summation. */
   threading::EnumerableThreadSpecific<double> sum_by_thread([]() { return 0.0; });
 
-  /* Compute the kernel while zero padding to match the padded image size. */
+  /* Compute the entire kernel's spatial space using compute_fog_glow_kernel_value. */
   threading::parallel_for(IndexRange(spatial_size.y), 1, [&](const IndexRange sub_y_range) {
     double &sum = sum_by_thread.local();
     for (const int64_t y : sub_y_range) {
       for (const int64_t x : IndexRange(spatial_size.x)) {
+        const int2 texel = int2(x, y);
+        const int2 center_texel = spatial_size / 2;
+        const int2 kernel_texel = texel - center_texel;
+        const math::AngleRadian field_of_view_per_pixel = field_of_view / kernel_size;
+
+        const float kernel_value = compute_fog_glow_kernel_value(kernel_texel,
+                                                                 field_of_view_per_pixel);
+        sum += kernel_value;
+
         /* We offset the computed kernel with wrap around such that it is centered at the zero
          * point, which is the expected format for doing circular convolutions in the frequency
          * domain. */
-        const int half_kernel_size = kernel_size / 2;
-        int64_t output_x = mod_i(x - half_kernel_size, spatial_size.x);
-        int64_t output_y = mod_i(y - half_kernel_size, spatial_size.y);
-
-        const bool is_inside_kernel = x < kernel_size && y < kernel_size;
-        if (is_inside_kernel) {
-          const float kernel_value = compute_fog_glow_kernel_value(x, y, kernel_size);
-          kernel_spatial_domain[output_x + output_y * spatial_size.x] = kernel_value;
-          sum += kernel_value;
-        }
-        else {
-          kernel_spatial_domain[output_x + output_y * spatial_size.x] = 0.0f;
-        }
+        int64_t output_x = mod_i(kernel_texel.x, spatial_size.x);
+        int64_t output_y = mod_i(kernel_texel.y, spatial_size.y);
+        kernel_spatial_domain[output_x + output_y * spatial_size.x] = kernel_value;
       }
     }
   });
@@ -127,7 +130,7 @@ FogGlowKernel::FogGlowKernel(int kernel_size, int2 spatial_size)
    * Fourier transform is linear. */
   normalization_factor_ = float(std::accumulate(sum_by_thread.begin(), sum_by_thread.end(), 0.0));
 #else
-  UNUSED_VARS(kernel_size, spatial_size);
+  UNUSED_VARS(kernel_size, spatial_size, field_of_view);
 #endif
 }
 
@@ -164,12 +167,15 @@ void FogGlowKernelContainer::reset()
   }
 }
 
-FogGlowKernel &FogGlowKernelContainer::get(int kernel_size, int2 spatial_size)
+FogGlowKernel &FogGlowKernelContainer::get(int kernel_size,
+                                           int2 spatial_size,
+                                           math::AngleRadian field_of_view)
 {
-  const FogGlowKernelKey key(kernel_size, spatial_size);
+  const FogGlowKernelKey key(kernel_size, spatial_size, field_of_view);
 
-  auto &kernel = *map_.lookup_or_add_cb(
-      key, [&]() { return std::make_unique<FogGlowKernel>(kernel_size, spatial_size); });
+  auto &kernel = *map_.lookup_or_add_cb(key, [&]() {
+    return std::make_unique<FogGlowKernel>(kernel_size, spatial_size, field_of_view);
+  });
 
   kernel.needed = true;
   return kernel;

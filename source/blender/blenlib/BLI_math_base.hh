@@ -201,6 +201,11 @@ template<typename T> inline T square(const T &a)
   return a * a;
 }
 
+template<typename T> inline T cube(const T &a)
+{
+  return a * a * a;
+}
+
 template<typename T> inline T exp(const T &x)
 {
   return std::exp(x);
