@@ -3163,10 +3163,6 @@ void GreasePencil::remove_drawings_with_no_users()
   using namespace blender;
   using namespace blender::bke::greasepencil;
 
-#ifndef NDEBUG
-  this->validate_drawing_user_counts();
-#endif
-
   /* Compress the drawings array by finding unused drawings.
    * In every step two indices are found:
    *   - The next unused drawing from the start
