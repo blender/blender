@@ -7,7 +7,6 @@
  */
 
 #include <climits>
-#include <iostream>
 
 #include "BLI_string.h"
 
@@ -176,7 +175,6 @@ gpu::VertBufPtr extract_tangents(const MeshRenderData &mr,
   else {
     MutableSpan tan_data = vbo->data<gpu::PackedNormal>();
     int vbo_index = 0;
-    vbo->data<gpu::PackedNormal>().fill(gpu::PackedNormal{101, 102, 103, -2});
     for (const int i : tangents.index_range()) {
       const Span<float4> layer_data = tangents[i];
       for (int corner = 0; corner < mr.corners_num; corner++) {
