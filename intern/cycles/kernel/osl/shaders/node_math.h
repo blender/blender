@@ -108,3 +108,8 @@ matrix euler_to_mat(point euler)
   mat[2][2] = cy * cx;
   return mat;
 }
+
+float average(point a)
+{
+  return (a[0] + a[1] + a[2]) * (1.0 / 3.0);
+}
