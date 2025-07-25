@@ -32,10 +32,10 @@ class GroupInputOperation : public NodeOperation {
         continue;
       }
 
-      const char *pass_name = StringRef(output->name) == "Image" ? "Combined" : output->name;
-      this->context().populate_meta_data_for_pass(&scene, 0, pass_name, result.meta_data);
+      const char *name = StringRef(output->name) == "Image" ? "Combined" : output->name;
+      this->context().populate_meta_data_for_pass(&scene, 0, name, result.meta_data);
 
-      const Result pass = this->context().get_pass(&scene, 0, pass_name);
+      const Result pass = this->context().get_input(&scene, 0, name);
       this->execute_pass(pass, result);
     }
   }

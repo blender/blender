@@ -173,7 +173,7 @@ class Context : public compositor::Context {
     return render_region;
   }
 
-  compositor::Result get_output_result() override
+  compositor::Result get_output() override
   {
     const int2 render_size = get_render_size();
     if (output_result_.is_allocated()) {
@@ -191,9 +191,9 @@ class Context : public compositor::Context {
     return output_result_;
   }
 
-  compositor::Result get_viewer_output_result(compositor::Domain domain,
-                                              const bool is_data,
-                                              compositor::ResultPrecision precision) override
+  compositor::Result get_viewer_output(compositor::Domain domain,
+                                       const bool is_data,
+                                       compositor::ResultPrecision precision) override
   {
     viewer_output_result_.set_transformation(domain.transformation);
     viewer_output_result_.meta_data.is_non_color_data = is_data;
@@ -219,9 +219,9 @@ class Context : public compositor::Context {
     return viewer_output_result_;
   }
 
-  compositor::Result get_pass(const Scene *scene,
-                              int view_layer_id,
-                              const char *pass_name) override
+  compositor::Result get_input(const Scene *scene,
+                               int view_layer_id,
+                               const char *pass_name) override
   {
     if (!scene) {
       return compositor::Result(*this);

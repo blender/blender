@@ -75,7 +75,7 @@ class ViewerOperation : public NodeOperation {
     float4 color = image.get_single_value<float4>();
 
     const Domain domain = this->compute_domain();
-    Result output = this->context().get_viewer_output_result(
+    Result output = this->context().get_viewer_output(
         domain, image.meta_data.is_non_color_data, image.precision());
     if (this->context().use_gpu()) {
       GPU_texture_clear(output, GPU_DATA_FLOAT, color);
@@ -99,7 +99,7 @@ class ViewerOperation : public NodeOperation {
   {
     const Result &image = this->get_input("Image");
     const Domain domain = this->compute_domain();
-    Result output = this->context().get_viewer_output_result(
+    Result output = this->context().get_viewer_output(
         domain, image.meta_data.is_non_color_data, image.precision());
 
     GPUShader *shader = this->context().get_shader("compositor_write_output", output.precision());
@@ -124,7 +124,7 @@ class ViewerOperation : public NodeOperation {
   {
     const Domain domain = this->compute_domain();
     const Result &image = this->get_input("Image");
-    Result output = this->context().get_viewer_output_result(
+    Result output = this->context().get_viewer_output(
         domain, image.meta_data.is_non_color_data, image.precision());
 
     const Bounds<int2> bounds = this->get_output_bounds();

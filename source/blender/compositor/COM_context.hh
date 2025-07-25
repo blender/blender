@@ -69,17 +69,15 @@ class Context {
   virtual rcti get_compositing_region() const = 0;
 
   /* Get the result where the result of the compositor should be written. */
-  virtual Result get_output_result() = 0;
+  virtual Result get_output() = 0;
 
   /* Get the result where the result of the compositor viewer should be written, given the domain
    * of the result to be viewed, its precision, and whether the output is a non-color data image
    * that should be displayed without view transform. */
-  virtual Result get_viewer_output_result(Domain domain,
-                                          bool is_data,
-                                          ResultPrecision precision) = 0;
+  virtual Result get_viewer_output(Domain domain, bool is_data, ResultPrecision precision) = 0;
 
-  /* Get the result where the given render pass is stored. */
-  virtual Result get_pass(const Scene *scene, int view_layer, const char *pass_name) = 0;
+  /* Get the result where the given input is stored. */
+  virtual Result get_input(const Scene *scene, int view_layer, const char *name) = 0;
 
   /* True if the compositor should use GPU acceleration. */
   virtual bool use_gpu() const = 0;

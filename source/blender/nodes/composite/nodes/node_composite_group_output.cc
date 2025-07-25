@@ -68,7 +68,7 @@ class GroupOutputOperation : public NodeOperation {
     float4 color = image.get_single_value<float4>();
 
     const Domain domain = this->compute_domain();
-    Result output = this->context().get_output_result();
+    Result output = this->context().get_output();
     if (this->context().use_gpu()) {
       GPU_texture_clear(output, GPU_DATA_FLOAT, color);
     }
@@ -90,7 +90,7 @@ class GroupOutputOperation : public NodeOperation {
   void execute_copy_gpu(const Result &image)
   {
     const Domain domain = this->compute_domain();
-    Result output = this->context().get_output_result();
+    Result output = this->context().get_output();
 
     GPUShader *shader = this->context().get_shader("compositor_write_output", output.precision());
     GPU_shader_bind(shader);
@@ -113,7 +113,7 @@ class GroupOutputOperation : public NodeOperation {
   void execute_copy_cpu(const Result &image)
   {
     const Domain domain = this->compute_domain();
-    Result output = this->context().get_output_result();
+    Result output = this->context().get_output();
 
     const Bounds<int2> bounds = this->get_output_bounds();
     parallel_for(domain.size, [&](const int2 texel) {
