@@ -54,30 +54,18 @@ class Context {
   /* Get the node tree used for compositing. */
   virtual const bNodeTree &get_node_tree() const = 0;
 
-  /* True if the compositor should use GPU acceleration. */
-  virtual bool use_gpu() const = 0;
-
-  /* Get the OIDN denoiser quality which should be used if the user doesn't explicitly set
-   * denoising quality on a node. */
-  virtual eCompositorDenoiseQaulity get_denoise_quality() const = 0;
-
   /* Returns all output types that should be computed. */
   virtual OutputTypes needed_outputs() const = 0;
 
   /* Get the render settings for compositing. */
   virtual const RenderData &get_render_data() const = 0;
 
-  /* Get the width and height of the render passes and of the output texture returned by the
-   * get_pass and get_output_texture methods respectively. */
-  virtual int2 get_render_size() const = 0;
-
   /* Get the rectangular region representing the area of the input that the compositor will operate
    * on. Conversely, the compositor will only update the region of the output that corresponds to
    * the compositing region. In the base case, the compositing region covers the entirety of the
-   * render region with a lower bound of zero and an upper bound of the render size returned by the
-   * get_render_size method. In other cases, the compositing region might be a subset of the render
-   * region. Callers should check the validity of the region through is_valid_compositing_region(),
-   * since the region can be zero sized. */
+   * render region. In other cases, the compositing region might be a subset of the render region.
+   * Callers should check the validity of the region through is_valid_compositing_region(), since
+   * the region can be zero sized. */
   virtual rcti get_compositing_region() const = 0;
 
   /* Get the result where the result of the compositor should be written. */
@@ -93,16 +81,20 @@ class Context {
   /* Get the result where the given render pass is stored. */
   virtual Result get_pass(const Scene *scene, int view_layer, const char *pass_name) = 0;
 
-  /* Get the name of the view currently being rendered. */
-  virtual StringRef get_view_name() const = 0;
+  /* True if the compositor should use GPU acceleration. */
+  virtual bool use_gpu() const = 0;
+
+  /* Get the name of the view currently being rendered. If the context is not multi-view, return an
+   * empty string. */
+  virtual StringRef get_view_name() const;
 
   /* Get the precision of the intermediate results of the compositor. */
-  virtual ResultPrecision get_precision() const = 0;
+  virtual ResultPrecision get_precision() const;
 
   /* Set an info message. This is called by the compositor evaluator to inform or warn the user
    * about something, typically an error. The implementation should display the message in an
    * appropriate place, which can be directly in the UI or just logged to the output stream. */
-  virtual void set_info_message(StringRef message) const = 0;
+  virtual void set_info_message(StringRef message) const;
 
   /* True if the compositor should treat viewers as composite outputs because it has no concept of
    * or support for viewers. */
@@ -152,6 +144,10 @@ class Context {
 
   /* Get the current time in seconds of the active scene. */
   float get_time() const;
+
+  /* Get the OIDN denoiser quality which should be used if the user doesn't explicitly set
+   * denoising quality on a node. */
+  eCompositorDenoiseQaulity get_denoise_quality() const;
 
   /* Get a GPU shader with the given info name and precision. */
   GPUShader *get_shader(const char *info_name, ResultPrecision precision);

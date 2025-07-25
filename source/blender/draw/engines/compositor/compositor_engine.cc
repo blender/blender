@@ -68,12 +68,6 @@ class Context : public compositor::Context {
     return true;
   }
 
-  eCompositorDenoiseQaulity get_denoise_quality() const override
-  {
-    return static_cast<eCompositorDenoiseQaulity>(
-        this->get_render_data().compositor_denoise_preview_quality);
-  }
-
   compositor::OutputTypes needed_outputs() const override
   {
     return compositor::OutputTypes::Composite | compositor::OutputTypes::Viewer;
@@ -89,11 +83,6 @@ class Context : public compositor::Context {
   const RenderData &get_render_data() const override
   {
     return scene_->r;
-  }
-
-  int2 get_render_size() const override
-  {
-    return int2(DRW_context_get()->viewport_size_get());
   }
 
   /* We limit the compositing region to the camera region if in camera view, while we use the

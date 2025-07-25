@@ -9,7 +9,6 @@
 #include "DNA_vec_types.h"
 
 #include "GPU_shader.hh"
-#include "GPU_texture_pool.hh"
 
 #include "BKE_node_runtime.hh"
 
@@ -19,6 +18,18 @@
 #include "COM_static_cache_manager.hh"
 
 namespace blender::compositor {
+
+StringRef Context::get_view_name() const
+{
+  return "";
+}
+
+ResultPrecision Context::get_precision() const
+{
+  return ResultPrecision::Full;
+}
+
+void Context::set_info_message(StringRef /*message*/) const {}
 
 bool Context::treat_viewer_as_compositor_output() const
 {
@@ -89,6 +100,17 @@ float Context::get_time() const
   const float frame_rate = float(get_render_data().frs_sec) /
                            float(get_render_data().frs_sec_base);
   return frame_number / frame_rate;
+}
+
+eCompositorDenoiseQaulity Context::get_denoise_quality() const
+{
+  if (this->render_context()) {
+    return static_cast<eCompositorDenoiseQaulity>(
+        this->get_render_data().compositor_denoise_final_quality);
+  }
+
+  return static_cast<eCompositorDenoiseQaulity>(
+      this->get_render_data().compositor_denoise_preview_quality);
 }
 
 GPUShader *Context::get_shader(const char *info_name, ResultPrecision precision)

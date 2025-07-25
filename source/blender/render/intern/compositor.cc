@@ -135,17 +135,6 @@ class Context : public compositor::Context {
     return this->get_render_data().compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
   }
 
-  eCompositorDenoiseQaulity get_denoise_quality() const override
-  {
-    if (this->render_context()) {
-      return static_cast<eCompositorDenoiseQaulity>(
-          this->get_render_data().compositor_denoise_final_quality);
-    }
-
-    return static_cast<eCompositorDenoiseQaulity>(
-        this->get_render_data().compositor_denoise_preview_quality);
-  }
-
   compositor::OutputTypes needed_outputs() const override
   {
     return input_data_.needed_outputs;
@@ -156,7 +145,7 @@ class Context : public compositor::Context {
     return *(input_data_.render_data);
   }
 
-  int2 get_render_size() const override
+  int2 get_render_size() const
   {
     Render *render = RE_GetSceneRender(input_data_.scene);
     RenderResult *render_result = RE_AcquireResultRead(render);
@@ -341,15 +330,6 @@ class Context : public compositor::Context {
 
     BLI_assert_unreachable();
     return compositor::ResultPrecision::Full;
-  }
-
-  void set_info_message(StringRef /*message*/) const override
-  {
-    /* TODO: ignored for now. Currently only used to communicate incomplete node support
-     * which is already shown on the node itself.
-     *
-     * Perhaps this overall info message could be replaced by a boolean indicating
-     * incomplete support, and leave more specific message to individual nodes? */
   }
 
   void populate_meta_data_for_pass(const Scene *scene,
