@@ -398,6 +398,11 @@ set(OPENVDB_COPYRIGHT "Copyright Contributors to the OpenVDB Project")
 
 # ------------------------------------------------------------------------------
 # Python Modules
+# cattrs + fastjson schema + deps as requested by #141945
+set(ATTRS_VERSION 25.3.0)
+set(CATTRS_VERSION 25.1.1)
+set(FASTJSONSCHEMA_VERSION 2.21.1)
+set(TYPING_EXTENSIONS_VERSION 4.14.1)
 
 # Needed by: `requests` module (so the version doesn't change on rebuild).
 set(IDNA_VERSION 3.10)
