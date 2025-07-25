@@ -1072,6 +1072,11 @@ void MetalDevice::tex_alloc(device_texture &mem)
       desc.storageMode = MTLStorageModeShared;
       desc.usage = MTLTextureUsageShaderRead;
 
+      /* Disallow lossless texture compression. Path-tracing texture access patterns are very
+       * random, and cache reuse gains are typically too low to offset the decompression overheads.
+       */
+      desc.allowGPUOptimizedContents = false;
+
       LOG_WORK << "Texture 2D allocate: " << mem.name << ", "
                << string_human_readable_number(mem.memory_size()) << " bytes. ("
                << string_human_readable_size(mem.memory_size()) << ")";
@@ -1123,13 +1128,6 @@ void MetalDevice::tex_alloc(device_texture &mem)
         stats.mem_alloc(texture_bindings.allocatedSize);
       }
     }
-
-    /* Optimize the texture for GPU access. */
-    id<MTLCommandBuffer> commandBuffer = [mtlGeneralCommandQueue commandBuffer];
-    id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
-    [blitCommandEncoder optimizeContentsForGPUAccess:mtlTexture];
-    [blitCommandEncoder endEncoding];
-    [commandBuffer commit];
 
     /* Set Mapping. */
     texture_slot_map[slot] = mtlTexture;
