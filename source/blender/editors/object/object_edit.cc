@@ -459,7 +459,8 @@ void collection_hide_menu_draw(const bContext *C, uiLayout *layout)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   LayerCollection *lc_scene = static_cast<LayerCollection *>(view_layer->layer_collections.first);
 
-  uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
+  /* Use the "invoke" operator context so the "Shift" modifier is used to extend. */
+  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
 
   LISTBASE_FOREACH (LayerCollection *, lc, &lc_scene->layer_collections) {
     int index = BKE_layer_collection_findindex(view_layer, lc);
