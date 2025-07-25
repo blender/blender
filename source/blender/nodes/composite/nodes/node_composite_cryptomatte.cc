@@ -836,8 +836,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   {
     switch (get_source()) {
       case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER: {
-        const rcti compositing_region = this->context().get_compositing_region();
-        return int2(compositing_region.xmin, compositing_region.ymin);
+        return this->context().get_compositing_region().min;
       }
       case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE:
         return int2(0);

@@ -6,11 +6,11 @@
 
 #include <cstdint>
 
+#include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_scene_types.h"
-#include "DNA_vec_types.h"
 
 #include "GPU_shader.hh"
 
@@ -66,7 +66,7 @@ class Context {
    * render region. In other cases, the compositing region might be a subset of the render region.
    * Callers should check the validity of the region through is_valid_compositing_region(), since
    * the region can be zero sized. */
-  virtual rcti get_compositing_region() const = 0;
+  virtual Bounds<int2> get_compositing_region() const = 0;
 
   /* Get the result where the result of the compositor should be written. */
   virtual Result get_output() = 0;

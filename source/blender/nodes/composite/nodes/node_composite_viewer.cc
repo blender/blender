@@ -143,14 +143,12 @@ class ViewerOperation : public NodeOperation {
   {
     /* Viewers are treated as composite outputs that should be in the bounds of the compositing
      * region. */
-    if (context().treat_viewer_as_compositor_output()) {
-      const rcti compositing_region = context().get_compositing_region();
-      return Bounds<int2>(int2(compositing_region.xmin, compositing_region.ymin),
-                          int2(compositing_region.xmax, compositing_region.ymax));
+    if (this->context().treat_viewer_as_compositor_output()) {
+      return this->context().get_compositing_region();
     }
 
     /* Otherwise, use the bounds of the input as is. */
-    return Bounds<int2>(int2(0), compute_domain().size);
+    return Bounds<int2>(int2(0), this->compute_domain().size);
   }
 
   Domain compute_domain() override

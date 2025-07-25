@@ -165,12 +165,9 @@ class Context : public compositor::Context {
     return size;
   }
 
-  rcti get_compositing_region() const override
+  Bounds<int2> get_compositing_region() const override
   {
-    const int2 render_size = get_render_size();
-    const rcti render_region = rcti{0, render_size.x, 0, render_size.y};
-
-    return render_region;
+    return Bounds<int2>(int2(0), this->get_render_size());
   }
 
   compositor::Result get_output() override

@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_bounds.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
@@ -88,11 +88,11 @@ class Context : public compositor::Context {
   /* We limit the compositing region to the camera region if in camera view, while we use the
    * entire viewport otherwise. We also use the entire viewport when doing viewport rendering since
    * the viewport is already the camera region in that case. */
-  rcti get_compositing_region() const override
+  Bounds<int2> get_compositing_region() const override
   {
     const DRWContext *draw_ctx = DRW_context_get();
     const int2 viewport_size = int2(draw_ctx->viewport_size_get());
-    const rcti render_region = rcti{0, viewport_size.x, 0, viewport_size.y};
+    const Bounds<int2> render_region = Bounds<int2>(int2(0), viewport_size);
 
     if (draw_ctx->rv3d->persp != RV3D_CAMOB || draw_ctx->is_viewport_image_render()) {
       return render_region;
@@ -107,13 +107,12 @@ class Context : public compositor::Context {
                                  false,
                                  &camera_border);
 
-    rcti camera_region;
-    BLI_rcti_rctf_copy_floor(&camera_region, &camera_border);
+    const Bounds<int2> camera_region = Bounds<int2>(
+        int2(int(camera_border.xmin), int(camera_border.ymin)),
+        int2(int(camera_border.xmax), int(camera_border.ymax)));
 
-    rcti visible_camera_region;
-    BLI_rcti_isect(&render_region, &camera_region, &visible_camera_region);
-
-    return visible_camera_region;
+    return blender::bounds::intersect(render_region, camera_region)
+        .value_or(Bounds<int2>(int2(0)));
   }
 
   compositor::Result get_output() override

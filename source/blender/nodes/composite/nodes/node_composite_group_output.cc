@@ -95,7 +95,7 @@ class GroupOutputOperation : public NodeOperation {
     GPUShader *shader = this->context().get_shader("compositor_write_output", output.precision());
     GPU_shader_bind(shader);
 
-    const Bounds<int2> bounds = this->get_output_bounds();
+    const Bounds<int2> bounds = this->context().get_compositing_region();
     GPU_shader_uniform_2iv(shader, "lower_bound", bounds.min);
     GPU_shader_uniform_2iv(shader, "upper_bound", bounds.max);
 
@@ -115,7 +115,7 @@ class GroupOutputOperation : public NodeOperation {
     const Domain domain = this->compute_domain();
     Result output = this->context().get_output();
 
-    const Bounds<int2> bounds = this->get_output_bounds();
+    const Bounds<int2> bounds = this->context().get_compositing_region();
     parallel_for(domain.size, [&](const int2 texel) {
       const int2 output_texel = texel + bounds.min;
       if (output_texel.x > bounds.max.x || output_texel.y > bounds.max.y) {
@@ -123,15 +123,6 @@ class GroupOutputOperation : public NodeOperation {
       }
       output.store_pixel(texel + bounds.min, image.load_pixel<float4>(texel));
     });
-  }
-
-  /* Returns the bounds of the area of the compositing region. Only write into the compositing
-   * region, which might be limited to a smaller region of the output result. */
-  Bounds<int2> get_output_bounds()
-  {
-    const rcti compositing_region = this->context().get_compositing_region();
-    return Bounds<int2>(int2(compositing_region.xmin, compositing_region.ymin),
-                        int2(compositing_region.xmax, compositing_region.ymax));
   }
 
   /* The operation domain has the same size as the compositing region without any transformations
