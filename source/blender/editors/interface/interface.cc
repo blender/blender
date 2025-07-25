@@ -4496,7 +4496,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
                                     &free);
 
   /* We don't want nested rows, cols in menus. */
-  UI_block_layout_set_current(block, layout);
+  blender::ui::block_layout_set_current(block, layout);
 
   int totitems = 0;
   int categories = 0;
@@ -4718,7 +4718,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
     }
   }
 
-  UI_block_layout_set_current(block, layout);
+  blender::ui::block_layout_set_current(block, layout);
 
   if (free) {
     MEM_freeN(item_array);

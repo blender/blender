@@ -145,7 +145,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
       uiLayout *subrow = &row.row(false);
       subrow->active_set(catalog_path_enabled_);
       subrow->label(catalog_item_.get_name(), ICON_NONE);
-      UI_block_layout_set_current(block, &row);
+      ui::block_layout_set_current(block, &row);
 
       uiBut *toggle_but = uiDefButC(block,
                                     ButType::Checkbox,

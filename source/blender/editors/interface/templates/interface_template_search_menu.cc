@@ -1151,7 +1151,7 @@ void uiTemplateMenuSearch(uiLayout *layout)
   static char search[256] = "";
 
   block = layout->block();
-  UI_block_layout_set_current(block, layout);
+  blender::ui::block_layout_set_current(block, layout);
 
   but = uiDefSearchBut(
       block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, "");

@@ -113,7 +113,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
   const char *op_description = nullptr;
 
   uiBlock *block = layout->block();
-  UI_block_layout_set_current(block, layout);
+  blender::ui::block_layout_set_current(block, layout);
 
   UI_block_func_handle_set(block, do_running_jobs, nullptr);
 

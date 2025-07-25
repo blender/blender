@@ -425,7 +425,7 @@ void GridViewLayoutBuilder::build_from_view(const bContext &C,
     item_idx++;
   });
 
-  UI_block_layout_set_current(&block_, parent_layout);
+  block_layout_set_current(&block_, parent_layout);
 
   build_visible_helper.fill_layout_after_visible(block_);
 }
@@ -455,7 +455,7 @@ void GridViewBuilder::build_grid_view(const bContext &C,
   grid_view.filter(search_string);
 
   /* Ensure the given layout is actually active. */
-  UI_block_layout_set_current(&block, &layout);
+  block_layout_set_current(&block, &layout);
 
   GridViewLayoutBuilder builder(layout);
   builder.build_from_view(C, grid_view, region->v2d);

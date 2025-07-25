@@ -3515,7 +3515,7 @@ static bool panel_property_search(const bContext *C,
     panel_type->draw(C, panel);
   }
 
-  UI_block_layout_free(block);
+  blender::ui::block_layout_free(block);
 
   /* We could check after each layout to increase the likelihood of returning early,
    * but that probably wouldn't make much of a difference anyway. */

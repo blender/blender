@@ -3566,7 +3566,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
   if (data->searchbox) {
     /* Popup blocks don't support moving after creation, so don't change the view for them. */
   }
-  else if (UI_block_layout_needs_resolving(but->block)) {
+  else if (blender::ui::block_layout_needs_resolving(but->block)) {
     /* Layout isn't resolved yet (may happen when activating while drawing through
      * #UI_but_active_only()), so can't move it into view yet. This causes
      * #ui_but_update_view_for_active() to run after the layout is resolved. */
