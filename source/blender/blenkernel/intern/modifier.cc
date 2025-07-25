@@ -989,6 +989,9 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval)
     /* 'em' might not exist yet in some cases, just after loading a .blend file, see #57878. */
     if (em != nullptr) {
       mesh = const_cast<Mesh *>(BKE_object_get_editmesh_eval_final(ob_eval));
+      if (mesh != nullptr) {
+        mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
+      }
     }
   }
   if (mesh == nullptr) {
