@@ -11,7 +11,8 @@ CCL_NAMESPACE_BEGIN
 /* Light Path Node */
 
 template<uint node_feature_mask, typename ConstIntegratorGenericState>
-ccl_device_noinline void svm_node_light_path(ConstIntegratorGenericState state,
+ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
+                                             ConstIntegratorGenericState state,
                                              const ccl_private ShaderData *sd,
                                              ccl_private float *stack,
                                              const uint type,
@@ -90,6 +91,12 @@ ccl_device_noinline void svm_node_light_path(ConstIntegratorGenericState state,
       IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
       {
         info = (float)integrator_state_transmission_bounce(state, path_flag);
+      }
+      break;
+    case NODE_LP_ray_portal:
+      IF_KERNEL_NODES_FEATURE(LIGHT_PATH)
+      {
+        info = (float)integrator_state_portal_bounce(kg, state, path_flag);
       }
       break;
   }

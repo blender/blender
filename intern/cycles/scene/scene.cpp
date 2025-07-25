@@ -643,6 +643,7 @@ static void log_kernel_features(const uint features)
   LOG_INFO << "Use Subsurface " << string_from_bool(features & KERNEL_FEATURE_SUBSURFACE);
   LOG_INFO << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_VOLUME);
   LOG_INFO << "Use Shadow Catcher " << string_from_bool(features & KERNEL_FEATURE_SHADOW_CATCHER);
+  LOG_INFO << "Use Portal Node " << string_from_bool(features & KERNEL_FEATURE_NODE_PORTAL);
 }
 
 bool Scene::load_kernels(Progress &progress)

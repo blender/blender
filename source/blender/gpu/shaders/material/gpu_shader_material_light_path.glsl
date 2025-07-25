@@ -15,7 +15,8 @@ void node_light_path(out float is_camera_ray,
                      out float diffuse_depth,
                      out float glossy_depth,
                      out float transparent_depth,
-                     out float transmission_depth)
+                     out float transmission_depth,
+                     out float path_depth)
 {
   /* Supported. */
   is_camera_ray = float(g_data.ray_type == RAY_TYPE_CAMERA);
@@ -34,4 +35,5 @@ void node_light_path(out float is_camera_ray,
   /* Not supported. */
   transparent_depth = 0.0f;
   is_volume_scatter_ray = 0.0f;
+  path_depth = 0.0f;
 }
