@@ -606,6 +606,14 @@ void BlenderDisplayDriver::update_end()
 
 half4 *BlenderDisplayDriver::map_texture_buffer()
 {
+  /* With multi device rendering, Cycles can switch between using graphics interop
+   * and not. For the denoised image it may be able to use graphics interop as that
+   * buffer is written to by one device, while the noisy renders can not use it.
+   *
+   * We need to clear the graphics interop buffer on that switch, as GPU_pixel_buffer_map
+   * may recreate the buffer or handle. */
+  graphics_interop_buffer_.clear();
+
   GPUPixelBuffer *pix_buf = tiles_->current_tile.buffer_object.gpu_pixel_buffer;
   if (!DCHECK_NOTNULL(pix_buf)) {
     LOG_ERROR << "Display driver tile pixel buffer unavailable.";
