@@ -255,7 +255,7 @@ typedef struct Object {
   char *matbits;
   /** Copy of mesh, curve & meta struct member of same name (keep in sync). */
   int totcol;
-  /** Currently selected material in the UI. */
+  /** Currently selected material in the UI (one-based). */
   int actcol;
 
   /* rot en drot have to be together! (transform('r' en 's')) */

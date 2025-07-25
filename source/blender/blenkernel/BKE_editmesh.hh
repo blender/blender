@@ -51,7 +51,7 @@ struct BMEditMesh {
 
   /** Selection mode (#SCE_SELECT_VERTEX, #SCE_SELECT_EDGE & #SCE_SELECT_FACE). */
   short selectmode;
-  /** The active material (assigned to newly created faces). */
+  /** The active material (zero-based, assigned to newly created faces). */
   short mat_nr;
 
   /** Temp variables for x-mirror editing (-1 when the layer does not exist). */
