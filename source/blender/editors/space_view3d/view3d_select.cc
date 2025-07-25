@@ -2753,6 +2753,9 @@ static bool ed_object_select_pick(bContext *C,
         /* Special case, even when there are no hits, pose logic may de-select all bones. */
         ((gpu->hits == 0) && has_pose_old))
     {
+      /* Regarding the `basact` null checks.
+       * While it's unlikely there are GPU hits *without* `basact` being found,
+       * it's possible looking up the selection index fails, see: #143161. */
 
       if (basact && (gpu->has_bones && (basact->object->type == OB_CAMERA))) {
         MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
@@ -2774,7 +2777,8 @@ static bool ed_object_select_pick(bContext *C,
           }
         }
       }
-      else if (ED_armature_pose_select_pick_with_buffer(scene,
+      else if ((basact || oldbasact) &&
+               ED_armature_pose_select_pick_with_buffer(scene,
                                                         view_layer,
                                                         v3d,
                                                         basact ? basact : (Base *)oldbasact,
