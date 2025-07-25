@@ -12,10 +12,8 @@
 
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
+#include "BLI_task.hh"
 
-#include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
-#include "BKE_mesh.hh"
 #include "BKE_mesh_tangent.hh"
 #include "BKE_report.hh"
 
@@ -23,23 +21,16 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
-using blender::Array;
-using blender::float2;
-using blender::float3;
-using blender::float4;
-using blender::int3;
-using blender::OffsetIndices;
-using blender::Span;
-using blender::StringRef;
-
 /* -------------------------------------------------------------------- */
 /** \name Mesh Tangent Calculations (Single Layer)
  * \{ */
 
+namespace blender::bke::mesh {
+
 struct BKEMeshToTangent {
   uint GetNumFaces()
   {
-    return uint(num_faces);
+    return uint(faces.size());
   }
 
   uint GetNumVerticesOfFace(const uint face_num)
@@ -75,34 +66,29 @@ struct BKEMeshToTangent {
     return true;
   }
 
-  OffsetIndices<int> faces;         /* faces */
-  const int *corner_verts;          /* faces vertices */
-  const float (*positions)[3];      /* vertices */
-  const float (*luvs)[2];           /* texture coordinates */
-  const float (*corner_normals)[3]; /* loops' normals */
-  float (*tangents)[4];             /* output tangents */
-  int num_faces;                    /* number of polygons */
+  OffsetIndices<int> faces;     /* faces */
+  Span<int> corner_verts;       /* faces vertices */
+  Span<float3> positions;       /* vertices */
+  Span<float2> luvs;            /* texture coordinates */
+  Span<float3> corner_normals;  /* loops' normals */
+  MutableSpan<float4> tangents; /* output tangents */
 };
 
-void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
-                                          const int /*numVerts*/,
-                                          const int *corner_verts,
-                                          float (*r_looptangent)[4],
-                                          const float (*corner_normals)[3],
-                                          const float (*loop_uvs)[2],
-                                          const int /*numLoops*/,
-                                          const OffsetIndices<int> faces,
-                                          ReportList *reports)
+void calc_uv_tangent_tris_quads(const Span<float3> vert_positions,
+                                const OffsetIndices<int> faces,
+                                const Span<int> corner_verts,
+                                const Span<float3> corner_normals,
+                                const Span<float2> uv_map,
+                                MutableSpan<float4> results,
+                                ReportList *reports)
 {
-  /* Compute Mikktspace's tangent normals. */
   BKEMeshToTangent mesh_to_tangent;
   mesh_to_tangent.faces = faces;
   mesh_to_tangent.corner_verts = corner_verts;
   mesh_to_tangent.positions = vert_positions;
-  mesh_to_tangent.luvs = loop_uvs;
+  mesh_to_tangent.luvs = uv_map;
   mesh_to_tangent.corner_normals = corner_normals;
-  mesh_to_tangent.tangents = r_looptangent;
-  mesh_to_tangent.num_faces = int(faces.size());
+  mesh_to_tangent.tangents = results;
 
   mikk::Mikktspace<BKEMeshToTangent> mikk(mesh_to_tangent);
 
@@ -118,39 +104,6 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
   mikk.genTangSpace();
 }
 
-void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
-                                       const char *uvmap,
-                                       float (*r_looptangents)[4],
-                                       ReportList *reports)
-{
-  using namespace blender;
-  using namespace blender::bke;
-  if (!uvmap) {
-    uvmap = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2);
-  }
-
-  const AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan uv_map = *attributes.lookup<float2>(uvmap, AttrDomain::Corner);
-  if (uv_map.is_empty()) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Tangent space computation needs a UV Map, \"%s\" not found, aborting",
-                uvmap);
-    return;
-  }
-
-  BKE_mesh_calc_loop_tangent_single_ex(
-      reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data()),
-      mesh->verts_num,
-      mesh->corner_verts().data(),
-      r_looptangents,
-      reinterpret_cast<const float(*)[3]>(mesh->corner_normals().data()),
-      reinterpret_cast<const float(*)[2]>(uv_map.data()),
-      mesh->corners_num,
-      mesh->faces(),
-      reports);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -159,8 +112,6 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
 
 /* Necessary complexity to handle corner_tris as quads for correct tangents. */
 #define USE_TRI_DETECT_QUADS
-
-namespace blender::bke::mesh {
 
 struct SGLSLMeshToTangent {
   uint GetNumFaces()
