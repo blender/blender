@@ -121,6 +121,18 @@ void BKE_image_format_set(ImageFormatData *imf, ID *owner_id, const char imtype)
     MOV_validate_output_settings(rd, imf);
   }
 
+  /* Verify `imf->views_format`. */
+  if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
+    if (imf->views_format == R_IMF_VIEWS_STEREO_3D) {
+      imf->views_format = R_IMF_VIEWS_MULTIVIEW;
+    }
+  }
+  else if (imf->imtype != R_IMF_IMTYPE_OPENEXR) {
+    if (imf->views_format == R_IMF_VIEWS_MULTIVIEW) {
+      imf->views_format = R_IMF_VIEWS_INDIVIDUAL;
+    }
+  }
+
   BKE_image_format_update_color_space_for_type(imf);
 }
 
