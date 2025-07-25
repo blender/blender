@@ -35,6 +35,11 @@ void BKE_image_format_update_color_space_for_type(ImageFormatData *format);
 void BKE_image_format_blend_read_data(BlendDataReader *reader, ImageFormatData *imf);
 void BKE_image_format_blend_write(BlendWriter *writer, ImageFormatData *imf);
 
+/* Sets the media type of the given format that belongs to the given ID. This involves updating the
+ * imtype to a default format if it does not match the newly set media type. */
+void BKE_image_format_media_type_set(ImageFormatData *format,
+                                     ID *owner_id,
+                                     const MediaType media_type);
 void BKE_image_format_set(ImageFormatData *imf, ID *owner_id, const char imtype);
 
 /* File Paths */
@@ -97,6 +102,11 @@ int BKE_image_path_ext_from_imtype_ensure(char *filepath, size_t filepath_maxncp
 char BKE_ftype_to_imtype(int ftype, const ImbFormatOptions *options);
 int BKE_imtype_to_ftype(char imtype, ImbFormatOptions *r_options);
 
+/* Returns true if the given imtype represents an image. This excludes multi-layer images, use
+ * BKE_imtype_is_multi_layer_image to detect those images. */
+bool BKE_imtype_is_image(char imtype);
+/* Returns true if the given imtype represents a multi-layer image. */
+bool BKE_imtype_is_multi_layer_image(char imtype);
 bool BKE_imtype_is_movie(char imtype);
 bool BKE_imtype_supports_compress(char imtype);
 bool BKE_imtype_supports_quality(char imtype);

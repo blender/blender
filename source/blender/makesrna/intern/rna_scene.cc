@@ -255,6 +255,34 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+#define MEDIA_TYPE_ENUM_IMAGE \
+  { \
+    MEDIA_TYPE_IMAGE, "IMAGE", ICON_NONE, "Image", "" \
+  }
+#define MEDIA_TYPE_ENUM_MULTI_LAYER_IMAGE \
+  { \
+    MEDIA_TYPE_MULTI_LAYER_IMAGE, "MULTI_LAYER_IMAGE", ICON_NONE, "Multi-Layer EXR", "" \
+  }
+#define MEDIA_TYPE_ENUM_VIDEO \
+  { \
+    MEDIA_TYPE_VIDEO, "VIDEO", ICON_NONE, "Video", "" \
+  }
+
+static const EnumPropertyItem rna_enum_media_type_all_items[] = {
+    MEDIA_TYPE_ENUM_IMAGE,
+    MEDIA_TYPE_ENUM_MULTI_LAYER_IMAGE,
+    MEDIA_TYPE_ENUM_VIDEO,
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+#ifdef RNA_RUNTIME
+static const EnumPropertyItem rna_enum_media_type_image_items[] = {
+    MEDIA_TYPE_ENUM_IMAGE,
+    MEDIA_TYPE_ENUM_MULTI_LAYER_IMAGE,
+    {0, nullptr, 0, nullptr, nullptr},
+};
+#endif
+
 /* workaround for duplicate enums,
  * have each enum line as a define then conditionally set it or not
  */
@@ -337,7 +365,13 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
 #  define R_IMF_ENUM_WEBP
 #endif
 
-#define IMAGE_TYPE_ITEMS_IMAGE_ONLY \
+#ifdef WITH_FFMPEG
+#  define R_IMF_ENUM_FFMPEG {R_IMF_IMTYPE_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFmpeg Video", ""},
+#else
+#  define R_IMF_ENUM_FFMPEG
+#endif
+
+#define IMAGE_TYPE_ITEMS_IMAGE \
   R_IMF_ENUM_BMP \
   /* DDS save not supported yet R_IMF_ENUM_DDS */ \
   R_IMF_ENUM_IRIS \
@@ -346,27 +380,36 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
   R_IMF_ENUM_JPEG2K \
   R_IMF_ENUM_TAGA \
   R_IMF_ENUM_TAGA_RAW \
-  RNA_ENUM_ITEM_SEPR_COLUMN, R_IMF_ENUM_CINEON R_IMF_ENUM_DPX R_IMF_ENUM_EXR_MULTILAYER \
-                                 R_IMF_ENUM_EXR R_IMF_ENUM_HDR R_IMF_ENUM_TIFF R_IMF_ENUM_WEBP
+  RNA_ENUM_ITEM_SEPR_COLUMN, R_IMF_ENUM_CINEON R_IMF_ENUM_DPX R_IMF_ENUM_EXR R_IMF_ENUM_HDR \
+                                 R_IMF_ENUM_TIFF R_IMF_ENUM_WEBP
+
+#define IMAGE_TYPE_ITEMS_MULTI_LAYER_IMAGE R_IMF_ENUM_EXR_MULTILAYER
+
+#define IMAGE_TYPE_ITEMS_VIDEO R_IMF_ENUM_FFMPEG
 
 #ifdef RNA_RUNTIME
-static const EnumPropertyItem image_only_type_items[] = {
+static const EnumPropertyItem image_type_items[] = {
+    IMAGE_TYPE_ITEMS_IMAGE
 
-    IMAGE_TYPE_ITEMS_IMAGE_ONLY
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem multi_layer_image_type_items[] = {
+    IMAGE_TYPE_ITEMS_MULTI_LAYER_IMAGE
+
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem video_image_type_items[] = {
+    IMAGE_TYPE_ITEMS_VIDEO
 
     {0, nullptr, 0, nullptr, nullptr},
 };
 #endif
 
-const EnumPropertyItem rna_enum_image_type_items[] = {
-    RNA_ENUM_ITEM_HEADING(N_("Image"), nullptr),
+const EnumPropertyItem rna_enum_image_type_all_items[] = {
+    IMAGE_TYPE_ITEMS_IMAGE IMAGE_TYPE_ITEMS_MULTI_LAYER_IMAGE IMAGE_TYPE_ITEMS_VIDEO
 
-    IMAGE_TYPE_ITEMS_IMAGE_ONLY
-
-        RNA_ENUM_ITEM_HEADING(N_("Movie"), nullptr),
-#ifdef WITH_FFMPEG
-    {R_IMF_IMTYPE_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFmpeg Video", ""},
-#endif
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1389,6 +1432,30 @@ static bool rna_RenderSettings_is_movie_format_get(PointerRNA *ptr)
   return BKE_imtype_is_movie(rd->im_format.imtype);
 }
 
+static const EnumPropertyItem *rna_ImageFormatSettings_media_type_itemf(bContext * /*C*/,
+                                                                        PointerRNA *ptr,
+                                                                        PropertyRNA * /*prop*/,
+                                                                        bool * /*r_free*/)
+{
+  ID *id = ptr->owner_id;
+  /* Scene format setting include video, so we return all items. Otherwise, only image types are
+   * returned. */
+  if (id && GS(id->name) == ID_SCE) {
+    return rna_enum_media_type_all_items;
+  }
+  else {
+    return rna_enum_media_type_image_items;
+  }
+}
+
+/* If the existing imtype does not match the new media type, assign an appropriate default media
+ * type. */
+static void rna_ImageFormatSettings_media_type_set(PointerRNA *ptr, int value)
+{
+  ImageFormatData *format = ptr->data_as<ImageFormatData>();
+  BKE_image_format_media_type_set(format, ptr->owner_id, static_cast<MediaType>(value));
+}
+
 static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 {
   BKE_image_format_set((ImageFormatData *)ptr->data, ptr->owner_id, value);
@@ -1399,13 +1466,17 @@ static const EnumPropertyItem *rna_ImageFormatSettings_file_format_itemf(bContex
                                                                          PropertyRNA * /*prop*/,
                                                                          bool * /*r_free*/)
 {
-  ID *id = ptr->owner_id;
-  if (id && GS(id->name) == ID_SCE) {
-    return rna_enum_image_type_items;
+  const ImageFormatData *format = ptr->data_as<ImageFormatData>();
+  switch (static_cast<MediaType>(format->media_type)) {
+    case MEDIA_TYPE_IMAGE:
+      return image_type_items;
+    case MEDIA_TYPE_MULTI_LAYER_IMAGE:
+      return multi_layer_image_type_items;
+    case MEDIA_TYPE_VIDEO:
+      return video_image_type_items;
   }
-  else {
-    return image_only_type_items;
-  }
+
+  return rna_enum_image_type_all_items;
 }
 
 static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext * /*C*/,
@@ -6188,7 +6259,6 @@ static void rna_def_image_format_stereo3d_format(BlenderRNA *brna)
 
 static void rna_def_scene_image_format_data(BlenderRNA *brna)
 {
-
 #  ifdef WITH_IMAGE_OPENJPEG
   static const EnumPropertyItem jp2_codec_items[] = {
       {R_IMF_JP2_CODEC_JP2, "JP2", 0, "JP2", ""},
@@ -6222,9 +6292,19 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_ImageFormatSettings_path");
   RNA_def_struct_ui_text(srna, "Image Format", "Settings for image formats");
 
+  prop = RNA_def_property(srna, "media_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "media_type");
+  RNA_def_property_enum_items(prop, rna_enum_media_type_all_items);
+  RNA_def_property_enum_funcs(prop,
+                              nullptr,
+                              "rna_ImageFormatSettings_media_type_set",
+                              "rna_ImageFormatSettings_media_type_itemf");
+  RNA_def_property_ui_text(prop, "Media Type", "The type of media to save");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
   prop = RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "imtype");
-  RNA_def_property_enum_items(prop, rna_enum_image_type_items);
+  RNA_def_property_enum_items(prop, rna_enum_image_type_all_items);
   RNA_def_property_enum_funcs(prop,
                               nullptr,
                               "rna_ImageFormatSettings_file_format_set",
@@ -7165,7 +7245,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 #  if 0 /* moved */
   prop = RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "imtype");
-  RNA_def_property_enum_items(prop, rna_enum_image_type_items);
+  RNA_def_property_enum_items(prop, rna_enum_image_type_all_items);
   RNA_def_property_enum_funcs(prop, nullptr, "rna_RenderSettings_file_format_set", nullptr);
   RNA_def_property_ui_text(prop, "File Format", "File format to save the rendered images as");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);

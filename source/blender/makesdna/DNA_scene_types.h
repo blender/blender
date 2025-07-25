@@ -462,6 +462,8 @@ typedef enum eStereo3dInterlaceType {
  * RNA ensures these enum's are only selectable for render output.
  */
 typedef struct ImageFormatData {
+  /** MediaType. */
+  char media_type;
   /**
    * R_IMF_IMTYPE_PNG, R_...
    * \note Video types should only ever be set from this structure when used from #RenderData.
@@ -487,11 +489,6 @@ typedef struct ImageFormatData {
   /** OpenEXR: R_IMF_EXR_CODEC_* values in low OPENEXR_CODEC_MASK bits. */
   char exr_codec;
 
-  /** CINEON. */
-  char cineon_flag;
-  short cineon_white, cineon_black;
-  float cineon_gamma;
-
   /** Jpeg2000. */
   char jp2_flag;
   char jp2_codec;
@@ -499,7 +496,12 @@ typedef struct ImageFormatData {
   /** TIFF. */
   char tiff_codec;
 
-  char _pad[4];
+  /** CINEON. */
+  char cineon_flag;
+  short cineon_white, cineon_black;
+  float cineon_gamma;
+
+  char _pad[3];
 
   /** Multi-view. */
   char views_format;
@@ -513,6 +515,13 @@ typedef struct ImageFormatData {
   ColorManagedDisplaySettings display_settings;
   ColorManagedColorspaceSettings linear_colorspace_settings;
 } ImageFormatData;
+
+/** #ImageFormatData::media_type */
+typedef enum MediaType {
+  MEDIA_TYPE_IMAGE = 0,
+  MEDIA_TYPE_MULTI_LAYER_IMAGE = 1,
+  MEDIA_TYPE_VIDEO = 2,
+} MediaType;
 
 /** #ImageFormatData::imtype */
 enum {

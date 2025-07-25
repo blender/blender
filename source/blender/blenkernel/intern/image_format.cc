@@ -90,9 +90,52 @@ void BKE_image_format_blend_write(BlendWriter *writer, ImageFormatData *imf)
   BKE_color_managed_view_settings_blend_write(writer, &imf->view_settings);
 }
 
+void BKE_image_format_media_type_set(ImageFormatData *format,
+                                     ID *owner_id,
+                                     const MediaType media_type)
+{
+  format->media_type = media_type;
+
+  switch (media_type) {
+    case MEDIA_TYPE_IMAGE:
+      if (!BKE_imtype_is_image(format->imtype)) {
+        BKE_image_format_set(format, owner_id, R_IMF_IMTYPE_PNG);
+      }
+      break;
+    case MEDIA_TYPE_MULTI_LAYER_IMAGE:
+      if (!BKE_imtype_is_multi_layer_image(format->imtype)) {
+        BKE_image_format_set(format, owner_id, R_IMF_IMTYPE_MULTILAYER);
+      }
+      break;
+    case MEDIA_TYPE_VIDEO:
+      if (!BKE_imtype_is_movie(format->imtype)) {
+        BKE_image_format_set(format, owner_id, R_IMF_IMTYPE_FFMPEG);
+      }
+      break;
+  }
+}
+
 void BKE_image_format_set(ImageFormatData *imf, ID *owner_id, const char imtype)
 {
   imf->imtype = imtype;
+
+  /* Update media type in case it doesn't match the new imtype. Note that normally, one would use
+   * the BKE_image_format_media_type_set function to set the media type, but that function itself
+   * calls this function to update the imtype, and while this wouldn't case recursion since the
+   * imtype is already conforming, it is better to err on the side of caution and set the media
+   * type manually. */
+  if (BKE_imtype_is_image(imf->imtype)) {
+    imf->media_type = MEDIA_TYPE_IMAGE;
+  }
+  else if (BKE_imtype_is_multi_layer_image(imf->imtype)) {
+    imf->media_type = MEDIA_TYPE_MULTI_LAYER_IMAGE;
+  }
+  else if (BKE_imtype_is_movie(imf->imtype)) {
+    imf->media_type = MEDIA_TYPE_VIDEO;
+  }
+  else {
+    BLI_assert_unreachable();
+  }
 
   const bool is_render = (owner_id && GS(owner_id->name) == ID_SCE);
   /* see note below on why this is */
@@ -251,6 +294,20 @@ char BKE_ftype_to_imtype(const int ftype, const ImbFormatOptions *options)
 #endif
 
   return R_IMF_IMTYPE_JPEG90;
+}
+
+bool BKE_imtype_is_image(const char imtype)
+{
+  return !BKE_imtype_is_multi_layer_image(imtype) && !BKE_imtype_is_movie(imtype);
+}
+
+bool BKE_imtype_is_multi_layer_image(const char imtype)
+{
+  switch (imtype) {
+    case R_IMF_IMTYPE_MULTILAYER:
+      return true;
+  }
+  return false;
 }
 
 bool BKE_imtype_is_movie(const char imtype)

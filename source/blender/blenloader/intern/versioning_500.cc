@@ -35,6 +35,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_idprop.hh"
+#include "BKE_image_format.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh_legacy_convert.hh"
@@ -1217,6 +1218,23 @@ static void do_version_composite_node_in_scene_tree(bNodeTree &node_tree, bNode 
   version_node_remove(node_tree, node);
 }
 
+/* Updates the media type of the given format to match its imtype. */
+static void update_format_media_type(ImageFormatData *format)
+{
+  if (BKE_imtype_is_image(format->imtype)) {
+    format->media_type = MEDIA_TYPE_IMAGE;
+  }
+  else if (BKE_imtype_is_multi_layer_image(format->imtype)) {
+    format->media_type = MEDIA_TYPE_MULTI_LAYER_IMAGE;
+  }
+  else if (BKE_imtype_is_movie(format->imtype)) {
+    format->media_type = MEDIA_TYPE_VIDEO;
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+}
+
 void do_versions_after_linking_500(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 9)) {
@@ -1641,6 +1659,36 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         do_version_convert_gp_jitter_values(brush);
       }
     }
+  }
+
+  /* ImageFormatData gained a new media type which we need to be set according to the existing
+   * imtype. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 42)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      update_format_media_type(&scene->r.im_format);
+    }
+
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+        if (node->type_legacy != CMP_NODE_OUTPUT_FILE) {
+          continue;
+        }
+
+        NodeImageMultiFile *storage = static_cast<NodeImageMultiFile *>(node->storage);
+        update_format_media_type(&storage->format);
+
+        LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+          NodeImageMultiFileSocket *input_storage = static_cast<NodeImageMultiFileSocket *>(
+              input->storage);
+          update_format_media_type(&input_storage->format);
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**
