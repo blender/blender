@@ -306,7 +306,7 @@ void strip_rectf(const Scene *scene, const Strip *strip, rctf *r_rect)
   r_rect->ymax = strip->channel + STRIP_OFSTOP;
 }
 
-Strip *find_neighboring_strip(Scene *scene, Strip *test, int lr, int sel)
+Strip *find_neighboring_strip(const Scene *scene, const Strip *test, const int lr, int sel)
 {
   /* sel: 0==unselected, 1==selected, -1==don't care. */
   Editing *ed = seq::editing_get(scene);
@@ -870,24 +870,27 @@ static void sequencer_copy_handles_to_selected_strips(const Scene *scene,
    * since we don't want to mess with dual handles. */
   blender::VectorSet<Strip *> test(copy_to);
   test.add(source);
-  for (Strip *strip_a : test) {
-    for (Strip *strip_b : test) {
-      if (strip_a == strip_b || strip_a->channel != strip_b->channel) {
-        continue;
+  for (Strip *test_strip : test) {
+    /* Don't copy left handle over to a `test_strip` that has a strip directly on its left. */
+    if ((source->flag & SEQ_LEFTSEL) &&
+        find_neighboring_strip(scene, test_strip, seq::SIDE_LEFT, -1))
+    {
+      /* If this was the source strip, do not copy handles at all and prematurely return. */
+      if (test_strip == source) {
+        return;
       }
+      copy_to.remove(test_strip);
+    }
 
-      /* Don't copy left handle over to a `strip_b` that has `strip_a` directly on its left. */
-      if ((source->flag & SEQ_LEFTSEL) && (seq::time_right_handle_frame_get(scene, strip_a) ==
-                                           seq::time_left_handle_frame_get(scene, strip_b)))
-      {
-        copy_to.remove(strip_b);
+    /* Don't copy right handle over to a `test_strip` that has a strip directly on its right. */
+    if ((source->flag & SEQ_RIGHTSEL) &&
+        find_neighboring_strip(scene, test_strip, seq::SIDE_RIGHT, -1))
+    {
+      /* If this was the source strip, do not copy handles at all and prematurely return. */
+      if (test_strip == source) {
+        return;
       }
-      /* Don't copy right handle over to a `strip_a` that has `strip_b` directly on its right. */
-      if ((source->flag & SEQ_RIGHTSEL) && (seq::time_right_handle_frame_get(scene, strip_a) ==
-                                            seq::time_left_handle_frame_get(scene, strip_b)))
-      {
-        copy_to.remove(strip_a);
-      }
+      copy_to.remove(test_strip);
     }
   }
 
@@ -1363,11 +1366,11 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
         ed, selection.strip2, strip2_handle_clicked, extend, deselect, toggle);
   }
 
-  if (copy_handles_to_sel) {
-    sequencer_copy_handles_to_selected_strips(scene, selection, copy_to);
-  }
-
   if (!ignore_connections) {
+    if (copy_handles_to_sel) {
+      sequencer_copy_handles_to_selected_strips(scene, selection, copy_to);
+    }
+
     sequencer_select_connected_strips(selection);
   }
 
