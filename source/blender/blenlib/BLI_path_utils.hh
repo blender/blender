@@ -133,6 +133,8 @@ bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);
 /**
  * Creates a display string from path to be used menus and the user interface.
  * Like `bpy.path.display_name()`.
+ *
+ * The resulting path is guaranteed to be valid UTF8, even if the input path is not.
  */
 void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, const char *name)
     ATTR_NONNULL(1, 3);
