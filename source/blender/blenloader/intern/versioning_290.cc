@@ -1549,7 +1549,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
             if (node->type_legacy == CMP_NODE_CRYPTOMATTE_LEGACY) {
               NodeCryptomatte *storage = (NodeCryptomatte *)node->storage;
               char *matte_id = storage->matte_id;
-              if (matte_id == nullptr || strlen(storage->matte_id) == 0) {
+              if ((matte_id == nullptr) || (storage->matte_id[0] == '\0')) {
                 continue;
               }
               BKE_cryptomatte_matte_id_to_entries(storage, storage->matte_id);

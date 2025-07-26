@@ -317,8 +317,8 @@ size_t BLI_string_flip_side_name(char *name_dst,
       if (strip_number == false) {
         BLI_strncpy(number, index, name_dst_maxncpy);
       }
-      *index = 0;
-      len = BLI_strnlen(name_dst, name_dst_maxncpy);
+      *index = '\0';
+      len = size_t(index - name_dst); /* Same as `strlen(name_dst)`. */
     }
   }
 
