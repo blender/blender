@@ -25,6 +25,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 #include "BLT_translation.hh"
@@ -880,7 +881,7 @@ static bool default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
     ct = MEM_callocN<bConstraintTarget>("tempConstraintTarget"); \
 \
     ct->tar = datatar; \
-    STRNCPY(ct->subtarget, datasubtarget); \
+    STRNCPY_UTF8(ct->subtarget, datasubtarget); \
     ct->space = con->tarspace; \
     ct->flag = CONSTRAINT_TAR_TEMP; \
 \
@@ -937,7 +938,7 @@ static bool default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
       bConstraintTarget *ctn = ct->next; \
       if (no_copy == 0) { \
         datatar = ct->tar; \
-        STRNCPY(datasubtarget, ct->subtarget); \
+        STRNCPY_UTF8(datasubtarget, ct->subtarget); \
         con->tarspace = char(ct->space); \
       } \
 \
@@ -5788,7 +5789,7 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
   }
 
   /* copy the name */
-  STRNCPY(con->name, newName);
+  STRNCPY_UTF8(con->name, newName);
 
   /* return the new constraint */
   return con;
@@ -6212,7 +6213,7 @@ void BKE_constraint_targets_flush(bConstraint *con, ListBase *targets, bool no_c
 
     if (!no_copy) {
       con->space_object = ct->tar;
-      STRNCPY(con->space_subtarget, ct->subtarget);
+      STRNCPY_UTF8(con->space_subtarget, ct->subtarget);
     }
 
     BLI_freelinkN(targets, ct);

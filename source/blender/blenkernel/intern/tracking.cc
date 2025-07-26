@@ -34,6 +34,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
@@ -503,7 +504,7 @@ MovieTrackingTrack *BKE_tracking_track_add_empty(MovieTracking *tracking, ListBa
   const MovieTrackingSettings *settings = &tracking->settings;
 
   MovieTrackingTrack *track = MEM_callocN<MovieTrackingTrack>("add_marker_exec track");
-  STRNCPY(track->name, CTX_DATA_(BLT_I18NCONTEXT_ID_MOVIECLIP, "Track"));
+  STRNCPY_UTF8(track->name, CTX_DATA_(BLT_I18NCONTEXT_ID_MOVIECLIP, "Track"));
 
   /* Fill track's settings from default settings. */
   track->motion_model = settings->default_motion_model;
@@ -1573,7 +1574,7 @@ MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(MovieTracking *tracking,
   plane_track = MEM_callocN<MovieTrackingPlaneTrack>("new plane track");
 
   /* Use some default name. */
-  STRNCPY(plane_track->name, DATA_("Plane Track"));
+  STRNCPY_UTF8(plane_track->name, DATA_("Plane Track"));
 
   plane_track->image_opacity = 1.0f;
 
@@ -1899,12 +1900,12 @@ MovieTrackingObject *BKE_tracking_object_add(MovieTracking *tracking, const char
 
   if (tracking->tot_object == 0) {
     /* first object is always camera */
-    STRNCPY(tracking_object->name, "Camera");
+    STRNCPY_UTF8(tracking_object->name, "Camera");
 
     tracking_object->flag |= TRACKING_OBJECT_CAMERA;
   }
   else {
-    STRNCPY(tracking_object->name, name);
+    STRNCPY_UTF8(tracking_object->name, name);
   }
 
   BLI_addtail(&tracking->objects, tracking_object);
@@ -3277,10 +3278,10 @@ static void tracking_dopesheet_channels_calc(MovieTracking *tracking)
     channel->track = track;
 
     if (reconstruction->flag & TRACKING_RECONSTRUCTED) {
-      SNPRINTF(channel->name, "%s (%.4f)", track->name, track->error);
+      SNPRINTF_UTF8(channel->name, "%s (%.4f)", track->name, track->error);
     }
     else {
-      STRNCPY(channel->name, track->name);
+      STRNCPY_UTF8(channel->name, track->name);
     }
 
     tracking_dopesheet_channels_segments_calc(channel);
@@ -3496,16 +3497,16 @@ void BKE_tracking_get_rna_path_for_track(const MovieTracking *tracking,
   char track_name_esc[MAX_NAME * 2];
   BLI_str_escape(track_name_esc, track->name, sizeof(track_name_esc));
   if (tracking_object == nullptr) {
-    BLI_snprintf(rna_path, rna_path_maxncpy, "tracking.tracks[\"%s\"]", track_name_esc);
+    BLI_snprintf_utf8(rna_path, rna_path_maxncpy, "tracking.tracks[\"%s\"]", track_name_esc);
   }
   else {
     char object_name_esc[MAX_NAME * 2];
     BLI_str_escape(object_name_esc, tracking_object->name, sizeof(object_name_esc));
-    BLI_snprintf(rna_path,
-                 rna_path_maxncpy,
-                 "tracking.objects[\"%s\"].tracks[\"%s\"]",
-                 object_name_esc,
-                 track_name_esc);
+    BLI_snprintf_utf8(rna_path,
+                      rna_path_maxncpy,
+                      "tracking.objects[\"%s\"].tracks[\"%s\"]",
+                      object_name_esc,
+                      track_name_esc);
   }
 }
 
@@ -3516,12 +3517,12 @@ void BKE_tracking_get_rna_path_prefix_for_track(const MovieTracking *tracking,
 {
   MovieTrackingObject *tracking_object = BKE_tracking_find_object_for_track(tracking, track);
   if (tracking_object == nullptr) {
-    BLI_strncpy(rna_path, "tracking.tracks", rna_path_maxncpy);
+    BLI_strncpy_utf8(rna_path, "tracking.tracks", rna_path_maxncpy);
   }
   else {
     char object_name_esc[MAX_NAME * 2];
     BLI_str_escape(object_name_esc, tracking_object->name, sizeof(object_name_esc));
-    BLI_snprintf(rna_path, rna_path_maxncpy, "tracking.objects[\"%s\"]", object_name_esc);
+    BLI_snprintf_utf8(rna_path, rna_path_maxncpy, "tracking.objects[\"%s\"]", object_name_esc);
   }
 }
 
@@ -3535,16 +3536,16 @@ void BKE_tracking_get_rna_path_for_plane_track(const MovieTracking *tracking,
   char track_name_esc[MAX_NAME * 2];
   BLI_str_escape(track_name_esc, plane_track->name, sizeof(track_name_esc));
   if (tracking_object == nullptr) {
-    BLI_snprintf(rna_path, rna_path_maxncpy, "tracking.plane_tracks[\"%s\"]", track_name_esc);
+    BLI_snprintf_utf8(rna_path, rna_path_maxncpy, "tracking.plane_tracks[\"%s\"]", track_name_esc);
   }
   else {
     char object_name_esc[MAX_NAME * 2];
     BLI_str_escape(object_name_esc, tracking_object->name, sizeof(object_name_esc));
-    BLI_snprintf(rna_path,
-                 rna_path_maxncpy,
-                 "tracking.objects[\"%s\"].plane_tracks[\"%s\"]",
-                 object_name_esc,
-                 track_name_esc);
+    BLI_snprintf_utf8(rna_path,
+                      rna_path_maxncpy,
+                      "tracking.objects[\"%s\"].plane_tracks[\"%s\"]",
+                      object_name_esc,
+                      track_name_esc);
   }
 }
 
@@ -3556,12 +3557,12 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(const MovieTracking *track
   MovieTrackingObject *tracking_object = BKE_tracking_find_object_for_plane_track(tracking,
                                                                                   plane_track);
   if (tracking_object == nullptr) {
-    BLI_strncpy(rna_path, "tracking.plane_tracks", rna_path_maxncpy);
+    BLI_strncpy_utf8(rna_path, "tracking.plane_tracks", rna_path_maxncpy);
   }
   else {
     char object_name_esc[MAX_NAME * 2];
     BLI_str_escape(object_name_esc, tracking_object->name, sizeof(object_name_esc));
-    BLI_snprintf(
+    BLI_snprintf_utf8(
         rna_path, rna_path_maxncpy, "tracking.objects[\"%s\"].plane_tracks", object_name_esc);
   }
 }

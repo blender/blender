@@ -17,6 +17,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -1890,7 +1891,7 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
         id_us_plus(&node_group->id);
         MOD_nodes_update_interface(object, smooth_by_angle_nmd);
         smooth_by_angle_nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;
-        STRNCPY(smooth_by_angle_nmd->modifier.name, DATA_(node_group->id.name + 2));
+        STRNCPY_UTF8(smooth_by_angle_nmd->modifier.name, DATA_(node_group->id.name + 2));
         BKE_modifier_unique_name(&object->modifiers, &smooth_by_angle_nmd->modifier);
       }
 
@@ -2404,17 +2405,17 @@ void move_to_colletion_menu_register()
 {
   /* Add recursive sub-menu type, to avoid each sub-menu from showing the main menu shortcut. */
   MenuType *mt = MEM_callocN<MenuType>("OBJECT_MT_move_to_collection_recursive");
-  STRNCPY(mt->idname, "OBJECT_MT_move_to_collection_recursive");
-  STRNCPY(mt->label, N_("Move to Collection Recursive"));
-  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(mt->idname, "OBJECT_MT_move_to_collection_recursive");
+  STRNCPY_UTF8(mt->label, N_("Move to Collection Recursive"));
+  STRNCPY_UTF8(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = move_to_collection_recursive_menu_draw;
   mt->flag = MenuTypeFlag::ContextDependent;
   WM_menutype_add(mt);
 
   mt = MEM_callocN<MenuType>("OBJECT_MT_move_to_collection");
-  STRNCPY(mt->idname, "OBJECT_MT_move_to_collection");
-  STRNCPY(mt->label, N_("Move to Collection"));
-  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(mt->idname, "OBJECT_MT_move_to_collection");
+  STRNCPY_UTF8(mt->label, N_("Move to Collection"));
+  STRNCPY_UTF8(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = move_to_collection_menu_draw;
   mt->flag = MenuTypeFlag::SearchOnKeyPress;
   WM_menutype_add(mt);
@@ -2424,17 +2425,17 @@ void link_to_colletion_menu_register()
 {
   /* Add recursive sub-menu type, to avoid each sub-menu from showing the main menu shortcut. */
   MenuType *mt = MEM_callocN<MenuType>("OBJECT_MT_link_to_collection_recursive");
-  STRNCPY(mt->idname, "OBJECT_MT_link_to_collection_recursive");
-  STRNCPY(mt->label, N_("Link to Collection Recursive"));
-  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(mt->idname, "OBJECT_MT_link_to_collection_recursive");
+  STRNCPY_UTF8(mt->label, N_("Link to Collection Recursive"));
+  STRNCPY_UTF8(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = move_to_collection_recursive_menu_draw;
   mt->flag = MenuTypeFlag::ContextDependent;
   WM_menutype_add(mt);
 
   mt = MEM_callocN<MenuType>("OBJECT_MT_link_to_collection");
-  STRNCPY(mt->idname, "OBJECT_MT_link_to_collection");
-  STRNCPY(mt->label, N_("Link to Collection"));
-  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(mt->idname, "OBJECT_MT_link_to_collection");
+  STRNCPY_UTF8(mt->label, N_("Link to Collection"));
+  STRNCPY_UTF8(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = move_to_collection_menu_draw;
   mt->flag = MenuTypeFlag::SearchOnKeyPress;
   WM_menutype_add(mt);

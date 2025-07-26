@@ -28,7 +28,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -2053,19 +2053,20 @@ void view3d_buttons_register(ARegionType *art)
   PanelType *pt;
 
   pt = MEM_callocN<PanelType>("spacetype view3d panel object");
-  STRNCPY(pt->idname, "VIEW3D_PT_transform");
-  STRNCPY(pt->label, N_("Transform")); /* XXX C panels unavailable through RNA bpy.types! */
-  STRNCPY(pt->category, "Item");
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "VIEW3D_PT_transform");
+  STRNCPY_UTF8(pt->label, N_("Transform")); /* XXX C panels unavailable through RNA bpy.types! */
+  STRNCPY_UTF8(pt->category, "Item");
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = view3d_panel_transform;
   pt->poll = view3d_panel_transform_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN<PanelType>("spacetype view3d panel vgroup");
-  STRNCPY(pt->idname, "VIEW3D_PT_vgroup");
-  STRNCPY(pt->label, N_("Vertex Weights")); /* XXX C panels unavailable through RNA bpy.types! */
-  STRNCPY(pt->category, "Item");
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "VIEW3D_PT_vgroup");
+  STRNCPY_UTF8(pt->label,
+               N_("Vertex Weights")); /* XXX C panels unavailable through RNA bpy.types! */
+  STRNCPY_UTF8(pt->category, "Item");
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = view3d_panel_vgroup;
   pt->poll = view3d_panel_vgroup_poll;
   BLI_addtail(&art->paneltypes, pt);

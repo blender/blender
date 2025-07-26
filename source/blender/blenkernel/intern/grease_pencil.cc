@@ -52,6 +52,7 @@
 #include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
@@ -2132,7 +2133,7 @@ void BKE_grease_pencil_vgroup_name_update(Object *ob, const char *old_name, cons
     CurvesGeometry &curves = drawing.strokes_for_write();
     LISTBASE_FOREACH (bDeformGroup *, vgroup, &curves.vertex_group_names) {
       if (STREQ(vgroup->name, old_name)) {
-        STRNCPY(vgroup->name, new_name);
+        STRNCPY_UTF8(vgroup->name, new_name);
       }
     }
   }

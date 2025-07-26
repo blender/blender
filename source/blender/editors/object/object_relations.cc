@@ -32,7 +32,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
@@ -476,7 +476,7 @@ void parent_set(Object *ob, Object *par, const int type, const char *substr)
   ob->parent = par;
   ob->partype &= ~PARTYPE;
   ob->partype |= type;
-  STRNCPY(ob->parsubstr, substr);
+  STRNCPY_UTF8(ob->parsubstr, substr);
 }
 
 const EnumPropertyItem prop_make_parent_types[] = {
@@ -591,7 +591,7 @@ static bool parent_set_with_depsgraph(ReportList *reports,
 
   /* Handle types. */
   if (pchan) {
-    STRNCPY(ob->parsubstr, pchan->name);
+    STRNCPY_UTF8(ob->parsubstr, pchan->name);
   }
   else {
     ob->parsubstr[0] = 0;

@@ -12,7 +12,7 @@
 #include "BKE_scene.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -89,7 +89,7 @@ void uiTemplatePreview(uiLayout *layout,
 
   if (!preview_id || (preview_id[0] == '\0')) {
     /* If no identifier given, generate one from ID type. */
-    SNPRINTF(_preview_id, "uiPreview_%s", BKE_idtype_idcode_to_name(GS(id->name)));
+    SNPRINTF_UTF8(_preview_id, "uiPreview_%s", BKE_idtype_idcode_to_name(GS(id->name)));
     preview_id = _preview_id;
   }
 
@@ -100,7 +100,7 @@ void uiTemplatePreview(uiLayout *layout,
 
   if (!ui_preview) {
     ui_preview = MEM_callocN<uiPreview>(__func__);
-    STRNCPY(ui_preview->preview_id, preview_id);
+    STRNCPY_UTF8(ui_preview->preview_id, preview_id);
     ui_preview->height = short(UI_UNIT_Y * 7.6f);
     ui_preview->id_session_uid = pid->session_uid;
     ui_preview->tag = UI_PREVIEW_TAG_DIRTY;

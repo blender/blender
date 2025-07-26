@@ -11,6 +11,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
@@ -2038,9 +2039,9 @@ void file_external_operations_menu_register()
   MenuType *mt;
 
   mt = MEM_callocN<MenuType>("spacetype file menu file operations");
-  STRNCPY(mt->idname, "FILEBROWSER_MT_operations_menu");
-  STRNCPY(mt->label, N_("External"));
-  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(mt->idname, "FILEBROWSER_MT_operations_menu");
+  STRNCPY_UTF8(mt->label, N_("External"));
+  STRNCPY_UTF8(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = file_os_operations_menu_draw;
   mt->poll = file_os_operations_menu_poll;
   WM_menutype_add(mt);

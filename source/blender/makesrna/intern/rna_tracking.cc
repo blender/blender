@@ -267,9 +267,9 @@ static void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
                                                                             track);
   /* Store old name, for the animation fix later. */
   char old_name[sizeof(track->name)];
-  STRNCPY(old_name, track->name);
+  STRNCPY_UTF8(old_name, track->name);
   /* Update the name, */
-  STRNCPY(track->name, value);
+  STRNCPY_UTF8(track->name, value);
   BKE_tracking_track_unique_name(&tracking_object->tracks, track);
   /* Fix animation paths. */
   AnimData *adt = BKE_animdata_from_id(&clip->id);
@@ -670,7 +670,7 @@ static MovieTrackingTrack *add_track_to_base(
   track = BKE_tracking_track_add(tracking, tracksbase, 0, 0, frame, width, height);
 
   if (name && name[0]) {
-    STRNCPY(track->name, name);
+    STRNCPY_UTF8(track->name, name);
     BKE_tracking_track_unique_name(tracksbase, track);
   }
 

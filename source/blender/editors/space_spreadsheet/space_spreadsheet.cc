@@ -7,6 +7,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_screen.hh"
 #include "BKE_viewer_path.hh"
@@ -775,7 +776,7 @@ void register_spacetype()
   ARegionType *art;
 
   st->spaceid = SPACE_SPREADSHEET;
-  STRNCPY(st->name, "Spreadsheet");
+  STRNCPY_UTF8(st->name, "Spreadsheet");
 
   st->create = spreadsheet_create;
   st->free = spreadsheet_free;

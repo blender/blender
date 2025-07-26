@@ -2262,7 +2262,7 @@ static void rna_GreasePencilDashModifierSegment_name_set(PointerRNA *ptr, const 
   char name_esc[sizeof(dmd->modifier.name) * 2];
   BLI_str_escape(name_esc, dmd->modifier.name, sizeof(name_esc));
   char rna_path_prefix[36 + sizeof(name_esc) + 1];
-  SNPRINTF(rna_path_prefix, "modifiers[\"%s\"].segments", name_esc);
+  SNPRINTF_UTF8(rna_path_prefix, "modifiers[\"%s\"].segments", name_esc);
   BKE_animdata_fix_paths_rename_all(nullptr, rna_path_prefix, oldname.c_str(), dash_segment->name);
 }
 
@@ -2366,7 +2366,7 @@ static void rna_GreasePencilTimeModifierSegment_name_set(PointerRNA *ptr, const 
   char name_esc[sizeof(tmd->modifier.name) * 2];
   BLI_str_escape(name_esc, tmd->modifier.name, sizeof(name_esc));
   char rna_path_prefix[36 + sizeof(name_esc) + 1];
-  SNPRINTF(rna_path_prefix, "modifiers[\"%s\"].segments", name_esc);
+  SNPRINTF_UTF8(rna_path_prefix, "modifiers[\"%s\"].segments", name_esc);
   BKE_animdata_fix_paths_rename_all(nullptr, rna_path_prefix, oldname.c_str(), segment->name);
 }
 

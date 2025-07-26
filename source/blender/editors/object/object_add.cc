@@ -2605,7 +2605,7 @@ static void make_object_duplilist_real(bContext *C,
       if (ob_dst_par) {
         /* allow for all possible parent types */
         ob_dst->partype = ob_src->partype;
-        STRNCPY(ob_dst->parsubstr, ob_src->parsubstr);
+        STRNCPY_UTF8(ob_dst->parsubstr, ob_src->parsubstr);
         ob_dst->par1 = ob_src->par1;
         ob_dst->par2 = ob_src->par2;
         ob_dst->par3 = ob_src->par3;

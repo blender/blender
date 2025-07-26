@@ -28,6 +28,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_anim_data.hh"
 #include "BKE_colortools.hh"
@@ -759,7 +760,7 @@ static void convert_grease_pencil_stroke_hardness_to_softness(GreasePencil *grea
       data[i] = 1.0f - data[i];
     }
     /* Rename the layer. */
-    STRNCPY(drawing.geometry.curve_data_legacy.layers[layer_index].name, "softness");
+    STRNCPY_UTF8(drawing.geometry.curve_data_legacy.layers[layer_index].name, "softness");
   }
 }
 

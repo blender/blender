@@ -8,7 +8,7 @@
 
 #include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
@@ -57,10 +57,10 @@ static void init(const bContext *C, PointerRNA *ptr)
     id_us_plus(&clip->id);
 
     const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-    STRNCPY(data->tracking_object, tracking_object->name);
+    STRNCPY_UTF8(data->tracking_object, tracking_object->name);
 
     if (tracking_object->active_track) {
-      STRNCPY(data->track_name, tracking_object->active_track->name);
+      STRNCPY_UTF8(data->track_name, tracking_object->active_track->name);
     }
   }
 }

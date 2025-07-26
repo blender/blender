@@ -14,7 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_gpencil_legacy_types.h"
@@ -361,7 +361,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
       BLI_assert(copied_frames.first == nullptr);
 
       /* make a copy of the layer's name - for name-based matching later... */
-      STRNCPY(new_layer->info, gpl->info);
+      STRNCPY_UTF8(new_layer->info, gpl->info);
     }
   }
 

@@ -291,19 +291,19 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 
         nimf->format.imtype = R_IMF_IMTYPE_MULTILAYER;
 
-        SNPRINTF(sockpath, "%s_Image", filename);
+        SNPRINTF_UTF8(sockpath, "%s_Image", filename);
         bNodeSocket *sock = ntreeCompositOutputFileAddSocket(ntree, node, sockpath, &nimf->format);
         /* XXX later do_versions copies path from socket name, need to set this explicitly */
-        STRNCPY(sock->name, sockpath);
+        STRNCPY_UTF8(sock->name, sockpath);
         if (old_image->link) {
           old_image->link->tosock = sock;
           sock->link = old_image->link;
         }
 
-        SNPRINTF(sockpath, "%s_Z", filename);
+        SNPRINTF_UTF8(sockpath, "%s_Z", filename);
         sock = ntreeCompositOutputFileAddSocket(ntree, node, sockpath, &nimf->format);
         /* XXX later do_versions copies path from socket name, need to set this explicitly */
-        STRNCPY(sock->name, sockpath);
+        STRNCPY_UTF8(sock->name, sockpath);
         if (old_z->link) {
           old_z->link->tosock = sock;
           sock->link = old_z->link;
@@ -312,7 +312,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
       else {
         bNodeSocket *sock = ntreeCompositOutputFileAddSocket(ntree, node, filename, &nimf->format);
         /* XXX later do_versions copies path from socket name, need to set this explicitly */
-        STRNCPY(sock->name, filename);
+        STRNCPY_UTF8(sock->name, filename);
         if (old_image->link) {
           old_image->link->tosock = sock;
           sock->link = old_image->link;
@@ -370,7 +370,7 @@ static void do_versions_nodetree_multi_file_output_path_2_63_1(bNodeTree *ntree)
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
         NodeImageMultiFileSocket *input = static_cast<NodeImageMultiFileSocket *>(sock->storage);
         /* input file path is stored in dedicated struct now instead socket name */
-        STRNCPY(input->path, sock->name);
+        STRNCPY_UTF8(input->path, sock->name);
       }
     }
   }
@@ -913,27 +913,25 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
 
     /* node type idname */
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      BLI_strncpy(node->idname,
-                  node_get_static_idname(node->type_legacy, ntree->type),
-                  sizeof(node->idname));
+      STRNCPY_UTF8(node->idname, node_get_static_idname(node->type_legacy, ntree->type));
 
       /* existing old nodes have been initialized already */
       node->flag |= NODE_INIT;
 
       /* sockets idname */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
+        STRNCPY_UTF8(sock->idname, node_socket_get_static_idname(sock).c_str());
       }
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
+        STRNCPY_UTF8(sock->idname, node_socket_get_static_idname(sock).c_str());
       }
     }
     /* tree sockets idname */
     LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs_legacy) {
-      STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
+      STRNCPY_UTF8(sock->idname, node_socket_get_static_idname(sock).c_str());
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs_legacy) {
-      STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
+      STRNCPY_UTF8(sock->idname, node_socket_get_static_idname(sock).c_str());
     }
   }
 
@@ -960,7 +958,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
   {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        STRNCPY(sock->identifier, sock->name);
+        STRNCPY_UTF8(sock->identifier, sock->name);
         BLI_uniquename(&node->inputs,
                        sock,
                        "socket",
@@ -969,7 +967,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
                        sizeof(sock->identifier));
       }
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        STRNCPY(sock->identifier, sock->name);
+        STRNCPY_UTF8(sock->identifier, sock->name);
         BLI_uniquename(&node->outputs,
                        sock,
                        "socket",
@@ -979,7 +977,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
       }
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs_legacy) {
-      STRNCPY(sock->identifier, sock->name);
+      STRNCPY_UTF8(sock->identifier, sock->name);
       BLI_uniquename(&ntree->inputs_legacy,
                      sock,
                      "socket",
@@ -988,7 +986,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
                      sizeof(sock->identifier));
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs_legacy) {
-      STRNCPY(sock->identifier, sock->name);
+      STRNCPY_UTF8(sock->identifier, sock->name);
       BLI_uniquename(&ntree->outputs_legacy,
                      sock,
                      "socket",
@@ -1082,14 +1080,14 @@ static bNodeSocket *version_make_socket_stub(const char *idname,
 {
   bNodeSocket *socket = MEM_callocN<bNodeSocket>(__func__);
   socket->runtime = MEM_new<blender::bke::bNodeSocketRuntime>(__func__);
-  STRNCPY(socket->idname, idname);
+  STRNCPY_UTF8(socket->idname, idname);
   socket->type = int(type);
   socket->in_out = int(in_out);
 
   socket->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
 
-  STRNCPY(socket->identifier, identifier);
-  STRNCPY(socket->name, name);
+  STRNCPY_UTF8(socket->identifier, identifier);
+  STRNCPY_UTF8(socket->name, name);
   socket->storage = nullptr;
   socket->flag |= SOCK_COLLAPSED;
 
@@ -1112,14 +1110,14 @@ static bNode *version_add_group_in_out_node(bNodeTree *ntree, const int type)
   bNode *node = MEM_callocN<bNode>("new node");
   switch (type) {
     case NODE_GROUP_INPUT:
-      STRNCPY(node->idname, "NodeGroupInput");
+      STRNCPY_UTF8(node->idname, "NodeGroupInput");
       ntree_socket_list = &ntree->inputs_legacy;
       /* Group input has only outputs. */
       node_socket_list = &node->outputs;
       socket_in_out = SOCK_OUT;
       break;
     case NODE_GROUP_OUTPUT:
-      STRNCPY(node->idname, "NodeGroupOutput");
+      STRNCPY_UTF8(node->idname, "NodeGroupOutput");
       ntree_socket_list = &ntree->outputs_legacy;
       /* Group output has only inputs. */
       node_socket_list = &node->inputs;
@@ -1556,7 +1554,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       LISTBASE_FOREACH (KeyingSet *, ks, &scene->keyingsets) {
         if (!ks->idname[0]) {
-          STRNCPY(ks->idname, ks->name);
+          STRNCPY_UTF8(ks->idname, ks->name);
         }
       }
     }
@@ -2238,13 +2236,13 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
             /* convert deprecated treetype setting to tree_idname */
             switch (snode->treetype) {
               case NTREE_COMPOSIT:
-                STRNCPY(snode->tree_idname, "CompositorNodeTree");
+                STRNCPY_UTF8(snode->tree_idname, "CompositorNodeTree");
                 break;
               case NTREE_SHADER:
-                STRNCPY(snode->tree_idname, "ShaderNodeTree");
+                STRNCPY_UTF8(snode->tree_idname, "ShaderNodeTree");
                 break;
               case NTREE_TEXTURE:
-                STRNCPY(snode->tree_idname, "TextureNodeTree");
+                STRNCPY_UTF8(snode->tree_idname, "TextureNodeTree");
                 break;
             }
           }

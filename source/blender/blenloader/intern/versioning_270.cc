@@ -66,6 +66,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -103,7 +104,7 @@ static bGPDpalette *BKE_gpencil_palette_addnew(bGPdata *gpd, const char *name)
 
   /* set basic settings */
   /* auto-name */
-  STRNCPY(palette->info, name);
+  STRNCPY_UTF8(palette->info, name);
   BLI_uniquename(&gpd->palettes,
                  palette,
                  DATA_("GP_Palette"),
@@ -136,7 +137,7 @@ static bGPDpalettecolor *BKE_gpencil_palettecolor_addnew(bGPDpalette *palette, c
   ARRAY_SET_ITEMS(palcolor->fill, 1.0f, 1.0f, 1.0f);
 
   /* auto-name */
-  STRNCPY(palcolor->info, name);
+  STRNCPY_UTF8(palcolor->info, name);
   BLI_uniquename(&palette->colors,
                  palcolor,
                  DATA_("Color"),
@@ -327,7 +328,7 @@ static void do_versions_compositor_render_passes_storage(bNode *node)
     if (sock->storage == nullptr) {
       NodeImageLayer *sockdata = MEM_callocN<NodeImageLayer>("node image layer");
       sock->storage = sockdata;
-      STRNCPY(sockdata->pass_name, node_cmp_rlayers_sock_to_pass(pass_index));
+      STRNCPY_UTF8(sockdata->pass_name, node_cmp_rlayers_sock_to_pass(pass_index));
 
       if (pass_index == 0) {
         sockname = "Image";
@@ -338,7 +339,7 @@ static void do_versions_compositor_render_passes_storage(bNode *node)
       else {
         sockname = node_cmp_rlayers_sock_to_pass(pass_index);
       }
-      STRNCPY(sock->name, sockname);
+      STRNCPY_UTF8(sock->name, sockname);
     }
   }
 }
@@ -851,11 +852,11 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       BKE_scene_add_render_view(scene, STEREO_LEFT_NAME);
       SceneRenderView *srv = static_cast<SceneRenderView *>(scene->r.views.first);
-      STRNCPY(srv->suffix, STEREO_LEFT_SUFFIX);
+      STRNCPY_UTF8(srv->suffix, STEREO_LEFT_SUFFIX);
 
       BKE_scene_add_render_view(scene, STEREO_RIGHT_NAME);
       srv = static_cast<SceneRenderView *>(scene->r.views.last);
-      STRNCPY(srv->suffix, STEREO_RIGHT_SUFFIX);
+      STRNCPY_UTF8(srv->suffix, STEREO_RIGHT_SUFFIX);
 
       if (scene->ed) {
         blender::seq::for_each_callback(&scene->ed->seqbase, strip_update_proxy_cb, nullptr);
@@ -1273,7 +1274,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
               LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
                 LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
                   /* set stroke to palette and force recalculation */
-                  STRNCPY(gps->colorname, gpl->info);
+                  STRNCPY_UTF8(gps->colorname, gpl->info);
                   gps->thickness = gpl->thickness;
 
                   /* set alpha strength to 1 */

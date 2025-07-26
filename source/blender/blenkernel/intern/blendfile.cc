@@ -28,6 +28,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_system.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
@@ -898,7 +899,7 @@ static void wm_data_consistency_ensure(wmWindowManager *curwm,
       win->scene = cur_scene;
     }
     if (BKE_view_layer_find(win->scene, win->view_layer_name) == nullptr) {
-      STRNCPY(win->view_layer_name, cur_view_layer->name);
+      STRNCPY_UTF8(win->view_layer_name, cur_view_layer->name);
     }
 
     view3d_data_consistency_ensure(win, win->scene, cur_view_layer);
@@ -1519,7 +1520,7 @@ UserDef *BKE_blendfile_userdef_from_defaults()
     };
     for (int i = 0; i < ARRAY_SIZE(addons); i++) {
       bAddon *addon = BKE_addon_new();
-      STRNCPY(addon->module, addons[i]);
+      STRNCPY_UTF8(addon->module, addons[i]);
       BLI_addtail(&userdef->addons, addon);
     }
   }

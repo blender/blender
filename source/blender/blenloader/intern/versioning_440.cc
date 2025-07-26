@@ -30,6 +30,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_anim_data.hh"
 #include "BKE_fcurve.hh"
@@ -840,7 +841,7 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
       LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
         if (tref->space_type == SPACE_IMAGE && tref->mode == SI_MODE_PAINT) {
-          STRNCPY(tref->idname, "builtin.brush");
+          STRNCPY_UTF8(tref->idname, "builtin.brush");
         }
       }
     }
@@ -899,7 +900,7 @@ void blo_do_versions_440(FileData *fd, Library * /*lib*/, Main *bmain)
           if (node->type_legacy == SH_NODE_MIX_SHADER) {
             LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
               if (STREQ(socket->identifier, "Shader.001")) {
-                STRNCPY(socket->identifier, "Shader_001");
+                STRNCPY_UTF8(socket->identifier, "Shader_001");
               }
             }
           }

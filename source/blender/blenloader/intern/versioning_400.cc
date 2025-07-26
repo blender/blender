@@ -32,6 +32,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -149,16 +150,16 @@ static void version_bonelayers_to_bonecollections(Main *bmain)
       if (arm_idprops) {
         /* See if we can use the layer name from the Bone Manager add-on. This is a popular add-on
          * for managing bone layers and giving them names. */
-        SNPRINTF(custom_prop_name, "layer_name_%u", layer);
+        SNPRINTF_UTF8(custom_prop_name, "layer_name_%u", layer);
         IDProperty *prop = IDP_GetPropertyFromGroup(arm_idprops, custom_prop_name);
         if (prop != nullptr && prop->type == IDP_STRING && IDP_String(prop)[0] != '\0') {
-          SNPRINTF(bcoll_name, "Layer %u - %s", layer + 1, IDP_String(prop));
+          SNPRINTF_UTF8(bcoll_name, "Layer %u - %s", layer + 1, IDP_String(prop));
         }
       }
       if (bcoll_name[0] == '\0') {
         /* Either there was no name defined in the custom property, or
          * it was the empty string. */
-        SNPRINTF(bcoll_name, "Layer %u", layer + 1);
+        SNPRINTF_UTF8(bcoll_name, "Layer %u", layer + 1);
       }
 
       /* Create a new bone collection for this layer. */
@@ -466,7 +467,7 @@ static void versioning_replace_legacy_glossy_node(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type_legacy == SH_NODE_BSDF_GLOSSY_LEGACY) {
-      STRNCPY(node->idname, "ShaderNodeBsdfAnisotropic");
+      STRNCPY_UTF8(node->idname, "ShaderNodeBsdfAnisotropic");
       node->type_legacy = SH_NODE_BSDF_GLOSSY;
     }
   }
@@ -518,7 +519,8 @@ static void version_mesh_crease_generic(Main &bmain)
         {
           bNodeSocket *socket = blender::bke::node_find_socket(*node, SOCK_IN, "Name");
           if (STREQ(socket->default_value_typed<bNodeSocketValueString>()->value, "crease")) {
-            STRNCPY(socket->default_value_typed<bNodeSocketValueString>()->value, "crease_edge");
+            STRNCPY_UTF8(socket->default_value_typed<bNodeSocketValueString>()->value,
+                         "crease_edge");
           }
         }
       }
@@ -615,13 +617,13 @@ static void version_replace_velvet_sheen_node(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type_legacy == SH_NODE_BSDF_SHEEN) {
-      STRNCPY(node->idname, "ShaderNodeBsdfSheen");
+      STRNCPY_UTF8(node->idname, "ShaderNodeBsdfSheen");
 
       bNodeSocket *sigmaInput = blender::bke::node_find_socket(*node, SOCK_IN, "Sigma");
       if (sigmaInput != nullptr) {
         node->custom1 = SHD_SHEEN_ASHIKHMIN;
-        STRNCPY(sigmaInput->identifier, "Roughness");
-        STRNCPY(sigmaInput->name, "Roughness");
+        STRNCPY_UTF8(sigmaInput->identifier, "Roughness");
+        STRNCPY_UTF8(sigmaInput->name, "Roughness");
       }
     }
   }

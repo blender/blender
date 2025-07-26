@@ -2755,7 +2755,7 @@ static bool ui_but_copy_menu(uiBut *but, char *output, int output_maxncpy)
 {
   MenuType *mt = UI_but_menutype_get(but);
   if (mt) {
-    BLI_snprintf(output, output_maxncpy, "bpy.ops.wm.call_menu(name=\"%s\")", mt->idname);
+    BLI_snprintf_utf8(output, output_maxncpy, "bpy.ops.wm.call_menu(name=\"%s\")", mt->idname);
     return true;
   }
   return false;
@@ -2765,7 +2765,7 @@ static bool ui_but_copy_popover(uiBut *but, char *output, int output_maxncpy)
 {
   PanelType *pt = UI_but_paneltype_get(but);
   if (pt) {
-    BLI_snprintf(output, output_maxncpy, "bpy.ops.wm.call_panel(name=\"%s\")", pt->idname);
+    BLI_snprintf_utf8(output, output_maxncpy, "bpy.ops.wm.call_panel(name=\"%s\")", pt->idname);
     return true;
   }
   return false;
@@ -4454,7 +4454,7 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
   else if (menufunc) {
     data->menu = ui_popup_menu_create(C, data->region, but, menufunc, arg);
     if (MenuType *mt = UI_but_menutype_get(but)) {
-      STRNCPY(data->menu->menu_idname, mt->idname);
+      STRNCPY_UTF8(data->menu->menu_idname, mt->idname);
     }
     if (but->block->handle) {
       data->menu->popup = but->block->handle->popup;

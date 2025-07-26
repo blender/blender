@@ -20,7 +20,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_bvhutils.hh"
@@ -1149,7 +1149,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
     BLI_addtail(&ob_to->modifiers, md);
     BKE_modifiers_persistent_uid_init(*ob_to, *md);
 
-    SNPRINTF(md->name, "ParticleSystem %i", i);
+    SNPRINTF_UTF8(md->name, "ParticleSystem %i", i);
     BKE_modifier_unique_name(&ob_to->modifiers, (ModifierData *)psmd);
 
     psmd->psys = psys;

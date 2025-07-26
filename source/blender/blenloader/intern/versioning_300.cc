@@ -23,6 +23,7 @@
 #include "BLI_multi_value_map.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -895,7 +896,7 @@ static void version_geometry_nodes_primitive_uv_maps(bNodeTree &ntree)
         store_attribute_name_input.default_value);
     const char *uv_map_name = node->type_legacy == GEO_NODE_MESH_PRIMITIVE_ICO_SPHERE ? "UVMap" :
                                                                                         "uv_map";
-    STRNCPY(name_value->value, uv_map_name);
+    STRNCPY_UTF8(name_value->value, uv_map_name);
 
     version_node_add_link(ntree,
                           *node,
@@ -1214,7 +1215,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
         }
 
         NodesModifierData *new_nmd = (NodesModifierData *)BKE_modifier_new(eModifierType_Nodes);
-        STRNCPY(new_nmd->modifier.name, "Realize Instances 2.93 Legacy");
+        STRNCPY_UTF8(new_nmd->modifier.name, "Realize Instances 2.93 Legacy");
         BKE_modifier_unique_name(&ob->modifiers, &new_nmd->modifier);
         BLI_insertlinkafter(&ob->modifiers, md, new_nmd);
         if (realize_instances_node_tree == nullptr) {
@@ -1376,11 +1377,11 @@ static void version_switch_node_input_prefix(Main *bmain)
             if (socket == node->inputs.first) {
               continue;
             }
-            STRNCPY(socket->name, socket->name[0] == 'A' ? "False" : "True");
+            STRNCPY_UTF8(socket->name, socket->name[0] == 'A' ? "False" : "True");
 
             /* Replace "A" and "B", but keep the unique number suffix at the end. */
             char number_suffix[8];
-            STRNCPY(number_suffix, socket->identifier + 1);
+            STRNCPY_UTF8(number_suffix, socket->identifier + 1);
             BLI_string_join(
                 socket->identifier, sizeof(socket->identifier), socket->name, number_suffix);
           }
@@ -1693,7 +1694,7 @@ static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
       return;
     }
     /* Change identifier of old socket, so that the there is no name collision. */
-    STRNCPY(old_offset_socket->identifier, "Offset_old");
+    STRNCPY_UTF8(old_offset_socket->identifier, "Offset_old");
     blender::bke::node_add_static_socket(
         *ntree, *node, SOCK_IN, SOCK_VECTOR, PROP_TRANSLATION, "Offset", "Offset");
   }
@@ -1891,7 +1892,7 @@ static void version_liboverride_rnacollections_insertion_object(Object *object)
       char rna_path[26 + (sizeof(pchan->name) * 2) + 1];
       char name_esc[sizeof(pchan->name) * 2];
       BLI_str_escape(name_esc, pchan->name, sizeof(name_esc));
-      SNPRINTF(rna_path, "pose.bones[\"%s\"].constraints", name_esc);
+      SNPRINTF_UTF8(rna_path, "pose.bones[\"%s\"].constraints", name_esc);
       op = BKE_lib_override_library_property_find(liboverride, rna_path);
       if (op != nullptr) {
         version_liboverride_rnacollections_insertion_object_constraints(&pchan->constraints, op);
@@ -1936,7 +1937,7 @@ static void versioning_replace_legacy_mix_rgb_node(bNodeTree *ntree)
   version_node_output_socket_name(ntree, SH_NODE_MIX_RGB_LEGACY, "Color", "Result_Color");
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type_legacy == SH_NODE_MIX_RGB_LEGACY) {
-      STRNCPY(node->idname, "ShaderNodeMix");
+      STRNCPY_UTF8(node->idname, "ShaderNodeMix");
       node->type_legacy = SH_NODE_MIX;
       NodeShaderMix *data = MEM_callocN<NodeShaderMix>(__func__);
       data->blend_type = node->custom1;
@@ -2322,9 +2323,9 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 300, 8)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->master_collection != nullptr) {
-        BLI_strncpy(scene->master_collection->id.name + 2,
-                    BKE_SCENE_COLLECTION_NAME,
-                    sizeof(scene->master_collection->id.name) - 2);
+        BLI_strncpy_utf8(scene->master_collection->id.name + 2,
+                         BKE_SCENE_COLLECTION_NAME,
+                         sizeof(scene->master_collection->id.name) - 2);
       }
     }
   }
@@ -2341,7 +2342,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type_legacy == GEO_NODE_SUBDIVIDE_MESH) {
-            STRNCPY(node->idname, "GeometryNodeMeshSubdivide");
+            STRNCPY_UTF8(node->idname, "GeometryNodeMeshSubdivide");
           }
         }
       }
@@ -3095,7 +3096,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             NodeFunctionCompare *data = MEM_callocN<NodeFunctionCompare>(__func__);
             data->data_type = SOCK_FLOAT;
             data->operation = node->custom1;
-            STRNCPY(node->idname, "FunctionNodeCompare");
+            STRNCPY_UTF8(node->idname, "FunctionNodeCompare");
             node->storage = data;
           }
         }
@@ -3894,8 +3895,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         static_cast<NodeGeometryCurveSample *>(node->storage)->data_type = CD_PROP_FLOAT;
         bNodeSocket *curve_socket = blender::bke::node_find_socket(*node, SOCK_IN, "Curve");
         BLI_assert(curve_socket != nullptr);
-        STRNCPY(curve_socket->name, "Curves");
-        STRNCPY(curve_socket->identifier, "Curves");
+        STRNCPY_UTF8(curve_socket->name, "Curves");
+        STRNCPY_UTF8(curve_socket->identifier, "Curves");
       }
     }
   }
@@ -4274,7 +4275,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       scene->toolsettings->uvcalc_iterations = 10;
       scene->toolsettings->uvcalc_weight_factor = 1.0f;
-      STRNCPY(scene->toolsettings->uvcalc_weight_group, "uv_importance");
+      STRNCPY_UTF8(scene->toolsettings->uvcalc_weight_group, "uv_importance");
     }
   }
 

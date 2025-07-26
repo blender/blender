@@ -156,8 +156,8 @@ static void rna_annotation_layer_info_set(PointerRNA *ptr, const char *value)
   bGPdata *gpd = rna_annotations(ptr);
   bGPDlayer *gpl = static_cast<bGPDlayer *>(ptr->data);
 
-  char oldname[128] = "";
-  STRNCPY(oldname, gpl->info);
+  char oldname[sizeof(gpl->info)] = "";
+  STRNCPY_UTF8(oldname, gpl->info);
 
   /* copy the new name into the name slot */
   STRNCPY_UTF8(gpl->info, value);

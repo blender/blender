@@ -2347,7 +2347,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
   sock->in_out = in_out;
 
-  STRNCPY(sock->identifier, auto_identifier);
+  STRNCPY_UTF8(sock->identifier, auto_identifier);
   sock->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
 
   name.copy_utf8_truncated(sock->name);
@@ -4081,7 +4081,7 @@ void node_remove_node(Main *bmain, bNodeTree &ntree, bNode &node, const bool do_
   char prefix[MAX_IDPROP_NAME * 2];
 
   BLI_str_escape(propname_esc, node.name, sizeof(propname_esc));
-  SNPRINTF(prefix, "nodes[\"%s\"]", propname_esc);
+  SNPRINTF_UTF8(prefix, "nodes[\"%s\"]", propname_esc);
 
   if (BKE_animdata_fix_paths_remove(&ntree.id, prefix)) {
     if (bmain != nullptr) {
@@ -4584,7 +4584,7 @@ static void node_replace_undefined_types(bNode *node)
     /* This type name is arbitrary, it just has to be unique enough to not match a future node
      * idname. Includes the old type identifier for debugging purposes. */
     const std::string old_idname = node->idname;
-    SNPRINTF(node->idname, "Undefined[%s]", old_idname.c_str());
+    SNPRINTF_UTF8(node->idname, "Undefined[%s]", old_idname.c_str());
     node->typeinfo = &NodeTypeUndefined;
   }
 }

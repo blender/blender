@@ -207,7 +207,7 @@ static void scene_init_data(ID *id)
     pset->brush[PE_BRUSH_CUT].strength = 1.0f;
   }
 
-  STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+  STRNCPY_UTF8(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
 
   STRNCPY(scene->r.pic, U.renderdir);
 
@@ -3421,7 +3421,7 @@ static Depsgraph **scene_ensure_depsgraph_p(Main *bmain, Scene *scene, ViewLayer
    * we will ever enable debug messages for this depsgraph.
    */
   char name[1024];
-  SNPRINTF(name, "%s :: %s", scene->id.name, view_layer->name);
+  SNPRINTF_UTF8(name, "%s :: %s", scene->id.name, view_layer->name);
   DEG_debug_name_set(*depsgraph_ptr, name);
 
   /* These viewport depsgraphs communicate changes to the editors. */

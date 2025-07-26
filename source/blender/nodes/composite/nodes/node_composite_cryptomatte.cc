@@ -18,8 +18,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -209,14 +209,14 @@ void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size
       }
 
       if (layer_name == node_cryptomatte->layer_name) {
-        BLI_strncpy(r_prefix, node_cryptomatte->layer_name, prefix_maxncpy);
+        BLI_strncpy_utf8(r_prefix, node_cryptomatte->layer_name, prefix_maxncpy);
         return;
       }
     }
   }
 
   const char *cstr = first_layer_name.c_str();
-  BLI_strncpy(r_prefix, cstr, prefix_maxncpy);
+  BLI_strncpy_utf8(r_prefix, cstr, prefix_maxncpy);
 }
 
 CryptomatteSession *ntreeCompositCryptomatteSession(bNode *node)
@@ -960,7 +960,7 @@ bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node)
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   char sockname[32];
   n->inputs_num++;
-  SNPRINTF(sockname, "Crypto %.2d", n->inputs_num - 1);
+  SNPRINTF_UTF8(sockname, "Crypto %.2d", n->inputs_num - 1);
   bNodeSocket *sock = blender::bke::node_add_static_socket(
       *ntree, *node, SOCK_IN, SOCK_RGBA, PROP_NONE, "", sockname);
   return sock;

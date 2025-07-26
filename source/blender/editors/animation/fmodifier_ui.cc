@@ -24,7 +24,7 @@
 #include "BLT_translation.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -165,9 +165,9 @@ static PanelType *fmodifier_panel_register(ARegionType *region_type,
 
   /* Intentionally leave the label field blank. The header is filled with buttons. */
   const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
-  SNPRINTF(panel_type->idname, "%s_PT_%s", id_prefix, fmi->name);
-  STRNCPY(panel_type->category, "Modifiers");
-  STRNCPY(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  SNPRINTF_UTF8(panel_type->idname, "%s_PT_%s", id_prefix, fmi->name);
+  STRNCPY_UTF8(panel_type->category, "Modifiers");
+  STRNCPY_UTF8(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 
   panel_type->draw_header = fmodifier_panel_header;
   panel_type->draw = draw;
@@ -202,17 +202,17 @@ static PanelType *fmodifier_subpanel_register(ARegionType *region_type,
   PanelType *panel_type = MEM_callocN<PanelType>(__func__);
 
   BLI_assert(parent != nullptr);
-  SNPRINTF(panel_type->idname, "%s_%s", parent->idname, name);
-  STRNCPY(panel_type->label, label);
-  STRNCPY(panel_type->category, "Modifiers");
-  STRNCPY(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  SNPRINTF_UTF8(panel_type->idname, "%s_%s", parent->idname, name);
+  STRNCPY_UTF8(panel_type->label, label);
+  STRNCPY_UTF8(panel_type->category, "Modifiers");
+  STRNCPY_UTF8(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 
   panel_type->draw_header = draw_header;
   panel_type->draw = draw;
   panel_type->poll = poll;
   panel_type->flag = PANEL_TYPE_DEFAULT_CLOSED;
 
-  STRNCPY(panel_type->parent_id, parent->idname);
+  STRNCPY_UTF8(panel_type->parent_id, parent->idname);
   panel_type->parent = parent;
   BLI_addtail(&parent->children, BLI_genericNodeN(panel_type));
   BLI_addtail(&region_type->paneltypes, panel_type);
@@ -381,11 +381,11 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
       char xval[32];
 
       /* The first value gets a "Coefficient" label. */
-      STRNCPY(xval, N_("Coefficient"));
+      STRNCPY_UTF8(xval, N_("Coefficient"));
 
       for (int i = 0; i < data->arraysize; i++) {
         col->prop(ptr, prop, i, 0, UI_ITEM_NONE, IFACE_(xval), ICON_NONE);
-        SNPRINTF(xval, "x^%d", i + 1);
+        SNPRINTF_UTF8(xval, "x^%d", i + 1);
       }
       break;
     }

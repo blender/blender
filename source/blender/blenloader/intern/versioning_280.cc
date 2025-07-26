@@ -241,7 +241,7 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
       }
 
       win->scene = scene;
-      STRNCPY(win->view_layer_name, layer->name);
+      STRNCPY_UTF8(win->view_layer_name, layer->name);
 
       /* Deprecated from now on! */
       win->screen = nullptr;
@@ -278,7 +278,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
         if (collections[layer] == nullptr) {
           char name[MAX_ID_NAME - 2];
 
-          SNPRINTF(name, DATA_("Collection %d"), layer + 1);
+          SNPRINTF_UTF8(name, DATA_("Collection %d"), layer + 1);
 
           Collection *collection = BKE_collection_add(bmain, collection_master, name);
           collection->id.lib = scene->id.lib;
@@ -1932,8 +1932,8 @@ static void update_voronoi_node_fac_output(bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type_legacy == SH_NODE_TEX_VORONOI) {
       bNodeSocket *facOutput = static_cast<bNodeSocket *>(BLI_findlink(&node->outputs, 1));
-      STRNCPY(facOutput->identifier, "Distance");
-      STRNCPY(facOutput->name, "Distance");
+      STRNCPY_UTF8(facOutput->identifier, "Distance");
+      STRNCPY_UTF8(facOutput->name, "Distance");
     }
   }
 }
@@ -2253,7 +2253,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
 
           if (*collection_hidden == nullptr) {
             char name[MAX_ID_NAME];
-            SNPRINTF(name, DATA_("Hidden %d"), coll_idx + 1);
+            SNPRINTF_UTF8(name, DATA_("Hidden %d"), coll_idx + 1);
             *collection_hidden = BKE_collection_add(bmain, collection, name);
             (*collection_hidden)->flag |= COLLECTION_HIDE_VIEWPORT | COLLECTION_HIDE_RENDER;
           }
@@ -3097,14 +3097,14 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
           if (node->type_legacy == 194 /* SH_NODE_EEVEE_METALLIC */ &&
               STREQ(node->idname, "ShaderNodeOutputMetallic"))
           {
-            STRNCPY(node->idname, "ShaderNodeEeveeMetallic");
+            STRNCPY_UTF8(node->idname, "ShaderNodeEeveeMetallic");
             error |= eNTreeDoVersionErrors::NTREE_DOVERSION_NEED_OUTPUT;
           }
 
           else if (node->type_legacy == SH_NODE_EEVEE_SPECULAR &&
                    STREQ(node->idname, "ShaderNodeOutputSpecular"))
           {
-            STRNCPY(node->idname, "ShaderNodeEeveeSpecular");
+            STRNCPY_UTF8(node->idname, "ShaderNodeEeveeSpecular");
             error |= eNTreeDoVersionErrors::NTREE_DOVERSION_NEED_OUTPUT;
           }
 
@@ -3112,14 +3112,14 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
                    STREQ(node->idname, "ShaderNodeOutputEeveeMaterial"))
           {
             node->type_legacy = SH_NODE_OUTPUT_MATERIAL;
-            STRNCPY(node->idname, "ShaderNodeOutputMaterial");
+            STRNCPY_UTF8(node->idname, "ShaderNodeOutputMaterial");
           }
 
           else if (node->type_legacy == 194 /* SH_NODE_EEVEE_METALLIC */ &&
                    STREQ(node->idname, "ShaderNodeEeveeMetallic"))
           {
             node->type_legacy = SH_NODE_BSDF_PRINCIPLED;
-            STRNCPY(node->idname, "ShaderNodeBsdfPrincipled");
+            STRNCPY_UTF8(node->idname, "ShaderNodeBsdfPrincipled");
             node->custom1 = SHD_GLOSSY_MULTI_GGX;
             error |= eNTreeDoVersionErrors::NTREE_DOVERSION_TRANSPARENCY_EMISSION;
           }
@@ -3280,7 +3280,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
      * as scene render engine. */
     if (MAIN_VERSION_FILE_ATLEAST(bmain, 280, 0)) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+        STRNCPY_UTF8(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
       }
     }
   }
@@ -3289,7 +3289,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Blender Internal removal */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (STR_ELEM(scene->r.engine, "BLENDER_RENDER", "BLENDER_GAME")) {
-        STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+        STRNCPY_UTF8(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
       }
 
       scene->r.bake_mode = 0;
@@ -4898,7 +4898,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           /* Fix missing version patching from earlier changes. */
           if (STREQ(node->idname, "ShaderNodeOutputLamp")) {
-            STRNCPY(node->idname, "ShaderNodeOutputLight");
+            STRNCPY_UTF8(node->idname, "ShaderNodeOutputLight");
           }
           if (node->type_legacy == SH_NODE_BSDF_PRINCIPLED && node->custom2 == 0) {
             node->custom2 = SHD_SUBSURFACE_BURLEY;

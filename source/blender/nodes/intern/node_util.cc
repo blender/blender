@@ -72,7 +72,7 @@ void *node_initexec_curves(bNodeExecContext * /*context*/, bNode *node, bNodeIns
 
 void node_sock_label(bNodeSocket *sock, const char *name)
 {
-  STRNCPY(sock->label, name);
+  STRNCPY_UTF8(sock->label, name);
 }
 
 void node_sock_label_clear(bNodeSocket *sock)

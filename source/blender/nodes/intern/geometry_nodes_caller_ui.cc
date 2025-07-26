@@ -16,6 +16,7 @@
 #include "BKE_screen.hh"
 
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -682,7 +683,7 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
           BLI_str_escape(socket_id_esc, identifier.c_str(), sizeof(socket_id_esc));
 
           char rna_path[sizeof(socket_id_esc) + 4];
-          SNPRINTF(rna_path, "[\"%s\"]", socket_id_esc);
+          SNPRINTF_UTF8(rna_path, "[\"%s\"]", socket_id_esc);
 
           panel_layout = layout->panel_prop_with_bool_header(&ctx.C,
                                                              &open_property.ptr,
@@ -939,8 +940,8 @@ void draw_geometry_nodes_modifier_ui(const bContext &C, PointerRNA *modifier_ptr
     SocketSearchData data{};
     ModifierSearchData &modifier_search_data = data.search_data.emplace<ModifierSearchData>();
     modifier_search_data.object_session_uid = object.id.session_uid;
-    STRNCPY(modifier_search_data.modifier_name, nmd.modifier.name);
-    STRNCPY(data.socket_identifier, io_socket.identifier);
+    STRNCPY_UTF8(modifier_search_data.modifier_name, nmd.modifier.name);
+    STRNCPY_UTF8(data.socket_identifier, io_socket.identifier);
     data.is_output = io_socket.flag & NODE_INTERFACE_SOCKET_OUTPUT;
     return data;
   };
@@ -1019,7 +1020,7 @@ void draw_geometry_nodes_operator_redo_ui(const bContext &C,
     operator_search_data.info.tree = &tree;
     operator_search_data.info.tree_log = tree_log;
     operator_search_data.info.properties = op.properties;
-    STRNCPY(data.socket_identifier, io_socket.identifier);
+    STRNCPY_UTF8(data.socket_identifier, io_socket.identifier);
     data.is_output = io_socket.flag & NODE_INTERFACE_SOCKET_OUTPUT;
     return data;
   };

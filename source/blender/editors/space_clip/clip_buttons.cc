@@ -19,6 +19,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -78,10 +79,10 @@ void ED_clip_buttons_register(ARegionType *art)
   PanelType *pt;
 
   pt = MEM_callocN<PanelType>("spacetype clip panel metadata");
-  STRNCPY(pt->idname, "CLIP_PT_metadata");
-  STRNCPY(pt->label, N_("Metadata"));
-  STRNCPY(pt->category, "Footage");
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "CLIP_PT_metadata");
+  STRNCPY_UTF8(pt->label, N_("Metadata"));
+  STRNCPY_UTF8(pt->category, "Footage");
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->poll = metadata_panel_context_poll;
   pt->draw = metadata_panel_context_draw;
   pt->flag |= PANEL_TYPE_DEFAULT_CLOSED;

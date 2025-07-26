@@ -19,7 +19,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_object_types.h"
 #include "DNA_volume_types.h"
@@ -855,7 +855,7 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
         return cancel();
       }
       bDeformGroup *defgroup = MEM_callocN<bDeformGroup>(__func__);
-      STRNCPY(defgroup->name, value->as_string_value()->value().c_str());
+      STRNCPY_UTF8(defgroup->name, value->as_string_value()->value().c_str());
       BLI_addtail(&mesh->vertex_group_names, defgroup);
     }
   }

@@ -14,7 +14,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BKE_armature.hh"
@@ -459,7 +459,7 @@ static EditBone *make_boneList_recursive(ListBase *edbo,
      * Keep selection logic in sync with ED_armature_edit_sync_selection.
      */
     eBone->parent = parent;
-    STRNCPY(eBone->name, curBone->name);
+    STRNCPY_UTF8(eBone->name, curBone->name);
     eBone->flag = curBone->flag;
     eBone->inherit_scale_mode = curBone->inherit_scale_mode;
     eBone->drawtype = curBone->drawtype;
@@ -690,7 +690,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     newBone = MEM_callocN<Bone>("bone");
     eBone->temp.bone = newBone; /* Associate the real Bones with the EditBones */
 
-    STRNCPY(newBone->name, eBone->name);
+    STRNCPY_UTF8(newBone->name, eBone->name);
     copy_v3_v3(newBone->arm_head, eBone->head);
     copy_v3_v3(newBone->arm_tail, eBone->tail);
     newBone->arm_roll = eBone->roll;

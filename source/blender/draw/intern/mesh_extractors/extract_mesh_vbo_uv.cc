@@ -8,7 +8,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_attribute.hh"
 
@@ -51,7 +51,7 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
         r_uv_layers |= (1 << i);
         GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
         /* UV layer name. */
-        SNPRINTF(attr_name, "a%s", attr_safe_name);
+        SNPRINTF_UTF8(attr_name, "a%s", attr_safe_name);
         GPU_vertformat_attr_add(format, attr_name, blender::gpu::VertAttrType::SFLOAT_32_32);
         /* Active render layer name. */
         if (i == CustomData_get_render_layer(cd_ldata, CD_PROP_FLOAT2)) {

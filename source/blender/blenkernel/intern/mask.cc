@@ -19,7 +19,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -291,7 +291,7 @@ MaskLayer *BKE_mask_layer_new(Mask *mask, const char *name)
 {
   MaskLayer *masklay = MEM_callocN<MaskLayer>(__func__);
 
-  STRNCPY(masklay->name, name && name[0] ? name : DATA_("MaskLayer"));
+  STRNCPY_UTF8(masklay->name, name && name[0] ? name : DATA_("MaskLayer"));
 
   BLI_addtail(&mask->masklayers, masklay);
 
@@ -343,7 +343,7 @@ void BKE_mask_layer_rename(Mask *mask,
                            const char *oldname,
                            const char *newname)
 {
-  STRNCPY(masklay->name, newname);
+  STRNCPY_UTF8(masklay->name, newname);
 
   BKE_mask_layer_unique_name(mask, masklay);
 
@@ -355,7 +355,7 @@ MaskLayer *BKE_mask_layer_copy(const MaskLayer *masklay)
 {
   MaskLayer *masklay_new = MEM_callocN<MaskLayer>("new mask layer");
 
-  STRNCPY(masklay_new->name, masklay->name);
+  STRNCPY_UTF8(masklay_new->name, masklay->name);
 
   masklay_new->alpha = masklay->alpha;
   masklay_new->blend = masklay->blend;
@@ -964,7 +964,7 @@ Mask *BKE_mask_new(Main *bmain, const char *name)
   Mask *mask;
   char mask_name[MAX_ID_NAME - 2];
 
-  STRNCPY(mask_name, (name && name[0]) ? name : DATA_("Mask"));
+  STRNCPY_UTF8(mask_name, (name && name[0]) ? name : DATA_("Mask"));
 
   mask = mask_alloc(bmain, mask_name);
 

@@ -19,7 +19,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_collection.hh"
 #include "BKE_context.hh"
@@ -61,7 +61,7 @@ static void update_paint_modes_for_brush_assets(Main &bmain)
   LISTBASE_FOREACH (WorkSpace *, workspace, &bmain.workspaces) {
     LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
       if (tref->space_type == SPACE_IMAGE && tref->mode == SI_MODE_PAINT) {
-        STRNCPY(tref->idname, "builtin.brush");
+        STRNCPY_UTF8(tref->idname, "builtin.brush");
         continue;
       }
       if (tref->space_type != SPACE_VIEW3D) {
@@ -84,7 +84,7 @@ static void update_paint_modes_for_brush_assets(Main &bmain)
       {
         continue;
       }
-      STRNCPY(tref->idname, "builtin.brush");
+      STRNCPY_UTF8(tref->idname, "builtin.brush");
     }
   }
 }
@@ -129,11 +129,11 @@ static void node_reroute_add_storage(bNodeTree &tree)
        * identifiers were sometimes all lower case. Fixing those wrong socket identifiers is
        * important because otherwise they loose links now that the reroute node also uses node
        * declarations. */
-      STRNCPY(input.identifier, "Input");
-      STRNCPY(output.identifier, "Output");
+      STRNCPY_UTF8(input.identifier, "Input");
+      STRNCPY_UTF8(output.identifier, "Output");
 
       NodeReroute *data = MEM_callocN<NodeReroute>(__func__);
-      STRNCPY(data->type_idname, input.idname);
+      STRNCPY_UTF8(data->type_idname, input.idname);
       node->storage = data;
     }
   }
@@ -508,7 +508,7 @@ void blo_do_versions_430(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         if (tref->space_type != SPACE_SEQ) {
           continue;
         }
-        STRNCPY(tref->idname, "builtin.select_box");
+        STRNCPY_UTF8(tref->idname, "builtin.select_box");
       }
     }
   }

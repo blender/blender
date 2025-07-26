@@ -1302,11 +1302,12 @@ static void acf_nla_curve_name(bAnimListElem *ale, char *name)
   prop = RNA_struct_type_find_property(&RNA_NlaStrip, fcu->rna_path);
   if (prop) {
     /* "name" of this strip displays the UI identifier + the name of the NlaStrip */
-    BLI_snprintf(name, 256, "%s (%s)", RNA_property_ui_name(prop), strip->name);
+    BLI_snprintf_utf8(
+        name, ANIM_CHAN_NAME_SIZE, "%s (%s)", RNA_property_ui_name(prop), strip->name);
   }
   else {
     /* unknown property... */
-    BLI_snprintf(name, 256, "%s[%d]", fcu->rna_path, fcu->array_index);
+    BLI_snprintf_utf8(name, ANIM_CHAN_NAME_SIZE, "%s[%d]", fcu->rna_path, fcu->array_index);
   }
 }
 

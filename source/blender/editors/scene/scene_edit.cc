@@ -10,7 +10,7 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_sequence_types.h"
 
@@ -221,7 +221,7 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     if (win->scene == scene && STREQ(win->view_layer_name, layer->name)) {
       ViewLayer *first_layer = BKE_view_layer_default_view(scene);
-      STRNCPY(win->view_layer_name, first_layer->name);
+      STRNCPY_UTF8(win->view_layer_name, first_layer->name);
     }
   }
 

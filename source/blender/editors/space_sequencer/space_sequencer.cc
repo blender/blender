@@ -21,7 +21,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLF_api.hh"
 
@@ -1120,7 +1120,7 @@ void ED_spacetype_sequencer()
   ARegionType *art;
 
   st->spaceid = SPACE_SEQ;
-  STRNCPY(st->name, "Sequencer");
+  STRNCPY_UTF8(st->name, "Sequencer");
 
   st->create = sequencer_create;
   st->free = sequencer_free;

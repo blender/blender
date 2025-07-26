@@ -1821,14 +1821,14 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
 
   tot = BLI_listbase_count(&key->block);
   if (name) {
-    STRNCPY(kb->name, name);
+    STRNCPY_UTF8(kb->name, name);
   }
   else {
     if (tot == 1) {
       STRNCPY_UTF8(kb->name, DATA_("Basis"));
     }
     else {
-      SNPRINTF(kb->name, DATA_("Key %d"), tot - 1);
+      SNPRINTF_UTF8(kb->name, DATA_("Key %d"), tot - 1);
     }
   }
 

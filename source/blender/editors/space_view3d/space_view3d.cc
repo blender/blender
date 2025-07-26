@@ -24,7 +24,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_asset.hh"
@@ -1593,7 +1593,7 @@ void ED_spacetype_view3d()
   ARegionType *art;
 
   st->spaceid = SPACE_VIEW3D;
-  STRNCPY(st->name, "View3D");
+  STRNCPY_UTF8(st->name, "View3D");
 
   st->create = view3d_create;
   st->free = view3d_free;

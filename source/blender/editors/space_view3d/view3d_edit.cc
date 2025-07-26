@@ -20,7 +20,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
@@ -132,13 +132,13 @@ static wmOperatorStatus view_lock_to_active_exec(bContext *C, wmOperator * /*op*
         Object *obact_eval = DEG_get_evaluated(depsgraph, obact);
         bPoseChannel *pcham_act = BKE_pose_channel_active_if_bonecoll_visible(obact_eval);
         if (pcham_act) {
-          STRNCPY(v3d->ob_center_bone, pcham_act->name);
+          STRNCPY_UTF8(v3d->ob_center_bone, pcham_act->name);
         }
       }
       else {
         EditBone *ebone_act = ((bArmature *)obact->data)->act_edbone;
         if (ebone_act) {
-          STRNCPY(v3d->ob_center_bone, ebone_act->name);
+          STRNCPY_UTF8(v3d->ob_center_bone, ebone_act->name);
         }
       }
     }

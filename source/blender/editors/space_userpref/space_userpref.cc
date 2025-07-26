@@ -12,6 +12,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
@@ -192,7 +193,7 @@ void ED_spacetype_userpref()
   ARegionType *art;
 
   st->spaceid = SPACE_USERPREF;
-  STRNCPY(st->name, "Userpref");
+  STRNCPY_UTF8(st->name, "Userpref");
 
   st->create = userpref_create;
   st->free = userpref_free;

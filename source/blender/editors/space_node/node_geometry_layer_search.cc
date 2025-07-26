@@ -6,6 +6,7 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
@@ -202,7 +203,7 @@ void node_geometry_add_layer_search_button(const bContext & /*C*/,
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
   LayerSearchData *data = MEM_callocN<LayerSearchData>(__func__);
   data->node_id = node.identifier;
-  STRNCPY(data->socket_identifier, socket.identifier);
+  STRNCPY_UTF8(data->socket_identifier, socket.identifier);
 
   UI_but_func_search_set_results_are_suggestions(but, true);
   UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);

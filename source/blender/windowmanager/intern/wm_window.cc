@@ -346,7 +346,7 @@ wmWindow *wm_window_copy(Main *bmain,
   win_dst->sizey = win_src->sizey;
 
   win_dst->scene = win_src->scene;
-  STRNCPY(win_dst->view_layer_name, win_src->view_layer_name);
+  STRNCPY_UTF8(win_dst->view_layer_name, win_src->view_layer_name);
   BKE_workspace_active_set(win_dst->workspace_hook, workspace);
   WorkSpaceLayout *layout_new = duplicate_layout ? ED_workspace_layout_duplicate(
                                                        bmain, workspace, layout_old, win_dst) :
@@ -1194,7 +1194,7 @@ wmWindow *WM_window_open(bContext *C,
   }
 
   /* Set scene and view layer to match original window. */
-  STRNCPY(win->view_layer_name, view_layer->name);
+  STRNCPY_UTF8(win->view_layer_name, view_layer->name);
   if (WM_window_get_active_scene(win) != scene) {
     /* No need to refresh the tool-system as the window has not yet finished being setup. */
     ED_screen_scene_change(C, win, scene, false);
@@ -3014,7 +3014,7 @@ void WM_window_set_active_view_layer(wmWindow *win, ViewLayer *view_layer)
   /* Set view layer in parent and child windows. */
   LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
     if ((win_iter == win_parent) || (win_iter->parent == win_parent)) {
-      STRNCPY(win_iter->view_layer_name, view_layer->name);
+      STRNCPY_UTF8(win_iter->view_layer_name, view_layer->name);
       bScreen *screen = BKE_workspace_active_screen_get(win_iter->workspace_hook);
       ED_render_view_layer_changed(bmain, screen);
     }
@@ -3028,7 +3028,7 @@ void WM_window_ensure_active_view_layer(wmWindow *win)
 
   if (scene && BKE_view_layer_find(scene, win->view_layer_name) == nullptr) {
     ViewLayer *view_layer = BKE_view_layer_default_view(scene);
-    STRNCPY(win->view_layer_name, view_layer->name);
+    STRNCPY_UTF8(win->view_layer_name, view_layer->name);
   }
 }
 

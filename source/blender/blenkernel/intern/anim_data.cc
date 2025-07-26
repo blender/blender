@@ -479,8 +479,8 @@ void BKE_animdata_merge_copy(
   }
   dst->slot_handle = src->slot_handle;
   dst->tmp_slot_handle = src->tmp_slot_handle;
-  STRNCPY(dst->last_slot_identifier, src->last_slot_identifier);
-  STRNCPY(dst->tmp_last_slot_identifier, src->tmp_last_slot_identifier);
+  STRNCPY_UTF8(dst->last_slot_identifier, src->last_slot_identifier);
+  STRNCPY_UTF8(dst->tmp_last_slot_identifier, src->tmp_last_slot_identifier);
 
   /* duplicate NLA data */
   if (src->nla_tracks.first) {

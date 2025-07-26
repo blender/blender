@@ -31,7 +31,7 @@
 #include "BLI_mutex.hh"
 #include "BLI_rect.h"
 #include "BLI_set.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_time.h"
 #include "BLI_timecode.h"
@@ -513,7 +513,7 @@ Render *RE_NewRender(const char *name)
     /* new render data struct */
     re = MEM_new<Render>("new render");
     RenderGlobal.render_list.push_front(re);
-    STRNCPY(re->name, name);
+    STRNCPY_UTF8(re->name, name);
   }
 
   RE_InitRenderCB(re);
@@ -536,11 +536,11 @@ static void scene_render_name_get(const Scene *scene,
                                   const size_t render_name_maxncpy)
 {
   if (ID_IS_LINKED(scene)) {
-    BLI_snprintf(
+    BLI_snprintf_utf8(
         render_name, render_name_maxncpy, "%s %s", scene->id.lib->id.name, scene->id.name);
   }
   else {
-    BLI_strncpy(render_name, scene->id.name, render_name_maxncpy);
+    BLI_strncpy_utf8(render_name, scene->id.name, render_name_maxncpy);
   }
 }
 
@@ -565,7 +565,7 @@ Render *RE_NewInteractiveCompositorRender(const Scene *scene)
 
   return RenderGlobal.interactive_compositor_renders.lookup_or_add_cb(render_name, [&]() {
     Render *render = MEM_new<Render>("New Interactive Compositor Render");
-    STRNCPY(render->name, render_name);
+    STRNCPY_UTF8(render->name, render_name);
     RE_InitRenderCB(render);
     return render;
   });
@@ -870,7 +870,7 @@ void RE_InitState(Render *re,
   }
 
   if (single_layer) {
-    STRNCPY(re->single_view_layer, single_layer->name);
+    STRNCPY_UTF8(re->single_view_layer, single_layer->name);
     re->r.scemode |= R_SINGLE_LAYER;
   }
   else {

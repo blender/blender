@@ -25,6 +25,7 @@
 #include "BLI_math_color.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLF_api.hh"
 #include "BLT_lang.hh"
@@ -1024,8 +1025,8 @@ static void override_idtemplate_menu()
   MenuType *mt;
 
   mt = MEM_callocN<MenuType>(__func__);
-  STRNCPY(mt->idname, "UI_MT_idtemplate_liboverride");
-  STRNCPY(mt->label, N_("Library Override"));
+  STRNCPY_UTF8(mt->idname, "UI_MT_idtemplate_liboverride");
+  STRNCPY_UTF8(mt->label, N_("Library Override"));
   mt->poll = override_idtemplate_menu_poll;
   mt->draw = override_idtemplate_menu_draw;
   WM_menutype_add(mt);

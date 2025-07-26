@@ -13,6 +13,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
@@ -349,7 +350,7 @@ void ED_spacetype_console()
   ARegionType *art;
 
   st->spaceid = SPACE_CONSOLE;
-  STRNCPY(st->name, "Console");
+  STRNCPY_UTF8(st->name, "Console");
 
   st->create = console_create;
   st->free = console_free;

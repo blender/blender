@@ -21,7 +21,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -543,7 +543,7 @@ void wm_add_default(Main *bmain, bContext *C)
   CTX_wm_manager_set(C, wm);
   win = wm_window_new(bmain, wm, nullptr, false);
   win->scene = CTX_data_scene(C);
-  STRNCPY(win->view_layer_name, CTX_data_view_layer(C)->name);
+  STRNCPY_UTF8(win->view_layer_name, CTX_data_view_layer(C)->name);
   BKE_workspace_active_set(win->workspace_hook, workspace);
   BKE_workspace_active_layout_set(win->workspace_hook, win->winid, workspace, layout);
   screen->winid = win->winid;

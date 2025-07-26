@@ -14,6 +14,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -118,7 +119,7 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
 
   NodeImageLayer *sockdata = (NodeImageLayer *)sock->storage;
   if (sockdata) {
-    STRNCPY(sockdata->pass_name, passname);
+    STRNCPY_UTF8(sockdata->pass_name, passname);
   }
 
   /* Reorder sockets according to order that passes are added. */
@@ -591,7 +592,7 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
     NodeImageLayer *sockdata = MEM_callocN<NodeImageLayer>(__func__);
     sock->storage = sockdata;
 
-    STRNCPY(sockdata->pass_name, node_cmp_rlayers_sock_to_pass(sock_index));
+    STRNCPY_UTF8(sockdata->pass_name, node_cmp_rlayers_sock_to_pass(sock_index));
   }
 }
 

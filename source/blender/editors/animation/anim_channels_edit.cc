@@ -5441,7 +5441,7 @@ static wmOperatorStatus slot_channels_move_to_new_action_exec(bContext *C, wmOpe
   Main *bmain = CTX_data_main(C);
   if (slots.size() == 1) {
     char actname[MAX_ID_NAME - 2];
-    SNPRINTF(actname, DATA_("%sAction"), slots[0].first->identifier + 2);
+    SNPRINTF_UTF8(actname, DATA_("%sAction"), slots[0].first->identifier + 2);
     target_action = &action_add(*bmain, actname);
   }
   else {
@@ -5509,7 +5509,7 @@ static wmOperatorStatus separate_slots_exec(bContext *C, wmOperator *op)
   while (action->slot_array_num) {
     Slot *slot = action->slot(action->slot_array_num - 1);
     char actname[MAX_ID_NAME - 2];
-    SNPRINTF(actname, DATA_("%sAction"), slot->identifier + 2);
+    SNPRINTF_UTF8(actname, DATA_("%sAction"), slot->identifier + 2);
     Action &target_action = action_add(*bmain, actname);
     created_actions++;
     Layer &layer = target_action.layer_add(std::nullopt);

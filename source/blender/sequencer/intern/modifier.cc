@@ -17,7 +17,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
 
@@ -1256,10 +1256,10 @@ StripModifierData *modifier_new(Strip *strip, const char *name, int type)
   smd->flag |= SEQUENCE_MODIFIER_EXPANDED;
 
   if (!name || !name[0]) {
-    STRNCPY(smd->name, CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, smti->name));
+    STRNCPY_UTF8(smd->name, CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, smti->name));
   }
   else {
-    STRNCPY(smd->name, name);
+    STRNCPY_UTF8(smd->name, name);
   }
 
   BLI_addtail(&strip->modifiers, smd);

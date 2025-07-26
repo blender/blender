@@ -14,7 +14,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_armature_types.h"
@@ -120,7 +120,7 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
     if (indexar_num) {
       const ListBase *defbase = BKE_object_defgroup_list(obedit);
       bDeformGroup *dg = static_cast<bDeformGroup *>(BLI_findlink(defbase, defgrp_index));
-      BLI_strncpy(r_name, dg->name, sizeof(dg->name));
+      BLI_strncpy_utf8(r_name, dg->name, sizeof(dg->name));
       mul_v3_fl(r_cent, 1.0f / float(indexar_num));
       return true;
     }
@@ -546,7 +546,7 @@ static int add_hook_object(const bContext *C,
 
   hmd = (HookModifierData *)BKE_modifier_new(eModifierType_Hook);
   BLI_insertlinkbefore(&obedit->modifiers, md, hmd);
-  SNPRINTF(hmd->modifier.name, "Hook-%s", ob->id.name + 2);
+  SNPRINTF_UTF8(hmd->modifier.name, "Hook-%s", ob->id.name + 2);
   BKE_modifier_unique_name(&obedit->modifiers, (ModifierData *)hmd);
   BKE_modifiers_persistent_uid_init(*obedit, hmd->modifier);
 
@@ -554,7 +554,7 @@ static int add_hook_object(const bContext *C,
   hmd->indexar = indexar;
   copy_v3_v3(hmd->cent, cent);
   hmd->indexar_num = indexar_num;
-  STRNCPY(hmd->name, name);
+  STRNCPY_UTF8(hmd->name, name);
 
   unit_m4(pose_mat);
 
@@ -573,7 +573,7 @@ static int add_hook_object(const bContext *C,
     if (arm->act_bone) {
       bPoseChannel *pchan_act;
 
-      STRNCPY(hmd->subtarget, arm->act_bone->name);
+      STRNCPY_UTF8(hmd->subtarget, arm->act_bone->name);
 
       pchan_act = BKE_pose_channel_active_if_bonecoll_visible(ob);
       if (LIKELY(pchan_act)) {

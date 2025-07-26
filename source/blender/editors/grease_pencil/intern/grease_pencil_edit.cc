@@ -19,6 +19,7 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 #include "BLT_translation.hh"
@@ -4790,7 +4791,7 @@ static void remap_vertex_groups(bke::greasepencil::Drawing &drawing,
                                 const Map<StringRefNull, StringRefNull> &vertex_group_map)
 {
   LISTBASE_FOREACH (bDeformGroup *, dg, &drawing.strokes_for_write().vertex_group_names) {
-    STRNCPY(dg->name, vertex_group_map.lookup(dg->name).c_str());
+    STRNCPY_UTF8(dg->name, vertex_group_map.lookup(dg->name).c_str());
   }
 
   /* Indices in vertex weights remain valid, they are local to the drawing's vertex groups.

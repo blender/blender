@@ -1307,10 +1307,10 @@ void image_buttons_register(ARegionType *art)
   PanelType *pt;
 
   pt = MEM_callocN<PanelType>("spacetype image panel metadata");
-  STRNCPY(pt->idname, "IMAGE_PT_metadata");
-  STRNCPY(pt->label, N_("Metadata"));
-  STRNCPY(pt->category, "Image");
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "IMAGE_PT_metadata");
+  STRNCPY_UTF8(pt->label, N_("Metadata"));
+  STRNCPY_UTF8(pt->category, "Image");
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->order = 10;
   pt->poll = metadata_panel_context_poll;
   pt->draw = metadata_panel_context_draw;

@@ -315,7 +315,7 @@ RenderResult *render_result_new(Render *re,
     rl = MEM_callocN<RenderLayer>("new render layer");
     BLI_addtail(&rr->layers, rl);
 
-    STRNCPY(rl->name, view_layer->name);
+    STRNCPY_UTF8(rl->name, view_layer->name);
     rl->layflag = view_layer->layflag;
 
     rl->passflag = view_layer->passflag;

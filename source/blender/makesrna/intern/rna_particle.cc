@@ -1354,10 +1354,10 @@ static size_t rna_ParticleDupliWeight_name_get_impl(PointerRNA *ptr,
   ParticleDupliWeight *dw = static_cast<ParticleDupliWeight *>(ptr->data);
 
   if (dw->ob) {
-    return BLI_snprintf_rlen(value, value_maxncpy, "%s: %i", dw->ob->id.name + 2, dw->count);
+    return BLI_snprintf_utf8_rlen(value, value_maxncpy, "%s: %i", dw->ob->id.name + 2, dw->count);
   }
 
-  return BLI_strncpy_rlen(value, "No object", value_maxncpy);
+  return BLI_strncpy_utf8_rlen(value, "No object", value_maxncpy);
 }
 
 static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *value)

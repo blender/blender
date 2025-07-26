@@ -20,6 +20,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BKE_action.hh"
@@ -641,7 +642,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
     BLI_string_flip_side_name(name, chan->name, false, sizeof(name));
   }
   else {
-    STRNCPY(name, chan->name);
+    STRNCPY_UTF8(name, chan->name);
   }
 
   /* only copy when:

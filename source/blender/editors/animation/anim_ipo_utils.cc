@@ -16,6 +16,7 @@
 
 #include "BLI_math_color.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -55,15 +56,15 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
     return {};
   }
   if (fcu == nullptr) {
-    BLI_strncpy(name, RPT_("<invalid>"), name_maxncpy);
+    BLI_strncpy_utf8(name, RPT_("<invalid>"), name_maxncpy);
     return {};
   }
   if (fcu->rna_path == nullptr) {
-    BLI_strncpy(name, RPT_("<no path>"), name_maxncpy);
+    BLI_strncpy_utf8(name, RPT_("<no path>"), name_maxncpy);
     return {};
   }
   if (id == nullptr) {
-    BLI_snprintf(name, name_maxncpy, "%s[%d]", fcu->rna_path, fcu->array_index);
+    BLI_snprintf_utf8(name, name_maxncpy, "%s[%d]", fcu->rna_path, fcu->array_index);
     return {};
   }
 
@@ -74,7 +75,7 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
   if (!RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
     /* Could not resolve the path, so just use the path itself as 'name'. */
-    BLI_snprintf(name, name_maxncpy, "\"%s[%d]\"", fcu->rna_path, fcu->array_index);
+    BLI_snprintf_utf8(name, name_maxncpy, "\"%s[%d]\"", fcu->rna_path, fcu->array_index);
 
     /* Tag F-Curve as disabled - as not usable path. */
     fcu->flag |= FCURVE_DISABLED;
@@ -196,10 +197,10 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
     /* we need to write the index to a temp buffer (in py syntax) */
     if (c) {
-      SNPRINTF(arrayindbuf, "%c ", c);
+      SNPRINTF_UTF8(arrayindbuf, "%c ", c);
     }
     else {
-      SNPRINTF(arrayindbuf, "[%d]", fcu->array_index);
+      SNPRINTF_UTF8(arrayindbuf, "[%d]", fcu->array_index);
     }
 
     arrayname = &arrayindbuf[0];
@@ -213,10 +214,10 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
   /* XXX we need to check for invalid names...
    * XXX the name length limit needs to be passed in or as some define */
   if (structname) {
-    BLI_snprintf(name, name_maxncpy, "%s%s (%s)", arrayname, propname, structname);
+    BLI_snprintf_utf8(name, name_maxncpy, "%s%s (%s)", arrayname, propname, structname);
   }
   else {
-    BLI_snprintf(name, name_maxncpy, "%s%s", arrayname, propname);
+    BLI_snprintf_utf8(name, name_maxncpy, "%s%s", arrayname, propname);
   }
 
   /* free temp name if nameprop is set */

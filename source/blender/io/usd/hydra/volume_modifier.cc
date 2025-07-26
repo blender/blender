@@ -9,7 +9,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_mesh.h"
 #include "BKE_modifier.hh"
@@ -126,7 +126,8 @@ std::string VolumeModifierData::get_cached_file_path(const std::string &director
 {
   char file_path[FILE_MAX];
   char file_name[32];
-  SNPRINTF(file_name, "%s_####%s", FLUID_NAME_DATA, FLUID_DOMAIN_EXTENSION_OPENVDB);
+  /* While a filename need not be UTF8, at this point the constructed name should be UTF8. */
+  SNPRINTF_UTF8(file_name, "%s_####%s", FLUID_NAME_DATA, FLUID_DOMAIN_EXTENSION_OPENVDB);
   BLI_path_frame(file_name, sizeof(file_name), frame, 0);
   BLI_path_join(file_path, sizeof(file_path), directory.c_str(), FLUID_DOMAIN_DIR_DATA, file_name);
 

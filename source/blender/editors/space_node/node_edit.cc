@@ -477,7 +477,7 @@ bool composite_node_editable(bContext *C)
 void ED_node_set_tree_type(SpaceNode *snode, blender::bke::bNodeTreeType *typeinfo)
 {
   if (typeinfo) {
-    STRNCPY(snode->tree_idname, typeinfo->idname.c_str());
+    STRNCPY_UTF8(snode->tree_idname, typeinfo->idname.c_str());
   }
   else {
     snode->tree_idname[0] = '\0';

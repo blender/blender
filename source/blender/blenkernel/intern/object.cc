@@ -56,6 +56,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -1409,7 +1410,7 @@ bool BKE_object_copy_modifier(Main *bmain,
   else {
     md_dst = BKE_modifier_new(md_src->type);
 
-    STRNCPY(md_dst->name, md_src->name);
+    STRNCPY_UTF8(md_dst->name, md_src->name);
 
     if (md_src->type == eModifierType_Multires) {
       /* Has to be done after mod creation, but *before* we actually copy its settings! */
@@ -3401,7 +3402,7 @@ blender::float4x4 BKE_object_calc_parent(Depsgraph *depsgraph, Scene *scene, Obj
    * object's local loc/rot/scale instead of after. For example, a "Copy Rotation" constraint would
    * rotate the object's local translation as well. See #82156. */
 
-  STRNCPY(workob.parsubstr, ob->parsubstr);
+  STRNCPY_UTF8(workob.parsubstr, ob->parsubstr);
 
   BKE_object_where_is_calc(depsgraph, scene, &workob);
 

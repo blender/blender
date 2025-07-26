@@ -306,7 +306,7 @@ ModifierData *BKE_modifier_copy_ex(const ModifierData *md, int flag)
 {
   ModifierData *md_dst = modifier_allocate_and_init(ModifierType(md->type));
 
-  STRNCPY(md_dst->name, md->name);
+  STRNCPY_UTF8(md_dst->name, md->name);
   BKE_modifier_copydata_ex(md, md_dst, flag);
 
   return md_dst;

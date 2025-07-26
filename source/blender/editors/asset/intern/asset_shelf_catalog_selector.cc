@@ -11,7 +11,7 @@
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
 
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_screen_types.h"
 
@@ -231,9 +231,9 @@ void catalog_selector_panel_register(ARegionType *region_type)
   }
 
   PanelType *pt = MEM_callocN<PanelType>(__func__);
-  STRNCPY(pt->idname, "ASSETSHELF_PT_catalog_selector");
-  STRNCPY(pt->label, N_("Catalog Selector"));
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "ASSETSHELF_PT_catalog_selector");
+  STRNCPY_UTF8(pt->label, N_("Catalog Selector"));
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->description = N_(
       "Select the asset library and the contained catalogs to display in the asset shelf");
   pt->draw = catalog_selector_panel_draw;

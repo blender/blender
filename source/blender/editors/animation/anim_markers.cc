@@ -16,6 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -788,7 +789,7 @@ static wmOperatorStatus ed_marker_add_exec(bContext *C, wmOperator * /*op*/)
   marker = MEM_callocN<TimeMarker>("TimeMarker");
   marker->flag = SELECT;
   marker->frame = frame;
-  SNPRINTF(marker->name, "F_%02d", frame);
+  SNPRINTF_UTF8(marker->name, "F_%02d", frame);
   BLI_addtail(markers, marker);
 
   WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, nullptr);
@@ -1220,7 +1221,7 @@ static void ed_marker_duplicate_apply(bContext *C)
       TimeMarker *newmarker = MEM_callocN<TimeMarker>("TimeMarker");
       newmarker->flag = SELECT;
       newmarker->frame = marker->frame;
-      STRNCPY(newmarker->name, marker->name);
+      STRNCPY_UTF8(newmarker->name, marker->name);
       newmarker->camera = marker->camera;
 
       if (marker->prop != nullptr) {
@@ -1915,7 +1916,7 @@ static wmOperatorStatus ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
     marker = MEM_callocN<TimeMarker>("Camera TimeMarker");
     /* This marker's name is only displayed in the viewport statistics, animation editors use the
      * camera's name when bound to a marker. */
-    SNPRINTF(marker->name, "F_%02d", scene->r.cfra);
+    SNPRINTF_UTF8(marker->name, "F_%02d", scene->r.cfra);
     marker->flag = SELECT;
     marker->frame = scene->r.cfra;
     BLI_addtail(markers, marker);

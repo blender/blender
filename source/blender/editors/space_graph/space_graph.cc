@@ -19,7 +19,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -940,7 +940,7 @@ void ED_spacetype_ipo()
   ARegionType *art;
 
   st->spaceid = SPACE_GRAPH;
-  STRNCPY(st->name, "Graph");
+  STRNCPY_UTF8(st->name, "Graph");
 
   st->create = graph_create;
   st->free = graph_free;

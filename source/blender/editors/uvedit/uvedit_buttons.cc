@@ -17,7 +17,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -250,10 +250,10 @@ void ED_uvedit_buttons_register(ARegionType *art)
 {
   PanelType *pt = MEM_callocN<PanelType>(__func__);
 
-  STRNCPY(pt->idname, "IMAGE_PT_uv");
-  STRNCPY(pt->label, N_("UV Vertex")); /* XXX C panels unavailable through RNA bpy.types! */
+  STRNCPY_UTF8(pt->idname, "IMAGE_PT_uv");
+  STRNCPY_UTF8(pt->label, N_("UV Vertex")); /* XXX C panels unavailable through RNA bpy.types! */
   /* Could be 'Item' matching 3D view, avoid new tab for two buttons. */
-  STRNCPY(pt->category, "Image");
+  STRNCPY_UTF8(pt->category, "Image");
   pt->draw = image_panel_uv;
   pt->poll = image_panel_uv_poll;
   BLI_addtail(&art->paneltypes, pt);

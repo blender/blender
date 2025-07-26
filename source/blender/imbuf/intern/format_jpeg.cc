@@ -16,6 +16,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_idprop.hh"
@@ -563,7 +564,7 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
 
   jpeg_start_compress(cinfo, true);
 
-  STRNCPY(neogeo, "NeoGeo");
+  STRNCPY_UTF8(neogeo, "NeoGeo");
   neogeo_word = (NeoGeo_Word *)(neogeo + 6);
   memset(neogeo_word, 0, sizeof(*neogeo_word));
   neogeo_word->quality = ibuf->foptions.quality;
@@ -601,7 +602,7 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
          * The first "Blender" is a simple identify to help
          * in the read process.
          */
-        text_len = BLI_snprintf_rlen(
+        text_len = BLI_snprintf_utf8_rlen(
             text, text_size, "Blender:%s:%s", prop->name, IDP_String(prop));
         /* Don't write the null byte (not expected by the JPEG format). */
         jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)text, uint(text_len));

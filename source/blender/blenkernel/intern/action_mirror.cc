@@ -174,7 +174,8 @@ static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurveP
   char path_xform[256];
   char pchan_name_esc[sizeof(bActionChannel::name) * 2];
   BLI_str_escape(pchan_name_esc, pchan->name, sizeof(pchan_name_esc));
-  const int path_xform_prefix_len = SNPRINTF(path_xform, "pose.bones[\"%s\"]", pchan_name_esc);
+  const int path_xform_prefix_len = SNPRINTF_UTF8(
+      path_xform, "pose.bones[\"%s\"]", pchan_name_esc);
   char *path_xform_suffix = path_xform + path_xform_prefix_len;
   const int path_xform_suffix_maxncpy = sizeof(path_xform) - path_xform_prefix_len;
 

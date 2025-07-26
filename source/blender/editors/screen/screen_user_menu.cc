@@ -12,7 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -158,10 +158,10 @@ void ED_screen_user_menu_item_add_operator(ListBase *lb,
       lb, USER_MENU_TYPE_OPERATOR);
   umi_op->opcontext = int8_t(opcontext);
   if (!STREQ(ui_name, ot->name)) {
-    STRNCPY(umi_op->item.ui_name, ui_name);
+    STRNCPY_UTF8(umi_op->item.ui_name, ui_name);
   }
-  STRNCPY(umi_op->op_idname, ot->idname);
-  STRNCPY(umi_op->op_prop_enum, op_prop_enum);
+  STRNCPY_UTF8(umi_op->op_idname, ot->idname);
+  STRNCPY_UTF8(umi_op->op_prop_enum, op_prop_enum);
   umi_op->prop = prop ? IDP_CopyProperty(prop) : nullptr;
 }
 
@@ -170,9 +170,9 @@ void ED_screen_user_menu_item_add_menu(ListBase *lb, const char *ui_name, const 
   bUserMenuItem_Menu *umi_mt = (bUserMenuItem_Menu *)BKE_blender_user_menu_item_add(
       lb, USER_MENU_TYPE_MENU);
   if (!STREQ(ui_name, mt->label)) {
-    STRNCPY(umi_mt->item.ui_name, ui_name);
+    STRNCPY_UTF8(umi_mt->item.ui_name, ui_name);
   }
-  STRNCPY(umi_mt->mt_idname, mt->idname);
+  STRNCPY_UTF8(umi_mt->mt_idname, mt->idname);
 }
 
 void ED_screen_user_menu_item_add_prop(ListBase *lb,
@@ -183,9 +183,9 @@ void ED_screen_user_menu_item_add_prop(ListBase *lb,
 {
   bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)BKE_blender_user_menu_item_add(
       lb, USER_MENU_TYPE_PROP);
-  STRNCPY(umi_pr->item.ui_name, ui_name);
-  STRNCPY(umi_pr->context_data_path, context_data_path);
-  STRNCPY(umi_pr->prop_id, prop_id);
+  STRNCPY_UTF8(umi_pr->item.ui_name, ui_name);
+  STRNCPY_UTF8(umi_pr->context_data_path, context_data_path);
+  STRNCPY_UTF8(umi_pr->prop_id, prop_id);
   umi_pr->prop_index = prop_index;
 }
 
@@ -245,7 +245,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         else {
           if (show_missing) {
-            SNPRINTF(label, RPT_("Missing: %s"), umi_op->op_idname);
+            SNPRINTF_UTF8(label, RPT_("Missing: %s"), umi_op->op_idname);
             menu->layout->label(label, ICON_NONE);
           }
         }
@@ -259,7 +259,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         else {
           if (show_missing) {
-            SNPRINTF(label, RPT_("Missing: %s"), umi_mt->mt_idname);
+            SNPRINTF_UTF8(label, RPT_("Missing: %s"), umi_mt->mt_idname);
             menu->layout->label(label, ICON_NONE);
           }
         }
@@ -302,7 +302,8 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         if (!ok) {
           if (show_missing) {
-            SNPRINTF(label, RPT_("Missing: %s.%s"), umi_pr->context_data_path, umi_pr->prop_id);
+            SNPRINTF_UTF8(
+                label, RPT_("Missing: %s.%s"), umi_pr->context_data_path, umi_pr->prop_id);
             menu->layout->label(label, ICON_NONE);
           }
         }
@@ -325,9 +326,9 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 void ED_screen_user_menu_register()
 {
   MenuType *mt = MEM_callocN<MenuType>(__func__);
-  STRNCPY(mt->idname, "SCREEN_MT_user_menu");
-  STRNCPY(mt->label, N_("Quick Favorites"));
-  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(mt->idname, "SCREEN_MT_user_menu");
+  STRNCPY_UTF8(mt->label, N_("Quick Favorites"));
+  STRNCPY_UTF8(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = screen_user_menu_draw;
   WM_menutype_add(mt);
 }

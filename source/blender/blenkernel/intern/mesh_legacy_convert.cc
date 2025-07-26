@@ -27,6 +27,7 @@
 #include "BLI_multi_value_map.hh"
 #include "BLI_polyfill_2d.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
@@ -2308,7 +2309,7 @@ static ModifierData *create_auto_smooth_modifier(
     const float angle)
 {
   auto *md = reinterpret_cast<NodesModifierData *>(BKE_modifier_new(eModifierType_Nodes));
-  STRNCPY(md->modifier.name, DATA_("Auto Smooth"));
+  STRNCPY_UTF8(md->modifier.name, DATA_("Auto Smooth"));
   BKE_modifier_unique_name(&object.modifiers, &md->modifier);
   md->node_group = get_node_group(object.id.lib);
   id_us_plus(&md->node_group->id);

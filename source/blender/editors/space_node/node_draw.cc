@@ -31,6 +31,7 @@
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -4719,7 +4720,7 @@ void node_draw_space(const bContext &C, ARegion &region)
                                                                          snode.id;
 
     if (name_id && UNLIKELY(!STREQ(path->display_name, name_id->name + 2))) {
-      STRNCPY(path->display_name, name_id->name + 2);
+      STRNCPY_UTF8(path->display_name, name_id->name + 2);
     }
 
     /* Current View2D center, will be set temporarily for parent node trees. */
