@@ -129,8 +129,8 @@ class NODE_MT_category_compositor_color_mix(Menu):
         node_add_menu.add_node_type(layout, "CompositorNodeCombineColor")
         node_add_menu.add_node_type(layout, "CompositorNodeSeparateColor")
         layout.separator()
-        node_add_menu.add_color_mix_node(context, layout)
         node_add_menu.add_node_type(layout, "CompositorNodeZcombine")
+        node_add_menu.add_color_mix_node(context, layout)
         node_add_menu.draw_assets_for_catalog(layout, "Color/Mix")
 
 
