@@ -228,6 +228,21 @@ class GHOST_WindowIOS : public GHOST_Window {
     return m_immediateDraw;
   }
 
+  /**
+   * Ghost system to send events to.
+   * \return the system used to create this window.
+   */
+  GHOST_SystemIOS *getSystem() const
+  {
+    return m_systemIOS;
+  }
+
+  /**
+   * Invalidates the contents of this window.
+   * \return Indication of success.
+   */
+  GHOST_TSuccess invalidate();
+
 #ifdef WITH_INPUT_IME
   void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed);
   void endIME();
@@ -239,12 +254,6 @@ class GHOST_WindowIOS : public GHOST_Window {
    * \return Indication of success.
    */
   GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type);
-
-  /**
-   * Invalidates the contents of this window.
-   * \return Indication of success.
-   */
-  GHOST_TSuccess invalidate();
 
   /**
    * Sets the cursor visibility on the window using

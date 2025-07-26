@@ -13,6 +13,7 @@
 #include "GHOST_SystemIOS.h"
 #include "GHOST_TimerManager.hh"
 #include "GHOST_TimerTask.hh"
+#include "GHOST_Types.h"
 #include "GHOST_WindowManager.hh"
 
 #include "GHOST_ContextIOS.hh"
@@ -1299,6 +1300,16 @@ GHOST_WindowIOS *main_window = nullptr;
 {
 }
 
+- (BOOL)shouldAutorotate
+{
+  return YES;
+}
+
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations
+{
+  return UIInterfaceOrientationMaskAll;
+}
+
 @end
 
 @interface IOSAppDelegate : UIResponder <UIApplicationDelegate>
@@ -1363,6 +1374,21 @@ GHOST_WindowIOS *main_window = nullptr;
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {
+  /* Update your internal size, viewport, or recreate any size-dependent resources. */
+  NSLog(@"Drawable size changed: %.0fx%.0f", size.width, size.height);
+
+  if (!main_window->getValid()) {
+    return;
+  }
+
+  main_window->setClientSize(size.width, size.height);
+  NSLog(@"Killing in the name of ....");
+  main_window->invalidate();
+
+  GHOST_SystemIOS *system = main_window->getSystem();
+
+  system->pushEvent(
+      new GHOST_Event(system->getMilliSeconds(), GHOST_kEventWindowSize, main_window));
 }
 
 @end
