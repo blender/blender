@@ -4,7 +4,9 @@
 
 bl_info = {
     "name": "Scalable Vector Graphics (SVG) 1.1 format",
-    "author": "JM Soler, Sergey Sharybin",
+    # This is now displayed as the maintainer, so show the foundation.
+    # "author": "JM Soler, Sergey Sharybin", # Original Authors
+    "author": "Blender Foundation",
     "blender": (2, 80, 0),
     "location": "File > Import > Scalable Vector Graphics (.svg)",
     "description": "Import SVG as curves",

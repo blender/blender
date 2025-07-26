@@ -9,7 +9,9 @@ Pose Library based on the Asset Browser.
 bl_info = {
     "name": "Pose Library",
     "description": "Pose Library based on the asset system.",
-    "author": "Sybren A. Stüvel, Julian Eisel",
+    # This is now displayed as the maintainer, so show the foundation.
+    # "author": "Sybren A. Stüvel, Julian Eisel", # Original Authors
+    "author": "Blender Foundation",
     "version": (2, 0),
     "blender": (3, 0, 0),
     "location": "Asset Browser -> Animations, and 3D Viewport -> Animation panel",

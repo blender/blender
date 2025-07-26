@@ -4,7 +4,7 @@
 
 bl_info = {
     "name": "Hydra Storm render engine",
-    "author": "AMD",
+    "author": "Blender Foundation, AMD",
     "version": (1, 0, 0),
     "blender": (4, 0, 0),
     "description": "USD's high performance rasterizing renderer",

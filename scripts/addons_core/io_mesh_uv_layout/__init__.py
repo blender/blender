@@ -4,7 +4,9 @@
 
 bl_info = {
     "name": "UV Layout",
-    "author": "Campbell Barton, Matt Ebb",
+    # This is now displayed as the maintainer, so show the foundation.
+    # "author": "Campbell Barton, Matt Ebb", # Original Authors
+    "author": "Blender Foundation",
     "version": (1, 2, 0),
     "blender": (3, 0, 0),
     "location": "UV Editor > UV > Export UV Layout",

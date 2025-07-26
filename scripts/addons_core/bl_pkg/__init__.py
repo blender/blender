@@ -4,7 +4,9 @@
 
 bl_info = {
     "name": "Blender Extensions",
-    "author": "Campbell Barton",
+    # This is now displayed as the maintainer, so show the foundation.
+    # "author": "Campbell Barton", # Original Author
+    "author": "Blender Foundation",
     "version": (0, 0, 1),
     "blender": (4, 0, 0),
     "location": "Edit -> Preferences -> Extensions",

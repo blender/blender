@@ -5,7 +5,9 @@
 bl_info = {
     "name": "Rigify",
     "version": (0, 6, 10),
-    "author": "Nathan Vegdahl, Lucio Rossi, Ivan Cappiello, Alexander Gavrilov",  # noqa
+    # This is now displayed as the maintainer, so show the foundation.
+    # "author": "Nathan Vegdahl, Lucio Rossi, Ivan Cappiello, Alexander Gavrilov", # Original Authors
+    "author": "Blender Foundation",
     "blender": (4, 0, 0),
     "description": "Automatic rigging from building-block components",
     "location": "Armature properties, Bone properties, View3d tools panel, Armature Add menu",
