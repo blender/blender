@@ -57,6 +57,10 @@
 #include "fx/Equalizer.h"
 #endif
 
+#ifdef WITH_RUBBERBAND
+#include "fx/TimeStretchPitchScale.h"
+#endif
+
 #include <cassert>
 #include <cstring>
 
@@ -788,4 +792,19 @@ AUD_API AUD_Sound* AUD_Sound_equalize(AUD_Sound* sound, float *definition, int s
 	return equalizer;
 }
 
+#endif
+
+#ifdef WITH_RUBBERBAND
+AUD_API AUD_Sound* AUD_Sound_timeStretchPitchScale(AUD_Sound* sound, double timeRatio, double pitchScale, AUD_StretcherQuality quality, bool preserveFormant)
+{
+	assert(sound);
+	try
+	{
+		return new AUD_Sound(new TimeStretchPitchScale(*sound, timeRatio, pitchScale, static_cast<StretcherQuality>(quality), preserveFormant));
+	}
+	catch(Exception&)
+	{
+		return nullptr;
+	}
+}
 #endif
