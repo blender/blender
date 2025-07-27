@@ -18,6 +18,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rand.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -832,7 +833,7 @@ void ED_area_status_text(ScrArea *area, const char *str)
       if (ar->runtime->headerstr == nullptr) {
         ar->runtime->headerstr = MEM_malloc_arrayN<char>(UI_MAX_DRAW_STR, "headerprint");
       }
-      BLI_strncpy(ar->runtime->headerstr, str, UI_MAX_DRAW_STR);
+      BLI_strncpy_utf8(ar->runtime->headerstr, str, UI_MAX_DRAW_STR);
       BLI_str_rstrip(ar->runtime->headerstr);
     }
     else {
@@ -2929,7 +2930,7 @@ static void ed_panel_draw(const bContext *C,
     BLI_string_join(block_name, sizeof(block_name), pt->idname, unique_panel_str);
   }
   else {
-    STRNCPY(block_name, pt->idname);
+    STRNCPY_UTF8(block_name, pt->idname);
   }
   uiBlock *block = UI_block_begin(C, region, block_name, blender::ui::EmbossType::Emboss);
 
@@ -3515,7 +3516,7 @@ static bool panel_property_search(const bContext *C,
     panel_type->draw(C, panel);
   }
 
-  UI_block_layout_free(block);
+  blender::ui::block_layout_free(block);
 
   /* We could check after each layout to increase the likelihood of returning early,
    * but that probably wouldn't make much of a difference anyway. */
@@ -4138,7 +4139,7 @@ void ED_region_cache_draw_curfra_label(const int framenr, const float x, const f
   /* Format frame number. */
   char numstr[32];
   BLF_size(fontid, 11.0f * UI_SCALE_FAC);
-  SNPRINTF(numstr, "%d", framenr);
+  SNPRINTF_UTF8(numstr, "%d", framenr);
 
   float2 text_dims = {0.0f, 0.0f};
   BLF_width_and_height(fontid, numstr, sizeof(numstr), &text_dims.x, &text_dims.y);

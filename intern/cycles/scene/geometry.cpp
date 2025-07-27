@@ -706,10 +706,6 @@ void GeometryManager::device_update(Device *device,
         if (geom->is_mesh() || geom->is_volume()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
 
-          if (mesh->need_attribute(scene, ATTR_STD_POSITION_UNDISPLACED)) {
-            mesh->add_undisplaced();
-          }
-
           /* Test if we need tessellation and setup normals if required. */
           if (mesh->need_tesselation()) {
             num_tessellation++;

@@ -392,8 +392,8 @@ static void render_frame(RenderEngine *engine,
       /* Render the gpencil object and merge the result to the underlying render. */
       inst.draw(manager);
 
-      /* Weight of this render SSAA sample. The sum of previous samples is weighted by `1 -
-       * weight`. This diminishes after each new sample as we want all samples to be equally
+      /* Weight of this render SSAA sample. The sum of previous samples is weighted by
+       * `1 - weight`. This diminishes after each new sample as we want all samples to be equally
        * weighted inside the final result (inside the combined buffer). This weighting scheme
        * allows to always store the resolved result making it ready for in-progress display or
        * read-back. */

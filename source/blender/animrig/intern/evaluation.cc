@@ -8,6 +8,7 @@
 #include "BKE_fcurve.hh"
 
 #include "BLI_map.hh"
+#include "BLI_math_base.hh"
 
 #include "CLG_log.h"
 

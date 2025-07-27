@@ -15,7 +15,7 @@
 #include "UI_resources.hh"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_anonymous_attribute_make.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
@@ -879,7 +879,7 @@ void draw_data_blocks(const bContext *C, uiLayout *layout, PointerRNA &bake_rna)
 {
   static const uiListType *data_block_list = []() {
     uiListType *list = MEM_callocN<uiListType>(__func__);
-    STRNCPY(list->idname, "DATA_UL_nodes_modifier_data_blocks");
+    STRNCPY_UTF8(list->idname, "DATA_UL_nodes_modifier_data_blocks");
     list->draw_item = draw_bake_data_block_list_item;
     WM_uilisttype_add(list);
     return list;

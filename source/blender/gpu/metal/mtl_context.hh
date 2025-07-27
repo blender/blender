@@ -21,7 +21,7 @@
 #ifdef WITH_APPLE_CROSSPLATFORM
 #  include "intern/GHOST_ContextIOS.hh"
 #else
-#  include "intern/GHOST_ContextCGL.hh"
+#  include "intern/GHOST_ContextMTL.hh"
 #endif
 #include "intern/GHOST_Window.hh"
 

@@ -11,7 +11,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "ED_screen.hh"
 
@@ -180,7 +180,7 @@ static void applyMirror(TransInfo *t)
       special_axis = bitscan_forward_i(special_axis_bitmap);
     }
 
-    SNPRINTF(str, IFACE_("Mirror%s"), t->con.text);
+    SNPRINTF_UTF8(str, IFACE_("Mirror%s"), t->con.text);
 
     if (t->options & CTX_SEQUENCER_IMAGE) {
       if (axis_bitmap == 1) {

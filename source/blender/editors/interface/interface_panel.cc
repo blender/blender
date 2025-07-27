@@ -20,6 +20,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
@@ -281,7 +282,7 @@ void UI_list_panel_unique_str(Panel *panel, char *r_name)
 {
   /* The panel sort-order will be unique for a specific panel type because the instanced
    * panel list is regenerated for every change in the data order / length. */
-  BLI_snprintf(r_name, INSTANCED_PANEL_UNIQUE_STR_SIZE, "%d", panel->sortorder);
+  BLI_snprintf_utf8(r_name, INSTANCED_PANEL_UNIQUE_STR_SIZE, "%d", panel->sortorder);
 }
 
 /**
@@ -2421,7 +2422,7 @@ static void ui_panel_category_active_set(ARegion *region, const char *idname, bo
   }
   else {
     pc_act = MEM_callocN<PanelCategoryStack>(__func__);
-    STRNCPY(pc_act->idname, idname);
+    STRNCPY_UTF8(pc_act->idname, idname);
   }
 
   if (fallback) {
@@ -2510,7 +2511,7 @@ void UI_panel_category_add(ARegion *region, const char *name)
   PanelCategoryDyn *pc_dyn = MEM_callocN<PanelCategoryDyn>(__func__);
   BLI_addtail(&region->runtime->panels_category, pc_dyn);
 
-  STRNCPY(pc_dyn->idname, name);
+  STRNCPY_UTF8(pc_dyn->idname, name);
 
   /* 'pc_dyn->rect' must be set on draw. */
 }

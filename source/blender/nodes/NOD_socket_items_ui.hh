@@ -15,6 +15,7 @@
 #include "RNA_prototypes.hh"
 
 #include "BLI_function_ref.hh"
+#include "BLI_string_utf8.h"
 
 #include "BKE_screen.hh"
 
@@ -60,7 +61,7 @@ static void draw_items_list_with_operators(const bContext *C,
 
   static const uiListType *items_list = []() {
     uiListType *list = MEM_callocN<uiListType>(Accessor::ui_idnames::list.c_str());
-    STRNCPY(list->idname, Accessor::ui_idnames::list.c_str());
+    STRNCPY_UTF8(list->idname, Accessor::ui_idnames::list.c_str());
     list->draw_item = draw_item_in_list<Accessor>;
     WM_uilisttype_add(list);
     return list;

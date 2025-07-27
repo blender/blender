@@ -19,6 +19,7 @@
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -338,7 +339,7 @@ int ED_buttons_search_string_length(SpaceProperties *sbuts)
 void ED_buttons_search_string_set(SpaceProperties *sbuts, const char *value)
 {
   if (sbuts->runtime) {
-    STRNCPY(sbuts->runtime->search_string, value);
+    STRNCPY_UTF8(sbuts->runtime->search_string, value);
   }
 }
 
@@ -1080,7 +1081,7 @@ void ED_spacetype_buttons()
   ARegionType *art;
 
   st->spaceid = SPACE_PROPERTIES;
-  STRNCPY(st->name, "Buttons");
+  STRNCPY_UTF8(st->name, "Buttons");
 
   st->create = buttons_create;
   st->free = buttons_free;

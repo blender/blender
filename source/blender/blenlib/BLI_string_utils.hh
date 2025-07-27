@@ -92,9 +92,9 @@ size_t BLI_string_replace_range(
  * Returning the length of "Foo"
  *
  * \param left: Where to return copy of part preceding `delim`.
- * \param nr: Where to return value of numeric suffix`.
- * \param name: String to split`.
- * \param delim: Delimiter character`.
+ * \param nr: Where to return value of numeric suffix.
+ * \param name: String to split.
+ * \param delim: Delimiter character.
  * \return Length of \a left.
  */
 size_t BLI_string_split_name_number(const char *name, char delim, char *r_name_left, int *r_number)

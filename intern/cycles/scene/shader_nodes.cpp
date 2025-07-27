@@ -4123,6 +4123,7 @@ NODE_DEFINE(LightPathNode)
   SOCKET_OUT_FLOAT(glossy_depth, "Glossy Depth");
   SOCKET_OUT_FLOAT(transparent_depth, "Transparent Depth");
   SOCKET_OUT_FLOAT(transmission_depth, "Transmission Depth");
+  SOCKET_OUT_FLOAT(portal_depth, "Portal Depth");
 
   return type;
 }
@@ -4201,6 +4202,11 @@ void LightPathNode::compile(SVMCompiler &compiler)
   out = output("Transmission Depth");
   if (!out->links.empty()) {
     compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_transmission, compiler.stack_assign(out));
+  }
+
+  out = output("Portal Depth");
+  if (!out->links.empty()) {
+    compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_portal, compiler.stack_assign(out));
   }
 }
 

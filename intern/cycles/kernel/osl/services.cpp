@@ -106,6 +106,7 @@ ustring OSLRenderServices::u_path_diffuse_depth("path:diffuse_depth");
 ustring OSLRenderServices::u_path_glossy_depth("path:glossy_depth");
 ustring OSLRenderServices::u_path_transparent_depth("path:transparent_depth");
 ustring OSLRenderServices::u_path_transmission_depth("path:transmission_depth");
+ustring OSLRenderServices::u_path_portal_depth("path:portal_depth");
 ustring OSLRenderServices::u_trace("trace");
 ustring OSLRenderServices::u_hit("hit");
 ustring OSLRenderServices::u_hitdist("hitdist");
@@ -924,6 +925,11 @@ bool OSLRenderServices::get_background_attribute(
   if (name == u_path_transparent_depth) {
     /* Transparent Ray Depth */
     const int f = READ_PATH_STATE(transparent_bounce);
+    return set_attribute(f, type, derivatives, val);
+  }
+  if (name == u_path_portal_depth) {
+    /* Portal Ray Depth */
+    const int f = READ_PATH_STATE(portal_bounce);
     return set_attribute(f, type, derivatives, val);
   }
 #undef READ_PATH_STATE

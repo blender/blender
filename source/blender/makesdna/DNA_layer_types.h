@@ -184,11 +184,11 @@ typedef struct ViewLayer {
   struct FreestyleConfig freestyle_config;
   struct ViewLayerEEVEE eevee;
 
-  /* List containing the `ViewLayerAOV`s */
+  /** List containing #ViewLayerAOV. */
   ListBase aovs;
   ViewLayerAOV *active_aov;
 
-  /* List containing the 'ViewLayerLightgroup`s */
+  /** List containing #ViewLayerLightgroup. */
   ListBase lightgroups;
   ViewLayerLightgroup *active_lightgroup;
 

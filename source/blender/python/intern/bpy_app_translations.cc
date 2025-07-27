@@ -32,8 +32,8 @@
 #ifdef WITH_INTERNATIONAL
 
 #  include "BLI_map.hh"
-#  include "BLI_string.h"
 #  include "BLI_string_ref.hh"
+#  include "BLI_string_utf8.h"
 
 using blender::StringRef;
 using blender::StringRefNull;
@@ -275,7 +275,7 @@ std::optional<StringRefNull> BPY_app_translations_py_pgettext(const StringRef ms
     /* This function may be called from C (i.e. outside of python interpreter 'context'). */
     PyGILState_STATE _py_state = PyGILState_Ensure();
 
-    STRNCPY(locale, tmp);
+    STRNCPY_UTF8(locale, tmp);
 
     /* Locale changed or cache does not exist, refresh the whole cache! */
     _build_translations_cache(_translations->py_messages, locale);

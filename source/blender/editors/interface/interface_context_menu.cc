@@ -16,7 +16,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -401,12 +401,12 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
         {
           const char *expr_imports[] = {"bpy", "bl_ui", nullptr};
           char expr[256];
-          SNPRINTF(expr,
-                   "bl_ui.space_toolsystem_common.item_from_id("
-                   "bpy.context, "
-                   "bpy.context.space_data.type, "
-                   "'%s').label",
-                   idname);
+          SNPRINTF_UTF8(expr,
+                        "bl_ui.space_toolsystem_common.item_from_id("
+                        "bpy.context, "
+                        "bpy.context.space_data.type, "
+                        "'%s').label",
+                        idname);
           char *expr_result = nullptr;
           if (BPY_run_string_as_string(C, expr_imports, expr, nullptr, &expr_result)) {
             drawstr = expr_result;
@@ -1341,7 +1341,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 
   if (has_panel_category) {
     char tmpstr[80];
-    SNPRINTF(tmpstr, "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift Left Mouse"));
+    SNPRINTF_UTF8(tmpstr, "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift Left Mouse"));
     layout->prop(&ptr, "use_pin", UI_ITEM_NONE, tmpstr, ICON_NONE);
 
     /* evil, force shortcut flag */

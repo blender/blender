@@ -16,7 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 
 #include "BKE_colortools.hh"
@@ -1208,7 +1208,7 @@ void ED_spacetype_image()
   ARegionType *art;
 
   st->spaceid = SPACE_IMAGE;
-  STRNCPY(st->name, "Image");
+  STRNCPY_UTF8(st->name, "Image");
 
   st->create = image_create;
   st->free = image_free;

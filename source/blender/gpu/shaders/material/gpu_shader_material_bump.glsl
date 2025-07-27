@@ -28,8 +28,8 @@ void node_bump(float strength,
   dist *= FrontFacing ? invert : -invert;
 
 #ifdef GPU_FRAGMENT_SHADER
-  float3 dPdx = gpu_dfdx(g_data.P);
-  float3 dPdy = gpu_dfdy(g_data.P);
+  float3 dPdx = gpu_dfdx(g_data.P) * derivative_scale_get();
+  float3 dPdy = gpu_dfdy(g_data.P) * derivative_scale_get();
 
   /* Get surface tangents from normal. */
   float3 Rx = cross(dPdy, N);

@@ -684,6 +684,13 @@ void CLG_logf(const CLG_LogType *lg,
   }
 }
 
+void CLG_log_raw(const CLG_LogType *lg, const char *message)
+{
+  /* Write raw text without any formatting. */
+  int bytes_written = write(lg->ctx->output, message, strlen(message));
+  (void)bytes_written;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

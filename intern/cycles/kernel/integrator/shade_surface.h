@@ -243,8 +243,12 @@ integrate_direct_light_shadow_init_common(KernelGlobals kg,
       state, path, volume_bounds_bounce);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, glossy_bounce) = INTEGRATOR_STATE(
       state, path, glossy_bounce);
-
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput;
+
+  if ((kernel_data.kernel_features & KERNEL_FEATURE_NODE_PORTAL)) {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, portal_bounce) = INTEGRATOR_STATE(
+        state, path, portal_bounce);
+  }
 
 #ifdef __MNEE__
   if (mnee_vertex_count > 0) {

@@ -11,7 +11,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_key_types.h"
 #include "ED_curves.hh"
@@ -1399,7 +1399,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
 MenuType node_group_operator_assets_menu()
 {
   MenuType type{};
-  STRNCPY(type.idname, "GEO_MT_node_operator_catalog_assets");
+  STRNCPY_UTF8(type.idname, "GEO_MT_node_operator_catalog_assets");
   type.poll = asset_menu_poll;
   type.draw = catalog_assets_draw;
   type.listener = asset::list::asset_reading_region_listen_fn;
@@ -1487,8 +1487,8 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
 MenuType node_group_operator_assets_menu_unassigned()
 {
   MenuType type{};
-  STRNCPY(type.label, "Unassigned Node Tools");
-  STRNCPY(type.idname, "GEO_MT_node_operator_unassigned");
+  STRNCPY_UTF8(type.label, "Unassigned Node Tools");
+  STRNCPY_UTF8(type.idname, "GEO_MT_node_operator_unassigned");
   type.poll = asset_menu_poll;
   type.draw = catalog_assets_draw_unassigned;
   type.listener = asset::list::asset_reading_region_listen_fn;

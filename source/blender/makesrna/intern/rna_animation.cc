@@ -740,7 +740,7 @@ static void rna_KeyingSet_name_set(PointerRNA *ptr, const char *value)
         for (bActionGroup *agrp : animrig::legacy::channel_groups_for_assigned_slot(adt)) {
           if (STREQ(ks->name, agrp->name)) {
             /* there should only be one of these in the action, so can stop... */
-            STRNCPY(agrp->name, value);
+            STRNCPY_UTF8(agrp->name, value);
             break;
           }
         }

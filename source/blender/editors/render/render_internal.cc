@@ -13,7 +13,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_time.h"
 #include "BLI_timecode.h"
@@ -431,7 +431,7 @@ static void make_renderinfo_string(const RenderStats *rs,
   }
 
   /* frame number */
-  SNPRINTF(info_buffers.frame, "%d ", scene->r.cfra);
+  SNPRINTF_UTF8(info_buffers.frame, "%d ", scene->r.cfra);
   ret_array[i++] = RPT_("Frame:");
   ret_array[i++] = info_buffers.frame;
 
@@ -468,13 +468,14 @@ static void make_renderinfo_string(const RenderStats *rs,
     }
     else {
       if (rs->mem_peak == 0.0f) {
-        SNPRINTF(info_buffers.statistics,
-                 RPT_("Mem:%dM, Peak %dM"),
-                 megs_used_memory,
-                 megs_peak_memory);
+        SNPRINTF_UTF8(info_buffers.statistics,
+                      RPT_("Mem:%dM, Peak %dM"),
+                      megs_used_memory,
+                      megs_peak_memory);
       }
       else {
-        SNPRINTF(info_buffers.statistics, RPT_("Mem:%dM, Peak: %dM"), rs->mem_used, rs->mem_peak);
+        SNPRINTF_UTF8(
+            info_buffers.statistics, RPT_("Mem:%dM, Peak: %dM"), rs->mem_used, rs->mem_peak);
       }
       info_statistics = info_buffers.statistics;
     }

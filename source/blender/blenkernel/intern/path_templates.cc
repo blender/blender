@@ -280,9 +280,9 @@ void BKE_add_template_variables_general(VariableMap &variables, const ID *path_o
     variables.add_filename_only(
         "blend_name", g_blend_file_path, blender::StringRef(DATA_("Unsaved")));
 
-    /* Note: fallback to "./" for unsaved files, which if used at the start of a
+    /* Note: fallback to `./` for unsaved files, which if used at the start of a
      * path is equivalent to the current working directory. This is consistent
-     * with how "//" works. */
+     * with how `//` works. */
     variables.add_path_up_to_file("blend_dir", g_blend_file_path, blender::StringRef("./"));
   }
 
@@ -292,9 +292,9 @@ void BKE_add_template_variables_general(VariableMap &variables, const ID *path_o
     variables.add_filename_only(
         "blend_name_lib", lib_blend_file_path, blender::StringRef(DATA_("Unsaved")));
 
-    /* Note: fallback to "./" for unsaved files, which if used at the start of a
+    /* Note: fallback to `./` for unsaved files, which if used at the start of a
      * path is equivalent to the current working directory. This is consistent
-     * with how "//" works. */
+     * with how `//` works. */
     variables.add_path_up_to_file("blend_dir_lib", lib_blend_file_path, blender::StringRef("./"));
   }
 }
@@ -819,7 +819,7 @@ bool BKE_path_contains_template_syntax(blender::StringRef path)
  * case writing is skipped, and this function just acts to validate the
  * templating in the path.
  *
- * \param out_path_max_length: The maximum length that template expansion is
+ * \param out_path_maxncpy: The maximum length that template expansion is
  * allowed to make the template-expanded path (in bytes), including the null
  * terminator. In general, this should be the size of the underlying allocation
  * of `out_path`.
@@ -832,12 +832,12 @@ bool BKE_path_contains_template_syntax(blender::StringRef path)
  * it should be treated as bogus data in that case.
  */
 static blender::Vector<Error> eval_template(char *out_path,
-                                            const int out_path_max_length,
+                                            const int out_path_maxncpy,
                                             blender::StringRef in_path,
                                             const VariableMap &template_variables)
 {
   if (out_path) {
-    in_path.copy_utf8_truncated(out_path, out_path_max_length);
+    in_path.copy_utf8_truncated(out_path, out_path_maxncpy);
   }
 
   const blender::Vector<Token> tokens = parse_template(in_path);
@@ -933,12 +933,12 @@ static blender::Vector<Error> eval_template(char *out_path,
     /* Perform the actual substitution with the expanded value. */
     if (out_path) {
       /* We're off the end of the available space. */
-      if (token.byte_range.start() + length_diff >= out_path_max_length) {
+      if (token.byte_range.start() + length_diff >= out_path_maxncpy) {
         break;
       }
 
       BLI_string_replace_range(out_path,
-                               out_path_max_length,
+                               out_path_maxncpy,
                                token.byte_range.start() + length_diff,
                                token.byte_range.one_after_last() + length_diff,
                                replacement_string);
@@ -958,19 +958,19 @@ blender::Vector<Error> BKE_path_validate_template(
 }
 
 blender::Vector<Error> BKE_path_apply_template(char *path,
-                                               int path_max_length,
+                                               int path_maxncpy,
                                                const VariableMap &template_variables)
 {
   BLI_assert(path != nullptr);
 
-  blender::Vector<char> path_buffer(path_max_length);
+  blender::Vector<char> path_buffer(path_maxncpy);
 
   const blender::Vector<Error> errors = eval_template(
       path_buffer.data(), path_buffer.size(), path, template_variables);
 
   if (errors.is_empty()) {
     /* No errors, so copy the modified path back to the original. */
-    BLI_strncpy(path, path_buffer.data(), path_max_length);
+    BLI_strncpy(path, path_buffer.data(), path_maxncpy);
   }
   return errors;
 }

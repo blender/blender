@@ -28,7 +28,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -275,7 +275,7 @@ static UnwrapOptions unwrap_options_get(wmOperator *op, Object *ob, const ToolSe
     options.use_subsurf = (ts->uvcalc_flag & UVCALC_USESUBSURF) != 0;
 
     options.use_weights = ts->uvcalc_flag & UVCALC_UNWRAP_USE_WEIGHTS;
-    STRNCPY(options.weight_group, ts->uvcalc_weight_group);
+    STRNCPY_UTF8(options.weight_group, ts->uvcalc_weight_group);
     options.slim.weight_influence = ts->uvcalc_weight_factor;
 
     options.slim.iterations = ts->uvcalc_iterations;
@@ -1110,7 +1110,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
     blender::geometry::uv_parametrizer_flush(ms->handle);
 
     if (area) {
-      SNPRINTF(str, IFACE_("Minimize Stretch. Blend %.2f"), ms->blend);
+      SNPRINTF_UTF8(str, IFACE_("Minimize Stretch. Blend %.2f"), ms->blend);
       ED_area_status_text(area, str);
       ED_workspace_status_text(C, IFACE_("Press + and -, or scroll wheel to set blending"));
     }

@@ -5,7 +5,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_scene_types.h"
@@ -165,7 +165,7 @@ static wmOperatorStatus brush_asset_save_as_exec(bContext *C, wmOperator *op)
     RNA_property_string_get(op->ptr, name_prop, name);
   }
   if (name[0] == '\0') {
-    STRNCPY(name, brush->id.name + 2);
+    STRNCPY_UTF8(name, brush->id.name + 2);
   }
 
   const eAssetLibraryType enum_value = (eAssetLibraryType)RNA_enum_get(op->ptr,

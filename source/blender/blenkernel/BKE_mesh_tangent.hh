@@ -14,6 +14,8 @@
 struct ReportList;
 struct Mesh;
 
+namespace blender::bke::mesh {
+
 /**
  * Compute simplified tangent space normals, i.e.
  * tangent vector + sign of bi-tangent one, which combined with
@@ -21,28 +23,13 @@ struct Mesh;
  *
  * \note The mesh should be made of only triangles and quads!
  */
-void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
-                                          int numVerts,
-                                          const int *corner_verts,
-                                          float (*r_looptangent)[4],
-                                          const float (*corner_normals)[3],
-                                          const float (*loop_uvs)[2],
-                                          int numLoops,
-                                          blender::OffsetIndices<int> faces,
-                                          ReportList *reports);
-
-/**
- * Wrapper around BKE_mesh_calc_loop_tangent_single_ex, which takes care of most boilerplate code.
- * \note
- * - There must be a valid loop's CD_NORMALS available.
- * - The mesh should be made of only triangles and quads!
- */
-void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
-                                       const char *uvmap,
-                                       float (*r_looptangents)[4],
-                                       ReportList *reports);
-
-namespace blender::bke::mesh {
+void calc_uv_tangent_tris_quads(Span<float3> vert_positions,
+                                OffsetIndices<int> faces,
+                                Span<int> corner_verts,
+                                Span<float3> corner_normals,
+                                Span<float2> uv_map,
+                                MutableSpan<float4> results,
+                                ReportList *reports);
 
 /**
  * See: #BKE_editmesh_uv_tangents_calc (matching logic).

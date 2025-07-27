@@ -28,7 +28,7 @@
 
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_timecode.h"
 
 #include "RNA_access.hh"
@@ -71,7 +71,7 @@ static void get_current_time_str(
     BLI_timecode_string_from_time(r_str, str_maxncpy, -1, FRA2TIME(frame), FPS, U.timecode_style);
   }
   else {
-    BLI_snprintf(r_str, str_maxncpy, "%d", frame);
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%d", frame);
   }
 }
 
@@ -247,7 +247,7 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
                                                0,
                                                style);
   layout.scale_y_set((UI_UNIT_Y - padding_y) / UI_UNIT_Y);
-  UI_block_layout_set_current(block, &layout);
+  blender::ui::block_layout_set_current(block, &layout);
   UI_block_align_begin(block);
   layout.prop(&ptr, "filter_text", UI_ITEM_NONE, "", ICON_NONE);
   layout.prop(&ptr, "use_filter_invert", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);

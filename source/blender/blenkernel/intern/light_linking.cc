@@ -15,7 +15,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_collection.hh"
 #include "BKE_layer.hh"
@@ -67,8 +67,8 @@ static std::string get_default_collection_name(const Object *object,
       break;
   }
 
-  char name[MAX_ID_NAME];
-  SNPRINTF(name, format, object->id.name + 2);
+  char name[MAX_ID_NAME - 2];
+  SNPRINTF_UTF8(name, format, object->id.name + 2);
 
   return name;
 }

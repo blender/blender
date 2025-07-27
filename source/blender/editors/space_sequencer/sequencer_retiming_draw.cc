@@ -6,7 +6,7 @@
  * \ingroup spseq
  */
 
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_sequence_types.h"
 
@@ -487,14 +487,14 @@ static size_t label_str_get(const Strip *strip,
   if (seq::retiming_key_is_transition_start(key)) {
     const float prev_speed = seq::retiming_key_speed_get(strip, key);
     const float next_speed = seq::retiming_key_speed_get(strip, next_key + 1);
-    return BLI_snprintf_rlen(r_label_str,
-                             label_str_maxncpy,
-                             "%d%% - %d%%",
-                             round_fl_to_int(prev_speed * 100.0f),
-                             round_fl_to_int(next_speed * 100.0f));
+    return BLI_snprintf_utf8_rlen(r_label_str,
+                                  label_str_maxncpy,
+                                  "%d%% - %d%%",
+                                  round_fl_to_int(prev_speed * 100.0f),
+                                  round_fl_to_int(next_speed * 100.0f));
   }
   const float speed = seq::retiming_key_speed_get(strip, next_key);
-  return BLI_snprintf_rlen(
+  return BLI_snprintf_utf8_rlen(
       r_label_str, label_str_maxncpy, "%d%%", round_fl_to_int(speed * 100.0f));
 }
 

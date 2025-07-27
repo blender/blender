@@ -58,6 +58,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_math_vector.h"
@@ -1179,7 +1180,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
       const char *colorspace = IMB_colormanagement_role_colorspace_name_get(
           COLOR_ROLE_DEFAULT_FLOAT);
 
-      STRNCPY(ima->colorspace_settings.name, colorspace);
+      STRNCPY_UTF8(ima->colorspace_settings.name, colorspace);
     }
 
     if (ibuf != nullptr) {
@@ -1203,7 +1204,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
       const char *colorspace = IMB_colormanagement_role_colorspace_name_get(
           COLOR_ROLE_DEFAULT_BYTE);
 
-      STRNCPY(ima->colorspace_settings.name, colorspace);
+      STRNCPY_UTF8(ima->colorspace_settings.name, colorspace);
     }
 
     if (ibuf != nullptr) {
@@ -1279,8 +1280,8 @@ Image *BKE_image_add_generated(Main *bmain,
   copy_v4_v4(tile->gen_color, color);
 
   if (is_data) {
-    STRNCPY(ima->colorspace_settings.name,
-            IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+    STRNCPY_UTF8(ima->colorspace_settings.name,
+                 IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
   }
 
   for (view_id = 0; view_id < 2; view_id++) {
@@ -1325,7 +1326,7 @@ static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
   }
 
   if (colorspace_name) {
-    STRNCPY(image->colorspace_settings.name, colorspace_name);
+    STRNCPY_UTF8(image->colorspace_settings.name, colorspace_name);
   }
 }
 

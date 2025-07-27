@@ -23,7 +23,7 @@
  */
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_material_types.h"
@@ -198,7 +198,7 @@ static Scene *preview_prepare_scene(const Main *bmain,
   /* This flag tells render to not execute depsgraph or F-Curves etc. */
   scene_preview->r.scemode |= R_BUTS_PREVIEW;
   scene_preview->r.mode |= R_PERSISTENT_DATA;
-  STRNCPY(scene_preview->r.engine, scene_orig->r.engine);
+  STRNCPY_UTF8(scene_preview->r.engine, scene_orig->r.engine);
 
   scene_preview->r.color_mgt_flag = scene_orig->r.color_mgt_flag;
   BKE_color_managed_display_settings_copy(&scene_preview->display_settings,
@@ -461,8 +461,8 @@ static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
     bNodeSocket *socket_preview = nodesocket.second;
 
     bNode *aov_node = bke::node_add_static_node(nullptr, *main_nt, SH_NODE_OUTPUT_AOV);
-    STRNCPY(reinterpret_cast<NodeShaderOutputAOV *>(aov_node->storage)->name,
-            nodesocket.first->name);
+    STRNCPY_UTF8(reinterpret_cast<NodeShaderOutputAOV *>(aov_node->storage)->name,
+                 nodesocket.first->name);
     if (socket_preview == nullptr) {
       continue;
     }
@@ -605,11 +605,11 @@ static void preview_render(ShaderNodesPreviewJob &job_data)
   for (NodeSocketPair nodesocket_iter : job_data.shader_nodes) {
     ViewLayer *vl = BKE_view_layer_add(
         scene, nodesocket_iter.first->name, AOV_layer, VIEWLAYER_ADD_COPY);
-    STRNCPY(vl->name, nodesocket_iter.first->name);
+    STRNCPY_UTF8(vl->name, nodesocket_iter.first->name);
   }
   for (NodeSocketPair nodesocket_iter : job_data.AOV_nodes) {
     ViewLayerAOV *aov = BKE_view_layer_add_aov(AOV_layer);
-    STRNCPY(aov->name, nodesocket_iter.first->name);
+    STRNCPY_UTF8(aov->name, nodesocket_iter.first->name);
   }
   scene->r.xsch = job_data.tree_previews->preview_size;
   scene->r.ysch = job_data.tree_previews->preview_size;
@@ -617,7 +617,7 @@ static void preview_render(ShaderNodesPreviewJob &job_data)
 
   if (job_data.tree_previews->previews_render == nullptr) {
     char name[32];
-    SNPRINTF(name, "Preview %p", &job_data.tree_previews);
+    SNPRINTF_UTF8(name, "Preview %p", &job_data.tree_previews);
     job_data.tree_previews->previews_render = RE_NewRender(name);
   }
   Render *re = job_data.tree_previews->previews_render;

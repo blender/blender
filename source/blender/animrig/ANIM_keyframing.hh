@@ -16,7 +16,8 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
+
+#include "BKE_report.hh"
 
 #include "RNA_path.hh"
 #include "RNA_types.hh"

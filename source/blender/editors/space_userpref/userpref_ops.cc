@@ -338,7 +338,7 @@ static wmOperatorStatus preferences_extension_repo_add_exec(bContext *C, wmOpera
    * Otherwise URL's have their '.' removed, making for quite unreadable module names. */
   char module_buf[FILE_MAX];
   {
-    STRNCPY(module_buf, module);
+    STRNCPY_UTF8(module_buf, module);
     int i;
     for (i = 0; module_buf[i]; i++) {
       if (ELEM(module_buf[i], '.', '-', '/', '\\')) {
@@ -363,7 +363,7 @@ static wmOperatorStatus preferences_extension_repo_add_exec(bContext *C, wmOpera
   }
 
   if (repo_type == bUserExtensionRepoAddType::Remote) {
-    STRNCPY(new_repo->remote_url, remote_url);
+    STRNCPY_UTF8(new_repo->remote_url, remote_url);
     new_repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL;
 
     if (use_access_token) {

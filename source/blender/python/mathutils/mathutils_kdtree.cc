@@ -402,6 +402,9 @@ PyDoc_STRVAR(
     py_KDtree_doc,
     "KdTree(size) -> new kd-tree initialized to hold ``size`` items.\n"
     "\n"
+    "   :arg size: Number of items.\n"
+    "   :type size: int\n"
+    "\n"
     ".. note::\n"
     "\n"
     "   :class:`KDTree.balance` must have been called before using any of the ``find`` "

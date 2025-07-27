@@ -12,7 +12,7 @@
  */
 
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLF_api.hh"
 
@@ -227,7 +227,7 @@ void icon_draw_rect_input(const float x,
   }
   else if ((icon_id >= ICON_EVENT_F1) && (icon_id <= ICON_EVENT_F24)) {
     char str[4];
-    SNPRINTF(str, "F%d", 1 + (icon_id - ICON_EVENT_F1));
+    SNPRINTF_UTF8(str, "F%d", 1 + (icon_id - ICON_EVENT_F1));
     icon_draw_rect_input_text(&rect,
                               str,
                               aspect,
@@ -343,7 +343,7 @@ void icon_draw_rect_input(const float x,
   }
   else if ((icon_id >= ICON_EVENT_PAD0) && (icon_id <= ICON_EVENT_PAD9)) {
     char str[5];
-    SNPRINTF(
+    SNPRINTF_UTF8(
         str, "%s%i", BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH, icon_id - ICON_EVENT_PAD0);
     icon_draw_rect_input_text(&rect, str, aspect, alpha, inverted, ICON_KEY_EMPTY2);
   }
@@ -491,18 +491,18 @@ void icon_draw_rect_input(const float x,
   else if (icon_id >= ICON_EVENT_NDOF_BUTTON_V1 && icon_id <= ICON_EVENT_NDOF_BUTTON_MINUS) {
     if (/* `(icon_id >= ICON_EVENT_NDOF_BUTTON_V1) &&` */ (icon_id <= ICON_EVENT_NDOF_BUTTON_V3)) {
       char str[7];
-      SNPRINTF(str, "v%i", (icon_id + 1) - ICON_EVENT_NDOF_BUTTON_V1);
+      SNPRINTF_UTF8(str, "v%i", (icon_id + 1) - ICON_EVENT_NDOF_BUTTON_V1);
       icon_draw_rect_input_text(&rect, str, aspect, alpha, inverted, ICON_KEY_RING);
     }
     if ((icon_id >= ICON_EVENT_NDOF_BUTTON_SAVE_V1) && (icon_id <= ICON_EVENT_NDOF_BUTTON_SAVE_V3))
     {
       char str[7];
-      SNPRINTF(str, "s%i", (icon_id + 1) - ICON_EVENT_NDOF_BUTTON_SAVE_V1);
+      SNPRINTF_UTF8(str, "s%i", (icon_id + 1) - ICON_EVENT_NDOF_BUTTON_SAVE_V1);
       icon_draw_rect_input_text(&rect, str, aspect, alpha, inverted, ICON_KEY_RING);
     }
     else if ((icon_id >= ICON_EVENT_NDOF_BUTTON_1) && (icon_id <= ICON_EVENT_NDOF_BUTTON_12)) {
       char str[7];
-      SNPRINTF(str, "%i", (1 + icon_id) - ICON_EVENT_NDOF_BUTTON_1);
+      SNPRINTF_UTF8(str, "%i", (1 + icon_id) - ICON_EVENT_NDOF_BUTTON_1);
       icon_draw_rect_input_text(&rect, str, aspect, alpha, inverted, ICON_KEY_RING);
     }
     else if (icon_id == ICON_EVENT_NDOF_BUTTON_MENU) {

@@ -409,6 +409,19 @@ extern AUD_API AUD_Sound* AUD_Sound_mutable(AUD_Sound* sound);
 	extern AUD_API AUD_Sound* AUD_Sound_equalize(AUD_Sound* sound, float *definition, int size, float maxFreqEq, int sizeConversion);
 #endif
 
+#ifdef WITH_RUBBERBAND
+    /**
+     * Time-stretches and pitch scales a sound.
+     * \param sound The handle of the sound.
+     * \param timeRatio The factor by which to stretch or compress time.
+     * \param pitchScale The factor by which to adjust the pitch.
+     * \param quality The processing quality level of the stretcher.
+     * \param preserveFormant Whether to preserve the vocal formants for the stretcher.
+     * \return A handle of the time-stretched, pitch scaled sound.
+     */
+    extern AUD_API AUD_Sound* AUD_Sound_timeStretchPitchScale(AUD_Sound* sound, double timeRatio, double pitchScale, AUD_StretcherQuality quality, bool preserveFormant);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

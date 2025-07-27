@@ -8,6 +8,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_armature.hh"
 #include "BKE_fcurve.hh"
@@ -522,7 +523,7 @@ TEST_F(keyframes_paste, pastebuf_match_path_property)
     bArmature *armature = BKE_armature_add(bmain, "Armature");
     for (const auto &bone_name : {"hand.L", "hand.R", "middle"}) {
       Bone *bone = MEM_callocN<Bone>(__func__);
-      STRNCPY(bone->name, bone_name);
+      STRNCPY_UTF8(bone->name, bone_name);
       BLI_addtail(&armature->bonebase, bone);
     }
 

@@ -103,7 +103,8 @@ class NODE_MT_category_shader_input(Menu):
                 "Diffuse Depth",
                 "Glossy Depth",
                 "Transparent Depth",
-                "Transmission Depth"
+                "Transmission Depth",
+                "Portal Depth"
             ],
         )
         node_add_menu.add_node_type_with_outputs(

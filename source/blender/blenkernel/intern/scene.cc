@@ -207,7 +207,7 @@ static void scene_init_data(ID *id)
     pset->brush[PE_BRUSH_CUT].strength = 1.0f;
   }
 
-  STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+  STRNCPY_UTF8(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
 
   STRNCPY(scene->r.pic, U.renderdir);
 
@@ -231,7 +231,7 @@ static void scene_init_data(ID *id)
   BKE_color_managed_display_settings_init(&scene->display_settings);
   BKE_color_managed_view_settings_init_render(
       &scene->view_settings, &scene->display_settings, "AgX");
-  STRNCPY(scene->sequencer_colorspace_settings.name, colorspace_name);
+  STRNCPY_UTF8(scene->sequencer_colorspace_settings.name, colorspace_name);
 
   BKE_image_format_init(&scene->r.im_format, true);
   BKE_image_format_init(&scene->r.bake.im_format, true);
@@ -516,9 +516,11 @@ static void scene_foreach_toolsettings_id_pointer_process(
   }
 }
 
-/* Special handling is needed here, as `scene_foreach_toolsettings` (and its dependency
- * `scene_foreach_paint`) are also used by `scene_undo_preserve`, where `LibraryForeachIDData
- * *data` is nullptr. */
+/**
+ * Special handling is needed here, as `scene_foreach_toolsettings` (and its dependency
+ * `scene_foreach_paint`) are also used by `scene_undo_preserve`,
+ * where `LibraryForeachIDData *data` is nullptr.
+ */
 #define BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER_P( \
     _data, _id_p, _do_undo_restore, _action, _reader, _id_old_p, _cb_flag) \
   { \
@@ -1368,34 +1370,24 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     /* link metastack, slight abuse of structs here,
      * have to restore pointer to internal part in struct */
     {
-      void *seqbase_poin;
-      void *channels_poin;
-      /* This whole thing with seqbasep offsets is really not good
-       * and prevents changes to the Sequence struct. A more correct approach
-       * would be to calculate offset using sDNA from the file (NOT from the
-       * current Blender). Even better would be having some sort of dedicated
-       * map of seqbase pointers to avoid this offset magic. */
-      constexpr intptr_t seqbase_offset = offsetof(Strip, seqbase);
-      constexpr intptr_t channels_offset = offsetof(Strip, channels);
-#if ARCH_CPU_64_BITS
-      static_assert(seqbase_offset == 264, "Sequence seqbase member offset cannot be changed");
-      static_assert(channels_offset == 280, "Sequence channels member offset cannot be changed");
-#else
-      static_assert(seqbase_offset == 204, "Sequence seqbase member offset cannot be changed");
-      static_assert(channels_offset == 212, "Sequence channels member offset cannot be changed");
-#endif
+      const int seqbase_offset_file = BLO_read_struct_member_offset(
+          reader, "Strip", "ListBase", "seqbase");
+      const int channels_offset_file = BLO_read_struct_member_offset(
+          reader, "Strip", "ListBase", "channels");
+      const size_t seqbase_offset_mem = offsetof(Strip, seqbase);
+      const size_t channels_offset_mem = offsetof(Strip, channels);
 
       /* seqbase root pointer */
-      if (ed->seqbasep == old_seqbasep) {
+      if (ed->seqbasep == old_seqbasep || seqbase_offset_file < 0) {
         ed->seqbasep = &ed->seqbase;
       }
       else {
-        seqbase_poin = POINTER_OFFSET(ed->seqbasep, -seqbase_offset);
+        void *seqbase_poin = POINTER_OFFSET(ed->seqbasep, -seqbase_offset_file);
 
         seqbase_poin = BLO_read_get_new_data_address_no_us(reader, seqbase_poin, sizeof(Strip));
 
         if (seqbase_poin) {
-          ed->seqbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset);
+          ed->seqbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset_mem);
         }
         else {
           ed->seqbasep = &ed->seqbase;
@@ -1403,16 +1395,18 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       }
 
       /* Active channels root pointer. */
-      if (ELEM(ed->displayed_channels, old_displayed_channels, nullptr)) {
+      if (ELEM(ed->displayed_channels, old_displayed_channels, nullptr) ||
+          channels_offset_file < 0)
+      {
         ed->displayed_channels = &ed->channels;
       }
       else {
-        channels_poin = POINTER_OFFSET(ed->displayed_channels, -channels_offset);
+        void *channels_poin = POINTER_OFFSET(ed->displayed_channels, -channels_offset_file);
         channels_poin = BLO_read_get_new_data_address_no_us(
             reader, channels_poin, sizeof(SeqTimelineChannel));
 
         if (channels_poin) {
-          ed->displayed_channels = (ListBase *)POINTER_OFFSET(channels_poin, channels_offset);
+          ed->displayed_channels = (ListBase *)POINTER_OFFSET(channels_poin, channels_offset_mem);
         }
         else {
           ed->displayed_channels = &ed->channels;
@@ -1425,30 +1419,30 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
         BLO_read_struct(reader, Strip, &ms->parent_strip);
 
-        if (ms->oldbasep == old_seqbasep) {
+        if (ms->oldbasep == old_seqbasep || seqbase_offset_file < 0) {
           ms->oldbasep = &ed->seqbase;
         }
         else {
-          seqbase_poin = POINTER_OFFSET(ms->oldbasep, -seqbase_offset);
+          void *seqbase_poin = POINTER_OFFSET(ms->oldbasep, -seqbase_offset_file);
           seqbase_poin = BLO_read_get_new_data_address_no_us(reader, seqbase_poin, sizeof(Strip));
           if (seqbase_poin) {
-            ms->oldbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset);
+            ms->oldbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset_mem);
           }
           else {
             ms->oldbasep = &ed->seqbase;
           }
         }
 
-        if (ELEM(ms->old_channels, old_displayed_channels, nullptr)) {
+        if (ELEM(ms->old_channels, old_displayed_channels, nullptr) || channels_offset_file < 0) {
           ms->old_channels = &ed->channels;
         }
         else {
-          channels_poin = POINTER_OFFSET(ms->old_channels, -channels_offset);
+          void *channels_poin = POINTER_OFFSET(ms->old_channels, -channels_offset_file);
           channels_poin = BLO_read_get_new_data_address_no_us(
               reader, channels_poin, sizeof(SeqTimelineChannel));
 
           if (channels_poin) {
-            ms->old_channels = (ListBase *)POINTER_OFFSET(channels_poin, channels_offset);
+            ms->old_channels = (ListBase *)POINTER_OFFSET(channels_poin, channels_offset_mem);
           }
           else {
             ms->old_channels = &ed->channels;
@@ -2907,12 +2901,12 @@ void BKE_scene_disable_color_management(Scene *scene)
 
   none_display_name = IMB_colormanagement_display_get_none_name();
 
-  STRNCPY(display_settings->display_device, none_display_name);
+  STRNCPY_UTF8(display_settings->display_device, none_display_name);
 
   view = IMB_colormanagement_view_get_raw_or_default_name(display_settings->display_device);
 
   if (view) {
-    STRNCPY(view_settings->view_transform, view);
+    STRNCPY_UTF8(view_settings->view_transform, view);
   }
 }
 
@@ -3427,7 +3421,7 @@ static Depsgraph **scene_ensure_depsgraph_p(Main *bmain, Scene *scene, ViewLayer
    * we will ever enable debug messages for this depsgraph.
    */
   char name[1024];
-  SNPRINTF(name, "%s :: %s", scene->id.name, view_layer->name);
+  SNPRINTF_UTF8(name, "%s :: %s", scene->id.name, view_layer->name);
   DEG_debug_name_set(*depsgraph_ptr, name);
 
   /* These viewport depsgraphs communicate changes to the editors. */

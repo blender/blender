@@ -22,6 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Glossy Depth");
   b.add_output<decl::Float>("Transparent Depth");
   b.add_output<decl::Float>("Transmission Depth");
+  b.add_output<decl::Float>("Portal Depth");
 }
 
 static int node_shader_gpu_light_path(GPUMaterial *mat,

@@ -13,7 +13,7 @@
 #include "BKE_screen.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -286,9 +286,9 @@ void popover_panel_register(ARegionType *region_type)
   }
 
   PanelType *pt = MEM_callocN<PanelType>(__func__);
-  STRNCPY(pt->idname, "ASSETSHELF_PT_popover_panel");
-  STRNCPY(pt->label, N_("Asset Shelf Panel"));
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "ASSETSHELF_PT_popover_panel");
+  STRNCPY_UTF8(pt->label, N_("Asset Shelf Panel"));
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->description = N_("Display an asset shelf in a popover panel");
   pt->draw = popover_panel_draw;
   pt->poll = popover_panel_poll;

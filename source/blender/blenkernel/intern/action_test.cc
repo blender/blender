@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_action.hh"
 
@@ -55,10 +55,10 @@ TEST(action_groups, ReconstructGroupsWithReordering)
   bActionGroup groupB = {nullptr};
   bActionGroup groupC = {nullptr};
   bActionGroup groupD = {nullptr};
-  STRNCPY(groupA.name, "groupA");
-  STRNCPY(groupB.name, "groupB");
-  STRNCPY(groupC.name, "groupC");
-  STRNCPY(groupD.name, "groupD");
+  STRNCPY_UTF8(groupA.name, "groupA");
+  STRNCPY_UTF8(groupB.name, "groupB");
+  STRNCPY_UTF8(groupC.name, "groupC");
+  STRNCPY_UTF8(groupD.name, "groupD");
 
   BLI_addtail(&action.groups, &groupA);
   BLI_addtail(&action.groups, &groupB);

@@ -75,7 +75,6 @@ void SubdAttributeInterpolation::setup()
 
 bool SubdAttributeInterpolation::support_interp_attribute(const Attribute &attr) const
 {
-  // TODO: Recompute UV tangent
   switch (attr.std) {
     /* Smooth normals are computed from derivatives, for linear interpolate. */
     case ATTR_STD_VERTEX_NORMAL:

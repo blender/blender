@@ -611,6 +611,22 @@ PYTHON_SUBPACKAGES = (
                                   DISTRO_ID_ARCH: ...,
                                   },
             ),
+    Package(name="fastjsonschema",
+            version="2.21.1", version_short="2.21", version_min="2.21", version_mex="3.0",
+            distro_package_names={DISTRO_ID_DEBIAN: "python-fastjsonschema",
+                                  DISTRO_ID_FEDORA: "python-fastjsonschema",
+                                  DISTRO_ID_SUSE: suse_pypackages_name_gen("fastjsonschema"),
+                                  DISTRO_ID_ARCH: "python-fastjsonschema",
+                                  },
+            ),
+    Package(name="cattrs",
+            version="25.1.1", version_short="25.1", version_min="25.1", version_mex="26.0",
+            distro_package_names={DISTRO_ID_DEBIAN: "python-cattrs",
+                                  DISTRO_ID_FEDORA: "python-cattrs",
+                                  DISTRO_ID_SUSE: suse_pypackages_name_gen("cattrs"),
+                                  DISTRO_ID_ARCH: "python-cattrs",
+                                  },
+            ),
 )
 
 

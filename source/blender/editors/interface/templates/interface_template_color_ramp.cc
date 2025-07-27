@@ -82,7 +82,7 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                                0,
                                                UI_MENU_PADDING,
                                                style);
-  UI_block_layout_set_current(block, &layout);
+  blender::ui::block_layout_set_current(block, &layout);
   {
     layout.context_ptr_set("color_ramp", &coba_ptr);
   }

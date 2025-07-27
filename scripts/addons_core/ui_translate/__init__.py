@@ -4,7 +4,9 @@
 
 bl_info = {
     "name": "Manage UI translations",
-    "author": "Bastien Montagne",
+    # This is now displayed as the maintainer, so show the foundation.
+    # "author": "Bastien Montagne", # Original Author
+    "author": "Blender Foundation",
     "version": (2, 1, 0),
     "blender": (4, 2, 0),
     "location": "Render properties, I18n Update Translation panel",

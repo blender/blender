@@ -18,7 +18,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
@@ -808,7 +808,7 @@ void drw_curves_get_attribute_sampler_name(const StringRef layer_name, char r_sa
   char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
   GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
   /* Attributes use auto-name. */
-  BLI_snprintf(r_sampler_name, 32, "a%s", attr_safe_name);
+  BLI_snprintf_utf8(r_sampler_name, 32, "a%s", attr_safe_name);
 }
 
 bool curves_ensure_procedural_data(Curves *curves_id,

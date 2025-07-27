@@ -12,7 +12,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
@@ -944,7 +944,7 @@ void ED_spacetype_file()
   ARegionType *art;
 
   st->spaceid = SPACE_FILE;
-  STRNCPY(st->name, "File");
+  STRNCPY_UTF8(st->name, "File");
 
   st->create = file_create;
   st->free = file_free;

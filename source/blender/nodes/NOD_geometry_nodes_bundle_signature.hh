@@ -6,13 +6,11 @@
 
 #include "BKE_node.hh"
 
-#include "NOD_socket_interface_key.hh"
-
 namespace blender::nodes {
 
 struct BundleSignature {
   struct Item {
-    SocketInterfaceKey key;
+    std::string key;
     const bke::bNodeSocketType *type = nullptr;
   };
 

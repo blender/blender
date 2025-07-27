@@ -9,7 +9,7 @@
 
 #include "BLI_color.hh"
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 
 #include "DNA_node_types.h"
@@ -309,7 +309,7 @@ static void node_buts_image_user(uiLayout *layout,
 
     char numstr[32];
     const int framenr = BKE_image_user_frame_get(iuser, scene->r.cfra, nullptr);
-    SNPRINTF(numstr, IFACE_("Frame: %d"), framenr);
+    SNPRINTF_UTF8(numstr, IFACE_("Frame: %d"), framenr);
     layout->label(numstr, ICON_NONE);
   }
 

@@ -25,7 +25,11 @@ namespace blender::nodes::node_shader_vector_rotate_cc {
 static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+  b.add_default_layout();
   b.add_input<decl::Vector>("Vector").min(0.0f).max(1.0f).hide_value();
+  b.add_output<decl::Vector>("Vector").align_with_previous();
   b.add_input<decl::Vector>("Center").description("Point to rotate around");
   b.add_input<decl::Vector>("Axis")
       .min(-1.0f)
@@ -41,7 +45,6 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
       .make_available([](bNode &node) { node.custom1 = NODE_VECTOR_ROTATE_TYPE_EULER_XYZ; })
       .description(
           "The amount of rotation on each axis, around the X, Y, then Z axes in that order");
-  b.add_output<decl::Vector>("Vector");
 }
 
 static void node_shader_buts_vector_rotate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

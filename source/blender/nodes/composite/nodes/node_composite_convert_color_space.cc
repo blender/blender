@@ -6,7 +6,7 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
@@ -40,8 +40,8 @@ static void node_composit_init_convert_colorspace(bNodeTree * /*ntree*/, bNode *
   const char *first_colorspace = IMB_colormanagement_role_colorspace_name_get(
       COLOR_ROLE_SCENE_LINEAR);
   if (first_colorspace && first_colorspace[0]) {
-    STRNCPY(ncs->from_color_space, first_colorspace);
-    STRNCPY(ncs->to_color_space, first_colorspace);
+    STRNCPY_UTF8(ncs->from_color_space, first_colorspace);
+    STRNCPY_UTF8(ncs->to_color_space, first_colorspace);
   }
   else {
     ncs->from_color_space[0] = 0;

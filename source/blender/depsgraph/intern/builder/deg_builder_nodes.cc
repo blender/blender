@@ -953,6 +953,12 @@ void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
             Object *ob_eval = reinterpret_cast<Object *>(id_node->id_cow);
             ModifierData *md_eval = reinterpret_cast<ModifierData *>(
                 BLI_findlink(&ob_eval->modifiers, modifier_index));
+            if (!md_eval) {
+              /* The modifiers may not be available on the evaluated object if the object has an
+               * error that turned it into an Empty. Modifiers are not copied on this object type.
+               * Also see #142290. */
+              return;
+            }
             /* Set flag that the modifier can check when it is evaluated. */
             const bool is_user_modified = modifier_node->flag & DEPSOP_FLAG_USER_MODIFIED;
             SET_FLAG_FROM_TEST(md_eval->flag, is_user_modified, eModifierFlag_UserModified);

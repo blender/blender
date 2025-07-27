@@ -26,7 +26,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLT_translation.hh"
 
@@ -887,15 +887,11 @@ bool BKE_armature_bone_flag_test_recursive(const Bone *bone, int flag)
 bool bone_autoside_name(
     char name[MAXBONENAME], int /*strip_number*/, short axis, float head, float tail)
 {
-  uint len;
-  char basename[MAXBONENAME] = "";
-  const char *extension = nullptr;
-
-  len = strlen(name);
+  char basename[MAXBONENAME];
+  uint len = STRNCPY_UTF8_RLEN(basename, name);
   if (len == 0) {
     return false;
   }
-  STRNCPY(basename, name);
 
   /* Figure out extension to append:
    * - The extension to append is based upon the axis that we are working on.
@@ -905,6 +901,7 @@ bool bone_autoside_name(
    *   -> Otherwise, extension is added from perspective of object based on which side tail goes to
    * - If head is non-zero, extension is added from perspective of object based on side head is on
    */
+  const char *extension = nullptr;
   if (axis == 2) {
     /* z-axis - vertical (top/bottom) */
     if (IS_EQF(head, 0.0f)) {
@@ -1004,7 +1001,8 @@ bool bone_autoside_name(
 
     /* Subtract 1 from #MAXBONENAME for the null byte. Add 1 to the extension for the '.' */
     const int basename_maxncpy = (MAXBONENAME - 1) - (1 + strlen(extension));
-    BLI_snprintf(name, MAXBONENAME, "%.*s.%s", basename_maxncpy, basename, extension);
+    BLI_str_utf8_truncate_at_size(basename, basename_maxncpy);
+    BLI_snprintf_utf8(name, MAXBONENAME, "%s.%s", basename, extension);
 
     return true;
   }

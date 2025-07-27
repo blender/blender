@@ -27,6 +27,7 @@
 
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 
 #include "fbx_import_anim.hh"
 #include "fbx_import_util.hh"

@@ -11,6 +11,7 @@
 #include "BKE_object_types.hh"
 
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_object_types.h"
 
@@ -103,7 +104,7 @@ void node_matrix_to_obj(const ufbx_node *node, Object *obj, const FbxElementMapp
 
       obj->parent = arm;
       obj->partype = PARBONE;
-      STRNCPY(obj->parsubstr, mapping.node_to_name.lookup_default(parbone, "").c_str());
+      STRNCPY_UTF8(obj->parsubstr, mapping.node_to_name.lookup_default(parbone, "").c_str());
 
 #ifdef FBX_DEBUG_PRINT
       fprintf(g_debug_file,

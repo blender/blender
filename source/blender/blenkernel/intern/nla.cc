@@ -20,6 +20,7 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -371,7 +372,7 @@ void BKE_nlatrack_insert_before(ListBase *nla_tracks,
   new_track->index = BLI_findindex(nla_tracks, new_track);
 
   /* Must have unique name, but we need to seed this. */
-  STRNCPY(new_track->name, "NlaTrack");
+  STRNCPY_UTF8(new_track->name, "NlaTrack");
 
   BLI_uniquename(nla_tracks,
                  new_track,
@@ -594,7 +595,7 @@ NlaStrip *BKE_nlastack_add_strip(const OwnedAnimData owned_adt, const bool is_li
     nlt = BKE_nlatrack_new_tail(&adt->nla_tracks, is_liboverride);
     BKE_nlatrack_set_active(&adt->nla_tracks, nlt);
     BKE_nlatrack_add_strip(nlt, strip, is_liboverride);
-    STRNCPY(nlt->name, adt->action->id.name + 2);
+    STRNCPY_UTF8(nlt->name, adt->action->id.name + 2);
   }
 
   /* automatically name it too */
@@ -1908,16 +1909,16 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
   if (strip->name[0] == 0) {
     switch (strip->type) {
       case NLASTRIP_TYPE_CLIP: /* act-clip */
-        STRNCPY(strip->name, (strip->act) ? (strip->act->id.name + 2) : DATA_("<No Action>"));
+        STRNCPY_UTF8(strip->name, (strip->act) ? (strip->act->id.name + 2) : DATA_("<No Action>"));
         break;
       case NLASTRIP_TYPE_TRANSITION: /* transition */
-        STRNCPY(strip->name, DATA_("Transition"));
+        STRNCPY_UTF8(strip->name, DATA_("Transition"));
         break;
       case NLASTRIP_TYPE_META: /* meta */
-        STRNCPY(strip->name, DATA_("Meta"));
+        STRNCPY_UTF8(strip->name, DATA_("Meta"));
         break;
       default:
-        STRNCPY(strip->name, DATA_("NLA Strip"));
+        STRNCPY_UTF8(strip->name, DATA_("NLA Strip"));
         break;
     }
   }
@@ -2174,7 +2175,7 @@ bool BKE_nla_action_stash(const OwnedAnimData owned_adt, const bool is_liboverri
     BLI_addhead(&adt->nla_tracks, nlt);
   }
 
-  STRNCPY(nlt->name, STASH_TRACK_NAME);
+  STRNCPY_UTF8(nlt->name, STASH_TRACK_NAME);
   BLI_uniquename(
       &adt->nla_tracks, nlt, STASH_TRACK_NAME, '.', offsetof(NlaTrack, name), sizeof(nlt->name));
 
@@ -2465,7 +2466,7 @@ static void nla_tweakmode_exit_nofollowptr(AnimData *adt)
 
   adt->tmpact = nullptr;
   adt->tmp_slot_handle = animrig::Slot::unassigned;
-  STRNCPY(adt->last_slot_identifier, adt->tmp_last_slot_identifier);
+  STRNCPY_UTF8(adt->last_slot_identifier, adt->tmp_last_slot_identifier);
 
   adt->act_track = nullptr;
   adt->actstrip = nullptr;

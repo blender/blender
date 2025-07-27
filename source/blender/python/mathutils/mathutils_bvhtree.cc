@@ -320,7 +320,7 @@ static void py_bvhtree_nearest_point_cb(void *userdata,
 PyDoc_STRVAR(
     /* Wrap. */
     py_bvhtree_ray_cast_doc,
-    ".. method:: ray_cast(origin, direction, distance=sys.float_info.max)\n"
+    ".. method:: ray_cast(origin, direction, distance=sys.float_info.max, /)\n"
     "\n"
     "   Cast a ray onto the mesh.\n"
     "\n"
@@ -372,7 +372,7 @@ PyDoc_STRVAR(
     /* Wrap. */
     py_bvhtree_find_nearest_doc,
     ".. method:: find_nearest(origin, distance=" PYBVH_MAX_DIST_STR
-    ")\n"
+    ", /)\n"
     "\n"
     "   Find the nearest element (typically face index) to a point.\n"
     "\n"
@@ -457,7 +457,7 @@ PyDoc_STRVAR(
     /* Wrap. */
     py_bvhtree_find_nearest_range_doc,
     ".. method:: find_nearest_range(origin, distance=" PYBVH_MAX_DIST_STR
-    ")\n"
+    ", /)\n"
     "\n"
     "   Find the nearest elements (typically face index) to a point in the distance range.\n"
     "\n"
@@ -550,7 +550,7 @@ static bool py_bvhtree_overlap_cb(void *userdata, int index_a, int index_b, int 
 PyDoc_STRVAR(
     /* Wrap. */
     py_bvhtree_overlap_doc,
-    ".. method:: overlap(other_tree)\n"
+    ".. method:: overlap(other_tree, /)\n"
     "\n"
     "   Find overlapping indices between 2 trees.\n"
     "\n"

@@ -83,7 +83,7 @@ static int parse_syntax_error(PyObject *err,
   *message = nullptr;
   *filename = nullptr;
 
-  /* new style errors.  `err' is an instance */
+  /* New style errors. `err` is an instance. */
   *message = _PyObject_GetAttrId(err, &PyId_msg);
   if (!*message) {
     goto finally;

@@ -20,6 +20,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -322,7 +323,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
     }
     case PROP_COLLECTION: {
       char text[256];
-      SNPRINTF(text, IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
+      SNPRINTF_UTF8(text, IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
       but = uiDefBut(
           block, ButType::Label, 0, text, x, y, width, height, nullptr, 0, 0, std::nullopt);
       UI_but_flag_enable(but, UI_BUT_DISABLED);

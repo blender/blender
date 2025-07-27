@@ -23,6 +23,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -710,7 +711,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
    * acceptable solution for now. */
   auto id_rename_helper = [bmain, tselem, oldname]() -> bool {
     std::string new_name = tselem->id->name + 2;
-    BLI_strncpy(tselem->id->name + 2, oldname, sizeof(tselem->id->name) - 2);
+    BLI_strncpy_utf8(tselem->id->name + 2, oldname, sizeof(tselem->id->name) - 2);
     return ED_id_rename(*bmain, *tselem->id, new_name);
   };
 
@@ -806,8 +807,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
             char newname[sizeof(ebone->name)];
 
             /* restore bone name */
-            STRNCPY(newname, ebone->name);
-            STRNCPY(ebone->name, oldname);
+            STRNCPY_UTF8(newname, ebone->name);
+            STRNCPY_UTF8(ebone->name, oldname);
             ED_armature_bone_rename(bmain, arm, oldname, newname);
             WM_msg_publish_rna_prop(mbus, &arm->id, ebone, EditBone, name);
             WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
@@ -829,8 +830,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           tree_element_activate(C, tvc, te, OL_SETSEL_NORMAL, true);
 
           /* restore bone name */
-          STRNCPY(newname, bone->name);
-          STRNCPY(bone->name, oldname);
+          STRNCPY_UTF8(newname, bone->name);
+          STRNCPY_UTF8(bone->name, oldname);
           ED_armature_bone_rename(bmain, arm, oldname, newname);
           WM_msg_publish_rna_prop(mbus, &arm->id, bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
@@ -853,8 +854,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BLI_assert(ob->type == OB_ARMATURE);
 
           /* restore bone name */
-          STRNCPY(newname, pchan->name);
-          STRNCPY(pchan->name, oldname);
+          STRNCPY_UTF8(newname, pchan->name);
+          STRNCPY_UTF8(pchan->name, oldname);
           ED_armature_bone_rename(bmain, static_cast<bArmature *>(ob->data), oldname, newname);
           WM_msg_publish_rna_prop(mbus, &arm->id, pchan->bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
@@ -903,8 +904,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 
           /* Restore old name. */
           char newname[sizeof(view_layer->name)];
-          STRNCPY(newname, view_layer->name);
-          STRNCPY(view_layer->name, oldname);
+          STRNCPY_UTF8(newname, view_layer->name);
+          STRNCPY_UTF8(view_layer->name, oldname);
 
           /* Rename, preserving animation and compositing data. */
           BKE_view_layer_rename(bmain, scene, view_layer, newname);

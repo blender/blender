@@ -660,6 +660,8 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
         layout.separator()
         layout.menu("NODE_MT_category_GEO_UTILITIES_FIELD")
         layout.menu("NODE_MT_category_GEO_UTILITIES_MATH")
+        if context.preferences.experimental.use_geometry_nodes_lists:
+            layout.menu("NODE_MT_category_utilities_list")
         layout.menu("NODE_MT_category_utilities_matrix")
         layout.menu("NODE_MT_category_GEO_UTILITIES_ROTATION")
         layout.menu("NODE_MT_category_GEO_UTILITIES_DEPRECATED")
@@ -743,6 +745,18 @@ class NODE_MT_category_utilities_matrix(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeTransformPoint")
         node_add_menu.add_node_type(layout, "FunctionNodeTransposeMatrix")
         node_add_menu.draw_assets_for_catalog(layout, "Utilities/Matrix")
+
+
+class NODE_MT_category_utilities_list(Menu):
+    bl_idname = "NODE_MT_category_utilities_list"
+    bl_label = "List"
+
+    def draw(self, _context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeList")
+        node_add_menu.add_node_type(layout, "GeometryNodeListGetItem")
+        node_add_menu.add_node_type(layout, "GeometryNodeListLength")
+        node_add_menu.draw_assets_for_catalog(layout, "Utilities/List")
 
 
 class NODE_MT_category_GEO_UTILITIES_MATH(Menu):
@@ -961,6 +975,7 @@ classes = (
     NODE_MT_category_GEO_UTILITIES_MATH,
     NODE_MT_category_GEO_UTILITIES_ROTATION,
     NODE_MT_geometry_node_GEO_INPUT_GIZMO,
+    NODE_MT_category_utilities_list,
     NODE_MT_category_utilities_matrix,
     NODE_MT_category_GEO_UTILITIES_DEPRECATED,
     NODE_MT_category_GEO_GROUP,

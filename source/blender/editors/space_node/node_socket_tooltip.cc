@@ -329,6 +329,9 @@ class SocketTooltipBuilder {
     {
       this->build_tooltip_value_closure_log(*closure_log);
     }
+    else if (const auto *list_log = dynamic_cast<const geo_log::ListInfoLog *>(&value_log)) {
+      this->build_tooltip_value_list_log(*list_log);
+    }
   }
 
   void build_tooltip_value_and_type_oneline(const StringRef value, const StringRef type)
@@ -694,14 +697,13 @@ class SocketTooltipBuilder {
       this->add_text_field_mono(TIP_("Values:"));
       Vector<geo_log::BundleValueLog::Item> sorted_items = bundle_log.items;
       std::sort(sorted_items.begin(), sorted_items.end(), [](const auto &a, const auto &b) {
-        return BLI_strcasecmp_natural(a.key.identifiers().first().c_str(),
-                                      b.key.identifiers().first().c_str()) < 0;
+        return BLI_strcasecmp_natural(a.key.c_str(), b.key.c_str()) < 0;
       });
       for (const geo_log::BundleValueLog::Item &item : sorted_items) {
         this->add_space();
         const std::string type_name = TIP_(item.type->label);
-        this->add_text_field_mono(fmt::format(
-            fmt::runtime("\u2022 \"{}\" ({})\n"), item.key.identifiers().first(), type_name));
+        this->add_text_field_mono(
+            fmt::format(fmt::runtime("\u2022 \"{}\" ({})\n"), item.key, type_name));
       }
     }
     this->add_space();
@@ -719,8 +721,8 @@ class SocketTooltipBuilder {
         for (const geo_log::ClosureValueLog::Item &item : closure_log.inputs) {
           this->add_space();
           const std::string type_name = TIP_(item.type->label);
-          this->add_text_field_mono(fmt::format(
-              fmt::runtime("\u2022 \"{}\" ({})\n"), item.key.identifiers().first(), type_name));
+          this->add_text_field_mono(
+              fmt::format(fmt::runtime("\u2022 \"{}\" ({})\n"), item.key, type_name));
         }
       }
       if (!closure_log.outputs.is_empty()) {
@@ -729,13 +731,20 @@ class SocketTooltipBuilder {
         for (const geo_log::ClosureValueLog::Item &item : closure_log.outputs) {
           this->add_space();
           const std::string type_name = TIP_(item.type->label);
-          this->add_text_field_mono(fmt::format(
-              fmt::runtime("\u2022 \"{}\" ({})\n"), item.key.identifiers().first(), type_name));
+          this->add_text_field_mono(
+              fmt::format(fmt::runtime("\u2022 \"{}\" ({})\n"), item.key, type_name));
         }
       }
     }
     this->add_space();
     this->add_text_field_mono(TIP_("Type: Closure"));
+  }
+
+  void build_tooltip_value_list_log(const geo_log::ListInfoLog &list_log)
+  {
+    this->add_text_field_mono(fmt::format("{}: {}", TIP_("Length"), list_log.size));
+    this->add_space();
+    this->add_text_field_mono(TIP_("Type: List"));
   }
 
   void build_tooltip_value_implicit_default(const NodeDefaultInputType &type)
@@ -814,6 +823,9 @@ class SocketTooltipBuilder {
       }
       case nodes::StructureType::Grid: {
         return TIP_("Volume Grid");
+      }
+      case nodes::StructureType::List: {
+        return TIP_("List");
       }
     }
     BLI_assert_unreachable();

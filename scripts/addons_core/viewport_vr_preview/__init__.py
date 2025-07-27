@@ -4,7 +4,9 @@
 
 bl_info = {
     "name": "VR Scene Inspection",
-    "author": "Julian Eisel (Severin), Sebastian Koenig, Peter Kim (muxed-reality)",
+    # This is now displayed as the maintainer, so show the foundation.
+    # "author": "Julian Eisel (Severin), Sebastian Koenig, Peter Kim (muxed-reality)", # Original Authors
+    "author": "Blender Foundation",
     "version": (0, 11, 2),
     "blender": (3, 2, 0),
     "location": "3D View > Sidebar > VR",

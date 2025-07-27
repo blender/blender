@@ -12,6 +12,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_idtype.hh"
 
@@ -364,7 +365,7 @@ void filelist_setfilter_options(FileList *filelist,
     update = true;
   }
   if (!STREQ(filelist->filter_data.filter_glob, filter_glob)) {
-    STRNCPY(filelist->filter_data.filter_glob, filter_glob);
+    STRNCPY_UTF8(filelist->filter_data.filter_glob, filter_glob);
     update = true;
   }
   if (BLI_strcmp_ignore_pad(filelist->filter_data.filter_search, filter_search, '*') != 0) {

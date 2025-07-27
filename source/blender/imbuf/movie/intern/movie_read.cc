@@ -18,6 +18,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -105,9 +106,9 @@ static void probe_video_colorspace(MovieReader *anim, char r_colorspace_name[IM_
 {
   /* Use default role as fallback (i.e. it is an unknown combination of colorspace and primaries)
    */
-  BLI_strncpy(r_colorspace_name,
-              IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE),
-              IM_MAX_SPACE);
+  BLI_strncpy_utf8(r_colorspace_name,
+                   IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE),
+                   IM_MAX_SPACE);
 
   if (anim->state == MovieReader::State::Uninitialized) {
     if (!anim_getnew(anim)) {
@@ -125,7 +126,7 @@ static void probe_video_colorspace(MovieReader *anim, char r_colorspace_name[IM_
   {
     const char *hlg_name = IMB_colormanagement_get_rec2100_hlg_display_colorspace();
     if (hlg_name) {
-      BLI_strncpy(r_colorspace_name, hlg_name, IM_MAX_SPACE);
+      BLI_strncpy_utf8(r_colorspace_name, hlg_name, IM_MAX_SPACE);
     }
     return;
   }
@@ -135,7 +136,7 @@ static void probe_video_colorspace(MovieReader *anim, char r_colorspace_name[IM_
   {
     const char *pq_name = IMB_colormanagement_get_rec2100_pq_display_colorspace();
     if (pq_name) {
-      BLI_strncpy(r_colorspace_name, pq_name, IM_MAX_SPACE);
+      BLI_strncpy_utf8(r_colorspace_name, pq_name, IM_MAX_SPACE);
     }
     return;
   }
@@ -162,17 +163,17 @@ MovieReader *MOV_open_file(const char *filepath,
 
     if (colorspace && colorspace[0] != '\0') {
       /* Use colorspace from argument, if provided. */
-      STRNCPY(anim->colorspace, colorspace);
+      STRNCPY_UTF8(anim->colorspace, colorspace);
     }
     else {
       /* Try to initialize colorspace from the FFmpeg stream by interpreting color information from
        * it. */
       char file_colorspace[IM_MAX_SPACE];
       probe_video_colorspace(anim, file_colorspace);
-      STRNCPY(anim->colorspace, file_colorspace);
+      STRNCPY_UTF8(anim->colorspace, file_colorspace);
       if (colorspace) {
         /* Copy the used colorspace into output argument. */
-        BLI_strncpy(colorspace, file_colorspace, IM_MAX_SPACE);
+        BLI_strncpy_utf8(colorspace, file_colorspace, IM_MAX_SPACE);
       }
     }
   }
@@ -1410,11 +1411,11 @@ ImBuf *MOV_decode_preview_frame(MovieReader *anim)
 
     char value[128];
     IMB_metadata_ensure(&ibuf->metadata);
-    SNPRINTF(value, "%i", anim->x);
+    SNPRINTF_UTF8(value, "%i", anim->x);
     IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::Width", value);
-    SNPRINTF(value, "%i", anim->y);
+    SNPRINTF_UTF8(value, "%i", anim->y);
     IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::Height", value);
-    SNPRINTF(value, "%i", anim->duration_in_frames);
+    SNPRINTF_UTF8(value, "%i", anim->duration_in_frames);
     IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::Frames", value);
 
 #ifdef WITH_FFMPEG
@@ -1423,9 +1424,9 @@ ImBuf *MOV_decode_preview_frame(MovieReader *anim)
       AVRational frame_rate = av_guess_frame_rate(anim->pFormatCtx, v_st, nullptr);
       if (frame_rate.num != 0) {
         double duration = anim->duration_in_frames / av_q2d(frame_rate);
-        SNPRINTF(value, "%g", av_q2d(frame_rate));
+        SNPRINTF_UTF8(value, "%g", av_q2d(frame_rate));
         IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::FPS", value);
-        SNPRINTF(value, "%g", duration);
+        SNPRINTF_UTF8(value, "%g", duration);
         IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::Duration", value);
         IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::Codec", anim->pCodec->long_name);
       }

@@ -18,7 +18,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
@@ -155,7 +155,7 @@ void WM_uilisttype_to_full_list_id(const uiListType *ult,
                                    char r_full_list_id[/*UI_MAX_NAME_STR*/])
 {
   /* We tag the list id with the list type... */
-  BLI_snprintf(r_full_list_id, UI_MAX_NAME_STR, "%s_%s", ult->idname, list_id ? list_id : "");
+  BLI_snprintf_utf8(r_full_list_id, UI_MAX_NAME_STR, "%s_%s", ult->idname, list_id ? list_id : "");
 }
 
 const char *WM_uilisttype_list_id_get(const uiListType *ult, uiList *list)

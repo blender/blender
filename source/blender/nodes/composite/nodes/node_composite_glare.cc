@@ -21,6 +21,7 @@
 #include "BLI_assert.h"
 #include "BLI_fftw.hh"
 #include "BLI_index_range.hh"
+#include "BLI_math_angle_types.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.hh"
@@ -2031,14 +2032,14 @@ class GlareOperation : public NodeOperation {
   {
 #if defined(WITH_FFTW3)
 
-    const int kernel_size = compute_fog_glow_kernel_size(highlights);
+    const int kernel_size = int(math::reduce_max(highlights.domain().size));
 
-    /* Since we will be doing a circular convolution, we need to zero pad our input image by half
+    /* Since we will be doing a circular convolution, we need to zero pad our input image by
      * the kernel size to avoid the kernel affecting the pixels at the other side of image.
      * Therefore, zero boundary is assumed. */
-    const int needed_padding_amount = kernel_size / 2;
+    const int needed_padding_amount = kernel_size;
     const int2 image_size = highlights.domain().size;
-    const int2 needed_spatial_size = image_size + needed_padding_amount;
+    const int2 needed_spatial_size = image_size + needed_padding_amount - 1;
     const int2 spatial_size = fftw::optimal_size_for_real_transform(needed_spatial_size);
 
     /* The FFTW real to complex transforms utilizes the hermitian symmetry of real transforms and
@@ -2108,7 +2109,7 @@ class GlareOperation : public NodeOperation {
     });
 
     const FogGlowKernel &fog_glow_kernel = context().cache_manager().fog_glow_kernels.get(
-        kernel_size, spatial_size);
+        kernel_size, spatial_size, this->compute_fog_glow_field_of_view());
 
     /* Multiply the kernel and the image in the frequency domain to perform the convolution. The
      * FFT is not normalized, meaning the result of the FFT followed by an inverse FFT will result
@@ -2197,23 +2198,21 @@ class GlareOperation : public NodeOperation {
     return fog_glow_result;
   }
 
-  /* Computes the size of the fog glow kernel that will be convolved with the image, which is
-   * essentially the extent of the glare in pixels. */
-  int compute_fog_glow_kernel_size(const Result &highlights)
+  /* Computes the field of view of the glare based on the give size as per:
+   *
+   *   Spencer, Greg, et al. "Physically-Based Glare Effects for Digital Images."
+   *   Proceedings of the 22nd Annual Conference on Computer Graphics and Interactive Techniques,
+   *   1995.
+   *
+   * We choose a minimum field of view of 10 degrees using visual judgement on typical setups,
+   * otherwise, a too small field of view would make the evaluation domain of the glare lie almost
+   * entirely in the central Gaussian of the function, losing the exponential characteristic of the
+   * function. Additionally, we take the power of the size with 1/3 to adjust the rate of change of
+   * the size to make the apparent size of the glare more linear with respect to the size input. */
+  math::AngleRadian compute_fog_glow_field_of_view()
   {
-    /* The input size is relative to the larger dimension of the image. */
-    const int size = int(math::reduce_max(highlights.domain().size) * this->get_size());
-
-    /* Make sure size is at least 3 pixels for implicitly since code deals with half kernel sizes
-     * which will be zero if less than 3, causing zero division. */
-    const int safe_size = math::max(3, size);
-
-    /* Make sure the kernel size is odd since an even one will typically introduce a tiny offset as
-     * it has no exact center value. */
-    const bool is_even = safe_size % 2 == 0;
-    const int odd_size = safe_size + (is_even ? 1 : 0);
-
-    return odd_size;
+    return math::AngleRadian::from_degree(
+        math::interpolate(180.0f, 10.0f, math::pow(this->get_size(), 1.0f / 3.0f)));
   }
 
   /* ----------

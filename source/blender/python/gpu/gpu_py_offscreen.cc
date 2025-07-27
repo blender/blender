@@ -14,7 +14,7 @@
 
 #include <Python.h>
 
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh" /* For #BKE_id_is_in_global_main. */
@@ -315,7 +315,7 @@ static PyObject *pygpu_offscreen__tp_new(PyTypeObject * /*self*/, PyObject *args
                                err_out);
   }
   else {
-    STRNCPY(err_out, "No active GPU context found");
+    STRNCPY_UTF8(err_out, "No active GPU context found");
   }
 
   if (ofs == nullptr) {
@@ -357,7 +357,7 @@ PyDoc_STRVAR(
     pygpu_offscreen_texture_color_doc,
     "The color texture attached.\n"
     "\n"
-    ":type: :class:`gpu.types.blender::gpu::Texture`");
+    ":type: :class:`gpu.types.GPUTexture`");
 static PyObject *pygpu_offscreen_texture_color_get(BPyGPUOffScreen *self, void * /*type*/)
 {
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);

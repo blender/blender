@@ -251,7 +251,7 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_wireframes_face(Mesh &mesh);
  * Creates the #blender::gpu::Batch for drawing the UV Stretching Area Overlay.
  * Optional retrieves the total area or total uv area of the mesh.
  *
- * The `cache->tot_area` and cache->tot_uv_area` update are calculation are
+ * The `cache->tot_area` and `cache->tot_uv_area` update are calculation are
  * only valid after calling `DRW_mesh_batch_cache_create_requested`.
  */
 blender::gpu::Batch *DRW_mesh_batch_cache_get_edituv_faces_stretch_area(Object &object,

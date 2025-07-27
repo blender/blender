@@ -1690,13 +1690,13 @@ void UI_view2d_region_to_view_rctf(const View2D *v2d, const rctf *rect_src, rctf
 
 float UI_view2d_view_to_region_x(const View2D *v2d, float x)
 {
-  return (v2d->mask.xmin +
-          (((x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur)) * BLI_rcti_size_x(&v2d->mask)));
+  return (v2d->mask.xmin + (((x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur)) *
+                            float(BLI_rcti_size_x(&v2d->mask) + 1)));
 }
 float UI_view2d_view_to_region_y(const View2D *v2d, float y)
 {
-  return (v2d->mask.ymin +
-          (((y - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur)) * BLI_rcti_size_y(&v2d->mask)));
+  return (v2d->mask.ymin + (((y - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur)) *
+                            float(BLI_rcti_size_y(&v2d->mask) + 1)));
 }
 
 bool UI_view2d_view_to_region_clip(
@@ -1816,8 +1816,8 @@ void UI_view2d_view_to_region_m4(const View2D *v2d, float matrix[4][4])
 bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
 {
   const float cur_size[2] = {BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur)};
-  const float mask_size[2] = {float(BLI_rcti_size_x(&v2d->mask)),
-                              float(BLI_rcti_size_y(&v2d->mask))};
+  const float mask_size[2] = {float(BLI_rcti_size_x(&v2d->mask) + 1),
+                              float(BLI_rcti_size_y(&v2d->mask) + 1)};
   rctf rect_tmp;
 
   BLI_assert(rect_src->xmin <= rect_src->xmax && rect_src->ymin <= rect_src->ymax);

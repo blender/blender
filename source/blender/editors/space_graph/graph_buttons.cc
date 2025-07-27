@@ -20,6 +20,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -207,7 +208,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
       acf->name(ale, name);
     }
     else {
-      STRNCPY(name, IFACE_("<invalid>"));
+      STRNCPY_UTF8(name, IFACE_("<invalid>"));
       icon = ICON_ERROR;
     }
 
@@ -1014,7 +1015,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     /* value of driver */
     row = &col->row(true);
     row->label(IFACE_("Driver Value:"), ICON_NONE);
-    SNPRINTF(valBuf, "%.3f", driver->curval);
+    SNPRINTF_UTF8(valBuf, "%.3f", driver->curval);
     row->label(valBuf, ICON_NONE);
   }
 
@@ -1238,13 +1239,13 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                 DTAR_TRANSCHAN_ROTW) &&
            dvar->targets[0].rotation_mode != DTAR_ROTMODE_QUATERNION))
       {
-        SNPRINTF(valBuf,
-                 "%.3f (%4.1f" BLI_STR_UTF8_DEGREE_SIGN ")",
-                 dvar->curval,
-                 RAD2DEGF(dvar->curval));
+        SNPRINTF_UTF8(valBuf,
+                      "%.3f (%4.1f" BLI_STR_UTF8_DEGREE_SIGN ")",
+                      dvar->curval,
+                      RAD2DEGF(dvar->curval));
       }
       else {
-        SNPRINTF(valBuf, "%.3f", dvar->curval);
+        SNPRINTF_UTF8(valBuf, "%.3f", dvar->curval);
       }
 
       row->label(valBuf, ICON_NONE);
@@ -1389,7 +1390,7 @@ static void graph_fmodifier_panel_id(void *fcm_link, char *r_name)
   FModifier *fcm = (FModifier *)fcm_link;
   eFModifier_Types type = eFModifier_Types(fcm->type);
   const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
-  BLI_snprintf(r_name, BKE_ST_MAXNAME, "%s_PT_%s", GRAPH_FMODIFIER_PANEL_PREFIX, fmi->name);
+  BLI_snprintf_utf8(r_name, BKE_ST_MAXNAME, "%s_PT_%s", GRAPH_FMODIFIER_PANEL_PREFIX, fmi->name);
 }
 
 static void do_graph_region_modifier_buttons(bContext *C, void * /*arg*/, int event)
@@ -1447,47 +1448,47 @@ void graph_buttons_register(ARegionType *art)
   PanelType *pt;
 
   pt = MEM_callocN<PanelType>("spacetype graph panel properties");
-  STRNCPY(pt->idname, "GRAPH_PT_properties");
-  STRNCPY(pt->label, N_("Active F-Curve"));
-  STRNCPY(pt->category, "F-Curve");
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "GRAPH_PT_properties");
+  STRNCPY_UTF8(pt->label, N_("Active F-Curve"));
+  STRNCPY_UTF8(pt->category, "F-Curve");
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_properties;
   pt->poll = graph_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN<PanelType>("spacetype graph panel properties");
-  STRNCPY(pt->idname, "GRAPH_PT_key_properties");
-  STRNCPY(pt->label, N_("Active Keyframe"));
-  STRNCPY(pt->category, "F-Curve");
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "GRAPH_PT_key_properties");
+  STRNCPY_UTF8(pt->label, N_("Active Keyframe"));
+  STRNCPY_UTF8(pt->category, "F-Curve");
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_key_properties;
   pt->poll = graph_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN<PanelType>("spacetype graph panel drivers driven");
-  STRNCPY(pt->idname, "GRAPH_PT_driven_property");
-  STRNCPY(pt->label, N_("Driven Property"));
-  STRNCPY(pt->category, "Drivers");
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "GRAPH_PT_driven_property");
+  STRNCPY_UTF8(pt->label, N_("Driven Property"));
+  STRNCPY_UTF8(pt->category, "Drivers");
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_driven_property;
   pt->poll = graph_panel_drivers_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN<PanelType>("spacetype graph panel drivers");
-  STRNCPY(pt->idname, "GRAPH_PT_drivers");
-  STRNCPY(pt->label, N_("Driver"));
-  STRNCPY(pt->category, "Drivers");
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "GRAPH_PT_drivers");
+  STRNCPY_UTF8(pt->label, N_("Driver"));
+  STRNCPY_UTF8(pt->category, "Drivers");
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_drivers;
   pt->draw_header = graph_panel_drivers_header;
   pt->poll = graph_panel_drivers_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN<PanelType>("spacetype graph panel drivers popover");
-  STRNCPY(pt->idname, "GRAPH_PT_drivers_popover");
-  STRNCPY(pt->label, N_("Add/Edit Driver"));
-  STRNCPY(pt->category, "Drivers");
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "GRAPH_PT_drivers_popover");
+  STRNCPY_UTF8(pt->label, N_("Add/Edit Driver"));
+  STRNCPY_UTF8(pt->category, "Drivers");
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_drivers_popover;
   pt->poll = graph_panel_drivers_popover_poll;
   BLI_addtail(&art->paneltypes, pt);
@@ -1496,10 +1497,10 @@ void graph_buttons_register(ARegionType *art)
   WM_paneltype_add(pt);
 
   pt = MEM_callocN<PanelType>("spacetype graph panel modifiers");
-  STRNCPY(pt->idname, "GRAPH_PT_modifiers");
-  STRNCPY(pt->label, N_("Modifiers"));
-  STRNCPY(pt->category, "Modifiers");
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "GRAPH_PT_modifiers");
+  STRNCPY_UTF8(pt->label, N_("Modifiers"));
+  STRNCPY_UTF8(pt->category, "Modifiers");
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->flag = PANEL_TYPE_NO_HEADER;
   pt->draw = graph_panel_modifiers;
   pt->poll = graph_panel_poll;
@@ -1509,10 +1510,10 @@ void graph_buttons_register(ARegionType *art)
   ANIM_modifier_panels_register_graph_only(art, GRAPH_FMODIFIER_PANEL_PREFIX, graph_panel_poll);
 
   pt = MEM_callocN<PanelType>("spacetype graph panel view");
-  STRNCPY(pt->idname, "GRAPH_PT_view");
-  STRNCPY(pt->label, N_("Show Cursor"));
-  STRNCPY(pt->category, "View");
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "GRAPH_PT_view");
+  STRNCPY_UTF8(pt->label, N_("Show Cursor"));
+  STRNCPY_UTF8(pt->category, "View");
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_cursor;
   pt->draw_header = graph_panel_cursor_header;
   BLI_addtail(&art->paneltypes, pt);

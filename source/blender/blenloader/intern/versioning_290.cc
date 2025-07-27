@@ -15,6 +15,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 /* Define macros in `DNA_genfile.h`. */
@@ -714,11 +715,11 @@ static void do_versions_point_attributes(CustomData *pdata)
   for (int i = 0; i < pdata->totlayer; i++) {
     CustomDataLayer *layer = &pdata->layers[i];
     if (layer->type == CD_LOCATION) {
-      STRNCPY(layer->name, "Position");
+      STRNCPY_UTF8(layer->name, "Position");
       layer->type = CD_PROP_FLOAT3;
     }
     else if (layer->type == CD_RADIUS) {
-      STRNCPY(layer->name, "Radius");
+      STRNCPY_UTF8(layer->name, "Radius");
       layer->type = CD_PROP_FLOAT;
     }
   }
@@ -730,10 +731,10 @@ static void do_versions_point_attribute_names(CustomData *pdata)
   for (int i = 0; i < pdata->totlayer; i++) {
     CustomDataLayer *layer = &pdata->layers[i];
     if (layer->type == CD_PROP_FLOAT3 && STREQ(layer->name, "Position")) {
-      STRNCPY(layer->name, "position");
+      STRNCPY_UTF8(layer->name, "position");
     }
     else if (layer->type == CD_PROP_FLOAT && STREQ(layer->name, "Radius")) {
-      STRNCPY(layer->name, "radius");
+      STRNCPY_UTF8(layer->name, "radius");
     }
   }
 }
@@ -1135,7 +1136,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
     if (!DNA_struct_member_exists(fd->filesdna, "CacheFile", "char", "velocity_unit")) {
       LISTBASE_FOREACH (CacheFile *, cache_file, &bmain->cachefiles) {
-        STRNCPY(cache_file->velocity_name, ".velocities");
+        STRNCPY_UTF8(cache_file->velocity_name, ".velocities");
         cache_file->velocity_unit = CACHEFILE_VELOCITY_UNIT_SECOND;
       }
     }
@@ -1533,7 +1534,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
             LISTBASE_FOREACH (bNodeSocket *, output_socket, &node->outputs) {
               const char *volume_scatter = "VolumeScatterCol";
               if (STREQLEN(output_socket->name, volume_scatter, MAX_NAME)) {
-                STRNCPY(output_socket->name, RE_PASSNAME_VOLUME_LIGHT);
+                STRNCPY_UTF8(output_socket->name, RE_PASSNAME_VOLUME_LIGHT);
               }
             }
           }
@@ -1549,7 +1550,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
             if (node->type_legacy == CMP_NODE_CRYPTOMATTE_LEGACY) {
               NodeCryptomatte *storage = (NodeCryptomatte *)node->storage;
               char *matte_id = storage->matte_id;
-              if (matte_id == nullptr || strlen(storage->matte_id) == 0) {
+              if ((matte_id == nullptr) || (storage->matte_id[0] == '\0')) {
                 continue;
               }
               BKE_cryptomatte_matte_id_to_entries(storage, storage->matte_id);
@@ -1577,7 +1578,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (STREQ(node->idname, "GeometryNodeRandomAttribute")) {
-          STRNCPY(node->idname, "GeometryLegacyNodeAttributeRandomize");
+          STRNCPY_UTF8(node->idname, "GeometryLegacyNodeAttributeRandomize");
         }
       }
     }
@@ -1802,10 +1803,10 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (STREQ(node->idname, "GeometryNodeSubdivisionSurfaceSimple")) {
-            STRNCPY(node->idname, "GeometryNodeSubdivide");
+            STRNCPY_UTF8(node->idname, "GeometryNodeSubdivide");
           }
           if (STREQ(node->idname, "GeometryNodeSubdivisionSurface")) {
-            STRNCPY(node->idname, "GeometryNodeSubdivideSmooth");
+            STRNCPY_UTF8(node->idname, "GeometryNodeSubdivideSmooth");
           }
         }
       }
@@ -1859,7 +1860,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (STREQ(node->idname, "GeometryNodeSubdivideSmooth")) {
-            STRNCPY(node->idname, "GeometryNodeSubdivisionSurface");
+            STRNCPY_UTF8(node->idname, "GeometryNodeSubdivisionSurface");
           }
         }
       }
@@ -1937,7 +1938,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
           if (sl->spacetype == SPACE_NODE) {
             SpaceNode *snode = (SpaceNode *)sl;
             LISTBASE_FOREACH (bNodeTreePath *, path, &snode->treepath) {
-              STRNCPY(path->display_name, path->node_name);
+              STRNCPY_UTF8(path->display_name, path->node_name);
             }
           }
         }

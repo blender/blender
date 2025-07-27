@@ -14,7 +14,7 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -130,7 +130,7 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
 
   char offset_str[NUM_STR_REP_LEN];
   if (RNA_enum_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT) {
-    SNPRINTF(offset_str, "%.1f%%", RNA_float_get(op->ptr, "offset_pct"));
+    SNPRINTF_UTF8(offset_str, "%.1f%%", RNA_float_get(op->ptr, "offset_pct"));
   }
   else {
     double offset_val = double(RNA_float_get(op->ptr, "offset"));

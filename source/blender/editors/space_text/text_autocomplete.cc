@@ -146,7 +146,7 @@ static GHash *text_autocomplete_build(Text *text)
     seek_len = text->curc - i;
     seek = text->curl->line + i;
 
-    // BLI_strncpy(seek, seek_ptr, seek_len);
+    // BLI_strncpy_utf8(seek, seek_ptr, seek_len);
   }
 
   /* now walk over entire doc and suggest words */

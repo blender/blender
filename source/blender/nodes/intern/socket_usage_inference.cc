@@ -252,7 +252,6 @@ struct SocketUsageInferencer {
       case SH_NODE_OUTPUT_LINESTYLE:
       case SH_NODE_OUTPUT_MATERIAL:
       case CMP_NODE_OUTPUT_FILE:
-      case CMP_NODE_COMPOSITE:
       case TEX_NODE_OUTPUT: {
         this->usage_task__input__output_node(socket);
         break;
@@ -438,7 +437,8 @@ struct SocketUsageInferencer {
       return;
     }
     if (!socket_decl->usage_inference_fn) {
-      all_socket_usages_.add_new(socket, true);
+      this->usage_task__with_dependent_sockets(
+          socket, socket->owner_node().output_sockets(), {}, socket.context);
       return;
     }
     InputSocketUsageParams params{

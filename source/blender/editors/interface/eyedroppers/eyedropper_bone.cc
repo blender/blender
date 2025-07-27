@@ -16,7 +16,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
@@ -333,7 +333,7 @@ static BoneSampleData bonedropper_sample_pt(
   }
 
   if (sample_data.name) {
-    STRNCPY(bdr.name, sample_data.name);
+    STRNCPY_UTF8(bdr.name, sample_data.name);
     copy_v2_v2_int(bdr.name_pos, mval);
   }
 

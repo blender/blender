@@ -8,7 +8,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_mask.h"
@@ -134,8 +134,8 @@ static wmOperatorStatus mask_parent_set_exec(bContext *C, wmOperator * /*op*/)
           point->parent.id_type = ID_MC;
           point->parent.id = &clip->id;
           point->parent.type = parent_type;
-          STRNCPY(point->parent.parent, tracking_object->name);
-          STRNCPY(point->parent.sub_parent, sub_parent_name);
+          STRNCPY_UTF8(point->parent.parent, tracking_object->name);
+          STRNCPY_UTF8(point->parent.sub_parent, sub_parent_name);
 
           copy_v2_v2(point->parent.parent_orig, parmask_pos);
           memcpy(point->parent.parent_corners_orig,

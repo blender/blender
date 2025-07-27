@@ -201,7 +201,7 @@ struct VKRenderGraphNode {
    * Build commands for this node and record them in the given command_buffer.
    *
    * NOTE: Pipeline barriers should already be added. See
-   * `VKCommandBuilder::build_node` and `VKCommandBuilder::build_pipeline_barriers.
+   * `VKCommandBuilder::build_node` and `VKCommandBuilder::build_pipeline_barriers`.
    */
   void build_commands(VKCommandBufferInterface &command_buffer,
                       VKRenderGraphStorage &storage,

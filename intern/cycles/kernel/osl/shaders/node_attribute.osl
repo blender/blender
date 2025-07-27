@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "node_math.h"
 #include "stdcycles.h"
 
 shader node_attribute(string bump_offset = "center",
@@ -13,10 +14,19 @@ shader node_attribute(string bump_offset = "center",
                       output float Alpha = 0.0)
 {
   float data[4] = {0.0, 0.0, 0.0, 0.0};
-  getattribute(name, data);
-  Color = color(data[0], data[1], data[2]);
+  int success = getattribute(name, data);
+  if (!success && (name == "geom:generated")) {
+    /* No generated attribute, fall back to object coordinates. */
+    Color = transform("object", P);
+    Fac = average(Color);
+    data[3] = 1.0;
+  }
+  else {
+    getattribute(name, Fac);
+    Color = color(data[0], data[1], data[2]);
+  }
+
   Vector = point(Color);
-  getattribute(name, Fac);
   Alpha = data[3];
 
   if (bump_offset == "dx") {

@@ -53,7 +53,7 @@ class ViewerOperation : public NodeOperation {
   {
     /* Viewers are treated as composite outputs that should be in the bounds of the compositing
      * region, so do nothing if the compositing region is invalid. */
-    if (this->context().treat_viewer_as_composite_output() &&
+    if (this->context().treat_viewer_as_compositor_output() &&
         !this->context().is_valid_compositing_region())
     {
       return;
@@ -75,7 +75,7 @@ class ViewerOperation : public NodeOperation {
     float4 color = image.get_single_value<float4>();
 
     const Domain domain = this->compute_domain();
-    Result output = this->context().get_viewer_output_result(
+    Result output = this->context().get_viewer_output(
         domain, image.meta_data.is_non_color_data, image.precision());
     if (this->context().use_gpu()) {
       GPU_texture_clear(output, GPU_DATA_FLOAT, color);
@@ -99,7 +99,7 @@ class ViewerOperation : public NodeOperation {
   {
     const Result &image = this->get_input("Image");
     const Domain domain = this->compute_domain();
-    Result output = this->context().get_viewer_output_result(
+    Result output = this->context().get_viewer_output(
         domain, image.meta_data.is_non_color_data, image.precision());
 
     GPUShader *shader = this->context().get_shader("compositor_write_output", output.precision());
@@ -124,7 +124,7 @@ class ViewerOperation : public NodeOperation {
   {
     const Domain domain = this->compute_domain();
     const Result &image = this->get_input("Image");
-    Result output = this->context().get_viewer_output_result(
+    Result output = this->context().get_viewer_output(
         domain, image.meta_data.is_non_color_data, image.precision());
 
     const Bounds<int2> bounds = this->get_output_bounds();
@@ -143,21 +143,19 @@ class ViewerOperation : public NodeOperation {
   {
     /* Viewers are treated as composite outputs that should be in the bounds of the compositing
      * region. */
-    if (context().treat_viewer_as_composite_output()) {
-      const rcti compositing_region = context().get_compositing_region();
-      return Bounds<int2>(int2(compositing_region.xmin, compositing_region.ymin),
-                          int2(compositing_region.xmax, compositing_region.ymax));
+    if (this->context().treat_viewer_as_compositor_output()) {
+      return this->context().get_compositing_region();
     }
 
     /* Otherwise, use the bounds of the input as is. */
-    return Bounds<int2>(int2(0), compute_domain().size);
+    return Bounds<int2>(int2(0), this->compute_domain().size);
   }
 
   Domain compute_domain() override
   {
     /* Viewers are treated as composite outputs that should be in the domain of the compositing
      * region. */
-    if (context().treat_viewer_as_composite_output()) {
+    if (context().treat_viewer_as_compositor_output()) {
       return Domain(context().get_compositing_region_size());
     }
 

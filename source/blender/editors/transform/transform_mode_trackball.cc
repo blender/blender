@@ -11,7 +11,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 
 #include "BKE_unit.hh"
@@ -104,24 +104,24 @@ static void applyTrackball(TransInfo *t)
 
     outputNumInput(&(t->num), c, t->scene->unit);
 
-    ofs += BLI_snprintf_rlen(str + ofs,
-                             sizeof(str) - ofs,
-                             IFACE_("Trackball: %s %s %s"),
-                             &c[0],
-                             &c[NUM_STR_REP_LEN],
-                             t->proptext);
+    ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                  sizeof(str) - ofs,
+                                  IFACE_("Trackball: %s %s %s"),
+                                  &c[0],
+                                  &c[NUM_STR_REP_LEN],
+                                  t->proptext);
   }
   else {
-    ofs += BLI_snprintf_rlen(str + ofs,
-                             sizeof(str) - ofs,
-                             IFACE_("Trackball: %.2f %.2f %s"),
-                             RAD2DEGF(phi[0]),
-                             RAD2DEGF(phi[1]),
-                             t->proptext);
+    ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                  sizeof(str) - ofs,
+                                  IFACE_("Trackball: %.2f %.2f %s"),
+                                  RAD2DEGF(phi[0]),
+                                  RAD2DEGF(phi[1]),
+                                  t->proptext);
   }
 
   if (t->flag & T_PROP_EDIT_ALL) {
-    ofs += BLI_snprintf_rlen(
+    ofs += BLI_snprintf_utf8_rlen(
         str + ofs, sizeof(str) - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
   }
 

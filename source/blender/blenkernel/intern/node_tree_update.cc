@@ -901,6 +901,8 @@ class NodeTreeMainUpdater {
         return SOCK_DISPLAY_SHAPE_DIAMOND;
       case StructureType::Grid:
         return SOCK_DISPLAY_SHAPE_VOLUME_GRID;
+      case StructureType::List:
+        return SOCK_DISPLAY_SHAPE_LIST;
     }
     BLI_assert_unreachable();
     return SOCK_DISPLAY_SHAPE_CIRCLE;
@@ -924,6 +926,9 @@ class NodeTreeMainUpdater {
       }
       case StructureType::Grid: {
         return SOCK_DISPLAY_SHAPE_VOLUME_GRID;
+      }
+      case StructureType::List: {
+        return SOCK_DISPLAY_SHAPE_LIST;
       }
     }
     BLI_assert_unreachable();

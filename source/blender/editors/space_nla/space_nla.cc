@@ -16,7 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -656,7 +656,7 @@ void ED_spacetype_nla()
   ARegionType *art;
 
   st->spaceid = SPACE_NLA;
-  STRNCPY(st->name, "NLA");
+  STRNCPY_UTF8(st->name, "NLA");
 
   st->create = nla_create;
   st->free = nla_free;

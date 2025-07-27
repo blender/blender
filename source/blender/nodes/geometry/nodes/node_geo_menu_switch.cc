@@ -48,18 +48,25 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
   const bool supports_fields = socket_type_supports_fields(data_type) &&
                                ntree->type == NTREE_GEOMETRY;
 
-  StructureType compositor_structure_type = StructureType::Dynamic;
+  StructureType value_structure_type = socket_type_always_single(data_type) ?
+                                           StructureType::Single :
+                                           StructureType::Dynamic;
+  StructureType menu_structure_type = value_structure_type;
+
   if (ntree->type == NTREE_COMPOSIT) {
     const bool is_single_compositor_type = compositor::Result::is_single_value_only_type(
         compositor::socket_data_type_to_result_type(data_type));
-    compositor_structure_type = is_single_compositor_type ? StructureType::Single :
-                                                            StructureType::Dynamic;
+    if (is_single_compositor_type) {
+      value_structure_type = StructureType::Single;
+    }
+    menu_structure_type = StructureType::Single;
   }
 
   auto &menu = b.add_input<decl::Menu>("Menu");
   if (supports_fields) {
     menu.supports_field();
   }
+  menu.structure_type(menu_structure_type);
 
   for (const NodeEnumItem &enum_item : storage.enum_definition.items()) {
     const std::string identifier = MenuSwitchItemsAccessor::socket_identifier_for_item(enum_item);
@@ -70,11 +77,9 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
     if (supports_fields) {
       input.supports_field();
     }
-    if (ntree->type == NTREE_COMPOSIT) {
-      input.structure_type(compositor_structure_type);
-    }
     /* Labels are ugly in combination with data-block pickers and are usually disabled. */
     input.hide_label(ELEM(data_type, SOCK_OBJECT, SOCK_IMAGE, SOCK_COLLECTION, SOCK_MATERIAL));
+    input.structure_type(value_structure_type);
   }
 
   auto &output = b.add_output(data_type, "Output");
@@ -84,9 +89,7 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
   else if (data_type == SOCK_GEOMETRY) {
     output.propagate_all();
   }
-  if (ntree->type == NTREE_COMPOSIT) {
-    output.structure_type(compositor_structure_type);
-  }
+  output.structure_type(value_structure_type);
 
   b.add_input<decl::Extend>("", "__extend__").structure_type(StructureType::Dynamic);
 }

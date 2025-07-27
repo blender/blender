@@ -13,7 +13,7 @@
 #ifdef WITH_APPLE_CROSSPLATFORM
 #  include "intern/GHOST_ContextIOS.hh"
 #else
-#  include "intern/GHOST_ContextCGL.hh"
+#  include "intern/GHOST_ContextMTL.hh"
 #endif
 
 #include <fstream>
@@ -54,7 +54,7 @@ id<MTLCommandBuffer> MTLCommandBufferManager::ensure_begin()
      *
      * NOTE: We currently stall until completion of GPU work upon ::submit if we have reached the
      * in-flight command buffer limit. */
-    BLI_assert(MTLCommandBufferManager::num_active_cmd_bufs <
+    BLI_assert(MTLCommandBufferManager::num_active_cmd_bufs_in_system <
                GHOST_ContextMTL::max_command_buffer_count);
 
     if (G.debug & G_DEBUG_GPU) {
@@ -141,7 +141,7 @@ bool MTLCommandBufferManager::submit(bool wait)
 
   /* If we have too many active command buffers in flight, wait until completed to avoid running
    * out. We can increase */
-  if (MTLCommandBufferManager::num_active_cmd_bufs >=
+  if (MTLCommandBufferManager::num_active_cmd_bufs_in_system >=
       (GHOST_ContextMTL::max_command_buffer_count - 1))
   {
     wait = true;

@@ -156,32 +156,34 @@ gpu::VertBufPtr extract_tangents(const MeshRenderData &mr,
   GPUVertFormat format = {0};
   const Array<Array<float4>> tangents = extract_tan_init_common(mr, cache, &format, gpu_attr_type);
 
-  const int vbo_size = tangents.size() * mr.corners_num;
-
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
-  GPU_vertbuf_data_alloc(*vbo, vbo_size);
+  GPU_vertbuf_data_alloc(*vbo, mr.corners_num);
 
   if (use_hq) {
-    short4 *tan_data = vbo->data<short4>().data();
+    MutableSpan tan_data = vbo->data<short4>();
+    int vbo_index = 0;
     for (const int i : tangents.index_range()) {
       const Span<float4> layer_data = tangents[i];
       for (int corner = 0; corner < mr.corners_num; corner++) {
-        *tan_data = gpu::convert_normal<short4>(float3(layer_data[corner]));
-        (*tan_data)[3] = (layer_data[corner][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
-        tan_data++;
+        tan_data[vbo_index] = gpu::convert_normal<short4>(float3(layer_data[corner]));
+        tan_data[vbo_index].w = (layer_data[corner][3] > 0.0f) ? SHRT_MAX : SHRT_MIN;
+        vbo_index++;
       }
     }
+    BLI_assert(vbo_index == tan_data.size());
   }
   else {
-    gpu::PackedNormal *tan_data = vbo->data<gpu::PackedNormal>().data();
+    MutableSpan tan_data = vbo->data<gpu::PackedNormal>();
+    int vbo_index = 0;
     for (const int i : tangents.index_range()) {
       const Span<float4> layer_data = tangents[i];
       for (int corner = 0; corner < mr.corners_num; corner++) {
-        *tan_data = gpu::convert_normal<gpu::PackedNormal>(float3(layer_data[corner]));
-        tan_data->w = (layer_data[corner][3] > 0.0f) ? 1 : -2;
-        tan_data++;
+        tan_data[vbo_index] = gpu::convert_normal<gpu::PackedNormal>(float3(layer_data[corner]));
+        tan_data[vbo_index].w = (layer_data[corner][3] > 0.0f) ? 1 : -2;
+        vbo_index++;
       }
     }
+    BLI_assert(vbo_index == tan_data.size());
   }
 
   return vbo;
@@ -202,15 +204,13 @@ gpu::VertBufPtr extract_tangents_subdiv(const MeshRenderData &mr,
   GPUVertFormat format = {0};
   const Array<Array<float4>> tangents = extract_tan_init_common(mr, cache, &format, gpu_attr_type);
 
-  const int coarse_vbo_size = tangents.size() * mr.corners_num;
-
   gpu::VertBufPtr vbo = gpu::VertBufPtr(
       GPU_vertbuf_create_on_device(format, subdiv_cache.num_subdiv_loops));
 
   gpu::VertBuf *coarse_vbo = GPU_vertbuf_calloc();
   /* Dynamic as we upload and interpolate layers one at a time. */
   GPU_vertbuf_init_with_format_ex(*coarse_vbo, get_coarse_tan_format(), GPU_USAGE_DYNAMIC);
-  GPU_vertbuf_data_alloc(*coarse_vbo, coarse_vbo_size);
+  GPU_vertbuf_data_alloc(*coarse_vbo, mr.corners_num);
 
   /* Index of the tangent layer in the compact buffer. Used layers are stored in a single buffer.
    */

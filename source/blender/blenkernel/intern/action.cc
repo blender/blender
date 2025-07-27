@@ -1141,7 +1141,7 @@ bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
 
   BKE_pose_channel_session_uid_generate(chan);
 
-  STRNCPY(chan->name, name);
+  STRNCPY_UTF8(chan->name, name);
 
   copy_v3_fl(chan->custom_scale_xyz, 1.0f);
   zero_v3(chan->custom_translation);
@@ -1793,7 +1793,7 @@ bActionGroup *BKE_pose_add_group(bPose *pose, const char *name)
   }
 
   grp = MEM_callocN<bActionGroup>("PoseGroup");
-  STRNCPY(grp->name, name);
+  STRNCPY_UTF8(grp->name, name);
   BLI_addtail(&pose->agroups, grp);
   BLI_uniquename(&pose->agroups, grp, name, '.', offsetof(bActionGroup, name), sizeof(grp->name));
 
@@ -2009,10 +2009,10 @@ void what_does_obaction(Object *ob,
     }
   }
 
-  STRNCPY(workob->parsubstr, ob->parsubstr);
+  STRNCPY_UTF8(workob->parsubstr, ob->parsubstr);
 
   /* we don't use real object name, otherwise RNA screws with the real thing */
-  STRNCPY(workob->id.name, "OB<ConstrWorkOb>");
+  STRNCPY_UTF8(workob->id.name, "OB<ConstrWorkOb>");
 
   /* If we're given a group to use, it's likely to be more efficient
    * (though a bit more dangerous). */

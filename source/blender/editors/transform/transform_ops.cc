@@ -634,6 +634,14 @@ static bool transform_poll_property(const bContext *C, wmOperator *op, const Pro
     return RNA_boolean_get(op->ptr, "snap");
   }
 
+  if (STREQ(prop_id, "use_even_offset")) {
+    /* Even offset isn't meaningful for individual faces. */
+    if (op->opm && STREQ(op->opm->idname, "MESH_OT_extrude_faces_move")) {
+      return false;
+    }
+    return true;
+  }
+
   /* #P_CORRECT_UV. */
   if (STREQ(prop_id, "correct_uv")) {
     ScrArea *area = CTX_wm_area(C);

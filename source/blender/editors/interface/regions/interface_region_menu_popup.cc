@@ -22,7 +22,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -460,7 +460,7 @@ static void create_title_button(uiLayout *layout, const char *title, int icon)
   char titlestr[256];
 
   if (icon) {
-    SNPRINTF(titlestr, " %s", title);
+    SNPRINTF_UTF8(titlestr, " %s", title);
     uiDefIconTextBut(
         block, ButType::Label, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
   }
@@ -575,7 +575,7 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
 
     if (pup == nullptr) {
       char title[UI_MAX_DRAW_STR];
-      SNPRINTF(title, "%s: %s", RPT_("Report"), report->typestr);
+      SNPRINTF_UTF8(title, "%s: %s", RPT_("Report"), report->typestr);
       /* popup_menu stuff does just what we need (but pass meaningful block name) */
       pup = UI_popup_menu_begin_ex(C, title, __func__, ICON_NONE);
       layout = UI_popup_menu_layout(pup);
@@ -592,7 +592,7 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
       msg_next = strchr(msg, '\n');
       if (msg_next) {
         msg_next++;
-        BLI_strncpy(buf, msg, std::min(sizeof(buf), size_t(msg_next - msg)));
+        BLI_strncpy_utf8(buf, msg, std::min(sizeof(buf), size_t(msg_next - msg)));
         msg = buf;
       }
       layout->label(msg, icon);
@@ -625,7 +625,7 @@ static void ui_popup_menu_create_from_menutype(bContext *C,
       },
       true);
 
-  STRNCPY(handle->menu_idname, mt->idname);
+  STRNCPY_UTF8(handle->menu_idname, mt->idname);
 
   WorkspaceStatus status(C);
   if (bool(mt->flag & MenuTypeFlag::SearchOnKeyPress)) {

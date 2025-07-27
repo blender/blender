@@ -12,7 +12,9 @@ It's called "global" to avoid confusion with the Blender World data-block.
 
 bl_info = {
     "name": "Copy Global Transform",
-    "author": "Sybren A. Stüvel",
+    # This is now displayed as the maintainer, so show the foundation.
+    # "author": "Sybren A. Stüvel", # Original Authors
+    "author": "Blender Foundation",
     "version": (4, 4),
     "blender": (4, 4, 0),
     "location": "N-panel in the 3D Viewport",

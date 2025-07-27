@@ -269,25 +269,26 @@ static void write_nurbs_curve_objects(const Span<std::unique_ptr<OBJCurve>> expo
   fh.write_to_file(obj_writer.get_outfile());
 }
 
-void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, const char *filepath)
+static bool open_stream_writers(const OBJExportParams &export_params,
+                                const char *filepath,
+                                std::unique_ptr<OBJWriter> &r_frame_writer,
+                                std::unique_ptr<MTLWriter> &r_mtl_writer)
 {
-  std::unique_ptr<OBJWriter> frame_writer = nullptr;
   try {
-    frame_writer = std::make_unique<OBJWriter>(filepath, export_params);
+    r_frame_writer = std::make_unique<OBJWriter>(filepath, export_params);
   }
   catch (const std::system_error &ex) {
     print_exception_error(ex);
     BKE_reportf(export_params.reports, RPT_ERROR, "OBJ Export: Cannot open file '%s'", filepath);
-    return;
+    return false;
   }
-  if (!frame_writer) {
+  if (!r_frame_writer) {
     BLI_assert_msg(false, "File should be writable by now.");
-    return;
+    return false;
   }
-  std::unique_ptr<MTLWriter> mtl_writer = nullptr;
   if (export_params.export_materials || export_params.export_material_groups) {
     try {
-      mtl_writer = std::make_unique<MTLWriter>(filepath, export_params.export_materials);
+      r_mtl_writer = std::make_unique<MTLWriter>(filepath, export_params.export_materials);
     }
     catch (const std::system_error &ex) {
       print_exception_error(ex);
@@ -297,30 +298,60 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
                   filepath);
     }
   }
+  return true;
+}
 
-  frame_writer->write_header();
+static void write_materials(MTLWriter *mtl_writer, const OBJExportParams &export_params)
+{
+  BLI_assert(mtl_writer);
+  mtl_writer->write_header(export_params.blen_filepath);
+  char dest_dir[FILE_MAX];
+  if (export_params.file_base_for_tests[0] == '\0') {
+    BLI_path_split_dir_part(export_params.filepath, dest_dir, sizeof(dest_dir));
+  }
+  else {
+    STRNCPY(dest_dir, export_params.file_base_for_tests);
+  }
+  BLI_path_slash_native(dest_dir);
+  BLI_path_normalize(dest_dir);
+  mtl_writer->write_materials(export_params.blen_filepath,
+                              export_params.path_mode,
+                              dest_dir,
+                              export_params.export_pbr_extensions);
+}
 
+static void export_objects(const OBJExportParams &export_params,
+                           const Span<std::unique_ptr<OBJMesh>> meshes,
+                           const Span<std::unique_ptr<OBJCurve>> curves,
+                           const char *filepath)
+{
+  /* Open */
+  std::unique_ptr<OBJWriter> obj_writer;
+  std::unique_ptr<MTLWriter> mtl_writer;
+  if (!open_stream_writers(export_params, filepath, obj_writer, mtl_writer)) {
+    return;
+  }
+
+  /* Write */
+  obj_writer->write_header();
+  write_mesh_objects(meshes, *obj_writer, mtl_writer.get(), export_params);
+  write_nurbs_curve_objects(curves, *obj_writer);
+  if (mtl_writer && export_params.export_materials) {
+    write_materials(mtl_writer.get(), export_params);
+  }
+}
+
+void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, const char *filepath)
+{
   auto [exportable_as_mesh, exportable_as_nurbs] = filter_supported_objects(depsgraph,
                                                                             export_params);
 
-  write_mesh_objects(exportable_as_mesh, *frame_writer, mtl_writer.get(), export_params);
-  if (mtl_writer && export_params.export_materials) {
-    mtl_writer->write_header(export_params.blen_filepath);
-    char dest_dir[FILE_MAX];
-    if (export_params.file_base_for_tests[0] == '\0') {
-      BLI_path_split_dir_part(export_params.filepath, dest_dir, sizeof(dest_dir));
-    }
-    else {
-      STRNCPY(dest_dir, export_params.file_base_for_tests);
-    }
-    BLI_path_slash_native(dest_dir);
-    BLI_path_normalize(dest_dir);
-    mtl_writer->write_materials(export_params.blen_filepath,
-                                export_params.path_mode,
-                                dest_dir,
-                                export_params.export_pbr_extensions);
+  if (exportable_as_mesh.size() == 0 && exportable_as_nurbs.size() == 0) {
+    BKE_reportf(export_params.reports, RPT_WARNING, "OBJ Export: No information to write");
+    return;
   }
-  write_nurbs_curve_objects(exportable_as_nurbs, *frame_writer);
+
+  export_objects(export_params, exportable_as_mesh, exportable_as_nurbs, filepath);
 }
 
 bool append_frame_to_filename(const char *filepath,

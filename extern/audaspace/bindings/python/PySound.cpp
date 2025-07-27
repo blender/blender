@@ -64,6 +64,11 @@
 #include "fx/ConvolverSound.h"
 #endif
 
+
+#ifdef WITH_RUBBERBAND
+#include "fx/TimeStretchPitchScale.h"
+#endif
+
 #include <cstring>
 #include <structmember.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -444,7 +449,7 @@ PyDoc_STRVAR(M_aud_Sound_sawtooth_doc,
 			 "   :arg frequency: The frequency of the sawtooth wave in Hz.\n"
 			 "   :type frequency: float\n"
 			 "   :arg rate: The sampling rate in Hz. It's recommended to set this\n"
-			 "      value to the playback device's samling rate to avoid resamping.\n"
+			 "      value to the playback device's sampling rate to avoid resampling.\n"
 			 "   :type rate: int\n"
 			 "   :return: The created :class:`Sound` object.\n"
 			 "   :rtype: :class:`Sound`");
@@ -482,7 +487,7 @@ PyDoc_STRVAR(M_aud_Sound_silence_doc,
 			 ".. classmethod:: silence(rate=48000)\n\n"
 			 "   Creates a silence sound which plays simple silence.\n\n"
 			 "   :arg rate: The sampling rate in Hz. It's recommended to set this\n"
-			 "      value to the playback device's samling rate to avoid resamping.\n"
+			 "      value to the playback device's sampling rate to avoid resampling.\n"
 			 "   :type rate: int\n"
 			 "   :return: The created :class:`Sound` object.\n"
 			 "   :rtype: :class:`Sound`");
@@ -521,7 +526,7 @@ PyDoc_STRVAR(M_aud_Sound_sine_doc,
 			 "   :arg frequency: The frequency of the sine wave in Hz.\n"
 			 "   :type frequency: float\n"
 			 "   :arg rate: The sampling rate in Hz. It's recommended to set this\n"
-			 "      value to the playback device's samling rate to avoid resamping.\n"
+			 "      value to the playback device's sampling rate to avoid resampling.\n"
 			 "   :type rate: int\n"
 			 "   :return: The created :class:`Sound` object.\n"
 			 "   :rtype: :class:`Sound`");
@@ -561,7 +566,7 @@ PyDoc_STRVAR(M_aud_Sound_square_doc,
 			 "   :arg frequency: The frequency of the square wave in Hz.\n"
 			 "   :type frequency: float\n"
 			 "   :arg rate: The sampling rate in Hz. It's recommended to set this\n"
-			 "      value to the playback device's samling rate to avoid resamping.\n"
+			 "      value to the playback device's sampling rate to avoid resampling.\n"
 			 "   :type rate: int\n"
 			 "   :return: The created :class:`Sound` object.\n"
 			 "   :rtype: :class:`Sound`");
@@ -601,7 +606,7 @@ PyDoc_STRVAR(M_aud_Sound_triangle_doc,
 			 "   :arg frequency: The frequency of the triangle wave in Hz.\n"
 			 "   :type frequency: float\n"
 			 "   :arg rate: The sampling rate in Hz. It's recommended to set this\n"
-			 "      value to the playback device's samling rate to avoid resamping.\n"
+			 "      value to the playback device's sampling rate to avoid resampling.\n"
 			 "   :type rate: int\n"
 			 "   :return: The created :class:`Sound` object.\n"
 			 "   :rtype: :class:`Sound`");
@@ -1787,6 +1792,57 @@ Sound_binaural(Sound* self, PyObject* args)
 
 #endif
 
+#ifdef WITH_RUBBERBAND
+
+PyDoc_STRVAR(M_aud_Sound_timeStretchPitchScale_doc, ".. method:: timeStretchPitchScale(time_ratio, pitch_scale, quality, preserve_formant)\n\n"
+                                                    "   Applies time-stretching and pitch-scaling to the sound.\n\n"
+                                                    "   :arg time_ratio: The factor by which to stretch or compress time.\n"
+                                                    "   :type time_ratio: float\n"
+                                                    "   :arg pitch_scale: The factor by which to adjust the pitch.\n"
+                                                    "   :type pitch_scale: float\n"
+                                                    "   :arg quality: Rubberband stretcher quality (STRETCHER_QUALITY_*).\n"
+                                                    "   :type quality: int\n"
+                                                    "   :arg preserve_formant: Whether to preserve the vocal formants during pitch-shifting.\n"
+                                                    "   :type preserve_formant: bool\n"
+                                                    "   :return: The created :class:`Sound` object.\n"
+                                                    "   :rtype: :class:`Sound`");
+static PyObject * 
+Sound_timeStretchPitchScale(Sound* self, PyObject* args)
+{
+	double time_ratio, pitch_scale;
+	int quality = 0;
+	int preserve_formant = 0;
+	if(!PyArg_ParseTuple(args, "dd|i|p:timeStretchPitchScale", &time_ratio, &pitch_scale, &quality, &preserve_formant))
+		return nullptr;
+
+	if(quality < 0 || quality > 2)
+	{
+		PyErr_WarnEx(PyExc_UserWarning, "Invalid quality value: using default (0 = HIGH)", 1);
+		quality = 0;
+	}
+
+	PyTypeObject* type = Py_TYPE(self);
+	Sound* parent = (Sound*) type->tp_alloc(type, 0);
+
+	if(parent != nullptr)
+	{
+		try
+		{
+			parent->sound = new std::shared_ptr<ISound>(new TimeStretchPitchScale(*reinterpret_cast<std::shared_ptr<ISound>*>(self->sound), time_ratio, pitch_scale,
+			                                                                      static_cast<StretcherQuality>(quality), preserve_formant != 0));
+		}
+		catch(Exception& e)
+		{
+			Py_DECREF(parent);
+			PyErr_SetString(AUDError, e.what());
+			return nullptr;
+		}
+	}
+
+	return (PyObject*)parent;
+}
+
+#endif
 static PyMethodDef Sound_methods[] = {
 	{"data", (PyCFunction)Sound_data, METH_NOARGS,
 	 M_aud_Sound_data_doc
@@ -1901,6 +1957,11 @@ static PyMethodDef Sound_methods[] = {
 	M_aud_Sound_binaural_doc
 	},
 #endif
+#ifdef WITH_RUBBERBAND
+	{"timeStretchPitchScale", (PyCFunction)Sound_timeStretchPitchScale, METH_VARARGS,
+	 M_aud_Sound_timeStretchPitchScale_doc
+	},
+#endif
 	{nullptr}  /* Sentinel */
 };
 
@@ -1923,7 +1984,7 @@ Sound_get_specs(Sound* self, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Sound_length_doc,
-			 "The length attribute returns the duration of the sound in seconds.");
+			 "The sample specification of the sound as a tuple with rate and channel count.");
 
 static PyObject *
 Sound_get_length(Sound* self, void* nothing)

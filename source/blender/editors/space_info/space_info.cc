@@ -11,7 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -255,7 +255,7 @@ void ED_spacetype_info()
   ARegionType *art;
 
   st->spaceid = SPACE_INFO;
-  STRNCPY(st->name, "Info");
+  STRNCPY_UTF8(st->name, "Info");
 
   st->create = info_create;
   st->free = info_free;

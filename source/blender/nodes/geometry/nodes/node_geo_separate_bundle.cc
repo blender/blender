@@ -123,7 +123,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (!stype || !stype->geometry_nodes_cpp_type) {
       continue;
     }
-    const std::optional<Bundle::Item> value = bundle->lookup(SocketInterfaceKey(name));
+    const std::optional<Bundle::Item> value = bundle->lookup(name);
     if (!value) {
       params.error_message_add(NodeWarningType::Error,
                                fmt::format(fmt::runtime(TIP_("Value not found: \"{}\"")), name));

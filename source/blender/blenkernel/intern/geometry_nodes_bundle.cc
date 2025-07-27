@@ -7,32 +7,6 @@
 
 namespace blender::bke {
 
-SocketInterfaceKey::SocketInterfaceKey(std::string identifier)
-{
-  identifiers_.append(std::move(identifier));
-}
-
-SocketInterfaceKey::SocketInterfaceKey(Vector<std::string> identifiers)
-    : identifiers_(std::move(identifiers))
-{
-  BLI_assert(!identifiers_.is_empty());
-}
-
-Span<std::string> SocketInterfaceKey::identifiers() const
-{
-  return identifiers_;
-}
-
-bool SocketInterfaceKey::matches(const SocketInterfaceKey &other) const
-{
-  for (const std::string &identifier : other.identifiers_) {
-    if (identifiers_.contains(identifier)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 Bundle::Bundle() = default;
 
 Bundle::~Bundle()
@@ -77,7 +51,7 @@ Bundle &Bundle::operator=(Bundle &&other) noexcept
   return *this;
 }
 
-void Bundle::add_new(SocketInterfaceKey key, const bNodeSocketType &type, const void *value)
+void Bundle::add_new(const StringRef key, const bNodeSocketType &type, const void *value)
 {
   BLI_assert(!this->contains(key));
   BLI_assert(type.geometry_nodes_cpp_type);
@@ -88,7 +62,7 @@ void Bundle::add_new(SocketInterfaceKey key, const bNodeSocketType &type, const 
   buffers_.append(buffer);
 }
 
-bool Bundle::add(const SocketInterfaceKey &key, const bNodeSocketType &type, const void *value)
+bool Bundle::add(const StringRef key, const bNodeSocketType &type, const void *value)
 {
   if (this->contains(key)) {
     return false;
@@ -97,16 +71,7 @@ bool Bundle::add(const SocketInterfaceKey &key, const bNodeSocketType &type, con
   return true;
 }
 
-bool Bundle::add(SocketInterfaceKey &&key, const bNodeSocketType &type, const void *value)
-{
-  if (this->contains(key)) {
-    return false;
-  }
-  this->add_new(std::move(key), type, value);
-  return true;
-}
-
-std::optional<Bundle::Item> Bundle::lookup(const SocketInterfaceKey &key) const
+std::optional<Bundle::Item> Bundle::lookup(const StringRef key) const
 {
   for (const StoredItem &item : items_) {
     if (item.key.matches(key)) {
@@ -116,7 +81,7 @@ std::optional<Bundle::Item> Bundle::lookup(const SocketInterfaceKey &key) const
   return std::nullopt;
 }
 
-bool Bundle::remove(const SocketInterfaceKey &key)
+bool Bundle::remove(const StringRef key)
 {
   const int removed_num = items_.remove_if([&key](StoredItem &item) {
     if (item.key.matches(key)) {
@@ -128,7 +93,7 @@ bool Bundle::remove(const SocketInterfaceKey &key)
   return removed_num >= 1;
 }
 
-bool Bundle::contains(const SocketInterfaceKey &key) const
+bool Bundle::contains(const StringRef key) const
 {
   for (const StoredItem &item : items_) {
     if (item.key.matches(key)) {

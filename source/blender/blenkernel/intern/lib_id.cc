@@ -147,7 +147,7 @@ static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data
   if (BLI_path_abs(filepath, base_old)) {
     /* Path was relative and is now absolute. Remap.
      * Important BLI_path_normalize runs before the path is made relative
-     * because it won't work for paths that start with "//../" */
+     * because it won't work for paths that start with `//../` */
     BLI_path_normalize(filepath);
     BLI_path_rel(filepath, base_new);
     BLI_strncpy(path_dst, filepath, path_dst_maxncpy);

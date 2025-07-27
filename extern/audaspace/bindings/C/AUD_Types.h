@@ -200,3 +200,13 @@ typedef struct
 	/// Audio data parameters.
 	AUD_DeviceSpecs specs;
 } AUD_StreamInfo;
+
+/**
+ * The Rubber Band stretcher quality.
+ */
+typedef enum
+{
+	AUD_STRETCHER_QUALITY_HIGH = 0,      /// Prioritize high-quality pitch processing
+	AUD_STRETCHER_QUALITY_FAST = 1,      /// Prioritize speed over audio quality
+	AUD_STRETCHER_QUALITY_CONSISTENT = 2 /// Prioritize consistency for dynamic pitch changes
+} AUD_StretcherQuality;

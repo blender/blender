@@ -17,7 +17,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "WM_api.hh"
@@ -221,10 +221,11 @@ static void ui_update_color_picker_buts_rgba(uiBut *from_but,
 
       int col_len;
       if (cpicker->has_alpha) {
-        col_len = SNPRINTF_RLEN(col, "#%02X%02X%02X%02X", UNPACK4_EX((uint), rgba_hex_uchar, ));
+        col_len = SNPRINTF_UTF8_RLEN(
+            col, "#%02X%02X%02X%02X", UNPACK4_EX((uint), rgba_hex_uchar, ));
       }
       else {
-        col_len = SNPRINTF_RLEN(col, "#%02X%02X%02X", UNPACK3_EX((uint), rgba_hex_uchar, ));
+        col_len = SNPRINTF_UTF8_RLEN(col, "#%02X%02X%02X", UNPACK3_EX((uint), rgba_hex_uchar, ));
       }
       memcpy(bt->poin, col, col_len + 1); /* +1 offset for the # symbol. */
     }
@@ -747,10 +748,10 @@ static void ui_block_colorpicker(uiBlock *block,
   rgba_float_to_uchar(rgba_hex_uchar, rgba_hex);
 
   if (cpicker->has_alpha) {
-    SNPRINTF(hexcol, "#%02X%02X%02X%02X", UNPACK4_EX((uint), rgba_hex_uchar, ));
+    SNPRINTF_UTF8(hexcol, "#%02X%02X%02X%02X", UNPACK4_EX((uint), rgba_hex_uchar, ));
   }
   else {
-    SNPRINTF(hexcol, "#%02X%02X%02X", UNPACK3_EX((uint), rgba_hex_uchar, ));
+    SNPRINTF_UTF8(hexcol, "#%02X%02X%02X", UNPACK3_EX((uint), rgba_hex_uchar, ));
   }
 
   yco -= UI_UNIT_Y * 1.5f;

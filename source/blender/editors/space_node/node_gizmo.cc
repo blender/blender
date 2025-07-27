@@ -734,10 +734,10 @@ void NODE_GGT_backdrop_ellipse_mask(wmGizmoGroupType *gzgt)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Sun Beams
+/** \name Glare
  * \{ */
 
-struct NodeSunBeamsWidgetGroup {
+struct NodeGlareWidgetGroup {
   wmGizmo *gizmo;
 
   struct {
@@ -746,7 +746,7 @@ struct NodeSunBeamsWidgetGroup {
   } state;
 };
 
-static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
+static bool WIDGETGROUP_node_glare_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   if (!node_gizmo_is_set_visible(C)) {
     return false;
@@ -755,10 +755,12 @@ static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType * /*
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *node = bke::node_get_active(*snode->edittree);
 
-  if (node && node->is_type("CompositorNodeSunBeams")) {
+  if ((node && node->is_type("CompositorNodeGlare")) &&
+      static_cast<NodeGlare *>(node->storage)->type == CMP_NODE_GLARE_SUN_BEAMS)
+  {
     snode->edittree->ensure_topology_cache();
     LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-      if (STR_ELEM(input->name, "Source") && input->is_directly_linked()) {
+      if (STR_ELEM(input->name, "Sun Position") && input->is_directly_linked()) {
         return false;
       }
     }
@@ -768,37 +770,37 @@ static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType * /*
   return false;
 }
 
-static void WIDGETGROUP_node_sbeam_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_node_glare_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  NodeSunBeamsWidgetGroup *sbeam_group = MEM_mallocN<NodeSunBeamsWidgetGroup>(__func__);
+  NodeGlareWidgetGroup *glare_group = MEM_mallocN<NodeGlareWidgetGroup>(__func__);
 
-  sbeam_group->gizmo = WM_gizmo_new("GIZMO_GT_move_3d", gzgroup, nullptr);
-  wmGizmo *gz = sbeam_group->gizmo;
+  glare_group->gizmo = WM_gizmo_new("GIZMO_GT_move_3d", gzgroup, nullptr);
+  wmGizmo *gz = glare_group->gizmo;
 
   RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_CROSS_2D);
 
   gz->scale_basis = 0.05f / 75.0f;
 
-  gzgroup->customdata = sbeam_group;
+  gzgroup->customdata = glare_group;
 }
 
-static void WIDGETGROUP_node_sbeam_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_node_glare_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  NodeSunBeamsWidgetGroup *sbeam_group = (NodeSunBeamsWidgetGroup *)gzgroup->customdata;
+  NodeGlareWidgetGroup *glare_group = (NodeGlareWidgetGroup *)gzgroup->customdata;
   ARegion *region = CTX_wm_region(C);
   wmGizmo *gz = (wmGizmo *)gzgroup->gizmos.first;
 
   SpaceNode *snode = CTX_wm_space_node(C);
 
   node_gizmo_calc_matrix_space_with_image_dims(
-      snode, region, sbeam_group->state.dims, sbeam_group->state.offset, gz->matrix_space);
+      snode, region, glare_group->state.dims, glare_group->state.offset, gz->matrix_space);
 }
 
-static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_node_glare_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   Main *bmain = CTX_data_main(C);
-  NodeSunBeamsWidgetGroup *sbeam_group = (NodeSunBeamsWidgetGroup *)gzgroup->customdata;
-  wmGizmo *gz = sbeam_group->gizmo;
+  NodeGlareWidgetGroup *glare_group = (NodeGlareWidgetGroup *)gzgroup->customdata;
+  wmGizmo *gz = glare_group->gizmo;
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
@@ -810,14 +812,14 @@ static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgr
     return;
   }
 
-  sbeam_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
-  copy_v2_v2(sbeam_group->state.offset, ima->runtime->backdrop_offset);
+  glare_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
+  copy_v2_v2(glare_group->state.offset, ima->runtime->backdrop_offset);
 
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *node = bke::node_get_active(*snode->edittree);
 
   /* Need to set property here for undo. TODO: would prefer to do this in _init. */
-  bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Source");
+  bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Sun Position");
   PointerRNA socket_pointer = RNA_pointer_create_discrete(
       reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
   WM_gizmo_target_property_def_rna(gz, "offset", &socket_pointer, "default_value", -1);
@@ -827,18 +829,18 @@ static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgr
   BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
-void NODE_GGT_backdrop_sun_beams(wmGizmoGroupType *gzgt)
+void NODE_GGT_backdrop_glare(wmGizmoGroupType *gzgt)
 {
-  gzgt->name = "Sun Beams Widget";
-  gzgt->idname = "NODE_GGT_sbeam";
+  gzgt->name = "Glare Widget";
+  gzgt->idname = "NODE_GGT_glare";
 
   gzgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
 
-  gzgt->poll = WIDGETGROUP_node_sbeam_poll;
-  gzgt->setup = WIDGETGROUP_node_sbeam_setup;
+  gzgt->poll = WIDGETGROUP_node_glare_poll;
+  gzgt->setup = WIDGETGROUP_node_glare_setup;
   gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
-  gzgt->draw_prepare = WIDGETGROUP_node_sbeam_draw_prepare;
-  gzgt->refresh = WIDGETGROUP_node_sbeam_refresh;
+  gzgt->draw_prepare = WIDGETGROUP_node_glare_draw_prepare;
+  gzgt->refresh = WIDGETGROUP_node_glare_refresh;
 }
 
 /** \} */

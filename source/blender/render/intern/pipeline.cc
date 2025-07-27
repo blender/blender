@@ -31,7 +31,7 @@
 #include "BLI_mutex.hh"
 #include "BLI_rect.h"
 #include "BLI_set.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_time.h"
 #include "BLI_timecode.h"
@@ -513,7 +513,7 @@ Render *RE_NewRender(const char *name)
     /* new render data struct */
     re = MEM_new<Render>("new render");
     RenderGlobal.render_list.push_front(re);
-    STRNCPY(re->name, name);
+    STRNCPY_UTF8(re->name, name);
   }
 
   RE_InitRenderCB(re);
@@ -536,11 +536,11 @@ static void scene_render_name_get(const Scene *scene,
                                   const size_t render_name_maxncpy)
 {
   if (ID_IS_LINKED(scene)) {
-    BLI_snprintf(
+    BLI_snprintf_utf8(
         render_name, render_name_maxncpy, "%s %s", scene->id.lib->id.name, scene->id.name);
   }
   else {
-    BLI_strncpy(render_name, scene->id.name, render_name_maxncpy);
+    BLI_strncpy_utf8(render_name, scene->id.name, render_name_maxncpy);
   }
 }
 
@@ -565,7 +565,7 @@ Render *RE_NewInteractiveCompositorRender(const Scene *scene)
 
   return RenderGlobal.interactive_compositor_renders.lookup_or_add_cb(render_name, [&]() {
     Render *render = MEM_new<Render>("New Interactive Compositor Render");
-    STRNCPY(render->name, render_name);
+    STRNCPY_UTF8(render->name, render_name);
     RE_InitRenderCB(render);
     return render;
   });
@@ -870,7 +870,7 @@ void RE_InitState(Render *re,
   }
 
   if (single_layer) {
-    STRNCPY(re->single_view_layer, single_layer->name);
+    STRNCPY_UTF8(re->single_view_layer, single_layer->name);
     re->r.scemode |= R_SINGLE_LAYER;
   }
   else {
@@ -1222,26 +1222,20 @@ static bool compositor_needs_render(Scene *scene)
   return false;
 }
 
-/** Returns true if the node tree has a composite output node. */
-static bool node_tree_has_composite_output(const bNodeTree *node_tree)
+/** Returns true if the node tree has a group output node. */
+static bool node_tree_has_group_output(const bNodeTree *node_tree)
 {
   if (node_tree == nullptr) {
     return false;
   }
 
-  for (const bNode *node : node_tree->all_nodes()) {
-    if (node->is_muted()) {
-      continue;
-    }
-    if (node->type_legacy == CMP_NODE_COMPOSITE && node->flag & NODE_DO_OUTPUT) {
+  node_tree->ensure_topology_cache();
+  for (const bNode *node : node_tree->nodes_by_type("NodeGroupOutput")) {
+    if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
       return true;
     }
-    if (node->is_group() && node->id) {
-      if (node_tree_has_composite_output(reinterpret_cast<const bNodeTree *>(node->id))) {
-        return true;
-      }
-    }
   }
+
   return false;
 }
 
@@ -1328,9 +1322,9 @@ static void do_render_compositor(Render *re)
     /* Scene render process already updates animsys. */
     update_newframe = true;
 
-    /* The compositor does not have an output, skip writing the render result. See R_SKIP_WRITE for
-     * more information. */
-    if (!node_tree_has_composite_output(re->pipeline_scene_eval->compositing_node_group)) {
+    /* The compositor does not have a group output, skip writing the render result. See
+     * R_SKIP_WRITE for more information. */
+    if (!node_tree_has_group_output(re->pipeline_scene_eval->compositing_node_group)) {
       re->flag |= R_SKIP_WRITE;
     }
   }
@@ -1775,27 +1769,34 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
   return true;
 }
 
-static bool node_tree_has_any_compositor_output(const bNodeTree *ntree)
+static bool node_tree_has_file_output(const bNodeTree *node_tree)
 {
-  for (const bNode *node : ntree->all_nodes()) {
-    if (ELEM(node->type_legacy, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
+  node_tree->ensure_topology_cache();
+  for (const bNode *node : node_tree->nodes_by_type("CompositorNodeOutputFile")) {
+    if (!node->is_muted()) {
       return true;
     }
-    if (node->is_group()) {
-      if (node->id) {
-        if (node_tree_has_any_compositor_output((const bNodeTree *)node->id)) {
-          return true;
-        }
-      }
+  }
+
+  for (const bNode *node : node_tree->group_nodes()) {
+    if (node->is_muted() || !node->id) {
+      continue;
+    }
+
+    if (node_tree_has_file_output(reinterpret_cast<const bNodeTree *>(node->id))) {
+      return true;
     }
   }
 
   return false;
 }
 
-static int check_compositor_output(Scene *scene)
+static bool scene_has_compositor_output(Scene *scene)
 {
-  return node_tree_has_any_compositor_output(scene->compositing_node_group);
+  if (node_tree_has_group_output(scene->compositing_node_group)) {
+    return true;
+  }
+  return node_tree_has_file_output(scene->compositing_node_group);
 }
 
 /* Identify if the compositor can run on the GPU. Currently, this only checks if the compositor is
@@ -1847,8 +1848,8 @@ bool RE_is_rendering_allowed(Scene *scene,
   }
   else if (scemode & R_DOCOMP && scene->compositing_node_group) {
     /* Compositor */
-    if (!check_compositor_output(scene)) {
-      BKE_report(reports, RPT_ERROR, "No render output node in scene");
+    if (!scene_has_compositor_output(scene)) {
+      BKE_report(reports, RPT_ERROR, "No Group Output or File Output nodes in scene");
       return false;
     }
 

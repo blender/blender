@@ -37,7 +37,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -522,12 +522,12 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
   if (but->drawstr.empty()) {
     const char *expr_imports[] = {"bpy", "bl_ui", nullptr};
     char expr[256];
-    SNPRINTF(expr,
-             "bl_ui.space_toolsystem_common.item_from_id("
-             "bpy.context, "
-             "bpy.context.space_data.type, "
-             "'%s').label",
-             tool_id);
+    SNPRINTF_UTF8(expr,
+                  "bl_ui.space_toolsystem_common.item_from_id("
+                  "bpy.context, "
+                  "bpy.context.space_data.type, "
+                  "'%s').label",
+                  tool_id);
     char *expr_result = nullptr;
     bool is_error = false;
 
@@ -574,12 +574,12 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
   if (is_quick_tip == false) {
     const char *expr_imports[] = {"bpy", "bl_ui", nullptr};
     char expr[256];
-    SNPRINTF(expr,
-             "bl_ui.space_toolsystem_common.description_from_id("
-             "bpy.context, "
-             "bpy.context.space_data.type, "
-             "'%s')",
-             tool_id);
+    SNPRINTF_UTF8(expr,
+                  "bl_ui.space_toolsystem_common.description_from_id("
+                  "bpy.context, "
+                  "bpy.context.space_data.type, "
+                  "'%s')",
+                  tool_id);
 
     char *expr_result = nullptr;
     bool is_error = false;
@@ -698,13 +698,13 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
     {
       const char *expr_imports[] = {"bpy", "bl_ui", nullptr};
       char expr[256];
-      SNPRINTF(expr,
-               "'\\x00'.join("
-               "item.idname for item in bl_ui.space_toolsystem_common.item_group_from_id("
-               "bpy.context, "
-               "bpy.context.space_data.type, '%s', coerce=True) "
-               "if item is not None)",
-               tool_id);
+      SNPRINTF_UTF8(expr,
+                    "'\\x00'.join("
+                    "item.idname for item in bl_ui.space_toolsystem_common.item_group_from_id("
+                    "bpy.context, "
+                    "bpy.context.space_data.type, '%s', coerce=True) "
+                    "if item is not None)",
+                    tool_id);
 
       if (has_valid_context == false) {
         /* pass */
@@ -770,14 +770,14 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
   if ((is_quick_tip == false) && CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
     const char *expr_imports[] = {"bpy", "bl_ui", nullptr};
     char expr[256];
-    SNPRINTF(expr,
-             "getattr("
-             "bl_ui.space_toolsystem_common.keymap_from_id("
-             "bpy.context, "
-             "bpy.context.space_data.type, "
-             "'%s'), "
-             "'as_pointer', lambda: 0)()",
-             tool_id);
+    SNPRINTF_UTF8(expr,
+                  "getattr("
+                  "bl_ui.space_toolsystem_common.keymap_from_id("
+                  "bpy.context, "
+                  "bpy.context.space_data.type, "
+                  "'%s'), "
+                  "'as_pointer', lambda: 0)()",
+                  tool_id);
 
     intptr_t expr_result = 0;
 

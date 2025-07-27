@@ -98,9 +98,9 @@ bool GPU_vulkan_is_supported_driver(VkPhysicalDevice vk_physical_device)
      * timelines that have not been provided by Blender. As Blender uses timelines for resource
      * management this resulted in resources to be destroyed, that are still in use. */
 
-    /* Public version 31.0.112 uses vulkan driver version 512.827.14. */
+    /* Public version 31.0.112 uses vulkan driver version 512.827.0. */
     const uint32_t driver_version = vk_physical_device_properties.properties.driverVersion;
-    constexpr uint32_t version_31_0_112 = VK_MAKE_VERSION(512, 827, 14);
+    constexpr uint32_t version_31_0_112 = VK_MAKE_VERSION(512, 827, 0);
     if (driver_version < version_31_0_112) {
       CLOG_WARN(&LOG,
                 "Detected qualcomm driver is not supported. To run the Vulkan backend "

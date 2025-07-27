@@ -24,6 +24,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_ID.h"
@@ -618,7 +619,7 @@ void WM_toolsystem_ref_set_from_runtime(bContext *C,
     toolsystem_unlink_ref(C, workspace, tref);
   }
 
-  STRNCPY(tref->idname, idname);
+  STRNCPY_UTF8(tref->idname, idname);
 
   /* This immediate request supersedes any unhandled pending requests. */
   tref->idname_pending[0] = '\0';
@@ -698,8 +699,8 @@ void WM_toolsystem_ref_sync_from_context(Main *bmain, WorkSpace *workspace, bToo
         const int i = RNA_enum_from_value(items, ts->particle.brushtype);
         const EnumPropertyItem *item = &items[i];
         if (!STREQ(tref_rt->data_block, item->identifier)) {
-          STRNCPY(tref_rt->data_block, item->identifier);
-          SNPRINTF(tref->idname, "builtin_brush.%s", item->name);
+          STRNCPY_UTF8(tref_rt->data_block, item->identifier);
+          SNPRINTF_UTF8(tref->idname, "builtin_brush.%s", item->name);
         }
       }
     }
@@ -1079,7 +1080,7 @@ static void toolsystem_ref_set_by_id_pending(Main *bmain,
     }
   }
 
-  STRNCPY(tref->idname_pending, idname_pending);
+  STRNCPY_UTF8(tref->idname_pending, idname_pending);
 
   /* If there would be a convenient way to know which screens used which work-spaces,
    * that could be used here. */
@@ -1165,7 +1166,7 @@ static bToolRef *toolsystem_reinit_ensure_toolref(bContext *C,
     if (default_tool == nullptr) {
       default_tool = toolsystem_default_tool(tkey);
     }
-    STRNCPY(tref->idname, default_tool);
+    STRNCPY_UTF8(tref->idname, default_tool);
   }
   toolsystem_reinit_with_toolref(C, workspace, tref);
   return tref;
@@ -1270,7 +1271,7 @@ static IDProperty *idprops_ensure_named_group(IDProperty *group, const char *idn
   IDProperty *prop = IDP_GetPropertyFromGroup(group, idname);
   if ((prop == nullptr) || (prop->type != IDP_GROUP)) {
     prop = blender::bke::idprop::create_group(__func__).release();
-    STRNCPY(prop->name, idname);
+    STRNCPY_UTF8(prop->name, idname);
     IDP_ReplaceInGroup_ex(group, prop, nullptr, 0);
   }
   return prop;

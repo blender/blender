@@ -275,7 +275,7 @@ struct ARegionType {
    * performed.
    *
    * This callback is not called on indirect changes of the current viewport (which could happen
-   * when the `v2d->tot is changed and `cur` is adopted accordingly).
+   * when the `v2d->tot` is changed and `cur` is adopted accordingly).
    */
   void (*on_view2d_changed)(const bContext *C, ARegion *region);
 

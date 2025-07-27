@@ -11,7 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_unit.hh"
@@ -50,10 +50,10 @@ static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRA
     outputNumInput(&(t->num), tvec, scene->unit);
   }
   else {
-    BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.0f, %.0f", val[0], val[1]);
+    BLI_snprintf_utf8(&tvec[0], NUM_STR_REP_LEN, "%.0f, %.0f", val[0], val[1]);
   }
 
-  ofs += BLI_snprintf_rlen(
+  ofs += BLI_snprintf_utf8_rlen(
       str + ofs, UI_MAX_DRAW_STR - ofs, IFACE_("Sequence Slide: %s%s"), &tvec[0], t->con.text);
 }
 

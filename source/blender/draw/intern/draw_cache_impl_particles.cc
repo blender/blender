@@ -17,7 +17,7 @@
 #include "BLI_alloca.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_customdata_types.h"
@@ -920,15 +920,15 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     int n = 0;
-    SNPRINTF(cache->uv_layer_names[i][n], "a%s", attr_safe_name);
+    SNPRINTF_UTF8(cache->uv_layer_names[i][n], "a%s", attr_safe_name);
     n++;
 
     if (i == active_uv) {
-      STRNCPY(cache->uv_layer_names[i][n], "au");
+      STRNCPY_UTF8(cache->uv_layer_names[i][n], "au");
       n++;
     }
     if (i == render_uv) {
-      STRNCPY(cache->uv_layer_names[i][n], "a");
+      STRNCPY_UTF8(cache->uv_layer_names[i][n], "a");
       n++;
     }
   }
@@ -955,15 +955,15 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     int n = 0;
-    SNPRINTF(cache->col_layer_names[i][n], "a%s", attr_safe_name);
+    SNPRINTF_UTF8(cache->col_layer_names[i][n], "a%s", attr_safe_name);
     n++;
 
     if (i == active_col) {
-      STRNCPY(cache->col_layer_names[i][n], "ac");
+      STRNCPY_UTF8(cache->col_layer_names[i][n], "ac");
       n++;
     }
     if (i == render_col) {
-      STRNCPY(cache->col_layer_names[i][n], "c");
+      STRNCPY_UTF8(cache->col_layer_names[i][n], "c");
       n++;
     }
   }
@@ -1226,7 +1226,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
           &psmd->mesh_final->corner_data, CD_PROP_FLOAT2, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
-      SNPRINTF(uuid, "a%s", attr_safe_name);
+      SNPRINTF_UTF8(uuid, "a%s", attr_safe_name);
       uv_id[i] = GPU_vertformat_attr_add(&format, uuid, blender::gpu::VertAttrType::SFLOAT_32_32);
 
       if (i == active_uv) {
@@ -1240,7 +1240,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
           &psmd->mesh_final->corner_data, CD_PROP_BYTE_COLOR, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
-      SNPRINTF(uuid, "a%s", attr_safe_name);
+      SNPRINTF_UTF8(uuid, "a%s", attr_safe_name);
       col_id[i] = GPU_vertformat_attr_add(
           &format, uuid, blender::gpu::VertAttrType::UNORM_16_16_16_16);
 

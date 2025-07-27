@@ -165,8 +165,7 @@ TEST_F(LibQueryTest, libquery_basic)
   FOREACH_MAIN_ID_END;
 
   /* Set an invalid user-count value to IDs directly used by the scene.
-   * This includes these used by its embedded IDs, like the master collection, and the scene
-   itself
+   * This includes these used by its embedded IDs, like the master collection, and the scene itself
    * (through the loop-back pointers of embedded IDs to their owner). */
   auto set_count = [](LibraryIDLinkCallbackData *cb_data) -> int {
     if (*(cb_data->id_pointer)) {

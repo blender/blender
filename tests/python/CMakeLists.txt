@@ -607,6 +607,13 @@ if(TEST_SRC_DIR_EXISTS)
   )
 
   add_blender_test(
+    bl_node_socket_usage_inference
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_node_socket_usage_inference.py
+    --
+    --testdir "${TEST_SRC_DIR}/node_group"
+  )
+
+  add_blender_test(
     bl_node_group_compat
     --python ${CMAKE_CURRENT_LIST_DIR}/bl_node_group_compat.py
     --
@@ -1044,6 +1051,7 @@ if(TEST_SRC_DIR_EXISTS)
     grease_pencil
     import
     instance
+    list
     repeat_zone
     mesh_primitives
     mesh
@@ -1289,6 +1297,12 @@ if(TEST_SRC_DIR_EXISTS)
     --
     --testdir "${TEST_SRC_DIR}/sequence_editing"
   )
+
+  add_blender_test(
+    sequencer_load_meta_stack
+    ${TEST_SRC_DIR}/sequence_editing/vse_load_meta_stack.blend
+    --python ${TEST_PYTHON_DIR}/sequencer_load_meta_stack.py
+  )
 endif()
 
 # ------------------------------------------------------------------------------
@@ -1349,6 +1363,7 @@ if(WITH_UI_TESTS)
     test_workspace.sanity_check_sculpting
     test_workspace.sanity_check_vfx
     test_workspace.sanity_check_video_editing
+    test_undo.compositor_make_group
     test_undo.text_editor_edit_mode_mix
     test_undo.text_editor_simple
     test_undo.view3d_edit_mode_multi_window

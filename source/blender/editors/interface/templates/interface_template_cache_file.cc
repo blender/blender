@@ -7,8 +7,8 @@
  */
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_scene.hh"
@@ -146,7 +146,7 @@ uiListType *UI_UL_cache_file_layers()
 {
   uiListType *list_type = (uiListType *)MEM_callocN(sizeof(*list_type), __func__);
 
-  STRNCPY(list_type->idname, "UI_UL_cache_file_layers");
+  STRNCPY_UTF8(list_type->idname, "UI_UL_cache_file_layers");
   list_type->draw_item = cache_file_layer_item;
 
   return list_type;

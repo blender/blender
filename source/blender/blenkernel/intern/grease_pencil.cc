@@ -52,6 +52,7 @@
 #include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
@@ -727,8 +728,9 @@ void Drawing::set_texture_matrices(Span<float4x2> matrices, const IndexMask &sel
     const double4x3 strokemat4x3 = double4x3(expand_4x2_mat(strokemat));
 
     /*
-     * We want to solve for `texture_matrix` in the equation: `texspace = texture_matrix *
-     * strokemat4x3` Because these matrices are not square we can not use a standard inverse.
+     * We want to solve for `texture_matrix` in the equation:
+     * `texspace = texture_matrix * strokemat4x3`
+     * Because these matrices are not square we can not use a standard inverse.
      *
      * Our problem has the form of: `X = A * Y`
      * We can solve for `A` using: `A = X * B`
@@ -2131,7 +2133,7 @@ void BKE_grease_pencil_vgroup_name_update(Object *ob, const char *old_name, cons
     CurvesGeometry &curves = drawing.strokes_for_write();
     LISTBASE_FOREACH (bDeformGroup *, vgroup, &curves.vertex_group_names) {
       if (STREQ(vgroup->name, old_name)) {
-        STRNCPY(vgroup->name, new_name);
+        STRNCPY_UTF8(vgroup->name, new_name);
       }
     }
   }
@@ -3161,10 +3163,6 @@ void GreasePencil::remove_drawings_with_no_users()
 {
   using namespace blender;
   using namespace blender::bke::greasepencil;
-
-#ifndef NDEBUG
-  this->validate_drawing_user_counts();
-#endif
 
   /* Compress the drawings array by finding unused drawings.
    * In every step two indices are found:

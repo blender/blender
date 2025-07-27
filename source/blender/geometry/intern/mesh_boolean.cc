@@ -910,8 +910,8 @@ static Mesh *mesh_boolean_mesh_arr(Span<const Mesh *> meshes,
 #define BM_FACE_TAG BM_ELEM_DRAW
 
 /**
- *  Function use to say what operand a face is part of, based on the `BM_FACE_TAG`,`
- *  which is set in `bm_mesh_create`.
+ * Function use to say what operand a face is part of, based on the `BM_FACE_TAG`
+ * which is set in `bm_mesh_create`.
  */
 static int face_boolean_operand(BMFace *f, void * /*user_data*/)
 {

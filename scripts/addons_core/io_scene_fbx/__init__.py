@@ -4,7 +4,9 @@
 
 bl_info = {
     "name": "FBX format",
-    "author": "Campbell Barton, Bastien Montagne, Jens Restemeier, @Mysteryem",
+    # This is now displayed as the maintainer, so show the foundation.
+    # "author": "Campbell Barton, Bastien Montagne, Jens Restemeier, @Mysteryem", # Original Authors
+    "author": "Blender Foundation",
     "version": (5, 13, 0),
     "blender": (4, 5, 0),
     "location": "File > Import-Export",

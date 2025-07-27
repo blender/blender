@@ -58,20 +58,40 @@ static void rna_Mesh_sharp_from_angle_set(Mesh *mesh, const float angle)
 
 static void rna_Mesh_calc_tangents(Mesh *mesh, ReportList *reports, const char *uvmap)
 {
-  float(*r_looptangents)[4];
-
+  using namespace blender;
+  float4 *r_looptangents;
   if (CustomData_has_layer(&mesh->corner_data, CD_MLOOPTANGENT)) {
-    r_looptangents = static_cast<float(*)[4]>(
+    r_looptangents = static_cast<float4 *>(
         CustomData_get_layer_for_write(&mesh->corner_data, CD_MLOOPTANGENT, mesh->corners_num));
-    memset(r_looptangents, 0, sizeof(float[4]) * mesh->corners_num);
+    memset(r_looptangents, 0, sizeof(float4) * mesh->corners_num);
   }
   else {
-    r_looptangents = static_cast<float(*)[4]>(CustomData_add_layer(
+    r_looptangents = static_cast<float4 *>(CustomData_add_layer(
         &mesh->corner_data, CD_MLOOPTANGENT, CD_SET_DEFAULT, mesh->corners_num));
     CustomData_set_layer_flag(&mesh->corner_data, CD_MLOOPTANGENT, CD_FLAG_TEMPORARY);
   }
 
-  BKE_mesh_calc_loop_tangent_single(mesh, uvmap, r_looptangents, reports);
+  if (!uvmap) {
+    uvmap = CustomData_get_active_layer_name(&mesh->corner_data, CD_PROP_FLOAT2);
+  }
+
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArraySpan uv_map = *attributes.lookup<float2>(uvmap, bke::AttrDomain::Corner);
+  if (uv_map.is_empty()) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Tangent space computation needs a UV Map, \"%s\" not found, aborting",
+                uvmap);
+    return;
+  }
+
+  bke::mesh::calc_uv_tangent_tris_quads(mesh->vert_positions(),
+                                        mesh->faces(),
+                                        mesh->corner_verts(),
+                                        mesh->corner_normals(),
+                                        uv_map,
+                                        {r_looptangents, mesh->corners_num},
+                                        reports);
 }
 
 static void rna_Mesh_free_tangents(Mesh *mesh)

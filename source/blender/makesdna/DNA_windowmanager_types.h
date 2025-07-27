@@ -16,13 +16,6 @@
 
 #include "DNA_ID.h"
 
-#ifdef __cplusplus
-#  include <mutex>
-using std_mutex_type = std::mutex;
-#else
-#  define std_mutex_type void
-#endif
-
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
 namespace blender::bke {
@@ -67,68 +60,6 @@ struct wmTimer;
 
 #define OP_MAX_TYPENAME 64
 #define KMAP_MAX_NAME 64
-
-/** Keep in sync with 'rna_enum_wm_report_items' in `wm_rna.c`. */
-typedef enum eReportType {
-  RPT_DEBUG = (1 << 0),
-  RPT_INFO = (1 << 1),
-  RPT_OPERATOR = (1 << 2),
-  RPT_PROPERTY = (1 << 3),
-  RPT_WARNING = (1 << 4),
-  RPT_ERROR = (1 << 5),
-  RPT_ERROR_INVALID_INPUT = (1 << 6),
-  RPT_ERROR_INVALID_CONTEXT = (1 << 7),
-  RPT_ERROR_OUT_OF_MEMORY = (1 << 8),
-} eReportType;
-ENUM_OPERATORS(eReportType, RPT_ERROR_OUT_OF_MEMORY)
-
-#define RPT_DEBUG_ALL (RPT_DEBUG)
-#define RPT_INFO_ALL (RPT_INFO)
-#define RPT_OPERATOR_ALL (RPT_OPERATOR)
-#define RPT_PROPERTY_ALL (RPT_PROPERTY)
-#define RPT_WARNING_ALL (RPT_WARNING)
-#define RPT_ERROR_ALL \
-  (RPT_ERROR | RPT_ERROR_INVALID_INPUT | RPT_ERROR_INVALID_CONTEXT | RPT_ERROR_OUT_OF_MEMORY)
-
-enum ReportListFlags {
-  RPT_PRINT = (1 << 0),
-  RPT_STORE = (1 << 1),
-  RPT_FREE = (1 << 2),
-  RPT_OP_HOLD = (1 << 3), /* don't move them into the operator global list (caller will use) */
-  /** Don't print (the owner of the #ReportList will handle printing to the `stdout`). */
-  RPT_PRINT_HANDLED_BY_OWNER = (1 << 4),
-};
-
-/* These two lines with # tell `makesdna` this struct can be excluded. */
-#
-#
-typedef struct Report {
-  struct Report *next, *prev;
-  /** eReportType. */
-  short type;
-  short flag;
-  /** `strlen(message)`, saves some time calculating the word wrap. */
-  int len;
-  const char *typestr;
-  const char *message;
-} Report;
-
-/**
- * \note Saved in the #wmWindowManager, don't remove.
- */
-typedef struct ReportList {
-  ListBase list;
-  /** #eReportType. */
-  int printlevel;
-  /** #eReportType. */
-  int storelevel;
-  int flag;
-  char _pad[4];
-  struct wmTimer *reporttimer;
-
-  /** Mutex for thread-safety, runtime only. */
-  std_mutex_type *lock;
-} ReportList;
 
 /* Timer custom-data to control reports display. */
 /* These two lines with # tell `makesdna` this struct can be excluded. */

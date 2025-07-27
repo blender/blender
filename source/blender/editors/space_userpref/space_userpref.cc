@@ -12,6 +12,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
@@ -120,7 +121,7 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
     }
     const char *id = items[i].identifier;
     BLI_assert(strlen(id) < sizeof(id_lower));
-    STRNCPY(id_lower, id);
+    STRNCPY_UTF8(id_lower, id);
     BLI_str_tolower_ascii(id_lower, strlen(id_lower));
   }
 
@@ -192,7 +193,7 @@ void ED_spacetype_userpref()
   ARegionType *art;
 
   st->spaceid = SPACE_USERPREF;
-  STRNCPY(st->name, "Userpref");
+  STRNCPY_UTF8(st->name, "Userpref");
 
   st->create = userpref_create;
   st->free = userpref_free;

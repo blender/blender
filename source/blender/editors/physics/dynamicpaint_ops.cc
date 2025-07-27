@@ -11,7 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_time.h"
 
 #include "BLT_translation.hh"
@@ -352,7 +352,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
 
   frames = surface->end_frame - surface->start_frame + 1;
   if (frames <= 0) {
-    STRNCPY(canvas->error, N_("No frames to bake"));
+    STRNCPY_UTF8(canvas->error, N_("No frames to bake"));
     return;
   }
 

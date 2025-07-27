@@ -11,7 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_query.hh"
@@ -175,7 +175,7 @@ void ED_spacetype_script()
   ARegionType *art;
 
   st->spaceid = SPACE_SCRIPT;
-  STRNCPY(st->name, "Script");
+  STRNCPY_UTF8(st->name, "Script");
 
   st->create = script_create;
   st->free = script_free;

@@ -198,7 +198,7 @@ bool ui_but_anim_expression_get(uiBut *but, char *str, size_t str_maxncpy)
 
     if (driver && driver->type == DRIVER_TYPE_PYTHON) {
       if (str) {
-        BLI_strncpy(str, driver->expression, str_maxncpy);
+        BLI_strncpy_utf8(str, driver->expression, str_maxncpy);
       }
       return true;
     }

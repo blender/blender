@@ -30,7 +30,7 @@ PyDoc_STRVAR(
 PyDoc_STRVAR(
     /* Wrap. */
     M_Interpolate_poly_3d_calc_doc,
-    ".. function:: poly_3d_calc(veclist, pt)\n"
+    ".. function:: poly_3d_calc(veclist, pt, /)\n"
     "\n"
     "   Calculate barycentric weights for a point on a polygon.\n"
     "\n"

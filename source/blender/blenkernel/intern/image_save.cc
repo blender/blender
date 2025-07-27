@@ -13,7 +13,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
@@ -104,7 +104,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
     /* Default to saving in the same colorspace as the image setting. */
     if (!opts->save_as_render) {
-      STRNCPY(opts->im_format.linear_colorspace_settings.name, ima_colorspace);
+      STRNCPY_UTF8(opts->im_format.linear_colorspace_settings.name, ima_colorspace);
     }
 
     opts->im_format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;

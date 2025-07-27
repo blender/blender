@@ -148,141 +148,16 @@ class GLPixelBuffer : public PixelBuffer {
 
 inline GLenum to_gl_internal_format(TextureFormat format)
 {
+#define CASE(a, b, c, blender_enum, d, e, f, gl_pixel_enum, h) \
+  case TextureFormat::blender_enum: \
+    return GL_##gl_pixel_enum;
+
   switch (format) {
-    /* Texture & Render-Buffer Formats. */
-    case TextureFormat::UINT_8_8_8_8:
-      return GL_RGBA8UI;
-    case TextureFormat::SINT_8_8_8_8:
-      return GL_RGBA8I;
-    case TextureFormat::UNORM_8_8_8_8:
-      return GL_RGBA8;
-    case TextureFormat::UINT_32_32_32_32:
-      return GL_RGBA32UI;
-    case TextureFormat::SINT_32_32_32_32:
-      return GL_RGBA32I;
-    case TextureFormat::SFLOAT_32_32_32_32:
-      return GL_RGBA32F;
-    case TextureFormat::UINT_16_16_16_16:
-      return GL_RGBA16UI;
-    case TextureFormat::SINT_16_16_16_16:
-      return GL_RGBA16I;
-    case TextureFormat::SFLOAT_16_16_16_16:
-      return GL_RGBA16F;
-    case TextureFormat::UNORM_16_16_16_16:
-      return GL_RGBA16;
-    case TextureFormat::UINT_8_8:
-      return GL_RG8UI;
-    case TextureFormat::SINT_8_8:
-      return GL_RG8I;
-    case TextureFormat::UNORM_8_8:
-      return GL_RG8;
-    case TextureFormat::UINT_32_32:
-      return GL_RG32UI;
-    case TextureFormat::SINT_32_32:
-      return GL_RG32I;
-    case TextureFormat::SFLOAT_32_32:
-      return GL_RG32F;
-    case TextureFormat::UINT_16_16:
-      return GL_RG16UI;
-    case TextureFormat::SINT_16_16:
-      return GL_RG16I;
-    case TextureFormat::SFLOAT_16_16:
-      return GL_RG16F;
-    case TextureFormat::UNORM_16_16:
-      return GL_RG16;
-    case TextureFormat::UINT_8:
-      return GL_R8UI;
-    case TextureFormat::SINT_8:
-      return GL_R8I;
-    case TextureFormat::UNORM_8:
-      return GL_R8;
-    case TextureFormat::UINT_32:
-      return GL_R32UI;
-    case TextureFormat::SINT_32:
-      return GL_R32I;
-    case TextureFormat::SFLOAT_32:
-      return GL_R32F;
-    case TextureFormat::UINT_16:
-      return GL_R16UI;
-    case TextureFormat::SINT_16:
-      return GL_R16I;
-    case TextureFormat::SFLOAT_16:
-      return GL_R16F;
-    case TextureFormat::UNORM_16:
-      return GL_R16;
-    /* Special formats texture & render-buffer. */
-    case TextureFormat::UNORM_10_10_10_2:
-      return GL_RGB10_A2;
-    case TextureFormat::UINT_10_10_10_2:
-      return GL_RGB10_A2UI;
-    case TextureFormat::UFLOAT_11_11_10:
-      return GL_R11F_G11F_B10F;
-    case TextureFormat::SFLOAT_32_DEPTH_UINT_8:
-      return GL_DEPTH32F_STENCIL8;
-    case TextureFormat::SRGBA_8_8_8_8:
-      return GL_SRGB8_ALPHA8;
-    /* Texture only formats. */
-    case TextureFormat::SFLOAT_16_16_16:
-      return GL_RGB16F;
-    case TextureFormat::SNORM_16_16_16_16:
-      return GL_RGBA16_SNORM;
-    case TextureFormat::SNORM_8_8_8_8:
-      return GL_RGBA8_SNORM;
-    case TextureFormat::SFLOAT_32_32_32:
-      return GL_RGB32F;
-    case TextureFormat::SINT_32_32_32:
-      return GL_RGB32I;
-    case TextureFormat::UINT_32_32_32:
-      return GL_RGB32UI;
-    case TextureFormat::SNORM_16_16_16:
-      return GL_RGB16_SNORM;
-    case TextureFormat::SINT_16_16_16:
-      return GL_RGB16I;
-    case TextureFormat::UINT_16_16_16:
-      return GL_RGB16UI;
-    case TextureFormat::UNORM_16_16_16:
-      return GL_RGB16;
-    case TextureFormat::SNORM_8_8_8:
-      return GL_RGB8_SNORM;
-    case TextureFormat::UNORM_8_8_8:
-      return GL_RGB8;
-    case TextureFormat::SINT_8_8_8:
-      return GL_RGB8I;
-    case TextureFormat::UINT_8_8_8:
-      return GL_RGB8UI;
-    case TextureFormat::SNORM_16_16:
-      return GL_RG16_SNORM;
-    case TextureFormat::SNORM_8_8:
-      return GL_RG8_SNORM;
-    case TextureFormat::SNORM_16:
-      return GL_R16_SNORM;
-    case TextureFormat::SNORM_8:
-      return GL_R8_SNORM;
-    /* Special formats, texture only. */
-    case TextureFormat::SRGB_DXT1:
-      return GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
-    case TextureFormat::SRGB_DXT3:
-      return GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT;
-    case TextureFormat::SRGB_DXT5:
-      return GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
-    case TextureFormat::SNORM_DXT1:
-      return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-    case TextureFormat::SNORM_DXT3:
-      return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-    case TextureFormat::SNORM_DXT5:
-      return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-    case TextureFormat::SRGBA_8_8_8:
-      return GL_SRGB8;
-    case TextureFormat::UFLOAT_9_9_9_EXP_5:
-      return GL_RGB9_E5;
-    /* Depth Formats. */
-    case TextureFormat::SFLOAT_32_DEPTH:
-      return GL_DEPTH_COMPONENT32F;
-    case TextureFormat::UNORM_16_DEPTH:
-      return GL_DEPTH_COMPONENT16;
+    GPU_TEXTURE_FORMAT_EXPAND(CASE)
     case TextureFormat::Invalid:
       break;
   }
+#undef CASE
   BLI_assert_msg(0, "Texture format incorrect or unsupported");
   return 0;
 }

@@ -203,7 +203,7 @@ void ntreeCompositTagRender(Scene *scene)
   {
     if (sce_iter->compositing_node_group) {
       for (bNode *node : sce_iter->compositing_node_group->all_nodes()) {
-        if (node->id == (ID *)scene || node->type_legacy == CMP_NODE_COMPOSITE) {
+        if (node->id == (ID *)scene) {
           BKE_ntree_update_tag_node_property(sce_iter->compositing_node_group, node);
         }
       }

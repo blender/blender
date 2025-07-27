@@ -19,6 +19,7 @@
 #include "BKE_volume_grid_fwd.hh"
 #include "NOD_geometry_nodes_bundle_fwd.hh"
 #include "NOD_geometry_nodes_closure_fwd.hh"
+#include "NOD_geometry_nodes_list_fwd.hh"
 
 #include "DNA_node_types.h"
 

@@ -2725,6 +2725,8 @@ static void cursor_buffer_set_surface_impl(const wl_cursor_image *wl_image,
   const int32_t image_size_y = int32_t(wl_image->height);
   GHOST_ASSERT((image_size_x % scale) == 0 && (image_size_y % scale) == 0,
                "The size must be a multiple of the scale!");
+  (void)image_size_x;
+  (void)image_size_y;
 
   wl_surface_set_buffer_scale(wl_surface, scale);
   wl_surface_attach(wl_surface, buffer, 0, 0);

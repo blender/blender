@@ -21,6 +21,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
+
 #include "ED_asset_temp_id_consumer.hh"
 
 namespace blender::ed::asset {

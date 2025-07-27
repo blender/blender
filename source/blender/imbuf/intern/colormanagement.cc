@@ -36,7 +36,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_vector_set.hh"
@@ -500,7 +500,7 @@ static bool colormanage_role_color_space_name_get(ocio::Config &config,
   }
 
   /* assume function was called with buffer properly allocated to MAX_COLORSPACE_NAME chars */
-  BLI_strncpy(colorspace_name, ociocs->name().c_str(), MAX_COLORSPACE_NAME);
+  BLI_strncpy_utf8(colorspace_name, ociocs->name().c_str(), MAX_COLORSPACE_NAME);
   return true;
 }
 
@@ -790,13 +790,13 @@ void IMB_colormanagement_init_default_view_settings(
     default_view = display->get_default_view();
   }
   if (default_view != nullptr) {
-    STRNCPY(view_settings->view_transform, default_view->name().c_str());
+    STRNCPY_UTF8(view_settings->view_transform, default_view->name().c_str());
   }
   else {
     view_settings->view_transform[0] = '\0';
   }
   /* TODO(sergey): Find a way to safely/reliable un-hardcode this. */
-  STRNCPY(view_settings->look, "None");
+  STRNCPY_UTF8(view_settings->look, "None");
   /* Initialize rest of the settings. */
   view_settings->flag = 0;
   view_settings->gamma = 1.0f;
@@ -872,7 +872,7 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
                                                const ocio::Display *default_display)
 {
   if (display_settings->display_device[0] == '\0') {
-    STRNCPY(display_settings->display_device, default_display->name().c_str());
+    STRNCPY_UTF8(display_settings->display_device, default_display->name().c_str());
   }
   else {
     const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
@@ -887,7 +887,7 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
             default_display->name().c_str());
       }
 
-      STRNCPY(display_settings->display_device, default_display->name().c_str());
+      STRNCPY_UTF8(display_settings->display_device, default_display->name().c_str());
     }
   }
 }
@@ -905,7 +905,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
   if (view_settings->view_transform[0] == '\0') {
     const ocio::View *default_view = display->get_default_view();
     if (default_view) {
-      STRNCPY(view_settings->view_transform, default_view->name().c_str());
+      STRNCPY_UTF8(view_settings->view_transform, default_view->name().c_str());
     }
   }
   else {
@@ -919,13 +919,13 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
                  view_settings->view_transform,
                  default_view->name().c_str());
         }
-        STRNCPY(view_settings->view_transform, default_view->name().c_str());
+        STRNCPY_UTF8(view_settings->view_transform, default_view->name().c_str());
       }
     }
   }
 
   if (view_settings->look[0] == '\0') {
-    STRNCPY(view_settings->look, default_look_name);
+    STRNCPY_UTF8(view_settings->look, default_look_name);
   }
   else {
     const ocio::Look *look = g_config->get_look_by_name(view_settings->look);
@@ -937,7 +937,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
                default_look_name);
       }
 
-      STRNCPY(view_settings->look, default_look_name);
+      STRNCPY_UTF8(view_settings->look, default_look_name);
     }
     else if (!colormanage_compatible_look(look, view_settings->view_transform)) {
       if (!G.quiet) {
@@ -951,7 +951,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
             default_look_name);
       }
 
-      STRNCPY(view_settings->look, default_look_name);
+      STRNCPY_UTF8(view_settings->look, default_look_name);
     }
   }
 
@@ -978,7 +978,7 @@ static void colormanage_check_colorspace_settings(
                colorspace_settings->name);
       }
 
-      STRNCPY(colorspace_settings->name, "");
+      STRNCPY_UTF8(colorspace_settings->name, "");
     }
   }
 
@@ -1013,7 +1013,7 @@ void IMB_colormanagement_check_file_config(Main *bmain)
     colormanage_check_colorspace_settings(sequencer_colorspace_settings, "sequencer");
 
     if (sequencer_colorspace_settings->name[0] == '\0') {
-      STRNCPY(sequencer_colorspace_settings->name, global_role_default_sequencer);
+      STRNCPY_UTF8(sequencer_colorspace_settings->name, global_role_default_sequencer);
     }
 
     /* check sequencer strip input color space settings */
@@ -1049,7 +1049,7 @@ void IMB_colormanagement_validate_settings(const ColorManagedDisplaySettings *di
   }
 
   if (!found && default_view) {
-    STRNCPY(view_settings->view_transform, default_view->name().c_str());
+    STRNCPY_UTF8(view_settings->view_transform, default_view->name().c_str());
   }
 }
 
@@ -2835,7 +2835,7 @@ void IMB_colormanagement_colorspace_from_ibuf_ftype(
     if (type->save != nullptr) {
       const char *role_colorspace = IMB_colormanagement_role_colorspace_name_get(
           type->default_save_role);
-      STRNCPY(colorspace_settings->name, role_colorspace);
+      STRNCPY_UTF8(colorspace_settings->name, role_colorspace);
     }
   }
 }

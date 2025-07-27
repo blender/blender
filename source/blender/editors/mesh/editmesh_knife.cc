@@ -32,7 +32,7 @@
 #include "BLI_memarena.h"
 #include "BLI_set.hh"
 #include "BLI_stack.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -456,7 +456,7 @@ static void knifetool_draw_visible_distances(const KnifeTool_OpData *kcd)
 
   const UnitSettings &unit = kcd->scene->unit;
   if (unit.system == USER_UNIT_NONE) {
-    SNPRINTF(numstr, "%.*f", distance_precision, cut_len);
+    SNPRINTF_UTF8(numstr, "%.*f", distance_precision, cut_len);
   }
   else {
     BKE_unit_value_as_string_scaled(
@@ -587,7 +587,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
 
   const UnitSettings &unit = kcd->scene->unit;
   if (unit.system == USER_UNIT_NONE) {
-    SNPRINTF(numstr, "%.*f" BLI_STR_UTF8_DEGREE_SIGN, angle_precision, RAD2DEGF(angle));
+    SNPRINTF_UTF8(numstr, "%.*f" BLI_STR_UTF8_DEGREE_SIGN, angle_precision, RAD2DEGF(angle));
   }
   else {
     BKE_unit_value_as_string(

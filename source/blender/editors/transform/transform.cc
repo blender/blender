@@ -639,9 +639,6 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       if (t->spacetype != SPACE_VIEW3D) {
         return false;
       }
-      if ((t->tsnap.mode & ~(SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID)) == 0) {
-        return false;
-      }
       if (value == TFM_MODAL_ADD_SNAP) {
         if (!(t->tsnap.status & SNAP_TARGET_FOUND)) {
           return false;

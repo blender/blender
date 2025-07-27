@@ -1317,7 +1317,7 @@ static void thickness_factor_to_modifier(ConversionData &conversion_data,
 
   tmd->thickness_fac = thickness_factor;
 
-  STRNCPY(md->name, DATA_("Thickness"));
+  STRNCPY_UTF8(md->name, DATA_("Thickness"));
   BKE_modifier_unique_name(&dst_object.modifiers, md);
 
   BLI_addtail(&dst_object.modifiers, md);
@@ -1435,11 +1435,11 @@ static void layer_adjustments_to_modifiers(ConversionData &conversion_data,
 
       copy_v3_v3(tmd->color, tint_color);
       tmd->factor = tint_factor;
-      STRNCPY(tmd->influence.layer_name, gpl->info);
+      STRNCPY_UTF8(tmd->influence.layer_name, gpl->info);
 
       char modifier_name[MAX_NAME];
-      SNPRINTF(modifier_name, "Tint %s", gpl->info);
-      STRNCPY(md->name, modifier_name);
+      SNPRINTF_UTF8(modifier_name, "Tint %s", gpl->info);
+      STRNCPY_UTF8(md->name, modifier_name);
       BKE_modifier_unique_name(&dst_object.modifiers, md);
 
       BLI_addtail(&dst_object.modifiers, md);
@@ -1492,8 +1492,8 @@ static void layer_adjustments_to_modifiers(ConversionData &conversion_data,
       auto *md = reinterpret_cast<NodesModifierData *>(BKE_modifier_new(eModifierType_Nodes));
 
       char modifier_name[MAX_NAME];
-      SNPRINTF(modifier_name, "Thickness %s", gpl->info);
-      STRNCPY(md->modifier.name, modifier_name);
+      SNPRINTF_UTF8(modifier_name, "Thickness %s", gpl->info);
+      STRNCPY_UTF8(md->modifier.name, modifier_name);
       BKE_modifier_unique_name(&dst_object.modifiers, &md->modifier);
       md->node_group = offset_radius_node_tree;
 

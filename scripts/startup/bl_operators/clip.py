@@ -784,7 +784,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         # Create nodes.
         rlayer_fg = self._findOrCreateNode(tree, 'CompositorNodeRLayers')
         rlayer_bg = tree.nodes.new(type='CompositorNodeRLayers')
-        composite = self._findOrCreateNode(tree, 'CompositorNodeComposite')
+        output = self._findOrCreateNode(tree, 'NodeGroupOutput')
 
         movieclip = tree.nodes.new(type='CompositorNodeMovieClip')
         distortion = tree.nodes.new(type='CompositorNodeMovieDistortion')
@@ -831,7 +831,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
         tree.links.new(shadowcatcher.outputs["Image"], alphaover.inputs[1])
 
-        tree.links.new(alphaover.outputs["Image"], composite.inputs["Image"])
+        tree.links.new(alphaover.outputs["Image"], output.inputs[0])
         tree.links.new(alphaover.outputs["Image"], viewer.inputs["Image"])
 
         # Place nodes.
@@ -862,11 +862,11 @@ class CLIP_OT_setup_tracking_scene(Operator):
         alphaover.location = shadowcatcher.location
         alphaover.location += Vector((250.0, -250.0))
 
-        composite.location = alphaover.location
-        composite.location += Vector((300.0, -100.0))
+        output.location = alphaover.location
+        output.location += Vector((300.0, -100.0))
 
-        viewer.location = composite.location
-        composite.location += Vector((0.0, 200.0))
+        viewer.location = output.location
+        output.location += Vector((0.0, 200.0))
 
         # Ensure no nodes were created on the position of existing node.
         self._offsetNodes(tree)

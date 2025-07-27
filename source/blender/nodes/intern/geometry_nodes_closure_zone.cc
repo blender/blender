@@ -123,11 +123,11 @@ class LazyFunctionForClosureZone : public LazyFunction {
 
     for (const int i : IndexRange(storage.input_items.items_num)) {
       const bNodeSocket &bsocket = zone_.input_node()->output_socket(i);
-      closure_signature_->inputs.append({SocketInterfaceKey(bsocket.name), bsocket.typeinfo});
+      closure_signature_->inputs.append({bsocket.name, bsocket.typeinfo});
     }
     for (const int i : IndexRange(storage.output_items.items_num)) {
       const bNodeSocket &bsocket = zone_.output_node()->input_socket(i);
-      closure_signature_->outputs.append({SocketInterfaceKey(bsocket.name), bsocket.typeinfo});
+      closure_signature_->outputs.append({bsocket.name, bsocket.typeinfo});
     }
   }
 
@@ -430,7 +430,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
     for (const NodeGeometryEvaluateClosureInputItem &item :
          Span{node_storage.input_items.items, node_storage.input_items.items_num})
     {
-      if (const std::optional<int> i = signature.find_input_index(SocketInterfaceKey{item.name})) {
+      if (const std::optional<int> i = signature.find_input_index(item.name)) {
         const ClosureSignature::Item &closure_item = signature.inputs[*i];
         if (!btree_.typeinfo->validate_link(eNodeSocketDatatype(item.socket_type),
                                             eNodeSocketDatatype(closure_item.type->type)))
@@ -456,8 +456,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
     for (const NodeGeometryEvaluateClosureOutputItem &item :
          Span{node_storage.output_items.items, node_storage.output_items.items_num})
     {
-      if (const std::optional<int> i = signature.find_output_index(SocketInterfaceKey{item.name}))
-      {
+      if (const std::optional<int> i = signature.find_output_index(item.name)) {
         const ClosureSignature::Item &closure_item = signature.outputs[*i];
         if (!btree_.typeinfo->validate_link(eNodeSocketDatatype(closure_item.type->type),
                                             eNodeSocketDatatype(item.socket_type)))
@@ -502,13 +501,12 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
 
     Array<std::optional<int>> inputs_map(node_storage.input_items.items_num);
     for (const int i : inputs_map.index_range()) {
-      inputs_map[i] = closure_signature.find_input_index(
-          SocketInterfaceKey(node_storage.input_items.items[i].name));
+      inputs_map[i] = closure_signature.find_input_index(node_storage.input_items.items[i].name);
     }
     Array<std::optional<int>> outputs_map(node_storage.output_items.items_num);
     for (const int i : outputs_map.index_range()) {
       outputs_map[i] = closure_signature.find_output_index(
-          SocketInterfaceKey(node_storage.output_items.items[i].name));
+          node_storage.output_items.items[i].name);
     }
 
     lf::FunctionNode &lf_closure_node = lf_graph.add_function(closure.function());

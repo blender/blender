@@ -256,7 +256,7 @@ static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
 
   /* need to be on the stack */
   STRNCPY_UTF8(newname, value);
-  STRNCPY(oldname, pchan->name);
+  STRNCPY(oldname, pchan->name); /* Allow non UTF8 encoding for the old name. */
 
   BLI_assert(BKE_id_is_in_global_main(&ob->id));
   BLI_assert(BKE_id_is_in_global_main(static_cast<ID *>(ob->data)));

@@ -31,6 +31,7 @@
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
@@ -154,6 +155,18 @@ struct TreeDrawContext {
    * during drawing. The array is indexed by `bNode::index()`.
    */
   Array<Vector<NodeExtraInfoRow>> extra_info_rows_per_node;
+
+  ~TreeDrawContext()
+  {
+    for (MutableSpan<NodeExtraInfoRow> rows : this->extra_info_rows_per_node) {
+      for (NodeExtraInfoRow &row : rows) {
+        if (row.tooltip_fn_free_arg) {
+          BLI_assert(row.tooltip_fn_copy_arg);
+          row.tooltip_fn_free_arg(row.tooltip_fn_arg);
+        }
+      }
+    }
+  }
 };
 
 float grid_size_get()
@@ -2321,6 +2334,9 @@ static NodeExtraInfoRow row_from_used_named_attribute(
   row.tooltip_fn = named_attribute_tooltip;
   row.tooltip_fn_arg = new NamedAttributeTooltipArg{usage_by_attribute_name};
   row.tooltip_fn_free_arg = [](void *arg) { delete static_cast<NamedAttributeTooltipArg *>(arg); };
+  row.tooltip_fn_copy_arg = [](void *arg) -> void * {
+    return new NamedAttributeTooltipArg(*static_cast<NamedAttributeTooltipArg *>(arg));
+  };
   return row;
 }
 
@@ -2469,6 +2485,12 @@ static void node_draw_extra_info_row(const bNode &node,
   const float but_icon_width = NODE_HEADER_ICON_SIZE * 0.8f;
   const float but_icon_right = but_icon_left + but_icon_width;
 
+  void *tooltip_arg = extra_info_row.tooltip_fn_arg;
+  if (tooltip_arg && extra_info_row.tooltip_fn_free_arg) {
+    BLI_assert(extra_info_row.tooltip_fn_copy_arg);
+    tooltip_arg = extra_info_row.tooltip_fn_copy_arg(tooltip_arg);
+  }
+
   UI_block_emboss_set(&block, ui::EmbossType::None);
   uiBut *but_icon = uiDefIconBut(&block,
                                  ButType::But,
@@ -2483,10 +2505,8 @@ static void node_draw_extra_info_row(const bNode &node,
                                  0,
                                  extra_info_row.tooltip);
   if (extra_info_row.tooltip_fn != nullptr) {
-    UI_but_func_tooltip_set(but_icon,
-                            extra_info_row.tooltip_fn,
-                            extra_info_row.tooltip_fn_arg,
-                            extra_info_row.tooltip_fn_free_arg);
+    UI_but_func_tooltip_set(
+        but_icon, extra_info_row.tooltip_fn, tooltip_arg, extra_info_row.tooltip_fn_free_arg);
   }
   UI_block_emboss_set(&block, ui::EmbossType::Emboss);
 
@@ -2509,8 +2529,7 @@ static void node_draw_extra_info_row(const bNode &node,
 
   if (extra_info_row.tooltip_fn != nullptr) {
     /* Don't pass tooltip free function because it's already used on the uiBut above. */
-    UI_but_func_tooltip_set(
-        but_text, extra_info_row.tooltip_fn, extra_info_row.tooltip_fn_arg, nullptr);
+    UI_but_func_tooltip_set(but_text, extra_info_row.tooltip_fn, tooltip_arg, nullptr);
   }
 
   if (node.is_muted()) {
@@ -4318,8 +4337,8 @@ static std::optional<float2> find_visible_center_of_link(const View2D &v2d,
       return 1e5f + distance_to_center;
     }
     return
-        /* The larger the distance to the link center, the higher the cost. The importance of this
-           distance decreases the further the center is away. */
+        /* The larger the distance to the link center, the higher the cost.
+         * The importance of this distance decreases the further the center is away. */
         std::sqrt(distance_to_center)
         /* The larger the distance to the inner rectangle, the higher the cost. Apply an additional
          * factor because it's more important that the position stays visible than that it is at
@@ -4701,7 +4720,7 @@ void node_draw_space(const bContext &C, ARegion &region)
                                                                          snode.id;
 
     if (name_id && UNLIKELY(!STREQ(path->display_name, name_id->name + 2))) {
-      STRNCPY(path->display_name, name_id->name + 2);
+      STRNCPY_UTF8(path->display_name, name_id->name + 2);
     }
 
     /* Current View2D center, will be set temporarily for parent node trees. */

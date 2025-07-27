@@ -16,6 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utils.hh"
 
 #include "BKE_context.hh"
 #include "BKE_library.hh"
@@ -57,12 +58,8 @@ static void bpy_text_filepath_get(char *filepath,
                                   const Main *bmain,
                                   const Text *text)
 {
-  BLI_snprintf(filepath,
-               filepath_maxncpy,
-               "%s%c%s",
-               ID_BLEND_PATH(bmain, &text->id),
-               SEP,
-               text->id.name + 2);
+  BLI_string_join_by_sep_char(
+      filepath, filepath_maxncpy, SEP, ID_BLEND_PATH(bmain, &text->id), text->id.name + 2);
 }
 
 /**

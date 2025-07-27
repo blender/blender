@@ -18,7 +18,7 @@
 #include "RNA_prototypes.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "ED_keyframing.hh"
 
@@ -87,8 +87,8 @@ class CopyDriversToSelected : public testing::Test {
     ANIM_add_driver(&tmp_report_list, &cube->id, "rotation_quaternion", 1, 0, DRIVER_TYPE_PYTHON);
     FCurve *cube_quat_0_driver = static_cast<FCurve *>(BLI_findlink(&adt_cube->drivers, 0));
     FCurve *cube_quat_1_driver = static_cast<FCurve *>(BLI_findlink(&adt_cube->drivers, 1));
-    STRNCPY(cube_quat_0_driver->driver->expression, "0.0");
-    STRNCPY(cube_quat_1_driver->driver->expression, "1.0");
+    STRNCPY_UTF8(cube_quat_0_driver->driver->expression, "0.0");
+    STRNCPY_UTF8(cube_quat_1_driver->driver->expression, "1.0");
 
     /* Set up suzanne drivers. */
     ANIM_add_driver(
@@ -103,10 +103,10 @@ class CopyDriversToSelected : public testing::Test {
     FCurve *suzanne_quat_3_driver = static_cast<FCurve *>(BLI_findlink(&adt_suzanne->drivers, 2));
     FCurve *suzanne_rotation_mode_driver = static_cast<FCurve *>(
         BLI_findlink(&adt_suzanne->drivers, 3));
-    STRNCPY(suzanne_quat_0_driver->driver->expression, "0.5");
-    STRNCPY(suzanne_quat_2_driver->driver->expression, "2.5");
-    STRNCPY(suzanne_quat_3_driver->driver->expression, "3.5");
-    STRNCPY(suzanne_rotation_mode_driver->driver->expression, "4");
+    STRNCPY_UTF8(suzanne_quat_0_driver->driver->expression, "0.5");
+    STRNCPY_UTF8(suzanne_quat_2_driver->driver->expression, "2.5");
+    STRNCPY_UTF8(suzanne_quat_3_driver->driver->expression, "3.5");
+    STRNCPY_UTF8(suzanne_rotation_mode_driver->driver->expression, "4");
 
     /* Add animation to cube's fourth quaternion element. */
     PointerRNA cube_ptr = RNA_pointer_create_discrete(&cube->id, &RNA_Object, &cube->id);

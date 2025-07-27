@@ -42,6 +42,15 @@ static void node_declare(NodeDeclarationBuilder &b)
   if (socket_type == SOCK_GEOMETRY) {
     output_decl.propagate_all();
   }
+
+  const StructureType structure_type = socket_type_always_single(socket_type) ?
+                                           StructureType::Single :
+                                           StructureType::Dynamic;
+
+  switch_decl.structure_type(structure_type);
+  false_decl.structure_type(structure_type);
+  true_decl.structure_type(structure_type);
+  output_decl.structure_type(structure_type);
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

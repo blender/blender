@@ -93,6 +93,15 @@ Array<float> duplicate_mask(const Object &object)
   return {};
 }
 
+void mix_new_masks(const Span<float> new_masks, const float factor, const MutableSpan<float> masks)
+{
+  BLI_assert(new_masks.size() == masks.size());
+
+  for (const int i : masks.index_range()) {
+    masks[i] += (new_masks[i] - masks[i]) * factor;
+  }
+}
+
 void mix_new_masks(const Span<float> new_masks,
                    const Span<float> factors,
                    const MutableSpan<float> masks)

@@ -10,7 +10,7 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_unit.hh"
 
@@ -40,37 +40,37 @@ static void headerBoneSize(TransInfo *t, const float vec[3], char str[UI_MAX_DRA
     outputNumInput(&(t->num), tvec, t->scene->unit);
   }
   else {
-    BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", vec[0]);
-    BLI_snprintf(&tvec[NUM_STR_REP_LEN], NUM_STR_REP_LEN, "%.4f", vec[1]);
-    BLI_snprintf(&tvec[NUM_STR_REP_LEN * 2], NUM_STR_REP_LEN, "%.4f", vec[2]);
+    BLI_snprintf_utf8(&tvec[0], NUM_STR_REP_LEN, "%.4f", vec[0]);
+    BLI_snprintf_utf8(&tvec[NUM_STR_REP_LEN], NUM_STR_REP_LEN, "%.4f", vec[1]);
+    BLI_snprintf_utf8(&tvec[NUM_STR_REP_LEN * 2], NUM_STR_REP_LEN, "%.4f", vec[2]);
   }
 
   /* Hmm... perhaps the y-axis values don't need to be shown? */
   if (t->con.mode & CON_APPLY) {
     if (t->num.idx_max == 0) {
-      BLI_snprintf(
+      BLI_snprintf_utf8(
           str, UI_MAX_DRAW_STR, IFACE_("ScaleB: %s%s %s"), &tvec[0], t->con.text, t->proptext);
     }
     else {
-      BLI_snprintf(str,
-                   UI_MAX_DRAW_STR,
-                   IFACE_("ScaleB: %s : %s : %s%s %s"),
-                   &tvec[0],
-                   &tvec[NUM_STR_REP_LEN],
-                   &tvec[NUM_STR_REP_LEN * 2],
-                   t->con.text,
-                   t->proptext);
+      BLI_snprintf_utf8(str,
+                        UI_MAX_DRAW_STR,
+                        IFACE_("ScaleB: %s : %s : %s%s %s"),
+                        &tvec[0],
+                        &tvec[NUM_STR_REP_LEN],
+                        &tvec[NUM_STR_REP_LEN * 2],
+                        t->con.text,
+                        t->proptext);
     }
   }
   else {
-    BLI_snprintf(str,
-                 UI_MAX_DRAW_STR,
-                 IFACE_("ScaleB X: %s  Y: %s  Z: %s%s %s"),
-                 &tvec[0],
-                 &tvec[NUM_STR_REP_LEN],
-                 &tvec[NUM_STR_REP_LEN * 2],
-                 t->con.text,
-                 t->proptext);
+    BLI_snprintf_utf8(str,
+                      UI_MAX_DRAW_STR,
+                      IFACE_("ScaleB X: %s  Y: %s  Z: %s%s %s"),
+                      &tvec[0],
+                      &tvec[NUM_STR_REP_LEN],
+                      &tvec[NUM_STR_REP_LEN * 2],
+                      t->con.text,
+                      t->proptext);
   }
 }
 

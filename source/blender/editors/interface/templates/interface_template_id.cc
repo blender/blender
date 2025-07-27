@@ -19,8 +19,8 @@
 #include "BKE_packedFile.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
 #include "BLI_string_search.hh"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -1190,7 +1190,7 @@ static void template_ID(const bContext *C,
       char numstr[32];
       short numstr_len;
 
-      numstr_len = SNPRINTF_RLEN(numstr, "%d", ID_REAL_USERS(id));
+      numstr_len = SNPRINTF_UTF8_RLEN(numstr, "%d", ID_REAL_USERS(id));
 
       but = uiDefBut(
           block,

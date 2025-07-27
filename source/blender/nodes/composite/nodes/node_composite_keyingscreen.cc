@@ -8,7 +8,7 @@
 
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
@@ -66,7 +66,7 @@ static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)
     id_us_plus(&clip->id);
 
     const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
-    STRNCPY(data->tracking_object, tracking_object->name);
+    STRNCPY_UTF8(data->tracking_object, tracking_object->name);
   }
 }
 

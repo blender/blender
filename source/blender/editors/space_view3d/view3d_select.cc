@@ -31,7 +31,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_rect.h"
 #include "BLI_span.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -1779,7 +1779,7 @@ static bool object_mouse_select_menu(bContext *C,
     Object *ob = base->object;
     const char *name = ob->id.name + 2;
 
-    BLI_strncpy(object_mouse_select_menu_data[i].idname, name, MAX_ID_NAME - 2);
+    BLI_strncpy_utf8(object_mouse_select_menu_data[i].idname, name, MAX_ID_NAME - 2);
     object_mouse_select_menu_data[i].icon = UI_icon_from_id(&ob->id);
   }
 
@@ -2028,7 +2028,7 @@ static bool bone_mouse_select_menu(bContext *C,
       name = pchan->name;
     }
 
-    BLI_strncpy(object_mouse_select_menu_data[i].idname, name, MAX_ID_NAME - 2);
+    BLI_strncpy_utf8(object_mouse_select_menu_data[i].idname, name, MAX_ID_NAME - 2);
     object_mouse_select_menu_data[i].icon = ICON_BONE_DATA;
   }
 
@@ -2753,6 +2753,9 @@ static bool ed_object_select_pick(bContext *C,
         /* Special case, even when there are no hits, pose logic may de-select all bones. */
         ((gpu->hits == 0) && has_pose_old))
     {
+      /* Regarding the `basact` null checks.
+       * While it's unlikely there are GPU hits *without* `basact` being found,
+       * it's possible looking up the selection index fails, see: #143161. */
 
       if (basact && (gpu->has_bones && (basact->object->type == OB_CAMERA))) {
         MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
@@ -2774,7 +2777,8 @@ static bool ed_object_select_pick(bContext *C,
           }
         }
       }
-      else if (ED_armature_pose_select_pick_with_buffer(scene,
+      else if ((basact || oldbasact) &&
+               ED_armature_pose_select_pick_with_buffer(scene,
                                                         view_layer,
                                                         v3d,
                                                         basact ? basact : (Base *)oldbasact,

@@ -181,11 +181,11 @@ static RobustInitCaller init_caller;
  * The operations Fast_Two_Sum(), Fast_Two_Diff(), Two_Sum(), Two_Diff(),
  * Split(), and Two_Product() are all implemented as described in the
  * reference.  Each of these macros requires certain variables to be
- * defined in the calling routine.  The variables `bvirt', `c', `abig',
- * `_i', `_j', `_k', `_l', `_m', and `_n' are declared `INEXACT' because
+ * defined in the calling routine.  The variables `bvirt`, `c`, `abig`,
+ * `_i`, `_j`, `_k`, `_l`, `_m`, and `_n` are declared `INEXACT' because
  * they store the result of an operation that may incur round-off error.
- * The input parameter `x' (or the highest numbered `x_' parameter) must
- * also be declared `INEXACT'.
+ * The input parameter `x` (or the highest numbered `x_` parameter) must
+ * also be declared `INEXACT`.
  */
 
 #define Fast_Two_Sum_Tail(a, b, x, y) \
@@ -397,20 +397,20 @@ static double iccerrboundA, iccerrboundB, iccerrboundC;
 static double isperrboundA, isperrboundB, isperrboundC;
 
 /**
- *  exactinit()   Initialize the variables used for exact arithmetic.
+ * exactinit()   Initialize the variables used for exact arithmetic.
  *
- *  `epsilon' is the largest power of two such that 1.0 + epsilon = 1.0 in
- *  floating-point arithmetic.  `epsilon' bounds the relative round-off
- *  error.  It is used for floating-point error analysis.
+ * `epsilon` is the largest power of two such that 1.0 + epsilon = 1.0 in
+ * floating-point arithmetic. `epsilon` bounds the relative round-off
+ * error.  It is used for floating-point error analysis.
  *
- *  `splitter' is used to split floating-point numbers into two half-length
- *  significant for exact multiplication.
+ * `splitter` is used to split floating-point numbers into two half-length
+ * significant for exact multiplication.
  *
- *  I imagine that a highly optimizing compiler might be too smart for its
- *  own good, and somehow cause this routine to fail, if it pretends that
- *  floating-point arithmetic is too much like real arithmetic.
+ * I imagine that a highly optimizing compiler might be too smart for its
+ * own good, and somehow cause this routine to fail, if it pretends that
+ * floating-point arithmetic is too much like real arithmetic.
  *
- *  Don't change this routine unless you fully understand it.
+ * Don't change this routine unless you fully understand it.
  */
 void exactinit()
 {
@@ -423,7 +423,7 @@ void exactinit()
   epsilon = 1.0;
   splitter = 1.0;
   check = 1.0;
-  /* Repeatedly divide `epsilon' by two until it is too small to add to
+  /* Repeatedly divide `epsilon` by two until it is too small to add to
    * one without causing round-off.  (Also check if the sum is equal to
    * the previous sum, for machines that round up instead of using exact
    * rounding.  Not that this library will work on such machines anyway. */

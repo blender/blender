@@ -108,7 +108,7 @@ enum class TextureFormat : uint8_t {
   SFLOAT_32_DEPTH_(impl) \
   SFLOAT_32_DEPTH_UINT_8_(impl) \
 \
-  SRGBA_8_8_8_(impl) \
+  SRGBA_8_8_8_(impl) /* TODO(fclem): Incompatible with metal, to remove. */ \
   SRGBA_8_8_8_8_(impl) \
 \
   SNORM_DXT1_(impl) \

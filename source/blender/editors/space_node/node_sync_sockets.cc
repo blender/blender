@@ -204,12 +204,11 @@ void sync_sockets_separate_bundle(SpaceNode &snode,
 
   nodes::socket_items::clear<nodes::SeparateBundleItemsAccessor>(separate_bundle_node);
   for (const nodes::BundleSignature::Item &item : sync_state.source_signature->items) {
-    const StringRefNull name = item.key.identifiers()[0];
     NodeGeometrySeparateBundleItem &new_item =
         *nodes::socket_items::add_item_with_socket_type_and_name<
             nodes ::SeparateBundleItemsAccessor>(
-            separate_bundle_node, item.type->type, name.c_str());
-    if (const std::optional<int> old_identifier = old_identifiers.lookup_try(name)) {
+            separate_bundle_node, item.type->type, item.key.c_str());
+    if (const std::optional<int> old_identifier = old_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
   }
@@ -242,12 +241,11 @@ void sync_sockets_combine_bundle(SpaceNode &snode, bNode &combine_bundle_node, R
 
   nodes::socket_items::clear<nodes::CombineBundleItemsAccessor>(combine_bundle_node);
   for (const nodes::BundleSignature::Item &item : sync_state.source_signature->items) {
-    const StringRefNull name = item.key.identifiers()[0];
     NodeGeometryCombineBundleItem &new_item =
         *nodes::socket_items::add_item_with_socket_type_and_name<
             nodes ::CombineBundleItemsAccessor>(
-            combine_bundle_node, item.type->type, name.c_str());
-    if (const std::optional<int> old_identifier = old_identifiers.lookup_try(name)) {
+            combine_bundle_node, item.type->type, item.key.c_str());
+    if (const std::optional<int> old_identifier = old_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
   }
@@ -291,22 +289,20 @@ void sync_sockets_evaluate_closure(SpaceNode &snode,
   nodes::socket_items::clear<nodes::EvaluateClosureOutputItemsAccessor>(evaluate_closure_node);
 
   for (const nodes::ClosureSignature::Item &item : sync_state.source_signature->inputs) {
-    const StringRefNull name = item.key.identifiers()[0];
     NodeGeometryEvaluateClosureInputItem &new_item =
         *nodes::socket_items::add_item_with_socket_type_and_name<
             nodes::EvaluateClosureInputItemsAccessor>(
-            evaluate_closure_node, item.type->type, name.c_str());
-    if (const std::optional<int> old_identifier = old_input_identifiers.lookup_try(name)) {
+            evaluate_closure_node, item.type->type, item.key.c_str());
+    if (const std::optional<int> old_identifier = old_input_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
   }
   for (const nodes::ClosureSignature::Item &item : sync_state.source_signature->outputs) {
-    const StringRefNull name = item.key.identifiers()[0];
     NodeGeometryEvaluateClosureOutputItem &new_item =
         *nodes::socket_items::add_item_with_socket_type_and_name<
             nodes::EvaluateClosureOutputItemsAccessor>(
-            evaluate_closure_node, item.type->type, name.c_str());
-    if (const std::optional<int> old_identifier = old_output_identifiers.lookup_try(name)) {
+            evaluate_closure_node, item.type->type, item.key.c_str());
+    if (const std::optional<int> old_identifier = old_output_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
   }
@@ -351,23 +347,22 @@ void sync_sockets_closure(SpaceNode &snode,
   nodes::socket_items::clear<nodes::ClosureOutputItemsAccessor>(closure_output_node);
 
   for (const nodes::ClosureSignature::Item &item : signature.inputs) {
-    const StringRefNull name = item.key.identifiers()[0];
     NodeGeometryClosureInputItem &new_item =
         *nodes::socket_items::add_item_with_socket_type_and_name<nodes::ClosureInputItemsAccessor>(
-            closure_output_node, item.type->type, name.c_str());
+            closure_output_node, item.type->type, item.key.c_str());
     if (item.structure_type) {
       new_item.structure_type = int(*item.structure_type);
     }
-    if (const std::optional<int> old_identifier = old_input_identifiers.lookup_try(name)) {
+    if (const std::optional<int> old_identifier = old_input_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
   }
   for (const nodes::ClosureSignature::Item &item : signature.outputs) {
-    const StringRefNull name = item.key.identifiers()[0];
     NodeGeometryClosureOutputItem &new_item =
         *nodes::socket_items::add_item_with_socket_type_and_name<
-            nodes::ClosureOutputItemsAccessor>(closure_output_node, item.type->type, name.c_str());
-    if (const std::optional<int> old_identifier = old_output_identifiers.lookup_try(name)) {
+            nodes::ClosureOutputItemsAccessor>(
+            closure_output_node, item.type->type, item.key.c_str());
+    if (const std::optional<int> old_identifier = old_output_identifiers.lookup_try(item.key)) {
       new_item.identifier = *old_identifier;
     }
   }
@@ -384,7 +379,7 @@ void sync_sockets_closure(SpaceNode &snode,
       const nodes::ClosureSignature::Item &input_item = signature.inputs[input_i];
       for (const int output_i : signature.outputs.index_range()) {
         const nodes::ClosureSignature::Item &output_item = signature.outputs[output_i];
-        if (input_item.key.matches(output_item.key)) {
+        if (input_item.key == output_item.key) {
           internal_links.append({&closure_input_node.output_socket(input_i),
                                  &closure_output_node.input_socket(output_i)});
         }

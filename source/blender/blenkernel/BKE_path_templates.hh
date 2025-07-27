@@ -19,14 +19,14 @@
  *
  * An example of what step 3 might look like:
  *
- * ```
+ * \code{.cc}
  * VariableMap template_variables;
  * BKE_add_template_variables_general(template_variables, owner_id);
  * BKE_add_template_variables_for_render_path(template_variables, scene);
  * BKE_add_template_variables_for_node(template_variables, owner_node);
  *
  * BKE_path_apply_template(filepath, FILE_MAX, template_variables);
- * ```
+ * \endcode
  *
  * This calls three functions to build the #VariableMap, one for each "kind" of
  * variable (see below).
@@ -103,9 +103,9 @@ namespace blender::bke::path_templates {
  *
  * A filepath variable can contain either a full or partial filepath. The
  * distinction between string and filepath variables exists because non-path
- * strings may include phrases like "and/or" or "A:Left", which shouldn't be
+ * strings may include phrases like `and/or` or `A:Left`, which shouldn't be
  * interpreted with path semantics. When used in path templating, the contents
- * of string variables are therefore sanitized (replacing "/", etc.), but the
+ * of string variables are therefore sanitized (replacing `/`, etc.), but the
  * contents of filepath variables are left as-is.
  */
 class VariableMap {
@@ -210,8 +210,8 @@ class VariableMap {
   /**
    * Add the filename (sans file extension) from the given path as a variable.
    *
-   * For example, if the full path is "/home/bob/project_joe/scene_3.blend",
-   * then "scene_3" is the value of the added variable.
+   * For example, if the full path is `/home/bob/project_joe/scene_3.blend`,
+   * then `scene_3` is the value of the added variable.
    *
    * If the path doesn't contain a filename, then `fallback` is used for the
    * variable value.
@@ -229,8 +229,8 @@ class VariableMap {
   /**
    * Add the path up-to-but-not-including the filename as a variable.
    *
-   * For example, if the full path is "/home/bob/project_joe/scene_3.blend",
-   * then "/home/bob/project_joe/" is the value of the added variable.
+   * For example, if the full path is `/home/bob/project_joe/scene_3.blend`,
+   * then `/home/bob/project_joe/` is the value of the added variable.
    *
    * If the path lacks either a filename or a path leading up to that filename,
    * then `fallback` is used for the variable value.
@@ -359,7 +359,7 @@ blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
  * This mutates the path in-place. `path` must be a null-terminated string.
  *
  * The syntax for template expressions is `{variable_name}` or
- * {variable_name:format_spec}`. The format specification syntax currently only
+ * `{variable_name:format_spec}`. The format specification syntax currently only
  * applies to numerical values (integer or float), and uses hash symbols (#) to
  * indicate the number of digits to print the number with. It can be in any of
  * the following forms:
@@ -370,9 +370,9 @@ blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
  * - `##.###`: format as a float with at least 2 integer-part digits (padded
  *   with zeros as necessary) and precisely 3 fractional-part digits.
  *
- * This function also processes a simple escape sequence for writing literal "{"
- * and "}": like Python format strings, double braces "{{" and "}}" are treated
- * as escape sequences for "{" and "}", and are substituted appropriately. Note
+ * This function also processes a simple escape sequence for writing literal `{`
+ * and `}`: like Python format strings, double braces `{{` and `}}` are treated
+ * as escape sequences for `{` and `}`, and are substituted appropriately. Note
  * that this substitution only happens *outside* of the variable syntax, and
  * therefore cannot e.g. be used inside variable names.
  *
@@ -385,7 +385,7 @@ blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
  * - Format specifications that don't apply to the type of variable they're
  *   paired with.
  *
- * \param path_max_length: The maximum length that template expansion is allowed
+ * \param path_maxncpy: The maximum length that template expansion is allowed
  * to make the template-expanded path (in bytes), including the null terminator.
  * In general, this should be the size of the underlying allocation of `path`.
  *
@@ -394,7 +394,7 @@ blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
  */
 blender::Vector<blender::bke::path_templates::Error> BKE_path_apply_template(
     char *path,
-    int path_max_length,
+    int path_maxncpy,
     const blender::bke::path_templates::VariableMap &template_variables);
 /**
  * Produces a human-readable error message for the given template error.
@@ -413,7 +413,7 @@ void BKE_report_path_template_errors(ReportList *reports,
 
 /**
  * Format the given floating point value with the provided format specifier. The format specifier
- * is e.g. the "##.###" in "{name:##.###}".
+ * is e.g. the `##.###` in `{name:##.###}`.
  *
  * \return #std::nullopt if the format specifier is invalid.
  */

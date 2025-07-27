@@ -135,17 +135,6 @@ class Context : public compositor::Context {
     return this->get_render_data().compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
   }
 
-  eCompositorDenoiseQaulity get_denoise_quality() const override
-  {
-    if (this->render_context()) {
-      return static_cast<eCompositorDenoiseQaulity>(
-          this->get_render_data().compositor_denoise_final_quality);
-    }
-
-    return static_cast<eCompositorDenoiseQaulity>(
-        this->get_render_data().compositor_denoise_preview_quality);
-  }
-
   compositor::OutputTypes needed_outputs() const override
   {
     return input_data_.needed_outputs;
@@ -156,7 +145,7 @@ class Context : public compositor::Context {
     return *(input_data_.render_data);
   }
 
-  int2 get_render_size() const override
+  int2 get_render_size() const
   {
     Render *render = RE_GetSceneRender(input_data_.scene);
     RenderResult *render_result = RE_AcquireResultRead(render);
@@ -176,15 +165,12 @@ class Context : public compositor::Context {
     return size;
   }
 
-  rcti get_compositing_region() const override
+  Bounds<int2> get_compositing_region() const override
   {
-    const int2 render_size = get_render_size();
-    const rcti render_region = rcti{0, render_size.x, 0, render_size.y};
-
-    return render_region;
+    return Bounds<int2>(int2(0), this->get_render_size());
   }
 
-  compositor::Result get_output_result() override
+  compositor::Result get_output() override
   {
     const int2 render_size = get_render_size();
     if (output_result_.is_allocated()) {
@@ -202,9 +188,9 @@ class Context : public compositor::Context {
     return output_result_;
   }
 
-  compositor::Result get_viewer_output_result(compositor::Domain domain,
-                                              const bool is_data,
-                                              compositor::ResultPrecision precision) override
+  compositor::Result get_viewer_output(compositor::Domain domain,
+                                       const bool is_data,
+                                       compositor::ResultPrecision precision) override
   {
     viewer_output_result_.set_transformation(domain.transformation);
     viewer_output_result_.meta_data.is_non_color_data = is_data;
@@ -230,9 +216,9 @@ class Context : public compositor::Context {
     return viewer_output_result_;
   }
 
-  compositor::Result get_pass(const Scene *scene,
-                              int view_layer_id,
-                              const char *pass_name) override
+  compositor::Result get_input(const Scene *scene,
+                               int view_layer_id,
+                               const char *pass_name) override
   {
     if (!scene) {
       return compositor::Result(*this);
@@ -341,15 +327,6 @@ class Context : public compositor::Context {
 
     BLI_assert_unreachable();
     return compositor::ResultPrecision::Full;
-  }
-
-  void set_info_message(StringRef /*message*/) const override
-  {
-    /* TODO: ignored for now. Currently only used to communicate incomplete node support
-     * which is already shown on the node itself.
-     *
-     * Perhaps this overall info message could be replaced by a boolean indicating
-     * incomplete support, and leave more specific message to individual nodes? */
   }
 
   void populate_meta_data_for_pass(const Scene *scene,

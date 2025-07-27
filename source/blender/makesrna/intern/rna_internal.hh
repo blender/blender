@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "BLI_compiler_attrs.h"
 
 #include "rna_internal_types.hh"
@@ -584,8 +586,8 @@ PointerRNA rna_listbase_lookup_int(PointerRNA *ptr, StructRNA *type, ListBase *l
 void rna_iterator_array_begin(CollectionPropertyIterator *iter,
                               PointerRNA *ptr,
                               void *data,
-                              int itemsize,
-                              int length,
+                              size_t itemsize,
+                              int64_t length,
                               bool free_ptr,
                               IteratorSkipFunc skip);
 void rna_iterator_array_next(CollectionPropertyIterator *iter);
@@ -593,7 +595,7 @@ void *rna_iterator_array_get(CollectionPropertyIterator *iter);
 void *rna_iterator_array_dereference_get(CollectionPropertyIterator *iter);
 void rna_iterator_array_end(CollectionPropertyIterator *iter);
 PointerRNA rna_array_lookup_int(
-    PointerRNA *ptr, StructRNA *type, void *data, int itemsize, int length, int index);
+    PointerRNA *ptr, StructRNA *type, void *data, size_t itemsize, int64_t length, int64_t index);
 
 /* Duplicated code since we can't link in blenlib */
 

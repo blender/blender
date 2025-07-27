@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_windowmanager_types.h"
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_closure.hh"
 #include "NOD_geometry_nodes_log.hh"
@@ -22,6 +21,7 @@
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
+#include "BKE_report.hh"
 #include "BKE_type_conversions.hh"
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
@@ -246,6 +246,15 @@ ClosureValueLog::ClosureValueLog(Vector<Item> inputs,
   }
 }
 
+ListInfoLog::ListInfoLog(const List *list)
+{
+  if (!list) {
+    this->size = 0;
+    return;
+  }
+  this->size = list->size();
+}
+
 NodeWarning::NodeWarning(const Report &report)
 {
   switch (report.type) {
@@ -314,6 +323,10 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
       store_logged_value(this->allocator->construct<GridInfoLog>(grid));
     }
 #endif
+    else if (value_variant.is_list()) {
+      const ListPtr list = value_variant.extract<ListPtr>();
+      store_logged_value(this->allocator->construct<ListInfoLog>(list.get()));
+    }
     else if (value_variant.valid_for_socket(SOCK_BUNDLE)) {
       Vector<BundleValueLog::Item> items;
       if (const BundlePtr bundle = value_variant.extract<BundlePtr>()) {

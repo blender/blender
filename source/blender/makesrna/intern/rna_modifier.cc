@@ -2262,7 +2262,7 @@ static void rna_GreasePencilDashModifierSegment_name_set(PointerRNA *ptr, const 
   char name_esc[sizeof(dmd->modifier.name) * 2];
   BLI_str_escape(name_esc, dmd->modifier.name, sizeof(name_esc));
   char rna_path_prefix[36 + sizeof(name_esc) + 1];
-  SNPRINTF(rna_path_prefix, "modifiers[\"%s\"].segments", name_esc);
+  SNPRINTF_UTF8(rna_path_prefix, "modifiers[\"%s\"].segments", name_esc);
   BKE_animdata_fix_paths_rename_all(nullptr, rna_path_prefix, oldname.c_str(), dash_segment->name);
 }
 
@@ -2366,7 +2366,7 @@ static void rna_GreasePencilTimeModifierSegment_name_set(PointerRNA *ptr, const 
   char name_esc[sizeof(tmd->modifier.name) * 2];
   BLI_str_escape(name_esc, tmd->modifier.name, sizeof(name_esc));
   char rna_path_prefix[36 + sizeof(name_esc) + 1];
-  SNPRINTF(rna_path_prefix, "modifiers[\"%s\"].segments", name_esc);
+  SNPRINTF_UTF8(rna_path_prefix, "modifiers[\"%s\"].segments", name_esc);
   BKE_animdata_fix_paths_rename_all(nullptr, rna_path_prefix, oldname.c_str(), segment->name);
 }
 
@@ -6643,7 +6643,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "sharpen_peak_jonswap");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 0.0, 1.0);
-  RNA_def_property_ui_text(prop, "Sharpen peak", "Peak sharpening for 'JONSWAP' and 'TMA' models");
+  RNA_def_property_ui_text(prop, "Sharpen Peak", "Peak sharpening for 'JONSWAP' and 'TMA' models");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
   prop = RNA_def_property(srna, "random_seed", PROP_INT, PROP_UNSIGNED);

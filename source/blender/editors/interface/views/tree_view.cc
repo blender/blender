@@ -489,7 +489,7 @@ void AbstractTreeViewItem::add_indent(uiLayout &row) const
   }
 
   /* Restore. */
-  UI_block_layout_set_current(block, &row);
+  block_layout_set_current(block, &row);
 }
 
 void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
@@ -541,7 +541,7 @@ void AbstractTreeViewItem::add_rename_button(uiLayout &row)
   AbstractViewItem::add_rename_button(*block);
 
   UI_block_emboss_set(block, previous_emboss);
-  UI_block_layout_set_current(block, &row);
+  block_layout_set_current(block, &row);
 }
 
 bool AbstractTreeViewItem::has_active_child() const
@@ -858,7 +858,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
       but_scroll->visual_height = *visible_row_count;
     }
 
-    UI_block_layout_set_current(block, col);
+    block_layout_set_current(block, col);
     uiDefIconButI(block,
                   ButType::Grip,
                   0,
@@ -873,7 +873,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
                   "");
   }
 
-  UI_block_layout_set_current(block, &parent_layout);
+  block_layout_set_current(block, &parent_layout);
 }
 
 void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
@@ -929,7 +929,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   uiLayoutListItemAddPadding(row);
 
   UI_block_emboss_set(&block_, previous_emboss);
-  UI_block_layout_set_current(&block_, &prev_layout);
+  block_layout_set_current(&block_, &prev_layout);
 }
 
 uiBlock &TreeViewLayoutBuilder::block() const
@@ -987,7 +987,7 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
   ensure_min_rows_items(tree_view);
 
   /* Ensure the given layout is actually active. */
-  UI_block_layout_set_current(&block, &layout);
+  block_layout_set_current(&block, &layout);
 
   TreeViewLayoutBuilder builder(layout);
   builder.add_box_ = add_box;

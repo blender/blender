@@ -129,6 +129,8 @@ ccl_device_constant DeviceString u_path_glossy_depth = 15717768399057252940ull;
 ccl_device_constant DeviceString u_path_transparent_depth = 7821650266475578543ull;
 /* "path:transmission_depth" */
 ccl_device_constant DeviceString u_path_transmission_depth = 15113408892323917624ull;
+/* "path:portal_depth" */
+ccl_device_constant DeviceString u_path_portal_depth = 13191651286699118408ull;
 /* "cam:sensor_size" */
 ccl_device_constant DeviceString u_sensor_size = 7525693591727141378ull;
 /* "cam:image_resolution" */
@@ -717,6 +719,11 @@ ccl_device_inline bool get_background_attribute(KernelGlobals kg,
   if (name == DeviceStrings::u_path_transparent_depth) {
     /* Transparent Ray Depth */
     const int f = READ_PATH_STATE(transparent_bounce);
+    return set_attribute(f, type, derivatives, val);
+  }
+  if (name == DeviceStrings::u_path_portal_depth) {
+    /* Portal Ray Depth */
+    const int f = READ_PATH_STATE(portal_bounce);
     return set_attribute(f, type, derivatives, val);
   }
 #undef READ_PATH_STATE

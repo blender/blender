@@ -172,8 +172,15 @@ static void smooth_mask_mesh(const OffsetIndices<int> faces,
                                                          tls.neighbor_offsets,
                                                          tls.neighbor_data);
 
+  tls.node_mask.resize(verts.size());
+  const MutableSpan<float> node_mask = tls.node_mask;
+  gather_data_mesh(mask, verts, node_mask);
+
   smooth::neighbor_data_average_mesh(mask, neighbors, new_mask);
-  copy_old_hidden_mask_mesh(verts, hide_vert, mask, new_mask);
+  mask::mix_new_masks(new_mask, 0.5f, node_mask);
+  copy_old_hidden_mask_mesh(verts, hide_vert, mask, node_mask);
+  mask::clamp_mask(node_mask);
+  new_mask.copy_from(node_mask);
 }
 
 static void sharpen_mask_mesh(const OffsetIndices<int> faces,
@@ -370,11 +377,23 @@ static void apply_new_mask_grids(const Depsgraph &depsgraph,
 
 static void smooth_mask_grids(const SubdivCCG &subdiv_ccg,
                               const bke::pbvh::GridsNode &node,
+                              FilterLocalData &tls,
                               MutableSpan<float> new_mask)
 {
+  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+
   const Span<int> grids = node.grids();
+  const int grid_verts_num = grids.size() * key.grid_area;
+
+  tls.node_mask.resize(grid_verts_num);
+  const MutableSpan<float> node_mask = tls.node_mask;
+  gather_data_grids(subdiv_ccg, subdiv_ccg.masks.as_span(), grids, node_mask);
+
   smooth::average_data_grids(subdiv_ccg, subdiv_ccg.masks.as_span(), grids, new_mask);
-  copy_old_hidden_mask_grids(subdiv_ccg, grids, new_mask);
+  mask::mix_new_masks(new_mask, 0.5f, node_mask);
+  copy_old_hidden_mask_grids(subdiv_ccg, grids, node_mask);
+  mask::clamp_mask(node_mask);
+  new_mask.copy_from(node_mask);
 }
 
 static void sharpen_mask_grids(const SubdivCCG &subdiv_ccg,
@@ -571,13 +590,23 @@ static void apply_new_mask_bmesh(const Depsgraph &depsgraph,
   pbvh.tag_masks_changed(IndexMask::from_bools(node_changed, memory));
 }
 
-static void smooth_mask_bmesh(const int mask_offset,
+static void smooth_mask_bmesh(const BMesh &bm,
+                              const int mask_offset,
                               bke::pbvh::BMeshNode &node,
+                              FilterLocalData &tls,
                               MutableSpan<float> new_mask)
 {
   const Set<BMVert *, 0> &verts = BKE_pbvh_bmesh_node_unique_verts(&node);
+
+  tls.node_mask.resize(verts.size());
+  const MutableSpan<float> node_mask = tls.node_mask;
+  gather_mask_bmesh(bm, verts, node_mask);
+
   average_neighbor_mask_bmesh(mask_offset, verts, new_mask);
-  copy_old_hidden_mask_bmesh(mask_offset, verts, new_mask);
+  mask::mix_new_masks(new_mask, 0.5f, node_mask);
+  copy_old_hidden_mask_bmesh(mask_offset, verts, node_mask);
+  mask::clamp_mask(node_mask);
+  new_mask.copy_from(node_mask);
 }
 
 static void sharpen_mask_bmesh(const BMesh &bm,
@@ -858,8 +887,9 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
         switch (filter_type) {
           case FilterType::Smooth: {
             node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
+              FilterLocalData &tls = all_tls.local();
               smooth_mask_grids(
-                  subdiv_ccg, nodes[i], new_masks.as_mutable_span().slice(node_offsets[pos]));
+                  subdiv_ccg, nodes[i], tls, new_masks.as_mutable_span().slice(node_offsets[pos]));
             });
             apply_new_mask_grids(*depsgraph, ob, node_mask, node_offsets, new_masks);
             break;
@@ -929,8 +959,12 @@ static wmOperatorStatus sculpt_mask_filter_exec(bContext *C, wmOperator *op)
         switch (filter_type) {
           case FilterType::Smooth: {
             node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-              smooth_mask_bmesh(
-                  mask_offset, nodes[i], new_masks.as_mutable_span().slice(node_offsets[pos]));
+              FilterLocalData &tls = all_tls.local();
+              smooth_mask_bmesh(bm,
+                                mask_offset,
+                                nodes[i],
+                                tls,
+                                new_masks.as_mutable_span().slice(node_offsets[pos]));
             });
             apply_new_mask_bmesh(*depsgraph, ob, mask_offset, node_mask, node_offsets, new_masks);
             break;

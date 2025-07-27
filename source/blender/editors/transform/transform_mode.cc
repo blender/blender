@@ -18,7 +18,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
@@ -570,20 +570,20 @@ void headerRotation(TransInfo *t, char *str, const int str_size, float final)
 
     outputNumInput(&(t->num), c, t->scene->unit);
 
-    ofs += BLI_snprintf_rlen(
+    ofs += BLI_snprintf_utf8_rlen(
         str + ofs, str_size - ofs, IFACE_("Rotation: %s %s %s"), &c[0], t->con.text, t->proptext);
   }
   else {
-    ofs += BLI_snprintf_rlen(str + ofs,
-                             str_size - ofs,
-                             IFACE_("Rotation: %.2f%s %s"),
-                             RAD2DEGF(final),
-                             t->con.text,
-                             t->proptext);
+    ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                  str_size - ofs,
+                                  IFACE_("Rotation: %.2f%s %s"),
+                                  RAD2DEGF(final),
+                                  t->con.text,
+                                  t->proptext);
   }
 
   if (t->flag & T_PROP_EDIT_ALL) {
-    ofs += BLI_snprintf_rlen(
+    ofs += BLI_snprintf_utf8_rlen(
         str + ofs, str_size - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
   }
 }
@@ -874,66 +874,66 @@ void headerResize(TransInfo *t, const float vec[3], char *str, const int str_siz
     outputNumInput(&(t->num), tvec, t->scene->unit);
   }
   else {
-    BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", vec[0]);
-    BLI_snprintf(&tvec[NUM_STR_REP_LEN], NUM_STR_REP_LEN, "%.4f", vec[1]);
-    BLI_snprintf(&tvec[NUM_STR_REP_LEN * 2], NUM_STR_REP_LEN, "%.4f", vec[2]);
+    BLI_snprintf_utf8(&tvec[0], NUM_STR_REP_LEN, "%.4f", vec[0]);
+    BLI_snprintf_utf8(&tvec[NUM_STR_REP_LEN], NUM_STR_REP_LEN, "%.4f", vec[1]);
+    BLI_snprintf_utf8(&tvec[NUM_STR_REP_LEN * 2], NUM_STR_REP_LEN, "%.4f", vec[2]);
   }
 
   if (t->con.mode & CON_APPLY) {
     switch (t->num.idx_max) {
       case 0:
-        ofs += BLI_snprintf_rlen(str + ofs,
-                                 str_size - ofs,
-                                 IFACE_("Scale: %s%s %s"),
-                                 &tvec[0],
-                                 t->con.text,
-                                 t->proptext);
+        ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                      str_size - ofs,
+                                      IFACE_("Scale: %s%s %s"),
+                                      &tvec[0],
+                                      t->con.text,
+                                      t->proptext);
         break;
       case 1:
-        ofs += BLI_snprintf_rlen(str + ofs,
-                                 str_size - ofs,
-                                 IFACE_("Scale: %s : %s%s %s"),
-                                 &tvec[0],
-                                 &tvec[NUM_STR_REP_LEN],
-                                 t->con.text,
-                                 t->proptext);
+        ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                      str_size - ofs,
+                                      IFACE_("Scale: %s : %s%s %s"),
+                                      &tvec[0],
+                                      &tvec[NUM_STR_REP_LEN],
+                                      t->con.text,
+                                      t->proptext);
         break;
       case 2:
-        ofs += BLI_snprintf_rlen(str + ofs,
-                                 str_size - ofs,
-                                 IFACE_("Scale: %s : %s : %s%s %s"),
-                                 &tvec[0],
-                                 &tvec[NUM_STR_REP_LEN],
-                                 &tvec[NUM_STR_REP_LEN * 2],
-                                 t->con.text,
-                                 t->proptext);
+        ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                      str_size - ofs,
+                                      IFACE_("Scale: %s : %s : %s%s %s"),
+                                      &tvec[0],
+                                      &tvec[NUM_STR_REP_LEN],
+                                      &tvec[NUM_STR_REP_LEN * 2],
+                                      t->con.text,
+                                      t->proptext);
         break;
     }
   }
   else {
     if (t->flag & T_2D_EDIT) {
-      ofs += BLI_snprintf_rlen(str + ofs,
-                               str_size - ofs,
-                               IFACE_("Scale X: %s   Y: %s%s %s"),
-                               &tvec[0],
-                               &tvec[NUM_STR_REP_LEN],
-                               t->con.text,
-                               t->proptext);
+      ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                    str_size - ofs,
+                                    IFACE_("Scale X: %s   Y: %s%s %s"),
+                                    &tvec[0],
+                                    &tvec[NUM_STR_REP_LEN],
+                                    t->con.text,
+                                    t->proptext);
     }
     else {
-      ofs += BLI_snprintf_rlen(str + ofs,
-                               str_size - ofs,
-                               IFACE_("Scale X: %s   Y: %s  Z: %s%s %s"),
-                               &tvec[0],
-                               &tvec[NUM_STR_REP_LEN],
-                               &tvec[NUM_STR_REP_LEN * 2],
-                               t->con.text,
-                               t->proptext);
+      ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                    str_size - ofs,
+                                    IFACE_("Scale X: %s   Y: %s  Z: %s%s %s"),
+                                    &tvec[0],
+                                    &tvec[NUM_STR_REP_LEN],
+                                    &tvec[NUM_STR_REP_LEN * 2],
+                                    t->con.text,
+                                    t->proptext);
     }
   }
 
   if (t->flag & T_PROP_EDIT_ALL) {
-    ofs += BLI_snprintf_rlen(
+    ofs += BLI_snprintf_utf8_rlen(
         str + ofs, str_size - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
   }
 }

@@ -374,15 +374,10 @@ static void gpu_shader_lib_test(const char *test_src_name, const char *additiona
   GPU_framebuffer_ensure_config(&fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(tex)});
   GPU_framebuffer_bind(fb);
 
-  /* TODO(fclem): remove this boilerplate. */
-  GPUVertFormat format{};
-  GPU_vertformat_attr_add(&format, "dummy", VertAttrType::UINT_32);
-  VertBuf *verts = GPU_vertbuf_create_with_format(format);
-  GPU_vertbuf_data_alloc(*verts, 3);
-  Batch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+  Batch *batch = GPU_batch_create_procedural(GPU_PRIM_TRIS, 3);
 
   GPU_batch_set_shader(batch, shader);
-  GPU_batch_draw_advanced(batch, 0, 3, 0, 1);
+  GPU_batch_draw(batch);
 
   GPU_batch_discard(batch);
 

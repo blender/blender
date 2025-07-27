@@ -23,6 +23,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
 
@@ -31,6 +32,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -46,6 +48,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_texture.h"
 #include "BKE_tracking.h"
@@ -147,16 +150,16 @@ static void version_bonelayers_to_bonecollections(Main *bmain)
       if (arm_idprops) {
         /* See if we can use the layer name from the Bone Manager add-on. This is a popular add-on
          * for managing bone layers and giving them names. */
-        SNPRINTF(custom_prop_name, "layer_name_%u", layer);
+        SNPRINTF_UTF8(custom_prop_name, "layer_name_%u", layer);
         IDProperty *prop = IDP_GetPropertyFromGroup(arm_idprops, custom_prop_name);
         if (prop != nullptr && prop->type == IDP_STRING && IDP_String(prop)[0] != '\0') {
-          SNPRINTF(bcoll_name, "Layer %u - %s", layer + 1, IDP_String(prop));
+          SNPRINTF_UTF8(bcoll_name, "Layer %u - %s", layer + 1, IDP_String(prop));
         }
       }
       if (bcoll_name[0] == '\0') {
         /* Either there was no name defined in the custom property, or
          * it was the empty string. */
-        SNPRINTF(bcoll_name, "Layer %u", layer + 1);
+        SNPRINTF_UTF8(bcoll_name, "Layer %u", layer + 1);
       }
 
       /* Create a new bone collection for this layer. */
@@ -318,7 +321,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
       }
     }
 
-    /* XXX This was added several years ago in 'lib_link` code of Scene... Should be safe enough
+    /* XXX This was added several years ago in `lib_link` code of Scene... Should be safe enough
      * here. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->nodetree) {
@@ -326,7 +329,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
       }
     }
 
-    /* XXX This was added many years ago (1c19940198) in 'lib_link` code of particles as a bug-fix.
+    /* XXX This was added many years ago (1c19940198) in `lib_link` code of particles as a bug-fix.
      * But this is actually versioning. Should be safe enough here. */
     LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
       if (!part->effector_weights) {
@@ -464,7 +467,7 @@ static void versioning_replace_legacy_glossy_node(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type_legacy == SH_NODE_BSDF_GLOSSY_LEGACY) {
-      STRNCPY(node->idname, "ShaderNodeBsdfAnisotropic");
+      STRNCPY_UTF8(node->idname, "ShaderNodeBsdfAnisotropic");
       node->type_legacy = SH_NODE_BSDF_GLOSSY;
     }
   }
@@ -516,7 +519,8 @@ static void version_mesh_crease_generic(Main &bmain)
         {
           bNodeSocket *socket = blender::bke::node_find_socket(*node, SOCK_IN, "Name");
           if (STREQ(socket->default_value_typed<bNodeSocketValueString>()->value, "crease")) {
-            STRNCPY(socket->default_value_typed<bNodeSocketValueString>()->value, "crease_edge");
+            STRNCPY_UTF8(socket->default_value_typed<bNodeSocketValueString>()->value,
+                         "crease_edge");
           }
         }
       }
@@ -613,13 +617,13 @@ static void version_replace_velvet_sheen_node(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type_legacy == SH_NODE_BSDF_SHEEN) {
-      STRNCPY(node->idname, "ShaderNodeBsdfSheen");
+      STRNCPY_UTF8(node->idname, "ShaderNodeBsdfSheen");
 
       bNodeSocket *sigmaInput = blender::bke::node_find_socket(*node, SOCK_IN, "Sigma");
       if (sigmaInput != nullptr) {
         node->custom1 = SHD_SHEEN_ASHIKHMIN;
-        STRNCPY(sigmaInput->identifier, "Roughness");
-        STRNCPY(sigmaInput->name, "Roughness");
+        STRNCPY_UTF8(sigmaInput->identifier, "Roughness");
+        STRNCPY_UTF8(sigmaInput->name, "Roughness");
       }
     }
   }

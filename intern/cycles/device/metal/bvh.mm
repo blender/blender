@@ -288,7 +288,9 @@ bool BVHMetal::build_BLAS_mesh(Progress &progress,
       accelDesc.motionEndBorderMode = MTLMotionBorderModeClamp;
       accelDesc.motionKeyframeCount = num_motion_steps;
     }
-    accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+    if (extended_limits) {
+      accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+    }
 
     if (!use_fast_trace_bvh) {
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
@@ -611,7 +613,9 @@ bool BVHMetal::build_BLAS_hair(Progress &progress,
           "Building hair BLAS | %7d curves | %s", (int)hair->num_curves(), geom->name.c_str());
     }
 
-    accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+    if (extended_limits) {
+      accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+    }
 
     if (!use_fast_trace_bvh) {
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
@@ -845,7 +849,9 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
                  (int)pointcloud->num_points(),
                  geom->name.c_str());
     }
-    accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+    if (extended_limits) {
+      accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+    }
 
     if (!use_fast_trace_bvh) {
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
@@ -1002,8 +1008,8 @@ bool BVHMetal::build_TLAS(Progress &progress,
 
   if (@available(macos 12.0, *)) {
     /* Defined inside available check, for return type to be available. */
-    auto make_null_BLAS = [](id<MTLDevice> mtl_device,
-                             id<MTLCommandQueue> queue) -> id<MTLAccelerationStructure> {
+    auto make_null_BLAS = [this](id<MTLDevice> mtl_device,
+                                 id<MTLCommandQueue> queue) -> id<MTLAccelerationStructure> {
       id<MTLBuffer> nullBuf = [mtl_device newBufferWithLength:sizeof(float3)
                                                       options:MTLResourceStorageModeShared];
 
@@ -1024,7 +1030,9 @@ bool BVHMetal::build_TLAS(Progress &progress,
       MTLPrimitiveAccelerationStructureDescriptor *accelDesc =
           [MTLPrimitiveAccelerationStructureDescriptor descriptor];
       accelDesc.geometryDescriptors = @[ geomDesc ];
-      accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+      if (extended_limits) {
+        accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+      }
 
       MTLAccelerationStructureSizes accelSizes = [mtl_device
           accelerationStructureSizesWithDescriptor:accelDesc];
@@ -1152,11 +1160,8 @@ bool BVHMetal::build_TLAS(Progress &progress,
 
       uint32_t accel_struct_index = get_blas_index(blas);
 
-      /* Add some of the object visibility bits to the mask.
-       * __prim_visibility contains the combined visibility bits of all instances, so is not
-       * reliable if they differ between instances.
-       */
-      uint32_t mask = ob->visibility_for_tracing();
+      /* The MetalRT visibility mask can only contain 8 bits by default. */
+      uint32_t mask = ob->visibility_for_tracing() & 0xFF;
 
       /* Have to have at least one bit in the mask, or else instance would always be culled. */
       if (0 == mask) {
@@ -1323,7 +1328,9 @@ bool BVHMetal::build_TLAS(Progress &progress,
 #  endif
     }
 
-    accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+    if (extended_limits) {
+      accelDesc.usage |= MTLAccelerationStructureUsageExtendedLimits;
+    }
     if (!use_fast_trace_bvh) {
       accelDesc.usage |= (MTLAccelerationStructureUsageRefit |
                           MTLAccelerationStructureUsagePreferFastBuild);

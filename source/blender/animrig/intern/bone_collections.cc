@@ -592,7 +592,7 @@ void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll,
   if (name[0] == '\0') {
     /* Refuse to have nameless collections. The name of the active collection is stored in DNA, and
      * an empty string means 'no active collection'. */
-    STRNCPY(bcoll->name, DATA_(bonecoll_default_name));
+    STRNCPY_UTF8(bcoll->name, DATA_(bonecoll_default_name));
   }
   else {
     STRNCPY_UTF8(bcoll->name, name);

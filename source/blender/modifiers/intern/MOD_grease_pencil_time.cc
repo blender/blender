@@ -636,7 +636,7 @@ static void panel_register(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_GreasePencilTime, panel_draw);
 
   uiListType *list_type = MEM_callocN<uiListType>("Grease Pencil Time modifier segments");
-  STRNCPY(list_type->idname, "MOD_UL_grease_pencil_time_modifier_segments");
+  STRNCPY_UTF8(list_type->idname, "MOD_UL_grease_pencil_time_modifier_segments");
   list_type->draw_item = segment_list_item_draw;
   WM_uilisttype_add(list_type);
 }

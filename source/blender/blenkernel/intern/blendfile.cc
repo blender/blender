@@ -21,12 +21,14 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_fileops.h"
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_system.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
@@ -570,7 +572,7 @@ static void unpin_file_local_grease_pencil_brush_materials(const ReuseOldBMainDa
 }
 
 /**
- * Does a complete replacement of data in `new_bmain` by data from `old_bmain. Original new data
+ * Does a complete replacement of data in `new_bmain` by data from `old_bmain`. Original new data
  * are moved to the `old_bmain`, and will be freed together with it.
  *
  * WARNING: Currently only expects to work on local data, won't work properly if some of the IDs of
@@ -897,7 +899,7 @@ static void wm_data_consistency_ensure(wmWindowManager *curwm,
       win->scene = cur_scene;
     }
     if (BKE_view_layer_find(win->scene, win->view_layer_name) == nullptr) {
-      STRNCPY(win->view_layer_name, cur_view_layer->name);
+      STRNCPY_UTF8(win->view_layer_name, cur_view_layer->name);
     }
 
     view3d_data_consistency_ensure(win, win->scene, cur_view_layer);
@@ -1518,7 +1520,7 @@ UserDef *BKE_blendfile_userdef_from_defaults()
     };
     for (int i = 0; i < ARRAY_SIZE(addons); i++) {
       bAddon *addon = BKE_addon_new();
-      STRNCPY(addon->module, addons[i]);
+      STRNCPY_UTF8(addon->module, addons[i]);
       BLI_addtail(&userdef->addons, addon);
     }
   }

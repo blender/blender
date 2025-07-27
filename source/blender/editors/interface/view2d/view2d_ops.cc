@@ -104,6 +104,7 @@ struct v2dViewPanData {
 
   /** Tag if the scroll is done in the category tab. */
   bool do_category_scroll;
+  bool own_cursor;
 
   /** for MMB in scrollers (old feature in past, but now not that useful) */
   short in_scroller;
@@ -257,7 +258,7 @@ static wmOperatorStatus view_pan_invoke(bContext *C, wmOperator *op, const wmEve
   RNA_int_set(op->ptr, "deltax", 0);
   RNA_int_set(op->ptr, "deltay", 0);
 
-  if (window->grabcursor == 0) {
+  if (WM_cursor_modal_is_set_ok(window)) {
     if (v2d->keepofs & V2D_LOCKOFS_X) {
       WM_cursor_modal_set(window, WM_CURSOR_NS_SCROLL);
     }
@@ -267,6 +268,7 @@ static wmOperatorStatus view_pan_invoke(bContext *C, wmOperator *op, const wmEve
     else {
       WM_cursor_modal_set(window, WM_CURSOR_NSEW_SCROLL);
     }
+    vpd->own_cursor = true;
   }
 
   /* add temp handler */
@@ -317,9 +319,13 @@ static wmOperatorStatus view_pan_modal(bContext *C, wmOperator *op, const wmEven
         RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
         RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
 
+        const bool own_cursor = vpd->own_cursor;
         view_pan_exit(op);
-        WM_cursor_modal_restore(CTX_wm_window(C));
-        WM_operator_name_call(C, "VIEW2D_OT_zoom", blender::wm::OpCallContext::InvokeDefault, nullptr, event);
+        if (own_cursor) {
+          WM_cursor_modal_restore(CTX_wm_window(C));
+        }
+        WM_operator_name_call(
+            C, "VIEW2D_OT_zoom", blender::wm::OpCallContext::InvokeDefault, nullptr, event);
         return OPERATOR_FINISHED;
       }
 #endif
@@ -330,9 +336,11 @@ static wmOperatorStatus view_pan_modal(bContext *C, wmOperator *op, const wmEven
           RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
           RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
 
+          const bool own_cursor = vpd->own_cursor;
           view_pan_exit(op);
-          WM_cursor_modal_restore(CTX_wm_window(C));
-
+          if (own_cursor) {
+            WM_cursor_modal_restore(CTX_wm_window(C));
+          }
           return OPERATOR_FINISHED;
         }
       }
@@ -673,6 +681,7 @@ struct v2dViewZoomData {
   float dx, dy;       /* running tally of previous delta values (for obtaining final zoom) */
   float mx_2d, my_2d; /* initial mouse location in v2d coords */
   bool zoom_to_mouse_pos;
+  bool own_cursor;
 };
 
 /**
@@ -1224,7 +1233,7 @@ static wmOperatorStatus view_zoomdrag_invoke(bContext *C, wmOperator *op, const 
   /* for modal exit test */
   vzd->invoke_event = event->type;
 
-  if (window->grabcursor == 0) {
+  if (WM_cursor_modal_is_set_ok(window)) {
     if (v2d->keepofs & V2D_LOCKOFS_X) {
       WM_cursor_modal_set(window, WM_CURSOR_NS_SCROLL);
     }
@@ -1234,6 +1243,7 @@ static wmOperatorStatus view_zoomdrag_invoke(bContext *C, wmOperator *op, const 
     else {
       WM_cursor_modal_set(window, WM_CURSOR_NSEW_SCROLL);
     }
+    vzd->own_cursor = true;
   }
 
   /* add temp handler */
@@ -1373,8 +1383,11 @@ static wmOperatorStatus view_zoomdrag_modal(bContext *C, wmOperator *op, const w
       }
 
       /* free customdata */
+      const bool own_cursor = vzd->own_cursor;
       view_zoomdrag_exit(C, op);
-      WM_cursor_modal_restore(CTX_wm_window(C));
+      if (own_cursor) {
+        WM_cursor_modal_restore(CTX_wm_window(C));
+      }
 
       return OPERATOR_FINISHED;
     }

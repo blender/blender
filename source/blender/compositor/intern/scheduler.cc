@@ -11,8 +11,6 @@
 
 #include "NOD_derived_node_tree.hh"
 
-#include "BKE_node_legacy_types.hh"
-
 #include "COM_context.hh"
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
@@ -39,8 +37,8 @@ static bool is_tree_context_muted(const DTreeContext &tree_context)
 }
 
 /* Add the active viewer node in the given tree context to the given stack. If viewer nodes are
- * treated as composite outputs, this function will also add either the viewer or the composite
- * node since composite nodes were skipped in add_output_nodes such that viewer nodes take
+ * treated as compositor outputs, this function will also add either the viewer or the group output
+ * node since group output nodes were skipped in add_output_nodes such that viewer nodes take
  * precedence. */
 static bool add_viewer_nodes_in_context(const Context &context,
                                         const DTreeContext *tree_context,
@@ -58,14 +56,14 @@ static bool add_viewer_nodes_in_context(const Context &context,
     }
   }
 
-  /* If we are not treating viewers as composite outputs, there is nothing else to do. Otherwise,
-   * the active composite node might be added. */
-  if (!context.treat_viewer_as_composite_output()) {
+  /* If we are not treating viewers as compositor outputs, there is nothing else to do. Otherwise,
+   * the active group output node might be added. */
+  if (!context.treat_viewer_as_compositor_output()) {
     return false;
   }
 
   /* No active viewers exist in this tree context, add the active Composite node if one exist. */
-  for (const bNode *node : tree_context->btree().nodes_by_type("CompositorNodeComposite")) {
+  for (const bNode *node : tree_context->btree().nodes_by_type("NodeGroupOutput")) {
     if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
       node_stack.push(DNode(tree_context, node));
       return true;
@@ -101,7 +99,7 @@ static void add_file_output_nodes(const DTreeContext &tree_context, Stack<DNode>
 }
 
 /* Add the output nodes whose result should be computed to the given stack. This includes File
- * Output, Composite, and Viewer nodes. Viewer nodes are a special case, as only the nodes that
+ * Output, Group Output, and Viewer nodes. Viewer nodes are a special case, as only the nodes that
  * satisfies the requirements in the add_viewer_nodes_in_context function are added. First, the
  * active context is searched for viewer nodes, if non were found, the root context is searched.
  * For more information on what contexts mean here, see the DerivedNodeTree::active_context()
@@ -117,13 +115,13 @@ static void add_output_nodes(const Context &context,
     add_file_output_nodes(root_context, node_stack);
   }
 
-  /* Add the active composite node in the root tree if needed, but only if we are not treating
-   * viewer outputs as composite ones. That's because in cases where viewer nodes will be treated
-   * as composite outputs, viewer nodes will take precedence, so this is handled as a special case
+  /* Add the active group output node in the root tree if needed, but only if we are not treating
+   * viewer outputs as compositor ones. That's because in cases where viewer nodes will be treated
+   * as compositor outputs, viewer nodes will take precedence, so this is handled as a special case
    * in the add_viewer_nodes_in_context function instead and no need to add it here. */
   if (bool(context.needed_outputs() & OutputTypes::Composite)) {
-    if (!context.treat_viewer_as_composite_output()) {
-      for (const bNode *node : root_context.btree().nodes_by_type("CompositorNodeComposite")) {
+    if (!context.treat_viewer_as_compositor_output()) {
+      for (const bNode *node : root_context.btree().nodes_by_type("NodeGroupOutput")) {
         if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
           node_stack.push(DNode(&root_context, node));
           break;

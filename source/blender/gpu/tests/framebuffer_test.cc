@@ -289,17 +289,13 @@ static void test_framebuffer_multi_viewport()
   GPUShader *shader = GPU_shader_create_from_info(
       reinterpret_cast<GPUShaderCreateInfo *>(&create_info));
 
-  /* TODO(fclem): remove this boilerplate. */
-  GPUVertFormat format{};
-  GPU_vertformat_attr_add(&format, "dummy", VertAttrType::UINT_32);
-  VertBuf *verts = GPU_vertbuf_create_with_format(format);
-  GPU_vertbuf_data_alloc(*verts, 3);
-  Batch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+  int tri_count = size.x * size.y * layers;
+
+  Batch *batch = GPU_batch_create_procedural(GPU_PRIM_TRIS, tri_count * 3);
 
   GPU_batch_set_shader(batch, shader);
 
-  int tri_count = size.x * size.y * layers;
-  GPU_batch_draw_advanced(batch, 0, tri_count * 3, 0, 1);
+  GPU_batch_draw(batch);
 
   GPU_batch_discard(batch);
 
@@ -370,12 +366,7 @@ static void test_framebuffer_subpass_input()
   GPUShader *shader_read = GPU_shader_create_from_info(
       reinterpret_cast<GPUShaderCreateInfo *>(&create_info_read));
 
-  /* TODO(fclem): remove this boilerplate. */
-  GPUVertFormat format{};
-  GPU_vertformat_attr_add(&format, "dummy", VertAttrType::UINT_32);
-  VertBuf *verts = GPU_vertbuf_create_with_format(format);
-  GPU_vertbuf_data_alloc(*verts, 3);
-  Batch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+  Batch *batch = GPU_batch_create_procedural(GPU_PRIM_TRIS, 3);
 
   /* Metal Raster Order Group does not need that. */
   GPU_framebuffer_subpass_transition(

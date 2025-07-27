@@ -126,7 +126,7 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
     return;
   }
 
-  /* No thumbnails is height of the strip is too small. */
+  /* No thumbnails if height of the strip is too small. */
   const float thumb_height = strip.strip_content_top - strip.bottom;
   if (thumb_height / pixely <= 20 * UI_SCALE_FAC) {
     return;

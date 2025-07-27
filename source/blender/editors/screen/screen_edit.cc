@@ -17,7 +17,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -1634,7 +1634,7 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
   bScreen *oldscreen = WM_window_get_active_screen(win);
 
   oldscreen->state = state;
-  SNPRINTF(newname, "%s-%s", oldscreen->id.name + 2, "nonnormal");
+  SNPRINTF_UTF8(newname, "%s-%s", oldscreen->id.name + 2, "nonnormal");
 
   layout_new = ED_workspace_layout_add(bmain, workspace, win, newname);
 

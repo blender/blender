@@ -385,7 +385,7 @@ static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
   op->customdata = vpd = MEM_callocN<ViewPanData>("ClipViewPanData");
 
   /* Grab will be set when running from gizmo. */
-  vpd->own_cursor = (win->grabcursor == 0);
+  vpd->own_cursor = WM_cursor_modal_is_set_ok(win);
   if (vpd->own_cursor) {
     WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
   }
@@ -565,7 +565,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
   op->customdata = vpd = MEM_callocN<ViewZoomData>("ClipViewZoomData");
 
   /* Grab will be set when running from gizmo. */
-  vpd->own_cursor = (win->grabcursor == 0);
+  vpd->own_cursor = WM_cursor_modal_is_set_ok(win);
   if (vpd->own_cursor) {
     WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
   }

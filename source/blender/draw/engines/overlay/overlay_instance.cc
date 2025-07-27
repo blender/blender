@@ -42,6 +42,7 @@ void Instance::init()
   state.is_viewport_image_render = ctx->is_viewport_image_render();
   state.is_image_render = ctx->is_image_render();
   state.is_depth_only_drawing = ctx->is_depth();
+  state.skip_particles = ctx->mode == DRWContext::DEPTH_ACTIVE_OBJECT;
   state.is_material_select = ctx->is_material_select();
   state.draw_background = ctx->options.draw_background;
   state.show_text = false;

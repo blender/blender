@@ -13,7 +13,7 @@
 
 #include <Python.h>
 
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "GPU_context.hh"
 #include "GPU_uniform_buffer.hh"
@@ -79,7 +79,7 @@ static PyObject *pygpu_uniformbuffer__tp_new(PyTypeObject * /*self*/,
   }
 
   if (!GPU_context_active_get()) {
-    STRNCPY(err_out, "No active GPU context found");
+    STRNCPY_UTF8(err_out, "No active GPU context found");
   }
   else {
     Py_buffer pybuffer;
@@ -89,7 +89,7 @@ static PyObject *pygpu_uniformbuffer__tp_new(PyTypeObject * /*self*/,
     }
 
     if ((pybuffer.len % 16) != 0) {
-      STRNCPY(err_out, "UBO is not padded to size of vec4");
+      STRNCPY_UTF8(err_out, "UBO is not padded to size of vec4");
     }
     else {
       ubo = GPU_uniformbuf_create_ex(pybuffer.len, pybuffer.buf, "python_uniformbuffer");

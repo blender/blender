@@ -19,6 +19,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
@@ -1107,7 +1108,7 @@ static void ui_searchbox_region_draw_cb__operator(const bContext * /*C*/, ARegio
         else {
           int text_pre_len;
           text_pre_p += 1;
-          text_pre_len = BLI_strncpy_rlen(
+          text_pre_len = BLI_strncpy_utf8_rlen(
               text_pre, ot->idname, min_ii(sizeof(text_pre), text_pre_p - ot->idname));
           text_pre[text_pre_len] = ':';
           text_pre[text_pre_len + 1] = '\0';
