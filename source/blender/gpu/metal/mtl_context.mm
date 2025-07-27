@@ -98,7 +98,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   mtl_front_left->remove_all_attachments();
   mtl_back_left->remove_all_attachments();
 
-  GHOST_ContextMTL *ghost_mtl_ctx = dynamic_cast<GHOST_ContextMTL *>(ghost_ctx);
+  GHOST_ContextMetal *ghost_mtl_ctx = dynamic_cast<GHOST_ContextMetal *>(ghost_ctx);
   if (ghost_mtl_ctx != nullptr) {
     default_fbo_mtltexture_ = ghost_mtl_ctx->metalOverlayTexture();
 
@@ -163,7 +163,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   }
   else {
     MTL_LOG_DEBUG(
-        " Failed to bind GHOST context to MTLContext -- GHOST_ContextMTL is null "
+        " Failed to bind GHOST context to MTLContext -- GHOST_ContextMetal is null "
         "(GhostContext: %p, GhostContext_MTL: %p)",
         ghost_ctx,
         ghost_mtl_ctx);
@@ -221,7 +221,7 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
     ghost_context = (ghostWin ? ghostWin->getContext() : nullptr);
   }
   BLI_assert(ghost_context);
-  this->ghost_context_ = static_cast<GHOST_ContextMTL *>(ghost_context);
+  this->ghost_context_ = static_cast<GHOST_ContextMetal *>(ghost_context);
   this->queue = (id<MTLCommandQueue>)this->ghost_context_->metalCommandQueue();
   this->device = (id<MTLDevice>)this->ghost_context_->metalDevice();
   BLI_assert(this->queue);

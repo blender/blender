@@ -33,9 +33,9 @@
 #define MTL_BACKEND_SUPPORTS_BORDER_COLOR (MTL_BACKEND_DESKTOP)
 
 #ifdef WITH_APPLE_CROSSPLATFORM
-#  define GHOST_ContextMTL GHOST_ContextIOS
+#  define GHOST_ContextMetal GHOST_ContextIOS
 #else
-#  define GHOST_ContextMTL GHOST_ContextCGL
+#  define GHOST_ContextMetal GHOST_ContextMTL
 #endif
 
 /** -- Renderer Options -- */
