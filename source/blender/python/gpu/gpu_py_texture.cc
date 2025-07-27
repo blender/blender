@@ -14,7 +14,7 @@
 #include <Python.h>
 
 #include "BLI_math_base.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_image_types.h"
 
@@ -212,17 +212,18 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
 
   blender::gpu::Texture *tex = nullptr;
   if (is_cubemap && len != 1) {
-    STRNCPY(err_out,
-            "In cubemaps the same dimension represents height, width and depth. No tuple needed");
+    STRNCPY_UTF8(
+        err_out,
+        "In cubemaps the same dimension represents height, width and depth. No tuple needed");
   }
   else if (size[0] < 1 || size[1] < 1 || size[2] < 1) {
-    STRNCPY(err_out, "Values less than 1 are not allowed in dimensions");
+    STRNCPY_UTF8(err_out, "Values less than 1 are not allowed in dimensions");
   }
   else if (layers && len == 3) {
-    STRNCPY(err_out, "3D textures have no layers");
+    STRNCPY_UTF8(err_out, "3D textures have no layers");
   }
   else if (!GPU_context_active_get()) {
-    STRNCPY(err_out, "No active GPU context found");
+    STRNCPY_UTF8(err_out, "No active GPU context found");
   }
   else {
     const char *name = "python_texture";

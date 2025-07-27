@@ -22,7 +22,7 @@
 
 #ifndef MATH_STANDALONE
 #  include "BLI_dynstr.h"
-#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 #endif
 
 enum eMatrixAccess_t {
@@ -2358,7 +2358,7 @@ static PyObject *Matrix_str(MatrixObject *self)
   for (col = 0; col < self->col_num; col++) {
     maxsize[col] = 0;
     for (row = 0; row < self->row_num; row++) {
-      const int size = SNPRINTF_RLEN(dummy_buf, "%.4f", MATRIX_ITEM(self, row, col));
+      const int size = SNPRINTF_UTF8_RLEN(dummy_buf, "%.4f", MATRIX_ITEM(self, row, col));
       maxsize[col] = max_ii(maxsize[col], size);
     }
   }

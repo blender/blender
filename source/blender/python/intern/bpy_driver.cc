@@ -15,7 +15,7 @@
 #include "DNA_anim_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_animsys.h"
 #include "BKE_fcurve_driver.h"
@@ -556,7 +556,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
   if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
     if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
       G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
-      SNPRINTF(G.autoexec_fail, "Driver '%s'", expr);
+      SNPRINTF_UTF8(G.autoexec_fail, "Driver '%s'", expr);
 
       printf("skipping driver '%s', automatic scripts are disabled\n", expr);
     }
@@ -718,7 +718,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
       {
         if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
           G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
-          SNPRINTF(G.autoexec_fail, "Driver '%s'", expr);
+          SNPRINTF_UTF8(G.autoexec_fail, "Driver '%s'", expr);
         }
 
         Py_DECREF(expr_code);

@@ -14,7 +14,7 @@
 
 #include <Python.h>
 
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh" /* For #BKE_id_is_in_global_main. */
@@ -315,7 +315,7 @@ static PyObject *pygpu_offscreen__tp_new(PyTypeObject * /*self*/, PyObject *args
                                err_out);
   }
   else {
-    STRNCPY(err_out, "No active GPU context found");
+    STRNCPY_UTF8(err_out, "No active GPU context found");
   }
 
   if (ofs == nullptr) {
