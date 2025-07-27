@@ -767,21 +767,17 @@ PyDoc_STRVAR(
     "   :rtype: tuple[float, ...]\n");
 static PyObject *Vector_to_tuple(VectorObject *self, PyObject *args)
 {
-  int ndigits = 0;
+  int ndigits = -1;
 
   if (!PyArg_ParseTuple(args, "|i:to_tuple", &ndigits)) {
     return nullptr;
   }
 
-  if (ndigits > 22 || ndigits < 0) {
+  if (ndigits > 22 || ndigits < -1) {
     PyErr_SetString(PyExc_ValueError,
-                    "Vector.to_tuple(ndigits): "
-                    "ndigits must be between 0 and 21");
+                    "Vector.to_tuple(precision): "
+                    "precision must be between -1 and 21");
     return nullptr;
-  }
-
-  if (PyTuple_GET_SIZE(args) == 0) {
-    ndigits = -1;
   }
 
   if (BaseMath_ReadCallback(self) == -1) {
