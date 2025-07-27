@@ -574,7 +574,7 @@ static void rna_trackingObject_name_set(PointerRNA *ptr, const char *value)
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   MovieTrackingObject *tracking_object = (MovieTrackingObject *)ptr->data;
 
-  STRNCPY(tracking_object->name, value);
+  STRNCPY_UTF8(tracking_object->name, value);
 
   BKE_tracking_object_unique_name(&clip->tracking, tracking_object);
 }
