@@ -592,7 +592,7 @@ struct DrawCache {
   int winx, wordwrap, showlinenrs, tabnumber;
   short lheight;
   char cwidth_px;
-  char text_id[MAX_ID_NAME];
+  char text_id[MAX_ID_NAME - 2];
 
   /** For partial lines recalculation. */
   bool update;
@@ -641,7 +641,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
   /* word-wrapping option was toggled */
   full_update |= drawcache->cwidth_px != st->runtime->cwidth_px;
   /* text datablock was changed */
-  full_update |= !STREQLEN(drawcache->text_id, txt->id.name, MAX_ID_NAME);
+  full_update |= !STREQLEN(drawcache->text_id, txt->id.name, MAX_ID_NAME - 2);
 
   if (st->wordwrap) {
     /* update line heights */
@@ -723,7 +723,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
   drawcache->showlinenrs = st->showlinenrs;
   drawcache->tabnumber = st->tabnumber;
 
-  STRNCPY(drawcache->text_id, txt->id.name);
+  STRNCPY(drawcache->text_id, txt->id.name + 2);
 
   /* clear update flag */
   drawcache->update = false;
