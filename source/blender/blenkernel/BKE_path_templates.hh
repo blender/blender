@@ -103,9 +103,9 @@ namespace blender::bke::path_templates {
  *
  * A filepath variable can contain either a full or partial filepath. The
  * distinction between string and filepath variables exists because non-path
- * strings may include phrases like "and/or" or "A:Left", which shouldn't be
+ * strings may include phrases like `and/or` or `A:Left`, which shouldn't be
  * interpreted with path semantics. When used in path templating, the contents
- * of string variables are therefore sanitized (replacing "/", etc.), but the
+ * of string variables are therefore sanitized (replacing `/`, etc.), but the
  * contents of filepath variables are left as-is.
  */
 class VariableMap {
@@ -210,8 +210,8 @@ class VariableMap {
   /**
    * Add the filename (sans file extension) from the given path as a variable.
    *
-   * For example, if the full path is "/home/bob/project_joe/scene_3.blend",
-   * then "scene_3" is the value of the added variable.
+   * For example, if the full path is `/home/bob/project_joe/scene_3.blend`,
+   * then `scene_3` is the value of the added variable.
    *
    * If the path doesn't contain a filename, then `fallback` is used for the
    * variable value.
@@ -229,8 +229,8 @@ class VariableMap {
   /**
    * Add the path up-to-but-not-including the filename as a variable.
    *
-   * For example, if the full path is "/home/bob/project_joe/scene_3.blend",
-   * then "/home/bob/project_joe/" is the value of the added variable.
+   * For example, if the full path is `/home/bob/project_joe/scene_3.blend`,
+   * then `/home/bob/project_joe/` is the value of the added variable.
    *
    * If the path lacks either a filename or a path leading up to that filename,
    * then `fallback` is used for the variable value.
@@ -370,9 +370,9 @@ blender::Vector<blender::bke::path_templates::Error> BKE_path_validate_template(
  * - `##.###`: format as a float with at least 2 integer-part digits (padded
  *   with zeros as necessary) and precisely 3 fractional-part digits.
  *
- * This function also processes a simple escape sequence for writing literal "{"
- * and "}": like Python format strings, double braces "{{" and "}}" are treated
- * as escape sequences for "{" and "}", and are substituted appropriately. Note
+ * This function also processes a simple escape sequence for writing literal `{`
+ * and `}`: like Python format strings, double braces `{{` and `}}` are treated
+ * as escape sequences for `{` and `}`, and are substituted appropriately. Note
  * that this substitution only happens *outside* of the variable syntax, and
  * therefore cannot e.g. be used inside variable names.
  *
@@ -413,7 +413,7 @@ void BKE_report_path_template_errors(ReportList *reports,
 
 /**
  * Format the given floating point value with the provided format specifier. The format specifier
- * is e.g. the "##.###" in "{name:##.###}".
+ * is e.g. the `##.###` in `{name:##.###}`.
  *
  * \return #std::nullopt if the format specifier is invalid.
  */

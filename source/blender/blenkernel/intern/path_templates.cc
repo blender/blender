@@ -280,9 +280,9 @@ void BKE_add_template_variables_general(VariableMap &variables, const ID *path_o
     variables.add_filename_only(
         "blend_name", g_blend_file_path, blender::StringRef(DATA_("Unsaved")));
 
-    /* Note: fallback to "./" for unsaved files, which if used at the start of a
+    /* Note: fallback to `./` for unsaved files, which if used at the start of a
      * path is equivalent to the current working directory. This is consistent
-     * with how "//" works. */
+     * with how `//` works. */
     variables.add_path_up_to_file("blend_dir", g_blend_file_path, blender::StringRef("./"));
   }
 
@@ -292,9 +292,9 @@ void BKE_add_template_variables_general(VariableMap &variables, const ID *path_o
     variables.add_filename_only(
         "blend_name_lib", lib_blend_file_path, blender::StringRef(DATA_("Unsaved")));
 
-    /* Note: fallback to "./" for unsaved files, which if used at the start of a
+    /* Note: fallback to `./` for unsaved files, which if used at the start of a
      * path is equivalent to the current working directory. This is consistent
-     * with how "//" works. */
+     * with how `//` works. */
     variables.add_path_up_to_file("blend_dir_lib", lib_blend_file_path, blender::StringRef("./"));
   }
 }

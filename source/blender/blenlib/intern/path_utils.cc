@@ -1898,7 +1898,7 @@ bool BLI_path_contains(const char *container_path, const char *containee_path)
   }
 
   /* Add a trailing slash to prevent same-prefix directories from matching.
-   * e.g. "/some/path" doesn't contain "/some/path_lib". */
+   * e.g. `/some/path` doesn't contain `/some/path_lib`. */
   BLI_path_slash_ensure(container_native, sizeof(container_native));
 
   return BLI_str_startswith(containee_native, container_native);
