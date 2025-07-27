@@ -26,6 +26,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
 #include "DNA_material_types.h"
@@ -1376,13 +1377,13 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   if (color_space == usdtokens::auto_) {
     /* If it's auto, determine whether to apply color correction based
      * on incoming connection (passed in from outer functions). */
-    STRNCPY(image->colorspace_settings.name,
-            IMB_colormanagement_role_colorspace_name_get(
-                extra.is_color_corrected ? COLOR_ROLE_DEFAULT_BYTE : COLOR_ROLE_DATA));
+    STRNCPY_UTF8(image->colorspace_settings.name,
+                 IMB_colormanagement_role_colorspace_name_get(
+                     extra.is_color_corrected ? COLOR_ROLE_DEFAULT_BYTE : COLOR_ROLE_DATA));
   }
 
   else if (color_space == usdtokens::sRGB) {
-    STRNCPY(image->colorspace_settings.name, IMB_colormanagement_srgb_colorspace_name_get());
+    STRNCPY_UTF8(image->colorspace_settings.name, IMB_colormanagement_srgb_colorspace_name_get());
   }
 
   /*
@@ -1391,8 +1392,8 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
    * On write, we are *only* using the correct, lower-case "raw" token.
    */
   else if (ELEM(color_space, usdtokens::RAW, usdtokens::raw)) {
-    STRNCPY(image->colorspace_settings.name,
-            IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+    STRNCPY_UTF8(image->colorspace_settings.name,
+                 IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
   }
 
   NodeTexImage *storage = static_cast<NodeTexImage *>(tex_image->storage);

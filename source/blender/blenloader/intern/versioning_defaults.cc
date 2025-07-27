@@ -642,12 +642,12 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
     if (app_template && STR_ELEM(app_template, "Video_Editing", "2D_Animation")) {
       /* Filmic is too slow, use standard until it is optimized. */
-      STRNCPY(scene->view_settings.view_transform, "Standard");
-      STRNCPY(scene->view_settings.look, "None");
+      STRNCPY_UTF8(scene->view_settings.view_transform, "Standard");
+      STRNCPY_UTF8(scene->view_settings.look, "None");
     }
     else {
       /* Default to AgX view transform. */
-      STRNCPY(scene->view_settings.view_transform, "AgX");
+      STRNCPY_UTF8(scene->view_settings.view_transform, "AgX");
     }
 
     if (app_template && STREQ(app_template, "Video_Editing")) {

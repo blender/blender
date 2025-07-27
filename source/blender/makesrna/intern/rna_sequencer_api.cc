@@ -251,7 +251,7 @@ static Strip *rna_Strips_new_image(ID *id,
   load_data.fit_method = eSeqImageFitMethod(fit_method);
 
   char vt_old[64];
-  STRNCPY(vt_old, scene->view_settings.view_transform);
+  STRNCPY_UTF8(vt_old, scene->view_settings.view_transform);
 
   Strip *strip = blender::seq::add_image_strip(bmain, scene, seqbase, &load_data);
 
@@ -321,7 +321,7 @@ static Strip *rna_Strips_new_movie(ID *id,
   load_data.allow_invalid_file = true;
 
   char vt_old[64];
-  STRNCPY(vt_old, scene->view_settings.view_transform);
+  STRNCPY_UTF8(vt_old, scene->view_settings.view_transform);
   float fps_old = scene->r.frs_sec / scene->r.frs_sec_base;
 
   Strip *strip = blender::seq::add_movie_strip(bmain, scene, seqbase, &load_data);

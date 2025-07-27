@@ -18,6 +18,7 @@
 #include "BLI_hash_md5.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_system.h"
 #include "BLI_threads.h"
@@ -387,7 +388,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
 
         if (img != nullptr) {
           if (BLI_stat(file_path, &info) != -1) {
-            SNPRINTF(mtime, "%ld", (long int)info.st_mtime);
+            SNPRINTF_UTF8(mtime, "%ld", (long int)info.st_mtime);
           }
         }
       }
@@ -409,7 +410,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
           MOV_close(anim);
         }
         if (BLI_stat(file_path, &info) != -1) {
-          SNPRINTF(mtime, "%ld", (long int)info.st_mtime);
+          SNPRINTF_UTF8(mtime, "%ld", (long int)info.st_mtime);
         }
       }
       if (!img) {
@@ -431,7 +432,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
         IMB_scale(img, ex, ey, IMBScaleFilter::Box, false);
       }
     }
-    SNPRINTF(desc, "Thumbnail for %s", uri);
+    SNPRINTF_UTF8(desc, "Thumbnail for %s", uri);
     IMB_metadata_ensure(&img->metadata);
     IMB_metadata_set_field(img->metadata, "Software", "Blender");
     IMB_metadata_set_field(img->metadata, "Thumb::URI", uri);

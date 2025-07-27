@@ -23,6 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
@@ -122,7 +123,7 @@ static void strip_add_set_view_transform(Scene *scene, Strip *strip, LoadData *l
           scene->display_settings.display_device);
       const char *default_view_transform =
           IMB_colormanagement_display_get_default_view_transform_name(display);
-      STRNCPY(scene->view_settings.view_transform, default_view_transform);
+      STRNCPY_UTF8(scene->view_settings.view_transform, default_view_transform);
     }
   }
 }
@@ -508,7 +509,7 @@ Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
     strip->flag |= SEQ_AUTO_PLAYBACK_RATE;
   }
 
-  STRNCPY(strip->data->colorspace_settings.name, colorspace);
+  STRNCPY_UTF8(strip->data->colorspace_settings.name, colorspace);
 
   StripData *data = strip->data;
   /* We only need 1 element for MOVIE strips. */

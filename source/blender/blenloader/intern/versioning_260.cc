@@ -1913,7 +1913,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
          * crazy anyway and think it's fair enough to break compatibility in that cases.
          */
 
-        STRNCPY(ima->colorspace_settings.name, "Raw");
+        STRNCPY_UTF8(ima->colorspace_settings.name, "Raw");
       }
     }
   }

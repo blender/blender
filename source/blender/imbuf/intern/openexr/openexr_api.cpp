@@ -85,6 +85,7 @@
 #include "BLI_mmap.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 
 #include "BKE_idprop.hh"
@@ -2032,14 +2033,14 @@ static void imb_exr_set_known_colorspace(const Header &header, ImFileColorSpace 
     const char *known_colorspace = IMB_colormanagement_role_colorspace_name_get(
         COLOR_ROLE_ACES_INTERCHANGE);
     if (known_colorspace) {
-      STRNCPY(r_colorspace.metadata_colorspace, known_colorspace);
+      STRNCPY_UTF8(r_colorspace.metadata_colorspace, known_colorspace);
     }
   }
   else if (header_chromaticities &&
            (imb_check_chromaticity_matches(header_chromaticities->value(), CHROMATICITIES_XYZ_E)))
   {
     /* Only works for the Blender default configuration due to fixed name. */
-    STRNCPY(r_colorspace.metadata_colorspace, "Linear CIE-XYZ E");
+    STRNCPY_UTF8(r_colorspace.metadata_colorspace, "Linear CIE-XYZ E");
   }
 }
 

@@ -26,6 +26,7 @@
 #  include "BLI_math_color.h"
 #  include "BLI_path_utils.hh"
 #  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
 
@@ -554,7 +555,7 @@ static const AVCodec *get_av1_encoder(
       }
       /* Set gop_size as rav1e's "--keyint". */
       char buffer[64];
-      SNPRINTF(buffer, "keyint=%d", context->ffmpeg_gop_size);
+      SNPRINTF_UTF8(buffer, "keyint=%d", context->ffmpeg_gop_size);
       av_dict_set(opts, "rav1e-params", buffer, 0);
     }
     else if (STREQ(codec->name, "libsvtav1")) {
@@ -594,7 +595,7 @@ static const AVCodec *get_av1_encoder(
           }
           /* A char array need only an alignment of 1. */
           char *tiles_string_mut = (char *)calloc(digits * 2 + 2, 1);
-          BLI_snprintf(tiles_string_mut, digits * 2 + 2, "%dx%d", threads_sqrt, threads_sqrt);
+          BLI_snprintf_utf8(tiles_string_mut, digits * 2 + 2, "%dx%d", threads_sqrt, threads_sqrt);
           tiles_string_is_dynamic = true;
           tiles_string = tiles_string_mut;
         }
@@ -626,13 +627,15 @@ static const AVCodec *get_av1_encoder(
           /* A char array need only an alignment of 1. */
           char *tiles_string_mut = (char *)calloc(combined_digits + 2, 1);
           if (rectx > recty) {
-            BLI_snprintf(tiles_string_mut, combined_digits + 2, "%dx%d", sqrt_p2_next, sqrt_p2);
+            BLI_snprintf_utf8(
+                tiles_string_mut, combined_digits + 2, "%dx%d", sqrt_p2_next, sqrt_p2);
           }
           else if (rectx < recty) {
-            BLI_snprintf(tiles_string_mut, combined_digits + 2, "%dx%d", sqrt_p2, sqrt_p2_next);
+            BLI_snprintf_utf8(
+                tiles_string_mut, combined_digits + 2, "%dx%d", sqrt_p2, sqrt_p2_next);
           }
           else {
-            BLI_snprintf(tiles_string_mut, combined_digits + 2, "%dx%d", sqrt_p2, sqrt_p2);
+            BLI_snprintf_utf8(tiles_string_mut, combined_digits + 2, "%dx%d", sqrt_p2, sqrt_p2);
           }
           tiles_string_is_dynamic = true;
           tiles_string = tiles_string_mut;

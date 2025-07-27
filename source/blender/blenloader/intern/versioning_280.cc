@@ -1194,8 +1194,8 @@ static void image_node_colorspace(bNode *node)
   enum { SHD_COLORSPACE_NONE = 0 };
   Image *image = (Image *)node->id;
   if (color_space == SHD_COLORSPACE_NONE) {
-    STRNCPY(image->colorspace_settings.name,
-            IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+    STRNCPY_UTF8(image->colorspace_settings.name,
+                 IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
   }
 }
 
@@ -5260,17 +5260,17 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       view_settings = &scene->view_settings;
 
       if (STREQ(view_settings->view_transform, "Default")) {
-        STRNCPY(view_settings->view_transform, "Standard");
+        STRNCPY_UTF8(view_settings->view_transform, "Standard");
       }
       else if (STR_ELEM(view_settings->view_transform, "RRT", "Film")) {
-        STRNCPY(view_settings->view_transform, "Filmic");
+        STRNCPY_UTF8(view_settings->view_transform, "Filmic");
       }
       else if (STREQ(view_settings->view_transform, "Log")) {
-        STRNCPY(view_settings->view_transform, "Filmic Log");
+        STRNCPY_UTF8(view_settings->view_transform, "Filmic Log");
       }
 
       if (STREQ(view_settings->look, "Filmic - Base Contrast")) {
-        STRNCPY(view_settings->look, "None");
+        STRNCPY_UTF8(view_settings->look, "None");
       }
     }
   }

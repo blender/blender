@@ -3849,7 +3849,7 @@ uiBlock *UI_block_begin(const bContext *C,
      * would slow down redraw, so only lookup for actual transform when it's indeed
      * needed
      */
-    STRNCPY(block->display_device, scene->display_settings.display_device);
+    STRNCPY_UTF8(block->display_device, scene->display_settings.display_device);
 
     /* Copy to avoid crash when scene gets deleted with UI still open. */
     UnitSettings *unit = MEM_callocN<UnitSettings>(__func__);
@@ -3857,7 +3857,7 @@ uiBlock *UI_block_begin(const bContext *C,
     block->unit = unit;
   }
   else {
-    STRNCPY(block->display_device, IMB_colormanagement_display_get_default_name());
+    STRNCPY_UTF8(block->display_device, IMB_colormanagement_display_get_default_name());
   }
 
   block->name = std::move(name);

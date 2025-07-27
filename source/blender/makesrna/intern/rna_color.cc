@@ -448,7 +448,7 @@ static void rna_ColorManagedDisplaySettings_display_device_set(PointerRNA *ptr, 
   const char *name = IMB_colormanagement_display_get_indexed_name(value);
 
   if (name) {
-    STRNCPY(display->display_device, name);
+    STRNCPY_UTF8(display->display_device, name);
   }
 }
 
@@ -508,11 +508,11 @@ static void rna_ColorManagedViewSettings_view_transform_set(PointerRNA *ptr, int
     return;
   }
 
-  STRNCPY(view->view_transform, view_name);
+  STRNCPY_UTF8(view->view_transform, view_name);
 
   const char *look_name = IMB_colormanagement_look_validate_for_view(view_name, view->look);
   if (look_name) {
-    STRNCPY(view->look, look_name);
+    STRNCPY_UTF8(view->look, look_name);
   }
 }
 
@@ -545,7 +545,7 @@ static void rna_ColorManagedViewSettings_look_set(PointerRNA *ptr, int value)
   const char *name = IMB_colormanagement_look_get_indexed_name(value);
 
   if (name) {
-    STRNCPY(view->look, name);
+    STRNCPY_UTF8(view->look, name);
   }
 }
 
@@ -605,7 +605,7 @@ static void rna_ColorManagedColorspaceSettings_is_data_set(PointerRNA *ptr, bool
   ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *)ptr->data;
   if (value) {
     const char *data_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA);
-    STRNCPY(colorspace->name, data_name);
+    STRNCPY_UTF8(colorspace->name, data_name);
   }
 }
 
@@ -622,7 +622,7 @@ static void rna_ColorManagedColorspaceSettings_colorspace_set(PointerRNA *ptr, i
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
   if (name && name[0]) {
-    STRNCPY(colorspace->name, name);
+    STRNCPY_UTF8(colorspace->name, name);
   }
 }
 
