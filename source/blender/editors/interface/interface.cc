@@ -3084,7 +3084,12 @@ void ui_but_string_get_ex(uiBut *but,
   }
   else if (ELEM(but->type, ButType::Text, ButType::SearchMenu)) {
     /* string */
-    BLI_strncpy(str, but->poin, str_maxncpy);
+    if (UI_but_is_utf8(but)) {
+      BLI_strncpy_utf8(str, but->poin, str_maxncpy);
+    }
+    else {
+      BLI_strncpy(str, but->poin, str_maxncpy);
+    }
     return;
   }
   else if (ui_but_anim_expression_get(but, str, str_maxncpy)) {
@@ -3407,7 +3412,12 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
   }
   else if (but->type == ButType::SearchMenu) {
     /* string */
-    BLI_strncpy(but->poin, str, but->hardmax);
+    if (UI_but_is_utf8(but)) {
+      BLI_strncpy_utf8(but->poin, str, but->hardmax);
+    }
+    else {
+      BLI_strncpy(but->poin, str, but->hardmax);
+    }
     return true;
   }
   else if (ui_but_anim_expression_set(but, str)) {
