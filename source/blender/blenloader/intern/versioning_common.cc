@@ -373,18 +373,14 @@ void version_node_socket_index_animdata(Main *bmain,
           continue;
         }
 
-        const size_t node_name_length = strlen(node->name);
-        const size_t node_name_escaped_max_length = (node_name_length * 2);
-        char *node_name_escaped = MEM_malloc_arrayN<char>(node_name_escaped_max_length + 1,
-                                                          "escaped name");
-        BLI_str_escape(node_name_escaped, node->name, node_name_escaped_max_length);
+        char node_name_escaped[sizeof(node->name) * 2];
+        BLI_str_escape(node_name_escaped, node->name, sizeof(node_name_escaped));
         char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
 
         const int new_index = input_index + socket_index_offset;
         BKE_animdata_fix_paths_rename_all_ex(
             bmain, owner_id, rna_path_prefix, nullptr, nullptr, input_index, new_index, false);
         MEM_freeN(rna_path_prefix);
-        MEM_freeN(node_name_escaped);
       }
     }
     FOREACH_NODETREE_END;
