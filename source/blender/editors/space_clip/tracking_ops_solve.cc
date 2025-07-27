@@ -14,7 +14,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -89,7 +89,7 @@ static void solve_camera_updatejob(void *scv)
   SolveCameraJob *scj = (SolveCameraJob *)scv;
   MovieTracking *tracking = &scj->clip->tracking;
 
-  STRNCPY(tracking->stats->message, scj->stats_message);
+  STRNCPY_UTF8(tracking->stats->message, scj->stats_message);
 }
 
 static void solve_camera_startjob(void *scv, wmJobWorkerStatus *worker_status)
@@ -219,7 +219,7 @@ static wmOperatorStatus solve_camera_invoke(bContext *C, wmOperator *op, const w
     return OPERATOR_CANCELLED;
   }
 
-  STRNCPY(tracking->stats->message, "Solving camera | Preparing solve");
+  STRNCPY_UTF8(tracking->stats->message, "Solving camera | Preparing solve");
 
   /* Hide reconstruction statistics from previous solve. */
   reconstruction->flag &= ~TRACKING_RECONSTRUCTED;

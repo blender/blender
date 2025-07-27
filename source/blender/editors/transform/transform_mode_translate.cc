@@ -14,7 +14,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 
 #include "BKE_image.hh"
@@ -168,7 +168,8 @@ static void translate_dist_to_str(char *r_str,
   }
   else {
     /* Check range to prevent string buffer overflow. */
-    BLI_snprintf(r_str, r_str_maxncpy, IN_RANGE_INCL(val, -1e10f, 1e10f) ? "%.4f" : "%.4e", val);
+    BLI_snprintf_utf8(
+        r_str, r_str_maxncpy, IN_RANGE_INCL(val, -1e10f, 1e10f) ? "%.4f" : "%.4e", val);
   }
 }
 
@@ -235,47 +236,47 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     char prop_str[NUM_STR_REP_LEN];
     translate_dist_to_str(prop_str, sizeof(prop_str), t->prop_size, unit);
 
-    ofs += BLI_snprintf_rlen(str + ofs,
-                             UI_MAX_DRAW_STR - ofs,
-                             "%s %s: %s   ",
-                             IFACE_("Proportional Size"),
-                             t->proptext,
-                             prop_str);
+    ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                  UI_MAX_DRAW_STR - ofs,
+                                  "%s %s: %s   ",
+                                  IFACE_("Proportional Size"),
+                                  t->proptext,
+                                  prop_str);
   }
 
   if (t->flag & T_AUTOIK) {
     short chainlen = t->settings->autoik_chainlen;
     if (chainlen) {
-      ofs += BLI_snprintf_rlen(
+      ofs += BLI_snprintf_utf8_rlen(
           str + ofs, UI_MAX_DRAW_STR - ofs, IFACE_("Auto IK Length: %d"), chainlen);
-      ofs += BLI_strncpy_rlen(str + ofs, "   ", UI_MAX_DRAW_STR - ofs);
+      ofs += BLI_strncpy_utf8_rlen(str + ofs, "   ", UI_MAX_DRAW_STR - ofs);
     }
   }
 
   if (t->con.mode & CON_APPLY) {
     switch (t->num.idx_max) {
       case 0:
-        ofs += BLI_snprintf_rlen(
+        ofs += BLI_snprintf_utf8_rlen(
             str + ofs, UI_MAX_DRAW_STR - ofs, "D: %s (%s)%s", dvec_str[0], dist_str, t->con.text);
         break;
       case 1:
-        ofs += BLI_snprintf_rlen(str + ofs,
-                                 UI_MAX_DRAW_STR - ofs,
-                                 "D: %s   D: %s (%s)%s",
-                                 dvec_str[0],
-                                 dvec_str[1],
-                                 dist_str,
-                                 t->con.text);
+        ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                      UI_MAX_DRAW_STR - ofs,
+                                      "D: %s   D: %s (%s)%s",
+                                      dvec_str[0],
+                                      dvec_str[1],
+                                      dist_str,
+                                      t->con.text);
         break;
       case 2:
-        ofs += BLI_snprintf_rlen(str + ofs,
-                                 UI_MAX_DRAW_STR - ofs,
-                                 "D: %s   D: %s   D: %s (%s)%s",
-                                 dvec_str[0],
-                                 dvec_str[1],
-                                 dvec_str[2],
-                                 dist_str,
-                                 t->con.text);
+        ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                      UI_MAX_DRAW_STR - ofs,
+                                      "D: %s   D: %s   D: %s (%s)%s",
+                                      dvec_str[0],
+                                      dvec_str[1],
+                                      dvec_str[2],
+                                      dist_str,
+                                      t->con.text);
         break;
     }
   }
@@ -286,29 +287,29 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
         const char *str_dir = (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT) ?
                                   IFACE_("right") :
                                   IFACE_("left");
-        ofs += BLI_snprintf_rlen(
+        ofs += BLI_snprintf_utf8_rlen(
             str, UI_MAX_DRAW_STR, IFACE_("Auto-offset direction: %s"), str_dir);
       }
     }
     else {
       if (t->flag & T_2D_EDIT) {
-        ofs += BLI_snprintf_rlen(str + ofs,
-                                 UI_MAX_DRAW_STR - ofs,
-                                 "Dx: %s   Dy: %s (%s)%s",
-                                 dvec_str[0],
-                                 dvec_str[1],
-                                 dist_str,
-                                 t->con.text);
+        ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                      UI_MAX_DRAW_STR - ofs,
+                                      "Dx: %s   Dy: %s (%s)%s",
+                                      dvec_str[0],
+                                      dvec_str[1],
+                                      dist_str,
+                                      t->con.text);
       }
       else {
-        ofs += BLI_snprintf_rlen(str + ofs,
-                                 UI_MAX_DRAW_STR - ofs,
-                                 "Dx: %s   Dy: %s   Dz: %s (%s)%s",
-                                 dvec_str[0],
-                                 dvec_str[1],
-                                 dvec_str[2],
-                                 dist_str,
-                                 t->con.text);
+        ofs += BLI_snprintf_utf8_rlen(str + ofs,
+                                      UI_MAX_DRAW_STR - ofs,
+                                      "Dx: %s   Dy: %s   Dz: %s (%s)%s",
+                                      dvec_str[0],
+                                      dvec_str[1],
+                                      dvec_str[2],
+                                      dist_str,
+                                      t->con.text);
       }
     }
   }

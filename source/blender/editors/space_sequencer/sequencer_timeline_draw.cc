@@ -13,7 +13,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
@@ -747,7 +747,7 @@ static void draw_handle_transform_text(const TimelineDrawContext *timeline_ctx,
   BLF_set_default();
 
   /* Calculate if strip is wide enough for showing the labels. */
-  size_t numstr_len = SNPRINTF_RLEN(
+  size_t numstr_len = SNPRINTF_UTF8_RLEN(
       numstr, "%d%d", int(strip_ctx->left_handle), int(strip_ctx->right_handle));
   const float tot_width = BLF_width(BLF_default(), numstr, numstr_len);
 
@@ -761,11 +761,11 @@ static void draw_handle_transform_text(const TimelineDrawContext *timeline_ctx,
   float text_x = strip_ctx->left_handle;
 
   if (handle == STRIP_HANDLE_LEFT) {
-    numstr_len = SNPRINTF_RLEN(numstr, "%d", int(strip_ctx->left_handle));
+    numstr_len = SNPRINTF_UTF8_RLEN(numstr, "%d", int(strip_ctx->left_handle));
     text_x += text_margin;
   }
   else {
-    numstr_len = SNPRINTF_RLEN(numstr, "%d", int(strip_ctx->right_handle - 1));
+    numstr_len = SNPRINTF_UTF8_RLEN(numstr, "%d", int(strip_ctx->right_handle - 1));
     text_x = strip_ctx->right_handle -
              (text_margin + timeline_ctx->pixelx * BLF_width(BLF_default(), numstr, numstr_len));
   }
@@ -806,43 +806,43 @@ static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t 
     }
     case STRIP_TYPE_SOUND_RAM: {
       if (strip->sound != nullptr) {
-        BLI_strncpy(r_source, strip->sound->filepath, source_maxncpy);
+        BLI_strncpy_utf8(r_source, strip->sound->filepath, source_maxncpy);
       }
       break;
     }
     case STRIP_TYPE_MULTICAM: {
-      BLI_snprintf(r_source, source_maxncpy, "Channel: %d", strip->multicam_source);
+      BLI_snprintf_utf8(r_source, source_maxncpy, "Channel: %d", strip->multicam_source);
       break;
     }
     case STRIP_TYPE_TEXT: {
       const TextVars *textdata = static_cast<TextVars *>(strip->effectdata);
-      BLI_strncpy(r_source, textdata->text_ptr, source_maxncpy);
+      BLI_strncpy_utf8(r_source, textdata->text_ptr, source_maxncpy);
       break;
     }
     case STRIP_TYPE_SCENE: {
       if (strip->scene != nullptr) {
         if (strip->scene_camera != nullptr) {
-          BLI_snprintf(r_source,
-                       source_maxncpy,
-                       "%s (%s)",
-                       strip->scene->id.name + 2,
-                       strip->scene_camera->id.name + 2);
+          BLI_snprintf_utf8(r_source,
+                            source_maxncpy,
+                            "%s (%s)",
+                            strip->scene->id.name + 2,
+                            strip->scene_camera->id.name + 2);
         }
         else {
-          BLI_strncpy(r_source, strip->scene->id.name + 2, source_maxncpy);
+          BLI_strncpy_utf8(r_source, strip->scene->id.name + 2, source_maxncpy);
         }
       }
       break;
     }
     case STRIP_TYPE_MOVIECLIP: {
       if (strip->clip != nullptr) {
-        BLI_strncpy(r_source, strip->clip->id.name + 2, source_maxncpy);
+        BLI_strncpy_utf8(r_source, strip->clip->id.name + 2, source_maxncpy);
       }
       break;
     }
     case STRIP_TYPE_MASK: {
       if (strip->mask != nullptr) {
-        BLI_strncpy(r_source, strip->mask->id.name + 2, source_maxncpy);
+        BLI_strncpy_utf8(r_source, strip->mask->id.name + 2, source_maxncpy);
       }
       break;
     }
@@ -877,7 +877,7 @@ static size_t draw_seq_text_get_overlay_string(TimelineDrawContext *timeline_ctx
 
   char strip_duration_text[16];
   if (timeline_ctx->sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION) {
-    SNPRINTF(strip_duration_text, "%d", int(strip_ctx->strip_length));
+    SNPRINTF_UTF8(strip_duration_text, "%d", int(strip_ctx->strip_length));
     if (i != 0) {
       text_array[i++] = text_sep;
     }

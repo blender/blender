@@ -16,7 +16,7 @@
 
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -410,7 +410,7 @@ static void draw_vertical_scale_indicators(const ARegion *region,
 static void view_to_string__frame_number(
     void * /*user_data*/, float v2d_pos, float /*v2d_step*/, char *r_str, uint str_maxncpy)
 {
-  BLI_snprintf(r_str, str_maxncpy, "%d", int(v2d_pos));
+  BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(v2d_pos));
 }
 
 static void view_to_string__time(
@@ -431,16 +431,16 @@ static void view_to_string__value(
     void * /*user_data*/, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy)
 {
   if (v2d_step >= 1.0f) {
-    BLI_snprintf(r_str, str_maxncpy, "%d", int(v2d_pos));
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%d", int(v2d_pos));
   }
   else if (v2d_step >= 0.1f) {
-    BLI_snprintf(r_str, str_maxncpy, "%.1f", v2d_pos);
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%.1f", v2d_pos);
   }
   else if (v2d_step >= 0.01f) {
-    BLI_snprintf(r_str, str_maxncpy, "%.2f", v2d_pos);
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%.2f", v2d_pos);
   }
   else {
-    BLI_snprintf(r_str, str_maxncpy, "%.3f", v2d_pos);
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%.3f", v2d_pos);
   }
 }
 

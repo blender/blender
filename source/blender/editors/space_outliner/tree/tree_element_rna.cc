@@ -7,6 +7,7 @@
  */
 
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -225,10 +226,10 @@ TreeElementRNAArrayElement::TreeElementRNAArrayElement(TreeElement &legacy_te,
   const size_t name_size = sizeof(char[20]);
   legacy_te_.name = MEM_calloc_arrayN<char>(name_size, "OutlinerRNAArrayName");
   if (c) {
-    BLI_snprintf((char *)legacy_te_.name, name_size, "  %c", c);
+    BLI_snprintf_utf8((char *)legacy_te_.name, name_size, "  %c", c);
   }
   else {
-    BLI_snprintf((char *)legacy_te_.name, name_size, "  %d", index + 1);
+    BLI_snprintf_utf8((char *)legacy_te_.name, name_size, "  %d", index + 1);
   }
   legacy_te_.flag |= TE_FREE_NAME;
 }

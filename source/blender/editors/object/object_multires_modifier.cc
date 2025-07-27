@@ -18,7 +18,7 @@
 #include "BKE_report.hh"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -307,7 +307,8 @@ static wmOperatorStatus multires_external_save_invoke(bContext *C,
 
   op->customdata = mesh;
 
-  SNPRINTF(filepath, "//%s.btx", mesh->id.name + 2);
+  /* While a filename need not be UTF8, at this point the constructed name should be UTF8. */
+  SNPRINTF_UTF8(filepath, "//%s.btx", mesh->id.name + 2);
   RNA_string_set(op->ptr, "filepath", filepath);
 
   WM_event_add_fileselect(C, op);

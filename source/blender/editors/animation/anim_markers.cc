@@ -890,23 +890,23 @@ static void ed_marker_move_update_header(bContext *C, wmOperator *op)
     outputNumInput(&mm->num, str_ofs, scene->unit);
   }
   else if (use_time) {
-    SNPRINTF(str_ofs, "%.2f", FRA2TIME(ofs));
+    SNPRINTF_UTF8(str_ofs, "%.2f", FRA2TIME(ofs));
   }
   else {
-    SNPRINTF(str_ofs, "%d", ofs);
+    SNPRINTF_UTF8(str_ofs, "%d", ofs);
   }
 
   if (totmark == 1 && selmarker) {
     /* we print current marker value */
     if (use_time) {
-      SNPRINTF(str, IFACE_("Marker %.2f offset %s"), FRA2TIME(selmarker->frame), str_ofs);
+      SNPRINTF_UTF8(str, IFACE_("Marker %.2f offset %s"), FRA2TIME(selmarker->frame), str_ofs);
     }
     else {
-      SNPRINTF(str, IFACE_("Marker %d offset %s"), selmarker->frame, str_ofs);
+      SNPRINTF_UTF8(str, IFACE_("Marker %d offset %s"), selmarker->frame, str_ofs);
     }
   }
   else {
-    SNPRINTF(str, IFACE_("Marker offset %s"), str_ofs);
+    SNPRINTF_UTF8(str, IFACE_("Marker offset %s"), str_ofs);
   }
 
   ED_area_status_text(CTX_wm_area(C), str);

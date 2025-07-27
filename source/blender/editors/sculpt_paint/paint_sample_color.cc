@@ -21,7 +21,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -336,11 +336,11 @@ static void sample_color_update_header(SampleColorData *data, bContext *C)
   ScrArea *area = CTX_wm_area(C);
 
   if (area) {
-    SNPRINTF(msg,
-             IFACE_("Sample color for %s"),
-             !data->sample_palette ?
-                 IFACE_("Brush. Use Left Click to sample for palette instead") :
-                 IFACE_("Palette. Use Left Click to sample more colors"));
+    SNPRINTF_UTF8(msg,
+                  IFACE_("Sample color for %s"),
+                  !data->sample_palette ?
+                      IFACE_("Brush. Use Left Click to sample for palette instead") :
+                      IFACE_("Palette. Use Left Click to sample more colors"));
     ED_workspace_status_text(C, msg);
   }
 }

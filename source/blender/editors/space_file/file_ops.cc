@@ -2637,7 +2637,7 @@ static bool new_folder_path(const char *parent,
    * add number to the name. Check length of generated name to avoid
    * crazy case of huge number of folders each named 'New Folder (x)' */
   while (BLI_exists(r_dirpath_full) && (len < FILE_MAXFILE)) {
-    len = BLI_snprintf(r_dirname, FILE_MAXFILE, "New Folder(%d)", i);
+    len = BLI_snprintf_utf8(r_dirname, FILE_MAXFILE, "New Folder(%d)", i);
     BLI_path_join(r_dirpath_full, FILE_MAX, parent, r_dirname);
     i++;
   }

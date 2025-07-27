@@ -25,7 +25,7 @@
 #include "BKE_object.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "CLG_log.h"
 #include "testing/testing.h"
@@ -226,8 +226,8 @@ class KeylistSummaryTest : public testing::Test {
     armature_data = BKE_armature_add(bmain, "ARArmature");
     bone1 = reinterpret_cast<Bone *>(MEM_callocN(sizeof(Bone), "KeylistSummaryTest"));
     bone2 = reinterpret_cast<Bone *>(MEM_callocN(sizeof(Bone), "KeylistSummaryTest"));
-    STRNCPY(bone1->name, "Bone.001");
-    STRNCPY(bone2->name, "Bone.002");
+    STRNCPY_UTF8(bone1->name, "Bone.001");
+    STRNCPY_UTF8(bone2->name, "Bone.002");
     BLI_addtail(&armature_data->bonebase, bone1);
     BLI_addtail(&armature_data->bonebase, bone2);
     BKE_armature_bone_hash_make(armature_data);

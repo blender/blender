@@ -1133,7 +1133,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 
     y -= lheight;
 
-    BLI_strncpy(str, item->name, len + 1);
+    BLI_strncpy_utf8(str, item->name, len + 1);
 
     w = st->runtime->cwidth_px * space_text_get_char_pos(st, str, len);
 
@@ -1608,7 +1608,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
     if (st->showlinenrs && !wrap_skip) {
       /* Draw line number. */
       UI_FontThemeColor(tdc.font_id, (tmp == text->sell) ? TH_HILITE : TH_LINENUMBERS);
-      SNPRINTF(linenr, "%*d", st->runtime->line_number_display_digits, i + linecount + 1);
+      SNPRINTF_UTF8(linenr, "%*d", st->runtime->line_number_display_digits, i + linecount + 1);
       text_font_draw(&tdc, TXT_NUMCOL_PAD * st->runtime->cwidth_px, y, linenr);
       /* Change back to text color. */
       UI_FontThemeColor(tdc.font_id, TH_TEXT);

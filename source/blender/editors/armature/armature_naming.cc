@@ -182,7 +182,7 @@ void ED_armature_bone_rename(Main *bmain,
           BLI_ghash_remove(arm->bonehash, bone->name, nullptr, nullptr);
         }
 
-        STRNCPY(bone->name, newname);
+        STRNCPY_UTF8(bone->name, newname);
 
         if (arm->bonehash) {
           BLI_ghash_insert(arm->bonehash, bone->name, bone);
@@ -314,7 +314,7 @@ void ED_armature_bone_rename(Main *bmain,
         Camera *cam = static_cast<Camera *>(ob->data);
         if ((cam->dof.focus_object != nullptr) && (cam->dof.focus_object->data == arm)) {
           if (STREQ(cam->dof.focus_subtarget, oldname)) {
-            STRNCPY(cam->dof.focus_subtarget, newname);
+            STRNCPY_UTF8(cam->dof.focus_subtarget, newname);
             DEG_id_tag_update(&cam->id, ID_RECALC_SYNC_TO_EVAL);
           }
         }

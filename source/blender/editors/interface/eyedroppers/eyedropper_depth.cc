@@ -20,7 +20,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -287,7 +287,7 @@ static void depthdropper_depth_sample_pt(bContext *C,
                                    false);
         }
         else {
-          STRNCPY(ddr->name, "Nothing under cursor");
+          STRNCPY_UTF8(ddr->name, "Nothing under cursor");
         }
       }
     }

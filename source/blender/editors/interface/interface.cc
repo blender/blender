@@ -3119,17 +3119,17 @@ void ui_but_string_get_ex(uiBut *but,
       }
       else if (subtype == PROP_FACTOR) {
         if (U.factor_display_type == USER_FACTOR_AS_FACTOR) {
-          BLI_snprintf(str, str_maxncpy, "%.*f", prec, value);
+          BLI_snprintf_utf8(str, str_maxncpy, "%.*f", prec, value);
         }
         else {
-          BLI_snprintf(str, str_maxncpy, "%.*f", std::max(0, prec - 2), value * 100);
+          BLI_snprintf_utf8(str, str_maxncpy, "%.*f", std::max(0, prec - 2), value * 100);
         }
       }
       else {
         const int int_digits_num = integer_digits_f(value);
         if (use_exp_float) {
           if (int_digits_num < -6 || int_digits_num > 12) {
-            BLI_snprintf(str, str_maxncpy, "%.*g", prec, value);
+            BLI_snprintf_utf8(str, str_maxncpy, "%.*g", prec, value);
             if (r_use_exp_float) {
               *r_use_exp_float = true;
             }
@@ -3137,18 +3137,18 @@ void ui_but_string_get_ex(uiBut *but,
           else {
             prec -= int_digits_num;
             CLAMP(prec, 0, UI_PRECISION_FLOAT_MAX);
-            BLI_snprintf(str, str_maxncpy, "%.*f", prec, value);
+            BLI_snprintf_utf8(str, str_maxncpy, "%.*f", prec, value);
           }
         }
         else {
           prec -= int_digits_num;
           CLAMP(prec, 0, UI_PRECISION_FLOAT_MAX);
-          BLI_snprintf(str, str_maxncpy, "%.*f", prec, value);
+          BLI_snprintf_utf8(str, str_maxncpy, "%.*f", prec, value);
         }
       }
     }
     else {
-      BLI_snprintf(str, str_maxncpy, "%d", int(value));
+      BLI_snprintf_utf8(str, str_maxncpy, "%d", int(value));
     }
   }
 }
@@ -4772,7 +4772,7 @@ static void ui_def_but_rna__menu_type(bContext *C, uiLayout *layout, void *but_p
   }
   else {
     char msg[256];
-    SNPRINTF(msg, RPT_("Missing Menu: %s"), menu_type);
+    SNPRINTF_UTF8(msg, RPT_("Missing Menu: %s"), menu_type);
     layout->label(msg, ICON_NONE);
   }
 }
@@ -6728,7 +6728,7 @@ void UI_but_icon_indicator_number_set(uiBut *but, const int indicator_number)
 
 void UI_but_icon_indicator_set(uiBut *but, const char *string)
 {
-  STRNCPY(but->icon_overlay_text.text, string);
+  STRNCPY_UTF8(but->icon_overlay_text.text, string);
 }
 
 void UI_but_icon_indicator_color_set(uiBut *but, const uchar color[4])

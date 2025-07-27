@@ -25,6 +25,7 @@
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -383,7 +384,7 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
       char uiname[256];
       WM_operator_py_idname(idname_as_py, ot->idname);
 
-      SNPRINTF(uiname, "%s " UI_MENU_ARROW_SEP " %s", idname_as_py, ot_ui_name);
+      SNPRINTF_UTF8(uiname, "%s " UI_MENU_ARROW_SEP " %s", idname_as_py, ot_ui_name);
 
       item.drawwstr_full = scope.allocator().copy_string(uiname);
       item.drawstr = ot_ui_name;

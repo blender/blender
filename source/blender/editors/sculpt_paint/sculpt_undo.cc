@@ -32,7 +32,7 @@
 #include "BLI_bit_group_vector.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -1675,7 +1675,7 @@ static void save_active_attribute(Object &object, SculptAttrRef *attr)
     return;
   }
   attr->domain = meta_data->domain;
-  STRNCPY(attr->name, name);
+  STRNCPY_UTF8(attr->name, name);
   attr->type = *bke::attr_type_to_custom_data_type(meta_data->data_type);
 }
 

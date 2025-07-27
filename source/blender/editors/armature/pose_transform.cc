@@ -1388,7 +1388,7 @@ static wmOperatorStatus pose_clear_user_transforms_exec(bContext *C, wmOperator 
       /* execute animation step for current frame using a dummy copy of the pose */
       BKE_pose_copy_data(&dummyPose, ob->pose, false);
 
-      STRNCPY(workob.id.name, "OB<ClearTfmWorkOb>");
+      STRNCPY_UTF8(workob.id.name, "OB<ClearTfmWorkOb>");
       workob.type = OB_ARMATURE;
       workob.data = ob->data;
       workob.adt = ob->adt;

@@ -13,6 +13,7 @@
 #  include "BKE_report.hh"
 
 #  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "WM_api.hh"
 
@@ -218,11 +219,11 @@ namespace blender::ed::io {
 void fbx_file_handler_add()
 {
   auto fh = std::make_unique<blender::bke::FileHandlerType>();
-  STRNCPY(fh->idname, "IO_FH_fbx");
-  STRNCPY(fh->import_operator, "WM_OT_fbx_import");
-  STRNCPY(fh->export_operator, "export_scene.fbx"); /* Use Python add-on for export. */
-  STRNCPY(fh->label, "FBX");
-  STRNCPY(fh->file_extensions_str, ".fbx");
+  STRNCPY_UTF8(fh->idname, "IO_FH_fbx");
+  STRNCPY_UTF8(fh->import_operator, "WM_OT_fbx_import");
+  STRNCPY_UTF8(fh->export_operator, "export_scene.fbx"); /* Use Python add-on for export. */
+  STRNCPY_UTF8(fh->label, "FBX");
+  STRNCPY_UTF8(fh->file_extensions_str, ".fbx");
   fh->poll_drop = poll_file_object_drop;
   bke::file_handler_add(std::move(fh));
 }

@@ -12,7 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_nla.hh"
 #include "BKE_unit.hh"
@@ -53,10 +53,10 @@ static void headerTimeSlide(TransInfo *t, const float sval, char str[UI_MAX_DRAW
     val = 2.0f * (cval - sval) / (maxx - minx);
     CLAMP(val, -1.0f, 1.0f);
 
-    BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", val);
+    BLI_snprintf_utf8(&tvec[0], NUM_STR_REP_LEN, "%.4f", val);
   }
 
-  BLI_snprintf(str, UI_MAX_DRAW_STR, IFACE_("TimeSlide: %s"), &tvec[0]);
+  BLI_snprintf_utf8(str, UI_MAX_DRAW_STR, IFACE_("TimeSlide: %s"), &tvec[0]);
 }
 
 static void applyTimeSlideValue(TransInfo *t, float sval, float cval)

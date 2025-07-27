@@ -17,7 +17,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
@@ -151,7 +151,7 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
     char titlestr[256];
     int w;
     if (icon) {
-      SNPRINTF(titlestr, " %s", title);
+      SNPRINTF_UTF8(titlestr, " %s", title);
       w = ui_pie_menu_title_width(titlestr, icon);
       but = uiDefIconTextBut(pie->pie_block,
                              ButType::Label,
@@ -311,7 +311,7 @@ void ui_pie_menu_level_create(uiBlock *block,
 
   /* yuk, static... issue is we can't reliably free this without doing dangerous changes */
   static PieMenuLevelData lvl;
-  STRNCPY(lvl.title, block->pie_data.title);
+  STRNCPY_UTF8(lvl.title, block->pie_data.title);
   lvl.totitem = totitem_remain;
   lvl.ot = ot;
   lvl.propname = propname;

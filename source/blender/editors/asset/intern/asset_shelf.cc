@@ -15,7 +15,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_main.hh"
@@ -160,7 +160,7 @@ AssetShelf *create_shelf_from_type(AssetShelfType &type)
   shelf->settings.asset_library_reference = asset_system::all_library_reference();
   shelf->type = &type;
   shelf->preferred_row_count = 1;
-  STRNCPY(shelf->idname, type.idname);
+  STRNCPY_UTF8(shelf->idname, type.idname);
   return shelf;
 }
 
@@ -863,7 +863,7 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
 static void header_regiontype_register(ARegionType *region_type, const int space_type)
 {
   HeaderType *ht = MEM_callocN<HeaderType>(__func__);
-  STRNCPY(ht->idname, "ASSETSHELF_HT_settings");
+  STRNCPY_UTF8(ht->idname, "ASSETSHELF_HT_settings");
   ht->space_type = space_type;
   ht->region_type = RGN_TYPE_ASSET_SHELF_HEADER;
   ht->draw = asset_shelf_header_draw;

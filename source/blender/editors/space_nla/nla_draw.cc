@@ -18,7 +18,7 @@
 
 #include "BLI_bounds_types.hh"
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -634,10 +634,10 @@ static void nla_draw_strip_text(AnimData *adt,
 
   /* just print the name and the range */
   if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
-    str_len = STRNCPY_RLEN(str, DATA_("Temp-Meta"));
+    str_len = STRNCPY_UTF8_RLEN(str, DATA_("Temp-Meta"));
   }
   else {
-    str_len = STRNCPY_RLEN(str, strip->name);
+    str_len = STRNCPY_UTF8_RLEN(str, strip->name);
   }
 
   /* set text color - if colors (see above) are light, draw black text, otherwise draw white */
@@ -689,11 +689,11 @@ static void nla_draw_strip_frames_text(
    * while also preserving some accuracy, since we do use floats. */
 
   /* start frame */
-  numstr_len = SNPRINTF_RLEN(numstr, "%.1f", strip->start);
+  numstr_len = SNPRINTF_UTF8_RLEN(numstr, "%.1f", strip->start);
   UI_view2d_text_cache_add(v2d, strip->start - 1.0f, ymaxc + ytol, numstr, numstr_len, col);
 
   /* end frame */
-  numstr_len = SNPRINTF_RLEN(numstr, "%.1f", strip->end);
+  numstr_len = SNPRINTF_UTF8_RLEN(numstr, "%.1f", strip->end);
   UI_view2d_text_cache_add(v2d, strip->end, ymaxc + ytol, numstr, numstr_len, col);
 }
 

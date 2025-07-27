@@ -24,7 +24,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -634,7 +634,7 @@ static void applyObjectConstraintRot(const TransInfo *t,
 
 void setConstraint(TransInfo *t, int mode, const char text[])
 {
-  BLI_strncpy(t->con.text + 1, text, sizeof(t->con.text) - 1);
+  BLI_strncpy_utf8(t->con.text + 1, text, sizeof(t->con.text) - 1);
   t->con.mode = eTConstraint(mode);
   projection_matrix_calc(t, t->con.pmtx);
 
@@ -649,7 +649,7 @@ void setConstraint(TransInfo *t, int mode, const char text[])
 
 void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[])
 {
-  BLI_strncpy(t->con.text + 1, text, sizeof(t->con.text) - 1);
+  BLI_strncpy_utf8(t->con.text + 1, text, sizeof(t->con.text) - 1);
   t->con.mode = eTConstraint(mode);
   projection_matrix_calc(t, t->con.pmtx);
 
@@ -679,7 +679,7 @@ void setUserConstraint(TransInfo *t, int mode, const char text_[])
   char text[256];
   const short orientation = transform_orientation_or_default(t);
   const char *spacename = transform_orientations_spacename_get(t, orientation);
-  SNPRINTF(text, text_, spacename);
+  SNPRINTF_UTF8(text, text_, spacename);
 
   switch (orientation) {
     case V3D_ORIENT_LOCAL:
@@ -1079,11 +1079,11 @@ static void setNearestAxis2d(TransInfo *t)
   float2 dvec = t->mval - t->mouse.imval;
   if (abs(dvec.x) < abs(dvec.y)) {
     t->con.mode |= CON_AXIS1;
-    STRNCPY(t->con.text, IFACE_(" along Y axis"));
+    STRNCPY_UTF8(t->con.text, IFACE_(" along Y axis"));
   }
   else {
     t->con.mode |= CON_AXIS0;
-    STRNCPY(t->con.text, IFACE_(" along X axis"));
+    STRNCPY_UTF8(t->con.text, IFACE_(" along X axis"));
   }
 }
 
@@ -1137,31 +1137,31 @@ static void setNearestAxis3d(TransInfo *t)
   if (len[0] <= len[1] && len[0] <= len[2]) {
     if (t->modifiers & MOD_CONSTRAINT_SELECT_PLANE) {
       t->con.mode |= (CON_AXIS1 | CON_AXIS2);
-      SNPRINTF(t->con.text, IFACE_(" locking %s X axis"), t->spacename);
+      SNPRINTF_UTF8(t->con.text, IFACE_(" locking %s X axis"), t->spacename);
     }
     else {
       t->con.mode |= CON_AXIS0;
-      SNPRINTF(t->con.text, IFACE_(" along %s X axis"), t->spacename);
+      SNPRINTF_UTF8(t->con.text, IFACE_(" along %s X axis"), t->spacename);
     }
   }
   else if (len[1] <= len[0] && len[1] <= len[2]) {
     if (t->modifiers & MOD_CONSTRAINT_SELECT_PLANE) {
       t->con.mode |= (CON_AXIS0 | CON_AXIS2);
-      SNPRINTF(t->con.text, IFACE_(" locking %s Y axis"), t->spacename);
+      SNPRINTF_UTF8(t->con.text, IFACE_(" locking %s Y axis"), t->spacename);
     }
     else {
       t->con.mode |= CON_AXIS1;
-      SNPRINTF(t->con.text, IFACE_(" along %s Y axis"), t->spacename);
+      SNPRINTF_UTF8(t->con.text, IFACE_(" along %s Y axis"), t->spacename);
     }
   }
   else if (len[2] <= len[1] && len[2] <= len[0]) {
     if (t->modifiers & MOD_CONSTRAINT_SELECT_PLANE) {
       t->con.mode |= (CON_AXIS0 | CON_AXIS1);
-      SNPRINTF(t->con.text, IFACE_(" locking %s Z axis"), t->spacename);
+      SNPRINTF_UTF8(t->con.text, IFACE_(" locking %s Z axis"), t->spacename);
     }
     else {
       t->con.mode |= CON_AXIS2;
-      SNPRINTF(t->con.text, IFACE_(" along %s Z axis"), t->spacename);
+      SNPRINTF_UTF8(t->con.text, IFACE_(" along %s Z axis"), t->spacename);
     }
   }
 }

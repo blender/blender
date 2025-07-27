@@ -13,7 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_imbuf.hh"
@@ -177,7 +177,7 @@ static wmOperatorStatus screenshot_invoke(bContext *C, wmOperator *op, const wmE
     }
     else {
       /* As the file isn't saved, only set the name and let the file selector pick a directory. */
-      STRNCPY(filepath, DATA_("screen"));
+      STRNCPY_UTF8(filepath, DATA_("screen"));
     }
     RNA_string_set(op->ptr, "filepath", filepath);
 

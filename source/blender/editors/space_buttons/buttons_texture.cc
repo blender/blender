@@ -12,7 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -506,14 +506,14 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*a
       Tex *tex = static_cast<Tex *>(texptr.data);
 
       if (tex) {
-        SNPRINTF(name, "  %s - %s", user->name, tex->id.name + 2);
+        SNPRINTF_UTF8(name, "  %s - %s", user->name, tex->id.name + 2);
       }
       else {
-        SNPRINTF(name, "  %s", user->name);
+        SNPRINTF_UTF8(name, "  %s", user->name);
       }
     }
     else {
-      SNPRINTF(name, "  %s", user->name);
+      SNPRINTF_UTF8(name, "  %s", user->name);
     }
 
     but = uiDefIconTextBut(block,
@@ -565,7 +565,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
   }
 
   /* create button */
-  STRNCPY(name, user->name);
+  STRNCPY_UTF8(name, user->name);
 
   if (user->icon) {
     but = uiDefIconTextMenuBut(block,

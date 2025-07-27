@@ -3911,7 +3911,7 @@ static wmOperatorStatus text_find_set_selected_exec(bContext *C, wmOperator *op)
   char *tmp;
 
   tmp = txt_sel_to_buf(text, nullptr);
-  STRNCPY(st->findstr, tmp);
+  STRNCPY_UTF8(st->findstr, tmp);
   MEM_freeN(tmp);
 
   if (!st->findstr[0]) {
@@ -3946,7 +3946,7 @@ static wmOperatorStatus text_replace_set_selected_exec(bContext *C, wmOperator *
   char *tmp;
 
   tmp = txt_sel_to_buf(text, nullptr);
-  STRNCPY(st->replacestr, tmp);
+  STRNCPY_UTF8(st->replacestr, tmp);
   MEM_freeN(tmp);
 
   return OPERATOR_FINISHED;

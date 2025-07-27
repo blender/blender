@@ -2543,7 +2543,7 @@ static void float_array_to_string(const float *values,
   int ofs = 0;
   output[ofs++] = '[';
   for (int i = 0; i < values_len; i++) {
-    ofs += BLI_snprintf_rlen(
+    ofs += BLI_snprintf_utf8_rlen(
         output + ofs, output_maxncpy - ofs, (i != values_end) ? "%f, " : "%f]", values[i]);
   }
 }
@@ -2748,7 +2748,7 @@ static void ui_but_copy_operator(bContext *C, uiBut *but, char *output, int outp
   PointerRNA *opptr = UI_but_operator_ptr_ensure(but);
 
   std::string str = WM_operator_pystring_ex(C, nullptr, false, true, but->optype, opptr);
-  BLI_strncpy(output, str.c_str(), output_maxncpy);
+  BLI_strncpy_utf8(output, str.c_str(), output_maxncpy);
 }
 
 static bool ui_but_copy_menu(uiBut *but, char *output, int output_maxncpy)

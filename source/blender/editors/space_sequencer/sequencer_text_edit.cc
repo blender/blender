@@ -442,7 +442,7 @@ static wmOperatorStatus sequencer_text_insert_invoke(bContext *C,
                                                      const wmEvent *event)
 {
   char str[6];
-  BLI_strncpy(str, event->utf8_buf, BLI_str_utf8_size_safe(event->utf8_buf) + 1);
+  BLI_strncpy_utf8(str, event->utf8_buf, BLI_str_utf8_size_safe(event->utf8_buf) + 1);
   RNA_string_set(op->ptr, "string", str);
   return sequencer_text_insert_exec(C, op);
 }

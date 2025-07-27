@@ -18,6 +18,7 @@
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
@@ -137,12 +138,12 @@ static bool fluid_initjob(
 
   fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
   if (!fmd) {
-    BLI_strncpy(error_msg, N_("Bake failed: no Fluid modifier found"), error_size);
+    BLI_strncpy_utf8(error_msg, N_("Bake failed: no Fluid modifier found"), error_size);
     return false;
   }
   fds = fmd->domain;
   if (!fds) {
-    BLI_strncpy(error_msg, N_("Bake failed: invalid domain"), error_size);
+    BLI_strncpy_utf8(error_msg, N_("Bake failed: invalid domain"), error_size);
     return false;
   }
 
@@ -239,7 +240,7 @@ static void fluid_bake_sequence(FluidJob *job)
   frames = fds->cache_frame_end - fds->cache_frame_start + 1;
 
   if (frames <= 0) {
-    STRNCPY(fds->error, N_("No frames to bake"));
+    STRNCPY_UTF8(fds->error, N_("No frames to bake"));
     return;
   }
 

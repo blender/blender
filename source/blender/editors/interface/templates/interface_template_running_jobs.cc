@@ -13,7 +13,7 @@
 #include "BKE_main.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_time.h"
 
 #include "BLI_timecode.h"
@@ -231,7 +231,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
     /* get percentage done and set it as the UI text */
     const float progress = WM_jobs_progress(wm, owner);
     char text[8];
-    SNPRINTF(text, "%d%%", int(progress * 100));
+    SNPRINTF_UTF8(text, "%d%%", int(progress * 100));
 
     const char *name = active ? RPT_(WM_jobs_name(wm, owner)) : RPT_("Canceling...");
 

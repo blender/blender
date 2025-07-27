@@ -15,7 +15,7 @@
 #  include "BKE_report.hh"
 
 #  include "BLI_path_utils.hh"
-#  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "BLT_translation.hh"
 
@@ -1280,11 +1280,11 @@ namespace blender::ed::io {
 void usd_file_handler_add()
 {
   auto fh = std::make_unique<blender::bke::FileHandlerType>();
-  STRNCPY(fh->idname, "IO_FH_usd");
-  STRNCPY(fh->import_operator, "WM_OT_usd_import");
-  STRNCPY(fh->export_operator, "WM_OT_usd_export");
-  STRNCPY(fh->label, "Universal Scene Description");
-  STRNCPY(fh->file_extensions_str, ".usd;.usda;.usdc;.usdz");
+  STRNCPY_UTF8(fh->idname, "IO_FH_usd");
+  STRNCPY_UTF8(fh->import_operator, "WM_OT_usd_import");
+  STRNCPY_UTF8(fh->export_operator, "WM_OT_usd_export");
+  STRNCPY_UTF8(fh->label, "Universal Scene Description");
+  STRNCPY_UTF8(fh->file_extensions_str, ".usd;.usda;.usdc;.usdz");
   fh->poll_drop = poll_file_object_drop;
   bke::file_handler_add(std::move(fh));
 }

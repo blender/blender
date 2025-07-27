@@ -18,7 +18,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -172,14 +172,14 @@ static void datadropper_id_sample_pt(
               id = (ID *)ob->data;
             }
             else {
-              SNPRINTF(ddr->name, "Incompatible, expected a %s", ddr->idcode_name);
+              SNPRINTF_UTF8(ddr->name, "Incompatible, expected a %s", ddr->idcode_name);
             }
           }
 
           PointerRNA idptr = RNA_id_pointer_create(id);
 
           if (id && RNA_property_pointer_poll(&ddr->ptr, ddr->prop, &idptr)) {
-            SNPRINTF(ddr->name, "%s: %s", ddr->idcode_name, id->name + 2);
+            SNPRINTF_UTF8(ddr->name, "%s: %s", ddr->idcode_name, id->name + 2);
             *r_id = id;
           }
 

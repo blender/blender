@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_unit.hh"
 
@@ -50,10 +50,10 @@ static void applyBoneEnvelope(TransInfo *t)
     char c[NUM_STR_REP_LEN];
 
     outputNumInput(&(t->num), c, t->scene->unit);
-    SNPRINTF(str, IFACE_("Envelope: %s"), c);
+    SNPRINTF_UTF8(str, IFACE_("Envelope: %s"), c);
   }
   else {
-    SNPRINTF(str, IFACE_("Envelope: %3f"), ratio);
+    SNPRINTF_UTF8(str, IFACE_("Envelope: %3f"), ratio);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {

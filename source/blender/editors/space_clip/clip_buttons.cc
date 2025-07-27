@@ -769,39 +769,39 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
 
   char str[1024];
   size_t ofs = 0;
-  ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, RPT_("%d x %d"), width, height);
+  ofs += BLI_snprintf_utf8_rlen(str + ofs, sizeof(str) - ofs, RPT_("%d x %d"), width, height);
 
   if (ibuf) {
     if (ibuf->float_buffer.data) {
       if (ibuf->channels != 4) {
-        ofs += BLI_snprintf_rlen(
+        ofs += BLI_snprintf_utf8_rlen(
             str + ofs, sizeof(str) - ofs, RPT_(", %d float channel(s)"), ibuf->channels);
       }
       else if (ibuf->planes == R_IMF_PLANES_RGBA) {
-        ofs += BLI_strncpy_rlen(str + ofs, RPT_(", RGBA float"), sizeof(str) - ofs);
+        ofs += BLI_strncpy_utf8_rlen(str + ofs, RPT_(", RGBA float"), sizeof(str) - ofs);
       }
       else {
-        ofs += BLI_strncpy_rlen(str + ofs, RPT_(", RGB float"), sizeof(str) - ofs);
+        ofs += BLI_strncpy_utf8_rlen(str + ofs, RPT_(", RGB float"), sizeof(str) - ofs);
       }
     }
     else {
       if (ibuf->planes == R_IMF_PLANES_RGBA) {
-        ofs += BLI_strncpy_rlen(str + ofs, RPT_(", RGBA byte"), sizeof(str) - ofs);
+        ofs += BLI_strncpy_utf8_rlen(str + ofs, RPT_(", RGBA byte"), sizeof(str) - ofs);
       }
       else {
-        ofs += BLI_strncpy_rlen(str + ofs, RPT_(", RGB byte"), sizeof(str) - ofs);
+        ofs += BLI_strncpy_utf8_rlen(str + ofs, RPT_(", RGB byte"), sizeof(str) - ofs);
       }
     }
 
     if (clip->anim != nullptr) {
       float fps = MOV_get_fps(clip->anim);
       if (fps > 0.0f) {
-        ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, RPT_(", %.2f fps"), fps);
+        ofs += BLI_snprintf_utf8_rlen(str + ofs, sizeof(str) - ofs, RPT_(", %.2f fps"), fps);
       }
     }
   }
   else {
-    ofs += BLI_strncpy_rlen(str + ofs, RPT_(", failed to load"), sizeof(str) - ofs);
+    ofs += BLI_strncpy_utf8_rlen(str + ofs, RPT_(", failed to load"), sizeof(str) - ofs);
   }
   UNUSED_VARS(ofs);
 
@@ -810,10 +810,10 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   /* Display current frame number. */
   int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
   if (framenr <= clip->len) {
-    SNPRINTF(str, RPT_("Frame: %d / %d"), framenr, clip->len);
+    SNPRINTF_UTF8(str, RPT_("Frame: %d / %d"), framenr, clip->len);
   }
   else {
-    SNPRINTF(str, RPT_("Frame: - / %d"), clip->len);
+    SNPRINTF_UTF8(str, RPT_("Frame: - / %d"), clip->len);
   }
   col->label(str, ICON_NONE);
 

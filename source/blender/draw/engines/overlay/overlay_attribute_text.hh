@@ -9,7 +9,7 @@
 #pragma once
 
 #include "BLI_math_quaternion_types.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_pointcloud_types.h"
@@ -180,56 +180,56 @@ class AttributeTexts : Overlay {
 
         if constexpr (std::is_same_v<T, bool>) {
           char numstr[64];
-          const size_t numstr_len = STRNCPY_RLEN(numstr, value ? "True" : "False");
+          const size_t numstr_len = STRNCPY_UTF8_RLEN(numstr, value ? "True" : "False");
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, int8_t>) {
           char numstr[64];
-          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", int(value));
+          const size_t numstr_len = SNPRINTF_UTF8_RLEN(numstr, "%d", int(value));
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, int>) {
           char numstr[64];
-          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", value);
+          const size_t numstr_len = SNPRINTF_UTF8_RLEN(numstr, "%d", value);
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, int2>) {
           char numstr[64];
-          const size_t numstr_len = SNPRINTF_RLEN(numstr, "(%d, %d)", value.x, value.y);
+          const size_t numstr_len = SNPRINTF_UTF8_RLEN(numstr, "(%d, %d)", value.x, value.y);
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, float>) {
           char numstr[64];
-          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%g", value);
+          const size_t numstr_len = SNPRINTF_UTF8_RLEN(numstr, "%g", value);
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, float2>) {
           char numstr[64];
-          const size_t numstr_len = SNPRINTF_RLEN(numstr, "(%g, %g)", value.x, value.y);
+          const size_t numstr_len = SNPRINTF_UTF8_RLEN(numstr, "(%g, %g)", value.x, value.y);
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, float3>) {
           char numstr[64];
-          const size_t numstr_len = SNPRINTF_RLEN(
+          const size_t numstr_len = SNPRINTF_UTF8_RLEN(
               numstr, "(%g, %g, %g)", value.x, value.y, value.z);
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, ColorGeometry4b>) {
           const ColorGeometry4f color = value.decode();
           char numstr[64];
-          const size_t numstr_len = SNPRINTF_RLEN(
+          const size_t numstr_len = SNPRINTF_UTF8_RLEN(
               numstr, "(%.3f, %.3f, %.3f, %.3f)", color.r, color.g, color.b, color.a);
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, ColorGeometry4f>) {
           char numstr[64];
-          const size_t numstr_len = SNPRINTF_RLEN(
+          const size_t numstr_len = SNPRINTF_UTF8_RLEN(
               numstr, "(%.3f, %.3f, %.3f, %.3f)", value.r, value.g, value.b, value.a);
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, math::Quaternion>) {
           char numstr[64];
-          const size_t numstr_len = SNPRINTF_RLEN(
+          const size_t numstr_len = SNPRINTF_UTF8_RLEN(
               numstr, "(%.3f, %.3f, %.3f, %.3f)", value.w, value.x, value.y, value.z);
           add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
@@ -240,16 +240,16 @@ class AttributeTexts : Overlay {
           math::to_loc_rot_scale_safe<true>(value, location, rotation, scale);
 
           char location_str[64];
-          const size_t location_str_len = SNPRINTF_RLEN(
+          const size_t location_str_len = SNPRINTF_UTF8_RLEN(
               location_str, "Location: %.3f, %.3f, %.3f", location.x, location.y, location.z);
           char rotation_str[64];
-          const size_t rotation_str_len = SNPRINTF_RLEN(rotation_str,
-                                                        "Rotation: %.3f°, %.3f°, %.3f°",
-                                                        rotation.x().degree(),
-                                                        rotation.y().degree(),
-                                                        rotation.z().degree());
+          const size_t rotation_str_len = SNPRINTF_UTF8_RLEN(rotation_str,
+                                                             "Rotation: %.3f°, %.3f°, %.3f°",
+                                                             rotation.x().degree(),
+                                                             rotation.y().degree(),
+                                                             rotation.z().degree());
           char scale_str[64];
-          const size_t scale_str_len = SNPRINTF_RLEN(
+          const size_t scale_str_len = SNPRINTF_UTF8_RLEN(
               scale_str, "Scale: %.3f, %.3f, %.3f", scale.x, scale.y, scale.z);
           add_lines_to_cache(dt,
                              position,

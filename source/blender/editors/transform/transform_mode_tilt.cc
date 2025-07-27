@@ -10,7 +10,7 @@
 
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_unit.hh"
 
@@ -52,17 +52,18 @@ static void applyTilt(TransInfo *t)
 
     outputNumInput(&(t->num), c, t->scene->unit);
 
-    SNPRINTF(str, "%s %s" BLI_STR_UTF8_DEGREE_SIGN " %s", IFACE_("Tilt:"), &c[0], t->proptext);
+    SNPRINTF_UTF8(
+        str, "%s %s" BLI_STR_UTF8_DEGREE_SIGN " %s", IFACE_("Tilt:"), &c[0], t->proptext);
 
     /* XXX For some reason, this seems needed for this op, else RNA prop is not updated... :/ */
     t->values_final[0] = final;
   }
   else {
-    SNPRINTF(str,
-             "%s %.2f" BLI_STR_UTF8_DEGREE_SIGN " %s",
-             IFACE_("Tilt:"),
-             RAD2DEGF(final),
-             t->proptext);
+    SNPRINTF_UTF8(str,
+                  "%s %.2f" BLI_STR_UTF8_DEGREE_SIGN " %s",
+                  IFACE_("Tilt:"),
+                  RAD2DEGF(final),
+                  t->proptext);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {

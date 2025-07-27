@@ -10,7 +10,7 @@
 
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_unit.hh"
 
@@ -52,10 +52,10 @@ static void applyBoneRoll(TransInfo *t)
 
     outputNumInput(&(t->num), c, t->scene->unit);
 
-    SNPRINTF(str, IFACE_("Roll: %s"), &c[0]);
+    SNPRINTF_UTF8(str, IFACE_("Roll: %s"), &c[0]);
   }
   else {
-    SNPRINTF(str, IFACE_("Roll: %.2f"), RAD2DEGF(final));
+    SNPRINTF_UTF8(str, IFACE_("Roll: %.2f"), RAD2DEGF(final));
   }
 
   /* Set roll values. */
