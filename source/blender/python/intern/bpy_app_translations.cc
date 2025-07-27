@@ -32,8 +32,8 @@
 #ifdef WITH_INTERNATIONAL
 
 #  include "BLI_map.hh"
-#  include "BLI_string.h"
 #  include "BLI_string_ref.hh"
+#  include "BLI_string_utf8.h"
 
 using blender::StringRef;
 using blender::StringRefNull;
