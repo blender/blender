@@ -114,7 +114,6 @@ static int validate_array_type(PyObject *seq,
         ok = false;
       }
       else if ((item_seq_size = PySequence_Size(item)) == -1) {
-        // BLI_snprintf(error_str, error_str_size, "expected a sequence of %s", item_type_str);
         PyErr_Format(PyExc_TypeError,
                      "%s expected a sequence of %s, not %s",
                      error_prefix,
@@ -128,9 +127,6 @@ static int validate_array_type(PyObject *seq,
        *
        * dim = 0 */
       else if (item_seq_size != dimsize[dim + 1]) {
-        /* BLI_snprintf(error_str, error_str_size,
-         *              "sequences of dimension %d should contain %d items",
-         *              dim + 1, dimsize[dim + 1]); */
         PyErr_Format(PyExc_ValueError,
                      "%s sequences of dimension %d should contain %d items, not %d",
                      error_prefix,
@@ -192,10 +188,6 @@ static int validate_array_type(PyObject *seq,
       }
       if (!check_item_type(item)) {
         Py_DECREF(item);
-
-#if 0
-        SNPRINTF(error_str, "sequence items should be of type %s", item_type_str);
-#endif
         PyErr_Format(PyExc_TypeError,
                      "%s expected sequence items of type %s, not %s",
                      error_prefix,
@@ -317,7 +309,6 @@ static int validate_array_length(PyObject *rvalue,
     }
 
     if (tot != len) {
-      // BLI_snprintf(error_str, error_str_size, "sequence must have length of %d", len);
       PyErr_Format(PyExc_ValueError,
                    "%s %.200s.%.200s, sequence must have %d items total, not %d",
                    error_prefix,
