@@ -360,7 +360,7 @@ class InfoPropertyRNA:
                 # self.default_str = repr(self.default)  # repr or set()
                 self.default_str = "{{{:s}}}".format(repr(list(sorted(self.default)))[1:-1])
             else:
-                self.default_str = self.default
+                self.default_str = repr(self.default)
         elif self.array_length:
             if self.array_dimensions[1] == 0:  # single dimension array, we already took care of multi-dimensions ones.
                 # special case for floats
