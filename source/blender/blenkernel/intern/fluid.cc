@@ -4419,6 +4419,15 @@ void BKE_fluid_particle_system_create(Main *bmain,
   part->totpart = 0;
   part->draw_size = 0.01f; /* Make fluid particles more subtle in viewport. */
   part->draw_col = PART_DRAW_COL_VEL;
+
+  /* Use different shape and color for fluid particles to be able to find issues in Viewport */
+  if (psys_type == PART_FLUID_BUBBLE) {
+    part->draw_as = PART_DRAW_CIRC;
+  }
+  if (psys_type == PART_FLUID_FOAM) {
+    part->draw_as = PART_DRAW_CROSS;
+  }
+
   part->phystype = PART_PHYS_NO; /* No physics needed, part system only used to display data. */
   psys->part = part;
   psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
