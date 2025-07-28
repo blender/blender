@@ -839,11 +839,7 @@ static bool sequencer_calc_scopes(const SpaceSeq &space_sequencer,
       }
       break;
     case SEQ_DRAW_IMG_HISTOGRAM: {
-      ImBuf *display_ibuf = IMB_dupImBuf(&ibuf);
-      IMB_colormanagement_imbuf_make_display_space(
-          display_ibuf, &view_settings, &display_settings);
-      scopes->histogram.calc_from_ibuf(display_ibuf);
-      IMB_freeImBuf(display_ibuf);
+      scopes->histogram.calc_from_ibuf(&ibuf, view_settings, display_settings);
     } break;
     case SEQ_DRAW_IMG_RGBPARADE:
       if (!scopes->sep_waveform_ibuf) {

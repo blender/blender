@@ -12,6 +12,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_utility_mixins.hh"
 
+struct ColorManagedViewSettings;
+struct ColorManagedDisplaySettings;
 struct ImBuf;
 
 namespace blender::ed::vse {
@@ -26,7 +28,9 @@ struct ScopeHistogram {
   Array<uint3> data;
   uint3 max_value;
 
-  void calc_from_ibuf(const ImBuf *ibuf);
+  void calc_from_ibuf(const ImBuf *ibuf,
+                      const ColorManagedViewSettings &view_settings,
+                      const ColorManagedDisplaySettings &display_settings);
   bool is_float_hist() const
   {
     return data.size() == BINS_FLOAT;

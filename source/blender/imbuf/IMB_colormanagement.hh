@@ -253,12 +253,6 @@ void IMB_colormanagement_pixel_to_display_space_v4(
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings);
 
-void IMB_colormanagement_pixel_to_display_space_v3(
-    float result[3],
-    const float pixel[3],
-    const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings);
-
 void IMB_colormanagement_imbuf_make_display_space(
     ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
@@ -312,14 +306,6 @@ void IMB_display_buffer_transform_apply(unsigned char *display_buffer,
                                         const ColorManagedViewSettings *view_settings,
                                         const ColorManagedDisplaySettings *display_settings,
                                         bool predivide);
-void IMB_display_buffer_transform_apply_float(float *float_display_buffer,
-                                              float *linear_buffer,
-                                              int width,
-                                              int height,
-                                              int channels,
-                                              const ColorManagedViewSettings *view_settings,
-                                              const ColorManagedDisplaySettings *display_settings,
-                                              bool predivide);
 
 void IMB_display_buffer_release(void *cache_handle);
 
@@ -436,6 +422,12 @@ void IMB_partial_display_buffer_update_delayed(
 ColormanageProcessor *IMB_colormanagement_display_processor_new(
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings);
+
+ColormanageProcessor *IMB_colormanagement_display_processor_for_imbuf(
+    const ImBuf *ibuf,
+    const ColorManagedViewSettings *view_settings,
+    const ColorManagedDisplaySettings *display_settings);
+
 ColormanageProcessor *IMB_colormanagement_colorspace_processor_new(const char *from_colorspace,
                                                                    const char *to_colorspace);
 bool IMB_colormanagement_processor_is_noop(ColormanageProcessor *cm_processor);
