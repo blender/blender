@@ -93,8 +93,8 @@ class TranslateOperation : public NodeOperation {
   ExtensionMode get_extension_mode_x()
   {
     switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_x)) {
-      case CMP_NODE_EXTENSION_MODE_ZERO:
-        return ExtensionMode::Zero;
+      case CMP_NODE_EXTENSION_MODE_CLIP:
+        return ExtensionMode::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
         return ExtensionMode::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
@@ -102,14 +102,14 @@ class TranslateOperation : public NodeOperation {
     }
 
     BLI_assert_unreachable();
-    return ExtensionMode::Zero;
+    return ExtensionMode::Clip;
   }
 
   ExtensionMode get_extension_mode_y()
   {
     switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_y)) {
-      case CMP_NODE_EXTENSION_MODE_ZERO:
-        return ExtensionMode::Zero;
+      case CMP_NODE_EXTENSION_MODE_CLIP:
+        return ExtensionMode::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
         return ExtensionMode::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
@@ -117,7 +117,7 @@ class TranslateOperation : public NodeOperation {
     }
 
     BLI_assert_unreachable();
-    return ExtensionMode::Zero;
+    return ExtensionMode::Clip;
   }
 };
 

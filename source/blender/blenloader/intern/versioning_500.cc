@@ -1511,15 +1511,15 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         /* Map old wrap axis to new extension mode. */
         switch (data->wrap_axis) {
           case CMP_NODE_TRANSLATE_REPEAT_AXIS_NONE:
-            data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
-            data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+            data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+            data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
             break;
           case CMP_NODE_TRANSLATE_REPEAT_AXIS_X:
             data->extension_x = CMP_NODE_EXTENSION_MODE_REPEAT;
-            data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+            data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
             break;
           case CMP_NODE_TRANSLATE_REPEAT_AXIS_Y:
-            data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
+            data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
             data->extension_y = CMP_NODE_EXTENSION_MODE_REPEAT;
             break;
           case CMP_NODE_TRANSLATE_REPEAT_AXIS_XY:
@@ -1569,8 +1569,8 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           continue;
         }
         NodeScaleData *data = static_cast<NodeScaleData *>(node->storage);
-        data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
-        data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+        data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+        data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
       }
       FOREACH_NODETREE_END;
     }
@@ -1590,8 +1590,8 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         }
         NodeTransformData *data = MEM_callocN<NodeTransformData>(__func__);
         data->interpolation = node->custom1;
-        data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
-        data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+        data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+        data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
         node->storage = data;
       }
       FOREACH_NODETREE_END;

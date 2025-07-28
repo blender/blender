@@ -2896,7 +2896,7 @@ typedef enum CMPNodeTranslateRepeatAxis {
 } CMPNodeTranslateRepeatAxis;
 
 typedef enum CMPExtensionMode {
-  CMP_NODE_EXTENSION_MODE_ZERO = 0,
+  CMP_NODE_EXTENSION_MODE_CLIP = 0,
   CMP_NODE_EXTENSION_MODE_EXTEND = 1,
   CMP_NODE_EXTENSION_MODE_REPEAT = 2,
 } CMPNodeBorderCondition;
