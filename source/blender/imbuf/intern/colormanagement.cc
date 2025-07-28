@@ -58,7 +58,7 @@
 
 #include "OCIO_api.hh"
 
-static CLG_LogRef LOG = {"image.color_management"};
+static CLG_LogRef LOG = {"color_management"};
 
 using blender::float3;
 using blender::float3x3;

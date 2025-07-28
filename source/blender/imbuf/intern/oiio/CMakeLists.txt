@@ -27,6 +27,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::clog
 )
 
 if(WITH_PUGIXML)

@@ -29,9 +29,13 @@
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
 
+#include "CLG_log.h"
+
 #include <cstring>
 #include <jerror.h>
 #include <jpeglib.h>
+
+static CLG_LogRef LOG = {"image.jpeg"};
 
 /* the types are from the jpeg lib */
 static void jpeg_error(j_common_ptr cinfo) ATTR_NORETURN;
@@ -502,7 +506,7 @@ ImBuf *imb_thumbnail_jpeg(const char *filepath,
   }
 
   if ((infile = BLI_fopen(filepath, "rb")) == nullptr) {
-    fprintf(stderr, "cannot open %s\n", filepath);
+    CLOG_ERROR(&LOG, "Cannot open \"%s\"", filepath);
     return nullptr;
   }
 

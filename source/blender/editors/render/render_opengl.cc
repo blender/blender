@@ -78,9 +78,13 @@
 #include "GPU_state.hh"
 #include "GPU_viewport.hh"
 
+#include "CLG_log.h"
+
 #include "render_intern.hh"
 
 namespace path_templates = blender::bke::path_templates;
+
+static CLG_LogRef LOG = {"render"};
 
 /* TODO(sergey): Find better approximation of the scheduled frames.
  * For really high-resolution renders it might fail still. */
@@ -380,7 +384,7 @@ static void screen_opengl_render_doit(OGLRender *oglrender, RenderResult *rr)
       ibuf_result = ibuf_view;
     }
     else {
-      fprintf(stderr, "%s: failed to get buffer, %s\n", __func__, err_out);
+      CLOG_ERROR(&LOG, "%s: failed to get buffer, %s", __func__, err_out);
     }
   }
 
@@ -449,10 +453,10 @@ static void screen_opengl_render_write(OGLRender *oglrender)
   }
 
   if (ok) {
-    printf("OpenGL Render written to '%s'\n", filepath);
+    CLOG_INFO_NOCHECK(&LOG, "OpenGL Render written to '%s'", filepath);
   }
   else {
-    printf("OpenGL Render failed to write '%s'\n", filepath);
+    CLOG_ERROR(&LOG, "OpenGL Render failed to write '%s'", filepath);
   }
 }
 

@@ -51,9 +51,13 @@
 
 #include "WM_api.hh"
 
+#include "CLG_log.h"
+
 #include "interface_intern.hh"
 
 #include <fmt/format.h>
+
+static CLG_LogRef LOG = {"ui.icon"};
 
 struct IconImage {
   int w;
@@ -1161,7 +1165,7 @@ static void icon_create_rect(PreviewImage *prv_img, enum eIconSizes size)
 
   if (!prv_img) {
     if (G.debug & G_DEBUG) {
-      printf("%s, error: requested preview image does not exist", __func__);
+      CLOG_WARN(&LOG, "%s, error: requested preview image does not exist", __func__);
     }
   }
   else if (!prv_img->rect[size]) {
@@ -1335,7 +1339,7 @@ static void icon_set_image(const bContext *C,
 {
   if (!prv_img) {
     if (G.debug & G_DEBUG) {
-      printf("%s: no preview image for this ID: %s\n", __func__, id->name);
+      CLOG_WARN(&LOG, "%s: no preview image for this ID: %s", __func__, id->name);
     }
     return;
   }
@@ -1672,7 +1676,7 @@ static void icon_draw_size(float x,
 
   if (icon == nullptr) {
     if (G.debug & G_DEBUG) {
-      printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
+      CLOG_WARN(&LOG, "%s: Internal error, no icon for icon ID: %d", __func__, icon_id);
     }
     icon_id = ICON_NOT_FOUND;
     icon = BKE_icon_get(icon_id);

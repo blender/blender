@@ -53,6 +53,11 @@
 
 #include "fsmenu.h"
 
+#ifdef __linux__
+#  include "CLG_log.h"
+static CLG_LogRef LOG = {"system.path"};
+#endif
+
 struct FSMenu;
 
 /* -------------------------------------------------------------------- */
@@ -592,7 +597,7 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
 
       fp = setmntent(MOUNTED, "r");
       if (fp == nullptr) {
-        fprintf(stderr, "could not get a list of mounted file-systems\n");
+        CLOG_WARN(&LOG, "Could not get a list of mounted file-systems");
       }
       else {
 
@@ -636,7 +641,7 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
 #    undef STRPREFIX_DIR_DELIMIT
 
         if (endmntent(fp) == 0) {
-          fprintf(stderr, "could not close the list of mounted file-systems\n");
+          CLOG_WARN(&LOG, "Could not close the list of mounted file-systems");
         }
       }
       /* Check `gvfs` shares. */

@@ -12,7 +12,7 @@
 
 namespace blender::ocio {
 
-static CLG_LogRef LOG = {"image.color_management"};
+static CLG_LogRef LOG = {"color_management"};
 
 void report_exception(const OCIO_NAMESPACE::Exception &exception)
 {

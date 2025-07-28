@@ -14,13 +14,15 @@
 #  include <sys/types.h>
 #endif
 
+#include <cstdlib>
+
 #include "BLI_fileops.h"
 #include "BLI_mmap.h"
 #include "BLI_path_utils.hh" /* For assertions. */
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include <cstdlib>
+#include "CLG_log.h"
 
 #include "IMB_allocimbuf.hh"
 #include "IMB_filetype.hh"
@@ -32,6 +34,8 @@
 
 #include "IMB_colormanagement.hh"
 #include "IMB_colormanagement_intern.hh"
+
+static CLG_LogRef LOG = {"image.read"};
 
 static void imb_handle_colorspace_and_alpha(ImBuf *ibuf,
                                             const int flags,
@@ -127,7 +131,7 @@ ImBuf *IMB_load_image_from_memory(const uchar *mem,
   const ImFileType *type;
 
   if (mem == nullptr) {
-    fprintf(stderr, "%s: nullptr pointer\n", __func__);
+    CLOG_ERROR(&LOG, "%s: nullptr pointer", __func__);
     return nullptr;
   }
 
@@ -144,7 +148,7 @@ ImBuf *IMB_load_image_from_memory(const uchar *mem,
   }
 
   if ((flags & IB_test) == 0) {
-    fprintf(stderr, "%s: unknown file-format (%s)\n", __func__, descr);
+    CLOG_ERROR(&LOG, "%s: unknown file-format (%s)", __func__, descr);
   }
 
   return nullptr;
@@ -165,7 +169,7 @@ ImBuf *IMB_load_image_from_file_descriptor(const int file,
   BLI_mmap_file *mmap_file = BLI_mmap_open(file);
   imb_mmap_unlock();
   if (mmap_file == nullptr) {
-    fprintf(stderr, "%s: couldn't get mapping %s\n", __func__, filepath);
+    CLOG_ERROR(&LOG, "%s: couldn't get mapping for \"%s\"", __func__, filepath);
     return nullptr;
   }
 
