@@ -811,4 +811,58 @@ void OBJECT_OT_shape_key_lock(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Shape Key Make Basis Operator
+ * \{ */
+
+static bool shape_key_make_basis_poll(bContext *C)
+{
+  if (!shape_key_exists_poll(C)) {
+    return false;
+  }
+
+  Object *ob = context_object(C);
+  /* 0 = nothing active, 1 = basis key active. */
+  return ob->shapenr > 1;
+}
+
+static wmOperatorStatus shape_key_make_basis_exec(bContext *C, wmOperator * /*op*/)
+{
+  Object *ob = CTX_data_active_object(C);
+
+  /* Make the new basis by moving the active key to index 0. */
+  const int from_index = -1; /* Interpreted as "the active key". */
+  const int to_index = 0;    /* Offset by 1 compared to ob->shapenr. */
+  const bool changed = BKE_keyblock_move(ob, from_index, to_index);
+
+  if (!changed) {
+    /* The poll function should have prevented this operator from being called
+     * on the current basis key. */
+    BLI_assert_unreachable();
+    return OPERATOR_CANCELLED;
+  }
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_shape_key_make_basis(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Make Shape Key the Basis Key";
+  ot->idname = "OBJECT_OT_shape_key_make_basis";
+  ot->description = "Make this shape key the new basis key, effectively applying it to the mesh";
+
+  /* API callbacks. */
+  ot->poll = shape_key_make_basis_poll;
+  ot->exec = shape_key_make_basis_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
 }  // namespace blender::ed::object
