@@ -236,10 +236,16 @@ void world_material_to_dome_light(const USDExportParams &params,
 
   if (scene->world->use_nodes && scene->world->nodetree) {
     /* Find the world output. */
+    bNode *output = nullptr;
     const bNodeTree *ntree = scene->world->nodetree;
     ntree->ensure_topology_cache();
     const blender::Span<const bNode *> bsdf_nodes = ntree->nodes_by_type("ShaderNodeOutputWorld");
-    const bNode *output = bsdf_nodes.is_empty() ? nullptr : bsdf_nodes.first();
+    for (const bNode *node : bsdf_nodes) {
+      if (node->flag & NODE_DO_OUTPUT) {
+        output = const_cast<bNode *>(node);
+        break;
+      }
+    }
 
     if (!output) {
       /* No output, no valid network to convert. */
