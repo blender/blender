@@ -17,41 +17,6 @@
 namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
-/** \name Default Material
- *
- * \{ */
-
-DefaultWorldNodeTree::DefaultWorldNodeTree()
-{
-  bNodeTree *ntree = bke::node_tree_add_tree(nullptr, "World Nodetree", ntreeType_Shader->idname);
-  bNode *background = bke::node_add_static_node(nullptr, *ntree, SH_NODE_BACKGROUND);
-  bNode *output = bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_WORLD);
-  bNodeSocket *background_out = bke::node_find_socket(*background, SOCK_OUT, "Background");
-  bNodeSocket *output_in = bke::node_find_socket(*output, SOCK_IN, "Surface");
-  bke::node_add_link(*ntree, *background, *background_out, *output, *output_in);
-  bke::node_set_active(*ntree, *output);
-
-  color_socket_ =
-      (bNodeSocketValueRGBA *)bke::node_find_socket(*background, SOCK_IN, "Color")->default_value;
-  ntree_ = ntree;
-}
-
-DefaultWorldNodeTree::~DefaultWorldNodeTree()
-{
-  bke::node_tree_free_embedded_tree(ntree_);
-  MEM_SAFE_FREE(ntree_);
-}
-
-bNodeTree *DefaultWorldNodeTree::nodetree_get(::World *wo)
-{
-  /* WARNING: This function is not thread-safe. Which is not a problem for the moment. */
-  copy_v3_fl3(color_socket_->value, wo->horr, wo->horg, wo->horb);
-  return ntree_;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name World
  *
  * \{ */
@@ -67,9 +32,9 @@ World::~World()
 {
   if (default_world_ == nullptr) {
     default_world_ = BKE_id_new_nomain<::World>("EEVEE default world");
-    default_world_->horr = default_world_->horg = default_world_->horb = 0.0f;
-    default_world_->use_nodes = 0;
-    default_world_->nodetree = nullptr;
+    default_world_->nodetree = bke::node_tree_add_tree_embedded(
+        nullptr, &default_world_->id, "World Nodetree", ntreeType_Shader->idname);
+
     BLI_listbase_clear(&default_world_->gpumaterial);
   }
   return default_world_;
@@ -131,9 +96,7 @@ void World::sync()
     bl_world = world_override;
   }
 
-  bNodeTree *ntree = (bl_world->nodetree && bl_world->use_nodes) ?
-                         bl_world->nodetree :
-                         default_tree.nodetree_get(bl_world);
+  bNodeTree *ntree = (bl_world->nodetree) ? bl_world->nodetree : default_world_get()->nodetree;
 
   {
     if (has_volume_absorption_) {
@@ -181,7 +144,7 @@ void World::sync_volume(const WorldHandle &world_handle, bool wait_ready)
   GPUMaterial *gpumat = nullptr;
 
   /* Only the scene world nodetree can have volume shader. */
-  if (world && world->nodetree && world->use_nodes) {
+  if (world && world->nodetree) {
     gpumat = inst_.shaders.world_shader_get(
         world, world->nodetree, MAT_PIPE_VOLUME_MATERIAL, !wait_ready);
   }

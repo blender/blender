@@ -212,14 +212,10 @@ static Scene *preview_prepare_scene(const Main *bmain,
   scene_preview->r.cfra = scene_orig->r.cfra;
 
   /* Setup the world. */
-  scene_preview->world = ED_preview_prepare_world(
-      pr_main, scene_preview, scene_orig->world, ID_MA, PR_BUTS_RENDER);
+  scene_preview->world = ED_preview_prepare_world_simple(pr_main);
+  ED_preview_world_simple_set_rgb(scene_preview->world, float4{0.05f, 0.05f, 0.05f, 0.05f});
 
   BLI_addtail(&pr_main->materials, mat_copy);
-  scene_preview->world->use_nodes = false;
-  scene_preview->world->horr = 0.05f;
-  scene_preview->world->horg = 0.05f;
-  scene_preview->world->horb = 0.05f;
 
   ED_preview_set_visibility(pr_main, scene_preview, view_layer, preview_type, PR_BUTS_RENDER);
 

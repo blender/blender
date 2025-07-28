@@ -94,6 +94,8 @@ World *ED_preview_prepare_world(Main *pr_main,
                                 const World *world,
                                 ID_Type id_type,
                                 ePreviewRenderMethod pr_method);
+World *ED_preview_prepare_world_simple(Main *bmain);
+void ED_preview_world_simple_set_rgb(World *world, const float color[4]);
 
 void ED_preview_shader_job(const bContext *C,
                            void *owner,

@@ -233,7 +233,7 @@ void world_material_to_dome_light(const USDExportParams &params,
 
   WorldNtreeSearchResults res(params, stage);
 
-  if (scene->world->use_nodes && scene->world->nodetree) {
+  if (scene->world->nodetree) {
     /* Find the world output. */
     bNode *output = nullptr;
     const bNodeTree *ntree = scene->world->nodetree;
@@ -255,8 +255,8 @@ void world_material_to_dome_light(const USDExportParams &params,
   }
   else {
     res.world_intensity = 1.0f;
-    copy_v3_v3(res.world_color, &scene->world->horr);
-    res.background_found = !is_zero_v3(res.world_color);
+    zero_v3(res.world_color);
+    res.background_found = false;
   }
 
   if (!(res.background_found || res.env_tex_found)) {
@@ -354,10 +354,6 @@ void dome_light_to_world_material(const USDImportParams &params,
 {
   if (!(scene && scene->world && prim)) {
     return;
-  }
-
-  if (!scene->world->use_nodes) {
-    scene->world->use_nodes = true;
   }
 
   if (!scene->world->nodetree) {

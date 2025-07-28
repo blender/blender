@@ -78,7 +78,8 @@ typedef struct World {
 
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
-  short pr_texture, use_nodes;
+  short pr_texture;
+  short use_nodes DNA_DEPRECATED;
   char _pad[4];
 
   /* previews */

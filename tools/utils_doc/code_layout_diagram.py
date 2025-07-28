@@ -934,8 +934,10 @@ def render_output(scene, bounds, filepath):
     scene.render.filepath = filepath
 
     world = bpy.data.worlds.new(name_gen)
-    world.color = 1.0, 1.0, 1.0
-    world.use_nodes = False
+    output = world.node_tree.nodes.new("ShaderNodeOutputWorld")
+    background = world.node_tree.nodes.new("ShaderNodeBackground")
+    world.node_tree.links.new(output.outputs["Surface"], background.outputs["Surface"])
+    background.inputs["Color"].default_value = 1.0, 1.0, 1.0, 1.0
     scene.world = world
 
     # Some space around the edges.

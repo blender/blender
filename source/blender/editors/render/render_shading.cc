@@ -983,7 +983,6 @@ static wmOperatorStatus new_world_exec(bContext *C, wmOperator * /*op*/)
   else {
     wo = BKE_world_add(bmain, CTX_DATA_(BLT_I18NCONTEXT_ID_WORLD, "World"));
     ED_node_shader_default(C, &wo->id);
-    wo->use_nodes = true;
   }
 
   /* hook into UI */

@@ -70,21 +70,6 @@ static void rna_World_draw_update(Main * /*bmain*/, Scene * /*scene*/, PointerRN
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
 }
 
-static void rna_World_use_nodes_update(bContext *C, PointerRNA *ptr)
-{
-  World *wrld = (World *)ptr->data;
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-
-  if (wrld->use_nodes && wrld->nodetree == nullptr) {
-    ED_node_shader_default(C, &wrld->id);
-  }
-
-  DEG_relations_tag_update(bmain);
-  rna_World_update(bmain, scene, ptr);
-  rna_World_draw_update(bmain, scene, ptr);
-}
-
 void rna_World_lightgroup_get(PointerRNA *ptr, char *value)
 {
   LightgroupMembership *lgm = ((World *)ptr->owner_id)->lightgroup;
@@ -257,13 +242,6 @@ void RNA_def_world(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_PTR_NO_OWNERSHIP);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node based worlds");
-
-  prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "use_nodes", 1);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the world");
-  RNA_def_property_update(prop, 0, "rna_World_use_nodes_update");
 
   /* Lightgroup Membership */
   prop = RNA_def_property(srna, "lightgroup", PROP_STRING, PROP_NONE);

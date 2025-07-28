@@ -2951,7 +2951,7 @@ static void image_walk_id_all_users(
     }
     case ID_WO: {
       World *world = (World *)id;
-      if (world->nodetree && world->use_nodes && !skip_nested_nodes) {
+      if (world->nodetree && !skip_nested_nodes) {
         image_walk_ntree_all_users(world->nodetree, &world->id, customdata, callback);
       }
       image_walk_gpu_materials(id, &world->gpumaterial, customdata, callback);
