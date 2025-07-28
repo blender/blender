@@ -4711,6 +4711,9 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
         item_but->flag |= UI_SELECT_DRAW;
       }
 
+      /* "hardmin" is used to store the value of the enum item. */
+      item_but->hardmin = float(item->value);
+
       if (use_enum_copy_description) {
         if (item->description && item->description[0]) {
           char *description_copy = BLI_strdup(item->description);
