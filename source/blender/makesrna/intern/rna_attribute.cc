@@ -17,6 +17,8 @@
 
 #include "BKE_attribute.hh"
 
+#include "BLT_translation.hh"
+
 #include "WM_types.hh"
 
 #include "UI_resources.hh"
@@ -1825,6 +1827,7 @@ static void rna_def_attribute(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_attr_storage_type);
   RNA_def_property_enum_funcs(prop, "rna_Attribute_storage_type_get", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Storage Type", "Method used to store the data");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "domain", PROP_ENUM, PROP_NONE);
