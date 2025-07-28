@@ -2083,11 +2083,15 @@ class USERPREF_PT_ndof_settings(Panel):
             colsub.prop(props, "ndof_orbit_center_selected")
             colsub.enabled = props.ndof_orbit_center_auto
             del colsub
+            col.enabled = props.ndof_navigation_mode == 'OBJECT'
             col.separator()
 
             col = layout.column(heading="Show")
             col.prop(props, "ndof_show_guide_orbit_axis", text="Orbit Axis")
-            col.prop(props, "ndof_show_guide_orbit_center", text="Orbit Center")
+            colsub = col.column()
+            colsub.prop(props, "ndof_show_guide_orbit_center", text="Orbit Center")
+            colsub.enabled = props.ndof_navigation_mode == 'OBJECT'
+            del colsub
 
         layout.separator()
 
