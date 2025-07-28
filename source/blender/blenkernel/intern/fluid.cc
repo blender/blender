@@ -2222,6 +2222,7 @@ static void adaptive_domain_adjust(
   int x, y, z;
   float *density = manta_smoke_get_density(fds->fluid);
   float *fuel = manta_smoke_get_fuel(fds->fluid);
+  float *heat = manta_smoke_get_heat(fds->fluid);
   float *bigdensity = manta_noise_get_density(fds->fluid);
   float *bigfuel = manta_noise_get_fuel(fds->fluid);
   float *vx = manta_get_velocity_x(fds->fluid);
@@ -2258,6 +2259,7 @@ static void adaptive_domain_adjust(
                                 fds->res[1],
                                 z - fds->res_min[2]);
         max_den = (fuel) ? std::max(density[index], fuel[index]) : density[index];
+        max_den = (heat) ? std::max(max_den, heat[index]) : max_den;
 
         /* Check high resolution bounds if max density isn't already high enough. */
         if (max_den < fds->adapt_threshold && fds->flags & FLUID_DOMAIN_USE_NOISE && fds->fluid) {
