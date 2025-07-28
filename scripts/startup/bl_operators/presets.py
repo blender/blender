@@ -412,6 +412,20 @@ class AddPresetCloth(AddPresetBase, Operator):
         "cloth.settings.compression_damping",
         "cloth.settings.shear_damping",
         "cloth.settings.bending_damping",
+        "cloth.settings.use_internal_springs",
+        "cloth.settings.internal_spring_max_length",
+        "cloth.settings.internal_spring_max_diversion",
+        "cloth.settings.internal_spring_normal_check",
+        "cloth.settings.internal_tension_stiffness",
+        "cloth.settings.internal_compression_stiffness",
+        "cloth.settings.internal_tension_stiffness_max",
+        "cloth.settings.internal_compression_stiffness_max",
+        "cloth.settings.use_pressure",
+        "cloth.settings.uniform_pressure_force",
+        "cloth.settings.use_pressure_volume",
+        "cloth.settings.target_volume",
+        "cloth.settings.pressure_factor",
+        "cloth.settings.fluid_density",
     ]
 
     preset_subdir = "cloth"
