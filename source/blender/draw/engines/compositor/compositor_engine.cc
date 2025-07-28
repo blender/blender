@@ -80,11 +80,6 @@ class Context : public compositor::Context {
     return true;
   }
 
-  const RenderData &get_render_data() const override
-  {
-    return scene_->r;
-  }
-
   /* We limit the compositing region to the camera region if in camera view, while we use the
    * entire viewport otherwise. We also use the entire viewport when doing viewport rendering since
    * the viewport is already the camera region in that case. */

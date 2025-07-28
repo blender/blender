@@ -57,9 +57,6 @@ class Context {
   /* Returns all output types that should be computed. */
   virtual OutputTypes needed_outputs() const = 0;
 
-  /* Get the render settings for compositing. */
-  virtual const RenderData &get_render_data() const = 0;
-
   /* Get the rectangular region representing the area of the input that the compositor will operate
    * on. Conversely, the compositor will only update the region of the output that corresponds to
    * the compositing region. In the base case, the compositing region covers the entirety of the
@@ -81,6 +78,10 @@ class Context {
 
   /* True if the compositor should use GPU acceleration. */
   virtual bool use_gpu() const = 0;
+
+  /* Get the render settings for compositing. This could be different from scene->r render settings
+   * in case the render size or other settings needs to be overwritten. */
+  virtual const RenderData &get_render_data() const;
 
   /* Get the name of the view currently being rendered. If the context is not multi-view, return an
    * empty string. */

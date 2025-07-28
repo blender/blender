@@ -18,6 +18,11 @@
 
 namespace blender::compositor {
 
+const RenderData &Context::get_render_data() const
+{
+  return this->get_scene().r;
+}
+
 StringRef Context::get_view_name() const
 {
   return "";
