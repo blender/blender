@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "BKE_node_socket_value.hh"
 #include "BLI_cpp_type.hh"
 
@@ -46,7 +48,11 @@ Bundle::Bundle() = default;
 Bundle::~Bundle()
 {
   for (StoredItem &item : items_) {
-    item.type->geometry_nodes_cpp_type->destruct(item.value);
+    if (BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(
+            &item.value.value))
+    {
+      socket_value->type->geometry_nodes_cpp_type->destruct(socket_value->value);
+    }
   }
   for (void *buffer : buffers_) {
     MEM_freeN(buffer);
@@ -56,7 +62,7 @@ Bundle::~Bundle()
 Bundle::Bundle(const Bundle &other)
 {
   for (const StoredItem &item : other.items_) {
-    this->add_new(item.key, *item.type, item.value);
+    this->add_new(item.key, item.value);
   }
 }
 
@@ -90,35 +96,48 @@ Bundle &Bundle::operator=(Bundle &&other) noexcept
   return *this;
 }
 
-void Bundle::add_new(const StringRef key, const bke::bNodeSocketType &type, const void *value)
+[[maybe_unused]] static bool is_valid_key(const StringRef key)
 {
-  BLI_assert(!this->contains(key));
-  BLI_assert(type.geometry_nodes_cpp_type);
-  const CPPType &cpp_type = *type.geometry_nodes_cpp_type;
-  void *buffer = MEM_mallocN_aligned(cpp_type.size, cpp_type.alignment, __func__);
-  cpp_type.copy_construct(value, buffer);
-  items_.append(StoredItem{std::move(key), &type, buffer});
-  buffers_.append(buffer);
+  return key.find('/') == StringRef::not_found;
 }
 
-void Bundle::add_override(const StringRef key, const bke::bNodeSocketType &type, const void *value)
+void Bundle::add_new(const StringRef key, const BundleItemValue &value)
+{
+  BLI_assert(is_valid_key(key));
+  if (const BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(&value.value))
+  {
+    const bke::bNodeSocketType &type = *socket_value->type;
+    BLI_assert(type.geometry_nodes_cpp_type);
+    const CPPType &cpp_type = *type.geometry_nodes_cpp_type;
+    void *buffer = MEM_mallocN_aligned(cpp_type.size, cpp_type.alignment, __func__);
+    cpp_type.copy_construct(socket_value->value, buffer);
+    items_.append(StoredItem{std::move(key), {BundleItemSocketValue{&type, buffer}}});
+    buffers_.append(buffer);
+  }
+  else if (std::holds_alternative<BundleItemInternalValue>(value.value)) {
+    items_.append(StoredItem{std::move(key), value});
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+}
+
+void Bundle::add_override(const StringRef key, const BundleItemValue &value)
 {
   this->remove(key);
-  this->add_new(key, type, value);
+  this->add_new(key, value);
 }
 
-bool Bundle::add(const StringRef key, const bke::bNodeSocketType &type, const void *value)
+bool Bundle::add(const StringRef key, const BundleItemValue &value)
 {
   if (this->contains(key)) {
     return false;
   }
-  this->add_new(key, type, value);
+  this->add_new(key, value);
   return true;
 }
 
-void Bundle::add_path_override(const StringRef path,
-                               const bke::bNodeSocketType &type,
-                               const void *value)
+void Bundle::add_path_override(const StringRef path, const BundleItemValue &value)
 {
   BLI_assert(!path.is_empty());
   BLI_assert(!path.endswith("/"));
@@ -127,15 +146,11 @@ void Bundle::add_path_override(const StringRef path,
   if (sep == StringRef::not_found) {
     const StringRef key = path;
     this->remove(key);
-    this->add_new(key, type, value);
+    this->add_new(key, value);
     return;
   }
   const StringRef first_part = path.substr(0, sep);
-  BundlePtr child_bundle;
-  const std::optional<Bundle::Item> item = this->lookup(first_part);
-  if (item && item->type->type == SOCK_BUNDLE) {
-    child_bundle = static_cast<const bke::SocketValueVariant *>(item->value)->get<BundlePtr>();
-  }
+  BundlePtr child_bundle = this->lookup<BundlePtr>(first_part).value_or(nullptr);
   if (!child_bundle) {
     child_bundle = Bundle::create();
   }
@@ -144,55 +159,53 @@ void Bundle::add_path_override(const StringRef path,
     child_bundle = child_bundle->copy();
   }
   child_bundle->tag_ensured_mutable();
-  const_cast<Bundle &>(*child_bundle).add_path_override(path.substr(sep + 1), type, value);
+  const_cast<Bundle &>(*child_bundle).add_path_override(path.substr(sep + 1), value);
   bke::SocketValueVariant child_bundle_value = bke::SocketValueVariant::From(
       std::move(child_bundle));
-  this->add(first_part, *bke::node_socket_type_find_static(SOCK_BUNDLE), &child_bundle_value);
+  this->add(
+      first_part,
+      BundleItemSocketValue{bke::node_socket_type_find_static(SOCK_BUNDLE), &child_bundle_value});
 }
 
-bool Bundle::add_path(StringRef path, const bke::bNodeSocketType &type, const void *value)
+bool Bundle::add_path(StringRef path, const BundleItemValue &value)
 {
   if (this->contains_path(path)) {
     return false;
   }
-  this->add_path_new(path, type, value);
+  this->add_path_new(path, value);
   return true;
 }
 
-void Bundle::add_path_new(StringRef path, const bke::bNodeSocketType &type, const void *value)
+void Bundle::add_path_new(StringRef path, const BundleItemValue &value)
 {
   BLI_assert(!this->contains_path(path));
-  this->add_path_override(path, type, value);
+  this->add_path_override(path, value);
 }
 
-std::optional<Bundle::Item> Bundle::lookup(const StringRef key) const
+const BundleItemValue *Bundle::lookup(const StringRef key) const
 {
   for (const StoredItem &item : items_) {
     if (item.key == key) {
-      return Item{item.type, item.value};
+      return &item.value;
     }
   }
-  return std::nullopt;
+  return nullptr;
 }
 
-std::optional<Bundle::Item> Bundle::lookup_path(const Span<StringRef> path) const
+const BundleItemValue *Bundle::lookup_path(const Span<StringRef> path) const
 {
   BLI_assert(!path.is_empty());
   const StringRef first_elem = path[0];
-  const std::optional<Bundle::Item> item = this->lookup(first_elem);
+  const BundleItemValue *item = this->lookup(first_elem);
   if (!item) {
-    return std::nullopt;
+    return nullptr;
   }
   if (path.size() == 1) {
     return item;
   }
-  if (item->type->type != SOCK_BUNDLE) {
-    return std::nullopt;
-  }
-  const BundlePtr child_bundle =
-      static_cast<const bke::SocketValueVariant *>(item->value)->get<BundlePtr>();
+  const BundlePtr child_bundle = item->as<BundlePtr>().value_or(nullptr);
   if (!child_bundle) {
-    return std::nullopt;
+    return nullptr;
   }
   return child_bundle->lookup_path(path.drop_front(1));
 }
@@ -213,7 +226,7 @@ static Vector<StringRef> split_path(const StringRef path)
   return path_elems;
 }
 
-std::optional<Bundle::Item> Bundle::lookup_path(const StringRef path) const
+const BundleItemValue *Bundle::lookup_path(const StringRef path) const
 {
   const Vector<StringRef> path_elems = split_path(path);
   return this->lookup_path(path_elems);
@@ -224,16 +237,21 @@ BundlePtr Bundle::copy() const
   BundlePtr copy_ptr = Bundle::create();
   Bundle &copy = const_cast<Bundle &>(*copy_ptr);
   for (const StoredItem &item : items_) {
-    copy.add_new(item.key, *item.type, item.value);
+    copy.add_new(item.key, item.value);
   }
   return copy_ptr;
 }
 
 bool Bundle::remove(const StringRef key)
 {
+  BLI_assert(is_valid_key(key));
   const int removed_num = items_.remove_if([&key](StoredItem &item) {
     if (item.key == key) {
-      item.type->geometry_nodes_cpp_type->destruct(item.value);
+      if (BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(
+              &item.value.value))
+      {
+        socket_value->type->geometry_nodes_cpp_type->destruct(socket_value->value);
+      }
       return true;
     }
     return false;
@@ -243,6 +261,7 @@ bool Bundle::remove(const StringRef key)
 
 bool Bundle::contains(const StringRef key) const
 {
+  BLI_assert(is_valid_key(key));
   for (const StoredItem &item : items_) {
     if (item.key == key) {
       return true;
@@ -253,7 +272,12 @@ bool Bundle::contains(const StringRef key) const
 
 bool Bundle::contains_path(const StringRef path) const
 {
-  return this->lookup_path(path).has_value();
+  return this->lookup_path(path) != nullptr;
+}
+
+std::string Bundle::combine_path(const Span<StringRef> path)
+{
+  return fmt::format("{}", fmt::join(path, "/"));
 }
 
 void Bundle::delete_self()

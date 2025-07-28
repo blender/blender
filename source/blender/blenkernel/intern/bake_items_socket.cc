@@ -92,11 +92,27 @@ static std::unique_ptr<BakeItem> move_common_socket_value_to_bake_item(
       if (bundle_ptr) {
         const nodes::Bundle &bundle = *bundle_ptr;
         for (const nodes::Bundle::StoredItem &bundle_item : bundle.items()) {
-          if (std::unique_ptr<BakeItem> bake_item = move_common_socket_value_to_bake_item(
-                  *bundle_item.type, bundle_item.value, std::nullopt, r_geometry_bake_items))
+          if (const auto *socket_value = std::get_if<nodes::BundleItemSocketValue>(
+                  &bundle_item.value.value))
           {
+            if (std::unique_ptr<BakeItem> bake_item = move_common_socket_value_to_bake_item(
+                    *socket_value->type, socket_value->value, std::nullopt, r_geometry_bake_items))
+            {
+              bundle_bake_item->items.append(BundleBakeItem::Item{
+                  bundle_item.key,
+                  BundleBakeItem::SocketValue{socket_value->type->idname, std::move(bake_item)}});
+            }
+          }
+          else if (const auto *internal_value = std::get_if<nodes::BundleItemInternalValue>(
+                       &bundle_item.value.value))
+          {
+            const ImplicitSharingInfo *sharing_info = internal_value->value.get();
+            if (sharing_info) {
+              sharing_info->add_user();
+            }
             bundle_bake_item->items.append(BundleBakeItem::Item{
-                bundle_item.key, bundle_item.type->idname, std::move(bake_item)});
+                bundle_item.key,
+                BundleBakeItem::InternalValue{ImplicitSharingPtr<>{sharing_info}}});
           }
         }
       }
@@ -271,21 +287,34 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
         nodes::BundlePtr bundle_ptr = nodes::Bundle::create();
         nodes::Bundle &bundle = const_cast<nodes::Bundle &>(*bundle_ptr);
         for (const BundleBakeItem::Item &item : item->items) {
-          const bNodeSocketType *stype = node_socket_type_find(item.socket_idname);
-          if (!stype) {
-            return false;
+          if (const auto *socket_value = std::get_if<BundleBakeItem::SocketValue>(&item.value)) {
+            const bNodeSocketType *stype = node_socket_type_find(socket_value->socket_idname);
+            if (!stype) {
+              return false;
+            }
+            if (!stype->geometry_nodes_cpp_type) {
+              return false;
+            }
+            BUFFER_FOR_CPP_TYPE_VALUE(*stype->geometry_nodes_cpp_type, buffer);
+            if (!copy_bake_item_to_socket_value(
+                    *socket_value->value, stype->type, {}, r_attribute_map, buffer))
+            {
+              return false;
+            }
+            bundle.add(item.key, nodes::BundleItemSocketValue{stype, buffer});
+            stype->geometry_nodes_cpp_type->destruct(buffer);
           }
-          if (!stype->geometry_nodes_cpp_type) {
-            return false;
-          }
-          BUFFER_FOR_CPP_TYPE_VALUE(*stype->geometry_nodes_cpp_type, buffer);
-          if (!copy_bake_item_to_socket_value(
-                  *item.value, stype->type, {}, r_attribute_map, buffer))
+          if (const auto *internal_value = std::get_if<BundleBakeItem::InternalValue>(&item.value))
           {
-            return false;
+            const auto *internal_data = dynamic_cast<const nodes::BundleItemInternalValueMixin *>(
+                internal_value->value.get());
+            if (!internal_data) {
+              continue;
+            }
+            internal_data->add_user();
+            bundle.add(item.key,
+                       nodes::BundleItemInternalValue{ImplicitSharingPtr{internal_data}});
           }
-          bundle.add(item.key, *stype, buffer);
-          stype->geometry_nodes_cpp_type->destruct(buffer);
         }
         bke::SocketValueVariant::ConstructIn(r_value, std::move(bundle_ptr));
         return true;

@@ -116,7 +116,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     void *input_ptr = params.low_level_lazy_function_params().try_get_input_data_ptr(i);
     BLI_assert(input_ptr);
-    bundle.add(name, *stype, input_ptr);
+    bundle.add(name, BundleItemSocketValue{stype, input_ptr});
   }
 
   params.set_output("Bundle", std::move(bundle_ptr));
