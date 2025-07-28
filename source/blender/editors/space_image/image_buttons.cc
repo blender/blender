@@ -111,7 +111,7 @@ static void ui_imageuser_slot_menu(bContext *C, uiLayout *layout, void *image_p)
                       UI_UNIT_X * 5,
                       UI_UNIT_X,
                       &image->render_slot,
-                      float(slot_id),
+                      0.0f,
                       0.0,
                       "");
   }

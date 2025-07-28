@@ -4691,7 +4691,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
                                      UI_UNIT_X * 5,
                                      UI_UNIT_Y,
                                      &handle->retvalue,
-                                     item->value,
+                                     0.0f,
                                      0.0,
                                      description_static);
       }
