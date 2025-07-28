@@ -619,9 +619,6 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip,
     int fra = framenr - clip->start_frame + clip->frame_offset;
 
     ibuf = MOV_decode_frame(clip->anim, fra, IMB_Timecode_Type(tc), IMB_Proxy_Size(proxy));
-    if (ibuf) {
-      colormanage_imbuf_make_linear(ibuf, clip->colorspace_settings.name);
-    }
   }
 
   return ibuf;

@@ -4166,7 +4166,6 @@ static ImBuf *load_movie_single(Image *ima, ImageUser *iuser, int frame, const i
     ibuf = IMB_makeSingleUser(MOV_decode_frame(ia->anim, fra, IMB_TC_RECORD_RUN, IMB_PROXY_NONE));
 
     if (ibuf) {
-      colormanage_imbuf_make_linear(ibuf, ima->colorspace_settings.name);
       image_init_after_load(ima, iuser, ibuf);
     }
   }
