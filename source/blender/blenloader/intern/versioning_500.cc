@@ -1260,34 +1260,46 @@ static void do_version_world_remove_use_nodes(Main *bmain, World *world)
     }
   }
 
-  bNode *new_output = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_WORLD);
-  new_output->flag |= NODE_DO_OUTPUT;
-  bNode *background = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_BACKGROUND);
-  version_node_add_link(*ntree,
-                        *background,
-                        *blender::bke::node_find_socket(*background, SOCK_OUT, "Background"),
-                        *new_output,
-                        *blender::bke::node_find_socket(*new_output, SOCK_IN, "Surface"));
+  bNode &new_output = version_node_add_empty(*ntree, "ShaderNodeOutputWorld");
+  bNodeSocket &output_surface_input = version_node_add_socket(
+      *ntree, new_output, SOCK_IN, "NodeSocketShader", "Surface");
+  version_node_add_socket(*ntree, new_output, SOCK_IN, "NodeSocketShader", "Volume");
+  new_output.flag |= NODE_DO_OUTPUT;
 
-  bNodeSocket *color_sock = blender::bke::node_find_socket(*background, SOCK_IN, "Color");
-  color_sock->default_value_typed<bNodeSocketValueRGBA>()->value[0] = world->horr;
-  color_sock->default_value_typed<bNodeSocketValueRGBA>()->value[1] = world->horg;
-  color_sock->default_value_typed<bNodeSocketValueRGBA>()->value[2] = world->horb;
-  color_sock->default_value_typed<bNodeSocketValueRGBA>()->value[3] = 1.0f;
+  bNode &background = version_node_add_empty(*ntree, "ShaderNodeBackground");
+  bNodeSocket &background_color_output = version_node_add_socket(
+      *ntree, background, SOCK_OUT, "NodeSocketShader", "Background");
+  bNodeSocket &background_color_input = version_node_add_socket(
+      *ntree, background, SOCK_IN, "NodeSocketColor", "Color");
+  bNodeSocket &background_strength_input = version_node_add_socket(
+      *ntree, background, SOCK_IN, "NodeSocketFloat", "Strength");
+  bNodeSocket &background_weight_input = version_node_add_socket(
+      *ntree, background, SOCK_IN, "NodeSocketFloat", "Weight");
+  background_weight_input.flag |= SOCK_UNAVAIL;
+
+  version_node_add_link(
+      *ntree, background, background_color_output, new_output, output_surface_input);
+
+  bNodeSocketValueRGBA *rgba = background_color_input.default_value_typed<bNodeSocketValueRGBA>();
+  rgba->value[0] = world->horr;
+  rgba->value[1] = world->horg;
+  rgba->value[2] = world->horb;
+  rgba->value[3] = 1.0f;
+  background_strength_input.default_value_typed<bNodeSocketValueFloat>()->value = 1.0f;
 
   if (old_output != nullptr) {
     /* Position the newly created node after the old output. Assume the old output node is at
      * the far right of the node tree. */
-    background->location[0] = old_output->location[0] + 1.5f * old_output->width;
-    background->location[1] = old_output->location[1];
+    background.location[0] = old_output->location[0] + 1.5f * old_output->width;
+    background.location[1] = old_output->location[1];
   }
 
-  new_output->location[0] = background->location[0] + 2.0f * background->width;
-  new_output->location[1] = background->location[1];
+  new_output.location[0] = background.location[0] + 2.0f * background.width;
+  new_output.location[1] = background.location[1];
 
   bNode *frame = blender::bke::node_add_static_node(nullptr, *ntree, NODE_FRAME);
-  background->parent = frame;
-  new_output->parent = frame;
+  background.parent = frame;
+  new_output.parent = frame;
 }
 
 void do_versions_after_linking_500(FileData *fd, Main *bmain)
