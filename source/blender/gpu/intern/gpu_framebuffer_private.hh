@@ -150,9 +150,6 @@ class FrameBuffer {
   void attachment_set(GPUAttachmentType type, const GPUAttachment &new_attachment);
   void attachment_remove(GPUAttachmentType type);
 
-  void recursive_downsample(int max_lvl,
-                            void (*callback)(void *user_data, int level),
-                            void *user_data);
   uint get_bits_per_pixel();
 
   /* Sets the size after creation. */

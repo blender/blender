@@ -338,51 +338,6 @@ void GLBackend::platform_exit()
 /** \name Capabilities
  * \{ */
 
-static bool detect_mip_render_workaround()
-{
-  int cube_size = 2;
-  float clear_color[4] = {1.0f, 0.5f, 0.0f, 0.0f};
-  float *source_pix = (float *)MEM_callocN(sizeof(float[4]) * cube_size * cube_size * 6, __func__);
-
-  /* NOTE: Debug layers are not yet enabled. Force use of glGetError. */
-  debug::check_gl_error("Cubemap Workaround Start");
-  /* Not using GPU API since it is not yet fully initialized. */
-  GLuint tex, fb;
-  /* Create cubemap with 2 mip level. */
-  glGenTextures(1, &tex);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, tex);
-  for (int mip = 0; mip < 2; mip++) {
-    for (int i = 0; i < 6; i++) {
-      const int width = cube_size / (1 << mip);
-      GLenum target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-      glTexImage2D(target, mip, GL_RGBA16F, width, width, 0, GL_RGBA, GL_FLOAT, source_pix);
-    }
-  }
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0);
-  /* Attach and clear mip 1. */
-  glGenFramebuffers(1, &fb);
-  glBindFramebuffer(GL_FRAMEBUFFER, fb);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex, 1);
-  glDrawBuffer(GL_COLOR_ATTACHMENT0);
-  glClearColor(UNPACK4(clear_color));
-  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-  glClear(GL_COLOR_BUFFER_BIT);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  /* Read mip 1. If color is not the same as the clear_color, the rendering failed. */
-  glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 1, GL_RGBA, GL_FLOAT, source_pix);
-  bool enable_workaround = !equals_v4v4(clear_color, source_pix);
-  MEM_freeN(source_pix);
-
-  glDeleteFramebuffers(1, &fb);
-  glDeleteTextures(1, &tex);
-
-  debug::check_gl_error("Cubemap Workaround End9");
-
-  return enable_workaround;
-}
-
 static const char *gl_extension_get(int i)
 {
   return (char *)glGetStringi(GL_EXTENSIONS, i);
@@ -402,7 +357,6 @@ static void detect_workarounds()
     printf("    renderer: %s\n", renderer);
     printf("    version: %s\n\n", version);
     GCaps.depth_blitting_workaround = true;
-    GCaps.mip_render_workaround = true;
     GCaps.stencil_clasify_buffer_workaround = true;
     GCaps.node_link_instancing_workaround = true;
     GCaps.line_directive_workaround = true;
@@ -452,7 +406,6 @@ static void detect_workarounds()
      *   Radeon R5 Graphics;
      * And others... */
     GLContext::unused_fb_slot_workaround = true;
-    GCaps.mip_render_workaround = true;
     GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
@@ -500,13 +453,6 @@ static void detect_workarounds()
     }
   }
 
-  /* Special fix for these specific GPUs.
-   * Without this workaround, blender crashes on startup. (see #72098) */
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
-      (strstr(renderer, "HD Graphics 620") || strstr(renderer, "HD Graphics 630")))
-  {
-    GCaps.mip_render_workaround = true;
-  }
   /* Maybe not all of these drivers have problems with `GL_ARB_base_instance`.
    * But it's hard to test each case.
    * We get crashes from some crappy Intel drivers don't work well with shaders created in
@@ -570,13 +516,6 @@ static void detect_workarounds()
   }
 #endif
 
-  /* Some Intel drivers have issues with using mips as frame-buffer targets if
-   * GL_TEXTURE_MAX_LEVEL is higher than the target MIP.
-   * Only check at the end after all other workarounds because this uses the drawing code.
-   * Also after device/driver flags to avoid the check that causes pre GCN Radeon to crash. */
-  if (GCaps.mip_render_workaround == false) {
-    GCaps.mip_render_workaround = detect_mip_render_workaround();
-  }
   /* Disable multi-draw if the base instance cannot be read. */
   if (GLContext::shader_draw_parameters_support == false) {
     GLContext::multi_draw_indirect_support = false;

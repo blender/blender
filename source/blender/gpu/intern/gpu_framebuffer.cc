@@ -206,61 +206,6 @@ uint FrameBuffer::get_bits_per_pixel()
   return total_bits;
 }
 
-void FrameBuffer::recursive_downsample(int max_lvl,
-                                       void (*callback)(void *user_data, int level),
-                                       void *user_data)
-{
-  /* Bind to make sure the frame-buffer is up to date. */
-  this->bind(true);
-
-  /* FIXME(fclem): This assumes all mips are defined which may not be the case. */
-  max_lvl = min_ii(max_lvl, floor(log2(max_ii(width_, height_))));
-
-  for (int mip_lvl = 1; mip_lvl <= max_lvl; mip_lvl++) {
-    /* Replace attached mip-level for each attachment. */
-    for (GPUAttachment &attachment : attachments_) {
-      Texture *tex = reinterpret_cast<Texture *>(attachment.tex);
-      if (tex != nullptr) {
-        /* Some Intel HDXXX have issue with rendering to a mipmap that is below
-         * the texture GL_TEXTURE_MAX_LEVEL. So even if it not correct, in this case
-         * we allow GL_TEXTURE_MAX_LEVEL to be one level lower. In practice it does work! */
-        int mip_max = GPU_mip_render_workaround() ? mip_lvl : (mip_lvl - 1);
-        /* Restrict fetches only to previous level. */
-        tex->mip_range_set(mip_lvl - 1, mip_max);
-        /* Bind next level. */
-        attachment.mip = mip_lvl;
-      }
-    }
-
-    /* Update the internal attachments and viewport size. */
-    dirty_attachments_ = true;
-    this->bind(true);
-
-    /* Optimize load-store state. */
-    GPUAttachmentType type = GPU_FB_DEPTH_ATTACHMENT;
-    for (GPUAttachment &attachment : attachments_) {
-      Texture *tex = reinterpret_cast<Texture *>(attachment.tex);
-      if (tex != nullptr) {
-        this->attachment_set_loadstore_op(
-            type, {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE, NULL_ATTACHMENT_COLOR});
-      }
-      ++type;
-    }
-
-    callback(user_data, mip_lvl);
-  }
-
-  for (GPUAttachment &attachment : attachments_) {
-    if (attachment.tex != nullptr) {
-      /* Reset mipmap level range. */
-      reinterpret_cast<Texture *>(attachment.tex)->mip_range_set(0, max_lvl);
-      /* Reset base level. NOTE: might not be the one bound at the start of this function. */
-      attachment.mip = 0;
-    }
-  }
-  dirty_attachments_ = true;
-}
-
 /** \} */
 
 }  // namespace blender::gpu
@@ -607,14 +552,6 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpu_fb_read,
 
   /* FIXME(@fclem): sRGB is not saved. */
   prev_fb->bind(true);
-}
-
-void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
-                                          int max_level,
-                                          void (*per_level_callback)(void *user_data, int level),
-                                          void *user_data)
-{
-  unwrap(fb)->recursive_downsample(max_level, per_level_callback, user_data);
 }
 
 #ifndef GPU_NO_USE_PY_REFERENCES

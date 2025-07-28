@@ -58,8 +58,7 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
     GHOST_DisposeRectangle(bounds);
 
     if (default_fbo != 0) {
-      /* Bind default framebuffer, otherwise state might be undefined because of
-       * detect_mip_render_workaround(). */
+      /* Bind default framebuffer, otherwise state might be undefined. */
       glBindFramebuffer(GL_FRAMEBUFFER, default_fbo);
       front_left = new GLFrameBuffer("front_left", this, GL_COLOR_ATTACHMENT0, default_fbo, w, h);
       back_left = new GLFrameBuffer("back_left", this, GL_COLOR_ATTACHMENT0, default_fbo, w, h);

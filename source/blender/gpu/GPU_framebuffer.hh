@@ -615,20 +615,6 @@ void GPU_framebuffer_blit(GPUFrameBuffer *fb_read,
                           int write_slot,
                           eGPUFrameBufferBits blit_buffers);
 
-/**
- * Call \a per_level_callback after binding each framebuffer attachment mip level
- * up until \a max_level .
- * Each attachment texture sampler mip range is set to not overlap the currently processed level.
- * This is used for generating custom mip-map chains where each level needs access to the one
- * above.
- * DEPRECATED: Prefer using a compute shader with arbitrary imageLoad/Store for this purpose
- * as it is clearer and likely faster with optimizations.
- */
-void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
-                                          int max_level,
-                                          void (*per_level_callback)(void *user_data, int level),
-                                          void *user_data);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

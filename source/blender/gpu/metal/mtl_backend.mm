@@ -556,7 +556,6 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   /* OPENGL Related workarounds -- none needed for Metal. */
   GCaps.extensions_len = 0;
   GCaps.extension_get = mtl_extensions_get_null;
-  GCaps.mip_render_workaround = false;
   GCaps.depth_blitting_workaround = false;
   GCaps.use_main_context_workaround = false;
   GCaps.broken_amd_driver = false;
