@@ -1169,4 +1169,32 @@ void fill_attribute_range_default(MutableAttributeAccessor attributes,
   });
 }
 
+void transform_custom_normal_attribute(const float4x4 &transform,
+                                       MutableAttributeAccessor &attributes)
+{
+  const GAttributeReader normals = attributes.lookup("custom_normal");
+  if (!normals) {
+    return;
+  }
+  if (!normals.varray.type().is<float3>()) {
+    return;
+  }
+  if (normals.sharing_info->is_mutable()) {
+    SpanAttributeWriter<float3> normals = attributes.lookup_for_write_span<float3>(
+        "custom_normal");
+    math::transform_normals(float3x3(transform), normals.span);
+    normals.finish();
+  }
+  else {
+    /* It's a bit faster to combine transforming and copying the attribute if it's shared. */
+    float3 *new_data = MEM_malloc_arrayN<float3>(size_t(normals.varray.size()), __func__);
+    math::transform_normals(VArraySpan(normals.varray.typed<float3>()),
+                            float3x3(transform),
+                            {new_data, normals.varray.size()});
+    const AttrDomain domain = normals.domain;
+    attributes.remove("custom_normal");
+    attributes.add<float3>("custom_normal", domain, AttributeInitMoveArray(new_data));
+  }
+}
+
 }  // namespace blender::bke

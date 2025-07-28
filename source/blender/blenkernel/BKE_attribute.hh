@@ -14,6 +14,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_generic_pointer.hh"
 #include "BLI_generic_virtual_array.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
 #include "BLI_struct_equality_utils.hh"
@@ -986,5 +987,11 @@ void fill_attribute_range_default(MutableAttributeAccessor dst_attributes,
                                   AttrDomain domain,
                                   const AttributeFilter &attribute_filter,
                                   IndexRange range);
+
+/**
+ * Apply a transform to the "custom_normal" attribute.
+ */
+void transform_custom_normal_attribute(const float4x4 &transform,
+                                       MutableAttributeAccessor &attributes);
 
 }  // namespace blender::bke

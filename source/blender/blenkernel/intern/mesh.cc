@@ -1849,16 +1849,6 @@ static void translate_positions(MutableSpan<float3> positions, const float3 &tra
   });
 }
 
-static void transform_normals(MutableSpan<float3> normals, const float4x4 &matrix)
-{
-  const float3x3 normal_transform = math::transpose(math::invert(float3x3(matrix)));
-  threading::parallel_for(normals.index_range(), 1024, [&](const IndexRange range) {
-    for (float3 &normal : normals.slice(range)) {
-      normal = normal_transform * normal;
-    }
-  });
-}
-
 void mesh_translate(Mesh &mesh, const float3 &translation, const bool do_shape_keys)
 {
   if (math::is_zero(translation)) {
@@ -1897,15 +1887,7 @@ void mesh_transform(Mesh &mesh, const float4x4 &transform, bool do_shape_keys)
     }
   }
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  if (const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data(
-          "custom_normal"))
-  {
-    if (meta_data->data_type == bke::AttrType::Float3) {
-      bke::SpanAttributeWriter normals = attributes.lookup_for_write_span<float3>("custom_normal");
-      transform_normals(normals.span, transform);
-      normals.finish();
-    }
-  }
+  transform_custom_normal_attribute(transform, attributes);
 
   mesh.tag_positions_changed();
 }
