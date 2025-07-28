@@ -901,7 +901,9 @@ void OBJECT_OT_shape_key_make_basis(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Make Shape Key the Basis Key";
   ot->idname = "OBJECT_OT_shape_key_make_basis";
-  ot->description = "Make this shape key the new basis key, effectively applying it to the mesh";
+  ot->description =
+      "Make this shape key the new basis key, effectively applying it to the mesh. Note that this "
+      "applies the shape key at its 100% value";
 
   /* API callbacks. */
   ot->poll = shape_key_make_basis_poll;
