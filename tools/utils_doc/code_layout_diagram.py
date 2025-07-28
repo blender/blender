@@ -953,6 +953,7 @@ def render_output(scene, bounds, filepath):
     scene.collection.objects.link(camera)
 
     render = scene.render
+    render.image_settings.media_type = 'IMAGE'
     render.image_settings.file_format = 'JPEG'
     render.image_settings.color_depth = '8'
     render.image_settings.color_mode = 'RGB'

@@ -2222,15 +2222,19 @@ class NWSaveViewer(bpy.types.Operator, ExportHelper):
                 '.tiff': 'TIFF',
                 '.tif': 'TIFF'}
             basename, ext = path.splitext(fp)
-            old_render_format = context.scene.render.image_settings.file_format
+            image_settings = context.scene.render.image_settings
+            old_media_type = image_settings.media_type
+            old_file_format = image_settings.file_format
             old_tree_type = context.space_data.tree_type
-            context.scene.render.image_settings.file_format = formats[self.filename_ext]
+            image_settings.media_type = 'IMAGE'
+            image_settings.file_format = formats[self.filename_ext]
             context.area.type = "IMAGE_EDITOR"
             context.area.spaces[0].image = bpy.data.images['Viewer Node']
             context.area.spaces[0].image.save_render(fp)
             context.area.type = "NODE_EDITOR"
             context.space_data.tree_type = old_tree_type
-            context.scene.render.image_settings.file_format = old_render_format
+            image_settings.media_type = old_media_type
+            image_settings.file_format = old_file_format
             return {'FINISHED'}
 
 

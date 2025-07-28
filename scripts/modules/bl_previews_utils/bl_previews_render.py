@@ -112,6 +112,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
             scene.render.film_transparent = True
             # TODO: define Cycles world?
 
+        scene.render.image_settings.media_type = 'IMAGE'
         scene.render.image_settings.file_format = 'PNG'
         scene.render.image_settings.color_depth = '8'
         scene.render.image_settings.color_mode = 'RGBA'

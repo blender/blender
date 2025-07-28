@@ -25,6 +25,7 @@ def update_factory_startup_ffmpeg_preset():
 
     for scene in bpy.data.scenes:
         render = scene.render
+        render.image_settings.media_type = 'VIDEO'
         render.image_settings.file_format = 'FFMPEG'
 
         if preset_filepath:

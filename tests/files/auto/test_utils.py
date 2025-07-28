@@ -56,6 +56,7 @@ def render(shading_system):
         set_shading_system(scene, shading_system)
         scene.render.filepath = "%s/test_renders/%s_%s" % (test_dir, filename, shading_system)
 
+    scene.render.image_settings.media_type = 'IMAGE'
     scene.render.image_settings.file_format = 'PNG'
     scene.render.use_file_extension = True
 
