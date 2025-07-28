@@ -732,6 +732,7 @@ GAttributeReader AttributeAccessor::lookup(const StringRef attribute_id,
 GAttributeReader AttributeIter::get(std::optional<AttrDomain> domain,
                                     std::optional<AttrType> data_type) const
 {
+  BLI_assert(this->accessor != nullptr);
   return adapt_domain_and_type_if_necessary(this->get(), domain, data_type, *accessor);
 }
 
