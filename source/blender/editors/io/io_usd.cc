@@ -753,7 +753,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "allow_unicode",
-      false,
+      true,
       "Allow Unicode",
       "Preserve UTF-8 encoded characters when writing USD prim and property names "
       "(requires software utilizing USD 24.03 or greater when opening the resulting files)");
