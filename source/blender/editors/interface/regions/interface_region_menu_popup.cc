@@ -461,8 +461,7 @@ static void create_title_button(uiLayout *layout, const char *title, int icon)
 
   if (icon) {
     SNPRINTF_UTF8(titlestr, " %s", title);
-    uiDefIconTextBut(
-        block, ButType::Label, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
+    uiDefIconTextBut(block, ButType::Label, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, nullptr, "");
   }
   else {
     uiBut *but = uiDefBut(
@@ -843,8 +842,6 @@ void UI_popup_block_template_confirm_op(uiLayout *layout,
                                   UI_UNIT_X, /* Ignored, as a split is used. */
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
 
     return but;

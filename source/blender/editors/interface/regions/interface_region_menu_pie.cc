@@ -153,19 +153,8 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
     if (icon) {
       SNPRINTF_UTF8(titlestr, " %s", title);
       w = ui_pie_menu_title_width(titlestr, icon);
-      but = uiDefIconTextBut(pie->pie_block,
-                             ButType::Label,
-                             0,
-                             icon,
-                             titlestr,
-                             0,
-                             0,
-                             w,
-                             UI_UNIT_Y,
-                             nullptr,
-                             0.0,
-                             0.0,
-                             "");
+      but = uiDefIconTextBut(
+          pie->pie_block, ButType::Label, 0, icon, titlestr, 0, 0, w, UI_UNIT_Y, nullptr, "");
     }
     else {
       w = ui_pie_menu_title_width(title, 0);
@@ -330,8 +319,6 @@ void ui_pie_menu_level_create(uiBlock *block,
                                 UI_UNIT_X * 3,
                                 UI_UNIT_Y,
                                 nullptr,
-                                0.0f,
-                                0.0f,
                                 "Show more items of this menu");
   UI_but_funcN_set(but, ui_pie_menu_level_invoke, remaining, &lvl);
 }

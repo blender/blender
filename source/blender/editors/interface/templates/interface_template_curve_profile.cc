@@ -58,8 +58,6 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
                                   0,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     const eCurveProfilePresets preset = item.second;
     UI_but_func_set(but, [profile, cb, preset](bContext &C) {
@@ -98,8 +96,6 @@ static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   0,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     UI_but_func_set(but, [profile](bContext &C) {
       BKE_curveprofile_reset_view(profile);
@@ -117,8 +113,6 @@ static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   0,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     UI_but_func_set(but, [profile, cb](bContext &C) {
       BKE_curveprofile_reset(profile);
@@ -250,8 +244,6 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
                             UI_UNIT_X,
                             UI_UNIT_X,
                             nullptr,
-                            0.0,
-                            0.0,
                             TIP_("Reapply and update the preset, removing changes"));
       UI_but_func_set(bt, [profile, cb](bContext &C) {
         BKE_curveprofile_reset(profile);

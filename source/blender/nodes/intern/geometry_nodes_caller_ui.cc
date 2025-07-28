@@ -249,8 +249,6 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
                                  ctx.properties_ptr,
                                  rna_path,
                                  0,
-                                 0.0f,
-                                 0.0f,
                                  StringRef(socket.description));
   UI_but_placeholder_set(but, "Layer");
   layout->label("", ICON_BLANK1);
@@ -369,8 +367,6 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
                                  ctx.properties_ptr,
                                  rna_path_attribute_name,
                                  0,
-                                 0.0f,
-                                 0.0f,
                                  StringRef(socket.description));
 
   const Object *object = ed::object::context_object(&ctx.C);
