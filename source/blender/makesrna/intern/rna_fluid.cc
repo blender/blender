@@ -1573,11 +1573,11 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "adapt_threshold", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0, 1.0);
-  RNA_def_property_ui_range(prop, 0.0, 1.0, 0.02, 6);
-  RNA_def_property_ui_text(
-      prop,
-      "Threshold",
-      "Minimum amount of fluid a cell can contain before it is considered empty");
+  RNA_def_property_ui_range(prop, 0.0, 1.0, 0.002, 6);
+  RNA_def_property_ui_text(prop,
+                           "Threshold",
+                           "Minimum amount of fluid grid values (smoke density, fuel and heat) a "
+                           "cell can contain, before it is considered empty");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
   prop = RNA_def_property(srna, "use_adaptive_domain", PROP_BOOLEAN, PROP_NONE);

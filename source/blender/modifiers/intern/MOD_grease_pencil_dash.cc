@@ -358,7 +358,12 @@ static void modify_drawing(const GreasePencilDashModifierData &dmd,
   bke::GeometrySet unselected_geo = bke::GeometrySet::from_curves(unselected_curves_id);
   bke::GeometrySet joined_geo = geometry::join_geometries({unselected_geo, masked_geo}, {});
 
-  drawing.strokes_for_write() = std::move(joined_geo.get_curves_for_write()->geometry.wrap());
+  if (joined_geo.has_curves()) {
+    drawing.strokes_for_write() = {};
+  }
+  else {
+    drawing.strokes_for_write() = std::move(joined_geo.get_curves_for_write()->geometry.wrap());
+  }
   drawing.tag_topology_changed();
 }
 

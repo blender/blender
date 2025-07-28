@@ -53,61 +53,54 @@ void WorldData::init()
     pxr::GfVec3f color(1.0f, 1.0f, 1.0f);
     ID_LOG("%s", world->id.name);
 
-    if (world->use_nodes) {
-      /* TODO: Create nodes parsing system */
+    /* TODO: Create nodes parsing system */
+    bNode *output_node = ntreeShaderOutputNode(world->nodetree, SHD_OUTPUT_ALL);
+    if (!output_node) {
+      return;
+    }
+    const Span<bNodeSocket *> input_sockets = output_node->input_sockets();
+    bNodeSocket *input_socket = nullptr;
 
-      bNode *output_node = ntreeShaderOutputNode(world->nodetree, SHD_OUTPUT_ALL);
-      if (!output_node) {
-        return;
+    for (auto *socket : input_sockets) {
+      if (STREQ(socket->name, "Surface")) {
+        input_socket = socket;
+        break;
       }
-      const Span<bNodeSocket *> input_sockets = output_node->input_sockets();
-      bNodeSocket *input_socket = nullptr;
+    }
+    if (!input_socket) {
+      return;
+    }
+    if (input_socket->directly_linked_links().is_empty()) {
+      return;
+    }
+    bNodeLink const *link = input_socket->directly_linked_links()[0];
 
-      for (auto *socket : input_sockets) {
-        if (STREQ(socket->name, "Surface")) {
-          input_socket = socket;
-          break;
-        }
-      }
-      if (!input_socket) {
-        return;
-      }
-      if (input_socket->directly_linked_links().is_empty()) {
-        return;
-      }
-      bNodeLink const *link = input_socket->directly_linked_links()[0];
+    bNode *input_node = link->fromnode;
+    if (input_node->type_legacy != SH_NODE_BACKGROUND) {
+      return;
+    }
 
-      bNode *input_node = link->fromnode;
-      if (input_node->type_legacy != SH_NODE_BACKGROUND) {
-        return;
-      }
+    const bNodeSocket &color_input = input_node->input_by_identifier("Color");
+    const bNodeSocket &strength_input = input_node->input_by_identifier("Strength");
 
-      const bNodeSocket &color_input = input_node->input_by_identifier("Color");
-      const bNodeSocket &strength_input = input_node->input_by_identifier("Strength");
+    float const *strength = strength_input.default_value_typed<float>();
+    float const *input_color = color_input.default_value_typed<float>();
+    intensity = strength[1];
+    color = pxr::GfVec3f(input_color[0], input_color[1], input_color[2]);
 
-      float const *strength = strength_input.default_value_typed<float>();
-      float const *input_color = color_input.default_value_typed<float>();
-      intensity = strength[1];
-      color = pxr::GfVec3f(input_color[0], input_color[1], input_color[2]);
-
-      if (!color_input.directly_linked_links().is_empty()) {
-        bNode *color_input_node = color_input.directly_linked_links()[0]->fromnode;
-        if (ELEM(color_input_node->type_legacy, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
-          NodeTexImage *tex = static_cast<NodeTexImage *>(color_input_node->storage);
-          Image *image = (Image *)color_input_node->id;
-          if (image) {
-            std::string image_path = cache_or_get_image_file(
-                scene_delegate_->bmain, scene_delegate_->scene, image, &tex->iuser);
-            if (!image_path.empty()) {
-              texture_file = pxr::SdfAssetPath(image_path, image_path);
-            }
+    if (!color_input.directly_linked_links().is_empty()) {
+      bNode *color_input_node = color_input.directly_linked_links()[0]->fromnode;
+      if (ELEM(color_input_node->type_legacy, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+        NodeTexImage *tex = static_cast<NodeTexImage *>(color_input_node->storage);
+        Image *image = (Image *)color_input_node->id;
+        if (image) {
+          std::string image_path = cache_or_get_image_file(
+              scene_delegate_->bmain, scene_delegate_->scene, image, &tex->iuser);
+          if (!image_path.empty()) {
+            texture_file = pxr::SdfAssetPath(image_path, image_path);
           }
         }
       }
-    }
-    else {
-      intensity = 1.0f;
-      color = pxr::GfVec3f(world->horr, world->horg, world->horb);
     }
 
     if (texture_file.GetAssetPath().empty()) {

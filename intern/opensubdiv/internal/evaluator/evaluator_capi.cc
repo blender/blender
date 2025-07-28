@@ -6,7 +6,9 @@
 
 #include "opensubdiv_evaluator_capi.hh"
 
-#ifndef WITH_APPLE_CROSSPLATFORM
+#ifdef __APPLE__
+#  include <opensubdiv/osd/mtlPatchShaderSource.h>
+#else
 #  include <opensubdiv/osd/glslPatchShaderSource.h>
 #endif
 
@@ -37,7 +39,11 @@ const char *openSubdiv_getGLSLPatchBasisSource()
   /* Using a global string to avoid dealing with memory allocation/ownership. */
   static std::string patch_basis_source;
   if (patch_basis_source.empty()) {
+#  ifdef __APPLE__
+    patch_basis_source = OpenSubdiv::Osd::MTLPatchShaderSource::GetPatchBasisShaderSource();
+#  else
     patch_basis_source = OpenSubdiv::Osd::GLSLPatchShaderSource::GetPatchBasisShaderSource();
+#  endif
   }
   return patch_basis_source.c_str();
 }

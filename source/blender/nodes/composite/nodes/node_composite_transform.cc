@@ -33,8 +33,8 @@ static void cmp_node_init_transform(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeTransformData *data = MEM_callocN<NodeTransformData>(__func__);
   data->interpolation = CMP_NODE_INTERPOLATION_NEAREST;
-  data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
-  data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+  data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+  data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
   node->storage = data;
 }
 
@@ -88,8 +88,8 @@ class TransformOperation : public NodeOperation {
   ExtensionMode get_extension_mode_x()
   {
     switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_x)) {
-      case CMP_NODE_EXTENSION_MODE_ZERO:
-        return ExtensionMode::Zero;
+      case CMP_NODE_EXTENSION_MODE_CLIP:
+        return ExtensionMode::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
         return ExtensionMode::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
@@ -97,14 +97,14 @@ class TransformOperation : public NodeOperation {
     }
 
     BLI_assert_unreachable();
-    return ExtensionMode::Zero;
+    return ExtensionMode::Clip;
   }
 
   ExtensionMode get_extension_mode_y()
   {
     switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_y)) {
-      case CMP_NODE_EXTENSION_MODE_ZERO:
-        return ExtensionMode::Zero;
+      case CMP_NODE_EXTENSION_MODE_CLIP:
+        return ExtensionMode::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
         return ExtensionMode::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
@@ -112,7 +112,7 @@ class TransformOperation : public NodeOperation {
     }
 
     BLI_assert_unreachable();
-    return ExtensionMode::Zero;
+    return ExtensionMode::Clip;
   }
 
   Interpolation get_interpolation()

@@ -19,6 +19,7 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_numbers.hh"
@@ -1236,6 +1237,59 @@ static void update_format_media_type(ImageFormatData *format)
   }
 }
 
+static void do_version_world_remove_use_nodes(Main *bmain, World *world)
+{
+  if (world->use_nodes == true) {
+    return;
+  }
+
+  /* Users defined a world node tree, but deactivated it by disabling "Use Nodes". So we
+   * simulate the same effect by creating a new World Output node and setting it to active. */
+  bNodeTree *ntree = world->nodetree;
+  if (ntree == nullptr) {
+    /* In case the world was defined through Python API it might have been missing a node tree. */
+    ntree = blender::bke::node_tree_add_tree_embedded(
+        bmain, &world->id, "World Node Tree Versioning", "ShaderNodeTree");
+  }
+
+  bNode *old_output = nullptr;
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (STREQ(node->idname, "ShaderNodeOutputWorld") && (node->flag & NODE_DO_OUTPUT)) {
+      old_output = node;
+      old_output->flag &= ~NODE_DO_OUTPUT;
+    }
+  }
+
+  bNode *new_output = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_WORLD);
+  new_output->flag |= NODE_DO_OUTPUT;
+  bNode *background = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_BACKGROUND);
+  version_node_add_link(*ntree,
+                        *background,
+                        *blender::bke::node_find_socket(*background, SOCK_OUT, "Background"),
+                        *new_output,
+                        *blender::bke::node_find_socket(*new_output, SOCK_IN, "Surface"));
+
+  bNodeSocket *color_sock = blender::bke::node_find_socket(*background, SOCK_IN, "Color");
+  color_sock->default_value_typed<bNodeSocketValueRGBA>()->value[0] = world->horr;
+  color_sock->default_value_typed<bNodeSocketValueRGBA>()->value[1] = world->horg;
+  color_sock->default_value_typed<bNodeSocketValueRGBA>()->value[2] = world->horb;
+  color_sock->default_value_typed<bNodeSocketValueRGBA>()->value[3] = 1.0f;
+
+  if (old_output != nullptr) {
+    /* Position the newly created node after the old output. Assume the old output node is at
+     * the far right of the node tree. */
+    background->location[0] = old_output->location[0] + 1.5f * old_output->width;
+    background->location[1] = old_output->location[1];
+  }
+
+  new_output->location[0] = background->location[0] + 2.0f * background->width;
+  new_output->location[1] = background->location[1];
+
+  bNode *frame = blender::bke::node_add_static_node(nullptr, *ntree, NODE_FRAME);
+  background->parent = frame;
+  new_output->parent = frame;
+}
+
 void do_versions_after_linking_500(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 9)) {
@@ -1511,15 +1565,15 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         /* Map old wrap axis to new extension mode. */
         switch (data->wrap_axis) {
           case CMP_NODE_TRANSLATE_REPEAT_AXIS_NONE:
-            data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
-            data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+            data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+            data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
             break;
           case CMP_NODE_TRANSLATE_REPEAT_AXIS_X:
             data->extension_x = CMP_NODE_EXTENSION_MODE_REPEAT;
-            data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+            data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
             break;
           case CMP_NODE_TRANSLATE_REPEAT_AXIS_Y:
-            data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
+            data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
             data->extension_y = CMP_NODE_EXTENSION_MODE_REPEAT;
             break;
           case CMP_NODE_TRANSLATE_REPEAT_AXIS_XY:
@@ -1569,8 +1623,8 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           continue;
         }
         NodeScaleData *data = static_cast<NodeScaleData *>(node->storage);
-        data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
-        data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+        data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+        data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
       }
       FOREACH_NODETREE_END;
     }
@@ -1590,8 +1644,8 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         }
         NodeTransformData *data = MEM_callocN<NodeTransformData>(__func__);
         data->interpolation = node->custom1;
-        data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
-        data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+        data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+        data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
         node->storage = data;
       }
       FOREACH_NODETREE_END;
@@ -1690,6 +1744,12 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 43)) {
+    LISTBASE_FOREACH (World *, world, &bmain->worlds) {
+      do_version_world_remove_use_nodes(bmain, world);
+    }
   }
 
   /**

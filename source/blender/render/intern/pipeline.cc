@@ -206,7 +206,8 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   static blender::Mutex mutex;
   std::scoped_lock lock(mutex);
 
-  if (!G.quiet) {
+  const bool show_info = CLOG_CHECK(&LOG, CLG_LEVEL_INFO);
+  if (show_info) {
     CLOG_STR_INFO(&LOG, rs->infostr);
     /* Flush stdout to be sure python callbacks are printing stuff after blender. */
     fflush(stdout);
@@ -216,7 +217,7 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
   BKE_callback_exec_string(G_MAIN, BKE_CB_EVT_RENDER_STATS, rs->infostr);
 
-  if (!G.quiet) {
+  if (show_info) {
     fflush(stdout);
   }
 }
@@ -2234,9 +2235,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
       /* imbuf knows which rects are not part of ibuf */
       IMB_freeImBuf(ibuf);
     }
-    if (!G.quiet) {
-      printf("Append frame %d\n", scene->r.cfra);
-    }
+    CLOG_INFO(&LOG, "Video append frame %d", scene->r.cfra);
   }
   else { /* R_IMF_VIEWS_STEREO_3D */
     const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
@@ -2354,7 +2353,8 @@ static bool do_write_image_or_movie(
     message = fmt::format("{} (Saving: {})", message, filepath);
   }
 
-  if (!G.quiet) {
+  const bool show_info = CLOG_CHECK(&LOG, CLG_LEVEL_INFO);
+  if (show_info) {
     CLOG_STR_INFO(&LOG, message.c_str());
     /* Flush stdout to be sure python callbacks are printing stuff after blender. */
     fflush(stdout);
@@ -2364,7 +2364,7 @@ static bool do_write_image_or_movie(
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
   render_callback_exec_string(re, G_MAIN, BKE_CB_EVT_RENDER_STATS, message.c_str());
 
-  if (!G.quiet) {
+  if (show_info) {
     fflush(stdout);
   }
 
@@ -2551,9 +2551,7 @@ void RE_RenderAnim(Render *re,
       if (rd.mode & R_NO_OVERWRITE) {
         if (!is_multiview_name) {
           if (BLI_exists(filepath)) {
-            if (!G.quiet) {
-              printf("skipping existing frame \"%s\"\n", filepath);
-            }
+            CLOG_INFO(&LOG, "Skipping existing frame \"%s\"", filepath);
             totskipped++;
             continue;
           }
@@ -2570,10 +2568,10 @@ void RE_RenderAnim(Render *re,
             BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
             if (BLI_exists(filepath_view)) {
               is_skip = true;
-              if (!G.quiet) {
-                printf(
-                    "skipping existing frame \"%s\" for view \"%s\"\n", filepath_view, srv->name);
-              }
+              CLOG_INFO(&LOG,
+                        "Skipping existing frame \"%s\" for view \"%s\"",
+                        filepath_view,
+                        srv->name);
             }
           }
 

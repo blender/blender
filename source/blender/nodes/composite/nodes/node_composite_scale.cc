@@ -62,8 +62,8 @@ static void node_composit_init_scale(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeScaleData *data = MEM_callocN<NodeScaleData>(__func__);
   data->interpolation = CMP_NODE_INTERPOLATION_BILINEAR;
-  data->extension_x = CMP_NODE_EXTENSION_MODE_ZERO;
-  data->extension_y = CMP_NODE_EXTENSION_MODE_ZERO;
+  data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+  data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
   node->storage = data;
 }
 
@@ -222,8 +222,8 @@ class ScaleOperation : public NodeOperation {
   ExtensionMode get_extension_mode_x()
   {
     switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_x)) {
-      case CMP_NODE_EXTENSION_MODE_ZERO:
-        return ExtensionMode::Zero;
+      case CMP_NODE_EXTENSION_MODE_CLIP:
+        return ExtensionMode::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
         return ExtensionMode::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
@@ -231,14 +231,14 @@ class ScaleOperation : public NodeOperation {
     }
 
     BLI_assert_unreachable();
-    return ExtensionMode::Zero;
+    return ExtensionMode::Clip;
   }
 
   ExtensionMode get_extension_mode_y()
   {
     switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_y)) {
-      case CMP_NODE_EXTENSION_MODE_ZERO:
-        return ExtensionMode::Zero;
+      case CMP_NODE_EXTENSION_MODE_CLIP:
+        return ExtensionMode::Clip;
       case CMP_NODE_EXTENSION_MODE_REPEAT:
         return ExtensionMode::Repeat;
       case CMP_NODE_EXTENSION_MODE_EXTEND:
@@ -246,7 +246,7 @@ class ScaleOperation : public NodeOperation {
     }
 
     BLI_assert_unreachable();
-    return ExtensionMode::Zero;
+    return ExtensionMode::Clip;
   }
 
   Interpolation get_interpolation() const

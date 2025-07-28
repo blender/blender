@@ -24,6 +24,7 @@ def _run(args):
     scene = bpy.context.scene
     scene.render.engine = 'CYCLES'
     scene.render.filepath = args['render_filepath']
+    scene.render.image_settings.media_type = 'IMAGE'
     scene.render.image_settings.file_format = 'PNG'
     scene.cycles.device = 'CPU' if device_type == 'CPU' else 'GPU'
 

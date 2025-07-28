@@ -124,4 +124,16 @@ void List::delete_self()
   MEM_delete(this);
 }
 
+GVArray List::varray() const
+{
+  if (const auto *array_data = std::get_if<ArrayData>(&data_)) {
+    return GVArray::from_span(GSpan(cpp_type_, array_data->data, size_));
+  }
+  if (const auto *single_data = std::get_if<SingleData>(&data_)) {
+    return GVArray::from_single_ref(cpp_type_, size_, single_data->value);
+  }
+  BLI_assert_unreachable();
+  return {};
+}
+
 }  // namespace blender::nodes

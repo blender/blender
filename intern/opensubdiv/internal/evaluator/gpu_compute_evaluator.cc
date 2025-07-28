@@ -11,9 +11,6 @@
 #include <opensubdiv/far/error.h>
 #include <opensubdiv/far/patchDescriptor.h>
 #include <opensubdiv/far/stencilTable.h>
-#ifdef WITH_OPENGL_BACKEND
-#  include <opensubdiv/osd/glslPatchShaderSource.h>
-#endif
 
 #include <cassert>
 #include <cmath>
@@ -340,8 +337,13 @@ static GPUShader *compile_eval_stencil_shader(BufferDescriptor const &srcDesc,
   using namespace blender::gpu::shader;
   ShaderCreateInfo info("opensubdiv_compute_eval");
   info.local_group_size(workGroupSize, 1, 1);
+
+  /* Ensure the basis code has access to proper backend specification define: it is not guaranteed
+   * that the code provided by OpenSubdiv specifies it. For example, it doesn't for GLSL but it
+   * does for Metal. Additionally, for Metal OpenSubdiv defines OSD_PATCH_BASIS_METAL as 1, so do
+   * the same here to avoid possible warning about value being re-defined. */
   if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-    info.define("OSD_PATCH_BASIS_METAL");
+    info.define("OSD_PATCH_BASIS_METAL", "1");
   }
   else {
     info.define("OSD_PATCH_BASIS_GLSL");
@@ -442,8 +444,13 @@ static GPUShader *compile_eval_patches_shader(BufferDescriptor const &srcDesc,
   using namespace blender::gpu::shader;
   ShaderCreateInfo info("opensubdiv_compute_eval");
   info.local_group_size(workGroupSize, 1, 1);
+
+  /* Ensure the basis code has access to proper backend specification define: it is not guaranteed
+   * that the code provided by OpenSubdiv specifies it. For example, it doesn't for GLSL but it
+   * does for Metal. Additionally, for Metal OpenSubdiv defines OSD_PATCH_BASIS_METAL as 1, so do
+   * the same here to avoid possible warning about value being re-defined. */
   if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-    info.define("OSD_PATCH_BASIS_METAL");
+    info.define("OSD_PATCH_BASIS_METAL", "1");
   }
   else {
     info.define("OSD_PATCH_BASIS_GLSL");

@@ -152,7 +152,7 @@ struct USDExportParams {
   bool use_instancing = false;
   bool export_custom_properties = true;
   bool author_blender_name = true;
-  bool allow_unicode = false;
+  bool allow_unicode = true;
 
   eSubdivExportMode export_subdiv = USD_SUBDIV_BEST_MATCH;
   enum eEvaluationMode evaluation_mode = DAG_EVAL_VIEWPORT;

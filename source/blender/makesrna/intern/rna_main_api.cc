@@ -522,6 +522,9 @@ static World *rna_Main_worlds_new(Main *bmain, const char *name)
   World *world = BKE_world_add(bmain, safe_name);
   id_us_min(&world->id);
 
+  world->nodetree = blender::bke::node_tree_add_tree_embedded(
+      bmain, &world->id, "World Node Tree", "ShaderNodeTree");
+
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
 
   return world;

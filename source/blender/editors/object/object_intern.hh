@@ -326,6 +326,7 @@ void OBJECT_OT_shape_key_retime(wmOperatorType *ot);
 void OBJECT_OT_shape_key_mirror(wmOperatorType *ot);
 void OBJECT_OT_shape_key_move(wmOperatorType *ot);
 void OBJECT_OT_shape_key_lock(wmOperatorType *ot);
+void OBJECT_OT_shape_key_make_basis(wmOperatorType *ot);
 
 /* `object_collection.cc` */
 

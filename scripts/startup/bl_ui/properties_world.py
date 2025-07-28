@@ -120,25 +120,21 @@ class EEVEE_WORLD_PT_surface(WorldButtonsPanel, Panel):
 
         world = context.world
 
-        layout.prop(world, "use_nodes", icon='NODETREE')
         layout.separator()
 
         layout.use_property_split = True
 
-        if world.use_nodes:
-            ntree = world.node_tree
-            node = ntree.get_output_node('EEVEE')
+        ntree = world.node_tree
+        node = ntree.get_output_node('EEVEE')
 
-            if node:
-                input = find_node_input(node, "Surface")
-                if input:
-                    layout.template_node_view(ntree, node, input)
-                else:
-                    layout.label(text="Incompatible output node")
+        if node:
+            input = find_node_input(node, "Surface")
+            if input:
+                layout.template_node_view(ntree, node, input)
             else:
-                layout.label(text="No output node")
+                layout.label(text="Incompatible output node")
         else:
-            layout.prop(world, "color")
+            layout.label(text="No output node")
 
 
 class EEVEE_WORLD_PT_volume(WorldButtonsPanel, Panel):
@@ -151,7 +147,7 @@ class EEVEE_WORLD_PT_volume(WorldButtonsPanel, Panel):
     def poll(cls, context):
         engine = context.engine
         world = context.world
-        return world and world.use_nodes and (engine in cls.COMPAT_ENGINES)
+        return world and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

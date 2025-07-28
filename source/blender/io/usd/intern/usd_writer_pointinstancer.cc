@@ -5,9 +5,6 @@
 #include "usd_writer_pointinstancer.hh"
 #include "usd_attribute_utils.hh"
 #include "usd_utils.hh"
-#include "usd_writer_curves.hh"
-#include "usd_writer_mesh.hh"
-#include "usd_writer_points.hh"
 
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_collection.hh"
@@ -15,10 +12,6 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_node.hh"
-#include "BKE_node_legacy_types.hh"
-#include "BKE_node_runtime.hh"
-#include "BKE_object.hh"
 #include "BKE_report.hh"
 
 #include "BLI_math_euler.hh"
@@ -26,34 +19,22 @@
 
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_pointcloud_types.h"
 
-#include <pxr/base/gf/math.h>
-#include <pxr/base/gf/matrix3f.h>
-#include <pxr/base/gf/quatd.h>
 #include <pxr/base/gf/quatf.h>
-#include <pxr/base/gf/range3f.h>
-#include <pxr/base/gf/rotation.h>
 #include <pxr/base/gf/vec3d.h>
 #include <pxr/base/gf/vec3f.h>
 #include <pxr/base/vt/array.h>
 #include <pxr/usd/usdGeom/pointInstancer.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
-#include <pxr/usd/usdGeom/scope.h>
-#include <pxr/usd/usdGeom/xform.h>
 
-#include "DEG_depsgraph_query.hh"
 #include "IO_abstract_hierarchy_iterator.h"
-#include <fmt/format.h>
 
 namespace blender::io::usd {
 
 USDPointInstancerWriter::USDPointInstancerWriter(
     const USDExporterContext &ctx,
-    std::set<std::pair<pxr::SdfPath, Object *>> &prototype_paths,
+    const Set<std::pair<pxr::SdfPath, Object *>> &prototype_paths,
     std::unique_ptr<USDAbstractWriter> base_writer)
     : USDAbstractWriter(ctx),
       base_writer_(std::move(base_writer)),
@@ -76,7 +57,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
   }
 
   const pxr::UsdStageRefPtr stage = usd_export_context_.stage;
-  Object *object_eval = context.object;
+  const Object *object_eval = context.object;
   bke::GeometrySet instance_geometry_set = bke::object_get_evaluated_geometry_set(*object_eval);
 
   const bke::GeometryComponent *component = instance_geometry_set.get_component(
@@ -150,10 +131,10 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
   pxr::UsdPrim prototypesOver = stage->DefinePrim(protoParentPath);
   pxr::SdfPathVector proto_wrapper_paths;
 
-  std::map<std::string, int> proto_index_map;
-  std::map<std::string, pxr::SdfPath> proto_path_map;
+  Map<std::string, int> proto_index_map;
+  Map<std::string, pxr::SdfPath> proto_path_map;
 
-  if (!prototype_paths_.empty() && usd_instancer) {
+  if (!prototype_paths_.is_empty() && usd_instancer) {
     int iter = 0;
 
     for (const std::pair<pxr::SdfPath, Object *> &entry : prototype_paths_) {
@@ -165,7 +146,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
       }
 
       const pxr::SdfPath proto_path = protoParentPath.AppendChild(
-          pxr::TfToken(proto_name_ + "_" + std::to_string(iter)));
+          pxr::TfToken("Prototype_" + std::to_string(iter)));
 
       pxr::UsdPrim prim = stage->DefinePrim(proto_path);
 
@@ -176,8 +157,8 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
       proto_wrapper_paths.push_back(proto_path);
 
       std::string ob_name = BKE_id_name(obj->id);
-      proto_index_map[ob_name] = iter;
-      proto_path_map[ob_name] = proto_path;
+      proto_index_map.add_new(ob_name, iter);
+      proto_path_map.add_new(ob_name, proto_path);
 
       ++iter;
     }
@@ -189,11 +170,11 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
   /* must be the last to populate */
   pxr::UsdAttribute proto_indices_attr = usd_instancer.CreateProtoIndicesAttr();
   pxr::VtArray<int> proto_indices;
-  std::vector<std::pair<int, int>> collection_instance_object_count_map;
+  Vector<std::pair<int, int>> collection_instance_object_count_map;
 
   Span<int> reference_handles = instances->reference_handles();
   Span<bke::InstanceReference> references = instances->references();
-  std::map<std::string, int> final_proto_index_map;
+  Map<std::string, int> final_proto_index_map;
 
   for (int i = 0; i < instance_num; i++) {
     bke::InstanceReference reference = references[reference_handles[i]];
@@ -211,7 +192,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
   blender::io::usd::set_attribute(proto_indices_attr, proto_indices, time, usd_value_writer_);
 
   /* Handle Collection Prototypes */
-  if (!collection_instance_object_count_map.empty()) {
+  if (!collection_instance_object_count_map.is_empty()) {
     handle_collection_prototypes(
         usd_instancer, time, instance_num, collection_instance_object_count_map);
   }
@@ -229,26 +210,29 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
 void USDPointInstancerWriter::process_instance_reference(
     const bke::InstanceReference &reference,
     int instance_index,
-    std::map<std::string, int> &proto_index_map,
-    std::map<std::string, int> &final_proto_index_map,
-    std::map<std::string, pxr::SdfPath> &proto_path_map,
+    Map<std::string, int> &proto_index_map,
+    Map<std::string, int> &final_proto_index_map,
+    Map<std::string, pxr::SdfPath> &proto_path_map,
     pxr::UsdStageRefPtr stage,
     pxr::VtArray<int> &proto_indices,
-    std::vector<std::pair<int, int>> &collection_instance_object_count_map)
+    Vector<std::pair<int, int>> &collection_instance_object_count_map)
 {
+  /* TODO: Verify logic around the `add_overwrite` calls below. Using `add_new` will trigger
+   * asserts because multiple items are being added to the map with the same key. Original code
+   * was using std::map and repeatedly reassigning with `final_proto_index_map[ob_name] = ...` */
   switch (reference.type()) {
     case bke::InstanceReference::Type::Object: {
       Object &object = reference.object();
       std::string ob_name = BKE_id_name(object.id);
 
-      if (proto_index_map.find(ob_name) != proto_index_map.end()) {
-        proto_indices.push_back(proto_index_map[ob_name]);
+      if (proto_index_map.contains(ob_name)) {
+        proto_indices.push_back(proto_index_map.lookup(ob_name));
 
-        final_proto_index_map[ob_name] = proto_index_map[ob_name];
+        final_proto_index_map.add_overwrite(ob_name, proto_index_map.lookup(ob_name));
 
         /* If the reference is Object, clear prototype's local transform to identity to avoid
          * double transforms. The PointInstancer will fully control instance placement. */
-        override_transform(stage, proto_path_map[ob_name], float4x4::identity());
+        override_transform(stage, proto_path_map.lookup(ob_name), float4x4::identity());
       }
       break;
     }
@@ -259,15 +243,15 @@ void USDPointInstancerWriter::process_instance_reference(
       FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
         std::string ob_name = BKE_id_name(object->id);
 
-        if (proto_index_map.find(ob_name) != proto_index_map.end()) {
+        if (proto_index_map.contains(ob_name)) {
           object_num += 1;
-          proto_indices.push_back(proto_index_map[ob_name]);
+          proto_indices.push_back(proto_index_map.lookup(ob_name));
 
-          final_proto_index_map[ob_name] = proto_index_map[ob_name];
+          final_proto_index_map.add_overwrite(ob_name, proto_index_map.lookup(ob_name));
         }
       }
       FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-      collection_instance_object_count_map.push_back(std::make_pair(instance_index, object_num));
+      collection_instance_object_count_map.append(std::make_pair(instance_index, object_num));
       break;
     }
 
@@ -275,10 +259,10 @@ void USDPointInstancerWriter::process_instance_reference(
       bke::GeometrySet geometry_set = reference.geometry_set();
       std::string set_name = geometry_set.name;
 
-      if (proto_index_map.find(set_name) != proto_index_map.end()) {
-        proto_indices.push_back(proto_index_map[set_name]);
+      if (proto_index_map.contains(set_name)) {
+        proto_indices.push_back(proto_index_map.lookup(set_name));
 
-        final_proto_index_map[set_name] = proto_index_map[set_name];
+        final_proto_index_map.add_overwrite(set_name, proto_index_map.lookup(set_name));
       }
 
       Vector<const bke::GeometryComponent *> components = geometry_set.get_components();
@@ -293,7 +277,7 @@ void USDPointInstancerWriter::process_instance_reference(
            * InstanceReferences to resolve prototype indices. If the name matches proto_index_map,
            * skip traversal to avoid duplicates, since GeometrySet names may overlap with object
            * names. */
-          if (proto_index_map.find(set_name) == proto_index_map.end()) {
+          if (!proto_index_map.contains(set_name)) {
             for (int index = 0; index < ref_handles.size(); ++index) {
               const bke::InstanceReference &child_ref = refs[ref_handles[index]];
 
@@ -314,8 +298,8 @@ void USDPointInstancerWriter::process_instance_reference(
            * Instance inside this GeometrySet. */
           Span<float4x4> transforms = instances->transforms();
           if (transforms.size() == 1) {
-            if (proto_path_map.find(set_name) != proto_path_map.end()) {
-              override_transform(stage, proto_path_map[set_name], transforms[0]);
+            if (proto_path_map.contains(set_name)) {
+              override_transform(stage, proto_path_map.lookup(set_name), transforms[0]);
             }
           }
         }
@@ -331,7 +315,7 @@ void USDPointInstancerWriter::process_instance_reference(
 
 void USDPointInstancerWriter::compact_prototypes(const pxr::UsdGeomPointInstancer &usd_instancer,
                                                  const pxr::UsdTimeCode time,
-                                                 const pxr::SdfPathVector &proto_paths)
+                                                 const pxr::SdfPathVector &proto_paths) const
 {
   pxr::UsdAttribute proto_indices_attr = usd_instancer.GetProtoIndicesAttr();
   pxr::VtArray<int> proto_indices;
@@ -339,26 +323,27 @@ void USDPointInstancerWriter::compact_prototypes(const pxr::UsdGeomPointInstance
     return;
   }
 
-  ///* Find actually used prototype indices */
-  std::set<int> used_proto_indices(proto_indices.begin(), proto_indices.end());
+  /* Find actually used prototype indices. */
+  Set<int> used_proto_indices;
+  used_proto_indices.add_multiple(Span(proto_indices.cbegin(), proto_indices.size()));
 
-  std::map<int, int> remap;
+  Map<int, int> remap;
   int new_index = 0;
   for (int i = 0; i < proto_paths.size(); ++i) {
-    if (used_proto_indices.count(i)) {
-      remap[i] = new_index++;
+    if (used_proto_indices.contains(i)) {
+      remap.add(i, new_index++);
     }
   }
 
-  ///* Remap protoIndices */
+  /* Remap protoIndices. */
   for (int &idx : proto_indices) {
-    idx = remap[idx];
+    idx = remap.lookup(idx);
   }
   proto_indices_attr.Set(proto_indices, time);
 
   pxr::SdfPathVector compact_proto_paths;
   for (int i = 0; i < proto_paths.size(); ++i) {
-    if (used_proto_indices.count(i)) {
+    if (used_proto_indices.contains(i)) {
       compact_proto_paths.push_back(proto_paths[i]);
     }
   }
@@ -366,10 +351,15 @@ void USDPointInstancerWriter::compact_prototypes(const pxr::UsdGeomPointInstance
   usd_instancer.GetPrototypesRel().SetTargets(compact_proto_paths);
 }
 
-void USDPointInstancerWriter::override_transform(pxr::UsdStageRefPtr stage,
+void USDPointInstancerWriter::override_transform(const pxr::UsdStageRefPtr stage,
                                                  const pxr::SdfPath &proto_path,
-                                                 const float4x4 &transform)
+                                                 const float4x4 &transform) const
 {
+  pxr::UsdPrim prim = stage->GetPrimAtPath(proto_path);
+  if (!prim) {
+    return;
+  }
+
   // Extract translation
   const float3 &pos = transform.location();
   pxr::GfVec3d override_position(pos.x, pos.y, pos.z);
@@ -381,11 +371,6 @@ void USDPointInstancerWriter::override_transform(pxr::UsdStageRefPtr stage,
   // Extract scale
   const float3 scale_vec = math::to_scale<true>(transform);
   pxr::GfVec3f override_scale(scale_vec.x, scale_vec.y, scale_vec.z);
-
-  pxr::UsdPrim prim = stage->GetPrimAtPath(proto_path);
-  if (!prim) {
-    return;
-  }
 
   pxr::UsdGeomXformable xformable(prim);
   xformable.ClearXformOpOrder();
@@ -422,7 +407,7 @@ static void DuplicatePerInstanceAttribute(const GetterFunc &getter,
 template<typename T, typename GetterFunc, typename CreatorFunc>
 static void ExpandAttributePerInstance(const GetterFunc &getter,
                                        const CreatorFunc &creator,
-                                       const std::vector<std::pair<int, int>> &instance_object_map,
+                                       const Span<std::pair<int, int>> instance_object_map,
                                        const pxr::UsdTimeCode &time)
 {
   /* MARK: Handle Collection Prototypes
@@ -454,8 +439,8 @@ static void ExpandAttributePerInstance(const GetterFunc &getter,
 void USDPointInstancerWriter::handle_collection_prototypes(
     const pxr::UsdGeomPointInstancer &usd_instancer,
     const pxr::UsdTimeCode time,
-    int instance_num,
-    const std::vector<std::pair<int, int>> &collection_instance_object_count_map)
+    const int instance_num,
+    const Span<std::pair<int, int>> collection_instance_object_count_map) const
 {
   // Duplicate attributes
   if (usd_instancer.GetPositionsAttr().HasAuthoredValue()) {
@@ -494,33 +479,32 @@ void USDPointInstancerWriter::handle_collection_prototypes(
 
   // Duplicate Primvars
   const pxr::UsdGeomPrimvarsAPI primvars_api(usd_instancer);
-  std::vector<pxr::UsdGeomPrimvar> primvars = primvars_api.GetPrimvars();
-  for (const pxr::UsdGeomPrimvar &primvar : primvars) {
+  for (const pxr::UsdGeomPrimvar &primvar : primvars_api.GetPrimvars()) {
     if (!primvar.HasAuthoredValue()) {
       continue;
     }
-    const pxr::TfToken name = primvar.GetPrimvarName();
-    const pxr::SdfValueTypeName type = primvar.GetTypeName();
-    const pxr::TfToken interp = primvar.GetInterpolation();
-    auto create = [&]() { return primvars_api.CreatePrimvar(name, type, interp); };
+    const pxr::TfToken pv_name = primvar.GetPrimvarName();
+    const pxr::SdfValueTypeName pv_type = primvar.GetTypeName();
+    const pxr::TfToken pv_interp = primvar.GetInterpolation();
+    auto create = [&]() { return primvars_api.CreatePrimvar(pv_name, pv_type, pv_interp); };
 
-    if (type == pxr::SdfValueTypeNames->FloatArray) {
+    if (pv_type == pxr::SdfValueTypeNames->FloatArray) {
       ExpandAttributePerInstance<float>(
           [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
-    else if (type == pxr::SdfValueTypeNames->IntArray) {
+    else if (pv_type == pxr::SdfValueTypeNames->IntArray) {
       ExpandAttributePerInstance<int>(
           [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
-    else if (type == pxr::SdfValueTypeNames->UCharArray) {
+    else if (pv_type == pxr::SdfValueTypeNames->UCharArray) {
       ExpandAttributePerInstance<uchar>(
           [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
-    else if (type == pxr::SdfValueTypeNames->Float2Array) {
+    else if (pv_type == pxr::SdfValueTypeNames->Float2Array) {
       ExpandAttributePerInstance<pxr::GfVec2f>(
           [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
-    else if (ELEM(type,
+    else if (ELEM(pv_type,
                   pxr::SdfValueTypeNames->Float3Array,
                   pxr::SdfValueTypeNames->Color3fArray,
                   pxr::SdfValueTypeNames->Color4fArray))
@@ -528,15 +512,15 @@ void USDPointInstancerWriter::handle_collection_prototypes(
       ExpandAttributePerInstance<pxr::GfVec3f>(
           [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
-    else if (type == pxr::SdfValueTypeNames->QuatfArray) {
+    else if (pv_type == pxr::SdfValueTypeNames->QuatfArray) {
       ExpandAttributePerInstance<pxr::GfQuatf>(
           [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
-    else if (type == pxr::SdfValueTypeNames->BoolArray) {
+    else if (pv_type == pxr::SdfValueTypeNames->BoolArray) {
       ExpandAttributePerInstance<bool>(
           [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
-    else if (type == pxr::SdfValueTypeNames->StringArray) {
+    else if (pv_type == pxr::SdfValueTypeNames->StringArray) {
       ExpandAttributePerInstance<std::string>(
           [&]() { return primvar; }, create, collection_instance_object_count_map, time);
     }
@@ -549,10 +533,9 @@ void USDPointInstancerWriter::handle_collection_prototypes(
    * This guarantees that each instance can correctly reference its prototype. */
   pxr::UsdAttribute proto_indices_attr = usd_instancer.GetProtoIndicesAttr();
   if (!proto_indices_attr.HasAuthoredValue()) {
-    std::vector<int> index;
+    Vector<int> index;
     for (int i = 0; i < prototype_paths_.size(); i++) {
-      std::vector<int> current_proto_index(instance_num, i);
-      index.insert(index.end(), current_proto_index.begin(), current_proto_index.end());
+      index.append_n_times(i, instance_num);
     }
 
     proto_indices_attr.Set(pxr::VtArray<int>(index.begin(), index.end()));
@@ -591,18 +574,16 @@ void USDPointInstancerWriter::write_attribute_data(const bke::AttributeIter &att
       invisibleIdsAttr = usd_instancer.CreateInvisibleIdsAttr();
     }
 
-    const GVArray attribute = *attr.get();
-    /* Retrieve mask values, store as int8_t to avoid `std::vector<bool>.data()` issues. */
-    std::vector<int8_t> mask_values(attribute.size());
+    Vector<bool> mask_values(attribute.size());
     attribute.materialize(IndexMask(attribute.size()), mask_values.data());
 
     pxr::VtArray<int64_t> ids;
     pxr::VtArray<int64_t> invisibleIds;
     ids.reserve(mask_values.size());
 
-    for (int64_t i = 0; i < int64_t(mask_values.size()); i++) {
+    for (int64_t i = 0; i < mask_values.size(); i++) {
       ids.push_back(i);
-      if (mask_values[i] == 0) {
+      if (!mask_values[i]) {
         invisibleIds.push_back(i);
       }
     }

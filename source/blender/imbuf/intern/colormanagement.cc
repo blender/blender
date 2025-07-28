@@ -54,7 +54,11 @@
 
 #include "SEQ_iterator.hh"
 
+#include "CLG_log.h"
+
 #include "OCIO_api.hh"
+
+static CLG_LogRef LOG = {"image.color_management"};
 
 using blender::float3;
 using blender::float3x3;
@@ -492,8 +496,8 @@ static bool colormanage_role_color_space_name_get(ocio::Config &config,
   }
 
   if (ociocs == nullptr) {
-    if (!optional && !G.quiet) {
-      printf("Color management: Error, could not find role \"%s\"\n", role);
+    if (!optional) {
+      CLOG_ERROR(&LOG, "Could not find role \"%s\"", role);
     }
     colorspace_name[0] = '\0';
     return false;
@@ -527,16 +531,12 @@ static bool colormanage_load_config(ocio::Config &config)
       config, global_role_aces_interchange, OCIO_ROLE_ACES_INTERCHANGE, nullptr, true);
 
   if (g_config->get_num_displays() == 0) {
-    if (!G.quiet) {
-      printf("Color management: Error, could not find any displays\n");
-    }
+    CLOG_ERROR(&LOG, "Could not find any displays");
     ok = false;
   }
   /* NOTE: The look "None" is expected to be hard-coded to exist in the OpenColorIO integration. */
   if (g_config->get_num_looks() == 0) {
-    if (!G.quiet) {
-      printf("Color management: Error, could not find any looks\n");
-    }
+    CLOG_ERROR(&LOG, "Could not find any looks");
     ok = false;
   }
 
@@ -544,10 +544,7 @@ static bool colormanage_load_config(ocio::Config &config)
     const ocio::Display *display = g_config->get_display_by_index(display_index);
     const int num_views = display->get_num_views();
     if (num_views <= 0) {
-      if (!G.quiet) {
-        printf("Color management: Error, could not find any views for display %s\n",
-               display->name().c_str());
-      }
+      CLOG_ERROR(&LOG, "Could not find any views for display %s", display->name().c_str());
       ok = false;
       break;
     }
@@ -588,15 +585,11 @@ void colormanagement_init()
   if (ocio_env && ocio_env[0] != '\0') {
     g_config = ocio::Config::create_from_environment();
     if (g_config != nullptr) {
-      if (!G.quiet) {
-        printf("Color management: Using %s as a configuration file\n", ocio_env);
-      }
+      CLOG_INFO_NOCHECK(&LOG, "Using %s as a configuration file", ocio_env);
       const bool ok = colormanage_load_config(*g_config);
 
       if (!ok) {
-        if (!G.quiet) {
-          printf("Color management: Failed to load config from environment\n");
-        }
+        CLOG_ERROR(&LOG, "Failed to load config from environment");
         colormanage_free_config();
       }
     }
@@ -616,9 +609,7 @@ void colormanagement_init()
         const bool ok = colormanage_load_config(*g_config);
 
         if (!ok) {
-          if (!G.quiet) {
-            printf("Color management: Failed to load bundled config\n");
-          }
+          CLOG_ERROR(&LOG, "Failed to load bundled config");
           colormanage_free_config();
         }
       }
@@ -627,9 +618,7 @@ void colormanagement_init()
 
   /* Then use fallback. */
   if (g_config == nullptr) {
-    if (!G.quiet) {
-      printf("Color management: Using fallback mode for management\n");
-    }
+    CLOG_STR_INFO_NOCHECK(&LOG, "Using fallback mode for management");
     g_config = ocio::Config::create_fallback();
     colormanage_load_config(*g_config);
   }
@@ -878,14 +867,11 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
     const ocio::Display *display = g_config->get_display_by_name(display_settings->display_device);
 
     if (!display) {
-      if (!G.quiet) {
-        printf(
-            "Color management: display \"%s\" used by %s not found, setting to default "
-            "(\"%s\").\n",
-            display_settings->display_device,
-            what,
-            default_display->name().c_str());
-      }
+      CLOG_WARN(&LOG,
+                "Display \"%s\" used by %s not found, setting to default (\"%s\").",
+                display_settings->display_device,
+                what,
+                default_display->name().c_str());
 
       STRNCPY_UTF8(display_settings->display_device, default_display->name().c_str());
     }
@@ -913,12 +899,11 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
     if (!view) {
       const ocio::View *default_view = display->get_default_view();
       if (default_view) {
-        if (!G.quiet) {
-          printf("Color management: %s view \"%s\" not found, setting default \"%s\".\n",
-                 what,
-                 view_settings->view_transform,
-                 default_view->name().c_str());
-        }
+        CLOG_WARN(&LOG,
+                  "%s view \"%s\" not found, setting default \"%s\".",
+                  what,
+                  view_settings->view_transform,
+                  default_view->name().c_str());
         STRNCPY_UTF8(view_settings->view_transform, default_view->name().c_str());
       }
     }
@@ -930,26 +915,23 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
   else {
     const ocio::Look *look = g_config->get_look_by_name(view_settings->look);
     if (look == nullptr) {
-      if (!G.quiet) {
-        printf("Color management: %s look \"%s\" not found, setting default \"%s\".\n",
-               what,
-               view_settings->look,
-               default_look_name);
-      }
+      CLOG_WARN(&LOG,
+                "%s look \"%s\" not found, setting default \"%s\".",
+                what,
+                view_settings->look,
+                default_look_name);
 
       STRNCPY_UTF8(view_settings->look, default_look_name);
     }
     else if (!colormanage_compatible_look(look, view_settings->view_transform)) {
-      if (!G.quiet) {
-        printf(
-            "Color management: %s look \"%s\" is not compatible with view \"%s\", setting "
-            "default "
-            "\"%s\".\n",
-            what,
-            view_settings->look,
-            view_settings->view_transform,
-            default_look_name);
-      }
+      CLOG_INFO(&LOG,
+                "%s look \"%s\" is not compatible with view \"%s\", setting "
+                "default "
+                "\"%s\".",
+                what,
+                view_settings->look,
+                view_settings->view_transform,
+                default_look_name);
 
       STRNCPY_UTF8(view_settings->look, default_look_name);
     }
@@ -972,11 +954,10 @@ static void colormanage_check_colorspace_settings(
     const ColorSpace *colorspace = g_config->get_color_space(colorspace_settings->name);
 
     if (!colorspace) {
-      if (!G.quiet) {
-        printf("Color management: %s colorspace \"%s\" not found, will use default instead.\n",
-               what,
-               colorspace_settings->name);
-      }
+      CLOG_WARN(&LOG,
+                "%s colorspace \"%s\" not found, will use default instead.\n",
+                what,
+                colorspace_settings->name);
 
       STRNCPY_UTF8(colorspace_settings->name, "");
     }
@@ -1073,9 +1054,7 @@ const char *IMB_colormanagement_role_colorspace_name_get(int role)
     case COLOR_ROLE_ACES_INTERCHANGE:
       return global_role_aces_interchange;
     default:
-      if (!G.quiet) {
-        printf("Unknown role was passed to %s\n", __func__);
-      }
+      CLOG_WARN(&LOG, "Unknown role was passed to %s", __func__);
       BLI_assert(0);
       break;
   }
