@@ -16,7 +16,6 @@ OpenSubdiv_EvaluatorCacheImpl::~OpenSubdiv_EvaluatorCacheImpl()
 OpenSubdiv_EvaluatorCacheImpl *openSubdiv_createEvaluatorCacheInternal(
     eOpenSubdivEvaluator evaluator_type)
 {
-#ifndef WITH_APPLE_CROSSPLATFORM
   if (evaluator_type != eOpenSubdivEvaluator::OPENSUBDIV_EVALUATOR_GPU) {
     return nullptr;
   }
@@ -26,9 +25,6 @@ OpenSubdiv_EvaluatorCacheImpl *openSubdiv_createEvaluatorCacheInternal(
   eval_cache = new blender::opensubdiv::GpuEvalOutput::EvaluatorCache();
   evaluator_cache->eval_cache = eval_cache;
   return evaluator_cache;
-#else
-  return nullptr;
-#endif
 }
 
 void openSubdiv_deleteEvaluatorCacheInternal(OpenSubdiv_EvaluatorCacheImpl *evaluator_cache)

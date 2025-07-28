@@ -33,7 +33,6 @@ if(WITH_APPLE_CROSSPLATFORM)
   set(WITH_INPUT_NDOF OFF CACHE BOOL ${NO_PLATFORM_SUPPORT_MSG} FORCE)
   set(WITH_PYTHON_MODULE OFF CACHE BOOL ${NO_PLATFORM_SUPPORT_MSG} FORCE)
   # Disable these modules for now
-  set(WITH_OPENSUBDIV OFF CACHE BOOL "Disable until OSD supports Metal" FORCE)
   set(WITH_PYTHON_INSTALL_ZSTANDARD OFF CACHE BOOL "Disable until iOS build supports SSL" FORCE)
   # Disable Audaspace as it had dependencies on CoreAudio components which do not exist on iOS
   # (like AudioToolbox/CoreAudioClock.h)

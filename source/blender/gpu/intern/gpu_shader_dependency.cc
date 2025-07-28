@@ -461,7 +461,6 @@ void gpu_shader_dependency_init()
 #endif
 #undef SHADER_SOURCE
 #ifdef WITH_OPENSUBDIV
-#  ifdef WITH_OPENGL_BACKEND
   const blender::StringRefNull patch_basis_source = openSubdiv_getGLSLPatchBasisSource();
   g_sources->add_new(
       "osd_patch_basis.glsl",
@@ -471,7 +470,6 @@ void gpu_shader_dependency_init()
                     g_functions,
                     g_formats,
                     [](GPUSource &, GPUFunctionDictionnary *, GPUPrintFormatMap *) {}));
-#  endif
 #endif
 
   int errors = 0;

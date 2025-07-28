@@ -539,7 +539,6 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
   // Create OpenSubdiv's CPU side evaluator.
   blender::opensubdiv::EvalOutputAPI::EvalOutput *eval_output = nullptr;
 
-#ifndef WITH_APPLE_CROSSPLATFORM
   const bool use_gpu_evaluator = evaluator_type == OPENSUBDIV_EVALUATOR_GPU;
   if (use_gpu_evaluator) {
     blender::opensubdiv::GpuEvalOutput::EvaluatorCache *evaluator_cache = nullptr;
@@ -555,11 +554,6 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
                                                          patch_table,
                                                          evaluator_cache);
   }
-#else
-  /* Skip GPU evaluator.*/
-  if (false) {
-  }
-#endif
   else {
     eval_output = new blender::opensubdiv::CpuEvalOutput(
         vertex_stencils, varying_stencils, all_face_varying_stencils, 2, patch_table);
