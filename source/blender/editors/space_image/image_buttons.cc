@@ -993,8 +993,8 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 
   col->prop(imfptr, "media_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  /* Multi layer images and video media types only have a single supported format, so we needn't
-   * draw the format format enum. */
+  /* Multi layer images and video media types only have a single supported format,
+   * so we needn't draw the format enum. */
   if (imf->media_type == MEDIA_TYPE_IMAGE) {
     col->prop(imfptr, "file_format", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }

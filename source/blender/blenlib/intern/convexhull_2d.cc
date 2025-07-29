@@ -240,7 +240,7 @@ int BLI_convexhull_2d(blender::Span<blender::float2> points, int r_points[])
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Comupte AABB Fitting Angle (For Assertion)
+/** \name Compute AABB Fitting Angle (For Assertion)
  * \{ */
 
 #if defined(USE_BRUTE_FORCE_ASSERT) && !defined(NDEBUG)
@@ -552,7 +552,7 @@ static void convexhull_2d_angle_iter_step(HullAngleIter &hiter)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Comupte AABB Fitting Angle (Optimized)
+/** \name Compute AABB Fitting Angle (Optimized)
  * \{ */
 
 /**
