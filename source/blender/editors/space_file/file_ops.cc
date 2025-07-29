@@ -1830,9 +1830,35 @@ static const EnumPropertyItem file_external_operation[] = {
 
 static wmOperatorStatus file_external_operation_exec(bContext *C, wmOperator *op)
 {
-  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
+  if (!ED_operator_file_browsing_active(C)) {
+    /* File browsing only operator (not asset browsing). */
+    return OPERATOR_CANCELLED;
+  }
+
+  SpaceFile *sfile = CTX_wm_space_file(C);
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  if (!sfile || !params) {
+    return OPERATOR_CANCELLED;
+  }
+  char dir[FILE_MAX_LIBEXTRA];
+  if (filelist_islibrary(sfile->files, dir, nullptr)) {
+    return OPERATOR_CANCELLED;
+  }
+  int numfiles = filelist_files_ensure(sfile->files);
+  FileDirEntry *fileentry = nullptr;
+  int num_selected = 0;
+  for (int i = 0; i < numfiles; i++) {
+    if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
+      fileentry = filelist_file(sfile->files, i);
+      num_selected++;
+    }
+  }
+  if (!fileentry || num_selected > 1) {
+    return OPERATOR_CANCELLED;
+  }
+
   char filepath[FILE_MAX];
-  RNA_property_string_get(op->ptr, prop, filepath);
+  filelist_file_get_full_path(sfile->files, fileentry, filepath);
 
   WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
 
@@ -1890,16 +1916,12 @@ void FILE_OT_external_operation(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER; /* No undo! */
 
   /* properties */
-  prop = RNA_def_string(ot->srna, "filepath", nullptr, FILE_MAX, "File or folder path", "");
-  RNA_def_property_subtype(prop, PROP_FILEPATH);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
-  RNA_def_enum(ot->srna,
-               "operation",
-               file_external_operation,
-               FILE_EXTERNAL_OPERATION_OPEN,
-               "Operation",
-               "Operation to perform on the file or path");
+  prop = RNA_def_enum(ot->srna,
+                      "operation",
+                      file_external_operation,
+                      FILE_EXTERNAL_OPERATION_OPEN,
+                      "Operation",
+                      "Operation to perform on the selected file or path");
 }
 
 static void file_os_operations_menu_item(uiLayout *layout,
@@ -1922,7 +1944,6 @@ static void file_os_operations_menu_item(uiLayout *layout,
 
   PointerRNA props_ptr = layout->op(
       ot, IFACE_(title), ICON_NONE, blender::wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-  RNA_string_set(&props_ptr, "filepath", path);
   if (operation) {
     RNA_enum_set(&props_ptr, "operation", operation);
   }
