@@ -432,7 +432,9 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     if (geom->is_hair()) {
       /* Set curve shape, still a global scene setting for now. */
       Hair *hair = static_cast<Hair *>(geom);
-      hair->curve_shape = scene->params.hair_shape;
+      if (hair->curve_shape != CURVE_THICK_LINEAR) {
+        hair->curve_shape = scene->params.hair_shape;
+      }
 
       if (hair->need_update_rebuild) {
         device_update_flags |= DEVICE_CURVE_DATA_NEEDS_REALLOC;

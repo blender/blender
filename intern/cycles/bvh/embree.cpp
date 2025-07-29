@@ -459,22 +459,34 @@ void pack_motion_verts(const size_t num_curves,
                        const Hair *hair,
                        const T *verts,
                        const float *curve_radius,
-                       float4 *rtc_verts)
+                       float4 *rtc_verts,
+                       CurveShapeType curve_shape)
 {
   for (size_t j = 0; j < num_curves; ++j) {
     const Hair::Curve c = hair->get_curve(j);
     int fk = c.first_key;
-    int k = 1;
-    for (; k < c.num_keys + 1; ++k, ++fk) {
-      rtc_verts[k].x = verts[fk].x;
-      rtc_verts[k].y = verts[fk].y;
-      rtc_verts[k].z = verts[fk].z;
-      rtc_verts[k].w = curve_radius[fk];
+
+    if (curve_shape == CURVE_THICK_LINEAR) {
+      for (int k = 0; k < c.num_keys; ++k, ++fk) {
+        rtc_verts[k].x = verts[fk].x;
+        rtc_verts[k].y = verts[fk].y;
+        rtc_verts[k].z = verts[fk].z;
+        rtc_verts[k].w = curve_radius[fk];
+      }
+      rtc_verts += c.num_keys;
     }
-    /* Duplicate Embree's Catmull-Rom spline CVs at the start and end of each curve. */
-    rtc_verts[0] = rtc_verts[1];
-    rtc_verts[k] = rtc_verts[k - 1];
-    rtc_verts += c.num_keys + 2;
+    else {
+      for (int k = 1; k < c.num_keys + 1; ++k, ++fk) {
+        rtc_verts[k].x = verts[fk].x;
+        rtc_verts[k].y = verts[fk].y;
+        rtc_verts[k].z = verts[fk].z;
+        rtc_verts[k].w = curve_radius[fk];
+      }
+      /* Duplicate Embree's Catmull-Rom spline CVs at the start and end of each curve. */
+      rtc_verts[0] = rtc_verts[1];
+      rtc_verts[c.num_keys + 1] = rtc_verts[c.num_keys];
+      rtc_verts += c.num_keys + 2;
+    }
   }
 }
 
@@ -537,12 +549,14 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
       const size_t num_curves = hair->num_curves();
       if (t == t_mid || attr_mP == nullptr) {
         const float3 *verts = hair->get_curve_keys().data();
-        pack_motion_verts<float3>(num_curves, hair, verts, curve_radius, rtc_verts);
+        pack_motion_verts<float3>(
+            num_curves, hair, verts, curve_radius, rtc_verts, hair->curve_shape);
       }
       else {
         const int t_ = (t > t_mid) ? (t - 1) : t;
         const float4 *verts = &attr_mP->data_float4()[t_ * num_keys];
-        pack_motion_verts<float4>(num_curves, hair, verts, curve_radius, rtc_verts);
+        pack_motion_verts<float4>(
+            num_curves, hair, verts, curve_radius, rtc_verts, hair->curve_shape);
       }
     }
 
@@ -681,7 +695,9 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, const int i)
     num_segments += c.num_segments();
   }
 
-  const enum RTCGeometryType type = (hair->curve_shape == CURVE_RIBBON ?
+  const enum RTCGeometryType type = (hair->curve_shape == CURVE_THICK_LINEAR ?
+                                         RTC_GEOMETRY_TYPE_ROUND_LINEAR_CURVE :
+                                     hair->curve_shape == CURVE_RIBBON ?
                                          RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
                                          RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
 
@@ -711,8 +727,10 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, const int i)
     const Hair::Curve c = hair->get_curve(j);
     for (size_t k = 0; k < c.num_segments(); ++k) {
       rtc_indices[rtc_index] = c.first_key + k;
-      /* Room for extra CVs at Catmull-Rom splines. */
-      rtc_indices[rtc_index] += j * 2;
+      if (hair->curve_shape != CURVE_THICK_LINEAR) {
+        /* Room for extra CVs at Catmull-Rom splines. */
+        rtc_indices[rtc_index] += j * 2;
+      }
 
       ++rtc_index;
     }

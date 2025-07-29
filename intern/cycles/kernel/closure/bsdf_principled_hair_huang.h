@@ -257,7 +257,7 @@ ccl_device int bsdf_hair_huang_setup(ccl_private ShaderData *sd,
 
   /* h from -1..0..1 means the rays goes from grazing the hair, to hitting it at the center, to
    * grazing the other edge. This is the cosine of the angle between `sd->N` and `X`. */
-  bsdf->h = (sd->type & PRIMITIVE_CURVE_RIBBON) ? -sd->v : -dot(X, sd->N);
+  bsdf->h = ((sd->type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_RIBBON) ? -sd->v : -dot(X, sd->N);
 
   kernel_assert(fabsf(bsdf->h) < 1.0f + 1e-4f);
   kernel_assert(isfinite_safe(bsdf->h));

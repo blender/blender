@@ -500,7 +500,7 @@ void Scene::update_kernel_features()
 
   const bool use_motion = need_motion() == Scene::MotionType::MOTION_BLUR;
   kernel_features |= KERNEL_FEATURE_PATH_TRACING;
-  if (params.hair_shape == CURVE_THICK) {
+  if (params.hair_shape == CURVE_THICK || params.hair_shape == CURVE_THICK_LINEAR) {
     kernel_features |= KERNEL_FEATURE_HAIR_THICK;
   }
 
