@@ -25,6 +25,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_set.hh"
+#include "BLI_string.h"
 
 #include "ED_asset.hh"
 #include "ED_screen.hh"
@@ -1150,7 +1151,23 @@ static wmOperatorStatus screenshot_preview_exec(bContext *C, wmOperator *op)
    * render to support transparency. Render settings are used as currently set up in the viewport
    * to comply with WYSIWYG as much as possible. One limitation is that GUI elements will not be
    * visible in the render. */
+  bool render_offscreen = false;
   if (area_p1 == area_p2 && area_p1 != nullptr && area_p1->spacetype == SPACE_VIEW3D) {
+    Scene *scene = CTX_data_scene(C);
+    View3D *v3d = static_cast<View3D *>(area_p1->spacedata.first);
+    /* For `ED_view3d_draw_offscreen_imbuf` only EEVEE only produces a good result. See #141732. */
+    if (eDrawType(v3d->shading.type) == OB_RENDER) {
+      const char *engine_name = scene->r.engine;
+      render_offscreen = STR_ELEM(engine_name,
+                                  RE_engine_id_BLENDER_EEVEE,
+                                  RE_engine_id_BLENDER_EEVEE_NEXT,
+                                  RE_engine_id_BLENDER_WORKBENCH);
+    }
+    else {
+      render_offscreen = true;
+    }
+  }
+  if (render_offscreen) {
     View3D *v3d = static_cast<View3D *>(area_p1->spacedata.first);
     ARegion *region = BKE_area_find_region_type(area_p1, RGN_TYPE_WINDOW);
     if (!region) {
