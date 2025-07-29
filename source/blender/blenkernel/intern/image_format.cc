@@ -967,6 +967,7 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
   bool is_depth_set = false;
 
   BKE_image_format_init(im_format, false);
+  im_format->media_type = MEDIA_TYPE_IMAGE;
 
   /* file type */
   if (ftype == IMB_FTYPE_IRIS) {
@@ -1136,6 +1137,11 @@ void BKE_image_format_init_for_write(ImageFormatData *imf,
                                      const ImageFormatData *imf_src)
 {
   *imf = (imf_src) ? *imf_src : scene_src->r.im_format;
+
+  /* The source scene might be set to Video, so we default back to an image. */
+  if (scene_src && imf->media_type == MEDIA_TYPE_VIDEO) {
+    BKE_image_format_media_type_set(imf, const_cast<ID *>(&scene_src->id), MEDIA_TYPE_IMAGE);
+  }
 
   if (imf_src && imf_src->color_management == R_IMF_COLOR_MANAGEMENT_OVERRIDE) {
     /* Use settings specific to one node, image save operation, etc. */
