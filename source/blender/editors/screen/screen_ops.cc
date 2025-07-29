@@ -16,6 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -3734,6 +3735,9 @@ struct sAreaJoinData {
   float split_fac;            /* Split factor in split_dir direction. */
   wmWindow *win1;             /* Window of source area. */
   wmWindow *win2;             /* Window of the target area. */
+  bScreen *screen;            /* Screen of the source area. */
+  double start_time;          /* Start time of animation. */
+  double end_time;            /* End time of animation. */
   wmWindow *draw_dock_win;    /* Window getting docking highlight. */
   bool close_win;             /* Close the source window when done. */
   void *draw_callback;        /* call #screen_draw_join_highlight */
@@ -3748,11 +3752,18 @@ static void area_join_draw_cb(const wmWindow *win, void *userdata)
     return;
   }
 
+  float factor = 1.0f;
+  const double now = BLI_time_now_seconds();
+  if (now < sd->end_time) {
+    factor = pow((now - sd->start_time) / (sd->end_time - sd->start_time), 2);
+    sd->screen->do_refresh = true;
+  }
+
   if (sd->sa1 == sd->sa2) {
     screen_draw_split_preview(sd->sa1, sd->split_dir, sd->split_fac);
   }
   else {
-    screen_draw_join_highlight(win, sd->sa1, sd->sa2, sd->dir);
+    screen_draw_join_highlight(win, sd->sa1, sd->sa2, sd->dir, factor);
   }
 }
 
@@ -3763,8 +3774,16 @@ static void area_join_dock_cb(const wmWindow *win, void *userdata)
   if (!jd || !jd->sa2 || jd->dir != SCREEN_DIR_NONE || jd->sa1 == jd->sa2) {
     return;
   }
+
+  float factor = 1.0f;
+  const double now = BLI_time_now_seconds();
+  if (now < jd->end_time) {
+    factor = pow((now - jd->start_time) / (jd->end_time - jd->start_time), 2);
+    jd->screen->do_refresh = true;
+  }
+
   screen_draw_dock_preview(
-      win, jd->sa1, jd->sa2, jd->dock_target, jd->factor, jd->current_x, jd->current_y);
+      win, jd->sa1, jd->sa2, jd->dock_target, jd->factor, jd->current_x, jd->current_y, factor);
 }
 
 static void area_join_dock_cb_window(sAreaJoinData *jd, wmOperator *op)
@@ -3818,6 +3837,9 @@ static bool area_join_init(bContext *C, wmOperator *op, ScrArea *sa1, ScrArea *s
   jd->dir = area_getorientation(sa1, sa2);
   jd->win1 = WM_window_find_by_area(CTX_wm_manager(C), sa1);
   jd->win2 = WM_window_find_by_area(CTX_wm_manager(C), sa2);
+  jd->screen = CTX_wm_screen(C);
+  jd->start_time = BLI_time_now_seconds();
+  jd->end_time = jd->start_time + AREA_DOCK_FADEIN;
 
   op->customdata = jd;
   return true;
@@ -4335,8 +4357,13 @@ static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent 
   jd->win2 = WM_window_find_by_area(CTX_wm_manager(C), jd->sa2);
   jd->dir = SCREEN_DIR_NONE;
   jd->dock_target = AreaDockTarget::None;
-  jd->dir = area_getorientation(jd->sa1, jd->sa2);
+  jd->dir = area_getorientation(jd->sa1, area);
   jd->dock_target = area_docking_target(jd, event);
+
+  if (jd->sa2 != area) {
+    jd->start_time = BLI_time_now_seconds();
+    jd->end_time = jd->start_time + AREA_DOCK_FADEIN;
+  }
 
   if (jd->sa1 == area) {
     const int drag_threshold = 30 * UI_SCALE_FAC;
@@ -4351,9 +4378,10 @@ static void area_join_update_data(bContext *C, sAreaJoinData *jd, const wmEvent 
       return;
     }
 
-    jd->split_dir = (abs(event->xy[0] - jd->start_x) > abs(event->xy[1] - jd->start_y)) ?
-                        SCREEN_AXIS_V :
-                        SCREEN_AXIS_H;
+    eScreenAxis dir = (abs(event->xy[0] - jd->start_x) > abs(event->xy[1] - jd->start_y)) ?
+                          SCREEN_AXIS_V :
+                          SCREEN_AXIS_H;
+    jd->split_dir = dir;
     jd->split_fac = area_split_factor(C, jd, event);
     return;
   }
