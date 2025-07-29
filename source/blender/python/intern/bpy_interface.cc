@@ -412,6 +412,31 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
      * While harmless, it's noisy. */
     config.pathconfig_warnings = 0;
 
+    {
+      /* NOTE: running scripts directly uses the default behavior *but* the default
+       * warning filter doesn't show warnings form module besides `__main__`.
+       * Use the default behavior unless debugging Python. See: !139487. */
+      bool show_python_warnings = false;
+
+#  ifdef NDEBUG
+      show_python_warnings = G.debug & G_DEBUG_PYTHON;
+#  else
+      /* Always show warnings for debug builds so developers are made aware
+       * of outdated API use before any breakages occur. */
+      show_python_warnings = true;
+#  endif
+
+      if (show_python_warnings) {
+        /* Don't overwrite warning settings if they have been set by the environment. */
+        if (!(py_use_system_env && BLI_getenv("PYTHONWARNINGS"))) {
+          /* Confusingly `default` is not the default.
+           * Setting to `default` without any module names shows warnings for all modules.
+           * Useful for development since most functionality occurs outside of `__main__`. */
+          PyWideStringList_Append(&config.warnoptions, L"default");
+        }
+      }
+    }
+
     /* Allow the user site directory because this is used
      * when PIP installing packages from Blender, see: #104000.
      *
