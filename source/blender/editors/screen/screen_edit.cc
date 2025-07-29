@@ -1679,6 +1679,45 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
         region->flag |= RGN_FLAG_HIDDEN;
       }
     }
+
+    /* Temporarily hide gizmos and overlays. */
+    screen->fullscreen_flag = 0;
+    if (newa->spacetype == SPACE_VIEW3D) {
+      View3D *v3d = static_cast<View3D *>(newa->spacedata.first);
+      if (v3d && !(v3d->gizmo_flag & V3D_GIZMO_HIDE_NAVIGATE)) {
+        screen->fullscreen_flag |= FULLSCREEN_RESTORE_GIZMO_NAVIGATE;
+        v3d->gizmo_flag |= V3D_GIZMO_HIDE_NAVIGATE;
+      }
+      if (v3d && !(v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT)) {
+        screen->fullscreen_flag |= FULLSCREEN_RESTORE_TEXT;
+        v3d->overlay.flag |= V3D_OVERLAY_HIDE_TEXT;
+      }
+      if (v3d && (v3d->overlay.flag & V3D_OVERLAY_STATS)) {
+        screen->fullscreen_flag |= FULLSCREEN_RESTORE_STATS;
+        v3d->overlay.flag &= ~V3D_OVERLAY_STATS;
+      }
+    }
+    else if (newa->spacetype == SPACE_CLIP) {
+      SpaceClip *sc = static_cast<SpaceClip *>(newa->spacedata.first);
+      if (sc && !(sc->gizmo_flag & SCLIP_GIZMO_HIDE_NAVIGATE)) {
+        screen->fullscreen_flag |= FULLSCREEN_RESTORE_GIZMO_NAVIGATE;
+        sc->gizmo_flag |= SCLIP_GIZMO_HIDE_NAVIGATE;
+      }
+    }
+    else if (newa->spacetype == SPACE_SEQ) {
+      SpaceSeq *sseq = static_cast<SpaceSeq *>(newa->spacedata.first);
+      if (sseq && !(sseq->gizmo_flag & SEQ_GIZMO_HIDE_NAVIGATE)) {
+        screen->fullscreen_flag |= FULLSCREEN_RESTORE_GIZMO_NAVIGATE;
+        sseq->gizmo_flag |= SEQ_GIZMO_HIDE_NAVIGATE;
+      }
+    }
+    else if (newa->spacetype == SPACE_IMAGE) {
+      SpaceImage *sima = static_cast<SpaceImage *>(newa->spacedata.first);
+      if (sima && !(sima->gizmo_flag & SI_GIZMO_HIDE_NAVIGATE)) {
+        screen->fullscreen_flag |= FULLSCREEN_RESTORE_GIZMO_NAVIGATE;
+        sima->gizmo_flag |= SI_GIZMO_HIDE_NAVIGATE;
+      }
+    }
   }
 
   if (toggle_area) {
@@ -1729,6 +1768,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
 
     screen->state = SCREENNORMAL;
     screen->flag = oldscreen->flag;
+    screen->fullscreen_flag = oldscreen->fullscreen_flag;
 
     /* Find old area we may have swapped dummy space data to. It's swapped back here. */
     ScrArea *fullsa = nullptr;
@@ -1752,6 +1792,45 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
       /* restore the old side panels/header visibility */
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         region->flag = region->flagfullscreen;
+      }
+      /* Restore gizmos and overlays to their prior states. */
+      if (area->spacetype == SPACE_VIEW3D) {
+        View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+        if (v3d) {
+          v3d->gizmo_flag = (screen->fullscreen_flag & FULLSCREEN_RESTORE_GIZMO_NAVIGATE) ?
+                                v3d->gizmo_flag & ~V3D_GIZMO_HIDE_NAVIGATE :
+                                v3d->gizmo_flag | V3D_GIZMO_HIDE_NAVIGATE;
+          v3d->overlay.flag = (screen->fullscreen_flag & FULLSCREEN_RESTORE_TEXT) ?
+                                  v3d->overlay.flag & ~V3D_OVERLAY_HIDE_TEXT :
+                                  v3d->overlay.flag | V3D_OVERLAY_HIDE_TEXT;
+          v3d->overlay.flag = (screen->fullscreen_flag & FULLSCREEN_RESTORE_STATS) ?
+                                  v3d->overlay.flag | V3D_OVERLAY_STATS :
+                                  v3d->overlay.flag & ~V3D_OVERLAY_STATS;
+        }
+      }
+      else if (area->spacetype == SPACE_CLIP) {
+        SpaceClip *sc = static_cast<SpaceClip *>(area->spacedata.first);
+        if (sc) {
+          sc->gizmo_flag = (screen->fullscreen_flag & FULLSCREEN_RESTORE_GIZMO_NAVIGATE) ?
+                               sc->gizmo_flag & ~SCLIP_GIZMO_HIDE_NAVIGATE :
+                               sc->gizmo_flag | SCLIP_GIZMO_HIDE_NAVIGATE;
+        }
+      }
+      else if (area->spacetype == SPACE_SEQ) {
+        SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
+        if (sseq) {
+          sseq->gizmo_flag = (screen->fullscreen_flag & FULLSCREEN_RESTORE_GIZMO_NAVIGATE) ?
+                                 sseq->gizmo_flag & ~SEQ_GIZMO_HIDE_NAVIGATE :
+                                 sseq->gizmo_flag | SEQ_GIZMO_HIDE_NAVIGATE;
+        }
+      }
+      else if (area->spacetype == SPACE_IMAGE) {
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+        if (sima) {
+          sima->gizmo_flag = (screen->fullscreen_flag & FULLSCREEN_RESTORE_GIZMO_NAVIGATE) ?
+                                 sima->gizmo_flag & ~SI_GIZMO_HIDE_NAVIGATE :
+                                 sima->gizmo_flag | SI_GIZMO_HIDE_NAVIGATE;
+        }
       }
     }
 
