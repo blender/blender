@@ -68,6 +68,20 @@ static blender::Array<float2> convexhull_2d_as_array(blender::Span<float2> point
   return convexhull_points_from_map(points, points_hull_map_span);
 }
 
+static float mod_inline(float a, float b)
+{
+  return a - (b * floorf(a / b));
+}
+
+/**
+ * Returns an angle mapped from 0-90 degrees (in radians).
+ * Use this is cases the exact angle isn't important.
+ */
+static float convexhull_aabb_canonical_angle(float angle)
+{
+  return mod_inline(angle, float(M_PI / 2.0f));
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -297,6 +311,54 @@ TEST(convexhull_2d, OctagonAxisAligned)
     EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
                 float(math::AngleRadian::from_degree(90.0f)),
                 ROTATION_EPS);
+  }
+}
+
+TEST(convexhull_2d, OctagonNearDuplicates)
+{
+  /* A large rotated octagon that contains two points which are *almost* duplicates.
+   * Calculating the best fit AABB returns different angles depending on the scale.
+   * This isn't something that needs *fixing* since the exact edge used may
+   * reasonably differ when scaling orders of magnate up or down.
+   * In this test don't check for the exact angle instead check the wrapped (canonical)
+   * angle matches at every scale, see: #143390. */
+  blender::Array<float2> points = {
+      {-128.28127, -311.8105},
+      {-98.5207, -288.1762},
+      {-96.177475, -267.75345},
+      {-119.81172, -237.99284},
+      {-140.23453, -235.64966},
+      {-140.23453, -235.64963}, /* Close to the previous. */
+      {-169.99509, -259.28387},
+      {-172.33832, -279.7067},
+      {-148.70407, -309.46725},
+      {-128.28127, -311.81046}, /* Close to the first. */
+  };
+
+  for (int scale_step = -15; scale_step <= 15; scale_step += 1) {
+    /* Test orders of magnitude from `1 / (10 ** 15)` to `10 ** 15` */
+    float scale;
+    if (scale_step == 0) {
+      scale = 1.0f;
+    }
+    else if (scale_step < 0) {
+      scale = float(1.0 / pow(10.0, double(-scale_step)));
+    }
+    else {
+      scale = float(pow(10.0, double(scale_step)));
+    }
+
+    blender::Array<float2> points_copy = points;
+    for (float2 &p : points_copy) {
+      p *= scale;
+    }
+
+    /* NOTE: `ROTATION_EPS` epsilon fails on MacOS,
+     * use a slightly larger epsilon to tests pass on all systems. */
+    const float abs_error = scale < 10.0f ? ROTATION_EPS : 1e-5f;
+    EXPECT_NEAR(convexhull_aabb_canonical_angle(BLI_convexhull_aabb_fit_points_2d(points_copy)),
+                DEG2RADF(51.5453016381),
+                abs_error);
   }
 }
 

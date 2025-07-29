@@ -23,6 +23,24 @@
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
 /**
+ * The algorithm used to create the convex hull is susceptible to errors when
+ * the shape contains *nearly* overlapping vertices on polygons using large values.
+ * Unlike most floating point precision errors this happens when the numbers are not *that* big.
+ * Errors may occur in the range of 100-500 for polygons that are (near) degenerate.
+ * See the test: `convexhull_2d.OctagonNearDuplicates` which fails without this define.
+ *
+ * To ensure the resulting hull is convex, perform additional convex cross-product checks
+ * when adding indices to the hull as well as running a final check on the start & end points.
+ * In the common case these checks aren't needed.
+ *
+ * Note that it's *especially* important for the cross-product of each "ear" to be convex
+ * for AABB fitting since the method used relies on each edge "turning" in the same direction.
+ * When stepping over the hull: points that turn in a non-convex direction may break
+ * angle-stepping, causing the final rotation angle calculation to be incorrect, see: #143390.
+ */
+#define USE_CONVEX_CROSS_PRODUCT_ENSURE
+
+/**
  * Assert the optimized bounds match a brute force check,
  * disable by default is this is slow for dense hulls, using `O(n^2)` complexity.
  */
@@ -65,7 +83,11 @@ static float sincos_rotate_cw_y(const float2 &sincos, const float2 &p)
  * SoftSurfer makes no warranty for this code, and cannot be held
  * liable for any real or imagined damage resulting from its use.
  * Users of this code must verify correctness for their application.
- * http://softsurfer.com/Archive/algorithm_0203/algorithm_0203.htm */
+ * http://softsurfer.com/Archive/algorithm_0203/algorithm_0203.htm
+ *
+ * NOTE(@ideasman42): additional checks added to ensure the resulting hull is convex,
+ * see the: #USE_CONVEX_CROSS_PRODUCT_ENSURE define.
+ */
 
 /**
  * tests if a point is Left|On|Right of an infinite line.
@@ -73,13 +95,91 @@ static float sincos_rotate_cw_y(const float2 &sincos, const float2 &p)
  * \returns > 0.0 for P2 left of the line through P0 and P1.
  *          = 0.0 for P2 on the line.
  *          < 0.0 for P2 right of the line.
+ *
+ * \note When using to check the hull is convex: arguments 1 & 2 are set to the larger span
+ * across the hull (lowest-to-highest index) with the mid-point being the last argument.
+ * This is a convention that should be followed to prevent mismatching results
+ * depending on argument order.
  */
 static float is_left(const float p0[2], const float p1[2], const float p2[2])
 {
   return (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1]);
 }
 
-static int convexhull_2d_sorted(blender::float2 *points, const int points_num, int r_points[])
+/**
+ * Final pass on `r_points` & `top`,
+ */
+static void convexhull_2d_stack_finalize(const blender::float2 *points, int r_points[], int &top)
+{
+#ifdef USE_CONVEX_CROSS_PRODUCT_ENSURE
+  while (top >= 2) {
+    /* While the order of checking the beginning/end doesn't matter,
+     * prefer dropping values off the end of `r_points`
+     * since it doesn't require re-ordering. */
+
+    /* See #is_left note on argument order. */
+    if (UNLIKELY(is_left(
+                     /* Second last point. */
+                     points[r_points[top - 1]],
+                     /* First point. */
+                     points[r_points[0]],
+                     /* Last point (candidate "ear" to remove). */
+                     points[r_points[top]]) >= 0.0f))
+    {
+      /* Concave: drop from the end: `r_points[top]`. */
+      top--;
+      continue;
+    }
+    /* See #is_left note on argument order. */
+    if (UNLIKELY(is_left(
+                     /* Last point. */
+                     points[r_points[top]],
+                     /* Second point. */
+                     points[r_points[1]],
+                     /* First point (candidate "ear" to remove). */
+                     points[r_points[0]]) >= 0.0f))
+    {
+      /* Concave: drop from the front: `r_points[0]`. */
+      r_points[0] = r_points[top--];
+      continue;
+    }
+    break;
+  }
+#else
+  UNUSED_VARS(points, r_points, top);
+#endif /* !USE_CONVEX_CROSS_PRODUCT_ENSURE */
+}
+
+/**
+ * This practically always results in `r_points[++top] = index`.
+ * In rare cases extra checks are needed.
+ */
+static inline void convexhull_2d_stack_push(const blender::float2 *points,
+                                            int r_points[],
+                                            int &top,
+                                            int index)
+{
+#ifdef USE_CONVEX_CROSS_PRODUCT_ENSURE
+  while (
+      UNLIKELY((top >= 2) &&
+               /* See #is_left note on argument order. */
+               (is_left(points[r_points[top - 1]], points[index], points[r_points[top]]) >= 0.0f)))
+  {
+    top--;
+  }
+#else
+  UNUSED_VARS(points);
+#endif /* !USE_CONVEX_CROSS_PRODUCT_ENSURE */
+
+  r_points[++top] = index;
+}
+
+/**
+ * \return the number of points in `r_points` minus 1.
+ */
+static int convexhull_2d_sorted_impl(const blender::float2 *points,
+                                     const int points_num,
+                                     int r_points[])
 {
   BLI_assert(points_num >= 2); /* Doesn't handle trivial cases. */
   /* The output array `r_points[]` will be used as the stack. */
@@ -106,13 +206,13 @@ static int convexhull_2d_sorted(blender::float2 *points, const int points_num, i
 
   minmax = i - 1;
   if (minmax == maxmax) { /* Degenerate case: all x-coords == X-min. */
-    r_points[++top] = minmin;
+    convexhull_2d_stack_push(points, r_points, top, minmin);
     if (points[minmax][1] != points[minmin][1]) {
       /* A nontrivial segment. */
-      r_points[++top] = minmax;
+      convexhull_2d_stack_push(points, r_points, top, minmax);
     }
     BLI_assert(top + 1 <= points_num);
-    return top + 1;
+    return top;
   }
 
   /* Get the indices of points with max X-coord and min|max Y-coord. */
@@ -126,7 +226,9 @@ static int convexhull_2d_sorted(blender::float2 *points, const int points_num, i
   maxmin = i + 1;
 
   /* Compute the lower hull on the stack `r_points`. */
-  r_points[++top] = minmin; /* Push `minmin` point onto stack. */
+  BLI_assert(top < 2);
+  convexhull_2d_stack_push(points, r_points, top, minmin);
+
   i = minmax;
   while (++i <= maxmin) {
     /* The lower line joins `points[minmin]` with `points[maxmin]`. */
@@ -141,13 +243,12 @@ static int convexhull_2d_sorted(blender::float2 *points, const int points_num, i
       }
       top--; /* Pop top point off stack. */
     }
-
-    r_points[++top] = i; /* Push `points[i]` onto stack. */
+    convexhull_2d_stack_push(points, r_points, top, i);
   }
 
   /* Next, compute the upper hull on the stack `r_points` above the bottom hull. */
-  if (maxmax != maxmin) {     /* If distinct `xmax` points. */
-    r_points[++top] = maxmax; /* Push `maxmax` point onto stack. */
+  if (maxmax != maxmin) { /* If distinct `xmax` points. */
+    convexhull_2d_stack_push(points, r_points, top, maxmax);
   }
 
   bot = top; /* the bottom point of the upper hull stack */
@@ -168,17 +269,26 @@ static int convexhull_2d_sorted(blender::float2 *points, const int points_num, i
 
     if (points[i][0] == points[r_points[0]][0] && points[i][1] == points[r_points[0]][1]) {
       BLI_assert(top + 1 <= points_num);
-      return top + 1; /* Special case (mgomes). */
+      return top; /* Special case (mgomes). */
     }
-
-    r_points[++top] = i; /* Push points[i] onto stack. */
+    convexhull_2d_stack_push(points, r_points, top, i);
   }
 
   if (minmax != minmin && r_points[0] != minmin) {
-    r_points[++top] = minmin; /* Push joining endpoint onto stack. */
+    /* Push joining endpoint onto stack. */
+    convexhull_2d_stack_push(points, r_points, top, minmin);
   }
 
   BLI_assert(top + 1 <= points_num);
+  return top;
+}
+
+static int convexhull_2d_sorted(const blender::float2 *points,
+                                const int points_num,
+                                int r_points[])
+{
+  int top = convexhull_2d_sorted_impl(points, points_num, r_points);
+  convexhull_2d_stack_finalize(points, r_points, top);
   return top + 1;
 }
 
