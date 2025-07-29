@@ -52,6 +52,7 @@ from freestyle.types import (
     Stroke,
     StrokeShader,
     StrokeVertexIterator,
+    Operators,
 )
 
 from mathutils import Vector
@@ -92,7 +93,7 @@ def bound(lower, x, higher):
 
 def get_strokes():
     """Get all strokes that are currently available"""
-    return tuple(map(Operators().get_stroke_from_index, range(Operators().get_strokes_size())))
+    return tuple(map(Operators.get_stroke_from_index, range(Operators.get_strokes_size())))
 
 
 def is_poly_clockwise(stroke):
