@@ -2038,7 +2038,7 @@ static bool image_save_as_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, vo
            (STREQ(prop_id, "save_as_render") && isd->image->source == IMA_SRC_VIEWER));
 }
 
-static void image_save_as_draw(bContext * /*C*/, wmOperator *op)
+static void image_save_as_draw(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   ImageSaveData *isd = static_cast<ImageSaveData *>(op->customdata);
@@ -2062,7 +2062,7 @@ static void image_save_as_draw(bContext * /*C*/, wmOperator *op)
   /* Image format settings. */
   PointerRNA imf_ptr = RNA_pointer_create_discrete(
       nullptr, &RNA_ImageFormatSettings, &isd->opts.im_format);
-  uiTemplateImageSettings(layout, &imf_ptr, save_as_render);
+  uiTemplateImageSettings(layout, C, &imf_ptr, save_as_render);
 
   if (!save_as_render) {
     PointerRNA linear_settings_ptr = RNA_pointer_get(&imf_ptr, "linear_colorspace_settings");

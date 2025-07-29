@@ -2477,7 +2477,11 @@ void uiTemplateImage(uiLayout *layout,
                      PointerRNA *userptr,
                      bool compact,
                      bool multiview);
-void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_management);
+void uiTemplateImageSettings(uiLayout *layout,
+                             bContext *C,
+                             PointerRNA *imfptr,
+                             bool color_management,
+                             const char *panel_idname = nullptr);
 void uiTemplateImageStereo3d(uiLayout *layout, PointerRNA *stereo3d_format_ptr);
 void uiTemplateImageViews(uiLayout *layout, PointerRNA *imaptr);
 void uiTemplateImageFormatViews(uiLayout *layout, PointerRNA *imfptr, PointerRNA *ptr);

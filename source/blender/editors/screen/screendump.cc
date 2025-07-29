@@ -208,7 +208,7 @@ static bool screenshot_draw_check_prop(PointerRNA * /*ptr*/,
   return !STREQ(prop_id, "filepath");
 }
 
-static void screenshot_draw(bContext * /*C*/, wmOperator *op)
+static void screenshot_draw(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   ScreenshotData *scd = static_cast<ScreenshotData *>(op->customdata);
@@ -218,7 +218,7 @@ static void screenshot_draw(bContext * /*C*/, wmOperator *op)
 
   /* image template */
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_ImageFormatSettings, &scd->im_format);
-  uiTemplateImageSettings(layout, &ptr, false);
+  uiTemplateImageSettings(layout, C, &ptr, false);
 
   /* main draw call */
   uiDefAutoButsRNA(layout,
