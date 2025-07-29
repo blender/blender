@@ -787,14 +787,14 @@ static Node *pbvh_iter_next_occluded(PBVHIter *iter)
   return nullptr;
 }
 
-struct node_tree {
+struct NodeTree {
   Node *data;
 
-  node_tree *left;
-  node_tree *right;
+  NodeTree *left;
+  NodeTree *right;
 };
 
-static void node_tree_insert(node_tree *tree, node_tree *new_node)
+static void node_tree_insert(NodeTree *tree, NodeTree *new_node)
 {
   if (new_node->data->tmin_ < tree->data->tmin_) {
     if (tree->left) {
@@ -814,7 +814,7 @@ static void node_tree_insert(node_tree *tree, node_tree *new_node)
   }
 }
 
-static void traverse_tree(node_tree *tree,
+static void traverse_tree(NodeTree *tree,
                           const FunctionRef<void(Node &node, float *tmin)> hit_fn,
                           float *tmin)
 {
@@ -829,7 +829,7 @@ static void traverse_tree(node_tree *tree,
   }
 }
 
-static void free_tree(node_tree *tree)
+static void free_tree(NodeTree *tree)
 {
   if (tree->left) {
     free_tree(tree->left);
@@ -862,13 +862,13 @@ static void search_callback_occluded(Tree &pbvh,
   }
   PBVHIter iter;
   Node *node;
-  node_tree *tree = nullptr;
+  NodeTree *tree = nullptr;
 
   pbvh_iter_begin(&iter, pbvh, scb);
 
   while ((node = pbvh_iter_next_occluded(&iter))) {
     if (node->flag_ & Node::Leaf) {
-      node_tree *new_node = static_cast<node_tree *>(malloc(sizeof(node_tree)));
+      NodeTree *new_node = static_cast<NodeTree *>(malloc(sizeof(NodeTree)));
 
       new_node->data = node;
 
