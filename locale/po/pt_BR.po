@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:36+0000\n"
-"Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:03+0000\n"
+"Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.10.1\n"
+"X-Generator: Weblate 5.12.1\n"
 "X-Poedit-SourceCharset: utf-8"
 
 
@@ -13848,14 +13848,6 @@ msgid "Output image in DPX format"
 msgstr "Gera a saída de imagem no formato DPX."
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR Multi-camadas"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Gera a saída de imagem no formato OpenEXR muti-camadas."
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Gera a saída de imagem no formato OpenEXR."
 
@@ -13870,6 +13862,14 @@ msgstr "Gera a saída de imagem no formato Radiance HDR."
 
 msgid "Output image in TIFF format"
 msgstr "Gera a saída de imagem no formato TIFF."
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR Multi-camadas"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Gera a saída de imagem no formato OpenEXR muti-camadas."
 
 
 msgid "Image/Movie file name"
@@ -17855,10 +17855,6 @@ msgid "Node tree for node based worlds"
 msgstr "Arvore de nós para ambientes (mundos) com base em nós."
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Usa os nós de sombreamento para renderizar o mundo"
-
-
 msgid "ID Materials"
 msgstr "Identificadores dos materiais"
 
@@ -18105,6 +18101,10 @@ msgstr "B44A (com perdas)"
 
 msgid "File format to save the rendered images as"
 msgstr "Formato de arquivo para salvar as imagens renderizadas."
+
+
+msgid "Video"
+msgstr "Vídeo"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -21356,46 +21356,6 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
 msgid "View Regions"
 msgstr "Visualizar Regiões"
 
@@ -21530,6 +21490,46 @@ msgstr "Texto"
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
 
 
 msgid "Basic"
@@ -27058,10 +27058,6 @@ msgid "ITU 709"
 msgstr "ITU 709"
 
 
-msgid "Composite"
-msgstr "Composição"
-
-
 msgid "To"
 msgstr "Para"
 
@@ -28615,10 +28611,6 @@ msgstr "Camada única de compartimento de arquivo do nó de saída de arquivo."
 
 msgid "Subpath used for this slot"
 msgstr "Sub-caminho usado por este compartimento."
-
-
-msgid "Use Node Format"
-msgstr "Usar a formatação do nó"
 
 
 msgid "Output File Layer Slot"
@@ -48883,14 +48875,6 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
 
@@ -48901,6 +48885,14 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
 
 
 msgid "Bone Constraints"
@@ -49345,10 +49337,6 @@ msgstr "Codificação"
 
 msgid "Audio"
 msgstr "Áudio"
-
-
-msgid "Video"
-msgstr "Vídeo"
 
 
 msgid "Views"
@@ -66893,6 +66881,10 @@ msgid "Missing %s%s%s component(s) of euler rotation for ID='%s' and RNA-Path='%
 msgstr "Faltando os componentes %s%s%s da rotação Euler para o identificador='%s' e Caminho-RNA='%s'"
 
 
+msgid "Composite"
+msgstr "Composição"
+
+
 msgid "Discard"
 msgstr "Descartar"
 
@@ -68512,14 +68504,6 @@ msgid "Inner Edge:"
 msgstr "Aresta Interna:"
 
 
-msgid "Add Input"
-msgstr "Adicionar Entrada"
-
-
-msgid "Layer:"
-msgstr "Camadas:"
-
-
 msgid "Color Modulation"
 msgstr "Modulação de cor"
 
@@ -68878,10 +68862,6 @@ msgstr "Nenhuma área de margem selecionada."
 
 msgid "Border rendering is not supported by sequencer"
 msgstr "A renderização de margens não é suportada pelo sequenciador."
-
-
-msgid "No render output node in scene"
-msgstr "Sem nó de saída de renderização na cena."
 
 
 msgid "All render layers are disabled"

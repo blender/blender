@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:24+0000\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
 "Language: hu\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.10.1\n"
+"X-Generator: Weblate 5.12.1\n"
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: E:\\PROJEKTEK\\Blender\\FORDITAS\\osszefuzes"
 
@@ -4715,14 +4715,6 @@ msgid "Output image in DPX format"
 msgstr "Kimeneti kép DPX formátumban"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR MultiLayer"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Kimeneti kép multiréteges OpenEXR formátumban"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Kimeneti kép OpenEXR formátumban"
 
@@ -4737,6 +4729,14 @@ msgstr "Kimeneti kép Radiancia HDR formátumban"
 
 msgid "Output image in TIFF format"
 msgstr "Kimeneti kép TIFF formátumban"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR MultiLayer"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Kimeneti kép multiréteges OpenEXR formátumban"
 
 
 msgid "Generated image height"
@@ -5610,6 +5610,10 @@ msgstr "Pxr24 (veszteséges)"
 
 msgid "File format to save the rendered images as"
 msgstr "A mentésre kerülő renderelt kép fájlformátuma"
+
+
+msgid "Video"
+msgstr "Videó"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -6577,22 +6581,6 @@ msgid "Mask"
 msgstr "Maszk"
 
 
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
-
-
 msgid "Metaball"
 msgstr "Meta test"
 
@@ -6631,6 +6619,22 @@ msgstr "Összefésülés"
 
 msgid "Text"
 msgstr "Szöveg"
+
+
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
 
 
 msgctxt "MovieClip"
@@ -12913,10 +12917,6 @@ msgid "Audio"
 msgstr "Audió"
 
 
-msgid "Video"
-msgstr "Videó"
-
-
 msgid "Note"
 msgstr "Jegyzet"
 
@@ -17080,18 +17080,6 @@ msgstr "Kép 1"
 
 msgid "Image 2"
 msgstr "Kép 2"
-
-
-msgid "Layer:"
-msgstr "Réteg:"
-
-
-msgid "File Subpath:"
-msgstr "Fájl alútvonala:"
-
-
-msgid "Format:"
-msgstr "Formátum:"
 
 
 msgid "Mesh 1"

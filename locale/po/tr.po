@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-05-17 17:56+0000\n"
-"Last-Translator: Ugur Saglam <saglamugur556@gmail.com>\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:31+0000\n"
+"Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 5.11"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -10744,6 +10744,10 @@ msgid "Video bitrate (kbit/s)"
 msgstr "Video bit hızı (kbit/s)"
 
 
+msgid "HDR"
+msgstr "Yüksek Çözünürlüklü (HDR)"
+
+
 msgid "F-Modifier"
 msgstr "F-Değiştirici"
 
@@ -19054,14 +19058,6 @@ msgid "Output image in DPX format"
 msgstr "Çıktı görüntüsünü DPX formatında al"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR Çok Katmanlı"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Çok katmanlı OpenEXR formatında çıktı görüntüsü"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Çıktı görüntüsünü OpenEXR formatında"
 
@@ -19088,6 +19084,14 @@ msgstr "WebP"
 
 msgid "Output image in WebP format"
 msgstr "Çıktı görüntüsünü WebP formatında"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR Çok Katmanlı"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Çok katmanlı OpenEXR formatında çıktı görüntüsü"
 
 
 msgid "FFmpeg Video"
@@ -24970,10 +24974,6 @@ msgid "Finite Volume"
 msgstr "Sonlu Hacim"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Dünyayı işlemek için gölgelendirici düğümlerini kullanın"
-
-
 msgid "Use Shadow"
 msgstr "Gölge Kullan"
 
@@ -25432,6 +25432,10 @@ msgstr "J2K"
 
 msgid "Output color space settings"
 msgstr "Çıktı renk uzayı ayarları"
+
+
+msgid "Video"
+msgstr "Video"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -29174,62 +29178,6 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
-msgid "Snap"
-msgstr "Yakala"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
-
-
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
-
-
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
-
-
-msgid "Face Sets Edit"
-msgstr "Yüz Setleri Düzenle"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Grup Kilitleri"
-
-
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
-msgid "UV Mapping"
-msgstr "UV Haritalama"
-
-
-msgid "Local View"
-msgstr "Yerel Görünüm"
-
-
-msgid "Viewpoint"
-msgstr "Bakış açısı"
-
-
-msgid "Navigation"
-msgstr "Navigasyon"
-
-
-msgid "Align View"
-msgstr "Görünümü hizala"
-
-
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
-
-
 msgid "View Regions"
 msgstr "Bölgeleri Görüntüle"
 
@@ -29322,6 +29270,10 @@ msgid "Hooks"
 msgstr "Kancalar"
 
 
+msgid "Vertex Group Locks"
+msgstr "Vertex Grup Kilitleri"
+
+
 msgid "Trim/Add"
 msgstr "Kırp/Ekle"
 
@@ -29404,6 +29356,58 @@ msgstr "Metin"
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
+
+
+msgid "Snap"
+msgstr "Yakala"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
+
+
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
+
+
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
+
+
+msgid "Face Sets Edit"
+msgstr "Yüz Setleri Düzenle"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "UV Mapping"
+msgstr "UV Haritalama"
+
+
+msgid "Local View"
+msgstr "Yerel Görünüm"
+
+
+msgid "Viewpoint"
+msgstr "Bakış açısı"
+
+
+msgid "Navigation"
+msgstr "Navigasyon"
+
+
+msgid "Align View"
+msgstr "Görünümü hizala"
+
+
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
 
 
 msgid "Keyframe Insert Pie"
@@ -34897,10 +34901,6 @@ msgid "Resolution of the generated surface for rendering and baking"
 msgstr "Oluşturulan yüzeyin render ve pişirme için çözünürlüğü"
 
 
-msgid "Sharpen peak"
-msgstr "Zirveyi keskinleştir"
-
-
 msgid "Peak sharpening for 'JONSWAP' and 'TMA' models"
 msgstr "'JONSWAP' ve 'TMA' modelleri için zirve keskinleştirme"
 
@@ -38292,14 +38292,6 @@ msgstr "Renk işleme modu"
 
 msgid "Color space used for YCbCrA processing"
 msgstr "YCbCrA işleme için kullanılan renk uzayı"
-
-
-msgid "Composite"
-msgstr "Kompozit"
-
-
-msgid "Final render output"
-msgstr "Son render çıktısı"
 
 
 msgid "Convert Colorspace"
@@ -43672,10 +43664,6 @@ msgid "Subpath used for this slot"
 msgstr "Bu yuva için kullanılan alt yol"
 
 
-msgid "Use Node Format"
-msgstr "Düğüm Biçimini Kullan"
-
-
 msgid "Output File Layer Slot"
 msgstr "Çıktı Dosyası Katman Yuvası"
 
@@ -44851,10 +44839,6 @@ msgstr "Gürültüyü Azaltma Animasyonu"
 msgctxt "Operator"
 msgid "Merge Images"
 msgstr "Görüntüleri Birleştir"
-
-
-msgid "Enable nodes on a material, world or light"
-msgstr "Bir malzeme, dünya veya ışık üzerindeki düğümleri etkinleştirin"
 
 
 msgctxt "Operator"
@@ -61798,10 +61782,6 @@ msgid "Choose the file format to save to"
 msgstr "Kaydedilecek dosya biçimini seçin"
 
 
-msgid "HDR"
-msgstr "Yüksek Çözünürlüklü (HDR)"
-
-
 msgid "Select members of selected frame"
 msgstr "Seçili çerçevenin üyelerini seç"
 
@@ -77538,66 +77518,6 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
-msgid "Active Tool"
-msgstr "Etkin Araç"
-
-
-msgid "View Lock"
-msgstr "Görünüm Kilidi"
-
-
-msgid "Selectability & Visibility"
-msgstr "Seçilebilirlik ve Görünürlük"
-
-
-msgid "Shadow Settings"
-msgstr "Gölge Ayarları"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Ayarları"
-
-
-msgid "Cavity"
-msgstr "Boşluk"
-
-
-msgid "Render Pass"
-msgstr "Render Geçişi"
-
-
-msgid "Compositor"
-msgstr "Dizgici"
-
-
-msgid "Overlays"
-msgstr "Kaplamalar"
-
-
-msgid "Guides"
-msgstr "Rehberler"
-
-
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
-
-
-msgid "Motion Tracking"
-msgstr "Hareket İzleme"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Düzenleme Modu"
-
-
-msgid "Measurement"
-msgstr "Ölçüm"
-
-
-msgid "Curve Edit Mode"
-msgstr "Eğri Düzenleme Modu"
-
-
 msgid "Snapping"
 msgstr "Çıtlama"
 
@@ -77612,6 +77532,10 @@ msgstr "İnme Yerleşimi"
 
 msgid "Drawing Plane"
 msgstr "Çizim düzlemi"
+
+
+msgid "Guides"
+msgstr "Rehberler"
 
 
 msgid "Quad View"
@@ -77664,6 +77588,62 @@ msgstr "glTF Çeşitleri"
 
 msgid "glTF Material Variants"
 msgstr "glTF Malzeme Varyantları"
+
+
+msgid "Active Tool"
+msgstr "Etkin Araç"
+
+
+msgid "View Lock"
+msgstr "Görünüm Kilidi"
+
+
+msgid "Selectability & Visibility"
+msgstr "Seçilebilirlik ve Görünürlük"
+
+
+msgid "Shadow Settings"
+msgstr "Gölge Ayarları"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Ayarları"
+
+
+msgid "Cavity"
+msgstr "Boşluk"
+
+
+msgid "Render Pass"
+msgstr "Render Geçişi"
+
+
+msgid "Compositor"
+msgstr "Dizgici"
+
+
+msgid "Overlays"
+msgstr "Kaplamalar"
+
+
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
+msgid "Motion Tracking"
+msgstr "Hareket İzleme"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Düzenleme Modu"
+
+
+msgid "Measurement"
+msgstr "Ölçüm"
+
+
+msgid "Curve Edit Mode"
+msgstr "Eğri Düzenleme Modu"
 
 
 msgid "Chain Scaling"
@@ -78430,10 +78410,6 @@ msgstr "Kodlama"
 
 msgid "Audio"
 msgstr "Audio"
-
-
-msgid "Video"
-msgstr "Video"
 
 
 msgid "FFmpeg Presets"
@@ -82120,14 +82096,6 @@ msgstr "Çeviri için kullanılan dil"
 
 msgid "Automatic (Automatic)"
 msgstr "Otomatik (Otomatik)"
-
-
-msgid "HDRI Preview Size"
-msgstr "HDRI Önizleme Boyutu"
-
-
-msgid "Diameter of the HDRI preview spheres"
-msgstr "HDRI önizleme kürelerinin çapı"
 
 
 msgid "Mini Axes Brightness"
@@ -109342,6 +109310,10 @@ msgid "To 3D Cursor"
 msgstr "3D İmleç"
 
 
+msgid "Specular Lighting"
+msgstr "Speküler Aydınlatma"
+
+
 msgid "Camera Guides"
 msgstr "Kamera Kılavuzları"
 
@@ -109526,10 +109498,6 @@ msgstr "Clear Freestyle Kenarı"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "Temiz Serbest Stil Yüzü"
-
-
-msgid "Specular Lighting"
-msgstr "Speküler Aydınlatma"
 
 
 msgid "Ridge"
@@ -110368,10 +110336,6 @@ msgstr "Heykel modunda desteklenmiyor"
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
 msgstr "Tanjant uzayı yalnızca üçgenler/dörtgenler için hesaplanabilir, iptal edilir"
-
-
-msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
-msgstr "Tanjant uzay hesaplaması bir UV Haritasına ihtiyaç duyuyor, \"%s\" bulunamadı, iptal ediliyor"
 
 
 msgid "NlaTrack"
@@ -116352,6 +116316,10 @@ msgid "There is no animation data to operate on"
 msgstr "Üzerinde işlem yapılacak animasyon verisi yok"
 
 
+msgid "Composite"
+msgstr "Kompozit"
+
+
 msgid "Discard"
 msgstr "Atmak"
 
@@ -119514,6 +119482,10 @@ msgid "UV map '%s' not found"
 msgstr "UV haritası '%s' bulunamadı"
 
 
+msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
+msgstr "Tanjant uzay hesaplaması bir UV Haritasına ihtiyaç duyuyor, \"%s\" bulunamadı, iptal ediliyor"
+
+
 msgid "Metaball '%s' does not contain spline given"
 msgstr "Metaball '%s' verilen spline'ı içermiyor"
 
@@ -121152,30 +121124,6 @@ msgstr "İç Maske"
 
 msgid "Outer Mask"
 msgstr "Dış Maske"
-
-
-msgid "Path:"
-msgstr "Yol:"
-
-
-msgid "Base Path:"
-msgstr "Temel Yol:"
-
-
-msgid "Add Input"
-msgstr "Giriş Ekle"
-
-
-msgid "Layer:"
-msgstr "Katman:"
-
-
-msgid "File Subpath:"
-msgstr "Dosya Alt Yolu:"
-
-
-msgid "Format:"
-msgstr "Biçim:"
 
 
 msgid "Disabled, built without FFTW"
@@ -123779,10 +123727,6 @@ msgid "Border rendering is not supported by sequencer"
 msgstr "Sınır oluşturma, sıralayıcı tarafından desteklenmiyor"
 
 
-msgid "No render output node in scene"
-msgstr "Sahnede render çıkış düğümü yok"
-
-
 msgid "All render layers are disabled"
 msgstr "Tüm render katmanları devre dışı bırakıldı"
 
@@ -124284,11 +124228,6 @@ msgstr "Sınırlı Platform Desteği"
 
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers may be available to improve Blender support."
-msgstr "Blender desteğini geliştirmek için daha yeni grafik sürücüleri mevcut olabilir."
-
-
-msgctxt "WindowManager"
 msgid "Graphics card:"
 msgstr "Grafik kartı:"
 
@@ -124311,16 +124250,6 @@ msgstr "Grafik kartınız veya macOS sürümünüz desteklenmiyor"
 msgctxt "WindowManager"
 msgid "Upgrading to the latest macOS version may improve Blender support"
 msgstr "En son macOS sürümüne yükseltme yapmak Blender desteğini iyileştirebilir"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "Grafik kartınız veya sürücünüz desteklenmiyor."
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "Program şimdi kapanacak."
 
 
 msgid "Intel binary detected. Expect reduced performance."

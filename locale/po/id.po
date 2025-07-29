@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-05-01 10:56+0000\n"
-"Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 14:57+0000\n"
+"Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
-"X-Generator: Weblate 5.11\n"
+"X-Generator: Weblate 5.12.1\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Bookmarks: -1,-1,-1,-1,-1,-1,-1,-1,-1,4"
 
@@ -13724,6 +13724,10 @@ msgid "B44A (lossy)"
 msgstr "B44A (kehilangan kualitas)"
 
 
+msgid "Video"
+msgstr "Video"
+
+
 msgid "Settings for stereo 3D"
 msgstr "Pengaturan untuk 3D stereo"
 
@@ -15343,18 +15347,6 @@ msgid "Mask"
 msgstr "Masker"
 
 
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
@@ -15405,6 +15397,18 @@ msgstr "Menggabungkan"
 
 msgid "Text"
 msgstr "Teks"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
 
 
 msgctxt "MovieClip"
@@ -18681,10 +18685,6 @@ msgstr "Keluaran Node"
 
 msgid "Node Instance Hash"
 msgstr "Hash Contoh Node"
-
-
-msgid "Use Node Format"
-msgstr "Situs Blender"
 
 
 msgid "Tooltip"
@@ -25205,10 +25205,6 @@ msgid "Audio"
 msgstr "Audio"
 
 
-msgid "Video"
-msgstr "Video"
-
-
 msgid "Extra Options"
 msgstr "Tambahan Opsi"
 
@@ -31712,22 +31708,6 @@ msgid "Buffer Edge:"
 msgstr "Tepi Penyangga:"
 
 
-msgid "Base Path:"
-msgstr "Jalur Dasar:"
-
-
-msgid "Layer:"
-msgstr "Lapisan:"
-
-
-msgid "File Subpath:"
-msgstr "Subjalur Berkas:"
-
-
-msgid "Format:"
-msgstr "Format:"
-
-
 msgid "Color Modulation"
 msgstr "Modulasi Warna"
 
@@ -32103,10 +32083,6 @@ msgid "No border area selected"
 msgstr "Modus Sunting"
 
 
-msgid "No render output node in scene"
-msgstr "Adegan"
-
-
 msgctxt "Sequence"
 msgid "Color Balance"
 msgstr "Keseimbangan Warna"
@@ -32284,16 +32260,6 @@ msgstr "Dukungan Platform Terbatas"
 
 
 msgctxt "WindowManager"
-msgid "Your graphics card or driver has limited support. It may work, but with issues."
-msgstr "Kartu grafis atau driver komputer anda mempunyai pendukung yang terbatas. Ini mungkin bekerja tetapi dengan masalah."
-
-
-msgctxt "WindowManager"
-msgid "Newer graphics drivers may be available to improve Blender support."
-msgstr "Kartu grafis yang lebih baru mungkin akan tersedia untuk meningkatkan pendukung Blender."
-
-
-msgctxt "WindowManager"
 msgid "Graphics card:"
 msgstr "Kartu grafis:"
 
@@ -32311,16 +32277,6 @@ msgstr "Kartu grafis anda atau versi macOS tidak didukung"
 msgctxt "WindowManager"
 msgid "Upgrading to the latest macOS version may improve Blender support"
 msgstr "Meningkatkan ke versi macOS terbaru mungkin dapat meningkatkan dukungan Blender"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "Kartu grafis atau driver komputer anda tidak didukung."
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "Aplikasi akan ditutup sekarang."
 
 
 msgid "(Unsaved)"

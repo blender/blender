@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:14+0000\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:02+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
 "Language: de\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -8978,6 +8978,10 @@ msgid "Video bitrate (kbit/s)"
 msgstr "Videobitrate (kbit/s)"
 
 
+msgid "HDR"
+msgstr "HDR"
+
+
 msgid "F-Modifier"
 msgstr "F-Modifikator"
 
@@ -13222,14 +13226,6 @@ msgid "Output image in DPX format"
 msgstr "Bild im DPX-Format ausgeben"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "Multiplikator"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Bild im Mehrebenen-OpenEXR-Format ausgeben"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Bild im OpenEXR-Format ausgeben"
 
@@ -13256,6 +13252,14 @@ msgstr "WebP"
 
 msgid "Output image in WebP format"
 msgstr "Bild im WebP Format ausgeben"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "Multiplikator"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Bild im Mehrebenen-OpenEXR-Format ausgeben"
 
 
 msgid "FFmpeg Video"
@@ -16365,10 +16369,6 @@ msgid "World mist settings"
 msgstr "Welt-Nebeleinstellungen"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Shaderknoten verwenden, um die Welt zu rendern"
-
-
 msgid "Use Shadow"
 msgstr "Schatten verwenden"
 
@@ -16567,6 +16567,10 @@ msgstr "Dateiformat, in dem gerenderte Bilder gespeichert werden"
 
 msgid "JP2"
 msgstr "JP2"
+
+
+msgid "Video"
+msgstr "Video"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -18803,50 +18807,6 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Pivot Point"
-msgstr "Drehpunkt"
-
-
-msgid "Snap"
-msgstr "Einrasten"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
-
-
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
 msgid "View Regions"
 msgstr "Vierfenster Ansicht"
 
@@ -18935,6 +18895,10 @@ msgid "Hooks"
 msgstr "Haken"
 
 
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
 msgid "Random Mask"
 msgstr "Zufällige Maske"
 
@@ -18985,6 +18949,46 @@ msgstr "Kerning"
 
 msgid "Text"
 msgstr "Text"
+
+
+msgid "Pivot Point"
+msgstr "Drehpunkt"
+
+
+msgid "Snap"
+msgstr "Einrasten"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
 
 
 msgid "Assets"
@@ -23117,10 +23121,6 @@ msgid "ITU 709"
 msgstr "ITU 709"
 
 
-msgid "Composite"
-msgstr "Komposition"
-
-
 msgid "From"
 msgstr "Von"
 
@@ -24866,10 +24866,6 @@ msgstr "Einfachebenen Dateisteckplatz für die Dateiausgabe des Knoten"
 
 msgid "Subpath used for this slot"
 msgstr "Dieser Unterpfad wird für diesen Steckplatz verwendet"
-
-
-msgid "Use Node Format"
-msgstr "Knotenformat verwenden"
 
 
 msgid "Output File Layer Slot"
@@ -32719,10 +32715,6 @@ msgid "Current"
 msgstr "Aktuelle Szene"
 
 
-msgid "HDR"
-msgstr "HDR"
-
-
 msgctxt "Operator"
 msgid "Toggle Node Options"
 msgstr "Knotenoptionen umschalten"
@@ -39362,6 +39354,42 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Snapping"
+msgstr "Einrasten"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
+
+
+msgid "Onion Skin"
+msgstr "Zwiebelhaut"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "Aktives Werkzeug"
 
@@ -39394,10 +39422,6 @@ msgid "Overlays"
 msgstr "Überlagerungen"
 
 
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
 msgid "Motion Tracking"
 msgstr "Bewegungsverfolgung"
 
@@ -39412,38 +39436,6 @@ msgstr "Messung"
 
 msgid "Curve Edit Mode"
 msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Snapping"
-msgstr "Einrasten"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
-
-
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
-
-
-msgid "Onion Skin"
-msgstr "Zwiebelhaut"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -39968,10 +39960,6 @@ msgstr "Enkodierung"
 
 msgid "Audio"
 msgstr "Audio"
-
-
-msgid "Video"
-msgstr "Video"
 
 
 msgid "Format Presets"
@@ -42265,14 +42253,6 @@ msgstr "Sprache"
 
 msgid "Language used for translation"
 msgstr "Für Übersetzung benutzte Sprache"
-
-
-msgid "HDRI Preview Size"
-msgstr "HDRI-Vorschaugröße"
-
-
-msgid "Diameter of the HDRI preview spheres"
-msgstr "Durchmesser der HDRI-Vorschaukugeln"
 
 
 msgid "Mini Axes Brightness"
@@ -56910,6 +56890,10 @@ msgid "No F-Modifiers to paste"
 msgstr "Kein F-Modifikator zum Einfügen"
 
 
+msgid "Composite"
+msgstr "Komposition"
+
+
 msgid "Discard"
 msgstr "Verwerfen"
 
@@ -58250,30 +58234,6 @@ msgid "Buffer Edge:"
 msgstr "Pufferkante:"
 
 
-msgid "Path:"
-msgstr "Pfad:"
-
-
-msgid "Base Path:"
-msgstr "Basispfad:"
-
-
-msgid "Add Input"
-msgstr "Eingang hinzufügen"
-
-
-msgid "Layer:"
-msgstr "Ebene:"
-
-
-msgid "File Subpath:"
-msgstr "Datei Unterpfad:"
-
-
-msgid "Format:"
-msgstr "Format:"
-
-
 msgid "Color Modulation"
 msgstr "Farbmodulation"
 
@@ -58850,10 +58810,6 @@ msgid "No border area selected"
 msgstr "Knotenauswahl"
 
 
-msgid "No render output node in scene"
-msgstr "Renderausgabe-Verzeichnis"
-
-
 msgid "All render layers are disabled"
 msgstr "Alle Render-Ebenen sind deaktiviert"
 
@@ -59084,16 +59040,6 @@ msgstr "Limitierte Plattformunterstützung"
 
 
 msgctxt "WindowManager"
-msgid "Your graphics card or driver has limited support. It may work, but with issues."
-msgstr "Deine Grafikkarte oder dein Treiber hat limitierten Support. Es kann funktionieren aber eventuell mit Problemen."
-
-
-msgctxt "WindowManager"
-msgid "Newer graphics drivers may be available to improve Blender support."
-msgstr "Neue Grafikkartentreiber sind möglicherweiße verfügbar um den Blender Support zu verbessern."
-
-
-msgctxt "WindowManager"
 msgid "Graphics card:"
 msgstr "Grafikkarte:"
 
@@ -59116,16 +59062,6 @@ msgstr "Deine Grafikkarte oder macOS-Version wird nicht unterstützt"
 msgctxt "WindowManager"
 msgid "Upgrading to the latest macOS version may improve Blender support"
 msgstr "Ein Upgrade auf die aktuellste macOS-Version könnte die Unterstützung von Blender verbessern"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "Deine Grafikkarte oder der Treiber wird nicht unterstützt."
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "Das Programm wird jetzt geschlossen."
 
 
 msgid "Stereo 3D Mode requires the window to be fullscreen"

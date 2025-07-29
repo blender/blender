@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:10+0000\n"
-"Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:34+0000\n"
+"Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
 "Language: bg\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.10.1\n"
+"X-Generator: Weblate 5.12.1\n"
 "X-Poedit-Bookmarks: 4082,-1,-1,-1,-1,-1,-1,-1,-1,-1"
 
 
@@ -1136,10 +1136,6 @@ msgid "Mask"
 msgstr "Маскиране"
 
 
-msgid "UV Mapping"
-msgstr "UV Картиране"
-
-
 msgid "Light"
 msgstr "Светлина"
 
@@ -1170,6 +1166,10 @@ msgstr "Слей"
 
 msgid "Text"
 msgstr "Текст"
+
+
+msgid "UV Mapping"
+msgstr "UV Картиране"
 
 
 msgid "Languages..."
@@ -2346,10 +2346,6 @@ msgstr "Кадър:"
 
 msgid "Fields"
 msgstr "Полета"
-
-
-msgid "Layer:"
-msgstr "Слой:"
 
 
 msgctxt "WorkSpace"

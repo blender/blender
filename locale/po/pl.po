@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:34+0000\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
 "Language: pl\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -10798,6 +10798,10 @@ msgid "Codec"
 msgstr "Kodek"
 
 
+msgid "Video"
+msgstr "Wideo"
+
+
 msgid "Image Preview"
 msgstr "Podgląd obrazu"
 
@@ -11576,30 +11580,6 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
 msgid "Select Linked"
 msgstr "Zaznacz powiązane"
 
@@ -11666,6 +11646,30 @@ msgstr "Scal"
 
 msgid "Text"
 msgstr "Tekst"
+
+
+msgid "Snap"
+msgstr "Przyciągnij"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proporcjonalne edytowanie spadku"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
 
 
 msgid "Catalog"
@@ -17361,6 +17365,14 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
+msgid "Snapping"
+msgstr "Przyciąganie"
+
+
+msgid "Transform Orientations"
+msgstr "Orientacje przekształcenia"
+
+
 msgid "Active Tool"
 msgstr "Aktywne narzędzie"
 
@@ -17387,14 +17399,6 @@ msgstr "Pomiar"
 
 msgid "Curve Edit Mode"
 msgstr "Tryb edycji krzywej"
-
-
-msgid "Snapping"
-msgstr "Przyciąganie"
-
-
-msgid "Transform Orientations"
-msgstr "Orientacje przekształcenia"
 
 
 msgid "Aperture"
@@ -17603,10 +17607,6 @@ msgstr "Kodowanie"
 
 msgid "Audio"
 msgstr "Audio"
-
-
-msgid "Video"
-msgstr "Wideo"
 
 
 msgid "Metadata"
@@ -27929,18 +27929,6 @@ msgid "Result"
 msgstr "Wynik"
 
 
-msgid "Path:"
-msgstr "Ścieżka:"
-
-
-msgid "Layer:"
-msgstr "Warstwa:"
-
-
-msgid "File Subpath:"
-msgstr "Podścieżka pliku:"
-
-
 msgid "Val"
 msgstr "Val"
 
@@ -28345,10 +28333,6 @@ msgstr "Render niemożliwy, brak kamery"
 
 msgid "No border area selected"
 msgstr "Nie zaznaczono obramowania"
-
-
-msgid "No render output node in scene"
-msgstr "Brak output node w scenie"
 
 
 msgid "All render layers are disabled"

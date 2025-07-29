@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:20+0000\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
 "Language: fi\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -5193,6 +5193,10 @@ msgid "QuickTime"
 msgstr "QuickTime"
 
 
+msgid "HDR"
+msgstr "HDR"
+
+
 msgid "F-Modifier"
 msgstr "F-muunnin"
 
@@ -6338,16 +6342,16 @@ msgid "DPX"
 msgstr "DPX"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR MultiLayer"
-
-
 msgid "TIFF"
 msgstr "TIFF"
 
 
 msgid "WebP"
 msgstr "WebP"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR MultiLayer"
 
 
 msgid "FFmpeg Video"
@@ -7308,10 +7312,6 @@ msgid "Mask"
 msgstr "Maski"
 
 
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
 
@@ -7370,6 +7370,10 @@ msgstr "Muodon valintatila"
 
 msgid "Text"
 msgstr "Teksti"
+
+
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Basic"
@@ -9503,10 +9507,6 @@ msgid "Collection of Node Links"
 msgstr "Kokoelma noodilinkeistä"
 
 
-msgid "Use Node Format"
-msgstr "Käytä noodiformaattia"
-
-
 msgid "Node Outputs"
 msgstr "Nooditulosteet"
 
@@ -10188,10 +10188,6 @@ msgstr "Laajenna"
 
 msgid "Max Speed"
 msgstr "Maksiminopeus"
-
-
-msgid "HDR"
-msgstr "HDR"
 
 
 msgid "Mouse location"
@@ -15851,26 +15847,6 @@ msgid "Outer Mask"
 msgstr "Ulkomaski"
 
 
-msgid "Path:"
-msgstr "Polku:"
-
-
-msgid "Base Path:"
-msgstr "Peruspolku:"
-
-
-msgid "Add Input"
-msgstr "Lisää syöte"
-
-
-msgid "Layer:"
-msgstr "Tasot:"
-
-
-msgid "Format:"
-msgstr "Formaatti:"
-
-
 msgid "Offset Y"
 msgstr "Y-siirros"
 
@@ -17031,11 +17007,6 @@ msgstr "Rajoitettu alustatuki"
 
 
 msgctxt "WindowManager"
-msgid "Your graphics card or driver has limited support. It may work, but with issues."
-msgstr "Näytönohjaimellasi tai ajureillasi on rajoitettu tuki. Ne saattavat toimia, mutta eivät välttämättä ilman ongelmia."
-
-
-msgctxt "WindowManager"
 msgid "Graphics card:"
 msgstr "Näytönohjain:"
 
@@ -17053,16 +17024,6 @@ msgstr "Näytönohjaimesi tai macOS-vesio ei ole tuettu"
 msgctxt "WindowManager"
 msgid "Upgrading to the latest macOS version may improve Blender support"
 msgstr "Päivittäminen viimeisimpään macOS-versioon saattaa parantaa Blender-tukea"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "Näytönohjaimesi tai ajurisi eivät ole tuettuja."
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "Ohjelma sulkeutuu nyt."
 
 
 msgid "Failed to create window"

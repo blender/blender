@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-06-09 12:55+0000\n"
-"Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:24+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
 "Language: vi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.11"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -12896,6 +12896,10 @@ msgid "Video bitrate (kbit/s)"
 msgstr "Tần số bit video (kilo-bit/giây)"
 
 
+msgid "HDR"
+msgstr "High Dynamic Range: Phạm Vi Động Lý Rộng"
+
+
 msgid "F-Modifier"
 msgstr "Bộ Điều Chỉnh-F"
 
@@ -14696,10 +14700,6 @@ msgstr "Sắp Đặt của Phạm Vi Chất Lỏng"
 
 msgid "Margin added around fluid to minimize boundary interference"
 msgstr "Mép lề bao quanh chất lưu chảy để tối giảm sự giao thoa của ranh giới"
-
-
-msgid "Minimum amount of fluid a cell can contain before it is considered empty"
-msgstr "Lượng chất lỏng tối thiểu cần có, còn không thì tế bào sẽ được coi là trống rỗng"
 
 
 msgid "Additional"
@@ -22838,14 +22838,6 @@ msgid "Output image in DPX format"
 msgstr "Xuất ảnh ra định dạng DPX"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR Đa Tầng"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Xuất ảnh ra định dạng OpenEXR đa tầng"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Xuất ảnh ra định dạng OpenEXR"
 
@@ -22868,6 +22860,14 @@ msgstr "Xuất ảnh ra định dạng TIFF"
 
 msgid "Output image in WebP format"
 msgstr "Xuất hình ảnh ra định dạng WebP"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR Đa Tầng"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Xuất ảnh ra định dạng OpenEXR đa tầng"
 
 
 msgid "FFmpeg Video"
@@ -29480,10 +29480,6 @@ msgid "The world's volume used to be rendered by EEVEE Legacy. Conversion is nee
 msgstr "Thể tích của thế giới vốn được kết xuất bởi EEVEE Cũ. Cần phải chuyển đổi để nó kết xuất đúng đắn."
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Dùng nút tô bóng để kết xuất thế giới"
-
-
 msgid "Use Shadow"
 msgstr "Sử Dụng Bóng Tối"
 
@@ -30038,6 +30034,10 @@ msgstr "J2K"
 
 msgid "Output color space settings"
 msgstr "Cung cấp các cài đặt không gian màu"
+
+
+msgid "Video"
+msgstr "Phim Video"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -34066,62 +34066,6 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
-msgid "Pivot Point"
-msgstr "Điểm Tựa"
-
-
-msgid "Snap"
-msgstr "Bám Dính"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
-
-
-msgid "Mask Edit"
-msgstr "Biên Soạn Màn Chắn Lọc"
-
-
-msgid "Automasking"
-msgstr "Tự Động Chắn Lọc"
-
-
-msgid "Face Sets Edit"
-msgstr "Biên Soạn các Mặt Ấn Định"
-
-
-msgid "Vertex Group Locks"
-msgstr "Khóa của Nhóm Điểm Đỉnh"
-
-
-msgid "Mirror"
-msgstr "Phản Chiếu Đối Xứng"
-
-
-msgid "UV Mapping"
-msgstr "Ánh Xạ UV"
-
-
-msgid "Local View"
-msgstr "Góc Nhìn Cục Bộ"
-
-
-msgid "Viewpoint"
-msgstr "Điểm Nhìn"
-
-
-msgid "Navigation"
-msgstr "Điều Hướng"
-
-
-msgid "Align View"
-msgstr "Căn Chỉnh Góc Nhìn"
-
-
-msgid "Align View to Active"
-msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
-
-
 msgid "View Regions"
 msgstr "Vùng Góc Nhìn"
 
@@ -34214,6 +34158,10 @@ msgid "Hooks"
 msgstr "Móc"
 
 
+msgid "Vertex Group Locks"
+msgstr "Khóa của Nhóm Điểm Đỉnh"
+
+
 msgid "Trim/Add"
 msgstr "Cắt Xén/Thêm"
 
@@ -34296,6 +34244,58 @@ msgstr "Văn Bản"
 
 msgid "Bone Roll"
 msgstr "Lăn Xương"
+
+
+msgid "Pivot Point"
+msgstr "Điểm Tựa"
+
+
+msgid "Snap"
+msgstr "Bám Dính"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
+
+
+msgid "Mask Edit"
+msgstr "Biên Soạn Màn Chắn Lọc"
+
+
+msgid "Automasking"
+msgstr "Tự Động Chắn Lọc"
+
+
+msgid "Face Sets Edit"
+msgstr "Biên Soạn các Mặt Ấn Định"
+
+
+msgid "Mirror"
+msgstr "Phản Chiếu Đối Xứng"
+
+
+msgid "UV Mapping"
+msgstr "Ánh Xạ UV"
+
+
+msgid "Local View"
+msgstr "Góc Nhìn Cục Bộ"
+
+
+msgid "Viewpoint"
+msgstr "Điểm Nhìn"
+
+
+msgid "Navigation"
+msgstr "Điều Hướng"
+
+
+msgid "Align View"
+msgstr "Căn Chỉnh Góc Nhìn"
+
+
+msgid "Align View to Active"
+msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
 
 
 msgid "Keyframe Insert Pie"
@@ -40491,10 +40491,6 @@ msgid "Resolution of the generated surface for rendering and baking"
 msgstr "Độ phân giải của bề mặt được sinh tạo cho kết xuất và nướng"
 
 
-msgid "Sharpen peak"
-msgstr "Làm cho đỉnh sắc nhọn"
-
-
 msgid "Peak sharpening for 'JONSWAP' and 'TMA' models"
 msgstr "Làm cho đỉnh sắc nhọn trong mô hình 'JONSWAP' và 'TMA'"
 
@@ -44270,14 +44266,6 @@ msgstr "Sử dụng xử lý màu YUV (Y - độ sáng, U V - sắc độ)"
 
 msgid "Color space used for YCbCrA processing"
 msgstr "Không gian màu được sử dụng để xử lý YCbCrA"
-
-
-msgid "Composite"
-msgstr "Tổng Hợp"
-
-
-msgid "Final render output"
-msgstr "Đầu ra kết xuất sau cùng"
 
 
 msgid "Convert Colorspace"
@@ -51086,10 +51074,6 @@ msgid "Subpath used for this slot"
 msgstr "Đường dẫn phụ cho ổ cắm này"
 
 
-msgid "Use Node Format"
-msgstr "Dùng Định Dạng Nút"
-
-
 msgid "Output File Layer Slot"
 msgstr "Khe Xuất Tầng Lớp ra Tập Tin"
 
@@ -52492,10 +52476,6 @@ msgstr "Kết hợp các hình ảnh đa tầng lớp OpenEXR đã kết xuất 
 msgctxt "Operator"
 msgid "Merge Images"
 msgstr "Hợp Nhất các Hình Ảnh"
-
-
-msgid "Enable nodes on a material, world or light"
-msgstr "Kích hoạt các nút trên một chất liệu, thế giới, hay một nguồn sáng"
 
 
 msgctxt "Operator"
@@ -71745,10 +71725,6 @@ msgid "JPEG2000"
 msgstr "JPEG 2000"
 
 
-msgid "HDR"
-msgstr "High Dynamic Range: Phạm Vi Động Lý Rộng"
-
-
 msgid "Select Parent Frame"
 msgstr "Chọn Khung Hình Phụ Huynh"
 
@@ -88005,10 +87981,6 @@ msgid "Export Textures"
 msgstr "Xuất Khẩu Chất Liệu"
 
 
-msgid "If exporting materials, export textures referenced by material nodes to a 'textures' directory in the same directory as the USD file"
-msgstr "Nếu xuất khẩu nguyên vật liệu thì hãy xuất khẩu các chất liệu tham chiếu bởi các nút nguyên vật liệu ra một thư mục 'textures' (nguyên vật liệu) trong cùng thư mục với tập tin USD"
-
-
 msgid "Texture export method"
 msgstr "Phương pháp xuất chất liệu"
 
@@ -89405,74 +89377,6 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
-msgid "Active Tool"
-msgstr "Công Cụ đang Hoạt Động"
-
-
-msgid "View Lock"
-msgstr "Khóa Góc Nhìn"
-
-
-msgid "Selectability & Visibility"
-msgstr "Khả Năng Lựa Chọn & Tính Hữu Hình"
-
-
-msgid "Wireframe Color"
-msgstr "Màu Khung Dây"
-
-
-msgid "Shadow Settings"
-msgstr "Sắp Đặt về Bóng Tối"
-
-
-msgid "SSAO Settings"
-msgstr "Sắp Đặt về SSAO"
-
-
-msgid "Cavity"
-msgstr "Khe Hốc"
-
-
-msgid "Render Pass"
-msgstr "Lượt Kết Xuất"
-
-
-msgid "Compositor"
-msgstr "Trình Tổng Hợp"
-
-
-msgid "Overlays"
-msgstr "Lớp Vẽ Lồng"
-
-
-msgid "Guides"
-msgstr "Hướng Dẫn"
-
-
-msgid "Viewer Node"
-msgstr "Nút Quan Sát"
-
-
-msgid "Motion Tracking"
-msgstr "Giám Sát Chuyển Động"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Chế Độ Biên Soạn Khung Lưới"
-
-
-msgid "Measurement"
-msgstr "Đo Lường"
-
-
-msgid "Curve Edit Mode"
-msgstr "Chế Độ Biên Soạn Đường Cong"
-
-
-msgid "Curves Edit Mode"
-msgstr "Chế Độ Biên Soạn Đường Cong"
-
-
 msgid "Snapping"
 msgstr "Bám Dính"
 
@@ -89487,6 +89391,10 @@ msgstr "Phương Pháp Đặt Nét Vẽ"
 
 msgid "Drawing Plane"
 msgstr "Bề Diện Tác Họa"
+
+
+msgid "Guides"
+msgstr "Hướng Dẫn"
 
 
 msgid "Grease Pencil Options"
@@ -89547,6 +89455,70 @@ msgstr "Biến Thể Nguyên Vật Liệu glTF"
 
 msgid "glTF Animations"
 msgstr "Hoạt Họa glTF"
+
+
+msgid "Active Tool"
+msgstr "Công Cụ đang Hoạt Động"
+
+
+msgid "View Lock"
+msgstr "Khóa Góc Nhìn"
+
+
+msgid "Selectability & Visibility"
+msgstr "Khả Năng Lựa Chọn & Tính Hữu Hình"
+
+
+msgid "Wireframe Color"
+msgstr "Màu Khung Dây"
+
+
+msgid "Shadow Settings"
+msgstr "Sắp Đặt về Bóng Tối"
+
+
+msgid "SSAO Settings"
+msgstr "Sắp Đặt về SSAO"
+
+
+msgid "Cavity"
+msgstr "Khe Hốc"
+
+
+msgid "Render Pass"
+msgstr "Lượt Kết Xuất"
+
+
+msgid "Compositor"
+msgstr "Trình Tổng Hợp"
+
+
+msgid "Overlays"
+msgstr "Lớp Vẽ Lồng"
+
+
+msgid "Viewer Node"
+msgstr "Nút Quan Sát"
+
+
+msgid "Motion Tracking"
+msgstr "Giám Sát Chuyển Động"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Chế Độ Biên Soạn Khung Lưới"
+
+
+msgid "Measurement"
+msgstr "Đo Lường"
+
+
+msgid "Curve Edit Mode"
+msgstr "Chế Độ Biên Soạn Đường Cong"
+
+
+msgid "Curves Edit Mode"
+msgstr "Chế Độ Biên Soạn Đường Cong"
 
 
 msgid "Import Settings"
@@ -90400,10 +90372,6 @@ msgstr "Mã Hóa"
 
 msgid "Audio"
 msgstr "Âm Thanh"
-
-
-msgid "Video"
-msgstr "Phim Video"
 
 
 msgid "FFmpeg Presets"
@@ -94496,14 +94464,6 @@ msgstr "Ngôn ngữ sử dụng trong bản phiên dịch"
 
 msgid "Automatic (Automatic)"
 msgstr "Tự Động (Automatic)"
-
-
-msgid "HDRI Preview Size"
-msgstr "Kích Thước Xem Trước HDRI"
-
-
-msgid "Diameter of the HDRI preview spheres"
-msgstr "Đường kính của những hình cầu xem trước HDRI"
 
 
 msgid "Mini Axes Brightness"
@@ -124945,6 +124905,10 @@ msgid "To 3D Cursor"
 msgstr "Về Vị Trí của Con Trỏ 3D"
 
 
+msgid "Specular Lighting"
+msgstr "Bố Trí Ánh Sáng Tia Phản Xạ Chuẩn"
+
+
 msgid "Camera Guides"
 msgstr "Hướng Dẫn Bố Cục Máy Quay Phim"
 
@@ -125129,10 +125093,6 @@ msgstr "Xóa Cạnh Freestyle"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "Xóa Mặt Freestyle"
-
-
-msgid "Specular Lighting"
-msgstr "Bố Trí Ánh Sáng Tia Phản Xạ Chuẩn"
 
 
 msgid "Ridge"
@@ -126272,10 +126232,6 @@ msgstr "Kích thước thể tích tử của %f là quá nhỏ để có thể 
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
 msgstr "Chỉ có thể tính toán không gian tiếp tuyến cho tam giác và tứ giác mà thôi. Bỏ qua quá trình"
-
-
-msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
-msgstr "Tính toán không gian tiếp tuyến cần có Ánh Xạ UV, song không tìm thấy \"%s\". Hủy thao tác"
 
 
 msgid "Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"
@@ -133481,6 +133437,10 @@ msgid "There is no animation data to operate on"
 msgstr "Không có dữ liệu hoạt họa nào để thao tác trên đó cả"
 
 
+msgid "Composite"
+msgstr "Tổng Hợp"
+
+
 msgid "Discard"
 msgstr "Loại Bỏ"
 
@@ -137548,6 +137508,10 @@ msgid "UV map '%s' not found"
 msgstr "Không tìm thấy ánh xạ UV '%s'"
 
 
+msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
+msgstr "Tính toán không gian tiếp tuyến cần có Ánh Xạ UV, song không tìm thấy \"%s\". Hủy thao tác"
+
+
 msgid "Number of custom normals is not number of loops (%f / %d)"
 msgstr "Số lượng pháp tuyến tùy chỉnh khác với số lượng vòng lặp (%f / %d)"
 
@@ -139827,30 +139791,6 @@ msgstr "Màn Chắn Lọc Nội"
 
 msgid "Outer Mask"
 msgstr "Màn Chắn Lọc Ngoại"
-
-
-msgid "Path:"
-msgstr "Đường Dẫn:"
-
-
-msgid "Base Path:"
-msgstr "Đường Dẫn Cơ Sở:"
-
-
-msgid "Add Input"
-msgstr "Thêm Đầu Vào"
-
-
-msgid "Layer:"
-msgstr "Tầng:"
-
-
-msgid "File Subpath:"
-msgstr "Đường Dẫn Thành Phần của Tập Tin:"
-
-
-msgid "Format:"
-msgstr "Định Dạng:"
 
 
 msgid "Invalid path template in File Output node. Skipping writing file."
@@ -143778,10 +143718,6 @@ msgid "Border rendering is not supported by sequencer"
 msgstr "Trình Phối Hình không hỗ trợ kết xuất trong Đường Ranh Giới"
 
 
-msgid "No render output node in scene"
-msgstr "Không có nút đầu ra kết xuất nào trong cảnh cả"
-
-
 msgid "All render layers are disabled"
 msgstr "Toàn bộ các tầng kết xuất đều bị tắt"
 
@@ -144431,16 +144367,6 @@ msgstr "Sự Hỗ Trợ Nền Tảng (hệ điều hành) có Giới Hạn"
 
 
 msgctxt "WindowManager"
-msgid "Your graphics card or driver has limited support. It may work, but with issues."
-msgstr "Sự hỗ trợ cho thẻ đồ họa hoặc trình điều vận của bạn có giới hạn (phần mềm không hoạt động tốt với nó). Nó có thể hoạt động, song sẽ có vấn đề."
-
-
-msgctxt "WindowManager"
-msgid "Newer graphics drivers may be available to improve Blender support."
-msgstr "Có thể trình điều vận thẻ đồ họa mới hơn tồn tại và cải thiện tính năng hỗ trợ của Blender."
-
-
-msgctxt "WindowManager"
 msgid "Graphics card:"
 msgstr "Thẻ đồ họa:"
 
@@ -144463,16 +144389,6 @@ msgstr "Thẻ đồ họa hoặc phiên bản macOS của bạn không được 
 msgctxt "WindowManager"
 msgid "Upgrading to the latest macOS version may improve Blender support"
 msgstr "Nâng cấp lên phiên bản macOS mới nhất có thể cải thiện khả năng hỗ trợ Blender"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "Không hỗ trợ thẻ đồ họa hoặc trình điều vận của bạn."
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "Phần mềm bây giờ sẽ đóng lại/ngưng hoạt động."
 
 
 msgid "Intel binary detected. Expect reduced performance."

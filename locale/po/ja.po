@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-07-15 03:59+0000\n"
-"Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 14:59+0000\n"
+"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
@@ -13189,6 +13189,10 @@ msgid "Video bitrate (kbit/s)"
 msgstr "ビデオのビットレート (kbit/s)"
 
 
+msgid "HDR"
+msgstr "HDR"
+
+
 msgid "F-Modifier"
 msgstr "Fモディファイアー"
 
@@ -15027,10 +15031,6 @@ msgstr "流体ドメインの設定"
 
 msgid "Margin added around fluid to minimize boundary interference"
 msgstr "衝突境界を最小限に留める，流体の周囲に追加されるマージン"
-
-
-msgid "Minimum amount of fluid a cell can contain before it is considered empty"
-msgstr "セルが空と見なされる前に収容可能な流体の最小量"
 
 
 msgid "Additional"
@@ -23483,14 +23483,6 @@ msgid "Output image in DPX format"
 msgstr "DPX 形式で画像を出力します"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR マルチレイヤー"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "画像を複数レイヤーの OpenEXR 形式で出力します"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "OpenEXR 形式で画像を出力します"
 
@@ -23517,6 +23509,14 @@ msgstr "WebP"
 
 msgid "Output image in WebP format"
 msgstr "WebP 形式で画像を出力します"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR マルチレイヤー"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "画像を複数レイヤーの OpenEXR 形式で出力します"
 
 
 msgid "FFmpeg Video"
@@ -30333,10 +30333,6 @@ msgid "The world's volume used to be rendered by EEVEE Legacy. Conversion is nee
 msgstr "EEVEEE Legacy でレンダリングに使用されるワールドのボリューム．正しくレンダリングするには変換が必要です."
 
 
-msgid "Use shader nodes to render the world"
-msgstr "ワールドのレンダリングにシェーダーノードを使用します"
-
-
 msgid "Use Shadow"
 msgstr "影を使用"
 
@@ -30923,6 +30919,10 @@ msgstr "J2K"
 
 msgid "Output color space settings"
 msgstr "出力する色空間設定"
+
+
+msgid "Video"
+msgstr "動画"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -35048,62 +35048,6 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Pivot Point"
-msgstr "ピボットポイント"
-
-
-msgid "Snap"
-msgstr "スナップ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "プロポーショナル編集の減衰タイプ"
-
-
-msgid "Mask Edit"
-msgstr "マスク編集"
-
-
-msgid "Automasking"
-msgstr "自動マスク"
-
-
-msgid "Face Sets Edit"
-msgstr "面セット編集"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂点グループのロック"
-
-
-msgid "Mirror"
-msgstr "ミラー"
-
-
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
-
-
-msgid "Viewpoint"
-msgstr "視点"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
-
-
-msgid "Align View"
-msgstr "視点を揃える"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
-
-
 msgid "View Regions"
 msgstr "ビュー領域設定"
 
@@ -35196,6 +35140,10 @@ msgid "Hooks"
 msgstr "フック"
 
 
+msgid "Vertex Group Locks"
+msgstr "頂点グループのロック"
+
+
 msgid "Trim/Add"
 msgstr "トリム/追加"
 
@@ -35278,6 +35226,58 @@ msgstr "テキスト"
 
 msgid "Bone Roll"
 msgstr "ボーンロール"
+
+
+msgid "Pivot Point"
+msgstr "ピボットポイント"
+
+
+msgid "Snap"
+msgstr "スナップ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "プロポーショナル編集の減衰タイプ"
+
+
+msgid "Mask Edit"
+msgstr "マスク編集"
+
+
+msgid "Automasking"
+msgstr "自動マスク"
+
+
+msgid "Face Sets Edit"
+msgstr "面セット編集"
+
+
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
+
+
+msgid "Local View"
+msgstr "ローカルビュー"
+
+
+msgid "Viewpoint"
+msgstr "視点"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
 
 
 msgid "Keyframe Insert Pie"
@@ -41543,10 +41543,6 @@ msgid "Resolution of the generated surface for rendering and baking"
 msgstr "生成サーフェスのレンダリングとベイク用の解像度"
 
 
-msgid "Sharpen peak"
-msgstr "ピークのシャープ化"
-
-
 msgid "Peak sharpening for 'JONSWAP' and 'TMA' models"
 msgstr "「JONSWAP」と「TMA」モデル用のピークのシャープ化"
 
@@ -45410,14 +45406,6 @@ msgstr "YUV（Y - 輝度，U・V - 色差）による色の処理を使用しま
 
 msgid "Color space used for YCbCrA processing"
 msgstr "YCbCrA 処理で使用される色空間"
-
-
-msgid "Composite"
-msgstr "コンポジット"
-
-
-msgid "Final render output"
-msgstr "最終レンダー出力"
 
 
 msgid "Convert Colorspace"
@@ -52489,10 +52477,6 @@ msgid "Subpath used for this slot"
 msgstr "このスロットで使用されるサブパス"
 
 
-msgid "Use Node Format"
-msgstr "ノードの形式を使用"
-
-
 msgid "Output File Layer Slot"
 msgstr "ファイル出力レイヤースロット"
 
@@ -53949,10 +53933,6 @@ msgstr ""
 msgctxt "Operator"
 msgid "Merge Images"
 msgstr "画像をマージ"
-
-
-msgid "Enable nodes on a material, world or light"
-msgstr "マテリアル，ワールド，ライトでノードを有効にします"
 
 
 msgctxt "Operator"
@@ -73587,10 +73567,6 @@ msgid "OPEN_EXR"
 msgstr "OPEN EXR"
 
 
-msgid "HDR"
-msgstr "HDR"
-
-
 msgid "Select Parent Frame"
 msgstr "親フレームを選択"
 
@@ -90196,13 +90172,6 @@ msgid "Export Textures"
 msgstr "テクスチャをエクスポート"
 
 
-msgid "If exporting materials, export textures referenced by material nodes to a 'textures' directory in the same directory as the USD file"
-msgstr ""
-"マテリアルのエクスポート時，マテリアルノードから参照している\n"
-"テクスチャを USD ファイルと同じディレクトリの下の「textures」\n"
-"ディレクトリにエクスポートします"
-
-
 msgid "Texture export method"
 msgstr "テクスチャのエクスポート方法"
 
@@ -91647,74 +91616,6 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "Active Tool"
-msgstr "アクティブツール"
-
-
-msgid "View Lock"
-msgstr "ビューのロック"
-
-
-msgid "Selectability & Visibility"
-msgstr "選択可否と可視性"
-
-
-msgid "Wireframe Color"
-msgstr "ワイヤカラー"
-
-
-msgid "Shadow Settings"
-msgstr "影の設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO設定"
-
-
-msgid "Cavity"
-msgstr "キャビティ"
-
-
-msgid "Render Pass"
-msgstr "レンダーパス"
-
-
-msgid "Compositor"
-msgstr "コンポジター"
-
-
-msgid "Overlays"
-msgstr "オーバーレイ"
-
-
-msgid "Guides"
-msgstr "ガイド"
-
-
-msgid "Viewer Node"
-msgstr "ビューアーノード"
-
-
-msgid "Motion Tracking"
-msgstr "モーショントラッキング"
-
-
-msgid "Mesh Edit Mode"
-msgstr "メッシュ編集モード"
-
-
-msgid "Measurement"
-msgstr "計測"
-
-
-msgid "Curve Edit Mode"
-msgstr "カーブ編集モード"
-
-
-msgid "Curves Edit Mode"
-msgstr "ヘアーカーブ編集モード"
-
-
 msgid "Snapping"
 msgstr "スナップ"
 
@@ -91729,6 +91630,10 @@ msgstr "ストロークの基準"
 
 msgid "Drawing Plane"
 msgstr "ドロー平面"
+
+
+msgid "Guides"
+msgstr "ガイド"
 
 
 msgid "Grease Pencil Options"
@@ -91793,6 +91698,70 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTFアニメーション"
+
+
+msgid "Active Tool"
+msgstr "アクティブツール"
+
+
+msgid "View Lock"
+msgstr "ビューのロック"
+
+
+msgid "Selectability & Visibility"
+msgstr "選択可否と可視性"
+
+
+msgid "Wireframe Color"
+msgstr "ワイヤカラー"
+
+
+msgid "Shadow Settings"
+msgstr "影の設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO設定"
+
+
+msgid "Cavity"
+msgstr "キャビティ"
+
+
+msgid "Render Pass"
+msgstr "レンダーパス"
+
+
+msgid "Compositor"
+msgstr "コンポジター"
+
+
+msgid "Overlays"
+msgstr "オーバーレイ"
+
+
+msgid "Viewer Node"
+msgstr "ビューアーノード"
+
+
+msgid "Motion Tracking"
+msgstr "モーショントラッキング"
+
+
+msgid "Mesh Edit Mode"
+msgstr "メッシュ編集モード"
+
+
+msgid "Measurement"
+msgstr "計測"
+
+
+msgid "Curve Edit Mode"
+msgstr "カーブ編集モード"
+
+
+msgid "Curves Edit Mode"
+msgstr "ヘアーカーブ編集モード"
 
 
 msgid "Import Settings"
@@ -92646,10 +92615,6 @@ msgstr "エンコーディング"
 
 msgid "Audio"
 msgstr "オーディオ"
-
-
-msgid "Video"
-msgstr "動画"
 
 
 msgid "FFmpeg Presets"
@@ -96969,14 +96934,6 @@ msgstr "自動（Automatic）"
 
 msgid "Automatically choose the system-defined language if available, or fall-back to English (US)"
 msgstr "可能なら自動的にシステム設定の言語を選択し，無理なら英語（US）にします"
-
-
-msgid "HDRI Preview Size"
-msgstr "HDRIプレビューサイズ"
-
-
-msgid "Diameter of the HDRI preview spheres"
-msgstr "HDRIプレビュー球の直径"
 
 
 msgid "Mini Axes Brightness"
@@ -128470,6 +128427,10 @@ msgid "To 3D Cursor"
 msgstr "3Dカーソルを注視"
 
 
+msgid "Specular Lighting"
+msgstr "スペキュラー照明"
+
+
 msgid "Camera Guides"
 msgstr "カメラガイド"
 
@@ -128654,10 +128615,6 @@ msgstr "Freestyle辺をクリア"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "Freestyle面をクリア"
-
-
-msgid "Specular Lighting"
-msgstr "スペキュラー照明"
 
 
 msgid "Ridge"
@@ -129797,10 +129754,6 @@ msgstr "「%f」のボクセルサイズはソルバーにとって小さすぎ�
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
 msgstr "タンジェント空間は三角面/四角面のみ計算可能です．中止します"
-
-
-msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
-msgstr "タンジェント空間の計算に必要な UV マップ「%s」がありません．中止します"
 
 
 msgid "Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"
@@ -137285,6 +137238,10 @@ msgid "There is no animation data to operate on"
 msgstr "処理するアニメーションデータがありません"
 
 
+msgid "Composite"
+msgstr "コンポジット"
+
+
 msgid "Discard"
 msgstr "破棄"
 
@@ -141424,6 +141381,10 @@ msgid "UV map '%s' not found"
 msgstr "UVマップ「%s」が見つかりません"
 
 
+msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
+msgstr "タンジェント空間の計算に必要な UV マップ「%s」がありません．中止します"
+
+
 msgid "Number of custom normals is not number of loops (%f / %d)"
 msgstr "カスタム法線の数がループ数と合いません (%f / %d)"
 
@@ -143794,30 +143755,6 @@ msgstr "内部マスク"
 
 msgid "Outer Mask"
 msgstr "外部マスク"
-
-
-msgid "Path:"
-msgstr "パス:"
-
-
-msgid "Base Path:"
-msgstr "基本パス:"
-
-
-msgid "Add Input"
-msgstr "入力を追加"
-
-
-msgid "Layer:"
-msgstr "レイヤー:"
-
-
-msgid "File Subpath:"
-msgstr "ファイルサブパス:"
-
-
-msgid "Format:"
-msgstr "形式:"
 
 
 msgid "Invalid path template in File Output node. Skipping writing file."
@@ -148033,10 +147970,6 @@ msgid "Border rendering is not supported by sequencer"
 msgstr "レンダーボーダーはシーケンサーに未対応です"
 
 
-msgid "No render output node in scene"
-msgstr "シーンにレンダー出力ノードがありません"
-
-
 msgid "All render layers are disabled"
 msgstr "レンダーレイヤーがすべて無効です"
 
@@ -148690,16 +148623,6 @@ msgstr "一部プラットフォームのみ対応"
 
 
 msgctxt "WindowManager"
-msgid "Your graphics card or driver has limited support. It may work, but with issues."
-msgstr "このグラフィックスカードまたはドライバーの対応は限定的です．動作はしますが問題が発生するかもしれません."
-
-
-msgctxt "WindowManager"
-msgid "Newer graphics drivers may be available to improve Blender support."
-msgstr "新しいグラフィックドライバーで Blender の対応を改善できる可能性があります."
-
-
-msgctxt "WindowManager"
 msgid "Graphics card:"
 msgstr "グラフィックカード："
 
@@ -148722,16 +148645,6 @@ msgstr "このグラフィックカードまたは macOS バージョンは未�
 msgctxt "WindowManager"
 msgid "Upgrading to the latest macOS version may improve Blender support"
 msgstr "最新版の macOS にアップグレードすると Blender の対応が改善します"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "このグラフィックカードまたはドライバーは未対応です."
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "このプログラムを閉じます."
 
 
 msgid "Intel binary detected. Expect reduced performance."

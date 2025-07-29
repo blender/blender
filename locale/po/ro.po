@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-07-21 00:59+0000\n"
-"Last-Translator: Dominic Iastrebschi <domjotebit@gmail.com>\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 14:58+0000\n"
+"Last-Translator: Pastean_Narcis_Dan <dedeye1001@gmail.com>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
 "Language: ro\n"
 "MIME-Version: 1.0\n"
@@ -2233,10 +2233,6 @@ msgid "Starting"
 msgstr "Pornire"
 
 
-msgid "Composite"
-msgstr "Compozit"
-
-
 msgid "Combined"
 msgstr "Combinat"
 
@@ -3631,6 +3627,10 @@ msgid "No F-Modifiers to paste"
 msgstr "Niciun F-Modificator de lipit"
 
 
+msgid "Composite"
+msgstr "Compozit"
+
+
 msgid "Select Slot"
 msgstr "Selectare Slot"
 
@@ -3818,26 +3818,6 @@ msgstr "Tonuri Mijlocii"
 
 msgid "Bokeh Type:"
 msgstr "Tip Bokeh:"
-
-
-msgid "Path:"
-msgstr "Cale:"
-
-
-msgid "Base Path:"
-msgstr "Cale de Bază:"
-
-
-msgid "Add Input"
-msgstr "Adăugare Intrare"
-
-
-msgid "Layer:"
-msgstr "Strat:"
-
-
-msgid "Format:"
-msgstr "Format:"
 
 
 msgid "Blender File View"

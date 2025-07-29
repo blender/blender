@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:10+0000\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
 "Language: ar\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 5.10.1\n"
+"X-Generator: Weblate 5.12.1\n"
 "X-Poedit-SourceCharset: utf-8"
 
 
@@ -10416,14 +10416,6 @@ msgid "Output image in DPX format"
 msgstr "DPX ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR ﺕﺎﻘﺒﻄﻟﺍ ﺩﺪﻌﺘﻣ"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "ﺕﺎﻘﺒﻄﻟﺍ ﺩﺪﻌﺘﻣ OpenEXR ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "OpenEXR ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
 
@@ -10438,6 +10430,14 @@ msgstr " Radiance HDR ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
 
 msgid "Output image in TIFF format"
 msgstr "TIFF ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR ﺕﺎﻘﺒﻄﻟﺍ ﺩﺪﻌﺘﻣ"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "ﺕﺎﻘﺒﻄﻟﺍ ﺩﺪﻌﺘﻣ OpenEXR ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
 
 
 msgid "Image/Movie file name"
@@ -14022,10 +14022,6 @@ msgid "Node tree for node based worlds"
 msgstr "ﺪﻘﻋ ﻰﻠﻋ ﺔﻤﺋﺎﻘﻟﺍ ﻢﻟﺍﻮﻌﻠﻟ ﺪﻘﻌﻟﺍ ﺓﺮﺠﺷ"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "ﻢﻟﺎﻌﻟﺍ ﺮﻴﻴﺼﺘﻟ ﻞﻠﻈﻤﻟﺍ ﺪﻘﻋ ﻡﺪﺨﺘﺷﺍ"
-
-
 msgid "Operation"
 msgstr "ﺔﻴﻠﻤﻋ"
 
@@ -15723,34 +15719,6 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Snap"
-msgstr "ﻱﺫﺎﺣ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
-
-
-msgid "UV Mapping"
-msgstr "UV ءﺎﺴﻛﺇ"
-
-
-msgid "Navigation"
-msgstr "ﺢﻔّﺼﺗ"
-
-
-msgid "Align View"
-msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Align View to Active"
-msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
 msgid "Select More/Less"
 msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
 
@@ -15833,6 +15801,34 @@ msgstr "ﺺﻧ"
 
 msgid "Bone Roll"
 msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
+
+
+msgid "Snap"
+msgstr "ﻱﺫﺎﺣ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
+
+
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
+
+
+msgid "UV Mapping"
+msgstr "UV ءﺎﺴﻛﺇ"
+
+
+msgid "Navigation"
+msgstr "ﺢﻔّﺼﺗ"
+
+
+msgid "Align View"
+msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Align View to Active"
+msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
 
 
 msgctxt "MovieClip"
@@ -18730,10 +18726,6 @@ msgid "Color Spill"
 msgstr "ﻥﻮﻠﻟﺍ ﺐﻜﺳ"
 
 
-msgid "Composite"
-msgstr "ﺐﻴﻛﺮﺗ"
-
-
 msgid "To"
 msgstr "ـﻟ"
 
@@ -19521,10 +19513,6 @@ msgstr "ﺝﺮﺨﻟﺍ ﻒﻠﻣ ﺔﺤﺘﻓ"
 
 msgid "Subpath used for this slot"
 msgstr "ﺔﺤﺘﻔﻟﺍ ﻩﺬﻬﻟ ﻲﻋﺮﻔﻟﺍ ﺭﺎﺴﻤﻟﺍ"
-
-
-msgid "Use Node Format"
-msgstr "ﺓﺪﻘﻌﻟﺍ ﻖﻴﺴﻨﺗ ﻡﺪﺨﺘﺳﺍ"
 
 
 msgid "Output File Layer Slot"
@@ -28066,16 +28054,16 @@ msgid "Palette Color"
 msgstr "ﻥﻮﻠﻟﺍ ﺔﺣﻮﻟ"
 
 
+msgid "Transform Orientations"
+msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
+
+
 msgid "Render Pass"
 msgstr "ﺮﻴﻴﺼﺗ ﺮﻤﻣ"
 
 
 msgid "Motion Tracking"
 msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
-
-
-msgid "Transform Orientations"
-msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
 
 
 msgid "Bone Constraints"
@@ -36738,6 +36726,10 @@ msgid "No F-Modifiers to paste"
 msgstr "ﺮﻴﻐﻤﻟﺍ ﺔﻟﺎﺣ"
 
 
+msgid "Composite"
+msgstr "ﺐﻴﻛﺮﺗ"
+
+
 msgid "Select Slot"
 msgstr "ﺓﺭﺄﻔﻟﺍ ﺮﺘﺧﺍ"
 
@@ -37208,10 +37200,6 @@ msgid "Midtones End"
 msgstr "ﻰﻄﺳﻮﻟﺍ ﺕﺎﺟﺭﺪﻟﺍ ﺔﻳﺎﻬﻧ"
 
 
-msgid "Layer:"
-msgstr ":ﺔﻘﺒﻃ"
-
-
 msgid "Color Modulation"
 msgstr "ﻥﻮﻠﻟﺍ ﻞﻳﺪﻌﺗ"
 
@@ -37446,10 +37434,6 @@ msgstr "ﺍﺮﻴﻣﺎﻛ ﺪﺟﻮﺗ ﻻ﻿ ,ﺮﻴﻴﺼﺘﻟﺍ ﻦﻜﻤ�
 
 msgid "No border area selected"
 msgstr "ﺔﻣﺎﺧ ﺓﺪﻘﻋ ﻱﺃ ﺭﺎﻴﺘﺧﺍ ﻢﺘﻳ ﻢﻟ"
-
-
-msgid "No render output node in scene"
-msgstr "ﺪﻬﺸﻤﻟﺍ ﻲﻓ ﺮﻴﻴﺼﺘﻟﺍ ﺝﺮﺧ ﺓﺪﻘﻋ ﺪﺟﻮﺗ ﻻ﻿"
 
 
 msgid "All render layers are disabled"

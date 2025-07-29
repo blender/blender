@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-07-19 17:59+0000\n"
-"Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:25+0000\n"
+"Last-Translator: 32437w5k7 <32437w5k7@mozmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -10949,6 +10949,10 @@ msgid "Video bitrate (kbit/s)"
 msgstr "Bitrate video (kbit/s)"
 
 
+msgid "HDR"
+msgstr "HDR"
+
+
 msgid "F-Modifier"
 msgstr "Modificatore-F"
 
@@ -12396,10 +12400,6 @@ msgstr "Impostazioni Dominio"
 
 msgid "Fluid domain settings"
 msgstr "Impostazioni del dominio del fluido"
-
-
-msgid "Minimum amount of fluid a cell can contain before it is considered empty"
-msgstr "Ammontare minimo di fluido che una cella può contenere prima di essere considerata vuota"
 
 
 msgid "Additional"
@@ -16731,14 +16731,6 @@ msgid "Output image in DPX format"
 msgstr "Immagine in formato DPX"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR MultiLivello"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Esporta l'immagine nel formato OpenEXR multi-livello"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Immagine in formato OpenEXR"
 
@@ -16757,6 +16749,14 @@ msgstr "Immagine in formato TIFF"
 
 msgid "Output image in WebP format"
 msgstr "Immagine di output in formato WebP"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR MultiLivello"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Esporta l'immagine nel formato OpenEXR multi-livello"
 
 
 msgid "FFmpeg Video"
@@ -21505,10 +21505,6 @@ msgid "Finite Volume"
 msgstr "Volume Finito"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Utilizza nodi shader per renderizzare il mondo"
-
-
 msgid "Use Shadow"
 msgstr "Utilizza Ombra"
 
@@ -21767,6 +21763,10 @@ msgstr "Impostazioni codec per JPEG 2000"
 
 msgid "Output color space settings"
 msgstr "Impostazioni spazio colore Output"
+
+
+msgid "Video"
+msgstr "Video"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -24664,62 +24664,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Pivot Point"
-msgstr "Punto di Perno"
-
-
-msgid "Snap"
-msgstr "Aggancia"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decadimento Modifica Proporzionale"
-
-
-msgid "Mask Edit"
-msgstr "Modifica Maschera"
-
-
-msgid "Automasking"
-msgstr "Automascheramento"
-
-
-msgid "Face Sets Edit"
-msgstr "Modifica Sets di Facce"
-
-
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
 msgid "View Regions"
 msgstr "Regione Vista"
 
@@ -24812,6 +24756,10 @@ msgid "Hooks"
 msgstr "Ganci"
 
 
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
+
+
 msgid "Face Sets Init"
 msgstr "Init Sets di Facce"
 
@@ -24886,6 +24834,58 @@ msgstr "Testo"
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
+
+
+msgid "Pivot Point"
+msgstr "Punto di Perno"
+
+
+msgid "Snap"
+msgstr "Aggancia"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decadimento Modifica Proporzionale"
+
+
+msgid "Mask Edit"
+msgstr "Modifica Maschera"
+
+
+msgid "Automasking"
+msgstr "Automascheramento"
+
+
+msgid "Face Sets Edit"
+msgstr "Modifica Sets di Facce"
+
+
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
 
 
 msgid "Keyframe Insert Pie"
@@ -31096,10 +31096,6 @@ msgid "Combine Color"
 msgstr "Combina Colore"
 
 
-msgid "Composite"
-msgstr "Composizione"
-
-
 msgid "Convert Colorspace"
 msgstr "Converti Spazio colore"
 
@@ -33322,10 +33318,6 @@ msgstr "Raccolta di Collegamenti Nodo"
 
 msgid "Output File Slot"
 msgstr "Slot File Uscita"
-
-
-msgid "Use Node Format"
-msgstr "Utilizza Formato Nodo"
 
 
 msgid "Node Outputs"
@@ -42625,10 +42617,6 @@ msgid "From active node"
 msgstr "Dal nodo attivo"
 
 
-msgid "HDR"
-msgstr "HDR"
-
-
 msgctxt "Operator"
 msgid "Toggle Node Options"
 msgstr "Attiva/disattiva Opzioni Nodo"
@@ -50680,6 +50668,26 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Snapping"
+msgstr "Ancoraggio"
+
+
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopia"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
+
+
 msgid "Shadow Settings"
 msgstr "Impostazioni Ombra"
 
@@ -50714,26 +50722,6 @@ msgstr "Modalità Modifica Mesh"
 
 msgid "Measurement"
 msgstr "Misurazione"
-
-
-msgid "Snapping"
-msgstr "Ancoraggio"
-
-
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopia"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
 
 
 msgid "Chain Scaling"
@@ -51250,10 +51238,6 @@ msgstr "Codifica"
 
 msgid "Audio"
 msgstr "Audio"
-
-
-msgid "Video"
-msgstr "Video"
 
 
 msgid "Format Presets"
@@ -67653,6 +67637,10 @@ msgid "Modify Sharpness"
 msgstr "Modifica Nettezza"
 
 
+msgid "Composite"
+msgstr "Composizione"
+
+
 msgid "Select Slot"
 msgstr "Seleziona Slot"
 
@@ -69091,26 +69079,6 @@ msgid "Inner Edge:"
 msgstr "Spigolo Interno:"
 
 
-msgid "Path:"
-msgstr "Percorso:"
-
-
-msgid "Base Path:"
-msgstr "Percorso Base:"
-
-
-msgid "Layer:"
-msgstr "Livello:"
-
-
-msgid "File Subpath:"
-msgstr "Sottopercorso File:"
-
-
-msgid "Format:"
-msgstr "Formato:"
-
-
 msgid "Color Modulation"
 msgstr "Modulazione Colore"
 
@@ -69666,10 +69634,6 @@ msgstr "Impossibile renderizzare, nessuna camera"
 
 msgid "Border rendering is not supported by sequencer"
 msgstr "Il rendering parziale non è supportato dall'editor sequenze video"
-
-
-msgid "No render output node in scene"
-msgstr "Nessun nodo di output nella scena"
 
 
 msgid "All render layers are disabled"

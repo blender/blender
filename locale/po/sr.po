@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:40+0000\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
 "Language: sr\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Valid"
@@ -5794,12 +5794,12 @@ msgid "Cineon"
 msgstr "Cineon"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "Вишеслојни OpenEXR"
-
-
 msgid "Radiance HDR"
 msgstr "Radiance HDR"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "Вишеслојни OpenEXR"
 
 
 msgid "Image/Movie file name"
@@ -7848,10 +7848,6 @@ msgid "World mist settings"
 msgstr "Подешавање магле"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Користи чворове сенчења за рендеровање света"
-
-
 msgid "Operation"
 msgstr "Операција"
 
@@ -8553,30 +8549,6 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Snap"
-msgstr "Лепљење"
-
-
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
 msgid "Select Linked"
 msgstr "Изабери повезано"
 
@@ -8659,6 +8631,30 @@ msgstr "Специјални знаци"
 
 msgid "Bone Roll"
 msgstr "Ролна костију"
+
+
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
 
 
 msgid "Basic"
@@ -10632,10 +10628,6 @@ msgid "ITU 709"
 msgstr "YCbCr (ITU 709)"
 
 
-msgid "Composite"
-msgstr "Спојено"
-
-
 msgid "To"
 msgstr "Ка"
 
@@ -11294,10 +11286,6 @@ msgstr "До утичнице"
 
 msgid "Output File Slot"
 msgstr "Слот излазне датотеке"
-
-
-msgid "Use Node Format"
-msgstr "Користи формат чвора"
 
 
 msgid "Output File Layer Slot"
@@ -19344,12 +19332,12 @@ msgid "Restrict"
 msgstr "Ограничи"
 
 
-msgid "Motion Tracking"
-msgstr "Праћење покрета"
-
-
 msgid "Transform Orientations"
 msgstr "Трансформација оријентација"
+
+
+msgid "Motion Tracking"
+msgstr "Праћење покрета"
 
 
 msgid "Bone Constraints"
@@ -25259,6 +25247,10 @@ msgid "Unsupported audio format"
 msgstr "Неподржан фотмат звука"
 
 
+msgid "Composite"
+msgstr "Спојено"
+
+
 msgid "Select Slot"
 msgstr "Изабери слот"
 
@@ -25621,10 +25613,6 @@ msgid "Bright"
 msgstr "Светлина"
 
 
-msgid "Layer:"
-msgstr "Слојеви:"
-
-
 msgid "Use feather information from the mask"
 msgstr "Користи информације умекшавања са маске"
 
@@ -25811,10 +25799,6 @@ msgstr "Формат слике"
 
 msgid "Cannot render, no camera"
 msgstr "Очисти групу темена"
-
-
-msgid "No render output node in scene"
-msgstr "Без чвора излаза рендеринга у сцени"
 
 
 msgid "All render layers are disabled"

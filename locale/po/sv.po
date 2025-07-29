@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-07-13 16:59+0000\n"
-"Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:25+0000\n"
+"Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
@@ -6390,14 +6390,6 @@ msgid "Output image in DPX format"
 msgstr "Resultatbild i DPX-format"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR MultiLayer"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Resultatbild i flerlagers OpenEXR-format"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Resultatbild i OpenEXR-format"
 
@@ -6416,6 +6408,14 @@ msgstr "Resultatbild i TIFF-format"
 
 msgid "WebP"
 msgstr "WebP"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR MultiLayer"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Resultatbild i flerlagers OpenEXR-format"
 
 
 msgid "True if the image data is loaded into memory"
@@ -7919,10 +7919,6 @@ msgid "Mist"
 msgstr "Dimma"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Använd shadernoder för att rendera världen"
-
-
 msgid "Use Shadow"
 msgstr "Använd skugga"
 
@@ -8049,6 +8045,10 @@ msgstr "JP2"
 
 msgid "J2K"
 msgstr "J2K"
+
+
+msgid "Video"
+msgstr "Video"
 
 
 msgid "LZW"
@@ -9323,38 +9323,6 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Pivot Point"
-msgstr "Fast punkt"
-
-
-msgid "Snap"
-msgstr "Snäpp"
-
-
-msgid "Mirror"
-msgstr "Spegla"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Viewpoint"
-msgstr "Visningspunkt"
-
-
-msgid "Navigation"
-msgstr "Navigering"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
 msgid "Select More/Less"
 msgstr "Markera mera/mindre"
 
@@ -9437,6 +9405,38 @@ msgstr "Specialtecken"
 
 msgid "Text"
 msgstr "Text"
+
+
+msgid "Pivot Point"
+msgstr "Fast punkt"
+
+
+msgid "Snap"
+msgstr "Snäpp"
+
+
+msgid "Mirror"
+msgstr "Spegla"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Viewpoint"
+msgstr "Visningspunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
 
 
 msgid "Animals"
@@ -12536,10 +12536,6 @@ msgstr "Nodlänkar"
 
 msgid "Collection of Node Links"
 msgstr "Samling av nodlänkar"
-
-
-msgid "Use Node Format"
-msgstr "Använd nodformat"
 
 
 msgid "Node Outputs"
@@ -21421,6 +21417,14 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
+msgid "Stroke Placement"
+msgstr "Streckplacering"
+
+
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
 
@@ -21443,14 +21447,6 @@ msgstr "Visningsnod"
 
 msgid "Measurement"
 msgstr "Mätning"
-
-
-msgid "Stroke Placement"
-msgstr "Streckplacering"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Import Settings"
@@ -21750,10 +21746,6 @@ msgstr "Skuggor"
 
 msgid "Audio"
 msgstr "Ljud"
-
-
-msgid "Video"
-msgstr "Video"
 
 
 msgid "Views"
@@ -23018,14 +23010,6 @@ msgstr "Språk som används för översättning"
 
 msgid "Automatic (Automatic)"
 msgstr "Automatiskt (automatiskt)"
-
-
-msgid "HDRI Preview Size"
-msgstr "HDRI förhandsvisningsstorlek"
-
-
-msgid "Diameter of the HDRI preview spheres"
-msgstr "Diameter på HDRI förhandsvisningssfärer"
 
 
 msgid "Brightness of the icon"
@@ -33084,18 +33068,6 @@ msgid "Image 2"
 msgstr "Bild 2"
 
 
-msgid "Path:"
-msgstr "Bana:"
-
-
-msgid "Add Input"
-msgstr "Lägg till inmatning"
-
-
-msgid "Layer:"
-msgstr "Lager:"
-
-
 msgid "Balance"
 msgstr "Balans"
 
@@ -33788,11 +33760,6 @@ msgstr "%d × %s: %.4f ms, genomsnitt: %.8f ms"
 
 
 msgctxt "WindowManager"
-msgid "Your graphics card or driver has limited support. It may work, but with issues."
-msgstr "Ditt grafikkort eller din drivrutin har begränsat stöd. Det kan fungera, men med problem."
-
-
-msgctxt "WindowManager"
 msgid "Your graphics card is not supported"
 msgstr "Ditt grafikkort stöds inte"
 
@@ -33805,16 +33772,6 @@ msgstr "Ditt grafikkort eller din macOS-version stöds inte"
 msgctxt "WindowManager"
 msgid "Upgrading to the latest macOS version may improve Blender support"
 msgstr "Uppgradering till den senaste macOS-versionen kan förbättra stödet för Blender"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "Ditt grafikkort eller din drivrutin stöds inte."
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "Programmet kommer nu att avslutas."
 
 
 msgctxt "Operator"

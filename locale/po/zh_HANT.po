@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-07-15 18:59+0000\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-27 17:01+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
@@ -3021,6 +3021,10 @@ msgstr "主要世界"
 
 msgid "Collection of worlds"
 msgstr "世界的集盒"
+
+
+msgid "Make paths of used library blendfiles relative to current blendfile"
+msgstr "將使用的藏庫 blend 檔案路徑轉為目前 blend 檔案的相對路徑"
 
 
 msgid "Instantiate collections as empties, instead of linking them into the current view layer"
@@ -9915,6 +9919,10 @@ msgid "Use lossless output for video streams"
 msgstr "使用無損輸出作為視訊串流"
 
 
+msgid "HDR"
+msgstr "HDR"
+
+
 msgid "F-Modifier"
 msgstr "F 修改器"
 
@@ -15470,14 +15478,6 @@ msgid "Output image in DPX format"
 msgstr "以 DPX 格式輸出影像"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR 多層"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "以多層的 OpenEXR 格式輸出影像"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "以 OpenEXR 格式輸出影像"
 
@@ -15500,6 +15500,14 @@ msgstr "以 TIFF 格式輸出影像"
 
 msgid "WebP"
 msgstr "WebP"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR 多層"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "以多層的 OpenEXR 格式輸出影像"
 
 
 msgid "Image/Movie file name"
@@ -19645,10 +19653,6 @@ msgid "Node tree for node based worlds"
 msgstr "以節點為基礎的世界其節點樹"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "使用著色器節點來算繪世界"
-
-
 msgid "Use Shadow"
 msgstr "使用陰影"
 
@@ -19895,6 +19899,10 @@ msgstr "JP2"
 
 msgid "J2K"
 msgstr "J2K"
+
+
+msgid "Video"
+msgstr "視訊"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -22520,54 +22528,6 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
 msgid "View Regions"
 msgstr "檢視範圍"
 
@@ -22710,6 +22670,54 @@ msgstr "文字"
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
 
 
 msgid "Basic"
@@ -25672,10 +25680,6 @@ msgid "Repetitions of the generated surface in Y"
 msgstr "生成的表面於 Y 軸重複"
 
 
-msgid "Sharpen peak"
-msgstr "峰值銳利化"
-
-
 msgid "Surface scale factor (does not affect the height of the waves)"
 msgstr "表面縮放係數 (不會影響波浪的高度)"
 
@@ -28235,10 +28239,6 @@ msgid "ITU 709"
 msgstr "ITU 709"
 
 
-msgid "Composite"
-msgstr "合成"
-
-
 msgid "Convert Colorspace"
 msgstr "轉換色彩空間"
 
@@ -30342,10 +30342,6 @@ msgstr "檔案輸出節點的單一層檔案槽"
 
 msgid "Subpath used for this slot"
 msgstr "用於此槽的次路徑"
-
-
-msgid "Use Node Format"
-msgstr "使用節點格式"
 
 
 msgid "Output File Layer Slot"
@@ -35708,12 +35704,22 @@ msgid "Highlight selected file(s)"
 msgstr "標明所選的檔案"
 
 
+msgctxt "Operator"
+msgid "Make Paths Absolute"
+msgstr "將路徑轉為絕對路徑"
+
+
 msgid "Make all paths to external files absolute"
-msgstr "讓所有外部檔案的路徑為絕對路徑"
+msgstr "將所有外部檔案路徑轉為絕對路徑"
+
+
+msgctxt "Operator"
+msgid "Make Paths Relative"
+msgstr "將路徑轉為相對路徑"
 
 
 msgid "Make all paths to external files relative to current .blend"
-msgstr "讓所有外部檔案的路徑相對於目前的 .blend 檔"
+msgstr "將所有外部檔案路徑轉為目前 .blend 檔的相對路徑"
 
 
 msgctxt "Operator"
@@ -40356,10 +40362,6 @@ msgid "Mode"
 msgstr "模式"
 
 
-msgid "HDR"
-msgstr "HDR"
-
-
 msgctxt "Operator"
 msgid "Toggle Node Options"
 msgstr "開啟節點選項"
@@ -42529,6 +42531,15 @@ msgstr "選取階層"
 
 msgid "Context menu for item operations"
 msgstr "項目操作的情境選單"
+
+
+msgctxt "Operator"
+msgid "Manage Unused Data"
+msgstr "管理未使用的資料"
+
+
+msgid "Open a window to manage unused data"
+msgstr "開啟視窗以管理未使用的資料"
 
 
 msgctxt "Operator"
@@ -48279,7 +48290,7 @@ msgstr "開啟自動儲存的檔案來復原它"
 
 msgctxt "Operator"
 msgid "Recover Last Session"
-msgstr "復原最後的作業階段"
+msgstr "復原上次的工作階段"
 
 
 msgid "Open the last closed file (\"quit.blend\")"
@@ -48963,38 +48974,6 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "Cavity"
-msgstr "坑腔"
-
-
-msgid "Render Pass"
-msgstr "算繪通遞"
-
-
-msgid "Compositor"
-msgstr "合成器"
-
-
-msgid "Overlays"
-msgstr "疊層"
-
-
-msgid "Viewer Node"
-msgstr "檢視器節點"
-
-
-msgid "Motion Tracking"
-msgstr "運動跟蹤"
-
-
-msgid "Measurement"
-msgstr "測量"
-
-
 msgid "Snapping"
 msgstr "吸附"
 
@@ -49029,6 +49008,38 @@ msgstr "自動遮罩"
 
 msgid "VR"
 msgstr "VR"
+
+
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通遞"
+
+
+msgid "Compositor"
+msgstr "合成器"
+
+
+msgid "Overlays"
+msgstr "疊層"
+
+
+msgid "Viewer Node"
+msgstr "檢視器節點"
+
+
+msgid "Motion Tracking"
+msgstr "運動跟蹤"
+
+
+msgid "Measurement"
+msgstr "測量"
 
 
 msgid "Chain Scaling"
@@ -49603,10 +49614,6 @@ msgstr "編碼"
 
 msgid "Audio"
 msgstr "音訊"
-
-
-msgid "Video"
-msgstr "視訊"
 
 
 msgid "FFmpeg Presets"
@@ -52264,10 +52271,6 @@ msgid "Automatic (Automatic)"
 msgstr "自動（自動）"
 
 
-msgid "HDRI Preview Size"
-msgstr "HDRI 預覽大小"
-
-
 msgid "Mini Axes Brightness"
 msgstr "迷你座標軸的亮度"
 
@@ -52517,7 +52520,7 @@ msgstr "平滑化使用者介面文字的粗糙邊緣"
 
 
 msgid "Text Subpixel Anti-Aliasing"
-msgstr "文字子像素抗鋸齒處理"
+msgstr "文字次像素抗鋸齒處理"
 
 
 msgid "Render text for optimal horizontal placement"
@@ -53716,7 +53719,7 @@ msgstr "簡化子代粒子"
 
 
 msgid "Antialiasing"
-msgstr "防鋸齒"
+msgstr "抗鋸齒"
 
 
 msgid "Display modifiers"
@@ -54949,7 +54952,7 @@ msgstr "像素化效果"
 
 
 msgid "Antialias pixels"
-msgstr "防鋸齒像素數"
+msgstr "抗鋸齒像素數"
 
 
 msgid "Rim effect"
@@ -64141,6 +64144,11 @@ msgid "Purge Unused Data..."
 msgstr "刪除未使用的資料..."
 
 
+msgctxt "Operator"
+msgid "Manage Unused Data..."
+msgstr "管理未使用的資料..."
+
+
 msgctxt "WindowManager"
 msgid "New"
 msgstr "新增"
@@ -64159,6 +64167,11 @@ msgstr "上次的工作階段"
 msgctxt "Operator"
 msgid "Auto Save..."
 msgstr "自動儲存..."
+
+
+msgctxt "Operator"
+msgid "Find Missing Files..."
+msgstr "尋找遺失的檔案..."
 
 
 msgctxt "Operator"
@@ -64331,7 +64344,7 @@ msgstr "依最近使用排序"
 
 
 msgid "Subpixel Anti-Aliasing"
-msgstr "子像素抗鋸齒"
+msgstr "次像素抗鋸齒"
 
 
 msgid "Hinting"
@@ -65626,6 +65639,10 @@ msgid "Close"
 msgstr "閉合"
 
 
+msgid "Specular Lighting"
+msgstr "鏡面反射照明"
+
+
 msgid "Exclude Non-Selectable"
 msgstr "排除關閉選擇的物體"
 
@@ -65703,10 +65720,6 @@ msgstr "清除 Freestyle 邊線"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "清除 Freestyle 面"
-
-
-msgid "Specular Lighting"
-msgstr "鏡面反射照明"
 
 
 msgid "Ridge"
@@ -69345,6 +69358,10 @@ msgid "Decimate F-Curves by specifying how much they can deviate from the origin
 msgstr "利用指定偏離原始曲線的程度來削減函數曲線"
 
 
+msgid "Composite"
+msgstr "合成"
+
+
 msgid "Discard"
 msgstr "丟棄"
 
@@ -71458,30 +71475,6 @@ msgid "Buffer Edge:"
 msgstr "緩衝邊線："
 
 
-msgid "Path:"
-msgstr "路徑："
-
-
-msgid "Base Path:"
-msgstr "基礎路徑："
-
-
-msgid "Add Input"
-msgstr "新增輸入"
-
-
-msgid "Layer:"
-msgstr "層："
-
-
-msgid "File Subpath:"
-msgstr "檔案子路徑："
-
-
-msgid "Format:"
-msgstr "格式："
-
-
 msgid "Color Modulation"
 msgstr "色彩調節"
 
@@ -72080,10 +72073,6 @@ msgid "Border rendering is not supported by sequencer"
 msgstr "序段編輯器不支援框選算繪"
 
 
-msgid "No render output node in scene"
-msgstr "場景中無算繪輸出節點"
-
-
 msgid "All render layers are disabled"
 msgstr "所有算繪分層已停用"
 
@@ -72461,16 +72450,6 @@ msgstr "有限的平臺支援"
 
 
 msgctxt "WindowManager"
-msgid "Your graphics card or driver has limited support. It may work, but with issues."
-msgstr "您的圖形顯示卡或驅動程式支援有限。可能有辦法運作，但會遇到一些問題。"
-
-
-msgctxt "WindowManager"
-msgid "Newer graphics drivers may be available to improve Blender support."
-msgstr "或許更新版的圖形顯示卡驅動程式能改善 Blender 的支援。"
-
-
-msgctxt "WindowManager"
 msgid "Graphics card:"
 msgstr "圖形顯示卡："
 
@@ -72483,16 +72462,6 @@ msgstr "未支援的平臺"
 msgctxt "WindowManager"
 msgid "Your graphics card or macOS version is not supported"
 msgstr "尚未支援您的圖形顯示卡或 macOS 版本"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "尚未支援您的圖形顯示卡或驅動程式。"
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "程式即將關閉。"
 
 
 msgid "Stereo 3D Mode requires the window to be fullscreen"

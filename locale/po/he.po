@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:22+0000\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:33+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
 "Language: he\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Valid"
@@ -587,10 +587,6 @@ msgid "Mask"
 msgstr "הכסמ"
 
 
-msgid "Mirror"
-msgstr "הארמ"
-
-
 msgid "Apply"
 msgstr "לחה"
 
@@ -601,6 +597,10 @@ msgstr "רמה"
 
 msgid "Face Data"
 msgstr "האפ ינותנ"
+
+
+msgid "Mirror"
+msgstr "הארמ"
 
 
 msgid "Languages..."
@@ -1063,14 +1063,6 @@ msgstr "1 הנומת"
 
 msgid "Image 2"
 msgstr "2 הנומת"
-
-
-msgid "Path:"
-msgstr ":ביתנ"
-
-
-msgid "Add Input"
-msgstr "טלק ףסוה"
 
 
 msgctxt "NodeTree"

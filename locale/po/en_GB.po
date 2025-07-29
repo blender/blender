@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-06-17 02:59+0000\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
 "Language: en_GB\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.11"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -12976,6 +12976,10 @@ msgid "Video bitrate (kbit/s)"
 msgstr "Video bitrate (kbit/s)"
 
 
+msgid "HDR"
+msgstr "HDR"
+
+
 msgid "F-Modifier"
 msgstr "F-Modifier"
 
@@ -14788,10 +14792,6 @@ msgstr "Fluid domain settings"
 
 msgid "Margin added around fluid to minimize boundary interference"
 msgstr "Margin added around fluid to minimise boundary interference"
-
-
-msgid "Minimum amount of fluid a cell can contain before it is considered empty"
-msgstr "Minimum amount of fluid a cell can contain before it is considered empty"
 
 
 msgid "Additional"
@@ -22962,14 +22962,6 @@ msgid "Output image in DPX format"
 msgstr "Output image in DPX format"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR MultiLayer"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Output image in multilayer OpenEXR format"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Output image in OpenEXR format"
 
@@ -22996,6 +22988,14 @@ msgstr "WebP"
 
 msgid "Output image in WebP format"
 msgstr "Output image in WebP format"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR MultiLayer"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Output image in multilayer OpenEXR format"
 
 
 msgid "FFmpeg Video"
@@ -29644,10 +29644,6 @@ msgid "The world's volume used to be rendered by EEVEE Legacy. Conversion is nee
 msgstr "The world's volume used to be rendered by EEVEE Legacy. Conversion is needed for it to render properly."
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Use shader nodes to render the world"
-
-
 msgid "Use Shadow"
 msgstr "Use Shadow"
 
@@ -30226,6 +30222,10 @@ msgstr "J2K"
 
 msgid "Output color space settings"
 msgstr "Output color space settings"
+
+
+msgid "Video"
+msgstr "Video"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -34321,62 +34321,6 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Pivot Point"
-msgstr "Pivot Point"
-
-
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
-
-
 msgid "View Regions"
 msgstr "View Regions"
 
@@ -34469,6 +34413,10 @@ msgid "Hooks"
 msgstr "Hooks"
 
 
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
 msgid "Trim/Add"
 msgstr "Trim/Add"
 
@@ -34551,6 +34499,58 @@ msgstr "Text"
 
 msgid "Bone Roll"
 msgstr "Bone Roll"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Point"
+
+
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Mask Edit"
+
+
+msgid "Automasking"
+msgstr "Automasking"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
 
 
 msgid "Keyframe Insert Pie"
@@ -40734,10 +40734,6 @@ msgid "Resolution of the generated surface for rendering and baking"
 msgstr "Resolution of the generated surface for rendering and baking"
 
 
-msgid "Sharpen peak"
-msgstr "Sharpen peak"
-
-
 msgid "Peak sharpening for 'JONSWAP' and 'TMA' models"
 msgstr "Peak sharpening for 'JONSWAP' and 'TMA' models"
 
@@ -44527,14 +44523,6 @@ msgstr "Use YUV (Y - luma, U V - chroma) color processing"
 
 msgid "Color space used for YCbCrA processing"
 msgstr "Color space used for YCbCrA processing"
-
-
-msgid "Composite"
-msgstr "Composite"
-
-
-msgid "Final render output"
-msgstr "Final render output"
 
 
 msgid "Convert Colorspace"
@@ -51292,10 +51280,6 @@ msgid "Subpath used for this slot"
 msgstr "Subpath used for this slot"
 
 
-msgid "Use Node Format"
-msgstr "Use Node Format"
-
-
 msgid "Output File Layer Slot"
 msgstr "Output File Layer Slot"
 
@@ -52687,10 +52671,6 @@ msgstr "Combine OpenEXR multi-layer images rendered with different sample ranges
 msgctxt "Operator"
 msgid "Merge Images"
 msgstr "Merge Images"
-
-
-msgid "Enable nodes on a material, world or light"
-msgstr "Enable nodes on a material, world or light"
 
 
 msgctxt "Operator"
@@ -71873,10 +71853,6 @@ msgid "OPEN_EXR"
 msgstr "OPEN_EXR"
 
 
-msgid "HDR"
-msgstr "HDR"
-
-
 msgid "Select Parent Frame"
 msgstr "Select Parent Frame"
 
@@ -88076,10 +88052,6 @@ msgid "Export Textures"
 msgstr "Export Textures"
 
 
-msgid "If exporting materials, export textures referenced by material nodes to a 'textures' directory in the same directory as the USD file"
-msgstr "If exporting materials, export textures referenced by material nodes to a 'textures' directory in the same directory as the USD file"
-
-
 msgid "Texture export method"
 msgstr "Texture export method"
 
@@ -89472,70 +89444,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "Active Tool"
-msgstr "Active Tool"
-
-
-msgid "View Lock"
-msgstr "View Lock"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selectability & Visibility"
-
-
-msgid "Shadow Settings"
-msgstr "Shadow Settings"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Settings"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Render Pass"
-msgstr "Render Pass"
-
-
-msgid "Compositor"
-msgstr "Compositor"
-
-
-msgid "Overlays"
-msgstr "Overlays"
-
-
-msgid "Guides"
-msgstr "Guides"
-
-
-msgid "Viewer Node"
-msgstr "Viewer Node"
-
-
-msgid "Motion Tracking"
-msgstr "Motion Tracking"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Edit Mode"
-
-
-msgid "Measurement"
-msgstr "Measurement"
-
-
-msgid "Curve Edit Mode"
-msgstr "Curve Edit Mode"
-
-
-msgid "Curves Edit Mode"
-msgstr "Curves Edit Mode"
-
-
 msgid "Snapping"
 msgstr "Snapping"
 
@@ -89550,6 +89458,10 @@ msgstr "Stroke Placement"
 
 msgid "Drawing Plane"
 msgstr "Drawing Plane"
+
+
+msgid "Guides"
+msgstr "Guides"
 
 
 msgid "Grease Pencil Options"
@@ -89614,6 +89526,66 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTF Animations"
+
+
+msgid "Active Tool"
+msgstr "Active Tool"
+
+
+msgid "View Lock"
+msgstr "View Lock"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selectability & Visibility"
+
+
+msgid "Shadow Settings"
+msgstr "Shadow Settings"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Settings"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Render Pass"
+msgstr "Render Pass"
+
+
+msgid "Compositor"
+msgstr "Compositor"
+
+
+msgid "Overlays"
+msgstr "Overlays"
+
+
+msgid "Viewer Node"
+msgstr "Viewer Node"
+
+
+msgid "Motion Tracking"
+msgstr "Motion Tracking"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Edit Mode"
+
+
+msgid "Measurement"
+msgstr "Measurement"
+
+
+msgid "Curve Edit Mode"
+msgstr "Curve Edit Mode"
+
+
+msgid "Curves Edit Mode"
+msgstr "Curves Edit Mode"
 
 
 msgid "Import Settings"
@@ -90455,10 +90427,6 @@ msgstr "Encoding"
 
 msgid "Audio"
 msgstr "Audio"
-
-
-msgid "Video"
-msgstr "Video"
 
 
 msgid "FFmpeg Presets"
@@ -94583,14 +94551,6 @@ msgstr "Language used for translation"
 
 msgid "Automatic (Automatic)"
 msgstr "Automatic (Automatic)"
-
-
-msgid "HDRI Preview Size"
-msgstr "HDRI Preview Size"
-
-
-msgid "Diameter of the HDRI preview spheres"
-msgstr "Diameter of the HDRI preview spheres"
 
 
 msgid "Mini Axes Brightness"
@@ -125243,6 +125203,10 @@ msgid "To 3D Cursor"
 msgstr "To 3D Cursor"
 
 
+msgid "Specular Lighting"
+msgstr "Specular Lighting"
+
+
 msgid "Camera Guides"
 msgstr "Camera Guides"
 
@@ -125427,10 +125391,6 @@ msgstr "Clear Freestyle Edge"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "Clear Freestyle Face"
-
-
-msgid "Specular Lighting"
-msgstr "Specular Lighting"
 
 
 msgid "Ridge"
@@ -126570,10 +126530,6 @@ msgstr "Voxel size of %f too small to be solved"
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
 msgstr "Tangent space can only be computed for tris/quads, aborting"
-
-
-msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
-msgstr "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
 
 
 msgid "Possible data loss when saving this file! %s modifier is deprecated (Object: %s)"
@@ -133758,6 +133714,10 @@ msgid "There is no animation data to operate on"
 msgstr "There is no animation data to operate on"
 
 
+msgid "Composite"
+msgstr "Composite"
+
+
 msgid "Discard"
 msgstr "Discard"
 
@@ -137745,6 +137705,10 @@ msgid "UV map '%s' not found"
 msgstr "UV map '%s' not found"
 
 
+msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
+msgstr "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
+
+
 msgid "Number of custom normals is not number of loops (%f / %d)"
 msgstr "Number of custom normals is not number of loops (%f / %d)"
 
@@ -139759,30 +139723,6 @@ msgstr "Inner Mask"
 
 msgid "Outer Mask"
 msgstr "Outer Mask"
-
-
-msgid "Path:"
-msgstr "Path:"
-
-
-msgid "Base Path:"
-msgstr "Base Path:"
-
-
-msgid "Add Input"
-msgstr "Add Input"
-
-
-msgid "Layer:"
-msgstr "Layer:"
-
-
-msgid "File Subpath:"
-msgstr "File Subpath:"
-
-
-msgid "Format:"
-msgstr "Format:"
 
 
 msgid ""
@@ -143410,10 +143350,6 @@ msgid "Border rendering is not supported by sequencer"
 msgstr "Border rendering is not supported by sequencer"
 
 
-msgid "No render output node in scene"
-msgstr "No render output node in scene"
-
-
 msgid "All render layers are disabled"
 msgstr "All render layers are disabled"
 
@@ -144031,16 +143967,6 @@ msgstr "Limited Platform Support"
 
 
 msgctxt "WindowManager"
-msgid "Your graphics card or driver has limited support. It may work, but with issues."
-msgstr "Your graphics card or driver has limited support. It may work, but with issues."
-
-
-msgctxt "WindowManager"
-msgid "Newer graphics drivers may be available to improve Blender support."
-msgstr "Newer graphics drivers may be available to improve Blender support."
-
-
-msgctxt "WindowManager"
 msgid "Graphics card:"
 msgstr "Graphics card:"
 
@@ -144063,16 +143989,6 @@ msgstr "Your graphics card or macOS version is not supported"
 msgctxt "WindowManager"
 msgid "Upgrading to the latest macOS version may improve Blender support"
 msgstr "Upgrading to the latest macOS version may improve Blender support"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "Your graphics card or driver is not supported."
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "The program will now close."
 
 
 msgid "Intel binary detected. Expect reduced performance."
