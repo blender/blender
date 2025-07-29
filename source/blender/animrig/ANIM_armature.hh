@@ -36,4 +36,23 @@ inline bool bone_is_visible_editbone(const bArmature *armature, const EditBone *
   return bone_itself_visible && ANIM_bonecoll_is_visible_editbone(armature, ebone);
 }
 
+/**
+ * Returns true if the bone is selected. This includes a visibility check
+ * because invisible bones cannot be selected, no matter their flag.
+ */
+inline bool bone_is_selected(const bArmature *armature, const Bone *bone)
+{
+  return (bone->flag & BONE_SELECTED) && bone_is_visible(armature, bone);
+}
+
+inline bool bone_is_selected(const bArmature *armature, const bPoseChannel *pchan)
+{
+  return (pchan->bone->flag & BONE_SELECTED) && bone_is_visible_pchan(armature, pchan);
+}
+
+inline bool bone_is_selected(const bArmature *armature, const EditBone *ebone)
+{
+  return (ebone->flag & BONE_SELECTED) && bone_is_visible_editbone(armature, ebone);
+}
+
 }  // namespace blender::animrig

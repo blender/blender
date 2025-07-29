@@ -1227,17 +1227,13 @@ bPoseChannel *BKE_pose_channel_active_or_first_selected(Object *ob)
   }
 
   bPoseChannel *pchan = BKE_pose_channel_active_if_bonecoll_visible(ob);
-  if (pchan && (pchan->bone->flag & BONE_SELECTED) &&
-      blender::animrig::bone_is_visible_pchan(arm, pchan))
-  {
+  if (pchan && blender::animrig::bone_is_selected(arm, pchan)) {
     return pchan;
   }
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if (pchan->bone != nullptr) {
-      if ((pchan->bone->flag & BONE_SELECTED) &&
-          blender::animrig::bone_is_visible_pchan(arm, pchan))
-      {
+      if (blender::animrig::bone_is_selected(arm, pchan)) {
         return pchan;
       }
     }

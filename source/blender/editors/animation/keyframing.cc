@@ -843,13 +843,8 @@ static bool can_delete_key(FCurve *fcu, Object *ob, ReportList *reports)
     if ((pchan) && (pchan->bone)) {
       bArmature *arm = static_cast<bArmature *>(ob->data);
 
-      /* Invisible bones should not be modified. */
-      if (!blender::animrig::bone_is_visible_pchan(arm, pchan)) {
-        return false;
-      }
-
-      /* selection flag... */
-      if ((pchan->bone->flag & BONE_SELECTED) == 0) {
+      /* Only selected bones should be affected. */
+      if (!blender::animrig::bone_is_selected(arm, pchan)) {
         return false;
       }
     }
