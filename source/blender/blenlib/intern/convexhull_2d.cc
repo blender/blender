@@ -48,12 +48,10 @@
 
 /**
  * Assert that the angles the iterator is looping over are in order.
- * This works as a general rule however it can fail for large near co-linear edges.
- * Even though the hull is convex, the angles calculated from the edges may not consistently
- * wind in the same direction. Even when it does occur the angle discrepancy is so small
- * that it can be safely ignored.
+ *
+ * \note This may fail when #USE_CONVEX_CROSS_PRODUCT_ENSURE isn't defined.
  */
-// #define USE_ANGLE_ITER_ORDER_ASSERT
+#define USE_ANGLE_ITER_ORDER_ASSERT
 
 using namespace blender;
 
