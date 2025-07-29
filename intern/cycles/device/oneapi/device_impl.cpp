@@ -1019,6 +1019,8 @@ bool OneapiDevice::create_queue(SyclQueue *&external_queue,
         oneapi_error_string_ =
             "Hardware Raytracing is not available; please install "
             "\"intel-level-zero-gpu-raytracing\" to enable it or disable Embree on GPU.";
+      }
+      else {
         rtcSetDeviceSYCLDevice(*device_object_ptr, devices[device_index]);
       }
     }
