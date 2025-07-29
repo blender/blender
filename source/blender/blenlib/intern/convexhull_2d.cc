@@ -53,7 +53,7 @@
  */
 #define USE_ANGLE_ITER_ORDER_ASSERT
 
-using namespace blender;
+using blender::float2;
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Math Functions
@@ -88,26 +88,30 @@ static float sincos_rotate_cw_y(const float2 &sincos, const float2 &p)
  */
 
 /**
- * tests if a point is Left|On|Right of an infinite line.
- *    Input:  three points P0, P1, and P2
- * \returns > 0.0 for P2 left of the line through P0 and P1.
- *          = 0.0 for P2 on the line.
- *          < 0.0 for P2 right of the line.
+ * Tests if a point is [left / on / right] of an infinite line.
+ *
+ * \param p0: Point (start of the line).
+ * \param p1: Point (end of the line).
+ * \param p2: Point (point to compare).
+ * \return
+ * - `value > 0.0` for `p2` left of the line through `p0` and `p1`.
+ * - `value = 0.0` for `p2` on the line.
+ * - `value < 0.0` for `p2` right of the line.
  *
  * \note When using to check the hull is convex: arguments 1 & 2 are set to the larger span
  * across the hull (lowest-to-highest index) with the mid-point being the last argument.
  * This is a convention that should be followed to prevent mismatching results
  * depending on argument order.
  */
-static float is_left(const float p0[2], const float p1[2], const float p2[2])
+static float is_left(const float2 &p0, const float2 &p1, const float2 &p2)
 {
-  return (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1]);
+  return (((p1[0] - p0[0]) * (p2[1] - p0[1])) - ((p2[0] - p0[0]) * (p1[1] - p0[1])));
 }
 
 /**
  * Final pass on `r_points` & `top`,
  */
-static void convexhull_2d_stack_finalize(const blender::float2 *points, int r_points[], int &top)
+static void convexhull_2d_stack_finalize(const float2 *points, int r_points[], int &top)
 {
 #ifdef USE_CONVEX_CROSS_PRODUCT_ENSURE
   while (top >= 2) {
@@ -152,7 +156,7 @@ static void convexhull_2d_stack_finalize(const blender::float2 *points, int r_po
  * This practically always results in `r_points[++top] = index`.
  * In rare cases extra checks are needed.
  */
-static inline void convexhull_2d_stack_push(const blender::float2 *points,
+static inline void convexhull_2d_stack_push(const float2 *points,
                                             int r_points[],
                                             int &top,
                                             int index)
@@ -175,9 +179,7 @@ static inline void convexhull_2d_stack_push(const blender::float2 *points,
 /**
  * \return the number of points in `r_points` minus 1.
  */
-static int convexhull_2d_sorted_impl(const blender::float2 *points,
-                                     const int points_num,
-                                     int r_points[])
+static int convexhull_2d_sorted_impl(const float2 *points, const int points_num, int r_points[])
 {
   BLI_assert(points_num >= 2); /* Doesn't handle trivial cases. */
   /* The output array `r_points[]` will be used as the stack. */
@@ -230,7 +232,7 @@ static int convexhull_2d_sorted_impl(const blender::float2 *points,
   i = minmax;
   while (++i <= maxmin) {
     /* The lower line joins `points[minmin]` with `points[maxmin]`. */
-    if ((i < maxmin) && (is_left(points[minmin], points[maxmin], points[i]) >= 0)) {
+    if ((i < maxmin) && (is_left(points[minmin], points[maxmin], points[i]) >= 0.0f)) {
       continue; /* Ignore `points[i]` above or on the lower line. */
     }
 
@@ -249,18 +251,18 @@ static int convexhull_2d_sorted_impl(const blender::float2 *points,
     convexhull_2d_stack_push(points, r_points, top, maxmax);
   }
 
-  bot = top; /* the bottom point of the upper hull stack */
+  bot = top; /* The bottom point of the upper hull stack. */
   i = maxmin;
   while (--i >= minmax) {
     /* The upper line joins `points[maxmax]` with `points[minmax]`. */
-    if ((i > minmax) && (is_left(points[maxmax], points[minmax], points[i]) >= 0)) {
+    if ((i > minmax) && (is_left(points[maxmax], points[minmax], points[i]) >= 0.0f)) {
       continue; /* Ignore points[i] below or on the upper line. */
     }
 
     while (top > bot) { /* At least 2 points on the upper stack. */
       /* Test if `points[i]` is left of the line at the stack top. */
       if (is_left(points[r_points[top - 1]], points[r_points[top]], points[i]) > 0.0f) {
-        break; /* points[i] is a new hull vertex. */
+        break; /* `points[i]` is a new hull vertex. */
       }
       top--; /* Pop top point off stack. */
     }
@@ -281,16 +283,14 @@ static int convexhull_2d_sorted_impl(const blender::float2 *points,
   return top;
 }
 
-static int convexhull_2d_sorted(const blender::float2 *points,
-                                const int points_num,
-                                int r_points[])
+static int convexhull_2d_sorted(const float2 *points, const int points_num, int r_points[])
 {
   int top = convexhull_2d_sorted_impl(points, points_num, r_points);
   convexhull_2d_stack_finalize(points, r_points, top);
   return top + 1;
 }
 
-int BLI_convexhull_2d(blender::Span<blender::float2> points, int r_points[])
+int BLI_convexhull_2d(blender::Span<float2> points, int r_points[])
 {
   const int points_num = int(points.size());
   BLI_assert(points_num >= 0);
@@ -301,7 +301,7 @@ int BLI_convexhull_2d(blender::Span<blender::float2> points, int r_points[])
     return points_num;
   }
   int *points_map = MEM_malloc_arrayN<int>(size_t(points_num), __func__);
-  blender::float2 *points_sort = MEM_malloc_arrayN<blender::float2>(size_t(points_num), __func__);
+  float2 *points_sort = MEM_malloc_arrayN<float2>(size_t(points_num), __func__);
 
   for (int i = 0; i < points_num; i++) {
     points_map[i] = i;
@@ -355,20 +355,23 @@ int BLI_convexhull_2d(blender::Span<blender::float2> points, int r_points[])
 static float2 convexhull_aabb_fit_hull_2d_brute_force(const float (*points_hull)[2],
                                                       int points_hull_num)
 {
-  float area_best = FLT_MAX;
+  float area_best = std::numeric_limits<float>::max();
   float2 sincos_best = {0.0f, 1.0f}; /* Track the best angle as a unit vector, delaying `atan2`. */
 
   for (int i = 0; i < points_hull_num; i++) {
     const int i_next = (i + 1) % points_hull_num;
     /* 2D rotation matrix. */
     float dvec_length = 0.0f;
-    const float2 sincos = math::normalize_and_get_length(
+    const float2 sincos = blender::math::normalize_and_get_length(
         float2(points_hull[i_next]) - float2(points_hull[i]), dvec_length);
     if (UNLIKELY(dvec_length == 0.0f)) {
       continue;
     }
 
-    blender::Bounds<float> bounds[2] = {{FLT_MAX, -FLT_MAX}, {FLT_MAX, -FLT_MAX}};
+    blender::Bounds<float> bounds[2] = {
+        {std::numeric_limits<float>::max(), -std::numeric_limits<float>::max()},
+        {std::numeric_limits<float>::max(), -std::numeric_limits<float>::max()},
+    };
     float area_test;
 
     for (int j = 0; j < points_hull_num; j++) {
@@ -377,10 +380,10 @@ static float2 convexhull_aabb_fit_hull_2d_brute_force(const float (*points_hull)
           sincos_rotate_cw_y(sincos, points_hull[j]),
       };
 
-      bounds[0].min = math::min(bounds[0].min, tvec[0]);
-      bounds[0].max = math::max(bounds[0].max, tvec[0]);
-      bounds[1].min = math::min(bounds[1].min, tvec[1]);
-      bounds[1].max = math::max(bounds[1].max, tvec[1]);
+      bounds[0].min = blender::math::min(bounds[0].min, tvec[0]);
+      bounds[0].max = blender::math::max(bounds[0].max, tvec[0]);
+      bounds[1].min = blender::math::min(bounds[1].min, tvec[1]);
+      bounds[1].max = blender::math::max(bounds[1].max, tvec[1]);
 
       area_test = (bounds[0].max - bounds[0].min) * (bounds[1].max - bounds[1].min);
       if (area_test > area_best) {
@@ -539,7 +542,7 @@ static bool convexhull_2d_angle_iter_step_on_axis(const HullAngleIter &hiter, Hu
     const int i_next = (hstep.index + 1) % hiter.points_hull_num;
     const float2 dir = float2(hiter.points_hull[i_next]) - float2(hiter.points_hull[i_curr]);
     float dir_length = 0.0f;
-    const float2 sincos_test = math::normalize_and_get_length(dir, dir_length);
+    const float2 sincos_test = blender::math::normalize_and_get_length(dir, dir_length);
     hstep.index = i_next;
     if (LIKELY(dir_length != 0.0f)) {
       hstep.angle.sincos = sincos_test;
@@ -598,11 +601,11 @@ static HullAngleIter convexhull_2d_angle_iter_init(const float (*points_hull)[2]
        * (in the case of an axis-aligned edge) or not at all. */
       while ((i_prev = (i_curr + points_hull_num_minus_1) % points_hull_num) != i_orig) {
         float dir_length = 0.0f;
-        const float2 sincos_test = math::normalize_and_get_length(
+        const float2 sincos_test = blender::math::normalize_and_get_length(
             float2(points_hull[i_curr]) - float2(points_hull[i_prev]), dir_length);
         if (LIKELY(dir_length != 0.0f)) {
           /* Account for 90 degree corners that may also have an axis-aligned canonical angle. */
-          if (math::abs(sincos_test[axis]) > 0.5f) {
+          if (blender::math::abs(sincos_test[axis]) > 0.5f) {
             break;
           }
           const float2 sincos_test_canonical = sincos_canonical(sincos_test);
@@ -703,9 +706,9 @@ static float convexhull_2d_compute_extent_on_axis(const float (*points_hull)[2],
 
 static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int points_hull_num)
 {
-  float area_best = FLT_MAX;
+  float area_best = std::numeric_limits<float>::max();
   float2 sincos_best = {0.0f, 1.0f}; /* Track the best angle as a unit vector, delaying `atan2`. */
-  int index_best = INT_MAX;
+  int index_best = std::numeric_limits<int>::max();
 
   /* Initialize to zero because the first pass uses the first index to set the bounds. */
   blender::Bounds<int> bounds_index[2] = {{0, 0}, {0, 0}};
@@ -746,7 +749,9 @@ static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int poin
     convexhull_2d_angle_iter_step(hull_iter);
   }
 
-  const float angle = (area_best != FLT_MAX) ? atan2(sincos_best[0], sincos_best[1]) : 0.0f;
+  const float angle = (area_best != std::numeric_limits<float>::max()) ?
+                          atan2(sincos_best[0], sincos_best[1]) :
+                          0.0f;
 
 #if defined(USE_BRUTE_FORCE_ASSERT) && !defined(NDEBUG)
   {
@@ -762,7 +767,7 @@ static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int poin
   return angle;
 }
 
-float BLI_convexhull_aabb_fit_points_2d(blender::Span<blender::float2> points)
+float BLI_convexhull_aabb_fit_points_2d(blender::Span<float2> points)
 {
   const int points_num = int(points.size());
   BLI_assert(points_num >= 0);
