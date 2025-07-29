@@ -12,20 +12,18 @@ CCL_NAMESPACE_BEGIN
 
 template<class T> struct dual {
   T val, dx, dy;
-  dual<T>() = default;
-  ccl_device_inline_method explicit dual<T>(const T val) : val(val) {}
-  ccl_device_inline_method dual<T>(const T val, const T dx, const T dy) : val(val), dx(dx), dy(dy)
-  {
-  }
+  dual() = default;
+  ccl_device_inline_method explicit dual(const T val) : val(val) {}
+  ccl_device_inline_method dual(const T val, const T dx, const T dy) : val(val), dx(dx), dy(dy) {}
 };
 
 template<> struct dual<float2> {
   float2 val = make_float2(0.0f);
   float2 dx = make_float2(0.0f);
   float2 dy = make_float2(0.0f);
-  dual<float2>() = default;
-  ccl_device_inline_method explicit dual<float2>(const float2 val) : val(val) {}
-  ccl_device_inline_method dual<float2>(const float2 val, const float2 dx, const float2 dy)
+  dual() = default;
+  ccl_device_inline_method explicit dual(const float2 val) : val(val) {}
+  ccl_device_inline_method dual(const float2 val, const float2 dx, const float2 dy)
       : val(val), dx(dx), dy(dy)
   {
   }
@@ -35,9 +33,9 @@ template<> struct dual<float3> {
   float3 val = make_float3(0.0f);
   float3 dx = make_float3(0.0f);
   float3 dy = make_float3(0.0f);
-  dual<float3>() = default;
-  ccl_device_inline_method explicit dual<float3>(const float3 val) : val(val) {}
-  ccl_device_inline_method dual<float3>(const float3 val, const float3 dx, const float3 dy)
+  dual() = default;
+  ccl_device_inline_method explicit dual(const float3 val) : val(val) {}
+  ccl_device_inline_method dual(const float3 val, const float3 dx, const float3 dy)
       : val(val), dx(dx), dy(dy)
   {
   }
@@ -47,9 +45,9 @@ template<> struct dual<float4> {
   float4 val = make_float4(0.0f);
   float4 dx = make_float4(0.0f);
   float4 dy = make_float4(0.0f);
-  dual<float4>() = default;
-  ccl_device_inline_method explicit dual<float4>(const float4 val) : val(val) {}
-  ccl_device_inline_method dual<float4>(const float4 val, const float4 dx, const float4 dy)
+  dual() = default;
+  ccl_device_inline_method explicit dual(const float4 val) : val(val) {}
+  ccl_device_inline_method dual(const float4 val, const float4 dx, const float4 dy)
       : val(val), dx(dx), dy(dy)
   {
   }
