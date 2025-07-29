@@ -3684,7 +3684,8 @@ static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
   ot->poll = screen_maximize_area_poll;
   ot->flag = 0;
 
-  prop = RNA_def_boolean(ot->srna, "use_hide_panels", false, "Hide Panels", "Hide all the panels");
+  prop = RNA_def_boolean(
+      ot->srna, "use_hide_panels", false, "Hide Panels", "Hide all the panels (Focus Mode)");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -5219,7 +5220,7 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
 
   if (area->spacetype != SPACE_FILE && !area->full) {
     ptr = layout->op("SCREEN_OT_screen_full_area",
-                     IFACE_("Full Screen Area"),
+                     IFACE_("Focus Mode"),
                      ICON_NONE,
                      blender::wm::OpCallContext::InvokeDefault,
                      UI_ITEM_NONE);
