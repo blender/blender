@@ -2360,10 +2360,10 @@ bool find_nearest_to_ray_node(Tree &pbvh,
   return false;
 }
 
-enum PlaneAABBIsect {
-  ISECT_INSIDE,
-  ISECT_OUTSIDE,
-  ISECT_INTERSECT,
+enum class PlaneAABBIsect : int8_t {
+  Inside,
+  Outside,
+  Intersect,
 };
 
 /* Adapted from:
@@ -2374,7 +2374,7 @@ enum PlaneAABBIsect {
 static PlaneAABBIsect test_frustum_aabb(const Bounds<float3> &bounds,
                                         const Span<float4> frustum_planes)
 {
-  PlaneAABBIsect ret = ISECT_INSIDE;
+  PlaneAABBIsect ret = PlaneAABBIsect::Inside;
 
   for (const int i : frustum_planes.index_range()) {
     float vmin[3], vmax[3];
@@ -2391,10 +2391,10 @@ static PlaneAABBIsect test_frustum_aabb(const Bounds<float3> &bounds,
     }
 
     if (dot_v3v3(frustum_planes[i], vmin) + frustum_planes[i][3] < 0) {
-      return ISECT_OUTSIDE;
+      return PlaneAABBIsect::Outside;
     }
     if (dot_v3v3(frustum_planes[i], vmax) + frustum_planes[i][3] <= 0) {
-      ret = ISECT_INTERSECT;
+      ret = PlaneAABBIsect::Intersect;
     }
   }
 
@@ -2403,12 +2403,12 @@ static PlaneAABBIsect test_frustum_aabb(const Bounds<float3> &bounds,
 
 bool node_frustum_contain_aabb(const Node &node, const Span<float4> frustum_planes)
 {
-  return test_frustum_aabb(node.bounds_, frustum_planes) != ISECT_OUTSIDE;
+  return test_frustum_aabb(node.bounds_, frustum_planes) != PlaneAABBIsect::Outside;
 }
 
 bool node_frustum_exclude_aabb(const Node &node, const Span<float4> frustum_planes)
 {
-  return test_frustum_aabb(node.bounds_, frustum_planes) != ISECT_INSIDE;
+  return test_frustum_aabb(node.bounds_, frustum_planes) != PlaneAABBIsect::Inside;
 }
 
 }  // namespace blender::bke::pbvh
