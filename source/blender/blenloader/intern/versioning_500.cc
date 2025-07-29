@@ -1239,7 +1239,7 @@ static void update_format_media_type(ImageFormatData *format)
 
 static void do_version_world_remove_use_nodes(Main *bmain, World *world)
 {
-  if (world->use_nodes == true) {
+  if (world->use_nodes) {
     return;
   }
 
