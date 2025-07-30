@@ -29,16 +29,6 @@ enum class StripEarlyOut {
   UseInput2 = 2, /* Output = input2. */
 };
 
-/* Wipe effect */
-enum {
-  DO_SINGLE_WIPE,
-  DO_DOUBLE_WIPE,
-  /* DO_BOX_WIPE, */   /* UNUSED */
-  /* DO_CROSS_WIPE, */ /* UNUSED */
-  DO_IRIS_WIPE,
-  DO_CLOCK_WIPE,
-};
-
 struct EffectHandle {
   /* constructors & destructor */
   /* init is _only_ called on first creation */

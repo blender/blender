@@ -228,13 +228,13 @@ static ImBuf *modifier_render_mask_input(const RenderData *context,
 {
   ImBuf *mask_input = nullptr;
 
-  if (mask_input_type == SEQUENCE_MASK_INPUT_STRIP) {
+  if (mask_input_type == STRIP_MASK_INPUT_STRIP) {
     if (mask_strip) {
       SeqRenderState state;
       mask_input = seq_render_strip(context, &state, mask_strip, timeline_frame);
     }
   }
-  else if (mask_input_type == SEQUENCE_MASK_INPUT_ID) {
+  else if (mask_input_type == STRIP_MASK_INPUT_ID) {
     /* Note that we do not request mask to be float image: if it is that is
      * fine, but if it is a byte image then we also just take that without
      * extra memory allocations or conversions. All modifiers are expected
@@ -1161,7 +1161,7 @@ static void tonemapmodifier_apply(const StripScreenQuad &quad,
 /** \name Public Modifier Functions
  * \{ */
 
-static StripModifierTypeInfo modifiersTypes[NUM_SEQUENCE_MODIFIER_TYPES] = {
+static StripModifierTypeInfo modifiersTypes[NUM_STRIP_MODIFIER_TYPES] = {
     {}, /* First entry is unused. */
     {
         /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Color Balance"),
@@ -1239,7 +1239,7 @@ static StripModifierTypeInfo modifiersTypes[NUM_SEQUENCE_MODIFIER_TYPES] = {
 
 const StripModifierTypeInfo *modifier_type_info_get(int type)
 {
-  if (type <= 0 || type >= NUM_SEQUENCE_MODIFIER_TYPES) {
+  if (type <= 0 || type >= NUM_STRIP_MODIFIER_TYPES) {
     return nullptr;
   }
   return &modifiersTypes[type];
@@ -1253,7 +1253,7 @@ StripModifierData *modifier_new(Strip *strip, const char *name, int type)
   smd = static_cast<StripModifierData *>(MEM_callocN(smti->struct_size, "sequence modifier"));
 
   smd->type = type;
-  smd->flag |= SEQUENCE_MODIFIER_EXPANDED;
+  smd->flag |= STRIP_MODIFIER_FLAG_EXPANDED;
 
   if (!name || !name[0]) {
     STRNCPY_UTF8(smd->name, CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, smti->name));
@@ -1333,8 +1333,8 @@ static bool skip_modifier(Scene *scene, const StripModifierData *smd, int timeli
   if (smd->mask_strip == nullptr) {
     return false;
   }
-  const bool strip_has_ended_skip = smd->mask_input_type == SEQUENCE_MASK_INPUT_STRIP &&
-                                    smd->mask_time == SEQUENCE_MASK_TIME_RELATIVE &&
+  const bool strip_has_ended_skip = smd->mask_input_type == STRIP_MASK_INPUT_STRIP &&
+                                    smd->mask_time == STRIP_MASK_TIME_RELATIVE &&
                                     !time_strip_intersects_frame(
                                         scene, smd->mask_strip, timeline_frame);
   const bool missing_data_skip = !strip_has_valid_data(smd->mask_strip) ||
@@ -1363,16 +1363,16 @@ void modifier_apply_stack(const RenderData *context,
     }
 
     /* modifier is muted, do nothing */
-    if (smd->flag & SEQUENCE_MODIFIER_MUTE) {
+    if (smd->flag & STRIP_MODIFIER_FLAG_MUTE) {
       continue;
     }
 
     if (smti->apply && !skip_modifier(context->scene, smd, timeline_frame)) {
       int frame_offset;
-      if (smd->mask_time == SEQUENCE_MASK_TIME_RELATIVE) {
+      if (smd->mask_time == STRIP_MASK_TIME_RELATIVE) {
         frame_offset = strip->start;
       }
-      else /* if (smd->mask_time == SEQUENCE_MASK_TIME_ABSOLUTE) */ {
+      else /* if (smd->mask_time == STRIP_MASK_TIME_ABSOLUTE) */ {
         frame_offset = smd->mask_id ? ((Mask *)smd->mask_id)->sfra : 0;
       }
 
