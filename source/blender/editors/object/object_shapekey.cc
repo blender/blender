@@ -657,7 +657,7 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 /** \name Shape Key Move (Re-Order) Operator
  * \{ */
 
-enum {
+enum KeyBlockMove {
   KB_MOVE_TOP = -2,
   KB_MOVE_UP = -1,
   KB_MOVE_DOWN = 1,
@@ -668,28 +668,66 @@ static wmOperatorStatus shape_key_move_exec(bContext *C, wmOperator *op)
 {
   Object *ob = context_object(C);
 
-  Key *key = BKE_key_from_object(ob);
-  const int type = RNA_enum_get(op->ptr, "type");
-  const int totkey = key->totkey;
-  const int act_index = ob->shapenr - 1;
-  int new_index;
+  const Key &key = *BKE_key_from_object(ob);
+  const KeyBlockMove type = KeyBlockMove(RNA_enum_get(op->ptr, "type"));
+  const int totkey = key.totkey;
+  int new_index = 0;
+  bool changed = false;
 
-  switch (type) {
-    case KB_MOVE_TOP:
-      /* Replace the ref key only if we're at the top already (only for relative keys) */
-      new_index = (ELEM(act_index, 0, 1) || key->type == KEY_NORMAL) ? 0 : 1;
-      break;
-    case KB_MOVE_BOTTOM:
-      new_index = totkey - 1;
-      break;
-    case KB_MOVE_UP:
-    case KB_MOVE_DOWN:
-    default:
-      new_index = (totkey + act_index + type) % totkey;
-      break;
+  if (type < 0) { /* Moving upwards. */
+    /* Don't move above the position of the basis key */
+    int top_index = 1;
+    /* Start from index 1 to ignore basis key from being able to move above. */
+    for (int index = 1; index < totkey; index++) {
+      const KeyBlock &kb = *static_cast<KeyBlock *>(BLI_findlink(&key.block, index));
+      if (!shape_key_is_selected(*ob, kb, index)) {
+        continue;
+      }
+      switch (type) {
+        case KB_MOVE_TOP:
+          new_index = top_index;
+          break;
+        case KB_MOVE_UP:
+          new_index = max_ii(index - 1, top_index);
+          break;
+        case KB_MOVE_BOTTOM:
+        case KB_MOVE_DOWN:
+          BLI_assert_unreachable();
+          break;
+      }
+      top_index++;
+      if (new_index < 0) {
+        continue;
+      }
+      changed |= BKE_keyblock_move(ob, index, new_index);
+    }
+  }
+  else { /* Moving downwards. */
+    int bottom_index = totkey - 1;
+    /* Skip basis key to prevent it from moving downwards. */
+    for (int index = totkey - 1; index >= 1; index--) {
+      const KeyBlock &kb = *static_cast<KeyBlock *>(BLI_findlink(&key.block, index));
+      if (!shape_key_is_selected(*ob, kb, index)) {
+        continue;
+      }
+      switch (type) {
+        case KB_MOVE_BOTTOM:
+          new_index = bottom_index;
+          break;
+        case KB_MOVE_DOWN:
+          new_index = min_ii(index + 1, bottom_index);
+          break;
+        case KB_MOVE_TOP:
+        case KB_MOVE_UP:
+          BLI_assert_unreachable();
+          break;
+      }
+      bottom_index--;
+      changed |= BKE_keyblock_move(ob, index, new_index);
+    }
   }
 
-  if (!BKE_keyblock_move(ob, act_index, new_index)) {
+  if (!changed) {
     return OPERATOR_CANCELLED;
   }
 
@@ -711,7 +749,7 @@ void OBJECT_OT_shape_key_move(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Move Shape Key";
   ot->idname = "OBJECT_OT_shape_key_move";
-  ot->description = "Move the active shape key up/down in the list";
+  ot->description = "Move selected shape keys up/down in the list";
 
   /* API callbacks. */
   ot->poll = shape_key_move_poll;
