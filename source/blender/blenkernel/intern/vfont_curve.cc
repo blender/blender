@@ -107,9 +107,14 @@ static VFontData *vfont_data_ensure_with_lock(VFont *vfont)
   return vfont->data;
 }
 
-static VChar *vfont_char_find(const VFontData *vfd, char32_t charcode)
+static bool vfont_char_find(const VFontData *vfd, char32_t charcode, VChar **r_che)
 {
-  return static_cast<VChar *>(BLI_ghash_lookup(vfd->characters, POINTER_FROM_UINT(charcode)));
+  if (void **che_p = BLI_ghash_lookup_p(vfd->characters, POINTER_FROM_UINT(charcode))) {
+    *r_che = static_cast<VChar *>(*che_p);
+    return true;
+  }
+  *r_che = nullptr;
+  return false;
 }
 
 /**
@@ -124,19 +129,19 @@ static VChar *vfont_char_ensure_with_lock(VFont *vfont, char32_t charcode)
   if (vfont && vfont->data) {
     VFontData *vfd = vfont->data;
     BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_READ);
-    che = vfont_char_find(vfd, charcode);
+    bool che_found = vfont_char_find(vfd, charcode, &che);
     BLI_rw_mutex_unlock(&vfont_rwlock);
 
     /* The character wasn't in the current curve base so load it. */
-    if (che == nullptr) {
+    if (che_found == false) {
       BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_WRITE);
       /* Check it once again, char might have been already load
        * between previous #BLI_rw_mutex_unlock() and this #BLI_rw_mutex_lock().
        *
        * Such a check should not be a bottleneck since it wouldn't
        * happen often once all the chars are load. */
-      che = vfont_char_find(vfd, charcode);
-      if (che == nullptr) {
+      che_found = vfont_char_find(vfd, charcode, &che);
+      if (che_found == false) {
         che = BKE_vfontdata_char_from_freetypefont(vfont, charcode);
       }
       BLI_rw_mutex_unlock(&vfont_rwlock);
@@ -268,7 +273,10 @@ static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
                                              char32_t charcode,
                                              VCharPlaceHolder &che_placeholder)
 {
-  VChar *che = vfd ? vfont_char_find(vfd, charcode) : nullptr;
+  VChar *che = nullptr;
+  if (vfd) {
+    vfont_char_find(vfd, charcode, &che);
+  }
   if (UNLIKELY(che == nullptr)) {
     che = vfont_placeholder_ensure(che_placeholder, charcode);
   }
@@ -491,7 +499,8 @@ void BKE_vfont_char_build(Curve *cu,
   if (!vfd) {
     return;
   }
-  VChar *che = vfont_char_find(vfd, charcode);
+  VChar *che;
+  vfont_char_find(vfd, charcode, &che);
   vfont_char_build_impl(cu, nubase, che, info, ofsx, ofsy, rot, charidx, fsize);
 }
 

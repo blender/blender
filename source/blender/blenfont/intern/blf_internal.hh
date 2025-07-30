@@ -203,11 +203,12 @@ GlyphBLF *blf_glyph_ensure_icon(
 /**
  * Convert a character's outlines into curves.
  */
-float blf_character_to_curves(FontBLF *font,
-                              unsigned int unicode,
-                              ListBase *nurbsbase,
-                              const float scale,
-                              bool use_fallback);
+bool blf_character_to_curves(FontBLF *font,
+                             unsigned int unicode,
+                             ListBase *nurbsbase,
+                             const float scale,
+                             bool use_fallback,
+                             float *r_advance);
 
 void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int x, int y);
 

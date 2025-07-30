@@ -38,6 +38,13 @@ struct VFontData_Metrics {
 };
 
 struct VFontData {
+  /**
+   * A hash that maps `uint -> VChar` (code-points to character outlines).
+   *
+   * \note values may be null when the character does not exist in the font.
+   * This is done to differentiate characters known not to exist from
+   * characters that have not yet been loaded.
+   */
   GHash *characters;
   char name[128];
 
