@@ -421,6 +421,13 @@ struct bNodeType {
   /** True when the node still works but it's usage is discouraged. */
   const char *deprecation_notice = nullptr;
 
+  /**
+   * In some nodes the set of sockets depends on other data like linked nodes. For example, the
+   * Separate Bundle node can adapt based on what the bundle contains that is linked to it. When
+   * this function returns true, a sync button should be shown for the node that updates the node.
+   */
+  bool (*can_sync_sockets)(const bContext &C, const bNodeTree &tree, const bNode &node) = nullptr;
+
   /* RNA integration */
   ExtensionRNA rna_ext = {};
 

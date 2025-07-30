@@ -6,6 +6,8 @@
 
 #include "BKE_node.hh"
 
+#include "BLI_vector_set.hh"
+
 namespace blender::nodes {
 
 /** Describes the names and types of the inputs and outputs of a closure. */
@@ -17,8 +19,15 @@ class ClosureSignature {
     std::optional<StructureType> structure_type = std::nullopt;
   };
 
-  Vector<Item> inputs;
-  Vector<Item> outputs;
+  struct ItemKeyGetter {
+    std::string operator()(const Item &item)
+    {
+      return item.key;
+    }
+  };
+
+  CustomIDVectorSet<Item, ItemKeyGetter> inputs;
+  CustomIDVectorSet<Item, ItemKeyGetter> outputs;
 
   std::optional<int> find_input_index(StringRef key) const;
   std::optional<int> find_output_index(StringRef key) const;

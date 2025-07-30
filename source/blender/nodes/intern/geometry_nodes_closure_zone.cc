@@ -125,11 +125,11 @@ class LazyFunctionForClosureZone : public LazyFunction {
 
     for (const int i : IndexRange(storage.input_items.items_num)) {
       const bNodeSocket &bsocket = zone_.input_node()->output_socket(i);
-      closure_signature_->inputs.append({bsocket.name, bsocket.typeinfo});
+      closure_signature_->inputs.add({bsocket.name, bsocket.typeinfo});
     }
     for (const int i : IndexRange(storage.output_items.items_num)) {
       const bNodeSocket &bsocket = zone_.output_node()->input_socket(i);
-      closure_signature_->outputs.append({bsocket.name, bsocket.typeinfo});
+      closure_signature_->outputs.add({bsocket.name, bsocket.typeinfo});
     }
   }
 

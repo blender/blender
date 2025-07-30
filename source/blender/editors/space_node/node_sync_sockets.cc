@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_enums.h"
@@ -23,6 +25,8 @@
 #include "ED_screen.hh"
 
 #include "BLI_listbase.h"
+
+#include "BLT_translation.hh"
 
 #include "NOD_geo_bundle.hh"
 #include "NOD_geo_closure.hh"
@@ -392,6 +396,37 @@ void sync_sockets_closure(SpaceNode &snode,
   }
 }
 
+static Vector<bNode *> get_nodes_to_sync(bContext &C, PointerRNA *ptr)
+{
+  SpaceNode &snode = *CTX_wm_space_node(&C);
+  if (!snode.edittree) {
+    return {};
+  }
+
+  std::optional<std::string> node_name;
+  PropertyRNA *node_name_prop = RNA_struct_find_property(ptr, "node_name");
+  if (RNA_property_is_set(ptr, node_name_prop)) {
+    node_name = RNA_property_string_get(ptr, node_name_prop);
+  }
+
+  Vector<bNode *> nodes_to_sync;
+  bNodeTree &tree = *snode.edittree;
+  for (bNode *node : tree.all_nodes()) {
+    if (node_name.has_value()) {
+      if (node->name != node_name) {
+        continue;
+      }
+    }
+    else {
+      if (!(node->flag & NODE_SELECT)) {
+        continue;
+      }
+    }
+    nodes_to_sync.append(node);
+  }
+  return nodes_to_sync;
+}
+
 static wmOperatorStatus sockets_sync_exec(bContext *C, wmOperator *op)
 {
   Main &bmain = *CTX_data_main(C);
@@ -400,14 +435,16 @@ static wmOperatorStatus sockets_sync_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  Vector<bNode *> nodes_to_sync = get_nodes_to_sync(*C, op->ptr);
+  if (nodes_to_sync.is_empty()) {
+    return OPERATOR_CANCELLED;
+  }
+
   bNodeTree &tree = *snode.edittree;
   const bke::bNodeZoneType &closure_zone_type = *bke::zone_type_by_node_type(
       GEO_NODE_CLOSURE_OUTPUT);
 
-  for (bNode *node : tree.all_nodes()) {
-    if (!(node->flag & NODE_SELECT)) {
-      continue;
-    }
+  for (bNode *node : nodes_to_sync) {
     if (node->is_type("GeometryNodeEvaluateClosure")) {
       sync_sockets_evaluate_closure(snode, *node, op->reports);
     }
@@ -438,16 +475,182 @@ static wmOperatorStatus sockets_sync_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static std::string get_bundle_sync_tooltip(const nodes::BundleSignature &old_signature,
+                                           const nodes::BundleSignature &new_signature)
+{
+  Vector<StringRef> added_items;
+  Vector<StringRef> removed_items;
+  Vector<StringRef> changed_items;
+
+  for (const nodes::BundleSignature::Item &new_item : new_signature.items) {
+    if (const nodes::BundleSignature::Item *old_item = old_signature.items.lookup_key_ptr_as(
+            new_item.key))
+    {
+      if (new_item.type->type != old_item->type->type) {
+        changed_items.append(new_item.key);
+      }
+    }
+    else {
+      added_items.append(new_item.key);
+    }
+  }
+  for (const nodes::BundleSignature ::Item &old_item : old_signature.items) {
+    if (!new_signature.items.contains_as(old_item.key)) {
+      removed_items.append(old_item.key);
+    }
+  }
+
+  fmt::memory_buffer string_buffer;
+  auto buf = fmt::appender(string_buffer);
+  if (!added_items.is_empty()) {
+    fmt::format_to(buf, "{}: {}\n", TIP_("Add"), fmt::join(added_items, ", "));
+  }
+  if (!removed_items.is_empty()) {
+    fmt::format_to(buf, "{}: {}\n", TIP_("Remove"), fmt::join(removed_items, ", "));
+  }
+  if (!changed_items.is_empty()) {
+    fmt::format_to(buf, "{}: {}\n", TIP_("Change"), fmt::join(changed_items, ", "));
+  }
+  fmt::format_to(buf, TIP_("\nUpdate based on linked bundle signature"));
+
+  return fmt::to_string(string_buffer);
+}
+
+static std::string get_closure_sync_tooltip(const nodes::ClosureSignature &old_signature,
+                                            const nodes::ClosureSignature &new_signature)
+{
+  Vector<StringRef> added_inputs;
+  Vector<StringRef> removed_inputs;
+  Vector<StringRef> changed_inputs;
+
+  Vector<StringRef> added_outputs;
+  Vector<StringRef> removed_outputs;
+  Vector<StringRef> changed_outputs;
+
+  for (const nodes::ClosureSignature::Item &new_item : new_signature.inputs) {
+    if (const nodes::ClosureSignature::Item *old_item = old_signature.inputs.lookup_key_ptr_as(
+            new_item.key))
+    {
+      if (new_item.type->type != old_item->type->type) {
+        changed_inputs.append(new_item.key);
+      }
+    }
+    else {
+      added_inputs.append(new_item.key);
+    }
+  }
+  for (const nodes::ClosureSignature::Item &old_item : old_signature.inputs) {
+    if (!new_signature.inputs.contains_as(old_item.key)) {
+      removed_inputs.append(old_item.key);
+    }
+  }
+  for (const nodes::ClosureSignature::Item &new_item : new_signature.outputs) {
+    if (const nodes::ClosureSignature::Item *old_item = old_signature.outputs.lookup_key_ptr_as(
+            new_item.key))
+    {
+      if (new_item.type->type != old_item->type->type) {
+        changed_outputs.append(new_item.key);
+      }
+    }
+    else {
+      added_outputs.append(new_item.key);
+    }
+  }
+  for (const nodes::ClosureSignature::Item &old_item : old_signature.outputs) {
+    if (!new_signature.outputs.contains_as(old_item.key)) {
+      removed_outputs.append(old_item.key);
+    }
+  }
+
+  fmt::memory_buffer string_buffer;
+  auto buf = fmt::appender(string_buffer);
+  if (!added_inputs.is_empty()) {
+    fmt::format_to(buf, "{}: {}\n", TIP_("Add Inputs"), fmt::join(added_inputs, ", "));
+  }
+  if (!removed_inputs.is_empty()) {
+    fmt::format_to(buf, "{}: {}\n", TIP_("Remove Inputs"), fmt::join(removed_inputs, ", "));
+  }
+  if (!changed_inputs.is_empty()) {
+    fmt::format_to(buf, "{}: {}\n", TIP_("Change Inputs"), fmt::join(changed_inputs, ", "));
+  }
+  if (!added_outputs.is_empty()) {
+    fmt::format_to(buf, "{}: {}\n", TIP_("Add Outputs"), fmt::join(added_outputs, ", "));
+  }
+  if (!removed_outputs.is_empty()) {
+    fmt::format_to(buf, "{}: {}\n", TIP_("Remove Outputs"), fmt::join(removed_outputs, ", "));
+  }
+  if (!changed_outputs.is_empty()) {
+    fmt::format_to(buf, "{}: {}\n", TIP_("Change Outputs"), fmt::join(changed_outputs, ", "));
+  }
+  fmt::format_to(buf, TIP_("\nUpdate based on linked closure signature"));
+
+  return fmt::to_string(string_buffer);
+}
+
+static std::string sockets_sync_get_description(bContext *C, wmOperatorType *ot, PointerRNA *ptr)
+{
+  const SpaceNode &snode = *CTX_wm_space_node(C);
+  Vector<bNode *> nodes_to_sync = get_nodes_to_sync(*C, ptr);
+  if (nodes_to_sync.size() != 1) {
+    return ot->description;
+  }
+  const bNode &node = *nodes_to_sync.first();
+
+  if (node.is_type("GeometryNodeSeparateBundle")) {
+    const nodes::BundleSignature old_signature = nodes::BundleSignature::from_separate_bundle_node(
+        node);
+    if (const std::optional<nodes::BundleSignature> new_signature =
+            get_sync_state_separate_bundle(snode, node).source_signature)
+    {
+      return get_bundle_sync_tooltip(old_signature, *new_signature);
+    }
+  }
+  else if (node.is_type("GeometryNodeCombineBundle")) {
+    const nodes::BundleSignature old_signature = nodes::BundleSignature::from_combine_bundle_node(
+        node);
+    if (const std::optional<nodes::BundleSignature> new_signature =
+            get_sync_state_combine_bundle(snode, node).source_signature)
+    {
+      return get_bundle_sync_tooltip(old_signature, *new_signature);
+    }
+  }
+  else if (node.is_type("GeometryNodeEvaluateClosure")) {
+    const nodes::ClosureSignature old_signature =
+        nodes::ClosureSignature::from_evaluate_closure_node(node);
+    if (const std::optional<nodes::ClosureSignature> new_signature =
+            get_sync_state_evaluate_closure(snode, node).source_signature)
+    {
+      return get_closure_sync_tooltip(old_signature, *new_signature);
+    }
+  }
+  else if (node.is_type("GeometryNodeClosureOutput")) {
+    const nodes::ClosureSignature old_signature =
+        nodes::ClosureSignature::from_closure_output_node(node);
+    if (const std::optional<nodes::ClosureSignature> new_signature =
+            get_sync_state_closure_output(snode, node).source_signature)
+    {
+      return get_closure_sync_tooltip(old_signature, *new_signature);
+    }
+  }
+
+  return ot->description;
+}
+
 void NODE_OT_sockets_sync(wmOperatorType *ot)
 {
   ot->name = "Sync Sockets";
   ot->idname = "NODE_OT_sockets_sync";
   ot->description = "Update sockets to match what is actually used";
+  ot->get_description = sockets_sync_get_description;
 
   ot->poll = ED_operator_node_editable;
   ot->exec = sockets_sync_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop;
+  prop = RNA_def_string(ot->srna, "node_name", nullptr, 0, "Node Name", nullptr);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 }  // namespace blender::ed::space_node

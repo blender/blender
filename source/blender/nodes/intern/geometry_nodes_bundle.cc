@@ -293,7 +293,7 @@ BundleSignature BundleSignature::from_combine_bundle_node(const bNode &node)
   for (const int i : IndexRange(storage.items_num)) {
     const NodeGeometryCombineBundleItem &item = storage.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
-      signature.items.append({item.name, stype});
+      signature.items.add({item.name, stype});
     }
   }
   return signature;
@@ -307,7 +307,7 @@ BundleSignature BundleSignature::from_separate_bundle_node(const bNode &node)
   for (const int i : IndexRange(storage.items_num)) {
     const NodeGeometrySeparateBundleItem &item = storage.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
-      signature.items.append({item.name, stype});
+      signature.items.add({item.name, stype});
     }
   }
   return signature;

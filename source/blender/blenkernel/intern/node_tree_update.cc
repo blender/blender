@@ -22,6 +22,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_enum.hh"
@@ -291,6 +292,12 @@ struct NodeTreeRelations {
     BLI_assert(group_node_users_.has_value());
     return group_node_users_->lookup(ntree);
   }
+
+  Span<bNodeTree *> get_all_trees()
+  {
+    this->ensure_all_trees();
+    return *all_trees_;
+  }
 };
 
 struct TreeUpdateResult {
@@ -305,6 +312,7 @@ class NodeTreeMainUpdater {
   Map<bNodeTree *, TreeUpdateResult> update_result_by_tree_;
   NodeTreeRelations relations_;
   bool needs_relations_update_ = false;
+  bool found_updated_sync_node_ = false;
 
  public:
   NodeTreeMainUpdater(Main *bmain, const NodeTreeUpdateExtraParams &params)
@@ -408,6 +416,13 @@ class NodeTreeMainUpdater {
         DEG_relations_tag_update(bmain_);
       }
     }
+    if (found_updated_sync_node_) {
+      for (bNodeTree *ntree : relations_.get_all_trees()) {
+        if (ID_IS_EDITABLE(&ntree->id)) {
+          this->tag_possibly_outdated_sync_nodes(*ntree);
+        }
+      }
+    }
   }
 
  private:
@@ -509,6 +524,7 @@ class NodeTreeMainUpdater {
     this->update_internal_links(ntree);
     this->update_generic_callback(ntree);
     this->remove_unused_previews_when_necessary(ntree);
+    this->check_for_updated_sync_nodes(ntree);
     this->make_node_previews_dirty(ntree);
 
     this->propagate_runtime_flags(ntree);
@@ -798,6 +814,50 @@ class NodeTreeMainUpdater {
       return;
     }
     ntree.typeinfo->update(&ntree);
+  }
+
+  /**
+   * Checks if any node has been updated that may be synced with other nodes.
+   */
+  void check_for_updated_sync_nodes(const bNodeTree &ntree)
+  {
+    if (found_updated_sync_node_) {
+      return;
+    }
+    ntree.ensure_topology_cache();
+    for (const StringRefNull idname : {"GeometryNodeClosureInput",
+                                       "GeometryNodeClosureOutput",
+                                       "GeometryNodeEvaluateClosure",
+                                       "GeometryNodeCombineBundle",
+                                       "GeometryNodeSeparateBundle"})
+    {
+      for (const bNode *node : ntree.nodes_by_type(idname)) {
+        if (node->runtime->changed_flag & NTREE_CHANGED_NODE_PROPERTY) {
+          found_updated_sync_node_ = true;
+          break;
+        }
+      }
+    }
+  }
+
+  void tag_possibly_outdated_sync_nodes(bNodeTree &ntree)
+  {
+    for (bNode *node : ntree.nodes_by_type("GeometryNodeClosureOutput")) {
+      auto &storage = *static_cast<NodeGeometryClosureOutput *>(node->storage);
+      storage.flag |= NODE_GEO_CLOSURE_FLAG_MAY_NEED_SYNC;
+    }
+    for (bNode *node : ntree.nodes_by_type("GeometryNodeEvaluateClosure")) {
+      auto &storage = *static_cast<NodeGeometryEvaluateClosure *>(node->storage);
+      storage.flag |= NODE_GEO_EVALUATE_CLOSURE_FLAG_MAY_NEED_SYNC;
+    }
+    for (bNode *node : ntree.nodes_by_type("GeometryNodeCombineBundle")) {
+      auto &storage = *static_cast<NodeGeometryCombineBundle *>(node->storage);
+      storage.flag |= NODE_GEO_COMBINE_BUNDLE_FLAG_MAY_NEED_SYNC;
+    }
+    for (bNode *node : ntree.nodes_by_type("GeometryNodeSeparateBundle")) {
+      auto &storage = *static_cast<NodeGeometrySeparateBundle *>(node->storage);
+      storage.flag |= NODE_GEO_SEPARATE_BUNDLE_FLAG_MAY_NEED_SYNC;
+    }
   }
 
   void remove_unused_previews_when_necessary(bNodeTree &ntree)
