@@ -488,7 +488,7 @@ ccl_device
 
         const float roughness = param1;
 
-        if (roughness == 0.0f) {
+        if (roughness < 1e-5f) {
           sd->flag |= bsdf_diffuse_setup((ccl_private DiffuseBsdf *)bsdf);
         }
         else {
