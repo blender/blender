@@ -2100,19 +2100,19 @@ class USERPREF_PT_ndof_settings(Panel):
 
         if show_3dview_settings:
             col = layout.column(heading="Orbit Center")
+            col.active = props.ndof_navigation_mode == 'OBJECT'
             col.prop(props, "ndof_orbit_center_auto")
             colsub = col.column()
+            colsub.active = props.ndof_orbit_center_auto
             colsub.prop(props, "ndof_orbit_center_selected")
-            colsub.enabled = props.ndof_orbit_center_auto
             del colsub
-            col.enabled = props.ndof_navigation_mode == 'OBJECT'
             col.separator()
 
             col = layout.column(heading="Show")
             col.prop(props, "ndof_show_guide_orbit_axis", text="Orbit Axis")
             colsub = col.column()
+            colsub.active = props.ndof_navigation_mode == 'OBJECT'
             colsub.prop(props, "ndof_show_guide_orbit_center", text="Orbit Center")
-            colsub.enabled = props.ndof_navigation_mode == 'OBJECT'
             del colsub
 
         layout.separator()
