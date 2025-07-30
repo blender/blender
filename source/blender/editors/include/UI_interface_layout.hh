@@ -66,12 +66,17 @@ struct PanelLayout {
  * Meanwhile keep using `uiLayout*` functions to read/write this properties.
  */
 struct uiItem {
-  blender::ui::ItemType type_;
-  blender::ui::ItemInternalFlag flag_;
 
-  uiItem() = default;
+  uiItem(blender::ui::ItemType type);
   uiItem(const uiItem &) = default;
   virtual ~uiItem() = default;
+
+  [[nodiscard]] blender::ui::ItemType type() const;
+
+  blender::ui::ItemInternalFlag flag_ = {};
+
+ private:
+  blender::ui::ItemType type_ = {};
 };
 
 enum eUI_Item_Flag : uint16_t;
@@ -87,37 +92,39 @@ enum class LayoutSeparatorType : int8_t {
  * incoming refactors would remove public access and add public read/write function methods.
  * Meanwhile keep using `uiLayout*` functions to read/write this properties.
  */
-struct uiLayout : uiItem, blender::NonCopyable, blender::NonMovable {
+struct uiLayout : public uiItem, blender::NonCopyable, blender::NonMovable {
   // protected:
-  uiLayoutRoot *root_;
-  bContextStore *context_;
-  uiLayout *parent_;
+  uiLayoutRoot *root_ = nullptr;
+  bContextStore *context_ = nullptr;
+  uiLayout *parent_ = nullptr;
   blender::Vector<uiItem *> items_;
 
   std::string heading_;
 
   /** Sub layout to add child items, if not the layout itself. */
-  uiLayout *child_items_layout_;
+  uiLayout *child_items_layout_ = nullptr;
 
-  int x_, y_, w_, h_;
-  float scale_[2];
-  short space_;
-  bool align_;
-  bool active_;
-  bool active_default_;
-  bool activate_init_;
-  bool enabled_;
-  bool redalert_;
+  int x_ = 0, y_ = 0, w_ = 0, h_ = 0;
+  float scale_[2] = {0.0f, 0.0f};
+  short space_ = 0;
+  bool align_ = false;
+  bool active_ = false;
+  bool active_default_ = false;
+  bool activate_init_ = false;
+  bool enabled_ = false;
+  bool redalert_ = false;
   /** For layouts inside grid-flow, they and their items shall never have a fixed maximal size. */
-  bool variable_size_;
-  blender::ui::LayoutAlign alignment_;
-  blender::ui::EmbossType emboss_;
+  bool variable_size_ = false;
+  blender::ui::LayoutAlign alignment_ = {};
+  blender::ui::EmbossType emboss_ = {};
   /** for fixed width or height to avoid UI size changes */
-  float units_[2];
+  float units_[2] = {0.0f, 0.0f};
   /** Is copied to uiButs created in this layout. */
-  float search_weight_;
+  float search_weight_ = 0.0f;
 
  public:
+  uiLayout(blender::ui::ItemType type);
+
   [[nodiscard]] bool active() const;
   /**
    * Sets the active state of the layout and its items.
