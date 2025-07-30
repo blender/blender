@@ -1995,15 +1995,15 @@ static bool find_geonode_attribute_rgba(const DupliObject *dupli,
   return false;
 }
 
-/** Lookup an arbitrary RNA property and convert it to RGBA if possible. */
-static bool find_rna_property_rgba(PointerRNA *id_ptr, const char *name, float r_data[4])
+/** Lookup an arbitrary Custom or RNA property and convert it to RGBA if possible. */
+static bool find_property_rgba(PointerRNA *id_ptr, const char *name, float r_data[4])
 {
   if (id_ptr->data == nullptr) {
     return false;
   }
 
   /* First, check custom properties. */
-  IDProperty *group = RNA_struct_system_idprops(id_ptr, false);
+  IDProperty *group = RNA_struct_idprops(id_ptr, false);
   PropertyRNA *prop = nullptr;
 
   if (group && group->type == IDP_GROUP) {
@@ -2066,10 +2066,10 @@ static bool find_rna_property_rgba(PointerRNA *id_ptr, const char *name, float r
   return false;
 }
 
-static bool find_rna_property_rgba(const ID *id, const char *name, float r_data[4])
+static bool find_property_rgba(const ID *id, const char *name, float r_data[4])
 {
   PointerRNA ptr = RNA_id_pointer_create(const_cast<ID *>(id));
-  return find_rna_property_rgba(&ptr, name, r_data);
+  return find_property_rgba(&ptr, name, r_data);
 }
 
 bool BKE_object_dupli_find_rgba_attribute(const Object *ob,
@@ -2082,7 +2082,7 @@ bool BKE_object_dupli_find_rgba_attribute(const Object *ob,
   if (dupli && dupli->particle_system) {
     const ParticleSettings *settings = dupli->particle_system->part;
 
-    if (find_rna_property_rgba(&settings->id, name, r_value)) {
+    if (find_property_rgba(&settings->id, name, r_value)) {
       return true;
     }
   }
@@ -2093,18 +2093,18 @@ bool BKE_object_dupli_find_rgba_attribute(const Object *ob,
   }
 
   /* Check the dupli parent object. */
-  if (dupli_parent && find_rna_property_rgba(&dupli_parent->id, name, r_value)) {
+  if (dupli_parent && find_property_rgba(&dupli_parent->id, name, r_value)) {
     return true;
   }
 
   /* Check the main object. */
   if (ob) {
-    if (find_rna_property_rgba(&ob->id, name, r_value)) {
+    if (find_property_rgba(&ob->id, name, r_value)) {
       return true;
     }
 
     /* Check the main object data (e.g. mesh). */
-    if (ob->data && find_rna_property_rgba((const ID *)ob->data, name, r_value)) {
+    if (ob->data && find_property_rgba((const ID *)ob->data, name, r_value)) {
       return true;
     }
   }
@@ -2122,16 +2122,16 @@ bool BKE_view_layer_find_rgba_attribute(const Scene *scene,
     PointerRNA layer_ptr = RNA_pointer_create_discrete(
         &const_cast<ID &>(scene->id), &RNA_ViewLayer, const_cast<ViewLayer *>(layer));
 
-    if (find_rna_property_rgba(&layer_ptr, name, r_value)) {
+    if (find_property_rgba(&layer_ptr, name, r_value)) {
       return true;
     }
   }
 
-  if (find_rna_property_rgba(&scene->id, name, r_value)) {
+  if (find_property_rgba(&scene->id, name, r_value)) {
     return true;
   }
 
-  if (scene->world && find_rna_property_rgba(&scene->world->id, name, r_value)) {
+  if (scene->world && find_property_rgba(&scene->world->id, name, r_value)) {
     return true;
   }
 
