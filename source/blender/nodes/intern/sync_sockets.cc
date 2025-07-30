@@ -298,7 +298,6 @@ void sync_sockets_evaluate_closure(SpaceNode &snode,
 void sync_sockets_closure(SpaceNode &snode,
                           bNode &closure_input_node,
                           bNode &closure_output_node,
-                          const bool initialize_internal_links,
                           ReportList *reports)
 {
   const ClosureSyncState sync_state = get_sync_state_closure_output(snode, closure_output_node);
@@ -355,26 +354,31 @@ void sync_sockets_closure(SpaceNode &snode,
   BKE_ntree_update_tag_node_property(snode.edittree, &closure_input_node);
   BKE_ntree_update_tag_node_property(snode.edittree, &closure_output_node);
 
-  if (initialize_internal_links) {
-    nodes::update_node_declaration_and_sockets(*snode.edittree, closure_input_node);
-    nodes::update_node_declaration_and_sockets(*snode.edittree, closure_output_node);
+  nodes::update_node_declaration_and_sockets(*snode.edittree, closure_input_node);
+  nodes::update_node_declaration_and_sockets(*snode.edittree, closure_output_node);
 
-    snode.edittree->ensure_topology_cache();
-    Vector<std::pair<bNodeSocket *, bNodeSocket *>> internal_links;
-    for (const int input_i : signature.inputs.index_range()) {
-      const nodes::ClosureSignature::Item &input_item = signature.inputs[input_i];
-      for (const int output_i : signature.outputs.index_range()) {
-        const nodes::ClosureSignature::Item &output_item = signature.outputs[output_i];
-        if (input_item.key == output_item.key) {
-          internal_links.append({&closure_input_node.output_socket(input_i),
-                                 &closure_output_node.input_socket(output_i)});
-        }
-      };
+  /* Create internal zone links for newly created sockets. */
+  snode.edittree->ensure_topology_cache();
+  Vector<std::pair<bNodeSocket *, bNodeSocket *>> internal_links;
+  for (const int input_i : signature.inputs.index_range()) {
+    const nodes::ClosureSignature::Item &input_item = signature.inputs[input_i];
+    if (old_input_identifiers.contains(input_item.key)) {
+      continue;
     }
-    for (auto &&[from_socket, to_socket] : internal_links) {
-      bke::node_add_link(
-          *snode.edittree, closure_input_node, *from_socket, closure_output_node, *to_socket);
-    }
+    for (const int output_i : signature.outputs.index_range()) {
+      const nodes::ClosureSignature::Item &output_item = signature.outputs[output_i];
+      if (old_output_identifiers.contains(output_item.key)) {
+        continue;
+      }
+      if (input_item.key == output_item.key) {
+        internal_links.append({&closure_input_node.output_socket(input_i),
+                               &closure_output_node.input_socket(output_i)});
+      }
+    };
+  }
+  for (auto &&[from_socket, to_socket] : internal_links) {
+    bke::node_add_link(
+        *snode.edittree, closure_input_node, *from_socket, closure_output_node, *to_socket);
   }
 }
 
@@ -509,7 +513,7 @@ void sync_node(bContext &C, bNode &node, ReportList *reports)
     if (bNode *closure_output_node = closure_zone_type.get_corresponding_output(
             *snode.edittree, closure_input_node))
     {
-      sync_sockets_closure(snode, closure_input_node, *closure_output_node, false, reports);
+      sync_sockets_closure(snode, closure_input_node, *closure_output_node, reports);
     }
   }
   else if (node.is_type("GeometryNodeClosureOutput")) {
@@ -517,7 +521,7 @@ void sync_node(bContext &C, bNode &node, ReportList *reports)
     if (bNode *closure_input_node = closure_zone_type.get_corresponding_input(*snode.edittree,
                                                                               closure_output_node))
     {
-      sync_sockets_closure(snode, *closure_input_node, closure_output_node, false, reports);
+      sync_sockets_closure(snode, *closure_input_node, closure_output_node, reports);
     }
   }
 }

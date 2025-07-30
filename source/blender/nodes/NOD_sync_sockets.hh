@@ -40,7 +40,6 @@ void sync_sockets_combine_bundle(SpaceNode &snode,
 void sync_sockets_closure(SpaceNode &snode,
                           bNode &closure_input_node,
                           bNode &closure_output_node,
-                          const bool initialize_internal_links,
                           ReportList *reports);
 
 }  // namespace blender::nodes

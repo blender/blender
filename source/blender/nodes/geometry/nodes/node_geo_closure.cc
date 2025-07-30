@@ -212,7 +212,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     params.connect_available_socket(output_node, "Closure");
 
     SpaceNode &snode = *CTX_wm_space_node(&params.C);
-    sync_sockets_closure(snode, input_node, output_node, true, nullptr);
+    sync_sockets_closure(snode, input_node, output_node, nullptr);
   });
 }
 
