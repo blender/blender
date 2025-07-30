@@ -13,6 +13,7 @@
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
+#include "NOD_sync_sockets.hh"
 
 #include "BLO_read_write.hh"
 
@@ -211,7 +212,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     params.connect_available_socket(output_node, "Closure");
 
     SpaceNode &snode = *CTX_wm_space_node(&params.C);
-    ed::space_node::sync_sockets_closure(snode, input_node, output_node, true, nullptr);
+    sync_sockets_closure(snode, input_node, output_node, true, nullptr);
   });
 }
 
@@ -225,37 +226,6 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
 {
   socket_items::blend_read_data<ClosureInputItemsAccessor>(&reader, node);
   socket_items::blend_read_data<ClosureOutputItemsAccessor>(&reader, node);
-}
-
-static bool node_can_sync_sockets(const bContext &C,
-                                  const bNodeTree & /*ntree*/,
-                                  const bNode &node)
-{
-  const SpaceNode *snode = CTX_wm_space_node(&C);
-  if (!snode) {
-    return false;
-  }
-  const NodeGeometryClosureOutput &storage = node_storage(node);
-  if (!(storage.flag & NODE_GEO_CLOSURE_FLAG_MAY_NEED_SYNC)) {
-    return false;
-  }
-  const ed::space_node::NodeSyncState state = ed::space_node::sync_sockets_state_closure_output(
-      *snode, node);
-  switch (state) {
-    case ed::space_node::NodeSyncState::NoSyncSource:
-    case ed::space_node::NodeSyncState::Synced: {
-      const_cast<NodeGeometryClosureOutput &>(storage).flag &=
-          ~NODE_GEO_CLOSURE_FLAG_MAY_NEED_SYNC;
-      break;
-    }
-    case ed::space_node::NodeSyncState::CanBeSynced: {
-      return true;
-    }
-    case ed::space_node::NodeSyncState::ConflictingSyncSources: {
-      break;
-    }
-  }
-  return false;
 }
 
 static void node_register()
@@ -272,7 +242,6 @@ static void node_register()
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
-  ntype.can_sync_sockets = node_can_sync_sockets;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   bke::node_type_storage(ntype, "NodeGeometryClosureOutput", node_free_storage, node_copy_storage);

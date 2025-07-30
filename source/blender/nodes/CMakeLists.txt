@@ -98,6 +98,7 @@ set(SRC
   intern/partial_eval.cc
   intern/socket_search_link.cc
   intern/socket_usage_inference.cc
+  intern/sync_sockets.cc
   intern/value_elem.cc
   intern/volume_grid_function_eval.cc
 
@@ -146,6 +147,7 @@ set(SRC
   NOD_socket_search_link.hh
   NOD_socket_usage_inference.hh
   NOD_socket_usage_inference_fwd.hh
+  NOD_sync_sockets.hh
   NOD_texture.h
   NOD_value_elem.hh
   NOD_value_elem_eval.hh

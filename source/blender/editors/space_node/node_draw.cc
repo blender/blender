@@ -94,6 +94,7 @@
 #include "NOD_geometry_nodes_log.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_node_extra_info.hh"
+#include "NOD_sync_sockets.hh"
 
 #include "GEO_fillet_curves.hh"
 
@@ -2866,7 +2867,7 @@ static void node_draw_basis(const bContext &C,
     UI_block_emboss_set(&block, ui::EmbossType::Emboss);
   }
 
-  if (node.typeinfo->can_sync_sockets && node.typeinfo->can_sync_sockets(C, ntree, node)) {
+  if (nodes::node_can_sync_sockets(C, ntree, node)) {
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, ui::EmbossType::None);
     uiBut *but = uiDefIconBut(&block,

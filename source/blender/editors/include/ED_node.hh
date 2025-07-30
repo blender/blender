@@ -162,35 +162,7 @@ void ui_template_node_asset_menu_items(uiLayout &layout,
                                        const bContext &C,
                                        StringRef catalog_path);
 
-void sync_sockets_evaluate_closure(SpaceNode &snode,
-                                   bNode &evaluate_closure_node,
-                                   ReportList *reports);
-void sync_sockets_separate_bundle(SpaceNode &snode,
-                                  bNode &separate_bundle_node,
-                                  ReportList *reports);
-void sync_sockets_combine_bundle(SpaceNode &snode,
-                                 bNode &combine_bundle_node,
-                                 ReportList *reports);
-void sync_sockets_closure(SpaceNode &snode,
-                          bNode &closure_input_node,
-                          bNode &closure_output_node,
-                          const bool initialize_internal_links,
-                          ReportList *reports);
-
-enum class NodeSyncState {
-  Synced,
-  CanBeSynced,
-  NoSyncSource,
-  ConflictingSyncSources,
-};
-
-NodeSyncState sync_sockets_state_separate_bundle(const SpaceNode &snode,
-                                                 const bNode &separate_bundle_node);
-NodeSyncState sync_sockets_state_combine_bundle(const SpaceNode &snode,
-                                                const bNode &combine_bundle_node);
-NodeSyncState sync_sockets_state_closure_output(const SpaceNode &snode,
-                                                const bNode &closure_output_node);
-NodeSyncState sync_sockets_state_evaluate_closure(const SpaceNode &snode,
-                                                  const bNode &evaluate_closure_node);
+/** See #SpaceNode_Runtime::node_can_sync_states. */
+Map<int, bool> &node_can_sync_cache_get(SpaceNode &snode);
 
 }  // namespace blender::ed::space_node
