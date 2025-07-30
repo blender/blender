@@ -156,14 +156,10 @@ static ImBuf *do_transform_effect(const RenderData *context,
   /* Translate */
   float translate_x, translate_y;
   if (!transform->percent) {
-    /* Compensate text size for preview render size. */
-    double proxy_size_comp = context->scene->r.size / 100.0;
-    if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
-      proxy_size_comp = rendersize_to_scale_factor(context->preview_render_size);
-    }
-
-    translate_x = transform->xIni * proxy_size_comp + (x / 2.0f);
-    translate_y = transform->yIni * proxy_size_comp + (y / 2.0f);
+    /* Compensate for render scale. */
+    const float size_scale = seq::get_render_scale_factor(*context);
+    translate_x = transform->xIni * size_scale + (x / 2.0f);
+    translate_y = transform->yIni * size_scale + (y / 2.0f);
   }
   else {
     translate_x = x * (transform->xIni / 100.0f) + (x / 2.0f);

@@ -115,26 +115,19 @@ ImBuf *sequencer_ibuf_get(const bContext *C, const int timeline_frame, const cha
 
   seq::RenderData context = {nullptr};
   ImBuf *ibuf;
-  int rectx, recty;
-  double render_size;
   short is_break = G.is_break;
-
-  if (sseq->render_size == SEQ_RENDER_SIZE_NONE) {
+  const eSpaceSeq_Proxy_RenderSize render_size_mode = eSpaceSeq_Proxy_RenderSize(
+      sseq->render_size);
+  if (render_size_mode == SEQ_RENDER_SIZE_NONE) {
     return nullptr;
   }
 
-  if (sseq->render_size == SEQ_RENDER_SIZE_SCENE) {
-    render_size = scene->r.size / 100.0;
-  }
-  else {
-    render_size = seq::rendersize_to_scale_factor(sseq->render_size);
-  }
-
-  rectx = roundf(render_size * scene->r.xsch);
-  recty = roundf(render_size * scene->r.ysch);
+  const float render_scale = seq::get_render_scale_factor(render_size_mode, scene->r.size);
+  int rectx = roundf(render_scale * scene->r.xsch);
+  int recty = roundf(render_scale * scene->r.ysch);
 
   seq::render_new_render_data(
-      bmain, depsgraph, scene, rectx, recty, sseq->render_size, false, &context);
+      bmain, depsgraph, scene, rectx, recty, render_size_mode, false, &context);
   context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
   context.use_proxies = (sseq->flag & SEQ_USE_PROXIES) != 0;
   context.is_playing = screen->animtimer != nullptr;

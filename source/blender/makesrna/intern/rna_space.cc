@@ -2534,7 +2534,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
 
     /* Add new proxy size. */
     strip->data->proxy->build_size_flags |= blender::seq::rendersize_to_proxysize(
-        sseq->render_size);
+        eSpaceSeq_Proxy_RenderSize(sseq->render_size));
 
     /* Build proxy. */
     blender::seq::proxy_rebuild_context(

@@ -776,18 +776,14 @@ static int text_effect_line_size_get(const RenderData *context, const Strip *str
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
-  /* Used to calculate boundbox. Proxy size compensation is not needed there. */
+  /* Used to calculate boundbox. Render scale compensation is not needed there. */
   if (context == nullptr) {
     return data->text_size;
   }
 
-  /* Compensate text size for preview render size. */
-  double proxy_size_comp = context->scene->r.size / 100.0;
-  if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
-    proxy_size_comp = rendersize_to_scale_factor(context->preview_render_size);
-  }
-
-  return proxy_size_comp * data->text_size;
+  /* Compensate for preview render size. */
+  const float size_scale = seq::get_render_scale_factor(*context);
+  return size_scale * data->text_size;
 }
 
 int text_effect_font_init(const RenderData *context, const Strip *strip, int font_flags)

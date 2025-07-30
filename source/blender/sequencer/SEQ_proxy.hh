@@ -9,8 +9,11 @@
  */
 
 #include "DNA_listBase.h"
+#include "DNA_space_enums.h"
 
 #include "BLI_set.hh"
+
+#include "IMB_imbuf_enums.h"
 
 struct Depsgraph;
 struct ListBase;
@@ -36,9 +39,9 @@ bool proxy_rebuild_context(Main *bmain,
 void proxy_rebuild(IndexBuildContext *context, wmJobWorkerStatus *worker_status);
 void proxy_rebuild_finish(IndexBuildContext *context, bool stop);
 void proxy_set(Strip *strip, bool value);
-bool can_use_proxy(const RenderData *context, const Strip *strip, int psize);
-int rendersize_to_proxysize(int render_size);
-double rendersize_to_scale_factor(int render_size);
+bool can_use_proxy(const RenderData *context, const Strip *strip, IMB_Proxy_Size psize);
+IMB_Proxy_Size rendersize_to_proxysize(eSpaceSeq_Proxy_RenderSize render_size);
+float rendersize_to_scale_factor(eSpaceSeq_Proxy_RenderSize render_size);
 
 struct ProxyJob {
   Main *main;

@@ -208,7 +208,7 @@ void render_new_render_data(Main *bmain,
                             Scene *scene,
                             int rectx,
                             int recty,
-                            int preview_render_size,
+                            eSpaceSeq_Proxy_RenderSize preview_render_size,
                             int for_render,
                             RenderData *r_context)
 {
@@ -281,9 +281,7 @@ StripScreenQuad get_strip_screen_quad(const RenderData *context, const Strip *st
   const float2 offset{x * 0.5f, y * 0.5f};
 
   Array<float2> quad = image_transform_final_quad_get(scene, strip);
-  const float scale = context->preview_render_size == SEQ_RENDER_SIZE_SCENE ?
-                          float(scene->r.size) / 100.0f :
-                          rendersize_to_scale_factor(context->preview_render_size);
+  const float scale = get_render_scale_factor(*context);
   return StripScreenQuad{float2(quad[0] * scale + offset),
                          float2(quad[1] * scale + offset),
                          float2(quad[2] * scale + offset),
@@ -538,9 +536,7 @@ static void sequencer_preprocess_transform_crop(
     ImBuf *in, ImBuf *out, const RenderData *context, Strip *strip, const bool is_proxy_image)
 {
   const Scene *scene = context->scene;
-  const float preview_scale_factor = context->preview_render_size == SEQ_RENDER_SIZE_SCENE ?
-                                         float(scene->r.size) / 100 :
-                                         rendersize_to_scale_factor(context->preview_render_size);
+  const float preview_scale_factor = get_render_scale_factor(*context);
   const bool do_scale_to_render_size = seq_need_scale_to_render_size(strip, is_proxy_image);
   const float image_scale_factor = do_scale_to_render_size ? preview_scale_factor : 1.0f;
 
@@ -1065,7 +1061,7 @@ static ImBuf *seq_render_movie_strip_view(const RenderData *context,
                                           bool *r_is_proxy_image)
 {
   ImBuf *ibuf = nullptr;
-  IMB_Proxy_Size psize = IMB_Proxy_Size(rendersize_to_proxysize(context->preview_render_size));
+  IMB_Proxy_Size psize = rendersize_to_proxysize(context->preview_render_size);
   const int frame_index = round_fl_to_int(give_frame_index(context->scene, strip, timeline_frame));
 
   if (can_use_proxy(context, strip, psize)) {
@@ -1213,7 +1209,7 @@ static ImBuf *seq_render_movieclip_strip(const RenderData *context,
 {
   ImBuf *ibuf = nullptr;
   MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
-  IMB_Proxy_Size psize = IMB_Proxy_Size(rendersize_to_proxysize(context->preview_render_size));
+  IMB_Proxy_Size psize = rendersize_to_proxysize(context->preview_render_size);
 
   if (!strip->clip) {
     return nullptr;
@@ -2062,5 +2058,16 @@ bool render_is_muted(const ListBase *channels, const Strip *strip)
 }
 
 /** \} */
+
+float get_render_scale_factor(eSpaceSeq_Proxy_RenderSize render_size, short scene_render_scale)
+{
+  return render_size == SEQ_RENDER_SIZE_SCENE ? scene_render_scale / 100.0f :
+                                                rendersize_to_scale_factor(render_size);
+}
+
+float get_render_scale_factor(const RenderData &context)
+{
+  return get_render_scale_factor(context.preview_render_size, context.scene->r.size);
+}
 
 }  // namespace blender::seq
