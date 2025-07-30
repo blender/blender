@@ -2001,6 +2001,9 @@ bool remove_fill_guides(bke::CurvesGeometry &curves)
   IndexMaskMemory memory;
   const IndexMask fill_guides = IndexMask::from_bools(is_fill_guide, memory);
   curves.remove_curves(fill_guides, {});
+
+  curves.attributes_for_write().remove(".is_fill_guide");
+
   return true;
 }
 
