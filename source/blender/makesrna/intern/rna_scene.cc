@@ -1258,7 +1258,11 @@ static void rna_Scene_compositing_node_group_set(PointerRNA *ptr,
         reports, RPT_ERROR, "Node tree '%s' is not a compositing node group.", ntree->id.name + 2);
     return;
   }
+  if (scene->compositing_node_group) {
+    id_us_min(&scene->compositing_node_group->id);
+  }
   scene->compositing_node_group = ntree;
+  id_us_plus(&scene->compositing_node_group->id);
 }
 
 static std::optional<std::string> rna_SceneEEVEE_path(const PointerRNA * /*ptr*/)

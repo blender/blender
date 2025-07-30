@@ -1035,6 +1035,11 @@ if(WITH_GPU_COMPOSITOR_TESTS AND TEST_SRC_DIR_EXISTS)
   endif()
 endif()
 
+add_blender_test(
+  compositing_node_group
+  --python ${CMAKE_CURRENT_LIST_DIR}/compositing_node_group.py
+)
+
 # ------------------------------------------------------------------------------
 # GEOMETRY NODE TESTS
 # ------------------------------------------------------------------------------
