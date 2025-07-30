@@ -20,10 +20,10 @@
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-
 #include "RNA_types.hh"
-#include "UI_resources.hh"
 #include "rna_internal.hh"
+
+#include "UI_resources.hh"
 
 #include "SEQ_effects.hh"
 #include "SEQ_sequencer.hh"

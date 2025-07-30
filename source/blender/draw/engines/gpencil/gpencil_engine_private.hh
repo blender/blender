@@ -8,11 +8,11 @@
 
 #pragma once
 
+#include "BLI_bitmap.h"
 #include "BLI_memblock.h"
+
 #include "DNA_shader_fx_types.h"
 #include "DRW_render.hh"
-
-#include "BLI_bitmap.h"
 
 #include "BKE_grease_pencil.hh"
 

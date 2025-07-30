@@ -6,8 +6,10 @@
  * \ingroup texnodes
  */
 
-#include "BKE_node.hh"
 #include "BLI_math_vector.h"
+
+#include "BKE_node.hh"
+
 #include "node_texture_util.hh"
 
 static blender::bke::bNodeSocketTemplate inputs[] = {

@@ -11,7 +11,6 @@
 
 #include <fmt/format.h>
 
-#include "BKE_node.hh"
 #include "node_composite_util.hh"
 
 #include "BLI_assert.h"
@@ -38,6 +37,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
+#include "BKE_node.hh"
 
 #include "MEM_guardedalloc.h"
 

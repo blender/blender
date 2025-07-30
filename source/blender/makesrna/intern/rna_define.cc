@@ -15,7 +15,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_defaults.h"
@@ -27,6 +26,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_bits.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_blender_version.h" /* For #BLENDER_VERSION deprecation warnings. */
 

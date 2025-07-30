@@ -100,8 +100,10 @@ static const EnumPropertyItem node_default_input_items[] = {
 #  include "NOD_socket.hh"
 
 #  include "DNA_material_types.h"
-#  include "ED_node.hh"
+
 #  include "WM_api.hh"
+
+#  include "ED_node.hh"
 
 /* Internal RNA function declarations, used to invoke registered callbacks. */
 extern FunctionRNA rna_NodeTreeInterfaceSocket_draw_func;

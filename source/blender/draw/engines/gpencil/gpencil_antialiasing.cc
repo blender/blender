@@ -7,12 +7,12 @@
  */
 
 #include "BLI_rand.h"
+#include "BLI_smaa_textures.h"
+
 #include "DNA_scene_types.h"
 #include "DRW_render.hh"
 
 #include "gpencil_engine_private.hh"
-
-#include "BLI_smaa_textures.h"
 
 namespace blender::draw::gpencil {
 

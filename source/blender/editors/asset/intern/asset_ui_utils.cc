@@ -21,8 +21,10 @@
 #include "UI_resources.hh"
 
 #include "DNA_userdef_types.h"
-#include "ED_asset.hh"
+
 #include "RNA_access.hh"
+
+#include "ED_asset.hh"
 
 namespace blender::ed::asset {
 

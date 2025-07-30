@@ -265,6 +265,7 @@ const EnumPropertyItem rna_enum_property_string_search_flag_items[] = {
 #ifdef RNA_RUNTIME
 #  include "BLI_ghash.h"
 #  include "BLI_string.h"
+
 #  include "MEM_guardedalloc.h"
 
 #  include "BKE_idprop.hh"

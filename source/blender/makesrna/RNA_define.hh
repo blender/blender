@@ -15,6 +15,7 @@
 #include <limits.h>
 
 #include "DNA_listBase.h"
+
 #include "RNA_types.hh"
 
 #ifdef UNIT_TEST

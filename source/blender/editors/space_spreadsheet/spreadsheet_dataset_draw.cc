@@ -20,7 +20,6 @@
 #include "BKE_lib_id.hh"
 #include "BKE_volume.hh"
 
-#include "ED_spreadsheet.hh"
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
@@ -33,6 +32,7 @@
 #include "BLT_translation.hh"
 
 #include "ED_outliner.hh"
+#include "ED_spreadsheet.hh"
 
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_dataset_draw.hh"

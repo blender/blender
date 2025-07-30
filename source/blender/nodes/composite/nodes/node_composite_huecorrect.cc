@@ -6,7 +6,6 @@
  * \ingroup cmpnodes
  */
 
-#include "BKE_node.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.hh"
@@ -17,6 +16,7 @@
 #include "NOD_multi_function.hh"
 
 #include "BKE_colortools.hh"
+#include "BKE_node.hh"
 
 #include "GPU_material.hh"
 

@@ -61,6 +61,7 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
+
 #include "mesh_intern.hh"
 
 using blender::float3;

@@ -10,8 +10,6 @@
 
 #include <fmt/format.h>
 
-#include "DNA_sequence_types.h"
-#include "ED_sequencer.hh"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_string.h"
@@ -22,6 +20,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
@@ -43,6 +42,7 @@
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
+#include "ED_sequencer.hh"
 
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"

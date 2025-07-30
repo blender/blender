@@ -10,7 +10,6 @@
  */
 
 #include "BKE_paint.hh"
-#include "DNA_particle_types.h"
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
@@ -18,6 +17,7 @@
 
 #include "BLT_translation.hh"
 
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 

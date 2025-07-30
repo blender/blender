@@ -12,6 +12,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
+
 #include "IMB_imbuf_types.hh"
 #include "SEQ_effects.hh"
 

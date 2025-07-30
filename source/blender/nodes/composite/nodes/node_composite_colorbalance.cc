@@ -6,7 +6,6 @@
  * \ingroup cmpnodes
  */
 
-#include "BKE_node.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix_types.hh"
@@ -15,6 +14,7 @@
 
 #include "FN_multi_function_builder.hh"
 
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "NOD_multi_function.hh"

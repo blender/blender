@@ -21,6 +21,7 @@
 #include "ED_sculpt.hh"
 #include "ED_text.hh"
 #include "ED_undo.hh"
+
 #include "undo_intern.hh"
 
 /* Keep last */

@@ -55,6 +55,7 @@
 #include "ED_node_preview.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
+
 #include "node_intern.hh"
 
 namespace blender::ed::space_node {
