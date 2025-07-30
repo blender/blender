@@ -458,9 +458,13 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
     /* regular properties */
     rna_inheritance_properties_listbase_next(iter, rna_property_builtin);
 
-    /* try id properties */
+    /* Try IDProperties (i.e. custom data).
+     *
+     * NOTE: System IDProperties should not need to be handled here, as they are expected to have a
+     * valid (runtime-defined) RNA property to wrap them, which will have been processed above as
+     * part of `rna_inheritance_properties_listbase_next`. */
     if (!iter->valid) {
-      group = RNA_struct_system_idprops(&iter->builtin_parent, 0);
+      group = RNA_struct_idprops(&iter->builtin_parent, 0);
 
       if (group) {
         rna_iterator_listbase_end(iter);
