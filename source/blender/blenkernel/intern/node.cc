@@ -700,7 +700,76 @@ static void write_legacy_properties(bNodeTree &ntree)
           const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Resolution Mode");
           storage.resolution_mode = socket->default_value_typed<bNodeSocketValueMenu>()->value;
         }
-        else if (STREQ(node->idname, "FunctionNodeMatchString")) {
+        else if (node->type_legacy == GEO_NODE_FILL_CURVE) {
+          auto &storage = *static_cast<NodeGeometryCurveFill *>(node->storage);
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Mode");
+          storage.mode = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_FILLET_CURVE) {
+          auto &storage = *static_cast<NodeGeometryCurveFillet *>(node->storage);
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Mode");
+          storage.mode = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_RESAMPLE_CURVE) {
+          auto &storage = *static_cast<NodeGeometryCurveResample *>(node->storage);
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Mode");
+          storage.mode = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME) {
+          auto &storage = *static_cast<NodeGeometryDistributePointsInVolume *>(node->storage);
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Mode");
+          storage.mode = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_MERGE_BY_DISTANCE) {
+          auto &storage = *static_cast<NodeGeometryMergeByDistance *>(node->storage);
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Mode");
+          storage.mode = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_MESH_TO_VOLUME) {
+          auto &storage = *static_cast<NodeGeometryMeshToVolume *>(node->storage);
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Resolution Mode");
+          storage.resolution_mode = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_RAYCAST) {
+          auto &storage = *static_cast<NodeGeometryRaycast *>(node->storage);
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Interpolation");
+          storage.mapping = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_REMOVE_ATTRIBUTE) {
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Pattern Mode");
+          node->custom1 = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_SAMPLE_GRID) {
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Interpolation");
+          node->custom2 = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_SCALE_ELEMENTS) {
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Scale Mode");
+          node->custom2 = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_SET_CURVE_NORMAL) {
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Mode");
+          node->custom1 = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_SUBDIVISION_SURFACE) {
+          auto &storage = *static_cast<NodeGeometrySubdivisionSurface *>(node->storage);
+          const bNodeSocket *uv_smooth_socket = node_find_socket(*node, SOCK_IN, "UV Smooth");
+          const bNodeSocket *boundary_smooth_socket = node_find_socket(
+              *node, SOCK_IN, "Boundary Smooth");
+          storage.uv_smooth = uv_smooth_socket->default_value_typed<bNodeSocketValueMenu>()->value;
+          storage.boundary_smooth =
+              boundary_smooth_socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_UV_PACK_ISLANDS) {
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Method");
+          node->custom1 = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->type_legacy == GEO_NODE_UV_UNWRAP) {
+          auto &storage = *static_cast<NodeGeometryUVUnwrap *>(node->storage);
+          const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Method");
+          storage.method = socket->default_value_typed<bNodeSocketValueMenu>()->value;
+        }
+        else if (node->is_type("FunctionNodeMatchString")) {
           const bNodeSocket *socket = node_find_socket(*node, SOCK_IN, "Operation");
           node->custom1 = socket->default_value_typed<bNodeSocketValueMenu>()->value;
         }

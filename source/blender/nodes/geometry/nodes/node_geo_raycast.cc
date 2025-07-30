@@ -25,6 +25,20 @@ using namespace blender::bke::mesh_surface_sample;
 
 NODE_STORAGE_FUNCS(NodeGeometryRaycast)
 
+static EnumPropertyItem interpolation_items[] = {
+    {GEO_NODE_RAYCAST_INTERPOLATED,
+     "INTERPOLATED",
+     0,
+     "Interpolated",
+     "Interpolate the attribute from the corners of the hit face"},
+    {GEO_NODE_RAYCAST_NEAREST,
+     "NEAREST",
+     0,
+     "Nearest",
+     "Use the attribute value of the closest mesh element"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   const bNode *node = b.node_or_null();
@@ -38,6 +52,9 @@ static void node_declare(NodeDeclarationBuilder &b)
     /* TODO: Field interfacing depends on the offset of the next declarations! */
     b.add_input(data_type, "Attribute").hide_value().field_on_all();
   }
+  b.add_input<decl::Menu>("Interpolation")
+      .static_items(interpolation_items)
+      .description("Mapping from the target geometry to hit points");
 
   b.add_input<decl::Vector>("Source Position").implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
   b.add_input<decl::Vector>("Ray Direction").default_value({0.0f, 0.0f, -1.0f}).supports_field();
@@ -61,13 +78,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(ptr, "mapping", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryRaycast *data = MEM_callocN<NodeGeometryRaycast>(__func__);
-  data->mapping = GEO_NODE_RAYCAST_INTERPOLATED;
   data->data_type = CD_PROP_FLOAT;
   node->storage = data;
 }
@@ -204,8 +219,7 @@ class RaycastFunction : public mf::MultiFunction {
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet target = params.extract_input<GeometrySet>("Target Geometry");
-  const NodeGeometryRaycast &storage = node_storage(params.node());
-  const GeometryNodeRaycastMapMode mapping = GeometryNodeRaycastMapMode(storage.mapping);
+  const auto mapping = params.get_input<GeometryNodeRaycastMapMode>("Interpolation");
 
   if (target.is_empty()) {
     params.set_default_remaining_outputs();
@@ -269,27 +283,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_rna(StructRNA *srna)
 {
-  static EnumPropertyItem mapping_items[] = {
-      {GEO_NODE_RAYCAST_INTERPOLATED,
-       "INTERPOLATED",
-       0,
-       "Interpolated",
-       "Interpolate the attribute from the corners of the hit face"},
-      {GEO_NODE_RAYCAST_NEAREST,
-       "NEAREST",
-       0,
-       "Nearest",
-       "Use the attribute value of the closest mesh element"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_node_enum(srna,
-                    "mapping",
-                    "Mapping",
-                    "Mapping from the target geometry to hit points",
-                    mapping_items,
-                    NOD_storage_enum_accessors(mapping),
-                    GEO_NODE_RAYCAST_INTERPOLATED);
   RNA_def_node_enum(srna,
                     "data_type",
                     "Data Type",

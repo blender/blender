@@ -17,11 +17,6 @@
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
 
-#include "NOD_rna_define.hh"
-
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
-
 #include "GEO_randomize.hh"
 
 #include "node_geometry_util.hh"
@@ -30,56 +25,60 @@ namespace blender::nodes::node_geo_distribute_points_in_volume_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryDistributePointsInVolume)
 
+static const EnumPropertyItem mode_items[] = {
+    {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM,
+     "DENSITY_RANDOM",
+     0,
+     "Random",
+     "Distribute points randomly inside of the volume"},
+    {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID,
+     "DENSITY_GRID",
+     0,
+     "Grid",
+     "Distribute the points in a grid pattern inside of the volume"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Volume")
       .supported_type(GeometryComponent::Type::Volume)
       .translation_context(BLT_I18NCONTEXT_ID_ID)
       .description("Volume with fog grids that points are scattered in");
-  auto &density = b.add_input<decl::Float>("Density")
-                      .default_value(1.0f)
-                      .min(0.0f)
-                      .max(100000.0f)
-                      .subtype(PROP_NONE)
-                      .description("Number of points to sample per unit volume");
-  auto &seed = b.add_input<decl::Int>("Seed").min(-10000).max(10000).description(
-      "Seed used by the random number generator to generate random points");
-  auto &spacing = b.add_input<decl::Vector>("Spacing")
-                      .default_value({0.3, 0.3, 0.3})
-                      .min(0.0001f)
-                      .subtype(PROP_XYZ)
-                      .description("Spacing between grid points");
-  auto &threshold = b.add_input<decl::Float>("Threshold")
-                        .default_value(0.1f)
-                        .min(0.0f)
-                        .max(FLT_MAX)
-                        .description("Minimum density of a volume cell to contain a grid point");
+  b.add_input<decl::Menu>("Mode")
+      .static_items(mode_items)
+      .description("Method to use for scattering points");
+  b.add_input<decl::Float>("Density")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(100000.0f)
+      .subtype(PROP_NONE)
+      .description("Number of points to sample per unit volume")
+      .usage_by_single_menu(GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM);
+  b.add_input<decl::Int>("Seed")
+      .min(-10000)
+      .max(10000)
+      .description("Seed used by the random number generator to generate random points")
+      .usage_by_single_menu(GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM);
+  b.add_input<decl::Vector>("Spacing")
+      .default_value({0.3, 0.3, 0.3})
+      .min(0.0001f)
+      .subtype(PROP_XYZ)
+      .description("Spacing between grid points")
+      .usage_by_single_menu(GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
+  b.add_input<decl::Float>("Threshold")
+      .default_value(0.1f)
+      .min(0.0f)
+      .max(FLT_MAX)
+      .description("Minimum density of a volume cell to contain a grid point")
+      .usage_by_single_menu(GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
   b.add_output<decl::Geometry>("Points").propagate_all();
-
-  const bNode *node = b.node_or_null();
-  if (node != nullptr) {
-    const NodeGeometryDistributePointsInVolume &storage = node_storage(*node);
-    GeometryNodeDistributePointsInVolumeMode mode = GeometryNodeDistributePointsInVolumeMode(
-        storage.mode);
-
-    density.available(mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM);
-    spacing.available(mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
-    seed.available(mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM);
-    threshold.available(mode == GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID);
-  }
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryDistributePointsInVolume *data = MEM_callocN<NodeGeometryDistributePointsInVolume>(
-      __func__);
-  data->mode = GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM;
-  node->storage = data;
+  /* Still used for forward compatibility. */
+  node->storage = MEM_callocN<NodeGeometryDistributePointsInVolume>(__func__);
 }
 
 #ifdef WITH_OPENVDB
@@ -181,10 +180,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_OPENVDB
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume");
-
-  const NodeGeometryDistributePointsInVolume &storage = node_storage(params.node());
-  const GeometryNodeDistributePointsInVolumeMode mode = GeometryNodeDistributePointsInVolumeMode(
-      storage.mode);
+  const auto mode = params.extract_input<GeometryNodeDistributePointsInVolumeMode>("Mode");
 
   float density;
   int seed;
@@ -255,31 +251,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
-static void node_rna(StructRNA *srna)
-{
-  static const EnumPropertyItem mode_items[] = {
-      {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM,
-       "DENSITY_RANDOM",
-       0,
-       "Random",
-       "Distribute points randomly inside of the volume"},
-      {GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_GRID,
-       "DENSITY_GRID",
-       0,
-       "Grid",
-       "Distribute the points in a grid pattern inside of the volume"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_node_enum(srna,
-                    "mode",
-                    "Distribution Method",
-                    "Method to use for scattering points",
-                    mode_items,
-                    NOD_storage_enum_accessors(mode),
-                    GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME_DENSITY_RANDOM);
-}
-
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -297,10 +268,7 @@ static void node_register()
   blender::bke::node_type_size(ntype, 170, 100, 320);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.draw_buttons = node_layout;
   blender::bke::node_register_type(ntype);
-
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

@@ -10,12 +10,7 @@
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
-
 #include "RNA_enum_types.hh"
-
-#include "NOD_rna_define.hh"
 
 #include "GEO_randomize.hh"
 
@@ -31,7 +26,6 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_default_layout();
   b.add_input<decl::Geometry>("Mesh")
       .supported_type(GeometryComponent::Type::Mesh)
       .description("Mesh to subdivide");
@@ -54,20 +48,20 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Place vertices at the surface that would be produced with infinite "
           "levels of subdivision (smoothest possible shape)");
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "uv_smooth", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(ptr, "boundary_smooth", UI_ITEM_NONE, "", ICON_NONE);
+  b.add_input<decl::Menu>("UV Smooth")
+      .static_items(rna_enum_subdivision_uv_smooth_items)
+      .default_value(SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES)
+      .description("Controls how smoothing is applied to UVs");
+  b.add_input<decl::Menu>("Boundary Smooth")
+      .static_items(rna_enum_subdivision_boundary_smooth_items)
+      .default_value(SUBSURF_BOUNDARY_SMOOTH_ALL)
+      .description("Controls how open boundaries are smoothed");
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometrySubdivisionSurface *data = MEM_callocN<NodeGeometrySubdivisionSurface>(__func__);
-  data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES;
-  data->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL;
-  node->storage = data;
+  /* Still used for forward compatibility. */
+  node->storage = MEM_callocN<NodeGeometrySubdivisionSurface>(__func__);
 }
 
 #ifdef WITH_OPENSUBDIV
@@ -185,9 +179,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<float> vert_crease = params.extract_input<Field<float>>("Vertex Crease");
   const Field<float> edge_crease = params.extract_input<Field<float>>("Edge Crease");
 
-  const NodeGeometrySubdivisionSurface &storage = node_storage(params.node());
-  const int uv_smooth = storage.uv_smooth;
-  const int boundary_smooth = storage.boundary_smooth;
+  const int uv_smooth = params.get_input<eSubsurfUVSmooth>("UV Smooth");
+  const int boundary_smooth = params.get_input<eSubsurfBoundarySmooth>("Boundary Smooth");
   const int level = std::max(params.extract_input<int>("Level"), 0);
   const bool use_limit_surface = params.extract_input<bool>("Limit Surface");
   if (level == 0) {
@@ -215,29 +208,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Mesh", std::move(geometry_set));
 }
 
-static void node_rna(StructRNA *srna)
-{
-  RNA_def_node_enum(srna,
-                    "uv_smooth",
-                    "UV Smooth",
-                    "Controls how smoothing is applied to UVs",
-                    rna_enum_subdivision_uv_smooth_items,
-                    NOD_storage_enum_accessors(uv_smooth),
-                    SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES,
-                    nullptr,
-                    true);
-
-  RNA_def_node_enum(srna,
-                    "boundary_smooth",
-                    "Boundary Smooth",
-                    "Controls how open boundaries are smoothed",
-                    rna_enum_subdivision_boundary_smooth_items,
-                    NOD_storage_enum_accessors(boundary_smooth),
-                    SUBSURF_BOUNDARY_SMOOTH_ALL,
-                    nullptr,
-                    true);
-}
-
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -250,7 +220,6 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
   bke::node_type_size_preset(ntype, bke::eNodeSizePreset::Middle);
   blender::bke::node_type_storage(ntype,
@@ -258,8 +227,6 @@ static void node_register()
                                   node_free_standard_storage,
                                   node_copy_standard_storage);
   blender::bke::node_register_type(ntype);
-
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

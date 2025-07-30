@@ -38,14 +38,14 @@ static EnumPropertyItem resolution_mode_items[] = {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Menu>("Resolution Mode")
-      .static_items(resolution_mode_items)
-      .description("How the voxel size is specified");
   b.add_input<decl::Geometry>("Volume")
       .supported_type(GeometryComponent::Type::Volume)
       .translation_context(BLT_I18NCONTEXT_ID_ID)
       .is_default_link_socket()
       .description("Volume to convert to a mesh");
+  b.add_input<decl::Menu>("Resolution Mode")
+      .static_items(resolution_mode_items)
+      .description("How the voxel size is specified");
   b.add_input<decl::Float>("Voxel Size")
       .default_value(0.3f)
       .min(0.01f)
@@ -65,8 +65,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   /* Still used for forward compatibility. */
-  NodeGeometryVolumeToMesh *data = MEM_callocN<NodeGeometryVolumeToMesh>(__func__);
-  node->storage = data;
+  node->storage = MEM_callocN<NodeGeometryVolumeToMesh>(__func__);
 }
 
 #ifdef WITH_OPENVDB

@@ -29,6 +29,13 @@ enum class InterpolationMode {
   TriQuadratic = 2,
 };
 
+static const EnumPropertyItem interpolation_mode_items[] = {
+    {int(InterpolationMode::Nearest), "NEAREST", 0, "Nearest Neighbor", ""},
+    {int(InterpolationMode::TriLinear), "TRILINEAR", 0, "Trilinear", ""},
+    {int(InterpolationMode::TriQuadratic), "TRIQUADRATIC", 0, "Triquadratic", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   const bNode *node = b.node_or_null();
@@ -39,6 +46,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 
   b.add_input(data_type, "Grid").hide_value().structure_type(StructureType::Grid);
   b.add_input<decl::Vector>("Position").implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
+  b.add_input<decl::Menu>("Interpolation")
+      .static_items(interpolation_mode_items)
+      .default_value(int(InterpolationMode::TriLinear))
+      .description("How to interpolate the values between neighboring voxels");
 
   b.add_output(data_type, "Value").dependent_field({1});
 }
@@ -96,13 +107,11 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
-  layout->prop(ptr, "interpolation_mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = SOCK_FLOAT;
-  node->custom2 = int16_t(InterpolationMode::TriLinear);
 }
 
 #ifdef WITH_OPENVDB
@@ -219,7 +228,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 #ifdef WITH_OPENVDB
   const bNode &node = params.node();
   const eNodeSocketDatatype data_type = eNodeSocketDatatype(node.custom1);
-  const InterpolationMode interpolation = InterpolationMode(node.custom2);
+  const auto interpolation = params.get_input<InterpolationMode>("Interpolation");
 
   bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
   if (!grid) {
@@ -262,21 +271,6 @@ static void node_rna(StructRNA *srna)
                     NOD_inline_enum_accessors(custom1),
                     SOCK_FLOAT,
                     data_type_filter_fn);
-
-  static const EnumPropertyItem interpolation_mode_items[] = {
-      {int(InterpolationMode::Nearest), "NEAREST", 0, "Nearest Neighbor", ""},
-      {int(InterpolationMode::TriLinear), "TRILINEAR", 0, "Trilinear", ""},
-      {int(InterpolationMode::TriQuadratic), "TRIQUADRATIC", 0, "Triquadratic", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_node_enum(srna,
-                    "interpolation_mode",
-                    "Interpolation Mode",
-                    "How to interpolate the values between neighboring voxels",
-                    interpolation_mode_items,
-                    NOD_inline_enum_accessors(custom2),
-                    int(InterpolationMode::TriLinear));
 }
 
 static void node_register()

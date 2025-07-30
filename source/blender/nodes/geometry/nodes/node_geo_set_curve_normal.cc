@@ -5,11 +5,6 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
-
-#include "NOD_rna_define.hh"
-
 #include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
@@ -20,32 +15,19 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_default_layout();
   b.add_input<decl::Geometry>("Curve")
       .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil})
       .description("Curves to change the normals on");
   b.add_output<decl::Geometry>("Curve").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  auto &normal = b.add_input<decl::Vector>("Normal")
-                     .default_value({0.0f, 0.0f, 1.0f})
-                     .subtype(PROP_XYZ)
-                     .field_on_all();
-
-  const bNode *node = b.node_or_null();
-  if (node != nullptr) {
-    const NormalMode mode = NormalMode(node->custom1);
-    normal.available(mode == NORMAL_MODE_FREE);
-  }
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
-}
-
-static void node_init(bNodeTree * /*tree*/, bNode *node)
-{
-  node->custom1 = NORMAL_MODE_MINIMUM_TWIST;
+  b.add_input<decl::Menu>("Mode")
+      .static_items(rna_enum_curve_normal_mode_items)
+      .description("Mode for curve normal evaluation");
+  b.add_input<decl::Vector>("Normal")
+      .default_value({0.0f, 0.0f, 1.0f})
+      .subtype(PROP_XYZ)
+      .field_on_all()
+      .usage_by_single_menu(NORMAL_MODE_FREE);
 }
 
 static void set_curve_normal(bke::CurvesGeometry &curves,
@@ -100,10 +82,9 @@ static void set_grease_pencil_normal(GreasePencil &grease_pencil,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NormalMode mode = static_cast<NormalMode>(params.node().custom1);
-
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  const NormalMode mode = params.get_input<NormalMode>("Mode");
   Field<float3> custom_normal;
   if (mode == NORMAL_MODE_FREE) {
     custom_normal = params.extract_input<Field<float3>>("Normal");
@@ -127,16 +108,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
-static void node_rna(StructRNA *srna)
-{
-  RNA_def_node_enum(srna,
-                    "mode",
-                    "Mode",
-                    "Mode for curve normal evaluation",
-                    rna_enum_curve_normal_mode_items,
-                    NOD_inline_enum_accessors(custom1));
-}
-
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -147,12 +118,8 @@ static void node_register()
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.initfunc = node_init;
-  ntype.draw_buttons = node_layout;
 
   blender::bke::node_register_type(ntype);
-
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 
