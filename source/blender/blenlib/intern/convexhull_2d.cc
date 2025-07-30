@@ -656,6 +656,7 @@ static void convexhull_2d_angle_iter_step(HullAngleIter &hiter)
   if (hiter.axis_ordered) {
     hstep = hiter.axis_ordered;
     BLI_assert(hull_angle_canonical_cmp(angle_prev, hiter.axis_ordered->angle) > 0);
+    UNUSED_VARS_NDEBUG(angle_prev);
   }
 #endif
 }

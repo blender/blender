@@ -1901,8 +1901,6 @@ static std::string file_external_operation_get_description(bContext * /*C*/,
 
 void FILE_OT_external_operation(wmOperatorType *ot)
 {
-  PropertyRNA *prop;
-
   /* identifiers */
   ot->name = "External File Operation";
   ot->idname = "FILE_OT_external_operation";
@@ -1916,12 +1914,12 @@ void FILE_OT_external_operation(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER; /* No undo! */
 
   /* properties */
-  prop = RNA_def_enum(ot->srna,
-                      "operation",
-                      file_external_operation,
-                      FILE_EXTERNAL_OPERATION_OPEN,
-                      "Operation",
-                      "Operation to perform on the selected file or path");
+  RNA_def_enum(ot->srna,
+               "operation",
+               file_external_operation,
+               FILE_EXTERNAL_OPERATION_OPEN,
+               "Operation",
+               "Operation to perform on the selected file or path");
 }
 
 static void file_os_operations_menu_item(uiLayout *layout,
@@ -1934,6 +1932,7 @@ static void file_os_operations_menu_item(uiLayout *layout,
     return;
   }
 #else
+  UNUSED_VARS(path);
   if (!ELEM(operation, FILE_EXTERNAL_OPERATION_OPEN, FILE_EXTERNAL_OPERATION_FOLDER_OPEN)) {
     return;
   }
@@ -1944,9 +1943,7 @@ static void file_os_operations_menu_item(uiLayout *layout,
 
   PointerRNA props_ptr = layout->op(
       ot, IFACE_(title), ICON_NONE, blender::wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-  if (operation) {
-    RNA_enum_set(&props_ptr, "operation", operation);
-  }
+  RNA_enum_set(&props_ptr, "operation", operation);
 }
 
 static void file_os_operations_menu_draw(const bContext *C_const, Menu *menu)
