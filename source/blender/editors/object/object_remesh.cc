@@ -928,7 +928,7 @@ static void quadriflow_end_job(void *customdata)
   Object *ob = qj->owner;
 
   if (qj->is_nonblocking_job) {
-    WM_set_locked_interface(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
+    WM_locked_interface_set(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
   }
 
   ReportList *reports = qj->worker_status->reports;
@@ -1021,7 +1021,7 @@ static wmOperatorStatus quadriflow_remesh_exec(bContext *C, wmOperator *op)
     WM_jobs_timer(wm_job, 0.1, NC_GEOM | ND_DATA, NC_GEOM | ND_DATA);
     WM_jobs_callbacks(wm_job, quadriflow_start_job, nullptr, nullptr, quadriflow_end_job);
 
-    WM_set_locked_interface(CTX_wm_manager(C), true);
+    WM_locked_interface_set(CTX_wm_manager(C), true);
 
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }

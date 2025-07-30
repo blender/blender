@@ -1712,7 +1712,7 @@ static void pack_islands_freejob(void *pidv)
 {
   WM_cursor_wait(false);
   UVPackIslandsData *pid = static_cast<UVPackIslandsData *>(pidv);
-  WM_set_locked_interface(pid->wm, false);
+  WM_locked_interface_set(pid->wm, false);
   MEM_delete(pid);
 }
 
@@ -1801,7 +1801,7 @@ static wmOperatorStatus pack_islands_exec(bContext *C, wmOperator *op)
         pid->wm, CTX_wm_window(C), scene, "Packing UVs", WM_JOB_PROGRESS, WM_JOB_TYPE_UV_PACK);
     WM_jobs_customdata_set(wm_job, pid, pack_islands_freejob);
     WM_jobs_timer(wm_job, 0.1, 0, 0);
-    WM_set_locked_interface_with_flags(pid->wm, REGION_DRAW_LOCK_RENDER);
+    WM_locked_interface_set_with_flags(pid->wm, REGION_DRAW_LOCK_RENDER);
     WM_jobs_callbacks(wm_job, pack_islands_startjob, nullptr, nullptr, pack_islands_endjob);
 
     WM_cursor_wait(true);

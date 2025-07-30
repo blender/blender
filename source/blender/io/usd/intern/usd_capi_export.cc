@@ -617,7 +617,7 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   G.is_rendering = true;
   if (data->wm) {
-    WM_set_locked_interface(data->wm, true);
+    WM_locked_interface_set(data->wm, true);
   }
   G.is_break = false;
 
@@ -725,7 +725,7 @@ static void export_endjob(void *customdata)
 
   G.is_rendering = false;
   if (data->wm) {
-    WM_set_locked_interface(data->wm, false);
+    WM_locked_interface_set(data->wm, false);
   }
   report_job_duration(data);
 }

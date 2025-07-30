@@ -88,7 +88,7 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   data->start_time = blender::timeit::Clock::now();
 
   G.is_rendering = true;
-  WM_set_locked_interface(data->wm, true);
+  WM_locked_interface_set(data->wm, true);
   G.is_break = false;
 
   worker_status->progress = 0.0f;
@@ -195,7 +195,7 @@ static void export_endjob(void *customdata)
   }
 
   G.is_rendering = false;
-  WM_set_locked_interface(data->wm, false);
+  WM_locked_interface_set(data->wm, false);
   report_job_duration(data);
 }
 

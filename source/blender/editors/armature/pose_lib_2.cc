@@ -352,11 +352,11 @@ static bAction *flip_pose(bContext *C, blender::Span<Object *> objects, bAction 
    * pose, which can cause unwanted visual glitches. */
   wmWindowManager *wm = CTX_wm_manager(C);
   const bool interface_was_locked = CTX_wm_interface_locked(C);
-  WM_set_locked_interface(wm, true);
+  WM_locked_interface_set(wm, true);
 
   BKE_action_flip_with_pose(action_copy, objects);
 
-  WM_set_locked_interface(wm, interface_was_locked);
+  WM_locked_interface_set(wm, interface_was_locked);
   return action_copy;
 }
 

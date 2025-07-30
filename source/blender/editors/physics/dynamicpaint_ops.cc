@@ -317,7 +317,7 @@ static void dpaint_bake_endjob(void *customdata)
 
   G.is_rendering = false;
 
-  WM_set_locked_interface(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
+  WM_locked_interface_set(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
 
   /* Bake was successful:
    * Report for ended bake and how long it took */
@@ -505,7 +505,7 @@ static wmOperatorStatus dynamicpaint_bake_exec(bContext *C, wmOperator *op)
   WM_jobs_timer(wm_job, 0.1, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
   WM_jobs_callbacks(wm_job, dpaint_bake_startjob, nullptr, nullptr, dpaint_bake_endjob);
 
-  WM_set_locked_interface_with_flags(CTX_wm_manager(C), REGION_DRAW_LOCK_BAKING);
+  WM_locked_interface_set_with_flags(CTX_wm_manager(C), REGION_DRAW_LOCK_BAKING);
 
   /* Bake Dynamic Paint */
   WM_jobs_start(CTX_wm_manager(C), wm_job);

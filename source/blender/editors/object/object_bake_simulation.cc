@@ -75,7 +75,7 @@ static void simulate_to_frame_startjob(void *customdata, wmJobWorkerStatus *work
   SimulateToFrameJob &job = *static_cast<SimulateToFrameJob *>(customdata);
   G.is_rendering = true;
   G.is_break = false;
-  WM_set_locked_interface(job.wm, true);
+  WM_locked_interface_set(job.wm, true);
 
   Vector<Object *> objects_to_calc;
   for (Object *object : job.objects) {
@@ -133,7 +133,7 @@ static void simulate_to_frame_startjob(void *customdata, wmJobWorkerStatus *work
 static void simulate_to_frame_endjob(void *customdata)
 {
   SimulateToFrameJob &job = *static_cast<SimulateToFrameJob *>(customdata);
-  WM_set_locked_interface(job.wm, false);
+  WM_locked_interface_set(job.wm, false);
   G.is_rendering = false;
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, nullptr);
 }
@@ -440,7 +440,7 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
 static void bake_geometry_nodes_endjob(void *customdata)
 {
   BakeGeometryNodesJob &job = *static_cast<BakeGeometryNodesJob *>(customdata);
-  WM_set_locked_interface(job.wm, false);
+  WM_locked_interface_set(job.wm, false);
   G.is_rendering = false;
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, nullptr);
   WM_main_add_notifier(NC_NODE | ND_DISPLAY, nullptr);
@@ -565,7 +565,7 @@ static wmOperatorStatus start_bake_job(bContext *C,
   job->depsgraph = CTX_data_depsgraph_pointer(C);
   job->scene = CTX_data_scene(C);
   job->bake_requests = std::move(requests);
-  WM_set_locked_interface(job->wm, true);
+  WM_locked_interface_set(job->wm, true);
 
   if (mode == BakeRequestsMode::Sync) {
     wmJobWorkerStatus worker_status{};

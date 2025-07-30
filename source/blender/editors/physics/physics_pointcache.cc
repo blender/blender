@@ -140,7 +140,7 @@ static void ptcache_job_startjob(void *customdata, wmJobWorkerStatus *worker_sta
   /* XXX annoying hack: needed to prevent data corruption when changing
    * scene frame in separate threads
    */
-  WM_set_locked_interface(job->wm, true);
+  WM_locked_interface_set(job->wm, true);
 
   BKE_ptcache_bake(job->baker);
 
@@ -153,7 +153,7 @@ static void ptcache_job_endjob(void *customdata)
   PointCacheJob *job = static_cast<PointCacheJob *>(customdata);
   Scene *scene = job->baker->scene;
 
-  WM_set_locked_interface(job->wm, false);
+  WM_locked_interface_set(job->wm, false);
 
   WM_main_add_notifier(NC_SCENE | ND_FRAME, scene);
   WM_main_add_notifier(NC_OBJECT | ND_POINTCACHE, job->baker->pid.owner_id);
@@ -230,7 +230,7 @@ static wmOperatorStatus ptcache_bake_invoke(bContext *C, wmOperator *op, const w
   WM_jobs_timer(wm_job, 0.1, NC_OBJECT | ND_POINTCACHE, NC_OBJECT | ND_POINTCACHE);
   WM_jobs_callbacks(wm_job, ptcache_job_startjob, nullptr, nullptr, ptcache_job_endjob);
 
-  WM_set_locked_interface(CTX_wm_manager(C), true);
+  WM_locked_interface_set(CTX_wm_manager(C), true);
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
 

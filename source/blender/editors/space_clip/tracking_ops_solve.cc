@@ -79,7 +79,7 @@ static bool solve_camera_initjob(
 
   tracking->stats = MEM_callocN<MovieTrackingStats>("solve camera stats");
 
-  WM_set_locked_interface(scj->wm, true);
+  WM_locked_interface_set(scj->wm, true);
 
   return true;
 }
@@ -114,7 +114,7 @@ static void solve_camera_freejob(void *scv)
   /* WindowManager is missing in the job when initialization is incomplete.
    * In this case the interface is not locked either. */
   if (scj->wm != nullptr) {
-    WM_set_locked_interface(scj->wm, false);
+    WM_locked_interface_set(scj->wm, false);
   }
 
   if (!scj->context) {
