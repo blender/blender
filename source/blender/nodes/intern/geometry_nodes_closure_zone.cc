@@ -21,6 +21,8 @@
 
 #include "FN_lazy_function_execute.hh"
 
+#include "BLI_string_utf8_symbols.h"
+
 namespace blender::nodes {
 
 using bke::node_tree_reference_lifetimes::ReferenceSetInfo;
@@ -430,6 +432,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
     for (const NodeGeometryEvaluateClosureInputItem &item :
          Span{node_storage.input_items.items, node_storage.input_items.items_num})
     {
+      const bke::bNodeSocketType *item_type = bke::node_socket_type_find_static(item.socket_type);
       if (const std::optional<int> i = signature.find_input_index(item.name)) {
         const ClosureSignature::Item &closure_item = signature.inputs[*i];
         if (!btree_.typeinfo->validate_link(eNodeSocketDatatype(item.socket_type),
@@ -439,8 +442,26 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
               *tree_logger->allocator,
               {bnode_.identifier,
                {NodeWarningType::Error,
-                fmt::format(fmt::runtime(TIP_("Closure input has incompatible type: \"{}\"")),
-                            item.name)}});
+                fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
+                            " {})",
+                            TIP_("Conversion not supported"),
+                            TIP_("Input"),
+                            item.name,
+                            TIP_(item_type->label),
+                            TIP_(closure_item.type->label))}});
+        }
+        else if (item.socket_type != closure_item.type->type) {
+          tree_logger->node_warnings.append(
+              *tree_logger->allocator,
+              {bnode_.identifier,
+               {NodeWarningType::Info,
+                fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
+                            " {})",
+                            TIP_("Implicit type conversion"),
+                            TIP_("Input"),
+                            item.name,
+                            TIP_(item_type->label),
+                            TIP_(closure_item.type->label))}});
         }
       }
       else {
@@ -456,6 +477,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
     for (const NodeGeometryEvaluateClosureOutputItem &item :
          Span{node_storage.output_items.items, node_storage.output_items.items_num})
     {
+      const bke::bNodeSocketType *item_type = bke::node_socket_type_find_static(item.socket_type);
       if (const std::optional<int> i = signature.find_output_index(item.name)) {
         const ClosureSignature::Item &closure_item = signature.outputs[*i];
         if (!btree_.typeinfo->validate_link(eNodeSocketDatatype(closure_item.type->type),
@@ -465,8 +487,26 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
               *tree_logger->allocator,
               {bnode_.identifier,
                {NodeWarningType::Error,
-                fmt::format(fmt::runtime(TIP_("Closure output has incompatible type: \"{}\"")),
-                            item.name)}});
+                fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
+                            " {})",
+                            TIP_("Conversion not supported"),
+                            TIP_("Output"),
+                            item.name,
+                            TIP_(closure_item.type->label),
+                            TIP_(item_type->label))}});
+        }
+        else if (item.socket_type != closure_item.type->type) {
+          tree_logger->node_warnings.append(
+              *tree_logger->allocator,
+              {bnode_.identifier,
+               {NodeWarningType::Info,
+                fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
+                            " {})",
+                            TIP_("Implicit type conversion"),
+                            TIP_("Output"),
+                            item.name,
+                            TIP_(closure_item.type->label),
+                            TIP_(item_type->label))}});
         }
       }
       else {
