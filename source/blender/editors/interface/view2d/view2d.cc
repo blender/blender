@@ -168,7 +168,7 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
     if (scroll & V2D_SCROLL_LEFT) {
       /* on left-hand edge of region */
       v2d->vert = *mask_scroll;
-      v2d->vert.xmax = scroll_width;
+      v2d->vert.xmax = v2d->vert.xmin + scroll_width;
     }
     else if (scroll & V2D_SCROLL_RIGHT) {
       /* on right-hand edge of region */

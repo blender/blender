@@ -3397,14 +3397,20 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   /* scrollers */
   bool use_mask = false;
   rcti mask;
-  if (region->runtime->category &&
-      (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_RIGHT) &&
+  const short alignment = RGN_ALIGN_ENUM_FROM_MASK(region->alignment);
+  if (region->runtime->category && ELEM(alignment, RGN_ALIGN_RIGHT, RGN_ALIGN_LEFT) &&
       UI_panel_category_is_visible(region))
   {
     use_mask = true;
     UI_view2d_mask_from_win(v2d, &mask);
-    mask.xmax -= round_fl_to_int(UI_view2d_scale_get_x(&region->v2d) *
-                                 UI_PANEL_CATEGORY_MARGIN_WIDTH);
+    const int category_width = round_fl_to_int(UI_view2d_scale_get_x(&region->v2d) *
+                                               UI_PANEL_CATEGORY_MARGIN_WIDTH);
+    if (alignment == RGN_ALIGN_RIGHT) {
+      mask.xmax -= category_width;
+    }
+    else if (alignment == RGN_ALIGN_LEFT) {
+      mask.xmin += category_width;
+    }
   }
 
   /* Hide scrollbars below a threshold. */
