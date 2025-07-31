@@ -270,6 +270,8 @@ class ShaderCompiler {
 
   BatchHandle next_batch_handle_ = 1;
 
+  bool is_compiling_impl();
+
  protected:
   /* Must be called earlier from the destructor of the subclass if the compilation process relies
    * on subclass resources. */
@@ -300,6 +302,7 @@ class ShaderCompiler {
 
   bool specialization_batch_is_ready(SpecializationBatchHandle &handle);
 
+  bool is_compiling();
   void wait_for_all();
 };
 
