@@ -36,6 +36,7 @@ TEST(string_search, get_fuzzy_match_errors)
   EXPECT_EQ(get_fuzzy_match_errors("hello", "hallo"), 1);
   EXPECT_EQ(get_fuzzy_match_errors("hap", "hello"), -1);
   EXPECT_EQ(get_fuzzy_match_errors("armature", UI_MENU_ARROW_SEP "restore"), -1);
+  EXPECT_EQ(get_fuzzy_match_errors("bluir", "blur"), get_fuzzy_match_errors("blur", "bluir"));
 }
 
 TEST(string_search, extract_normalized_words)
