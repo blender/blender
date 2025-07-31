@@ -811,15 +811,10 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
     }
   }
 
-  /* Next look in the rest. Also check if we have a last-resort font. */
-  FontBLF *last_resort = nullptr;
+  /* Next look in the rest. */
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *f = global_font[i];
     if (!f || f == *font || !(f->flags & BLF_DEFAULT)) {
-      continue;
-    }
-    if (f->flags & BLF_LAST_RESORT) {
-      last_resort = f;
       continue;
     }
     if (coverage_bit >= 0 && !blf_font_has_coverage_bit(f, coverage_bit)) {
@@ -834,15 +829,6 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
 #ifndef NDEBUG
   printf("Unicode character U+%04X not found in loaded fonts. \n", charcode);
 #endif
-
-  /* Not found in the stack, return from Last Resort if there is one. */
-  if (last_resort) {
-    glyph_index = blf_get_char_index(last_resort, charcode);
-    if (glyph_index) {
-      *font = last_resort;
-      return glyph_index;
-    }
-  }
 
   return 0;
 }
@@ -1369,6 +1355,11 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode
   /* Glyph might not come from the initial font. */
   FontBLF *font_with_glyph = font;
   FT_UInt glyph_index = blf_glyph_index_from_charcode(&font_with_glyph, charcode);
+
+  if (!glyph_index) {
+    /* 1 = id of ICON_CHAR_NOTDEF */
+    return blf_glyph_ensure_icon(gc, 1, false, nullptr);
+  }
 
   if (!blf_ensure_face(font_with_glyph)) {
     return nullptr;

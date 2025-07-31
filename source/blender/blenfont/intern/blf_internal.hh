@@ -202,6 +202,7 @@ GlyphBLF *blf_glyph_ensure_icon(
 
 /**
  * Convert a character's outlines into curves.
+ * \return success if the character was found and converted.
  */
 bool blf_character_to_curves(FontBLF *font,
                              unsigned int unicode,
