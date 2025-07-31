@@ -641,7 +641,7 @@ static bool set_pivot_depends_on_cursor(bContext & /*C*/, wmOperatorType & /*ot*
     return true;
   }
   const PivotPositionMode mode = PivotPositionMode(RNA_enum_get(ptr, "mode"));
-  return mode == PivotPositionMode::CursorSurface;
+  return ELEM(mode, PivotPositionMode::CursorSurface, PivotPositionMode::ActiveVert);
 }
 
 struct AveragePositionAccumulation {
@@ -934,7 +934,11 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
   }
   /* Pivot to active vertex. */
   else if (mode == PivotPositionMode::ActiveVert) {
-    copy_v3_v3(ss.pivot_pos, ss.active_vert_position(*depsgraph, ob));
+    const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
+    CursorGeometryInfo cgi;
+    if (cursor_geometry_info_update(C, &cgi, mval, false)) {
+      copy_v3_v3(ss.pivot_pos, ss.active_vert_position(*depsgraph, ob));
+    }
   }
   /* Pivot to ray-cast surface. */
   else if (mode == PivotPositionMode::CursorSurface) {
@@ -981,7 +985,7 @@ static bool set_pivot_position_poll_property(const bContext * /*C*/,
 {
   if (STRPREFIX(RNA_property_identifier(prop), "mouse_")) {
     const PivotPositionMode mode = PivotPositionMode(RNA_enum_get(op->ptr, "mode"));
-    return mode == PivotPositionMode::CursorSurface;
+    return ELEM(mode, PivotPositionMode::CursorSurface, PivotPositionMode::ActiveVert);
   }
   return true;
 }
@@ -1012,7 +1016,7 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
                 0.0f,
                 FLT_MAX,
                 "Mouse Position X",
-                "Position of the mouse used for \"Surface\" mode",
+                "Position of the mouse used for \"Surface\" and \"Active Vertex\" mode",
                 0.0f,
                 10000.0f);
   RNA_def_float(ot->srna,
@@ -1021,7 +1025,7 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
                 0.0f,
                 FLT_MAX,
                 "Mouse Position Y",
-                "Position of the mouse used for \"Surface\" mode",
+                "Position of the mouse used for \"Surface\" and \"Active Vertex\" mode",
                 0.0f,
                 10000.0f);
 }
