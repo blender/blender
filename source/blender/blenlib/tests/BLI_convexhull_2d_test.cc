@@ -245,28 +245,71 @@ TEST(convexhull_2d, Lines_Diagonal)
 
 TEST(convexhull_2d, Simple)
 {
-  { /* 45degree rotated square. */
-    blender::Array<float2> points = {
-        {0.0f, -1.0f},
-        {-1.0f, 0.0f},
-        {0.0f, 1.0f},
-        {1.0f, 0.0f},
-    };
-    EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
-                float(math::AngleRadian::from_degree(45.0f)),
-                ROTATION_EPS);
-  }
 
-  { /* Axis aligned square. */
-    blender::Array<float2> points = {
-        {-1.0f, -1.0f},
-        {-1.0f, 1.0f},
-        {1.0f, 1.0f},
-        {1.0f, -1.0f},
-    };
-    EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
-                float(math::AngleRadian::from_degree(90.0f)),
-                ROTATION_EPS);
+  /* 45degree rotated square. */
+  const blender::Array<float2> points_square_diagonal = {
+      {0.0f, -1.0f},
+      {-1.0f, 0.0f},
+      {0.0f, 1.0f},
+      {1.0f, 0.0f},
+  };
+
+  /* Axis aligned square. */
+  const blender::Array<float2> points_square_aligned = {
+      {-1.0f, -1.0f},
+      {-1.0f, 1.0f},
+      {1.0f, 1.0f},
+      {1.0f, -1.0f},
+  };
+
+  /* 45degree rotated square. */
+  EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points_square_diagonal),
+              float(math::AngleRadian::from_degree(45.0f)),
+              ROTATION_EPS);
+
+  /* Axis aligned square. */
+  EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points_square_aligned),
+              float(math::AngleRadian::from_degree(90.0f)),
+              ROTATION_EPS);
+
+  for (const blender::Array<float2> &points_orig : {
+           points_square_diagonal,
+           points_square_aligned,
+       })
+  {
+    for (int x = -1; x <= 1; x += 2) {
+      for (int y = -1; y <= 1; y += 2) {
+        blender::Array<float2> points = points_orig;
+        const float2 xy_flip = {float(x), float(y)};
+        for (int i = 0; i < points.size(); i++) {
+          points[i] *= xy_flip;
+        }
+
+        blender::Array<int> points_indices(points.size());
+        int points_indices_num = BLI_convexhull_2d(Span(points.data(), points.size()),
+                                                   points_indices.data());
+
+        blender::Array<float2> points_hull(points_indices_num);
+
+        for (int i = 0; i < points_indices_num; i++) {
+          points_hull[i] = points[points_indices[i]];
+        }
+
+        /* The cross product must be positive or zero. */
+        EXPECT_GE(
+            cross_poly_v2(reinterpret_cast<float(*)[2]>(points_hull.data()), points_indices_num),
+            0.0f);
+
+        /* The first point is documented to be the lowest, check this is so. */
+        for (int i = 1; i < points_indices_num; i++) {
+          EXPECT_TRUE((points_hull[0][1] == points_hull[i][1]) ?
+                          /* Equal Y therefor X must be less. */
+                          (points_hull[0][0] < points_hull[i][0]) :
+                          /* When Y isn't equal, Y must be less. */
+                          (points_hull[0][1] < points_hull[i][1]));
+        }
+      }
+    }
   }
 }
 

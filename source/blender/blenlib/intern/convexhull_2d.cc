@@ -109,12 +109,16 @@ static float is_left(const float2 &p0, const float2 &p1, const float2 &p2)
 }
 
 /**
- * Final pass on `r_points` & `top`,
+ * Final pass on `r_points` & `r_points_range`,
  */
-static void convexhull_2d_stack_finalize(const float2 *points, int r_points[], int &top)
+static void convexhull_2d_stack_finalize(const float2 *points,
+                                         const int r_points[],
+                                         blender::int2 &r_points_range)
 {
 #ifdef USE_CONVEX_CROSS_PRODUCT_ENSURE
-  while (top >= 2) {
+  int bot = r_points_range[0];
+  int top = r_points_range[1];
+  while (top - bot >= 2) {
     /* While the order of checking the beginning/end doesn't matter,
      * prefer dropping values off the end of `r_points`
      * since it doesn't require re-ordering. */
@@ -124,7 +128,7 @@ static void convexhull_2d_stack_finalize(const float2 *points, int r_points[], i
                      /* Second last point. */
                      points[r_points[top - 1]],
                      /* First point. */
-                     points[r_points[0]],
+                     points[r_points[bot]],
                      /* Last point (candidate "ear" to remove). */
                      points[r_points[top]]) >= 0.0f))
     {
@@ -137,18 +141,20 @@ static void convexhull_2d_stack_finalize(const float2 *points, int r_points[], i
                      /* Last point. */
                      points[r_points[top]],
                      /* Second point. */
-                     points[r_points[1]],
+                     points[r_points[bot + 1]],
                      /* First point (candidate "ear" to remove). */
-                     points[r_points[0]]) >= 0.0f))
+                     points[r_points[bot]]) >= 0.0f))
     {
-      /* Concave: drop from the front: `r_points[0]`. */
-      r_points[0] = r_points[top--];
+      /* Concave: drop from the front: `r_points[bot]`. */
+      bot++;
       continue;
     }
     break;
   }
+  r_points_range[0] = bot;
+  r_points_range[1] = top;
 #else
-  UNUSED_VARS(points, r_points, top);
+  UNUSED_VARS(points, r_points, r_points_range);
 #endif /* !USE_CONVEX_CROSS_PRODUCT_ENSURE */
 }
 
@@ -283,11 +289,21 @@ static int convexhull_2d_sorted_impl(const float2 *points, const int points_num,
   return top;
 }
 
-static int convexhull_2d_sorted(const float2 *points, const int points_num, int r_points[])
+/**
+ * The range of `r_points` to use (inclusive).
+ *
+ * \note A range is used since points may be removed from the beginning of `r_points`,
+ * this avoids removing elements from the beginning of the array in favor of skipping them
+ * to keep the order of points predictable.
+ */
+static blender::int2 convexhull_2d_sorted(const float2 *points,
+                                          const int points_num,
+                                          int r_points[])
 {
-  int top = convexhull_2d_sorted_impl(points, points_num, r_points);
-  convexhull_2d_stack_finalize(points, r_points, top);
-  return top + 1;
+  const int top = convexhull_2d_sorted_impl(points, points_num, r_points);
+  blender::int2 r_points_range = {0, top};
+  convexhull_2d_stack_finalize(points, r_points, r_points_range);
+  return r_points_range;
 }
 
 int BLI_convexhull_2d(blender::Span<float2> points, int r_points[])
@@ -331,16 +347,17 @@ int BLI_convexhull_2d(blender::Span<float2> points, int r_points[])
     copy_v2_v2(points_sort[i], points[points_map[i]]);
   }
 
-  int points_hull_num = convexhull_2d_sorted(points_sort, points_num, r_points);
+  const blender::int2 points_hull_range = convexhull_2d_sorted(points_sort, points_num, r_points);
 
   /* Map back to the unsorted index values. */
-  for (int i = 0; i < points_hull_num; i++) {
+  for (int i = points_hull_range[0]; i <= points_hull_range[1]; i++) {
     r_points[i] = points_map[r_points[i]];
   }
 
   MEM_freeN(points_map);
   MEM_freeN(points_sort);
 
+  const int points_hull_num = (points_hull_range[1] - points_hull_range[0]) + 1;
   BLI_assert(points_hull_num <= points_num);
   return points_hull_num;
 }
