@@ -47,7 +47,7 @@ static eViewOpsFlag viewops_flag_from_prefs()
 
   /**
    * If the mode requires it, always set the #VIEWOPS_FLAG_PERSP_ENSURE.
-   * The function `ED_view3d_persp_ensure` already handles the checking of the preferences.
+   * The function #ED_view3d_persp_ensure already handles the checking of the preferences.
    * And even with the option disabled, in some modes, it is still necessary to exit the camera
    * view.
    *
@@ -1108,7 +1108,7 @@ static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname)
 
 ViewOpsData *ED_view3d_navigation_init(bContext *C, const wmKeyMapItem *kmi_merge)
 {
-  /* Unlike `viewops_data_create`, `ED_view3d_navigation_init` creates a navigation context along
+  /* Unlike #viewops_data_create, #ED_view3d_navigation_init creates a navigation context along
    * with an array of `wmKeyMapItem`s used for navigation. */
   if (!CTX_wm_region_view3d(C)) {
     return nullptr;

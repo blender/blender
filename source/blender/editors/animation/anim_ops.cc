@@ -235,7 +235,7 @@ static void append_marker_snap_target(Scene *scene,
                                       blender::Vector<SnapTarget> &r_targets)
 {
   if (BLI_listbase_is_empty(&scene->markers)) {
-    /* This check needs to be here because `ED_markers_find_nearest_marker_time` returns the
+    /* This check needs to be here because #ED_markers_find_nearest_marker_time returns the
      * current frame if there are no markers. */
     return;
   }
