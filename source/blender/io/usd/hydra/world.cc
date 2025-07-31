@@ -53,6 +53,8 @@ void WorldData::init()
     pxr::GfVec3f color(1.0f, 1.0f, 1.0f);
     ID_LOG("%s", world->id.name);
 
+    world->nodetree->ensure_topology_cache();
+
     /* TODO: Create nodes parsing system */
     bNode *output_node = ntreeShaderOutputNode(world->nodetree, SHD_OUTPUT_ALL);
     if (!output_node) {
