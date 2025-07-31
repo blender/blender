@@ -270,8 +270,8 @@ static void vicon_keytype_draw_wrapper(const float x,
 
   /* The "x" and "y" given are the bottom-left coordinates of the icon,
    * while the #draw_keyframe_shape() function needs the midpoint for the keyframe. */
-  const float xco = x + (w / 2.0f) + 0.5f;
-  const float yco = y + (h / 2.0f) + 0.5f;
+  const float xco = x + (w / 2.0f);
+  const float yco = y + (h / 2.0f);
 
   GPUVertFormat *format = immVertexFormat();
   KeyframeShaderBindings sh_bindings;
