@@ -317,21 +317,21 @@ void BLF_addref_id(int fontid)
   }
 }
 
-void BLF_enable(int fontid, int option)
+void BLF_enable(int fontid, FontFlags flag)
 {
   FontBLF *font = blf_get(fontid);
 
   if (font) {
-    font->flags |= option;
+    font->flags |= flag;
   }
 }
 
-void BLF_disable(int fontid, int option)
+void BLF_disable(int fontid, FontFlags flag)
 {
   FontBLF *font = blf_get(fontid);
 
   if (font) {
-    font->flags &= ~option;
+    font->flags &= ~flag;
   }
 }
 

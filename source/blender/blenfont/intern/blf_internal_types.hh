@@ -371,7 +371,7 @@ struct FontBLF {
   int tex_size_max;
 
   /** Font options. */
-  int flags;
+  FontFlags flags;
 
   /**
    * List of glyph caches (#GlyphCacheBLF) for this font for size, DPI, bold, italic.
