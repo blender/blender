@@ -4700,10 +4700,11 @@ static void touch_seat_handle_frame(void *data, wl_touch * /*touch*/)
 
     /* Ensure events are ordered in time. */
     if (UNLIKELY(touch_events_num > 1)) {
-      std::sort(
-          touch_events,
-          touch_events + touch_events_num,
-          [](GHOST_Event *a, GHOST_Event *b) -> bool { return a->getTime() < b->getTime(); });
+      std::sort(touch_events,
+                touch_events + touch_events_num,
+                [](const GHOST_Event *event_a, const GHOST_Event *event_b) -> bool {
+                  return event_a->getTime() < event_b->getTime();
+                });
     }
 
     for (int i = 0; i < touch_events_num; i++) {
