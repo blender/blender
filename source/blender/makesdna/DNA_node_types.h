@@ -1581,6 +1581,12 @@ typedef struct NodeTranslateData {
   short interpolation;
 } NodeTranslateData;
 
+typedef struct NodeRotateData {
+  short interpolation;
+  char extension_x;
+  char extension_y;
+} NodeRotateData;
+
 typedef struct NodeScaleData {
   short interpolation;
   char extension_x;
