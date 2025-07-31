@@ -562,7 +562,7 @@ static wmOperatorStatus fluid_bake_invoke(bContext *C, wmOperator *op, const wmE
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
                               scene,
-                              "Fluid Bake",
+                              "Baking fluid...",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_OBJECT_SIM_FLUID);
 
@@ -644,7 +644,7 @@ static wmOperatorStatus fluid_free_exec(bContext *C, wmOperator *op)
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
                               scene,
-                              "Fluid Free",
+                              "Freeing fluid...",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_OBJECT_SIM_FLUID);
 

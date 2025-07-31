@@ -1832,7 +1832,7 @@ PreviewLoadJob::~PreviewLoadJob()
 PreviewLoadJob &PreviewLoadJob::ensure_job(wmWindowManager *wm, wmWindow *win)
 {
   wmJob *wm_job = WM_jobs_get(
-      wm, win, nullptr, "Load Previews", eWM_JobFlag(0), WM_JOB_TYPE_LOAD_PREVIEW);
+      wm, win, nullptr, "Loading previews...", eWM_JobFlag(0), WM_JOB_TYPE_LOAD_PREVIEW);
 
   if (!WM_jobs_is_running(wm_job)) {
     PreviewLoadJob *job_data = MEM_new<PreviewLoadJob>("PreviewLoadJobData");
@@ -2114,7 +2114,7 @@ void ED_preview_icon_job(
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
                               prv_img,
-                              "Icon Preview",
+                              "Generating icon preview...",
                               WM_JOB_EXCL_RENDER,
                               WM_JOB_TYPE_RENDER_PREVIEW);
 
@@ -2191,7 +2191,7 @@ void ED_preview_shader_job(const bContext *C,
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
                        owner,
-                       "Shader Preview",
+                       "Generating shader preview...",
                        WM_JOB_EXCL_RENDER,
                        WM_JOB_TYPE_RENDER_PREVIEW);
   sp = MEM_callocN<ShaderPreview>("shader preview");

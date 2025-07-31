@@ -767,7 +767,7 @@ bool ABC_import(bContext *C, const AlembicImportParams *params, bool as_backgrou
     wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                                 CTX_wm_window(C),
                                 job->scene,
-                                "Alembic Import",
+                                "Importing Alembic...",
                                 WM_JOB_PROGRESS,
                                 WM_JOB_TYPE_ALEMBIC_IMPORT);
 

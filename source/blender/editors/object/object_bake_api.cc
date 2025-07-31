@@ -2190,7 +2190,7 @@ static wmOperatorStatus bake_invoke(bContext *C, wmOperator *op, const wmEvent *
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
                        scene,
-                       "Texture Bake",
+                       "Baking texture...",
                        WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS,
                        WM_JOB_TYPE_OBJECT_BAKE);
   WM_jobs_customdata_set(wm_job, bkr, bake_freejob);

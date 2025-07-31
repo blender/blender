@@ -232,7 +232,7 @@ bool ABC_export(Scene *scene,
     wmJob *wm_job = WM_jobs_get(job->wm,
                                 CTX_wm_window(C),
                                 scene,
-                                "Alembic Export",
+                                "Exporting Alembic...",
                                 WM_JOB_PROGRESS,
                                 WM_JOB_TYPE_ALEMBIC_EXPORT);
 

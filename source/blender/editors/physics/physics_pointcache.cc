@@ -222,7 +222,7 @@ static wmOperatorStatus ptcache_bake_invoke(bContext *C, wmOperator *op, const w
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
                               CTX_data_scene(C),
-                              "Point Cache",
+                              "Baking point cache...",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_POINTCACHE);
 

@@ -1277,7 +1277,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
           wmJob *wm_job = WM_jobs_get(wm,
                                       CTX_wm_window(C),
                                       icon,
-                                      "StudioLight Icon",
+                                      "Generating StudioLight icon...",
                                       eWM_JobFlag(0),
                                       WM_JOB_TYPE_STUDIOLIGHT);
           Icon **tmp = MEM_callocN<Icon *>(__func__);

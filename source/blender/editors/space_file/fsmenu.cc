@@ -663,7 +663,7 @@ static void fsmenu_bookmark_validate_job_start(wmWindowManager *wm)
   wm_job = WM_jobs_get(wm,
                        wm->winactive,
                        wm,
-                       "Validating Bookmarks...",
+                       "Validating bookmarks...",
                        eWM_JobFlag(0),
                        WM_JOB_TYPE_FSMENU_BOOKMARK_VALIDATE);
   WM_jobs_customdata_set(wm_job, fsmenu_job, fsmenu_bookmark_validate_job_free);

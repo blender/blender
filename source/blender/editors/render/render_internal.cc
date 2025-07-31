@@ -1083,7 +1083,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
     name = RPT_("Rendering sequence...");
   }
   else {
-    name = RPT_("Render...");
+    name = RPT_("Rendering...");
   }
 
   wm_job = WM_jobs_get(CTX_wm_manager(C),

@@ -590,7 +590,7 @@ static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
   Scene *scene = CTX_data_sequencer_scene(C);
 
   wmJob *wm_job = WM_jobs_get(
-      wm, win, nullptr, "Load Previews", eWM_JobFlag(0), WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
+      wm, win, nullptr, "Loading previews...", eWM_JobFlag(0), WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
 
   DropJobData *job_data = MEM_mallocN<DropJobData>("SeqDragDropPreviewData");
   get_drag_path(C, drag, job_data->path);

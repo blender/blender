@@ -185,7 +185,7 @@ void sequencer_preview_add_sound(const bContext *C, const Strip *strip)
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
                        CTX_data_sequencer_scene(C),
-                       "Strip Previews",
+                       "Generating strip previews...",
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_SEQ_BUILD_PREVIEW);
 

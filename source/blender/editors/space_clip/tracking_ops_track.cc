@@ -317,7 +317,7 @@ static wmOperatorStatus track_markers(bContext *C, wmOperator *op, bool use_job)
     wm_job = WM_jobs_get(CTX_wm_manager(C),
                          CTX_wm_window(C),
                          CTX_data_scene(C),
-                         "Track Markers",
+                         "Tracking markers...",
                          WM_JOB_PROGRESS,
                          WM_JOB_TYPE_CLIP_TRACK_MARKERS);
     WM_jobs_customdata_set(wm_job, tmj, track_markers_freejob);

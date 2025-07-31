@@ -497,7 +497,7 @@ static wmOperatorStatus dynamicpaint_bake_exec(bContext *C, wmOperator *op)
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
                               CTX_data_scene(C),
-                              "Dynamic Paint Bake",
+                              "Baking Dynamic Paint...",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_DPAINT_BAKE);
 
