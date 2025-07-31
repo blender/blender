@@ -927,28 +927,32 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
-  if (mode == PivotPositionMode::Origin) {
-    ss.pivot_pos = float3(0.0f);
-  }
-  else if (mode == PivotPositionMode::ActiveVert) {
-    const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
-    CursorGeometryInfo cgi;
-    if (cursor_geometry_info_update(C, &cgi, mval, false)) {
-      copy_v3_v3(ss.pivot_pos, ss.active_vert_position(*depsgraph, ob));
+  switch (mode) {
+    case PivotPositionMode::Origin:
+      ss.pivot_pos = float3(0.0f);
+      break;
+    case PivotPositionMode::Unmasked:
+      ss.pivot_pos = average_unmasked_position(*depsgraph, ob, ss.pivot_pos, symm);
+      break;
+    case PivotPositionMode::MaskBorder:
+      ss.pivot_pos = average_mask_border_position(*depsgraph, ob, ss.pivot_pos, symm);
+      break;
+    case PivotPositionMode::ActiveVert: {
+      const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
+      CursorGeometryInfo cgi;
+      if (cursor_geometry_info_update(C, &cgi, mval, false)) {
+        ss.pivot_pos = ss.active_vert_position(*depsgraph, ob);
+      }
+      break;
     }
-  }
-  else if (mode == PivotPositionMode::CursorSurface) {
-    float3 stroke_location;
-    const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
-    if (stroke_get_location_bvh(C, stroke_location, mval, false)) {
-      ss.pivot_pos = stroke_location;
+    case PivotPositionMode::CursorSurface: {
+      const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
+      float3 stroke_location;
+      if (stroke_get_location_bvh(C, stroke_location, mval, false)) {
+        ss.pivot_pos = stroke_location;
+      }
+      break;
     }
-  }
-  else if (mode == PivotPositionMode::Unmasked) {
-    ss.pivot_pos = average_unmasked_position(*depsgraph, ob, ss.pivot_pos, symm);
-  }
-  else {
-    ss.pivot_pos = average_mask_border_position(*depsgraph, ob, ss.pivot_pos, symm);
   }
 
   /* Update the viewport navigation rotation origin. */
