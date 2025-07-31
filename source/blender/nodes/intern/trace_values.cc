@@ -91,9 +91,12 @@ static Vector<SocketInContext> find_target_sockets_through_contexts(
           const ComputeContext &group_compute_context = compute_context_cache.for_group_node(
               socket.context, node->identifier, &node->owner_tree());
           for (const bNode *input_node : group->group_input_nodes()) {
-            const bNodeSocket &group_input_socket = input_node->output_socket(socket->index());
-            if (group_input_socket.is_directly_linked()) {
-              add_if_new({&group_compute_context, &group_input_socket}, bundle_path);
+            if (const bNodeSocket *group_input_socket = input_node->output_by_identifier(
+                    socket->identifier))
+            {
+              if (group_input_socket->is_directly_linked()) {
+                add_if_new({&group_compute_context, group_input_socket}, bundle_path);
+              }
             }
           }
         }
@@ -107,8 +110,11 @@ static Vector<SocketInContext> find_target_sockets_through_contexts(
           const bNode *caller_group_node = group_context->node();
           if (caller_group && caller_group_node) {
             caller_group->ensure_topology_cache();
-            const bNodeSocket &output_socket = caller_group_node->output_socket(socket->index());
-            add_if_new({group_context->parent(), &output_socket}, bundle_path);
+            if (const bNodeSocket *output_socket = caller_group_node->output_by_identifier(
+                    socket->identifier))
+            {
+              add_if_new({group_context->parent(), output_socket}, bundle_path);
+            }
           }
         }
         continue;
@@ -341,8 +347,11 @@ static Vector<SocketInContext> find_origin_sockets_through_contexts(
           if (const bNode *group_output_node = group->group_output_node()) {
             const ComputeContext &group_compute_context = compute_context_cache.for_group_node(
                 socket.context, node->identifier, &node->owner_tree());
-            add_if_new({&group_compute_context, &group_output_node->input_socket(socket->index())},
-                       bundle_path);
+            if (const bNodeSocket *group_output_socket = group_output_node->input_by_identifier(
+                    socket->identifier))
+            {
+              add_if_new({&group_compute_context, group_output_socket}, bundle_path);
+            }
           }
         }
         continue;
@@ -355,8 +364,11 @@ static Vector<SocketInContext> find_origin_sockets_through_contexts(
           const bNode *caller_group_node = group_context->node();
           if (caller_group && caller_group_node) {
             caller_group->ensure_topology_cache();
-            const bNodeSocket &input_socket = caller_group_node->input_socket(socket->index());
-            add_if_new({group_context->parent(), &input_socket}, bundle_path);
+            if (const bNodeSocket *input_socket = caller_group_node->input_by_identifier(
+                    socket->identifier))
+            {
+              add_if_new({group_context->parent(), input_socket}, bundle_path);
+            }
           }
         }
         continue;
