@@ -163,9 +163,12 @@ static void ensure_change_frame_keylist(bContext *C, FrameChangeModalData &op_da
     return;
   }
 
+  op_data.keylist = ED_keylist_create();
+
   bAnimContext ac;
   if (!ANIM_animdata_get_context(C, &ac)) {
-    BLI_assert_unreachable();
+    /* If there is no action, getting the anim context fails in the action editor. */
+    ED_keylist_prepare_for_direct_access(op_data.keylist);
     return;
   }
 
@@ -186,8 +189,6 @@ static void ensure_change_frame_keylist(bContext *C, FrameChangeModalData &op_da
       BLI_assert_unreachable();
       break;
   }
-
-  op_data.keylist = ED_keylist_create();
 
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     switch (ale->datatype) {
