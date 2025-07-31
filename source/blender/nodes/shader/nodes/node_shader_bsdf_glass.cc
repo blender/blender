@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "UI_interface_layout.hh"
+#include "UI_resources.hh"
+
 #include "node_shader_util.hh"
 
 namespace blender::nodes::node_shader_bsdf_glass_cc {
