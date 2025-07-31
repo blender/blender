@@ -80,9 +80,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *node_ptr)
   bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(node_ptr->owner_id);
   bNode &node = *static_cast<bNode *>(node_ptr->data);
 
+  layout->op("node.sockets_sync", "Sync", ICON_FILE_REFRESH);
   if (uiLayout *panel = layout->panel(C, "bundle_items", false, TIP_("Bundle Items"))) {
-    panel->op("node.sockets_sync", "Sync", ICON_FILE_REFRESH);
-
     socket_items::ui::draw_items_list_with_operators<SeparateBundleItemsAccessor>(
         C, panel, ntree, node);
     socket_items::ui::draw_active_item_props<SeparateBundleItemsAccessor>(
