@@ -71,6 +71,16 @@ static void node_free_storage(bNode *node)
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
+  if (params.C && params.link.tonode == &params.node) {
+    const NodeGeometrySeparateBundle &storage = node_storage(params.node);
+    if (storage.items_num == 0) {
+      SpaceNode *snode = CTX_wm_space_node(params.C);
+      if (snode && snode->edittree == &params.ntree) {
+        sync_sockets_separate_bundle(*snode, params.node, nullptr, params.link.fromsock);
+      }
+    }
+    return true;
+  }
   return socket_items::try_add_item_via_any_extend_socket<SeparateBundleItemsAccessor>(
       params.ntree, params.node, params.node, params.link);
 }

@@ -226,6 +226,8 @@ struct NodeInsertLinkParams {
   bNodeTree &ntree;
   bNode &node;
   bNodeLink &link;
+  /** Optional context to allow for more advanced link insertion functionality. */
+  bContext *C = nullptr;
 };
 
 /**

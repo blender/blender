@@ -8,6 +8,7 @@
 #include "NOD_geometry_nodes_closure_location.hh"
 #include "NOD_geometry_nodes_closure_signature.hh"
 #include "NOD_node_in_compute_context.hh"
+#include "NOD_trace_values.hh"
 
 #include "BKE_compute_context_cache.hh"
 #include "BKE_node_tree_zones.hh"

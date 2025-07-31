@@ -181,6 +181,20 @@ static void node_free_storage(bNode *node)
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
+  if (params.C && params.link.fromnode == &params.node) {
+    const NodeGeometryClosureOutput &storage = node_storage(params.node);
+    if (storage.input_items.items_num == 0 && storage.output_items.items_num == 0) {
+      SpaceNode *snode = CTX_wm_space_node(params.C);
+      if (snode && snode->edittree == &params.ntree) {
+        bNode *input_node = bke::zone_type_by_node_type(GEO_NODE_CLOSURE_OUTPUT)
+                                ->get_corresponding_input(params.ntree, params.node);
+        if (input_node) {
+          sync_sockets_closure(*snode, *input_node, params.node, nullptr, params.link.tosock);
+        }
+      }
+    }
+    return true;
+  }
   return socket_items::try_add_item_via_any_extend_socket<ClosureOutputItemsAccessor>(
       params.ntree, params.node, params.node, params.link);
 }
