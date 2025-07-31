@@ -927,11 +927,9 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
-  /* Pivot to center. */
   if (mode == PivotPositionMode::Origin) {
     zero_v3(ss.pivot_pos);
   }
-  /* Pivot to active vertex. */
   else if (mode == PivotPositionMode::ActiveVert) {
     const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
     CursorGeometryInfo cgi;
@@ -939,7 +937,6 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
       copy_v3_v3(ss.pivot_pos, ss.active_vert_position(*depsgraph, ob));
     }
   }
-  /* Pivot to ray-cast surface. */
   else if (mode == PivotPositionMode::CursorSurface) {
     float stroke_location[3];
     const float mval[2] = {
