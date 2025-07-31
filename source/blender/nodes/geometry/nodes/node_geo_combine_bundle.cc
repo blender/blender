@@ -67,7 +67,8 @@ static void node_free_storage(bNode *node)
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
-  if (params.C && params.link.fromnode == &params.node) {
+  if (params.C && params.link.fromnode == &params.node && params.link.tosock->type == SOCK_BUNDLE)
+  {
     const NodeGeometryCombineBundle &storage = node_storage(params.node);
     if (storage.items_num == 0) {
       SpaceNode *snode = CTX_wm_space_node(params.C);

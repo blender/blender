@@ -181,7 +181,8 @@ static void node_free_storage(bNode *node)
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
-  if (params.C && params.link.fromnode == &params.node) {
+  if (params.C && params.link.fromnode == &params.node && params.link.tosock->type == SOCK_CLOSURE)
+  {
     const NodeGeometryClosureOutput &storage = node_storage(params.node);
     if (storage.input_items.items_num == 0 && storage.output_items.items_num == 0) {
       SpaceNode *snode = CTX_wm_space_node(params.C);

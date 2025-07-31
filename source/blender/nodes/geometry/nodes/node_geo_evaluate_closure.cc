@@ -76,17 +76,19 @@ static void node_free_storage(bNode *node)
 
 static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
-  if (params.link.tonode == &params.node) {
-    if (params.link.tosock == params.node.inputs.first) {
-      const NodeGeometryEvaluateClosure &storage = node_storage(params.node);
-      if (storage.input_items.items_num == 0 && storage.output_items.items_num == 0) {
-        SpaceNode *snode = CTX_wm_space_node(params.C);
-        if (snode && snode->edittree == &params.ntree) {
-          sync_sockets_evaluate_closure(*snode, params.node, nullptr, params.link.fromsock);
-        }
+  if (params.C && params.link.tosock == params.node.inputs.first &&
+      params.link.fromsock->type == SOCK_CLOSURE)
+  {
+    const NodeGeometryEvaluateClosure &storage = node_storage(params.node);
+    if (storage.input_items.items_num == 0 && storage.output_items.items_num == 0) {
+      SpaceNode *snode = CTX_wm_space_node(params.C);
+      if (snode && snode->edittree == &params.ntree) {
+        sync_sockets_evaluate_closure(*snode, params.node, nullptr, params.link.fromsock);
       }
-      return true;
     }
+    return true;
+  }
+  if (params.link.tonode == &params.node) {
     return socket_items::try_add_item_via_any_extend_socket<EvaluateClosureInputItemsAccessor>(
         params.ntree, params.node, params.node, params.link);
   }

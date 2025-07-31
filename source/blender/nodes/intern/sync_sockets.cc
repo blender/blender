@@ -63,6 +63,7 @@ static BundleSyncState get_sync_state_separate_bundle(
   if (!src_bundle_socket) {
     src_bundle_socket = &separate_bundle_node.input_socket(0);
   }
+  BLI_assert(src_bundle_socket->type == SOCK_BUNDLE);
 
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
@@ -94,6 +95,7 @@ static BundleSyncState get_sync_state_combine_bundle(
   if (!src_bundle_socket) {
     src_bundle_socket = &combine_bundle_node.output_socket(0);
   }
+  BLI_assert(src_bundle_socket->type == SOCK_BUNDLE);
 
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
@@ -124,6 +126,7 @@ static ClosureSyncState get_sync_state_closure_output(
   if (!src_closure_socket) {
     src_closure_socket = &closure_output_node.output_socket(0);
   }
+  BLI_assert(src_closure_socket->type == SOCK_CLOSURE);
 
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
@@ -155,6 +158,7 @@ static ClosureSyncState get_sync_state_evaluate_closure(
   if (!src_closure_socket) {
     src_closure_socket = &evaluate_closure_node.input_socket(0);
   }
+  BLI_assert(src_closure_socket->type == SOCK_CLOSURE);
 
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *current_context = ed::space_node::compute_context_for_edittree_socket(
