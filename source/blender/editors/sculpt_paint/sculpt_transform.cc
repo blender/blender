@@ -928,7 +928,7 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
   if (mode == PivotPositionMode::Origin) {
-    zero_v3(ss.pivot_pos);
+    ss.pivot_pos = float3(0.0f);
   }
   else if (mode == PivotPositionMode::ActiveVert) {
     const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
@@ -938,13 +938,10 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
     }
   }
   else if (mode == PivotPositionMode::CursorSurface) {
-    float stroke_location[3];
-    const float mval[2] = {
-        RNA_float_get(op->ptr, "mouse_x"),
-        RNA_float_get(op->ptr, "mouse_y"),
-    };
+    float3 stroke_location;
+    const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
     if (stroke_get_location_bvh(C, stroke_location, mval, false)) {
-      copy_v3_v3(ss.pivot_pos, stroke_location);
+      ss.pivot_pos = stroke_location;
     }
   }
   else if (mode == PivotPositionMode::Unmasked) {
@@ -957,7 +954,7 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
   /* Update the viewport navigation rotation origin. */
   Paint *paint = BKE_paint_get_active_from_context(C);
   bke::PaintRuntime *paint_runtime = paint->runtime;
-  copy_v3_v3(paint_runtime->average_stroke_accum, ss.pivot_pos);
+  paint_runtime->average_stroke_accum = ss.pivot_pos;
   paint_runtime->average_stroke_counter = 1;
   paint_runtime->last_stroke_valid = true;
 
