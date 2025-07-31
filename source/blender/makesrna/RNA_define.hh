@@ -397,7 +397,40 @@ void RNA_def_property_boolean_bitset_array_sdna(
 void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, const char *propname);
+/**
+ * Define a regular, non-bitflags-aware enum property.
+ *
+ * The key aspect of using this call is that when setting the property, the whole underlying DNA
+ * property will be overwritten.
+ *
+ * This should typically be used for:
+ *   - Non-bitflags enums.
+ *   - Bitflags enums using a callback function to define their items.
+ *
+ * \note This behavior is the only one available for runtime-defined enum properties. C++-defined
+ * runtime properties can work around this limitation by defining their own setter to handle the
+ * bitmasking.
+ *
+ * \note This is not related to the #PROP_ENUM_FLAG property option.
+ */
 void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname);
+/**
+ * Define a bitflags-aware enum property.
+ *
+ * The key aspect of using this call is that when setting the property, a bitmask is used to avoid
+ * overwriting unrelated bits in the underlying DNA property.
+ *
+ * The bitmask is computed from the values defined in the static 'items' array defined by
+ * `RNA_def_property_enum_items`, so it won't be valid in case an `items` callback function is
+ * defined, that may use bitflags outside of that statically computed bitmask.
+ *
+ * This should typically be used for bitflags enums. It is especially critical when several
+ * bitflags enums and/or bitflag booleans (defined with `RNA_def_property_boolean_sdna` or
+ * `RNA_def_property_boolean_negative_sdna`) share the same DNA variable. Otherwise, setting one
+ * RNA property may affect unrelated bitflags.
+ *
+ * \note This is not related to the #PROP_ENUM_FLAG property option.
+ */
 void RNA_def_property_enum_bitflag_sdna(PropertyRNA *prop,
                                         const char *structname,
                                         const char *propname);
