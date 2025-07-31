@@ -82,8 +82,8 @@ void WorldData::init()
       return;
     }
 
-    const bNodeSocket &color_input = input_node->input_by_identifier("Color");
-    const bNodeSocket &strength_input = input_node->input_by_identifier("Strength");
+    const bNodeSocket &color_input = *input_node->input_by_identifier("Color");
+    const bNodeSocket &strength_input = *input_node->input_by_identifier("Strength");
 
     float const *strength = strength_input.default_value_typed<float>();
     float const *input_color = color_input.default_value_typed<float>();

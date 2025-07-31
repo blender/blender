@@ -34,7 +34,7 @@ class InverseEvalParams {
 
   template<typename T> T get_output(const StringRef identifier) const
   {
-    const bNodeSocket &socket = node.output_by_identifier(identifier);
+    const bNodeSocket &socket = *node.output_by_identifier(identifier);
     if (const bke::SocketValueVariant *value = socket_values_.lookup_ptr(&socket)) {
       return value->get<T>();
     }
@@ -43,7 +43,7 @@ class InverseEvalParams {
 
   template<typename T> T get_input(const StringRef identifier) const
   {
-    const bNodeSocket &socket = node.input_by_identifier(identifier);
+    const bNodeSocket &socket = *node.input_by_identifier(identifier);
     if (const bke::SocketValueVariant *value = socket_values_.lookup_ptr(&socket)) {
       return value->get<T>();
     }
@@ -52,7 +52,7 @@ class InverseEvalParams {
 
   template<typename T> void set_input(const StringRef identifier, T value)
   {
-    const bNodeSocket &socket = node.input_by_identifier(identifier);
+    const bNodeSocket &socket = *node.input_by_identifier(identifier);
     updated_socket_values_.add(&socket, bke::SocketValueVariant(value));
   }
 };

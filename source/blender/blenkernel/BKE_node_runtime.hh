@@ -814,28 +814,28 @@ inline const bNodeSocket &bNode::output_socket(int index) const
   return *this->runtime->outputs[index];
 }
 
-inline const bNodeSocket &bNode::input_by_identifier(blender::StringRef identifier) const
+inline const bNodeSocket *bNode::input_by_identifier(blender::StringRef identifier) const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return *this->runtime->inputs_by_identifier.lookup_as(identifier);
+  return this->runtime->inputs_by_identifier.lookup_default_as(identifier, nullptr);
 }
 
-inline const bNodeSocket &bNode::output_by_identifier(blender::StringRef identifier) const
+inline const bNodeSocket *bNode::output_by_identifier(blender::StringRef identifier) const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return *this->runtime->outputs_by_identifier.lookup_as(identifier);
+  return this->runtime->outputs_by_identifier.lookup_default_as(identifier, nullptr);
 }
 
-inline bNodeSocket &bNode::input_by_identifier(blender::StringRef identifier)
+inline bNodeSocket *bNode::input_by_identifier(blender::StringRef identifier)
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return *this->runtime->inputs_by_identifier.lookup_as(identifier);
+  return this->runtime->inputs_by_identifier.lookup_default_as(identifier, nullptr);
 }
 
-inline bNodeSocket &bNode::output_by_identifier(blender::StringRef identifier)
+inline bNodeSocket *bNode::output_by_identifier(blender::StringRef identifier)
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
-  return *this->runtime->outputs_by_identifier.lookup_as(identifier);
+  return this->runtime->outputs_by_identifier.lookup_default_as(identifier, nullptr);
 }
 
 inline const bNodeTree &bNode::owner_tree() const

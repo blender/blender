@@ -227,10 +227,10 @@ static int node_gpu_material(GPUMaterial *material,
           material, node, "node_composite_color_balance_asc_cdl", inputs, outputs);
     }
     case CMP_NODE_COLOR_BALANCE_WHITEPOINT: {
-      const bNodeSocket &input_temperature = node->input_by_identifier("Input Temperature");
-      const bNodeSocket &input_tint = node->input_by_identifier("Input Tint");
-      const bNodeSocket &output_temperature = node->input_by_identifier("Output Temperature");
-      const bNodeSocket &output_tint = node->input_by_identifier("Output Tint");
+      const bNodeSocket &input_temperature = *node->input_by_identifier("Input Temperature");
+      const bNodeSocket &input_tint = *node->input_by_identifier("Input Tint");
+      const bNodeSocket &output_temperature = *node->input_by_identifier("Output Temperature");
+      const bNodeSocket &output_tint = *node->input_by_identifier("Output Tint");
 
       /* If all inputs are not linked, compute the white point matrix on the host and pass it to
        * the shader. */

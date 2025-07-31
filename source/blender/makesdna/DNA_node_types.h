@@ -575,10 +575,10 @@ typedef struct bNode {
   bNodeSocket &output_socket(int index);
   const bNodeSocket &output_socket(int index) const;
   /** Lookup socket of this node by its identifier. */
-  const bNodeSocket &input_by_identifier(blender::StringRef identifier) const;
-  const bNodeSocket &output_by_identifier(blender::StringRef identifier) const;
-  bNodeSocket &input_by_identifier(blender::StringRef identifier);
-  bNodeSocket &output_by_identifier(blender::StringRef identifier);
+  const bNodeSocket *input_by_identifier(blender::StringRef identifier) const;
+  const bNodeSocket *output_by_identifier(blender::StringRef identifier) const;
+  bNodeSocket *input_by_identifier(blender::StringRef identifier);
+  bNodeSocket *output_by_identifier(blender::StringRef identifier);
   /** Lookup socket by its declaration. */
   const bNodeSocket &socket_by_decl(const blender::nodes::SocketDeclaration &decl) const;
   bNodeSocket &socket_by_decl(const blender::nodes::SocketDeclaration &decl);

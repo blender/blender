@@ -89,7 +89,7 @@ NodeItem NodeParser::create_output(const std::string &name, const NodeItem &item
 
 NodeItem NodeParser::get_input_default(const std::string &name, NodeItem::Type to_type)
 {
-  return get_default(node_->input_by_identifier(name), to_type);
+  return get_default(*node_->input_by_identifier(name), to_type);
 }
 
 NodeItem NodeParser::get_input_default(int index, NodeItem::Type to_type)
@@ -99,7 +99,7 @@ NodeItem NodeParser::get_input_default(int index, NodeItem::Type to_type)
 
 NodeItem NodeParser::get_input_link(const std::string &name, NodeItem::Type to_type)
 {
-  return get_input_link(node_->input_by_identifier(name), to_type, false);
+  return get_input_link(*node_->input_by_identifier(name), to_type, false);
 }
 
 NodeItem NodeParser::get_input_link(int index, NodeItem::Type to_type)
@@ -109,7 +109,7 @@ NodeItem NodeParser::get_input_link(int index, NodeItem::Type to_type)
 
 NodeItem NodeParser::get_input_value(const std::string &name, NodeItem::Type to_type)
 {
-  return get_input_value(node_->input_by_identifier(name), to_type);
+  return get_input_value(*node_->input_by_identifier(name), to_type);
 }
 
 NodeItem NodeParser::get_input_value(int index, NodeItem::Type to_type)
@@ -119,7 +119,7 @@ NodeItem NodeParser::get_input_value(int index, NodeItem::Type to_type)
 
 NodeItem NodeParser::get_output_default(const std::string &name, NodeItem::Type to_type)
 {
-  return get_default(node_->output_by_identifier(name), to_type);
+  return get_default(*node_->output_by_identifier(name), to_type);
 }
 
 NodeItem NodeParser::get_output_default(int index, NodeItem::Type to_type)
