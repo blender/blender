@@ -172,9 +172,9 @@ struct NodeGeometry {
   CustomData face_data;
   int *face_offset_indices;
   const ImplicitSharingInfo *face_offsets_sharing_info;
-  int totvert;
-  int totedge;
-  int totloop;
+  int verts_num;
+  int edges_num;
+  int corners_num;
   int faces_num;
 };
 
@@ -691,9 +691,9 @@ static void store_geometry_data(NodeGeometry *geometry, const Object &object)
                                         &geometry->face_offset_indices,
                                         &geometry->face_offsets_sharing_info);
 
-  geometry->totvert = mesh->verts_num;
-  geometry->totedge = mesh->edges_num;
-  geometry->totloop = mesh->corners_num;
+  geometry->verts_num = mesh->verts_num;
+  geometry->edges_num = mesh->edges_num;
+  geometry->corners_num = mesh->corners_num;
   geometry->faces_num = mesh->faces_num;
 }
 
@@ -703,18 +703,18 @@ static void restore_geometry_data(const NodeGeometry *geometry, Mesh *mesh)
 
   BKE_mesh_clear_geometry(mesh);
 
-  mesh->verts_num = geometry->totvert;
-  mesh->edges_num = geometry->totedge;
-  mesh->corners_num = geometry->totloop;
+  mesh->verts_num = geometry->verts_num;
+  mesh->edges_num = geometry->edges_num;
+  mesh->corners_num = geometry->corners_num;
   mesh->faces_num = geometry->faces_num;
   mesh->totface_legacy = 0;
 
   CustomData_init_from(
-      &geometry->vert_data, &mesh->vert_data, CD_MASK_MESH.vmask, geometry->totvert);
+      &geometry->vert_data, &mesh->vert_data, CD_MASK_MESH.vmask, geometry->verts_num);
   CustomData_init_from(
-      &geometry->edge_data, &mesh->edge_data, CD_MASK_MESH.emask, geometry->totedge);
+      &geometry->edge_data, &mesh->edge_data, CD_MASK_MESH.emask, geometry->edges_num);
   CustomData_init_from(
-      &geometry->corner_data, &mesh->corner_data, CD_MASK_MESH.lmask, geometry->totloop);
+      &geometry->corner_data, &mesh->corner_data, CD_MASK_MESH.lmask, geometry->corners_num);
   CustomData_init_from(
       &geometry->face_data, &mesh->face_data, CD_MASK_MESH.pmask, geometry->faces_num);
   implicit_sharing::copy_shared_pointer(geometry->face_offset_indices,
