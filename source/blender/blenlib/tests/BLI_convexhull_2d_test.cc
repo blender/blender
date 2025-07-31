@@ -396,8 +396,8 @@ TEST(convexhull_2d, OctagonNearDuplicates)
       p *= scale;
     }
 
-    /* NOTE: `ROTATION_EPS` epsilon fails on MacOS,
-     * use a slightly larger epsilon to tests pass on all systems. */
+    /* NOTE: #ROTATION_EPS epsilon fails on MacOS,
+     * use a slightly larger epsilon so tests pass on all systems. */
     const float abs_error = scale < 10.0f ? ROTATION_EPS : 1e-5f;
     EXPECT_NEAR(convexhull_aabb_canonical_angle(BLI_convexhull_aabb_fit_points_2d(points_copy)),
                 DEG2RADF(51.5453016381),

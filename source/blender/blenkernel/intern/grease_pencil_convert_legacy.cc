@@ -157,7 +157,7 @@ class AnimDataConvertor {
    * Source (old) RNA property path in source ID to destination (new) matching property RNA path in
    * destination ID.
    *
-   * \note All paths here are relative the their respective (source or destination) root path.
+   * \note All paths here are relative to their respective (source or destination) root path.
    * \note If this array is empty, all FCurves starting with `root_path_source` will be "rebased"
    * on `root_path_dst`.
    */
