@@ -444,7 +444,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
                {NodeWarningType::Error,
                 fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
                             " {})",
-                            TIP_("Conversion not supported"),
+                            TIP_("Conversion not supported when evaluating closure"),
                             TIP_("Input"),
                             item.name,
                             TIP_(item_type->label),
@@ -457,7 +457,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
                {NodeWarningType::Info,
                 fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
                             " {})",
-                            TIP_("Implicit type conversion"),
+                            TIP_("Implicit type conversion when evaluating closure"),
                             TIP_("Input"),
                             item.name,
                             TIP_(item_type->label),
@@ -489,7 +489,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
                {NodeWarningType::Error,
                 fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
                             " {})",
-                            TIP_("Conversion not supported"),
+                            TIP_("Conversion not supported when evaluating closure"),
                             TIP_("Output"),
                             item.name,
                             TIP_(closure_item.type->label),
@@ -502,7 +502,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
                {NodeWarningType::Info,
                 fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
                             " {})",
-                            TIP_("Implicit type conversion"),
+                            TIP_("Implicit type conversion when evaluating closure"),
                             TIP_("Output"),
                             item.name,
                             TIP_(closure_item.type->label),
