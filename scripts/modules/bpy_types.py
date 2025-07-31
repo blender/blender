@@ -133,7 +133,7 @@ class Library(_types.ID):
         # we could make this an attribute in rna.
         attr_links = (
             "actions", "armatures", "brushes", "cameras",
-            "curves", "grease_pencils", "collections", "images",
+            "curves", "grease_pencils_v3", "collections", "images",
             "lights", "lattices", "materials", "metaballs",
             "meshes", "node_groups", "objects", "scenes",
             "sounds", "speakers", "textures", "texts",
