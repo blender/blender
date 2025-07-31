@@ -106,6 +106,16 @@ typedef struct uiStyle {
   char _pad0[2];
 } uiStyle;
 
+typedef struct ThemeCommonAnim {
+  /** Preview range overlay. */
+  unsigned char preview_range[4];
+} ThemeCommonAnim;
+
+typedef struct ThemeCommon {
+  ThemeCommonAnim anim;
+  char _pad[4];
+} ThemeCommon;
+
 typedef struct uiWidgetColors {
   unsigned char outline[4];
   unsigned char outline_sel[4];
@@ -401,8 +411,7 @@ typedef struct ThemeSpace {
   unsigned char anim_active[4];
   /** Active Action = NULL. */
   unsigned char anim_non_active[4];
-  /** Preview range overlay. */
-  unsigned char anim_preview_range[4];
+  char _pad8[4];
 
   /** NLA 'Tweaking' action/strip. */
   unsigned char nla_tweaking[4];
@@ -490,6 +499,8 @@ typedef struct bTheme {
   char filepath[/*FILE_MAX*/ 1024];
 
   ThemeUI tui;
+
+  ThemeCommon common;
 
   /**
    * Individual Space-types:

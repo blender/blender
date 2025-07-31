@@ -275,6 +275,11 @@ const bTheme U_theme_default = {
     .panel_title = RGBA(0xe6e6e6ff),
     .panel_text = RGBA(0xe6e6e6ff),
   },
+  .common = {
+    .anim = {
+      .preview_range = RGBA(0xa14d0066),
+    },
+  },
   .space_properties = {
     .back = RGBA(0x30303000),
     .title = RGBA(0xe6e6e6ff),
@@ -436,7 +441,6 @@ const bTheme U_theme_default = {
     .facedot_size = 4,
     .handle_vertex_select = RGBA(0xff8500ff),
     .handle_vertex_size = 5,
-    .anim_preview_range = RGBA(0xa14d0066),
   },
   .space_info = {
     .back = RGBA(0x1d1d1d00),
@@ -511,7 +515,6 @@ const bTheme U_theme_default = {
     .keyframe_scale_fac = 1.0f,
     .handle_vertex_size = 4,
     .anim_active = RGBA(0x4d272766),
-    .anim_preview_range = RGBA(0xa14d0066),
   },
   .space_nla = {
     .back = RGBA(0x30303000),
@@ -545,7 +548,6 @@ const bTheme U_theme_default = {
     .handle_vertex_size = 4,
     .anim_active = RGBA(0x99541366),
     .anim_non_active = RGBA(0x4d3b174d),
-    .anim_preview_range = RGBA(0xa14d0066),
     .nla_tweaking = RGBA(0x4df31a4d),
     .nla_tweakdupli = RGBA(0xd90000ff),
     .nla_track = RGBA(0x303030ff),
@@ -615,7 +617,6 @@ const bTheme U_theme_default = {
     .gp_vertex_size = 3,
     .gp_vertex_select = RGBA(0xff8500ff),
     .row_alternate = RGBA(0xffffff05),
-    .anim_preview_range = RGBA(0xa14d0066),
     .metadatatext = RGBA(0xffffffff),
   },
   .space_image = {
@@ -835,7 +836,6 @@ const bTheme U_theme_default = {
     .path_keyframe_before = RGBA(0xffc4c4ff),
     .path_keyframe_after = RGBA(0xc4c4ffff),
     .gp_vertex_size = 1,
-    .anim_preview_range = RGBA(0xa14d0066),
     .metadatatext = RGBA(0xffffffff),
   },
   .space_topbar = {
