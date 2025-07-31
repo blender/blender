@@ -222,6 +222,12 @@ using NodeGPUExecFunction = int (*)(
     GPUMaterial *mat, bNode *node, bNodeExecData *execdata, GPUNodeStack *in, GPUNodeStack *out);
 using NodeMaterialXFunction = void (*)(void *data, bNode *node, bNodeSocket *out);
 
+struct NodeInsertLinkParams {
+  bNodeTree &ntree;
+  bNode &node;
+  bNodeLink &link;
+};
+
 /**
  * \brief Defines a node type.
  *
@@ -323,7 +329,7 @@ struct bNodeType {
                         const char **r_disabled_hint) = nullptr;
 
   /* Optional handling of link insertion. Returns false if the link shouldn't be created. */
-  bool (*insert_link)(bNodeTree *ntree, bNode *node, bNodeLink *link) = nullptr;
+  bool (*insert_link)(NodeInsertLinkParams &params) = nullptr;
 
   void (*free_self)(bNodeType *ntype) = nullptr;
 

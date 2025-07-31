@@ -825,45 +825,45 @@ static void group_output_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Extend>("", "__extend__");
 }
 
-static bool group_input_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+static bool group_input_insert_link(blender::bke::NodeInsertLinkParams &params)
 {
-  BLI_assert(link->tonode != node);
-  BLI_assert(link->tosock->in_out == SOCK_IN);
-  if (!StringRef(link->fromsock->identifier).startswith("__extend__")) {
+  BLI_assert(params.link.tonode != &params.node);
+  BLI_assert(params.link.tosock->in_out == SOCK_IN);
+  if (!StringRef(params.link.fromsock->identifier).startswith("__extend__")) {
     return true;
   }
-  if (StringRef(link->tosock->identifier).startswith("__extend__")) {
+  if (StringRef(params.link.tosock->identifier).startswith("__extend__")) {
     /* Don't connect to other "extend" sockets. */
     return false;
   }
   const bNodeTreeInterfaceSocket *io_socket = node_interface::add_interface_socket_from_node(
-      *ntree, *link->tonode, *link->tosock);
+      params.ntree, *params.link.tonode, *params.link.tosock);
   if (!io_socket) {
     return false;
   }
-  update_node_declaration_and_sockets(*ntree, *node);
-  link->fromsock = node_group_input_find_socket(node, io_socket->identifier);
+  update_node_declaration_and_sockets(params.ntree, params.node);
+  params.link.fromsock = node_group_input_find_socket(&params.node, io_socket->identifier);
   return true;
 }
 
-static bool group_output_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+static bool group_output_insert_link(blender::bke::NodeInsertLinkParams &params)
 {
-  BLI_assert(link->fromnode != node);
-  BLI_assert(link->fromsock->in_out == SOCK_OUT);
-  if (!StringRef(link->tosock->identifier).startswith("__extend__")) {
+  BLI_assert(params.link.fromnode != &params.node);
+  BLI_assert(params.link.fromsock->in_out == SOCK_OUT);
+  if (!StringRef(params.link.tosock->identifier).startswith("__extend__")) {
     return true;
   }
-  if (StringRef(link->fromsock->identifier).startswith("__extend__")) {
+  if (StringRef(params.link.fromsock->identifier).startswith("__extend__")) {
     /* Don't connect to other "extend" sockets. */
     return false;
   }
   const bNodeTreeInterfaceSocket *io_socket = node_interface::add_interface_socket_from_node(
-      *ntree, *link->fromnode, *link->fromsock);
+      params.ntree, *params.link.fromnode, *params.link.fromsock);
   if (!io_socket) {
     return false;
   }
-  update_node_declaration_and_sockets(*ntree, *node);
-  link->tosock = node_group_output_find_socket(node, io_socket->identifier);
+  update_node_declaration_and_sockets(params.ntree, params.node);
+  params.link.tosock = node_group_output_find_socket(&params.node, io_socket->identifier);
   return true;
 }
 

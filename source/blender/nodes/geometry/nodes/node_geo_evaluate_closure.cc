@@ -74,14 +74,14 @@ static void node_free_storage(bNode *node)
   MEM_freeN(node->storage);
 }
 
-static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
-  if (link->tonode == node) {
+  if (params.link.tonode == &params.node) {
     return socket_items::try_add_item_via_any_extend_socket<EvaluateClosureInputItemsAccessor>(
-        *ntree, *node, *node, *link);
+        params.ntree, params.node, params.node, params.link);
   }
   return socket_items::try_add_item_via_any_extend_socket<EvaluateClosureOutputItemsAccessor>(
-      *ntree, *node, *node, *link);
+      params.ntree, params.node, params.node, params.link);
 }
 
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)

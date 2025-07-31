@@ -276,9 +276,7 @@ void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode
 /** \name Link Insertion
  * \{ */
 
-bool node_insert_link_default(bNodeTree * /*ntree*/,
-                              bNode * /*node*/,
-                              bNodeLink * /*inserted_link*/)
+bool node_insert_link_default(blender::bke::NodeInsertLinkParams & /*params*/)
 {
   return true;
 }

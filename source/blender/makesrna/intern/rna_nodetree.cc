@@ -1462,12 +1462,14 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
     new_link.tosock = tosock;
 
     if (fromnode->typeinfo->insert_link) {
-      if (!fromnode->typeinfo->insert_link(ntree, fromnode, &new_link)) {
+      blender::bke::NodeInsertLinkParams params{*ntree, *fromnode, new_link};
+      if (!fromnode->typeinfo->insert_link(params)) {
         return nullptr;
       }
     }
     if (tonode->typeinfo->insert_link) {
-      if (!tonode->typeinfo->insert_link(ntree, tonode, &new_link)) {
+      blender::bke::NodeInsertLinkParams params{*ntree, *tonode, new_link};
+      if (!tonode->typeinfo->insert_link(params)) {
         return nullptr;
       }
     }
@@ -1857,18 +1859,19 @@ static void rna_Node_update_reg(bNodeTree *ntree, bNode *node)
   RNA_parameter_list_free(&list);
 }
 
-static bool rna_Node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+static bool rna_Node_insert_link(blender::bke::NodeInsertLinkParams &params)
 {
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(
-      reinterpret_cast<ID *>(ntree), node->typeinfo->rna_ext.srna, node);
+      reinterpret_cast<ID *>(&params.ntree), params.node.typeinfo->rna_ext.srna, &params.node);
   func = &rna_Node_insert_link_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
+  bNodeLink *link = &params.link;
   RNA_parameter_set_lookup(&list, "link", &link);
-  node->typeinfo->rna_ext.call(nullptr, &ptr, func, &list);
+  params.node.typeinfo->rna_ext.call(nullptr, &ptr, func, &list);
 
   RNA_parameter_list_free(&list);
   return true;

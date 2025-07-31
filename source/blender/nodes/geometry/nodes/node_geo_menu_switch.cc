@@ -416,10 +416,10 @@ static void node_operators()
   socket_items::ops::make_common_operators<MenuSwitchItemsAccessor>();
 }
 
-static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
   return socket_items::try_add_item_via_any_extend_socket<MenuSwitchItemsAccessor>(
-      *ntree, *node, *node, *link);
+      params.ntree, params.node, params.node, params.link);
 }
 
 static void node_blend_write(const bNodeTree & /*ntree*/, const bNode &node, BlendWriter &writer)

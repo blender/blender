@@ -302,13 +302,15 @@ static bool snode_autoconnect_input(SpaceNode &snode,
   bNodeLink &link = bke::node_add_link(*ntree, *node_fr, *sock_fr, *node_to, *sock_to);
 
   if (link.fromnode->typeinfo->insert_link) {
-    if (!link.fromnode->typeinfo->insert_link(ntree, link.fromnode, &link)) {
+    bke::NodeInsertLinkParams params{*ntree, *link.fromnode, link};
+    if (!link.fromnode->typeinfo->insert_link(params)) {
       bke::node_remove_link(ntree, link);
       return false;
     }
   }
   if (link.tonode->typeinfo->insert_link) {
-    if (!link.tonode->typeinfo->insert_link(ntree, link.tonode, &link)) {
+    bke::NodeInsertLinkParams params{*ntree, *link.tonode, link};
+    if (!link.tonode->typeinfo->insert_link(params)) {
       bke::node_remove_link(ntree, link);
       return false;
     }
@@ -1258,13 +1260,15 @@ static void add_dragged_links_to_tree(bContext &C, bNodeLinkDrag &nldrag)
     bNodeLink *new_link = MEM_mallocN<bNodeLink>(__func__);
     *new_link = link;
     if (link.fromnode->typeinfo->insert_link) {
-      if (!link.fromnode->typeinfo->insert_link(&ntree, link.fromnode, new_link)) {
+      bke::NodeInsertLinkParams params{ntree, *link.fromnode, *new_link};
+      if (!link.fromnode->typeinfo->insert_link(params)) {
         MEM_freeN(new_link);
         continue;
       }
     }
     if (link.tonode->typeinfo->insert_link) {
-      if (!link.tonode->typeinfo->insert_link(&ntree, link.tonode, new_link)) {
+      bke::NodeInsertLinkParams params{ntree, *link.tonode, *new_link};
+      if (!link.tonode->typeinfo->insert_link(params)) {
         MEM_freeN(new_link);
         continue;
       }

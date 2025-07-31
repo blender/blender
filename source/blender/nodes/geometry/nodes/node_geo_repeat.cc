@@ -121,14 +121,14 @@ static void node_label(const bNodeTree * /*ntree*/,
   BLI_strncpy_utf8(label, CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, "Repeat"), label_maxncpy);
 }
 
-static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
-  bNode *output_node = ntree->node_by_id(node_storage(*node).output_node_id);
+  bNode *output_node = params.ntree.node_by_id(node_storage(params.node).output_node_id);
   if (!output_node) {
     return true;
   }
   return socket_items::try_add_item_via_any_extend_socket<RepeatItemsAccessor>(
-      *ntree, *node, *output_node, *link);
+      params.ntree, params.node, *output_node, params.link);
 }
 
 static void node_register()
@@ -218,10 +218,10 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
   socket_items::copy_array<RepeatItemsAccessor>(*src_node, *dst_node);
 }
 
-static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
   return socket_items::try_add_item_via_any_extend_socket<RepeatItemsAccessor>(
-      *ntree, *node, *node, *link);
+      params.ntree, params.node, params.node, params.link);
 }
 
 static void node_operators()

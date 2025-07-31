@@ -117,10 +117,10 @@ static void node_copy_storage(bNodeTree * /*tree*/, bNode *dst_node, const bNode
   socket_items::copy_array<BakeItemsAccessor>(*src_node, *dst_node);
 }
 
-static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
   return socket_items::try_add_item_via_any_extend_socket<BakeItemsAccessor>(
-      *ntree, *node, *node, *link);
+      params.ntree, params.node, params.node, params.link);
 }
 
 static const CPPType &get_item_cpp_type(const eNodeSocketDatatype socket_type)
