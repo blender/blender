@@ -131,8 +131,10 @@ def make_lib():
         bpy.context.collection.objects.link(ob)
 
     # nodes
-    bpy.data.scenes["Scene"].use_nodes = True
-    sys_idprops = bpy.data.scenes["Scene"].node_tree.nodes['Render Layers'].bl_system_properties_get(do_create=True)
+    tree = bpy.data.node_groups.new("Compositor Nodes", "CompositorNodeTree")
+    bpy.data.scenes["Scene"].compositing_node_group = tree
+    rlayers = tree.nodes.new(type="CompositorNodeRLayers")
+    sys_idprops = rlayers.bl_system_properties_get(do_create=True)
     sys_idprops["prop"] = bpy.data.objects['Camera']
 
     # rename scene and save
