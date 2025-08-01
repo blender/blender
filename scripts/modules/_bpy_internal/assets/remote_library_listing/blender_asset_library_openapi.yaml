@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: 2025 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# This is the OpenAPI specification for Blender's Remote Assets system.
+#
+# It has been intentionally trimmed down to the bare minimum for a review of the
+# code generator in general, and how it integrates into Blender's build system.
+#
+# The `paths` section is not used by the Blender code, and is here just for
+# referencing by humans. The Python code generator just uses the data structures
+# specified by the `components` section.
+
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Blender Asset Library API
+  description: Blender's API for describing and fetching assets from online libraries.
+  contact:
+    name: Blender
+    url: https://www.blender.org/
+  license:
+    name: GPLv3
+    url: https://www.gnu.org/licenses/gpl-3.0.en.html
+servers:
+  - url: /
+paths:
+  /_asset-library-meta.json:
+    summary: Meta-information about this asset library.
+    get:
+      summary: Retrieve the asset library meta info.
+      operationId: getLibraryMeta
+      responses:
+        "200":
+          description: normal response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetLibraryMeta"
+
+components:
+  schemas:
+    AssetLibraryMeta:
+      type: object
+      description: "Meta-data of this asset library."
+      properties:
+        "api_versions":
+          type: object
+          description: >
+            API versions of this asset library. This is reflected in the URLs of
+            all OpenAPI operations except the one to get this metadata.
+
+            A single asset library can expose multiple versions, in order to be
+            backward-compatible with older versions of Blender.
+
+            Properties should be "v1", "v2", etc. and their values should point
+            to their respective index files.
+          additionalProperties:
+            type: string
+          patternProperties:
+            "^v[0-9]+$":
+              type: string
+        "name":
+          type: string
+          description: Name of this asset library.
+        "contact": { $ref: "#/components/schemas/Contact" }
+      required: [api_versions, name, contact]
+      example:
+        api_versions:
+          v1: _v1/asset-index.json
+        name: Blender Essentials
+        contact:
+          name: Blender
+          url: https://www.blender.org/
+
+    Contact:
+      type: object
+      description: Owner / publisher of this asset library.
+      properties:
+        "name": { type: string }
+        "url": { type: string }
+        "email": { type: string }
+      required: [name]
