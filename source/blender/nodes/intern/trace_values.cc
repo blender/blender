@@ -464,7 +464,7 @@ Vector<BundleSignature> gather_linked_target_bundle_signatures(
       {bundle_socket_context, &bundle_socket},
       compute_context_cache,
       [](const SocketInContext &socket) {
-        return socket->owner_node().is_type("GeometryNodeSeparateBundle");
+        return socket->is_input() && socket->owner_node().is_type("GeometryNodeSeparateBundle");
       },
       true);
   Vector<BundleSignature> signatures;
@@ -484,7 +484,7 @@ Vector<BundleSignature> gather_linked_origin_bundle_signatures(
       {bundle_socket_context, &bundle_socket},
       compute_context_cache,
       [](const SocketInContext &socket) {
-        return socket->owner_node().is_type("GeometryNodeCombineBundle");
+        return socket->is_output() && socket->owner_node().is_type("GeometryNodeCombineBundle");
       },
       true);
   Vector<BundleSignature> signatures;
