@@ -143,6 +143,9 @@ static void object_shape_key_add(bContext *C, Object *ob, const bool from_mix)
   Main *bmain = CTX_data_main(C);
   KeyBlock *kb = BKE_object_shapekey_insert(bmain, ob, nullptr, from_mix);
   if (kb) {
+    /* Shapekeys created via this operator should get default value 1.0. */
+    kb->curval = 1.0f;
+
     Key *key = BKE_key_from_object(ob);
     /* for absolute shape keys, new keys may not be added last */
     ob->shapenr = BLI_findindex(&key->block, kb) + 1;
