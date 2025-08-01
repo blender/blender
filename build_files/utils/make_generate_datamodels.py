@@ -35,7 +35,7 @@ import warnings
 # the corresponding `.py`` file is automatically marked as 'generated' in
 # `.gitattributes`.
 YAML_PATHS = [
-    "scripts/modules/_bpy_internal/assets/remote_library_index/blender_asset_library_openapi.yaml",
+    "scripts/modules/_bpy_internal/assets/remote_library_listing/blender_asset_library_openapi.yaml",
 ]
 
 # These arguments are quite likely to be used for all code generated with this

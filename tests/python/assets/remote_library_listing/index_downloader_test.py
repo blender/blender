@@ -11,11 +11,11 @@ import unittest
 from pathlib import Path
 
 """
-blender -b --factory-startup --python tests/python/assets/remote_library_index/index_downloader_test.py -- --output-dir /tmp/tests
+blender -b --factory-startup --python tests/python/assets/remote_library_listing/index_downloader_test.py -- --output-dir /tmp/tests
 """
 
-from _bpy_internal.assets.remote_library_index import index_downloader
-from _bpy_internal.assets.remote_library_index import blender_asset_library_openapi as api_models
+from _bpy_internal.assets.remote_library_listing import index_downloader
+from _bpy_internal.assets.remote_library_listing import blender_asset_library_openapi as api_models
 
 
 @dataclasses.dataclass

@@ -18,11 +18,11 @@ from typing import Callable, TypeAlias, TypeVar, Type
 import bpy
 
 from _bpy_internal.http import downloader as http_dl
-from _bpy_internal.assets.remote_library_index import blender_asset_library_openapi as api_models
-from _bpy_internal.assets.remote_library_index import index_common
-from _bpy_internal.assets.remote_library_index import http_metadata
-from _bpy_internal.assets.remote_library_index import asset_catalogs
-from _bpy_internal.assets.remote_library_index import json_parsing
+from _bpy_internal.assets.remote_library_listing import blender_asset_library_openapi as api_models
+from _bpy_internal.assets.remote_library_listing import index_common
+from _bpy_internal.assets.remote_library_listing import http_metadata
+from _bpy_internal.assets.remote_library_listing import asset_catalogs
+from _bpy_internal.assets.remote_library_listing import json_parsing
 
 logger = logging.getLogger(__name__)
 

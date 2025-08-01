@@ -1596,11 +1596,11 @@ static wmOperatorStatus assets_download_exec(bContext *C, wmOperator *op)
     /* TODO move to remote_library.cc? */
     {
       const char *expr_imports[] = {"_bpy_internal",
-                                    "_bpy_internal.assets.remote_library_index.asset_downloader",
+                                    "_bpy_internal.assets.remote_library_listing.asset_downloader",
                                     "pathlib",
                                     nullptr};
       const std::string expr = fmt::format(
-          "_bpy_internal.assets.remote_library_index.asset_downloader.download_asset('{}', "
+          "_bpy_internal.assets.remote_library_listing.asset_downloader.download_asset('{}', "
           "pathlib.Path('{}'), '{}', pathlib.Path('{}'))",
           *library_url,
           library_path,

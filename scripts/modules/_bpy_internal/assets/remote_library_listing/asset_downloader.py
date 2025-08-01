@@ -19,7 +19,7 @@ from typing import Callable, TypeAlias
 import bpy
 
 from _bpy_internal.http import downloader as http_dl
-from _bpy_internal.assets.remote_library_index.index_downloader import RemoteAssetListingLocator
+from _bpy_internal.assets.remote_library_listing.index_downloader import RemoteAssetListingLocator
 
 logger = logging.getLogger(__name__)
 

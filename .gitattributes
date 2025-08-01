@@ -100,4 +100,4 @@
 *.dat filter=lfs diff=lfs merge=lfs -text
 *.csv filter=lfs diff=lfs merge=lfs -text
 
-scripts/modules/_bpy_internal/assets/remote_library_index/*_openapi.py linguist-generated=true
+scripts/modules/_bpy_internal/assets/remote_library_listing/*_openapi.py linguist-generated=true
