@@ -18,13 +18,13 @@
 #include "BLI_sys_types.h"
 #include "BLI_vector.hh"
 
-/* Name of sub-directory inside #BLENDER_DATAFILES that contains font files. */
+/** Name of sub-directory inside #BLENDER_DATAFILES that contains font files. */
 #define BLF_DATAFILES_FONTS_DIR "fonts"
 
-/* File name of the default variable-width font. */
+/** File name of the default variable-width font. */
 #define BLF_DEFAULT_PROPORTIONAL_FONT "Inter.woff2"
 
-/* File name of the default fixed-pitch font. */
+/** File name of the default fixed-pitch font. */
 #define BLF_DEFAULT_MONOSPACED_FONT "DejaVuSansMono.woff2"
 
 struct ListBase;
@@ -142,10 +142,14 @@ void BLF_size(int fontid, float size);
  */
 void BLF_character_weight(int fontid, int weight);
 
-/* Return the font's default design weight (100-900). */
+/**
+ * \return the font's default design weight (100-900).
+ */
 int BLF_default_weight(int fontid) ATTR_WARN_UNUSED_RESULT;
 
-/* Return true if the font has a variable (multiple master) weight axis. */
+/**
+ * \return true if the font has a variable (multiple master) weight axis.
+ */
 bool BLF_has_variable_weight(int fontid) ATTR_WARN_UNUSED_RESULT;
 
 /* Goal: small but useful color API. */
@@ -253,7 +257,7 @@ size_t BLF_width_to_strlen(int fontid,
                            float width,
                            float *r_width) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
 /**
- * Same as BLF_width_to_strlen but search from the string end.
+ * Same as #BLF_width_to_strlen but search from the string end.
  */
 size_t BLF_width_to_rstrlen(int fontid,
                             const char *str,

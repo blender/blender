@@ -18,10 +18,14 @@ enum class FontShadowType {
 };
 
 enum class BLFWrapMode : int {
-  Minimal = 0,            /* Only on ASCII space and line feed. Legacy and invariant. */
-  Typographical = 1 << 0, /* Multilingual, informed by Unicode Standard Annex #14. */
-  Path = 1 << 1,          /* Wrap on file path separators, space, underscores. */
-  HardLimit = 1 << 2,     /* Line break at limit. */
+  /** Only on ASCII space and line feed. Legacy and invariant. */
+  Minimal = 0,
+  /** Multilingual, informed by Unicode Standard Annex #14. */
+  Typographical = 1 << 0,
+  /** Wrap on file path separators, space, underscores. */
+  Path = 1 << 1,
+  /** Line break at limit. */
+  HardLimit = 1 << 2,
 };
 
 enum FontFlags {
@@ -57,7 +61,7 @@ enum FontFlags {
    */
   BLF_RENDER_SUBPIXELAA = 1 << 18,
 
-  /* Do not look in other fonts when a glyph is not found in this font. */
+  /** Do not look in other fonts when a glyph is not found in this font. */
   BLF_NO_FALLBACK = 1 << 19,
 };
 ENUM_OPERATORS(FontFlags, BLF_NO_FALLBACK);
