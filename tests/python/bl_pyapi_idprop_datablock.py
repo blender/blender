@@ -188,8 +188,8 @@ def check_linked_scene_copying():
 
     # check node's props
     # must point to own scene camera
-    intern_sys_idprops = intern_sce.node_tree.nodes['Render Layers'].bl_system_properties_get()
-    extern_sys_idprops = extern_sce.node_tree.nodes['Render Layers'].bl_system_properties_get()
+    intern_sys_idprops = intern_sce.compositing_node_group.nodes['Render Layers'].bl_system_properties_get()
+    extern_sys_idprops = extern_sce.compositing_node_group.nodes['Render Layers'].bl_system_properties_get()
     expect_false_or_abort(
         intern_sys_idprops["prop"] and not (intern_sys_idprops["prop"] == extern_sys_idprops["prop"]))
 
@@ -210,8 +210,8 @@ def check_scene_copying():
 
     # check node's props
     # must point to own scene camera
-    first_sys_idprops = first_sce.node_tree.nodes['Render Layers'].bl_system_properties_get()
-    second_sys_idprops = second_sce.node_tree.nodes['Render Layers'].bl_system_properties_get()
+    first_sys_idprops = first_sce.compositing_node_group.nodes['Render Layers'].bl_system_properties_get()
+    second_sys_idprops = second_sce.compositing_node_group.nodes['Render Layers'].bl_system_properties_get()
     expect_false_or_abort(not (first_sys_idprops["prop"] == second_sys_idprops["prop"]))
 
 

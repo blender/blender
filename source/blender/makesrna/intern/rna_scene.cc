@@ -8897,14 +8897,6 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE, nullptr);
 
   /* Nodes (Compositing) */
-  prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "compositing_node_group");
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
-  RNA_def_property_struct_type(prop, "NodeTree");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
-  RNA_def_property_ui_text(
-      prop, "Node Tree", "Compositor Nodes. (Deprecated: Use compositing_node_group)");
-
   prop = RNA_def_property(srna, "compositing_node_group", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "compositing_node_group");
   RNA_def_property_struct_type(prop, "NodeTree");
