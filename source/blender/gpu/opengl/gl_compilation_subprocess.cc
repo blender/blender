@@ -259,16 +259,22 @@ void GPU_compilation_subprocess_run(const char *subprocess_name)
       std::streamsize size = file.tellg();
       if (size <= compilation_subprocess_shared_memory_size) {
         file.seekg(0, std::ios::beg);
-        file.read(reinterpret_cast<char *>(shared_mem.get_data()), size);
+        /* Use temp memory so we don't overwrite the source hash. */
+        static char tmp_mem[compilation_subprocess_shared_memory_size];
+        file.read(tmp_mem, size);
         /* Ensure it's valid. */
-        if (!validate_binary(shared_mem.get_data())) {
+        if (!validate_binary(tmp_mem)) {
           std::cout << "Compilation Subprocess: Failed to load cached shader binary " << hash_str
                     << "\n";
+          /* TODO: No longer true. */
           /* We can't compile the shader anymore since we have written over the source code,
            * but we delete the cache for the next time this shader is requested. */
           file.close();
           BLI_delete(cache_path.c_str(), false, false);
         }
+        /* Copy the temp memory to the shared memory now that we know loading the shader doesn't
+         * crash the driver. */
+        memcpy(shared_mem.get_data(), tmp_mem, size);
         end_semaphore.increment();
         continue;
       }
