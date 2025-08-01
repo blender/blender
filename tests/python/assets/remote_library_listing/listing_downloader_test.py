@@ -10,12 +10,13 @@ import sys
 import unittest
 from pathlib import Path
 
+from _bpy_internal.assets.remote_library_listing import listing_downloader
+from _bpy_internal.assets.remote_library_listing import blender_asset_library_openapi as api_models
+
+
 """
 blender -b --factory-startup --python tests/python/assets/remote_library_listing/index_downloader_test.py -- --output-dir /tmp/tests
 """
-
-from _bpy_internal.assets.remote_library_listing import listing_downloader
-from _bpy_internal.assets.remote_library_listing import blender_asset_library_openapi as api_models
 
 
 @dataclasses.dataclass
@@ -35,13 +36,18 @@ class ThumbnailTimestampTest(unittest.TestCase):
         asset = api_models.AssetV1(
             name="Suzanne",
             id_type=api_models.AssetIDTypeV1.object,
-            archive_url='http://localhost:8000/monkeys/suzanne.blend',
-            archive_size_in_bytes=327,
-            archive_hash='010203040506',
+            file="monkeys/suzanne.blend",
             thumbnail_url="monkeys/suzanne/thumbnails/suzanne.webp",
         )
+        asset_file = api_models.FileV1(
+            path=asset.file,
+            size_in_bytes=327,
+            hash='010203040506',
+            blender_version="4.5.0",
+            url='http://localhost:8000/monkeys/suzanne.blend',
+        )
 
-        thumb_path = self.loc.thumbnail_download_path(asset)
+        thumb_path = self.loc.thumbnail_download_path(asset, asset_file)
         assert thumb_path is not None
         self.thumb_path = thumb_path
 
