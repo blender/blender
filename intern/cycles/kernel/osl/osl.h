@@ -202,14 +202,9 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
     globals.shade_index = state + 1;
   }
 
-/* For surface shaders, we might have an automatic bump shader that needs to be executed before
- * the main shader to update globals.N. */
-#    if __cplusplus < 201703L
-  if (type == SHADER_TYPE_SURFACE)
-#    else
-  if constexpr (type == SHADER_TYPE_SURFACE)
-#    endif
-  {
+  /* For surface shaders, we might have an automatic bump shader that needs to be executed before
+   * the main shader to update globals.N. */
+  if constexpr (type == SHADER_TYPE_SURFACE) {
     if (sd->flag & SD_HAS_BUMP) {
       /* Save state. */
       const float3 P = sd->P;
@@ -269,11 +264,7 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
                         /* interactive_params_ptr */ (void *)nullptr);
 #  endif
 
-#  if __cplusplus < 201703L
-  if (type == SHADER_TYPE_DISPLACEMENT) {
-#  else
   if constexpr (type == SHADER_TYPE_DISPLACEMENT) {
-#  endif
     sd->P = globals.P;
   }
   else if (globals.Ci) {

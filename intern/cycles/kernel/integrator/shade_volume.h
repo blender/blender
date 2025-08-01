@@ -80,8 +80,7 @@ ccl_device_inline bool shadow_volume_shader_sample(KernelGlobals kg,
                                                    ccl_private ShaderData *ccl_restrict sd,
                                                    ccl_private Spectrum *ccl_restrict extinction)
 {
-  VOLUME_READ_LAMBDA(integrator_state_read_shadow_volume_stack(state, i))
-  volume_shader_eval<true>(kg, state, sd, PATH_RAY_SHADOW, volume_read_lambda_pass);
+  volume_shader_eval<true>(kg, state, sd, PATH_RAY_SHADOW);
 
   if (!(sd->flag & SD_EXTINCTION)) {
     return false;
@@ -98,8 +97,7 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals kg,
                                             ccl_private VolumeShaderCoefficients *coeff)
 {
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-  VOLUME_READ_LAMBDA(integrator_state_read_volume_stack(state, i))
-  volume_shader_eval<false>(kg, state, sd, path_flag, volume_read_lambda_pass);
+  volume_shader_eval<false>(kg, state, sd, path_flag);
 
   if (!(sd->flag & (SD_EXTINCTION | SD_SCATTER | SD_EMISSION))) {
     return false;
@@ -1023,8 +1021,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
                                                       VOLUME_SAMPLE_DISTANCE;
 
   /* Step through volume. */
-  VOLUME_READ_LAMBDA(integrator_state_read_volume_stack(state, i))
-  const float step_size = volume_stack_step_size(kg, volume_read_lambda_pass);
+  const float step_size = volume_stack_step_size<false>(kg, state);
 
 #  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   /* The current path throughput which is used later to calculate per-segment throughput. */

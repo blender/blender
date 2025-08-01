@@ -535,10 +535,8 @@ if(WITH_CYCLES_CUDA_BINARIES)
       set(cuda_flags ${cuda_flags} --ptxas-options="-v")
     endif()
 
-    if(${cuda_version} GREATER_EQUAL 110)
-      # Helps with compatibility when using recent clang host compiler.
-      set(cuda_flags ${cuda_flags} -std=c++17)
-    endif()
+    # Helps with compatibility when using recent clang host compiler.
+    set(cuda_flags ${cuda_flags} -std=c++17)
 
     set(_cuda_nvcc_args
       -arch=${arch}
@@ -700,6 +698,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       -Wno-parentheses-equality
       -Wno-unused-value
       -ffast-math
+      -std=c++17
       ${math_flag}
       ${hip_opt_flags}
       -o ${CMAKE_CURRENT_BINARY_DIR}/${hip_file})
@@ -870,6 +869,7 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
       COMMAND
         ${CUDA_NVCC_EXECUTABLE}
         --ptx
+        -std=c++17
         -arch=sm_50
         ${cuda_flags}
         ${input}
