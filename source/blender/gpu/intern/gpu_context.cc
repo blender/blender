@@ -592,6 +592,9 @@ GPUSecondaryContext::GPUSecondaryContext()
   ghost_context_ = GHOST_CreateGPUContext(ghost_system, gpu_settings);
   BLI_assert(ghost_context_);
 
+  /* Activate it so GPU_context_create has a valid device for info queries. */
+  GHOST_ActivateGPUContext(reinterpret_cast<GHOST_ContextHandle>(ghost_context_));
+
   /* Create a GPU context for the secondary thread to use. */
   gpu_context_ = GPU_context_create(nullptr, ghost_context_);
   BLI_assert(gpu_context_);
