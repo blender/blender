@@ -27,7 +27,8 @@ from typing import Protocol, TypeAlias, Any, Generator
 # Pylance: Variable not allowed in type expression
 from multiprocessing.synchronize import Event as EventClass
 
-import pydantic
+import cattrs
+import cattrs.preconf.json
 import requests
 import requests.adapters
 import urllib3.util.retry
@@ -189,8 +190,9 @@ class ConditionalDownloader:
             # than modifying parameters and expecting the caller to know about
             # this.
             response_headers = {key.lower(): value for key, value in stream.headers.items()}
-            http_req_descr_with_headers = http_req_descr.model_copy(
-                update=dict(response_headers=response_headers),
+            http_req_descr_with_headers = dataclasses.replace(
+                http_req_descr,
+                response_headers=response_headers,
             )
 
             if stream.status_code == 304:  # 304 Not Modified
@@ -1035,9 +1037,24 @@ class MetadataProvider(Protocol):
 
 class MetadataProviderFilesystem(MetadataProvider):
     cache_location: Path
+    _converter: cattrs.preconf.json.JsonConverter | None
 
     def __init__(self, cache_location: Path) -> None:
         self.cache_location = cache_location
+        self._converter = None  # Created on first use.
+
+    def __getstate__(self) -> dict[str, Any]:
+        """Return the state of this object, for pickling.
+
+        This is necessary to send an instance of this class to a subprocess.
+        """
+        # self._converter is not pickleable, and so it's just created again when
+        # necessary.
+        return {"cache_location": self.cache_location}
+
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        self.cache_location = state["cache_location"]
+        self._converter = None  # Created on first use.
 
     def _cache_key(self, http_req_descr: RequestDescription) -> str:
         method = http_req_descr.http_method
@@ -1054,9 +1071,11 @@ class MetadataProviderFilesystem(MetadataProvider):
             return None
         meta_json = meta_path.read_bytes()
 
+        converter = self._ensure_converter()
+
         try:
-            return HTTPMetadata.model_validate_json(meta_json)
-        except pydantic.ValidationError:
+            return converter.loads(meta_json, HTTPMetadata)
+        except cattrs.BaseValidationError:
             # File was an old format, got corrupted, or is otherwise unusable.
             # Just act as if it never existed in the first place.
             meta_path.unlink()
@@ -1090,14 +1109,24 @@ class MetadataProviderFilesystem(MetadataProvider):
     def save(self, http_req_descr: RequestDescription, meta: HTTPMetadata) -> None:
         meta.request = http_req_descr
 
-        meta_json = meta.model_dump_json()
+        converter = self._ensure_converter()
+        meta_json = converter.dumps(meta)
         meta_path = self._metadata_path(http_req_descr)
 
         meta_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         meta_path.write_bytes(meta_json.encode())
 
+    def _ensure_converter(self) -> cattrs.preconf.json.JsonConverter:
+        if self._converter is not None:
+            return self._converter
 
-class HTTPMetadata(pydantic.BaseModel):
+        self._converter = cattrs.preconf.json.JsonConverter(omit_if_default=True)
+        assert self._converter is not None
+        return self._converter
+
+
+@dataclasses.dataclass
+class HTTPMetadata:
     """HTTP headers, stored so they can be used for conditional requests later."""
 
     # Saved without the response headers, as only the interesting ones are
@@ -1109,7 +1138,9 @@ class HTTPMetadata(pydantic.BaseModel):
     content_length: int = 0
 
 
-class RequestDescription(pydantic.BaseModel):
+# Freeze instances of this class, so they can be used as map key.
+@dataclasses.dataclass(frozen=True)
+class RequestDescription:
     """Simple descriptor for HTTP requests.
 
     This is used to simplify function parameters, as well as a key for hashing
@@ -1121,13 +1152,11 @@ class RequestDescription(pydantic.BaseModel):
     header names (i.e. the keys of the dictionary) will be converted to lower
     case.
     """
-    # Freeze instances of this class, so they can be used as map key.
-    model_config = pydantic.ConfigDict(frozen=True)
 
     http_method: str
     url: str
 
-    response_headers: dict[str, str] = pydantic.Field(exclude=True, default_factory=dict)
+    response_headers: dict[str, str] = dataclasses.field(compare=False, default_factory=dict)
     """Response headers, dictionary keys are lower-cased.
 
     This field is ignored in hash() calls and equality checks, to keep instances

@@ -5,19 +5,19 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import logging
 import time
 import urllib.parse
 from pathlib import Path
-
-import pydantic
 
 from . import index_downloader
 
 logger = logging.getLogger(__name__)
 
 
-class CLIArguments(pydantic.BaseModel):
+@dataclasses.dataclass
+class CLIArguments:
     """Parsed commandline arguments."""
 
     url: str

@@ -7,13 +7,16 @@ from __future__ import annotations
 """Blender Online Asset Repository Index Generator."""
 
 import argparse
+import dataclasses
 import logging
 import sys
 from pathlib import Path
+from typing import Any
 
-import pydantic
+import fastjsonschema
+import cattrs.preconf.json
 
-from . import asset_catalogs, asset_finder, index_common, pagination
+from . import asset_catalogs, asset_finder, index_common, pagination, json_parsing
 from . import blender_asset_library_openapi as api_models
 
 SCHEMA_VERSION = "1.0.0"
@@ -34,8 +37,11 @@ DEFAULT_METADATA = api_models.AssetLibraryMeta(
 
 logger = logging.getLogger(__name__)
 
+_converter = cattrs.preconf.json.JsonConverter(omit_if_default=True)
 
-class CLIArguments(pydantic.BaseModel):
+
+@dataclasses.dataclass
+class CLIArguments:
     """Parsed commandline arguments."""
 
     repository: Path
@@ -92,7 +98,7 @@ def _write_toplevel_meta(arguments: CLIArguments) -> None:
     meta_json_path = outdir_root / index_common.ASSET_TOP_METADATA_FILENAME
     try:
         metadata = _toplevel_metadata(meta_json_path)
-    except pydantic.ValidationError as ex:
+    except fastjsonschema.JsonSchemaException as ex:
         msg = "Metadata file {} could not be parsed as JSON: {}"
         logger.error(msg.format(meta_json_path, ex))
         raise SystemExit(1) from None
@@ -143,8 +149,8 @@ def _write_json_files(
     _save_json(index, outdir_versioned / index_common.ASSET_INDEX_JSON_FILENAME)
 
 
-def _save_json(model: pydantic.BaseModel, json_path: Path) -> None:
-    as_json = model.model_dump_json(indent=2, exclude_defaults=True)
+def _save_json(model: Any, json_path: Path) -> None:
+    as_json = _converter.dumps(model, indent=2)
 
     json_path.parent.mkdir(exist_ok=True, parents=True)
 
@@ -156,8 +162,8 @@ def _save_json(model: pydantic.BaseModel, json_path: Path) -> None:
 def _toplevel_metadata(json_path: Path) -> api_models.AssetLibraryMeta:
     """Construct the top-level metadata.
 
-    Returns the metadata, or raises a pydantic.ValidationError if it is not
-    valid JSON.
+    Returns the metadata, or raises an exception (see json_parsing.ValidatingParser)
+    if it is not valid JSON.
 
     Writing is considered safe, except when the file exists but does not contain
     valid JSON. In that case, it's better to warn about this and keep the file
@@ -169,7 +175,8 @@ def _toplevel_metadata(json_path: Path) -> api_models.AssetLibraryMeta:
         # Ignore any read errors, as this likely means the file simply doesn't exist.
         return DEFAULT_METADATA
 
-    metadata = api_models.AssetLibraryMeta.model_validate_json(json_data)
+    parser = json_parsing.ValidatingParser(api_models.OPENAPI_SPEC)
+    metadata = parser.parse_and_validate(api_models.AssetLibraryMeta, json_data)
 
     # Update the metadata to declare the API version for which we're going to
     # write the data.

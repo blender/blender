@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import copy
 import enum
 import functools
 import hashlib
@@ -15,17 +16,15 @@ from pathlib import Path, PurePosixPath
 from typing import Callable, TypeAlias, TypeVar, Type
 
 import bpy
-import pydantic
 
 from _bpy_internal.http import downloader as http_dl
 from _bpy_internal.assets.remote_library_index import blender_asset_library_openapi as api_models
 from _bpy_internal.assets.remote_library_index import index_common
 from _bpy_internal.assets.remote_library_index import http_metadata
 from _bpy_internal.assets.remote_library_index import asset_catalogs
+from _bpy_internal.assets.remote_library_index import json_parsing
 
 logger = logging.getLogger(__name__)
-
-PydanticModel = TypeVar("PydanticModel", bound=pydantic.BaseModel)
 
 # TODO: discuss & adjust this value, as this was just picked more or less randomly:
 THUMBNAIL_FRESH_DURATION_MINS = 60
@@ -246,6 +245,8 @@ class RemoteAssetListingDownloader:
     _noncritical_downloads: set[Path]
     """Failing downloads to any of these files will not cause a complete shutdown."""
 
+    _parser: json_parsing.ValidatingParser
+
     def __init__(
         self,
         remote_url: str,
@@ -301,6 +302,8 @@ class RemoteAssetListingDownloader:
 
         self._status = DownloadStatus.LOADING
         self._error_message = ""
+
+        self._parser = json_parsing.ValidatingParser(api_models.OPENAPI_SPEC)
 
         # Work around a limitation of Blender, see bug report #139720 for details.
         self.on_timer_event = self.on_timer_event  # type: ignore[method-assign]
@@ -429,7 +432,7 @@ class RemoteAssetListingDownloader:
         # Construct a "processed" version of the asset index file. This will be
         # what Blender reads, and thus it should reference local files, and not
         # the URLs where they were downloaded from.
-        processed_asset_index = asset_index.model_copy(deep=True)
+        processed_asset_index = copy.deepcopy(asset_index)
         # Catalogs are not read from here, but from the above-generated file. So
         # no need to store them again.
         processed_asset_index.catalogs = []
@@ -452,7 +455,8 @@ class RemoteAssetListingDownloader:
 
         # Save the processed index to a JSON file for Blender to pick up.
         json_path = local_file.with_suffix(".processed{!s}".format(local_file.suffix))
-        as_json = processed_asset_index.model_dump_json(indent=2, exclude_defaults=True)
+
+        as_json = self._parser.dumps(processed_asset_index)
         json_path.parent.mkdir(exist_ok=True, parents=True)
         with json_path.open("w") as json_file:
             json_file.write(as_json)
@@ -558,13 +562,14 @@ class RemoteAssetListingDownloader:
             # Done downloading everything, let's shut down.
             self.shutdown(DownloadStatus.FINISHED_SUCCESSFULLY)
 
-    def _parse_api_model(self, unsafe_local_file: Path, api_model: Type[PydanticModel]) -> tuple[PydanticModel, bool]:
-        """Use a Pydantic model to parse & validate a JSON file.
+    def _parse_api_model(self, unsafe_local_file: Path,
+                         api_model: Type[json_parsing.APIModel]) -> tuple[json_parsing.APIModel, bool]:
+        """Use the OpenAPI schema to parse & validate a JSON file.
 
         :param unsafe_local_file: Path to load, parse, and validate. If this
             file does not exist, the 'safe' version of the filepath is tried. If
             that doesn't exist either, a FileNotFoundError is raised.
-        :param api_model: the Pydantic class itself, to use for parsing & validating.
+        :param api_model: the data class itself, to use for parsing & validating.
 
         :returns: the parsed+validated data, and a boolean that indicates
             whether the input file was used directly (True), or its 'safe'
@@ -586,7 +591,7 @@ class RemoteAssetListingDownloader:
 
         logger.info("Validating %s", path_to_load)
         json_data = path_to_load.read_bytes()
-        parsed_data = api_model.model_validate_json(json_data)
+        parsed_data = self._parser.parse_and_validate(api_model, json_data)
 
         # The file has been parsed & validated, so 'touch' it to let other
         # Blender processes know when this was last downloaded/validated.

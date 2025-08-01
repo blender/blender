@@ -10,18 +10,16 @@ to implement.
 
 from __future__ import annotations
 
+import dataclasses
 from pathlib import Path, PurePosixPath
-
-import pydantic
 
 from . import blender_asset_library_openapi as api_models
 
 SUPPORTED_VERSION = 1
 
 
-class AssetCatalog(pydantic.BaseModel):
-    model_config = pydantic.ConfigDict(frozen=True)
-
+@dataclasses.dataclass(frozen=True)
+class AssetCatalog:
     uuid: str
     path: PurePosixPath
     simple_name: str

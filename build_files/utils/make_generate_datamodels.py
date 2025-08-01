@@ -15,6 +15,10 @@ regular Blender build process, and only needs to be run when any of the YAML
 files change.
 """
 
+__all__ = (
+    "main",
+)
+
 import argparse
 from pathlib import Path
 import sys
@@ -54,8 +58,8 @@ COMMON_ARGS = [
     # Use `list[T]` instead of `typing.List[T]`:
     "--use-standard-collections",
 
-    # Because we use Pydantic v2:
-    "--output-model-type", "pydantic_v2.BaseModel",
+    # Because we use dataclasses:
+    "--output-model-type", "dataclasses.dataclass",
 
     # Work around https://github.com/koxudaxi/datamodel-code-generator/issues/1870#issuecomment-2775689249
     "--use-annotated",
@@ -79,27 +83,24 @@ CUSTOM_FILE_HEADER = """
 def main() -> None:
     """Run the datamodel code generator."""
 
+    # Late import, as this is only available once inside the virtualenv.
+    import yaml
+
     argparser = argparse.ArgumentParser(description="Run the datamodel code generator.")
     argparser.add_argument('source_root', type=Path, help="The root of Blender's source directory")
     args = argparser.parse_args(sys.argv[1:])
-    root_path: Path = args.source_root
+    root_path: Path = args.source_root.resolve()
 
     if not root_path.is_dir():
         raise SystemExit("Path {!s} should be a directory".format(root_path))
 
     print("Generating data model files:")
 
-    # Hide warnings about unknown `format` specifiers in the OpenAPI spec
-    # file. The only warning I (Sybren) have seen so far is that `format: url`
-    # on a string got ignored, because it's unknown. That's fine by me, but I
-    # still want to see in the spec that this is a URL.
-    warnings.filterwarnings(
-        'ignore', "format of 'url' not understood for 'string' - using default",
-    )
-
+    py_paths: list[Path] = []
     for yaml_relpath in YAML_PATHS:
         yaml_path = root_path / yaml_relpath
-        py_path = yaml_path.with_suffix('.py')
+        py_path = yaml_path.with_suffix(".py")
+        py_paths.append(py_path)
 
         print(f"  {yaml_path.relative_to(root_path)} -> {py_path.name}")
 
@@ -108,6 +109,41 @@ def main() -> None:
             in_type="openapi",
             out_path=py_path,
         )
+
+        # Append the OpenAPI specification as Python code. This is necessary to
+        # reference for runtime validation. Having it available as Python
+        # dictionary is easier than having to parse it from YAML or JSON later.
+        with yaml_path.open() as yamlfile:
+            openapi_spec = yaml.safe_load(yamlfile)
+        with py_path.open("a") as outfile:
+            print(file=outfile)
+            print("# This OpenAPI specification was used to generate the above code.", file=outfile)
+            print("# It is here so that Blender does not have to parse the YAML file.", file=outfile)
+            print("OPENAPI_SPEC = {!r}".format(openapi_spec), file=outfile)
+
+    # Make sure that output from subprocesses is flushed, before outputting more
+    # below. This prevents stderr and stdout going out of sync, ensuring things
+    # are shown in chronological order (i.e. generating files before
+    # reformatting them).
+    sys.stderr.flush()
+    sys.stdout.flush()
+
+    # Format the generated Python code. Autopep8 (used by Blender) does not
+    # seem to re-wrap long lines, so that's why this script relies on running
+    # ruff first.
+    print("Formatting Python files")
+    py_paths_as_str = [str(path) for path in py_paths]
+    venv_ruff = VENV_DIR / "Scripts/ruff.exe" if sys.platform == "win32" else VENV_DIR / "bin/ruff"
+    subprocess.run(
+        [venv_ruff, "format", *py_paths_as_str],
+        cwd=root_path,
+        check=True,
+    )
+    subprocess.run(
+        ["make", "format", "PATHS={}".format(" ".join(py_paths_as_str))],
+        cwd=root_path,
+        check=True,
+    )
 
     print("Done generating data model files!")
 
@@ -154,14 +190,16 @@ import subprocess
 import venv
 
 
-# Packages to install in the virtualenv:
+# Packages to install in the virtualenv. These are only necessary to run this
+# generator. The generated code does not depend on these.
 REQUIREMENTS = [
-    "pydantic ~= 2.10",
     "datamodel-code-generator ~= 0.28.2",
+    "PyYAML ~= 6.0.2",
+    "ruff ~= 0.12.3",
 ]
 
 # Name of a module to import, to test whether dependencies have been installed or not.
-TEST_INSTALL_MODULE = "pydantic"
+TEST_INSTALL_MODULE = "datamodel_code_generator"
 
 # Directory for the virtualenv. This script is expected to run with Blender's
 # build directory as its working directory.

@@ -64,6 +64,8 @@ def list_assets(blendfile: Path, asset_library_root: Path) -> tuple[api_models.F
     # Collect the asset data.
     assets: list[api_models.AssetV1] = []
     for attr in dir(data_to):
+        if attr == 'version':
+            continue
         datablocks = getattr(data_from, attr)
         datablocks_assets = _find_assets(
             asset_library_root,
@@ -109,7 +111,7 @@ def _find_assets(
 
         asset = api_models.AssetV1(
             name=datablock.name,
-            id_type=datablock.id_type.lower(),
+            id_type=api_models.AssetIDTypeV1(datablock.id_type.lower()),
             file=file.path,
             thumbnail_url=thumbnail_url,
         )
@@ -130,7 +132,7 @@ def _find_assets(
             meta.license = asset_data.license
         if asset_data.copyright:
             meta.copyright = asset_data.copyright
-        if meta.model_fields_set:
+        if meta != api_models.AssetMetadataV1():
             asset.meta = meta
 
         assets.append(asset)

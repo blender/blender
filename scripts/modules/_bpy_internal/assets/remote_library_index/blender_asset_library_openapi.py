@@ -7,16 +7,13 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from enum import Enum
-from typing import Annotated, Optional
-
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional
 
 
-class Contact(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
+@dataclass
+class Contact:
     name: str
     url: Optional[str] = None
     email: Optional[str] = None
@@ -32,145 +29,342 @@ class AssetIDTypeV1(Enum):
     world = "world"
 
 
-class AssetMetadataV1(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    catalog_id: Annotated[
-        Optional[str],
-        Field(
-            description="The catalog UUID that contains this asset. Having the UUID here makes it easier to create a per-blendfile .cats.txt file, if that's ever necessary.\n"
-        ),
-    ] = None
-    tags: Annotated[Optional[list[str]], Field(min_length=1)] = None
+@dataclass
+class AssetMetadataV1:
+    catalog_id: Optional[str] = None
+    tags: Optional[list[str]] = None
     author: Optional[str] = None
     description: Optional[str] = None
     license: Optional[str] = None
     copyright: Optional[str] = None
 
 
-class CatalogV1(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
+@dataclass
+class CatalogV1:
     path: str
+    uuids: list[str]
     simple_name: Optional[str] = None
-    uuids: Annotated[list[str], Field(min_length=1)]
 
 
-class FileV1(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    path: Annotated[str, Field(description="Relative path of where this file is located in the asset library.\n")]
-    url: Annotated[
-        Optional[str],
-        Field(
-            description="URL where the file can be downloaded. If the URL is relative, it is to be interpreted as relative to the library's root URL.\nIf the URL is not given, or an empty string, it is assumed to be the same as 'path'.\n"
-        ),
-    ] = None
+@dataclass
+class FileV1:
+    path: str
     size_in_bytes: int
-    hash: Annotated[
-        str,
-        Field(
-            description='Hash of the file. This should be in the format "HASHTYPE:HASH-AS-HEX". Currently only the "SHA256" hash type is supported.\n'
-        ),
-    ]
-    blender_version: Annotated[
-        str,
-        Field(
-            description="Version of Blender used to create this file.. Should be a semantic version, which may be shortened ('3.1' matches any '3.1.x' version).\n"
-        ),
-    ]
+    hash: str
+    blender_version: str
+    url: Optional[str] = None
 
 
-class AssetLibraryMeta(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    api_versions: Annotated[
-        dict[str, str],
-        Field(
-            description='API versions of this asset library. This is reflected in the URLs of all OpenAPI operations except the one to get this metadata.\nA single asset library can expose multiple versions, in order to be backward-compatible with older versions of Blender.\nProperties should be "v1", "v2", etc. and their values should point to their respective index files.\n'
-        ),
-    ]
-    name: Annotated[str, Field(description="Name of this asset library.")]
+@dataclass
+class AssetLibraryMeta:
+    api_versions: dict[str, str]
+    name: str
     contact: Contact
 
 
-class AssetLibraryIndexV1(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    schema_version: Annotated[
-        str,
-        Field(
-            description="Version number of the used schema. This should be the same as the version of this OpenAPI definition, as described in its 'info.version' field.\n"
-        ),
-    ]
+@dataclass
+class AssetLibraryIndexV1:
+    schema_version: str
     asset_size_bytes: int
-    asset_count: Annotated[
-        int,
-        Field(
-            description="Total number of assets in this index. This is the sum of all `asset_count` fields of each page.\n"
-        ),
-    ]
-    file_count: Annotated[
-        int,
-        Field(
-            description="Total number of files in this index. This is the sum of all `file_count` fields of each page (after deduplication).\n"
-        ),
-    ]
-    page_urls: Annotated[
-        Optional[list[str]],
-        Field(
-            description="URLs of the individual asset index pages. When relative, these are taken as relative to the main server URL (i.e. the root of all paths defined in this OpenAPI spec).\n"
-        ),
-    ] = None
+    asset_count: int
+    file_count: int
+    page_urls: Optional[list[str]] = None
     catalogs: Optional[list[CatalogV1]] = None
 
 
-class AssetV1(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    name: Annotated[str, Field(description="Name of the Blender data-block.")]
+@dataclass
+class AssetV1:
+    name: str
     id_type: AssetIDTypeV1
-    file: Annotated[
-        str,
-        Field(
-            description="Relative path of the file that contains this asset. This relative path is used to look up more file information in the asset library's list of files.\n"
-        ),
-    ]
-    thumbnail_url: Annotated[
-        Optional[str],
-        Field(
-            description="URL where a blend file containing this asset can be downloaded. If the URL is relative, it is to be interpreted as relative to the library's root URL.\n"
-        ),
-    ] = None
+    file: str
+    thumbnail_url: Optional[str] = None
     meta: Optional[AssetMetadataV1] = None
 
 
-class AssetLibraryIndexPageV1(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    asset_count: Annotated[
-        int,
-        Field(
-            description="Number of assets in this page. This is declared separately, so that a partial JSON parser has this information before the entire file is downloaded and parsed.\n"
-        ),
-    ]
-    file_count: Annotated[
-        int,
-        Field(
-            description="Number of files in this page. This is declared separately, so that a partial JSON parser has this information before the entire file is downloaded and parsed.\n"
-        ),
-    ]
+@dataclass
+class AssetLibraryIndexPageV1:
+    asset_count: int
+    file_count: int
     assets: list[AssetV1]
-    files: Annotated[
-        list[FileV1],
-        Field(
-            description="The files that are referenced by the above assets. Note that there may be duplication of this information between asset pages, as each file can contain multiple assets, and those assets might be scattered across multiple pages.\n"
-        ),
-    ]
+    files: list[FileV1]
+
+
+# This OpenAPI specification was used to generate the above code.
+# It is here so that Blender does not have to parse the YAML file.
+OPENAPI_SPEC = {
+    "openapi": "3.0.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "Blender Asset Library API",
+        "description": "Blender's API for describing and fetching assets from online libraries.",
+        "contact": {"name": "Blender", "url": "https://www.blender.org/"},
+        "license": {
+            "name": "GPLv3",
+            "url": "https://www.gnu.org/licenses/gpl-3.0.en.html",
+        },
+    },
+    "servers": [{"url": "/"}],
+    "paths": {
+        "/_asset-library-meta.json": {
+            "summary": "Meta-information about this asset library.",
+            "get": {
+                "summary": "Retrieve the asset library meta info.",
+                "operationId": "getLibraryMeta",
+                "tags": ["meta"],
+                "responses": {
+                    "200": {
+                        "description": "normal response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetLibraryMeta"
+                                }
+                            }
+                        },
+                    }
+                },
+            },
+        },
+        "/_v1/asset-index.json": {
+            "summary": "The index of the asset library, containing the metadata of all available assets.",
+            "get": {
+                "summary": "Get the asset library index.",
+                "operationId": "getLibraryIndex",
+                "tags": ["index"],
+                "responses": {
+                    "200": {
+                        "description": "normal response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetLibraryIndexV1"
+                                }
+                            }
+                        },
+                    }
+                },
+            },
+        },
+        "/_v1/assets-{page}.json": {
+            "summary": "The index of the asset library, containing the metadata of all available assets. Note that the actual URLs of these pages are listed in the `asset-index.json` above. The path specified here is merely a suggestion.\n",
+            "get": {
+                "summary": "Get the asset library index.",
+                "operationId": "getLibraryIndexPage",
+                "tags": ["index"],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "path",
+                        "required": True,
+                        "schema": {"type": "integer"},
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "normal response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetLibraryIndexPageV1"
+                                }
+                            }
+                        },
+                    }
+                },
+            },
+        },
+    },
+    "tags": [
+        {"name": "meta", "description": "Info about the asset library itself."},
+        {
+            "name": "index",
+            "description": "Access to the asset library's list of assets.",
+        },
+    ],
+    "components": {
+        "schemas": {
+            "AssetLibraryMeta": {
+                "type": "object",
+                "description": "Meta-data of this asset library.",
+                "properties": {
+                    "api_versions": {
+                        "type": "object",
+                        "description": 'API versions of this asset library. This is reflected in the URLs of all OpenAPI operations except the one to get this metadata.\nA single asset library can expose multiple versions, in order to be backward-compatible with older versions of Blender.\nProperties should be "v1", "v2", etc. and their values should point to their respective index files.\n',
+                        "additionalProperties": {"type": "string"},
+                        "patternProperties": {"^v[0-9]+$": {"type": "string"}},
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of this asset library.",
+                    },
+                    "contact": {"$ref": "#/components/schemas/Contact"},
+                },
+                "required": ["api_versions", "name", "contact"],
+                "example": {
+                    "api_versions": {"v1": "_v1/asset-index.json"},
+                    "name": "Blender Essentials",
+                    "contact": {"name": "Blender", "url": "https://www.blender.org/"},
+                },
+            },
+            "Contact": {
+                "type": "object",
+                "description": "Owner / publisher of this asset library.",
+                "properties": {
+                    "name": {"type": "string"},
+                    "url": {"type": "string"},
+                    "email": {"type": "string"},
+                },
+                "required": ["name"],
+            },
+            "AssetLibraryIndexV1": {
+                "type": "object",
+                "description": "The available assets at this library.",
+                "properties": {
+                    "schema_version": {
+                        "type": "string",
+                        "description": "Version number of the used schema. This should be the same as the version of this OpenAPI definition, as described in its 'info.version' field.\n",
+                    },
+                    "asset_size_bytes": {"type": "integer"},
+                    "asset_count": {
+                        "type": "integer",
+                        "description": "Total number of assets in this index. This is the sum of all `asset_count` fields of each page.\n",
+                    },
+                    "file_count": {
+                        "type": "integer",
+                        "description": "Total number of files in this index. This is the sum of all `file_count` fields of each page (after deduplication).\n",
+                    },
+                    "page_urls": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "URLs of the individual asset index pages. When relative, these are taken as relative to the main server URL (i.e. the root of all paths defined in this OpenAPI spec).\n",
+                    },
+                    "catalogs": {
+                        "type": "array",
+                        "items": {"$ref": "#/components/schemas/CatalogV1"},
+                    },
+                },
+                "required": [
+                    "schema_version",
+                    "asset_size_bytes",
+                    "asset_count",
+                    "file_count",
+                ],
+            },
+            "AssetLibraryIndexPageV1": {
+                "type": "object",
+                "description": "Any number of assets.",
+                "properties": {
+                    "asset_count": {
+                        "type": "integer",
+                        "description": "Number of assets in this page. This is declared separately, so that a partial JSON parser has this information before the entire file is downloaded and parsed.\n",
+                    },
+                    "file_count": {
+                        "type": "integer",
+                        "description": "Number of files in this page. This is declared separately, so that a partial JSON parser has this information before the entire file is downloaded and parsed.\n",
+                    },
+                    "assets": {
+                        "type": "array",
+                        "items": {"$ref": "#/components/schemas/AssetV1"},
+                    },
+                    "files": {
+                        "type": "array",
+                        "items": {"$ref": "#/components/schemas/FileV1"},
+                        "description": "The files that are referenced by the above assets. Note that there may be duplication of this information between asset pages, as each file can contain multiple assets, and those assets might be scattered across multiple pages.\n",
+                    },
+                },
+                "required": ["asset_count", "file_count", "assets", "files"],
+            },
+            "AssetV1": {
+                "type": "object",
+                "description": "Representation of a single asset. Assets are always Blender data-blocks in some blend file.\nThis asset may be stored in the same blend file as other assets, and so it does _not_ represent a single downloadable item.\n",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the Blender data-block.",
+                    },
+                    "id_type": {"$ref": "#/components/schemas/AssetIDTypeV1"},
+                    "file": {
+                        "type": "string",
+                        "description": "Relative path of the file that contains this asset. This relative path is used to look up more file information in the asset library's list of files.\n",
+                    },
+                    "thumbnail_url": {
+                        "type": "string",
+                        "description": "URL where a blend file containing this asset can be downloaded. If the URL is relative, it is to be interpreted as relative to the library's root URL.\n",
+                    },
+                    "meta": {"$ref": "#/components/schemas/AssetMetadataV1"},
+                },
+                "required": ["name", "id_type", "file"],
+            },
+            "AssetIDTypeV1": {
+                "type": "string",
+                "description": "Type of the Blender data-block.",
+                "enum": [
+                    "brush",
+                    "action",
+                    "collection",
+                    "object",
+                    "nodetree",
+                    "material",
+                    "world",
+                ],
+            },
+            "AssetMetadataV1": {
+                "type": "object",
+                "description": "Metadata of an asset, as defined by Blender's `AssetMeta` DNA struct. Fields should either be non-empty or absent.\n",
+                "properties": {
+                    "catalog_id": {
+                        "type": "string",
+                        "description": "The catalog UUID that contains this asset. Having the UUID here makes it easier to create a per-blendfile .cats.txt file, if that's ever necessary.\n",
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                    },
+                    "author": {"type": "string"},
+                    "description": {"type": "string"},
+                    "license": {"type": "string"},
+                    "copyright": {"type": "string"},
+                },
+            },
+            "CatalogV1": {
+                "type": "object",
+                "description": "An asset catalog, which can be represented by one or more UUIDs.",
+                "properties": {
+                    "path": {"type": "string"},
+                    "simple_name": {"type": "string"},
+                    "uuids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                    },
+                },
+                "required": ["path", "uuids"],
+            },
+            "FileV1": {
+                "type": "object",
+                "description": "Single file in the asset library. Identified by its relative path in that library.\n",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "Relative path of where this file is located in the asset library.\n",
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "URL where the file can be downloaded. If the URL is relative, it is to be interpreted as relative to the library's root URL.\nIf the URL is not given, or an empty string, it is assumed to be the same as 'path'.\n",
+                    },
+                    "size_in_bytes": {"type": "integer"},
+                    "hash": {
+                        "type": "string",
+                        "description": 'Hash of the file. This should be in the format "HASHTYPE:HASH-AS-HEX". Currently only the "SHA256" hash type is supported.\n',
+                    },
+                    "blender_version": {
+                        "type": "string",
+                        "description": "Version of Blender used to create this file.. Should be a semantic version, which may be shortened ('3.1' matches any '3.1.x' version).\n",
+                    },
+                },
+                "required": ["path", "size_in_bytes", "hash", "blender_version"],
+            },
+        }
+    },
+}
