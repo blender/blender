@@ -900,13 +900,14 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
     const float clamped_value = use_max ? blender::math::min(min_clamped_value, max) :
                                           min_clamped_value;
 
-    bNode *value_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_VALUE);
-    value_node->parent = node->parent;
-    value_node->location[0] = node->location[0];
-    value_node->location[1] = node->location[1];
+    bNode &value_node = version_node_add_empty(*node_tree, "ShaderNodeValue");
+    bNodeSocket &value_output = version_node_add_socket(
+        *node_tree, value_node, SOCK_OUT, "NodeSocketFloat", "Value");
+    value_node.parent = node->parent;
+    value_node.location[0] = node->location[0];
+    value_node.location[1] = node->location[1];
 
-    bNodeSocket *value_output = blender::bke::node_find_socket(*value_node, SOCK_OUT, "Value");
-    static_cast<bNodeSocketValueFloat *>(value_output->default_value)->value = clamped_value;
+    static_cast<bNodeSocketValueFloat *>(value_output.default_value)->value = clamped_value;
 
     /* Relink from the Map Value node to the value node. */
     LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
@@ -914,14 +915,13 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
         continue;
       }
 
-      version_node_add_link(*node_tree, *value_node, *value_output, *link->tonode, *link->tosock);
+      version_node_add_link(*node_tree, value_node, value_output, *link->tonode, *link->tosock);
       blender::bke::node_remove_link(node_tree, *link);
     }
 
     MEM_freeN(&texture_mapping);
     node->storage = nullptr;
-
-    blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
+    version_node_remove(*node_tree, *node);
 
     version_socket_update_is_used(node_tree);
     return;
@@ -929,93 +929,109 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
 
   /* Otherwise, add math nodes to do the computation, starting with an add node to add the offset
    * of the range. */
-  bNode *add_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
-  add_node->parent = node->parent;
-  add_node->custom1 = NODE_MATH_ADD;
-  add_node->location[0] = node->location[0];
-  add_node->location[1] = node->location[1];
-  add_node->flag |= NODE_COLLAPSED;
+  bNode &add_node = version_node_add_empty(*node_tree, "ShaderNodeMath");
+  bNodeSocket &add_input_a = version_node_add_socket(
+      *node_tree, add_node, SOCK_IN, "NodeSocketFloat", "Value");
+  bNodeSocket &add_input_b = version_node_add_socket(
+      *node_tree, add_node, SOCK_IN, "NodeSocketFloat", "Value_001");
+  version_node_add_socket(*node_tree, add_node, SOCK_IN, "NodeSocketFloat", "Value_002");
 
-  bNodeSocket *add_input_a = static_cast<bNodeSocket *>(BLI_findlink(&add_node->inputs, 0));
-  bNodeSocket *add_input_b = static_cast<bNodeSocket *>(BLI_findlink(&add_node->inputs, 1));
-  bNodeSocket *add_output = blender::bke::node_find_socket(*add_node, SOCK_OUT, "Value");
+  bNodeSocket &add_output = version_node_add_socket(
+      *node_tree, add_node, SOCK_OUT, "NodeSocketFloat", "Value");
+
+  add_node.parent = node->parent;
+  add_node.custom1 = NODE_MATH_ADD;
+  add_node.location[0] = node->location[0];
+  add_node.location[1] = node->location[1];
+  add_node.flag |= NODE_COLLAPSED;
 
   /* Connect the origin of the node to the first input of the add node and remove the original
    * link. */
   version_node_add_link(
-      *node_tree, *value_link->fromnode, *value_link->fromsock, *add_node, *add_input_a);
+      *node_tree, *value_link->fromnode, *value_link->fromsock, add_node, add_input_a);
   blender::bke::node_remove_link(node_tree, *value_link);
 
   /* Set the offset to the second input of the add node. */
-  static_cast<bNodeSocketValueFloat *>(add_input_b->default_value)->value = offset;
+  static_cast<bNodeSocketValueFloat *>(add_input_b.default_value)->value = offset;
 
   /* Add a multiply node to multiply by the size. */
-  bNode *multiply_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
-  multiply_node->parent = node->parent;
-  multiply_node->custom1 = NODE_MATH_MULTIPLY;
-  multiply_node->location[0] = add_node->location[0];
-  multiply_node->location[1] = add_node->location[1] - 40.0f;
-  multiply_node->flag |= NODE_COLLAPSED;
+  bNode &multiply_node = version_node_add_empty(*node_tree, "ShaderNodeMath");
+  multiply_node.parent = node->parent;
+  multiply_node.custom1 = NODE_MATH_MULTIPLY;
+  multiply_node.location[0] = add_node.location[0];
+  multiply_node.location[1] = add_node.location[1] - 40.0f;
+  multiply_node.flag |= NODE_COLLAPSED;
 
-  bNodeSocket *multiply_input_a = static_cast<bNodeSocket *>(
-      BLI_findlink(&multiply_node->inputs, 0));
-  bNodeSocket *multiply_input_b = static_cast<bNodeSocket *>(
-      BLI_findlink(&multiply_node->inputs, 1));
-  bNodeSocket *multiply_output = blender::bke::node_find_socket(*multiply_node, SOCK_OUT, "Value");
+  bNodeSocket &multiply_input_a = version_node_add_socket(
+      *node_tree, multiply_node, SOCK_IN, "NodeSocketFloat", "Value");
+  bNodeSocket &multiply_input_b = version_node_add_socket(
+      *node_tree, multiply_node, SOCK_IN, "NodeSocketFloat", "Value_001");
+  version_node_add_socket(*node_tree, multiply_node, SOCK_IN, "NodeSocketFloat", "Value_002");
+
+  bNodeSocket &multiply_output = version_node_add_socket(
+      *node_tree, multiply_node, SOCK_OUT, "NodeSocketFloat", "Value");
 
   /* Connect the output of the add node to the first input of the multiply node. */
-  version_node_add_link(*node_tree, *add_node, *add_output, *multiply_node, *multiply_input_a);
+  version_node_add_link(*node_tree, add_node, add_output, multiply_node, multiply_input_a);
 
   /* Set the size to the second input of the multiply node. */
-  static_cast<bNodeSocketValueFloat *>(multiply_input_b->default_value)->value = size;
+  static_cast<bNodeSocketValueFloat *>(multiply_input_b.default_value)->value = size;
 
-  bNode *final_node = multiply_node;
-  bNodeSocket *final_output = multiply_output;
+  bNode *final_node = &multiply_node;
+  bNodeSocket *final_output = &multiply_output;
 
   if (use_min) {
     /* Add a maximum node to clamp by the minimum. */
-    bNode *max_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
-    max_node->parent = node->parent;
-    max_node->custom1 = NODE_MATH_MAXIMUM;
-    max_node->location[0] = final_node->location[0];
-    max_node->location[1] = final_node->location[1] - 40.0f;
-    max_node->flag |= NODE_COLLAPSED;
+    bNode &max_node = version_node_add_empty(*node_tree, "ShaderNodeMath");
+    max_node.parent = node->parent;
+    max_node.custom1 = NODE_MATH_MAXIMUM;
+    max_node.location[0] = final_node->location[0];
+    max_node.location[1] = final_node->location[1] - 40.0f;
+    max_node.flag |= NODE_COLLAPSED;
 
-    bNodeSocket *max_input_a = static_cast<bNodeSocket *>(BLI_findlink(&max_node->inputs, 0));
-    bNodeSocket *max_input_b = static_cast<bNodeSocket *>(BLI_findlink(&max_node->inputs, 1));
-    bNodeSocket *max_output = blender::bke::node_find_socket(*max_node, SOCK_OUT, "Value");
+    bNodeSocket &max_input_a = version_node_add_socket(
+        *node_tree, max_node, SOCK_IN, "NodeSocketFloat", "Value");
+    bNodeSocket &max_input_b = version_node_add_socket(
+        *node_tree, max_node, SOCK_IN, "NodeSocketFloat", "Value_001");
+    version_node_add_socket(*node_tree, max_node, SOCK_IN, "NodeSocketFloat", "Value_002");
+    bNodeSocket &max_output = version_node_add_socket(
+        *node_tree, max_node, SOCK_OUT, "NodeSocketFloat", "Value");
 
     /* Connect the output of the final node to the first input of the maximum node. */
-    version_node_add_link(*node_tree, *final_node, *final_output, *max_node, *max_input_a);
+    version_node_add_link(*node_tree, *final_node, *final_output, max_node, max_input_a);
 
     /* Set the minimum to the second input of the maximum node. */
-    static_cast<bNodeSocketValueFloat *>(max_input_b->default_value)->value = min;
+    static_cast<bNodeSocketValueFloat *>(max_input_b.default_value)->value = min;
 
-    final_node = max_node;
-    final_output = max_output;
+    final_node = &max_node;
+    final_output = &max_output;
   }
 
   if (use_max) {
     /* Add a minimum node to clamp by the maximum. */
-    bNode *min_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
-    min_node->parent = node->parent;
-    min_node->custom1 = NODE_MATH_MINIMUM;
-    min_node->location[0] = final_node->location[0];
-    min_node->location[1] = final_node->location[1] - 40.0f;
-    min_node->flag |= NODE_COLLAPSED;
+    bNode &min_node = version_node_add_empty(*node_tree, "ShaderNodeMath");
+    min_node.parent = node->parent;
+    min_node.custom1 = NODE_MATH_MINIMUM;
+    min_node.location[0] = final_node->location[0];
+    min_node.location[1] = final_node->location[1] - 40.0f;
+    min_node.flag |= NODE_COLLAPSED;
 
-    bNodeSocket *min_input_a = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 0));
-    bNodeSocket *min_input_b = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 1));
-    bNodeSocket *min_output = blender::bke::node_find_socket(*min_node, SOCK_OUT, "Value");
+    bNodeSocket &min_input_a = version_node_add_socket(
+        *node_tree, min_node, SOCK_IN, "NodeSocketFloat", "Value");
+    bNodeSocket &min_input_b = version_node_add_socket(
+        *node_tree, min_node, SOCK_IN, "NodeSocketFloat", "Value_001");
+    version_node_add_socket(*node_tree, min_node, SOCK_IN, "NodeSocketFloat", "Value_002");
+    bNodeSocket &min_output = version_node_add_socket(
+        *node_tree, min_node, SOCK_OUT, "NodeSocketFloat", "Value");
 
     /* Connect the output of the final node to the first input of the minimum node. */
-    version_node_add_link(*node_tree, *final_node, *final_output, *min_node, *min_input_a);
+    version_node_add_link(*node_tree, *final_node, *final_output, min_node, min_input_a);
 
     /* Set the maximum to the second input of the minimum node. */
-    static_cast<bNodeSocketValueFloat *>(min_input_b->default_value)->value = max;
+    static_cast<bNodeSocketValueFloat *>(min_input_b.default_value)->value = max;
 
-    final_node = min_node;
-    final_output = min_output;
+    final_node = &min_node;
+    final_output = &min_output;
   }
 
   /* Relink from the Map Value node to the final node. */
@@ -1031,7 +1047,7 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
   MEM_freeN(&texture_mapping);
   node->storage = nullptr;
 
-  blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
+  version_node_remove(*node_tree, *node);
 
   version_socket_update_is_used(node_tree);
 }
