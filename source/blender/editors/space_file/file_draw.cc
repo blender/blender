@@ -62,6 +62,7 @@
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
+#include "UI_interface_c.hh"
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
@@ -1728,7 +1729,7 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
   uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
 
   uiDefBut(block,
-           UI_BTYPE_ROUNDBOX,
+           ButType::Roundbox,
            0,
            "",
            sx,
@@ -1746,7 +1747,7 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
 
   {
     uiDefIconTextBut(block,
-                     UI_BTYPE_LABEL,
+                     ButType::Label,
                      0,
                      ICON_INTERNET_OFFLINE,
                      "Internet Access Required",
@@ -1755,13 +1756,11 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
                      wrap_width,
                      heading_height,
                      nullptr,
-                     0.0f,
-                     0.0f,
                      {});
 
     const int button_width = (wrap_width - pad_x) * 0.5f;
     uiBut *but = uiDefIconTextButO(block,
-                                   UI_BTYPE_BUT,
+                                   ButType::But,
                                    "WM_OT_context_set_boolean",
                                    blender::wm::OpCallContext::InvokeDefault,
                                    ICON_X,
@@ -1776,7 +1775,7 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
     RNA_boolean_set(but_opptr, "value", true);
 
     uiDefIconTextButO(block,
-                      UI_BTYPE_BUT,
+                      ButType::But,
                       "extensions.userpref_allow_online",
                       blender::wm::OpCallContext::InvokeDefault,
                       ICON_CHECKMARK,
@@ -1841,7 +1840,7 @@ static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C
   uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
 
   uiDefBut(block,
-           UI_BTYPE_ROUNDBOX,
+           ButType::Roundbox,
            0,
            "",
            sx,
@@ -1859,7 +1858,7 @@ static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C
 
   {
     uiDefIconTextBut(block,
-                     UI_BTYPE_LABEL,
+                     ButType::Label,
                      0,
                      ICON_CANCEL,
                      "Asset Library Download Failed",
@@ -1868,8 +1867,6 @@ static void file_draw_asset_library_remote_loading_failed_hint(const bContext *C
                      wrap_width,
                      heading_height,
                      nullptr,
-                     0.0f,
-                     0.0f,
                      {});
   }
 

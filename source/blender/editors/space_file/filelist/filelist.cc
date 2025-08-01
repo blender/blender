@@ -2186,10 +2186,6 @@ struct FileListReadJob {
   /* TODO only remote asset library loading respects this so far. */
   std::atomic<bool> cancel;
 
-  /** Code requested to cancel the read job. */
-  /* TODO only remote asset library loading respects this so far. */
-  std::atomic<bool> cancel;
-
   /**
    * The path currently being read, relative to the filelist root directory.
    * Needed for recursive reading. The full file path is then composed like:
