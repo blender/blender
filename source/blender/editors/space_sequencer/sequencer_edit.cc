@@ -2841,7 +2841,7 @@ static wmOperatorStatus sequencer_change_path_exec(bContext *C, wmOperator *op)
 
     /* Need to find min/max frame for placeholders. */
     if (use_placeholders) {
-      len = sequencer_image_seq_get_minmax_frame(op, strip->sfra, &minext_frameme, &numdigits);
+      len = sequencer_image_strip_get_minmax_frame(op, strip->sfra, &minext_frameme, &numdigits);
     }
     else {
       len = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
@@ -2865,7 +2865,7 @@ static wmOperatorStatus sequencer_change_path_exec(bContext *C, wmOperator *op)
     strip->data->stripdata = se = MEM_calloc_arrayN<StripElem>(len, "stripelem");
 
     if (use_placeholders) {
-      sequencer_image_seq_reserve_frames(op, se, len, minext_frameme, numdigits);
+      sequencer_image_strip_reserve_frames(op, se, len, minext_frameme, numdigits);
     }
     else {
       RNA_BEGIN (op->ptr, itemptr, "files") {
@@ -3425,13 +3425,6 @@ void SEQUENCER_OT_strip_transform_clear(wmOperatorType *ot)
 /** \name Transform Set Fit Operator
  * \{ */
 
-static const EnumPropertyItem scale_fit_methods[] = {
-    {SEQ_SCALE_TO_FIT, "FIT", 0, "Scale to Fit", "Scale image so fits in preview"},
-    {SEQ_SCALE_TO_FILL, "FILL", 0, "Scale to Fill", "Scale image so it fills preview completely"},
-    {SEQ_STRETCH_TO_FILL, "STRETCH", 0, "Stretch to Fill", "Stretch image so it fills preview"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
 static wmOperatorStatus sequencer_strip_transform_fit_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_sequencer_scene(C);
@@ -3476,10 +3469,10 @@ void SEQUENCER_OT_strip_transform_fit(wmOperatorType *ot)
 
   ot->prop = RNA_def_enum(ot->srna,
                           "fit_method",
-                          scale_fit_methods,
+                          rna_enum_strip_scale_method_items,
                           SEQ_SCALE_TO_FIT,
                           "Fit Method",
-                          "Scale fit fit_method");
+                          "Mode for fitting the image to the canvas");
 }
 
 static wmOperatorStatus sequencer_strip_color_tag_set_exec(bContext *C, wmOperator *op)

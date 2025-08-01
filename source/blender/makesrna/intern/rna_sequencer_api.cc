@@ -14,6 +14,7 @@
 
 #include "RNA_define.hh"
 
+#include "RNA_enum_types.hh"
 #include "SEQ_edit.hh"
 #include "SEQ_sequencer.hh"
 
@@ -247,7 +248,7 @@ static Strip *rna_Strips_new_image(ID *id,
 
   blender::seq::LoadData load_data;
   blender::seq::add_load_data_init(&load_data, name, file, frame_start, channel);
-  load_data.image.len = 1;
+  load_data.image.count = 1;
   load_data.fit_method = eSeqImageFitMethod(fit_method);
 
   char vt_old[64];
@@ -836,18 +837,6 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem scale_fit_methods[] = {
-      {SEQ_SCALE_TO_FIT, "FIT", 0, "Scale to Fit", "Scale image so fits in preview"},
-      {SEQ_SCALE_TO_FILL,
-       "FILL",
-       0,
-       "Scale to Fill",
-       "Scale image so it fills preview completely"},
-      {SEQ_STRETCH_TO_FILL, "STRETCH", 0, "Stretch to Fill", "Stretch image so it fills preview"},
-      {SEQ_USE_ORIGINAL_SIZE, "ORIGINAL", 0, "Use Original Size", "Don't scale the image"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   const char *new_clip_func_name = "rna_Strips_editing_new_clip";
   const char *new_mask_func_name = "rna_Strips_editing_new_mask";
   const char *new_scene_func_name = "rna_Strips_editing_new_scene";
@@ -990,8 +979,12 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
                      -MAXFRAME,
                      MAXFRAME);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_enum(
-      func, "fit_method", scale_fit_methods, SEQ_USE_ORIGINAL_SIZE, "Image Fit Method", nullptr);
+  parm = RNA_def_enum(func,
+                      "fit_method",
+                      rna_enum_strip_scale_method_items,
+                      SEQ_USE_ORIGINAL_SIZE,
+                      "Image Fit Method",
+                      nullptr);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
   RNA_def_function_return(func, parm);
@@ -1023,8 +1016,12 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
                      -MAXFRAME,
                      MAXFRAME);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_enum(
-      func, "fit_method", scale_fit_methods, SEQ_USE_ORIGINAL_SIZE, "Image Fit Method", nullptr);
+  parm = RNA_def_enum(func,
+                      "fit_method",
+                      rna_enum_strip_scale_method_items,
+                      SEQ_USE_ORIGINAL_SIZE,
+                      "Image Fit Method",
+                      nullptr);
   /* return type */
   parm = RNA_def_pointer(func, "sequence", "Strip", "", "New Strip");
   RNA_def_function_return(func, parm);

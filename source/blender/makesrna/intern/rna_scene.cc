@@ -4268,18 +4268,6 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static const EnumPropertyItem scale_fit_methods[] = {
-      {SEQ_SCALE_TO_FIT, "FIT", 0, "Scale to Fit", "Scale image to fit within the canvas"},
-      {SEQ_SCALE_TO_FILL, "FILL", 0, "Scale to Fill", "Scale image to completely fill the canvas"},
-      {SEQ_STRETCH_TO_FILL, "STRETCH", 0, "Stretch to Fill", "Stretch image to fill the canvas"},
-      {SEQ_USE_ORIGINAL_SIZE,
-       "ORIGINAL",
-       0,
-       "Use Original Size",
-       "Keep image at its original size"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem scale_overlap_modes[] = {
       {SEQ_OVERLAP_EXPAND, "EXPAND", 0, "Expand", "Move strips so transformed strips fit"},
       {SEQ_OVERLAP_OVERWRITE,
@@ -4314,7 +4302,7 @@ static void rna_def_sequencer_tool_settings(BlenderRNA *brna)
 
   /* Add strip settings. */
   prop = RNA_def_property(srna, "fit_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, scale_fit_methods);
+  RNA_def_property_enum_items(prop, rna_enum_strip_scale_method_items);
   RNA_def_property_ui_text(prop, "Fit Method", "Scale fit method");
 
   /* Transform snapping. */
