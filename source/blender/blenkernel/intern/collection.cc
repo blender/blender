@@ -1103,6 +1103,29 @@ bool BKE_collection_has_object_recursive_instanced_orig_id(Collection *collectio
   return false;
 }
 
+bool BKE_collection_contains_geometry_recursive(const Collection *collection)
+{
+  LISTBASE_FOREACH (CollectionObject *, col_ob, &collection->gobject) {
+    if (col_ob->ob->visibility_flag & OB_HIDE_RENDER) {
+      continue;
+    }
+    if (OB_TYPE_IS_GEOMETRY(col_ob->ob->type)) {
+      return true;
+    }
+  }
+
+  LISTBASE_FOREACH (CollectionChild *, child_col, &collection->children) {
+    if (child_col->collection->flag & COLLECTION_HIDE_RENDER) {
+      continue;
+    }
+    if (BKE_collection_contains_geometry_recursive(child_col->collection)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 static Collection *collection_next_find(Main *bmain, Scene *scene, Collection *collection)
 {
   if (scene && collection == scene->master_collection) {

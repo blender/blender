@@ -175,6 +175,13 @@ Collection *BKE_collection_duplicate(Main *bmain,
 #define BKE_SCENE_COLLECTION_NAME "Scene Collection"
 Collection *BKE_collection_master_add(Scene *scene);
 
+/**
+ * Check if the collection contains any geometry that can be rendered. Otherwise there's nothing to
+ * display in the preview, so don't generate one.
+ * Objects and sub-collections hidden in the render will be skipped.
+ */
+bool BKE_collection_contains_geometry_recursive(const Collection *collection);
+
 /* Collection Objects */
 
 bool BKE_collection_has_object(Collection *collection, const Object *ob);
