@@ -72,7 +72,10 @@ def frame_change_handler(scene):
 
     elif record_stage == RecordStage.WARMUP:
         warmup_frame += 1
-        if time.perf_counter() - start_warmup_time > WARMUP_SECONDS and warmup_frame > WARMUP_FRAMES:
+        # Check for two-stage shader compilation that can happen later than the first frame.
+        if hasattr(bpy.app, 'is_job_running') and bpy.app.is_job_running("SHADER_COMPILATION"):
+            record_stage = RecordStage.WAIT_SHADERS
+        elif time.perf_counter() - start_warmup_time > WARMUP_SECONDS and warmup_frame > WARMUP_FRAMES:
             start_record_time = time.perf_counter()
             playback_iteration = 0
             num_frames = 0
