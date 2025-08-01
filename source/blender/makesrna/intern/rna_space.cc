@@ -2072,15 +2072,6 @@ static int rna_SpaceTextEditor_visible_lines_get(PointerRNA *ptr)
 
 /* Space Properties */
 
-/* NOTE: this function exists only to avoid id reference-counting. */
-static void rna_SpaceProperties_pin_id_set(PointerRNA *ptr,
-                                           PointerRNA value,
-                                           ReportList * /*reports*/)
-{
-  SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
-  sbuts->pinid = static_cast<ID *>(value.data);
-}
-
 static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 {
   SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
@@ -5888,13 +5879,10 @@ static void rna_def_space_properties(BlenderRNA *brna)
   prop = RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "pinid");
   RNA_def_property_struct_type(prop, "ID");
-  /* NOTE: custom set function is ONLY to avoid rna setting a user for this. */
-  RNA_def_property_pointer_funcs(prop,
-                                 nullptr,
-                                 "rna_SpaceProperties_pin_id_set",
-                                 "rna_SpaceProperties_pin_id_typef",
-                                 nullptr);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, nullptr, "rna_SpaceProperties_pin_id_typef", nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
+  RNA_def_property_clear_flag(prop, PROP_ID_REFCOUNT);
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceProperties_pin_id_update");
 

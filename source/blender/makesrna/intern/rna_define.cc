@@ -1570,6 +1570,9 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
 void RNA_def_property_flag(PropertyRNA *prop, PropertyFlag flag)
 {
   prop->flag |= flag;
+  if (flag & PROP_ID_REFCOUNT) {
+    prop->flag_internal |= PROP_INTERN_PTR_ID_REFCOUNT_FORCED;
+  }
 }
 
 void RNA_def_property_clear_flag(PropertyRNA *prop, PropertyFlag flag)
@@ -1577,6 +1580,9 @@ void RNA_def_property_clear_flag(PropertyRNA *prop, PropertyFlag flag)
   prop->flag &= ~flag;
   if (flag & PROP_PTR_NO_OWNERSHIP) {
     prop->flag_internal |= PROP_INTERN_PTR_OWNERSHIP_FORCED;
+  }
+  if (flag & PROP_ID_REFCOUNT) {
+    prop->flag_internal |= PROP_INTERN_PTR_ID_REFCOUNT_FORCED;
   }
 }
 
@@ -1970,8 +1976,12 @@ void RNA_def_property_struct_runtime(StructOrFunctionRNA *cont, PropertyRNA *pro
         return;
       }
 
-      if (type && (type->flag & STRUCT_ID_REFCOUNT)) {
-        RNA_def_property_flag(prop, PROP_ID_REFCOUNT);
+      if ((prop->flag_internal & PROP_INTERN_PTR_ID_REFCOUNT_FORCED) == 0 && type &&
+          (type->flag & STRUCT_ID_REFCOUNT))
+      {
+        /* Do not use #RNA_def_property_flag, to avoid this automatic flag definition to set
+         * #PROP_INTERN_PTR_ID_REFCOUNT_FORCED. */
+        prop->flag |= PROP_ID_REFCOUNT;
       }
 
       break;

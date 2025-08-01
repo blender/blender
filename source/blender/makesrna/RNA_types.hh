@@ -341,6 +341,9 @@ enum PropertyFlag {
    *
    * This is done in the auto-generated setter function. If an RNA property has a custom setter,
    * this flag is ignored, and the setter is responsible for correctly updating the user count.
+   *
+   * \note In most basic cases, makesrna will automatically set this flag, based on the
+   * `STRUCT_ID_REFCOUNT` flag of the defined pointer type.
    */
   PROP_ID_REFCOUNT = (1 << 6),
 
@@ -867,8 +870,13 @@ struct FunctionRNA;
 /* Struct */
 
 enum StructFlag {
-  /** Indicates that this struct is an ID struct, and to use reference-counting. */
+  /** Indicates that this struct is an ID struct. */
   STRUCT_ID = (1 << 0),
+  /**
+   * Indicates that this ID type's usages should typically be refcounted (i.e. makesrna will
+   * automatically set `PROP_ID_REFCOUNT` to PointerRNA properties that have this RNA type
+   * assigned).
+   */
   STRUCT_ID_REFCOUNT = (1 << 1),
   /** defaults on, indicates when changes in members of a StructRNA should trigger undo steps. */
   STRUCT_UNDO = (1 << 2),
