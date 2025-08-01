@@ -31,7 +31,7 @@ bool eval_begin(Subdiv *subdiv,
                 const OpenSubdiv_EvaluatorSettings *settings);
 
 /**
- * \param coarse_vert_positions optional span of positions to override the mesh positions
+ * \param coarse_vert_positions: optional span of positions to override the mesh positions.
  */
 bool eval_begin_from_mesh(Subdiv *subdiv,
                           const Mesh *mesh,

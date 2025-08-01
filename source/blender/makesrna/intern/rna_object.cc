@@ -600,7 +600,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
     case OB_LIGHTPROBE:
       return &RNA_LightProbe;
     case OB_GPENCIL_LEGACY:
-      return &RNA_GreasePencil;
+      return &RNA_Annotation;
     case OB_GREASE_PENCIL:
       return &RNA_GreasePencilv3;
     case OB_CURVES:
@@ -2322,7 +2322,7 @@ static void rna_def_material_slot(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Material");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_editable_func(prop, "rna_MaterialSlot_material_editable");
   RNA_def_property_pointer_funcs(prop,
                                  "rna_MaterialSlot_material_get",

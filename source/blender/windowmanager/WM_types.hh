@@ -993,8 +993,8 @@ enum wmPopupPosition {
  * Communication/status data owned by the wmJob, and passed to the worker code when calling
  * `startjob` callback.
  *
- * 'OUTPUT' members mean that they are defined by the worker thread, and read/used by the wmJob
- * management code from the main thread. And vice-versa for `INPUT' members.
+ * `OUTPUT` members mean that they are defined by the worker thread, and read/used by the wmJob
+ * management code from the main thread. And vice-versa for `INPUT` members.
  *
  * \warning There is currently no thread-safety or synchronization when accessing these values.
  * This is fine as long as:
@@ -1197,7 +1197,7 @@ using wmPaintCursorDraw = void (*)(bContext *C,
 
 /* *************** Drag and drop *************** */
 
-enum eWM_DragDataType {
+enum eWM_DragDataType : int8_t {
   WM_DRAG_ID,
   WM_DRAG_ASSET,
   /** The user is dragging multiple assets. This is only supported in few specific cases, proper

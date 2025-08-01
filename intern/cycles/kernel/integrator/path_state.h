@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Initialize queues, so that the this path is considered terminated.
+/* Initialize queues, so that this path is considered terminated.
  * Used for early outputs in the camera ray initialization, as well as initialization of split
  * states for shadow catcher. */
 ccl_device_inline void path_state_init_queues(IntegratorState state)
@@ -51,6 +51,9 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, transparent_bounce) = 0;
   INTEGRATOR_STATE_WRITE(state, path, volume_bounce) = 0;
   INTEGRATOR_STATE_WRITE(state, path, volume_bounds_bounce) = 0;
+  if ((kernel_data.kernel_features & KERNEL_FEATURE_NODE_PORTAL)) {
+    INTEGRATOR_STATE_WRITE(state, path, portal_bounce) = 0;
+  }
   INTEGRATOR_STATE_WRITE(state, path, rng_pixel) = rng_pixel;
   INTEGRATOR_STATE_WRITE(state, path, rng_offset) = PRNG_BOUNCE_NUM;
   INTEGRATOR_STATE_WRITE(state, path, flag) = PATH_RAY_CAMERA | PATH_RAY_MIS_SKIP |
@@ -123,6 +126,8 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
 
     if (shader_flag & SD_RAY_PORTAL) {
       flag |= PATH_RAY_MIS_SKIP;
+      INTEGRATOR_STATE_WRITE(
+          state, path, portal_bounce) = INTEGRATOR_STATE(state, path, portal_bounce) + 1;
     }
 
     INTEGRATOR_STATE_WRITE(state, path, flag) = flag;

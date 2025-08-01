@@ -58,12 +58,14 @@ struct Instance : public DrawEngine {
   View view_edges = {"view_edges"};
   View view_verts = {"view_verts"};
 
+  UniformArrayBuffer<float4, 6> clip_planes_buf;
+
   const DRWContext *draw_ctx = nullptr;
 
  public:
   struct StaticData {
     GPUFrameBuffer *framebuffer_select_id;
-    GPUTexture *texture_u32;
+    blender::gpu::Texture *texture_u32;
 
     struct Shaders {
       /* Depth Pre Pass */
@@ -128,13 +130,26 @@ struct Instance : public DrawEngine {
     bool retopology_occlusion = RETOPOLOGY_ENABLED(draw_ctx->v3d) && !XRAY_ENABLED(draw_ctx->v3d);
     float retopology_offset = RETOPOLOGY_OFFSET(draw_ctx->v3d);
 
+    for (int i : IndexRange(6)) {
+      clip_planes_buf[i] = float4(0);
+    }
+
     /* Note there might be less than 6 planes, but we always compute the 6 of them for simplicity.
      */
     int clipping_plane_count = RV3D_CLIPPING_ENABLED(draw_ctx->v3d, draw_ctx->rv3d) ? 6 : 0;
+    int plane_len = min((RV3D_LOCK_FLAGS(draw_ctx->rv3d) & RV3D_BOXCLIP) ? 4 : 6,
+                        clipping_plane_count);
+
+    for (auto i : IndexRange(plane_len)) {
+      clip_planes_buf[i] = draw_ctx->rv3d->clip[i];
+    }
+
+    clip_planes_buf.push_update();
 
     {
       depth_only_ps.init();
       depth_only_ps.state_set(state, clipping_plane_count);
+      depth_only_ps.bind_ubo(DRW_CLIPPING_UBO_SLOT, clip_planes_buf);
       depth_only = nullptr;
       depth_occlude = nullptr;
       {
@@ -154,6 +169,7 @@ struct Instance : public DrawEngine {
 
       select_face_ps.init();
       select_face_ps.state_set(state, clipping_plane_count);
+      select_face_ps.bind_ubo(DRW_CLIPPING_UBO_SLOT, clip_planes_buf);
       select_face_uniform = nullptr;
       select_face_flat = nullptr;
       if (e_data.context.select_mode & SCE_SELECT_FACE) {
@@ -171,6 +187,7 @@ struct Instance : public DrawEngine {
       }
 
       select_edge_ps.init();
+      select_edge_ps.bind_ubo(DRW_CLIPPING_UBO_SLOT, clip_planes_buf);
       select_edge = nullptr;
       if (e_data.context.select_mode & SCE_SELECT_EDGE) {
         auto &sub = select_edge_ps.sub("Sub");
@@ -181,6 +198,7 @@ struct Instance : public DrawEngine {
       }
 
       select_id_vert_ps.init();
+      select_id_vert_ps.bind_ubo(DRW_CLIPPING_UBO_SLOT, clip_planes_buf);
       select_vert = nullptr;
       if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
         const float vertex_size = U.pixelsize *
@@ -426,7 +444,7 @@ struct Instance : public DrawEngine {
     if (e_data.texture_u32 == nullptr) {
       eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
       e_data.texture_u32 = GPU_texture_create_2d(
-          "select_buf_ids", size[0], size[1], 1, GPU_R32UI, usage, nullptr);
+          "select_buf_ids", size[0], size[1], 1, gpu::TextureFormat::UINT_32, usage, nullptr);
       GPU_framebuffer_texture_attach(e_data.framebuffer_select_id, e_data.texture_u32, 0, 0);
 
       GPU_framebuffer_check_valid(e_data.framebuffer_select_id, nullptr);
@@ -521,7 +539,7 @@ GPUFrameBuffer *DRW_engine_select_framebuffer_get()
   return e_data.framebuffer_select_id;
 }
 
-GPUTexture *DRW_engine_select_texture_get()
+blender::gpu::Texture *DRW_engine_select_texture_get()
 {
   Instance::StaticData &e_data = Instance::StaticData::get();
   return e_data.texture_u32;

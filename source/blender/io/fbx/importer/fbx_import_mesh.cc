@@ -20,6 +20,7 @@
 #include "BLI_listbase.h"
 #include "BLI_ordered_edge.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 #include "BLI_vector_set.hh"
 
@@ -361,6 +362,10 @@ static bool import_blend_shapes(Main &bmain,
       KeyBlock *kb = BKE_keyblock_add(mesh_key, fchan->target_shape->name.data);
       kb->curval = fchan->weight;
       BKE_keyblock_convert_from_mesh(mesh, mesh_key, kb);
+      if (!kb->data) {
+        /* Nothing to do. This can happen if the mesh has no vertices. */
+        continue;
+      }
       float3 *kb_data = static_cast<float3 *>(kb->data);
       for (int i = 0; i < fchan->target_shape->num_offsets; i++) {
         int idx = fchan->target_shape->offset_vertices[i];
@@ -431,7 +436,7 @@ static void import_blend_shape_full_weights(const FbxElementMapping &mapping,
         }
       }
 
-      STRNCPY(kb->vgroup, kb->name);
+      STRNCPY_UTF8(kb->vgroup, kb->name);
     }
   }
 }
@@ -557,7 +562,7 @@ void import_meshes(Main &bmain,
           /* Add armature modifier. */
           if (arm_obj != nullptr) {
             ModifierData *md = BKE_modifier_new(eModifierType_Armature);
-            STRNCPY(md->name, BKE_id_name(arm_obj->id));
+            STRNCPY_UTF8(md->name, BKE_id_name(arm_obj->id));
             BLI_addtail(&obj->modifiers, md);
             BKE_modifiers_persistent_uid_init(*obj, *md);
             ArmatureModifierData *ad = reinterpret_cast<ArmatureModifierData *>(md);

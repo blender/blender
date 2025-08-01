@@ -1014,7 +1014,7 @@ static bool parse_expr(ExprParseState *state)
 
     int jmp_end = parse_add_jump(state, OPCODE_JMP);
 
-    /* Parse the else block. */
+    /* Parse the `else` block. */
     parse_set_jump(state, jmp_else);
 
     CHECK_ERROR(parse_expr(state));

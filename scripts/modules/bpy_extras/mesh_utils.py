@@ -399,7 +399,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
 
     if not fill:
         if debug_print:
-            print('Warning Cannot scanfill, fallback on a triangle fan.')
+            print('Warning Cannot scan-fill, fallback on a triangle fan.')
         fill = [[0, i - 1, i] for i in range(2, len(indices))]
     else:
         # Use real scan-fill.

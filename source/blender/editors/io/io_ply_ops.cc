@@ -14,6 +14,7 @@
 #  include "BKE_report.hh"
 
 #  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "WM_api.hh"
 #  include "WM_types.hh"
@@ -357,11 +358,11 @@ namespace blender::ed::io {
 void ply_file_handler_add()
 {
   auto fh = std::make_unique<blender::bke::FileHandlerType>();
-  STRNCPY(fh->idname, "IO_FH_ply");
-  STRNCPY(fh->import_operator, "WM_OT_ply_import");
-  STRNCPY(fh->export_operator, "WM_OT_ply_export");
-  STRNCPY(fh->label, "Stanford PLY");
-  STRNCPY(fh->file_extensions_str, ".ply");
+  STRNCPY_UTF8(fh->idname, "IO_FH_ply");
+  STRNCPY_UTF8(fh->import_operator, "WM_OT_ply_import");
+  STRNCPY_UTF8(fh->export_operator, "WM_OT_ply_export");
+  STRNCPY_UTF8(fh->label, "Stanford PLY");
+  STRNCPY_UTF8(fh->file_extensions_str, ".ply");
   fh->poll_drop = poll_file_object_drop;
   bke::file_handler_add(std::move(fh));
 }

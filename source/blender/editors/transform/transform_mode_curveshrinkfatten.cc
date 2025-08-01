@@ -10,7 +10,7 @@
 
 #include "BLI_math_bits.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_unit.hh"
 
@@ -51,10 +51,10 @@ static void applyCurveShrinkFatten(TransInfo *t)
     char c[NUM_STR_REP_LEN];
 
     outputNumInput(&(t->num), c, t->scene->unit);
-    SNPRINTF(str, IFACE_("Shrink/Fatten: %s"), c);
+    SNPRINTF_UTF8(str, IFACE_("Shrink/Fatten: %s"), c);
   }
   else {
-    SNPRINTF(str, IFACE_("Shrink/Fatten: %3f"), ratio);
+    SNPRINTF_UTF8(str, IFACE_("Shrink/Fatten: %3f"), ratio);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {

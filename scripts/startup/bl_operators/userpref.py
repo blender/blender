@@ -233,10 +233,32 @@ class PREFERENCES_OT_keyconfig_import(Operator):
         default=True,
     )
 
-    def execute(self, _context):
+    # When importing keymap files with the same name with built-in presets (like
+    # "Blender" or "Industry Compatible"), we need to rename the imported ones
+    # so those entries can be properly removed (built-in ones can't be removed).
+    # See #118035.
+    @classmethod
+    def _preset_prevent_name_collision(cls, config_name):
         import os
-        from os.path import basename
+        from bpy.utils import is_path_builtin
+        path = bpy.utils.user_resource(
+            'SCRIPTS',
+            path=os.path.join("presets", "keyconfig"),
+            create=True,
+        )
+
+        config_name_final = config_name
+        config_name_noext, config_name_ext = os.path.splitext(config_name)
+        preset_path = bpy.utils.preset_find(config_name_noext, "keyconfig", ext=".py")
+
+        if preset_path is not None and is_path_builtin(preset_path):
+            config_name_final = "{:s} (User){:s}".format(config_name_noext, config_name_ext)
+
+        return os.path.join(path, config_name_final)
+
+    def execute(self, _context):
         import shutil
+        from os.path import basename
 
         if not self.filepath:
             self.report({'ERROR'}, "Filepath not set")
@@ -244,12 +266,7 @@ class PREFERENCES_OT_keyconfig_import(Operator):
 
         config_name = basename(self.filepath)
 
-        path = bpy.utils.user_resource(
-            'SCRIPTS',
-            path=os.path.join("presets", "keyconfig"),
-            create=True,
-        )
-        path = os.path.join(path, config_name)
+        path = self._preset_prevent_name_collision(config_name)
 
         try:
             if self.keep_original:

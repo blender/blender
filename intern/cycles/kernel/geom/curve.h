@@ -46,12 +46,13 @@ ccl_device_inline T curve_attribute_dfdy(const ccl_private differential &du,
 /* Read attributes on various curve elements, and compute the partial derivatives if requested. */
 
 template<typename T>
-ccl_device T curve_attribute(KernelGlobals kg,
-                             const ccl_private ShaderData *sd,
-                             const AttributeDescriptor desc,
-                             ccl_private T *dfdx,
-                             ccl_private T *dfdy)
+ccl_device dual<T> curve_attribute(KernelGlobals kg,
+                                   const ccl_private ShaderData *sd,
+                                   const AttributeDescriptor desc,
+                                   const bool dx = false,
+                                   const bool dy = false)
 {
+  dual<T> result;
   if (desc.element & (ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_CURVE_KEY_MOTION)) {
     const KernelCurve curve = kernel_data_fetch(curves, sd->prim);
     const int k0 = curve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
@@ -61,34 +62,27 @@ ccl_device T curve_attribute(KernelGlobals kg,
     const T f1 = attribute_data_fetch<T>(kg, desc.offset + k1);
 
 #  ifdef __RAY_DIFFERENTIALS__
-    if (dfdx) {
-      *dfdx = curve_attribute_dfdx(sd->du, f0, f1);
+    if (dx) {
+      result.dx = curve_attribute_dfdx(sd->du, f0, f1);
     }
-    if (dfdy) {
-      *dfdy = curve_attribute_dfdy(sd->du, f0, f1);
+    if (dy) {
+      result.dy = curve_attribute_dfdy(sd->du, f0, f1);
     }
 #  endif
 
-    return mix(f0, f1, sd->u);
+    result.val = mix(f0, f1, sd->u);
+    return result;
   }
 
   /* idea: we can't derive any useful differentials here, but for tiled
    * mipmap image caching it would be useful to avoid reading the highest
    * detail level always. maybe a derivative based on the hair density
    * could be computed somehow? */
-#  ifdef __RAY_DIFFERENTIALS__
-  if (dfdx) {
-    *dfdx = make_zero<T>();
-  }
-  if (dfdy) {
-    *dfdy = make_zero<T>();
-  }
-#  endif
 
   if (desc.element == ATTR_ELEMENT_CURVE) {
-    return attribute_data_fetch<T>(kg, desc.offset + sd->prim);
+    return dual<T>(attribute_data_fetch<T>(kg, desc.offset + sd->prim));
   }
-  return make_zero<T>();
+  return make_zero<dual<T>>();
 }
 
 /* Curve thickness */
@@ -127,9 +121,7 @@ ccl_device float curve_random(KernelGlobals kg, const ccl_private ShaderData *sd
 {
   if (sd->type & PRIMITIVE_CURVE) {
     const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_CURVE_RANDOM);
-    return (desc.offset != ATTR_STD_NOT_FOUND) ?
-               curve_attribute<float>(kg, sd, desc, nullptr, nullptr) :
-               0.0f;
+    return (desc.offset != ATTR_STD_NOT_FOUND) ? curve_attribute<float>(kg, sd, desc).val : 0.0f;
   }
   return 0.0f;
 }

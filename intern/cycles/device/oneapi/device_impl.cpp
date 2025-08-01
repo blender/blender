@@ -31,6 +31,7 @@
  * support SYCL. */
 extern "C" RTCDevice rtcNewSYCLDevice(sycl::context context, const char *config);
 extern "C" bool rtcIsSYCLDeviceSupported(const sycl::device sycl_device);
+extern "C" void rtcSetDeviceSYCLDevice(RTCDevice device, const sycl::device sycl_device);
 #  endif
 
 CCL_NAMESPACE_BEGIN
@@ -1018,6 +1019,9 @@ bool OneapiDevice::create_queue(SyclQueue *&external_queue,
         oneapi_error_string_ =
             "Hardware Raytracing is not available; please install "
             "\"intel-level-zero-gpu-raytracing\" to enable it or disable Embree on GPU.";
+      }
+      else {
+        rtcSetDeviceSYCLDevice(*device_object_ptr, devices[device_index]);
       }
     }
 #  else

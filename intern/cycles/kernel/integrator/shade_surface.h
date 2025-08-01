@@ -243,8 +243,12 @@ integrate_direct_light_shadow_init_common(KernelGlobals kg,
       state, path, volume_bounds_bounce);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, glossy_bounce) = INTEGRATOR_STATE(
       state, path, glossy_bounce);
-
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput;
+
+  if ((kernel_data.kernel_features & KERNEL_FEATURE_NODE_PORTAL)) {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, portal_bounce) = INTEGRATOR_STATE(
+        state, path, portal_bounce);
+  }
 
 #ifdef __MNEE__
   if (mnee_vertex_count > 0) {
@@ -409,7 +413,7 @@ ccl_device
 
   if (is_transmission) {
 #ifdef __VOLUME__
-    shadow_volume_stack_enter_exit(kg, shadow_state, sd);
+    volume_stack_enter_exit<true>(kg, shadow_state, sd);
 #endif
   }
 
@@ -816,7 +820,7 @@ ccl_device int integrate_surface(KernelGlobals kg,
 
   if (continue_path_label & LABEL_TRANSMIT) {
     /* Enter/Exit volume. */
-    volume_stack_enter_exit(kg, state, &sd);
+    volume_stack_enter_exit<false>(kg, state, &sd);
   }
 #endif
 

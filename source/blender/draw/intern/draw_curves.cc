@@ -301,13 +301,21 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
   CurvesEvalCache *curves_cache = drw_curves_cache_get(
       curves_id, gpu_material, subdiv, thickness_res);
 
-  /* Fix issue with certain driver not drawing anything if there is nothing bound to
-   * "ac", "au", "u" or "c". */
+  /* Ensure we have no unbound resources.
+   * Required for Vulkan.
+   * Fixes issues with certain GL drivers not drawing anything. */
   sub_ps.bind_texture("u", module.dummy_vbo);
   sub_ps.bind_texture("au", module.dummy_vbo);
+  sub_ps.bind_texture("a", module.dummy_vbo);
   sub_ps.bind_texture("c", module.dummy_vbo);
   sub_ps.bind_texture("ac", module.dummy_vbo);
-  sub_ps.bind_texture("a", module.dummy_vbo);
+  if (gpu_material) {
+    ListBase attr_list = GPU_material_attributes(gpu_material);
+    ListBaseWrapper<GPUMaterialAttribute> attrs(attr_list);
+    for (const GPUMaterialAttribute *attr : attrs) {
+      sub_ps.bind_texture(attr->input_name, module.dummy_vbo);
+    }
+  }
 
   /* TODO: Generalize radius implementation for curves data type. */
   float hair_rad_shape = 0.0f;

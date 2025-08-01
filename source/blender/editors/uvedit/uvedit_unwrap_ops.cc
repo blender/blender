@@ -28,7 +28,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -275,7 +275,7 @@ static UnwrapOptions unwrap_options_get(wmOperator *op, Object *ob, const ToolSe
     options.use_subsurf = (ts->uvcalc_flag & UVCALC_USESUBSURF) != 0;
 
     options.use_weights = ts->uvcalc_flag & UVCALC_UNWRAP_USE_WEIGHTS;
-    STRNCPY(options.weight_group, ts->uvcalc_weight_group);
+    STRNCPY_UTF8(options.weight_group, ts->uvcalc_weight_group);
     options.slim.weight_influence = ts->uvcalc_weight_factor;
 
     options.slim.iterations = ts->uvcalc_iterations;
@@ -1110,7 +1110,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
     blender::geometry::uv_parametrizer_flush(ms->handle);
 
     if (area) {
-      SNPRINTF(str, IFACE_("Minimize Stretch. Blend %.2f"), ms->blend);
+      SNPRINTF_UTF8(str, IFACE_("Minimize Stretch. Blend %.2f"), ms->blend);
       ED_area_status_text(area, str);
       ED_workspace_status_text(C, IFACE_("Press + and -, or scroll wheel to set blending"));
     }
@@ -1712,7 +1712,7 @@ static void pack_islands_freejob(void *pidv)
 {
   WM_cursor_wait(false);
   UVPackIslandsData *pid = static_cast<UVPackIslandsData *>(pidv);
-  WM_set_locked_interface(pid->wm, false);
+  WM_locked_interface_set(pid->wm, false);
   MEM_delete(pid);
 }
 
@@ -1798,10 +1798,10 @@ static wmOperatorStatus pack_islands_exec(bContext *C, wmOperator *op)
     }
 
     wmJob *wm_job = WM_jobs_get(
-        pid->wm, CTX_wm_window(C), scene, "Packing UVs", WM_JOB_PROGRESS, WM_JOB_TYPE_UV_PACK);
+        pid->wm, CTX_wm_window(C), scene, "Packing UVs...", WM_JOB_PROGRESS, WM_JOB_TYPE_UV_PACK);
     WM_jobs_customdata_set(wm_job, pid, pack_islands_freejob);
     WM_jobs_timer(wm_job, 0.1, 0, 0);
-    WM_set_locked_interface_with_flags(pid->wm, REGION_DRAW_LOCK_RENDER);
+    WM_locked_interface_set_with_flags(pid->wm, REGION_DRAW_LOCK_RENDER);
     WM_jobs_callbacks(wm_job, pack_islands_startjob, nullptr, nullptr, pack_islands_endjob);
 
     WM_cursor_wait(true);

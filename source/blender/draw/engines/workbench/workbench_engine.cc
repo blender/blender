@@ -13,6 +13,7 @@
 #include "BKE_paint.hh"
 #include "BKE_paint_bvh.hh"
 #include "BKE_particle.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -434,9 +435,9 @@ class Instance : public DrawEngine {
   }
 
   void draw(Manager &manager,
-            GPUTexture *depth_tx,
-            GPUTexture *depth_in_front_tx,
-            GPUTexture *color_tx)
+            gpu::Texture *depth_tx,
+            gpu::Texture *depth_in_front_tx,
+            gpu::Texture *color_tx)
   {
     int2 resolution = scene_state_.resolution;
 
@@ -466,8 +467,10 @@ class Instance : public DrawEngine {
 
     GPUAttachment id_attachment = GPU_ATTACHMENT_NONE;
     if (scene_state_.draw_object_id) {
-      resources_.object_id_tx.acquire(
-          resolution, GPU_R16UI, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+      resources_.object_id_tx.acquire(resolution,
+                                      gpu::TextureFormat::UINT_16,
+                                      GPU_TEXTURE_USAGE_SHADER_READ |
+                                          GPU_TEXTURE_USAGE_ATTACHMENT);
       id_attachment = GPU_ATTACHMENT_TEXTURE(resources_.object_id_tx);
     }
     resources_.clear_fb.ensure(GPU_ATTACHMENT_TEXTURE(resources_.depth_tx),
@@ -492,9 +495,9 @@ class Instance : public DrawEngine {
   }
 
   void draw_viewport(Manager &manager,
-                     GPUTexture *depth_tx,
-                     GPUTexture *depth_in_front_tx,
-                     GPUTexture *color_tx)
+                     gpu::Texture *depth_tx,
+                     gpu::Texture *depth_in_front_tx,
+                     gpu::Texture *color_tx)
   {
     this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
 
@@ -518,9 +521,9 @@ class Instance : public DrawEngine {
   }
 
   void draw_image_render(Manager &manager,
-                         GPUTexture *depth_tx,
-                         GPUTexture *depth_in_front_tx,
-                         GPUTexture *color_tx,
+                         gpu::Texture *depth_tx,
+                         gpu::Texture *depth_in_front_tx,
+                         gpu::Texture *color_tx,
                          RenderEngine *engine = nullptr)
   {
     if (scene_state_.render_finished) {
@@ -587,11 +590,21 @@ static bool workbench_render_framebuffers_init(const DRWContext *draw_ctx)
     BLI_assert(dtxl->depth == nullptr);
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
     dtxl->color = GPU_texture_create_2d(
-        "txl.color", size.x, size.y, 1, GPU_RGBA16F, usage, nullptr);
-    dtxl->depth = GPU_texture_create_2d(
-        "txl.depth", size.x, size.y, 1, GPU_DEPTH32F_STENCIL8, usage, nullptr);
-    dtxl->depth_in_front = GPU_texture_create_2d(
-        "txl.depth_in_front", size.x, size.y, 1, GPU_DEPTH32F_STENCIL8, usage, nullptr);
+        "txl.color", size.x, size.y, 1, gpu::TextureFormat::SFLOAT_16_16_16_16, usage, nullptr);
+    dtxl->depth = GPU_texture_create_2d("txl.depth",
+                                        size.x,
+                                        size.y,
+                                        1,
+                                        gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
+                                        usage,
+                                        nullptr);
+    dtxl->depth_in_front = GPU_texture_create_2d("txl.depth_in_front",
+                                                 size.x,
+                                                 size.y,
+                                                 1,
+                                                 gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
+                                                 usage,
+                                                 nullptr);
   }
 
   if (!(dtxl->depth && dtxl->color && dtxl->depth_in_front)) {

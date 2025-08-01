@@ -17,7 +17,8 @@ shader node_light_path(output float IsCameraRay = 0.0,
                        output float DiffuseDepth = 0.0,
                        output float GlossyDepth = 0.0,
                        output float TransparentDepth = 0.0,
-                       output float TransmissionDepth = 0.0)
+                       output float TransmissionDepth = 0.0,
+                       output float PortalDepth = 0.0)
 {
   IsCameraRay = raytype("camera");
   IsShadowRay = raytype("shadow");
@@ -49,4 +50,8 @@ shader node_light_path(output float IsCameraRay = 0.0,
   int transmission_depth = 0;
   getattribute("path:transmission_depth", transmission_depth);
   TransmissionDepth = (float)transmission_depth;
+
+  int portal_depth = 0;
+  getattribute("path:portal_depth", portal_depth);
+  PortalDepth = (float)portal_depth;
 }

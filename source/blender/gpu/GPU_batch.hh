@@ -84,6 +84,8 @@ class Batch {
   blender::gpu::IndexBuf *elem;
   /** Resource ID attribute workaround. */
   GPUStorageBuf *resource_id_buf;
+  /** Number of vertices to draw for procedural drawcalls. */
+  int32_t procedural_vertices;
   /** Bookkeeping. */
   eGPUBatchFlag flag;
   /** Type of geometry to draw. */
@@ -142,6 +144,9 @@ blender::gpu::Batch *GPU_batch_create_ex(GPUPrimType primitive_type,
                                          blender::gpu::VertBuf *vertex_buf,
                                          blender::gpu::IndexBuf *index_buf,
                                          eGPUBatchFlag owns_flag);
+
+blender::gpu::Batch *GPU_batch_create_procedural(GPUPrimType primitive_type, int32_t vertex_count);
+
 /**
  * Creates a #blender::gpu::Batch without buffer ownership.
  */

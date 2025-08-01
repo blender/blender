@@ -9,11 +9,12 @@
 #include <algorithm>
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_idprop.hh"
 
 #include "DNA_ID.h"
+
 #include "IMB_allocimbuf.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_filetype.hh"
@@ -151,7 +152,7 @@ static void set_file_colorspace(ImFileColorSpace &r_colorspace,
   /* Override if necessary. */
   if (ctx.use_metadata_colorspace) {
     string ics = spec.get_string_attribute("oiio:ColorSpace");
-    STRNCPY(r_colorspace.metadata_colorspace, ics.c_str());
+    STRNCPY_UTF8(r_colorspace.metadata_colorspace, ics.c_str());
   }
 }
 

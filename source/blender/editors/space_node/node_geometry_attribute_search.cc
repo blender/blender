@@ -6,6 +6,7 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
@@ -219,7 +220,7 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   BLI_assert(socket->type == SOCK_STRING);
 
   bNodeSocketValueString *value = static_cast<bNodeSocketValueString *>(socket->default_value);
-  BLI_strncpy(value->value, item->name.c_str(), MAX_NAME);
+  BLI_strncpy_utf8(value->value, item->name.c_str(), MAX_NAME);
 
   ED_undo_push(C, "Assign Attribute Name");
 }
@@ -232,7 +233,7 @@ void node_geometry_add_attribute_search_button(const bContext & /*C*/,
 {
   uiBlock *block = layout.block();
   uiBut *but = uiDefIconTextButR(block,
-                                 UI_BTYPE_SEARCH_MENU,
+                                 ButType::SearchMenu,
                                  0,
                                  ICON_NONE,
                                  "",
@@ -243,15 +244,13 @@ void node_geometry_add_attribute_search_button(const bContext & /*C*/,
                                  &socket_ptr,
                                  "default_value",
                                  0,
-                                 0.0f,
-                                 0.0f,
                                  "");
   UI_but_placeholder_set(but, placeholder);
 
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
   AttributeSearchData *data = MEM_callocN<AttributeSearchData>(__func__);
   data->node_id = node.identifier;
-  STRNCPY(data->socket_identifier, socket.identifier);
+  STRNCPY_UTF8(data->socket_identifier, socket.identifier);
 
   UI_but_func_search_set_results_are_suggestions(but, true);
   UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);

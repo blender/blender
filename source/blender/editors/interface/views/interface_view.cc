@@ -96,7 +96,7 @@ void ViewLink::views_bounds_calc(const uiBlock &block)
   }
 
   for (const std::unique_ptr<uiBut> &but : block.buttons) {
-    if (but->type != UI_BTYPE_VIEW_ITEM) {
+    if (but->type != ButType::ViewItem) {
       continue;
     }
     uiButViewItem *view_item_but = static_cast<uiButViewItem *>(but.get());
@@ -307,7 +307,7 @@ std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const AReg
 
 static StringRef ui_block_view_find_idname(const uiBlock &block, const AbstractView &view)
 {
-  /* First get the idname the of the view we're looking for. */
+  /* First get the `idname` of the view we're looking for. */
   LISTBASE_FOREACH (ViewLink *, view_link, &block.views) {
     if (view_link->view.get() == &view) {
       return view_link->idname;
@@ -361,7 +361,7 @@ uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
   }
 
   for (const std::unique_ptr<uiBut> &old_but : old_block->buttons) {
-    if (old_but->type != UI_BTYPE_VIEW_ITEM) {
+    if (old_but->type != ButType::ViewItem) {
       continue;
     }
     uiButViewItem *old_item_but = (uiButViewItem *)old_but.get();

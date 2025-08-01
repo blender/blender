@@ -1200,12 +1200,12 @@ static gpu::IndexBufPtr create_lines_index_bmesh(const Set<BMFace *, 0> &faces,
   return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, visible_faces_num * 3, false));
 }
 
-static void create_tri_index_grids(const Span<int> grid_indices,
-                                   const BitGroupVector<> &grid_hidden,
-                                   const int gridsize,
-                                   const int skip,
-                                   const int totgrid,
-                                   MutableSpan<uint3> data)
+static int create_tri_index_grids(const Span<int> grid_indices,
+                                  const BitGroupVector<> &grid_hidden,
+                                  const int gridsize,
+                                  const int skip,
+                                  const int totgrid,
+                                  MutableSpan<uint3> data)
 {
   int tri_index = 0;
   int offset = 0;
@@ -1235,14 +1235,16 @@ static void create_tri_index_grids(const Span<int> grid_indices,
       }
     }
   }
+
+  return tri_index;
 }
 
-static void create_tri_index_grids_flat_layout(const Span<int> grid_indices,
-                                               const BitGroupVector<> &grid_hidden,
-                                               const int gridsize,
-                                               const int skip,
-                                               const int totgrid,
-                                               MutableSpan<uint3> data)
+static int create_tri_index_grids_flat_layout(const Span<int> grid_indices,
+                                              const BitGroupVector<> &grid_hidden,
+                                              const int gridsize,
+                                              const int skip,
+                                              const int totgrid,
+                                              MutableSpan<uint3> data)
 {
   int tri_index = 0;
   int offset = 0;
@@ -1286,6 +1288,7 @@ static void create_tri_index_grids_flat_layout(const Span<int> grid_indices,
       }
     }
   }
+  return tri_index;
 }
 
 static void create_lines_index_grids(const Span<int> grid_indices,
@@ -1570,14 +1573,22 @@ static gpu::IndexBufPtr create_tri_index_grids(const CCGKey &key,
 
   MutableSpan<uint3> data = GPU_indexbuf_get_data(&builder).cast<uint3>();
 
+  int tri_count;
   if (use_flat_layout) {
-    create_tri_index_grids_flat_layout(grid_indices, grid_hidden, gridsize, skip, totgrid, data);
+    tri_count = create_tri_index_grids_flat_layout(
+        grid_indices, grid_hidden, gridsize, skip, totgrid, data);
   }
   else {
-    create_tri_index_grids(grid_indices, grid_hidden, gridsize, skip, totgrid, data);
+    tri_count = create_tri_index_grids(grid_indices, grid_hidden, gridsize, skip, totgrid, data);
   }
 
-  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, 6 * visible_quad_len, false));
+  builder.index_len = tri_count * 3;
+  builder.index_min = 0;
+  builder.index_max = 6 * visible_quad_len;
+  builder.uses_restart_indices = false;
+  gpu::IndexBufPtr result = gpu::IndexBufPtr(GPU_indexbuf_calloc());
+  GPU_indexbuf_build_in_place(&builder, result.get());
+  return result;
 }
 
 static gpu::IndexBufPtr create_lines_index_grids(const CCGKey &key,

@@ -1,0 +1,17 @@
+==== Curves: 1
+- Curve 'rhino_curve_uniform_cyclic_deg7' dim:3D resu:12 resv:12 splines:1
+  - spline type:NURBS pts:9x1 order:8x8 cyclic:True,False endp:False,False
+    - (19.014, 0.000, -57.653) w:1.000
+    - (-0.187, 0.000, -58.172) w:1.000
+    - (-12.880, 0.000, -60.533) w:1.000
+      ...
+    - (3.446, 0.000, -52.464) w:1.000
+    - (18.496, 0.000, -53.761) w:1.000
+    - (38.216, 0.000, -45.717) w:1.000
+
+==== Objects: 1
+- Obj 'rhino_curve_uniform_cyclic_deg7' CURVE data:'rhino_curve_uniform_cyclic_deg7'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

@@ -216,6 +216,10 @@ static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
                "transform",
                ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE_XFORM_FLAG_SCALE |
                    ED_GIZMO_CAGE_XFORM_FLAG_ROTATE);
+  RNA_enum_set(ggd->cage->ptr,
+               "draw_options",
+               ED_GIZMO_CAGE_DRAW_FLAG_XFORM_CENTER_HANDLE |
+                   ED_GIZMO_CAGE_DRAW_FLAG_CORNER_HANDLES);
 
   return ggd;
 }

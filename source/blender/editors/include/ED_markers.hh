@@ -49,6 +49,7 @@ ListBase *ED_scene_markers_get(Scene *scene, ScrArea *area);
  * \return A #TimeMarker list.
  */
 ListBase *ED_context_get_markers(const bContext *C);
+ListBase *ED_sequencer_context_get_markers(const bContext *C);
 /**
  * Public API for getting markers from "animation" context.
  *

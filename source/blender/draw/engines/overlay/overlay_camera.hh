@@ -588,7 +588,7 @@ class Cameras : Overlay {
       float4x4 mat;
 
       /* retrieve the image we want to show, continue to next when no image could be found */
-      GPUTexture *tex = image_camera_background_texture_get(
+      gpu::Texture *tex = image_camera_background_texture_get(
           bgpic, state, res, aspect, use_alpha_premult, use_view_transform);
 
       if (tex) {
@@ -680,17 +680,17 @@ class Cameras : Overlay {
     rmat = translate * rotate * scale;
   }
 
-  GPUTexture *image_camera_background_texture_get(const CameraBGImage *bgpic,
-                                                  const State &state,
-                                                  Resources &res,
-                                                  float &r_aspect,
-                                                  bool &r_use_alpha_premult,
-                                                  bool &r_use_view_transform)
+  gpu::Texture *image_camera_background_texture_get(const CameraBGImage *bgpic,
+                                                    const State &state,
+                                                    Resources &res,
+                                                    float &r_aspect,
+                                                    bool &r_use_alpha_premult,
+                                                    bool &r_use_view_transform)
   {
     ::Image *image = bgpic->ima;
     ImageUser *iuser = (ImageUser *)&bgpic->iuser;
     MovieClip *clip = nullptr;
-    GPUTexture *tex = nullptr;
+    gpu::Texture *tex = nullptr;
     float aspect_x, aspect_y;
     int width, height;
     int ctime = int(DEG_get_ctime(state.depsgraph));

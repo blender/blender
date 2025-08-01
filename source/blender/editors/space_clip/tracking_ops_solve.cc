@@ -14,7 +14,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -79,7 +79,7 @@ static bool solve_camera_initjob(
 
   tracking->stats = MEM_callocN<MovieTrackingStats>("solve camera stats");
 
-  WM_set_locked_interface(scj->wm, true);
+  WM_locked_interface_set(scj->wm, true);
 
   return true;
 }
@@ -89,7 +89,7 @@ static void solve_camera_updatejob(void *scv)
   SolveCameraJob *scj = (SolveCameraJob *)scv;
   MovieTracking *tracking = &scj->clip->tracking;
 
-  STRNCPY(tracking->stats->message, scj->stats_message);
+  STRNCPY_UTF8(tracking->stats->message, scj->stats_message);
 }
 
 static void solve_camera_startjob(void *scv, wmJobWorkerStatus *worker_status)
@@ -114,7 +114,7 @@ static void solve_camera_freejob(void *scv)
   /* WindowManager is missing in the job when initialization is incomplete.
    * In this case the interface is not locked either. */
   if (scj->wm != nullptr) {
-    WM_set_locked_interface(scj->wm, false);
+    WM_locked_interface_set(scj->wm, false);
   }
 
   if (!scj->context) {
@@ -219,7 +219,7 @@ static wmOperatorStatus solve_camera_invoke(bContext *C, wmOperator *op, const w
     return OPERATOR_CANCELLED;
   }
 
-  STRNCPY(tracking->stats->message, "Solving camera | Preparing solve");
+  STRNCPY_UTF8(tracking->stats->message, "Solving camera | Preparing solve");
 
   /* Hide reconstruction statistics from previous solve. */
   reconstruction->flag &= ~TRACKING_RECONSTRUCTED;
@@ -229,7 +229,7 @@ static wmOperatorStatus solve_camera_invoke(bContext *C, wmOperator *op, const w
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
                        CTX_data_scene(C),
-                       "Solve Camera",
+                       "Solving camera...",
                        WM_JOB_PROGRESS,
                        WM_JOB_TYPE_CLIP_SOLVE_CAMERA);
   WM_jobs_customdata_set(wm_job, scj, solve_camera_freejob);

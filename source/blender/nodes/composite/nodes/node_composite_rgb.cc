@@ -27,7 +27,7 @@ static void cmp_node_rgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("RGBA")
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
       .custom_draw([](CustomSocketDrawParams &params) {
-        params.layout.alignment_set(blender::ui::LayoutAlign::Expand);
+        params.layout.alignment_set(ui::LayoutAlign::Expand);
         uiLayout &col = params.layout.column(false);
         uiTemplateColorPicker(
             &col, &params.socket_ptr, "default_value", true, false, false, false);

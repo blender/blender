@@ -265,7 +265,7 @@ class Empties : Overlay {
                   EmptyInstanceBuf &empty_image_buf)
   {
     Object *ob = ob_ref.object;
-    GPUTexture *tex = nullptr;
+    gpu::Texture *tex = nullptr;
     ::Image *ima = static_cast<::Image *>(ob_ref.object->data);
     float4x4 mat;
 

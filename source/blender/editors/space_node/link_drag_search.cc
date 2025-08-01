@@ -429,7 +429,7 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
 {
   LinkDragSearchStorage &storage = *(LinkDragSearchStorage *)arg_op;
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, "_popup", ui::EmbossType::Emboss);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
@@ -457,7 +457,7 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
 
   /* Fake button to hold space for the search items. */
   uiDefBut(block,
-           UI_BTYPE_LABEL,
+           ButType::Label,
            0,
            "",
            storage.in_out() == SOCK_OUT ? 10 : 10 - UI_searchbox_size_x(),

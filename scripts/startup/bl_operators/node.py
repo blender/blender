@@ -61,8 +61,14 @@ class NodeAddOperator:
 
         # convert mouse position to the View2D for later node placement
         if context.region.type == 'WINDOW':
+            area = context.area
+            horizontal_pad = int(area.width / 10)
+            vertical_pad = int(area.height / 10)
+
+            inspace_x = min(max(horizontal_pad, event.mouse_region_x), area.width - horizontal_pad)
+            inspace_y = min(max(vertical_pad, event.mouse_region_y), area.height - vertical_pad)
             # convert mouse position to the View2D for later node placement
-            space.cursor_location_from_region(event.mouse_region_x, event.mouse_region_y)
+            space.cursor_location_from_region(inspace_x, inspace_y)
         else:
             space.cursor_location = tree.view_center
 

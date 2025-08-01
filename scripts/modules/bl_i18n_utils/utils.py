@@ -506,8 +506,10 @@ class I18nMessages:
 
         msgs = cls(uid=uid, settings=settings)
         key = settings.PO_HEADER_KEY
-        msgs.msgs[key] = I18nMessage([key[0]], [key[1]], msgstr.split("\n"), comment.split("\n"),
-                                     False, False, settings=settings)
+        msgs.msgs[key] = I18nMessage(
+            [key[0]], [key[1]], msgstr.split("\n"), comment.split("\n"),
+            False, False, settings=settings,
+        )
         msgs.update_info()
 
         return msgs
@@ -935,8 +937,10 @@ class I18nMessages:
                 self.parsing_errors.append((line_nr, "{} context/msgid is already in current messages!".format(msgkey)))
                 return
 
-            self.msgs[msgkey] = I18nMessage(msgctxt_lines, msgid_lines, msgstr_lines, comment_lines,
-                                            is_commented, is_fuzzy, settings=self.settings)
+            self.msgs[msgkey] = I18nMessage(
+                msgctxt_lines, msgid_lines, msgstr_lines, comment_lines,
+                is_commented, is_fuzzy, settings=self.settings,
+            )
 
             # Let's clean up and get ready for next message!
             reading_msgid = reading_msgstr = reading_msgctxt = reading_comment = False
@@ -1475,8 +1479,10 @@ class I18n:
         """
         root_dir, pot_file = src
         if pot_file and os.path.isfile(pot_file):
-            self.trans[self.settings.PARSER_TEMPLATE_ID] = I18nMessages(self.settings.PARSER_TEMPLATE_ID, 'PO',
-                                                                        pot_file, pot_file, settings=self.settings)
+            self.trans[self.settings.PARSER_TEMPLATE_ID] = I18nMessages(
+                self.settings.PARSER_TEMPLATE_ID, 'PO',
+                pot_file, pot_file, settings=self.settings,
+            )
             self.src_po[self.settings.PARSER_TEMPLATE_ID] = pot_file
 
         for uid, po_file in get_po_files_from_dir(root_dir, langs):
@@ -1496,28 +1502,36 @@ class I18n:
             msgs = ()
         for key, (sources, gen_comments), *translations in msgs:
             if self.settings.PARSER_TEMPLATE_ID not in self.trans:
-                self.trans[self.settings.PARSER_TEMPLATE_ID] = I18nMessages(self.settings.PARSER_TEMPLATE_ID,
-                                                                            settings=self.settings)
+                self.trans[self.settings.PARSER_TEMPLATE_ID] = I18nMessages(
+                    self.settings.PARSER_TEMPLATE_ID,
+                    settings=self.settings,
+                )
                 self.src[self.settings.PARSER_TEMPLATE_ID] = self.py_file
             if key in self.trans[self.settings.PARSER_TEMPLATE_ID].msgs:
                 print("ERROR! key {} is defined more than once! Skipping re-definitions!")
                 continue
             custom_src = [c for c in sources if c.startswith("bpy.")]
             src = [c for c in sources if not c.startswith("bpy.")]
-            common_comment_lines = [self.settings.PO_COMMENT_PREFIX_GENERATED + c for c in gen_comments] + \
-                                   [self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM + c for c in custom_src] + \
-                                   [self.settings.PO_COMMENT_PREFIX_SOURCE + c for c in src]
+            common_comment_lines = (
+                [self.settings.PO_COMMENT_PREFIX_GENERATED + c for c in gen_comments] +
+                [self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM + c for c in custom_src] +
+                [self.settings.PO_COMMENT_PREFIX_SOURCE + c for c in src]
+            )
             ctxt = [key[0]] if key[0] else [default_context]
-            self.trans[self.settings.PARSER_TEMPLATE_ID].msgs[key] = I18nMessage(ctxt, [key[1]], [""],
-                                                                                 common_comment_lines, False, False,
-                                                                                 settings=self.settings)
+            self.trans[self.settings.PARSER_TEMPLATE_ID].msgs[key] = I18nMessage(
+                ctxt, [key[1]], [""],
+                common_comment_lines, False, False,
+                settings=self.settings,
+            )
             for uid, msgstr, (is_fuzzy, user_comments) in translations:
                 if uid not in self.trans:
                     self.trans[uid] = I18nMessages(uid, settings=self.settings)
                     self.src[uid] = self.py_file
                 comment_lines = [self.settings.PO_COMMENT_PREFIX + c for c in user_comments] + common_comment_lines
-                self.trans[uid].msgs[key] = I18nMessage(ctxt, [key[1]], [msgstr], comment_lines, False, is_fuzzy,
-                                                        settings=self.settings)
+                self.trans[uid].msgs[key] = I18nMessage(
+                    ctxt, [key[1]], [msgstr], comment_lines, False, is_fuzzy,
+                    settings=self.settings,
+                )
         # key = self.settings.PO_HEADER_KEY
         # for uid, trans in self.trans.items():
         #     if key not in trans.msgs:
@@ -1659,9 +1673,11 @@ class I18n:
             if prev is None and nxt is None:
                 print("WARNING: Looks like given python file {} has no auto-generated translations yet, will be added "
                       "at the end of the file, you can move that section later if needed...".format(dst))
-                txt = ([txt, "", self.settings.PARSER_PY_MARKER_BEGIN] +
-                       _gen_py(self, langs) +
-                       ["", self.settings.PARSER_PY_MARKER_END])
+                txt = (
+                    [txt, "", self.settings.PARSER_PY_MARKER_BEGIN] +
+                    _gen_py(self, langs) +
+                    ["", self.settings.PARSER_PY_MARKER_END]
+                )
             else:
                 # We completely replace the text found between start and end markers...
                 txt = _gen_py(self, langs)

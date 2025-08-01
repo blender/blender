@@ -6,10 +6,10 @@
  * \ingroup RNA
  */
 
-#include <cctype>
 #include <cstddef>
-#include <cstdlib>
+#include <cstdint>
 #include <cstring>
+#include <limits>
 #include <sstream>
 
 #include <fmt/format.h>
@@ -1116,14 +1116,25 @@ void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type)
   srna->blender_type = blender_type;
 }
 
+char *RNA_struct_name_get_alloc_ex(
+    PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len, PropertyRNA **r_nameprop)
+{
+  if (ptr->data) {
+    if (PropertyRNA *nameprop = RNA_struct_name_property(ptr->type)) {
+      *r_nameprop = nameprop;
+      return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen, r_len);
+    }
+  }
+  return nullptr;
+}
+
 char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len)
 {
-  PropertyRNA *nameprop;
-
-  if (ptr->data && (nameprop = RNA_struct_name_property(ptr->type))) {
-    return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen, r_len);
+  if (ptr->data) {
+    if (PropertyRNA *nameprop = RNA_struct_name_property(ptr->type)) {
+      return RNA_property_string_get_alloc(ptr, nameprop, fixedbuf, fixedlen, r_len);
+    }
   }
-
   return nullptr;
 }
 
@@ -1224,6 +1235,11 @@ const char *RNA_property_identifier(const PropertyRNA *prop)
 const char *RNA_property_description(PropertyRNA *prop)
 {
   return TIP_(rna_ensure_property_description(prop));
+}
+
+const DeprecatedRNA *RNA_property_deprecated(const PropertyRNA *prop)
+{
+  return prop->deprecated;
 }
 
 PropertyType RNA_property_type(PropertyRNA *prop)
@@ -3747,9 +3763,9 @@ std::string RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop)
   }
 
   std::string string_ret{};
-  /* Note: after `resize()` the underlying buffer is actually at least `length +
-   * 1` bytes long, because (since C++11) `std::string` guarantees a terminating
-   * null byte, but that is not considered part of the length. */
+  /* Note: after `resize()` the underlying buffer is actually at least
+   * `length + 1` bytes long, because (since C++11) `std::string` guarantees
+   * a terminating null byte, but that is not considered part of the length. */
   string_ret.resize(length);
 
   if (sprop->get) {
@@ -4199,11 +4215,92 @@ void RNA_property_pointer_set(PointerRNA *ptr,
                   ptr_value.type->identifier);
       return;
     }
+
+#ifndef NDEBUG
+    /* NOTE: By design, it can be safely assumed that both old and new ID pointers are valid when
+     * accessed through RNA. Handling of invalid ID pointers, e.g. freed ones etc., should never
+     * happen through RNA code, but directly on underlying (DNA) data.
+     *
+     * Setters are also not expected to free or otherwise invalidate ID pointers. So storing them
+     * here should be safe. */
+    BLI_assert(pprop->get);
+    const bool is_id_refcounting = (prop->flag & PROP_ID_REFCOUNT) != 0;
+
+    const PointerRNA old_id_ptr = pprop->get(ptr);
+    BLI_assert_msg(!is_id_refcounting || !old_id_ptr.data || RNA_struct_is_ID(old_id_ptr.type),
+                   "If the property is tagged with ID refcounting, its current value should be "
+                   "null or an ID");
+    const ID *old_id = (old_id_ptr.type && RNA_struct_is_ID(old_id_ptr.type)) ?
+                           old_id_ptr.data_as<ID>() :
+                           nullptr;
+    const int old_id_old_refcount = old_id ? ID_REFCOUNTING_USERS(old_id) : 0;
+
+    const ID *new_id = (ptr_value.type && RNA_struct_is_ID(ptr_value.type)) ?
+                           ptr_value.data_as<ID>() :
+                           nullptr;
+    const int new_id_old_refcount = new_id ? ID_REFCOUNTING_USERS(new_id) : 0;
+#endif
+
     if (!((prop->flag & PROP_NEVER_NULL) && ptr_value.data == nullptr) &&
         !((prop->flag & PROP_ID_SELF_CHECK) && ptr->owner_id == ptr_value.owner_id))
     {
       pprop->set(ptr, ptr_value, reports);
     }
+
+#ifndef NDEBUG
+    /* NOTE: Current checks are relatively flexible, but do expect 'reasonable' behavior (ID
+     * handling) from custom setters.
+     *
+     * Should there be some very uncommon setter behavior, e.g. unassigning an ID from the property
+     * automatically assigning it to several other refcounting usages, this will have to be
+     * tweaked, e.g. by adding a special 'skip checks' flag to such RNA properties. */
+    PointerRNA current_id_ptr = pprop->get(ptr);
+    BLI_assert_msg(!is_id_refcounting || !current_id_ptr.data ||
+                       RNA_struct_is_ID(current_id_ptr.type),
+                   "If the property is tagged with ID refcounting, its current value should be "
+                   "null or an ID");
+    ID *current_id = (current_id_ptr.type && RNA_struct_is_ID(current_id_ptr.type)) ?
+                         static_cast<ID *>(current_id_ptr.data) :
+                         nullptr;
+
+    if (old_id) {
+      const int old_id_new_refcount = ID_REFCOUNTING_USERS(old_id);
+      if (ELEM(old_id, new_id, current_id)) {
+        BLI_assert_msg(old_id_new_refcount == old_id_old_refcount,
+                       "Reassigning the same ID to a RNA pointer property, or assignment failure, "
+                       "should not modify the original ID usercount");
+      }
+      else if (is_id_refcounting) {
+        BLI_assert_msg(old_id_new_refcount < old_id_old_refcount,
+                       "Unassigning an ID from a refcounting RNA pointer property should decrease "
+                       "its usercount");
+      }
+      else {
+        BLI_assert_msg(old_id_new_refcount == old_id_old_refcount,
+                       "Unassigning an ID from a non-refcounting RNA pointer property should not "
+                       "modify its usercount");
+      }
+    }
+    if (new_id && new_id != old_id) {
+      const int new_id_new_refcount = ID_REFCOUNTING_USERS(new_id);
+      if (current_id == old_id) {
+        BLI_assert_msg(new_id_new_refcount == new_id_old_refcount,
+                       "Failed assigning a new ID to a RNA pointer property, should not modify "
+                       "the new ID usercount");
+      }
+      else if (is_id_refcounting) {
+        BLI_assert_msg(new_id_new_refcount > new_id_old_refcount,
+                       "Assigning an ID to a refcounting RNA pointer property should increase "
+                       "its usercount");
+      }
+      else {
+        BLI_assert_msg(new_id_new_refcount == new_id_old_refcount,
+                       "Assigning an ID to a non-refcounting RNA pointer property should not "
+                       "modify its usercount");
+      }
+    }
+#endif
+
     return;
   }
 
@@ -5463,8 +5560,8 @@ PointerRNA rna_listbase_lookup_int(PointerRNA *ptr, StructRNA *type, ListBase *l
 void rna_iterator_array_begin(CollectionPropertyIterator *iter,
                               PointerRNA *ptr,
                               void *data,
-                              int itemsize,
-                              int length,
+                              size_t itemsize,
+                              int64_t length,
                               bool free_ptr,
                               IteratorSkipFunc skip)
 {
@@ -5479,11 +5576,17 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter,
     data = nullptr;
     itemsize = 0;
   }
+  else if (UNLIKELY(length < 0 || length > std::numeric_limits<uint64_t>::max() / itemsize)) {
+    /* This path is never expected to execute. Assert and trace if it ever does. */
+    BLI_assert_unreachable();
+    data = nullptr;
+    length = 0;
+  }
 
   internal = &iter->internal.array;
   internal->ptr = static_cast<char *>(data);
   internal->free_ptr = free_ptr ? data : nullptr;
-  internal->endptr = ((char *)data) + length * itemsize;
+  internal->endptr = ((char *)data) + itemsize * length;
   internal->itemsize = itemsize;
   internal->skip = skip;
   internal->length = length;
@@ -5534,13 +5637,18 @@ void rna_iterator_array_end(CollectionPropertyIterator *iter)
 }
 
 PointerRNA rna_array_lookup_int(
-    PointerRNA *ptr, StructRNA *type, void *data, int itemsize, int length, int index)
+    PointerRNA *ptr, StructRNA *type, void *data, size_t itemsize, int64_t length, int64_t index)
 {
   if (index < 0 || index >= length) {
     return PointerRNA_NULL;
   }
+  if (UNLIKELY(index > std::numeric_limits<uint64_t>::max() / itemsize)) {
+    /* This path is never expected to execute. Assert and trace if it ever does. */
+    BLI_assert_unreachable();
+    return PointerRNA_NULL;
+  }
 
-  return RNA_pointer_create_with_parent(*ptr, type, ((char *)data) + index * itemsize);
+  return RNA_pointer_create_with_parent(*ptr, type, ((char *)data) + itemsize * index);
 }
 
 /* Quick name based property access */

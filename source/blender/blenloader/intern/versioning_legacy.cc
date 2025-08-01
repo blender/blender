@@ -50,6 +50,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
@@ -322,10 +323,10 @@ static void customdata_version_242(Mesh *mesh)
     if (layer->type == CD_MTFACE) {
       if (layer->name[0] == 0) {
         if (mtfacen == 0) {
-          STRNCPY(layer->name, "UVMap");
+          STRNCPY_UTF8(layer->name, "UVMap");
         }
         else {
-          SNPRINTF(layer->name, "UVMap.%.3d", mtfacen);
+          SNPRINTF_UTF8(layer->name, "UVMap.%.3d", mtfacen);
         }
       }
       mtfacen++;
@@ -333,10 +334,10 @@ static void customdata_version_242(Mesh *mesh)
     else if (layer->type == CD_MCOL) {
       if (layer->name[0] == 0) {
         if (mcoln == 0) {
-          STRNCPY(layer->name, "Col");
+          STRNCPY_UTF8(layer->name, "Col");
         }
         else {
-          SNPRINTF(layer->name, "Col.%.3d", mcoln);
+          SNPRINTF_UTF8(layer->name, "Col.%.3d", mcoln);
         }
       }
       mcoln++;
@@ -1455,12 +1456,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
         if (kb == key->refkey) {
           if (kb->name[0] == 0) {
-            STRNCPY(kb->name, "Basis");
+            STRNCPY_UTF8(kb->name, "Basis");
           }
         }
         else {
           if (kb->name[0] == 0) {
-            SNPRINTF(kb->name, "Key %d", index);
+            SNPRINTF_UTF8(kb->name, "Key %d", index);
           }
           index++;
         }
@@ -1595,7 +1596,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
            ima = static_cast<Image *>(ima->id.next))
       {
         if (STREQ(ima->filepath, "Compositor")) {
-          BLI_strncpy(ima->id.name + 2, "Viewer Node", sizeof(ima->id.name) - 2);
+          BLI_strncpy_utf8(ima->id.name + 2, "Viewer Node", sizeof(ima->id.name) - 2);
           STRNCPY(ima->filepath, "Viewer Node");
         }
       }
@@ -2240,7 +2241,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         BLI_addtail(&ob->particlesystem, psys);
 
         md = BKE_modifier_new(eModifierType_ParticleSystem);
-        SNPRINTF(md->name, "ParticleSystem %i", BLI_listbase_count(&ob->particlesystem));
+        SNPRINTF_UTF8(md->name, "ParticleSystem %i", BLI_listbase_count(&ob->particlesystem));
         psmd = (ParticleSystemModifierData *)md;
         psmd->psys = psys;
         BLI_addtail(&ob->modifiers, md);

@@ -234,7 +234,7 @@ void shaderfx_link(Object *dst, Object *src)
 void shaderfx_copy(Object *dst, ShaderFxData *fx)
 {
   ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
-  STRNCPY(nfx->name, fx->name);
+  STRNCPY_UTF8(nfx->name, fx->name);
   BKE_shaderfx_copydata(fx, nfx);
   BLI_addtail(&dst->shader_fx, nfx);
 
@@ -480,7 +480,7 @@ static wmOperatorStatus shaderfx_remove_exec(bContext *C, wmOperator *op)
 
   /* Store name temporarily for report. */
   char name[MAX_NAME];
-  STRNCPY(name, fx->name);
+  STRNCPY_UTF8(name, fx->name);
 
   if (!shaderfx_remove(op->reports, bmain, ob, fx)) {
     return OPERATOR_CANCELLED;
@@ -679,7 +679,7 @@ static wmOperatorStatus shaderfx_copy_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  STRNCPY(nfx->name, fx->name);
+  STRNCPY_UTF8(nfx->name, fx->name);
   /* Make sure effect data has unique name. */
   BKE_shaderfx_unique_name(&ob->shader_fx, nfx);
 

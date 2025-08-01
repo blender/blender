@@ -714,7 +714,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   layout.label(RPT_("Enter a Unicode codepoint hex value"), ICON_NONE);
 
   uiBut *text_but = uiDefBut(block,
-                             UI_BTYPE_TEXT,
+                             ButType::Text,
                              0,
                              "",
                              0,
@@ -745,51 +745,18 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   split->column(false);
 
   if (windows_layout) {
-    confirm = uiDefIconTextBut(block,
-                               UI_BTYPE_BUT,
-                               0,
-                               0,
-                               IFACE_("Insert"),
-                               0,
-                               0,
-                               0,
-                               UI_UNIT_Y,
-                               nullptr,
-                               0,
-                               0,
-                               std::nullopt);
+    confirm = uiDefIconTextBut(
+        block, ButType::But, 0, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
     split->column(false);
   }
 
-  cancel = uiDefIconTextBut(block,
-                            UI_BTYPE_BUT,
-                            0,
-                            0,
-                            IFACE_("Cancel"),
-                            0,
-                            0,
-                            0,
-                            UI_UNIT_Y,
-                            nullptr,
-                            0,
-                            0,
-                            std::nullopt);
+  cancel = uiDefIconTextBut(
+      block, ButType::But, 0, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
 
   if (!windows_layout) {
     split->column(false);
-    confirm = uiDefIconTextBut(block,
-                               UI_BTYPE_BUT,
-                               0,
-                               0,
-                               IFACE_("Insert"),
-                               0,
-                               0,
-                               0,
-                               UI_UNIT_Y,
-                               nullptr,
-                               0,
-                               0,
-                               std::nullopt);
+    confirm = uiDefIconTextBut(
+        block, ButType::But, 0, 0, IFACE_("Insert"), 0, 0, 0, UI_UNIT_Y, nullptr, std::nullopt);
   }
 
   UI_block_func_set(block, nullptr, nullptr, nullptr);

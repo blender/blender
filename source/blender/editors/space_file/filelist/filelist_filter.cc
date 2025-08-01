@@ -12,6 +12,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_idtype.hh"
 
@@ -211,7 +212,7 @@ bool is_filtered_asset(FileListInternEntry *file, FileListFilter *filter)
   }
 
   /* filter->filter_search contains "*the search text*". */
-  char filter_search[66]; /* sizeof(FileListFilter::filter_search) */
+  char filter_search[sizeof(FileListFilter::filter_search)];
   const size_t string_length = STRNCPY_RLEN(filter_search, filter->filter_search);
 
   /* When doing a name comparison, get rid of the leading/trailing asterisks. */
@@ -364,7 +365,7 @@ void filelist_setfilter_options(FileList *filelist,
     update = true;
   }
   if (!STREQ(filelist->filter_data.filter_glob, filter_glob)) {
-    STRNCPY(filelist->filter_data.filter_glob, filter_glob);
+    STRNCPY_UTF8(filelist->filter_data.filter_glob, filter_glob);
     update = true;
   }
   if (BLI_strcmp_ignore_pad(filelist->filter_data.filter_search, filter_search, '*') != 0) {

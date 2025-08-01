@@ -375,14 +375,14 @@ static void rna_def_movieclip(BlenderRNA *brna)
       "Create proxy images in a custom directory (default is movie location)");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClip_reload_update");
 
-  /* grease pencil */
-  prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
+  /* annotations */
+  prop = RNA_def_property(srna, "annotation", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "gpd");
-  RNA_def_property_struct_type(prop, "GreasePencil");
+  RNA_def_property_struct_type(prop, "Annotation");
   RNA_def_property_pointer_funcs(
       prop, nullptr, nullptr, nullptr, "rna_GPencil_datablocks_annotations_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-  RNA_def_property_ui_text(prop, "Grease Pencil", "Grease Pencil data for this movie clip");
+  RNA_def_property_ui_text(prop, "Annotation", "Annotation data for this movie clip");
   RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, nullptr);
 
   /* start_frame */

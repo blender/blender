@@ -88,6 +88,18 @@ static bool node_gizmo_is_set_visible(const bContext *C)
   return false;
 }
 
+static const float2 GIZMO_NODE_DEFAULT_DIMS{64.0f, 64.0f};
+static float2 node_gizmo_safe_calc_dims(const ImBuf *ibuf, const float2 &fallback_dims)
+{
+  if (ibuf && ibuf->x > 0 && ibuf->y > 0) {
+    return float2{float(ibuf->x), float(ibuf->y)};
+  }
+
+  /* We typically want to divide by dims, so avoid returning zero here. */
+  BLI_assert(!math::is_any_zero(fallback_dims));
+  return fallback_dims;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -160,34 +172,32 @@ static void WIDGETGROUP_node_transform_refresh(const bContext *C, wmGizmoGroup *
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (ibuf) {
-    const float2 dims = {
-        (ibuf->x > 0) ? ibuf->x : 64.0f,
-        (ibuf->y > 0) ? ibuf->y : 64.0f,
-    };
+  if (UNLIKELY(ibuf == nullptr)) {
+    WM_gizmo_set_flag(cage, WM_GIZMO_HIDDEN, true);
+    BKE_image_release_ibuf(ima, ibuf, lock);
+    return;
+  }
 
-    RNA_float_set_array(cage->ptr, "dimensions", dims);
-    WM_gizmo_set_matrix_location(cage, origin);
-    WM_gizmo_set_flag(cage, WM_GIZMO_HIDDEN, false);
+  const float2 dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
 
-    /* Need to set property here for undo. TODO: would prefer to do this in _init. */
-    SpaceNode *snode = CTX_wm_space_node(C);
+  RNA_float_set_array(cage->ptr, "dimensions", dims);
+  WM_gizmo_set_matrix_location(cage, origin);
+  WM_gizmo_set_flag(cage, WM_GIZMO_HIDDEN, false);
+
+  /* Need to set property here for undo. TODO: would prefer to do this in _init. */
+  SpaceNode *snode = CTX_wm_space_node(C);
 #if 0
-    PointerRNA nodeptr = RNA_pointer_create_discrete(snode->id, &RNA_SpaceNodeEditor, snode);
-    WM_gizmo_target_property_def_rna(cage, "offset", &nodeptr, "backdrop_offset", -1);
-    WM_gizmo_target_property_def_rna(cage, "scale", &nodeptr, "backdrop_zoom", -1);
+  PointerRNA nodeptr = RNA_pointer_create_discrete(snode->id, &RNA_SpaceNodeEditor, snode);
+  WM_gizmo_target_property_def_rna(cage, "offset", &nodeptr, "backdrop_offset", -1);
+  WM_gizmo_target_property_def_rna(cage, "scale", &nodeptr, "backdrop_zoom", -1);
 #endif
 
-    wmGizmoPropertyFnParams params{};
-    params.value_get_fn = gizmo_node_backdrop_prop_matrix_get;
-    params.value_set_fn = gizmo_node_backdrop_prop_matrix_set;
-    params.range_get_fn = nullptr;
-    params.user_data = snode;
-    WM_gizmo_target_property_def_func(cage, "matrix", &params);
-  }
-  else {
-    WM_gizmo_set_flag(cage, WM_GIZMO_HIDDEN, true);
-  }
+  wmGizmoPropertyFnParams params{};
+  params.value_get_fn = gizmo_node_backdrop_prop_matrix_get;
+  params.value_set_fn = gizmo_node_backdrop_prop_matrix_set;
+  params.range_get_fn = nullptr;
+  params.user_data = snode;
+  WM_gizmo_target_property_def_func(cage, "matrix", &params);
 
   BKE_image_release_ibuf(ima, ibuf, lock);
 }
@@ -358,8 +368,8 @@ static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmGizmoGroupType * /*g
   snode->edittree->ensure_topology_cache();
   LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
     if (!STREQ(input->name, "Image") && input->is_directly_linked()) {
-      /* Note: the Image input could be connected to a single value input, in which case the gizmo
-       * has no effect. */
+      /* Note: the Image input could be connected to a single value input, in which case the
+       * gizmo has no effect. */
       return false;
     }
     else if (STREQ(input->name, "Alpha Crop") && !input->is_directly_linked()) {
@@ -412,34 +422,33 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *gzgro
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (ibuf) {
-    crop_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
-    crop_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    copy_v2_v2(crop_group->state.offset, ima->runtime->backdrop_offset);
-
-    RNA_float_set_array(gz->ptr, "dimensions", crop_group->state.dims);
-    WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
-
-    bNode *node = bke::node_get_active(*snode->edittree);
-
-    crop_group->update_data.context = (bContext *)C;
-    bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Alpha Crop");
-    crop_group->update_data.ptr = RNA_pointer_create_discrete(
-        reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
-    crop_group->update_data.prop = RNA_struct_find_property(&crop_group->update_data.ptr,
-                                                            "enabled");
-    BLI_assert(crop_group->update_data.prop != nullptr);
-
-    wmGizmoPropertyFnParams params{};
-    params.value_get_fn = gizmo_node_crop_prop_matrix_get;
-    params.value_set_fn = gizmo_node_crop_prop_matrix_set;
-    params.range_get_fn = nullptr;
-    params.user_data = node;
-    WM_gizmo_target_property_def_func(gz, "matrix", &params);
-  }
-  else {
+  if (UNLIKELY(ibuf == nullptr)) {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+    BKE_image_release_ibuf(ima, ibuf, lock);
+    return;
   }
+
+  crop_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
+  copy_v2_v2(crop_group->state.offset, ima->runtime->backdrop_offset);
+
+  RNA_float_set_array(gz->ptr, "dimensions", crop_group->state.dims);
+  WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
+
+  bNode *node = bke::node_get_active(*snode->edittree);
+
+  crop_group->update_data.context = (bContext *)C;
+  bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Alpha Crop");
+  crop_group->update_data.ptr = RNA_pointer_create_discrete(
+      reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
+  crop_group->update_data.prop = RNA_struct_find_property(&crop_group->update_data.ptr, "enabled");
+  BLI_assert(crop_group->update_data.prop != nullptr);
+
+  wmGizmoPropertyFnParams params{};
+  params.value_get_fn = gizmo_node_crop_prop_matrix_get;
+  params.value_set_fn = gizmo_node_crop_prop_matrix_set;
+  params.range_get_fn = nullptr;
+  params.user_data = node;
+  WM_gizmo_target_property_def_func(gz, "matrix", &params);
 
   BKE_image_release_ibuf(ima, ibuf, lock);
 }
@@ -613,35 +622,34 @@ static void WIDGETGROUP_node_mask_refresh(const bContext *C, wmGizmoGroup *gzgro
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Render Result");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (ibuf) {
-    mask_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
-    mask_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    copy_v2_v2(mask_group->state.offset, ima->runtime->backdrop_offset);
-
-    RNA_float_set_array(gz->ptr, "dimensions", mask_group->state.dims);
-    WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
-
-    SpaceNode *snode = CTX_wm_space_node(C);
-    bNode *node = bke::node_get_active(*snode->edittree);
-
-    mask_group->update_data.context = (bContext *)C;
-    bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Mask");
-    mask_group->update_data.ptr = RNA_pointer_create_discrete(
-        reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
-    mask_group->update_data.prop = RNA_struct_find_property(&mask_group->update_data.ptr,
-                                                            "enabled");
-    BLI_assert(mask_group->update_data.prop != nullptr);
-
-    wmGizmoPropertyFnParams params{};
-    params.value_get_fn = gizmo_node_box_mask_prop_matrix_get;
-    params.value_set_fn = gizmo_node_box_mask_prop_matrix_set;
-    params.range_get_fn = nullptr;
-    params.user_data = node;
-    WM_gizmo_target_property_def_func(gz, "matrix", &params);
-  }
-  else {
+  if (UNLIKELY(ibuf == nullptr)) {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+    BKE_image_release_ibuf(ima, ibuf, lock);
+    return;
   }
+
+  mask_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
+  copy_v2_v2(mask_group->state.offset, ima->runtime->backdrop_offset);
+
+  RNA_float_set_array(gz->ptr, "dimensions", mask_group->state.dims);
+  WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
+
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNode *node = bke::node_get_active(*snode->edittree);
+
+  mask_group->update_data.context = (bContext *)C;
+  bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Mask");
+  mask_group->update_data.ptr = RNA_pointer_create_discrete(
+      reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
+  mask_group->update_data.prop = RNA_struct_find_property(&mask_group->update_data.ptr, "enabled");
+  BLI_assert(mask_group->update_data.prop != nullptr);
+
+  wmGizmoPropertyFnParams params{};
+  params.value_get_fn = gizmo_node_box_mask_prop_matrix_get;
+  params.value_set_fn = gizmo_node_box_mask_prop_matrix_set;
+  params.range_get_fn = nullptr;
+  params.user_data = node;
+  WM_gizmo_target_property_def_func(gz, "matrix", &params);
 
   BKE_image_release_ibuf(ima, ibuf, lock);
 }
@@ -726,10 +734,10 @@ void NODE_GGT_backdrop_ellipse_mask(wmGizmoGroupType *gzgt)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Sun Beams
+/** \name Glare
  * \{ */
 
-struct NodeSunBeamsWidgetGroup {
+struct NodeGlareWidgetGroup {
   wmGizmo *gizmo;
 
   struct {
@@ -738,7 +746,7 @@ struct NodeSunBeamsWidgetGroup {
   } state;
 };
 
-static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
+static bool WIDGETGROUP_node_glare_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   if (!node_gizmo_is_set_visible(C)) {
     return false;
@@ -747,10 +755,12 @@ static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType * /*
   SpaceNode *snode = CTX_wm_space_node(C);
   bNode *node = bke::node_get_active(*snode->edittree);
 
-  if (node && node->is_type("CompositorNodeSunBeams")) {
+  if ((node && node->is_type("CompositorNodeGlare")) &&
+      static_cast<NodeGlare *>(node->storage)->type == CMP_NODE_GLARE_SUN_BEAMS)
+  {
     snode->edittree->ensure_topology_cache();
     LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
-      if (STR_ELEM(input->name, "Source") && input->is_directly_linked()) {
+      if (STR_ELEM(input->name, "Sun Position") && input->is_directly_linked()) {
         return false;
       }
     }
@@ -760,77 +770,77 @@ static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType * /*
   return false;
 }
 
-static void WIDGETGROUP_node_sbeam_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_node_glare_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  NodeSunBeamsWidgetGroup *sbeam_group = MEM_mallocN<NodeSunBeamsWidgetGroup>(__func__);
+  NodeGlareWidgetGroup *glare_group = MEM_mallocN<NodeGlareWidgetGroup>(__func__);
 
-  sbeam_group->gizmo = WM_gizmo_new("GIZMO_GT_move_3d", gzgroup, nullptr);
-  wmGizmo *gz = sbeam_group->gizmo;
+  glare_group->gizmo = WM_gizmo_new("GIZMO_GT_move_3d", gzgroup, nullptr);
+  wmGizmo *gz = glare_group->gizmo;
 
   RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_CROSS_2D);
 
   gz->scale_basis = 0.05f / 75.0f;
 
-  gzgroup->customdata = sbeam_group;
+  gzgroup->customdata = glare_group;
 }
 
-static void WIDGETGROUP_node_sbeam_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_node_glare_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  NodeSunBeamsWidgetGroup *sbeam_group = (NodeSunBeamsWidgetGroup *)gzgroup->customdata;
+  NodeGlareWidgetGroup *glare_group = (NodeGlareWidgetGroup *)gzgroup->customdata;
   ARegion *region = CTX_wm_region(C);
   wmGizmo *gz = (wmGizmo *)gzgroup->gizmos.first;
 
   SpaceNode *snode = CTX_wm_space_node(C);
 
   node_gizmo_calc_matrix_space_with_image_dims(
-      snode, region, sbeam_group->state.dims, sbeam_group->state.offset, gz->matrix_space);
+      snode, region, glare_group->state.dims, glare_group->state.offset, gz->matrix_space);
 }
 
-static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_node_glare_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
   Main *bmain = CTX_data_main(C);
-  NodeSunBeamsWidgetGroup *sbeam_group = (NodeSunBeamsWidgetGroup *)gzgroup->customdata;
-  wmGizmo *gz = sbeam_group->gizmo;
+  NodeGlareWidgetGroup *glare_group = (NodeGlareWidgetGroup *)gzgroup->customdata;
+  wmGizmo *gz = glare_group->gizmo;
 
   void *lock;
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (ibuf) {
-    sbeam_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
-    sbeam_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    copy_v2_v2(sbeam_group->state.offset, ima->runtime->backdrop_offset);
-
-    SpaceNode *snode = CTX_wm_space_node(C);
-    bNode *node = bke::node_get_active(*snode->edittree);
-
-    /* Need to set property here for undo. TODO: would prefer to do this in _init. */
-    bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Source");
-    PointerRNA socket_pointer = RNA_pointer_create_discrete(
-        reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
-    WM_gizmo_target_property_def_rna(gz, "offset", &socket_pointer, "default_value", -1);
-
-    WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);
-  }
-  else {
+  if (UNLIKELY(ibuf == nullptr)) {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+    BKE_image_release_ibuf(ima, ibuf, lock);
+    return;
   }
+
+  glare_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
+  copy_v2_v2(glare_group->state.offset, ima->runtime->backdrop_offset);
+
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNode *node = bke::node_get_active(*snode->edittree);
+
+  /* Need to set property here for undo. TODO: would prefer to do this in _init. */
+  bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Sun Position");
+  PointerRNA socket_pointer = RNA_pointer_create_discrete(
+      reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
+  WM_gizmo_target_property_def_rna(gz, "offset", &socket_pointer, "default_value", -1);
+
+  WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);
 
   BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
-void NODE_GGT_backdrop_sun_beams(wmGizmoGroupType *gzgt)
+void NODE_GGT_backdrop_glare(wmGizmoGroupType *gzgt)
 {
-  gzgt->name = "Sun Beams Widget";
-  gzgt->idname = "NODE_GGT_sbeam";
+  gzgt->name = "Glare Widget";
+  gzgt->idname = "NODE_GGT_glare";
 
   gzgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
 
-  gzgt->poll = WIDGETGROUP_node_sbeam_poll;
-  gzgt->setup = WIDGETGROUP_node_sbeam_setup;
+  gzgt->poll = WIDGETGROUP_node_glare_poll;
+  gzgt->setup = WIDGETGROUP_node_glare_setup;
   gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
-  gzgt->draw_prepare = WIDGETGROUP_node_sbeam_draw_prepare;
-  gzgt->refresh = WIDGETGROUP_node_sbeam_refresh;
+  gzgt->draw_prepare = WIDGETGROUP_node_glare_draw_prepare;
+  gzgt->refresh = WIDGETGROUP_node_glare_refresh;
 }
 
 /** \} */
@@ -907,32 +917,32 @@ static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmGizmoGroup 
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (ibuf) {
-    cpin_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
-    cpin_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    copy_v2_v2(cpin_group->state.offset, ima->runtime->backdrop_offset);
-
-    SpaceNode *snode = CTX_wm_space_node(C);
-    bNode *node = bke::node_get_active(*snode->edittree);
-
-    /* need to set property here for undo. TODO: would prefer to do this in _init. */
-    int i = 0;
-    for (bNodeSocket *sock = (bNodeSocket *)node->inputs.first; sock && i < 4; sock = sock->next) {
-      if (sock->type == SOCK_VECTOR) {
-        wmGizmo *gz = cpin_group->gizmos[i++];
-
-        PointerRNA sockptr = RNA_pointer_create_discrete(
-            (ID *)snode->edittree, &RNA_NodeSocket, sock);
-        WM_gizmo_target_property_def_rna(gz, "offset", &sockptr, "default_value", -1);
-
-        WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);
-      }
-    }
-  }
-  else {
+  if (UNLIKELY(ibuf == nullptr)) {
     for (int i = 0; i < 4; i++) {
       wmGizmo *gz = cpin_group->gizmos[i];
       WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+    }
+    BKE_image_release_ibuf(ima, ibuf, lock);
+    return;
+  }
+
+  cpin_group->state.dims = node_gizmo_safe_calc_dims(ibuf, GIZMO_NODE_DEFAULT_DIMS);
+  copy_v2_v2(cpin_group->state.offset, ima->runtime->backdrop_offset);
+
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNode *node = bke::node_get_active(*snode->edittree);
+
+  /* need to set property here for undo. TODO: would prefer to do this in _init. */
+  int i = 0;
+  for (bNodeSocket *sock = (bNodeSocket *)node->inputs.first; sock && i < 4; sock = sock->next) {
+    if (sock->type == SOCK_VECTOR) {
+      wmGizmo *gz = cpin_group->gizmos[i++];
+
+      PointerRNA sockptr = RNA_pointer_create_discrete(
+          (ID *)snode->edittree, &RNA_NodeSocket, sock);
+      WM_gizmo_target_property_def_rna(gz, "offset", &sockptr, "default_value", -1);
+
+      WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);
     }
   }
 
@@ -1069,34 +1079,35 @@ static void WIDGETGROUP_node_split_refresh(const bContext *C, wmGizmoGroup *gzgr
   Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Render Result");
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
 
-  if (ibuf) {
-    split_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
-    split_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    copy_v2_v2(split_group->state.offset, ima->runtime->backdrop_offset);
-
-    RNA_float_set_array(gz->ptr, "dimensions", split_group->state.dims);
-    WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
-
-    SpaceNode *snode = CTX_wm_space_node(C);
-    bNode *node = bke::node_get_active(*snode->edittree);
-
-    split_group->update_data.context = (bContext *)C;
-    bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Position");
-    split_group->update_data.ptr = RNA_pointer_create_discrete(
-        reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
-    split_group->update_data.prop = RNA_struct_find_property(&split_group->update_data.ptr,
-                                                             "enabled");
-
-    wmGizmoPropertyFnParams params{};
-    params.value_get_fn = gizmo_node_split_prop_matrix_get;
-    params.value_set_fn = gizmo_node_split_prop_matrix_set;
-    params.range_get_fn = nullptr;
-    params.user_data = node;
-    WM_gizmo_target_property_def_func(gz, "matrix", &params);
-  }
-  else {
+  if (UNLIKELY(ibuf == nullptr)) {
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+    BKE_image_release_ibuf(ima, ibuf, lock);
+    return;
   }
+
+  /* Larger fallback size otherwise the gizmo would be partially hidden. */
+  split_group->state.dims = node_gizmo_safe_calc_dims(ibuf, float2{1000.0f, 1000.0f});
+  copy_v2_v2(split_group->state.offset, ima->runtime->backdrop_offset);
+
+  RNA_float_set_array(gz->ptr, "dimensions", split_group->state.dims);
+  WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
+
+  SpaceNode *snode = CTX_wm_space_node(C);
+  bNode *node = bke::node_get_active(*snode->edittree);
+
+  split_group->update_data.context = (bContext *)C;
+  bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Position");
+  split_group->update_data.ptr = RNA_pointer_create_discrete(
+      reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
+  split_group->update_data.prop = RNA_struct_find_property(&split_group->update_data.ptr,
+                                                           "enabled");
+
+  wmGizmoPropertyFnParams params{};
+  params.value_get_fn = gizmo_node_split_prop_matrix_get;
+  params.value_set_fn = gizmo_node_split_prop_matrix_set;
+  params.range_get_fn = nullptr;
+  params.user_data = node;
+  WM_gizmo_target_property_def_func(gz, "matrix", &params);
 
   BKE_image_release_ibuf(ima, ibuf, lock);
 }

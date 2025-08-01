@@ -140,7 +140,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
   }
 
   BLI_assert(treedata.raycast_callback != nullptr);
-  if (sctx->ret.hit_list) {
+  if (sctx->runtime.hit_list) {
     RayCastAll_Data data;
 
     data.bvhdata = &treedata;
@@ -149,7 +149,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
     data.len_diff = len_diff;
     data.local_scale = local_scale;
     data.ob_uuid = ob_index;
-    data.hit_list = sctx->ret.hit_list;
+    data.hit_list = sctx->runtime.hit_list;
 
     void *hit_last_prev = data.hit_list->last;
     BLI_bvhtree_ray_cast_all(

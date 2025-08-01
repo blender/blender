@@ -569,7 +569,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
     for (bNode *node : scene->compositing_node_group->all_nodes()) {
       if (node->type_legacy == CMP_NODE_R_LAYERS && node->id == nullptr) {
         if (node->custom1 == index) {
-          STRNCPY(node->name, view_layer->name);
+          STRNCPY_UTF8(node->name, view_layer->name);
         }
       }
     }
@@ -583,7 +583,7 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
   if (wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       if (win->scene == scene && STREQ(win->view_layer_name, oldname)) {
-        STRNCPY(win->view_layer_name, view_layer->name);
+        STRNCPY_UTF8(win->view_layer_name, view_layer->name);
       }
     }
   }
@@ -2721,7 +2721,7 @@ int BKE_lightgroup_membership_get(const LightgroupMembership *lgm, char *name)
     name[0] = '\0';
     return 0;
   }
-  return BLI_strncpy_rlen(name, lgm->name, sizeof(lgm->name));
+  return BLI_strncpy_utf8_rlen(name, lgm->name, sizeof(lgm->name));
 }
 
 int BKE_lightgroup_membership_length(const LightgroupMembership *lgm)
@@ -2738,7 +2738,7 @@ void BKE_lightgroup_membership_set(LightgroupMembership **lgm, const char *name)
     if (*lgm == nullptr) {
       *lgm = MEM_callocN<LightgroupMembership>(__func__);
     }
-    BLI_strncpy((*lgm)->name, name, sizeof((*lgm)->name));
+    BLI_strncpy_utf8((*lgm)->name, name, sizeof((*lgm)->name));
   }
   else {
     if (*lgm != nullptr) {

@@ -41,17 +41,17 @@
  *   Data can be accessed just like a normal T object.
  *
  * `draw::Texture`
- *   A simple wrapper to #GPUTexture. A #draw::Texture can be created without allocation.
- *   The `ensure_[1d|2d|3d|cube][_array]()` method is here to make sure the underlying texture
- *   will meet the requirements and create (or recreate) the #GPUTexture if needed.
+ *   A simple wrapper to #gpu::Texture. A #draw::Texture can be created without
+ * allocation. The `ensure_[1d|2d|3d|cube][_array]()` method is here to make sure the underlying
+ * texture will meet the requirements and create (or recreate) the #gpu::Texture if
+ * needed.
  *
  * `draw::TextureFromPool`
- *   A GPUTexture from the viewport texture pool. This texture can be shared with other engines
- *   and its content is undefined when acquiring it.
- *   A #draw::TextureFromPool is acquired for rendering using `acquire()` and released once the
- *   rendering is done using `release()`. The same texture can be acquired & released multiple
- *   time in one draw loop.
- *   The `sync()` method *MUST* be called once during the cache populate (aka: Sync) phase.
+ *   A gpu::Texture from the viewport texture pool. This texture can be shared with other
+ * engines and its content is undefined when acquiring it. A #draw::TextureFromPool is acquired for
+ * rendering using `acquire()` and released once the rendering is done using `release()`. The same
+ * texture can be acquired & released multiple time in one draw loop. The `sync()` method *MUST* be
+ * called once during the cache populate (aka: Sync) phase.
  *
  * `draw::Framebuffer`
  *   Simple wrapper to #GPUFramebuffer that can be moved.
@@ -524,18 +524,18 @@ class StorageBuffer : public T, public detail::StorageCommon<T, 1, device_only> 
 
 class Texture : NonCopyable {
  protected:
-  GPUTexture *tx_ = nullptr;
-  GPUTexture *stencil_view_ = nullptr;
-  Vector<GPUTexture *, 0> mip_views_;
-  Vector<GPUTexture *, 0> layer_views_;
-  GPUTexture *layer_range_view_ = nullptr;
+  gpu::Texture *tx_ = nullptr;
+  gpu::Texture *stencil_view_ = nullptr;
+  Vector<gpu::Texture *, 0> mip_views_;
+  Vector<gpu::Texture *, 0> layer_views_;
+  gpu::Texture *layer_range_view_ = nullptr;
   const char *name_;
 
  public:
   Texture(const char *name = "gpu::Texture") : name_(name) {}
 
   Texture(const char *name,
-          eGPUTextureFormat format,
+          blender::gpu::TextureFormat format,
           eGPUTextureUsage usage,
           int extent,
           const float *data = nullptr,
@@ -547,7 +547,7 @@ class Texture : NonCopyable {
   }
 
   Texture(const char *name,
-          eGPUTextureFormat format,
+          blender::gpu::TextureFormat format,
           eGPUTextureUsage usage,
           int extent,
           int layers,
@@ -560,7 +560,7 @@ class Texture : NonCopyable {
   }
 
   Texture(const char *name,
-          eGPUTextureFormat format,
+          blender::gpu::TextureFormat format,
           eGPUTextureUsage usage,
           int2 extent,
           const float *data = nullptr,
@@ -571,7 +571,7 @@ class Texture : NonCopyable {
   }
 
   Texture(const char *name,
-          eGPUTextureFormat format,
+          blender::gpu::TextureFormat format,
           eGPUTextureUsage usage,
           int2 extent,
           int layers,
@@ -583,7 +583,7 @@ class Texture : NonCopyable {
   }
 
   Texture(const char *name,
-          eGPUTextureFormat format,
+          blender::gpu::TextureFormat format,
           eGPUTextureUsage usage,
           int3 extent,
           const float *data = nullptr,
@@ -599,25 +599,25 @@ class Texture : NonCopyable {
     free();
   }
 
-  GPUTexture *gpu_texture()
+  gpu::Texture *gpu_texture()
   {
     return tx_;
   }
 
   /* To be able to use it with DRW_shgroup_uniform_texture(). */
-  operator GPUTexture *() const
+  operator gpu::Texture *() const
   {
     BLI_assert(tx_ != nullptr);
     return tx_;
   }
 
   /* To be able to use it with DRW_shgroup_uniform_texture_ref(). */
-  GPUTexture **operator&()
+  gpu::Texture **operator&()
   {
     return &tx_;
   }
 
-  /** WORKAROUND: used when needing a ref to the Texture and not the GPUTexture. */
+  /** WORKAROUND: used when needing a ref to the Texture and not the gpu::Texture. */
   Texture *ptr()
   {
     return this;
@@ -649,7 +649,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_1d(eGPUTextureFormat format,
+  bool ensure_1d(blender::gpu::TextureFormat format,
                  int extent,
                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                  const float *data = nullptr,
@@ -662,7 +662,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_1d_array(eGPUTextureFormat format,
+  bool ensure_1d_array(blender::gpu::TextureFormat format,
                        int extent,
                        int layers,
                        eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
@@ -677,7 +677,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_2d(eGPUTextureFormat format,
+  bool ensure_2d(blender::gpu::TextureFormat format,
                  int2 extent,
                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                  const float *data = nullptr,
@@ -690,7 +690,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_2d_array(eGPUTextureFormat format,
+  bool ensure_2d_array(blender::gpu::TextureFormat format,
                        int2 extent,
                        int layers,
                        eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
@@ -705,7 +705,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_3d(eGPUTextureFormat format,
+  bool ensure_3d(blender::gpu::TextureFormat format,
                  int3 extent,
                  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                  const float *data = nullptr,
@@ -718,7 +718,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_cube(eGPUTextureFormat format,
+  bool ensure_cube(blender::gpu::TextureFormat format,
                    int extent,
                    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                    float *data = nullptr,
@@ -731,7 +731,7 @@ class Texture : NonCopyable {
    * Ensure the texture has the correct properties. Recreating it if needed.
    * Return true if a texture has been created.
    */
-  bool ensure_cube_array(eGPUTextureFormat format,
+  bool ensure_cube_array(blender::gpu::TextureFormat format,
                          int extent,
                          int layers,
                          eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
@@ -749,10 +749,10 @@ class Texture : NonCopyable {
   {
     int mip_len = GPU_texture_mip_count(tx_);
     if (mip_views_.size() != mip_len) {
-      for (GPUTexture *&view : mip_views_) {
+      for (gpu::Texture *&view : mip_views_) {
         GPU_TEXTURE_FREE_SAFE(view);
       }
-      eGPUTextureFormat format = GPU_texture_format(tx_);
+      blender::gpu::TextureFormat format = GPU_texture_format(tx_);
       for (auto i : IndexRange(mip_len)) {
         mip_views_.append(
             GPU_texture_create_view(name_, tx_, format, i, 1, 0, 9999, cube_as_array, false));
@@ -762,7 +762,7 @@ class Texture : NonCopyable {
     return false;
   }
 
-  GPUTexture *mip_view(int miplvl)
+  gpu::Texture *mip_view(int miplvl)
   {
     BLI_assert_msg(miplvl < mip_views_.size(),
                    "Incorrect mip level requested. "
@@ -784,10 +784,10 @@ class Texture : NonCopyable {
   {
     int layer_len = GPU_texture_layer_count(tx_);
     if (layer_views_.size() != layer_len) {
-      for (GPUTexture *&view : layer_views_) {
+      for (gpu::Texture *&view : layer_views_) {
         GPU_TEXTURE_FREE_SAFE(view);
       }
-      eGPUTextureFormat format = GPU_texture_format(tx_);
+      blender::gpu::TextureFormat format = GPU_texture_format(tx_);
       for (auto i : IndexRange(layer_len)) {
         layer_views_.append(
             GPU_texture_create_view(name_, tx_, format, 0, 9999, i, 1, cube_as_array, false));
@@ -797,15 +797,15 @@ class Texture : NonCopyable {
     return false;
   }
 
-  GPUTexture *layer_view(int layer)
+  gpu::Texture *layer_view(int layer)
   {
     return layer_views_[layer];
   }
 
-  GPUTexture *stencil_view(bool cube_as_array = false)
+  gpu::Texture *stencil_view(bool cube_as_array = false)
   {
     if (stencil_view_ == nullptr) {
-      eGPUTextureFormat format = GPU_texture_format(tx_);
+      blender::gpu::TextureFormat format = GPU_texture_format(tx_);
       stencil_view_ = GPU_texture_create_view(
           name_, tx_, format, 0, 9999, 0, 9999, cube_as_array, true);
     }
@@ -821,7 +821,7 @@ class Texture : NonCopyable {
    * IMPORTANT: It is not recreated if the layer_start is different from the last call.
    * IMPORTANT: If this view is recreated any reference to it should be updated.
    */
-  GPUTexture *layer_range_view(int layer_start, int layer_len, bool cube_as_array = false)
+  gpu::Texture *layer_range_view(int layer_start, int layer_len, bool cube_as_array = false)
   {
     BLI_assert(this->is_valid());
     /* Make sure the range is valid as the GPU_texture_layer_count only returns the effective
@@ -832,7 +832,7 @@ class Texture : NonCopyable {
     int view_layer_len = (layer_range_view_) ? GPU_texture_layer_count(layer_range_view_) : -1;
     if (layer_len != view_layer_len) {
       GPU_TEXTURE_FREE_SAFE(layer_range_view_);
-      eGPUTextureFormat format = GPU_texture_format(tx_);
+      blender::gpu::TextureFormat format = GPU_texture_format(tx_);
       layer_range_view_ = GPU_texture_create_view(
           name_, tx_, format, 0, 9999, layer_start, layer_len, cube_as_array, false);
     }
@@ -986,10 +986,10 @@ class Texture : NonCopyable {
  protected:
   void free_texture_views()
   {
-    for (GPUTexture *&view : mip_views_) {
+    for (gpu::Texture *&view : mip_views_) {
       GPU_TEXTURE_FREE_SAFE(view);
     }
-    for (GPUTexture *&view : layer_views_) {
+    for (gpu::Texture *&view : layer_views_) {
       GPU_TEXTURE_FREE_SAFE(view);
     }
     GPU_TEXTURE_FREE_SAFE(stencil_view_);
@@ -1003,7 +1003,7 @@ class Texture : NonCopyable {
                    int h = 0,
                    int d = 0,
                    int mip_len = 1,
-                   eGPUTextureFormat format = GPU_RGBA8,
+                   blender::gpu::TextureFormat format = blender::gpu::TextureFormat::UNORM_8_8_8_8,
                    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL,
                    const float *data = nullptr,
                    bool layered = false,
@@ -1031,15 +1031,15 @@ class Texture : NonCopyable {
     return false;
   }
 
-  GPUTexture *create(int w,
-                     int h,
-                     int d,
-                     int mip_len,
-                     eGPUTextureFormat format,
-                     eGPUTextureUsage usage,
-                     const float *data,
-                     bool layered,
-                     bool cubemap)
+  gpu::Texture *create(int w,
+                       int h,
+                       int d,
+                       int mip_len,
+                       blender::gpu::TextureFormat format,
+                       eGPUTextureUsage usage,
+                       const float *data,
+                       bool layered,
+                       bool cubemap)
   {
     if (h == 0) {
       return GPU_texture_create_1d(name_, w, mip_len, format, usage, data);
@@ -1069,7 +1069,7 @@ class TextureFromPool : public Texture, NonMovable {
 
   /* Always use `release()` after rendering. */
   void acquire(int2 extent,
-               eGPUTextureFormat format,
+               blender::gpu::TextureFormat format,
                eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL)
   {
     BLI_assert(this->tx_ == nullptr);
@@ -1110,27 +1110,30 @@ class TextureFromPool : public Texture, NonMovable {
     Texture::swap(a, b);
   }
 
-  /** WORKAROUND: used when needing a ref to the Texture and not the GPUTexture. */
+  /** WORKAROUND: used when needing a ref to the Texture and not the gpu::Texture. */
   TextureFromPool *ptr()
   {
     return this;
   }
 
   /** Remove methods that are forbidden with this type of textures. */
-  bool ensure_1d(int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) = delete;
-  bool ensure_1d_array(int, int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) = delete;
-  bool ensure_2d(int, int, int, eGPUTextureFormat, eGPUTextureUsage, float *) = delete;
-  bool ensure_2d_array(int, int, int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) =
+  bool ensure_1d(int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_1d_array(
+      int, int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_2d(int, int, int, blender::gpu::TextureFormat, eGPUTextureUsage, float *) = delete;
+  bool ensure_2d_array(
+      int, int, int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_3d(
+      int, int, int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
+  bool ensure_cube(int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) =
       delete;
-  bool ensure_3d(int, int, int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) = delete;
-  bool ensure_cube(int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) = delete;
-  bool ensure_cube_array(int, int, int, eGPUTextureFormat, eGPUTextureUsage, const float *) =
-      delete;
+  bool ensure_cube_array(
+      int, int, int, blender::gpu::TextureFormat, eGPUTextureUsage, const float *) = delete;
   void filter_mode(bool) = delete;
   void free() = delete;
-  GPUTexture *mip_view(int) = delete;
-  GPUTexture *layer_view(int) = delete;
-  GPUTexture *stencil_view() = delete;
+  gpu::Texture *mip_view(int) = delete;
+  gpu::Texture *layer_view(int) = delete;
+  gpu::Texture *stencil_view() = delete;
 };
 
 class TextureRef : public Texture {
@@ -1142,7 +1145,7 @@ class TextureRef : public Texture {
     this->tx_ = nullptr;
   }
 
-  void wrap(GPUTexture *tex)
+  void wrap(gpu::Texture *tex)
   {
     if (assign_if_different(this->tx_, tex)) {
       free_texture_views();
@@ -1150,44 +1153,44 @@ class TextureRef : public Texture {
   }
 
   /** Remove methods that are forbidden with this type of textures. */
-  bool ensure_1d(int, int, eGPUTextureFormat, const float *) = delete;
-  bool ensure_1d_array(int, int, int, eGPUTextureFormat, const float *) = delete;
-  bool ensure_2d(int, int, int, eGPUTextureFormat, const float *) = delete;
-  bool ensure_2d_array(int, int, int, int, eGPUTextureFormat, const float *) = delete;
-  bool ensure_3d(int, int, int, int, eGPUTextureFormat, const float *) = delete;
-  bool ensure_cube(int, int, eGPUTextureFormat, const float *) = delete;
-  bool ensure_cube_array(int, int, int, eGPUTextureFormat, const float *) = delete;
+  bool ensure_1d(int, int, blender::gpu::TextureFormat, const float *) = delete;
+  bool ensure_1d_array(int, int, int, blender::gpu::TextureFormat, const float *) = delete;
+  bool ensure_2d(int, int, int, blender::gpu::TextureFormat, const float *) = delete;
+  bool ensure_2d_array(int, int, int, int, blender::gpu::TextureFormat, const float *) = delete;
+  bool ensure_3d(int, int, int, int, blender::gpu::TextureFormat, const float *) = delete;
+  bool ensure_cube(int, int, blender::gpu::TextureFormat, const float *) = delete;
+  bool ensure_cube_array(int, int, int, blender::gpu::TextureFormat, const float *) = delete;
   void filter_mode(bool) = delete;
   void free() = delete;
-  GPUTexture *mip_view(int) = delete;
-  GPUTexture *layer_view(int) = delete;
-  GPUTexture *stencil_view() = delete;
+  gpu::Texture *mip_view(int) = delete;
+  gpu::Texture *layer_view(int) = delete;
+  gpu::Texture *stencil_view() = delete;
 };
 
 /**
  * Dummy type to bind texture as image.
- * It is just a GPUTexture in disguise.
+ * It is just a gpu::Texture in disguise.
  */
 class Image {};
 
-static inline Image *as_image(GPUTexture *tex)
+static inline Image *as_image(gpu::Texture *tex)
 {
   return reinterpret_cast<Image *>(tex);
 }
 
-static inline Image **as_image(GPUTexture **tex)
+static inline Image **as_image(gpu::Texture **tex)
 {
   return reinterpret_cast<Image **>(tex);
 }
 
-static inline GPUTexture *as_texture(Image *img)
+static inline gpu::Texture *as_texture(Image *img)
 {
-  return reinterpret_cast<GPUTexture *>(img);
+  return reinterpret_cast<gpu::Texture *>(img);
 }
 
-static inline GPUTexture **as_texture(Image **img)
+static inline gpu::Texture **as_texture(Image **img)
 {
-  return reinterpret_cast<GPUTexture **>(img);
+  return reinterpret_cast<gpu::Texture **>(img);
 }
 
 /** \} */

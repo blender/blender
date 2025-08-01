@@ -11,11 +11,49 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* TODO: deduplicate function `set_attribute_float3()` in CPU and GPU. */
+#ifdef __KERNEL_OPTIX__
+typedef long long TypeDesc;
+#endif
+
+template<typename T>
+ccl_device_inline bool set_attribute(const dual<T> v,
+                                     const TypeDesc type,
+                                     bool derivatives,
+                                     ccl_private void *val);
+
+ccl_device_inline void set_data_float(const dual1 data, bool derivatives, ccl_private void *val)
+{
+  ccl_private float *fval = static_cast<ccl_private float *>(val);
+  fval[0] = data.val;
+  if (derivatives) {
+    fval[1] = data.dx;
+    fval[2] = data.dy;
+  }
+}
+
+ccl_device_inline void set_data_float3(const dual3 data, bool derivatives, ccl_private void *val)
+{
+  ccl_private float *fval = static_cast<ccl_private float *>(val);
+  copy_v3_v3(fval, data.val);
+  if (derivatives) {
+    copy_v3_v3(fval + 3, data.dx);
+    copy_v3_v3(fval + 6, data.dy);
+  }
+}
+
+ccl_device_inline void set_data_float4(const dual4 data, bool derivatives, ccl_private void *val)
+{
+  ccl_private float *fval = static_cast<ccl_private float *>(val);
+  copy_v4_v4(fval, data.val);
+  if (derivatives) {
+    copy_v4_v4(fval + 4, data.dx);
+    copy_v4_v4(fval + 8, data.dy);
+  }
+}
 
 ccl_device bool attribute_bump_map_normal(KernelGlobals kg,
                                           ccl_private const ShaderData *sd,
-                                          float3 f[3])
+                                          ccl_private dual3 &f)
 {
   if (!(sd->type & PRIMITIVE_TRIANGLE) || !(sd->shader & SHADER_SMOOTH_NORMAL)) {
     /* TODO: implement for curve. */
@@ -29,29 +67,27 @@ ccl_device bool attribute_bump_map_normal(KernelGlobals kg,
   object_inverse_normal_transform(kg, sd, &Ng);
 
   if (sd->type == PRIMITIVE_TRIANGLE) {
-    f[0] = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v, sd->du, sd->dv, f[1], f[2]);
+    f.val = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v, sd->du, sd->dv, f.dx, f.dy);
   }
   else {
     assert(sd->type & PRIMITIVE_MOTION_TRIANGLE);
-    f[0] = motion_triangle_smooth_normal(
-        kg, Ng, sd->object, sd->prim, sd->time, sd->u, sd->v, sd->du, sd->dv, f[1], f[2]);
+    f.val = motion_triangle_smooth_normal(
+        kg, Ng, sd->object, sd->prim, sd->time, sd->u, sd->v, sd->du, sd->dv, f.dx, f.dy);
   }
 
   if (sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED) {
     /* Transform to local space. */
-    object_inverse_normal_transform(kg, sd, f);
-    object_inverse_normal_transform(kg, sd, f + 1);
-    object_inverse_normal_transform(kg, sd, f + 2);
+    object_inverse_normal_transform(kg, sd, &f.val);
+    object_inverse_normal_transform(kg, sd, &f.dx);
+    object_inverse_normal_transform(kg, sd, &f.dy);
   }
 
   if (backfacing) {
-    f[0] = -f[0];
-    f[1] = -f[1];
-    f[2] = -f[2];
+    f = -f;
   }
 
-  f[1] -= f[0];
-  f[2] -= f[0];
+  f.dx -= f.val;
+  f.dy -= f.val;
 
   return true;
 }

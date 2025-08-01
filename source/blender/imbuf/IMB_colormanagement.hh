@@ -47,9 +47,21 @@ void IMB_colormanagegent_copy_settings(ImBuf *ibuf_src, ImBuf *ibuf_dst);
 void IMB_colormanagement_assign_float_colorspace(ImBuf *ibuf, const char *name);
 void IMB_colormanagement_assign_byte_colorspace(ImBuf *ibuf, const char *name);
 
-const char *IMB_colormanagement_get_float_colorspace(ImBuf *ibuf);
-const char *IMB_colormanagement_get_rect_colorspace(ImBuf *ibuf);
+const char *IMB_colormanagement_get_float_colorspace(const ImBuf *ibuf);
+const char *IMB_colormanagement_get_rect_colorspace(const ImBuf *ibuf);
 const char *IMB_colormanagement_space_from_filepath_rules(const char *filepath);
+
+/* Get colorspace name used for Rec.2100 PQ Display conversion.
+ *
+ * Searches for one of the color spaces or aliases: Rec.2100-PQ, Rec.2100-PQ - Display, rec2100_pq,
+ * rec2100_pq_display. If none found returns nullptr. */
+const char *IMB_colormanagement_get_rec2100_pq_display_colorspace();
+
+/* Get colorspace name used for Rec.2100 HLG Display conversion.
+ *
+ * Searches for one of the color spaces or aliases: Rec.2100-HLG, Rec.2100-HLG - Display,
+ * rec2100_hlg, rec2100_hlg_display. If none found returns nullptr. */
+const char *IMB_colormanagement_get_rec2100_hlg_display_colorspace();
 
 const ColorSpace *IMB_colormanagement_space_get_named(const char *name);
 bool IMB_colormanagement_space_is_data(const ColorSpace *colorspace);
@@ -241,12 +253,6 @@ void IMB_colormanagement_pixel_to_display_space_v4(
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings);
 
-void IMB_colormanagement_pixel_to_display_space_v3(
-    float result[3],
-    const float pixel[3],
-    const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings);
-
 void IMB_colormanagement_imbuf_make_display_space(
     ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
@@ -300,14 +306,6 @@ void IMB_display_buffer_transform_apply(unsigned char *display_buffer,
                                         const ColorManagedViewSettings *view_settings,
                                         const ColorManagedDisplaySettings *display_settings,
                                         bool predivide);
-void IMB_display_buffer_transform_apply_float(float *float_display_buffer,
-                                              float *linear_buffer,
-                                              int width,
-                                              int height,
-                                              int channels,
-                                              const ColorManagedViewSettings *view_settings,
-                                              const ColorManagedDisplaySettings *display_settings,
-                                              bool predivide);
 
 void IMB_display_buffer_release(void *cache_handle);
 
@@ -424,6 +422,12 @@ void IMB_partial_display_buffer_update_delayed(
 ColormanageProcessor *IMB_colormanagement_display_processor_new(
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings);
+
+ColormanageProcessor *IMB_colormanagement_display_processor_for_imbuf(
+    const ImBuf *ibuf,
+    const ColorManagedViewSettings *view_settings,
+    const ColorManagedDisplaySettings *display_settings);
+
 ColormanageProcessor *IMB_colormanagement_colorspace_processor_new(const char *from_colorspace,
                                                                    const char *to_colorspace);
 bool IMB_colormanagement_processor_is_noop(ColormanageProcessor *cm_processor);

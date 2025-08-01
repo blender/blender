@@ -9,7 +9,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -564,7 +564,7 @@ static wmOperatorStatus pose_autoside_names_exec(bContext *C, wmOperator *op)
   /* loop through selected bones, auto-naming them */
   CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
-    STRNCPY(newname, pchan->name);
+    STRNCPY_UTF8(newname, pchan->name);
     if (bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis])) {
       ED_armature_bone_rename(bmain, arm, pchan->name, newname);
     }

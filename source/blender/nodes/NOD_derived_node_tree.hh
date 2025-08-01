@@ -328,12 +328,12 @@ inline DOutputSocket DNode::output(int index) const
 
 inline DInputSocket DNode::input_by_identifier(StringRef identifier) const
 {
-  return {context_, &bnode_->input_by_identifier(identifier)};
+  return {context_, bnode_->input_by_identifier(identifier)};
 }
 
 inline DOutputSocket DNode::output_by_identifier(StringRef identifier) const
 {
-  return {context_, &bnode_->output_by_identifier(identifier)};
+  return {context_, bnode_->output_by_identifier(identifier)};
 }
 
 /** \} */

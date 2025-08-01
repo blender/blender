@@ -2550,7 +2550,7 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_FLOAT(subsurface_ior, "Subsurface IOR", 1.4f);
   SOCKET_IN_FLOAT(subsurface_anisotropy, "Subsurface Anisotropy", 0.0f);
 
-  SOCKET_IN_FLOAT(specular_ior_level, "Specular IOR Level", 0.0f);
+  SOCKET_IN_FLOAT(specular_ior_level, "Specular IOR Level", 0.5f);
   SOCKET_IN_COLOR(specular_tint, "Specular Tint", one_float3());
   SOCKET_IN_FLOAT(anisotropic, "Anisotropic", 0.0f);
   SOCKET_IN_FLOAT(anisotropic_rotation, "Anisotropic Rotation", 0.0f);
@@ -4123,6 +4123,7 @@ NODE_DEFINE(LightPathNode)
   SOCKET_OUT_FLOAT(glossy_depth, "Glossy Depth");
   SOCKET_OUT_FLOAT(transparent_depth, "Transparent Depth");
   SOCKET_OUT_FLOAT(transmission_depth, "Transmission Depth");
+  SOCKET_OUT_FLOAT(portal_depth, "Portal Depth");
 
   return type;
 }
@@ -4201,6 +4202,11 @@ void LightPathNode::compile(SVMCompiler &compiler)
   out = output("Transmission Depth");
   if (!out->links.empty()) {
     compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_transmission, compiler.stack_assign(out));
+  }
+
+  out = output("Portal Depth");
+  if (!out->links.empty()) {
+    compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_portal, compiler.stack_assign(out));
   }
 }
 

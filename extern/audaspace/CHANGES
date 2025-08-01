@@ -1,3 +1,28 @@
+Audaspace 1.7
+
+- Rewrite of the Synchronizer API.
+- Unified backends with a mixing thread (Jack, Pulse, Pipewire, CoreAudio)
+- Various fixes for CoreAudio.
+
+Detailed list of changes:
+
+46036fa Bugfix for MixingThreadDevice.
+bdd4ba5 Reintroducing ThreadedDevice.
+eabbeee CoreAudio: remove OpenCloseDevice functionality.
+a746d92 CoreAudio fixes.
+0cbd14e Fixes.
+82585f8 CoreAudioDevice/OpenCloseDevice: base on MixingThreadDevice.
+a6341e7 Adding MixingThreadDevice and refactor deriving classes.
+d2de831 Refactor PipeWireDevice and use own RingBuffer class.
+78291ef Jack: use own RingBuffer class.
+cbf62c2 CoreAudio: compile fixes.
+caafed6 Remove resumeOnSync API again since no device supports it properly.
+22f9c8d Modifying Jack transport sync callback behavior.
+8cf2429 Remove sync callbacks for own calls.
+c070757 Add resumeOnSync method for precise synchronization with Jack.
+ce417e5 Finish synchronizer refactor.
+fbec554 First step towards handle independent synchronizer.
+
 Audaspace 1.6
 
 - Pipewire support (thanks Sebastian Parborg!)

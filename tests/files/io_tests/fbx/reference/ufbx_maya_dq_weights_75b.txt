@@ -119,10 +119,10 @@
     - (25.000, 0.000) lh:(17.333, 0.000 AUTO_CLAMPED) rh:(32.667, 0.000 AUTO_CLAMPED)
   - fcu 'pose.bones["joint2"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'joint2'
     - (2.000, 0.728) lh:(-5.667, 0.728 AUTO_CLAMPED) rh:(9.667, 0.728 AUTO_CLAMPED)
-    - (25.000, 0.675) lh:(17.333, 0.675 AUTO_CLAMPED) rh:(32.667, 0.675 AUTO_CLAMPED)
+    - (25.000, -0.675) lh:(17.333, -0.675 AUTO_CLAMPED) rh:(32.667, -0.675 AUTO_CLAMPED)
   - fcu 'pose.bones["joint2"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'joint2'
     - (2.000, 0.685) lh:(-5.667, 0.685 AUTO_CLAMPED) rh:(9.667, 0.685 AUTO_CLAMPED)
-    - (25.000, -0.737) lh:(17.333, -0.737 AUTO_CLAMPED) rh:(32.667, -0.737 AUTO_CLAMPED)
+    - (25.000, 0.737) lh:(17.333, 0.737 AUTO_CLAMPED) rh:(32.667, 0.737 AUTO_CLAMPED)
 
 ==== Armatures: 1
 - Armature 'Armature' 6 bones

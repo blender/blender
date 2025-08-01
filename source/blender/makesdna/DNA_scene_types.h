@@ -155,6 +155,12 @@ typedef enum IMB_Ffmpeg_Codec_ID {
   FFMPEG_CODEC_ID_OPUS = 86076,
 } IMB_Ffmpeg_Codec_ID;
 
+typedef enum eFFMpegVideoHdr {
+  FFM_VIDEO_HDR_NONE = 0,
+  FFM_VIDEO_HDR_REC2100_HLG = 1,
+  FFM_VIDEO_HDR_REC2100_PQ = 2,
+} eFFMpegVideoHdr;
+
 typedef struct FFMpegCodecData {
   int type;
   int codec;       /* Use `codec_id_get()` instead! IMB_Ffmpeg_Codec_ID */
@@ -178,7 +184,7 @@ typedef struct FFMpegCodecData {
   int rc_buffer_size;
   int mux_packet_size;
   int mux_rate;
-  char _pad0[4];
+  int video_hdr; /* eFFMpegVideoHdr */
 
 #ifdef __cplusplus
   IMB_Ffmpeg_Codec_ID codec_id_get() const
@@ -456,6 +462,8 @@ typedef enum eStereo3dInterlaceType {
  * RNA ensures these enum's are only selectable for render output.
  */
 typedef struct ImageFormatData {
+  /** MediaType. */
+  char media_type;
   /**
    * R_IMF_IMTYPE_PNG, R_...
    * \note Video types should only ever be set from this structure when used from #RenderData.
@@ -481,11 +489,6 @@ typedef struct ImageFormatData {
   /** OpenEXR: R_IMF_EXR_CODEC_* values in low OPENEXR_CODEC_MASK bits. */
   char exr_codec;
 
-  /** CINEON. */
-  char cineon_flag;
-  short cineon_white, cineon_black;
-  float cineon_gamma;
-
   /** Jpeg2000. */
   char jp2_flag;
   char jp2_codec;
@@ -493,7 +496,12 @@ typedef struct ImageFormatData {
   /** TIFF. */
   char tiff_codec;
 
-  char _pad[4];
+  /** CINEON. */
+  char cineon_flag;
+  short cineon_white, cineon_black;
+  float cineon_gamma;
+
+  char _pad[3];
 
   /** Multi-view. */
   char views_format;
@@ -507,6 +515,13 @@ typedef struct ImageFormatData {
   ColorManagedDisplaySettings display_settings;
   ColorManagedColorspaceSettings linear_colorspace_settings;
 } ImageFormatData;
+
+/** #ImageFormatData::media_type */
+typedef enum MediaType {
+  MEDIA_TYPE_IMAGE = 0,
+  MEDIA_TYPE_MULTI_LAYER_IMAGE = 1,
+  MEDIA_TYPE_VIDEO = 2,
+} MediaType;
 
 /** #ImageFormatData::imtype */
 enum {
@@ -1058,73 +1073,6 @@ typedef struct UnifiedPaintSettings {
 
   /** User preferences for sculpt and paint. */
   int flag;
-  char _pad[4];
-
-  /* TODO: Many of the following values should not be on this struct, as it causes them to be
-   * persisted. PaintRuntime may be a better choice for some of these. */
-
-  /* Rake rotation. */
-
-  /** Record movement of mouse so that rake can start at an intuitive angle. */
-  float last_rake[2];
-  float last_rake_angle;
-
-  int last_stroke_valid;
-  float average_stroke_accum[3];
-  int average_stroke_counter;
-
-  /* How much brush should be rotated in the view plane, 0 means x points right, y points up.
-   * The convention is that the brush's _negative_ Y axis points in the tangent direction (of the
-   * mouse curve, Bezier curve, etc.) */
-  float brush_rotation;
-  float brush_rotation_sec;
-
-  /*******************************************************************************
-   * all data below are used to communicate with cursor drawing and tex sampling *
-   *******************************************************************************/
-  int anchored_size;
-
-  /**
-   * Normalization factor due to accumulated value of curve along spacing.
-   * Calculated when brush spacing changes to dampen strength of stroke
-   * if space attenuation is used.
-   */
-  float overlap_factor;
-  char draw_inverted;
-  /** Check is there an ongoing stroke right now. */
-  char stroke_active;
-
-  char draw_anchored;
-  char do_linear_conversion;
-
-  /**
-   * Store last location of stroke or whether the mesh was hit.
-   * Valid only while stroke is active.
-   */
-  float last_location[3];
-  int last_hit;
-
-  float anchored_initial_mouse[2];
-
-  /**
-   * Radius of brush, pre-multiplied with pressure.
-   * In case of anchored brushes contains the anchored radius.
-   */
-  float pixel_radius;
-  float initial_pixel_radius;
-  float start_pixel_radius;
-
-  /** Drawing pressure. */
-  float size_pressure_value;
-
-  /** Position of mouse, used to sample the texture. */
-  float tex_mouse[2];
-
-  /** Position of mouse, used to sample the mask texture. */
-  float mask_tex_mouse[2];
-
-  /** ColorSpace cache to avoid locking up during sampling. */
-  const ColorSpaceHandle *colorspace;
 } UnifiedPaintSettings;
 
 /** \} */

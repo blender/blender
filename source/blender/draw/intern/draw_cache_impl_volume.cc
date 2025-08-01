@@ -317,7 +317,9 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
     cache_grid->object_to_texture = math::invert(cache_grid->texture_to_object);
 
     /* Create GPU texture. */
-    eGPUTextureFormat format = (channels == 3) ? GPU_RGB16F : GPU_R16F;
+    blender::gpu::TextureFormat format = (channels == 3) ?
+                                             blender::gpu::TextureFormat::SFLOAT_16_16_16 :
+                                             blender::gpu::TextureFormat::SFLOAT_16;
     cache_grid->texture = GPU_texture_create_3d("volume_grid",
                                                 UNPACK3(dense_grid.resolution),
                                                 1,

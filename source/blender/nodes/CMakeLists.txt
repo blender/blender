@@ -78,10 +78,12 @@ set(SRC
   intern/geometry_nodes_foreach_geometry_element_zone.cc
   intern/geometry_nodes_gizmos.cc
   intern/geometry_nodes_lazy_function.cc
+  intern/geometry_nodes_list.cc
   intern/geometry_nodes_log.cc
   intern/geometry_nodes_repeat_zone.cc
   intern/geometry_nodes_warning.cc
   intern/inverse_eval.cc
+  intern/list_function_eval.cc
   intern/math_functions.cc
   intern/node_common.cc
   intern/node_declaration.cc
@@ -96,6 +98,8 @@ set(SRC
   intern/partial_eval.cc
   intern/socket_search_link.cc
   intern/socket_usage_inference.cc
+  intern/sync_sockets.cc
+  intern/trace_values.cc
   intern/value_elem.cc
   intern/volume_grid_function_eval.cc
 
@@ -117,6 +121,8 @@ set(SRC
   NOD_geometry_nodes_execute.hh
   NOD_geometry_nodes_gizmos.hh
   NOD_geometry_nodes_lazy_function.hh
+  NOD_geometry_nodes_list.hh
+  NOD_geometry_nodes_list_fwd.hh
   NOD_geometry_nodes_log.hh
   NOD_geometry_nodes_warning.hh
   NOD_inverse_eval_params.hh
@@ -142,12 +148,15 @@ set(SRC
   NOD_socket_search_link.hh
   NOD_socket_usage_inference.hh
   NOD_socket_usage_inference_fwd.hh
+  NOD_sync_sockets.hh
+  NOD_trace_values.hh
   NOD_texture.h
   NOD_value_elem.hh
   NOD_value_elem_eval.hh
   intern/node_common.h
   intern/node_exec.hh
   intern/node_util.hh
+  intern/list_function_eval.hh
   intern/volume_grid_function_eval.hh
 )
 
@@ -240,6 +249,7 @@ if(WITH_GTESTS)
   )
   set(TEST_SRC
     intern/node_iterator_tests.cc
+    intern/geometry_nodes_bundle_tests.cc
   )
   set(TEST_LIB
     bf_nodes

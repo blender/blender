@@ -270,8 +270,8 @@ static void vicon_keytype_draw_wrapper(const float x,
 
   /* The "x" and "y" given are the bottom-left coordinates of the icon,
    * while the #draw_keyframe_shape() function needs the midpoint for the keyframe. */
-  const float xco = x + (w / 2.0f) + 0.5f;
-  const float yco = y + (h / 2.0f) + 0.5f;
+  const float xco = x + (w / 2.0f);
+  const float yco = y + (h / 2.0f);
 
   GPUVertFormat *format = immVertexFormat();
   KeyframeShaderBindings sh_bindings;
@@ -402,7 +402,9 @@ static void icon_node_socket_draw(
   float color_inner[4];
   blender::ed::space_node::std_node_socket_colors_get(socket_type, color_inner);
 
-  float color_outer[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  float color_outer[4] = {0};
+  UI_GetThemeColorType4fv(TH_WIRE, SPACE_NODE, color_outer);
+  color_outer[3] = 1.0f;
 
   blender::ed::space_node::node_draw_nodesocket(
       &rect, color_inner, color_outer, U.pixelsize, SOCK_DISPLAY_SHAPE_CIRCLE, 1.0f);
@@ -1275,7 +1277,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
           wmJob *wm_job = WM_jobs_get(wm,
                                       CTX_wm_window(C),
                                       icon,
-                                      "StudioLight Icon",
+                                      "Generating StudioLight icon...",
                                       eWM_JobFlag(0),
                                       WM_JOB_TYPE_STUDIOLIGHT);
           Icon **tmp = MEM_callocN<Icon *>(__func__);
@@ -1464,8 +1466,19 @@ static void icon_draw_rect(float x,
     immUniform1f("factor", desaturate);
   }
 
-  immDrawPixelsTexScaledFullSize(
-      &state, draw_x, draw_y, rw, rh, GPU_RGBA8, true, rect, scale_x, scale_y, 1.0f, 1.0f, col);
+  immDrawPixelsTexScaledFullSize(&state,
+                                 draw_x,
+                                 draw_y,
+                                 rw,
+                                 rh,
+                                 blender::gpu::TextureFormat::UNORM_8_8_8_8,
+                                 true,
+                                 rect,
+                                 scale_x,
+                                 scale_y,
+                                 1.0f,
+                                 1.0f,
+                                 col);
 }
 
 /* Drawing size for preview images */

@@ -50,6 +50,8 @@
 #include "DNA_object_enums.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
@@ -73,11 +75,10 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_types.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -5727,7 +5728,7 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
       const int3 &tri = ps->corner_tris_eval[tri_index];
       const int vert_tri[3] = {PS_CORNER_TRI_AS_VERT_INDEX_3(ps, tri)};
       float world[3];
-      UnifiedPaintSettings *ups = &ps->paint->unified_paint_settings;
+      blender::bke::PaintRuntime *paint_runtime = ps->paint->runtime;
 
       interp_v3_v3v3v3(world,
                        ps->vert_positions_eval[vert_tri[0]],
@@ -5735,10 +5736,10 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
                        ps->vert_positions_eval[vert_tri[2]],
                        w);
 
-      ups->average_stroke_counter++;
+      paint_runtime->average_stroke_counter++;
       mul_m4_v3(ps->obmat, world);
-      add_v3_v3(ups->average_stroke_accum, world);
-      ups->last_stroke_valid = true;
+      add_v3_v3(paint_runtime->average_stroke_accum, world);
+      paint_runtime->last_stroke_valid = true;
     }
   }
 
@@ -6841,7 +6842,8 @@ static void get_default_texture_layer_name_for_object(Object *ob,
 {
   Material *ma = BKE_object_material_get(ob, ob->actcol);
   const char *base_name = ma ? &ma->id.name[2] : &ob->id.name[2];
-  BLI_snprintf(dst, dst_maxncpy, "%s %s", base_name, DATA_(layer_type_items[texture_type].name));
+  BLI_snprintf_utf8(
+      dst, dst_maxncpy, "%s %s", base_name, DATA_(layer_type_items[texture_type].name));
 }
 
 static wmOperatorStatus texture_paint_add_texture_paint_slot_invoke(bContext *C,

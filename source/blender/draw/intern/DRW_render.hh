@@ -22,7 +22,8 @@
 
 namespace blender::gpu {
 class Batch;
-}
+class Texture;
+}  // namespace blender::gpu
 struct ARegion;
 struct bContext;
 struct Depsgraph;
@@ -31,7 +32,6 @@ struct DefaultTextureList;
 struct DupliObject;
 struct GPUMaterial;
 struct GPUShader;
-struct GPUTexture;
 struct GPUUniformBuf;
 struct Mesh;
 struct Object;
@@ -265,6 +265,7 @@ struct DRWContext {
 
     /** Render for depth picking (auto-depth). Runs on main thread. */
     DEPTH,
+    DEPTH_ACTIVE_OBJECT,
 
     /** Render for F12 final render. Can run in any thread. */
     RENDER,
@@ -396,7 +397,7 @@ struct DRWContext {
   }
   bool is_depth() const
   {
-    return ELEM(mode, DEPTH);
+    return ELEM(mode, DEPTH, DEPTH_ACTIVE_OBJECT);
   }
   bool is_image_render() const
   {

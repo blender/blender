@@ -120,7 +120,7 @@ void outputNumInput(NumInput *n, char *str, const UnitSettings &unit_settings)
 #endif
 
         if (n->val_flag[i] & NUM_INVALID) {
-          STRNCPY(val, RPT_("Invalid"));
+          STRNCPY_UTF8(val, RPT_("Invalid"));
         }
         else {
           BKE_unit_value_as_string_adaptive(val,
@@ -134,33 +134,33 @@ void outputNumInput(NumInput *n, char *str, const UnitSettings &unit_settings)
         }
 
         /* +1 because of trailing '\0' */
-        BLI_strncpy(before_cursor, n->str, n->str_cur + 1);
-        BLI_snprintf(&str[j * ln],
-                     ln,
-                     "[%s%s|%s%s] = %s",
-                     heading_exp,
-                     before_cursor,
-                     &n->str[n->str_cur],
-                     trailing_exp,
-                     val);
+        BLI_strncpy_utf8(before_cursor, n->str, n->str_cur + 1);
+        BLI_snprintf_utf8(&str[j * ln],
+                          ln,
+                          "[%s%s|%s%s] = %s",
+                          heading_exp,
+                          before_cursor,
+                          &n->str[n->str_cur],
+                          trailing_exp,
+                          val);
       }
       else {
         const char *cur = (i == n->idx) ? "|" : "";
         if (n->unit_use_radians && n->unit_type[i] == B_UNIT_ROTATION) {
           /* Radian exception... */
-          BLI_snprintf(&str[j * ln], ln, "%s%.6gr%s", cur, n->val[i], cur);
+          BLI_snprintf_utf8(&str[j * ln], ln, "%s%.6gr%s", cur, n->val[i], cur);
         }
         else {
           char tstr[NUM_STR_REP_LEN];
           BKE_unit_value_as_string_adaptive(
               tstr, ln, double(n->val[i]), prec, n->unit_sys, n->unit_type[i], true, false);
-          BLI_snprintf(&str[j * ln], ln, "%s%s%s", cur, tstr, cur);
+          BLI_snprintf_utf8(&str[j * ln], ln, "%s%s%s", cur, tstr, cur);
         }
       }
     }
     else {
       const char *cur = (i == n->idx) ? "|" : "";
-      BLI_snprintf(&str[j * ln], ln, "%sNONE%s", cur, cur);
+      BLI_snprintf_utf8(&str[j * ln], ln, "%sNONE%s", cur, cur);
     }
     /* We might have cut some multi-bytes UTF8 chars
      * (e.g. trailing degrees symbol values can become only 'A'). */
@@ -279,7 +279,7 @@ bool user_string_to_number(bContext *C,
   const double unit_scale = BKE_unit_value_scale(unit, type, 1.0);
   if (BKE_unit_string_contains_unit(str, type)) {
     char str_unit_convert[256];
-    STRNCPY(str_unit_convert, str);
+    STRNCPY_UTF8(str_unit_convert, str);
     BKE_unit_replace_string(
         str_unit_convert, sizeof(str_unit_convert), str, unit_scale, unit.system, type);
 

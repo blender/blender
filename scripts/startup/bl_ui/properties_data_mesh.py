@@ -79,6 +79,7 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.operator("object.shape_key_lock", icon='LOCKED', text="Lock All").action = 'LOCK'
         layout.operator("object.shape_key_lock", icon='UNLOCKED', text="Unlock All").action = 'UNLOCK'
         layout.separator()
+        layout.operator("object.shape_key_make_basis", text="Make Basis")
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move to Top").type = 'TOP'
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
 

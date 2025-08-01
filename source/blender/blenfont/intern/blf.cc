@@ -317,28 +317,31 @@ void BLF_addref_id(int fontid)
   }
 }
 
-void BLF_enable(int fontid, int option)
+void BLF_enable(int fontid, FontFlags flag)
 {
   FontBLF *font = blf_get(fontid);
 
   if (font) {
-    font->flags |= option;
+    font->flags |= flag;
   }
 }
 
-void BLF_disable(int fontid, int option)
+void BLF_disable(int fontid, FontFlags flag)
 {
   FontBLF *font = blf_get(fontid);
 
   if (font) {
-    font->flags &= ~option;
+    font->flags &= ~flag;
   }
 }
 
 bool BLF_is_builtin(int fontid)
 {
   FontBLF *font = blf_get(fontid);
-  return font ? (font->flags & BLF_DEFAULT) : false;
+  if (font) {
+    return font->flags & BLF_DEFAULT;
+  }
+  return false;
 }
 
 void BLF_character_weight(int fontid, int weight)
@@ -1127,14 +1130,18 @@ bool BLF_get_vfont_metrics(int fontid, float *ascend_ratio, float *em_ratio, flo
   return true;
 }
 
-float BLF_character_to_curves(
-    int fontid, uint unicode, ListBase *nurbsbase, const float scale, bool use_fallback)
+bool BLF_character_to_curves(int fontid,
+                             uint unicode,
+                             ListBase *nurbsbase,
+                             const float scale,
+                             bool use_fallback,
+                             float *r_advance)
 {
   FontBLF *font = blf_get(fontid);
   if (!font) {
-    return 0.0f;
+    return false;
   }
-  return blf_character_to_curves(font, unicode, nurbsbase, scale, use_fallback);
+  return blf_character_to_curves(font, unicode, nurbsbase, scale, use_fallback, r_advance);
 }
 
 #ifndef NDEBUG

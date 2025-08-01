@@ -109,10 +109,10 @@ void DofPass::init(const SceneState &scene_state, const DRWContext *draw_ctx)
   half_res = {max_ii(half_res.x, 1), max_ii(half_res.y, 1)};
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-  source_tx_.ensure_2d(GPU_RGBA16F, half_res, usage, nullptr, 3);
+  source_tx_.ensure_2d(gpu::TextureFormat::SFLOAT_16_16_16_16, half_res, usage, nullptr, 3);
   source_tx_.ensure_mip_views();
   source_tx_.filter_mode(true);
-  coc_halfres_tx_.ensure_2d(GPU_RG8, half_res, usage, nullptr, 3);
+  coc_halfres_tx_.ensure_2d(gpu::TextureFormat::UNORM_8_8, half_res, usage, nullptr, 3);
   coc_halfres_tx_.ensure_mip_views();
   coc_halfres_tx_.filter_mode(true);
 
@@ -177,9 +177,16 @@ void DofPass::sync(SceneResources &resources, const DRWContext *draw_ctx)
   down2_ps_.init();
   down2_ps_.state_set(DRW_STATE_WRITE_COLOR);
   down2_ps_.shader_set(ShaderCache::get().dof_downsample.get());
-  down2_ps_.bind_texture("scene_color_tx", &source_tx_, sampler_state);
-  down2_ps_.bind_texture("input_coc_tx", &coc_halfres_tx_, sampler_state);
+  down2_ps_.bind_texture("scene_color_tx", source_tx_.mip_view(0), sampler_state);
+  down2_ps_.bind_texture("input_coc_tx", coc_halfres_tx_.mip_view(0), sampler_state);
   down2_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+
+  down3_ps_.init();
+  down3_ps_.state_set(DRW_STATE_WRITE_COLOR);
+  down3_ps_.shader_set(ShaderCache::get().dof_downsample.get());
+  down3_ps_.bind_texture("scene_color_tx", source_tx_.mip_view(1), sampler_state);
+  down3_ps_.bind_texture("input_coc_tx", coc_halfres_tx_.mip_view(1), sampler_state);
+  down3_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
   blur_ps_.init();
   blur_ps_.state_set(DRW_STATE_WRITE_COLOR);
@@ -220,29 +227,30 @@ void DofPass::draw(Manager &manager, View &view, SceneResources &resources, int2
   GPU_debug_group_begin("Depth Of Field");
 
   int2 half_res = {max_ii(resolution.x / 2, 1), max_ii(resolution.y / 2, 1)};
-  blur_tx_.acquire(
-      half_res, GPU_RGBA16F, GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+  blur_tx_.acquire(half_res,
+                   gpu::TextureFormat::SFLOAT_16_16_16_16,
+                   GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
+
+  source_tx_.ensure_mip_views();
+  coc_halfres_tx_.ensure_mip_views();
 
   downsample_fb_.ensure(GPU_ATTACHMENT_NONE,
-                        GPU_ATTACHMENT_TEXTURE(source_tx_),
-                        GPU_ATTACHMENT_TEXTURE(coc_halfres_tx_));
+                        GPU_ATTACHMENT_TEXTURE(source_tx_.mip_view(0)),
+                        GPU_ATTACHMENT_TEXTURE(coc_halfres_tx_.mip_view(0)));
   downsample_fb_.bind();
   manager.submit(down_ps_, view);
 
-  struct CallbackData {
-    Manager &manager;
-    View &view;
-    PassSimple &pass;
-  };
-  CallbackData callback_data = {manager, view, down2_ps_};
+  downsample_fb_.ensure(GPU_ATTACHMENT_NONE,
+                        GPU_ATTACHMENT_TEXTURE(source_tx_.mip_view(1)),
+                        GPU_ATTACHMENT_TEXTURE(coc_halfres_tx_.mip_view(1)));
+  downsample_fb_.bind();
+  manager.submit(down2_ps_, view);
 
-  auto downsample_level = [](void *callback_data, int /*level*/) {
-    CallbackData *cd = static_cast<CallbackData *>(callback_data);
-    cd->manager.submit(cd->pass, cd->view);
-  };
-
-  GPU_framebuffer_recursive_downsample(
-      downsample_fb_, 2, downsample_level, static_cast<void *>(&callback_data));
+  downsample_fb_.ensure(GPU_ATTACHMENT_NONE,
+                        GPU_ATTACHMENT_TEXTURE(source_tx_.mip_view(2)),
+                        GPU_ATTACHMENT_TEXTURE(coc_halfres_tx_.mip_view(2)));
+  downsample_fb_.bind();
+  manager.submit(down3_ps_, view);
 
   blur1_fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(blur_tx_));
   blur1_fb_.bind();

@@ -458,6 +458,10 @@ static PointerRNA rna_Object_shape_key_add(
   KeyBlock *kb = nullptr;
 
   if ((kb = BKE_object_shapekey_insert(bmain, ob, name, from_mix))) {
+    /* Set the initial blend value. */
+    kb->curval = 1.0f;
+    CLAMP(kb->curval, kb->slidermin, kb->slidermax);
+
     PointerRNA keyptr = RNA_pointer_create_discrete(
         (ID *)BKE_key_from_object(ob), &RNA_ShapeKey, kb);
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);

@@ -100,13 +100,10 @@ struct MeshElemMap {
 /* mapping */
 
 UvVertMap *BKE_mesh_uv_vert_map_create(blender::OffsetIndices<int> faces,
-                                       const bool *hide_poly,
-                                       const bool *select_poly,
-                                       const int *corner_verts,
-                                       const float (*mloopuv)[2],
-                                       unsigned int totvert,
-                                       const float limit[2],
-                                       bool selected,
+                                       blender::Span<int> corner_verts,
+                                       blender::Span<blender::float2> uv_map,
+                                       int verts_num,
+                                       const blender::float2 &limit,
                                        bool use_winding);
 
 UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, unsigned int v);

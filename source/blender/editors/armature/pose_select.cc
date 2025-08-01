@@ -950,7 +950,7 @@ static blender::Set<bPoseChannel *> get_selected_pose_bones(Object *pose_object)
   blender::Set<bPoseChannel *> selected_pose_bones;
   bArmature *arm = static_cast<bArmature *>((pose_object) ? pose_object->data : nullptr);
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose_object->pose->chanbase) {
-    if (PBONE_SELECTED(arm, pchan->bone)) {
+    if (blender::animrig::bone_is_selected(arm, pchan)) {
       selected_pose_bones.add(pchan);
     }
   }
@@ -1060,7 +1060,7 @@ static bool pose_select_siblings(bContext *C, const bool extend)
     BLI_assert(arm);
     blender::Set<bPoseChannel *> parents_of_selected;
     LISTBASE_FOREACH (bPoseChannel *, pchan, &pose_object->pose->chanbase) {
-      if (PBONE_SELECTED(arm, pchan->bone)) {
+      if (blender::animrig::bone_is_selected(arm, pchan)) {
         parents_of_selected.add(pchan->parent);
       }
     }
@@ -1073,7 +1073,9 @@ static bool pose_select_siblings(bContext *C, const bool extend)
       }
       /* Checking if the bone is already selected so `changed_any_selection` stays true to its
        * word. */
-      if (parents_of_selected.contains(pchan->parent) && !PBONE_SELECTED(arm, pchan->bone)) {
+      if (parents_of_selected.contains(pchan->parent) &&
+          !blender::animrig::bone_is_selected(arm, pchan))
+      {
         pose_do_bone_select(pchan, SEL_SELECT);
         changed_any_selection = true;
       }

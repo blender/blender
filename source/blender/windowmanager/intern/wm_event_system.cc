@@ -1179,7 +1179,7 @@ static void wm_operator_reports(bContext *C,
     if (caller_owns_reports == false) {
       /* Print out reports to console.
        * When quiet, only show warnings, suppressing info and other non-essential warnings. */
-      const eReportType level = G.quiet ? RPT_WARNING : RPT_DEBUG;
+      const eReportType level = CLG_quiet_get() ? RPT_WARNING : RPT_DEBUG;
       BKE_reports_log(op->reports, level, WM_LOG_OPERATORS);
     }
 
@@ -1465,7 +1465,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
 
   /* Adding new operator could be function, only happens here now. */
   op->type = ot;
-  STRNCPY(op->idname, ot->idname);
+  STRNCPY_UTF8(op->idname, ot->idname);
 
   /* Initialize properties, either copy or create. */
   op->ptr = MEM_new<PointerRNA>("wmOperatorPtrRNA");
@@ -4433,7 +4433,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
   ScrArea *root_area = nullptr;
   ARegion *root_region = nullptr;
 
-  if (!G.quiet) {
+  if (!CLG_quiet_get()) {
     /* Perform some sanity checks.
      *
      * - Using the file-path sub-types is important because it's possible paths don't use
@@ -4454,7 +4454,10 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
       if (!((RNA_property_type(prop) == PROP_STRING) &&
             (RNA_property_subtype(prop) == PROP_FILEPATH)))
       {
-        printf("%s: \"%s\" expected a string with a 'FILE_PATH' subtype.\n", prefix, prop_id);
+        CLOG_WARN(WM_LOG_OPERATORS,
+                  "%s: \"%s\" expected a string with a 'FILE_PATH' subtype.",
+                  prefix,
+                  prop_id);
       }
     }
     prop_id = "directory";
@@ -4463,7 +4466,10 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
       if (!((RNA_property_type(prop) == PROP_STRING) &&
             (RNA_property_subtype(prop) == PROP_DIRPATH)))
       {
-        printf("%s: \"%s\" expected a string with a 'DIR_PATH' subtype.\n", prefix, prop_id);
+        CLOG_WARN(WM_LOG_OPERATORS,
+                  "%s: \"%s\" expected a string with a 'DIR_PATH' subtype.",
+                  prefix,
+                  prop_id);
       }
     }
 
@@ -4473,7 +4479,10 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
       if (!((RNA_property_type(prop) == PROP_STRING) &&
             (RNA_property_subtype(prop) == PROP_FILENAME)))
       {
-        printf("%s: \"%s\" expected a string with a 'FILE_NAME' subtype.\n", prefix, prop_id);
+        CLOG_WARN(WM_LOG_OPERATORS,
+                  "%s: \"%s\" expected a string with a 'FILE_NAME' subtype.",
+                  prefix,
+                  prop_id);
       }
     }
 
@@ -6458,7 +6467,7 @@ static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot)
   return true;
 }
 
-void WM_set_locked_interface_with_flags(wmWindowManager *wm, short lock_flags)
+void WM_locked_interface_set_with_flags(wmWindowManager *wm, short lock_flags)
 {
   /* This will prevent events from being handled while interface is locked
    *
@@ -6472,9 +6481,9 @@ void WM_set_locked_interface_with_flags(wmWindowManager *wm, short lock_flags)
   BKE_spacedata_draw_locks(static_cast<ARegionDrawLockFlags>(lock_flags));
 }
 
-void WM_set_locked_interface(wmWindowManager *wm, bool lock)
+void WM_locked_interface_set(wmWindowManager *wm, bool lock)
 {
-  WM_set_locked_interface_with_flags(wm, lock ? REGION_DRAW_LOCK_ALL : 0);
+  WM_locked_interface_set_with_flags(wm, lock ? REGION_DRAW_LOCK_ALL : 0);
 }
 
 /** \} */

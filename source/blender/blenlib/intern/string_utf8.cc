@@ -31,6 +31,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+static size_t str_utf8_truncate_at_size_unchecked(char *str, const size_t str_size);
+
 /* -------------------------------------------------------------------- */
 /** \name UTF8 Character Decoding (Skip & Mask Lookup)
  *
@@ -545,6 +547,80 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
 
 /* End wchar_t / UTF8 functions. */
 /* -------------------------------------------------------------------- */
+
+size_t BLI_vsnprintf_utf8(char *__restrict dst,
+                          size_t dst_maxncpy,
+                          const char *__restrict format,
+                          va_list arg)
+{
+  /* NOTE: a clone of #BLI_vsnprintf that trims the end. */
+  BLI_string_debug_size(dst, dst_maxncpy);
+
+  BLI_assert(dst != nullptr);
+  BLI_assert(dst_maxncpy > 0);
+  BLI_assert(format != nullptr);
+
+  const size_t n = size_t(vsnprintf(dst, dst_maxncpy, format, arg));
+  if (n < dst_maxncpy) {
+    dst[n] = '\0';
+  }
+  else {
+    str_utf8_truncate_at_size_unchecked(dst, dst_maxncpy);
+  }
+
+  return n;
+}
+
+size_t BLI_vsnprintf_utf8_rlen(char *__restrict dst,
+                               size_t dst_maxncpy,
+                               const char *__restrict format,
+                               va_list arg)
+{
+  BLI_string_debug_size(dst, dst_maxncpy);
+
+  BLI_assert(dst != nullptr);
+  BLI_assert(dst_maxncpy > 0);
+  BLI_assert(format != nullptr);
+
+  size_t n = size_t(vsnprintf(dst, dst_maxncpy, format, arg));
+  if (n < dst_maxncpy) {
+    dst[n] = '\0';
+  }
+  else {
+    n = str_utf8_truncate_at_size_unchecked(dst, dst_maxncpy);
+  }
+  return n;
+}
+
+size_t BLI_snprintf_utf8(char *__restrict dst,
+                         size_t dst_maxncpy,
+                         const char *__restrict format,
+                         ...)
+{
+  BLI_string_debug_size(dst, dst_maxncpy);
+
+  va_list arg;
+  va_start(arg, format);
+  const size_t n = BLI_vsnprintf_utf8(dst, dst_maxncpy, format, arg);
+  va_end(arg);
+
+  return n;
+}
+
+size_t BLI_snprintf_utf8_rlen(char *__restrict dst,
+                              size_t dst_maxncpy,
+                              const char *__restrict format,
+                              ...)
+{
+  BLI_string_debug_size(dst, dst_maxncpy);
+
+  va_list arg;
+  va_start(arg, format);
+  const size_t n = BLI_vsnprintf_utf8_rlen(dst, dst_maxncpy, format, arg);
+  va_end(arg);
+
+  return n;
+}
 
 int BLI_wcwidth_or_error(char32_t ucs)
 {
@@ -1253,6 +1329,19 @@ size_t BLI_str_partition_ex_utf8(const char *str,
   return str_len;
 }
 
+/**
+ * It's always assumed trimming is needed, otherwise call #BLI_str_utf8_truncate_at_size.
+ */
+static size_t str_utf8_truncate_at_size_unchecked(char *str, const size_t str_size)
+{
+  BLI_assert(str_size > 0);
+  BLI_assert(!std::memchr(str, '\0', str_size - 1));
+  size_t str_len_trim;
+  BLI_strnlen_utf8_ex(str, str_size - 1, &str_len_trim);
+  str[str_len_trim] = '\0';
+  return str_len_trim;
+}
+
 bool BLI_str_utf8_truncate_at_size(char *str, const size_t str_size)
 {
   BLI_assert(str_size > 0);
@@ -1260,9 +1349,7 @@ bool BLI_str_utf8_truncate_at_size(char *str, const size_t str_size)
     return false;
   }
 
-  size_t str_len_trim;
-  BLI_strnlen_utf8_ex(str, str_size - 1, &str_len_trim);
-  str[str_len_trim] = '\0';
+  str_utf8_truncate_at_size_unchecked(str, str_size);
   return true;
 }
 

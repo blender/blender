@@ -16,7 +16,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -349,7 +349,7 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
   if (but->rnaprop) {
     std::optional<std::string> member_id_data_path = WM_context_path_resolve_full(C,
                                                                                   &but->rnapoin);
-    /* NOTE(@ideasman42): It's highly unlikely a this ever occurs since the path must be resolved
+    /* NOTE(@ideasman42): It's highly unlikely this ever occurs since the path must be resolved
      * for this to be added in the first place, there might be some cases where manually
      * constructed RNA paths don't resolve and in this case a crash should be avoided. */
     if (UNLIKELY(!member_id_data_path.has_value())) {
@@ -401,12 +401,12 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
         {
           const char *expr_imports[] = {"bpy", "bl_ui", nullptr};
           char expr[256];
-          SNPRINTF(expr,
-                   "bl_ui.space_toolsystem_common.item_from_id("
-                   "bpy.context, "
-                   "bpy.context.space_data.type, "
-                   "'%s').label",
-                   idname);
+          SNPRINTF_UTF8(expr,
+                        "bl_ui.space_toolsystem_common.item_from_id("
+                        "bpy.context, "
+                        "bpy.context.space_data.type, "
+                        "'%s').label",
+                        idname);
           char *expr_result = nullptr;
           if (BPY_run_string_as_string(C, expr_imports, expr, nullptr, &expr_result)) {
             drawstr = expr_result;
@@ -523,7 +523,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   using namespace blender::ed;
   /* ui_but_is_interactive() may let some buttons through that should not get a context menu - it
    * doesn't make sense for them. */
-  if (ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_IMAGE)) {
+  if (ELEM(but->type, ButType::Label, ButType::Image)) {
     return false;
   }
 
@@ -543,7 +543,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   if (is_disabled) {
     /* Suppress editing commands. */
   }
-  else if (but->type == UI_BTYPE_TAB) {
+  else if (but->type == ButType::Tab) {
     uiButTab *tab = (uiButTab *)but;
     if (tab->menu) {
       UI_menutype_draw(C, tab->menu, layout);
@@ -989,12 +989,12 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
   {
     const ARegion *region = CTX_wm_region_popup(C) ? CTX_wm_region_popup(C) : CTX_wm_region(C);
-    uiButViewItem *view_item_but = (but->type == UI_BTYPE_VIEW_ITEM) ?
+    uiButViewItem *view_item_but = (but->type == ButType::ViewItem) ?
                                        static_cast<uiButViewItem *>(but) :
                                        static_cast<uiButViewItem *>(
                                            ui_view_item_find_mouse_over(region, event->xy));
     if (view_item_but) {
-      BLI_assert(view_item_but->type == UI_BTYPE_VIEW_ITEM);
+      BLI_assert(view_item_but->type == ButType::ViewItem);
 
       const bContextStore *prev_ctx = CTX_store_get(C);
       /* Sub-layout for context override. */
@@ -1047,7 +1047,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   if (but->rnapoin.data && but->rnaprop) {
     const PropertyType prop_type = RNA_property_type(but->rnaprop);
     if (((prop_type == PROP_POINTER) ||
-         (prop_type == PROP_STRING && but->type == UI_BTYPE_SEARCH_MENU &&
+         (prop_type == PROP_STRING && but->type == ButType::SearchMenu &&
           ((uiButSearch *)but)->items_update_fn == ui_rna_collection_search_update_fn)) &&
         ui_jump_to_target_button_poll(C))
     {
@@ -1075,7 +1075,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       if (umi != nullptr) {
         uiBut *but2 = uiDefIconTextBut(
             block,
-            UI_BTYPE_BUT,
+            ButType::But,
             0,
             ICON_MENU_PANEL,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Quick Favorites"),
@@ -1084,8 +1084,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             w,
             UI_UNIT_Y,
             nullptr,
-            0,
-            0,
             "");
         item_found = true;
         UI_but_func_set(but2, [um, umi](bContext &) {
@@ -1101,7 +1099,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     if (!item_found) {
       uiBut *but2 = uiDefIconTextBut(
           block,
-          UI_BTYPE_BUT,
+          ButType::But,
           0,
           ICON_MENU_PANEL,
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Quick Favorites"),
@@ -1110,8 +1108,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           w,
           UI_UNIT_Y,
           nullptr,
-          0,
-          0,
           TIP_("Add to a user defined context menu (stored in the user preferences)"));
       UI_but_func_set(but2, [but](bContext &C) {
         bUserMenu *um = ED_screen_user_menu_ensure(&C);
@@ -1152,7 +1148,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
         uiBut *but2 = uiDefIconTextBut(
             block,
-            UI_BTYPE_BUT,
+            ButType::But,
             0,
             ICON_HAND,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"),
@@ -1161,8 +1157,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             w,
             UI_UNIT_Y,
             nullptr,
-            0,
-            0,
             "");
         UI_but_func_set(but2, [but](bContext &C) {
           UI_popup_block_invoke(&C, menu_change_shortcut, but, nullptr);
@@ -1170,7 +1164,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       }
       else {
         uiBut *but2 = uiDefIconTextBut(block,
-                                       UI_BTYPE_BUT,
+                                       ButType::But,
                                        0,
                                        ICON_HAND,
                                        IFACE_("Non-Keyboard Shortcut"),
@@ -1179,8 +1173,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                                        w,
                                        UI_UNIT_Y,
                                        nullptr,
-                                       0,
-                                       0,
                                        TIP_("Only keyboard shortcuts can be edited that way, "
                                             "please use User Preferences otherwise"));
         UI_but_flag_enable(but2, UI_BUT_DISABLED);
@@ -1188,7 +1180,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
       uiBut *but2 = uiDefIconTextBut(
           block,
-          UI_BTYPE_BUT,
+          ButType::But,
           0,
           ICON_BLANK1,
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Shortcut"),
@@ -1197,8 +1189,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           w,
           UI_UNIT_Y,
           nullptr,
-          0,
-          0,
           "");
       UI_but_func_set(but2, [but](bContext &C) { remove_shortcut_func(&C, but); });
     }
@@ -1206,7 +1196,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     else if (WM_keymap_guess_opname(C, idname)) {
       uiBut *but2 = uiDefIconTextBut(
           block,
-          UI_BTYPE_BUT,
+          ButType::But,
           0,
           ICON_HAND,
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut"),
@@ -1215,8 +1205,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           w,
           UI_UNIT_Y,
           nullptr,
-          0,
-          0,
           "");
       UI_but_func_set(but2, [but](bContext &C) {
         UI_popup_block_ex(&C, menu_add_shortcut, nullptr, menu_add_shortcut_cancel, but, nullptr);
@@ -1341,7 +1329,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
 
   if (has_panel_category) {
     char tmpstr[80];
-    SNPRINTF(tmpstr, "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift Left Mouse"));
+    SNPRINTF_UTF8(tmpstr, "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift Left Mouse"));
     layout->prop(&ptr, "use_pin", UI_ITEM_NONE, tmpstr, ICON_NONE);
 
     /* evil, force shortcut flag */

@@ -16,6 +16,7 @@
 #include "BLI_fnmatch.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -1071,10 +1072,15 @@ void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, cons
     strip_offset++;
   }
 
-  BLI_strncpy(display_name, name + strip_offset, display_name_maxncpy);
+  int display_name_len = BLI_strncpy_rlen(display_name, name + strip_offset, display_name_maxncpy);
 
   /* Replace underscores with spaces. */
   BLI_string_replace_char(display_name, '_', ' ');
+
+  /* In rare cases file paths may not contain valid UTF8 sequences.
+   * In this case show *something*, since it's possible stripping would remove all text.
+   * Use a dummy character as a hint the character could not be shown. */
+  BLI_str_utf8_invalid_substitute(display_name, display_name_len, '_');
 
   BLI_path_extension_strip(display_name);
 
@@ -1892,7 +1898,7 @@ bool BLI_path_contains(const char *container_path, const char *containee_path)
   }
 
   /* Add a trailing slash to prevent same-prefix directories from matching.
-   * e.g. "/some/path" doesn't contain "/some/path_lib". */
+   * e.g. `/some/path` doesn't contain `/some/path_lib`. */
   BLI_path_slash_ensure(container_native, sizeof(container_native));
 
   return BLI_str_startswith(containee_native, container_native);

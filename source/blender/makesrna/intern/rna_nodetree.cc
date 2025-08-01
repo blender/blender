@@ -571,10 +571,10 @@ const EnumPropertyItem rna_enum_geometry_nodes_linear_gizmo_draw_style_items[] =
 
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem cmp_extension_mode_items[] = {
-    {CMP_NODE_EXTENSION_MODE_ZERO,
-     "ZERO",
+    {CMP_NODE_EXTENSION_MODE_CLIP,
+     "CLIP",
      0,
-     "Zero",
+     "Clip",
      "Areas outside of the image are filled with zero"},
     {CMP_NODE_EXTENSION_MODE_EXTEND,
      "EXTEND",
@@ -777,8 +777,16 @@ int rna_node_socket_idname_to_enum(const char *idname)
   using namespace blender;
 
   bke::bNodeSocketType *socket_type = bke::node_socket_type_find(idname);
+
+  /* Regular socket types use the base type as their enum value.
+   * Custom sockets don't have a base type and are used directly as the enum entry. */
+  if (socket_type->type == SOCK_CUSTOM) {
+    return bke::node_socket_types_get().first_index(socket_type);
+  }
+
   bke::bNodeSocketType *base_socket_type = bke::node_socket_type_find_static(socket_type->type,
                                                                              PROP_NONE);
+  BLI_assert(base_socket_type != nullptr);
   return bke::node_socket_types_get().first_index(base_socket_type);
 }
 
@@ -1454,12 +1462,14 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
     new_link.tosock = tosock;
 
     if (fromnode->typeinfo->insert_link) {
-      if (!fromnode->typeinfo->insert_link(ntree, fromnode, &new_link)) {
+      blender::bke::NodeInsertLinkParams params{*ntree, *fromnode, new_link};
+      if (!fromnode->typeinfo->insert_link(params)) {
         return nullptr;
       }
     }
     if (tonode->typeinfo->insert_link) {
-      if (!tonode->typeinfo->insert_link(ntree, tonode, &new_link)) {
+      blender::bke::NodeInsertLinkParams params{*ntree, *tonode, new_link};
+      if (!tonode->typeinfo->insert_link(params)) {
         return nullptr;
       }
     }
@@ -1849,18 +1859,19 @@ static void rna_Node_update_reg(bNodeTree *ntree, bNode *node)
   RNA_parameter_list_free(&list);
 }
 
-static bool rna_Node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+static bool rna_Node_insert_link(blender::bke::NodeInsertLinkParams &params)
 {
   ParameterList list;
   FunctionRNA *func;
 
   PointerRNA ptr = RNA_pointer_create_discrete(
-      reinterpret_cast<ID *>(ntree), node->typeinfo->rna_ext.srna, node);
+      reinterpret_cast<ID *>(&params.ntree), params.node.typeinfo->rna_ext.srna, &params.node);
   func = &rna_Node_insert_link_func;
 
   RNA_parameter_list_create(&list, &ptr, func);
+  bNodeLink *link = &params.link;
   RNA_parameter_set_lookup(&list, "link", &link);
-  node->typeinfo->rna_ext.call(nullptr, &ptr, func, &list);
+  params.node.typeinfo->rna_ext.call(nullptr, &ptr, func, &list);
 
   RNA_parameter_list_free(&list);
   return true;
@@ -4239,7 +4250,7 @@ static void rna_NodeConvertColorSpace_from_color_space_set(PointerRNA *ptr, int 
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
   if (name && name[0]) {
-    STRNCPY(node_storage->from_color_space, name);
+    STRNCPY_UTF8(node_storage->from_color_space, name);
   }
 }
 static int rna_NodeConvertColorSpace_to_color_space_get(PointerRNA *ptr)
@@ -4256,7 +4267,7 @@ static void rna_NodeConvertColorSpace_to_color_space_set(PointerRNA *ptr, int va
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
   if (name && name[0]) {
-    STRNCPY(node_storage->to_color_space, name);
+    STRNCPY_UTF8(node_storage->to_color_space, name);
   }
 }
 
@@ -5042,12 +5053,12 @@ static void def_sh_attribute(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_sdna(prop, nullptr, "type");
   RNA_def_property_enum_items(prop, prop_attribute_type);
   RNA_def_property_ui_text(prop, "Attribute Type", "General type of the attribute");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 
   prop = RNA_def_property(srna, "attribute_name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "name");
   RNA_def_property_ui_text(prop, "Attribute Name", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update_relations");
 }
 
 static void def_sh_tex(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -6485,7 +6496,7 @@ static void rna_def_cmp_output_file_slot_file(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_node_format", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "use_node_format", 1);
-  RNA_def_property_ui_text(prop, "Use Node Format", "");
+  RNA_def_property_ui_text(prop, "Node Format", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
 
   prop = RNA_def_property(srna, "save_as_render", PROP_BOOLEAN, PROP_NONE);
@@ -6674,6 +6685,18 @@ static void def_cmp_displace(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, cmp_interpolation_items);
   RNA_def_property_ui_text(prop, "Interpolation", "Interpolation method");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "extension_x", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "extension_x");
+  RNA_def_property_enum_items(prop, cmp_extension_mode_items);
+  RNA_def_property_ui_text(prop, "X Extension Mode", "The extension mode applied to the X axis");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "extension_y", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "extension_y");
+  RNA_def_property_enum_items(prop, cmp_extension_mode_items);
+  RNA_def_property_ui_text(prop, "Y Extension Mode", "The extension mode applied to the Y axis");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_cmp_scale(BlenderRNA * /*brna*/, StructRNA *srna)
@@ -6733,11 +6756,24 @@ static void def_cmp_scale(BlenderRNA * /*brna*/, StructRNA *srna)
 static void def_cmp_rotate(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
+  RNA_def_struct_sdna_from(srna, "NodeRotateData", "storage");
 
-  prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
+  prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "interpolation");
   RNA_def_property_enum_items(prop, cmp_interpolation_items);
-  RNA_def_property_ui_text(prop, "Filter", "Method to use to filter rotation");
+  RNA_def_property_ui_text(prop, "Interpolation", "Interpolation method");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "extension_x", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "extension_x");
+  RNA_def_property_enum_items(prop, cmp_extension_mode_items);
+  RNA_def_property_ui_text(prop, "X Extension Mode", "The extension mode applied to the X axis");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "extension_y", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "extension_y");
+  RNA_def_property_enum_items(prop, cmp_extension_mode_items);
+  RNA_def_property_ui_text(prop, "Y Extension Mode", "The extension mode applied to the Y axis");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -6930,12 +6966,26 @@ static void def_cmp_double_edge_mask(BlenderRNA * /*brna*/, StructRNA *srna)
 
 static void def_cmp_map_uv(BlenderRNA * /*brna*/, StructRNA *srna)
 {
+  PropertyRNA *prop;
 
-  PropertyRNA *prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom2");
+  RNA_def_struct_sdna_from(srna, "NodeMapUVData", "storage");
+
+  prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "interpolation");
   RNA_def_property_enum_items(prop, cmp_interpolation_items);
-  RNA_def_property_ui_text(prop, "Filter Type", "");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
+  RNA_def_property_ui_text(prop, "Interpolation", "Interpolation method");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "extension_x", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "extension_x");
+  RNA_def_property_enum_items(prop, cmp_extension_mode_items);
+  RNA_def_property_ui_text(prop, "X Extension Mode", "The extension mode applied to the X axis");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "extension_y", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "extension_y");
+  RNA_def_property_enum_items(prop, cmp_extension_mode_items);
+  RNA_def_property_ui_text(prop, "Y Extension Mode", "The extension mode applied to the Y axis");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -10138,15 +10188,15 @@ static void rna_def_nodetree(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Links", "");
   rna_def_nodetree_link_api(brna, prop);
 
-  /* Grease Pencil */
-  prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
+  /* Annotation */
+  prop = RNA_def_property(srna, "annotation", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "gpd");
-  RNA_def_property_struct_type(prop, "GreasePencil");
+  RNA_def_property_struct_type(prop, "Annotation");
   RNA_def_property_pointer_funcs(
       prop, nullptr, nullptr, nullptr, "rna_GPencil_datablocks_annotations_poll");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil data-block");
+  RNA_def_property_ui_text(prop, "Annotation", "Annotation data");
   RNA_def_property_update(prop, NC_NODE, nullptr);
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -10610,7 +10660,6 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeCombRGBA");
   define("CompositorNode", "CompositorNodeCombYCCA", def_cmp_ycc);
   define("CompositorNode", "CompositorNodeCombYUVA");
-  define("CompositorNode", "CompositorNodeComposite");
   define("CompositorNode", "CompositorNodeConvertColorSpace", def_cmp_convert_color_space);
   define("CompositorNode", "CompositorNodeCornerPin", def_cmp_cornerpin);
   define("CompositorNode", "CompositorNodeCrop");
@@ -10883,6 +10932,9 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeInterpolateCurves");
   define("GeometryNode", "GeometryNodeIsViewport");
   define("GeometryNode", "GeometryNodeJoinGeometry");
+  define("GeometryNode", "GeometryNodeList");
+  define("GeometryNode", "GeometryNodeListGetItem");
+  define("GeometryNode", "GeometryNodeListLength");
   define("GeometryNode", "GeometryNodeMaterialSelection");
   define("GeometryNode", "GeometryNodeMenuSwitch", def_geo_menu_switch);
   define("GeometryNode", "GeometryNodeMergeByDistance");

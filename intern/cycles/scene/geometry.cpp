@@ -432,7 +432,9 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     if (geom->is_hair()) {
       /* Set curve shape, still a global scene setting for now. */
       Hair *hair = static_cast<Hair *>(geom);
-      hair->curve_shape = scene->params.hair_shape;
+      if (hair->curve_shape != CURVE_THICK_LINEAR) {
+        hair->curve_shape = scene->params.hair_shape;
+      }
 
       if (hair->need_update_rebuild) {
         device_update_flags |= DEVICE_CURVE_DATA_NEEDS_REALLOC;
@@ -705,10 +707,6 @@ void GeometryManager::device_update(Device *device,
       if (geom->is_modified()) {
         if (geom->is_mesh() || geom->is_volume()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
-
-          if (mesh->need_attribute(scene, ATTR_STD_POSITION_UNDISPLACED)) {
-            mesh->add_undisplaced();
-          }
 
           /* Test if we need tessellation and setup normals if required. */
           if (mesh->need_tesselation()) {

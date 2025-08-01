@@ -154,7 +154,7 @@ struct Profile {
   float *prof_co;
   /** Like prof_co, but for seg power of 2 >= seg. */
   float *prof_co_2;
-  /** Mark a special case so the these parameters aren't reset with others. */
+  /** Mark a special case so these parameters aren't reset with others. */
   bool special_params;
 };
 #define PRO_SQUARE_R 1e4f

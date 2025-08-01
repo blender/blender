@@ -9,6 +9,9 @@
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
+#include "NOD_sync_sockets.hh"
+
+#include "BKE_idprop.hh"
 
 #include "BLO_read_write.hh"
 
@@ -62,10 +65,21 @@ static void node_free_storage(bNode *node)
   MEM_freeN(node->storage);
 }
 
-static bool node_insert_link(bNodeTree *tree, bNode *node, bNodeLink *link)
+static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
+  if (params.C && params.link.fromnode == &params.node && params.link.tosock->type == SOCK_BUNDLE)
+  {
+    const NodeGeometryCombineBundle &storage = node_storage(params.node);
+    if (storage.items_num == 0) {
+      SpaceNode *snode = CTX_wm_space_node(params.C);
+      if (snode && snode->edittree == &params.ntree) {
+        sync_sockets_combine_bundle(*snode, params.node, nullptr, params.link.tosock);
+      }
+    }
+    return true;
+  }
   return socket_items::try_add_item_via_any_extend_socket<CombineBundleItemsAccessor>(
-      *tree, *node, *node, *link);
+      params.ntree, params.node, params.node, params.link);
 }
 
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *node_ptr)
@@ -73,9 +87,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *node_ptr)
   bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(node_ptr->owner_id);
   bNode &node = *static_cast<bNode *>(node_ptr->data);
 
+  layout->op("node.sockets_sync", "Sync", ICON_FILE_REFRESH);
   if (uiLayout *panel = layout->panel(C, "bundle_items", false, TIP_("Bundle Items"))) {
-    panel->op("node.sockets_sync", "Sync", ICON_FILE_REFRESH);
-
     socket_items::ui::draw_items_list_with_operators<CombineBundleItemsAccessor>(
         C, panel, ntree, node);
     socket_items::ui::draw_active_item_props<CombineBundleItemsAccessor>(
@@ -116,7 +129,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     void *input_ptr = params.low_level_lazy_function_params().try_get_input_data_ptr(i);
     BLI_assert(input_ptr);
-    bundle.add(SocketInterfaceKey(name), *stype, input_ptr);
+    bundle.add(name, BundleItemSocketValue{stype, input_ptr});
   }
 
   params.set_output("Bundle", std::move(bundle_ptr));
@@ -137,7 +150,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     params.connect_available_socket(node, "Bundle");
 
     SpaceNode &snode = *CTX_wm_space_node(&params.C);
-    ed::space_node::sync_sockets_combine_bundle(snode, node, nullptr);
+    sync_sockets_combine_bundle(snode, node, nullptr);
   });
 }
 

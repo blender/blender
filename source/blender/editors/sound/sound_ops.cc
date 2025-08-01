@@ -776,7 +776,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 
 static bool sound_poll(bContext *C)
 {
-  Editing *ed = CTX_data_scene(C)->ed;
+  Editing *ed = CTX_data_sequencer_scene(C)->ed;
 
   if (!ed || !ed->act_strip || ed->act_strip->type != STRIP_TYPE_SOUND_RAM) {
     return false;
@@ -789,7 +789,7 @@ static bool sound_poll(bContext *C)
 static wmOperatorStatus sound_pack_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Editing *ed = CTX_data_scene(C)->ed;
+  Editing *ed = CTX_data_sequencer_scene(C)->ed;
   bSound *sound;
 
   if (!ed || !ed->act_strip || ed->act_strip->type != STRIP_TYPE_SOUND_RAM) {
@@ -862,7 +862,7 @@ static wmOperatorStatus sound_unpack_exec(bContext *C, wmOperator *op)
 
 static wmOperatorStatus sound_unpack_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  Editing *ed = CTX_data_scene(C)->ed;
+  Editing *ed = CTX_data_sequencer_scene(C)->ed;
   bSound *sound;
 
   if (RNA_struct_property_is_set(op->ptr, "id")) {

@@ -94,7 +94,7 @@ void BKE_brush_jitter_pos(const Paint &paint,
                           const Brush &brush,
                           const float pos[2],
                           float jitterpos[2]);
-void BKE_brush_randomize_texture_coords(UnifiedPaintSettings *ups, bool mask);
+void BKE_brush_randomize_texture_coords(Paint *paint, bool mask);
 
 /* Brush curve. */
 

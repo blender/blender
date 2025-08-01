@@ -29,44 +29,31 @@ CCL_NAMESPACE_BEGIN
  * heavy volume interpolation code. */
 
 template<typename T>
-ccl_device_forceinline T primitive_surface_attribute(KernelGlobals kg,
-                                                     const ccl_private ShaderData *sd,
-                                                     const AttributeDescriptor desc,
-                                                     ccl_private T *dfdx,
-                                                     ccl_private T *dfdy)
+ccl_device_forceinline dual<T> primitive_surface_attribute(KernelGlobals kg,
+                                                           const ccl_private ShaderData *sd,
+                                                           const AttributeDescriptor desc,
+                                                           const bool dx = false,
+                                                           const bool dy = false)
 {
   if (desc.element & (ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
-    if (dfdx) {
-      *dfdx = make_zero<T>();
-    }
-    if (dfdy) {
-      *dfdy = make_zero<T>();
-    }
-
-    return attribute_data_fetch<T>(kg, desc.offset);
+    return dual<T>(attribute_data_fetch<T>(kg, desc.offset));
   }
 
   if (sd->type & PRIMITIVE_TRIANGLE) {
-    return triangle_attribute<T>(kg, sd, desc, dfdx, dfdy);
+    return triangle_attribute<T>(kg, sd, desc, dx, dy);
   }
 #ifdef __HAIR__
   if (sd->type & PRIMITIVE_CURVE) {
-    return curve_attribute<T>(kg, sd, desc, dfdx, dfdy);
+    return curve_attribute<T>(kg, sd, desc, dx, dy);
   }
 #endif
 #ifdef __POINTCLOUD__
   else if (sd->type & PRIMITIVE_POINT) {
-    return point_attribute<T>(kg, sd, desc, dfdx, dfdy);
+    return point_attribute<T>(kg, sd, desc, dx, dy);
   }
 #endif
   else {
-    if (dfdx) {
-      *dfdx = make_zero<T>();
-    }
-    if (dfdy) {
-      *dfdy = make_zero<T>();
-    }
-    return make_zero<T>();
+    return make_zero<dual<T>>();
   }
 }
 
@@ -105,7 +92,7 @@ ccl_device_forceinline float3 primitive_uv(KernelGlobals kg, const ccl_private S
     return make_float3(0.0f, 0.0f, 0.0f);
   }
 
-  const float2 uv = primitive_surface_attribute<float2>(kg, sd, desc, nullptr, nullptr);
+  const float2 uv = primitive_surface_attribute<float2>(kg, sd, desc).val;
   return make_float3(uv.x, uv.y, 1.0f);
 }
 
@@ -124,9 +111,8 @@ ccl_device bool primitive_ptex(KernelGlobals kg,
     return false;
   }
 
-  const float3 uv3 = primitive_surface_attribute<float3>(kg, sd, desc_uv, nullptr, nullptr);
-  const float face_id_f = primitive_surface_attribute<float>(
-      kg, sd, desc_face_id, nullptr, nullptr);
+  const float3 uv3 = primitive_surface_attribute<float3>(kg, sd, desc_uv).val;
+  const float face_id_f = primitive_surface_attribute<float>(kg, sd, desc_face_id).val;
 
   *uv = make_float2(uv3.x, uv3.y);
   *face_id = (int)face_id_f;
@@ -152,7 +138,7 @@ ccl_device float3 primitive_tangent(KernelGlobals kg, ccl_private ShaderData *sd
   const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_GENERATED);
 
   if (desc.offset != ATTR_STD_NOT_FOUND) {
-    float3 data = primitive_surface_attribute<float3>(kg, sd, desc, nullptr, nullptr);
+    float3 data = primitive_surface_attribute<float3>(kg, sd, desc).val;
     data = make_float3(-(data.y - 0.5f), (data.x - 0.5f), 0.0f);
     object_normal_transform(kg, sd, &data);
     return cross(sd->N, normalize(cross(data, sd->N)));
@@ -211,11 +197,9 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
 
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
     if (is_curve_or_point) {
-      motion_pre = make_float3(
-          primitive_surface_attribute<float4>(kg, sd, desc, nullptr, nullptr));
+      motion_pre = make_float3(primitive_surface_attribute<float4>(kg, sd, desc).val);
       desc.offset += numverts;
-      motion_post = make_float3(
-          primitive_surface_attribute<float4>(kg, sd, desc, nullptr, nullptr));
+      motion_post = make_float3(primitive_surface_attribute<float4>(kg, sd, desc).val);
 
       /* Curve */
       if ((sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {
@@ -228,9 +212,9 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
         if (sd->type & PRIMITIVE_TRIANGLE)
     {
       /* Triangle */
-      motion_pre = triangle_attribute<float3>(kg, sd, desc, nullptr, nullptr);
+      motion_pre = triangle_attribute<float3>(kg, sd, desc).val;
       desc.offset += numverts;
-      motion_post = triangle_attribute<float3>(kg, sd, desc, nullptr, nullptr);
+      motion_post = triangle_attribute<float3>(kg, sd, desc).val;
     }
   }
 

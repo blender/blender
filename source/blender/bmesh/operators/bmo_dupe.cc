@@ -489,13 +489,37 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  /* connect outputs of dupe to delete, excluding keep geometry */
-  BMO_mesh_delete_oflag_context(bm, SPLIT_INPUT, DEL_FACES);
-
-  /* now we make our outputs by copying the dupe output */
   BMO_slot_copy(&dupeop, slots_out, "geom.out", splitop, slots_out, "geom.out");
-  BMO_slot_copy(&dupeop, slots_out, "boundary_map.out", splitop, slots_out, "boundary_map.out");
   BMO_slot_copy(&dupeop, slots_out, "isovert_map.out", splitop, slots_out, "isovert_map.out");
+
+  /* connect outputs of dupe to delete, excluding keep geometry */
+  BMO_mesh_delete_oflag_context(
+      bm,
+      SPLIT_INPUT,
+      DEL_FACES,
+      /* Call before deletion so deleted geometry isn't copied. */
+      [&bm, &dupeop, &splitop]() {
+        /* Now we make our outputs by copying the dupe output. */
+
+        /* NOTE: `boundary_map.out` can't use #BMO_slot_copy because some of the "source"
+         * geometry has been removed. In this case the (source -> destination) map doesn't work.
+         * In this case there isn't an especially good option.
+         * The geometry needs to be included so the boundary is accessible.
+         * Use the "destination" as the key and the value since it avoids adding freed
+         * geometry into the map and can be easily detected by other operators.
+         * See: #142633. */
+        const char *slot_name_boundary_map = "boundary_map.out";
+        BMOpSlot *splitop_boundary_map = BMO_slot_get(splitop->slots_out, slot_name_boundary_map);
+        BMOIter siter;
+        BMElem *ele_key;
+        BMO_ITER (ele_key, &siter, dupeop.slots_out, slot_name_boundary_map, 0) {
+          BMElem *ele_val = static_cast<BMElem *>(BMO_iter_map_value_ptr(&siter));
+          if (BMO_elem_flag_test(bm, ele_key, SPLIT_INPUT)) {
+            ele_key = ele_val;
+          }
+          BMO_slot_map_elem_insert(splitop, splitop_boundary_map, ele_key, ele_val);
+        }
+      });
 
   /* cleanup */
   BMO_op_finish(bm, &dupeop);
@@ -512,7 +536,7 @@ void bmo_delete_exec(BMesh *bm, BMOperator *op)
   /* Mark Buffer */
   BMO_slot_buffer_flag_enable(bm, delop->slots_in, "geom", BM_ALL_NOLOOP, DEL_INPUT);
 
-  BMO_mesh_delete_oflag_context(bm, DEL_INPUT, BMO_slot_int_get(op->slots_in, "context"));
+  BMO_mesh_delete_oflag_context(bm, DEL_INPUT, BMO_slot_int_get(op->slots_in, "context"), nullptr);
 
 #undef DEL_INPUT
 }

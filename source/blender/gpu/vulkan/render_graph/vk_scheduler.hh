@@ -36,9 +36,10 @@ class VKRenderGraph;
  *   eventually not been displayed on screen. These branches should be pruned. The challenge is
  *   that we need to know for certain that it isn't used in a not submitted part of the graph.
  *
- * TODO: Walking the render graph isn't implemented yet. The idea is to have a
- * `Map<ResourceWithStamp, Vector<NodeHandle>> consumers` and `Map<ResourceWithStamp, NodeHandle>
- * producers`. These attributes can be stored in the render graph and created when building the
+ * TODO: Walking the render graph isn't implemented yet.
+ * The idea is to have a `Map<ResourceWithStamp, Vector<NodeHandle>> consumers` and
+ * `Map<ResourceWithStamp, NodeHandle> producers`.
+ * These attributes can be stored in the render graph and created when building the
  * links, or can be created inside the VKScheduler as a variable. The exact detail which one would
  * be better is unclear as there aren't any users yet. At the moment the scheduler would need them
  * we need to figure out the best way to store and retrieve the consumers/producers.

@@ -89,18 +89,12 @@ namespace blender::ed::space_node {
 /** \name Composite Job Manager
  * \{ */
 
-enum {
-  COM_RECALC_COMPOSITE = 1,
-  COM_RECALC_VIEWER = 2,
-};
-
 struct CompoJob {
   /* Input parameters. */
   Main *bmain;
   Scene *scene;
   ViewLayer *view_layer;
   bNodeTree *ntree;
-  int recalc_flags;
   /* Evaluated state/ */
   Depsgraph *compositor_depsgraph;
   bNodeTree *localtree;
@@ -133,59 +127,6 @@ float2 node_link_calculate_multi_input_position(const float2 &socket_position,
   const float offset = (total_inputs * NODE_MULTI_INPUT_LINK_GAP - NODE_MULTI_INPUT_LINK_GAP) *
                        0.5f;
   return {socket_position.x, socket_position.y - offset + index * NODE_MULTI_INPUT_LINK_GAP};
-}
-
-static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)
-{
-  for (bNode *node : nodetree->all_nodes()) {
-    if (node->type_legacy == CMP_NODE_COMPOSITE) {
-      if (recalc_flags & COM_RECALC_COMPOSITE) {
-        node->flag |= NODE_DO_OUTPUT_RECALC;
-      }
-    }
-    else if (node->type_legacy == CMP_NODE_VIEWER) {
-      if (recalc_flags & COM_RECALC_VIEWER) {
-        node->flag |= NODE_DO_OUTPUT_RECALC;
-      }
-    }
-    else if (node->type_legacy == NODE_GROUP) {
-      if (node->id) {
-        compo_tag_output_nodes((bNodeTree *)node->id, recalc_flags);
-      }
-    }
-  }
-}
-
-static int compo_get_recalc_flags(const bContext *C)
-{
-  wmWindowManager *wm = CTX_wm_manager(C);
-  int recalc_flags = 0;
-
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    const bScreen *screen = WM_window_get_active_screen(win);
-
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->spacetype == SPACE_IMAGE) {
-        SpaceImage *sima = (SpaceImage *)area->spacedata.first;
-        if (sima->image) {
-          if (sima->image->type == IMA_TYPE_R_RESULT) {
-            recalc_flags |= COM_RECALC_COMPOSITE;
-          }
-          else if (sima->image->type == IMA_TYPE_COMPOSITE) {
-            recalc_flags |= COM_RECALC_VIEWER;
-          }
-        }
-      }
-      else if (area->spacetype == SPACE_NODE) {
-        SpaceNode *snode = (SpaceNode *)area->spacedata.first;
-        if (snode->flag & SNODE_BACKDRAW) {
-          recalc_flags |= COM_RECALC_VIEWER;
-        }
-      }
-    }
-  }
-
-  return recalc_flags;
 }
 
 /* Called by compositor, only to check job 'stop' value. */
@@ -267,10 +208,6 @@ static void compo_initjob(void *cjv)
   bNodeTree *ntree_eval = DEG_get_evaluated(cj->compositor_depsgraph, cj->ntree);
 
   cj->localtree = bke::node_tree_localize(ntree_eval, nullptr);
-
-  if (cj->recalc_flags) {
-    compo_tag_output_nodes(cj->localtree, cj->recalc_flags);
-  }
 
   cj->re = RE_NewInteractiveCompositorRender(scene);
   if (scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU) {
@@ -473,7 +410,7 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
                               scene_owner,
-                              "Compositing",
+                              "Compositing...",
                               WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS,
                               WM_JOB_TYPE_COMPOSITE);
   CompoJob *cj = MEM_new<CompoJob>("compo job");
@@ -483,7 +420,6 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
   cj->scene = scene;
   cj->view_layer = view_layer;
   cj->ntree = nodetree;
-  cj->recalc_flags = compo_get_recalc_flags(C);
   cj->needed_outputs = needed_outputs;
 
   /* Set up job. */
@@ -541,7 +477,7 @@ bool composite_node_editable(bContext *C)
 void ED_node_set_tree_type(SpaceNode *snode, blender::bke::bNodeTreeType *typeinfo)
 {
   if (typeinfo) {
-    STRNCPY(snode->tree_idname, typeinfo->idname.c_str());
+    STRNCPY_UTF8(snode->tree_idname, typeinfo->idname.c_str());
   }
   else {
     snode->tree_idname[0] = '\0';
@@ -602,12 +538,13 @@ void ED_node_shader_default(const bContext *C, ID *id)
   }
   else if (ELEM(GS(id->name), ID_WO, ID_LA)) {
     /* Emission */
+    bNode *shader, *output;
     bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
         nullptr, id, "Shader Nodetree", ntreeType_Shader->idname);
-    bNode *shader, *output;
 
     if (GS(id->name) == ID_WO) {
       World *world = (World *)id;
+      ntree = world->nodetree;
 
       shader = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_BACKGROUND);
       output = blender::bke::node_add_static_node(nullptr, *ntree, SH_NODE_OUTPUT_WORLD);
@@ -668,7 +605,12 @@ void ED_node_composit_default_init(const bContext *C, bNodeTree *ntree)
   BLI_assert(ntree != nullptr && ntree->type == NTREE_COMPOSIT);
   BLI_assert(BLI_listbase_count(&ntree->nodes) == 0);
 
-  bNode *composite = blender::bke::node_add_static_node(C, *ntree, CMP_NODE_COMPOSITE);
+  ntree->tree_interface.add_socket(
+      DATA_("Image"), "", "NodeSocketColor", NODE_INTERFACE_SOCKET_INPUT, nullptr);
+  ntree->tree_interface.add_socket(
+      DATA_("Image"), "", "NodeSocketColor", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
+
+  bNode *composite = blender::bke::node_add_node(C, *ntree, "NodeGroupOutput");
   composite->location[0] = 200.0f;
   composite->location[1] = 0.0f;
 
@@ -683,7 +625,7 @@ void ED_node_composit_default_init(const bContext *C, bNodeTree *ntree)
 
   bNode *viewer = blender::bke::node_add_static_node(C, *ntree, CMP_NODE_VIEWER);
   viewer->location[0] = 200.0f;
-  viewer->location[1] = -60.0f;
+  viewer->location[1] = -80.0f;
 
   /* Viewer and Composite nodes are linked to Render Layer's output image socket through a reroute
    * node. */
@@ -858,9 +800,7 @@ void ED_node_set_active(
       }
 
       LISTBASE_FOREACH (World *, wo, &bmain->worlds) {
-        if (wo->nodetree && wo->use_nodes &&
-            blender::bke::node_tree_contains_tree(*wo->nodetree, *ntree))
-        {
+        if (wo->nodetree && blender::bke::node_tree_contains_tree(*wo->nodetree, *ntree)) {
           GPU_material_free(&wo->gpumaterial);
         }
       }
@@ -893,22 +833,6 @@ void ED_node_set_active(
 
       node->flag |= NODE_DO_OUTPUT;
       if (was_output == 0) {
-        BKE_ntree_update_tag_active_output_changed(ntree);
-        BKE_main_ensure_invariants(*bmain, ntree->id);
-      }
-
-      /* Adding a node doesn't link this yet. */
-      node->id = (ID *)BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
-    }
-    else if (node->type_legacy == CMP_NODE_COMPOSITE) {
-      if (was_output == 0) {
-        for (bNode *node_iter : ntree->all_nodes()) {
-          if (node_iter->type_legacy == CMP_NODE_COMPOSITE) {
-            node_iter->flag &= ~NODE_DO_OUTPUT;
-          }
-        }
-
-        node->flag |= NODE_DO_OUTPUT;
         BKE_ntree_update_tag_active_output_changed(ntree);
         BKE_main_ensure_invariants(*bmain, ntree->id);
       }
@@ -2206,7 +2130,7 @@ static wmOperatorStatus node_output_file_add_socket_exec(bContext *C, wmOperator
 
   RNA_string_get(op->ptr, "file_path", file_path);
 
-  if (strlen(file_path) != 0) {
+  if (file_path[0] != '\0') {
     ntreeCompositOutputFileAddSocket(ntree, node, file_path, &scene->r.im_format);
   }
   else {

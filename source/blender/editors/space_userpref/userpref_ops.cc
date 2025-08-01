@@ -490,7 +490,7 @@ static wmOperatorStatus preferences_extension_repo_add_exec(bContext *C, wmOpera
   }
 
   if (repo_type == bUserExtensionRepoAddType::Remote) {
-    STRNCPY(new_repo->remote_url, remote_url);
+    STRNCPY_UTF8(new_repo->remote_url, remote_url);
     new_repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_URL;
 
     if (use_access_token) {

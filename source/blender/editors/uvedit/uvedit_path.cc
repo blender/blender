@@ -12,15 +12,15 @@
 #include <cstring>
 
 #include "BLI_linklist.h"
-#include "DNA_windowmanager_types.h"
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"

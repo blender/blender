@@ -35,6 +35,10 @@ ExternalProject_Add(external_python_site_packages
   autopep8==${AUTOPEP8_VERSION}
   pycodestyle==${PYCODESTYLE_VERSION}
   meson==${MESON_VERSION}
+  attrs==${ATTRS_VERSION}
+  cattrs==${CATTRS_VERSION}
+  fastjsonschema==${FASTJSONSCHEMA_VERSION}
+  typing-extensions==${TYPING_EXTENSIONS_VERSION}
   --no-binary :all:
 )
 

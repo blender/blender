@@ -7,9 +7,6 @@
 
 #include "BKE_node_runtime.hh"
 
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
-
 #include "node_function_util.hh"
 
 #include "NOD_socket_search_link.hh"
@@ -39,8 +36,8 @@ const EnumPropertyItem rna_enum_node_match_string_items[] = {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Menu>("Operation").static_items(rna_enum_node_match_string_items);
   b.add_input<decl::String>("String").hide_label().is_default_link_socket();
+  b.add_input<decl::Menu>("Operation").static_items(rna_enum_node_match_string_items);
   b.add_input<decl::String>("Key").hide_label().description(
       "The string to find in the input string");
   b.add_output<decl::Bool>("Result");
@@ -48,8 +45,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static auto fn = mf::build::SI3_SO<int, std::string, std::string, bool>(
-      "Starts With", [](const int mode, const std::string &a, const std::string &b) {
+  static auto fn = mf::build::SI3_SO<std::string, std::string, int, bool>(
+      "Starts With", [](const std::string &a, const std::string &b, const int mode) {
         const StringRef strref_a(a);
         const StringRef strref_b(b);
         switch (MatchStringOperation(mode)) {

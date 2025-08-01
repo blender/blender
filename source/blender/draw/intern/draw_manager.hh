@@ -99,7 +99,7 @@ class Manager {
    * List of textures coming from Image data-blocks.
    * They need to be reference-counted in order to avoid being freed in another thread.
    */
-  Vector<GPUTexture *> acquired_textures;
+  Vector<gpu::Texture *> acquired_textures;
 
  private:
   /** Number of sync done by managers. Used for fingerprint. */
@@ -283,7 +283,7 @@ class Manager {
    * Will acquire the texture using ref counting and release it after drawing. To be used for
    * texture coming from blender Image.
    */
-  void acquire_texture(GPUTexture *texture)
+  void acquire_texture(gpu::Texture *texture)
   {
     GPU_texture_ref(texture);
     acquired_textures.append(texture);

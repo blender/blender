@@ -1406,7 +1406,7 @@ static size_t ptcache_filepath_ext_append(PTCacheID *pid,
             filename_ext, MAX_PTCACHE_FILE - len, "_%02u%s", pid->stack_index, ext);
       }
       else {
-        len += BLI_snprintf_rlen(filename_ext, MAX_PTCACHE_FILE - len, "%s", ext);
+        len += BLI_strncpy_rlen(filename_ext, ext, MAX_PTCACHE_FILE - len);
       }
     }
     else {
@@ -1879,8 +1879,8 @@ static void ptcache_data_copy(void *from[], void *to[])
 {
   int i;
   for (i = 0; i < BPHYS_TOT_DATA; i++) {
-    /* NOTE: durian file 03.4b_comp crashes if to[i] is not tested
-     * its nullptr, not sure if this should be fixed elsewhere but for now its needed */
+    /* NOTE: Durian file `03.4b_comp` crashes if `to[i]` is not tested
+     * its null, not sure if this should be fixed elsewhere but for now its needed. */
     if (from[i] && to[i]) {
       memcpy(to[i], from[i], ptcache_data_size[i]);
     }

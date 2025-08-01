@@ -425,14 +425,13 @@ void BLI_system_backtrace_with_os_info(FILE *fp, const void *os_info)
   bli_windows_system_backtrace_modules(fp);
 }
 
-static void bli_windows_exception_message_get(const EXCEPTION_POINTERS *exception,
-                                              char r_message[512])
+void BLI_windows_exception_print_message(const void *os_info)
 {
-  if (!exception) {
-    r_message[0] = '\0';
+  if (!os_info) {
     return;
   }
 
+  const EXCEPTION_POINTERS *exception = static_cast<const EXCEPTION_POINTERS *>(os_info);
   const char *exception_name = bli_windows_get_exception_description(
       exception->ExceptionRecord->ExceptionCode);
   LPVOID address = exception->ExceptionRecord->ExceptionAddress;
@@ -440,7 +439,8 @@ static void bli_windows_exception_message_get(const EXCEPTION_POINTERS *exceptio
   bli_windows_get_module_name(address, modulename, sizeof(modulename));
   DWORD threadId = GetCurrentThreadId();
 
-  BLI_snprintf(r_message,
+  char message[512];
+  BLI_snprintf(message,
                512,
                "Error   : %s\n"
                "Address : 0x%p\n"
@@ -450,6 +450,9 @@ static void bli_windows_exception_message_get(const EXCEPTION_POINTERS *exceptio
                address,
                modulename,
                threadId);
+
+  fprintf(stderr, message);
+  fflush(stderr);
 }
 
 /* -------------------------------------------------------------------- */
@@ -571,14 +574,10 @@ static std::wstring url_encode_wstring(const std::string &str)
   return result;
 }
 
-/**
- * Displays a crash report dialog with options to open the crash log, restart the application, and
- * report a bug. This is based on the `showMessageBox` function in `GHOST_SystemWin32.cc`.
- */
-static void bli_show_crash_report_dialog(const char *filepath_crashlog,
-                                         const char *filepath_relaunch,
-                                         const char *gpu_name,
-                                         const char *build_version)
+void BLI_windows_exception_show_dialog(const char *filepath_crashlog,
+                                       const char *filepath_relaunch,
+                                       const char *gpu_name,
+                                       const char *build_version)
 {
   /* Redundant: #InitCommonControls is already called during GHOST System initialization. */
   // InitCommonControls();
@@ -597,10 +596,17 @@ static void bli_show_crash_report_dialog(const char *filepath_crashlog,
       std::wstring(filepath_crashlog_utf16);
 
   TASKDIALOGCONFIG config = {0};
-  const TASKDIALOG_BUTTON buttons[] = {{IDRETRY, L"Restart"},
-                                       {IDOK, L"Report a Bug"},
-                                       {IDHELP, L"View Crash Log"},
-                                       {IDCLOSE, L"Close"}};
+  const TASKDIALOG_BUTTON buttons[] = {
+    {IDRETRY, L"Restart"},
+#if 0
+    /* This lead to a large influx of low quality reports on the tracker,
+     * and has been disabled for that reason, we can re-enable this when
+     * a better workflow has been established. */
+    {IDOK, L"Report a Bug"},
+#endif
+    {IDHELP, L"View Crash Log"},
+    {IDCLOSE, L"Close"}
+  };
 
   config.cbSize = sizeof(config);
   config.hwndParent = GetActiveWindow();
@@ -681,20 +687,6 @@ static void bli_show_crash_report_dialog(const char *filepath_crashlog,
   TaskDialogIndirect(&config, nullptr, nullptr, nullptr);
   free((void *)filepath_crashlog_utf16);
   free((void *)filepath_relaunch_utf16);
-}
-
-void BLI_windows_exception_show_dialog(const void *exception,
-                                       const char *filepath_crashlog,
-                                       const char *filepath_relaunch,
-                                       const char *gpu_name,
-                                       const char *build_version)
-{
-  char message[512];
-  bli_windows_exception_message_get(static_cast<const EXCEPTION_POINTERS *>(exception), message);
-  fprintf(stderr, message);
-  fflush(stderr);
-
-  bli_show_crash_report_dialog(filepath_crashlog, filepath_relaunch, gpu_name, build_version);
 }
 
 /** \} */

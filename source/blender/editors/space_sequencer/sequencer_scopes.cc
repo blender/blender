@@ -281,43 +281,86 @@ static int get_bin_float(float f)
   return clamp_i(bin, 0, ScopeHistogram::BINS_FLOAT - 1);
 }
 
-void ScopeHistogram::calc_from_ibuf(const ImBuf *ibuf)
+void ScopeHistogram::calc_from_ibuf(const ImBuf *ibuf,
+                                    const ColorManagedViewSettings &view_settings,
+                                    const ColorManagedDisplaySettings &display_settings)
 {
 #ifdef DEBUG_TIME
   SCOPED_TIMER(__func__);
 #endif
+
+  ColormanageProcessor *cm_processor = IMB_colormanagement_display_processor_for_imbuf(
+      ibuf, &view_settings, &display_settings);
 
   const bool is_float = ibuf->float_buffer.data != nullptr;
   const int hist_size = is_float ? BINS_FLOAT : BINS_BYTE;
 
   Array<uint3> counts(hist_size, uint3(0));
   data = threading::parallel_reduce(
-      IndexRange(ibuf->y),
-      256,
+      IndexRange(IMB_get_pixel_count(ibuf)),
+      16 * 1024,
       counts,
-      [&](const IndexRange y_range, const Array<uint3> &init) {
+      [&](const IndexRange range, const Array<uint3> &init) {
         Array<uint3> res = init;
 
         if (is_float) {
-          for (const int y : y_range) {
-            const float *src = ibuf->float_buffer.data + y * ibuf->x * 4;
-            for (int x = 0; x < ibuf->x; x++) {
-              res[get_bin_float(src[0])].x++;
-              res[get_bin_float(src[1])].y++;
-              res[get_bin_float(src[2])].z++;
+          const float *src = ibuf->float_buffer.data + range.first() * 4;
+          if (!cm_processor) {
+            /* Float image, no color space conversions needed. */
+            for ([[maybe_unused]] const int64_t index : range) {
+              float4 pixel;
+              premul_to_straight_v4_v4(pixel, src);
+              res[get_bin_float(pixel.x)].x++;
+              res[get_bin_float(pixel.y)].y++;
+              res[get_bin_float(pixel.z)].z++;
               src += 4;
+            }
+          }
+          else {
+            /* Float image, with color space conversions. */
+            Array<float4> pixels(range.size(), NoInitialization());
+            for (int64_t i : pixels.index_range()) {
+              premul_to_straight_v4_v4(pixels[i], src + i * 4);
+            }
+            IMB_colormanagement_colorspace_to_scene_linear(
+                &pixels.data()->x, pixels.size(), 1, 4, ibuf->float_buffer.colorspace, false);
+            IMB_colormanagement_processor_apply(
+                cm_processor, &pixels.data()->x, pixels.size(), 1, 4, false);
+            for (const float4 &pixel : pixels) {
+              res[get_bin_float(pixel.x)].x++;
+              res[get_bin_float(pixel.y)].y++;
+              res[get_bin_float(pixel.z)].z++;
             }
           }
         }
         else {
           /* Byte images just use 256 histogram bins, directly indexed by value. */
-          for (const int y : y_range) {
-            const uchar *src = ibuf->byte_buffer.data + y * ibuf->x * 4;
-            for (int x = 0; x < ibuf->x; x++) {
+          const uchar *src = ibuf->byte_buffer.data + range.first() * 4;
+          if (!cm_processor) {
+            /* Byte image, no color space conversions needed. */
+            for ([[maybe_unused]] const int64_t index : range) {
               res[src[0]].x++;
               res[src[1]].y++;
               res[src[2]].z++;
               src += 4;
+            }
+          }
+          else {
+            /* Byte image, with color space conversions. */
+            Array<float4> pixels(range.size(), NoInitialization());
+            for (int64_t i : pixels.index_range()) {
+              rgba_uchar_to_float(pixels[i], src + i * 4);
+            }
+            IMB_colormanagement_colorspace_to_scene_linear(
+                &pixels.data()->x, pixels.size(), 1, 4, ibuf->byte_buffer.colorspace, false);
+            IMB_colormanagement_processor_apply(
+                cm_processor, &pixels.data()->x, pixels.size(), 1, 4, false);
+            for (const float4 &pixel : pixels) {
+              uchar pixel_b[4];
+              rgba_float_to_uchar(pixel_b, pixel);
+              res[pixel_b[0]].x++;
+              res[pixel_b[1]].y++;
+              res[pixel_b[2]].z++;
             }
           }
         }
@@ -331,6 +374,10 @@ void ScopeHistogram::calc_from_ibuf(const ImBuf *ibuf)
         }
         return res;
       });
+
+  if (cm_processor) {
+    IMB_colormanagement_processor_free(cm_processor);
+  }
 
   max_value = uint3(0);
   for (const uint3 &v : data) {

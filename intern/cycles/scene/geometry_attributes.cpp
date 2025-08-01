@@ -143,6 +143,7 @@ void GeometryManager::update_svm_attributes(Device * /*unused*/,
 {
   /* for SVM, the attributes_map table is used to lookup the offset of an
    * attribute, based on a unique shader attribute id. */
+  const bool use_osl = scene->shader_manager->use_osl();
 
   /* compute array stride */
   size_t attr_map_size = 0;
@@ -151,21 +152,22 @@ void GeometryManager::update_svm_attributes(Device * /*unused*/,
     Geometry *geom = scene->geometry[i];
     geom->attr_map_offset = attr_map_size;
 
-#ifdef WITH_OSL
     size_t attr_count = 0;
-    for (const AttributeRequest &req : geom_attributes[i].requests) {
-      if (req.std != ATTR_STD_NONE &&
-          scene->shader_manager->get_attribute_id(req.std) != (uint64_t)req.std)
-      {
-        attr_count += 2;
-      }
-      else {
-        attr_count += 1;
+    if (use_osl) {
+      for (const AttributeRequest &req : geom_attributes[i].requests) {
+        if (req.std != ATTR_STD_NONE &&
+            scene->shader_manager->get_attribute_id(req.std) != (uint64_t)req.std)
+        {
+          attr_count += 2;
+        }
+        else {
+          attr_count += 1;
+        }
       }
     }
-#else
-    const size_t attr_count = geom_attributes[i].size();
-#endif
+    else {
+      attr_count = geom_attributes[i].size();
+    }
 
     attr_map_size += (attr_count + 1) * ATTR_PRIM_TYPES;
   }
@@ -214,14 +216,14 @@ void GeometryManager::update_svm_attributes(Device * /*unused*/,
       emit_attribute_mapping(attr_map, index, id, req);
       index += ATTR_PRIM_TYPES;
 
-#ifdef WITH_OSL
-      /* Some standard attributes are explicitly referenced via their standard ID, so add those
-       * again in case they were added under a different attribute ID. */
-      if (req.std != ATTR_STD_NONE && id != (uint64_t)req.std) {
-        emit_attribute_mapping(attr_map, index, (uint64_t)req.std, req);
-        index += ATTR_PRIM_TYPES;
+      if (use_osl) {
+        /* Some standard attributes are explicitly referenced via their standard ID, so add those
+         * again in case they were added under a different attribute ID. */
+        if (req.std != ATTR_STD_NONE && id != (uint64_t)req.std) {
+          emit_attribute_mapping(attr_map, index, (uint64_t)req.std, req);
+          index += ATTR_PRIM_TYPES;
+        }
       }
-#endif
     }
 
     emit_attribute_map_terminator(attr_map, index, false, 0);
@@ -547,6 +549,13 @@ void GeometryManager::device_update_attributes(Device *device,
      * they actually refer to the same mesh attributes, optimize */
     for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = geom->attributes.find(req);
+
+      /* Keep "N" attribute undisplaced for backwards compatibility in Blender 4.5. */
+      if (attr && attr->std == ATTR_STD_VERTEX_NORMAL) {
+        if (Attribute *undisplaced_attr = geom->attributes.find(ATTR_STD_NORMAL_UNDISPLACED)) {
+          attr = undisplaced_attr;
+        }
+      }
 
       if (attr) {
         /* force a copy if we need to reallocate all the data */

@@ -1308,7 +1308,7 @@ float Occupancy::trace_island(const PackIsland *island,
   float2 pivot_transformed;
   mul_v2_m2v2(pivot_transformed, matrix, island->pivot_);
 
-  /* TODO: Support `ED_UVPACK_SHAPE_AABB`. */
+  /* TODO: Support #ED_UVPACK_SHAPE_AABB. */
 
   /* TODO: If the PackIsland has the same shape as it's convex hull, we can trace the hull instead
    * of the individual triangles, which is faster and provides a better value of `extent`.

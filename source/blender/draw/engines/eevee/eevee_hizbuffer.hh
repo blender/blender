@@ -31,7 +31,7 @@ class HiZBuffer {
   /** Contains depth pyramid of the current pass and the previous pass. */
   SwapChain<Texture, 2> hiz_tx_;
   /** References to the mip views of the current (front) HiZ texture. */
-  std::array<GPUTexture *, HIZ_MIP_COUNT> hiz_mip_ref_;
+  std::array<gpu::Texture *, HIZ_MIP_COUNT> hiz_mip_ref_;
 
   /**
    * Atomic counter counting the number of tile that have finished down-sampling.
@@ -48,8 +48,8 @@ class HiZBuffer {
   /** Dirty flag to check if the update is necessary. */
   bool is_dirty_ = true;
   /** Reference to the depth texture to downsample. */
-  GPUTexture *src_tx_ = nullptr;
-  GPUTexture **src_tx_ptr_ = nullptr;
+  gpu::Texture *src_tx_ = nullptr;
+  gpu::Texture **src_tx_ptr_ = nullptr;
 
   HiZData &data_;
 
@@ -66,7 +66,7 @@ class HiZBuffer {
    * Need to be called once at the start of a pipeline or view.
    * Tag the buffer as dirty.
    */
-  void set_source(GPUTexture **texture, int layer = -1)
+  void set_source(gpu::Texture **texture, int layer = -1)
   {
     src_tx_ptr_ = texture;
     layer_id_ = layer;
@@ -107,7 +107,7 @@ class HiZBuffer {
   /* Back is Previous layer depth (ex: For refraction). Front for current layer depth. */
   struct {
     /** References to the textures in the swap-chain. */
-    GPUTexture *ref_tx_ = nullptr;
+    gpu::Texture *ref_tx_ = nullptr;
 
     template<typename PassType> void bind_resources(PassType &pass)
     {

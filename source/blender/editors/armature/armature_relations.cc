@@ -21,6 +21,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -90,7 +91,7 @@ static void joined_armature_fix_links_constraints(Main *bmain,
           }
           else if (STREQ(ct->subtarget, pchan->name)) {
             ct->tar = tarArm;
-            STRNCPY(ct->subtarget, curbone->name);
+            STRNCPY_UTF8(ct->subtarget, curbone->name);
             changed = true;
           }
         }
@@ -192,7 +193,7 @@ static void joined_armature_fix_animdata_cb(
                 }
                 if (STREQ(dtar->pchan_name, old_name)) {
                   /* Change target bone name */
-                  STRNCPY(dtar->pchan_name, new_name);
+                  STRNCPY_UTF8(dtar->pchan_name, new_name);
                   break; /* no need to try any more names for bone subtarget */
                 }
               }
@@ -241,7 +242,7 @@ static void joined_armature_fix_links(
       if (ob->partype == PARBONE) {
         /* bone name in object */
         if (STREQ(ob->parsubstr, pchan->name)) {
-          STRNCPY(ob->parsubstr, curbone->name);
+          STRNCPY_UTF8(ob->parsubstr, curbone->name);
         }
       }
 
@@ -450,7 +451,7 @@ wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op)
         joined_armature_fix_links(bmain, ob_active, ob_iter, pchan, curbone);
 
         /* Rename pchan */
-        STRNCPY(pchan->name, curbone->name);
+        STRNCPY_UTF8(pchan->name, curbone->name);
 
         /* Jump Ship! */
         BLI_remlink(curarm->edbo, curbone);
@@ -650,9 +651,7 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
     curbone = ED_armature_ebone_find_name(arm->edbo, pchan->name);
 
     /* check if bone needs to be removed */
-    if (is_select == (blender::animrig::bone_is_visible_editbone(arm, curbone) &&
-                      (curbone->flag & BONE_SELECTED)))
-    {
+    if (is_select == blender::animrig::bone_is_selected(arm, curbone)) {
 
       /* Clear the bone->parent var of any bone that had this as its parent. */
       LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {

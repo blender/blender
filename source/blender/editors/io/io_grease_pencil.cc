@@ -10,6 +10,7 @@
 
 #  include "BLI_path_utils.hh"
 #  include "BLI_string.h"
+#  include "BLI_string_utf8.h"
 
 #  include "DNA_space_types.h"
 #  include "DNA_view3d_types.h"
@@ -581,10 +582,10 @@ namespace blender::ed::io {
 void grease_pencil_file_handler_add()
 {
   auto fh = std::make_unique<blender::bke::FileHandlerType>();
-  STRNCPY(fh->idname, "IO_FH_grease_pencil_svg");
-  STRNCPY(fh->import_operator, "WM_OT_grease_pencil_import_svg");
-  STRNCPY(fh->label, "SVG as Grease Pencil");
-  STRNCPY(fh->file_extensions_str, ".svg");
+  STRNCPY_UTF8(fh->idname, "IO_FH_grease_pencil_svg");
+  STRNCPY_UTF8(fh->import_operator, "WM_OT_grease_pencil_import_svg");
+  STRNCPY_UTF8(fh->label, "SVG as Grease Pencil");
+  STRNCPY_UTF8(fh->file_extensions_str, ".svg");
   fh->poll_drop = poll_file_object_drop;
   bke::file_handler_add(std::move(fh));
 }

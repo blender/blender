@@ -14,12 +14,11 @@ class NODE_MT_category_compositor_input(Menu):
     bl_label = "Input"
 
     def draw(self, context):
-        snode = context.space_data
-        is_group = (len(snode.path) > 1)
-
+        del context
         layout = self.layout
         layout.menu("NODE_MT_category_compositor_input_constant")
         layout.separator()
+        node_add_menu.add_node_type(layout, "NodeGroupInput")
         node_add_menu.add_node_type(layout, "CompositorNodeBokehImage")
         node_add_menu.add_node_type(layout, "CompositorNodeImage")
         node_add_menu.add_node_type(layout, "CompositorNodeImageInfo")
@@ -27,9 +26,6 @@ class NODE_MT_category_compositor_input(Menu):
         node_add_menu.add_node_type(layout, "CompositorNodeMask")
         node_add_menu.add_node_type(layout, "CompositorNodeMovieClip")
 
-        if is_group:
-            layout.separator()
-            node_add_menu.add_node_type(layout, "NodeGroupInput")
         layout.separator()
         layout.menu("NODE_MT_category_compositor_input_scene")
 
@@ -67,18 +63,12 @@ class NODE_MT_category_compositor_output(Menu):
     bl_label = "Output"
 
     def draw(self, context):
-        snode = context.space_data
-        is_group = (len(snode.path) > 1)
-
+        del context
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeComposite")
+        node_add_menu.add_node_type(layout, "NodeGroupOutput")
         node_add_menu.add_node_type(layout, "CompositorNodeViewer")
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodeOutputFile")
-
-        if is_group:
-            layout.separator()
-            node_add_menu.add_node_type(layout, "NodeGroupOutput")
 
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
@@ -135,8 +125,8 @@ class NODE_MT_category_compositor_color_mix(Menu):
         node_add_menu.add_node_type(layout, "CompositorNodeCombineColor")
         node_add_menu.add_node_type(layout, "CompositorNodeSeparateColor")
         layout.separator()
-        node_add_menu.add_color_mix_node(context, layout)
         node_add_menu.add_node_type(layout, "CompositorNodeZcombine")
+        node_add_menu.add_color_mix_node(context, layout)
         node_add_menu.draw_assets_for_catalog(layout, "Color/Mix")
 
 

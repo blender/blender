@@ -54,7 +54,6 @@ struct GPUCapabilities {
   int max_parallel_compilations = -1;
 
   /* OpenGL related workarounds. */
-  bool mip_render_workaround = false;
   bool depth_blitting_workaround = false;
   bool use_main_context_workaround = false;
   bool broken_amd_driver = false;

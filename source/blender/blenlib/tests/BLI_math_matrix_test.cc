@@ -4,11 +4,13 @@
 
 #include "testing/testing.h"
 
+#include "BLI_array.hh"
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_rotation.hh"
+#include "BLI_rand.hh"
 
 TEST(math_matrix, interp_m4_m4m4_regular)
 {
@@ -625,6 +627,45 @@ TEST(math_matrix, ToQuaternionSafe)
   /* This is mainly testing if there are any asserts hit because the matrix has shearing. */
   Quaternion rotation = math::normalized_to_quaternion_safe(normalize(mat));
   EXPECT_M3_NEAR(from_rotation<float3x3>(rotation), expect, 1e-5);
+}
+
+static void transform_normals_test(const float3x3 &transform, const Span<float3> normals)
+{
+  Array<float3, 10> transformed_normals(normals.size());
+  transform_normals(normals, transform, transformed_normals);
+  /* Input unit vectors should still be unit length. */
+  for (const int64_t i : transformed_normals.index_range()) {
+    EXPECT_NEAR(math::length(transformed_normals[i]), 1.0f, 1e-6f);
+  }
+  /* Make sure any optimization inside #transform_normals that skips the final vector normalization
+   * doesn't change the result. */
+  const float3x3 normal_transform = math::transpose(math::invert(transform));
+  for (const int64_t i : normals.index_range()) {
+    const float3 transformed_then_normalized = math::normalize(normal_transform * normals[i]);
+    EXPECT_V3_NEAR(transformed_normals[i], transformed_then_normalized, 1e-6f);
+  }
+}
+
+TEST(math_matrix, TransformNormals)
+{
+  RandomNumberGenerator rng;
+  Array<float3, 10> normals(10);
+  for (const int64_t i : normals.index_range()) {
+    normals[i] = rng.get_unit_float3();
+  }
+  for (const int64_t i : normals.index_range()) {
+    EXPECT_NEAR(math::length(normals[i]), 1.0f, 1e-6f);
+  }
+
+  transform_normals_test(float3x3::identity(), normals);
+  transform_normals_test(from_rotation<float3x3>(EulerXYZ(4.2f, 0.2f, -3.2f)), normals);
+  transform_normals_test(float3x3::diagonal(0.5f), normals);
+  transform_normals_test(float3x3::diagonal(10.5f), normals);
+  transform_normals_test(from_scale<float3x3>(float3(0.5f, 1.5f, 5.7f)), normals);
+  transform_normals_test(from_rot_scale<float3x3>(EulerXYZ(0.0f, 7.1f, 3.14f), float3(2.15f)),
+                         normals);
+  transform_normals_test(
+      from_rot_scale<float3x3>(EulerXYZ(0.0f, 7.1f, 3.14f), float3(0.5f, 1.5f, 5.7f)), normals);
 }
 
 }  // namespace blender::tests

@@ -16,6 +16,7 @@
 #include "DNA_defaults.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "DEG_depsgraph_query.hh"
 

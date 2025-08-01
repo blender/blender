@@ -178,6 +178,25 @@ blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
   ParticleHairCache *hair_cache = drw_hair_particle_cache_get(
       object, psys, md, gpu_material, subdiv, thickness_res);
 
+  /* TODO(fclem): Remove Global access. */
+  CurvesModule &module = *drw_get().data->curves_module;
+
+  /* Ensure we have no unbound resources.
+   * Required for Vulkan.
+   * Fixes issues with certain GL drivers not drawing anything. */
+  sub_ps.bind_texture("u", module.dummy_vbo);
+  sub_ps.bind_texture("au", module.dummy_vbo);
+  sub_ps.bind_texture("a", module.dummy_vbo);
+  sub_ps.bind_texture("c", module.dummy_vbo);
+  sub_ps.bind_texture("ac", module.dummy_vbo);
+  if (gpu_material) {
+    ListBase attr_list = GPU_material_attributes(gpu_material);
+    ListBaseWrapper<GPUMaterialAttribute> attrs(attr_list);
+    for (const GPUMaterialAttribute *attr : attrs) {
+      sub_ps.bind_texture(attr->input_name, module.dummy_vbo);
+    }
+  }
+
   /* TODO: optimize this. Only bind the ones #GPUMaterial needs. */
   for (int i : IndexRange(hair_cache->num_uv_layers)) {
     for (int n = 0; n < MAX_LAYER_NAME_CT && hair_cache->uv_layer_names[i][n][0] != '\0'; n++) {
@@ -188,21 +207,6 @@ blender::gpu::Batch *hair_sub_pass_setup_implementation(PassT &sub_ps,
     for (int n = 0; n < MAX_LAYER_NAME_CT && hair_cache->col_layer_names[i][n][0] != '\0'; n++) {
       sub_ps.bind_texture(hair_cache->col_layer_names[i][n], hair_cache->col_tex[i]);
     }
-  }
-
-  /* TODO(fclem): Remove Global access. */
-  CurvesModule &module = *drw_get().data->curves_module;
-
-  /* Fix issue with certain driver not drawing anything if there is nothing bound to
-   * "ac", "au", "u" or "c". */
-  if (hair_cache->num_uv_layers == 0) {
-    sub_ps.bind_texture("u", module.dummy_vbo);
-    sub_ps.bind_texture("au", module.dummy_vbo);
-    sub_ps.bind_texture("a", module.dummy_vbo);
-  }
-  if (hair_cache->num_col_layers == 0) {
-    sub_ps.bind_texture("c", module.dummy_vbo);
-    sub_ps.bind_texture("ac", module.dummy_vbo);
   }
 
   float4x4 dupli_mat = ob_ref.particles_matrix();

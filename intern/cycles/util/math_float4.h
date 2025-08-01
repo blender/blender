@@ -655,4 +655,12 @@ ccl_device_inline float4 __int4_as_float4(const int4 i)
 }
 #endif /* !defined(__KERNEL_METAL__) && !defined(__KERNEL_ONEAPI__) */
 
+ccl_device_inline void copy_v4_v4(ccl_private float *r, const float4 val)
+{
+  r[0] = val.x;
+  r[1] = val.y;
+  r[2] = val.z;
+  r[3] = val.w;
+}
+
 CCL_NAMESPACE_END

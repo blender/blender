@@ -17,7 +17,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -181,9 +181,9 @@ static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
 static void hud_panels_register(ARegionType *art, int space_type, int region_type)
 {
   PanelType *pt = MEM_callocN<PanelType>(__func__);
-  STRNCPY(pt->idname, "OPERATOR_PT_redo");
-  STRNCPY(pt->label, N_("Redo"));
-  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(pt->idname, "OPERATOR_PT_redo");
+  STRNCPY_UTF8(pt->label, N_("Redo"));
+  STRNCPY_UTF8(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw_header = hud_panel_operator_redo_draw_header;
   pt->draw = hud_panel_operator_redo_draw;
   pt->poll = hud_panel_operator_redo_poll;

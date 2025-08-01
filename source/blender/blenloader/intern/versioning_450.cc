@@ -17,6 +17,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_pointcloud_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 
 #include "BLI_listbase.h"
@@ -2695,7 +2696,7 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
 
   /* Find links going into the composite and viewer nodes. */
   LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
-    if (!ELEM(link->tonode->type_legacy, CMP_NODE_COMPOSITE, CMP_NODE_VIEWER)) {
+    if (!ELEM(link->tonode->type_legacy, CMP_NODE_COMPOSITE_DEPRECATED, CMP_NODE_VIEWER)) {
       continue;
     }
 
@@ -2708,7 +2709,7 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
   }
 
   LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
-    if (!ELEM(node->type_legacy, CMP_NODE_COMPOSITE, CMP_NODE_VIEWER)) {
+    if (!ELEM(node->type_legacy, CMP_NODE_COMPOSITE_DEPRECATED, CMP_NODE_VIEWER)) {
       continue;
     }
 
@@ -3221,6 +3222,10 @@ static void do_version_translate_node_remove_relative(bNodeTree *node_tree)
     }
 
     const NodeTranslateData *data = static_cast<NodeTranslateData *>(node->storage);
+    if (!data) {
+      continue;
+    }
+
     if (!bool(data->relative)) {
       continue;
     }
@@ -4937,6 +4942,20 @@ static void version_convert_sculpt_planar_brushes(Main *bmain)
         brush->plane_inversion_mode = brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL ?
                                           BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH :
                                           BRUSH_PLANE_INVERT_DISPLACEMENT;
+
+        /* Note, this fix was committed after some users had already run the versioning after
+         * 4.5 was released. Since 4.5 is an LTS and will be used for the foreseeable future to
+         * transition between 4.x and 5.x the fix has been added here, even though that does
+         * not fix the issue for some users with custom brush assets who have started using 4.5
+         * already.
+         *
+         * Since the `sculpt_brush_type` field changed from 'SCULPT_BRUSH_TYPE_SCRAPE' to
+         * 'SCULPT_BRUSH_TYPE_PLANE', we do not have a value that can be used to definitively apply
+         * a corrective versioning step along with a subversion bump without potentially affecting
+         * some false positives.
+         *
+         * See #142151 for more details. */
+        brush->plane_offset *= -1.0f;
       }
 
       if (brush->flag & BRUSH_PLANE_TRIM) {

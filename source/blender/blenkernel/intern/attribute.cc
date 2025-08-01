@@ -681,7 +681,7 @@ const CustomDataLayer *BKE_attribute_search(const AttributeOwner &owner,
 
     for (int i = 0; i < customdata->totlayer; i++) {
       CustomDataLayer *layer = &customdata->layers[i];
-      if ((CD_TYPE_AS_MASK(layer->type) & type_mask) && layer->name == name) {
+      if ((CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & type_mask) && layer->name == name) {
         return layer;
       }
     }
@@ -833,7 +833,7 @@ std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOw
     }
     for (int i = 0; i < customdata->totlayer; i++) {
       CustomDataLayer *layer = &customdata->layers[i];
-      if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(layer->type)) {
+      if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(eCustomDataType(layer->type))) {
         if (index == active_index) {
           if (blender::bke::allow_procedural_attribute_access(layer->name)) {
             return layer->name;
@@ -932,7 +932,7 @@ CustomDataLayer *BKE_attribute_from_index(AttributeOwner &owner,
     }
 
     for (int i = 0; i < customdata->totlayer; i++) {
-      if (!(layer_mask & CD_TYPE_AS_MASK(customdata->layers[i].type)) ||
+      if (!(layer_mask & CD_TYPE_AS_MASK(eCustomDataType(customdata->layers[i].type))) ||
           (customdata->layers[i].flag & CD_FLAG_TEMPORARY))
       {
         continue;
@@ -970,7 +970,7 @@ int BKE_attribute_to_index(const AttributeOwner &owner,
 
     for (int i = 0; i < customdata->totlayer; i++) {
       const CustomDataLayer *layer_iter = customdata->layers + i;
-      if (!(layer_mask & CD_TYPE_AS_MASK(layer_iter->type)) ||
+      if (!(layer_mask & CD_TYPE_AS_MASK(eCustomDataType(layer_iter->type))) ||
           (layer_iter->flag & CD_FLAG_TEMPORARY))
       {
         continue;

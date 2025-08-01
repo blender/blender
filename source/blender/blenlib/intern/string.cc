@@ -158,15 +158,12 @@ size_t BLI_vsnprintf(char *__restrict dst,
 {
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  size_t n;
-
   BLI_assert(dst != nullptr);
   BLI_assert(dst_maxncpy > 0);
   BLI_assert(format != nullptr);
 
-  n = size_t(vsnprintf(dst, dst_maxncpy, format, arg));
-
-  if (n != size_t(-1) && n < dst_maxncpy) {
+  const size_t n = size_t(vsnprintf(dst, dst_maxncpy, format, arg));
+  if (n < dst_maxncpy) {
     dst[n] = '\0';
   }
   else {
@@ -183,15 +180,12 @@ size_t BLI_vsnprintf_rlen(char *__restrict dst,
 {
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  size_t n;
-
   BLI_assert(dst != nullptr);
   BLI_assert(dst_maxncpy > 0);
   BLI_assert(format != nullptr);
 
-  n = size_t(vsnprintf(dst, dst_maxncpy, format, arg));
-
-  if (n != size_t(-1) && n < dst_maxncpy) {
+  size_t n = size_t(vsnprintf(dst, dst_maxncpy, format, arg));
+  if (n < dst_maxncpy) {
     /* pass */
   }
   else {
@@ -206,11 +200,9 @@ size_t BLI_snprintf(char *__restrict dst, size_t dst_maxncpy, const char *__rest
 {
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  size_t n;
   va_list arg;
-
   va_start(arg, format);
-  n = BLI_vsnprintf(dst, dst_maxncpy, format, arg);
+  const size_t n = BLI_vsnprintf(dst, dst_maxncpy, format, arg);
   va_end(arg);
 
   return n;
@@ -223,11 +215,9 @@ size_t BLI_snprintf_rlen(char *__restrict dst,
 {
   BLI_string_debug_size(dst, dst_maxncpy);
 
-  size_t n;
   va_list arg;
-
   va_start(arg, format);
-  n = BLI_vsnprintf_rlen(dst, dst_maxncpy, format, arg);
+  const size_t n = BLI_vsnprintf_rlen(dst, dst_maxncpy, format, arg);
   va_end(arg);
 
   return n;

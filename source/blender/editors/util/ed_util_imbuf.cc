@@ -276,7 +276,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 
 static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   ARegion *region = CTX_wm_region(C);
   ImBuf *ibuf = blender::ed::vse::sequencer_ibuf_get(C, scene->r.cfra, nullptr);
   ImageSampleInfo *info = static_cast<ImageSampleInfo *>(op->customdata);
@@ -540,7 +540,7 @@ bool ED_imbuf_sample_poll(bContext *C)
       if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
         return false;
       }
-      if (blender::seq::editing_get(CTX_data_scene(C)) == nullptr) {
+      if (blender::seq::editing_get(CTX_data_sequencer_scene(C)) == nullptr) {
         return false;
       }
       ARegion *region = CTX_wm_region(C);

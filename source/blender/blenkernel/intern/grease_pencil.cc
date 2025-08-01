@@ -52,6 +52,7 @@
 #include "BLI_stack.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
@@ -287,6 +288,8 @@ static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *i
   attribute_storage_blend_write_prepare(grease_pencil->attribute_storage.wrap(), attribute_data);
   grease_pencil->attribute_storage.dna_attributes = attribute_data.attributes.data();
   grease_pencil->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
+
+  CustomData_reset(&grease_pencil->layers_data_legacy);
 
   /* Write LibData */
   BLO_write_id_struct(writer, GreasePencil, id_address, &grease_pencil->id);
@@ -638,7 +641,7 @@ static float3x2 get_stroke_to_texture_matrix(const float uv_rotation,
   return texture_matrix;
 }
 
-static float4x3 expand_4x2_mat(float4x2 strokemat)
+static float4x3 expand_4x2_mat(const float4x2 &strokemat)
 {
   float4x3 strokemat4x3 = float4x3(strokemat);
 
@@ -725,8 +728,9 @@ void Drawing::set_texture_matrices(Span<float4x2> matrices, const IndexMask &sel
     const double4x3 strokemat4x3 = double4x3(expand_4x2_mat(strokemat));
 
     /*
-     * We want to solve for `texture_matrix` in the equation: `texspace = texture_matrix *
-     * strokemat4x3` Because these matrices are not square we can not use a standard inverse.
+     * We want to solve for `texture_matrix` in the equation:
+     * `texspace = texture_matrix * strokemat4x3`
+     * Because these matrices are not square we can not use a standard inverse.
      *
      * Our problem has the form of: `X = A * Y`
      * We can solve for `A` using: `A = X * B`
@@ -2129,7 +2133,7 @@ void BKE_grease_pencil_vgroup_name_update(Object *ob, const char *old_name, cons
     CurvesGeometry &curves = drawing.strokes_for_write();
     LISTBASE_FOREACH (bDeformGroup *, vgroup, &curves.vertex_group_names) {
       if (STREQ(vgroup->name, old_name)) {
-        STRNCPY(vgroup->name, new_name);
+        STRNCPY_UTF8(vgroup->name, new_name);
       }
     }
   }
@@ -3160,10 +3164,6 @@ void GreasePencil::remove_drawings_with_no_users()
   using namespace blender;
   using namespace blender::bke::greasepencil;
 
-#ifndef NDEBUG
-  this->validate_drawing_user_counts();
-#endif
-
   /* Compress the drawings array by finding unused drawings.
    * In every step two indices are found:
    *   - The next unused drawing from the start
@@ -3903,7 +3903,7 @@ static void reorder_layer_data(GreasePencil &grease_pencil,
     const bke::greasepencil::Layer *layer = layers[layer_i_new];
     BLI_assert(old_layer_index_by_layer.contains(layer));
     const int layer_i_old = old_layer_index_by_layer.pop(layer);
-    new_by_old_map[layer_i_old] = layer_i_new;
+    new_by_old_map[layer_i_new] = layer_i_old;
   }
   BLI_assert(old_layer_index_by_layer.is_empty());
 

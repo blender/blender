@@ -111,6 +111,7 @@ void CLG_logf(const CLG_LogType *lg,
               const char *fn,
               const char *format,
               ...) _CLOG_ATTR_NONNULL(1, 3, 4, 5) _CLOG_ATTR_PRINTF_FORMAT(5, 6);
+void CLG_log_raw(const CLG_LogType *lg, const char *message);
 
 /* Main initializer and destructor (per session, not logger). */
 void CLG_init();
@@ -133,6 +134,13 @@ void CLG_level_set(CLG_Level level);
 void CLG_logref_init(CLG_LogRef *clg_ref);
 
 int CLG_color_support_get(CLG_LogRef *clg_ref);
+
+/* When true, quiet any NOCHECK logs that would otherwise be printed regardless of log filters
+ * and levels. This is used so command line tools can control output without unnecessary noise.
+ *
+ * Note this does not silence log filters and levels that have been explicitly enabled. */
+void CLG_quiet_set(bool quiet);
+bool CLG_quiet_get();
 
 /** Declare outside function, declare as extern in header. */
 #define CLG_LOGREF_DECLARE_GLOBAL(var, id) \
@@ -158,7 +166,9 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
 #define CLOG_AT_LEVEL_NOCHECK(clg_ref, verbose_level, ...) \
   { \
     const CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
-    CLG_logf(_lg_ty, verbose_level, __FILE__ ":" STRINGIFY(__LINE__), __func__, __VA_ARGS__); \
+    if (!CLG_quiet_get() || _lg_ty->level >= verbose_level) { \
+      CLG_logf(_lg_ty, verbose_level, __FILE__ ":" STRINGIFY(__LINE__), __func__, __VA_ARGS__); \
+    } \
   } \
   ((void)0)
 
@@ -174,10 +184,13 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
 #define CLOG_STR_AT_LEVEL_NOCHECK(clg_ref, verbose_level, str) \
   { \
     const CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
-    CLG_log_str(_lg_ty, verbose_level, __FILE__ ":" STRINGIFY(__LINE__), __func__, str); \
+    if (!CLG_quiet_get() || _lg_ty->level >= verbose_level) { \
+      CLG_log_str(_lg_ty, verbose_level, __FILE__ ":" STRINGIFY(__LINE__), __func__, str); \
+    } \
   } \
   ((void)0)
 
+/* Log with format string. */
 #define CLOG_FATAL(clg_ref, ...) CLOG_AT_LEVEL(clg_ref, CLG_LEVEL_FATAL, __VA_ARGS__)
 #define CLOG_ERROR(clg_ref, ...) CLOG_AT_LEVEL(clg_ref, CLG_LEVEL_ERROR, __VA_ARGS__)
 #define CLOG_WARN(clg_ref, ...) CLOG_AT_LEVEL(clg_ref, CLG_LEVEL_WARN, __VA_ARGS__)
@@ -185,6 +198,7 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
 #define CLOG_DEBUG(clg_ref, ...) CLOG_AT_LEVEL(clg_ref, CLG_LEVEL_DEBUG, __VA_ARGS__)
 #define CLOG_TRACE(clg_ref, ...) CLOG_AT_LEVEL(clg_ref, CLG_LEVEL_TRACE, __VA_ARGS__)
 
+/* Log single string. */
 #define CLOG_STR_FATAL(clg_ref, str) CLOG_STR_AT_LEVEL(clg_ref, CLG_LEVEL_FATAL, str)
 #define CLOG_STR_ERROR(clg_ref, str) CLOG_STR_AT_LEVEL(clg_ref, CLG_LEVEL_ERROR, str)
 #define CLOG_STR_WARN(clg_ref, str) CLOG_STR_AT_LEVEL(clg_ref, CLG_LEVEL_WARN, str)
@@ -192,6 +206,8 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
 #define CLOG_STR_DEBUG(clg_ref, str) CLOG_STR_AT_LEVEL(clg_ref, CLG_LEVEL_DEBUG, str)
 #define CLOG_STR_TRACE(clg_ref, str) CLOG_STR_AT_LEVEL(clg_ref, CLG_LEVEL_TRACE, str)
 
+/* Log regardless of filters and levels, for a few important messages like blend save and load.
+ * Only #CLG_quiet_set will silence these. */
 #define CLOG_INFO_NOCHECK(clg_ref, format, ...) \
   CLOG_AT_LEVEL_NOCHECK(clg_ref, CLG_LEVEL_INFO, format, __VA_ARGS__)
 #define CLOG_STR_INFO_NOCHECK(clg_ref, str) CLOG_STR_AT_LEVEL_NOCHECK(clg_ref, CLG_LEVEL_INFO, str)

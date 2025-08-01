@@ -1149,7 +1149,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
   search[0] = '\0';
 #if 0 /* Ok, this isn't so easy. */
   uiDefBut(block,
-           UI_BTYPE_LABEL,
+           ButType::Label,
            0,
            WM_operatortype_name(op->type, op->ptr),
            0,
@@ -1175,7 +1175,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
                                    "");
 
   /* Fake button, it holds space for search items. */
-  uiDefBut(block, UI_BTYPE_LABEL, 0, "", 0, -height, width, height, nullptr, 0, 0, std::nullopt);
+  uiDefBut(block, ButType::Label, 0, "", 0, -height, width, height, nullptr, 0, 0, std::nullopt);
 
   /* Move it downwards, mouse over button. */
   UI_block_bounds_set_popup(block, UI_SEARCHBOX_BOUNDS, blender::int2{0, -UI_UNIT_Y});
@@ -1631,7 +1631,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
 
     if (windows_layout) {
       confirm_but = uiDefBut(col_block,
-                             UI_BTYPE_BUT,
+                             ButType::But,
                              0,
                              data->confirm_text.c_str(),
                              0,
@@ -1646,12 +1646,12 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
     }
 
     cancel_but = uiDefBut(
-        col_block, UI_BTYPE_BUT, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
+        col_block, ButType::But, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
 
     if (!windows_layout) {
       col->column(false);
       confirm_but = uiDefBut(col_block,
-                             UI_BTYPE_BUT,
+                             ButType::But,
                              0,
                              data->confirm_text.c_str(),
                              0,
@@ -2046,7 +2046,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
   /* Fake button, it holds space for search items. */
   const int height = init_data->size[1] - UI_SEARCHBOX_BOUNDS;
   uiDefBut(block,
-           UI_BTYPE_LABEL,
+           ButType::Label,
            0,
            "",
            0,
@@ -2561,7 +2561,7 @@ struct RadialControl {
   int slow_mouse[2] = {};
   bool slow_mode = false;
   Dial *dial = nullptr;
-  GPUTexture *texture = nullptr;
+  blender::gpu::Texture *texture = nullptr;
   ListBase orig_paintcursors = {};
   bool use_secondary_tex = false;
   void *cursor = nullptr;
@@ -2601,7 +2601,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
         SNPRINTF(msg, "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
         break;
       default:
-        SNPRINTF(msg, "%s", ui_name); /* XXX: No value? */
+        STRNCPY(msg, ui_name); /* XXX: No value? */
         break;
     }
   }
@@ -2665,7 +2665,7 @@ static void radial_control_set_tex(RadialControl *rc)
                                             ibuf->x,
                                             ibuf->y,
                                             1,
-                                            GPU_R8,
+                                            blender::gpu::TextureFormat::UNORM_8,
                                             GPU_TEXTURE_USAGE_SHADER_READ,
                                             ibuf->float_buffer.data);
 

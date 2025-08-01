@@ -711,7 +711,7 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
     if (viewport == nullptr) {
       return nullptr;
     }
-    GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
+    blender::gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
     GPUFrameBuffer *depth_read_fb = nullptr;
     GPU_framebuffer_ensure_config(&depth_read_fb,
                                   {

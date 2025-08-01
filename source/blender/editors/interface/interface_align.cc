@@ -97,13 +97,13 @@ enum {
 bool ui_but_can_align(const uiBut *but)
 {
   const bool btype_can_align = !ELEM(but->type,
-                                     UI_BTYPE_LABEL,
-                                     UI_BTYPE_CHECKBOX,
-                                     UI_BTYPE_CHECKBOX_N,
-                                     UI_BTYPE_TAB,
-                                     UI_BTYPE_SEPR,
-                                     UI_BTYPE_SEPR_LINE,
-                                     UI_BTYPE_SEPR_SPACER);
+                                     ButType::Label,
+                                     ButType::Checkbox,
+                                     ButType::CheckboxN,
+                                     ButType::Tab,
+                                     ButType::Sepr,
+                                     ButType::SeprLine,
+                                     ButType::SeprSpacer);
   return (btype_can_align && (BLI_rctf_size_x(&but->rect) > 0.0f) &&
           (BLI_rctf_size_y(&but->rect) > 0.0f));
 }
@@ -378,7 +378,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
    * Tabs get some special treatment here, they get aligned to region border. */
   for (const std::unique_ptr<uiBut> &but : block->buttons) {
     /* special case: tabs need to be aligned to a region border, drawflag tells which one */
-    if (but->type == UI_BTYPE_TAB) {
+    if (but->type == ButType::Tab) {
       ui_block_align_but_to_region(but.get(), region);
     }
     else {
@@ -525,12 +525,12 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
 bool ui_but_can_align(const uiBut *but)
 {
   return !ELEM(but->type,
-               UI_BTYPE_LABEL,
-               UI_BTYPE_CHECKBOX,
-               UI_BTYPE_CHECKBOX_N,
-               UI_BTYPE_SEPR,
-               UI_BTYPE_SEPR_LINE,
-               UI_BTYPE_SEPR_SPACER);
+               ButType::Label,
+               ButType::Checkbox,
+               ButType::CheckboxN,
+               ButType::Sepr,
+               ButType::SeprLine,
+               ButType::SeprSpacer);
 }
 
 static bool buts_are_horiz(uiBut *but1, uiBut *but2)

@@ -16,6 +16,14 @@
 
 struct AnimData;
 struct Object;
+#ifdef __cplusplus
+namespace blender::gpu {
+class Texture;
+}  // namespace blender::gpu
+using GPUTexture = blender::gpu::Texture;
+#else
+typedef struct GPUTexture GPUTexture;
+#endif
 
 typedef struct LightProbe {
 #ifdef __cplusplus
@@ -163,7 +171,7 @@ BLI_STATIC_ASSERT_ALIGN(LightGridCache, 16)
 /* ------ Eevee Lightcache ------- */
 
 typedef struct LightCacheTexture {
-  struct GPUTexture *tex;
+  GPUTexture *tex;
   /** Copy of GPU data to create GPUTextures on file read. */
   char *data;
   int tex_size[3];
@@ -192,7 +200,7 @@ typedef struct LightCache {
   LightCacheTexture grid_tx;
   /** Contains data for mipmap level 0. */
   LightCacheTexture cube_tx;
-  /** Does not contains valid GPUTexture, only data. */
+  /** Does not contains valid blender::gpu::Texture, only data. */
   LightCacheTexture *cube_mips;
   /* All light-probes data contained in the cache. */
   LightProbeCache *cube_data;

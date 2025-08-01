@@ -29,7 +29,7 @@ PyDoc_STRVAR(
     "            __init__(it)\n"
     "\n"
     "   Construct a nested Interface0DIterator using either the copy constructor\n"
-    "   or the constructor that takes an he argument of a Function0D.\n"
+    "   or the constructor that takes an argument of a Function0D.\n"
     "\n"
     "   :arg brother: An Interface0DIterator object.\n"
     "   :type brother: :class:`Interface0DIterator`\n"

@@ -11,6 +11,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
@@ -1829,9 +1830,35 @@ static const EnumPropertyItem file_external_operation[] = {
 
 static wmOperatorStatus file_external_operation_exec(bContext *C, wmOperator *op)
 {
-  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
+  if (!ED_operator_file_browsing_active(C)) {
+    /* File browsing only operator (not asset browsing). */
+    return OPERATOR_CANCELLED;
+  }
+
+  SpaceFile *sfile = CTX_wm_space_file(C);
+  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  if (!sfile || !params) {
+    return OPERATOR_CANCELLED;
+  }
+  char dir[FILE_MAX_LIBEXTRA];
+  if (filelist_islibrary(sfile->files, dir, nullptr)) {
+    return OPERATOR_CANCELLED;
+  }
+  int numfiles = filelist_files_ensure(sfile->files);
+  FileDirEntry *fileentry = nullptr;
+  int num_selected = 0;
+  for (int i = 0; i < numfiles; i++) {
+    if (filelist_entry_select_index_get(sfile->files, i, CHECK_ALL)) {
+      fileentry = filelist_file(sfile->files, i);
+      num_selected++;
+    }
+  }
+  if (!fileentry || num_selected > 1) {
+    return OPERATOR_CANCELLED;
+  }
+
   char filepath[FILE_MAX];
-  RNA_property_string_get(op->ptr, prop, filepath);
+  filelist_file_get_full_path(sfile->files, fileentry, filepath);
 
   WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
 
@@ -1874,8 +1901,6 @@ static std::string file_external_operation_get_description(bContext * /*C*/,
 
 void FILE_OT_external_operation(wmOperatorType *ot)
 {
-  PropertyRNA *prop;
-
   /* identifiers */
   ot->name = "External File Operation";
   ot->idname = "FILE_OT_external_operation";
@@ -1889,16 +1914,12 @@ void FILE_OT_external_operation(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER; /* No undo! */
 
   /* properties */
-  prop = RNA_def_string(ot->srna, "filepath", nullptr, FILE_MAX, "File or folder path", "");
-  RNA_def_property_subtype(prop, PROP_FILEPATH);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
   RNA_def_enum(ot->srna,
                "operation",
                file_external_operation,
                FILE_EXTERNAL_OPERATION_OPEN,
                "Operation",
-               "Operation to perform on the file or path");
+               "Operation to perform on the selected file or path");
 }
 
 static void file_os_operations_menu_item(uiLayout *layout,
@@ -1911,6 +1932,7 @@ static void file_os_operations_menu_item(uiLayout *layout,
     return;
   }
 #else
+  UNUSED_VARS(path);
   if (!ELEM(operation, FILE_EXTERNAL_OPERATION_OPEN, FILE_EXTERNAL_OPERATION_FOLDER_OPEN)) {
     return;
   }
@@ -1921,10 +1943,7 @@ static void file_os_operations_menu_item(uiLayout *layout,
 
   PointerRNA props_ptr = layout->op(
       ot, IFACE_(title), ICON_NONE, blender::wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-  RNA_string_set(&props_ptr, "filepath", path);
-  if (operation) {
-    RNA_enum_set(&props_ptr, "operation", operation);
-  }
+  RNA_enum_set(&props_ptr, "operation", operation);
 }
 
 static void file_os_operations_menu_draw(const bContext *C_const, Menu *menu)
@@ -2038,9 +2057,9 @@ void file_external_operations_menu_register()
   MenuType *mt;
 
   mt = MEM_callocN<MenuType>("spacetype file menu file operations");
-  STRNCPY(mt->idname, "FILEBROWSER_MT_operations_menu");
-  STRNCPY(mt->label, N_("External"));
-  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY_UTF8(mt->idname, "FILEBROWSER_MT_operations_menu");
+  STRNCPY_UTF8(mt->label, N_("External"));
+  STRNCPY_UTF8(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = file_os_operations_menu_draw;
   mt->poll = file_os_operations_menu_poll;
   WM_menutype_add(mt);
@@ -2479,7 +2498,7 @@ static wmOperatorStatus file_smoothscroll_invoke(bContext *C,
                               (min_curr_scroll - min_tot_scroll < 1.0f) &&
                               (middle_offset - min_middle_offset < items_block_size));
   /* OR edited item must be towards the end, and we are scrolled fully to the end.
-   * This one is crucial (unlike the one for the beginning), because without it we won't scroll
+   * This one is crucial (unlike the one for the beginning), because without it scrolling
    * fully to the end, and last column or row will end up only partially drawn. */
   const bool is_full_end = ((sfile->scroll_offset > max_middle_offset) &&
                             (max_tot_scroll - max_curr_scroll < 1.0f) &&
@@ -2636,7 +2655,7 @@ static bool new_folder_path(const char *parent,
    * add number to the name. Check length of generated name to avoid
    * crazy case of huge number of folders each named 'New Folder (x)' */
   while (BLI_exists(r_dirpath_full) && (len < FILE_MAXFILE)) {
-    len = BLI_snprintf(r_dirname, FILE_MAXFILE, "New Folder(%d)", i);
+    len = BLI_snprintf_utf8(r_dirname, FILE_MAXFILE, "New Folder(%d)", i);
     BLI_path_join(r_dirpath_full, FILE_MAX, parent, r_dirname);
     i++;
   }

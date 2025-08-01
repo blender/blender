@@ -304,7 +304,7 @@ class AnnotationDataPanel:
             return
 
         row = layout.row()
-        row.template_ID(gpd_owner, "grease_pencil", new="gpencil.annotation_add", unlink="gpencil.data_unlink")
+        row.template_ID(gpd_owner, "annotation", new="gpencil.annotation_add", unlink="gpencil.data_unlink")
 
         # List of layers/notes.
         if gpd and gpd.layers:

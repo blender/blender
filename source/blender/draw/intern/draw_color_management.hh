@@ -8,7 +8,9 @@
 
 #pragma once
 
-struct GPUTexture;
+namespace blender::gpu {
+class Texture;
+}
 struct GPUViewport;
 struct DRWContext;
 

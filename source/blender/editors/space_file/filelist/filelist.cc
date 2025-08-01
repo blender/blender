@@ -2186,10 +2186,17 @@ struct FileListReadJob {
   /* TODO only remote asset library loading respects this so far. */
   std::atomic<bool> cancel;
 
-  /** The path currently being read, relative to the filelist root directory. Needed for recursive
-   * reading. The full file path is then composed like: `<filelist root>/<cur_relbase>/<file name>.
+  /** Code requested to cancel the read job. */
+  /* TODO only remote asset library loading respects this so far. */
+  std::atomic<bool> cancel;
+
+  /**
+   * The path currently being read, relative to the filelist root directory.
+   * Needed for recursive reading. The full file path is then composed like:
+   * `<filelist root>/<cur_relbase>/<file name>`.
    * (whereby the file name may also be a library path within a .blend, e.g.
-   * `Materials/Material.001`). */
+   * `Materials/Material.001`).
+   */
   char cur_relbase[FILE_MAX_LIBEXTRA] = "";
 
   /** The current asset library to load. Usually the same as #FileList.asset_library, however
@@ -2777,16 +2784,16 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
           }
 #  if 0
           if (id->lib && fake) {
-            SNPRINTF(files->extra, "LF %d", id->us);
+            SNPRINTF_UTF8(files->extra, "LF %d", id->us);
           }
           else if (id->lib) {
-            SNPRINTF(files->extra, "L    %d", id->us);
+            SNPRINTF_UTF8(files->extra, "L    %d", id->us);
           }
           else if (fake) {
-            SNPRINTF(files->extra, "F    %d", id->us);
+            SNPRINTF_UTF8(files->extra, "F    %d", id->us);
           }
           else {
-            SNPRINTF(files->extra, "      %d", id->us);
+            SNPRINTF_UTF8(files->extra, "      %d", id->us);
           }
 #  endif
 
@@ -3684,7 +3691,7 @@ static void filelist_readjob_start_ex(FileList *filelist,
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
                        filelist,
-                       "Listing Dirs...",
+                       "Listing directories...",
                        WM_JOB_PROGRESS,
                        filelist_jobtype_get(filelist));
   WM_jobs_customdata_set(wm_job, flrj, filelist_readjob_free);

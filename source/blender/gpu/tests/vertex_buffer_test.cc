@@ -26,10 +26,10 @@ static void vertex_buffer_fetch_mode(ColorType color)
 {
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
   GPUOffScreen *offscreen = GPU_offscreen_create(
-      Size, Size, false, GPU_RGBA32F, usage, false, nullptr);
+      Size, Size, false, TextureFormat::SFLOAT_32_32_32_32, usage, false, nullptr);
   BLI_assert(offscreen != nullptr);
   GPU_offscreen_bind(offscreen, false);
-  GPUTexture *color_texture = GPU_offscreen_color_texture(offscreen);
+  blender::gpu::Texture *color_texture = GPU_offscreen_color_texture(offscreen);
   GPU_texture_clear(color_texture, GPU_DATA_FLOAT, float4(1.0f, 2.0f, 3.0f, 0.0f));
 
   GPUVertFormat format = {0};

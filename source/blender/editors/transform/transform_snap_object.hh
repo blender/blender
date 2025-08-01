@@ -86,6 +86,8 @@ struct SnapObjectContext {
 
     /* Read/write. */
     uint object_index;
+    /* List of #SnapObjectHitDepth (caller must free). */
+    ListBase *hit_list;
 
     eSnapOcclusionTest occlusion_test_edit;
 
@@ -94,7 +96,7 @@ struct SnapObjectContext {
   } runtime;
 
   /* Output. */
-  struct {
+  struct Output {
     /* Location of snapped point on target surface. */
     float3 loc;
     /* Normal of snapped point on target surface. */
@@ -103,8 +105,6 @@ struct SnapObjectContext {
     int index;
     /* Matrix of target object (may not be #Object.object_to_world with dupli-instances). */
     float4x4 obmat;
-    /* List of #SnapObjectHitDepth (caller must free). */
-    ListBase *hit_list;
     /* Snapped object. */
     const Object *ob;
     /* Snapped data. */

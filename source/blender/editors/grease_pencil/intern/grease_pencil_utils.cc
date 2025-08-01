@@ -1548,8 +1548,8 @@ float radius_from_input_sample(const RegionView3D *rv3d,
                                const ARegion *region,
                                const Brush *brush,
                                const float pressure,
-                               const float3 location,
-                               const float4x4 to_world,
+                               const float3 &location,
+                               const float4x4 &to_world,
                                const BrushGpencilSettings *settings)
 {
   float radius = brush_radius_at_location(rv3d, region, brush, location, to_world);
@@ -2001,6 +2001,9 @@ bool remove_fill_guides(bke::CurvesGeometry &curves)
   IndexMaskMemory memory;
   const IndexMask fill_guides = IndexMask::from_bools(is_fill_guide, memory);
   curves.remove_curves(fill_guides, {});
+
+  curves.attributes_for_write().remove(".is_fill_guide");
+
   return true;
 }
 

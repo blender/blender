@@ -42,6 +42,7 @@ void Instance::init()
   state.is_viewport_image_render = ctx->is_viewport_image_render();
   state.is_image_render = ctx->is_image_render();
   state.is_depth_only_drawing = ctx->is_depth();
+  state.skip_particles = ctx->mode == DRWContext::DEPTH_ACTIVE_OBJECT;
   state.is_material_select = ctx->is_material_select();
   state.draw_background = ctx->options.draw_background;
   state.show_text = false;
@@ -131,7 +132,8 @@ void Instance::init()
 
   {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
-    if (resources.dummy_depth_tx.ensure_2d(GPU_DEPTH_COMPONENT32F, int2(1, 1), usage)) {
+    if (resources.dummy_depth_tx.ensure_2d(gpu::TextureFormat::SFLOAT_32_DEPTH, int2(1, 1), usage))
+    {
       float data = 1.0f;
       GPU_texture_update_sub(resources.dummy_depth_tx, GPU_DATA_FLOAT, &data, 0, 0, 0, 1, 1, 1);
     }
@@ -210,7 +212,8 @@ void Instance::ensure_weight_ramp_texture()
     unit_float_to_uchar_clamp_v4(pixels_ubyte[i], pixels[i]);
   }
 
-  resources.weight_ramp_tx.ensure_1d(GPU_SRGB8_A8, res, GPU_TEXTURE_USAGE_SHADER_READ);
+  resources.weight_ramp_tx.ensure_1d(
+      gpu::TextureFormat::SRGBA_8_8_8_8, res, GPU_TEXTURE_USAGE_SHADER_READ);
   GPU_texture_update(resources.weight_ramp_tx, GPU_DATA_UBYTE, pixels_ubyte);
 }
 
@@ -686,7 +689,7 @@ void Instance::end_sync()
                                                    size.x,
                                                    size.y,
                                                    1,
-                                                   GPU_DEPTH32F_STENCIL8,
+                                                   gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
                                                    GPU_TEXTURE_USAGE_GENERAL,
                                                    nullptr);
     }

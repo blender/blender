@@ -27,6 +27,7 @@
 
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 
 #include "fbx_import_anim.hh"
 #include "fbx_import_util.hh"
@@ -345,6 +346,7 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
   }
 
   /* Evaluate transforms at all the key times. */
+  math::Quaternion quat_prev = math::Quaternion::identity();
   for (int64_t i = 0; i < sorted_key_times.size(); i++) {
     double t = sorted_key_times[i];
     float tf = float(t * fps + anim_offset);
@@ -362,6 +364,11 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
     math::Quaternion quat(xform.rotation.w, xform.rotation.x, xform.rotation.y, xform.rotation.z);
     switch (rot_mode) {
       case ROT_MODE_QUAT:
+        /* Ensure shortest interpolation path between consecutive quaternions. */
+        if (i != 0 && math::dot(quat, quat_prev) < 0.0f) {
+          quat = -quat;
+        }
+        quat_prev = quat;
         set_curve_sample(curves[rot_index + 0], i, tf, quat.w);
         set_curve_sample(curves[rot_index + 1], i, tf, quat.x);
         set_curve_sample(curves[rot_index + 2], i, tf, quat.y);

@@ -98,13 +98,13 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   mtl_front_left->remove_all_attachments();
   mtl_back_left->remove_all_attachments();
 
-  GHOST_ContextCGL *ghost_cgl_ctx = dynamic_cast<GHOST_ContextCGL *>(ghost_ctx);
-  if (ghost_cgl_ctx != nullptr) {
-    default_fbo_mtltexture_ = ghost_cgl_ctx->metalOverlayTexture();
+  GHOST_ContextMTL *ghost_mtl_ctx = dynamic_cast<GHOST_ContextMTL *>(ghost_ctx);
+  if (ghost_mtl_ctx != nullptr) {
+    default_fbo_mtltexture_ = ghost_mtl_ctx->metalOverlayTexture();
 
     MTL_LOG_DEBUG(
-        "Binding GHOST context CGL %p to GPU context %p. (Device: %p, queue: %p, texture: %p)",
-        ghost_cgl_ctx,
+        "Binding GHOST context MTL %p to GPU context %p. (Device: %p, queue: %p, texture: %p)",
+        ghost_mtl_ctx,
         this,
         this->device,
         this->queue,
@@ -113,9 +113,9 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
     /* Check if the GHOST Context provides a default framebuffer: */
     if (default_fbo_mtltexture_) {
 
-      /* Release old GPUTexture handle */
+      /* Release old gpu::Texture handle */
       if (default_fbo_gputexture_) {
-        GPU_texture_free(wrap(static_cast<Texture *>(default_fbo_gputexture_)));
+        GPU_texture_free(default_fbo_gputexture_);
         default_fbo_gputexture_ = nullptr;
       }
 
@@ -124,8 +124,10 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
 
       /*** Create front and back-buffers ***/
       /* Create gpu::MTLTexture objects */
-      default_fbo_gputexture_ = new gpu::MTLTexture(
-          "MTL_BACKBUFFER", GPU_RGBA16F, GPU_TEXTURE_2D, default_fbo_mtltexture_);
+      default_fbo_gputexture_ = new gpu::MTLTexture("MTL_BACKBUFFER",
+                                                    TextureFormat::SFLOAT_16_16_16_16,
+                                                    GPU_TEXTURE_2D,
+                                                    default_fbo_mtltexture_);
 
       /* Update frame-buffers with new texture attachments. */
       mtl_front_left->add_color_attachment(default_fbo_gputexture_, 0, 0, 0);
@@ -138,15 +140,21 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
 
       /* Add default texture for cases where no other framebuffer is bound */
       if (!default_fbo_gputexture_) {
-        default_fbo_gputexture_ = static_cast<gpu::MTLTexture *>(unwrap(GPU_texture_create_2d(
-            __func__, 16, 16, 1, GPU_RGBA16F, GPU_TEXTURE_USAGE_GENERAL, nullptr)));
+        default_fbo_gputexture_ = static_cast<gpu::MTLTexture *>(
+            GPU_texture_create_2d(__func__,
+                                  16,
+                                  16,
+                                  1,
+                                  TextureFormat::SFLOAT_16_16_16_16,
+                                  GPU_TEXTURE_USAGE_GENERAL,
+                                  nullptr));
       }
       mtl_back_left->add_color_attachment(default_fbo_gputexture_, 0, 0, 0);
 
       MTL_LOG_DEBUG(
           "-- Bound context %p for GPU context: %p is offscreen and does not have a default "
           "framebuffer",
-          ghost_cgl_ctx,
+          ghost_mtl_ctx,
           this);
 #ifndef NDEBUG
       this->label = @"Offscreen Metal Context";
@@ -155,10 +163,10 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   }
   else {
     MTL_LOG_DEBUG(
-        " Failed to bind GHOST context to MTLContext -- GHOST_ContextCGL is null "
-        "(GhostContext: %p, GhostContext_CGL: %p)",
+        " Failed to bind GHOST context to MTLContext -- GHOST_ContextMTL is null "
+        "(GhostContext: %p, GhostContext_MTL: %p)",
         ghost_ctx,
-        ghost_cgl_ctx);
+        ghost_mtl_ctx);
     BLI_assert(false);
   }
 }
@@ -213,7 +221,7 @@ MTLContext::MTLContext(void *ghost_window, void *ghost_context)
     ghost_context = (ghostWin ? ghostWin->getContext() : nullptr);
   }
   BLI_assert(ghost_context);
-  this->ghost_context_ = static_cast<GHOST_ContextCGL *>(ghost_context);
+  this->ghost_context_ = static_cast<GHOST_ContextMTL *>(ghost_context);
   this->queue = (id<MTLCommandQueue>)this->ghost_context_->metalCommandQueue();
   this->device = (id<MTLDevice>)this->ghost_context_->metalDevice();
   BLI_assert(this->queue);
@@ -289,7 +297,7 @@ MTLContext::~MTLContext()
 
   /* Release context textures. */
   if (default_fbo_gputexture_) {
-    GPU_texture_free(wrap(static_cast<Texture *>(default_fbo_gputexture_)));
+    GPU_texture_free(default_fbo_gputexture_);
     default_fbo_gputexture_ = nullptr;
   }
   if (default_fbo_mtltexture_) {
@@ -611,26 +619,26 @@ gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type,
     return dummy_tex;
   }
   /* Determine format for dummy texture. */
-  eGPUTextureFormat format = GPU_RGBA8;
+  TextureFormat format = TextureFormat::UNORM_8_8_8_8;
   switch (sampler_format) {
     case GPU_SAMPLER_TYPE_FLOAT:
-      format = GPU_RGBA8;
+      format = TextureFormat::UNORM_8_8_8_8;
       break;
     case GPU_SAMPLER_TYPE_INT:
-      format = GPU_RGBA8I;
+      format = TextureFormat::SINT_8_8_8_8;
       break;
     case GPU_SAMPLER_TYPE_UINT:
-      format = GPU_RGBA8UI;
+      format = TextureFormat::UINT_8_8_8_8;
       break;
     case GPU_SAMPLER_TYPE_DEPTH:
-      format = GPU_DEPTH32F_STENCIL8;
+      format = TextureFormat::SFLOAT_32_DEPTH_UINT_8;
       break;
     default:
       BLI_assert_unreachable();
   }
 
   /* Create dummy texture based on desired type. */
-  GPUTexture *tex = nullptr;
+  gpu::Texture *tex = nullptr;
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_GENERAL;
   switch (type) {
     case GPU_TEXTURE_1D:
@@ -697,8 +705,8 @@ void MTLContext::free_dummy_resources()
   for (int format = 0; format < GPU_SAMPLER_TYPE_MAX; format++) {
     for (int tex = 0; tex < GPU_TEXTURE_BUFFER; tex++) {
       if (dummy_textures_[format][tex]) {
-        GPU_texture_free(
-            reinterpret_cast<GPUTexture *>(static_cast<Texture *>(dummy_textures_[format][tex])));
+        GPU_texture_free(reinterpret_cast<gpu::Texture *>(
+            static_cast<Texture *>(dummy_textures_[format][tex])));
         dummy_textures_[format][tex] = nullptr;
       }
     }

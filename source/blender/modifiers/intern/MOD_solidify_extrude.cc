@@ -129,7 +129,7 @@ static void mesh_calc_hq_normal(Mesh *mesh,
   }
 
   /* normalize vertex normals and assign */
-  const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
+  const blender::Span<blender::float3> vert_normals = mesh->vert_normals_true();
   for (int i = 0; i < verts_num; i++) {
     if (normalize_v3(r_vert_nors[i]) == 0.0f) {
       copy_v3_v3(r_vert_nors[i], vert_normals[i]);
@@ -204,7 +204,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   /* array size is doubled in case of using a shell */
   const uint stride = do_shell ? 2 : 1;
 
-  const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
+  const blender::Span<blender::float3> vert_normals = mesh->vert_normals_true();
 
   MOD_get_vgroup(ctx->object, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
@@ -217,7 +217,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
   if (need_face_normals) {
     /* calculate only face normals */
-    face_normals = mesh->face_normals();
+    face_normals = mesh->face_normals_true();
   }
 
   STACK_INIT(new_vert_arr, verts_num * 2);

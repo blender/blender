@@ -2,10 +2,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <gtest/gtest.h>
+
 #include "util/boundbox.h"
-
-#include "testing/testing.h"
-
 #include "util/transform.h"
 
 CCL_NAMESPACE_BEGIN

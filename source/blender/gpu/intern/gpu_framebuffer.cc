@@ -206,61 +206,6 @@ uint FrameBuffer::get_bits_per_pixel()
   return total_bits;
 }
 
-void FrameBuffer::recursive_downsample(int max_lvl,
-                                       void (*callback)(void *user_data, int level),
-                                       void *user_data)
-{
-  /* Bind to make sure the frame-buffer is up to date. */
-  this->bind(true);
-
-  /* FIXME(fclem): This assumes all mips are defined which may not be the case. */
-  max_lvl = min_ii(max_lvl, floor(log2(max_ii(width_, height_))));
-
-  for (int mip_lvl = 1; mip_lvl <= max_lvl; mip_lvl++) {
-    /* Replace attached mip-level for each attachment. */
-    for (GPUAttachment &attachment : attachments_) {
-      Texture *tex = reinterpret_cast<Texture *>(attachment.tex);
-      if (tex != nullptr) {
-        /* Some Intel HDXXX have issue with rendering to a mipmap that is below
-         * the texture GL_TEXTURE_MAX_LEVEL. So even if it not correct, in this case
-         * we allow GL_TEXTURE_MAX_LEVEL to be one level lower. In practice it does work! */
-        int mip_max = GPU_mip_render_workaround() ? mip_lvl : (mip_lvl - 1);
-        /* Restrict fetches only to previous level. */
-        tex->mip_range_set(mip_lvl - 1, mip_max);
-        /* Bind next level. */
-        attachment.mip = mip_lvl;
-      }
-    }
-
-    /* Update the internal attachments and viewport size. */
-    dirty_attachments_ = true;
-    this->bind(true);
-
-    /* Optimize load-store state. */
-    GPUAttachmentType type = GPU_FB_DEPTH_ATTACHMENT;
-    for (GPUAttachment &attachment : attachments_) {
-      Texture *tex = reinterpret_cast<Texture *>(attachment.tex);
-      if (tex != nullptr) {
-        this->attachment_set_loadstore_op(
-            type, {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE, NULL_ATTACHMENT_COLOR});
-      }
-      ++type;
-    }
-
-    callback(user_data, mip_lvl);
-  }
-
-  for (GPUAttachment &attachment : attachments_) {
-    if (attachment.tex != nullptr) {
-      /* Reset mipmap level range. */
-      reinterpret_cast<Texture *>(attachment.tex)->mip_range_set(0, max_lvl);
-      /* Reset base level. NOTE: might not be the one bound at the start of this function. */
-      attachment.mip = 0;
-    }
-  }
-  dirty_attachments_ = true;
-}
-
 /** \} */
 
 }  // namespace blender::gpu
@@ -376,29 +321,32 @@ static void gpu_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb,
   unwrap(gpu_fb)->attachment_set(type, attachment);
 }
 
-void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip)
+void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb,
+                                    blender::gpu::Texture *tex,
+                                    int slot,
+                                    int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_MIP(tex, mip);
   gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_layer_attach(
-    GPUFrameBuffer *fb, GPUTexture *tex, int slot, int layer, int mip)
+    GPUFrameBuffer *fb, blender::gpu::Texture *tex, int slot, int layer, int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_LAYER_MIP(tex, layer, mip);
   gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_cubeface_attach(
-    GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip)
+    GPUFrameBuffer *fb, blender::gpu::Texture *tex, int slot, int face, int mip)
 {
   GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_CUBEFACE_MIP(tex, face, mip);
   gpu_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
-void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
+void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, blender::gpu::Texture *tex)
 {
-  unwrap(tex)->detach_from(unwrap(fb));
+  tex->detach_from(unwrap(fb));
 }
 
 void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
@@ -579,7 +527,7 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpu_fb_read,
   FrameBuffer *prev_fb = Context::get()->active_fb;
 
 #ifndef NDEBUG
-  GPUTexture *read_tex, *write_tex;
+  blender::gpu::Texture *read_tex, *write_tex;
   if (blit_buffers & (GPU_DEPTH_BIT | GPU_STENCIL_BIT)) {
     read_tex = fb_read->depth_tex();
     write_tex = fb_write->depth_tex();
@@ -604,14 +552,6 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpu_fb_read,
 
   /* FIXME(@fclem): sRGB is not saved. */
   prev_fb->bind(true);
-}
-
-void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
-                                          int max_level,
-                                          void (*per_level_callback)(void *user_data, int level),
-                                          void *user_data)
-{
-  unwrap(fb)->recursive_downsample(max_level, per_level_callback, user_data);
 }
 
 #ifndef GPU_NO_USE_PY_REFERENCES
@@ -680,8 +620,8 @@ struct GPUOffScreen {
     GPUFrameBuffer *fb;
   } framebuffers[MAX_CTX_FB_LEN];
 
-  GPUTexture *color;
-  GPUTexture *depth;
+  blender::gpu::Texture *color;
+  blender::gpu::Texture *depth;
 };
 
 /**
@@ -728,7 +668,7 @@ static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
 GPUOffScreen *GPU_offscreen_create(int width,
                                    int height,
                                    bool with_depth_buffer,
-                                   eGPUTextureFormat format,
+                                   blender::gpu::TextureFormat format,
                                    eGPUTextureUsage usage,
                                    bool clear,
                                    char err_out[256])
@@ -748,12 +688,17 @@ GPUOffScreen *GPU_offscreen_create(int width,
   if (with_depth_buffer) {
     /* Format view flag is needed by Workbench Volumes to read the stencil view. */
     eGPUTextureUsage depth_usage = usage | GPU_TEXTURE_USAGE_FORMAT_VIEW;
-    ofs->depth = GPU_texture_create_2d(
-        "ofs_depth", width, height, 1, GPU_DEPTH32F_STENCIL8, depth_usage, nullptr);
+    ofs->depth = GPU_texture_create_2d("ofs_depth",
+                                       width,
+                                       height,
+                                       1,
+                                       blender::gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
+                                       depth_usage,
+                                       nullptr);
   }
 
   if ((with_depth_buffer && !ofs->depth) || !ofs->color) {
-    const char error[] = "GPUTexture: Texture allocation failed.";
+    const char error[] = "blender::gpu::Texture: Texture allocation failed.";
     if (err_out) {
       BLI_strncpy(err_out, error, 256);
     }
@@ -868,20 +813,20 @@ int GPU_offscreen_height(const GPUOffScreen *offscreen)
   return GPU_texture_height(offscreen->color);
 }
 
-GPUTexture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen)
+blender::gpu::Texture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen)
 {
   return offscreen->color;
 }
 
-eGPUTextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen)
+blender::gpu::TextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen)
 {
   return GPU_texture_format(offscreen->color);
 }
 
 void GPU_offscreen_viewport_data_get(GPUOffScreen *offscreen,
                                      GPUFrameBuffer **r_fb,
-                                     GPUTexture **r_color,
-                                     GPUTexture **r_depth)
+                                     blender::gpu::Texture **r_color,
+                                     blender::gpu::Texture **r_depth)
 {
   *r_fb = gpu_offscreen_fb_get(offscreen);
   *r_color = offscreen->color;

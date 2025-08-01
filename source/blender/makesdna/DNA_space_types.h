@@ -338,10 +338,8 @@ typedef struct SpaceSeq {
 
   /** Deprecated: offset for drawing the image preview. */
   float xof DNA_DEPRECATED, yof DNA_DEPRECATED;
-  /** Weird name for the sequencer subtype (seq, image, luma... etc). */
-  short mainb;
-  /** ESpaceSeq_Proxy_RenderSize. */
-  short render_size;
+  short mainb; /* eSpaceSeq_RegionType; strange name for view type (image, histogram, ...). */
+  short render_size; /* eSpaceSeq_Proxy_RenderSize. */
   short chanshown;
   short zebra;
   int flag;

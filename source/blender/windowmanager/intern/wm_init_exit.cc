@@ -471,9 +471,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
       BlendFileWriteParams blend_file_write_params{};
       if (BLO_write_file(bmain, filepath, fileflags, &blend_file_write_params, nullptr)) {
-        if (!G.quiet) {
-          CLOG_INFO_NOCHECK(&LOG_BLEND, "Saved session recovery to \"%s\"", filepath);
-        }
+        CLOG_INFO_NOCHECK(&LOG_BLEND, "Saved session recovery to \"%s\"", filepath);
       }
     }
 
@@ -687,7 +685,7 @@ void WM_exit(bContext *C, const int exit_code)
   const bool do_user_exit_actions = G.background ? false : (exit_code == EXIT_SUCCESS);
   WM_exit_ex(C, true, do_user_exit_actions);
 
-  if (!G.quiet) {
+  if (!CLG_quiet_get()) {
     printf("\nBlender quit\n");
   }
 

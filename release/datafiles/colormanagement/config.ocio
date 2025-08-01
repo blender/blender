@@ -461,6 +461,38 @@ colorspaces:
         - !<FileTransform> {src: pbrNeutral.cube, interpolation: tetrahedral}
         - !<ColorSpaceTransform> {src: Linear Rec.709, dst: sRGB}
 
+  - !<ColorSpace>
+    name: Rec.2100-PQ
+    aliases: [rec2100_pq_display, Rec.2100-PQ - Display, pq_rec2020_display]
+    family: Display
+    equalitygroup: ""
+    bitdepth: 32f
+    description: Rec.2100-PQ 10000 nits peak display with reference white at 100 nits
+    isdata: false
+    categories: [file-io]
+    encoding: hdr-video
+    allocation: uniform
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
+        - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.2100-PQ}
+
+  - !<ColorSpace>
+    name: Rec.2100-HLG
+    aliases: [rec2100_hlg_display, Rec.2100-HLG - Display, hlg_rec2020_display]
+    family: Display
+    equalitygroup: ""
+    bitdepth: 32f
+    description: Rec.2100-HLG 1000 nits peak display with reference white at 100 nits
+    isdata: false
+    categories: [file-io]
+    encoding: hdr-video
+    allocation: uniform
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
+        - !<BuiltinTransform> {style: DISPLAY - CIE-XYZ-D65_to_REC.2100-HLG-1000nit}
+
 looks:
   - !<Look>
     name: Very High Contrast

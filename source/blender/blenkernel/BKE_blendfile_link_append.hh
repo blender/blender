@@ -233,7 +233,7 @@ void BKE_blendfile_link_append_context_library_add(BlendfileLinkAppendContext *l
  *
  * \param userdata: an opaque user-data pointer stored in generated link/append item.
  *
- * TODO: Add a more friendly version of this that combines it with the call to
+ * TODO: Add a more friendly version of this function that combines it with the call to
  * #BKE_blendfile_link_append_context_item_library_index_enable to enable the added item for all
  * added library sources.
  */

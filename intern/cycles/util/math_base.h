@@ -547,10 +547,14 @@ ccl_device float safe_acosf(const float a)
 
 ccl_device float compatible_powf(const float x, const float y)
 {
-#ifdef __KERNEL_GPU__
-  if (y == 0.0f) /* x^0 -> 1, including 0^0 */
+  if (y == 0.0f) {
+    /* x^0 -> 1, including 0^0. */
     return 1.0f;
-
+  }
+  if (x == 0.0f) {
+    return 0.0f;
+  }
+#ifdef __KERNEL_GPU__
   /* GPU pow doesn't accept negative x, do manual checks here */
   if (x < 0.0f) {
     if (fmodf(-y, 2.0f) == 0.0f) {
@@ -560,8 +564,6 @@ ccl_device float compatible_powf(const float x, const float y)
       return -powf(-x, y);
     }
   }
-  else if (x == 0.0f)
-    return 0.0f;
 #endif
   return powf(x, y);
 }

@@ -19,7 +19,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_ordered_edge.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -1550,7 +1550,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
       break;
     }
 
-    SNPRINTF(message, "Mesh deform solve %d / %d       |||", a + 1, mdb->cage_verts_num);
+    SNPRINTF_UTF8(message, "Mesh deform solve %d / %d       |||", a + 1, mdb->cage_verts_num);
     progress_bar(float(a + 1) / float(mdb->cage_verts_num), message);
   }
 

@@ -214,8 +214,8 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_relative_file_path(
   }
 
   /* Following code was written with an assumption that Blender's relative paths start with
-   * // characters as well as have OS dependent slashes. Inside of USD files those relative
-   * paths should start with either ./ or ../ characters and have always forward slashes (/)
+   * `//` characters as well as have OS dependent slashes. Inside of USD files those relative
+   * paths should start with either `./` or `../` characters and have always forward slashes (`/`)
    * separating directories. This is the convention used in USD documentation (and it seems
    * to be used in other DCC packages as well). */
   std::string relative_path_processed = pxr::TfNormPath(relative_path + 2);

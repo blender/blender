@@ -56,20 +56,20 @@ namespace blender::gpu {
 #define SINT_32_32_32_(impl)            impl(int3,      4 * 3,  3,    SINT_32_32_32,       R32G32B32_SINT,       RGBA32Sint,       Int3,                RGB32I,         rgb32_sint)
 #define SINT_32_32_32_32_(impl)         impl(int4,      4 * 4,  4,    SINT_32_32_32_32,    R32G32B32A32_SINT,    RGBA32Sint,       Int4,                RGBA32I,        rgba32_sint)
 /*                                           type       size    comps blender_enum         vk_enum               mtl_pixel_enum    mtl_vertex_enum      gl_pixel_enum   shader_enum  */
-#define UINT_8_(impl)                   impl(uint8_t,   1 * 1,  1,    UINT_8,              R8_UINT,              R8Uint,           UChar1,              R8U,            r8_uint)
-#define UINT_8_8_(impl)                 impl(uchar2,    1 * 2,  2,    UINT_8_8,            R8G8_UINT,            RG8Uint,          UChar2,              RG8U,           rg8_uint)
-#define UINT_8_8_8_(impl)               impl(uchar3,    1 * 3,  3,    UINT_8_8_8,          R8G8B8_UINT,          RGBA8Uint,        UChar3,              RGB8U,          rgb8_uint)
-#define UINT_8_8_8_8_(impl)             impl(uchar4,    1 * 4,  4,    UINT_8_8_8_8,        R8G8B8A8_UINT,        RGBA8Uint,        UChar4,              RGBA8U,         rgba8_uint)
+#define UINT_8_(impl)                   impl(uint8_t,   1 * 1,  1,    UINT_8,              R8_UINT,              R8Uint,           UChar1,              R8UI,           r8_uint)
+#define UINT_8_8_(impl)                 impl(uchar2,    1 * 2,  2,    UINT_8_8,            R8G8_UINT,            RG8Uint,          UChar2,              RG8UI,          rg8_uint)
+#define UINT_8_8_8_(impl)               impl(uchar3,    1 * 3,  3,    UINT_8_8_8,          R8G8B8_UINT,          RGBA8Uint,        UChar3,              RGB8UI,         rgb8_uint)
+#define UINT_8_8_8_8_(impl)             impl(uchar4,    1 * 4,  4,    UINT_8_8_8_8,        R8G8B8A8_UINT,        RGBA8Uint,        UChar4,              RGBA8UI,        rgba8_uint)
 /*                                           type       size    comps blender_enum         vk_enum               mtl_pixel_enum    mtl_vertex_enum      gl_pixel_enum   shader_enum  */
-#define UINT_16_(impl)                  impl(uint16_t,  2 * 1,  1,    UINT_16,             R16_UINT,             R16Uint,          UShort1,             R16U,           r16_uint)
-#define UINT_16_16_(impl)               impl(ushort2,   2 * 2,  2,    UINT_16_16,          R16G16_UINT,          RG16Uint,         UShort2,             RG16U,          rg16_uint)
-#define UINT_16_16_16_(impl)            impl(ushort3,   2 * 3,  3,    UINT_16_16_16,       R16G16B16_UINT,       RGBA16Uint,       UShort3,             RGB16U,         rgb16_uint)
-#define UINT_16_16_16_16_(impl)         impl(ushort4,   2 * 4,  4,    UINT_16_16_16_16,    R16G16B16A16_UINT,    RGBA16Uint,       UShort4,             RGBA16U,        rgba16_uint)
+#define UINT_16_(impl)                  impl(uint16_t,  2 * 1,  1,    UINT_16,             R16_UINT,             R16Uint,          UShort1,             R16UI,          r16_uint)
+#define UINT_16_16_(impl)               impl(ushort2,   2 * 2,  2,    UINT_16_16,          R16G16_UINT,          RG16Uint,         UShort2,             RG16UI,         rg16_uint)
+#define UINT_16_16_16_(impl)            impl(ushort3,   2 * 3,  3,    UINT_16_16_16,       R16G16B16_UINT,       RGBA16Uint,       UShort3,             RGB16UI,        rgb16_uint)
+#define UINT_16_16_16_16_(impl)         impl(ushort4,   2 * 4,  4,    UINT_16_16_16_16,    R16G16B16A16_UINT,    RGBA16Uint,       UShort4,             RGBA16UI,       rgba16_uint)
 /*                                           type       size    comps blender_enum         vk_enum               mtl_pixel_enum    mtl_vertex_enum      gl_pixel_enum   shader_enum  */
-#define UINT_32_(impl)                  impl(uint32_t,  4 * 1,  1,    UINT_32,             R32_UINT,             R32Uint,          UInt1,               R32U,           r32_uint)
-#define UINT_32_32_(impl)               impl(uint2,     4 * 2,  2,    UINT_32_32,          R32G32_UINT,          RG32Uint,         UInt2,               RG32U,          rg32_uint)
-#define UINT_32_32_32_(impl)            impl(uint3,     4 * 3,  3,    UINT_32_32_32,       R32G32B32_UINT,       RGBA32Uint,       UInt3,               RGB32U,         rgb32_uint)
-#define UINT_32_32_32_32_(impl)         impl(uint4,     4 * 4,  4,    UINT_32_32_32_32,    R32G32B32A32_UINT,    RGBA32Uint,       UInt4,               RGBA32U,        rgba32_uint)
+#define UINT_32_(impl)                  impl(uint32_t,  4 * 1,  1,    UINT_32,             R32_UINT,             R32Uint,          UInt1,               R32UI,          r32_uint)
+#define UINT_32_32_(impl)               impl(uint2,     4 * 2,  2,    UINT_32_32,          R32G32_UINT,          RG32Uint,         UInt2,               RG32UI,         rg32_uint)
+#define UINT_32_32_32_(impl)            impl(uint3,     4 * 3,  3,    UINT_32_32_32,       R32G32B32_UINT,       RGBA32Uint,       UInt3,               RGB32UI,        rgb32_uint)
+#define UINT_32_32_32_32_(impl)         impl(uint4,     4 * 4,  4,    UINT_32_32_32_32,    R32G32B32A32_UINT,    RGBA32Uint,       UInt4,               RGBA32UI,       rgba32_uint)
 /*                                           type       size    comps blender_enum         vk_enum               mtl_pixel_enum    mtl_vertex_enum      gl_pixel_enum   shader_enum  */
 #define SFLOAT_16_(impl)                impl(/*TODO*/,  2 * 1,  1,    SFLOAT_16,           R16_SFLOAT,           R16Float,         Half1,               R16F,           r16_sfloat)
 #define SFLOAT_16_16_(impl)             impl(/*TODO*/,  2 * 2,  2,    SFLOAT_16_16,        R16G16_SFLOAT,        RG16Float,        Half2,               RG16F,          rg16_sfloat)
@@ -91,15 +91,15 @@ namespace blender::gpu {
 
 /* clang-format off */
 /*                                           type       size comps blender_enum            vk_enum                   mtl_pixel_enum         mtl_vertex_enum        gl_pixel_enum                        shader_enum  */
-#define SNORM_10_10_10_2_(impl)         impl(/*TODO*/,  4,   4,    SNORM_10_10_10_2,       A2R10G10B10_SNORM_PACK32, /* n/a */,             Int1010102Normalized,  /* n/a */,                           /* n/a */       )
-#define UNORM_10_10_10_2_(impl)         impl(/*TODO*/,  4,   4,    UNORM_10_10_10_2,       A2R10G10B10_UNORM_PACK32, RGB10A2Unorm,          UInt1010102Normalized, RGB10_A2,                            rgb10_a2_unorm  )
-#define UINT_10_10_10_2_(impl)          impl(/*TODO*/,  4,   4,    UINT_10_10_10_2,        A2R10G10B10_UINT_PACK32,  RGB10A2Uint,           /* n/a */,             RGB10_A2UI,                          rgb10_a2_uint   )
+#define SNORM_10_10_10_2_(impl)         impl(/*TODO*/,  4,   4,    SNORM_10_10_10_2,       A2B10G10R10_SNORM_PACK32, /* n/a */,             Int1010102Normalized,  /* n/a */,                           /* n/a */       )
+#define UNORM_10_10_10_2_(impl)         impl(/*TODO*/,  4,   4,    UNORM_10_10_10_2,       A2B10G10R10_UNORM_PACK32, RGB10A2Unorm,          UInt1010102Normalized, RGB10_A2,                            rgb10_a2_unorm  )
+#define UINT_10_10_10_2_(impl)          impl(/*TODO*/,  4,   4,    UINT_10_10_10_2,        A2B10G10R10_UINT_PACK32,  RGB10A2Uint,           /* n/a */,             RGB10_A2UI,                          rgb10_a2_uint   )
 /*                                           type       size comps blender_enum            vk_enum                   mtl_pixel_enum         mtl_vertex_enum        gl_pixel_enum                        shader_enum  */
 #define UFLOAT_11_11_10_(impl)          impl(/*TODO*/,  4,   3,    UFLOAT_11_11_10,        B10G11R11_UFLOAT_PACK32,  RG11B10Float,          FloatRG11B10,          R11F_G11F_B10F,                      r11_g11_b10_ufloat)
 #define UFLOAT_9_9_9_EXP_5_(impl)       impl(/*TODO*/,  4,   3,    UFLOAT_9_9_9_EXP_5,     E5B9G9R9_UFLOAT_PACK32,   RGB9E5Float,           FloatRGB9E5,           RGB9_E5,                             /* n/a */)
 /*                                           type       size comps blender_enum            vk_enum                   mtl_pixel_enum         mtl_vertex_enum        gl_pixel_enum                        shader_enum  */
 #define SRGBA_8_8_8_8_(impl)            impl(/*TODO*/,  4,   4,    SRGBA_8_8_8_8,          R8G8B8A8_SRGB,            RGBA8Unorm_sRGB,       /* n/a */,             SRGB8_ALPHA8,                        /* n/a */   )
-#define SRGBA_8_8_8_(impl)              impl(/*TODO*/,  3,   3,    SRGBA_8_8_8,            R8G8B8_SRGB,              /* n/a */,             /* n/a */,             SRGB8,                               /* n/a */   )
+#define SRGBA_8_8_8_(impl)              impl(/*TODO*/,  3,   3,    SRGBA_8_8_8,            R8G8B8_SRGB,              RGBA8Unorm_sRGB,       /* n/a */,             SRGB8,                               /* n/a */   )
 /*                                           type       size comps blender_enum            vk_enum                   mtl_pixel_enum         mtl_vertex_enum        gl_pixel_enum                        shader_enum  */
 #define UNORM_16_DEPTH_(impl)           impl(/*TODO*/,  4,   1,    UNORM_16_DEPTH,         D16_UNORM,                Depth16Unorm,          /* n/a */,             DEPTH_COMPONENT16,                   /* n/a */   )
 #define UNORM_24_DEPTH_(impl)           impl(/*TODO*/,  4,   1,    UNORM_24_DEPTH,         X8_D24_UNORM_PACK32,      Depth24Unorm_Stencil8, /* n/a */,             DEPTH_COMPONENT24,                   /* n/a */   )

@@ -25,6 +25,7 @@
 
 #include "DNA_curves_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_legacy_convert.hh"
@@ -1245,16 +1246,6 @@ static void transform_positions(MutableSpan<float3> positions, const float4x4 &m
   });
 }
 
-static void transform_normals(MutableSpan<float3> normals, const float4x4 &matrix)
-{
-  const float3x3 normal_transform = math::transpose(math::invert(float3x3(matrix)));
-  threading::parallel_for(normals.index_range(), 1024, [&](const IndexRange range) {
-    for (float3 &normal : normals.slice(range)) {
-      normal = normal_transform * normal;
-    }
-  });
-}
-
 void CurvesGeometry::calculate_bezier_auto_handles()
 {
   if (!this->has_curve_with_type(CURVE_TYPE_BEZIER)) {
@@ -1324,10 +1315,7 @@ void CurvesGeometry::transform(const float4x4 &matrix)
     transform_positions(this->handle_positions_right_for_write(), matrix);
   }
   MutableAttributeAccessor attributes = this->attributes_for_write();
-  if (SpanAttributeWriter normals = attributes.lookup_for_write_span<float3>("custom_normal")) {
-    transform_normals(normals.span, matrix);
-    normals.finish();
-  }
+  transform_custom_normal_attribute(matrix, attributes);
   this->tag_positions_changed();
 }
 
@@ -1916,6 +1904,7 @@ CurvesGeometry::BlendWriteData::BlendWriteData(ResourceScope &scope)
 
 void CurvesGeometry::blend_write_prepare(CurvesGeometry::BlendWriteData &write_data)
 {
+  CustomData_reset(&this->curve_data_legacy);
   attribute_storage_blend_write_prepare(this->attribute_storage.wrap(), write_data.attribute_data);
   CustomData_blend_write_prepare(this->point_data,
                                  AttrDomain::Point,

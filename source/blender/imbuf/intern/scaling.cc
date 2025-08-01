@@ -10,6 +10,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "IMB_filter.hh"

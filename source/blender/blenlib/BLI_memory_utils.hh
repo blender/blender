@@ -13,6 +13,7 @@
 #include <type_traits>
 
 #include "BLI_utildefines.h"
+
 #include "MEM_guardedalloc.h"
 
 namespace blender {

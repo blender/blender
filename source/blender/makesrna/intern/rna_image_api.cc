@@ -223,7 +223,7 @@ static int rna_Image_gl_load(
     BKE_image_multilayer_index(image->rr, &iuser);
   }
 
-  GPUTexture *tex = BKE_image_get_gpu_texture(image, &iuser);
+  blender::gpu::Texture *tex = BKE_image_get_gpu_texture(image, &iuser);
 
   if (tex == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Failed to load image texture '%s'", image->id.name + 2);

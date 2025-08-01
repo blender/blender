@@ -49,7 +49,7 @@ bool operator!=(const Domain &a, const Domain &b)
 math::InterpWrapMode map_extension_mode_to_wrap_mode(const ExtensionMode &mode)
 {
   switch (mode) {
-    case ExtensionMode::Zero:
+    case ExtensionMode::Clip:
       return math::InterpWrapMode::Border;
     case ExtensionMode::Repeat:
       return math::InterpWrapMode::Repeat;
@@ -63,7 +63,7 @@ math::InterpWrapMode map_extension_mode_to_wrap_mode(const ExtensionMode &mode)
 GPUSamplerExtendMode map_extension_mode_to_extend_mode(const ExtensionMode &mode)
 {
   switch (mode) {
-    case blender::compositor::ExtensionMode::Zero:
+    case blender::compositor::ExtensionMode::Clip:
       return GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER;
 
     case blender::compositor::ExtensionMode::Extend:

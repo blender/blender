@@ -309,7 +309,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
 wmOperatorStatus sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_get(scene);
 
   blender::VectorSet<Strip *> selected = seq::query_selected_strips(ed->seqbasep);
@@ -431,7 +431,7 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Scene *scene_dst = CTX_data_scene(C);
+  Scene *scene_dst = CTX_data_sequencer_scene(C);
   Editing *ed_dst = seq::editing_ensure(scene_dst); /* Creates "ed" if it's missing. */
   int ofs;
 

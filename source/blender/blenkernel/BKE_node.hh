@@ -97,15 +97,20 @@ namespace blender::bke {
  */
 struct bNodeSocketTemplate {
   int type;
-  char name[64];                /* MAX_NAME */
-  float val1, val2, val3, val4; /* default alloc value for inputs */
+  char name[/*MAX_NAME*/ 64];
+  /** Default alloc value for inputs. */
+  float val1, val2, val3, val4;
   float min, max;
-  int subtype; /* would use PropertySubType but this is a bad level include to use RNA */
+  /** Would use PropertySubType but this is a bad level include to use RNA. */
+  int subtype;
   int flag;
 
-  /* after this line is used internal only */
-  bNodeSocket *sock;   /* used to hold verified socket */
-  char identifier[64]; /* generated from name */
+  /* After this line is used internal only. */
+
+  /** Used to hold verified socket. */
+  bNodeSocket *sock;
+  /** Generated from name. */
+  char identifier[/*MAX_NAME*/ 64];
 };
 
 /* Use `void *` for callbacks that require C++. This is rather ugly, but works well for now. This
@@ -217,6 +222,14 @@ using NodeGPUExecFunction = int (*)(
     GPUMaterial *mat, bNode *node, bNodeExecData *execdata, GPUNodeStack *in, GPUNodeStack *out);
 using NodeMaterialXFunction = void (*)(void *data, bNode *node, bNodeSocket *out);
 
+struct NodeInsertLinkParams {
+  bNodeTree &ntree;
+  bNode &node;
+  bNodeLink &link;
+  /** Optional context to allow for more advanced link insertion functionality. */
+  bContext *C = nullptr;
+};
+
 /**
  * \brief Defines a node type.
  *
@@ -318,7 +331,7 @@ struct bNodeType {
                         const char **r_disabled_hint) = nullptr;
 
   /* Optional handling of link insertion. Returns false if the link shouldn't be created. */
-  bool (*insert_link)(bNodeTree *ntree, bNode *node, bNodeLink *link) = nullptr;
+  bool (*insert_link)(NodeInsertLinkParams &params) = nullptr;
 
   void (*free_self)(bNodeType *ntype) = nullptr;
 
@@ -415,6 +428,13 @@ struct bNodeType {
   bool ignore_inferred_input_socket_visibility = false;
   /** True when the node still works but it's usage is discouraged. */
   const char *deprecation_notice = nullptr;
+
+  /**
+   * In some nodes the set of sockets depends on other data like linked nodes. For example, the
+   * Separate Bundle node can adapt based on what the bundle contains that is linked to it. When
+   * this function returns true, a sync button should be shown for the node that updates the node.
+   */
+  bool (*can_sync_sockets)(const bContext &C, const bNodeTree &tree, const bNode &node) = nullptr;
 
   /* RNA integration */
   ExtensionRNA rna_ext = {};

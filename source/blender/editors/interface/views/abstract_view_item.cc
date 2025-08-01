@@ -184,10 +184,10 @@ void AbstractViewItem::end_renaming()
 static AbstractViewItem *find_item_from_rename_button(const uiBut &rename_but)
 {
   /* A minimal sanity check, can't do much more here. */
-  BLI_assert(rename_but.type == UI_BTYPE_TEXT && rename_but.poin);
+  BLI_assert(rename_but.type == ButType::Text && rename_but.poin);
 
   for (const std::unique_ptr<uiBut> &but : rename_but.block->buttons) {
-    if (but->type != UI_BTYPE_VIEW_ITEM) {
+    if (but->type != ButType::ViewItem) {
       continue;
     }
 
@@ -215,7 +215,7 @@ void AbstractViewItem::add_rename_button(uiBlock &block)
 {
   AbstractView &view = this->get_view();
   uiBut *rename_but = uiDefBut(&block,
-                               UI_BTYPE_TEXT,
+                               ButType::Text,
                                1,
                                "",
                                0,

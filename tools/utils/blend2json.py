@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-This is a tool for generating a JSon version of a blender file (only its structure, or all its data included).
+This is a tool for generating a JSON version of a blender file (only its structure, or all its data included).
 
 It can also run some simple validity checks over a .blend file.
 
@@ -27,7 +27,7 @@ making diff pretty noisy):
 
    ./blend2json.py --no-old-addresses foo.blend
 
-To check a .blend file instead of outputting its JSon version (use explicit -o option to do both at the same time):
+To check a .blend file instead of outputting its JSON version (use explicit -o option to do both at the same time):
 
    ./blend2json.py -c foo.blend
 
@@ -331,7 +331,7 @@ def check_file(args, blend):
     addr_old = set()
     for block in blend.blocks:
         if block.addr_old in addr_old:
-            print("ERROR! Several data blocks share same 'addr_old' uuid %d, "
+            print("ERROR! Several data blocks share same 'addr_old' UUID %d, "
                   "this should never happen!" % block.addr_old)
             continue
         addr_old.add(block.addr_old)
@@ -366,7 +366,7 @@ def argparse_create():
     parser.add_argument(
         "--no-old-addresses", dest="no_address", default=False, action='store_true', required=False,
         help=("Do not output old memory address of each block of data "
-              "(used as 'uuid' in .blend files, but change pretty noisily)"))
+              "(used as 'UUID' in .blend files, but change pretty noisily)"))
     parser.add_argument(
         "--no-fake-old-addresses", dest="use_fake_address", default=True, action='store_false',
         required=False,
@@ -376,22 +376,22 @@ def argparse_create():
     parser.add_argument(
         "--full-data", dest="full_data",
         default=False, action='store_true', required=False,
-        help=("Also put in JSon file data itself "
+        help=("Also put in JSON file data itself "
               "(WARNING! will generate *huge* verbose files - and is far from complete yet)"))
     parser.add_argument(
         "--filter-data", dest="filter_data",
         default=None, required=False,
-        help=("Only put in JSon file data fields which names match given comma-separated list "
+        help=("Only put in JSON file data fields which names match given comma-separated list "
               "(ignored if --full-data is set)"))
     parser.add_argument(
         "--full-dna", dest="full_dna", default=False, action='store_true', required=False,
-        help=("Also put in JSon file dna properties description (ignored when --compact-output is used)"))
+        help=("Also put in JSON file dna properties description (ignored when --compact-output is used)"))
 
     parser.add_argument(
         "--raw-bblock", dest="raw_bblock",
         default=False, action='store_true', required=False,
-        help=("Do not attempt to open and parse the Blendfile at a high level, but only handles its basic data layout "
-              "(usable when the given files are not valid blendfiles - e.g. corrupted ones)"))
+        help=("Do not attempt to open and parse the blend-file at a high level, but only handles its basic data layout "
+              "(usable when the given files are not valid blend-files - e.g. corrupted ones)"))
 
     group = parser.add_argument_group("Filters", FILTER_DOC)
     group.add_argument(

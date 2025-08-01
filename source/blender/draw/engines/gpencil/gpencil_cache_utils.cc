@@ -439,8 +439,8 @@ tLayer *grease_pencil_layer_cache_add(Instance *inst,
 
     PassSimple &pass = *tgp_layer->geom_ps;
 
-    GPUTexture **depth_tex = (is_in_front) ? &inst->dummy_depth : &inst->scene_depth_tx;
-    GPUTexture **mask_tex = (is_masked) ? &inst->mask_tx : &inst->dummy_tx;
+    gpu::Texture **depth_tex = (is_in_front) ? &inst->dummy_depth : &inst->scene_depth_tx;
+    gpu::Texture **mask_tex = (is_masked) ? &inst->mask_tx : &inst->dummy_tx;
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND_ALPHA_PREMUL;
     /* For 2D mode, we render all strokes with uniform depth (increasing with stroke id). */

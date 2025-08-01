@@ -872,7 +872,7 @@ static OutFace make_out_face(const MeshGL &mgl, int tri_index, int orig_face)
  * "group edge" index:  linearized indices of edges in the
  * triangles in the group.
  * A SharedEdge has two such indices, with the assertion that
- * they are the have the same vertices (but in opposite order).
+ * they have the same vertices (but in opposite order).
  */
 struct SharedEdge {
   /* First shared edge ("group edge" indexing). */
@@ -1253,11 +1253,32 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
         dissolve[v] = fsize <= 3 ? false : true;
       }
       else {
-        /* Some previous face had v. Disable dissolve unless if neighbors are the same, reversed.
+        /* Some previous face had v. Disable dissolve unless if neighbors are the same, reversed,
+         * or if this face is a triangle.
          */
-        if (!(vprev == v_nbrs.second && vnext == v_nbrs.first)) {
+        if (fsize == 3 || !(vprev == v_nbrs.second && vnext == v_nbrs.first)) {
           dissolve[v] = false;
         }
+      }
+    }
+  }
+  /* We can't dissolve so many verts in a face that it leaves less than a triangle.
+   * This should be rare, since the above logic will prevent dissolving a vert from a triangle,
+   * but it is possible that two or more verts are to be dissolved from a quad or ngon.
+   * Do a pass to remove the possiblitiy of dissolving anything from such faces.
+   */
+  for (const int f : ma.new_faces.index_range()) {
+    const OutFace &face = ma.new_faces[f];
+    const int fsize = face.verts.size();
+    int num_dissolved = 0;
+    for (const int i : IndexRange(fsize)) {
+      if (dissolve[face.verts[i]]) {
+        num_dissolved++;
+      }
+    }
+    if (fsize - num_dissolved < 3) {
+      for (const int i : IndexRange(fsize)) {
+        dissolve[face.verts[i]] = false;
       }
     }
   }
@@ -1328,17 +1349,7 @@ static void dissolve_valence2_verts(MeshAssembly &ma)
         }
       }
       if (i_to < face.verts.size()) {
-        if (i_to < 3) {
-          /* Should be very rare. Means we dissolved two or more vertices from
-           * a degenerate ngon. Since its too late to really undo that, just make
-           * a valid triangle with undeleted verts. */
-          if (i_to == 0) {
-            face.verts[i_to++] = 0;
-          }
-          while (i_to < 3) {
-            face.verts[i_to++] = face.verts[0];
-          }
-        }
+        BLI_assert(i_to >= 3);
         face.verts.resize(i_to);
       }
     }
@@ -1661,7 +1672,10 @@ static void get_intersecting_edges(Vector<int> *r_intersecting_edges,
  * the plane's normal, and *r_origin_offset to be the vector that goes
  * from the origin to the plane in the normal direction.
  */
-static bool is_plane(const Mesh *mesh, float3 *r_normal, float *r_origin_offset)
+static bool is_plane(const Mesh *mesh,
+                     const float4x4 &transform,
+                     float3 *r_normal,
+                     float *r_origin_offset)
 {
   if (mesh->faces_num != 1 && mesh->verts_num != 4) {
     return false;
@@ -1670,7 +1684,7 @@ static bool is_plane(const Mesh *mesh, float3 *r_normal, float *r_origin_offset)
   const Span<float3> positions = mesh->vert_positions();
   const Span<int> f_corners = mesh->corner_verts().slice(mesh->faces()[0]);
   for (int i = 0; i < 4; i++) {
-    vpos[i] = positions[f_corners[i]];
+    mul_v3_m4v3(vpos[i], transform.ptr(), positions[f_corners[i]]);
   }
   float3 norm1 = math::normal_tri(vpos[0], vpos[1], vpos[2]);
   float3 norm2 = math::normal_tri(vpos[0], vpos[2], vpos[3]);
@@ -1686,24 +1700,41 @@ static bool is_plane(const Mesh *mesh, float3 *r_normal, float *r_origin_offset)
  * Handle special case of one manifold mesh, which has been converted to
  * \a manifold 0, and one plane, which has normalized normal \a normal
  * and distance from origin \a origin_offset.
+ * If there is an error, set *r_error appropriately.
  */
 static MeshGL mesh_trim_manifold(Manifold &manifold0,
                                  float3 normal,
                                  float origin_offset,
-                                 const MeshOffsets &mesh_offsets)
+                                 const MeshOffsets &mesh_offsets,
+                                 BooleanError *r_error)
 {
   Manifold man_result = manifold0.TrimByPlane(manifold::vec3(normal[0], normal[1], normal[2]),
                                               double(origin_offset));
   MeshGL meshgl = man_result.GetMeshGL();
+  if (man_result.Status() != Manifold::Error::NoError) {
+    if (man_result.Status() == Manifold::Error::ResultTooLarge) {
+      *r_error = BooleanError::ResultTooBig;
+    }
+    else if (man_result.Status() == Manifold::Error::NotManifold) {
+      *r_error = BooleanError::NonManifold;
+    }
+    else {
+      *r_error = BooleanError::UnknownError;
+    }
+    return meshgl;
+  }
   /* This meshgl_result has a non-standard (but non-zero) original ID for the
-   * plane faces, and faceIDs that make no sense for them. Fix this. */
-  BLI_assert(meshgl.runOriginalID.size() == 2 && meshgl.runOriginalID[1] > 0);
-  meshgl.runOriginalID[1] = 1;
-  BLI_assert(meshgl.runIndex.size() == 3);
-  int plane_face_start = meshgl.runIndex[1] / 3;
-  int plane_face_end = meshgl.runIndex[2] / 3;
-  for (int i = plane_face_start; i < plane_face_end; i++) {
-    meshgl.faceID[i] = mesh_offsets.face_offsets[1][0];
+   * plane faces, and faceIDs that make no sense for them. Fix this.
+   * But only do this if the result is not empty. */
+  if (meshgl.vertProperties.size() > 0) {
+    BLI_assert(meshgl.runOriginalID.size() == 2 && meshgl.runOriginalID[1] > 0);
+    meshgl.runOriginalID[1] = 1;
+    BLI_assert(meshgl.runIndex.size() == 3);
+    int plane_face_start = meshgl.runIndex[1] / 3;
+    int plane_face_end = meshgl.runIndex[2] / 3;
+    for (int i = plane_face_start; i < plane_face_end; i++) {
+      meshgl.faceID[i] = mesh_offsets.face_offsets[1][0];
+    }
   }
   return meshgl;
 }
@@ -1882,6 +1913,8 @@ static Mesh *meshgl_to_mesh(MeshGL &mgl,
   mesh->tag_loose_verts_none();
   mesh->tag_overlapping_none();
 
+  BLI_assert(BKE_mesh_is_valid(mesh));
+
   return mesh;
 }
 
@@ -1949,15 +1982,27 @@ Mesh *mesh_boolean_manifold(Span<const Mesh *> meshes,
       float origin_offset;
       if (meshes_num == 2 && op == Operation::Difference &&
           manifolds[0].Status() == Manifold::Error::NoError &&
-          is_plane(meshes[1], &normal, &origin_offset))
+          is_plane(meshes[1], transforms[1], &normal, &origin_offset))
       {
 #  ifdef DEBUG_TIME
         timeit::ScopedTimer timer_trim("DOING BOOLEAN SLICE, GETTING MESH_GL RESULT");
 #  endif
-        meshgl_result = mesh_trim_manifold(manifolds[0], normal, origin_offset, mesh_offsets);
+        meshgl_result = mesh_trim_manifold(
+            manifolds[0], normal, origin_offset, mesh_offsets, r_error);
+        if (*r_error != BooleanError::NoError) {
+          return nullptr;
+        }
       }
       else {
-        *r_error = BooleanError::NonManifold;
+        if (std::any_of(manifolds.begin(), manifolds.end(), [](const Manifold &m) {
+              return m.Status() == Manifold::Error::NotManifold;
+            }))
+        {
+          *r_error = BooleanError::NonManifold;
+        }
+        else {
+          *r_error = BooleanError::UnknownError;
+        }
         return nullptr;
       }
     }

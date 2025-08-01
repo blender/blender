@@ -1390,23 +1390,23 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
   bool failure = false;
 
   /* Initialize with some unsupported format to check following switch statement. */
-  eGPUTextureFormat format = GPU_R8;
+  blender::gpu::TextureFormat format = blender::gpu::TextureFormat::UNORM_8;
 
   switch (draw_view->swapchain_format) {
     case GHOST_kXrSwapchainFormatRGBA8:
-      format = GPU_RGBA8;
+      format = blender::gpu::TextureFormat::UNORM_8_8_8_8;
       break;
     case GHOST_kXrSwapchainFormatRGBA16:
-      format = GPU_RGBA16;
+      format = blender::gpu::TextureFormat::UNORM_16_16_16_16;
       break;
     case GHOST_kXrSwapchainFormatRGBA16F:
-      format = GPU_RGBA16F;
+      format = blender::gpu::TextureFormat::SFLOAT_16_16_16_16;
       break;
     case GHOST_kXrSwapchainFormatRGB10_A2:
-      format = GPU_RGB10_A2;
+      format = blender::gpu::TextureFormat::UNORM_10_10_10_2;
       break;
   }
-  BLI_assert(format != GPU_R8);
+  BLI_assert(format != blender::gpu::TextureFormat::UNORM_8);
 
   offscreen = vp->offscreen = GPU_offscreen_create(draw_view->width,
                                                    draw_view->height,

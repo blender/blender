@@ -311,7 +311,7 @@ ccl_device_inline float bsdf_principled_hair_albedo_roughness_scale(
 ccl_device_inline Spectrum
 bsdf_principled_hair_sigma_from_reflectance(const Spectrum color, const float azimuthal_roughness)
 {
-  const Spectrum sigma = log(color) /
+  const Spectrum sigma = log(max(color, zero_spectrum())) /
                          bsdf_principled_hair_albedo_roughness_scale(azimuthal_roughness);
   return sigma * sigma;
 }

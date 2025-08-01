@@ -96,10 +96,10 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   const int2 extent(1);
   constexpr eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE |
                                      GPU_TEXTURE_USAGE_SHADER_READ;
-  dummy_cryptomatte_tx_.ensure_2d(GPU_RGBA32F, extent, usage);
-  dummy_renderpass_tx_.ensure_2d(GPU_RGBA16F, extent, usage);
-  dummy_aov_color_tx_.ensure_2d_array(GPU_RGBA16F, extent, 1, usage);
-  dummy_aov_value_tx_.ensure_2d_array(GPU_R16F, extent, 1, usage);
+  dummy_cryptomatte_tx_.ensure_2d(gpu::TextureFormat::SFLOAT_32_32_32_32, extent, usage);
+  dummy_renderpass_tx_.ensure_2d(gpu::TextureFormat::SFLOAT_16_16_16_16, extent, usage);
+  dummy_aov_color_tx_.ensure_2d_array(gpu::TextureFormat::SFLOAT_16_16_16_16, extent, 1, usage);
+  dummy_aov_value_tx_.ensure_2d_array(gpu::TextureFormat::SFLOAT_16, extent, 1, usage);
 
   PassSimple &pass = cubemap_face_ps_;
   pass.init();
@@ -811,14 +811,14 @@ PassMain::Sub *DeferredLayer::material_add(::Material *blender_mat, GPUMaterial 
   return material_pass;
 }
 
-GPUTexture *DeferredLayer::render(View &main_view,
-                                  View &render_view,
-                                  Framebuffer &prepass_fb,
-                                  Framebuffer &combined_fb,
-                                  Framebuffer &gbuffer_fb,
-                                  int2 extent,
-                                  RayTraceBuffer &rt_buffer,
-                                  GPUTexture *radiance_behind_tx)
+gpu::Texture *DeferredLayer::render(View &main_view,
+                                    View &render_view,
+                                    Framebuffer &prepass_fb,
+                                    Framebuffer &combined_fb,
+                                    Framebuffer &gbuffer_fb,
+                                    int2 extent,
+                                    RayTraceBuffer &rt_buffer,
+                                    gpu::Texture *radiance_behind_tx)
 {
   if (closure_count_ == 0) {
     return nullptr;
@@ -850,8 +850,9 @@ GPUTexture *DeferredLayer::render(View &main_view,
   inst_.manager->submit(gbuffer_ps_, render_view);
 
   for (int i = 0; i < ARRAY_SIZE(direct_radiance_txs_); i++) {
-    direct_radiance_txs_[i].acquire(
-        (closure_count_ > i) ? extent : int2(1), DEFERRED_RADIANCE_FORMAT, usage_rw);
+    direct_radiance_txs_[i].acquire((closure_count_ > i) ? extent : int2(1),
+                                    gpu::TextureFormat::DEFERRED_RADIANCE_FORMAT,
+                                    usage_rw);
   }
 
   if (use_raytracing_) {
@@ -997,7 +998,7 @@ void DeferredPipeline::render(View &main_view,
                               RayTraceBuffer &rt_buffer_opaque_layer,
                               RayTraceBuffer &rt_buffer_refract_layer)
 {
-  GPUTexture *feedback_tx = nullptr;
+  gpu::Texture *feedback_tx = nullptr;
 
   GPU_debug_group_begin("Deferred.Opaque");
   feedback_tx = opaque_layer_.render(main_view,
@@ -1445,7 +1446,7 @@ PassMain::Sub *PlanarProbePipeline::material_add(::Material *blender_mat, GPUMat
 }
 
 void PlanarProbePipeline::render(View &view,
-                                 GPUTexture *depth_layer_tx,
+                                 gpu::Texture *depth_layer_tx,
                                  Framebuffer &gbuffer_fb,
                                  Framebuffer &combined_fb,
                                  int2 extent)

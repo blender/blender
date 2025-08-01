@@ -15,7 +15,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_main.hh"
@@ -160,7 +160,7 @@ AssetShelf *create_shelf_from_type(AssetShelfType &type)
   shelf->settings.asset_library_reference = asset_system::all_library_reference();
   shelf->type = &type;
   shelf->preferred_row_count = 1;
-  STRNCPY(shelf->idname, type.idname);
+  STRNCPY_UTF8(shelf->idname, type.idname);
   return shelf;
 }
 
@@ -539,24 +539,24 @@ void region_layout(const bContext *C, ARegion *region)
     return;
   }
 
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+  uiBlock *block = UI_block_begin(C, region, __func__, ui::EmbossType::Emboss);
 
   const uiStyle *style = UI_style_get_dpi();
   const int padding_y = main_region_padding_y();
   const int padding_x = main_region_padding_x();
-  uiLayout &layout = blender::ui::block_layout(block,
-                                               blender::ui::LayoutDirection::Vertical,
-                                               blender::ui::LayoutType::Panel,
-                                               padding_x,
-                                               -padding_y,
-                                               region->winx - 2 * padding_x,
-                                               0,
-                                               0,
-                                               style);
+  uiLayout &layout = ui::block_layout(block,
+                                      ui::LayoutDirection::Vertical,
+                                      ui::LayoutType::Panel,
+                                      padding_x,
+                                      -padding_y,
+                                      region->winx - 2 * padding_x,
+                                      0,
+                                      0,
+                                      style);
 
   build_asset_view(layout, active_shelf->settings.asset_library_reference, *active_shelf, *C);
 
-  int layout_height = blender::ui::block_layout_resolve(block).y;
+  int layout_height = ui::block_layout_resolve(block).y;
   BLI_assert(layout_height <= 0);
   UI_view2d_totRect_set(&region->v2d, region->winx - 1, layout_height - padding_y);
   UI_view2d_curRect_validate(&region->v2d);
@@ -798,7 +798,7 @@ static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
 
   uiBut *but = uiDefBut(
       &block,
-      UI_BTYPE_TAB,
+      ButType::Tab,
       0,
       name,
       0,
@@ -865,9 +865,9 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
 
   list::storage_fetch(library_ref, C);
 
-  UI_block_emboss_set(block, blender::ui::EmbossType::None);
+  UI_block_emboss_set(block, ui::EmbossType::None);
   layout->popover(C, "ASSETSHELF_PT_catalog_selector", "", ICON_COLLAPSEMENU);
-  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
+  UI_block_emboss_set(block, ui::EmbossType::Emboss);
 
   layout->separator();
 
@@ -888,7 +888,7 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
 static void header_regiontype_register(ARegionType *region_type, const int space_type)
 {
   HeaderType *ht = MEM_callocN<HeaderType>(__func__);
-  STRNCPY(ht->idname, "ASSETSHELF_HT_settings");
+  STRNCPY_UTF8(ht->idname, "ASSETSHELF_HT_settings");
   ht->space_type = space_type;
   ht->region_type = RGN_TYPE_ASSET_SHELF_HEADER;
   ht->draw = asset_shelf_header_draw;

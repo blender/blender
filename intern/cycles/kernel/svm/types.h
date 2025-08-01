@@ -22,6 +22,7 @@ CCL_NAMESPACE_BEGIN
 enum ShaderNodeType {
 #define SHADER_NODE_TYPE(name) name,
 #include "node_types_template.h"
+
   NODE_NUM
 };
 
@@ -101,6 +102,7 @@ enum NodeLightPath {
   NODE_LP_ray_glossy,
   NODE_LP_ray_transparent,
   NODE_LP_ray_transmission,
+  NODE_LP_ray_portal,
 };
 
 enum NodeLightFalloff {

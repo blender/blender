@@ -243,6 +243,12 @@ class FieldAverageInput final : public bke::GeometryFieldInput {
     return attributes.adapt_domain(std::move(g_outputs), source_domain_, context.domain());
   }
 
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const final
+  {
+    input_.node().for_each_field_input_recursive(fn);
+    group_index_.node().for_each_field_input_recursive(fn);
+  }
+
   uint64_t hash() const override
   {
     return get_default_hash(input_, group_index_, source_domain_, operation_);

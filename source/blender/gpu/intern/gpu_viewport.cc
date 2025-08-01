@@ -60,10 +60,10 @@ struct GPUViewport {
   /* Viewport Resources. */
   DRWData *draw_data;
   /** Color buffers, one for each stereo view. Only one if not stereo viewport. */
-  GPUTexture *color_render_tx[2];
-  GPUTexture *color_overlay_tx[2];
+  blender::gpu::Texture *color_render_tx[2];
+  blender::gpu::Texture *color_overlay_tx[2];
   /** Depth buffer. Can be shared with GPUOffscreen. */
-  GPUTexture *depth_tx;
+  blender::gpu::Texture *depth_tx;
   /** Compositing framebuffer for stereo viewport. */
   GPUFrameBuffer *stereo_comp_fb;
   /** Color render and overlay frame-buffers for drawing outside of DRW module.
@@ -136,28 +136,40 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
 
     /* NOTE: dtxl_color texture requires write support as it may be written to by the viewport
      * compositor. */
-    viewport->color_render_tx[0] = GPU_texture_create_2d("dtxl_color",
-                                                         UNPACK2(size),
-                                                         1,
-                                                         GPU_RGBA16F,
-                                                         usage | GPU_TEXTURE_USAGE_SHADER_WRITE,
-                                                         nullptr);
+    viewport->color_render_tx[0] = GPU_texture_create_2d(
+        "dtxl_color",
+        UNPACK2(size),
+        1,
+        blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
+        usage | GPU_TEXTURE_USAGE_SHADER_WRITE,
+        nullptr);
     viewport->color_overlay_tx[0] = GPU_texture_create_2d(
-        "dtxl_color_overlay", UNPACK2(size), 1, GPU_SRGB8_A8, usage, nullptr);
+        "dtxl_color_overlay",
+        UNPACK2(size),
+        1,
+        blender::gpu::TextureFormat::SRGBA_8_8_8_8,
+        usage,
+        nullptr);
 
     GPU_texture_clear(viewport->color_render_tx[0], GPU_DATA_FLOAT, empty_pixel);
     GPU_texture_clear(viewport->color_overlay_tx[0], GPU_DATA_FLOAT, empty_pixel);
   }
 
   if ((viewport->flag & GPU_VIEWPORT_STEREO) != 0 && viewport->color_render_tx[1] == nullptr) {
-    viewport->color_render_tx[1] = GPU_texture_create_2d("dtxl_color_stereo",
-                                                         UNPACK2(size),
-                                                         1,
-                                                         GPU_RGBA16F,
-                                                         usage | GPU_TEXTURE_USAGE_SHADER_WRITE,
-                                                         nullptr);
+    viewport->color_render_tx[1] = GPU_texture_create_2d(
+        "dtxl_color_stereo",
+        UNPACK2(size),
+        1,
+        blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
+        usage | GPU_TEXTURE_USAGE_SHADER_WRITE,
+        nullptr);
     viewport->color_overlay_tx[1] = GPU_texture_create_2d(
-        "dtxl_color_overlay_stereo", UNPACK2(size), 1, GPU_SRGB8_A8, usage, nullptr);
+        "dtxl_color_overlay_stereo",
+        UNPACK2(size),
+        1,
+        blender::gpu::TextureFormat::SRGBA_8_8_8_8,
+        usage,
+        nullptr);
 
     GPU_texture_clear(viewport->color_render_tx[1], GPU_DATA_FLOAT, empty_pixel);
     GPU_texture_clear(viewport->color_overlay_tx[1], GPU_DATA_FLOAT, empty_pixel);
@@ -170,7 +182,7 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
     viewport->depth_tx = GPU_texture_create_2d("dtxl_depth",
                                                UNPACK2(size),
                                                1,
-                                               GPU_DEPTH32F_STENCIL8,
+                                               blender::gpu::TextureFormat::SFLOAT_32_DEPTH_UINT_8,
                                                usage | GPU_TEXTURE_USAGE_HOST_READ |
                                                    GPU_TEXTURE_USAGE_FORMAT_VIEW,
                                                nullptr);
@@ -217,7 +229,7 @@ void GPU_viewport_bind(GPUViewport *viewport, int view, const rcti *rect)
 
 void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, GPUOffScreen *ofs, bool is_xr_surface)
 {
-  GPUTexture *color, *depth;
+  blender::gpu::Texture *color, *depth;
   GPUFrameBuffer *fb;
   viewport->size[0] = GPU_offscreen_width(ofs);
   viewport->size[1] = GPU_offscreen_height(ofs);
@@ -439,8 +451,8 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
                                            bool display_colorspace,
                                            bool do_overlay_merge)
 {
-  GPUTexture *color = viewport->color_render_tx[view];
-  GPUTexture *color_overlay = viewport->color_overlay_tx[view];
+  blender::gpu::Texture *color = viewport->color_render_tx[view];
+  blender::gpu::Texture *color_overlay = viewport->color_overlay_tx[view];
 
   bool use_ocio = false;
   bool use_hdr = GPU_hdr_support() &&
@@ -495,7 +507,7 @@ void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
                                     bool display_colorspace,
                                     bool do_overlay_merge)
 {
-  GPUTexture *color = viewport->color_render_tx[view];
+  blender::gpu::Texture *color = viewport->color_render_tx[view];
 
   if (color == nullptr) {
     return;
@@ -594,17 +606,17 @@ bool GPU_viewport_is_stereo_get(GPUViewport *viewport)
   return (viewport->flag & GPU_VIEWPORT_STEREO) != 0;
 }
 
-GPUTexture *GPU_viewport_color_texture(GPUViewport *viewport, int view)
+blender::gpu::Texture *GPU_viewport_color_texture(GPUViewport *viewport, int view)
 {
   return viewport->color_render_tx[view];
 }
 
-GPUTexture *GPU_viewport_overlay_texture(GPUViewport *viewport, int view)
+blender::gpu::Texture *GPU_viewport_overlay_texture(GPUViewport *viewport, int view)
 {
   return viewport->color_overlay_tx[view];
 }
 
-GPUTexture *GPU_viewport_depth_texture(GPUViewport *viewport)
+blender::gpu::Texture *GPU_viewport_depth_texture(GPUViewport *viewport)
 {
   return viewport->depth_tx;
 }

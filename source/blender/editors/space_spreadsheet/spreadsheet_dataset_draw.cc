@@ -20,7 +20,6 @@
 #include "BKE_lib_id.hh"
 #include "BKE_volume.hh"
 
-#include "ED_spreadsheet.hh"
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
@@ -33,6 +32,7 @@
 #include "BLT_translation.hh"
 
 #include "ED_outliner.hh"
+#include "ED_spreadsheet.hh"
 
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_dataset_draw.hh"
@@ -1090,7 +1090,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
 
   uiLayout *layout = panel->layout;
   uiBlock *block = layout->block();
-  UI_block_layout_set_current(block, layout);
+  ui::block_layout_set_current(block, layout);
 
   draw_context_panel(*C, *layout);
 

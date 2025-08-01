@@ -14,7 +14,7 @@
 
 #include <Python.h>
 
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh" /* For #BKE_id_is_in_global_main. */
@@ -48,10 +48,10 @@
  * \{ */
 
 static const PyC_StringEnumItems pygpu_framebuffer_color_texture_formats[] = {
-    {GPU_RGBA8, "RGBA8"},
-    {GPU_RGBA16, "RGBA16"},
-    {GPU_RGBA16F, "RGBA16F"},
-    {GPU_RGBA32F, "RGBA32F"},
+    {int(blender::gpu::TextureFormat::UNORM_8_8_8_8), "RGBA8"},
+    {int(blender::gpu::TextureFormat::UNORM_16_16_16_16), "RGBA16"},
+    {int(blender::gpu::TextureFormat::SFLOAT_16_16_16_16), "RGBA16F"},
+    {int(blender::gpu::TextureFormat::SFLOAT_32_32_32_32), "RGBA32F"},
     {0, nullptr},
 };
 
@@ -284,7 +284,8 @@ static PyObject *pygpu_offscreen__tp_new(PyTypeObject * /*self*/, PyObject *args
 
   GPUOffScreen *ofs = nullptr;
   int width, height;
-  PyC_StringEnum pygpu_textureformat = {pygpu_framebuffer_color_texture_formats, GPU_RGBA8};
+  PyC_StringEnum pygpu_textureformat = {pygpu_framebuffer_color_texture_formats,
+                                        int(blender::gpu::TextureFormat::UNORM_8_8_8_8)};
   char err_out[256];
 
   static const char *_keywords[] = {"width", "height", "format", nullptr};
@@ -308,13 +309,13 @@ static PyObject *pygpu_offscreen__tp_new(PyTypeObject * /*self*/, PyObject *args
     ofs = GPU_offscreen_create(width,
                                height,
                                true,
-                               eGPUTextureFormat(pygpu_textureformat.value_found),
+                               blender::gpu::TextureFormat(pygpu_textureformat.value_found),
                                GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
                                false,
                                err_out);
   }
   else {
-    STRNCPY(err_out, "No active GPU context found");
+    STRNCPY_UTF8(err_out, "No active GPU context found");
   }
 
   if (ofs == nullptr) {
@@ -360,7 +361,7 @@ PyDoc_STRVAR(
 static PyObject *pygpu_offscreen_texture_color_get(BPyGPUOffScreen *self, void * /*type*/)
 {
   BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
-  GPUTexture *texture = GPU_offscreen_color_texture(self->ofs);
+  blender::gpu::Texture *texture = GPU_offscreen_color_texture(self->ofs);
   return BPyGPUTexture_CreatePyObject(texture, true);
 }
 

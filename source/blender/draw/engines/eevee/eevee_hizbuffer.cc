@@ -24,7 +24,8 @@ void HiZBuffer::sync()
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
   for ([[maybe_unused]] const int i : IndexRange(hiz_tx_.size())) {
-    hiz_tx_.current().ensure_2d(GPU_R32F, hiz_extent, usage, nullptr, HIZ_MIP_COUNT);
+    hiz_tx_.current().ensure_2d(
+        gpu::TextureFormat::SFLOAT_32, hiz_extent, usage, nullptr, HIZ_MIP_COUNT);
     hiz_tx_.current().ensure_mip_views();
     GPU_texture_mipmap_mode(hiz_tx_.current(), true, false);
     hiz_tx_.swap();

@@ -49,7 +49,7 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
                                                    PROF_PRESET_STEPS)})
   {
     uiBut *but = uiDefIconTextBut(block,
-                                  UI_BTYPE_BUT_MENU,
+                                  ButType::ButMenu,
                                   1,
                                   ICON_BLANK1,
                                   item.first,
@@ -58,8 +58,6 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
                                   0,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     const eCurveProfilePresets preset = item.second;
     UI_but_func_set(but, [profile, cb, preset](bContext &C) {
@@ -89,7 +87,7 @@ static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
 
   {
     uiBut *but = uiDefIconTextBut(block,
-                                  UI_BTYPE_BUT_MENU,
+                                  ButType::ButMenu,
                                   1,
                                   ICON_BLANK1,
                                   IFACE_("Reset View"),
@@ -98,8 +96,6 @@ static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   0,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     UI_but_func_set(but, [profile](bContext &C) {
       BKE_curveprofile_reset_view(profile);
@@ -108,7 +104,7 @@ static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
   }
   {
     uiBut *but = uiDefIconTextBut(block,
-                                  UI_BTYPE_BUT_MENU,
+                                  ButType::ButMenu,
                                   1,
                                   ICON_BLANK1,
                                   IFACE_("Reset Curve"),
@@ -117,8 +113,6 @@ static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   0,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     UI_but_func_set(but, [profile, cb](bContext &C) {
       BKE_curveprofile_reset(profile);
@@ -241,7 +235,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
     /* Only for dynamic presets. */
     if (ELEM(profile->preset, PROF_PRESET_STEPS, PROF_PRESET_SUPPORTS)) {
       bt = uiDefIconTextBut(block,
-                            UI_BTYPE_BUT,
+                            ButType::But,
                             0,
                             ICON_NONE,
                             IFACE_("Apply Preset"),
@@ -250,8 +244,6 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
                             UI_UNIT_X,
                             UI_UNIT_X,
                             nullptr,
-                            0.0,
-                            0.0,
                             TIP_("Reapply and update the preset, removing changes"));
       UI_but_func_set(bt, [profile, cb](bContext &C) {
         BKE_curveprofile_reset(profile);
@@ -269,7 +261,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
 
   /* Zoom in */
   bt = uiDefIconBut(block,
-                    UI_BTYPE_BUT,
+                    ButType::But,
                     0,
                     ICON_ZOOM_IN,
                     0,
@@ -287,7 +279,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
 
   /* Zoom out */
   bt = uiDefIconBut(block,
-                    UI_BTYPE_BUT,
+                    ButType::But,
                     0,
                     ICON_ZOOM_OUT,
                     0,
@@ -309,7 +301,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
 
   /* Flip path */
   bt = uiDefIconBut(block,
-                    UI_BTYPE_BUT,
+                    ButType::But,
                     0,
                     ICON_ARROW_LEFTRIGHT,
                     0,
@@ -329,7 +321,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
   /* Clipping toggle */
   const int icon = (profile->flag & PROF_USE_CLIP) ? ICON_CLIPUV_HLT : ICON_CLIPUV_DEHLT;
   bt = uiDefIconBut(block,
-                    UI_BTYPE_BUT,
+                    ButType::But,
                     0,
                     icon,
                     0,
@@ -380,7 +372,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
   const int path_height = path_width;
   layout->row(false);
   uiDefBut(block,
-           UI_BTYPE_CURVEPROFILE,
+           ButType::CurveProfile,
            0,
            "",
            0,
@@ -445,7 +437,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
 
     /* Position */
     bt = uiDefButF(block,
-                   UI_BTYPE_NUM,
+                   ButType::Num,
                    0,
                    "X:",
                    0,
@@ -466,7 +458,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
       UI_but_flag_enable(bt, UI_BUT_DISABLED);
     }
     bt = uiDefButF(block,
-                   UI_BTYPE_NUM,
+                   ButType::Num,
                    0,
                    "Y:",
                    0,
@@ -489,7 +481,7 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
 
     /* Delete points */
     bt = uiDefIconBut(block,
-                      UI_BTYPE_BUT,
+                      ButType::But,
                       0,
                       ICON_X,
                       0,

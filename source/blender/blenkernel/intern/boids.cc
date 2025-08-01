@@ -1667,10 +1667,10 @@ BoidState *boid_new_state(BoidSettings *boids)
 
   state->id = boids->last_state_id++;
   if (state->id) {
-    SNPRINTF(state->name, "State %i", state->id);
+    SNPRINTF_UTF8(state->name, "State %i", state->id);
   }
   else {
-    STRNCPY(state->name, "State");
+    STRNCPY_UTF8(state->name, "State");
   }
 
   state->rule_fuzziness = 0.5;

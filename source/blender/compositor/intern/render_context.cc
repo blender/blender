@@ -11,6 +11,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -78,14 +79,14 @@ void FileOutput::add_view(const char *view_name)
 
   RenderView *render_view = MEM_callocN<RenderView>("Render View For File Output.");
   BLI_addtail(&render_result_->views, render_view);
-  STRNCPY(render_view->name, view_name);
+  STRNCPY_UTF8(render_view->name, view_name);
 }
 
 void FileOutput::add_view(const char *view_name, int channels, float *buffer)
 {
   RenderView *render_view = MEM_callocN<RenderView>("Render View For File Output.");
   BLI_addtail(&render_result_->views, render_view);
-  STRNCPY(render_view->name, view_name);
+  STRNCPY_UTF8(render_view->name, view_name);
 
   render_view->ibuf = IMB_allocImBuf(
       render_result_->rectx, render_result_->recty, channels * 8, 0);

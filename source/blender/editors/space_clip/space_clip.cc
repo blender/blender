@@ -19,7 +19,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -1226,7 +1226,7 @@ void ED_spacetype_clip()
   ARegionType *art;
 
   st->spaceid = SPACE_CLIP;
-  STRNCPY(st->name, "Clip");
+  STRNCPY_UTF8(st->name, "Clip");
 
   st->create = clip_create;
   st->free = clip_free;

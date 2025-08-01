@@ -27,6 +27,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.hh"
 #include "BKE_paint.hh"
+#include "BKE_paint_types.hh"
 #include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
@@ -716,7 +717,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
                                            float distance,
                                            float size)
 {
-  const UnifiedPaintSettings *ups = &painter->paint->unified_paint_settings;
+  const blender::bke::PaintRuntime *paint_runtime = painter->paint->runtime;
   Brush *brush = painter->brush;
   BrushPainterCache *cache = &tile->cache;
   /* Adding 4 pixels of padding for brush anti-aliasing. */
@@ -738,7 +739,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
   /* determine how can update based on textures used */
   if (cache->is_texbrush) {
     if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
-      tex_rotation += ups->brush_rotation;
+      tex_rotation += paint_runtime->brush_rotation;
     }
     else if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM) {
       do_random = true;
@@ -756,7 +757,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s,
     bool do_partial_update_mask = false;
     /* invalidate case for all mapping modes */
     if (brush->mask_mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
-      mask_rotation += ups->brush_rotation_sec;
+      mask_rotation += paint_runtime->brush_rotation_sec;
     }
     else if (brush->mask_mtex.brush_map_mode == MTEX_MAP_MODE_RANDOM) {
       renew_maxmask = true;

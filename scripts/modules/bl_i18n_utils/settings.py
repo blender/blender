@@ -716,7 +716,7 @@ def _check_valid_data(uid, val):
 class I18nSettings:
     """
     Class allowing persistence of our settings!
-    Saved in JSon format, so settings should be JSon'able objects!
+    Saved in JSON format, so settings should be JSON'able objects!
     """
     _settings = None
 
@@ -763,7 +763,7 @@ class I18nSettings:
             return
         if isinstance(fname, str):
             if not os.path.isfile(fname):
-                # Assume it is already real JSon string...
+                # Assume it is already real JSON string.
                 self.from_json(fname)
                 return
             with open(fname, encoding="utf8") as f:

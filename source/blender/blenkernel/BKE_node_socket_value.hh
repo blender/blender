@@ -56,6 +56,8 @@ class SocketValueVariant {
      * Indicates that there is a `GVolumeGrid` stored.
      */
     Grid,
+    /** Indicates that there is a `ListPtr` stored. */
+    List,
   };
 
   /**
@@ -149,8 +151,13 @@ class SocketValueVariant {
   bool is_single() const;
 
   /**
+   * The stored value is a list.
+   */
+  bool is_list() const;
+
+  /**
    * Convert the stored value into a single value. For simple value access, this is not necessary,
-   * because #get` does the conversion implicitly. However, it is necessary if one wants to use
+   * because #get does the conversion implicitly. However, it is necessary if one wants to use
    * #get_single_ptr. Context-dependent fields or grids will just result in a fallback value.
    *
    * The caller has to make sure that the stored value is a single value, field or grid.

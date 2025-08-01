@@ -13,7 +13,7 @@
 #include "BKE_main.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_time.h"
 
 #include "BLI_timecode.h"
@@ -113,7 +113,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
   const char *op_description = nullptr;
 
   uiBlock *block = layout->block();
-  UI_block_layout_set_current(block, layout);
+  blender::ui::block_layout_set_current(block, layout);
 
   UI_block_func_handle_set(block, do_running_jobs, nullptr);
 
@@ -231,14 +231,14 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
     /* get percentage done and set it as the UI text */
     const float progress = WM_jobs_progress(wm, owner);
     char text[8];
-    SNPRINTF(text, "%d%%", int(progress * 100));
+    SNPRINTF_UTF8(text, "%d%%", int(progress * 100));
 
     const char *name = active ? RPT_(WM_jobs_name(wm, owner)) : RPT_("Canceling...");
 
     /* job icon as a button */
     if (op_name) {
       uiDefIconButO(block,
-                    UI_BTYPE_BUT,
+                    ButType::But,
                     op_name,
                     blender::wm::OpCallContext::InvokeDefault,
                     icon,
@@ -252,7 +252,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
     /* job name and icon if not previously set */
     const int textwidth = UI_fontstyle_string_width(fstyle, name);
     uiDefIconTextBut(block,
-                     UI_BTYPE_LABEL,
+                     ButType::Label,
                      0,
                      op_name ? 0 : icon,
                      name,
@@ -261,8 +261,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                      textwidth + UI_UNIT_X * 1.5f,
                      UI_UNIT_Y,
                      nullptr,
-                     0.0f,
-                     0.0f,
                      "");
 
     /* stick progress bar and cancel button together */
@@ -276,7 +274,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
       tip_arg->wm = wm;
       tip_arg->owner = owner;
       uiButProgress *but_progress = (uiButProgress *)uiDefIconTextBut(block,
-                                                                      UI_BTYPE_PROGRESS,
+                                                                      ButType::Progress,
                                                                       0,
                                                                       ICON_NONE,
                                                                       text,
@@ -285,8 +283,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                                                                       UI_UNIT_X * 6.0f,
                                                                       UI_UNIT_Y,
                                                                       nullptr,
-                                                                      0.0f,
-                                                                      0.0f,
                                                                       nullptr);
 
       but_progress->progress_factor = progress;
@@ -295,7 +291,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 
     if (!wm->runtime->is_interface_locked) {
       uiDefIconTextBut(block,
-                       UI_BTYPE_BUT,
+                       ButType::But,
                        handle_event,
                        ICON_PANEL_CLOSE,
                        "",
@@ -304,15 +300,13 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                        UI_UNIT_X,
                        UI_UNIT_Y,
                        nullptr,
-                       0.0f,
-                       0.0f,
                        TIP_("Stop this job"));
     }
   }
 
   if (ED_screen_animation_no_scrub(wm)) {
     uiDefIconTextBut(block,
-                     UI_BTYPE_BUT,
+                     ButType::But,
                      B_STOPANIM,
                      ICON_CANCEL,
                      IFACE_("Anim Player"),
@@ -321,8 +315,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                      UI_UNIT_X * 5.0f,
                      UI_UNIT_Y,
                      nullptr,
-                     0.0f,
-                     0.0f,
                      TIP_("Stop animation playback"));
   }
 }

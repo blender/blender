@@ -62,7 +62,7 @@
     .gravity_final = {0.0f, 0.0f, 0.0f}, \
     .adapt_margin = 4, \
     .adapt_res = 0, \
-    .adapt_threshold = 0.02f, \
+    .adapt_threshold = 0.002f, \
     .maxres = 32, \
     .solver_res = 3, \
     .border_collisions = 0, \

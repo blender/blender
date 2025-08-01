@@ -144,7 +144,7 @@ static void fill_locales()
 
           if (id == 0) {
             /* The DEFAULT/Automatic item... */
-            if (BLI_strnlen(loc, 2)) {
+            if (loc[0] != '\0') {
               MEM_freeN(desc); /* Not used here. */
               locales[id] = "";
               /* Keep this tip in sync with the one in rna_userdef

@@ -26,7 +26,7 @@ settings = settings_i18n.I18nSettings()
 # Operators ###################################################################
 
 class UI_OT_i18n_settings_load(Operator):
-    """Load translations' settings from a persistent JSon file"""
+    """Load translations' settings from a persistent JSON file"""
     bl_idname = "ui.i18n_settings_load"
     bl_label = "I18n Load Settings"
     bl_option = {'REGISTER'}
@@ -58,7 +58,7 @@ class UI_OT_i18n_settings_load(Operator):
 
 
 class UI_OT_i18n_settings_save(Operator):
-    """Save translations' settings in a persistent JSon file"""
+    """Save translations' settings in a persistent JSON file"""
     bl_idname = "ui.i18n_settings_save"
     bl_label = "I18n Save Settings"
     bl_option = {'REGISTER'}

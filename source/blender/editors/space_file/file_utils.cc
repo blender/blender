@@ -12,6 +12,8 @@
 
 #include "BKE_blendfile.hh"
 
+#include "DNA_screen_types.h"
+
 #include "ED_fileselect.hh"
 
 #include "file_intern.hh"

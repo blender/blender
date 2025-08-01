@@ -146,7 +146,7 @@ void MetalDeviceQueue::update_capture(DeviceKernel kernel)
 
   /* Handle single-capture start trigger. */
   if (kernel == capture_kernel_) {
-    /* Start capturing when the we hit the Nth dispatch of the specified kernel. */
+    /* Start capturing when we hit the Nth dispatch of the specified kernel. */
     if (capture_dispatch_counter_ == 0) {
       begin_capture();
     }

@@ -14,6 +14,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BKE_context.hh"
@@ -172,7 +173,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
 {
   SeqDropCoords *coords = &g_drop_coords;
   ARegion *region = CTX_wm_region(C);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
   View2D *v2d = &region->v2d;
 
   /* Update the position were we would place the strip if we complete the drag and drop action.
@@ -265,7 +266,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
   else {
     /* We are dropped inside the preview region. Put the strip on top of the
      * current displayed frame. */
-    Scene *scene = CTX_data_scene(C);
+    Scene *scene = CTX_data_sequencer_scene(C);
     Editing *ed = seq::editing_ensure(scene);
     ListBase *seqbase = seq::active_seqbase_get(ed);
     ListBase *channels = seq::channels_displayed_get(ed);
@@ -396,8 +397,8 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
   uchar strip_color[4];
   strip_color[3] = 255;
   uchar text_color[4] = {255, 255, 255, 255};
-  float pixelx = BLI_rctf_size_x(&region->v2d.cur) / BLI_rcti_size_x(&region->v2d.mask);
-  float pixely = BLI_rctf_size_y(&region->v2d.cur) / BLI_rcti_size_y(&region->v2d.mask);
+  float pixelx = BLI_rctf_size_x(&region->v2d.cur) / (BLI_rcti_size_x(&region->v2d.mask) + 1);
+  float pixely = BLI_rctf_size_y(&region->v2d.cur) / (BLI_rcti_size_y(&region->v2d.mask) + 1);
 
   StripsDrawBatch batch(&region->v2d);
 
@@ -482,17 +483,18 @@ static void draw_strip_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, co
     }
 
     if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION) {
-      SNPRINTF(strip_duration_text, "%d", int(x2 - x1));
+      SNPRINTF_UTF8(strip_duration_text, "%d", int(x2 - x1));
       text_array[len_text_arr++] = text_sep;
       text_array[len_text_arr++] = strip_duration_text;
     }
 
     BLI_assert(len_text_arr <= ARRAY_SIZE(text_array));
 
-    BLI_string_join_array(text_display, FILE_MAX, text_array, len_text_arr);
+    const size_t text_display_len = BLI_string_join_array(
+        text_display, FILE_MAX, text_array, len_text_arr);
 
     UI_view2d_text_cache_add_rectf(
-        &region->v2d, &rect, text_display, strlen(text_display), text_color);
+        &region->v2d, &rect, text_display, text_display_len, text_color);
   }
   batch.flush_batch();
 
@@ -585,10 +587,10 @@ static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
 
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
 
   wmJob *wm_job = WM_jobs_get(
-      wm, win, nullptr, "Load Previews", eWM_JobFlag(0), WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
+      wm, win, nullptr, "Loading previews...", eWM_JobFlag(0), WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
 
   DropJobData *job_data = MEM_mallocN<DropJobData>("SeqDragDropPreviewData");
   get_drag_path(C, drag, job_data->path);

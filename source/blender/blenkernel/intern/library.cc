@@ -86,6 +86,7 @@ static void library_copy_data(Main *bmain,
   }
   library_dst->runtime = MEM_new<LibraryRuntime>(__func__, *library_src->runtime);
   library_dst->runtime->filedata = nullptr;
+  library_dst->runtime->is_filedata_owner = false;
   library_dst->runtime->name_map = nullptr;
 }
 

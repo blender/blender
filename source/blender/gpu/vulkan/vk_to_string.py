@@ -387,10 +387,12 @@ def generate_to_string(vk_xml, header):
         for struct_to_generate in structs_to_generate:
             struct = root.find(f"types/type[@category='struct'][@name='{struct_to_generate}']")
             assert (struct is not None)
-            vk_to_string += generate_struct_to_string_cpp(struct,
-                                                          flags_to_generate,
-                                                          enums_to_generate,
-                                                          structs_to_generate)
+            vk_to_string += generate_struct_to_string_cpp(
+                struct,
+                flags_to_generate,
+                enums_to_generate,
+                structs_to_generate,
+            )
             vk_to_string += "\n"
 
     print(vk_to_string)

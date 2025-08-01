@@ -256,7 +256,7 @@ class USDImportTest(AbstractUSDTest):
 
         # Reload the empty file and import back in
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
-        res = bpy.ops.wm.usd_import(filepath=testfile, import_subdiv=True)
+        res = bpy.ops.wm.usd_import(filepath=testfile, import_subdivision=True)
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
 
         # Validate crease attributes
@@ -1731,35 +1731,35 @@ class USDImportTest(AbstractUSDTest):
 
         infile = str(test_path1)
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
-        res = bpy.ops.wm.usd_import(filepath=infile, attr_import_mode='USER')
+        res = bpy.ops.wm.usd_import(filepath=infile, property_import_mode='USER')
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
         self.assertEqual(len(bpy.data.objects), 4)
         assert_all_props_present(properties, "")
 
         infile = str(test_path1)
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
-        res = bpy.ops.wm.usd_import(filepath=infile, attr_import_mode='NONE')
+        res = bpy.ops.wm.usd_import(filepath=infile, property_import_mode='NONE')
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
         self.assertEqual(len(bpy.data.objects), 4)
         assert_no_props_present(properties, "")
 
         infile = str(test_path2)
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
-        res = bpy.ops.wm.usd_import(filepath=infile, attr_import_mode='ALL')
+        res = bpy.ops.wm.usd_import(filepath=infile, property_import_mode='ALL')
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
         self.assertEqual(len(bpy.data.objects), 4)
         assert_all_props_present(properties, custom_namespace)
 
         infile = str(test_path2)
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
-        res = bpy.ops.wm.usd_import(filepath=infile, attr_import_mode='USER')
+        res = bpy.ops.wm.usd_import(filepath=infile, property_import_mode='USER')
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
         self.assertEqual(len(bpy.data.objects), 4)
         assert_no_props_present(properties, custom_namespace)
 
         infile = str(test_path3)
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
-        res = bpy.ops.wm.usd_import(filepath=infile, attr_import_mode='ALL')
+        res = bpy.ops.wm.usd_import(filepath=infile, property_import_mode='ALL')
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
         self.assertEqual(len(bpy.data.objects), 1)
         properties = [
@@ -2012,7 +2012,7 @@ class USDImportComparisonTest(unittest.TestCase):
                 bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
                 ok = report.import_and_check(
                     input_file, lambda filepath, params: bpy.ops.wm.usd_import(
-                        filepath=str(input_file), import_subdiv=True, **params))
+                        filepath=str(input_file), import_subdivision=True, **params))
                 if not ok:
                     self.fail(f"{input_file.stem} import result does not match expectations")
 

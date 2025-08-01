@@ -141,7 +141,7 @@ void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
 {
   const GridViewStyle &style = this->get_view().get_style();
   view_item_but_ = (uiButViewItem *)uiDefBut(&block,
-                                             UI_BTYPE_VIEW_ITEM,
+                                             ButType::ViewItem,
                                              0,
                                              "",
                                              0,
@@ -334,7 +334,7 @@ void BuildOnlyVisibleButtonsHelper::add_spacer_button(uiBlock &block, const int 
         std::numeric_limits<short>::max() / style_.tile_height, remaining_rows);
 
     uiDefBut(&block,
-             UI_BTYPE_LABEL,
+             ButType::Label,
              0,
              "",
              0,
@@ -425,7 +425,7 @@ void GridViewLayoutBuilder::build_from_view(const bContext &C,
     item_idx++;
   });
 
-  UI_block_layout_set_current(&block_, parent_layout);
+  block_layout_set_current(&block_, parent_layout);
 
   build_visible_helper.fill_layout_after_visible(block_);
 }
@@ -455,7 +455,7 @@ void GridViewBuilder::build_grid_view(const bContext &C,
   grid_view.filter(search_string);
 
   /* Ensure the given layout is actually active. */
-  UI_block_layout_set_current(&block, &layout);
+  block_layout_set_current(&block, &layout);
 
   GridViewLayoutBuilder builder(layout);
   builder.build_from_view(C, grid_view, region->v2d);
@@ -478,7 +478,7 @@ void PreviewGridItem::build_grid_tile_button(uiLayout &layout,
                                 [this](const uiBut * /*but*/) { return label; });
 
   uiBut *but = uiDefBut(block,
-                        UI_BTYPE_PREVIEW_TILE,
+                        ButType::PreviewTile,
                         0,
                         hide_label_ ? "" : label,
                         0,
@@ -496,7 +496,7 @@ void PreviewGridItem::build_grid_tile_button(uiLayout &layout,
                   icon_id,
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
-  but->emboss = blender::ui::EmbossType::None;
+  but->emboss = EmbossType::None;
 }
 
 void PreviewGridItem::build_grid_tile(const bContext & /*C*/, uiLayout &layout) const

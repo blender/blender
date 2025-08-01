@@ -31,7 +31,7 @@
 #include "BLI_mutex.hh"
 #include "BLI_rect.h"
 #include "BLI_set.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_time.h"
 #include "BLI_timecode.h"
@@ -137,11 +137,13 @@ namespace path_templates = blender::bke::path_templates;
 /* here we store all renders */
 static struct {
   std::forward_list<Render *> render_list;
-  /* Special renders that can be used for interactive compositing, each scene has its own render,
-   * keyed with the scene name returned from scene_render_name_get and matches the same name in
+  /**
+   * Special renders that can be used for interactive compositing, each scene has its own render,
+   * keyed with the scene name returned from #scene_render_name_get and matches the same name in
    * render_list. Those renders are separate from standard renders because the GPU context can't be
    * bound for compositing and rendering at the same time, so those renders are essentially used to
-   * get a persistent dedicated GPU context to interactive compositor execution. */
+   * get a persistent dedicated GPU context to interactive compositor execution.
+   */
   blender::Map<std::string, Render *> interactive_compositor_renders;
 } RenderGlobal;
 
@@ -204,7 +206,8 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   static blender::Mutex mutex;
   std::scoped_lock lock(mutex);
 
-  if (!G.quiet) {
+  const bool show_info = CLOG_CHECK(&LOG, CLG_LEVEL_INFO);
+  if (show_info) {
     CLOG_STR_INFO(&LOG, rs->infostr);
     /* Flush stdout to be sure python callbacks are printing stuff after blender. */
     fflush(stdout);
@@ -214,7 +217,7 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
   BKE_callback_exec_string(G_MAIN, BKE_CB_EVT_RENDER_STATS, rs->infostr);
 
-  if (!G.quiet) {
+  if (show_info) {
     fflush(stdout);
   }
 }
@@ -511,7 +514,7 @@ Render *RE_NewRender(const char *name)
     /* new render data struct */
     re = MEM_new<Render>("new render");
     RenderGlobal.render_list.push_front(re);
-    STRNCPY(re->name, name);
+    STRNCPY_UTF8(re->name, name);
   }
 
   RE_InitRenderCB(re);
@@ -529,38 +532,41 @@ ViewRender *RE_NewViewRender(RenderEngineType *engine_type)
 /* MAX_ID_NAME + sizeof(Library->name) + space + null-terminator. */
 #define MAX_SCENE_RENDER_NAME (MAX_ID_NAME + 1024 + 2)
 
-static void scene_render_name_get(const Scene *scene, const size_t max_size, char *render_name)
+static void scene_render_name_get(const Scene *scene,
+                                  char *render_name,
+                                  const size_t render_name_maxncpy)
 {
   if (ID_IS_LINKED(scene)) {
-    BLI_snprintf(render_name, max_size, "%s %s", scene->id.lib->id.name, scene->id.name);
+    BLI_snprintf_utf8(
+        render_name, render_name_maxncpy, "%s %s", scene->id.lib->id.name, scene->id.name);
   }
   else {
-    BLI_snprintf(render_name, max_size, "%s", scene->id.name);
+    BLI_strncpy_utf8(render_name, scene->id.name, render_name_maxncpy);
   }
 }
 
 Render *RE_GetSceneRender(const Scene *scene)
 {
   char render_name[MAX_SCENE_RENDER_NAME];
-  scene_render_name_get(scene, sizeof(render_name), render_name);
+  scene_render_name_get(scene, render_name, sizeof(render_name));
   return RE_GetRender(render_name);
 }
 
 Render *RE_NewSceneRender(const Scene *scene)
 {
   char render_name[MAX_SCENE_RENDER_NAME];
-  scene_render_name_get(scene, sizeof(render_name), render_name);
+  scene_render_name_get(scene, render_name, sizeof(render_name));
   return RE_NewRender(render_name);
 }
 
 Render *RE_NewInteractiveCompositorRender(const Scene *scene)
 {
   char render_name[MAX_SCENE_RENDER_NAME];
-  scene_render_name_get(scene, sizeof(render_name), render_name);
+  scene_render_name_get(scene, render_name, sizeof(render_name));
 
   return RenderGlobal.interactive_compositor_renders.lookup_or_add_cb(render_name, [&]() {
     Render *render = MEM_new<Render>("New Interactive Compositor Render");
-    STRNCPY(render->name, render_name);
+    STRNCPY_UTF8(render->name, render_name);
     RE_InitRenderCB(render);
     return render;
   });
@@ -865,7 +871,7 @@ void RE_InitState(Render *re,
   }
 
   if (single_layer) {
-    STRNCPY(re->single_view_layer, single_layer->name);
+    STRNCPY_UTF8(re->single_view_layer, single_layer->name);
     re->r.scemode |= R_SINGLE_LAYER;
   }
   else {
@@ -1217,26 +1223,20 @@ static bool compositor_needs_render(Scene *scene)
   return false;
 }
 
-/** Returns true if the node tree has a composite output node. */
-static bool node_tree_has_composite_output(const bNodeTree *node_tree)
+/** Returns true if the node tree has a group output node. */
+static bool node_tree_has_group_output(const bNodeTree *node_tree)
 {
   if (node_tree == nullptr) {
     return false;
   }
 
-  for (const bNode *node : node_tree->all_nodes()) {
-    if (node->is_muted()) {
-      continue;
-    }
-    if (node->type_legacy == CMP_NODE_COMPOSITE && node->flag & NODE_DO_OUTPUT) {
+  node_tree->ensure_topology_cache();
+  for (const bNode *node : node_tree->nodes_by_type("NodeGroupOutput")) {
+    if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
       return true;
     }
-    if (node->is_group() && node->id) {
-      if (node_tree_has_composite_output(reinterpret_cast<const bNodeTree *>(node->id))) {
-        return true;
-      }
-    }
   }
+
   return false;
 }
 
@@ -1323,9 +1323,9 @@ static void do_render_compositor(Render *re)
     /* Scene render process already updates animsys. */
     update_newframe = true;
 
-    /* The compositor does not have an output, skip writing the render result. See R_SKIP_WRITE for
-     * more information. */
-    if (!node_tree_has_composite_output(re->pipeline_scene_eval->compositing_node_group)) {
+    /* The compositor does not have a group output, skip writing the render result. See
+     * R_SKIP_WRITE for more information. */
+    if (!node_tree_has_group_output(re->pipeline_scene_eval->compositing_node_group)) {
       re->flag |= R_SKIP_WRITE;
     }
   }
@@ -1770,27 +1770,34 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
   return true;
 }
 
-static bool node_tree_has_any_compositor_output(const bNodeTree *ntree)
+static bool node_tree_has_file_output(const bNodeTree *node_tree)
 {
-  for (const bNode *node : ntree->all_nodes()) {
-    if (ELEM(node->type_legacy, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
+  node_tree->ensure_topology_cache();
+  for (const bNode *node : node_tree->nodes_by_type("CompositorNodeOutputFile")) {
+    if (!node->is_muted()) {
       return true;
     }
-    if (node->is_group()) {
-      if (node->id) {
-        if (node_tree_has_any_compositor_output((const bNodeTree *)node->id)) {
-          return true;
-        }
-      }
+  }
+
+  for (const bNode *node : node_tree->group_nodes()) {
+    if (node->is_muted() || !node->id) {
+      continue;
+    }
+
+    if (node_tree_has_file_output(reinterpret_cast<const bNodeTree *>(node->id))) {
+      return true;
     }
   }
 
   return false;
 }
 
-static int check_compositor_output(Scene *scene)
+static bool scene_has_compositor_output(Scene *scene)
 {
-  return node_tree_has_any_compositor_output(scene->compositing_node_group);
+  if (node_tree_has_group_output(scene->compositing_node_group)) {
+    return true;
+  }
+  return node_tree_has_file_output(scene->compositing_node_group);
 }
 
 /* Identify if the compositor can run on the GPU. Currently, this only checks if the compositor is
@@ -1842,8 +1849,8 @@ bool RE_is_rendering_allowed(Scene *scene,
   }
   else if (scemode & R_DOCOMP && scene->compositing_node_group) {
     /* Compositor */
-    if (!check_compositor_output(scene)) {
-      BKE_report(reports, RPT_ERROR, "No render output node in scene");
+    if (!scene_has_compositor_output(scene)) {
+      BKE_report(reports, RPT_ERROR, "No Group Output or File Output nodes in scene");
       return false;
     }
 
@@ -2228,9 +2235,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
       /* imbuf knows which rects are not part of ibuf */
       IMB_freeImBuf(ibuf);
     }
-    if (!G.quiet) {
-      printf("Append frame %d\n", scene->r.cfra);
-    }
+    CLOG_INFO(&LOG, "Video append frame %d", scene->r.cfra);
   }
   else { /* R_IMF_VIEWS_STEREO_3D */
     const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
@@ -2348,7 +2353,8 @@ static bool do_write_image_or_movie(
     message = fmt::format("{} (Saving: {})", message, filepath);
   }
 
-  if (!G.quiet) {
+  const bool show_info = CLOG_CHECK(&LOG, CLG_LEVEL_INFO);
+  if (show_info) {
     CLOG_STR_INFO(&LOG, message.c_str());
     /* Flush stdout to be sure python callbacks are printing stuff after blender. */
     fflush(stdout);
@@ -2358,7 +2364,7 @@ static bool do_write_image_or_movie(
    * Not sure it's actually even used anyway, we could as well pass nullptr? */
   render_callback_exec_string(re, G_MAIN, BKE_CB_EVT_RENDER_STATS, message.c_str());
 
-  if (!G.quiet) {
+  if (show_info) {
     fflush(stdout);
   }
 
@@ -2545,9 +2551,7 @@ void RE_RenderAnim(Render *re,
       if (rd.mode & R_NO_OVERWRITE) {
         if (!is_multiview_name) {
           if (BLI_exists(filepath)) {
-            if (!G.quiet) {
-              printf("skipping existing frame \"%s\"\n", filepath);
-            }
+            CLOG_INFO(&LOG, "Skipping existing frame \"%s\"", filepath);
             totskipped++;
             continue;
           }
@@ -2564,10 +2568,10 @@ void RE_RenderAnim(Render *re,
             BKE_scene_multiview_filepath_get(srv, filepath, filepath_view);
             if (BLI_exists(filepath_view)) {
               is_skip = true;
-              if (!G.quiet) {
-                printf(
-                    "skipping existing frame \"%s\" for view \"%s\"\n", filepath_view, srv->name);
-              }
+              CLOG_INFO(&LOG,
+                        "Skipping existing frame \"%s\" for view \"%s\"",
+                        filepath_view,
+                        srv->name);
             }
           }
 

@@ -15,11 +15,11 @@
  * `GPU_framebuffer_check_valid` is called. This means the context the `GPUFramebuffer` is bound
  * with is the one active when `GPU_framebuffer_bind` is called.
  *
- * When a `GPUTexture` is attached to a `GPUFramebuffer` a reference is created. Deleting either
- * does not require any unbinding.
+ * When a `gpu::Texture` is attached to a `GPUFramebuffer` a reference is created.
+ * Deleting either does not require any unbinding.
  *
  * A `GPUOffScreen` is a convenience type that holds a `GPUFramebuffer` and its associated
- * `GPUTexture`s. It is useful for quick drawing surface configuration.
+ * `gpu::Texture`s. It is useful for quick drawing surface configuration.
  */
 
 #pragma once
@@ -27,7 +27,9 @@
 #include "GPU_common_types.hh"
 #include "GPU_texture.hh"
 
-struct GPUTexture;
+namespace blender::gpu {
+class Texture;
+}
 
 enum eGPUFrameBufferBits {
   GPU_COLOR_BIT = (1 << 0),
@@ -41,7 +43,7 @@ ENUM_OPERATORS(eGPUFrameBufferBits, GPU_STENCIL_BIT)
 constexpr static int GPU_MAX_VIEWPORTS = 16;
 
 struct GPUAttachment {
-  GPUTexture *tex;
+  blender::gpu::Texture *tex;
   int layer, mip;
 };
 
@@ -309,7 +311,10 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *confi
  * DEPRECATED: Prefer using multiple #GPUFrameBuffer with different configurations with
  * `GPU_framebuffer_config_array()`.
  */
-void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *texture, int slot, int mip);
+void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb,
+                                    blender::gpu::Texture *texture,
+                                    int slot,
+                                    int mip);
 
 /**
  * Attach a single layer of an array texture mip level to a #GPUFrameBuffer.
@@ -321,7 +326,7 @@ void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *texture, int
  * `GPU_framebuffer_config_array()`.
  */
 void GPU_framebuffer_texture_layer_attach(
-    GPUFrameBuffer *fb, GPUTexture *texture, int slot, int layer, int mip);
+    GPUFrameBuffer *fb, blender::gpu::Texture *texture, int slot, int layer, int mip);
 
 /**
  * Attach a single cube-face of an cube-map texture mip level to a #GPUFrameBuffer.
@@ -333,7 +338,7 @@ void GPU_framebuffer_texture_layer_attach(
  * `GPU_framebuffer_config_array()`.
  */
 void GPU_framebuffer_texture_cubeface_attach(
-    GPUFrameBuffer *fb, GPUTexture *texture, int slot, int face, int mip);
+    GPUFrameBuffer *fb, blender::gpu::Texture *texture, int slot, int face, int mip);
 
 /**
  * Detach a texture from a #GPUFrameBuffer. The texture must be attached.
@@ -341,7 +346,7 @@ void GPU_framebuffer_texture_cubeface_attach(
  * DEPRECATED: Prefer using multiple #GPUFrameBuffer with different configurations with
  * `GPU_framebuffer_config_array()`.
  */
-void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *texture);
+void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, blender::gpu::Texture *texture);
 
 /**
  * Checks a framebuffer current configuration for errors.
@@ -610,27 +615,13 @@ void GPU_framebuffer_blit(GPUFrameBuffer *fb_read,
                           int write_slot,
                           eGPUFrameBufferBits blit_buffers);
 
-/**
- * Call \a per_level_callback after binding each framebuffer attachment mip level
- * up until \a max_level .
- * Each attachment texture sampler mip range is set to not overlap the currently processed level.
- * This is used for generating custom mip-map chains where each level needs access to the one
- * above.
- * DEPRECATED: Prefer using a compute shader with arbitrary imageLoad/Store for this purpose
- * as it is clearer and likely faster with optimizations.
- */
-void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
-                                          int max_level,
-                                          void (*per_level_callback)(void *user_data, int level),
-                                          void *user_data);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name GPU OffScreen
  *
  * A `GPUOffScreen` is a convenience type that holds a `GPUFramebuffer` and its associated
- * `GPUTexture`s. It is useful for quick drawing surface configuration.
+ * `blender::gpu::Texture`s. It is useful for quick drawing surface configuration.
  * NOTE: They are still limited by the same single context limitation as #GPUFrameBuffer.
  * \{ */
 
@@ -648,7 +639,7 @@ struct GPUOffScreen;
 GPUOffScreen *GPU_offscreen_create(int width,
                                    int height,
                                    bool with_depth_buffer,
-                                   eGPUTextureFormat format,
+                                   blender::gpu::TextureFormat format,
                                    eGPUTextureUsage usage,
                                    bool clear,
                                    char err_out[256]);
@@ -674,7 +665,7 @@ void GPU_offscreen_bind(GPUOffScreen *offscreen, bool save);
 void GPU_offscreen_unbind(GPUOffScreen *offscreen, bool restore);
 
 /**
- * Read the whole color texture of the a #GPUOffScreen.
+ * Read the whole color texture of the #GPUOffScreen.
  * The pixel data will be converted to \a data_format but it needs to be compatible with the
  * attachment type.
  * IMPORTANT: \a r_data must be big enough for all pixels in \a data_format.
@@ -705,12 +696,12 @@ int GPU_offscreen_height(const GPUOffScreen *offscreen);
  * Return the color texture of a #GPUOffScreen. Does not give ownership.
  * \note only to be used by viewport code!
  */
-GPUTexture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen);
+blender::gpu::Texture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen);
 
 /**
  * Return the texture format of a #GPUOffScreen.
  */
-eGPUTextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen);
+blender::gpu::TextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen);
 
 /**
  * Return the internals of a #GPUOffScreen. Does not give ownership.
@@ -718,7 +709,7 @@ eGPUTextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen);
  */
 void GPU_offscreen_viewport_data_get(GPUOffScreen *offscreen,
                                      GPUFrameBuffer **r_fb,
-                                     GPUTexture **r_color,
-                                     GPUTexture **r_depth);
+                                     blender::gpu::Texture **r_color,
+                                     blender::gpu::Texture **r_depth);
 
 /** \} */

@@ -98,5 +98,8 @@ namespace blender::nodes {
 
 compositor::NodeOperation *get_group_input_compositor_operation(compositor::Context &context,
                                                                 DNode node);
+compositor::NodeOperation *get_group_output_compositor_operation(compositor::Context &context,
+                                                                 DNode node);
+void get_compositor_group_output_extra_info(blender::nodes::NodeExtraInfoParams &parameters);
 
-}
+}  // namespace blender::nodes

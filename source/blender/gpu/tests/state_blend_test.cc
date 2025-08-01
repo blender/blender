@@ -24,14 +24,14 @@ void blend_test(float4 source_a, float4 source_b, float4 expected_result)
   GPUOffScreen *offscreen = GPU_offscreen_create(1,
                                                  1,
                                                  false,
-                                                 GPU_RGBA16F,
+                                                 TextureFormat::SFLOAT_16_16_16_16,
                                                  GPU_TEXTURE_USAGE_ATTACHMENT |
                                                      GPU_TEXTURE_USAGE_HOST_READ,
                                                  false,
                                                  nullptr);
   BLI_assert(offscreen != nullptr);
   GPU_offscreen_bind(offscreen, false);
-  GPUTexture *color_texture = GPU_offscreen_color_texture(offscreen);
+  blender::gpu::Texture *color_texture = GPU_offscreen_color_texture(offscreen);
   GPU_texture_clear(color_texture, GPU_DATA_FLOAT, source_a);
 
   Batch *batch = GPU_batch_preset_quad();

@@ -1201,7 +1201,7 @@ static PyMethodDef Color_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     color_doc,
-    ".. class:: Color(rgb)\n"
+    ".. class:: Color(rgb=(0.0, 0.0, 0.0), /)\n"
     "\n"
     "   This object gives access to Colors in Blender.\n"
     "\n"

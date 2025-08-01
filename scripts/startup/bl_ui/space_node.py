@@ -99,8 +99,6 @@ class NODE_HT_header(Header):
 
                 if snode_id:
                     row = layout.row()
-                    row.prop(snode_id, "use_nodes")
-
                     if world and world.use_eevee_finite_volume:
                         row.operator("world.convert_volume_to_mesh", emboss=False, icon='WORLD', text="Convert Volume")
 
@@ -1183,6 +1181,20 @@ def node_panel(cls):
     return node_cls
 
 
+class NODE_AST_compositor(bpy.types.AssetShelf):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data.tree_type == 'CompositorNodeTree'
+
+    @classmethod
+    def asset_poll(cls, asset):
+        compositing_type = bpy.types.NodeTree.bl_rna.properties["type"].enum_items["COMPOSITING"]
+        return asset.id_type == 'NODETREE' and asset.metadata.get("type") == compositing_type.value
+
+
 classes = (
     NODE_HT_header,
     NODE_MT_editor_menus,
@@ -1215,6 +1227,7 @@ classes = (
     NODE_PT_overlay,
     NODE_PT_active_node_properties,
     NODE_PT_gizmo_display,
+    NODE_AST_compositor,
 
     node_panel(EEVEE_MATERIAL_PT_settings),
     node_panel(EEVEE_MATERIAL_PT_settings_surface),

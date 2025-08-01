@@ -28,7 +28,7 @@
 
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_timecode.h"
 
 #include "RNA_access.hh"
@@ -71,7 +71,7 @@ static void get_current_time_str(
     BLI_timecode_string_from_time(r_str, str_maxncpy, -1, FRA2TIME(frame), FPS, U.timecode_style);
   }
   else {
-    BLI_snprintf(r_str, str_maxncpy, "%d", frame);
+    BLI_snprintf_utf8(r_str, str_maxncpy, "%d", frame);
   }
 }
 
@@ -90,7 +90,6 @@ static void draw_current_frame(const Scene *scene,
   float text_width = UI_fontstyle_string_width(fstyle, frame_str);
   float box_width = std::max(text_width + 8 * UI_SCALE_FAC, 24 * UI_SCALE_FAC);
   float box_padding = 3 * UI_SCALE_FAC;
-  const int line_outline = max_ii(1, round_fl_to_int(1 * UI_SCALE_FAC));
 
   float bg_color[4];
   UI_GetThemeColorShade4fv(TH_CFRAME, -5, bg_color);
@@ -103,20 +102,24 @@ static void draw_current_frame(const Scene *scene,
     GPU_blend(GPU_BLEND_ALPHA);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
+    /* There are two usages of "1.0f" below that are not scaled. This is
+     * used to force an odd width (but still pixel-aligned) to better
+     * line up with the odd widths of the keyframe icons. #98089. */
+
     /* Outline. */
     immUniformThemeColorShadeAlpha(TH_BACK, -25, -100);
     immRectf(pos,
-             subframe_x - (line_outline + U.pixelsize),
-             scrub_region_rect->ymax - box_padding,
-             subframe_x + (line_outline + U.pixelsize),
+             floor(subframe_x - U.pixelsize - U.pixelsize),
+             scrub_region_rect->ymax - box_padding - U.pixelsize,
+             floor(subframe_x + U.pixelsize + 1.0f + U.pixelsize),
              0.0f);
 
     /* Line. */
     immUniformThemeColor(TH_CFRAME);
     immRectf(pos,
-             subframe_x - U.pixelsize,
-             scrub_region_rect->ymax - box_padding,
-             subframe_x + U.pixelsize,
+             floor(subframe_x - U.pixelsize),
+             scrub_region_rect->ymax - box_padding - U.pixelsize,
+             floor(subframe_x + U.pixelsize + 1.0f),
              0.0f);
     immUnbindProgram();
     GPU_blend(GPU_BLEND_NONE);
@@ -128,20 +131,20 @@ static void draw_current_frame(const Scene *scene,
   UI_GetThemeColorShade4fv(TH_CFRAME, 5, outline_color);
 
   rctf rect{};
-  rect.xmin = frame_x - box_width / 2 + U.pixelsize / 2;
-  rect.xmax = frame_x + box_width / 2 + U.pixelsize / 2;
-  rect.ymin = scrub_region_rect->ymin + box_padding;
-  rect.ymax = scrub_region_rect->ymax - box_padding;
+  rect.xmin = floor(frame_x - (box_width / 2.0f) + U.pixelsize + 1.0f);
+  rect.xmax = ceil(frame_x + (box_width / 2.0f));
+  rect.ymin = floor(scrub_region_rect->ymin + box_padding);
+  rect.ymax = ceil(scrub_region_rect->ymax - box_padding);
   UI_draw_roundbox_4fv_ex(
       &rect, bg_color, nullptr, 1.0f, outline_color, U.pixelsize, 4 * UI_SCALE_FAC);
 
   uchar text_color[4];
   UI_GetThemeColor4ubv(TH_HEADER_TEXT_HI, text_color);
 
-  const int y = BLI_rcti_cent_y(scrub_region_rect) - int(fstyle->points * UI_SCALE_FAC * 0.35f);
+  const int y = BLI_rcti_cent_y(scrub_region_rect) - int(fstyle->points * UI_SCALE_FAC * 0.38f);
 
   UI_fontstyle_draw_simple(
-      +fstyle, frame_x - text_width / 2 + U.pixelsize / 2, y, frame_str, text_color);
+      fstyle, ceil(frame_x - (text_width / 2.0f) + 1.0f), y, frame_str, text_color);
 }
 
 void ED_time_scrub_draw_current_frame(const ARegion *region,
@@ -247,7 +250,7 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
                                                0,
                                                style);
   layout.scale_y_set((UI_UNIT_Y - padding_y) / UI_UNIT_Y);
-  UI_block_layout_set_current(block, &layout);
+  blender::ui::block_layout_set_current(block, &layout);
   UI_block_align_begin(block);
   layout.prop(&ptr, "filter_text", UI_ITEM_NONE, "", ICON_NONE);
   layout.prop(&ptr, "use_filter_invert", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);

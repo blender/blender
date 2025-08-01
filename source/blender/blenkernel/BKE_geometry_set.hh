@@ -224,7 +224,8 @@ struct GeometrySet {
    */
   Vector<const GeometryComponent *> get_components() const;
 
-  std::optional<Bounds<float3>> compute_boundbox_without_instances(bool use_radius = true) const;
+  std::optional<Bounds<float3>> compute_boundbox_without_instances(bool use_radius = true,
+                                                                   bool use_subdiv = false) const;
 
   friend std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set);
 

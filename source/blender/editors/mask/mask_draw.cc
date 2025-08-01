@@ -727,12 +727,30 @@ void ED_mask_draw_region(
     if (overlay_mode == MASK_OVERLAY_COMBINED) {
       const float blend_col[4] = {0.0f, 0.0f, 0.0f, blend_factor};
 
-      immDrawPixelsTexTiled(
-          &state, 0.0f, 0.0f, width, height, GPU_R16F, false, buffer, 1.0f, 1.0f, blend_col);
+      immDrawPixelsTexTiled(&state,
+                            0.0f,
+                            0.0f,
+                            width,
+                            height,
+                            blender::gpu::TextureFormat::SFLOAT_16,
+                            false,
+                            buffer,
+                            1.0f,
+                            1.0f,
+                            blend_col);
     }
     else {
-      immDrawPixelsTexTiled(
-          &state, 0.0f, 0.0f, width, height, GPU_R16F, false, buffer, 1.0f, 1.0f, nullptr);
+      immDrawPixelsTexTiled(&state,
+                            0.0f,
+                            0.0f,
+                            width,
+                            height,
+                            blender::gpu::TextureFormat::SFLOAT_16,
+                            false,
+                            buffer,
+                            1.0f,
+                            1.0f,
+                            nullptr);
     }
     GPU_matrix_pop();
 

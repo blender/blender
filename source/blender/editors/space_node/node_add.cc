@@ -20,6 +20,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -428,7 +429,7 @@ static bool add_node_group_asset(const bContext &C,
     BKE_report(&reports, RPT_WARNING, "Could not add node group");
     return false;
   }
-  STRNCPY(group_node->name, BKE_id_name(node_group->id));
+  STRNCPY_UTF8(group_node->name, BKE_id_name(node_group->id));
   bke::node_unique_name(*snode.edittree, *group_node);
 
   /* By default, don't show the data-block selector since it's not usually necessary for assets. */
@@ -1091,7 +1092,7 @@ static wmOperatorStatus node_add_import_node_exec(bContext *C, wmOperator *op)
     }
 
     if (node) {
-      bNodeSocket &path_socket = node->input_by_identifier("Path");
+      bNodeSocket &path_socket = *node->input_by_identifier("Path");
       BLI_assert(path_socket.type == SOCK_STRING);
       auto *socket_data = static_cast<bNodeSocketValueString *>(path_socket.default_value);
       STRNCPY(socket_data->value, path.c_str());

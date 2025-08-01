@@ -13,7 +13,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_time.h"
 #include "BLI_timecode.h"
@@ -431,7 +431,7 @@ static void make_renderinfo_string(const RenderStats *rs,
   }
 
   /* frame number */
-  SNPRINTF(info_buffers.frame, "%d ", scene->r.cfra);
+  SNPRINTF_UTF8(info_buffers.frame, "%d ", scene->r.cfra);
   ret_array[i++] = RPT_("Frame:");
   ret_array[i++] = info_buffers.frame;
 
@@ -468,13 +468,14 @@ static void make_renderinfo_string(const RenderStats *rs,
     }
     else {
       if (rs->mem_peak == 0.0f) {
-        SNPRINTF(info_buffers.statistics,
-                 RPT_("Mem:%dM, Peak %dM"),
-                 megs_used_memory,
-                 megs_peak_memory);
+        SNPRINTF_UTF8(info_buffers.statistics,
+                      RPT_("Mem:%dM, Peak %dM"),
+                      megs_used_memory,
+                      megs_peak_memory);
       }
       else {
-        SNPRINTF(info_buffers.statistics, RPT_("Mem:%dM, Peak: %dM"), rs->mem_used, rs->mem_peak);
+        SNPRINTF_UTF8(
+            info_buffers.statistics, RPT_("Mem:%dM, Peak: %dM"), rs->mem_used, rs->mem_peak);
       }
       info_statistics = info_buffers.statistics;
     }
@@ -842,7 +843,7 @@ static void render_endjob(void *rjv)
      * and using one from Global will unlock exactly the same manager as
      * was locked before running the job.
      */
-    WM_set_locked_interface(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
+    WM_locked_interface_set(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
     DEG_tag_on_visible_update(G_MAIN, false);
   }
 }
@@ -1061,7 +1062,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
 
   /* Lock the user interface depending on render settings. */
   if (scene->r.use_lock_interface) {
-    WM_set_locked_interface_with_flags(CTX_wm_manager(C), REGION_DRAW_LOCK_RENDER);
+    WM_locked_interface_set_with_flags(CTX_wm_manager(C), REGION_DRAW_LOCK_RENDER);
 
     /* Set flag interface need to be unlocked.
      *
@@ -1082,7 +1083,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
     name = RPT_("Rendering sequence...");
   }
   else {
-    name = RPT_("Render...");
+    name = RPT_("Rendering...");
   }
 
   wm_job = WM_jobs_get(CTX_wm_manager(C),

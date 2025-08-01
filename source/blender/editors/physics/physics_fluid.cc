@@ -18,6 +18,7 @@
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
@@ -137,12 +138,12 @@ static bool fluid_initjob(
 
   fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
   if (!fmd) {
-    BLI_strncpy(error_msg, N_("Bake failed: no Fluid modifier found"), error_size);
+    BLI_strncpy_utf8(error_msg, N_("Bake failed: no Fluid modifier found"), error_size);
     return false;
   }
   fds = fmd->domain;
   if (!fds) {
-    BLI_strncpy(error_msg, N_("Bake failed: invalid domain"), error_size);
+    BLI_strncpy_utf8(error_msg, N_("Bake failed: invalid domain"), error_size);
     return false;
   }
 
@@ -239,7 +240,7 @@ static void fluid_bake_sequence(FluidJob *job)
   frames = fds->cache_frame_end - fds->cache_frame_start + 1;
 
   if (frames <= 0) {
-    STRNCPY(fds->error, N_("No frames to bake"));
+    STRNCPY_UTF8(fds->error, N_("No frames to bake"));
     return;
   }
 
@@ -329,7 +330,7 @@ static void fluid_bake_endjob(void *customdata)
   DEG_id_tag_update(&job->ob->id, ID_RECALC_GEOMETRY);
 
   G.is_rendering = false;
-  WM_set_locked_interface(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
+  WM_locked_interface_set(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
 
   /* Bake was successful:
    * Report for ended bake and how long it took. */
@@ -435,7 +436,7 @@ static void fluid_free_endjob(void *customdata)
   FluidDomainSettings *fds = job->fmd->domain;
 
   G.is_rendering = false;
-  WM_set_locked_interface(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
+  WM_locked_interface_set(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
 
   /* Reflect the now empty cache in the viewport too. */
   DEG_id_tag_update(&job->ob->id, ID_RECALC_GEOMETRY);
@@ -561,7 +562,7 @@ static wmOperatorStatus fluid_bake_invoke(bContext *C, wmOperator *op, const wmE
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
                               scene,
-                              "Fluid Bake",
+                              "Baking fluid...",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_OBJECT_SIM_FLUID);
 
@@ -569,7 +570,7 @@ static wmOperatorStatus fluid_bake_invoke(bContext *C, wmOperator *op, const wmE
   WM_jobs_timer(wm_job, 0.01, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
   WM_jobs_callbacks(wm_job, fluid_bake_startjob, nullptr, nullptr, fluid_bake_endjob);
 
-  WM_set_locked_interface_with_flags(CTX_wm_manager(C), REGION_DRAW_LOCK_BAKING);
+  WM_locked_interface_set_with_flags(CTX_wm_manager(C), REGION_DRAW_LOCK_BAKING);
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
   WM_event_add_modal_handler(C, op);
@@ -643,7 +644,7 @@ static wmOperatorStatus fluid_free_exec(bContext *C, wmOperator *op)
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
                               scene,
-                              "Fluid Free",
+                              "Freeing fluid...",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_OBJECT_SIM_FLUID);
 
@@ -651,7 +652,7 @@ static wmOperatorStatus fluid_free_exec(bContext *C, wmOperator *op)
   WM_jobs_timer(wm_job, 0.01, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
   WM_jobs_callbacks(wm_job, fluid_free_startjob, nullptr, nullptr, fluid_free_endjob);
 
-  WM_set_locked_interface_with_flags(CTX_wm_manager(C), REGION_DRAW_LOCK_BAKING);
+  WM_locked_interface_set_with_flags(CTX_wm_manager(C), REGION_DRAW_LOCK_BAKING);
 
   /*  Free Fluid Geometry */
   WM_jobs_start(CTX_wm_manager(C), wm_job);

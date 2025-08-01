@@ -20,7 +20,7 @@
 #include "BLT_translation.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -213,14 +213,14 @@ bAction *id_action_ensure(Main *bmain, ID *id)
         ID *owner_id = BKE_id_owner_get(id);
         /* If the ID is embedded it should have an owner. */
         BLI_assert(owner_id != nullptr);
-        SNPRINTF(actname, DATA_("%sAction"), owner_id->name + 2);
+        SNPRINTF_UTF8(actname, DATA_("%sAction"), owner_id->name + 2);
       }
       else if (GS(id->name) == ID_KE) {
         Key *key = reinterpret_cast<Key *>(id);
-        SNPRINTF(actname, DATA_("%sAction"), key->from->name + 2);
+        SNPRINTF_UTF8(actname, DATA_("%sAction"), key->from->name + 2);
       }
       else {
-        SNPRINTF(actname, DATA_("%sAction"), id->name + 2);
+        SNPRINTF_UTF8(actname, DATA_("%sAction"), id->name + 2);
       }
 
       /* create action */

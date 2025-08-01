@@ -227,6 +227,12 @@ def initialize_precompiled_libraries(args: argparse.Namespace) -> str:
 
     submodule_directories = get_submodule_directories(args)
 
+    if platform == "macos" and arch == "x64":
+        return ("WARNING: macOS x64/Intel support was dropped in Blender 5.0.\n"
+                "         As such, pre-compiled dependencies are no longer provided.\n"
+                "         You may build the dependencies yourself, or downgrade to Blender 4.5.\n"
+                "         For more details, please see: https://devtalk.blender.org/t/38835")
+
     if Path(submodule_dir) not in submodule_directories:
         return "Skipping libraries update: no configured submodule\n"
 
@@ -314,13 +320,8 @@ def work_tree_update(args: argparse.Namespace, use_fetch: bool = True) -> str:
         # update the branch from the fork.
 
     update_command = [args.git_command, "pull", "--rebase"]
-    # This seems to be required some times, e.g. on initial checkout from third party, non-lfs repository
-    # (like the github one). The fallback repository set by `lfs_fallback_setup` is fetched, but running the
-    # `update_command` above does not seem to do the actual checkout for these LFS-managed files.
-    update_lfs_command = [args.git_command, "lfs", "checkout"]
 
     call(update_command)
-    call(update_lfs_command)
 
     return ""
 
@@ -330,6 +331,17 @@ def blender_update(args: argparse.Namespace) -> str:
     print_stage("Updating Blender Git Repository")
 
     return work_tree_update(args)
+
+
+# Extra LFS update for blender repository
+def blender_lfs_update(args: argparse.Namespace) -> None:
+    print_stage("Updating Blender Git LFS")
+
+    # This seems to be required some times, e.g. on initial checkout from third party, non-lfs repository
+    # (like the github one). The fallback repository set by `lfs_fallback_setup` is fetched, but running the
+    # `update_command` above does not seem to do the actual checkout for these LFS-managed files.
+    update_lfs_command = [args.git_command, "lfs", "pull"]
+    call(update_lfs_command)
 
 
 def resolve_external_url(blender_url: str, repo_name: str) -> str:
@@ -683,6 +695,7 @@ def main() -> int:
             blender_skip_msg = blender_update(args)
         if blender_skip_msg:
             blender_skip_msg = "Blender repository skipped: " + blender_skip_msg + "\n"
+        blender_lfs_update(args)
 
     if not args.no_libraries:
         libraries_skip_msg += initialize_precompiled_libraries(args)

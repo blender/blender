@@ -23,7 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -947,14 +947,14 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
       else {
         /* if everything else fails, use the material index */
         char tmp[5];
-        SNPRINTF(tmp, "%d", i % 1000);
+        SNPRINTF_UTF8(tmp, "%d", i % 1000);
         BLI_path_suffix(filepath, FILE_MAX, tmp, "_");
       }
     }
 
     if (bk_image->tile_number) {
       char tmp[12];
-      SNPRINTF(tmp, "%d", bk_image->tile_number);
+      SNPRINTF_UTF8(tmp, "%d", bk_image->tile_number);
       BLI_path_suffix(filepath, FILE_MAX, tmp, "_");
     }
 
@@ -2190,7 +2190,7 @@ static wmOperatorStatus bake_invoke(bContext *C, wmOperator *op, const wmEvent *
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
                        scene,
-                       "Texture Bake",
+                       "Baking texture...",
                        WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS,
                        WM_JOB_TYPE_OBJECT_BAKE);
   WM_jobs_customdata_set(wm_job, bkr, bake_freejob);

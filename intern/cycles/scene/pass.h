@@ -66,8 +66,8 @@ class Pass : public Node {
   bool is_written() const;
 
  protected:
-  /* The has been created automatically as a requirement to various rendering functionality (such
-   * as adaptive sampling). */
+  /* This has been created automatically as a requirement to various rendering functionality
+   * (such as adaptive sampling). */
   bool is_auto_;
 
  public:

@@ -53,6 +53,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_windowmanager_types.h"
+
 #include "BKE_context.hh"
 #include "BKE_global.hh" /* evil G.* */
 #include "BKE_idprop.hh"
@@ -179,6 +181,20 @@ int pyrna_prop_validity_check(const BPy_PropertyRNA *self)
 void pyrna_invalidate(BPy_DummyPointerRNA *self)
 {
   self->ptr->invalidate();
+}
+
+static void pyrna_prop_warn_deprecated(const PointerRNA *ptr,
+                                       const PropertyRNA *prop,
+                                       const DeprecatedRNA *deprecated)
+{
+  PyErr_WarnFormat(PyExc_DeprecationWarning,
+                   1,
+                   "'%s.%s' is expected to be removed in Blender %d.%d",
+                   RNA_struct_identifier(ptr->type),
+                   RNA_property_identifier(prop),
+                   deprecated->removal_version / 100,
+                   deprecated->removal_version % 100,
+                   deprecated->note);
 }
 
 #ifdef USE_PYRNA_INVALIDATE_GC
@@ -340,6 +356,46 @@ static void id_release_weakref(struct ID *id)
 }
 
 #endif /* USE_PYRNA_INVALIDATE_WEAKREF */
+
+struct BPy_NamePropAsPyObject_Cache {
+  PyObject *(*nameprop_as_py_object_fn)(const char *, Py_ssize_t);
+  PropertyRNA *nameprop;
+};
+
+/**
+ * Wrapper for #RNA_struct_name_get_alloc_ex that handles non UTF8 names, see #142909.
+ */
+static PyObject *pyrna_struct_get_nameprop_as_pyobject(
+    PointerRNA *ptr, BPy_NamePropAsPyObject_Cache &nameprop_cache)
+{
+  char fixedbuf[256];
+  int name_len;
+  PropertyRNA *nameprop;
+  char *name_ptr = RNA_struct_name_get_alloc_ex(
+      ptr, fixedbuf, sizeof(fixedbuf), &name_len, &nameprop);
+  if (LIKELY(name_ptr)) {
+    /* In most cases this only runs once. */
+    if (UNLIKELY(nameprop != nameprop_cache.nameprop)) {
+      nameprop_cache.nameprop = nameprop;
+      const PropertySubType subtype = RNA_property_subtype(nameprop);
+      if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
+        nameprop_cache.nameprop_as_py_object_fn = PyC_UnicodeFromBytesAndSize;
+      }
+      else {
+        nameprop_cache.nameprop_as_py_object_fn = PyUnicode_FromStringAndSize;
+      }
+    }
+    PyObject *result = nameprop_cache.nameprop_as_py_object_fn(name_ptr, name_len);
+    /* The string data may be corrupt if this asserts,
+     * or not using a file-path sub-type when it should.. */
+    BLI_assert(result != nullptr);
+    if (name_ptr != fixedbuf) {
+      MEM_freeN(name_ptr);
+    }
+    return result;
+  }
+  return nullptr;
+}
 
 void BPY_id_release(ID *id)
 {
@@ -1048,7 +1104,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
     return nullptr;
   }
 
-  STRNCPY(type_lower, type_id);
+  STRNCPY_UTF8(type_lower, type_id);
   BLI_str_tolower_ascii(type_lower, sizeof(type_lower));
 
   int len = -1;
@@ -1060,7 +1116,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
   }
 
   if (len != -1) {
-    SNPRINTF(type_count, "[%d]", len);
+    SNPRINTF_UTF8(type_count, "[%d]", len);
   }
   else {
     type_count[0] = '\0';
@@ -1361,7 +1417,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 
 #if 0 /* Gives Python decoding errors while generating docs :( */
         char error_str[256];
-        BLI_snprintf(error_str,
+        BLI_snprintf_utf8(error_str,
                      sizeof(error_str),
                      "RNA Warning: Current value \"%d\" "
                      "matches no enum in '%s', '%s', '%s'",
@@ -1393,6 +1449,10 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
   PyObject *ret;
   const int type = RNA_property_type(prop);
+
+  if (const DeprecatedRNA *deprecated = RNA_property_deprecated(prop)) {
+    pyrna_prop_warn_deprecated(ptr, prop, deprecated);
+  }
 
   if (RNA_property_array_check(prop)) {
     return pyrna_py_from_array(ptr, prop);
@@ -1564,6 +1624,10 @@ static int pyrna_py_to_prop(
 {
   /* XXX hard limits should be checked here. */
   const int type = RNA_property_type(prop);
+
+  if (const DeprecatedRNA *deprecated = RNA_property_deprecated(prop)) {
+    pyrna_prop_warn_deprecated(ptr, prop, deprecated);
+  }
 
   if (RNA_property_array_check(prop)) {
     /* Done getting the length. */
@@ -1777,10 +1841,10 @@ static int pyrna_py_to_prop(
             if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
               if (BLI_path_is_rel(param)) {
                 char warning_buf[256];
-                SNPRINTF(warning_buf,
-                         "%.200s.%.200s: does not support blend relative \"//\" prefix",
-                         RNA_struct_identifier(ptr->type),
-                         RNA_property_identifier(prop));
+                SNPRINTF_UTF8(warning_buf,
+                              "%.200s.%.200s: does not support blend relative \"//\" prefix",
+                              RNA_struct_identifier(ptr->type),
+                              RNA_property_identifier(prop));
                 PyErr_WarnEx(PyExc_RuntimeWarning, warning_buf, 1);
               }
             }
@@ -4308,24 +4372,16 @@ static void pyrna_dir_members_rna(PyObject *list, PointerRNA *ptr)
     /*
      * Collect RNA attributes
      */
-    char name[256], *name_ptr;
-    int name_len;
-
     iterprop = RNA_struct_iterator_property(ptr->type);
 
+    BPy_NamePropAsPyObject_Cache nameprop_cache = {nullptr};
     RNA_PROP_BEGIN (ptr, itemptr, iterprop) {
       /* Custom-properties are exposed using `__getitem__`, exclude from `__dir__`. */
       if (RNA_property_is_idprop(static_cast<const PropertyRNA *>(itemptr.data))) {
         continue;
       }
-      name_ptr = RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &name_len);
-
-      if (name_ptr) {
-        PyList_APPEND(list, PyUnicode_FromStringAndSize(name_ptr, name_len));
-
-        if (name != name_ptr) {
-          MEM_freeN(name_ptr);
-        }
+      if (PyObject *name_py = pyrna_struct_get_nameprop_as_pyobject(&itemptr, nameprop_cache)) {
+        PyList_APPEND(list, name_py);
       }
     }
     RNA_PROP_END;
@@ -5179,18 +5235,11 @@ PyDoc_STRVAR(
 static PyObject *pyrna_prop_collection_keys(BPy_PropertyRNA *self)
 {
   PyObject *ret = PyList_New(0);
-  char name[256], *name_ptr;
-  int name_len;
 
+  BPy_NamePropAsPyObject_Cache nameprop_cache = {nullptr};
   RNA_PROP_BEGIN (&self->ptr.value(), itemptr, self->prop) {
-    name_ptr = RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &name_len);
-
-    if (name_ptr) {
-      PyList_APPEND(ret, PyUnicode_FromStringAndSize(name_ptr, name_len));
-
-      if (name != name_ptr) {
-        MEM_freeN(name_ptr);
-      }
+    if (PyObject *name_py = pyrna_struct_get_nameprop_as_pyobject(&itemptr, nameprop_cache)) {
+      PyList_APPEND(ret, name_py);
     }
   }
   RNA_PROP_END;
@@ -5211,32 +5260,24 @@ PyDoc_STRVAR(
 static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
 {
   PyObject *ret = PyList_New(0);
-  PyObject *item;
-  char name[256], *name_ptr;
-  int name_len;
   int i = 0;
 
+  BPy_NamePropAsPyObject_Cache nameprop_cache = {nullptr};
   RNA_PROP_BEGIN (&self->ptr.value(), itemptr, self->prop) {
-    if (itemptr.data) {
-      /* Add to Python list. */
-      item = PyTuple_New(2);
-      name_ptr = RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &name_len);
-      if (name_ptr) {
-        PyTuple_SET_ITEM(item, 0, PyUnicode_FromStringAndSize(name_ptr, name_len));
-        if (name != name_ptr) {
-          MEM_freeN(name_ptr);
-        }
-      }
-      else {
-        /* A bit strange, but better than returning an empty list. */
-        PyTuple_SET_ITEM(item, 0, PyLong_FromLong(i));
-      }
-      PyTuple_SET_ITEM(item, 1, pyrna_struct_CreatePyObject(&itemptr));
-
-      PyList_APPEND(ret, item);
-
-      i++;
+    if (UNLIKELY(itemptr.data == nullptr)) {
+      continue;
     }
+    /* Add to Python list. */
+    PyObject *item = PyTuple_New(2);
+    PyObject *name_py = pyrna_struct_get_nameprop_as_pyobject(&itemptr, nameprop_cache);
+    /* Strange to use an index `i` when `name_py` is null, better than excluding it's value.
+     * In practice this should not happen. */
+    PyTuple_SET_ITEM(item, 0, name_py ? name_py : PyLong_FromLong(i));
+    PyTuple_SET_ITEM(item, 1, pyrna_struct_CreatePyObject(&itemptr));
+
+    PyList_APPEND(ret, item);
+
+    i++;
   }
   RNA_PROP_END;
 
@@ -6562,21 +6603,21 @@ static void pyrna_func_error_prefix(BPy_FunctionRNA *self,
   PointerRNA *self_ptr = &self->ptr.value();
   FunctionRNA *self_func = self->func;
   if (parm_index == -1) {
-    BLI_snprintf(error,
-                 error_size,
-                 "%.200s.%.200s(): error with keyword argument \"%.200s\" - ",
-                 RNA_struct_identifier(self_ptr->type),
-                 RNA_function_identifier(self_func),
-                 RNA_property_identifier(parm));
+    BLI_snprintf_utf8(error,
+                      error_size,
+                      "%.200s.%.200s(): error with keyword argument \"%.200s\" - ",
+                      RNA_struct_identifier(self_ptr->type),
+                      RNA_function_identifier(self_func),
+                      RNA_property_identifier(parm));
   }
   else {
-    BLI_snprintf(error,
-                 error_size,
-                 "%.200s.%.200s(): error with argument %d, \"%.200s\" - ",
-                 RNA_struct_identifier(self_ptr->type),
-                 RNA_function_identifier(self_func),
-                 parm_index + 1,
-                 RNA_property_identifier(parm));
+    BLI_snprintf_utf8(error,
+                      error_size,
+                      "%.200s.%.200s(): error with argument %d, \"%.200s\" - ",
+                      RNA_struct_identifier(self_ptr->type),
+                      RNA_function_identifier(self_func),
+                      parm_index + 1,
+                      RNA_property_identifier(parm));
   }
 }
 
@@ -10153,7 +10194,7 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
   if (!BLI_listbase_is_empty(&reports.list)) {
     const bool has_error = (BPy_reports_to_error(&reports, PyExc_RuntimeError, false) == -1);
     if (!has_error) {
-      BKE_report_print_level_set(&reports, G.quiet ? RPT_WARNING : RPT_DEBUG);
+      BKE_report_print_level_set(&reports, CLG_quiet_get() ? RPT_WARNING : RPT_DEBUG);
       BPy_reports_write_stdout(&reports, error_prefix);
     }
     if (has_error) {

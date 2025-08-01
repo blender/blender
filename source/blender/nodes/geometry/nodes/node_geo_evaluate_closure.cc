@@ -10,6 +10,9 @@
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
+#include "NOD_sync_sockets.hh"
+
+#include "BKE_idprop.hh"
 
 #include "BLO_read_write.hh"
 
@@ -71,14 +74,26 @@ static void node_free_storage(bNode *node)
   MEM_freeN(node->storage);
 }
 
-static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
-  if (link->tonode == node) {
+  if (params.C && params.link.tosock == params.node.inputs.first &&
+      params.link.fromsock->type == SOCK_CLOSURE)
+  {
+    const NodeGeometryEvaluateClosure &storage = node_storage(params.node);
+    if (storage.input_items.items_num == 0 && storage.output_items.items_num == 0) {
+      SpaceNode *snode = CTX_wm_space_node(params.C);
+      if (snode && snode->edittree == &params.ntree) {
+        sync_sockets_evaluate_closure(*snode, params.node, nullptr, params.link.fromsock);
+      }
+    }
+    return true;
+  }
+  if (params.link.tonode == &params.node) {
     return socket_items::try_add_item_via_any_extend_socket<EvaluateClosureInputItemsAccessor>(
-        *ntree, *node, *node, *link);
+        params.ntree, params.node, params.node, params.link);
   }
   return socket_items::try_add_item_via_any_extend_socket<EvaluateClosureOutputItemsAccessor>(
-      *ntree, *node, *node, *link);
+      params.ntree, params.node, params.node, params.link);
 }
 
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -133,7 +148,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     params.connect_available_socket(node, "Closure");
 
     SpaceNode &snode = *CTX_wm_space_node(&params.C);
-    ed::space_node::sync_sockets_evaluate_closure(snode, node, nullptr);
+    sync_sockets_evaluate_closure(snode, node, nullptr);
   });
 }
 
@@ -218,11 +233,11 @@ const bNodeSocket *evaluate_closure_node_internally_linked_input(const bNodeSock
   }
   const NodeGeometryEvaluateClosureOutputItem &output_item =
       storage.output_items.items[output_socket.index()];
-  const SocketInterfaceKey output_key{output_item.name};
+  const StringRef output_key = output_item.name;
   for (const int i : IndexRange(storage.input_items.items_num)) {
     const NodeGeometryEvaluateClosureInputItem &input_item = storage.input_items.items[i];
-    const SocketInterfaceKey input_key{input_item.name};
-    if (output_key.matches(input_key)) {
+    const StringRef input_key = input_item.name;
+    if (output_key == input_key) {
       if (!tree.typeinfo->validate_link ||
           tree.typeinfo->validate_link(eNodeSocketDatatype(input_item.socket_type),
                                        eNodeSocketDatatype(output_item.socket_type)))

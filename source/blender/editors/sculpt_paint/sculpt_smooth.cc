@@ -228,9 +228,7 @@ void average_data_grids(const SubdivCCG &subdiv_ccg,
 
         T sum{};
         for (const SubdivCCGCoord neighbor : neighbors.coords) {
-          const int index = neighbor.grid_index * key.grid_area +
-                            CCG_grid_xy_to_index(key.grid_size, neighbor.x, neighbor.y);
-          sum += src[index];
+          sum += src[neighbor.to_index(key)];
         }
         dst[node_vert_index] = math::safe_divide(sum, float(neighbors.coords.size()));
       }

@@ -18,7 +18,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -370,7 +370,7 @@ void ui_draw_but_IMAGE(ARegion * /*region*/,
                         float(rect->ymin),
                         ibuf->x,
                         ibuf->y,
-                        GPU_RGBA8,
+                        blender::gpu::TextureFormat::UNORM_8_8_8_8,
                         false,
                         ibuf->byte_buffer.data,
                         1.0f,
@@ -762,7 +762,7 @@ void ui_draw_but_WAVEFORM(ARegion *region,
   /* draw scale numbers first before binding any shader */
   for (int i = 0; i < 6; i++) {
     char str[4];
-    SNPRINTF(str, "%-3d", i * 20);
+    SNPRINTF_UTF8(str, "%-3d", i * 20);
     str[3] = '\0';
     BLF_color4f(BLF_default(), 1.0f, 1.0f, 1.0f, 0.08f);
     BLF_draw_default(rect.xmin + 1, yofs - 5 + (i * 0.2f) * h, 0, str, sizeof(str) - 1);
@@ -1225,7 +1225,9 @@ void ui_draw_but_VECTORSCOPE(ARegion *region,
     }
     else if (scopes->vecscope_mode == SCOPES_VECSCOPE_LUMA) {
       GPU_blend(GPU_BLEND_ADDITIVE);
+      immUnbindProgram();
       waveform_draw_one(scopes->vecscope, scopes->waveform_tot, col);
+      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     }
 
     GPU_matrix_pop();
@@ -2285,7 +2287,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *region,
                             rect.ymin + 1,
                             drawibuf->x,
                             drawibuf->y,
-                            GPU_RGBA8,
+                            blender::gpu::TextureFormat::UNORM_8_8_8_8,
                             true,
                             drawibuf->byte_buffer.data,
                             1.0f,

@@ -18,7 +18,9 @@
 #include "BKE_fcurve.hh"
 
 #include "DNA_listBase.h"
+
 #include "RNA_types.hh"
+
 #include "UI_interface.hh"
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
@@ -99,7 +101,7 @@ enum {
 };
 
 /** #uiBut.pie_dir */
-enum RadialDirection {
+enum RadialDirection : int8_t {
   UI_RADIAL_NONE = -1,
   UI_RADIAL_N = 0,
   UI_RADIAL_NE = 1,
@@ -175,12 +177,26 @@ struct uiBut {
   /** Pointer back to the layout item holding this button. */
   uiLayout *layout = nullptr;
   int flag = 0;
-  int flag2 = 0;
   int drawflag = 0;
-  eButType type = eButType(0);
-  eButPointerType pointype = UI_BUT_POIN_NONE;
-  short bit = 0, bitnr = 0, retval = 0, strwidth = 0, alignnr = 0;
+  char flag2 = 0;
+
+  ButType type = ButType(0);
+  ButPointerType pointype = ButPointerType::None;
+  bool bit = 0;
+  /* 0-31 bit index. */
+  char bitnr = 0;
+
+  /** When non-zero, this is the key used to activate a menu items (`a-z` always lower case). */
+  uchar menu_key = 0;
+
+  short retval = 0, strwidth = 0, alignnr = 0;
   short ofs = 0, pos = 0, selsta = 0, selend = 0;
+
+  /**
+   * Optional color for monochrome icon. Also used as text
+   * color for labels without icons. Set with #UI_but_color_set().
+   */
+  uchar col[4] = {0};
 
   std::string str;
 
@@ -193,12 +209,6 @@ struct uiBut {
 
   char *poin = nullptr;
   float hardmin = 0, hardmax = 0, softmin = 0, softmax = 0;
-
-  /**
-   * Optional color for monochrome icon. Also used as text
-   * color for labels without icons. Set with #UI_but_color_set().
-   */
-  uchar col[4] = {0};
 
   /** See \ref UI_but_func_identity_compare_set(). */
   uiButIdentityCompareFunc identity_cmp_func = nullptr;
@@ -249,56 +259,59 @@ struct uiBut {
   /** info on why button is disabled, displayed in tooltip */
   const char *disabled_info = nullptr;
 
-  BIFIconID icon = ICON_NONE;
+  /** Little indicator (e.g., counter) displayed on top of some icons. */
+  IconTextOverlay icon_overlay_text = {};
+
   /** Copied from the #uiBlock.emboss */
   blender::ui::EmbossType emboss = blender::ui::EmbossType::Emboss;
   /** direction in a pie menu, used for collision detection. */
   RadialDirection pie_dir = UI_RADIAL_NONE;
   /** could be made into a single flag */
   bool changed = false;
-  /** so buttons can support unit systems which are not RNA */
-  uchar unit_type = 0;
-  short iconadd = 0;
+
+  BIFIconID icon = ICON_NONE;
 
   /** Affects the order if this uiBut is used in menu-search. */
   float search_weight = 0.0f;
 
-  /** #UI_BTYPE_BLOCK data */
+  short iconadd = 0;
+  /** so buttons can support unit systems which are not RNA */
+  uchar unit_type = 0;
+
+  /** See #UI_but_menu_disable_hover_open(). */
+  bool menu_no_hover_open = false;
+
+  /** #ButType::Block data */
   uiBlockCreateFunc block_create_func = nullptr;
 
-  /** #UI_BTYPE_PULLDOWN / #UI_BTYPE_MENU data */
+  /** #ButType::Pulldown / #ButType::Menu data */
   uiMenuCreateFunc menu_create_func = nullptr;
 
   uiMenuStepFunc menu_step_func = nullptr;
-  /** See #UI_but_menu_disable_hover_open(). */
-  bool menu_no_hover_open = false;
 
   /* RNA data */
   PointerRNA rnapoin = {};
   PropertyRNA *rnaprop = nullptr;
   int rnaindex = 0;
 
-  /* Operator data */
-  wmOperatorType *optype = nullptr;
-  PointerRNA *opptr = nullptr;
-  blender::wm::OpCallContext opcontext = blender::wm::OpCallContext::InvokeDefault;
+  BIFIconID drag_preview_icon_id;
+  void *dragpoin = nullptr;
+  const ImBuf *imb = nullptr;
+  float imb_scale = 0;
+  eWM_DragDataType dragtype = WM_DRAG_ID;
+  int8_t dragflag = 0;
+
   /**
    * Keep an operator attached but never actually call it through the button. See
    * #UI_but_operator_set_never_call().
    */
   bool operator_never_call = false;
-
-  /** When non-zero, this is the key used to activate a menu items (`a-z` always lower case). */
-  uchar menu_key = 0;
+  /* Operator data */
+  blender::wm::OpCallContext opcontext = blender::wm::OpCallContext::InvokeDefault;
+  wmOperatorType *optype = nullptr;
+  PointerRNA *opptr = nullptr;
 
   ListBase extra_op_icons = {nullptr, nullptr}; /** #uiButExtraOpIcon */
-
-  eWM_DragDataType dragtype = WM_DRAG_ID;
-  short dragflag = 0;
-  void *dragpoin = nullptr;
-  BIFIconID drag_preview_icon_id;
-  const ImBuf *imb = nullptr;
-  float imb_scale = 0;
 
   /**
    * Active button data, set when the user is hovering or interacting with a button (#UI_HOVER and
@@ -327,9 +340,6 @@ struct uiBut {
 
   std::function<bool(const uiBut &)> pushed_state_func;
 
-  /** Little indicator (e.g., counter) displayed on top of some icons. */
-  IconTextOverlay icon_overlay_text = {};
-
   /* pointer back */
   uiBlock *block = nullptr;
 
@@ -342,30 +352,30 @@ struct uiBut {
   virtual ~uiBut() = default;
 };
 
-/** Derived struct for #UI_BTYPE_NUM */
+/** Derived struct for #ButType::Num */
 struct uiButNumber : public uiBut {
   float step_size = 0.0f;
   float precision = 0.0f;
 };
 
-/** Derived struct for #UI_BTYPE_NUM_SLIDER */
+/** Derived struct for #ButType::NumSlider */
 struct uiButNumberSlider : public uiBut {
   float step_size = 0.0f;
   float precision = 0.0f;
 };
 
-/** Derived struct for #UI_BTYPE_COLOR */
+/** Derived struct for #ButType::Color */
 struct uiButColor : public uiBut {
   bool is_pallete_color = false;
   int palette_color_index = -1;
 };
 
-/** Derived struct for #UI_BTYPE_TAB */
+/** Derived struct for #ButType::Tab */
 struct uiButTab : public uiBut {
   MenuType *menu = nullptr;
 };
 
-/** Derived struct for #UI_BTYPE_SEARCH_MENU */
+/** Derived struct for #ButType::SearchMenu */
 struct uiButSearch : public uiBut {
   uiButSearchCreateFn popup_create_fn = nullptr;
   uiButSearchUpdateFn items_update_fn = nullptr;
@@ -396,7 +406,7 @@ struct uiButSearch : public uiBut {
 };
 
 /**
- * Derived struct for #UI_BTYPE_DECORATOR
+ * Derived struct for #ButType::Decorator
  * Decorators have their own RNA data, using the normal #uiBut RNA members has many side-effects.
  */
 struct uiButDecorator : public uiBut {
@@ -405,7 +415,7 @@ struct uiButDecorator : public uiBut {
   int decorated_rnaindex = -1;
 };
 
-/** Derived struct for #UI_BTYPE_PROGRESS. */
+/** Derived struct for #ButType::Progress. */
 struct uiButProgress : public uiBut {
   /** Progress in  0..1 range */
   float progress_factor = 0.0f;
@@ -413,17 +423,17 @@ struct uiButProgress : public uiBut {
   blender::ui::ButProgressType progress_type = blender::ui::ButProgressType::Bar;
 };
 
-/** Derived struct for #UI_BTYPE_SEPR_LINE. */
+/** Derived struct for #ButType::SeprLine. */
 struct uiButSeparatorLine : public uiBut {
   bool is_vertical;
 };
 
-/** Derived struct for #UI_BTYPE_LABEL. */
+/** Derived struct for #ButType::Label. */
 struct uiButLabel : public uiBut {
   float alpha_factor = 1.0f;
 };
 
-/** Derived struct for #UI_BTYPE_SCROLL. */
+/** Derived struct for #ButType::Scroll. */
 struct uiButScrollBar : public uiBut {
   /** Actual visual height of UI list (in rows). */
   float visual_height = -1.0f;
@@ -440,28 +450,28 @@ struct uiButViewItem : public uiBut {
   int draw_height = 0;
 };
 
-/** Derived struct for #UI_BTYPE_HSVCUBE. */
+/** Derived struct for #ButType::HsvCube. */
 struct uiButHSVCube : public uiBut {
   eButGradientType gradient_type = UI_GRAD_SV;
 };
 
-/** Derived struct for #UI_BTYPE_COLORBAND. */
+/** Derived struct for #ButType::ColorBand. */
 struct uiButColorBand : public uiBut {
   ColorBand *edit_coba = nullptr;
 };
 
-/** Derived struct for #UI_BTYPE_CURVEPROFILE. */
+/** Derived struct for #ButType::CurveProfile. */
 struct uiButCurveProfile : public uiBut {
   CurveProfile *edit_profile = nullptr;
 };
 
-/** Derived struct for #UI_BTYPE_CURVE. */
+/** Derived struct for #ButType::Curve. */
 struct uiButCurveMapping : public uiBut {
   CurveMapping *edit_cumap = nullptr;
   eButGradientType gradient_type = UI_GRAD_SV;
 };
 
-/** Derived struct for #UI_BTYPE_HOTKEY_EVENT. */
+/** Derived struct for #ButType::HotkeyEvent. */
 struct uiButHotkeyEvent : public uiBut {
   wmEventModifierFlag modifier_key = wmEventModifierFlag(0);
 };
@@ -750,7 +760,7 @@ void ui_block_add_dynamic_listener(uiBlock *block,
  * \note Only the #uiBut data can be kept. If the old button used a derived type (e.g. #uiButTab),
  *       the data that is not inside #uiBut will be lost.
  */
-uiBut *ui_but_change_type(uiBut *but, eButType new_type);
+uiBut *ui_but_change_type(uiBut *but, ButType new_type);
 
 double ui_but_value_get(uiBut *but);
 void ui_but_value_set(uiBut *but, double value);
@@ -1479,7 +1489,7 @@ bool ui_but_is_toggle(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 /**
  * Can we mouse over the button or is it hidden/disabled/layout.
  * \note ctrl is kind of a hack currently,
- * so that non-embossed UI_BTYPE_TEXT button behaves as a label when ctrl is not pressed.
+ * so that non-embossed ButType::Text button behaves as a label when ctrl is not pressed.
  */
 bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool for_tooltip);
 bool ui_but_is_interactive(const uiBut *but, bool labeledit) ATTR_WARN_UNUSED_RESULT;

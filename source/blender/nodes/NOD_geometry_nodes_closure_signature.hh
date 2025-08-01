@@ -6,7 +6,7 @@
 
 #include "BKE_node.hh"
 
-#include "NOD_socket_interface_key.hh"
+#include "BLI_vector_set.hh"
 
 namespace blender::nodes {
 
@@ -14,16 +14,23 @@ namespace blender::nodes {
 class ClosureSignature {
  public:
   struct Item {
-    SocketInterfaceKey key;
+    std::string key;
     const bke::bNodeSocketType *type = nullptr;
     std::optional<StructureType> structure_type = std::nullopt;
   };
 
-  Vector<Item> inputs;
-  Vector<Item> outputs;
+  struct ItemKeyGetter {
+    std::string operator()(const Item &item)
+    {
+      return item.key;
+    }
+  };
 
-  std::optional<int> find_input_index(const SocketInterfaceKey &key) const;
-  std::optional<int> find_output_index(const SocketInterfaceKey &key) const;
+  CustomIDVectorSet<Item, ItemKeyGetter> inputs;
+  CustomIDVectorSet<Item, ItemKeyGetter> outputs;
+
+  std::optional<int> find_input_index(StringRef key) const;
+  std::optional<int> find_output_index(StringRef key) const;
 
   bool matches_exactly(const ClosureSignature &other) const;
   static bool all_matching_exactly(Span<ClosureSignature> signatures);

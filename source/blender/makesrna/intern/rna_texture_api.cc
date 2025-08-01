@@ -44,7 +44,7 @@ void RNA_api_texture(StructRNA *srna)
 
   func = RNA_def_function(srna, "evaluate", "texture_evaluate");
   RNA_def_function_ui_description(
-      func, "Evaluate the texture at the a given coordinate and returns the result");
+      func, "Evaluate the texture at the given coordinate and returns the result");
 
   parm = RNA_def_float_vector(
       func,

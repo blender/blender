@@ -16,7 +16,7 @@ class WORLD_OT_convert_volume_to_mesh(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         world = cls._world_get(context)
-        if not world or not world.use_nodes:
+        if not world:
             return False
 
         ntree = world.node_tree

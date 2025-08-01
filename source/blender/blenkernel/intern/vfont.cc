@@ -245,6 +245,9 @@ void BKE_vfont_data_free(VFont *vfont)
       GHashIterator gh_iter;
       GHASH_ITER (gh_iter, vfont->data->characters) {
         VChar *che = static_cast<VChar *>(BLI_ghashIterator_getValue(&gh_iter));
+        if (che == nullptr) {
+          continue;
+        }
 
         while (che->nurbsbase.first) {
           Nurb *nu = static_cast<Nurb *>(che->nurbsbase.first);

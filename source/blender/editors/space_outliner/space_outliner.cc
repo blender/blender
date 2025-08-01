@@ -15,7 +15,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -659,7 +659,7 @@ void ED_spacetype_outliner()
   ARegionType *art;
 
   st->spaceid = SPACE_OUTLINER;
-  STRNCPY(st->name, "Outliner");
+  STRNCPY_UTF8(st->name, "Outliner");
 
   st->create = outliner_create;
   st->free = outliner_free;

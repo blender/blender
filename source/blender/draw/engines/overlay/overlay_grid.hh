@@ -56,9 +56,9 @@ class Grid : Overlay {
       return;
     }
 
-    GPUTexture **depth_tx = state.xray_enabled ? &res.xray_depth_tx : &res.depth_tx;
-    GPUTexture **depth_infront_tx = state.use_in_front ? &res.depth_target_in_front_tx :
-                                                         &res.dummy_depth_tx;
+    gpu::Texture **depth_tx = state.xray_enabled ? &res.xray_depth_tx : &res.depth_tx;
+    gpu::Texture **depth_infront_tx = state.use_in_front ? &res.depth_target_in_front_tx :
+                                                           &res.dummy_depth_tx;
 
     grid_ps_.init();
     grid_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);

@@ -11,10 +11,10 @@ namespace blender::geometry {
 /**
  * Assign source point indices and interpolation factors to target points.
  *
- * \param positions Source curve positions.
- * \param cyclic True if the source curve is cyclic.
- * \param r_indices Output array of point indices of the source curve.
- * \param r_factors Output array of interpolation factors between a source point and the next.
+ * \param positions: Source curve positions.
+ * \param cyclic: True if the source curve is cyclic.
+ * \param r_indices: Output array of point indices of the source curve.
+ * \param r_factors: Output array of interpolation factors between a source point and the next.
  */
 void sample_curve_padded(const Span<float3> positions,
                          bool cyclic,
@@ -24,12 +24,12 @@ void sample_curve_padded(const Span<float3> positions,
 /**
  * Assign source point indices and interpolation factors to target points for a single curve.
  *
- * \param curves Source curves geometry to sample.
- * \param curve_index Index of the source curve to sample.
- * \param cyclic True if the source curve is cyclic.
- * \param reverse True if the curve should be sampled in reverse direction.
- * \param r_indices Output array of point indices of the source curve.
- * \param r_factors Output array of interpolation factors between a source point and the next.
+ * \param curves: Source curves geometry to sample.
+ * \param curve_index: Index of the source curve to sample.
+ * \param cyclic: True if the source curve is cyclic.
+ * \param reverse: True if the curve should be sampled in reverse direction.
+ * \param r_indices: Output array of point indices of the source curve.
+ * \param r_factors: Output array of interpolation factors between a source point and the next.
  */
 void sample_curve_padded(const bke::CurvesGeometry &curves,
                          int curve_index,

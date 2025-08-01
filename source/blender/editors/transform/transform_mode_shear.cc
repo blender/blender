@@ -8,7 +8,7 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.hh"
 
 #include "BKE_unit.hh"
@@ -82,6 +82,11 @@ static void transdata_elem_shear(const TransInfo *t,
 /** \name Transform (Shear)
  * \{ */
 
+struct ShearCustomData {
+  bool update_status_bar;
+  wmOperator *op;
+};
+
 static void initShear_mouseInputMode(TransInfo *t)
 {
   float dir[3];
@@ -147,9 +152,9 @@ static eRedrawFlag handleEventShear(TransInfo *t, const wmEvent *event)
     status = TREDRAW_HARD;
   }
 
+  ShearCustomData *custom_data = static_cast<ShearCustomData *>(t->custom.mode.data);
   bool is_event_handled = (event->type != MOUSEMOVE) && (status || t->redraw);
-  bool update_status_bar = t->custom.mode.data || is_event_handled;
-  t->custom.mode.data = POINTER_FROM_INT(update_status_bar);
+  custom_data->update_status_bar = custom_data->update_status_bar || is_event_handled;
 
   return status;
 }
@@ -273,30 +278,48 @@ static void apply_shear(TransInfo *t)
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
     outputNumInput(&(t->num), c, t->scene->unit);
-    SNPRINTF(str, IFACE_("Shear: %s %s"), c, t->proptext);
+    SNPRINTF_UTF8(str, IFACE_("Shear: %s %s"), c, t->proptext);
   }
   else {
     /* Default header print. */
-    SNPRINTF(str, IFACE_("Shear: %.3f %s"), value, t->proptext);
+    SNPRINTF_UTF8(str, IFACE_("Shear: %.3f %s"), value, t->proptext);
   }
 
   ED_area_status_text(t->area, str);
 
-  bool update_status_bar = POINTER_AS_INT(t->custom.mode.data);
-  if (update_status_bar) {
-    t->custom.mode.data = POINTER_FROM_INT(0);
+  ShearCustomData *custom_data = static_cast<ShearCustomData *>(t->custom.mode.data);
+  if (custom_data->op && custom_data->update_status_bar) {
+    custom_data->update_status_bar = false;
 
     WorkspaceStatus status(t->context);
-    status.item(IFACE_("Confirm"), ICON_MOUSE_LMB);
-    status.item(IFACE_("Cancel"), ICON_MOUSE_RMB);
+
+    status.opmodal(IFACE_("Confirm"), custom_data->op->type, TFM_MODAL_CONFIRM);
+    status.opmodal(IFACE_("Cancel"), custom_data->op->type, TFM_MODAL_CANCEL);
+
     status.item_bool({}, t->orient_axis_ortho == (t->orient_axis + 1) % 3, ICON_EVENT_X);
     status.item_bool({}, t->orient_axis_ortho == (t->orient_axis + 2) % 3, ICON_EVENT_Y);
     status.item(IFACE_("Shear Axis"), ICON_NONE);
     status.item(IFACE_("Swap Axes"), ICON_MOUSE_MMB);
+
+    status.opmodal(
+        IFACE_("Snap"), custom_data->op->type, TFM_MODAL_SNAP_TOGGLE, t->modifiers & MOD_SNAP);
+    status.opmodal(IFACE_("Snap Invert"),
+                   custom_data->op->type,
+                   TFM_MODAL_SNAP_INV_ON,
+                   t->modifiers & MOD_SNAP_INVERT);
+    status.opmodal(IFACE_("Precision"),
+                   custom_data->op->type,
+                   TFM_MODAL_PRECISION,
+                   t->modifiers & MOD_PRECISION);
+
+    if (t->proptext[0]) {
+      status.opmodal({}, custom_data->op->type, TFM_MODAL_PROPSIZE_UP);
+      status.opmodal(IFACE_("Proportional Size"), custom_data->op->type, TFM_MODAL_PROPSIZE_DOWN);
+    }
   }
 }
 
-static void initShear(TransInfo *t, wmOperator * /*op*/)
+static void initShear(TransInfo *t, wmOperator *op)
 {
   t->mode = TFM_SHEAR;
 
@@ -316,8 +339,16 @@ static void initShear(TransInfo *t, wmOperator * /*op*/)
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_NONE; /* Don't think we have any unit here? */
 
-  bool update_status_bar = true;
-  t->custom.mode.data = POINTER_FROM_INT(update_status_bar);
+  ShearCustomData *custom_data = static_cast<ShearCustomData *>(
+      MEM_callocN(sizeof(*custom_data), __func__));
+  t->custom.mode.data = custom_data;
+  t->custom.mode.free_cb = [](TransInfo *, TransDataContainer *, TransCustomData *custom_data) {
+    MEM_freeN(custom_data->data);
+    custom_data->data = nullptr;
+  };
+
+  custom_data->update_status_bar = true;
+  custom_data->op = op;
 
   transform_mode_default_modal_orientation_set(t, V3D_ORIENT_VIEW);
 }

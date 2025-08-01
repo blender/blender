@@ -30,8 +30,8 @@ class SMAAPrecomputedTextures : public CachedResource {
 
  private:
   /* GPU storage, unused for CPU execution device. */
-  GPUTexture *search_texture_ = nullptr;
-  GPUTexture *area_texture_ = nullptr;
+  blender::gpu::Texture *search_texture_ = nullptr;
+  blender::gpu::Texture *area_texture_ = nullptr;
 
  public:
   SMAAPrecomputedTextures(Context &context);

@@ -22,6 +22,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_enum.hh"
@@ -32,13 +33,13 @@
 
 #include "MOD_nodes.hh"
 
-#include "NOD_geo_closure.hh"
 #include "NOD_geometry_nodes_dependencies.hh"
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
+#include "NOD_sync_sockets.hh"
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph_build.hh"
@@ -291,6 +292,12 @@ struct NodeTreeRelations {
     BLI_assert(group_node_users_.has_value());
     return group_node_users_->lookup(ntree);
   }
+
+  Span<bNodeTree *> get_all_trees()
+  {
+    this->ensure_all_trees();
+    return *all_trees_;
+  }
 };
 
 struct TreeUpdateResult {
@@ -407,6 +414,9 @@ class NodeTreeMainUpdater {
       if (bmain_) {
         DEG_relations_tag_update(bmain_);
       }
+    }
+    if (bmain_) {
+      nodes::node_can_sync_cache_clear(*bmain_);
     }
   }
 
@@ -892,6 +902,9 @@ class NodeTreeMainUpdater {
     if (decl.identifier == "__extend__") {
       return SOCK_DISPLAY_SHAPE_CIRCLE;
     }
+    if (nodes::socket_type_always_single(decl.socket_type)) {
+      return SOCK_DISPLAY_SHAPE_LINE;
+    }
     switch (structure_type) {
       case StructureType::Single:
         return SOCK_DISPLAY_SHAPE_LINE;
@@ -901,6 +914,8 @@ class NodeTreeMainUpdater {
         return SOCK_DISPLAY_SHAPE_DIAMOND;
       case StructureType::Grid:
         return SOCK_DISPLAY_SHAPE_VOLUME_GRID;
+      case StructureType::List:
+        return SOCK_DISPLAY_SHAPE_LIST;
     }
     BLI_assert_unreachable();
     return SOCK_DISPLAY_SHAPE_CIRCLE;
@@ -911,6 +926,9 @@ class NodeTreeMainUpdater {
   {
     if (decl.identifier == "__extend__") {
       return SOCK_DISPLAY_SHAPE_CIRCLE;
+    }
+    if (nodes::socket_type_always_single(decl.socket_type)) {
+      return SOCK_DISPLAY_SHAPE_LINE;
     }
     switch (structure_type) {
       case StructureType::Single: {
@@ -924,6 +942,9 @@ class NodeTreeMainUpdater {
       }
       case StructureType::Grid: {
         return SOCK_DISPLAY_SHAPE_VOLUME_GRID;
+      }
+      case StructureType::List: {
+        return SOCK_DISPLAY_SHAPE_LIST;
       }
     }
     BLI_assert_unreachable();

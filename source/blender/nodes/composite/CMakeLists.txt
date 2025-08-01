@@ -37,7 +37,6 @@ set(SRC
   nodes/node_composite_colorbalance.cc
   nodes/node_composite_colorcorrection.cc
   nodes/node_composite_common.cc
-  nodes/node_composite_composite.cc
   nodes/node_composite_convert_color_space.cc
   nodes/node_composite_cornerpin.cc
   nodes/node_composite_crop.cc
@@ -61,6 +60,7 @@ set(SRC
   nodes/node_composite_gamma.cc
   nodes/node_composite_glare.cc
   nodes/node_composite_group_input.cc
+  nodes/node_composite_group_output.cc
   nodes/node_composite_hue_sat_val.cc
   nodes/node_composite_huecorrect.cc
   nodes/node_composite_id_mask.cc

@@ -617,7 +617,7 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   G.is_rendering = true;
   if (data->wm) {
-    WM_set_locked_interface(data->wm, true);
+    WM_locked_interface_set(data->wm, true);
   }
   G.is_break = false;
 
@@ -725,7 +725,7 @@ static void export_endjob(void *customdata)
 
   G.is_rendering = false;
   if (data->wm) {
-    WM_set_locked_interface(data->wm, false);
+    WM_locked_interface_set(data->wm, false);
   }
   report_job_duration(data);
 }
@@ -813,8 +813,12 @@ bool USD_export(const bContext *C,
 
   bool export_ok = false;
   if (as_background_job) {
-    wmJob *wm_job = WM_jobs_get(
-        job->wm, CTX_wm_window(C), scene, "USD Export", WM_JOB_PROGRESS, WM_JOB_TYPE_USD_EXPORT);
+    wmJob *wm_job = WM_jobs_get(job->wm,
+                                CTX_wm_window(C),
+                                scene,
+                                "Exporting USD...",
+                                WM_JOB_PROGRESS,
+                                WM_JOB_TYPE_USD_EXPORT);
 
     /* setup job */
     WM_jobs_customdata_set(wm_job, job, [](void *j) {

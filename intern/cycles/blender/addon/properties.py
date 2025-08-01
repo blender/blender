@@ -61,8 +61,15 @@ enum_filter_types = (
 )
 
 enum_curve_shape = (
-    ('RIBBONS', "Rounded Ribbons", "Render curves as flat ribbons with rounded normals, for fast rendering"),
-    ('THICK', "3D Curves", "Render curves as circular 3D geometry, for accurate results when viewing closely"),
+    ('RIBBONS',
+     "Rounded Ribbons",
+     "Render curves as flat ribbons with rounded normals, for fast rendering"),
+    ('THICK',
+     "3D Curves",
+     "Render curves as circular 3D geometry, for accurate results when viewing closely"),
+    ('THICK_LINEAR',
+     "Linear 3D Curves",
+     "Render curves as circular 3D geometry, with linear interpolation between control points, for fast rendering"),
 )
 
 enum_use_layer_samples = (
@@ -1557,11 +1564,13 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
 
 
 class CyclesDeviceSettings(bpy.types.PropertyGroup):
-    __slots__ = ()
+    # Runtime properties
+    __slots__ = ("is_optimized")
 
-    id: StringProperty(name="ID")
-    name: StringProperty(name="Name")
-    use: BoolProperty(name="Use", default=True)
+    # Properties saved in preferences
+    id: StringProperty(name="ID", description="Unique identifier of the device")
+    name: StringProperty(name="Name", description="Name of the device")
+    use: BoolProperty(name="Use", description="Use device for rendering", default=True)
     type: EnumProperty(name="Type", items=enum_device_type, default='CUDA')
 
 
@@ -1693,7 +1702,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         cpu_devices = []
         for device in device_list:
             entry = self.find_existing_device_entry(device)
-            entry.optimized = device[7]
+            entry.is_optimized = device[7]
             if entry.type == compute_device_type:
                 devices.append(entry)
             elif entry.type == 'CPU':
@@ -1809,7 +1818,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             col.label(text=rpt_("No compatible GPUs found for Cycles"), icon='INFO', translate=False)
 
             if device_type == 'CUDA':
-                compute_capability = "3.0"
+                compute_capability = "5.0"
                 col.label(text=rpt_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
                           icon='BLANK1', translate=False)
             elif device_type == 'OPTIX':
@@ -1867,7 +1876,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         for device in devices:
             name = self._format_device_name(device.name)
-            if not device.optimized:
+            if not device.is_optimized:
                 name += rpt_(" (Unoptimized Performance)")
             box.prop(device, "use", text=name, translate=False)
 

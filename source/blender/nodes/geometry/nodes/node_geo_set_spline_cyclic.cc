@@ -13,10 +13,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_input<decl::Geometry>("Geometry")
+  b.add_input<decl::Geometry>("Curve", "Geometry")
       .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil})
       .description("Curves to change the cyclic state of");
-  b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
+  b.add_output<decl::Geometry>("Curve", "Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Bool>("Cyclic").field_on_all();
 }

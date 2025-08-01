@@ -17,7 +17,7 @@ namespace blender::gpu {
 
 TexturePool::~TexturePool()
 {
-  for (GPUTexture *tex : acquired_) {
+  for (blender::gpu::Texture *tex : acquired_) {
     GPU_texture_free(tex);
   }
   for (TextureHandle &tex : pool_) {
@@ -25,15 +25,15 @@ TexturePool::~TexturePool()
   }
 }
 
-GPUTexture *TexturePool::acquire_texture(int width,
-                                         int height,
-                                         eGPUTextureFormat format,
-                                         eGPUTextureUsage usage)
+blender::gpu::Texture *TexturePool::acquire_texture(int width,
+                                                    int height,
+                                                    blender::gpu::TextureFormat format,
+                                                    eGPUTextureUsage usage)
 {
   int64_t match_index = -1;
   /* Search released texture first. */
   for (auto i : pool_.index_range()) {
-    GPUTexture *tex = pool_[i].texture;
+    blender::gpu::Texture *tex = pool_[i].texture;
     /* TODO(@fclem): We could reuse texture using texture views if the formats are compatible. */
     if ((GPU_texture_format(tex) == format) && (GPU_texture_width(tex) == width) &&
         (GPU_texture_height(tex) == height) && (GPU_texture_usage(tex) == usage))
@@ -44,7 +44,7 @@ GPUTexture *TexturePool::acquire_texture(int width,
   }
 
   if (match_index != -1) {
-    GPUTexture *tex = pool_[match_index].texture;
+    blender::gpu::Texture *tex = pool_[match_index].texture;
     pool_.remove_and_reorder(match_index);
     acquired_.append(tex);
     return tex;
@@ -57,23 +57,24 @@ GPUTexture *TexturePool::acquire_texture(int width,
     int texture_id = pool_.size();
     SNPRINTF(name, "TexFromPool_%d", texture_id);
   }
-  GPUTexture *tex = GPU_texture_create_2d(name, width, height, 1, format, usage, nullptr);
+  blender::gpu::Texture *tex = GPU_texture_create_2d(
+      name, width, height, 1, format, usage, nullptr);
   acquired_.append(tex);
   return tex;
 }
 
-void TexturePool::release_texture(GPUTexture *tex)
+void TexturePool::release_texture(blender::gpu::Texture *tex)
 {
   acquired_.remove_first_occurrence_and_reorder(tex);
   pool_.append({tex, 0});
 }
 
-void TexturePool::take_texture_ownership(GPUTexture *tex)
+void TexturePool::take_texture_ownership(blender::gpu::Texture *tex)
 {
   acquired_.remove_first_occurrence_and_reorder(tex);
 }
 
-void TexturePool::give_texture_ownership(GPUTexture *tex)
+void TexturePool::give_texture_ownership(blender::gpu::Texture *tex)
 {
   acquired_.append(tex);
 }

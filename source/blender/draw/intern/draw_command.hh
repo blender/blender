@@ -184,8 +184,8 @@ struct ResourceBind {
     GPUStorageBuf *storage_buf;
     GPUStorageBuf **storage_buf_ref;
     /** NOTE: Texture is used for both Sampler and Image binds. */
-    GPUTexture *texture;
-    GPUTexture **texture_ref;
+    gpu::Texture *texture;
+    gpu::Texture **texture_ref;
     gpu::VertBuf *vertex_buf;
     gpu::VertBuf **vertex_buf_ref;
     gpu::IndexBuf *index_buf;
@@ -218,9 +218,9 @@ struct ResourceBind {
       : slot(slot_), is_reference(false), type(Type::Image), texture(draw::as_texture(res)){};
   ResourceBind(int slot_, draw::Image **res)
       : slot(slot_), is_reference(true), type(Type::Image), texture_ref(draw::as_texture(res)){};
-  ResourceBind(int slot_, GPUTexture *res, GPUSamplerState state)
+  ResourceBind(int slot_, gpu::Texture *res, GPUSamplerState state)
       : sampler(state), slot(slot_), is_reference(false), type(Type::Sampler), texture(res){};
-  ResourceBind(int slot_, GPUTexture **res, GPUSamplerState state)
+  ResourceBind(int slot_, gpu::Texture **res, GPUSamplerState state)
       : sampler(state), slot(slot_), is_reference(true), type(Type::Sampler), texture_ref(res){};
   ResourceBind(int slot_, gpu::VertBuf *res)
       : slot(slot_), is_reference(false), type(Type::BufferSampler), vertex_buf(res){};

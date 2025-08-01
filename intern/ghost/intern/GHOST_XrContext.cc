@@ -386,11 +386,17 @@ static const char *openxr_ext_name_from_wm_gpu_binding(GHOST_TXrGraphicsBinding 
 {
   switch (binding) {
     case GHOST_kXrGraphicsOpenGL:
+#ifdef WITH_OPENGL_BACKEND
       return XR_KHR_OPENGL_ENABLE_EXTENSION_NAME;
+#else
+      return nullptr;
+#endif
 
-#ifdef WITH_VULKAN_BACKEND
     case GHOST_kXrGraphicsVulkan:
+#ifdef WITH_VULKAN_BACKEND
       return XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME;
+#else
+      return nullptr;
 #endif
 
 #ifdef WIN32

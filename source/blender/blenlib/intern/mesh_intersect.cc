@@ -2114,7 +2114,7 @@ static bool face_is_degenerate(const Face *f)
 }
 
 /** Fast check for degenerate tris. It is OK if it returns true for nearly degenerate triangles. */
-static bool any_degenerate_tris_fast(const Array<Face *> triangulation)
+static bool any_degenerate_tris_fast(const Array<Face *> &triangulation)
 {
   for (const Face *f : triangulation) {
     const Vert *v0 = (*f)[0];

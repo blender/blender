@@ -5,9 +5,9 @@
 /* Note: These fixtures test default micro-architecture optimization defined in the
  * util/optimization.h. */
 
-#include "testing/testing.h"
+#include <gtest/gtest.h>
+
 #include "util/math.h"
-#include "util/system.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -309,6 +309,7 @@ class OSLRenderServices : public OSL::RendererServices {
   static ustring u_path_glossy_depth;
   static ustring u_path_transparent_depth;
   static ustring u_path_transmission_depth;
+  static ustring u_path_portal_depth;
   static ustring u_trace;
   static ustring u_hit;
   static ustring u_hitdist;

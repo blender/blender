@@ -395,7 +395,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
 
       UI_block_emboss_set(block, blender::ui::EmbossType::None);
       uiDefIconButR_prop(block,
-                         UI_BTYPE_ICON_TOGGLE,
+                         ButType::IconToggle,
                          1,
                          icon,
                          v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD,

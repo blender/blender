@@ -37,7 +37,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -308,7 +308,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
                                      bbox.ymax,
                                      field->image->ibuf->x,
                                      field->image->ibuf->y,
-                                     GPU_RGBA8,
+                                     blender::gpu::TextureFormat::UNORM_8_8_8_8,
                                      true,
                                      field->image->ibuf->byte_buffer.data,
                                      1.0f,
@@ -522,12 +522,12 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
   if (but->drawstr.empty()) {
     const char *expr_imports[] = {"bpy", "bl_ui", nullptr};
     char expr[256];
-    SNPRINTF(expr,
-             "bl_ui.space_toolsystem_common.item_from_id("
-             "bpy.context, "
-             "bpy.context.space_data.type, "
-             "'%s').label",
-             tool_id);
+    SNPRINTF_UTF8(expr,
+                  "bl_ui.space_toolsystem_common.item_from_id("
+                  "bpy.context, "
+                  "bpy.context.space_data.type, "
+                  "'%s').label",
+                  tool_id);
     char *expr_result = nullptr;
     bool is_error = false;
 
@@ -574,12 +574,12 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
   if (is_quick_tip == false) {
     const char *expr_imports[] = {"bpy", "bl_ui", nullptr};
     char expr[256];
-    SNPRINTF(expr,
-             "bl_ui.space_toolsystem_common.description_from_id("
-             "bpy.context, "
-             "bpy.context.space_data.type, "
-             "'%s')",
-             tool_id);
+    SNPRINTF_UTF8(expr,
+                  "bl_ui.space_toolsystem_common.description_from_id("
+                  "bpy.context, "
+                  "bpy.context.space_data.type, "
+                  "'%s')",
+                  tool_id);
 
     char *expr_result = nullptr;
     bool is_error = false;
@@ -698,13 +698,13 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
     {
       const char *expr_imports[] = {"bpy", "bl_ui", nullptr};
       char expr[256];
-      SNPRINTF(expr,
-               "'\\x00'.join("
-               "item.idname for item in bl_ui.space_toolsystem_common.item_group_from_id("
-               "bpy.context, "
-               "bpy.context.space_data.type, '%s', coerce=True) "
-               "if item is not None)",
-               tool_id);
+      SNPRINTF_UTF8(expr,
+                    "'\\x00'.join("
+                    "item.idname for item in bl_ui.space_toolsystem_common.item_group_from_id("
+                    "bpy.context, "
+                    "bpy.context.space_data.type, '%s', coerce=True) "
+                    "if item is not None)",
+                    tool_id);
 
       if (has_valid_context == false) {
         /* pass */
@@ -770,14 +770,14 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_tool(bContext *C,
   if ((is_quick_tip == false) && CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
     const char *expr_imports[] = {"bpy", "bl_ui", nullptr};
     char expr[256];
-    SNPRINTF(expr,
-             "getattr("
-             "bl_ui.space_toolsystem_common.keymap_from_id("
-             "bpy.context, "
-             "bpy.context.space_data.type, "
-             "'%s'), "
-             "'as_pointer', lambda: 0)()",
-             tool_id);
+    SNPRINTF_UTF8(expr,
+                  "getattr("
+                  "bl_ui.space_toolsystem_common.keymap_from_id("
+                  "bpy.context, "
+                  "bpy.context.space_data.type, "
+                  "'%s'), "
+                  "'as_pointer', lambda: 0)()",
+                  tool_id);
 
     intptr_t expr_result = 0;
 
@@ -1059,7 +1059,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     }
 
     /* special case enum rna buttons */
-    if ((but->type & UI_BTYPE_ROW) && rnaprop && RNA_property_flag(rnaprop) & PROP_ENUM_FLAG) {
+    if ((but->type == ButType::Row) && rnaprop && RNA_property_flag(rnaprop) & PROP_ENUM_FLAG) {
       UI_tooltip_text_field_add(*data,
                                 TIP_("(Shift-Click/Drag to select multiple)"),
                                 {},
@@ -1104,7 +1104,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
                               true);
   }
 
-  if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
+  if (ELEM(but->type, ButType::Text, ButType::SearchMenu)) {
     /* Better not show the value of a password. */
     if ((rnaprop && (RNA_property_subtype(rnaprop) == PROP_PASSWORD)) == 0) {
       /* Full string. */
@@ -1162,7 +1162,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
   }
 
   /* Warn on path validity errors. */
-  if (ELEM(but->type, UI_BTYPE_TEXT) &&
+  if (ELEM(but->type, ButType::Text) &&
       /* Check red-alert, if the flag is not set, then this was suppressed. */
       (but->flag & UI_BUT_REDALERT))
   {
@@ -1252,7 +1252,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     UI_tooltip_uibut_python_add(*data, *C, *but, extra_icon);
   }
 
-  if (but->type == UI_BTYPE_COLOR) {
+  if (but->type == ButType::Color) {
     const ColorManagedDisplay *display = UI_but_cm_display_get(*but);
 
     float color[4];
@@ -1373,7 +1373,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   wmWindow *win = CTX_wm_window(C);
   const blender::int2 win_size = WM_window_native_pixel_size(win);
   rcti rect_i;
-  int font_flag = 0;
+  FontFlags font_flag = BLF_NONE;
 
   /* Create area region. */
   ARegion *region = ui_region_temp_add(CTX_wm_screen(C));
@@ -1667,7 +1667,7 @@ ARegion *UI_tooltip_create_from_button_or_extra_icon(
     }
     BLI_rcti_rctf_copy_round(&init_rect, &overlap_rect_fl);
   }
-  else if (but->type == UI_BTYPE_LABEL && BLI_rctf_size_y(&but->rect) > UI_UNIT_Y) {
+  else if (but->type == ButType::Label && BLI_rctf_size_y(&but->rect) > UI_UNIT_Y) {
     init_position[0] = win->eventstate->xy[0];
     init_position[1] = win->eventstate->xy[1] - (UI_POPUP_MARGIN / 2);
   }

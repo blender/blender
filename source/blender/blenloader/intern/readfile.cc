@@ -15,6 +15,7 @@
 #include <cstring>
 #include <ctime>   /* for gmtime. */
 #include <fcntl.h> /* for open flags (O_BINARY, O_RDONLY). */
+#include <queue>
 
 #ifndef WIN32
 #  include <unistd.h> /* for read close */
@@ -40,8 +41,10 @@
 #include "DNA_layer_types.h"
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "MEM_alloc_string_storage.hh"
 #include "MEM_guardedalloc.h"
@@ -962,7 +965,7 @@ static int *read_file_thumbnail(FileData *fd)
 }
 
 /**
- * ID names are truncated the their maximum allowed length at a very low level of the readfile code
+ * ID names are truncated to their maximum allowed length at a very low level of the readfile code
  * (see #read_id_struct).
  *
  * However, ensuring they remain unique can only be done once all IDs have been read and put in
@@ -2431,6 +2434,19 @@ static void lib_link_scenes_check_set(Main *bmain)
 /** \name Read ID: Library
  * \{ */
 
+static void library_filedata_release(Library *lib)
+{
+  if (lib->runtime->filedata) {
+    BLI_assert(lib->runtime->versionfile != 0);
+    if (lib->runtime->is_filedata_owner) {
+      blo_filedata_free(lib->runtime->filedata);
+    }
+
+    lib->runtime->filedata = nullptr;
+  }
+  lib->runtime->is_filedata_owner = false;
+}
+
 static void direct_link_library(FileData *fd, Library *lib, Main *main)
 {
   /* Make sure we have full path in lib->runtime->filepath_abs */
@@ -3758,6 +3774,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   STRNCPY(bfd->filepath, filepath);
 
   fd->bmain = bfd->main;
+  fd->fd_bmain = bfd->main;
 
   bfd->type = BLENFILETYPE_BLEND;
 
@@ -3994,11 +4011,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     LISTBASE_FOREACH_MUTABLE (Library *, lib, &bfd->main->libraries) {
       /* Now we can clear this runtime library filedata, it is not needed anymore. */
-      if (lib->runtime->filedata) {
-        BLI_assert(lib->runtime->versionfile != 0);
-        blo_filedata_free(lib->runtime->filedata);
-        lib->runtime->filedata = nullptr;
-      }
+      library_filedata_release(lib);
       /* If no data-blocks were read from a library (should only happen when all references to a
        * library's data are `ID_FLAG_INDIRECT_WEAK_LINK`), its versionfile will still be zero and
        * it can be deleted.
@@ -4009,7 +4022,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
        *    valid version number as the file was read to search for the linked IDs.
        *  - In case the library blendfile does not exist, its local Library ID will get the version
        *    of the current local Main (i.e. the loaded blendfile). */
-      else if (lib->runtime->versionfile == 0) {
+      if (lib->runtime->versionfile == 0) {
 #ifndef NDEBUG
         ID *id_iter;
         FOREACH_MAIN_ID_BEGIN (bfd->main, id_iter) {
@@ -4265,13 +4278,20 @@ static void read_libraries_report_invalid_id_names(FileData *fd,
 /** \name Library Linking (expand pointers)
  * \{ */
 
+using BLOExpandDoitCallback = void (*)(void *fdhandle,
+                                       std::queue<ID *> &ids_to_expand,
+                                       Main *mainvar,
+                                       void *idv);
+
 struct BlendExpander {
   FileData *fd;
+  std::queue<ID *> ids_to_expand;
   Main *main;
   BLOExpandDoitCallback callback;
 };
 
 static void read_id_in_lib(FileData *fd,
+                           std::queue<ID *> &ids_to_expand,
                            Main *libmain,
                            Library *parent_lib,
                            BHead *bhead,
@@ -4293,6 +4313,12 @@ static void read_id_in_lib(FileData *fd,
     /* For outliner dependency only. */
     if (parent_lib) {
       libmain->curlib->runtime->parent = parent_lib;
+    }
+
+    /* Only newly read ID needs to be added to the expand TODO queue, existing ones should already
+     * be in it - or already have been expanded. */
+    if (id_read_tags.needs_expanding) {
+      ids_to_expand.push(id);
     }
   }
   else {
@@ -4327,7 +4353,10 @@ static void read_id_in_lib(FileData *fd,
   }
 }
 
-static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
+static void expand_doit_library(void *fdhandle,
+                                std::queue<ID *> &ids_to_expand,
+                                Main *mainvar,
+                                void *old)
 {
   FileData *fd = static_cast<FileData *>(fdhandle);
 
@@ -4375,13 +4404,15 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       return;
     }
 
-    read_id_in_lib(fd, libmain, mainvar->curlib, bhead, {});
+    /* Placeholders never need expanding, as they are a mere reference to ID from another
+     * library/blendfile. */
+    read_id_in_lib(fd, ids_to_expand, libmain, mainvar->curlib, bhead, {});
   }
   else {
     /* Data-block in same library. */
     ID_Readfile_Data::Tags id_read_tags{};
     id_read_tags.needs_expanding = true;
-    read_id_in_lib(fd, mainvar, nullptr, bhead, id_read_tags);
+    read_id_in_lib(fd, ids_to_expand, mainvar, nullptr, bhead, id_read_tags);
   }
 }
 
@@ -4410,40 +4441,43 @@ static int expand_cb(LibraryIDLinkCallbackData *cb_data)
   BlendExpander *expander = static_cast<BlendExpander *>(cb_data->user_data);
   ID *id = *(cb_data->id_pointer);
 
-  expander->callback(expander->fd, expander->main, id);
+  if (id) {
+    expander->callback(expander->fd, expander->ids_to_expand, expander->main, id);
+  }
 
   return IDWALK_RET_NOP;
 }
 
-void BLO_expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback callback)
+static void expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback callback)
 {
   FileData *fd = static_cast<FileData *>(fdhandle);
-  BlendExpander expander = {fd, mainvar, callback};
+  BlendExpander expander = {fd, {}, mainvar, callback};
 
-  for (bool do_it = true; do_it;) {
-    do_it = false;
-    ID *id_iter;
-
-    FOREACH_MAIN_ID_BEGIN (mainvar, id_iter) {
-      if (!BLO_readfile_id_runtime_tags(*id_iter).needs_expanding) {
-        continue;
-      }
-
-      /* Original (current) ID pointer can be considered as valid, but _not_ its own pointers to
-       * other IDs - the already loaded ones will be valid, but the yet-to-be-read ones will not.
-       * Expanding should _not_ require processing of UI ID pointers.
-       * Expanding should never modify ID pointers themselves.
-       * Handling of DNA deprecated data should never be needed in undo case. */
-      const LibraryForeachIDFlag flag = IDWALK_READONLY | IDWALK_NO_ORIG_POINTERS_ACCESS |
-                                        ((!fd || (fd->flags & FD_FLAGS_IS_MEMFILE)) ?
-                                             IDWALK_NOP :
-                                             IDWALK_DO_DEPRECATED_POINTERS);
-      BKE_library_foreach_ID_link(nullptr, id_iter, expand_cb, &expander, flag);
-
-      do_it = true;
-      BLO_readfile_id_runtime_tags_for_write(*id_iter).needs_expanding = false;
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (mainvar, id_iter) {
+    if (BLO_readfile_id_runtime_tags(*id_iter).needs_expanding) {
+      expander.ids_to_expand.push(id_iter);
     }
-    FOREACH_MAIN_ID_END;
+  }
+  FOREACH_MAIN_ID_END;
+
+  while (!expander.ids_to_expand.empty()) {
+    id_iter = expander.ids_to_expand.front();
+    expander.ids_to_expand.pop();
+    BLI_assert(BLO_readfile_id_runtime_tags(*id_iter).needs_expanding);
+
+    /* Original (current) ID pointer can be considered as valid, but _not_ its own pointers to
+     * other IDs - the already loaded ones will be valid, but the yet-to-be-read ones will not.
+     * Expanding should _not_ require processing of UI ID pointers.
+     * Expanding should never modify ID pointers themselves.
+     * Handling of DNA deprecated data should never be needed in undo case. */
+    const LibraryForeachIDFlag flag = IDWALK_READONLY | IDWALK_NO_ORIG_POINTERS_ACCESS |
+                                      ((!fd || (fd->flags & FD_FLAGS_IS_MEMFILE)) ?
+                                           IDWALK_NOP :
+                                           IDWALK_DO_DEPRECATED_POINTERS);
+    BKE_library_foreach_ID_link(nullptr, id_iter, expand_cb, &expander, flag);
+
+    BLO_readfile_id_runtime_tags_for_write(*id_iter).needs_expanding = false;
   }
 }
 
@@ -4548,8 +4582,11 @@ static Main *library_link_begin(Main *mainvar,
 
   /* which one do we need? */
   mainl = blo_find_main(fd, filepath, BKE_main_blendfile_path(mainvar));
+  fd->fd_bmain = mainl;
   if (mainl->curlib) {
     mainl->curlib->runtime->filedata = fd;
+    /* This filedata is owned and managed by the calling code. */
+    mainl->curlib->runtime->is_filedata_owner = false;
   }
 
   /* needed for do_version */
@@ -4629,7 +4666,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag, ReportL
   }
 
   /* make main consistent */
-  BLO_expand_main(*fd, mainl, expand_doit_library);
+  expand_main(*fd, mainl, expand_doit_library);
 
   read_libraries_report_invalid_id_names(
       *fd, reports, mainl->has_forward_compatibility_issues, mainl->curlib->runtime->filepath_abs);
@@ -4757,20 +4794,10 @@ void BLO_library_link_end(Main *mainl,
 
   LISTBASE_FOREACH (Library *, lib, &params->bmain->libraries) {
     /* Now we can clear this runtime library filedata, it is not needed anymore. */
-    if (lib->runtime->filedata == reinterpret_cast<FileData *>(*bh)) {
-      /* The filedata is owned and managed by caller code, only clear matching library pointer. */
-      lib->runtime->filedata = nullptr;
-    }
-    else if (lib->runtime->filedata) {
-      /* In case other libraries had to be read as dependencies of the main linked one, they need
-       * to be cleared here.
-       *
-       * TODO: In the future, could be worth keeping them in case data are linked from several
-       * libraries at once? To avoid closing and re-opening the same file several times. Would need
-       * a global cleanup callback then once all linking is done, though. */
-      blo_filedata_free(lib->runtime->filedata);
-      lib->runtime->filedata = nullptr;
-    }
+    /* TODO: In the future, could be worth keeping them in case data are linked from several
+     * libraries at once? To avoid closing and re-opening the same file several times. Would need
+     * a global cleanup callback then once all linking is done, though. */
+    library_filedata_release(lib);
   }
 
   *bh = reinterpret_cast<BlendHandle *>(fd);
@@ -4950,45 +4977,46 @@ static void read_library_clear_weak_links(FileData *basefd, Main *mainvar)
   }
 }
 
-static FileData *read_library_file_data(FileData *basefd, Main *mainl, Main *mainptr)
+static FileData *read_library_file_data(FileData *basefd, Main *bmain, Main *lib_bmain)
 {
-  FileData *fd = mainptr->curlib->runtime->filedata;
+  FileData *fd = lib_bmain->curlib->runtime->filedata;
 
   if (fd != nullptr) {
     /* File already open. */
     return fd;
   }
 
-  if (mainptr->curlib->packedfile) {
+  if (lib_bmain->curlib->packedfile) {
     /* Read packed file. */
-    const PackedFile *pf = mainptr->curlib->packedfile;
+    const PackedFile *pf = lib_bmain->curlib->packedfile;
 
     BLO_reportf_wrap(basefd->reports,
                      RPT_INFO,
                      RPT_("Read packed library: '%s', parent '%s'"),
-                     mainptr->curlib->filepath,
-                     library_parent_filepath(mainptr->curlib));
+                     lib_bmain->curlib->filepath,
+                     library_parent_filepath(lib_bmain->curlib));
     fd = blo_filedata_from_memory(pf->data, pf->size, basefd->reports);
 
     /* Needed for library_append and read_libraries. */
-    STRNCPY(fd->relabase, mainptr->curlib->runtime->filepath_abs);
+    STRNCPY(fd->relabase, lib_bmain->curlib->runtime->filepath_abs);
   }
   else {
     /* Read file on disk. */
     BLO_reportf_wrap(basefd->reports,
                      RPT_INFO,
                      RPT_("Read library: '%s', '%s', parent '%s'"),
-                     mainptr->curlib->runtime->filepath_abs,
-                     mainptr->curlib->filepath,
-                     library_parent_filepath(mainptr->curlib));
-    fd = blo_filedata_from_file(mainptr->curlib->runtime->filepath_abs, basefd->reports);
+                     lib_bmain->curlib->runtime->filepath_abs,
+                     lib_bmain->curlib->filepath,
+                     library_parent_filepath(lib_bmain->curlib));
+    fd = blo_filedata_from_file(lib_bmain->curlib->runtime->filepath_abs, basefd->reports);
   }
 
   if (fd) {
     /* `mainptr` is sharing the same `split_mains`, so all libraries are added immediately in a
      * single vectorset. It used to be that all FileData's had their own list, but with indirectly
      * linking this meant that not all duplicate libraries were catched properly. */
-    fd->bmain = mainptr;
+    fd->bmain = bmain;
+    fd->fd_bmain = lib_bmain;
 
     fd->reports = basefd->reports;
 
@@ -4998,26 +5026,28 @@ static FileData *read_library_file_data(FileData *basefd, Main *mainl, Main *mai
 
     fd->libmap = oldnewmap_new();
 
-    mainptr->curlib->runtime->filedata = fd;
-    mainptr->versionfile = fd->fileversion;
+    lib_bmain->curlib->runtime->filedata = fd;
+    lib_bmain->curlib->runtime->is_filedata_owner = true;
+    lib_bmain->versionfile = fd->fileversion;
 
     /* subversion */
-    read_file_version(fd, mainptr);
+    read_file_version(fd, lib_bmain);
     read_file_bhead_idname_map_create(fd);
   }
   else {
-    mainptr->curlib->runtime->filedata = nullptr;
-    mainptr->curlib->id.tag |= ID_TAG_MISSING;
+    lib_bmain->curlib->runtime->filedata = nullptr;
+    lib_bmain->curlib->runtime->is_filedata_owner = false;
+    lib_bmain->curlib->id.tag |= ID_TAG_MISSING;
     /* Set lib version to current main one... Makes assert later happy. */
-    mainptr->versionfile = mainptr->curlib->runtime->versionfile = mainl->versionfile;
-    mainptr->subversionfile = mainptr->curlib->runtime->subversionfile = mainl->subversionfile;
+    lib_bmain->versionfile = lib_bmain->curlib->runtime->versionfile = bmain->versionfile;
+    lib_bmain->subversionfile = lib_bmain->curlib->runtime->subversionfile = bmain->subversionfile;
   }
 
   if (fd == nullptr) {
     BLO_reportf_wrap(basefd->reports,
                      RPT_INFO,
                      RPT_("Cannot find lib '%s'"),
-                     mainptr->curlib->runtime->filepath_abs);
+                     lib_bmain->curlib->runtime->filepath_abs);
     basefd->reports->count.missing_libraries++;
   }
 
@@ -5068,7 +5098,7 @@ static void read_libraries(FileData *basefd)
 
         /* Test if linked data-blocks need to read further linked data-blocks
          * and create link placeholders for them. */
-        BLO_expand_main(fd, libmain, expand_doit_library);
+        expand_main(fd, libmain, expand_doit_library);
       }
     }
   }
@@ -5192,6 +5222,14 @@ ID *BLO_read_get_new_id_address_from_session_uid(BlendLibReader *reader, const u
 int BLO_read_fileversion_get(BlendDataReader *reader)
 {
   return reader->fd->fileversion;
+}
+
+int BLO_read_struct_member_offset(const BlendDataReader *reader,
+                                  const char *stype,
+                                  const char *vartype,
+                                  const char *name)
+{
+  return DNA_struct_member_offset_by_name_with_alias(reader->fd->filesdna, stype, vartype, name);
 }
 
 void BLO_read_struct_list_with_size(BlendDataReader *reader,

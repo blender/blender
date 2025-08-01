@@ -14,8 +14,6 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_volume_grid_fwd.hh"
 
-#include "NOD_socket_interface_key.hh"
-
 namespace blender::bke::bake {
 
 /**
@@ -152,10 +150,18 @@ class StringBakeItem : public BakeItem {
  */
 class BundleBakeItem : public BakeItem {
  public:
-  struct Item {
-    nodes::SocketInterfaceKey key;
+  struct SocketValue {
     std::string socket_idname;
     std::unique_ptr<BakeItem> value;
+  };
+
+  struct InternalValue {
+    ImplicitSharingPtr<> value;
+  };
+
+  struct Item {
+    std::string key;
+    std::variant<SocketValue, InternalValue> value;
   };
 
   Vector<Item> items;

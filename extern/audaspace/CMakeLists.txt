@@ -23,7 +23,7 @@ endif()
 
 project(audaspace)
 
-set(AUDASPACE_VERSION 1.6)
+set(AUDASPACE_VERSION 1.7)
 set(AUDASPACE_LONG_VERSION ${AUDASPACE_VERSION}.0)
 
 if(DEFINED AUDASPACE_CMAKE_CFG)
@@ -288,6 +288,7 @@ if(AUDASPACE_STANDALONE)
 	option(WITH_LIBSNDFILE "Build With LibSndFile" TRUE)
 	option(WITH_OPENAL "Build With OpenAL" TRUE)
 	option(WITH_PYTHON "Build With Python Library" TRUE)
+	option(WITH_RUBBERBAND "Build With Rubber Band Library" TRUE)
 	option(WITH_SDL "Build With SDL" TRUE)
 	option(WITH_STRICT_DEPENDENCIES "Error and abort instead of warning if a library is not found." FALSE)
 	if(APPLE)
@@ -789,6 +790,39 @@ if(WITH_PYTHON)
 			set(WITH_PYTHON FALSE)
 		endif()
 		message(WARNING "Python & NumPy libraries not found, language binding will not be built.")
+	endif()
+endif()
+
+# Rubber Band Library
+if(WITH_RUBBERBAND)
+	if(AUDASPACE_STANDALONE)
+		find_package(Rubberband ${PACKAGE_OPTION})
+	endif()
+
+	if(RUBBERBAND_FOUND)
+		set(RUBBERBAND_SRC
+			src/fx/TimeStretchPitchScale.cpp
+			src/fx/TimeStretchPitchScaleReader.cpp
+		)
+		set(RUBBERBAND_HDR
+			include/fx/TimeStretchPitchScale.h
+			include/fx/TimeStretchPitchScaleReader.h
+		)
+
+		add_definitions(-DWITH_RUBBERBAND)
+
+		list(APPEND INCLUDE ${RUBBERBAND_INCLUDE_DIRS})
+		list(APPEND LIBRARIES ${RUBBERBAND_LIBRARIES})
+
+		list(APPEND SRC ${RUBBERBAND_SRC})
+		list(APPEND HDR ${RUBBERBAND_HDR})
+	else()
+		if(AUDASPACE_STANDALONE)
+			set(WITH_RUBBERBAND FALSE CACHE BOOL "Build with Rubber Band" FORCE)
+		else()
+			set(WITH_RUBBERBAND FALSE)
+		endif()
+		message(WARNING "Rubber Band Library not found, time-stretching and pitch-scaling functionality will not be built.")
 	endif()
 endif()
 

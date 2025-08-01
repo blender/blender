@@ -15,7 +15,9 @@
 
 #include "GPU_framebuffer.hh"
 
-struct GPUTexture;
+namespace blender::gpu {
+class Texture;
+}
 
 enum GPUAttachmentType : int {
   GPU_FB_DEPTH_ATTACHMENT = 0,
@@ -148,9 +150,6 @@ class FrameBuffer {
   void attachment_set(GPUAttachmentType type, const GPUAttachment &new_attachment);
   void attachment_remove(GPUAttachmentType type);
 
-  void recursive_downsample(int max_lvl,
-                            void (*callback)(void *user_data, int level),
-                            void *user_data);
   uint get_bits_per_pixel();
 
   /* Sets the size after creation. */
@@ -231,7 +230,7 @@ class FrameBuffer {
     scissor_set(scissor_rect);
   }
 
-  GPUTexture *depth_tex() const
+  blender::gpu::Texture *depth_tex() const
   {
     if (attachments_[GPU_FB_DEPTH_ATTACHMENT].tex) {
       return attachments_[GPU_FB_DEPTH_ATTACHMENT].tex;
@@ -239,7 +238,7 @@ class FrameBuffer {
     return attachments_[GPU_FB_DEPTH_STENCIL_ATTACHMENT].tex;
   };
 
-  GPUTexture *color_tex(int slot) const
+  blender::gpu::Texture *color_tex(int slot) const
   {
     return attachments_[GPU_FB_COLOR_ATTACHMENT0 + slot].tex;
   };

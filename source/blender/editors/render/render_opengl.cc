@@ -17,7 +17,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_mutex.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
@@ -232,7 +232,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
       if (rv == nullptr) {
         rv = MEM_callocN<RenderView>("new opengl render view");
-        STRNCPY(rv->name, srv->name);
+        STRNCPY_UTF8(rv->name, srv->name);
         BLI_addtail(&rr->views, rv);
       }
     }
@@ -711,7 +711,9 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   wmWindow *win = CTX_wm_window(C);
   WorkSpace *workspace = CTX_wm_workspace(C);
 
-  Scene *scene = CTX_data_scene(C);
+  const bool is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
+
+  Scene *scene = !is_sequencer ? CTX_data_scene(C) : CTX_data_sequencer_scene(C);
   ScrArea *prev_area = CTX_wm_area(C);
   ARegion *prev_region = CTX_wm_region(C);
   GPUOffScreen *ofs;
@@ -720,7 +722,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   bool is_view_context = RNA_boolean_get(op->ptr, "view_context");
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
   const bool is_render_keyed_only = RNA_boolean_get(op->ptr, "render_keyed_only");
-  const bool is_sequencer = RNA_boolean_get(op->ptr, "sequencer");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
   const eImageFormatDepth color_depth = static_cast<eImageFormatDepth>(
       (is_animation) ? (eImageFormatDepth)scene->r.im_format.depth : R_IMF_CHAN_DEPTH_32);
@@ -770,7 +771,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   ofs = GPU_offscreen_create(sizex,
                              sizey,
                              true,
-                             GPU_RGBA16F,
+                             blender::gpu::TextureFormat::SFLOAT_16_16_16_16,
                              GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
                              false,
                              err_out);
@@ -1333,7 +1334,7 @@ static wmOperatorStatus screen_opengl_render_invoke(bContext *C,
     wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                                 CTX_wm_window(C),
                                 oglrender->scene,
-                                "Viewport Render",
+                                "Rendering viewport...",
                                 WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS,
                                 WM_JOB_TYPE_RENDER);
     WM_jobs_customdata_set(wm_job, oglrender, opengl_render_freejob);

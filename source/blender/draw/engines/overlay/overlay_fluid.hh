@@ -103,7 +103,7 @@ class Fluids : Overlay {
     }
 
     const bool is_active_frame_after_cache_start = state.scene->r.cfra >= fds->cache_frame_start;
-    const bool is_active_frame_before_cache_end = state.scene->r.cfra >= fds->cache_frame_start;
+    const bool is_active_frame_before_cache_end = state.scene->r.cfra <= fds->cache_frame_end;
     const bool is_active_frame_in_cache_range = is_active_frame_after_cache_start &&
                                                 is_active_frame_before_cache_end;
     if (!is_active_frame_in_cache_range) {
@@ -132,8 +132,7 @@ class Fluids : Overlay {
 
     int slice_axis = slide_axis_get(*fds);
 
-    const bool draw_velocity = (fds->draw_velocity && is_active_frame_after_cache_start);
-    if (draw_velocity) {
+    if (fds->draw_velocity) {
       int lines_per_voxel = -1;
       PassSimple::Sub *sub_pass = nullptr;
       switch (fds->vector_draw_type) {

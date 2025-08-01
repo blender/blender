@@ -54,7 +54,7 @@ void uiTemplateColorPicker(uiLayout *layout,
     case USER_CP_SQUARE_HS:
     case USER_CP_SQUARE_HV:
       hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                               UI_BTYPE_HSVCUBE,
+                                               ButType::HsvCube,
                                                0,
                                                "",
                                                0,
@@ -86,7 +86,7 @@ void uiTemplateColorPicker(uiLayout *layout,
     case USER_CP_CIRCLE_HSL:
     default:
       but = uiDefButR_prop(block,
-                           UI_BTYPE_HSVCIRCLE,
+                           ButType::HsvCircle,
                            0,
                            "",
                            0,
@@ -119,7 +119,7 @@ void uiTemplateColorPicker(uiLayout *layout,
       case USER_CP_CIRCLE_HSL:
         row->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                                 UI_BTYPE_HSVCUBE,
+                                                 ButType::HsvCube,
                                                  0,
                                                  "",
                                                  WHEEL_SIZE + 6,
@@ -137,7 +137,7 @@ void uiTemplateColorPicker(uiLayout *layout,
       case USER_CP_SQUARE_SV:
         col->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                                 UI_BTYPE_HSVCUBE,
+                                                 ButType::HsvCube,
                                                  0,
                                                  "",
                                                  0,
@@ -155,7 +155,7 @@ void uiTemplateColorPicker(uiLayout *layout,
       case USER_CP_SQUARE_HS:
         col->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                                 UI_BTYPE_HSVCUBE,
+                                                 ButType::HsvCube,
                                                  0,
                                                  "",
                                                  0,
@@ -173,7 +173,7 @@ void uiTemplateColorPicker(uiLayout *layout,
       case USER_CP_SQUARE_HV:
         col->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                                 UI_BTYPE_HSVCUBE,
+                                                 ButType::HsvCube,
                                                  0,
                                                  "",
                                                  0,
@@ -194,7 +194,7 @@ void uiTemplateColorPicker(uiLayout *layout,
       default:
         row->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
-                                                 UI_BTYPE_HSVCUBE,
+                                                 ButType::HsvCube,
                                                  0,
                                                  "",
                                                  WHEEL_SIZE + 6,
@@ -261,7 +261,7 @@ void uiTemplatePalette(uiLayout *layout,
   uiLayout *col = &layout->column(true);
   col->row(true);
   uiDefIconButO(block,
-                UI_BTYPE_BUT,
+                ButType::But,
                 "PALETTE_OT_color_add",
                 blender::wm::OpCallContext::InvokeDefault,
                 ICON_ADD,
@@ -271,7 +271,7 @@ void uiTemplatePalette(uiLayout *layout,
                 UI_UNIT_Y,
                 std::nullopt);
   uiDefIconButO(block,
-                UI_BTYPE_BUT,
+                ButType::But,
                 "PALETTE_OT_color_delete",
                 blender::wm::OpCallContext::InvokeDefault,
                 ICON_REMOVE,
@@ -282,7 +282,7 @@ void uiTemplatePalette(uiLayout *layout,
                 std::nullopt);
   if (palette->colors.first != nullptr) {
     but = uiDefIconButO(block,
-                        UI_BTYPE_BUT,
+                        ButType::But,
                         "PALETTE_OT_color_move",
                         blender::wm::OpCallContext::InvokeDefault,
                         ICON_TRIA_UP,
@@ -295,7 +295,7 @@ void uiTemplatePalette(uiLayout *layout,
     RNA_enum_set(but->opptr, "type", -1);
 
     but = uiDefIconButO(block,
-                        UI_BTYPE_BUT,
+                        ButType::But,
                         "PALETTE_OT_color_move",
                         blender::wm::OpCallContext::InvokeDefault,
                         ICON_TRIA_DOWN,
@@ -324,7 +324,7 @@ void uiTemplatePalette(uiLayout *layout,
 
     PointerRNA color_ptr = RNA_pointer_create_discrete(&palette->id, &RNA_PaletteColor, color);
     uiButColor *color_but = (uiButColor *)uiDefButR(block,
-                                                    UI_BTYPE_COLOR,
+                                                    ButType::Color,
                                                     0,
                                                     "",
                                                     0,
@@ -359,7 +359,7 @@ void uiTemplateCryptoPicker(uiLayout *layout,
   uiBlock *block = layout->block();
 
   uiBut *but = uiDefIconButO(block,
-                             UI_BTYPE_BUT,
+                             ButType::But,
                              "UI_OT_eyedropper_color",
                              blender::wm::OpCallContext::InvokeDefault,
                              icon,

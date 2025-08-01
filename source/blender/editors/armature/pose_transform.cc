@@ -20,6 +20,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BKE_action.hh"
@@ -536,9 +537,7 @@ static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator
 
     int i;
     LISTBASE_FOREACH_INDEX (bPoseChannel *, pchan, &ob->pose->chanbase, i) {
-      if (!((pchan->bone->flag & BONE_SELECTED) &&
-            blender::animrig::bone_is_visible_pchan(arm, pchan)))
-      {
+      if (!blender::animrig::bone_is_selected(arm, pchan)) {
         pchan_xform_array[i].is_set = false;
         continue;
       }
@@ -641,7 +640,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
     BLI_string_flip_side_name(name, chan->name, false, sizeof(name));
   }
   else {
-    STRNCPY(name, chan->name);
+    STRNCPY_UTF8(name, chan->name);
   }
 
   /* only copy when:
@@ -1387,7 +1386,7 @@ static wmOperatorStatus pose_clear_user_transforms_exec(bContext *C, wmOperator 
       /* execute animation step for current frame using a dummy copy of the pose */
       BKE_pose_copy_data(&dummyPose, ob->pose, false);
 
-      STRNCPY(workob.id.name, "OB<ClearTfmWorkOb>");
+      STRNCPY_UTF8(workob.id.name, "OB<ClearTfmWorkOb>");
       workob.type = OB_ARMATURE;
       workob.data = ob->data;
       workob.adt = ob->adt;

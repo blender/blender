@@ -14,7 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_gpencil_legacy_types.h"
@@ -361,7 +361,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
       BLI_assert(copied_frames.first == nullptr);
 
       /* make a copy of the layer's name - for name-based matching later... */
-      STRNCPY(new_layer->info, gpl->info);
+      STRNCPY_UTF8(new_layer->info, gpl->info);
     }
   }
 
@@ -460,7 +460,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
          *   if it works, it will show up.
          */
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpfs->strokes) {
-          /* make a copy of stroke, then of its points array */
+          /* Make a copy of stroke, then a copy of its points array. */
           bGPDstroke *gpsn = BKE_gpencil_stroke_duplicate(gps, true, true);
 
           /* append stroke to frame */

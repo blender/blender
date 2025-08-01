@@ -24,6 +24,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -717,7 +718,7 @@ static LineStyleModifier *new_modifier(const char *name, int type, size_t size)
   }
   m = (LineStyleModifier *)MEM_callocN(size, "line style modifier");
   m->type = type;
-  STRNCPY(m->name, DATA_(name));
+  STRNCPY_UTF8(m->name, DATA_(name));
   m->influence = 1.0f;
   m->flags = LS_MODIFIER_ENABLED | LS_MODIFIER_EXPANDED;
 

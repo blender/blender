@@ -1526,7 +1526,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
     const int next_offset = (i == mesh_eval->faces_num - 1) ? number_of_quads :
                                                               subdiv_face_offset[i + 1];
     const int quad_count = next_offset - subdiv_face_offset[i];
-    const int mat_index = material_indices[i];
+    const uint mat_index = uint(material_indices[i]) < mat_len ? uint(material_indices[i]) : 0;
     mat_start[mat_index] += quad_count;
   }
 
@@ -1544,7 +1544,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
   int *per_face_mat_offset = MEM_malloc_arrayN<int>(mesh_eval->faces_num, "per_face_mat_offset");
 
   for (int i = 0; i < mesh_eval->faces_num; i++) {
-    const int mat_index = material_indices[i];
+    const uint mat_index = uint(material_indices[i]) < mat_len ? uint(material_indices[i]) : 0;
     const int single_material_index = subdiv_face_offset[i];
     const int material_offset = mat_end[mat_index];
     const int next_offset = (i == mesh_eval->faces_num - 1) ? number_of_quads :

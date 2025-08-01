@@ -141,11 +141,6 @@ int GPU_max_parallel_compilations()
   return GCaps.max_parallel_compilations;
 }
 
-bool GPU_mip_render_workaround()
-{
-  return GCaps.mip_render_workaround;
-}
-
 bool GPU_depth_blitting_workaround()
 {
   return GCaps.depth_blitting_workaround;

@@ -38,7 +38,8 @@ class GLFrameBuffer : public FrameBuffer {
   GPUAttachment tmp_detached_[GPU_FB_MAX_ATTACHMENT];
   /** Internal frame-buffers are immutable. */
   bool immutable_ = false;
-  /** True is the frame-buffer has its first color target using the GPU_SRGB8_A8 format. */
+  /** True is the frame-buffer has its first color target using the
+   * TextureFormat::SRGBA_8_8_8_8 format. */
   bool srgb_ = false;
   /** True is the frame-buffer has been bound using the GL_FRAMEBUFFER_SRGB feature. */
   bool enabled_srgb_ = false;

@@ -35,7 +35,9 @@ class Manager;
 
 struct DRWTextStore;
 struct GPUFrameBuffer;
-struct GPUTexture;
+namespace blender::gpu {
+class Texture;
+}
 struct GPUViewport;
 struct ListBase;
 
@@ -50,10 +52,10 @@ struct DefaultFramebufferList {
 };
 
 struct DefaultTextureList {
-  GPUTexture *color;
-  GPUTexture *color_overlay;
-  GPUTexture *depth;
-  GPUTexture *depth_in_front;
+  blender::gpu::Texture *color;
+  blender::gpu::Texture *color_overlay;
+  blender::gpu::Texture *depth;
+  blender::gpu::Texture *depth_in_front;
 };
 
 struct DRWViewData {

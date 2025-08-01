@@ -27,6 +27,11 @@ float3x3 pointcloud_get_facing_matrix(float3 p)
 {
   float3x3 facing_mat;
   facing_mat[2] = drw_world_incident_vector(p);
+#  ifdef MAT_GEOM_POINTCLOUD
+  if (ptcloud_backface) {
+    facing_mat[2] = -facing_mat[2];
+  }
+#  endif
   facing_mat[1] = normalize(cross(drw_view().viewinv[0].xyz, facing_mat[2]));
   facing_mat[0] = cross(facing_mat[1], facing_mat[2]);
   return facing_mat;

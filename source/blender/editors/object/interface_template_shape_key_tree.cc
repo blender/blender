@@ -6,6 +6,8 @@
  * \ingroup edinterface
  */
 
+#include <fmt/format.h>
+
 #include "BKE_context.hh"
 #include "BKE_key.hh"
 
@@ -19,12 +21,13 @@
 #include "RNA_prototypes.hh"
 
 #include "DEG_depsgraph.hh"
+
 #include "DNA_key_types.h"
+
 #include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "ED_undo.hh"
-#include "WM_types.hh"
-#include <fmt/format.h>
 
 namespace blender::ed::object::shapekey {
 

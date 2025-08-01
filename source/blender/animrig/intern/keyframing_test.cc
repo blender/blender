@@ -27,6 +27,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "CLG_log.h"
 #include "testing/testing.h"
@@ -160,7 +161,7 @@ class KeyframingTest : public testing::Test {
   void ensure_action_is_legacy(bAction &action)
   {
     bActionGroup *new_group = MEM_callocN<bActionGroup>(__func__);
-    STRNCPY(new_group->name, "Legacy Forcer");
+    STRNCPY_UTF8(new_group->name, "Legacy Forcer");
     BLI_addtail(&action.groups, new_group);
   }
 };

@@ -136,6 +136,7 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d)
       if (update) {
         /* Lights should be shadow catchers by default. */
         object->set_is_shadow_catcher(true);
+        object->set_lightgroup(ustring(b_world ? b_world.lightgroup() : ""));
       }
 
       /* Create geometry. */

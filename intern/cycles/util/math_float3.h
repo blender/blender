@@ -347,6 +347,20 @@ ccl_device_inline float3 fmod(const float3 a, const float b)
 #  endif
 }
 
+ccl_device_inline float3 fmod(const float3 a, const float3 b)
+{
+#  if defined(__KERNEL_NEON__)
+  const float32x4_t iquot = vrndq_f32(vdivq_f32(a.m128, b.m128));
+  return float3(vsubq_f32(a, vmulq_f32(iquot, b.m128)));
+#  elif defined(__KERNEL_SSE42__) && defined(__KERNEL_SSE__)
+  const __m128 div = _mm_div_ps(a.m128, b.m128);
+  const __m128 iquot = _mm_round_ps(div, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+  return float3(_mm_sub_ps(a.m128, _mm_mul_ps(iquot, b.m128)));
+#  else
+  return make_float3(fmodf(a.x, b.x), fmodf(a.y, b.y), fmodf(a.z, b.z));
+#  endif
+}
+
 ccl_device_inline float3 sqrt(const float3 a)
 {
 #  ifdef __KERNEL_SSE__
@@ -394,9 +408,19 @@ ccl_device_inline float3 log(const float3 v)
   return make_float3(logf(v.x), logf(v.y), logf(v.z));
 }
 
+ccl_device_inline float3 sin(const float3 v)
+{
+  return make_float3(sinf(v.x), sinf(v.y), sinf(v.z));
+}
+
 ccl_device_inline float3 cos(const float3 v)
 {
   return make_float3(cosf(v.x), cosf(v.y), cosf(v.z));
+}
+
+ccl_device_inline float3 tan(const float3 v)
+{
+  return make_float3(tanf(v.x), tanf(v.y), tanf(v.z));
 }
 
 ccl_device_inline float3 atan2(const float3 y, const float3 x)
@@ -547,6 +571,49 @@ ccl_device_inline float3 power(const float3 v, const float e)
   return make_float3(powf(v.x, e), powf(v.y, e), powf(v.z, e));
 }
 
+ccl_device_inline float3 safe_pow(const float3 a, const float3 b)
+{
+  return make_float3(safe_powf(a.x, b.x), safe_powf(a.y, b.y), safe_powf(a.z, b.z));
+}
+
+ccl_device_inline auto component_wise_equal(const float3 a, const float3 b)
+{
+#if defined(__KERNEL_METAL__)
+  return a == b;
+#elif defined __KERNEL_NEON__
+  return int3(vreinterpretq_m128i_s32(vceqq_f32(a.m128, b.m128)));
+#elif defined(__KERNEL_SSE__)
+  return int3(_mm_castps_si128(_mm_cmpeq_ps(a.m128, b.m128)));
+#else
+  return make_int3(a.x == b.x, a.y == b.y, a.z == b.z);
+#endif
+}
+
+ccl_device_inline auto component_is_zero(const float3 a)
+{
+  return component_wise_equal(a, zero_float3());
+}
+
+ccl_device_inline float3 safe_floored_fmod(const float3 a, const float3 b)
+{
+  return select(component_is_zero(b), zero_float3(), a - floor(a / b) * b);
+}
+
+ccl_device_inline float3 wrap(const float3 value, const float3 max, const float3 min)
+{
+  return safe_floored_fmod(value - min, max - min) + min;
+}
+
+ccl_device_inline float3 safe_fmod(const float3 a, const float3 b)
+{
+  return select(component_is_zero(b), zero_float3(), fmod(a, b));
+}
+
+ccl_device_inline float3 compatible_sign(const float3 v)
+{
+  return make_float3(compatible_signf(v.x), compatible_signf(v.y), compatible_signf(v.z));
+}
+
 ccl_device_inline bool isfinite_safe(const float3 v)
 {
   return isfinite_safe(v.x) && isfinite_safe(v.y) && isfinite_safe(v.z);
@@ -680,6 +747,13 @@ ccl_device_inline float2 map_to_sphere(const float3 co)
     u = v = 0.0f;
   }
   return make_float2(u, v);
+}
+
+ccl_device_inline void copy_v3_v3(ccl_private float *r, const float3 val)
+{
+  r[0] = val.x;
+  r[1] = val.y;
+  r[2] = val.z;
 }
 
 CCL_NAMESPACE_END

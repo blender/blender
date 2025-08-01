@@ -18,7 +18,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -172,14 +172,14 @@ static void datadropper_id_sample_pt(
               id = (ID *)ob->data;
             }
             else {
-              SNPRINTF(ddr->name, "Incompatible, expected a %s", ddr->idcode_name);
+              SNPRINTF_UTF8(ddr->name, "Incompatible, expected a %s", ddr->idcode_name);
             }
           }
 
           PointerRNA idptr = RNA_id_pointer_create(id);
 
           if (id && RNA_property_pointer_poll(&ddr->ptr, ddr->prop, &idptr)) {
-            SNPRINTF(ddr->name, "%s: %s", ddr->idcode_name, id->name + 2);
+            SNPRINTF_UTF8(ddr->name, "%s: %s", ddr->idcode_name, id->name + 2);
             *r_id = id;
           }
 
@@ -334,7 +334,7 @@ static bool datadropper_poll(bContext *C)
   /* data dropper only supports object data */
   if ((CTX_wm_window(C) != nullptr) &&
       (but = UI_context_active_but_prop_get(C, &ptr, &prop, &index_dummy)) &&
-      (but->type == UI_BTYPE_SEARCH_MENU) && (but->flag & UI_BUT_VALUE_CLEAR))
+      (but->type == ButType::SearchMenu) && (but->flag & UI_BUT_VALUE_CLEAR))
   {
     if (prop && RNA_property_type(prop) == PROP_POINTER) {
       StructRNA *type = RNA_property_pointer_type(&ptr, prop);

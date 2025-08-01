@@ -428,7 +428,7 @@ void ShadowPass::object_sync(SceneState &scene_state,
 void ShadowPass::draw(Manager &manager,
                       View &view,
                       SceneResources &resources,
-                      GPUTexture &depth_stencil_tx,
+                      gpu::Texture &depth_stencil_tx,
                       bool force_fail_method)
 {
   if (!enabled_) {

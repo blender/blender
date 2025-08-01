@@ -173,7 +173,7 @@ static bool needs_scene_render_params(const bNodeTree &ntree)
     if (node->is_muted()) {
       continue;
     }
-    const bNodeSocket &projection_matrix_socket = node->output_by_identifier("Projection Matrix");
+    const bNodeSocket &projection_matrix_socket = *node->output_by_identifier("Projection Matrix");
     if (projection_matrix_socket.is_logically_linked()) {
       return true;
     }

@@ -35,8 +35,8 @@ void convert_host_to_device(void *dst_buffer,
                             const void *src_buffer,
                             size_t buffer_size,
                             eGPUDataFormat host_format,
-                            eGPUTextureFormat host_texture_format,
-                            eGPUTextureFormat device_format);
+                            TextureFormat host_texture_format,
+                            TextureFormat device_format);
 
 /**
  * Convert device buffer to host buffer.
@@ -56,8 +56,8 @@ void convert_device_to_host(void *dst_buffer,
                             const void *src_buffer,
                             size_t buffer_size,
                             eGPUDataFormat host_format,
-                            eGPUTextureFormat host_texture_format,
-                            eGPUTextureFormat device_format);
+                            TextureFormat host_texture_format,
+                            TextureFormat device_format);
 
 /* -------------------------------------------------------------------- */
 /** \name Floating point conversions

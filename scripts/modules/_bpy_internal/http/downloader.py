@@ -4,8 +4,26 @@
 
 from __future__ import annotations
 
+__all__ = (
+    "ConditionalDownloader",
+    "DownloaderOptions",
+    "BackgroundDownloader",
+    "DownloadReporter",
+    "QueueingReporter",
+    "MetadataProvider",
+    "MetadataProviderFilesystem",
+    "HTTPMetadata",
+    "RequestDescription",
+    "HTTPRequestDownloadError",
+    "ContentLengthUnknownError",
+    "ContentLengthError",
+    "HTTPRequestUnknownContentEncoding",
+    "DownloadCancelled",
+    "BackgroundProcessNotRunningError",
+    "http_session",
+)
+
 import collections
-import contextlib
 import dataclasses
 import enum
 import hashlib
@@ -13,13 +31,11 @@ import logging
 import multiprocessing
 import multiprocessing.connection
 import multiprocessing.process
-import queue
-import sys
 import time
 import zlib  # For streaming gzip decompression.
 from collections.abc import Callable
 from pathlib import Path
-from typing import Protocol, TypeAlias, Any, Generator
+from typing import Protocol, TypeAlias, Any
 
 # To work around this error:
 # mypy   : Variable "multiprocessing.Event" is not valid as a type
@@ -495,8 +511,7 @@ class BackgroundDownloader:
             daemon=True,
         )
         self._logger.info("starting downloader process")
-        with _cleanup_main_file_attribute():
-            self._downloader_process.start()
+        self._downloader_process.start()
 
     @property
     def is_shutdown_requested(self) -> bool:
@@ -561,10 +576,17 @@ class BackgroundDownloader:
 
     def _handle_incoming_messages(self) -> None:
 
-        while self._connection.poll():
+        while True:
+            # Instead of `while self._connection.poll():`, wrap in an exception
+            # handler, as on Windows the `poll()` call can raise a
+            # BrokenPipeError when the subprocess has ended. Maybe the `recv()`
+            # call can raise that exception too, so just for safety I (Sybren)
+            # put them in the same `try` block.
             try:
+                if not self._connection.poll():
+                    break
                 msg: PipeMessage = self._connection.recv()
-            except EOFError:
+            except (EOFError, BrokenPipeError):
                 # The remote end closed the pipe.
                 break
 
@@ -727,7 +749,7 @@ def _download_queued_items(
 
     do_shutdown = threading.Event()
 
-    def rx_thread_func():
+    def rx_thread_func() -> None:
         """Process incoming messages."""
         while not do_shutdown.is_set():
             # Always keep receiving messages while they're coming in,
@@ -738,7 +760,7 @@ def _download_queued_items(
                 log.info("received message: %s", received_msg)
                 rx_queue.put(received_msg)
 
-    def tx_thread_func():
+    def tx_thread_func() -> None:
         """Send queued reports back to the main process."""
         while not do_shutdown.is_set():
             try:
@@ -1074,12 +1096,14 @@ class MetadataProviderFilesystem(MetadataProvider):
         converter = self._ensure_converter()
 
         try:
-            return converter.loads(meta_json, HTTPMetadata)
+            meta_data: HTTPMetadata = converter.loads(meta_json, HTTPMetadata)
         except cattrs.BaseValidationError:
             # File was an old format, got corrupted, or is otherwise unusable.
             # Just act as if it never existed in the first place.
             meta_path.unlink()
             return None
+
+        return meta_data
 
     def is_valid(self, meta: HTTPMetadata, http_req_descr: RequestDescription, local_path: Path) -> bool:
         """Determine whether this metadata is still valid, given the other parameters."""
@@ -1275,47 +1299,3 @@ def http_session() -> requests.Session:
     session.mount("http://", http_adapter)
 
     return session
-
-
-@contextlib.contextmanager
-def _cleanup_main_file_attribute() -> Generator[None]:
-    """Context manager to ensure __main__.__file__ is not set.
-
-    `__main__.__file__` is set to "<blender string>" in `PyC_DefaultNameSpace()`
-    in `source/blender/python/generic/py_capi_utils.cc`. This is problematic for
-    Python's `multiprocessing` module, as it gets confused about what the entry
-    point into the Python program was. The easiest way (short of modifying
-    Blender itself) is to just temporarily erase the `__main__.__file__`
-    attribute.
-
-    See the `get_preparation_data(name)` function in Python's stdlib:
-    https://github.com/python/cpython/blob/180b3eb697bf5bb0088f3f35ef2d3675f9fff04f/Lib/multiprocessing/spawn.py#L197
-
-    This issue can be recognised by a failure to start a background process,
-    with an error like:
-
-        FileNotFoundError: [Errno 2] No such file or directory: '/path/to/blender/<blender string>'
-
-    """
-
-    try:
-        __main__ = sys.modules['__main__']
-    except KeyError:
-        # No __main__ is fine.
-        yield
-        return
-
-    # Be careful to only modify the property when we know it has a value
-    # that will cause problems. Python dunder variables like this can
-    # trigger all kinds of unknown magics, so they should be left alone
-    # as much as possible.
-    old_file = getattr(__main__, '__file__', None)
-    if old_file != "<blender string>":
-        yield
-        return
-
-    try:
-        del __main__.__file__
-        yield
-    finally:
-        __main__.__file__ = old_file

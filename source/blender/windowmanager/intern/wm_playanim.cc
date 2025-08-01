@@ -36,6 +36,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_system.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
@@ -507,7 +508,7 @@ static int pupdate_time()
 static void *ocio_transform_ibuf(const PlayDisplayContext &display_ctx,
                                  ImBuf *ibuf,
                                  bool *r_glsl_used,
-                                 eGPUTextureFormat *r_format,
+                                 blender::gpu::TextureFormat *r_format,
                                  eGPUDataFormat *r_data,
                                  void **r_buffer_cache_handle)
 {
@@ -518,7 +519,7 @@ static void *ocio_transform_ibuf(const PlayDisplayContext &display_ctx,
   force_fallback |= (ibuf->dither != 0.0f);
 
   /* Default. */
-  *r_format = GPU_RGBA8;
+  *r_format = blender::gpu::TextureFormat::UNORM_8_8_8_8;
   *r_data = GPU_DATA_UBYTE;
 
   /* Fallback to CPU based color space conversion. */
@@ -531,11 +532,11 @@ static void *ocio_transform_ibuf(const PlayDisplayContext &display_ctx,
 
     *r_data = GPU_DATA_FLOAT;
     if (ibuf->channels == 4) {
-      *r_format = GPU_RGBA16F;
+      *r_format = blender::gpu::TextureFormat::SFLOAT_16_16_16_16;
     }
     else if (ibuf->channels == 3) {
       /* Alpha is implicitly 1. */
-      *r_format = GPU_RGB16F;
+      *r_format = blender::gpu::TextureFormat::SFLOAT_16_16_16;
     }
 
     if (ibuf->float_buffer.colorspace) {
@@ -569,7 +570,7 @@ static void *ocio_transform_ibuf(const PlayDisplayContext &display_ctx,
   if ((ibuf->byte_buffer.data || ibuf->float_buffer.data) && !*r_glsl_used) {
     display_buffer = IMB_display_buffer_acquire(
         ibuf, &display_ctx.view_settings, &display_ctx.display_settings, r_buffer_cache_handle);
-    *r_format = GPU_RGBA8;
+    *r_format = blender::gpu::TextureFormat::UNORM_8_8_8_8;
     *r_data = GPU_DATA_UBYTE;
   }
 
@@ -583,7 +584,7 @@ static void draw_display_buffer(const PlayDisplayContext &display_ctx,
 {
   /* Format needs to be created prior to any #immBindShader call.
    * Do it here because OCIO binds its own shader. */
-  eGPUTextureFormat format;
+  blender::gpu::TextureFormat format;
   eGPUDataFormat data;
   bool glsl_used = false;
   GPUVertFormat *imm_format = immVertexFormat();
@@ -597,7 +598,7 @@ static void draw_display_buffer(const PlayDisplayContext &display_ctx,
 
   /* NOTE: This may fail, especially for large images that exceed the GPU's texture size limit.
    * Large images could be supported although this isn't so common for animation playback. */
-  GPUTexture *texture = GPU_texture_create_2d(
+  blender::gpu::Texture *texture = GPU_texture_create_2d(
       "display_buf", ibuf->x, ibuf->y, 1, format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
 
   if (texture) {
@@ -1729,8 +1730,8 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
   IMB_init();
   MOV_init();
 
-  STRNCPY(ps.display_ctx.display_settings.display_device,
-          IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
+  STRNCPY_UTF8(ps.display_ctx.display_settings.display_device,
+               IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
   IMB_colormanagement_init_default_view_settings(&ps.display_ctx.view_settings,
                                                  &ps.display_ctx.display_settings);
   ps.display_ctx.ui_scale = 1.0f;

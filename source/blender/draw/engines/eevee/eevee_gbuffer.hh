@@ -142,9 +142,9 @@ struct GBuffer {
    * These will point to either the dummy textures bellow or to a layer range view of the above
    * textures. In the later case, these layers are written with imageStore instead of being part
    * of the #Framebuffer. */
-  GPUTexture *closure_opt_layers_ = nullptr;
-  GPUTexture *normal_opt_layers_ = nullptr;
-  GPUTexture *header_opt_layers_ = nullptr;
+  gpu::Texture *closure_opt_layers_ = nullptr;
+  gpu::Texture *normal_opt_layers_ = nullptr;
+  gpu::Texture *header_opt_layers_ = nullptr;
 
   /* Textures used to fulfill the GBuffer optional layers binding when textures do not have enough
    * layers for the optional layers image views. The shader are then expected to never write to
@@ -161,15 +161,18 @@ struct GBuffer {
     data_count = max_ii(closure_fb_layer_count, data_count);
     normal_count = max_ii(normal_fb_layer_count, normal_count);
 
-    dummy_header_tx_.ensure_2d_array(GPU_R32UI, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
-    dummy_closure_tx_.ensure_2d_array(GPU_RGB10_A2, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
-    dummy_normal_tx_.ensure_2d_array(GPU_RG16, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
+    dummy_header_tx_.ensure_2d_array(
+        gpu::TextureFormat::UINT_32, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
+    dummy_closure_tx_.ensure_2d_array(
+        gpu::TextureFormat::UNORM_10_10_10_2, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
+    dummy_normal_tx_.ensure_2d_array(
+        gpu::TextureFormat::UNORM_16_16, int2(1), 1, GPU_TEXTURE_USAGE_SHADER_WRITE);
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                              GPU_TEXTURE_USAGE_ATTACHMENT;
-    header_tx.ensure_2d_array(GPU_R32UI, extent, header_count, usage);
-    closure_tx.ensure_2d_array(GPU_RGB10_A2, extent, data_count, usage);
-    normal_tx.ensure_2d_array(GPU_RG16, extent, normal_count, usage);
+    header_tx.ensure_2d_array(gpu::TextureFormat::UINT_32, extent, header_count, usage);
+    closure_tx.ensure_2d_array(gpu::TextureFormat::UNORM_10_10_10_2, extent, data_count, usage);
+    normal_tx.ensure_2d_array(gpu::TextureFormat::UNORM_16_16, extent, normal_count, usage);
     /* Ensure layer view for frame-buffer attachment. */
     header_tx.ensure_layer_views();
     closure_tx.ensure_layer_views();

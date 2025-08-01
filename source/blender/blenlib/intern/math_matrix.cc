@@ -10,6 +10,7 @@
 
 #include "BLI_math_rotation.hh"
 #include "BLI_simd.hh"
+#include "BLI_task.hh"
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -516,5 +517,83 @@ template float4x4 perspective_infinite(
 }  // namespace projection
 
 /** \} */
+
+/**
+ * Check that each column is orthogonal to the others, and that each column is the same length.
+ * In other words, there is no shear, and any scaling is uniform.
+ */
+template<typename T>
+bool is_similarity_transform(const MatBase<T, 3, 3> &matrix, const T &epsilon = 1e-6)
+{
+  if (math::abs(math::dot(matrix[0], matrix[1])) > epsilon) {
+    return false;
+  }
+  if (math::abs(math::dot(matrix[0], matrix[2])) > epsilon) {
+    return false;
+  }
+  if (math::abs(math::dot(matrix[1], matrix[2])) > epsilon) {
+    return false;
+  }
+  const float length_0 = math::length_squared(matrix[0]);
+  const float length_1 = math::length_squared(matrix[1]);
+  const float length_2 = math::length_squared(matrix[2]);
+  if (math::abs(length_0 - length_1) > epsilon) {
+    return false;
+  }
+  if (math::abs(length_0 - length_2) > epsilon) {
+    return false;
+  }
+  if (math::abs(length_1 - length_2) > epsilon) {
+    return false;
+  }
+  return true;
+}
+
+void transform_normals(const float3x3 &transform, MutableSpan<float3> normals)
+{
+  if (math::is_equal(transform, float3x3::identity(), 1e-6f)) {
+    return;
+  }
+  const float3x3 normal_transform = math::transpose(math::invert(transform));
+  if (is_similarity_transform(normal_transform)) {
+    const float3x3 normalized_transform = math::normalize(normal_transform);
+    threading::parallel_for(normals.index_range(), 1024, [&](const IndexRange range) {
+      for (float3 &normal : normals.slice(range)) {
+        normal = normalized_transform * normal;
+      }
+    });
+  }
+  else {
+    threading::parallel_for(normals.index_range(), 1024, [&](const IndexRange range) {
+      for (float3 &normal : normals.slice(range)) {
+        normal = math::normalize(normal_transform * normal);
+      }
+    });
+  }
+}
+
+void transform_normals(Span<float3> src, const float3x3 &transform, MutableSpan<float3> dst)
+{
+  if (math::is_equal(transform, float3x3::identity(), 1e-6f)) {
+    dst.copy_from(src);
+    return;
+  }
+  const float3x3 normal_transform = math::transpose(math::invert(transform));
+  if (is_similarity_transform(normal_transform)) {
+    const float3x3 normalized_transform = math::normalize(normal_transform);
+    threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        dst[i] = normalized_transform * src[i];
+      }
+    });
+  }
+  else {
+    threading::parallel_for(src.index_range(), 1024, [&](const IndexRange range) {
+      for (const int i : range) {
+        dst[i] = math::normalize(normal_transform * src[i]);
+      }
+    });
+  }
+}
 
 }  // namespace blender::math

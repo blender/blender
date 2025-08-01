@@ -149,9 +149,11 @@ def log2vis(msgs, settings):
 
 #        print(*btypes)
 
-        fbd.fribidi_get_par_embedding_levels(btypes, ln,
-                                             ctypes.byref(pbase_dir),
-                                             embed_lvl)
+        fbd.fribidi_get_par_embedding_levels(
+            btypes, ln,
+            ctypes.byref(pbase_dir),
+            embed_lvl,
+        )
 
 #        print(*embed_lvl)
 

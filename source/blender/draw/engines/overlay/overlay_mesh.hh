@@ -134,7 +134,7 @@ class Meshes : Overlay {
      * Doing so lets us distinguish back-faces from front-faces. */
     DRWState face_culling = (show_retopology_) ? DRW_STATE_CULL_BACK : DRWState(0);
 
-    GPUTexture **depth_tex = (state.xray_flag_enabled) ? &res.depth_tx : &res.dummy_depth_tx;
+    gpu::Texture **depth_tex = (state.xray_flag_enabled) ? &res.depth_tx : &res.dummy_depth_tx;
 
     {
       auto &pass = edit_mesh_prepass_ps_;
@@ -638,6 +638,7 @@ class MeshUVs : Overlay {
 
       if (space_mode_is_uv && object_mode_is_edit) {
         show_wireframe_ = show_wireframe_uv_edit;
+        show_face_overlay_ = !(space_image->flag & SI_NO_DRAWFACES);
       }
       else {
         show_wireframe_ = show_wireframe_uv_guide;
@@ -1085,7 +1086,8 @@ class MeshUVs : Overlay {
     BKE_maskrasterize_handle_free(handle);
 
     mask_texture_.free();
-    mask_texture_.ensure_2d(GPU_R16F, int2(width, height), GPU_TEXTURE_USAGE_SHADER_READ, buffer);
+    mask_texture_.ensure_2d(
+        gpu::TextureFormat::SFLOAT_16, int2(width, height), GPU_TEXTURE_USAGE_SHADER_READ, buffer);
 
     MEM_freeN(buffer);
   }

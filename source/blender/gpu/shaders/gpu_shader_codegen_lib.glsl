@@ -340,8 +340,8 @@ void dF_branch(float fn, out float2 result)
 {
   /* NOTE: this function is currently unused, once it is used we need to check if
    * `g_derivative_filter_width` needs to be applied. */
-  result.x = gpu_dfdx(fn);
-  result.y = gpu_dfdy(fn);
+  result.x = gpu_dfdx(fn) * derivative_scale_get();
+  result.y = gpu_dfdy(fn) * derivative_scale_get();
 }
 
 #else

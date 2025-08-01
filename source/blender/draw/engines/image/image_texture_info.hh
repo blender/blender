@@ -87,7 +87,8 @@ struct TextureInfo : NonCopyable {
     }
 
     if (should_be_created) {
-      texture.ensure_2d(GPU_RGBA16F, texture_size, GPU_TEXTURE_USAGE_SHADER_READ);
+      texture.ensure_2d(
+          gpu::TextureFormat::SFLOAT_16_16_16_16, texture_size, GPU_TEXTURE_USAGE_SHADER_READ);
     }
     need_full_update |= should_be_created;
   }

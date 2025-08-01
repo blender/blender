@@ -84,9 +84,9 @@ bool GPU_viewport_do_update(GPUViewport *viewport);
 int GPU_viewport_active_view_get(GPUViewport *viewport);
 bool GPU_viewport_is_stereo_get(GPUViewport *viewport);
 
-GPUTexture *GPU_viewport_color_texture(GPUViewport *viewport, int view);
-GPUTexture *GPU_viewport_overlay_texture(GPUViewport *viewport, int view);
-GPUTexture *GPU_viewport_depth_texture(GPUViewport *viewport);
+blender::gpu::Texture *GPU_viewport_color_texture(GPUViewport *viewport, int view);
+blender::gpu::Texture *GPU_viewport_overlay_texture(GPUViewport *viewport, int view);
+blender::gpu::Texture *GPU_viewport_depth_texture(GPUViewport *viewport);
 
 /**
  * Color render and overlay frame-buffers for drawing outside of DRW module.

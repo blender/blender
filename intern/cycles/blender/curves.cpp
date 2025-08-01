@@ -1029,6 +1029,12 @@ void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, con
   else {
     export_hair_curves(scene, hair, b_curves, need_motion, motion_scale);
   }
+
+  const blender::VArray<int8_t> b_types = b_curves.curve_types();
+  /* This does not handle cases where the curve type is not the same across all curves */
+  if (!b_types.is_empty() && b_types[0] == CURVE_TYPE_POLY) {
+    hair->curve_shape = CURVE_THICK_LINEAR;
+  }
 }
 
 void BlenderSync::sync_hair(BObjectInfo &b_ob_info, Hair *hair)
@@ -1067,6 +1073,8 @@ void BlenderSync::sync_hair(BObjectInfo &b_ob_info, Hair *hair)
   }
 
   hair->attributes.update(std::move(new_hair.attributes));
+
+  hair->curve_shape = new_hair.curve_shape;
 
   /* tag update */
 

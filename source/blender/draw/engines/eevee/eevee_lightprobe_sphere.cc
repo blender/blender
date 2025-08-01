@@ -106,7 +106,7 @@ bool SphereProbeModule::ensure_atlas()
    * the resource bindings. */
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_SHADER_READ;
 
-  if (probes_tx_.ensure_2d_array(GPU_RGBA16F,
+  if (probes_tx_.ensure_2d_array(gpu::TextureFormat::SFLOAT_16_16_16_16,
                                  int2(SPHERE_PROBE_ATLAS_RES),
                                  instance_.light_probes.sphere_layer_count(),
                                  usage,
@@ -168,7 +168,7 @@ void SphereProbeModule::end_sync()
 void SphereProbeModule::ensure_cubemap_render_target(int resolution)
 {
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
-  cubemap_tx_.ensure_cube(GPU_RGBA16F, resolution, usage);
+  cubemap_tx_.ensure_cube(gpu::TextureFormat::SFLOAT_16_16_16_16, resolution, usage);
   /* TODO(fclem): deallocate it. */
 }
 

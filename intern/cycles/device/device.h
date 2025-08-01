@@ -211,6 +211,12 @@ class Device {
   /* Used by Metal and OptiX. */
   virtual void release_bvh(BVH * /*bvh*/) {}
 
+  /* Inform of BVH limits, return true to force-rebuild all BVHs and kernels. */
+  virtual bool set_bvh_limits(size_t /*instance_count*/, size_t /*max_prim_count*/)
+  {
+    return false;
+  }
+
   /* multi device */
   virtual int device_number(Device * /*sub_device*/)
   {

@@ -9,10 +9,11 @@
 #pragma once
 
 #include "BKE_paint.hh"
-#include "DNA_brush_types.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+
 #include "ED_view3d.hh"
 #include "UI_view2d.hh"
 

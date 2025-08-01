@@ -86,7 +86,7 @@ def main():
     parser = argparse.ArgumentParser(description="Tool to perform common actions over PO/MO files.")
     parser.add_argument(
         '-s', '--settings', default=None,
-        help="Override (some) default settings. Either a JSon file name, or a JSon string.",
+        help="Override (some) default settings. Either a JSON file name, or a JSON string.",
     )
     sub_parsers = parser.add_subparsers()
 

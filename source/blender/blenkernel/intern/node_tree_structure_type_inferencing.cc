@@ -87,7 +87,7 @@ static Array<nodes::StructureTypeInterface> calc_node_interfaces(const bNodeTree
   return interfaces;
 }
 
-enum class DataRequirement : int8_t { None, Field, Single, Grid, Invalid };
+enum class DataRequirement : int8_t { None, Field, Single, Grid, List, Invalid };
 
 static DataRequirement merge(const DataRequirement a, const DataRequirement b)
 {
@@ -120,6 +120,8 @@ static StructureType data_requirement_to_auto_structure_type(const DataRequireme
       return StructureType::Single;
     case DataRequirement::Grid:
       return StructureType::Grid;
+    case DataRequirement::List:
+      return StructureType::List;
     case DataRequirement::Invalid:
       return StructureType::Dynamic;
   }
@@ -164,6 +166,10 @@ static void init_input_requirements(const bNodeTree &tree,
         }
         case StructureType::Field: {
           requirement = DataRequirement::Field;
+          break;
+        }
+        case StructureType::List: {
+          requirement = DataRequirement::List;
           break;
         }
       }
@@ -403,7 +409,8 @@ static void propagate_right_to_left(const bNodeTree &tree,
             break;
           }
           case DataRequirement::Field:
-          case DataRequirement::Grid: {
+          case DataRequirement::Grid:
+          case DataRequirement::List: {
             /* When a data requirement could be provided by multiple node inputs (i.e. only a
              * single node input involved in a math operation has to be a volume grid for the
              * output to be a grid), it's better to not propagate the data requirement than

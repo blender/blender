@@ -195,31 +195,6 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 
 // clang-format on
 
-/* volumetric lambda functions - use function objects for lambda-like functionality */
-#define VOLUME_READ_LAMBDA(function_call) \
-  struct FnObjectRead { \
-    KernelGlobals kg; \
-    ccl_private MetalKernelContext *context; \
-    int state; \
-\
-    VolumeStack operator()(const int i) const \
-    { \
-      return context->function_call; \
-    } \
-  } volume_read_lambda_pass{kg, this, state};
-
-#define VOLUME_WRITE_LAMBDA(function_call) \
-  struct FnObjectWrite { \
-    KernelGlobals kg; \
-    ccl_private MetalKernelContext *context; \
-    int state; \
-\
-    void operator()(const int i, VolumeStack entry) const \
-    { \
-      context->function_call; \
-    } \
-  } volume_write_lambda_pass{kg, this, state};
-
 /* make_type definitions with Metal style element initializers */
 ccl_device_forceinline float2 make_float2(const float x, const float y)
 {
@@ -324,23 +299,28 @@ ccl_device_forceinline uchar4 make_uchar4(const uchar x,
 #    define METALRT_BLAS_TAGS
 #  endif /* __METALRT_MOTION__ */
 
+#  if defined(__METALRT_EXTENDED_LIMITS__)
+#    define METALRT_LIMITS , extended_limits
+#  else
+#    define METALRT_LIMITS
+#  endif /* __METALRT_MOTION__ */
+
 typedef acceleration_structure<METALRT_TAGS> metalrt_as_type;
-typedef intersection_function_table<triangle_data, curve_data, METALRT_TAGS, extended_limits>
+typedef intersection_function_table<triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS>
     metalrt_ift_type;
-typedef metal::raytracing::intersector<triangle_data, curve_data, METALRT_TAGS, extended_limits>
+typedef metal::raytracing::intersector<triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS>
     metalrt_intersector_type;
 #  if defined(__METALRT_MOTION__)
 typedef acceleration_structure<primitive_motion> metalrt_blas_as_type;
-typedef intersection_function_table<triangle_data, curve_data, primitive_motion, extended_limits>
+typedef intersection_function_table<triangle_data, curve_data, primitive_motion METALRT_LIMITS>
     metalrt_blas_ift_type;
-typedef metal::raytracing::
-    intersector<triangle_data, curve_data, primitive_motion, extended_limits>
-        metalrt_blas_intersector_type;
+typedef metal::raytracing::intersector<triangle_data, curve_data, primitive_motion METALRT_LIMITS>
+    metalrt_blas_intersector_type;
 #  else
 typedef acceleration_structure<> metalrt_blas_as_type;
-typedef intersection_function_table<triangle_data, curve_data, extended_limits>
+typedef intersection_function_table<triangle_data, curve_data METALRT_LIMITS>
     metalrt_blas_ift_type;
-typedef metal::raytracing::intersector<triangle_data, curve_data, extended_limits>
+typedef metal::raytracing::intersector<triangle_data, curve_data METALRT_LIMITS>
     metalrt_blas_intersector_type;
 #  endif
 

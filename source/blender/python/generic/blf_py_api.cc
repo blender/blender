@@ -324,7 +324,7 @@ static PyObject *py_blf_disable(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  BLF_disable(fontid, option);
+  BLF_disable(fontid, FontFlags(option));
 
   Py_RETURN_NONE;
 }
@@ -349,7 +349,7 @@ static PyObject *py_blf_enable(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  BLF_enable(fontid, option);
+  BLF_enable(fontid, FontFlags(option));
 
   Py_RETURN_NONE;
 }

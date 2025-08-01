@@ -47,11 +47,8 @@ __intersection__local_tri_single_hit(
   return result;
 }
 
-[[intersection(triangle,
-               triangle_data,
-               curve_data,
-               METALRT_TAGS,
-               extended_limits)]] PrimitiveIntersectionResult
+[[intersection(
+    triangle, triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS)]] PrimitiveIntersectionResult
 __intersection__local_tri_single_hit_mblur(
     ray_data MetalKernelContext::MetalRTIntersectionLocalPayload_single_hit &payload [[payload]],
 #  if defined(__METALRT_MOTION__)
@@ -155,11 +152,8 @@ __intersection__local_tri(ray_data MetalKernelContext::MetalRTIntersectionLocalP
       payload, primitive_id, barycentrics, ray_tmax);
 }
 
-[[intersection(triangle,
-               triangle_data,
-               curve_data,
-               METALRT_TAGS,
-               extended_limits)]] PrimitiveIntersectionResult
+[[intersection(
+    triangle, triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS)]] PrimitiveIntersectionResult
 __intersection__local_tri_mblur(
     ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload [[payload]],
     uint primitive_id [[primitive_id]],
@@ -182,6 +176,11 @@ __intersection__local_tri_mblur(
       payload, primitive_id, barycentrics, ray_tmax);
 }
 
+inline bool metalrt_curve_skip_end_cap(const int type, const float u)
+{
+  return ((u == 0.0f || u == 1.0f) && (type & PRIMITIVE_CURVE) != PRIMITIVE_CURVE_THICK_LINEAR);
+}
+
 template<uint intersection_type>
 bool metalrt_shadow_all_hit(
     constant KernelParamsMetal &launch_params_metal,
@@ -193,6 +192,11 @@ bool metalrt_shadow_all_hit(
     const float t = 0.0f,
     const ccl_private Ray *ray = nullptr)
 {
+  if ((kernel_data_fetch(objects, object).visibility & payload.visibility) == 0) {
+    /* continue search */
+    return true;
+  }
+
 #  ifdef __SHADOW_RECORD_ALL__
   float u = barycentrics.x;
   float v = barycentrics.y;
@@ -206,7 +210,7 @@ bool metalrt_shadow_all_hit(
     prim = segment.prim;
 
     /* Filter out curve end-caps. */
-    if (u == 0.0f || u == 1.0f) {
+    if (metalrt_curve_skip_end_cap(type, u)) {
       /* continue search */
       return true;
     }
@@ -338,11 +342,8 @@ bool metalrt_shadow_all_hit(
   return true;
 }
 
-[[intersection(triangle,
-               triangle_data,
-               curve_data,
-               METALRT_TAGS,
-               extended_limits)]] PrimitiveIntersectionResult
+[[intersection(
+    triangle, triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS)]] PrimitiveIntersectionResult
 __intersection__tri_shadow_all(
     constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
     ray_data MetalKernelContext::MetalRTIntersectionShadowAllPayload &payload [[payload]],
@@ -361,11 +362,8 @@ __intersection__tri_shadow_all(
   return result;
 }
 
-[[intersection(triangle,
-               triangle_data,
-               curve_data,
-               METALRT_TAGS,
-               extended_limits)]] PrimitiveIntersectionResult
+[[intersection(
+    triangle, triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS)]] PrimitiveIntersectionResult
 __intersection__volume_tri(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
                            ray_data MetalKernelContext::MetalRTIntersectionShadowPayload &payload
                            [[payload]],
@@ -404,18 +402,24 @@ inline TReturnType metalrt_visibility_test(
 {
   TReturnType result;
 
+  if ((kernel_data_fetch(objects, object).visibility & payload.visibility) == 0) {
+    result.accept = false;
+    result.continue_search = true;
+    return result;
+  }
+
 #  ifdef __HAIR__
   if constexpr (intersection_type == METALRT_HIT_CURVE) {
+    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
+    int type = segment.type;
+    prim = segment.prim;
+
     /* Filter out curve end-caps. */
-    if (u == 0.0f || u == 1.0f) {
+    if (metalrt_curve_skip_end_cap(type, u)) {
       result.accept = false;
       result.continue_search = true;
       return result;
     }
-
-    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
-    int type = segment.type;
-    prim = segment.prim;
 
     if (type & PRIMITIVE_CURVE_RIBBON) {
       MetalKernelContext context(launch_params_metal);
@@ -450,18 +454,23 @@ inline TReturnType metalrt_visibility_test_shadow(
 {
   TReturnType result;
 
+  if ((kernel_data_fetch(objects, object).visibility & payload.visibility) == 0) {
+    result.accept = false;
+    return result;
+  }
+
 #  ifdef __HAIR__
   if constexpr (intersection_type == METALRT_HIT_CURVE) {
+    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
+    int type = segment.type;
+    prim = segment.prim;
+
     /* Filter out curve end-caps. */
-    if (u == 0.0f || u == 1.0f) {
+    if (metalrt_curve_skip_end_cap(type, u)) {
       result.accept = false;
       result.continue_search = true;
       return result;
     }
-
-    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
-    int type = segment.type;
-    prim = segment.prim;
 
     if (type & PRIMITIVE_CURVE_RIBBON) {
       MetalKernelContext context(launch_params_metal);
@@ -501,11 +510,8 @@ inline TReturnType metalrt_visibility_test_shadow(
   return result;
 }
 
-[[intersection(triangle,
-               triangle_data,
-               curve_data,
-               METALRT_TAGS,
-               extended_limits)]] PrimitiveIntersectionResult
+[[intersection(
+    triangle, triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS)]] PrimitiveIntersectionResult
 __intersection__tri(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
                     ray_data MetalKernelContext::MetalRTIntersectionPayload &payload [[payload]],
                     const unsigned int object [[instance_id]],
@@ -514,16 +520,19 @@ __intersection__tri(constant KernelParamsMetal &launch_params_metal [[buffer(1)]
 {
   PrimitiveIntersectionResult result;
   result.continue_search = true;
+
+  if ((kernel_data_fetch(objects, object).visibility & payload.visibility) == 0) {
+    result.accept = false;
+    return result;
+  }
+
   result.accept = (payload.self_object != object ||
                    payload.self_prim != (primitive_id + primitive_id_offset));
   return result;
 }
 
-[[intersection(triangle,
-               triangle_data,
-               curve_data,
-               METALRT_TAGS,
-               extended_limits)]] PrimitiveIntersectionResult
+[[intersection(
+    triangle, triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS)]] PrimitiveIntersectionResult
 __intersection__tri_shadow(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
                            ray_data MetalKernelContext::MetalRTIntersectionShadowPayload &payload
                            [[payload]],
@@ -541,7 +550,7 @@ __intersection__tri_shadow(constant KernelParamsMetal &launch_params_metal [[buf
 /* Primitive intersection functions. */
 
 [[intersection(
-    curve, triangle_data, curve_data, METALRT_TAGS, extended_limits)]] PrimitiveIntersectionResult
+    curve, triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS)]] PrimitiveIntersectionResult
 __intersection__curve(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
                       ray_data MetalKernelContext::MetalRTIntersectionPayload &payload [[payload]],
                       const uint object [[instance_id]],
@@ -576,7 +585,7 @@ __intersection__curve(constant KernelParamsMetal &launch_params_metal [[buffer(1
 }
 
 [[intersection(
-    curve, triangle_data, curve_data, METALRT_TAGS, extended_limits)]] PrimitiveIntersectionResult
+    curve, triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS)]] PrimitiveIntersectionResult
 __intersection__curve_shadow(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
                              ray_data MetalKernelContext::MetalRTIntersectionShadowPayload &payload
                              [[payload]],
@@ -612,7 +621,7 @@ __intersection__curve_shadow(constant KernelParamsMetal &launch_params_metal [[b
 }
 
 [[intersection(
-    curve, triangle_data, curve_data, METALRT_TAGS, extended_limits)]] PrimitiveIntersectionResult
+    curve, triangle_data, curve_data, METALRT_TAGS METALRT_LIMITS)]] PrimitiveIntersectionResult
 __intersection__curve_shadow_all(
     constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
     ray_data MetalKernelContext::MetalRTIntersectionShadowAllPayload &payload [[payload]],
@@ -681,8 +690,7 @@ ccl_device_inline void metalrt_intersection_point_shadow_all(
 [[intersection(bounding_box,
                triangle_data,
                curve_data,
-               METALRT_TAGS,
-               extended_limits)]] BoundingBoxIntersectionResult
+               METALRT_TAGS METALRT_LIMITS)]] BoundingBoxIntersectionResult
 __intersection__point(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
                       ray_data MetalKernelContext::MetalRTIntersectionPayload &payload [[payload]],
                       const uint object [[instance_id]],
@@ -729,8 +737,7 @@ __intersection__point(constant KernelParamsMetal &launch_params_metal [[buffer(1
 [[intersection(bounding_box,
                triangle_data,
                curve_data,
-               METALRT_TAGS,
-               extended_limits)]] BoundingBoxIntersectionResult
+               METALRT_TAGS METALRT_LIMITS)]] BoundingBoxIntersectionResult
 __intersection__point_shadow(constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
                              ray_data MetalKernelContext::MetalRTIntersectionShadowPayload &payload
                              [[payload]],
@@ -782,8 +789,7 @@ __intersection__point_shadow(constant KernelParamsMetal &launch_params_metal [[b
 [[intersection(bounding_box,
                triangle_data,
                curve_data,
-               METALRT_TAGS,
-               extended_limits)]] BoundingBoxIntersectionResult
+               METALRT_TAGS METALRT_LIMITS)]] BoundingBoxIntersectionResult
 __intersection__point_shadow_all(
     constant KernelParamsMetal &launch_params_metal [[buffer(1)]],
     ray_data MetalKernelContext::MetalRTIntersectionShadowAllPayload &payload [[payload]],

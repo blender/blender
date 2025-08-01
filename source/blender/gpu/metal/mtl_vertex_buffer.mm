@@ -263,8 +263,7 @@ void MTLVertBuf::bind_as_texture(uint binding)
   /* If vertex buffer updated, release existing texture and re-create. */
   id<MTLBuffer> buf = this->get_metal_buffer();
   if (buffer_texture_ != nullptr) {
-    gpu::MTLTexture *mtl_buffer_tex = static_cast<gpu::MTLTexture *>(
-        unwrap(this->buffer_texture_));
+    gpu::MTLTexture *mtl_buffer_tex = static_cast<gpu::MTLTexture *>(this->buffer_texture_);
     id<MTLBuffer> tex_buf = mtl_buffer_tex->get_vertex_buffer();
     if (tex_buf != buf) {
       GPU_TEXTURE_FREE_SAFE(buffer_texture_);

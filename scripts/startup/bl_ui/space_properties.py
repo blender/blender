@@ -154,7 +154,7 @@ class PropertiesAnimationMixin:
     def _animated_id(cls, context):
         assert cls._animated_id_context_property, "set _animated_id_context_property on {!r}".format(cls)
 
-        # If the pinned ID is of a different type, there could still be a an ID
+        # If the pinned ID is of a different type, there could still be an ID
         # for which to show this panel. For example, a camera object can be
         # pinned, and then this panel can be shown for its camera data.
         return getattr(context, cls._animated_id_context_property, None)

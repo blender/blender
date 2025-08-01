@@ -27,7 +27,9 @@
 struct CurveMapping;
 struct GPUUniformBuf;
 struct GPUShader;
-struct GPUTexture;
+namespace blender::gpu {
+class Texture;
+}
 
 namespace blender::ocio {
 
@@ -55,7 +57,7 @@ struct UniformBufferSlot {
 };
 
 struct GPULutTexture {
-  GPUTexture *texture = nullptr;
+  blender::gpu::Texture *texture = nullptr;
   std::string sampler_name;
 };
 
@@ -75,7 +77,7 @@ class GPUTextures : NonCopyable, NonMovable {
   Vector<GPULutTexture> luts;
 
   /* Dummy in case of no overlay. */
-  GPUTexture *dummy = nullptr;
+  blender::gpu::Texture *dummy = nullptr;
 
   /* Uniforms */
   Vector<GPUUniform> uniforms;
@@ -98,7 +100,7 @@ class GPUCurveMappping : NonCopyable, NonMovable {
   float *lut = nullptr;
 
   GPUUniformBuf *buffer = nullptr;
-  GPUTexture *texture = nullptr;
+  blender::gpu::Texture *texture = nullptr;
   size_t cache_id = 0;
 
   ~GPUCurveMappping();

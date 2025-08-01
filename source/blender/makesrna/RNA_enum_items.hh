@@ -56,7 +56,7 @@ DEF_ENUM(rna_enum_shrinkwrap_type_items)
 DEF_ENUM(rna_enum_shrinkwrap_face_cull_items)
 DEF_ENUM(rna_enum_node_warning_type_items)
 
-DEF_ENUM(rna_enum_image_type_items)
+DEF_ENUM(rna_enum_image_type_all_items)
 DEF_ENUM(rna_enum_image_color_mode_items)
 DEF_ENUM(rna_enum_image_color_depth_items)
 DEF_ENUM(rna_enum_image_generated_type_items)

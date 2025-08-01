@@ -188,7 +188,7 @@ void VKFrameBuffer::build_clear_attachments_color(
         clear_attachments.attachments[clear_attachments.attachment_count++];
     clear_attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     clear_attachment.colorAttachment = color_slot;
-    eGPUDataFormat data_format = to_data_format(GPU_texture_format(attachment.tex));
+    eGPUDataFormat data_format = to_texture_data_format(GPU_texture_format(attachment.tex));
     clear_attachment.clearValue.color = to_vk_clear_color_value(data_format,
                                                                 &clear_colors[color_index]);
 
@@ -635,7 +635,7 @@ void VKFrameBuffer::rendering_ensure_render_pass(VKContext &context)
         srgb_ && enabled_srgb_,
         VKImageViewArrayed::DONT_CARE};
     const VKImageView &image_view = color_texture.image_view_get(image_view_info);
-    // TODO: Use VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL for readonly attachments.
+    /* TODO: Use VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL for read-only attachments. */
     VkImageLayout vk_image_layout = (attachment_state == GPU_ATTACHMENT_READ) ?
                                         VK_IMAGE_LAYOUT_GENERAL :
                                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;

@@ -13,7 +13,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
@@ -100,7 +100,7 @@ static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *linese
   new_lineset->edge_types = lineset->edge_types;
   new_lineset->exclude_edge_types = lineset->exclude_edge_types;
   new_lineset->group = lineset->group;
-  STRNCPY(new_lineset->name, lineset->name);
+  STRNCPY_UTF8(new_lineset->name, lineset->name);
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
     id_us_plus((ID *)new_lineset->linestyle);
@@ -179,13 +179,13 @@ FreestyleLineSet *BKE_freestyle_lineset_add(Main *bmain, FreestyleConfig *config
   lineset->exclude_edge_types = 0;
   lineset->group = nullptr;
   if (name) {
-    STRNCPY(lineset->name, name);
+    STRNCPY_UTF8(lineset->name, name);
   }
   else if (lineset_index > 0) {
-    SNPRINTF(lineset->name, DATA_("LineSet %i"), lineset_index + 1);
+    SNPRINTF_UTF8(lineset->name, DATA_("LineSet %i"), lineset_index + 1);
   }
   else {
-    STRNCPY(lineset->name, DATA_("LineSet"));
+    STRNCPY_UTF8(lineset->name, DATA_("LineSet"));
   }
   BKE_freestyle_lineset_unique_name(config, lineset);
 

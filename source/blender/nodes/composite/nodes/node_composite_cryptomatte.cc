@@ -11,15 +11,14 @@
 
 #include <fmt/format.h>
 
-#include "BKE_node.hh"
 #include "node_composite_util.hh"
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
@@ -38,6 +37,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
+#include "BKE_node.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -209,14 +209,14 @@ void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size
       }
 
       if (layer_name == node_cryptomatte->layer_name) {
-        BLI_strncpy(r_prefix, node_cryptomatte->layer_name, prefix_maxncpy);
+        BLI_strncpy_utf8(r_prefix, node_cryptomatte->layer_name, prefix_maxncpy);
         return;
       }
     }
   }
 
   const char *cstr = first_layer_name.c_str();
-  BLI_strncpy(r_prefix, cstr, prefix_maxncpy);
+  BLI_strncpy_utf8(r_prefix, cstr, prefix_maxncpy);
 }
 
 CryptomatteSession *ntreeCompositCryptomatteSession(bNode *node)
@@ -725,7 +725,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
       const int cryptomatte_layers_count = int(math::ceil(view_layer->cryptomatte_levels / 2.0f));
       for (int i = 0; i < cryptomatte_layers_count; i++) {
         const std::string pass_name = fmt::format("{}{:02}", cryptomatte_type, i);
-        Result pass_result = context().get_pass(scene, view_layer_index, pass_name.c_str());
+        Result pass_result = this->context().get_input(scene, view_layer_index, pass_name.c_str());
 
         /* If this Cryptomatte layer wasn't found, then all later Cryptomatte layers can't be used
          * even if they were found. */
@@ -836,8 +836,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   {
     switch (get_source()) {
       case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER: {
-        const rcti compositing_region = this->context().get_compositing_region();
-        return int2(compositing_region.xmin, compositing_region.ymin);
+        return this->context().get_compositing_region().min;
       }
       case CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE:
         return int2(0);
@@ -961,7 +960,7 @@ bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node)
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   char sockname[32];
   n->inputs_num++;
-  SNPRINTF(sockname, "Crypto %.2d", n->inputs_num - 1);
+  SNPRINTF_UTF8(sockname, "Crypto %.2d", n->inputs_num - 1);
   bNodeSocket *sock = blender::bke::node_add_static_socket(
       *ntree, *node, SOCK_IN, SOCK_RGBA, PROP_NONE, "", sockname);
   return sock;

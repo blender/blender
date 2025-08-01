@@ -13,7 +13,7 @@ PUSH_CONSTANT(float, cos_angle)
 PUSH_CONSTANT(float, sin_angle)
 SAMPLER(0, sampler2D, base_mask_tx)
 SAMPLER(1, sampler2D, mask_value_tx)
-IMAGE(0, GPU_R16F, write, image2D, output_mask_img)
+IMAGE(0, SFLOAT_16, write, image2D, output_mask_img)
 COMPUTE_SOURCE("compositor_ellipse_mask.glsl")
 GPU_SHADER_CREATE_END()
 

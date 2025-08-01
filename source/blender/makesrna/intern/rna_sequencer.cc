@@ -20,10 +20,10 @@
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-
 #include "RNA_types.hh"
-#include "UI_resources.hh"
 #include "rna_internal.hh"
+
+#include "UI_resources.hh"
 
 #include "SEQ_effects.hh"
 #include "SEQ_sequencer.hh"
@@ -1491,10 +1491,11 @@ static StripModifierData *rna_Strip_modifier_new(
     return nullptr;
   }
   else {
-    Scene *scene = CTX_data_scene(C);
+    Scene *scene = CTX_data_sequencer_scene(C);
     StripModifierData *smd;
 
     smd = blender::seq::modifier_new(strip, name, type);
+    blender::seq::modifier_persistent_uid_init(*strip, *smd);
 
     blender::seq::relations_invalidate_cache(scene, strip);
 
@@ -1510,7 +1511,7 @@ static void rna_Strip_modifier_remove(Strip *strip,
                                       PointerRNA *smd_ptr)
 {
   StripModifierData *smd = static_cast<StripModifierData *>(smd_ptr->data);
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
 
   if (blender::seq::modifier_remove(strip, smd) == false) {
     BKE_report(reports, RPT_ERROR, "Modifier was not found in the stack");
@@ -1525,7 +1526,7 @@ static void rna_Strip_modifier_remove(Strip *strip,
 
 static void rna_Strip_modifier_clear(Strip *strip, bContext *C)
 {
-  Scene *scene = CTX_data_scene(C);
+  Scene *scene = CTX_data_sequencer_scene(C);
 
   blender::seq::modifier_clear(strip);
 
@@ -3180,12 +3181,12 @@ static void rna_def_wipe(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem wipe_type_items[] = {
-      {blender::seq::DO_SINGLE_WIPE, "SINGLE", 0, "Single", ""},
-      {blender::seq::DO_DOUBLE_WIPE, "DOUBLE", 0, "Double", ""},
-      /* not used yet {DO_BOX_WIPE, "BOX", 0, "Box", ""}, */
-      /* not used yet {DO_CROSS_WIPE, "CROSS", 0, "Cross", ""}, */
-      {blender::seq::DO_IRIS_WIPE, "IRIS", 0, "Iris", ""},
-      {blender::seq::DO_CLOCK_WIPE, "CLOCK", 0, "Clock", ""},
+      {SEQ_WIPE_SINGLE, "SINGLE", 0, "Single", ""},
+      {SEQ_WIPE_DOUBLE, "DOUBLE", 0, "Double", ""},
+      /* not used yet {SEQ_WIPE_BOX, "BOX", 0, "Box", ""}, */
+      /* not used yet {SEQ_WIPE_CROSS, "CROSS", 0, "Cross", ""}, */
+      {SEQ_WIPE_IRIS, "IRIS", 0, "Iris", ""},
+      {SEQ_WIPE_CLOCK, "CLOCK", 0, "Clock", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -3716,18 +3717,18 @@ static void rna_def_modifier(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem mask_input_type_items[] = {
-      {SEQUENCE_MASK_INPUT_STRIP, "STRIP", 0, "Strip", "Use sequencer strip as mask input"},
-      {SEQUENCE_MASK_INPUT_ID, "ID", 0, "Mask", "Use mask ID as mask input"},
+      {STRIP_MASK_INPUT_STRIP, "STRIP", 0, "Strip", "Use sequencer strip as mask input"},
+      {STRIP_MASK_INPUT_ID, "ID", 0, "Mask", "Use mask ID as mask input"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem mask_time_items[] = {
-      {SEQUENCE_MASK_TIME_RELATIVE,
+      {STRIP_MASK_TIME_RELATIVE,
        "RELATIVE",
        0,
        "Relative",
        "Mask animation is offset to start of strip"},
-      {SEQUENCE_MASK_TIME_ABSOLUTE,
+      {STRIP_MASK_TIME_ABSOLUTE,
        "ABSOLUTE",
        0,
        "Absolute",
@@ -3754,14 +3755,14 @@ static void rna_def_modifier(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);
 
   prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQUENCE_MODIFIER_MUTE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", STRIP_MODIFIER_FLAG_MUTE);
   RNA_def_property_ui_text(prop, "Mute", "Mute this modifier");
   RNA_def_property_ui_icon(prop, ICON_HIDE_OFF, -1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_StripModifier_update");
 
   prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQUENCE_MODIFIER_EXPANDED);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", STRIP_MODIFIER_FLAG_EXPANDED);
   RNA_def_property_ui_text(prop, "Expanded", "Mute expanded settings for the modifier");
   RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);

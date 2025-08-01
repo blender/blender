@@ -9,7 +9,7 @@
 #include <cstdlib>
 
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_unit.hh"
 
@@ -64,19 +64,19 @@ static void applyBakeTime(TransInfo *t)
     outputNumInput(&(t->num), c, t->scene->unit);
 
     if (time >= 0.0f) {
-      SNPRINTF(str, IFACE_("Time: +%s %s"), c, t->proptext);
+      SNPRINTF_UTF8(str, IFACE_("Time: +%s %s"), c, t->proptext);
     }
     else {
-      SNPRINTF(str, IFACE_("Time: %s %s"), c, t->proptext);
+      SNPRINTF_UTF8(str, IFACE_("Time: %s %s"), c, t->proptext);
     }
   }
   else {
     /* Default header print. */
     if (time >= 0.0f) {
-      SNPRINTF(str, IFACE_("Time: +%.3f %s"), time, t->proptext);
+      SNPRINTF_UTF8(str, IFACE_("Time: +%.3f %s"), time, t->proptext);
     }
     else {
-      SNPRINTF(str, IFACE_("Time: %.3f %s"), time, t->proptext);
+      SNPRINTF_UTF8(str, IFACE_("Time: %.3f %s"), time, t->proptext);
     }
   }
 

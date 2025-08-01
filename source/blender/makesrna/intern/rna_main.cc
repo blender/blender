@@ -17,6 +17,8 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "DNA_windowmanager_types.h"
+
 #  include "BKE_global.hh"
 #  include "BKE_main.hh"
 #  include "BKE_mesh.hh"
@@ -327,8 +329,8 @@ void RNA_def_main(BlenderRNA *brna)
        "Palettes",
        "Palette data-blocks",
        RNA_def_main_palettes},
-      {"grease_pencils",
-       "GreasePencil",
+      {"annotations",
+       "Annotation",
        "rna_Main_gpencils_begin",
        "Annotation",
        "Annotation data-blocks (legacy Grease Pencil)",

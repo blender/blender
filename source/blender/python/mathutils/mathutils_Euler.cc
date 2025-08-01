@@ -204,13 +204,13 @@ static PyObject *Euler_zero(EulerObject *self)
 PyDoc_STRVAR(
     /* Wrap. */
     Euler_rotate_axis_doc,
-    ".. method:: rotate_axis(axis, angle)\n"
+    ".. method:: rotate_axis(axis, angle, /)\n"
     "\n"
     "   Rotates the euler a certain amount and returning a unique euler rotation\n"
     "   (no 720 degree pitches).\n"
     "\n"
-    "   :arg axis: single character in ['X, 'Y', 'Z'].\n"
-    "   :type axis: str\n"
+    "   :arg axis: An axis string.\n"
+    "   :type axis: Literal['X, 'Y', 'Z']\n"
     "   :arg angle: angle in radians.\n"
     "   :type angle: float\n");
 static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
@@ -246,7 +246,7 @@ static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Euler_rotate_doc,
-    ".. method:: rotate(other)\n"
+    ".. method:: rotate(other, /)\n"
     "\n"
     "   Rotates the euler by another mathutils value.\n"
     "\n"
@@ -276,10 +276,13 @@ static PyObject *Euler_rotate(EulerObject *self, PyObject *value)
 PyDoc_STRVAR(
     /* Wrap. */
     Euler_make_compatible_doc,
-    ".. method:: make_compatible(other)\n"
+    ".. method:: make_compatible(other, /)\n"
     "\n"
     "   Make this euler compatible with another,\n"
     "   so interpolating between them works as intended.\n"
+    "\n"
+    "   :arg other: Other euler rotation.\n"
+    "   :type other: :class:`Euler`\n"
     "\n"
     "   .. note:: the rotation order is not taken into account for this function.\n");
 static PyObject *Euler_make_compatible(EulerObject *self, PyObject *value)
@@ -703,7 +706,7 @@ PyDoc_STRVAR(
     Euler_order_doc,
     "Euler rotation order.\n"
     "\n"
-    ":type: str in ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']");
+    ":type: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']");
 static PyObject *Euler_order_get(EulerObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -822,7 +825,7 @@ static PyMethodDef Euler_methods[] = {
 PyDoc_STRVAR(
     /* Wrap. */
     euler_doc,
-    ".. class:: Euler(angles, order='XYZ')\n"
+    ".. class:: Euler(angles=(0.0, 0.0, 0.0), order='XYZ', /)\n"
     "\n"
     "   This object gives access to Eulers in Blender.\n"
     "\n"
@@ -830,8 +833,8 @@ PyDoc_STRVAR(
     "\n"
     "   :arg angles: (X, Y, Z) angles in radians.\n"
     "   :type angles: Sequence[float]\n"
-    "   :arg order: Optional order of the angles, a permutation of ``XYZ``.\n"
-    "   :type order: str\n");
+    "   :arg order: Euler rotation order.\n"
+    "   :type order: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n");
 PyTypeObject euler_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Euler",

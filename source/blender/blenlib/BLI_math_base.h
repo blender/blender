@@ -14,7 +14,7 @@
  * - `v2` = `vec2` = vector 2.
  * - `v3` = `vec3` = vector 3.
  * - `v4` = `vec4` = vector 4.
- * - `vn` = `vec4q = vector N dimensions, *passed as an arg, after the vector*..
+ * - `vn` = `vec4q` = vector N dimensions, *passed as an arg, after the vector*..
  * - `qt` = `quat` = quaternion.
  * - `dq` = `dquat` = dual quaternion.
  * - `m2` = `mat2` = matrix 2x2.

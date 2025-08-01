@@ -341,9 +341,19 @@ ccl_device void light_tree_node_importance(const float3 P,
       const float3 closest_point = P + D * clamp(closest_t, 0.0f, t);
       /* Minimal distance of the ray to the cluster. */
       distance = len(centroid - P - D * closest_t);
+
       /* Estimate `theta_b - theta_a` using the centroid of the cluster and the complete ray
        * segment in volume. */
-      theta_d = fast_atan2f(t - closest_t, distance) + fast_atan2f(closest_t, distance);
+      if (t == FLT_MAX) {
+        theta_d = fast_atan2f(closest_t, distance) + M_PI_2_F;
+      }
+      else {
+        /* Original equation is `theta_d = atan((t - closest) /d) + atan(closest / d)`, convert to
+         * the below equation using the equality `atan(a) + atan(b) = atan2(a + b, 1 - a*b)` for
+         * better precision at small angles. */
+        theta_d = atan2f(t, distance - closest_t * safe_divide(t - closest_t, distance));
+      }
+
       /* Vector that forms a minimal angle with the emitter centroid. */
       point_to_centroid = -compute_v(centroid, P, D, bcone.axis, t);
       cos_theta_u = light_tree_cos_bound_subtended_angle(bbox, centroid, closest_point);
@@ -429,7 +439,12 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
     const float closest_t = dot(centroid - P, D);
     P_c += D * clamp(closest_t, 0.0f, t);
     const float d = len(centroid - P - D * closest_t);
-    theta_d = fast_atan2f(t - closest_t, d) + fast_atan2f(closest_t, d);
+    if (t == FLT_MAX) {
+      theta_d = fast_atan2f(closest_t, d) + M_PI_2_F;
+    }
+    else {
+      theta_d = atan2f(t, d - closest_t * safe_divide(t - closest_t, d));
+    }
   }
 
   /* Early out if the emitter is guaranteed to be invisible. */

@@ -21,7 +21,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -94,14 +94,14 @@ static blender::float2 imapaint_pick_uv(const Mesh *mesh_eval,
     ma = BKE_object_material_get(ob_eval, material_indices[face_i] + 1);
     slot = &ma->texpaintslot[ma->paint_active_slot];
     if (slot && slot->uvname) {
-      uv_map = *attributes.lookup<float2>(slot->uvname, bke::AttrDomain::Face);
+      uv_map = *attributes.lookup<float2>(slot->uvname, bke::AttrDomain::Corner);
     }
   }
 
   if (uv_map.is_empty()) {
     const char *active_name = CustomData_get_active_layer_name(&mesh_eval->corner_data,
                                                                CD_PROP_FLOAT2);
-    uv_map = *attributes.lookup<float2>(active_name, bke::AttrDomain::Face);
+    uv_map = *attributes.lookup<float2>(active_name, bke::AttrDomain::Corner);
   }
 
   return bke::mesh_surface_sample::sample_corner_attribute_with_bary_coords(
@@ -336,11 +336,11 @@ static void sample_color_update_header(SampleColorData *data, bContext *C)
   ScrArea *area = CTX_wm_area(C);
 
   if (area) {
-    SNPRINTF(msg,
-             IFACE_("Sample color for %s"),
-             !data->sample_palette ?
-                 IFACE_("Brush. Use Left Click to sample for palette instead") :
-                 IFACE_("Palette. Use Left Click to sample more colors"));
+    SNPRINTF_UTF8(msg,
+                  IFACE_("Sample color for %s"),
+                  !data->sample_palette ?
+                      IFACE_("Brush. Use Left Click to sample for palette instead") :
+                      IFACE_("Palette. Use Left Click to sample more colors"));
     ED_workspace_status_text(C, msg);
   }
 }

@@ -14,16 +14,17 @@
 
 #include "BLI_task.hh"
 
-#include "NOD_rna_define.hh"
-
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_curve_fill_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryCurveFill)
+
+static const EnumPropertyItem mode_items[] = {
+    {GEO_NODE_CURVE_FILL_MODE_TRIANGULATED, "TRIANGLES", 0, "Triangles", ""},
+    {GEO_NODE_CURVE_FILL_MODE_NGONS, "NGONS", 0, "N-gons", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -36,20 +37,16 @@ static void node_declare(NodeDeclarationBuilder &b)
       .hide_value()
       .description(
           "An index used to group curves together. Filling is done separately for each group");
+  b.add_input<decl::Menu>("Mode")
+      .static_items(mode_items)
+      .default_value(GEO_NODE_CURVE_FILL_MODE_TRIANGULATED);
   b.add_output<decl::Geometry>("Mesh").propagate_all_instance_attributes();
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveFill *data = MEM_callocN<NodeGeometryCurveFill>(__func__);
-
-  data->mode = GEO_NODE_CURVE_FILL_MODE_TRIANGULATED;
-  node->storage = data;
+  /* Still used for forward compatibility. */
+  node->storage = MEM_callocN<NodeGeometryCurveFill>(__func__);
 }
 
 static void fill_curve_vert_indices(const OffsetIndices<int> offsets,
@@ -311,31 +308,12 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<int> group_index = params.extract_input<Field<int>>("Group ID");
-
-  const NodeGeometryCurveFill &storage = node_storage(params.node());
-  const GeometryNodeCurveFillMode mode = (GeometryNodeCurveFillMode)storage.mode;
+  const GeometryNodeCurveFillMode mode = params.extract_input<GeometryNodeCurveFillMode>("Mode");
 
   geometry_set.modify_geometry_sets(
       [&](GeometrySet &geometry_set) { curve_fill_calculate(geometry_set, mode, group_index); });
 
   params.set_output("Mesh", std::move(geometry_set));
-}
-
-static void node_rna(StructRNA *srna)
-{
-  static const EnumPropertyItem mode_items[] = {
-      {GEO_NODE_CURVE_FILL_MODE_TRIANGULATED, "TRIANGLES", 0, "Triangles", ""},
-      {GEO_NODE_CURVE_FILL_MODE_NGONS, "NGONS", 0, "N-gons", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_node_enum(srna,
-                    "mode",
-                    "Mode",
-                    "",
-                    mode_items,
-                    NOD_storage_enum_accessors(mode),
-                    GEO_NODE_CURVE_FILL_MODE_TRIANGULATED);
 }
 
 static void node_register()
@@ -352,10 +330,7 @@ static void node_register()
       ntype, "NodeGeometryCurveFill", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.draw_buttons = node_layout;
   blender::bke::node_register_type(ntype);
-
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

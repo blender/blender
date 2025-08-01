@@ -130,9 +130,10 @@ ccl_device_inline Transform lamp_get_inverse_transform(KernelGlobals kg,
 
 /* Transform position from object to world space */
 
+template<class T>
 ccl_device_inline void object_position_transform(KernelGlobals kg,
                                                  const ccl_private ShaderData *sd,
-                                                 ccl_private float3 *P)
+                                                 ccl_private T *P)
 {
 #ifdef __OBJECT_MOTION__
   if (sd->object_flag & SD_OBJECT_MOTION) {

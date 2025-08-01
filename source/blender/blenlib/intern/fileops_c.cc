@@ -569,8 +569,7 @@ void *BLI_gzopen(const char *filepath, const char *mode)
     fclose(file);
   }
 
-  /* temporary #if until we update all libraries to 1.2.7
-   * for correct wide char path handling */
+  /* Temporary `#if` until we update all libraries to 1.2.7 for correct wide char path handling. */
 #  if ZLIB_VERNUM >= 0x1270
   UTF16_ENCODE(filepath);
 

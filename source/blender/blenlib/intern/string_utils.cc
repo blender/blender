@@ -304,7 +304,7 @@ size_t BLI_string_flip_side_name(char *name_dst,
   *prefix = *suffix = *number = '\0';
 
   /* always copy the name, since this can be called with an uninitialized string */
-  len = BLI_strncpy_rlen(name_dst, name_src, name_dst_maxncpy);
+  len = BLI_strncpy_utf8_rlen(name_dst, name_src, name_dst_maxncpy);
   if (len < 3) {
     /* We don't support names such as `.R` or `.L`. */
     return len;
@@ -315,14 +315,14 @@ size_t BLI_string_flip_side_name(char *name_dst,
     index = strrchr(name_dst, '.');   /* Last occurrence. */
     if (index && isdigit(index[1])) { /* Doesn't handle case `bone.1abc2` correct..., whatever! */
       if (strip_number == false) {
-        BLI_strncpy(number, index, name_dst_maxncpy);
+        BLI_strncpy_utf8(number, index, name_dst_maxncpy);
       }
-      *index = 0;
-      len = BLI_strnlen(name_dst, name_dst_maxncpy);
+      *index = '\0';
+      len = size_t(index - name_dst); /* Same as `strlen(name_dst)`. */
     }
   }
 
-  BLI_strncpy(prefix, name_dst, name_dst_maxncpy);
+  BLI_strncpy_utf8(prefix, name_dst, name_dst_maxncpy);
 
   /* First case; separator (`.` or `_`) with extensions in `r R l L`. */
   if ((len > 1) && is_char_sep(name_dst[len - 2])) {
@@ -355,22 +355,22 @@ size_t BLI_string_flip_side_name(char *name_dst,
     switch (name_dst[0]) {
       case 'l':
         replace = "r";
-        BLI_strncpy(suffix, name_dst + 1, name_dst_maxncpy);
+        BLI_strncpy_utf8(suffix, name_dst + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
       case 'r':
         replace = "l";
-        BLI_strncpy(suffix, name_dst + 1, name_dst_maxncpy);
+        BLI_strncpy_utf8(suffix, name_dst + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
       case 'L':
         replace = "R";
-        BLI_strncpy(suffix, name_dst + 1, name_dst_maxncpy);
+        BLI_strncpy_utf8(suffix, name_dst + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
       case 'R':
         replace = "L";
-        BLI_strncpy(suffix, name_dst + 1, name_dst_maxncpy);
+        BLI_strncpy_utf8(suffix, name_dst + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
       default:
@@ -389,7 +389,7 @@ size_t BLI_string_flip_side_name(char *name_dst,
         replace = (index[1] == 'I' ? "LEFT" : "Left");
       }
       *index = 0;
-      BLI_strncpy(suffix, index + 5, name_dst_maxncpy);
+      BLI_strncpy_utf8(suffix, index + 5, name_dst_maxncpy);
     }
     else if (((index = BLI_strcasestr(prefix, "left")) == prefix) || (index == prefix + len - 4)) {
       is_set = true;
@@ -400,11 +400,11 @@ size_t BLI_string_flip_side_name(char *name_dst,
         replace = (index[1] == 'E' ? "RIGHT" : "Right");
       }
       *index = 0;
-      BLI_strncpy(suffix, index + 4, name_dst_maxncpy);
+      BLI_strncpy_utf8(suffix, index + 4, name_dst_maxncpy);
     }
   }
 
-  return BLI_snprintf_rlen(
+  return BLI_snprintf_utf8_rlen(
       name_dst, name_dst_maxncpy, "%s%s%s%s", prefix, replace ? replace : "", suffix, number);
 }
 
@@ -419,7 +419,7 @@ void BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRefNull)> unique
   BLI_string_debug_size_after_nil(name, name_maxncpy);
 
   if (name[0] == '\0') {
-    BLI_strncpy(name, defname, name_maxncpy);
+    BLI_strncpy_utf8(name, defname, name_maxncpy);
   }
 
   if (unique_check(name)) {
@@ -429,7 +429,7 @@ void BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRefNull)> unique
     int number;
     size_t len = BLI_string_split_name_number(name, delim, left, &number);
     do {
-      const size_t numlen = SNPRINTF(numstr, "%c%03d", delim, ++number);
+      const size_t numlen = SNPRINTF_UTF8(numstr, "%c%03d", delim, ++number);
 
       /* highly unlikely the string only has enough room for the number
        * but support anyway */
@@ -443,8 +443,8 @@ void BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRefNull)> unique
         memcpy(tempname_buf, numstr, numlen + 1);
       }
     } while (unique_check(tempname));
-
-    BLI_strncpy(name, tempname, name_maxncpy);
+    /* There will always be enough room for this string. */
+    BLI_strncpy_utf8(name, tempname, name_maxncpy);
   }
 }
 

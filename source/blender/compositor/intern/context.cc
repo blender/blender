@@ -2,14 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_bounds.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_rect.h"
 
 #include "DNA_node_types.h"
-#include "DNA_vec_types.h"
 
 #include "GPU_shader.hh"
-#include "GPU_texture_pool.hh"
 
 #include "BKE_node_runtime.hh"
 
@@ -20,7 +18,24 @@
 
 namespace blender::compositor {
 
-bool Context::treat_viewer_as_composite_output() const
+const RenderData &Context::get_render_data() const
+{
+  return this->get_scene().r;
+}
+
+StringRef Context::get_view_name() const
+{
+  return "";
+}
+
+ResultPrecision Context::get_precision() const
+{
+  return ResultPrecision::Full;
+}
+
+void Context::set_info_message(StringRef /*message*/) const {}
+
+bool Context::treat_viewer_as_compositor_output() const
 {
   return false;
 }
@@ -59,18 +74,12 @@ void Context::reset()
 
 int2 Context::get_compositing_region_size() const
 {
-  const rcti compositing_region = get_compositing_region();
-  const int x = BLI_rcti_size_x(&compositing_region);
-  const int y = BLI_rcti_size_y(&compositing_region);
-  return math::max(int2(1), int2(x, y));
+  return math::max(int2(1), this->get_compositing_region().size());
 }
 
 bool Context::is_valid_compositing_region() const
 {
-  const rcti compositing_region = get_compositing_region();
-  const int x = BLI_rcti_size_x(&compositing_region);
-  const int y = BLI_rcti_size_y(&compositing_region);
-  return x != 0 && y != 0;
+  return !this->get_compositing_region().is_empty();
 }
 
 float Context::get_render_percentage() const
@@ -89,6 +98,17 @@ float Context::get_time() const
   const float frame_rate = float(get_render_data().frs_sec) /
                            float(get_render_data().frs_sec_base);
   return frame_number / frame_rate;
+}
+
+eCompositorDenoiseQaulity Context::get_denoise_quality() const
+{
+  if (this->render_context()) {
+    return static_cast<eCompositorDenoiseQaulity>(
+        this->get_render_data().compositor_denoise_final_quality);
+  }
+
+  return static_cast<eCompositorDenoiseQaulity>(
+      this->get_render_data().compositor_denoise_preview_quality);
 }
 
 GPUShader *Context::get_shader(const char *info_name, ResultPrecision precision)

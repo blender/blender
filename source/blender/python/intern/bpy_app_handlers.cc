@@ -40,6 +40,25 @@ static PyTypeObject BlenderAppCbType;
 #define RENDER_STATS_ARG \
   "Accepts one argument: " \
   "the render stats (render/saving time plus in background mode frame/used [peak] memory)."
+#define DEPSGRAPH_UPDATE_ARG \
+  "Accepts two arguments: " \
+  "The scene datablock and the dependency graph being updated"
+#define RENDER_ARG \
+  "Accepts one argument: " \
+  "the scene datablock being rendered"
+#define OBJECT_BAKE_ARG \
+  "Accepts one argument: " \
+  "the object datablock being baked"
+#define COMPOSITE_ARG \
+  "Accepts one argument: " \
+  "the scene datablock"
+#define ANNOTATION_ARG \
+  "Accepts two arguments: " \
+  "the annotation datablock and dependency graph"
+#define BLENDIMPORT_ARG \
+  "Accepts one argument: " \
+  "a BlendImportContext"
+
 /**
  * See `BKE_callbacks.hh` #eCbEvent declaration for the policy on naming.
  */
@@ -50,17 +69,17 @@ static PyStructSequence_Field app_cb_info_fields[] = {
      "to another mesh) for the new frame. Note that this handler is **not** to be used as 'before "
      "the frame changes' event. The dependency graph is not available in this handler, as data "
      "and relations may have been altered and the dependency graph has not yet been updated for "
-     "that."},
+     "that. " DEPSGRAPH_UPDATE_ARG},
     {"frame_change_post",
      "Called after frame change for playback and rendering, after the data has been evaluated "
-     "for the new frame."},
+     "for the new frame. " DEPSGRAPH_UPDATE_ARG},
     {"render_pre", "on render (before)"},
     {"render_post", "on render (after)"},
     {"render_write", "on writing a render frame (directly after the frame is written)"},
     {"render_stats", "on printing render statistics. " RENDER_STATS_ARG},
-    {"render_init", "on initialization of a render job"},
-    {"render_complete", "on completion of render job"},
-    {"render_cancel", "on canceling a render job"},
+    {"render_init", "on initialization of a render job. " RENDER_ARG},
+    {"render_complete", "on completion of render job. " RENDER_ARG},
+    {"render_cancel", "on canceling a render job. " RENDER_ARG},
 
     {"load_pre", "on loading a new blend file (before)." FILEPATH_LOAD_ARG},
     {"load_post", "on loading a new blend file (after). " FILEPATH_LOAD_ARG},
@@ -74,22 +93,24 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"undo_post", "on loading an undo step (after)"},
     {"redo_pre", "on loading a redo step (before)"},
     {"redo_post", "on loading a redo step (after)"},
-    {"depsgraph_update_pre", "on depsgraph update (pre)"},
-    {"depsgraph_update_post", "on depsgraph update (post)"},
+    {"depsgraph_update_pre", "on depsgraph update (pre). " DEPSGRAPH_UPDATE_ARG},
+    {"depsgraph_update_post", "on depsgraph update (post). " DEPSGRAPH_UPDATE_ARG},
     {"version_update", "on ending the versioning code"},
     {"load_factory_preferences_post", "on loading factory preferences (after)"},
     {"load_factory_startup_post", "on loading factory startup (after)"},
     {"xr_session_start_pre", "on starting an xr session (before)"},
     {"annotation_pre", "on drawing an annotation (before)"},
     {"annotation_post", "on drawing an annotation (after)"},
-    {"object_bake_pre", "before starting a bake job"},
-    {"object_bake_complete", "on completing a bake job; will be called in the main thread"},
-    {"object_bake_cancel", "on canceling a bake job; will be called in the main thread"},
-    {"composite_pre", "on a compositing background job (before)"},
-    {"composite_post", "on a compositing background job (after)"},
-    {"composite_cancel", "on a compositing background job (cancel)"},
-    {"animation_playback_pre", "on starting animation playback"},
-    {"animation_playback_post", "on ending animation playback"},
+    {"object_bake_pre", "before starting a bake job. " OBJECT_BAKE_ARG},
+    {"object_bake_complete",
+     "on completing a bake job; will be called in the main thread. " OBJECT_BAKE_ARG},
+    {"object_bake_cancel",
+     "on canceling a bake job; will be called in the main thread. " OBJECT_BAKE_ARG},
+    {"composite_pre", "on a compositing background job (before). " COMPOSITE_ARG},
+    {"composite_post", "on a compositing background job (after). " COMPOSITE_ARG},
+    {"composite_cancel", "on a compositing background job (cancel). " COMPOSITE_ARG},
+    {"animation_playback_pre", "on starting animation playback. " DEPSGRAPH_UPDATE_ARG},
+    {"animation_playback_post", "on ending animation playback. " DEPSGRAPH_UPDATE_ARG},
     {"translation_update_post", "on translation settings update"},
     /* NOTE(@ideasman42): This avoids bad-level calls into BPY API
      * but should not be considered part of the public Python API.

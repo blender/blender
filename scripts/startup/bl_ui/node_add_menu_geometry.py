@@ -658,24 +658,23 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
         layout.menu("NODE_MT_category_GEO_TEXT")
         layout.menu("NODE_MT_category_GEO_VECTOR")
         layout.separator()
+        if context.preferences.experimental.use_bundle_and_closure_nodes:
+            layout.menu("NODE_MT_category_utilities_bundle")
+            layout.menu("NODE_MT_category_utilities_closure")
         layout.menu("NODE_MT_category_GEO_UTILITIES_FIELD")
+        if context.preferences.experimental.use_geometry_nodes_lists:
+            layout.menu("NODE_MT_category_utilities_list")
         layout.menu("NODE_MT_category_GEO_UTILITIES_MATH")
         layout.menu("NODE_MT_category_utilities_matrix")
         layout.menu("NODE_MT_category_GEO_UTILITIES_ROTATION")
         layout.menu("NODE_MT_category_GEO_UTILITIES_DEPRECATED")
         layout.separator()
-        if context.preferences.experimental.use_bundle_and_closure_nodes:
-            node_add_menu.add_closure_zone(layout, label="Closure")
-            node_add_menu.add_node_type(layout, "GeometryNodeEvaluateClosure")
         node_add_menu.add_foreach_geometry_element_zone(layout, label="For Each Element")
         node_add_menu.add_node_type(layout, "GeometryNodeIndexSwitch")
         node_add_menu.add_node_type(layout, "GeometryNodeMenuSwitch")
         node_add_menu.add_node_type(layout, "FunctionNodeRandomValue")
         node_add_menu.add_repeat_zone(layout, label="Repeat")
         node_add_menu.add_node_type(layout, "GeometryNodeSwitch")
-        if context.preferences.experimental.use_bundle_and_closure_nodes:
-            node_add_menu.add_node_type(layout, "GeometryNodeCombineBundle")
-            node_add_menu.add_node_type(layout, "GeometryNodeSeparateBundle")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -743,6 +742,40 @@ class NODE_MT_category_utilities_matrix(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeTransformPoint")
         node_add_menu.add_node_type(layout, "FunctionNodeTransposeMatrix")
         node_add_menu.draw_assets_for_catalog(layout, "Utilities/Matrix")
+
+
+class NODE_MT_category_utilities_bundle(Menu):
+    bl_idname = "NODE_MT_category_utilities_bundle"
+    bl_label = "Bundle"
+
+    def draw(self, context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeCombineBundle")
+        node_add_menu.add_node_type(layout, "GeometryNodeSeparateBundle")
+        node_add_menu.draw_assets_for_catalog(layout, "Utilities/Bundle")
+
+
+class NODE_MT_category_utilities_closure(Menu):
+    bl_idname = "NODE_MT_category_utilities_closure"
+    bl_label = "Closure"
+
+    def draw(self, context):
+        layout = self.layout
+        node_add_menu.add_closure_zone(layout, label="Closure")
+        node_add_menu.add_node_type(layout, "GeometryNodeEvaluateClosure")
+        node_add_menu.draw_assets_for_catalog(layout, "Utilities/Closure")
+
+
+class NODE_MT_category_utilities_list(Menu):
+    bl_idname = "NODE_MT_category_utilities_list"
+    bl_label = "List"
+
+    def draw(self, _context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "GeometryNodeList")
+        node_add_menu.add_node_type(layout, "GeometryNodeListGetItem")
+        node_add_menu.add_node_type(layout, "GeometryNodeListLength")
+        node_add_menu.draw_assets_for_catalog(layout, "Utilities/List")
 
 
 class NODE_MT_category_GEO_UTILITIES_MATH(Menu):
@@ -961,7 +994,10 @@ classes = (
     NODE_MT_category_GEO_UTILITIES_MATH,
     NODE_MT_category_GEO_UTILITIES_ROTATION,
     NODE_MT_geometry_node_GEO_INPUT_GIZMO,
+    NODE_MT_category_utilities_list,
     NODE_MT_category_utilities_matrix,
+    NODE_MT_category_utilities_bundle,
+    NODE_MT_category_utilities_closure,
     NODE_MT_category_GEO_UTILITIES_DEPRECATED,
     NODE_MT_category_GEO_GROUP,
 )

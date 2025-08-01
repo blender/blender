@@ -14,7 +14,7 @@ namespace blender::nodes::node_geo_image_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_output<decl::Image>("Image").custom_draw([](CustomSocketDrawParams &params) {
-    params.layout.alignment_set(blender::ui::LayoutAlign::Expand);
+    params.layout.alignment_set(ui::LayoutAlign::Expand);
     uiTemplateID(&params.layout,
                  &params.C,
                  &params.node_ptr,

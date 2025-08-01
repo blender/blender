@@ -684,6 +684,13 @@ void CLG_logf(const CLG_LogType *lg,
   }
 }
 
+void CLG_log_raw(const CLG_LogType *lg, const char *message)
+{
+  /* Write raw text without any formatting. */
+  int bytes_written = write(lg->ctx->output, message, strlen(message));
+  (void)bytes_written;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -849,6 +856,8 @@ static void CLG_ctx_free(CLogContext *ctx)
 
 /* We could support multiple at once, for now this seems not needed. */
 static struct CLogContext *g_ctx = nullptr;
+/* Separate to preserve this after freeing context. */
+static bool g_quiet = false;
 
 void CLG_init()
 {
@@ -915,6 +924,16 @@ void CLG_type_filter_include(const char *type_match, int type_match_len)
 void CLG_level_set(CLG_Level level)
 {
   CLG_ctx_level_set(g_ctx, level);
+}
+
+void CLG_quiet_set(bool quiet)
+{
+  g_quiet = quiet;
+}
+
+bool CLG_quiet_get()
+{
+  return g_quiet;
 }
 
 /** \} */

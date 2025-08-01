@@ -440,8 +440,6 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
 {
   PyObject *ret;
   BPy_Library *self_from;
-  /* Add +1 for the "version". */
-  PyObject *from_dict = _PyDict_NewPresized(INDEX_ID_MAX + 1);
   ReportList *reports = &self->reports;
   BlendFileReadReport *bf_reports = &self->bf_reports;
 
@@ -457,6 +455,9 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
     }
     return nullptr;
   }
+
+  /* Add +1 for the "version". */
+  PyObject *from_dict = _PyDict_NewPresized(INDEX_ID_MAX + 1);
 
   int i = 0, code;
   while ((code = BKE_idtype_idcode_iter_step(&i))) {

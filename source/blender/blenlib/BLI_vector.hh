@@ -713,8 +713,8 @@ class Vector {
   }
 
   /**
-   * Insert values at the beginning of the vector. The has to move all the other elements, so it
-   * has a linear running time.
+   * Insert values at the beginning of the vector.
+   * This has to move all the other elements, so it has a linear running time.
    */
   void prepend(const T &value)
   {

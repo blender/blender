@@ -2166,6 +2166,39 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update_icons");
 }
 
+static void rna_def_userdef_theme_common_anim(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "ThemeCommonAnim", nullptr);
+  RNA_def_struct_sdna(srna, "ThemeCommonAnim");
+  RNA_def_struct_ui_text(srna, "Common Animation Properties", "Shared animation theme properties");
+
+  prop = RNA_def_property(srna, "preview_range", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "preview_range");
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "Preview Range", "Color of preview range overlay");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+}
+
+static void rna_def_userdef_theme_common(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  rna_def_userdef_theme_common_anim(brna);
+
+  srna = RNA_def_struct(brna, "ThemeCommon", nullptr);
+  RNA_def_struct_ui_text(
+      srna, "Common Theme Properties", "Theme properties shared by different editors");
+
+  prop = RNA_def_property(srna, "anim", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_ui_text(prop, "Animation", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+}
+
 static void rna_def_userdef_theme_space_common(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -2975,12 +3008,6 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Active Channel Group", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-  prop = RNA_def_property(srna, "preview_range", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "anim_preview_range");
-  RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Preview Range", "Color of preview range overlay");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
   rna_def_userdef_theme_spaces_vertex(srna, true);
   rna_def_userdef_theme_spaces_curves(srna, false, true, true, true);
 }
@@ -3302,6 +3329,7 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
 
   rna_def_userdef_theme_spaces_main(srna);
   rna_def_userdef_theme_spaces_region_main(srna);
+  rna_def_userdef_theme_spaces_list_main(srna);
 
   prop = RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
@@ -3851,12 +3879,6 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Metadata Text", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-  prop = RNA_def_property(srna, "preview_range", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "anim_preview_range");
-  RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Preview Range", "Color of preview range overlay");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
   prop = RNA_def_property(srna, "row_alternate", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Alternate Rows", "Overlay color on every other row");
@@ -4079,12 +4101,6 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Summary", "Color of summary channel");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-  prop = RNA_def_property(srna, "preview_range", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "anim_preview_range");
-  RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Preview Range", "Color of preview range overlay");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
   prop = RNA_def_property(srna, "interpolation_line", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, nullptr, "ds_ipoline");
   RNA_def_property_array(prop, 4);
@@ -4154,12 +4170,6 @@ static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(
       prop, "No Active Action", "Animation data-block doesn't have active action");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
-  prop = RNA_def_property(srna, "preview_range", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "anim_preview_range");
-  RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Preview Range", "Color of preview range overlay");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "strips", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -4456,12 +4466,6 @@ static void rna_def_userdef_theme_space_clip(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Metadata Text", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
-  prop = RNA_def_property(srna, "preview_range", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "anim_preview_range");
-  RNA_def_property_array(prop, 4);
-  RNA_def_property_ui_text(prop, "Preview Range", "Color of preview range overlay");
-  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
-
   rna_def_userdef_theme_spaces_curves(srna, false, false, false, true);
 }
 
@@ -4519,6 +4523,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
   static const EnumPropertyItem active_theme_area[] = {
       {0, "USER_INTERFACE", ICON_WORKSPACE, "User Interface", ""},
       {19, "STYLE", ICON_FONTPREVIEW, "Text Style", ""},
+      {25, "COMMON", ICON_NONE, "Common", ""},
       {24, "ASSET_SHELF", ICON_ASSET_MANAGER, "Asset Shelf", ""},
       {1, "VIEW_3D", ICON_VIEW3D, "3D Viewport", ""},
       {4, "DOPESHEET_EDITOR", ICON_ACTION, "Dope Sheet/Timeline", ""},
@@ -4572,6 +4577,11 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, nullptr, "tui");
   RNA_def_property_struct_type(prop, "ThemeUserInterface");
   RNA_def_property_ui_text(prop, "User Interface", "");
+
+  prop = RNA_def_property(srna, "common", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "ThemeCommon");
+  RNA_def_property_ui_text(prop, "Common", "Theme properties shared by different editors");
 
   /* Space Types */
   prop = RNA_def_property(srna, "view_3d", PROP_POINTER, PROP_NONE);
@@ -4901,6 +4911,7 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
 
   rna_def_userdef_theme_ui_style(brna);
   rna_def_userdef_theme_ui(brna);
+  rna_def_userdef_theme_common(brna);
 
   rna_def_userdef_theme_space_generic(brna);
   rna_def_userdef_theme_space_gradient(brna);
@@ -5386,6 +5397,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   prop = RNA_def_property(srna, "header_align", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, header_align_items);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "uiflag");
+  RNA_def_property_enum_default(prop, USER_HEADER_FROM_PREF | USER_HEADER_BOTTOM);
   RNA_def_property_ui_text(prop, "Header Position", "Default header position for new space-types");
   RNA_def_property_update(prop, 0, "rna_userdef_screen_update_header_default");
 
@@ -5469,7 +5481,8 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   prop = RNA_def_property(srna, "lookdev_sphere_size", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, nullptr, "lookdev_sphere_size");
   RNA_def_property_range(prop, 50, 400);
-  RNA_def_property_ui_text(prop, "HDRI Preview Size", "Diameter of the HDRI preview spheres");
+  RNA_def_property_ui_text(
+      prop, "Reference Sphere Size", "Diameter of the HDRI reference spheres");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   /* View2D Grid Displays */
@@ -7640,6 +7653,9 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       prop,
       "Node Structure Types",
       "Enables new visualization of socket data compatibility in Geometry Nodes");
+
+  prop = RNA_def_property(srna, "use_geometry_nodes_lists", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Geometry Nodes Lists", "Enable new list types and nodes");
 
   prop = RNA_def_property(srna, "use_extensions_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(

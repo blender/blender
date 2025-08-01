@@ -4,7 +4,7 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_color.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
 #include "BKE_curves.hh"
@@ -247,8 +247,8 @@ void SVGExporter::export_grease_pencil_objects(pugi::xml_node node, const int fr
 
     pugi::xml_node ob_node = frame_node.append_child("g");
 
-    char obtxt[96];
-    SNPRINTF(obtxt, "blender_object.%s.%d", ob->id.name + 2, frame_number);
+    char obtxt[15 + (MAX_ID_NAME - 2) + 1 + 11 + 1]; /* Final +1 for the null terminator. */
+    SNPRINTF_UTF8(obtxt, "blender_object.%s.%d", ob->id.name + 2, frame_number);
     std::string object_id = std::string(obtxt) + this->get_node_uuid_string();
     ob_node.append_attribute("id").set_value(object_id.c_str());
 

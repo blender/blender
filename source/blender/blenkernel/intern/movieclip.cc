@@ -619,9 +619,6 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip,
     int fra = framenr - clip->start_frame + clip->frame_offset;
 
     ibuf = MOV_decode_frame(clip->anim, fra, IMB_Timecode_Type(tc), IMB_Proxy_Size(proxy));
-    if (ibuf) {
-      colormanage_imbuf_make_linear(ibuf, clip->colorspace_settings.name);
-    }
   }
 
   return ibuf;
@@ -1981,9 +1978,9 @@ void BKE_movieclip_eval_update(Depsgraph *depsgraph, Main *bmain, MovieClip *cli
 /** \name GPU textures
  * \{ */
 
-static GPUTexture **movieclip_get_gputexture_ptr(MovieClip *clip,
-                                                 MovieClipUser *cuser,
-                                                 eGPUTextureTarget textarget)
+static blender::gpu::Texture **movieclip_get_gputexture_ptr(MovieClip *clip,
+                                                            MovieClipUser *cuser,
+                                                            eGPUTextureTarget textarget)
 {
   /* Check if we have an existing entry for that clip user. */
   MovieClip_RuntimeGPUTexture *tex;
@@ -2010,13 +2007,13 @@ static GPUTexture **movieclip_get_gputexture_ptr(MovieClip *clip,
   return &tex->gputexture[textarget];
 }
 
-GPUTexture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser)
+blender::gpu::Texture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser)
 {
   if (clip == nullptr) {
     return nullptr;
   }
 
-  GPUTexture **tex = movieclip_get_gputexture_ptr(clip, cuser, TEXTARGET_2D);
+  blender::gpu::Texture **tex = movieclip_get_gputexture_ptr(clip, cuser, TEXTARGET_2D);
   if (*tex) {
     return *tex;
   }
@@ -2024,7 +2021,7 @@ GPUTexture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser)
   /* check if we have a valid image buffer */
   ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, cuser);
   if (ibuf == nullptr) {
-    fprintf(stderr, "GPUTexture: Blender Texture Not Loaded!\n");
+    fprintf(stderr, "blender::gpu::Texture: Blender Texture Not Loaded!\n");
     *tex = GPU_texture_create_error(2, false);
     return *tex;
   }

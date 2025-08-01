@@ -276,6 +276,7 @@ void curves_convert_customdata_to_storage(CurvesGeometry &curves)
       {{AttrDomain::Point, {curves.point_data, curves.points_num()}},
        {AttrDomain::Curve, {curves.curve_data_legacy, curves.curves_num()}}},
       curves.attribute_storage.wrap());
+  CustomData_reset(&curves.curve_data_legacy);
   /* Update the curve type count again (the first time was done on file-read, where
    * #AttributeStorage data doesn't exist yet for older files). */
   curves.update_curve_types();
@@ -286,6 +287,7 @@ void pointcloud_convert_customdata_to_storage(PointCloud &pointcloud)
   attribute_legacy_convert_customdata_to_storage(
       {{AttrDomain::Point, {pointcloud.pdata_legacy, pointcloud.totpoint}}},
       pointcloud.attribute_storage.wrap());
+  CustomData_reset(&pointcloud.pdata_legacy);
 }
 
 void grease_pencil_convert_customdata_to_storage(GreasePencil &grease_pencil)
@@ -294,6 +296,7 @@ void grease_pencil_convert_customdata_to_storage(GreasePencil &grease_pencil)
       {{AttrDomain::Layer,
         {grease_pencil.layers_data_legacy, int(grease_pencil.layers().size())}}},
       grease_pencil.attribute_storage.wrap());
+  CustomData_reset(&grease_pencil.layers_data_legacy);
 }
 
 }  // namespace blender::bke

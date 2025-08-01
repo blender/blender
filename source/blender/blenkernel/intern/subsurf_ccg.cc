@@ -261,16 +261,21 @@ static int ss_sync_from_uv(CCGSubSurf *ss,
   UvMapVert *v;
   UvVertMap *vmap;
   blender::Vector<CCGVertHDL, 16> fverts;
-  float limit[2];
   float uv[3] = {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
 
-  limit[0] = limit[1] = STD_UV_CONNECT_LIMIT;
+  const int corners_num = faces.total_size();
+
   /* previous behavior here is without accounting for winding, however this causes stretching in
    * UV map in really simple cases with mirror + subsurf, see second part of #44530.
    * Also, initially intention is to treat merged vertices from mirror modifier as seams.
    * This fixes a very old regression (2.49 was correct here) */
   vmap = BKE_mesh_uv_vert_map_create(
-      faces, nullptr, nullptr, corner_verts, mloopuv, totvert, limit, false, true);
+      faces,
+      {corner_verts, corners_num},
+      {reinterpret_cast<const blender::float2 *>(mloopuv), corners_num},
+      totvert,
+      blender::float2(STD_UV_CONNECT_LIMIT),
+      true);
   if (!vmap) {
     return 0;
   }

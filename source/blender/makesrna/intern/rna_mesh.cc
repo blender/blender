@@ -114,7 +114,7 @@ static void rna_MeshVertexLayer_name_set(PointerRNA *ptr, const char *value)
 {
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
 
-  if (CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) {
+  if (CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_PROP_ALL) {
     AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
     BKE_attribute_rename(owner, layer->name, value, nullptr);
   }
@@ -127,7 +127,7 @@ static void rna_MeshEdgeLayer_name_set(PointerRNA *ptr, const char *value)
 {
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
 
-  if (CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) {
+  if (CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_PROP_ALL) {
     AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
     BKE_attribute_rename(owner, layer->name, value, nullptr);
   }
@@ -140,7 +140,7 @@ static void rna_MeshLoopLayer_name_set(PointerRNA *ptr, const char *value)
 {
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
 
-  if (CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) {
+  if (CD_TYPE_AS_MASK(eCustomDataType(layer->type)) & CD_MASK_PROP_ALL) {
     AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
     BKE_attribute_rename(owner, layer->name, value, nullptr);
   }

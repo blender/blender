@@ -235,10 +235,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_node.node_zone_closure);
   }
 
-  if (!USER_VERSION_ATLEAST(405, 82)) {
-    FROM_DEFAULT_V4_UCHAR(space_clip.anim_preview_range);
-  }
-
   if (!USER_VERSION_ATLEAST(500, 5)) {
     FROM_DEFAULT_V4_UCHAR(space_properties.tab_back);
     FROM_DEFAULT_V4_UCHAR(space_view3d.tab_back);
@@ -343,6 +339,24 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 
   if (!USER_VERSION_ATLEAST(500, 29)) {
     FROM_DEFAULT_V4_UCHAR(space_node.console_output);
+  }
+
+  if (!USER_VERSION_ATLEAST(405, 45)) {
+    FROM_DEFAULT_V4_UCHAR(space_node.node_zone_closure);
+    FROM_DEFAULT_V4_UCHAR(space_node.node_zone_repeat);
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 47)) {
+    if (btheme->tui.panel_title[3] == 0) {
+      btheme->tui.panel_title[3] = 255;
+    }
+    if (btheme->tui.panel_text[3] == 0) {
+      btheme->tui.panel_text[3] = 255;
+    }
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 50)) {
+    FROM_DEFAULT_V4_UCHAR(common.anim.preview_range);
   }
 
   /**
@@ -760,7 +774,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   /* If the userdef was created on a different platform, it may have an
    * unsupported GPU backend selected.  If so, pick a supported default. */
 #ifdef __APPLE__
-  if (userdef->gpu_backend == GPU_BACKEND_OPENGL) {
+  if (userdef->gpu_backend == GPU_BACKEND_OPENGL || userdef->gpu_backend == GPU_BACKEND_VULKAN) {
     userdef->gpu_backend = GPU_BACKEND_METAL;
   }
 #else

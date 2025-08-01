@@ -18,37 +18,51 @@ namespace blender::nodes::node_geo_curve_resample_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryCurveResample)
 
+static EnumPropertyItem mode_items[] = {
+    {GEO_NODE_CURVE_RESAMPLE_EVALUATED,
+     "EVALUATED",
+     0,
+     "Evaluated",
+     "Output the input spline's evaluated points, based on the resolution attribute for NURBS "
+     "and Bézier splines. Poly splines are unchanged"},
+    {GEO_NODE_CURVE_RESAMPLE_COUNT,
+     "COUNT",
+     0,
+     "Count",
+     "Sample the specified number of points along each spline"},
+    {GEO_NODE_CURVE_RESAMPLE_LENGTH,
+     "LENGTH",
+     0,
+     "Length",
+     "Calculate the number of samples by splitting each spline into segments with the specified "
+     "length"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_default_layout();
   b.add_input<decl::Geometry>("Curve")
       .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil})
       .description("Curves to resample");
   b.add_output<decl::Geometry>("Curve").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
-  auto &count =
-      b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000).field_on_all();
-  auto &length = b.add_input<decl::Float>("Length")
-                     .default_value(0.1f)
-                     .min(0.01f)
-                     .subtype(PROP_DISTANCE)
-                     .field_on_all();
-
-  const bNode *node = b.node_or_null();
-  if (node != nullptr) {
-    const NodeGeometryCurveResample &storage = node_storage(*node);
-    const GeometryNodeCurveResampleMode mode = GeometryNodeCurveResampleMode(storage.mode);
-
-    count.available(mode == GEO_NODE_CURVE_RESAMPLE_COUNT);
-    length.available(mode == GEO_NODE_CURVE_RESAMPLE_LENGTH);
-  }
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
+  b.add_input<decl::Menu>("Mode")
+      .static_items(mode_items)
+      .description("How to specify the amount of samples");
+  b.add_input<decl::Int>("Count")
+      .default_value(10)
+      .min(1)
+      .max(100000)
+      .field_on_all()
+      .usage_by_single_menu(GEO_NODE_CURVE_RESAMPLE_COUNT);
+  b.add_input<decl::Float>("Length")
+      .default_value(0.1f)
+      .min(0.01f)
+      .subtype(PROP_DISTANCE)
+      .field_on_all()
+      .usage_by_single_menu(GEO_NODE_CURVE_RESAMPLE_LENGTH);
 }
 
 static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -59,8 +73,6 @@ static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeGeometryCurveResample *data = MEM_callocN<NodeGeometryCurveResample>(__func__);
-
-  data->mode = GEO_NODE_CURVE_RESAMPLE_COUNT;
   data->keep_last_segment = true;
   node->storage = data;
 }
@@ -68,9 +80,9 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
+  const auto mode = params.extract_input<GeometryNodeCurveResampleMode>("Mode");
 
   const NodeGeometryCurveResample &storage = node_storage(params.node());
-  const GeometryNodeCurveResampleMode mode = (GeometryNodeCurveResampleMode)storage.mode;
 
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
 
@@ -176,34 +188,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 static void node_rna(StructRNA *srna)
 {
-  static EnumPropertyItem mode_items[] = {
-      {GEO_NODE_CURVE_RESAMPLE_EVALUATED,
-       "EVALUATED",
-       0,
-       "Evaluated",
-       "Output the input spline's evaluated points, based on the resolution attribute for NURBS "
-       "and Bézier splines. Poly splines are unchanged"},
-      {GEO_NODE_CURVE_RESAMPLE_COUNT,
-       "COUNT",
-       0,
-       "Count",
-       "Sample the specified number of points along each spline"},
-      {GEO_NODE_CURVE_RESAMPLE_LENGTH,
-       "LENGTH",
-       0,
-       "Length",
-       "Calculate the number of samples by splitting each spline into segments with the specified "
-       "length"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_node_enum(srna,
-                    "mode",
-                    "Mode",
-                    "How to specify the amount of samples",
-                    mode_items,
-                    NOD_storage_enum_accessors(mode));
-
   RNA_def_node_boolean(srna,
                        "keep_last_segment",
                        "Keep Last Segment",
@@ -222,7 +206,6 @@ static void node_register()
   ntype.enum_name_legacy = "RESAMPLE_CURVE";
   ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
-  ntype.draw_buttons = node_layout;
   ntype.draw_buttons_ex = node_layout_ex;
   blender::bke::node_type_storage(
       ntype, "NodeGeometryCurveResample", node_free_standard_storage, node_copy_standard_storage);

@@ -2771,7 +2771,7 @@ typedef enum GreasePencilTintModifierFlag {
 typedef struct GreasePencilSmoothModifierData {
   ModifierData modifier;
   GreasePencilModifierInfluenceData influence;
-  /** `eGreasePencilSmooth_Flag. */
+  /** #eGreasePencilSmooth_Flag. */
   int flag;
   /** Factor of smooth. */
   float factor;

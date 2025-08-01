@@ -1828,6 +1828,8 @@ static BMOpDefine bmo_duplicate_def = {
         {"face_map.out",
          BMO_OP_SLOT_MAPPING,
          {eBMOpSlotSubType_Elem(BMO_OP_SLOT_SUBTYPE_MAP_ELEM)}},
+        /* Boundary edges from the split geometry that maps edges from the original geometry
+         * to the destination edges. */
         {"boundary_map.out",
          BMO_OP_SLOT_MAPPING,
          {eBMOpSlotSubType_Elem(BMO_OP_SLOT_SUBTYPE_MAP_ELEM)}},
@@ -1862,6 +1864,11 @@ static BMOpDefine bmo_split_def = {
     /*slot_types_out*/
     {
         {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
+        /* Boundary edges from the split geometry that maps edges from the original geometry
+         * to the destination edges.
+         *
+         * When the source edges have been deleted, the destination edge will be used
+         * for both the key and the value. */
         {"boundary_map.out",
          BMO_OP_SLOT_MAPPING,
          {eBMOpSlotSubType_Elem(BMO_OP_SLOT_SUBTYPE_MAP_ELEM)}},

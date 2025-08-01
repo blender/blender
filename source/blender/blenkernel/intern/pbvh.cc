@@ -787,14 +787,14 @@ static Node *pbvh_iter_next_occluded(PBVHIter *iter)
   return nullptr;
 }
 
-struct node_tree {
+struct NodeTree {
   Node *data;
 
-  node_tree *left;
-  node_tree *right;
+  NodeTree *left;
+  NodeTree *right;
 };
 
-static void node_tree_insert(node_tree *tree, node_tree *new_node)
+static void node_tree_insert(NodeTree *tree, NodeTree *new_node)
 {
   if (new_node->data->tmin_ < tree->data->tmin_) {
     if (tree->left) {
@@ -814,7 +814,7 @@ static void node_tree_insert(node_tree *tree, node_tree *new_node)
   }
 }
 
-static void traverse_tree(node_tree *tree,
+static void traverse_tree(NodeTree *tree,
                           const FunctionRef<void(Node &node, float *tmin)> hit_fn,
                           float *tmin)
 {
@@ -829,7 +829,7 @@ static void traverse_tree(node_tree *tree,
   }
 }
 
-static void free_tree(node_tree *tree)
+static void free_tree(NodeTree *tree)
 {
   if (tree->left) {
     free_tree(tree->left);
@@ -862,13 +862,13 @@ static void search_callback_occluded(Tree &pbvh,
   }
   PBVHIter iter;
   Node *node;
-  node_tree *tree = nullptr;
+  NodeTree *tree = nullptr;
 
   pbvh_iter_begin(&iter, pbvh, scb);
 
   while ((node = pbvh_iter_next_occluded(&iter))) {
     if (node->flag_ & Node::Leaf) {
-      node_tree *new_node = static_cast<node_tree *>(malloc(sizeof(node_tree)));
+      NodeTree *new_node = static_cast<NodeTree *>(malloc(sizeof(NodeTree)));
 
       new_node->data = node;
 
@@ -2360,10 +2360,10 @@ bool find_nearest_to_ray_node(Tree &pbvh,
   return false;
 }
 
-enum PlaneAABBIsect {
-  ISECT_INSIDE,
-  ISECT_OUTSIDE,
-  ISECT_INTERSECT,
+enum class PlaneAABBIsect : int8_t {
+  Inside,
+  Outside,
+  Intersect,
 };
 
 /* Adapted from:
@@ -2374,7 +2374,7 @@ enum PlaneAABBIsect {
 static PlaneAABBIsect test_frustum_aabb(const Bounds<float3> &bounds,
                                         const Span<float4> frustum_planes)
 {
-  PlaneAABBIsect ret = ISECT_INSIDE;
+  PlaneAABBIsect ret = PlaneAABBIsect::Inside;
 
   for (const int i : frustum_planes.index_range()) {
     float vmin[3], vmax[3];
@@ -2391,10 +2391,10 @@ static PlaneAABBIsect test_frustum_aabb(const Bounds<float3> &bounds,
     }
 
     if (dot_v3v3(frustum_planes[i], vmin) + frustum_planes[i][3] < 0) {
-      return ISECT_OUTSIDE;
+      return PlaneAABBIsect::Outside;
     }
     if (dot_v3v3(frustum_planes[i], vmax) + frustum_planes[i][3] <= 0) {
-      ret = ISECT_INTERSECT;
+      ret = PlaneAABBIsect::Intersect;
     }
   }
 
@@ -2403,12 +2403,12 @@ static PlaneAABBIsect test_frustum_aabb(const Bounds<float3> &bounds,
 
 bool node_frustum_contain_aabb(const Node &node, const Span<float4> frustum_planes)
 {
-  return test_frustum_aabb(node.bounds_, frustum_planes) != ISECT_OUTSIDE;
+  return test_frustum_aabb(node.bounds_, frustum_planes) != PlaneAABBIsect::Outside;
 }
 
 bool node_frustum_exclude_aabb(const Node &node, const Span<float4> frustum_planes)
 {
-  return test_frustum_aabb(node.bounds_, frustum_planes) != ISECT_INSIDE;
+  return test_frustum_aabb(node.bounds_, frustum_planes) != PlaneAABBIsect::Inside;
 }
 
 }  // namespace blender::bke::pbvh

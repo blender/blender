@@ -150,9 +150,24 @@ struct FileData {
 
   std::optional<blender::Map<blender::StringRefNull, BHead *>> bhead_idname_map;
 
+  /**
+   * The root (main, local) Main.
+   * The Main that will own Library IDs.
+   *
+   * When reading libraries, this is typically _not_ the same Main as the one being populated from
+   * the content of this filedata, see #fd_bmain.
+   */
   Main *bmain = nullptr;
-  /** Used for undo. */
+  /** The existing root (main, local) Main, used for undo. */
   Main *old_bmain = nullptr;
+  /**
+   * The main for the (local) data loaded from this filedata.
+   *
+   * This is the same as #bmain when opening a blendfile, but not when reading/loading from
+   * libraries blendfiles.
+   */
+  Main *fd_bmain = nullptr;
+
   /**
    * IDMap using UID's as keys of all the old IDs in the old bmain. Used during undo to find a
    * matching old data when reading a new ID. */

@@ -11,7 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
@@ -133,7 +133,7 @@ void ED_spacetype_statusbar()
   ARegionType *art;
 
   st->spaceid = SPACE_STATUSBAR;
-  STRNCPY(st->name, "Status Bar");
+  STRNCPY_UTF8(st->name, "Status Bar");
 
   st->create = statusbar_create;
   st->free = statusbar_free;

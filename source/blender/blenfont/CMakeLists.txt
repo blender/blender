@@ -20,6 +20,7 @@ set(SRC
   intern/blf_glyph.cc
   intern/blf_thumbs.cc
   BLF_api.hh
+  BLF_enums.hh
   intern/blf_internal.hh
   intern/blf_internal_types.hh
 )

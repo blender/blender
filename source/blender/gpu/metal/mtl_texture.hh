@@ -227,10 +227,10 @@ class MTLTexture : public Texture {
    *
    * Texture views can also point to external textures, rather than the owned
    * texture if MTL_TEXTURE_MODE_TEXTURE_VIEW is used.
-   * If this mode is used, source_texture points to a GPUTexture from which
+   * If this mode is used, source_texture points to a gpu::Texture from which
    * we pull their texture handle as a root.
    */
-  const GPUTexture *source_texture_ = nullptr;
+  const gpu::Texture *source_texture_ = nullptr;
 
   enum TextureViewDirtyState {
     TEXTURE_VIEW_NOT_DIRTY = 0,
@@ -267,7 +267,7 @@ class MTLTexture : public Texture {
  public:
   MTLTexture(const char *name);
   MTLTexture(const char *name,
-             eGPUTextureFormat format,
+             TextureFormat format,
              eGPUTextureType type,
              id<MTLTexture> metal_texture);
   ~MTLTexture() override;
@@ -322,7 +322,7 @@ class MTLTexture : public Texture {
  protected:
   bool init_internal() override;
   bool init_internal(VertBuf *vbo) override;
-  bool init_internal(GPUTexture *src,
+  bool init_internal(gpu::Texture *src,
                      int mip_offset,
                      int layer_offset,
                      bool use_stencil) override; /* Texture View */
@@ -500,7 +500,7 @@ class MTLPixelBuffer : public PixelBuffer {
 };
 
 /* Utility */
-MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format);
+MTLPixelFormat gpu_texture_format_to_metal(TextureFormat tex_format);
 size_t get_mtl_format_bytesize(MTLPixelFormat tex_format);
 int get_mtl_format_num_components(MTLPixelFormat tex_format);
 bool mtl_format_supports_blending(MTLPixelFormat format);

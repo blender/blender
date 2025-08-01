@@ -17,7 +17,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -146,7 +146,7 @@ void render_result_views_shallowcopy(RenderResult *dst, RenderResult *src)
     rv = MEM_callocN<RenderView>("new render view");
     BLI_addtail(&dst->views, rv);
 
-    STRNCPY(rv->name, rview->name);
+    STRNCPY_UTF8(rv->name, rview->name);
 
     rv->ibuf = rview->ibuf;
   }
@@ -315,7 +315,7 @@ RenderResult *render_result_new(Render *re,
     rl = MEM_callocN<RenderLayer>("new render layer");
     BLI_addtail(&rr->layers, rl);
 
-    STRNCPY(rl->name, view_layer->name);
+    STRNCPY_UTF8(rl->name, view_layer->name);
     rl->layflag = view_layer->layflag;
 
     rl->passflag = view_layer->passflag;
@@ -462,7 +462,7 @@ void RE_pass_set_buffer_data(RenderPass *pass, float *data)
   IMB_assign_float_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
 }
 
-GPUTexture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
+blender::gpu::Texture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
 {
   ImBuf *ibuf = rpass->ibuf;
 
@@ -481,9 +481,11 @@ GPUTexture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
     return nullptr;
   }
 
-  const eGPUTextureFormat format = (rpass->channels == 1) ? GPU_R32F :
-                                   (rpass->channels == 3) ? GPU_RGB32F :
-                                                            GPU_RGBA32F;
+  const blender::gpu::TextureFormat format = (rpass->channels == 1) ?
+                                                 blender::gpu::TextureFormat::SFLOAT_32 :
+                                             (rpass->channels == 3) ?
+                                                 blender::gpu::TextureFormat::SFLOAT_32_32_32 :
+                                                 blender::gpu::TextureFormat::SFLOAT_32_32_32_32;
 
   /* TODO(sergey): Use utility to assign the texture. */
   ibuf->gpu.texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",
@@ -625,7 +627,7 @@ static void *ml_addview_cb(void *base, const char *str)
   RenderResult *rr = static_cast<RenderResult *>(base);
 
   RenderView *rv = MEM_callocN<RenderView>("new render view");
-  STRNCPY(rv->name, str);
+  STRNCPY_UTF8(rv->name, str);
 
   /* For stereo drawing we need to ensure:
    * STEREO_LEFT_NAME  == STEREO_LEFT_ID and
@@ -756,7 +758,7 @@ void render_result_view_new(RenderResult *rr, const char *viewname)
 {
   RenderView *rv = MEM_callocN<RenderView>("new render view");
   BLI_addtail(&rr->views, rv);
-  STRNCPY(rv->name, viewname);
+  STRNCPY_UTF8(rv->name, viewname);
 }
 
 void render_result_views_new(RenderResult *rr, const RenderData *rd)

@@ -17,11 +17,16 @@ namespace blender::bke {
 struct ImageRuntime;
 }  // namespace blender::bke
 using ImageRuntimeHandle = blender::bke::ImageRuntime;
+
+namespace blender::gpu {
+class Texture;
+}  // namespace blender::gpu
+using GPUTexture = blender::gpu::Texture;
 #else
 typedef struct ImageRuntimeHandle ImageRuntimeHandle;
+typedef struct GPUTexture GPUTexture;
 #endif
 
-struct GPUTexture;
 struct MovieReader;
 struct MovieCache;
 struct PackedFile;
@@ -140,7 +145,7 @@ typedef struct Image {
   /** Not written in file. */
   struct MovieCache *cache;
   /** Not written in file, 2 = stereo eyes. */
-  struct GPUTexture *gputexture[/*TEXTARGET_COUNT*/ 3][2];
+  GPUTexture *gputexture[/*TEXTARGET_COUNT*/ 3][2];
 
   /* sources from: */
   ListBase anims;

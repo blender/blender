@@ -303,12 +303,14 @@ class FILEBROWSER_PT_bookmarks_favorites(FileBrowserPanel, Panel):
             row.template_list(
                 "FILEBROWSER_UL_dir", "bookmarks", space, "bookmarks",
                 space, "bookmarks_active", item_dyntip_propname="path",
-                rows=(2 if num_rows < 2 else 4), maxrows=10,
+                rows=(3 if num_rows < 2 else 5), maxrows=10,
             )
 
             col = row.column(align=True)
             col.operator("file.bookmark_add", icon='ADD', text="")
             col.operator("file.bookmark_delete", icon='REMOVE', text="")
+
+            col.separator()
             col.menu("FILEBROWSER_MT_bookmarks_context_menu", icon='DOWNARROW_HLT', text="")
 
             if num_rows > 1:

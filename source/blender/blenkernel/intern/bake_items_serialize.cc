@@ -19,7 +19,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "DNA_object_types.h"
 #include "DNA_volume_types.h"
@@ -855,7 +855,7 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
         return cancel();
       }
       bDeformGroup *defgroup = MEM_callocN<bDeformGroup>(__func__);
-      STRNCPY(defgroup->name, value->as_string_value()->value().c_str());
+      STRNCPY_UTF8(defgroup->name, value->as_string_value()->value().c_str());
       BLI_addtail(&mesh->vertex_group_names, defgroup);
     }
   }
@@ -1497,14 +1497,14 @@ static void serialize_bake_item(const BakeItem &item,
     r_io_item.append_str("type", "BUNDLE");
     ArrayValue &io_items = *r_io_item.append_array("items");
     for (const BundleBakeItem::Item &item : bundle_state_item->items) {
-      DictionaryValue &io_bundle_item = *io_items.append_dict();
-      ArrayValue &io_key = *io_bundle_item.append_array("key");
-      for (const std::string &identifier : item.key.identifiers()) {
-        io_key.append_str(identifier);
+      if (const auto *socket_value = std::get_if<BundleBakeItem::SocketValue>(&item.value)) {
+        DictionaryValue &io_bundle_item = *io_items.append_dict();
+        io_bundle_item.append_str("key", item.key);
+        io_bundle_item.append_str("socket_idname", socket_value->socket_idname);
+        io::serialize::DictionaryValue &io_bundle_item_value = *io_bundle_item.append_dict(
+            "value");
+        serialize_bake_item(*socket_value->value, blob_writer, blob_sharing, io_bundle_item_value);
       }
-      io_bundle_item.append_str("socket_idname", item.socket_idname);
-      io::serialize::DictionaryValue &io_bundle_item_value = *io_bundle_item.append_dict("value");
-      serialize_bake_item(*item.value, blob_writer, blob_sharing, io_bundle_item_value);
     }
   }
 }
@@ -1603,17 +1603,9 @@ static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io
       if (!io_item) {
         return {};
       }
-      const ArrayValue *io_key = io_item->lookup_array("key");
-      if (!io_key) {
+      const std::optional<std::string> key = io_item->lookup_str("key");
+      if (!key) {
         return {};
-      }
-      Vector<std::string> key;
-      for (const auto &io_key_value : io_key->elements()) {
-        const StringValue *io_key_string = io_key_value->as_string_value();
-        if (!io_key_string) {
-          return {};
-        }
-        key.append(io_key_string->value());
       }
       const std::optional<StringRefNull> socket_idname = io_item->lookup_str("socket_idname");
       if (!socket_idname) {
@@ -1626,7 +1618,7 @@ static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io
         return {};
       }
       bundle->items.append(BundleBakeItem::Item{
-          nodes::SocketInterfaceKey{std::move(key)}, *socket_idname, std::move(value)});
+          *key, BundleBakeItem::SocketValue{*socket_idname, std::move(value)}});
     }
     return bundle;
   }

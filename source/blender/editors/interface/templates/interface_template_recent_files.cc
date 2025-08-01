@@ -12,6 +12,7 @@
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLO_readfile.hh"
 
@@ -66,7 +67,7 @@ static void uiTemplateRecentFiles_tooltip_func(bContext & /*C*/,
     /* Load Blender version directly from the file. */
     short version = BLO_version_from_file(path);
     if (version != 0) {
-      SNPRINTF(version_str, "%d.%01d", version / 100, version % 100);
+      SNPRINTF_UTF8(version_str, "%d.%01d", version / 100, version % 100);
     }
   }
 

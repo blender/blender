@@ -6,11 +6,6 @@
 
 #include <fmt/format.h>
 
-#include "NOD_rna_define.hh"
-
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
-
 namespace blender::nodes::node_geo_remove_attribute_cc {
 
 enum class PatternMode {
@@ -18,19 +13,27 @@ enum class PatternMode {
   Wildcard,
 };
 
+static const EnumPropertyItem pattern_mode_items[] = {
+    {int(PatternMode::Exact), "EXACT", 0, "Exact", "Remove the one attribute with the given name"},
+    {int(PatternMode::Wildcard),
+     "WILDCARD",
+     0,
+     "Wildcard",
+     "Remove all attributes that match the pattern which is allowed to contain a single "
+     "wildcard (*)"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_default_layout();
   b.add_input<decl::Geometry>("Geometry").description("Geometry to remove attributes from");
   b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
+  b.add_input<decl::Menu>("Pattern Mode")
+      .static_items(pattern_mode_items)
+      .description("How the attributes to remove are chosen");
   b.add_input<decl::String>("Name").is_attribute_name().hide_label();
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "pattern_mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -41,8 +44,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_output("Geometry", std::move(geometry_set));
     return;
   }
-  const bNode &node = params.node();
-  PatternMode pattern_mode = PatternMode(node.custom1);
+  PatternMode pattern_mode = params.get_input<PatternMode>("Pattern Mode");
   if (pattern_mode == PatternMode::Wildcard) {
     const int wildcard_count = Span(pattern.c_str(), pattern.size()).count('*');
     if (wildcard_count == 0) {
@@ -149,30 +151,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-static void node_rna(StructRNA *srna)
-{
-  static const EnumPropertyItem pattern_mode_items[] = {
-      {int(PatternMode::Exact),
-       "EXACT",
-       0,
-       "Exact",
-       "Remove the one attribute with the given name"},
-      {int(PatternMode::Wildcard),
-       "WILDCARD",
-       0,
-       "Wildcard",
-       "Remove all attributes that match the pattern which is allowed to contain a single "
-       "wildcard (*)"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-  RNA_def_node_enum(srna,
-                    "pattern_mode",
-                    "Pattern Mode",
-                    "How the attributes to remove are chosen",
-                    pattern_mode_items,
-                    NOD_inline_enum_accessors(custom1));
-}
-
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -185,12 +163,9 @@ static void node_register()
   ntype.enum_name_legacy = "REMOVE_ATTRIBUTE";
   ntype.nclass = NODE_CLASS_ATTRIBUTE;
   ntype.declare = node_declare;
-  ntype.draw_buttons = node_layout;
   bke::node_type_size(ntype, 170, 100, 700);
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(ntype);
-
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

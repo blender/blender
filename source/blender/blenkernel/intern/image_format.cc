@@ -12,7 +12,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_path_utils.hh"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.hh"
@@ -76,7 +76,7 @@ void BKE_image_format_update_color_space_for_type(ImageFormatData *format)
   if (format->linear_colorspace_settings.name[0] == '\0' || image_requires_linear != is_linear) {
     const int role = image_requires_linear ? COLOR_ROLE_DEFAULT_FLOAT : COLOR_ROLE_DEFAULT_BYTE;
     const char *default_color_space = IMB_colormanagement_role_colorspace_name_get(role);
-    STRNCPY(format->linear_colorspace_settings.name, default_color_space);
+    STRNCPY_UTF8(format->linear_colorspace_settings.name, default_color_space);
   }
 }
 
@@ -90,9 +90,52 @@ void BKE_image_format_blend_write(BlendWriter *writer, ImageFormatData *imf)
   BKE_color_managed_view_settings_blend_write(writer, &imf->view_settings);
 }
 
+void BKE_image_format_media_type_set(ImageFormatData *format,
+                                     ID *owner_id,
+                                     const MediaType media_type)
+{
+  format->media_type = media_type;
+
+  switch (media_type) {
+    case MEDIA_TYPE_IMAGE:
+      if (!BKE_imtype_is_image(format->imtype)) {
+        BKE_image_format_set(format, owner_id, R_IMF_IMTYPE_PNG);
+      }
+      break;
+    case MEDIA_TYPE_MULTI_LAYER_IMAGE:
+      if (!BKE_imtype_is_multi_layer_image(format->imtype)) {
+        BKE_image_format_set(format, owner_id, R_IMF_IMTYPE_MULTILAYER);
+      }
+      break;
+    case MEDIA_TYPE_VIDEO:
+      if (!BKE_imtype_is_movie(format->imtype)) {
+        BKE_image_format_set(format, owner_id, R_IMF_IMTYPE_FFMPEG);
+      }
+      break;
+  }
+}
+
 void BKE_image_format_set(ImageFormatData *imf, ID *owner_id, const char imtype)
 {
   imf->imtype = imtype;
+
+  /* Update media type in case it doesn't match the new imtype. Note that normally, one would use
+   * the BKE_image_format_media_type_set function to set the media type, but that function itself
+   * calls this function to update the imtype, and while this wouldn't case recursion since the
+   * imtype is already conforming, it is better to err on the side of caution and set the media
+   * type manually. */
+  if (BKE_imtype_is_image(imf->imtype)) {
+    imf->media_type = MEDIA_TYPE_IMAGE;
+  }
+  else if (BKE_imtype_is_multi_layer_image(imf->imtype)) {
+    imf->media_type = MEDIA_TYPE_MULTI_LAYER_IMAGE;
+  }
+  else if (BKE_imtype_is_movie(imf->imtype)) {
+    imf->media_type = MEDIA_TYPE_VIDEO;
+  }
+  else {
+    BLI_assert_unreachable();
+  }
 
   const bool is_render = (owner_id && GS(owner_id->name) == ID_SCE);
   /* see note below on why this is */
@@ -119,6 +162,18 @@ void BKE_image_format_set(ImageFormatData *imf, ID *owner_id, const char imtype)
     Scene *scene = reinterpret_cast<Scene *>(owner_id);
     RenderData *rd = &scene->r;
     MOV_validate_output_settings(rd, imf);
+  }
+
+  /* Verify `imf->views_format`. */
+  if (imf->imtype == R_IMF_IMTYPE_MULTILAYER) {
+    if (imf->views_format == R_IMF_VIEWS_STEREO_3D) {
+      imf->views_format = R_IMF_VIEWS_MULTIVIEW;
+    }
+  }
+  else if (imf->imtype != R_IMF_IMTYPE_OPENEXR) {
+    if (imf->views_format == R_IMF_VIEWS_MULTIVIEW) {
+      imf->views_format = R_IMF_VIEWS_INDIVIDUAL;
+    }
   }
 
   BKE_image_format_update_color_space_for_type(imf);
@@ -239,6 +294,20 @@ char BKE_ftype_to_imtype(const int ftype, const ImbFormatOptions *options)
 #endif
 
   return R_IMF_IMTYPE_JPEG90;
+}
+
+bool BKE_imtype_is_image(const char imtype)
+{
+  return !BKE_imtype_is_multi_layer_image(imtype) && !BKE_imtype_is_movie(imtype);
+}
+
+bool BKE_imtype_is_multi_layer_image(const char imtype)
+{
+  switch (imtype) {
+    case R_IMF_IMTYPE_MULTILAYER:
+      return true;
+  }
+  return false;
 }
 
 bool BKE_imtype_is_movie(const char imtype)
@@ -898,6 +967,7 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
   bool is_depth_set = false;
 
   BKE_image_format_init(im_format, false);
+  im_format->media_type = MEDIA_TYPE_IMAGE;
 
   /* file type */
   if (ftype == IMB_FTYPE_IRIS) {
@@ -1056,8 +1126,8 @@ void BKE_image_format_color_management_copy_from_scene(ImageFormatData *imf, con
 
   BKE_color_managed_display_settings_copy(&imf->display_settings, &scene->display_settings);
   BKE_color_managed_view_settings_copy(&imf->view_settings, &scene->view_settings);
-  STRNCPY(imf->linear_colorspace_settings.name,
-          IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
+  STRNCPY_UTF8(imf->linear_colorspace_settings.name,
+               IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
 }
 
 /* Output */
@@ -1067,6 +1137,11 @@ void BKE_image_format_init_for_write(ImageFormatData *imf,
                                      const ImageFormatData *imf_src)
 {
   *imf = (imf_src) ? *imf_src : scene_src->r.im_format;
+
+  /* The source scene might be set to Video, so we default back to an image. */
+  if (scene_src && imf->media_type == MEDIA_TYPE_VIDEO) {
+    BKE_image_format_media_type_set(imf, const_cast<ID *>(&scene_src->id), MEDIA_TYPE_IMAGE);
+  }
 
   if (imf_src && imf_src->color_management == R_IMF_COLOR_MANAGEMENT_OVERRIDE) {
     /* Use settings specific to one node, image save operation, etc. */
@@ -1088,7 +1163,7 @@ void BKE_image_format_init_for_write(ImageFormatData *imf,
     /* Use general scene settings also used for display. */
     BKE_color_managed_display_settings_copy(&imf->display_settings, &scene_src->display_settings);
     BKE_color_managed_view_settings_copy(&imf->view_settings, &scene_src->view_settings);
-    STRNCPY(imf->linear_colorspace_settings.name,
-            IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
+    STRNCPY_UTF8(imf->linear_colorspace_settings.name,
+                 IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR));
   }
 }

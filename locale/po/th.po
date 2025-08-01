@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Release Candidate (b'08ec4602a2f7')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-14 09:15+0000\n"
-"PO-Revision-Date: 2025-04-14 08:42+0000\n"
+"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
 "Language: th\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Name"
@@ -398,6 +398,22 @@ msgid "In Range"
 msgstr "ในระยะ"
 
 
+msgid "Opacity"
+msgstr "ความทึบแสง"
+
+
+msgid "Frames"
+msgstr "เฟรม"
+
+
+msgid "Info"
+msgstr "ข้อมูล"
+
+
+msgid "Default"
+msgstr "ค่าเริ่มต้น"
+
+
 msgid "Height"
 msgstr "สูง"
 
@@ -440,10 +456,6 @@ msgstr "ตัวแก้ไขข้อความ"
 
 msgid "Python Console"
 msgstr "คอนโซล Python"
-
-
-msgid "Info"
-msgstr "ข้อมูล"
 
 
 msgid "Top Bar"
@@ -679,10 +691,6 @@ msgid "All"
 msgstr "ทั้งหมด"
 
 
-msgid "Opacity"
-msgstr "ความทึบแสง"
-
-
 msgid "Stretch"
 msgstr "ยืด"
 
@@ -829,10 +837,6 @@ msgstr "กลับค่า Y"
 
 msgid "Invert Z"
 msgstr "กลับค่า Z"
-
-
-msgid "Default"
-msgstr "ค่าเริ่มต้น"
 
 
 msgid "Camera"
@@ -1169,10 +1173,6 @@ msgstr "สไตล์เส้น"
 
 msgid "Use"
 msgstr "ใช้"
-
-
-msgid "Frames"
-msgstr "เฟรม"
 
 
 msgid "Grid"
@@ -1694,10 +1694,6 @@ msgid "Filter Size"
 msgstr "ขนาดของตัวกรอง"
 
 
-msgid "Area"
-msgstr "พื้นที่"
-
-
 msgid "Repeat X"
 msgstr "ซ้ำ X"
 
@@ -1728,6 +1724,10 @@ msgstr "พื้นที่ใช้งาน"
 
 msgid "Animation"
 msgstr "แอนิเมชัน"
+
+
+msgid "Video"
+msgstr "วิดีโอ"
 
 
 msgid "YCC"
@@ -1865,16 +1865,48 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
-msgid "Text"
-msgstr "ช้อความ"
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
 
 
 msgid "Metaball"
 msgstr "เมตาบอล"
 
 
+msgid "Light"
+msgstr "แสง"
+
+
+msgid "Add Image"
+msgstr "เพิ่มภาพ"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Hooks"
+msgstr "ตะขอ"
+
+
 msgid "Names"
 msgstr "ชื่อ"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
+msgid "Text"
+msgstr "ช้อความ"
 
 
 msgid "Pivot Point"
@@ -1915,38 +1947,6 @@ msgstr "จัดมุมมอง"
 
 msgid "Align View to Active"
 msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Light"
-msgstr "แสง"
-
-
-msgid "Add Image"
-msgstr "เพิ่มภาพ"
-
-
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
-
-
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Merge"
-msgstr "ผสาน"
 
 
 msgid "Zoom"
@@ -2258,18 +2258,6 @@ msgid "YCbCr"
 msgstr "YCbCr"
 
 
-msgid "High"
-msgstr "สูง"
-
-
-msgid "Low"
-msgstr "ต่ำ"
-
-
-msgid "S"
-msgstr "S"
-
-
 msgid "To"
 msgstr "ไปยัง"
 
@@ -2278,8 +2266,16 @@ msgid "RGB Curves"
 msgstr "เส้นโค้ง RGB"
 
 
+msgid "High"
+msgstr "สูง"
+
+
 msgid "High quality"
 msgstr "คุณภาพสูง"
+
+
+msgid "Low"
+msgstr "ต่ำ"
 
 
 msgid "Red Channel"
@@ -2292,10 +2288,6 @@ msgstr "RGB ไปยัง BW"
 
 msgid "Rotate"
 msgstr "หมุน"
-
-
-msgid "Ray Length"
-msgstr "ความยาวรังสี"
 
 
 msgid "Translate"
@@ -3199,10 +3191,6 @@ msgid "Remove"
 msgstr "ลบ"
 
 
-msgid "Selection Only"
-msgstr "เลือกเท่านั้น"
-
-
 msgctxt "Operator"
 msgid "Quit Blender"
 msgstr "ออกจาก Blender"
@@ -3246,6 +3234,10 @@ msgstr "หน้าเริ่มต้น"
 
 msgid "Open the splash screen with release info"
 msgstr "เปิดหน้าเริ่มต้นพร้อมกับข้อมูลการปล่อยให้ใช้งาน"
+
+
+msgid "Selection Only"
+msgstr "เลือกเท่านั้น"
 
 
 msgid "Show Brush"
@@ -3295,10 +3287,6 @@ msgstr "เงา"
 
 msgid "Audio"
 msgstr "เสียง"
-
-
-msgid "Video"
-msgstr "วิดีโอ"
 
 
 msgid "Views"
@@ -3690,8 +3678,8 @@ msgid "Preview Background"
 msgstr "พื้นหลังตัวอย่าง"
 
 
-msgid "Region Text"
-msgstr "ขอบเขตข้อความ"
+msgid "Panel Title"
+msgstr "ชื่อแผง"
 
 
 msgid "Text Cursor"
@@ -4431,10 +4419,6 @@ msgid "B"
 msgstr "B"
 
 
-msgid "Panel Title"
-msgstr "ชื่อแผง"
-
-
 msgid "Render Output"
 msgstr "ผลลัพธ์การเรนเดอร์"
 
@@ -4848,6 +4832,10 @@ msgid "Reset Curve"
 msgstr "ตั้งค่าเส้นโค้งใหม่"
 
 
+msgid "S"
+msgstr "S"
+
+
 msgid "Zoom in"
 msgstr "ซูมเข้า"
 
@@ -5251,6 +5239,10 @@ msgstr "Val"
 
 msgid "Old"
 msgstr "เก่า"
+
+
+msgid "Ray Length"
+msgstr "ความยาวรังสี"
 
 
 msgid "View Distance"

@@ -841,7 +841,7 @@ void DRWContext::enable_engines(bool gpencil_engine_needed, RenderEngineType *re
     return;
   }
 
-  if (ELEM(this->mode, DRWContext::DEPTH)) {
+  if (ELEM(this->mode, DRWContext::DEPTH, DRWContext::DEPTH_ACTIVE_OBJECT)) {
     view_data.grease_pencil.set_used(gpencil_engine_needed);
     view_data.overlay.set_used(true);
     return;
@@ -1577,7 +1577,7 @@ void DRW_render_set_time(RenderEngine *engine, Depsgraph *depsgraph, int frame, 
 
 static struct DRWSelectBuffer {
   GPUFrameBuffer *framebuffer_depth_only;
-  GPUTexture *texture_depth;
+  blender::gpu::Texture *texture_depth;
 } g_select_buffer = {nullptr};
 
 static void draw_select_framebuffer_depth_only_setup(const int size[2])
@@ -1597,7 +1597,13 @@ static void draw_select_framebuffer_depth_only_setup(const int size[2])
   if (g_select_buffer.texture_depth == nullptr) {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
     g_select_buffer.texture_depth = GPU_texture_create_2d(
-        "select_depth", size[0], size[1], 1, GPU_DEPTH_COMPONENT32F, usage, nullptr);
+        "select_depth",
+        size[0],
+        size[1],
+        1,
+        blender::gpu::TextureFormat::SFLOAT_32_DEPTH,
+        usage,
+        nullptr);
 
     GPU_framebuffer_texture_attach(
         g_select_buffer.framebuffer_depth_only, g_select_buffer.texture_depth, 0, 0);
@@ -1783,7 +1789,12 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
 {
   using namespace blender::draw;
 
-  DRWContext draw_ctx(DRWContext::DEPTH, depsgraph, viewport, nullptr, region, v3d);
+  DRWContext draw_ctx(use_only_active_object ? DRWContext::DEPTH_ACTIVE_OBJECT : DRWContext::DEPTH,
+                      depsgraph,
+                      viewport,
+                      nullptr,
+                      region,
+                      v3d);
   draw_ctx.acquire_data();
   draw_ctx.enable_engines(use_gpencil);
   draw_ctx.engines_init_and_sync([&](DupliCacheManager &duplis, ExtractionGraph &extraction) {
@@ -1820,7 +1831,7 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
   });
 
   /* Setup frame-buffer. */
-  GPUTexture *depth_tx = GPU_viewport_depth_texture(viewport);
+  blender::gpu::Texture *depth_tx = GPU_viewport_depth_texture(viewport);
   GPUFrameBuffer *depth_fb = nullptr;
   GPU_framebuffer_ensure_config(&depth_fb,
                                 {

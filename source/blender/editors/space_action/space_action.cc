@@ -17,7 +17,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -445,9 +445,9 @@ static void saction_channel_region_message_subscribe(const wmRegionMessageSubscr
         &RNA_Keyframe,
         &RNA_FCurveSample,
 
-        &RNA_GreasePencil, /* Grease Pencil */
-        &RNA_GPencilLayer,
-        &RNA_GPencilFrame,
+        &RNA_Annotation, /* Grease Pencil */
+        &RNA_AnnotationLayer,
+        &RNA_AnnotationFrame,
     };
 
     for (int i = 0; i < ARRAY_SIZE(type_array); i++) {
@@ -961,7 +961,7 @@ void ED_spacetype_action()
   ARegionType *art;
 
   st->spaceid = SPACE_ACTION;
-  STRNCPY(st->name, "Action");
+  STRNCPY_UTF8(st->name, "Action");
 
   st->create = action_create;
   st->free = action_free;

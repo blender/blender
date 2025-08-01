@@ -80,9 +80,9 @@ void init_brush(Brush &brush)
   BKE_curvemapping_init(brush.gpencil_settings->curve_rand_pressure);
   BKE_curvemapping_init(brush.gpencil_settings->curve_rand_strength);
   BKE_curvemapping_init(brush.gpencil_settings->curve_rand_uv);
-  BKE_curvemapping_init(brush.gpencil_settings->curve_rand_hue);
-  BKE_curvemapping_init(brush.gpencil_settings->curve_rand_saturation);
-  BKE_curvemapping_init(brush.gpencil_settings->curve_rand_value);
+  BKE_curvemapping_init(brush.curve_rand_hue);
+  BKE_curvemapping_init(brush.curve_rand_saturation);
+  BKE_curvemapping_init(brush.curve_rand_value);
 }
 
 float brush_radius(const Paint &paint, const Brush &brush, const float pressure = 1.0f)

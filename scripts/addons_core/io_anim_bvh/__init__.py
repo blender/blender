@@ -4,7 +4,9 @@
 
 bl_info = {
     "name": "BioVision Motion Capture (BVH) format",
-    "author": "Campbell Barton",
+    # This is now displayed as the maintainer, so show the foundation.
+    # "author": "Campbell Barton", # Original Author
+    "author": "Blender Foundation",
     "version": (1, 0, 1),
     "blender": (2, 81, 6),
     "location": "File > Import-Export",

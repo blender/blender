@@ -194,7 +194,7 @@ class View {
     {
     }
 
-    float4x4 winmat_polygon_offset(float4x4 winmat, float offset)
+    float4x4 winmat_polygon_offset(const float4x4 &winmat, float offset)
     {
       float view_dist = dist;
       /* Special exception for orthographic camera:
@@ -203,12 +203,13 @@ class View {
         view_dist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
       }
 
-      winmat[3][2] -= GPU_polygon_offset_calc(winmat.ptr(), view_dist, offset);
-      return winmat;
+      float4x4 result = winmat;
+      result[3][2] -= GPU_polygon_offset_calc(winmat.ptr(), view_dist, offset);
+      return result;
     }
 
     /* Return unit offset to apply to `gl_Position.z`. To be scaled depending on purpose. */
-    float polygon_offset_factor(float4x4 winmat)
+    float polygon_offset_factor(const float4x4 &winmat)
     {
       float view_dist = dist;
       /* Special exception for orthographic camera:

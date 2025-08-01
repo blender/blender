@@ -283,7 +283,7 @@ void blf_batch_draw_begin(FontBLF *font)
   }
 }
 
-static GPUTexture *blf_batch_cache_texture_load()
+static blender::gpu::Texture *blf_batch_cache_texture_load()
 {
   GlyphCacheBLF *gc = g_batch.glyph_cache;
   BLI_assert(gc);
@@ -336,7 +336,7 @@ void blf_batch_draw()
     blf_draw_cache_flush();
   }
 
-  GPUTexture *texture = blf_batch_cache_texture_load();
+  blender::gpu::Texture *texture = blf_batch_cache_texture_load();
   GPU_vertbuf_data_len_set(*g_batch.verts, g_batch.glyph_len);
   GPU_vertbuf_use(g_batch.verts); /* Send data. */
 
@@ -1665,7 +1665,7 @@ static void blf_font_fill(FontBLF *font)
   font->clip_rec.xmax = 0;
   font->clip_rec.ymin = 0;
   font->clip_rec.ymax = 0;
-  font->flags = 0;
+  font->flags = BLF_NONE;
   font->size = 0;
   font->char_weight = 400;
   font->char_slant = 0.0f;
@@ -1985,7 +1985,6 @@ struct FaceDetails {
 
 /* Details about the fallback fonts we ship, so that we can load only when needed. */
 static const FaceDetails static_face_details[] = {
-    {"lastresort.woff2", UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX},
     {"Noto Sans CJK Regular.woff2",
      0,
      TT_UCR_CJK_SYMBOLS | TT_UCR_HIRAGANA | TT_UCR_KATAKANA | TT_UCR_BOPOMOFO | TT_UCR_CJK_MISC |

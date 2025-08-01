@@ -63,14 +63,39 @@ class TestBlendLibLinkHelper(TestHelper):
     def unique_blendfile_name(self, base_name):
         return base_name + self.__class__.__name__ + ".blend"
 
-    def init_lib_data_basic(self):
-        self.reset_blender()
+    # Utils generating common data patterns.
+    # Assume that the current blendfile is cleared and empty.
 
+    def gen_indirect_library_data_(self):
+        im = bpy.data.images.load(os.path.join(self.args.src_test_dir,
+                                               "imbuf_io",
+                                               "reference",
+                                               "jpeg-rgb-90__from__rgba08.jpg"))
+        im.name = "LibMaterial"
+        self.assertTrue(len(im.pixels) > 0)
+        self.assertTrue(im.has_data)
+
+        ma = bpy.data.materials.new("LibMaterial")
+        ma.use_fake_user = True
+        ma.use_nodes = True
+        teximage_node = ma.node_tree.nodes.new("ShaderNodeTexImage")
+        teximage_node.image = im
+        bsdf_node = ma.node_tree.nodes["Principled BSDF"]
+        ma.node_tree.links.new(bsdf_node.inputs["Base Color"], teximage_node.outputs["Color"])
+
+    def gen_library_data_(self):
         me = bpy.data.meshes.new("LibMesh")
         ob = bpy.data.objects.new("LibMesh", me)
         coll = bpy.data.collections.new("LibMesh")
         coll.objects.link(ob)
         bpy.context.scene.collection.children.link(coll)
+
+    # Actual init code, generating blendfiles for various linking/appending scenarii.
+
+    def init_lib_data_basic(self):
+        self.reset_blender()
+
+        self.gen_library_data_()
 
         output_dir = self.args.output_dir
         self.ensure_path(output_dir)
@@ -84,13 +109,12 @@ class TestBlendLibLinkHelper(TestHelper):
     def init_lib_data_animated(self):
         self.reset_blender()
 
-        me = bpy.data.meshes.new("LibMesh")
-        ob = bpy.data.objects.new("LibMesh", me)
+        self.gen_library_data_()
+
+        ob = bpy.data.objects[0]
         ob_ctrl = bpy.data.objects.new("LibController", None)
-        coll = bpy.data.collections.new("LibMesh")
-        coll.objects.link(ob)
+        coll = bpy.data.collections[0]
         coll.objects.link(ob_ctrl)
-        bpy.context.scene.collection.children.link(coll)
 
         # Add some action & driver animation to `LibMesh`.
         # Animate Y location.
@@ -130,21 +154,7 @@ class TestBlendLibLinkHelper(TestHelper):
         # Create an indirect library containing a material, and an image texture.
         self.reset_blender()
 
-        im = bpy.data.images.load(os.path.join(self.args.src_test_dir,
-                                               "imbuf_io",
-                                               "reference",
-                                               "jpeg-rgb-90__from__rgba08.jpg"))
-        im.name = "LibMaterial"
-        assert len(im.pixels)
-        assert im.has_data
-
-        ma = bpy.data.materials.new("LibMaterial")
-        ma.use_fake_user = True
-        ma.use_nodes = True
-        teximage_node = ma.node_tree.nodes.new("ShaderNodeTexImage")
-        teximage_node.image = im
-        bsdf_node = ma.node_tree.nodes["Principled BSDF"]
-        ma.node_tree.links.new(bsdf_node.inputs["Base Color"], teximage_node.outputs["Color"])
+        self.gen_indirect_library_data_()
 
         # Take care to keep the name unique so multiple test jobs can run at once.
         output_lib_path = os.path.join(output_dir, self.unique_blendfile_name("blendlib_indirect_material"))
@@ -158,12 +168,10 @@ class TestBlendLibLinkHelper(TestHelper):
         bpy.ops.wm.link(directory=link_dir, filename="LibMaterial")
         ma = bpy.data.materials[0]
 
-        me = bpy.data.meshes.new("LibMesh")
+        self.gen_library_data_()
+
+        me = bpy.data.meshes[0]
         me.materials.append(ma)
-        ob = bpy.data.objects.new("LibMesh", me)
-        coll = bpy.data.collections.new("LibMesh")
-        coll.objects.link(ob)
-        bpy.context.scene.collection.children.link(coll)
 
         output_dir = self.args.output_dir
         self.ensure_path(output_dir)

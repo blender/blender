@@ -592,7 +592,7 @@ struct DrawCache {
   int winx, wordwrap, showlinenrs, tabnumber;
   short lheight;
   char cwidth_px;
-  char text_id[MAX_ID_NAME];
+  char text_id[MAX_ID_NAME - 2];
 
   /** For partial lines recalculation. */
   bool update;
@@ -641,7 +641,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
   /* word-wrapping option was toggled */
   full_update |= drawcache->cwidth_px != st->runtime->cwidth_px;
   /* text datablock was changed */
-  full_update |= !STREQLEN(drawcache->text_id, txt->id.name, MAX_ID_NAME);
+  full_update |= !STREQLEN(drawcache->text_id, txt->id.name, MAX_ID_NAME - 2);
 
   if (st->wordwrap) {
     /* update line heights */
@@ -723,7 +723,7 @@ static void space_text_update_drawcache(SpaceText *st, const ARegion *region)
   drawcache->showlinenrs = st->showlinenrs;
   drawcache->tabnumber = st->tabnumber;
 
-  STRNCPY(drawcache->text_id, txt->id.name);
+  STRNCPY(drawcache->text_id, txt->id.name + 2);
 
   /* clear update flag */
   drawcache->update = false;
@@ -1133,7 +1133,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 
     y -= lheight;
 
-    BLI_strncpy(str, item->name, len + 1);
+    BLI_strncpy_utf8(str, item->name, len + 1);
 
     w = st->runtime->cwidth_px * space_text_get_char_pos(st, str, len);
 
@@ -1608,7 +1608,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
     if (st->showlinenrs && !wrap_skip) {
       /* Draw line number. */
       UI_FontThemeColor(tdc.font_id, (tmp == text->sell) ? TH_HILITE : TH_LINENUMBERS);
-      SNPRINTF(linenr, "%*d", st->runtime->line_number_display_digits, i + linecount + 1);
+      SNPRINTF_UTF8(linenr, "%*d", st->runtime->line_number_display_digits, i + linecount + 1);
       text_font_draw(&tdc, TXT_NUMCOL_PAD * st->runtime->cwidth_px, y, linenr);
       /* Change back to text color. */
       UI_FontThemeColor(tdc.font_id, TH_TEXT);

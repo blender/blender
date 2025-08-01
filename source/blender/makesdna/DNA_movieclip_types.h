@@ -19,6 +19,14 @@ struct MovieClipProxy;
 struct MovieTrackingMarker;
 struct MovieTrackingTrack;
 struct bGPdata;
+#ifdef __cplusplus
+namespace blender::gpu {
+class Texture;
+}  // namespace blender::gpu
+using GPUTexture = blender::gpu::Texture;
+#else
+typedef struct GPUTexture GPUTexture;
+#endif
 
 typedef struct MovieClipUser {
   /** Current frame number. */
@@ -45,7 +53,7 @@ typedef struct MovieClip_RuntimeGPUTexture {
   void *next, *prev;
   MovieClipUser user;
   /** Not written in file. */
-  struct GPUTexture *gputexture[/*TEXTARGET_COUNT*/ 3];
+  GPUTexture *gputexture[/*TEXTARGET_COUNT*/ 3];
 } MovieClip_RuntimeGPUTexture;
 
 typedef struct MovieClip_Runtime {

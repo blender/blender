@@ -31,19 +31,16 @@ ccl_device_noinline void svm_node_enter_bump_eval(KernelGlobals kg,
   const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POSITION_UNDISPLACED);
 
   if (desc.offset != ATTR_STD_NOT_FOUND) {
-    differential3 dP;
-    float3 P = primitive_surface_attribute<float3>(kg, sd, desc, &dP.dx, &dP.dy);
+    dual3 P = primitive_surface_attribute<float3>(kg, sd, desc, true, true);
 
     object_position_transform(kg, sd, &P);
-    object_dir_transform(kg, sd, &dP.dx);
-    object_dir_transform(kg, sd, &dP.dy);
 
-    sd->P = P;
-    sd->dP = differential_make_compact(dP);
+    sd->P = P.val;
+    sd->dP = differential_make_compact(P);
 
     /* Save the full differential, the compact form isn't enough for svm_node_set_bump. */
-    stack_store_float3(stack, offset + 4, dP.dx);
-    stack_store_float3(stack, offset + 7, dP.dy);
+    stack_store_float3(stack, offset + 4, P.dx);
+    stack_store_float3(stack, offset + 7, P.dy);
   }
 }
 

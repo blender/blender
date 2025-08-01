@@ -8,10 +8,11 @@
 
 #include <cmath>
 
-#include "BKE_node.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+
+#include "BKE_node.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
