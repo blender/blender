@@ -3018,7 +3018,7 @@ static void rna_def_object(BlenderRNA *brna)
                                  "rna_Object_active_material_set",
                                  nullptr,
                                  "rna_MaterialSlot_material_poll");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_editable_func(prop, "rna_Object_active_material_editable");
   RNA_def_property_ui_text(prop, "Active Material", "Active material being displayed");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_MaterialSlot_update");

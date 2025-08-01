@@ -337,13 +337,15 @@ enum PropertyFlag {
   /* pointers */
 
   /**
-   * Automatically update the ID user count when the property changes value.
+   * Mark this property as handling ID user count.
    *
-   * This is done in the auto-generated setter function. If an RNA property has a custom setter,
-   * this flag is ignored, and the setter is responsible for correctly updating the user count.
+   * This is done automatically by the auto-generated setter function. If an RNA property has a
+   * custom setter, it's the setter's responsibility to correctly update the user count.
    *
    * \note In most basic cases, makesrna will automatically set this flag, based on the
-   * `STRUCT_ID_REFCOUNT` flag of the defined pointer type.
+   * `STRUCT_ID_REFCOUNT` flag of the defined pointer type. This only works if makesrna can find a
+   * matching DNA property though, 'virtual' RNA properties (using both a getter and setter) will
+   * never get this flag defined automatically.
    */
   PROP_ID_REFCOUNT = (1 << 6),
 
