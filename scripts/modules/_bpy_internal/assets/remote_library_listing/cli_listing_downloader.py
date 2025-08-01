@@ -11,7 +11,7 @@ import time
 import urllib.parse
 from pathlib import Path
 
-from . import index_downloader
+from . import listing_downloader
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +33,12 @@ def cli_main(arguments_raw: argparse.Namespace) -> None:
 
     is_done = False
 
-    def on_done_callback(_: index_downloader.RemoteAssetListingDownloader) -> None:
+    def on_done_callback(_: listing_downloader.RemoteAssetListingDownloader) -> None:
         nonlocal is_done
 
         is_done = True
 
-    downloader = index_downloader.RemoteAssetListingDownloader(
+    downloader = listing_downloader.RemoteAssetListingDownloader(
         arguments.url,
         base_path,
         lambda *args: None,

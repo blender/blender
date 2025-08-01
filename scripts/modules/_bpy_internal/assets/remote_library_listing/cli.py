@@ -11,10 +11,10 @@ import time
 
 
 def main(cli_args: list[str]) -> None:
-    """CLI entry point for the 'asset_index' CLI commands."""
+    """CLI entry point for the 'asset_listing' CLI commands."""
 
     parser = argparse.ArgumentParser(
-        prog="blender -c asset_index",
+        prog="blender -c asset_listing",
         description="Manage asset library index files.",
     )
 
@@ -46,10 +46,10 @@ def main(cli_args: list[str]) -> None:
         "Use --help after the subcommand to get more info."
     )
 
-    from . import cli_index_generator, cli_index_downloader
+    from . import cli_listing_generator, cli_listing_downloader
 
-    cli_index_generator.add_cli_parser(subparsers)
-    cli_index_downloader.add_cli_parser(subparsers)
+    cli_listing_generator.add_cli_parser(subparsers)
+    cli_listing_downloader.add_cli_parser(subparsers)
 
     args = parser.parse_args(cli_args)
 

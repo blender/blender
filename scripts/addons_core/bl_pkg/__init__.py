@@ -37,9 +37,9 @@ from bpy.props import (
 # Only import submodules here when necessary for type checking.
 # At runtime, the module is imported only when it's actually used.
 if TYPE_CHECKING:
-    from _bpy_internal.assets.remote_library_listing import index_downloader
+    from _bpy_internal.assets.remote_library_listing import listing_downloader
 
-    _RemoteAssetListingDownloader: TypeAlias = index_downloader.RemoteAssetListingDownloader
+    _RemoteAssetListingDownloader: TypeAlias = listing_downloader.RemoteAssetListingDownloader
 else:
     _RemoteAssetListingDownloader: TypeAlias = object
 
@@ -443,14 +443,14 @@ def remote_asset_libraries_sync(library: bpy.types.UserAssetLibrary, *args) -> N
         return
 
     # Create the downloader and start downloading.
-    from _bpy_internal.assets.remote_library_listing import index_downloader
+    from _bpy_internal.assets.remote_library_listing import listing_downloader
 
     # Communicate to the asset system that we started loading a library. It will let asset browsers
     # and other UIs displaying this library indicate that loading is ongoing then, until finished.
     wm = bpy.context.window_manager
     wm.asset_library_status_begin_loading(library.remote_url)
 
-    downloader = index_downloader.RemoteAssetListingDownloader(
+    downloader = listing_downloader.RemoteAssetListingDownloader(
         library.remote_url,
         library.path,
         on_update_callback=_remote_asset_libraries_sync_update,
@@ -471,7 +471,7 @@ def _remote_asset_libraries_sync_done(downloader: _RemoteAssetListingDownloader)
     or other issues can cause things to abort. In that case, this function is
     still called.
     """
-    from _bpy_internal.assets.remote_library_listing.index_downloader import DownloadStatus
+    from _bpy_internal.assets.remote_library_listing.listing_downloader import DownloadStatus
 
     _downloaders.remove(downloader)
 
@@ -486,7 +486,7 @@ def _remote_asset_libraries_sync_done(downloader: _RemoteAssetListingDownloader)
 
 
 def _remote_asset_libraries_sync_update(downloader: _RemoteAssetListingDownloader) -> None:
-    from _bpy_internal.assets.remote_library_listing.index_downloader import DownloadStatus
+    from _bpy_internal.assets.remote_library_listing.listing_downloader import DownloadStatus
 
     # Only call `asset_library_status_ping_still_loading()` if the loading is still going on.
     if downloader.status == DownloadStatus.LOADING:
@@ -866,7 +866,7 @@ def register():
     cli_commands.append(bpy.utils.register_cli_command("extension", cli_extension))
 
     from _bpy_internal.assets import remote_library_listing
-    cli_commands.append(bpy.utils.register_cli_command("asset_index", remote_library_listing.asset_index_main))
+    cli_commands.append(bpy.utils.register_cli_command("asset_listing", remote_library_listing.asset_listing_main))
 
     monkeypatch_install()
 

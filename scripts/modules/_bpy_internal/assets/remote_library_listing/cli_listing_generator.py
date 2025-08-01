@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-"""Blender Online Asset Repository Index Generator."""
+"""Blender Online Asset Repository Listing Generator."""
 
 import argparse
 import dataclasses
@@ -16,14 +16,14 @@ from typing import Any
 import fastjsonschema
 import cattrs.preconf.json
 
-from . import asset_catalogs, asset_finder, index_common, pagination, json_parsing
+from . import asset_catalogs, asset_finder, listing_common, pagination, json_parsing
 from . import blender_asset_library_openapi as api_models
 
 SCHEMA_VERSION = "1.0.0"
 
 
 _api_versions = {
-    "v{:d}".format(index_common.API_VERSION): index_common.API_VERSIONED_ASSET_INDEX_JSON_PATH,
+    "v{:d}".format(listing_common.API_VERSION): listing_common.API_VERSIONED_ASSET_INDEX_JSON_PATH,
 }
 DEFAULT_METADATA = api_models.AssetLibraryMeta(
     api_versions=_api_versions.copy(),
@@ -95,7 +95,7 @@ def _write_toplevel_meta(arguments: CLIArguments) -> None:
     outdir_root = arguments.repository
 
     # Metadata file /_asset-library-meta.json. This gets loaded if it exists.
-    meta_json_path = outdir_root / index_common.ASSET_TOP_METADATA_FILENAME
+    meta_json_path = outdir_root / listing_common.ASSET_TOP_METADATA_FILENAME
     try:
         metadata = _toplevel_metadata(meta_json_path)
     except fastjsonschema.JsonSchemaException as ex:
@@ -111,7 +111,7 @@ def _write_json_files(
     asset_index_pages: list[api_models.AssetLibraryIndexPageV1],
 ) -> None:
     outdir_root = arguments.repository
-    outdir_versioned = outdir_root / index_common.API_VERSIONED_SUBDIR
+    outdir_versioned = outdir_root / listing_common.API_VERSIONED_SUBDIR
 
     # Remove old pages, in case the number of assets per page was increased and
     # so less page files are needed.
@@ -123,10 +123,10 @@ def _write_json_files(
     #
     # Note that these paths are determined by the generator, and their URLs are
     # listed explicitly in the index file, so there is no need to have those in
-    # the index_common.py file.
+    # the listing_common.py file.
     page_urls = []
     for page_index, page in enumerate(asset_index_pages):
-        page_relpath = index_common.api_versioned(f"assets-{page_index:05}.json")
+        page_relpath = listing_common.api_versioned(f"assets-{page_index:05}.json")
         page_urls.append(page_relpath.as_posix())
 
         _save_json(page, outdir_root / page_relpath)
@@ -146,7 +146,7 @@ def _write_json_files(
         page_urls=page_urls,
         catalogs=asset_cats,
     )
-    _save_json(index, outdir_versioned / index_common.ASSET_INDEX_JSON_FILENAME)
+    _save_json(index, outdir_versioned / listing_common.ASSET_INDEX_JSON_FILENAME)
 
 
 def _save_json(model: Any, json_path: Path) -> None:

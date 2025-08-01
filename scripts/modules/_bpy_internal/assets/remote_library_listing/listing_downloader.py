@@ -19,7 +19,7 @@ import bpy
 
 from _bpy_internal.http import downloader as http_dl
 from _bpy_internal.assets.remote_library_listing import blender_asset_library_openapi as api_models
-from _bpy_internal.assets.remote_library_listing import index_common
+from _bpy_internal.assets.remote_library_listing import listing_common
 from _bpy_internal.assets.remote_library_listing import http_metadata
 from _bpy_internal.assets.remote_library_listing import asset_catalogs
 from _bpy_internal.assets.remote_library_listing import json_parsing
@@ -351,8 +351,8 @@ class RemoteAssetListingDownloader:
 
         # Kickstart the download process by downloading the remote asset meta file:
         self._queue_download(
-            index_common.ASSET_TOP_METADATA_FILENAME,
-            http_metadata.safe_to_unsafe_filename(index_common.ASSET_TOP_METADATA_FILENAME),
+            listing_common.ASSET_TOP_METADATA_FILENAME,
+            http_metadata.safe_to_unsafe_filename(listing_common.ASSET_TOP_METADATA_FILENAME),
             self.parse_asset_lib_metadata,
         )
 
@@ -374,7 +374,7 @@ class RemoteAssetListingDownloader:
             )
 
         # Check API version.
-        api_key = "v{:d}".format(index_common.API_VERSION)
+        api_key = "v{:d}".format(listing_common.API_VERSION)
         try:
             main_index_url = metadata.api_versions[api_key]
         except KeyError:
@@ -382,7 +382,7 @@ class RemoteAssetListingDownloader:
             library_versions = ", ".join(metadata.api_versions.keys())
             msg = "This asset library supports API versions {!s}, but this Blender uses version {!s}".format(
                 library_versions,
-                index_common.API_VERSION,
+                listing_common.API_VERSION,
             )
             self.report({'ERROR'}, msg)
             logger.error(msg)
@@ -398,7 +398,7 @@ class RemoteAssetListingDownloader:
         self._library_meta = metadata
 
         # Download the asset index.
-        main_index_filepath = index_common.api_versioned(index_common.ASSET_INDEX_JSON_FILENAME)
+        main_index_filepath = listing_common.api_versioned(listing_common.ASSET_INDEX_JSON_FILENAME)
         self._queue_download(
             main_index_url,
             http_metadata.safe_to_unsafe_filename(main_index_filepath),
@@ -444,7 +444,7 @@ class RemoteAssetListingDownloader:
         for page_index, page_url in enumerate(page_urls):
             # These URLs may be absolute or they may be relative. In any case,
             # do not assume that they can be used direclty as local filesystem path.
-            local_path = index_common.api_versioned(f"assets-{page_index:05}.json")
+            local_path = listing_common.api_versioned(f"assets-{page_index:05}.json")
             download_to = self._queue_download(
                 page_url,
                 http_metadata.safe_to_unsafe_filename(local_path),
@@ -496,7 +496,7 @@ class RemoteAssetListingDownloader:
             return
 
         # Remove any dangling pages of assets (downloaded before, no longer referenced).
-        asset_page_dir = self._locator.local_path / index_common.API_VERSIONED_SUBDIR
+        asset_page_dir = self._locator.local_path / listing_common.API_VERSIONED_SUBDIR
         # TODO: when upgrading to Python 3.12+, add `case_sensitive=False` to the glob() call.
         for asset_page_file in asset_page_dir.glob("assets-*.json"):
             abs_path = asset_page_dir / asset_page_file

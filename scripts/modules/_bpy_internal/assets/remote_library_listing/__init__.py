@@ -14,8 +14,8 @@ from __future__ import annotations
 
 
 # The function below is (un)registered from scripts/addons_core/bl_pkg/__init__.py:
-def asset_index_main(args: list[str]) -> int:
-    """Run the `blender -c asset_index` CLI command.
+def asset_listing_main(args: list[str]) -> int:
+    """Run the `blender -c asset_listing` CLI command.
 
     This is late-importing the cli module, so that it (and its
     dependencies) are only imported when actually used.
