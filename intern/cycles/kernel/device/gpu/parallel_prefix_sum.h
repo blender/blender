@@ -15,12 +15,6 @@ CCL_NAMESPACE_BEGIN
 
 #include "util/atomic.h"
 
-#ifdef __HIP__
-#  define GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE 1024
-#else
-#  define GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE 512
-#endif
-
 __device__ void gpu_parallel_prefix_sum(const int global_id,
                                         ccl_global int *counter,
                                         ccl_global int *prefix_sum,

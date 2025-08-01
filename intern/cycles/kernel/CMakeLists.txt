@@ -62,6 +62,7 @@ set(SRC_KERNEL_DEVICE_CPU_HEADERS
   device/cpu/kernel_arch_impl.h
 )
 set(SRC_KERNEL_DEVICE_GPU_HEADERS
+  device/gpu/block_sizes.h
   device/gpu/image.h
   device/gpu/kernel.h
   device/gpu/parallel_active_index.h
