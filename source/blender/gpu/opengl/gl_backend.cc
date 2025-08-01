@@ -48,66 +48,72 @@ static bool match_renderer(StringRef renderer, const Vector<std::string> &items)
   return false;
 }
 
-/**
- * Return whether an AMD driver version is in [20.11, 22],
- * preferring false negatives.
- *
- * Matches:
- *   4.6.14761 Core Profile Context 20.45.44 27.20.14544.6
- *   4.6.14760 Compatibility Profile Context 21.2.3 27.20.14535.3005
- *   4.6.14831 Core Profile Context FireGL 21.Q2.1 27.20.21026.2006
- *   4.6.14830 Core Profile Context 22.6.1 27.20.20913.2000
- *   4.6.14760 Core Profile Context 21.2.3 27.20.14535.3005
- * Rejects:
- *   4.6.0 Core Profile Context 23.10.2.231013
- *   4.6.0 Core Profile Context 24.7.1.240618
- *   4.6.0 Core Profile Context 25.3.2.250311
- * by matching
- *   " 2" digits "." "Q"? digits "." digits " "
- */
-static bool is_AMD_between_20_11_and_22(const char *version)
+static bool parse_version(const std::string &version,
+                          const std::string &format,
+                          Vector<int> &r_version)
 {
-  const char *spc_2 = strstr(version, " 2");
-  if (!spc_2) {
-    return false;
+  int f = 0;
+  std::string subversion;
+  for (int v : IndexRange(version.size())) {
+    bool match = false;
+    if (format[f] == '0') {
+      if (std::isdigit(version[v])) {
+        match = true;
+        subversion.push_back(version[v]);
+      }
+    }
+    else {
+      match = version[v] == format[f];
+      if (!subversion.empty()) {
+        r_version.append(std::stoi(subversion));
+        subversion.clear();
+      }
+    }
+
+    if (!match) {
+      f = 0;
+      subversion.clear();
+      r_version.clear();
+      continue;
+    }
+
+    f++;
+
+    if (f == format.size()) {
+      return true;
+    }
   }
 
-  char *after_first = nullptr;
-  long first = std::strtol(spc_2, &after_first, 10);
-  if (first < 20 || first > 22) {
-    return false;
-  }
-  if (*after_first != '.') {
-    return false;
-  }
-  ++after_first;
+  return false;
+}
 
-  if (*after_first == 'Q') {
-    ++after_first;
-  }
-  char *after_second = nullptr;
-  long second = std::strtol(after_first, &after_second, 10);
-  if (after_second == after_first) {
-    return false;
-  }
+/* Try to check if the driver is older than 22.6.1, preferring false positives.  */
+static bool is_bad_AMD_driver(const char *version_cstr, bool print = false)
+{
+  std::string version_str = version_cstr;
+  /* Allow matches when the version number is at the string end. */
+  version_str.push_back(' ');
 
-  if (*after_second != '.') {
-    return false;
-  }
-  ++after_second;
+  Vector<int> version;
 
-  char *after_third = nullptr;
-  long third = std::strtol(after_second, &after_third, 10);
-  UNUSED_VARS(third);
-  if (after_third == after_second) {
-    return false;
+  if (parse_version(version_str, " 00.00.00.00 ", version) ||
+      parse_version(version_str, " 00.00.00 ", version) ||
+      parse_version(version_str, " 00.00.0 ", version) ||
+      parse_version(version_str, " 00.0.00 ", version) ||
+      parse_version(version_str, " 00.Q0.", version))
+  {
+    return version[0] < 23;
+  }
+  /* Some drivers only expose the Windows version https://gpuopen.com/version-table/ */
+  if (parse_version(version_str, " 00.00.00000.00000 ", version) ||
+      parse_version(version_str, " 00.00.00000.0000 ", version) ||
+      parse_version(version_str, " 00.00.0000.00000 ", version))
+  {
+    return version[0] < 31 || (version[0] == 31 && version[2] < 21001);
   }
 
-  if (*after_third != ' ') {
-    return false;
-  }
-
-  return (first == 20 && second >= 11) || first == 21 || first == 22;
+  /* Unknown version, assume it's a bad one. */
+  return true;
 }
 
 void GLBackend::platform_init()
@@ -433,7 +439,7 @@ static void detect_workarounds()
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     /* Check for AMD legacy driver. Assuming that when these drivers are used this bug is present.
      */
-    if (is_AMD_between_20_11_and_22(version)) {
+    if (is_bad_AMD_driver(version)) {
       GCaps.use_hq_normals_workaround = true;
     }
     const Vector<std::string> matches = {
@@ -448,7 +454,7 @@ static void detect_workarounds()
    * install of the driver.
    */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
-    if (is_AMD_between_20_11_and_22(version)) {
+    if (is_bad_AMD_driver(version)) {
       GCaps.line_directive_workaround = true;
     }
   }
@@ -472,7 +478,7 @@ static void detect_workarounds()
   }
   /* Needed to avoid driver hangs on legacy AMD drivers (see #139939). */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
-      is_AMD_between_20_11_and_22(version))
+      is_bad_AMD_driver(version))
   {
     GCaps.use_main_context_workaround = true;
   }
