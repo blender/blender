@@ -48,7 +48,7 @@ class OBJDepsgraph : NonMovable, NonCopyable {
 void exporter_main(bContext *C, const OBJExportParams &export_params);
 
 class OBJMesh;
-class OBJCurve;
+class IOBJCurve;
 
 /**
  * Export a single frame of a `.obj` file, according to the given `export_parameters`.
@@ -65,6 +65,11 @@ void export_frame(Depsgraph *depsgraph,
                   const OBJExportParams &export_params,
                   const char *filepath);
 
+void export_objects(const OBJExportParams &export_params,
+                    Span<std::unique_ptr<OBJMesh>> meshes,
+                    Span<std::unique_ptr<IOBJCurve>> curves,
+                    const char *filepath);
+
 /**
  * Find the objects to be exported in the `view_layer` of the dependency graph`depsgraph`,
  * and return them in vectors `unique_ptr`s of `OBJMesh` and `OBJCurve`.
@@ -76,7 +81,7 @@ void export_frame(Depsgraph *depsgraph,
  * `OBJMesh` vector. All other exportable types are always converted to mesh and returned in the
  * `OBJMesh` vector.
  */
-std::pair<Vector<std::unique_ptr<OBJMesh>>, Vector<std::unique_ptr<OBJCurve>>>
+std::pair<Vector<std::unique_ptr<OBJMesh>>, Vector<std::unique_ptr<IOBJCurve>>>
 filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_params);
 
 /**

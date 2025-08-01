@@ -1,0 +1,15 @@
+==== Curves: 1
+- Curve 'rhino_curve_arc_bezier_deg2' dim:3D resu:12 resv:12 splines:1
+  - spline type:NURBS pts:5x1 order:3x3 cyclic:False,False endp:True,False
+    - (6.819, 0.000, -19.510) w:1.000
+    - (3.112, 0.000, -30.504) w:0.897
+    - (-7.865, 0.000, -34.264) w:1.000
+    - (-18.842, 0.000, -38.024) w:0.897
+    - (-28.512, 0.000, -31.611) w:1.000
+
+==== Objects: 1
+- Obj 'rhino_curve_arc_bezier_deg2' CURVE data:'rhino_curve_arc_bezier_deg2'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
