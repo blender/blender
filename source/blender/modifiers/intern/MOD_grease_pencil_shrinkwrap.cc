@@ -225,6 +225,9 @@ static void modify_geometry_set(ModifierData *md,
   const int frame = grease_pencil.runtime->eval_frame;
 
   ensure_shrinkwrap_cache_data(smd, *ctx);
+  if (!smd.cache_data) {
+    return;
+  }
 
   IndexMaskMemory mask_memory;
   const IndexMask layer_mask = modifier::greasepencil::get_filtered_layer_mask(
