@@ -234,6 +234,14 @@ void EDBM_select_mirrored(
     BMEditMesh *em, const Mesh *mesh, int axis, bool extend, int *r_totmirr, int *r_totfail);
 
 /**
+ * Select mirrored elements on all enabled axis.
+ * Does nothing if selection symmetry isn't enabled.
+ *
+ * \return true if the selection changed.
+ */
+bool EDBM_select_mirrored_extend_all(Object *obedit, BMEditMesh *em);
+
+/**
  * Nearest vertex under the cursor.
  *
  * \param dist_px_manhattan_p: (in/out), minimal distance to the nearest and at the end,
