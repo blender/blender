@@ -1599,6 +1599,12 @@ typedef struct NodeDisplaceData {
   char extension_y;
 } NodeDisplaceData;
 
+typedef struct NodeMapUVData {
+  short interpolation;
+  char extension_x;
+  char extension_y;
+} NodeMapUVData;
+
 typedef struct NodePlaneTrackDeformData {
   char tracking_object[64];
   char plane_track_name[64];

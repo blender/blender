@@ -10,6 +10,8 @@
 
 #include <fmt/format.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
@@ -2034,6 +2036,28 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         NodeDisplaceData *data = static_cast<NodeDisplaceData *>(node->storage);
         data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
         data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
+      }
+      FOREACH_NODETREE_END;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 50)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type_legacy != CMP_NODE_MAP_UV) {
+          continue;
+        }
+        if (node->storage != nullptr) {
+          continue;
+        }
+        NodeMapUVData *data = MEM_callocN<NodeMapUVData>(__func__);
+        data->interpolation = node->custom2;
+        data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+        data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
+        node->storage = data;
       }
       FOREACH_NODETREE_END;
     }
