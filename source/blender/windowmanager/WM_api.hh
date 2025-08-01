@@ -448,7 +448,7 @@ void WM_file_autoexec_init(const char *filepath);
 /**
  * \param use_scripts_autoexec_check: When true, script auto-execution checks excluded directories.
  * Note that this is passed in as an argument because `filepath` may reference a path to recover.
- * In this case the that used for exclusion is the recovery path which is only known once
+ * In this case the file-path used for exclusion is the recovery path which is only known once
  * the file has been loaded.
  */
 bool WM_file_read(bContext *C,

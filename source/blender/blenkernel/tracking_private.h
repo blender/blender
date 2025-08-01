@@ -97,8 +97,8 @@ void tracking_principal_point_pixel_to_normalized(const float principal_point_pi
 /**
  * Place a disabled marker before or after specified ref_marker.
  *
- * If before is truth, disabled marker is placed before reference
- * one, and it's placed after it otherwise.
+ * If `before` is true, disabled marker is placed before reference one,
+ * and it's placed after it otherwise.
  *
  * If there's already a marker at the frame where disabled one is expected to be placed,
  * nothing will happen if overwrite is false.

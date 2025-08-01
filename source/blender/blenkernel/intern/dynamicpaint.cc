@@ -1315,7 +1315,7 @@ void dynamicPaint_Modifier_copy(const DynamicPaintModifierData *pmd,
     t_brush->paint_distance = brush->paint_distance;
 
     /* NOTE: This is dangerous, as it will generate invalid data in case we are copying between
-     * different objects. Extra external code has to be called then to ensure proper remapping of
+     * different objects. Extra external code has to be called to ensure proper remapping of
      * that pointer. See e.g. `BKE_object_copy_particlesystems` or `BKE_object_copy_modifier`. */
     t_brush->psys = brush->psys;
 

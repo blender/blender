@@ -4524,9 +4524,9 @@ static wmOperatorStatus area_join_modal(bContext *C, wmOperator *op, const wmEve
                                   (jd->start_y > event->xy[1] && jd->split_fac < 0.5f));
 
             if (large_v || large_h) {
-              /* Swap areas to follow old behavior of new area added based on starting location. If
-               * from above the new area is above, if from below the new area is below, etc. Note
-               * that this preserves runtime data, unlike ED_area_swapspace. */
+              /* Swap areas to follow old behavior of new area added based on starting location.
+               * When from above the new area is above, when from below the new area is below, etc.
+               * Note that this preserves runtime data, unlike #ED_area_swapspace. */
               std::swap(jd->sa1->v1, jd->sa2->v1);
               std::swap(jd->sa1->v2, jd->sa2->v2);
               std::swap(jd->sa1->v3, jd->sa2->v3);

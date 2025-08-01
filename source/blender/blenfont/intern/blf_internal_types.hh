@@ -307,10 +307,10 @@ struct FontMetrics {
 };
 
 struct FontBLF {
-  /** Full path to font file or NULL if from memory. */
+  /** The full path to font file or NULL when from memory. */
   char *filepath;
 
-  /** Pointer to in-memory font, or NULL if from file. */
+  /** Pointer to in-memory font, or NULL when from a file. */
   void *mem;
   size_t mem_size;
   /** Handle for in-memory fonts to avoid loading them multiple times. */

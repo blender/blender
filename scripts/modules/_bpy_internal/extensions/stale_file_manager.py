@@ -88,7 +88,7 @@ class StaleFiles:
         debug = self._debug
 
         assert base_directory.endswith(sep)
-        # Don't support loading multiple times or after adding files.
+        # Don't support loading multiple times or running again after adding files.
         assert len(paths) == 0
 
         stale_filepath = os.path.join(base_directory, self._stale_filename)

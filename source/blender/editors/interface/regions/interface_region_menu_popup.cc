@@ -192,8 +192,8 @@ static void ui_popup_menu_create_block(bContext *C,
    * depending on vertex/edge/face mode. We still want to flag the uiBlock (but only insert into
    * the `puphash` if we have a title provided). Choosing an entry in a menu will still handle
    * `puphash` later (see `button_activate_exit`) though multiple menus without a label might fight
-   * for the same storage of the menu memory. Using idname instead (or in combination with the
-   * label) for the hash could be looked at to solve this. */
+   * for the same storage of the menu memory. Using `idname` instead (or in combination with the
+   * label) for the hash could be investigated to solve this. */
   pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
   if (!title.is_empty()) {
     pup->block->puphash = ui_popup_menu_hash(title);

@@ -1177,7 +1177,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 {
   @autoreleasepool {
     if (mode != GHOST_kGrabDisable) {
-      /* No need to perform grab without warp as it is always on in OS X. */
+      /* No need to perform grab without warp as it is always enabled in OS X. */
       if (mode != GHOST_kGrabNormal) {
         @autoreleasepool {
           m_systemCocoa->getCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);

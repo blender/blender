@@ -2739,7 +2739,7 @@ class EXTENSIONS_OT_package_install_files(Operator, _ExtCmdMixIn):
         # - If it's a "local" repository, use it.
         # - If it's a "remote" repository, reset.
         # This is done because installing a file into a remote repository is a corner-case supported so
-        # it's possible to download large extensions before installing or to down-grade to older versions.
+        # it's possible to download large extensions before installing as well as down-grading to older versions.
         # Installing into a remote repository should be intentional, not the default.
         # This could be annoying to users if they want to install many files into a remote repository,
         # in this case they would be better off using the file selector "Install from disk"
@@ -4036,7 +4036,7 @@ class EXTENSIONS_OT_userpref_allow_online_popup(Operator):
             )
         else:
             lines = (
-                rpt_("Please turn Online Access on in the System settings."),
+                rpt_("Please enable Online Access from the System settings."),
                 "",
                 rpt_("Internet access is required to install extensions from the internet."),
             )

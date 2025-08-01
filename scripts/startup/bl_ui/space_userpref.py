@@ -2467,7 +2467,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         prefs = context.preferences
 
         if self.is_extended():
-            # Rely on the draw function being appended to by the extensions add-on.
+            # Rely on the draw function being extended by the extensions add-on (`bl_pkg`).
             return
 
         layout = self.layout

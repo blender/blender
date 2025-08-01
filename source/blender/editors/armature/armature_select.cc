@@ -1111,7 +1111,7 @@ bool ED_armature_edit_select_pick_bone(
 
     ED_armature_edit_sync_selection(arm->edbo);
 
-    /* Then now check for active status. */
+    /* Now check for active status. */
     if (ED_armature_ebone_selectflag_get(ebone)) {
       arm->act_edbone = ebone;
     }

@@ -240,8 +240,10 @@ TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs_after_write)
   EXPECT_FALSE(cat->flags.has_unsaved_changes);
 }
 
-/** Call #AssetLibraryService::move_runtime_current_file_into_on_disk_library() with a on disk
- * location that contains no existing asset catalog definition file. */
+/**
+ * Call #AssetLibraryService::move_runtime_current_file_into_on_disk_library() with an on disk
+ * location that contains no existing asset catalog definition file.
+ */
 TEST_F(AssetLibraryServiceTest, move_runtime_current_file_into_on_disk_library__empty_directory)
 {
   AssetLibraryService *service = AssetLibraryService::get();
@@ -309,9 +311,11 @@ TEST_F(AssetLibraryServiceTest, move_runtime_current_file_into_on_disk_library__
   }
 }
 
-/** Call #AssetLibraryService::move_runtime_current_file_into_on_disk_library() with a on disk
- * location that contains an existing asset catalog definition file. Result should be merged
- * libraries. */
+/**
+ * Call #AssetLibraryService::move_runtime_current_file_into_on_disk_library() with an on disk
+ * location that contains an existing asset catalog definition file.
+ * Result should be merged libraries.
+ */
 TEST_F(AssetLibraryServiceTest,
        move_runtime_current_file_into_on_disk_library__directory_with_catalogs)
 {

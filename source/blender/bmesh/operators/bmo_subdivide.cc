@@ -103,7 +103,9 @@ struct SubDPattern {
 #define ELE_INNER 8
 #define ELE_SPLIT 16
 
-/* see bug #32665, 0.00005 means a we get face splits at a little under 1.0 degrees */
+/**
+ * A value of 0.00005 means we get face splits at a little under 1.0 degrees, see #32665.
+ */
 #define FLT_FACE_SPLIT_EPSILON 0.00005f
 
 /*

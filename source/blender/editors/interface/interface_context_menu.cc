@@ -349,7 +349,7 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
   if (but->rnaprop) {
     std::optional<std::string> member_id_data_path = WM_context_path_resolve_full(C,
                                                                                   &but->rnapoin);
-    /* NOTE(@ideasman42): It's highly unlikely a this ever occurs since the path must be resolved
+    /* NOTE(@ideasman42): It's highly unlikely this ever occurs since the path must be resolved
      * for this to be added in the first place, there might be some cases where manually
      * constructed RNA paths don't resolve and in this case a crash should be avoided. */
     if (UNLIKELY(!member_id_data_path.has_value())) {

@@ -555,7 +555,7 @@ extern GHOST_TSuccess GHOST_SetDrawingContextType(GHOST_WindowHandle windowhandl
                                                   GHOST_TDrawingContextType type);
 
 /**
- * Returns the drawing context used in the this window.
+ * Returns the drawing context used by this window.
  * \param windowhandle: The handle to the window.
  * \return The window drawing context.
  */

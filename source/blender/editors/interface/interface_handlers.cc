@@ -10274,7 +10274,7 @@ static bool ui_mouse_motion_towards_check(uiBlock *block,
    * don't mouse-out of a menu if another menu has been created after it.
    * if this causes problems we could remove it and check on a different fix - campbell */
   if (menu->region->next) {
-    /* am I the last menu (test) */
+    /* Test if this is the last menu. */
     ARegion *region = menu->region->next;
     do {
       uiBlock *block_iter = static_cast<uiBlock *>(region->runtime->uiblocks.first);

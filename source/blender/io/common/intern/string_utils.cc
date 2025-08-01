@@ -51,7 +51,7 @@ void fixup_line_continuations(char *p, char *end)
     while (p < end && is_whitespace(*p) && *p != '\n') {
       ++p;
     }
-    /* If then we have a newline, turn both backslash
+    /* If we have a newline, turn both backslash
      * and the newline into regular spaces. */
     if (p < end && *p == '\n') {
       *backslash = ' ';

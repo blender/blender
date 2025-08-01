@@ -205,7 +205,7 @@ struct DisplaceGridOp {
     typename GridType::Ptr temp_grid = grid.deepCopy();
 
     /* Dilate grid, because the currently inactive cells might become active during the displace
-     * operation. The quality of the approximation of the has a big impact on performance. */
+     * operation. The quality of the approximation of this has a big impact on performance. */
     const float max_voxel_side_length = get_max_voxel_side_length(grid);
     const float sample_radius = vdmd.texture_sample_radius * std::abs(vdmd.strength) /
                                 max_voxel_side_length / 2.0f;

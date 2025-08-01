@@ -1552,7 +1552,7 @@ static int arg_handle_gpu_backend_set(int argc, const char **argv, void * /*data
 
   /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
   if (false) {
-    /* Just a dummy if to make the following ifdef blocks work. */
+    /* Use a dummy block to make the following `ifdef` blocks work. */
   }
 #  ifdef WITH_OPENGL_BACKEND
   else if (STREQ(argv[1], (backends_supported[backends_supported_num++] = "opengl"))) {

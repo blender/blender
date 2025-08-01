@@ -94,7 +94,7 @@ class SphereProbeModule {
    * rendering. So we tag the next redraw (or sample) to do the sync.
    */
   bool update_probes_next_sample_ = false;
-  /** True if the this redraw will trigger a light-probe sphere update. */
+  /** True if this redraw will trigger a light-probe sphere update. */
   bool update_probes_this_sample_ = false;
   /** Compute world irradiance coefficient and store them into the volume probe atlas. */
   bool do_world_irradiance_update = true;

@@ -38,7 +38,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Mesh")
       .supported_type(GeometryComponent::Type::Mesh)
-      .description("Mesh to convert the inner volume of to a fog volume geometry");
+      .description("Mesh to convert the inner volume to a fog volume geometry");
   b.add_input<decl::Float>("Density").default_value(1.0f).min(0.01f).max(FLT_MAX);
   b.add_input<decl::Menu>("Resolution Mode")
       .static_items(resolution_mode_items)
