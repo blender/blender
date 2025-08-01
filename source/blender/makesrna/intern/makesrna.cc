@@ -2180,6 +2180,17 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
     case PROP_ENUM: {
       EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 
+      if (dp->enumbitflags && eprop->item_fn &&
+          !(eprop->item != rna_enum_dummy_NULL_items || eprop->set || eprop->set_ex))
+      {
+        CLOG_ERROR(&LOG,
+                   "%s.%s, bitflag enum should not define an `item` callback function, unless "
+                   "they also define a static list of items, or a custom `set` callback.",
+                   srna->identifier,
+                   prop->identifier);
+        DefRNA.error = true;
+      }
+
       if (!(prop->flag & PROP_EDITABLE) && (eprop->set || eprop->set_ex)) {
         CLOG_ERROR(&LOG,
                    "%s.%s, is read-only but has defines a \"set\" callback.",
@@ -4210,10 +4221,11 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
         else {
           if (!defaultfound && !(eprop->item_fn && eprop->item == rna_enum_dummy_NULL_items)) {
             CLOG_ERROR(&LOG,
-                       "%s%s.%s, enum default is not in items.",
+                       "%s%s.%s, enum default '%d' is not in items.",
                        srna->identifier,
                        errnest,
-                       prop->identifier);
+                       prop->identifier,
+                       eprop->defaultvalue);
             DefRNA.error = true;
           }
         }

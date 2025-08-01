@@ -5371,6 +5371,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   prop = RNA_def_property(srna, "header_align", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, header_align_items);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "uiflag");
+  RNA_def_property_enum_default(prop, USER_HEADER_FROM_PREF | USER_HEADER_BOTTOM);
   RNA_def_property_ui_text(prop, "Header Position", "Default header position for new space-types");
   RNA_def_property_update(prop, 0, "rna_userdef_screen_update_header_default");
 
