@@ -57,10 +57,9 @@ function(add_blender_test testname)
   )
 endfunction()
 
-function(add_blender_test_io testname)
-  # Remove `--debug-exit-on-error` since errors
-  # are printed on e.g. meshes with invalid data. But
-  # we do want to test those in import tests.
+function(add_blender_test_allow_error testname)
+  # Remove `--debug-exit-on-error` since errors are printed on e.g. meshes with
+  # invalid data or failed image loading, but sometimes we want to test those.
   set(EXE_PARAMS ${TEST_BLENDER_EXE_PARAMS})
   list(REMOVE_ITEM EXE_PARAMS --debug-exit-on-error)
   add_blender_test_impl(
@@ -1179,7 +1178,7 @@ if(WITH_USD AND TEST_SRC_DIR_EXISTS)
 endif()
 
 if(TEST_SRC_DIR_EXISTS)
-  add_blender_test_io(
+  add_blender_test_allow_error(
     io_fbx_import
     --python ${CMAKE_CURRENT_LIST_DIR}/io_fbx_import_test.py
     --
@@ -1189,7 +1188,7 @@ if(TEST_SRC_DIR_EXISTS)
 endif()
 
 if(WITH_IO_WAVEFRONT_OBJ AND TEST_SRC_DIR_EXISTS)
-  add_blender_test_io(
+  add_blender_test_allow_error(
     io_obj_import
     --python ${CMAKE_CURRENT_LIST_DIR}/io_obj_import_test.py
     --
@@ -1199,7 +1198,7 @@ if(WITH_IO_WAVEFRONT_OBJ AND TEST_SRC_DIR_EXISTS)
 endif()
 
 if(WITH_IO_PLY AND TEST_SRC_DIR_EXISTS)
-  add_blender_test_io(
+  add_blender_test_allow_error(
     io_ply_import
     --python ${CMAKE_CURRENT_LIST_DIR}/io_ply_import_test.py
     --
@@ -1209,7 +1208,7 @@ if(WITH_IO_PLY AND TEST_SRC_DIR_EXISTS)
 endif()
 
 if(WITH_IO_STL AND TEST_SRC_DIR_EXISTS)
-  add_blender_test_io(
+  add_blender_test_allow_error(
     io_stl_import
     --python ${CMAKE_CURRENT_LIST_DIR}/io_stl_import_test.py
     --
@@ -1252,7 +1251,7 @@ if(TEST_SRC_DIR_EXISTS AND TEST_OPENIMAGEIO_TOOL_EXISTS)
     -optional_formats "${OPTIONAL_FORMATS}"
   )
 
-  add_blender_test(
+  add_blender_test_allow_error(
     imbuf_load
     --python ${CMAKE_CURRENT_LIST_DIR}/bl_imbuf_load.py
     --
