@@ -910,14 +910,14 @@ wmKeyMap *WM_gizmo_keymap_generic_drag(wmWindowManager *wm)
   return WM_gizmo_keymap_generic_drag_with_keyconfig(wm->defaultconf);
 }
 
-wmKeyMap *WM_gizmo_keymap_generic_click_drag_with_keyconfig(wmKeyConfig *kc)
+wmKeyMap *WM_gizmo_keymap_generic_press_drag_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo Click Drag";
   return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
-wmKeyMap *WM_gizmo_keymap_generic_click_drag(wmWindowManager *wm)
+wmKeyMap *WM_gizmo_keymap_generic_press_drag(wmWindowManager *wm)
 {
-  return WM_gizmo_keymap_generic_click_drag_with_keyconfig(wm->defaultconf);
+  return WM_gizmo_keymap_generic_press_drag_with_keyconfig(wm->defaultconf);
 }
 
 wmKeyMap *WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(wmKeyConfig *kc)
