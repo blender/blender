@@ -221,6 +221,17 @@ std::string CombineBundleItemsAccessor::validate_name(const StringRef name)
       result += c;
     }
   }
+  if (!result.empty()) {
+    /* Disallow leading spaces.*/
+    if (std::isspace(result[0])) {
+      result[0] = '_';
+    }
+    /* Disallow trailing spaces.*/
+    const int last_index = result.size() - 1;
+    if (std::isspace(result[last_index])) {
+      result[last_index] = '_';
+    }
+  }
   return result;
 }
 
