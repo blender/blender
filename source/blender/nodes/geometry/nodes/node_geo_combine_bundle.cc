@@ -138,20 +138,32 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeSocket &other_socket = params.other_socket();
-  if (other_socket.type != SOCK_BUNDLE) {
-    return;
-  }
   if (other_socket.in_out == SOCK_OUT) {
-    return;
+    if (!CombineBundleItemsAccessor::supports_socket_type(other_socket.typeinfo->type,
+                                                          params.node_tree().type))
+    {
+      return;
+    }
+    params.add_item("Item", [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("NodeCombineBundle");
+      const auto *item =
+          socket_items::add_item_with_socket_type_and_name<CombineBundleItemsAccessor>(
+              params.node_tree, node, params.socket.typeinfo->type, params.socket.name);
+      params.update_and_connect_available_socket(node, item->name);
+    });
   }
+  else {
+    if (other_socket.type != SOCK_BUNDLE) {
+      return;
+    }
+    params.add_item("Bundle", [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("NodeCombineBundle");
+      params.connect_available_socket(node, "Bundle");
 
-  params.add_item("Bundle", [](LinkSearchOpParams &params) {
-    bNode &node = params.add_node("NodeCombineBundle");
-    params.connect_available_socket(node, "Bundle");
-
-    SpaceNode &snode = *CTX_wm_space_node(&params.C);
-    sync_sockets_combine_bundle(snode, node, nullptr);
-  });
+      SpaceNode &snode = *CTX_wm_space_node(&params.C);
+      sync_sockets_combine_bundle(snode, node, nullptr);
+    });
+  }
 }
 
 static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)

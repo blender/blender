@@ -56,6 +56,8 @@ class LinkSearchOpParams {
    * and connect it to the socket the link drag started from (#socket).
    */
   void connect_available_socket(bNode &new_node, StringRef socket_name);
+  void connect_available_socket_by_identifier(bNode &new_node, StringRef socket_identifier);
+  void connect_socket(bNode &new_node, bNodeSocket &new_socket);
   /**
    * Like #connect_available_socket, but also calls the node's update function.
    */

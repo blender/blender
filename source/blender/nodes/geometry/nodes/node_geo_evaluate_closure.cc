@@ -136,20 +136,41 @@ static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeSocket &other_socket = params.other_socket();
-  if (other_socket.type != SOCK_CLOSURE) {
-    return;
-  }
   if (other_socket.in_out == SOCK_IN) {
+    params.add_item("Item", [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("NodeEvaluateClosure");
+      const auto *item =
+          socket_items::add_item_with_socket_type_and_name<EvaluateClosureOutputItemsAccessor>(
+              params.node_tree, node, params.socket.typeinfo->type, params.socket.name);
+      params.update_and_connect_available_socket(node, item->name);
+    });
     return;
   }
+  if (other_socket.type == SOCK_CLOSURE) {
+    params.add_item("Closure", [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("NodeEvaluateClosure");
+      params.connect_available_socket(node, "Closure");
 
-  params.add_item("Closure", [](LinkSearchOpParams &params) {
-    bNode &node = params.add_node("NodeEvaluateClosure");
-    params.connect_available_socket(node, "Closure");
-
-    SpaceNode &snode = *CTX_wm_space_node(&params.C);
-    sync_sockets_evaluate_closure(snode, node, nullptr);
-  });
+      SpaceNode &snode = *CTX_wm_space_node(&params.C);
+      sync_sockets_evaluate_closure(snode, node, nullptr);
+    });
+  }
+  if (EvaluateClosureInputItemsAccessor::supports_socket_type(other_socket.typeinfo->type,
+                                                              params.node_tree().type))
+  {
+    params.add_item(
+        "Item",
+        [](LinkSearchOpParams &params) {
+          bNode &node = params.add_node("NodeEvaluateClosure");
+          const auto *item =
+              socket_items::add_item_with_socket_type_and_name<EvaluateClosureInputItemsAccessor>(
+                  params.node_tree, node, params.socket.typeinfo->type, params.socket.name);
+          nodes::update_node_declaration_and_sockets(params.node_tree, node);
+          params.connect_available_socket_by_identifier(
+              node, EvaluateClosureInputItemsAccessor::socket_identifier_for_item(*item));
+        },
+        other_socket.type == SOCK_CLOSURE ? -1 : 0);
+  }
 }
 
 static void node_operators()
