@@ -162,7 +162,7 @@ static void ntree_copy_data(Main * /*bmain*/,
   LISTBASE_FOREACH_INDEX (const bNode *, src_node, &ntree_src->nodes, i) {
     /* Don't find a unique name for every node, since they should have valid names already. */
     bNode *new_node = node_copy_with_mapping(
-        ntree_dst, *src_node, flag_subdata, false, socket_map);
+        ntree_dst, *src_node, flag_subdata, src_node->name, src_node->identifier, socket_map);
     dst_runtime.nodes_by_id.add_new(new_node);
     new_node->runtime->index_in_tree = i;
   }
@@ -3353,20 +3353,28 @@ static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src,
 bNode *node_copy_with_mapping(bNodeTree *dst_tree,
                               const bNode &node_src,
                               const int flag,
-                              const bool use_unique,
+                              const std::optional<StringRefNull> dst_unique_name,
+                              const std::optional<int> dst_unique_identifier,
                               Map<const bNodeSocket *, bNodeSocket *> &socket_map)
 {
   bNode *node_dst = MEM_mallocN<bNode>(__func__);
   *node_dst = node_src;
-
   node_dst->runtime = MEM_new<bNodeRuntime>(__func__);
+  if (dst_unique_name) {
+    STRNCPY_UTF8(node_dst->name, dst_unique_name->c_str());
+  }
+  else if (dst_tree) {
+    node_unique_name(*dst_tree, *node_dst);
+  }
+  if (dst_unique_identifier) {
+    node_dst->identifier = *dst_unique_identifier;
+  }
+  else if (dst_tree) {
+    node_unique_id(*dst_tree, *node_dst);
+  }
 
   /* Can be called for nodes outside a node tree (e.g. clipboard). */
   if (dst_tree) {
-    if (use_unique) {
-      node_unique_name(*dst_tree, *node_dst);
-      node_unique_id(*dst_tree, *node_dst);
-    }
     BLI_addtail(&dst_tree->nodes, node_dst);
   }
 
@@ -3566,7 +3574,13 @@ void node_socket_move_default_value(Main & /*bmain*/,
 bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, const int flag, const bool use_unique)
 {
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
-  return node_copy_with_mapping(dst_tree, src_node, flag, use_unique, socket_map);
+  return node_copy_with_mapping(
+      dst_tree,
+      src_node,
+      flag,
+      use_unique ? std::nullopt : std::make_optional<StringRefNull>(src_node.name),
+      use_unique ? std::nullopt : std::make_optional(src_node.identifier),
+      socket_map);
 }
 
 static int node_count_links(const bNodeTree *ntree, const bNodeSocket *socket)

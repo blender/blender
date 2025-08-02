@@ -1425,7 +1425,7 @@ static wmOperatorStatus node_duplicate_exec(bContext *C, wmOperator *op)
 
   for (bNode *node : get_selected_nodes(*ntree)) {
     bNode *new_node = bke::node_copy_with_mapping(
-        ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
+        ntree, *node, LIB_ID_COPY_DEFAULT, std::nullopt, std::nullopt, socket_map);
     node_map.add_new(node, new_node);
 
     if (node->id && dupli_node_tree) {

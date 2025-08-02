@@ -227,8 +227,13 @@ struct NodeClipboard {
   {
     /* No ID reference-counting, this node is virtual,
      * detached from any actual Blender data currently. */
-    bNode *new_node = bke::node_copy_with_mapping(
-        nullptr, node, LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_MAIN, false, socket_map);
+    bNode *new_node = bke::node_copy_with_mapping(nullptr,
+                                                  node,
+                                                  LIB_ID_CREATE_NO_USER_REFCOUNT |
+                                                      LIB_ID_CREATE_NO_MAIN,
+                                                  node.name,
+                                                  node.identifier,
+                                                  socket_map);
     node_map.add_new(&node, new_node);
 
     /* Find a new valid ID pointer for all ID usages in given node. */
@@ -387,7 +392,7 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
     /* Do not access referenced ID pointers here, as they are still the old ones, which may be
      * invalid. */
     bNode *new_node = bke::node_copy_with_mapping(
-        &tree, node, LIB_ID_CREATE_NO_USER_REFCOUNT, true, socket_map);
+        &tree, node, LIB_ID_CREATE_NO_USER_REFCOUNT, std::nullopt, std::nullopt, socket_map);
     /* Update the newly copied node's ID references. */
     clipboard.paste_update_node_id_references(*new_node);
     /* Reset socket shape in case a node is copied to a different tree type. */

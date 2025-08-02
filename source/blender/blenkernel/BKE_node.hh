@@ -964,14 +964,15 @@ void node_rebuild_id_vector(bNodeTree &node_tree);
 
 /**
  * \note keeps socket list order identical, for copying links.
- * \param use_unique: If true, make sure the node's identifier and name are unique in the new
- * tree. Must be *true* if the \a dst_tree had nodes that weren't in the source node's tree.
- * Must be *false* when simply copying a node tree, so that identifiers don't change.
+ * \param dst_name: The name of the copied node. This is expected to be unique in the destination
+ * tree if provided. If not provided, the src name is used and made unique.
+ * \param dst_identifier: Same ad dst_name, but for the identifier.
  */
 bNode *node_copy_with_mapping(bNodeTree *dst_tree,
                               const bNode &node_src,
                               int flag,
-                              bool use_unique,
+                              std::optional<StringRefNull> dst_unique_name,
+                              std::optional<int> dst_unique_identifier,
                               Map<const bNodeSocket *, bNodeSocket *> &new_socket_map);
 
 bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, int flag, bool use_unique);
