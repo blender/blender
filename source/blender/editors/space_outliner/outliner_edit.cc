@@ -276,7 +276,7 @@ static wmOperatorStatus outliner_item_openclose_invoke(bContext *C,
     outliner_tag_redraw_avoid_rebuild_on_open_change(space_outliner, region);
 
     /* Only toggle once for single click toggling */
-    if ((event->type == LEFTMOUSE) && (event->val != KM_CLICK_DRAG)) {
+    if ((event->type == LEFTMOUSE) && (event->val != KM_PRESS_DRAG)) {
       return OPERATOR_FINISHED;
     }
 

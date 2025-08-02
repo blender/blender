@@ -198,7 +198,7 @@ static bool wm_keymap_item_equals(wmKeyMapItem *a, wmKeyMapItem *b)
   return (wm_keymap_item_equals_result(a, b) && a->type == b->type && a->val == b->val &&
           a->shift == b->shift && a->ctrl == b->ctrl && a->alt == b->alt && a->oskey == b->oskey &&
           a->hyper == b->hyper && a->keymodifier == b->keymodifier && a->maptype == b->maptype &&
-          ((a->val != KM_CLICK_DRAG) || (a->direction == b->direction)) &&
+          ((a->val != KM_PRESS_DRAG) || (a->direction == b->direction)) &&
           ((ISKEYBOARD(a->type) == 0) ||
            (a->flag & KMI_REPEAT_IGNORE) == (b->flag & KMI_REPEAT_IGNORE)));
 }
@@ -1236,7 +1236,7 @@ std::optional<std::string> WM_keymap_item_raw_to_string(const int8_t shift,
     if (val == KM_DBL_CLICK) {
       result_array.append(IFACE_("dbl-"));
     }
-    else if (val == KM_CLICK_DRAG) {
+    else if (val == KM_PRESS_DRAG) {
       result_array.append(IFACE_("drag-"));
     }
     result_array.append(WM_key_event_string(type, compact));
@@ -1723,7 +1723,7 @@ bool WM_keymap_item_compare(const wmKeyMapItem *k1, const wmKeyMapItem *k2)
     if (k1->val != k2->val) {
       return false;
     }
-    if (k1->val == KM_CLICK_DRAG && (k1->direction != k2->direction)) {
+    if (k1->val == KM_PRESS_DRAG && (k1->direction != k2->direction)) {
       return false;
     }
   }

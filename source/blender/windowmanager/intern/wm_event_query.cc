@@ -252,14 +252,14 @@ bool WM_event_is_modal_drag_exit(const wmEvent *event,
   if (U.flag & USER_RELEASECONFIRM) {
     /* Option on, so can exit with km-release. */
     if (event->val == KM_RELEASE) {
-      if ((init_event_val == KM_CLICK_DRAG) && (event->type == init_event_type)) {
+      if ((init_event_val == KM_PRESS_DRAG) && (event->type == init_event_type)) {
         return true;
       }
     }
     else {
       /* If the initial event wasn't a drag event then
        * ignore #USER_RELEASECONFIRM setting: see #26756. */
-      if (init_event_val != KM_CLICK_DRAG) {
+      if (init_event_val != KM_PRESS_DRAG) {
         return true;
       }
     }
@@ -277,7 +277,7 @@ bool WM_event_is_modal_drag_exit(const wmEvent *event,
 
 bool WM_event_is_mouse_drag(const wmEvent *event)
 {
-  return (ISMOUSE_BUTTON(event->type) && (event->val == KM_CLICK_DRAG));
+  return (ISMOUSE_BUTTON(event->type) && (event->val == KM_PRESS_DRAG));
 }
 
 bool WM_event_is_mouse_drag_or_press(const wmEvent *event)
@@ -439,21 +439,21 @@ bool WM_event_drag_test(const wmEvent *event, const int prev_xy[2])
 
 void WM_event_drag_start_mval(const wmEvent *event, const ARegion *region, int r_mval[2])
 {
-  const int *xy = (event->val == KM_CLICK_DRAG) ? event->prev_press_xy : event->xy;
+  const int *xy = (event->val == KM_PRESS_DRAG) ? event->prev_press_xy : event->xy;
   r_mval[0] = xy[0] - region->winrct.xmin;
   r_mval[1] = xy[1] - region->winrct.ymin;
 }
 
 void WM_event_drag_start_mval_fl(const wmEvent *event, const ARegion *region, float r_mval[2])
 {
-  const int *xy = (event->val == KM_CLICK_DRAG) ? event->prev_press_xy : event->xy;
+  const int *xy = (event->val == KM_PRESS_DRAG) ? event->prev_press_xy : event->xy;
   r_mval[0] = xy[0] - region->winrct.xmin;
   r_mval[1] = xy[1] - region->winrct.ymin;
 }
 
 void WM_event_drag_start_xy(const wmEvent *event, int r_xy[2])
 {
-  copy_v2_v2_int(r_xy, (event->val == KM_CLICK_DRAG) ? event->prev_press_xy : event->xy);
+  copy_v2_v2_int(r_xy, (event->val == KM_PRESS_DRAG) ? event->prev_press_xy : event->xy);
 }
 
 /** \} */

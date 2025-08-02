@@ -812,7 +812,7 @@ static wmKeyMap *WM_gizmogroup_keymap_template_select_ex(wmKeyConfig *kc,
   const int action_mouse = (U.flag & USER_LMOUSESELECT) ? RIGHTMOUSE : LEFTMOUSE;
 #else
   const int select_mouse = RIGHTMOUSE, select_mouse_val = KM_PRESS;
-  const int select_tweak = RIGHTMOUSE, select_tweak_val = KM_CLICK_DRAG;
+  const int select_tweak = RIGHTMOUSE, select_tweak_val = KM_PRESS_DRAG;
   const int action_mouse = LEFTMOUSE, action_mouse_val = KM_PRESS;
 #endif
 

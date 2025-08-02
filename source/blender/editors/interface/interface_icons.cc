@@ -693,13 +693,13 @@ int UI_icon_from_event_type(short event_type, short event_value)
     if (event_value == KM_DBL_CLICK) {
       return ICON_MOUSE_LMB_2X;
     }
-    return (event_value == KM_CLICK_DRAG) ? ICON_MOUSE_LMB_DRAG : ICON_MOUSE_LMB;
+    return (event_value == KM_PRESS_DRAG) ? ICON_MOUSE_LMB_DRAG : ICON_MOUSE_LMB;
   }
   if (event_type == MIDDLEMOUSE) {
-    return (event_value == KM_CLICK_DRAG) ? ICON_MOUSE_MMB_DRAG : ICON_MOUSE_MMB;
+    return (event_value == KM_PRESS_DRAG) ? ICON_MOUSE_MMB_DRAG : ICON_MOUSE_MMB;
   }
   if (event_type == RIGHTMOUSE) {
-    return (event_value == KM_CLICK_DRAG) ? ICON_MOUSE_MMB_DRAG : ICON_MOUSE_RMB;
+    return (event_value == KM_PRESS_DRAG) ? ICON_MOUSE_MMB_DRAG : ICON_MOUSE_RMB;
   }
 
   return ICON_NONE;

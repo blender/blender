@@ -480,7 +480,7 @@ const EnumPropertyItem rna_enum_event_value_items[] = {
     {KM_RELEASE, "RELEASE", 0, "Release", ""},
     {KM_CLICK, "CLICK", 0, "Click", ""},
     {KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
-    {KM_CLICK_DRAG, "CLICK_DRAG", 0, "Drag", ""},
+    {KM_PRESS_DRAG, "CLICK_DRAG", 0, "Drag", ""},
     /* Used for NDOF and trackpad events. */
     {KM_NOTHING, "NOTHING", 0, "Nothing", ""},
     {0, nullptr, 0, nullptr, nullptr},
