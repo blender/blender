@@ -82,7 +82,7 @@ struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefa
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return socket_type_supported_in_bundle(socket_type);
   }
@@ -158,7 +158,7 @@ struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDef
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return socket_type_supported_in_bundle(socket_type);
   }

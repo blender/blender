@@ -64,7 +64,7 @@ struct RepeatItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return ELEM(socket_type,
                 SOCK_FLOAT,

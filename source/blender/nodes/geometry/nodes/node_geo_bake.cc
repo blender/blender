@@ -562,7 +562,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     });
     return;
   }
-  if (!BakeItemsAccessor::supports_socket_type(type)) {
+  if (!BakeItemsAccessor::supports_socket_type(type, params.node_tree().type)) {
     return;
   }
 
@@ -571,7 +571,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
       [type](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeBake");
         socket_items::add_item_with_socket_type_and_name<BakeItemsAccessor>(
-            node, type, params.socket.name);
+            params.node_tree, node, type, params.socket.name);
         params.update_and_connect_available_socket(node, params.socket.name);
       },
       -1);

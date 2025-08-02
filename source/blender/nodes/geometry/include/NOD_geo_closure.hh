@@ -82,7 +82,7 @@ struct ClosureInputItemsAccessor : public socket_items::SocketItemsAccessorDefau
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return socket_type_supported_in_closure(socket_type);
   }
@@ -156,7 +156,7 @@ struct ClosureOutputItemsAccessor : public socket_items::SocketItemsAccessorDefa
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return socket_type_supported_in_closure(socket_type);
   }
@@ -230,7 +230,7 @@ struct EvaluateClosureInputItemsAccessor : public socket_items::SocketItemsAcces
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return socket_type_supported_in_closure(socket_type);
   }
@@ -306,7 +306,7 @@ struct EvaluateClosureOutputItemsAccessor : public socket_items::SocketItemsAcce
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return socket_type_supported_in_closure(socket_type);
   }

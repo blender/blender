@@ -882,7 +882,9 @@ static void node_extra_info(NodeExtraInfoParams &params)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeSocket &other_socket = params.other_socket();
-  if (!SimulationItemsAccessor::supports_socket_type(eNodeSocketDatatype(other_socket.type))) {
+  if (!SimulationItemsAccessor::supports_socket_type(eNodeSocketDatatype(other_socket.type),
+                                                     params.node_tree().type))
+  {
     return;
   }
   params.add_item_full_name(IFACE_("Simulation"), [](LinkSearchOpParams &params) {
@@ -895,7 +897,10 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
     socket_items::clear<SimulationItemsAccessor>(output_node);
     socket_items::add_item_with_socket_type_and_name<SimulationItemsAccessor>(
-        output_node, eNodeSocketDatatype(params.socket.type), params.socket.name);
+        params.node_tree,
+        output_node,
+        eNodeSocketDatatype(params.socket.type),
+        params.socket.name);
     update_node_declaration_and_sockets(params.node_tree, input_node);
     update_node_declaration_and_sockets(params.node_tree, output_node);
     if (params.socket.in_out == SOCK_IN) {
