@@ -331,6 +331,9 @@ static bool socket_type_to_static_decl_type(const eNodeSocketDatatype socket_typ
     case SOCK_RGBA:
       fn(TypeTag<decl::Color>());
       return true;
+    case SOCK_SHADER:
+      fn(TypeTag<decl::Shader>());
+      return true;
     case SOCK_BOOLEAN:
       fn(TypeTag<decl::Bool>());
       return true;
