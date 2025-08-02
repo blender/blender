@@ -382,6 +382,7 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Marker"
+    bl_translation_context = i18n_contexts.id_movieclip
     bl_category = "Track"
 
     def draw(self, _context):
@@ -974,6 +975,7 @@ class CLIP_PT_marker(CLIP_PT_tracking_panel, Panel):
     bl_region_type = 'UI'
     bl_category = "Track"
     bl_label = "Marker"
+    bl_translation_context = i18n_contexts.id_movieclip
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
