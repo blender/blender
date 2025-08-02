@@ -287,11 +287,11 @@ void Bundle::delete_self()
 
 BundleSignature BundleSignature::from_combine_bundle_node(const bNode &node)
 {
-  BLI_assert(node.is_type("GeometryNodeCombineBundle"));
-  const auto &storage = *static_cast<const NodeGeometryCombineBundle *>(node.storage);
+  BLI_assert(node.is_type("NodeCombineBundle"));
+  const auto &storage = *static_cast<const NodeCombineBundle *>(node.storage);
   BundleSignature signature;
   for (const int i : IndexRange(storage.items_num)) {
-    const NodeGeometryCombineBundleItem &item = storage.items[i];
+    const NodeCombineBundleItem &item = storage.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
       signature.items.add({item.name, stype});
     }
@@ -301,11 +301,11 @@ BundleSignature BundleSignature::from_combine_bundle_node(const bNode &node)
 
 BundleSignature BundleSignature::from_separate_bundle_node(const bNode &node)
 {
-  BLI_assert(node.is_type("GeometryNodeSeparateBundle"));
-  const auto &storage = *static_cast<const NodeGeometrySeparateBundle *>(node.storage);
+  BLI_assert(node.is_type("NodeSeparateBundle"));
+  const auto &storage = *static_cast<const NodeSeparateBundle *>(node.storage);
   BundleSignature signature;
   for (const int i : IndexRange(storage.items_num)) {
-    const NodeGeometrySeparateBundleItem &item = storage.items[i];
+    const NodeSeparateBundleItem &item = storage.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
       signature.items.add({item.name, stype});
     }

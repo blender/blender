@@ -404,7 +404,7 @@ const ComputeContext *compute_context_for_zone(const bke::bNodeTreeZone &zone,
       return &compute_context_cache.for_foreach_geometry_element_zone(
           parent_compute_context, output_node, storage.inspection_index);
     }
-    case GEO_NODE_CLOSURE_OUTPUT: {
+    case NODE_CLOSURE_OUTPUT: {
       nodes::ClosureSourceLocation source_location{};
       const bNodeTree &tree = output_node.owner_tree();
       source_location.tree = &tree;

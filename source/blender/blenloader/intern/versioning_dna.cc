@@ -33,5 +33,32 @@ void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversion
     }
   }
 
+  if (!DNA_VERSION_ATLEAST(500, 51)) {
+    /* These old struct names were only used by an experimental feature. They were renamed before
+     * the feature became official. This versioning just allows to read old files but does not
+     * provide forward compatibility. */
+    DNA_sdna_patch_struct_by_name(sdna, "NodeGeometryClosureInput", "NodeClosureInput");
+    DNA_sdna_patch_struct_by_name(sdna, "NodeGeometryClosureInputItem", "NodeClosureInputItem");
+    DNA_sdna_patch_struct_by_name(sdna, "NodeGeometryClosureOutputItem", "NodeClosureOutputItem");
+    DNA_sdna_patch_struct_by_name(sdna, "NodeGeometryClosureInputItems", "NodeClosureInputItems");
+    DNA_sdna_patch_struct_by_name(
+        sdna, "NodeGeometryClosureOutputItems", "NodeClosureOutputItems");
+    DNA_sdna_patch_struct_by_name(sdna, "NodeGeometryClosureOutput", "NodeClosureOutput");
+    DNA_sdna_patch_struct_by_name(
+        sdna, "NodeGeometryEvaluateClosureInputItem", "NodeEvaluateClosureInputItem");
+    DNA_sdna_patch_struct_by_name(
+        sdna, "NodeGeometryEvaluateClosureOutputItem", "NodeEvaluateClosureOutputItem");
+    DNA_sdna_patch_struct_by_name(
+        sdna, "NodeGeometryEvaluateClosureInputItems", "NodeEvaluateClosureInputItems");
+    DNA_sdna_patch_struct_by_name(
+        sdna, "NodeGeometryEvaluateClosureOutputItems", "NodeEvaluateClosureOutputItems");
+    DNA_sdna_patch_struct_by_name(sdna, "NodeGeometryEvaluateClosure", "NodeEvaluateClosure");
+    DNA_sdna_patch_struct_by_name(sdna, "NodeGeometryCombineBundleItem", "NodeCombineBundleItem");
+    DNA_sdna_patch_struct_by_name(sdna, "NodeGeometryCombineBundle", "NodeCombineBundle");
+    DNA_sdna_patch_struct_by_name(
+        sdna, "NodeGeometrySeparateBundleItem", "NodeSeparateBundleItem");
+    DNA_sdna_patch_struct_by_name(sdna, "NodeGeometrySeparateBundle", "NodeSeparateBundle");
+  }
+
 #undef DNA_VERSION_ATLEAST
 }

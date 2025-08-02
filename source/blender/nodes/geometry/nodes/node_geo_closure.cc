@@ -42,7 +42,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   layout->use_property_decorate_set(false);
 
   layout->op("node.sockets_sync", "Sync", ICON_FILE_REFRESH);
-  if (current_node->type_legacy == GEO_NODE_CLOSURE_INPUT) {
+  if (current_node->type_legacy == NODE_CLOSURE_INPUT) {
     if (uiLayout *panel = layout->panel(C, "input_items", false, TIP_("Input Items"))) {
       socket_items::ui::draw_items_list_with_operators<ClosureInputItemsAccessor>(
           C, panel, ntree, output_node);
@@ -67,20 +67,19 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
 
 namespace input_node {
 
-NODE_STORAGE_FUNCS(NodeGeometryClosureInput);
+NODE_STORAGE_FUNCS(NodeClosureInput);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
   const bNode *node = b.node_or_null();
   const bNodeTree *tree = b.tree_or_null();
   if (node && tree) {
-    const NodeGeometryClosureInput &storage = node_storage(*node);
+    const NodeClosureInput &storage = node_storage(*node);
     const bNode *output_node = tree->node_by_id(storage.output_node_id);
     if (output_node) {
-      const auto &output_storage = *static_cast<const NodeGeometryClosureOutput *>(
-          output_node->storage);
+      const auto &output_storage = *static_cast<const NodeClosureOutput *>(output_node->storage);
       for (const int i : IndexRange(output_storage.input_items.items_num)) {
-        const NodeGeometryClosureInputItem &item = output_storage.input_items.items[i];
+        const NodeClosureInputItem &item = output_storage.input_items.items[i];
         const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
         const std::string identifier = ClosureInputItemsAccessor::socket_identifier_for_item(item);
         b.add_output(socket_type, item.name, identifier);
@@ -100,7 +99,7 @@ static void node_label(const bNodeTree * /*ntree*/,
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryClosureInput *data = MEM_callocN<NodeGeometryClosureInput>(__func__);
+  NodeClosureInput *data = MEM_callocN<NodeClosureInput>(__func__);
   node->storage = data;
 }
 
@@ -117,7 +116,7 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, "GeometryNodeClosureInput", GEO_NODE_CLOSURE_INPUT);
+  geo_node_type_base(&ntype, "NodeClosureInput", NODE_CLOSURE_INPUT);
   ntype.ui_name = "Closure Input";
   ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.declare = node_declare;
@@ -128,7 +127,7 @@ static void node_register()
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
   blender::bke::node_type_storage(
-      ntype, "NodeGeometryClosureInput", node_free_standard_storage, node_copy_standard_storage);
+      ntype, "NodeClosureInput", node_free_standard_storage, node_copy_standard_storage);
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
@@ -137,16 +136,16 @@ NOD_REGISTER_NODE(node_register)
 
 namespace output_node {
 
-NODE_STORAGE_FUNCS(NodeGeometryClosureOutput);
+NODE_STORAGE_FUNCS(NodeClosureOutput);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
   const bNodeTree *tree = b.tree_or_null();
   const bNode *node = b.node_or_null();
   if (node && tree) {
-    const NodeGeometryClosureOutput &storage = node_storage(*node);
+    const NodeClosureOutput &storage = node_storage(*node);
     for (const int i : IndexRange(storage.output_items.items_num)) {
-      const NodeGeometryClosureOutputItem &item = storage.output_items.items[i];
+      const NodeClosureOutputItem &item = storage.output_items.items[i];
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
       const std::string identifier = ClosureOutputItemsAccessor::socket_identifier_for_item(item);
       b.add_input(socket_type, item.name, identifier).supports_field();
@@ -158,14 +157,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryClosureOutput *data = MEM_callocN<NodeGeometryClosureOutput>(__func__);
+  NodeClosureOutput *data = MEM_callocN<NodeClosureOutput>(__func__);
   node->storage = data;
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
-  const NodeGeometryClosureOutput &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<NodeGeometryClosureOutput>(__func__, src_storage);
+  const NodeClosureOutput &src_storage = node_storage(*src_node);
+  auto *dst_storage = MEM_dupallocN<NodeClosureOutput>(__func__, src_storage);
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<ClosureInputItemsAccessor>(*src_node, *dst_node);
@@ -183,11 +182,11 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
   if (params.C && params.link.fromnode == &params.node && params.link.tosock->type == SOCK_CLOSURE)
   {
-    const NodeGeometryClosureOutput &storage = node_storage(params.node);
+    const NodeClosureOutput &storage = node_storage(params.node);
     if (storage.input_items.items_num == 0 && storage.output_items.items_num == 0) {
       SpaceNode *snode = CTX_wm_space_node(params.C);
       if (snode && snode->edittree == &params.ntree) {
-        bNode *input_node = bke::zone_type_by_node_type(GEO_NODE_CLOSURE_OUTPUT)
+        bNode *input_node = bke::zone_type_by_node_type(NODE_CLOSURE_OUTPUT)
                                 ->get_corresponding_input(params.ntree, params.node);
         if (input_node) {
           sync_sockets_closure(*snode, *input_node, params.node, nullptr, params.link.tosock);
@@ -216,11 +215,11 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     return;
   }
   params.add_item_full_name(IFACE_("Closure"), [](LinkSearchOpParams &params) {
-    bNode &input_node = params.add_node("GeometryNodeClosureInput");
-    bNode &output_node = params.add_node("GeometryNodeClosureOutput");
+    bNode &input_node = params.add_node("NodeClosureInput");
+    bNode &output_node = params.add_node("NodeClosureOutput");
     output_node.location[0] = 300;
 
-    auto &input_storage = *static_cast<NodeGeometryClosureInput *>(input_node.storage);
+    auto &input_storage = *static_cast<NodeClosureInput *>(input_node.storage);
     input_storage.output_node_id = output_node.identifier;
 
     params.connect_available_socket(output_node, "Closure");
@@ -245,7 +244,7 @@ static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, "GeometryNodeClosureOutput", GEO_NODE_CLOSURE_OUTPUT);
+  geo_node_type_base(&ntype, "NodeClosureOutput", NODE_CLOSURE_OUTPUT);
   ntype.ui_name = "Closure Output";
   ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.declare = node_declare;
@@ -258,7 +257,7 @@ static void node_register()
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
-  bke::node_type_storage(ntype, "NodeGeometryClosureOutput", node_free_storage, node_copy_storage);
+  bke::node_type_storage(ntype, "NodeClosureOutput", node_free_storage, node_copy_storage);
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
@@ -269,7 +268,7 @@ NOD_REGISTER_NODE(node_register)
 
 namespace blender::nodes {
 
-StructRNA *ClosureInputItemsAccessor::item_srna = &RNA_NodeGeometryClosureInputItem;
+StructRNA *ClosureInputItemsAccessor::item_srna = &RNA_NodeClosureInputItem;
 
 void ClosureInputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
@@ -281,7 +280,7 @@ void ClosureInputItemsAccessor::blend_read_data_item(BlendDataReader *reader, It
   BLO_read_string(reader, &item.name);
 }
 
-StructRNA *ClosureOutputItemsAccessor::item_srna = &RNA_NodeGeometryClosureOutputItem;
+StructRNA *ClosureOutputItemsAccessor::item_srna = &RNA_NodeClosureOutputItem;
 
 void ClosureOutputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

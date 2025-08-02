@@ -295,18 +295,18 @@ static Vector<ReferenceSetInfo> find_reference_sets(
   }
   /* Each output of the Evaluate Closure node may reference data in any other output. We can't know
    * exactly what references what here. */
-  for (const bNode *node : tree.nodes_by_type("GeometryNodeEvaluateClosure")) {
-    const auto &storage = *static_cast<NodeGeometryEvaluateClosure *>(node->storage);
+  for (const bNode *node : tree.nodes_by_type("NodeEvaluateClosure")) {
+    const auto &storage = *static_cast<NodeEvaluateClosure *>(node->storage);
     Vector<const bNodeSocket *> reference_outputs;
     for (const int i : IndexRange(storage.output_items.items_num)) {
-      const NodeGeometryEvaluateClosureOutputItem &item = storage.output_items.items[i];
+      const NodeEvaluateClosureOutputItem &item = storage.output_items.items[i];
       if (can_contain_referenced_data(eNodeSocketDatatype(item.socket_type))) {
         reference_outputs.append(&node->output_socket(i));
       }
     }
     if (!reference_outputs.is_empty()) {
       for (const int i : IndexRange(storage.output_items.items_num)) {
-        const NodeGeometryEvaluateClosureOutputItem &item = storage.output_items.items[i];
+        const NodeEvaluateClosureOutputItem &item = storage.output_items.items[i];
         if (can_contain_reference(eNodeSocketDatatype(item.socket_type))) {
           reference_sets.append({ReferenceSetType::LocalReferenceSet, &node->output_socket(i)});
           reference_sets.last().potential_data_origins.extend(reference_outputs);
@@ -322,10 +322,10 @@ static Vector<ReferenceSetInfo> find_reference_sets(
   for (const bNodeTreeZone *zone : zones->zones) {
     const bNode &input_node = *zone->input_node();
     const bNode &output_node = *zone->output_node();
-    if (output_node.type_legacy != GEO_NODE_CLOSURE_OUTPUT) {
+    if (output_node.type_legacy != NODE_CLOSURE_OUTPUT) {
       continue;
     }
-    const auto &storage = *static_cast<const NodeGeometryClosureOutput *>(output_node.storage);
+    const auto &storage = *static_cast<const NodeClosureOutput *>(output_node.storage);
     const int old_reference_sets_count = reference_sets.size();
     /* Handle references coming from field inputs in the closure. */
     for (const int input_i : IndexRange(storage.input_items.items_num)) {
@@ -514,7 +514,7 @@ static bool pass_left_to_right(const bNodeTree &tree,
         }
         break;
       }
-      case GEO_NODE_CLOSURE_INPUT: {
+      case NODE_CLOSURE_INPUT: {
         const bNodeTreeZone *zone = get_zone_of_node_if_full(zones, *node);
         if (!zone) {
           break;
@@ -530,7 +530,7 @@ static bool pass_left_to_right(const bNodeTree &tree,
         }
         break;
       }
-      case GEO_NODE_CLOSURE_OUTPUT: {
+      case NODE_CLOSURE_OUTPUT: {
         const bNodeTreeZone *zone = get_zone_of_node_if_full(zones, *node);
         if (!zone) {
           break;
@@ -548,7 +548,7 @@ static bool pass_left_to_right(const bNodeTree &tree,
         }
         break;
       }
-      case GEO_NODE_EVALUATE_CLOSURE: {
+      case NODE_EVALUATE_CLOSURE: {
         BitVector<> potential_input_references(r_potential_reference_by_socket.group_size());
         BitVector<> potential_input_data(r_potential_data_by_socket.group_size());
         /* Gather all references and data from all inputs, including the once on the closure input.
@@ -668,7 +668,7 @@ static void prepare_required_data_for_closure_outputs(
       continue;
     }
     const bNode &output_node = *zone->output_node();
-    if (output_node.type_legacy != GEO_NODE_CLOSURE_OUTPUT) {
+    if (output_node.type_legacy != NODE_CLOSURE_OUTPUT) {
       continue;
     }
     const Span<int> closure_output_set_sources = output_set_sources_by_closure_zone.lookup(zone);
@@ -838,7 +838,7 @@ static bool pass_right_to_left(const bNodeTree &tree,
         }
         break;
       }
-      case GEO_NODE_EVALUATE_CLOSURE: {
+      case NODE_EVALUATE_CLOSURE: {
         /* Data referenced by the closure is required on all the other inputs. */
         const bNodeSocket &closure_socket = node->input_socket(0);
         BitVector<> required_data_on_inputs =
@@ -853,7 +853,7 @@ static bool pass_right_to_left(const bNodeTree &tree,
         }
         break;
       }
-      case GEO_NODE_CLOSURE_OUTPUT: {
+      case NODE_CLOSURE_OUTPUT: {
         const bNodeTreeZone *zone = get_zone_of_node_if_full(zones, *node);
         if (!zone) {
           break;

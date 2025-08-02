@@ -88,17 +88,17 @@ bool ClosureSignature::all_matching_exactly(const Span<ClosureSignature> signatu
 
 ClosureSignature ClosureSignature::from_closure_output_node(const bNode &node)
 {
-  BLI_assert(node.is_type("GeometryNodeClosureOutput"));
-  const auto &storage = *static_cast<const NodeGeometryClosureOutput *>(node.storage);
+  BLI_assert(node.is_type("NodeClosureOutput"));
+  const auto &storage = *static_cast<const NodeClosureOutput *>(node.storage);
   nodes::ClosureSignature signature;
   for (const int i : IndexRange(storage.input_items.items_num)) {
-    const NodeGeometryClosureInputItem &item = storage.input_items.items[i];
+    const NodeClosureInputItem &item = storage.input_items.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
       signature.inputs.add({item.name, stype});
     }
   }
   for (const int i : IndexRange(storage.output_items.items_num)) {
-    const NodeGeometryClosureOutputItem &item = storage.output_items.items[i];
+    const NodeClosureOutputItem &item = storage.output_items.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
       signature.outputs.add({item.name, stype});
     }
@@ -108,17 +108,17 @@ ClosureSignature ClosureSignature::from_closure_output_node(const bNode &node)
 
 ClosureSignature ClosureSignature::from_evaluate_closure_node(const bNode &node)
 {
-  BLI_assert(node.is_type("GeometryNodeEvaluateClosure"));
-  const auto &storage = *static_cast<const NodeGeometryEvaluateClosure *>(node.storage);
+  BLI_assert(node.is_type("NodeEvaluateClosure"));
+  const auto &storage = *static_cast<const NodeEvaluateClosure *>(node.storage);
   nodes::ClosureSignature signature;
   for (const int i : IndexRange(storage.input_items.items_num)) {
-    const NodeGeometryEvaluateClosureInputItem &item = storage.input_items.items[i];
+    const NodeEvaluateClosureInputItem &item = storage.input_items.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
       signature.inputs.add({item.name, stype, nodes::StructureType(item.structure_type)});
     }
   }
   for (const int i : IndexRange(storage.output_items.items_num)) {
-    const NodeGeometryEvaluateClosureOutputItem &item = storage.output_items.items[i];
+    const NodeEvaluateClosureOutputItem &item = storage.output_items.items[i];
     if (const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type)) {
       signature.outputs.add({item.name, stype, nodes::StructureType(item.structure_type)});
     }

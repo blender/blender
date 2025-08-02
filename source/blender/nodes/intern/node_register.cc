@@ -107,17 +107,17 @@ class ClosureZoneType : public blender::bke::bNodeZoneType {
  public:
   ClosureZoneType()
   {
-    this->input_idname = "GeometryNodeClosureInput";
-    this->output_idname = "GeometryNodeClosureOutput";
-    this->input_type = GEO_NODE_CLOSURE_INPUT;
-    this->output_type = GEO_NODE_CLOSURE_OUTPUT;
+    this->input_idname = "NodeClosureInput";
+    this->output_idname = "NodeClosureOutput";
+    this->input_type = NODE_CLOSURE_INPUT;
+    this->output_type = NODE_CLOSURE_OUTPUT;
     this->theme_id = TH_NODE_ZONE_CLOSURE;
   }
 
   const int &get_corresponding_output_id(const bNode &input_bnode) const override
   {
     BLI_assert(input_bnode.type_legacy == this->input_type);
-    return static_cast<NodeGeometryClosureInput *>(input_bnode.storage)->output_node_id;
+    return static_cast<NodeClosureInput *>(input_bnode.storage)->output_node_id;
   }
 };
 

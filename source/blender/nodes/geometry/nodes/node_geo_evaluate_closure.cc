@@ -20,7 +20,7 @@
 
 namespace blender::nodes::node_geo_evaluate_closure_cc {
 
-NODE_STORAGE_FUNCS(NodeGeometryEvaluateClosure)
+NODE_STORAGE_FUNCS(NodeEvaluateClosure)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -30,7 +30,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   if (node) {
     const auto &storage = node_storage(*node);
     for (const int i : IndexRange(storage.input_items.items_num)) {
-      const NodeGeometryEvaluateClosureInputItem &item = storage.input_items.items[i];
+      const NodeEvaluateClosureInputItem &item = storage.input_items.items[i];
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
       const std::string identifier = EvaluateClosureInputItemsAccessor::socket_identifier_for_item(
           item);
@@ -38,7 +38,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           .structure_type(StructureType(item.structure_type));
     }
     for (const int i : IndexRange(storage.output_items.items_num)) {
-      const NodeGeometryEvaluateClosureOutputItem &item = storage.output_items.items[i];
+      const NodeEvaluateClosureOutputItem &item = storage.output_items.items[i];
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
       const std::string identifier =
           EvaluateClosureOutputItemsAccessor::socket_identifier_for_item(item);
@@ -53,14 +53,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  auto *storage = MEM_callocN<NodeGeometryEvaluateClosure>(__func__);
+  auto *storage = MEM_callocN<NodeEvaluateClosure>(__func__);
   node->storage = storage;
 }
 
 static void node_copy_storage(bNodeTree * /*tree*/, bNode *dst_node, const bNode *src_node)
 {
-  const NodeGeometryEvaluateClosure &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<NodeGeometryEvaluateClosure>(__func__, src_storage);
+  const NodeEvaluateClosure &src_storage = node_storage(*src_node);
+  auto *dst_storage = MEM_dupallocN<NodeEvaluateClosure>(__func__, src_storage);
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<EvaluateClosureInputItemsAccessor>(*src_node, *dst_node);
@@ -79,7 +79,7 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
   if (params.C && params.link.tosock == params.node.inputs.first &&
       params.link.fromsock->type == SOCK_CLOSURE)
   {
-    const NodeGeometryEvaluateClosure &storage = node_storage(params.node);
+    const NodeEvaluateClosure &storage = node_storage(params.node);
     if (storage.input_items.items_num == 0 && storage.output_items.items_num == 0) {
       SpaceNode *snode = CTX_wm_space_node(params.C);
       if (snode && snode->edittree == &params.ntree) {
@@ -144,7 +144,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 
   params.add_item("Closure", [](LinkSearchOpParams &params) {
-    bNode &node = params.add_node("GeometryNodeEvaluateClosure");
+    bNode &node = params.add_node("NodeEvaluateClosure");
     params.connect_available_socket(node, "Closure");
 
     SpaceNode &snode = *CTX_wm_space_node(&params.C);
@@ -174,7 +174,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeEvaluateClosure", GEO_NODE_EVALUATE_CLOSURE);
+  geo_node_type_base(&ntype, "NodeEvaluateClosure", NODE_EVALUATE_CLOSURE);
   ntype.ui_name = "Evaluate Closure";
   ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
@@ -186,8 +186,7 @@ static void node_register()
   ntype.register_operators = node_operators;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
-  bke::node_type_storage(
-      ntype, "NodeGeometryEvaluateClosure", node_free_storage, node_copy_storage);
+  bke::node_type_storage(ntype, "NodeEvaluateClosure", node_free_storage, node_copy_storage);
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
@@ -196,8 +195,7 @@ NOD_REGISTER_NODE(node_register)
 
 namespace blender::nodes {
 
-StructRNA *EvaluateClosureInputItemsAccessor::item_srna =
-    &RNA_NodeGeometryEvaluateClosureInputItem;
+StructRNA *EvaluateClosureInputItemsAccessor::item_srna = &RNA_NodeEvaluateClosureInputItem;
 
 void EvaluateClosureInputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
@@ -209,8 +207,7 @@ void EvaluateClosureInputItemsAccessor::blend_read_data_item(BlendDataReader *re
   BLO_read_string(reader, &item.name);
 }
 
-StructRNA *EvaluateClosureOutputItemsAccessor::item_srna =
-    &RNA_NodeGeometryEvaluateClosureOutputItem;
+StructRNA *EvaluateClosureOutputItemsAccessor::item_srna = &RNA_NodeEvaluateClosureOutputItem;
 
 void EvaluateClosureOutputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
@@ -226,16 +223,16 @@ const bNodeSocket *evaluate_closure_node_internally_linked_input(const bNodeSock
 {
   const bNode &node = output_socket.owner_node();
   const bNodeTree &tree = node.owner_tree();
-  BLI_assert(node.is_type("GeometryNodeEvaluateClosure"));
-  const auto &storage = *static_cast<const NodeGeometryEvaluateClosure *>(node.storage);
+  BLI_assert(node.is_type("NodeEvaluateClosure"));
+  const auto &storage = *static_cast<const NodeEvaluateClosure *>(node.storage);
   if (output_socket.index() >= storage.output_items.items_num) {
     return nullptr;
   }
-  const NodeGeometryEvaluateClosureOutputItem &output_item =
+  const NodeEvaluateClosureOutputItem &output_item =
       storage.output_items.items[output_socket.index()];
   const StringRef output_key = output_item.name;
   for (const int i : IndexRange(storage.input_items.items_num)) {
-    const NodeGeometryEvaluateClosureInputItem &input_item = storage.input_items.items[i];
+    const NodeEvaluateClosureInputItem &input_item = storage.input_items.items[i];
     const StringRef input_key = input_item.name;
     if (output_key == input_key) {
       if (!tree.typeinfo->validate_link ||

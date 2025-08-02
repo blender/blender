@@ -165,16 +165,16 @@ static void rename_mesh_uv_seam_attribute(Mesh &mesh)
 static void initialize_closure_input_structure_types(bNodeTree &ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (node->type_legacy == GEO_NODE_EVALUATE_CLOSURE) {
-      auto *storage = static_cast<NodeGeometryEvaluateClosure *>(node->storage);
+    if (node->type_legacy == NODE_EVALUATE_CLOSURE) {
+      auto *storage = static_cast<NodeEvaluateClosure *>(node->storage);
       for (const int i : blender::IndexRange(storage->input_items.items_num)) {
-        NodeGeometryEvaluateClosureInputItem &item = storage->input_items.items[i];
+        NodeEvaluateClosureInputItem &item = storage->input_items.items[i];
         if (item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
           item.structure_type = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC;
         }
       }
       for (const int i : blender::IndexRange(storage->output_items.items_num)) {
-        NodeGeometryEvaluateClosureOutputItem &item = storage->output_items.items[i];
+        NodeEvaluateClosureOutputItem &item = storage->output_items.items[i];
         if (item.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
           item.structure_type = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC;
         }

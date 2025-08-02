@@ -21,16 +21,16 @@
 
 namespace blender::nodes::node_geo_combine_bundle_cc {
 
-NODE_STORAGE_FUNCS(NodeGeometryCombineBundle);
+NODE_STORAGE_FUNCS(NodeCombineBundle);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
   const bNodeTree *tree = b.tree_or_null();
   const bNode *node = b.node_or_null();
   if (tree && node) {
-    const NodeGeometryCombineBundle &storage = node_storage(*node);
+    const NodeCombineBundle &storage = node_storage(*node);
     for (const int i : IndexRange(storage.items_num)) {
-      const NodeGeometryCombineBundleItem &item = storage.items[i];
+      const NodeCombineBundleItem &item = storage.items[i];
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
       const StringRef name = item.name ? item.name : "";
       const std::string identifier = CombineBundleItemsAccessor::socket_identifier_for_item(item);
@@ -46,14 +46,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  auto *storage = MEM_callocN<NodeGeometryCombineBundle>(__func__);
+  auto *storage = MEM_callocN<NodeCombineBundle>(__func__);
   node->storage = storage;
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
-  const NodeGeometryCombineBundle &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<NodeGeometryCombineBundle>(__func__, src_storage);
+  const NodeCombineBundle &src_storage = node_storage(*src_node);
+  auto *dst_storage = MEM_dupallocN<NodeCombineBundle>(__func__, src_storage);
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<CombineBundleItemsAccessor>(*src_node, *dst_node);
@@ -69,7 +69,7 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
   if (params.C && params.link.fromnode == &params.node && params.link.tosock->type == SOCK_BUNDLE)
   {
-    const NodeGeometryCombineBundle &storage = node_storage(params.node);
+    const NodeCombineBundle &storage = node_storage(params.node);
     if (storage.items_num == 0) {
       SpaceNode *snode = CTX_wm_space_node(params.C);
       if (snode && snode->edittree == &params.ntree) {
@@ -111,14 +111,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   const bNode &node = params.node();
-  const NodeGeometryCombineBundle &storage = node_storage(node);
+  const NodeCombineBundle &storage = node_storage(node);
 
   BundlePtr bundle_ptr = Bundle::create();
   BLI_assert(bundle_ptr->is_mutable());
   Bundle &bundle = const_cast<Bundle &>(*bundle_ptr);
 
   for (const int i : IndexRange(storage.items_num)) {
-    const NodeGeometryCombineBundleItem &item = storage.items[i];
+    const NodeCombineBundleItem &item = storage.items[i];
     const bke::bNodeSocketType *stype = bke::node_socket_type_find_static(item.socket_type);
     if (!stype || !stype->geometry_nodes_cpp_type) {
       continue;
@@ -146,7 +146,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 
   params.add_item("Bundle", [](LinkSearchOpParams &params) {
-    bNode &node = params.add_node("GeometryNodeCombineBundle");
+    bNode &node = params.add_node("NodeCombineBundle");
     params.connect_available_socket(node, "Bundle");
 
     SpaceNode &snode = *CTX_wm_space_node(&params.C);
@@ -168,7 +168,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeCombineBundle", GEO_NODE_COMBINE_BUNDLE);
+  geo_node_type_base(&ntype, "NodeCombineBundle", NODE_COMBINE_BUNDLE);
   ntype.ui_name = "Combine Bundle";
   ntype.ui_description = "Combine multiple socket values into one.";
   ntype.nclass = NODE_CLASS_CONVERTER;
@@ -181,7 +181,7 @@ static void node_register()
   ntype.register_operators = node_operators;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
-  bke::node_type_storage(ntype, "NodeGeometryCombineBundle", node_free_storage, node_copy_storage);
+  bke::node_type_storage(ntype, "NodeCombineBundle", node_free_storage, node_copy_storage);
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
@@ -190,7 +190,7 @@ NOD_REGISTER_NODE(node_register)
 
 namespace blender::nodes {
 
-StructRNA *CombineBundleItemsAccessor::item_srna = &RNA_NodeGeometryCombineBundleItem;
+StructRNA *CombineBundleItemsAccessor::item_srna = &RNA_NodeCombineBundleItem;
 
 void CombineBundleItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

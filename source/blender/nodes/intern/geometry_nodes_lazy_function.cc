@@ -2074,7 +2074,7 @@ struct GeometryNodesLazyFunctionBuilder {
         case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT:
           this->build_foreach_geometry_element_zone_function(zone);
           break;
-        case GEO_NODE_CLOSURE_OUTPUT:
+        case NODE_CLOSURE_OUTPUT:
           this->build_closure_zone_function(zone);
           break;
         default: {
@@ -2965,7 +2965,7 @@ struct GeometryNodesLazyFunctionBuilder {
         this->build_menu_switch_node(bnode, graph_params);
         break;
       }
-      case GEO_NODE_EVALUATE_CLOSURE: {
+      case NODE_EVALUATE_CLOSURE: {
         this->build_evaluate_closure_node(bnode, graph_params);
         break;
       }
