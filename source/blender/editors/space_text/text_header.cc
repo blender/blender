@@ -37,10 +37,10 @@ static ARegion *text_has_properties_region(ScrArea *area)
     return region;
   }
 
-  /* add subdiv level; after header */
+  /* Add subdiv level; after header. */
   region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
 
-  /* is error! */
+  /* Is error! */
   if (region == nullptr) {
     return nullptr;
   }
@@ -108,7 +108,7 @@ static wmOperatorStatus text_text_search_exec(bContext *C, wmOperator * /*op*/)
 
 void TEXT_OT_start_find(wmOperatorType *ot)
 {
-  /* identifiers */
+  /* Identifiers. */
   ot->name = "Find";
   ot->description = "Start searching text";
   ot->idname = "TEXT_OT_start_find";
