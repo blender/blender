@@ -197,6 +197,7 @@ inline typename Accessor::ItemT *add_item_with_socket_type_and_name(
 {
   using ItemT = typename Accessor::ItemT;
   BLI_assert(Accessor::supports_socket_type(socket_type, ntree.type));
+  UNUSED_VARS_NDEBUG(ntree);
   ItemT &new_item = detail::add_item_to_array<Accessor>(node);
   Accessor::init_with_socket_type_and_name(node, new_item, socket_type, name);
   return &new_item;
