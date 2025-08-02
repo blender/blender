@@ -8,6 +8,7 @@
 #include "NOD_geometry_nodes_closure_location.hh"
 #include "NOD_geometry_nodes_closure_signature.hh"
 #include "NOD_node_in_compute_context.hh"
+#include "NOD_socket_declarations.hh"
 #include "NOD_trace_values.hh"
 
 #include "BKE_compute_context_cache.hh"
@@ -26,6 +27,21 @@ static bool is_evaluate_closure_node_input(const SocketInContext &socket)
 static bool is_closure_zone_output_socket(const SocketInContext &socket)
 {
   return socket->owner_node().is_type("NodeClosureOutput") && socket->is_output();
+}
+
+static bool use_link_for_tracing(const bNodeLink &link)
+{
+  if (!link.is_used()) {
+    return false;
+  }
+  const bNodeTree &tree = link.fromnode->owner_tree();
+  if (tree.typeinfo->validate_link &&
+      !tree.typeinfo->validate_link(eNodeSocketDatatype(link.fromsock->type),
+                                    eNodeSocketDatatype(link.tosock->type)))
+  {
+    return false;
+  }
+  return true;
 }
 
 static Vector<SocketInContext> find_origin_sockets_through_contexts(
@@ -198,6 +214,54 @@ static Vector<SocketInContext> find_target_sockets_through_contexts(
         }
         continue;
       }
+      if (node->is_type("GeometryNodeSimulationInput")) {
+        const ComputeContext &simulation_compute_context =
+            compute_context_cache.for_simulation_zone(socket.context, *node);
+        add_if_new({&simulation_compute_context, &node->output_socket(socket->index() + 1)},
+                   bundle_path);
+        continue;
+      }
+      if (node->is_type("GeometryNodeSimulationOutput")) {
+        const int output_index = socket->index();
+        if (output_index >= 1) {
+          BLI_assert(dynamic_cast<const bke::SimulationZoneComputeContext *>(socket.context));
+          add_if_new({socket.context->parent(), &node->output_socket(output_index - 1)},
+                     bundle_path);
+        }
+        continue;
+      }
+      if (node->is_type("GeometryNodeRepeatInput")) {
+        const int index = socket->index();
+        if (index >= 1) {
+          const ComputeContext &repeat_compute_context = compute_context_cache.for_repeat_zone(
+              socket.context, *node, 0);
+          add_if_new({&repeat_compute_context, &node->output_socket(index)}, bundle_path);
+          const auto &storage = *static_cast<NodeGeometryRepeatInput *>(node->storage);
+          if (const bNode *repeat_output_node = node->owner_tree().node_by_id(
+                  storage.output_node_id))
+          {
+            add_if_new({socket.context, &repeat_output_node->output_socket(index - 1)},
+                       bundle_path);
+          }
+        }
+        continue;
+      }
+      if (node->is_type("GeometryNodeRepeatOutput")) {
+        BLI_assert(dynamic_cast<const bke::RepeatZoneComputeContext *>(socket.context));
+        add_if_new({socket.context->parent(), &node->output_socket(socket->index())}, bundle_path);
+        continue;
+      }
+      for (const bNodeSocket *output_socket : node->output_sockets()) {
+        const SocketDeclaration *output_decl = output_socket->runtime->declaration;
+        if (!output_decl) {
+          continue;
+        }
+        if (const decl::Bundle *bundle_decl = dynamic_cast<const decl::Bundle *>(output_decl)) {
+          if (bundle_decl->pass_through_input_index == socket->index()) {
+            add_if_new({socket.context, output_socket}, bundle_path);
+          }
+        }
+      }
     }
     else {
       const bke::bNodeTreeZones *zones = node->owner_tree().zones();
@@ -206,7 +270,7 @@ static Vector<SocketInContext> find_target_sockets_through_contexts(
       }
       const bke::bNodeTreeZone *from_zone = zones->get_zone_by_socket(*socket.socket);
       for (const bNodeLink *link : socket->directly_linked_links()) {
-        if (!link->is_used()) {
+        if (!use_link_for_tracing(*link)) {
           continue;
         }
         bNodeSocket *to_socket = link->tosock;
@@ -281,6 +345,7 @@ static Vector<SocketInContext> find_origin_sockets_through_contexts(
     const SocketInContext socket = socket_to_check.socket;
     const BundlePath &bundle_path = socket_to_check.bundle_path;
     const NodeInContext &node = socket.owner_node();
+    const SocketDeclaration *socket_decl = socket->runtime->declaration;
     if (socket->is_input()) {
       if (bundle_path.is_empty() && handle_possible_origin_socket_fn(socket)) {
         found_origins.add(socket);
@@ -295,7 +360,7 @@ static Vector<SocketInContext> find_origin_sockets_through_contexts(
       }
       const bke::bNodeTreeZone *to_zone = zones->get_zone_by_socket(*socket.socket);
       for (const bNodeLink *link : socket->directly_linked_links()) {
-        if (!link->is_used()) {
+        if (!use_link_for_tracing(*link)) {
           continue;
         }
         const bNodeSocket *from_socket = link->fromsock;
@@ -443,6 +508,51 @@ static Vector<SocketInContext> find_origin_sockets_through_contexts(
         new_bundle_path.append(storage.items[socket->index()].name);
         add_if_new(node.input_socket(0), std::move(new_bundle_path));
         continue;
+      }
+      if (node->is_type("GeometryNodeSimulationInput")) {
+        const int output_index = socket->index();
+        if (output_index >= 1) {
+          BLI_assert(dynamic_cast<const bke::SimulationZoneComputeContext *>(socket.context));
+          add_if_new({socket.context->parent(), &node->input_socket(output_index - 1)},
+                     bundle_path);
+        }
+        continue;
+      }
+      if (node->is_type("GeometryNodeSimulationOutput")) {
+        const ComputeContext &simulation_compute_context =
+            compute_context_cache.for_simulation_zone(socket.context, *node);
+        add_if_new({&simulation_compute_context, &node->input_socket(socket->index() + 1)},
+                   bundle_path);
+        continue;
+      }
+      if (node->is_type("GeometryNodeRepeatInput")) {
+        const int index = socket->index();
+        if (index >= 1) {
+          BLI_assert(dynamic_cast<const bke::RepeatZoneComputeContext *>(socket.context));
+          add_if_new({socket.context->parent(), &node->input_socket(index)}, bundle_path);
+        }
+        continue;
+      }
+      if (node->is_type("GeometryNodeRepeatOutput")) {
+        const int index = socket->index();
+        const ComputeContext &repeat_compute_context = compute_context_cache.for_repeat_zone(
+            socket.context, *node, 0);
+        add_if_new({&repeat_compute_context, &node->input_socket(index)}, bundle_path);
+        const bke::bNodeZoneType &zone_type = *bke::zone_type_by_node_type(node->type_legacy);
+        if (const bNode *repeat_input_node = zone_type.get_corresponding_input(node->owner_tree(),
+                                                                               *node))
+        {
+          add_if_new({socket.context, &repeat_input_node->input_socket(index + 1)}, bundle_path);
+        }
+        continue;
+      }
+      if (socket_decl) {
+        if (const decl::Bundle *bundle_decl = dynamic_cast<const decl::Bundle *>(socket_decl)) {
+          if (bundle_decl->pass_through_input_index) {
+            const int input_index = *bundle_decl->pass_through_input_index;
+            add_if_new(node.input_socket(input_index), bundle_path);
+          }
+        }
       }
     }
   }
