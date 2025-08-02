@@ -1187,7 +1187,12 @@ static bool do_lasso_select_grease_pencil(const ViewContext *vc,
                 ob_eval, *object, info.drawing);
         const IndexMask visible_handle_elements =
             ed::greasepencil::retrieve_visible_bezier_handle_elements(
-                *object, info.drawing, info.layer_index, selection_domain, memory);
+                *object,
+                info.drawing,
+                info.layer_index,
+                selection_domain,
+                vc->v3d->overlay.handle_display,
+                memory);
         const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
         const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d,
                                                                             layer_to_world);
@@ -3365,7 +3370,12 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           }
           const IndexMask visible_handle_elements =
               ed::greasepencil::retrieve_visible_bezier_handle_elements(
-                  *object, info.drawing, info.layer_index, selection_domain, memory);
+                  *object,
+                  info.drawing,
+                  info.layer_index,
+                  selection_domain,
+                  vc.v3d->overlay.handle_display,
+                  memory);
           const bke::CurvesGeometry &curves = info.drawing.strokes();
           const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
           const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc.rv3d,
@@ -4416,7 +4426,12 @@ static bool do_grease_pencil_box_select(const ViewContext *vc,
                 ob_eval, *object, info.drawing);
         const IndexMask visible_handle_elements =
             ed::greasepencil::retrieve_visible_bezier_handle_elements(
-                *object, info.drawing, info.layer_index, selection_domain, memory);
+                *object,
+                info.drawing,
+                info.layer_index,
+                selection_domain,
+                vc->v3d->overlay.handle_display,
+                memory);
         const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
         const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d,
                                                                             layer_to_world);
@@ -5299,7 +5314,12 @@ static bool grease_pencil_circle_select(const ViewContext *vc,
                 ob_eval, *object, info.drawing);
         const IndexMask visible_handle_elements =
             ed::greasepencil::retrieve_visible_bezier_handle_elements(
-                *object, info.drawing, info.layer_index, selection_domain, memory);
+                *object,
+                info.drawing,
+                info.layer_index,
+                selection_domain,
+                vc->v3d->overlay.handle_display,
+                memory);
         const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
         const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d,
                                                                             layer_to_world);

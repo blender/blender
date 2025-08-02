@@ -7950,6 +7950,8 @@ class VIEW3D_PT_overlay_grease_pencil_options(Panel):
             col.prop(overlay, "use_gpencil_edit_lines", text="Edit Lines")
             col = split.column()
             col.prop(overlay, "use_gpencil_multiedit_line_only", text="Only in Multiframe")
+            row = layout.row()
+            row.prop(overlay, "display_handle", text="Handles")
 
         if ob.mode == 'EDIT':
             split = layout.split()

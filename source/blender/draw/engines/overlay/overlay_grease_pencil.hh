@@ -35,6 +35,7 @@ namespace blender::draw::overlay {
 class GreasePencil : Overlay {
  private:
   PassSimple edit_grease_pencil_ps_ = {"GPencil Edit"};
+  PassSimple::Sub *edit_handles_ = nullptr;
   PassSimple::Sub *edit_points_ = nullptr;
   PassSimple::Sub *edit_lines_ = nullptr;
 
@@ -107,6 +108,7 @@ class GreasePencil : Overlay {
         break;
     }
 
+    edit_handles_ = nullptr;
     edit_points_ = nullptr;
     edit_lines_ = nullptr;
 
@@ -119,6 +121,15 @@ class GreasePencil : Overlay {
                          DRW_STATE_BLEND_ALPHA,
                      state.clipping_plane_count);
 
+      {
+        auto &sub = pass.sub("Handles");
+        sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
+        sub.shader_set(res.shaders->curve_edit_handles.get());
+        sub.push_constant("show_curve_handles", state.overlay.handle_display != CURVE_HANDLE_NONE);
+        sub.push_constant("curve_handle_display", int(state.overlay.handle_display));
+        edit_handles_ = &sub;
+      }
+
       if (show_points_) {
         auto &sub = pass.sub("Points");
         sub.shader_set(res.shaders->curve_edit_points.get());
@@ -126,6 +137,7 @@ class GreasePencil : Overlay {
         sub.push_constant("use_weight", show_weight_);
         sub.push_constant("use_grease_pencil", true);
         sub.push_constant("do_stroke_endpoints", show_direction);
+        sub.push_constant("curve_handle_display", int(state.overlay.handle_display));
         edit_points_ = &sub;
       }
 
@@ -173,6 +185,12 @@ class GreasePencil : Overlay {
 
     Object *ob = ob_ref.object;
 
+    {
+      gpu::Batch *geom = DRW_cache_grease_pencil_edit_handles_get(state.scene, ob);
+      if (geom) {
+        edit_handles_->draw_expand(geom, GPU_PRIM_TRIS, 8, 1, manager.unique_handle(ob_ref));
+      }
+    }
     if (show_points_) {
       gpu::Batch *geom = show_weight_ ?
                              DRW_cache_grease_pencil_weight_points_get(state.scene, ob) :
