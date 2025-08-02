@@ -163,7 +163,6 @@ static void ntree_copy_data(Main * /*bmain*/,
     /* Don't find a unique name for every node, since they should have valid names already. */
     bNode *new_node = node_copy_with_mapping(
         ntree_dst, *src_node, flag_subdata, src_node->name, src_node->identifier, socket_map);
-    dst_runtime.nodes_by_id.add_new(new_node);
     new_node->runtime->index_in_tree = i;
   }
 
@@ -3361,6 +3360,7 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
   *node_dst = node_src;
   node_dst->runtime = MEM_new<bNodeRuntime>(__func__);
   if (dst_unique_name) {
+    BLI_assert(dst_unique_name->size() < sizeof(node_dst->name));
     STRNCPY_UTF8(node_dst->name, dst_unique_name->c_str());
   }
   else if (dst_tree) {
@@ -3368,6 +3368,9 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
   }
   if (dst_unique_identifier) {
     node_dst->identifier = *dst_unique_identifier;
+    if (dst_tree) {
+      dst_tree->runtime->nodes_by_id.add_new(node_dst);
+    }
   }
   else if (dst_tree) {
     node_unique_id(*dst_tree, *node_dst);
