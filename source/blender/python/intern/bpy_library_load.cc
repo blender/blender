@@ -71,13 +71,21 @@ static uint32_t bool_flag_pair_as_flag(const BoolFlagPair *bool_flags, int bool_
 
 /** \} */
 
+/**
+ * The size to pre-allocate #BPy_Library::dict Add +1 for the "version".
+ */
+static constexpr Py_ssize_t bpy_library_dict_num = INDEX_ID_MAX + 1;
+
 struct BPy_Library {
-  PyObject_HEAD /* Required Python macro. */
-  /* Collection iterator specific parts. */
+  /** Required Python macro. */
+  PyObject_HEAD
+
+  /** The path supplied by the caller (may be relative). */
   char relpath[FILE_MAX];
-  char abspath[FILE_MAX]; /* absolute path */
+  /** The absolute path. */
+  char abspath[FILE_MAX];
   BlendHandle *blo_handle;
-  /* Referenced by `blo_handle`, so stored here to keep alive for long enough. */
+  /** Referenced by `blo_handle`, so stored here to keep alive for long enough. */
   ReportList reports;
   BlendFileReadReport bf_reports;
 
@@ -86,9 +94,19 @@ struct BPy_Library {
   bool create_liboverrides;
   eBKELibLinkOverride liboverride_flags;
 
+  /**
+   * A dictionary, accessed via attributes (so keys are strings).
+   * - Stores the ID types ("meshes", "objects", etc...).
+   * - Also has a "version" attribute to support accessing the blender version.
+   *
+   * Assigned a pre-sized dictionary using #BPY_LIBRARY_DICT_NUM_INIT item.
+   * this will always have these the ID names and some additional slots filled.
+   */
   PyObject *dict;
-  /* Borrowed reference to the `bmain`, taken from the RNA instance of #RNA_BlendDataLibraries.
-   * Defaults to #G.main, Otherwise use a temporary #Main when `bmain_is_temp` is true. */
+  /**
+   * Borrowed reference to the `bmain`, taken from the RNA instance of #RNA_BlendDataLibraries.
+   * Defaults to #G.main, Otherwise use a temporary #Main when `bmain_is_temp` is true.
+   */
   Main *bmain;
   bool bmain_is_temp;
 };
@@ -409,7 +427,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
                                    sizeof(liboverride_flag_vars) / sizeof(BoolFlagPair))) :
                                eBKELibLinkOverride(0);
 
-  ret->dict = _PyDict_NewPresized(INDEX_ID_MAX);
+  ret->dict = _PyDict_NewPresized(bpy_library_dict_num);
 
   return (PyObject *)ret;
 }
@@ -456,23 +474,25 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
     return nullptr;
   }
 
-  /* Add +1 for the "version". */
-  PyObject *from_dict = _PyDict_NewPresized(INDEX_ID_MAX + 1);
+  PyObject *from_dict = _PyDict_NewPresized(bpy_library_dict_num);
+  int dict_num_offset = 0;
 
   int i = 0, code;
   while ((code = BKE_idtype_idcode_iter_step(&i))) {
-    if (BKE_idtype_idcode_is_linkable(code)) {
-      const char *name_plural = BKE_idtype_idcode_to_name_plural(code);
-      PyObject *str = PyUnicode_FromString(name_plural);
-      PyObject *item;
-
-      PyDict_SetItem(self->dict, str, item = PyList_New(0));
-      Py_DECREF(item);
-      PyDict_SetItem(from_dict, str, item = _bpy_names(self, code));
-      Py_DECREF(item);
-
-      Py_DECREF(str);
+    if (!BKE_idtype_idcode_is_linkable(code)) {
+      dict_num_offset += 1;
+      continue;
     }
+    const char *name_plural = BKE_idtype_idcode_to_name_plural(code);
+    PyObject *str = PyUnicode_FromString(name_plural);
+    PyObject *item;
+
+    PyDict_SetItem(self->dict, str, item = PyList_New(0));
+    Py_DECREF(item);
+    PyDict_SetItem(from_dict, str, item = _bpy_names(self, code));
+    Py_DECREF(item);
+
+    Py_DECREF(str);
   }
 
   /* create a dummy */
@@ -507,6 +527,12 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
   self_from->create_liboverrides = false;
   self_from->liboverride_flags = BKE_LIBLINK_OVERRIDE_INIT;
   self_from->dict = from_dict; /* owns the dict */
+
+  /* While it's not a bug if the sizes differ, the size is expected to match.
+   * Ensure `bpy_library_dict_num` gets updated when members are added. */
+  BLI_assert(PyDict_GET_SIZE(self_from->dict) + dict_num_offset == bpy_library_dict_num);
+  BLI_assert(PyDict_GET_SIZE(self->dict) + dict_num_offset == bpy_library_dict_num);
+  UNUSED_VARS_NDEBUG(dict_num_offset);
 
   /* return pair */
   ret = PyTuple_New(2);
