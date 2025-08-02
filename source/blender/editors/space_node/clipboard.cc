@@ -61,6 +61,9 @@ struct NodeClipboardItem {
   ID *id;
   std::string id_name;
   std::string library_name;
+
+  /** Remember the active status so that it can be made active again after pasting. */
+  bool was_active = false;
 };
 
 struct ClipboardLink {
@@ -264,6 +267,7 @@ struct NodeClipboard {
     NodeClipboardItem item;
     item.draw_rect = node.runtime->draw_bounds;
     item.node = new_node;
+    item.was_active = node.flag & NODE_ACTIVE;
     this->nodes.append(std::move(item));
   }
 };
@@ -371,6 +375,8 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
+  bNode *new_active_node = nullptr;
+
   /* copy valid nodes from clipboard */
   for (NodeClipboardItem &item : clipboard.nodes) {
     const bNode &node = *item.node;
@@ -402,6 +408,9 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
         new_node->typeinfo->poll_instance(new_node, &tree, &disabled_hint))
     {
       node_map.add_new(&node, new_node);
+      if (item.was_active) {
+        new_active_node = new_node;
+      }
     }
     else {
       if (disabled_hint) {
@@ -434,6 +443,10 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
         new_node->parent = node_map.lookup(new_node->parent);
       }
     }
+  }
+
+  if (new_active_node) {
+    bke::node_set_active(tree, *new_active_node);
   }
 
   PropertyRNA *offset_prop = RNA_struct_find_property(op->ptr, "offset");
