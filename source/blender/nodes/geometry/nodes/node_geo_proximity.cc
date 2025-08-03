@@ -247,6 +247,13 @@ class ProximityFunction : public mf::MultiFunction {
       }
     });
   }
+
+  ExecutionHints get_execution_hints() const override
+  {
+    ExecutionHints hints;
+    hints.min_grain_size = 512;
+    return hints;
+  }
 };
 
 static void node_geo_exec(GeoNodeExecParams params)
