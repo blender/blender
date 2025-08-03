@@ -3140,11 +3140,11 @@ static bool pointcloud_select_pick(bContext &C, const int2 mval, const SelectPic
         return (a.elem.distance_sq < b.elem.distance_sq) ? a : b;
       });
 
-  std::atomic<bool> deselected = false;
+  Array<bool> changed(bases.size(), false);
   if (params.deselect_all || params.sel_op == SEL_OP_SET) {
     threading::parallel_for(bases.index_range(), 1L, [&](const IndexRange range) {
-      for (Base *base : bases.as_span().slice(range)) {
-        PointCloud &pointcloud = *static_cast<PointCloud *>(base->object->data);
+      for (const int i : range) {
+        PointCloud &pointcloud = *static_cast<PointCloud *>(bases[i]->object->data);
         if (!pointcloud::has_anything_selected(pointcloud)) {
           continue;
         }
@@ -3154,17 +3154,23 @@ static bool pointcloud_select_pick(bContext &C, const int2 mval, const SelectPic
         pointcloud::fill_selection_false(selection.span, IndexMask(pointcloud.totpoint));
         selection.finish();
 
-        deselected = true;
+        changed[i] = true;
+      }
+    });
+
+    for (const int i : bases.index_range()) {
+      if (changed[i]) {
+        PointCloud &pointcloud = *static_cast<PointCloud *>(bases[i]->object->data);
         /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
          * generic attribute for now. */
         DEG_id_tag_update(&pointcloud.id, ID_RECALC_GEOMETRY);
         WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &pointcloud);
       }
-    });
+    }
   }
 
   if (!closest.pointcloud) {
-    return deselected;
+    return changed.as_span().contains(true);
   }
 
   bke::GSpanAttributeWriter selection = pointcloud::ensure_selection_attribute(
@@ -3260,11 +3266,11 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
         return (a.elem.distance_sq < b.elem.distance_sq) ? a : b;
       });
 
-  std::atomic<bool> deselected = false;
+  Array<bool> changed(bases.size(), false);
   if (params.deselect_all || params.sel_op == SEL_OP_SET) {
     threading::parallel_for(bases.index_range(), 1L, [&](const IndexRange range) {
-      for (Base *base : bases.as_span().slice(range)) {
-        Curves &curves_id = *static_cast<Curves *>(base->object->data);
+      for (const int i : range) {
+        Curves &curves_id = *static_cast<Curves *>(bases[i]->object->data);
         bke::CurvesGeometry &curves = curves_id.geometry.wrap();
         if (!ed::curves::has_anything_selected(curves, selection_domain)) {
           continue;
@@ -3275,17 +3281,23 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
               ed::curves::fill_selection_false(selection.span);
             });
 
-        deselected = true;
+        changed[i] = true;
+      }
+    });
+
+    for (const int i : bases.index_range()) {
+      if (changed[i]) {
+        Curves &curves_id = *static_cast<Curves *>(bases[i]->object->data);
         /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
          * generic attribute for now. */
         DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
         WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &curves_id);
       }
-    });
+    }
   }
 
   if (!closest.curves_id) {
-    return deselected;
+    return changed.as_span().contains(true);
   }
 
   if (selection_domain == bke::AttrDomain::Point) {
