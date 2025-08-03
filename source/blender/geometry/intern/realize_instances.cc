@@ -237,21 +237,18 @@ struct MeshNormalInfo {
 
   void add_no_custom_normals(const bke::MeshNormalDomain domain)
   {
-    if (result_type == Output::None) {
-      return;
-    }
-    this->add_free_normals(normal_domain_to_domain(domain));
+    this->add_domain(normal_domain_to_domain(domain));
   }
 
   void add_corner_fan_normals()
   {
-    this->result_domain = bke::AttrDomain::Corner;
+    this->add_domain(bke::AttrDomain::Corner);
     if (this->result_type == Output::None) {
       this->result_type = Output::CornerFan;
     }
   }
 
-  void add_free_normals(const bke::AttrDomain domain)
+  void add_domain(const bke::AttrDomain domain)
   {
     if (this->result_domain) {
       /* Any combination of point/face domains puts the result normals on the corner domain. */
@@ -262,6 +259,11 @@ struct MeshNormalInfo {
     else {
       this->result_domain = domain;
     }
+  }
+
+  void add_free_normals(const bke::AttrDomain domain)
+  {
+    this->add_domain(domain);
     this->result_type = Output::Free;
   }
 
