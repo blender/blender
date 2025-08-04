@@ -147,16 +147,9 @@ void SmoothOperation::on_stroke_extended(const bContext &C, const InputSample &e
 
         bool changed = false;
         if (sculpt_mode_flag & GP_SCULPT_FLAGMODE_APPLY_POSITION) {
-          MutableSpan<float3> positions = curves.positions_for_write();
-          geometry::smooth_curve_attribute(curves.curves_range(),
-                                           points_by_curve,
-                                           selection_varray,
-                                           cyclic,
-                                           iterations,
-                                           influences,
-                                           false,
-                                           false,
-                                           positions);
+          geometry::smooth_curve_positions(
+              curves, curves.curves_range(), iterations, influences, false, false);
+
           params.drawing.tag_positions_changed();
           changed = true;
         }

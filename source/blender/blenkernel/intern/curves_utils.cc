@@ -199,7 +199,6 @@ void write_all_positions(bke::CurvesGeometry &curves,
   {
     return;
   }
-  BLI_assert(curves_selection.size() * 3 == all_positions.size());
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
   MutableSpan<float3> positions = curves.positions_for_write();
