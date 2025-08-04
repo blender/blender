@@ -334,7 +334,12 @@ static void drawVertSlide(TransInfo *t)
       }
       immEnd();
 
+      immUnbindProgram();
+
+      immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_COLOR);
+
       GPU_point_size(ctrl_size);
+      immUniformThemeColorShadeAlpha(TH_VERTEX_ACTIVE, 80, alpha_shade);
 
       immBegin(GPU_PRIM_POINTS, 1);
       immVertex3fv(shdr_pos, (slp->flipped && slp->use_even) ? co_dest_3d_act : co_orig_3d_act);
