@@ -23,7 +23,6 @@
 
 #include "hydra_scene_delegate.hh"
 #include "image.hh"
-#include "usd_light_convert.hh"
 
 /* TODO: add custom `tftoken` "transparency"? */
 
