@@ -41,6 +41,7 @@ class GreasePencil : Overlay {
 
   PassSimple grid_ps_ = {"GPencil Grid"};
 
+  bool show_handles_ = false;
   bool show_points_ = false;
   bool show_lines_ = false;
   bool show_grid_ = false;
@@ -73,7 +74,7 @@ class GreasePencil : Overlay {
     const bool show_lines = (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES);
     const bool show_direction = (v3d->gp_flag & V3D_GP_SHOW_STROKE_DIRECTION);
 
-    show_points_ = show_lines_ = show_weight_ = false;
+    show_handles_ = show_points_ = show_lines_ = show_weight_ = false;
 
     switch (state.object_mode) {
       case OB_MODE_PAINT_GREASE_PENCIL:
@@ -90,6 +91,7 @@ class GreasePencil : Overlay {
         show_points_ = ELEM(
             ts->gpencil_selectmode_edit, GP_SELECTMODE_POINT, GP_SELECTMODE_SEGMENT);
         show_lines_ = show_lines;
+        show_handles_ = show_points_;
         break;
       case OB_MODE_WEIGHT_GREASE_PENCIL:
         /* Weight paint mode. */
@@ -121,12 +123,15 @@ class GreasePencil : Overlay {
                          DRW_STATE_BLEND_ALPHA,
                      state.clipping_plane_count);
 
-      {
+      const int handle_display = show_handles_ ? int(state.overlay.handle_display) :
+                                                 int(CURVE_HANDLE_NONE);
+
+      if (show_handles_) {
         auto &sub = pass.sub("Handles");
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
         sub.shader_set(res.shaders->curve_edit_handles.get());
-        sub.push_constant("show_curve_handles", state.overlay.handle_display != CURVE_HANDLE_NONE);
-        sub.push_constant("curve_handle_display", int(state.overlay.handle_display));
+        sub.push_constant("show_curve_handles", handle_display != int(CURVE_HANDLE_NONE));
+        sub.push_constant("curve_handle_display", handle_display);
         edit_handles_ = &sub;
       }
 
@@ -137,7 +142,7 @@ class GreasePencil : Overlay {
         sub.push_constant("use_weight", show_weight_);
         sub.push_constant("use_grease_pencil", true);
         sub.push_constant("do_stroke_endpoints", show_direction);
-        sub.push_constant("curve_handle_display", int(state.overlay.handle_display));
+        sub.push_constant("curve_handle_display", handle_display);
         edit_points_ = &sub;
       }
 
@@ -185,7 +190,7 @@ class GreasePencil : Overlay {
 
     Object *ob = ob_ref.object;
 
-    {
+    if (show_handles_) {
       gpu::Batch *geom = DRW_cache_grease_pencil_edit_handles_get(state.scene, ob);
       if (geom) {
         edit_handles_->draw_expand(geom, GPU_PRIM_TRIS, 8, 1, manager.unique_handle(ob_ref));
