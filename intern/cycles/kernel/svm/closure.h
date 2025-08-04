@@ -531,31 +531,31 @@ ccl_device
         uint rotation_offset;
         uint tangent_offset;
         svm_unpack_node_uchar4(
-            node.z, &base_ior_offset, &edge_tint_k_offset, &rotation_offset, &tangent_offset);
+            data_node.y, &base_ior_offset, &edge_tint_k_offset, &rotation_offset, &tangent_offset);
 
         const float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
-        float3 T = stack_load_float3(stack, tangent_offset);
         const float anisotropy = saturatef(param2);
         const float roughness = saturatef(param1);
-        float alpha_x = sqr(roughness);
-        float alpha_y = sqr(roughness);
-        if (anisotropy > 0.0f) {
+        bsdf->alpha_x = sqr(roughness);
+        bsdf->alpha_y = sqr(roughness);
+        if (anisotropy > 0.0f && tangent_offset != SVM_STACK_INVALID) {
+          bsdf->T = stack_load_float3(stack, tangent_offset);
           const float aspect = sqrtf(1.0f - anisotropy * 0.9f);
-          alpha_x /= aspect;
-          alpha_y *= aspect;
+          bsdf->alpha_x /= aspect;
+          bsdf->alpha_y *= aspect;
           const float anisotropic_rotation = stack_load_float(stack, rotation_offset);
           if (anisotropic_rotation != 0.0f) {
-            T = rotate_around_axis(T, N, anisotropic_rotation * M_2PI_F);
+            bsdf->T = rotate_around_axis(bsdf->T, N, anisotropic_rotation * M_2PI_F);
           }
+        }
+        else {
+          bsdf->T = zero_float3();
         }
 
         bsdf->N = valid_reflection_N;
         bsdf->ior = 1.0f;
-        bsdf->T = T;
-        bsdf->alpha_x = alpha_x;
-        bsdf->alpha_y = alpha_y;
 
-        const ClosureType distribution = (ClosureType)node.w;
+        const ClosureType distribution = (ClosureType)data_node.z;
         /* Setup BSDF */
         if (distribution == CLOSURE_BSDF_MICROFACET_BECKMANN_ID) {
           sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
@@ -1458,7 +1458,9 @@ ccl_device_noinline void svm_node_emission_weight(ccl_private float *stack,
   const uint color_offset = node.y;
   const uint strength_offset = node.z;
 
-  const float strength = stack_load_float(stack, strength_offset);
+  const float strength = (stack_valid(strength_offset)) ?
+                             stack_load_float(stack, strength_offset) :
+                             __uint_as_float(node.w);
   *closure_weight = rgb_to_spectrum(stack_load_float3(stack, color_offset)) * strength;
 }
 
