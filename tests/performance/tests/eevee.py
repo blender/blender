@@ -36,6 +36,7 @@ def frame_change_handler(scene):
     import bpy
 
     global record_stage
+    global frame_set_mode
     global start_time
     global start_record_time
     global start_warmup_time
@@ -47,6 +48,7 @@ def frame_change_handler(scene):
     if record_stage == RecordStage.INIT:
         screen = bpy.context.window_manager.windows[0].screen
         bpy.context.scene.sync_mode = 'NONE'
+        frame_set_mode = False
 
         for area in screen.areas:
             if area.type == 'VIEW_3D':
@@ -71,6 +73,10 @@ def frame_change_handler(scene):
             record_stage = RecordStage.WARMUP
 
     elif record_stage == RecordStage.WARMUP:
+        if frame_set_mode:
+            # scene.frame_set results in a recursive call to frame_change_handler.
+            # Avoid running into a RecursionError.
+            return
         warmup_frame += 1
         # Check for two-stage shader compilation that can happen later than the first frame.
         if hasattr(bpy.app, 'is_job_running') and bpy.app.is_job_running("SHADER_COMPILATION"):
@@ -80,7 +86,9 @@ def frame_change_handler(scene):
             playback_iteration = 0
             num_frames = 0
             scene = bpy.context.scene
+            frame_set_mode = True
             scene.frame_set(scene.frame_start)
+            frame_set_mode = False
             record_stage = RecordStage.RECORD
 
     elif record_stage == RecordStage.RECORD:
