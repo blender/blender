@@ -3356,7 +3356,8 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
                               const int flag,
                               const std::optional<StringRefNull> dst_unique_name,
                               const std::optional<int> dst_unique_identifier,
-                              Map<const bNodeSocket *, bNodeSocket *> &socket_map)
+                              Map<const bNodeSocket *, bNodeSocket *> &socket_map,
+                              const bool allow_duplicate_names)
 {
   bNode *node_dst = MEM_mallocN<bNode>(__func__);
   *node_dst = node_src;
@@ -3366,7 +3367,9 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
     STRNCPY_UTF8(node_dst->name, dst_unique_name->c_str());
   }
   else if (dst_tree) {
-    node_unique_name(*dst_tree, *node_dst);
+    if (!allow_duplicate_names) {
+      node_unique_name(*dst_tree, *node_dst);
+    }
   }
   if (dst_unique_identifier) {
     node_dst->identifier = *dst_unique_identifier;
@@ -3574,18 +3577,6 @@ void node_socket_move_default_value(Main & /*bmain*/,
   {
     src_type.value_initialize(src_value);
   }
-}
-
-bNode *node_copy(bNodeTree *dst_tree, const bNode &src_node, const int flag, const bool use_unique)
-{
-  Map<const bNodeSocket *, bNodeSocket *> socket_map;
-  return node_copy_with_mapping(
-      dst_tree,
-      src_node,
-      flag,
-      use_unique ? std::nullopt : std::make_optional<StringRefNull>(src_node.name),
-      use_unique ? std::nullopt : std::make_optional(src_node.identifier),
-      socket_map);
 }
 
 static int node_count_links(const bNodeTree *ntree, const bNodeSocket *socket)

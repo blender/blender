@@ -1331,7 +1331,10 @@ static bNodeTree *node_group_make_wrapper(const bContext &C,
   /* Add the node that make up the wrapper node group. */
   bNode &input_node = *bke::node_add_static_node(&C, *dst_group, NODE_GROUP_INPUT);
   bNode &output_node = *bke::node_add_static_node(&C, *dst_group, NODE_GROUP_OUTPUT);
-  bNode &inner_node = *bke::node_copy(dst_group, src_node, 0, true);
+
+  Map<const bNodeSocket *, bNodeSocket *> inner_node_socket_mapping;
+  bNode &inner_node = *bke::node_copy_with_mapping(
+      dst_group, src_node, 0, std::nullopt, std::nullopt, inner_node_socket_mapping);
 
   /* Position nodes. */
   input_node.location[0] = -300 - input_node.width;
