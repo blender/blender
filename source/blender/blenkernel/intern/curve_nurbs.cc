@@ -184,7 +184,7 @@ Vector<int> calculate_multiplicity_sequence(const Span<float> knots)
 }
 
 static void calculate_basis_for_point(const float parameter,
-                                      const int points_num,
+                                      const int wrapped_points_num,
                                       const int degree,
                                       const Span<float> knots,
                                       MutableSpan<float> r_weights,
@@ -194,7 +194,7 @@ static void calculate_basis_for_point(const float parameter,
 
   int start = 0;
   int end = 0;
-  for (const int i : IndexRange(points_num + degree)) {
+  for (const int i : IndexRange(wrapped_points_num + degree)) {
     const bool knots_equal = knots[i] == knots[i + 1];
     if (knots_equal || parameter < knots[i] || parameter > knots[i + 1]) {
       continue;
@@ -211,7 +211,7 @@ static void calculate_basis_for_point(const float parameter,
 
   for (const int i_order : IndexRange(2, degree)) {
     if (end + i_order >= knots.size()) {
-      end = points_num + degree - i_order;
+      end = wrapped_points_num + degree - i_order;
     }
     for (const int i : IndexRange(end - start + 1)) {
       const int knot_index = start + i;
@@ -258,11 +258,11 @@ void calculate_basis_cache(const int points_num,
   MutableSpan<float> basis_weights(basis_cache.weights);
   MutableSpan<int> basis_start_indices(basis_cache.start_indices);
 
-  const int last_control_point_index = control_points_num(points_num, order, cyclic);
+  const int wrapped_points_num = control_points_num(points_num, order, cyclic);
 
   int eval_point = 0;
 
-  for (const int knot_span : IndexRange::from_begin_end(degree, last_control_point_index)) {
+  for (const int knot_span : IndexRange::from_begin_end(degree, wrapped_points_num)) {
     const float start = knots[knot_span];
     const float end = knots[knot_span + 1];
     if (start == end) {
@@ -272,7 +272,7 @@ void calculate_basis_cache(const int points_num,
     for (const int step : IndexRange::from_begin_size(0, resolution)) {
       const float parameter = start + step * step_width;
       calculate_basis_for_point(parameter,
-                                last_control_point_index,
+                                wrapped_points_num,
                                 degree,
                                 knots,
                                 basis_weights.slice(eval_point * order, order),
@@ -281,8 +281,8 @@ void calculate_basis_cache(const int points_num,
     }
   }
   if (!cyclic) {
-    calculate_basis_for_point(knots[last_control_point_index],
-                              last_control_point_index,
+    calculate_basis_for_point(knots[wrapped_points_num],
+                              wrapped_points_num,
                               degree,
                               knots,
                               basis_weights.slice(eval_point * order, order),
