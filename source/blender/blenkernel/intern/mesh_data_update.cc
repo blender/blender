@@ -1038,13 +1038,18 @@ static void editbmesh_build_data(Depsgraph &depsgraph,
   Mesh *mesh = static_cast<Mesh *>(obedit.data);
   Mesh *me_cage;
   Mesh *me_final;
-  GeometrySet *non_mesh_components;
+  GeometrySet *geometry_set_eval;
 
   editbmesh_calc_modifiers(
-      depsgraph, scene, obedit, dataMask, &me_cage, &me_final, &non_mesh_components);
+      depsgraph, scene, obedit, dataMask, &me_cage, &me_final, &geometry_set_eval);
 
   const bool is_mesh_eval_owned = (me_final != mesh->runtime->mesh_eval);
   BKE_object_eval_assign_data(&obedit, &me_final->id, is_mesh_eval_owned);
+
+  /* Add the final mesh as a non-owning component to the geometry set. */
+  MeshComponent &mesh_component = geometry_set_eval->get_component_for_write<MeshComponent>();
+  mesh_component.replace(me_final, GeometryOwnershipType::Editable);
+  obedit.runtime->geometry_set_eval = geometry_set_eval;
 
   /* Make sure that drivers can target shapekey properties.
    * Note that this causes a potential inconsistency, as the shapekey may have a
@@ -1053,8 +1058,6 @@ static void editbmesh_build_data(Depsgraph &depsgraph,
   me_final->key = mesh->key;
 
   obedit.runtime->editmesh_eval_cage = me_cage;
-
-  obedit.runtime->geometry_set_eval = non_mesh_components;
 
   obedit.runtime->last_data_mask = dataMask;
 }

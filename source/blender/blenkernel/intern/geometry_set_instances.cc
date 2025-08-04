@@ -44,15 +44,7 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object, const bool a
   if (!DEG_object_geometry_is_evaluated(object)) {
     return {};
   }
-  if (object.type == OB_MESH && object.mode == OB_MODE_EDIT) {
-    GeometrySet geometry_set;
-    if (object.runtime->geometry_set_eval != nullptr) {
-      /* `geometry_set_eval` only contains non-mesh components, see `editbmesh_build_data`. */
-      geometry_set = *object.runtime->geometry_set_eval;
-    }
-    add_final_mesh_as_geometry_component(object, geometry_set, apply_subdiv);
-    return geometry_set;
-  }
+
   if (object.runtime->geometry_set_eval != nullptr) {
     GeometrySet geometry_set = *object.runtime->geometry_set_eval;
     /* Ensure that subdivision is performed on the CPU. */
