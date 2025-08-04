@@ -261,8 +261,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                      textwidth + UI_UNIT_X * 1.5f,
                      UI_UNIT_Y,
                      nullptr,
-                     0.0f,
-                     0.0f,
                      "");
 
     /* stick progress bar and cancel button together */
@@ -285,8 +283,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                                                                       UI_UNIT_X * 6.0f,
                                                                       UI_UNIT_Y,
                                                                       nullptr,
-                                                                      0.0f,
-                                                                      0.0f,
                                                                       nullptr);
 
       but_progress->progress_factor = progress;
@@ -304,8 +300,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                        UI_UNIT_X,
                        UI_UNIT_Y,
                        nullptr,
-                       0.0f,
-                       0.0f,
                        TIP_("Stop this job"));
     }
   }
@@ -321,8 +315,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                      UI_UNIT_X * 5.0f,
                      UI_UNIT_Y,
                      nullptr,
-                     0.0f,
-                     0.0f,
                      TIP_("Stop animation playback"));
   }
 }

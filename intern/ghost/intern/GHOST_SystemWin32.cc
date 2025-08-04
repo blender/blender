@@ -1342,9 +1342,9 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     }
   }
 
-  /* We used to check `if (key != GHOST_kKeyUnknown)`, but since the message
-   * values `WM_SYSKEYUP`, `WM_KEYUP` and `WM_CHAR` are ignored, we capture
-   * those events here as well. */
+  /* We used to check `if (key != GHOST_kKeyUnknown)`, however,
+   * given the message values `WM_SYSKEYUP`, `WM_KEYUP` and `WM_CHAR` are ignored,
+   * we capture those events here as well. */
   if (!is_repeated_modifier) {
     char utf8_char[6] = {0};
     BYTE state[256];

@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-05-17 17:56+0000\n"
-"Last-Translator: Ugur Saglam <saglamugur556@gmail.com>\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"PO-Revision-Date: 2025-07-23 15:31+0000\n"
+"Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 5.11"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -10744,6 +10744,10 @@ msgid "Video bitrate (kbit/s)"
 msgstr "Video bit hızı (kbit/s)"
 
 
+msgid "HDR"
+msgstr "Yüksek Çözünürlüklü (HDR)"
+
+
 msgid "F-Modifier"
 msgstr "F-Değiştirici"
 
@@ -13688,6 +13692,10 @@ msgstr "Soket Tipi"
 
 msgid "Menu"
 msgstr "Menu"
+
+
+msgid "Shader"
+msgstr "Gölgeleme"
 
 
 msgid "Collection"
@@ -19054,14 +19062,6 @@ msgid "Output image in DPX format"
 msgstr "Çıktı görüntüsünü DPX formatında al"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR Çok Katmanlı"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Çok katmanlı OpenEXR formatında çıktı görüntüsü"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Çıktı görüntüsünü OpenEXR formatında"
 
@@ -19088,6 +19088,14 @@ msgstr "WebP"
 
 msgid "Output image in WebP format"
 msgstr "Çıktı görüntüsünü WebP formatında"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR Çok Katmanlı"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Çok katmanlı OpenEXR formatında çıktı görüntüsü"
 
 
 msgid "FFmpeg Video"
@@ -20783,10 +20791,6 @@ msgstr "Mat"
 
 msgid "Script"
 msgstr "Senaryo"
-
-
-msgid "Shader"
-msgstr "Gölgeleme"
 
 
 msgid "Pattern"
@@ -24970,10 +24974,6 @@ msgid "Finite Volume"
 msgstr "Sonlu Hacim"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Dünyayı işlemek için gölgelendirici düğümlerini kullanın"
-
-
 msgid "Use Shadow"
 msgstr "Gölge Kullan"
 
@@ -25432,6 +25432,10 @@ msgstr "J2K"
 
 msgid "Output color space settings"
 msgstr "Çıktı renk uzayı ayarları"
+
+
+msgid "Video"
+msgstr "Video"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -27247,10 +27251,6 @@ msgstr "Tıklamak"
 
 msgid "Double Click"
 msgstr "Çift Tıklama"
-
-
-msgid "Click Drag"
-msgstr "Tıkla Sürükle"
 
 
 msgid "KeyMap Items"
@@ -29174,10 +29174,6 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
 msgid "Snap"
 msgstr "Yakala"
 
@@ -29404,6 +29400,10 @@ msgstr "Metin"
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
 
 
 msgid "Keyframe Insert Pie"
@@ -34897,10 +34897,6 @@ msgid "Resolution of the generated surface for rendering and baking"
 msgstr "Oluşturulan yüzeyin render ve pişirme için çözünürlüğü"
 
 
-msgid "Sharpen peak"
-msgstr "Zirveyi keskinleştir"
-
-
 msgid "Peak sharpening for 'JONSWAP' and 'TMA' models"
 msgstr "'JONSWAP' ve 'TMA' modelleri için zirve keskinleştirme"
 
@@ -38294,14 +38290,6 @@ msgid "Color space used for YCbCrA processing"
 msgstr "YCbCrA işleme için kullanılan renk uzayı"
 
 
-msgid "Composite"
-msgstr "Kompozit"
-
-
-msgid "Final render output"
-msgstr "Son render çıktısı"
-
-
 msgid "Convert Colorspace"
 msgstr "Renk Uzayını Dönüştür"
 
@@ -38871,16 +38859,6 @@ msgid "Map UV"
 msgstr "Harita UV"
 
 
-msgctxt "NodeTree"
-msgid "Nearest"
-msgstr "En yakın"
-
-
-msgctxt "NodeTree"
-msgid "Anisotropic"
-msgstr "Anizotropik"
-
-
 msgid "Size Source"
 msgstr "Boyut Kaynağı"
 
@@ -39023,10 +39001,6 @@ msgstr "Döndür"
 
 msgid "Rotate image by specified angle"
 msgstr "Görüntüyü belirtilen açıyla döndür"
-
-
-msgid "Method to use to filter rotation"
-msgstr "Rotasyonu filtrelemek için kullanılacak yöntem"
 
 
 msgid "Change the size of the image"
@@ -39807,14 +39781,6 @@ msgid "Which domain to store the data in"
 msgstr "Verilerin hangi etki alanında depolanacağı"
 
 
-msgid "Paired Output"
-msgstr "Eşleştirilmiş Çıktı"
-
-
-msgid "Zone output node that this input node is paired with"
-msgstr "Bu giriş düğümünün eşleştirildiği bölge çıkış düğümü"
-
-
 msgid "Collection Info"
 msgstr "Koleksiyon Bilgileri"
 
@@ -40275,14 +40241,6 @@ msgid "Fill Curve"
 msgstr "Eğriyi Doldur"
 
 
-msgid "Triangles"
-msgstr "Üçgenler"
-
-
-msgid "N-gons"
-msgstr "N-gonlar"
-
-
 msgid "Fillet Curve"
 msgstr "Fileto Eğrisi"
 
@@ -40291,16 +40249,20 @@ msgid "Round corners by generating circular arcs on each control point"
 msgstr "Her kontrol noktasında dairesel yaylar oluşturarak köşeleri yuvarlayın"
 
 
-msgid "How to choose number of vertices on fillet"
-msgstr "Filetoda köşe sayısı nasıl seçilir"
-
-
 msgid "Flip Faces"
 msgstr "Yüzleri çevir"
 
 
 msgid "For Each Geometry Element Input"
 msgstr "Her Geometri Elemanı Girişi İçin"
+
+
+msgid "Paired Output"
+msgstr "Eşleştirilmiş Çıktı"
+
+
+msgid "Zone output node that this input node is paired with"
+msgstr "Bu giriş düğümünün eşleştirildiği bölge çıkış düğümü"
 
 
 msgid "For Each Geometry Element Output"
@@ -40648,10 +40610,6 @@ msgid "Merge vertices or points within a given distance"
 msgstr "Belirli bir mesafedeki köşeleri veya noktaları birleştirin"
 
 
-msgid "Merge all close selected points, whether or not they are connected"
-msgstr "Bağlı olsun veya olmasın, tüm yakın seçili noktaları birleştir"
-
-
 msgid "Determines how to choose which layers are merged"
 msgstr "Hangi katmanların birleştirileceğinin nasıl seçileceğini belirler"
 
@@ -40682,6 +40640,10 @@ msgstr "Doldurma Türü"
 
 msgid "N-Gon"
 msgstr "N-Gon"
+
+
+msgid "Triangles"
+msgstr "Üçgenler"
 
 
 msgid "Generate a cone mesh"
@@ -40796,10 +40758,6 @@ msgid "Create a fog volume with the shape of the input mesh's surface"
 msgstr "Giriş ağının yüzeyinin şekline sahip bir sis hacmi oluşturun"
 
 
-msgid "How the voxel size is specified"
-msgstr "Voksel boyutu nasıl belirtilir"
-
-
 msgid "UV Sphere"
 msgstr "UV Küresi"
 
@@ -40904,18 +40862,6 @@ msgid "Raycast"
 msgstr "Işın dökümü"
 
 
-msgid "Mapping from the target geometry to hit points"
-msgstr "Hedef geometriden vuruş noktalarına eşleme"
-
-
-msgid "Interpolate the attribute from the corners of the hit face"
-msgstr "Vuruş yüzünün köşelerinden niteliği interpole edin"
-
-
-msgid "Use the attribute value of the closest mesh element"
-msgstr "En yakın ağ öğesinin öznitelik değerini kullanın"
-
-
 msgid "Realize Instances"
 msgstr "Örnekleri Gerçekleştir"
 
@@ -40926,22 +40872,6 @@ msgstr "Örnekleri gerçek geometri verilerine dönüştürün"
 
 msgid "Remove Named Attribute"
 msgstr "Adlandırılmış Özniteliği Kaldır"
-
-
-msgid "Pattern Mode"
-msgstr "Desen Modu"
-
-
-msgid "How the attributes to remove are chosen"
-msgstr "Kaldırılacak öznitelikler nasıl seçilir"
-
-
-msgid "Remove the one attribute with the given name"
-msgstr "Belirtilen isme sahip bir özniteliği kaldırın"
-
-
-msgid "Wildcard"
-msgstr "Joker"
 
 
 msgid "Repeat Input"
@@ -40966,14 +40896,6 @@ msgstr "Eğriyi yeniden örnekle"
 
 msgid "Generate a poly spline for each input spline"
 msgstr "Her giriş spline'ı için bir poly spline oluşturun"
-
-
-msgid "How to specify the amount of samples"
-msgstr "Örnek miktarının nasıl belirleneceği"
-
-
-msgid "Sample the specified number of points along each spline"
-msgstr "Her spline boyunca belirtilen sayıda noktayı örnekle"
 
 
 msgid "Reverse Curve"
@@ -41032,22 +40954,6 @@ msgid "Node socket data type"
 msgstr "Düğüm soketi veri türü"
 
 
-msgid "How to interpolate the values between neighboring voxels"
-msgstr "Komşu vokseller arasındaki değerler nasıl interpole edilir"
-
-
-msgid "Nearest Neighbor"
-msgstr "En yakın komşu"
-
-
-msgid "Trilinear"
-msgstr "Üçlü doğrusal"
-
-
-msgid "Triquadratic"
-msgstr "Üçlü kuadratik"
-
-
 msgid "Sample Grid Index"
 msgstr "Örnek Izgara Dizini"
 
@@ -41100,18 +41006,6 @@ msgid "Scale individual edges or neighboring edge islands"
 msgstr "Ayrı ayrı kenarları veya komşu kenar adalarını ölçeklendirin"
 
 
-msgid "Scale Mode"
-msgstr "Ölçek Modu"
-
-
-msgid "Scale elements by the same factor in every direction"
-msgstr "Ölçek elemanlarını her yönde aynı faktörle ölçeklendirin"
-
-
-msgid "Scale elements in a single direction"
-msgstr "Ölçek elemanlarını tek bir yönde ölçeklendirin"
-
-
 msgid "Scale Instances"
 msgstr "Ölçek Örnekleri"
 
@@ -41158,22 +41052,6 @@ msgstr "Eğriyi Normal Olarak Ayarla"
 
 msgid "Set the evaluation mode for curve normals"
 msgstr "Eğri normalleri için değerlendirme modunu ayarlayın"
-
-
-msgid "Mode for curve normal evaluation"
-msgstr "Eğri normal değerlendirmesi için mod"
-
-
-msgid "Minimum Twist"
-msgstr "Minimum Büküm"
-
-
-msgid "Z Up"
-msgstr "Z Yukarı"
-
-
-msgid "Use the stored custom normal attribute as the final normals"
-msgstr "Son normaller olarak depolanan özel normal niteliğini kullanın"
 
 
 msgid "Set Curve Radius"
@@ -41544,28 +41422,12 @@ msgid "Pack UV Islands"
 msgstr "UV Adaları Paketi"
 
 
-msgid "Shape Method"
-msgstr "Şekil Yöntemi"
-
-
 msgid "UV Unwrap"
 msgstr "UV Açma"
 
 
 msgid "Generate a UV map based on seam edges"
 msgstr "Dikiş kenarlarına dayalı bir UV haritası oluşturun"
-
-
-msgid "Angle Based"
-msgstr "Açı Tabanlı"
-
-
-msgid "This method gives a good 2D representation of a mesh"
-msgstr "Bu yöntem, bir ağın iyi bir 2B temsilini verir"
-
-
-msgid "Conformal"
-msgstr "Uyumlu"
 
 
 msgid "Vertex of Corner"
@@ -43672,10 +43534,6 @@ msgid "Subpath used for this slot"
 msgstr "Bu yuva için kullanılan alt yol"
 
 
-msgid "Use Node Format"
-msgstr "Düğüm Biçimini Kullan"
-
-
 msgid "Output File Layer Slot"
 msgstr "Çıktı Dosyası Katman Yuvası"
 
@@ -44851,10 +44709,6 @@ msgstr "Gürültüyü Azaltma Animasyonu"
 msgctxt "Operator"
 msgid "Merge Images"
 msgstr "Görüntüleri Birleştir"
-
-
-msgid "Enable nodes on a material, world or light"
-msgstr "Bir malzeme, dünya veya ışık üzerindeki düğümleri etkinleştirin"
 
 
 msgctxt "Operator"
@@ -52028,6 +51882,10 @@ msgid "Y Up"
 msgstr "Evet"
 
 
+msgid "Z Up"
+msgstr "Z Yukarı"
+
+
 msgid "-X Up"
 msgstr "-X Yukarı"
 
@@ -53056,14 +52914,6 @@ msgstr "Dış Dosya İşlemi"
 
 msgid "Perform external operation on a file or folder"
 msgstr "Bir dosya veya klasör üzerinde harici işlem gerçekleştirin"
-
-
-msgid "File or folder path"
-msgstr "Dosya veya klasör yolu"
-
-
-msgid "Operation to perform on the file or path"
-msgstr "Dosya veya yol üzerinde gerçekleştirilecek işlem"
 
 
 msgid "Open the file"
@@ -61798,10 +61648,6 @@ msgid "Choose the file format to save to"
 msgstr "Kaydedilecek dosya biçimini seçin"
 
 
-msgid "HDR"
-msgstr "Yüksek Çözünürlüklü (HDR)"
-
-
 msgid "Select members of selected frame"
 msgstr "Seçili çerçevenin üyelerini seç"
 
@@ -64360,10 +64206,6 @@ msgstr "Mevcut şekil anahtarını yerel X ekseni boyunca yansıtın"
 msgctxt "Operator"
 msgid "Move Shape Key"
 msgstr "Şekil Tuşunu Taşı"
-
-
-msgid "Move the active shape key up/down in the list"
-msgstr "Etkin şekil tuşunu listede yukarı/aşağı hareket ettirin"
 
 
 msgctxt "Operator"
@@ -68833,10 +68675,6 @@ msgid "Hide Panels"
 msgstr "Panelleri Gizle"
 
 
-msgid "Hide all the panels"
-msgstr "Tüm panelleri gizle"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "Set Screen"
@@ -69993,10 +69831,6 @@ msgstr "Pivot konumunu imlecin altındaki yüzeye ayarlar"
 
 msgid "Mouse Position X"
 msgstr "Fare Konumu X"
-
-
-msgid "Position of the mouse used for \"Surface\" mode"
-msgstr "\"Yüzey\" modu için kullanılan farenin konumu"
 
 
 msgid "Mouse Position Y"
@@ -73309,6 +73143,10 @@ msgid "Scale islands to fill unit square"
 msgstr "Birim kareyi doldurmak için ölçek adaları"
 
 
+msgid "Shape Method"
+msgstr "Şekil Yöntemi"
+
+
 msgid "Exact Shape (Concave)"
 msgstr "Tam Şekil (İçbükey)"
 
@@ -73732,6 +73570,14 @@ msgstr "Düzenlenen nesnenin ağını açın"
 
 msgid "Number of iterations when \"Minimum Stretch\" method is used"
 msgstr "\"Minimum Esneme\" yöntemi kullanıldığında yineleme sayısı"
+
+
+msgid "Angle Based"
+msgstr "Açı Tabanlı"
+
+
+msgid "Conformal"
+msgstr "Uyumlu"
 
 
 msgid "Use Subdivision Surface"
@@ -78432,10 +78278,6 @@ msgid "Audio"
 msgstr "Audio"
 
 
-msgid "Video"
-msgstr "Video"
-
-
 msgid "FFmpeg Presets"
 msgstr "FFmpeg Ön Ayarları"
 
@@ -82120,14 +81962,6 @@ msgstr "Çeviri için kullanılan dil"
 
 msgid "Automatic (Automatic)"
 msgstr "Otomatik (Otomatik)"
-
-
-msgid "HDRI Preview Size"
-msgstr "HDRI Önizleme Boyutu"
-
-
-msgid "Diameter of the HDRI preview spheres"
-msgstr "HDRI önizleme kürelerinin çapı"
 
 
 msgid "Mini Axes Brightness"
@@ -92883,14 +92717,6 @@ msgid "Color of path before current frame"
 msgstr "Geçerli çerçeveden önceki yolun rengi"
 
 
-msgid "Preview Range"
-msgstr "Önizleme Aralığı"
-
-
-msgid "Color of preview range overlay"
-msgstr "Önizleme aralığı kaplamasının rengi"
-
-
 msgid "Selected Marker"
 msgstr "Seçilmiş İşaretleyici"
 
@@ -92933,6 +92759,14 @@ msgstr "Koleksiyon renkleri için tema ayarları"
 
 msgid "Collection Color Tag"
 msgstr "Koleksiyon Renk Etiketi"
+
+
+msgid "Preview Range"
+msgstr "Önizleme Aralığı"
+
+
+msgid "Color of preview range overlay"
+msgstr "Önizleme aralığı kaplamasının rengi"
 
 
 msgid "Theme Console"
@@ -100354,10 +100188,6 @@ msgid "Launch Blender without --offline-mode"
 msgstr "Blender'ı --offline-mode olmadan başlatın"
 
 
-msgid "Please turn Online Access on in the System settings."
-msgstr "Sistem ayarlarından çevrimiçi erişimi etkinleştirin."
-
-
 msgid "Internet access is required to install extensions from the internet."
 msgstr "İnternetten eklenti yüklemek için internet erişimi gereklidir."
 
@@ -105976,11 +105806,6 @@ msgstr "Dikey Bölme"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "Tam Ekran Alanını Değiştir"
-
-
-msgctxt "Operator"
 msgid "Sound"
 msgstr "Ses"
 
@@ -109342,6 +109167,10 @@ msgid "To 3D Cursor"
 msgstr "3D İmleç"
 
 
+msgid "Specular Lighting"
+msgstr "Speküler Aydınlatma"
+
+
 msgid "Camera Guides"
 msgstr "Kamera Kılavuzları"
 
@@ -109526,10 +109355,6 @@ msgstr "Clear Freestyle Kenarı"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "Temiz Serbest Stil Yüzü"
-
-
-msgid "Specular Lighting"
-msgstr "Speküler Aydınlatma"
 
 
 msgid "Ridge"
@@ -110368,10 +110193,6 @@ msgstr "Heykel modunda desteklenmiyor"
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
 msgstr "Tanjant uzayı yalnızca üçgenler/dörtgenler için hesaplanabilir, iptal edilir"
-
-
-msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
-msgstr "Tanjant uzay hesaplaması bir UV Haritasına ihtiyaç duyuyor, \"%s\" bulunamadı, iptal ediliyor"
 
 
 msgid "NlaTrack"
@@ -113393,16 +113214,8 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "Yol seçimi için iki eşleşen öğenin seçilmesi gerekir"
 
 
-msgid "Cannot rip selected faces"
-msgstr "Seçilen yüzler kopyalanamıyor"
-
-
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "Birden fazla bağlantısız köşeyi koparamazsınız"
-
-
-msgid "Rip failed"
-msgstr "Kopyalama başarısız oldu"
 
 
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
@@ -115139,10 +114952,6 @@ msgid "Maximize Area"
 msgstr "Alanı Maksimize Et"
 
 
-msgid "Full Screen Area"
-msgstr "Tam Ekran Alanı"
-
-
 msgid "Show Header"
 msgstr "Başlığı Göster"
 
@@ -116350,6 +116159,10 @@ msgstr "Tüm %d rotasyon kanalları filtrelendi"
 
 msgid "There is no animation data to operate on"
 msgstr "Üzerinde işlem yapılacak animasyon verisi yok"
+
+
+msgid "Composite"
+msgstr "Kompozit"
 
 
 msgid "Discard"
@@ -118144,10 +117957,6 @@ msgid "Shrink/Fatten: "
 msgstr "Küçült/Şişmanlat: "
 
 
-msgid " or Alt) Even Thickness {}"
-msgstr " veya Alt) Eşit Kalınlık {}"
-
-
 msgid "'Shrink/Fatten' meshes is only supported in edit mode"
 msgstr "'Küçült/Şişmanlat' ağları yalnızca düzenleme modunda desteklenir"
 
@@ -118353,6 +118162,10 @@ msgstr "Daire Seç (Seçimi Kaldır)"
 
 msgid "UV Vertex"
 msgstr "UV Tepe Noktası"
+
+
+msgid "Rip failed"
+msgstr "Kopyalama başarısız oldu"
 
 
 msgid "Cannot split selection when sync selection is enabled"
@@ -119512,6 +119325,10 @@ msgstr "Dizin %d geçersiz"
 
 msgid "UV map '%s' not found"
 msgstr "UV haritası '%s' bulunamadı"
+
+
+msgid "Tangent space computation needs a UV Map, \"%s\" not found, aborting"
+msgstr "Tanjant uzay hesaplaması bir UV Haritasına ihtiyaç duyuyor, \"%s\" bulunamadı, iptal ediliyor"
 
 
 msgid "Metaball '%s' does not contain spline given"
@@ -121154,30 +120971,6 @@ msgid "Outer Mask"
 msgstr "Dış Maske"
 
 
-msgid "Path:"
-msgstr "Yol:"
-
-
-msgid "Base Path:"
-msgstr "Temel Yol:"
-
-
-msgid "Add Input"
-msgstr "Giriş Ekle"
-
-
-msgid "Layer:"
-msgstr "Katman:"
-
-
-msgid "File Subpath:"
-msgstr "Dosya Alt Yolu:"
-
-
-msgid "Format:"
-msgstr "Biçim:"
-
-
 msgid "Disabled, built without FFTW"
 msgstr "Engelli, FFTW olmadan inşa edilmiş"
 
@@ -121558,6 +121351,10 @@ msgid "Limit Radius"
 msgstr "Sınır Yarıçapı"
 
 
+msgid "How to choose number of vertices on fillet"
+msgstr "Filetoda köşe sayısı nasıl seçilir"
+
+
 msgid "Handle Type Selection node"
 msgstr "Tutamaç Türü Seçimi düğümü"
 
@@ -121757,6 +121554,10 @@ msgstr "İç nokta kümesinin saat yönünün tersine dönmesi"
 
 msgid "An attribute field with a selection of the outer points"
 msgstr "Dış noktaların bir seçimini içeren bir öznitelik alanı"
+
+
+msgid "How to specify the amount of samples"
+msgstr "Örnek miktarının nasıl belirleneceği"
 
 
 msgid "Curve Index"
@@ -122551,6 +122352,10 @@ msgid "Width of the active voxel surface, in voxels"
 msgstr "Aktif voksel yüzeyinin genişliği, voksel cinsinden"
 
 
+msgid "How the voxel size is specified"
+msgstr "Voksel boyutu nasıl belirtilir"
+
+
 msgid "Corner Index"
 msgstr "Köşe Dizini"
 
@@ -122763,6 +122568,10 @@ msgid "Hit Distance"
 msgstr "Vuruş Mesafesi"
 
 
+msgid "Mapping from the target geometry to hit points"
+msgstr "Hedef geometriden vuruş noktalarına eşleme"
+
+
 msgid "Realize All"
 msgstr "Her Şeyi Gerçekleştir"
 
@@ -122783,12 +122592,24 @@ msgid "Attribute does not exist: \"{}\""
 msgstr "Öznitelik mevcut değil: \"{}\""
 
 
+msgid "Pattern Mode"
+msgstr "Desen Modu"
+
+
+msgid "How the attributes to remove are chosen"
+msgstr "Kaldırılacak öznitelikler nasıl seçilir"
+
+
 msgid "Repeat Items"
 msgstr "Tekrarlanan Öğeler"
 
 
 msgid "Index of the current iteration. Starts counting at zero"
 msgstr "Mevcut yinelemenin dizini. Saymaya sıfırdan başlar"
+
+
+msgid "How to interpolate the values between neighboring voxels"
+msgstr "Komşu vokseller arasındaki değerler nasıl interpole edilir"
 
 
 msgid "Which element to retrieve a value from on the geometry"
@@ -122813,6 +122634,10 @@ msgstr "Örneklenecek UV haritası. Üst üste binen yüzler olmamalıdır"
 
 msgid "The coordinates to sample within the UV map"
 msgstr "UV haritasında örneklenecek koordinatlar"
+
+
+msgid "Scale Mode"
+msgstr "Ölçek Modu"
 
 
 msgid "Direction in which to scale the element"
@@ -122841,6 +122666,10 @@ msgstr "Seçimdeki geometrinin parçaları"
 
 msgid "The parts of the geometry not in the selection"
 msgstr "Seçimde olmayan geometri parçaları"
+
+
+msgid "Mode for curve normal evaluation"
+msgstr "Eğri normal değerlendirmesi için mod"
 
 
 msgid "Mesh has no faces for material assignment"
@@ -123779,10 +123608,6 @@ msgid "Border rendering is not supported by sequencer"
 msgstr "Sınır oluşturma, sıralayıcı tarafından desteklenmiyor"
 
 
-msgid "No render output node in scene"
-msgstr "Sahnede render çıkış düğümü yok"
-
-
 msgid "All render layers are disabled"
 msgstr "Tüm render katmanları devre dışı bırakıldı"
 
@@ -124284,11 +124109,6 @@ msgstr "Sınırlı Platform Desteği"
 
 
 msgctxt "WindowManager"
-msgid "Newer graphics drivers may be available to improve Blender support."
-msgstr "Blender desteğini geliştirmek için daha yeni grafik sürücüleri mevcut olabilir."
-
-
-msgctxt "WindowManager"
 msgid "Graphics card:"
 msgstr "Grafik kartı:"
 
@@ -124311,16 +124131,6 @@ msgstr "Grafik kartınız veya macOS sürümünüz desteklenmiyor"
 msgctxt "WindowManager"
 msgid "Upgrading to the latest macOS version may improve Blender support"
 msgstr "En son macOS sürümüne yükseltme yapmak Blender desteğini iyileştirebilir"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "Grafik kartınız veya sürücünüz desteklenmiyor."
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "Program şimdi kapanacak."
 
 
 msgid "Intel binary detected. Expect reduced performance."

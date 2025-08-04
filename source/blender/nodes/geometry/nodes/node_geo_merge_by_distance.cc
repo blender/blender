@@ -8,42 +8,43 @@
 #include "GEO_mesh_merge_by_distance.hh"
 #include "GEO_point_merge_by_distance.hh"
 
-#include "NOD_rna_define.hh"
-
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_merge_by_distance_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryMergeByDistance)
 
+static EnumPropertyItem mode_items[] = {
+    {GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL,
+     "ALL",
+     0,
+     "All",
+     "Merge all close selected points, whether or not they are connected"},
+    {GEO_NODE_MERGE_BY_DISTANCE_MODE_CONNECTED,
+     "CONNECTED",
+     0,
+     "Connected",
+     "Only merge mesh vertices along existing edges. This method can be much faster"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_default_layout();
   b.add_input<decl::Geometry>("Geometry")
       .supported_type({GeometryComponent::Type::PointCloud, GeometryComponent::Type::Mesh})
       .description("Point cloud or mesh to merge points of");
   b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Menu>("Mode").static_items(mode_items);
   b.add_input<decl::Float>("Distance").default_value(0.001f).min(0.0f).subtype(PROP_DISTANCE);
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
-  layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryMergeByDistance *data = MEM_callocN<NodeGeometryMergeByDistance>(__func__);
-  data->mode = GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL;
-  node->storage = data;
+  /* Still used for forward compatibility. */
+  node->storage = MEM_callocN<NodeGeometryMergeByDistance>(__func__);
 }
 
 static PointCloud *pointcloud_merge_by_distance(const PointCloud &src_points,
@@ -97,11 +98,8 @@ static std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeGeometryMergeByDistance &storage = node_storage(params.node());
-  const GeometryNodeMergeByDistanceMode mode = (GeometryNodeMergeByDistanceMode)storage.mode;
-
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-
+  const auto mode = params.get_input<GeometryNodeMergeByDistanceMode>("Mode");
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
   const float merge_distance = params.extract_input<float>("Distance");
 
@@ -134,31 +132,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-static void node_rna(StructRNA *srna)
-{
-  static EnumPropertyItem mode_items[] = {
-      {GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL,
-       "ALL",
-       0,
-       "All",
-       "Merge all close selected points, whether or not they are connected"},
-      {GEO_NODE_MERGE_BY_DISTANCE_MODE_CONNECTED,
-       "CONNECTED",
-       0,
-       "Connected",
-       "Only merge mesh vertices along existing edges. This method can be much faster"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_node_enum(srna,
-                    "mode",
-                    "Mode",
-                    "",
-                    mode_items,
-                    NOD_storage_enum_accessors(mode),
-                    GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL);
-}
-
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -175,10 +148,7 @@ static void node_register()
                                   node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.draw_buttons = node_layout;
   blender::bke::node_register_type(ntype);
-
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

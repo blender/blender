@@ -100,8 +100,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   menuwidth,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     UI_but_func_set(but, [coba, cb](bContext &C) {
       colorband_flip(&C, coba);
@@ -120,8 +118,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   menuwidth,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     UI_but_func_set(but, [coba, cb](bContext &C) {
       colorband_distribute(&C, coba, false);
@@ -140,8 +136,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   menuwidth,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     UI_but_func_set(but, [coba, cb](bContext &C) {
       colorband_distribute(&C, coba, true);
@@ -167,8 +161,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   menuwidth,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     UI_but_func_set(but, [coba, cb](bContext &C) {
       BKE_colorband_init(coba, true);
@@ -244,8 +236,6 @@ static void colorband_buttons_layout(uiLayout *layout,
                         2.0f * unit,
                         UI_UNIT_Y,
                         nullptr,
-                        0,
-                        0,
                         TIP_("Add a new color stop to the color ramp"));
   UI_but_func_set(bt, [coba, cb](bContext &C) { colorband_add(C, cb, *coba); });
 
@@ -259,8 +249,6 @@ static void colorband_buttons_layout(uiLayout *layout,
                         2.0f * unit,
                         UI_UNIT_Y,
                         nullptr,
-                        0,
-                        0,
                         TIP_("Delete the active position"));
   UI_but_func_set(bt, [coba, cb](bContext &C) {
     if (BKE_colorband_element_remove(coba, coba->cur)) {

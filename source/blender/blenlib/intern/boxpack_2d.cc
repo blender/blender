@@ -468,8 +468,8 @@ void BLI_box_pack_2d(
              * on the bottom or side so we don't get
              * boxes outside the given rectangle ares
              *
-             * We can do an else/if here because only the first
-             * box can be at the very bottom left corner */
+             * We can use `else if` here because only the first
+             * box can be at the very bottom left corner. */
             if (box_xmin_get(box) <= 0) {
               box->v[TL]->free &= ~(TLF | BLF);
               box->v[BL]->free &= ~(TLF | BLF);

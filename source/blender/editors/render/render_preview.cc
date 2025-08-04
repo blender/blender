@@ -49,6 +49,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_brush.hh"
+#include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -958,34 +959,6 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
  *
  * \{ */
 
-/**
- * Check if the collection contains any geometry that can be rendered. Otherwise there's nothing to
- * display in the preview, so don't generate one.
- * Objects and sub-collections hidden in the render will be skipped.
- */
-static bool collection_preview_contains_geometry_recursive(const Collection *collection)
-{
-  LISTBASE_FOREACH (CollectionObject *, col_ob, &collection->gobject) {
-    if (col_ob->ob->visibility_flag & OB_HIDE_RENDER) {
-      continue;
-    }
-    if (OB_TYPE_IS_GEOMETRY(col_ob->ob->type)) {
-      return true;
-    }
-  }
-
-  LISTBASE_FOREACH (CollectionChild *, child_col, &collection->children) {
-    if (child_col->collection->flag & COLLECTION_HIDE_RENDER) {
-      continue;
-    }
-    if (collection_preview_contains_geometry_recursive(child_col->collection)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1690,7 +1663,8 @@ static void icon_preview_startjob_all_sizes(void *customdata, wmJobWorkerStatus 
           }
           continue;
         case ID_GR:
-          BLI_assert(collection_preview_contains_geometry_recursive((Collection *)ip->id));
+          BLI_assert(BKE_collection_contains_geometry_recursive(
+              reinterpret_cast<const Collection *>(ip->id)));
           /* A collection instance empty was created, so this can just reuse the object preview
            * rendering. */
           object_preview_render(ip, cur_size);
@@ -1832,7 +1806,7 @@ PreviewLoadJob::~PreviewLoadJob()
 PreviewLoadJob &PreviewLoadJob::ensure_job(wmWindowManager *wm, wmWindow *win)
 {
   wmJob *wm_job = WM_jobs_get(
-      wm, win, nullptr, "Load Previews", eWM_JobFlag(0), WM_JOB_TYPE_LOAD_PREVIEW);
+      wm, win, nullptr, "Loading previews...", eWM_JobFlag(0), WM_JOB_TYPE_LOAD_PREVIEW);
 
   if (!WM_jobs_is_running(wm_job)) {
     PreviewLoadJob *job_data = MEM_new<PreviewLoadJob>("PreviewLoadJobData");
@@ -2019,7 +1993,7 @@ bool ED_preview_id_is_supported(const ID *id, const char **r_disabled_hint)
                 RPT_("Object type does not support automatic previews")};
       case ID_GR:
         return {
-            collection_preview_contains_geometry_recursive((const Collection *)id),
+            BKE_collection_contains_geometry_recursive(reinterpret_cast<const Collection *>(id)),
             RPT_("Collection does not contain object types that can be rendered for the automatic "
                  "preview")};
       case ID_SCE:
@@ -2114,7 +2088,7 @@ void ED_preview_icon_job(
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
                               prv_img,
-                              "Icon Preview",
+                              "Generating icon preview...",
                               WM_JOB_EXCL_RENDER,
                               WM_JOB_TYPE_RENDER_PREVIEW);
 
@@ -2191,7 +2165,7 @@ void ED_preview_shader_job(const bContext *C,
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
                        owner,
-                       "Shader Preview",
+                       "Generating shader preview...",
                        WM_JOB_EXCL_RENDER,
                        WM_JOB_TYPE_RENDER_PREVIEW);
   sp = MEM_callocN<ShaderPreview>("shader preview");

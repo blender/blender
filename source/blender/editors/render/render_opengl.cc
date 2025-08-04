@@ -1334,7 +1334,7 @@ static wmOperatorStatus screen_opengl_render_invoke(bContext *C,
     wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                                 CTX_wm_window(C),
                                 oglrender->scene,
-                                "Viewport Render",
+                                "Rendering viewport...",
                                 WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS,
                                 WM_JOB_TYPE_RENDER);
     WM_jobs_customdata_set(wm_job, oglrender, opengl_render_freejob);

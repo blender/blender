@@ -128,7 +128,7 @@ struct GizmosUpdateParams {
 
   template<typename T> [[nodiscard]] bool get_input_value(const StringRef identifier, T &r_value)
   {
-    const bNodeSocket &socket = this->gizmo_node.input_by_identifier(identifier);
+    const bNodeSocket &socket = *this->gizmo_node.input_by_identifier(identifier);
     const std::optional<T> value_opt = this->tree_log.find_primitive_socket_value<T>(socket);
     if (!value_opt) {
       return false;
@@ -1056,7 +1056,7 @@ static void WIDGETGROUP_geometry_nodes_refresh(const bContext *C, wmGizmoGroup *
                   const StringRef socket_identifier,
                   const FunctionRef<void(bke::SocketValueVariant &)> modify_value) {
                 gizmo_node_tree->ensure_topology_cache();
-                const bNodeSocket &socket = gizmo_node->input_by_identifier(socket_identifier);
+                const bNodeSocket &socket = *gizmo_node->input_by_identifier(socket_identifier);
 
                 nodes::gizmos::apply_gizmo_change(*const_cast<bContext *>(C),
                                                   const_cast<Object &>(*object_orig),

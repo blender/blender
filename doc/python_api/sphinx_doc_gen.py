@@ -1338,6 +1338,8 @@ def pycontext2sphinx(basepath):
             fw(".. data:: {:s}\n\n".format(prop.identifier))
             if prop.description:
                 fw("   {:s}\n\n".format(prop.description))
+            if (deprecated := prop.deprecated) is not None:
+                fw(pyrna_deprecated_directive("   ", deprecated))
 
             # Special exception, can't use generic code here for enums.
             if prop.type == "enum":
@@ -1447,6 +1449,23 @@ def pyrna_enum2sphinx(prop, use_empty_descriptions=False):
             for identifier, name, description in prop.enum_items
         ])
     return ""
+
+
+def pyrna_deprecated_directive(ident, deprecated):
+    note, version, removal_version = deprecated
+
+    # Show a short 2 number version where possible to reduce noise.
+    version_str = "{:d}.{:d}.{:d}".format(*version).removesuffix(".0")
+    removal_version_str = "{:d}.{:d}.{:d}".format(*removal_version).removesuffix(".0")
+
+    return (
+        "{:s}.. deprecated:: {:s} removal planned in version {:s}\n"
+        "\n"
+        "{:s}   {:s}\n"
+    ).format(
+        ident, version_str, removal_version_str,
+        ident, note,
+    )
 
 
 def pyrna2sphinx(basepath):
@@ -1640,6 +1659,9 @@ def pyrna2sphinx(basepath):
             if prop.description:
                 write_indented_lines("      ", fw, prop.description, False)
                 fw("\n")
+            if (deprecated := prop.deprecated) is not None:
+                fw(pyrna_deprecated_directive("      ", deprecated))
+                fw("\n")
 
             # Special exception, can't use generic code here for enums.
             if prop.type == "enum":
@@ -1719,6 +1741,10 @@ def pyrna2sphinx(basepath):
                         prop.identifier,
                         ", ".join((val for val in (descr, type_descr) if val))
                     ))
+                    if (deprecated := prop.deprecated) is not None:
+                        fw(pyrna_deprecated_directive("      ", deprecated))
+                        fw("\n")
+
                 fw("      :rtype: ({:s})\n".format(", ".join(type_descrs)))
 
             write_example_ref("      ", fw, struct_module_name + "." + struct_id + "." + func.identifier)

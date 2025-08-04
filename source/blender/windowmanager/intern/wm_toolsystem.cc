@@ -511,7 +511,7 @@ static void toolsystem_ref_link(Main *bmain, WorkSpace *workspace, bToolRef *tre
     if (gzgt != nullptr) {
       if ((gzgt->flag & WM_GIZMOGROUPTYPE_TOOL_INIT) == 0) {
         if (!WM_gizmo_group_type_ensure_ptr(gzgt)) {
-          /* Even if the group-type was has been linked, it's possible the space types
+          /* Even if the group-type has been linked, it's possible the space types
            * were not previously using it. (happens with multiple windows). */
           wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
           WM_gizmoconfig_update_tag_group_type_init(gzmap_type, gzgt);

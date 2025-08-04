@@ -103,7 +103,9 @@ struct SubDPattern {
 #define ELE_INNER 8
 #define ELE_SPLIT 16
 
-/* see bug #32665, 0.00005 means a we get face splits at a little under 1.0 degrees */
+/**
+ * A value of 0.00005 means we get face splits at a little under 1.0 degrees, see #32665.
+ */
 #define FLT_FACE_SPLIT_EPSILON 0.00005f
 
 /*
@@ -1352,24 +1354,34 @@ void BM_mesh_esubdivide(BMesh *bm,
   BMO_op_exec(bm, &op);
 
   switch (seltype) {
-    case SUBDIV_SELECT_NONE:
+    case SUBDIV_SELECT_NONE: {
       break;
-    case SUBDIV_SELECT_ORIG:
+    }
+    case SUBDIV_SELECT_ORIG: {
       /* set the newly created data to be selected */
-      BMO_slot_buffer_hflag_enable(
-          bm, op.slots_out, "geom_inner.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
-      BM_mesh_select_flush(bm);
+      if (edge_hflag & BM_ELEM_SELECT) {
+        BMO_slot_buffer_hflag_enable(
+            bm, op.slots_out, "geom_inner.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+        BM_mesh_select_flush(bm);
+      }
       break;
-    case SUBDIV_SELECT_INNER:
-      BMO_slot_buffer_hflag_enable(
-          bm, op.slots_out, "geom_inner.out", BM_EDGE | BM_VERT, BM_ELEM_SELECT, true);
+    }
+    case SUBDIV_SELECT_INNER: {
+      if (edge_hflag & BM_ELEM_SELECT) {
+        BMO_slot_buffer_hflag_enable(
+            bm, op.slots_out, "geom_inner.out", BM_EDGE | BM_VERT, BM_ELEM_SELECT, true);
+      }
       break;
-    case SUBDIV_SELECT_LOOPCUT:
-      /* deselect input */
-      BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
-      BMO_slot_buffer_hflag_enable(
-          bm, op.slots_out, "geom_inner.out", BM_EDGE, BM_ELEM_SELECT, true);
+    }
+    case SUBDIV_SELECT_LOOPCUT: {
+      if (edge_hflag & BM_ELEM_SELECT) {
+        /* deselect input */
+        BM_mesh_elem_hflag_disable_all(bm, BM_ALL_NOLOOP, BM_ELEM_SELECT, false);
+        BMO_slot_buffer_hflag_enable(
+            bm, op.slots_out, "geom_inner.out", BM_EDGE, BM_ELEM_SELECT, true);
+      }
       break;
+    }
   }
 
   BMO_op_finish(bm, &op);

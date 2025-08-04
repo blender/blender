@@ -48,7 +48,6 @@ int GPU_max_parallel_compilations();
 
 bool GPU_stencil_clasify_buffer_workaround();
 bool GPU_node_link_instancing_workaround();
-bool GPU_mip_render_workaround();
 bool GPU_depth_blitting_workaround();
 bool GPU_use_main_context_workaround();
 bool GPU_use_hq_normals_workaround();

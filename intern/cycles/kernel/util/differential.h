@@ -125,6 +125,11 @@ ccl_device_forceinline float differential_make_compact(const differential3 dD)
   return 0.5f * (len(dD.dx) + len(dD.dy));
 }
 
+ccl_device_forceinline float differential_make_compact(const dual3 D)
+{
+  return 0.5f * (len(D.dx) + len(D.dy));
+}
+
 ccl_device_forceinline float differential_incoming_compact(const float dD)
 {
   return dD;

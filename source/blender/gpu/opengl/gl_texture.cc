@@ -295,8 +295,7 @@ void GLTexture::generate_mipmap()
 
   /* Some drivers have bugs when using #glGenerateMipmap with depth textures (see #56789).
    * In this case we just create a complete texture with mipmaps manually without
-   * down-sampling. You must initialize the texture levels using other methods like
-   * #GPU_framebuffer_recursive_downsample(). */
+   * down-sampling. You must initialize the texture levels using other methods. */
   if (format_flag_ & GPU_FORMAT_DEPTH) {
     return;
   }
@@ -717,11 +716,6 @@ bool GLTexture::proxy_check(int mip)
 
 void GLTexture::check_feedback_loop()
 {
-  /* Recursive down sample workaround break this check.
-   * See #recursive_downsample() for more information. */
-  if (GPU_mip_render_workaround()) {
-    return;
-  }
   /* Do not check if using compute shader. */
   GLShader *sh = dynamic_cast<GLShader *>(Context::get()->shader);
   if (sh && sh->is_compute()) {

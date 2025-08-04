@@ -2,14 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "NOD_rna_define.hh"
-
 #include "DNA_grease_pencil_types.h"
 
 #include "BKE_grease_pencil.hh"
-
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
 
 #include "GEO_fillet_curves.hh"
 
@@ -19,23 +14,28 @@ namespace blender::nodes::node_geo_curve_fillet_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryCurveFillet)
 
+static EnumPropertyItem mode_items[] = {
+    {GEO_NODE_CURVE_FILLET_BEZIER,
+     "BEZIER",
+     0,
+     "Bézier",
+     "Align Bézier handles to create circular arcs at each control point"},
+    {GEO_NODE_CURVE_FILLET_POLY,
+     "POLY",
+     0,
+     "Poly",
+     "Add control points along a circular arc (handle type is vector if Bézier Spline)"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
   b.allow_any_socket_order();
-  b.add_default_layout();
   b.add_input<decl::Geometry>("Curve")
       .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil})
       .description("Curves to generated rounded corners on");
   b.add_output<decl::Geometry>("Curve").propagate_all().align_with_previous();
-  auto &count_input = b.add_input<decl::Int>("Count")
-                          .default_value(1)
-                          .min(1)
-                          .max(1000)
-                          .field_on_all()
-                          .make_available([](bNode &node) {
-                            node_storage(node).mode = GEO_NODE_CURVE_FILLET_POLY;
-                          });
   b.add_input<decl::Float>("Radius")
       .min(0.0f)
       .max(FLT_MAX)
@@ -44,24 +44,21 @@ static void node_declare(NodeDeclarationBuilder &b)
       .field_on_all();
   b.add_input<decl::Bool>("Limit Radius")
       .description("Limit the maximum value of the radius in order to avoid overlapping fillets");
-
-  const bNode *node = b.node_or_null();
-  if (node != nullptr) {
-    const NodeGeometryCurveFillet &storage = node_storage(*node);
-    count_input.available(GeometryNodeCurveFilletMode(storage.mode) == GEO_NODE_CURVE_FILLET_POLY);
-  }
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  b.add_input<decl::Menu>("Mode")
+      .static_items(mode_items)
+      .description("How to choose number of vertices on fillet");
+  b.add_input<decl::Int>("Count")
+      .default_value(1)
+      .min(1)
+      .max(1000)
+      .field_on_all()
+      .usage_by_single_menu(GEO_NODE_CURVE_FILLET_POLY);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryCurveFillet *data = MEM_callocN<NodeGeometryCurveFillet>(__func__);
-  data->mode = GEO_NODE_CURVE_FILLET_BEZIER;
-  node->storage = data;
+  /* Still used for forward compatibility. */
+  node->storage = MEM_callocN<NodeGeometryCurveFillet>(__func__);
 }
 
 static bke::CurvesGeometry fillet_curve(const bke::CurvesGeometry &src_curves,
@@ -132,9 +129,8 @@ static void fillet_grease_pencil(GreasePencil &grease_pencil,
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-
-  const NodeGeometryCurveFillet &storage = node_storage(params.node());
-  const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)storage.mode;
+  const GeometryNodeCurveFilletMode mode = params.extract_input<GeometryNodeCurveFilletMode>(
+      "Mode");
 
   Field<float> radius_field = params.extract_input<Field<float>>("Radius");
   const bool limit_radius = params.extract_input<bool>("Limit Radius");
@@ -172,31 +168,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
-static void node_rna(StructRNA *srna)
-{
-  static EnumPropertyItem mode_items[] = {
-      {GEO_NODE_CURVE_FILLET_BEZIER,
-       "BEZIER",
-       0,
-       "Bézier",
-       "Align Bézier handles to create circular arcs at each control point"},
-      {GEO_NODE_CURVE_FILLET_POLY,
-       "POLY",
-       0,
-       "Poly",
-       "Add control points along a circular arc (handle type is vector if Bézier Spline)"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_node_enum(srna,
-                    "mode",
-                    "Mode",
-                    "How to choose number of vertices on fillet",
-                    mode_items,
-                    NOD_storage_enum_accessors(mode),
-                    GEO_NODE_CURVE_FILLET_BEZIER);
-}
-
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -206,15 +177,12 @@ static void node_register()
   ntype.ui_description = "Round corners by generating circular arcs on each control point";
   ntype.enum_name_legacy = "FILLET_CURVE";
   ntype.nclass = NODE_CLASS_GEOMETRY;
-  ntype.draw_buttons = node_layout;
   blender::bke::node_type_storage(
       ntype, "NodeGeometryCurveFillet", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(ntype);
-
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

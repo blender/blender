@@ -149,10 +149,15 @@ static ImBuf *do_gaussian_blur_effect(const RenderData *context,
 
   /* Create blur kernel weights. */
   const GaussianBlurVars *data = static_cast<const GaussianBlurVars *>(strip->effectdata);
-  const int half_size_x = int(data->size_x + 0.5f);
-  const int half_size_y = int(data->size_y + 0.5f);
-  Array<float> gaussian_x = make_gaussian_blur_kernel(data->size_x, half_size_x);
-  Array<float> gaussian_y = make_gaussian_blur_kernel(data->size_y, half_size_y);
+
+  const float size_scale = seq::get_render_scale_factor(*context);
+  const float size_x = data->size_x * size_scale;
+  const float size_y = data->size_y * size_scale;
+
+  const int half_size_x = int(size_x + 0.5f);
+  const int half_size_y = int(size_y + 0.5f);
+  Array<float> gaussian_x = make_gaussian_blur_kernel(size_x, half_size_x);
+  Array<float> gaussian_y = make_gaussian_blur_kernel(size_y, half_size_y);
 
   const int width = context->rectx;
   const int height = context->recty;

@@ -807,7 +807,7 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
     if (mesh == nullptr) {
       return true;
     }
-
+    const AttributeAccessor accessor = mesh->attributes();
     const Span<MDeformVert> dverts = mesh->deform_verts();
 
     int group_index = 0;
@@ -817,6 +817,8 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
       };
 
       AttributeIter iter{group->name, AttrDomain::Point, bke::AttrType::Float, get_fn};
+      iter.is_builtin = false;
+      iter.accessor = &accessor;
       fn(iter);
       if (iter.is_stopped()) {
         return false;

@@ -19,7 +19,7 @@
 
 namespace blender::io::obj {
 
-class OBJCurve;
+class IOBJCurve;
 class OBJMesh;
 /**
  * Total vertices/ UV vertices/ normals of previous Objects
@@ -95,7 +95,7 @@ class OBJWriter : NonMovable, NonCopyable {
   /**
    * Write a NURBS curve to the `.OBJ` file in parameter form.
    */
-  void write_nurbs_curve(FormatHandler &fh, const OBJCurve &obj_nurbs_data) const;
+  void write_nurbs_curve(FormatHandler &fh, const IOBJCurve &obj_nurbs_data) const;
 
  private:
   using func_vert_uv_normal_indices = void (OBJWriter::*)(FormatHandler &fh,

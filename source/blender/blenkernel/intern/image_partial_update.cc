@@ -81,7 +81,7 @@ constexpr int MAX_HISTORY_LEN = 4;
 /**
  * \brief get the chunk number for the give pixel coordinate.
  *
- * As chunks are squares the this member can be used for both x and y axis.
+ * As chunks are squares this member can be used for both x and y axis.
  */
 static int chunk_number_for_pixel(int pixel_offset)
 {

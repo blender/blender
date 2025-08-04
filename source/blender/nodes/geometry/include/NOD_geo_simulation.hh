@@ -64,7 +64,7 @@ struct SimulationItemsAccessor : public socket_items::SocketItemsAccessorDefault
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     /* Data-block types and closures are not supported. */
     return ELEM(socket_type,

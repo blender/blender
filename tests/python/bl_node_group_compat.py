@@ -217,7 +217,7 @@ class NodeGroupVersioning36Test(AbstractNodeGroupInterfaceTest):
     def test_load_compositor_nodes(self):
         self.open_file()
 
-        tree = bpy.data.scenes['Scene'].node_tree
+        tree = bpy.data.scenes['Scene'].compositing_node_group
         group = bpy.data.node_groups.get('NodeGroup')
         self.assertIsNotNone(group, "Compositor node group not found")
         node = tree.nodes['Group']
@@ -306,7 +306,7 @@ class NodeGroupVersioning25Test(AbstractNodeGroupInterfaceTest):
     def test_load_compositor_nodes(self):
         self.open_file()
 
-        tree = bpy.data.scenes['Scene'].node_tree
+        tree = bpy.data.scenes['Scene'].compositing_node_group
         group = bpy.data.node_groups.get('NodeGroup.002')
         self.assertIsNotNone(group, "Compositor node group not found")
         node = tree.nodes['NodeGroup.002']

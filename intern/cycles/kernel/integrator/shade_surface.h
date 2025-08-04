@@ -413,7 +413,7 @@ ccl_device
 
   if (is_transmission) {
 #ifdef __VOLUME__
-    shadow_volume_stack_enter_exit(kg, shadow_state, sd);
+    volume_stack_enter_exit<true>(kg, shadow_state, sd);
 #endif
   }
 
@@ -820,7 +820,7 @@ ccl_device int integrate_surface(KernelGlobals kg,
 
   if (continue_path_label & LABEL_TRANSMIT) {
     /* Enter/Exit volume. */
-    volume_stack_enter_exit(kg, state, &sd);
+    volume_stack_enter_exit<false>(kg, state, &sd);
   }
 #endif
 

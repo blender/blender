@@ -2,7 +2,9 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Update Blender version this key-map was written in:
+# Update Blender version this key-map was written in.
+# The update runs when loading key-map presets written in older versions of Blender.
+# Failing to run this means those key-maps may fail to load with an error.
 #
 # When the version is `(0, 0, 0)`, the key-map being loaded didn't contain any versioning information.
 # This will older than `(2, 92, 0)`.

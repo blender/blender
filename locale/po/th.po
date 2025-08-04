@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:42+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"PO-Revision-Date: 2025-07-23 15:06+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
 "Language: th\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Name"
@@ -1163,6 +1163,10 @@ msgid "Normal"
 msgstr "แนวฉาก"
 
 
+msgid "Shader"
+msgstr "เชดเดอร์"
+
+
 msgid "Border"
 msgstr "เส้นขอบ"
 
@@ -1484,10 +1488,6 @@ msgid "Movie File"
 msgstr "ไฟล์ภาพยนตร์"
 
 
-msgid "Shader"
-msgstr "เชดเดอร์"
-
-
 msgid "Pattern"
 msgstr "ลวดลาย"
 
@@ -1726,6 +1726,10 @@ msgid "Animation"
 msgstr "แอนิเมชัน"
 
 
+msgid "Video"
+msgstr "วิดีโอ"
+
+
 msgid "YCC"
 msgstr "YCC"
 
@@ -1861,10 +1865,6 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
-msgid "Pivot Point"
-msgstr "จุดหมุน"
-
-
 msgid "Snap"
 msgstr "ยึดติด"
 
@@ -1943,6 +1943,10 @@ msgstr "ผสาน"
 
 msgid "Text"
 msgstr "ช้อความ"
+
+
+msgid "Pivot Point"
+msgstr "จุดหมุน"
 
 
 msgid "Zoom"
@@ -3283,10 +3287,6 @@ msgstr "เงา"
 
 msgid "Audio"
 msgstr "เสียง"
-
-
-msgid "Video"
-msgstr "วิดีโอ"
 
 
 msgid "Views"

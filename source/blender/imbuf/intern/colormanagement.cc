@@ -1475,7 +1475,7 @@ static void do_display_buffer_apply_no_processor(DisplayBufferThread *handle)
                                  width,
                                  width);
     }
-    else if (handle->buffer) {
+    else if (handle->buffer && handle->display_buffer != handle->buffer) {
       IMB_buffer_float_from_float(handle->display_buffer,
                                   handle->buffer,
                                   handle->channels,
@@ -1620,15 +1620,11 @@ static bool is_colorspace_same_as_display(const ColorSpace *colorspace,
   return false;
 }
 
-static void colormanage_display_buffer_process_ex(
-    ImBuf *ibuf,
-    float *display_buffer,
-    uchar *display_buffer_byte,
+ColormanageProcessor *IMB_colormanagement_display_processor_for_imbuf(
+    const ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
     const ColorManagedDisplaySettings *display_settings)
 {
-  ColormanageProcessor *cm_processor = nullptr;
-  /* Check if we can skip colorspace transforms. */
   bool skip_transform = false;
   if (ibuf->float_buffer.data == nullptr && ibuf->byte_buffer.colorspace) {
     skip_transform = is_colorspace_same_as_display(
@@ -1638,11 +1634,22 @@ static void colormanage_display_buffer_process_ex(
     skip_transform = is_colorspace_same_as_display(
         ibuf->float_buffer.colorspace, view_settings, display_settings);
   }
-
-  if (skip_transform == false) {
-    cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
+  if (skip_transform) {
+    return nullptr;
   }
 
+  return IMB_colormanagement_display_processor_new(view_settings, display_settings);
+}
+
+static void colormanage_display_buffer_process_ex(
+    ImBuf *ibuf,
+    float *display_buffer,
+    uchar *display_buffer_byte,
+    const ColorManagedViewSettings *view_settings,
+    const ColorManagedDisplaySettings *display_settings)
+{
+  ColormanageProcessor *cm_processor = IMB_colormanagement_display_processor_for_imbuf(
+      ibuf, view_settings, display_settings);
   display_buffer_apply_threaded(ibuf,
                                 ibuf->float_buffer.data,
                                 ibuf->byte_buffer.data,
@@ -2250,21 +2257,6 @@ void IMB_colormanagement_pixel_to_display_space_v4(
   IMB_colormanagement_processor_free(cm_processor);
 }
 
-void IMB_colormanagement_pixel_to_display_space_v3(
-    float result[3],
-    const float pixel[3],
-    const ColorManagedViewSettings *view_settings,
-    const ColorManagedDisplaySettings *display_settings)
-{
-  ColormanageProcessor *cm_processor;
-
-  copy_v3_v3(result, pixel);
-
-  cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
-  IMB_colormanagement_processor_apply_v3(cm_processor, result);
-  IMB_colormanagement_processor_free(cm_processor);
-}
-
 static void colormanagement_imbuf_make_display_space(
     ImBuf *ibuf,
     const ColorManagedViewSettings *view_settings,
@@ -2602,31 +2594,6 @@ void IMB_display_buffer_transform_apply(uchar *display_buffer,
                              width,
                              width);
 
-  MEM_freeN(buffer);
-}
-
-void IMB_display_buffer_transform_apply_float(float *float_display_buffer,
-                                              float *linear_buffer,
-                                              int width,
-                                              int height,
-                                              int channels,
-                                              const ColorManagedViewSettings *view_settings,
-                                              const ColorManagedDisplaySettings *display_settings,
-                                              bool predivide)
-{
-  float *buffer;
-  ColormanageProcessor *cm_processor = IMB_colormanagement_display_processor_new(view_settings,
-                                                                                 display_settings);
-
-  buffer = MEM_malloc_arrayN<float>(size_t(channels) * size_t(width) * size_t(height),
-                                    "display transform temp buffer");
-  memcpy(buffer, linear_buffer, size_t(channels) * width * height * sizeof(float));
-
-  IMB_colormanagement_processor_apply(cm_processor, buffer, width, height, channels, predivide);
-
-  IMB_colormanagement_processor_free(cm_processor);
-
-  memcpy(float_display_buffer, buffer, size_t(channels) * width * height * sizeof(float));
   MEM_freeN(buffer);
 }
 

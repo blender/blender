@@ -117,6 +117,14 @@ struct SpaceNode_Runtime {
    * Stored with a shared pointer so that it can be forward declared.
    */
   std::shared_ptr<asset::AssetItemTree> assets_for_menu;
+
+  /**
+   * Caches the sockets of which nodes can be synced. This can occasionally be expensive to compute
+   * because it needs to traverse the tree. Also, we don't want to check whether syncing is
+   * necessary for all nodes eagerly but only if a relevant node is visible to the user. The cache
+   * is reset when something changes that may affect what nodes need to be synced.
+   */
+  Map<int, bool> node_can_sync_states;
 };
 
 enum NodeResizeDirection {

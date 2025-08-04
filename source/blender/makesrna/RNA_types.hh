@@ -337,10 +337,15 @@ enum PropertyFlag {
   /* pointers */
 
   /**
-   * Automatically update the ID user count when the property changes value.
+   * Mark this property as handling ID user count.
    *
-   * This is done in the auto-generated setter function. If an RNA property has a custom setter,
-   * this flag is ignored, and the setter is responsible for correctly updating the user count.
+   * This is done automatically by the auto-generated setter function. If an RNA property has a
+   * custom setter, it's the setter's responsibility to correctly update the user count.
+   *
+   * \note In most basic cases, makesrna will automatically set this flag, based on the
+   * `STRUCT_ID_REFCOUNT` flag of the defined pointer type. This only works if makesrna can find a
+   * matching DNA property though, 'virtual' RNA properties (using both a getter and setter) will
+   * never get this flag defined automatically.
    */
   PROP_ID_REFCOUNT = (1 << 6),
 
@@ -867,8 +872,13 @@ struct FunctionRNA;
 /* Struct */
 
 enum StructFlag {
-  /** Indicates that this struct is an ID struct, and to use reference-counting. */
+  /** Indicates that this struct is an ID struct. */
   STRUCT_ID = (1 << 0),
+  /**
+   * Indicates that this ID type's usages should typically be refcounted (i.e. makesrna will
+   * automatically set `PROP_ID_REFCOUNT` to PointerRNA properties that have this RNA type
+   * assigned).
+   */
   STRUCT_ID_REFCOUNT = (1 << 1),
   /** defaults on, indicates when changes in members of a StructRNA should trigger undo steps. */
   STRUCT_UNDO = (1 << 2),
@@ -936,6 +946,25 @@ struct ExtensionRNA {
   StructRNA *srna;
   StructCallbackFunc call;
   StructFreeFunc free;
+};
+
+/**
+ * Information about deprecated properties.
+ *
+ * Used by the API documentation and Python API to print warnings
+ * when accessing a deprecated property.
+ */
+struct DeprecatedRNA {
+  /** Single line deprecation message, suggest alternatives where possible. */
+  const char *note;
+  /** The released version this was deprecated. */
+  short version;
+  /**
+   * The version this will be removed.
+   * The value represents major, minor versions (sub-version isn't supported).
+   * Compatible with #Main::versionfile (e.g. `502` for `v5.2`).
+   */
+  short removal_version;
 };
 
 /* Primitive types. */

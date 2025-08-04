@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:31+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
 "Language: ko\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -9479,6 +9479,10 @@ msgid "Set a maximum number of B-frames"
 msgstr "B 최대 프레임 수를 설정"
 
 
+msgid "HDR"
+msgstr "HDR"
+
+
 msgid "F-Modifier"
 msgstr "F-모디파이어"
 
@@ -11706,6 +11710,10 @@ msgstr "소켓 유형"
 
 msgid "Menu"
 msgstr "메뉴"
+
+
+msgid "Shader"
+msgstr "셰이더"
 
 
 msgid "Collection"
@@ -15547,14 +15555,6 @@ msgid "Output image in DPX format"
 msgstr "DPX 형식으로 이미지 출력"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR 멀티레이어"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "멀티 레이어 OpenEXR 포맷에서 이미지 출력"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "OpenEXR 포맷으로 이미지 출력"
 
@@ -15569,6 +15569,14 @@ msgstr "Radiance HDR 형식으로 이미지 출력"
 
 msgid "Output image in TIFF format"
 msgstr "TIFF 형식으로 이미지 출력"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR 멀티레이어"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "멀티 레이어 OpenEXR 포맷에서 이미지 출력"
 
 
 msgid "Image/Movie file name"
@@ -16839,10 +16847,6 @@ msgstr "매트"
 
 msgid "Script"
 msgstr "스크립트"
-
-
-msgid "Shader"
-msgstr "셰이더"
 
 
 msgid "Pattern"
@@ -20189,10 +20193,6 @@ msgid "Node tree for node based worlds"
 msgstr "노드 기반 월드에 대한 노드 트리"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "월드를 렌더하는 데 셰이더 노드를 사용"
-
-
 msgid "ID Materials"
 msgstr "ID 매테리얼"
 
@@ -20523,6 +20523,10 @@ msgstr "B44A (손실)"
 
 msgid "File format to save the rendered images as"
 msgstr "렌더링 이미지를 저장하는 파일 형식"
+
+
+msgid "Video"
+msgstr "비디오"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -21940,10 +21944,6 @@ msgstr "클릭"
 
 msgid "Double Click"
 msgstr "더블 클릭"
-
-
-msgid "Click Drag"
-msgstr "클릭 드레그"
 
 
 msgid "KeyMap Items"
@@ -23745,10 +23745,6 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Pivot Point"
-msgstr "피벗 포인트"
-
-
 msgid "Snap"
 msgstr "스냅"
 
@@ -23939,6 +23935,10 @@ msgstr "텍스트"
 
 msgid "Bone Roll"
 msgstr "본 롤"
+
+
+msgid "Pivot Point"
+msgstr "피벗 포인트"
 
 
 msgid "Basic"
@@ -30347,10 +30347,6 @@ msgid "ITU 709"
 msgstr "ITU 709"
 
 
-msgid "Composite"
-msgstr "컴포지트"
-
-
 msgid "To"
 msgstr "다음으로"
 
@@ -30824,10 +30820,6 @@ msgid "Rotate"
 msgstr "회전"
 
 
-msgid "Method to use to filter rotation"
-msgstr "회전을 필터하는 데 사용하는 메서드"
-
-
 msgid "Coordinate space to scale relative to"
 msgstr "다음으로 상대적인 축적에 좌표 공간"
 
@@ -30984,10 +30976,6 @@ msgid "Only Faces"
 msgstr "페이스 만"
 
 
-msgid "Triangles"
-msgstr "삼각형"
-
-
 msgid "Primary"
 msgstr "기본"
 
@@ -31016,12 +31004,12 @@ msgid "Fill Type"
 msgstr "채우기 유형"
 
 
+msgid "Triangles"
+msgstr "삼각형"
+
+
 msgid "Object Info"
 msgstr "오브젝트 정보"
-
-
-msgid "Z Up"
-msgstr "Z 위쪽"
 
 
 msgid "Tangent Space"
@@ -31038,14 +31026,6 @@ msgstr "선택"
 
 msgid "Pack UV Islands"
 msgstr "UV 아일랜드를 포장"
-
-
-msgid "Angle Based"
-msgstr "각도 베이스"
-
-
-msgid "Conformal"
-msgstr "컨포멀"
 
 
 msgid "Warning"
@@ -32105,10 +32085,6 @@ msgid "Subpath used for this slot"
 msgstr "이 슬롯에 사용되는 하위 경로"
 
 
-msgid "Use Node Format"
-msgstr "노드 형식을 사용"
-
-
 msgid "Output File Layer Slot"
 msgstr "파일 레이어 슬롯 출력"
 
@@ -32615,10 +32591,6 @@ msgstr "애니메이션을 디노이즈"
 msgctxt "Operator"
 msgid "Merge Images"
 msgstr "이미지를 병합"
-
-
-msgid "Enable nodes on a material, world or light"
-msgstr "매테리얼, 월드 또는 라이트의 노드를 활성화"
 
 
 msgctxt "Operator"
@@ -37596,6 +37568,10 @@ msgstr "X 위쪽"
 
 msgid "Y Up"
 msgstr "Y 위쪽"
+
+
+msgid "Z Up"
+msgstr "Z 위쪽"
 
 
 msgid "-X Up"
@@ -43674,10 +43650,6 @@ msgid "Current"
 msgstr "현재"
 
 
-msgid "HDR"
-msgstr "HDR"
-
-
 msgctxt "Operator"
 msgid "Toggle Node Options"
 msgstr "노드 옵션을 토글"
@@ -45361,10 +45333,6 @@ msgstr "로컬 X 축을 따라 현재 키 셰이프를 미러"
 msgctxt "Operator"
 msgid "Move Shape Key"
 msgstr "셰이프 키를 이동"
-
-
-msgid "Move the active shape key up/down in the list"
-msgstr "목록에서 활성 셰이프 키를 위/아래로 움직입니다"
 
 
 msgctxt "Operator"
@@ -48773,10 +48741,6 @@ msgid "Hide Panels"
 msgstr "패널 숨기기"
 
 
-msgid "Hide all the panels"
-msgstr "모든 패널 숨기기"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "화면을 설정"
@@ -51628,6 +51592,14 @@ msgstr "편집중인 오브젝트의 메쉬를 펼칩니다"
 
 msgid "Unwrapping method (Angle Based usually gives better results than Conformal, while being somewhat slower)"
 msgstr "펼치기하는 방법 (각도 기반은 등각보다 좋은 결과를 보여 주지만 다소 느립니다)"
+
+
+msgid "Angle Based"
+msgstr "각도 베이스"
+
+
+msgid "Conformal"
+msgstr "컨포멀"
 
 
 msgid "Map UVs taking vertex position after Subdivision Surface modifier has been applied"
@@ -54541,10 +54513,6 @@ msgid "Audio"
 msgstr "오디오"
 
 
-msgid "Video"
-msgstr "비디오"
-
-
 msgid "Views"
 msgstr "뷰"
 
@@ -57363,14 +57331,6 @@ msgstr "번역에 사용된 언어"
 
 msgid "Automatic (Automatic)"
 msgstr "자동 (Automatic)"
-
-
-msgid "HDRI Preview Size"
-msgstr "HDRI 미리보기 크기"
-
-
-msgid "Diameter of the HDRI preview spheres"
-msgstr "HDRI 미리보기 구체의 지름"
 
 
 msgid "Mini Axes Brightness"
@@ -64743,14 +64703,6 @@ msgid "Color of path before current frame"
 msgstr "현재 프레임 이전에 경로의 컬러"
 
 
-msgid "Preview Range"
-msgstr "미리보기 범위"
-
-
-msgid "Color of preview range overlay"
-msgstr "미리보기 범위 오버레이의 색상"
-
-
 msgid "Selected Marker"
 msgstr "선택된 마커"
 
@@ -64773,6 +64725,14 @@ msgstr "스트립 선택됨"
 
 msgid "Scrubbing/Markers Region"
 msgstr "스크러빙/마커 지역"
+
+
+msgid "Preview Range"
+msgstr "미리보기 범위"
+
+
+msgid "Color of preview range overlay"
+msgstr "미리보기 범위 오버레이의 색상"
 
 
 msgid "Theme Console"
@@ -70235,11 +70195,6 @@ msgstr "수직 분할"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "전체 화면 영역을 토글"
-
-
-msgctxt "Operator"
 msgid "Sound"
 msgstr "사운드"
 
@@ -72145,6 +72100,10 @@ msgid "Toggle X-Ray"
 msgstr "X-Ray를 토글"
 
 
+msgid "Specular Lighting"
+msgstr "반사 라이트닝"
+
+
 msgid "Marker Names"
 msgstr "마커 이름"
 
@@ -72237,10 +72196,6 @@ msgstr "프리스타일 에지를 지우기"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "프리스타일 페이스를 지우기"
-
-
-msgid "Specular Lighting"
-msgstr "반사 라이트닝"
 
 
 msgid "Ridge"
@@ -74208,16 +74163,8 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "경로를 선택하려면 두 개의 일치하는 요소를 선택해야 합니다"
 
 
-msgid "Cannot rip selected faces"
-msgstr "선택된 페이스를 추출 할 수 없습니다"
-
-
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "여러 개의 분리된 버택스를 추출 할 수 없습니다"
-
-
-msgid "Rip failed"
-msgstr "떼어내기 실패"
 
 
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
@@ -76021,6 +75968,10 @@ msgid "Missing %s%s%s component(s) of euler rotation for ID='%s' and RNA-Path='%
 msgstr "오일러 회전의 누락된 %s%s%s 구성 요소(들), ID = '%s' 및 RNA 경로 = '%s'에 대한"
 
 
+msgid "Composite"
+msgstr "컴포지트"
+
+
 msgid "Discard"
 msgstr "포기"
 
@@ -77118,6 +77069,10 @@ msgid "UV Vertex"
 msgstr "UV 버텍스"
 
 
+msgid "Rip failed"
+msgstr "떼어내기 실패"
+
+
 msgid "Cannot split selection when sync selection is enabled"
 msgstr "동기화 선택이 활성화된 경우 선택 영역을 분할할 수 없습니다"
 
@@ -77887,10 +77842,6 @@ msgid "Result"
 msgstr "결과"
 
 
-msgid "Layer:"
-msgstr "레이어:"
-
-
 msgid "Color Modulation"
 msgstr "컬러 변조"
 
@@ -78243,10 +78194,6 @@ msgid "Border rendering is not supported by sequencer"
 msgstr "시퀀서에서 경계 렌더링을 지원하지 않습니다"
 
 
-msgid "No render output node in scene"
-msgstr "씬에 렌더 출력 노드 없음"
-
-
 msgid "All render layers are disabled"
 msgstr "모든 렌더 레이어가 사용 중지됨"
 
@@ -78527,16 +78474,6 @@ msgstr "제한된 플랫폼 지원"
 
 
 msgctxt "WindowManager"
-msgid "Your graphics card or driver has limited support. It may work, but with issues."
-msgstr "그래픽 카드 또는 드라이버가 제한적으로 지원합니다. 작동하지만 문제가 있습니다."
-
-
-msgctxt "WindowManager"
-msgid "Newer graphics drivers may be available to improve Blender support."
-msgstr "Blender 지원을 향상시키기 위해 최신 그래픽 드라이버를 사용할 수 있습니다."
-
-
-msgctxt "WindowManager"
 msgid "Graphics card:"
 msgstr "그래픽 카드:"
 
@@ -78544,16 +78481,6 @@ msgstr "그래픽 카드:"
 msgctxt "WindowManager"
 msgid "Platform Unsupported"
 msgstr "지원되지 않는 플랫폼"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "그래픽 카드 또는 드라이버가 지원되지 않습니다."
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "이 프로그램이 이제 닫힙니다."
 
 
 msgid "Failed to create a window without quad-buffer support, you may experience flickering"

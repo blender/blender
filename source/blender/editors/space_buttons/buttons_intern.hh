@@ -9,7 +9,9 @@
 #pragma once
 
 #include "BLI_bitmap.h"
+
 #include "DNA_listBase.h"
+
 #include "RNA_types.hh"
 
 struct ARegionType;

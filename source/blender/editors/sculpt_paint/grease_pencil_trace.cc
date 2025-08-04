@@ -443,7 +443,7 @@ static wmOperatorStatus grease_pencil_trace_image_exec(bContext *C, wmOperator *
     wmJob *wm_job = WM_jobs_get(job->wm,
                                 CTX_wm_window(C),
                                 job->scene,
-                                "Trace Image",
+                                "Tracing image...",
                                 WM_JOB_PROGRESS,
                                 WM_JOB_TYPE_TRACE_IMAGE);
 

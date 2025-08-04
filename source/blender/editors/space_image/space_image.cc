@@ -701,8 +701,8 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
    * used in other areas as well. */
   if (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS && sima->flag & SI_DRAW_METADATA) {
     void *lock;
-    /* `ED_space_image_get_zoom` temporarily locks the image, so this needs to be done before
-     * the image is locked when calling `ED_space_image_acquire_buffer`. */
+    /* #ED_space_image_get_zoom temporarily locks the image, so this needs to be done before
+     * the image is locked when calling #ED_space_image_acquire_buffer. */
     float zoomx, zoomy;
     ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
     ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);

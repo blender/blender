@@ -314,7 +314,7 @@ wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
   wmJob *wm_job = WM_jobs_get(wm,
                               win,
                               scene,
-                              "Bake Lighting",
+                              "Baking lighting...",
                               WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS,
                               WM_JOB_TYPE_LIGHT_BAKE);
 

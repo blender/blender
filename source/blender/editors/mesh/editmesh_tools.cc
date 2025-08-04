@@ -2469,6 +2469,9 @@ static wmOperatorStatus edbm_hide_exec(bContext *C, wmOperator *op)
       }
     }
 
+    /* Only if symmetry is enabled. */
+    EDBM_select_mirrored_extend_all(obedit, em);
+
     if (EDBM_mesh_hide(em, unselected)) {
       EDBMUpdate_Params params{};
       params.calc_looptris = true;

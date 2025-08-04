@@ -1258,7 +1258,11 @@ static void rna_Scene_compositing_node_group_set(PointerRNA *ptr,
         reports, RPT_ERROR, "Node tree '%s' is not a compositing node group.", ntree->id.name + 2);
     return;
   }
+  if (scene->compositing_node_group) {
+    id_us_min(&scene->compositing_node_group->id);
+  }
   scene->compositing_node_group = ntree;
+  id_us_plus(&scene->compositing_node_group->id);
 }
 
 static std::optional<std::string> rna_SceneEEVEE_path(const PointerRNA * /*ptr*/)
@@ -2068,29 +2072,6 @@ static std::optional<std::string> rna_SceneRenderView_path(const PointerRNA *ptr
   char srv_name_esc[sizeof(srv->name) * 2];
   BLI_str_escape(srv_name_esc, srv->name, sizeof(srv_name_esc));
   return fmt::format("render.views[\"{}\"]", srv_name_esc);
-}
-
-static bool rna_Scene_use_nodes_get(PointerRNA *ptr)
-{
-  Scene *scene = reinterpret_cast<Scene *>(ptr->data);
-  return scene->r.scemode & R_DOCOMP;
-}
-
-static void rna_Scene_use_nodes_set(PointerRNA *ptr, const bool use_nodes)
-{
-  Scene *scene = reinterpret_cast<Scene *>(ptr->data);
-  SET_FLAG_FROM_TEST(scene->r.scemode, use_nodes, R_DOCOMP);
-}
-
-/* Todo(#140111): Remove in 6.0. In Python API, this function is used to create a compositing node
- * tree if none exists. scene.use_nodes will be replaced by the existing scene.use_compositing. */
-static void rna_Scene_use_nodes_update(bContext *C, PointerRNA *ptr)
-{
-  Scene *scene = (Scene *)ptr->data;
-  if (scene->r.scemode & R_DOCOMP && scene->compositing_node_group == nullptr) {
-    ED_node_composit_default(C, scene);
-  }
-  DEG_relations_tag_update(CTX_data_main(C));
 }
 
 static void rna_Physics_relations_update(Main *bmain, Scene * /*scene*/, PointerRNA * /*ptr*/)
@@ -8916,14 +8897,6 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE, nullptr);
 
   /* Nodes (Compositing) */
-  prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "compositing_node_group");
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
-  RNA_def_property_struct_type(prop, "NodeTree");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
-  RNA_def_property_ui_text(
-      prop, "Node Tree", "Compositor Nodes. (Deprecated: Use compositing_node_group)");
-
   prop = RNA_def_property(srna, "compositing_node_group", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "compositing_node_group");
   RNA_def_property_struct_type(prop, "NodeTree");
@@ -8936,14 +8909,6 @@ void RNA_def_scene(BlenderRNA *brna)
                                  "rna_Scene_compositing_node_group_set",
                                  nullptr,
                                  "rna_Scene_compositing_node_group_poll");
-
-  prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "use_nodes", 1);
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_ui_text(
-      prop, "Use Nodes", "Enable the compositing node group. (Deprecated: use use_compositing)");
-  RNA_def_property_boolean_funcs(prop, "rna_Scene_use_nodes_get", "rna_Scene_use_nodes_set");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_use_nodes_update");
 
   /* Sequencer */
   prop = RNA_def_property(srna, "sequence_editor", PROP_POINTER, PROP_NONE);

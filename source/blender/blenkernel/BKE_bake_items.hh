@@ -150,10 +150,18 @@ class StringBakeItem : public BakeItem {
  */
 class BundleBakeItem : public BakeItem {
  public:
-  struct Item {
-    std::string key;
+  struct SocketValue {
     std::string socket_idname;
     std::unique_ptr<BakeItem> value;
+  };
+
+  struct InternalValue {
+    ImplicitSharingPtr<> value;
+  };
+
+  struct Item {
+    std::string key;
+    std::variant<SocketValue, InternalValue> value;
   };
 
   Vector<Item> items;

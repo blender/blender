@@ -8,24 +8,40 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __VOLUME__
 
-/* Volumetric read/write lambda functions - default implementations */
-#  ifndef VOLUME_READ_LAMBDA
-#    define VOLUME_READ_LAMBDA(function_call) \
-      auto volume_read_lambda_pass = [=](const int i) { return function_call; };
-#    define VOLUME_WRITE_LAMBDA(function_call) \
-      auto volume_write_lambda_pass = [=](const int i, VolumeStack entry) { function_call; };
-#  endif
-
 /* Volume Stack
  *
  * This is an array of object/shared ID's that the current segment of the path
  * is inside of. */
 
-template<typename StackReadOp, typename StackWriteOp>
+template<const bool shadow, typename IntegratorGenericState>
+ccl_device_forceinline VolumeStack volume_stack_read(const IntegratorGenericState state,
+                                                     const int i)
+{
+  if constexpr (shadow) {
+    return integrator_state_read_shadow_volume_stack(state, i);
+  }
+  else {
+    return integrator_state_read_volume_stack(state, i);
+  }
+}
+
+template<const bool shadow, typename IntegratorGenericState>
+ccl_device_forceinline void volume_stack_write(IntegratorGenericState state,
+                                               const int i,
+                                               const VolumeStack entry)
+{
+  if constexpr (shadow) {
+    integrator_state_write_shadow_volume_stack(state, i, entry);
+  }
+  else {
+    integrator_state_write_volume_stack(state, i, entry);
+  }
+}
+
+template<const bool shadow, typename IntegratorGenericState>
 ccl_device void volume_stack_enter_exit(KernelGlobals kg,
-                                        const ccl_private ShaderData *sd,
-                                        StackReadOp stack_read,
-                                        StackWriteOp stack_write)
+                                        IntegratorGenericState state,
+                                        const ccl_private ShaderData *sd)
 {
 #  ifdef __KERNEL_USE_DATA_CONSTANTS__
   /* If we're using data constants, this fetch disappears.
@@ -46,7 +62,7 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
   if (sd->flag & SD_BACKFACING) {
     /* Exit volume object: remove from stack. */
     for (int i = 0;; i++) {
-      VolumeStack entry = stack_read(i);
+      VolumeStack entry = volume_stack_read<shadow>(state, i);
       if (entry.shader == SHADER_NONE) {
         break;
       }
@@ -54,8 +70,8 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
       if (entry.object == sd->object && entry.shader == sd->shader) {
         /* Shift back next stack entries. */
         do {
-          entry = stack_read(i + 1);
-          stack_write(i, entry);
+          entry = volume_stack_read<shadow>(state, i + 1);
+          volume_stack_write<shadow>(state, i, entry);
           i++;
         } while (entry.shader != SHADER_NONE);
 
@@ -67,7 +83,7 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
     /* Enter volume object: add to stack. */
     uint i;
     for (i = 0;; i++) {
-      VolumeStack entry = stack_read(i);
+      const VolumeStack entry = volume_stack_read<shadow>(state, i);
       if (entry.shader == SHADER_NONE) {
         break;
       }
@@ -86,27 +102,9 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
     /* Add to the end of the stack. */
     const VolumeStack new_entry = {sd->object, sd->shader};
     const VolumeStack empty_entry = {OBJECT_NONE, SHADER_NONE};
-    stack_write(i, new_entry);
-    stack_write(i + 1, empty_entry);
+    volume_stack_write<shadow>(state, i, new_entry);
+    volume_stack_write<shadow>(state, i + 1, empty_entry);
   }
-}
-
-ccl_device void volume_stack_enter_exit(KernelGlobals kg,
-                                        IntegratorState state,
-                                        const ccl_private ShaderData *sd)
-{
-  VOLUME_READ_LAMBDA(integrator_state_read_volume_stack(state, i))
-  VOLUME_WRITE_LAMBDA(integrator_state_write_volume_stack(state, i, entry))
-  volume_stack_enter_exit(kg, sd, volume_read_lambda_pass, volume_write_lambda_pass);
-}
-
-ccl_device void shadow_volume_stack_enter_exit(KernelGlobals kg,
-                                               IntegratorShadowState state,
-                                               const ccl_private ShaderData *sd)
-{
-  VOLUME_READ_LAMBDA(integrator_state_read_shadow_volume_stack(state, i))
-  VOLUME_WRITE_LAMBDA(integrator_state_write_shadow_volume_stack(state, i, entry))
-  volume_stack_enter_exit(kg, sd, volume_read_lambda_pass, volume_write_lambda_pass);
 }
 
 /* Clean stack after the last bounce.
@@ -162,13 +160,13 @@ ccl_device_inline bool volume_is_homogeneous(KernelGlobals kg,
   return true;
 }
 
-template<typename StackReadOp>
-ccl_device float volume_stack_step_size(KernelGlobals kg, StackReadOp stack_read)
+template<const bool shadow, typename IntegratorGenericState>
+ccl_device float volume_stack_step_size(KernelGlobals kg, const IntegratorGenericState state)
 {
   float step_size = FLT_MAX;
 
   for (int i = 0;; i++) {
-    VolumeStack entry = stack_read(i);
+    const VolumeStack entry = volume_stack_read<shadow>(state, i);
     if (entry.shader == SHADER_NONE) {
       break;
     }

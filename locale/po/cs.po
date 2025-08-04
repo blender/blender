@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-07-04 19:59+0000\n"
-"Last-Translator: Adam Dominec <ad@m.dominec.eu>\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"PO-Revision-Date: 2025-07-23 15:14+0000\n"
+"Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
@@ -8139,6 +8139,10 @@ msgid "Menu"
 msgstr "Nabídka"
 
 
+msgid "Shader"
+msgstr "Shader"
+
+
 msgid "Collection"
 msgstr "Kolekce"
 
@@ -9701,14 +9705,6 @@ msgid "Output image in DPX format"
 msgstr "Výstup obrázku v DPX formátu"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "Multivrstva"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Výstup obrázku v multivrstvě OpenEXR formátu"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Výstup obrázku v OpenEXR formátu"
 
@@ -9723,6 +9719,14 @@ msgstr "Výsutp obrázku v Radiance HDR formátu"
 
 msgid "Output image in TIFF format"
 msgstr "Výstup obrázku v TIFF formátu"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "Multivrstva"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Výstup obrázku v multivrstvě OpenEXR formátu"
 
 
 msgid "FFmpeg Video"
@@ -10365,10 +10369,6 @@ msgstr "Slepecké Znaky"
 
 msgid "Script"
 msgstr "Skript"
-
-
-msgid "Shader"
-msgstr "Shader"
 
 
 msgid "Pattern"
@@ -12347,10 +12347,6 @@ msgid "Node tree for node based worlds"
 msgstr "Strom uzlů pro světy založené na uzlech"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Vykreslení světa pomocí shaderových uzlů"
-
-
 msgid "ID Materials"
 msgstr "ID materiály"
 
@@ -13309,10 +13305,6 @@ msgid "Double Click"
 msgstr "Dvojklik"
 
 
-msgid "Click Drag"
-msgstr "Klikněte na Přetáhnout"
-
-
 msgid "Left Handle"
 msgstr "Vazby a spojení"
 
@@ -13922,10 +13914,6 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
-
-
 msgid "Snap"
 msgstr "Přichytit"
 
@@ -14040,6 +14028,10 @@ msgstr "Text"
 
 msgid "Bone Roll"
 msgstr "Kost"
+
+
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
 
 
 msgid "Basic"
@@ -16919,10 +16911,6 @@ msgid "Color Spill"
 msgstr "Sada barev"
 
 
-msgid "Composite"
-msgstr "Kompozit"
-
-
 msgid "To"
 msgstr "K"
 
@@ -17235,10 +17223,6 @@ msgid "Rotate"
 msgstr "Otočit"
 
 
-msgid "Method to use to filter rotation"
-msgstr "Metoda, která se má použít k filtrování rotace"
-
-
 msgid "Set Alpha"
 msgstr "Alfa"
 
@@ -17399,10 +17383,6 @@ msgid "Distribution Method"
 msgstr "Metoda Distribuce"
 
 
-msgid "Triangles"
-msgstr "Trojúhleníky"
-
-
 msgid "Primary"
 msgstr "Hlavní"
 
@@ -17427,6 +17407,10 @@ msgid "Fill Type"
 msgstr "Fill Type"
 
 
+msgid "Triangles"
+msgstr "Trojúhleníky"
+
+
 msgid "Object Info"
 msgstr "Informace o objektu"
 
@@ -17443,10 +17427,6 @@ msgid "Target Geometry"
 msgstr "Cílová Geometrie"
 
 
-msgid "Z Up"
-msgstr "Posun nahoru"
-
-
 msgid "Tangent Space"
 msgstr "Prostor textury"
 
@@ -17457,14 +17437,6 @@ msgstr "Poloha Myši"
 
 msgid "Selection"
 msgstr "Výběr"
-
-
-msgid "Angle Based"
-msgstr "Přivlastnění"
-
-
-msgid "Conformal"
-msgstr "Dle normály"
 
 
 msgid "Warning"
@@ -18028,10 +18000,6 @@ msgid "Subpath used for this slot"
 msgstr "Faktor zvětšení textury"
 
 
-msgid "Use Node Format"
-msgstr "Poslední frame"
-
-
 msgid "Output File Layer Slot"
 msgstr "Výstup"
 
@@ -18212,10 +18180,6 @@ msgstr "Odstranit šum v Animaci"
 msgctxt "Operator"
 msgid "Merge Images"
 msgstr "Spojit Obrázky"
-
-
-msgid "Enable nodes on a material, world or light"
-msgstr "Povolit uzly na materiálu, světě nebo světle"
 
 
 msgctxt "Operator"
@@ -21531,6 +21495,10 @@ msgstr "Posun nahoru"
 
 
 msgid "Y Up"
+msgstr "Posun nahoru"
+
+
+msgid "Z Up"
 msgstr "Posun nahoru"
 
 
@@ -25967,10 +25935,6 @@ msgid "Move Shape Key"
 msgstr "Zaklíčovat tvar"
 
 
-msgid "Move the active shape key up/down in the list"
-msgstr "Odstraní duplicity označených vertexů"
-
-
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Zaklíčovat tvar"
@@ -29597,6 +29561,14 @@ msgid "Unwrap"
 msgstr "Metoda rozbalení"
 
 
+msgid "Angle Based"
+msgstr "Přivlastnění"
+
+
+msgid "Conformal"
+msgstr "Dle normály"
+
+
 msgid "Use Subdivision Surface"
 msgstr "Použít Dělení Povrchu"
 
@@ -33046,14 +33018,6 @@ msgstr "Jazyk"
 
 msgid "Language used for translation"
 msgstr "Jazyk použitý pro překlad"
-
-
-msgid "HDRI Preview Size"
-msgstr "Velikost Náhledu HDRI"
-
-
-msgid "Diameter of the HDRI preview spheres"
-msgstr "Průměr náhledových sfér HDRI"
 
 
 msgid "Mini Axes Brightness"
@@ -41994,10 +41958,6 @@ msgid "You have to select a string of connected vertices too"
 msgstr "Vybrat náhodně: vertexy"
 
 
-msgid "Cannot rip selected faces"
-msgstr "Skrýt označené plošky"
-
-
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
 msgstr "Výběr vrcholů – Se stisknutou klávesou Shift pro více režimů, stisknutí klávesy Ctrl rozbalí výběr"
 
@@ -42820,6 +42780,10 @@ msgid "No F-Modifiers to paste"
 msgstr "Jméno modifikátoru"
 
 
+msgid "Composite"
+msgstr "Kompozit"
+
+
 msgid "Discard"
 msgstr "Zrušit"
 
@@ -43501,10 +43465,6 @@ msgid "Result"
 msgstr "Výsledek"
 
 
-msgid "Layer:"
-msgstr "Vrstva:"
-
-
 msgid "Color Modulation"
 msgstr "Barevný mód"
 
@@ -43675,10 +43635,6 @@ msgstr "Aktuální skupina vertexů"
 
 msgid "No border area selected"
 msgstr "Není vybrán žádný materiálový uzel"
-
-
-msgid "No render output node in scene"
-msgstr "Výstupní adresář renderu"
 
 
 msgid "Strips must be the same length"

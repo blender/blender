@@ -701,7 +701,16 @@ class SocketTooltipBuilder {
       });
       for (const geo_log::BundleValueLog::Item &item : sorted_items) {
         this->add_space();
-        const std::string type_name = TIP_(item.type->label);
+        std::string type_name;
+        if (const bke::bNodeSocketType *const *socket_type =
+                std::get_if<const bke::bNodeSocketType *>(&item.type))
+        {
+          type_name = TIP_((*socket_type)->label);
+        }
+        else if (const StringRefNull *internal_type_name = std::get_if<StringRefNull>(&item.type))
+        {
+          type_name = *internal_type_name;
+        }
         this->add_text_field_mono(
             fmt::format(fmt::runtime("\u2022 \"{}\" ({})\n"), item.key, type_name));
       }

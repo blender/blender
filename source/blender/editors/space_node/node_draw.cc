@@ -9,6 +9,7 @@
 
 #include <iomanip>
 
+#include "BKE_idprop.hh"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_light_types.h"
@@ -93,6 +94,7 @@
 #include "NOD_geometry_nodes_log.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_node_extra_info.hh"
+#include "NOD_sync_sockets.hh"
 
 #include "GEO_fillet_curves.hh"
 
@@ -2447,7 +2449,7 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
             GEO_NODE_SIMULATION_OUTPUT,
             GEO_NODE_REPEAT_OUTPUT,
             GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT,
-            GEO_NODE_EVALUATE_CLOSURE) ||
+            NODE_EVALUATE_CLOSURE) ||
        StringRef(node.idname).startswith("GeometryNodeImport")))
   {
     std::optional<NodeExtraInfoRow> row = node_get_execution_time_label_row(
@@ -2504,18 +2506,20 @@ static void node_draw_extra_info_row(const bNode &node,
                                  0,
                                  0,
                                  extra_info_row.tooltip);
+  if (extra_info_row.set_execute_fn) {
+    extra_info_row.set_execute_fn(*but_icon);
+  }
   if (extra_info_row.tooltip_fn != nullptr) {
     UI_but_func_tooltip_set(
         but_icon, extra_info_row.tooltip_fn, tooltip_arg, extra_info_row.tooltip_fn_free_arg);
   }
-  UI_block_emboss_set(&block, ui::EmbossType::Emboss);
 
   const float but_text_left = but_icon_right + 6.0f * UI_SCALE_FAC;
   const float but_text_right = rect.xmax;
   const float but_text_width = but_text_right - but_text_left;
 
   uiBut *but_text = uiDefBut(&block,
-                             ButType::Label,
+                             extra_info_row.set_execute_fn ? ButType::But : ButType::Label,
                              0,
                              extra_info_row.text.c_str(),
                              int(but_text_left),
@@ -2526,7 +2530,10 @@ static void node_draw_extra_info_row(const bNode &node,
                              0,
                              0,
                              extra_info_row.tooltip);
-
+  UI_but_drawflag_enable(but_text, UI_BUT_TEXT_LEFT);
+  if (extra_info_row.set_execute_fn) {
+    extra_info_row.set_execute_fn(*but_text);
+  }
   if (extra_info_row.tooltip_fn != nullptr) {
     /* Don't pass tooltip free function because it's already used on the uiBut above. */
     UI_but_func_tooltip_set(but_text, extra_info_row.tooltip_fn, tooltip_arg, nullptr);
@@ -2536,6 +2543,8 @@ static void node_draw_extra_info_row(const bNode &node,
     UI_but_flag_enable(but_text, UI_BUT_INACTIVE);
     UI_but_flag_enable(but_icon, UI_BUT_INACTIVE);
   }
+
+  UI_block_emboss_set(&block, ui::EmbossType::Emboss);
 }
 
 static void node_draw_extra_info_panel_back(const bNode &node, const rctf &extra_info_rect)
@@ -2857,6 +2866,31 @@ static void node_draw_basis(const bContext &C,
     }
     UI_block_emboss_set(&block, ui::EmbossType::Emboss);
   }
+
+  if (nodes::node_can_sync_sockets(C, ntree, node)) {
+    iconofs -= iconbutw;
+    UI_block_emboss_set(&block, ui::EmbossType::None);
+    uiBut *but = uiDefIconBut(&block,
+                              ButType::ButToggle,
+                              0,
+                              ICON_FILE_REFRESH,
+                              iconofs,
+                              rct.ymax - NODE_DY,
+                              iconbutw,
+                              UI_UNIT_Y,
+                              nullptr,
+                              0,
+                              0,
+                              "");
+
+    wmOperatorType *ot = WM_operatortype_find("NODE_OT_sockets_sync", false);
+    UI_but_operator_set(but, ot, wm::OpCallContext::InvokeDefault);
+    PointerRNA *opptr = UI_but_operator_ptr_ensure(but);
+    opptr->data = bke::idprop::create_group("wmOperatorProperties").release();
+    RNA_string_set(opptr, "node_name", node.name);
+    UI_block_emboss_set(&block, ui::EmbossType::Emboss);
+  }
+
   /* Preview. */
   if (node_is_previewable(snode, ntree, node)) {
     const bool is_active = node.flag & NODE_PREVIEW;

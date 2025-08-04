@@ -1973,8 +1973,8 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 
   BLO_write_string(writer, nmd->bake_directory);
 
+  Map<IDProperty *, IDPropertyUIDataBool *> boolean_props;
   if (nmd->settings.properties != nullptr) {
-    Map<IDProperty *, IDPropertyUIDataBool *> boolean_props;
     if (!BLO_write_is_undo(writer)) {
       /* Boolean properties are added automatically for boolean node group inputs. Integer
        * properties are automatically converted to boolean sockets where applicable as well.
@@ -1992,43 +1992,44 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
     /* Note that the property settings are based on the socket type info
      * and don't necessarily need to be written, but we can't just free them. */
     IDP_BlendWrite(writer, nmd->settings.properties);
+  }
 
-    BLO_write_struct_array(writer, NodesModifierBake, nmd->bakes_num, nmd->bakes);
-    for (const NodesModifierBake &bake : Span(nmd->bakes, nmd->bakes_num)) {
-      BLO_write_string(writer, bake.directory);
+  BLO_write_struct_array(writer, NodesModifierBake, nmd->bakes_num, nmd->bakes);
+  for (const NodesModifierBake &bake : Span(nmd->bakes, nmd->bakes_num)) {
+    BLO_write_string(writer, bake.directory);
 
+    BLO_write_struct_array(writer, NodesModifierDataBlock, bake.data_blocks_num, bake.data_blocks);
+    for (const NodesModifierDataBlock &item : Span(bake.data_blocks, bake.data_blocks_num)) {
+      BLO_write_string(writer, item.id_name);
+      BLO_write_string(writer, item.lib_name);
+    }
+    if (bake.packed) {
+      BLO_write_struct(writer, NodesModifierPackedBake, bake.packed);
       BLO_write_struct_array(
-          writer, NodesModifierDataBlock, bake.data_blocks_num, bake.data_blocks);
-      for (const NodesModifierDataBlock &item : Span(bake.data_blocks, bake.data_blocks_num)) {
-        BLO_write_string(writer, item.id_name);
-        BLO_write_string(writer, item.lib_name);
+          writer, NodesModifierBakeFile, bake.packed->meta_files_num, bake.packed->meta_files);
+      BLO_write_struct_array(
+          writer, NodesModifierBakeFile, bake.packed->blob_files_num, bake.packed->blob_files);
+      const auto write_bake_file = [&](const NodesModifierBakeFile &bake_file) {
+        BLO_write_string(writer, bake_file.name);
+        if (bake_file.packed_file) {
+          BKE_packedfile_blend_write(writer, bake_file.packed_file);
+        }
+      };
+      for (const NodesModifierBakeFile &meta_file :
+           Span{bake.packed->meta_files, bake.packed->meta_files_num})
+      {
+        write_bake_file(meta_file);
       }
-      if (bake.packed) {
-        BLO_write_struct(writer, NodesModifierPackedBake, bake.packed);
-        BLO_write_struct_array(
-            writer, NodesModifierBakeFile, bake.packed->meta_files_num, bake.packed->meta_files);
-        BLO_write_struct_array(
-            writer, NodesModifierBakeFile, bake.packed->blob_files_num, bake.packed->blob_files);
-        const auto write_bake_file = [&](const NodesModifierBakeFile &bake_file) {
-          BLO_write_string(writer, bake_file.name);
-          if (bake_file.packed_file) {
-            BKE_packedfile_blend_write(writer, bake_file.packed_file);
-          }
-        };
-        for (const NodesModifierBakeFile &meta_file :
-             Span{bake.packed->meta_files, bake.packed->meta_files_num})
-        {
-          write_bake_file(meta_file);
-        }
-        for (const NodesModifierBakeFile &blob_file :
-             Span{bake.packed->blob_files, bake.packed->blob_files_num})
-        {
-          write_bake_file(blob_file);
-        }
+      for (const NodesModifierBakeFile &blob_file :
+           Span{bake.packed->blob_files, bake.packed->blob_files_num})
+      {
+        write_bake_file(blob_file);
       }
     }
-    BLO_write_struct_array(writer, NodesModifierPanel, nmd->panels_num, nmd->panels);
+  }
+  BLO_write_struct_array(writer, NodesModifierPanel, nmd->panels_num, nmd->panels);
 
+  if (nmd->settings.properties) {
     if (!BLO_write_is_undo(writer)) {
       LISTBASE_FOREACH (IDProperty *, prop, &nmd->settings.properties->data.group) {
         if (prop->type == IDP_INT) {

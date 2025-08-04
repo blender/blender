@@ -531,7 +531,8 @@ static bool node_group_separate_selected(
   for (bNode *node : nodes_to_move) {
     bNode *newnode;
     if (make_copy) {
-      newnode = bke::node_copy_with_mapping(&ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
+      newnode = bke::node_copy_with_mapping(
+          &ntree, *node, LIB_ID_COPY_DEFAULT, std::nullopt, std::nullopt, socket_map);
       node_identifier_map.add(node->identifier, newnode->identifier);
     }
     else {

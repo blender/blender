@@ -6,6 +6,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BKE_node.hh"
+
 #include "BLI_assert.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -14,6 +16,10 @@
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
+
+#include "MEM_guardedalloc.h"
+
+#include "RNA_access.hh"
 
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
@@ -27,6 +33,8 @@
 /* **************** Map UV  ******************** */
 
 namespace blender::nodes::node_composite_map_uv_cc {
+
+NODE_STORAGE_FUNCS(NodeMapUVData)
 
 static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
 {
@@ -49,12 +57,22 @@ static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_buts_map_uv(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  layout->prop(ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  uiLayout &column = layout->column(true);
+  column.prop(ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  if (RNA_enum_get(ptr, "interpolation") != CMP_NODE_INTERPOLATION_ANISOTROPIC) {
+    uiLayout &row = column.row(true);
+    row.prop(ptr, "extension_x", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    row.prop(ptr, "extension_y", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  }
 }
 
 static void node_composit_init_map_uv(bNodeTree * /*ntree*/, bNode *node)
 {
-  node->custom2 = CMP_NODE_INTERPOLATION_ANISOTROPIC;
+  NodeMapUVData *data = MEM_callocN<NodeMapUVData>(__func__);
+  data->interpolation = CMP_NODE_INTERPOLATION_BILINEAR;
+  data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+  data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
+  node->storage = data;
 }
 
 using namespace blender::compositor;
@@ -97,7 +115,11 @@ class MapUVOperation : public NodeOperation {
       GPU_texture_filter_mode(input_image, use_bilinear);
     }
 
-    GPU_texture_extend_mode(input_image, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    GPU_texture_extend_mode_x(input_image,
+                              map_extension_mode_to_extend_mode(this->get_extension_mode_x()));
+    GPU_texture_extend_mode_y(input_image,
+                              map_extension_mode_to_extend_mode(this->get_extension_mode_y()));
+
     input_image.bind_as_texture(shader, "input_tx");
 
     const Result &input_uv = get_input("UV");
@@ -134,39 +156,31 @@ class MapUVOperation : public NodeOperation {
   void execute_cpu()
   {
     const Interpolation interpolation = this->get_interpolation();
+    const ExtensionMode extension_x = this->get_extension_mode_x();
+    const ExtensionMode extension_y = this->get_extension_mode_y();
     const Result &input_uv = get_input("UV");
     if (input_uv.is_single_value()) {
-      this->execute_single_cpu(interpolation);
+      this->execute_single_cpu(interpolation, extension_x, extension_y);
       return;
     }
     if (interpolation == Interpolation::Anisotropic) {
       this->execute_cpu_anisotropic();
     }
     else {
-      this->execute_cpu_interpolation(interpolation);
+      this->execute_cpu_interpolation(interpolation, extension_x, extension_y);
     }
   }
 
-  void execute_single_cpu(const Interpolation &interpolation)
+  void execute_single_cpu(const Interpolation &interpolation,
+                          const ExtensionMode &extension_mode_x,
+                          const ExtensionMode &extension_mode_y)
   {
     const Result &input_uv = get_input("UV");
     const Result &input_image = get_input("Image");
 
     float2 uv_coordinates = input_uv.get_single_value<float3>().xy();
-    float4 sampled_color{0.0f};
-    switch (interpolation) {
-      case Interpolation::Nearest:
-        sampled_color = input_image.sample_nearest_zero(uv_coordinates);
-        break;
-      case Interpolation::Bilinear:
-        sampled_color = input_image.sample_bilinear_zero(uv_coordinates);
-        break;
-      /* NOTE: The anisotropic case should be handled after reimplementation of EWA. */
-      case Interpolation::Anisotropic:
-      case Interpolation::Bicubic:
-        sampled_color = input_image.sample_cubic_wrap(uv_coordinates, false, false);
-        break;
-    }
+    float4 sampled_color = input_image.sample(
+        uv_coordinates, interpolation, extension_mode_x, extension_mode_y);
 
     /* The UV input is assumed to contain an alpha channel as its third channel, since the
      * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
@@ -183,7 +197,9 @@ class MapUVOperation : public NodeOperation {
     output.set_single_value(result);
   }
 
-  void execute_cpu_interpolation(const Interpolation &interpolation)
+  void execute_cpu_interpolation(const Interpolation &interpolation,
+                                 const ExtensionMode &extension_mode_x,
+                                 const ExtensionMode &extension_mode_y)
   {
     const Result &input_image = get_input("Image");
     const Result &input_uv = get_input("UV");
@@ -194,24 +210,8 @@ class MapUVOperation : public NodeOperation {
 
     parallel_for(domain.size, [&](const int2 texel) {
       float2 uv_coordinates = input_uv.load_pixel<float3>(texel).xy();
-      float4 sampled_color{0.0f};
-
-      switch (interpolation) {
-        /* Anisotropic is handled separately. */
-        case Interpolation::Anisotropic:
-          BLI_assert_unreachable();
-          break;
-        case Interpolation::Nearest:
-          sampled_color = input_image.sample_nearest_zero(uv_coordinates);
-          break;
-        case Interpolation::Bilinear:
-          sampled_color = input_image.sample_bilinear_zero(uv_coordinates);
-          break;
-        case Interpolation::Bicubic:
-          sampled_color = input_image.sample_cubic_wrap(uv_coordinates, false, false);
-          break;
-      }
-
+      float4 sampled_color = input_image.sample(
+          uv_coordinates, interpolation, extension_mode_x, extension_mode_y);
       /* The UV input is assumed to contain an alpha channel as its third channel, since the
        * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
        * In that case, the alpha is typically opaque at the subset area and transparent
@@ -303,7 +303,7 @@ class MapUVOperation : public NodeOperation {
 
   Interpolation get_interpolation() const
   {
-    switch (static_cast<CMPNodeInterpolation>(bnode().custom2)) {
+    switch (static_cast<CMPNodeInterpolation>(node_storage(bnode()).interpolation)) {
       case CMP_NODE_INTERPOLATION_ANISOTROPIC:
         return Interpolation::Anisotropic;
       case CMP_NODE_INTERPOLATION_NEAREST:
@@ -316,6 +316,36 @@ class MapUVOperation : public NodeOperation {
 
     BLI_assert_unreachable();
     return Interpolation::Nearest;
+  }
+
+  ExtensionMode get_extension_mode_x()
+  {
+    switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_x)) {
+      case CMP_NODE_EXTENSION_MODE_CLIP:
+        return ExtensionMode::Clip;
+      case CMP_NODE_EXTENSION_MODE_REPEAT:
+        return ExtensionMode::Repeat;
+      case CMP_NODE_EXTENSION_MODE_EXTEND:
+        return ExtensionMode::Extend;
+    }
+
+    BLI_assert_unreachable();
+    return ExtensionMode::Clip;
+  }
+
+  ExtensionMode get_extension_mode_y()
+  {
+    switch (static_cast<CMPExtensionMode>(node_storage(bnode()).extension_y)) {
+      case CMP_NODE_EXTENSION_MODE_CLIP:
+        return ExtensionMode::Clip;
+      case CMP_NODE_EXTENSION_MODE_REPEAT:
+        return ExtensionMode::Repeat;
+      case CMP_NODE_EXTENSION_MODE_EXTEND:
+        return ExtensionMode::Extend;
+    }
+
+    BLI_assert_unreachable();
+    return ExtensionMode::Clip;
   }
 };
 
@@ -342,6 +372,8 @@ static void register_node_type_cmp_mapuv()
   ntype.draw_buttons = file_ns::node_composit_buts_map_uv;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
   ntype.initfunc = file_ns::node_composit_init_map_uv;
+  blender::bke::node_type_storage(
+      ntype, "NodeMapUVData", node_free_standard_storage, node_copy_standard_storage);
 
   blender::bke::node_register_type(ntype);
 }

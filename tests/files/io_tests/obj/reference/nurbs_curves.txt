@@ -1,38 +1,38 @@
 ==== Curves: 5
 - Curve 'CurveDeg3' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:4x1 order:3x3 cyclic:False,False endp:False,False
-    - (10.000, -2.000, 0.000) w:1.000
-    - (10.000, 2.000, 0.000) w:1.000
-    - (6.000, 2.000, 0.000) w:1.000
     - (6.000, -2.000, 0.000) w:1.000
+    - (6.000, 2.000, 0.000) w:1.000
+    - (10.000, 2.000, 0.000) w:1.000
+    - (10.000, -2.000, 0.000) w:1.000
 
 - Curve 'nurbs_curves' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:4x1 order:4x4 cyclic:False,False endp:False,False
-    - (2.000, -2.000, 0.000) w:1.000
-    - (2.000, 2.000, 0.000) w:1.000
-    - (-2.000, 2.000, 0.000) w:1.000
     - (-2.000, -2.000, 0.000) w:1.000
+    - (-2.000, 2.000, 0.000) w:1.000
+    - (2.000, 2.000, 0.000) w:1.000
+    - (2.000, -2.000, 0.000) w:1.000
 
 - Curve 'NurbsCurveCyclic' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:4x1 order:4x4 cyclic:True,False endp:False,False
-    - (-2.000, -2.000, 0.000) w:1.000
-    - (-2.000, 2.000, 0.000) w:1.000
-    - (-6.000, 2.000, 0.000) w:1.000
     - (-6.000, -2.000, 0.000) w:1.000
+    - (-6.000, 2.000, 0.000) w:1.000
+    - (-2.000, 2.000, 0.000) w:1.000
+    - (-2.000, -2.000, 0.000) w:1.000
 
 - Curve 'NurbsCurveDiffWeights' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:4x1 order:4x4 cyclic:False,False endp:False,False
-    - (6.000, -2.000, 0.000) w:1.000
-    - (6.000, 2.000, 0.000) w:1.000
-    - (2.000, 2.000, 0.000) w:1.000
     - (2.000, -2.000, 0.000) w:1.000
+    - (2.000, 2.000, 0.000) w:1.000
+    - (6.000, 2.000, 0.000) w:1.000
+    - (6.000, -2.000, 0.000) w:1.000
 
 - Curve 'NurbsCurveEndpoint' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:4x1 order:4x4 cyclic:False,False endp:True,False
-    - (-6.000, -2.000, 0.000) w:1.000
-    - (-6.000, 2.000, 0.000) w:1.000
-    - (-10.000, 2.000, 0.000) w:1.000
     - (-10.000, -2.000, 0.000) w:1.000
+    - (-10.000, 2.000, 0.000) w:1.000
+    - (-6.000, 2.000, 0.000) w:1.000
+    - (-6.000, -2.000, 0.000) w:1.000
 
 ==== Objects: 5
 - Obj 'CurveDeg3' CURVE data:'CurveDeg3'

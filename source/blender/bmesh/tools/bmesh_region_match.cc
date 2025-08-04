@@ -27,6 +27,7 @@
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "bmesh.hh"

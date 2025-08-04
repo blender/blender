@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:44+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
 "Language: uk\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -10169,6 +10169,10 @@ msgid "Video bitrate (kbit/s)"
 msgstr "Бітрейт відео (кбіт/сек)"
 
 
+msgid "HDR"
+msgstr "HDR"
+
+
 msgid "F-Modifier"
 msgstr "Ф-модифікатор"
 
@@ -11674,10 +11678,6 @@ msgid "Margin added around fluid to minimize boundary interference"
 msgstr "Відступ навколо рідини для зменшення взаємодії з межами"
 
 
-msgid "Minimum amount of fluid a cell can contain before it is considered empty"
-msgstr "Мінімальна величина флюїду, яку комірка може містити, перед тим як вона вважається порожньою"
-
-
 msgid "Additional"
 msgstr "Додатково"
 
@@ -13124,6 +13124,10 @@ msgstr "Тип роз'єму"
 
 msgid "Menu"
 msgstr "Меню"
+
+
+msgid "Shader"
+msgstr "Відтінювач"
 
 
 msgid "Collection"
@@ -17757,14 +17761,6 @@ msgid "Output image in DPX format"
 msgstr "Вивідне зображення у форматі DPX"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "Багатошаровий OpenEXR"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Вивідне зображення у багатошаровому форматі OpenEXR"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Вивідне зображення у форматі OpenEXR"
 
@@ -17779,6 +17775,14 @@ msgstr "Вивідне зображення у форматі Radiance HDR"
 
 msgid "Output image in TIFF format"
 msgstr "Вивідне зображення у форматі TIFF"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "Багатошаровий OpenEXR"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Вивідне зображення у багатошаровому форматі OpenEXR"
 
 
 msgid "FFmpeg Video"
@@ -19101,10 +19105,6 @@ msgstr "Маска"
 
 msgid "Script"
 msgstr "Скрипт"
-
-
-msgid "Shader"
-msgstr "Відтінювач"
 
 
 msgid "Pattern"
@@ -22767,10 +22767,6 @@ msgid "Node tree for node based worlds"
 msgstr "Дерево вузлів для світів на основі вузлів"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Вживати шейдерні вузли для рендера світу"
-
-
 msgid "ID Materials"
 msgstr "ID матеріалів"
 
@@ -23145,6 +23141,10 @@ msgstr "B44A (з втратами)"
 
 msgid "File format to save the rendered images as"
 msgstr "Формат файлу для збереження рендереного зображення"
+
+
+msgid "Video"
+msgstr "Відео"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -24600,10 +24600,6 @@ msgstr "Клацання"
 
 msgid "Double Click"
 msgstr "Подвійне Клацання"
-
-
-msgid "Click Drag"
-msgstr "Клацання Перетягання"
 
 
 msgid "KeyMap Items"
@@ -26487,10 +26483,6 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Pivot Point"
-msgstr "Точка Опертя"
-
-
 msgid "Snap"
 msgstr "Підхоп"
 
@@ -26705,6 +26697,10 @@ msgstr "Текст"
 
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
+
+
+msgid "Pivot Point"
+msgstr "Точка Опертя"
 
 
 msgid "Basic"
@@ -30903,10 +30899,6 @@ msgid "Resolution of the generated surface for rendering and baking"
 msgstr "Роздільність генерованої поверхні для рендерення та запікання"
 
 
-msgid "Sharpen peak"
-msgstr "Гострішати пік"
-
-
 msgid "Peak sharpening for 'JONSWAP' and 'TMA' models"
 msgstr "Гострішання піків для моделей 'JONSWAP' та 'TMA'"
 
@@ -34133,10 +34125,6 @@ msgid "ITU 709"
 msgstr "ITU 709"
 
 
-msgid "Composite"
-msgstr "Композиція"
-
-
 msgid "To"
 msgstr "До"
 
@@ -34638,10 +34626,6 @@ msgid "Rotate"
 msgstr "Оберт"
 
 
-msgid "Method to use to filter rotation"
-msgstr "Метод фільтрації обертання"
-
-
 msgid "Coordinate space to scale relative to"
 msgstr "Координатний простір, відносно якого масштабувати"
 
@@ -34958,10 +34942,6 @@ msgid "Distribute the points randomly on the surface while taking a minimum dist
 msgstr "Розподілити точки випадково на поверхні, водночас враховуючи мінімальну відстань між точками"
 
 
-msgid "Triangles"
-msgstr "Трикутники"
-
-
 msgid "Primary"
 msgstr "Первинний"
 
@@ -35002,12 +34982,12 @@ msgid "N-Gon"
 msgstr "N-Кутник"
 
 
+msgid "Triangles"
+msgstr "Трикутники"
+
+
 msgid "End Points"
 msgstr "Точки Кінців"
-
-
-msgid "How the voxel size is specified"
-msgstr "Як визначається розмір вокселя"
 
 
 msgid "UV Sphere"
@@ -35040,10 +35020,6 @@ msgstr "Цільова Геометрія"
 
 msgid "Element of the target geometry to calculate the distance from"
 msgstr "Елемент цільової геометрії для розрахування відстані від нього"
-
-
-msgid "Z Up"
-msgstr "Z Уверх"
 
 
 msgid "Tangent Space"
@@ -35100,14 +35076,6 @@ msgstr "Вибране"
 
 msgid "Pack UV Islands"
 msgstr "Упакувати UV-острови"
-
-
-msgid "Angle Based"
-msgstr "На основі кутів"
-
-
-msgid "Conformal"
-msgstr "Конформний"
 
 
 msgid "Warning"
@@ -36435,10 +36403,6 @@ msgid "Subpath used for this slot"
 msgstr "Підшлях, що використовується цим гніздом"
 
 
-msgid "Use Node Format"
-msgstr "Використати формат вузла"
-
-
 msgid "Output File Layer Slot"
 msgstr "Гніздо шару вивідного файлу"
 
@@ -37057,10 +37021,6 @@ msgstr "Знешумити анімацію"
 msgctxt "Operator"
 msgid "Merge Images"
 msgstr "Злити Зображення"
-
-
-msgid "Enable nodes on a material, world or light"
-msgstr "Увімкнути вузли для матеріалу, світу або освітлювача"
 
 
 msgctxt "Operator"
@@ -42557,6 +42517,10 @@ msgstr "X вгору"
 
 msgid "Y Up"
 msgstr "Y Уверх"
+
+
+msgid "Z Up"
+msgstr "Z Уверх"
 
 
 msgid "-X Up"
@@ -49533,10 +49497,6 @@ msgid "Current"
 msgstr "Поточний"
 
 
-msgid "HDR"
-msgstr "HDR"
-
-
 msgctxt "Operator"
 msgid "Toggle Node Options"
 msgstr "Перемкнути параметри вузла"
@@ -51584,10 +51544,6 @@ msgstr "Віддзеркалити поточний ключ форми вздо
 msgctxt "Operator"
 msgid "Move Shape Key"
 msgstr "Пересунути ключ форми"
-
-
-msgid "Move the active shape key up/down in the list"
-msgstr "Перемістити активний ключ форми вгору/вниз у списку"
 
 
 msgctxt "Operator"
@@ -55416,10 +55372,6 @@ msgid "Hide Panels"
 msgstr "Приховати панелі"
 
 
-msgid "Hide all the panels"
-msgstr "Приховати всі панелі"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "Встановити екран"
@@ -56291,10 +56243,6 @@ msgstr "Задає позицію опорточки на поверхні пі�
 
 msgid "Mouse Position X"
 msgstr "Позиція X Миші"
-
-
-msgid "Position of the mouse used for \"Surface\" mode"
-msgstr "Позиція миші, що використовується для режиму «Поверхня»"
 
 
 msgid "Mouse Position Y"
@@ -59171,6 +59119,14 @@ msgstr "Розгорнути сіть редагованого об'єкта"
 
 msgid "Unwrapping method (Angle Based usually gives better results than Conformal, while being somewhat slower)"
 msgstr "Метод розгортання (На основі кутів зазвичай дає кращі результати, ніж Конформний, проте дещо повільніший)"
+
+
+msgid "Angle Based"
+msgstr "На основі кутів"
+
+
+msgid "Conformal"
+msgstr "Конформний"
 
 
 msgid "Use Subdivision Surface"
@@ -62545,10 +62501,6 @@ msgid "Audio"
 msgstr "Аудіо"
 
 
-msgid "Video"
-msgstr "Відео"
-
-
 msgid "Views"
 msgstr "Вигляди"
 
@@ -65676,14 +65628,6 @@ msgstr "Мова"
 
 msgid "Language used for translation"
 msgstr "Мова, вживана для перекладу"
-
-
-msgid "HDRI Preview Size"
-msgstr "Розмір перегляду HDRI"
-
-
-msgid "Diameter of the HDRI preview spheres"
-msgstr "Діаметр сфер перегляду HDRI"
 
 
 msgid "Mini Axes Brightness"
@@ -73738,14 +73682,6 @@ msgid "Color of path before current frame"
 msgstr "Колір шляху перед поточним кадром"
 
 
-msgid "Preview Range"
-msgstr "Діапазон Передогляду"
-
-
-msgid "Color of preview range overlay"
-msgstr "Колір накладки діапазону передогляду"
-
-
 msgid "Selected Marker"
 msgstr "Обрана мітка"
 
@@ -73788,6 +73724,14 @@ msgstr "Устави теми для кольорів колекцій"
 
 msgid "Collection Color Tag"
 msgstr "Значник Кольору Колекції"
+
+
+msgid "Preview Range"
+msgstr "Діапазон Передогляду"
+
+
+msgid "Color of preview range overlay"
+msgstr "Колір накладки діапазону передогляду"
 
 
 msgid "Theme Console"
@@ -80759,11 +80703,6 @@ msgstr "Вертикальне Розділення"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "Перемкнути Область на Повний Екран"
-
-
-msgctxt "Operator"
 msgid "Sound"
 msgstr "Звук"
 
@@ -83151,6 +83090,10 @@ msgid "To 3D Cursor"
 msgstr "До 3D Курсора"
 
 
+msgid "Specular Lighting"
+msgstr "Блікове Освітлювання"
+
+
 msgid "Fade Inactive Geometry"
 msgstr "Зникання Неактивних Об'єктів"
 
@@ -83282,10 +83225,6 @@ msgstr "Зчистити Ребро Freestyle"
 msgctxt "Operator"
 msgid "Clear Freestyle Face"
 msgstr "Зчистити Грань Freestyle"
-
-
-msgid "Specular Lighting"
-msgstr "Блікове Освітлювання"
 
 
 msgid "Ridge"
@@ -85536,16 +85475,8 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "Вибір шляху потребує вибору двох узгоджених елементів"
 
 
-msgid "Cannot rip selected faces"
-msgstr "Неможливо розірвати вибрані грані"
-
-
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "Неможливо розірвати декілька роз'єднаних вершин"
-
-
-msgid "Rip failed"
-msgstr "Збій розривання"
 
 
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
@@ -87633,6 +87564,10 @@ msgid "All %d rotation channels were filtered"
 msgstr "Усі %d каналів обертання було фільтровано"
 
 
+msgid "Composite"
+msgstr "Композиція"
+
+
 msgid "Discard"
 msgstr "Відкидання"
 
@@ -88922,6 +88857,10 @@ msgid "UV Vertex"
 msgstr "UV-вершина"
 
 
+msgid "Rip failed"
+msgstr "Збій розривання"
+
+
 msgid "Cannot split selection when sync selection is enabled"
 msgstr "Неможливо розділити вибране, коли увімкнена синхронізація вибору"
 
@@ -89965,10 +89904,6 @@ msgid "Result"
 msgstr "Результат"
 
 
-msgid "Layer:"
-msgstr "Шар:"
-
-
 msgid "Color Modulation"
 msgstr "Модуляція кольору"
 
@@ -90011,6 +89946,10 @@ msgstr "Планарно"
 
 msgid "Old"
 msgstr "Старе"
+
+
+msgid "How the voxel size is specified"
+msgstr "Як визначається розмір вокселя"
 
 
 msgid "Ray Length"
@@ -90329,10 +90268,6 @@ msgid "Border rendering is not supported by sequencer"
 msgstr "Рендеринг у границях не підтримується секвенсером"
 
 
-msgid "No render output node in scene"
-msgstr "У сцені немає вузла виводу рендера"
-
-
 msgid "All render layers are disabled"
 msgstr "Всі шари рендера вимкнено"
 
@@ -90641,16 +90576,6 @@ msgstr "Лімітована Підтримка Платформи"
 
 
 msgctxt "WindowManager"
-msgid "Your graphics card or driver has limited support. It may work, but with issues."
-msgstr "Ваша графічна карта або драйвер має лімітовану підтримку. Це може працювати, але з проблемами."
-
-
-msgctxt "WindowManager"
-msgid "Newer graphics drivers may be available to improve Blender support."
-msgstr "Новіші драйвери графіки можуть бути доступні для покращення підтримки Blender."
-
-
-msgctxt "WindowManager"
 msgid "Graphics card:"
 msgstr "Графічна карта:"
 
@@ -90658,16 +90583,6 @@ msgstr "Графічна карта:"
 msgctxt "WindowManager"
 msgid "Platform Unsupported"
 msgstr "Непідтримуване Платформою"
-
-
-msgctxt "WindowManager"
-msgid "Your graphics card or driver is not supported."
-msgstr "Ваша графічна карта або драйвер не підтримуються."
-
-
-msgctxt "WindowManager"
-msgid "The program will now close."
-msgstr "Програма наразі буде закрита."
 
 
 msgid "Failed to create a window without quad-buffer support, you may experience flickering"

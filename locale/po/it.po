@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-07-19 17:59+0000\n"
-"Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"PO-Revision-Date: 2025-07-23 15:25+0000\n"
+"Last-Translator: 32437w5k7 <32437w5k7@mozmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -10949,6 +10949,10 @@ msgid "Video bitrate (kbit/s)"
 msgstr "Bitrate video (kbit/s)"
 
 
+msgid "HDR"
+msgstr "HDR"
+
+
 msgid "F-Modifier"
 msgstr "Modificatore-F"
 
@@ -12398,10 +12402,6 @@ msgid "Fluid domain settings"
 msgstr "Impostazioni del dominio del fluido"
 
 
-msgid "Minimum amount of fluid a cell can contain before it is considered empty"
-msgstr "Ammontare minimo di fluido che una cella può contenere prima di essere considerata vuota"
-
-
 msgid "Additional"
 msgstr "Aggiuntivo"
 
@@ -13128,6 +13128,10 @@ msgstr "Tipo di Connettore"
 
 msgid "Menu"
 msgstr "Menu"
+
+
+msgid "Shader"
+msgstr "Shader"
 
 
 msgid "Collection"
@@ -16731,14 +16735,6 @@ msgid "Output image in DPX format"
 msgstr "Immagine in formato DPX"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR MultiLivello"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "Esporta l'immagine nel formato OpenEXR multi-livello"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "Immagine in formato OpenEXR"
 
@@ -16757,6 +16753,14 @@ msgstr "Immagine in formato TIFF"
 
 msgid "Output image in WebP format"
 msgstr "Immagine di output in formato WebP"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR MultiLivello"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "Esporta l'immagine nel formato OpenEXR multi-livello"
 
 
 msgid "FFmpeg Video"
@@ -17999,10 +18003,6 @@ msgstr "Mascherino"
 
 msgid "Script"
 msgstr "Script"
-
-
-msgid "Shader"
-msgstr "Shader"
 
 
 msgid "Pattern"
@@ -21505,10 +21505,6 @@ msgid "Finite Volume"
 msgstr "Volume Finito"
 
 
-msgid "Use shader nodes to render the world"
-msgstr "Utilizza nodi shader per renderizzare il mondo"
-
-
 msgid "Use Shadow"
 msgstr "Utilizza Ombra"
 
@@ -21767,6 +21763,10 @@ msgstr "Impostazioni codec per JPEG 2000"
 
 msgid "Output color space settings"
 msgstr "Impostazioni spazio colore Output"
+
+
+msgid "Video"
+msgstr "Video"
 
 
 msgid "Quality for image formats that support lossy compression"
@@ -23434,10 +23434,6 @@ msgid "Double Click"
 msgstr "Doppio Click"
 
 
-msgid "Click Drag"
-msgstr "Click Trascina"
-
-
 msgid "KeyMap Items"
 msgstr "Elementi Mappa Tasti"
 
@@ -24664,10 +24660,6 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Pivot Point"
-msgstr "Punto di Perno"
-
-
 msgid "Snap"
 msgstr "Aggancia"
 
@@ -24886,6 +24878,10 @@ msgstr "Testo"
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
+
+
+msgid "Pivot Point"
+msgstr "Punto di Perno"
 
 
 msgid "Keyframe Insert Pie"
@@ -31096,10 +31092,6 @@ msgid "Combine Color"
 msgstr "Combina Colore"
 
 
-msgid "Composite"
-msgstr "Composizione"
-
-
 msgid "Convert Colorspace"
 msgstr "Converti Spazio colore"
 
@@ -31455,16 +31447,6 @@ msgstr "Chiave Luminanza"
 
 msgid "Map UV"
 msgstr "Mappa UV"
-
-
-msgctxt "NodeTree"
-msgid "Nearest"
-msgstr "il Più Vicino"
-
-
-msgctxt "NodeTree"
-msgid "Anisotropic"
-msgstr "Anisotropico"
 
 
 msgid "Size Source"
@@ -32027,10 +32009,6 @@ msgid "Fill Curve"
 msgstr "Riempi Curva"
 
 
-msgid "Triangles"
-msgstr "Triangoli"
-
-
 msgid "Flip Faces"
 msgstr "Capovolgi Facce"
 
@@ -32231,6 +32209,10 @@ msgid "Fill Type"
 msgstr "Tipo Riempimento"
 
 
+msgid "Triangles"
+msgstr "Triangoli"
+
+
 msgid "Ico Sphere"
 msgstr "Ico Sfera"
 
@@ -32275,10 +32257,6 @@ msgid "Remove Named Attribute"
 msgstr "Rimuove Attributo Nominato"
 
 
-msgid "Pattern Mode"
-msgstr "Modalitá Pattern"
-
-
 msgid "Repeat Output"
 msgstr "Ripeti Output"
 
@@ -32315,18 +32293,6 @@ msgid "Sample Grid"
 msgstr "Griglia Campione"
 
 
-msgid "Interpolation Mode"
-msgstr "Modalitá Interpolazione"
-
-
-msgid "Trilinear"
-msgstr "Trilineare"
-
-
-msgid "Triquadratic"
-msgstr "Triquadratico"
-
-
 msgid "Sample Grid Index"
 msgstr "Indice Griglia Campione"
 
@@ -32339,10 +32305,6 @@ msgid "Scale Elements"
 msgstr "Scala Elementi"
 
 
-msgid "Scale Mode"
-msgstr "Modalità Scala"
-
-
 msgid "Scale Instances"
 msgstr "Scala Istanze"
 
@@ -32353,10 +32315,6 @@ msgstr "Separa Componenti"
 
 msgid "Separate Geometry"
 msgstr "Separa Geometria"
-
-
-msgid "Z Up"
-msgstr "Z In Alto"
 
 
 msgid "Set Curve Radius"
@@ -32409,14 +32367,6 @@ msgstr "Converti tutte le facce di una mesh in facce triangolari"
 
 msgid "Pack UV Islands"
 msgstr "Compatta Isole UV"
-
-
-msgid "Angle Based"
-msgstr "Basato sull'Angolo"
-
-
-msgid "Conformal"
-msgstr "Conforme"
 
 
 msgid "Warning"
@@ -33322,10 +33272,6 @@ msgstr "Raccolta di Collegamenti Nodo"
 
 msgid "Output File Slot"
 msgstr "Slot File Uscita"
-
-
-msgid "Use Node Format"
-msgstr "Utilizza Formato Nodo"
 
 
 msgid "Node Outputs"
@@ -37733,6 +37679,10 @@ msgstr "X In Alto"
 
 msgid "Y Up"
 msgstr "Y In Alto"
+
+
+msgid "Z Up"
+msgstr "Z In Alto"
 
 
 msgid "-X Up"
@@ -42625,10 +42575,6 @@ msgid "From active node"
 msgstr "Dal nodo attivo"
 
 
-msgid "HDR"
-msgstr "HDR"
-
-
 msgctxt "Operator"
 msgid "Toggle Node Options"
 msgstr "Attiva/disattiva Opzioni Nodo"
@@ -43954,10 +43900,6 @@ msgstr "Specchia la shape key corrente lungo l'asse X locale"
 msgctxt "Operator"
 msgid "Move Shape Key"
 msgstr "Muovi Chiave Forma"
-
-
-msgid "Move the active shape key up/down in the list"
-msgstr "Sposta la shape key attiva su/giù nella lista"
 
 
 msgctxt "Operator"
@@ -46656,10 +46598,6 @@ msgid "Hide Panels"
 msgstr "Nascondi Pannelli"
 
 
-msgid "Hide all the panels"
-msgstr "Nasconde tutti i pannelli"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "Imposta Schermo"
@@ -48998,6 +48936,14 @@ msgid "Unwrapping method (Angle Based usually gives better results than Conforma
 msgstr "Metodo di sviluppo-scucitura (quello Basato sull'Angolo dà risultati miglior del Conforme, pur essendo un po' più lento)"
 
 
+msgid "Angle Based"
+msgstr "Basato sull'Angolo"
+
+
+msgid "Conformal"
+msgstr "Conforme"
+
+
 msgctxt "Operator"
 msgid "Weld"
 msgstr "Salda"
@@ -51250,10 +51196,6 @@ msgstr "Codifica"
 
 msgid "Audio"
 msgstr "Audio"
-
-
-msgid "Video"
-msgstr "Video"
 
 
 msgid "Format Presets"
@@ -62876,11 +62818,6 @@ msgstr "Divisione Verticale"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "Attiva/disattiva Area a Schermo Intero"
-
-
-msgctxt "Operator"
 msgid "Sound"
 msgstr "Suono"
 
@@ -66463,10 +66400,6 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "La selezione di un percorso richiede che due elementi estremi siano selezionati"
 
 
-msgid "Cannot rip selected faces"
-msgstr "Impossibile strappare le facce selezionate"
-
-
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "Impossibile strappare vertici multipli disconnessi"
 
@@ -67167,10 +67100,6 @@ msgid "Time:"
 msgstr "Tempo:"
 
 
-msgid "Render..."
-msgstr "Render..."
-
-
 msgid "Scene has no camera"
 msgstr "La scena non ha camere"
 
@@ -67201,10 +67130,6 @@ msgstr "Ripristina Aree"
 
 msgid "Maximize Area"
 msgstr "Massimizza Area"
-
-
-msgid "Full Screen Area"
-msgstr "Area a Schermo Intero"
 
 
 msgid "Flip to Top"
@@ -67651,6 +67576,10 @@ msgstr "Nessun Modificatore-F da incollare"
 
 msgid "Modify Sharpness"
 msgstr "Modifica Nettezza"
+
+
+msgid "Composite"
+msgstr "Composizione"
 
 
 msgid "Select Slot"
@@ -69091,26 +69020,6 @@ msgid "Inner Edge:"
 msgstr "Spigolo Interno:"
 
 
-msgid "Path:"
-msgstr "Percorso:"
-
-
-msgid "Base Path:"
-msgstr "Percorso Base:"
-
-
-msgid "Layer:"
-msgstr "Livello:"
-
-
-msgid "File Subpath:"
-msgstr "Sottopercorso File:"
-
-
-msgid "Format:"
-msgstr "Formato:"
-
-
 msgid "Color Modulation"
 msgstr "Modulazione Colore"
 
@@ -69341,6 +69250,14 @@ msgstr "Posizione Sorgente"
 
 msgid "Ray Length"
 msgstr "Lunghezza Raggio"
+
+
+msgid "Pattern Mode"
+msgstr "Modalitá Pattern"
+
+
+msgid "Scale Mode"
+msgstr "Modalità Scala"
 
 
 msgid "Inverted"
@@ -69666,10 +69583,6 @@ msgstr "Impossibile renderizzare, nessuna camera"
 
 msgid "Border rendering is not supported by sequencer"
 msgstr "Il rendering parziale non è supportato dall'editor sequenze video"
-
-
-msgid "No render output node in scene"
-msgstr "Nessun nodo di output nella scena"
 
 
 msgid "All render layers are disabled"

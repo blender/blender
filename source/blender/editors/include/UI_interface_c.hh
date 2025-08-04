@@ -1405,8 +1405,6 @@ uiBut *uiDefIconTextBut(uiBlock *block,
                         short width,
                         short height,
                         void *poin,
-                        float min,
-                        float max,
                         std::optional<blender::StringRef> tip);
 uiBut *uiDefIconTextButI(uiBlock *block,
                          ButType type,
@@ -1418,8 +1416,6 @@ uiBut *uiDefIconTextButI(uiBlock *block,
                          short width,
                          short height,
                          int *poin,
-                         float min,
-                         float max,
                          std::optional<blender::StringRef> tip);
 uiBut *uiDefIconTextButS(uiBlock *block,
                          ButType type,
@@ -1431,8 +1427,6 @@ uiBut *uiDefIconTextButS(uiBlock *block,
                          short width,
                          short height,
                          short *poin,
-                         float min,
-                         float max,
                          std::optional<blender::StringRef> tip);
 uiBut *uiDefIconTextButR(uiBlock *block,
                          ButType type,
@@ -1446,8 +1440,6 @@ uiBut *uiDefIconTextButR(uiBlock *block,
                          PointerRNA *ptr,
                          blender::StringRefNull propname,
                          int index,
-                         float min,
-                         float max,
                          std::optional<blender::StringRef> tip);
 uiBut *uiDefIconTextButR_prop(uiBlock *block,
                               ButType type,
@@ -2485,7 +2477,11 @@ void uiTemplateImage(uiLayout *layout,
                      PointerRNA *userptr,
                      bool compact,
                      bool multiview);
-void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_management);
+void uiTemplateImageSettings(uiLayout *layout,
+                             bContext *C,
+                             PointerRNA *imfptr,
+                             bool color_management,
+                             const char *panel_idname = nullptr);
 void uiTemplateImageStereo3d(uiLayout *layout, PointerRNA *stereo3d_format_ptr);
 void uiTemplateImageViews(uiLayout *layout, PointerRNA *imaptr);
 void uiTemplateImageFormatViews(uiLayout *layout, PointerRNA *imfptr, PointerRNA *ptr);

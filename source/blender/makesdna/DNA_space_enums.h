@@ -441,7 +441,7 @@ typedef enum eSpaceSeq_Proxy_RenderSize {
   SEQ_RENDER_SIZE_PROXY_50 = 50,
   SEQ_RENDER_SIZE_PROXY_75 = 75,
   SEQ_RENDER_SIZE_PROXY_100 = 99,
-  SEQ_RENDER_SIZE_FULL = 100,
+  SEQ_RENDER_SIZE_FULL_DEPRECATED = 100, /* deprecated, for versioning only */
 } eSpaceSeq_Proxy_RenderSize;
 
 /** #SpaceSeq.gizmo_flag */

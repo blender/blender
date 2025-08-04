@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:34+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
 "Language: pl\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.12.1"
 
 
 msgid "Shader AOV"
@@ -10798,6 +10798,10 @@ msgid "Codec"
 msgstr "Kodek"
 
 
+msgid "Video"
+msgstr "Wideo"
+
+
 msgid "Image Preview"
 msgstr "Podgląd obrazu"
 
@@ -17603,10 +17607,6 @@ msgstr "Kodowanie"
 
 msgid "Audio"
 msgstr "Audio"
-
-
-msgid "Video"
-msgstr "Wideo"
 
 
 msgid "Metadata"
@@ -24729,16 +24729,8 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "Zaznaczanie ścieżki wymaga zaznaczenia dwóch pasujących elementów"
 
 
-msgid "Cannot rip selected faces"
-msgstr "Nie mogę rozpruć zaznaczonych ścian"
-
-
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "Nie mogę rozpruć wielu rozłączonych wierzchołków"
-
-
-msgid "Rip failed"
-msgstr "Rozpruwanie nie powiodło się"
 
 
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
@@ -27296,6 +27288,10 @@ msgid "UV Vertex"
 msgstr "Wierzchołek UV"
 
 
+msgid "Rip failed"
+msgstr "Rozpruwanie nie powiodło się"
+
+
 msgid "Cannot split selection when sync selection is enabled"
 msgstr "Nie można podzielić selekcji gdy uruchomiona synchronizacja selekcji"
 
@@ -27929,18 +27925,6 @@ msgid "Result"
 msgstr "Wynik"
 
 
-msgid "Path:"
-msgstr "Ścieżka:"
-
-
-msgid "Layer:"
-msgstr "Warstwa:"
-
-
-msgid "File Subpath:"
-msgstr "Podścieżka pliku:"
-
-
 msgid "Val"
 msgstr "Val"
 
@@ -28345,10 +28329,6 @@ msgstr "Render niemożliwy, brak kamery"
 
 msgid "No border area selected"
 msgstr "Nie zaznaczono obramowania"
-
-
-msgid "No render output node in scene"
-msgstr "Brak output node w scenie"
 
 
 msgid "All render layers are disabled"

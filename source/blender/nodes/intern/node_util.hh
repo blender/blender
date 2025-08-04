@@ -10,8 +10,11 @@
 
 #include "DNA_node_types.h"
 
+#include "BKE_node.hh"
+
 struct bNode;
 struct bNodeTree;
+struct bContext;
 
 /* data for initializing node execution */
 struct bNodeExecContext {};
@@ -50,7 +53,7 @@ void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode
 /**
  * By default there are no links we don't want to connect, when inserting.
  */
-bool node_insert_link_default(bNodeTree *ntree, bNode *node, bNodeLink *link);
+bool node_insert_link_default(blender::bke::NodeInsertLinkParams &params);
 
 float node_socket_get_float(bNodeTree *ntree, bNode *node, bNodeSocket *sock);
 void node_socket_set_float(bNodeTree *ntree, bNode *node, bNodeSocket *sock, float value);

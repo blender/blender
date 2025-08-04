@@ -1148,10 +1148,38 @@ struct GWL_Seat {
   GWL_SeatStatePointerGesture_Pinch pointer_gesture_pinch;
   bool use_pointer_scroll_smooth_as_discrete = false;
 
-  /** Mostly this can be interchanged with `pointer` however it can't be locked/confined. */
+  /**
+   * Mostly this can be interchanged with `pointer` key differences are:
+   * - It can't be locked/confined.
+   */
   GWL_SeatStatePointer tablet;
+  /**
+   * Mostly this can be interchanged with `pointer` key differences are:
+   * - It can't be locked/confined.
+   * - The #GWL_SeatStatePointer::outputs isn't set,
+   *   nor anything relating to the cursor buffer scale.
+   */
+  GWL_SeatStatePointer touch;
 
   GWL_SeatStateKeyboard keyboard;
+
+  /**
+   * This structure accumulates touch input that will be applied on the next *frame* event.
+   *
+   * Currently only track one active contact point on the screen
+   * and map it to pointer motion and left-clicks.
+   * Multi-touch, pinching & swiping are not yet supported.
+   */
+  struct {
+    bool is_touching = false;
+    uint32_t down_id = 0;
+    bool down_pending = false;
+    uint64_t down_event_time_ms = 0;
+    bool up_pending = false;
+    uint64_t up_event_time_ms = 0;
+    bool motion_pending = false;
+    uint64_t motion_event_time_ms = 0;
+  } touch_state;
 
 #ifdef USE_GNOME_CONFINE_HACK
   bool use_pointer_software_confine = false;
@@ -1233,6 +1261,9 @@ static GWL_SeatStatePointer *gwl_seat_state_pointer_active(GWL_Seat *seat)
   }
   if (seat->tablet.serial == seat->cursor_source_serial) {
     return &seat->tablet;
+  }
+  if (seat->touch.serial == seat->cursor_source_serial) {
+    return &seat->touch;
   }
   return nullptr;
 }
@@ -1812,8 +1843,8 @@ static bool gwl_registry_entry_remove_by_name(GWL_Display *display,
 }
 
 static bool gwl_registry_entry_remove_by_interface_slot(GWL_Display *display,
-                                                        int interface_slot,
-                                                        bool on_exit)
+                                                        const int interface_slot,
+                                                        const bool on_exit)
 {
   GWL_RegistryEntry *reg = display->registry_entry;
   GWL_RegistryEntry **reg_link_p = &display->registry_entry;
@@ -3572,7 +3603,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
    * Failure to set this to a known type just means the file won't have any special handling.
    * GHOST still generates a dropped file event.
    * NOTE: this string can be compared with `mime_text_plain`, `mime_text_uri` etc...
-   * as the this always points to the same values. */
+   * as this always points to the same values. */
   const char *mime_receive = "";
   for (size_t i = 0; i < ARRAY_SIZE(ghost_wl_mime_preference_order); i++) {
     const char *type = ghost_wl_mime_preference_order[i];
@@ -3805,7 +3836,7 @@ static void cursor_surface_handle_leave(void *data, wl_surface *wl_surface, wl_o
 
 static void cursor_surface_handle_preferred_buffer_scale(void * /*data*/,
                                                          wl_surface * /*wl_surface*/,
-                                                         int32_t factor)
+                                                         const int32_t factor)
 {
   /* Only available in interface version 6. */
   CLOG_DEBUG(LOG, "handle_preferred_buffer_scale (factor=%d)", factor);
@@ -4159,7 +4190,7 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
 }
 static void pointer_handle_axis_source(void *data,
                                        wl_pointer * /*wl_pointer*/,
-                                       uint32_t axis_source)
+                                       const uint32_t axis_source)
 {
   CLOG_DEBUG(LOG, "axis_source (axis_source=%u)", axis_source);
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
@@ -4167,8 +4198,8 @@ static void pointer_handle_axis_source(void *data,
 }
 static void pointer_handle_axis_stop(void *data,
                                      wl_pointer * /*wl_pointer*/,
-                                     uint32_t time,
-                                     uint32_t axis)
+                                     const uint32_t time,
+                                     const uint32_t axis)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->pointer_scroll.event_ms = seat->system->ms_from_input_time(time);
@@ -4188,8 +4219,8 @@ static void pointer_handle_axis_stop(void *data,
 }
 static void pointer_handle_axis_discrete(void *data,
                                          wl_pointer * /*wl_pointer*/,
-                                         uint32_t axis,
-                                         int32_t discrete)
+                                         const uint32_t axis,
+                                         const int32_t discrete)
 {
   /* NOTE: a discrete axis are typically mouse wheel events.
    * The non-discrete version of this function is used for touch-pad. */
@@ -4205,8 +4236,8 @@ static void pointer_handle_axis_discrete(void *data,
 }
 static void pointer_handle_axis_value120(void *data,
                                          wl_pointer * /*wl_pointer*/,
-                                         uint32_t axis,
-                                         int32_t value120)
+                                         const uint32_t axis,
+                                         const int32_t value120)
 {
   /* Only available in interface version 8. */
   CLOG_DEBUG(LOG, "axis_value120 (axis=%u, value120=%d)", axis, value120);
@@ -4222,8 +4253,8 @@ static void pointer_handle_axis_value120(void *data,
 #ifdef WL_POINTER_AXIS_RELATIVE_DIRECTION_ENUM /* Requires WAYLAND 1.22 or newer. */
 static void pointer_handle_axis_relative_direction(void *data,
                                                    wl_pointer * /*wl_pointer*/,
-                                                   uint32_t axis,
-                                                   uint32_t direction)
+                                                   const uint32_t axis,
+                                                   const uint32_t direction)
 {
   /* Only available in interface version 9. */
   CLOG_DEBUG(LOG, "axis_relative_direction (axis=%u, direction=%u)", axis, direction);
@@ -4268,19 +4299,19 @@ static CLG_LogRef LOG_WL_POINTER_GESTURE_HOLD = {"ghost.wl.handle.pointer_gestur
 static void gesture_hold_handle_begin(
     void * /*data*/,
     zwp_pointer_gesture_hold_v1 * /*zwp_pointer_gesture_hold_v1*/,
-    uint32_t /*serial*/,
-    uint32_t /*time*/,
+    const uint32_t /*serial*/,
+    const uint32_t /*time*/,
     wl_surface * /*surface*/,
-    uint32_t fingers)
+    const uint32_t fingers)
 {
   CLOG_DEBUG(LOG, "begin (fingers=%u)", fingers);
 }
 
 static void gesture_hold_handle_end(void * /*data*/,
                                     zwp_pointer_gesture_hold_v1 * /*zwp_pointer_gesture_hold_v1*/,
-                                    uint32_t /*serial*/,
-                                    uint32_t /*time*/,
-                                    int32_t cancelled)
+                                    const uint32_t /*serial*/,
+                                    const uint32_t /*time*/,
+                                    const int32_t cancelled)
 {
   CLOG_DEBUG(LOG, "end (cancelled=%i)", cancelled);
 }
@@ -4305,10 +4336,10 @@ static CLG_LogRef LOG_WL_POINTER_GESTURE_PINCH = {"ghost.wl.handle.pointer_gestu
 
 static void gesture_pinch_handle_begin(void *data,
                                        zwp_pointer_gesture_pinch_v1 * /*pinch*/,
-                                       uint32_t /*serial*/,
-                                       uint32_t time,
+                                       const uint32_t /*serial*/,
+                                       const uint32_t time,
                                        wl_surface * /*surface*/,
-                                       uint32_t fingers)
+                                       const uint32_t fingers)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   (void)seat->system->ms_from_input_time(time); /* Only update internal time. */
@@ -4362,11 +4393,11 @@ static void gesture_pinch_handle_begin(void *data,
 
 static void gesture_pinch_handle_update(void *data,
                                         zwp_pointer_gesture_pinch_v1 * /*pinch*/,
-                                        uint32_t time,
-                                        wl_fixed_t dx,
-                                        wl_fixed_t dy,
-                                        wl_fixed_t scale,
-                                        wl_fixed_t rotation)
+                                        const uint32_t time,
+                                        const wl_fixed_t dx,
+                                        const wl_fixed_t dy,
+                                        const wl_fixed_t scale,
+                                        const wl_fixed_t rotation)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   const uint64_t event_ms = seat->system->ms_from_input_time(time);
@@ -4422,9 +4453,9 @@ static void gesture_pinch_handle_update(void *data,
 
 static void gesture_pinch_handle_end(void *data,
                                      zwp_pointer_gesture_pinch_v1 * /*pinch*/,
-                                     uint32_t /*serial*/,
-                                     uint32_t time,
-                                     int32_t cancelled)
+                                     const uint32_t /*serial*/,
+                                     const uint32_t time,
+                                     const int32_t cancelled)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   (void)seat->system->ms_from_input_time(time); /* Only update internal time. */
@@ -4504,45 +4535,182 @@ static const zwp_pointer_gesture_swipe_v1_listener gesture_swipe_listener = {
  * NOTE(@ideasman42): It's not clear if this interface is used by popular compositors.
  * It looks like GNOME/KDE only support `zwp_pointer_gestures_v1_interface`.
  * If this isn't used anywhere, it could be removed.
+ *
+ * NOTE(@felipe-choi): While X11 used to provide a virtual "touchscreen mouse" device,
+ * wayland provides dedicated touch events instead, so they go through
+ * this set of handler callbacks.
  * \{ */
 
 static CLG_LogRef LOG_WL_TOUCH = {"ghost.wl.handle.touch"};
 #define LOG (&LOG_WL_TOUCH)
 
-static void touch_seat_handle_down(void * /*data*/,
-                                   wl_touch * /*wl_touch*/,
-                                   uint32_t /*serial*/,
-                                   uint32_t /*time*/,
-                                   wl_surface * /*wl_surface*/,
-                                   int32_t /*id*/,
-                                   wl_fixed_t /*x*/,
-                                   wl_fixed_t /*y*/)
+static void touch_seat_handle_down(void *data,
+                                   wl_touch * /*touch*/,
+                                   const uint32_t serial,
+                                   const uint32_t time,
+                                   wl_surface *surface,
+                                   const int32_t id,
+                                   const wl_fixed_t x,
+                                   const wl_fixed_t y)
 {
+  /* Touching down is equivalent to moving a pointer and holding its left mouse button. */
+
   CLOG_DEBUG(LOG, "down");
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+
+  /* Null when just destroyed. */
+  if (!ghost_wl_surface_own_with_null_check(surface)) {
+    CLOG_DEBUG(LOG, "down (skipped on empty surface)");
+    return;
+  }
+
+  /* Only track one point at a time.
+   * At some point *full* touch supported could be. */
+  if (seat->touch_state.is_touching) {
+    return;
+  }
+
+  const uint64_t event_ms = seat->system->ms_from_input_time(time);
+
+  /* Set generic pointer state. */
+  seat->touch.xy[0] = x;
+  seat->touch.xy[1] = y;
+  seat->touch.serial = serial;
+  seat->touch.wl.surface_window = surface;
+
+  /* Set the active pointer. */
+  seat->cursor_source_serial = serial;
+
+  /* Set touch-tracking state. */
+  seat->touch_state.is_touching = true;
+  seat->touch_state.down_id = id;
+  seat->touch_state.motion_pending = true;
+  seat->touch_state.motion_event_time_ms = event_ms;
+  seat->touch_state.down_pending = true;
+  seat->touch_state.down_event_time_ms = event_ms;
+
+  /* Signal the window manager to update the cursor shape
+   * into whatever shape it considers correct for the touchscreen's pointer. */
+  GHOST_WindowWayland *win = ghost_wl_surface_user_data(seat->touch.wl.surface_window);
+  win->cursor_shape_refresh();
 }
 
-static void touch_seat_handle_up(void * /*data*/,
-                                 wl_touch * /*wl_touch*/,
-                                 uint32_t /*serial*/,
-                                 uint32_t /*time*/,
-                                 int32_t /*id*/)
+static void touch_seat_handle_up(void *data,
+                                 wl_touch * /*touch*/,
+                                 const uint32_t /*serial*/,
+                                 const uint32_t time,
+                                 const int32_t id)
 {
   CLOG_DEBUG(LOG, "up");
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+
+  /* Only track one contact point at a time. */
+  if (seat->touch_state.down_id != id) {
+    return;
+  }
+
+  const uint64_t event_ms = seat->system->ms_from_input_time(time);
+  seat->touch_state.is_touching = false;
+  seat->touch_state.up_pending = true;
+  seat->touch_state.up_event_time_ms = event_ms;
 }
 
-static void touch_seat_handle_motion(void * /*data*/,
-                                     wl_touch * /*wl_touch*/,
-                                     uint32_t /*time*/,
-                                     int32_t /*id*/,
-                                     wl_fixed_t /*x*/,
-                                     wl_fixed_t /*y*/)
+static void touch_seat_handle_motion(void *data,
+                                     wl_touch * /*touch*/,
+                                     const uint32_t time,
+                                     const int32_t id,
+                                     const wl_fixed_t x,
+                                     const wl_fixed_t y)
 {
   CLOG_DEBUG(LOG, "motion");
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+
+  /* Only track one contact point at a time. */
+  if (seat->touch_state.down_id != id) {
+    return;
+  }
+  if (seat->touch_state.is_touching == false) {
+    return;
+  }
+
+  const uint64_t event_ms = seat->system->ms_from_input_time(time);
+  seat->touch.xy[0] = x;
+  seat->touch.xy[1] = y;
+
+  seat->touch_state.motion_event_time_ms = event_ms;
+  seat->touch_state.motion_pending = true;
 }
 
-static void touch_seat_handle_frame(void * /*data*/, wl_touch * /*wl_touch*/)
+static void touch_seat_handle_frame(void *data, wl_touch * /*touch*/)
 {
   CLOG_DEBUG(LOG, "frame");
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  if (wl_surface *wl_surface_focus = seat->touch.wl.surface_window) {
+    GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
+
+    GHOST_Event *touch_events[3];
+    int touch_events_num = 0;
+
+    /* For a finger move, generate a cursor move. */
+    if (seat->touch_state.motion_pending == true) {
+      const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, seat->touch.xy)};
+      touch_events[touch_events_num++] = new GHOST_EventCursor(
+          seat->touch_state.motion_event_time_ms,
+          GHOST_kEventCursorMove,
+          win,
+          UNPACK2(event_xy),
+          GHOST_TABLET_DATA_NONE);
+
+      seat->touch_state.motion_pending = false;
+      seat->touch_state.motion_event_time_ms = 0;
+    }
+
+    /* For a finger press, generate left-mouse button press. */
+    if (seat->touch_state.down_pending == true) {
+      seat->touch.buttons.set(GHOST_kButtonMaskLeft, true);
+
+      touch_events[touch_events_num++] = new GHOST_EventButton(
+          seat->touch_state.down_event_time_ms,
+          GHOST_kEventButtonDown,
+          win,
+          GHOST_kButtonMaskLeft,
+          GHOST_TABLET_DATA_NONE);
+
+      seat->touch_state.down_pending = false;
+      seat->touch_state.down_event_time_ms = 0;
+    }
+
+    /* For a finger release, generate a left-mouse button release. */
+    if (seat->touch_state.up_pending == true) {
+      seat->touch.buttons.set(GHOST_kButtonMaskLeft, false);
+
+      touch_events[touch_events_num++] = new GHOST_EventButton(seat->touch_state.up_event_time_ms,
+                                                               GHOST_kEventButtonUp,
+                                                               win,
+                                                               GHOST_kButtonMaskLeft,
+                                                               GHOST_TABLET_DATA_NONE);
+
+      seat->touch_state.up_pending = false;
+      seat->touch_state.up_event_time_ms = 0;
+      seat->touch.wl.surface_window = nullptr;
+    }
+
+    GHOST_ASSERT(touch_events_num <= sizeof(touch_events) / sizeof(touch_events[0]),
+                 "Buffer overflow");
+
+    /* Ensure events are ordered in time. */
+    if (UNLIKELY(touch_events_num > 1)) {
+      std::sort(touch_events,
+                touch_events + touch_events_num,
+                [](const GHOST_Event *event_a, const GHOST_Event *event_b) -> bool {
+                  return event_a->getTime() < event_b->getTime();
+                });
+    }
+
+    for (int i = 0; i < touch_events_num; i++) {
+      seat->system->pushEvent_maybe_pending(touch_events[i]);
+    }
+  }
 }
 
 static void touch_seat_handle_cancel(void * /*data*/, wl_touch * /*wl_touch*/)
@@ -4553,17 +4721,17 @@ static void touch_seat_handle_cancel(void * /*data*/, wl_touch * /*wl_touch*/)
 
 static void touch_seat_handle_shape(void * /*data*/,
                                     wl_touch * /*touch*/,
-                                    int32_t /*id*/,
-                                    wl_fixed_t /*major*/,
-                                    wl_fixed_t /*minor*/)
+                                    const int32_t /*id*/,
+                                    const wl_fixed_t /*major*/,
+                                    const wl_fixed_t /*minor*/)
 {
   CLOG_DEBUG(LOG, "shape");
 }
 
 static void touch_seat_handle_orientation(void * /*data*/,
                                           wl_touch * /*touch*/,
-                                          int32_t /*id*/,
-                                          wl_fixed_t /*orientation*/)
+                                          const int32_t /*id*/,
+                                          const wl_fixed_t /*orientation*/)
 {
   CLOG_DEBUG(LOG, "orientation");
 }
@@ -5682,7 +5850,7 @@ static CLG_LogRef LOG_WL_PRIMARY_SELECTION_SOURCE = {"ghost.wl.handle.primary_se
 static void primary_selection_source_send(void *data,
                                           zwp_primary_selection_source_v1 * /*source*/,
                                           const char * /*mime_type*/,
-                                          int32_t fd)
+                                          const int32_t fd)
 {
   CLOG_DEBUG(LOG, "send");
 
@@ -5797,8 +5965,8 @@ static void text_input_handle_leave(void *data,
 static void text_input_handle_preedit_string(void *data,
                                              zwp_text_input_v3 * /*zwp_text_input_v3*/,
                                              const char *text,
-                                             int32_t cursor_begin,
-                                             int32_t cursor_end)
+                                             const int32_t cursor_begin,
+                                             const int32_t cursor_end)
 {
   CLOG_DEBUG(LOG,
              "preedit_string (text=\"%s\", cursor_begin=%d, cursor_end=%d)",
@@ -5840,8 +6008,8 @@ static void text_input_handle_commit_string(void *data,
 
 static void text_input_handle_delete_surrounding_text(void * /*data*/,
                                                       zwp_text_input_v3 * /*zwp_text_input_v3*/,
-                                                      uint32_t before_length,
-                                                      uint32_t after_length)
+                                                      const uint32_t before_length,
+                                                      const uint32_t after_length)
 {
   CLOG_DEBUG(LOG,
              "delete_surrounding_text (before_length=%u, after_length=%u)",
@@ -5854,7 +6022,7 @@ static void text_input_handle_delete_surrounding_text(void * /*data*/,
 
 static void text_input_handle_done(void *data,
                                    zwp_text_input_v3 * /*zwp_text_input_v3*/,
-                                   uint32_t /*serial*/)
+                                   const uint32_t /*serial*/)
 {
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   GHOST_SystemWayland *system = seat->system;
@@ -7388,7 +7556,7 @@ static void gwl_display_event_thread_destroy(GWL_Display *display)
  * WAYLAND specific implementation of the #GHOST_System interface.
  * \{ */
 
-GHOST_SystemWayland::GHOST_SystemWayland(bool background)
+GHOST_SystemWayland::GHOST_SystemWayland(const bool background)
     : GHOST_System(),
 #ifdef USE_EVENT_BACKGROUND_THREAD
       server_mutex(new std::mutex),
@@ -7523,7 +7691,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     gwl_display_event_thread_create(display_);
   }
   /* Could be null in background mode, however there are enough
-   * references to this that it's safer to create it. */
+   * references to the timer-manager that it's safer to create it. */
   display_->ghost_timer_manager = new GHOST_TimerManager();
 #endif
 }
@@ -7850,7 +8018,7 @@ static char *system_clipboard_get_primary_selection(GWL_Display *display,
 }
 
 static char *system_clipboard_get(GWL_Display *display,
-                                  bool nil_terminate,
+                                  const bool nil_terminate,
                                   const char *mime_receive_override,
                                   size_t *r_data_len)
 {
@@ -7910,7 +8078,7 @@ static char *system_clipboard_get(GWL_Display *display,
   return data;
 }
 
-char *GHOST_SystemWayland::getClipboard(bool selection) const
+char *GHOST_SystemWayland::getClipboard(const bool selection) const
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
@@ -7996,7 +8164,7 @@ static void system_clipboard_put(GWL_Display *display, const char *buffer)
   }
 }
 
-void GHOST_SystemWayland::putClipboard(const char *buffer, bool selection) const
+void GHOST_SystemWayland::putClipboard(const char *buffer, const bool selection) const
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
@@ -9155,11 +9323,11 @@ GHOST_TimerManager *GHOST_SystemWayland::ghost_timer_manager()
 #ifdef WITH_INPUT_IME
 
 void GHOST_SystemWayland::ime_begin(const GHOST_WindowWayland *win,
-                                    int32_t x,
-                                    int32_t y,
-                                    int32_t w,
-                                    int32_t h,
-                                    bool completed) const
+                                    const int32_t x,
+                                    const int32_t y,
+                                    const int32_t w,
+                                    const int32_t h,
+                                    const bool completed) const
 {
   GWL_Seat *seat = gwl_display_seat_active_get(display_);
   if (UNLIKELY(!seat)) {

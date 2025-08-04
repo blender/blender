@@ -12,6 +12,7 @@ set(INC
   ../../compositor/utilities
   ../../makesrna
   ../../nodes/geometry/include
+  ../asset
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna

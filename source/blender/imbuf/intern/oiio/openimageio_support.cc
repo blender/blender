@@ -14,6 +14,7 @@
 #include "BKE_idprop.hh"
 
 #include "DNA_ID.h"
+
 #include "IMB_allocimbuf.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_filetype.hh"

@@ -55,7 +55,7 @@ ccl_device void integrator_volume_stack_update_for_subsurface(KernelGlobals kg,
         continue;
       }
       shader_setup_from_ray(kg, stack_sd, &volume_ray, isect);
-      volume_stack_enter_exit(kg, state, stack_sd);
+      volume_stack_enter_exit<false>(kg, state, stack_sd);
     }
   }
 #  else
@@ -67,7 +67,7 @@ ccl_device void integrator_volume_stack_update_for_subsurface(KernelGlobals kg,
     /* Ignore self, SSS itself already enters and exits the object. */
     if (isect.object != volume_ray.self.object) {
       shader_setup_from_ray(kg, stack_sd, &volume_ray, &isect);
-      volume_stack_enter_exit(kg, state, stack_sd);
+      volume_stack_enter_exit<false>(kg, state, stack_sd);
     }
     /* Move ray forward. */
     volume_ray.tmin = intersection_t_offset(isect.t);

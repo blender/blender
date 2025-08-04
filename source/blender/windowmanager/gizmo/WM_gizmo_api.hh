@@ -318,8 +318,8 @@ wmKeyMap *WM_gizmo_keymap_generic_select(wmWindowManager *wm);
 wmKeyMap *WM_gizmo_keymap_generic_drag_with_keyconfig(wmKeyConfig *kc);
 wmKeyMap *WM_gizmo_keymap_generic_drag(wmWindowManager *wm);
 
-wmKeyMap *WM_gizmo_keymap_generic_click_drag_with_keyconfig(wmKeyConfig *kc);
-wmKeyMap *WM_gizmo_keymap_generic_click_drag(wmWindowManager *wm);
+wmKeyMap *WM_gizmo_keymap_generic_press_drag_with_keyconfig(wmKeyConfig *kc);
+wmKeyMap *WM_gizmo_keymap_generic_press_drag(wmWindowManager *wm);
 
 /**
  * Drag or press depending on preference.

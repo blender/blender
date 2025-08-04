@@ -191,7 +191,7 @@ class BundleValueLog : public ValueLog {
  public:
   struct Item {
     std::string key;
-    const bke::bNodeSocketType *type;
+    std::variant<const bke::bNodeSocketType *, StringRefNull> type;
   };
 
   Vector<Item> items;

@@ -8,6 +8,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_colorband_types.h"

@@ -54,7 +54,7 @@ static void gaussian_blur_1D(const Span<T> src,
   BLI_assert(!src.is_empty());
   BLI_assert(src.size() == dst.size());
 
-  /* Avoid computation if the there is just one point. */
+  /* Avoid computation if there is just one point. */
   if (src.size() == 1) {
     return;
   }

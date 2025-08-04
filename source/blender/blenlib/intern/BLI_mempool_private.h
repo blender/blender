@@ -8,7 +8,7 @@
  * \ingroup bli
  *
  * Shared logic for #BLI_task_parallel_mempool to create a threaded iterator,
- * without exposing the these functions publicly.
+ * without exposing these functions publicly.
  */
 
 #include "BLI_compiler_attrs.h"

@@ -249,6 +249,7 @@ class SubDataDriverRemovalTest(AbstractEmptyDriverTest, unittest.TestCase):
     def test_remove_shapekey(self):
         self.obj.shape_key_add(name="base")
         test_key = self.obj.shape_key_add(name="test")
+        test_key.value = 0.0
         # Due to the weirdness of shapekeys, this is an ID.
         shape_key_id = self.obj.data.shape_keys
         self.assertEqual(len(shape_key_id.key_blocks), 2)

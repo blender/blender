@@ -270,8 +270,8 @@ static void vicon_keytype_draw_wrapper(const float x,
 
   /* The "x" and "y" given are the bottom-left coordinates of the icon,
    * while the #draw_keyframe_shape() function needs the midpoint for the keyframe. */
-  const float xco = x + (w / 2.0f) + 0.5f;
-  const float yco = y + (h / 2.0f) + 0.5f;
+  const float xco = x + (w / 2.0f);
+  const float yco = y + (h / 2.0f);
 
   GPUVertFormat *format = immVertexFormat();
   KeyframeShaderBindings sh_bindings;
@@ -693,13 +693,13 @@ int UI_icon_from_event_type(short event_type, short event_value)
     if (event_value == KM_DBL_CLICK) {
       return ICON_MOUSE_LMB_2X;
     }
-    return (event_value == KM_CLICK_DRAG) ? ICON_MOUSE_LMB_DRAG : ICON_MOUSE_LMB;
+    return (event_value == KM_PRESS_DRAG) ? ICON_MOUSE_LMB_DRAG : ICON_MOUSE_LMB;
   }
   if (event_type == MIDDLEMOUSE) {
-    return (event_value == KM_CLICK_DRAG) ? ICON_MOUSE_MMB_DRAG : ICON_MOUSE_MMB;
+    return (event_value == KM_PRESS_DRAG) ? ICON_MOUSE_MMB_DRAG : ICON_MOUSE_MMB;
   }
   if (event_type == RIGHTMOUSE) {
-    return (event_value == KM_CLICK_DRAG) ? ICON_MOUSE_MMB_DRAG : ICON_MOUSE_RMB;
+    return (event_value == KM_PRESS_DRAG) ? ICON_MOUSE_MMB_DRAG : ICON_MOUSE_RMB;
   }
 
   return ICON_NONE;
@@ -1277,7 +1277,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
           wmJob *wm_job = WM_jobs_get(wm,
                                       CTX_wm_window(C),
                                       icon,
-                                      "StudioLight Icon",
+                                      "Generating StudioLight icon...",
                                       eWM_JobFlag(0),
                                       WM_JOB_TYPE_STUDIOLIGHT);
           Icon **tmp = MEM_callocN<Icon *>(__func__);

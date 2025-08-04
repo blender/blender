@@ -235,10 +235,6 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_node.node_zone_closure);
   }
 
-  if (!USER_VERSION_ATLEAST(405, 82)) {
-    FROM_DEFAULT_V4_UCHAR(space_clip.anim_preview_range);
-  }
-
   if (!USER_VERSION_ATLEAST(500, 5)) {
     FROM_DEFAULT_V4_UCHAR(space_properties.tab_back);
     FROM_DEFAULT_V4_UCHAR(space_view3d.tab_back);
@@ -345,8 +341,22 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_node.console_output);
   }
 
-  if (!USER_VERSION_ATLEAST(405, 44)) {
+  if (!USER_VERSION_ATLEAST(405, 45)) {
     FROM_DEFAULT_V4_UCHAR(space_node.node_zone_closure);
+    FROM_DEFAULT_V4_UCHAR(space_node.node_zone_repeat);
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 47)) {
+    if (btheme->tui.panel_title[3] == 0) {
+      btheme->tui.panel_title[3] = 255;
+    }
+    if (btheme->tui.panel_text[3] == 0) {
+      btheme->tui.panel_text[3] = 255;
+    }
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 50)) {
+    FROM_DEFAULT_V4_UCHAR(common.anim.preview_range);
   }
 
   /**
@@ -384,11 +394,11 @@ static void do_version_select_mouse(const UserDef *userdef, wmKeyMapItem *kmi)
       break;
     case EVT_TWEAK_S:
       kmi->type = (left) ? LEFTMOUSE : RIGHTMOUSE;
-      kmi->val = KM_CLICK_DRAG;
+      kmi->val = KM_PRESS_DRAG;
       break;
     case EVT_TWEAK_A:
       kmi->type = (left) ? RIGHTMOUSE : LEFTMOUSE;
-      kmi->val = KM_CLICK_DRAG;
+      kmi->val = KM_PRESS_DRAG;
       break;
     default:
       break;
@@ -445,7 +455,7 @@ static bool keymap_item_update_tweak_event(wmKeyMapItem *kmi, void * /*user_data
   else {
     kmi->direction = KM_ANY;
   }
-  kmi->val = KM_CLICK_DRAG;
+  kmi->val = KM_PRESS_DRAG;
   return false;
 }
 
@@ -764,7 +774,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   /* If the userdef was created on a different platform, it may have an
    * unsupported GPU backend selected.  If so, pick a supported default. */
 #ifdef __APPLE__
-  if (userdef->gpu_backend == GPU_BACKEND_OPENGL) {
+  if (userdef->gpu_backend == GPU_BACKEND_OPENGL || userdef->gpu_backend == GPU_BACKEND_VULKAN) {
     userdef->gpu_backend = GPU_BACKEND_METAL;
   }
 #else

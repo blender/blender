@@ -2089,14 +2089,14 @@ void BsdfNode::compile(SVMCompiler &compiler,
   const int data_z_offset = (data_z) ? compiler.stack_assign(data_z) : SVM_STACK_INVALID;
   const int data_w_offset = (data_w) ? compiler.stack_assign(data_w) : SVM_STACK_INVALID;
 
-  compiler.add_node(
-      NODE_CLOSURE_BSDF,
-      compiler.encode_uchar4(closure,
-                             (bsdf_y) ? compiler.stack_assign(bsdf_y) : SVM_STACK_INVALID,
-                             (bsdf_z) ? compiler.stack_assign(bsdf_z) : SVM_STACK_INVALID,
-                             compiler.closure_mix_weight_offset()),
-      __float_as_int((bsdf_y) ? get_float(bsdf_y->socket_type) : 0.0f),
-      __float_as_int((bsdf_z) ? get_float(bsdf_z->socket_type) : 0.0f));
+  compiler.add_node(NODE_CLOSURE_BSDF,
+                    compiler.encode_uchar4(
+                        closure,
+                        (bsdf_y) ? compiler.stack_assign_if_linked(bsdf_y) : SVM_STACK_INVALID,
+                        (bsdf_z) ? compiler.stack_assign_if_linked(bsdf_z) : SVM_STACK_INVALID,
+                        compiler.closure_mix_weight_offset()),
+                    __float_as_int((bsdf_y) ? get_float(bsdf_y->socket_type) : 0.0f),
+                    __float_as_int((bsdf_z) ? get_float(bsdf_z->socket_type) : 0.0f));
 
   compiler.add_node(normal_offset, data_y_offset, data_z_offset, data_w_offset);
 }
@@ -2187,36 +2187,32 @@ void MetallicBsdfNode::compile(SVMCompiler &compiler)
 {
   compiler.add_node(NODE_CLOSURE_SET_WEIGHT, one_float3());
 
-  ShaderInput *base_color_in = input("Base Color");
-  ShaderInput *edge_tint_in = input("Edge Tint");
-  ShaderInput *ior_in = input("IOR");
-  ShaderInput *k_in = input("Extinction");
-
   const int base_color_ior_offset = fresnel_type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR ?
-                                        compiler.stack_assign(ior_in) :
-                                        compiler.stack_assign(base_color_in);
+                                        compiler.stack_assign(input("IOR")) :
+                                        compiler.stack_assign(input("Base Color"));
   const int edge_tint_k_offset = fresnel_type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR ?
-                                     compiler.stack_assign(k_in) :
-                                     compiler.stack_assign(edge_tint_in);
+                                     compiler.stack_assign(input("Extinction")) :
+                                     compiler.stack_assign(input("Edge Tint"));
 
-  ShaderInput *anisotropy_in = input("Anisotropy");
-  ShaderInput *rotation_in = input("Rotation");
   ShaderInput *roughness_in = input("Roughness");
-  ShaderInput *tangent_in = input("Tangent");
+  ShaderInput *anisotropy_in = input("Anisotropy");
 
   const int normal_offset = compiler.stack_assign_if_linked(input("Normal"));
+  const int tangent_offset = compiler.stack_assign_if_linked(input("Tangent"));
+  const int rotation_offset = compiler.stack_assign(input("Rotation"));
 
   compiler.add_node(NODE_CLOSURE_BSDF,
                     compiler.encode_uchar4(fresnel_type,
-                                           compiler.stack_assign(roughness_in),
-                                           compiler.stack_assign(anisotropy_in),
+                                           compiler.stack_assign_if_linked(roughness_in),
+                                           compiler.stack_assign_if_linked(anisotropy_in),
                                            compiler.closure_mix_weight_offset()),
-                    compiler.encode_uchar4(base_color_ior_offset,
-                                           edge_tint_k_offset,
-                                           compiler.stack_assign(rotation_in),
-                                           compiler.stack_assign(tangent_in)),
-                    distribution);
-  compiler.add_node(normal_offset);
+                    __float_as_int(get_float(roughness_in->socket_type)),
+                    __float_as_int(get_float(anisotropy_in->socket_type)));
+  compiler.add_node(
+      normal_offset,
+      compiler.encode_uchar4(
+          base_color_ior_offset, edge_tint_k_offset, rotation_offset, tangent_offset),
+      distribution);
 }
 
 void MetallicBsdfNode::compile(OSLCompiler &compiler)
@@ -2914,9 +2910,13 @@ void EmissionNode::compile(SVMCompiler &compiler)
   ShaderInput *color_in = input("Color");
   ShaderInput *strength_in = input("Strength");
 
+  const int strength_offset = compiler.stack_assign_if_linked(strength_in);
+
   if (color_in->link || strength_in->link) {
-    compiler.add_node(
-        NODE_EMISSION_WEIGHT, compiler.stack_assign(color_in), compiler.stack_assign(strength_in));
+    compiler.add_node(NODE_EMISSION_WEIGHT,
+                      compiler.stack_assign(color_in),
+                      strength_offset,
+                      __float_as_int(get_float(strength_in->socket_type)));
   }
   else {
     compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color * strength);
@@ -2962,9 +2962,13 @@ void BackgroundNode::compile(SVMCompiler &compiler)
   ShaderInput *color_in = input("Color");
   ShaderInput *strength_in = input("Strength");
 
+  const int strength_offset = compiler.stack_assign_if_linked(strength_in);
+
   if (color_in->link || strength_in->link) {
-    compiler.add_node(
-        NODE_EMISSION_WEIGHT, compiler.stack_assign(color_in), compiler.stack_assign(strength_in));
+    compiler.add_node(NODE_EMISSION_WEIGHT,
+                      compiler.stack_assign(color_in),
+                      strength_offset,
+                      __float_as_int(get_float(strength_in->socket_type)));
   }
   else {
     compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color * strength);

@@ -80,11 +80,11 @@ class AssetLibraryService {
   static bUserAssetLibrary *find_custom_preferences_asset_library_from_asset_weak_ref(
       const AssetWeakReference &asset_reference);
   /**
-   * Turn the runtime current file library into a on-disk current file library, preserving catalog
-   * data like undo/redo history, deleted catalog info, catalog saving state, etc. Note that this
-   * creates a new on-disk asset library and destroys the runtime one.
+   * Turn the runtime current file library into an on-disk current file library, preserving
+   * catalog data like undo/redo history, deleted catalog info, catalog saving state, etc.
+   * Note that this creates a new on-disk asset library and destroys the runtime one.
    *
-   * Call when the .blend file is saved to disk.
+   * Call when the `.blend` file is saved to disk.
    *
    * \return the new on-disk current file asset library (null in case of failure to find a path to
    * store the library in, based on the #Main.filepath from \a main).

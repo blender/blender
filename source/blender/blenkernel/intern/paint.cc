@@ -2304,7 +2304,7 @@ ActiveVert SculptSession::active_vert() const
 
 ActiveVert SculptSession::last_active_vert() const
 {
-  return active_vert_;
+  return last_active_vert_;
 }
 
 int SculptSession::active_vert_index() const

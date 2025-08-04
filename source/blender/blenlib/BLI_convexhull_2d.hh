@@ -17,9 +17,12 @@
  * \param points: An array of 2D points.
  * \param points_num: The number of points in points.
  * \param r_points: An array of the convex hull vertex indices (max is `points_num`).
- * Vertices are ordered counter clockwise, the polygons cross product is always negative (or zero).
+ * - Points are ordered counter clockwise.
+ * - The first point in `r_points` will be the lowest Y value
+ *   (lowest (X, Y) when there are multiple Y aligned vertices).
+ * - The polygons cross product is always positive (or zero).
  *
- * \return The number of indices in r_points.
+ * \return The number of indices in `r_points`.
  *
  * \note Performance is `O(points_num.log(points_num))`, same as `qsort`.
  */

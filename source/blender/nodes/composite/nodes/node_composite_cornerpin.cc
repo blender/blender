@@ -6,7 +6,6 @@
  * \ingroup cmpnodes
  */
 
-#include "BKE_node.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -14,6 +13,7 @@
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
+#include "BKE_node.hh"
 #include "BKE_tracking.h"
 
 #include "UI_interface_layout.hh"

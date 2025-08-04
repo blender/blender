@@ -9,6 +9,7 @@
 #pragma once
 
 #include "DNA_listBase.h"
+
 #include "WM_gizmo_types.hh"
 
 #include "BLI_vector.hh"

@@ -993,7 +993,7 @@ static void sequencer_add_free(bContext * /*C*/, wmOperator *op)
 static IMB_Proxy_Size seq_get_proxy_size_flags(bContext *C)
 {
   bScreen *screen = CTX_wm_screen(C);
-  IMB_Proxy_Size proxy_sizes = IMB_Proxy_Size(0);
+  IMB_Proxy_Size proxy_sizes = IMB_PROXY_NONE;
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
       switch (sl->spacetype) {
@@ -1002,7 +1002,8 @@ static IMB_Proxy_Size seq_get_proxy_size_flags(bContext *C)
           if (!ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {
             continue;
           }
-          proxy_sizes |= IMB_Proxy_Size(seq::rendersize_to_proxysize(sseq->render_size));
+          proxy_sizes |= seq::rendersize_to_proxysize(
+              eSpaceSeq_Proxy_RenderSize(sseq->render_size));
         }
       }
     }

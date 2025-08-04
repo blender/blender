@@ -133,7 +133,7 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
                           ResultBLF *r_info)
 {
   int xofs = 0, yofs;
-  int font_flag = BLF_CLIPPING;
+  FontFlags font_flag = BLF_CLIPPING;
 
   UI_fontstyle_set(fs);
 
@@ -213,7 +213,7 @@ void UI_fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
                                             ResultBLF *r_info)
 {
   int xofs = 0, yofs;
-  int font_flag = BLF_CLIPPING;
+  FontFlags font_flag = BLF_CLIPPING;
 
   /* Recommended for testing: Results should be the same with or without BLF clipping since the
    * string is wrapped and shortened to fit. Disabling it can help spot issues. */
@@ -540,9 +540,9 @@ void uiStyleInit()
 
   /* Set default flags based on UI preferences (not render fonts) */
   {
-    const int flag_disable = (BLF_MONOCHROME | BLF_HINTING_NONE | BLF_HINTING_SLIGHT |
-                              BLF_HINTING_FULL | BLF_RENDER_SUBPIXELAA);
-    int flag_enable = 0;
+    const FontFlags flag_disable = (BLF_MONOCHROME | BLF_HINTING_NONE | BLF_HINTING_SLIGHT |
+                                    BLF_HINTING_FULL | BLF_RENDER_SUBPIXELAA);
+    FontFlags flag_enable = BLF_NONE;
 
     if (U.text_render & USER_TEXT_HINTING_NONE) {
       flag_enable |= BLF_HINTING_NONE;

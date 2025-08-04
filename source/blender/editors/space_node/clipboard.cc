@@ -61,6 +61,9 @@ struct NodeClipboardItem {
   ID *id;
   std::string id_name;
   std::string library_name;
+
+  /** Remember the active status so that it can be made active again after pasting. */
+  bool was_active = false;
 };
 
 struct ClipboardLink {
@@ -227,8 +230,13 @@ struct NodeClipboard {
   {
     /* No ID reference-counting, this node is virtual,
      * detached from any actual Blender data currently. */
-    bNode *new_node = bke::node_copy_with_mapping(
-        nullptr, node, LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_MAIN, false, socket_map);
+    bNode *new_node = bke::node_copy_with_mapping(nullptr,
+                                                  node,
+                                                  LIB_ID_CREATE_NO_USER_REFCOUNT |
+                                                      LIB_ID_CREATE_NO_MAIN,
+                                                  node.name,
+                                                  node.identifier,
+                                                  socket_map);
     node_map.add_new(&node, new_node);
 
     /* Find a new valid ID pointer for all ID usages in given node. */
@@ -264,6 +272,7 @@ struct NodeClipboard {
     NodeClipboardItem item;
     item.draw_rect = node.runtime->draw_bounds;
     item.node = new_node;
+    item.was_active = node.flag & NODE_ACTIVE;
     this->nodes.append(std::move(item));
   }
 };
@@ -371,6 +380,8 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
   Map<const bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
 
+  bNode *new_active_node = nullptr;
+
   /* copy valid nodes from clipboard */
   for (NodeClipboardItem &item : clipboard.nodes) {
     const bNode &node = *item.node;
@@ -387,7 +398,7 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
     /* Do not access referenced ID pointers here, as they are still the old ones, which may be
      * invalid. */
     bNode *new_node = bke::node_copy_with_mapping(
-        &tree, node, LIB_ID_CREATE_NO_USER_REFCOUNT, true, socket_map);
+        &tree, node, LIB_ID_CREATE_NO_USER_REFCOUNT, std::nullopt, std::nullopt, socket_map);
     /* Update the newly copied node's ID references. */
     clipboard.paste_update_node_id_references(*new_node);
     /* Reset socket shape in case a node is copied to a different tree type. */
@@ -402,6 +413,9 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
         new_node->typeinfo->poll_instance(new_node, &tree, &disabled_hint))
     {
       node_map.add_new(&node, new_node);
+      if (item.was_active) {
+        new_active_node = new_node;
+      }
     }
     else {
       if (disabled_hint) {
@@ -434,6 +448,10 @@ static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
         new_node->parent = node_map.lookup(new_node->parent);
       }
     }
+  }
+
+  if (new_active_node) {
+    bke::node_set_active(tree, *new_active_node);
   }
 
   PropertyRNA *offset_prop = RNA_struct_find_property(op->ptr, "offset");

@@ -26,6 +26,8 @@ template<typename T = ImplicitSharingInfo, bool IsStrong = true> class ImplicitS
   const T *data_ = nullptr;
 
  public:
+  using element_type = T;
+
   ImplicitSharingPtr() = default;
 
   explicit ImplicitSharingPtr(const T *data) : data_(data) {}
@@ -218,5 +220,9 @@ class ImplicitSharingPtrAndData {
     return this->sharing_info.has_value();
   }
 };
+
+template<typename T> static constexpr bool is_ImplicitSharingPtr_strong_v = false;
+template<typename T>
+static constexpr bool is_ImplicitSharingPtr_strong_v<ImplicitSharingPtr<T, true>> = true;
 
 }  // namespace blender

@@ -1183,6 +1183,11 @@ class edit_generators:
                     ("BLI_snprintf_rlen", "SNPRINTF_RLEN"),
                     ("BLI_vsnprintf", "VSNPRINTF"),
                     ("BLI_vsnprintf_rlen", "VSNPRINTF_RLEN"),
+
+                    ("BLI_snprintf_utf8", "SNPRINTF_UTF8"),
+                    ("BLI_snprintf_utf8_rlen", "SNPRINTF_UTF8_RLEN"),
+                    ("BLI_vsnprintf_utf8", "VSNPRINTF_UTF8"),
+                    ("BLI_vsnprintf_utf8_rlen", "VSNPRINTF_UTF8_RLEN"),
             ):
                 for match in re.finditer(
                         r"\b" + src + r"\(([^,]+),\s+([^,]+),",

@@ -529,6 +529,7 @@ class DofPass {
 
   PassSimple down_ps_ = {"Workbench.DoF.DownSample"};
   PassSimple down2_ps_ = {"Workbench.DoF.DownSample2"};
+  PassSimple down3_ps_ = {"Workbench.DoF.DownSample3"};
   PassSimple blur_ps_ = {"Workbench.DoF.Blur"};
   PassSimple blur2_ps_ = {"Workbench.DoF.Blur2"};
   PassSimple resolve_ps_ = {"Workbench.DoF.Resolve"};

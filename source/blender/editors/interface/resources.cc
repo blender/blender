@@ -927,7 +927,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = ts->anim_non_active;
           break;
         case TH_ANIM_PREVIEW_RANGE:
-          cp = ts->anim_preview_range;
+          cp = btheme->common.anim.preview_range;
           break;
 
         case TH_NLA_TWEAK:

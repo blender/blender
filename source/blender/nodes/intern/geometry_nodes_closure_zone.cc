@@ -21,6 +21,8 @@
 
 #include "FN_lazy_function_execute.hh"
 
+#include "BLI_string_utf8_symbols.h"
+
 namespace blender::nodes {
 
 using bke::node_tree_reference_lifetimes::ReferenceSetInfo;
@@ -117,17 +119,17 @@ class LazyFunctionForClosureZone : public LazyFunction {
       inputs_[zone_info.indices.inputs.border_links[i]].usage = lf::ValueUsage::Used;
     }
 
-    const auto &storage = *static_cast<const NodeGeometryClosureOutput *>(output_bnode_.storage);
+    const auto &storage = *static_cast<const NodeClosureOutput *>(output_bnode_.storage);
 
     closure_signature_ = std::make_shared<ClosureSignature>();
 
     for (const int i : IndexRange(storage.input_items.items_num)) {
       const bNodeSocket &bsocket = zone_.input_node()->output_socket(i);
-      closure_signature_->inputs.append({bsocket.name, bsocket.typeinfo});
+      closure_signature_->inputs.add({bsocket.name, bsocket.typeinfo});
     }
     for (const int i : IndexRange(storage.output_items.items_num)) {
       const bNodeSocket &bsocket = zone_.output_node()->input_socket(i);
-      closure_signature_->outputs.append({bsocket.name, bsocket.typeinfo});
+      closure_signature_->outputs.add({bsocket.name, bsocket.typeinfo});
     }
   }
 
@@ -145,7 +147,7 @@ class LazyFunctionForClosureZone : public LazyFunction {
       return;
     }
 
-    const auto &storage = *static_cast<const NodeGeometryClosureOutput *>(output_bnode_.storage);
+    const auto &storage = *static_cast<const NodeClosureOutput *>(output_bnode_.storage);
 
     std::unique_ptr<ResourceScope> closure_scope = std::make_unique<ResourceScope>();
 
@@ -155,7 +157,7 @@ class LazyFunctionForClosureZone : public LazyFunction {
     Vector<const void *> default_input_values;
 
     for (const int i : IndexRange(storage.input_items.items_num)) {
-      const NodeGeometryClosureInputItem &item = storage.input_items.items[i];
+      const NodeClosureInputItem &item = storage.input_items.items[i];
       const bNodeSocket &bsocket = zone_.input_node()->output_socket(i);
       const CPPType &cpp_type = *bsocket.typeinfo->geometry_nodes_cpp_type;
 
@@ -177,7 +179,7 @@ class LazyFunctionForClosureZone : public LazyFunction {
         storage.input_items.items_num);
 
     for (const int i : IndexRange(storage.output_items.items_num)) {
-      const NodeGeometryClosureOutputItem &item = storage.output_items.items[i];
+      const NodeClosureOutputItem &item = storage.output_items.items[i];
       const bNodeSocket &bsocket = zone_.output_node()->input_socket(i);
       const CPPType &cpp_type = *bsocket.typeinfo->geometry_nodes_cpp_type;
 
@@ -419,7 +421,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
   void generate_closure_compatibility_warnings(const Closure &closure,
                                                const lf::Context &context) const
   {
-    const auto &node_storage = *static_cast<const NodeGeometryEvaluateClosure *>(bnode_.storage);
+    const auto &node_storage = *static_cast<const NodeEvaluateClosure *>(bnode_.storage);
     const auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
     const auto &local_user_data = *static_cast<GeoNodesLocalUserData *>(context.local_user_data);
     geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data);
@@ -427,9 +429,10 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
       return;
     }
     const ClosureSignature &signature = closure.signature();
-    for (const NodeGeometryEvaluateClosureInputItem &item :
+    for (const NodeEvaluateClosureInputItem &item :
          Span{node_storage.input_items.items, node_storage.input_items.items_num})
     {
+      const bke::bNodeSocketType *item_type = bke::node_socket_type_find_static(item.socket_type);
       if (const std::optional<int> i = signature.find_input_index(item.name)) {
         const ClosureSignature::Item &closure_item = signature.inputs[*i];
         if (!btree_.typeinfo->validate_link(eNodeSocketDatatype(item.socket_type),
@@ -439,8 +442,26 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
               *tree_logger->allocator,
               {bnode_.identifier,
                {NodeWarningType::Error,
-                fmt::format(fmt::runtime(TIP_("Closure input has incompatible type: \"{}\"")),
-                            item.name)}});
+                fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
+                            " {})",
+                            TIP_("Conversion not supported when evaluating closure"),
+                            TIP_("Input"),
+                            item.name,
+                            TIP_(item_type->label),
+                            TIP_(closure_item.type->label))}});
+        }
+        else if (item.socket_type != closure_item.type->type) {
+          tree_logger->node_warnings.append(
+              *tree_logger->allocator,
+              {bnode_.identifier,
+               {NodeWarningType::Info,
+                fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
+                            " {})",
+                            TIP_("Implicit type conversion when evaluating closure"),
+                            TIP_("Input"),
+                            item.name,
+                            TIP_(item_type->label),
+                            TIP_(closure_item.type->label))}});
         }
       }
       else {
@@ -453,9 +474,10 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
              }});
       }
     }
-    for (const NodeGeometryEvaluateClosureOutputItem &item :
+    for (const NodeEvaluateClosureOutputItem &item :
          Span{node_storage.output_items.items, node_storage.output_items.items_num})
     {
+      const bke::bNodeSocketType *item_type = bke::node_socket_type_find_static(item.socket_type);
       if (const std::optional<int> i = signature.find_output_index(item.name)) {
         const ClosureSignature::Item &closure_item = signature.outputs[*i];
         if (!btree_.typeinfo->validate_link(eNodeSocketDatatype(closure_item.type->type),
@@ -465,8 +487,26 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
               *tree_logger->allocator,
               {bnode_.identifier,
                {NodeWarningType::Error,
-                fmt::format(fmt::runtime(TIP_("Closure output has incompatible type: \"{}\"")),
-                            item.name)}});
+                fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
+                            " {})",
+                            TIP_("Conversion not supported when evaluating closure"),
+                            TIP_("Output"),
+                            item.name,
+                            TIP_(closure_item.type->label),
+                            TIP_(item_type->label))}});
+        }
+        else if (item.socket_type != closure_item.type->type) {
+          tree_logger->node_warnings.append(
+              *tree_logger->allocator,
+              {bnode_.identifier,
+               {NodeWarningType::Info,
+                fmt::format("{}: {} \"{}\" ({} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
+                            " {})",
+                            TIP_("Implicit type conversion when evaluating closure"),
+                            TIP_("Output"),
+                            item.name,
+                            TIP_(closure_item.type->label),
+                            TIP_(item_type->label))}});
         }
       }
       else {
@@ -482,7 +522,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
 
   void initialize_execution_graph(EvaluateClosureEvalStorage &eval_storage) const
   {
-    const auto &node_storage = *static_cast<const NodeGeometryEvaluateClosure *>(bnode_.storage);
+    const auto &node_storage = *static_cast<const NodeEvaluateClosure *>(bnode_.storage);
 
     lf::Graph &lf_graph = eval_storage.graph;
 
@@ -656,7 +696,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
 
   void initialize_pass_through_graph(EvaluateClosureEvalStorage &eval_storage) const
   {
-    const auto &node_storage = *static_cast<const NodeGeometryEvaluateClosure *>(bnode_.storage);
+    const auto &node_storage = *static_cast<const NodeEvaluateClosure *>(bnode_.storage);
     lf::Graph &lf_graph = eval_storage.graph;
     for (const lf::Input &input : inputs_) {
       lf_graph.add_input(*input.type, input.debug_name);

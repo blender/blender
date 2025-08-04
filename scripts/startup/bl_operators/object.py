@@ -372,6 +372,7 @@ class ShapeTransfer(Operator):
             if len(me.shape_keys.key_blocks) == 1:
                 key.name = "Basis"
                 key = ob.shape_key_add(from_mix=False)  # we need a rest
+            key.value = 0.0
             key.name = name
             ob.active_shape_key_index = len(me.shape_keys.key_blocks) - 1
             ob.show_only_shape_key = True

@@ -92,6 +92,11 @@ ccl_device_inline float4 make_float4(const float3 a)
   return make_float4(a.x, a.y, a.z, 1.0f);
 }
 
+ccl_device_inline float4 make_homogeneous(const float3 a)
+{
+  return make_float4(a.x, a.y, a.z, 1.0f);
+}
+
 ccl_device_inline float4 make_float4(const int4 i)
 {
 #ifdef __KERNEL_SSE__

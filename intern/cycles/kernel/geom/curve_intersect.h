@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009-2020 Intel Corporation
+/* SPDX-FileCopyrightText: 2009-2021 Intel Corporation
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -51,7 +51,6 @@ ccl_device_inline float4 catmull_rom_basis_derivative(const float4 curve[4], flo
 
 ccl_device_inline float4 catmull_rom_basis_derivative2(const float4 curve[4], float u)
 {
-
   const float t = u;
   const float n0 = -3.0f * t + 2.0f;
   const float n1 = 9.0f * t - 5.0f;
@@ -634,6 +633,168 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
   return false;
 }
 
+/* Linear curve evaluation. */
+
+ccl_device_inline float4 linear_basis_eval(const float4 curve[4], float u)
+{
+  return mix(curve[1], curve[2], u);
+}
+
+ccl_device_inline float4 linear_basis_derivative(const float4 curve[4], float)
+{
+  return curve[2] - curve[1];
+}
+
+/* Linear Thick Curve */
+
+ccl_device_inline bool cone_sphere_intersect(const float4 curve[4],
+                                             const float3 ray_D,
+                                             ccl_private float *t_o,
+                                             ccl_private float *u_o,
+                                             ccl_private float3 *Ng_o)
+{
+  /* Calculate quadratic equation to solve. */
+  const float r0 = curve[1].w;
+  const float r1 = curve[2].w;
+  const float dr = r1 - r0;
+  const float r0dr = r0 * dr;
+
+  const float3 P0 = make_float3(curve[1]);
+  const float3 P1 = make_float3(curve[2]);
+  const float3 dP = P1 - P0;
+  const float3 O = -P0;
+  const float3 dO = ray_D;
+
+  const float dOdO = dot(dO, dO);
+  const float OdO = dot(dO, O);
+  const float OO = dot(O, O);
+  const float dOz = dot(dP, dO);
+  const float Oz = dot(dP, O);
+
+  const float dPdP = dot(dP, dP);
+  const float yp = Oz + r0dr;
+  const float g = dPdP - sqr(dr);
+
+  const float A = g * dOdO - sqr(dOz);
+  const float B = 2.0f * (g * OdO - dOz * yp);
+  const float C = g * OO - sqr(Oz) - sqr(r0) * dPdP - 2.0f * r0dr * Oz;
+
+  /* We miss the cone if determinant is smaller than zero. */
+  const float D = B * B - 4.0f * A * C;
+  if (!(D >= 0.0f)) {
+    *t_o = FLT_MAX;
+    return false;
+  }
+
+  /* Special case for rays that are parallel to the cone. */
+  const float eps = 1e-18f;
+  if (fabsf(A) < eps) {
+    *t_o = -FLT_MAX;
+    return false;
+  }
+
+  /* Standard case for rays that are not parallel to the cone. */
+  const float Q = sqrtf(D);
+  const float rcp_2A = 1.0f / (2.0f * A);
+  const float t0 = (-B - Q) * rcp_2A;
+  const float y0 = yp + t0 * dOz;
+
+  float t = FLT_MAX;
+
+  /* Calculates u and Ng for near hit. */
+  if ((y0 > -FLT_EPSILON) && (y0 <= g) && (g > 0.0f)) {
+    t = t0;
+    *u_o = clamp(y0 / g, 0.0f, 1.0f);
+    const float3 Pr = O + t0 * dO;
+    const float3 Pl = (*u_o) * dP;
+    *Ng_o = Pr - Pl;
+  }
+
+  /* Intersect ending sphere. */
+  {
+    const float3 O1 = -P1;
+    const float O1dO = dot(O1, dO);
+    const float h2 = sqr(O1dO) - dOdO * (dot(O1, O1) - sqr(r1));
+    if (h2 >= 0.0f) {
+      const float rhs1 = sqrt(h2);
+
+      /* Clip away near hit if it is inside next cone segment. */
+      const float t_sph1 = (-O1dO - rhs1) * (1.0f / dOdO);
+
+      const float r2 = curve[3].w;
+      const float3 P2 = make_float3(curve[3]);
+      const float y2 = dot((t_sph1 * dO) - P1, (P2 - P1));
+      const float cap2 = -(r1 * (r2 - r1));
+
+      if ((t_sph1 <= t) && (yp + t_sph1 * dOz) > g && !(y2 > cap2)) {
+        t = t_sph1;
+        *u_o = 1.0f;
+        *Ng_o = t * dO - P1;
+      }
+    }
+  }
+
+  /* Intersect start sphere. */
+  if (isequal(curve[0], curve[1])) {
+    const float h2 = sqr(OdO) - dOdO * (dot(O, O) - sqr(r0));
+    if (h2 >= 0.0f) {
+      const float rhs1 = sqrt(h2);
+
+      /* Clip away near hit if it is inside next cone segment. */
+      const float t_sph0 = (-OdO - rhs1) * (1.0f / dOdO);
+
+      if ((t_sph0 <= t) && (yp + t_sph0 * dOz) < 0) {
+        t = t_sph0;
+        *u_o = 0.0f;
+        *Ng_o = t * dO - P0;
+      }
+    }
+  }
+
+  *t_o = t;
+
+  return t != FLT_MAX;
+}
+
+ccl_device bool linear_curve_intersect(const float3 ray_P,
+                                       const float3 ray_D,
+                                       const float ray_tmin,
+                                       float ray_tmax,
+                                       float4 curve[4],
+                                       ccl_private Intersection *isect)
+{
+  /* Move ray closer to make intersection stable. */
+  const float3 center = make_float3(0.5f * (curve[1] + curve[2]));
+  const float dt = dot(center - ray_P, ray_D) / dot(ray_D, ray_D);
+  const float3 ref = ray_P + ray_D * dt;
+  const float4 ref4 = make_float4(ref, 0.0f);
+  curve[0] -= ref4;
+  curve[1] -= ref4;
+  curve[2] -= ref4;
+  curve[3] -= ref4;
+
+  /* Intersect with cone sphere. */
+  float t;
+  float u;
+  float3 Ng;
+  if (!cone_sphere_intersect(curve, ray_D, &t, &u, &Ng)) {
+    return false;
+  }
+
+  t += dt;
+
+  if (!(t >= ray_tmin && t <= ray_tmax)) {
+    return false; /* Rejects NaNs */
+  }
+
+  /* Record intersection. */
+  isect->t = t;
+  isect->u = u;
+  isect->v = 0.0f;
+
+  return true;
+}
+
 ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
                                             ccl_private Intersection *isect,
                                             const float3 ray_P,
@@ -665,24 +826,36 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
     motion_curve_keys(kg, object, time, ka, k0, k1, kb, curve);
   }
 
-  if (type & PRIMITIVE_CURVE_RIBBON) {
-    /* todo: adaptive number of subdivisions could help performance here. */
-    const int subdivisions = kernel_data.bvh.curve_subdivisions;
-    if (ribbon_intersect(ray_P, ray_D, tmin, tmax, subdivisions, curve, isect)) {
-      isect->prim = prim;
-      isect->object = object;
-      isect->type = type;
-      return true;
+  switch (type & PRIMITIVE_CURVE) {
+    case PRIMITIVE_CURVE_RIBBON: {
+      /* todo: adaptive number of subdivisions could help performance here. */
+      const int subdivisions = kernel_data.bvh.curve_subdivisions;
+      if (ribbon_intersect(ray_P, ray_D, tmin, tmax, subdivisions, curve, isect)) {
+        isect->prim = prim;
+        isect->object = object;
+        isect->type = type;
+        return true;
+      }
+      break;
     }
-
-    return false;
-  }
-
-  if (curve_intersect_recursive(ray_P, ray_D, tmin, tmax, curve, isect)) {
-    isect->prim = prim;
-    isect->object = object;
-    isect->type = type;
-    return true;
+    case PRIMITIVE_CURVE_THICK: {
+      if (curve_intersect_recursive(ray_P, ray_D, tmin, tmax, curve, isect)) {
+        isect->prim = prim;
+        isect->object = object;
+        isect->type = type;
+        return true;
+      }
+      break;
+    }
+    case PRIMITIVE_CURVE_THICK_LINEAR: {
+      if (linear_curve_intersect(ray_P, ray_D, tmin, tmax, curve, isect)) {
+        isect->prim = prim;
+        isect->object = object;
+        isect->type = type;
+        return true;
+      }
+      break;
+    }
   }
 
   return false;
@@ -724,10 +897,12 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
 
   P = P + D * t;
 
-  const float4 dPdu4 = catmull_rom_basis_derivative(P_curve, sd->u);
+  const float4 dPdu4 = (sd->type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_THICK_LINEAR ?
+                           linear_basis_derivative(P_curve, sd->u) :
+                           catmull_rom_basis_derivative(P_curve, sd->u);
   const float3 dPdu = make_float3(dPdu4);
 
-  if (sd->type & PRIMITIVE_CURVE_RIBBON) {
+  if ((sd->type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_RIBBON) {
     /* Rounded smooth normals for ribbons, to approximate thick curve shape. */
     const float3 tangent = normalize(dPdu);
     const float3 bitangent = normalize(cross(tangent, -D));
@@ -749,7 +924,9 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
      * however for Optix this would go beyond the size of the payload. */
     /* NOTE: It is possible that P will be the same as P_inside (precision issues, or very small
      * radius). In this case use the view direction to approximate the normal. */
-    const float3 P_inside = make_float3(catmull_rom_basis_eval(P_curve, sd->u));
+    const float3 P_inside = (sd->type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_THICK_LINEAR ?
+                                make_float3(linear_basis_eval(P_curve, sd->u)) :
+                                make_float3(catmull_rom_basis_eval(P_curve, sd->u));
     const float3 N = (!isequal(P, P_inside)) ? normalize(P - P_inside) : -sd->wi;
 
     sd->N = N;
@@ -769,7 +946,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
   }
 
   sd->P = P;
-  sd->Ng = (sd->type & PRIMITIVE_CURVE_RIBBON) ? sd->wi : sd->N;
+  sd->Ng = ((sd->type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_RIBBON) ? sd->wi : sd->N;
   sd->dPdv = cross(sd->dPdu, sd->Ng);
   sd->shader = kernel_data_fetch(curves, sd->prim).shader_id;
 }

@@ -23,9 +23,13 @@ OSLThreadData::OSLThreadData(OSLGlobals *osl_globals, const int thread_index)
   memset((void *)&shader_globals, 0, sizeof(shader_globals));
   shader_globals.tracedata = &tracedata;
 
-  osl_thread_info = ss->create_thread_info();
-  context = ss->get_context(osl_thread_info);
-  oiio_thread_info = globals->ts->get_perthread_info();
+  if (ss) {
+    osl_thread_info = ss->create_thread_info();
+    context = ss->get_context(osl_thread_info);
+  }
+  if (globals->ts) {
+    oiio_thread_info = globals->ts->get_perthread_info();
+  }
 }
 
 OSLThreadData::~OSLThreadData()

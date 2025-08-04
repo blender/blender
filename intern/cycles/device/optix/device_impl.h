@@ -44,6 +44,10 @@ enum {
   PG_HITV, /* __VOLUME__ hit group. */
   PG_HITD_MOTION,
   PG_HITS_MOTION,
+  PG_HITD_CURVE_LINEAR,
+  PG_HITS_CURVE_LINEAR,
+  PG_HITD_CURVE_LINEAR_MOTION,
+  PG_HITS_CURVE_LINEAR_MOTION,
   PG_HITD_POINTCLOUD,
   PG_HITS_POINTCLOUD,
   PG_CALL_SVM_AO,
@@ -71,7 +75,7 @@ class OptiXDevice : public CUDADevice {
   OptixDeviceContext context = nullptr;
 
   OptixModule optix_module = nullptr; /* All necessary OptiX kernels are in one module. */
-  OptixModule builtin_modules[2] = {};
+  OptixModule builtin_modules[4] = {};
   OptixPipeline pipelines[NUM_PIPELINES] = {};
   OptixProgramGroup groups[NUM_PROGRAM_GROUPS] = {};
   OptixPipelineCompileOptions pipeline_options = {};

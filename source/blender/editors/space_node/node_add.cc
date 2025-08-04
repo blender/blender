@@ -1092,7 +1092,7 @@ static wmOperatorStatus node_add_import_node_exec(bContext *C, wmOperator *op)
     }
 
     if (node) {
-      bNodeSocket &path_socket = node->input_by_identifier("Path");
+      bNodeSocket &path_socket = *node->input_by_identifier("Path");
       BLI_assert(path_socket.type == SOCK_STRING);
       auto *socket_data = static_cast<bNodeSocketValueString *>(path_socket.default_value);
       STRNCPY(socket_data->value, path.c_str());

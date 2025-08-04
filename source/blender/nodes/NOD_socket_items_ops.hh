@@ -151,11 +151,14 @@ inline void add_item(wmOperatorType *ot,
       if constexpr (Accessor::has_custom_initial_name) {
         name = Accessor::custom_initial_name(node, name);
       }
+      bNodeTree *ntree = reinterpret_cast<bNodeTree *>(node_ptr.owner_id);
       socket_items::add_item_with_socket_type_and_name<Accessor>(
+          *ntree,
           node,
           active_item ?
               Accessor::get_socket_type(*active_item) :
-              (Accessor::supports_socket_type(SOCK_GEOMETRY) ? SOCK_GEOMETRY : SOCK_FLOAT),
+              (Accessor::supports_socket_type(SOCK_GEOMETRY, ntree->type) ? SOCK_GEOMETRY :
+                                                                            SOCK_FLOAT),
           /* Empty name so it is based on the type. */
           name.c_str());
     }

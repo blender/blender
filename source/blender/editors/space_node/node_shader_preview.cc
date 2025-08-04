@@ -55,6 +55,7 @@
 #include "ED_node_preview.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
+
 #include "node_intern.hh"
 
 namespace blender::ed::space_node {
@@ -792,7 +793,7 @@ static void ensure_nodetree_previews(const bContext &C,
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(&C),
                               CTX_wm_window(&C),
                               CTX_wm_space_node(&C),
-                              "Shader Previews",
+                              "Generating shader previews...",
                               WM_JOB_EXCL_RENDER,
                               WM_JOB_TYPE_RENDER_PREVIEW);
   ShaderNodesPreviewJob *job_data = MEM_new<ShaderNodesPreviewJob>(__func__);

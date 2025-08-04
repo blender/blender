@@ -7,6 +7,7 @@
  */
 
 #include "BLI_utildefines.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "GPU_capabilities.hh"

@@ -544,9 +544,8 @@ void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob, Task
 
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(ob);
   /* Try getting the mesh first and if that fails, try getting the curve data.
-   * If the curves are surfaces or have certain modifiers applied to them, the will have mesh data
-   * of the final result.
-   */
+   * If the curves are surfaces or have certain modifiers applied to them,
+   * they will have mesh data of the final result. */
   if (mesh != nullptr) {
     DRW_mesh_batch_cache_create_requested(task_graph, *ob, *mesh, *scene, is_paint_mode, use_hide);
   }

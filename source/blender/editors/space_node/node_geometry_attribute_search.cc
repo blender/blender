@@ -244,8 +244,6 @@ void node_geometry_add_attribute_search_button(const bContext & /*C*/,
                                  &socket_ptr,
                                  "default_value",
                                  0,
-                                 0.0f,
-                                 0.0f,
                                  "");
   UI_but_placeholder_set(but, placeholder);
 

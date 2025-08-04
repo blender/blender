@@ -396,10 +396,10 @@ typedef struct wmKeyMapItem {
   /* event */
   /** Event code itself (#EVT_LEFTCTRLKEY, #LEFTMOUSE etc). */
   short type;
-  /** Button state (#KM_ANY, #KM_PRESS, #KM_DBL_CLICK, #KM_CLICK_DRAG, #KM_NOTHING etc). */
+  /** Button state (#KM_ANY, #KM_PRESS, #KM_DBL_CLICK, #KM_PRESS_DRAG, #KM_NOTHING etc). */
   int8_t val;
   /**
-   * The 2D direction of the event to use when `val == KM_CLICK_DRAG`.
+   * The 2D direction of the event to use when `val == KM_PRESS_DRAG`.
    * Set to #KM_DIRECTION_N, #KM_DIRECTION_S & related values, #KM_NOTHING for any direction.
    */
   int8_t direction;

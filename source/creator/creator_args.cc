@@ -1181,7 +1181,7 @@ static int arg_handle_log_level_set(int argc, const char **argv, void * /*data*/
     else if (parse_int_clamp(argv[1], nullptr, -1, INT_MAX, &G.log.level, &err_msg)) {
       /* Numeric level for backwards compatibility. */
       if (G.log.level < 0) {
-        G.log.level = INT_MAX;
+        G.log.level = CLG_LEVEL_LEN - 1;
       }
       else {
         G.log.level = std::min(CLG_LEVEL_INFO + G.log.level, CLG_LEVEL_LEN - 1);
@@ -1552,7 +1552,7 @@ static int arg_handle_gpu_backend_set(int argc, const char **argv, void * /*data
 
   /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
   if (false) {
-    /* Just a dummy if to make the following ifdef blocks work. */
+    /* Use a dummy block to make the following `ifdef` blocks work. */
   }
 #  ifdef WITH_OPENGL_BACKEND
   else if (STREQ(argv[1], (backends_supported[backends_supported_num++] = "opengl"))) {

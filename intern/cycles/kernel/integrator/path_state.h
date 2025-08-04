@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Initialize queues, so that the this path is considered terminated.
+/* Initialize queues, so that this path is considered terminated.
  * Used for early outputs in the camera ray initialization, as well as initialization of split
  * states for shadow catcher. */
 ccl_device_inline void path_state_init_queues(IntegratorState state)

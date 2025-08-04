@@ -1693,7 +1693,7 @@ static void version_geometry_nodes_set_position_node_offset(bNodeTree *ntree)
       /* Versioning happened already. */
       return;
     }
-    /* Change identifier of old socket, so that the there is no name collision. */
+    /* Change identifier of old socket, so that there is no name collision. */
     STRNCPY_UTF8(old_offset_socket->identifier, "Offset_old");
     blender::bke::node_add_static_socket(
         *ntree, *node, SOCK_IN, SOCK_VECTOR, PROP_TRANSLATION, "Offset", "Offset");

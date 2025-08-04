@@ -15,6 +15,7 @@
 #include "util/log.h"
 #include "util/string.h"
 
+#include "kernel/device/gpu/block_sizes.h"
 #include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN
@@ -592,8 +593,12 @@ void PathTraceWorkGPU::compute_sorted_queued_paths(DeviceKernel queued_kernel,
     const DeviceKernelArguments args(
         &work_size, &partition_size, &num_paths_limit, &d_queued_paths, &d_queued_kernel);
 
-    queue_->enqueue(DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS, 1024 * num_sort_partitions_, args);
-    queue_->enqueue(DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS, 1024 * num_sort_partitions_, args);
+    queue_->enqueue(DEVICE_KERNEL_INTEGRATOR_SORT_BUCKET_PASS,
+                    GPU_PARALLEL_SORT_BLOCK_SIZE * num_sort_partitions_,
+                    args);
+    queue_->enqueue(DEVICE_KERNEL_INTEGRATOR_SORT_WRITE_PASS,
+                    GPU_PARALLEL_SORT_BLOCK_SIZE * num_sort_partitions_,
+                    args);
     return;
   }
 

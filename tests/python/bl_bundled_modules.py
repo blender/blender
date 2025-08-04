@@ -25,6 +25,8 @@ import ssl
 import urllib3
 import zlib
 import zstandard
+import cattrs
+import fastjsonschema
 
 # Dynamically loaded modules, to ensure they have satisfactory dependencies.
 import _blake2

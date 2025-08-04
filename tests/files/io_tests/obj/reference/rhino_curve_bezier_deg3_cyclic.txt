@@ -1,0 +1,17 @@
+==== Curves: 1
+- Curve 'rhino_curve_bezier_deg3_cyclic' dim:3D resu:12 resv:12 splines:1
+  - spline type:NURBS pts:12x1 order:4x4 cyclic:True,False endp:True,False
+    - (-16.508, 0.000, -26.333) w:1.000
+    - (-19.459, 0.000, -23.609) w:1.000
+    - (-22.637, 0.000, -23.099) w:1.000
+      ...
+    - (-11.571, 0.000, -32.462) w:1.000
+    - (-11.912, 0.000, -29.511) w:1.000
+    - (-14.662, 0.000, -28.037) w:1.000
+
+==== Objects: 1
+- Obj 'rhino_curve_bezier_deg3_cyclic' CURVE data:'rhino_curve_bezier_deg3_cyclic'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

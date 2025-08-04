@@ -101,7 +101,7 @@ static float check_zone(const WipeZone *wipezone, int x, int y, float fac)
   }
 
   switch (wipezone->type) {
-    case DO_SINGLE_WIPE:
+    case SEQ_WIPE_SINGLE:
       width = min_ii(wipezone->width, fac * yo);
       width = min_ii(width, yo - fac * yo);
 
@@ -140,7 +140,7 @@ static float check_zone(const WipeZone *wipezone, int x, int y, float fac)
       }
       break;
 
-    case DO_DOUBLE_WIPE:
+    case SEQ_WIPE_DOUBLE:
       if (!wipezone->forward) {
         fac = 1.0f - fac; /* Go the other direction */
       }
@@ -188,7 +188,7 @@ static float check_zone(const WipeZone *wipezone, int x, int y, float fac)
         output = 1 - output;
       }
       break;
-    case DO_CLOCK_WIPE:
+    case SEQ_WIPE_CLOCK:
       /*
        * temp1: angle of effect center in rads
        * temp2: angle of line through (halfx, halfy) and (x, y) in rads
@@ -241,7 +241,7 @@ static float check_zone(const WipeZone *wipezone, int x, int y, float fac)
         output = 1 - output;
       }
       break;
-    case DO_IRIS_WIPE:
+    case SEQ_WIPE_IRIS:
       if (xo > yo) {
         yo = xo;
       }

@@ -640,7 +640,7 @@ static bool set_pivot_depends_on_cursor(bContext & /*C*/, wmOperatorType & /*ot*
     return true;
   }
   const PivotPositionMode mode = PivotPositionMode(RNA_enum_get(ptr, "mode"));
-  return mode == PivotPositionMode::CursorSurface;
+  return ELEM(mode, PivotPositionMode::CursorSurface, PivotPositionMode::ActiveVert);
 }
 
 struct AveragePositionAccumulation {
@@ -927,36 +927,38 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
-  /* Pivot to center. */
-  if (mode == PivotPositionMode::Origin) {
-    zero_v3(ss.pivot_pos);
-  }
-  /* Pivot to active vertex. */
-  else if (mode == PivotPositionMode::ActiveVert) {
-    copy_v3_v3(ss.pivot_pos, ss.active_vert_position(*depsgraph, ob));
-  }
-  /* Pivot to ray-cast surface. */
-  else if (mode == PivotPositionMode::CursorSurface) {
-    float stroke_location[3];
-    const float mval[2] = {
-        RNA_float_get(op->ptr, "mouse_x"),
-        RNA_float_get(op->ptr, "mouse_y"),
-    };
-    if (stroke_get_location_bvh(C, stroke_location, mval, false)) {
-      copy_v3_v3(ss.pivot_pos, stroke_location);
+  switch (mode) {
+    case PivotPositionMode::Origin:
+      ss.pivot_pos = float3(0.0f);
+      break;
+    case PivotPositionMode::Unmasked:
+      ss.pivot_pos = average_unmasked_position(*depsgraph, ob, ss.pivot_pos, symm);
+      break;
+    case PivotPositionMode::MaskBorder:
+      ss.pivot_pos = average_mask_border_position(*depsgraph, ob, ss.pivot_pos, symm);
+      break;
+    case PivotPositionMode::ActiveVert: {
+      const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
+      CursorGeometryInfo cgi;
+      if (cursor_geometry_info_update(C, &cgi, mval, false)) {
+        ss.pivot_pos = ss.active_vert_position(*depsgraph, ob);
+      }
+      break;
     }
-  }
-  else if (mode == PivotPositionMode::Unmasked) {
-    ss.pivot_pos = average_unmasked_position(*depsgraph, ob, ss.pivot_pos, symm);
-  }
-  else {
-    ss.pivot_pos = average_mask_border_position(*depsgraph, ob, ss.pivot_pos, symm);
+    case PivotPositionMode::CursorSurface: {
+      const float2 mval(RNA_float_get(op->ptr, "mouse_x"), RNA_float_get(op->ptr, "mouse_y"));
+      float3 stroke_location;
+      if (stroke_get_location_bvh(C, stroke_location, mval, false)) {
+        ss.pivot_pos = stroke_location;
+      }
+      break;
+    }
   }
 
   /* Update the viewport navigation rotation origin. */
   Paint *paint = BKE_paint_get_active_from_context(C);
   bke::PaintRuntime *paint_runtime = paint->runtime;
-  copy_v3_v3(paint_runtime->average_stroke_accum, ss.pivot_pos);
+  paint_runtime->average_stroke_accum = ss.pivot_pos;
   paint_runtime->average_stroke_counter = 1;
   paint_runtime->last_stroke_valid = true;
 
@@ -981,7 +983,7 @@ static bool set_pivot_position_poll_property(const bContext * /*C*/,
 {
   if (STRPREFIX(RNA_property_identifier(prop), "mouse_")) {
     const PivotPositionMode mode = PivotPositionMode(RNA_enum_get(op->ptr, "mode"));
-    return mode == PivotPositionMode::CursorSurface;
+    return ELEM(mode, PivotPositionMode::CursorSurface, PivotPositionMode::ActiveVert);
   }
   return true;
 }
@@ -1012,7 +1014,7 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
                 0.0f,
                 FLT_MAX,
                 "Mouse Position X",
-                "Position of the mouse used for \"Surface\" mode",
+                "Position of the mouse used for \"Surface\" and \"Active Vertex\" mode",
                 0.0f,
                 10000.0f);
   RNA_def_float(ot->srna,
@@ -1021,7 +1023,7 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
                 0.0f,
                 FLT_MAX,
                 "Mouse Position Y",
-                "Position of the mouse used for \"Surface\" mode",
+                "Position of the mouse used for \"Surface\" and \"Active Vertex\" mode",
                 0.0f,
                 10000.0f);
 }

@@ -1497,11 +1497,14 @@ static void serialize_bake_item(const BakeItem &item,
     r_io_item.append_str("type", "BUNDLE");
     ArrayValue &io_items = *r_io_item.append_array("items");
     for (const BundleBakeItem::Item &item : bundle_state_item->items) {
-      DictionaryValue &io_bundle_item = *io_items.append_dict();
-      io_bundle_item.append_str("key", item.key);
-      io_bundle_item.append_str("socket_idname", item.socket_idname);
-      io::serialize::DictionaryValue &io_bundle_item_value = *io_bundle_item.append_dict("value");
-      serialize_bake_item(*item.value, blob_writer, blob_sharing, io_bundle_item_value);
+      if (const auto *socket_value = std::get_if<BundleBakeItem::SocketValue>(&item.value)) {
+        DictionaryValue &io_bundle_item = *io_items.append_dict();
+        io_bundle_item.append_str("key", item.key);
+        io_bundle_item.append_str("socket_idname", socket_value->socket_idname);
+        io::serialize::DictionaryValue &io_bundle_item_value = *io_bundle_item.append_dict(
+            "value");
+        serialize_bake_item(*socket_value->value, blob_writer, blob_sharing, io_bundle_item_value);
+      }
     }
   }
 }
@@ -1614,7 +1617,8 @@ static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io
       if (!value) {
         return {};
       }
-      bundle->items.append(BundleBakeItem::Item{*key, *socket_idname, std::move(value)});
+      bundle->items.append(BundleBakeItem::Item{
+          *key, BundleBakeItem::SocketValue{*socket_idname, std::move(value)}});
     }
     return bundle;
   }

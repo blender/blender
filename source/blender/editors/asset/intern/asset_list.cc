@@ -39,6 +39,7 @@
 #include "ED_asset_list.hh"
 #include "ED_fileselect.hh"
 #include "ED_screen.hh"
+
 #include "asset_library_reference.hh"
 
 namespace blender::ed::asset::list {

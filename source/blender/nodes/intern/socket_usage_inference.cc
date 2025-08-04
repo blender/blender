@@ -419,7 +419,7 @@ struct SocketUsageInferencer {
   {
     const NodeInContext node = socket.owner_node();
     this->usage_task__with_dependent_sockets(
-        socket, {&node->output_by_identifier(socket->identifier)}, {}, socket.context);
+        socket, {node->output_by_identifier(socket->identifier)}, {}, socket.context);
   }
 
   void usage_task__input__capture_attribute_node(const SocketInContext &socket)
@@ -465,7 +465,7 @@ struct SocketUsageInferencer {
     }
     Vector<const bNodeSocket *, 16> dependent_sockets;
     if (StringRef(socket->identifier).startswith("Input_")) {
-      dependent_sockets.append(&node->output_by_identifier(socket->identifier));
+      dependent_sockets.append(node->output_by_identifier(socket->identifier));
     }
     else {
       /* The geometry and selection inputs are used whenever any of the zone outputs is used. */
@@ -1527,15 +1527,14 @@ InputSocketUsageParams::InputSocketUsageParams(SocketUsageInferencer &inferencer
 
 InferenceValue InputSocketUsageParams::get_input(const StringRef identifier) const
 {
-  const SocketInContext input_socket{compute_context_,
-                                     &this->node.input_by_identifier(identifier)};
+  const SocketInContext input_socket{compute_context_, this->node.input_by_identifier(identifier)};
   return inferencer_.get_socket_value(input_socket);
 }
 
 bool InputSocketUsageParams::menu_input_may_be(const StringRef identifier,
                                                const int enum_value) const
 {
-  BLI_assert(this->node.input_by_identifier(identifier).type == SOCK_MENU);
+  BLI_assert(this->node.input_by_identifier(identifier)->type == SOCK_MENU);
   const InferenceValue value = this->get_input(identifier);
   if (value.is_unknown()) {
     /* The value is unknown, so it may be the requested enum value. */

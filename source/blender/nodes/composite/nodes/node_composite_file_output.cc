@@ -308,15 +308,6 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
 
 static void node_composit_buts_file_output(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  PointerRNA imfptr = RNA_pointer_get(ptr, "format");
-  const bool multilayer = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER;
-
-  if (multilayer) {
-    layout->label(IFACE_("Path:"), ICON_NONE);
-  }
-  else {
-    layout->label(IFACE_("Base Path:"), ICON_NONE);
-  }
   layout->prop(ptr, "base_path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
@@ -338,7 +329,8 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
     column->prop(ptr, "save_as_render", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   const bool save_as_render = RNA_boolean_get(ptr, "save_as_render");
-  uiTemplateImageSettings(layout, &imfptr, save_as_render);
+
+  uiTemplateImageSettings(layout, C, &imfptr, save_as_render);
 
   if (!save_as_render) {
     uiLayout *col = &layout->column(true);
@@ -357,14 +349,15 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 
   layout->separator();
 
-  layout->op("NODE_OT_output_file_add_socket", IFACE_("Add Input"), ICON_ADD);
-
+  uiLayout *header = &layout->row(false);
   row = &layout->row(false);
   col = &row->column(true);
 
   const int active_index = RNA_int_get(ptr, "active_input_index");
+  PropertyRNA *slots_prop = nullptr;
   /* using different collection properties if multilayer format is enabled */
   if (multilayer) {
+    header->label(IFACE_("Layers"), ICON_NONE);
     uiTemplateList(col,
                    C,
                    "UI_UL_list",
@@ -381,8 +374,10 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
                    UI_TEMPLATE_LIST_FLAG_NONE);
     RNA_property_collection_lookup_int(
         ptr, RNA_struct_find_property(ptr, "layer_slots"), active_index, &active_input_ptr);
+    slots_prop = RNA_struct_find_property(ptr, "layer_slots");
   }
   else {
+    header->label(IFACE_("File Subpaths"), ICON_NONE);
     uiTemplateList(col,
                    C,
                    "UI_UL_list",
@@ -399,48 +394,49 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
                    UI_TEMPLATE_LIST_FLAG_NONE);
     RNA_property_collection_lookup_int(
         ptr, RNA_struct_find_property(ptr, "file_slots"), active_index, &active_input_ptr);
+    slots_prop = RNA_struct_find_property(ptr, "file_slots");
   }
+
+  col = &row->column(true);
+
+  col->op("NODE_OT_output_file_add_socket",
+          "",
+          ICON_ADD,
+          wm::OpCallContext::ExecDefault,
+          UI_ITEM_NONE);
+  col->op("NODE_OT_output_file_remove_active_socket",
+          "",
+          ICON_REMOVE,
+          wm::OpCallContext::ExecDefault,
+          UI_ITEM_NONE);
+  col->separator();
+
   /* XXX collection lookup does not return the ID part of the pointer,
    * setting this manually here */
   active_input_ptr.owner_id = ptr->owner_id;
 
-  col = &row->column(true);
-  wmOperatorType *ot = WM_operatortype_find("NODE_OT_output_file_move_active_socket", false);
-  op_ptr = col->op(ot, "", ICON_TRIA_UP, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-  RNA_enum_set(&op_ptr, "direction", 1);
-  op_ptr = col->op(ot, "", ICON_TRIA_DOWN, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-  RNA_enum_set(&op_ptr, "direction", 2);
+  int slots_len = RNA_property_collection_length(ptr, slots_prop);
+  if (slots_len > 0) {
+    wmOperatorType *ot = WM_operatortype_find("NODE_OT_output_file_move_active_socket", false);
+
+    uiLayout *sub = &col->column(true);
+    if (slots_len < 2) {
+      sub->active_set(false);
+    }
+
+    op_ptr = sub->op(ot, "", ICON_TRIA_UP, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
+    RNA_enum_set(&op_ptr, "direction", 1);
+
+    op_ptr = sub->op(ot, "", ICON_TRIA_DOWN, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
+    RNA_enum_set(&op_ptr, "direction", 2);
+  }
 
   if (active_input_ptr.data) {
-    if (multilayer) {
-      col = &layout->column(true);
-
-      col->label(IFACE_("Layer:"), ICON_NONE);
-      row = &col->row(false);
-      row->prop(&active_input_ptr, "name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-      row->op("NODE_OT_output_file_remove_active_socket",
-              "",
-              ICON_X,
-              wm::OpCallContext::ExecDefault,
-              UI_ITEM_R_ICON_ONLY);
-    }
-    else {
-      col = &layout->column(true);
-
-      col->label(IFACE_("File Subpath:"), ICON_NONE);
-      row = &col->row(false);
-      row->prop(&active_input_ptr, "path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-      row->op("NODE_OT_output_file_remove_active_socket",
-              "",
-              ICON_X,
-              wm::OpCallContext::ExecDefault,
-              UI_ITEM_R_ICON_ONLY);
-
+    if (!multilayer) {
       /* format details for individual files */
       imfptr = RNA_pointer_get(&active_input_ptr, "format");
 
       col = &layout->column(true);
-      col->label(IFACE_("Format:"), ICON_NONE);
       col->prop(&active_input_ptr,
                 "use_node_format",
                 UI_ITEM_R_SPLIT_EMPTY_NAME,
@@ -464,7 +460,8 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
         const bool use_color_management = RNA_boolean_get(&active_input_ptr, "save_as_render");
 
         col = &layout->column(false);
-        uiTemplateImageSettings(col, &imfptr, use_color_management);
+        uiTemplateImageSettings(
+            col, C, &imfptr, use_color_management, "node_settings_color_management");
 
         if (!use_color_management) {
           uiLayout *col = &layout->column(true);

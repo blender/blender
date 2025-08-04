@@ -738,7 +738,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
     /* For drag events, update the location since it will be set from the drag-start.
      * This is needed as cursor-drawing doesn't deal with drag events and will use
      * the current cursor location instead of the drag-start. */
-    if (event->val == KM_CLICK_DRAG) {
+    if (event->val == KM_PRESS_DRAG) {
       /* Set this flag so snapping always updated. */
       int mval[2];
       WM_event_drag_start_mval(event, ipd->region, mval);

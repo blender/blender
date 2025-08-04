@@ -19,6 +19,28 @@ CCL_NAMESPACE_BEGIN
 
 /* Texture Coordinate Node */
 
+ccl_device_inline float3 svm_texco_reflection(const ccl_private ShaderData *sd)
+{
+  float3 data = sd->wi;
+  if (sd->object != OBJECT_NONE) {
+    data = -reflect(data, sd->N);
+  }
+  return data;
+}
+
+ccl_device_inline float3 svm_texco_camera(KernelGlobals kg,
+                                          const ccl_private ShaderData *sd,
+                                          const ccl_private float3 &P)
+{
+  float3 data = P;
+  const Transform tfm = kernel_data.cam.worldtocamera;
+  if (sd->object == OBJECT_NONE) {
+    data += camera_position(kg);
+  }
+  data = transform_point(&tfm, data);
+  return data;
+}
+
 ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            const uint32_t path_flag,
@@ -54,14 +76,8 @@ ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_CAMERA: {
-      const Transform tfm = kernel_data.cam.worldtocamera;
-
-      if (sd->object != OBJECT_NONE) {
-        data = transform_point(&tfm, sd->P);
-      }
-      else {
-        data = transform_point(&tfm, sd->P + camera_position(kg));
-      }
+      const float3 P = sd->P;
+      data = svm_texco_camera(kg, sd, P);
       break;
     }
     case NODE_TEXCO_WINDOW: {
@@ -77,12 +93,7 @@ ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_REFLECTION: {
-      if (sd->object != OBJECT_NONE) {
-        data = 2.0f * dot(sd->N, sd->wi) * sd->N - sd->wi;
-      }
-      else {
-        data = sd->wi;
-      }
+      data = svm_texco_reflection(sd);
       break;
     }
     case NODE_TEXCO_DUPLI_GENERATED: {
@@ -178,15 +189,8 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_CAMERA: {
-      const Transform tfm = kernel_data.cam.worldtocamera;
-
-      if (sd->object != OBJECT_NONE) {
-        data = transform_point(&tfm, svm_node_bump_P_dx(sd, bump_filter_width));
-      }
-      else {
-        data = transform_point(&tfm,
-                               svm_node_bump_P_dx(sd, bump_filter_width) + camera_position(kg));
-      }
+      const float3 P = svm_node_bump_P_dx(sd, bump_filter_width);
+      data = svm_texco_camera(kg, sd, P);
       break;
     }
     case NODE_TEXCO_WINDOW: {
@@ -202,12 +206,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_REFLECTION: {
-      if (sd->object != OBJECT_NONE) {
-        data = 2.0f * dot(sd->N, sd->wi) * sd->N - sd->wi;
-      }
-      else {
-        data = sd->wi;
-      }
+      data = svm_texco_reflection(sd);
       break;
     }
     case NODE_TEXCO_DUPLI_GENERATED: {
@@ -274,15 +273,8 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_CAMERA: {
-      const Transform tfm = kernel_data.cam.worldtocamera;
-
-      if (sd->object != OBJECT_NONE) {
-        data = transform_point(&tfm, svm_node_bump_P_dy(sd, bump_filter_width));
-      }
-      else {
-        data = transform_point(&tfm,
-                               svm_node_bump_P_dy(sd, bump_filter_width) + camera_position(kg));
-      }
+      const float3 P = svm_node_bump_P_dy(sd, bump_filter_width);
+      data = svm_texco_camera(kg, sd, P);
       break;
     }
     case NODE_TEXCO_WINDOW: {
@@ -298,12 +290,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_REFLECTION: {
-      if (sd->object != OBJECT_NONE) {
-        data = 2.0f * dot(sd->N, sd->wi) * sd->N - sd->wi;
-      }
-      else {
-        data = sd->wi;
-      }
+      data = svm_texco_reflection(sd);
       break;
     }
     case NODE_TEXCO_DUPLI_GENERATED: {
@@ -369,8 +356,8 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     }
 
     /* get _unnormalized_ interpolated normal and tangent */
-    const float3 tangent = primitive_surface_attribute<float3>(kg, sd, attr, nullptr, nullptr);
-    const float sign = primitive_surface_attribute<float>(kg, sd, attr_sign, nullptr, nullptr);
+    const float3 tangent = primitive_surface_attribute<float3>(kg, sd, attr).val;
+    const float sign = primitive_surface_attribute<float>(kg, sd, attr_sign).val;
     float3 normal;
 
     if (sd->shader & SHADER_SMOOTH_NORMAL) {
@@ -454,13 +441,13 @@ ccl_device_noinline void svm_node_tangent(KernelGlobals kg,
   const AttributeDescriptor desc = find_attribute(kg, sd, node.z);
   if (desc.offset != ATTR_STD_NOT_FOUND) {
     if (desc.type == NODE_ATTR_FLOAT2) {
-      const float2 value = primitive_surface_attribute<float2>(kg, sd, desc, nullptr, nullptr);
+      const float2 value = primitive_surface_attribute<float2>(kg, sd, desc).val;
       attribute_value.x = value.x;
       attribute_value.y = value.y;
       attribute_value.z = 0.0f;
     }
     else {
-      attribute_value = primitive_surface_attribute<float3>(kg, sd, desc, nullptr, nullptr);
+      attribute_value = primitive_surface_attribute<float3>(kg, sd, desc).val;
     }
   }
 

@@ -2,7 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "testing/testing.h"
+#include <gtest/gtest.h>
+
 #include "util/math.h"
 #include "util/system.h"
 #include "util/types.h"

@@ -4691,8 +4691,6 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
                                      UI_UNIT_X * 5,
                                      UI_UNIT_Y,
                                      &handle->retvalue,
-                                     item->value,
-                                     0.0,
                                      description_static);
       }
       else {
@@ -4712,6 +4710,9 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
       if (item->value == current_value) {
         item_but->flag |= UI_SELECT_DRAW;
       }
+
+      /* "hardmin" is used to store the value of the enum item. */
+      item_but->hardmin = float(item->value);
 
       if (use_enum_copy_description) {
         if (item->description && item->description[0]) {
@@ -5844,12 +5845,10 @@ uiBut *uiDefIconTextBut(uiBlock *block,
                         short width,
                         short height,
                         void *poin,
-                        float min,
-                        float max,
                         const std::optional<StringRef> tip)
 {
   uiBut *but = ui_def_but(
-      block, but_and_ptr_type, retval, str, x, y, width, height, poin, min, max, tip);
+      block, but_and_ptr_type, retval, str, x, y, width, height, poin, 0.0f, 0.0f, tip);
   ui_but_update_and_icon_set(but, icon);
   but->drawflag |= UI_BUT_ICON_LEFT;
   return but;
@@ -5864,8 +5863,6 @@ uiBut *uiDefIconTextButI(uiBlock *block,
                          short width,
                          short height,
                          int *poin,
-                         float min,
-                         float max,
                          const std::optional<StringRef> tip)
 {
   return uiDefIconTextBut(block,
@@ -5878,8 +5875,6 @@ uiBut *uiDefIconTextButI(uiBlock *block,
                           width,
                           height,
                           (void *)poin,
-                          min,
-                          max,
                           tip);
 }
 uiBut *uiDefIconTextButS(uiBlock *block,
@@ -5892,8 +5887,6 @@ uiBut *uiDefIconTextButS(uiBlock *block,
                          short width,
                          short height,
                          short *poin,
-                         float min,
-                         float max,
                          const std::optional<StringRef> tip)
 {
   return uiDefIconTextBut(block,
@@ -5906,8 +5899,6 @@ uiBut *uiDefIconTextButS(uiBlock *block,
                           width,
                           height,
                           (void *)poin,
-                          min,
-                          max,
                           tip);
 }
 
@@ -5923,12 +5914,10 @@ uiBut *uiDefIconTextButR(uiBlock *block,
                          PointerRNA *ptr,
                          blender::StringRefNull propname,
                          int index,
-                         float min,
-                         float max,
                          const std::optional<StringRef> tip)
 {
   uiBut *but = ui_def_but_rna_propname(
-      block, type, retval, str, x, y, width, height, ptr, propname, index, min, max, tip);
+      block, type, retval, str, x, y, width, height, ptr, propname, index, 0.0f, 0.0f, tip);
   ui_but_update_and_icon_set(but, icon);
   but->drawflag |= UI_BUT_ICON_LEFT;
   return but;

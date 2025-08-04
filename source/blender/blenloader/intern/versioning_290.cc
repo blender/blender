@@ -104,7 +104,7 @@ static eSpaceSeq_Proxy_RenderSize get_sequencer_render_size(Main *bmain)
   return render_size;
 }
 
-static bool can_use_proxy(const Strip *strip, int psize)
+static bool can_use_proxy(const Strip *strip, IMB_Proxy_Size psize)
 {
   if (strip->data->proxy == nullptr) {
     return false;
@@ -1828,7 +1828,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
               {
                 sseq->flag |= SEQ_USE_PROXIES;
               }
-              if (sseq->render_size == SEQ_RENDER_SIZE_FULL) {
+              if (sseq->render_size == SEQ_RENDER_SIZE_FULL_DEPRECATED) {
                 sseq->render_size = SEQ_RENDER_SIZE_PROXY_100;
               }
             }

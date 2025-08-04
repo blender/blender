@@ -15,7 +15,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_defaults.h"
@@ -27,6 +26,9 @@
 #include "BLI_listbase.h"
 #include "BLI_math_bits.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
+
+#include "BKE_blender_version.h" /* For #BLENDER_VERSION deprecation warnings. */
 
 #include "BLT_translation.hh"
 
@@ -1477,6 +1479,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
   prop->subtype = PropertySubType(subtype);
   prop->name = identifier;
   prop->description = "";
+  prop->deprecated = nullptr;
   prop->translation_context = BLT_I18NCONTEXT_DEFAULT_BPYRNA;
   /* a priori not raw editable */
   prop->rawtype = RawPropertyType(-1);
@@ -1567,6 +1570,9 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_,
 void RNA_def_property_flag(PropertyRNA *prop, PropertyFlag flag)
 {
   prop->flag |= flag;
+  if (flag & PROP_ID_REFCOUNT) {
+    prop->flag_internal |= PROP_INTERN_PTR_ID_REFCOUNT_FORCED;
+  }
 }
 
 void RNA_def_property_clear_flag(PropertyRNA *prop, PropertyFlag flag)
@@ -1574,6 +1580,9 @@ void RNA_def_property_clear_flag(PropertyRNA *prop, PropertyFlag flag)
   prop->flag &= ~flag;
   if (flag & PROP_PTR_NO_OWNERSHIP) {
     prop->flag_internal |= PROP_INTERN_PTR_OWNERSHIP_FORCED;
+  }
+  if (flag & PROP_ID_REFCOUNT) {
+    prop->flag_internal |= PROP_INTERN_PTR_ID_REFCOUNT_FORCED;
   }
 }
 
@@ -1747,6 +1756,47 @@ void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *d
 {
   prop->name = name;
   prop->description = description;
+}
+
+void RNA_def_property_deprecated(PropertyRNA *prop,
+                                 const char *note,
+                                 const short version,
+                                 const short removal_version)
+{
+  if (!DefRNA.preprocess) {
+    fprintf(stderr, "%s: \"%s\": only during preprocessing.", __func__, prop->identifier);
+    return;
+  }
+
+#ifndef RNA_RUNTIME
+  StructRNA *srna = DefRNA.laststruct;
+  BLI_assert(prop->deprecated == nullptr);
+  BLI_assert(note != nullptr);
+  BLI_assert(version > 0);
+  BLI_assert(removal_version > version);
+
+  /* This message is to alert developers of deprecation
+   * without breaking the build after a version bump. */
+  if (removal_version <= BLENDER_VERSION) {
+    fprintf(stderr,
+            "\nWARNING: \"%s.%s\" deprecation starting at %d.%d marks this property to be removed "
+            "in the current Blender version!\n\n",
+            srna->identifier,
+            prop->identifier,
+            version / 100,
+            version % 100);
+  }
+
+  DeprecatedRNA *deprecated = static_cast<DeprecatedRNA *>(rna_calloc(sizeof(DeprecatedRNA)));
+  deprecated->note = note;
+  deprecated->version = version;
+  deprecated->removal_version = removal_version;
+  prop->deprecated = deprecated;
+#else
+  (void)note;
+  (void)version;
+  (void)removal_version;
+#endif
 }
 
 void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive)
@@ -1926,8 +1976,12 @@ void RNA_def_property_struct_runtime(StructOrFunctionRNA *cont, PropertyRNA *pro
         return;
       }
 
-      if (type && (type->flag & STRUCT_ID_REFCOUNT)) {
-        RNA_def_property_flag(prop, PROP_ID_REFCOUNT);
+      if ((prop->flag_internal & PROP_INTERN_PTR_ID_REFCOUNT_FORCED) == 0 && type &&
+          (type->flag & STRUCT_ID_REFCOUNT))
+      {
+        /* Do not use #RNA_def_property_flag, to avoid this automatic flag definition to set
+         * #PROP_INTERN_PTR_ID_REFCOUNT_FORCED. */
+        prop->flag |= PROP_ID_REFCOUNT;
       }
 
       break;
@@ -2921,17 +2975,6 @@ void RNA_def_property_enum_bitflag_sdna(PropertyRNA *prop,
 
   if (dp) {
     dp->enumbitflags = 1;
-
-#ifndef RNA_RUNTIME
-    int defaultvalue_mask = 0;
-    EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
-    for (int i = 0; i < eprop->totitem; i++) {
-      if (eprop->item[i].identifier[0]) {
-        defaultvalue_mask |= eprop->defaultvalue & eprop->item[i].value;
-      }
-    }
-    eprop->defaultvalue = defaultvalue_mask;
-#endif
   }
 }
 
@@ -5081,6 +5124,9 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
     }
     if (prop->py_data) {
       MEM_freeN(prop->py_data);
+    }
+    if (prop->deprecated) {
+      MEM_freeN(prop->deprecated);
     }
 
     switch (prop->type) {

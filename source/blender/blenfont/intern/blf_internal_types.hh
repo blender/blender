@@ -117,7 +117,7 @@ struct BatchBLF {
   unsigned int glyph_len;
   /** Copy of `font->pos`. */
   int ofs[2];
-  /* Previous call `modelmatrix`. */
+  /** Previous call `modelmatrix`. */
   float mat[4][4];
   bool enabled, active, simple_shader;
   GlyphCacheBLF *glyph_cache;
@@ -307,10 +307,10 @@ struct FontMetrics {
 };
 
 struct FontBLF {
-  /** Full path to font file or NULL if from memory. */
+  /** The full path to font file or NULL when from memory. */
   char *filepath;
 
-  /** Pointer to in-memory font, or NULL if from file. */
+  /** Pointer to in-memory font, or NULL when from a file. */
   void *mem;
   size_t mem_size;
   /** Handle for in-memory fonts to avoid loading them multiple times. */
@@ -361,21 +361,26 @@ struct FontBLF {
   /** Axes data for Adobe MM, TrueType GX, or OpenType variation fonts. */
   FT_MM_Var *variations;
 
-  /** Character variations. */
-  int char_weight;    /* 100 - 900, 400 = normal. */
-  float char_slant;   /* Slant in clockwise degrees. 0.0 = upright. */
-  float char_width;   /* Factor of normal character width. 1.0 = normal. */
-  float char_spacing; /* Factor of normal character spacing. 0.0 = normal. */
+  /* Character variations. */
+
+  /** Wight in range: 100 - 900, 400 = normal. */
+  int char_weight;
+  /** Slant in clockwise degrees. 0.0 = upright. */
+  float char_slant;
+  /** Factor of normal character width. 1.0 = normal. */
+  float char_width;
+  /** Factor of normal character spacing. 0.0 = normal. */
+  float char_spacing;
 
   /** Max texture size. */
   int tex_size_max;
 
   /** Font options. */
-  int flags;
+  FontFlags flags;
 
   /**
    * List of glyph caches (#GlyphCacheBLF) for this font for size, DPI, bold, italic.
-   * Use blf_glyph_cache_acquire(font) and blf_glyph_cache_release(font) to access cache!
+   * Use `blf_glyph_cache_acquire(font)` and `blf_glyph_cache_release(font)` to access cache!
    */
   blender::Vector<std::unique_ptr<GlyphCacheBLF>> cache;
 

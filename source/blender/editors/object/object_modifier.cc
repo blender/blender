@@ -3283,7 +3283,7 @@ static wmOperatorStatus ocean_bake_exec(bContext *C, wmOperator *op)
   wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C),
                               CTX_wm_window(C),
                               scene,
-                              "Ocean Simulation",
+                              "Simulating ocean...",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_OBJECT_SIM_OCEAN);
   OceanBakeJob *oj = MEM_callocN<OceanBakeJob>("ocean bake job");

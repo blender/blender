@@ -1332,7 +1332,7 @@ def url_retrieve_to_data_iter(
         retrieve_info: DataRetrieveInfo,
 ) -> Iterator[bytes]:
     """
-    Iterate over byte data downloaded from a from a URL
+    Iterate over byte data downloaded from a URL
     limited to ``chunk_size``.
 
     - The ``retrieve_info.size_hint``

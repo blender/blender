@@ -2072,15 +2072,6 @@ static int rna_SpaceTextEditor_visible_lines_get(PointerRNA *ptr)
 
 /* Space Properties */
 
-/* NOTE: this function exists only to avoid id reference-counting. */
-static void rna_SpaceProperties_pin_id_set(PointerRNA *ptr,
-                                           PointerRNA value,
-                                           ReportList * /*reports*/)
-{
-  SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
-  sbuts->pinid = static_cast<ID *>(value.data);
-}
-
 static StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 {
   SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
@@ -2534,7 +2525,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
 
     /* Add new proxy size. */
     strip->data->proxy->build_size_flags |= blender::seq::rendersize_to_proxysize(
-        sseq->render_size);
+        eSpaceSeq_Proxy_RenderSize(sseq->render_size));
 
     /* Build proxy. */
     blender::seq::proxy_rebuild_context(
@@ -5888,13 +5879,10 @@ static void rna_def_space_properties(BlenderRNA *brna)
   prop = RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "pinid");
   RNA_def_property_struct_type(prop, "ID");
-  /* NOTE: custom set function is ONLY to avoid rna setting a user for this. */
-  RNA_def_property_pointer_funcs(prop,
-                                 nullptr,
-                                 "rna_SpaceProperties_pin_id_set",
-                                 "rna_SpaceProperties_pin_id_typef",
-                                 nullptr);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, nullptr, "rna_SpaceProperties_pin_id_typef", nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
+  RNA_def_property_clear_flag(prop, PROP_ID_REFCOUNT);
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceProperties_pin_id_update");
 
@@ -8064,7 +8052,8 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SpaceNode");
   RNA_def_struct_ui_text(srna, "Space Node Editor", "Node editor space data");
 
-  rna_def_space_generic_show_region_toggles(srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI));
+  rna_def_space_generic_show_region_toggles(
+      srna, (1 << RGN_TYPE_TOOLS) | (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_ASSET_SHELF));
 
   prop = RNA_def_property(srna, "tree_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);

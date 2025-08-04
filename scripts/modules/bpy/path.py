@@ -382,7 +382,7 @@ def module_names(path, *, recursive=False, package=""):
             fullpath = join(path, filename)
             modules.append((package_prefix + filename[0:-3], fullpath))
         elif not filename.startswith("."):
-            # Skip hidden files since they are used by for version control.
+            # Skip hidden files since they are used for version control.
             directory = join(path, filename)
             fullpath = join(directory, "__init__.py")
             if isfile(fullpath):

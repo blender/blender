@@ -1373,7 +1373,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   wmWindow *win = CTX_wm_window(C);
   const blender::int2 win_size = WM_window_native_pixel_size(win);
   rcti rect_i;
-  int font_flag = 0;
+  FontFlags font_flag = BLF_NONE;
 
   /* Create area region. */
   ARegion *region = ui_region_temp_add(CTX_wm_screen(C));

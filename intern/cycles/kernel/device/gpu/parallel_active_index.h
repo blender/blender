@@ -11,13 +11,8 @@ CCL_NAMESPACE_BEGIN
  *
  * Shared memory requirement is `sizeof(int) * (number_of_warps + 1)`. */
 
+#include "kernel/device/gpu/block_sizes.h"
 #include "util/atomic.h"
-
-#ifdef __HIP__
-#  define GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE 1024
-#else
-#  define GPU_PARALLEL_ACTIVE_INDEX_DEFAULT_BLOCK_SIZE 512
-#endif
 
 /* TODO: abstract more device differences, define `ccl_gpu_local_syncthreads`,
  * `ccl_gpu_thread_warp`, `ccl_gpu_warp_index`, `ccl_gpu_num_warps` for all devices

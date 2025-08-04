@@ -1110,8 +1110,6 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
       10 * UI_UNIT_X,
       UI_UNIT_Y,
       nullptr,
-      0.0,
-      0.0,
       TIP_("Add a Driver Variable to keep track of an input used by the driver"));
   UI_but_func_set(but, driver_add_var_cb, driver, nullptr);
 
@@ -1272,8 +1270,6 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
       10 * UI_UNIT_X,
       UI_UNIT_Y,
       nullptr,
-      0.0,
-      0.0,
       TIP_("Force updates of dependencies - Only use this if drivers are not updating correctly"));
   UI_but_func_set(but, driver_update_flags_cb, fcu, nullptr);
 }

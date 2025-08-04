@@ -31,10 +31,10 @@ inline bool socket_type_supported_in_bundle(const eNodeSocketDatatype socket_typ
 }
 
 struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
-  using ItemT = NodeGeometryCombineBundleItem;
+  using ItemT = NodeCombineBundleItem;
   static StructRNA *item_srna;
   static int node_type;
-  static constexpr StringRefNull node_idname = "GeometryNodeCombineBundle";
+  static constexpr StringRefNull node_idname = "NodeCombineBundle";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
   static constexpr bool has_name_validation = true;
@@ -54,7 +54,7 @@ struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefa
 
   static socket_items::SocketItemsRef<ItemT> get_items_from_node(bNode &node)
   {
-    auto *storage = static_cast<NodeGeometryCombineBundle *>(node.storage);
+    auto *storage = static_cast<NodeCombineBundle *>(node.storage);
     return {&storage->items, &storage->items_num, &storage->active_index};
   }
 
@@ -82,7 +82,7 @@ struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefa
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return socket_type_supported_in_bundle(socket_type);
   }
@@ -92,7 +92,7 @@ struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefa
                                              const eNodeSocketDatatype socket_type,
                                              const char *name)
   {
-    auto *storage = static_cast<NodeGeometryCombineBundle *>(node.storage);
+    auto *storage = static_cast<NodeCombineBundle *>(node.storage);
     item.socket_type = socket_type;
     item.identifier = storage->next_identifier++;
     socket_items::set_item_name_and_make_unique<CombineBundleItemsAccessor>(node, item, name);
@@ -107,10 +107,10 @@ struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefa
 };
 
 struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
-  using ItemT = NodeGeometrySeparateBundleItem;
+  using ItemT = NodeSeparateBundleItem;
   static StructRNA *item_srna;
   static int node_type;
-  static constexpr StringRefNull node_idname = "GeometryNodeSeparateBundle";
+  static constexpr StringRefNull node_idname = "NodeSeparateBundle";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
   static constexpr bool has_name_validation = true;
@@ -130,7 +130,7 @@ struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDef
 
   static socket_items::SocketItemsRef<ItemT> get_items_from_node(bNode &node)
   {
-    auto *storage = static_cast<NodeGeometrySeparateBundle *>(node.storage);
+    auto *storage = static_cast<NodeSeparateBundle *>(node.storage);
     return {&storage->items, &storage->items_num, &storage->active_index};
   }
 
@@ -158,7 +158,7 @@ struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDef
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return socket_type_supported_in_bundle(socket_type);
   }
@@ -168,7 +168,7 @@ struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDef
                                              const eNodeSocketDatatype socket_type,
                                              const char *name)
   {
-    auto *storage = static_cast<NodeGeometrySeparateBundle *>(node.storage);
+    auto *storage = static_cast<NodeSeparateBundle *>(node.storage);
     item.socket_type = socket_type;
     item.identifier = storage->next_identifier++;
     socket_items::set_item_name_and_make_unique<SeparateBundleItemsAccessor>(node, item, name);

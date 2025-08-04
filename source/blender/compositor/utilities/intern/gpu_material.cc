@@ -18,14 +18,14 @@ GPUNodeStack &get_shader_node_input(const bNode &node,
                                     GPUNodeStack inputs[],
                                     const StringRef identifier)
 {
-  return inputs[node.input_by_identifier(identifier).index()];
+  return inputs[node.input_by_identifier(identifier)->index()];
 }
 
 GPUNodeStack &get_shader_node_output(const bNode &node,
                                      GPUNodeStack outputs[],
                                      const StringRef identifier)
 {
-  return outputs[node.output_by_identifier(identifier).index()];
+  return outputs[node.output_by_identifier(identifier)->index()];
 }
 
 GPUNodeLink *get_shader_node_input_link(const bNode &node,

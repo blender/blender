@@ -136,9 +136,7 @@ static blender::animrig::Action &extract_pose(Main &bmain,
     }
 
     LISTBASE_FOREACH (bPoseChannel *, pose_bone, &pose_object->pose->chanbase) {
-      if (!(pose_bone->bone->flag & BONE_SELECTED) ||
-          !blender::animrig::bone_is_visible(armature, pose_bone->bone))
-      {
+      if (!blender::animrig::bone_is_selected(armature, pose_bone)) {
         continue;
       }
       PointerRNA bone_pointer = RNA_pointer_create_discrete(
@@ -516,9 +514,7 @@ static Vector<PathValue> generate_path_values(Object &pose_object)
   Vector<PathValue> path_values;
   const bArmature *armature = static_cast<bArmature *>(pose_object.data);
   LISTBASE_FOREACH (bPoseChannel *, pose_bone, &pose_object.pose->chanbase) {
-    if (!(pose_bone->bone->flag & BONE_SELECTED) ||
-        !blender::animrig::bone_is_visible(armature, pose_bone->bone))
-    {
+    if (!blender::animrig::bone_is_selected(armature, pose_bone)) {
       continue;
     }
     PointerRNA bone_pointer = RNA_pointer_create_discrete(

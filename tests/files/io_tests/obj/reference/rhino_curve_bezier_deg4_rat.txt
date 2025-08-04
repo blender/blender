@@ -1,0 +1,17 @@
+==== Curves: 1
+- Curve 'rhino_curve_bezier_deg4_rat' dim:3D resu:12 resv:12 splines:1
+  - spline type:NURBS pts:9x1 order:5x5 cyclic:False,False endp:True,False
+    - (8.225, 0.000, 4.462) w:1.000
+    - (12.103, 0.000, 0.023) w:0.943
+    - (12.855, 0.000, -4.956) w:0.925
+      ...
+    - (-2.991, 0.000, 1.965) w:1.000
+    - (-4.901, 0.000, -1.010) w:1.000
+    - (-5.653, 0.000, -8.056) w:1.000
+
+==== Objects: 1
+- Obj 'rhino_curve_bezier_deg4_rat' CURVE data:'rhino_curve_bezier_deg4_rat'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

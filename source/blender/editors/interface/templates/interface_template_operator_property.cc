@@ -169,8 +169,6 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
                            nullptr,
                            0.0,
                            0.0,
-                           0.0,
-                           0.0,
                            TIP_("Reset operator defaults"));
     UI_but_func_set(but, ui_layout_operator_buts__reset_cb, op, nullptr);
   }

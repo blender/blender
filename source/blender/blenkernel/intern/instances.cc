@@ -193,10 +193,12 @@ void Instances::resize(int capacity)
   const int old_size = this->instances_num();
   attributes_.resize(AttrDomain::Instance, capacity);
   instances_num_ = capacity;
-  fill_attribute_range_default(this->attributes_for_write(),
-                               AttrDomain::Instance,
-                               {},
-                               IndexRange::from_begin_end(old_size, capacity));
+  if (capacity > old_size) {
+    fill_attribute_range_default(this->attributes_for_write(),
+                                 AttrDomain::Instance,
+                                 {},
+                                 IndexRange::from_begin_end(old_size, capacity));
+  }
 }
 
 void Instances::add_instance(const int instance_handle, const float4x4 &transform)

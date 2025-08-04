@@ -210,8 +210,6 @@ static uiBlock *curvemap_tools_func(
                                   menuwidth,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     UI_but_func_set(but, [cumap](bContext &C) {
       BKE_curvemapping_reset_view(cumap);
@@ -231,8 +229,6 @@ static uiBlock *curvemap_tools_func(
                                     menuwidth,
                                     UI_UNIT_Y,
                                     nullptr,
-                                    0.0,
-                                    0.0,
                                     "");
       UI_but_func_set(but, [cumap, cb](bContext &C) {
         cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
@@ -253,8 +249,6 @@ static uiBlock *curvemap_tools_func(
                                     menuwidth,
                                     UI_UNIT_Y,
                                     nullptr,
-                                    0.0,
-                                    0.0,
                                     "");
       UI_but_func_set(but, [cumap, cb](bContext &C) {
         cumap->flag |= CUMA_EXTEND_EXTRAPOLATE;
@@ -277,8 +271,6 @@ static uiBlock *curvemap_tools_func(
                                   menuwidth,
                                   UI_UNIT_Y,
                                   nullptr,
-                                  0.0,
-                                  0.0,
                                   "");
     UI_but_func_set(but, [cumap, cb, reset_mode](bContext &C) {
       CurveMap *cuma = cumap->cm + cumap->cur;

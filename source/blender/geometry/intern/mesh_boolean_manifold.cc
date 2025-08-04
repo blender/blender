@@ -872,7 +872,7 @@ static OutFace make_out_face(const MeshGL &mgl, int tri_index, int orig_face)
  * "group edge" index:  linearized indices of edges in the
  * triangles in the group.
  * A SharedEdge has two such indices, with the assertion that
- * they are the have the same vertices (but in opposite order).
+ * they have the same vertices (but in opposite order).
  */
 struct SharedEdge {
   /* First shared edge ("group edge" indexing). */

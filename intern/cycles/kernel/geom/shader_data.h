@@ -325,9 +325,13 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
   P_curve[3] = kernel_data_fetch(curve_keys, kb);
 
   /* Interpolate position and tangent. */
-  sd->P = make_float3(catmull_rom_basis_eval(P_curve, sd->u));
+  sd->P = (sd->type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_THICK_LINEAR ?
+              make_float3(linear_basis_eval(P_curve, sd->u)) :
+              make_float3(catmull_rom_basis_eval(P_curve, sd->u));
 #  ifdef __DPDU__
-  sd->dPdu = make_float3(catmull_rom_basis_derivative(P_curve, sd->u));
+  sd->dPdu = (sd->type & PRIMITIVE_CURVE) == PRIMITIVE_CURVE_THICK_LINEAR ?
+                 make_float3(linear_basis_derivative(P_curve, sd->u)) :
+                 make_float3(catmull_rom_basis_derivative(P_curve, sd->u));
 #  endif
 
   /* Transform into world space */

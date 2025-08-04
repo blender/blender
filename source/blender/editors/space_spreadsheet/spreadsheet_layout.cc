@@ -54,8 +54,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   params.width,
                                   params.height,
                                   nullptr,
-                                  0,
-                                  0,
                                   std::nullopt);
     UI_but_func_tooltip_set(
         but,
@@ -83,8 +81,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   params.width,
                                   params.height,
                                   nullptr,
-                                  0,
-                                  0,
                                   std::nullopt);
     /* Right-align indices. */
     UI_but_drawflag_enable(but, UI_BUT_TEXT_RIGHT);
@@ -114,8 +110,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     std::nullopt);
       UI_but_func_tooltip_set(
           but,
@@ -141,8 +135,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     std::nullopt);
       /* Right-align Integers. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -171,8 +163,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     std::nullopt);
       UI_but_func_tooltip_set(
           but,
@@ -198,8 +188,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     std::nullopt);
       UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
     }
@@ -240,8 +228,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                        params.width,
                        params.height,
                        nullptr,
-                       0,
-                       0,
                        std::nullopt);
     }
     else if (data.type().is<std::string>()) {
@@ -255,8 +241,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                        params.width,
                        params.height,
                        nullptr,
-                       0,
-                       0,
                        std::nullopt);
     }
     else if (data.type().is<MStringProperty>()) {
@@ -272,8 +256,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     std::nullopt);
 
       UI_but_func_tooltip_set(
@@ -306,8 +288,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     segment_width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     std::nullopt);
 
       UI_but_func_tooltip_set(
@@ -342,8 +322,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     segment_width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     std::nullopt);
       UI_but_func_tooltip_set(
           but,
@@ -378,8 +356,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     segment_width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     std::nullopt);
       /* Right-align Floats. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -414,8 +390,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   params.width,
                                   params.height,
                                   nullptr,
-                                  0,
-                                  0,
                                   std::nullopt);
     /* Center alignment. */
     UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);

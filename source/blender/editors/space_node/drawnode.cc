@@ -463,7 +463,6 @@ static void node_shader_set_butfunc(blender::bke::bNodeType *ntype)
     case SH_NODE_VECTOR_DISPLACEMENT:
       ntype->draw_buttons = node_shader_buts_displacement;
       break;
-    case SH_NODE_BSDF_GLASS:
     case SH_NODE_BSDF_REFRACTION:
       ntype->draw_buttons = node_shader_buts_glossy;
       break;
@@ -969,7 +968,7 @@ static const float std_node_socket_colors[][4] = {
     {0.40, 0.40, 0.40, 1.0}, /* SOCK_MENU */
     {0.72, 0.20, 0.52, 1.0}, /* SOCK_MATRIX */
     {0.30, 0.50, 0.50, 1.0}, /* SOCK_BUNDLE */
-    {0.43, 0.50, 0.40, 1.0}, /* SOCK_CLOSURE */
+    {0.45, 0.30, 0.26, 1.0}, /* SOCK_CLOSURE */
 };
 
 void std_node_socket_colors_get(int socket_type, float *r_color)

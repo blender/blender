@@ -53,6 +53,8 @@ void WorldData::init()
     pxr::GfVec3f color(1.0f, 1.0f, 1.0f);
     ID_LOG("%s", world->id.name);
 
+    world->nodetree->ensure_topology_cache();
+
     /* TODO: Create nodes parsing system */
     bNode *output_node = ntreeShaderOutputNode(world->nodetree, SHD_OUTPUT_ALL);
     if (!output_node) {
@@ -80,8 +82,8 @@ void WorldData::init()
       return;
     }
 
-    const bNodeSocket &color_input = input_node->input_by_identifier("Color");
-    const bNodeSocket &strength_input = input_node->input_by_identifier("Strength");
+    const bNodeSocket &color_input = *input_node->input_by_identifier("Color");
+    const bNodeSocket &strength_input = *input_node->input_by_identifier("Strength");
 
     float const *strength = strength_input.default_value_typed<float>();
     float const *input_color = color_input.default_value_typed<float>();
@@ -124,6 +126,7 @@ void WorldData::init()
 
   data_[pxr::UsdLuxTokens->orientToStageUpAxis] = true;
   data_[pxr::HdLightTokens->intensity] = intensity;
+  data_[pxr::HdLightTokens->exposure] = 0.0f;
   data_[pxr::HdLightTokens->color] = pxr::GfVec3f(1.0f, 1.0f, 1.0f);
   data_[pxr::HdLightTokens->textureFile] = texture_file;
 

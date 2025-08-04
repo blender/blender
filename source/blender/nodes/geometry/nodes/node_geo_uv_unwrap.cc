@@ -7,16 +7,26 @@
 #include "GEO_uv_pack.hh"
 #include "GEO_uv_parametrizer.hh"
 
-#include "UI_interface_layout.hh"
-#include "UI_resources.hh"
-
-#include "NOD_rna_define.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_uv_unwrap_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometryUVUnwrap)
+
+static EnumPropertyItem method_items[] = {
+    {GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED,
+     "ANGLE_BASED",
+     0,
+     "Angle Based",
+     "This method gives a good 2D representation of a mesh"},
+    {GEO_NODE_UV_UNWRAP_METHOD_CONFORMAL,
+     "CONFORMAL",
+     0,
+     "Conformal",
+     "Uses LSCM (Least Squares Conformal Mapping). This usually gives a less accurate UV "
+     "mapping than Angle Based, but works better for simpler objects"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -34,22 +44,15 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Virtually fill holes in mesh before unwrapping, to better avoid overlaps "
           "and preserve symmetry");
+  b.add_input<decl::Menu>("Method").static_items(method_items);
   b.add_output<decl::Vector>("UV").field_source_reference_all().description(
       "UV coordinates between 0 and 1 for each face corner in the selected faces");
 }
 
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->use_property_split_set(true);
-  layout->use_property_decorate_set(false);
-  layout->prop(ptr, "method", UI_ITEM_NONE, "", ICON_NONE);
-}
-
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  NodeGeometryUVUnwrap *data = MEM_callocN<NodeGeometryUVUnwrap>(__func__);
-  data->method = GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED;
-  node->storage = data;
+  /* Still used for forward compatibility. */
+  node->storage = MEM_callocN<NodeGeometryUVUnwrap>(__func__);
 }
 
 static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
@@ -181,8 +184,7 @@ class UnwrapFieldInput final : public bke::MeshFieldInput {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const NodeGeometryUVUnwrap &storage = node_storage(params.node());
-  const GeometryNodeUVUnwrapMethod method = (GeometryNodeUVUnwrapMethod)storage.method;
+  const auto method = params.get_input<GeometryNodeUVUnwrapMethod>("Method");
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
   const Field<bool> seam_field = params.extract_input<Field<bool>>("Seam");
   const bool fill_holes = params.extract_input<bool>("Fill Holes");
@@ -190,27 +192,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("UV",
                     Field<float3>(std::make_shared<UnwrapFieldInput>(
                         selection_field, seam_field, fill_holes, margin, method)));
-}
-
-static void node_rna(StructRNA *srna)
-{
-  static EnumPropertyItem method_items[] = {
-      {GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED,
-       "ANGLE_BASED",
-       0,
-       "Angle Based",
-       "This method gives a good 2D representation of a mesh"},
-      {GEO_NODE_UV_UNWRAP_METHOD_CONFORMAL,
-       "CONFORMAL",
-       0,
-       "Conformal",
-       "Uses LSCM (Least Squares Conformal Mapping). This usually gives a less accurate UV "
-       "mapping than Angle Based, but works better for simpler objects"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  RNA_def_node_enum(
-      srna, "method", "Method", "", method_items, NOD_storage_enum_accessors(method));
 }
 
 static void node_register()
@@ -227,10 +208,7 @@ static void node_register()
       ntype, "NodeGeometryUVUnwrap", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.draw_buttons = node_layout;
   blender::bke::node_register_type(ntype);
-
-  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

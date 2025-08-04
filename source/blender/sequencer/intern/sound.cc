@@ -360,7 +360,7 @@ void *sound_modifier_recreator(Strip *strip,
                                bool &needs_update)
 {
 
-  if (!(smd->flag & SEQUENCE_MODIFIER_MUTE)) {
+  if (!(smd->flag & STRIP_MODIFIER_FLAG_MUTE)) {
     const SoundModifierWorkerInfo *smwi = sound_modifier_worker_info_get(smd->type);
     return smwi->recreator(strip, smd, sound, needs_update);
   }

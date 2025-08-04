@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a775d58b2e0e')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-21 08:48+0000\n"
-"PO-Revision-Date: 2025-04-14 08:10+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"PO-Revision-Date: 2025-07-23 14:53+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
 "Language: ar\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 5.10.1\n"
+"X-Generator: Weblate 5.12.1\n"
 "X-Poedit-SourceCharset: utf-8"
 
 
@@ -7865,6 +7865,10 @@ msgid "Amount of random velocity"
 msgstr "ﺔﻴﺋﺍﻮﺸﻌﻟﺍ ﺔﻧﻮﺸﺨﻟﺍ ﺔﻴﻤﻛ"
 
 
+msgid "Shader"
+msgstr "ﻞﻠﻈﻤﻟﺍ"
+
+
 msgid "Freestyle Line Set"
 msgstr "ﻞﻳﺎﺘﺴﻳﺮﻓ ﻂﺧ ﺔﻋﻮﻤﺠﻣ"
 
@@ -10416,14 +10420,6 @@ msgid "Output image in DPX format"
 msgstr "DPX ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR ﺕﺎﻘﺒﻄﻟﺍ ﺩﺪﻌﺘﻣ"
-
-
-msgid "Output image in multilayer OpenEXR format"
-msgstr "ﺕﺎﻘﺒﻄﻟﺍ ﺩﺪﻌﺘﻣ OpenEXR ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
-
-
 msgid "Output image in OpenEXR format"
 msgstr "OpenEXR ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
 
@@ -10438,6 +10434,14 @@ msgstr " Radiance HDR ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
 
 msgid "Output image in TIFF format"
 msgstr "TIFF ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
+
+
+msgid "OpenEXR MultiLayer"
+msgstr "OpenEXR ﺕﺎﻘﺒﻄﻟﺍ ﺩﺪﻌﺘﻣ"
+
+
+msgid "Output image in multilayer OpenEXR format"
+msgstr "ﺕﺎﻘﺒﻄﻟﺍ ﺩﺪﻌﺘﻣ OpenEXR ﺔﺌﻴﻫ ﻲﻓ ﺓﺭﻮﺼﻟﺍ ﺝﺮﺧﺃ"
 
 
 msgid "Image/Movie file name"
@@ -11210,10 +11214,6 @@ msgstr "ﻲﻔﻄﻣ"
 
 msgid "Script"
 msgstr "ﺖﺒﻳﺮﻜﺳ"
-
-
-msgid "Shader"
-msgstr "ﻞﻠﻈﻤﻟﺍ"
 
 
 msgid "Pattern"
@@ -14020,10 +14020,6 @@ msgstr "ﻢﻟﺎﻌﻠﻟ ﺏﺎﺒﻀﻟﺍ ﺕﺍﺩﺍﺪﻋﺇ"
 
 msgid "Node tree for node based worlds"
 msgstr "ﺪﻘﻋ ﻰﻠﻋ ﺔﻤﺋﺎﻘﻟﺍ ﻢﻟﺍﻮﻌﻠﻟ ﺪﻘﻌﻟﺍ ﺓﺮﺠﺷ"
-
-
-msgid "Use shader nodes to render the world"
-msgstr "ﻢﻟﺎﻌﻟﺍ ﺮﻴﻴﺼﺘﻟ ﻞﻠﻈﻤﻟﺍ ﺪﻘﻋ ﻡﺪﺨﺘﺷﺍ"
 
 
 msgid "Operation"
@@ -18730,10 +18726,6 @@ msgid "Color Spill"
 msgstr "ﻥﻮﻠﻟﺍ ﺐﻜﺳ"
 
 
-msgid "Composite"
-msgstr "ﺐﻴﻛﺮﺗ"
-
-
 msgid "To"
 msgstr "ـﻟ"
 
@@ -19111,10 +19103,6 @@ msgid "Only Faces"
 msgstr "ﻪﺟﻭﻻ﻿ﺍ ﻂﻘﻓ"
 
 
-msgid "Triangles"
-msgstr "ﺚﻠﺜﻣ ﻞﻜﺷ"
-
-
 msgid "Secondary"
 msgstr "ﻱﻮﻧﺎﺛ"
 
@@ -19131,12 +19119,12 @@ msgid "Fill Type"
 msgstr "ﺔﺌﺒﻌﺘﻟﺍ ﻉﻮﻧ"
 
 
+msgid "Triangles"
+msgstr "ﺚﻠﺜﻣ ﻞﻜﺷ"
+
+
 msgid "Tangent Space"
 msgstr "ﻑﺪﻬﻟﺍ ءﺎﻀﻔﻟﺍ"
-
-
-msgid "Conformal"
-msgstr "ﻒﻴﻜﺘﻣ"
 
 
 msgid "Label Font Size"
@@ -19521,10 +19509,6 @@ msgstr "ﺝﺮﺨﻟﺍ ﻒﻠﻣ ﺔﺤﺘﻓ"
 
 msgid "Subpath used for this slot"
 msgstr "ﺔﺤﺘﻔﻟﺍ ﻩﺬﻬﻟ ﻲﻋﺮﻔﻟﺍ ﺭﺎﺴﻤﻟﺍ"
-
-
-msgid "Use Node Format"
-msgstr "ﺓﺪﻘﻌﻟﺍ ﻖﻴﺴﻨﺗ ﻡﺪﺨﺘﺳﺍ"
 
 
 msgid "Output File Layer Slot"
@@ -27408,6 +27392,10 @@ msgid "Unwrap"
 msgstr "ﻁﺎﻘﺳﺇ"
 
 
+msgid "Conformal"
+msgstr "ﻒﻴﻜﺘﻣ"
+
+
 msgctxt "Operator"
 msgid "Weld"
 msgstr "ﻡﺎﺤﻠﻟﺍ"
@@ -34731,11 +34719,6 @@ msgstr "ﻍﺮّﻓ"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "ﺔﻠﻣﺎﻜﻟﺍ ﺔﺷﺎﺸﻟﺍ ﺔﻘﻄﻨﻣ ﺐﻠﻗﺇ"
-
-
-msgctxt "Operator"
 msgid "Sound"
 msgstr "ﺕﻮﺻ"
 
@@ -36248,10 +36231,6 @@ msgid "You have to select a string of connected vertices too"
 msgstr "ﺔﻠﺼﺘﻤﻟﺍ UV ـﻟﺍ ﻂﻘﻧ ﻦﻣ ﻞﺴﻠﺴﺗ ﺮﺘﺧﺇ"
 
 
-msgid "Cannot rip selected faces"
-msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﻪﺟﻭﻷ﻿ﺍ ﻒﺧﺃ"
-
-
 msgid "Must be in vertex selection mode"
 msgstr "ﺔﻄﻘﻨﻟﺍ ﺭﺎﻴﺘﺧﺍ ﻊﺿﻭ ﻲﻓ ﻥﻮﻜﺗ ﻥﺍ ﺐﺠﻳ"
 
@@ -36738,6 +36717,10 @@ msgid "No F-Modifiers to paste"
 msgstr "ﺮﻴﻐﻤﻟﺍ ﺔﻟﺎﺣ"
 
 
+msgid "Composite"
+msgstr "ﺐﻴﻛﺮﺗ"
+
+
 msgid "Select Slot"
 msgstr "ﺓﺭﺄﻔﻟﺍ ﺮﺘﺧﺍ"
 
@@ -37208,10 +37191,6 @@ msgid "Midtones End"
 msgstr "ﻰﻄﺳﻮﻟﺍ ﺕﺎﺟﺭﺪﻟﺍ ﺔﻳﺎﻬﻧ"
 
 
-msgid "Layer:"
-msgstr ":ﺔﻘﺒﻃ"
-
-
 msgid "Color Modulation"
 msgstr "ﻥﻮﻠﻟﺍ ﻞﻳﺪﻌﺗ"
 
@@ -37446,10 +37425,6 @@ msgstr "ﺍﺮﻴﻣﺎﻛ ﺪﺟﻮﺗ ﻻ﻿ ,ﺮﻴﻴﺼﺘﻟﺍ ﻦﻜﻤ�
 
 msgid "No border area selected"
 msgstr "ﺔﻣﺎﺧ ﺓﺪﻘﻋ ﻱﺃ ﺭﺎﻴﺘﺧﺍ ﻢﺘﻳ ﻢﻟ"
-
-
-msgid "No render output node in scene"
-msgstr "ﺪﻬﺸﻤﻟﺍ ﻲﻓ ﺮﻴﻴﺼﺘﻟﺍ ﺝﺮﺧ ﺓﺪﻘﻋ ﺪﺟﻮﺗ ﻻ﻿"
 
 
 msgid "All render layers are disabled"

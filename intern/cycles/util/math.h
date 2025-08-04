@@ -19,4 +19,6 @@
 
 #include "util/math_float3.h"  // IWYU pragma: export
 
+#include "util/math_dual.h"  // IWYU pragma: export
+
 #include "util/rect.h"  // IWYU pragma: export

@@ -965,7 +965,7 @@ static int *read_file_thumbnail(FileData *fd)
 }
 
 /**
- * ID names are truncated the their maximum allowed length at a very low level of the readfile code
+ * ID names are truncated to their maximum allowed length at a very low level of the readfile code
  * (see #read_id_struct).
  *
  * However, ensuring they remain unique can only be done once all IDs have been read and put in

@@ -584,8 +584,6 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
                              UI_UNIT_X * 4,
                              UI_UNIT_Y,
                              nullptr,
-                             0.0,
-                             0.0,
                              TIP_("Add node to input"));
 
       argN = (NodeLinkArg *)MEM_dupallocN(arg);
