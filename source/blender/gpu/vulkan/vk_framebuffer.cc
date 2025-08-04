@@ -124,7 +124,7 @@ void VKFrameBuffer::vk_render_areas_append(Vector<VkRect2D> &r_render_areas) con
   r_render_areas.append_n_times(render_area, this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1);
 }
 
-bool VKFrameBuffer::check(char err_out[256])
+bool VKFrameBuffer::check(char /*err_out*/[256])
 {
   return true;
 }
