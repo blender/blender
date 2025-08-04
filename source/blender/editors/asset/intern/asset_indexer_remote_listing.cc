@@ -163,13 +163,13 @@ bool read_remote_listing(const StringRefNull root_dirpath,
 
   const std::optional<AssetLibraryMeta> meta = AssetLibraryMeta::read(root_dirpath);
   if (!meta) {
-    printf("Couldn't read meta");
+    printf("Couldn't read meta\n");
     return false;
   }
 
   const std::optional<ApiVersionInfo> api_version_info = choose_api_version(*meta);
   if (!api_version_info) {
-    printf("Couldn't choose API version");
+    printf("Couldn't choose API version\n");
     return false;
   }
 
