@@ -573,8 +573,7 @@ ccl_device
           const float3 n = max(stack_load_float3(stack, base_ior_offset), zero_float3());
           const float3 k = max(stack_load_float3(stack, edge_tint_k_offset), zero_float3());
 
-          fresnel->n = rgb_to_spectrum(n);
-          fresnel->k = rgb_to_spectrum(k);
+          fresnel->ior = {rgb_to_spectrum(n), rgb_to_spectrum(k)};
           bsdf_microfacet_setup_fresnel_conductor(kg, bsdf, sd, fresnel, is_multiggx);
         }
         else {

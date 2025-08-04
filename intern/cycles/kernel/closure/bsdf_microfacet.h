@@ -42,7 +42,7 @@ struct FresnelDielectricTint {
 };
 
 struct FresnelConductor {
-  Spectrum n, k;
+  ComplexIOR<Spectrum> ior;
 };
 
 struct FresnelGeneralizedSchlick {
@@ -250,7 +250,7 @@ ccl_device_forceinline void microfacet_fresnel(KernelGlobals kg,
   }
   else if (bsdf->fresnel_type == MicrofacetFresnel::CONDUCTOR) {
     ccl_private FresnelConductor *fresnel = (ccl_private FresnelConductor *)bsdf->fresnel;
-    *r_reflectance = fresnel_conductor(cos_theta_i, fresnel->n, fresnel->k);
+    *r_reflectance = fresnel_conductor(cos_theta_i, fresnel->ior);
     *r_transmittance = zero_spectrum();
   }
   else if (bsdf->fresnel_type == MicrofacetFresnel::F82_TINT) {
@@ -808,7 +808,7 @@ ccl_device void bsdf_microfacet_setup_fresnel_conductor(KernelGlobals kg,
   bsdf->sample_weight *= average(bsdf_microfacet_estimate_albedo(kg, sd, bsdf, true, true));
 
   if (preserve_energy) {
-    microfacet_ggx_preserve_energy(kg, bsdf, sd, fresnel_conductor_Fss(fresnel->n, fresnel->k));
+    microfacet_ggx_preserve_energy(kg, bsdf, sd, fresnel_conductor_Fss(fresnel->ior));
   }
 }
 
