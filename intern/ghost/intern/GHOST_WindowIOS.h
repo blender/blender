@@ -237,6 +237,10 @@ class GHOST_WindowIOS : public GHOST_Window {
     return m_systemIOS;
   }
 
+  /* Active window controls. We can only present on active windows (for now).  */
+  bool activateWindow();
+  bool deactivateWindow();
+
 #ifdef WITH_INPUT_IME
   void beginIME(int32_t x, int32_t y, int32_t w, int32_t h, bool completed);
   void endIME();
@@ -298,6 +302,7 @@ class GHOST_WindowIOS : public GHOST_Window {
   bool m_immediateDraw;
   bool m_debug_context;  // for debug messages during context setup
   bool m_is_dialog;
+  bool m_is_active_window;
 
   GHOST_WindowIOS *parent_window_;
 
@@ -324,6 +329,11 @@ class GHOST_WindowIOS : public GHOST_Window {
   /* This is the size of the window post-scaled */
   CGSize getNativeWindowSize();
   float getWindowScaleFactor();
+
+  bool isWindowActive()
+  {
+    return m_is_active_window;
+  }
 };
 
 #ifdef WITH_INPUT_IME

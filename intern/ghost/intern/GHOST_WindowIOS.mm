@@ -39,6 +39,13 @@
 #  define IOS_INPUT_LOG(format, ...)
 #endif
 
+// #define IOS_WINDOW_LOGGING
+#if defined(IOS_WINDOW_LOGGING)
+#  define IOS_WINDOW_LOG(format, ...) NSLog(format, __VA_ARGS__)
+#else
+#  define IOS_WINDOW_LOG(format, ...)
+#endif
+
 extern "C" {
 
 struct bContext;
@@ -47,6 +54,8 @@ static bContext *C = NULL;
 
 int argc = 0;
 const char **argv = nullptr;
+
+GHOST_WindowIOS *current_active_window = nullptr;
 
 /* Implemented in wm.cc. */
 void WM_main_loop_body(bContext *C);
@@ -109,8 +118,6 @@ typedef struct UserInputEvent {
   }
 
 } UserInputEvent;
-
-GHOST_WindowIOS *main_window = nullptr;
 
 /* GHOSTUITapGesture interface for capturing taps. */
 @interface GHOSTUITapGestureRecognizer : UITapGestureRecognizer
@@ -1285,6 +1292,9 @@ GHOST_WindowIOS *main_window = nullptr;
   _view.autoResizeDrawable = YES;
   _view.contentMode = UIViewContentModeScaleToFill;
   _view.contentScaleFactor = [[UIScreen mainScreen] nativeScale];
+  /* Set the refresh rate to the screen's maximum. There may be some value in capping
+   * this value to preserve battery life (60fps seems to work well). */
+  _view.preferredFramesPerSecond = [UIScreen mainScreen].maximumFramesPerSecond;
   _renderer = [[GHOST_IOSMetalRenderer alloc] initWithMetalKitView:_view];
   if (!_renderer) {
     NSLog(@"Renderer initialization failed");
@@ -1340,37 +1350,57 @@ GHOST_WindowIOS *main_window = nullptr;
   return self;
 }
 
-- (void)drawInMTKView:(nonnull MTKView *)view
+- (void)drawInMTKView:(nonnull MTKView *)MTKView
 {
-  /* Only run loop a single time for the main window. */
-  if (main_window) {
-    main_window->beginFrame();
+  /* If no window is currently active we can't display anything.  */
+  if (current_active_window) {
 
-    /* MAIN LOOP */
+    current_active_window->beginFrame();
+
+    /* Run the main loop to handle all events. */
     if (C) {
       WM_main_loop_body(C);
     }
 
-    /* IOS_FIXME - this utilises the deferred swap buffers path. Will
-     * remove when we have proper fix. */
-    GHOST_Context *context = main_window->getContext();
-    if (context) {
-      reinterpret_cast<GHOST_ContextIOS *>(context)->metalSwapBuffers();
+    /* Get the context associated with the currently active window. */
+    GHOST_ContextIOS *context = reinterpret_cast<GHOST_ContextIOS *>(
+        current_active_window->getContext());
+
+    /* Was drawInMTKView() being invoked for the active window?
+     * (We can get called when a MTKView is in the process of being shut down). */
+    if (MTKView == context->getMTKView()) {
+      /* Update the windows contents if required. */
+      if (context->swapBuffersRequested()) {
+        context->metalSwapBuffers();
+        IOS_WINDOW_LOG(@"drawInMTKView:(cw)%p-(co)%p/%p-(mtkView)%p (req)%p",
+                       current_active_window,
+                       context,
+                       current_active_window->getContext(),
+                       context->getMTKView(),
+                       MTKView);
+      }
+    }
+    else {
+      IOS_WINDOW_LOG(@"Ignore drawInMTKView:(cw)%p-(co)%p-(mtkView)%p (req)%p",
+                     current_active_window,
+                     context,
+                     context->getMTKView(),
+                     MTKView);
     }
 
-    main_window->endFrame();
+    current_active_window->endFrame();
   }
 }
 
 - (void)mtkView:(nonnull MTKView *)view drawableSizeWillChange:(CGSize)size
 {
-  if (!main_window->getValid()) {
+  if (!current_active_window || !current_active_window->getValid()) {
     return;
   }
 
-  GHOST_SystemIOS *system = main_window->getSystem();
+  GHOST_SystemIOS *system = current_active_window->getSystem();
   system->pushEvent(
-      new GHOST_Event(system->getMilliSeconds(), GHOST_kEventWindowSize, main_window));
+      new GHOST_Event(system->getMilliSeconds(), GHOST_kEventWindowSize, current_active_window));
 }
 
 @end
@@ -1404,7 +1434,6 @@ GHOST_WindowIOS::GHOST_WindowIOS(GHOST_SystemIOS *systemIos,
                                  GHOST_WindowIOS *parentWindow)
     : GHOST_Window(width, height, state, stereoVisual, false), m_metalView(nil)
 {
-  main_window = this;
   m_fullScreen = false;
   m_systemIOS = systemIos;
   /* Parent window will be the window that focus is returned to upon close. */
@@ -1462,9 +1491,6 @@ GHOST_WindowIOS::GHOST_WindowIOS(GHOST_SystemIOS *systemIos,
   }
   rootWindow.rootViewController = m_uiview_controller;
 
-  /* Make window primary visible window. */
-  [rootWindow makeKeyAndVisible];
-
   /* Create UIView */
   GHOST_ASSERT(width > 0 && height > 0, "invalid wh");
   m_uiview = m_uiview_controller.view;
@@ -1481,6 +1507,12 @@ GHOST_WindowIOS::GHOST_WindowIOS(GHOST_SystemIOS *systemIos,
 
   /* Gesture recognizers. */
   [ghost_rootWindow registerGestureRecognizers];
+
+  /* Deactive the parent (if it exists) and activate this one. */
+  if (parent_window_) {
+    parent_window_->deactivateWindow();
+  }
+  activateWindow();
 }
 
 GHOST_WindowIOS::~GHOST_WindowIOS()
@@ -1489,7 +1521,17 @@ GHOST_WindowIOS::~GHOST_WindowIOS()
 
   releaseNativeHandles();
 
+  /* Make sure we get no more draw calls for this window. */
+  deactivateWindow();
+
+  /* Restore application control and display to parent window. */
+  if (parent_window_) {
+    parent_window_->activateWindow();
+    parent_window_ = nil;
+  }
+
   if (m_metalView) {
+    m_metalView.delegate = nil;
     [m_metalView release];
     m_metalView = nil;
   }
@@ -1500,19 +1542,12 @@ GHOST_WindowIOS::~GHOST_WindowIOS()
 
   /* Release window. */
   if (rootWindow) {
-    [rootWindow resignKeyWindow];
     [rootWindow release];
     rootWindow = nil;
   }
   if (m_uiview_controller) {
     [m_uiview_controller release];
     m_uiview_controller = nil;
-  }
-
-  /* Restore application control and display to parent window. */
-  if (parent_window_) {
-    [parent_window_->rootWindow makeKeyAndVisible];
-    main_window = parent_window_;
   }
 
   if (m_window_title) {
@@ -1843,6 +1878,57 @@ CGSize GHOST_WindowIOS::getNativeWindowSize()
 float GHOST_WindowIOS::getWindowScaleFactor()
 {
   return m_metalView.contentScaleFactor;
+}
+
+bool GHOST_WindowIOS::activateWindow()
+{
+  GHOST_ContextIOS *context = reinterpret_cast<GHOST_ContextIOS *>(getContext());
+  GHOST_ASSERT(rootWindow != nil, "GHOST_WindowIOS::activateWindow root window required");
+  GHOST_ASSERT(context != nullptr, "GHOST_WindowIOS::activateWindow context required");
+  GHOST_ASSERT(current_active_window == nullptr,
+               "GHOST_WindowIOS::activateWindow cannot have more than one active window");
+  GHOST_ASSERT(current_active_window != this && !m_is_active_window,
+               "GHOST_WindowIOS::activateWindow window is already active");
+  /* Make window primary visible window. */
+  [rootWindow makeKeyAndVisible];
+  /* Enable the drawInMTKView() calls for this window. */
+  m_metalView.paused = NO;
+  /* Let the context do presents */
+  context->allowPresents(true);
+  current_active_window = this;
+  m_is_active_window = true;
+  IOS_WINDOW_LOG(@"(ui_View)%p (mtkView)%p con(%p) now active (cw=%p)",
+                 m_uiview,
+                 m_metalView,
+                 getContext(),
+                 current_active_window);
+  return true;
+}
+
+bool GHOST_WindowIOS::deactivateWindow()
+{
+  GHOST_ContextIOS *context = reinterpret_cast<GHOST_ContextIOS *>(getContext());
+  GHOST_ASSERT(rootWindow != nil, "GHOST_WindowIOS::deactivateWindow root window required");
+  GHOST_ASSERT(context != nullptr, "GHOST_WindowIOS::deactivateWindow context required");
+  GHOST_ASSERT(current_active_window == this && current_active_window,
+               "GHOST_WindowIOS::deactivateWindow cannot deactivate a non active window");
+  GHOST_ASSERT(current_active_window == this,
+               "GHOST_WindowIOS::deactivateWindow window is not active");
+  current_active_window = nullptr;
+  m_is_active_window = false;
+  /* Diallow presents from the context */
+  context->allowPresents(false);
+  /* Disable the drawInMTKView() calls for this window. */
+  m_metalView.paused = YES;
+  /* Wait until any outstanding presents in flight are done. */
+  while (m_uiview_controller.beingPresented) {
+  }
+  IOS_WINDOW_LOG(@"(ui_View)%p (mtkView)%p con(%p) deactivated (cw=%p)",
+                 m_uiview,
+                 m_metalView,
+                 getContext(),
+                 current_active_window);
+  return true;
 }
 
 CGPoint GHOST_WindowIOS::scalePointToWindow(CGPoint &point)
