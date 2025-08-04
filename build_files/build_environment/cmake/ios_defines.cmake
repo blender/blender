@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2002-2025 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # Utility file to help define some vars required for the iOS build
 # Defines the following
 # IOSDEP_INCLUDES_STRING - String of include paths: "-I <include_path1> -I <include_path2> ..."

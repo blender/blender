@@ -1,4 +1,6 @@
-
+/* SPDX-FileCopyrightText: 2025 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "GHOST_WindowIOS.h"
 #include "GHOST_C-api.h"
