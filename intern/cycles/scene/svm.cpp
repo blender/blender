@@ -310,6 +310,24 @@ int SVMCompiler::stack_assign_if_linked(ShaderOutput *output)
   return SVM_STACK_INVALID;
 }
 
+int SVMCompiler::stack_assign_if_not_equal(ShaderInput *input, const float value)
+{
+  if (is_linked(input) || input->parent->get_float(input->socket_type) != value) {
+    return stack_assign(input);
+  }
+
+  return SVM_STACK_INVALID;
+}
+
+int SVMCompiler::stack_assign_if_not_equal(ShaderInput *input, const float3 value)
+{
+  if (is_linked(input) || input->parent->get_float3(input->socket_type) != value) {
+    return stack_assign(input);
+  }
+
+  return SVM_STACK_INVALID;
+}
+
 void SVMCompiler::stack_link(ShaderInput *input, ShaderOutput *output)
 {
   if (output->stack_offset == SVM_STACK_INVALID) {

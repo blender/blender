@@ -30,8 +30,6 @@ ccl_device_inline int svm_node_closure_bsdf_skip(KernelGlobals kg, int offset, c
     /* Read all principled BSDF extra data to get the right offset. */
     read_node(kg, &offset);
     read_node(kg, &offset);
-    read_node(kg, &offset);
-    read_node(kg, &offset);
   }
 
   return offset;
@@ -92,126 +90,138 @@ ccl_device
 
   switch (type) {
     case CLOSURE_BSDF_PRINCIPLED_ID: {
+      uint base_color_offset;
+      uint metallic_offset;
+      uint alpha_offset;
+      uint coat_normal_offset;
+      uint distribution_uint;
+      uint diffuse_roughness_offset;
       uint specular_ior_level_offset;
-      uint roughness_offset;
       uint specular_tint_offset;
+      uint emission_strength_offset;
+      uint emission_color_offset;
       uint anisotropic_offset;
-      uint sheen_weight_offset;
-      uint sheen_tint_offset;
-      uint sheen_roughness_offset;
+      uint thin_film_thickness_offset;
+      uint subsurface_weight_offset;
       uint coat_weight_offset;
+      uint sheen_weight_offset;
+      uint transmission_weight_offset;
       uint coat_roughness_offset;
       uint coat_ior_offset;
-      uint eta_offset;
-      uint transmission_weight_offset;
-      uint anisotropic_rotation_offset;
       uint coat_tint_offset;
-      uint coat_normal_offset;
-      uint alpha_offset;
-      uint emission_strength_offset;
-      uint emission_offset;
-      uint thinfilm_thickness_offset;
-      uint diffuse_roughness_offset;
-      const uint4 data_node2 = read_node(kg, &offset);
+      uint subsurface_method_uint;
+      uint subsurface_radius_offset;
+      uint subsurface_scale_offset;
+      uint subsurface_ior_offset;
+      uint subsurface_anisotropy_offset;
+      uint sheen_roughness_offset;
+      uint sheen_tint_offset;
+      uint anisotropic_rotation_offset;
+      uint tangent_offset;
+      uint thin_film_ior_offset;
+      ClosureType distribution;
 
-      float3 T = stack_load_float3(stack, data_node.y);
+      const uint4 data_node2 = read_node(kg, &offset);
+      const uint4 data_node3 = read_node(kg, &offset);
+
+      svm_unpack_node_uchar4(
+          data_node.y, &base_color_offset, &metallic_offset, &alpha_offset, &coat_normal_offset);
       svm_unpack_node_uchar4(data_node.z,
+                             &distribution_uint,
+                             &diffuse_roughness_offset,
                              &specular_ior_level_offset,
-                             &roughness_offset,
-                             &specular_tint_offset,
-                             &anisotropic_offset);
+                             &specular_tint_offset);
       svm_unpack_node_uchar4(data_node.w,
-                             &sheen_weight_offset,
-                             &sheen_tint_offset,
-                             &sheen_roughness_offset,
-                             &diffuse_roughness_offset);
+                             &emission_strength_offset,
+                             &emission_color_offset,
+                             &anisotropic_offset,
+                             &thin_film_thickness_offset);
       svm_unpack_node_uchar4(data_node2.x,
-                             &eta_offset,
-                             &transmission_weight_offset,
-                             &anisotropic_rotation_offset,
-                             &coat_normal_offset);
-      svm_unpack_node_uchar4(data_node2.w,
+                             &subsurface_weight_offset,
                              &coat_weight_offset,
+                             &sheen_weight_offset,
+                             &transmission_weight_offset);
+      svm_unpack_node_uchar4(data_node2.y,
                              &coat_roughness_offset,
                              &coat_ior_offset,
-                             &coat_tint_offset);
+                             &coat_tint_offset,
+                             &subsurface_method_uint);
+      svm_unpack_node_uchar4(data_node2.z,
+                             &subsurface_radius_offset,
+                             &subsurface_scale_offset,
+                             &subsurface_ior_offset,
+                             &subsurface_anisotropy_offset);
+      svm_unpack_node_uchar4(data_node2.w,
+                             &sheen_roughness_offset,
+                             &sheen_tint_offset,
+                             &anisotropic_rotation_offset,
+                             &tangent_offset);
+      thin_film_ior_offset = data_node3.x;
 
-      // get Disney principled parameters
-      const float metallic = saturatef(param1);
+      const float3 default_base_color = make_float3(__uint_as_float(data_node3.y),
+                                                    __uint_as_float(data_node3.z),
+                                                    __uint_as_float(data_node3.w));
+      const float3 base_color = max(
+          stack_load_float3_default(stack, base_color_offset, default_base_color), zero_float3());
+      const float3 clamped_base_color = min(base_color, one_float3());
+      const float ior = fmaxf(param1, 1e-5f);
+      const float roughness = saturatef(param2);
+      const float metallic = saturatef(stack_load_float_default(stack, metallic_offset, 0.0f));
+
+      const float alpha = saturatef(stack_load_float_default(stack, alpha_offset, 1.0f));
+      const float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
+      const float3 coat_normal = safe_normalize_fallback(
+          stack_load_float3_default(stack, coat_normal_offset, N), sd->N);
+
+      distribution = (ClosureType)distribution_uint;
+
+      const float diffuse_roughness = saturatef(
+          stack_load_float_default(stack, diffuse_roughness_offset, 0.0f));
+      const float specular_ior_level = max(
+          stack_load_float_default(stack, specular_ior_level_offset, 0.5f), 0.0f);
+      const Spectrum specular_tint = rgb_to_spectrum(max(
+          stack_load_float3_default(stack, specular_tint_offset, one_float3()), zero_float3()));
+
+      const float3 emission = rgb_to_spectrum(stack_load_float3_default(
+                                  stack, emission_color_offset, zero_float3())) *
+                              stack_load_float_default(stack, emission_strength_offset, 0.0f);
+      const float anisotropic = saturatef(
+          stack_load_float_default(stack, anisotropic_offset, 0.0f));
+      const float thinfilm_thickness = stack_load_float_default(
+          stack, thin_film_thickness_offset, 0.0f);
+
 #ifdef __SUBSURFACE__
-      const float subsurface_weight = saturatef(param2);
+      const float subsurface_weight = saturatef(
+          stack_load_float_default(stack, subsurface_weight_offset, 0.0f));
 #else
       const float subsurface_weight = 0.0f;
 #endif
-      const float specular_ior_level = max(stack_load_float(stack, specular_ior_level_offset),
-                                           0.0f);
-      const float roughness = saturatef(stack_load_float(stack, roughness_offset));
-      const Spectrum specular_tint = rgb_to_spectrum(
-          max(stack_load_float3(stack, specular_tint_offset), zero_float3()));
-      const float anisotropic = saturatef(stack_load_float(stack, anisotropic_offset));
-      const float sheen_weight = max(stack_load_float(stack, sheen_weight_offset), 0.0f);
-      const float3 sheen_tint = max(stack_load_float3(stack, sheen_tint_offset), zero_float3());
-      const float sheen_roughness = saturatef(stack_load_float(stack, sheen_roughness_offset));
-      const float coat_weight = fmaxf(stack_load_float(stack, coat_weight_offset), 0.0f);
-      const float coat_roughness = saturatef(stack_load_float(stack, coat_roughness_offset));
-      const float coat_ior = fmaxf(stack_load_float(stack, coat_ior_offset), 1.0f);
-      const float3 coat_tint = max(stack_load_float3(stack, coat_tint_offset), zero_float3());
+      const float coat_weight = fmaxf(stack_load_float_default(stack, coat_weight_offset, 0.0f),
+                                      0.0f);
+      const float sheen_weight = fmaxf(stack_load_float_default(stack, sheen_weight_offset, 0.0f),
+                                       0.0f);
       const float transmission_weight = saturatef(
-          stack_load_float(stack, transmission_weight_offset));
-      const float anisotropic_rotation = stack_load_float(stack, anisotropic_rotation_offset);
-      const float ior = fmaxf(stack_load_float(stack, eta_offset), 1e-5f);
+          stack_load_float_default(stack, transmission_weight_offset, 0.0f));
 
-      const ClosureType distribution = (ClosureType)data_node2.y;
-#ifdef __SUBSURFACE__
-      const ClosureType subsurface_method = (ClosureType)data_node2.z;
-#endif
+      float thinfilm_ior = 0.0f;
+      if (thinfilm_thickness > THINFILM_THICKNESS_CUTOFF) {
+        thinfilm_ior = fmaxf(stack_load_float(stack, thin_film_ior_offset), 1e-5f);
+      }
 
-      const float3 valid_reflection_N = maybe_ensure_valid_specular_reflection(sd, N);
-      float3 coat_normal = stack_valid(coat_normal_offset) ?
-                               stack_load_float3(stack, coat_normal_offset) :
-                               sd->N;
-      coat_normal = safe_normalize_fallback(coat_normal, sd->N);
-
-      // get the base color
-      const uint4 data_base_color = read_node(kg, &offset);
-      float3 base_color = stack_valid(data_base_color.x) ?
-                              stack_load_float3(stack, data_base_color.x) :
-                              make_float3(__uint_as_float(data_base_color.y),
-                                          __uint_as_float(data_base_color.z),
-                                          __uint_as_float(data_base_color.w));
-      base_color = max(base_color, zero_float3());
-      const float3 clamped_base_color = min(base_color, one_float3());
-
-      // get the subsurface scattering data
-      const uint4 data_subsurf = read_node(kg, &offset);
-
-      const uint4 data_alpha_emission_thin = read_node(kg, &offset);
-      svm_unpack_node_uchar4(data_alpha_emission_thin.x,
-                             &alpha_offset,
-                             &emission_strength_offset,
-                             &emission_offset,
-                             &thinfilm_thickness_offset);
-      float alpha = stack_valid(alpha_offset) ? stack_load_float(stack, alpha_offset) :
-                                                __uint_as_float(data_alpha_emission_thin.y);
-      alpha = saturatef(alpha);
-
-      const float emission_strength = stack_valid(emission_strength_offset) ?
-                                          stack_load_float(stack, emission_strength_offset) :
-                                          __uint_as_float(data_alpha_emission_thin.z);
-      const float3 emission = stack_load_float3(stack, emission_offset) * emission_strength;
-
-      const float thinfilm_thickness = fmaxf(stack_load_float(stack, thinfilm_thickness_offset),
-                                             1e-5f);
-      const float thinfilm_ior = fmaxf(stack_load_float(stack, data_alpha_emission_thin.w), 1e-5f);
-
-      Spectrum weight = closure_weight * mix_weight;
+      /* We're ignoring closure_weight here since it's always 1 for the Principled BSDF, so there's
+       * no point in setting it. */
+      Spectrum weight = make_spectrum(mix_weight);
 
       float alpha_x = sqr(roughness);
       float alpha_y = sqr(roughness);
-      if (anisotropic > 0.0f) {
+      float3 T = zero_float3();
+      if (anisotropic > 0.0f && stack_valid(tangent_offset)) {
+        T = stack_load_float3(stack, tangent_offset);
         const float aspect = sqrtf(1.0f - anisotropic * 0.9f);
         alpha_x /= aspect;
         alpha_y *= aspect;
+        const float anisotropic_rotation = stack_load_float_default(
+            stack, anisotropic_rotation_offset, 0.0f);
         if (anisotropic_rotation != 0.0f) {
           T = rotate_around_axis(T, N, anisotropic_rotation * M_2PI_F);
         }
@@ -235,6 +245,10 @@ ccl_device
 
       /* First layer: Sheen */
       if (sheen_weight > CLOSURE_WEIGHT_CUTOFF) {
+        const float3 sheen_tint = max(
+            stack_load_float3_default(stack, sheen_tint_offset, one_float3()), zero_float3());
+        const float sheen_roughness = saturatef(stack_load_float(stack, sheen_roughness_offset));
+
         ccl_private SheenBsdf *bsdf = (ccl_private SheenBsdf *)bsdf_alloc(
             sd, sizeof(SheenBsdf), sheen_weight * rgb_to_spectrum(sheen_tint) * weight);
 
@@ -258,13 +272,18 @@ ccl_device
 
       /* Second layer: Coat */
       if (coat_weight > CLOSURE_WEIGHT_CUTOFF) {
-        coat_normal = maybe_ensure_valid_specular_reflection(sd, coat_normal);
+        const float coat_roughness = saturatef(stack_load_float(stack, coat_roughness_offset));
+        const float coat_ior = fmaxf(stack_load_float(stack, coat_ior_offset), 1.0f);
+        const float3 coat_tint = max(
+            stack_load_float3_default(stack, coat_tint_offset, one_float3()), zero_float3());
+
+        const float3 valid_coat_normal = maybe_ensure_valid_specular_reflection(sd, coat_normal);
         if (reflective_caustics) {
           ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
               sd, sizeof(MicrofacetBsdf), coat_weight * weight);
 
           if (bsdf) {
-            bsdf->N = coat_normal;
+            bsdf->N = valid_coat_normal;
             bsdf->T = zero_float3();
             bsdf->ior = coat_ior;
 
@@ -300,7 +319,7 @@ ccl_device
            * each other for more intuitive control, in particular main roughness not affecting the
            * coat.
            */
-          const float cosNI = dot(sd->wi, coat_normal);
+          const float cosNI = dot(sd->wi, valid_coat_normal);
           /* Refract incoming direction into coat material.
            * TIR is no concern here since we're always coming from the outside. */
           const float cosNT = sqrtf(1.0f - sqr(1.0f / coat_ior) * (1 - sqr(cosNI)));
@@ -432,26 +451,30 @@ ccl_device
 
       /* Diffuse/Subsurface component */
 #ifdef __SUBSURFACE__
-      ccl_private Bssrdf *bssrdf = bssrdf_alloc(
-          sd, rgb_to_spectrum(clamped_base_color) * subsurface_weight * weight);
-      if (bssrdf) {
-        const float3 subsurface_radius = stack_load_float3(stack, data_subsurf.y);
-        const float subsurface_scale = stack_load_float(stack, data_subsurf.z);
+      if (subsurface_weight > CLOSURE_WEIGHT_CUTOFF) {
+        const ClosureType subsurface_method = (ClosureType)subsurface_method_uint;
+        ccl_private Bssrdf *bssrdf = bssrdf_alloc(
+            sd, rgb_to_spectrum(clamped_base_color) * subsurface_weight * weight);
+        if (bssrdf) {
+          const float3 subsurface_radius = stack_load_float3(stack, subsurface_radius_offset);
+          const float subsurface_scale = stack_load_float(stack, subsurface_scale_offset);
 
-        bssrdf->radius = rgb_to_spectrum(max(subsurface_radius * subsurface_scale, zero_float3()));
-        bssrdf->albedo = rgb_to_spectrum(clamped_base_color);
-        bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
-        bssrdf->alpha = sqr(roughness);
-        /* IOR is clamped to [1.01..3.8] inside bssrdf_setup */
-        bssrdf->ior = eta;
-        /* Anisotropy is clamped to [0.0..0.9] inside bssrdf_setup */
-        bssrdf->anisotropy = stack_load_float(stack, data_subsurf.w);
-        if (subsurface_method == CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
-          bssrdf->ior = stack_load_float(stack, data_subsurf.x);
+          bssrdf->radius = rgb_to_spectrum(
+              max(subsurface_radius * subsurface_scale, zero_float3()));
+          bssrdf->albedo = rgb_to_spectrum(clamped_base_color);
+          bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
+          bssrdf->alpha = sqr(roughness);
+          /* IOR is clamped to [1.01..3.8] inside bssrdf_setup */
+          bssrdf->ior = eta;
+          /* Anisotropy is clamped to [0.0..0.9] inside bssrdf_setup */
+          bssrdf->anisotropy = stack_load_float_default(stack, subsurface_anisotropy_offset, 0.0f);
+          if (subsurface_method == CLOSURE_BSSRDF_RANDOM_WALK_SKIN_ID) {
+            bssrdf->ior = stack_load_float_default(stack, subsurface_ior_offset, 1.4f);
+          }
+
+          /* setup bsdf */
+          sd->flag |= bssrdf_setup(sd, bssrdf, path_flag, subsurface_method);
         }
-
-        /* setup bsdf */
-        sd->flag |= bssrdf_setup(sd, bssrdf, path_flag, subsurface_method);
       }
 #else
       (void)data_subsurf;
@@ -464,8 +487,6 @@ ccl_device
       if (bsdf) {
         bsdf->N = N;
 
-        const float diffuse_roughness = saturatef(
-            stack_load_float(stack, diffuse_roughness_offset));
         /* setup bsdf */
         if (diffuse_roughness < CLOSURE_WEIGHT_CUTOFF) {
           sd->flag |= bsdf_diffuse_setup((ccl_private DiffuseBsdf *)bsdf);
@@ -538,7 +559,7 @@ ccl_device
         const float roughness = saturatef(param1);
         bsdf->alpha_x = sqr(roughness);
         bsdf->alpha_y = sqr(roughness);
-        if (anisotropy > 0.0f && tangent_offset != SVM_STACK_INVALID) {
+        if (anisotropy > 0.0f && stack_valid(tangent_offset)) {
           bsdf->T = stack_load_float3(stack, tangent_offset);
           const float aspect = sqrtf(1.0f - anisotropy * 0.9f);
           bsdf->alpha_x /= aspect;
@@ -715,7 +736,7 @@ ccl_device
       const bool refractive_caustics = true;
 #endif
 
-      const float thinfilm_thickness = fmaxf(stack_load_float(stack, data_node.z), 1e-5f);
+      const float thinfilm_thickness = stack_load_float(stack, data_node.z);
       const float thinfilm_ior = fmaxf(stack_load_float(stack, data_node.w), 1e-5f);
 
       ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(

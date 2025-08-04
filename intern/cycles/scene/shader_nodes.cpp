@@ -2177,16 +2177,13 @@ void MetallicBsdfNode::attributes(Shader *shader, AttributeRequestSet *attribute
 void MetallicBsdfNode::simplify_settings(Scene * /* scene */)
 {
   /* If the anisotropy is close enough to zero, fall back to the isotropic case. */
-  ShaderInput *tangent_input = input("Tangent");
-  if (tangent_input->link && is_isotropic()) {
-    tangent_input->disconnect();
+  if (is_isotropic()) {
+    disconnect_unused_input("Tangent");
   }
 }
 
 void MetallicBsdfNode::compile(SVMCompiler &compiler)
 {
-  compiler.add_node(NODE_CLOSURE_SET_WEIGHT, one_float3());
-
   const int base_color_ior_offset = fresnel_type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR ?
                                         compiler.stack_assign(input("IOR")) :
                                         compiler.stack_assign(input("Base Color"));
@@ -2277,9 +2274,8 @@ void GlossyBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 void GlossyBsdfNode::simplify_settings(Scene * /* scene */)
 {
   /* If the anisotropy is close enough to zero, fall back to the isotropic case. */
-  ShaderInput *tangent_input = input("Tangent");
-  if (tangent_input->link && is_isotropic()) {
-    tangent_input->disconnect();
+  if (is_isotropic()) {
+    disconnect_unused_input("Tangent");
   }
 }
 
@@ -2587,14 +2583,40 @@ void PrincipledBsdfNode::simplify_settings(Scene * /* scene */)
 {
   if (!has_surface_emission()) {
     /* Emission will be zero, so optimize away any connected emission input. */
-    ShaderInput *emission_in = input("Emission Color");
-    ShaderInput *strength_in = input("Emission Strength");
-    if (emission_in->link) {
-      emission_in->disconnect();
-    }
-    if (strength_in->link) {
-      strength_in->disconnect();
-    }
+    disconnect_unused_input("Emission Color");
+    disconnect_unused_input("Emission Strength");
+  }
+
+  if (!has_surface_bssrdf()) {
+    disconnect_unused_input("Subsurface Weight");
+    disconnect_unused_input("Subsurface Radius");
+    disconnect_unused_input("Subsurface Scale");
+    disconnect_unused_input("Subsurface IOR");
+    disconnect_unused_input("Subsurface Anisotropy");
+  }
+
+  if (!has_nonzero_weight("Coat Weight")) {
+    disconnect_unused_input("Coat Weight");
+    disconnect_unused_input("Coat IOR");
+    disconnect_unused_input("Coat Roughness");
+    disconnect_unused_input("Coat Tint");
+  }
+
+  if (!has_nonzero_weight("Sheen Weight")) {
+    disconnect_unused_input("Sheen Weight");
+    disconnect_unused_input("Sheen Roughness");
+    disconnect_unused_input("Sheen Tint");
+  }
+
+  if (!has_nonzero_weight("Anisotropic")) {
+    disconnect_unused_input("Anisotropic");
+    disconnect_unused_input("Anisotropic Rotation");
+    disconnect_unused_input("Tangent");
+  }
+
+  if (!has_nonzero_weight("Thin Film Thickness")) {
+    disconnect_unused_input("Thin Film Thickness");
+    disconnect_unused_input("Thin Film IOR");
   }
 }
 
@@ -2621,6 +2643,18 @@ bool PrincipledBsdfNode::has_surface_bssrdf()
          (subsurface_scale_in->link != nullptr || subsurface_scale != 0.0f);
 }
 
+bool PrincipledBsdfNode::has_nonzero_weight(const char *name)
+{
+  ShaderInput *weight_in = input(name);
+  if (weight_in == nullptr) {
+    return true;
+  }
+  if (weight_in->link != nullptr) {
+    return true;
+  }
+  return (get_float(weight_in->socket_type) >= CLOSURE_WEIGHT_CUTOFF);
+}
+
 void PrincipledBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
   if (shader->has_surface_link()) {
@@ -2636,93 +2670,125 @@ void PrincipledBsdfNode::attributes(Shader *shader, AttributeRequestSet *attribu
 
 void PrincipledBsdfNode::compile(SVMCompiler &compiler)
 {
-  ShaderInput *base_color_in = input("Base Color");
+  /* Allocate basic material inputs. */
+  const int base_color_offset = compiler.stack_assign_if_linked(input("Base Color"));
+  const int ior_offset = compiler.stack_assign_if_linked(input("IOR"));
+  const int roughness_offset = compiler.stack_assign_if_linked(input("Roughness"));
+  const int metallic_offset = compiler.stack_assign_if_not_equal(input("Metallic"), 0.0f);
 
-  ShaderInput *p_metallic = input("Metallic");
-  ShaderInput *p_subsurface_weight = input("Subsurface Weight");
-
-  ShaderInput *emission_strength_in = input("Emission Strength");
-  ShaderInput *alpha_in = input("Alpha");
-
-  const float3 weight = one_float3();
-
-  compiler.add_node(NODE_CLOSURE_SET_WEIGHT, weight);
-
+  /* Allocate miscellaneous inputs. */
+  const int alpha_offset = compiler.stack_assign_if_not_equal(input("Alpha"), 1.0f);
   const int normal_offset = compiler.stack_assign_if_linked(input("Normal"));
   const int coat_normal_offset = compiler.stack_assign_if_linked(input("Coat Normal"));
-  const int tangent_offset = compiler.stack_assign_if_linked(input("Tangent"));
-  const int specular_ior_level_offset = compiler.stack_assign(input("Specular IOR Level"));
-  const int roughness_offset = compiler.stack_assign(input("Roughness"));
-  const int diffuse_roughness_offset = compiler.stack_assign(input("Diffuse Roughness"));
-  const int specular_tint_offset = compiler.stack_assign(input("Specular Tint"));
-  const int anisotropic_offset = compiler.stack_assign(input("Anisotropic"));
-  const int sheen_weight_offset = compiler.stack_assign(input("Sheen Weight"));
-  const int sheen_roughness_offset = compiler.stack_assign(input("Sheen Roughness"));
-  const int sheen_tint_offset = compiler.stack_assign(input("Sheen Tint"));
-  const int coat_weight_offset = compiler.stack_assign(input("Coat Weight"));
-  const int coat_roughness_offset = compiler.stack_assign(input("Coat Roughness"));
-  const int coat_ior_offset = compiler.stack_assign(input("Coat IOR"));
-  const int coat_tint_offset = compiler.stack_assign(input("Coat Tint"));
-  const int ior_offset = compiler.stack_assign(input("IOR"));
-  const int transmission_weight_offset = compiler.stack_assign(input("Transmission Weight"));
-  const int anisotropic_rotation_offset = compiler.stack_assign(input("Anisotropic Rotation"));
-  const int subsurface_radius_offset = compiler.stack_assign(input("Subsurface Radius"));
-  const int subsurface_scale_offset = compiler.stack_assign(input("Subsurface Scale"));
-  const int subsurface_ior_offset = compiler.stack_assign(input("Subsurface IOR"));
-  const int subsurface_anisotropy_offset = compiler.stack_assign(input("Subsurface Anisotropy"));
-  const int alpha_offset = compiler.stack_assign_if_linked(alpha_in);
-  const int emission_strength_offset = compiler.stack_assign_if_linked(emission_strength_in);
-  const int emission_color_offset = compiler.stack_assign(input("Emission Color"));
-  const int thin_film_thickness_offset = compiler.stack_assign(input("Thin Film Thickness"));
-  const int thin_film_ior_offset = compiler.stack_assign(input("Thin Film IOR"));
+  const int transmission_weight_offset = compiler.stack_assign_if_not_equal(
+      input("Transmission Weight"), 0.0f);
+  const int diffuse_roughness_offset = compiler.stack_assign_if_not_equal(
+      input("Diffuse Roughness"), 0.0f);
+  const int specular_ior_level_offset = compiler.stack_assign_if_not_equal(
+      input("Specular IOR Level"), 0.5f);
+  const int specular_tint_offset = compiler.stack_assign_if_not_equal(input("Specular Tint"),
+                                                                      one_float3());
+
+  /* Allocate emission inputs, if enabled. */
+  int emission_strength_offset = SVM_STACK_INVALID;
+  int emission_color_offset = SVM_STACK_INVALID;
+  if (has_surface_emission()) {
+    emission_strength_offset = compiler.stack_assign(input("Emission Strength"));
+    emission_color_offset = compiler.stack_assign(input("Emission Color"));
+  }
+
+  /* Allocate subsurface inputs, if enabled. */
+  int subsurface_weight_offset = SVM_STACK_INVALID;
+  int subsurface_radius_offset = SVM_STACK_INVALID;
+  int subsurface_scale_offset = SVM_STACK_INVALID;
+  int subsurface_ior_offset = SVM_STACK_INVALID;
+  int subsurface_anisotropy_offset = SVM_STACK_INVALID;
+  if (has_surface_bssrdf()) {
+    subsurface_weight_offset = compiler.stack_assign(input("Subsurface Weight"));
+    subsurface_radius_offset = compiler.stack_assign(input("Subsurface Radius"));
+    subsurface_scale_offset = compiler.stack_assign(input("Subsurface Scale"));
+    subsurface_ior_offset = compiler.stack_assign_if_not_equal(input("Subsurface IOR"), 1.4f);
+    subsurface_anisotropy_offset = compiler.stack_assign_if_not_equal(
+        input("Subsurface Anisotropy"), 0.0f);
+  }
+
+  /* Allocate coat inputs, if enabled. */
+  int coat_weight_offset = SVM_STACK_INVALID;
+  int coat_roughness_offset = SVM_STACK_INVALID;
+  int coat_ior_offset = SVM_STACK_INVALID;
+  int coat_tint_offset = SVM_STACK_INVALID;
+  if (has_nonzero_weight("Coat Weight")) {
+    coat_weight_offset = compiler.stack_assign(input("Coat Weight"));
+    coat_roughness_offset = compiler.stack_assign(input("Coat Roughness"));
+    coat_ior_offset = compiler.stack_assign(input("Coat IOR"));
+    coat_tint_offset = compiler.stack_assign_if_not_equal(input("Coat Tint"), one_float3());
+  }
+
+  /* Allocate sheen inputs, if enabled. */
+  int sheen_weight_offset = SVM_STACK_INVALID;
+  int sheen_roughness_offset = SVM_STACK_INVALID;
+  int sheen_tint_offset = SVM_STACK_INVALID;
+  if (has_nonzero_weight("Sheen Weight")) {
+    sheen_weight_offset = compiler.stack_assign(input("Sheen Weight"));
+    sheen_roughness_offset = compiler.stack_assign(input("Sheen Roughness"));
+    sheen_tint_offset = compiler.stack_assign_if_not_equal(input("Sheen Tint"), one_float3());
+  }
+
+  /* Allocate anisotropy inputs, if enabled. */
+  int anisotropic_offset = SVM_STACK_INVALID;
+  int anisotropic_rotation_offset = SVM_STACK_INVALID;
+  int tangent_offset = SVM_STACK_INVALID;
+  if (has_nonzero_weight("Anisotropic")) {
+    anisotropic_offset = compiler.stack_assign(input("Anisotropic"));
+    anisotropic_rotation_offset = compiler.stack_assign_if_not_equal(input("Anisotropic Rotation"),
+                                                                     0.0f);
+    tangent_offset = compiler.stack_assign_if_linked(input("Tangent"));
+  }
+
+  /* Allocate thin film inputs, if enabled. */
+  int thin_film_thickness_offset = SVM_STACK_INVALID;
+  int thin_film_ior_offset = SVM_STACK_INVALID;
+  if (has_nonzero_weight("Thin Film Thickness")) {
+    thin_film_thickness_offset = compiler.stack_assign(input("Thin Film Thickness"));
+    thin_film_ior_offset = compiler.stack_assign(input("Thin Film IOR"));
+  }
 
   compiler.add_node(
       NODE_CLOSURE_BSDF,
-      compiler.encode_uchar4(closure,
-                             compiler.stack_assign(p_metallic),
-                             compiler.stack_assign(p_subsurface_weight),
-                             compiler.closure_mix_weight_offset()),
-      __float_as_int((p_metallic) ? get_float(p_metallic->socket_type) : 0.0f),
-      __float_as_int((p_subsurface_weight) ? get_float(p_subsurface_weight->socket_type) : 0.0f));
+      compiler.encode_uchar4(
+          closure, ior_offset, roughness_offset, compiler.closure_mix_weight_offset()),
+      __float_as_int(get_float(input("IOR")->socket_type)),
+      __float_as_int(get_float(input("Roughness")->socket_type)));
 
   compiler.add_node(
       normal_offset,
-      tangent_offset,
+      compiler.encode_uchar4(base_color_offset, metallic_offset, alpha_offset, coat_normal_offset),
       compiler.encode_uchar4(
-          specular_ior_level_offset, roughness_offset, specular_tint_offset, anisotropic_offset),
-      compiler.encode_uchar4(sheen_weight_offset,
-                             sheen_tint_offset,
-                             sheen_roughness_offset,
-                             diffuse_roughness_offset));
+          distribution, diffuse_roughness_offset, specular_ior_level_offset, specular_tint_offset),
+      compiler.encode_uchar4(emission_strength_offset,
+                             emission_color_offset,
+                             anisotropic_offset,
+                             thin_film_thickness_offset));
 
   compiler.add_node(
+      compiler.encode_uchar4(subsurface_weight_offset,
+                             coat_weight_offset,
+                             sheen_weight_offset,
+                             transmission_weight_offset),
       compiler.encode_uchar4(
-          ior_offset, transmission_weight_offset, anisotropic_rotation_offset, coat_normal_offset),
-      distribution,
-      subsurface_method,
+          coat_roughness_offset, coat_ior_offset, coat_tint_offset, subsurface_method),
+      compiler.encode_uchar4(subsurface_radius_offset,
+                             subsurface_scale_offset,
+                             subsurface_ior_offset,
+                             subsurface_anisotropy_offset),
       compiler.encode_uchar4(
-          coat_weight_offset, coat_roughness_offset, coat_ior_offset, coat_tint_offset));
+          sheen_roughness_offset, sheen_tint_offset, anisotropic_rotation_offset, tangent_offset));
 
-  const float3 bc_default = get_float3(base_color_in->socket_type);
-
-  compiler.add_node(
-      ((base_color_in->link) ? compiler.stack_assign(base_color_in) : SVM_STACK_INVALID),
-      __float_as_int(bc_default.x),
-      __float_as_int(bc_default.y),
-      __float_as_int(bc_default.z));
-
-  compiler.add_node(subsurface_ior_offset,
-                    subsurface_radius_offset,
-                    subsurface_scale_offset,
-                    subsurface_anisotropy_offset);
-
-  compiler.add_node(compiler.encode_uchar4(alpha_offset,
-                                           emission_strength_offset,
-                                           emission_color_offset,
-                                           thin_film_thickness_offset),
-                    __float_as_int(get_float(alpha_in->socket_type)),
-                    __float_as_int(get_float(emission_strength_in->socket_type)),
-                    thin_film_ior_offset);
+  const float3 base_color = get_float3(input("Base Color")->socket_type);
+  compiler.add_node(thin_film_ior_offset,
+                    __float_as_int(base_color.x),
+                    __float_as_int(base_color.y),
+                    __float_as_int(base_color.z));
 }
 
 void PrincipledBsdfNode::compile(OSLCompiler &compiler)

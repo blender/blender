@@ -265,7 +265,7 @@ ccl_device_forceinline void microfacet_fresnel(KernelGlobals kg,
     ccl_private FresnelGeneralizedSchlick *fresnel = (ccl_private FresnelGeneralizedSchlick *)
                                                          bsdf->fresnel;
     Spectrum F;
-    if (fresnel->thin_film.thickness > 0.1f) {
+    if (fresnel->thin_film.thickness > THINFILM_THICKNESS_CUTOFF) {
       /* Iridescence doesn't combine well with the general case. We only expose it through the
        * Principled BSDF for now, so it's fine to not support custom exponents and F90. */
       kernel_assert(fresnel->exponent < 0.0f);
@@ -424,7 +424,7 @@ ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
     ccl_private FresnelGeneralizedSchlick *fresnel = (ccl_private FresnelGeneralizedSchlick *)
                                                          bsdf->fresnel;
 
-    if (fresnel->thin_film.thickness > 0.1f) {
+    if (fresnel->thin_film.thickness > THINFILM_THICKNESS_CUTOFF) {
       /* Precomputing LUTs for thin-film iridescence isn't viable, so fall back to the specular
        * reflection approximation from the microfacet_fresnel call above in that case. */
     }
