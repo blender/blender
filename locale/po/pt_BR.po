@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 15:03+0000\n"
 "Last-Translator: Amy Lily <lillya.assist@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -10793,6 +10793,10 @@ msgid "Menu"
 msgstr "Menu"
 
 
+msgid "Shader"
+msgstr "Sombreador"
+
+
 msgid "Collection"
 msgstr "Coleção"
 
@@ -14832,10 +14836,6 @@ msgstr "Tela"
 
 msgid "Script"
 msgstr "Script"
-
-
-msgid "Shader"
-msgstr "Sombreador"
 
 
 msgid "Pattern"
@@ -21356,6 +21356,42 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
 msgid "View Regions"
 msgstr "Visualizar Regiões"
 
@@ -21494,42 +21530,6 @@ msgstr "Rolagem dos ossos"
 
 msgid "Pivot Point"
 msgstr "Pontos de pivô"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
 
 
 msgid "Basic"
@@ -27503,10 +27503,6 @@ msgid "Rotate"
 msgstr "Rotacionar"
 
 
-msgid "Method to use to filter rotation"
-msgstr "Método usado para filtrar a rotação."
-
-
 msgid "Coordinate space to scale relative to"
 msgstr "Espaço de coordenadas no qual calcular o escalonamento relativo."
 
@@ -27711,14 +27707,6 @@ msgid "Poisson Disk"
 msgstr "Disco de Poisson"
 
 
-msgid "Input Items"
-msgstr "Itens de Entrada"
-
-
-msgid "Triangles"
-msgstr "Triângulos"
-
-
 msgid "Primary"
 msgstr "Primário"
 
@@ -27751,6 +27739,10 @@ msgid "Fill Type"
 msgstr "Tipo de preenchimento"
 
 
+msgid "Triangles"
+msgstr "Triângulos"
+
+
 msgid "UV Sphere"
 msgstr "Esfera UV"
 
@@ -27761,10 +27753,6 @@ msgstr "Informações de objetos"
 
 msgid "Repeat Output"
 msgstr "Repetir Resultado"
-
-
-msgid "Z Up"
-msgstr "Z Para cima"
 
 
 msgid "Tangent Space"
@@ -27819,16 +27807,12 @@ msgid "Pack UV Islands"
 msgstr "Empacotar as ilhas UV"
 
 
-msgid "Angle Based"
-msgstr "Usar ângulos como base"
-
-
-msgid "Conformal"
-msgstr "Conformante"
-
-
 msgid "Warning"
 msgstr "Alerta"
+
+
+msgid "Input Items"
+msgstr "Itens de Entrada"
 
 
 msgctxt "NodeTree"
@@ -33970,6 +33954,10 @@ msgstr "X Para cima"
 
 msgid "Y Up"
 msgstr "Y Para cima"
+
+
+msgid "Z Up"
+msgstr "Z Para cima"
 
 
 msgid "-X Up"
@@ -41115,10 +41103,6 @@ msgid "Move Shape Key"
 msgstr "Mover chave de formato"
 
 
-msgid "Move the active shape key up/down in the list"
-msgstr "Move a chave de formato ativa acima ou abaixo na lista."
-
-
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Remover chave de formato"
@@ -44344,10 +44328,6 @@ msgid "Hide Panels"
 msgstr "Ocultar painéis"
 
 
-msgid "Hide all the panels"
-msgstr "Ocultar todos os painéis"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "Ajustar tela"
@@ -46879,6 +46859,14 @@ msgid "Unwrapping method (Angle Based usually gives better results than Conforma
 msgstr "Método de desdobramento (quando embasados em ângulos, usualmente fornecem melhores resultados do que os conformantes, mas são minimamente mais lentos)."
 
 
+msgid "Angle Based"
+msgstr "Usar ângulos como base"
+
+
+msgid "Conformal"
+msgstr "Conformante"
+
+
 msgid "Map UVs taking vertex position after Subdivision Surface modifier has been applied"
 msgstr "Mapeia as UVs obtendo a posição do vértices após o modificador de subdivisão de superfície ter sido aplicado."
 
@@ -48875,6 +48863,14 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
 
@@ -48885,14 +48881,6 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
 
 
 msgid "Bone Constraints"
@@ -61715,11 +61703,6 @@ msgstr "Dividir na Vertical"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "Alternar para tela cheia"
-
-
-msgctxt "Operator"
 msgid "Sound"
 msgstr "Som"
 
@@ -65234,10 +65217,6 @@ msgstr "Corte de anel não funciona bem na mostragem de edição de malha deform
 
 msgid "Path selection requires two matching elements to be selected"
 msgstr "Seleção de caminho requer que dois elementos que combinem sejam selecionados."
-
-
-msgid "Cannot rip selected faces"
-msgstr "Não é possível separar as faces selecionadas."
 
 
 msgid "Cannot rip multiple disconnected vertices"

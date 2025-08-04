@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6581,6 +6581,22 @@ msgid "Mask"
 msgstr "Maszk"
 
 
+msgid "Mirror"
+msgstr "Tükrözés"
+
+
+msgid "Local View"
+msgstr "Helyi nézet"
+
+
+msgid "Navigation"
+msgstr "Navigáció"
+
+
+msgid "Align View"
+msgstr "Nézet igazítása"
+
+
 msgid "Metaball"
 msgstr "Meta test"
 
@@ -6619,22 +6635,6 @@ msgstr "Összefésülés"
 
 msgid "Text"
 msgstr "Szöveg"
-
-
-msgid "Mirror"
-msgstr "Tükrözés"
-
-
-msgid "Local View"
-msgstr "Helyi nézet"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
 
 
 msgctxt "MovieClip"
@@ -9262,10 +9262,6 @@ msgid "Bake"
 msgstr "Sütés"
 
 
-msgid "Triangles"
-msgstr "Háromszögek"
-
-
 msgid "Linear interpolation"
 msgstr "Lineáris interpoláció"
 
@@ -9274,16 +9270,16 @@ msgid "Edge Angle"
 msgstr "Élszög"
 
 
+msgid "Triangles"
+msgstr "Háromszögek"
+
+
 msgid "Object Info"
 msgstr "Objektum infó"
 
 
 msgid "Repeat Output"
 msgstr "Kimenet ismétlése"
-
-
-msgid "Z Up"
-msgstr "Z fel"
 
 
 msgid "Set Material"
@@ -10174,6 +10170,10 @@ msgstr "X fel"
 
 msgid "Y Up"
 msgstr "Y fel"
+
+
+msgid "Z Up"
+msgstr "Z fel"
 
 
 msgid "-X Up"
@@ -11160,10 +11160,6 @@ msgstr "Az aktuális formakulcs tükrözése a helyi X tengelyen"
 msgctxt "Operator"
 msgid "Move Shape Key"
 msgstr "Formakulcs mozgatása"
-
-
-msgid "Move the active shape key up/down in the list"
-msgstr "Az aktív formakulcs mozgatása fel/le a listában"
 
 
 msgctxt "Operator"

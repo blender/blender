@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 15:24+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -16290,6 +16290,10 @@ msgid "Menu"
 msgstr "Trình Đơn"
 
 
+msgid "Shader"
+msgstr "Bộ Tô Bóng"
+
+
 msgid "Collection"
 msgstr "Bộ Sưu Tập"
 
@@ -24907,10 +24911,6 @@ msgid "Script"
 msgstr "Tập Lệnh"
 
 
-msgid "Shader"
-msgstr "Bộ Tô Bóng"
-
-
 msgid "Pattern"
 msgstr "Kiểu Hoa Văn/Mẫu Ký Tự Đại Diện"
 
@@ -31882,10 +31882,6 @@ msgid "Double Click"
 msgstr "Nháy Đúp"
 
 
-msgid "Click Drag"
-msgstr "Bấm Kéo Rê"
-
-
 msgid "KeyMap Items"
 msgstr "Các Phần Tử Ấn Định Phím"
 
@@ -34066,6 +34062,58 @@ msgid "Editor menu containing buttons"
 msgstr "Trình đơn của trình biên soạn có chứa các nút"
 
 
+msgid "Snap"
+msgstr "Bám Dính"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
+
+
+msgid "Mask Edit"
+msgstr "Biên Soạn Màn Chắn Lọc"
+
+
+msgid "Automasking"
+msgstr "Tự Động Chắn Lọc"
+
+
+msgid "Face Sets Edit"
+msgstr "Biên Soạn các Mặt Ấn Định"
+
+
+msgid "Vertex Group Locks"
+msgstr "Khóa của Nhóm Điểm Đỉnh"
+
+
+msgid "Mirror"
+msgstr "Phản Chiếu Đối Xứng"
+
+
+msgid "UV Mapping"
+msgstr "Ánh Xạ UV"
+
+
+msgid "Local View"
+msgstr "Góc Nhìn Cục Bộ"
+
+
+msgid "Viewpoint"
+msgstr "Điểm Nhìn"
+
+
+msgid "Navigation"
+msgstr "Điều Hướng"
+
+
+msgid "Align View"
+msgstr "Căn Chỉnh Góc Nhìn"
+
+
+msgid "Align View to Active"
+msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
+
+
 msgid "View Regions"
 msgstr "Vùng Góc Nhìn"
 
@@ -34158,10 +34206,6 @@ msgid "Hooks"
 msgstr "Móc"
 
 
-msgid "Vertex Group Locks"
-msgstr "Khóa của Nhóm Điểm Đỉnh"
-
-
 msgid "Trim/Add"
 msgstr "Cắt Xén/Thêm"
 
@@ -34248,54 +34292,6 @@ msgstr "Lăn Xương"
 
 msgid "Pivot Point"
 msgstr "Điểm Tựa"
-
-
-msgid "Snap"
-msgstr "Bám Dính"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Suy Giảm Dần trong Biên Soạn Cân Đối"
-
-
-msgid "Mask Edit"
-msgstr "Biên Soạn Màn Chắn Lọc"
-
-
-msgid "Automasking"
-msgstr "Tự Động Chắn Lọc"
-
-
-msgid "Face Sets Edit"
-msgstr "Biên Soạn các Mặt Ấn Định"
-
-
-msgid "Mirror"
-msgstr "Phản Chiếu Đối Xứng"
-
-
-msgid "UV Mapping"
-msgstr "Ánh Xạ UV"
-
-
-msgid "Local View"
-msgstr "Góc Nhìn Cục Bộ"
-
-
-msgid "Viewpoint"
-msgstr "Điểm Nhìn"
-
-
-msgid "Navigation"
-msgstr "Điều Hướng"
-
-
-msgid "Align View"
-msgstr "Căn Chỉnh Góc Nhìn"
-
-
-msgid "Align View to Active"
-msgstr "Căn Chỉnh Góc Nhìn vào cái đang Hoạt Động"
 
 
 msgid "Keyframe Insert Pie"
@@ -44945,16 +44941,6 @@ msgid "Map a texture using UV coordinates, to apply a texture to objects in comp
 msgstr "Ánh xạ chất liệu bằng cách sử dụng các tọa độ UV để áp dụng một chất liệu vào các đối tượng trong quá trình tổng hợp"
 
 
-msgctxt "NodeTree"
-msgid "Nearest"
-msgstr "Gần Nhất"
-
-
-msgctxt "NodeTree"
-msgid "Anisotropic"
-msgstr "Dị Hướng"
-
-
 msgid "Input mask from a mask datablock, created in the image editor"
 msgstr "Màn chắn lọc đầu vào từ khối dữ liệu màn chắn, được tạo ra trong trình biên soạn hình ảnh"
 
@@ -45185,10 +45171,6 @@ msgstr "Xoay Chiều"
 
 msgid "Rotate image by specified angle"
 msgstr "Xoay chiều hình ảnh theo góc độ chỉ định"
-
-
-msgid "Method to use to filter rotation"
-msgstr "Phương pháp sử dụng để nội suy sự xoay chiều"
 
 
 msgid "Change the size of the image"
@@ -46163,22 +46145,6 @@ msgid "Which domain to store the data in"
 msgstr "Tên miền (phạm vi), nơi sẽ lưu trữ dữ liệu vào đó"
 
 
-msgid "Closure Input"
-msgstr "Đầu Vào Đóng Kín"
-
-
-msgid "Paired Output"
-msgstr "Đầu Ra Ghép Bè"
-
-
-msgid "Zone output node that this input node is paired with"
-msgstr "Nút đầu ra của vùng mà nút đầu vào này vốn được ghép bè với"
-
-
-msgid "Closure Output"
-msgstr "Đầu Ra Đóng Kín"
-
-
 msgid "Collection Info"
 msgstr "Thông Tin Bộ Sưu Tập"
 
@@ -46201,14 +46167,6 @@ msgstr "Xuất kết quả hình học ra tương đối với dịch chuyển c
 
 msgid "Bring the input collection geometry into the modified object, maintaining the relative position between the objects in the scene"
 msgstr "Đưa bộ sưu tập hình học, ở đầu vào, vào trong đối tượng đã biến đổi, duy trì vị trí tương đối giữa các đối tượng trong cảnh"
-
-
-msgid "Combine Bundle"
-msgstr "Kết Hợp Bó"
-
-
-msgid "Combine multiple socket values into one."
-msgstr "Kết hợp nhiều giá trị ổ cắm thành một."
 
 
 msgid "Convex Hull"
@@ -46667,18 +46625,6 @@ msgid "Group faces into regions surrounded by the selected boundary edges"
 msgstr "Nhóm các mặt lại thành các vùng được bao quanh bởi các cạnh biên đã chọn"
 
 
-msgid "Evaluate Closure"
-msgstr "Tính Toán Đóng Kín"
-
-
-msgid "Input Items"
-msgstr "Mục Nhập"
-
-
-msgid "Output Items"
-msgstr "Mục Xuất"
-
-
 msgid "Extrude Mesh"
 msgstr "Đẩy Trồi Khung Lưới"
 
@@ -46751,32 +46697,12 @@ msgid "Generate a mesh on the XY plane with faces on the inside of input curves"
 msgstr "Tạo khung lưới trên bình diện XY với các mặt ở bên trong các đường cong đầu vào"
 
 
-msgid "Triangles"
-msgstr "Tam Giác"
-
-
-msgid "N-gons"
-msgstr "Đa Giác"
-
-
 msgid "Fillet Curve"
 msgstr "Vê Tròn Đường Cong"
 
 
 msgid "Round corners by generating circular arcs on each control point"
 msgstr "Làm tròn các góc bằng cách tạo các cung tròn trên mỗi điểm điều khiển"
-
-
-msgid "How to choose number of vertices on fillet"
-msgstr "Phương pháp chọn số điểm đỉnh trên góc vê tròn"
-
-
-msgid "Align Bézier handles to create circular arcs at each control point"
-msgstr "Căn chỉnh các tay cầm Bézier để tạo ra các cung tròn tại mỗi điểm điều khiển"
-
-
-msgid "Add control points along a circular arc (handle type is vector if Bézier Spline)"
-msgstr "Thêm các điểm điều khiển dọc theo một cung tròn (kiểu tay cầm sẽ là véctơ nếu là Chốt Trục Bézier)"
 
 
 msgid "Flip Faces"
@@ -46789,6 +46715,14 @@ msgstr "Đảo ngược thứ tự của các điểm đỉnh và các cạnh c�
 
 msgid "For Each Geometry Element Input"
 msgstr "Cho Mỗi Phần Tử Hình Học Đầu Vào"
+
+
+msgid "Paired Output"
+msgstr "Đầu Ra Ghép Bè"
+
+
+msgid "Zone output node that this input node is paired with"
+msgstr "Nút đầu ra của vùng mà nút đầu vào này vốn được ghép bè với"
 
 
 msgid "For Each Geometry Element Output"
@@ -47356,14 +47290,6 @@ msgid "Merge vertices or points within a given distance"
 msgstr "Hợp nhất các điểm đỉnh hoặc các điểm trong một khoảng cách nhất định"
 
 
-msgid "Merge all close selected points, whether or not they are connected"
-msgstr "Hợp nhất toàn bộ các điểm đã chọn gần nhau, cho dù chúng có kết nối hay không"
-
-
-msgid "Only merge mesh vertices along existing edges. This method can be much faster"
-msgstr "Chỉ hợp nhất các điểm đỉnh khung lưới dọc theo các cạnh hiện có mà thôi. Phương pháp này có thể nhanh hơn nhiều"
-
-
 msgid "Merge Layers"
 msgstr "Hợp Nhất các Tầng Lớp"
 
@@ -47410,6 +47336,10 @@ msgstr "Kiểu Phủ Kín"
 
 msgid "N-Gon"
 msgstr "Đa-Giác"
+
+
+msgid "Triangles"
+msgstr "Tam Giác"
 
 
 msgid "Generate a cone mesh"
@@ -47536,10 +47466,6 @@ msgid "Create a fog volume with the shape of the input mesh's surface"
 msgstr "Kiến Tạo một thể tích sương mù với hình dạng của bề mặt khung lưới đầu vào"
 
 
-msgid "How the voxel size is specified"
-msgstr "Kích thước thể tích tử được xác định như thế nào"
-
-
 msgid "UV Sphere"
 msgstr "Hình Cầu UV"
 
@@ -47664,18 +47590,6 @@ msgid "Cast rays from the context geometry onto a target geometry, and retrieve 
 msgstr "Truyền các tia từ hình học ngữ cảnh lên hình học mục tiêu và trích xuất thông tin từ mỗi điểm đập trúng"
 
 
-msgid "Mapping from the target geometry to hit points"
-msgstr "Ánh xạ từ hình dạng mục tiêu đến điểm đánh trúng"
-
-
-msgid "Interpolate the attribute from the corners of the hit face"
-msgstr "Nội suy thuộc tính từ các góc của mặt đâm trúng"
-
-
-msgid "Use the attribute value of the closest mesh element"
-msgstr "Sử dụng giá trị thuộc tính của phần tử khung lưới gần nhất"
-
-
 msgid "Realize Instances"
 msgstr "Hiện Thực Hóa các Thực Thể"
 
@@ -47690,26 +47604,6 @@ msgstr "Xóa Thuộc Tính được Đặt Tên"
 
 msgid "Delete an attribute with a specified name from a geometry. Typically used to optimize performance"
 msgstr "Xóa thuộc tính được đặt tên được chỉ định khỏi một hình học. Thường được sử dụng để tối ưu hóa hiệu suất"
-
-
-msgid "Pattern Mode"
-msgstr "Chế Độ Mẫu"
-
-
-msgid "How the attributes to remove are chosen"
-msgstr "Phương pháp lựa chọn các thuộc tính cần loại bỏ"
-
-
-msgid "Remove the one attribute with the given name"
-msgstr "Xóa một thuộc tính với cái tên đã được cung cấp"
-
-
-msgid "Wildcard"
-msgstr "Ký Tự Đại Diện"
-
-
-msgid "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
-msgstr "Xóa toàn bộ các thuộc tính vốn xứng khớp với mẫu nào đó, và mẫu đó vốn cho phép chứa một ký tự ngôi sao đại diện (*)"
 
 
 msgid "Repeat Input"
@@ -47742,22 +47636,6 @@ msgstr "Giữ Phân Đoạn Cuối Cùng"
 
 msgid "Do not collapse curves to single points if they are shorter than the given length. The collapsing behavior exists for compatibility reasons."
 msgstr "Không thu gộp đường cong thành các đơn điểm nếu chúng ngắn hơn chiều dài đã cho. Hành vi thu gộp vẫn tồn tại là vì lý do tương thích mà thôi."
-
-
-msgid "How to specify the amount of samples"
-msgstr "Phương pháp để xác định lượng mẫu thí nghiệm"
-
-
-msgid "Output the input spline's evaluated points, based on the resolution attribute for NURBS and Bézier splines. Poly splines are unchanged"
-msgstr "Xuất các điểm đã tính toán của chốt trục cung cấp ở đầu vào, dựa trên thuộc tính độ phân giải dành cho các chốt trục NURBS và Bézier. Chốt trục đa giác Poly sẽ không thay đổi"
-
-
-msgid "Sample the specified number of points along each spline"
-msgstr "Lấy mẫu theo số điểm chỉ định, dọc theo mỗi chốt trục"
-
-
-msgid "Calculate the number of samples by splitting each spline into segments with the specified length"
-msgstr "Tính toán số lượng mẫu bằng cách tách phân mỗi chốt trục ra thành các phân đoạn nhỏ với chiều dài chỉ định"
 
 
 msgid "Reverse Curve"
@@ -47832,26 +47710,6 @@ msgid "Node socket data type"
 msgstr "Kiểu dữ liệu của ổ cắm nút"
 
 
-msgid "Interpolation Mode"
-msgstr "Chế Độ Nội Suy"
-
-
-msgid "How to interpolate the values between neighboring voxels"
-msgstr "Phương pháp nội suy các giá trị giữa các thể tích tử kề cận"
-
-
-msgid "Nearest Neighbor"
-msgstr "Hàng Xóm Lân Cận Nhất"
-
-
-msgid "Trilinear"
-msgstr "Tam Tuyến Tính"
-
-
-msgid "Triquadratic"
-msgstr "Tam Toàn Phương"
-
-
 msgid "Sample Grid Index"
 msgstr "Lấy Mẫu Khung Lưới Đồ Thị dùng Chỉ Số"
 
@@ -47916,18 +47774,6 @@ msgid "Scale individual edges or neighboring edge islands"
 msgstr "Đổi tỷ lệ các cạnh riêng rẽ hoặc các cạnh hải đảo lân cận"
 
 
-msgid "Scale Mode"
-msgstr "Chế Độ Tỷ Lệ Hóa"
-
-
-msgid "Scale elements by the same factor in every direction"
-msgstr "Đổi tỷ lệ các phần tử theo cùng một hệ số trong mọi chiều hướng"
-
-
-msgid "Scale elements in a single direction"
-msgstr "Đổi tỷ lệ các phần tử theo một chiều hướng"
-
-
 msgid "Scale Instances"
 msgstr "Đổi Tỷ Lệ Thực Thể"
 
@@ -47942,14 +47788,6 @@ msgstr "Đối Tượng của Bản Thân"
 
 msgid "Retrieve the object that contains the geometry nodes modifier currently being executed"
 msgstr "Trích xuất đối tượng chứa bộ điều chỉnh nút hình học hiện đang được thực thi"
-
-
-msgid "Separate Bundle"
-msgstr "Tách Phân Bó Ra"
-
-
-msgid "Split a bundle into multiple sockets."
-msgstr "Tách phân một bó ra thành nhiều ổ cắm."
 
 
 msgid "Separate Components"
@@ -47986,30 +47824,6 @@ msgstr "Đặt Pháp Tuyến Đường Cong"
 
 msgid "Set the evaluation mode for curve normals"
 msgstr "Đặt chế độ tính toán cho pháp tuyến đường cong"
-
-
-msgid "Mode for curve normal evaluation"
-msgstr "Chế độ tính toán pháp tuyến đường cong"
-
-
-msgid "Minimum Twist"
-msgstr "Độ Xoắn Tối Thiểu"
-
-
-msgid "Calculate normals with the smallest twist around the curve tangent across the whole curve"
-msgstr "Tính toán các pháp tuyến với độ xoắn nhỏ nhất quanh tiếp tuyến đường cong trên toàn bộ đường cong"
-
-
-msgid "Z Up"
-msgstr "Z Lên Trên"
-
-
-msgid "Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points is vertical, the X axis is used."
-msgstr "Tính toán các pháp tuyến vuông góc với trục Z và tiếp tuyến của đường cong. Nếu loạt các điểm là thẳng đứng thì trục X sẽ được sử dụng."
-
-
-msgid "Use the stored custom normal attribute as the final normals"
-msgstr "Sử dụng thuộc tính pháp tuyến tùy chỉnh lưu trữ làm pháp tuyến cuối cùng"
 
 
 msgid "Set Curve Radius"
@@ -48520,32 +48334,12 @@ msgid "Scale islands of a UV map and move them so they fill the UV space as much
 msgstr "Đổi tỷ lệ các hải đảo của ánh xạ UV và di chuyển chúng để chúng phủ kín không gian UV ở mức độ cao nhất có thể"
 
 
-msgid "Shape Method"
-msgstr "Phương Pháp Hình Dạng"
-
-
 msgid "UV Unwrap"
 msgstr "Mở Gói UV"
 
 
 msgid "Generate a UV map based on seam edges"
 msgstr "Sinh tạo ánh xạ UV dựa trên các cạnh đường khâu"
-
-
-msgid "Angle Based"
-msgstr "Cơ Sở Góc"
-
-
-msgid "This method gives a good 2D representation of a mesh"
-msgstr "Phương pháp này cung cấp một đại diện 2D tốt của khung lưới"
-
-
-msgid "Conformal"
-msgstr "Bảo Giác"
-
-
-msgid "Uses LSCM (Least Squares Conformal Mapping). This usually gives a less accurate UV mapping than Angle Based, but works better for simpler objects"
-msgstr "Sử dụng LSCM (Least Squares Conformal Mapping). Chức năng này thường cung cấp ánh xạ UV kém chính xác hơn phương pháp dựa trên góc độ (Angle Based), nhưng hoạt động tốt hơn cho các đối tượng đơn giản hơn"
 
 
 msgid "Vertex of Corner"
@@ -48594,6 +48388,34 @@ msgstr "Tạo những cảnh báo tùy chỉnh trong các nhóm nút"
 
 msgid "Warning Type"
 msgstr "Thể Loại Cảnh Báo"
+
+
+msgid "Closure Input"
+msgstr "Đầu Vào Đóng Kín"
+
+
+msgid "Closure Output"
+msgstr "Đầu Ra Đóng Kín"
+
+
+msgid "Combine Bundle"
+msgstr "Kết Hợp Bó"
+
+
+msgid "Combine multiple socket values into one."
+msgstr "Kết hợp nhiều giá trị ổ cắm thành một."
+
+
+msgid "Evaluate Closure"
+msgstr "Tính Toán Đóng Kín"
+
+
+msgid "Input Items"
+msgstr "Mục Nhập"
+
+
+msgid "Output Items"
+msgstr "Mục Xuất"
 
 
 msgctxt "NodeTree"
@@ -48651,6 +48473,14 @@ msgstr "Một công cụ tổ chức ổ cắm đơn hỗ trợ một đầu và
 
 msgid "Type of socket"
 msgstr "Kiểu ổ cắm"
+
+
+msgid "Separate Bundle"
+msgstr "Tách Phân Bó Ra"
+
+
+msgid "Split a bundle into multiple sockets."
+msgstr "Tách phân một bó ra thành nhiều ổ cắm."
 
 
 msgid "Shader Node"
@@ -50858,8 +50688,40 @@ msgid "Value to Normal"
 msgstr "Giá Trị thành Pháp Tuyến"
 
 
+msgid "Closure Input Item"
+msgstr "Mục Đầu Vào Đóng Kín"
+
+
+msgid "Closure Input Items"
+msgstr "Các Mục Đầu Vào Đóng Kín"
+
+
+msgid "Closure Output Item"
+msgstr "Mục Đầu Ra Đóng Kín"
+
+
+msgid "Closure Output Items"
+msgstr "Các Mục Đầu Ra Đóng Kín"
+
+
+msgid "Combine Bundle Item"
+msgstr "Mục Kết Hợp Bó"
+
+
+msgid "Collection of combine bundle items"
+msgstr "Bộ sưu tập các mục kết hợp bó"
+
+
 msgid "Enum Item"
 msgstr "Phần Tử Liệt Kê"
+
+
+msgid "Input Item"
+msgstr "Mục Đầu Vào"
+
+
+msgid "Output Item"
+msgstr "Mục Đầu Ra"
 
 
 msgid "Bake Item"
@@ -50894,38 +50756,6 @@ msgid "Collection of capture attribute items"
 msgstr "Bộ sưu tập các chỉ mục thuộc tính nắm bắt"
 
 
-msgid "Closure Input Item"
-msgstr "Mục Đầu Vào Đóng Kín"
-
-
-msgid "Closure Input Items"
-msgstr "Các Mục Đầu Vào Đóng Kín"
-
-
-msgid "Closure Output Item"
-msgstr "Mục Đầu Ra Đóng Kín"
-
-
-msgid "Closure Output Items"
-msgstr "Các Mục Đầu Ra Đóng Kín"
-
-
-msgid "Combine Bundle Item"
-msgstr "Mục Kết Hợp Bó"
-
-
-msgid "Collection of combine bundle items"
-msgstr "Bộ sưu tập các mục kết hợp bó"
-
-
-msgid "Input Item"
-msgstr "Mục Đầu Vào"
-
-
-msgid "Output Item"
-msgstr "Mục Đầu Ra"
-
-
 msgid "Generation Items"
 msgstr "Mục Sinh Tạo"
 
@@ -50948,14 +50778,6 @@ msgstr "Bộ sưu tập các mục chính"
 
 msgid "Collection of repeat items"
 msgstr "Bộ sưu tập các chỉ mục lặp lại"
-
-
-msgid "Separate Bundle Item"
-msgstr "Mục Tách Phân Bó Ra"
-
-
-msgid "Collection of separate bundle items"
-msgstr "Bộ sưu tập các mục tách phân bó ra"
 
 
 msgid "Collection of simulation items"
@@ -51088,6 +50910,14 @@ msgstr "Tên tầng lớp OpenEXR cho khe này"
 
 msgid "Node Outputs"
 msgstr "Đầu Ra của Nút"
+
+
+msgid "Separate Bundle Item"
+msgstr "Mục Tách Phân Bó Ra"
+
+
+msgid "Collection of separate bundle items"
+msgstr "Bộ sưu tập các mục tách phân bó ra"
 
 
 msgid "Node Socket"
@@ -60404,6 +60234,10 @@ msgid "Y Up"
 msgstr "Y Lên Trên"
 
 
+msgid "Z Up"
+msgstr "Z Lên Trên"
+
+
 msgid "-X Up"
 msgstr "-X Lên Trên"
 
@@ -61845,14 +61679,6 @@ msgstr "Thao Tác Tập Tin Bên Ngoài"
 
 msgid "Perform external operation on a file or folder"
 msgstr "Thực hiện thao tác bên ngoài trên một tập tin hoặc thư mục"
-
-
-msgid "File or folder path"
-msgstr "Đường dẫn tập tin hoặc thư mục"
-
-
-msgid "Operation to perform on the file or path"
-msgstr "Thao tác thực hiện trên tập tin hoặc đường dẫn"
 
 
 msgid "Open the file"
@@ -74652,10 +74478,6 @@ msgid "Move Shape Key"
 msgstr "Di Chuyển Hình Mẫu"
 
 
-msgid "Move the active shape key up/down in the list"
-msgstr "Di chuyển hình mẫu đang hoạt động lên/xuống trong danh sách"
-
-
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Xóa Hình Mẫu"
@@ -79571,10 +79393,6 @@ msgid "Hide Panels"
 msgstr "Ẩn Giấu các Bảng"
 
 
-msgid "Hide all the panels"
-msgstr "Ẩn giấu toàn bộ các bảng"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "Đặt Màn Hình"
@@ -80822,10 +80640,6 @@ msgstr "Đặt vị trí điểm tựa vào bề mặt bên dưới con trỏ"
 
 msgid "Mouse Position X"
 msgstr "Vị Trí X của Chuột"
-
-
-msgid "Position of the mouse used for \"Surface\" mode"
-msgstr "Vị trí chuột sử dụng trong chế độ \"Bề Mặt -- Surface\""
 
 
 msgid "Mouse Position Y"
@@ -84490,6 +84304,10 @@ msgid "Scale islands to fill unit square"
 msgstr "Đổi tỷ lệ quần đảo để phủ kín hình vuông đơn vị"
 
 
+msgid "Shape Method"
+msgstr "Phương Pháp Hình Dạng"
+
+
 msgid "Exact Shape (Concave)"
 msgstr "Hình Dạng Chính Xác (Lõm)"
 
@@ -84953,6 +84771,14 @@ msgstr "Số lần lặp lại khi sử dụng phương Pháp \"Kéo Giãn Tối
 
 msgid "Unwrapping method (Angle Based usually gives better results than Conformal, while being somewhat slower)"
 msgstr "Phương pháp mở gói (thường thì Cơ Sở Góc cho những kết quả tốt hơn là Bảo Giác (bảo toàn độ lớn của các góc giữa các hướng trong khu vực nhỏ, mặc dù khoảng cách bị biến dạng) nhưng hơi chậm hơn một chút)"
+
+
+msgid "Angle Based"
+msgstr "Cơ Sở Góc"
+
+
+msgid "Conformal"
+msgstr "Bảo Giác"
 
 
 msgid "Minimum Stretch"
@@ -89377,6 +89203,74 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
+msgid "Active Tool"
+msgstr "Công Cụ đang Hoạt Động"
+
+
+msgid "View Lock"
+msgstr "Khóa Góc Nhìn"
+
+
+msgid "Selectability & Visibility"
+msgstr "Khả Năng Lựa Chọn & Tính Hữu Hình"
+
+
+msgid "Wireframe Color"
+msgstr "Màu Khung Dây"
+
+
+msgid "Shadow Settings"
+msgstr "Sắp Đặt về Bóng Tối"
+
+
+msgid "SSAO Settings"
+msgstr "Sắp Đặt về SSAO"
+
+
+msgid "Cavity"
+msgstr "Khe Hốc"
+
+
+msgid "Render Pass"
+msgstr "Lượt Kết Xuất"
+
+
+msgid "Compositor"
+msgstr "Trình Tổng Hợp"
+
+
+msgid "Overlays"
+msgstr "Lớp Vẽ Lồng"
+
+
+msgid "Guides"
+msgstr "Hướng Dẫn"
+
+
+msgid "Viewer Node"
+msgstr "Nút Quan Sát"
+
+
+msgid "Motion Tracking"
+msgstr "Giám Sát Chuyển Động"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Chế Độ Biên Soạn Khung Lưới"
+
+
+msgid "Measurement"
+msgstr "Đo Lường"
+
+
+msgid "Curve Edit Mode"
+msgstr "Chế Độ Biên Soạn Đường Cong"
+
+
+msgid "Curves Edit Mode"
+msgstr "Chế Độ Biên Soạn Đường Cong"
+
+
 msgid "Snapping"
 msgstr "Bám Dính"
 
@@ -89391,10 +89285,6 @@ msgstr "Phương Pháp Đặt Nét Vẽ"
 
 msgid "Drawing Plane"
 msgstr "Bề Diện Tác Họa"
-
-
-msgid "Guides"
-msgstr "Hướng Dẫn"
 
 
 msgid "Grease Pencil Options"
@@ -89455,70 +89345,6 @@ msgstr "Biến Thể Nguyên Vật Liệu glTF"
 
 msgid "glTF Animations"
 msgstr "Hoạt Họa glTF"
-
-
-msgid "Active Tool"
-msgstr "Công Cụ đang Hoạt Động"
-
-
-msgid "View Lock"
-msgstr "Khóa Góc Nhìn"
-
-
-msgid "Selectability & Visibility"
-msgstr "Khả Năng Lựa Chọn & Tính Hữu Hình"
-
-
-msgid "Wireframe Color"
-msgstr "Màu Khung Dây"
-
-
-msgid "Shadow Settings"
-msgstr "Sắp Đặt về Bóng Tối"
-
-
-msgid "SSAO Settings"
-msgstr "Sắp Đặt về SSAO"
-
-
-msgid "Cavity"
-msgstr "Khe Hốc"
-
-
-msgid "Render Pass"
-msgstr "Lượt Kết Xuất"
-
-
-msgid "Compositor"
-msgstr "Trình Tổng Hợp"
-
-
-msgid "Overlays"
-msgstr "Lớp Vẽ Lồng"
-
-
-msgid "Viewer Node"
-msgstr "Nút Quan Sát"
-
-
-msgid "Motion Tracking"
-msgstr "Giám Sát Chuyển Động"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Chế Độ Biên Soạn Khung Lưới"
-
-
-msgid "Measurement"
-msgstr "Đo Lường"
-
-
-msgid "Curve Edit Mode"
-msgstr "Chế Độ Biên Soạn Đường Cong"
-
-
-msgid "Curves Edit Mode"
-msgstr "Chế Độ Biên Soạn Đường Cong"
 
 
 msgid "Import Settings"
@@ -106744,14 +106570,6 @@ msgid "Color of keyframes on a path before current frame"
 msgstr "Màu của các khung khóa trên đường dẫn trước khung hình hiện tại"
 
 
-msgid "Preview Range"
-msgstr "Phạm Vi Xem Trước"
-
-
-msgid "Color of preview range overlay"
-msgstr "Màu vẽ lồng phân khoảng xem trước"
-
-
 msgid "Selected Marker"
 msgstr "Dấu Mốc được Chọn"
 
@@ -106794,6 +106612,14 @@ msgstr "Sắp đặt kiểu mẫu cho các màu sắc của bộ sưu tập"
 
 msgid "Collection Color Tag"
 msgstr "Nhãn Màu của Bộ Sưu Tập"
+
+
+msgid "Preview Range"
+msgstr "Phạm Vi Xem Trước"
+
+
+msgid "Color of preview range overlay"
+msgstr "Màu vẽ lồng phân khoảng xem trước"
 
 
 msgid "Theme Console"
@@ -115078,10 +114904,6 @@ msgid "Launch Blender without --offline-mode"
 msgstr "Khởi động Blender không có --offline-mode (chế độ ngoại tuyến)"
 
 
-msgid "Please turn Online Access on in the System settings."
-msgstr "Xin vui lòng bật Truy Cập Trực Tuyến trong cài đặt Hệ Thống lên."
-
-
 msgid "Internet access is required to install extensions from the internet."
 msgstr "Cần phải có kết nối internet để cài đặt trình mở rộng từ internet."
 
@@ -121341,11 +121163,6 @@ msgstr "Tách Phân theo Chiều Dọc"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "Bật/Tắt Toàn Bộ Địa Phận Màn Hình"
-
-
-msgctxt "Operator"
 msgid "Transition"
 msgstr "Chuyển Cảnh"
 
@@ -126054,10 +125871,6 @@ msgid "GP_Layer"
 msgstr "Lớp_GP"
 
 
-msgid "grease_pencils"
-msgstr "Các Bút Sáp"
-
-
 msgid "grease_pencils_v3"
 msgstr "Các Bút Sáp"
 
@@ -129987,16 +129800,8 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "Việc lựa chọn đường dẫn đòi hỏi hai phần tử xứng khớp đã được chọn rồi"
 
 
-msgid "Cannot rip selected faces"
-msgstr "Không thể tách các mặt đã lựa chọn ra được"
-
-
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "Không thể tách tập thể các điểm đỉnh trong khi chúng không mắc nối với nhau được"
-
-
-msgid "Rip failed"
-msgstr "Quá trình tách bị thất bại"
 
 
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
@@ -132061,10 +131866,6 @@ msgstr "Khôi Phục các Khu Vực"
 
 msgid "Maximize Area"
 msgstr "Tối Đa Hóa Diện Tích"
-
-
-msgid "Full Screen Area"
-msgstr "Diện Tích Toàn Màn Hình"
 
 
 msgid "Show Header"
@@ -135804,10 +135605,6 @@ msgid "Shrink/Fatten: "
 msgstr "Thu Nhỏ/Phình To: "
 
 
-msgid " or Alt) Even Thickness {}"
-msgstr " hoặc Alt) Độ Dày Đồng Đều {}"
-
-
 msgid "'Shrink/Fatten' meshes is only supported in edit mode"
 msgstr "'Thu Nhỏ/Phình To' khung lưới chỉ được hỗ trợ trong chế độ biên soạn mà thôi"
 
@@ -136079,6 +135876,10 @@ msgstr "Bỏ qua %d/%d hải đảo, hình học quá phức tạp trong quá tr
 
 msgid "Rip is not compatible with sync selection"
 msgstr "Lệnh Tách Xé (Rip) không tương thích với lựa chọn đồng bộ"
+
+
+msgid "Rip failed"
+msgstr "Quá trình tách bị thất bại"
 
 
 msgid "Cannot split selection when sync selection is enabled"
@@ -140589,6 +140390,10 @@ msgid "Limit the maximum value of the radius in order to avoid overlapping fille
 msgstr "Giới hạn giá trị tối đa của bán kính để tránh các miếng phi lê chồng gối lên nhau"
 
 
+msgid "How to choose number of vertices on fillet"
+msgstr "Phương pháp chọn số điểm đỉnh trên góc vê tròn"
+
+
 msgid "Handle Type Selection node"
 msgstr "Nút Lựa Chọn Thể Loại Tay Cầm"
 
@@ -140820,6 +140625,10 @@ msgstr "Xoay chiều ngược chiều kim đồng hồ của tập hợp các đ
 
 msgid "An attribute field with a selection of the outer points"
 msgstr "Một trường thuộc tính với lựa chọn các điểm bên ngoài"
+
+
+msgid "How to specify the amount of samples"
+msgstr "Phương pháp để xác định lượng mẫu thí nghiệm"
 
 
 msgid "Curve Index"
@@ -141863,6 +141672,10 @@ msgid "Width of the active voxel surface, in voxels"
 msgstr "Chiều rộng bề mặt thể tích tử đang hoạt động, tính trong đơn vị thể tích tử"
 
 
+msgid "How the voxel size is specified"
+msgstr "Kích thước thể tích tử được xác định như thế nào"
+
+
 msgid "Corner Index"
 msgstr "Chỉ Số Góc"
 
@@ -142179,6 +141992,10 @@ msgid "Hit Distance"
 msgstr "Khoảng Cách Điểm Bắn Trúng"
 
 
+msgid "Mapping from the target geometry to hit points"
+msgstr "Ánh xạ từ hình dạng mục tiêu đến điểm đánh trúng"
+
+
 msgid "Realize All"
 msgstr "Hiện Thực Hóa Toàn Bộ"
 
@@ -142207,6 +142024,14 @@ msgid "Attribute does not exist: \"{}\""
 msgstr "Thuộc tính không tồn tại: \"{}\""
 
 
+msgid "Pattern Mode"
+msgstr "Chế Độ Mẫu"
+
+
+msgid "How the attributes to remove are chosen"
+msgstr "Phương pháp lựa chọn các thuộc tính cần loại bỏ"
+
+
 msgid "Repeat Items"
 msgstr "Số Mục Lặp Lại"
 
@@ -142217,6 +142042,10 @@ msgstr "Lần Lặp Lại"
 
 msgid "Index of the current iteration. Starts counting at zero"
 msgstr "Chỉ số của lần lặp lại hiện tại. Bắt đầu đếm từ số 0"
+
+
+msgid "How to interpolate the values between neighboring voxels"
+msgstr "Phương pháp nội suy các giá trị giữa các thể tích tử kề cận"
 
 
 msgid "Which element to retrieve a value from on the geometry"
@@ -142251,6 +142080,10 @@ msgid "Whether the node could find a single face to sample at the UV coordinate"
 msgstr "Liệu nút có thể tìm thấy một đơn mặt để lấy mẫu tại tọa độ UV hay không"
 
 
+msgid "Scale Mode"
+msgstr "Chế Độ Tỷ Lệ Hóa"
+
+
 msgid "Origin of the scaling for each element. If multiple elements are connected, their center is averaged"
 msgstr "Tọa độ gốc để đổi tỷ lệ cho mỗi phần tử. Nếu nhiều phần tử được kết nối, thì tâm của chúng sẽ được tính trung bình"
 
@@ -142267,10 +142100,6 @@ msgid "Grid 2"
 msgstr "Khung Lưới Đồ Thị 2"
 
 
-msgid "Value not found: \"{}\""
-msgstr "Không tìm thấy giá trị: \"{}\""
-
-
 msgid "Inverted"
 msgstr "Đảo Nghịch"
 
@@ -142285,6 +142114,10 @@ msgstr "Các phần của hình học nằm trong lựa chọn"
 
 msgid "The parts of the geometry not in the selection"
 msgstr "Các phần của hình học không nằm trong lựa chọn"
+
+
+msgid "Mode for curve normal evaluation"
+msgstr "Chế độ tính toán pháp tuyến đường cong"
 
 
 msgid "Mesh has no faces for material assignment"
@@ -142531,16 +142364,8 @@ msgid "Recursive closure is not allowed"
 msgstr "Đóng kín đệ quy là một điều không cho phép"
 
 
-msgid "Closure input has incompatible type: \"{}\""
-msgstr "Đầu vào đóng kín có kiểu không tương thích: \"{}\""
-
-
 msgid "Closure does not have input: \"{}\""
 msgstr "Đóng kín không có đầu vào: \"{}\""
-
-
-msgid "Closure output has incompatible type: \"{}\""
-msgstr "Đầu ra đóng kín có kiểu không tương thích: \"{}\""
 
 
 msgid "Closure does not have output: \"{}\""

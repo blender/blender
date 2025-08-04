@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 15:25+0000\n"
 "Last-Translator: 32437w5k7 <32437w5k7@mozmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -13130,6 +13130,10 @@ msgid "Menu"
 msgstr "Menu"
 
 
+msgid "Shader"
+msgstr "Shader"
+
+
 msgid "Collection"
 msgstr "Raccolta"
 
@@ -17999,10 +18003,6 @@ msgstr "Mascherino"
 
 msgid "Script"
 msgstr "Script"
-
-
-msgid "Shader"
-msgstr "Shader"
 
 
 msgid "Pattern"
@@ -23434,10 +23434,6 @@ msgid "Double Click"
 msgstr "Doppio Click"
 
 
-msgid "Click Drag"
-msgstr "Click Trascina"
-
-
 msgid "KeyMap Items"
 msgstr "Elementi Mappa Tasti"
 
@@ -24664,6 +24660,58 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Snap"
+msgstr "Aggancia"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decadimento Modifica Proporzionale"
+
+
+msgid "Mask Edit"
+msgstr "Modifica Maschera"
+
+
+msgid "Automasking"
+msgstr "Automascheramento"
+
+
+msgid "Face Sets Edit"
+msgstr "Modifica Sets di Facce"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
+
+
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
 msgid "View Regions"
 msgstr "Regione Vista"
 
@@ -24756,10 +24804,6 @@ msgid "Hooks"
 msgstr "Ganci"
 
 
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
-
-
 msgid "Face Sets Init"
 msgstr "Init Sets di Facce"
 
@@ -24838,54 +24882,6 @@ msgstr "Rollio Osso"
 
 msgid "Pivot Point"
 msgstr "Punto di Perno"
-
-
-msgid "Snap"
-msgstr "Aggancia"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decadimento Modifica Proporzionale"
-
-
-msgid "Mask Edit"
-msgstr "Modifica Maschera"
-
-
-msgid "Automasking"
-msgstr "Automascheramento"
-
-
-msgid "Face Sets Edit"
-msgstr "Modifica Sets di Facce"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
 
 
 msgid "Keyframe Insert Pie"
@@ -31453,16 +31449,6 @@ msgid "Map UV"
 msgstr "Mappa UV"
 
 
-msgctxt "NodeTree"
-msgid "Nearest"
-msgstr "il Più Vicino"
-
-
-msgctxt "NodeTree"
-msgid "Anisotropic"
-msgstr "Anisotropico"
-
-
 msgid "Size Source"
 msgstr "Sorgente Dimensione"
 
@@ -32023,10 +32009,6 @@ msgid "Fill Curve"
 msgstr "Riempi Curva"
 
 
-msgid "Triangles"
-msgstr "Triangoli"
-
-
 msgid "Flip Faces"
 msgstr "Capovolgi Facce"
 
@@ -32227,6 +32209,10 @@ msgid "Fill Type"
 msgstr "Tipo Riempimento"
 
 
+msgid "Triangles"
+msgstr "Triangoli"
+
+
 msgid "Ico Sphere"
 msgstr "Ico Sfera"
 
@@ -32271,10 +32257,6 @@ msgid "Remove Named Attribute"
 msgstr "Rimuove Attributo Nominato"
 
 
-msgid "Pattern Mode"
-msgstr "Modalitá Pattern"
-
-
 msgid "Repeat Output"
 msgstr "Ripeti Output"
 
@@ -32311,18 +32293,6 @@ msgid "Sample Grid"
 msgstr "Griglia Campione"
 
 
-msgid "Interpolation Mode"
-msgstr "Modalitá Interpolazione"
-
-
-msgid "Trilinear"
-msgstr "Trilineare"
-
-
-msgid "Triquadratic"
-msgstr "Triquadratico"
-
-
 msgid "Sample Grid Index"
 msgstr "Indice Griglia Campione"
 
@@ -32335,10 +32305,6 @@ msgid "Scale Elements"
 msgstr "Scala Elementi"
 
 
-msgid "Scale Mode"
-msgstr "Modalità Scala"
-
-
 msgid "Scale Instances"
 msgstr "Scala Istanze"
 
@@ -32349,10 +32315,6 @@ msgstr "Separa Componenti"
 
 msgid "Separate Geometry"
 msgstr "Separa Geometria"
-
-
-msgid "Z Up"
-msgstr "Z In Alto"
 
 
 msgid "Set Curve Radius"
@@ -32405,14 +32367,6 @@ msgstr "Converti tutte le facce di una mesh in facce triangolari"
 
 msgid "Pack UV Islands"
 msgstr "Compatta Isole UV"
-
-
-msgid "Angle Based"
-msgstr "Basato sull'Angolo"
-
-
-msgid "Conformal"
-msgstr "Conforme"
 
 
 msgid "Warning"
@@ -37725,6 +37679,10 @@ msgstr "X In Alto"
 
 msgid "Y Up"
 msgstr "Y In Alto"
+
+
+msgid "Z Up"
+msgstr "Z In Alto"
 
 
 msgid "-X Up"
@@ -43944,10 +43902,6 @@ msgid "Move Shape Key"
 msgstr "Muovi Chiave Forma"
 
 
-msgid "Move the active shape key up/down in the list"
-msgstr "Sposta la shape key attiva su/giù nella lista"
-
-
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Rimuovi Chiave Forma"
@@ -46644,10 +46598,6 @@ msgid "Hide Panels"
 msgstr "Nascondi Pannelli"
 
 
-msgid "Hide all the panels"
-msgstr "Nasconde tutti i pannelli"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "Imposta Schermo"
@@ -48986,6 +48936,14 @@ msgid "Unwrapping method (Angle Based usually gives better results than Conforma
 msgstr "Metodo di sviluppo-scucitura (quello Basato sull'Angolo dà risultati miglior del Conforme, pur essendo un po' più lento)"
 
 
+msgid "Angle Based"
+msgstr "Basato sull'Angolo"
+
+
+msgid "Conformal"
+msgstr "Conforme"
+
+
 msgctxt "Operator"
 msgid "Weld"
 msgstr "Salda"
@@ -50668,26 +50626,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Snapping"
-msgstr "Ancoraggio"
-
-
-msgid "Transform Orientations"
-msgstr "Assi (Orientamenti Trasformazione)"
-
-
-msgid "Stroke Placement"
-msgstr "Giacitura Tratto"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopia"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Mascheramento"
-
-
 msgid "Shadow Settings"
 msgstr "Impostazioni Ombra"
 
@@ -50722,6 +50660,26 @@ msgstr "Modalità Modifica Mesh"
 
 msgid "Measurement"
 msgstr "Misurazione"
+
+
+msgid "Snapping"
+msgstr "Ancoraggio"
+
+
+msgid "Transform Orientations"
+msgstr "Assi (Orientamenti Trasformazione)"
+
+
+msgid "Stroke Placement"
+msgstr "Giacitura Tratto"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopia"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Mascheramento"
 
 
 msgid "Chain Scaling"
@@ -62860,11 +62818,6 @@ msgstr "Divisione Verticale"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "Attiva/disattiva Area a Schermo Intero"
-
-
-msgctxt "Operator"
 msgid "Sound"
 msgstr "Suono"
 
@@ -66447,10 +66400,6 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "La selezione di un percorso richiede che due elementi estremi siano selezionati"
 
 
-msgid "Cannot rip selected faces"
-msgstr "Impossibile strappare le facce selezionate"
-
-
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "Impossibile strappare vertici multipli disconnessi"
 
@@ -67151,10 +67100,6 @@ msgid "Time:"
 msgstr "Tempo:"
 
 
-msgid "Render..."
-msgstr "Render..."
-
-
 msgid "Scene has no camera"
 msgstr "La scena non ha camere"
 
@@ -67185,10 +67130,6 @@ msgstr "Ripristina Aree"
 
 msgid "Maximize Area"
 msgstr "Massimizza Area"
-
-
-msgid "Full Screen Area"
-msgstr "Area a Schermo Intero"
 
 
 msgid "Flip to Top"
@@ -69309,6 +69250,14 @@ msgstr "Posizione Sorgente"
 
 msgid "Ray Length"
 msgstr "Lunghezza Raggio"
+
+
+msgid "Pattern Mode"
+msgstr "Modalitá Pattern"
+
+
+msgid "Scale Mode"
+msgstr "Modalità Scala"
 
 
 msgid "Inverted"

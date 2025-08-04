@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-27 17:01+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -12041,6 +12041,10 @@ msgid "Menu"
 msgstr "選單"
 
 
+msgid "Shader"
+msgstr "著色器"
+
+
 msgid "Collection"
 msgstr "集盒"
 
@@ -16498,10 +16502,6 @@ msgstr "遮景片"
 
 msgid "Script"
 msgstr "命令稿"
-
-
-msgid "Shader"
-msgstr "著色器"
 
 
 msgid "Pattern"
@@ -21297,10 +21297,6 @@ msgid "Double Click"
 msgstr "雙擊"
 
 
-msgid "Click Drag"
-msgstr "點擊並拖曳"
-
-
 msgid "KeyMap Items"
 msgstr "按鍵對應項目"
 
@@ -22528,6 +22524,50 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
 msgid "View Regions"
 msgstr "檢視範圍"
 
@@ -22674,50 +22714,6 @@ msgstr "骨骼滾動"
 
 msgid "Pivot Point"
 msgstr "樞紐點"
-
-
-msgid "Snap"
-msgstr "吸附"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
 
 
 msgid "Basic"
@@ -28592,16 +28588,6 @@ msgid "Map UV"
 msgstr "映射 UV"
 
 
-msgctxt "NodeTree"
-msgid "Nearest"
-msgstr "最鄰近"
-
-
-msgctxt "NodeTree"
-msgid "Anisotropic"
-msgstr "各向異性"
-
-
 msgid "Size Source"
 msgstr "大小來源"
 
@@ -28716,10 +28702,6 @@ msgstr "大於"
 
 msgid "Rotate"
 msgstr "旋轉"
-
-
-msgid "Method to use to filter rotation"
-msgstr "用來過濾旋轉的方法"
 
 
 msgid "Coordinate space to scale relative to"
@@ -29067,14 +29049,6 @@ msgid "Evaluate at Index"
 msgstr "在索引處求取值"
 
 
-msgid "Triangles"
-msgstr "三角形"
-
-
-msgid "N-gons"
-msgstr "多邊形"
-
-
 msgid "Primary"
 msgstr "主要"
 
@@ -29140,12 +29114,12 @@ msgid "N-Gon"
 msgstr "多邊形"
 
 
+msgid "Triangles"
+msgstr "三角形"
+
+
 msgid "Mesh to Density Grid"
 msgstr "網格轉為密度格線"
-
-
-msgid "How the voxel size is specified"
-msgstr "體素大小的指定方式"
 
 
 msgid "Object Info"
@@ -29188,10 +29162,6 @@ msgid "Set the positions for the handles of Bézier curves"
 msgstr "設定貝茲曲線控制棒的位置"
 
 
-msgid "Z Up"
-msgstr "Z 向上"
-
-
 msgid "Tangent Space"
 msgstr "切線空間"
 
@@ -29226,14 +29196,6 @@ msgstr "細分網格"
 
 msgid "Selection"
 msgstr "選取項"
-
-
-msgid "Angle Based"
-msgstr "基於角度"
-
-
-msgid "Conformal"
-msgstr "共形"
 
 
 msgid "Generate a dense volume with a field that controls the density at each grid voxel based on its position"
@@ -35314,6 +35276,10 @@ msgstr "X 向上"
 
 msgid "Y Up"
 msgstr "Y 向上"
+
+
+msgid "Z Up"
+msgstr "Z 向上"
 
 
 msgid "-X Up"
@@ -41667,10 +41633,6 @@ msgid "Move Shape Key"
 msgstr "移動外形鍵"
 
 
-msgid "Move the active shape key up/down in the list"
-msgstr "在清單中向下移動作用中外形鍵"
-
-
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "移除外形鍵"
@@ -44635,10 +44597,6 @@ msgid "Hide Panels"
 msgstr "隱藏面板"
 
 
-msgid "Hide all the panels"
-msgstr "隱藏所有面板"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "設定螢幕"
@@ -47219,6 +47177,14 @@ msgid "Unwrapping method (Angle Based usually gives better results than Conforma
 msgstr "拆解方法 (「基於角度」通常比「共形」有更佳的結果，但確實有點緩慢)"
 
 
+msgid "Angle Based"
+msgstr "基於角度"
+
+
+msgid "Conformal"
+msgstr "共形"
+
+
 msgid "Importance Weights"
 msgstr "重要度權重"
 
@@ -48974,6 +48940,38 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通遞"
+
+
+msgid "Compositor"
+msgstr "合成器"
+
+
+msgid "Overlays"
+msgstr "疊層"
+
+
+msgid "Viewer Node"
+msgstr "檢視器節點"
+
+
+msgid "Motion Tracking"
+msgstr "運動跟蹤"
+
+
+msgid "Measurement"
+msgstr "測量"
+
+
 msgid "Snapping"
 msgstr "吸附"
 
@@ -49008,38 +49006,6 @@ msgstr "自動遮罩"
 
 msgid "VR"
 msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "Cavity"
-msgstr "坑腔"
-
-
-msgid "Render Pass"
-msgstr "算繪通遞"
-
-
-msgid "Compositor"
-msgstr "合成器"
-
-
-msgid "Overlays"
-msgstr "疊層"
-
-
-msgid "Viewer Node"
-msgstr "檢視器節點"
-
-
-msgid "Motion Tracking"
-msgstr "運動跟蹤"
-
-
-msgid "Measurement"
-msgstr "測量"
 
 
 msgid "Chain Scaling"
@@ -63612,11 +63578,6 @@ msgstr "垂直分割"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "切換全螢幕區域"
-
-
-msgctxt "Operator"
 msgid "Transition"
 msgstr "過渡"
 
@@ -66125,10 +66086,6 @@ msgid "GP_Layer"
 msgstr "蠟筆層"
 
 
-msgid "grease_pencils"
-msgstr "蠟筆"
-
-
 msgid "grease_pencils_v3"
 msgstr "蠟筆_v3"
 
@@ -68019,10 +67976,6 @@ msgid "Selected faces required"
 msgstr "需要選取面"
 
 
-msgid "Rip failed"
-msgstr "拆分失敗"
-
-
 msgid "Face select - Shift-Click for multiple modes, Ctrl-Click expands selection"
 msgstr "面選取 - Shift+點擊 取得多種模式，Ctrl+點擊 擴展選取"
 
@@ -68730,18 +68683,6 @@ msgstr "寫入錯誤：無法儲存 %s"
 
 msgid "Skipping existing frame \"%s\""
 msgstr "正略過既有影格「%s」"
-
-
-msgid "Load Previews"
-msgstr "載入預覽"
-
-
-msgid "Icon Preview"
-msgstr "圖示預覽"
-
-
-msgid "Shader Preview"
-msgstr "著色器預覽"
 
 
 msgid "Unknown line color modifier type"
@@ -69572,10 +69513,6 @@ msgstr "不在節點群組內"
 
 msgid "Cannot separate nodes"
 msgstr "無法分離節點"
-
-
-msgid "Shader Previews"
-msgstr "著色器預覽"
 
 
 msgid "True"
@@ -70429,6 +70366,10 @@ msgstr "覆寫 %s"
 
 msgid "UV Vertex"
 msgstr "UV 頂點"
+
+
+msgid "Rip failed"
+msgstr "拆分失敗"
 
 
 msgid "Cannot split selection when sync selection is enabled"
@@ -71655,6 +71596,10 @@ msgstr "底"
 
 msgid "Position of the first vertex"
 msgstr "第一個頂點的位置"
+
+
+msgid "How the voxel size is specified"
+msgstr "體素大小的指定方式"
 
 
 msgid "As Instance"

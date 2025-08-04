@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -8139,6 +8139,10 @@ msgid "Menu"
 msgstr "Nabídka"
 
 
+msgid "Shader"
+msgstr "Shader"
+
+
 msgid "Collection"
 msgstr "Kolekce"
 
@@ -10365,10 +10369,6 @@ msgstr "Slepecké Znaky"
 
 msgid "Script"
 msgstr "Skript"
-
-
-msgid "Shader"
-msgstr "Shader"
 
 
 msgid "Pattern"
@@ -13305,10 +13305,6 @@ msgid "Double Click"
 msgstr "Dvojklik"
 
 
-msgid "Click Drag"
-msgstr "Klikněte na Přetáhnout"
-
-
 msgid "Left Handle"
 msgstr "Vazby a spojení"
 
@@ -13918,6 +13914,34 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Snap"
+msgstr "Přichytit"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Způsob útlumu"
+
+
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+
+msgid "UV Mapping"
+msgstr "UV mapování"
+
+
+msgid "Local View"
+msgstr "Lokální pohled"
+
+
+msgid "Navigation"
+msgstr "Navigace"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
+
+
 msgid "Select Linked"
 msgstr "Vybrat Propojené"
 
@@ -14008,34 +14032,6 @@ msgstr "Kost"
 
 msgid "Pivot Point"
 msgstr "Bod pro pivot"
-
-
-msgid "Snap"
-msgstr "Přichytit"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Způsob útlumu"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Navigation"
-msgstr "Navigace"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
 
 
 msgid "Basic"
@@ -17227,10 +17223,6 @@ msgid "Rotate"
 msgstr "Otočit"
 
 
-msgid "Method to use to filter rotation"
-msgstr "Metoda, která se má použít k filtrování rotace"
-
-
 msgid "Set Alpha"
 msgstr "Alfa"
 
@@ -17391,10 +17383,6 @@ msgid "Distribution Method"
 msgstr "Metoda Distribuce"
 
 
-msgid "Triangles"
-msgstr "Trojúhleníky"
-
-
 msgid "Primary"
 msgstr "Hlavní"
 
@@ -17419,6 +17407,10 @@ msgid "Fill Type"
 msgstr "Fill Type"
 
 
+msgid "Triangles"
+msgstr "Trojúhleníky"
+
+
 msgid "Object Info"
 msgstr "Informace o objektu"
 
@@ -17435,10 +17427,6 @@ msgid "Target Geometry"
 msgstr "Cílová Geometrie"
 
 
-msgid "Z Up"
-msgstr "Posun nahoru"
-
-
 msgid "Tangent Space"
 msgstr "Prostor textury"
 
@@ -17449,14 +17437,6 @@ msgstr "Poloha Myši"
 
 msgid "Selection"
 msgstr "Výběr"
-
-
-msgid "Angle Based"
-msgstr "Přivlastnění"
-
-
-msgid "Conformal"
-msgstr "Dle normály"
 
 
 msgid "Warning"
@@ -21515,6 +21495,10 @@ msgstr "Posun nahoru"
 
 
 msgid "Y Up"
+msgstr "Posun nahoru"
+
+
+msgid "Z Up"
 msgstr "Posun nahoru"
 
 
@@ -25951,10 +25935,6 @@ msgid "Move Shape Key"
 msgstr "Zaklíčovat tvar"
 
 
-msgid "Move the active shape key up/down in the list"
-msgstr "Odstraní duplicity označených vertexů"
-
-
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Zaklíčovat tvar"
@@ -29581,6 +29561,14 @@ msgid "Unwrap"
 msgstr "Metoda rozbalení"
 
 
+msgid "Angle Based"
+msgstr "Přivlastnění"
+
+
+msgid "Conformal"
+msgstr "Dle normály"
+
+
 msgid "Use Subdivision Surface"
 msgstr "Použít Dělení Povrchu"
 
@@ -30831,26 +30819,6 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Snapping"
-msgstr "Přichytávání"
-
-
-msgid "Transform Orientations"
-msgstr "Orientace transformací"
-
-
-msgid "Guides"
-msgstr "Vodítka"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
-
-
 msgid "Active Tool"
 msgstr "Aktivní nástroj"
 
@@ -30875,6 +30843,10 @@ msgid "Overlays"
 msgstr "Překrytí"
 
 
+msgid "Guides"
+msgstr "Vodítka"
+
+
 msgid "Motion Tracking"
 msgstr "Sledování Pohybu"
 
@@ -30889,6 +30861,22 @@ msgstr "Měření"
 
 msgid "Curve Edit Mode"
 msgstr "Editační Režim Křivky"
+
+
+msgid "Snapping"
+msgstr "Přichytávání"
+
+
+msgid "Transform Orientations"
+msgstr "Orientace transformací"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
 
 
 msgid "Chain Scaling"
@@ -41968,10 +41956,6 @@ msgstr "Není platná selekce pro vytažení"
 
 msgid "You have to select a string of connected vertices too"
 msgstr "Vybrat náhodně: vertexy"
-
-
-msgid "Cannot rip selected faces"
-msgstr "Skrýt označené plošky"
 
 
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 15:08+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -13126,6 +13126,10 @@ msgid "Menu"
 msgstr "Меню"
 
 
+msgid "Shader"
+msgstr "Відтінювач"
+
+
 msgid "Collection"
 msgstr "Колекція"
 
@@ -19103,10 +19107,6 @@ msgid "Script"
 msgstr "Скрипт"
 
 
-msgid "Shader"
-msgstr "Відтінювач"
-
-
 msgid "Pattern"
 msgstr "Патерн"
 
@@ -24602,10 +24602,6 @@ msgid "Double Click"
 msgstr "Подвійне Клацання"
 
 
-msgid "Click Drag"
-msgstr "Клацання Перетягання"
-
-
 msgid "KeyMap Items"
 msgstr "Елементи розкладки клавіш"
 
@@ -26487,6 +26483,58 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Snap"
+msgstr "Підхоп"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Спад Пропорційного Редагування"
+
+
+msgid "Mask Edit"
+msgstr "Редагування Маски"
+
+
+msgid "Automasking"
+msgstr "Автомаскування"
+
+
+msgid "Face Sets Edit"
+msgstr "Редагування Наборів Граней"
+
+
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
+
+
+msgid "UV Mapping"
+msgstr "Розкладання UV"
+
+
+msgid "Local View"
+msgstr "Огляд Локально"
+
+
+msgid "Viewpoint"
+msgstr "Точка зору"
+
+
+msgid "Navigation"
+msgstr "Навігація"
+
+
+msgid "Align View"
+msgstr "Вирівняти Огляд"
+
+
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
+
+
 msgid "View Regions"
 msgstr "Регіони Огляду"
 
@@ -26579,10 +26627,6 @@ msgid "Hooks"
 msgstr "Гачки"
 
 
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
-
-
 msgid "Sculpt Set Pivot"
 msgstr "Ліплення Задати Опертя"
 
@@ -26657,54 +26701,6 @@ msgstr "Прокручення Кістки"
 
 msgid "Pivot Point"
 msgstr "Точка Опертя"
-
-
-msgid "Snap"
-msgstr "Підхоп"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Спад Пропорційного Редагування"
-
-
-msgid "Mask Edit"
-msgstr "Редагування Маски"
-
-
-msgid "Automasking"
-msgstr "Автомаскування"
-
-
-msgid "Face Sets Edit"
-msgstr "Редагування Наборів Граней"
-
-
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
 
 
 msgid "Basic"
@@ -34630,10 +34626,6 @@ msgid "Rotate"
 msgstr "Оберт"
 
 
-msgid "Method to use to filter rotation"
-msgstr "Метод фільтрації обертання"
-
-
 msgid "Coordinate space to scale relative to"
 msgstr "Координатний простір, відносно якого масштабувати"
 
@@ -34950,10 +34942,6 @@ msgid "Distribute the points randomly on the surface while taking a minimum dist
 msgstr "Розподілити точки випадково на поверхні, водночас враховуючи мінімальну відстань між точками"
 
 
-msgid "Triangles"
-msgstr "Трикутники"
-
-
 msgid "Primary"
 msgstr "Первинний"
 
@@ -34994,12 +34982,12 @@ msgid "N-Gon"
 msgstr "N-Кутник"
 
 
+msgid "Triangles"
+msgstr "Трикутники"
+
+
 msgid "End Points"
 msgstr "Точки Кінців"
-
-
-msgid "How the voxel size is specified"
-msgstr "Як визначається розмір вокселя"
 
 
 msgid "UV Sphere"
@@ -35032,10 +35020,6 @@ msgstr "Цільова Геометрія"
 
 msgid "Element of the target geometry to calculate the distance from"
 msgstr "Елемент цільової геометрії для розрахування відстані від нього"
-
-
-msgid "Z Up"
-msgstr "Z Уверх"
 
 
 msgid "Tangent Space"
@@ -35092,14 +35076,6 @@ msgstr "Вибране"
 
 msgid "Pack UV Islands"
 msgstr "Упакувати UV-острови"
-
-
-msgid "Angle Based"
-msgstr "На основі кутів"
-
-
-msgid "Conformal"
-msgstr "Конформний"
 
 
 msgid "Warning"
@@ -42541,6 +42517,10 @@ msgstr "X вгору"
 
 msgid "Y Up"
 msgstr "Y Уверх"
+
+
+msgid "Z Up"
+msgstr "Z Уверх"
 
 
 msgid "-X Up"
@@ -51566,10 +51546,6 @@ msgid "Move Shape Key"
 msgstr "Пересунути ключ форми"
 
 
-msgid "Move the active shape key up/down in the list"
-msgstr "Перемістити активний ключ форми вгору/вниз у списку"
-
-
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Вилучити ключ форми"
@@ -55396,10 +55372,6 @@ msgid "Hide Panels"
 msgstr "Приховати панелі"
 
 
-msgid "Hide all the panels"
-msgstr "Приховати всі панелі"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "Встановити екран"
@@ -56271,10 +56243,6 @@ msgstr "Задає позицію опорточки на поверхні пі�
 
 msgid "Mouse Position X"
 msgstr "Позиція X Миші"
-
-
-msgid "Position of the mouse used for \"Surface\" mode"
-msgstr "Позиція миші, що використовується для режиму «Поверхня»"
 
 
 msgid "Mouse Position Y"
@@ -59153,6 +59121,14 @@ msgid "Unwrapping method (Angle Based usually gives better results than Conforma
 msgstr "Метод розгортання (На основі кутів зазвичай дає кращі результати, ніж Конформний, проте дещо повільніший)"
 
 
+msgid "Angle Based"
+msgstr "На основі кутів"
+
+
+msgid "Conformal"
+msgstr "Конформний"
+
+
 msgid "Use Subdivision Surface"
 msgstr "Вжити Поверхню Підподілення"
 
@@ -61783,50 +61759,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "Snapping"
-msgstr "Підхоплення"
-
-
-msgid "Transform Orientations"
-msgstr "Орієнтації Трансформ"
-
-
-msgid "Stroke Placement"
-msgstr "Розміщення Штриха"
-
-
-msgid "Drawing Plane"
-msgstr "Площина Рисування"
-
-
-msgid "Guides"
-msgstr "Напрямні"
-
-
-msgid "Quad View"
-msgstr "Чотирибічний Огляд"
-
-
-msgid "Onion Skin"
-msgstr "Покрив Калькою"
-
-
-msgid "Stereoscopy"
-msgstr "Стереоскопія"
-
-
-msgid "Multi Frame"
-msgstr "Багато Кадр"
-
-
-msgid "Auto-Masking"
-msgstr "Авто-Маскування"
-
-
-msgid "VR"
-msgstr "ВР"
-
-
 msgid "Active Tool"
 msgstr "Активний Засіб"
 
@@ -61855,6 +61787,10 @@ msgid "Overlays"
 msgstr "Накладки"
 
 
+msgid "Guides"
+msgstr "Напрямні"
+
+
 msgid "Motion Tracking"
 msgstr "Відстеження руху"
 
@@ -61869,6 +61805,46 @@ msgstr "Вимірювання"
 
 msgid "Curve Edit Mode"
 msgstr "Режим Редагування Кривої"
+
+
+msgid "Snapping"
+msgstr "Підхоплення"
+
+
+msgid "Transform Orientations"
+msgstr "Орієнтації Трансформ"
+
+
+msgid "Stroke Placement"
+msgstr "Розміщення Штриха"
+
+
+msgid "Drawing Plane"
+msgstr "Площина Рисування"
+
+
+msgid "Quad View"
+msgstr "Чотирибічний Огляд"
+
+
+msgid "Onion Skin"
+msgstr "Покрив Калькою"
+
+
+msgid "Stereoscopy"
+msgstr "Стереоскопія"
+
+
+msgid "Multi Frame"
+msgstr "Багато Кадр"
+
+
+msgid "Auto-Masking"
+msgstr "Авто-Маскування"
+
+
+msgid "VR"
+msgstr "ВР"
 
 
 msgid "Chain Scaling"
@@ -73706,14 +73682,6 @@ msgid "Color of path before current frame"
 msgstr "Колір шляху перед поточним кадром"
 
 
-msgid "Preview Range"
-msgstr "Діапазон Передогляду"
-
-
-msgid "Color of preview range overlay"
-msgstr "Колір накладки діапазону передогляду"
-
-
 msgid "Selected Marker"
 msgstr "Обрана мітка"
 
@@ -73756,6 +73724,14 @@ msgstr "Устави теми для кольорів колекцій"
 
 msgid "Collection Color Tag"
 msgstr "Значник Кольору Колекції"
+
+
+msgid "Preview Range"
+msgstr "Діапазон Передогляду"
+
+
+msgid "Color of preview range overlay"
+msgstr "Колір накладки діапазону передогляду"
 
 
 msgid "Theme Console"
@@ -80727,11 +80703,6 @@ msgstr "Вертикальне Розділення"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "Перемкнути Область на Повний Екран"
-
-
-msgctxt "Operator"
 msgid "Sound"
 msgstr "Звук"
 
@@ -85504,16 +85475,8 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "Вибір шляху потребує вибору двох узгоджених елементів"
 
 
-msgid "Cannot rip selected faces"
-msgstr "Неможливо розірвати вибрані грані"
-
-
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "Неможливо розірвати декілька роз'єднаних вершин"
-
-
-msgid "Rip failed"
-msgstr "Збій розривання"
 
 
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
@@ -88894,6 +88857,10 @@ msgid "UV Vertex"
 msgstr "UV-вершина"
 
 
+msgid "Rip failed"
+msgstr "Збій розривання"
+
+
 msgid "Cannot split selection when sync selection is enabled"
 msgstr "Неможливо розділити вибране, коли увімкнена синхронізація вибору"
 
@@ -89979,6 +89946,10 @@ msgstr "Планарно"
 
 msgid "Old"
 msgstr "Старе"
+
+
+msgid "How the voxel size is specified"
+msgstr "Як визначається розмір вокселя"
 
 
 msgid "Ray Length"

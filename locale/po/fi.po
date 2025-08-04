@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 15:32+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -5774,6 +5774,10 @@ msgid "Menu"
 msgstr "Menu"
 
 
+msgid "Shader"
+msgstr "Varjostin"
+
+
 msgid "Collection"
 msgstr "Kokoelma"
 
@@ -6620,10 +6624,6 @@ msgid "Script"
 msgstr "Koodi"
 
 
-msgid "Shader"
-msgstr "Varjostin"
-
-
 msgid "Pattern"
 msgstr "Kuvio"
 
@@ -7312,6 +7312,10 @@ msgid "Mask"
 msgstr "Maski"
 
 
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
 
@@ -7370,10 +7374,6 @@ msgstr "Muodon valintatila"
 
 msgid "Text"
 msgstr "Teksti"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
 
 
 msgid "Basic"
@@ -8595,10 +8595,6 @@ msgid "Sample Grid"
 msgstr "Kerää ruudukko"
 
 
-msgid "Nearest Neighbor"
-msgstr "Lähin naapuri"
-
-
 msgid "Sample Grid Index"
 msgstr "Kerää ruudukon indeksi"
 
@@ -8621,10 +8617,6 @@ msgstr "Kerää UV-pinta"
 
 msgid "Scale Elements"
 msgstr "Skaalaa elementtejä"
-
-
-msgid "Scale Mode"
-msgstr "Skaalaustila"
 
 
 msgid "Scale Instances"
@@ -16487,6 +16479,10 @@ msgstr "Iteraatio"
 
 msgid "Sample UV"
 msgstr "Kerää UV"
+
+
+msgid "Scale Mode"
+msgstr "Skaalaustila"
 
 
 msgid "Grid 1"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -16386,6 +16386,10 @@ msgid "Menu"
 msgstr "Menu"
 
 
+msgid "Shader"
+msgstr "Shader"
+
+
 msgid "Collection"
 msgstr "Collection"
 
@@ -25002,10 +25006,6 @@ msgid "Script"
 msgstr "Script"
 
 
-msgid "Shader"
-msgstr "Shader"
-
-
 msgid "Pattern"
 msgstr "Pattern"
 
@@ -32137,10 +32137,6 @@ msgid "Double Click"
 msgstr "Double Click"
 
 
-msgid "Click Drag"
-msgstr "Click Drag"
-
-
 msgid "KeyMap Items"
 msgstr "KeyMap Items"
 
@@ -34321,6 +34317,58 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Mask Edit"
+
+
+msgid "Automasking"
+msgstr "Automasking"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
+msgid "Mirror"
+msgstr "Mirror"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapping"
+
+
+msgid "Local View"
+msgstr "Local View"
+
+
+msgid "Viewpoint"
+msgstr "Viewpoint"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Align View"
+
+
+msgid "Align View to Active"
+msgstr "Align View to Active"
+
+
 msgid "View Regions"
 msgstr "View Regions"
 
@@ -34413,10 +34461,6 @@ msgid "Hooks"
 msgstr "Hooks"
 
 
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
 msgid "Trim/Add"
 msgstr "Trim/Add"
 
@@ -34503,54 +34547,6 @@ msgstr "Bone Roll"
 
 msgid "Pivot Point"
 msgstr "Pivot Point"
-
-
-msgid "Snap"
-msgstr "Snap"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
-
-
-msgid "Mirror"
-msgstr "Mirror"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapping"
-
-
-msgid "Local View"
-msgstr "Local View"
-
-
-msgid "Viewpoint"
-msgstr "Viewpoint"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Align View"
-
-
-msgid "Align View to Active"
-msgstr "Align View to Active"
 
 
 msgid "Keyframe Insert Pie"
@@ -45206,16 +45202,6 @@ msgid "Map a texture using UV coordinates, to apply a texture to objects in comp
 msgstr "Map a texture using UV coordinates, to apply a texture to objects in compositing"
 
 
-msgctxt "NodeTree"
-msgid "Nearest"
-msgstr "Nearest"
-
-
-msgctxt "NodeTree"
-msgid "Anisotropic"
-msgstr "Anisotropic"
-
-
 msgid "Input mask from a mask datablock, created in the image editor"
 msgstr "Input mask from a mask datablock, created in the image editor"
 
@@ -45386,10 +45372,6 @@ msgstr "Rotate"
 
 msgid "Rotate image by specified angle"
 msgstr "Rotate image by specified angle"
-
-
-msgid "Method to use to filter rotation"
-msgstr "Method to use to filter rotation"
 
 
 msgid "Change the size of the image"
@@ -46340,22 +46322,6 @@ msgid "Which domain to store the data in"
 msgstr "Which domain to store the data in"
 
 
-msgid "Closure Input"
-msgstr "Closure Input"
-
-
-msgid "Paired Output"
-msgstr "Paired Output"
-
-
-msgid "Zone output node that this input node is paired with"
-msgstr "Zone output node that this input node is paired with"
-
-
-msgid "Closure Output"
-msgstr "Closure Output"
-
-
 msgid "Collection Info"
 msgstr "Collection Info"
 
@@ -46378,14 +46344,6 @@ msgstr "Output the geometry relative to the collection offset"
 
 msgid "Bring the input collection geometry into the modified object, maintaining the relative position between the objects in the scene"
 msgstr "Bring the input collection geometry into the modified object, maintaining the relative position between the objects in the scene"
-
-
-msgid "Combine Bundle"
-msgstr "Combine Bundle"
-
-
-msgid "Combine multiple socket values into one."
-msgstr "Combine multiple socket values into one."
 
 
 msgid "Convex Hull"
@@ -46844,18 +46802,6 @@ msgid "Group faces into regions surrounded by the selected boundary edges"
 msgstr "Group faces into regions surrounded by the selected boundary edges"
 
 
-msgid "Evaluate Closure"
-msgstr "Evaluate Closure"
-
-
-msgid "Input Items"
-msgstr "Input Items"
-
-
-msgid "Output Items"
-msgstr "Output Items"
-
-
 msgid "Extrude Mesh"
 msgstr "Extrude Mesh"
 
@@ -46928,32 +46874,12 @@ msgid "Generate a mesh on the XY plane with faces on the inside of input curves"
 msgstr "Generate a mesh on the XY plane with faces on the inside of input curves"
 
 
-msgid "Triangles"
-msgstr "Triangles"
-
-
-msgid "N-gons"
-msgstr "N-gons"
-
-
 msgid "Fillet Curve"
 msgstr "Fillet Curve"
 
 
 msgid "Round corners by generating circular arcs on each control point"
 msgstr "Round corners by generating circular arcs on each control point"
-
-
-msgid "How to choose number of vertices on fillet"
-msgstr "How to choose number of vertices on fillet"
-
-
-msgid "Align Bézier handles to create circular arcs at each control point"
-msgstr "Align Bézier handles to create circular arcs at each control point"
-
-
-msgid "Add control points along a circular arc (handle type is vector if Bézier Spline)"
-msgstr "Add control points along a circular arc (handle type is vector if Bézier Spline)"
 
 
 msgid "Flip Faces"
@@ -46966,6 +46892,14 @@ msgstr "Reverse the order of the vertices and edges of selected faces, flipping 
 
 msgid "For Each Geometry Element Input"
 msgstr "For Each Geometry Element Input"
+
+
+msgid "Paired Output"
+msgstr "Paired Output"
+
+
+msgid "Zone output node that this input node is paired with"
+msgstr "Zone output node that this input node is paired with"
 
 
 msgid "For Each Geometry Element Output"
@@ -47509,14 +47443,6 @@ msgid "Merge vertices or points within a given distance"
 msgstr "Merge vertices or points within a given distance"
 
 
-msgid "Merge all close selected points, whether or not they are connected"
-msgstr "Merge all close selected points, whether or not they are connected"
-
-
-msgid "Only merge mesh vertices along existing edges. This method can be much faster"
-msgstr "Only merge mesh vertices along existing edges. This method can be much faster"
-
-
 msgid "Merge Layers"
 msgstr "Merge Layers"
 
@@ -47563,6 +47489,10 @@ msgstr "Fill Type"
 
 msgid "N-Gon"
 msgstr "N-Gon"
+
+
+msgid "Triangles"
+msgstr "Triangles"
 
 
 msgid "Generate a cone mesh"
@@ -47689,10 +47619,6 @@ msgid "Create a fog volume with the shape of the input mesh's surface"
 msgstr "Create a fog volume with the shape of the input mesh's surface"
 
 
-msgid "How the voxel size is specified"
-msgstr "How the voxel size is specified"
-
-
 msgid "UV Sphere"
 msgstr "UV Sphere"
 
@@ -47817,18 +47743,6 @@ msgid "Cast rays from the context geometry onto a target geometry, and retrieve 
 msgstr "Cast rays from the context geometry onto a target geometry, and retrieve information from each hit point"
 
 
-msgid "Mapping from the target geometry to hit points"
-msgstr "Mapping from the target geometry to hit points"
-
-
-msgid "Interpolate the attribute from the corners of the hit face"
-msgstr "Interpolate the attribute from the corners of the hit face"
-
-
-msgid "Use the attribute value of the closest mesh element"
-msgstr "Use the attribute value of the closest mesh element"
-
-
 msgid "Realize Instances"
 msgstr "Realise Instances"
 
@@ -47843,26 +47757,6 @@ msgstr "Remove Named Attribute"
 
 msgid "Delete an attribute with a specified name from a geometry. Typically used to optimize performance"
 msgstr "Delete an attribute with a specified name from a geometry. Typically used to optimise performance"
-
-
-msgid "Pattern Mode"
-msgstr "Pattern Mode"
-
-
-msgid "How the attributes to remove are chosen"
-msgstr "How the attributes to remove are chosen"
-
-
-msgid "Remove the one attribute with the given name"
-msgstr "Remove the one attribute with the given name"
-
-
-msgid "Wildcard"
-msgstr "Wildcard"
-
-
-msgid "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
-msgstr "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
 
 
 msgid "Repeat Input"
@@ -47891,22 +47785,6 @@ msgstr "Generate a poly spline for each input spline"
 
 msgid "Keep Last Segment"
 msgstr "Keep Last Segment"
-
-
-msgid "How to specify the amount of samples"
-msgstr "How to specify the amount of samples"
-
-
-msgid "Output the input spline's evaluated points, based on the resolution attribute for NURBS and Bézier splines. Poly splines are unchanged"
-msgstr "Output the input spline's evaluated points, based on the resolution attribute for NURBS and Bézier splines. Poly splines are unchanged"
-
-
-msgid "Sample the specified number of points along each spline"
-msgstr "Sample the specified number of points along each spline"
-
-
-msgid "Calculate the number of samples by splitting each spline into segments with the specified length"
-msgstr "Calculate the number of samples by splitting each spline into segments with the specified length"
 
 
 msgid "Reverse Curve"
@@ -47981,26 +47859,6 @@ msgid "Node socket data type"
 msgstr "Node socket data type"
 
 
-msgid "Interpolation Mode"
-msgstr "Interpolation Mode"
-
-
-msgid "How to interpolate the values between neighboring voxels"
-msgstr "How to interpolate the values between neighbouring voxels"
-
-
-msgid "Nearest Neighbor"
-msgstr "Nearest Neighbour"
-
-
-msgid "Trilinear"
-msgstr "Trilinear"
-
-
-msgid "Triquadratic"
-msgstr "Triquadratic"
-
-
 msgid "Sample Grid Index"
 msgstr "Sample Grid Index"
 
@@ -48065,18 +47923,6 @@ msgid "Scale individual edges or neighboring edge islands"
 msgstr "Scale individual edges or neighbouring edge islands"
 
 
-msgid "Scale Mode"
-msgstr "Scale Mode"
-
-
-msgid "Scale elements by the same factor in every direction"
-msgstr "Scale elements by the same factor in every direction"
-
-
-msgid "Scale elements in a single direction"
-msgstr "Scale elements in a single direction"
-
-
 msgid "Scale Instances"
 msgstr "Scale Instances"
 
@@ -48091,14 +47937,6 @@ msgstr "Self Object"
 
 msgid "Retrieve the object that contains the geometry nodes modifier currently being executed"
 msgstr "Retrieve the object that contains the geometry nodes modifier currently being executed"
-
-
-msgid "Separate Bundle"
-msgstr "Separate Bundle"
-
-
-msgid "Split a bundle into multiple sockets."
-msgstr "Split a bundle into multiple sockets."
 
 
 msgid "Separate Components"
@@ -48135,30 +47973,6 @@ msgstr "Set Curve Normal"
 
 msgid "Set the evaluation mode for curve normals"
 msgstr "Set the evaluation mode for curve normals"
-
-
-msgid "Mode for curve normal evaluation"
-msgstr "Mode for curve normal evaluation"
-
-
-msgid "Minimum Twist"
-msgstr "Minimum Twist"
-
-
-msgid "Calculate normals with the smallest twist around the curve tangent across the whole curve"
-msgstr "Calculate normals with the smallest twist around the curve tangent across the whole curve"
-
-
-msgid "Z Up"
-msgstr "Z Up"
-
-
-msgid "Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points is vertical, the X axis is used."
-msgstr "Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points is vertical, the X axis is used."
-
-
-msgid "Use the stored custom normal attribute as the final normals"
-msgstr "Use the stored custom normal attribute as the final normals"
 
 
 msgid "Set Curve Radius"
@@ -48661,32 +48475,12 @@ msgid "Scale islands of a UV map and move them so they fill the UV space as much
 msgstr "Scale islands of a UV map and move them so they fill the UV space as much as possible"
 
 
-msgid "Shape Method"
-msgstr "Shape Method"
-
-
 msgid "UV Unwrap"
 msgstr "UV Unwrap"
 
 
 msgid "Generate a UV map based on seam edges"
 msgstr "Generate a UV map based on seam edges"
-
-
-msgid "Angle Based"
-msgstr "Angle Based"
-
-
-msgid "This method gives a good 2D representation of a mesh"
-msgstr "This method gives a good 2D representation of a mesh"
-
-
-msgid "Conformal"
-msgstr "Conformal"
-
-
-msgid "Uses LSCM (Least Squares Conformal Mapping). This usually gives a less accurate UV mapping than Angle Based, but works better for simpler objects"
-msgstr "Uses LSCM (Least Squares Conformal Mapping). This usually gives a less accurate UV mapping than Angle Based, but works better for simpler objects"
 
 
 msgid "Vertex of Corner"
@@ -48735,6 +48529,34 @@ msgstr "Create custom warnings in node groups"
 
 msgid "Warning Type"
 msgstr "Warning Type"
+
+
+msgid "Closure Input"
+msgstr "Closure Input"
+
+
+msgid "Closure Output"
+msgstr "Closure Output"
+
+
+msgid "Combine Bundle"
+msgstr "Combine Bundle"
+
+
+msgid "Combine multiple socket values into one."
+msgstr "Combine multiple socket values into one."
+
+
+msgid "Evaluate Closure"
+msgstr "Evaluate Closure"
+
+
+msgid "Input Items"
+msgstr "Input Items"
+
+
+msgid "Output Items"
+msgstr "Output Items"
 
 
 msgctxt "NodeTree"
@@ -48792,6 +48614,14 @@ msgstr "A single-socket organization tool that supports one input and multiple o
 
 msgid "Type of socket"
 msgstr "Type of socket"
+
+
+msgid "Separate Bundle"
+msgstr "Separate Bundle"
+
+
+msgid "Split a bundle into multiple sockets."
+msgstr "Split a bundle into multiple sockets."
 
 
 msgid "Shader Node"
@@ -51064,8 +50894,40 @@ msgid "Value to Normal"
 msgstr "Value to Normal"
 
 
+msgid "Closure Input Item"
+msgstr "Closure Input Item"
+
+
+msgid "Closure Input Items"
+msgstr "Closure Input Items"
+
+
+msgid "Closure Output Item"
+msgstr "Closure Output Item"
+
+
+msgid "Closure Output Items"
+msgstr "Closure Output Items"
+
+
+msgid "Combine Bundle Item"
+msgstr "Combine Bundle Item"
+
+
+msgid "Collection of combine bundle items"
+msgstr "Collection of combine bundle items"
+
+
 msgid "Enum Item"
 msgstr "Enum Item"
+
+
+msgid "Input Item"
+msgstr "Input Item"
+
+
+msgid "Output Item"
+msgstr "Output Item"
 
 
 msgid "Bake Item"
@@ -51100,38 +50962,6 @@ msgid "Collection of capture attribute items"
 msgstr "Collection of capture attribute items"
 
 
-msgid "Closure Input Item"
-msgstr "Closure Input Item"
-
-
-msgid "Closure Input Items"
-msgstr "Closure Input Items"
-
-
-msgid "Closure Output Item"
-msgstr "Closure Output Item"
-
-
-msgid "Closure Output Items"
-msgstr "Closure Output Items"
-
-
-msgid "Combine Bundle Item"
-msgstr "Combine Bundle Item"
-
-
-msgid "Collection of combine bundle items"
-msgstr "Collection of combine bundle items"
-
-
-msgid "Input Item"
-msgstr "Input Item"
-
-
-msgid "Output Item"
-msgstr "Output Item"
-
-
 msgid "Generation Items"
 msgstr "Generation Items"
 
@@ -51154,14 +50984,6 @@ msgstr "Collection of main items"
 
 msgid "Collection of repeat items"
 msgstr "Collection of repeat items"
-
-
-msgid "Separate Bundle Item"
-msgstr "Separate Bundle Item"
-
-
-msgid "Collection of separate bundle items"
-msgstr "Collection of separate bundle items"
 
 
 msgid "Collection of simulation items"
@@ -51294,6 +51116,14 @@ msgstr "OpenEXR layer name used for this slot"
 
 msgid "Node Outputs"
 msgstr "Node Outputs"
+
+
+msgid "Separate Bundle Item"
+msgstr "Separate Bundle Item"
+
+
+msgid "Collection of separate bundle items"
+msgstr "Collection of separate bundle items"
 
 
 msgid "Node Socket"
@@ -60591,6 +60421,10 @@ msgid "Y Up"
 msgstr "Y Up"
 
 
+msgid "Z Up"
+msgstr "Z Up"
+
+
 msgid "-X Up"
 msgstr "-X Up"
 
@@ -62028,14 +61862,6 @@ msgstr "External File Operation"
 
 msgid "Perform external operation on a file or folder"
 msgstr "Perform external operation on a file or folder"
-
-
-msgid "File or folder path"
-msgstr "File or folder path"
-
-
-msgid "Operation to perform on the file or path"
-msgstr "Operation to perform on the file or path"
 
 
 msgid "Open the file"
@@ -74754,10 +74580,6 @@ msgid "Move Shape Key"
 msgstr "Move Shape Key"
 
 
-msgid "Move the active shape key up/down in the list"
-msgstr "Move the active shape key up/down in the list"
-
-
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Remove Shape Key"
@@ -79635,10 +79457,6 @@ msgid "Hide Panels"
 msgstr "Hide Panels"
 
 
-msgid "Hide all the panels"
-msgstr "Hide all the panels"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "Set Screen"
@@ -80886,10 +80704,6 @@ msgstr "Sets the pivot position to the surface under the cursor"
 
 msgid "Mouse Position X"
 msgstr "Mouse Position X"
-
-
-msgid "Position of the mouse used for \"Surface\" mode"
-msgstr "Position of the mouse used for \"Surface\" mode"
 
 
 msgid "Mouse Position Y"
@@ -84494,6 +84308,10 @@ msgid "Scale islands to fill unit square"
 msgstr "Scale islands to fill unit square"
 
 
+msgid "Shape Method"
+msgstr "Shape Method"
+
+
 msgid "Exact Shape (Concave)"
 msgstr "Exact Shape (Concave)"
 
@@ -84957,6 +84775,14 @@ msgstr "Number of iterations when \"Minimum Stretch\" method is used"
 
 msgid "Unwrapping method (Angle Based usually gives better results than Conformal, while being somewhat slower)"
 msgstr "Unwrapping method (Angle Based usually gives better results than Conformal, while being somewhat slower)"
+
+
+msgid "Angle Based"
+msgstr "Angle Based"
+
+
+msgid "Conformal"
+msgstr "Conformal"
 
 
 msgid "Minimum Stretch"
@@ -89444,6 +89270,70 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
+msgid "Active Tool"
+msgstr "Active Tool"
+
+
+msgid "View Lock"
+msgstr "View Lock"
+
+
+msgid "Selectability & Visibility"
+msgstr "Selectability & Visibility"
+
+
+msgid "Shadow Settings"
+msgstr "Shadow Settings"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Settings"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Render Pass"
+msgstr "Render Pass"
+
+
+msgid "Compositor"
+msgstr "Compositor"
+
+
+msgid "Overlays"
+msgstr "Overlays"
+
+
+msgid "Guides"
+msgstr "Guides"
+
+
+msgid "Viewer Node"
+msgstr "Viewer Node"
+
+
+msgid "Motion Tracking"
+msgstr "Motion Tracking"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Edit Mode"
+
+
+msgid "Measurement"
+msgstr "Measurement"
+
+
+msgid "Curve Edit Mode"
+msgstr "Curve Edit Mode"
+
+
+msgid "Curves Edit Mode"
+msgstr "Curves Edit Mode"
+
+
 msgid "Snapping"
 msgstr "Snapping"
 
@@ -89458,10 +89348,6 @@ msgstr "Stroke Placement"
 
 msgid "Drawing Plane"
 msgstr "Drawing Plane"
-
-
-msgid "Guides"
-msgstr "Guides"
 
 
 msgid "Grease Pencil Options"
@@ -89526,66 +89412,6 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTF Animations"
-
-
-msgid "Active Tool"
-msgstr "Active Tool"
-
-
-msgid "View Lock"
-msgstr "View Lock"
-
-
-msgid "Selectability & Visibility"
-msgstr "Selectability & Visibility"
-
-
-msgid "Shadow Settings"
-msgstr "Shadow Settings"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Settings"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Render Pass"
-msgstr "Render Pass"
-
-
-msgid "Compositor"
-msgstr "Compositor"
-
-
-msgid "Overlays"
-msgstr "Overlays"
-
-
-msgid "Viewer Node"
-msgstr "Viewer Node"
-
-
-msgid "Motion Tracking"
-msgstr "Motion Tracking"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Edit Mode"
-
-
-msgid "Measurement"
-msgstr "Measurement"
-
-
-msgid "Curve Edit Mode"
-msgstr "Curve Edit Mode"
-
-
-msgid "Curves Edit Mode"
-msgstr "Curves Edit Mode"
 
 
 msgid "Import Settings"
@@ -106996,14 +106822,6 @@ msgid "Color of keyframes on a path before current frame"
 msgstr "Color of keyframes on a path before current frame"
 
 
-msgid "Preview Range"
-msgstr "Preview Range"
-
-
-msgid "Color of preview range overlay"
-msgstr "Color of preview range overlay"
-
-
 msgid "Selected Marker"
 msgstr "Selected Marker"
 
@@ -107046,6 +106864,14 @@ msgstr "Theme settings for collection colors"
 
 msgid "Collection Color Tag"
 msgstr "Collection Color Tag"
+
+
+msgid "Preview Range"
+msgstr "Preview Range"
+
+
+msgid "Color of preview range overlay"
+msgstr "Color of preview range overlay"
 
 
 msgid "Theme Console"
@@ -115327,10 +115153,6 @@ msgid "Launch Blender without --offline-mode"
 msgstr "Launch Blender without --offline-mode"
 
 
-msgid "Please turn Online Access on in the System settings."
-msgstr "Please turn Online Access on in the System settings."
-
-
 msgid "Internet access is required to install extensions from the internet."
 msgstr "Internet access is required to install extensions from the internet."
 
@@ -121619,11 +121441,6 @@ msgstr "Vertical Split"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "Toggle Fullscreen Area"
-
-
-msgctxt "Operator"
 msgid "Transition"
 msgstr "Transition"
 
@@ -126352,10 +126169,6 @@ msgid "GP_Layer"
 msgstr "GP_Layer"
 
 
-msgid "grease_pencils"
-msgstr "grease_pencils"
-
-
 msgid "grease_pencils_v3"
 msgstr "grease_pencils_v3"
 
@@ -130303,16 +130116,8 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "Path selection requires two matching elements to be selected"
 
 
-msgid "Cannot rip selected faces"
-msgstr "Cannot rip selected faces"
-
-
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "Cannot rip multiple disconnected vertices"
-
-
-msgid "Rip failed"
-msgstr "Rip failed"
 
 
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
@@ -132350,10 +132155,6 @@ msgstr "Restore Areas"
 
 msgid "Maximize Area"
 msgstr "Maximize Area"
-
-
-msgid "Full Screen Area"
-msgstr "Full Screen Area"
 
 
 msgid "Show Header"
@@ -136013,10 +135814,6 @@ msgid "Shrink/Fatten: "
 msgstr "Shrink/Fatten: "
 
 
-msgid " or Alt) Even Thickness {}"
-msgstr " or Alt) Even Thickness {}"
-
-
 msgid "'Shrink/Fatten' meshes is only supported in edit mode"
 msgstr "'Shrink/Fatten' meshes is only supported in edit mode"
 
@@ -136288,6 +136085,10 @@ msgstr "Skipped %d of %d island(s), geometry was too complicated to detect a mat
 
 msgid "Rip is not compatible with sync selection"
 msgstr "Rip is not compatible with sync selection"
+
+
+msgid "Rip failed"
+msgstr "Rip failed"
 
 
 msgid "Cannot split selection when sync selection is enabled"
@@ -140289,6 +140090,10 @@ msgid "Limit the maximum value of the radius in order to avoid overlapping fille
 msgstr "Limit the maximum value of the radius in order to avoid overlapping fillets"
 
 
+msgid "How to choose number of vertices on fillet"
+msgstr "How to choose number of vertices on fillet"
+
+
 msgid "Handle Type Selection node"
 msgstr "Handle Type Selection node"
 
@@ -140520,6 +140325,10 @@ msgstr "The counterclockwise rotation of the inner set of points"
 
 msgid "An attribute field with a selection of the outer points"
 msgstr "An attribute field with a selection of the outer points"
+
+
+msgid "How to specify the amount of samples"
+msgstr "How to specify the amount of samples"
 
 
 msgid "Curve Index"
@@ -141543,6 +141352,10 @@ msgid "Width of the active voxel surface, in voxels"
 msgstr "Width of the active voxel surface, in voxels"
 
 
+msgid "How the voxel size is specified"
+msgstr "How the voxel size is specified"
+
+
 msgid "Corner Index"
 msgstr "Corner Index"
 
@@ -141859,6 +141672,10 @@ msgid "Hit Distance"
 msgstr "Hit Distance"
 
 
+msgid "Mapping from the target geometry to hit points"
+msgstr "Mapping from the target geometry to hit points"
+
+
 msgid "Realize All"
 msgstr "Realize All"
 
@@ -141887,6 +141704,14 @@ msgid "Attribute does not exist: \"{}\""
 msgstr "Attribute does not exist: \"{}\""
 
 
+msgid "Pattern Mode"
+msgstr "Pattern Mode"
+
+
+msgid "How the attributes to remove are chosen"
+msgstr "How the attributes to remove are chosen"
+
+
 msgid "Repeat Items"
 msgstr "Repeat Items"
 
@@ -141897,6 +141722,10 @@ msgstr "Iteration"
 
 msgid "Index of the current iteration. Starts counting at zero"
 msgstr "Index of the current iteration. Starts counting at zero"
+
+
+msgid "How to interpolate the values between neighboring voxels"
+msgstr "How to interpolate the values between neighbouring voxels"
 
 
 msgid "Which element to retrieve a value from on the geometry"
@@ -141931,6 +141760,10 @@ msgid "Whether the node could find a single face to sample at the UV coordinate"
 msgstr "Whether the node could find a single face to sample at the UV coordinate"
 
 
+msgid "Scale Mode"
+msgstr "Scale Mode"
+
+
 msgid "Origin of the scaling for each element. If multiple elements are connected, their center is averaged"
 msgstr "Origin of the scaling for each element. If multiple elements are connected, their center is averaged"
 
@@ -141947,10 +141780,6 @@ msgid "Grid 2"
 msgstr "Grid 2"
 
 
-msgid "Value not found: \"{}\""
-msgstr "Value not found: \"{}\""
-
-
 msgid "Inverted"
 msgstr "Inverted"
 
@@ -141965,6 +141794,10 @@ msgstr "The parts of the geometry in the selection"
 
 msgid "The parts of the geometry not in the selection"
 msgstr "The parts of the geometry not in the selection"
+
+
+msgid "Mode for curve normal evaluation"
+msgstr "Mode for curve normal evaluation"
 
 
 msgid "Mesh has no faces for material assignment"
@@ -142211,16 +142044,8 @@ msgid "Recursive closure is not allowed"
 msgstr "Recursive closure is not allowed"
 
 
-msgid "Closure input has incompatible type: \"{}\""
-msgstr "Closure input has incompatible type: \"{}\""
-
-
 msgid "Closure does not have input: \"{}\""
 msgstr "Closure does not have input: \"{}\""
-
-
-msgid "Closure output has incompatible type: \"{}\""
-msgstr "Closure output has incompatible type: \"{}\""
 
 
 msgid "Closure does not have output: \"{}\""

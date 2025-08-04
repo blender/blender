@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 15:30+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -11712,6 +11712,10 @@ msgid "Menu"
 msgstr "메뉴"
 
 
+msgid "Shader"
+msgstr "셰이더"
+
+
 msgid "Collection"
 msgstr "컬렉션"
 
@@ -16845,10 +16849,6 @@ msgid "Script"
 msgstr "스크립트"
 
 
-msgid "Shader"
-msgstr "셰이더"
-
-
 msgid "Pattern"
 msgstr "패턴"
 
@@ -21946,10 +21946,6 @@ msgid "Double Click"
 msgstr "더블 클릭"
 
 
-msgid "Click Drag"
-msgstr "클릭 드레그"
-
-
 msgid "KeyMap Items"
 msgstr "키 맵 항목"
 
@@ -23749,6 +23745,46 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
+msgid "Snap"
+msgstr "스냅"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
+
+
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
 msgid "View Regions"
 msgstr "뷰 지역"
 
@@ -23903,46 +23939,6 @@ msgstr "본 롤"
 
 msgid "Pivot Point"
 msgstr "피벗 포인트"
-
-
-msgid "Snap"
-msgstr "스냅"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
-
-
-msgid "Mirror"
-msgstr "미러"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
 
 
 msgid "Basic"
@@ -30824,10 +30820,6 @@ msgid "Rotate"
 msgstr "회전"
 
 
-msgid "Method to use to filter rotation"
-msgstr "회전을 필터하는 데 사용하는 메서드"
-
-
 msgid "Coordinate space to scale relative to"
 msgstr "다음으로 상대적인 축적에 좌표 공간"
 
@@ -30984,10 +30976,6 @@ msgid "Only Faces"
 msgstr "페이스 만"
 
 
-msgid "Triangles"
-msgstr "삼각형"
-
-
 msgid "Primary"
 msgstr "기본"
 
@@ -31016,12 +31004,12 @@ msgid "Fill Type"
 msgstr "채우기 유형"
 
 
+msgid "Triangles"
+msgstr "삼각형"
+
+
 msgid "Object Info"
 msgstr "오브젝트 정보"
-
-
-msgid "Z Up"
-msgstr "Z 위쪽"
 
 
 msgid "Tangent Space"
@@ -31038,14 +31026,6 @@ msgstr "선택"
 
 msgid "Pack UV Islands"
 msgstr "UV 아일랜드를 포장"
-
-
-msgid "Angle Based"
-msgstr "각도 베이스"
-
-
-msgid "Conformal"
-msgstr "컨포멀"
 
 
 msgid "Warning"
@@ -37588,6 +37568,10 @@ msgstr "X 위쪽"
 
 msgid "Y Up"
 msgstr "Y 위쪽"
+
+
+msgid "Z Up"
+msgstr "Z 위쪽"
 
 
 msgid "-X Up"
@@ -45351,10 +45335,6 @@ msgid "Move Shape Key"
 msgstr "셰이프 키를 이동"
 
 
-msgid "Move the active shape key up/down in the list"
-msgstr "목록에서 활성 셰이프 키를 위/아래로 움직입니다"
-
-
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "셰이프 키를 제거"
@@ -48761,10 +48741,6 @@ msgid "Hide Panels"
 msgstr "패널 숨기기"
 
 
-msgid "Hide all the panels"
-msgstr "모든 패널 숨기기"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "화면을 설정"
@@ -51618,6 +51594,14 @@ msgid "Unwrapping method (Angle Based usually gives better results than Conforma
 msgstr "펼치기하는 방법 (각도 기반은 등각보다 좋은 결과를 보여 주지만 다소 느립니다)"
 
 
+msgid "Angle Based"
+msgstr "각도 베이스"
+
+
+msgid "Conformal"
+msgstr "컨포멀"
+
+
 msgid "Map UVs taking vertex position after Subdivision Surface modifier has been applied"
 msgstr "섭디비젼 표면 모디파이어가 적용된 후 버텍스 위치를 취하는 UV 매핑"
 
@@ -53835,42 +53819,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Snapping"
-msgstr "스냅하기"
-
-
-msgid "Transform Orientations"
-msgstr "변환 오리엔테이션"
-
-
-msgid "Stroke Placement"
-msgstr "스트로크 배치"
-
-
-msgid "Drawing Plane"
-msgstr "드로잉 평면"
-
-
-msgid "Guides"
-msgstr "가이드"
-
-
-msgid "Quad View"
-msgstr "쿼드 뷰"
-
-
-msgid "Onion Skin"
-msgstr "어니언 스킨"
-
-
-msgid "Stereoscopy"
-msgstr "입체 영상"
-
-
-msgid "Multi Frame"
-msgstr "다중 프레임"
-
-
 msgid "Active Tool"
 msgstr "활성 도구"
 
@@ -53899,6 +53847,10 @@ msgid "Overlays"
 msgstr "오버레이"
 
 
+msgid "Guides"
+msgstr "가이드"
+
+
 msgid "Motion Tracking"
 msgstr "모션 트래킹"
 
@@ -53913,6 +53865,38 @@ msgstr "측정"
 
 msgid "Curve Edit Mode"
 msgstr "커브 에디트 모드"
+
+
+msgid "Snapping"
+msgstr "스냅하기"
+
+
+msgid "Transform Orientations"
+msgstr "변환 오리엔테이션"
+
+
+msgid "Stroke Placement"
+msgstr "스트로크 배치"
+
+
+msgid "Drawing Plane"
+msgstr "드로잉 평면"
+
+
+msgid "Quad View"
+msgstr "쿼드 뷰"
+
+
+msgid "Onion Skin"
+msgstr "어니언 스킨"
+
+
+msgid "Stereoscopy"
+msgstr "입체 영상"
+
+
+msgid "Multi Frame"
+msgstr "다중 프레임"
 
 
 msgid "Bone Constraints"
@@ -64719,14 +64703,6 @@ msgid "Color of path before current frame"
 msgstr "현재 프레임 이전에 경로의 컬러"
 
 
-msgid "Preview Range"
-msgstr "미리보기 범위"
-
-
-msgid "Color of preview range overlay"
-msgstr "미리보기 범위 오버레이의 색상"
-
-
 msgid "Selected Marker"
 msgstr "선택된 마커"
 
@@ -64749,6 +64725,14 @@ msgstr "스트립 선택됨"
 
 msgid "Scrubbing/Markers Region"
 msgstr "스크러빙/마커 지역"
+
+
+msgid "Preview Range"
+msgstr "미리보기 범위"
+
+
+msgid "Color of preview range overlay"
+msgstr "미리보기 범위 오버레이의 색상"
 
 
 msgid "Theme Console"
@@ -70211,11 +70195,6 @@ msgstr "수직 분할"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "전체 화면 영역을 토글"
-
-
-msgctxt "Operator"
 msgid "Sound"
 msgstr "사운드"
 
@@ -74184,16 +74163,8 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "경로를 선택하려면 두 개의 일치하는 요소를 선택해야 합니다"
 
 
-msgid "Cannot rip selected faces"
-msgstr "선택된 페이스를 추출 할 수 없습니다"
-
-
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "여러 개의 분리된 버택스를 추출 할 수 없습니다"
-
-
-msgid "Rip failed"
-msgstr "떼어내기 실패"
 
 
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
@@ -77096,6 +77067,10 @@ msgstr "덮어쓰기 %s"
 
 msgid "UV Vertex"
 msgstr "UV 버텍스"
+
+
+msgid "Rip failed"
+msgstr "떼어내기 실패"
 
 
 msgid "Cannot split selection when sync selection is enabled"

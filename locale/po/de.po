@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 15:02+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -10687,6 +10687,10 @@ msgid "Menu"
 msgstr "Menü"
 
 
+msgid "Shader"
+msgstr "Shader"
+
+
 msgid "Collection"
 msgstr "Sammlung"
 
@@ -14087,10 +14091,6 @@ msgstr "Maske"
 
 msgid "Script"
 msgstr "Skript"
-
-
-msgid "Shader"
-msgstr "Shader"
 
 
 msgid "Pattern"
@@ -18807,6 +18807,46 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Snap"
+msgstr "Einrasten"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
 msgid "View Regions"
 msgstr "Vierfenster Ansicht"
 
@@ -18895,10 +18935,6 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
 msgid "Random Mask"
 msgstr "Zufällige Maske"
 
@@ -18953,42 +18989,6 @@ msgstr "Text"
 
 msgid "Pivot Point"
 msgstr "Drehpunkt"
-
-
-msgid "Snap"
-msgstr "Einrasten"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
 
 
 msgid "Assets"
@@ -23836,10 +23836,6 @@ msgid "Fill Curve"
 msgstr "Kurve füllen"
 
 
-msgid "Triangles"
-msgstr "Triangulieren"
-
-
 msgid "Fillet Curve"
 msgstr "Kurve filetieren"
 
@@ -23898,6 +23894,10 @@ msgstr "Maschenkreis"
 
 msgid "Fill Type"
 msgstr "Fülltyp"
+
+
+msgid "Triangles"
+msgstr "Triangulieren"
 
 
 msgid "Ico Sphere"
@@ -23964,10 +23964,6 @@ msgid "Scale Elements"
 msgstr "Skaliere Elemente"
 
 
-msgid "Scale Mode"
-msgstr "Skalierungsmodus"
-
-
 msgid "Scale Instances"
 msgstr "Skaliere Instanzen"
 
@@ -23978,10 +23974,6 @@ msgstr "Separate Komponenten"
 
 msgid "Set Handle Positions"
 msgstr "Festlegen von Griffpositionen"
-
-
-msgid "Z Up"
-msgstr "Z Hoch"
 
 
 msgid "Set Curve Radius"
@@ -28804,6 +28796,10 @@ msgstr "X hoch"
 
 msgid "Y Up"
 msgstr "Y Hoch"
+
+
+msgid "Z Up"
+msgstr "Z Hoch"
 
 
 msgid "-X Up"
@@ -39354,42 +39350,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Snapping"
-msgstr "Einrasten"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
-
-
-msgid "Onion Skin"
-msgstr "Zwiebelhaut"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
-msgid "VR"
-msgstr "VR"
-
-
 msgid "Active Tool"
 msgstr "Aktives Werkzeug"
 
@@ -39422,6 +39382,10 @@ msgid "Overlays"
 msgstr "Überlagerungen"
 
 
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
 msgid "Motion Tracking"
 msgstr "Bewegungsverfolgung"
 
@@ -39436,6 +39400,38 @@ msgstr "Messung"
 
 msgid "Curve Edit Mode"
 msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Snapping"
+msgstr "Einrasten"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
+
+
+msgid "Onion Skin"
+msgstr "Zwiebelhaut"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -46841,10 +46837,6 @@ msgid "Color of path before current frame"
 msgstr "Pfadfarbe vor aktuellem Einzelbild"
 
 
-msgid "Preview Range"
-msgstr "Vorschaubereich"
-
-
 msgid "Selected Marker"
 msgstr "Ausgewählte Marker"
 
@@ -46867,6 +46859,10 @@ msgstr "Markiere Linie selektiert"
 
 msgid "Collection Color Tag"
 msgstr "Sammlung von Farbschildern"
+
+
+msgid "Preview Range"
+msgstr "Vorschaubereich"
 
 
 msgid "Theme Console"
@@ -51948,11 +51944,6 @@ msgstr "Vertikal Aufteilung"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "Vollbildbereich umschalten"
-
-
-msgctxt "Operator"
 msgid "Sound"
 msgstr "Klang"
 
@@ -55761,10 +55752,6 @@ msgid "Close"
 msgstr "Schließen"
 
 
-msgid "Cannot rip selected faces"
-msgstr "Ausgewählte Oberfläche kann nicht geschnitten werden"
-
-
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
 msgstr "Knotenauswahl - Umschalt-Klick für Mehrfachmodus, Strg-Klick erweitert die Auswahl"
 
@@ -58456,6 +58443,10 @@ msgstr "Normale treffen"
 
 msgid "Hit Distance"
 msgstr "Treffe Entfernung"
+
+
+msgid "Scale Mode"
+msgstr "Skalierungsmodus"
 
 
 msgid "Inverted"
