@@ -6,6 +6,11 @@
 #include <pxr/usd/sdf/types.h>
 #include <pxr/usd/usd/common.h>
 
+struct bNode;
+struct bNodeTree;
+
+struct Image;
+struct ImageUser;
 struct Main;
 struct Scene;
 
@@ -40,5 +45,26 @@ void dome_light_to_world_material(const USDImportParams &params,
                                   const USDImportDomeLightData &dome_light_data,
                                   const pxr::UsdPrim &prim,
                                   const pxr::UsdTimeCode time = 0.0);
+
+/**
+ * Helper struct for converting world shader nodes to a dome light, used by both
+ * USD and Hydra. */
+struct WorldToDomeLight {
+  /* Image and its transform. */
+  Image *image = nullptr;
+  ImageUser *iuser = nullptr;
+  pxr::GfMatrix4d transform = pxr::GfMatrix4d(1.0);
+
+  /* Multiply image by color. */
+  bool mult_found = false;
+  float color_mult[4]{};
+
+  /* Fixed color. */
+  bool color_found = false;
+  float intensity = 0.0f;
+  float color[4]{};
+};
+
+void world_material_to_dome_light(const Scene *scene, WorldToDomeLight &res);
 
 }  // namespace blender::io::usd

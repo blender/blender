@@ -20,9 +20,6 @@ class WorldData : public LightData {
 
   void init() override;
   void update() override;
-
- protected:
-  void write_transform() override;
 };
 
 }  // namespace blender::io::hydra
