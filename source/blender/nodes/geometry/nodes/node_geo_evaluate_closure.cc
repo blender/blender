@@ -24,31 +24,34 @@ NODE_STORAGE_FUNCS(NodeEvaluateClosure)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
+
   b.add_input<decl::Closure>("Closure");
 
   const bNode *node = b.node_or_null();
+  auto &panel = b.add_panel("Interface");
   if (node) {
     const auto &storage = node_storage(*node);
-    for (const int i : IndexRange(storage.input_items.items_num)) {
-      const NodeEvaluateClosureInputItem &item = storage.input_items.items[i];
-      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
-      const std::string identifier = EvaluateClosureInputItemsAccessor::socket_identifier_for_item(
-          item);
-      b.add_input(socket_type, item.name, identifier)
-          .structure_type(StructureType(item.structure_type));
-    }
     for (const int i : IndexRange(storage.output_items.items_num)) {
       const NodeEvaluateClosureOutputItem &item = storage.output_items.items[i];
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
       const std::string identifier =
           EvaluateClosureOutputItemsAccessor::socket_identifier_for_item(item);
-      b.add_output(socket_type, item.name, identifier)
+      panel.add_output(socket_type, item.name, identifier)
           .structure_type(StructureType(item.structure_type));
     }
+    panel.add_output<decl::Extend>("", "__extend__");
+    for (const int i : IndexRange(storage.input_items.items_num)) {
+      const NodeEvaluateClosureInputItem &item = storage.input_items.items[i];
+      const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+      const std::string identifier = EvaluateClosureInputItemsAccessor::socket_identifier_for_item(
+          item);
+      panel.add_input(socket_type, item.name, identifier)
+          .structure_type(StructureType(item.structure_type));
+    }
+    panel.add_input<decl::Extend>("", "__extend__");
   }
-
-  b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Extend>("", "__extend__");
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
