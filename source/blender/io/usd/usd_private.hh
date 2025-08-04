@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <pxr/base/gf/matrix4d.h>
 #include <pxr/usd/usd/common.h>
 
 #include <string>
