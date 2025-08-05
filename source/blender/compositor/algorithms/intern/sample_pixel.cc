@@ -17,7 +17,7 @@
 
 namespace blender::compositor {
 
-char const *get_pixel_sampler_shader_name(const Interpolation &interpolation)
+static char const *get_pixel_sampler_shader_name(const Interpolation &interpolation)
 {
   switch (interpolation) {
     case Interpolation::Anisotropic:
@@ -31,12 +31,12 @@ char const *get_pixel_sampler_shader_name(const Interpolation &interpolation)
   return "compositor_sample_pixel";
 }
 
-float4 sample_pixel_gpu(Context &context,
-                        const Result &input,
-                        const Interpolation &interpolation,
-                        const ExtensionMode &extension_mode_x,
-                        const ExtensionMode &extension_mode_y,
-                        const float2 coordinates)
+static float4 sample_pixel_gpu(Context &context,
+                               const Result &input,
+                               const Interpolation &interpolation,
+                               const ExtensionMode &extension_mode_x,
+                               const ExtensionMode &extension_mode_y,
+                               const float2 coordinates)
 {
   GPUShader *shader = context.get_shader(get_pixel_sampler_shader_name(interpolation));
   GPU_shader_bind(shader);
@@ -79,11 +79,11 @@ float4 sample_pixel_gpu(Context &context,
   return sampled_value;
 }
 
-float4 sample_pixel_cpu(const Result &input,
-                        const Interpolation &interpolation,
-                        const ExtensionMode &extension_mode_x,
-                        const ExtensionMode &extension_mode_y,
-                        const float2 coordinates)
+static float4 sample_pixel_cpu(const Result &input,
+                               const Interpolation &interpolation,
+                               const ExtensionMode &extension_mode_x,
+                               const ExtensionMode &extension_mode_y,
+                               const float2 coordinates)
 {
   return input.sample(coordinates, interpolation, extension_mode_x, extension_mode_y);
 }
