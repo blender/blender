@@ -2073,7 +2073,7 @@ void RE_RenderFrame(Render *re,
     if (should_write && !G.is_break) {
       if (BKE_imtype_is_movie(rd.im_format.imtype)) {
         /* operator checks this but in case its called from elsewhere */
-        printf("Error: can't write single images with a movie format!\n");
+        printf("Error: cannot write single images with a movie format!\n");
       }
       else {
         char filepath_override[FILE_MAX];

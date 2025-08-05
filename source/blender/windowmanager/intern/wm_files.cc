@@ -2855,7 +2855,7 @@ static wmOperatorStatus wm_homefile_read_exec(bContext *C, wmOperator *op)
       filepath = filepath_buf;
       if (BLI_access(filepath, R_OK)) {
         BKE_reportf(
-            op->reports, RPT_ERROR, "Can't read alternative start-up file: \"%s\"", filepath);
+            op->reports, RPT_ERROR, "Cannot read alternative start-up file: \"%s\"", filepath);
         return OPERATOR_CANCELLED;
       }
     }

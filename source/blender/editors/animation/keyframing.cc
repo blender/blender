@@ -1293,7 +1293,7 @@ static wmOperatorStatus insert_key_button_exec(bContext *C, wmOperator *op)
     else {
       BKE_reportf(op->reports,
                   RPT_WARNING,
-                  "Button doesn't appear to have any property information attached (ptr.data = "
+                  "Button does not appear to have any property information attached (ptr.data = "
                   "%p, prop = %p)",
                   ptr.data,
                   (void *)prop);

@@ -344,7 +344,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
                             0,
                             0,
                             "Size",
-                            "Width and height in pixels, zero when image data can't be loaded",
+                            "Width and height in pixels, zero when image data cannot be loaded",
                             0,
                             0);
   RNA_def_property_int_funcs(prop, "rna_MovieClip_size_get", nullptr, nullptr);

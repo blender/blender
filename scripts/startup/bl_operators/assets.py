@@ -25,7 +25,7 @@ class AssetBrowserMetadataOperator:
 
         if not context.asset.local_id:
             Operator.poll_message_set(
-                "Asset metadata from external asset libraries can't be "
+                "Asset metadata from external asset libraries cannot be "
                 "edited, only assets stored in the current file can"
             )
             return False

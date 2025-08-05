@@ -939,7 +939,7 @@ static void object_blend_read_after_liblink(BlendLibReader *reader, ID *id)
     if (ob->id.lib) {
       BLO_reportf_wrap(reports,
                        RPT_INFO,
-                       RPT_("Can't find object data of %s lib %s"),
+                       RPT_("Cannot find object data of %s lib %s"),
                        ob->id.name + 2,
                        ob->id.lib->filepath);
     }

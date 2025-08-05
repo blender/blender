@@ -336,7 +336,8 @@ static PyObject *bpy_bmesh_is_wrapped_get(BPy_BMesh *self, void * /*closure*/)
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_bmesh_select_mode_doc,
-    "The selection mode, values can be {'VERT', 'EDGE', 'FACE'}, can't be assigned an empty set.\n"
+    "The selection mode, values can be {'VERT', 'EDGE', 'FACE'}, cannot be assigned an empty "
+    "set.\n"
     "\n"
     ":type: set");
 static PyObject *bpy_bmesh_select_mode_get(BPy_BMesh *self, void * /*closure*/)
@@ -357,7 +358,7 @@ static int bpy_bmesh_select_mode_set(BPy_BMesh *self, PyObject *value, void * /*
     return -1;
   }
   if (flag == 0) {
-    PyErr_SetString(PyExc_TypeError, "bm.select_mode: can't assign an empty value");
+    PyErr_SetString(PyExc_TypeError, "bm.select_mode: cannot assign an empty value");
     return -1;
   }
 

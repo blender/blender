@@ -998,7 +998,7 @@ static void rna_def_udim_tile(BlenderRNA *brna)
       0,
       0,
       "Size",
-      "Width and height of the tile buffer in pixels, zero when image data can't be loaded",
+      "Width and height of the tile buffer in pixels, zero when image data cannot be loaded",
       0,
       0);
   RNA_def_property_subtype(prop, PROP_PIXEL);
@@ -1319,7 +1319,7 @@ static void rna_def_image(BlenderRNA *brna)
       0,
       0,
       "Size",
-      "Width and height of the image buffer in pixels, zero when image data can't be loaded",
+      "Width and height of the image buffer in pixels, zero when image data cannot be loaded",
       0,
       0);
   RNA_def_property_subtype(prop, PROP_PIXEL);

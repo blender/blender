@@ -274,7 +274,7 @@ class FormatInputsLookup {
          * anymore. Only other explicit identifiers are allowed. */
         if (!r_error) {
           r_error = TIP_(
-              "Empty identifier can't be used when explicit identifier was used before. For "
+              "Empty identifier cannot be used when explicit identifier was used before. For "
               "example, \"{} {x}\" is ok but \"{x} {}\" is not.");
         }
         return std::nullopt;
@@ -302,7 +302,7 @@ class FormatInputsLookup {
         /* There are other characters after the number. */
         if (!r_error) {
           r_error = fmt::format(
-              fmt::runtime(TIP_("An input name can't start with a digit: \"{}\"")), identifier);
+              fmt::runtime(TIP_("An input name cannot start with a digit: \"{}\"")), identifier);
         }
         return std::nullopt;
       }
@@ -372,7 +372,7 @@ static std::optional<ProcessedPythonCompatibleFormat> preprocess_python_compatib
     /* The type can't be formatted. The user shouldn't be able to trigger this error but nice to
      * handle it anyway. */
     if (!r_error) {
-      r_error = fmt::format(fmt::runtime(TIP_("Type \"{}\" can't be formatted")), type.name());
+      r_error = fmt::format(fmt::runtime(TIP_("Type \"{}\" cannot be formatted")), type.name());
     }
     return std::nullopt;
   }
@@ -571,7 +571,7 @@ static void format_with_hash_syntax(const StringRef format_pattern,
     }
   }
   else if (!r_error) {
-    r_error = fmt::format(fmt::runtime(TIP_("Type \"{}\" can't be formatted")), type.name());
+    r_error = fmt::format(fmt::runtime(TIP_("Type \"{}\" cannot be formatted")), type.name());
   }
 }
 
@@ -608,7 +608,7 @@ static void format_without_format_specifier(const GVArray &input,
     });
   }
   else if (!r_error) {
-    r_error = fmt::format(fmt::runtime(TIP_("Type \"{}\" can't be formatted")), type.name());
+    r_error = fmt::format(fmt::runtime(TIP_("Type \"{}\" cannot be formatted")), type.name());
   }
 }
 

@@ -533,7 +533,7 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
     return false;
   }
   if (BKE_attribute_required(owner, name)) {
-    BKE_report(reports, RPT_ERROR, "Attribute is required and can't be removed");
+    BKE_report(reports, RPT_ERROR, "Attribute is required and cannot be removed");
     return false;
   }
 

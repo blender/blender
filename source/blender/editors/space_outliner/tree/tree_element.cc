@@ -251,7 +251,7 @@ TreeElement *AbstractTreeElement::add_element(ListBase *lb,
   if (!display_) {
     BLI_assert_msg(false,
                    "Element not registered properly through AbstractTreeDisplay::add_element(), "
-                   "can't expand the tree further");
+                   "cannot expand the tree further");
     return nullptr;
   }
 

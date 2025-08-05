@@ -2172,7 +2172,7 @@ wmKeyMapItem *WM_keymap_item_find_match(wmKeyMap *km_base,
 
   if (!wm_keymap_is_match(km_base, km_match)) {
     BKE_reportf(
-        reports, RPT_ERROR, "KeyMap \"%s\" doesn't match \"%s\"", idname, km_match->idname);
+        reports, RPT_ERROR, "KeyMap \"%s\" does not match \"%s\"", idname, km_match->idname);
     return nullptr;
   }
 

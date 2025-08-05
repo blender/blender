@@ -594,7 +594,7 @@ static void rna_def_region(BlenderRNA *brna)
        "FLOAT",
        0,
        "Float",
-       "Region floats on screen, doesn't use any fixed alignment"},
+       "Region floats on screen, does not use any fixed alignment"},
       {RGN_ALIGN_QSPLIT,
        "QUAD_SPLIT",
        0,

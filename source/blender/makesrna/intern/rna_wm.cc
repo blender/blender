@@ -3226,7 +3226,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "User Defined",
-      "Is this keymap item user defined (doesn't just replace a builtin item)");
+      "Is this keymap item user defined (does not just replace a builtin item)");
   RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_userdefined_get", nullptr);
 
   RNA_api_keymapitem(srna);

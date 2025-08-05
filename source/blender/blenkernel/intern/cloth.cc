@@ -222,7 +222,7 @@ static bool do_init_cloth(Object *ob, ClothModifierData *clmd, Mesh *result, int
   if (clmd->clothObject == nullptr) {
     if (!cloth_from_object(ob, clmd, result, framenr, 1)) {
       BKE_ptcache_invalidate(cache);
-      BKE_modifier_set_error(ob, &(clmd->modifier), "Can't initialize cloth");
+      BKE_modifier_set_error(ob, &(clmd->modifier), "Cannot initialize cloth");
       return false;
     }
 

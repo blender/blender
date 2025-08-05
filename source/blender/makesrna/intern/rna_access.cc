@@ -1202,7 +1202,7 @@ bool RNA_struct_bl_idname_ok_or_report(ReportList *reports,
     {
       BKE_reportf(reports,
                   eReportType(report_level),
-                  "'%s' doesn't have upper case alpha-numeric prefix",
+                  "'%s' does not have upper case alpha-numeric prefix",
                   identifier);
       return failure;
     }
@@ -1217,7 +1217,7 @@ bool RNA_struct_bl_idname_ok_or_report(ReportList *reports,
     {
       BKE_reportf(reports,
                   eReportType(report_level),
-                  "'%s' doesn't have an alpha-numeric suffix",
+                  "'%s' does not have an alpha-numeric suffix",
                   identifier);
       return failure;
     }
@@ -2255,7 +2255,7 @@ static bool rna_property_editable_do(const PointerRNA *ptr,
    * because regular properties may not be editable and still be displayed. */
   if (flag & PROP_REGISTER) {
     if (r_info != nullptr && (*r_info)[0] == '\0') {
-      *r_info = N_("This property is for internal use only and can't be edited");
+      *r_info = N_("This property is for internal use only and cannot be edited");
     }
     return false;
   }
@@ -2272,7 +2272,7 @@ static bool rna_property_editable_do(const PointerRNA *ptr,
       return true;
     }
     if (r_info != nullptr && (*r_info)[0] == '\0') {
-      *r_info = N_("Can't edit this property from a linked data-block");
+      *r_info = N_("Cannot edit this property from a linked data-block");
     }
     return false;
   }
@@ -2280,13 +2280,13 @@ static bool rna_property_editable_do(const PointerRNA *ptr,
     const bool is_liboverride_system = BKE_lib_override_library_is_system_defined(G_MAIN, id);
     if (!RNA_property_overridable_get(ptr, prop_orig)) {
       if (r_info != nullptr && (*r_info)[0] == '\0') {
-        *r_info = N_("Can't edit this property from an override data-block");
+        *r_info = N_("Cannot edit this property from an override data-block");
       }
       return false;
     }
     if (is_liboverride_system && !is_linked_prop_exception) {
       if (r_info != nullptr && (*r_info)[0] == '\0') {
-        *r_info = N_("Can't edit this property from a system override data-block");
+        *r_info = N_("Cannot edit this property from a system override data-block");
       }
       return false;
     }

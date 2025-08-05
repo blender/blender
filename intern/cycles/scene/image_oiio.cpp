@@ -24,7 +24,7 @@ bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
     return false;
   }
   if (path_is_directory(filepath.string())) {
-    LOG_WARNING << "File '" << filepath.string() << "' is a directory, can't use as image.";
+    LOG_WARNING << "File '" << filepath.string() << "' is a directory, cannot use as image.";
     return false;
   }
 

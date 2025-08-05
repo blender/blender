@@ -4143,7 +4143,7 @@ static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "anim_non_active");
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(
-      prop, "No Active Action", "Animation data-block doesn't have active action");
+      prop, "No Active Action", "Animation data-block does not have active action");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "strips", PROP_FLOAT, PROP_COLOR_GAMMA);

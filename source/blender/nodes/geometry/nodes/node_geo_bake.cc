@@ -495,7 +495,7 @@ static void node_extra_info(NodeExtraInfoParams &params)
   }
   if (!ctx.is_bakeable_in_current_context) {
     NodeExtraInfoRow row;
-    row.text = TIP_("Can't bake in zone");
+    row.text = TIP_("Cannot bake in zone");
     row.icon = ICON_ERROR;
     params.rows.append(std::move(row));
   }

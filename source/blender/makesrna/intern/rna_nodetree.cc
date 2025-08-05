@@ -213,7 +213,7 @@ const EnumPropertyItem rna_enum_node_vec_math_items[] = {
      "REFLECT",
      0,
      "Reflect",
-     "Reflect A around the normal B. B doesn't need to be normalized."},
+     "Reflect A around the normal B. B does not need to be normalized."},
     {NODE_VECTOR_MATH_REFRACT,
      "REFRACT",
      0,
@@ -497,7 +497,7 @@ static const EnumPropertyItem rna_node_geometry_curve_handle_type_items[] = {
      "FREE",
      ICON_HANDLE_FREE,
      "Free",
-     "The handle can be moved anywhere, and doesn't influence the point's other handle"},
+     "The handle can be moved anywhere, and does not influence the point's other handle"},
     {GEO_NODE_CURVE_HANDLE_AUTO,
      "AUTO",
      ICON_HANDLE_AUTO,
@@ -3786,7 +3786,7 @@ static bool rna_Node_pair_with_output(
     BKE_reportf(
         reports,
         RPT_ERROR,
-        "Can't pair zone input node %s with %s because it does not have the same zone type",
+        "Cannot pair zone input node %s with %s because it does not have the same zone type",
         node->name,
         output_node->name);
     return false;
@@ -9262,7 +9262,7 @@ static void def_geo_string_to_curves(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_overflow_items);
   RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
   RNA_def_property_ui_text(
-      prop, "Textbox Overflow", "Handle the text behavior when it doesn't fit in the text boxes");
+      prop, "Textbox Overflow", "Handle the text behavior when it does not fit in the text boxes");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
   prop = RNA_def_property(srna, "align_x", PROP_ENUM, PROP_NONE);
