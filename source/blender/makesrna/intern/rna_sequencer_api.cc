@@ -478,7 +478,7 @@ static Strip *rna_Strips_new_effect(ID *id,
                                     int type,
                                     int channel,
                                     int frame_start,
-                                    int frame_end,
+                                    int length,
                                     Strip *input1,
                                     Strip *input2)
 {
@@ -488,8 +488,8 @@ static Strip *rna_Strips_new_effect(ID *id,
 
   switch (num_inputs) {
     case 0:
-      if (frame_end <= frame_start) {
-        BKE_report(reports, RPT_ERROR, "Strips.new_effect: end frame not set");
+      if (length <= 0) {
+        BKE_report(reports, RPT_ERROR, "Strips.new_effect: invalid length");
         return nullptr;
       }
       break;
@@ -516,7 +516,7 @@ static Strip *rna_Strips_new_effect(ID *id,
 
   blender::seq::LoadData load_data;
   blender::seq::add_load_data_init(&load_data, name, nullptr, frame_start, channel);
-  load_data.effect.end_frame = frame_end;
+  load_data.effect.length = length;
   load_data.effect.type = type;
   load_data.effect.input1 = input1;
   load_data.effect.input2 = input2;
@@ -535,12 +535,12 @@ static Strip *rna_Strips_editing_new_effect(ID *id,
                                             int type,
                                             int channel,
                                             int frame_start,
-                                            int frame_end,
+                                            int length,
                                             Strip *input1,
                                             Strip *input2)
 {
   return rna_Strips_new_effect(
-      id, &ed->seqbase, reports, name, type, channel, frame_start, frame_end, input1, input2);
+      id, &ed->seqbase, reports, name, type, channel, frame_start, length, input1, input2);
 }
 
 static Strip *rna_Strips_meta_new_effect(ID *id,
@@ -550,12 +550,12 @@ static Strip *rna_Strips_meta_new_effect(ID *id,
                                          int type,
                                          int channel,
                                          int frame_start,
-                                         int frame_end,
+                                         int length,
                                          Strip *input1,
                                          Strip *input2)
 {
   return rna_Strips_new_effect(
-      id, &strip->seqbase, reports, name, type, channel, frame_start, frame_end, input1, input2);
+      id, &strip->seqbase, reports, name, type, channel, frame_start, length, input1, input2);
 }
 
 static void rna_Strips_remove(
@@ -1115,12 +1115,12 @@ void RNA_api_strips(StructRNA *srna, const bool metastrip)
                      INT_MAX);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_int(func,
-              "frame_end",
+              "length",
               0,
               INT_MIN,
               INT_MAX,
               "",
-              "The end frame for the new strip",
+              "Length of the strip in frames, or the length of each strip if multiple are added",
               INT_MIN,
               INT_MAX);
   RNA_def_pointer(func, "input1", "Strip", "", "First input strip for effect");

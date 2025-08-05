@@ -40,14 +40,14 @@ struct LoadData {
   char path[/*FILE_MAX*/ 1024];
   struct {
     int count; /* Number of images in this strip, 1 if not an image sequence. */
-    int end_frame;
+    int length;
   } image;         /* Only for image strips. */
   Scene *scene;    /* Only for scene strips. */
   MovieClip *clip; /* Only for clip strips. */
   Mask *mask;      /* Only for mask strips. */
   struct {
     int type;
-    int end_frame;
+    int length;
     Strip *input1;
     Strip *input2;
   } effect; /* Only for effect strips. */

@@ -53,6 +53,7 @@
 
 #include "ED_asset.hh"
 #include "ED_asset_menu_utils.hh"
+#include "ED_image.hh"
 #include "ED_scene.hh"
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
@@ -84,8 +85,8 @@ struct SequencerAddData {
 
 /* Avoid passing multiple args and be more verbose. */
 #define SEQPROP_STARTFRAME (1 << 0)
-/* Defines length for image and effect strips. */
-#define SEQPROP_ENDFRAME (1 << 1)
+/* For image and effect strips only. */
+#define SEQPROP_LENGTH (1 << 1)
 /* Skips setting filepath or directory properties to active strip media directory,
  * since they have already been set by the file browser or by drag and drop. */
 #define SEQPROP_NOPATHS (1 << 2)
@@ -139,15 +140,15 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
                 MAXFRAME);
   }
 
-  if (flag & SEQPROP_ENDFRAME) {
-    /* Not usual since most strips have a fixed length. */
+  if (flag & SEQPROP_LENGTH) {
+    /* Not usual since most strips have a predefined length. */
     RNA_def_int(ot->srna,
-                "frame_end",
+                "length",
                 0,
                 INT_MIN,
                 INT_MAX,
-                "End Frame",
-                "End frame of the strip",
+                "Length",
+                "Length of the strip in frames, or the length of each strip if multiple are added",
                 -MAXFRAME,
                 MAXFRAME);
   }
@@ -349,7 +350,7 @@ static void sequencer_generic_invoke_xy__internal(
   Scene *scene = CTX_data_sequencer_scene(C);
 
   int timeline_frame = scene->r.cfra;
-  if (event && event->type == EVT_DROP) {
+  if (event && (flag & SEQPROP_NOPATHS)) {
     SequencerAddData *sad = reinterpret_cast<SequencerAddData *>(op->customdata);
     sad->is_drop_event = true;
     sad->move_strips_backup = RNA_boolean_get(op->ptr, "move_strips");
@@ -368,9 +369,8 @@ static void sequencer_generic_invoke_xy__internal(
     RNA_int_set(op->ptr, "frame_start", timeline_frame);
   }
 
-  if ((flag & SEQPROP_ENDFRAME) && !RNA_struct_property_is_set(op->ptr, "frame_end")) {
-    RNA_int_set(
-        op->ptr, "frame_end", RNA_int_get(op->ptr, "frame_start") + DEFAULT_IMG_STRIP_LENGTH);
+  if ((flag & SEQPROP_LENGTH) && !RNA_struct_property_is_set(op->ptr, "length")) {
+    RNA_int_set(op->ptr, "length", DEFAULT_IMG_STRIP_LENGTH);
   }
 
   if (!(flag & SEQPROP_NOPATHS)) {
@@ -412,7 +412,7 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
 
   load_data->start_frame = RNA_int_get(op->ptr, "frame_start");
   load_data->channel = RNA_int_get(op->ptr, "channel");
-  load_data->image.end_frame = load_data->start_frame;
+  load_data->image.length = 1;
   load_data->image.count = 1;
 
   PropertyRNA *prop;
@@ -462,9 +462,9 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
     BLI_path_rel(load_data->path, BKE_main_blendfile_path(bmain));
   }
 
-  if ((prop = RNA_struct_find_property(op->ptr, "frame_end"))) {
-    load_data->image.end_frame = RNA_property_int_get(op->ptr, prop);
-    load_data->effect.end_frame = load_data->image.end_frame;
+  if ((prop = RNA_struct_find_property(op->ptr, "length"))) {
+    load_data->image.length = RNA_property_int_get(op->ptr, prop);
+    load_data->effect.length = load_data->image.length;
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "cache")) &&
@@ -534,8 +534,8 @@ static bool load_data_init_from_operator(seq::LoadData *load_data, bContext *C, 
 
     load_data->start_frame = std::trunc(mouse_view.x);
     load_data->channel = std::trunc(mouse_view.y);
-    load_data->image.end_frame = load_data->start_frame + DEFAULT_IMG_STRIP_LENGTH;
-    load_data->effect.end_frame = load_data->image.end_frame;
+    load_data->image.length = DEFAULT_IMG_STRIP_LENGTH;
+    load_data->effect.length = load_data->image.length;
   }
   return true;
 }
@@ -1402,8 +1402,10 @@ static bool sequencer_add_draw_check_fn(PointerRNA * /*ptr*/,
                    "filename",
                    "frame_start",
                    "channel",
-                   "frame_end",
-                   "move_strips");
+                   "length",
+                   "move_strips",
+                   "use_sequence_detection",
+                   "use_placeholders");
 }
 
 static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
@@ -1416,11 +1418,16 @@ static void sequencer_add_draw(bContext * /*C*/, wmOperator *op)
   if (!RNA_boolean_get(op->ptr, "move_strips")) {
     uiLayout &col = layout->column(true);
     col.prop(op->ptr, "frame_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    if (RNA_struct_find_property(op->ptr, "frame_end")) {
-      col.prop(op->ptr, "frame_end", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    if (RNA_struct_find_property(op->ptr, "length")) {
+      col.prop(op->ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
     layout->prop(op->ptr, "channel", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     layout->separator();
+  }
+
+  layout->prop(op->ptr, "use_sequence_detection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (RNA_boolean_get(op->ptr, "use_sequence_detection")) {
+    layout->prop(op->ptr, "use_placeholders", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   /* Main draw call. */
@@ -1695,48 +1702,53 @@ void sequencer_image_strip_reserve_frames(
   }
 }
 
-static int sequencer_add_image_strip_calculate_count(wmOperator *op,
-                                                     const int start_frame,
-                                                     int *minframe,
-                                                     int *numdigits)
+static void frame_filename_set(char *dst,
+                               size_t dst_len,
+                               const char *filename_stripped,
+                               const int frame,
+                               const int numdigits,
+                               const char *ext)
 {
-  const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
-
-  if (use_placeholders) {
-    return sequencer_image_strip_get_minmax_frame(op, start_frame, minframe, numdigits);
-  }
-  return RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
+  BLI_strncpy(dst, filename_stripped, dst_len);
+  BLI_path_frame(dst, dst_len, frame, numdigits);
+  BLI_path_extension_ensure(dst, dst_len, ext);
 }
 
 static void sequencer_add_image_strip_load_files(wmOperator *op,
                                                  Scene *scene,
                                                  Strip *strip,
                                                  seq::LoadData *load_data,
-                                                 const int minframe,
-                                                 const int numdigits)
+                                                 const ImageFrameRange *range)
 {
-  const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
-  char dirpath[sizeof(strip->data->dirpath)];
-  BLI_path_split_dir_part(load_data->path, dirpath, sizeof(dirpath));
-  seq::add_image_set_directory(strip, dirpath);
+  int framenr, numdigits;
+  BLI_path_frame_get(load_data->path, &framenr, &numdigits);
+  char ext[FILE_MAX];
+  char filename_stripped[FILE_MAX];
+  BLI_path_split_file_part(load_data->path, filename_stripped, sizeof(filename_stripped));
+  BLI_path_frame_strip(filename_stripped, ext, sizeof(ext));
 
+  StripElem *se = strip->data->stripdata;
+  const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
   if (use_placeholders) {
-    sequencer_image_strip_reserve_frames(
-        op, strip->data->stripdata, load_data->image.count, minframe, numdigits);
+    for (int i = range->offset; i < range->max_framenr + 1; i++, se++) {
+      frame_filename_set(se->filename, sizeof(se->filename), filename_stripped, i, numdigits, ext);
+    }
   }
   else {
     size_t strip_frame = 0;
-    RNA_BEGIN (op->ptr, itemptr, "files") {
-      std::string filename = RNA_string_get(&itemptr, "name");
-      seq::add_image_load_file(scene, strip, strip_frame, filename.c_str());
+    LISTBASE_FOREACH (ImageFrame *, frame, &range->frames) {
+      char filename[FILE_MAX];
+      frame_filename_set(
+          filename, sizeof(filename), filename_stripped, frame->framenr, numdigits, ext);
+      seq::add_image_load_file(scene, strip, strip_frame, filename);
       strip_frame++;
     }
-    RNA_END;
   }
 }
 
 static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_sequencer_scene(C);
   Editing *ed = seq::editing_ensure(scene);
 
@@ -1751,10 +1763,8 @@ static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  int minframe, numdigits;
-  load_data.image.count = sequencer_add_image_strip_calculate_count(
-      op, load_data.start_frame, &minframe, &numdigits);
-  if (load_data.image.count == 0) {
+  ListBase ranges = ED_image_filesel_detect_sequences(BKE_main_blendfile_path(bmain), op, false);
+  if (BLI_listbase_is_empty(&ranges)) {
     sequencer_add_free(C, op);
     return OPERATOR_CANCELLED;
   }
@@ -1766,7 +1776,39 @@ static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *
   char vt_old[64];
   STRNCPY_UTF8(vt_old, scene->view_settings.view_transform);
 
-  Strip *strip = seq::add_image_strip(CTX_data_main(C), scene, ed->current_strips(), &load_data);
+  const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
+  LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
+    /* Populate `load_data` with data from `range`. */
+    load_data.image.count = use_placeholders ? range->max_framenr - range->offset + 1 :
+                                               BLI_listbase_count(&range->frames);
+    STRNCPY(load_data.path, range->filepath);
+    BLI_path_split_file_part(load_data.path, load_data.name, sizeof(load_data.name));
+
+    Strip *strip = seq::add_image_strip(bmain, scene, ed->current_strips(), &load_data);
+    const bool is_sequence = !seq::transform_single_image_check(strip);
+
+    char dirpath[sizeof(strip->data->dirpath)];
+    BLI_path_split_dir_part(load_data.path, dirpath, sizeof(dirpath));
+    seq::add_image_set_directory(strip, dirpath);
+
+    /* Set `StripElem` filenames, one for each `ImageFrame` in this range, or if `use_placeholders`
+     * is set, every frame between `offset` and `max_framenr` . */
+    sequencer_add_image_strip_load_files(op, scene, strip, &load_data, range);
+
+    seq::add_image_init_alpha_mode(strip);
+
+    /* Adjust starting length of strip.
+     * Note that this length differs from `strip->len`, which is always 1 for single images. */
+    if (!is_sequence) {
+      seq::time_right_handle_frame_set(
+          scene, strip, load_data.start_frame + load_data.image.length);
+    }
+
+    seq_load_apply_generic_options(C, op, strip);
+    load_data.start_frame += is_sequence ? load_data.image.count : load_data.image.length;
+    BLI_freelistN(&range->frames);
+  }
+  BLI_freelistN(&ranges);
 
   if (!STREQ(vt_old, scene->view_settings.view_transform)) {
     BKE_reportf(op->reports,
@@ -1775,16 +1817,6 @@ static wmOperatorStatus sequencer_add_image_strip_exec(bContext *C, wmOperator *
                 scene->view_settings.view_transform,
                 vt_old);
   }
-
-  sequencer_add_image_strip_load_files(op, scene, strip, &load_data, minframe, numdigits);
-  seq::add_image_init_alpha_mode(strip);
-
-  /* Adjust length. */
-  if (load_data.image.count == 1) {
-    seq::time_right_handle_frame_set(scene, strip, load_data.image.end_frame);
-  }
-
-  seq_load_apply_generic_options(C, op, strip);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   sequencer_select_do_updates(C, scene);
@@ -1814,7 +1846,7 @@ static wmOperatorStatus sequencer_add_image_strip_invoke(bContext *C,
   /* Name set already by drag and drop. */
   if (RNA_struct_property_is_set(op->ptr, "files") && !RNA_collection_is_empty(op->ptr, "files")) {
     sequencer_generic_invoke_xy__internal(
-        C, op, SEQPROP_ENDFRAME | SEQPROP_NOPATHS, STRIP_TYPE_IMAGE, event);
+        C, op, SEQPROP_LENGTH | SEQPROP_NOPATHS, STRIP_TYPE_IMAGE, event);
 
     const char *error_msg;
     if (!have_free_channels(C, op, 1, &error_msg)) {
@@ -1825,7 +1857,7 @@ static wmOperatorStatus sequencer_add_image_strip_invoke(bContext *C,
     return sequencer_add_image_strip_exec(C, op);
   }
 
-  sequencer_generic_invoke_xy__internal(C, op, SEQPROP_ENDFRAME, STRIP_TYPE_IMAGE, event);
+  sequencer_generic_invoke_xy__internal(C, op, SEQPROP_LENGTH, STRIP_TYPE_IMAGE, event);
 
   /* Show multiview save options only if the scene uses multiview. */
   prop = RNA_struct_find_property(op->ptr, "show_multiview");
@@ -1862,14 +1894,21 @@ void SEQUENCER_OT_image_strip_add(wmOperatorType *ot)
       FILE_DEFAULTDISPLAY,
       FILE_SORT_DEFAULT);
   sequencer_generic_props__internal(ot,
-                                    SEQPROP_STARTFRAME | SEQPROP_ENDFRAME | SEQPROP_FIT_METHOD |
+                                    SEQPROP_STARTFRAME | SEQPROP_LENGTH | SEQPROP_FIT_METHOD |
                                         SEQPROP_VIEW_TRANSFORM | SEQPROP_MOVE);
 
   RNA_def_boolean(ot->srna,
                   "use_placeholders",
                   false,
                   "Use Placeholders",
-                  "Use placeholders for missing frames of the strip");
+                  "Reserve placeholder frames for missing frames of the image sequence");
+
+  RNA_def_boolean(
+      ot->srna,
+      "use_sequence_detection",
+      true,
+      "Detect Sequences",
+      "Automatically detect animated sequences in selected images (based on file names)");
 }
 
 /** \} */
@@ -1946,7 +1985,7 @@ static wmOperatorStatus sequencer_add_effect_strip_invoke(bContext *C,
 {
   bool is_type_set = RNA_struct_property_is_set(op->ptr, "type");
   int type = -1;
-  int prop_flag = SEQPROP_ENDFRAME | SEQPROP_NOPATHS;
+  int prop_flag = SEQPROP_LENGTH;
 
   if (!is_type_set) {
     BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Strip type is not set.");
@@ -1977,9 +2016,9 @@ static bool sequencer_add_effect_strip_poll_property(const bContext * /*C*/,
   const char *prop_id = RNA_property_identifier(prop);
   int type = RNA_enum_get(op->ptr, "type");
 
-  /* Hide start/end frames for effect strips that are locked to their parents' location. */
+  /* Hide start frame and length for effect strips that are locked to their parents' location. */
   if (seq::effect_get_num_inputs(type) != 0) {
-    if (STR_ELEM(prop_id, "frame_start", "frame_end")) {
+    if (STR_ELEM(prop_id, "frame_start", "length")) {
       return false;
     }
   }
@@ -2071,7 +2110,7 @@ void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
                       "Type",
                       "Sequencer effect type");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
-  sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME | SEQPROP_MOVE);
+  sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_LENGTH | SEQPROP_MOVE);
   /* Only used when strip is of the Color type. */
   prop = RNA_def_float_color(ot->srna,
                              "color",

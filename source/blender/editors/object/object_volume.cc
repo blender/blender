@@ -125,6 +125,8 @@ static wmOperatorStatus volume_import_exec(bContext *C, wmOperator *op)
     BKE_volume_unload(volume);
 
     imported = true;
+
+    BLI_freelistN(&range->frames);
   }
   BLI_freelistN(&ranges);
 
