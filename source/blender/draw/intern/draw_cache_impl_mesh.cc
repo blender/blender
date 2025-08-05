@@ -1218,7 +1218,8 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
         GPU_BATCH_CLEAR_SAFE(cache.surface_per_mat[i]);
       }
       GPU_BATCH_CLEAR_SAFE(cache.batch.surface);
-      cache.batch_ready &= ~(MBC_SURFACE | MBC_SURFACE_PER_MAT);
+      GPU_BATCH_CLEAR_SAFE(cache.batch.sculpt_overlays);
+      cache.batch_ready &= ~(MBC_SURFACE | MBC_SURFACE_PER_MAT | MBC_SCULPT_OVERLAYS);
 
       mesh_cd_layers_type_merge(&cache.cd_used, cache.cd_needed);
       drw_attributes_merge(&cache.attr_used, &cache.attr_needed);
