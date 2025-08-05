@@ -608,6 +608,12 @@ class FileOutputOperation : public NodeOperation {
 
   void execute_multi_layer()
   {
+    /* We only write images, not single values. */
+    const int2 size = this->compute_domain().size;
+    if (size == int2(1)) {
+      return;
+    }
+
     const bool store_views_in_single_file = is_multi_view_exr();
     const char *view = context().get_view_name().data();
 
@@ -622,7 +628,6 @@ class FileOutputOperation : public NodeOperation {
       return;
     }
 
-    const int2 size = compute_domain().size;
     const ImageFormatData format = node_storage(bnode()).format;
     FileOutput &file_output = context().render_context()->get_file_output(
         image_path, format, size, true);
