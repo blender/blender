@@ -26,6 +26,7 @@ endfunction()
 # Apple cross-platform device build config
 if(WITH_APPLE_CROSSPLATFORM)
   # Disable modules with no planned/required support on iOS.
+  set(WITH_USD OFF CACHE BOOL "Disable until we fix issue with release build" FORCE)
   set(NO_PLATFORM_SUPPORT_MSG "Auto disabled as APPLE_TARGET_DEVICE=ios")
   set(WITH_VULKAN_BACKEND  OFF CACHE BOOL ${NO_PLATFORM_SUPPORT_MSG} FORCE)
   set(WITH_OPENGL_BACKEND  OFF CACHE BOOL ${NO_PLATFORM_SUPPORT_MSG} FORCE)
