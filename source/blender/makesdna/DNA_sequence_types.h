@@ -125,7 +125,6 @@ typedef struct StripProxy {
 typedef struct StripData {
   struct StripData *next, *prev;
   int us, done;
-  int startstill, endstill;
   /**
    * Only used as an array in IMAGE sequences(!),
    * and as a 1-element array in MOVIE sequences,
@@ -467,6 +466,7 @@ typedef struct TextVars {
 
   /** Replaced by `anchor_y` in 4.4. */
   char align_y_legacy DNA_DEPRECATED; /* eEffectTextAlignY */
+
   char anchor_x; /* eEffectTextAlignX */
   char anchor_y; /* eEffectTextAlignY */
   char _pad1;
