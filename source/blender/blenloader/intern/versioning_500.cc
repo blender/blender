@@ -2078,6 +2078,27 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       FOREACH_NODETREE_END;
     }
   }
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 51)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type_legacy != CMP_NODE_CORNERPIN) {
+          continue;
+        }
+        if (node->storage != nullptr) {
+          continue;
+        }
+        NodeCornerPinData *data = MEM_callocN<NodeCornerPinData>(__func__);
+        data->interpolation = node->custom1;
+        data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+        data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
+        node->storage = data;
+      }
+      FOREACH_NODETREE_END;
+    }
+  }
 
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
