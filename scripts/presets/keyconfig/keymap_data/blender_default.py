@@ -1047,6 +1047,7 @@ def km_user_interface(_params):
          {"properties": [("extend", True)]}),
         ("ui.view_item_select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
          {"properties": [("range_select", True)]}),
+        ("ui.view_item_rename", {"type": 'F2', "value": 'PRESS'}, None),
     ])
 
     return keymap
