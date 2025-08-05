@@ -18,6 +18,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_forward)
 #include "eevee_ambient_occlusion_lib.glsl"
 #include "eevee_forward_lib.glsl"
 #include "eevee_nodetree_frag_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_surf_lib.glsl"
 #include "eevee_volume_lib.glsl"
@@ -60,7 +61,7 @@ void main()
   /* Volumetric resolve and compositing. */
   float2 uvs = gl_FragCoord.xy * uniform_buf.volumes.main_view_extent_inv;
   VolumeResolveSample vol = volume_resolve(
-      float3(uvs, gl_FragCoord.z), volume_transmittance_tx, volume_scattering_tx);
+      float3(uvs, reverse_z::read(gl_FragCoord.z)), volume_transmittance_tx, volume_scattering_tx);
   /* Removes the part of the volume scattering that has
    * already been added to the destination pixels by the opaque resolve.
    * Since we do that using the blending pipeline we need to account for material transmittance. */
