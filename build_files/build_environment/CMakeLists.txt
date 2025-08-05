@@ -25,11 +25,11 @@ if(APPLE)
   set(APPLE_TARGET_DEVICE macos CACHE STRING "Target build device for Apple platforms. Default: macos")
   mark_as_advanced(WITH_APPLE_CROSSPLATFORM)
 
-  if(APPLE_TARGET_DEVICE STREQUAL ios)
+  if(APPLE_TARGET_DEVICE STREQUAL "ios" OR APPLE_TARGET_DEVICE STREQUAL "ios-simulator")
     set(WITH_APPLE_CROSSPLATFORM ON CACHE BOOL "Build dependencies for non-host Apple platforms" FORCE)
     # Override system name which will be inherited from CMAKE_HOST_SYSTEM_NAME
     set(CMAKE_SYSTEM_NAME "iOS")
-  elseif(APPLE_TARGET_DEVICE STREQUAL macos)
+  elseif(APPLE_TARGET_DEVICE STREQUAL "macos")
     set(WITH_APPLE_CROSSPLATFORM OFF CACHE BOOL "" FORCE)
   else()
     message(FATAL_ERROR "Unrecognised Apple platform '${APPLE_TARGET_DEVICE}'")

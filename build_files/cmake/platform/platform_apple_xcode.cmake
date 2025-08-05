@@ -11,20 +11,31 @@ if(WITH_APPLE_CROSSPLATFORM)
 
   ### Configure cross-platform parameters per platform type. ###
   # IPad: iOS arm64
-  if(APPLE_TARGET_DEVICE STREQUAL ios)
-
+  if(APPLE_TARGET_DEVICE STREQUAL "ios")
     set(CMAKE_SYSTEM_NAME "iOS" CACHE INTERNAL "" FORCE)
+    set(APPLE_TARGET_IOS TRUE)
+
     set(APPLE_SDK_CROSSPLATFORM_NAME "iPhoneOS")
     set(APPLE_SDK_CROSSPLATFORM_NAME_LOWER "iphoneos")
+
     set(OSX_MIN_DEPLOYMENT_TARGET 15.00)
     set(APPLE_OS_MINVERSION_CFLAG "-miphoneos-version-min=${OSX_MIN_DEPLOYMENT_TARGET}")
+  # iOS-Simulator arm64
+  elseif(APPLE_TARGET_DEVICE STREQUAL "ios-simulator")
+    set(CMAKE_SYSTEM_NAME "iOS" CACHE INTERNAL "" FORCE)
+    set(APPLE_TARGET_IOS TRUE)
 
+    set(APPLE_SDK_CROSSPLATFORM_NAME "iPhoneSimulator")
+    set(APPLE_SDK_CROSSPLATFORM_NAME_LOWER "iphonesimulator")
+
+    set(OSX_MIN_DEPLOYMENT_TARGET 15.00)
+    set(APPLE_OS_MINVERSION_CFLAG "-miphonesimulator-version-min=${OSX_MIN_DEPLOYMENT_TARGET}")
   else()
     message(FATAL_ERROR "Unsupported APPLE_TARGET_DEVICE = ${APPLE_TARGET_DEVICE}. To add support, ensure setup parameters in platform_apple_xcode.cmake are configured. ")
-    set(APPLE_SDK_CROSSPLATFORM_NAME)
     set(CMAKE_SYSTEM_NAME)
+    set(APPLE_TARGET_IOS FALSE)
+    set(APPLE_SDK_CROSSPLATFORM_NAME)
     set(OSX_MIN_DEPLOYMENT_TARGET)
-
     set(APPLE_OS_MINVERSION_CFLAG)
   endif()
 

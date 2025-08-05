@@ -730,11 +730,13 @@ endif()
 # set(CMAKE_XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "org.blenderfoundation.blender")
 
 if(WITH_APPLE_CROSSPLATFORM)
-  if(APPLE_TARGET_DEVICE STREQUAL "ios")
+  if(APPLE_TARGET_IOS)
     set(CMAKE_XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")
     set(CMAKE_XCODE_ATTRIBUTE_SUPPORTS_MACCATALYST NO)
     set(CMAKE_XCODE_ATTRIBUTE_SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD NO)
+
+    # Entitlements file reference
+    # `release/ios` is hardcoded since we want to use the same entitlements for both iOS-Simulator and normal iOS builds.
+    set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/release/ios/entitlements.plist")
   endif()
-  # Entitlements file reference
-  set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/release/${APPLE_TARGET_DEVICE}/entitlements.plist")
 endif()

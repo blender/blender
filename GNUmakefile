@@ -178,9 +178,12 @@ OS:=$(shell uname -s)
 OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
 # Path to host machine build folder. Cross compiled builds will require native host tools during build process.
 OS_NCASE_CROSSCOMPILE:=$(OS_NCASE)
-# Apple: ios
-ifneq "$(findstring ios, $(MAKECMDGOALS))" ""
-# IOS libs will build to /ios_arm64 instead of /darwin_arm64.
+# Apple: ios and ios-simulator
+# iOS and iOS-Simulator libs will build to /ios{_simulator}_arm64 instead of /darwin_arm64.
+ifneq "$(findstring ios-simulator, $(MAKECMDGOALS))" ""
+	OS_NCASE:=ios-simulator
+	DEPS_ARGS:=-DAPPLE_TARGET_DEVICE=ios-simulator
+else ifneq "$(findstring ios, $(MAKECMDGOALS))" ""
 	OS_NCASE:=ios
 	DEPS_ARGS:=-DAPPLE_TARGET_DEVICE=ios
 else
@@ -702,9 +705,11 @@ help_features: .FORCE
 clean: .FORCE
 	$(BUILD_COMMAND) -C "$(BUILD_DIR)" clean
 	
-# Do-nothing target so Make doesn't raise warning when we specify 'ios' in 'make deps ios'
+# Do-nothing target so Make doesn't raise warning when we specify 'ios-{simulator}' in 'make deps ios{-simluator}'
 ios: .FORCE
 	@echo "iOS target detected"
+ios-simulator: .FORCE
+	@echo "iOS-simulator target detected"
 
 .PHONY: all
 

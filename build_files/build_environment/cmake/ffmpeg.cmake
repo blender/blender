@@ -145,7 +145,7 @@ if(APPLE)
       ${FFMPEG_EXTRA_FLAGS}
       --enable-cross-compile
       --arch=aarch64
-      --target-os=ios
+      --target-os=ios-simulator
 
       --sysroot=${CMAKE_OSX_SYSROOT} 
       --extra-ldflags=${PLATFORM_LDFLAGS} 

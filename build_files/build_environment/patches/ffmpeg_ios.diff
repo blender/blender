@@ -1,6 +1,7 @@
---- a/configure	2023-12-31 00:07:26
-+++ b/configure	2025-05-07 13:58:11
-@@ -1648,13 +1648,13 @@
+diff -u a/configure b/configure
+--- a/configure	2025-07-26 17:07:15
++++ b/configure	2025-07-26 17:16:59
+@@ -1690,7 +1690,7 @@
  require_pkg_config(){
      log require_pkg_config "$@"
      pkg_version="$2"
@@ -9,23 +10,7 @@
  }
  
  require_pkg_config_cpp(){
-     log require_pkg_config_cpp "$@"
-     pkg_version="$2"
--    check_pkg_config_cpp "$@" || die "ERROR: $pkg_version not found using pkg-config$pkg_config_fail_message"
-+    check_pkg_config_cpp "$@" || die "ERROR: $pkg_version not found using pkg-config$pkg_config_fail_message"
- }
- 
- test_host_cc(){
-@@ -5631,13 +5631,30 @@
-             is_in -isysroot $ld $LDFLAGS          || check_ldflags  -isysroot $sysroot
-         fi
-         version_script='-exported_symbols_list'
--        VERSION_SCRIPT_POSTPROCESS_CMD='tr " " "\n" | sed -n /global:/,/local:/p | grep ";" | tr ";" "\n" | sed -E "s/(.+)/_\1/g" | sed -E "s/(.+[^*])$$$$/\1*/"'
-+        VERSION_SCRIPT_POSTPROCESS_CMD='tr " " "\n" | sed -n /global:/,/local:/p | grep ";" |
-+         tr ";" "\n" | sed -E "s/(.+)/_\1/g" | sed -E "s/(.+[^*])$$$$/\1*/"'
-         # Workaround for Xcode 11 -fstack-check bug
-         if enabled clang; then
-             clang_version=$($cc -dumpversion)
+@@ -5806,6 +5806,38 @@
              test ${clang_version%%.*} -eq 11 && add_cflags -fno-stack-check
          fi
          ;;
@@ -45,28 +30,44 @@
 +        version_script='-exported_symbols_list'
 +        VERSION_SCRIPT_POSTPROCESS_CMD='tr " " "\n" | sed -n /global:/,/local:/p | grep ";" | tr ";" "\n" | sed -E "s/(.+)/_\1/g" | sed -E "s/(.+[^*])$$$$/\1*/"'
 +        ;;
++    ios-simulator)
++        enabled ppc && add_asflags -force_cpusubtype_ALL
++        install_name_dir_default='$(SHLIBDIR)'
++        SHFLAGS='-dynamiclib -Wl,-single_module -Wl,-install_name,$(INSTALL_NAME_DIR)/$(SLIBNAME_WITH_MAJOR),-current_version,$(LIBVERSION),-compatibility_version,$(LIBMAJOR) ${$LDFLAGS}'
++        strip="${strip} -x"
++        add_ldflags -Wl,-dynamic,-search_paths_first
++        SLIBSUF=".dylib"
++        SLIBNAME_WITH_VERSION='$(SLIBPREF)$(FULLNAME).$(LIBVERSION)$(SLIBSUF)'
++        SLIBNAME_WITH_MAJOR='$(SLIBPREF)$(FULLNAME).$(LIBMAJOR)$(SLIBSUF)'
++        if true; then
++            add_cppflags -isysroot $sysroot -arch arm64 -miphonesimulator-version-min=15.00
++            add_ldflags  -isysroot $sysroot
++        fi
++        version_script='-exported_symbols_list'
++        VERSION_SCRIPT_POSTPROCESS_CMD='tr " " "\n" | sed -n /global:/,/local:/p | grep ";" | tr ";" "\n" | sed -E "s/(.+)/_\1/g" | sed -E "s/(.+[^*])$$$$/\1*/"'
++        ;;
      msys*)
          die "Native MSYS builds are discouraged, please use the MINGW environment."
          ;;
-@@ -6024,7 +6041,7 @@
+@@ -6186,7 +6218,7 @@
          *)    gaspp_as_type=$as_type ;;
      esac
  
 -    [ $target_os = "darwin" ] && gaspp_as_type="apple-$gaspp_as_type"
-+    [ $target_os = "darwin" ] || [ $target_os = "ios" ] && gaspp_as_type="apple-$gaspp_as_type"
++    [ $target_os = "darwin" ] || [ $target_os = "ios" ] || [ $target_os = "ios-simulator" ] && gaspp_as_type="apple-$gaspp_as_type"
  
      test "${as#*gas-preprocessor.pl}" != "$as" ||
      test_cmd gas-preprocessor.pl -arch $arch -as-type $gaspp_as_type -- ${as:=$cc} $as_noop &&
-@@ -6768,7 +6785,7 @@
+@@ -6964,7 +6996,7 @@
                                 require_pkg_config libopencv opencv opencv/cxcore.h cvCreateImageHeader; }
- enabled libopenh264       && require_pkg_config libopenh264 openh264 wels/codec_api.h WelsGetCodecVersion
+ enabled libopenh264       && require_pkg_config libopenh264 "openh264 >= 1.3.0" wels/codec_api.h WelsGetCodecVersion
  enabled libopenjpeg       && { check_pkg_config libopenjpeg "libopenjp2 >= 2.1.0" openjpeg.h opj_version ||
 -                               { require_pkg_config libopenjpeg "libopenjp2 >= 2.1.0" openjpeg.h opj_version -DOPJ_STATIC && add_cppflags -DOPJ_STATIC; } }
 +                               { require_pkg_config libopenjpeg "libopenjp2 >= 2.1.0" openjpeg.h opj_version "-DOPJ_STATIC $pthreads_extralibs $libm_extralibs" && add_cppflags "-DOPJ_STATIC $pthreads_extralibs $libm_extralibs"; } }
  enabled libopenmpt        && require_pkg_config libopenmpt "libopenmpt >= 0.2.6557" libopenmpt/libopenmpt.h openmpt_module_create -lstdc++ && append libopenmpt_extralibs "-lstdc++"
  enabled libopenvino       && { { check_pkg_config libopenvino openvino openvino/c/openvino.h ov_core_create && enable openvino2; } ||
                                  { check_pkg_config libopenvino openvino c_api/ie_c_api.h ie_c_api_version ||
-@@ -6812,8 +6829,8 @@
+@@ -7011,8 +7043,8 @@
  enabled libvmaf           && require_pkg_config libvmaf "libvmaf >= 2.0.0" libvmaf.h vmaf_init
  enabled libvmaf           && check_pkg_config libvmaf_cuda "libvmaf >= 2.0.0" libvmaf_cuda.h vmaf_cuda_state_init
  enabled libvo_amrwbenc    && require libvo_amrwbenc vo-amrwbenc/enc_if.h E_IF_init -lvo-amrwbenc
@@ -77,9 +78,9 @@
  
  enabled libvpx            && {
      enabled libvpx_vp8_decoder && {
-@@ -6845,7 +6862,7 @@
-                              [ "$toolchain" != "msvc" ] ||
+@@ -7046,7 +7078,7 @@
                               require_cpp_condition libx264 x264.h "X264_BUILD >= 158"; } &&
+                              check_cpp_condition libx264_hdr10 x264.h "X264_BUILD >= 163" &&
                               check_cpp_condition libx262 x264.h "X264_MPEG2"
 -enabled libx265           && require_pkg_config libx265 x265 x265.h x265_api_get &&
 +enabled libx265           && require_pkg_config libx265 x265 x265.h x265_api_get "$pthreads_extralibs" &&

@@ -1,6 +1,6 @@
-diff -Naur multicoreware-x265_git-3cf6c1e53037_Original/build/aarch64-darwin/crosscompile.cmake multicoreware-x265_git-3cf6c1e53037/build/aarch64-darwin/crosscompile.cmake
---- multicoreware-x265_git-3cf6c1e53037_Original/build/aarch64-darwin/crosscompile.cmake	2024-03-15 03:44:45
-+++ multicoreware-x265_git-3cf6c1e53037/build/aarch64-darwin/crosscompile.cmake	2025-04-17 14:32:00
+diff -Naur multicoreware-x265_git-3cf6c1e53037_original/build/aarch64-darwin/crosscompile.cmake multicoreware-x265_git-3cf6c1e53037/build/aarch64-darwin/crosscompile.cmake
+--- multicoreware-x265_git-3cf6c1e53037_original/build/aarch64-darwin/crosscompile.cmake	2025-07-26 12:45:08
++++ multicoreware-x265_git-3cf6c1e53037/build/aarch64-darwin/crosscompile.cmake	2025-07-26 12:47:24
 @@ -4,12 +4,12 @@
  # Run cmake with: cmake -DCMAKE_TOOLCHAIN_FILE=crosscompile.cmake -G "Unix Makefiles" ../../source && ccmake ../../source
  
@@ -17,16 +17,15 @@ diff -Naur multicoreware-x265_git-3cf6c1e53037_Original/build/aarch64-darwin/cro
  
  # specify the target environment
  SET(CMAKE_FIND_ROOT_PATH  /opt/homebrew/bin/)
-diff -Naur multicoreware-x265_git-3cf6c1e53037_Original/source/CMakeLists.txt multicoreware-x265_git-3cf6c1e53037/source/CMakeLists.txt
---- multicoreware-x265_git-3cf6c1e53037_Original/source/CMakeLists.txt	2024-03-15 03:44:45
-+++ multicoreware-x265_git-3cf6c1e53037/source/CMakeLists.txt	2025-04-17 14:31:30
-@@ -478,6 +478,11 @@
+diff -Naur multicoreware-x265_git-3cf6c1e53037_original/source/CMakeLists.txt multicoreware-x265_git-3cf6c1e53037/source/CMakeLists.txt
+--- multicoreware-x265_git-3cf6c1e53037_original/source/CMakeLists.txt	2025-07-26 12:45:08
++++ multicoreware-x265_git-3cf6c1e53037/source/CMakeLists.txt	2025-07-26 12:48:57
+@@ -478,6 +478,10 @@
    endif()
  endif(ARM64)
  
 +if(APPLE)
-+  # IOS_FIXME: minversion should come from a define like CMAKE_OSX_DEPLOYMENT_TARGET	
-+  list(APPEND ASM_FLAGS -isysroot ${CMAKE_OSX_SYSROOT}  -miphoneos-version-min=15.0)
++  list(APPEND ASM_FLAGS -isysroot ${CMAKE_OSX_SYSROOT} ${APPLE_OS_MINVERSION_CFLAG})
 +endif()
 +
  option(WARNINGS_AS_ERRORS "Stop compiles on first warning" OFF)

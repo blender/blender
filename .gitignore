@@ -60,6 +60,11 @@ waveletNoiseTile.bin
 /scripts/addons_contrib/
 /tests/benchmarks/
 
+# iOS-Simulator library dependencies
+# Since these libraries are only useful to developers using the iOS Simulator,
+# they are not shipped as a pre-compiled libraries submodule like other platforms.
+/lib/ios-simulator_arm64/
+
 # Ignore old submodules directories.
 # Eventually need to get rid of those, but for the first time of transition
 # avoid indidents when the folders exists after bisect and developers staging
