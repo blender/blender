@@ -221,10 +221,8 @@ ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
   shadow_path_state_rng_load(state, &rng_state);
 
   /* For stochastic texture sampling. */
-  sd->lcg_state = lcg_state_init(INTEGRATOR_STATE(state, shadow_path, rng_pixel),
-                                 INTEGRATOR_STATE(state, shadow_path, rng_offset),
-                                 INTEGRATOR_STATE(state, shadow_path, sample),
-                                 0xd9111870);
+  sd->lcg_state = lcg_state_init(
+      rng_state.rng_pixel, rng_state.rng_offset, rng_state.sample, 0xd9111870);
 
   Spectrum tp = *throughput;
 
@@ -325,11 +323,12 @@ ccl_device float volume_equiangular_pdf(const ccl_private Ray *ccl_restrict ray,
   return pdf;
 }
 
-ccl_device_inline bool volume_equiangular_valid_ray_segment(KernelGlobals kg,
-                                                            const float3 ray_P,
-                                                            const float3 ray_D,
-                                                            ccl_private Interval<float> *t_range,
-                                                            const ccl_private LightSample *ls)
+/* Compute ray segment directly visible to the sampled light. */
+ccl_device_inline bool volume_valid_direct_ray_segment(KernelGlobals kg,
+                                                       const float3 ray_P,
+                                                       const float3 ray_D,
+                                                       ccl_private Interval<float> *t_range,
+                                                       const ccl_private LightSample *ls)
 {
   if (ls->type == LIGHT_SPOT) {
     const ccl_global KernelLight *klight = &kernel_data_fetch(lights, ls->prim);
@@ -343,8 +342,8 @@ ccl_device_inline bool volume_equiangular_valid_ray_segment(KernelGlobals kg,
     return triangle_light_valid_ray_segment(kg, ray_P - ls->P, ray_D, t_range, ls);
   }
 
-  /* Point light, the whole range of the ray is visible. */
-  kernel_assert(ls->type == LIGHT_POINT);
+  /* Point light or distant light, the whole range of the ray is visible. */
+  kernel_assert(ls->type == LIGHT_POINT || ls->t == FLT_MAX);
   return !t_range->is_empty();
 }
 
@@ -449,7 +448,7 @@ ccl_device bool volume_sample_indirect_scatter(
       result.indirect_scatter = true;
       result.indirect_t = new_t;
       result.indirect_throughput *= coeff.sigma_s * new_transmittance / distance_pdf;
-      if (vstate.direct_sample_method != VOLUME_SAMPLE_EQUIANGULAR) {
+      if (vstate.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
         vstate.distance_pdf *= distance_pdf;
       }
 
@@ -462,7 +461,7 @@ ccl_device bool volume_sample_indirect_scatter(
     /* Update throughput. */
     const float distance_pdf = dot(channel_pdf, transmittance);
     result.indirect_throughput *= transmittance / distance_pdf;
-    if (vstate.direct_sample_method != VOLUME_SAMPLE_EQUIANGULAR) {
+    if (vstate.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
       vstate.distance_pdf *= distance_pdf;
     }
 
@@ -522,7 +521,7 @@ ccl_device_forceinline void volume_integrate_step_scattering(
   if (volume_sample_indirect_scatter(
           transmittance, channel_pdf, channel, sd, coeff, t, vstate, result))
   {
-    if (vstate.direct_sample_method != VOLUME_SAMPLE_EQUIANGULAR) {
+    if (vstate.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
       /* If using distance sampling for direct light, just copy parameters of indirect light
        * since we scatter at the same point. */
       result.direct_scatter = true;
@@ -566,23 +565,94 @@ ccl_device_inline void volume_integrate_state_init(KernelGlobals kg,
   vstate.distance_pdf = 1.0f;
 }
 
+/* Path tracing: sample point on light using equiangular sampling. */
+ccl_device_forceinline bool integrate_volume_sample_direct_light(
+    KernelGlobals kg,
+    const IntegratorState state,
+    const ccl_private Ray *ccl_restrict ray,
+    const ccl_private ShaderData *ccl_restrict sd,
+    const ccl_private RNGState *ccl_restrict rng_state,
+    ccl_private EquiangularCoefficients *ccl_restrict equiangular_coeffs,
+    ccl_private LightSample *ccl_restrict ls)
+{
+  /* Test if there is a light or BSDF that needs direct light. */
+  if (!kernel_data.integrator.use_direct_light) {
+    return false;
+  }
+
+  /* Sample position on a light. */
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+  const uint bounce = INTEGRATOR_STATE(state, path, bounce);
+  const float3 rand_light = path_state_rng_3D(kg, rng_state, PRNG_LIGHT);
+
+  if (!light_sample_from_volume_segment(kg,
+                                        rand_light,
+                                        sd->time,
+                                        sd->P,
+                                        ray->D,
+                                        ray->tmax - ray->tmin,
+                                        light_link_receiver_nee(kg, sd),
+                                        bounce,
+                                        path_flag,
+                                        ls))
+  {
+    ls->emitter_id = EMITTER_NONE;
+    return false;
+  }
+
+  if (ls->shader & SHADER_EXCLUDE_SCATTER) {
+    ls->emitter_id = EMITTER_NONE;
+    return false;
+  }
+
+  equiangular_coeffs->P = ls->P;
+
+  return volume_valid_direct_ray_segment(kg, ray->P, ray->D, &equiangular_coeffs->t_range, ls);
+}
+
+/* Determine the method to sample direct light, based on the volume property and settings. */
+ccl_device_forceinline VolumeSampleMethod
+volume_direct_sample_method(KernelGlobals kg,
+                            const IntegratorState state,
+                            const ccl_private Ray *ccl_restrict ray,
+                            const ccl_private ShaderData *ccl_restrict sd,
+                            const ccl_private RNGState *ccl_restrict rng_state,
+                            ccl_private EquiangularCoefficients *coeffs,
+                            ccl_private LightSample *ccl_restrict ls)
+{
+  if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_TERMINATE) {
+    return VOLUME_SAMPLE_NONE;
+  }
+
+  if (!integrate_volume_sample_direct_light(kg, state, ray, sd, rng_state, coeffs, ls)) {
+    return VOLUME_SAMPLE_NONE;
+  }
+
+  /* Sample the scatter position with distance sampling for distant/background light. */
+  const bool has_equiangular_sample = (ls->t != FLT_MAX);
+  return has_equiangular_sample ? volume_stack_sample_method(kg, state) : VOLUME_SAMPLE_DISTANCE;
+}
+
 /* heterogeneous volume distance sampling: integrate stepping through the
  * volume until we reach the end, get absorbed entirely, or run out of
  * iterations. this does probabilistically scatter or get transmitted through
  * for path tracing where we don't want to branch. */
 ccl_device_forceinline void volume_integrate_heterogeneous(
     KernelGlobals kg,
-    IntegratorState state,
-    ccl_private Ray *ccl_restrict ray,
+    const IntegratorState state,
+    const ccl_private Ray *ccl_restrict ray,
     ccl_private ShaderData *ccl_restrict sd,
-    const ccl_private RNGState *rng_state,
+    const ccl_private RNGState *ccl_restrict rng_state,
     ccl_global float *ccl_restrict render_buffer,
     const float object_step_size,
-    const VolumeSampleMethod direct_sample_method,
-    const ccl_private EquiangularCoefficients &equiangular_coeffs,
+    ccl_private LightSample *ls,
     ccl_private VolumeIntegrateResult &result)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_INTEGRATE);
+
+  EquiangularCoefficients equiangular_coeffs = {zero_float3(), {ray->tmin, ray->tmax}};
+  const VolumeSampleMethod direct_sample_method = volume_direct_sample_method(
+      kg, state, ray, sd, rng_state, &equiangular_coeffs, ls);
 
   /* Prepare for stepping. */
   VolumeStep vstep;
@@ -594,7 +664,9 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 
   /* Initialize volume integration result. */
   const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
-  result.direct_throughput = throughput;
+  result.direct_throughput = (vstate.direct_sample_method == VOLUME_SAMPLE_NONE) ?
+                                 zero_spectrum() :
+                                 throughput;
   result.indirect_throughput = throughput;
 
   /* Equiangular sampling: compute distance and PDF in advance. */
@@ -677,58 +749,6 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
         kg, state, accum_albedo, result.indirect_scatter, render_buffer);
   }
 #  endif /* __DENOISING_FEATURES__ */
-}
-
-/* Path tracing: sample point on light for equiangular sampling. */
-ccl_device_forceinline bool integrate_volume_equiangular_sample_light(
-    KernelGlobals kg,
-    IntegratorState state,
-    const ccl_private Ray *ccl_restrict ray,
-    const ccl_private ShaderData *ccl_restrict sd,
-    const ccl_private RNGState *ccl_restrict rng_state,
-    ccl_private EquiangularCoefficients *ccl_restrict equiangular_coeffs,
-    ccl_private LightSample &ccl_restrict ls)
-{
-  /* Test if there is a light or BSDF that needs direct light. */
-  if (!kernel_data.integrator.use_direct_light) {
-    return false;
-  }
-
-  /* Sample position on a light. */
-  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
-  const uint bounce = INTEGRATOR_STATE(state, path, bounce);
-  const float3 rand_light = path_state_rng_3D(kg, rng_state, PRNG_LIGHT);
-
-  if (!light_sample_from_volume_segment(kg,
-                                        rand_light,
-                                        sd->time,
-                                        sd->P,
-                                        ray->D,
-                                        ray->tmax - ray->tmin,
-                                        light_link_receiver_nee(kg, sd),
-                                        bounce,
-                                        path_flag,
-                                        &ls))
-  {
-    ls.emitter_id = EMITTER_NONE;
-    return false;
-  }
-
-  if (ls.shader & SHADER_EXCLUDE_SCATTER) {
-    ls.emitter_id = EMITTER_NONE;
-    return false;
-  }
-
-  if (ls.t == FLT_MAX) {
-    /* Sampled distant/background light is valid in volume segment, but we are going to sample the
-     * light position with distance sampling instead of equiangular. */
-    return false;
-  }
-
-  equiangular_coeffs->P = ls.P;
-
-  return volume_equiangular_valid_ray_segment(
-      kg, ray->P, ray->D, &equiangular_coeffs->t_range, &ls);
 }
 
 /* Path tracing: sample point on light and evaluate light shader, then
@@ -1000,28 +1020,18 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   path_state_rng_load(state, &rng_state);
 
   /* For stochastic texture sampling. */
-  sd.lcg_state = lcg_state_init(INTEGRATOR_STATE(state, path, rng_pixel),
-                                INTEGRATOR_STATE(state, path, rng_offset),
-                                INTEGRATOR_STATE(state, path, sample),
-                                0x15b4f88d);
+  sd.lcg_state = lcg_state_init(
+      rng_state.rng_pixel, rng_state.rng_offset, rng_state.sample, 0x15b4f88d);
 
-  /* Sample light ahead of volume stepping, for equiangular sampling. */
-  /* TODO: distant lights are ignored now, but could instead use even distribution. */
   LightSample ls ccl_optional_struct_init;
-  const bool need_light_sample = !(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_TERMINATE);
-
-  EquiangularCoefficients equiangular_coeffs = {zero_float3(), {ray->tmin, ray->tmax}};
-
-  const bool have_equiangular_sample =
-      need_light_sample && integrate_volume_equiangular_sample_light(
-                               kg, state, ray, &sd, &rng_state, &equiangular_coeffs, ls);
-
-  const VolumeSampleMethod direct_sample_method = (have_equiangular_sample) ?
-                                                      volume_stack_sample_method(kg, state) :
-                                                      VOLUME_SAMPLE_DISTANCE;
 
   /* Step through volume. */
   const float step_size = volume_stack_step_size<false>(kg, state);
+
+  /* TODO: expensive to zero closures? */
+  VolumeIntegrateResult result = {};
+  volume_integrate_heterogeneous(
+      kg, state, ray, &sd, &rng_state, render_buffer, step_size, &ls, result);
 
 #  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   /* The current path throughput which is used later to calculate per-segment throughput. */
@@ -1032,19 +1042,6 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   bool guiding_generated_new_segment = false;
   float rand_phase_guiding = 0.5f;
 #  endif
-
-  /* TODO: expensive to zero closures? */
-  VolumeIntegrateResult result = {};
-  volume_integrate_heterogeneous(kg,
-                                 state,
-                                 ray,
-                                 &sd,
-                                 &rng_state,
-                                 render_buffer,
-                                 step_size,
-                                 direct_sample_method,
-                                 equiangular_coeffs,
-                                 result);
 
   /* Perform path termination. The intersect_closest will have already marked this path
    * to be terminated. That will shading evaluating to leave out any scattering closures,
@@ -1077,7 +1074,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
         unlit_throughput = result.indirect_throughput / continuation_probability;
         rand_phase_guiding = path_state_rng_1D(kg, &rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
       }
-      else {
+      else if (result.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
         /* If the direct scatter event is generated using VOLUME_SAMPLE_EQUIANGULAR the direct
          * event will happen at a separate position as the indirect event and the direct light
          * contribution will contribute to the position of the current/previous path segment. The
