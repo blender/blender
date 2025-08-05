@@ -1377,7 +1377,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                          GPU_PRIM_LINES,
                          list,
                          IBOType::LinesPaintMask,
-                         {VBOType::Position, VBOType::CornerNormal}});
+                         {VBOType::CornerNormal, VBOType::Position}});
     }
     if (batches_to_create & MBC_WIRE_EDGES) {
       batch_info.append({*cache.batch.wire_edges,
