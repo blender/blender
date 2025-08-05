@@ -24,6 +24,7 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
+#include "COM_algorithm_sample_pixel.hh"
 #include "COM_domain.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
@@ -87,6 +88,12 @@ class MapUVOperation : public NodeOperation {
     if (input.is_single_value()) {
       Result &output = this->get_result("Image");
       output.share_data(input);
+      return;
+    }
+
+    const Result &input_uv = this->get_input("UV");
+    if (input_uv.is_single_value()) {
+      this->execute_single();
       return;
     }
 
@@ -156,31 +163,29 @@ class MapUVOperation : public NodeOperation {
   void execute_cpu()
   {
     const Interpolation interpolation = this->get_interpolation();
-    const ExtensionMode extension_x = this->get_extension_mode_x();
-    const ExtensionMode extension_y = this->get_extension_mode_y();
-    const Result &input_uv = get_input("UV");
-    if (input_uv.is_single_value()) {
-      this->execute_single_cpu(interpolation, extension_x, extension_y);
-      return;
-    }
     if (interpolation == Interpolation::Anisotropic) {
       this->execute_cpu_anisotropic();
     }
     else {
-      this->execute_cpu_interpolation(interpolation, extension_x, extension_y);
+      this->execute_cpu_interpolation(interpolation);
     }
   }
 
-  void execute_single_cpu(const Interpolation &interpolation,
-                          const ExtensionMode &extension_mode_x,
-                          const ExtensionMode &extension_mode_y)
+  void execute_single()
   {
+    const Interpolation interpolation = this->get_interpolation();
+    const ExtensionMode extension_mode_x = this->get_extension_mode_x();
+    const ExtensionMode extension_mode_y = this->get_extension_mode_y();
     const Result &input_uv = get_input("UV");
     const Result &input_image = get_input("Image");
 
     float2 uv_coordinates = input_uv.get_single_value<float3>().xy();
-    float4 sampled_color = input_image.sample(
-        uv_coordinates, interpolation, extension_mode_x, extension_mode_y);
+    float4 sampled_color = sample_pixel(this->context(),
+                                        input_image,
+                                        interpolation,
+                                        extension_mode_x,
+                                        extension_mode_y,
+                                        uv_coordinates);
 
     /* The UV input is assumed to contain an alpha channel as its third channel, since the
      * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
@@ -197,10 +202,10 @@ class MapUVOperation : public NodeOperation {
     output.set_single_value(result);
   }
 
-  void execute_cpu_interpolation(const Interpolation &interpolation,
-                                 const ExtensionMode &extension_mode_x,
-                                 const ExtensionMode &extension_mode_y)
+  void execute_cpu_interpolation(const Interpolation &interpolation)
   {
+    const ExtensionMode extension_mode_x = this->get_extension_mode_x();
+    const ExtensionMode extension_mode_y = this->get_extension_mode_y();
     const Result &input_image = get_input("Image");
     const Result &input_uv = get_input("UV");
 
