@@ -751,23 +751,7 @@ static void graph_refresh_fcurve_colors(const bContext *C)
             break;
 
           case 0: {
-            /* Special Case: "W" channel should be yellowish, so blend X and Y channel colors... */
-            float c1[3], c2[3];
-            float h1[3], h2[3];
-            float hresult[3];
-
-            /* - get colors (rgb) */
-            UI_GetThemeColor3fv(TH_AXIS_X, c1);
-            UI_GetThemeColor3fv(TH_AXIS_Y, c2);
-
-            /* - perform blending in HSV space (to keep brightness similar) */
-            rgb_to_hsv_v(c1, h1);
-            rgb_to_hsv_v(c2, h2);
-
-            interp_v3_v3v3(hresult, h1, h2, 0.5f);
-
-            /* - convert back to RGB for display */
-            hsv_to_rgb_v(hresult, col);
+            UI_GetThemeColor3fv(TH_AXIS_W, col);
             break;
           }
 

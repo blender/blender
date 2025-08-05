@@ -1001,6 +1001,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_AXIS_Z:
           cp = btheme->tui.zaxis;
           break;
+        case TH_AXIS_W:
+          cp = btheme->tui.waxis;
+          break;
 
         case TH_GIZMO_HI:
           cp = btheme->tui.gizmo_hi;

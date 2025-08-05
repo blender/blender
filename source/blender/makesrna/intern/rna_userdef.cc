@@ -2045,6 +2045,12 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Z Axis", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  prop = RNA_def_property(srna, "axis_w", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "waxis");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "W Axis", "W-axis for quaternion and axis-angle rotations");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   /* Generic gizmo colors. */
   prop = RNA_def_property(srna, "gizmo_hi", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, nullptr, "gizmo_hi");
