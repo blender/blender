@@ -147,10 +147,7 @@ class VKResourcePool {
  public:
   VKDescriptorPools descriptor_pools;
   VKDescriptorSetTracker descriptor_set;
-  VKImmediate immediate;
 
   void init(VKDevice &device);
-  void deinit(VKDevice &device);
-  void reset();
 };
 }  // namespace blender::gpu

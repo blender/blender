@@ -129,7 +129,6 @@ class VKThreadData : public NonCopyable, NonMovable {
   int32_t rendering_depth = 0;
 
   VKThreadData(VKDevice &device, pthread_t thread_id);
-  void deinit(VKDevice &device);
 
   /**
    * Get the active resource pool.

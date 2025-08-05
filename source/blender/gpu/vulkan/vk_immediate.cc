@@ -23,26 +23,11 @@ namespace blender::gpu {
 
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-VKImmediate::VKImmediate() {}
-VKImmediate::~VKImmediate()
-{
-  BLI_assert_msg(recycling_buffers_.is_empty(),
-                 "VKImmediate::deinit must be called before destruction.");
-  BLI_assert_msg(active_buffers_.is_empty(),
-                 "VKImmediate::deinit must be called before destruction");
-}
-
 void VKImmediate::deinit(VKDevice &device)
 {
-  while (!recycling_buffers_.is_empty()) {
-    std::unique_ptr<VKBuffer> buffer = recycling_buffers_.pop_last();
-    buffer->free_immediately(device);
-    buffer.release();
-  }
-  while (!active_buffers_.is_empty()) {
-    std::unique_ptr<VKBuffer> buffer = active_buffers_.pop_last();
-    buffer->free_immediately(device);
-    buffer.release();
+  if (active_buffer_.has_value()) {
+    active_buffer_->free_immediately(device);
+    active_buffer_.reset();
   }
 }
 
@@ -72,7 +57,7 @@ void VKImmediate::end()
   }
 
   if (prim_type == GPU_PRIM_LINE_LOOP) {
-    uchar *first_vertex_ptr = static_cast<uchar *>(active_buffers_.last()->mapped_memory_get()) +
+    uchar *first_vertex_ptr = static_cast<uchar *>(active_buffer_->mapped_memory_get()) +
                               buffer_offset_;
     size_t vertex_stride = current_subbuffer_len_ / (vertex_len + 1);
     uchar *last_vertex_ptr = first_vertex_ptr + vertex_stride * vertex_len;
@@ -86,19 +71,19 @@ void VKImmediate::end()
   BLI_assert(context.shader == unwrap(shader));
   Shader &shader = *unwrap(this->shader);
   if (shader.is_polyline) {
-    VKBuffer *buffer = active_buffers_.last().get();
+    VKBuffer &buffer = active_buffer_.value();
     VKStateManager &state_manager = context.state_manager_get();
     state_manager.storage_buffer_bind(BindSpaceStorageBuffers::Type::Buffer,
-                                      buffer,
+                                      &buffer,
                                       GPU_SSBO_POLYLINE_POS_BUF_SLOT,
                                       buffer_offset_);
     state_manager.storage_buffer_bind(BindSpaceStorageBuffers::Type::Buffer,
-                                      buffer,
+                                      &buffer,
                                       GPU_SSBO_POLYLINE_COL_BUF_SLOT,
                                       buffer_offset_);
     /* Not used. Satisfy the binding. */
     state_manager.storage_buffer_bind(
-        BindSpaceStorageBuffers::Type::Buffer, buffer, GPU_SSBO_INDEX_BUF_SLOT, buffer_offset_);
+        BindSpaceStorageBuffers::Type::Buffer, &buffer, GPU_SSBO_INDEX_BUF_SLOT, buffer_offset_);
     this->polyline_draw_workaround(0);
   }
   else {
@@ -129,13 +114,13 @@ void VKImmediate::end()
 
 VKBufferWithOffset VKImmediate::active_buffer() const
 {
-  VKBufferWithOffset result = {active_buffers_.last()->vk_handle(), buffer_offset_};
+  VKBufferWithOffset result = {active_buffer_->vk_handle(), buffer_offset_};
   return result;
 }
 
 VkDeviceSize VKImmediate::buffer_bytes_free()
 {
-  return active_buffers_.last()->size_in_bytes() - buffer_offset_;
+  return active_buffer_->size_in_bytes() - buffer_offset_;
 }
 
 static VkDeviceSize new_buffer_size(VkDeviceSize sub_buffer_size)
@@ -148,26 +133,20 @@ VKBuffer &VKImmediate::ensure_space(VkDeviceSize bytes_needed, VkDeviceSize offs
   VkDeviceSize bytes_required = bytes_needed + offset_alignment;
 
   /* Last used buffer still has space. */
-  if (!active_buffers_.is_empty() && buffer_bytes_free() >= bytes_required) {
-    return *active_buffers_.last();
-  }
-
-  /* Recycle a previous buffer. */
-  if (!recycling_buffers_.is_empty() &&
-      recycling_buffers_.last()->size_in_bytes() >= bytes_required)
-  {
-    CLOG_DEBUG(&LOG, "Activating recycled buffer");
-    buffer_offset_ = 0;
-    active_buffers_.append(recycling_buffers_.pop_last());
-    return *active_buffers_.last();
+  if (active_buffer_.has_value() && buffer_bytes_free() >= bytes_required) {
+    return active_buffer_.value();
   }
 
   /* Offset alignment isn't needed when creating buffers as it is managed by VMA. */
   VkDeviceSize alloc_size = new_buffer_size(bytes_needed);
-  CLOG_DEBUG(&LOG, "Allocate buffer (size=%d)", int(alloc_size));
+  CLOG_TRACE(&LOG,
+             "Immediate buffer cannot hold another %d bytes, it contains %d bytes. A new "
+             "buffer will be allocated (size=%d)",
+             int(bytes_required),
+             int(buffer_offset_),
+             int(alloc_size));
   buffer_offset_ = 0;
-  active_buffers_.append(std::make_unique<VKBuffer>());
-  VKBuffer &result = *active_buffers_.last();
+  VKBuffer &result = active_buffer_.emplace();
   result.create(alloc_size,
                 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
                     VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -178,15 +157,6 @@ VKBuffer &VKImmediate::ensure_space(VkDeviceSize bytes_needed, VkDeviceSize offs
   debug::object_label(result.vk_handle(), "Immediate");
 
   return result;
-}
-
-void VKImmediate::reset()
-{
-  if (!recycling_buffers_.is_empty()) {
-    CLOG_DEBUG(&LOG, "Discarding %d unused buffers", int(recycling_buffers_.size()));
-  }
-  recycling_buffers_.clear();
-  recycling_buffers_ = std::move(active_buffers_);
 }
 
 }  // namespace blender::gpu

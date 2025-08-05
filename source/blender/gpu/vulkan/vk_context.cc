@@ -32,6 +32,7 @@ VKContext::VKContext(void *ghost_window, void *ghost_context)
   ghost_context_ = ghost_context;
 
   state_manager = new VKStateManager();
+  imm = new VKImmediate();
 
   back_left = new VKFrameBuffer("back_left");
   front_left = new VKFrameBuffer("front_left");
@@ -47,11 +48,13 @@ VKContext::~VKContext()
     surface_texture_ = nullptr;
   }
   free_resources();
-  VKBackend::get().device.context_unregister(*this);
+  VKDevice &device = VKBackend::get().device;
+  static_cast<VKImmediate *>(imm)->deinit(device);
+  delete imm;
+  imm = nullptr;
+  device.context_unregister(*this);
 
   this->process_frame_timings();
-
-  imm = nullptr;
 }
 
 void VKContext::sync_backbuffer(bool cycle_resource_pool)
@@ -62,8 +65,6 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
     VKThreadData &thread_data = thread_data_.value().get();
     if (cycle_resource_pool) {
       thread_data.resource_pool_next();
-      VKResourcePool &resource_pool = thread_data.resource_pool_get();
-      imm = &resource_pool.immediate;
     }
 
     const bool reset_framebuffer = swap_chain_format_.format !=
@@ -128,8 +129,6 @@ void VKContext::activate()
     }
   }
 
-  imm = &thread_data.resource_pool_get().immediate;
-
   is_active_ = true;
 
   sync_backbuffer(false);
@@ -141,7 +140,6 @@ void VKContext::deactivate()
 {
   flush_render_graph(RenderGraphFlushFlags(0));
   immDeactivate();
-  imm = nullptr;
   thread_data_.reset();
 
   is_active_ = false;
