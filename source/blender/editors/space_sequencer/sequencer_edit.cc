@@ -2008,7 +2008,7 @@ static wmOperatorStatus sequencer_separate_images_exec(bContext *C, wmOperator *
       Strip *strip_next;
 
       /* TODO: remove f-curve and assign to split image strips.
-       * The old animation system would remove the user of `strip->ipo`. */
+       * The old animation system would remove the user of `strip->ipo_legacy`. */
 
       start_ofs = timeline_frame = seq::time_left_handle_frame_get(scene, strip);
       frame_end = seq::time_right_handle_frame_get(scene, strip);

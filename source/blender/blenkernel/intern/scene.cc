@@ -810,7 +810,7 @@ static bool strip_foreach_member_id_cb(Strip *strip, void *user_data)
   }
 
   if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    FOREACHID_PROCESS_ID_NOCHECK(data, strip->ipo, IDWALK_CB_USER);
+    FOREACHID_PROCESS_ID_NOCHECK(data, strip->ipo_legacy, IDWALK_CB_USER);
   }
 
 #undef FOREACHID_PROCESS_IDSUPER

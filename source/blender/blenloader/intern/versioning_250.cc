@@ -648,7 +648,7 @@ static bool strip_set_sat_cb(Strip *strip, void * /*user_data*/)
 
 static bool strip_set_pitch_cb(Strip *strip, void * /*user_data*/)
 {
-  strip->pitch = 1.0f;
+  strip->pitch_legacy = 1.0f;
   return true;
 }
 

@@ -137,7 +137,7 @@ typedef struct StripData {
   StripCrop *crop;
   StripTransform *transform;
   /* Replaced by #ColorBalanceModifierData::color_balance in 2.64. */
-  StripColorBalance *color_balance DNA_DEPRECATED;
+  StripColorBalance *color_balance_legacy DNA_DEPRECATED;
 
   /* Color management */
   ColorManagedColorspaceSettings colorspace_settings;
@@ -191,7 +191,7 @@ typedef struct Strip {
    */
   float startofs, endofs;
   /** Replaced by `startofs` and `endofs` in 3.3. */
-  float startstill DNA_DEPRECATED, endstill DNA_DEPRECATED;
+  float startstill_legacy DNA_DEPRECATED, endstill_legacy DNA_DEPRECATED;
   /** The current channel index of the strip in the timeline. */
   int channel;
   /** Starting and ending points of the effect strip. Undefined for other strip types. */
@@ -209,7 +209,7 @@ typedef struct Strip {
   StripData *data;
 
   /** Old animation system, deprecated for 2.5. */
-  struct Ipo *ipo DNA_DEPRECATED;
+  struct Ipo *ipo_legacy DNA_DEPRECATED;
 
   /** These ID vars should never be NULL but can be when linked libraries fail to load,
    * so check on access. */
@@ -227,7 +227,7 @@ typedef struct Strip {
   /** Only for transition effect strips. Allows keyframing custom fade progression over time. */
   float effect_fader;
   /** Moved to #SpeedControlVars::speed_fader in 3.0. */
-  float speed_fader DNA_DEPRECATED;
+  float speed_fader_legacy DNA_DEPRECATED;
 
   /** Effect strip inputs (`nullptr` if not an effect strip). */
   struct Strip *input1, *input2;
@@ -253,7 +253,7 @@ typedef struct Strip {
 
   /** Pitch ranges from -0.1 to 10, replaced in 3.3 with #Strip::speed_factor on sound strips.
    * Pan ranges from -2 to 2. */
-  float pitch DNA_DEPRECATED, pan;
+  float pitch_legacy DNA_DEPRECATED, pan;
   float strobe;
 
   float sound_offset;
@@ -412,7 +412,7 @@ typedef struct SolidColorVars {
 typedef struct SpeedControlVars {
   float *frameMap;
   /** Replaced by `speed_fader_*` fields in 3.0. */
-  float globalSpeed;
+  float globalSpeed_legacy DNA_DEPRECATED;
   int flags; /* eEffectSpeedControlFlags */
 
   int speed_control_type; /* eEffectSpeedControlType */
@@ -466,7 +466,7 @@ typedef struct TextVars {
   int selection_end_offset;
 
   /** Replaced by `anchor_y` in 4.4. */
-  char align_y DNA_DEPRECATED /* eEffectTextAlignY */;
+  char align_y_legacy DNA_DEPRECATED; /* eEffectTextAlignY */
   char anchor_x; /* eEffectTextAlignX */
   char anchor_y; /* eEffectTextAlignY */
   char _pad1;

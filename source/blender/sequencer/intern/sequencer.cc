@@ -938,7 +938,7 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
     }
 
     /* need to load color balance to it could be converted to modifier */
-    BLO_read_struct(reader, StripColorBalance, &strip->data->color_balance);
+    BLO_read_struct(reader, StripColorBalance, &strip->data->color_balance_legacy);
   }
 
   modifier_blend_read_data(reader, &strip->modifiers);

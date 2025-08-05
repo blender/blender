@@ -428,48 +428,49 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
     if (strip->type == STRIP_TYPE_SPEED) {
       SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
       const char *substr = nullptr;
-      float globalSpeed = v->globalSpeed;
+      float globalSpeed_legacy = v->globalSpeed_legacy;
       if (strip->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
-        if (globalSpeed == 1.0f) {
+        if (globalSpeed_legacy == 1.0f) {
           v->speed_control_type = SEQ_SPEED_STRETCH;
         }
         else {
           v->speed_control_type = SEQ_SPEED_MULTIPLY;
-          v->speed_fader = globalSpeed * (float(strip->input1->len) /
-                                          max_ff(float(blender::seq::time_right_handle_frame_get(
-                                                           scene, strip->input1) -
-                                                       strip->input1->start),
-                                                 1.0f));
+          v->speed_fader = globalSpeed_legacy *
+                           (float(strip->input1->len) /
+                            max_ff(float(blender::seq::time_right_handle_frame_get(scene,
+                                                                                   strip->input1) -
+                                         strip->input1->start),
+                                   1.0f));
         }
       }
       else if (v->flags & STRIP_SPEED_INTEGRATE) {
         v->speed_control_type = SEQ_SPEED_MULTIPLY;
-        v->speed_fader = strip->speed_fader * globalSpeed;
+        v->speed_fader = strip->speed_fader_legacy * globalSpeed_legacy;
       }
       else if (v->flags & STRIP_SPEED_COMPRESS_IPO_Y) {
-        globalSpeed *= 100.0f;
+        globalSpeed_legacy *= 100.0f;
         v->speed_control_type = SEQ_SPEED_LENGTH;
-        v->speed_fader_length = strip->speed_fader * globalSpeed;
+        v->speed_fader_length = strip->speed_fader_legacy * globalSpeed_legacy;
         substr = "speed_length";
       }
       else {
         v->speed_control_type = SEQ_SPEED_FRAME_NUMBER;
-        v->speed_fader_frame_number = int(strip->speed_fader * globalSpeed);
+        v->speed_fader_frame_number = int(strip->speed_fader_legacy * globalSpeed_legacy);
         substr = "speed_frame_number";
       }
 
       v->flags &= ~(STRIP_SPEED_INTEGRATE | STRIP_SPEED_COMPRESS_IPO_Y);
 
-      if (substr || globalSpeed != 1.0f) {
+      if (substr || globalSpeed_legacy != 1.0f) {
         FCurve *fcu = id_data_find_fcurve(
             &scene->id, strip, &RNA_Strip, "speed_factor", 0, nullptr);
         if (fcu) {
-          if (globalSpeed != 1.0f) {
+          if (globalSpeed_legacy != 1.0f) {
             for (int i = 0; i < fcu->totvert; i++) {
               BezTriple *bezt = &fcu->bezt[i];
-              bezt->vec[0][1] *= globalSpeed;
-              bezt->vec[1][1] *= globalSpeed;
-              bezt->vec[2][1] *= globalSpeed;
+              bezt->vec[0][1] *= globalSpeed_legacy;
+              bezt->vec[1][1] *= globalSpeed_legacy;
+              bezt->vec[2][1] *= globalSpeed_legacy;
             }
           }
           if (substr) {
@@ -665,11 +666,11 @@ static bool strip_speed_factor_set(Strip *strip, void *user_data)
     }
 
     /* Pitch value of 0 has been found in some files. This would cause problems. */
-    if (strip->pitch <= 0.0f) {
-      strip->pitch = 1.0f;
+    if (strip->pitch_legacy <= 0.0f) {
+      strip->pitch_legacy = 1.0f;
     }
 
-    strip->speed_factor = strip->pitch;
+    strip->speed_factor = strip->pitch_legacy;
   }
   else {
     strip->speed_factor = 1.0f;
@@ -1743,10 +1744,10 @@ static void version_node_tree_socket_id_delim(bNodeTree *ntree)
 
 static bool version_merge_still_offsets(Strip *strip, void * /*user_data*/)
 {
-  strip->startofs -= strip->startstill;
-  strip->endofs -= strip->endstill;
-  strip->startstill = 0;
-  strip->endstill = 0;
+  strip->startofs -= strip->startstill_legacy;
+  strip->endofs -= strip->endstill_legacy;
+  strip->startstill_legacy = 0;
+  strip->endstill_legacy = 0;
   return true;
 }
 

@@ -1028,12 +1028,12 @@ static bool strip_colorbalance_update_cb(Strip *strip, void * /*user_data*/)
 {
   StripData *data = strip->data;
 
-  if (data && data->color_balance) {
+  if (data && data->color_balance_legacy) {
     StripModifierData *smd = blender::seq::modifier_new(
         strip, nullptr, seqModifierType_ColorBalance);
     ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
 
-    cbmd->color_balance = *data->color_balance;
+    cbmd->color_balance = *data->color_balance_legacy;
 
     /* multiplication with color balance used is handled differently,
      * so we need to move multiplication to modifier so files would be
@@ -1042,8 +1042,8 @@ static bool strip_colorbalance_update_cb(Strip *strip, void * /*user_data*/)
     cbmd->color_multiply = strip->mul;
     strip->mul = 1.0f;
 
-    MEM_freeN(data->color_balance);
-    data->color_balance = nullptr;
+    MEM_freeN(data->color_balance_legacy);
+    data->color_balance_legacy = nullptr;
   }
   return true;
 }
