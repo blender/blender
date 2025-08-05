@@ -94,7 +94,11 @@ class GRAPH_HT_header(Header):
                 panel="GRAPH_PT_snapping",
                 text="",
             )
-            layout.popover(panel="GRAPH_PT_playhead_snapping")
+
+            row = layout.row(align=True)
+            row.prop(tool_settings, "use_snap_playhead", text="")
+            sub = row.row(align=True)
+            sub.popover(panel="GRAPH_PT_playhead_snapping", text="")
 
         row = layout.row(align=True)
         row.prop(tool_settings, "use_proportional_fcurve", text="", icon_only=True)
