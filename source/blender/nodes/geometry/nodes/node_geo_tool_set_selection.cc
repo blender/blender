@@ -12,6 +12,8 @@
 
 #include "RNA_enum_types.hh"
 
+#include "GEO_foreach_geometry.hh"
+
 #include "FN_multi_function_builder.hh"
 
 #include "node_geometry_util.hh"
@@ -95,7 +97,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GField selection = params.extract_input<GField>("Selection");
   const AttrDomain domain = AttrDomain(params.node().custom1);
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-  geometry.modify_geometry_sets([&](GeometrySet &geometry) {
+  geometry::foreach_real_geometry(geometry, [&](GeometrySet &geometry) {
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
       switch (mode) {
         case OB_MODE_EDIT: {

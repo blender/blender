@@ -4,6 +4,8 @@
 
 #include "BKE_mesh.hh"
 
+#include "GEO_foreach_geometry.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_flip_faces_cc {
@@ -25,7 +27,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
       const bke::MeshFieldContext field_context(*mesh, AttrDomain::Face);
       fn::FieldEvaluator evaluator(field_context, mesh->faces_num);

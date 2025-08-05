@@ -11,6 +11,8 @@
 
 #include "RNA_enum_types.hh"
 
+#include "GEO_foreach_geometry.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_grease_pencil_set_depth_mode {
@@ -40,7 +42,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Grease Pencil");
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
     if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
       SET_FLAG_FROM_TEST(grease_pencil->flag,
                          params.node().custom1 == GREASE_PENCIL_STROKE_ORDER_3D,

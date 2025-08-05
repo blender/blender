@@ -54,6 +54,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "GEO_foreach_geometry.hh"
+
 #include "list_function_eval.hh"
 #include "volume_grid_function_eval.hh"
 
@@ -909,7 +911,7 @@ class LazyFunctionForViewerNode : public LazyFunction {
         }
       }
       else {
-        geometry.modify_geometry_sets([&](GeometrySet &geometry) {
+        geometry::foreach_real_geometry(geometry, [&](GeometrySet &geometry) {
           for (const bke::GeometryComponent::Type type :
                {bke::GeometryComponent::Type::Mesh,
                 bke::GeometryComponent::Type::PointCloud,

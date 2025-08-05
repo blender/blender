@@ -4,6 +4,7 @@
 
 #include "DNA_mesh_types.h"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_mesh_split_edges.hh"
 
 #include "node_geometry_util.hh"
@@ -27,7 +28,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (const Mesh *mesh = geometry_set.get_mesh()) {
       const bke::MeshFieldContext field_context{*mesh, AttrDomain::Edge};
       fn::FieldEvaluator selection_evaluator{field_context, mesh->edges_num};

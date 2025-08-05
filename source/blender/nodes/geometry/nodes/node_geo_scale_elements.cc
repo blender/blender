@@ -17,6 +17,7 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_mesh_selection.hh"
 
 #include "NOD_rna_define.hh"
@@ -474,7 +475,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<float> scale_field = params.extract_input<Field<float>>("Scale");
   const Field<float3> center_field = params.extract_input<Field<float3>>("Center");
 
-  geometry.modify_geometry_sets([&](GeometrySet &geometry) {
+  geometry::foreach_real_geometry(geometry, [&](GeometrySet &geometry) {
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
       const bke::MeshFieldContext context{*mesh, domain};
       FieldEvaluator evaluator{context, mesh->attributes().domain_size(domain)};

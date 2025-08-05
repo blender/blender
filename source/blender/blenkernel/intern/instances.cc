@@ -275,6 +275,11 @@ Span<InstanceReference> Instances::references() const
   return references_;
 }
 
+MutableSpan<InstanceReference> Instances::references_for_write()
+{
+  return references_;
+}
+
 void Instances::remove(const IndexMask &mask, const AttributeFilter &attribute_filter)
 {
   const std::optional<IndexRange> masked_range = mask.to_range();
