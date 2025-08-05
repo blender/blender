@@ -5,6 +5,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_mesh_merge_by_distance.hh"
 #include "GEO_point_merge_by_distance.hh"
 
@@ -103,7 +104,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
   const float merge_distance = params.extract_input<float>("Distance");
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (const PointCloud *pointcloud = geometry_set.get_pointcloud()) {
       PointCloud *result = pointcloud_merge_by_distance(
           *pointcloud, merge_distance, selection, params.get_attribute_filter("Geometry"));

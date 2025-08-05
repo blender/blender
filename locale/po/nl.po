@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 14:52+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2702,6 +2702,18 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
 msgid "Select Similar"
 msgstr "Selecteer Vergelijkbaar"
 
@@ -2752,18 +2764,6 @@ msgstr "Namen"
 
 msgid "Text"
 msgstr "Tekst"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
 
 
 msgctxt "MovieClip"
@@ -7723,11 +7723,6 @@ msgstr "Spiegel X"
 msgctxt "Operator"
 msgid "Mirror Y"
 msgstr "Spiegel Y"
-
-
-msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "Volledig Scherm Gebied aan/uit"
 
 
 msgctxt "Operator"

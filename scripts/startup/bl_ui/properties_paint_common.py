@@ -1889,7 +1889,7 @@ def brush_basic_gpencil_weight_settings(layout, _context, brush, *, compact=Fals
 def brush_basic_gpencil_vertex_settings(layout, context, brush, *, compact=False):
     del compact  # UNUSED.
     gp_settings = brush.gpencil_settings
-    ups = context.tool_settings.unified_paint_settings
+    ups = context.tool_settings.gpencil_vertex_paint.unified_paint_settings
     brush_prop_owner = ups if ups.use_unified_size else brush
 
     # Brush details

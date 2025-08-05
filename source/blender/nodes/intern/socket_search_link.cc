@@ -4,6 +4,7 @@
 
 #include <fmt/format.h>
 
+#include "BLI_listbase.h"
 #include "BLI_set.hh"
 
 #include "BKE_context.hh"
@@ -72,11 +73,26 @@ void LinkSearchOpParams::connect_available_socket(bNode &new_node, StringRef soc
     BLI_assert_unreachable();
     return;
   }
-  bke::node_add_link(node_tree, new_node, *new_node_socket, node, socket);
-  if (in_out == SOCK_OUT) {
+  this->connect_socket(new_node, *new_node_socket);
+}
+
+void LinkSearchOpParams::connect_available_socket_by_identifier(bNode &new_node,
+                                                                const StringRef socket_identifier)
+{
+  const eNodeSocketInOut in_out = this->socket.in_out == SOCK_IN ? SOCK_OUT : SOCK_IN;
+  bNodeSocket *new_node_socket = bke::node_find_socket(new_node, in_out, socket_identifier);
+  BLI_assert(new_node_socket);
+  this->connect_socket(new_node, *new_node_socket);
+}
+
+void LinkSearchOpParams::connect_socket(bNode &new_node, bNodeSocket &new_socket)
+{
+  bke::node_add_link(this->node_tree, new_node, new_socket, this->node, this->socket);
+  if (new_socket.in_out == SOCK_OUT) {
     /* If the old socket already contained a value, then transfer it to a new one, from
      * which this value will get there. */
-    bke::node_socket_move_default_value(*CTX_data_main(&C), node_tree, socket, *new_node_socket);
+    bke::node_socket_move_default_value(
+        *CTX_data_main(&C), this->node_tree, this->socket, new_socket);
   }
 }
 

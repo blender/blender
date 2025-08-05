@@ -55,7 +55,7 @@ static void createTransTexspace(bContext * /*C*/, TransInfo *t)
   }
 
   if (BKE_object_obdata_is_libdata(ob)) {
-    BKE_report(t->reports, RPT_ERROR, "Linked data can't text-space transform");
+    BKE_report(t->reports, RPT_ERROR, "Linked data cannot text-space transform");
     return;
   }
 

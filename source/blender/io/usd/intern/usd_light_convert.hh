@@ -6,6 +6,9 @@
 #include <pxr/usd/sdf/types.h>
 #include <pxr/usd/usd/common.h>
 
+struct bNode;
+struct bNodeTree;
+
 struct Main;
 struct Scene;
 

@@ -273,7 +273,7 @@ static wmOperatorStatus collection_new_exec(bContext *C, wmOperator *op)
   }
 
   if (!ID_IS_EDITABLE(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) {
-    BKE_report(op->reports, RPT_ERROR, "Can't add a new collection to linked/override scene");
+    BKE_report(op->reports, RPT_ERROR, "Cannot add a new collection to linked/override scene");
     return OPERATOR_CANCELLED;
   }
 
@@ -1628,7 +1628,7 @@ static wmOperatorStatus outliner_color_tag_set_exec(bContext *C, wmOperator *op)
       continue;
     }
     if (!BKE_id_is_editable(CTX_data_main(C), &collection->id)) {
-      BKE_report(op->reports, RPT_WARNING, "Can't add a color tag to a linked collection");
+      BKE_report(op->reports, RPT_WARNING, "Cannot add a color tag to a linked collection");
       continue;
     }
 

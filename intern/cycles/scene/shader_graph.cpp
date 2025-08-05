@@ -134,6 +134,14 @@ ShaderOutput *ShaderNode::output(ustring name)
   return nullptr;
 }
 
+void ShaderNode::disconnect_unused_input(const char *name)
+{
+  ShaderInput *socket = input(name);
+  if (socket && socket->link) {
+    socket->disconnect();
+  }
+}
+
 void ShaderNode::remove_input(ShaderInput *input)
 {
   assert(input->link == nullptr);

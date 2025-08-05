@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
-"PO-Revision-Date: 2025-07-23 15:28+0000\n"
-"Last-Translator: Lasse ZInck <lassebasse07@gmail.com>\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"PO-Revision-Date: 2025-07-31 16:24+0000\n"
+"Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
@@ -3533,6 +3533,10 @@ msgid "Blend Mode"
 msgstr "Blandings måde"
 
 
+msgid "Library Override"
+msgstr "Bibliotek tilsidesætter"
+
+
 msgid "Local"
 msgstr "Lokal"
 
@@ -3567,6 +3571,10 @@ msgstr "Minimum"
 
 msgid "Max"
 msgstr "Maximum"
+
+
+msgid "Tool"
+msgstr "Værktøj"
 
 
 msgid "Mesh"

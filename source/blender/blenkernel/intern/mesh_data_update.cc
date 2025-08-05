@@ -6,10 +6,6 @@
  * \ingroup bke
  */
 
-#include <cstring>
-
-#include "MEM_guardedalloc.h"
-
 #include "DNA_cloth_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_key_types.h"
@@ -18,7 +14,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_linklist.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -1038,13 +1033,18 @@ static void editbmesh_build_data(Depsgraph &depsgraph,
   Mesh *mesh = static_cast<Mesh *>(obedit.data);
   Mesh *me_cage;
   Mesh *me_final;
-  GeometrySet *non_mesh_components;
+  GeometrySet *geometry_set_eval;
 
   editbmesh_calc_modifiers(
-      depsgraph, scene, obedit, dataMask, &me_cage, &me_final, &non_mesh_components);
+      depsgraph, scene, obedit, dataMask, &me_cage, &me_final, &geometry_set_eval);
 
   const bool is_mesh_eval_owned = (me_final != mesh->runtime->mesh_eval);
   BKE_object_eval_assign_data(&obedit, &me_final->id, is_mesh_eval_owned);
+
+  /* Add the final mesh as a non-owning component to the geometry set. */
+  MeshComponent &mesh_component = geometry_set_eval->get_component_for_write<MeshComponent>();
+  mesh_component.replace(me_final, GeometryOwnershipType::Editable);
+  obedit.runtime->geometry_set_eval = geometry_set_eval;
 
   /* Make sure that drivers can target shapekey properties.
    * Note that this causes a potential inconsistency, as the shapekey may have a
@@ -1053,8 +1053,6 @@ static void editbmesh_build_data(Depsgraph &depsgraph,
   me_final->key = mesh->key;
 
   obedit.runtime->editmesh_eval_cage = me_cage;
-
-  obedit.runtime->geometry_set_eval = non_mesh_components;
 
   obedit.runtime->last_data_mask = dataMask;
 }
@@ -1262,10 +1260,9 @@ Mesh *editbmesh_get_eval_cage_from_orig(Depsgraph *depsgraph,
   return editbmesh_get_eval_cage(depsgraph, scene_eval, obedit_eval, em_eval, dataMask);
 }
 
-/* same as above but for vert coords */
 struct MappedUserData {
-  float (*vertexcos)[3];
-  BLI_bitmap *vertex_visit;
+  MutableSpan<float3> vertexcos;
+  BitVector<> vertex_visit;
 };
 
 static void make_vertexcos__mapFunc(void *user_data,
@@ -1275,12 +1272,9 @@ static void make_vertexcos__mapFunc(void *user_data,
 {
   MappedUserData *mappedData = (MappedUserData *)user_data;
 
-  if (BLI_BITMAP_TEST(mappedData->vertex_visit, index) == 0) {
-    /* we need coord from prototype vertex, not from copies,
-     * assume they stored in the beginning of vertex array stored in DM
-     * (mirror modifier for eg does this) */
-    copy_v3_v3(mappedData->vertexcos[index], co);
-    BLI_BITMAP_ENABLE(mappedData->vertex_visit, index);
+  if (!mappedData->vertex_visit[index]) {
+    mappedData->vertexcos[index] = float3(co);
+    mappedData->vertex_visit[index].set();
   }
 }
 
@@ -1289,10 +1283,9 @@ void mesh_get_mapped_verts_coords(Mesh *mesh_eval, MutableSpan<float3> r_cos)
   if (mesh_eval->runtime->deformed_only == false) {
     MappedUserData user_data;
     r_cos.fill(float3(0));
-    user_data.vertexcos = reinterpret_cast<float(*)[3]>(r_cos.data());
-    user_data.vertex_visit = BLI_BITMAP_NEW(r_cos.size(), "vertexcos flags");
+    user_data.vertexcos = r_cos;
+    user_data.vertex_visit.resize(r_cos.size());
     BKE_mesh_foreach_mapped_vert(mesh_eval, make_vertexcos__mapFunc, &user_data, MESH_FOREACH_NOP);
-    MEM_freeN(user_data.vertex_visit);
   }
   else {
     r_cos.copy_from(BKE_mesh_wrapper_vert_coords(mesh_eval));

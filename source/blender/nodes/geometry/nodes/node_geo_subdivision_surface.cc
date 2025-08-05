@@ -12,6 +12,7 @@
 
 #include "RNA_enum_types.hh"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_randomize.hh"
 
 #include "FN_multi_function_builder.hh"
@@ -194,7 +195,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (const Mesh *mesh = geometry_set.get_mesh()) {
       geometry_set.replace_mesh(mesh_subsurf_calc(
           mesh, level, vert_crease, edge_crease, boundary_smooth, uv_smooth, use_limit_surface));

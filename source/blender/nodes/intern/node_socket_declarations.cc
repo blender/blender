@@ -676,6 +676,13 @@ bNodeSocket &Bundle::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
   return socket;
 }
 
+BundleBuilder &BundleBuilder::pass_through_input_index(const std::optional<int> index)
+{
+  BLI_assert(this->is_output());
+  decl_->pass_through_input_index = std::move(index);
+  return *this;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

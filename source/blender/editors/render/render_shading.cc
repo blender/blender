@@ -1538,7 +1538,7 @@ static wmOperatorStatus lightprobe_cache_bake_invoke(bContext *C,
       wm, win, bmain, view_layer, scene, probes, data->report, scene->r.cfra, 0);
   if (wm_job == nullptr) {
     MEM_delete(data);
-    BKE_report(op->reports, RPT_WARNING, "Can't bake light probe while rendering");
+    BKE_report(op->reports, RPT_WARNING, "Cannot bake light probe while rendering");
     return OPERATOR_CANCELLED;
   }
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -16716,6 +16716,10 @@ msgid "Menu"
 msgstr "メニュー"
 
 
+msgid "Shader"
+msgstr "シェーダー"
+
+
 msgid "Collection"
 msgstr "コレクション"
 
@@ -25626,10 +25630,6 @@ msgid "Script"
 msgstr "スクリプト"
 
 
-msgid "Shader"
-msgstr "シェーダー"
-
-
 msgid "Pattern"
 msgstr "パターン"
 
@@ -32856,10 +32856,6 @@ msgid "Double Click"
 msgstr "ダブルクリック"
 
 
-msgid "Click Drag"
-msgstr "クリックドラッグ"
-
-
 msgid "KeyMap Items"
 msgstr "キーマップ項目"
 
@@ -35048,6 +35044,58 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
+msgid "Snap"
+msgstr "スナップ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "プロポーショナル編集の減衰タイプ"
+
+
+msgid "Mask Edit"
+msgstr "マスク編集"
+
+
+msgid "Automasking"
+msgstr "自動マスク"
+
+
+msgid "Face Sets Edit"
+msgstr "面セット編集"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂点グループのロック"
+
+
+msgid "Mirror"
+msgstr "ミラー"
+
+
+msgid "UV Mapping"
+msgstr "UVマッピング"
+
+
+msgid "Local View"
+msgstr "ローカルビュー"
+
+
+msgid "Viewpoint"
+msgstr "視点"
+
+
+msgid "Navigation"
+msgstr "視点の操作"
+
+
+msgid "Align View"
+msgstr "視点を揃える"
+
+
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
+
+
 msgid "View Regions"
 msgstr "ビュー領域設定"
 
@@ -35140,10 +35188,6 @@ msgid "Hooks"
 msgstr "フック"
 
 
-msgid "Vertex Group Locks"
-msgstr "頂点グループのロック"
-
-
 msgid "Trim/Add"
 msgstr "トリム/追加"
 
@@ -35230,54 +35274,6 @@ msgstr "ボーンロール"
 
 msgid "Pivot Point"
 msgstr "ピボットポイント"
-
-
-msgid "Snap"
-msgstr "スナップ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "プロポーショナル編集の減衰タイプ"
-
-
-msgid "Mask Edit"
-msgstr "マスク編集"
-
-
-msgid "Automasking"
-msgstr "自動マスク"
-
-
-msgid "Face Sets Edit"
-msgstr "面セット編集"
-
-
-msgid "Mirror"
-msgstr "ミラー"
-
-
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
-msgid "Local View"
-msgstr "ローカルビュー"
-
-
-msgid "Viewpoint"
-msgstr "視点"
-
-
-msgid "Navigation"
-msgstr "視点の操作"
-
-
-msgid "Align View"
-msgstr "視点を揃える"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
 
 
 msgid "Keyframe Insert Pie"
@@ -46113,16 +46109,6 @@ msgstr ""
 "テクスチャをマッピングして適用します"
 
 
-msgctxt "NodeTree"
-msgid "Nearest"
-msgstr "ニアレスト"
-
-
-msgctxt "NodeTree"
-msgid "Anisotropic"
-msgstr "異方性"
-
-
 msgid "Input mask from a mask datablock, created in the image editor"
 msgstr "画像エディターで作成された，マスクデータブロックの入力マスク"
 
@@ -46365,10 +46351,6 @@ msgstr "回転"
 
 msgid "Rotate image by specified angle"
 msgstr "画像を指定の角度で回転します"
-
-
-msgid "Method to use to filter rotation"
-msgstr "回転をフィルタリングする方法"
 
 
 msgid "Change the size of the image"
@@ -47377,22 +47359,6 @@ msgid "Which domain to store the data in"
 msgstr "データを格納するドメイン"
 
 
-msgid "Closure Input"
-msgstr "クロージャ入力"
-
-
-msgid "Paired Output"
-msgstr "ペアの出力"
-
-
-msgid "Zone output node that this input node is paired with"
-msgstr "この入力ノードとペアになるゾーン出力ノード"
-
-
-msgid "Closure Output"
-msgstr "クロージャ出力"
-
-
 msgid "Collection Info"
 msgstr "コレクション情報"
 
@@ -47417,14 +47383,6 @@ msgid "Bring the input collection geometry into the modified object, maintaining
 msgstr ""
 "シーン内での各オブジェクト間の相対的な位置を維持しながら，\n"
 "入力コレクションのジオメトリを変形オブジェクトに渡します"
-
-
-msgid "Combine Bundle"
-msgstr "バンドル統合"
-
-
-msgid "Combine multiple socket values into one."
-msgstr "複数のソケット値を一つに統合します."
 
 
 msgid "Convex Hull"
@@ -47891,18 +47849,6 @@ msgid "Group faces into regions surrounded by the selected boundary edges"
 msgstr "選択中の境界辺内の領域の面をグループ化します"
 
 
-msgid "Evaluate Closure"
-msgstr "クロージャ評価"
-
-
-msgid "Input Items"
-msgstr "入力アイテム"
-
-
-msgid "Output Items"
-msgstr "出力アイテム"
-
-
 msgid "Extrude Mesh"
 msgstr "メッシュ押し出し"
 
@@ -47975,34 +47921,12 @@ msgid "Generate a mesh on the XY plane with faces on the inside of input curves"
 msgstr "入力カーブの内側に面を張ったメッシュを XY 平面上に生成します"
 
 
-msgid "Triangles"
-msgstr "三角形面"
-
-
-msgid "N-gons"
-msgstr "Nゴン"
-
-
 msgid "Fillet Curve"
 msgstr "カーブ角丸"
 
 
 msgid "Round corners by generating circular arcs on each control point"
 msgstr "各制御点毎に円弧を生成し，角丸にします"
-
-
-msgid "How to choose number of vertices on fillet"
-msgstr "制御点に円弧を作成する方法"
-
-
-msgid "Align Bézier handles to create circular arcs at each control point"
-msgstr "制御点毎に円弧ができるようベジエハンドルを整列します"
-
-
-msgid "Add control points along a circular arc (handle type is vector if Bézier Spline)"
-msgstr ""
-"円弧に沿って制御点を追加します\n"
-"（ベジエスプラインの場合，ハンドルタイプはベクトル）"
 
 
 msgid "Flip Faces"
@@ -48015,6 +47939,14 @@ msgstr "選択中の面の頂点と辺の順番を反転し，法線の方向を
 
 msgid "For Each Geometry Element Input"
 msgstr "ジオメトリ要素繰り返し入力"
+
+
+msgid "Paired Output"
+msgstr "ペアの出力"
+
+
+msgid "Zone output node that this input node is paired with"
+msgstr "この入力ノードとペアになるゾーン出力ノード"
 
 
 msgid "For Each Geometry Element Output"
@@ -48587,14 +48519,6 @@ msgid "Merge vertices or points within a given distance"
 msgstr "指定の距離内の頂点やポイントを統合します"
 
 
-msgid "Merge all close selected points, whether or not they are connected"
-msgstr "選択中の距離の近いポイント群を，つながっていなくてもすべて統合します"
-
-
-msgid "Only merge mesh vertices along existing edges. This method can be much faster"
-msgstr "既存の辺の間のメッシュ頂点のみマージします．非常に高速な方法です"
-
-
 msgid "Merge Layers"
 msgstr "レイヤー統合"
 
@@ -48641,6 +48565,10 @@ msgstr "フィルタイプ"
 
 msgid "N-Gon"
 msgstr "Nゴン"
+
+
+msgid "Triangles"
+msgstr "三角形面"
 
 
 msgid "Generate a cone mesh"
@@ -48767,10 +48695,6 @@ msgid "Create a fog volume with the shape of the input mesh's surface"
 msgstr "入力メッシュの形状でフォグボリュームを生成します"
 
 
-msgid "How the voxel size is specified"
-msgstr "ボクセルサイズを指定する方法"
-
-
 msgid "UV Sphere"
 msgstr "UV球"
 
@@ -48895,18 +48819,6 @@ msgid "Cast rays from the context geometry onto a target geometry, and retrieve 
 msgstr "コンテクストジオメトリからターゲットジオメトリにレイを発射し，各ヒットポイントから情報を取得します"
 
 
-msgid "Mapping from the target geometry to hit points"
-msgstr "ターゲットのジオメトリからヒットポイントへマッピングします"
-
-
-msgid "Interpolate the attribute from the corners of the hit face"
-msgstr "ヒットした面のコーナーの属性を補間します"
-
-
-msgid "Use the attribute value of the closest mesh element"
-msgstr "最も近いメッシュ要素の属性値を使用します"
-
-
 msgid "Realize Instances"
 msgstr "インスタンス実体化"
 
@@ -48921,28 +48833,6 @@ msgstr "名前付き属性削除"
 
 msgid "Delete an attribute with a specified name from a geometry. Typically used to optimize performance"
 msgstr "指定の名前の属性をジオメトリから削除します．通常パフォーマンスの最適化に使用します"
-
-
-msgid "Pattern Mode"
-msgstr "パターンモード"
-
-
-msgid "How the attributes to remove are chosen"
-msgstr "削除する属性を選択する方法"
-
-
-msgid "Remove the one attribute with the given name"
-msgstr "与えられた名前の属性一つを削除します"
-
-
-msgid "Wildcard"
-msgstr "ワイルドカード"
-
-
-msgid "Remove all attributes that match the pattern which is allowed to contain a single wildcard (*)"
-msgstr ""
-"単一のワイルドカード（*）を含むパターンに\n"
-"マッチする属性をすべて削除します"
 
 
 msgid "Repeat Input"
@@ -48977,25 +48867,6 @@ msgid "Do not collapse curves to single points if they are shorter than the give
 msgstr ""
 "与えられた長さより短いカーブを単一ポイントに統合しません．\n"
 "この折り畳みの挙動は互換性のために存在しています."
-
-
-msgid "How to specify the amount of samples"
-msgstr "サンプル数を指定する方法"
-
-
-msgid "Output the input spline's evaluated points, based on the resolution attribute for NURBS and Bézier splines. Poly splines are unchanged"
-msgstr ""
-"NURBS やベジエスプラインの resolution 属性を元に，\n"
-"入力スプラインの評価済みポイントを出力します．\n"
-"ポリスプラインは変更しません"
-
-
-msgid "Sample the specified number of points along each spline"
-msgstr "各スプライン毎に指定のポイントの数でサンプリングします"
-
-
-msgid "Calculate the number of samples by splitting each spline into segments with the specified length"
-msgstr "各スプラインを指定の長さで分割し，サンプル数を算出します"
 
 
 msgid "Reverse Curve"
@@ -49072,26 +48943,6 @@ msgid "Node socket data type"
 msgstr "ノードソケットデータタイプ"
 
 
-msgid "Interpolation Mode"
-msgstr "補間モード"
-
-
-msgid "How to interpolate the values between neighboring voxels"
-msgstr "隣接ボクセル間の値を補間する方法"
-
-
-msgid "Nearest Neighbor"
-msgstr "ニアレストネイバー"
-
-
-msgid "Trilinear"
-msgstr "トライリニア"
-
-
-msgid "Triquadratic"
-msgstr "トライクワドラティック"
-
-
 msgid "Sample Grid Index"
 msgstr "グリッドインデックスサンプル"
 
@@ -49156,18 +49007,6 @@ msgid "Scale individual edges or neighboring edge islands"
 msgstr "辺毎または近隣の辺アイランド毎にスケーリングします"
 
 
-msgid "Scale Mode"
-msgstr "スケールモード"
-
-
-msgid "Scale elements by the same factor in every direction"
-msgstr "全方向を同じ係数で要素をスケーリングします"
-
-
-msgid "Scale elements in a single direction"
-msgstr "単一の方向で要素をスケーリングします"
-
-
 msgid "Scale Instances"
 msgstr "インスタンス拡大縮小"
 
@@ -49182,14 +49021,6 @@ msgstr "オブジェクト自身"
 
 msgid "Retrieve the object that contains the geometry nodes modifier currently being executed"
 msgstr "現在実行中のジオメトリノードモディファイアーのあるオブジェクトを取得します"
-
-
-msgid "Separate Bundle"
-msgstr "バンドル分離"
-
-
-msgid "Split a bundle into multiple sockets."
-msgstr "バンドルを複数のソケットに分離します."
 
 
 msgid "Separate Components"
@@ -49226,32 +49057,6 @@ msgstr "カーブ法線設定"
 
 msgid "Set the evaluation mode for curve normals"
 msgstr "カーブ法線の評価モードを設定します"
-
-
-msgid "Mode for curve normal evaluation"
-msgstr "カーブ法線の評価モード"
-
-
-msgid "Minimum Twist"
-msgstr "最小ツイスト"
-
-
-msgid "Calculate normals with the smallest twist around the curve tangent across the whole curve"
-msgstr "カーブ全体でカーブタンジェントを中心に，最小のツイストで法線を計算します"
-
-
-msgid "Z Up"
-msgstr "Zが上"
-
-
-msgid "Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points is vertical, the X axis is used."
-msgstr ""
-"Z 軸とカーブタンジェントに直交する法線を計算します．\n"
-"一連のポイントが縦に並んでいる場合，X 軸を使用します."
-
-
-msgid "Use the stored custom normal attribute as the final normals"
-msgstr "最終法線として格納されたカスタム法線属性を使用します"
 
 
 msgid "Set Curve Radius"
@@ -49769,32 +49574,12 @@ msgid "Scale islands of a UV map and move them so they fill the UV space as much
 msgstr "UV マップのアイランドを拡大縮小・移動し，できるだけ UV 空間を埋めるようにします"
 
 
-msgid "Shape Method"
-msgstr "形状の処理方法"
-
-
 msgid "UV Unwrap"
 msgstr "UV展開"
 
 
 msgid "Generate a UV map based on seam edges"
 msgstr "シーム辺を元に UV マップを生成します"
-
-
-msgid "Angle Based"
-msgstr "アングルベース"
-
-
-msgid "This method gives a good 2D representation of a mesh"
-msgstr "この方法はメッシュの2D表現に適しています"
-
-
-msgid "Conformal"
-msgstr "等角"
-
-
-msgid "Uses LSCM (Least Squares Conformal Mapping). This usually gives a less accurate UV mapping than Angle Based, but works better for simpler objects"
-msgstr "LSCM（Least Squares Conformal Mapping）を使用します．通常アングルベースより UV マッピングの精度は低くなりますが，シンプルなオブジェクトに適しています"
 
 
 msgid "Vertex of Corner"
@@ -49843,6 +49628,34 @@ msgstr "カスタムの警告をノードグループに作成します"
 
 msgid "Warning Type"
 msgstr "警告タイプ"
+
+
+msgid "Closure Input"
+msgstr "クロージャ入力"
+
+
+msgid "Closure Output"
+msgstr "クロージャ出力"
+
+
+msgid "Combine Bundle"
+msgstr "バンドル統合"
+
+
+msgid "Combine multiple socket values into one."
+msgstr "複数のソケット値を一つに統合します."
+
+
+msgid "Evaluate Closure"
+msgstr "クロージャ評価"
+
+
+msgid "Input Items"
+msgstr "入力アイテム"
+
+
+msgid "Output Items"
+msgstr "出力アイテム"
 
 
 msgctxt "NodeTree"
@@ -49900,6 +49713,14 @@ msgstr "単一の入力と複数の出力に対応した，単一ソケットに
 
 msgid "Type of socket"
 msgstr "ソケットの種類"
+
+
+msgid "Separate Bundle"
+msgstr "バンドル分離"
+
+
+msgid "Split a bundle into multiple sockets."
+msgstr "バンドルを複数のソケットに分離します."
 
 
 msgid "Shader Node"
@@ -52229,50 +52050,6 @@ msgid "Value to Normal"
 msgstr "値の法線化"
 
 
-msgid "Enum Item"
-msgstr "列挙アイテム"
-
-
-msgid "Format String Item"
-msgstr "文字列フォーマットアイテム"
-
-
-msgid "Collection of format string items"
-msgstr "文字列フォーマットアイテムの集合"
-
-
-msgid "Bake Item"
-msgstr "ベイクアイテム"
-
-
-msgid "Attribute Domain"
-msgstr "属性ドメイン"
-
-
-msgid "Attribute domain where the attribute is stored in the baked data"
-msgstr "ベイクしたデータ内に格納される属性のドメイン"
-
-
-msgid "Is Attribute"
-msgstr "属性"
-
-
-msgid "Bake item is an attribute stored on a geometry"
-msgstr "ジオメトリに格納されている属性がベイクアイテム"
-
-
-msgid "Collection of bake items"
-msgstr "ベイクアイテムの集合"
-
-
-msgid "Capture Attribute Item"
-msgstr "属性キャプチャアイテム"
-
-
-msgid "Collection of capture attribute items"
-msgstr "属性キャプチャアイテムの集合"
-
-
 msgid "Closure Input Item"
 msgstr "クロージャ入力アイテム"
 
@@ -52321,12 +52098,56 @@ msgid "Collection of combine bundle items"
 msgstr "バンドル統合アイテムの集合"
 
 
+msgid "Enum Item"
+msgstr "列挙アイテム"
+
+
 msgid "Input Item"
 msgstr "入力アイテム"
 
 
 msgid "Output Item"
 msgstr "出力アイテム"
+
+
+msgid "Format String Item"
+msgstr "文字列フォーマットアイテム"
+
+
+msgid "Collection of format string items"
+msgstr "文字列フォーマットアイテムの集合"
+
+
+msgid "Bake Item"
+msgstr "ベイクアイテム"
+
+
+msgid "Attribute Domain"
+msgstr "属性ドメイン"
+
+
+msgid "Attribute domain where the attribute is stored in the baked data"
+msgstr "ベイクしたデータ内に格納される属性のドメイン"
+
+
+msgid "Is Attribute"
+msgstr "属性"
+
+
+msgid "Bake item is an attribute stored on a geometry"
+msgstr "ジオメトリに格納されている属性がベイクアイテム"
+
+
+msgid "Collection of bake items"
+msgstr "ベイクアイテムの集合"
+
+
+msgid "Capture Attribute Item"
+msgstr "属性キャプチャアイテム"
+
+
+msgid "Collection of capture attribute items"
+msgstr "属性キャプチャアイテムの集合"
 
 
 msgid "Generation Items"
@@ -52351,14 +52172,6 @@ msgstr "メニューアイテムの集合"
 
 msgid "Collection of repeat items"
 msgstr "リピートアイテムの集合"
-
-
-msgid "Separate Bundle Item"
-msgstr "バンドルアイテム分離"
-
-
-msgid "Collection of separate bundle items"
-msgstr "バンドルアイテム分離の集合"
 
 
 msgid "Collection of simulation items"
@@ -52491,6 +52304,14 @@ msgstr "このスロットで使用する OpenEXR レイヤー名"
 
 msgid "Node Outputs"
 msgstr "ノード出力"
+
+
+msgid "Separate Bundle Item"
+msgstr "バンドルアイテム分離"
+
+
+msgid "Collection of separate bundle items"
+msgstr "バンドルアイテム分離の集合"
 
 
 msgid "Node Socket"
@@ -61983,6 +61804,10 @@ msgid "Y Up"
 msgstr "Yが上"
 
 
+msgid "Z Up"
+msgstr "Zが上"
+
+
 msgid "-X Up"
 msgstr "-Xが上"
 
@@ -63545,14 +63370,6 @@ msgstr "外部ファイル操作"
 
 msgid "Perform external operation on a file or folder"
 msgstr "ファイルやフォルダーへの外部からの操作を行います"
-
-
-msgid "File or folder path"
-msgstr "ファイルまたはフォルダーのパス"
-
-
-msgid "Operation to perform on the file or path"
-msgstr "ファイルまたはパスを処理する操作"
 
 
 msgid "Open the file"
@@ -76532,10 +76349,6 @@ msgid "Move Shape Key"
 msgstr "シェイプキーを移動"
 
 
-msgid "Move the active shape key up/down in the list"
-msgstr "アクティブなシェイプキーをリスト内で上下に移動します"
-
-
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "シェイプキーを削除"
@@ -81494,10 +81307,6 @@ msgid "Hide Panels"
 msgstr "パネルを非表示"
 
 
-msgid "Hide all the panels"
-msgstr "全パネルを隠します"
-
-
 msgctxt "Operator"
 msgid "Set Screen"
 msgstr "画面セット"
@@ -82755,10 +82564,6 @@ msgstr "ピボット位置をカーソル下のサーフェスに設定します
 
 msgid "Mouse Position X"
 msgstr "マウス位置 X"
-
-
-msgid "Position of the mouse used for \"Surface\" mode"
-msgstr "「サーフェス」モードで使用されるマウス位置"
 
 
 msgid "Mouse Position Y"
@@ -86523,6 +86328,10 @@ msgid "Scale islands to fill unit square"
 msgstr "単位正方形を埋めるためアイランドをスケーリングします"
 
 
+msgid "Shape Method"
+msgstr "形状の処理方法"
+
+
 msgid "Exact Shape (Concave)"
 msgstr "正確な形状（凹型）"
 
@@ -86988,6 +86797,14 @@ msgstr "「最小ストレッチ」使用時の反復回数"
 
 msgid "Unwrapping method (Angle Based usually gives better results than Conformal, while being somewhat slower)"
 msgstr "展開方法（通常アングルベースの方が等角よりもいい結果になりますが，若干遅くなります）"
+
+
+msgid "Angle Based"
+msgstr "アングルベース"
+
+
+msgid "Conformal"
+msgstr "等角"
 
 
 msgid "Minimum Stretch"
@@ -91616,6 +91433,74 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
+msgid "Active Tool"
+msgstr "アクティブツール"
+
+
+msgid "View Lock"
+msgstr "ビューのロック"
+
+
+msgid "Selectability & Visibility"
+msgstr "選択可否と可視性"
+
+
+msgid "Wireframe Color"
+msgstr "ワイヤカラー"
+
+
+msgid "Shadow Settings"
+msgstr "影の設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO設定"
+
+
+msgid "Cavity"
+msgstr "キャビティ"
+
+
+msgid "Render Pass"
+msgstr "レンダーパス"
+
+
+msgid "Compositor"
+msgstr "コンポジター"
+
+
+msgid "Overlays"
+msgstr "オーバーレイ"
+
+
+msgid "Guides"
+msgstr "ガイド"
+
+
+msgid "Viewer Node"
+msgstr "ビューアーノード"
+
+
+msgid "Motion Tracking"
+msgstr "モーショントラッキング"
+
+
+msgid "Mesh Edit Mode"
+msgstr "メッシュ編集モード"
+
+
+msgid "Measurement"
+msgstr "計測"
+
+
+msgid "Curve Edit Mode"
+msgstr "カーブ編集モード"
+
+
+msgid "Curves Edit Mode"
+msgstr "ヘアーカーブ編集モード"
+
+
 msgid "Snapping"
 msgstr "スナップ"
 
@@ -91630,10 +91515,6 @@ msgstr "ストロークの基準"
 
 msgid "Drawing Plane"
 msgstr "ドロー平面"
-
-
-msgid "Guides"
-msgstr "ガイド"
 
 
 msgid "Grease Pencil Options"
@@ -91698,70 +91579,6 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTFアニメーション"
-
-
-msgid "Active Tool"
-msgstr "アクティブツール"
-
-
-msgid "View Lock"
-msgstr "ビューのロック"
-
-
-msgid "Selectability & Visibility"
-msgstr "選択可否と可視性"
-
-
-msgid "Wireframe Color"
-msgstr "ワイヤカラー"
-
-
-msgid "Shadow Settings"
-msgstr "影の設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO設定"
-
-
-msgid "Cavity"
-msgstr "キャビティ"
-
-
-msgid "Render Pass"
-msgstr "レンダーパス"
-
-
-msgid "Compositor"
-msgstr "コンポジター"
-
-
-msgid "Overlays"
-msgstr "オーバーレイ"
-
-
-msgid "Viewer Node"
-msgstr "ビューアーノード"
-
-
-msgid "Motion Tracking"
-msgstr "モーショントラッキング"
-
-
-msgid "Mesh Edit Mode"
-msgstr "メッシュ編集モード"
-
-
-msgid "Measurement"
-msgstr "計測"
-
-
-msgid "Curve Edit Mode"
-msgstr "カーブ編集モード"
-
-
-msgid "Curves Edit Mode"
-msgstr "ヘアーカーブ編集モード"
 
 
 msgid "Import Settings"
@@ -109802,14 +109619,6 @@ msgid "Color of keyframes on a path before current frame"
 msgstr "現在のフレームより前のパスのキーフレームの色"
 
 
-msgid "Preview Range"
-msgstr "プレビュー範囲"
-
-
-msgid "Color of preview range overlay"
-msgstr "プレビュー範囲のオーバーレイの色"
-
-
 msgid "Selected Marker"
 msgstr "選択したマーカー"
 
@@ -109852,6 +109661,14 @@ msgstr "コレクションカラー用のテーマ設定"
 
 msgid "Collection Color Tag"
 msgstr "コレクションカラータグ"
+
+
+msgid "Preview Range"
+msgstr "プレビュー範囲"
+
+
+msgid "Color of preview range overlay"
+msgstr "プレビュー範囲のオーバーレイの色"
 
 
 msgid "Theme Console"
@@ -118307,10 +118124,6 @@ msgid "Launch Blender without --offline-mode"
 msgstr "--offline-mode なしで Blende を起動してください"
 
 
-msgid "Please turn Online Access on in the System settings."
-msgstr "「システムタブ→オンラインアクセスを許可」を有効にしてください."
-
-
 msgid "Internet access is required to install extensions from the internet."
 msgstr "インターネットからエクステンションをインストールするにはインターネットアクセスが必要です."
 
@@ -124743,11 +124556,6 @@ msgstr "縦に分割"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "エリアの全画面切り替え"
-
-
-msgctxt "Operator"
 msgid "Transition"
 msgstr "トランジション"
 
@@ -129576,10 +129384,6 @@ msgid "GP_Layer"
 msgstr "GPレイヤー"
 
 
-msgid "grease_pencils"
-msgstr "グリースペンシル"
-
-
 msgid "grease_pencils_v3"
 msgstr "グリースペンシルv3"
 
@@ -130681,10 +130485,6 @@ msgstr "シェーダー最適化（残り {}個）"
 
 msgid "Error: Too many lights in the scene."
 msgstr "エラー：シーン内のライトが多すぎです."
-
-
-msgid "Bake Lighting"
-msgstr "照明をベイク"
 
 
 msgid "Warning: Could not allocate light probes volume pool of {} MB, using {} MB instead."
@@ -132448,10 +132248,6 @@ msgid "G"
 msgstr "G"
 
 
-msgid "StudioLight Icon"
-msgstr "スタジオライトアイコン"
-
-
 msgid "OS"
 msgstr "[OS]"
 
@@ -133631,16 +133427,8 @@ msgid "Path selection requires two matching elements to be selected"
 msgstr "経路を選択するには適合する要素を二つ選択してください"
 
 
-msgid "Cannot rip selected faces"
-msgstr "選択中の面が切り裂きできません"
-
-
 msgid "Cannot rip multiple disconnected vertices"
 msgstr "複数とつながっていない頂点は切り裂きできません"
-
-
-msgid "Rip failed"
-msgstr "切り裂き失敗"
 
 
 msgid "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"
@@ -134164,10 +133952,6 @@ msgid "No objects found to bake from"
 msgstr "ベイク元のオブジェクトがありません"
 
 
-msgid "Multires Bake"
-msgstr "マルチレゾベイク"
-
-
 msgid "Combined bake pass requires Emit, or a light pass with Direct or Indirect contributions enabled"
 msgstr "統合ベイクパスは放射，または直接・間接光源を有効にしたライトパスが必要です"
 
@@ -134304,10 +134088,6 @@ msgid "Problem baking object \"%s\""
 msgstr "オブジェクト「%s」のベイクに問題が発生しました"
 
 
-msgid "Texture Bake"
-msgstr "テクスチャベイク"
-
-
 msgid "Overwrite existing bake data?"
 msgstr "既存のベイクデータを上書きしますか？"
 
@@ -134338,14 +134118,6 @@ msgstr "パスが衝突：%d 個のキャッシュが同じパス「%s」に設�
 
 msgid "Cache has to be enabled"
 msgstr "キャッシュを有効化してください"
-
-
-msgid "Calculate Simulation"
-msgstr "シミュレーションを計算"
-
-
-msgid "Bake Nodes"
-msgstr "ノードをベイク"
 
 
 msgid "Remove exporter?"
@@ -134818,10 +134590,6 @@ msgid "Active object has no modifiers"
 msgstr "アクティブオブジェクトにモディファイアーがありません"
 
 
-msgid "Ocean Simulation"
-msgstr "海洋シミュレーション"
-
-
 msgid "Reshape can work only with higher levels of subdivisions"
 msgstr "リシェイプは高い細分割の場合のみ動作可能です"
 
@@ -135016,10 +134784,6 @@ msgstr "Dyntopo 有効時にリメッシャーは実行できません"
 
 msgid "The remesher cannot run with a Multires modifier in the modifier stack"
 msgstr "マルチレゾリューションモディファイアーがスタック内にあるとリメッシャーは実行できません"
-
-
-msgid "QuadriFlow Remesh"
-msgstr "QuadriFlowリメッシュ"
 
 
 msgid "Select Collection"
@@ -135286,10 +135050,6 @@ msgid "Bake failed: invalid canvas"
 msgstr "ベイク失敗：無効なキャンバス"
 
 
-msgid "Dynamic Paint Bake"
-msgstr "ダイナミックペイントベイク"
-
-
 msgid "Removed %d double particle(s)"
 msgstr "%d 個の重複パーティクルを削除しました"
 
@@ -135336,14 +135096,6 @@ msgstr "流体：キャッシュディレクトリ「%s」が作成不可．デ�
 
 msgid "Fluid: Could not use default cache directory '%s', please define a valid cache path manually"
 msgstr "流体：デフォルトのキャッシュディレクトリ「%s」が使用不可．有効なキャッシュパスを手動設定してください"
-
-
-msgid "Fluid Bake"
-msgstr "流体をベイク"
-
-
-msgid "Fluid Free"
-msgstr "流体を解放"
 
 
 msgid "Library override data-blocks only support Disk Cache storage"
@@ -135602,10 +135354,6 @@ msgid "Rendering sequence..."
 msgstr "シーケンスをレンダリング..."
 
 
-msgid "Render..."
-msgstr "レンダー..."
-
-
 msgid "Cannot write a single file with an animation format selected"
 msgstr "選択中のアニメーションフォーマットでは単一ファイルでの保存はできません"
 
@@ -135638,10 +135386,6 @@ msgid "Skipping existing frame \"%s\""
 msgstr "現存のフレーム「%s」をスキップします"
 
 
-msgid "Viewport Render"
-msgstr "ビューポートレンダー"
-
-
 msgid "Node groups do not support automatic previews"
 msgstr "自動プレビューに未対応のノードグループです"
 
@@ -135656,18 +135400,6 @@ msgstr "コレクションに自動プレビューがレンダリング可能な
 
 msgid "Data-block type does not support automatic previews"
 msgstr "自動プレビューに未対応のデータブロックタイプです"
-
-
-msgid "Load Previews"
-msgstr "プレビュー読み込み"
-
-
-msgid "Icon Preview"
-msgstr "アイコンプレビュー"
-
-
-msgid "Shader Preview"
-msgstr "シェーダープレビュー"
 
 
 msgid "Can't bake light probe while rendering"
@@ -135804,10 +135536,6 @@ msgstr "エリアを復元"
 
 msgid "Maximize Area"
 msgstr "最大化"
-
-
-msgid "Full Screen Area"
-msgstr "フルスクリーン化"
 
 
 msgid "Show Header"
@@ -136125,10 +135853,6 @@ msgstr "画像エンプティを選択してください"
 
 msgid "No valid image format selected"
 msgstr "有効な画像フォーマットを選択してください"
-
-
-msgid "Trace Image"
-msgstr "画像をトレース"
 
 
 msgid "PaintCurve"
@@ -136599,10 +136323,6 @@ msgid "File: %s"
 msgstr "ファイル: %s"
 
 
-msgid "Prefetching"
-msgstr "プリフェッチ"
-
-
 msgid "Delete track corresponding to the selected curve?"
 msgstr "選択中のカーブに対応するトラックを削除しますか？"
 
@@ -136617,10 +136337,6 @@ msgstr "開くファイルを選択してください"
 
 msgid "Cannot read '%s': %s"
 msgstr "「%s」が読み込めません: %s"
-
-
-msgid "Building Proxies"
-msgstr "プロキシを構築"
 
 
 msgid "Place Marker"
@@ -136679,10 +136395,6 @@ msgid "Average re-projection error: %.2f px"
 msgstr "再投影誤差の平均：%.2f ピクセル"
 
 
-msgid "Solve Camera"
-msgstr "カメラを解析"
-
-
 msgid "Track the selected markers backward for the entire clip"
 msgstr "クリップ全体で選択中のマーカーを後方にトラックします"
 
@@ -136697,10 +136409,6 @@ msgstr "クリップ全体で選択中のマーカーを前方にトラックし
 
 msgid "Track the selected markers forward by one frame"
 msgstr "単一フレームで選択中のマーカーを前方にトラックします"
-
-
-msgid "Track Markers"
-msgstr "マーカーをトラック"
 
 
 msgid "New lines unsupported, call this operator multiple times"
@@ -136883,16 +136591,8 @@ msgid "Asset Catalogs"
 msgstr "アセットカタログ"
 
 
-msgid "Listing Dirs..."
-msgstr "フォルダをリストアップ..."
-
-
 msgid "Date Modified"
 msgstr "更新日時"
-
-
-msgid "Validating Bookmarks..."
-msgstr "ブックマークを確認..."
 
 
 msgid "Home"
@@ -137862,10 +137562,6 @@ msgid "There is no parent group node in this context"
 msgstr "このコンテクストに親グループノードがありません"
 
 
-msgid "Shader Previews"
-msgstr "シェーダープレビュー"
-
-
 msgid "True"
 msgstr "True"
 
@@ -138632,10 +138328,6 @@ msgstr "ストリップを選択してください"
 
 msgid "Can't set a negative range"
 msgstr "負の範囲は設定できません"
-
-
-msgid "Strip Previews"
-msgstr "ストリッププレビュー"
 
 
 msgid "Set Selected Strip Proxies"
@@ -139641,10 +139333,6 @@ msgid "Shrink/Fatten: "
 msgstr "収縮/膨張："
 
 
-msgid " or Alt) Even Thickness {}"
-msgstr " または[Alt]) 均一な厚さ {}"
-
-
 msgid "'Shrink/Fatten' meshes is only supported in edit mode"
 msgstr "メッシュの「収縮/膨張」は編集モードのみ対応しています"
 
@@ -139918,6 +139606,10 @@ msgid "Rip is not compatible with sync selection"
 msgstr "リップは「UVの選択を同期」と互換性がありません"
 
 
+msgid "Rip failed"
+msgstr "切り裂き失敗"
+
+
 msgid "Cannot split selection when sync selection is enabled"
 msgstr "「UVの選択を同期」使用中，選択の分離はできません"
 
@@ -139986,10 +139678,6 @@ msgid "Unwrap failed to solve %d of %d island(s), edge seams may need to be adde
 msgstr "展開で %d 個（%d 個中）のアイランドが解決できません．シームを追加してみてください"
 
 
-msgid "Packing UVs"
-msgstr "UVを梱包中"
-
-
 msgid "Freestyle: Mesh loading"
 msgstr "Freestyle: メッシュ読込"
 
@@ -140052,10 +139740,6 @@ msgstr "画像フォーマットが動画フォーマットではありません
 
 msgid "Audio sample format unsupported"
 msgstr "未対応の音声サンプルフォーマットです"
-
-
-msgid "Alembic Export"
-msgstr "Alembicエクスポート"
 
 
 msgid "Object type mismatch, Alembic object path pointed to Camera when importing, but not any more"
@@ -140132,10 +139816,6 @@ msgstr "オブジェクトタイプミスマッチ．Alembic オブジェクト�
 
 msgid "Invalid object: verify object path"
 msgstr "無効なオブジェクト：オブジェクトパスを見直してください"
-
-
-msgid "Alembic Import"
-msgstr "Alembicインポート"
 
 
 msgid "CSV Import: Cannot open file '%s'"
@@ -140314,20 +139994,12 @@ msgid "USD Export: Unable to find collection '%s'"
 msgstr "USDエクスポート: コレクション「%s」が見つかりません"
 
 
-msgid "USD Export"
-msgstr "USDエクスポート"
-
-
 msgid "Could not open USD archive for reading, see console for detail"
 msgstr "読み込む USD アーカイブが開けません（コンソールに詳細）"
 
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "USDインポート:「%s」を読み込むためのステージが開けません"
-
-
-msgid "USD Import"
-msgstr "USDインポート"
 
 
 msgid "An exception occurred invoking USD hook '%s'. Please see the console for details"
@@ -144709,6 +144381,10 @@ msgid "Limit the maximum value of the radius in order to avoid overlapping fille
 msgstr "フィレの重複を回避する最大半径"
 
 
+msgid "How to choose number of vertices on fillet"
+msgstr "制御点に円弧を作成する方法"
+
+
 msgid "Handle Type Selection node"
 msgstr "ハンドルタイプ選択ノード"
 
@@ -144946,6 +144622,10 @@ msgstr "内側のポイント群を反時計回りに回転"
 
 msgid "An attribute field with a selection of the outer points"
 msgstr "外側のポイントの選択の付いた属性フィールド"
+
+
+msgid "How to specify the amount of samples"
+msgstr "サンプル数を指定する方法"
 
 
 msgid "Curve Index"
@@ -146011,6 +145691,10 @@ msgid "Width of the active voxel surface, in voxels"
 msgstr "アクティブボクセルサーフェスの幅（ボクセル数）"
 
 
+msgid "How the voxel size is specified"
+msgstr "ボクセルサイズを指定する方法"
+
+
 msgid "Corner Index"
 msgstr "コーナーインデックス"
 
@@ -146329,6 +146013,10 @@ msgid "Hit Distance"
 msgstr "ヒット距離"
 
 
+msgid "Mapping from the target geometry to hit points"
+msgstr "ターゲットのジオメトリからヒットポイントへマッピングします"
+
+
 msgid "Realize All"
 msgstr "すべて実体化"
 
@@ -146361,6 +146049,14 @@ msgid "Attribute does not exist: \"{}\""
 msgstr "属性が存在しません:「{}」"
 
 
+msgid "Pattern Mode"
+msgstr "パターンモード"
+
+
+msgid "How the attributes to remove are chosen"
+msgstr "削除する属性を選択する方法"
+
+
 msgid "Repeat Items"
 msgstr "リピートアイテム"
 
@@ -146371,6 +146067,10 @@ msgstr "イテレーション"
 
 msgid "Index of the current iteration. Starts counting at zero"
 msgstr "現在の繰り返しのインデックス．カウントは０スタート"
+
+
+msgid "How to interpolate the values between neighboring voxels"
+msgstr "隣接ボクセル間の値を補間する方法"
 
 
 msgid "Which element to retrieve a value from on the geometry"
@@ -146405,6 +146105,10 @@ msgid "Whether the node could find a single face to sample at the UV coordinate"
 msgstr "このノードが UV 座標でサンプリングするための単一面を探し出せたかどうか"
 
 
+msgid "Scale Mode"
+msgstr "スケールモード"
+
+
 msgid "Origin of the scaling for each element. If multiple elements are connected, their center is averaged"
 msgstr "各要素のスケーリング原点．複数の要素がつながっている場合はその平均値が中心になります"
 
@@ -146421,10 +146125,6 @@ msgid "Grid 2"
 msgstr "グリッド 2"
 
 
-msgid "Value not found: \"{}\""
-msgstr "値が見つかりません:「{}」"
-
-
 msgid "Inverted"
 msgstr "反転"
 
@@ -146439,6 +146139,10 @@ msgstr "ジオメトリの選択中の部分"
 
 msgid "The parts of the geometry not in the selection"
 msgstr "ジオメトリの未選択の部分"
+
+
+msgid "Mode for curve normal evaluation"
+msgstr "カーブ法線の評価モード"
 
 
 msgid "Mesh has no faces for material assignment"
@@ -146703,16 +146407,8 @@ msgid "Recursive closure is not allowed"
 msgstr "再帰クロージャはできません"
 
 
-msgid "Closure input has incompatible type: \"{}\""
-msgstr "クロージャの入力に非互換のタイプがあります:「{}」"
-
-
 msgid "Closure does not have input: \"{}\""
 msgstr "クロージャに入力がありません:「{}」"
-
-
-msgid "Closure output has incompatible type: \"{}\""
-msgstr "クロージャの出力に非互換のタイプがあります:「{}」"
 
 
 msgid "Closure does not have output: \"{}\""
@@ -148020,10 +147716,6 @@ msgstr "レンダーリザルト読込：必要なチャンネル「%s.%s」や�
 
 msgid "Reading render result: expected channel \"%s.%s\" not found"
 msgstr "レンダーリザルト読込：必要なチャンネル「%s.%s」が見つかりません"
-
-
-msgid "Strip Thumbnails"
-msgstr "ストリップサムネイル"
 
 
 msgid "Channel %d"

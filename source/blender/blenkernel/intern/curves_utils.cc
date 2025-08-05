@@ -103,8 +103,8 @@ static void if_has_data_call_callback(const Span<int> offset_data,
 template<typename Fn>
 static void foreach_selected_point_ranges_per_curve_(const IndexMask &mask,
                                                      const OffsetIndices<int> points_by_curve,
-                                                     SelectedCallback selected_fn,
-                                                     Fn unselected_fn)
+                                                     const SelectedCallback selected_fn,
+                                                     const Fn unselected_fn)
 {
   Vector<IndexRange> ranges;
   Span<int> offset_data = points_by_curve.data();
@@ -148,19 +148,19 @@ static void foreach_selected_point_ranges_per_curve_(const IndexMask &mask,
 }
 
 void foreach_selected_point_ranges_per_curve(const IndexMask &mask,
-                                             const OffsetIndices<int> offset_indices,
-                                             SelectedCallback selected_fn)
+                                             const OffsetIndices<int> points_by_curve,
+                                             const SelectedCallback selected_fn)
 {
-  foreach_selected_point_ranges_per_curve_<void()>(mask, offset_indices, selected_fn, nullptr);
+  foreach_selected_point_ranges_per_curve_<void()>(mask, points_by_curve, selected_fn, nullptr);
 }
 
 void foreach_selected_point_ranges_per_curve(const IndexMask &mask,
-                                             const OffsetIndices<int> offset_indices,
-                                             SelectedCallback selected_fn,
-                                             UnselectedCallback unselected_fn)
+                                             const OffsetIndices<int> points_by_curve,
+                                             const SelectedCallback selected_fn,
+                                             const UnselectedCallback unselected_fn)
 {
   foreach_selected_point_ranges_per_curve_<UnselectedCallback>(
-      mask, offset_indices, selected_fn, unselected_fn);
+      mask, points_by_curve, selected_fn, unselected_fn);
 }
 
 namespace bezier {
@@ -199,7 +199,6 @@ void write_all_positions(bke::CurvesGeometry &curves,
   {
     return;
   }
-  BLI_assert(curves_selection.size() * 3 == all_positions.size());
 
   const OffsetIndices points_by_curve = curves.points_by_curve();
   MutableSpan<float3> positions = curves.positions_for_write();

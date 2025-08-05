@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 14:56+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -4644,6 +4644,10 @@ msgid "Normal"
 msgstr "Normalno"
 
 
+msgid "Shader"
+msgstr "Senčenja"
+
+
 msgid "Freestyle Line Set"
 msgstr "Zbirka slobodoručnih linija"
 
@@ -6268,10 +6272,6 @@ msgstr "Mat"
 
 msgid "Script"
 msgstr "Skripta"
-
-
-msgid "Shader"
-msgstr "Senčenja"
 
 
 msgid "Pattern"
@@ -8549,6 +8549,30 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Snap"
+msgstr "Lepljenje"
+
+
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
+msgid "Local View"
+msgstr "Lokalni pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
 msgid "Select Linked"
 msgstr "Izaberi povezano"
 
@@ -8631,30 +8655,6 @@ msgstr "Specijalni znaci"
 
 msgid "Bone Roll"
 msgstr "Rolna kostiju"
-
-
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
 
 
 msgid "Basic"
@@ -10948,10 +10948,6 @@ msgid "Only Faces"
 msgstr "Samo stranice"
 
 
-msgid "Triangles"
-msgstr "Trougao"
-
-
 msgid "Primary"
 msgstr "Primarno"
 
@@ -10976,12 +10972,12 @@ msgid "Fill Type"
 msgstr "Vrsta uklapanja"
 
 
+msgid "Triangles"
+msgstr "Trougao"
+
+
 msgid "Object Info"
 msgstr "Informacije o objektu"
-
-
-msgid "Z Up"
-msgstr "Gore po Z"
 
 
 msgid "Tangent Space"
@@ -10994,14 +10990,6 @@ msgstr "Nepoznato"
 
 msgid "Selection"
 msgstr "Izbor"
-
-
-msgid "Angle Based"
-msgstr "Na osnovu ugla"
-
-
-msgid "Conformal"
-msgstr "Zaštitni"
 
 
 msgid "Warning"
@@ -13572,6 +13560,10 @@ msgstr "Ništa"
 
 msgid "Y Up"
 msgstr "Gore po Y"
+
+
+msgid "Z Up"
+msgstr "Gore po Z"
 
 
 msgid "-X Up"
@@ -18650,6 +18642,14 @@ msgid "Unwrap"
 msgstr "Rastvori"
 
 
+msgid "Angle Based"
+msgstr "Na osnovu ugla"
+
+
+msgid "Conformal"
+msgstr "Zaštitni"
+
+
 msgctxt "Operator"
 msgid "Weld"
 msgstr "Spoji"
@@ -19332,12 +19332,12 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Transform Orientations"
-msgstr "Transformacija orijentacija"
-
-
 msgid "Motion Tracking"
 msgstr "Praćenje pokreta"
+
+
+msgid "Transform Orientations"
+msgstr "Transformacija orijentacija"
 
 
 msgid "Bone Constraints"
@@ -24867,10 +24867,6 @@ msgstr "Spoljašnje"
 
 msgid "Not a valid selection for extrude"
 msgstr "Postavlja ugaoni indeks odsjaja"
-
-
-msgid "Cannot rip selected faces"
-msgstr "Sakriva izabrane stranice"
 
 
 msgid "Must be in vertex selection mode"

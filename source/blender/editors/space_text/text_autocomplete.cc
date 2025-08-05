@@ -31,7 +31,7 @@
 #include "ED_undo.hh"
 
 #include "text_format.hh"
-#include "text_intern.hh" /* own include */
+#include "text_intern.hh" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name Public API
@@ -40,7 +40,7 @@
 bool space_text_do_suggest_select(SpaceText *st, const ARegion *region, const int mval[2])
 {
   const int lheight = TXT_LINE_HEIGHT(st);
-  SuggItem *item, *first, *last /* , *sel */ /* UNUSED */;
+  SuggItem *item, *first, *last /* , *sel */ /* UNUSED. */;
   TextLine *tmp;
   int l, x, y, w, h, i;
   int tgti, *top;
@@ -61,9 +61,9 @@ bool space_text_do_suggest_select(SpaceText *st, const ARegion *region, const in
     return false;
   }
 
-  /* Count the visible lines to the cursor */
+  /* Count the visible lines to the cursor. */
   for (tmp = st->text->curl, l = -st->top; tmp; tmp = tmp->prev, l++) {
-    /* pass */
+    /* Pass. */
   }
   if (l < 0) {
     return false;
@@ -81,19 +81,19 @@ bool space_text_do_suggest_select(SpaceText *st, const ARegion *region, const in
     return false;
   }
 
-  /* Work out which of the items is at the top of the visible list */
+  /* Work out which of the items is at the top of the visible list. */
   for (i = 0, item = first; i < *top && item->next; i++, item = item->next) {
-    /* pass */
+    /* Pass. */
   }
 
-  /* Work out the target item index in the visible list */
+  /* Work out the target item index in the visible list. */
   tgti = (y - mval[1] - 4) / lheight;
   if (tgti < 0 || tgti > SUGG_LIST_SIZE) {
     return true;
   }
 
   for (i = tgti; i > 0 && item->next; i--, item = item->next) {
-    /* pass */
+    /* Pass. */
   }
   if (item) {
     texttool_suggest_select(item);
@@ -140,7 +140,7 @@ static GHash *text_autocomplete_build(Text *text)
 
   texttool_text_set_active(text);
 
-  /* first get the word we're at */
+  /* First get the word we're at. */
   {
     const int i = text_find_identifier_start(text->curl->line, text->curc);
     seek_len = text->curc - i;
@@ -149,7 +149,7 @@ static GHash *text_autocomplete_build(Text *text)
     // BLI_strncpy_utf8(seek, seek_ptr, seek_len);
   }
 
-  /* now walk over entire doc and suggest words */
+  /* Now walk over entire doc and suggest words. */
   {
     gh = BLI_ghash_str_new(__func__);
 
@@ -159,7 +159,7 @@ static GHash *text_autocomplete_build(Text *text)
       size_t i_pos = 0;
 
       while (i_start < linep->len) {
-        /* seek identifier beginning */
+        /* Seek identifier beginning. */
         i_pos = i_start;
         while ((i_start < linep->len) &&
                !text_check_identifier_nodigit_unicode(
@@ -192,7 +192,7 @@ static GHash *text_autocomplete_build(Text *text)
             str_sub[choice_len] = '\0';
             if (!BLI_ghash_lookup(gh, str_sub)) {
               char *str_dup = BLI_strdupn(str_sub, choice_len);
-              /* A 'set' would make more sense here */
+              /* A `set` would make more sense here. */
               BLI_ghash_insert(gh, str_dup, str_dup);
             }
             str_sub[choice_len] = str_sub_last;
@@ -202,7 +202,7 @@ static GHash *text_autocomplete_build(Text *text)
           i_start = i_end;
         }
         else {
-          /* highly unlikely, but prevent eternal loop */
+          /* Highly unlikely, but prevent eternal loop. */
           i_start++;
         }
       }
@@ -211,7 +211,7 @@ static GHash *text_autocomplete_build(Text *text)
     {
       GHashIterator gh_iter;
 
-      /* get the formatter for highlighting */
+      /* Get the formatter for highlighting. */
       TextFormatType *tft;
       tft = ED_text_format_get(text);
 
@@ -266,7 +266,7 @@ static void confirm_suggestion(Text *text)
   }
 
   line = text->curl->line;
-  i = text_find_identifier_start(line, text->curc /* - skipleft */);
+  i = text_find_identifier_start(line, text->curc /* - skipleft. */);
   over = text->curc - i;
 
   //  for (i = 0; i < skipleft; i++)
@@ -399,7 +399,7 @@ static wmOperatorStatus text_autocomplete_modal(bContext *C, wmOperator *op, con
             draw = 1;
           }
           else {
-            /* Work out which char we are about to delete/pass */
+            /* Work out which char we are about to delete/pass. */
             if (st->text->curl && st->text->curc > 0) {
               char ch = st->text->curl->line[st->text->curc - 1];
               if ((ch == '_' || !ispunct(ch)) && !text_check_whitespace(ch)) {
@@ -432,7 +432,7 @@ static wmOperatorStatus text_autocomplete_modal(bContext *C, wmOperator *op, con
             draw = 1;
           }
           else {
-            /* Work out which char we are about to pass */
+            /* Work out which char we are about to pass. */
             if (st->text->curl && st->text->curc < st->text->curl->len) {
               char ch = st->text->curl->line[st->text->curc];
               if ((ch == '_' || !ispunct(ch)) && !text_check_whitespace(ch)) {
@@ -549,7 +549,7 @@ static void text_autocomplete_free(bContext *C, wmOperator *op)
     op->customdata = nullptr;
   }
 
-  /* other stuff */
+  /* Other stuff. */
   {
     SpaceText *st = CTX_wm_space_text(C);
     st->doplugins = false;
@@ -564,7 +564,7 @@ static void text_autocomplete_cancel(bContext *C, wmOperator *op)
 
 void TEXT_OT_autocomplete(wmOperatorType *ot)
 {
-  /* identifiers */
+  /* Identifiers. */
   ot->name = "Text Auto Complete";
   ot->description = "Show a list of used text in the open document";
   ot->idname = "TEXT_OT_autocomplete";
@@ -575,7 +575,7 @@ void TEXT_OT_autocomplete(wmOperatorType *ot)
   ot->modal = text_autocomplete_modal;
   ot->poll = text_space_edit_poll;
 
-  /* flags */
+  /* Flags. */
   /* Undo is handled conditionally by this operator. */
   ot->flag = OPTYPE_BLOCKING;
 }

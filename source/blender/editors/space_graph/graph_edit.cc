@@ -1423,7 +1423,7 @@ static const EnumPropertyItem prop_graphkeys_expo_types[] = {
      "MAKE_CYCLIC",
      0,
      "Make Cyclic (F-Modifier)",
-     "Add Cycles F-Modifier if one doesn't exist already"},
+     "Add Cycles F-Modifier if one does not exist already"},
     {CLEAR_CYCLIC_EXPO,
      "CLEAR_CYCLIC",
      0,

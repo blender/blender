@@ -723,6 +723,8 @@ if(WITH_BLENDER)
       play
       play_reverse
       play_sound
+      playhead_snap_off
+      playhead_snap_on
       plugin
       plus
       pmarker

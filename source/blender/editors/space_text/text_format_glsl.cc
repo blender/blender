@@ -293,7 +293,7 @@ static const Span<const char *> text_format_glsl_literals_reserved(
  * https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.pdf
  */
 static const char *text_format_glsl_literals_specialvar_data[] = {
-    /* Force single column, sorted list */
+    /* Force single column, sorted list. */
     /* clang-format off */
     "gl_ClipDistance",
     "gl_FragCoord",
@@ -333,8 +333,8 @@ static const Span<const char *> text_format_glsl_literals_specialvar(
 /** \} */
 
 /*---------------------------------------------------------------------*/
-/* name local functions
- */
+/** \name Local Functions
+ * \{ */
 
 static int txtfmt_glsl_find_builtinfunc(const char *string)
 {
@@ -368,7 +368,7 @@ static int txtfmt_glsl_find_preprocessor(const char *string)
 {
   if (string[0] == '#') {
     int i = 1;
-    /* White-space is ok '#  foo'. */
+    /* White-space is ok `#  foo`. */
     while (text_check_whitespace(string[i])) {
       i++;
     }
@@ -411,20 +411,20 @@ static void txtfmt_glsl_format_line(SpaceText *st, TextLine *line, const bool do
   char cont_orig, cont, find, prev = ' ';
   int len, i;
 
-  /* Get continuation from previous line */
+  /* Get continuation from previous line. */
   if (line->prev && line->prev->format != nullptr) {
     fmt = line->prev->format;
-    cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
+    cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator. */
     BLI_assert((FMT_CONT_ALL & cont) == cont);
   }
   else {
     cont = FMT_CONT_NOP;
   }
 
-  /* Get original continuation from this line */
+  /* Get original continuation from this line. */
   if (line->format != nullptr) {
     fmt = line->format;
-    cont_orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
+    cont_orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator. */
     BLI_assert((FMT_CONT_ALL & cont_orig) == cont_orig);
   }
   else {
@@ -440,7 +440,7 @@ static void txtfmt_glsl_format_line(SpaceText *st, TextLine *line, const bool do
   fmt = line->format;
 
   while (*str) {
-    /* Handle escape sequences by skipping both \ and next char */
+    /* Handle escape sequences by skipping both \ and next char. */
     if (*str == '\\') {
       *fmt = prev;
       fmt++;
@@ -453,9 +453,9 @@ static void txtfmt_glsl_format_line(SpaceText *st, TextLine *line, const bool do
       str += BLI_str_utf8_size_safe(str);
       continue;
     }
-    /* Handle continuations */
+    /* Handle continuations. */
     if (cont) {
-      /* C-Style comments */
+      /* C-Style comments. */
       if (cont & FMT_CONT_COMMENT_C) {
         if (*str == '*' && *(str + 1) == '/') {
           *fmt = FMT_TYPE_COMMENT;
@@ -467,7 +467,7 @@ static void txtfmt_glsl_format_line(SpaceText *st, TextLine *line, const bool do
         else {
           *fmt = FMT_TYPE_COMMENT;
         }
-        /* Handle other comments */
+        /* Handle other comments. */
       }
       else {
         find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
@@ -481,12 +481,12 @@ static void txtfmt_glsl_format_line(SpaceText *st, TextLine *line, const bool do
     }
     /* Not in a string... */
     else {
-      /* Deal with comments first */
+      /* Deal with comments first. */
       if (*str == '/' && *(str + 1) == '/') {
-        /* fill the remaining line */
+        /* Fill the remaining line. */
         text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - int(fmt - line->format));
       }
-      /* C-Style (multi-line) comments */
+      /* C-Style (multi-line) comments. */
       else if (*str == '/' && *(str + 1) == '*') {
         cont = FMT_CONT_COMMENT_C;
         *fmt = FMT_TYPE_COMMENT;
@@ -495,7 +495,7 @@ static void txtfmt_glsl_format_line(SpaceText *st, TextLine *line, const bool do
         *fmt = FMT_TYPE_COMMENT;
       }
       else if (ELEM(*str, '"', '\'')) {
-        /* Strings */
+        /* Strings. */
         find = *str;
         cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;
         *fmt = FMT_TYPE_STRING;
@@ -504,13 +504,13 @@ static void txtfmt_glsl_format_line(SpaceText *st, TextLine *line, const bool do
       else if (*str == ' ') {
         *fmt = FMT_TYPE_WHITESPACE;
       }
-      /* Numbers (digits not part of an identifier and periods followed by digits) */
+      /* Numbers (digits not part of an identifier and periods followed by digits). */
       else if ((prev != FMT_TYPE_DEFAULT && text_check_digit(*str)) ||
                (*str == '.' && text_check_digit(*(str + 1))))
       {
         *fmt = FMT_TYPE_NUMERAL;
       }
-      /* Punctuation */
+      /* Punctuation. */
       else if ((*str != '#') && text_check_delim(*str)) {
         *fmt = FMT_TYPE_SYMBOL;
       }
@@ -525,7 +525,7 @@ static void txtfmt_glsl_format_line(SpaceText *st, TextLine *line, const bool do
         /* Keep aligned arguments for readability. */
         /* clang-format off */
 
-        /* Special vars(v) or built-in keywords(b) */
+        /* Special vars(v) or built-in keywords(b). */
         /* keep in sync with `txtfmt_glsl_format_identifier()`. */
         if        ((i = txtfmt_glsl_find_specialvar(str))   != -1) { prev = FMT_TYPE_SPECIAL;
         } else if ((i = txtfmt_glsl_find_builtinfunc(str))  != -1) { prev = FMT_TYPE_KEYWORD;
@@ -558,7 +558,7 @@ static void txtfmt_glsl_format_line(SpaceText *st, TextLine *line, const bool do
   fmt++;
   *fmt = cont;
 
-  /* If continuation has changed and we're allowed, process the next line */
+  /* If continuation has changed and we're allowed, process the next line. */
   if (cont != cont_orig && do_next && line->next) {
     txtfmt_glsl_format_line(st, line->next, do_next);
   }

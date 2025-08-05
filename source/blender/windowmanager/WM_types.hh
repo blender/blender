@@ -316,7 +316,7 @@ enum {
    * \note The cursor location at the point dragging starts is set to #wmEvent.prev_press_xy
    * some operators such as box selection should use this location instead of #wmEvent.xy.
    */
-  KM_CLICK_DRAG = 5,
+  KM_PRESS_DRAG = 5,
 };
 /**
  * Alternate define for #wmKeyMapItem::shift and other modifiers.
@@ -328,7 +328,7 @@ enum {
 /**
  * #wmKeyMapItem.direction
  *
- * Direction set for #KM_CLICK_DRAG key-map items. #KM_ANY (-1) to ignore direction.
+ * Direction set for #KM_PRESS_DRAG key-map items. #KM_ANY (-1) to ignore direction.
  */
 enum {
   KM_DIRECTION_N = 1,
@@ -736,7 +736,7 @@ struct wmTabletData {
  * ============================
  *
  * Events hold information about the state when the last #KM_PRESS event was added.
- * This is used for generating #KM_CLICK, #KM_DBL_CLICK & #KM_CLICK_DRAG events.
+ * This is used for generating #KM_CLICK, #KM_DBL_CLICK & #KM_PRESS_DRAG events.
  * See #wm_handlers_do for the implementation.
  *
  * - Previous values are only set when a #KM_PRESS event is detected.
@@ -773,7 +773,7 @@ struct wmEvent {
   /** Modifier states: #KM_SHIFT, #KM_CTRL, #KM_ALT, #KM_OSKEY & #KM_HYPER. */
   wmEventModifierFlag modifier;
 
-  /** The direction (for #KM_CLICK_DRAG events only). */
+  /** The direction (for #KM_PRESS_DRAG events only). */
   int8_t direction;
 
   /**

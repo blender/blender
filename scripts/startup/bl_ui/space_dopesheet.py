@@ -285,7 +285,10 @@ class DOPESHEET_HT_editor_buttons:
                 text="",
             )
 
-        layout.popover(panel="DOPESHEET_PT_playhead_snapping")
+        row = layout.row(align=True)
+        row.prop(tool_settings, "use_snap_playhead", text="")
+        sub = row.row(align=True)
+        sub.popover(panel="DOPESHEET_PT_playhead_snapping", text="")
 
         row = layout.row(align=True)
         row.prop(tool_settings, "use_proportional_action", text="", icon_only=True)

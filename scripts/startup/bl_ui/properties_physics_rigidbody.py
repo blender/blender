@@ -50,7 +50,7 @@ class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
                 row.alignment = 'RIGHT'
                 row.label(text="This object is part of a compound shape", icon='INFO')
             else:
-                rigid_body_warning(layout, "Rigid Body can't be child of a non compound Rigid Body")
+                rigid_body_warning(layout, "Rigid Body cannot be child of a non compound Rigid Body")
             return
 
         if parent is None or parent.rigid_body is None:

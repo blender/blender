@@ -647,11 +647,15 @@ static void ntree_shader_copy_branch(bNodeTree *ntree,
       int id = node->runtime->tmp_flag;
       /* Avoid creating unique names in the new tree, since it is very slow.
        * The names on the new nodes will be invalid. */
-      nodes_copy[id] = blender::bke::node_copy(
-          ntree, *node, LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_MAIN, false);
-      /* But identifiers must be created for the `bNodeTree::all_nodes()` vector,
-       * so they won't match the original. */
-      blender::bke::node_unique_id(*ntree, *nodes_copy[id]);
+      blender::Map<const bNodeSocket *, bNodeSocket *> socket_map;
+      nodes_copy[id] = blender::bke::node_copy_with_mapping(ntree,
+                                                            *node,
+                                                            LIB_ID_CREATE_NO_USER_REFCOUNT |
+                                                                LIB_ID_CREATE_NO_MAIN,
+                                                            std::nullopt,
+                                                            std::nullopt,
+                                                            socket_map,
+                                                            true);
 
       bNode *copy = nodes_copy[id];
       copy->runtime->tmp_flag = -2; /* Copy */

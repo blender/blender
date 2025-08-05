@@ -237,21 +237,18 @@ struct MeshNormalInfo {
 
   void add_no_custom_normals(const bke::MeshNormalDomain domain)
   {
-    if (result_type == Output::None) {
-      return;
-    }
-    this->add_free_normals(normal_domain_to_domain(domain));
+    this->add_domain(normal_domain_to_domain(domain));
   }
 
   void add_corner_fan_normals()
   {
-    this->result_domain = bke::AttrDomain::Corner;
+    this->add_domain(bke::AttrDomain::Corner);
     if (this->result_type == Output::None) {
       this->result_type = Output::CornerFan;
     }
   }
 
-  void add_free_normals(const bke::AttrDomain domain)
+  void add_domain(const bke::AttrDomain domain)
   {
     if (this->result_domain) {
       /* Any combination of point/face domains puts the result normals on the corner domain. */
@@ -262,6 +259,11 @@ struct MeshNormalInfo {
     else {
       this->result_domain = domain;
     }
+  }
+
+  void add_free_normals(const bke::AttrDomain domain)
+  {
+    this->add_domain(domain);
     this->result_type = Output::Free;
   }
 
@@ -2424,11 +2426,17 @@ static void execute_realize_edit_data_tasks(const Span<RealizeEditDataTask> task
 
 static void remove_id_attribute_from_instances(bke::GeometrySet &geometry_set)
 {
-  geometry_set.modify_geometry_sets([&](bke::GeometrySet &sub_geometry) {
-    if (Instances *instances = sub_geometry.get_instances_for_write()) {
-      instances->attributes_for_write().remove("id");
+  Instances *instances = geometry_set.get_instances_for_write();
+  if (!instances) {
+    return;
+  }
+  instances->attributes_for_write().remove("id");
+  instances->ensure_geometry_instances();
+  for (bke::InstanceReference &reference : instances->references_for_write()) {
+    if (reference.type() == bke::InstanceReference::Type::GeometrySet) {
+      remove_id_attribute_from_instances(reference.geometry_set());
     }
-  });
+  }
 }
 
 /** Propagate instances from the old geometry set to the new geometry set if they are not

@@ -9,6 +9,7 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_set_curve_type.hh"
 
 #include "RNA_enum_types.hh"
@@ -52,7 +53,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
   Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (!geometry_set.has_curves()) {
       return;
     }

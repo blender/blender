@@ -3244,6 +3244,7 @@ def km_sequencer_preview(params):
         ("anim.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
         ("anim.keying_set_active_set", {"type": 'K', "value": 'PRESS', "shift": True}, None),
         ("anim.keyframe_insert_menu", {"type": 'K', "value": 'PRESS'}, {"properties": [("always_prompt", True)]}),
+        ("anim.keyframe_delete_vse", {"type": 'I', "value": 'PRESS', "alt": True}, None),
 
         *_template_items_context_menu("SEQUENCER_MT_preview_context_menu", params.context_menu_event),
     ])
@@ -5405,7 +5406,8 @@ def km_edit_mesh(params):
         ("mesh.dissolve_mode", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
         ("mesh.dissolve_mode", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
         op_tool_optional(
-            ("mesh.knife_tool", {"type": 'K', "value": 'PRESS'}, None),
+            ("mesh.knife_tool", {"type": 'K', "value": 'PRESS'},
+             {"properties": [("use_occlude_geometry", True), ("only_selected", False)]}),
             (op_tool_cycle, "builtin.knife"), params),
         ("mesh.knife_tool", {"type": 'K', "value": 'PRESS', "shift": True},
          {"properties": [("use_occlude_geometry", False), ("only_selected", True)]}),

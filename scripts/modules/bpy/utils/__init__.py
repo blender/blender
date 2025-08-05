@@ -131,7 +131,7 @@ def _test_import(module_name, loaded_modules):
     if module_name in loaded_modules:
         return None
     if "." in module_name:
-        print("Ignoring '{:s}', can't import files containing multiple periods".format(module_name))
+        print("Ignoring '{:s}', cannot import files containing multiple periods".format(module_name))
         return None
 
     if use_time:

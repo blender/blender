@@ -71,13 +71,21 @@ static uint32_t bool_flag_pair_as_flag(const BoolFlagPair *bool_flags, int bool_
 
 /** \} */
 
+/**
+ * The size to pre-allocate #BPy_Library::dict Add +1 for the "version".
+ */
+static constexpr Py_ssize_t bpy_library_dict_num = INDEX_ID_MAX + 1;
+
 struct BPy_Library {
-  PyObject_HEAD /* Required Python macro. */
-  /* Collection iterator specific parts. */
+  /** Required Python macro. */
+  PyObject_HEAD
+
+  /** The path supplied by the caller (may be relative). */
   char relpath[FILE_MAX];
-  char abspath[FILE_MAX]; /* absolute path */
+  /** The absolute path. */
+  char abspath[FILE_MAX];
   BlendHandle *blo_handle;
-  /* Referenced by `blo_handle`, so stored here to keep alive for long enough. */
+  /** Referenced by `blo_handle`, so stored here to keep alive for long enough. */
   ReportList reports;
   BlendFileReadReport bf_reports;
 
@@ -86,9 +94,19 @@ struct BPy_Library {
   bool create_liboverrides;
   eBKELibLinkOverride liboverride_flags;
 
+  /**
+   * A dictionary, accessed via attributes (so keys are strings).
+   * - Stores the ID types ("meshes", "objects", etc...).
+   * - Also has a "version" attribute to support accessing the blender version.
+   *
+   * Assigned a pre-sized dictionary using #BPY_LIBRARY_DICT_NUM_INIT item.
+   * this will always have these the ID names and some additional slots filled.
+   */
   PyObject *dict;
-  /* Borrowed reference to the `bmain`, taken from the RNA instance of #RNA_BlendDataLibraries.
-   * Defaults to #G.main, Otherwise use a temporary #Main when `bmain_is_temp` is true. */
+  /**
+   * Borrowed reference to the `bmain`, taken from the RNA instance of #RNA_BlendDataLibraries.
+   * Defaults to #G.main, Otherwise use a temporary #Main when `bmain_is_temp` is true.
+   */
   Main *bmain;
   bool bmain_is_temp;
 };
@@ -409,26 +427,22 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
                                    sizeof(liboverride_flag_vars) / sizeof(BoolFlagPair))) :
                                eBKELibLinkOverride(0);
 
-  ret->dict = _PyDict_NewPresized(INDEX_ID_MAX);
+  ret->dict = _PyDict_NewPresized(bpy_library_dict_num);
 
   return (PyObject *)ret;
 }
 
 static PyObject *_bpy_names(BPy_Library *self, int blocktype)
 {
-  PyObject *list;
-  LinkNode *l, *names;
-  int totnames;
-
-  names = BLO_blendhandle_get_datablock_names(
-      self->blo_handle, blocktype, (self->flag & FILE_ASSETS_ONLY) != 0, &totnames);
-  list = PyList_New(totnames);
+  int names_num;
+  LinkNode *names = BLO_blendhandle_get_datablock_names(
+      self->blo_handle, blocktype, (self->flag & FILE_ASSETS_ONLY) != 0, &names_num);
+  PyObject *list = PyList_New(names_num);
 
   if (names) {
-    int counter = 0;
-    for (l = names; l; l = l->next) {
-      PyList_SET_ITEM(list, counter, PyUnicode_FromString((char *)l->link));
-      counter++;
+    int i = 0;
+    for (LinkNode *l = names; l; l = l->next, i++) {
+      PyList_SET_ITEM(list, i, PyUnicode_FromString((char *)l->link));
     }
     BLI_linklist_freeN(names); /* free linklist *and* each node's data */
   }
@@ -438,8 +452,6 @@ static PyObject *_bpy_names(BPy_Library *self, int blocktype)
 
 static PyObject *bpy_lib_enter(BPy_Library *self)
 {
-  PyObject *ret;
-  BPy_Library *self_from;
   ReportList *reports = &self->reports;
   BlendFileReadReport *bf_reports = &self->bf_reports;
 
@@ -456,65 +468,72 @@ static PyObject *bpy_lib_enter(BPy_Library *self)
     return nullptr;
   }
 
-  /* Add +1 for the "version". */
-  PyObject *from_dict = _PyDict_NewPresized(INDEX_ID_MAX + 1);
+  PyObject *dict_src = _PyDict_NewPresized(bpy_library_dict_num);
+  PyObject *dict_dst = self->dict; /* Only for convenience (always `self->dict`). */
+  int dict_num_offset = 0;
 
   int i = 0, code;
   while ((code = BKE_idtype_idcode_iter_step(&i))) {
-    if (BKE_idtype_idcode_is_linkable(code)) {
-      const char *name_plural = BKE_idtype_idcode_to_name_plural(code);
-      PyObject *str = PyUnicode_FromString(name_plural);
-      PyObject *item;
-
-      PyDict_SetItem(self->dict, str, item = PyList_New(0));
-      Py_DECREF(item);
-      PyDict_SetItem(from_dict, str, item = _bpy_names(self, code));
-      Py_DECREF(item);
-
-      Py_DECREF(str);
+    if (!BKE_idtype_idcode_is_linkable(code)) {
+      dict_num_offset += 1;
+      continue;
     }
+    const char *name_plural = BKE_idtype_idcode_to_name_plural(code);
+    PyObject *str = PyUnicode_FromString(name_plural);
+    PyObject *item;
+
+    PyDict_SetItem(dict_dst, str, item = PyList_New(0));
+    Py_DECREF(item);
+    PyDict_SetItem(dict_src, str, item = _bpy_names(self, code));
+    Py_DECREF(item);
+
+    Py_DECREF(str);
   }
 
-  /* create a dummy */
-  self_from = PyObject_New(BPy_Library, &bpy_lib_Type);
-  STRNCPY(self_from->relpath, self->relpath);
-  STRNCPY(self_from->abspath, self->abspath);
+  /* Create a dummy. */
+  BPy_Library *self_src = PyObject_New(BPy_Library, &bpy_lib_Type);
+  STRNCPY(self_src->relpath, self->relpath);
+  STRNCPY(self_src->abspath, self->abspath);
 
-  /* Library blendfile version. */
+  /* Library blend-file version. */
   {
     PyObject *version;
     PyObject *identifier = PyUnicode_FromString("version");
     blender::int3 blendfile_version;
 
-    /* From. */
+    /* Source. */
     blendfile_version = BLO_blendhandle_get_version(self->blo_handle);
     version = PyC_Tuple_PackArray_I32(&blendfile_version[0], 3);
-    PyDict_SetItem(from_dict, identifier, version);
+    PyDict_SetItem(dict_src, identifier, version);
     Py_DECREF(version);
 
-    /* To. */
+    /* Destination. */
     blendfile_version = blender::int3(
         BLENDER_FILE_VERSION / 100, BLENDER_FILE_VERSION % 100, BLENDER_FILE_SUBVERSION);
     version = PyC_Tuple_PackArray_I32(&blendfile_version[0], 3);
-    PyDict_SetItem(self->dict, identifier, version);
+    PyDict_SetItem(dict_dst, identifier, version);
     Py_DECREF(version);
 
     Py_DECREF(identifier);
   }
 
-  self_from->blo_handle = nullptr;
-  self_from->flag = 0;
-  self_from->create_liboverrides = false;
-  self_from->liboverride_flags = BKE_LIBLINK_OVERRIDE_INIT;
-  self_from->dict = from_dict; /* owns the dict */
+  self_src->blo_handle = nullptr;
+  self_src->flag = 0;
+  self_src->create_liboverrides = false;
+  self_src->liboverride_flags = BKE_LIBLINK_OVERRIDE_INIT;
+  self_src->dict = dict_src; /* owns the dict */
 
-  /* return pair */
-  ret = PyTuple_New(2);
-  PyTuple_SET_ITEMS(ret, (PyObject *)self_from, (PyObject *)self);
-  Py_INCREF(self);
+  /* While it's not a bug if the sizes differ, the size is expected to match.
+   * Ensure `bpy_library_dict_num` gets updated when members are added. */
+  BLI_assert(PyDict_GET_SIZE(self_src->dict) + dict_num_offset == bpy_library_dict_num);
+  BLI_assert(PyDict_GET_SIZE(self->dict) + dict_num_offset == bpy_library_dict_num);
+  UNUSED_VARS_NDEBUG(dict_num_offset);
 
   BKE_reports_clear(reports);
 
+  /* Return a pair. */
+  PyObject *ret = PyTuple_New(2);
+  PyTuple_SET_ITEMS(ret, (PyObject *)self_src, Py_NewRef((PyObject *)self));
   return ret;
 }
 

@@ -961,7 +961,7 @@ class NodeTreeMainUpdater {
         }
         /* For input/output nodes we use the inferred structure types. */
         if (node->is_group_input() || node->is_group_output() ||
-            ELEM(node->type_legacy, GEO_NODE_CLOSURE_INPUT, GEO_NODE_CLOSURE_OUTPUT))
+            ELEM(node->type_legacy, NODE_CLOSURE_INPUT, NODE_CLOSURE_OUTPUT))
         {
           for (bNodeSocket *socket : node->input_sockets()) {
             socket->display_shape = get_input_socket_shape(

@@ -958,7 +958,7 @@ static wmOperatorStatus connect_hair_exec(bContext *C, wmOperator *op)
   if (!any_connected) {
     BKE_report(op->reports,
                RPT_WARNING,
-               "No hair connected (can't connect hair if particle system modifier is disabled)");
+               "No hair connected (cannot connect hair if particle system modifier is disabled)");
     return OPERATOR_CANCELLED;
   }
 

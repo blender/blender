@@ -502,7 +502,7 @@ ImBuf *imb_thumbnail_jpeg(const char *filepath,
   }
 
   if ((infile = BLI_fopen(filepath, "rb")) == nullptr) {
-    fprintf(stderr, "can't open %s\n", filepath);
+    fprintf(stderr, "cannot open %s\n", filepath);
     return nullptr;
   }
 

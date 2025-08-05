@@ -173,7 +173,7 @@ bool copy_asset(const std::string &src,
   pxr::ArResolvedPath src_path = ar.Resolve(src);
 
   if (src_path.IsEmpty()) {
-    BKE_reportf(reports, RPT_ERROR, "%s: Can't resolve path %s", __func__, src.c_str());
+    BKE_reportf(reports, RPT_ERROR, "%s: Cannot resolve path %s", __func__, src.c_str());
     return false;
   }
 
@@ -181,14 +181,14 @@ bool copy_asset(const std::string &src,
 
   if (dst_path.IsEmpty()) {
     BKE_reportf(
-        reports, RPT_ERROR, "%s: Can't resolve path %s for writing", __func__, dst.c_str());
+        reports, RPT_ERROR, "%s: Cannot resolve path %s for writing", __func__, dst.c_str());
     return false;
   }
 
   if (src_path == dst_path) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s: Can't copy %s. The source and destination paths are the same",
+                "%s: Cannot copy %s. The source and destination paths are the same",
                 __func__,
                 src_path.GetPathString().c_str());
     return false;
@@ -198,7 +198,7 @@ bool copy_asset(const std::string &src,
   if (!ar.CanWriteAssetToPath(dst_path, &why_not)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s: Can't write to asset %s: %s",
+                "%s: Cannot write to asset %s: %s",
                 __func__,
                 dst_path.GetPathString().c_str(),
                 why_not.c_str());
@@ -209,7 +209,7 @@ bool copy_asset(const std::string &src,
   if (!src_asset) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s: Can't open source asset %s",
+                "%s: Cannot open source asset %s",
                 __func__,
                 src_path.GetPathString().c_str());
     return false;
@@ -242,7 +242,7 @@ bool copy_asset(const std::string &src,
   if (!dst_asset) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s: Can't open destination asset %s for writing",
+                "%s: Cannot open destination asset %s for writing",
                 __func__,
                 src_path.GetPathString().c_str());
     return false;
@@ -301,7 +301,7 @@ std::string import_asset(const std::string &src,
                   "but the blend file path is empty. "
                   "Please save the blend file before importing the USD "
                   "or provide an absolute import directory path. "
-                  "Can't import %s",
+                  "Cannot import %s",
                   __func__,
                   src.c_str());
       return src;
@@ -355,15 +355,16 @@ std::string get_export_textures_dir(const pxr::UsdStageRefPtr stage)
   pxr::SdfLayerHandle layer = stage->GetRootLayer();
 
   if (layer->IsAnonymous()) {
-    WM_global_reportf(
-        RPT_WARNING, "%s: Can't generate a textures directory path for anonymous stage", __func__);
+    WM_global_reportf(RPT_WARNING,
+                      "%s: Cannot generate a textures directory path for anonymous stage",
+                      __func__);
     return "";
   }
 
   const pxr::ArResolvedPath &stage_path = layer->GetResolvedPath();
 
   if (stage_path.empty()) {
-    WM_global_reportf(RPT_WARNING, "%s: Can't get resolved path for stage", __func__);
+    WM_global_reportf(RPT_WARNING, "%s: Cannot get resolved path for stage", __func__);
     return "";
   }
 
@@ -436,7 +437,7 @@ bool write_to_path(const void *data, size_t size, const std::string &path, Repor
   pxr::ArResolvedPath resolved_path = ar.ResolveForNewAsset(path);
 
   if (resolved_path.IsEmpty()) {
-    BKE_reportf(reports, RPT_ERROR, "Can't resolve path %s for writing", path.c_str());
+    BKE_reportf(reports, RPT_ERROR, "Cannot resolve path %s for writing", path.c_str());
     return false;
   }
 
@@ -444,7 +445,7 @@ bool write_to_path(const void *data, size_t size, const std::string &path, Repor
   if (!ar.CanWriteAssetToPath(resolved_path, &why_not)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Can't write to asset %s:  %s",
+                "Cannot write to asset %s:  %s",
                 resolved_path.GetPathString().c_str(),
                 why_not.c_str());
     return false;
@@ -455,7 +456,7 @@ bool write_to_path(const void *data, size_t size, const std::string &path, Repor
   if (!dst_asset) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Can't open destination asset %s for writing",
+                "Cannot open destination asset %s for writing",
                 resolved_path.GetPathString().c_str());
     return false;
   }

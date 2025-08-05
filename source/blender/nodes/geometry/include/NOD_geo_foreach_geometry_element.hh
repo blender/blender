@@ -66,7 +66,7 @@ struct ForeachGeometryElementInputItemsAccessor
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return ELEM(socket_type,
                 SOCK_FLOAT,
@@ -152,7 +152,7 @@ struct ForeachGeometryElementMainItemsAccessor : public socket_items::SocketItem
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return ELEM(socket_type,
                 SOCK_FLOAT,
@@ -238,7 +238,7 @@ struct ForeachGeometryElementGenerationItemsAccessor
     return &item.name;
   }
 
-  static bool supports_socket_type(const eNodeSocketDatatype socket_type)
+  static bool supports_socket_type(const eNodeSocketDatatype socket_type, const int /*ntree_type*/)
   {
     return ELEM(socket_type,
                 SOCK_FLOAT,

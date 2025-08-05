@@ -117,9 +117,14 @@ ccl_device_inline float3 operator+(const float3 a, const float3 b)
 #  endif
 }
 
-ccl_device_inline float3 operator+(const float3 a, const float f)
+ccl_device_inline float3 operator+(const float3 a, const float b)
 {
-  return a + make_float3(f);
+  return a + make_float3(b);
+}
+
+ccl_device_inline float3 operator+(const float a, const float3 b)
+{
+  return make_float3(a) + b;
 }
 
 ccl_device_inline float3 operator-(const float3 a, const float3 b)
@@ -131,9 +136,14 @@ ccl_device_inline float3 operator-(const float3 a, const float3 b)
 #  endif
 }
 
-ccl_device_inline float3 operator-(const float3 a, const float f)
+ccl_device_inline float3 operator-(const float3 a, const float b)
 {
-  return a - make_float3(f);
+  return a - make_float3(b);
+}
+
+ccl_device_inline float3 operator-(const float a, const float3 b)
+{
+  return make_float3(a) - b;
 }
 
 ccl_device_inline float3 operator+=(float3 &a, const float3 b)
@@ -576,7 +586,7 @@ ccl_device_inline float3 safe_pow(const float3 a, const float3 b)
   return make_float3(safe_powf(a.x, b.x), safe_powf(a.y, b.y), safe_powf(a.z, b.z));
 }
 
-ccl_device_inline auto component_wise_equal(const float3 a, const float3 b)
+ccl_device_inline auto isequal_mask(const float3 a, const float3 b)
 {
 #if defined(__KERNEL_METAL__)
   return a == b;
@@ -589,14 +599,14 @@ ccl_device_inline auto component_wise_equal(const float3 a, const float3 b)
 #endif
 }
 
-ccl_device_inline auto component_is_zero(const float3 a)
+ccl_device_inline auto is_zero_mask(const float3 a)
 {
-  return component_wise_equal(a, zero_float3());
+  return isequal_mask(a, zero_float3());
 }
 
 ccl_device_inline float3 safe_floored_fmod(const float3 a, const float3 b)
 {
-  return select(component_is_zero(b), zero_float3(), a - floor(a / b) * b);
+  return select(is_zero_mask(b), zero_float3(), a - floor(a / b) * b);
 }
 
 ccl_device_inline float3 wrap(const float3 value, const float3 max, const float3 min)
@@ -606,7 +616,7 @@ ccl_device_inline float3 wrap(const float3 value, const float3 max, const float3
 
 ccl_device_inline float3 safe_fmod(const float3 a, const float3 b)
 {
-  return select(component_is_zero(b), zero_float3(), fmod(a, b));
+  return select(is_zero_mask(b), zero_float3(), fmod(a, b));
 }
 
 ccl_device_inline float3 compatible_sign(const float3 v)

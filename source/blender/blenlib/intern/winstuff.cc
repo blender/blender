@@ -477,7 +477,7 @@ void BLI_windows_get_default_root_dir(char root[4])
         }
       }
       if (0 == rc) {
-        printf("ERROR in 'BLI_windows_get_default_root_dir': can't find a valid drive!\n");
+        printf("ERROR in 'BLI_windows_get_default_root_dir': cannot find a valid drive!\n");
         root[0] = 'C';
         root[1] = ':';
         root[2] = '\\';

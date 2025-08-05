@@ -141,7 +141,7 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
                                            0,
                                            style);
 
-  /* NOTE: #wmEvent.xy is where we started dragging in case of #KM_CLICK_DRAG. */
+  /* NOTE: #wmEvent.xy is where we started dragging in case of #KM_PRESS_DRAG. */
   pie->mx = event->xy[0];
   pie->my = event->xy[1];
 

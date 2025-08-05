@@ -24,6 +24,9 @@
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#ifdef WITH_PYTHON_MODULE
+#  include "BLI_string.h"
+#endif
 
 #include "BLT_translation.hh"
 

@@ -119,7 +119,7 @@ class LazyFunctionForClosureZone : public LazyFunction {
       inputs_[zone_info.indices.inputs.border_links[i]].usage = lf::ValueUsage::Used;
     }
 
-    const auto &storage = *static_cast<const NodeGeometryClosureOutput *>(output_bnode_.storage);
+    const auto &storage = *static_cast<const NodeClosureOutput *>(output_bnode_.storage);
 
     closure_signature_ = std::make_shared<ClosureSignature>();
 
@@ -147,7 +147,7 @@ class LazyFunctionForClosureZone : public LazyFunction {
       return;
     }
 
-    const auto &storage = *static_cast<const NodeGeometryClosureOutput *>(output_bnode_.storage);
+    const auto &storage = *static_cast<const NodeClosureOutput *>(output_bnode_.storage);
 
     std::unique_ptr<ResourceScope> closure_scope = std::make_unique<ResourceScope>();
 
@@ -157,7 +157,7 @@ class LazyFunctionForClosureZone : public LazyFunction {
     Vector<const void *> default_input_values;
 
     for (const int i : IndexRange(storage.input_items.items_num)) {
-      const NodeGeometryClosureInputItem &item = storage.input_items.items[i];
+      const NodeClosureInputItem &item = storage.input_items.items[i];
       const bNodeSocket &bsocket = zone_.input_node()->output_socket(i);
       const CPPType &cpp_type = *bsocket.typeinfo->geometry_nodes_cpp_type;
 
@@ -179,7 +179,7 @@ class LazyFunctionForClosureZone : public LazyFunction {
         storage.input_items.items_num);
 
     for (const int i : IndexRange(storage.output_items.items_num)) {
-      const NodeGeometryClosureOutputItem &item = storage.output_items.items[i];
+      const NodeClosureOutputItem &item = storage.output_items.items[i];
       const bNodeSocket &bsocket = zone_.output_node()->input_socket(i);
       const CPPType &cpp_type = *bsocket.typeinfo->geometry_nodes_cpp_type;
 
@@ -421,7 +421,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
   void generate_closure_compatibility_warnings(const Closure &closure,
                                                const lf::Context &context) const
   {
-    const auto &node_storage = *static_cast<const NodeGeometryEvaluateClosure *>(bnode_.storage);
+    const auto &node_storage = *static_cast<const NodeEvaluateClosure *>(bnode_.storage);
     const auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
     const auto &local_user_data = *static_cast<GeoNodesLocalUserData *>(context.local_user_data);
     geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data);
@@ -429,7 +429,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
       return;
     }
     const ClosureSignature &signature = closure.signature();
-    for (const NodeGeometryEvaluateClosureInputItem &item :
+    for (const NodeEvaluateClosureInputItem &item :
          Span{node_storage.input_items.items, node_storage.input_items.items_num})
     {
       const bke::bNodeSocketType *item_type = bke::node_socket_type_find_static(item.socket_type);
@@ -474,7 +474,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
              }});
       }
     }
-    for (const NodeGeometryEvaluateClosureOutputItem &item :
+    for (const NodeEvaluateClosureOutputItem &item :
          Span{node_storage.output_items.items, node_storage.output_items.items_num})
     {
       const bke::bNodeSocketType *item_type = bke::node_socket_type_find_static(item.socket_type);
@@ -522,7 +522,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
 
   void initialize_execution_graph(EvaluateClosureEvalStorage &eval_storage) const
   {
-    const auto &node_storage = *static_cast<const NodeGeometryEvaluateClosure *>(bnode_.storage);
+    const auto &node_storage = *static_cast<const NodeEvaluateClosure *>(bnode_.storage);
 
     lf::Graph &lf_graph = eval_storage.graph;
 
@@ -696,7 +696,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
 
   void initialize_pass_through_graph(EvaluateClosureEvalStorage &eval_storage) const
   {
-    const auto &node_storage = *static_cast<const NodeGeometryEvaluateClosure *>(bnode_.storage);
+    const auto &node_storage = *static_cast<const NodeEvaluateClosure *>(bnode_.storage);
     lf::Graph &lf_graph = eval_storage.graph;
     for (const lf::Input &input : inputs_) {
       lf_graph.add_input(*input.type, input.debug_name);

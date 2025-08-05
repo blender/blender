@@ -701,7 +701,7 @@ static void rna_AttributeGroupID_remove(ID *id, ReportList *reports, PointerRNA 
   if (owner.type() != AttributeOwnerType::Mesh) {
     const bke::Attribute *attr = static_cast<const bke::Attribute *>(attribute_ptr->data);
     if (BKE_attribute_required(owner, attr->name())) {
-      BKE_report(reports, RPT_ERROR, "Attribute is required and can't be removed");
+      BKE_report(reports, RPT_ERROR, "Attribute is required and cannot be removed");
       return;
     }
 
@@ -1222,7 +1222,7 @@ static void rna_AttributeGroupGreasePencilDrawing_remove(ID *grease_pencil_id,
   AttributeOwner owner = AttributeOwner(AttributeOwnerType::GreasePencilDrawing, drawing);
   const bke::Attribute *attr = static_cast<const bke::Attribute *>(attribute_ptr->data);
   if (BKE_attribute_required(owner, attr->name())) {
-    BKE_report(reports, RPT_ERROR, "Attribute is required and can't be removed");
+    BKE_report(reports, RPT_ERROR, "Attribute is required and cannot be removed");
     return;
   }
 

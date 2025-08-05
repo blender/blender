@@ -79,6 +79,10 @@ static void node_declare(NodeDeclarationBuilder &b)
         output_decl.dependent_field({input_decl.index()});
       }
     }
+    if (socket_type == SOCK_BUNDLE) {
+      dynamic_cast<decl::BundleBuilder &>(output_decl)
+          .pass_through_input_index(input_decl.index());
+    }
   }
   b.add_input<decl::Extend>("", "__extend__").structure_type(StructureType::Dynamic);
   b.add_output<decl::Extend>("", "__extend__")
@@ -491,7 +495,7 @@ static void node_extra_info(NodeExtraInfoParams &params)
   }
   if (!ctx.is_bakeable_in_current_context) {
     NodeExtraInfoRow row;
-    row.text = TIP_("Can't bake in zone");
+    row.text = TIP_("Cannot bake in zone");
     row.icon = ICON_ERROR;
     params.rows.append(std::move(row));
   }
@@ -562,7 +566,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     });
     return;
   }
-  if (!BakeItemsAccessor::supports_socket_type(type)) {
+  if (!BakeItemsAccessor::supports_socket_type(type, params.node_tree().type)) {
     return;
   }
 
@@ -571,7 +575,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
       [type](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeBake");
         socket_items::add_item_with_socket_type_and_name<BakeItemsAccessor>(
-            node, type, params.socket.name);
+            params.node_tree, node, type, params.socket.name);
         params.update_and_connect_available_socket(node, params.socket.name);
       },
       -1);

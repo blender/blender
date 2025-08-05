@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
 "PO-Revision-Date: 2025-07-23 14:57+0000\n"
 "Last-Translator: Michael Tribayu Jatnika Natawiria <mike.natawiria@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -14737,10 +14737,6 @@ msgid "Double Click"
 msgstr "Klik Dua Kali"
 
 
-msgid "Click Drag"
-msgstr "Klik Seret"
-
-
 msgid "KeyMap Items"
 msgstr "Item PetaKunci"
 
@@ -15347,6 +15343,18 @@ msgid "Mask"
 msgstr "Masker"
 
 
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
@@ -15397,18 +15405,6 @@ msgstr "Menggabungkan"
 
 msgid "Text"
 msgstr "Teks"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
 
 
 msgctxt "MovieClip"
@@ -18242,14 +18238,6 @@ msgid "Fill Curve"
 msgstr "Isi Kurva"
 
 
-msgid "Triangles"
-msgstr "Segitiga"
-
-
-msgid "How to choose number of vertices on fillet"
-msgstr "Bagaimana memilih angka simpul di fillet"
-
-
 msgid "Flip Faces"
 msgstr "Membalikkan Wajah"
 
@@ -18335,6 +18323,10 @@ msgid "Fill Type"
 msgstr "Tipe Isi"
 
 
+msgid "Triangles"
+msgstr "Segitiga"
+
+
 msgid "Ico Sphere"
 msgstr "Ico Bola"
 
@@ -18377,10 +18369,6 @@ msgstr "Sampel Permukaan Terdekat"
 
 msgid "Sample UV Surface"
 msgstr "Sampel Permukaan UV"
-
-
-msgid "Scale Mode"
-msgstr "Mode Skala"
 
 
 msgid "Scale Instances"
@@ -23188,10 +23176,6 @@ msgstr "Vertex Aktif"
 
 msgid "Mouse Position X"
 msgstr "Posisi X Tetikus"
-
-
-msgid "Position of the mouse used for \"Surface\" mode"
-msgstr "Posisi tetikus digunakan untuk mode \"Permukaan\""
 
 
 msgid "Mouse Position Y"
@@ -31744,6 +31728,10 @@ msgid "Intersecting Edges"
 msgstr "Tepi Persimpangan"
 
 
+msgid "How to choose number of vertices on fillet"
+msgstr "Bagaimana memilih angka simpul di fillet"
+
+
 msgid "Point Index"
 msgstr "Indeks Titik"
 
@@ -31862,6 +31850,10 @@ msgstr "Panjang Sinar"
 
 msgid "Which top-level instances to realize"
 msgstr "Dimana contoh-contoh level-atas yang perlu disadari"
+
+
+msgid "Scale Mode"
+msgstr "Mode Skala"
 
 
 msgid "Inverted"

@@ -520,7 +520,7 @@ using UnselectedCallback = FunctionRef<void(IndexRange curves, IndexRange unsele
  * \param selected_fn: callback function called for each curve with at least one point selected.
  */
 void foreach_selected_point_ranges_per_curve(const IndexMask &mask,
-                                             const OffsetIndices<int> points_by_curve,
+                                             OffsetIndices<int> points_by_curve,
                                              SelectedCallback selected_fn);
 
 /**
@@ -533,7 +533,7 @@ void foreach_selected_point_ranges_per_curve(const IndexMask &mask,
  * \param unselected_fn: callback function called for groups of curves with no selected points.
  */
 void foreach_selected_point_ranges_per_curve(const IndexMask &mask,
-                                             const OffsetIndices<int> points_by_curve,
+                                             OffsetIndices<int> points_by_curve,
                                              SelectedCallback selected_fn,
                                              UnselectedCallback unselected_fn);
 

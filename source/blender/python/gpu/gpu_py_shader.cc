@@ -59,7 +59,7 @@
   "   :Uniforms: vec2 viewportSize, float lineWidth\n" \
   "``POLYLINE_UNIFORM_COLOR``\n" \
   "   :Attributes: vec3 pos\n" \
-  "   :Uniforms: vec2 viewportSize, float lineWidth\n" \
+  "   :Uniforms: vec2 viewportSize, float lineWidth, vec4 color\n" \
   "``POINT_FLAT_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: float size\n" \

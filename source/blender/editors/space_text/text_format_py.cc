@@ -122,7 +122,7 @@ static int txtfmt_py_find_builtinfunc(const char *string)
 {
   const int i = text_format_string_literal_find(text_format_py_literals_builtinfunc, string);
 
-  /* If next source char is an identifier (eg. 'i' in "definite") no match */
+  /* If next source char is an identifier (eg. `i` in "definite") no match. */
   if (i == 0 || text_check_identifier(string[i])) {
     return -1;
   }
@@ -133,7 +133,7 @@ static int txtfmt_py_find_specialvar(const char *string)
 {
   const int i = text_format_string_literal_find(text_format_py_literals_specialvar, string);
 
-  /* If next source char is an identifier (eg. 'i' in "definite") no match */
+  /* If next source char is an identifier (eg. `i` in "definite") no match. */
   if (i == 0 || text_check_identifier(string[i])) {
     return -1;
   }
@@ -164,7 +164,7 @@ static int txtfmt_py_find_bool(const char *string)
 {
   const int i = text_format_string_literal_find(text_format_py_literals_bool, string);
 
-  /* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
+  /* If next source char is an identifier (eg. `i` in "Nonetheless") no match. */
   if (i == 0 || text_check_identifier(string[i])) {
     return -1;
   }
@@ -251,19 +251,19 @@ static int txtfmt_py_find_numeral_inner(const char *string)
     }
   }
   else if (first == '0') {
-    /* Numerals starting with '0x' or '0X' is followed by hexadecimal digits. */
+    /* Numerals starting with `0x` or `0X` is followed by hexadecimal digits. */
     if (ELEM(second, 'x', 'X')) {
       return 2 + txtfmt_py_numeral_string_count_hexadecimal(string + 2);
     }
-    /* Numerals starting with '0o' or '0O' is followed by octal digits. */
+    /* Numerals starting with `0o` or `0O` is followed by octal digits. */
     if (ELEM(second, 'o', 'O')) {
       return 2 + txtfmt_py_numeral_string_count_octal(string + 2);
     }
-    /* Numerals starting with '0b' or '0B' is followed by binary digits. */
+    /* Numerals starting with `0b` or `0B` is followed by binary digits. */
     if (ELEM(second, 'b', 'B')) {
       return 2 + txtfmt_py_numeral_string_count_binary(string + 2);
     }
-    /* Other numerals starting with '0' can be followed by any number of '0' characters. */
+    /* Other numerals starting with `0` can be followed by any number of `0` characters. */
     if (ELEM(second, '0', '_')) {
       return 2 + txtfmt_py_numeral_string_count_zeros(string + 2);
     }
@@ -285,17 +285,17 @@ static int txtfmt_py_literal_numeral(const char *string, char prev_fmt)
   const char first = *string, second = *(string + 1);
 
   if (prev_fmt == FMT_TYPE_NUMERAL) {
-    /* Previous was a number; if immediately followed by 'e' or 'E' and a digit,
+    /* Previous was a number; if immediately followed by `e` or `E` and a digit,
      * it's a base 10 exponent (scientific notation). */
     if (ELEM(first, 'e', 'E') && (text_check_digit(second) || second == '-')) {
       return 1 + txtfmt_py_find_numeral_inner(string + 1);
     }
-    /* Previous was a number; if immediately followed by '.' it's a floating point decimal number.
+    /* Previous was a number; if immediately followed by `.` it's a floating point decimal number.
      * NOTE: keep the decimal point, it's needed to allow leading zeros. */
     if (first == '.') {
       return txtfmt_py_find_numeral_inner(string);
     }
-    /* "Imaginary" part of a complex number ends with 'j' */
+    /* "Imaginary" part of a complex number ends with `j`. */
     if (ELEM(first, 'j', 'J') && !text_check_digit(second)) {
       return 1;
     }
@@ -341,10 +341,10 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
   char cont_orig, cont, find, prev = ' ';
   int len, i;
 
-  /* Get continuation from previous line */
+  /* Get continuation from previous line. */
   if (line->prev && line->prev->format != nullptr) {
     fmt = line->prev->format;
-    cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
+    cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator. */
     BLI_assert((FMT_CONT_ALL & cont) == cont);
     /* So slashes beginning on continuation display properly, see: #118767. */
     if (cont & (FMT_CONT_QUOTEDOUBLE | FMT_CONT_QUOTESINGLE | FMT_CONT_TRIPLE)) {
@@ -355,10 +355,10 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
     cont = FMT_CONT_NOP;
   }
 
-  /* Get original continuation from this line */
+  /* Get original continuation from this line. */
   if (line->format != nullptr) {
     fmt = line->format;
-    cont_orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
+    cont_orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator. */
     BLI_assert((FMT_CONT_ALL & cont_orig) == cont_orig);
   }
   else {
@@ -374,7 +374,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
   fmt = line->format;
 
   while (*str) {
-    /* Handle escape sequences by skipping both \ and next char */
+    /* Handle escape sequences by skipping both \ and next char. */
     if (*str == '\\') {
       *fmt = prev;
       fmt++;
@@ -387,9 +387,9 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
       str += BLI_str_utf8_size_safe(str);
       continue;
     }
-    /* Handle continuations */
+    /* Handle continuations. */
     if (cont) {
-      /* Triple strings ("""...""" or '''...''') */
+      /* Triple strings (`"""..."""` or `'''...'''`). */
       if (cont & FMT_CONT_TRIPLE) {
         find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
         if (*str == find && *(str + 1) == find && *(str + 2) == find) {
@@ -401,7 +401,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
           str++;
           cont = FMT_CONT_NOP;
         }
-        /* Handle other strings */
+        /* Handle other strings. */
       }
       else {
         find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
@@ -415,13 +415,13 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
     }
     /* Not in a string... */
     else {
-      /* Deal with comments first */
+      /* Deal with comments first. */
       if (*str == '#') {
-        /* fill the remaining line */
+        /* Fill the remaining line. */
         text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - int(fmt - line->format));
       }
       else if (ELEM(*str, '"', '\'')) {
-        /* Strings */
+        /* Strings. */
         find = *str;
         cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;
         if (*(str + 1) == find && *(str + 2) == find) {
@@ -487,7 +487,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
       else if ((i = txtfmt_py_literal_numeral(str, prev)) > 0) {
         text_format_fill(&str, &fmt, FMT_TYPE_NUMERAL, i);
       }
-      /* Booleans */
+      /* Booleans. */
       else if (prev != FMT_TYPE_DEFAULT && (i = txtfmt_py_find_bool(str)) != -1) {
         if (i > 0) {
           text_format_fill_ascii(&str, &fmt, FMT_TYPE_NUMERAL, i);
@@ -497,7 +497,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
           *fmt = FMT_TYPE_DEFAULT;
         }
       }
-      /* Punctuation */
+      /* Punctuation. */
       else if ((*str != '@') && text_check_delim(*str)) {
         *fmt = FMT_TYPE_SYMBOL;
       }
@@ -512,7 +512,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
         /* Keep aligned arguments for readability. */
         /* clang-format off */
 
-        /* Special vars(v) or built-in keywords(b) */
+        /* Special vars(v) or built-in keywords(b). */
         /* keep in sync with `txtfmt_py_format_identifier()`. */
         if        ((i = txtfmt_py_find_specialvar(str))   != -1) { prev = FMT_TYPE_SPECIAL;
         } else if ((i = txtfmt_py_find_builtinfunc(str))  != -1) { prev = FMT_TYPE_KEYWORD;
@@ -540,12 +540,12 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
     str++;
   }
 
-  /* Terminate and add continuation char */
+  /* Terminate and add continuation char. */
   *fmt = '\0';
   fmt++;
   *fmt = cont;
 
-  /* If continuation has changed and we're allowed, process the next line */
+  /* If continuation has changed and we're allowed, process the next line. */
   if (cont != cont_orig && do_next && line->next) {
     txtfmt_py_format_line(st, line->next, do_next);
   }

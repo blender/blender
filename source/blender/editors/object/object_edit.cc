@@ -1705,7 +1705,7 @@ static wmOperatorStatus shade_smooth_exec(bContext *C, wmOperator *op)
   }
 
   if (has_linked_data) {
-    BKE_report(op->reports, RPT_WARNING, "Can't edit linked mesh or curve data");
+    BKE_report(op->reports, RPT_WARNING, "Cannot edit linked mesh or curve data");
   }
 
   return (changed_multi) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;

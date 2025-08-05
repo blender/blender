@@ -315,6 +315,10 @@ gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
 
   gpu::VertBufPtr lnor = gpu::VertBufPtr(
       GPU_vertbuf_create_on_device(get_normals_format(), vbo_size));
+  if (subdiv_cache.num_subdiv_loops == 0) {
+    update_loose_normals(mr, subdiv_cache, *lnor);
+    return lnor;
+  }
 
   if (subdiv_cache.use_custom_loop_normals) {
     const Mesh *coarse_mesh = subdiv_cache.mesh;

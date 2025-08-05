@@ -286,8 +286,8 @@ class NODE_OT_add_closure_zone(NodeAddZoneOperator, Operator):
     bl_label = "Add Closure Zone"
     bl_options = {'REGISTER', 'UNDO'}
 
-    input_node_type = "GeometryNodeClosureInput"
-    output_node_type = "GeometryNodeClosureOutput"
+    input_node_type = "NodeClosureInput"
+    output_node_type = "NodeClosureOutput"
     add_default_geometry_link = False
 
 

@@ -97,6 +97,7 @@
 #include "compositor_premultiply_alpha_info.hh"
 #include "compositor_read_input_info.hh"
 #include "compositor_realize_on_domain_info.hh"
+#include "compositor_sample_pixel_info.hh"
 #include "compositor_scale_variable_info.hh"
 #include "compositor_smaa_info.hh"
 #include "compositor_split_info.hh"

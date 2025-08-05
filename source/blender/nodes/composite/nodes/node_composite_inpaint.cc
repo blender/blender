@@ -58,9 +58,8 @@ class InpaintOperation : public NodeOperation {
     inpainting_boundary.release();
 
     Result filled_region = context().create_result(ResultType::Color);
-    Result distance_to_boundary = context().create_result(ResultType::Float,
-                                                          ResultPrecision::Half);
-    Result smoothing_radius = context().create_result(ResultType::Float, ResultPrecision::Half);
+    Result distance_to_boundary = context().create_result(ResultType::Float);
+    Result smoothing_radius = context().create_result(ResultType::Float);
     fill_inpainting_region(
         flooded_boundary, filled_region, distance_to_boundary, smoothing_radius);
     flooded_boundary.release();

@@ -66,7 +66,7 @@ static int pyrna_struct_anim_args_parse_ex(PointerRNA *ptr,
 
   if (ptr->data == nullptr) {
     PyErr_Format(
-        PyExc_TypeError, "%.200s this struct has no data, can't be animated", error_prefix);
+        PyExc_TypeError, "%.200s this struct has no data, cannot be animated", error_prefix);
     return -1;
   }
 

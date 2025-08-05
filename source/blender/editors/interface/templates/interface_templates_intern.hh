@@ -20,7 +20,7 @@
 struct bContext;
 
 #define CURVE_ZOOM_MAX (1.0f / 25.0f)
-#define ERROR_LIBDATA_MESSAGE N_("Can't edit external library data")
+#define ERROR_LIBDATA_MESSAGE N_("Cannot edit external library data")
 
 /* Defines for templateID/TemplateSearch. */
 #define TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH (UI_UNIT_X * 4)

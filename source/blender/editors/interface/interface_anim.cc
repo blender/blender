@@ -260,7 +260,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
   if (RNA_property_array_check(but->rnaprop) != 0) {
     if (but->rnaindex == -1) {
       if (G.debug & G_DEBUG) {
-        printf("ERROR: create expression failed - can't create expression for entire array\n");
+        printf("ERROR: create expression failed - cannot create expression for entire array\n");
       }
       return false;
     }

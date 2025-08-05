@@ -14,6 +14,8 @@
 
 #include "BLI_task.hh"
 
+#include "GEO_foreach_geometry.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_curve_fill_cc {
@@ -310,8 +312,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<int> group_index = params.extract_input<Field<int>>("Group ID");
   const GeometryNodeCurveFillMode mode = params.extract_input<GeometryNodeCurveFillMode>("Mode");
 
-  geometry_set.modify_geometry_sets(
-      [&](GeometrySet &geometry_set) { curve_fill_calculate(geometry_set, mode, group_index); });
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
+    curve_fill_calculate(geometry, mode, group_index);
+  });
 
   params.set_output("Mesh", std::move(geometry_set));
 }

@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'a7042ca30c82')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-29 08:51+0000\n"
-"PO-Revision-Date: 2025-07-23 15:25+0000\n"
-"Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"PO-Revision-Date: 2025-07-31 20:46+0000\n"
+"Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
@@ -5151,6 +5151,10 @@ msgid "Menu"
 msgstr "Meny"
 
 
+msgid "Shader"
+msgstr "Shader"
+
+
 msgid "Collection"
 msgstr "Samling"
 
@@ -6718,10 +6722,6 @@ msgstr "Filter"
 
 msgid "Script"
 msgstr "Skript"
-
-
-msgid "Shader"
-msgstr "Shader"
 
 
 msgid "Pattern"
@@ -8941,10 +8941,6 @@ msgid "Double Click"
 msgstr "Dubbelklick"
 
 
-msgid "Click Drag"
-msgstr "Klicka och dra"
-
-
 msgctxt "Action"
 msgid "Back"
 msgstr "Tillbaka"
@@ -9323,6 +9319,34 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Snap"
+msgstr "Snäpp"
+
+
+msgid "Mirror"
+msgstr "Spegla"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Viewpoint"
+msgstr "Visningspunkt"
+
+
+msgid "Navigation"
+msgstr "Navigering"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
 msgid "Select More/Less"
 msgstr "Markera mera/mindre"
 
@@ -9409,34 +9433,6 @@ msgstr "Text"
 
 msgid "Pivot Point"
 msgstr "Fast punkt"
-
-
-msgid "Snap"
-msgstr "Snäpp"
-
-
-msgid "Mirror"
-msgstr "Spegla"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Viewpoint"
-msgstr "Visningspunkt"
-
-
-msgid "Navigation"
-msgstr "Navigering"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
 
 
 msgid "Animals"
@@ -10810,16 +10806,6 @@ msgid "Luminance"
 msgstr "Luminans"
 
 
-msgctxt "NodeTree"
-msgid "Nearest"
-msgstr "Närmast"
-
-
-msgctxt "NodeTree"
-msgid "Anisotropic"
-msgstr "Anisotropisk"
-
-
 msgid "Write image file to disk"
 msgstr "Skriv bildfil till disk"
 
@@ -11193,10 +11179,6 @@ msgid "Generate a mesh on the XY plane with faces on the inside of input curves"
 msgstr "Generera en mesh på XY-planet med ytor på insidan av input-kurvorna"
 
 
-msgid "Triangles"
-msgstr "Trianglar"
-
-
 msgid "Geometry to Instance"
 msgstr "Geometri till instans"
 
@@ -11300,6 +11282,10 @@ msgid "N-Gon"
 msgstr "N-Gon"
 
 
+msgid "Triangles"
+msgstr "Trianglar"
+
+
 msgid "Generate a cone mesh"
 msgstr "Generera en kon-mesh"
 
@@ -11352,10 +11338,6 @@ msgid "Create a fog volume with the shape of the input mesh's surface"
 msgstr "Skapa en dim-volym med formen av input-meshens yta"
 
 
-msgid "How the voxel size is specified"
-msgstr "Hur voxel-storleken anges"
-
-
 msgid "UV Sphere"
 msgstr "UV-sfär"
 
@@ -11400,10 +11382,6 @@ msgid "Delete an attribute with a specified name from a geometry. Typically used
 msgstr "Ta bort en attribut med ett angivet namn från en geometri. Används oftast för att optimera prestanda"
 
 
-msgid "Wildcard"
-msgstr "Jokertecken"
-
-
 msgid "Repeat Input"
 msgstr "Upprepa inmatning"
 
@@ -11436,10 +11414,6 @@ msgid "All Curves"
 msgstr "Alla kurvor"
 
 
-msgid "Trilinear"
-msgstr "Trilinjär"
-
-
 msgid "Scale Elements"
 msgstr "Skala element"
 
@@ -11458,18 +11432,6 @@ msgstr "Skala individuella ytor eller närliggande ytöar"
 
 msgid "Scale individual edges or neighboring edge islands"
 msgstr "Skala individuella kanter eller närliggande kantöar"
-
-
-msgid "Scale Mode"
-msgstr "Skalningsläge"
-
-
-msgid "Scale elements by the same factor in every direction"
-msgstr "Skala element med samma faktor i alla riktningar"
-
-
-msgid "Scale elements in a single direction"
-msgstr "Skala element i en enskild riktning"
 
 
 msgid "Scale Instances"
@@ -21417,14 +21379,6 @@ msgid "Palette Color"
 msgstr "Palettfärg"
 
 
-msgid "Stroke Placement"
-msgstr "Streckplacering"
-
-
-msgid "VR"
-msgstr "VR"
-
-
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
 
@@ -21447,6 +21401,14 @@ msgstr "Visningsnod"
 
 msgid "Measurement"
 msgstr "Mätning"
+
+
+msgid "Stroke Placement"
+msgstr "Streckplacering"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Import Settings"
@@ -28035,11 +27997,6 @@ msgstr "Dela vertikalt"
 
 
 msgctxt "Operator"
-msgid "Toggle Fullscreen Area"
-msgstr "Växla till helskärmsområde"
-
-
-msgctxt "Operator"
 msgid "Transition"
 msgstr "Övergång"
 
@@ -30370,6 +30327,10 @@ msgid "Unable to open blend <memory>"
 msgstr "Går inte att öppna blend <memory>"
 
 
+msgid "Blend file '%s' created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0, use an older version of Blender to open and convert it."
+msgstr "Blend-filen '%s' skapades av en Big Endian-version av Blender, stöd för dessa filer kommer att tas bort i Blender 5.0. Använd en äldre version av Blender för att öppna och konvertera den."
+
+
 msgid "Unable to read '%s': %s"
 msgstr "Det går inte att läsa '%s': %s"
 
@@ -31430,10 +31391,6 @@ msgid "Select Area"
 msgstr "Välj område"
 
 
-msgid "Full Screen Area"
-msgstr "Område för helskärm"
-
-
 msgid "No fullscreen areas were found"
 msgstr "Inga helskärmsområden hittades"
 
@@ -32459,10 +32416,6 @@ msgid "Opacity: %3f"
 msgstr "Opacitet: %3f"
 
 
-msgid " or Alt) Even Thickness {}"
-msgstr " eller Alt) Jämn tjocklek {}"
-
-
 msgid "ScaleX: %s"
 msgstr "SkalaX: %s"
 
@@ -33352,6 +33305,10 @@ msgid "The subdivision level is too large"
 msgstr "Subdivisionsnivån är för stor"
 
 
+msgid "How the voxel size is specified"
+msgstr "Hur voxel-storleken anges"
+
+
 msgid "As Instance"
 msgstr "Som instans"
 
@@ -33372,8 +33329,8 @@ msgid "Iteration"
 msgstr "Iteration"
 
 
-msgid "Value not found: \"{}\""
-msgstr "Värdet hittades inte: \"{}\""
+msgid "Scale Mode"
+msgstr "Skalningsläge"
 
 
 msgid "Inverted"

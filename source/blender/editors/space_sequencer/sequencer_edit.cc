@@ -1087,7 +1087,7 @@ void SEQUENCER_OT_lock(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Lock Strips";
   ot->idname = "SEQUENCER_OT_lock";
-  ot->description = "Lock strips so they can't be transformed";
+  ot->description = "Lock strips so they cannot be transformed";
 
   /* API callbacks. */
   ot->exec = sequencer_lock_exec;
@@ -3112,12 +3112,12 @@ static wmOperatorStatus sequencer_export_subtitles_exec(bContext *C, wmOperator 
   if (!BLI_exists(filepath)) {
     BLI_file_ensure_parent_dir_exists(filepath);
     if (!BLI_file_touch(filepath)) {
-      BKE_report(op->reports, RPT_ERROR, "Can't create subtitle file");
+      BKE_report(op->reports, RPT_ERROR, "Cannot create subtitle file");
       return OPERATOR_CANCELLED;
     }
   }
   else if (!BLI_file_is_writable(filepath)) {
-    BKE_report(op->reports, RPT_ERROR, "Can't overwrite export file");
+    BKE_report(op->reports, RPT_ERROR, "Cannot overwrite export file");
     return OPERATOR_CANCELLED;
   }
 
@@ -3237,7 +3237,7 @@ static wmOperatorStatus sequencer_set_range_to_strips_exec(bContext *C, wmOperat
     return OPERATOR_CANCELLED;
   }
   if (efra < 0) {
-    BKE_report(op->reports, RPT_ERROR, "Can't set a negative range");
+    BKE_report(op->reports, RPT_ERROR, "Cannot set a negative range");
     return OPERATOR_CANCELLED;
   }
 

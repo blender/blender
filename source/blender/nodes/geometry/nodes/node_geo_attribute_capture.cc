@@ -18,6 +18,8 @@
 #include "BKE_library.hh"
 #include "BKE_screen.hh"
 
+#include "GEO_foreach_geometry.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_attribute_capture_cc {
@@ -196,7 +198,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                          GeometryComponent::Type::Curve,
                                                          GeometryComponent::Type::GreasePencil};
 
-    geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
       for (const GeometryComponent::Type type : types) {
         if (geometry_set.has(type)) {
           capture_on(geometry_set.get_component_for_write(type));
@@ -239,14 +241,14 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
       params.connect_available_socket(node, "Geometry");
     });
   }
-  if (!CaptureAttributeItemsAccessor::supports_socket_type(type)) {
+  if (!CaptureAttributeItemsAccessor::supports_socket_type(type, params.node_tree().type)) {
     return;
   }
 
   params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
     bNode &node = params.add_node("GeometryNodeCaptureAttribute");
     socket_items::add_item_with_socket_type_and_name<CaptureAttributeItemsAccessor>(
-        node, type, params.socket.name);
+        params.node_tree, node, type, params.socket.name);
     params.update_and_connect_available_socket(node, params.socket.name);
   });
 }

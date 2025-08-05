@@ -13,6 +13,7 @@
 #include "BKE_node_socket_value.hh"
 
 #include "GEO_extract_elements.hh"
+#include "GEO_foreach_geometry.hh"
 #include "GEO_join_geometries.hh"
 
 #include "FN_lazy_function_graph_executor.hh"
@@ -1137,7 +1138,7 @@ void LazyFunctionForReduceForeachGeometryElement::handle_generation_items_group(
           }
         }
         else {
-          geometry.modify_geometry_sets([&](GeometrySet &sub_geometry) {
+          geometry::foreach_real_geometry(geometry, [&](GeometrySet &sub_geometry) {
             for (const GeometryComponent::Type component_type :
                  {GeometryComponent::Type::Mesh,
                   GeometryComponent::Type::PointCloud,

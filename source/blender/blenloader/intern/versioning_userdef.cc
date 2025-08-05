@@ -394,11 +394,11 @@ static void do_version_select_mouse(const UserDef *userdef, wmKeyMapItem *kmi)
       break;
     case EVT_TWEAK_S:
       kmi->type = (left) ? LEFTMOUSE : RIGHTMOUSE;
-      kmi->val = KM_CLICK_DRAG;
+      kmi->val = KM_PRESS_DRAG;
       break;
     case EVT_TWEAK_A:
       kmi->type = (left) ? RIGHTMOUSE : LEFTMOUSE;
-      kmi->val = KM_CLICK_DRAG;
+      kmi->val = KM_PRESS_DRAG;
       break;
     default:
       break;
@@ -455,7 +455,7 @@ static bool keymap_item_update_tweak_event(wmKeyMapItem *kmi, void * /*user_data
   else {
     kmi->direction = KM_ANY;
   }
-  kmi->val = KM_CLICK_DRAG;
+  kmi->val = KM_PRESS_DRAG;
   return false;
 }
 

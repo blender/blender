@@ -65,7 +65,7 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
     catch (const OCIO::Exception &exception) {
       cached_processors[colorspace] = OCIO::ConstProcessorRcPtr();
       LOG_WARNING << "Colorspace " << colorspace.c_str()
-                  << " can't be converted to scene_linear: " << exception.what();
+                  << " cannot be converted to scene_linear: " << exception.what();
     }
   }
 

@@ -53,7 +53,7 @@ ccl_device_forceinline float sobol_burley(uint rev_bit_index,
       result ^= sobol_burley_table[dimension][i + j];
       i += j + 1;
 
-      /* We can't do `<<= j + 1"` because that can overflow the shift
+      /* We can't do `<<= j + 1` because that can overflow the shift
        * operator, which doesn't do what we need, at least on x86. */
       rev_bit_index <<= j;
       rev_bit_index <<= 1;

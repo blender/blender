@@ -309,7 +309,7 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
 
     if from_forward[-1] == from_up[-1] or to_forward[-1] == to_up[-1]:
         raise Exception("Invalid axis arguments passed, "
-                        "can't use up/forward on the same axis")
+                        "cannot use up/forward on the same axis")
 
     value = reduce(
         int.__or__,

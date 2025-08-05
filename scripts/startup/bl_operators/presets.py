@@ -153,7 +153,7 @@ class AddPresetBase:
                 return {'CANCELLED'}
 
             if _is_path_readonly(target_path):
-                self.report({'WARNING'}, "Can't create presets with built-in names")
+                self.report({'WARNING'}, "Cannot create presets with built-in names")
                 return {'CANCELLED'}
 
             filepath = os.path.join(target_path, filename) + ext

@@ -11,6 +11,7 @@
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
+#include "BKE_curves_utils.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
@@ -1186,10 +1187,9 @@ IndexMask retrieve_visible_points(Object &object,
       });
 }
 
-IndexMask retrieve_visible_bezier_handle_points(Object &object,
-                                                const bke::greasepencil::Drawing &drawing,
-                                                const int layer_index,
-                                                IndexMaskMemory &memory)
+IndexMask retrieve_visible_bezier_strokes(Object &object,
+                                          const bke::greasepencil::Drawing &drawing,
+                                          IndexMaskMemory &memory)
 {
   const bke::CurvesGeometry &curves = drawing.strokes();
 
@@ -1197,8 +1197,79 @@ IndexMask retrieve_visible_bezier_handle_points(Object &object,
     return IndexMask(0);
   }
 
-  /* Make sure that the handle position attributes exists. */
-  if (curves.handle_positions_left().is_empty() || curves.handle_positions_right().is_empty()) {
+  const IndexRange curves_range = curves.curves_range();
+  const VArray<int8_t> curve_types = curves.curve_types();
+  const std::array<int, CURVE_TYPES_NUM> type_counts = curves.curve_type_counts();
+
+  const IndexMask bezier_strokes = bke::curves::indices_for_type(
+      curve_types, type_counts, CURVE_TYPE_BEZIER, curves_range, memory);
+
+  const IndexMask visible_strokes = ed::greasepencil::retrieve_visible_strokes(
+      object, drawing, memory);
+
+  return IndexMask::from_intersection(visible_strokes, bezier_strokes, memory);
+}
+
+IndexMask retrieve_visible_bezier_points(Object &object,
+                                         const bke::greasepencil::Drawing &drawing,
+                                         IndexMaskMemory &memory)
+{
+  const bke::CurvesGeometry &curves = drawing.strokes();
+
+  if (!curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    return IndexMask(0);
+  }
+
+  const IndexMask visible_bezier_strokes = retrieve_visible_bezier_strokes(
+      object, drawing, memory);
+
+  return IndexMask::from_ranges(curves.points_by_curve(), visible_bezier_strokes, memory);
+}
+
+IndexMask retrieve_visible_bezier_handle_strokes(Object &object,
+                                                 const bke::greasepencil::Drawing &drawing,
+                                                 const int handle_display,
+                                                 IndexMaskMemory &memory)
+{
+  if (handle_display == CURVE_HANDLE_NONE) {
+    return IndexMask(0);
+  }
+
+  const bke::CurvesGeometry &curves = drawing.strokes();
+
+  if (!curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    return IndexMask(0);
+  }
+
+  const IndexMask visible_bezier_strokes = retrieve_visible_bezier_strokes(
+      object, drawing, memory);
+
+  if (handle_display == CURVE_HANDLE_ALL) {
+    return visible_bezier_strokes;
+  }
+
+  /* handle_display == CURVE_HANDLE_SELECTED */
+  const IndexMask selected_strokes = ed::curves::retrieve_selected_curves(curves, memory);
+  return IndexMask::from_intersection(visible_bezier_strokes, selected_strokes, memory);
+}
+
+IndexMask retrieve_visible_bezier_handle_points(Object &object,
+                                                const bke::greasepencil::Drawing &drawing,
+                                                const int layer_index,
+                                                const int handle_display,
+                                                IndexMaskMemory &memory)
+{
+  if (handle_display == CURVE_HANDLE_NONE) {
+    return IndexMask(0);
+  }
+  else if (handle_display == CURVE_HANDLE_ALL) {
+    return retrieve_visible_bezier_points(object, drawing, memory);
+  }
+  /* else handle_display == CURVE_HANDLE_SELECTED */
+
+  const bke::CurvesGeometry &curves = drawing.strokes();
+
+  if (!curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
     return IndexMask(0);
   }
 
@@ -1230,15 +1301,16 @@ IndexMask retrieve_visible_bezier_handle_elements(Object &object,
                                                   const bke::greasepencil::Drawing &drawing,
                                                   const int layer_index,
                                                   const bke::AttrDomain selection_domain,
+                                                  const int handle_display,
                                                   IndexMaskMemory &memory)
 {
   if (selection_domain == bke::AttrDomain::Curve) {
-    return ed::greasepencil::retrieve_editable_and_selected_strokes(
-        object, drawing, layer_index, memory);
+    return ed::greasepencil::retrieve_visible_bezier_handle_strokes(
+        object, drawing, handle_display, memory);
   }
   if (selection_domain == bke::AttrDomain::Point) {
     return ed::greasepencil::retrieve_visible_bezier_handle_points(
-        object, drawing, layer_index, memory);
+        object, drawing, layer_index, handle_display, memory);
   }
   return {};
 }

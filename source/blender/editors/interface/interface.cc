@@ -2508,7 +2508,7 @@ void ui_but_v3_get(uiBut *but, float vec[3])
   }
   else {
     if (but->editvec == nullptr) {
-      fprintf(stderr, "%s: can't get color, should never happen\n", __func__);
+      fprintf(stderr, "%s: cannot get color, should never happen\n", __func__);
       zero_v3(vec);
     }
   }

@@ -124,36 +124,9 @@ void VKFrameBuffer::vk_render_areas_append(Vector<VkRect2D> &r_render_areas) con
   r_render_areas.append_n_times(render_area, this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1);
 }
 
-bool VKFrameBuffer::check(char err_out[256])
+bool VKFrameBuffer::check(char /*err_out*/[256])
 {
-  bool success = true;
-
-  if (has_gaps_between_color_attachments()) {
-    success = false;
-
-    BLI_snprintf(err_out,
-                 256,
-                 "Framebuffer '%s' has gaps between color attachments. This is not supported by "
-                 "legacy devices using VkRenderPass natively.\n",
-                 name_);
-  }
-
-  return success;
-}
-
-bool VKFrameBuffer::has_gaps_between_color_attachments() const
-{
-  bool empty_slot = false;
-  for (int attachment_index : IndexRange(GPU_FB_COLOR_ATTACHMENT0, GPU_FB_MAX_COLOR_ATTACHMENT)) {
-    const GPUAttachment &attachment = attachments_[attachment_index];
-    if (attachment.tex == nullptr) {
-      empty_slot = true;
-    }
-    else if (empty_slot) {
-      return true;
-    }
-  }
-  return false;
+  return true;
 }
 
 void VKFrameBuffer::build_clear_attachments_depth_stencil(

@@ -524,6 +524,12 @@ static void calc_edit_handles_ibo(const OffsetIndices<int> points_by_curve,
       &builder, GPU_PRIM_LINES, lines_num, handles_and_points_num(points_num, bezier_offsets));
   MutableSpan<uint2> lines = GPU_indexbuf_get_data(&builder).cast<uint2>();
 
+  /* All bezier segments are allocated since they form a gaps between other curves but are unused.
+   */
+  /* TODO: Lay left handles in space allocated for bezier segments and right handles right after
+   * all segments. */
+  lines.fill(uint2(0));
+
   int cyclic_segment_offset = 0;
   extract_curve_lines(points_by_curve, cyclic, catmull_rom_curves, cyclic_segment_offset, lines);
   cyclic_segment_offset += catmull_rom_curves.size();

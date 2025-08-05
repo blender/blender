@@ -8,6 +8,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_join_geometries.hh"
 #include "GEO_randomize.hh"
 
@@ -126,7 +127,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   bke::GeometryComponentEditData::remember_deformed_positions_if_necessary(curve_set);
   const AttributeFilter &attribute_filter = params.get_attribute_filter("Mesh");
 
-  curve_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(curve_set, [&](GeometrySet &geometry_set) {
     if (geometry_set.has_curves()) {
       const Curves &curves = *geometry_set.get_curves();
 
@@ -142,7 +143,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_grease_pencil()) {
       grease_pencil_to_mesh(geometry_set, profile_set, scale_field, fill_caps, attribute_filter);
     }
-    geometry_set.keep_only_during_modify({GeometryComponent::Type::Mesh});
+    geometry_set.keep_only({GeometryComponent::Type::Mesh,
+                            GeometryComponent::Type::Instance,
+                            GeometryComponent::Type::Edit});
   });
 
   params.set_output("Mesh", std::move(curve_set));

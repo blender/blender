@@ -16,6 +16,8 @@
 #include "UI_interface_layout.hh"
 #include "UI_resources.hh"
 
+#include "GEO_foreach_geometry.hh"
+
 #include "FN_multi_function_builder.hh"
 
 #include "node_geometry_util.hh"
@@ -60,12 +62,12 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
 {
   const Mesh *mesh = geometry_set.get_mesh();
   if (mesh == nullptr) {
-    geometry_set.remove_geometry_during_modify();
+    geometry_set.keep_only({GeometryComponent::Type::Edit});
     return;
   }
   const int domain_size = mesh->attributes().domain_size(domain);
   if (domain_size == 0) {
-    geometry_set.remove_geometry_during_modify();
+    geometry_set.keep_only({GeometryComponent::Type::Edit});
     return;
   }
   const AttributeAccessor src_attributes = mesh->attributes();
@@ -138,7 +140,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   }
 
   geometry_set.replace_pointcloud(pointcloud);
-  geometry_set.keep_only_during_modify({GeometryComponent::Type::PointCloud});
+  geometry_set.keep_only({GeometryComponent::Type::PointCloud, GeometryComponent::Type::Edit});
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -161,7 +163,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Points");
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     switch (mode) {
       case GEO_NODE_MESH_TO_POINTS_VERTICES:
         geometry_set_mesh_to_points(geometry_set,

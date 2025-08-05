@@ -4,8 +4,8 @@
 
 #include "DNA_mesh_types.h"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_mesh_triangulate.hh"
-
 #include "GEO_randomize.hh"
 
 #include "node_geometry_util.hh"
@@ -85,7 +85,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const auto ngon_method = params.extract_input<geometry::TriangulateNGonMode>("N-gon Method");
   const auto quad_method = params.extract_input<geometry::TriangulateQuadMode>("Quad Method");
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     const Mesh *src_mesh = geometry_set.get_mesh();
     if (!src_mesh) {
       return;

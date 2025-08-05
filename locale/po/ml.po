@@ -1,0 +1,344 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"PO-Revision-Date: 2025-08-02 18:59+0000\n"
+"Last-Translator: Sarath Geeth <sarathgeeth@gmail.com>\n"
+"Language-Team: Malayalam <https://translate.blender.org/projects/blender-ui/ui/ml/>\n"
+"Language: ml\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.12.1"
+
+
+msgid "Shader AOV"
+msgstr "ഷേഡർ AOV"
+
+
+msgid "Valid"
+msgstr "ശരിയായത്"
+
+
+msgid "Is the name of the AOV conflicting"
+msgstr "AOV യുടെ പേര് മുൻപ് നൽകിയിട്ടുണ്ട്"
+
+
+msgid "Name"
+msgstr "പേര്"
+
+
+msgid "Name of the AOV"
+msgstr "AOV യുടെ പേര്"
+
+
+msgid "Type"
+msgstr "തരം"
+
+
+msgid "Data type of the AOV"
+msgstr "AOVയുടെ ഡാറ്റ തരം"
+
+
+msgid "Color"
+msgstr "കളർ"
+
+
+msgid "Value"
+msgstr "വാല്യൂ"
+
+
+msgid "List of AOVs"
+msgstr "AOV ലിസ്റ്റ്"
+
+
+msgid "Collection of AOVs"
+msgstr "AOVകളുടെ ശേഖരം"
+
+
+msgid "Animation Channel Bag"
+msgstr "ആനിമേഷൻ ചാനൽ ബാഗ്"
+
+
+msgid "Collection of animation channels, typically associated with an action slot"
+msgstr "ആക്ഷൻ സ്ലോട്ടിൽ അടങ്ങിയ ആനിമേഷൻ ചാനലുകൾ"
+
+
+msgid "F-Curves"
+msgstr "F-കർവ്"
+
+
+msgid "The individual F-Curves that animate the slot"
+msgstr "സ്ലോട്ടിന് ആനിമേഷൻ നൽകുന്ന ഓരോ F-കർവും"
+
+
+msgid "F-Curve Groups"
+msgstr "F-കർവ് ഗ്രൂപ്പുകൾ"
+
+
+msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
+msgstr "കാണിക്കുന്നതിനായുള്ള F-കർവ് ഗ്രൂപ്പുകൾ, ഉദാഹരണത്തിന് ടോപ്പ് ഷീറ്റും ഗ്രാഫ് എഡിറ്ററും"
+
+
+msgid "Slot"
+msgstr "സ്ലോട്ട്"
+
+
+msgid "The Slot that the Channelbag's animation data is for"
+msgstr "ചാനൽബാഗിന്റെ ആനിമേഷൻ ഡേറ്റയ്ക്ക് വേണ്ടിയുള്ള സ്ലോട്ട്"
+
+
+msgid "Collection of F-Curves for a specific action slot, on a specific strip"
+msgstr "ഒരു പ്രേത്യേക സ്ട്രിപ്പിലുള്ള ആക്ഷൻ സ്ലോട്ടുകൾക്കുവേണ്ടിയുള്ള F-കർവുകളുടെ ശേഖരം"
+
+
+msgid "Collection of f-curve groups"
+msgstr "എഫ്-കർവ് ഗ്രൂപ്പുകളുടെ ശേഖരം"
+
+
+msgid "Animation Channels for Slots"
+msgstr "സ്ലോട്ടുകൾക്കായുള്ള ആനിമേഷൻ ചാനലുകൾ"
+
+
+msgid "For each action slot, a list of animation channels that are meant for that slot"
+msgstr "ഓരോ ആക്ഷൻ സ്ലോട്ടിനും, അതിന്റെതായ അനിമേഷൻ ചാനലുകളുടെ ലിസ്റ്റ് ഉണ്ട്"
+
+
+msgid "Action F-Curves"
+msgstr "ആക്ഷൻ F-കർവുകൾ"
+
+
+msgid "Collection of action F-Curves. Note that this is a legacy API that is unaware of action slots, and will only consider the F-Curves for this action's first slot"
+msgstr "ആക്ഷൻ F-കർവുകളുടെ ശേഖരം. ശ്രദ്ധിക്കുക, ഇത് ആക്ഷൻ സ്ലോട്ടുകൾ ഉൾപ്പെടാത്ത പഴയ API ആണ് ,അതുകൊണ്ട് ആക്ഷന്റെ ആദ്യത്തെ സ്ലോട്ടിലുള്ള F-കർവുകളെ മാത്രമേ ഇത് പരിഗണിക്കു"
+
+
+msgid "Action Group"
+msgstr "ആക്ഷൻ ഗ്രൂപ്പ്"
+
+
+msgid "Groups of F-Curves"
+msgstr "F-കർവുകളുടെ ഗ്രൂപ്പുകൾ"
+
+
+msgid "Channels"
+msgstr "ചാനലുകൾ"
+
+
+msgid "F-Curves in this group"
+msgstr "ഈ ഗ്രൂപ്പിലുള്ള F-കർവുകൾ"
+
+
+msgid "Color Set"
+msgstr "കളർ സെറ്റ്"
+
+
+msgid "Custom color set to use"
+msgstr "ഉപയോഗിക്കാനുള്ള കസ്റ്റം കളർ സെറ്റ്"
+
+
+msgid "Default Colors"
+msgstr "ഡിഫോൾട്ട് കളറുകൾ"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01 - തീം കളർ സെറ്റ്"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - തീം കളർ സെറ്റ്"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - തീം കളർ സെറ്റ്"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - തീം കളർ സെറ്റ്"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - തീം കളർ സെറ്റ്"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - തീം കളർ സെറ്റ്"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - തീം കളർ സെറ്റ്"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - തീം കളർ സെറ്റ്"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - തീം കളർ സെറ്റ്"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - തീം കളർ സെറ്റ്"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - തീം കളർ സെറ്റ്"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - തീം കളർ സെറ്റ്"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - തീം കളർ സെറ്റ്"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - തീം കളർ സെറ്റ്"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - തീം കളർ സെറ്റ്"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - തീം കളർ സെറ്റ്"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - തീം കളർ സെറ്റ്"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - തീം കളർ സെറ്റ്"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - തീം കളർ സെറ്റ്"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - തീം കളർ സെറ്റ്"
+
+
+msgid "Custom Color Set"
+msgstr "കസ്റ്റം കളർ സെറ്റ്"
+
+
+msgid "Colors"
+msgstr "കളറുകൾ"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "ഗ്രൂപ്പിന്റെ കളർ സെറ്റുമായി ബന്ധപ്പെട്ട നിറങ്ങളുടെ കോപ്പി"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "ഫിക്സഡ് തീം കളർ സെറ്റിന് പകരം കളർ സെറ്റ് യൂസറാണ് തീരുമാനിക്കുന്നത്"
+
+
+msgid "Lock"
+msgstr "ലോക്"
+
+
+msgid "Action group is locked"
+msgstr "ആക്ഷൻ ഗ്രൂപ്പ് ലോക്കുചെയ്തിരിക്കുന്നു"
+
+
+msgid "Mute"
+msgstr "മ്യൂട്ട്"
+
+
+msgid "Action group is muted"
+msgstr "ആക്ഷൻ ഗ്രൂപ്പ് മ്യൂട്ടാണ്"
+
+
+msgid "Select"
+msgstr "തിരഞ്ഞെടുക്കുക"
+
+
+msgid "Action group is selected"
+msgstr "ആക്ഷൻ ഗ്രൂപ്പ് തിരഞ്ഞെടുത്തു"
+
+
+msgid "Expanded"
+msgstr "വികസിപ്പിച്ചു"
+
+
+msgid "Action group is expanded except in graph editor"
+msgstr "ഗ്രാഫ് എഡിറ്റർ ഒഴികെ ആക്ഷൻ ഗ്രൂപ്പ് വികസിച്ചിട്ടുണ്ട്"
+
+
+msgid "Expanded in Graph Editor"
+msgstr "ഗ്രാഫ് എഡിറ്ററിൽ വികസിപ്പിച്ചിരിക്കുന്നു"
+
+
+msgid "Action group is expanded in graph editor"
+msgstr "ആക്ഷൻ ഗ്രൂപ്പ് ഗ്രാഫ് എഡിറ്ററിൽ വികസിപ്പിച്ചിരിക്കുന്നു"
+
+
+msgid "Pin in Graph Editor"
+msgstr "ഗ്രാഫ് എഡിറ്ററിൽ പിൻ ചെയ്യുക"
+
+
+msgid "Action Groups"
+msgstr "ആക്ഷൻ ഗ്രൂപ്പുകൾ"
+
+
+msgid "Collection of action groups"
+msgstr "ആക്ഷൻ ഗ്രൂപ്പുകളുടെ ശേഖരം"
+
+
+msgid "Action Layer"
+msgstr "ആക്ഷൻ ലെയർ"
+
+
+msgid "Strips"
+msgstr "സ്ട്രിപ്പുകൾ"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "ഈ ആനിമേഷൻ ലെയറിലുള്ള സ്ട്രിപ്പുകളുടെ ലിസ്റ്റ്"
+
+
+msgid "Action Layers"
+msgstr "ആക്ഷൻ ലെയറുകൾ"
+
+
+msgid "Collection of animation layers"
+msgstr "ആനിമേഷൻ ലെയറുകളുടെ ശേഖരം"
+
+
+msgid "Action Pose Markers"
+msgstr "ആക്ഷൻ പോസ് മാർക്കറുകൾ"
+
+
+msgid "Collection of timeline markers"
+msgstr "ടൈംലൈൻ മാർക്കറുകളുടെ ശേഖരം"
+
+
+msgid "Active Pose Marker"
+msgstr "ആക്റ്റീവ് പോസ് മാർക്കർ"
+
+
+msgid "Active pose marker for this action"
+msgstr "ഈ ആക്ഷനിനുള്ള ആക്റ്റീവ് പോസ് മാർക്കർ"
+
+
+msgid "Active Pose Marker Index"
+msgstr "പോസ് മാർക്കറിന്റെ ആക്റ്റീവ് ഇൻഡെക്സ്"
+
+
+msgid "Index of active pose marker"
+msgstr "ആക്ടീവ് പോസ് മാർക്കറിന്റെ ഇൻഡക്സ്"
+
+
+msgid "Action slot"
+msgstr "ആക്ഷൻ സ്ലോട്ട്"
+
+
+msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
+msgstr "ഈ ആക്ഷനിലെ ഒരു സെറ്റ് ചാനലുകൾക്കു വേണ്ടിയുള്ള ഐഡന്റിഫൈറാണ് , എന്ത് മൂലമാണ് അനിമേറ്റ് ചെയ്യപ്പെടുന്നത് എന്ന് ഡാറ്റാബ്ലോക്കിനു വ്യക്തമാക്കാൻ ഉപയോഗിക്കാം"
+

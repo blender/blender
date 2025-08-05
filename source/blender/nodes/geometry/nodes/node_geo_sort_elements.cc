@@ -12,6 +12,7 @@
 #include "BLI_sort.hh"
 #include "BLI_task.hh"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_reorder.hh"
 
 #include "NOD_rna_define.hh"
@@ -224,7 +225,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
   else {
-    geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
       for (const auto [type, domains] : geometry::components_supported_reordering().items()) {
         const bke::GeometryComponent *src_component = geometry_set.get_component(type);
         if (src_component == nullptr || src_component->is_empty()) {

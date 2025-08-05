@@ -59,67 +59,27 @@
 
 #include "screen_intern.hh"
 
-enum RegionEmbossSide {
-  REGION_EMBOSS_LEFT = (1 << 0),
-  REGION_EMBOSS_TOP = (1 << 1),
-  REGION_EMBOSS_BOTTOM = (1 << 2),
-  REGION_EMBOSS_RIGHT = (1 << 3),
-  REGION_EMBOSS_ALL = REGION_EMBOSS_LEFT | REGION_EMBOSS_TOP | REGION_EMBOSS_RIGHT |
-                      REGION_EMBOSS_BOTTOM,
-};
-
 /* general area and region code */
 
-static void region_draw_emboss(const ARegion *region, const rcti *scirct, int sides)
+static void region_draw_gradient(const ARegion *region)
 {
-  /* translate scissor rect to region space */
-  rcti rect{};
-  rect.xmin = scirct->xmin - region->winrct.xmin;
-  rect.xmax = scirct->xmax - region->winrct.xmin;
-  rect.ymin = scirct->ymin - region->winrct.ymin;
-  rect.ymax = scirct->ymax - region->winrct.ymin;
-
-  /* Set transparent line. */
-  GPU_blend(GPU_BLEND_ALPHA);
-
-  float color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
-  UI_GetThemeColor3fv(TH_EDITOR_BORDER, color);
-
-  GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-  immUniformColor4fv(color);
-
-  immBeginAtMost(GPU_PRIM_LINES, 8);
-
-  /* right */
-  if (sides & REGION_EMBOSS_RIGHT) {
-    immVertex2f(pos, rect.xmax, rect.ymax);
-    immVertex2f(pos, rect.xmax, rect.ymin);
+  if (region->v2d.cur.xmax >= region->v2d.tot.xmax) {
+    /* No overflow. */
+    return;
   }
 
-  /* bottom */
-  if (sides & REGION_EMBOSS_BOTTOM) {
-    immVertex2f(pos, rect.xmax, rect.ymin);
-    immVertex2f(pos, rect.xmin, rect.ymin);
-  }
+  float opaque[4];
+  UI_GetThemeColor4fv(TH_HEADER, opaque);
+  float transparent[4];
+  UI_GetThemeColor3fv(TH_HEADER, transparent);
+  transparent[3] = 0.0f;
 
-  /* left */
-  if (sides & REGION_EMBOSS_LEFT) {
-    immVertex2f(pos, rect.xmin, rect.ymin);
-    immVertex2f(pos, rect.xmin, rect.ymax);
-  }
-
-  /* top */
-  if (sides & REGION_EMBOSS_TOP) {
-    immVertex2f(pos, rect.xmin, rect.ymax);
-    immVertex2f(pos, rect.xmax, rect.ymax);
-  }
-
-  immEnd();
-  immUnbindProgram();
-
-  GPU_blend(GPU_BLEND_NONE);
+  rctf rect{};
+  rect.xmax = BLI_rcti_size_x(&region->winrct) + 1;
+  rect.xmin = rect.xmax - (25.0f * UI_SCALE_FAC);
+  rect.ymin = 0.0f;
+  rect.ymax = BLI_rcti_size_y(&region->winrct) + 1;
+  UI_draw_roundbox_4fv_ex(&rect, opaque, transparent, 0.0f, nullptr, 0.0f, 0.0f);
 }
 
 void ED_region_pixelspace(const ARegion *region)
@@ -570,9 +530,11 @@ void ED_region_do_draw(bContext *C, ARegion *region)
   if (area) {
     const bScreen *screen = WM_window_get_active_screen(win);
 
-    /* Only region emboss for top-bar */
-    if ((screen->state != SCREENFULL) && ED_area_is_global(area)) {
-      region_draw_emboss(region, &region->winrct, (REGION_EMBOSS_LEFT | REGION_EMBOSS_RIGHT));
+    /* Only region gradient for Top Bar. */
+    if ((screen->state != SCREENFULL) && area->spacetype == SPACE_TOPBAR &&
+        region->regiontype == RGN_TYPE_HEADER)
+    {
+      region_draw_gradient(region);
     }
     else if ((region->regiontype == RGN_TYPE_WINDOW) && (region->alignment == RGN_ALIGN_QSPLIT)) {
 

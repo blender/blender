@@ -36,41 +36,22 @@ static bool is_tree_context_muted(const DTreeContext &tree_context)
   return is_tree_context_muted(*tree_context.parent_context());
 }
 
-/* Add the active viewer node in the given tree context to the given stack. If viewer nodes are
- * treated as compositor outputs, this function will also add either the viewer or the group output
- * node since group output nodes were skipped in add_output_nodes such that viewer nodes take
- * precedence. */
-static bool add_viewer_nodes_in_context(const Context &context,
-                                        const DTreeContext *tree_context,
-                                        Stack<DNode> &node_stack)
+/* Find the active viewer node in the given tree context. Returns a null node if no active node was
+ * found. */
+static DNode find_viewer_node_in_context(const DTreeContext &tree_context)
 {
-  /* Do not add viewers that are inside muted contexts. */
-  if (is_tree_context_muted(*tree_context)) {
-    return false;
+  /* Do not return viewer nodes that are inside muted contexts. */
+  if (is_tree_context_muted(tree_context)) {
+    return DNode();
   }
 
-  for (const bNode *node : tree_context->btree().nodes_by_type("CompositorNodeViewer")) {
+  for (const bNode *node : tree_context.btree().nodes_by_type("CompositorNodeViewer")) {
     if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
-      node_stack.push(DNode(tree_context, node));
-      return true;
+      return DNode(&tree_context, node);
     }
   }
 
-  /* If we are not treating viewers as compositor outputs, there is nothing else to do. Otherwise,
-   * the active group output node might be added. */
-  if (!context.treat_viewer_as_compositor_output()) {
-    return false;
-  }
-
-  /* No active viewers exist in this tree context, add the active Composite node if one exist. */
-  for (const bNode *node : tree_context->btree().nodes_by_type("NodeGroupOutput")) {
-    if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
-      node_stack.push(DNode(tree_context, node));
-      return true;
-    }
-  }
-
-  return false;
+  return DNode();
 }
 
 /* Add all File Output nodes inside the given tree_context recursively to the node stack. */
@@ -99,57 +80,48 @@ static void add_file_output_nodes(const DTreeContext &tree_context, Stack<DNode>
 }
 
 /* Add the output nodes whose result should be computed to the given stack. This includes File
- * Output, Group Output, and Viewer nodes. Viewer nodes are a special case, as only the nodes that
- * satisfies the requirements in the add_viewer_nodes_in_context function are added. First, the
- * active context is searched for viewer nodes, if non were found, the root context is searched.
- * For more information on what contexts mean here, see the DerivedNodeTree::active_context()
- * function. */
+ * Output, Group Output, and Viewer nodes. */
 static void add_output_nodes(const Context &context,
                              const DerivedNodeTree &tree,
                              Stack<DNode> &node_stack)
 {
   const DTreeContext &root_context = tree.root_context();
 
-  /* Only add File Output nodes if the context supports them. */
   if (bool(context.needed_outputs() & OutputTypes::FileOutput)) {
     add_file_output_nodes(root_context, node_stack);
   }
 
-  /* Add the active group output node in the root tree if needed, but only if we are not treating
-   * viewer outputs as compositor ones. That's because in cases where viewer nodes will be treated
-   * as compositor outputs, viewer nodes will take precedence, so this is handled as a special case
-   * in the add_viewer_nodes_in_context function instead and no need to add it here. */
   if (bool(context.needed_outputs() & OutputTypes::Composite)) {
-    if (!context.treat_viewer_as_compositor_output()) {
-      for (const bNode *node : root_context.btree().nodes_by_type("NodeGroupOutput")) {
-        if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
-          node_stack.push(DNode(&root_context, node));
-          break;
-        }
+    for (const bNode *node : root_context.btree().nodes_by_type("NodeGroupOutput")) {
+      if (node->flag & NODE_DO_OUTPUT && !node->is_muted()) {
+        node_stack.push(DNode(&root_context, node));
+        break;
       }
     }
   }
 
-  if (!bool(context.needed_outputs() & OutputTypes::Viewer)) {
-    return;
+  if (bool(context.needed_outputs() & OutputTypes::Viewer)) {
+    /* Check if the active context has a viewer node, if not, check the root context. */
+    DNode viewer_node = find_viewer_node_in_context(tree.active_context());
+    if (!viewer_node) {
+      viewer_node = find_viewer_node_in_context(tree.root_context());
+    }
+
+    /* No viewer node in either contexts. */
+    if (!viewer_node) {
+      return;
+    }
+
+    /* If the viewer is treated as a compositor output and takes precedence over it, we need to
+     * remove it since the viewer will act in its place. */
+    if (context.treat_viewer_as_compositor_output() && !node_stack.is_empty() &&
+        node_stack.peek()->is_type("NodeGroupOutput"))
+    {
+      node_stack.pop();
+    }
+
+    node_stack.push(viewer_node);
   }
-
-  const DTreeContext &active_context = tree.active_context();
-  const bool viewer_was_added = add_viewer_nodes_in_context(context, &active_context, node_stack);
-
-  /* An active viewer was added, no need to search further. */
-  if (viewer_was_added) {
-    return;
-  }
-
-  /* If the active context is the root one and no viewer nodes were found, we consider this node
-   * tree to have no viewer nodes, even if one of the non-active descendants have viewer nodes. */
-  if (active_context.is_root()) {
-    return;
-  }
-
-  /* The active context doesn't have a viewer node, search in the root context as a fallback. */
-  add_viewer_nodes_in_context(context, &tree.root_context(), node_stack);
 }
 
 /* A type representing a mapping that associates each node with a heuristic estimation of the

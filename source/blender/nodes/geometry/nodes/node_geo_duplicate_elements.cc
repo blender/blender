@@ -21,6 +21,8 @@
 
 #include "NOD_rna_define.hh"
 
+#include "GEO_foreach_geometry.hh"
+
 #include "FN_multi_function_builder.hh"
 
 #include "UI_interface_layout.hh"
@@ -317,8 +319,9 @@ static void duplicate_curves(GeometrySet &geometry_set,
                              const IndexAttributes &attribute_outputs,
                              const AttributeFilter &attribute_filter)
 {
-  geometry_set.keep_only_during_modify(
-      {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
+  geometry_set.keep_only({GeometryComponent::Type::Curve,
+                          GeometryComponent::Type::GreasePencil,
+                          GeometryComponent::Type::Edit});
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
   if (const Curves *curves_id = geometry_set.get_curves()) {
     const bke::CurvesFieldContext field_context{*curves_id, AttrDomain::Curve};
@@ -463,10 +466,10 @@ static void duplicate_faces(GeometrySet &geometry_set,
                             const AttributeFilter &attribute_filter)
 {
   if (!geometry_set.has_mesh()) {
-    geometry_set.remove_geometry_during_modify();
+    geometry_set.clear();
     return;
   }
-  geometry_set.keep_only_during_modify({GeometryComponent::Type::Mesh});
+  geometry_set.keep_only({GeometryComponent::Type::Mesh, GeometryComponent::Type::Edit});
 
   const Mesh &mesh = *geometry_set.get_mesh();
   const OffsetIndices faces = mesh.faces();
@@ -649,7 +652,7 @@ static void duplicate_edges(GeometrySet &geometry_set,
                             const AttributeFilter &attribute_filter)
 {
   if (!geometry_set.has_mesh()) {
-    geometry_set.remove_geometry_during_modify();
+    geometry_set.clear();
     return;
   };
   const Mesh &mesh = *geometry_set.get_mesh();
@@ -994,8 +997,8 @@ static void duplicate_points(GeometrySet &geometry_set,
         break;
     }
   }
-  component_types.append(GeometryComponent::Type::Instance);
-  geometry_set.keep_only_during_modify(component_types);
+  component_types.append(GeometryComponent::Type::Edit);
+  geometry_set.keep_only(component_types);
 }
 
 /** \} */
@@ -1015,7 +1018,7 @@ static void duplicate_layers(GeometrySet &geometry_set,
     geometry_set.clear();
     return;
   }
-  geometry_set.keep_only_during_modify({GeometryComponent::Type::GreasePencil});
+  geometry_set.keep_only({GeometryComponent::Type::GreasePencil, GeometryComponent::Type::Edit});
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
   const GreasePencil &src_grease_pencil = *geometry_set.get_grease_pencil();
 
@@ -1179,7 +1182,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         geometry_set, count_field, selection_field, attribute_outputs, attribute_filter);
   }
   else {
-    geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
       switch (duplicate_domain) {
         case AttrDomain::Curve:
           duplicate_curves(

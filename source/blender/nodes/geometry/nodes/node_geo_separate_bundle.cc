@@ -24,7 +24,7 @@
 
 namespace blender::nodes::node_geo_separate_bundle_cc {
 
-NODE_STORAGE_FUNCS(NodeGeometrySeparateBundle);
+NODE_STORAGE_FUNCS(NodeSeparateBundle);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -32,9 +32,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   const bNodeTree *tree = b.tree_or_null();
   const bNode *node = b.node_or_null();
   if (tree && node) {
-    const NodeGeometrySeparateBundle &storage = node_storage(*node);
+    const NodeSeparateBundle &storage = node_storage(*node);
     for (const int i : IndexRange(storage.items_num)) {
-      const NodeGeometrySeparateBundleItem &item = storage.items[i];
+      const NodeSeparateBundleItem &item = storage.items[i];
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
       const StringRef name = item.name ? item.name : "";
       const std::string identifier = SeparateBundleItemsAccessor::socket_identifier_for_item(item);
@@ -50,14 +50,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  auto *storage = MEM_callocN<NodeGeometrySeparateBundle>(__func__);
+  auto *storage = MEM_callocN<NodeSeparateBundle>(__func__);
   node->storage = storage;
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
-  const NodeGeometrySeparateBundle &src_storage = node_storage(*src_node);
-  auto *dst_storage = MEM_dupallocN<NodeGeometrySeparateBundle>(__func__, src_storage);
+  const NodeSeparateBundle &src_storage = node_storage(*src_node);
+  auto *dst_storage = MEM_dupallocN<NodeSeparateBundle>(__func__, src_storage);
   dst_node->storage = dst_storage;
 
   socket_items::copy_array<SeparateBundleItemsAccessor>(*src_node, *dst_node);
@@ -73,7 +73,7 @@ static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
   if (params.C && params.link.tonode == &params.node && params.link.fromsock->type == SOCK_BUNDLE)
   {
-    const NodeGeometrySeparateBundle &storage = node_storage(params.node);
+    const NodeSeparateBundle &storage = node_storage(params.node);
     if (storage.items_num == 0) {
       SpaceNode *snode = CTX_wm_space_node(params.C);
       if (snode && snode->edittree == &params.ntree) {
@@ -121,12 +121,12 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   const bNode &node = params.node();
-  const NodeGeometrySeparateBundle &storage = node_storage(node);
+  const NodeSeparateBundle &storage = node_storage(node);
 
   lf::Params &lf_params = params.low_level_lazy_function_params();
 
   for (const int i : IndexRange(storage.items_num)) {
-    const NodeGeometrySeparateBundleItem &item = storage.items[i];
+    const NodeSeparateBundleItem &item = storage.items[i];
     const StringRef name = item.name;
     if (name.is_empty()) {
       continue;
@@ -185,20 +185,32 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   const bNodeSocket &other_socket = params.other_socket();
-  if (other_socket.type != SOCK_BUNDLE) {
-    return;
-  }
   if (other_socket.in_out == SOCK_IN) {
-    return;
+    if (!SeparateBundleItemsAccessor::supports_socket_type(other_socket.typeinfo->type,
+                                                           params.node_tree().type))
+    {
+      return;
+    }
+    params.add_item("Item", [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("NodeSeparateBundle");
+      const auto *item =
+          socket_items::add_item_with_socket_type_and_name<SeparateBundleItemsAccessor>(
+              params.node_tree, node, params.socket.typeinfo->type, params.socket.name);
+      params.update_and_connect_available_socket(node, item->name);
+    });
   }
+  else {
+    if (other_socket.type != SOCK_BUNDLE) {
+      return;
+    }
+    params.add_item("Bundle", [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("NodeSeparateBundle");
+      params.connect_available_socket(node, "Bundle");
 
-  params.add_item("Bundle", [](LinkSearchOpParams &params) {
-    bNode &node = params.add_node("GeometryNodeSeparateBundle");
-    params.connect_available_socket(node, "Bundle");
-
-    SpaceNode &snode = *CTX_wm_space_node(&params.C);
-    sync_sockets_separate_bundle(snode, node, nullptr);
-  });
+      SpaceNode &snode = *CTX_wm_space_node(&params.C);
+      sync_sockets_separate_bundle(snode, node, nullptr);
+    });
+  }
 }
 
 static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)
@@ -215,7 +227,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeSeparateBundle", GEO_NODE_SEPARATE_BUNDLE);
+  geo_node_type_base(&ntype, "NodeSeparateBundle", NODE_SEPARATE_BUNDLE);
   ntype.ui_name = "Separate Bundle";
   ntype.ui_description = "Split a bundle into multiple sockets.";
   ntype.nclass = NODE_CLASS_CONVERTER;
@@ -228,8 +240,7 @@ static void node_register()
   ntype.register_operators = node_operators;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
-  bke::node_type_storage(
-      ntype, "NodeGeometrySeparateBundle", node_free_storage, node_copy_storage);
+  bke::node_type_storage(ntype, "NodeSeparateBundle", node_free_storage, node_copy_storage);
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)
@@ -238,7 +249,7 @@ NOD_REGISTER_NODE(node_register)
 
 namespace blender::nodes {
 
-StructRNA *SeparateBundleItemsAccessor::item_srna = &RNA_NodeGeometrySeparateBundleItem;
+StructRNA *SeparateBundleItemsAccessor::item_srna = &RNA_NodeSeparateBundleItem;
 
 void SeparateBundleItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

@@ -10,6 +10,8 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 
+#include "GEO_foreach_geometry.hh"
+
 namespace blender::nodes::node_geo_set_material_index_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -50,7 +52,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
   const Field<int> material_index = params.extract_input<Field<int>>("Material Index");
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
       bke::try_capture_field_on_geometry(mesh->attributes_for_write(),
                                          bke::MeshFieldContext(*mesh, AttrDomain::Face),

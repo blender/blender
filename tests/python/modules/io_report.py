@@ -59,6 +59,10 @@ class Report:
         'update_templates',
     )
 
+    context_lines = 3
+    side_to_print_single_line = 5
+    side_to_print_multi_line = 3
+
     def __init__(
         self,
         title: str,
@@ -211,7 +215,7 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
     def _colored_diff(a: str, b: str):
         a_lines = a.splitlines()
         b_lines = b.splitlines()
-        diff = difflib.unified_diff(a_lines, b_lines, lineterm='')
+        diff = difflib.unified_diff(a_lines, b_lines, lineterm='', n=Report.context_lines)
         html = []
         for line in diff:
             if line.startswith('+++') or line.startswith('---'):
@@ -291,7 +295,7 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
     @staticmethod
     def _write_collection_single(col, desc: StringIO) -> None:
         desc.write(f"    - ")
-        side_to_print = 5
+        side_to_print = Report.side_to_print_single_line
         if len(col) <= side_to_print * 2:
             for val in col:
                 desc.write(f"{Report._val_to_str(val)} ")
@@ -306,7 +310,7 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
     # multi-line dump of head/tail
     @staticmethod
     def _write_collection_multi(col, desc: StringIO) -> None:
-        side_to_print = 3
+        side_to_print = Report.side_to_print_multi_line
         if len(col) <= side_to_print * 2:
             for val in col:
                 desc.write(f"    - {Report._val_to_str(val)}\n")

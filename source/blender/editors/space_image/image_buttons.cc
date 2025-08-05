@@ -1222,7 +1222,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
   col->alignment_set(blender::ui::LayoutAlign::Right);
 
   if (ibuf == nullptr) {
-    col->label(RPT_("Can't Load Image"), ICON_NONE);
+    col->label(RPT_("Cannot Load Image"), ICON_NONE);
   }
   else {
     char str[MAX_IMAGE_INFO_LEN] = {0};
