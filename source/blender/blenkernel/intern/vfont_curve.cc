@@ -193,7 +193,7 @@ static VChar *vfont_placeholder_ensure(VCharPlaceHolder &che_placeholder, char32
 
     const float ascent = vfont_metrics_ascent(metrics);
 
-    const float line_width = 0.05;
+    const float line_width = 0.05 * metrics->em_ratio;
 
     /* The rectangle size within the available bounds. */
     const blender::float2 size_factor = {
@@ -205,13 +205,13 @@ static VChar *vfont_placeholder_ensure(VCharPlaceHolder &che_placeholder, char32
     /* Always initialize all placeholders, only if one is used. */
     VChar *che;
 
-    /* Space. */
+    /* Space - approximately en width. */
     che = &che_placeholder.data.che[0];
-    che->width = metrics->ascend_ratio;
+    che->width = 0.5f * metrics->em_ratio;
 
-    /* Hollow rectangle. */
+    /* Hollow rectangle - approximately en width. */
     che = &che_placeholder.data.che[1];
-    che->width = metrics->ascend_ratio;
+    che->width = 0.5f * metrics->em_ratio;
 
     for (int nu_index = 0; nu_index < ARRAY_SIZE(che_placeholder.data.nu); nu_index++) {
       Nurb *nu = &che_placeholder.data.nu[nu_index];
