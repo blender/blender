@@ -72,13 +72,13 @@ def _run_runtime_group_register_access(args):
 
     if do_get_set:
         class DummyGroup(bpy.types.PropertyGroup):
-            dummy_prop : bpy.props.IntProperty(
+            dummy_prop: bpy.props.IntProperty(
                 get=lambda self: self.bl_system_properties_get()["dummy_prop"],
                 set=lambda self, val: self.bl_system_properties_get().set("dummy_prop", val),
             )
     else:
         class DummyGroup(bpy.types.PropertyGroup):
-            dummy_prop : bpy.props.IntProperty()
+            dummy_prop: bpy.props.IntProperty()
 
     start_time = time.time()
 
