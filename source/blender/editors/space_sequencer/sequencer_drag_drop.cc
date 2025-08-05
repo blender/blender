@@ -60,6 +60,8 @@ struct SeqDropCoords {
   float start_frame, channel;
   int strip_len, channel_len;
   float playback_rate;
+  float audio_length;
+  bool only_audio = false;
   bool in_use = false;
   bool has_read_mouse_pos = false;
   bool is_intersecting;
@@ -191,6 +193,10 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   if (coords->playback_rate != 0.0f) {
     float scene_playback_rate = float(scene->r.frs_sec) / scene->r.frs_sec_base;
     strip_len = coords->strip_len / (coords->playback_rate / scene_playback_rate);
+  }
+  else if (coords->only_audio) {
+    float scene_playback_rate = float(scene->r.frs_sec) / scene->r.frs_sec_base;
+    strip_len = coords->audio_length * scene_playback_rate;
   }
   else {
     strip_len = coords->strip_len;
@@ -527,7 +533,6 @@ struct DropJobData {
    */
   char path[FILE_MAX];
   bool only_audio;
-  float scene_fps;
 };
 
 static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_status*/)
@@ -542,8 +547,12 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
 
       AUD_SoundInfo info = AUD_getInfo(sound);
       if ((eSoundChannels)info.specs.channels != SOUND_CHANNELS_INVALID) {
-        g_drop_coords.strip_len = max_ii(1, round((info.length) * job_data->scene_fps));
+        g_drop_coords.audio_length = info.length;
       }
+      /* The playback rate is defined by the scene. This will be computed later in
+       * #update_overlay_strip_position_data, when we know the scene from the context. So set it to
+       * 0 for now. */
+      g_drop_coords.playback_rate = 0.0f;
       AUD_Sound_free(sound);
       return;
     }
@@ -586,17 +595,19 @@ static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
   g_drop_coords.channel_len = 1;
 
   wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win = CTX_wm_window(C);
-  Scene *scene = CTX_data_sequencer_scene(C);
 
-  wmJob *wm_job = WM_jobs_get(
-      wm, win, nullptr, "Loading previews...", eWM_JobFlag(0), WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
+  wmJob *wm_job = WM_jobs_get(wm,
+                              nullptr,
+                              nullptr,
+                              "Loading previews...",
+                              eWM_JobFlag(0),
+                              WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
 
   DropJobData *job_data = MEM_mallocN<DropJobData>("SeqDragDropPreviewData");
   get_drag_path(C, drag, job_data->path);
 
   job_data->only_audio = only_audio;
-  job_data->scene_fps = FPS;
+  g_drop_coords.only_audio = only_audio;
 
   WM_jobs_customdata_set(wm_job, job_data, free_prefetch_data_fn);
   WM_jobs_timer(wm_job, 0.1, NC_WINDOW, NC_WINDOW);
