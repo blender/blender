@@ -1040,8 +1040,8 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     }
   }
 
-  cache->edit_line_indices = GPU_indexbuf_build_ex(&lines_builder, 0, total_points_num, true);
-  cache->edit_points_indices = GPU_indexbuf_build_ex(&points_builder, 0, total_points_num, false);
+  cache->edit_line_indices = GPU_indexbuf_build_ex(&lines_builder, 0, INT_MAX, true);
+  cache->edit_points_indices = GPU_indexbuf_build_ex(&points_builder, 0, INT_MAX, false);
 
   /* Create the batches */
   cache->edit_points = GPU_batch_create(
