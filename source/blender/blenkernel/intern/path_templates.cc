@@ -721,7 +721,7 @@ static blender::Vector<Error> eval_template(char *out_path,
                                             const VariableMap &template_variables)
 {
   if (out_path) {
-    in_path.copy_utf8_truncated(out_path, out_path_max_length);
+    in_path.copy_bytes_truncated(out_path, out_path_max_length);
   }
 
   const blender::Vector<Token> tokens = parse_template(in_path);
