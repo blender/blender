@@ -83,13 +83,14 @@ if(WITH_APPLE_CROSSPLATFORM)
   # That might still be a better option though. See "debug_size_" in BLI_vector.hh for an example of this.
   set(CMAKE_TOOLS_ARGS "${CMAKE_TOOLS_ARGS} -DCMAKE_C_FLAGS=\"-DWITH_CROSSCOMPILED_TOOLS -DWITH_APPLE_CROSSPLATFORM\"")
   set(CMAKE_TOOLS_ARGS "${CMAKE_TOOLS_ARGS} -DCMAKE_CXX_FLAGS=\"-DWITH_CROSSCOMPILED_TOOLS -DWITH_APPLE_CROSSPLATFORM\"")
-  
+
+  get_filename_component(CMAKE_BIN_DIRECTORY "${CMAKE_COMMAND}" DIRECTORY)
   add_custom_target(blender_cross_tools_compile
     COMMENT "\n---------------------------\n Building Cross Compile Tools\n"
-    COMMAND cd ${CMAKE_SOURCE_DIR}
-    COMMAND env -i BUILD_CMAKE_ARGS=${CMAKE_TOOLS_ARGS} BUILD_DIR=${CROSSCOMPILE_TOOLDIR} make tools
+    COMMAND env -i PATH="${CMAKE_BIN_DIRECTORY}:$ENV{PATH}" BUILD_CMAKE_ARGS=${CMAKE_TOOLS_ARGS} BUILD_DIR=${CROSSCOMPILE_TOOLDIR} make tools
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   )
-  
+
   # Configure executable dependencies and paths for cross-compiled tools.
   # NOTE: Local dependency creation e.g. makesdna should check WITH_CROSSCOMPILED_TOOLS before creating local target.
   #       We instead run a full build to generate the targets in a host-side build on macOS.
