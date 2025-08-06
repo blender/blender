@@ -7791,8 +7791,9 @@ static void rna_def_scene_keying_sets(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Add a new Keying Set to Scene");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   /* name */
-  RNA_def_string(func, "idname", "KeyingSet", 64, "IDName", "Internal identifier of Keying Set");
-  RNA_def_string(func, "name", "KeyingSet", 64, "Name", "User visible name of Keying Set");
+  RNA_def_string(
+      func, "idname", "KeyingSet", MAX_NAME, "IDName", "Internal identifier of Keying Set");
+  RNA_def_string(func, "name", "KeyingSet", MAX_NAME, "Name", "User visible name of Keying Set");
   /* returns the new KeyingSet */
   parm = RNA_def_pointer(func, "keyingset", "KeyingSet", "", "Newly created Keying Set");
   RNA_def_function_return(func, parm);
