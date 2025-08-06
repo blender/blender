@@ -3777,7 +3777,7 @@ void node_detach_node(bNodeTree &ntree, bNode &node)
 
 void node_position_relative(bNode &from_node,
                             const bNode &to_node,
-                            const bNodeSocket &from_sock,
+                            const bNodeSocket *from_sock,
                             const bNodeSocket &to_sock)
 {
   float offset_x;
@@ -3799,12 +3799,14 @@ void node_position_relative(bNode &from_node,
   float offset_y = U.widget_unit * tot_sock_idx;
 
   /* Output socket. */
-  if (eNodeSocketInOut(from_sock.in_out) == SOCK_IN) {
-    tot_sock_idx = BLI_listbase_count(&from_node.outputs);
-    tot_sock_idx += BLI_findindex(&from_node.inputs, &from_sock);
-  }
-  else {
-    tot_sock_idx = BLI_findindex(&from_node.outputs, &from_sock);
+  if (from_sock) {
+    if (eNodeSocketInOut(from_sock->in_out) == SOCK_IN) {
+      tot_sock_idx = BLI_listbase_count(&from_node.outputs);
+      tot_sock_idx += BLI_findindex(&from_node.inputs, &from_sock);
+    }
+    else {
+      tot_sock_idx = BLI_findindex(&from_node.outputs, &from_sock);
+    }
   }
 
   BLI_assert(tot_sock_idx != -1);
@@ -3820,7 +3822,7 @@ void node_position_propagate(bNode &node)
   LISTBASE_FOREACH (bNodeSocket *, socket, &node.inputs) {
     if (socket->link != nullptr) {
       bNodeLink *link = socket->link;
-      node_position_relative(*link->fromnode, *link->tonode, *link->fromsock, *link->tosock);
+      node_position_relative(*link->fromnode, *link->tonode, link->fromsock, *link->tosock);
       node_position_propagate(*link->fromnode);
     }
   }

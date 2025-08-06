@@ -1015,7 +1015,7 @@ void node_internal_relink(bNodeTree &ntree, bNode &node);
 
 void node_position_relative(bNode &from_node,
                             const bNode &to_node,
-                            const bNodeSocket &from_sock,
+                            const bNodeSocket *from_sock,
                             const bNodeSocket &to_sock);
 
 void node_position_propagate(bNode &node);
