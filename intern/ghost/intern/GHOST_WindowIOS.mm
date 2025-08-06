@@ -31,6 +31,7 @@
 #import <MetalKit/MTKDefines.h>
 #import <MetalKit/MTKView.h>
 #import <UIKit/UIKit.h>
+#import <UIKit/UIPencilInteraction.h>
 
 #include <unordered_map>
 
@@ -75,7 +76,8 @@ typedef struct UserInputEvent {
     PAN_GESTURE_TWO_FINGERS,
     PINCH_GESTURE,
     LEFT_BUTTON_DOWN,
-    LEFT_BUTTON_UP
+    LEFT_BUTTON_UP,
+    PENCIL_TAP,
   };
   EventTypes event_list[10];
   int num_events;
@@ -249,7 +251,7 @@ typedef struct UserInputEvent {
 @end
 
 /* GHOSTUIWindow interface. */
-@interface GHOSTUIWindow : UIWindow <UIGestureRecognizerDelegate>
+@interface GHOSTUIWindow : UIWindow <UIGestureRecognizerDelegate, UIPencilInteractionDelegate>
 {
   GHOST_SystemIOS *system;
   GHOST_WindowIOS *window;
@@ -264,6 +266,7 @@ typedef struct UserInputEvent {
   GHOSTUIPanGestureRecognizer *pan2f_gesture_recognizer;
   GHOSTUIPinchGestureRecognizer *zoom_gesture_recognizer;
   GHOSTUIHoverGestureRecognizer *hover_gesture_recognizer;
+  UIPencilInteraction *pencil_interaction;
   // GHOSTUILongPressGestureRecognizer *long_press_gesture_recognizer;
 
   /* Data from the Apple pencil */
@@ -437,8 +440,12 @@ typedef struct UserInputEvent {
               action:@selector(handleHover:)];
   hover_gesture_recognizer.delegate = self;
   [window->getView() addGestureRecognizer:hover_gesture_recognizer];
-
   current_pencil_touch = nil;
+
+  /**  Apple Pencil double-tap. */
+  pencil_interaction = [[UIPencilInteraction alloc] init];
+  pencil_interaction.delegate = self;
+  [window->getView() addInteraction:pencil_interaction];
 }
 
 /* Turn the user inputs into Blender events.
@@ -518,6 +525,15 @@ typedef struct UserInputEvent {
                                       0,
                                       false,
                                       2));
+          break;
+        case UserInputEvent::EventTypes::PENCIL_TAP:
+          /* Simulate clicking with the right mouse button. */
+          system->pushEvent(
+              new GHOST_EventButton(GHOST_GetMilliSeconds((GHOST_SystemHandle)system),
+                                    GHOST_kEventButtonDown,
+                                    window,
+                                    GHOST_kButtonMaskRight,
+                                    tablet_data));
           break;
         default:
           GHOST_ASSERT(FALSE, "GHOST_SystemIOS::generateUserInputEvents unsupported event type");
@@ -806,6 +822,13 @@ typedef struct UserInputEvent {
            sender.state == UIGestureRecognizerStateFailed)
   {
   }
+}
+
+- (void)pencilInteractionDidTap:(UIPencilInteraction *)interaction
+{
+  UserInputEvent event_info(nullptr, nullptr, nullptr, true);
+  event_info.add_event(UserInputEvent::EventTypes::PENCIL_TAP);
+  [self generateUserInputEvents:event_info];
 }
 
 - (void)beginFrame
