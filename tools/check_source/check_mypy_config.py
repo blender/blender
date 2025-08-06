@@ -28,6 +28,7 @@ PATHS: tuple[tuple[str, tuple[Any, ...], dict[str, str]], ...] = (
     ("scripts/modules/_bpy_internal/freedesktop.py", (), {}),
     ("source/blender/nodes/intern/discover_nodes.py", (), {}),
     ("tests/python/bl_keymap_validate.py", (), {}),
+    ("tests/python/bl_pyapi_bpy_app_tempdir.py", (), {}),
     ("tests/utils/blender_headless.py", (), {}),
     ("tools/check_blender_release/", (), {}),
     ("tools/check_docs/", (), {}),
