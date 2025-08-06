@@ -24,6 +24,7 @@ __all__ = (
 )
 
 import collections
+import contextlib
 import dataclasses
 import enum
 import hashlib
@@ -31,11 +32,12 @@ import logging
 import multiprocessing
 import multiprocessing.connection
 import multiprocessing.process
+import sys
 import time
 import zlib  # For streaming gzip decompression.
 from collections.abc import Callable
 from pathlib import Path
-from typing import Protocol, TypeAlias, Any
+from typing import Protocol, TypeAlias, Any, Generator
 
 # To work around this error:
 # mypy   : Variable "multiprocessing.Event" is not valid as a type
@@ -511,7 +513,8 @@ class BackgroundDownloader:
             daemon=True,
         )
         self._logger.info("starting downloader process")
-        self._downloader_process.start()
+        with _cleanup_main_file_attribute():
+            self._downloader_process.start()
 
     @property
     def is_shutdown_requested(self) -> bool:
@@ -1299,3 +1302,47 @@ def http_session() -> requests.Session:
     session.mount("http://", http_adapter)
 
     return session
+
+
+@contextlib.contextmanager
+def _cleanup_main_file_attribute() -> Generator[None]:
+    """Context manager to ensure __main__.__file__ is not set.
+
+    `__main__.__file__` is set to "<blender string>" in `PyC_DefaultNameSpace()`
+    in `source/blender/python/generic/py_capi_utils.cc`. This is problematic for
+    Python's `multiprocessing` module, as it gets confused about what the entry
+    point into the Python program was. The easiest way (short of modifying
+    Blender itself) is to just temporarily erase the `__main__.__file__`
+    attribute.
+
+    See the `get_preparation_data(name)` function in Python's stdlib:
+    https://github.com/python/cpython/blob/180b3eb697bf5bb0088f3f35ef2d3675f9fff04f/Lib/multiprocessing/spawn.py#L197
+
+    This issue can be recognised by a failure to start a background process,
+    with an error like:
+
+        FileNotFoundError: [Errno 2] No such file or directory: '/path/to/blender/<blender string>'
+
+    """
+
+    try:
+        main_module = sys.modules['__main__']
+    except KeyError:
+        # No __main__ is fine.
+        yield
+        return
+
+    # Be careful to only modify the property when we know it has a value
+    # that will cause problems. Python dunder variables like this can
+    # trigger all kinds of unknown magics, so they should be left alone
+    # as much as possible.
+    old_file = getattr(main_module, '__file__', None)
+    if old_file != "<blender string>":
+        yield
+        return
+
+    try:
+        del main_module.__file__
+        yield
+    finally:
+        main_module.__file__ = old_file
