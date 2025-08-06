@@ -1209,7 +1209,7 @@ void BKE_tempdir_init(const char *userdir)
   BKE_tempdir_session_purge();
 
   /* Perform two passes, the first pass for the user preference path,
-   * then a second pass if the the preferences failed to create the *session* sub-directory.
+   * then a second pass if the preferences failed to create the *session* sub-directory.
    *
    * This avoid problems if the preferences points to a path without write access,
    * `C:\` or `/` for example. */

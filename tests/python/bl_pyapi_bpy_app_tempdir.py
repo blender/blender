@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# ./blender.bin --background --factory-startup --python tests/python/bl_tempfile.py -- --verbose
+# ./blender.bin --background --factory-startup --python tests/python/bl_pyapi_bpy_app_tempdir.py -- --verbose
 
 # NOTE(ideasman42):
 #
@@ -40,8 +40,6 @@ TEMP_ENV = "TEMP" if is_win32 else "TMPDIR"
 # TODO: remove this. Since it's checked, it must be removed!
 if os.environ.get("TMP") is not None:
     del os.environ["TMP"]
-
-BASE_DIR = ""
 
 
 def system_temp_set(path: str) -> None:
