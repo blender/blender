@@ -64,7 +64,7 @@ void BLI_string_replace_char(char *str, char src, char dst) ATTR_NONNULL(1);
  * \note Larger tables should use a hash table.
  */
 bool BLI_string_replace_table_exact(char *string,
-                                    size_t string_len,
+                                    size_t string_maxncpy,
                                     const char *replace_table[][2],
                                     int replace_table_len);
 

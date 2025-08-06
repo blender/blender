@@ -1676,7 +1676,7 @@ blender::Vector<blender::StringRef> UI_text_clip_multiline_middle(
     const uiFontStyle *fstyle,
     const char *str,
     char *clipped_str_buf,
-    const size_t max_len_clipped_str_buf,
+    const size_t clipped_str_buf_maxncpy,
     const float max_line_width,
     const int max_lines)
 {
@@ -1697,21 +1697,21 @@ blender::Vector<blender::StringRef> UI_text_clip_multiline_middle(
   clipped_lines.reserve(max_lines);
 
   if (max_lines == 1) {
-    BLI_strncpy(clipped_str_buf, str, max_len_clipped_str_buf);
+    BLI_strncpy(clipped_str_buf, str, clipped_str_buf_maxncpy);
 
     UI_text_clip_middle_ex(
-        fstyle, clipped_str_buf, max_line_width, UI_ICON_SIZE, max_len_clipped_str_buf, '\0');
+        fstyle, clipped_str_buf, max_line_width, UI_ICON_SIZE, clipped_str_buf_maxncpy, '\0');
     clipped_lines.append(clipped_str_buf);
     return clipped_lines;
   }
   if (max_lines == 2) {
     clipped_lines.append(lines[0]);
-    BLI_strncpy(clipped_str_buf, str + lines[0].size(), max_len_clipped_str_buf);
+    BLI_strncpy(clipped_str_buf, str + lines[0].size(), clipped_str_buf_maxncpy);
     UI_text_clip_middle_ex(fstyle,
                            clipped_str_buf,
                            max_line_width,
                            UI_ICON_SIZE,
-                           max_len_clipped_str_buf,
+                           clipped_str_buf_maxncpy,
                            '\0',
                            false);
     clipped_lines.append(clipped_str_buf);
@@ -1729,12 +1729,12 @@ blender::Vector<blender::StringRef> UI_text_clip_multiline_middle(
 
   /* Clip the middle of the middle line. */
   {
-    BLI_strncpy(clipped_str_buf, lines[middle_index].data(), max_len_clipped_str_buf);
+    BLI_strncpy(clipped_str_buf, lines[middle_index].data(), clipped_str_buf_maxncpy);
     UI_text_clip_middle_ex(fstyle,
                            clipped_str_buf,
                            max_line_width,
                            UI_ICON_SIZE,
-                           max_len_clipped_str_buf,
+                           clipped_str_buf_maxncpy,
                            '\0',
                            false);
     clipped_lines.append(clipped_str_buf);
