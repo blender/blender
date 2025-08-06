@@ -425,6 +425,15 @@ class CornerPinOperation : public NodeOperation {
 
     return is_clipped_x || is_clipped_y || output_needed || use_anisotropic;
   }
+
+  Domain compute_domain() override
+  {
+    Domain domain = this->get_input("Image").domain();
+    /* Reset the location of the domain such that translations take effect, this will result in
+     * clipping but is more expected for the user. */
+    domain.transformation.location() = float2(0.0f);
+    return domain;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)

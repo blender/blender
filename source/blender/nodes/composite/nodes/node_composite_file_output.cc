@@ -1023,6 +1023,19 @@ class FileOutputOperation : public NodeOperation {
   {
     return context().get_render_data().scemode & R_MULTIVIEW;
   }
+
+  Domain compute_domain() override
+  {
+    Domain domain = NodeOperation::compute_domain();
+    if (!this->is_multi_layer()) {
+      return domain;
+    }
+
+    /* Reset the location of the domain in multi-layer case such that translations take effect,
+     * this will result in clipping but is more expected for the user. */
+    domain.transformation.location() = float2(0.0f);
+    return domain;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)
