@@ -62,8 +62,6 @@ void BLI_temp_directory_path_get(char *tempdir, const size_t tempdir_maxncpy)
 #ifdef WIN32
       "TEMP",
 #else
-      /* Non standard (could be removed). */
-      "TMP",
       /* Posix standard. */
       "TMPDIR",
 #endif

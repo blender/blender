@@ -37,10 +37,6 @@ import tempfile
 is_win32 = os.name == "nt"
 TEMP_ENV = "TEMP" if is_win32 else "TMPDIR"
 
-# TODO: remove this. Since it's checked, it must be removed!
-if os.environ.get("TMP") is not None:
-    del os.environ["TMP"]
-
 
 def system_temp_set(path: str) -> None:
     os.environ[TEMP_ENV] = path
