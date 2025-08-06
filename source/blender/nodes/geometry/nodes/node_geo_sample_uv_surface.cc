@@ -40,7 +40,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("The mesh UV map to sample. Should not have overlapping faces");
   b.add_input<decl::Vector>("Sample UV")
       .supports_field()
-      .description("The coordinates to sample within the UV map");
+      .description("The coordinates to sample within the UV map")
+      .structure_type(StructureType::Dynamic);
 
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom1);

@@ -29,9 +29,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   const eNodeSocketDatatype data_type = eNodeSocketDatatype(node->custom1);
 
   b.add_input(data_type, "Grid").hide_value().structure_type(StructureType::Grid);
-  b.add_input<decl::Int>("X").supports_field();
-  b.add_input<decl::Int>("Y").supports_field();
-  b.add_input<decl::Int>("Z").supports_field();
+  b.add_input<decl::Int>("X").supports_field().structure_type(StructureType::Dynamic);
+  b.add_input<decl::Int>("Y").supports_field().structure_type(StructureType::Dynamic);
+  b.add_input<decl::Int>("Z").supports_field().structure_type(StructureType::Dynamic);
 
   b.add_output(data_type, "Value").dependent_field({1, 2, 3});
 }

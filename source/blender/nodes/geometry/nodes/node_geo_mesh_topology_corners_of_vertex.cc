@@ -14,7 +14,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>("Vertex Index")
       .implicit_field(NODE_DEFAULT_INPUT_INDEX_FIELD)
-      .description("The vertex to retrieve data from. Defaults to the vertex from the context");
+      .description("The vertex to retrieve data from. Defaults to the vertex from the context")
+      .structure_type(StructureType::Field);
   b.add_input<decl::Float>("Weights").supports_field().hide_value().description(
       "Values used to sort corners attached to the vertex. Uses indices by default");
   b.add_input<decl::Int>("Sort Index")
