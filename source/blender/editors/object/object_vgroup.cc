@@ -3702,7 +3702,7 @@ static wmOperatorStatus vertex_group_mirror_exec(bContext *C, wmOperator *op)
                 &totmirr,
                 &totfail);
 
-  ED_mesh_report_mirror(op, totmirr, totfail);
+  ED_mesh_report_mirror(*op->reports, totmirr, totfail);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(CTX_data_main(C));

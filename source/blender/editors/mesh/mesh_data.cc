@@ -1088,7 +1088,7 @@ void ED_mesh_geometry_clear(Mesh *mesh)
 
 /** \} */
 
-void ED_mesh_report_mirror_ex(wmOperator *op, int totmirr, int totfail, char selectmode)
+void ED_mesh_report_mirror_ex(ReportList &reports, int totmirr, int totfail, char selectmode)
 {
   const char *elem_type;
 
@@ -1103,17 +1103,16 @@ void ED_mesh_report_mirror_ex(wmOperator *op, int totmirr, int totfail, char sel
   }
 
   if (totfail) {
-    BKE_reportf(
-        op->reports, RPT_WARNING, "%d %s mirrored, %d failed", totmirr, elem_type, totfail);
+    BKE_reportf(&reports, RPT_WARNING, "%d %s mirrored, %d failed", totmirr, elem_type, totfail);
   }
   else {
-    BKE_reportf(op->reports, RPT_INFO, "%d %s mirrored", totmirr, elem_type);
+    BKE_reportf(&reports, RPT_INFO, "%d %s mirrored", totmirr, elem_type);
   }
 }
 
-void ED_mesh_report_mirror(wmOperator *op, int totmirr, int totfail)
+void ED_mesh_report_mirror(ReportList &reports, int totmirr, int totfail)
 {
-  ED_mesh_report_mirror_ex(op, totmirr, totfail, SCE_SELECT_VERTEX);
+  ED_mesh_report_mirror_ex(reports, totmirr, totfail, SCE_SELECT_VERTEX);
 }
 
 KeyBlock *ED_mesh_get_edit_shape_key(const Mesh *me)

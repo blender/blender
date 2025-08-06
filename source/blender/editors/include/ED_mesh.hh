@@ -529,8 +529,8 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name);
 int ED_mesh_color_add(
     Mesh *mesh, const char *name, bool active_set, bool do_init, ReportList *reports);
 
-void ED_mesh_report_mirror(wmOperator *op, int totmirr, int totfail);
-void ED_mesh_report_mirror_ex(wmOperator *op, int totmirr, int totfail, char selectmode);
+void ED_mesh_report_mirror(ReportList &reports, int totmirr, int totfail);
+void ED_mesh_report_mirror_ex(ReportList &reports, int totmirr, int totfail, char selectmode);
 
 KeyBlock *ED_mesh_get_edit_shape_key(const Mesh *me);
 
