@@ -478,6 +478,110 @@ TEST(curves_geometry, BezierGenericEvaluation)
   }
 }
 
+/* -------------------------------------------------------------------- */
+/** \name NURBS: Basis Cache Calculation
+ * \{ */
+
+TEST(curves_geometry, BasisCacheBezierSegmentDeg2)
+{
+  const int order = 3;
+  const int point_count = 3;
+  const int resolution = 3;
+  const bool is_cyclic = false;
+
+  const std::array<float, 6> knots_data{0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f};
+  const Span<float> knots = Span<float>(knots_data);
+
+  /* Expectation */
+  auto fn_Ni2_span = [](MutableSpan<float> Ni2, const float u) {
+    const float nu = 1.0f - u;
+    Ni2[0] = nu * nu;
+    Ni2[1] = 2.0f * u * nu;
+    Ni2[2] = u * u;
+  };
+
+  std::array<float, 12> expected_data;
+  MutableSpan<float> expectation = MutableSpan<float>(expected_data);
+  fn_Ni2_span(expectation.slice(0, 3), 0.0f);
+  fn_Ni2_span(expectation.slice(3, 3), 1.0f / 3.0f);
+  fn_Ni2_span(expectation.slice(6, 3), 2.0f / 3.0f);
+  fn_Ni2_span(expectation.slice(9, 3), 1.0f);
+
+  /* Test */
+  const int evaluated_num = curves::nurbs::calculate_evaluated_num(
+      point_count, order, is_cyclic, resolution, KnotsMode::NURBS_KNOT_MODE_CUSTOM, knots);
+  EXPECT_EQ(evaluated_num, resolution + 1);
+
+  curves::nurbs::BasisCache cache;
+  curves::nurbs::calculate_basis_cache(
+      point_count, evaluated_num, order, resolution, is_cyclic, knots, cache);
+  EXPECT_EQ_SPAN<float>(expectation, cache.weights);
+}
+
+TEST(curves_geometry, BasisCacheNonUniformDeg2)
+{
+  const int order = 3;
+  const int point_count = 8;
+  const int resolution = 3;
+  const bool is_cyclic = false;
+
+  const std::array<float, 11> knots_data{
+      0.0f, 0.0f, 0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 4.0f, 5.0f, 5.0f, 5.0f};
+  const Span<float> knots = Span<float>(knots_data);
+
+  /* Expectation */
+  auto fn_Ni2_span0 = [](MutableSpan<float> Ni2, const float u) {
+    Ni2[0] = square_f(1.0f - u);
+    Ni2[1] = 2.0f * u - 1.5f * square_f(u);
+    Ni2[2] = square_f(u) / 2.0f;
+  };
+  auto fn_Ni2_span1 = [](MutableSpan<float> Ni2, float u) {
+    Ni2[0] = square_f(2.0f - u) / 2.0f;
+    Ni2[1] = -1.5f + 3 * u - square_f(u);
+    Ni2[2] = square_f(u - 1.0f) / 2.0f;
+  };
+  auto fn_Ni2_span2 = [](MutableSpan<float> Ni2, float u) {
+    Ni2[0] = square_f(3.0f - u) / 2.0f;
+    Ni2[1] = -5.5f + 5.0f * u - square_f(u);
+    Ni2[2] = square_f(u - 2.0f) / 2.0f;
+  };
+  auto fn_Ni2_span3 = [](MutableSpan<float> Ni2, float u) {
+    Ni2[0] = square_f(4.0f - u) / 2.0f;
+    Ni2[1] = -16.0f + 10.0f * u - 1.5f * square_f(u);
+    Ni2[2] = square_f(u - 3.0f);
+  };
+  auto fn_Ni2_span4 = [](MutableSpan<float> Ni2, float u) {
+    Ni2[0] = square_f(5.0f - u);
+    Ni2[1] = 2.0f * (u - 4.0f) * (5.0f - u);
+    Ni2[2] = square_f(u - 4.0f);
+  };
+
+  std::array<float, 48> expected_data;
+  MutableSpan<float> expectation = MutableSpan<float>(expected_data);
+  fn_Ni2_span0(expectation.slice(0, 3), 0.0f);
+  for (int i = 1; i < 4; i++) {
+    const float du = i / 3.0f;
+    const int step = i * 3;
+    fn_Ni2_span0(expectation.slice(step, 3), du);
+    fn_Ni2_span1(expectation.slice(step + 9, 3), 1.0f + du);
+    fn_Ni2_span2(expectation.slice(step + 18, 3), 2.0f + du);
+    fn_Ni2_span3(expectation.slice(step + 27, 3), 3.0f + du);
+    fn_Ni2_span4(expectation.slice(step + 36, 3), 4.0f + du);
+  }
+
+  /* Test */
+  const int evaluated_num = curves::nurbs::calculate_evaluated_num(
+      point_count, order, is_cyclic, resolution, KnotsMode::NURBS_KNOT_MODE_CUSTOM, knots);
+  EXPECT_EQ(evaluated_num, 5 * resolution + 1);
+
+  curves::nurbs::BasisCache cache;
+  curves::nurbs::calculate_basis_cache(
+      point_count, evaluated_num, order, resolution, is_cyclic, knots, cache);
+  EXPECT_NEAR_SPAN<float>(expectation, cache.weights, 1e-6f);
+}
+
+/** \} */
+
 TEST(knot_vector, KnotVectorUniform)
 {
   constexpr int8_t order = 5;
