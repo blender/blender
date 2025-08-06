@@ -49,7 +49,8 @@ static void cmp_node_transform_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Angle").default_value(0.0f).min(-10000.0f).max(10000.0f).subtype(
       PROP_ANGLE);
   b.add_input<decl::Float>("Scale").default_value(1.0f).min(0.0001f).max(CMP_SCALE_MAX);
-  b.add_output<decl::Color>("Image");
+
+  b.add_output<decl::Color>("Image").structure_type(StructureType::Dynamic);
 }
 
 static void node_composit_buts_transform(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
