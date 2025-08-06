@@ -1183,7 +1183,7 @@ static int adjacent_edge_point_index_from_coord(const SubdivCCG &subdiv_ccg,
       topology_refiner->base_level().GetEdgeVertices(adjacent_edge_index);
 
   /* Vertex index of an edge which is used to see whether edge points in the right direction.
-   * Tricky part here is that depending whether input coordinate is are maximum X or Y coordinate
+   * Tricky part here is that depending whether input coordinate is a maximum X or Y coordinate
    * of the grid we need to use different edge direction.
    * Basically, the edge adjacent to a previous loop needs to point opposite direction. */
   int directional_edge_vertex_index = -1;

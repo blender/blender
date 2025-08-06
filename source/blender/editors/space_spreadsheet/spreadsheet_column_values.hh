@@ -55,7 +55,7 @@ class ColumnValues final {
   /**
    * Get a good column width for the column name and values.
    *
-   * \param max_sample_size: If provided, only a subset of the column values is looked at to
+   * \param max_sample_size: If provided, only a subset of the column values are inspected to
    * determine the width. This is useful when there are lots of rows to avoid unnecessarily long
    * computations in drawing code. If provided, there is also an enforced minimum width to avoid
    * very narrow columns when the sampled values all happen to be very short.

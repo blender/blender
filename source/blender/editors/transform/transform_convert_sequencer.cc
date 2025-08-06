@@ -829,7 +829,7 @@ static void special_aftertrans_update__sequencer(bContext *C, TransInfo *t)
   sseq->flag &= ~SPACE_SEQ_DESELECT_STRIP_HANDLE;
 
   /* #freeSeqData in `transform_conversions.cc` does this
-   * keep here so the else at the end won't run. */
+   * keep here so the `else` at the end won't run. */
   if (t->state == TRANS_CANCEL) {
     return;
   }

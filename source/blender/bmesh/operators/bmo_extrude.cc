@@ -698,7 +698,7 @@ static void calc_solidify_normals(BMesh *bm)
 
   BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
 
-    /* If the edge is not part of a the solidify region
+    /* If the edge is not part of the solidify region
      * its normal should not be considered */
     if (!BMO_edge_flag_test(bm, e, EDGE_MARK)) {
       continue;

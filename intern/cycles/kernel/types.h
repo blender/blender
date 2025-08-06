@@ -1008,7 +1008,7 @@ enum ShaderDataFlag {
   SD_HOLDOUT = (1 << 5),
   /* Shader has non-zero volume extinction. */
   SD_EXTINCTION = (1 << 6),
-  /* Shader has have volume phase (scatter) closure. */
+  /* Shader has a volume phase (scatter) closure. */
   SD_SCATTER = (1 << 7),
   /* Shader is being evaluated in a volume. */
   SD_IS_VOLUME_SHADER_EVAL = (1 << 8),

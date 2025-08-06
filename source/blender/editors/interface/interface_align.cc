@@ -233,17 +233,17 @@ static void block_align_proximity_compute(ButAlign *butal, ButAlign *butal_other
  *
  * <pre>
  * +-----------+-----------+
- * |   BUT 1   |   BUT 2   |
+ * |   BUT_1   |   BUT_2   |
  * |-----------------------+
- * |   BUT 3   |
+ * |   BUT_3   |
  * +-----------+
  * </pre>
  *
- * Here, BUT 3 RIGHT side would not get 'dragged' to align with BUT 1 RIGHT side,
- * since BUT 3 has not RIGHT neighbor.
- * So, this function, when called with BUT 1, will 'walk' the whole column in \a side_s1 direction
- * (TOP or DOWN when called for RIGHT side), and force buttons like BUT 3 to align as needed,
- * if BUT 1 and BUT 3 were detected as needing top-right corner stitching in
+ * Here, BUT_3 RIGHT side would not get 'dragged' to align with BUT_1 RIGHT side,
+ * since BUT_3 has not RIGHT neighbor.
+ * So, this function, when called with BUT_1, will 'walk' the whole column in \a side_s1 direction
+ * (TOP or DOWN when called for RIGHT side), and force buttons like BUT_3 to align as needed,
+ * if BUT_1 and BUT_3 were detected as needing top-right corner stitching in
  * #block_align_proximity_compute() step.
  *
  * \note To avoid doing this twice, some stitching flags are cleared to break the

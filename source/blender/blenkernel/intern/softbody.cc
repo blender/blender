@@ -3291,16 +3291,16 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
     copy_v3_v3(bp->origT, bp->pos);
     bp->vec[0] = bp->vec[1] = bp->vec[2] = 0.0f;
 
-    /* the bp->prev*'s are for rolling back from a canceled try to propagate in time
+    /* The `bp->prev*` 's are for rolling back from a canceled try to propagate in time
      * adaptive step size algorithm in a nutshell:
-     * 1.  set scheduled time step to new dtime
-     * 2.  try to advance the scheduled time step, being optimistic execute it
-     * 3.  check for success
-     * 3.a we 're fine continue, may be we can increase scheduled time again ?? if so, do so!
-     * 3.b we did exceed error limit --> roll back, shorten the scheduled time and try again at 2.
-     * 4.  check if we did reach dtime
-     * 4.a nope we need to do some more at 2.
-     * 4.b yup we're done
+     * 1)  set scheduled time step to new dtime
+     * 2)  try to advance the scheduled time step, being optimistic execute it
+     * 3)  check for success
+     * 3a) we 're fine continue, may be we can increase scheduled time again ?? if so, do so!
+     * 3b) we did exceed error limit --> roll back, shorten the scheduled time and try again at 2.
+     * 4)  check if we did reach dtime
+     * 4a) nope we need to do some more at 2.
+     * 4b) yup we're done
      */
 
     copy_v3_v3(bp->prevpos, bp->pos);

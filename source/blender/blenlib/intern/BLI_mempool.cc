@@ -53,7 +53,7 @@
    int64_t(c) << 16 | int64_t(b) << 8 | (a))
 
 /**
- * Important that this value is an is _not_  aligned with `sizeof(void *)`.
+ * Important that this value is not aligned with `sizeof(void *)`.
  * So having a pointer to 2/4/8... aligned memory is enough to ensure
  * the `freeword` will never be used.
  * To be safe, use a word that's the same in both directions.

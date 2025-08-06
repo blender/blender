@@ -702,7 +702,7 @@ void Film::finalize_passes(Scene *scene, const bool use_denoise)
     }
   }
 
-  /* Order from by components and type, This is required to for AOVs and cryptomatte passes,
+  /* Order from by components and type, This is required for AOVs and cryptomatte passes,
    * which the kernel assumes to be in order. Note this must use stable sort so cryptomatte
    * passes remain in the right order. */
   new_passes.stable_sort(compare_pass_order);

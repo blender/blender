@@ -2546,7 +2546,7 @@ void BKE_tracking_distortion_bounds_deltas(MovieDistortion *distortion,
     /* The tracking distortion functions expect the coordinates to be in the space of the image
      * where the tracking camera was calibrated. So we first remap the coordinates into that space,
      * apply the distortion, then remap back to the original coordinates space. This is done by
-     * dividing the by the size then multiplying by the calibration size, making sure to add 0.5 to
+     * dividing by the size then multiplying by the calibration size, making sure to add 0.5 to
      * evaluate at the center of pixels. */
     float2 coordinates = ((position + 0.5f) / float2(size)) * float2(calibration_size);
     /* Notice that the condition is inverted, that's because when we are undistorting, we compute

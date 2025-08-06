@@ -1754,7 +1754,7 @@ static void wm_history_file_update()
  *   - A smaller thumbnail is stored in the `.blend` file itself, sized at #BLEN_THUMB_SIZE.
  *     The size is kept small to prevent thumbnails bloating the size of `.blend` files.
  *
- *     The this thumbnail will be extracted if the file is shared or the local thumbnail cache
+ *     The thumbnail will be extracted if the file is shared or the local thumbnail cache
  *     is cleared. see: `blendthumb_extract.cc` for logic that extracts the thumbnail.
  *
  * \{ */

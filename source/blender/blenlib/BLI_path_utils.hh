@@ -201,7 +201,7 @@ void BLI_path_normalize_unc(char *path, int path_maxncpy);
 /**
  * Convert `path` to a canonical representation.
  * This is intended for system paths (passed in as command-line arguments of via scripts)
- * which are valid in that they resolve to a file/directory and but could be `CWD` relative or
+ * which are valid in that they resolve to a file/directory but could be `CWD` relative or
  * contain redundant slashes that cause absolute/relative conversion to fail.
  * (specifically the `//` prefix used by Blender).
  *
