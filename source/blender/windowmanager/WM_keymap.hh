@@ -41,7 +41,7 @@ void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname);
 void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties);
 void WM_keyconfig_update(wmWindowManager *wm);
 void WM_keyconfig_update_tag(wmKeyMap *keymap, wmKeyMapItem *kmi);
-void WM_keyconfig_update_operatortype();
+void WM_keyconfig_update_operatortype_tag();
 
 void WM_keyconfig_update_suppress_begin();
 void WM_keyconfig_update_suppress_end();
