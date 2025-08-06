@@ -361,6 +361,9 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
   }
 
   if (subdiv_mesh != mesh) {
+    /* Make sure that drivers can target shapekey properties. See #mesh_build_data for details. */
+    subdiv_mesh->key = mesh->key;
+
     if (mesh->runtime->mesh_eval != nullptr) {
       BKE_id_free(nullptr, mesh->runtime->mesh_eval);
     }
