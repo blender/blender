@@ -155,6 +155,11 @@ endif()
 # ------------------------------------------------------------------------------
 # PY API TESTS
 add_blender_test(
+  script_pyapi_bpy_app_tempdir
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_bpy_app_tempdir.py
+)
+
+add_blender_test(
   script_pyapi_bpy_path
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_bpy_path.py
 )
