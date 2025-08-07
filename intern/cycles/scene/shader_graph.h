@@ -299,7 +299,7 @@ class ShaderNodeIDAndBoolComparator {
   bool operator()(const std::pair<ShaderNode *, bool> p1,
                   const std::pair<ShaderNode *, bool> p2) const
   {
-    return p1.first->id < p2.first->id || p1.second < p2.second;
+    return p1.first->id < p2.first->id || (p1.first->id == p2.first->id && p1.second < p2.second);
   }
 };
 
