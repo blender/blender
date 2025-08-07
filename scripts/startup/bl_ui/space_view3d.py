@@ -1440,7 +1440,7 @@ class VIEW3D_MT_uv_map(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.mark_seam").clear = False
+        layout.operator("mesh.mark_seam", icon="EDGE_SEAM").clear = False
         layout.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
         layout.separator()
@@ -4566,7 +4566,7 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             col.separator()
 
-            col.operator("transform.vert_crease")
+            col.operator("transform.vert_crease", icon="VERTEX_CREASE")
 
             col.separator()
 
@@ -4618,17 +4618,17 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.separator()
 
             # Edge Flags
-            col.operator("transform.edge_crease")
-            col.operator("transform.edge_bevelweight")
+            col.operator("transform.edge_bevelweight", icon='EDGE_BEVEL')
+            col.operator("transform.edge_crease", icon='EDGE_CREASE')
 
             col.separator()
 
-            col.operator("mesh.mark_seam").clear = False
+            col.operator("mesh.mark_seam", icon="EDGE_SEAM").clear = False
             col.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
             col.separator()
 
-            col.operator("mesh.mark_sharp")
+            col.operator("mesh.mark_sharp", icon="EDGE_SHARP").clear = False
             col.operator("mesh.mark_sharp", text="Clear Sharp").clear = True
             col.operator("mesh.set_sharpness_by_angle")
 
@@ -4774,7 +4774,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
 
         layout.separator()
 
-        layout.operator("transform.vert_crease")
+        layout.operator("transform.vert_crease", icon="VERTEX_CREASE")
 
         layout.separator()
 
@@ -4828,17 +4828,17 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
-        layout.operator("transform.edge_crease")
-        layout.operator("transform.edge_bevelweight")
+        layout.operator("transform.edge_bevelweight", icon="EDGE_BEVEL")
+        layout.operator("transform.edge_crease", icon="EDGE_CREASE")
 
         layout.separator()
 
-        layout.operator("mesh.mark_seam").clear = False
+        layout.operator("mesh.mark_seam", icon="EDGE_SEAM").clear = False
         layout.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
         layout.separator()
 
-        layout.operator("mesh.mark_sharp")
+        layout.operator("mesh.mark_sharp", icon="EDGE_SHARP")
         layout.operator("mesh.mark_sharp", text="Clear Sharp").clear = True
 
         layout.operator("mesh.mark_sharp", text="Mark Sharp from Vertices").use_verts = True
@@ -7187,7 +7187,7 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_label = "Mesh Edit Mode"
-    bl_ui_units_x = 12
+    bl_ui_units_x = 14
 
     @classmethod
     def poll(cls, context):
@@ -7207,6 +7207,19 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         col = layout.column()
         col.active = display_all
 
+        row = col.row(align=True)
+        row.prop(overlay, "show_edge_bevel_weight", text="Bevel", icon="EDGE_BEVEL", toggle=True)
+        row.prop(overlay, "show_edge_crease", text="Crease", icon="EDGE_CREASE", toggle=True)
+        row.prop(overlay, "show_edge_seams", text="Seam", icon="EDGE_SEAM", toggle=True)
+        row.prop(
+            overlay,
+            "show_edge_sharp",
+            text="Sharp",
+            icon="EDGE_SHARP",
+            text_ctxt=i18n_contexts.plural,
+            toggle=True)
+
+        col.separator()
         split = col.split()
 
         sub = split.column()
@@ -7215,13 +7228,6 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         sub.active = is_any_solid_shading
         sub.prop(overlay, "show_face_center", text="Center")
 
-        row = col.row(align=True)
-        row.prop(overlay, "show_edge_crease", text="Creases", toggle=True)
-        row.prop(overlay, "show_edge_sharp", text="Sharp", text_ctxt=i18n_contexts.plural, toggle=True)
-        row.prop(overlay, "show_edge_bevel_weight", text="Bevel", toggle=True)
-        row.prop(overlay, "show_edge_seams", text="Seams", toggle=True)
-
-        col.separator()
         col.prop(overlay, "show_extra_indices", text="Indices")
 
 

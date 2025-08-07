@@ -317,6 +317,10 @@ if(WITH_BLENDER)
       driver_transform
       duplicate
       edgesel
+      edge_bevel
+      edge_crease
+      edge_seam
+      edge_sharp
       editmode_hlt
       empty_arrows
       empty_axis
@@ -901,6 +905,7 @@ if(WITH_BLENDER)
       uv_sync_select
       uv_vertexsel
       vertexsel
+      vertex_crease
       view3d
       viewzoom
       view_camera
