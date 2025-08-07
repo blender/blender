@@ -163,7 +163,7 @@ ABCArchive::ABCArchive(const Main *bmain,
                        const std::string &filepath)
     : archive(nullptr)
 {
-  double scene_fps = FPS;
+  double scene_fps = scene->frames_per_second();
   MetaData abc_metadata = create_abc_metadata(bmain, scene_fps);
 
   /* Create the Archive. */

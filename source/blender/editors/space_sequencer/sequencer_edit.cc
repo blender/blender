@@ -591,7 +591,7 @@ static void slip_update_header(const Scene *scene,
   else {
     int frame_offset = std::trunc(offset);
     if (data->show_subframe) {
-      float subframe_offset_sec = (offset - std::trunc(offset)) / FPS;
+      float subframe_offset_sec = (offset - std::trunc(offset)) / scene->frames_per_second();
       SNPRINTF_UTF8(msg,
                     IFACE_("Slip Offset: Frames: %d Sound Offset: %.3f"),
                     frame_offset,
@@ -3147,14 +3147,14 @@ static wmOperatorStatus sequencer_export_subtitles_exec(bContext *C, wmOperator 
         sizeof(timecode_str_start),
         -2,
         FRA2TIME(max_ii(seq::time_left_handle_frame_get(scene, strip) - scene->r.sfra, 0)),
-        FPS,
+        scene->frames_per_second(),
         USER_TIMECODE_SUBRIP);
     BLI_timecode_string_from_time(
         timecode_str_end,
         sizeof(timecode_str_end),
         -2,
         FRA2TIME(seq::time_right_handle_frame_get(scene, strip) - scene->r.sfra),
-        FPS,
+        scene->frames_per_second(),
         USER_TIMECODE_SUBRIP);
 
     fprintf(file,

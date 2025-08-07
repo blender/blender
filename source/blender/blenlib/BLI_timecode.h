@@ -20,7 +20,7 @@
  * \param brevity_level: special setting for #View2D grid drawing,
  *        used to specify how detailed we need to be
  * \param time_seconds: time total time in seconds
- * \param fps: frames per second, typically from the #FPS macro
+ * \param fps: frames per second
  * \param timecode_style: enum from #eTimecodeStyles
  * \return length of \a str
  */

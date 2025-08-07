@@ -1943,7 +1943,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
   if (enable) {
     ScreenAnimData *sad = MEM_callocN<ScreenAnimData>("ScreenAnimData");
 
-    screen->animtimer = WM_event_timer_add(wm, win, TIMER0, (1.0 / FPS));
+    screen->animtimer = WM_event_timer_add(wm, win, TIMER0, (1.0 / scene->frames_per_second()));
 
     sad->region = CTX_wm_region(C);
     sad->sfra = scene->r.cfra;

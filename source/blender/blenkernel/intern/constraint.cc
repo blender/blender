@@ -5372,7 +5372,8 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
   }
 
   const float frame = DEG_get_ctime(cob->depsgraph);
-  const double time = BKE_cachefile_time_offset(cache_file, double(frame), FPS);
+  const double time = BKE_cachefile_time_offset(
+      cache_file, double(frame), scene->frames_per_second());
 
   if (!data->reader || !STREQ(data->reader_object_path, data->object_path)) {
     STRNCPY(data->reader_object_path, data->object_path);
@@ -5388,7 +5389,7 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
     case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
       blender::io::usd::USD_get_transform(
-          data->reader, cob->matrix, time * FPS, cache_file->scale);
+          data->reader, cob->matrix, time * scene->frames_per_second(), cache_file->scale);
 #  endif
       break;
     case CACHE_FILE_TYPE_INVALID:

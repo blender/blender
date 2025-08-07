@@ -1631,6 +1631,19 @@ constexpr IDTypeInfo get_type_info()
 }
 IDTypeInfo IDType_ID_SCE = get_type_info();
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Scene member functions
+ */
+
+double Scene::frames_per_second() const
+{
+  return double(this->r.frs_sec) / double(this->r.frs_sec_base);
+}
+
+/** \} */
+
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
 const char *RE_engine_id_BLENDER_EEVEE_NEXT = "BLENDER_EEVEE_NEXT";
 const char *RE_engine_id_BLENDER_WORKBENCH = "BLENDER_WORKBENCH";
@@ -2342,7 +2355,7 @@ const char *BKE_scene_find_last_marker_name(const Scene *scene, int frame)
 
 int BKE_scene_frame_snap_by_seconds(Scene *scene, double interval_in_seconds, int frame)
 {
-  const int fps = round_db_to_int(FPS * interval_in_seconds);
+  const int fps = round_db_to_int(scene->frames_per_second() * interval_in_seconds);
   const int second_prev = frame - mod_i(frame, fps);
   const int second_next = second_prev + fps;
   const int delta_prev = frame - second_prev;

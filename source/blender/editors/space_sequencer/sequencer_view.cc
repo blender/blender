@@ -326,7 +326,7 @@ static void seq_view_collection_rect_timeline(const bContext *C,
   int xmax = -MAXFRAME * 2;
   int ymin = seq::MAX_CHANNELS + 1;
   int ymax = 0;
-  int xmargin = FPS;
+  int xmargin = scene->frames_per_second();
 
   for (Strip *strip : strips) {
     xmin = min_ii(xmin, seq::time_left_handle_frame_get(scene, strip));

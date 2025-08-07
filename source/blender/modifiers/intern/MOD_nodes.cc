@@ -1178,7 +1178,7 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
     use_frame_cache_ = ctx_.object->flag & OB_FLAG_USE_SIMULATION_CACHE;
     depsgraph_is_active_ = DEG_is_active(depsgraph);
     modifier_cache_ = nmd.runtime->cache.get();
-    fps_ = FPS;
+    fps_ = scene->frames_per_second();
 
     if (!modifier_cache_) {
       return;

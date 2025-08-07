@@ -560,7 +560,7 @@ static void strip_time_slip_strip_ex(const Scene *scene,
                                      bool recursed)
 {
   if (strip->type == STRIP_TYPE_SOUND_RAM && subframe_delta != 0.0f) {
-    strip->sound_offset += subframe_delta / FPS;
+    strip->sound_offset += subframe_delta / scene->frames_per_second();
   }
 
   if (delta == 0 && (!slip_keyframes || subframe_delta == 0.0f)) {

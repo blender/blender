@@ -521,7 +521,7 @@ static bool fluid_modifier_init(
     copy_v3_v3_int(fds->res_max, res);
 
     /* Set time, frame length = 0.1 is at 25fps. */
-    fds->frame_length = DT_DEFAULT * (25.0f / FPS) * fds->time_scale;
+    fds->frame_length = DT_DEFAULT * (25.0f / scene->frames_per_second()) * fds->time_scale;
     /* Initially dt is equal to frame length (dt can change with adaptive-time stepping though). */
     fds->dt = fds->frame_length;
     fds->time_per_frame = 0;
@@ -3244,7 +3244,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   bool use_speedvectors = fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS;
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<float3> velocities;
-  float time_mult = fds->dx / (DT_DEFAULT * (25.0f / FPS));
+  float time_mult = fds->dx / (DT_DEFAULT * (25.0f / scene->frames_per_second()));
 
   if (use_speedvectors) {
     velocities = attributes.lookup_or_add_for_write_only_span<float3>("velocity",
@@ -3547,7 +3547,7 @@ static void manta_guiding(
     Depsgraph *depsgraph, Scene *scene, Object *ob, FluidModifierData *fmd, int frame)
 {
   FluidDomainSettings *fds = fmd->domain;
-  float dt = DT_DEFAULT * (25.0f / FPS) * fds->time_scale;
+  float dt = DT_DEFAULT * (25.0f / scene->frames_per_second()) * fds->time_scale;
 
   std::scoped_lock lock(object_update_lock);
 
@@ -3718,7 +3718,7 @@ static void fluid_modifier_processDomain(FluidModifierData *fmd,
   copy_v3_v3_int(o_shift, fds->shift);
 
   /* Ensure that time parameters are initialized correctly before every step. */
-  fds->frame_length = DT_DEFAULT * (25.0f / FPS) * fds->time_scale;
+  fds->frame_length = DT_DEFAULT * (25.0f / scene->frames_per_second()) * fds->time_scale;
   fds->dt = fds->frame_length;
   fds->time_per_frame = 0;
 
