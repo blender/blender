@@ -23,14 +23,6 @@ namespace blender::gpu {
 
 static CLG_LogRef LOG = {"gpu.vulkan"};
 
-void VKImmediate::deinit(VKDevice &device)
-{
-  if (active_buffer_.has_value()) {
-    active_buffer_->free_immediately(device);
-    active_buffer_.reset();
-  }
-}
-
 uchar *VKImmediate::begin()
 {
   uint add_vertex = prim_type == GPU_PRIM_LINE_LOOP ? 1 : 0;
