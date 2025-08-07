@@ -1656,6 +1656,13 @@ GLShader::GLProgram &GLShader::program_get(const shader::SpecializationConstants
 
   program.program_link(name);
 
+  /* Ensure the specialization compiled correctly.
+   * Specialization compilation should never fail, but adding this check seems to bypass an
+   * internal Nvidia driver issue (See #142046). */
+  GLint status;
+  glGetProgramiv(program.program_id, GL_LINK_STATUS, &status);
+  BLI_assert(status);
+
   GPU_debug_group_end();
   GPU_debug_group_end();
 
