@@ -172,7 +172,7 @@ class KeyingOperation : public NodeOperation {
 
   void execute() override
   {
-    const Result &input_image = get_result("Image");
+    const Result &input_image = get_input("Image");
     Result &output_image = get_result("Image");
     Result &output_matte = get_result("Matte");
     Result &output_edges = get_result("Edges");
