@@ -48,10 +48,9 @@ VKContext::~VKContext()
     surface_texture_ = nullptr;
   }
   free_resources();
-  VKDevice &device = VKBackend::get().device;
-  static_cast<VKImmediate *>(imm)->deinit(device);
   delete imm;
   imm = nullptr;
+  VKDevice &device = VKBackend::get().device;
   device.context_unregister(*this);
 
   this->process_frame_timings();
