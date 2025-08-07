@@ -140,10 +140,6 @@ struct TreeDrawContext {
   geo_log::ContextualGeoTreeLogs tree_logs;
 
   NestedTreePreviews *nested_group_infos = nullptr;
-  /**
-   * True if there is an active compositor using the node tree, false otherwise.
-   */
-  bool used_by_compositor = false;
 
   Map<bNodeInstanceKey, timeit::Nanoseconds> *compositor_per_node_execution_time = nullptr;
 
@@ -2051,13 +2047,6 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
                                           const rctf &rect,
                                           float &icon_offset)
 {
-  if (ntree.type == NTREE_COMPOSIT) {
-    if (tree_draw_ctx.used_by_compositor && node.typeinfo->compositor_unsupported_message) {
-      add_error_message_button(
-          block, rect, ICON_ERROR, icon_offset, node.typeinfo->compositor_unsupported_message);
-    }
-    return;
-  }
   if (ntree.type == NTREE_GEOMETRY) {
     geo_log::GeoTreeLog *geo_tree_log = [&]() -> geo_log::GeoTreeLog * {
       const bNodeTreeZones *zones = node.owner_tree().zones();
@@ -4588,39 +4577,6 @@ static void snode_setup_v2d(SpaceNode &snode, ARegion &region, const float2 &cen
   snode.runtime->aspect = BLI_rctf_size_x(&v2d.cur) / float(region.winx);
 }
 
-/* Similar to DRW_is_viewport_compositor_enabled() in `draw_manager.cc` but checks all 3D views. */
-static bool compositor_is_in_use(const bContext &context)
-{
-  const Scene *scene = CTX_data_scene(&context);
-
-  if (!scene->compositing_node_group) {
-    return false;
-  }
-
-  wmWindowManager *wm = CTX_wm_manager(&context);
-  LISTBASE_FOREACH (const wmWindow *, win, &wm->windows) {
-    const bScreen *screen = WM_window_get_active_screen(win);
-    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      const SpaceLink &space = *static_cast<const SpaceLink *>(area->spacedata.first);
-      if (space.spacetype == SPACE_VIEW3D) {
-        const View3D &view_3d = reinterpret_cast<const View3D &>(space);
-
-        if (view_3d.shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
-          continue;
-        }
-
-        if (!(view_3d.shading.type >= OB_MATERIAL)) {
-          continue;
-        }
-
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
 static void draw_nodetree(const bContext &C,
                           ARegion &region,
                           bNodeTree &ntree,
@@ -4658,7 +4614,6 @@ static void draw_nodetree(const bContext &C,
   }
   else if (ntree.type == NTREE_COMPOSIT) {
     const Scene *scene = CTX_data_scene(&C);
-    tree_draw_ctx.used_by_compositor = compositor_is_in_use(C);
     tree_draw_ctx.compositor_per_node_execution_time =
         &scene->runtime->compositor.per_node_execution_time;
   }

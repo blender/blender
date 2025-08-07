@@ -7,19 +7,27 @@
 #include <fmt/format.h>
 
 #include "BLI_index_range.hh"
+#include "BLI_listbase.h"
 #include "BLI_math_base.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
 #include "BKE_compositor.hh"
+#include "BKE_context.hh"
 #include "BKE_cryptomatte.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
+#include "WM_api.hh"
+
 #include "DNA_layer_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_enums.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
 
 namespace blender::bke::compositor {
 
@@ -169,6 +177,37 @@ Set<std::string> get_used_passes(const Scene &scene, const ViewLayer *view_layer
   add_used_passes_recursive(
       scene.compositing_node_group, view_layer, true, node_trees_already_searched, used_passes);
   return used_passes;
+}
+
+bool is_viewport_compositor_used(const bContext &context)
+{
+  const Scene *scene = CTX_data_scene(&context);
+  if (!scene->compositing_node_group) {
+    return false;
+  }
+
+  wmWindowManager *window_manager = CTX_wm_manager(&context);
+  LISTBASE_FOREACH (const wmWindow *, window, &window_manager->windows) {
+    const bScreen *screen = WM_window_get_active_screen(window);
+    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+      const SpaceLink &space = *static_cast<const SpaceLink *>(area->spacedata.first);
+      if (space.spacetype == SPACE_VIEW3D) {
+        const View3D &view_3d = reinterpret_cast<const View3D &>(space);
+
+        if (view_3d.shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
+          continue;
+        }
+
+        if (!(view_3d.shading.type >= OB_MATERIAL)) {
+          continue;
+        }
+
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 }  // namespace blender::bke::compositor
