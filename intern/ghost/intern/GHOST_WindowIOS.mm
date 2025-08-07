@@ -118,7 +118,11 @@ typedef struct UserInputEvent {
         return @"LB-DOWN";
       case LEFT_BUTTON_UP:
         return @"LB-UP";
+      case PENCIL_TAP:
+        return @"PENCIL-TAP";
     }
+    BLI_assert_unreachable();
+    return @"Event undefined";
   }
 
 } UserInputEvent;
