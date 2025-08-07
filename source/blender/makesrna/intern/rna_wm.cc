@@ -2202,8 +2202,8 @@ static void rna_def_operator_common(StructRNA *srna)
 
   prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "type->flag");
-  RNA_def_property_enum_items(prop, rna_enum_operator_type_flag_items);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
+  RNA_def_property_enum_items(prop, rna_enum_operator_type_flag_items);
   RNA_def_property_ui_text(prop, "Options", "Options for this operator type");
 
   prop = RNA_def_property(srna, "bl_cursor_pending", PROP_ENUM, PROP_NONE);
