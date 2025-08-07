@@ -639,7 +639,7 @@ BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2) ATTR_WARN_UNUSED_RESULT ATTR_
 /**
  * \brief Return the Loop Shared by Edge and Vert
  *
- * Finds the loop used which uses \a  in face loop \a l
+ * Finds the loop used which uses \a v in face loop \a l
  *
  * \note this function takes a loop rather than an edge
  * so we can select the face that the loop should be from.
