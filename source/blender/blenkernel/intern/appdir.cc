@@ -1207,6 +1207,8 @@ void BKE_tempdir_init(const char *userdir)
   /* Clear existing temp dir, if needed. */
   BKE_tempdir_session_purge();
 
+  g_app.temp_dirname_session_can_be_deleted = false;
+
   /* Only do one pass if `userdir` is null. */
   int userdir_args_num = userdir ? 2 : 1;
   const char *userdir_args[2] = {userdir, nullptr};
