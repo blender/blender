@@ -17,6 +17,7 @@
 #include "DNA_curves_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
@@ -37,6 +38,7 @@
 #include "BKE_attribute_legacy_convert.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
 #include "BKE_image_format.hh"
 #include "BKE_lib_id.hh"
@@ -2161,6 +2163,21 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 54)) {
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+        if (modifier->type != eModifierType_GreasePencilLineart) {
+          continue;
+        }
+        GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(
+            modifier);
+        if (lmd->radius != 0.0f) {
+          continue;
+        }
+        lmd->radius = float(lmd->thickness_legacy) *
+                      bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
+      }
+    }
+
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type != NTREE_COMPOSIT) {
         continue;

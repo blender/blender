@@ -255,7 +255,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
       ptr, "target_material", &obj_data_ptr, "materials", std::nullopt, ICON_MATERIAL);
 
   col = &layout->column(false);
-  col->prop(ptr, "thickness", UI_ITEM_R_SLIDER, IFACE_("Line Thickness"), ICON_NONE);
+  col->prop(ptr, "radius", UI_ITEM_R_SLIDER, IFACE_("Line Radius"), ICON_NONE);
   col->prop(ptr, "opacity", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
@@ -802,7 +802,7 @@ static void generate_strokes(ModifierData &md,
         lmd.mask_switches,
         lmd.material_mask_bits,
         lmd.intersection_mask,
-        float(lmd.thickness) / 1000.0f,
+        lmd.radius,
         lmd.opacity,
         lmd.shadow_selection,
         lmd.silhouette_selection,
