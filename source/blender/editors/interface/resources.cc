@@ -42,6 +42,10 @@ static bThemeState g_theme_state = {
     RGN_TYPE_WINDOW,
 };
 
+/* -------------------------------------------------------------------- */
+/** \name Init/Exit
+ * \{ */
+
 void ui_resources_init()
 {
   UI_icons_init();
@@ -52,9 +56,11 @@ void ui_resources_free()
   UI_icons_free();
 }
 
-/* ******************************************************** */
-/*    THEMES */
-/* ******************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Themes
+ * \{ */
 
 const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 {
@@ -1572,3 +1578,5 @@ void UI_make_axis_color(const uchar col[3], const char axis, uchar r_col[3])
       break;
   }
 }
+
+/** \} */
