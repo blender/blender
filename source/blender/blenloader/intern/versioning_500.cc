@@ -896,7 +896,7 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
 
   bNode *frame = blender::bke::node_add_static_node(nullptr, *node_tree, NODE_FRAME);
   frame->parent = node->parent;
-  STRNCPY(frame->label, IFACE_("Versioning: Map Value node was removed"));
+  STRNCPY(frame->label, RPT_("Versioning: Map Value node was removed"));
   NodeFrame *frame_data = static_cast<NodeFrame *>(frame->storage);
   frame_data->label_size = 10;
 
@@ -1523,6 +1523,7 @@ static void do_version_world_remove_use_nodes(Main *bmain, World *world)
   new_output.location[1] = background.location[1];
 
   bNode *frame = blender::bke::node_add_static_node(nullptr, *ntree, NODE_FRAME);
+  STRNCPY(frame->label, IFACE_("Versioning: Use Nodes was removed"));
   background.parent = frame;
   new_output.parent = frame;
 }
