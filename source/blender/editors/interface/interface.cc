@@ -5188,7 +5188,7 @@ void UI_autocomplete_update_name(AutoComplete *autocpl, const StringRef name)
     }
     else {
       /* remove from truncate what is not in bone->name */
-      for (int a = 0; a < autocpl->maxncpy - 1; a++) {
+      for (int a = 0; a < std::min<size_t>(name.size(), autocpl->maxncpy) - 1; a++) {
         if (name[a] == 0) {
           truncate[a] = 0;
           break;
