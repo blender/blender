@@ -542,7 +542,7 @@ static bool versioning_convert_seq_text_anchor(Strip *strip, void * /*user_data*
 
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   data->anchor_x = data->align;
-  data->anchor_y = data->align_y;
+  data->anchor_y = data->align_y_legacy;
   data->align = SEQ_TEXT_ALIGN_X_LEFT;
 
   return true;

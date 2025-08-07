@@ -21,6 +21,8 @@
 #include "BLI_task.h"
 
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_customdata.hh"
 #include "BKE_multires.hh"
 
@@ -1065,6 +1067,40 @@ void BM_elem_float_data_set(CustomData *cd, void *element, int type, const float
   if (f) {
     *f = val;
   }
+}
+
+BMDataLayerLookup BM_data_layer_lookup(const BMesh &bm, const blender::StringRef name)
+{
+  using namespace blender;
+  for (const CustomDataLayer &layer : Span(bm.vdata.layers, bm.vdata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset,
+              bke::AttrDomain::Point,
+              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
+    }
+  }
+  for (const CustomDataLayer &layer : Span(bm.edata.layers, bm.edata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset,
+              bke::AttrDomain::Edge,
+              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
+    }
+  }
+  for (const CustomDataLayer &layer : Span(bm.pdata.layers, bm.pdata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset,
+              bke::AttrDomain::Face,
+              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
+    }
+  }
+  for (const CustomDataLayer &layer : Span(bm.ldata.layers, bm.ldata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset,
+              bke::AttrDomain::Corner,
+              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
+    }
+  }
+  return {};
 }
 
 /* -------------------------------------------------------------------- */

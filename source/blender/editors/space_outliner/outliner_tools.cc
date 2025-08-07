@@ -2096,11 +2096,11 @@ static void pchan_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, voi
     pchan->bone->flag &= ~BONE_SELECTED;
   }
   else if (event == OL_DOP_HIDE) {
-    pchan->bone->flag |= BONE_HIDDEN_P;
+    pchan->drawflag |= PCHAN_DRAW_HIDDEN;
     pchan->bone->flag &= ~BONE_SELECTED;
   }
   else if (event == OL_DOP_UNHIDE) {
-    pchan->bone->flag &= ~BONE_HIDDEN_P;
+    pchan->drawflag &= ~PCHAN_DRAW_HIDDEN;
   }
 }
 

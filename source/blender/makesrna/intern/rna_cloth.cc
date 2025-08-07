@@ -488,9 +488,9 @@ static void rna_def_cloth_solver_result(BlenderRNA *brna)
   RNA_define_verify_sdna(false);
 
   prop = RNA_def_property(srna, "status", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_enum_items(prop, status_items);
   RNA_def_property_enum_sdna(prop, nullptr, "status");
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Status", "Status of the solver iteration");
 

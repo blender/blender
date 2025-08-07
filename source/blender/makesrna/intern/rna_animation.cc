@@ -1233,9 +1233,9 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
    *   other places featuring bl_idname/label/description (i.e. operators)
    */
   prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_enum_sdna(prop, nullptr, "keyingflag");
   RNA_def_property_enum_items(prop, rna_enum_keying_flag_items);
-  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_ui_text(prop, "Options", "Keying Set options to use when inserting keyframes");
 
   RNA_define_verify_sdna(true);

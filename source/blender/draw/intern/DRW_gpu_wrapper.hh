@@ -814,10 +814,10 @@ class Texture : NonCopyable {
 
   /**
    * Layer range view cover only the given range.
-   * This can only called to create one range.
+   * This can only be called to create one range.
    * View is recreated if:
    * - The source texture is recreated.
-   * - The layer_len is different from the last call the this function.
+   * - The layer_len is different from the last call to this function.
    * IMPORTANT: It is not recreated if the layer_start is different from the last call.
    * IMPORTANT: If this view is recreated any reference to it should be updated.
    */

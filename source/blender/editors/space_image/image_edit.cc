@@ -458,6 +458,15 @@ bool ED_space_image_show_paint(const SpaceImage *sima)
   return (sima->mode == SI_MODE_PAINT);
 }
 
+bool ED_space_image_show_mask(const SpaceImage *sima)
+{
+  if (ED_space_image_show_render(sima)) {
+    return false;
+  }
+
+  return (sima->mode == SI_MODE_MASK);
+}
+
 bool ED_space_image_show_uvedit(const SpaceImage *sima, Object *obedit)
 {
   if (sima) {

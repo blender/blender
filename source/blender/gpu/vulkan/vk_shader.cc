@@ -1215,13 +1215,10 @@ std::string VKShader::compute_layout_declare(const shader::ShaderCreateInfo &inf
 {
   std::stringstream ss;
   ss << "\n/* Compute Layout. */\n";
-  ss << "layout(local_size_x = " << info.compute_layout_.local_size_x;
-  if (info.compute_layout_.local_size_y != -1) {
-    ss << ", local_size_y = " << info.compute_layout_.local_size_y;
-  }
-  if (info.compute_layout_.local_size_z != -1) {
-    ss << ", local_size_z = " << info.compute_layout_.local_size_z;
-  }
+  ss << "layout(";
+  ss << "  local_size_x = " << info.compute_layout_.local_size_x;
+  ss << ", local_size_y = " << info.compute_layout_.local_size_y;
+  ss << ", local_size_z = " << info.compute_layout_.local_size_z;
   ss << ") in;\n";
   ss << "\n";
   return ss.str();

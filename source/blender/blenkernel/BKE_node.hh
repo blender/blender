@@ -348,11 +348,6 @@ struct bNodeType {
    * responsibility of the caller. */
   NodeGetCompositorOperationFunction get_compositor_operation = nullptr;
 
-  /* A message to display in the node header for unsupported compositor nodes. The message
-   * is assumed to be static and thus require no memory handling. This field is to be removed when
-   * all nodes are supported. */
-  const char *compositor_unsupported_message = nullptr;
-
   /* Build a multi-function for this node. */
   NodeMultiFunctionBuildFunction build_multi_function = nullptr;
 
@@ -1015,7 +1010,7 @@ void node_internal_relink(bNodeTree &ntree, bNode &node);
 
 void node_position_relative(bNode &from_node,
                             const bNode &to_node,
-                            const bNodeSocket &from_sock,
+                            const bNodeSocket *from_sock,
                             const bNodeSocket &to_sock);
 
 void node_position_propagate(bNode &node);

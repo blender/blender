@@ -207,16 +207,19 @@ Domain RealizeOnDomainOperation::compute_domain()
  * realization shouldn't be needed. */
 static constexpr float transformation_tolerance = 10e-6f;
 
-Domain RealizeOnDomainOperation::compute_realized_transformation_domain(Context &context,
-                                                                        const Domain &domain)
+Domain RealizeOnDomainOperation::compute_realized_transformation_domain(
+    Context &context, const Domain &domain, const bool realize_translation)
 {
   const int2 size = domain.size;
 
   /* If the domain is only infinitesimally rotated or scaled, return a domain with just the
-   * translation component. */
+   * translation component if not realizing translation. */
   if (math::is_equal(
           float2x2(domain.transformation), float2x2::identity(), transformation_tolerance))
   {
+    if (realize_translation) {
+      return Domain(size);
+    }
     return Domain(size, math::from_location<float3x3>(domain.transformation.location()));
   }
 
@@ -263,7 +266,10 @@ Domain RealizeOnDomainOperation::compute_realized_transformation_domain(Context 
   const int2 safe_size = math::clamp(new_size, int2(1), int2(max_size));
 
   /* Create a domain from the new safe size and just the translation component of the
-   * transformation, */
+   * transformation if not realizing translation. */
+  if (realize_translation) {
+    return Domain(safe_size);
+  }
   return Domain(safe_size, math::from_location<float3x3>(domain.transformation.location()));
 }
 
@@ -295,8 +301,11 @@ SimpleOperation *RealizeOnDomainOperation::construct_if_needed(
                                     InputRealizationMode::OperationDomain;
   const Domain target_domain = use_operation_domain ? operation_domain : input_result.domain();
 
+  const bool should_realize_translation = input_descriptor.realization_mode ==
+                                          InputRealizationMode::Transforms;
   const Domain realized_target_domain =
-      RealizeOnDomainOperation::compute_realized_transformation_domain(context, target_domain);
+      RealizeOnDomainOperation::compute_realized_transformation_domain(
+          context, target_domain, should_realize_translation);
 
   /* The input have an almost identical domain to the realized target domain, so no need to realize
    * it and the operation is not needed. */

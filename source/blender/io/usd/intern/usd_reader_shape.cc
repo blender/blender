@@ -74,13 +74,13 @@ void USDShapeReader::read_values(const pxr::UsdTimeCode time,
   pxr::VtValue points_val = adapter.GetPoints(prim_, time);
 
   if (points_val.IsHolding<pxr::VtVec3fArray>()) {
-    positions = points_val.Get<pxr::VtVec3fArray>();
+    positions = points_val.UncheckedGet<pxr::VtVec3fArray>();
   }
 
   pxr::VtValue topology_val = adapter.GetTopology(prim_, pxr::SdfPath(), time);
 
   if (topology_val.IsHolding<pxr::HdMeshTopology>()) {
-    const pxr::HdMeshTopology &topology = topology_val.Get<pxr::HdMeshTopology>();
+    const pxr::HdMeshTopology &topology = topology_val.UncheckedGet<pxr::HdMeshTopology>();
     face_counts = topology.GetFaceVertexCounts();
     face_indices = topology.GetFaceVertexIndices();
   }

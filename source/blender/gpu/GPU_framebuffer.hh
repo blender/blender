@@ -380,7 +380,7 @@ void GPU_framebuffer_default_size(GPUFrameBuffer *fb, int width, int height);
  * \{ */
 
 /**
- * Set a the viewport offset and size.
+ * Set the viewport offset and size.
  * These are reset to the original dimensions explicitly (using `GPU_framebuffer_viewport_reset()`)
  * or when binding the frame-buffer after modifying its attachments.
  *
@@ -592,7 +592,7 @@ void GPU_framebuffer_read_color(GPUFrameBuffer *fb,
                                 void *r_data);
 
 /**
- * Read a the color of the window screen as it is currently displayed (so the previously rendered
+ * Read the color of the window screen as it is currently displayed (so the previously rendered
  * back-buffer).
  * DEPRECATED: This isn't even working correctly on some implementation.
  * TODO: Emulate this by doing some slow texture copy on the backend side or try to read the areas

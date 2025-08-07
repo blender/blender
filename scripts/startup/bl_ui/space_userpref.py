@@ -1233,6 +1233,7 @@ class USERPREF_PT_theme_interface_gizmos(ThemePanel, CenterAlignMixIn, Panel):
         col.prop(ui, "axis_x", text="Axis X")
         col.prop(ui, "axis_y", text="Y")
         col.prop(ui, "axis_z", text="Z")
+        col.prop(ui, "axis_w", text="W")
 
         col = flow.column()
         col.prop(ui, "gizmo_primary")

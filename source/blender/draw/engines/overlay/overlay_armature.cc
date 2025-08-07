@@ -2022,11 +2022,11 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
   for (bPoseChannel *pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
        pchan = pchan->next, index += 0x10000)
   {
-    Bone *bone = pchan->bone;
-    if (!blender::animrig::bone_is_visible(&arm, bone)) {
+    if (!blender::animrig::bone_is_visible_pchan(&arm, pchan)) {
       continue;
     }
 
+    Bone *bone = pchan->bone;
     const bool draw_dofs = !is_pose_select && ctx->show_relations &&
                            (ctx->draw_mode == ARM_DRAW_MODE_POSE) &&
                            (bone->flag & BONE_SELECTED) &&
@@ -2042,7 +2042,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
     }
 
     eBone_Flag boneflag = eBone_Flag(bone->flag);
-    if (bone->parent && !blender::animrig::bone_is_visible(&arm, bone->parent)) {
+    if (pchan->parent && !blender::animrig::bone_is_visible_pchan(&arm, pchan->parent)) {
       /* Avoid drawing connection line to hidden parent. */
       boneflag &= ~BONE_CONNECTED;
     }

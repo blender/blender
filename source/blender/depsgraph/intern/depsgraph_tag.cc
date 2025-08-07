@@ -505,7 +505,7 @@ void deg_graph_tag_parameters_if_needed(Main *bmain,
                            ~(ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT | ID_RECALC_BASE_FLAGS |
                              ID_RECALC_SHADING |
                              /* While drivers may use the current-frame, this value is assigned
-                              * explicitly and doesn't require a the scene to be copied again. */
+                              * explicitly and doesn't require the scene to be copied again. */
                              ID_RECALC_FRAME_CHANGE);
 
   if (clean_flags == 0) {

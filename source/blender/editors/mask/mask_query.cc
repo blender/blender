@@ -673,6 +673,25 @@ bool ED_mask_selected_minmax(const bContext *C,
   return ok;
 }
 
+void ED_mask_center_from_pivot_ex(
+    const bContext *C, ScrArea *area, float r_center[2], char mode, bool *r_has_select)
+{
+  float min[2], max[2];
+  const bool mask_selected = ED_mask_selected_minmax(C, min, max, false);
+
+  switch (mode) {
+    case V3D_AROUND_CURSOR:
+      ED_mask_cursor_location_get(area, r_center);
+      break;
+    default:
+      mid_v2_v2v2(r_center, min, max);
+      break;
+  }
+  if (r_has_select != nullptr) {
+    *r_has_select = mask_selected;
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -1008,51 +1008,6 @@ static const SocketColorFn std_node_socket_color_funcs[] = {
     std_node_socket_color_fn<SOCK_CLOSURE>,
 };
 
-/* draw function for file output node sockets,
- * displays only sub-path and format, no value button */
-static void node_file_output_socket_draw(bContext *C,
-                                         uiLayout *layout,
-                                         PointerRNA *ptr,
-                                         PointerRNA *node_ptr)
-{
-  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-  bNodeSocket *sock = (bNodeSocket *)ptr->data;
-  uiLayout *row;
-  PointerRNA inputptr;
-
-  row = &layout->row(false);
-
-  PointerRNA imfptr = RNA_pointer_get(node_ptr, "format");
-  int imtype = RNA_enum_get(&imfptr, "file_format");
-
-  if (imtype == R_IMF_IMTYPE_MULTILAYER) {
-    NodeImageMultiFileSocket *input = (NodeImageMultiFileSocket *)sock->storage;
-    inputptr = RNA_pointer_create_discrete(&ntree->id, &RNA_NodeOutputFileSlotLayer, input);
-
-    row->label(input->layer, ICON_NONE);
-  }
-  else {
-    NodeImageMultiFileSocket *input = (NodeImageMultiFileSocket *)sock->storage;
-    uiBlock *block;
-    inputptr = RNA_pointer_create_discrete(&ntree->id, &RNA_NodeOutputFileSlotFile, input);
-
-    row->label(input->path, ICON_NONE);
-
-    if (!RNA_boolean_get(&inputptr, "use_node_format")) {
-      imfptr = RNA_pointer_get(&inputptr, "format");
-    }
-
-    const char *imtype_name;
-    PropertyRNA *imtype_prop = RNA_struct_find_property(&imfptr, "file_format");
-    RNA_property_enum_name(
-        C, &imfptr, imtype_prop, RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
-    block = row->block();
-    UI_block_emboss_set(block, ui::EmbossType::Pulldown);
-    row->label(imtype_name, ICON_NONE);
-    UI_block_emboss_set(block, ui::EmbossType::None);
-  }
-}
-
 static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
 {
   const nodes::NodeDeclaration *node_decl = node.declaration();
@@ -1149,12 +1104,6 @@ static void std_node_socket_draw(
 
   if (sock->is_inactive()) {
     layout->active_set(false);
-  }
-
-  /* XXX not nice, eventually give this node its own socket type ... */
-  if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
-    node_file_output_socket_draw(C, layout, ptr, node_ptr);
-    return;
   }
 
   const bool has_gizmo = tree->runtime->gizmo_propagation ?

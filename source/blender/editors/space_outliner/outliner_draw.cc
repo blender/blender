@@ -29,6 +29,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
@@ -49,6 +50,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
+#include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 
@@ -177,12 +179,20 @@ static void restrictbutton_r_lay_fn(bContext *C, void *poin, void * /*poin2*/)
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, poin);
 }
 
-static void restrictbutton_bone_visibility_fn(bContext *C, void *poin, void * /*poin2*/)
+static void restrictbutton_bone_visibility_fn(bContext *C, void *poin, void *poin2)
 {
-  Bone *bone = (Bone *)poin;
-
+  const Object *ob = (Object *)poin;
+  bPoseChannel *pchan = (bPoseChannel *)poin2;
   if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
-    restrictbutton_recursive_bone(bone, BONE_HIDDEN_P, (bone->flag & BONE_HIDDEN_P) != 0);
+    blender::animrig::pose_bone_descendent_iterator(
+        *ob->pose, *pchan, [&](bPoseChannel &descendent) {
+          if (pchan->drawflag & PCHAN_DRAW_HIDDEN) {
+            descendent.drawflag |= PCHAN_DRAW_HIDDEN;
+          }
+          else {
+            descendent.drawflag &= ~PCHAN_DRAW_HIDDEN;
+          }
+        });
   }
 }
 
@@ -1135,7 +1145,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
 
     props.constraint_enable = RNA_struct_type_find_property(&RNA_Constraint, "mute");
 
-    props.bone_hide_viewport = RNA_struct_type_find_property(&RNA_Bone, "hide");
+    props.bone_hide_viewport = RNA_struct_type_find_property(&RNA_PoseBone, "hide");
 
     props.initialized = true;
   }
@@ -1401,7 +1411,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         Object *ob = (Object *)tselem->id;
         bArmature *arm = static_cast<bArmature *>(ob->data);
 
-        PointerRNA ptr = RNA_pointer_create_discrete(&arm->id, &RNA_Bone, bone);
+        PointerRNA ptr = RNA_pointer_create_discrete(&arm->id, &RNA_PoseBone, pchan);
 
         if (space_outliner->show_restrict_flags & SO_RESTRICT_VIEWPORT) {
           bt = uiDefIconButR_prop(block,
@@ -1419,7 +1429,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   0,
                                   TIP_("Restrict visibility in the 3D View\n"
                                        " \u2022 Shift to set children"));
-          UI_but_func_set(bt, restrictbutton_bone_visibility_fn, bone, nullptr);
+          UI_but_func_set(bt, restrictbutton_bone_visibility_fn, ob, pchan);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
           UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
         }

@@ -56,13 +56,19 @@ static void node_declare(NodeDeclarationBuilder &b)
       .static_items(interpolation_items)
       .description("Mapping from the target geometry to hit points");
 
-  b.add_input<decl::Vector>("Source Position").implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
-  b.add_input<decl::Vector>("Ray Direction").default_value({0.0f, 0.0f, -1.0f}).supports_field();
+  b.add_input<decl::Vector>("Source Position")
+      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD)
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Vector>("Ray Direction")
+      .default_value({0.0f, 0.0f, -1.0f})
+      .supports_field()
+      .structure_type(StructureType::Dynamic);
   b.add_input<decl::Float>("Ray Length")
       .default_value(100.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .supports_field();
+      .supports_field()
+      .structure_type(StructureType::Dynamic);
 
   b.add_output<decl::Bool>("Is Hit").dependent_field({2, 3, 4});
   b.add_output<decl::Vector>("Hit Position").dependent_field({2, 3, 4});

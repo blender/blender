@@ -70,6 +70,11 @@ static struct {
   char temp_dirname_base[FILE_MAX];
   /** Volatile temporary directory (owned by Blender, removed on exit). */
   char temp_dirname_session[FILE_MAX];
+  /**
+   * True when this is a sub-directory owned & created by Blender,
+   * false when a session directory couldn't be created - in this case don't delete it.
+   */
+  bool temp_dirname_session_can_be_deleted;
 } g_app{};
 
 /** \} */
@@ -1136,7 +1141,6 @@ void BKE_appdir_app_templates(ListBase *templates)
 
 /**
  * Gets the temp directory when blender first runs.
- * If the default path is not found, use try $TEMP
  *
  * Also make sure the temp dir has a trailing slash
  *
@@ -1144,16 +1148,19 @@ void BKE_appdir_app_templates(ListBase *templates)
  * \param tempdir_maxncpy: The size of the \a tempdir buffer.
  * \param userdir: Directory specified in user preferences (may be nullptr).
  * note that by default this is an empty string, only use when non-empty.
+ *
+ * \return true if `tempdir` is set.
  */
-static void where_is_temp(char *tempdir, const size_t tempdir_maxncpy, const char *userdir)
+static bool where_is_temp(char *tempdir, const size_t tempdir_maxncpy, const char *userdir)
 {
-  if (userdir && BLI_temp_directory_path_copy_if_valid(tempdir, tempdir_maxncpy, userdir)) {
-    return;
+  if (userdir) {
+    return BLI_temp_directory_path_copy_if_valid(tempdir, tempdir_maxncpy, userdir);
   }
   BLI_temp_directory_path_get(tempdir, tempdir_maxncpy);
+  return true;
 }
 
-static void tempdir_session_create(char *tempdir_session,
+static bool tempdir_session_create(char *tempdir_session,
                                    const size_t tempdir_session_maxncpy,
                                    const char *tempdir)
 {
@@ -1182,15 +1189,12 @@ static void tempdir_session_create(char *tempdir_session,
     if (BLI_is_dir(tempdir_session)) {
       BLI_path_slash_ensure(tempdir_session, tempdir_session_maxncpy);
       /* Success. */
-      return;
+      return true;
     }
   }
 
-  CLOG_WARN(&LOG,
-            "Could not generate a temp file name for '%s', falling back to '%s'",
-            tempdir_session,
-            tempdir);
-  BLI_strncpy(tempdir_session, tempdir, tempdir_session_maxncpy);
+  CLOG_WARN(&LOG, "Could not generate a temp file name for '%s'", tempdir_session);
+  return false;
 }
 
 void BKE_tempdir_init(const char *userdir)
@@ -1200,13 +1204,35 @@ void BKE_tempdir_init(const char *userdir)
    * Sets #g_app.temp_dirname_session to a #mkdtemp
    * generated sub-dir of #g_app.temp_dirname_base. */
 
-  where_is_temp(g_app.temp_dirname_base, sizeof(g_app.temp_dirname_base), userdir);
-
   /* Clear existing temp dir, if needed. */
   BKE_tempdir_session_purge();
-  /* Now that we have a valid temp dir, add system-generated unique sub-dir. */
-  tempdir_session_create(
-      g_app.temp_dirname_session, sizeof(g_app.temp_dirname_session), g_app.temp_dirname_base);
+
+  g_app.temp_dirname_session_can_be_deleted = false;
+
+  /* Only do one pass if `userdir` is null. */
+  int userdir_args_num = userdir ? 2 : 1;
+  const char *userdir_args[2] = {userdir, nullptr};
+
+  for (int i = 0; i < userdir_args_num; i++) {
+    if (where_is_temp(g_app.temp_dirname_base, sizeof(g_app.temp_dirname_base), userdir_args[i])) {
+      if (tempdir_session_create(g_app.temp_dirname_session,
+                                 sizeof(g_app.temp_dirname_session),
+                                 g_app.temp_dirname_base))
+      {
+        g_app.temp_dirname_session_can_be_deleted = true;
+        break;
+      }
+    }
+  }
+
+  if (UNLIKELY(g_app.temp_dirname_session_can_be_deleted == false)) {
+    /* This should practically never happen as either the preferences or the systems
+     * default temporary directory should be usable, if not, use the base directory and warn. */
+    STRNCPY(g_app.temp_dirname_session, g_app.temp_dirname_base);
+    CLOG_WARN(&LOG,
+              "Could not generate a temp session subdirectory, falling back to '%s'",
+              g_app.temp_dirname_base);
+  }
 }
 
 const char *BKE_tempdir_session()
@@ -1221,6 +1247,11 @@ const char *BKE_tempdir_base()
 
 void BKE_tempdir_session_purge()
 {
+  if (g_app.temp_dirname_session_can_be_deleted == false) {
+    /* It's possible this path references an arbitrary location
+     * in that case *never* recursively remove, see: #139585. */
+    return;
+  }
   if (g_app.temp_dirname_session[0] && BLI_is_dir(g_app.temp_dirname_session)) {
     BLI_delete(g_app.temp_dirname_session, true, true);
   }

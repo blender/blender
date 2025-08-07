@@ -14,7 +14,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>("Face Index")
       .implicit_field(NODE_DEFAULT_INPUT_INDEX_FIELD)
-      .description("The face to retrieve data from. Defaults to the face from the context");
+      .description("The face to retrieve data from. Defaults to the face from the context")
+      .structure_type(StructureType::Field);
   b.add_input<decl::Float>("Weights").supports_field().hide_value().description(
       "Values used to sort the face's corners. Uses indices by default");
   b.add_input<decl::Int>("Sort Index")

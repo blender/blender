@@ -425,8 +425,10 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
 
     /* Prepare the dynamic "enqueue" arguments */
     size_t dynamic_bytes_written = 0;
+    size_t max_size_in_bytes = 0;
     for (size_t i = 0; i < args.count; i++) {
       size_t size_in_bytes = args.sizes[i];
+      max_size_in_bytes = max(max_size_in_bytes, size_in_bytes);
       dynamic_bytes_written = round_up(dynamic_bytes_written, size_in_bytes);
       memcpy(dynamic_args + dynamic_bytes_written, args.values[i], size_in_bytes);
       if (args.types[i] == DeviceKernelArguments::POINTER) {
@@ -437,6 +439,9 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
       }
       dynamic_bytes_written += size_in_bytes;
     }
+    /* Apply conventional struct alignment (stops asserts firing when API validation is enabled).
+     */
+    dynamic_bytes_written = round_up(dynamic_bytes_written, max_size_in_bytes);
 
     /* Check that the dynamic args didn't overflow. */
     assert(dynamic_bytes_written <= sizeof(dynamic_args));

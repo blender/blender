@@ -118,7 +118,10 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void node_label(const bNodeTree * /*ntree*/, const bNode *node, char *label, int maxlen)
+static void node_label(const bNodeTree * /*ntree*/,
+                       const bNode *node,
+                       char *label,
+                       int label_maxncpy)
 {
   char name[64] = {0};
   const char *operation_name = IFACE_("Unknown");
@@ -127,7 +130,7 @@ static void node_label(const bNodeTree * /*ntree*/, const bNode *node, char *lab
   RNA_enum_name_gettexted(
       bit_math_operation_items.data(), node->custom1, BLT_I18NCONTEXT_DEFAULT, &operation_name);
   SNPRINTF(name, IFACE_("Bitwise %s"), operation_name);
-  BLI_strncpy(label, name, maxlen);
+  BLI_strncpy(label, name, label_maxncpy);
 }
 
 static const mf::MultiFunction *get_multi_function(const bNode &bnode)

@@ -6786,7 +6786,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       if (in_sock != nullptr && link == nullptr) {
         blender::bke::node_add_link(*ntree, *out_node, *out_sock, *in_node, *in_sock);
 
-        blender::bke::node_position_relative(*out_node, *in_node, *out_sock, *in_sock);
+        blender::bke::node_position_relative(*out_node, *in_node, out_sock, *in_sock);
       }
     }
 

@@ -135,6 +135,13 @@ static void wm_operatortype_append__end(wmOperatorType *ot)
 
   BLI_assert(WM_operator_bl_idname_is_valid(ot->idname));
   get_operators_map().add_new(ot);
+
+  /* Needed so any operators registered after startup will have their shortcuts set,
+   * in "register" scripts for example, see: #143838.
+   *
+   * This only has run-time implications when run after startup,
+   * it's a no-op when run beforehand, see: #WM_keyconfig_update_on_startup. */
+  WM_keyconfig_update_operatortype_tag();
 }
 
 /* All ops in 1 list (for time being... needs evaluation later). */
@@ -179,7 +186,7 @@ void WM_operatortype_remove_ptr(wmOperatorType *ot)
 
   get_operators_map().remove(ot);
 
-  WM_keyconfig_update_operatortype();
+  WM_keyconfig_update_operatortype_tag();
 
   MEM_freeN(ot);
 }

@@ -84,6 +84,10 @@ USE_ONLY_BUILTIN_RNA_TYPES = True
 # `source/blender/makesrna/RNA_enum_items.hh` so the enums can be linked to instead of being expanded everywhere.
 USE_SHARED_RNA_ENUM_ITEMS_STATIC = True
 
+# Generate a list of types which support custom properties.
+# This isn't listed anywhere, it's just linked to.
+USE_RNA_TYPES_WITH_CUSTOM_PROPERTY_INDEX = True
+
 # Other types are assumed to be `bpy.types.*`.
 PRIMITIVE_TYPE_NAMES = {"bool", "bytearray", "bytes", "dict", "float", "int", "list", "set", "str", "tuple"}
 
@@ -2136,6 +2140,13 @@ def write_rst_types_index(basepath):
             fw("   :maxdepth: 1\n\n")
             fw("   Shared Enum Types <bpy_types_enum_items/index>\n\n")
 
+        # This needs to be included somewhere, while it's hidden, list to avoid warnings.
+        if USE_RNA_TYPES_WITH_CUSTOM_PROPERTY_INDEX:
+            fw(".. toctree::\n")
+            fw("   :hidden:\n")
+            fw("   :maxdepth: 1\n\n")
+            fw("   Types with Custom Property Support <bpy_types_custom_properties>\n\n")
+
 
 def write_rst_ops_index(basepath):
     """
@@ -2300,6 +2311,49 @@ def write_rst_enum_items_and_index(basepath):
             key_no_prefix = key.removeprefix("rna_enum_")
             write_rst_enum_items(basepath_bpy_types_rna_enum, key, key_no_prefix, enum_items)
         fw("\n")
+
+
+def write_rst_rna_types_with_custom_property_support(basepath):
+    from bpy.types import bpy_struct_meta_idprop
+
+    types_exclude = {
+        "IDPropertyWrapPtr",  # Internal type, exclude form public docs.
+    }
+    types_found = []
+
+    for ty_id in dir(bpy.types):
+        if ty_id.startswith("_"):
+            continue
+        if ty_id in types_exclude:
+            continue
+
+        ty = getattr(bpy.types, ty_id)
+        if not isinstance(ty, bpy_struct_meta_idprop):
+            continue
+
+        # Don't include every sub-type as it's very noisy and not helpful.
+        if any((isinstance(ty_base, bpy_struct_meta_idprop) for ty_base in ty.__bases__)):
+            continue
+
+        types_found.append(ty_id)
+
+    types_found.sort()
+
+    with open(os.path.join(basepath, "bpy_types_custom_properties.rst"), "w", encoding="utf-8") as fh:
+        fw = fh.write
+
+        fw(".. _bpy_types-custom_properties:\n\n")
+
+        fw(title_string("Types with Custom Property Support", "="))
+        fw("\n")
+        fw("The following types (and their sub-types) have custom-property access.\n\n")
+
+        fw("For examples on using custom properties see the quick-start section on\n")
+        fw(":ref:`info_quickstart-custom_properties`.\n")
+
+        fw("\n")
+        for ty_id in types_found:
+            fw("- :class:`bpy.types.{:s}`\n".format(ty_id))
 
 
 def write_rst_importable_modules(basepath):
@@ -2492,6 +2546,9 @@ def rna2sphinx(basepath):
     # `bpy_types_enum_items/*` (referenced from `bpy.types`).
     if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
         write_rst_enum_items_and_index(basepath)
+
+    if USE_RNA_TYPES_WITH_CUSTOM_PROPERTY_INDEX:
+        write_rst_rna_types_with_custom_property_support(basepath)
 
     # Copy the other RST files.
     copy_handwritten_rsts(basepath)

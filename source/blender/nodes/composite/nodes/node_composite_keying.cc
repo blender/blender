@@ -172,7 +172,7 @@ class KeyingOperation : public NodeOperation {
 
   void execute() override
   {
-    const Result &input_image = get_result("Image");
+    const Result &input_image = get_input("Image");
     Result &output_image = get_result("Image");
     Result &output_matte = get_result("Matte");
     Result &output_edges = get_result("Edges");
@@ -687,7 +687,7 @@ class KeyingOperation : public NodeOperation {
 
   int get_postprocess_dilate_size()
   {
-    return math::max(0, this->get_input("Postprocess Dilate Size").get_single_value_default(0));
+    return this->get_input("Postprocess Dilate Size").get_single_value_default(0);
   }
 
   Result compute_feathered_matte(Result &input_matte)
@@ -711,7 +711,7 @@ class KeyingOperation : public NodeOperation {
 
   int get_postprocess_feather_size()
   {
-    return math::max(0, this->get_input("Postprocess Feather Size").get_single_value_default(0));
+    return this->get_input("Postprocess Feather Size").get_single_value_default(0);
   }
 
   void compute_image(Result &matte)

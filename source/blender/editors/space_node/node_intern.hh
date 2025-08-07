@@ -137,7 +137,6 @@ enum NodeResizeDirection {
 ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
 
 /* Nodes draw without DPI - the view zoom is flexible. */
-#define COLLAPSED_RAD (0.75f * U.widget_unit)
 #define BASIS_RAD (0.2f * U.widget_unit)
 #define NODE_DYS (U.widget_unit / 2)
 #define NODE_DY U.widget_unit
@@ -389,10 +388,6 @@ void NODE_OT_activate_viewer(wmOperatorType *ot);
 
 void NODE_OT_read_viewlayers(wmOperatorType *ot);
 void NODE_OT_render_changed(wmOperatorType *ot);
-
-void NODE_OT_output_file_add_socket(wmOperatorType *ot);
-void NODE_OT_output_file_remove_active_socket(wmOperatorType *ot);
-void NODE_OT_output_file_move_active_socket(wmOperatorType *ot);
 
 /**
  * \note clipboard_cut is a simple macro of copy + delete.

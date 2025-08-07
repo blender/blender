@@ -4304,7 +4304,7 @@ static wmOperatorStatus edbm_select_mirror_exec(bContext *C, wmOperator *op)
   }
 
   if (tot_mirr || tot_fail) {
-    ED_mesh_report_mirror_ex(op, tot_mirr, tot_fail, select_mode);
+    ED_mesh_report_mirror_ex(*op->reports, tot_mirr, tot_fail, select_mode);
   }
   return OPERATOR_FINISHED;
 }

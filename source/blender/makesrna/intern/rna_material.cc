@@ -333,7 +333,7 @@ static void rna_TexPaintSlot_uv_layer_set(PointerRNA *ptr, const char *value)
   TexPaintSlot *data = (TexPaintSlot *)(ptr->data);
 
   if (data->uvname != nullptr) {
-    BLI_strncpy_utf8(data->uvname, value, 64);
+    BLI_strncpy_utf8(data->uvname, value, MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX);
   }
 }
 
@@ -1247,7 +1247,8 @@ static void rna_def_tex_slot(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Icon", "Paint slot icon");
 
   prop = RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_maxlength(prop, 64); /* else it uses the pointer size! */
+  RNA_def_property_string_maxlength(
+      prop, MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX); /* Else it uses the pointer size! */
   RNA_def_property_string_sdna(prop, nullptr, "uvname");
   RNA_def_property_string_funcs(prop,
                                 "rna_TexPaintSlot_uv_layer_get",

@@ -3201,8 +3201,8 @@ static void version_escape_curly_braces_in_compositor_file_output_nodes(bNodeTre
       continue;
     }
 
-    NodeImageMultiFile *node_data = static_cast<NodeImageMultiFile *>(node->storage);
-    version_escape_curly_braces(node_data->base_path, FILE_MAX);
+    NodeCompositorFileOutput *node_data = static_cast<NodeCompositorFileOutput *>(node->storage);
+    version_escape_curly_braces(node_data->directory, FILE_MAX);
 
     LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
       NodeImageMultiFileSocket *socket_data = static_cast<NodeImageMultiFileSocket *>(

@@ -1234,32 +1234,61 @@ typedef struct NodeImageFile {
   int sfra, efra;
 } NodeImageFile;
 
-/**
- * XXX: first struct fields should match #NodeImageFile to ensure forward compatibility.
- */
-typedef struct NodeImageMultiFile {
-  char base_path[/*FILE_MAX*/ 1024];
-  ImageFormatData format;
-  /** XXX old frame rand values from NodeImageFile for forward compatibility. */
-  int sfra DNA_DEPRECATED, efra DNA_DEPRECATED;
-  /** Selected input in details view list. */
-  int active_input;
+typedef struct NodeCompositorFileOutputItem {
+  /* The unique identifier of the item used to construct the socket identifier. */
+  int identifier;
+  /* The type of socket for the item, which is limited to the types listed in the
+   * FileOutputItemsAccessor::supports_socket_type. */
+  int16_t socket_type;
+  /* The number of dimensions in the vector socket if the socket type is vector, otherwise, it is
+   * unused, */
+  char vector_socket_dimensions;
+  /* If true and the node is saving individual files, the format an save_as_render members of this
+   * struct will be used, otherwise, the members of the NodeCompositorFileOutput struct will be
+   * used for all items. */
+  char override_node_format;
+  /* Apply the render part of the display transform when saving non-linear images. Unused if
+   * override_node_format is false or the node is saving multi-layer images. */
   char save_as_render;
-  char _pad[3];
-} NodeImageMultiFile;
+  char _pad[7];
+  /* The unique name of the item. It is used as the file name when saving individual files and used
+   * as the layer name when saving multi-layer images. */
+  char *name;
+  /* The image format to use when saving individual images and override_node_format is true. */
+  ImageFormatData format;
+} NodeCompositorFileOutputItem;
+
+typedef struct NodeCompositorFileOutput {
+  char directory[/*FILE_MAX*/ 1024];
+  /* The base name of the file. Can be nullptr. */
+  char *file_name;
+  /* The image format to use when saving the images. */
+  ImageFormatData format;
+  /* The file output images. They can represent individual images or layers depending on whether
+   * multi-layer images are being saved. */
+  NodeCompositorFileOutputItem *items;
+  /* The number of file output items. */
+  int items_count;
+  /* The currently active file output item. */
+  int active_item_index;
+  /* Apply the render part of the display transform when saving non-linear images. */
+  char save_as_render;
+  char _pad[7];
+} NodeCompositorFileOutput;
+
 typedef struct NodeImageMultiFileSocket {
   /* single layer file output */
   short use_render_format DNA_DEPRECATED;
   /** Use overall node image format. */
-  short use_node_format;
-  char save_as_render;
+  short use_node_format DNA_DEPRECATED;
+  char save_as_render DNA_DEPRECATED;
   char _pad1[3];
-  char path[/*FILE_MAX*/ 1024];
-  ImageFormatData format;
+  char path[/*FILE_MAX*/ 1024] DNA_DEPRECATED;
+  ImageFormatData format DNA_DEPRECATED;
 
   /* Multi-layer output. */
   /** Subtract 2 because '.' and channel char are appended. */
-  char layer[/*EXR_TOT_MAXNAME - 2*/ 62];
+  char layer[/*EXR_TOT_MAXNAME - 2*/ 62] DNA_DEPRECATED;
   char _pad2[2];
 } NodeImageMultiFileSocket;
 

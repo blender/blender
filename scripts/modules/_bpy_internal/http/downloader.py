@@ -1326,7 +1326,7 @@ def _cleanup_main_file_attribute() -> Generator[None]:
     """
 
     try:
-        __main__ = sys.modules['__main__']
+        main_module = sys.modules['__main__']
     except KeyError:
         # No __main__ is fine.
         yield
@@ -1336,13 +1336,13 @@ def _cleanup_main_file_attribute() -> Generator[None]:
     # that will cause problems. Python dunder variables like this can
     # trigger all kinds of unknown magics, so they should be left alone
     # as much as possible.
-    old_file = getattr(__main__, '__file__', None)
+    old_file = getattr(main_module, '__file__', None)
     if old_file != "<blender string>":
         yield
         return
 
     try:
-        del __main__.__file__
+        del main_module.__file__
         yield
     finally:
-        __main__.__file__ = old_file
+        main_module.__file__ = old_file

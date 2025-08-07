@@ -460,7 +460,7 @@ class IMAGE_MT_uvs(Menu):
 
         layout.separator()
 
-        layout.operator("uv.mark_seam").clear = False
+        layout.operator("uv.mark_seam", icon="ICON_EDGE_SEAM").clear = False
         layout.operator("uv.mark_seam", text="Clear Seam").clear = True
         layout.operator("uv.seams_from_islands")
 

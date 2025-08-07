@@ -703,7 +703,7 @@ void ANIM_center_frame(bContext *C, int smooth_viewtx)
 
   switch (U.view_frame_type) {
     case ZOOM_FRAME_MODE_SECONDS: {
-      const float fps = FPS;
+      const float fps = scene->frames_per_second();
       newrct.xmax = scene->r.cfra + U.view_frame_seconds * fps + 1;
       newrct.xmin = scene->r.cfra - U.view_frame_seconds * fps - 1;
       newrct.ymax = region->v2d.cur.ymax;

@@ -8263,7 +8263,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 
   const bool is_disabled = but->flag & UI_BUT_DISABLED || data->disable_force;
 
-  /* if but->pointype is set, but->poin should be too */
+  /* If `but->pointype` is set, `but->poin` should be too. */
   BLI_assert(!bool(but->pointype) || but->poin);
 
   /* Only hard-coded stuff here, button interactions with configurable

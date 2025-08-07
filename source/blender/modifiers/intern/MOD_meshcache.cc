@@ -85,7 +85,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
                                    nullptr;
   float(*vertexCos)[3] = vertexCos_Store ? vertexCos_Store : vertexCos_Real;
 
-  const float fps = FPS;
+  const float fps = scene->frames_per_second();
 
   char filepath[FILE_MAX];
   const char *err_str = nullptr;

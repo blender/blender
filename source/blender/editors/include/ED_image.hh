@@ -112,6 +112,7 @@ bool ED_image_slot_cycle(Image *image, int direction);
 
 bool ED_space_image_show_render(const SpaceImage *sima);
 bool ED_space_image_show_paint(const SpaceImage *sima);
+bool ED_space_image_show_mask(const SpaceImage *sima);
 bool ED_space_image_show_uvedit(const SpaceImage *sima, Object *obedit);
 
 bool ED_space_image_paint_curve(const bContext *C);

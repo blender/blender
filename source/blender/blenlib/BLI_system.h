@@ -29,9 +29,9 @@ char *BLI_cpu_brand_string(void);
  * purposes, and not for reachability over a network.
  *
  * \param buffer: Character buffer to write the hostname into.
- * \param bufsize: Size of the character buffer, including trailing '\0'.
+ * \param buffer_maxncpy: Size of the character buffer, including trailing '\0'.
  */
-void BLI_hostname_get(char *buffer, size_t bufsize);
+void BLI_hostname_get(char *buffer, size_t buffer_maxncpy);
 
 /** Get maximum addressable memory in megabytes. */
 size_t BLI_system_memory_max_in_megabytes(void);

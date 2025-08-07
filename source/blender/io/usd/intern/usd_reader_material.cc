@@ -250,7 +250,7 @@ static pxr::TfToken get_source_color_space(const pxr::UsdShadeShader &usd_shader
 
   pxr::VtValue color_space_val;
   if (color_space_input.Get(&color_space_val) && color_space_val.IsHolding<pxr::TfToken>()) {
-    return color_space_val.Get<pxr::TfToken>();
+    return color_space_val.UncheckedGet<pxr::TfToken>();
   }
 
   return pxr::TfToken();
@@ -273,7 +273,7 @@ static int get_image_extension(const pxr::UsdShadeShader &usd_shader, const int 
     return default_value;
   }
 
-  pxr::TfToken wrap_val = wrap_input_val.Get<pxr::TfToken>();
+  pxr::TfToken wrap_val = wrap_input_val.UncheckedGet<pxr::TfToken>();
 
   if (wrap_val == usdtokens::repeat) {
     return SHD_IMAGE_EXTENSION_REPEAT;
@@ -341,7 +341,7 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
     if (metallic_input.GetAttr().HasAuthoredValue() && metallic_input.GetAttr().Get(&val) &&
         val.IsHolding<float>())
     {
-      mtl->metallic = val.Get<float>();
+      mtl->metallic = val.UncheckedGet<float>();
     }
   }
 
@@ -350,7 +350,7 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
     if (roughness_input.GetAttr().HasAuthoredValue() && roughness_input.GetAttr().Get(&val) &&
         val.IsHolding<float>())
     {
-      mtl->roughness = val.Get<float>();
+      mtl->roughness = val.UncheckedGet<float>();
     }
   }
 }
@@ -1292,7 +1292,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
     return;
   }
 
-  const pxr::SdfAssetPath &asset_path = file_val.Get<pxr::SdfAssetPath>();
+  const pxr::SdfAssetPath &asset_path = file_val.UncheckedGet<pxr::SdfAssetPath>();
   std::string file_path = asset_path.GetResolvedPath();
 
   if (file_path.empty()) {

@@ -219,8 +219,10 @@ static float wpaint_blend(const VPaint &wp,
   weight = ED_wpaint_blend_tool(blend, weight, paintval, alpha);
 
   CLAMP(weight, 0.0f, 1.0f);
-
-  return weight;
+  /* The following is a reasonable lower bound for values that a user may want for weight values,
+   * without this rounding, attempting to paint to an exact value of 0.0 becomes tedious. */
+  constexpr float threshold = 0.0001f;
+  return weight < threshold ? 0.0f : weight;
 }
 
 static float wpaint_clamp_monotonic(float oldval, float curval, float newval)

@@ -17,6 +17,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_compositor.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"
@@ -40,6 +41,8 @@
 #include "UI_resources.hh"
 
 #include "GPU_shader.hh"
+
+#include "NOD_node_extra_info.hh"
 
 #include "COM_algorithm_extract_alpha.hh"
 #include "COM_node_operation.hh"
@@ -672,6 +675,43 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
   RNA_string_set(&op_ptr, "scene", scene_name);
 }
 
+/* Give a warning if passes are used with a render engine that does not support them. */
+static void node_extra_info(NodeExtraInfoParams &parameters)
+{
+  const Scene *scene = CTX_data_scene(&parameters.C);
+
+  /* EEVEE supports passes. */
+  if (StringRef(scene->r.engine) == RE_engine_id_BLENDER_EEVEE) {
+    return;
+  }
+
+  if (!bke::compositor::is_viewport_compositor_used(parameters.C)) {
+    return;
+  }
+
+  bool is_any_pass_used = false;
+  for (const bNodeSocket *output : parameters.node.output_sockets()) {
+    /* Combined pass is always available. */
+    if (StringRef(output->name) == "Image" || StringRef(output->name) == "Alpha") {
+      continue;
+    }
+    if (output->is_logically_linked()) {
+      is_any_pass_used = true;
+      break;
+    }
+  }
+
+  if (!is_any_pass_used) {
+    return;
+  }
+
+  NodeExtraInfoRow row;
+  row.text = RPT_("Passes Not Supported");
+  row.tooltip = TIP_("Render passes in the Viewport compositor are only supported in EEVEE");
+  row.icon = ICON_ERROR;
+  parameters.rows.append(std::move(row));
+}
+
 using namespace blender::compositor;
 
 class RenderLayerOperation : public NodeOperation {
@@ -724,7 +764,6 @@ class RenderLayerOperation : public NodeOperation {
     if (!pass.is_allocated()) {
       /* Pass not rendered yet, or not supported by viewport. */
       result.allocate_invalid();
-      this->context().set_info_message("Viewport compositor setup not fully supported");
       return;
     }
 
@@ -854,8 +893,6 @@ static void register_node_type_cmp_rlayers()
   ntype.initfunc_api = file_ns::node_composit_init_rlayers;
   ntype.poll = file_ns::node_composit_poll_rlayers;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.compositor_unsupported_message = N_(
-      "Render passes in the Viewport compositor are only supported in EEVEE");
   ntype.flag |= NODE_PREVIEW;
   blender::bke::node_type_storage(ntype,
                                   std::nullopt,
@@ -863,6 +900,7 @@ static void register_node_type_cmp_rlayers()
                                   file_ns::node_composit_copy_rlayers);
   ntype.updatefunc = file_ns::cmp_node_rlayers_update;
   ntype.initfunc = node_cmp_rlayers_outputs;
+  ntype.get_extra_info = file_ns::node_extra_info;
   blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Large);
 
   blender::bke::node_register_type(ntype);

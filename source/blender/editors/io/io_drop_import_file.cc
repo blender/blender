@@ -83,17 +83,26 @@ static void file_handler_import_operator_write_ptr(
     }
   }
   const bool has_any_filepath_prop = filepath_prop || directory_prop || files_prop;
-  /**
-   * The `directory` and `files` properties are both required for handling multiple files, if
-   * only one is defined means that the other is missing.
-   */
-  const bool has_missing_filepath_prop = bool(directory_prop) != bool(files_prop);
-
-  if (!has_any_filepath_prop || has_missing_filepath_prop) {
-    const char *message =
-        "Expected operator properties filepath or files and directory not found. Refer to "
-        "FileHandler documentation for details.";
-    CLOG_WARN(&LOG, "%s", message);
+  if (!has_any_filepath_prop) {
+    CLOG_WARN(&LOG,
+              "The '%s' file handler import operator ('%s') is missing the required operator "
+              "properties.",
+              file_handler->idname,
+              file_handler->import_operator);
+  }
+  if (directory_prop && !files_prop) {
+    CLOG_WARN(
+        &LOG,
+        "The '%s' file handler import operator ('%s') is missing the 'files' operator property.",
+        file_handler->idname,
+        file_handler->import_operator);
+  }
+  if (!directory_prop && files_prop) {
+    CLOG_WARN(&LOG,
+              "The '%s' file handler import operator ('%s') is missing the 'directory' operator "
+              "property.",
+              file_handler->idname,
+              file_handler->import_operator);
   }
 }
 

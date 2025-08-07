@@ -501,7 +501,7 @@ static bool gpencil_frame_snap_nearest(bGPDframe * /*gpf*/, Scene * /*scene*/)
 
 static bool gpencil_frame_snap_nearestsec(bGPDframe *gpf, Scene *scene)
 {
-  float secf = float(FPS);
+  float secf = float(scene->frames_per_second());
   if (gpf->flag & GP_FRAME_SELECT) {
     gpf->framenum = int(floorf(gpf->framenum / secf + 0.5f) * secf);
   }

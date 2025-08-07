@@ -280,6 +280,7 @@ static void SCENE_OT_new(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = scene_new_exec;
   ot->invoke = WM_menu_invoke;
+  ot->poll = WM_operator_winactive;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -15,6 +15,7 @@ __all__ = (
 
 
 def keyconfig_update(keyconfig_data, keyconfig_version):
+    import re
     from bpy.app import version_file as blender_version
     if keyconfig_version >= blender_version:
         return keyconfig_data
@@ -207,5 +208,74 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
         rename_keymap({"Sequencer Tool: Move": "Preview Tool: Move"})
         rename_keymap({"Sequencer Tool: Rotate": "Preview Tool: Rotate"})
         rename_keymap({"Sequencer Tool: Scale": "Preview Tool: Scale"})
+
+    if keyconfig_version < (5, 0, 53):
+        if not has_copy:
+            keyconfig_data = copy.deepcopy(keyconfig_data)
+            has_copy = True
+
+        # The `unified_paint_setting` struct was moved from `tool_settings` to be a sub-property of a given individual
+        # paint type.
+        #
+        # The following conversion maps from the old values of
+        # `tool_settings.unified_paint_settings.<property_name>`
+        # to
+        # `tool_settings.<paint_mode>.unified_paint_settings.<property_name>`
+        # where <paint_mode> is retrieved from the `data_path_primary` property
+        #
+        # Example:
+        # `tool_settings.unified_paint_settings.size`
+        # and
+        # `tool_settings.unified_paint_settings.use_unified_size`
+        # for an operator with
+        # `tool_settings.sculpt.brush.size`
+        # become
+        # `tool_settings.sculpt.unified_paint_settings.size`
+        # and
+        # `tool_settings.sculpt.unified_paint_settings.use_unified_size`
+
+        # Match paths of the form 'tool_settings.<paint_mode>.brush.<remaining_path>'
+        re_toolsetting_brush = re.compile(r"^(tool_settings)\.([a-z_]+)\.(brush)\.(.*)")
+
+        for _km_name, _km_parms, km_items_data in keyconfig_data:
+            for (item_op, _item_event, item_prop) in km_items_data["items"]:
+                if item_op == "wm.radial_control":
+                    updated_path_elements = []
+                    secondary_path_index = -1
+                    secondary_path_identifier = ""
+                    toggle_path_index = -1
+                    toggle_path_identifier = ""
+
+                    for prop_idx, (prop_id, prop_path) in enumerate(item_prop["properties"]):
+                        if prop_id == "data_path_primary":
+                            if re_toolsetting_brush.fullmatch(prop_path):
+                                # Example:
+                                # 'tool_settings.sculpt.brush.size'
+                                # results in
+                                # ['tool_settings', 'sculpt', 'unified_paint_settings']
+                                updated_path_elements = prop_path.split(".")[0:2]
+                                updated_path_elements.append("unified_paint_settings")
+                        elif prop_id == "data_path_secondary":
+                            if prop_path.startswith("tool_settings.unified_paint_settings."):
+                                # Example:
+                                # 'tool_settings.unified_paint_settings.size'
+                                # results in
+                                # 'size'
+                                secondary_path_index = prop_idx
+                                secondary_path_identifier = prop_path.split(".", 2)[-1]
+                        elif prop_id == "use_secondary":
+                            if prop_path.startswith("tool_settings.unified_paint_settings."):
+                                # Example:
+                                # 'tool_settings.unified_paint_settings.use_unified_size'
+                                # results in
+                                # 'use_unified_size'
+                                toggle_path_index = prop_idx
+                                toggle_path_identifier = prop_path.split(".", 2)[-1]
+
+                    if updated_path_elements and secondary_path_index != -1 and toggle_path_index != -1:
+                        item_prop["properties"][secondary_path_index] = (
+                            "data_path_secondary", ".".join((*updated_path_elements, secondary_path_identifier)))
+                        item_prop["properties"][toggle_path_index] = (
+                            "use_secondary", ".".join((*updated_path_elements, toggle_path_identifier)))
 
     return keyconfig_data

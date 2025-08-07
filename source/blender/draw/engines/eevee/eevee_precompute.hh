@@ -44,7 +44,7 @@ class Precompute {
   }
 
   /**
-   * Write a the content of a texture to a PFM image file for inspection.
+   * Write the content of a texture to a PFM image file for inspection.
    * OpenGL texture coordinate convention with Y up is respected.
    */
   template<typename VecT>
@@ -89,7 +89,7 @@ class Precompute {
   }
 
   /**
-   * Write a the content of a texture as a C++ header file array.
+   * Write the content of a texture as a C++ header file array.
    * The content is to be copied to `eevee_lut.cc` and formatted with `make format`.
    */
   template<typename VecT>

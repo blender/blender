@@ -733,6 +733,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "BLI_index_range.hh"
 #  include "BLI_string_utils.hh"
 
 #  include "DNA_anim_types.h"
@@ -780,6 +781,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include "BKE_unit.hh"
 
 #  include "NOD_composite.hh"
+#  include "NOD_compositor_file_output.hh"
 
 #  include "ED_grease_pencil.hh"
 #  include "ED_image.hh"
@@ -813,6 +815,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include "ANIM_keyingsets.hh"
 
 using blender::Vector;
+using blender::nodes::FileOutputItemsAccessor;
 
 static int rna_ToolSettings_snap_mode_get(PointerRNA *ptr)
 {
@@ -1335,24 +1338,26 @@ static std::optional<std::string> rna_ImageFormatSettings_path(
 
       for (bNode *node : ntree->all_nodes()) {
         if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
-          if (match(&((NodeImageMultiFile *)node->storage)->format)) {
+          NodeCompositorFileOutput &storage = *static_cast<NodeCompositorFileOutput *>(
+              node->storage);
+          if (match(&storage.format)) {
             char node_name_esc[sizeof(node->name) * 2];
             BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
             return fmt::format("nodes[\"{}\"].format", node_name_esc);
           }
           else {
-            LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-              NodeImageMultiFileSocket *sockdata = static_cast<NodeImageMultiFileSocket *>(
-                  socket->storage);
-              if (match(&sockdata->format)) {
+            for (const int i : blender::IndexRange(storage.items_count)) {
+              NodeCompositorFileOutputItem &item = storage.items[i];
+              if (match(&item.format)) {
                 char node_name_esc[sizeof(node->name) * 2];
                 BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
 
-                char socketdata_path_esc[sizeof(sockdata->path) * 2];
-                BLI_str_escape(socketdata_path_esc, sockdata->path, sizeof(socketdata_path_esc));
-
-                return fmt::format(
-                    "nodes[\"{}\"].file_slots[\"{}\"].format", node_name_esc, socketdata_path_esc);
+                const std::string identifier = FileOutputItemsAccessor::socket_identifier_for_item(
+                    item);
+                const std::string escaped_identifier = BLI_str_escape(identifier.c_str());
+                return fmt::format("nodes[\"{}\"].file_output_items[\"{}\"].format",
+                                   node_name_esc,
+                                   escaped_identifier.c_str());
               }
             }
           }
@@ -3671,32 +3676,29 @@ static void rna_def_tool_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "snap_elements", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_mode");
-  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG | PROP_DEG_SYNC_ONLY);
   RNA_def_property_enum_items(prop, rna_enum_snap_element_items);
   RNA_def_property_enum_funcs(
       prop, "rna_ToolSettings_snap_mode_get", "rna_ToolSettings_snap_mode_set", nullptr);
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_ui_text(prop, "Snap Element", "Type of element to snap to");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   prop = RNA_def_property(srna, "snap_elements_base", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_mode");
-  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG | PROP_DEG_SYNC_ONLY);
   RNA_def_property_enum_items(prop, rna_enum_snap_element_base_items);
   RNA_def_property_enum_funcs(
       prop, "rna_ToolSettings_snap_mode_get", "rna_ToolSettings_snap_mode_set", nullptr);
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_ui_text(
       prop, "Snap Element", "Type of element for the \"Snap Base\" to snap to");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   prop = RNA_def_property(srna, "snap_elements_individual", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_mode");
-  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG | PROP_DEG_SYNC_ONLY);
   RNA_def_property_enum_items(prop, rna_enum_snap_element_individual_items);
   RNA_def_property_enum_funcs(
       prop, "rna_ToolSettings_snap_mode_get", "rna_ToolSettings_snap_mode_set", nullptr);
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_ui_text(
       prop, "Project Mode", "Type of element for individual transformed elements to snap to");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
@@ -6035,8 +6037,8 @@ static void rna_def_bake_data(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "pass_filter", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "pass_filter");
-  RNA_def_property_enum_items(prop, rna_enum_bake_pass_filter_type_items);
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  RNA_def_property_enum_items(prop, rna_enum_bake_pass_filter_type_items);
   RNA_def_property_ui_text(prop, "Pass Filter", "Passes to include in the active baking pass");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
@@ -7791,8 +7793,9 @@ static void rna_def_scene_keying_sets(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_ui_description(func, "Add a new Keying Set to Scene");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   /* name */
-  RNA_def_string(func, "idname", "KeyingSet", 64, "IDName", "Internal identifier of Keying Set");
-  RNA_def_string(func, "name", "KeyingSet", 64, "Name", "User visible name of Keying Set");
+  RNA_def_string(
+      func, "idname", "KeyingSet", MAX_NAME, "IDName", "Internal identifier of Keying Set");
+  RNA_def_string(func, "name", "KeyingSet", MAX_NAME, "Name", "User visible name of Keying Set");
   /* returns the new KeyingSet */
   parm = RNA_def_pointer(func, "keyingset", "KeyingSet", "", "Newly created Keying Set");
   RNA_def_function_return(func, parm);

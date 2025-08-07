@@ -14,7 +14,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>("Curve Index")
       .implicit_field(NODE_DEFAULT_INPUT_INDEX_FIELD)
-      .description("The curve to retrieve data from. Defaults to the curve from the context");
+      .description("The curve to retrieve data from. Defaults to the curve from the context")
+      .structure_type(StructureType::Field);
   b.add_input<decl::Float>("Weights").supports_field().hide_value().description(
       "Values used to sort the curve's points. Uses indices by default");
   b.add_input<decl::Int>("Sort Index")

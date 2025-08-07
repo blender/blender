@@ -1186,7 +1186,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
       /* We include PROP_NONE here because some plain string properties are used
        * as parts of paths. For example, the sub-paths in the compositor's File
        * Output node. */
-      if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_NONE)) {
+      if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME, PROP_NONE)) {
         /* Template parse errors, for paths that support it. */
         if ((RNA_property_flag(rnaprop) & PROP_PATH_SUPPORTS_TEMPLATES) != 0) {
           const std::string path = RNA_property_string_get(&but->rnapoin, rnaprop);

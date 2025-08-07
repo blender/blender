@@ -514,7 +514,7 @@ void BKE_workspace_tool_id_replace_table(WorkSpace *workspace,
                                          int replace_table_num)
 {
   const size_t idname_prefix_len = idname_prefix_skip ? strlen(idname_prefix_skip) : 0;
-  const size_t idname_suffix_len = sizeof(bToolRef::idname) - idname_prefix_len;
+  const size_t idname_suffix_maxncpy = sizeof(bToolRef::idname) - idname_prefix_len;
 
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     if (!(tref->space_type == space_type && tref->mode == mode)) {
@@ -528,7 +528,7 @@ void BKE_workspace_tool_id_replace_table(WorkSpace *workspace,
       idname_suffix += idname_prefix_len;
     }
     BLI_string_replace_table_exact(
-        idname_suffix, idname_suffix_len, replace_table, replace_table_num);
+        idname_suffix, idname_suffix_maxncpy, replace_table, replace_table_num);
   }
 }
 

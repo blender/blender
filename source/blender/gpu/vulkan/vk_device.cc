@@ -75,7 +75,6 @@ void VKDevice::deinit()
   {
     while (!thread_data_.is_empty()) {
       VKThreadData *thread_data = thread_data_.pop_last();
-      thread_data->deinit(*this);
       delete thread_data;
     }
     thread_data_.clear();
@@ -502,13 +501,6 @@ VKThreadData::VKThreadData(VKDevice &device, pthread_t thread_id) : thread_id(th
   }
 }
 
-void VKThreadData::deinit(VKDevice &device)
-{
-  for (VKResourcePool &resource_pool : resource_pools) {
-    resource_pool.deinit(device);
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -629,8 +621,8 @@ void VKDevice::debug_print()
   BLI_assert_msg(BLI_thread_is_main(),
                  "VKDevice::debug_print can only be called from the main thread.");
 
+  resources.debug_print();
   std::ostream &os = std::cout;
-
   os << "Pipelines\n";
   os << " Graphics: " << pipelines.graphic_pipelines_.size() << "\n";
   os << " Compute: " << pipelines.compute_pipelines_.size() << "\n";

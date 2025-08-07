@@ -12,7 +12,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>("Point Index")
       .implicit_field(NODE_DEFAULT_INPUT_INDEX_FIELD)
-      .description("The control point to retrieve data from");
+      .description("The control point to retrieve data from")
+      .structure_type(StructureType::Field);
   b.add_output<decl::Int>("Curve Index")
       .field_source_reference_all()
       .description("The curve the control point is part of");

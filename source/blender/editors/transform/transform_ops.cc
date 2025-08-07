@@ -730,13 +730,13 @@ void properties_register(wmOperatorType *ot, int flags)
     RNA_def_property_flag(prop, PROP_HIDDEN);
 
     if ((flags & P_GEO_SNAP) == P_GEO_SNAP) {
-      prop = RNA_def_enum(ot->srna,
-                          "snap_elements",
-                          rna_enum_snap_element_items,
-                          SCE_SNAP_TO_INCREMENT,
-                          "Snap to Elements",
-                          "");
-      RNA_def_property_flag(prop, PROP_HIDDEN | PROP_ENUM_FLAG);
+      prop = RNA_def_enum_flag(ot->srna,
+                               "snap_elements",
+                               rna_enum_snap_element_items,
+                               SCE_SNAP_TO_INCREMENT,
+                               "Snap to Elements",
+                               "");
+      RNA_def_property_flag(prop, PROP_HIDDEN);
 
       RNA_def_boolean(ot->srna, "use_snap_project", false, "Project Individual Elements", "");
 

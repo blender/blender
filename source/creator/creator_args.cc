@@ -874,7 +874,6 @@ static void print_help(bArgs *ba, bool all)
     PRINT("  $TEMP                      Store temporary files here (MS-Windows).\n");
   }
   if (!defs.win32 || all) {
-    /* NOTE: while `TMP` checked, don't include here as it's non-standard & may be removed. */
     PRINT("  $TMPDIR                    Store temporary files here (UNIX Systems).\n");
   }
   PRINT(

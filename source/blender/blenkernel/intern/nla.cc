@@ -616,7 +616,7 @@ NlaStrip *BKE_nla_add_soundstrip(Main *bmain, Scene *scene, Speaker *speaker)
   if (speaker->sound) {
     SoundInfo info;
     if (BKE_sound_info_get(bmain, speaker->sound, &info)) {
-      strip->end = float(ceil(double(info.length) * FPS));
+      strip->end = float(ceil(double(info.length) * scene->frames_per_second()));
     }
   }
   else

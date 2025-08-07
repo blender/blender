@@ -504,6 +504,7 @@ typedef enum ePchan_IkFlag {
 /* PoseChannel->drawflag */
 typedef enum ePchan_DrawFlag {
   PCHAN_DRAW_NO_CUSTOM_BONE_SIZE = (1 << 0),
+  PCHAN_DRAW_HIDDEN = (1 << 1),
 } ePchan_DrawFlag;
 
 /* NOTE: It doesn't take custom_scale_xyz into account. */

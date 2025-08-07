@@ -180,18 +180,18 @@ int BLI_cpu_support_sse42()
   return 0;
 }
 
-void BLI_hostname_get(char *buffer, size_t bufsize)
+void BLI_hostname_get(char *buffer, size_t buffer_maxncpy)
 {
 #ifndef WIN32
-  if (gethostname(buffer, bufsize - 1) < 0) {
-    BLI_strncpy(buffer, "-unknown-", bufsize);
+  if (gethostname(buffer, buffer_maxncpy - 1) < 0) {
+    BLI_strncpy(buffer, "-unknown-", buffer_maxncpy);
   }
   /* When `gethostname()` truncates, it doesn't guarantee the trailing `\0`. */
-  buffer[bufsize - 1] = '\0';
+  buffer[buffer_maxncpy - 1] = '\0';
 #else
-  DWORD bufsize_inout = bufsize;
-  if (!GetComputerName(buffer, &bufsize_inout)) {
-    BLI_strncpy(buffer, "-unknown-", bufsize);
+  DWORD buffer_size_in_out = buffer_maxncpy;
+  if (!GetComputerName(buffer, &buffer_size_in_out)) {
+    BLI_strncpy(buffer, "-unknown-", buffer_maxncpy);
   }
 #endif
 }

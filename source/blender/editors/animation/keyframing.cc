@@ -753,6 +753,8 @@ static wmOperatorStatus clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
         });
         for (FCurve *fcurve : fcurves_to_delete) {
           action_fcurve_remove(action, *fcurve);
+          DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+          changed = true;
         }
       }
       else {
@@ -768,7 +770,7 @@ static wmOperatorStatus clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
       }
 
       /* Delete the action itself if it is empty. */
-      if (blender::animrig::animdata_remove_empty_action(adt)) {
+      if (action.is_action_legacy() && blender::animrig::animdata_remove_empty_action(adt)) {
         changed = true;
       }
     }
@@ -976,14 +978,14 @@ static wmOperatorStatus delete_key_vse_without_keying_set(bContext *C, wmOperato
     if (modified_strips.is_empty()) {
       BKE_reportf(op->reports,
                   RPT_WARNING,
-                  "No keyframes removed from %ld strip(s)",
+                  "No keyframes removed from %" PRId64 " strip(s)",
                   selected_strips_rna_paths.size());
       return OPERATOR_CANCELLED;
     }
 
     BKE_reportf(op->reports,
                 RPT_INFO,
-                "%ld strip(s) successfully had %ld keyframes removed",
+                "%" PRId64 " strip(s) successfully had %" PRId64 " keyframes removed",
                 modified_strips.size(),
                 modified_fcurves.size());
   }

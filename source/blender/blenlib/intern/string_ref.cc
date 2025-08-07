@@ -44,4 +44,20 @@ void StringRefBase::copy_utf8_truncated(char *dst, const int64_t dst_size) const
   dst[new_len] = '\0';
 }
 
+void StringRefBase::copy_bytes_truncated(char *dst, const int64_t dst_size) const
+{
+  /* Destination must at least hold the null terminator. */
+  BLI_assert(dst_size >= 1);
+
+  /* Common case when the string can just be copied over entirely. */
+  if (size_ < dst_size) {
+    this->copy_unsafe(dst);
+    return;
+  }
+
+  const int64_t new_len = std::min(size_, dst_size - 1);
+  memcpy(dst, data_, new_len);
+  dst[new_len] = '\0';
+}
+
 }  // namespace blender

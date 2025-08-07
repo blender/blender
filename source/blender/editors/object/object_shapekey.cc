@@ -626,7 +626,7 @@ static wmOperatorStatus shape_key_mirror_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ED_mesh_report_mirror(op, totmirr, totfail);
+  ED_mesh_report_mirror(*op->reports, totmirr, totfail);
 
   return OPERATOR_FINISHED;
 }
