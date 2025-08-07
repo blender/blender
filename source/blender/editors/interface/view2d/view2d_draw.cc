@@ -92,7 +92,8 @@ static float view2d_major_step_y__continuous(const View2D *v2d)
 
 static float view2d_major_step_x__time(const View2D *v2d, const Scene *scene)
 {
-  const double fps = scene->frames_per_second();
+  /* If we don't have a scene available, pick an arbitrary framerate to show *something*. */
+  const double fps = scene ? scene->frames_per_second() : 25;
 
   blender::Vector<float, 32> possible_distances;
 

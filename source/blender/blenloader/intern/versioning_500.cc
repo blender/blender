@@ -22,6 +22,8 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_listbase.h"
@@ -58,6 +60,8 @@
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
 #include "SEQ_sequencer.hh"
+
+#include "WM_api.hh"
 
 #include "readfile.hh"
 
@@ -1646,6 +1650,15 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 52)) {
+    LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+      LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+        Scene *scene = WM_window_get_active_scene(win);
+        WorkSpace *workspace = WM_window_get_active_workspace(win);
+        workspace->sequencer_scene = scene;
+      }
+    }
+  }
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 54)) {
     LISTBASE_FOREACH (Object *, object, &bmain->objects) {
       if (object->type != OB_ARMATURE || !object->data) {

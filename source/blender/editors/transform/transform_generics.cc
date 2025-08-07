@@ -128,13 +128,21 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   ToolSettings *ts = CTX_data_tool_settings(C);
   ARegion *region = CTX_wm_region(C);
   ScrArea *area = CTX_wm_area(C);
+  const bool is_sequencer = CTX_wm_space_seq(C) != nullptr;
+  if (!is_sequencer) {
+    t->scene = sce;
+    t->view_layer = view_layer;
+  }
+  else {
+    t->scene = CTX_data_sequencer_scene(C);
+    t->view_layer = t->scene ? BKE_view_layer_default_render(t->scene) : nullptr;
+  }
 
   PropertyRNA *prop;
 
   t->mbus = CTX_wm_message_bus(C);
   t->depsgraph = CTX_data_depsgraph_pointer(C);
-  t->scene = sce;
-  t->view_layer = view_layer;
+
   t->area = area;
   t->region = region;
   t->settings = ts;

@@ -342,7 +342,8 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen);
  * redraws: uses defines from `stime->redraws`
  * \param enable: 1 - forward on, -1 - backwards on, 0 - off.
  */
-void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable);
+void ED_screen_animation_timer(
+    bContext *C, Scene *scene, ViewLayer *view_layer, int redraws, int sync, int enable);
 void ED_screen_animation_timer_update(bScreen *screen, int redraws);
 void ED_screen_restore_temp_type(bContext *C, ScrArea *area);
 ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *area, int type);
@@ -547,6 +548,9 @@ bool ED_operator_regionactive(bContext *C);
 
 bool ED_operator_scene(bContext *C);
 bool ED_operator_scene_editable(bContext *C);
+bool ED_operator_sequencer_scene(bContext *C);
+bool ED_operator_sequencer_scene_editable(bContext *C);
+
 bool ED_operator_objectmode(bContext *C);
 /**
  * Same as #ED_operator_objectmode() but additionally sets a "disabled hint". That is, a message

@@ -1644,7 +1644,7 @@ void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   const SpaceSeq &space_sequencer = *static_cast<const SpaceSeq *>(area->spacedata.first);
   const Scene *scene = CTX_data_sequencer_scene(C);
 
-  if (!scene->ed || space_sequencer.render_size == SEQ_RENDER_SIZE_NONE) {
+  if (!scene || !scene->ed || space_sequencer.render_size == SEQ_RENDER_SIZE_NONE) {
     sequencer_preview_draw_empty(*region);
     return;
   }

@@ -135,6 +135,8 @@ const EnumPropertyItem rna_enum_strip_scale_method_items[] = {
 
 #  include "MOV_read.hh"
 
+#  include "ED_sequencer.hh"
+
 #  include "SEQ_add.hh"
 #  include "SEQ_channels.hh"
 #  include "SEQ_edit.hh"
@@ -200,6 +202,12 @@ static void rna_Strip_invalidate_preprocessed_update(Main * /*bmain*/,
 
     blender::seq::relations_invalidate_cache(scene, strip);
   }
+}
+
+static void rna_Strip_mute_update(bContext *C, PointerRNA *ptr)
+{
+  blender::ed::vse::sync_active_scene_and_time_with_scene_strip(*C);
+  rna_Strip_invalidate_raw_update(nullptr, nullptr, ptr);
 }
 
 static void UNUSED_FUNCTION(rna_Strip_invalidate_composite_update)(Main * /*bmain*/,
@@ -2234,7 +2242,8 @@ static void rna_def_strip(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_CHECKBOX_HLT, -1);
   RNA_def_property_ui_text(
       prop, "Mute", "Disable strip so that it cannot be viewed in the output");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_invalidate_raw_update");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Strip_mute_update");
 
   prop = RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_LOCK);

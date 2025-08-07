@@ -121,7 +121,7 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuads
   ctx.sseq = CTX_wm_space_seq(C);
   ctx.v2d = UI_view2d_fromcontext(C);
 
-  ctx.ed = seq::editing_get(ctx.scene);
+  ctx.ed = ctx.scene ? seq::editing_get(ctx.scene) : nullptr;
   ctx.channels = ctx.ed ? seq::channels_displayed_get(ctx.ed) : nullptr;
 
   ctx.viewport = WM_draw_region_get_viewport(ctx.region);
@@ -1595,6 +1595,9 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx, StripsDrawBatch &
 static void draw_timeline_sfra_efra(TimelineDrawContext *ctx)
 {
   const Scene *scene = ctx->scene;
+  if (!scene) {
+    return;
+  }
   const View2D *v2d = ctx->v2d;
   const Editing *ed = seq::editing_get(scene);
   const int frame_sta = scene->r.sfra;
@@ -1834,6 +1837,9 @@ static void draw_timeline_markers(TimelineDrawContext *ctx)
   if ((ctx->sseq->flag & SEQ_SHOW_MARKERS) == 0) {
     return;
   }
+  if (ctx->scene == nullptr) {
+    return;
+  }
 
   UI_view2d_view_orthoSpecial(ctx->region, ctx->v2d, true);
   ED_markers_draw(ctx->C, DRAW_MARKERS_MARGIN);
@@ -1880,17 +1886,26 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
     draw_timeline_markers(&ctx);
   }
   UI_view2d_view_ortho(ctx.v2d);
-  ANIM_draw_previewrange(ctx.scene, ctx.v2d, 1);
+  if (ctx.scene) {
+    ANIM_draw_previewrange(ctx.scene, ctx.v2d, 1);
+  }
   draw_timeline_gizmos(&ctx);
   draw_timeline_post_view_callbacks(&ctx);
-  ED_time_scrub_draw(region, ctx.scene, !(ctx.sseq->flag & SEQ_DRAWFRAMES), true);
+  if (ctx.scene) {
+    ED_time_scrub_draw(region, ctx.scene, !(ctx.sseq->flag & SEQ_DRAWFRAMES), true);
+  }
 
-  seq_prefetch_wm_notify(C, ctx.scene);
+  if (ctx.scene) {
+    seq_prefetch_wm_notify(C, ctx.scene);
+  }
 }
 
 void draw_timeline_seq_display(const bContext *C, ARegion *region)
 {
   const Scene *scene = CTX_data_sequencer_scene(C);
+  if (!scene) {
+    return;
+  }
   const SpaceSeq *sseq = CTX_wm_space_seq(C);
   View2D *v2d = &region->v2d;
 
@@ -1907,11 +1922,14 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
       region, scene, !(sseq->flag & SEQ_DRAWFRAMES), region->winy >= UI_ANIM_MINY);
 
   if (region->winy > UI_ANIM_MINY) {
-    const ListBase *seqbase = seq::active_seqbase_get(seq::editing_get(scene));
-    seq::timeline_boundbox(scene, seqbase, &v2d->tot);
-    const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
-    region->v2d.scroll |= V2D_SCROLL_BOTTOM;
-    UI_view2d_scrollers_draw(v2d, &scroller_mask);
+    const Editing *ed = seq::editing_get(scene);
+    if (ed) {
+      const ListBase *seqbase = seq::active_seqbase_get(ed);
+      seq::timeline_boundbox(scene, seqbase, &v2d->tot);
+      const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
+      region->v2d.scroll |= V2D_SCROLL_BOTTOM;
+      UI_view2d_scrollers_draw(v2d, &scroller_mask);
+    }
   }
   else {
     region->v2d.scroll &= ~V2D_SCROLL_BOTTOM;

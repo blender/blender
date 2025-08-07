@@ -115,6 +115,31 @@ VectorSet<Strip *> query_all_strips_recursive(const ListBase *seqbase)
   return strips;
 }
 
+static void query_strips_recursive_at_frame(const Scene *scene,
+                                            const ListBase *seqbase,
+                                            const int timeline_frame,
+                                            VectorSet<Strip *> &strips)
+{
+  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+    if (!time_strip_intersects_frame(scene, strip, timeline_frame)) {
+      continue;
+    }
+    if (strip->type == STRIP_TYPE_META) {
+      query_strips_recursive_at_frame(scene, &strip->seqbase, timeline_frame, strips);
+    }
+    strips.add(strip);
+  }
+}
+
+VectorSet<Strip *> query_strips_recursive_at_frame(const Scene *scene,
+                                                   const ListBase *seqbase,
+                                                   const int timeline_frame)
+{
+  VectorSet<Strip *> strips;
+  query_strips_recursive_at_frame(scene, seqbase, timeline_frame, strips);
+  return strips;
+}
+
 VectorSet<Strip *> query_all_strips(ListBase *seqbase)
 {
   VectorSet<Strip *> strips;

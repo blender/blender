@@ -81,4 +81,7 @@ StripSelection pick_strip_and_handle(const struct Scene *scene,
 bool can_select_handle(const Scene *scene, const Strip *strip, const View2D *v2d);
 bool handle_is_selected(const Strip *strip, eStripHandle handle);
 
+bool is_scene_time_sync_needed(const bContext &C);
+void sync_active_scene_and_time_with_scene_strip(bContext &C);
+
 }  // namespace blender::ed::vse
