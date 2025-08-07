@@ -1269,7 +1269,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
 
   of = avformat_alloc_context();
   if (!of) {
-    BKE_report(reports, RPT_ERROR, "Can't allocate FFmpeg format context");
+    BKE_report(reports, RPT_ERROR, "Cannot allocate FFmpeg format context");
     return false;
   }
 

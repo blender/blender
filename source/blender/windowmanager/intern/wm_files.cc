@@ -1754,7 +1754,7 @@ static void wm_history_file_update()
  *   - A smaller thumbnail is stored in the `.blend` file itself, sized at #BLEN_THUMB_SIZE.
  *     The size is kept small to prevent thumbnails bloating the size of `.blend` files.
  *
- *     The this thumbnail will be extracted if the file is shared or the local thumbnail cache
+ *     The thumbnail will be extracted if the file is shared or the local thumbnail cache
  *     is cleared. see: `blendthumb_extract.cc` for logic that extracts the thumbnail.
  *
  * \{ */
@@ -2855,7 +2855,7 @@ static wmOperatorStatus wm_homefile_read_exec(bContext *C, wmOperator *op)
       filepath = filepath_buf;
       if (BLI_access(filepath, R_OK)) {
         BKE_reportf(
-            op->reports, RPT_ERROR, "Can't read alternative start-up file: \"%s\"", filepath);
+            op->reports, RPT_ERROR, "Cannot read alternative start-up file: \"%s\"", filepath);
         return OPERATOR_CANCELLED;
       }
     }

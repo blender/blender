@@ -77,7 +77,7 @@ static std::optional<IndexMask> rna_indices_to_mask(const IndexRange universe,
   }
   if (std::adjacent_find(indices.begin(), indices.end(), std::greater_equal<>()) != indices.end())
   {
-    BKE_report(&reports, RPT_ERROR, "Indices can't have duplicates");
+    BKE_report(&reports, RPT_ERROR, "Indices cannot have duplicates");
     return std::nullopt;
   }
   return IndexMask::from_indices(indices, memory);

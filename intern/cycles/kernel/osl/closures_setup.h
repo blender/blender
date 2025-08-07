@@ -381,8 +381,7 @@ ccl_device void osl_closure_conductor_bsdf_setup(KernelGlobals kg,
     preserve_energy = (closure->distribution == make_string("multi_ggx", 16842698693386468366ull));
   }
 
-  fresnel->n = rgb_to_spectrum(closure->ior);
-  fresnel->k = rgb_to_spectrum(closure->extinction);
+  fresnel->ior = {rgb_to_spectrum(closure->ior), rgb_to_spectrum(closure->extinction)};
   bsdf_microfacet_setup_fresnel_conductor(kg, bsdf, sd, fresnel, preserve_energy);
 }
 

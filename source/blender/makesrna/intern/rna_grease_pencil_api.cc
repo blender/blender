@@ -268,7 +268,7 @@ static void rna_GreasePencilDrawing_set_vertex_weights(ID *grease_pencil_id,
   }
   if (std::adjacent_find(indices.begin(), indices.end(), std::greater_equal<>()) != indices.end())
   {
-    BKE_report(reports, RPT_ERROR, "Indices can't have duplicates");
+    BKE_report(reports, RPT_ERROR, "Indices cannot have duplicates");
     return;
   }
 
@@ -372,7 +372,7 @@ static void rna_Frames_frame_remove(ID *id,
   Layer &layer = layer_in->wrap();
 
   if (!layer.frames().contains(frame_number)) {
-    BKE_reportf(reports, RPT_ERROR, "Frame doesn't exists on frame number %d", frame_number);
+    BKE_reportf(reports, RPT_ERROR, "Frame does not exist on frame number %d", frame_number);
     return;
   }
 
@@ -397,7 +397,7 @@ static GreasePencilFrame *rna_Frames_frame_copy(ID *id,
   Layer &layer = layer_in->wrap();
 
   if (!layer.frames().contains(from_frame_number)) {
-    BKE_reportf(reports, RPT_ERROR, "Frame doesn't exists on frame number %d", from_frame_number);
+    BKE_reportf(reports, RPT_ERROR, "Frame does not exist on frame number %d", from_frame_number);
     return nullptr;
   }
   if (layer.frames().contains(to_frame_number)) {
@@ -423,7 +423,7 @@ static GreasePencilFrame *rna_Frames_frame_move(ID *id,
   Layer &layer = layer_in->wrap();
 
   if (!layer.frames().contains(from_frame_number)) {
-    BKE_reportf(reports, RPT_ERROR, "Frame doesn't exists on frame number %d", from_frame_number);
+    BKE_reportf(reports, RPT_ERROR, "Frame does not exist on frame number %d", from_frame_number);
     return nullptr;
   }
   if (layer.frames().contains(to_frame_number)) {

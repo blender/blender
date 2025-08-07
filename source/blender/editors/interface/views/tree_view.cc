@@ -643,9 +643,9 @@ bool AbstractTreeViewItem::set_state_active()
 bool AbstractTreeViewItem::is_hovered() const
 {
   BLI_assert_msg(get_tree_view().is_reconstructed(),
-                 "State can't be queried until reconstruction is completed");
+                 "State cannot be queried until reconstruction is completed");
   BLI_assert_msg(view_item_but_ != nullptr,
-                 "Hovered state can't be queried before the tree row is being built");
+                 "Hovered state cannot be queried before the tree row is being built");
 
   /* The new layout hasn't finished construction yet, so the final state of the button is unknown.
    * Get the matching button from the previous redraw instead. */
@@ -657,7 +657,7 @@ bool AbstractTreeViewItem::is_hovered() const
 bool AbstractTreeViewItem::is_collapsed() const
 {
   BLI_assert_msg(get_tree_view().is_reconstructed(),
-                 "State can't be queried until reconstruction is completed");
+                 "State cannot be queried until reconstruction is completed");
   return this->is_collapsible() && !is_open_;
 }
 

@@ -2836,7 +2836,7 @@ static void rna_def_constraint_rotation_limit(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Legacy Behavior",
-      "Use the old semi-broken behavior that doesn't understand that rotations loop around");
+      "Use the old semi-broken behavior that does not understand that rotations loop around");
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   RNA_define_lib_overridable(false);

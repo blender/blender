@@ -96,7 +96,7 @@ static wmOperatorStatus script_reload_exec(bContext *C, wmOperator *op)
 
   /* clear running operators */
   if (script_test_modal_operators(C)) {
-    BKE_report(op->reports, RPT_ERROR, "Can't reload with running modal operators");
+    BKE_report(op->reports, RPT_ERROR, "Cannot reload with running modal operators");
     return OPERATOR_CANCELLED;
   }
 

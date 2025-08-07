@@ -272,6 +272,9 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
   const bool use_proportional_edit = (t->flag & T_PROP_EDIT_ALL) != 0;
   const bool use_connected_only = (t->flag & T_PROP_CONNECTED) != 0;
 
+  /* Evaluated depsgraph is necessary for taking into account deformation from modifiers. */
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
   /* Count selected elements per object and create TransData structs. */
   for (const int i : trans_data_contrainers.index_range()) {
     TransDataContainer &tc = trans_data_contrainers[i];
@@ -352,7 +355,7 @@ static void createTransCurvesVerts(bContext *C, TransInfo *t)
     Curves *curves_id = static_cast<Curves *>(object->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     const bke::crazyspace::GeometryDeformation deformation =
-        bke::crazyspace::get_evaluated_curves_deformation(*CTX_data_depsgraph_pointer(C), *object);
+        bke::crazyspace::get_evaluated_curves_deformation(*depsgraph, *object);
 
     std::optional<MutableSpan<float>> value_attribute;
     bke::SpanAttributeWriter<float> attribute_writer;

@@ -21,6 +21,13 @@ ccl_device_inline float3 stack_load_float3(const ccl_private float *stack, const
   return make_float3(stack_a[0], stack_a[1], stack_a[2]);
 }
 
+ccl_device_inline float3 stack_load_float3_default(const ccl_private float *stack,
+                                                   const uint a,
+                                                   const float3 value)
+{
+  return (a == (uint)SVM_STACK_INVALID) ? value : stack_load_float3(stack, a);
+}
+
 ccl_device_inline void stack_store_float3(ccl_private float *stack, const uint a, const float3 f)
 {
   kernel_assert(a + 2 < SVM_STACK_SIZE);
@@ -39,6 +46,13 @@ ccl_device_inline float stack_load_float_default(const ccl_private float *stack,
                                                  const uint value)
 {
   return (a == (uint)SVM_STACK_INVALID) ? __uint_as_float(value) : stack_load_float(stack, a);
+}
+
+ccl_device_inline float stack_load_float_default(const ccl_private float *stack,
+                                                 const uint a,
+                                                 const float value)
+{
+  return (a == (uint)SVM_STACK_INVALID) ? value : stack_load_float(stack, a);
 }
 
 ccl_device_inline void stack_store_float(ccl_private float *stack, const uint a, const float f)

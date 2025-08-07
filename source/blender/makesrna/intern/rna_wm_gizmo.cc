@@ -1430,9 +1430,9 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
   prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_enum_sdna(prop, nullptr, "type->flag");
   RNA_def_property_enum_items(prop, gizmogroup_flag_items);
-  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_ui_text(prop, "Options", "Options for this operator type");
 
   RNA_define_verify_sdna(true); /* not in sdna */

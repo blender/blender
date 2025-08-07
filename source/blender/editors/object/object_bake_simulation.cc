@@ -961,7 +961,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
     if (!request.path) {
       BKE_report(op->reports,
                  RPT_INFO,
-                 "Can't determine bake location on disk. Falling back to packed bake.");
+                 "Cannot determine bake location on disk. Falling back to packed bake.");
     }
   }
 

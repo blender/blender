@@ -2093,7 +2093,7 @@ ImBuf *imb_load_openexr(const uchar *mem, size_t size, int flags, ImFileColorSpa
 
     /* do not make an ibuf when */
     if (is_multi && !(flags & IB_test) && !(flags & IB_multilayer)) {
-      printf("Error: can't process EXR multilayer file\n");
+      printf("Error: cannot process EXR multilayer file\n");
     }
     else {
       const bool is_alpha = exr_has_alpha(*file);

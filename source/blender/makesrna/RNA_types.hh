@@ -628,7 +628,7 @@ struct RawArray {
 };
 
 /**
- * This struct is are typically defined in arrays which define an *enum* for RNA,
+ * This struct is typically defined in arrays which define an *enum* for RNA,
  * which is used by the RNA API both for user-interface and the Python API.
  */
 struct EnumPropertyItem {

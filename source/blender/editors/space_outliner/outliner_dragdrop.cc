@@ -395,7 +395,7 @@ static void parent_drop_set_parents(bContext *C,
   }
 
   if (linked_objects) {
-    BKE_report(reports, RPT_INFO, "Can't edit library linked or non-editable override object(s)");
+    BKE_report(reports, RPT_INFO, "Cannot edit library linked or non-editable override object(s)");
   }
 
   if (parent_set) {

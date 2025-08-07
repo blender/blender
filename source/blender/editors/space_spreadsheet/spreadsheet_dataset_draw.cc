@@ -180,6 +180,7 @@ class InstanceReferenceViewItem : public InstancesTreeViewItem {
 
 class GeometryInstancesTreeView : public ui::AbstractTreeView {
  private:
+  ResourceScope scope_;
   bke::GeometrySet root_geometry_set_;
   SpaceSpreadsheet &sspreadsheet_;
   bScreen &screen_;
@@ -210,7 +211,7 @@ class GeometryInstancesTreeView : public ui::AbstractTreeView {
       auto &reference_item = parent.add_tree_item<InstanceReferenceViewItem>(instances,
                                                                              reference_i);
       const bke::InstanceReference &reference = references[reference_i];
-      bke::GeometrySet reference_geometry;
+      bke::GeometrySet &reference_geometry = scope_.construct<bke::GeometrySet>();
       reference.to_geometry_set(reference_geometry);
       if (const bke::Instances *child_instances = reference_geometry.get_instances()) {
         this->build_tree_for_instances(reference_item, *child_instances);

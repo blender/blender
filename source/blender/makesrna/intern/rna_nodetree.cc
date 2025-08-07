@@ -213,7 +213,7 @@ const EnumPropertyItem rna_enum_node_vec_math_items[] = {
      "REFLECT",
      0,
      "Reflect",
-     "Reflect A around the normal B. B doesn't need to be normalized."},
+     "Reflect A around the normal B. B does not need to be normalized."},
     {NODE_VECTOR_MATH_REFRACT,
      "REFRACT",
      0,
@@ -497,7 +497,7 @@ static const EnumPropertyItem rna_node_geometry_curve_handle_type_items[] = {
      "FREE",
      ICON_HANDLE_FREE,
      "Free",
-     "The handle can be moved anywhere, and doesn't influence the point's other handle"},
+     "The handle can be moved anywhere, and does not influence the point's other handle"},
     {GEO_NODE_CURVE_HANDLE_AUTO,
      "AUTO",
      ICON_HANDLE_AUTO,
@@ -3786,7 +3786,7 @@ static bool rna_Node_pair_with_output(
     BKE_reportf(
         reports,
         RPT_ERROR,
-        "Can't pair zone input node %s with %s because it does not have the same zone type",
+        "Cannot pair zone input node %s with %s because it does not have the same zone type",
         node->name,
         output_node->name);
     return false;
@@ -7410,12 +7410,24 @@ static void def_cmp_ellipsemask(BlenderRNA * /*brna*/, StructRNA *srna)
 static void def_cmp_cornerpin(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
+  RNA_def_struct_sdna_from(srna, "NodeCornerPinData", "storage");
 
   prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
+  RNA_def_property_enum_sdna(prop, nullptr, "interpolation");
   RNA_def_property_enum_items(prop, cmp_interpolation_items);
-  RNA_def_property_enum_default(prop, CMP_NODE_INTERPOLATION_BILINEAR);
   RNA_def_property_ui_text(prop, "Interpolation", "Interpolation method");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "extension_x", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "extension_x");
+  RNA_def_property_enum_items(prop, cmp_extension_mode_items);
+  RNA_def_property_ui_text(prop, "X Extension Mode", "The extension mode applied to the X axis");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "extension_y", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "extension_y");
+  RNA_def_property_enum_items(prop, cmp_extension_mode_items);
+  RNA_def_property_ui_text(prop, "Y Extension Mode", "The extension mode applied to the Y axis");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -7979,10 +7991,10 @@ static void def_geo_curve_set_handle_type(BlenderRNA * /*brna*/, StructRNA *srna
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, rna_enum_node_geometry_curve_handle_side_items);
-  RNA_def_property_ui_text(prop, "Mode", "Whether to update left and right handles");
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_enum_items(prop, rna_enum_node_geometry_curve_handle_side_items);
+  RNA_def_property_ui_text(prop, "Mode", "Whether to update left and right handles");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
@@ -8980,9 +8992,9 @@ static void def_geo_curve_handle_type_selection(BlenderRNA * /*brna*/, StructRNA
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_enum_items(prop, rna_enum_node_geometry_curve_handle_side_items);
   RNA_def_property_ui_text(prop, "Mode", "Whether to check the type of left and right handles");
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 
@@ -9250,7 +9262,7 @@ static void def_geo_string_to_curves(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_overflow_items);
   RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
   RNA_def_property_ui_text(
-      prop, "Textbox Overflow", "Handle the text behavior when it doesn't fit in the text boxes");
+      prop, "Textbox Overflow", "Handle the text behavior when it does not fit in the text boxes");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 
   prop = RNA_def_property(srna, "align_x", PROP_ENUM, PROP_NONE);

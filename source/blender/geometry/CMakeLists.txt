@@ -20,6 +20,7 @@ set(SRC
   intern/fillet_curves.cc
   intern/fit_curves.cc
   intern/interpolate_curves.cc
+  intern/foreach_geometry.cc
   intern/join_geometries.cc
   intern/merge_curves.cc
   intern/merge_layers.cc
@@ -63,6 +64,7 @@ set(SRC
   GEO_extract_elements.hh
   GEO_fillet_curves.hh
   GEO_fit_curves.hh
+  GEO_foreach_geometry.hh
   GEO_interpolate_curves.hh
   GEO_join_geometries.hh
   GEO_merge_curves.hh

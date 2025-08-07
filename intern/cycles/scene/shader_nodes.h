@@ -550,6 +550,10 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   }
   bool has_surface_transparent() override;
   bool has_surface_emission() override;
+
+ protected:
+  /* Checks whether the given weight input is potentially non-zero. */
+  bool has_nonzero_weight(const char *name);
 };
 
 class TranslucentBsdfNode : public BsdfNode {

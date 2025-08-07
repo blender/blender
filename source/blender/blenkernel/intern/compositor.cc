@@ -24,10 +24,22 @@
 namespace blender::bke::compositor {
 
 /* Adds the pass names of the passes used by the given Render Layer node to the given used passes.
- * This essentially adds the identifiers of the outputs that are logically linked, their the
- * identifiers are the names of the passes. Note however that the Image output is actually the
- * Combined pass, but named as Image for compatibility reasons. */
+ * This essentially adds the pass names of the outputs that are logically linked. */
 static void add_passes_used_by_render_layer_node(const bNode *node, Set<std::string> &used_passes)
+{
+  for (const bNodeSocket *output : node->output_sockets()) {
+    if (output->is_logically_linked()) {
+      used_passes.add(static_cast<NodeImageLayer *>(output->storage)->pass_name);
+    }
+  }
+}
+
+/* Adds the pass names of the passes used by the given Group Input node to the given used passes.
+ * This essentially adds the names of the outputs that are logically linked, since the names of the
+ * outputs represent the pass names. This should only be called on group inputs of root node trees.
+ * Note however that the Image output is actually the Combined pass, but named as Image for
+ * compatibility reasons. */
+static void add_passes_used_by_group_input_node(const bNode *node, Set<std::string> &used_passes)
 {
   for (const bNodeSocket *output : node->output_sockets()) {
     if (output->is_logically_linked()) {
@@ -35,7 +47,7 @@ static void add_passes_used_by_render_layer_node(const bNode *node, Set<std::str
         used_passes.add(RE_PASSNAME_COMBINED);
       }
       else {
-        used_passes.add(output->identifier);
+        used_passes.add(output->name);
       }
     }
   }
@@ -109,6 +121,7 @@ static void add_passes_used_by_cryptomatte_node(const bNode *node,
  * passes. This is called recursively for node groups. */
 static void add_used_passes_recursive(const bNodeTree *node_tree,
                                       const ViewLayer *view_layer,
+                                      const bool is_root_tree,
                                       Set<const bNodeTree *> &node_trees_already_searched,
                                       Set<std::string> &used_passes)
 {
@@ -128,12 +141,17 @@ static void add_used_passes_recursive(const bNodeTree *node_tree,
         const bNodeTree *node_group_tree = reinterpret_cast<const bNodeTree *>(node->id);
         if (node_trees_already_searched.add(node_group_tree)) {
           add_used_passes_recursive(
-              node_group_tree, view_layer, node_trees_already_searched, used_passes);
+              node_group_tree, view_layer, false, node_trees_already_searched, used_passes);
         }
         break;
       }
       case CMP_NODE_R_LAYERS:
         add_passes_used_by_render_layer_node(node, used_passes);
+        break;
+      case NODE_GROUP_INPUT:
+        if (is_root_tree) {
+          add_passes_used_by_group_input_node(node, used_passes);
+        }
         break;
       case CMP_NODE_CRYPTOMATTE:
         add_passes_used_by_cryptomatte_node(node, view_layer, used_passes);
@@ -149,7 +167,7 @@ Set<std::string> get_used_passes(const Scene &scene, const ViewLayer *view_layer
   Set<std::string> used_passes;
   Set<const bNodeTree *> node_trees_already_searched;
   add_used_passes_recursive(
-      scene.compositing_node_group, view_layer, node_trees_already_searched, used_passes);
+      scene.compositing_node_group, view_layer, true, node_trees_already_searched, used_passes);
   return used_passes;
 }
 

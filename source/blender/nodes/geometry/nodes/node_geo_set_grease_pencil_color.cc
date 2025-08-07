@@ -10,6 +10,8 @@
 
 #include "NOD_rna_define.hh"
 
+#include "GEO_foreach_geometry.hh"
+
 #include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
@@ -62,7 +64,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const StringRef color_attr_name = domain == AttrDomain::Point ? "vertex_color" : "fill_color";
   const StringRef opacity_attr_name = domain == AttrDomain::Point ? "opacity" : "fill_opacity";
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry) {
     if (GreasePencil *grease_pencil = geometry.get_grease_pencil_for_write()) {
       using namespace bke::greasepencil;
       for (const int layer_index : grease_pencil->layers().index_range()) {

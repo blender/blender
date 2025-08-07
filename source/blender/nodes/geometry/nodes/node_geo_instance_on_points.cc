@@ -11,6 +11,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_join_geometries.hh"
 
 #include "node_geometry_util.hh"
@@ -187,16 +188,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   instance.ensure_owns_direct_data();
   const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Instances");
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    /* It's important not to invalidate the existing #InstancesComponent because it owns references
-     * to other geometry sets that are processed by this node. */
-    InstancesComponent &instances_component =
-        geometry_set.get_component_for_write<InstancesComponent>();
-    bke::Instances *dst_instances = instances_component.get_for_write();
-    if (dst_instances == nullptr) {
-      dst_instances = new bke::Instances();
-      instances_component.replace(dst_instances);
-    }
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
+    bke::Instances *dst_instances = new bke::Instances();
 
     const Array<GeometryComponent::Type> types{GeometryComponent::Type::Mesh,
                                                GeometryComponent::Type::PointCloud,
@@ -226,7 +219,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_grease_pencil()) {
       using namespace bke::greasepencil;
       const GreasePencil &grease_pencil = *geometry_set.get_grease_pencil();
-      bke::Instances *instances = new bke::Instances();
+      bke::Instances *instances_per_layer = new bke::Instances();
       for (const int layer_index : grease_pencil.layers().index_range()) {
         const Layer &layer = grease_pencil.layer(layer_index);
         const Drawing *drawing = grease_pencil.get_eval_drawing(layer);
@@ -239,8 +232,8 @@ static void node_geo_exec(GeoNodeExecParams params)
           /* Add an empty reference so the number of layers and instances match.
            * This makes it easy to reconstruct the layers afterwards and keep their attributes.
            * Although in this particular case we don't propagate the attributes. */
-          const int handle = instances->add_reference(bke::InstanceReference());
-          instances->add_instance(handle, layer_transform);
+          const int handle = instances_per_layer->add_reference(bke::InstanceReference());
+          instances_per_layer->add_instance(handle, layer_transform);
           continue;
         }
         /* TODO: Attributes are not propagating from the curves or the points. */
@@ -254,25 +247,23 @@ static void node_geo_exec(GeoNodeExecParams params)
                                      params,
                                      attributes_to_propagate);
         GeometrySet temp_set = GeometrySet::from_instances(layer_instances);
-        const int handle = instances->add_reference(bke::InstanceReference{temp_set});
-        instances->add_instance(handle, layer_transform);
+        const int handle = instances_per_layer->add_reference(bke::InstanceReference{temp_set});
+        instances_per_layer->add_instance(handle, layer_transform);
       }
 
       bke::copy_attributes(geometry_set.get_grease_pencil()->attributes(),
                            bke::AttrDomain::Layer,
                            bke::AttrDomain::Instance,
                            attribute_filter,
-                           instances->attributes_for_write());
+                           instances_per_layer->attributes_for_write());
       GeometrySet new_instances = geometry::join_geometries(
-          {GeometrySet::from_instances(dst_instances, bke::GeometryOwnershipType::Editable),
-           GeometrySet::from_instances(instances)},
+          {GeometrySet::from_instances(dst_instances),
+           GeometrySet::from_instances(instances_per_layer)},
           attribute_filter);
-      instances_component.replace(
-          new_instances.get_component_for_write<InstancesComponent>().release());
-
-      geometry_set.replace_grease_pencil(nullptr);
+      dst_instances = new_instances.get_component_for_write<InstancesComponent>().release();
     }
-    geometry_set.remove_geometry_during_modify();
+    geometry_set.keep_only({GeometryComponent::Type::Edit});
+    geometry_set.replace_instances(dst_instances);
   });
 
   /* Unused references may have been added above. Remove those now so that other nodes don't

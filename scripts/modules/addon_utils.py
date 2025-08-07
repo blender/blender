@@ -150,7 +150,7 @@ def _fake_module(mod_name, mod_path, speedy=True):
     try:
         ast_data = ast.parse(data, filename=mod_path)
     except Exception:
-        print("Syntax error 'ast.parse' can't read:", repr(mod_path))
+        print("Syntax error 'ast.parse' cannot read:", repr(mod_path))
         import traceback
         traceback.print_exc()
         ast_data = None

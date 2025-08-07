@@ -309,7 +309,7 @@ bool ED_uvedit_center_multi(const Scene *scene,
   return changed;
 }
 
-bool ED_uvedit_center_from_pivot_ex(SpaceImage *sima,
+bool ED_uvedit_center_from_pivot_ex(const SpaceImage *sima,
                                     Scene *scene,
                                     ViewLayer *view_layer,
                                     float r_center[2],

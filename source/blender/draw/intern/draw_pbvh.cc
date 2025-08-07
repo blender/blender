@@ -1054,49 +1054,6 @@ BLI_NOINLINE static void update_face_sets_bmesh(const Object &object,
   }
 }
 
-struct BMeshAttributeLookup {
-  const int offset = -1;
-  bke::AttrDomain domain;
-  bke::AttrType type;
-  operator bool() const
-  {
-    return offset != -1;
-  }
-};
-
-static BMeshAttributeLookup lookup_bmesh_attribute(const BMesh &bm, const StringRef name)
-{
-  for (const CustomDataLayer &layer : Span(bm.vdata.layers, bm.vdata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Point,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
-    }
-  }
-  for (const CustomDataLayer &layer : Span(bm.edata.layers, bm.edata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Edge,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
-    }
-  }
-  for (const CustomDataLayer &layer : Span(bm.pdata.layers, bm.pdata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Face,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
-    }
-  }
-  for (const CustomDataLayer &layer : Span(bm.ldata.layers, bm.ldata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Corner,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
-    }
-  }
-  return {};
-}
-
 BLI_NOINLINE static void update_generic_attribute_bmesh(const Object &object,
                                                         const OrigMeshData &orig_mesh_data,
                                                         const IndexMask &node_mask,
@@ -1106,7 +1063,7 @@ BLI_NOINLINE static void update_generic_attribute_bmesh(const Object &object,
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   const BMesh &bm = *object.sculpt->bm;
-  const BMeshAttributeLookup attr = lookup_bmesh_attribute(bm, name);
+  const BMDataLayerLookup attr = BM_data_layer_lookup(bm, name);
   if (!attr || attr.domain == bke::AttrDomain::Edge) {
     return;
   }

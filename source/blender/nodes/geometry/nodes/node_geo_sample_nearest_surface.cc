@@ -38,8 +38,13 @@ static void node_declare(NodeDeclarationBuilder &b)
       .field_on_all()
       .description(
           "Splits the faces of the input mesh into groups which can be sampled individually");
-  b.add_input<decl::Vector>("Sample Position").implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
-  b.add_input<decl::Int>("Sample Group ID").hide_value().supports_field();
+  b.add_input<decl::Vector>("Sample Position")
+      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD)
+      .structure_type(StructureType::Dynamic);
+  b.add_input<decl::Int>("Sample Group ID")
+      .hide_value()
+      .supports_field()
+      .structure_type(StructureType::Dynamic);
 
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom1);

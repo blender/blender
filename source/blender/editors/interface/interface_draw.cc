@@ -2098,7 +2098,10 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   const uint col = GPU_vertformat_attr_add(
       format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
-  immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
+  const uint size = GPU_vertformat_attr_add(format, "size", blender::gpu::VertAttrType::SFLOAT_32);
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
+
+  GPU_program_point_size(true);
 
   /* Calculate vertex colors based on text theme. */
   float color_vert[4], color_vert_select[4], color_sample[4];
@@ -2116,15 +2119,18 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     swap_v3_v3(color_vert, color_vert_select);
   }
 
+  float point_size;
+
   /* Draw the control points. */
   GPU_line_smooth(false);
   if (path_len > 0) {
     GPU_blend(GPU_BLEND_NONE);
-    GPU_point_size(max_ff(3.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 5.0f, 5.0f)));
+    point_size = max_ff(3.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 5.0f, 5.0f));
     immBegin(GPU_PRIM_POINTS, path_len);
     for (int i = 0; i < path_len; i++) {
       fx = rect->xmin + zoomx * (pts[i].x - offsx);
       fy = rect->ymin + zoomy * (pts[i].y - offsy);
+      immAttr1f(size, point_size);
       immAttr4fv(col, (pts[i].flag & PROF_SELECT) ? color_vert_select : color_vert);
       immVertex2f(pos, fx, fy);
     }
@@ -2135,15 +2141,15 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   if (selected_free_points > 0) {
     GPU_line_smooth(false);
     GPU_blend(GPU_BLEND_NONE);
-    GPU_point_size(max_ff(2.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 4.0f, 4.0f)));
+    point_size = max_ff(2.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 4.0f, 4.0f));
     immBegin(GPU_PRIM_POINTS, selected_free_points * 2);
     for (int i = 0; i < path_len; i++) {
       if (point_draw_handles(&pts[i])) {
         fx = rect->xmin + zoomx * (pts[i].h1_loc[0] - offsx);
         fy = rect->ymin + zoomy * (pts[i].h1_loc[1] - offsy);
+        immAttr1f(size, point_size);
         immAttr4fv(col, (pts[i].flag & PROF_H1_SELECT) ? color_vert_select : color_vert);
         immVertex2f(pos, fx, fy);
-
         fx = rect->xmin + zoomx * (pts[i].h2_loc[0] - offsx);
         fy = rect->ymin + zoomy * (pts[i].h2_loc[1] - offsy);
         immAttr4fv(col, (pts[i].flag & PROF_H2_SELECT) ? color_vert_select : color_vert);
@@ -2157,11 +2163,12 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   pts = profile->segments;
   const int segments_len = uint(profile->segments_len);
   if (segments_len > 0 && pts) {
-    GPU_point_size(max_ff(2.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 3.0f, 3.0f)));
+    point_size = max_ff(2.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 3.0f, 3.0f));
     immBegin(GPU_PRIM_POINTS, segments_len);
     for (int i = 0; i < segments_len; i++) {
       fx = rect->xmin + zoomx * (pts[i].x - offsx);
       fy = rect->ymin + zoomy * (pts[i].y - offsy);
+      immAttr1f(size, point_size);
       immAttr4fv(col, color_sample);
       immVertex2f(pos, fx, fy);
     }

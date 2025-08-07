@@ -50,7 +50,7 @@ bool BLI_file_alias_target(const char *filepath,
       [targetURL getFileSystemRepresentation:r_targetpath maxLength:FILE_MAXDIR];
       return false;
     }
-    /* Note that the if-condition may also change the value of `r_targetpath`. */
+    /* Note that the `if` condition may also change the value of `r_targetpath`. */
     if (![targetURL getFileSystemRepresentation:r_targetpath maxLength:FILE_MAXDIR]) {
       return false;
     }

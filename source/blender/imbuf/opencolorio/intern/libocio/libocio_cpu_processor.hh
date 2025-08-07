@@ -22,7 +22,7 @@ class LibOCIOCPUProcessor : public CPUProcessor {
 
   bool is_noop() const override
   {
-    return false;
+    return ocio_cpu_processor_->isNoOp();
   }
 
   void apply_rgb(float rgb[3]) const override;

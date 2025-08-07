@@ -172,14 +172,14 @@ typedef struct ThemeUI {
   /* Transparent Grid */
   unsigned char transparent_checker_primary[4], transparent_checker_secondary[4];
   unsigned char transparent_checker_size;
-  char _pad1[1];
+  char _pad1[5];
 
   float icon_alpha;
   float icon_saturation;
   unsigned char widget_text_cursor[4];
 
   /* Axis Colors */
-  unsigned char xaxis[4], yaxis[4], zaxis[4];
+  unsigned char xaxis[4], yaxis[4], zaxis[4], waxis[4];
 
   /* Gizmo Colors. */
   unsigned char gizmo_hi[4];

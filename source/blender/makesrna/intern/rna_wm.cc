@@ -2220,8 +2220,8 @@ static void rna_def_operator_common(StructRNA *srna)
 
   prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "type->flag");
-  RNA_def_property_enum_items(prop, rna_enum_operator_type_flag_items);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
+  RNA_def_property_enum_items(prop, rna_enum_operator_type_flag_items);
   RNA_def_property_ui_text(prop, "Options", "Options for this operator type");
 
   prop = RNA_def_property(srna, "bl_cursor_pending", PROP_ENUM, PROP_NONE);
@@ -3245,7 +3245,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "User Defined",
-      "Is this keymap item user defined (doesn't just replace a builtin item)");
+      "Is this keymap item user defined (does not just replace a builtin item)");
   RNA_def_property_boolean_funcs(prop, "rna_KeyMapItem_userdefined_get", nullptr);
 
   RNA_api_keymapitem(srna);

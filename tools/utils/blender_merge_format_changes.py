@@ -76,7 +76,7 @@ def main() -> int:
     # Abort if uncommitted changes.
     changes = get_string(['git', 'status', '--porcelain', '--untracked-files=no'])
     if len(changes) != 0:
-        print("BLENDER MERGE: detected uncommitted changes, can't run")
+        print("BLENDER MERGE: detected uncommitted changes, cannot run")
         return 1
 
     # Setup command, with commit message for merge commits.

@@ -463,10 +463,10 @@ ccl_device_inline float4 fabs(const float4 a)
 #  endif
 }
 
-/* The floating-point remainder of the division operation a / b calculated by this function is
- * exactly the value a - iquot * b, where iquot is a / b with its fractional part truncated.
+/* The floating-point remainder of the division operation `a / b` calculated by this function is
+ * exactly the value `a - iquot * b`, where `iquot` is `a / b with` its fractional part truncated.
  *
- * The returned value has the same sign as a and is less than b in magnitude. */
+ * The returned value has the same sign as `a` and is less than `b` in magnitude. */
 ccl_device_inline float4 fmod(const float4 a, const float b)
 {
 #  if defined(__KERNEL_NEON__)

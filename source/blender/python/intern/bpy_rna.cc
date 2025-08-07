@@ -137,11 +137,14 @@ static PyObject *pyrna_unregister_class(PyObject *self, PyObject *py_class);
 
 static StructRNA *srna_from_ptr(PointerRNA *ptr);
 
+/**
+ * The `bpy_types-custom_properties` references is created as part of API doc generation.
+ * When expanded line reads: "Limited to: Types with Custom Property Support".
+ */
 #define BPY_DOC_ID_PROP_TYPE_NOTE \
   "   .. note::\n" \
   "\n" \
-  "      Only the :class:`bpy.types.ID`, :class:`bpy.types.Bone` and\n" \
-  "      :class:`bpy.types.PoseBone` classes support custom properties.\n"
+  "      Limited to: :ref:`bpy_types-custom_properties`.\n"
 
 int pyrna_struct_validity_check_only(const BPy_StructRNA *pysrna)
 {
@@ -1966,7 +1969,7 @@ static int pyrna_py_to_prop(
           else {
             PyErr_Format(PyExc_TypeError,
                          "%.200s %.200s.%.200s collection has no type, "
-                         "can't be used as a %.200s type",
+                         "cannot be used as a %.200s type",
                          error_prefix,
                          RNA_struct_identifier(ptr->type),
                          RNA_property_identifier(prop),
@@ -2019,7 +2022,7 @@ static int pyrna_py_to_prop(
               /* Allow passing temporary ID's to functions, but not attribute assignment. */
               if (ptr->type != &RNA_Function) {
                 PyErr_Format(PyExc_TypeError,
-                             "%.200s %.200s.%.200s ID type assignment is temporary, can't assign",
+                             "%.200s %.200s.%.200s ID type assignment is temporary, cannot assign",
                              error_prefix,
                              RNA_struct_identifier(ptr->type),
                              RNA_property_identifier(prop));
@@ -4573,7 +4576,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
     bContext *C = static_cast<bContext *>(self->ptr->data);
     if (C == nullptr) {
       PyErr_Format(PyExc_AttributeError,
-                   "bpy_struct: Context is 'nullptr', can't get \"%.200s\" from context",
+                   "bpy_struct: Context is 'nullptr', cannot get \"%.200s\" from context",
                    name);
       ret = nullptr;
     }
@@ -4677,7 +4680,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
             BLI_assert_msg(0, "Invalid context type");
 
             PyErr_Format(PyExc_AttributeError,
-                         "bpy_struct: Context type invalid %d, can't get \"%.200s\" from context",
+                         "bpy_struct: Context type invalid %d, cannot get \"%.200s\" from context",
                          newtype,
                          name);
             ret = nullptr;
@@ -4774,7 +4777,7 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
   {
     PyErr_Format(PyExc_AttributeError,
                  "pyrna_struct_meta_idprop_setattro() "
-                 "can't set in readonly state '%.200s.%S'",
+                 "cannot set in readonly state '%.200s.%S'",
                  ((PyTypeObject *)cls)->tp_name,
                  attr);
     return -1;
@@ -4859,7 +4862,7 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
     bContext *C = static_cast<bContext *>(self->ptr->data);
     if (C == nullptr) {
       PyErr_Format(PyExc_AttributeError,
-                   "bpy_struct: Context is 'nullptr', can't set \"%.200s\" from context",
+                   "bpy_struct: Context is 'nullptr', cannot set \"%.200s\" from context",
                    name);
       return -1;
     }
@@ -10096,7 +10099,7 @@ static PyObject *pyrna_register_class(PyObject * /*self*/, PyObject *py_class)
 
   if (!pyrna_write_check()) {
     PyErr_Format(PyExc_RuntimeError,
-                 "%s can't run in readonly state '%.200s'",
+                 "%s cannot run in readonly state '%.200s'",
                  error_prefix,
                  ((PyTypeObject *)py_class)->tp_name);
     return nullptr;
@@ -10327,7 +10330,7 @@ static PyObject *pyrna_unregister_class(PyObject * /*self*/, PyObject *py_class)
 
   if (!pyrna_write_check()) {
     PyErr_Format(PyExc_RuntimeError,
-                 "%s can't run in readonly state '%.200s'",
+                 "%s cannot run in readonly state '%.200s'",
                  error_prefix,
                  ((PyTypeObject *)py_class)->tp_name);
     return nullptr;
@@ -10398,7 +10401,7 @@ static PyObject *pyrna_unregister_class(PyObject * /*self*/, PyObject *py_class)
 
     if (prop_identifier) {
       PyErr_Format(PyExc_RuntimeError,
-                   "%s can't unregister %s because %s.%s pointer property is using this",
+                   "%s cannot unregister %s because %s.%s pointer property is using this",
                    error_prefix,
                    RNA_struct_identifier(srna),
                    RNA_struct_identifier(srna_iter),

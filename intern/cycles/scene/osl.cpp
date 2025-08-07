@@ -123,14 +123,16 @@ bool OSLManager::need_update() const
 
 void OSLManager::device_update_pre(Device *device, Scene *scene)
 {
+  if (scene->shader_manager->use_osl() || !scene->camera->script_name.empty()) {
+    shading_system_init();
+  }
+
   if (!need_update()) {
     return;
   }
 
   /* set texture system (only on CPU devices, since GPU devices cannot use OIIO) */
   if (scene->shader_manager->use_osl()) {
-    shading_system_init();
-
     /* add special builtin texture types */
     foreach_render_services([](OSLRenderServices *services) {
       services->textures.insert(OSLUStringHash("@ao"), OSLTextureHandle(OSLTextureHandle::AO));

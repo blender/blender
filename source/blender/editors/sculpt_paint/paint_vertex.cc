@@ -744,8 +744,10 @@ static Color vpaint_blend_stroke(const VPaint &vp,
       stroke_buffer[index].a = 0;
     }
 
-    stroke_buffer[index] = BLI_mix_colors<Color, Traits>(
-        IMB_BlendMode::IMB_BLEND_MIX, stroke_buffer[index], brush_mark_color, brush_mark_alpha);
+    stroke_buffer[index] = BLI_mix_colors<Color, Traits>(IMB_BlendMode::IMB_BLEND_MIX,
+                                                         brush_mark_color,
+                                                         stroke_buffer[index],
+                                                         stroke_buffer[index].a);
 
     result = vpaint_blend<Color, Traits>(vp,
                                          prev_vertex_colors[index],

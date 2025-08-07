@@ -2675,6 +2675,12 @@ static void bevel_harden_normals(BevelParams *bp, BMesh *bm)
     cd_clnors_offset = CustomData_get_offset_named(&bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   }
 
+  /* If the custom normals attribute still hasn't been added with the correct type, at least don't
+   * crash. */
+  if (cd_clnors_offset == -1) {
+    return;
+  }
+
   BMIter fiter;
   BMFace *f;
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {

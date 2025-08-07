@@ -2467,6 +2467,164 @@ class _defs_image_generic:
         )
 
 
+class _defs_image_mask_transform:
+
+    @ToolDef.from_fn
+    def translate():
+        return dict(
+            idname="builtin.move",
+            label="Move",
+            icon="ops.transform.translate",
+            widget="IMAGE_GGT_gizmo2d_translate",
+            operator="transform.translate",
+            keymap="Image Editor Tool: Mask, Move"
+        )
+
+    @ToolDef.from_fn
+    def rotate():
+        return dict(
+            idname="builtin.rotate",
+            label="Rotate",
+            icon="ops.transform.rotate",
+            widget="IMAGE_GGT_gizmo2d_rotate",
+            operator="transform.rotate",
+            keymap="Image Editor Tool: Mask, Rotate",
+        )
+
+    @ToolDef.from_fn
+    def scale():
+        return dict(
+            idname="builtin.scale",
+            label="Scale",
+            icon="ops.transform.resize",
+            widget="IMAGE_GGT_gizmo2d_resize",
+            operator="transform.resize",
+            keymap="Image Editor Tool: Mask, Scale",
+        )
+
+    @ToolDef.from_fn
+    def transform():
+        return dict(
+            idname="builtin.transform",
+            label="Transform",
+            description=(
+                "Supports any combination of grab, rotate, and scale at once"
+            ),
+            icon="ops.transform.transform",
+            widget="IMAGE_GGT_gizmo2d",
+            # No keymap default action, only for gizmo!
+        )
+
+
+class _defs_image_mask_select:
+
+    @ToolDef.from_fn
+    def select():
+        return dict(
+            idname="builtin.select",
+            label="Tweak",
+            icon="ops.generic.select",
+            widget=None,
+            keymap=(),
+        )
+
+    @ToolDef.from_fn
+    def box():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("mask.select_box")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
+
+        return dict(
+            idname="builtin.select_box",
+            label="Select Box",
+            icon="ops.generic.select_box",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def lasso():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("mask.select_lasso")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
+
+        return dict(
+            idname="builtin.select_lasso",
+            label="Select Lasso",
+            icon="ops.generic.select_lasso",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def circle():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("mask.select_circle")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", text="", expand=True, icon_only=True)
+            layout.prop(props, "radius")
+
+        def draw_cursor(_context, tool, xy):
+            from gpu_extras.presets import draw_circle_2d
+            props = tool.operator_properties("mask.select_circle")
+            radius = props.radius
+            draw_circle_2d(xy, (1.0,) * 4, radius, segments=32)
+
+        return dict(
+            idname="builtin.select_circle",
+            label="Select Circle",
+            icon="ops.generic.select_circle",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+            draw_cursor=draw_cursor,
+        )
+
+
+class _defs_image_mask_primitive:
+
+    @ToolDef.from_fn
+    def box():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("mask.primitive_square_add")
+            layout.prop(props, "size")
+            layout.prop(props, "location")
+
+        return dict(
+            idname="builtin.box",
+            label="Box",
+            icon="ops.gpencil.primitive_box",
+            cursor='CROSSHAIR',
+            draw_settings=draw_settings,
+            widget=None,
+            keymap="Image Editor Tool: Mask, Box",
+        )
+
+    @ToolDef.from_fn
+    def circle():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("mask.primitive_circle_add")
+            layout.prop(props, "size")
+            layout.prop(props, "location")
+
+        return dict(
+            idname="builtin.circle",
+            label="Circle",
+            icon="ops.gpencil.primitive_circle",
+            cursor='CROSSHAIR',
+            draw_settings=draw_settings,
+            widget=None,
+            keymap="Image Editor Tool: Mask, Circle",
+        )
+
+
 class _defs_image_uv_transform:
 
     @ToolDef.from_fn
@@ -3121,6 +3279,29 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
         ),
     )
 
+    _tools_mask_transform = (
+        _defs_image_mask_transform.translate,
+        _defs_image_mask_transform.rotate,
+        _defs_image_mask_transform.scale,
+        _defs_image_mask_transform.transform,
+    )
+
+    _tools_mask_select = (
+        (
+            _defs_image_mask_select.select,
+            _defs_image_mask_select.box,
+            _defs_image_mask_select.circle,
+            _defs_image_mask_select.lasso,
+        ),
+    )
+
+    _tools_mask_primitive = (
+        (
+            _defs_image_mask_primitive.circle,
+            _defs_image_mask_primitive.box,
+        ),
+    )
+
     _tools_annotate = (
         (
             _defs_annotate.scribble,
@@ -3156,7 +3337,15 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_image_uv_sculpt.pinch,
         ],
         'MASK': [
+            *_tools_mask_select,
+            _defs_image_generic.cursor,
             None,
+            *_tools_mask_transform,
+            None,
+            *_tools_annotate,
+            None,
+            # TODO: Make interactive placement before adding primitive tools
+            # *_tools_mask_primitive,
         ],
         'PAINT': [
             _brush_tool,

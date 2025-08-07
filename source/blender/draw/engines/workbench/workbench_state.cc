@@ -318,7 +318,7 @@ ObjectState::ObjectState(const DRWContext *draw_ctx,
     color_type = V3D_SHADING_MATERIAL_COLOR;
   }
   else if (color_type == V3D_SHADING_VERTEX_COLOR && !has_color()) {
-    color_type = V3D_SHADING_OBJECT_COLOR;
+    color_type = V3D_SHADING_MATERIAL_COLOR;
   }
 
   if (sculpt_pbvh) {

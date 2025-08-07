@@ -1050,7 +1050,6 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
   create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
   if (vulkan_device->use_vk_ext_swapchain_maintenance_1) {
     create_info.pNext = &vk_swapchain_present_scaling;
-    create_info.flags = VK_SWAPCHAIN_CREATE_DEFERRED_MEMORY_ALLOCATION_BIT_EXT;
   }
   create_info.surface = m_surface;
   create_info.minImageCount = image_count_requested;

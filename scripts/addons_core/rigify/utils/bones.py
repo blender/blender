@@ -118,7 +118,7 @@ def new_bone(obj: ArmatureObject, bone_name: str):
         edit_bone.roll = 0
         return name
     else:
-        raise MetarigError("Can't add new bone '%s' outside of edit mode" % bone_name)
+        raise MetarigError("Cannot add new bone '%s' outside of edit mode" % bone_name)
 
 
 def copy_bone(obj: ArmatureObject, bone_name: str, assign_name='', *,

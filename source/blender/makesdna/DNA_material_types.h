@@ -31,7 +31,7 @@ typedef struct TexPaintSlot {
   struct ImageUser *image_user;
 
   /**
-   * Custom-data index for uv layer, #MAX_NAME.
+   * Custom-data index for uv layer, #MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX.
    * May reference #NodeShaderUVMap::uv_name.
    */
   char *uvname;

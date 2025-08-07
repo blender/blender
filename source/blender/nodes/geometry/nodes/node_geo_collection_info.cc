@@ -76,7 +76,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   if (!DEG_collection_geometry_is_evaluated(*collection)) {
     params.error_message_add(NodeWarningType::Error,
-                             TIP_("Can't access collections geometry because it's not evaluated "
+                             TIP_("Cannot access collections geometry because it's not evaluated "
                                   "yet. This can happen when there is a dependency cycle"));
     params.set_default_remaining_outputs();
     return;

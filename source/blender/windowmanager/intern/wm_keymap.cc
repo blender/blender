@@ -1798,7 +1798,7 @@ void WM_keyconfig_update_tag(wmKeyMap *keymap, wmKeyMapItem *kmi)
   }
 }
 
-void WM_keyconfig_update_operatortype()
+void WM_keyconfig_update_operatortype_tag()
 {
   wm_keymap_update_flag |= WM_KEYMAP_UPDATE_OPERATORTYPE;
 }
@@ -1862,6 +1862,17 @@ static wmKeyMap *wm_keymap_preset(wmWindowManager *wm, wmKeyConfig *keyconf, wmK
   }
 
   return keymap;
+}
+
+void WM_keyconfig_update_on_startup(wmWindowManager *wm)
+{
+  /* Ignore #WM_KEYMAP_UPDATE_OPERATORTYPE flag on startup,
+   * it's likely to be enabled because it's set when registering any operator
+   * however running this is unnecessary since the key-map hasn't been initialized.
+   * It's harmless but would add redundant initialization every startup. */
+  wm_keymap_update_flag &= ~WM_KEYMAP_UPDATE_OPERATORTYPE;
+
+  WM_keyconfig_update_ex(wm, false);
 }
 
 void WM_keyconfig_update(wmWindowManager *wm)
@@ -2175,7 +2186,7 @@ wmKeyMapItem *WM_keymap_item_find_match(wmKeyMap *km_base,
 
   if (!wm_keymap_is_match(km_base, km_match)) {
     BKE_reportf(
-        reports, RPT_ERROR, "KeyMap \"%s\" doesn't match \"%s\"", idname, km_match->idname);
+        reports, RPT_ERROR, "KeyMap \"%s\" does not match \"%s\"", idname, km_match->idname);
     return nullptr;
   }
 

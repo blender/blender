@@ -556,7 +556,7 @@ static int bpy_bmdeformvert_ass_subscript(BPy_BMDeformVert *self, PyObject *key,
       if (i < 0) {
         PyErr_SetString(PyExc_KeyError,
                         "BMDeformVert[key] = x: "
-                        "weight keys can't be negative");
+                        "weight keys cannot be negative");
         return -1;
       }
 

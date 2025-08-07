@@ -119,7 +119,7 @@ static void rna_Armature_act_bone_set(PointerRNA *ptr, PointerRNA value, ReportL
       Object *ob = (Object *)value.owner_id;
 
       if (GS(ob->id.name) != ID_OB || (ob->data != arm)) {
-        printf("ERROR: armature set active bone - new active doesn't come from this armature\n");
+        printf("ERROR: armature set active bone - new active does not come from this armature\n");
         return;
       }
     }
@@ -1512,8 +1512,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_ui_text(
       prop,
       "Cyclic Offset",
-      "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)");
-  //                         "When bone doesn't have a parent, it receives cyclic offset effects");
+      "When bone does not have a parent, it receives cyclic offset effects (Deprecated)");
   RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 
   prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);

@@ -892,6 +892,12 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
     }
   }
 
+  bNode *frame = blender::bke::node_add_static_node(nullptr, *node_tree, NODE_FRAME);
+  frame->parent = node->parent;
+  STRNCPY(frame->label, IFACE_("Versioning: Map Value node was removed"));
+  NodeFrame *frame_data = static_cast<NodeFrame *>(frame->storage);
+  frame_data->label_size = 10;
+
   /* If the value input is not connected, add a value node with the computed value. */
   if (!value_link) {
     const float value = static_cast<bNodeSocketValueFloat *>(value_input->default_value)->value;
@@ -903,7 +909,8 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
     bNode &value_node = version_node_add_empty(*node_tree, "ShaderNodeValue");
     bNodeSocket &value_output = version_node_add_socket(
         *node_tree, value_node, SOCK_OUT, "NodeSocketFloat", "Value");
-    value_node.parent = node->parent;
+
+    value_node.parent = frame;
     value_node.location[0] = node->location[0];
     value_node.location[1] = node->location[1];
 
@@ -939,7 +946,7 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
   bNodeSocket &add_output = version_node_add_socket(
       *node_tree, add_node, SOCK_OUT, "NodeSocketFloat", "Value");
 
-  add_node.parent = node->parent;
+  add_node.parent = frame;
   add_node.custom1 = NODE_MATH_ADD;
   add_node.location[0] = node->location[0];
   add_node.location[1] = node->location[1];
@@ -956,7 +963,7 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
 
   /* Add a multiply node to multiply by the size. */
   bNode &multiply_node = version_node_add_empty(*node_tree, "ShaderNodeMath");
-  multiply_node.parent = node->parent;
+  multiply_node.parent = frame;
   multiply_node.custom1 = NODE_MATH_MULTIPLY;
   multiply_node.location[0] = add_node.location[0];
   multiply_node.location[1] = add_node.location[1] - 40.0f;
@@ -983,7 +990,7 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
   if (use_min) {
     /* Add a maximum node to clamp by the minimum. */
     bNode &max_node = version_node_add_empty(*node_tree, "ShaderNodeMath");
-    max_node.parent = node->parent;
+    max_node.parent = frame;
     max_node.custom1 = NODE_MATH_MAXIMUM;
     max_node.location[0] = final_node->location[0];
     max_node.location[1] = final_node->location[1] - 40.0f;
@@ -1010,7 +1017,7 @@ static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
   if (use_max) {
     /* Add a minimum node to clamp by the maximum. */
     bNode &min_node = version_node_add_empty(*node_tree, "ShaderNodeMath");
-    min_node.parent = node->parent;
+    min_node.parent = frame;
     min_node.custom1 = NODE_MATH_MINIMUM;
     min_node.location[0] = final_node->location[0];
     min_node.location[1] = final_node->location[1] - 40.0f;
@@ -2071,6 +2078,27 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         }
         NodeMapUVData *data = MEM_callocN<NodeMapUVData>(__func__);
         data->interpolation = node->custom2;
+        data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
+        data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
+        node->storage = data;
+      }
+      FOREACH_NODETREE_END;
+    }
+  }
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 51)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type_legacy != CMP_NODE_CORNERPIN) {
+          continue;
+        }
+        if (node->storage != nullptr) {
+          continue;
+        }
+        NodeCornerPinData *data = MEM_callocN<NodeCornerPinData>(__func__);
+        data->interpolation = node->custom1;
         data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
         data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
         node->storage = data;

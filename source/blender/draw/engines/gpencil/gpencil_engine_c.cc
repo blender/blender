@@ -172,13 +172,12 @@ void Instance::begin_sync()
   this->use_layer_fb = false;
   this->use_object_fb = false;
   this->use_mask_fb = false;
-  this->use_separate_pass =
-      draw_ctx->is_viewport_compositor_enabled() ?
-          bke::compositor::get_used_passes(*scene, view_layer).contains("GreasePencil") :
-          false;
-  /* Always use high precision for render and viewport compositor (viewport compositor only takes
-   * RGBA16F/32F formats). */
-  this->use_signed_fb = this->use_separate_pass || !this->is_viewport;
+
+  const bool use_viewport_compositor = draw_ctx->is_viewport_compositor_enabled();
+  const bool has_grease_pencil_pass =
+      bke::compositor::get_used_passes(*scene, view_layer).contains("GreasePencil");
+  this->use_separate_pass = use_viewport_compositor ? has_grease_pencil_pass : false;
+  this->use_signed_fb = !this->is_viewport;
 
   if (draw_ctx->v3d) {
     const bool hide_overlay = ((draw_ctx->v3d->flag2 & V3D_HIDE_OVERLAYS) != 0);
@@ -612,9 +611,7 @@ void Instance::acquire_resources()
 
   const int2 size = int2(draw_ctx->viewport_size_get());
 
-  const gpu::TextureFormat format_color = this->use_signed_fb ?
-                                              gpu::TextureFormat::SFLOAT_16_16_16_16 :
-                                              gpu::TextureFormat::UFLOAT_11_11_10;
+  const gpu::TextureFormat format_color = gpu::TextureFormat::SFLOAT_16_16_16_16;
   const gpu::TextureFormat format_reveal = this->use_signed_fb ?
                                                gpu::TextureFormat::SFLOAT_16_16_16_16 :
                                                gpu::TextureFormat::UNORM_10_10_10_2;

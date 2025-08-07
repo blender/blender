@@ -242,8 +242,8 @@ struct MeshRuntime {
 
   /**
    * Settings for lazily evaluating the subdivision on the CPU if needed. These are
-   * set in the modifier when GPU subdivision can be performed, and owned by the by
-   * the modifier in the object.
+   * set in the modifier when GPU subdivision can be performed,
+   * and owned by the modifier in the object.
    */
   SubsurfRuntimeData *subsurf_runtime_data = nullptr;
 

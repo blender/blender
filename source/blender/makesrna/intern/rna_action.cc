@@ -360,7 +360,7 @@ static void rna_ActionSlot_identifier_set(PointerRNA *ptr, const char *identifie
   if (identifier_with_correct_prefix != identifier_ref) {
     WM_global_reportf(
         RPT_WARNING,
-        "Attempted to set slot identifier to \"%s\", but the type prefix doesn't match the "
+        "Attempted to set slot identifier to \"%s\", but the type prefix does not match the "
         "slot's 'target_id_type' \"%s\". Setting to \"%s\" instead.\n",
         identifier,
         slot.idtype_string().c_str(),
@@ -734,7 +734,7 @@ static void rna_Channelbag_group_remove(ActionChannelbag *dna_channelbag,
   if (!self.channel_group_remove(*agrp)) {
     BKE_report(reports,
                RPT_ERROR,
-               "Could not remove the F-Curve Group from the collection because it doesn't exist "
+               "Could not remove the F-Curve Group from the collection because it does not exist "
                "in the collection");
     return;
   }
@@ -2529,7 +2529,7 @@ static void rna_def_channelbag_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
   parm = RNA_def_pointer(
-      func, "fcurve", "FCurve", "", "The found F-Curve, or None if it doesn't exist");
+      func, "fcurve", "FCurve", "", "The found F-Curve, or None if it does not exist");
   RNA_def_function_return(func, parm);
 
   /* Channelbag.fcurves.remove(...) */
@@ -2795,7 +2795,7 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
   parm = RNA_def_pointer(
-      func, "fcurve", "FCurve", "", "The found F-Curve, or None if it doesn't exist");
+      func, "fcurve", "FCurve", "", "The found F-Curve, or None if it does not exist");
   RNA_def_function_return(func, parm);
 
   /* Action.fcurves.remove(...) */
@@ -3004,7 +3004,7 @@ static void rna_def_action(BlenderRNA *brna)
       prop,
       "Cyclic Animation",
       "The action is intended to be used as a cycle looping over its manually set "
-      "playback frame range (enabling this doesn't automatically make it loop)");
+      "playback frame range (enabling this does not automatically make it loop)");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 
   prop = RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_TIME);

@@ -17,7 +17,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Matrix>("Transform")
       .field_on_all()
-      .implicit_field(NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD);
+      .implicit_field(NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD)
+      .structure_type(StructureType::Field);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

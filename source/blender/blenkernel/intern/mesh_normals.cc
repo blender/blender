@@ -294,6 +294,10 @@ blender::bke::MeshNormalDomain Mesh::normals_domain(const bool support_sharp_fac
 {
   using namespace blender;
   using namespace blender::bke;
+  if (this->faces_num == 0) {
+    return MeshNormalDomain::Point;
+  }
+
   const bke::AttributeAccessor attributes = this->attributes();
   if (const std::optional<AttributeMetaData> custom = attributes.lookup_meta_data("custom_normal"))
   {

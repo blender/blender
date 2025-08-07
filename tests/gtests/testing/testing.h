@@ -153,6 +153,19 @@ inline void EXPECT_EQ_SPAN(const blender::Span<T> expected, const blender::Span<
   }
 }
 
+template<typename T, typename U>
+inline void EXPECT_NEAR_SPAN(const blender::Span<T> expected,
+                             const blender::Span<T> actual,
+                             const U tolerance)
+{
+  EXPECT_EQ(expected.size(), actual.size());
+  if (expected.size() == actual.size()) {
+    for (const int64_t i : expected.index_range()) {
+      EXPECT_NEAR(expected[i], actual[i], tolerance) << "Element mismatch at index " << i;
+    }
+  }
+}
+
 template<typename T>
 inline void EXPECT_EQ_ARRAY(const T *expected, const T *actual, const size_t N)
 {

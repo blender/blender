@@ -161,6 +161,8 @@ Data is added and removed via methods on the collections in :mod:`bpy.data`, e.g
    >>> bpy.data.meshes.remove(mesh)
 
 
+.. _info_quickstart-custom_properties:
+
 Custom Properties
 ^^^^^^^^^^^^^^^^^
 
@@ -196,6 +198,9 @@ Note that these properties can only be assigned basic Python types:
 - dictionary (only string keys are supported, values must be basic types too)
 
 These properties are valid outside of Python. They can be animated by curves or used in driver paths.
+
+For a list of types that support custom properties see:
+:ref:`types supporting custom properties <bpy_types-custom_properties>`.
 
 
 Context

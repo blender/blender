@@ -3309,7 +3309,7 @@ static void rna_def_property(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_never_none", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_funcs(prop, "rna_Property_is_never_none_get", nullptr);
-  RNA_def_property_ui_text(prop, "Never None", "True when this value can't be set to None");
+  RNA_def_property_ui_text(prop, "Never None", "True when this value cannot be set to None");
 
   prop = RNA_def_property(srna, "is_hidden", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -3415,9 +3415,9 @@ static void rna_def_property(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "tags", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_enum_items(prop, dummy_prop_tags);
   RNA_def_property_enum_funcs(prop, "rna_Property_tags_get", nullptr, "rna_Property_tags_itemf");
-  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_ui_text(
       prop, "Tags", "Subset of tags (defined in parent struct) that are set for this property");
 }

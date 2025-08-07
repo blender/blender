@@ -1823,7 +1823,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                           icon='BLANK1', translate=False)
             elif device_type == 'OPTIX':
                 compute_capability = "5.0"
-                driver_version = "470"
+                driver_version = "535"
                 col.label(text=rpt_("Requires NVIDIA GPU with compute capability %s") % compute_capability,
                           icon='BLANK1', translate=False)
                 col.label(text=rpt_("and NVIDIA driver version %s or newer") % driver_version,

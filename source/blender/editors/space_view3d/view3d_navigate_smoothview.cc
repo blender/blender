@@ -304,7 +304,7 @@ void ED_view3d_smooth_view_ex(
       Object *ob_camera_old_eval = DEG_get_evaluated(depsgraph, sview->camera_old);
       if (sview->ofs != nullptr) {
         sms.src.dist = ED_view3d_offset_distance(
-            ob_camera_old_eval->object_to_world().ptr(), sview->ofs, 0.0f);
+            ob_camera_old_eval->object_to_world().ptr(), sview->ofs, 0);
       }
       ED_view3d_from_object(
           ob_camera_old_eval, sms.src.ofs, sms.src.quat, &sms.src.dist, &sms.src.lens);

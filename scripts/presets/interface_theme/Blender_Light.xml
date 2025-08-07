@@ -24,6 +24,7 @@
         axis_x="#ff3352"
         axis_y="#8bdc00"
         axis_z="#2890ff"
+        axis_w="#b47aff"
         gizmo_hi="#ffffff"
         gizmo_primary="#f5f14d"
         gizmo_secondary="#63ffff"

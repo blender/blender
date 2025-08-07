@@ -171,51 +171,8 @@ static void extract_data_bmesh_loop(const BMesh &bm, const int cd_offset, gpu::V
   }
 }
 
-struct BMeshAttributeLookup {
-  const int offset = -1;
-  bke::AttrDomain domain;
-  bke::AttrType type;
-  operator bool() const
-  {
-    return offset != -1;
-  }
-};
-
-static BMeshAttributeLookup lookup_bmesh_attribute(const BMesh &bm, const StringRef name)
-{
-  for (const CustomDataLayer &layer : Span(bm.vdata.layers, bm.vdata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Point,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
-    }
-  }
-  for (const CustomDataLayer &layer : Span(bm.edata.layers, bm.edata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Edge,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
-    }
-  }
-  for (const CustomDataLayer &layer : Span(bm.pdata.layers, bm.pdata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Face,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
-    }
-  }
-  for (const CustomDataLayer &layer : Span(bm.ldata.layers, bm.ldata.totlayer)) {
-    if (layer.name == name) {
-      return {layer.offset,
-              bke::AttrDomain::Corner,
-              *bke::custom_data_type_to_attr_type(eCustomDataType(layer.type))};
-    }
-  }
-  return {};
-}
-
 static void extract_attribute_data(const MeshRenderData &mr,
-                                   const BMeshAttributeLookup &attr,
+                                   const BMDataLayerLookup &attr,
                                    gpu::VertBuf &vbo)
 {
   bke::attribute_math::convert_to_static_type(attr.type, [&](auto dummy) {
@@ -272,7 +229,7 @@ gpu::VertBufPtr extract_attribute(const MeshRenderData &mr, const StringRef name
 {
   gpu::VertBuf *vbo = GPU_vertbuf_calloc();
   if (mr.extract_type == MeshExtractType::BMesh) {
-    const BMeshAttributeLookup attr = lookup_bmesh_attribute(*mr.bm, name);
+    const BMDataLayerLookup attr = BM_data_layer_lookup(*mr.bm, name);
     if (!attr) {
       return {};
     }
@@ -313,7 +270,7 @@ gpu::VertBufPtr extract_attribute_subdiv(const MeshRenderData &mr,
   gpu::VertBufPtr coarse_vbo;
   bke::AttrType type;
   if (mr.extract_type == MeshExtractType::BMesh) {
-    const BMeshAttributeLookup attr = lookup_bmesh_attribute(*mr.bm, name);
+    const BMDataLayerLookup attr = BM_data_layer_lookup(*mr.bm, name);
     if (!attr) {
       return {};
     }

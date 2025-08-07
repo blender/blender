@@ -31,8 +31,10 @@ static void node_declare(NodeDeclarationBuilder &b)
     const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);
     b.add_input(data_type, "Value").hide_value().field_on_all();
   }
-  b.add_input<decl::Int>("Index").supports_field().description(
-      "Which element to retrieve a value from on the geometry");
+  b.add_input<decl::Int>("Index")
+      .supports_field()
+      .description("Which element to retrieve a value from on the geometry")
+      .structure_type(StructureType::Dynamic);
 
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node_storage(*node).data_type);

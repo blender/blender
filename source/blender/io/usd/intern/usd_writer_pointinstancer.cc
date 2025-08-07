@@ -77,7 +77,7 @@ void USDPointInstancerWriter::do_write(HierarchyContext &context)
   if (transforms.size() != instance_num) {
     BKE_reportf(this->reports(),
                 RPT_ERROR,
-                "Instances number '%d' doesn't match transforms size '%d'",
+                "Instances number '%d' does not match transforms size '%d'",
                 instance_num,
                 int(transforms.size()));
     return;

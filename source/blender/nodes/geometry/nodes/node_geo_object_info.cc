@@ -87,7 +87,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (show_transform_error) {
     params.error_message_add(
         NodeWarningType::Error,
-        TIP_("Can't access object's transforms because it's not evaluated yet. "
+        TIP_("Cannot access object's transforms because it's not evaluated yet. "
              "This can happen when there is a dependency cycle"));
   }
   float3 location, scale;
@@ -115,9 +115,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   BLI_assert(object != self_object);
 
   if (!object_geometry_evaluated) {
-    params.error_message_add(NodeWarningType::Error,
-                             TIP_("Can't access object's geometry because it's not evaluated yet. "
-                                  "This can happen when there is a dependency cycle"));
+    params.error_message_add(
+        NodeWarningType::Error,
+        TIP_("Cannot access object's geometry because it's not evaluated yet. "
+             "This can happen when there is a dependency cycle"));
     params.set_default_remaining_outputs();
     return;
   }
@@ -127,7 +128,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (!self_transform_evaluated || !object_transform_evaluated) {
       params.error_message_add(
           NodeWarningType::Error,
-          TIP_("Can't access object's transforms because it's not evaluated yet. "
+          TIP_("Cannot access object's transforms because it's not evaluated yet. "
                "This can happen when there is a dependency cycle"));
       params.set_default_remaining_outputs();
       return;

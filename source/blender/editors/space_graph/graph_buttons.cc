@@ -584,7 +584,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     }
     else if (fcu->fpt) {
       /* samples only */
-      layout->label(RPT_("F-Curve doesn't have any keyframes as it only contains sampled points"),
+      layout->label(RPT_("F-Curve does not have any keyframes as it only contains sampled points"),
                     ICON_NONE);
     }
     else {

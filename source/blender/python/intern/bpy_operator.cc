@@ -76,7 +76,7 @@ static PyObject *pyop_poll(PyObject * /*self*/, PyObject *args)
   bContext *C = BPY_context_get();
 
   if (C == nullptr) {
-    PyErr_SetString(PyExc_RuntimeError, "Context is None, can't poll any operators");
+    PyErr_SetString(PyExc_RuntimeError, "Context is None, cannot poll any operators");
     return nullptr;
   }
 
@@ -147,7 +147,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
   bContext *C = BPY_context_get();
 
   if (C == nullptr) {
-    PyErr_SetString(PyExc_RuntimeError, "Context is None, can't poll any operators");
+    PyErr_SetString(PyExc_RuntimeError, "Context is None, cannot poll any operators");
     return nullptr;
   }
 
@@ -183,7 +183,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
   if (!pyrna_write_check()) {
     PyErr_Format(PyExc_RuntimeError,
                  "Calling operator \"bpy.ops.%s\" error, "
-                 "can't modify blend data in this state (drawing/rendering)",
+                 "cannot modify blend data in this state (drawing/rendering)",
                  opname);
     return nullptr;
   }
@@ -319,7 +319,7 @@ static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
 
   if (C == nullptr) {
     PyErr_SetString(PyExc_RuntimeError,
-                    "Context is None, can't get the string representation of this object.");
+                    "Context is None, cannot get the string representation of this object.");
     return nullptr;
   }
 

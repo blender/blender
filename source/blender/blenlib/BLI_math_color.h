@@ -137,10 +137,10 @@ void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset);
  */
 void rgb_byte_set_hue_float_offset(unsigned char rgb[3], float hue_offset);
 
-void rgb_uchar_to_float(float r_col[3], const unsigned char col_ub[3]);
-void rgba_uchar_to_float(float r_col[4], const unsigned char col_ub[4]);
-void rgb_float_to_uchar(unsigned char r_col[3], const float col_f[3]);
-void rgba_float_to_uchar(unsigned char r_col[4], const float col_f[4]);
+MINLINE void rgb_uchar_to_float(float r_col[3], const unsigned char col_ub[3]);
+MINLINE void rgba_uchar_to_float(float r_col[4], const unsigned char col_ub[4]);
+MINLINE void rgb_float_to_uchar(unsigned char r_col[3], const float col_f[3]);
+MINLINE void rgba_float_to_uchar(unsigned char r_col[4], const float col_f[4]);
 
 /**
  * Compute luminance using Rec.709 primaries, for sRGB and linear Rec.709.

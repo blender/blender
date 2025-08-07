@@ -5,6 +5,7 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_subdivide_curves.hh"
 
 #include "node_geometry_util.hh"
@@ -88,7 +89,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
   const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Curve");
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (geometry_set.has_curves()) {
       const Curves &src_curves_id = *geometry_set.get_curves();
       Curves *dst_curves_id = subdivide_curves(src_curves_id, cuts_field, attribute_filter);

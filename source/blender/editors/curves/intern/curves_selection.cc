@@ -26,6 +26,7 @@ namespace blender::ed::curves {
 IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves, IndexMaskMemory &memory)
 {
   const IndexRange curves_range = curves.curves_range();
+  const VArray<int8_t> curve_types = curves.curve_types();
   const bke::AttributeAccessor attributes = curves.attributes();
 
   /* Interpolate from points to curves manually as a performance improvement, since we are only
@@ -37,9 +38,15 @@ IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves, IndexMaskM
      * curve domain by retrieving the point domain values directly. */
     const VArray<bool> selection = *attributes.lookup_or_default<bool>(
         ".selection", bke::AttrDomain::Point, true);
-    if (selection.is_single()) {
+    const VArray<bool> selection_left = *attributes.lookup_or_default<bool>(
+        ".selection_handle_left", bke::AttrDomain::Point, true);
+    const VArray<bool> selection_right = *attributes.lookup_or_default<bool>(
+        ".selection_handle_right", bke::AttrDomain::Point, true);
+
+    if (selection.is_single() && curves.is_single_type(CURVE_TYPE_POLY)) {
       return selection.get_internal_single() ? IndexMask(curves_range) : IndexMask();
     }
+
     const OffsetIndices points_by_curve = curves.points_by_curve();
     return IndexMask::from_predicate(
         curves_range, GrainSize(512), memory, [&](const int64_t curve) {
@@ -47,7 +54,14 @@ IndexMask retrieve_selected_curves(const bke::CurvesGeometry &curves, IndexMaskM
           /* The curve is selected if any of its points are selected. */
           Array<bool, 32> point_selection(points.size());
           selection.materialize_compressed(points, point_selection);
-          return point_selection.as_span().contains(true);
+          bool is_selected = point_selection.as_span().contains(true);
+          if (curve_types[curve] == CURVE_TYPE_BEZIER) {
+            selection_left.materialize_compressed(points, point_selection);
+            is_selected |= point_selection.as_span().contains(true);
+            selection_right.materialize_compressed(points, point_selection);
+            is_selected |= point_selection.as_span().contains(true);
+          }
+          return is_selected;
         });
   }
   const VArray<bool> selection = *attributes.lookup_or_default<bool>(

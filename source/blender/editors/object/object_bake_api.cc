@@ -668,7 +668,7 @@ static bool bake_objects_check(Main *bmain,
       if (ELEM(ob_iter->type, OB_MESH, OB_FONT, OB_CURVES_LEGACY, OB_SURF, OB_MBALL) == false) {
         BKE_reportf(reports,
                     RPT_ERROR,
-                    "Object \"%s\" is not a mesh or can't be converted to a mesh (Curve, Text, "
+                    "Object \"%s\" is not a mesh or cannot be converted to a mesh (Curve, Text, "
                     "Surface or Metaball)",
                     ob_iter->id.name + 2);
         return false;
@@ -2236,13 +2236,12 @@ void OBJECT_OT_bake(wmOperatorType *ot)
       SCE_PASS_COMBINED,
       "Type",
       "Type of pass to bake, some of them may not be supported by the current render engine");
-  prop = RNA_def_enum(ot->srna,
-                      "pass_filter",
-                      rna_enum_bake_pass_filter_type_items,
-                      R_BAKE_PASS_FILTER_NONE,
-                      "Pass Filter",
-                      "Filter to combined, diffuse, glossy, transmission and subsurface passes");
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  RNA_def_enum_flag(ot->srna,
+                    "pass_filter",
+                    rna_enum_bake_pass_filter_type_items,
+                    R_BAKE_PASS_FILTER_NONE,
+                    "Pass Filter",
+                    "Filter to combined, diffuse, glossy, transmission and subsurface passes");
   RNA_def_string_file_path(ot->srna,
                            "filepath",
                            nullptr,

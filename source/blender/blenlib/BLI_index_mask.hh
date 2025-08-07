@@ -346,8 +346,8 @@ class IndexMask : private IndexMaskData {
   int64_t operator[](const RawMaskIterator &it) const;
 
   /**
-   * Get a new mask that contains a consecutive subset of this mask. Takes O(log n) time and but
-   * can reuse the memory from the source mask.
+   * Get a new mask that contains a consecutive subset of this mask. Takes O(log n) time
+   * but can reuse the memory from the source mask.
    */
   IndexMask slice(IndexRange range) const;
   IndexMask slice(int64_t start, int64_t size) const;

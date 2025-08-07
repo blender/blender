@@ -58,25 +58,14 @@ void BLI_temp_directory_path_get(char *tempdir, const size_t tempdir_maxncpy)
 {
   tempdir[0] = '\0';
 
-  const char *env_vars[] = {
 #ifdef WIN32
-      "TEMP",
+  const char *env_var = "TEMP";
 #else
-      /* Non standard (could be removed). */
-      "TMP",
-      /* Posix standard. */
-      "TMPDIR",
+  const char *env_var = "TMPDIR";
 #endif
-  };
 
-  for (int i = 0; i < ARRAY_SIZE(env_vars); i++) {
-    const char *tempdir_test = BLI_getenv(env_vars[i]);
-    if (tempdir_test == nullptr) {
-      continue;
-    }
-    if (BLI_temp_directory_path_copy_if_valid(tempdir, tempdir_maxncpy, tempdir_test)) {
-      break;
-    }
+  if (const char *tempdir_test = BLI_getenv(env_var)) {
+    BLI_temp_directory_path_copy_if_valid(tempdir, tempdir_maxncpy, tempdir_test);
   }
 
   if (tempdir[0] == '\0') {

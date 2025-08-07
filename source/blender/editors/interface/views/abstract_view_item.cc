@@ -52,7 +52,7 @@ std::optional<bool> AbstractViewItem::should_be_active() const
 bool AbstractViewItem::set_state_active()
 {
   BLI_assert_msg(get_view().is_reconstructed(),
-                 "Item activation can't be done until reconstruction is completed");
+                 "Item activation cannot be done until reconstruction is completed");
 
   if (!is_activatable_) {
     return false;
@@ -336,7 +336,7 @@ bool AbstractViewItem::is_interactive() const
 bool AbstractViewItem::is_active() const
 {
   BLI_assert_msg(this->get_view().is_reconstructed(),
-                 "State can't be queried until reconstruction is completed");
+                 "State cannot be queried until reconstruction is completed");
   return is_active_;
 }
 

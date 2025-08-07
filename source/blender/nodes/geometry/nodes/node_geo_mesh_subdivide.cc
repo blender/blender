@@ -5,6 +5,7 @@
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_randomize.hh"
 
 #include "node_geometry_util.hh"
@@ -72,7 +73,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (const Mesh *mesh = geometry_set.get_mesh()) {
       geometry_set.replace_mesh(simple_subdivide_mesh(*mesh, level));
     }

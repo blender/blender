@@ -84,7 +84,7 @@ class ImplicitSharingInfo : NonCopyable, NonMovable {
     return strong_users_.load(std::memory_order_acquire) == 0;
   }
 
-  /** Call when a the data has a new additional owner. */
+  /** Call when the data has a new additional owner. */
   void add_user() const
   {
     BLI_assert(!this->is_expired());

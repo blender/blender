@@ -78,13 +78,13 @@ static bool lib_id_preview_editing_poll_ex(const ID *id, const char **r_disabled
   }
   if (!ID_IS_EDITABLE(id)) {
     if (r_disabled_hint) {
-      *r_disabled_hint = "Can't edit external library data";
+      *r_disabled_hint = "Cannot edit external library data";
     }
     return false;
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     if (r_disabled_hint) {
-      *r_disabled_hint = "Can't edit previews of overridden library data";
+      *r_disabled_hint = "Cannot edit previews of overridden library data";
     }
     return false;
   }

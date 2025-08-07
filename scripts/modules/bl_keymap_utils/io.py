@@ -75,7 +75,7 @@ def _kmi_properties_to_lines_recursive(level, properties, lines):
             return repr_f32(value)
         elif getattr(value, '__len__', False):
             return repr(tuple(value))
-        raise Exception(f"Export key configuration: can't write {value!r}")
+        raise Exception(f"Export key configuration: cannot write {value!r}")
 
     for pname in properties.bl_rna.properties.keys():
         if pname != "rna_type":

@@ -4,6 +4,7 @@
 
 #include "node_geometry_util.hh"
 
+#include "GEO_foreach_geometry.hh"
 #include "GEO_merge_layers.hh"
 
 #include "BKE_grease_pencil.hh"
@@ -170,8 +171,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const NodeAttributeFilter attribute_filter = params.get_attribute_filter("Grease Pencil");
 
-  main_geometry.modify_geometry_sets(
-      [&](GeometrySet &geometry) { merge_layers(geometry, storage, params, attribute_filter); });
+  geometry::foreach_real_geometry(main_geometry, [&](GeometrySet &geometry) {
+    merge_layers(geometry, storage, params, attribute_filter);
+  });
 
   params.set_output("Grease Pencil", std::move(main_geometry));
 }

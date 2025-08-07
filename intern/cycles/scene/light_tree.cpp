@@ -35,7 +35,7 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
     return cone_a;
   }
 
-  /* Set cone a to always have the greater theta_o. */
+  /* Set cone `a` to always have the greater `theta_o`. */
   const OrientationBounds *a = &cone_a;
   const OrientationBounds *b = &cone_b;
   if (cone_b.theta_o > cone_a.theta_o) {
@@ -47,20 +47,20 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
   const float theta_d = safe_acosf(cos_a_b);
   const float theta_e = fmaxf(a->theta_e, b->theta_e);
 
-  /* Return axis and theta_o of a if it already contains b. */
-  /* This should also be called when b is empty. */
+  /* Return axis and `theta_o` of `a` if it already contains `b`. */
+  /* This should also be called when `b` is empty. */
   if (a->theta_o + 5e-4f >= fminf(M_PI_F, theta_d + b->theta_o)) {
     return OrientationBounds({a->axis, a->theta_o, theta_e});
   }
 
-  /* Compute new theta_o that contains both a and b. */
+  /* Compute new `theta_o` that contains both `a` and `b`. */
   const float theta_o = (theta_d + a->theta_o + b->theta_o) * 0.5f;
 
   if (theta_o >= M_PI_F) {
     return OrientationBounds({a->axis, M_PI_F, theta_e});
   }
 
-  /* Slerp between a and b. */
+  /* Slerp between `a` and `b`. */
   float3 new_axis;
   if (cos_a_b < -0.9995f) {
     /* Opposite direction, any orthogonal vector is fine. */

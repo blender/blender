@@ -129,6 +129,7 @@ void time_slip_strip(
     const Scene *scene, Strip *strip, int frame_delta, float subframe_delta, bool slip_keyframes);
 /**
  * Get difference between scene and movie strip frame-rate.
+ * Returns 1.0f for all other strip types.
  */
 float time_media_playback_rate_factor_get(const Strip *strip, float scene_fps);
 /**

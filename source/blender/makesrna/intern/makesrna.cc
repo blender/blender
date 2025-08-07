@@ -5664,7 +5664,7 @@ static void make_bad_file(const char *file, int line)
 {
   FILE *fp = fopen(file, "w");
   fprintf(fp,
-          "#error \"Error! can't make correct RNA file from %s:%d, "
+          "#error \"Error! cannot make correct RNA file from %s:%d, "
           "check DNA properties.\"\n",
           __FILE__,
           line);

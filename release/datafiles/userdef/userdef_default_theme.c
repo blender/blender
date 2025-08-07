@@ -253,6 +253,7 @@ const bTheme U_theme_default = {
     .xaxis = RGBA(0xff3352ff),
     .yaxis = RGBA(0x8bdc00ff),
     .zaxis = RGBA(0x2890ffff),
+    .waxis = RGBA(0xedba18ff),
     .gizmo_hi = RGBA(0xffffffff),
     .gizmo_primary = RGBA(0xf5f14dff),
     .gizmo_secondary = RGBA(0x63ffffff),

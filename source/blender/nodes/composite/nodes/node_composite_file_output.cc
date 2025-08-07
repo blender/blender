@@ -608,6 +608,12 @@ class FileOutputOperation : public NodeOperation {
 
   void execute_multi_layer()
   {
+    /* We only write images, not single values. */
+    const int2 size = this->compute_domain().size;
+    if (size == int2(1)) {
+      return;
+    }
+
     const bool store_views_in_single_file = is_multi_view_exr();
     const char *view = context().get_view_name().data();
 
@@ -622,7 +628,6 @@ class FileOutputOperation : public NodeOperation {
       return;
     }
 
-    const int2 size = compute_domain().size;
     const ImageFormatData format = node_storage(bnode()).format;
     FileOutput &file_output = context().render_context()->get_file_output(
         image_path, format, size, true);
@@ -1018,6 +1023,19 @@ class FileOutputOperation : public NodeOperation {
   {
     return context().get_render_data().scemode & R_MULTIVIEW;
   }
+
+  Domain compute_domain() override
+  {
+    Domain domain = NodeOperation::compute_domain();
+    if (!this->is_multi_layer()) {
+      return domain;
+    }
+
+    /* Reset the location of the domain in multi-layer case such that translations take effect,
+     * this will result in clipping but is more expected for the user. */
+    domain.transformation.location() = float2(0.0f);
+    return domain;
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)
@@ -1041,7 +1059,6 @@ static void register_node_type_cmp_output_file()
   ntype.draw_buttons = file_ns::node_composit_buts_file_output;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_file_output_ex;
   ntype.initfunc_api = file_ns::init_output_file;
-  ntype.flag |= NODE_PREVIEW;
   blender::bke::node_type_storage(
       ntype, "NodeImageMultiFile", file_ns::free_output_file, file_ns::copy_output_file);
   ntype.updatefunc = file_ns::update_output_file;

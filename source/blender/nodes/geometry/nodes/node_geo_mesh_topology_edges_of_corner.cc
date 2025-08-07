@@ -12,7 +12,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>("Corner Index")
       .implicit_field(NODE_DEFAULT_INPUT_INDEX_FIELD)
-      .description("The corner to retrieve data from. Defaults to the corner from the context");
+      .description("The corner to retrieve data from. Defaults to the corner from the context")
+      .structure_type(StructureType::Field);
   b.add_output<decl::Int>("Next Edge Index")
       .field_source_reference_all()
       .description(

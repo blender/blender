@@ -914,6 +914,10 @@ static const SharedCache<Vector<float3>> &vert_normals_cache_eval(const Object &
         return mesh_eval->runtime->vert_normals_true_cache;
       }
     }
+    if (!ss.deform_cos.is_empty()) {
+      BLI_assert(ss.deform_cos.size() == mesh_orig.verts_num);
+      return ss.vert_normals_deform;
+    }
     if (const Mesh *mesh_eval = BKE_object_get_mesh_deform_eval(&object_eval)) {
       return mesh_eval->runtime->vert_normals_true_cache;
     }
@@ -944,6 +948,10 @@ static const SharedCache<Vector<float3>> &face_normals_cache_eval(const Object &
       if (mesh_topology_count_matches(*mesh_eval, mesh_orig)) {
         return mesh_eval->runtime->face_normals_true_cache;
       }
+    }
+    if (!ss.deform_cos.is_empty()) {
+      BLI_assert(ss.deform_cos.size() == mesh_orig.verts_num);
+      return ss.face_normals_deform;
     }
     if (const Mesh *mesh_eval = BKE_object_get_mesh_deform_eval(&object_eval)) {
       return mesh_eval->runtime->face_normals_true_cache;

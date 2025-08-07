@@ -145,19 +145,23 @@ void Camera::sync()
       BKE_camera_params_from_view3d(&params, inst_.depsgraph, inst_.v3d, inst_.rv3d);
     }
 
-    BKE_camera_params_compute_viewplane(&params, UNPACK2(display_extent), 1.0f, 1.0f);
+    if (inst_.rv3d->dist > 0.0f && params.lens > 0.0f) {
+      BKE_camera_params_compute_viewplane(&params, UNPACK2(display_extent), 1.0f, 1.0f);
 
-    BKE_camera_params_crop_viewplane(&params.viewplane, UNPACK2(display_extent), &film_rect);
+      BLI_assert(BLI_rctf_size_x(&params.viewplane) > 0.0f);
+      BLI_assert(BLI_rctf_size_y(&params.viewplane) > 0.0f);
 
-    RE_GetWindowMatrixWithOverscan(params.is_ortho,
-                                   params.clip_start,
-                                   params.clip_end,
-                                   params.viewplane,
-                                   overscan_,
-                                   data.winmat.ptr());
+      BKE_camera_params_crop_viewplane(&params.viewplane, UNPACK2(display_extent), &film_rect);
 
-    if (params.lens == 0.0f) {
-      /* Can happen for the case of XR.
+      RE_GetWindowMatrixWithOverscan(params.is_ortho,
+                                     params.clip_start,
+                                     params.clip_end,
+                                     params.viewplane,
+                                     overscan_,
+                                     data.winmat.ptr());
+    }
+    else {
+      /* Can happen for the case of XR or if `rv3d->dist == 0`.
        * In this case the produced winmat is degenerate. So just revert to the input matrix. */
       data.winmat = inst_.drw_view->winmat();
     }

@@ -180,14 +180,14 @@ static bool wm_link_append_item_poll(ReportList *reports,
       if (do_append) {
         BKE_reportf(reports,
                     RPT_ERROR_INVALID_INPUT,
-                    "Can't append data-block '%s' of type '%s'",
+                    "Cannot append data-block '%s' of type '%s'",
                     name,
                     group);
       }
       else {
         BKE_reportf(reports,
                     RPT_ERROR_INVALID_INPUT,
-                    "Can't link data-block '%s' of type '%s'",
+                    "Cannot link data-block '%s' of type '%s'",
                     name,
                     group);
       }

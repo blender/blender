@@ -15,6 +15,8 @@
 
 #include "RNA_enum_types.hh"
 
+#include "GEO_foreach_geometry.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_set_curve_handles_cc {
@@ -176,7 +178,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   std::atomic<bool> has_curves = false;
   std::atomic<bool> has_bezier = false;
 
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+  geometry::foreach_real_geometry(geometry_set, [&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
       has_curves = true;

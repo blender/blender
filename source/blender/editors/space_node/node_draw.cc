@@ -2020,70 +2020,18 @@ static std::string node_errors_tooltip_fn(const Span<geo_log::NodeWarning> warni
 
 #define NODE_HEADER_ICON_SIZE (0.8f * U.widget_unit)
 
-static void node_add_unsupported_compositor_operation_error_message_button(const bNode &node,
-                                                                           uiBlock &block,
-                                                                           const rctf &rect,
-                                                                           float &icon_offset)
+static uiBut *add_error_message_button(uiBlock &block,
+                                       const rctf &rect,
+                                       const int icon,
+                                       float &icon_offset,
+                                       const char *tooltip = nullptr)
 {
-  icon_offset -= NODE_HEADER_ICON_SIZE;
-  UI_block_emboss_set(&block, ui::EmbossType::None);
-  uiDefIconBut(&block,
-               ButType::But,
-               0,
-               ICON_ERROR,
-               icon_offset,
-               rect.ymax - NODE_DY,
-               NODE_HEADER_ICON_SIZE,
-               UI_UNIT_Y,
-               nullptr,
-               0,
-               0,
-               TIP_(node.typeinfo->compositor_unsupported_message));
-  UI_block_emboss_set(&block, ui::EmbossType::Emboss);
-}
-
-static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
-                                          const bNode &node,
-                                          uiBlock &block,
-                                          const rctf &rect,
-                                          float &icon_offset)
-{
-  if (tree_draw_ctx.used_by_compositor && node.typeinfo->compositor_unsupported_message) {
-    node_add_unsupported_compositor_operation_error_message_button(node, block, rect, icon_offset);
-    return;
-  }
-
-  geo_log::GeoTreeLog *geo_tree_log = [&]() -> geo_log::GeoTreeLog * {
-    const bNodeTreeZones *zones = node.owner_tree().zones();
-    if (!zones) {
-      return nullptr;
-    }
-    const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
-    if (zone && ELEM(node.identifier, zone->input_node_id, zone->output_node_id)) {
-      zone = zone->parent_zone;
-    }
-    return tree_draw_ctx.tree_logs.get_main_tree_log(zone);
-  }();
-
-  Span<geo_log::NodeWarning> warnings;
-  if (geo_tree_log) {
-    geo_log::GeoNodeLog *node_log = geo_tree_log->nodes.lookup_ptr(node.identifier);
-    if (node_log != nullptr) {
-      warnings = node_log->warnings;
-    }
-  }
-  if (warnings.is_empty()) {
-    return;
-  }
-
-  const nodes::NodeWarningType display_type = node_error_highest_priority(warnings);
-
   icon_offset -= NODE_HEADER_ICON_SIZE;
   UI_block_emboss_set(&block, ui::EmbossType::None);
   uiBut *but = uiDefIconBut(&block,
                             ButType::But,
                             0,
-                            nodes::node_warning_type_icon(display_type),
+                            icon,
                             icon_offset,
                             rect.ymax - NODE_DY,
                             NODE_HEADER_ICON_SIZE,
@@ -2091,12 +2039,59 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
                             nullptr,
                             0,
                             0,
-                            nullptr);
-  UI_but_func_quick_tooltip_set(
-      but, [warnings = Array<geo_log::NodeWarning>(warnings)](const uiBut * /*but*/) {
-        return node_errors_tooltip_fn(warnings);
-      });
+                            tooltip);
   UI_block_emboss_set(&block, ui::EmbossType::Emboss);
+  return but;
+}
+
+static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
+                                          const bNodeTree &ntree,
+                                          const bNode &node,
+                                          uiBlock &block,
+                                          const rctf &rect,
+                                          float &icon_offset)
+{
+  if (ntree.type == NTREE_COMPOSIT) {
+    if (tree_draw_ctx.used_by_compositor && node.typeinfo->compositor_unsupported_message) {
+      add_error_message_button(
+          block, rect, ICON_ERROR, icon_offset, node.typeinfo->compositor_unsupported_message);
+    }
+    return;
+  }
+  if (ntree.type == NTREE_GEOMETRY) {
+    geo_log::GeoTreeLog *geo_tree_log = [&]() -> geo_log::GeoTreeLog * {
+      const bNodeTreeZones *zones = node.owner_tree().zones();
+      if (!zones) {
+        return nullptr;
+      }
+      const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
+      if (zone && ELEM(node.identifier, zone->input_node_id, zone->output_node_id)) {
+        zone = zone->parent_zone;
+      }
+      return tree_draw_ctx.tree_logs.get_main_tree_log(zone);
+    }();
+
+    Span<geo_log::NodeWarning> warnings;
+    if (geo_tree_log) {
+      geo_log::GeoNodeLog *node_log = geo_tree_log->nodes.lookup_ptr(node.identifier);
+      if (node_log != nullptr) {
+        warnings = node_log->warnings;
+      }
+    }
+    if (warnings.is_empty()) {
+      return;
+    }
+
+    const nodes::NodeWarningType display_type = node_error_highest_priority(warnings);
+
+    uiBut *but = add_error_message_button(
+        block, rect, nodes::node_warning_type_icon(display_type), icon_offset);
+    UI_but_func_quick_tooltip_set(
+        but, [warnings = Array<geo_log::NodeWarning>(warnings)](const uiBut * /*but*/) {
+          return node_errors_tooltip_fn(warnings);
+        });
+    return;
+  }
 }
 
 static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
@@ -3009,7 +3004,7 @@ static void node_draw_basis(const bContext &C,
     UI_block_emboss_set(&block, ui::EmbossType::Emboss);
   }
 
-  node_add_error_message_button(tree_draw_ctx, node, block, rct, iconofs);
+  node_add_error_message_button(tree_draw_ctx, ntree, node, block, rct, iconofs);
 
   /* Title. */
   if (node.flag & SELECT) {

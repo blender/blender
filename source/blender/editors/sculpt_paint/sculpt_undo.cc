@@ -32,6 +32,7 @@
 #include "BLI_bit_group_vector.hh"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_memory_counter.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -2080,9 +2081,43 @@ void geometry_begin_ex(const Scene & /*scene*/, Object &ob, const char *name)
   geometry_push(ob);
 }
 
+static size_t calculate_node_geometry_allocated_size(const NodeGeometry &node_geometry)
+{
+  BLI_assert(node_geometry.is_initialized);
+
+  MemoryCount memory;
+  MemoryCounter memory_counter(memory);
+
+  memory_counter.add_shared(node_geometry.face_offsets_sharing_info,
+                            sizeof(int) * (node_geometry.faces_num + 1));
+
+  CustomData_count_memory(node_geometry.corner_data, node_geometry.corners_num, memory_counter);
+  CustomData_count_memory(node_geometry.face_data, node_geometry.faces_num, memory_counter);
+  CustomData_count_memory(node_geometry.vert_data, node_geometry.verts_num, memory_counter);
+  CustomData_count_memory(node_geometry.edge_data, node_geometry.edges_num, memory_counter);
+
+  return memory.total_bytes;
+}
+
+static size_t estimate_geometry_step_size(const StepData &step_data)
+{
+  size_t step_size = 0;
+
+  /* TODO: This calculation is not entirely accurate, as the current amount of memory consumed by
+   * Sculpt Undo is not updated when elements are evicted. Further changes to the overall undo
+   * system would be needed to measure this accurately. */
+  step_size += calculate_node_geometry_allocated_size(step_data.geometry_original);
+  step_size += calculate_node_geometry_allocated_size(step_data.geometry_modified);
+
+  return step_size;
+}
+
 void geometry_end(Object &ob)
 {
   geometry_push(ob);
+
+  StepData *step_data = get_step_data();
+  step_data->undo_size = estimate_geometry_step_size(*step_data);
 
   /* We could remove this and enforce all callers run in an operator using 'OPTYPE_UNDO'. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
