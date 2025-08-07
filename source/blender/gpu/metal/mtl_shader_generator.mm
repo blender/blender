@@ -924,15 +924,9 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
     ss_compute << "#define MTL_USE_WORKGROUP_SIZE 1" << std::endl;
     ss_compute << "#define MTL_WORKGROUP_SIZE_X " << info->compute_layout_.local_size_x
                << std::endl;
-    ss_compute << "#define MTL_WORKGROUP_SIZE_Y "
-               << ((info->compute_layout_.local_size_y != -1) ?
-                       info->compute_layout_.local_size_y :
-                       1)
+    ss_compute << "#define MTL_WORKGROUP_SIZE_Y " << info->compute_layout_.local_size_y
                << std::endl;
-    ss_compute << "#define MTL_WORKGROUP_SIZE_Z "
-               << ((info->compute_layout_.local_size_y != -1) ?
-                       info->compute_layout_.local_size_y :
-                       1)
+    ss_compute << "#define MTL_WORKGROUP_SIZE_Z " << info->compute_layout_.local_size_z
                << std::endl;
   }
 

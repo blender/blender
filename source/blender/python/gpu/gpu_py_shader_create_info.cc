@@ -1220,15 +1220,15 @@ static PyObject *pygpu_shader_info_define(BPyGPUShaderCreateInfo *self, PyObject
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_shader_info_local_group_size_doc,
-    ".. method:: local_group_size(x, y=-1, z=-1)\n"
+    ".. method:: local_group_size(x, y=1, z=1)\n"
     "\n"
     "   Specify the local group size for compute shaders.\n"
     "\n"
     "   :arg x: The local group size in the x dimension.\n"
     "   :type x: int\n"
-    "   :arg y: The local group size in the y dimension. Optional. Defaults to -1.\n"
+    "   :arg y: The local group size in the y dimension. Optional. Defaults to 1.\n"
     "   :type y: int\n"
-    "   :arg z: The local group size in the z dimension. Optional. Defaults to -1.\n"
+    "   :arg z: The local group size in the z dimension. Optional. Defaults to 1.\n"
     "   :type z: int\n");
 static PyObject *pygpu_shader_info_local_group_size(BPyGPUShaderCreateInfo *self, PyObject *args)
 {
