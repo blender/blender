@@ -192,6 +192,13 @@ IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop,
                                      blender::StringRef name) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 /**
+ * This is a slightly more efficient version of the function above in the when there are lots of
+ * properties. It can be faster because it avoids computing the length of everything that the
+ * string is compared to. Also see #140706.
+ */
+IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop,
+                                     const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+/**
  * Same as #IDP_GetPropertyFromGroup but ensure the `type` matches.
  */
 IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop,
