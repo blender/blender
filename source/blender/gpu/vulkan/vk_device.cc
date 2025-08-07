@@ -621,8 +621,8 @@ void VKDevice::debug_print()
   BLI_assert_msg(BLI_thread_is_main(),
                  "VKDevice::debug_print can only be called from the main thread.");
 
+  resources.debug_print();
   std::ostream &os = std::cout;
-
   os << "Pipelines\n";
   os << " Graphics: " << pipelines.graphic_pipelines_.size() << "\n";
   os << " Compute: " << pipelines.compute_pipelines_.size() << "\n";
