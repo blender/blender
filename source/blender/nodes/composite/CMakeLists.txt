@@ -5,6 +5,7 @@
 set(INC
   .
   ..
+  include
   ../intern
   ../../editors/include
   ../../compositor
@@ -108,6 +109,7 @@ set(SRC
   node_composite_tree.cc
   node_composite_util.cc
 
+  include/NOD_compositor_file_output.hh
   node_composite_util.hh
 )
 
@@ -115,6 +117,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
+  PRIVATE bf::blenloader
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::functions

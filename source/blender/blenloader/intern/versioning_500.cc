@@ -1390,6 +1390,59 @@ static void do_version_composite_node_in_scene_tree(bNodeTree &node_tree, bNode 
   version_node_remove(node_tree, node);
 }
 
+/* The file output node started using item accessors, so we need to free socket storage and copy
+ * them to the new items members. Additionally, the base path was split into a directory and a file
+ * name, so we need to split it. */
+static void do_version_file_output_node(bNode &node)
+{
+  if (node.storage == nullptr) {
+    return;
+  }
+
+  NodeCompositorFileOutput *data = static_cast<NodeCompositorFileOutput *>(node.storage);
+
+  /* The directory previously stored both the directory and the file name. */
+  char directory[FILE_MAX] = "";
+  char file_name[FILE_MAX] = "";
+  BLI_path_split_dir_file(data->directory, directory, FILE_MAX, file_name, FILE_MAX);
+  BLI_strncpy(data->directory, directory, FILE_MAX);
+  data->file_name = BLI_strdup_null(file_name);
+
+  data->items_count = BLI_listbase_count(&node.inputs);
+  data->items = MEM_calloc_arrayN<NodeCompositorFileOutputItem>(data->items_count, __func__);
+  int i = 0;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, input, &node.inputs, i) {
+    NodeImageMultiFileSocket *old_item_data = static_cast<NodeImageMultiFileSocket *>(
+        input->storage);
+    NodeCompositorFileOutputItem *item_data = &data->items[i];
+
+    item_data->identifier = i;
+    BKE_image_format_copy(&item_data->format, &old_item_data->format);
+    item_data->save_as_render = old_item_data->save_as_render;
+    item_data->override_node_format = !bool(old_item_data->use_node_format);
+
+    item_data->socket_type = input->type;
+    if (item_data->socket_type == SOCK_VECTOR) {
+      item_data->vector_socket_dimensions =
+          input->default_value_typed<bNodeSocketValueVector>()->dimensions;
+    }
+
+    if (data->format.imtype == R_IMF_IMTYPE_MULTILAYER) {
+      item_data->name = BLI_strdup(old_item_data->layer);
+    }
+    else {
+      item_data->name = BLI_strdup(old_item_data->path);
+    }
+
+    const std::string identifier = "Item_" + std::to_string(item_data->identifier);
+    STRNCPY(input->identifier, identifier.c_str());
+
+    BKE_image_format_free(&old_item_data->format);
+    MEM_freeN(old_item_data);
+    input->storage = nullptr;
+  }
+}
+
 /* Updates the media type of the given format to match its imtype. */
 static void update_format_media_type(ImageFormatData *format)
 {
@@ -1915,7 +1968,7 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
           continue;
         }
 
-        NodeImageMultiFile *storage = static_cast<NodeImageMultiFile *>(node->storage);
+        NodeCompositorFileOutput *storage = static_cast<NodeCompositorFileOutput *>(node->storage);
         update_format_media_type(&storage->format);
 
         LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
@@ -2102,6 +2155,20 @@ void blo_do_versions_500(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
         data->extension_x = CMP_NODE_EXTENSION_MODE_CLIP;
         data->extension_y = CMP_NODE_EXTENSION_MODE_CLIP;
         node->storage = data;
+      }
+      FOREACH_NODETREE_END;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 54)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+        if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
+          do_version_file_output_node(*node);
+        }
       }
       FOREACH_NODETREE_END;
     }

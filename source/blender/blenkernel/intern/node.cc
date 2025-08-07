@@ -979,18 +979,6 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
       node_blend_write_storage(writer, ntree, node);
     }
 
-    if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
-      /* Inputs have their own storage data. */
-      NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
-      BKE_image_format_blend_write(writer, &nimf->format);
-
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        NodeImageMultiFileSocket *sockdata = static_cast<NodeImageMultiFileSocket *>(
-            sock->storage);
-        BLO_write_struct(writer, NodeImageMultiFileSocket, sockdata);
-        BKE_image_format_blend_write(writer, &sockdata->format);
-      }
-    }
     if (ELEM(node->type_legacy, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
       /* Write extra socket info. */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
@@ -1606,11 +1594,6 @@ static void node_blend_read_data_storage(BlendDataReader *reader, bNodeTree *ntr
     case TEX_NODE_IMAGE: {
       ImageUser *iuser = static_cast<ImageUser *>(node->storage);
       iuser->scene = nullptr;
-      break;
-    }
-    case CMP_NODE_OUTPUT_FILE: {
-      NodeImageMultiFile *nimf = static_cast<NodeImageMultiFile *>(node->storage);
-      BKE_image_format_blend_read_data(reader, &nimf->format);
       break;
     }
     default:

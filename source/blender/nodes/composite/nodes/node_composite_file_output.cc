@@ -13,13 +13,8 @@
 #include "BLI_generic_pointer.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
-#include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_string_utils.hh"
-#include "BLI_task.hh"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
@@ -28,12 +23,13 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLO_read_write.hh"
+
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.hh"
 #include "BKE_image.hh"
 #include "BKE_image_format.hh"
 #include "BKE_main.hh"
-#include "BKE_node_tree_update.hh"
 #include "BKE_scene.hh"
 
 #include "RNA_access.hh"
@@ -52,463 +48,338 @@
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
+#include "NOD_compositor_file_output.hh"
+#include "NOD_socket_items_blend.hh"
+#include "NOD_socket_items_ops.hh"
+#include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "node_composite_util.hh"
 
 namespace path_templates = blender::bke::path_templates;
 
-/* **************** OUTPUT FILE ******************** */
-
-/* find unique path */
-static bool unique_path_unique_check(ListBase *lb,
-                                     bNodeSocket *sock,
-                                     const blender::StringRef name)
-{
-  LISTBASE_FOREACH (bNodeSocket *, sock_iter, lb) {
-    if (sock_iter != sock) {
-      NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock_iter->storage;
-      if (sockdata->path == name) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-void ntreeCompositOutputFileUniquePath(ListBase *list,
-                                       bNodeSocket *sock,
-                                       const char defname[],
-                                       char delim)
-{
-  /* See if we are given an empty string */
-  if (ELEM(nullptr, sock, defname)) {
-    return;
-  }
-  NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
-  BLI_uniquename_cb(
-      [&](const blender::StringRef check_name) {
-        return unique_path_unique_check(list, sock, check_name);
-      },
-      defname,
-      delim,
-      sockdata->path,
-      sizeof(sockdata->path));
-}
-
-/* find unique EXR layer */
-static bool unique_layer_unique_check(ListBase *lb,
-                                      bNodeSocket *sock,
-                                      const blender::StringRef name)
-{
-  LISTBASE_FOREACH (bNodeSocket *, sock_iter, lb) {
-    if (sock_iter != sock) {
-      NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock_iter->storage;
-      if (sockdata->layer == name) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-void ntreeCompositOutputFileUniqueLayer(ListBase *list,
-                                        bNodeSocket *sock,
-                                        const char defname[],
-                                        char delim)
-{
-  /* See if we are given an empty string */
-  if (ELEM(nullptr, sock, defname)) {
-    return;
-  }
-  NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
-  BLI_uniquename_cb(
-      [&](const blender::StringRef check_name) {
-        return unique_layer_unique_check(list, sock, check_name);
-      },
-      defname,
-      delim,
-      sockdata->layer,
-      sizeof(sockdata->layer));
-}
-
-bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
-                                              bNode *node,
-                                              const char *name,
-                                              const ImageFormatData *im_format)
-{
-  NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
-  bNodeSocket *sock = blender::bke::node_add_static_socket(
-      *ntree, *node, SOCK_IN, SOCK_RGBA, PROP_NONE, "", name);
-
-  /* create format data for the input socket */
-  NodeImageMultiFileSocket *sockdata = MEM_callocN<NodeImageMultiFileSocket>(__func__);
-  sock->storage = sockdata;
-
-  STRNCPY_UTF8(sockdata->path, name);
-  ntreeCompositOutputFileUniquePath(&node->inputs, sock, name, '_');
-  STRNCPY_UTF8(sockdata->layer, name);
-  ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
-
-  if (im_format) {
-    BKE_image_format_copy(&sockdata->format, im_format);
-    sockdata->format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
-    if (BKE_imtype_is_movie(sockdata->format.imtype)) {
-      sockdata->format.imtype = R_IMF_IMTYPE_OPENEXR;
-    }
-  }
-  else {
-    BKE_image_format_init(&sockdata->format, false);
-  }
-  BKE_image_format_update_color_space_for_type(&sockdata->format);
-
-  /* use node data format by default */
-  sockdata->use_node_format = true;
-  sockdata->save_as_render = true;
-
-  nimf->active_input = BLI_findindex(&node->inputs, sock);
-
-  return sock;
-}
-
-int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
-{
-  NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
-  bNodeSocket *sock = (bNodeSocket *)BLI_findlink(&node->inputs, nimf->active_input);
-  int totinputs = BLI_listbase_count(&node->inputs);
-
-  if (!sock) {
-    return 0;
-  }
-
-  if (nimf->active_input == totinputs - 1) {
-    --nimf->active_input;
-  }
-
-  /* free format data */
-  MEM_freeN(reinterpret_cast<NodeImageMultiFileSocket *>(sock->storage));
-
-  blender::bke::node_remove_socket(*ntree, *node, *sock);
-  return 1;
-}
-
-void ntreeCompositOutputFileSetPath(bNode *node, bNodeSocket *sock, const char *name)
-{
-  NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
-  STRNCPY_UTF8(sockdata->path, name);
-  ntreeCompositOutputFileUniquePath(&node->inputs, sock, name, '_');
-}
-
-void ntreeCompositOutputFileSetLayer(bNode *node, bNodeSocket *sock, const char *name)
-{
-  NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
-  STRNCPY_UTF8(sockdata->layer, name);
-  ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
-}
-
 namespace blender::nodes::node_composite_file_output_cc {
 
-NODE_STORAGE_FUNCS(NodeImageMultiFile)
+NODE_STORAGE_FUNCS(NodeCompositorFileOutput)
 
-/* XXX uses initfunc_api callback, regular initfunc does not support context yet */
-static void init_output_file(const bContext *C, PointerRNA *ptr)
+static void node_declare(NodeDeclarationBuilder &b)
 {
-  Scene *scene = CTX_data_scene(C);
-  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-  bNode *node = (bNode *)ptr->data;
-  NodeImageMultiFile *nimf = MEM_callocN<NodeImageMultiFile>(__func__);
-  nimf->save_as_render = true;
-  ImageFormatData *format = nullptr;
-  node->storage = nimf;
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
 
+  b.add_default_layout();
+
+  const bNodeTree *node_tree = b.tree_or_null();
+  const bNode *node = b.node_or_null();
+  if (!node_tree || !node) {
+    return;
+  }
+
+  const NodeCompositorFileOutput &storage = node_storage(*node);
+
+  /* Inputs for multi-layer files need to be the same size, while they can be different for
+   * individual file outputs. */
+  const bool is_multi_layer = storage.format.imtype == R_IMF_IMTYPE_MULTILAYER;
+  const CompositorInputRealizationMode realization_mode =
+      is_multi_layer ? CompositorInputRealizationMode::OperationDomain :
+                       CompositorInputRealizationMode::Transforms;
+
+  for (const int i : IndexRange(storage.items_count)) {
+    const NodeCompositorFileOutputItem &item = storage.items[i];
+    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
+    const std::string identifier = FileOutputItemsAccessor::socket_identifier_for_item(item);
+    BaseSocketDeclarationBuilder *declaration = nullptr;
+    if (socket_type == SOCK_VECTOR) {
+      declaration = &b.add_input<decl::Vector>(item.name, identifier)
+                         .dimensions(item.vector_socket_dimensions);
+    }
+    else {
+      declaration = &b.add_input(socket_type, item.name, identifier);
+    }
+    declaration->structure_type(StructureType::Dynamic)
+        .compositor_realization_mode(realization_mode)
+        .socket_name_ptr(&node_tree->id, FileOutputItemsAccessor::item_srna, &item, "name");
+  }
+
+  b.add_input<decl::Extend>("", "__extend__");
+}
+
+static void node_init(const bContext *C, PointerRNA *node_pointer)
+{
+  bNode *node = node_pointer->data_as<bNode>();
+  NodeCompositorFileOutput *data = MEM_callocN<NodeCompositorFileOutput>(__func__);
+  node->storage = data;
+  data->save_as_render = true;
+  data->file_name = BLI_strdup("file_name");
+
+  BKE_image_format_init(&data->format, false);
+  BKE_image_format_media_type_set(
+      &data->format, node_pointer->owner_id, MEDIA_TYPE_MULTI_LAYER_IMAGE);
+  BKE_image_format_update_color_space_for_type(&data->format);
+
+  Scene *scene = CTX_data_scene(C);
   if (scene) {
-    RenderData *rd = &scene->r;
-
-    STRNCPY(nimf->base_path, rd->pic);
-    BKE_image_format_copy(&nimf->format, &rd->im_format);
-    nimf->format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
-    if (BKE_imtype_is_movie(nimf->format.imtype)) {
-      nimf->format.imtype = R_IMF_IMTYPE_OPENEXR;
-    }
-
-    format = &nimf->format;
-  }
-  else {
-    BKE_image_format_init(&nimf->format, false);
-  }
-  BKE_image_format_update_color_space_for_type(&nimf->format);
-
-  /* add one socket by default */
-  ntreeCompositOutputFileAddSocket(ntree, node, DATA_("Image"), format);
-}
-
-static void free_output_file(bNode *node)
-{
-  /* free storage data in sockets */
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
-    BKE_image_format_free(&sockdata->format);
-    MEM_freeN(sockdata);
-  }
-
-  NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
-  BKE_image_format_free(&nimf->format);
-  MEM_freeN(nimf);
-}
-
-static void copy_output_file(bNodeTree * /*dst_ntree*/, bNode *dest_node, const bNode *src_node)
-{
-  bNodeSocket *src_sock, *dest_sock;
-
-  dest_node->storage = MEM_dupallocN(src_node->storage);
-  NodeImageMultiFile *dest_nimf = (NodeImageMultiFile *)dest_node->storage;
-  NodeImageMultiFile *src_nimf = (NodeImageMultiFile *)src_node->storage;
-  BKE_image_format_copy(&dest_nimf->format, &src_nimf->format);
-
-  /* duplicate storage data in sockets */
-  for (src_sock = (bNodeSocket *)src_node->inputs.first,
-      dest_sock = (bNodeSocket *)dest_node->inputs.first;
-       src_sock && dest_sock;
-       src_sock = src_sock->next, dest_sock = (bNodeSocket *)dest_sock->next)
-  {
-    dest_sock->storage = MEM_dupallocN(src_sock->storage);
-    NodeImageMultiFileSocket *dest_sockdata = (NodeImageMultiFileSocket *)dest_sock->storage;
-    NodeImageMultiFileSocket *src_sockdata = (NodeImageMultiFileSocket *)src_sock->storage;
-    BKE_image_format_copy(&dest_sockdata->format, &src_sockdata->format);
+    const RenderData *render_data = &scene->r;
+    BLI_strncpy(data->directory, render_data->pic, FILE_MAX);
   }
 }
 
-static void update_output_file(bNodeTree *ntree, bNode *node)
+static void node_free_storage(bNode *node)
 {
-  /* XXX fix for #36706: remove invalid sockets added with bpy API.
-   * This is not ideal, but prevents crashes from missing storage.
-   * FileOutput node needs a redesign to support this properly.
-   */
-  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
-    if (sock->storage == nullptr) {
-      blender::bke::node_remove_socket(*ntree, *node, *sock);
-    }
-  }
-  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->outputs) {
-    blender::bke::node_remove_socket(*ntree, *node, *sock);
-  }
-
-  cmp_node_update_default(ntree, node);
-
-  /* automatically update the socket type based on linked input */
-  ntree->ensure_topology_cache();
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (sock->is_logically_linked()) {
-      const bNodeSocket *from_socket = sock->logically_linked_sockets()[0];
-      if (sock->type != from_socket->type) {
-        blender::bke::node_modify_socket_type_static(ntree, node, sock, from_socket->type, 0);
-        BKE_ntree_update_tag_socket_property(ntree, sock);
-      }
-    }
-  }
+  socket_items::destruct_array<FileOutputItemsAccessor>(*node);
+  NodeCompositorFileOutput &data = node_storage(*node);
+  BKE_image_format_free(&data.format);
+  MEM_SAFE_FREE(data.file_name);
+  MEM_freeN(&data);
 }
 
-static void node_composit_buts_file_output(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+static void node_copy_storage(bNodeTree * /*destination_node_tree*/,
+                              bNode *destination_node,
+                              const bNode *source_node)
 {
-  layout->prop(ptr, "base_path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  const NodeCompositorFileOutput &source_storage = node_storage(*source_node);
+  NodeCompositorFileOutput *destination_storage = MEM_dupallocN<NodeCompositorFileOutput>(
+      __func__, source_storage);
+  destination_storage->file_name = BLI_strdup_null(source_storage.file_name);
+  BKE_image_format_copy(&destination_storage->format, &source_storage.format);
+  destination_node->storage = destination_storage;
+  socket_items::copy_array<FileOutputItemsAccessor>(*source_node, *destination_node);
 }
 
-static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static bool node_insert_link(bke::NodeInsertLinkParams &params)
 {
-  Scene *scene = CTX_data_scene(C);
-  PointerRNA imfptr = RNA_pointer_get(ptr, "format");
-  PointerRNA active_input_ptr, op_ptr;
-  uiLayout *row, *col;
-  const bool multilayer = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER;
-  const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
+  return socket_items::try_add_item_via_any_extend_socket<FileOutputItemsAccessor>(
+      params.ntree, params.node, params.node, params.link);
+}
 
-  node_composit_buts_file_output(layout, C, ptr);
+static void node_operators()
+{
+  socket_items::ops::make_common_operators<FileOutputItemsAccessor>();
+}
 
-  {
+/* Computes the path of the image to be saved based on the given parameters. The given file name
+ * suffix, if not empty, will be added to the file name. If the given view is not empty, its file
+ * suffix will be appended to the name. The frame number, scene, and node are provides for variable
+ * substitution in the path. If there are any errors processing the path, they will be returned. */
+static Vector<path_templates::Error> compute_image_path(const std::string directory,
+                                                        const std::string file_name,
+                                                        const std::string file_name_suffix,
+                                                        const char *view,
+                                                        const int frame_number,
+                                                        const ImageFormatData &format,
+                                                        const Scene &scene,
+                                                        const bNode &node,
+                                                        char *r_image_path)
+{
+  char base_path[FILE_MAX] = "";
+  BLI_strncpy(base_path, directory.c_str(), FILE_MAX);
+  const std::string full_file_name = file_name + file_name_suffix;
+  BLI_path_append(base_path, FILE_MAX, full_file_name.c_str());
+
+  path_templates::VariableMap template_variables;
+  BKE_add_template_variables_general(template_variables, &node.owner_tree().id);
+  BKE_add_template_variables_for_render_path(template_variables, scene);
+  BKE_add_template_variables_for_node(template_variables, node);
+
+  return BKE_image_path_from_imformat(r_image_path,
+                                      base_path,
+                                      BKE_main_blendfile_path_from_global(),
+                                      &template_variables,
+                                      frame_number,
+                                      &format,
+                                      scene.r.scemode & R_EXTENSION,
+                                      true,
+                                      BKE_scene_multiview_view_suffix_get(&scene.r, view));
+}
+
+static void node_layout(uiLayout *layout, bContext * /*context*/, PointerRNA *node_pointer)
+{
+  layout->prop(node_pointer, "directory", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(node_pointer, "file_name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
+
+static void format_layout(uiLayout *layout,
+                          bContext *context,
+                          PointerRNA *format_pointer,
+                          PointerRNA *node_or_item_pointer)
+{
+  uiLayout *column = &layout->column(true);
+  column->use_property_split_set(true);
+  column->use_property_decorate_set(false);
+  column->prop(
+      node_or_item_pointer, "save_as_render", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  const bool save_as_render = RNA_boolean_get(node_or_item_pointer, "save_as_render");
+  uiTemplateImageSettings(layout, context, format_pointer, save_as_render);
+
+  if (!save_as_render) {
     uiLayout *column = &layout->column(true);
     column->use_property_split_set(true);
     column->use_property_decorate_set(false);
-    column->prop(ptr, "save_as_render", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  }
-  const bool save_as_render = RNA_boolean_get(ptr, "save_as_render");
 
-  uiTemplateImageSettings(layout, C, &imfptr, save_as_render);
-
-  if (!save_as_render) {
-    uiLayout *col = &layout->column(true);
-    col->use_property_split_set(true);
-    col->use_property_decorate_set(false);
-
-    PointerRNA linear_settings_ptr = RNA_pointer_get(&imfptr, "linear_colorspace_settings");
-    col->prop(&linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
+    PointerRNA linear_settings_ptr = RNA_pointer_get(format_pointer, "linear_colorspace_settings");
+    column->prop(&linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
   }
 
-  /* disable stereo output for multilayer, too much work for something that no one will use */
-  /* if someone asks for that we can implement it */
+  Scene *scene = CTX_data_scene(context);
+  const bool is_multiview = scene->r.scemode & R_MULTIVIEW;
   if (is_multiview) {
-    uiTemplateImageFormatViews(layout, &imfptr, nullptr);
+    uiTemplateImageFormatViews(layout, format_pointer, nullptr);
   }
+}
 
-  layout->separator();
+static void output_path_layout(uiLayout *layout,
+                               const std::string directory,
+                               const std::string file_name,
+                               const std::string file_name_suffix,
+                               const char *view,
+                               const ImageFormatData &format,
+                               const Scene &scene,
+                               const bNode &node)
+{
 
-  uiLayout *header = &layout->row(false);
-  row = &layout->row(false);
-  col = &row->column(true);
+  char image_path[FILE_MAX];
+  const Vector<path_templates::Error> path_errors = compute_image_path(
+      directory, file_name, file_name_suffix, view, scene.r.cfra, format, scene, node, image_path);
 
-  const int active_index = RNA_int_get(ptr, "active_input_index");
-  PropertyRNA *slots_prop = nullptr;
-  /* using different collection properties if multilayer format is enabled */
-  if (multilayer) {
-    header->label(IFACE_("Layers"), ICON_NONE);
-    uiTemplateList(col,
-                   C,
-                   "UI_UL_list",
-                   "file_output_node",
-                   ptr,
-                   "layer_slots",
-                   ptr,
-                   "active_input_index",
-                   nullptr,
-                   0,
-                   0,
-                   0,
-                   0,
-                   UI_TEMPLATE_LIST_FLAG_NONE);
-    RNA_property_collection_lookup_int(
-        ptr, RNA_struct_find_property(ptr, "layer_slots"), active_index, &active_input_ptr);
-    slots_prop = RNA_struct_find_property(ptr, "layer_slots");
+  if (path_errors.is_empty()) {
+    layout->label(image_path, ICON_FILE_IMAGE);
   }
   else {
-    header->label(IFACE_("File Subpaths"), ICON_NONE);
-    uiTemplateList(col,
-                   C,
-                   "UI_UL_list",
-                   "file_output_node",
-                   ptr,
-                   "file_slots",
-                   ptr,
-                   "active_input_index",
-                   nullptr,
-                   0,
-                   0,
-                   0,
-                   0,
-                   UI_TEMPLATE_LIST_FLAG_NONE);
-    RNA_property_collection_lookup_int(
-        ptr, RNA_struct_find_property(ptr, "file_slots"), active_index, &active_input_ptr);
-    slots_prop = RNA_struct_find_property(ptr, "file_slots");
-  }
-
-  col = &row->column(true);
-
-  col->op("NODE_OT_output_file_add_socket",
-          "",
-          ICON_ADD,
-          wm::OpCallContext::ExecDefault,
-          UI_ITEM_NONE);
-  col->op("NODE_OT_output_file_remove_active_socket",
-          "",
-          ICON_REMOVE,
-          wm::OpCallContext::ExecDefault,
-          UI_ITEM_NONE);
-  col->separator();
-
-  /* XXX collection lookup does not return the ID part of the pointer,
-   * setting this manually here */
-  active_input_ptr.owner_id = ptr->owner_id;
-
-  int slots_len = RNA_property_collection_length(ptr, slots_prop);
-  if (slots_len > 0) {
-    wmOperatorType *ot = WM_operatortype_find("NODE_OT_output_file_move_active_socket", false);
-
-    uiLayout *sub = &col->column(true);
-    if (slots_len < 2) {
-      sub->active_set(false);
+    for (const path_templates::Error &error : path_errors) {
+      layout->label(BKE_path_template_error_to_string(error, image_path).c_str(), ICON_ERROR);
     }
+  }
+}
 
-    op_ptr = sub->op(ot, "", ICON_TRIA_UP, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-    RNA_enum_set(&op_ptr, "direction", 1);
+static void output_paths_layout(uiLayout *layout,
+                                bContext *context,
+                                const std::string file_name_suffix,
+                                const bNode &node,
+                                const ImageFormatData &format)
+{
+  const NodeCompositorFileOutput &storage = node_storage(node);
+  const std::string directory = storage.directory;
+  const std::string file_name = storage.file_name ? storage.file_name : "";
+  const Scene &scene = *CTX_data_scene(context);
 
-    op_ptr = sub->op(ot, "", ICON_TRIA_DOWN, wm::OpCallContext::InvokeDefault, UI_ITEM_NONE);
-    RNA_enum_set(&op_ptr, "direction", 2);
+  if (bool(scene.r.scemode & R_MULTIVIEW) && format.views_format == R_IMF_VIEWS_MULTIVIEW) {
+    LISTBASE_FOREACH (SceneRenderView *, view, &scene.r.views) {
+      if (!BKE_scene_multiview_is_render_view_active(&scene.r, view)) {
+        continue;
+      }
+
+      output_path_layout(
+          layout, directory, file_name, file_name_suffix, view->name, format, scene, node);
+    }
+  }
+  else {
+    output_path_layout(layout, directory, file_name, file_name_suffix, "", format, scene, node);
+  }
+}
+
+static void item_layout(uiLayout *layout,
+                        bContext *context,
+                        PointerRNA *node_pointer,
+                        PointerRNA *item_pointer,
+                        const bool is_multi_layer)
+{
+  layout->use_property_split_set(true);
+  layout->use_property_decorate_set(false);
+  layout->prop(item_pointer, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  if (RNA_enum_get(item_pointer, "socket_type") == SOCK_VECTOR) {
+    layout->prop(item_pointer, "vector_socket_dimensions", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (active_input_ptr.data) {
-    if (!multilayer) {
-      /* format details for individual files */
-      imfptr = RNA_pointer_get(&active_input_ptr, "format");
+  if (is_multi_layer) {
+    return;
+  }
 
-      col = &layout->column(true);
-      col->prop(&active_input_ptr,
-                "use_node_format",
-                UI_ITEM_R_SPLIT_EMPTY_NAME,
-                std::nullopt,
-                ICON_NONE);
+  layout->prop(
+      item_pointer, "override_node_format", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  const bool override_node_format = RNA_boolean_get(item_pointer, "override_node_format");
 
-      const bool use_node_format = RNA_boolean_get(&active_input_ptr, "use_node_format");
+  PointerRNA node_format_pointer = RNA_pointer_get(node_pointer, "format");
+  PointerRNA item_format_pointer = RNA_pointer_get(item_pointer, "format");
+  PointerRNA *format_pointer = override_node_format ? &item_format_pointer : &node_format_pointer;
 
-      if (!use_node_format) {
-        {
-          uiLayout *column = &layout->column(true);
-          column->use_property_split_set(true);
-          column->use_property_decorate_set(false);
-          column->prop(&active_input_ptr,
-                       "save_as_render",
-                       UI_ITEM_R_SPLIT_EMPTY_NAME,
-                       std::nullopt,
-                       ICON_NONE);
-        }
+  if (override_node_format) {
+    if (uiLayout *panel = layout->panel(context, "item_format", false, IFACE_("Item Format"))) {
+      format_layout(panel, context, format_pointer, item_pointer);
+    }
+  }
+}
 
-        const bool use_color_management = RNA_boolean_get(&active_input_ptr, "save_as_render");
+static void node_layout_ex(uiLayout *layout, bContext *context, PointerRNA *node_pointer)
+{
+  node_layout(layout, context, node_pointer);
 
-        col = &layout->column(false);
-        uiTemplateImageSettings(
-            col, C, &imfptr, use_color_management, "node_settings_color_management");
+  PointerRNA format_pointer = RNA_pointer_get(node_pointer, "format");
+  const bool is_multi_layer = RNA_enum_get(&format_pointer, "file_format") ==
+                              R_IMF_IMTYPE_MULTILAYER;
+  layout->prop(&format_pointer, "media_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  if (uiLayout *panel = layout->panel(context, "node_format", false, IFACE_("Node Format"))) {
+    format_layout(panel, context, &format_pointer, node_pointer);
+  }
 
-        if (!use_color_management) {
-          uiLayout *col = &layout->column(true);
-          col->use_property_split_set(true);
-          col->use_property_decorate_set(false);
+  const char *panel_name = is_multi_layer ? IFACE_("Layers") : IFACE_("Images");
+  if (uiLayout *panel = layout->panel(context, "file_output_items", false, panel_name)) {
+    bNodeTree &tree = *reinterpret_cast<bNodeTree *>(node_pointer->owner_id);
+    bNode &node = *node_pointer->data_as<bNode>();
+    socket_items::ui::draw_items_list_with_operators<FileOutputItemsAccessor>(
+        context, panel, tree, node);
+    socket_items::ui::draw_active_item_props<FileOutputItemsAccessor>(
+        tree, node, [&](PointerRNA *item_pointer) {
+          item_layout(panel, context, node_pointer, item_pointer, is_multi_layer);
+        });
+  }
 
-          PointerRNA linear_settings_ptr = RNA_pointer_get(&imfptr, "linear_colorspace_settings");
-          col->prop(&linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
-        }
+  if (uiLayout *panel = layout->panel(context, "output_paths", true, IFACE_("Output Paths"))) {
+    const bNode &node = *node_pointer->data_as<bNode>();
+    const ImageFormatData &node_format = *format_pointer.data_as<ImageFormatData>();
 
-        if (is_multiview) {
-          col = &layout->column(false);
-          uiTemplateImageFormatViews(col, &imfptr, nullptr);
-        }
+    if (is_multi_layer) {
+      output_paths_layout(panel, context, "", node, node_format);
+    }
+    else {
+      const NodeCompositorFileOutput &storage = node_storage(node);
+      for (const int i : IndexRange(storage.items_count)) {
+        const NodeCompositorFileOutputItem &item = storage.items[i];
+        const auto &format = item.override_node_format ? item.format : storage.format;
+        output_paths_layout(panel, context, item.name, node, format);
       }
     }
   }
+}
+
+static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)
+{
+  const NodeCompositorFileOutput &data = node_storage(node);
+  BLO_write_string(&writer, data.file_name);
+  BKE_image_format_blend_write(&writer, const_cast<ImageFormatData *>(&data.format));
+  socket_items::blend_write<FileOutputItemsAccessor>(&writer, node);
+}
+
+static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &reader)
+{
+  NodeCompositorFileOutput &data = node_storage(node);
+  BLO_read_string(&reader, &data.file_name);
+  BKE_image_format_blend_read_data(&reader, &data.format);
+  socket_items::blend_read_data<FileOutputItemsAccessor>(&reader, node);
 }
 
 using namespace blender::compositor;
 
 class FileOutputOperation : public NodeOperation {
  public:
-  FileOutputOperation(Context &context, DNode node) : NodeOperation(context, node)
-  {
-    for (const bNodeSocket *input : node->input_sockets()) {
-      if (!is_socket_available(input)) {
-        continue;
-      }
-
-      InputDescriptor &descriptor = this->get_input_descriptor(input->identifier);
-      /* Inputs for multi-layer files need to be the same size, while they can be different for
-       * individual file outputs. */
-      descriptor.realization_mode = this->is_multi_layer() ?
-                                        InputRealizationMode::OperationDomain :
-                                        InputRealizationMode::Transforms;
-      descriptor.skip_type_conversion = true;
-    }
-  }
+  using NodeOperation::NodeOperation;
 
   void execute() override
   {
-    if (is_multi_layer()) {
-      execute_multi_layer();
+    if (this->is_multi_layer()) {
+      this->execute_multi_layer();
     }
     else {
-      execute_single_layer();
+      this->execute_single_layer();
     }
   }
 
@@ -518,25 +389,13 @@ class FileOutputOperation : public NodeOperation {
 
   void execute_single_layer()
   {
-    for (const bNodeSocket *input : this->node()->input_sockets()) {
-      if (!is_socket_available(input)) {
-        continue;
-      }
-
-      const Result &result = get_input(input->identifier);
+    const NodeCompositorFileOutput &storage = node_storage(this->bnode());
+    for (const int i : IndexRange(storage.items_count)) {
+      const NodeCompositorFileOutputItem &item = storage.items[i];
+      const std::string identifier = FileOutputItemsAccessor::socket_identifier_for_item(item);
+      const Result &result = this->get_input(identifier);
       /* We only write images, not single values. */
       if (result.is_single_value()) {
-        continue;
-      }
-
-      char base_path[FILE_MAX];
-      const auto &socket = *static_cast<NodeImageMultiFileSocket *>(input->storage);
-
-      if (!get_single_layer_image_base_path(socket.path, base_path)) {
-        /* TODO: propagate this error to the render pipeline and UI. */
-        BKE_report(nullptr,
-                   RPT_ERROR,
-                   "Invalid path template in File Output node. Skipping writing file.");
         continue;
       }
 
@@ -545,26 +404,33 @@ class FileOutputOperation : public NodeOperation {
        * turn, stored in a render layer. On the other hand, in non-EXR images, the buffers need to
        * be stored in views. An exception to this is stereo images, which needs to have the same
        * structure as non-EXR images. */
-      const auto &format = socket.use_node_format ? node_storage(bnode()).format : socket.format;
-      const bool save_as_render = socket.use_node_format ? node_storage(bnode()).save_as_render :
-                                                           socket.save_as_render;
+      const auto &format = item.override_node_format ? item.format :
+                                                       node_storage(this->bnode()).format;
+      const bool save_as_render = item.override_node_format ?
+                                      item.save_as_render :
+                                      node_storage(this->bnode()).save_as_render;
       const bool is_exr = format.imtype == R_IMF_IMTYPE_OPENEXR;
-      const int views_count = BKE_scene_multiview_num_views_get(&context().get_render_data());
+      const int views_count = BKE_scene_multiview_num_views_get(
+          &this->context().get_render_data());
       if (is_exr && !(format.views_format == R_IMF_VIEWS_STEREO_3D && views_count == 2)) {
-        execute_single_layer_multi_view_exr(result, format, base_path, socket.layer);
+        this->execute_single_layer_multi_view_exr(result, format, item.name);
         continue;
       }
 
       char image_path[FILE_MAX];
-      get_single_layer_image_path(base_path, format, image_path);
+      Vector<path_templates::Error> path_errors = this->get_image_path(
+          format, item.name, "", image_path);
+      if (!path_errors.is_empty()) {
+        continue;
+      }
 
       const int2 size = result.domain().size;
-      FileOutput &file_output = context().render_context()->get_file_output(
+      FileOutput &file_output = this->context().render_context()->get_file_output(
           image_path, format, size, save_as_render);
 
-      add_view_for_result(file_output, result, context().get_view_name().data());
+      this->add_view_for_result(file_output, result, context().get_view_name().data());
 
-      add_meta_data_for_result(file_output, result, socket.layer);
+      this->add_meta_data_for_result(file_output, result, item.name);
     }
   }
 
@@ -574,32 +440,32 @@ class FileOutputOperation : public NodeOperation {
 
   void execute_single_layer_multi_view_exr(const Result &result,
                                            const ImageFormatData &format,
-                                           const char *base_path,
                                            const char *layer_name)
   {
     const bool has_views = format.views_format != R_IMF_VIEWS_INDIVIDUAL;
 
     /* The EXR stores all views in the same file, so we supply an empty view to make sure the file
      * name does not contain a view suffix. */
-    char image_path[FILE_MAX];
-    const char *path_view = has_views ? "" : context().get_view_name().data();
+    const char *path_view = has_views ? "" : this->context().get_view_name().data();
 
-    if (!get_multi_layer_exr_image_path(base_path, path_view, false, image_path)) {
-      BLI_assert_unreachable();
+    char image_path[FILE_MAX];
+    Vector<path_templates::Error> path_errors = this->get_image_path(
+        format, layer_name, path_view, image_path);
+    if (!path_errors.is_empty()) {
       return;
     }
 
     const int2 size = result.domain().size;
-    FileOutput &file_output = context().render_context()->get_file_output(
+    FileOutput &file_output = this->context().render_context()->get_file_output(
         image_path, format, size, true);
 
     /* The EXR stores all views in the same file, so we add the actual render view. Otherwise, we
      * add a default unnamed view. */
-    const char *view_name = has_views ? context().get_view_name().data() : "";
+    const char *view_name = has_views ? this->context().get_view_name().data() : "";
     file_output.add_view(view_name);
-    add_pass_for_result(file_output, result, "", view_name);
+    this->add_pass_for_result(file_output, result, "", view_name);
 
-    add_meta_data_for_result(file_output, result, layer_name);
+    this->add_meta_data_for_result(file_output, result, layer_name);
   }
 
   /* -----------------------
@@ -614,22 +480,21 @@ class FileOutputOperation : public NodeOperation {
       return;
     }
 
-    const bool store_views_in_single_file = is_multi_view_exr();
-    const char *view = context().get_view_name().data();
+    const ImageFormatData format = node_storage(this->bnode()).format;
+    const bool store_views_in_single_file = this->is_multi_view_exr();
+    const char *view = this->context().get_view_name().data();
 
     /* If we are saving all views in a single multi-layer file, we supply an empty view to make
      * sure the file name does not contain a view suffix. */
     char image_path[FILE_MAX];
     const char *write_view = store_views_in_single_file ? "" : view;
-    if (!get_multi_layer_exr_image_path(get_base_path(), write_view, true, image_path)) {
-      /* TODO: propagate this error to the render pipeline and UI. */
-      BKE_report(
-          nullptr, RPT_ERROR, "Invalid path template in File Output node. Skipping writing file.");
+    Vector<path_templates::Error> path_errors = this->get_image_path(
+        format, "", write_view, image_path);
+    if (!path_errors.is_empty()) {
       return;
     }
 
-    const ImageFormatData format = node_storage(bnode()).format;
-    FileOutput &file_output = context().render_context()->get_file_output(
+    FileOutput &file_output = this->context().render_context()->get_file_output(
         image_path, format, size, true);
 
     /* If we are saving views in separate files, we needn't store the view in the channel names, so
@@ -637,16 +502,14 @@ class FileOutputOperation : public NodeOperation {
     const char *pass_view = store_views_in_single_file ? view : "";
     file_output.add_view(pass_view);
 
-    for (const bNodeSocket *input : this->node()->input_sockets()) {
-      if (!is_socket_available(input)) {
-        continue;
-      }
+    const NodeCompositorFileOutput &storage = node_storage(bnode());
+    for (const int i : IndexRange(storage.items_count)) {
+      const NodeCompositorFileOutputItem &item = storage.items[i];
+      const std::string identifier = FileOutputItemsAccessor::socket_identifier_for_item(item);
+      const Result &input_result = this->get_input(identifier);
+      this->add_pass_for_result(file_output, input_result, item.name, pass_view);
 
-      const Result &input_result = get_input(input->identifier);
-      const char *pass_name = (static_cast<NodeImageMultiFileSocket *>(input->storage))->layer;
-      add_pass_for_result(file_output, input_result, pass_name, pass_view);
-
-      add_meta_data_for_result(file_output, input_result, pass_name);
+      this->add_meta_data_for_result(file_output, input_result, item.name);
     }
   }
 
@@ -669,7 +532,7 @@ class FileOutputOperation : public NodeOperation {
       buffer = this->inflate_result(result, size);
     }
     else {
-      if (context().use_gpu()) {
+      if (this->context().use_gpu()) {
         GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
         buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
       }
@@ -777,7 +640,7 @@ class FileOutputOperation : public NodeOperation {
     /* The image buffer in the file output will take ownership of this buffer and freeing it will
      * be its responsibility. */
     float *buffer = nullptr;
-    if (context().use_gpu()) {
+    if (this->context().use_gpu()) {
       GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
       buffer = static_cast<float *>(GPU_texture_read(result, GPU_DATA_FLOAT, 0));
     }
@@ -867,161 +730,59 @@ class FileOutputOperation : public NodeOperation {
     }
   }
 
-  /**
-   * Get the base path of the image to be saved, based on the base path of the
-   * node. The base name is an optional initial name of the image, which will
-   * later be concatenated with other information like the frame number, view,
-   * and extension. If the base name is empty, then the base path represents a
-   * directory, so a trailing slash is ensured.
-   *
-   * Note: this takes care of path template expansion as well.
-   *
-   * If there are any errors processing the path, `bath_base` will be set to an
-   * empty string.
-   *
-   * \return True on success, false if there were any errors processing the
-   * path.
-   */
-  bool get_single_layer_image_base_path(const char *base_name, char *r_base_path)
+  Vector<path_templates::Error> get_image_path(const ImageFormatData &format,
+                                               const char *file_name_suffix,
+                                               const char *view,
+                                               char *r_image_path)
   {
-    path_templates::VariableMap template_variables;
-    BKE_add_template_variables_general(template_variables, &this->bnode().owner_tree().id);
-    BKE_add_template_variables_for_render_path(template_variables, context().get_scene());
-    BKE_add_template_variables_for_node(template_variables, this->bnode());
+    const Vector<path_templates::Error> path_errors = compute_image_path(
+        this->get_directory(),
+        this->get_file_name(),
+        file_name_suffix,
+        view,
+        this->context().get_frame_number(),
+        format,
+        this->context().get_scene(),
+        this->bnode(),
+        r_image_path);
 
-    /* Do template expansion on the node's base path. */
-    char node_base_path[FILE_MAX] = "";
-    STRNCPY(node_base_path, get_base_path());
-    {
-      blender::Vector<path_templates::Error> errors = BKE_path_apply_template(
-          node_base_path, FILE_MAX, template_variables);
-      if (!errors.is_empty()) {
-        r_base_path[0] = '\0';
-        return false;
-      }
+    if (!path_errors.is_empty()) {
+      BKE_report(
+          nullptr, RPT_ERROR, "Invalid path template in File Output node. Skipping writing file.");
     }
 
-    if (base_name[0]) {
-      /* Do template expansion on the socket's sub path ("base name"). */
-      char sub_path[FILE_MAX] = "";
-      STRNCPY(sub_path, base_name);
-      {
-        blender::Vector<path_templates::Error> errors = BKE_path_apply_template(
-            sub_path, FILE_MAX, template_variables);
-        if (!errors.is_empty()) {
-          r_base_path[0] = '\0';
-          return false;
-        }
-      }
-
-      /* Combine the base path and sub path. */
-      BLI_path_join(r_base_path, FILE_MAX, node_base_path, sub_path);
-    }
-    else {
-      /* Just use the base path, as a directory. */
-      BLI_strncpy(r_base_path, node_base_path, FILE_MAX);
-      BLI_path_slash_ensure(r_base_path, FILE_MAX);
-    }
-
-    return true;
-  }
-
-  /* Get the path of the image to be saved based on the given format. */
-  void get_single_layer_image_path(const char *base_path,
-                                   const ImageFormatData &format,
-                                   char *r_image_path)
-  {
-    BKE_image_path_from_imformat(r_image_path,
-                                 base_path,
-                                 BKE_main_blendfile_path_from_global(),
-                                 /* No variables, because path templating is
-                                  * already done by
-                                  * `get_single_layer_image_base_path()` before
-                                  * this is called. */
-                                 nullptr,
-                                 context().get_frame_number(),
-                                 &format,
-                                 use_file_extension(),
-                                 true,
-                                 nullptr);
-  }
-
-  /**
-   * Get the path of the EXR image to be saved. If the given view is not empty,
-   * its corresponding file suffix will be appended to the name.
-   *
-   * If there are any errors processing the path, the resulting path will be
-   * empty.
-   *
-   * \param apply_template: Whether to run templating on the path or not. This is
-   * needed because this function is called from more than one place, some of
-   * which have already applied templating to the path and some of which
-   * haven't. Double-applying templating can give incorrect results.
-   *
-   * \return True on success, false if there were any errors processing the
-   * path.
-   */
-  bool get_multi_layer_exr_image_path(const char *base_path,
-                                      const char *view,
-                                      const bool apply_template,
-                                      char *r_image_path)
-  {
-    const Scene *scene = &context().get_scene();
-    const RenderData &render_data = context().get_render_data();
-    path_templates::VariableMap template_variables;
-    BKE_add_template_variables_general(template_variables, &this->bnode().owner_tree().id);
-    BKE_add_template_variables_for_render_path(template_variables, *scene);
-    BKE_add_template_variables_for_node(template_variables, this->bnode());
-
-    const char *suffix = BKE_scene_multiview_view_suffix_get(&render_data, view);
-    const char *relbase = BKE_main_blendfile_path_from_global();
-    blender::Vector<path_templates::Error> errors = BKE_image_path_from_imtype(
-        r_image_path,
-        base_path,
-        relbase,
-        apply_template ? &template_variables : nullptr,
-        context().get_frame_number(),
-        R_IMF_IMTYPE_MULTILAYER,
-        use_file_extension(),
-        true,
-        suffix);
-
-    if (!errors.is_empty()) {
-      r_image_path[0] = '\0';
-    }
-
-    return errors.is_empty();
+    return path_errors;
   }
 
   bool is_multi_layer()
   {
-    return node_storage(bnode()).format.imtype == R_IMF_IMTYPE_MULTILAYER;
+    return node_storage(this->bnode()).format.imtype == R_IMF_IMTYPE_MULTILAYER;
   }
 
-  const char *get_base_path()
+  std::string get_file_name()
   {
-    return node_storage(bnode()).base_path;
+    const char *file_name = node_storage(this->bnode()).file_name;
+    return file_name ? file_name : "";
   }
 
-  /* Add the file format extensions to the rendered file name. */
-  bool use_file_extension()
+  std::string get_directory()
   {
-    return context().get_render_data().scemode & R_EXTENSION;
+    return node_storage(this->bnode()).directory;
   }
 
   /* If true, save views in a multi-view EXR file, otherwise, save each view in its own file. */
   bool is_multi_view_exr()
   {
-    if (!is_multi_view_scene()) {
+    if (!this->is_multi_view_scene()) {
       return false;
     }
 
-    return node_storage(bnode()).format.views_format == R_IMF_VIEWS_MULTIVIEW;
+    return node_storage(this->bnode()).format.views_format == R_IMF_VIEWS_MULTIVIEW;
   }
 
   bool is_multi_view_scene()
   {
-    return context().get_render_data().scemode & R_MULTIVIEW;
+    return this->context().get_render_data().scemode & R_MULTIVIEW;
   }
 
   Domain compute_domain() override
@@ -1043,12 +804,8 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
   return new FileOutputOperation(context, node);
 }
 
-}  // namespace blender::nodes::node_composite_file_output_cc
-
-static void register_node_type_cmp_output_file()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_composite_file_output_cc;
-
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeOutputFile", CMP_NODE_OUTPUT_FILE);
@@ -1056,14 +813,46 @@ static void register_node_type_cmp_output_file()
   ntype.ui_description = "Write image file to disk";
   ntype.enum_name_legacy = "OUTPUT_FILE";
   ntype.nclass = NODE_CLASS_OUTPUT;
-  ntype.draw_buttons = file_ns::node_composit_buts_file_output;
-  ntype.draw_buttons_ex = file_ns::node_composit_buts_file_output_ex;
-  ntype.initfunc_api = file_ns::init_output_file;
+  ntype.declare = node_declare;
+  ntype.draw_buttons = node_layout;
+  ntype.draw_buttons_ex = node_layout_ex;
+  ntype.insert_link = node_insert_link;
+  ntype.register_operators = node_operators;
+  ntype.initfunc_api = node_init;
   blender::bke::node_type_storage(
-      ntype, "NodeImageMultiFile", file_ns::free_output_file, file_ns::copy_output_file);
-  ntype.updatefunc = file_ns::update_output_file;
-  ntype.get_compositor_operation = file_ns::get_compositor_operation;
+      ntype, "NodeCompositorFileOutput", node_free_storage, node_copy_storage);
+  ntype.blend_write_storage_content = node_blend_write;
+  ntype.blend_data_read_storage_content = node_blend_read;
+  ntype.get_compositor_operation = get_compositor_operation;
 
   blender::bke::node_register_type(ntype);
 }
-NOD_REGISTER_NODE(register_node_type_cmp_output_file)
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_composite_file_output_cc
+
+namespace blender::nodes {
+
+StructRNA *FileOutputItemsAccessor::item_srna = &RNA_NodeCompositorFileOutputItem;
+
+void FileOutputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
+{
+  BLO_write_string(writer, item.name);
+  BKE_image_format_blend_write(writer, const_cast<ImageFormatData *>(&item.format));
+}
+
+void FileOutputItemsAccessor::blend_read_data_item(BlendDataReader *reader, ItemT &item)
+{
+  BLO_read_string(reader, &item.name);
+  BKE_image_format_blend_read_data(reader, &item.format);
+}
+
+std::string FileOutputItemsAccessor::validate_name(const StringRef name)
+{
+  char file_name[FILE_MAX] = "";
+  BLI_strncpy(file_name, name.data(), FILE_MAX);
+  BLI_path_make_safe_filename(file_name);
+  return file_name;
+}
+
+}  // namespace blender::nodes

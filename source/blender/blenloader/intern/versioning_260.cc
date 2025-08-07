@@ -56,6 +56,7 @@
 #include "BKE_anim_visualization.h"
 #include "BKE_customdata.hh"
 #include "BKE_image.hh"
+#include "BKE_image_format.hh"
 #include "BKE_main.hh" /* for Main */
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.hh"
@@ -248,13 +249,125 @@ static void do_versions_nodetree_socket_use_flags_2_62(bNodeTree *ntree)
   }
 }
 
+/* find unique path */
+static bool unique_path_unique_check(ListBase *lb,
+                                     bNodeSocket *sock,
+                                     const blender::StringRef name)
+{
+  LISTBASE_FOREACH (bNodeSocket *, sock_iter, lb) {
+    if (sock_iter != sock) {
+      NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock_iter->storage;
+      if (sockdata->path == name) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+static void ntreeCompositOutputFileUniquePath(ListBase *list,
+                                              bNodeSocket *sock,
+                                              const char defname[],
+                                              char delim)
+{
+  /* See if we are given an empty string */
+  if (ELEM(nullptr, sock, defname)) {
+    return;
+  }
+  NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
+  BLI_uniquename_cb(
+      [&](const blender::StringRef check_name) {
+        return unique_path_unique_check(list, sock, check_name);
+      },
+      defname,
+      delim,
+      sockdata->path,
+      sizeof(sockdata->path));
+}
+
+/* find unique EXR layer */
+static bool unique_layer_unique_check(ListBase *lb,
+                                      bNodeSocket *sock,
+                                      const blender::StringRef name)
+{
+  LISTBASE_FOREACH (bNodeSocket *, sock_iter, lb) {
+    if (sock_iter != sock) {
+      NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock_iter->storage;
+      if (sockdata->layer == name) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+static void ntreeCompositOutputFileUniqueLayer(ListBase *list,
+                                               bNodeSocket *sock,
+                                               const char defname[],
+                                               char delim)
+{
+  /* See if we are given an empty string */
+  if (ELEM(nullptr, sock, defname)) {
+    return;
+  }
+  NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
+  BLI_uniquename_cb(
+      [&](const blender::StringRef check_name) {
+        return unique_layer_unique_check(list, sock, check_name);
+      },
+      defname,
+      delim,
+      sockdata->layer,
+      sizeof(sockdata->layer));
+}
+
+static bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
+                                                     bNode *node,
+                                                     const char *name,
+                                                     const ImageFormatData *im_format)
+{
+  NodeCompositorFileOutput *nimf = (NodeCompositorFileOutput *)node->storage;
+  bNodeSocket *sock = blender::bke::node_add_static_socket(
+      *ntree, *node, SOCK_IN, SOCK_RGBA, PROP_NONE, "", name);
+
+  /* create format data for the input socket */
+  NodeImageMultiFileSocket *sockdata = MEM_callocN<NodeImageMultiFileSocket>(__func__);
+  sock->storage = sockdata;
+
+  STRNCPY_UTF8(sockdata->path, name);
+  ntreeCompositOutputFileUniquePath(&node->inputs, sock, name, '_');
+  STRNCPY_UTF8(sockdata->layer, name);
+  ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
+
+  if (im_format) {
+    BKE_image_format_copy(&sockdata->format, im_format);
+    sockdata->format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
+    if (BKE_imtype_is_movie(sockdata->format.imtype)) {
+      sockdata->format.imtype = R_IMF_IMTYPE_OPENEXR;
+    }
+  }
+  else {
+    BKE_image_format_init(&sockdata->format, false);
+  }
+  BKE_image_format_update_color_space_for_type(&sockdata->format);
+
+  /* use node data format by default */
+  sockdata->use_node_format = true;
+  sockdata->save_as_render = true;
+
+  nimf->active_item_index = BLI_findindex(&node->inputs, sock);
+
+  return sock;
+}
+
 static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
       /* previous CMP_NODE_OUTPUT_FILE nodes get converted to multi-file outputs */
       NodeImageFile *old_data = static_cast<NodeImageFile *>(node->storage);
-      NodeImageMultiFile *nimf = MEM_callocN<NodeImageMultiFile>("node image multi file");
+      NodeCompositorFileOutput *nimf = MEM_callocN<NodeCompositorFileOutput>(
+          "node image multi file");
       bNodeSocket *old_image = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 0));
       bNodeSocket *old_z = static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 1));
 
@@ -276,7 +389,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
         BLI_path_split_dir_file(
             old_data->name, basepath, sizeof(basepath), filename, sizeof(filename));
 
-        STRNCPY(nimf->base_path, basepath);
+        STRNCPY(nimf->directory, basepath);
         nimf->format = old_data->im_format;
       }
       else {
@@ -326,7 +439,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
       }
     }
     else if (node->type_legacy == CMP_NODE_OUTPUT_MULTI_FILE__DEPRECATED) {
-      NodeImageMultiFile *nimf = static_cast<NodeImageMultiFile *>(node->storage);
+      NodeCompositorFileOutput *nimf = static_cast<NodeCompositorFileOutput *>(node->storage);
 
       /* CMP_NODE_OUTPUT_MULTI_FILE has been re-declared as CMP_NODE_OUTPUT_FILE */
       node->type_legacy = CMP_NODE_OUTPUT_FILE;

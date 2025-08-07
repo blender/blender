@@ -389,10 +389,6 @@ void NODE_OT_activate_viewer(wmOperatorType *ot);
 void NODE_OT_read_viewlayers(wmOperatorType *ot);
 void NODE_OT_render_changed(wmOperatorType *ot);
 
-void NODE_OT_output_file_add_socket(wmOperatorType *ot);
-void NODE_OT_output_file_remove_active_socket(wmOperatorType *ot);
-void NODE_OT_output_file_move_active_socket(wmOperatorType *ot);
-
 /**
  * \note clipboard_cut is a simple macro of copy + delete.
  */

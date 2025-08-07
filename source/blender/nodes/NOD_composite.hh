@@ -63,24 +63,6 @@ void ntreeCompositUpdateRLayers(bNodeTree *ntree);
 
 void ntreeCompositClearTags(bNodeTree *ntree);
 
-bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
-                                              bNode *node,
-                                              const char *name,
-                                              const ImageFormatData *im_format);
-
-int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node);
-void ntreeCompositOutputFileSetPath(bNode *node, bNodeSocket *sock, const char *name);
-void ntreeCompositOutputFileSetLayer(bNode *node, bNodeSocket *sock, const char *name);
-/* needed in do_versions */
-void ntreeCompositOutputFileUniquePath(ListBase *list,
-                                       bNodeSocket *sock,
-                                       const char defname[],
-                                       char delim);
-void ntreeCompositOutputFileUniqueLayer(ListBase *list,
-                                        bNodeSocket *sock,
-                                        const char defname[],
-                                        char delim);
-
 void ntreeCompositCryptomatteSyncFromAdd(bNode *node);
 void ntreeCompositCryptomatteSyncFromRemove(bNode *node);
 bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node);

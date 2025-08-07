@@ -733,6 +733,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "BLI_index_range.hh"
 #  include "BLI_string_utils.hh"
 
 #  include "DNA_anim_types.h"
@@ -780,6 +781,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include "BKE_unit.hh"
 
 #  include "NOD_composite.hh"
+#  include "NOD_compositor_file_output.hh"
 
 #  include "ED_grease_pencil.hh"
 #  include "ED_image.hh"
@@ -813,6 +815,7 @@ static const EnumPropertyItem eevee_resolution_scale_items[] = {
 #  include "ANIM_keyingsets.hh"
 
 using blender::Vector;
+using blender::nodes::FileOutputItemsAccessor;
 
 static int rna_ToolSettings_snap_mode_get(PointerRNA *ptr)
 {
@@ -1335,24 +1338,26 @@ static std::optional<std::string> rna_ImageFormatSettings_path(
 
       for (bNode *node : ntree->all_nodes()) {
         if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
-          if (match(&((NodeImageMultiFile *)node->storage)->format)) {
+          NodeCompositorFileOutput &storage = *static_cast<NodeCompositorFileOutput *>(
+              node->storage);
+          if (match(&storage.format)) {
             char node_name_esc[sizeof(node->name) * 2];
             BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
             return fmt::format("nodes[\"{}\"].format", node_name_esc);
           }
           else {
-            LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-              NodeImageMultiFileSocket *sockdata = static_cast<NodeImageMultiFileSocket *>(
-                  socket->storage);
-              if (match(&sockdata->format)) {
+            for (const int i : blender::IndexRange(storage.items_count)) {
+              NodeCompositorFileOutputItem &item = storage.items[i];
+              if (match(&item.format)) {
                 char node_name_esc[sizeof(node->name) * 2];
                 BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));
 
-                char socketdata_path_esc[sizeof(sockdata->path) * 2];
-                BLI_str_escape(socketdata_path_esc, sockdata->path, sizeof(socketdata_path_esc));
-
-                return fmt::format(
-                    "nodes[\"{}\"].file_slots[\"{}\"].format", node_name_esc, socketdata_path_esc);
+                const std::string identifier = FileOutputItemsAccessor::socket_identifier_for_item(
+                    item);
+                const std::string escaped_identifier = BLI_str_escape(identifier.c_str());
+                return fmt::format("nodes[\"{}\"].file_output_items[\"{}\"].format",
+                                   node_name_esc,
+                                   escaped_identifier.c_str());
               }
             }
           }

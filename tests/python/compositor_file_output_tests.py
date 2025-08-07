@@ -197,16 +197,17 @@ class FileOutputTest(unittest.TestCase):
         self.assertTrue(ok)
 
     def run_test_script(self, blendfile, curr_out_dir):
-        def set_basepath(node_tree, base_path):
+        def set_directory(node_tree, base_path):
             for node in node_tree.nodes:
                 if node.type == 'OUTPUT_FILE':
-                    node.base_path = f'{curr_out_dir}/'
+                    node.directory = f'{curr_out_dir}/'
+                    node.file_name = ""
                 elif node.type == 'GROUP' and node.node_tree:
-                    set_basepath(node.node_tree, base_path)
+                    set_directory(node.node_tree, base_path)
 
         bpy.ops.wm.open_mainfile(filepath=blendfile)
         # Set output directory for all existing file output nodes.
-        set_basepath(bpy.data.scenes[0].compositing_node_group, f'{curr_out_dir}/')
+        set_directory(bpy.data.scenes[0].compositing_node_group, f'{curr_out_dir}/')
         bpy.data.scenes[0].render.compositor_device = f'{self.execution_device}'
         bpy.ops.render.render()
 

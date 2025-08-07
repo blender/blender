@@ -3713,7 +3713,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
             }
 
             if (node->storage) {
-              NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
+              NodeCompositorFileOutput *nimf = (NodeCompositorFileOutput *)node->storage;
               version_fix_image_format_copy(bmain, &nimf->format);
             }
           }
