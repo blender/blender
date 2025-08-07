@@ -125,7 +125,7 @@ typedef struct BPoint {
   float tilt;
   /** Used for softbody goal weight. */
   float weight;
-  /** F1: selection status,  hide: is point hidden or not. */
+  /** F1: selection status, hide: is point hidden or not. */
   uint8_t f1;
   char _pad1[1];
   short hide;

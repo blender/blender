@@ -760,7 +760,7 @@ static BMOpDefine bmo_bridge_loops_def = {
         {"use_cyclic", BMO_OP_SLOT_BOOL},
         /* Merge rather than creating faces. */
         {"use_merge", BMO_OP_SLOT_BOOL},
-        /*  merge factor */
+        /* Merge factor. */
         {"merge_factor", BMO_OP_SLOT_FLT},
         /* Twist offset for closed loops. */
         {"twist_offset", BMO_OP_SLOT_INT},

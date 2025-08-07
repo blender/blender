@@ -127,7 +127,7 @@ class IncreasingThicknessShader : public StrokeShader {
 };
 
 /** [ Thickness shader ].
- *  Same as previous but here we allow the user to control the ratio thickness/length so that  we
+ * Same as previous but here we allow the user to control the ratio thickness/length so that we
  * don't get fat short lines
  */
 class ConstrainedIncreasingThicknessShader : public StrokeShader {

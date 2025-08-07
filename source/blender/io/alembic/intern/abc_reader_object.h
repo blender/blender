@@ -41,7 +41,7 @@ struct ImportSettings {
   bool is_sequence = false;
   bool set_frame_range = false;
 
-  /* Min and max frame detected from  file sequences. */
+  /* Min and max frame detected from file sequences. */
   int sequence_min_frame = 0;
   int sequence_max_frame = 1;
 

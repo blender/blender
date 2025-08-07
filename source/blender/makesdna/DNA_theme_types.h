@@ -32,11 +32,11 @@
  */
 typedef enum eUIFont_ID {
   UIFONT_DEFAULT = 0,
-  /*  UIFONT_BITMAP   = 1 */ /* UNUSED */
+  // UIFONT_BITMAP = 1, /* UNUSED */
 
   /* free slots */
   UIFONT_CUSTOM1 = 2,
-  /* UIFONT_CUSTOM2 = 3, */ /* UNUSED */
+  // UIFONT_CUSTOM2 = 3, /* UNUSED */
 } eUIFont_ID;
 
 /**

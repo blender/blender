@@ -135,7 +135,7 @@ typedef struct ShaderFxTypeInfo {
 #define SHADERFX_TYPE_PANEL_PREFIX "FX_PT_"
 
 /**
- * Initialize  global data (type info and some common global storage).
+ * Initialize global data (type info and some common global storage).
  */
 void BKE_shaderfx_init(void);
 

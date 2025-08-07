@@ -1613,7 +1613,7 @@ class Preprocessor {
     bool first = true;
     for (SharedVar &var : shared_vars_) {
       char sep = first ? ' ' : ',';
-      /*  */
+
       args << sep << "threadgroup " << var.type << "(&_" << var.name << ")" << var.array;
       assign << (first ? ':' : ',') << var.name << "(_" << var.name << ")";
       declare << "threadgroup " << var.type << ' ' << var.name << var.array << ";";

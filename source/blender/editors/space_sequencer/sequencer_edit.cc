@@ -706,7 +706,7 @@ static void slip_strips_delta(wmOperator *op, Scene *scene, SlipData *data, cons
     seq::relations_invalidate_cache(scene, strip);
 
     strip->runtime.flag &= ~(STRIP_CLAMPED_LH | STRIP_CLAMPED_RH);
-    /* Reconstruct handle clamp state from first principles.  */
+    /* Reconstruct handle clamp state from first principles. */
     if (data->clamp == true) {
       if (seq::time_left_handle_frame_get(scene, strip) == seq::time_start_frame_get(strip)) {
         strip->runtime.flag |= STRIP_CLAMPED_LH;
@@ -1909,7 +1909,7 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /*  Properties. */
+  /* Properties. */
   ot->prop = RNA_def_boolean(ot->srna,
                              "delete_data",
                              false,

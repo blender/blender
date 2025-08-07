@@ -25,7 +25,7 @@ struct BMEdgeLoopStore {
   ListBase verts;
   int flag;
   int len;
-  /* optional values  to calc */
+  /* Optional values to calculate. */
   float co[3], no[3];
 };
 

@@ -361,7 +361,7 @@ static int add_member(const char *member_name)
 
   additional_slen_offset = 0;
 
-  if (member_name[0] == 0 /*  || (member_name[1] == 0) */) {
+  if (member_name[0] == 0 /* `|| (member_name[1] == 0)` */) {
     return -1;
   }
 

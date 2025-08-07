@@ -1762,7 +1762,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
       framebuffer_descriptor_[descriptor_config].depthAttachment.texture = nil;
     }
 
-    /*  Stencil attachment. */
+    /* Stencil attachment. */
     if (mtl_stencil_attachment_.used) {
       framebuffer_descriptor_[descriptor_config].stencilAttachment.texture =
           (id<MTLTexture>)mtl_stencil_attachment_.texture->get_metal_handle_base();

@@ -50,7 +50,7 @@
 
 #if (LIBAVFORMAT_VERSION_MAJOR < 59)
 /* For versions older than FFMPEG 5.0, use the old channel layout variables.
- * We intend to only keep this  workaround for around two releases (3.5, 3.6).
+ * We intend to only keep this workaround for around two releases (3.5, 3.6).
  * If it sticks around any longer, then we should consider refactoring this.
  */
 #  define FFMPEG_USE_OLD_CHANNEL_VARS
@@ -139,7 +139,7 @@ int64_t av_get_pts_from_frame(AVFrame *picture)
   return timestamp_from_pts_or_dts(picture->pts, picture->pkt_dts);
 }
 
-/*  Duration of the frame, in the same units as pts. 0 if unknown. */
+/* Duration of the frame, in the same units as pts. 0 if unknown. */
 FFMPEG_INLINE
 int64_t av_get_frame_duration_in_pts_units(const AVFrame *picture)
 {

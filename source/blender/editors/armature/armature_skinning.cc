@@ -426,7 +426,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   }
   else if (BKE_modifiers_findby_type(ob, eModifierType_Subsurf)) {
     /* Is subdivision-surface on? Lets use the verts on the limit surface then.
-     * = same amount of vertices as mesh, but vertices  moved to the
+     * = same amount of vertices as mesh, but vertices moved to the
      * subdivision-surfaced position, like for 'optimal'. */
     subsurf_calculate_limit_positions(mesh, verts);
     vertsfilled = 1;

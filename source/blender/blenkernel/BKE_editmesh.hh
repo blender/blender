@@ -102,7 +102,7 @@ BMEditMesh *BKE_editmesh_from_object(Object *ob);
 bool BKE_editmesh_eval_orig_map_available(const Mesh &mesh_eval, const Mesh *mesh_orig);
 
 /**
- * \note Does not free the #BMEditMesh  itself.
+ * \note Does not free the #BMEditMesh itself.
  */
 void BKE_editmesh_free_data(BMEditMesh *em);
 

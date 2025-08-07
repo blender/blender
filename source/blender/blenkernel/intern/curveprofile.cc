@@ -267,7 +267,7 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
 {
   const float new_loc[2] = {x, y};
 
-  /* Don't add more control points  than the maximum size of the higher resolution table. */
+  /* Don't add more control points than the maximum size of the higher resolution table. */
   if (profile->path_len == PROF_TABLE_MAX - 1) {
     return nullptr;
   }

@@ -47,7 +47,7 @@ void main()
 
     barrier();
     if (gl_LocalInvocationIndex == 0) {
-      /*  Note that we store using a transposed texel, but that is only to undo the transposition
+      /* Note that we store using a transposed texel, but that is only to undo the transposition
        * mentioned above. Also note that we start from the second row because the first row is
        * set to zero as mentioned above. */
       float4 sum = complete_prologue[0];

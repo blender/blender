@@ -80,7 +80,7 @@ class GPUShaderBinder {
   /**
    * Unbind previously bound GPU shader.
    *
-   * If the shader was not bound by  neither display_bind() nor
+   * If the shader was not bound by neither display_bind() nor
    * to_scene_linear_bind() the behavior is undefined.
    */
   void unbind() const;

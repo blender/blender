@@ -600,7 +600,7 @@ void RNA_identifier_sanitize(char *identifier, int property)
 {
   int a = 0;
 
-  /*  list from http://docs.python.org/py3k/reference/lexical_analysis.html#keywords */
+  /* List from: http://docs.python.org/py3k/reference/lexical_analysis.html#keywords */
   static const char *kwlist[] = {
       /* "False", "None", "True", */
       "and",    "as",     "assert", "break",   "class",    "continue", "def",    "del",
@@ -1571,7 +1571,7 @@ void RNA_def_property_flag(PropertyRNA *prop, PropertyFlag flag)
 {
   switch (prop->type) {
     case PROP_ENUM: {
-      /* In some cases the flag will have been set, ignore that case.*/
+      /* In some cases the flag will have been set, ignore that case. */
       if ((flag & PROP_ENUM_FLAG) && (prop->flag & PROP_ENUM_FLAG) == 0) {
         EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
         if (eprop->item) {

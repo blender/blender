@@ -626,7 +626,7 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
     const CustomData *source_cd = &orig_me->corner_data;
     if (orig_loop_index == -1) {
       /* Will need interpolation weights for this loop's vertex's coordinates.
-       * The coordinate needs to be projected into 2d,  just like the interpolating face's
+       * The coordinate needs to be projected into 2d, just like the interpolating face's
        * coordinates were. The `dest_mesh` coordinates are already in object 0 local space. */
       float co[2];
       mul_v2_m3v3(co, axis_mat, dst_positions[dst_corner_verts[loop_index]]);

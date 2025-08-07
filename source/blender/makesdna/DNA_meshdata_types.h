@@ -302,10 +302,10 @@ typedef struct MEdge {
 /** #MEdge.flag */
 enum {
   /** Deprecated selection status. Now stored in ".select_edge" attribute. */
-  /*  SELECT = (1 << 0), */
+  // SELECT = (1 << 0),
   ME_SEAM = (1 << 2),
   /** Deprecated hide status. Now stored in ".hide_edge" attribute. */
-  /*  ME_HIDE = (1 << 4), */
+  // ME_HIDE = (1 << 4),
   /** Deprecated loose edge status. Now stored in #Mesh::loose_edges() runtime cache. */
   ME_LOOSEEDGE = (1 << 7),
   /** Deprecated sharp edge status. Now stored in "sharp_edge" attribute. */
@@ -336,7 +336,7 @@ enum {
   /** Deprecated selection status. Now stored in ".select_poly" attribute. */
   ME_FACE_SEL = (1 << 1),
   /** Deprecated hide status. Now stored in ".hide_poly" attribute. */
-  /* ME_HIDE = (1 << 4), */
+  // ME_HIDE = (1 << 4),
 };
 
 /**
@@ -375,7 +375,7 @@ typedef struct MVert {
 /** #MVert.flag */
 enum {
   /** Deprecated selection status. Now stored in ".select_vert" attribute. */
-  /*  SELECT = (1 << 0), */
+  // SELECT = (1 << 0),
   /** Deprecated hide status. Now stored in ".hide_vert" attribute. */
   ME_HIDE = (1 << 4),
 };

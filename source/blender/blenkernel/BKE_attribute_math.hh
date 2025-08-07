@@ -380,7 +380,7 @@ template<typename T> class SimpleMixer {
  * mixers in order to be simpler to use. This mixing method has a few benefits:
  *  - An "average" for selections is relatively meaningless.
  *  - Predictable selection propagation is very super important.
- *  - It's generally  easier to remove an element from a selection that is slightly too large than
+ *  - It's generally easier to remove an element from a selection that is slightly too large than
  *    the opposite.
  */
 class BooleanPropagationMixer {

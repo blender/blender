@@ -4055,7 +4055,7 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
             /* We never want mouse wheel events to be treated as smooth scrolling as this
              * causes mouse wheel scroll to orbit the view, see #120587.
              * Although it could be supported if the event system would forward
-             * the source of the scroll action (a wheel or touch device).  */
+             * the source of the scroll action (a wheel or touch device). */
             ps.smooth_xy[0] = 0;
             ps.smooth_xy[1] = 0;
           }

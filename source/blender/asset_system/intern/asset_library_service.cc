@@ -80,7 +80,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
       return this->get_asset_library_on_disk_builtin(type, root_path);
     }
     case ASSET_LIBRARY_LOCAL: {
-      /* For the "Current File" library  we get the asset library root path based on main. */
+      /* For the "Current File" library we get the asset library root path based on main. */
       std::string root_path = bmain ? AS_asset_library_find_suitable_root_path_from_main(bmain) :
                                       "";
 

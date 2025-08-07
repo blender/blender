@@ -1051,7 +1051,7 @@ static void sequencer_add_movie_sync_sound_strip(
   strip_sound->len = std::max(strip_movie->len, strip_sound->len);
 
   /* Ensure that length matches the movie strip even if the underlying sound data
-   * doesn't match up (e.g. it is longer).  */
+   * doesn't match up (e.g. it is longer). */
   seq::time_right_handle_frame_set(
       scene, strip_sound, seq::time_right_handle_frame_get(scene, strip_movie));
   seq::time_left_handle_frame_set(

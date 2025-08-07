@@ -888,7 +888,7 @@ void shear_fcurve_segment(FCurve *fcu,
   }
 
   for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
-    /* For easy calculation of the curve, the  values are normalized. */
+    /* For easy calculation of the curve, the values are normalized. */
     float normalized_x;
     if (direction == SHEAR_FROM_LEFT) {
       normalized_x = (fcu->bezt[i].vec[1][0] - left_key->vec[1][0]) / key_x_range;

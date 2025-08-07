@@ -565,8 +565,6 @@ enum {
   R_IMF_FLAG_PREVIEW_JPG = 1 << 1,
 };
 
-/*  */
-
 /**
  * #ImageFormatData::depth
  *
@@ -859,8 +857,8 @@ typedef struct RenderData {
   float bake_biasdist, bake_user_scale;
 
   /**
-   *  Path to render output.
-   * \note  Excluded from `BKE_bpath_foreach_path_` / `scene_foreach_path` code.
+   * Path to render output.
+   * \note Excluded from `BKE_bpath_foreach_path_` / `scene_foreach_path` code.
    */
   char pic[/*FILE_MAX*/ 1024];
 

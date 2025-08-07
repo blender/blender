@@ -126,7 +126,7 @@ struct AnimDataFCurveConvertor {
  *  - Convert FCurves and move them from the source to the destination IDs animation data.
  * The constructor used defines which of these two 'modes' will be the used by a given convertor.
  *
- * RNA paths to convert can be specified  in two ways:
+ * RNA paths to convert can be specified in two ways:
  *  - Complete paths, with a list of source to destination pairs of paths (relative to the relevant
  * root paths).
  *  - Only by the source and destination root paths (in which case all FCurves starting by these

@@ -1058,8 +1058,8 @@ static void pack_islands_optimal_pack(const Span<std::unique_ptr<UVAABBIsland>> 
   if (island_count_patch == 66) {
     island_count_patch = 67; /* TODO, Stenlund 1980. */
   }
-  /*  See https://www.combinatorics.org/files/Surveys/ds7/ds7v5-2009/ds7-2009.html
-   *  https://erich-friedman.github.io/packing/squinsqu */
+  /* See https://www.combinatorics.org/files/Surveys/ds7/ds7v5-2009/ds7-2009.html
+   * https://erich-friedman.github.io/packing/squinsqu */
   for (int a = 1; a < 20; a++) {
     int n = a * a + a + 3 + floorf((a - 1) * sqrtf(2.0f));
     if (island_count_patch == n) {

@@ -57,7 +57,7 @@ struct ScreenTraceHitData {
  *                     artifact when steps are too large.
  * \param roughness: Determine how lower depth mipmaps are used to make the tracing faster. Lower
  *                   roughness will use lower mipmaps.
- * \param discard_backface: If true, ray-trace will return false  if we hit a surface from behind.
+ * \param discard_backface: If true, ray-trace will return false if we hit a surface from behind.
  * \param allow_self_intersection: If false, ray-trace will return false if the ray is not covering
  *                                 at least one pixel.
  * \param ray: View-space ray. Direction pre-multiplied by maximum length.

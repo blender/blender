@@ -24,7 +24,7 @@ class LibOCIOColorSpace : public ColorSpace {
   std::string clean_description_;
   bool is_invertible_ = false;
 
-  /*  Mutable because they are lazily initialized and cached from the is_scene_linear() and
+  /* Mutable because they are lazily initialized and cached from the is_scene_linear() and
    * is_srgb(). */
   mutable bool is_info_cached_ = false;
   mutable bool is_scene_linear_ = false;

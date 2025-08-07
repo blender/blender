@@ -133,7 +133,7 @@ static void create_trans_seq_clamp_data(TransInfo *t, const Scene *scene)
 
       /* Ensure start transition key cannot pass the previous key, or linked end transition key
        * cannot pass the next key. This transform behavior is symmetrical and limited by the
-       * smallest distance between keys.*/
+       * smallest distance between keys. */
       const int max_offset = min_ii(key_start->strip_frame_index - key_prev->strip_frame_index - 1,
                                     key_next->strip_frame_index - key_end->strip_frame_index - 1);
 

@@ -3581,7 +3581,7 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         damptrack_do_transform(cob->matrix, vec, TRACK_Y);
         break;
       case PLANE_X:
-        /* New Y aligns  object target connection. */
+        /* New Y aligns object target connection. */
         copy_v3_v3(cob->matrix[1], vec);
 
         /* Build new Z vector. */
@@ -3597,7 +3597,7 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         normalize_v3_v3(cob->matrix[0], xx);
         break;
       case PLANE_Z:
-        /* New Y aligns  object target connection. */
+        /* New Y aligns object target connection. */
         copy_v3_v3(cob->matrix[1], vec);
 
         /* Build new X vector. */

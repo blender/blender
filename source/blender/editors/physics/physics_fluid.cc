@@ -654,7 +654,7 @@ static wmOperatorStatus fluid_free_exec(bContext *C, wmOperator *op)
 
   WM_locked_interface_set_with_flags(CTX_wm_manager(C), REGION_DRAW_LOCK_BAKING);
 
-  /*  Free Fluid Geometry */
+  /* Free Fluid Geometry. */
   WM_jobs_start(CTX_wm_manager(C), wm_job);
 
   return OPERATOR_FINISHED;

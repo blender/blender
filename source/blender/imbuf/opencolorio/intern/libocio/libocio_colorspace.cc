@@ -50,7 +50,7 @@ static bool color_space_is_invertible(const OCIO_NAMESPACE::ConstColorSpaceRcPtr
   }
 
   if (ocio_color_space->getTransform(OCIO_NAMESPACE::COLORSPACE_DIR_TO_REFERENCE)) {
-    /* if there's defined transform to reference space,  color space could be converted to scene
+    /* if there's defined transform to reference space, color space could be converted to scene
      * linear. */
     return true;
   }

@@ -352,7 +352,7 @@ void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
 
 /**
  * Starts traversal from given component of the given ID, invokes callback for every other
- * component  which is directly on indirectly dependent on the source one.
+ * component which is directly on indirectly dependent on the source one.
  */
 enum {
   /* Ignore transform solvers which depends on multiple inputs and affects final transform.
