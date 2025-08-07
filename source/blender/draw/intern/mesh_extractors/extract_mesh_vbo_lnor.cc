@@ -299,11 +299,11 @@ static void update_loose_normals(const MeshRenderData &mr,
 
   /* Default to zeroed attribute. The overlay shader should expect this and render engines should
    * never draw loose geometry. */
-  const float4 default_normal(0.0f, 0.0f, 0.0f, 0.0f);
+  const float3 default_normal(0.0f, 0.0f, 0.0f);
   for (const int i : IndexRange::from_begin_end(loose_geom_start, vbo_size)) {
     /* TODO(fclem): This has HORRENDOUS performance. Prefer clearing the buffer on device with
      * something like glClearBufferSubData. */
-    GPU_vertbuf_update_sub(&lnor, i * sizeof(float4), sizeof(float4), &default_normal);
+    GPU_vertbuf_update_sub(&lnor, i * sizeof(float3), sizeof(float3), &default_normal);
   }
 }
 
