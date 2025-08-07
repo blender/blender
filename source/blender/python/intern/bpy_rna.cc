@@ -137,11 +137,14 @@ static PyObject *pyrna_unregister_class(PyObject *self, PyObject *py_class);
 
 static StructRNA *srna_from_ptr(PointerRNA *ptr);
 
+/**
+ * The `bpy_types-custom_properties` references is created as part of API doc generation.
+ * When expanded line reads: "Limited to: Types with Custom Property Support".
+ */
 #define BPY_DOC_ID_PROP_TYPE_NOTE \
   "   .. note::\n" \
   "\n" \
-  "      Only the :class:`bpy.types.ID`, :class:`bpy.types.Bone` and\n" \
-  "      :class:`bpy.types.PoseBone` classes support custom properties.\n"
+  "      Limited to: :ref:`bpy_types-custom_properties`.\n"
 
 int pyrna_struct_validity_check_only(const BPy_StructRNA *pysrna)
 {
