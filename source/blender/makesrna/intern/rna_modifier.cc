@@ -7247,43 +7247,39 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_DataTransferModifier_use_data_update");
 
   /* Actual data types selection. */
-  prop = RNA_def_enum(srna,
-                      "data_types_verts",
-                      DT_layer_vert_items,
-                      0,
-                      "Vertex Data Types",
-                      "Which vertex data layers to transfer");
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  prop = RNA_def_enum_flag(srna,
+                           "data_types_verts",
+                           DT_layer_vert_items,
+                           0,
+                           "Vertex Data Types",
+                           "Which vertex data layers to transfer");
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "data_types");
   RNA_def_property_update(prop, 0, "rna_DataTransferModifier_data_types_update");
 
-  prop = RNA_def_enum(srna,
-                      "data_types_edges",
-                      DT_layer_edge_items,
-                      0,
-                      "Edge Data Types",
-                      "Which edge data layers to transfer");
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  prop = RNA_def_enum_flag(srna,
+                           "data_types_edges",
+                           DT_layer_edge_items,
+                           0,
+                           "Edge Data Types",
+                           "Which edge data layers to transfer");
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "data_types");
   RNA_def_property_update(prop, 0, "rna_DataTransferModifier_data_types_update");
 
-  prop = RNA_def_enum(srna,
-                      "data_types_loops",
-                      DT_layer_loop_items,
-                      0,
-                      "Face Corner Data Types",
-                      "Which face corner data layers to transfer");
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  prop = RNA_def_enum_flag(srna,
+                           "data_types_loops",
+                           DT_layer_loop_items,
+                           0,
+                           "Face Corner Data Types",
+                           "Which face corner data layers to transfer");
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "data_types");
   RNA_def_property_update(prop, 0, "rna_DataTransferModifier_data_types_update");
 
-  prop = RNA_def_enum(srna,
-                      "data_types_polys",
-                      DT_layer_poly_items,
-                      0,
-                      "Poly Data Types",
-                      "Which face data layers to transfer");
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  prop = RNA_def_enum_flag(srna,
+                           "data_types_polys",
+                           DT_layer_poly_items,
+                           0,
+                           "Poly Data Types",
+                           "Which face data layers to transfer");
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "data_types");
   RNA_def_property_update(prop, 0, "rna_DataTransferModifier_data_types_update");
 
