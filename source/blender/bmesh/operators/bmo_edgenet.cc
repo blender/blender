@@ -8,6 +8,7 @@
  * Edge-Net for filling in open edge-loops.
  */
 
+#include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_vector.hh"
 
@@ -203,22 +204,15 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
       v4 = BM_vert_in_edge(edges2[i - 1], edges2[i]->v1) ? edges2[i]->v2 : edges2[i]->v1;
     }
 
-/* if there is ever bow-tie quads between two edges the problem is here! #30367. */
-#if 0
+    /* Avoid bow tie quads using most planar the triangle pair, see: #30367 & #143905. */
     normal_tri_v3(dvec1, v1->co, v2->co, v4->co);
     normal_tri_v3(dvec2, v1->co, v4->co, v3->co);
-#else
-    {
-      /* Save some CPU cycles and skip the `sqrt` and 1 subtraction. */
-      float a1[3], a2[3], a3[3];
-      sub_v3_v3v3(a1, v1->co, v2->co);
-      sub_v3_v3v3(a2, v1->co, v4->co);
-      sub_v3_v3v3(a3, v1->co, v3->co);
-      cross_v3_v3v3(dvec1, a1, a2);
-      cross_v3_v3v3(dvec2, a2, a3);
-    }
-#endif
-    if (dot_v3v3(dvec1, dvec2) < 0.0f) {
+    const float dot_24 = dot_v3v3(dvec1, dvec2);
+
+    normal_tri_v3(dvec1, v1->co, v2->co, v3->co);
+    normal_tri_v3(dvec2, v1->co, v3->co, v4->co);
+    const float dot_13 = dot_v3v3(dvec1, dvec2);
+    if (dot_24 < dot_13) {
       std::swap(v3, v4);
     }
 
