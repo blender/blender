@@ -2236,13 +2236,12 @@ void OBJECT_OT_bake(wmOperatorType *ot)
       SCE_PASS_COMBINED,
       "Type",
       "Type of pass to bake, some of them may not be supported by the current render engine");
-  prop = RNA_def_enum(ot->srna,
-                      "pass_filter",
-                      rna_enum_bake_pass_filter_type_items,
-                      R_BAKE_PASS_FILTER_NONE,
-                      "Pass Filter",
-                      "Filter to combined, diffuse, glossy, transmission and subsurface passes");
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  RNA_def_enum_flag(ot->srna,
+                    "pass_filter",
+                    rna_enum_bake_pass_filter_type_items,
+                    R_BAKE_PASS_FILTER_NONE,
+                    "Pass Filter",
+                    "Filter to combined, diffuse, glossy, transmission and subsurface passes");
   RNA_def_string_file_path(ot->srna,
                            "filepath",
                            nullptr,
