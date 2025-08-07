@@ -261,6 +261,7 @@ class UnifiedPaintPanel:
             context,
             brush,
             prop_name,
+            unified_paint_settings_override=None,
             unified_name=None,
             pressure_name=None,
             icon='NONE',
@@ -269,9 +270,15 @@ class UnifiedPaintPanel:
             header=False,
     ):
         """ Generalized way of adding brush options to the UI,
-            along with their pen pressure setting and global toggle, if they exist. """
+            along with their pen pressure setting and global toggle, if they exist.
+
+            :param unified_paint_settings_override allows a caller to pass in a specific object for usage. Needed for
+            some 'brush-like' tools."""
         row = layout.row(align=True)
-        ups = UnifiedPaintPanel.paint_settings(context).unified_paint_settings
+        if unified_paint_settings_override:
+            ups = unified_paint_settings_override
+        else:
+            ups = UnifiedPaintPanel.paint_settings(context).unified_paint_settings
         prop_owner = brush
         if unified_name and getattr(ups, unified_name):
             prop_owner = ups
