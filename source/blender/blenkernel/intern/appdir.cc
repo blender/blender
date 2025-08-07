@@ -1141,7 +1141,6 @@ void BKE_appdir_app_templates(ListBase *templates)
 
 /**
  * Gets the temp directory when blender first runs.
- * If the default path is not found, use try $TEMP
  *
  * Also make sure the temp dir has a trailing slash
  *
@@ -1150,15 +1149,15 @@ void BKE_appdir_app_templates(ListBase *templates)
  * \param userdir: Directory specified in user preferences (may be nullptr).
  * note that by default this is an empty string, only use when non-empty.
  *
- * \return true if `userdir` is used.
+ * \return true if `tempdir` is set.
  */
 static bool where_is_temp(char *tempdir, const size_t tempdir_maxncpy, const char *userdir)
 {
-  if (userdir && BLI_temp_directory_path_copy_if_valid(tempdir, tempdir_maxncpy, userdir)) {
-    return true;
+  if (userdir) {
+    return BLI_temp_directory_path_copy_if_valid(tempdir, tempdir_maxncpy, userdir);
   }
   BLI_temp_directory_path_get(tempdir, tempdir_maxncpy);
-  return false;
+  return true;
 }
 
 static bool tempdir_session_create(char *tempdir_session,
@@ -1208,30 +1207,19 @@ void BKE_tempdir_init(const char *userdir)
   /* Clear existing temp dir, if needed. */
   BKE_tempdir_session_purge();
 
-  /* Perform two passes, the first pass for the user preference path,
-   * then a second pass if the preferences failed to create the *session* sub-directory.
-   *
-   * This avoid problems if the preferences points to a path without write access,
-   * `C:\` or `/` for example. */
-  g_app.temp_dirname_session_can_be_deleted = false;
-  for (int pass = 0; pass < 2; pass += 1) {
-    const bool from_userdir = where_is_temp(
-        g_app.temp_dirname_base, sizeof(g_app.temp_dirname_base), pass == 0 ? userdir : nullptr);
+  /* Only do one pass if `userdir` is null. */
+  int userdir_args_num = userdir ? 2 : 1;
+  const char *userdir_args[2] = {userdir, nullptr};
 
-    /* Now that we have a valid temp dir, add system-generated unique sub-dir. */
-    if (tempdir_session_create(g_app.temp_dirname_session,
-                               sizeof(g_app.temp_dirname_session),
-                               g_app.temp_dirname_base))
-    {
-      /* Created the session sub-directory. */
-      g_app.temp_dirname_session_can_be_deleted = true;
-      break;
-    }
-
-    /* Only perform the second pass if the `userdir` was used
-     * and failed to created the sub-directory. */
-    if (from_userdir == false) {
-      break;
+  for (int i = 0; i < userdir_args_num; i++) {
+    if (where_is_temp(g_app.temp_dirname_base, sizeof(g_app.temp_dirname_base), userdir_args[i])) {
+      if (tempdir_session_create(g_app.temp_dirname_session,
+                                 sizeof(g_app.temp_dirname_session),
+                                 g_app.temp_dirname_base))
+      {
+        g_app.temp_dirname_session_can_be_deleted = true;
+        break;
+      }
     }
   }
 
