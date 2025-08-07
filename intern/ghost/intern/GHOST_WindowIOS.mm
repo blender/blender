@@ -1316,7 +1316,7 @@ typedef struct UserInputEvent {
   _view.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
   _view.autoResizeDrawable = YES;
   _view.contentMode = UIViewContentModeScaleToFill;
-  _view.contentScaleFactor = [[UIScreen mainScreen] nativeScale];
+  _view.contentScaleFactor = [[UIScreen mainScreen] scale];
   /* Set the refresh rate to the screen's maximum. There may be some value in capping
    * this value to preserve battery life (60fps seems to work well). */
   _view.preferredFramesPerSecond = [UIScreen mainScreen].maximumFramesPerSecond;
@@ -1902,7 +1902,7 @@ CGSize GHOST_WindowIOS::getNativeWindowSize()
 
 float GHOST_WindowIOS::getWindowScaleFactor()
 {
-  return m_metalView.contentScaleFactor;
+  return [[UIScreen mainScreen] scale];
 }
 
 bool GHOST_WindowIOS::activateWindow()
