@@ -391,7 +391,7 @@ void NODE_OT_add_group(wmOperatorType *ot)
   WM_operator_properties_id_lookup(ot, true);
 
   PropertyRNA *prop = RNA_def_boolean(
-      ot->srna, "show_datablock_in_node", true, "Show the datablock selector in the node", "");
+      ot->srna, "show_datablock_in_node", true, "Show the data-block selector in the node", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 

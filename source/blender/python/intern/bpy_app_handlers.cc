@@ -42,19 +42,19 @@ static PyTypeObject BlenderAppCbType;
   "the render stats (render/saving time plus in background mode frame/used [peak] memory)."
 #define DEPSGRAPH_UPDATE_ARG \
   "Accepts two arguments: " \
-  "The scene datablock and the dependency graph being updated"
+  "The scene data-block and the dependency graph being updated"
 #define RENDER_ARG \
   "Accepts one argument: " \
-  "the scene datablock being rendered"
+  "the scene data-block being rendered"
 #define OBJECT_BAKE_ARG \
   "Accepts one argument: " \
-  "the object datablock being baked"
+  "the object data-block being baked"
 #define COMPOSITE_ARG \
   "Accepts one argument: " \
-  "the scene datablock"
+  "the scene data-block"
 #define ANNOTATION_ARG \
   "Accepts two arguments: " \
-  "the annotation datablock and dependency graph"
+  "the annotation data-block and dependency graph"
 #define BLENDIMPORT_ARG \
   "Accepts one argument: " \
   "a BlendImportContext"

@@ -443,7 +443,7 @@ static bool rna_id_write_error(PointerRNA *ptr, PyObject *key)
       BLI_assert(idtype != nullptr);
       PyErr_Format(PyExc_AttributeError,
                    "Writing to ID classes in this context is not allowed: "
-                   "%.200s, %.200s datablock, error setting %.200s.%.200s",
+                   "%.200s, %.200s data-block, error setting %.200s.%.200s",
                    id->name + 2,
                    idtype,
                    RNA_struct_identifier(ptr->type),
@@ -2865,7 +2865,7 @@ static PyObject *pyrna_prop_collection_subscript(BPy_PropertyRNA *self, PyObject
     return pyrna_prop_collection_subscript_slice(self, start, stop);
   }
   if (PyTuple_Check(key)) {
-    /* Special case, for ID datablocks we. */
+    /* Special case, for ID data-blocks we. */
     return pyrna_prop_collection_subscript_str_lib_pair(
         self, key, "bpy_prop_collection[id, lib]", true);
   }
@@ -3646,7 +3646,7 @@ static int pyrna_struct_ass_subscript(BPy_StructRNA *self, PyObject *key, PyObje
       {
         PyErr_SetString(
             PyExc_TypeError,
-            "bpy_struct[key] = val: datablock id properties not supported for this type");
+            "bpy_struct[key] = val: data-block id properties not supported for this type");
         return -1;
       }
     }
@@ -5156,8 +5156,8 @@ static PyObject *pyrna_prop_collection_idprop_move(BPy_PropertyRNA *self, PyObje
 PyDoc_STRVAR(
     /* Wrap. */
     pyrna_struct_get_id_data_doc,
-    "The :class:`bpy.types.ID` object this datablock is from or None, (not available for "
-    "all data types)\n"
+    "The :class:`bpy.types.ID` object this data-block is from or None, "
+    "(not available for all data types)\n"
     "\n"
     ":type: :class:`bpy.types.ID`, (readonly)\n");
 static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self, void * /*closure*/)

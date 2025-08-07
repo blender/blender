@@ -10,7 +10,7 @@ __all__ = (
 
 
 def get_id_reference_map():  # `-> dict[bpy.types.ID, set[bpy.types.ID]]`
-    """Return a dictionary of direct datablock references for every datablock in the blend file."""
+    """Return a dictionary of direct data-block references for every data-block in the blend file."""
     import bpy
 
     inv_map = {}

@@ -1195,7 +1195,7 @@ PyDoc_STRVAR(
     bpy_bmesh_to_mesh_doc,
     ".. method:: to_mesh(mesh)\n"
     "\n"
-    "   Writes this BMesh data into an existing Mesh datablock.\n"
+    "   Writes this BMesh data into an existing Mesh data-block.\n"
     "\n"
     "   :arg mesh: The mesh data to write into.\n"
     "   :type mesh: :class:`Mesh`\n");
@@ -1356,7 +1356,7 @@ PyDoc_STRVAR(
     ".. method:: from_mesh(mesh, face_normals=True, vertex_normals=True, use_shape_key=False, "
     "shape_key_index=0)\n"
     "\n"
-    "   Initialize this bmesh from existing mesh datablock.\n"
+    "   Initialize this bmesh from existing mesh data-block.\n"
     "\n"
     "   :arg mesh: The mesh data to load.\n"
     "   :type mesh: :class:`Mesh`\n"

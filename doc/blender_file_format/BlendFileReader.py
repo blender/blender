@@ -216,7 +216,7 @@ class FileBlockHeader:
     OldAddress  (pointer)
     SDNAIndex   (int)
     Count       (int)
-    FileOffset  (= file pointer of datablock)
+    FileOffset  (= file pointer of data-block)
     '''
 
     def __init__(self, handle, fileheader):

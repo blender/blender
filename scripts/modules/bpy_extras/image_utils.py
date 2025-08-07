@@ -48,7 +48,7 @@ def load_image(
     :arg relpath: If not None, make the file relative to this path.
     :type relpath: str | None
     :arg check_existing: If true,
-       returns already loaded image datablock if possible
+       returns already loaded image data-block if possible
        (based on file path).
     :type check_existing: bool
     :arg force_reload: If true,

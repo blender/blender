@@ -6276,7 +6276,7 @@ static void rna_def_space_sequencer_timeline_overlay(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(
       prop, nullptr, "timeline_overlay.flag", SEQ_TIMELINE_SHOW_STRIP_SOURCE);
   RNA_def_property_ui_text(
-      prop, "Show Source", "Display path to source file, or name of source datablock");
+      prop, "Show Source", "Display path to source file, or name of source data-block");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, nullptr);
 
   prop = RNA_def_property(srna, "show_strip_duration", PROP_BOOLEAN, PROP_NONE);
@@ -6620,7 +6620,7 @@ static void rna_def_space_text(BlenderRNA *brna)
                           RNA_def_boolean(func, "is_syntax_highlight_supported", false, "", ""));
   RNA_def_function_ui_description(func,
                                   "Returns True if the editor supports syntax highlighting "
-                                  "for the current text datablock");
+                                  "for the current text data-block");
 
   prop = RNA_def_property(srna, "show_syntax_highlight", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "showsyntax", 0);
