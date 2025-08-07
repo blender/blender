@@ -1585,6 +1585,22 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 54)) {
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      if (object->type != OB_ARMATURE) {
+        continue;
+      }
+      LISTBASE_FOREACH (bPoseChannel *, pose_bone, &object->pose->chanbase) {
+        if (pose_bone->bone->flag & BONE_HIDDEN_P) {
+          pose_bone->drawflag |= PCHAN_DRAW_HIDDEN;
+        }
+        else {
+          pose_bone->drawflag &= ~PCHAN_DRAW_HIDDEN;
+        }
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

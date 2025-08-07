@@ -323,17 +323,18 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         bone = context.bone
 
         col = layout.column()
-        col.prop(bone, "hide", text="Hide", toggle=False)
+        # Figure out the pose bone.
+        ob = context.object
+        pose_bone = ob and ob.pose.bones[bone.name]
         hide_select_sub = col.column()
-        hide_select_sub.active = not bone.hide
+        if pose_bone:
+            col.prop(pose_bone, "hide", text="Hide", toggle=False)
+            hide_select_sub.active = not pose_bone.hide
         hide_select_sub.prop(bone, "hide_select", invert_checkbox=True)
         col.prop(bone, "display_type", text="Display As")
 
-        # Figure out the pose bone.
-        ob = context.object
-        if not ob:
+        if not pose_bone:
             return
-        pose_bone = ob.pose.bones[bone.name]
 
         # Allow the layout to use the space normally occupied by the 'set a key' diamond.
         layout.use_property_decorate = False
