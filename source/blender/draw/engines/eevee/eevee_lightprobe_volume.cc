@@ -84,6 +84,7 @@ void VolumeProbeModule::init()
   }
 
   if (do_full_update_) {
+    do_full_update_ = false;
     do_update_world_ = true;
 
     /* Delete all references to existing bricks. */
@@ -449,7 +450,6 @@ void VolumeProbeModule::set_view(View & /*view*/)
     irradiance_d_tx.free();
   }
 
-  do_full_update_ = false;
   do_update_world_ = false;
 }
 
