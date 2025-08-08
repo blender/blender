@@ -822,17 +822,16 @@ uint my_func() {
   return i;
 #else
 #line 3
-  return uint(0);
+  uint result;
+  return result;
 #endif
 #line 6
 }
 )";
     string error;
     string output = process_test_string(input, error);
-    // EXPECT_EQ(output, expect); /* TODO: Add support. */
-    EXPECT_EQ(error,
-              "Return statement with values are not supported inside the same scope as "
-              "resource access function.");
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
   }
   {
     string input = R"(

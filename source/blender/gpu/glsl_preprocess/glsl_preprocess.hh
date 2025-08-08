@@ -221,7 +221,7 @@ class Preprocessor {
         str = struct_method_mutation(str, report_error);
         str = method_call_mutation(str, report_error);
         str = stage_function_mutation(str);
-        str = resource_guard_mutation(str, report_error);
+        str = resource_guard_mutation(str);
         str = loop_unroll(str, report_error);
         str = assert_processing(str, filename);
         static_strings_parsing(str);
@@ -1279,60 +1279,65 @@ class Preprocessor {
     return out;
   }
 
-  std::string resource_guard_mutation(const std::string &str, report_callback report_error)
+  std::string resource_guard_mutation(const std::string &str)
   {
     using namespace std;
+    using namespace shader::parser;
 
-    if (str.find("_get(") == string::npos) {
-      return str;
-    }
+    Parser parser(str);
 
-    vector<pair<string, string>> mutations;
+    parser.foreach_function([&](bool, Token fn_type, Token, Scope, bool, Scope fn_body) {
+      fn_body.foreach_match("w(w,", [&](const std::vector<Token> &tokens) {
+        string func_name = tokens[0].str_no_whitespace();
+        if (func_name != "specialization_constant_get" && func_name != "push_constant_get" &&
+            func_name != "interface_get" && func_name != "attribute_get" &&
+            func_name != "buffer_get" && func_name != "sampler_get" && func_name != "image_get")
+        {
+          return;
+        }
+        string info_name = tokens[2].str_no_whitespace();
+        Scope scope = tokens[0].scope();
+        /* We can be in expression scope. Take parent scope until we find a local scope. */
+        while (scope.type() != ScopeType::Function && scope.type() != ScopeType::Local) {
+          scope = scope.scope();
+        }
 
-    string prefix_total;
-    regex regex_resource_access(R"(\b(\w+)_get\((\w+)\, \w+\))");
-    regex_global_search(str, regex_resource_access, [&](const smatch &match) {
-      string prefix = prefix_total + match.prefix().str();
-      string suffix = match.suffix().str();
-      string resource_access = match[0].str();
-      string resource_type = match[1].str();
-      string create_info_name = match[2].str();
-
-      prefix_total += match.prefix().str() + resource_access;
-
-      if (resource_type != "specialization_constant" && resource_type != "push_constant" &&
-          resource_type != "interface" && resource_type != "buffer" &&
-          resource_type != "attribute" && resource_type != "sampler" && resource_type != "image")
-      {
-        return;
-      }
-
-      string scope_start = get_content_between_balanced_pair(prefix + '}', '{', '}', true);
-      string scope_end = get_content_between_balanced_pair('{' + suffix, '{', '}');
-      string scope = scope_start.substr(1) + resource_access +
-                     scope_end.substr(0, scope_end.rfind('\n') + 1);
-
-      if (scope.find(" return ") != string::npos) {
-        report_error(match,
-                     "Return statement with values are not supported inside the same scope as "
-                     "resource access function.");
-        return;
-      }
-
-      size_t line_start = 1 + line_count(prefix) - line_count(scope_start) + 1;
-
-      string check = "defined(CREATE_INFO_" + create_info_name + ")";
-      string mutated = guarded_scope_mutation(scope, line_start, check);
-
-      mutations.emplace_back(scope, mutated);
+        if (scope.type() == ScopeType::Function) {
+          guarded_scope_mutation(parser, scope, info_name, fn_type);
+        }
+        else {
+          guarded_scope_mutation(parser, scope, info_name);
+        }
+      });
     });
 
-    string out = str;
-    for (auto mutation : mutations) {
-      replace_all(out, mutation.first, mutation.second);
-    }
-    return out;
+    return parser.result_get();
   }
+
+  void guarded_scope_mutation(parser::Parser &parser,
+                              parser::Scope scope,
+                              const std::string &info,
+                              parser::Token fn_type = parser::Token::invalid())
+  {
+    using namespace std;
+    using namespace shader::parser;
+
+    string line_start = "#line " + std::to_string(scope.start().next().line_number()) + "\n";
+    string line_end = "#line " + std::to_string(scope.end().line_number()) + "\n";
+
+    string guard_start = "#if defined(CREATE_INFO_" + info + ")\n";
+    string guard_else;
+    if (fn_type.is_valid() && fn_type.str_no_whitespace() != "void") {
+      guard_else += "#else\n";
+      guard_else += line_start;
+      guard_else += "  " + fn_type.str_no_whitespace() + " result;\n";
+      guard_else += "  return result;\n";
+    }
+    string guard_end = "#endif\n";
+
+    parser.insert_after(scope.start().line_end() + 1, guard_start + line_start);
+    parser.insert_before(scope.end().line_start(), guard_else + guard_end + line_end);
+  };
 
   std::string guarded_scope_mutation(std::string content, int64_t line_start, std::string check)
   {
