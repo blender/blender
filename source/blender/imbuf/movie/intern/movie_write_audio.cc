@@ -35,6 +35,10 @@
 #  include "BKE_report.hh"
 #  include "BKE_sound.h"
 
+#  include "CLG_log.h"
+
+static CLG_LogRef LOG = {"video.write"};
+
 /* If any of these codecs, we prefer the float sample format (if supported) */
 static bool request_float_audio_buffer(int codec_id)
 {
@@ -98,7 +102,7 @@ static int write_audio_frame(MovieWriter *context)
   if (ret < 0) {
     /* Can't send frame to encoder. This shouldn't happen. */
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-    fprintf(stderr, "Can't send audio frame: %s\n", error_str);
+    CLOG_ERROR(&LOG, "Can't send audio frame: %s", error_str);
     success = -1;
   }
 
@@ -112,7 +116,7 @@ static int write_audio_frame(MovieWriter *context)
     }
     if (ret < 0) {
       av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-      fprintf(stderr, "Error encoding audio frame: %s\n", error_str);
+      CLOG_ERROR(&LOG, "Error encoding audio frame: %s", error_str);
       success = -1;
     }
 
@@ -127,7 +131,7 @@ static int write_audio_frame(MovieWriter *context)
     int write_ret = av_interleaved_write_frame(context->outfile, pkt);
     if (write_ret != 0) {
       av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-      fprintf(stderr, "Error writing audio packet: %s\n", error_str);
+      CLOG_ERROR(&LOG, "Error writing audio packet: %s", error_str);
       success = -1;
       break;
     }
@@ -227,7 +231,7 @@ AVStream *alloc_audio_stream(MovieWriter *context,
 
   codec = avcodec_find_encoder(codec_id);
   if (!codec) {
-    fprintf(stderr, "Couldn't find valid audio codec\n");
+    CLOG_ERROR(&LOG, "Couldn't find valid audio codec");
     context->audio_codec = nullptr;
     return nullptr;
   }
@@ -318,7 +322,7 @@ AVStream *alloc_audio_stream(MovieWriter *context,
   if (ret < 0) {
     char error_str[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-    fprintf(stderr, "Couldn't initialize audio codec: %s\n", error_str);
+    CLOG_ERROR(&LOG, "Couldn't initialize audio codec: %s", error_str);
     BLI_strncpy(error, ffmpeg_last_error(), error_size);
     avcodec_free_context(&c);
     context->audio_codec = nullptr;

@@ -9,6 +9,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_utildefines.h"
 
+#include "CLG_log.h"
 #include "DNA_scene_types.h"
 
 #include "MOV_enums.hh"
@@ -16,12 +17,11 @@
 
 #include "ffmpeg_swscale.hh"
 #include "movie_util.hh"
+#include <mutex>
 
 #ifdef WITH_FFMPEG
 
 #  include "BLI_string.h"
-
-#  include "BKE_global.hh"
 
 extern "C" {
 #  include "ffmpeg_compat.h"
@@ -31,6 +31,8 @@ extern "C" {
 #  include <libavutil/log.h>
 }
 
+static CLG_LogRef LOG = {"video.ffmpeg"};
+
 static char ffmpeg_last_error_buffer[1024];
 
 /* BLI_vsnprintf in ffmpeg_log_callback() causes invalid warning */
@@ -39,23 +41,76 @@ static char ffmpeg_last_error_buffer[1024];
 #    pragma GCC diagnostic ignored "-Wmissing-format-attribute"
 #  endif
 
-static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_list arg)
+static size_t ffmpeg_log_to_buffer(char *buffer,
+                                   const size_t buffer_size,
+                                   const char *format,
+                                   va_list arg)
 {
-  if (ELEM(level, AV_LOG_FATAL, AV_LOG_ERROR)) {
-    size_t n;
-    va_list args_cpy;
+  va_list args_cpy;
+  size_t n;
 
-    va_copy(args_cpy, arg);
-    n = VSNPRINTF(ffmpeg_last_error_buffer, format, args_cpy);
-    va_end(args_cpy);
+  va_copy(args_cpy, arg);
+  n = BLI_vsnprintf(buffer, buffer_size, format, args_cpy);
+  va_end(args_cpy);
 
-    /* strip trailing \n */
+  return n;
+}
+
+static void ffmpeg_log_callback(void * /*ptr*/, int level, const char *format, va_list arg)
+{
+  CLG_Level clg_level;
+
+  switch (level) {
+    case AV_LOG_PANIC:
+    case AV_LOG_FATAL:
+      clg_level = CLG_LEVEL_FATAL;
+      break;
+    case AV_LOG_ERROR:
+      clg_level = CLG_LEVEL_ERROR;
+      break;
+    case AV_LOG_WARNING:
+      clg_level = CLG_LEVEL_WARN;
+      break;
+    case AV_LOG_INFO:
+      clg_level = CLG_LEVEL_INFO;
+      break;
+    case AV_LOG_VERBOSE:
+    case AV_LOG_DEBUG:
+      clg_level = CLG_LEVEL_DEBUG;
+      break;
+    case AV_LOG_TRACE:
+    default:
+      clg_level = CLG_LEVEL_TRACE;
+      break;
+  }
+
+  static std::mutex mutex;
+  std::scoped_lock lock(mutex);
+
+  if (ELEM(clg_level, CLG_LEVEL_FATAL, CLG_LEVEL_ERROR)) {
+    const size_t n = ffmpeg_log_to_buffer(
+        ffmpeg_last_error_buffer, sizeof(ffmpeg_last_error_buffer), format, arg);
+    /* Strip trailing \n. */
     ffmpeg_last_error_buffer[n - 1] = '\0';
   }
 
-  if (G.debug & G_DEBUG_FFMPEG) {
-    /* call default logger to print all message to console */
-    av_log_default_callback(ptr, level, format, arg);
+  if (CLOG_CHECK(&LOG, clg_level)) {
+    /* FFmpeg calls this multiple times without a line ending, so accumulate until
+     * we reach a line ending. This will not work well with multithreading, but the
+     * output would be garbled either way. */
+    static char buffer[1024];
+    static int buffer_used = 0;
+
+    buffer_used += ffmpeg_log_to_buffer(
+        buffer + buffer_used, sizeof(buffer) - buffer_used, format, arg);
+
+    if (buffer_used >= sizeof(buffer) || (buffer_used > 0 && buffer[buffer_used - 1] == '\n')) {
+      if (buffer[buffer_used - 1] == '\n') {
+        buffer[buffer_used - 1] = '\0';
+      }
+      CLOG_STR_AT_LEVEL(&LOG, clg_level, buffer);
+      buffer_used = 0;
+    }
   }
 }
 
@@ -514,8 +569,14 @@ void MOV_init()
 
   ffmpeg_last_error_buffer[0] = '\0';
 
-  if (G.debug & G_DEBUG_FFMPEG) {
+  if (CLOG_CHECK(&LOG, CLG_LEVEL_INFO)) {
+    av_log_set_level(AV_LOG_INFO);
+  }
+  else if (CLOG_CHECK(&LOG, CLG_LEVEL_DEBUG)) {
     av_log_set_level(AV_LOG_DEBUG);
+  }
+  else if (CLOG_CHECK(&LOG, CLG_LEVEL_TRACE)) {
+    av_log_set_level(AV_LOG_TRACE);
   }
 
   /* set separate callback which could store last error to report to UI */

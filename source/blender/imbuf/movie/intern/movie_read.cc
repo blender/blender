@@ -31,6 +31,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "CLG_log.h"
+
 #include "MOV_read.hh"
 
 #include "IMB_metadata.hh"
@@ -52,6 +54,8 @@ extern "C" {
 }
 
 #endif /* WITH_FFMPEG */
+
+static CLG_LogRef LOG = {"video.read"};
 
 #ifdef WITH_FFMPEG
 static void free_anim_ffmpeg(MovieReader *anim);
@@ -483,7 +487,7 @@ static int startffmpeg(MovieReader *anim)
 
   const size_t align = ffmpeg_get_buffer_alignment();
   if (av_frame_get_buffer(anim->pFrameRGB, align) < 0) {
-    fprintf(stderr, "Could not allocate frame data.\n");
+    CLOG_ERROR(&LOG, "Could not allocate frame data.");
     avcodec_free_context(&anim->pCodecCtx);
     avformat_close_input(&anim->pFormatCtx);
     av_packet_free(&anim->cur_packet);
@@ -530,11 +534,11 @@ static int startffmpeg(MovieReader *anim)
                                                      SWS_ACCURATE_RND);
 
   if (!anim->img_convert_ctx) {
-    fprintf(stderr,
-            "ffmpeg: swscale can't transform from pixel format %s to %s (%s)\n",
-            av_get_pix_fmt_name(anim->pCodecCtx->pix_fmt),
-            av_get_pix_fmt_name((AVPixelFormat)anim->pFrameRGB->format),
-            anim->filepath);
+    CLOG_ERROR(&LOG,
+               "ffmpeg: swscale can't transform from pixel format %s to %s (%s)",
+               av_get_pix_fmt_name(anim->pCodecCtx->pix_fmt),
+               av_get_pix_fmt_name((AVPixelFormat)anim->pFrameRGB->format),
+               anim->filepath);
     avcodec_free_context(&anim->pCodecCtx);
     avformat_close_input(&anim->pFormatCtx);
     av_packet_free(&anim->cur_packet);
@@ -706,9 +710,9 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
   if (input->data[0] == nullptr && input->data[1] == nullptr && input->data[2] == nullptr &&
       input->data[3] == nullptr)
   {
-    fprintf(stderr,
-            "ffmpeg_fetchibuf: "
-            "data not read properly...\n");
+    CLOG_ERROR(&LOG,
+               "ffmpeg_fetchibuf: "
+               "data not read properly...");
     return;
   }
 

@@ -30,7 +30,6 @@
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
 
-#  include "BKE_global.hh"
 #  include "BKE_image.hh"
 #  include "BKE_main.hh"
 #  include "BKE_path_templates.hh"
@@ -42,14 +41,13 @@
 
 #  include "IMB_colormanagement.hh"
 
+#  include "CLG_log.h"
+
 #  include "ffmpeg_swscale.hh"
 #  include "movie_util.hh"
 
+static CLG_LogRef LOG = {"video.write"};
 static constexpr int64_t ffmpeg_autosplit_size = 2'000'000'000;
-
-#  define FF_DEBUG_PRINT \
-    if (G.debug & G_DEBUG_FFMPEG) \
-    printf
 
 static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value)
 {
@@ -163,7 +161,7 @@ static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *
   if (ret < 0) {
     /* Can't send frame to encoder. This shouldn't happen. */
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-    fprintf(stderr, "Can't send video frame: %s\n", error_str);
+    CLOG_ERROR(&LOG, "Can't send video frame: %s", error_str);
     success = -1;
   }
 
@@ -176,7 +174,7 @@ static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *
     }
     if (ret < 0) {
       av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-      fprintf(stderr, "Error encoding frame: %s\n", error_str);
+      CLOG_ERROR(&LOG, "Error encoding frame: %s", error_str);
       break;
     }
 
@@ -195,7 +193,7 @@ static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *
   if (!success) {
     BKE_report(reports, RPT_ERROR, "Error writing frame");
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-    FF_DEBUG_PRINT("ffmpeg: error writing video frame: %s\n", error_str);
+    CLOG_INFO(&LOG, "ffmpeg: error writing video frame: %s", error_str);
   }
 
   av_packet_free(&packet);
@@ -836,7 +834,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     codec = avcodec_find_encoder(codec_id);
   }
   if (!codec) {
-    fprintf(stderr, "Couldn't find valid video codec\n");
+    CLOG_ERROR(&LOG, "Couldn't find valid video codec");
     context->video_codec = nullptr;
     return nullptr;
   }
@@ -905,7 +903,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
         deadline_name = "realtime";
         break;
       default:
-        printf("Unknown preset number %i, ignoring.\n", context->ffmpeg_preset);
+        CLOG_WARN(&LOG, "Unknown preset number %i, ignoring.", context->ffmpeg_preset);
     }
     /* "codec_id != AV_CODEC_ID_AV1" is required due to "preset" already being set by an AV1 codec.
      */
@@ -1074,12 +1072,12 @@ static AVStream *alloc_video_stream(MovieWriter *context,
       }
     }
     else {
-      fprintf(stderr, "ffmpeg: invalid profile %d\n", context->ffmpeg_profile);
+      CLOG_ERROR(&LOG, "ffmpeg: invalid profile %d", context->ffmpeg_profile);
     }
   }
 
   if (of->oformat->flags & AVFMT_GLOBALHEADER) {
-    FF_DEBUG_PRINT("ffmpeg: using global video header\n");
+    CLOG_STR_INFO(&LOG, "ffmpeg: using global video header");
     c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
   }
 
@@ -1132,7 +1130,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   if (ret < 0) {
     char error_str[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-    fprintf(stderr, "Couldn't initialize video codec: %s\n", error_str);
+    CLOG_ERROR(&LOG, "Couldn't initialize video codec: %s\n", error_str);
     BLI_strncpy(error, ffmpeg_last_error(), error_size);
     av_dict_free(&opts);
     avcodec_free_context(&c);
@@ -1237,22 +1235,22 @@ static bool start_ffmpeg_impl(MovieWriter *context,
   {
     return false;
   }
-  FF_DEBUG_PRINT(
-      "ffmpeg: starting output to %s:\n"
-      "  type=%d, codec=%d, audio_codec=%d,\n"
-      "  video_bitrate=%d, audio_bitrate=%d,\n"
-      "  gop_size=%d, autosplit=%d\n"
-      "  width=%d, height=%d\n",
-      filepath,
-      context->ffmpeg_type,
-      context->ffmpeg_codec,
-      context->ffmpeg_audio_codec,
-      context->ffmpeg_video_bitrate,
-      context->ffmpeg_audio_bitrate,
-      context->ffmpeg_gop_size,
-      context->ffmpeg_autosplit,
-      rectx,
-      recty);
+  CLOG_INFO(&LOG,
+            "ffmpeg: starting output to %s:\n"
+            "  type=%d, codec=%d, audio_codec=%d,\n"
+            "  video_bitrate=%d, audio_bitrate=%d,\n"
+            "  gop_size=%d, autosplit=%d\n"
+            "  width=%d, height=%d",
+            filepath,
+            context->ffmpeg_type,
+            context->ffmpeg_codec,
+            context->ffmpeg_audio_codec,
+            context->ffmpeg_video_bitrate,
+            context->ffmpeg_audio_bitrate,
+            context->ffmpeg_gop_size,
+            context->ffmpeg_autosplit,
+            rectx,
+            recty);
 
   /* Sanity checks for the output file extensions. */
   exts = get_file_extensions(context->ffmpeg_type);
@@ -1351,15 +1349,15 @@ static bool start_ffmpeg_impl(MovieWriter *context,
   if (video_codec != AV_CODEC_ID_NONE) {
     context->video_stream = alloc_video_stream(
         context, rd, video_codec, of, rectx, recty, error, sizeof(error));
-    FF_DEBUG_PRINT("ffmpeg: alloc video stream %p\n", context->video_stream);
+    CLOG_INFO(&LOG, "ffmpeg: alloc video stream %p", context->video_stream);
     if (!context->video_stream) {
       if (error[0]) {
         BKE_report(reports, RPT_ERROR, error);
-        FF_DEBUG_PRINT("ffmpeg: video stream error: %s\n", error);
+        CLOG_INFO(&LOG, "ffmpeg: video stream error: %s", error);
       }
       else {
         BKE_report(reports, RPT_ERROR, "Error initializing video stream");
-        FF_DEBUG_PRINT("ffmpeg: error initializing video stream\n");
+        CLOG_STR_INFO(&LOG, "ffmpeg: error initializing video stream");
       }
       goto fail;
     }
@@ -1376,11 +1374,11 @@ static bool start_ffmpeg_impl(MovieWriter *context,
     if (!context->audio_stream) {
       if (error[0]) {
         BKE_report(reports, RPT_ERROR, error);
-        FF_DEBUG_PRINT("ffmpeg: audio stream error: %s\n", error);
+        CLOG_INFO(&LOG, "ffmpeg: audio stream error: %s", error);
       }
       else {
         BKE_report(reports, RPT_ERROR, "Error initializing audio stream");
-        FF_DEBUG_PRINT("ffmpeg: error initializing audio stream\n");
+        CLOG_STR_INFO(&LOG, "ffmpeg: error initializing audio stream");
       }
       goto fail;
     }
@@ -1388,7 +1386,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
   if (!(fmt->flags & AVFMT_NOFILE)) {
     if (avio_open(&of->pb, filepath, AVIO_FLAG_WRITE) < 0) {
       BKE_report(reports, RPT_ERROR, "Could not open file for writing");
-      FF_DEBUG_PRINT("ffmpeg: could not open file %s for writing\n", filepath);
+      CLOG_INFO(&LOG, "ffmpeg: could not open file %s for writing", filepath);
       goto fail;
     }
   }
@@ -1405,7 +1403,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
                "Could not initialize streams, probably unsupported codec combination");
     char error_str[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-    FF_DEBUG_PRINT("ffmpeg: could not write media header: %s\n", error_str);
+    CLOG_INFO(&LOG, "ffmpeg: could not write media header: %s", error_str);
     goto fail;
   }
 
@@ -1448,7 +1446,7 @@ static void flush_delayed_frames(AVCodecContext *c, AVStream *stream, AVFormatCo
     }
     if (ret < 0) {
       av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-      fprintf(stderr, "Error encoding delayed frame: %s\n", error_str);
+      CLOG_ERROR(&LOG, "Error encoding delayed frame: %s", error_str);
       break;
     }
 
@@ -1461,7 +1459,7 @@ static void flush_delayed_frames(AVCodecContext *c, AVStream *stream, AVFormatCo
     int write_ret = av_interleaved_write_frame(outfile, packet);
     if (write_ret != 0) {
       av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-      fprintf(stderr, "Error writing delayed frame: %s\n", error_str);
+      CLOG_ERROR(&LOG, "Error writing delayed frame: %s", error_str);
       break;
     }
   }
@@ -1626,7 +1624,7 @@ static bool ffmpeg_movie_append(MovieWriter *context,
   AVFrame *avframe;
   bool success = true;
 
-  FF_DEBUG_PRINT("ffmpeg: writing frame #%i (%ix%i)\n", frame, image->x, image->y);
+  CLOG_INFO(&LOG, "ffmpeg: writing frame #%i (%ix%i)", frame, image->x, image->y);
 
   if (context->video_stream) {
     avframe = generate_video_frame(context, image);
@@ -1653,17 +1651,17 @@ static bool ffmpeg_movie_append(MovieWriter *context,
 
 static void end_ffmpeg_impl(MovieWriter *context, bool is_autosplit)
 {
-  FF_DEBUG_PRINT("ffmpeg: closing\n");
+  CLOG_STR_INFO(&LOG, "ffmpeg: closing");
 
   movie_audio_close(context, is_autosplit);
 
   if (context->video_stream) {
-    FF_DEBUG_PRINT("ffmpeg: flush delayed video frames\n");
+    CLOG_STR_INFO(&LOG, "ffmpeg: flush delayed video frames");
     flush_delayed_frames(context->video_codec, context->video_stream, context->outfile);
   }
 
   if (context->audio_stream) {
-    FF_DEBUG_PRINT("ffmpeg: flush delayed audio frames\n");
+    CLOG_STR_INFO(&LOG, "ffmpeg: flush delayed audio frames");
     flush_delayed_frames(context->audio_codec, context->audio_stream, context->outfile);
   }
 
