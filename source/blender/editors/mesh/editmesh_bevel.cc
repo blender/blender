@@ -309,7 +309,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 {
   BevelData *opdata = static_cast<BevelData *>(op->customdata);
   BMOperator bmop;
-  bool changed = false;
+  bool changed_multi = false;
 
   const float offset = get_bevel_offset(op);
   const int offset_type = RNA_enum_get(op->ptr, "offset_type");
@@ -387,23 +387,28 @@ static bool edbm_bevel_calc(wmOperator *op)
         }
       }
     }
+
+    bool changed = false;
+
     if (opdata->use_automerge) {
-      EDBM_automerge_connected(obedit, true, BM_ELEM_SELECT, opdata->automerge_threshold);
+      changed |= EDBM_automerge_connected(
+          obedit, true, BM_ELEM_SELECT, opdata->automerge_threshold);
     }
+
+    changed |= EDBM_op_finish(em, &bmop, op, true);
 
     /* no need to de-select existing geometry */
-    if (!EDBM_op_finish(em, &bmop, op, true)) {
-      continue;
+    if (changed) {
+      EDBMUpdate_Params params{};
+      params.calc_looptris = true;
+      params.calc_normals = true;
+      params.is_destructive = true;
+      EDBM_update(static_cast<Mesh *>(obedit->data), &params);
     }
 
-    EDBMUpdate_Params params{};
-    params.calc_looptris = true;
-    params.calc_normals = true;
-    params.is_destructive = true;
-    EDBM_update(static_cast<Mesh *>(obedit->data), &params);
-    changed = true;
+    changed_multi |= changed;
   }
-  return changed;
+  return changed_multi;
 }
 
 static void edbm_bevel_exit(bContext *C, wmOperator *op)

@@ -33,7 +33,7 @@
  * Used after transform operations.
  * \{ */
 
-static void edbm_automerge_impl(
+static bool edbm_automerge_impl(
     Object *obedit, bool update, const char hflag, const float dist, const bool use_connected)
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -62,23 +62,25 @@ static void edbm_automerge_impl(
   BMO_op_finish(bm, &findop);
   BMO_op_finish(bm, &weldop);
 
-  EDBMUpdate_Params params{};
-  params.calc_looptris = true;
-  params.calc_normals = false;
-  params.is_destructive = true;
-  if ((totvert_prev != bm->totvert) && update) {
+  bool changed = totvert_prev != bm->totvert;
+  if (changed && update) {
+    EDBMUpdate_Params params{};
+    params.calc_looptris = true;
+    params.calc_normals = false;
+    params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
+  return changed;
 }
 
-void EDBM_automerge(Object *obedit, bool update, const char hflag, const float dist)
+bool EDBM_automerge(Object *obedit, bool update, const char hflag, const float dist)
 {
-  edbm_automerge_impl(obedit, update, hflag, dist, false);
+  return edbm_automerge_impl(obedit, update, hflag, dist, false);
 }
 
-void EDBM_automerge_connected(Object *obedit, bool update, const char hflag, const float dist)
+bool EDBM_automerge_connected(Object *obedit, bool update, const char hflag, const float dist)
 {
-  edbm_automerge_impl(obedit, update, hflag, dist, true);
+  return edbm_automerge_impl(obedit, update, hflag, dist, true);
 }
 
 /** \} */
@@ -89,7 +91,7 @@ void EDBM_automerge_connected(Object *obedit, bool update, const char hflag, con
  * Used after transform operations.
  * \{ */
 
-void EDBM_automerge_and_split(Object *obedit,
+bool EDBM_automerge_and_split(Object *obedit,
                               const bool /*split_edges*/,
                               const bool split_faces,
                               const bool update,
@@ -141,6 +143,8 @@ void EDBM_automerge_and_split(Object *obedit,
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
+
+  return ok;
 }
 
 /** \} */
