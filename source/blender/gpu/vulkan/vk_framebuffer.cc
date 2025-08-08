@@ -714,14 +714,6 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
     rendering_end(context);
   }
 
-#ifndef NDEBUG
-  if (G.debug & G_DEBUG_GPU) {
-    char message[256];
-    message[0] = '\0';
-    BLI_assert_msg(this->check(message), message);
-  }
-#endif
-
   const VKExtensions &extensions = VKBackend::get().device.extensions_get();
   is_rendering_ = true;
   rendering_ensure_dynamic_rendering(context, extensions);
