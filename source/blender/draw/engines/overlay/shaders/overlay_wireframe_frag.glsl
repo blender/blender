@@ -41,6 +41,7 @@ void main()
   frag_color = final_color;
 
 #  if !defined(CURVES)
+  gl_FragDepth = gl_FragCoord.z;
   if (use_custom_depth_bias) {
     float2 dir = line_output.xy * 2.0f - 1.0f;
     bool dir_horiz = abs(dir.x) > abs(dir.y);
@@ -64,9 +65,6 @@ void main()
 #    ifndef SELECT_ENABLE
     if (gl_FragCoord.z < (depth_occluder + delta) && gl_FragCoord.z > depth_occluder) {
       gl_FragDepth = depth_occluder;
-    }
-    else {
-      gl_FragDepth = gl_FragCoord.z;
     }
 #    endif
   }
