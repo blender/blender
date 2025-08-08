@@ -13,6 +13,7 @@
 
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
+#include "AS_remote_library.hh"
 
 #include "BKE_asset_edit.hh"
 #include "BKE_blendfile.hh"
@@ -32,10 +33,6 @@
 #include "BLI_rect.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
-
-#ifdef WITH_PYTHON
-#  include "BPY_extern_run.hh"
-#endif
 
 #include "ED_asset.hh"
 #include "ED_screen.hh"
@@ -1552,6 +1549,12 @@ static Vector<const asset_system::AssetRepresentation *> selected_or_active_asse
 
 static bool assets_download_poll(bContext *C)
 {
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    CTX_wm_operator_poll_msg_set(
+        C, "Internet access is disabled (can be enabled in the Preferences, System tab)");
+    return false;
+  }
+
 #ifndef WITH_PYTHON
   UNUSED_VARS(C);
   CTX_wm_operator_poll_msg_set(C, "Asset downloading requires Python");
@@ -1583,49 +1586,13 @@ static bool assets_download_poll(bContext *C)
 
 static wmOperatorStatus assets_download_exec(bContext *C, wmOperator *op)
 {
-#ifdef WITH_PYTHON
   const Vector<const asset_system::AssetRepresentation *> assets = selected_or_active_assets(C);
 
   for (const asset_system::AssetRepresentation *asset : assets) {
-    const std::optional<StringRef> dst_filepath = asset->download_dst_filepath();
-    if (!dst_filepath) {
-      continue;
-    }
-    const asset_system::AssetLibrary &library = asset->owner_asset_library();
-    const std::optional<StringRef> library_url = library.remote_url();
-    if (!library_url) {
-      BKE_reportf(op->reports,
-                  RPT_WARNING,
-                  "Could not find asset library URL for asset '%s'",
-                  asset->get_name().c_str());
-      continue;
-    }
-
-    const StringRef library_path = library.root_path();
-
-    /* TODO move to remote_library.cc? */
-    {
-      const char *expr_imports[] = {"_bpy_internal",
-                                    "_bpy_internal.assets.remote_library_listing.asset_downloader",
-                                    "pathlib",
-                                    nullptr};
-      const std::string expr = fmt::format(
-          "_bpy_internal.assets.remote_library_listing.asset_downloader.download_asset('{}', "
-          "pathlib.Path('{}'), '{}', pathlib.Path('{}'))",
-          *library_url,
-          library_path,
-          *dst_filepath,
-          *dst_filepath);
-
-      BPY_run_string_exec(C, expr_imports, expr.c_str());
-    }
+    asset_system::remote_library_request_asset_download(*C, *asset, op->reports);
   }
 
   return OPERATOR_FINISHED;
-#else
-  UNUSED_VARS(C, op);
-  return OPERATOR_CANCELLED;
-#endif
 }
 
 static void ASSET_OT_assets_download(wmOperatorType *ot)

@@ -6,12 +6,18 @@
  * \ingroup asset_system
  */
 
+#include <fmt/format.h>
+
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 
 #include "BLT_translation.hh"
 
 #include "BKE_global.hh"
+
+#ifdef WITH_PYTHON
+#  include "BPY_extern_run.hh"
+#endif
 
 #include "DNA_userdef_types.h"
 
@@ -20,6 +26,7 @@
 
 #include "WM_api.hh"
 
+#include "AS_asset_representation.hh"
 #include "AS_remote_library.hh"
 #include "remote_library.hh"
 
@@ -290,6 +297,53 @@ void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_def
       nullptr, &RNA_UserAssetLibrary, &library_definition);
   PointerRNA *lib_ptr_arr[] = {&lib_ptr};
   BKE_callback_exec(&bmain, lib_ptr_arr, 1, BKE_CB_EVT_REMOTE_ASSET_LIBRARIES_SYNC);
+}
+
+void remote_library_request_asset_download(bContext &C,
+                                           const AssetRepresentation &asset,
+                                           ReportList *reports)
+{
+  /* Ensure we don't attempt to download anything when online access is disabled. */
+  if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
+    BKE_report(reports, RPT_ERROR, "Internet access is disabled");
+    return;
+  }
+
+#ifdef WITH_PYTHON
+  const std::optional<StringRef> dst_filepath = asset.download_dst_filepath();
+  if (!dst_filepath) {
+    return;
+  }
+  const asset_system::AssetLibrary &library = asset.owner_asset_library();
+  const std::optional<StringRef> library_url = library.remote_url();
+  if (!library_url) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Could not find asset library URL for asset '%s'",
+                asset.get_name().c_str());
+    return;
+  }
+
+  const StringRef library_path = library.root_path();
+
+  {
+    const char *expr_imports[] = {"_bpy_internal",
+                                  "_bpy_internal.assets.remote_library_listing.asset_downloader",
+                                  "pathlib",
+                                  nullptr};
+    const std::string expr = fmt::format(
+        "_bpy_internal.assets.remote_library_listing.asset_downloader.download_asset('{}', "
+        "pathlib.Path('{}'), '{}', pathlib.Path('{}'))",
+        *library_url,
+        library_path,
+        *dst_filepath,
+        *dst_filepath);
+
+    BPY_run_string_exec(&C, expr_imports, expr.c_str());
+  }
+#else
+  UNUSED_VARS(C, asset, reports);
+#endif
 }
 
 }  // namespace blender::asset_system

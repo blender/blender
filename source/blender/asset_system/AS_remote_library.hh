@@ -13,10 +13,14 @@
 
 #include "BLI_string_ref.hh"
 
+struct bContext;
 struct bUserAssetLibrary;
 struct Main;
+struct ReportList;
 
 namespace blender::asset_system {
+
+class AssetRepresentation;
 
 /**
  * Ensures the remote library cache directory exists, and calls Python downloader through
@@ -24,6 +28,10 @@ namespace blender::asset_system {
  * ongoing.
  */
 void remote_library_request_download(Main &bmain, bUserAssetLibrary &library_definition);
+
+void remote_library_request_asset_download(bContext &C,
+                                           const AssetRepresentation &asset,
+                                           ReportList *reports);
 
 /**
  * Status information about an externally loaded asset library listing, stored globally.

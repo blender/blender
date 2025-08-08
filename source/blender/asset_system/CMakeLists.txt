@@ -56,11 +56,19 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
   PRIVATE bf::dna
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )
+
+if(WITH_PYTHON)
+  list(APPEND INC
+    ../python
+  )
+  add_definitions(-DWITH_PYTHON)
+endif()
 
 
 blender_add_lib(bf_asset_system "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
