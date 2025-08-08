@@ -31,6 +31,17 @@
 
 #include "WM_types.hh"
 
+/* FFmpeg thread‐type constants.
+ * We cannot include <libavcodec/avcodec.h> at RNA build time,
+ * so define them here if the header isn't visible. */
+#ifndef FF_THREAD_FRAME
+#  define FF_THREAD_FRAME 1
+#endif
+#ifndef FF_THREAD_SLICE
+#  define FF_THREAD_SLICE 2
+#endif
+
+
 struct EffectInfo {
   const char *struct_name;
   const char *ui_name;
@@ -38,6 +49,9 @@ struct EffectInfo {
   void (*func)(StructRNA *);
   int inputs;
 };
+
+
+
 
 /* These wrap strangely, disable formatting for fixed indentation and wrapping. */
 /* clang-format off */
@@ -83,6 +97,14 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
     {STRIP_COLOR_09, "COLOR_09", ICON_STRIP_COLOR_09, "Color 09", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+static const EnumPropertyItem rna_enum_ffmpeg_thread_type[] = {
+    {FF_THREAD_FRAME, "FRAME", 0, "Frame",  "One thread per entire frame"},
+    {FF_THREAD_SLICE, "SLICE", 0, "Slice",  "One thread per horizontal slice"},
+    {0, NULL, 0, NULL, NULL}
+};
+
+
 
 #ifdef RNA_RUNTIME
 
@@ -2368,6 +2390,27 @@ static void rna_def_strip(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_SHOW_RETIMING);
   RNA_def_property_ui_text(prop, "Show Retiming Keys", "Show retiming keys, so they can be moved");
 
+  /* Threads count */
+/* FFmpeg threading: number of threads */
+prop = RNA_def_property(srna, "ffmpeg_threads", PROP_INT, PROP_NONE);
+RNA_def_property_int_sdna(prop, NULL, "ffmpeg_threads");
+RNA_def_property_range(prop, 1, 64);
+RNA_def_property_ui_text(prop, "FFmpeg Threads",
+                         "Number of CPU threads to use for video encode/decode");
+/* >>> replace this line <<< */
+RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
+
+/* FFmpeg threading: frame vs slice */
+prop = RNA_def_property(srna, "ffmpeg_thread_type", PROP_ENUM, PROP_NONE);
+RNA_def_property_enum_sdna(prop, NULL, "ffmpeg_thread_type");
+RNA_def_property_enum_items(prop, rna_enum_ffmpeg_thread_type);
+RNA_def_property_ui_text(prop, "Thread Type",
+                         "FFmpeg threading method to use (Frame or Slice)");
+/* >>> replace this line <<< */
+RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
+
+
+
   RNA_api_strip(srna);
 }
 
@@ -4005,21 +4048,21 @@ static void rna_def_sound_equalizer_modifier(BlenderRNA *brna)
                        "min_freq",
                        SOUND_EQUALIZER_DEFAULT_MIN_FREQ,
                        0.0,
-                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ, /* Hard min and max */
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ, /*  Hard min and max */
                        "Minimum Frequency",
                        "Minimum Frequency",
                        0.0,
-                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ); /* Soft min and max */
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ); /*  Soft min and max */
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_float(func,
                        "max_freq",
                        SOUND_EQUALIZER_DEFAULT_MAX_FREQ,
                        0.0,
-                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ, /* Hard min and max */
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ, /*  Hard min and max */
                        "Maximum Frequency",
                        "Maximum Frequency",
                        0.0,
-                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ); /* Soft min and max */
+                       SOUND_EQUALIZER_DEFAULT_MAX_FREQ); /*  Soft min and max */
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   /* return type */

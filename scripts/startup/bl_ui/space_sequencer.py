@@ -799,7 +799,7 @@ class SEQUENCER_MT_add_scene(Menu):
 
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("sequencer.scene_strip_add_new", text="Empty Scene", icon='ADD').type = 'EMPTY'
+        layout.operator("sequencer.scene_strip_add_new", text="New Scene", icon='ADD').type = 'NEW'
 
         bpy_data_scenes_len = len(bpy.data.scenes)
         if bpy_data_scenes_len > 10:
@@ -1552,6 +1552,65 @@ class SEQUENCER_MT_color_tag_picker(SequencerColorTagPicker, Menu):
         row.operator_enum("sequencer.strip_color_tag_set", "color", icon_only=True)
 
 
+# class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
+#     bl_label = ""
+#     bl_options = {'HIDE_HEADER'}
+#     bl_category = "Strip"
+
+#     def draw(self, context):
+#         layout = self.layout
+#         strip = context.active_strip
+#         strip_type = strip.type
+
+#         if strip_type in {
+#                 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER', 'MULTIPLY',
+#                 'GLOW', 'TRANSFORM', 'SPEED', 'MULTICAM',
+#                 'GAUSSIAN_BLUR', 'COLORMIX',
+#         }:
+#             icon_header = 'SHADERFX'
+#         elif strip_type in {
+#                 'CROSS', 'GAMMA_CROSS', 'WIPE',
+#         }:
+#             icon_header = 'ARROW_LEFTRIGHT'
+#         elif strip_type == 'SCENE':
+#             icon_header = 'SCENE_DATA'
+#         elif strip_type == 'MOVIECLIP':
+#             icon_header = 'TRACKER'
+#         elif strip_type == 'MASK':
+#             icon_header = 'MOD_MASK'
+#         elif strip_type == 'MOVIE':
+#             icon_header = 'FILE_MOVIE'
+#         elif strip_type == 'SOUND':
+#             icon_header = 'FILE_SOUND'
+#         elif strip_type == 'IMAGE':
+#             icon_header = 'FILE_IMAGE'
+#         elif strip_type == 'COLOR':
+#             icon_header = 'COLOR'
+#         elif strip_type == 'TEXT':
+#             icon_header = 'FONT_DATA'
+#         elif strip_type == 'ADJUSTMENT':
+#             icon_header = 'COLOR'
+#         elif strip_type == 'META':
+#             icon_header = 'SEQ_STRIP_META'
+#         else:
+#             icon_header = 'SEQ_SEQUENCER'
+
+#         row = layout.row(align=True)
+#         row.use_property_decorate = False
+#         row.label(text="", icon=icon_header)
+#         row.separator()
+#         row.prop(strip, "name", text="")
+
+#         sub = row.row(align=True)
+#         if strip.color_tag == 'NONE':
+#             sub.popover(panel="SEQUENCER_PT_color_tag_picker", text="", icon='COLOR')
+#         else:
+#             icon = 'STRIP_' + strip.color_tag
+#             sub.popover(panel="SEQUENCER_PT_color_tag_picker", text="", icon=icon)
+
+#         row.separator()
+#         row.prop(strip, "mute", toggle=True, icon_only=True, emboss=False)
+
 class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
@@ -1562,15 +1621,16 @@ class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
         strip = context.active_strip
         strip_type = strip.type
 
+        # --------------------------------------------------------------
+        # Header row: icon, name, color-tag, mute toggle
+        # --------------------------------------------------------------
         if strip_type in {
                 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER', 'MULTIPLY',
                 'GLOW', 'TRANSFORM', 'SPEED', 'MULTICAM',
                 'GAUSSIAN_BLUR', 'COLORMIX',
         }:
             icon_header = 'SHADERFX'
-        elif strip_type in {
-                'CROSS', 'GAMMA_CROSS', 'WIPE',
-        }:
+        elif strip_type in {'CROSS', 'GAMMA_CROSS', 'WIPE'}:
             icon_header = 'ARROW_LEFTRIGHT'
         elif strip_type == 'SCENE':
             icon_header = 'SCENE_DATA'
@@ -1610,6 +1670,15 @@ class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
 
         row.separator()
         row.prop(strip, "mute", toggle=True, icon_only=True, emboss=False)
+
+        # --------------------------------------------------------------
+        # NEW – FFmpeg threading controls
+        # Show only for strips that actually use FFmpeg (movie & sound)
+        # --------------------------------------------------------------
+        if strip_type in {'MOVIE', 'SOUND'}:
+            layout.separator()
+            layout.prop(strip, "ffmpeg_threads", text="Threads")
+            layout.prop(strip, "ffmpeg_thread_type", text="Thread Type")
 
 
 class SEQUENCER_PT_adjust_crop(SequencerButtonsPanel, Panel):
