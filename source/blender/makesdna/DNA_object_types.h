@@ -677,9 +677,8 @@ enum {
   /** Unknown state, clear before use. */
   OB_DONE = 1 << 10,
   OB_FLAG_USE_SIMULATION_CACHE = 1 << 11,
-#ifdef DNA_DEPRECATED_ALLOW
-  OB_FLAG_UNUSED_12 = 1 << 12, /* cleared */
-#endif
+  /** Used for the clipboard to mark the active object. */
+  OB_FLAG_ACTIVE_CLIPBOARD = 1 << 12,
 };
 
 /** #Object.visibility_flag */
