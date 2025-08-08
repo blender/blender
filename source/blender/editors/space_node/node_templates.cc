@@ -803,6 +803,11 @@ static void ui_node_draw_node(
               layout, C, ntree, node, node.socket_by_decl(*socket_decl), depth + 1, nullptr);
         }
       }
+      else if (const auto *layout_decl = dynamic_cast<const nodes::LayoutDeclaration *>(item_decl))
+      {
+        PointerRNA nodeptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
+        layout_decl->draw(&layout, &C, &nodeptr);
+      }
     }
   }
   else {
