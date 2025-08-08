@@ -80,6 +80,9 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
         GPU_texture_free(surface_texture_);
         surface_texture_ = nullptr;
       }
+      vk_extent_ = swap_chain_data.extent;
+      vk_extent_.width = max_uu(vk_extent_.width, 1u);
+      vk_extent_.height = max_uu(vk_extent_.height, 1u);
       surface_texture_ = GPU_texture_create_2d(
           "back-left",
           swap_chain_data.extent.width,
@@ -97,7 +100,6 @@ void VKContext::sync_backbuffer(bool cycle_resource_pool)
       back_left->bind(false);
 
       swap_chain_format_ = swap_chain_data.surface_format;
-      vk_extent_ = swap_chain_data.extent;
       GCaps.hdr_viewport_support = (swap_chain_format_.format == VK_FORMAT_R16G16B16A16_SFLOAT) &&
                                    ELEM(swap_chain_format_.colorSpace,
                                         VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT,
@@ -371,15 +373,21 @@ void VKContext::swap_buffers_post_callback()
 
 void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_chain_data)
 {
+  const bool do_blit_to_swapchain = swap_chain_data.image != VK_NULL_HANDLE;
 
-  VKFrameBuffer &framebuffer = *unwrap(active_fb);
-  VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
+  /* When swapchain is invalid/minimized we only flush the render graph to free GPU resources. */
+  if (!do_blit_to_swapchain) {
+    flush_render_graph(RenderGraphFlushFlags::SUBMIT | RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
+    return;
+  }
 
   VKDevice &device = VKBackend::get().device;
+  render_graph::VKRenderGraph &render_graph = this->render_graph();
+  VKFrameBuffer &framebuffer = *unwrap(active_fb);
+  framebuffer.rendering_end(*this);
+  VKTexture *color_attachment = unwrap(unwrap(framebuffer.color_tex(0)));
   device.resources.add_image(swap_chain_data.image, 1, "SwapchainImage");
 
-  render_graph::VKRenderGraph &render_graph = this->render_graph();
-  framebuffer.rendering_end(*this);
   GPU_debug_group_begin("BackBuffer.Blit");
 
   render_graph::VKBlitImageNode::CreateInfo blit_image = {};
