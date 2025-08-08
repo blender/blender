@@ -3785,10 +3785,10 @@ void node_position_relative(bNode &from_node,
   if (from_sock) {
     if (eNodeSocketInOut(from_sock->in_out) == SOCK_IN) {
       tot_sock_idx = BLI_listbase_count(&from_node.outputs);
-      tot_sock_idx += BLI_findindex(&from_node.inputs, &from_sock);
+      tot_sock_idx += BLI_findindex(&from_node.inputs, from_sock);
     }
     else {
-      tot_sock_idx = BLI_findindex(&from_node.outputs, &from_sock);
+      tot_sock_idx = BLI_findindex(&from_node.outputs, from_sock);
     }
   }
 
