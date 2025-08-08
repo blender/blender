@@ -4222,10 +4222,7 @@ static wmOperatorStatus grease_pencil_remove_fill_guides_exec(bContext *C, wmOpe
   if (mode == RemoveFillGuidesMode::ActiveFrame) {
     for (const int layer_i : grease_pencil.layers().index_range()) {
       const Layer &layer = grease_pencil.layer(layer_i);
-      if (!layer.is_editable()) {
-        continue;
-      }
-      if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, scene.r.cfra)) {
+      if (Drawing *drawing = grease_pencil.get_drawing_at(layer, scene.r.cfra)) {
         drawings.append({*drawing, layer_i, scene.r.cfra, 1.0f});
       }
     }
@@ -4233,11 +4230,8 @@ static wmOperatorStatus grease_pencil_remove_fill_guides_exec(bContext *C, wmOpe
   else if (mode == RemoveFillGuidesMode::AllFrames) {
     for (const int layer_i : grease_pencil.layers().index_range()) {
       const Layer &layer = grease_pencil.layer(layer_i);
-      if (!layer.is_editable()) {
-        continue;
-      }
       for (const auto [frame_number, frame] : layer.frames().items()) {
-        if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
+        if (Drawing *drawing = grease_pencil.get_drawing_at(layer, frame_number)) {
           drawings.append({*drawing, layer_i, frame_number, 1.0f});
         }
       }
