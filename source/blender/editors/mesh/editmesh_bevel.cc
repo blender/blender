@@ -93,6 +93,9 @@ struct BevelData {
   float segments;   /* Segments as float so smooth mouse pan works in small increments */
 
   CurveProfile *custom_profile;
+
+  bool use_automerge;
+  double automerge_threshold;
 };
 
 enum {
@@ -242,6 +245,9 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
   /* Put the Curve Profile from the toolsettings into the opdata struct */
   opdata->custom_profile = ts->custom_bevel_profile_preset;
 
+  opdata->use_automerge = scene->toolsettings->automerge & AUTO_MERGE;
+  opdata->automerge_threshold = scene->toolsettings->doublimit;
+
   {
     const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
         scene, view_layer, v3d);
@@ -380,6 +386,9 @@ static bool edbm_bevel_calc(wmOperator *op)
           BM_mesh_select_mode_flush_ex(em->bm, SCE_SELECT_VERTEX, BM_SELECT_LEN_FLUSH_RECALC_EDGE);
         }
       }
+    }
+    if (opdata->use_automerge) {
+      EDBM_automerge_connected(obedit, true, BM_ELEM_SELECT, opdata->automerge_threshold);
     }
 
     /* no need to de-select existing geometry */
