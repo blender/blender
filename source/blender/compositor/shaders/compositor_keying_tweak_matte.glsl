@@ -15,10 +15,11 @@ void main()
    * or tweak the levels of the matte. */
   bool is_edge = false;
 #if defined(COMPUTE_EDGES)
-  if (true) {
+  bool compute_edges = true;
 #else
-  if (black_level != 0.0f || white_level != 1.0f) {
+  bool compute_edges = black_level != 0.0f || white_level != 1.0f;
 #endif
+  if (compute_edges) {
     /* Count the number of neighbors whose matte is sufficiently similar to the current matte,
      * as controlled by the edge_tolerance factor. */
     int count = 0;

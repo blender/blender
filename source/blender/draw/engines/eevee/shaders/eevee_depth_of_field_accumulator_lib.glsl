@@ -75,27 +75,9 @@ struct DofGatherData {
   float transparency;
 
   float layer_opacity;
-
-#if defined(GPU_METAL) || defined(GLSL_CPP_STUBS)
-  /* Explicit constructors -- To support GLSL syntax. */
-  inline DofGatherData() = default;
-  inline DofGatherData(float4 in_color,
-                       float in_weight,
-                       float in_dist,
-                       float in_coc,
-                       float in_coc_sqr,
-                       float in_transparency,
-                       float in_layer_opacity)
-      : color(in_color),
-        weight(in_weight),
-        dist(in_dist),
-        coc(in_coc),
-        coc_sqr(in_coc_sqr),
-        transparency(in_transparency),
-        layer_opacity(in_layer_opacity)
-  {
-  }
-#endif
+  /* clang-format off */
+  METAL_CONSTRUCTOR_7(DofGatherData, float4, color, float, weight, float, dist, float, coc, float, coc_sqr, float, transparency, float, layer_opacity)
+  /* clang-format on */
 };
 
 #define GATHER_DATA_INIT DofGatherData(float4(0.0f), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
