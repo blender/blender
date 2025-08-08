@@ -62,6 +62,8 @@ void filelist_setfilter_options(FileList *filelist,
  * The given indexer allocation should be handled by the caller or defined statically.
  */
 void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer);
+void filelist_remote_asset_library_refresh_online_assets_status(const FileList *filelist,
+                                                                blender::StringRef remote_url);
 /**
  * \param catalog_id: The catalog that should be filtered by if \a catalog_visibility is
  * #FILE_SHOW_ASSETS_FROM_CATALOG. May be NULL otherwise.

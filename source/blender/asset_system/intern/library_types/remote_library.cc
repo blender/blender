@@ -18,6 +18,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
+#include "WM_api.hh"
+
 #include "AS_remote_library.hh"
 #include "remote_library.hh"
 
@@ -134,6 +136,11 @@ void RemoteLibraryLoadingStatus::ping_new_previews(const StringRef url)
     status->reset_timeout();
     status->last_new_previews_time_point_ = std::chrono::steady_clock::now();
   }
+}
+
+void RemoteLibraryLoadingStatus::ping_new_assets(const StringRef url)
+{
+  WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST_DOWNLOADED_ASSETS, std::string(url));
 }
 
 void RemoteLibraryLoadingStatus::ping_metafiles_in_place(const StringRef url)

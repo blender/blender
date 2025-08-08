@@ -351,13 +351,14 @@ enum {
 /* ************** Notifiers ****************** */
 
 struct wmNotifier {
-  wmNotifier *next, *prev;
+  wmNotifier *next = nullptr, *prev = nullptr;
 
-  const wmWindow *window;
+  const wmWindow *window = nullptr;
 
-  unsigned int category, data, subtype, action;
+  unsigned int category = 0, data = 0, subtype = 0, action = 0;
 
-  void *reference;
+  void *reference = nullptr;
+  std::string string_reference = "";
 };
 
 /* 4 levels
@@ -548,6 +549,7 @@ struct wmNotifier {
 #define ND_ASSET_LIST (1 << 16)
 #define ND_ASSET_LIST_PREVIEW (2 << 16)
 #define ND_ASSET_LIST_READING (3 << 16)
+#define ND_ASSET_LIST_DOWNLOADED_ASSETS (4 << 16)
 /* Catalog data changed, requiring a redraw of catalog UIs. Note that this doesn't denote a
  * reloading of asset libraries & their catalogs should happen. That only happens on explicit user
  * action. */

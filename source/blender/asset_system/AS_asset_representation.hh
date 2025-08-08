@@ -133,6 +133,11 @@ class AssetRepresentation : NonCopyable, NonMovable {
    * Will return an empty value if this is not an online asset.
    */
   std::optional<StringRef> download_dst_filepath() const;
+  /**
+   * If the asset is marked as online, removes the online data and marking, turning it into a
+   * regular on-disk asset.
+   */
+  void online_asset_mark_downloaded();
 
   /**
    * Get the import method to use for this asset. A different one may be used if

@@ -129,6 +129,49 @@ static void filelist_readjob_all_asset_library(FileListReadJob *job_params,
 /* helper, could probably go in BKE actually? */
 static int groupname_to_code(const char *group);
 
+static void remote_asset_library_refresh_online_assets_status(const FileList *filelist)
+{
+  LISTBASE_FOREACH (FileListInternEntry *, entry, &filelist->filelist_intern.entries) {
+    if ((entry->typeflag & FILE_TYPE_ASSET_ONLINE) == 0) {
+      continue;
+    }
+
+    /* #AssetRepresentation.full_library_path() will only return a non-empty string if the asset's
+     * path points into some .blend on disk. */
+    std::shared_ptr<asset_system::AssetRepresentation> asset = entry->asset.lock();
+    std::string filepath = asset->full_library_path();
+    if (!filepath.empty()) {
+      BLI_assert(BLI_is_file(filepath.c_str()));
+
+      entry->typeflag &= ~FILE_TYPE_ASSET_ONLINE;
+      asset->online_asset_mark_downloaded();
+
+      if (FileDirEntry *cached_entry = static_cast<FileDirEntry *>(
+              BLI_ghash_lookup(filelist->filelist_cache->uids, POINTER_FROM_UINT(entry->uid))))
+      {
+        cached_entry->typeflag &= ~FILE_TYPE_ASSET_ONLINE;
+      }
+    }
+  }
+}
+
+void filelist_remote_asset_library_refresh_online_assets_status(
+    const FileList *filelist, const blender::StringRef remote_url)
+{
+  if (!filelist->asset_library || !filelist->asset_library_ref) {
+    return;
+  }
+  if (remote_url.is_empty()) {
+    return;
+  }
+
+  if ((filelist->asset_library_ref->type == ASSET_LIBRARY_ALL) ||
+      (filelist->asset_library->remote_url() == remote_url))
+  {
+    remote_asset_library_refresh_online_assets_status(filelist);
+  }
+}
+
 void filelist_setindexer(FileList *filelist, const FileIndexerType *indexer)
 {
   BLI_assert(filelist);

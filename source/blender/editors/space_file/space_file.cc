@@ -453,8 +453,10 @@ static void file_main_region_init(wmWindowManager *wm, ARegion *region)
 
 static void file_main_region_listener(const wmRegionListenerParams *listener_params)
 {
+  const ScrArea *area = listener_params->area;
   ARegion *region = listener_params->region;
   const wmNotifier *wmn = listener_params->notifier;
+  const SpaceFile *sfile = (SpaceFile *)area->spacedata.first;
 
   /* context changes */
   switch (wmn->category) {
@@ -473,6 +475,21 @@ static void file_main_region_listener(const wmRegionListenerParams *listener_par
         ED_region_tag_redraw(region);
       }
       break;
+    case NC_ASSET:
+      switch (wmn->data) {
+        case ND_ASSET_LIST_DOWNLOADED_ASSETS: {
+          if (!sfile->files) {
+            break;
+          }
+
+          const blender::StringRef url = wmn->string_reference;
+          if (!url.is_empty()) {
+            filelist_remote_asset_library_refresh_online_assets_status(sfile->files, url);
+            ED_region_tag_redraw(region);
+          }
+          break;
+        }
+      }
   }
 }
 

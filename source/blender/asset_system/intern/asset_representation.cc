@@ -167,6 +167,14 @@ std::optional<StringRef> AssetRepresentation::download_dst_filepath() const
   return std::get<ExternalAsset>(asset_).online_info_->download_dst_filepath_;
 }
 
+void AssetRepresentation::online_asset_mark_downloaded()
+{
+  if (!this->is_online()) {
+    return;
+  }
+  std::get<ExternalAsset>(asset_).online_info_ = nullptr;
+}
+
 std::optional<eAssetImportMethod> AssetRepresentation::get_import_method() const
 {
   return owner_asset_library_.import_method_;

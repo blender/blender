@@ -16,6 +16,7 @@
 
 #include <optional>
 #include <string>
+#include <variant>
 
 #include "DNA_windowmanager_types.h"
 
@@ -739,14 +740,16 @@ void WM_event_add_mousemove(wmWindow *win);
 void WM_ndof_deadzone_set(float deadzone);
 #endif
 /* Notifiers. */
+using wmNotifierReference = std::variant<void *, std::string>;
 void WM_event_add_notifier_ex(wmWindowManager *wm,
                               const wmWindow *win,
                               unsigned int type,
-                              void *reference);
-void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference);
-void WM_main_add_notifier(unsigned int type, void *reference);
+                              wmNotifierReference reference);
+void WM_event_add_notifier(const bContext *C, unsigned int type, wmNotifierReference reference);
+void WM_main_add_notifier(unsigned int type, wmNotifierReference reference);
 /**
- * Clear notifiers by reference, Used so listeners don't act on freed data.
+ * Clear notifiers by reference, used so listeners don't act on freed data. Not needed for
+ * #wmNotifier::string_reference since that owns the data.
  */
 void WM_main_remove_notifier_reference(const void *reference);
 void WM_main_remap_editor_id_reference(const blender::bke::id::IDRemapper &mappings);

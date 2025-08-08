@@ -56,12 +56,18 @@ def download_asset(asset_library_url: str, asset_library_local_path: Path, asset
     except KeyError:
         downloader = AssetDownloader(asset_library_url, asset_library_local_path,
                                      lambda x: None,
+                                     _download_done,
                                      _destroy_asset_downloader)
         downloader.start()
         _asset_downloaders[asset_library_url] = downloader
         _asset_downloaders_last_status.pop(asset_library_url, None)
 
     downloader.download_asset(asset_url, save_to)
+
+
+def _download_done(downloader: AssetDownloader) -> None:
+    wm = bpy.context.window_manager
+    wm.asset_library_status_ping_loaded_new_assets(downloader.remote_url)
 
 
 def _destroy_asset_downloader(downloader: AssetDownloader) -> None:
@@ -105,6 +111,8 @@ class AssetDownloader:
     _on_update_callback: OnUpdateCallback
     OnDoneCallback: TypeAlias = Callable[['AssetDownloader'], None]
     _on_done_callback: OnDoneCallback
+    OnAssetDoneCallback: TypeAlias = Callable[['AssetDownloader'], None]
+    _on_asset_done_callback: OnAssetDoneCallback | None
 
     _bgdownloader: http_dl.BackgroundDownloader
     _num_assets_pending: int
@@ -129,6 +137,7 @@ class AssetDownloader:
         remote_url: str,
         local_path: Path | str,
         on_update_callback: OnUpdateCallback,
+        on_asset_done_callback: OnAssetDoneCallback,
         on_done_callback: OnDoneCallback,
     ) -> None:
         """Create a downloader for assets of a specific asset library.
@@ -148,11 +157,17 @@ class AssetDownloader:
             Here "done" does not imply "successful", as cancellations, network
             errors, or other issues can cause things to abort. In that case,
             this function is still called.
+
+        :param on_asset_done_callback: called with one parameter (this
+            AssetDownloader) when at least one new asset finished downloading
+            and was put in its final location, ready to be picked up by the
+            asset system.
         """
         self._locator = RemoteAssetListingLocator(remote_url, local_path)
 
         self._on_done_callback = on_done_callback
         self._on_update_callback = on_update_callback
+        self._on_asset_done_callback = on_asset_done_callback
 
         self._num_assets_pending = 0
 
@@ -231,8 +246,18 @@ class AssetDownloader:
 
         logger.info("downloading %s to %s", remote_url, download_to_path)
 
-        self._bg_downloader.queue_download(remote_url, download_to_path)
+        self._bg_downloader.queue_download(
+            remote_url,
+            download_to_path,
+            self._on_asset_done,)
         return download_to_path
+
+    def _on_asset_done(self,
+                       http_req_descr: http_dl.RequestDescription,
+                       unsafe_local_file: Path,
+                       ) -> None:
+        if self._on_asset_done_callback:
+            self._on_asset_done_callback(self)
 
     # TODO: implement this in a more useful way:
     def report(self, level: set[str], message: str) -> None:

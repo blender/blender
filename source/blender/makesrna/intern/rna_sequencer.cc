@@ -1465,7 +1465,7 @@ static void rna_StripModifier_EQCurveMapping_update(Main *bmain,
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
   DEG_relations_tag_update(bmain);
-  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 }
 
 static bool rna_StripModifier_otherStrip_poll(PointerRNA *ptr, PointerRNA value)
@@ -1651,7 +1651,7 @@ static EQCurveMappingData *rna_Strip_SoundEqualizer_Curve_add(SoundEqualizerModi
 {
   EQCurveMappingData *eqcmd = blender::seq::sound_equalizermodifier_add_graph(
       semd, min_freq, max_freq);
-  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
   return eqcmd;
 }
 
@@ -1659,7 +1659,7 @@ static void rna_Strip_SoundEqualizer_Curve_clear(SoundEqualizerModifierData *sem
                                                  bContext * /*C*/)
 {
   blender::seq::sound_equalizermodifier_free((StripModifierData *)semd);
-  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 }
 
 #else
