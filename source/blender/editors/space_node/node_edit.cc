@@ -618,6 +618,7 @@ void ED_node_composit_default_init(const bContext *C, bNodeTree *ntree)
   in->location[0] = -150.0f - in->width;
   in->location[1] = 0.0f;
   blender::bke::node_set_active(*ntree, *in);
+  in->flag &= ~NODE_PREVIEW;
 
   bNode *reroute = blender::bke::node_add_static_node(C, *ntree, NODE_REROUTE);
   reroute->location[0] = 100.0f;
