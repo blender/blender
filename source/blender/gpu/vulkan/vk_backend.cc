@@ -175,6 +175,9 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (!extensions.contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
+  if (!extensions.contains(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  }
 #ifndef __APPLE__
   /* Metal doesn't support provoking vertex. */
   if (!extensions.contains(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME)) {
@@ -403,12 +406,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.shader_output_layer = false;
     extensions.shader_output_viewport_index = false;
     extensions.fragment_shader_barycentric = false;
-    extensions.dynamic_rendering = false;
     extensions.dynamic_rendering_local_read = false;
     extensions.dynamic_rendering_unused_attachments = false;
     extensions.descriptor_buffer = false;
-
-    GCaps.render_pass_workaround = true;
 
     device.workarounds_ = workarounds;
     device.extensions_ = extensions;
@@ -421,8 +421,6 @@ void VKBackend::detect_workarounds(VKDevice &device)
       device.physical_device_vulkan_12_features_get().shaderOutputViewportIndex;
   extensions.fragment_shader_barycentric = device.supports_extension(
       VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
-  extensions.dynamic_rendering = device.supports_extension(
-      VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
   extensions.dynamic_rendering_local_read = device.supports_extension(
       VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
   extensions.dynamic_rendering_unused_attachments = device.supports_extension(
@@ -490,8 +488,6 @@ void VKBackend::detect_workarounds(VKDevice &device)
       device.physical_device_get(), VK_FORMAT_R8G8B8_UNORM, &format_properties);
   workarounds.vertex_formats.r8g8b8 = (format_properties.bufferFeatures &
                                        VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT) == 0;
-
-  GCaps.render_pass_workaround = !extensions.dynamic_rendering;
 
 #ifdef __APPLE__
   /* Due to a limitation in MoltenVK, attachments should be sequential even when using

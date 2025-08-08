@@ -36,11 +36,7 @@ class VKFrameBuffer : public FrameBuffer {
   Array<GPULoadStore, GPU_FB_MAX_ATTACHMENT> load_stores;
   Array<GPUAttachmentState, GPU_FB_MAX_ATTACHMENT> attachment_states_;
 
-  /* Render pass workaround when dynamic rendering isn't supported. */
-  VkFramebuffer vk_framebuffer = VK_NULL_HANDLE;
-
  public:
-  VkRenderPass vk_render_pass = VK_NULL_HANDLE;
   uint32_t color_attachment_size = 0u;
 
   /**
@@ -116,7 +112,6 @@ class VKFrameBuffer : public FrameBuffer {
    */
   void rendering_ensure(VKContext &context);
   void rendering_ensure_dynamic_rendering(VKContext &context, const VKExtensions &extensions);
-  void rendering_ensure_render_pass(VKContext &context);
 
   /**
    * End the rendering on this framebuffer.
@@ -139,13 +134,6 @@ class VKFrameBuffer : public FrameBuffer {
   int color_attachments_resource_size() const;
 
  private:
-  /**
-   * Discard both the render pass and framebuffer
-   *
-   * TODO: render pass could be reusable.
-   */
-  void render_pass_free();
-
   /* Clearing attachments */
   void build_clear_attachments_depth_stencil(
       eGPUFrameBufferBits buffers,
