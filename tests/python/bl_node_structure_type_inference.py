@@ -123,7 +123,7 @@ class StructureTypeInferenceTest(unittest.TestCase):
         self.assertDynamic(node.inputs["auto+single"])
         self.assertDynamic(node.inputs["auto+dynamic"])
         self.assertDynamic(node.inputs["auto+field"])
-        self.assertGrid(node.inputs["auto+grid"])
+        self.assertDynamic(node.inputs["auto+grid"])
 
         self.assertSingle(node.inputs["single+single"])
         self.assertDynamic(node.inputs["single+dynamic"])
@@ -132,7 +132,7 @@ class StructureTypeInferenceTest(unittest.TestCase):
 
         self.assertDynamic(node.inputs["dynamic+dynamic"])
         self.assertDynamic(node.inputs["dynamic+field"])
-        self.assertGrid(node.inputs["dynamic+grid"])
+        self.assertDynamic(node.inputs["dynamic+grid"])
 
         self.assertField(node.inputs["field+field"])
         self.assertGrid(node.inputs["field+grid"])
