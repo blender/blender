@@ -1618,6 +1618,14 @@ wmDropBox *WM_dropbox_add(ListBase *lb,
                           void (*cancel)(Main *bmain, wmDrag *drag, wmDropBox *drop),
                           WMDropboxTooltipFunc tooltip);
 /**
+ * This is useful to register a "prefetch" handler (#wmDropBox::on_drag_start) that gets triggered
+ * whenever dragging starts, independent of which drop handlers are available or will be used in
+ * the end.
+ */
+void WM_drag_global_prefetch_handler_add(
+    const eWM_DragDataType drag_type,
+    const std::function<void(bContext &C, wmDrag &drag)> on_drag_start);
+/**
  * Ensure operator pointers & properties are valid after operators have been added/removed.
  */
 void WM_dropbox_update_ot();
