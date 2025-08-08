@@ -547,26 +547,6 @@ void MOV_validate_output_settings(RenderData *rd, const ImageFormatData *imf)
       rd->ffcodecdata.type = FFMPEG_MPEG2;
     }
   }
-  else if (imf->imtype == R_IMF_IMTYPE_H264) {
-    if (rd->ffcodecdata.codec_id_get() != FFMPEG_CODEC_ID_H264) {
-      ffmpeg_preset_set(rd, FFMPEG_PRESET_H264);
-    }
-  }
-  else if (imf->imtype == R_IMF_IMTYPE_XVID) {
-    if (rd->ffcodecdata.codec_id_get() != FFMPEG_CODEC_ID_MPEG4) {
-      ffmpeg_preset_set(rd, FFMPEG_PRESET_XVID);
-    }
-  }
-  else if (imf->imtype == R_IMF_IMTYPE_THEORA) {
-    if (rd->ffcodecdata.codec_id_get() != FFMPEG_CODEC_ID_THEORA) {
-      ffmpeg_preset_set(rd, FFMPEG_PRESET_THEORA);
-    }
-  }
-  else if (imf->imtype == R_IMF_IMTYPE_AV1) {
-    if (rd->ffcodecdata.codec_id_get() != FFMPEG_CODEC_ID_AV1) {
-      ffmpeg_preset_set(rd, FFMPEG_PRESET_AV1);
-    }
-  }
 #else
   UNUSED_VARS(rd, imf);
 #endif

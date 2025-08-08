@@ -303,26 +303,12 @@ bool BKE_imtype_is_image(const char imtype)
 
 bool BKE_imtype_is_multi_layer_image(const char imtype)
 {
-  switch (imtype) {
-    case R_IMF_IMTYPE_MULTILAYER:
-      return true;
-  }
-  return false;
+  return imtype == R_IMF_IMTYPE_MULTILAYER;
 }
 
 bool BKE_imtype_is_movie(const char imtype)
 {
-  switch (imtype) {
-    case R_IMF_IMTYPE_AVIRAW:
-    case R_IMF_IMTYPE_AVIJPEG:
-    case R_IMF_IMTYPE_FFMPEG:
-    case R_IMF_IMTYPE_H264:
-    case R_IMF_IMTYPE_THEORA:
-    case R_IMF_IMTYPE_XVID:
-    case R_IMF_IMTYPE_AV1:
-      return true;
-  }
-  return false;
+  return imtype == R_IMF_IMTYPE_FFMPEG;
 }
 
 bool BKE_imtype_supports_compress(const char imtype)
@@ -339,7 +325,6 @@ bool BKE_imtype_supports_quality(const char imtype)
   switch (imtype) {
     case R_IMF_IMTYPE_JPEG90:
     case R_IMF_IMTYPE_JP2:
-    case R_IMF_IMTYPE_AVIJPEG:
     case R_IMF_IMTYPE_WEBP:
       return true;
   }
@@ -475,12 +460,6 @@ char BKE_imtype_from_arg(const char *imtype_arg)
   if (STREQ(imtype_arg, "RAWTGA")) {
     return R_IMF_IMTYPE_RAWTGA;
   }
-  if (STREQ(imtype_arg, "AVIRAW")) {
-    return R_IMF_IMTYPE_AVIRAW;
-  }
-  if (STREQ(imtype_arg, "AVIJPEG")) {
-    return R_IMF_IMTYPE_AVIJPEG;
-  }
   if (STREQ(imtype_arg, "PNG")) {
     return R_IMF_IMTYPE_PNG;
   }
@@ -552,14 +531,7 @@ static int image_path_ext_from_imformat_impl(const char imtype,
   else if (imtype == R_IMF_IMTYPE_RADHDR) {
     r_ext[ext_num++] = ".hdr";
   }
-  else if (ELEM(imtype,
-                R_IMF_IMTYPE_PNG,
-                R_IMF_IMTYPE_FFMPEG,
-                R_IMF_IMTYPE_H264,
-                R_IMF_IMTYPE_THEORA,
-                R_IMF_IMTYPE_XVID,
-                R_IMF_IMTYPE_AV1))
-  {
+  else if (ELEM(imtype, R_IMF_IMTYPE_PNG, R_IMF_IMTYPE_FFMPEG)) {
     r_ext[ext_num++] = ".png";
   }
   else if (imtype == R_IMF_IMTYPE_DDS) {
@@ -615,7 +587,7 @@ static int image_path_ext_from_imformat_impl(const char imtype,
   }
 #endif
   else {
-    /* Handles: #R_IMF_IMTYPE_AVIRAW, #R_IMF_IMTYPE_AVIJPEG, #R_IMF_IMTYPE_JPEG90 etc. */
+    /* Handles: #R_IMF_IMTYPE_JPEG90 etc. */
     r_ext[ext_num++] = ".jpg";
     r_ext[ext_num++] = ".jpeg";
   }
@@ -775,14 +747,7 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
   else if (imtype == R_IMF_IMTYPE_RADHDR) {
     ibuf->ftype = IMB_FTYPE_RADHDR;
   }
-  else if (ELEM(imtype,
-                R_IMF_IMTYPE_PNG,
-                R_IMF_IMTYPE_FFMPEG,
-                R_IMF_IMTYPE_H264,
-                R_IMF_IMTYPE_THEORA,
-                R_IMF_IMTYPE_XVID,
-                R_IMF_IMTYPE_AV1))
-  {
+  else if (ELEM(imtype, R_IMF_IMTYPE_PNG, R_IMF_IMTYPE_FFMPEG)) {
     ibuf->ftype = IMB_FTYPE_PNG;
 
     if (imtype == R_IMF_IMTYPE_PNG) {

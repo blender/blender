@@ -1728,18 +1728,6 @@ static void ffmpeg_movie_close(MovieWriter *context)
 
 #endif /* WITH_FFMPEG */
 
-static bool is_imtype_ffmpeg(const char imtype)
-{
-  return ELEM(imtype,
-              R_IMF_IMTYPE_AVIRAW,
-              R_IMF_IMTYPE_AVIJPEG,
-              R_IMF_IMTYPE_FFMPEG,
-              R_IMF_IMTYPE_H264,
-              R_IMF_IMTYPE_XVID,
-              R_IMF_IMTYPE_THEORA,
-              R_IMF_IMTYPE_AV1);
-}
-
 MovieWriter *MOV_write_begin(const char imtype,
                              const Scene *scene,
                              const RenderData *rd,
@@ -1749,7 +1737,7 @@ MovieWriter *MOV_write_begin(const char imtype,
                              bool preview,
                              const char *suffix)
 {
-  if (!is_imtype_ffmpeg(imtype)) {
+  if (imtype != R_IMF_IMTYPE_FFMPEG) {
     BKE_report(reports, RPT_ERROR, "Image format is not a movie format");
     return nullptr;
   }
@@ -1804,7 +1792,7 @@ void MOV_filepath_from_settings(char filepath[/*FILE_MAX*/ 1024],
                                 ReportList *reports)
 {
 #ifdef WITH_FFMPEG
-  if (is_imtype_ffmpeg(rd->im_format.imtype)) {
+  if (rd->im_format.imtype == R_IMF_IMTYPE_FFMPEG) {
     ffmpeg_get_filepath(filepath, scene, rd, preview, suffix, reports);
     return;
   }
