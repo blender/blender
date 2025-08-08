@@ -59,29 +59,27 @@ class MESH_MT_shape_key_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("object.shape_key_add", icon='ADD', text="New Shape from Mix").from_mix = True
-        layout.operator("object.shape_key_copy", icon='DUPLICATE', text="Duplicate Shape Key")
+        layout.operator("object.shape_key_add", icon='ADD', text="New Combined").from_mix = True
+        layout.operator("object.shape_key_copy", icon='DUPLICATE', text="Duplicate")
+        layout.operator("object.shape_key_transfer", text="Copy from Objects")
         layout.separator()
-        layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT').use_topology = False
-        layout.operator("object.shape_key_mirror", text="Mirror Shape Key (Topology)").use_topology = True
+        layout.operator("object.join_shapes", text="New from Objects")
+        layout.operator("object.update_shapes", icon='FILE_REFRESH')
         layout.separator()
-        layout.operator("object.join_shapes")
-        layout.operator("object.update_shapes")
-        layout.operator("object.shape_key_transfer")
-        layout.separator()
-        props = layout.operator("object.shape_key_remove", icon='X', text="Delete All Shape Keys")
-        props.all = True
-        props.apply_mix = False
-        props = layout.operator("object.shape_key_remove", text="Apply All Shape Keys")
-        props.all = True
-        props.apply_mix = True
+        layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT', text="Flip").use_topology = False
+        layout.operator("object.shape_key_mirror", text="Flip (Topology)").use_topology = True
         layout.separator()
         layout.operator("object.shape_key_lock", icon='LOCKED', text="Lock All").action = 'LOCK'
         layout.operator("object.shape_key_lock", icon='UNLOCKED', text="Unlock All").action = 'UNLOCK'
         layout.separator()
         layout.operator("object.shape_key_make_basis", text="Make Basis")
-        layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move to Top").type = 'TOP'
-        layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
+        layout.separator()
+        props = layout.operator("object.shape_key_remove", text="Apply All")
+        props.all = True
+        props.apply_mix = True
+        props = layout.operator("object.shape_key_remove", icon='X', text="Delete All")
+        props.all = True
+        props.apply_mix = False
 
 
 class MESH_MT_shape_key_tree_context_menu(Menu):
