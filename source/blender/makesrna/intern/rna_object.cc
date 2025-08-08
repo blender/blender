@@ -3698,7 +3698,7 @@ static void rna_def_object_light_linking(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "receiver_collection", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Collection");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_pointer_funcs(prop,
                                  "rna_LightLinking_receiver_collection_get",
                                  "rna_LightLinking_receiver_collection_set",
@@ -3711,7 +3711,7 @@ static void rna_def_object_light_linking(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "blocker_collection", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Collection");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_pointer_funcs(prop,
                                  "rna_LightLinking_blocker_collection_get",
                                  "rna_LightLinking_blocker_collection_set",
