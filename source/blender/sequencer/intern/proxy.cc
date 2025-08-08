@@ -469,7 +469,7 @@ bool proxy_rebuild_context(Main *bmain,
 
     context = MEM_callocN<IndexBuildContext>("strip proxy rebuild context");
 
-    strip_new = strip_duplicate_recursive(scene, scene, nullptr, strip, 0);
+    strip_new = strip_duplicate_recursive(scene, scene, nullptr, strip, StripDuplicate::Selected);
 
     context->tc_flags = strip_new->data->proxy->build_tc_flags;
     context->size_flags = strip_new->data->proxy->build_size_flags;
