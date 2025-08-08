@@ -248,8 +248,8 @@ class MeshTest(ABC):
         bpy.context.view_layer.objects.active = self.test_object
 
         # Duplicate test object.
-        bpy.ops.object.mode_set(mode="OBJECT")
-        bpy.ops.object.select_all(action="DESELECT")
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.select_all(action='DESELECT')
         bpy.context.view_layer.objects.active = self.test_object
 
         self.test_object.select_set(True)
@@ -261,7 +261,7 @@ class MeshTest(ABC):
     # the expected object. That's because the test object has the modifier/node tree that
     # is being tested.
     def activate_test_object(self):
-        bpy.ops.object.select_all(action="DESELECT")
+        bpy.ops.object.select_all(action='DESELECT')
         self.test_object.select_set(True)
         bpy.context.view_layer.objects.active = self.test_object
 
