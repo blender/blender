@@ -2342,7 +2342,7 @@ static void copy_object_set_idnew(bContext *C)
   Main *bmain = CTX_data_main(C);
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-    BKE_libblock_relink_to_newid(bmain, &ob->id, 0);
+    BKE_libblock_relink_to_newid(bmain, &ob->id, ID_REMAP_SKIP_USER_CLEAR);
   }
   CTX_DATA_END;
 
