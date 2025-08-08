@@ -1523,7 +1523,7 @@ static void do_version_world_remove_use_nodes(Main *bmain, World *world)
   new_output.location[1] = background.location[1];
 
   bNode *frame = blender::bke::node_add_static_node(nullptr, *ntree, NODE_FRAME);
-  STRNCPY(frame->label, IFACE_("Versioning: Use Nodes was removed"));
+  STRNCPY(frame->label, RPT_("Versioning: Use Nodes was removed"));
   background.parent = frame;
   new_output.parent = frame;
 }
