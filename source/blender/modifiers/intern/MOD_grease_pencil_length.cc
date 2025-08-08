@@ -209,10 +209,11 @@ static void deform_drawing(const ModifierData &md,
     needs_removal.fill(false);
 
     curves.ensure_evaluated_lengths();
+    const VArray<bool> &cyclic = curves.cyclic();
 
     threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange parallel_range) {
       for (const int curve : parallel_range) {
-        float length = curves.evaluated_length_total_for_curve(curve, false);
+        float length = curves.evaluated_length_total_for_curve(curve, cyclic[curve]);
         if (mmd.mode & GP_LENGTH_ABSOLUTE) {
           starts[curve] = -math::min(use_starts[curve], 0.0f);
           ends[curve] = length - -math::min(use_ends[curve], 0.0f);
