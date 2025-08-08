@@ -516,31 +516,25 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_structure_type_itemf(
         break;
       }
       case NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC: {
-        if (U.experimental.use_socket_structure_type) {
-          if (supports_fields || supports_grids) {
-            RNA_enum_item_add(&items, &items_count, item);
-          }
+        if (supports_fields || supports_grids) {
+          RNA_enum_item_add(&items, &items_count, item);
         }
         break;
       }
       case NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_FIELD: {
-        if (U.experimental.use_socket_structure_type) {
-          if (supports_fields) {
-            RNA_enum_item_add(&items, &items_count, item);
-          }
+        if (supports_fields) {
+          RNA_enum_item_add(&items, &items_count, item);
         }
         break;
       }
       case NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_GRID: {
-        if (U.experimental.use_socket_structure_type) {
-          if (supports_grids) {
-            RNA_enum_item_add(&items, &items_count, item);
-          }
+        if (supports_grids) {
+          RNA_enum_item_add(&items, &items_count, item);
         }
         break;
       }
       case NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_LIST: {
-        if (U.experimental.use_socket_structure_type && U.experimental.use_geometry_nodes_lists) {
+        if (U.experimental.use_geometry_nodes_lists) {
           if (supports_lists) {
             RNA_enum_item_add(&items, &items_count, item);
           }
