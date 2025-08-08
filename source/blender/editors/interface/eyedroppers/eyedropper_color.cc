@@ -290,7 +290,8 @@ static bool eyedropper_cryptomatte_sample_render_fl(const bNode *node,
   return success;
 }
 
-static bool eyedropper_cryptomatte_sample_image_fl(const bNode *node,
+static bool eyedropper_cryptomatte_sample_image_fl(bContext *C,
+                                                   const bNode *node,
                                                    NodeCryptomatte *crypto,
                                                    const char *prefix,
                                                    const float fpos[2],
@@ -299,10 +300,14 @@ static bool eyedropper_cryptomatte_sample_image_fl(const bNode *node,
   bool success = false;
   Image *image = (Image *)node->id;
   BLI_assert((image == nullptr) || (GS(image->id.name) == ID_IM));
-  ImageUser *iuser = &crypto->iuser;
+
+  /* Compute the effective frame number of the image if it was animated. */
+  Scene *scene = CTX_data_scene(C);
+  ImageUser image_user_for_frame = crypto->iuser;
+  BKE_image_user_frame_calc(image, &image_user_for_frame, scene->r.cfra);
 
   if (image && image->type == IMA_TYPE_MULTILAYER) {
-    ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, nullptr);
+    ImBuf *ibuf = BKE_image_acquire_ibuf(image, &image_user_for_frame, nullptr);
     if (image->rr) {
       LISTBASE_FOREACH (RenderLayer *, render_layer, &image->rr->layers) {
         success = eyedropper_cryptomatte_sample_renderlayer_fl(render_layer, prefix, fpos, r_col);
@@ -424,7 +429,7 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
     return eyedropper_cryptomatte_sample_render_fl(node, prefix, fpos, r_col);
   }
   if (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
-    return eyedropper_cryptomatte_sample_image_fl(node, crypto, prefix, fpos, r_col);
+    return eyedropper_cryptomatte_sample_image_fl(C, node, crypto, prefix, fpos, r_col);
   }
   return false;
 }
