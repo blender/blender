@@ -161,9 +161,9 @@ static void node_operators()
  * suffix, if not empty, will be added to the file name. If the given view is not empty, its file
  * suffix will be appended to the name. The frame number, scene, and node are provides for variable
  * substitution in the path. If there are any errors processing the path, they will be returned. */
-static Vector<path_templates::Error> compute_image_path(const std::string directory,
-                                                        const std::string file_name,
-                                                        const std::string file_name_suffix,
+static Vector<path_templates::Error> compute_image_path(const StringRefNull directory,
+                                                        const StringRefNull file_name,
+                                                        const StringRefNull file_name_suffix,
                                                         const char *view,
                                                         const int frame_number,
                                                         const ImageFormatData &format,
@@ -228,9 +228,9 @@ static void format_layout(uiLayout *layout,
 }
 
 static void output_path_layout(uiLayout *layout,
-                               const std::string directory,
-                               const std::string file_name,
-                               const std::string file_name_suffix,
+                               const StringRefNull directory,
+                               const StringRefNull file_name,
+                               const StringRefNull file_name_suffix,
                                const char *view,
                                const ImageFormatData &format,
                                const Scene &scene,
@@ -253,12 +253,12 @@ static void output_path_layout(uiLayout *layout,
 
 static void output_paths_layout(uiLayout *layout,
                                 bContext *context,
-                                const std::string file_name_suffix,
+                                const StringRefNull file_name_suffix,
                                 const bNode &node,
                                 const ImageFormatData &format)
 {
   const NodeCompositorFileOutput &storage = node_storage(node);
-  const std::string directory = storage.directory;
+  const StringRefNull directory = storage.directory;
   const std::string file_name = storage.file_name ? storage.file_name : "";
   const Scene &scene = *CTX_data_scene(context);
 
@@ -759,13 +759,13 @@ class FileOutputOperation : public NodeOperation {
     return node_storage(this->bnode()).format.imtype == R_IMF_IMTYPE_MULTILAYER;
   }
 
-  std::string get_file_name()
+  StringRefNull get_file_name()
   {
     const char *file_name = node_storage(this->bnode()).file_name;
     return file_name ? file_name : "";
   }
 
-  std::string get_directory()
+  StringRefNull get_directory()
   {
     return node_storage(this->bnode()).directory;
   }
