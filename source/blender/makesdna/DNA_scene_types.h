@@ -854,7 +854,8 @@ typedef struct RenderData {
   short bake_margin, bake_samples;
   short bake_margin_type;
   char _pad9[6];
-  float bake_biasdist, bake_user_scale;
+  float bake_biasdist;
+  char _pad10[4];
 
   /**
    * Path to render output.
@@ -2338,7 +2339,7 @@ enum {
   R_BAKE_MULTIRES = 1 << 4,
   R_BAKE_LORES_MESH = 1 << 5,
   // R_BAKE_VCOL = 1 << 6, /* Deprecated. */
-  R_BAKE_USERSCALE = 1 << 7,
+  // R_BAKE_USERSCALE = 1 << 7, /* Deprecated. */
   R_BAKE_CAGE = 1 << 8,
   R_BAKE_SPLIT_MAT = 1 << 9,
   R_BAKE_AUTO_NAME = 1 << 10,

@@ -7334,18 +7334,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
       prop, "Samples", "Number of samples used for ambient occlusion baking from multires");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
-  prop = RNA_def_property(srna, "use_bake_user_scale", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "bake_flag", R_BAKE_USERSCALE);
-  RNA_def_property_ui_text(prop, "User Scale", "Use a user scale for the derivative map");
-
-  prop = RNA_def_property(srna, "bake_user_scale", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "bake_user_scale");
-  RNA_def_property_range(prop, 0.0, 1000.0);
-  RNA_def_property_ui_text(prop,
-                           "Scale",
-                           "Instead of automatically normalizing to the range 0 to 1, "
-                           "apply a user scale to the derivative map");
-
   /* stamp */
 
   prop = RNA_def_property(srna, "use_stamp_time", PROP_BOOLEAN, PROP_NONE);

@@ -40,25 +40,28 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-using MPassKnownData = void (*)(blender::Span<blender::float3> vert_positions,
-                                blender::Span<blender::float3> vert_normals,
-                                blender::OffsetIndices<int> faces,
-                                blender::Span<int> corner_verts,
-                                blender::Span<blender::int3> corner_tris,
-                                blender::Span<int> tri_faces,
-                                blender::Span<blender::float2> uv_map,
+namespace blender::render {
+namespace {
+
+using MPassKnownData = void (*)(Span<float3> vert_positions,
+                                Span<float3> vert_normals,
+                                OffsetIndices<int> faces,
+                                Span<int> corner_verts,
+                                Span<int3> corner_tris,
+                                Span<int> tri_faces,
+                                Span<float2> uv_map,
                                 DerivedMesh *hires_dm,
                                 void *thread_data,
                                 void *bake_data,
                                 ImBuf *ibuf,
-                                const int face_index,
-                                const int lvl,
+                                int face_index,
+                                int lvl,
                                 const float st[2],
                                 float tangmat[3][3],
-                                const int x,
-                                const int y);
+                                int x,
+                                int y);
 
-using MInitBakeData = void *(*)(MultiresBakeRender *bkr, ImBuf *ibuf);
+using MInitBakeData = void *(*)(MultiresBakeRender &bake, ImBuf *ibuf);
 using MFreeBakeData = void (*)(void *bake_data);
 
 struct MultiresBakeResult {
@@ -67,22 +70,22 @@ struct MultiresBakeResult {
 
 struct MResolvePixelData {
   /* Data from low-resolution mesh. */
-  blender::Span<blender::float3> vert_positions;
-  blender::OffsetIndices<int> faces;
-  blender::Span<int> corner_verts;
-  blender::Span<blender::int3> corner_tris;
-  blender::Span<int> tri_faces;
-  blender::Span<blender::float3> vert_normals;
-  blender::Span<blender::float3> face_normals;
+  Span<float3> vert_positions;
+  OffsetIndices<int> faces;
+  Span<int> corner_verts;
+  Span<int3> corner_tris;
+  Span<int> tri_faces;
+  Span<float3> vert_normals;
+  Span<float3> face_normals;
 
-  blender::Span<blender::float2> uv_map;
+  Span<float2> uv_map;
 
   /* May be null. */
   const int *material_indices;
   const bool *sharp_faces;
 
   float uv_offset[2];
-  blender::Span<blender::float4> pvtangent;
+  Span<float4> pvtangent;
   int w, h;
   int tri_index;
 
@@ -97,7 +100,7 @@ struct MResolvePixelData {
   Image **image_array;
 };
 
-using MFlushPixel = void (*)(const MResolvePixelData *data, const int x, const int y);
+using MFlushPixel = void (*)(const MResolvePixelData *data, int x, int y);
 
 struct MBakeRast {
   int w, h;
@@ -182,11 +185,11 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
   w = 1 - u - v;
 
   if (!data->pvtangent.is_empty()) {
-    const blender::float4 &tang0 = data->pvtangent[data->corner_tris[data->tri_index][0]];
-    const blender::float4 &tang1 = data->pvtangent[data->corner_tris[data->tri_index][1]];
-    const blender::float4 &tang2 = data->pvtangent[data->corner_tris[data->tri_index][2]];
+    const float4 &tang0 = data->pvtangent[data->corner_tris[data->tri_index][0]];
+    const float4 &tang1 = data->pvtangent[data->corner_tris[data->tri_index][1]];
+    const float4 &tang2 = data->pvtangent[data->corner_tris[data->tri_index][2]];
 
-    /* the sign is the same at all face vertices for any non degenerate face.
+    /* the sign is the same at all face vertices for any non-degenerate face.
      * Just in case we clamp the interpolated value though. */
     sign = (tang0[3] * u + tang1[3] * v + tang2[3] * w) < 0 ? (-1.0f) : 1.0f;
 
@@ -336,14 +339,13 @@ static void bake_rasterize(const MBakeRast *bake_rast,
   rasterize_half(bake_rast, smi, tmi, shi, thi, slo, tlo, shi, thi, yhi_beg, yhi, is_mid_right);
 }
 
-static int multiresbake_test_break(MultiresBakeRender *bkr)
+static bool multiresbake_test_break(const MultiresBakeRender &bake)
 {
-  if (!bkr->stop) {
-    /* this means baker is executed outside from job system */
-    return 0;
+  if (!bake.stop) {
+    /* This means baker is executed outside from job system. */
+    return false;
   }
-
-  return *bkr->stop || G.is_break;
+  return *bake.stop || G.is_break;
 }
 
 /* **** Threading routines **** */
@@ -357,7 +359,7 @@ struct MultiresBakeQueue {
 struct MultiresBakeThread {
   /* this data is actually shared between all the threads */
   MultiresBakeQueue *queue;
-  MultiresBakeRender *bkr;
+  MultiresBakeRender *bake;
   Image *image;
   void *bake_data;
   int num_total_faces;
@@ -393,19 +395,19 @@ static void *do_multires_bake_thread(void *data_v)
   MultiresBakeThread *handle = (MultiresBakeThread *)data_v;
   MResolvePixelData *data = &handle->data;
   MBakeRast *bake_rast = &handle->bake_rast;
-  MultiresBakeRender *bkr = handle->bkr;
+  MultiresBakeRender &bake = *handle->bake;
   int tri_index;
 
   while ((tri_index = multires_bake_queue_next_tri(handle->queue)) >= 0) {
-    const blender::int3 &tri = data->corner_tris[tri_index];
+    const int3 &tri = data->corner_tris[tri_index];
     const int face_i = data->tri_faces[tri_index];
     const short mat_nr = data->material_indices == nullptr ? 0 : data->material_indices[face_i];
 
-    if (multiresbake_test_break(bkr)) {
+    if (multiresbake_test_break(bake)) {
       break;
     }
 
-    Image *tri_image = mat_nr < bkr->ob_image.len ? bkr->ob_image.array[mat_nr] : nullptr;
+    Image *tri_image = mat_nr < bake.ob_image.size() ? bake.ob_image[mat_nr] : nullptr;
     if (tri_image != handle->image) {
       continue;
     }
@@ -428,16 +430,16 @@ static void *do_multires_bake_thread(void *data_v)
 
     /* update progress */
     BLI_spin_lock(&handle->queue->spin);
-    bkr->baked_faces++;
+    bake.baked_faces++;
 
-    if (bkr->do_update) {
-      *bkr->do_update = true;
+    if (bake.do_update) {
+      *bake.do_update = true;
     }
 
-    if (bkr->progress) {
-      *bkr->progress = (float(bkr->baked_objects) +
-                        float(bkr->baked_faces) / handle->num_total_faces) /
-                       bkr->tot_obj;
+    if (bake.progress) {
+      *bake.progress = (float(bake.baked_objects) +
+                        float(bake.baked_faces) / handle->num_total_faces) /
+                       bake.tot_obj;
     }
     BLI_spin_unlock(&handle->queue->spin);
   }
@@ -466,35 +468,27 @@ static void init_ccgdm_arrays(DerivedMesh *dm)
   (void)grid_offset;
 }
 
-static void do_multires_bake(MultiresBakeRender *bkr,
-                             Image *ima,
+static void do_multires_bake(MultiresBakeRender &bake,
+                             Image *image,
                              ImageTile *tile,
                              ImBuf *ibuf,
-                             bool require_tangent,
-                             MPassKnownData passKnownData,
-                             MInitBakeData initBakeData,
-                             MFreeBakeData freeBakeData,
-                             MultiresBakeResult *result)
+                             const bool require_tangent,
+                             const MPassKnownData passKnownData,
+                             const MInitBakeData initBakeData,
+                             const MFreeBakeData freeBakeData,
+                             MultiresBakeResult &result)
 {
-  using namespace blender;
-  DerivedMesh *dm = bkr->lores_dm;
-  const int lvl = bkr->lvl;
+  DerivedMesh *dm = bake.lores_dm;
+  const int lvl = bake.lvl;
   if (dm->getNumPolys(dm) == 0) {
     return;
   }
-
-  MultiresBakeQueue queue;
 
   const Span<float2> uv_map(
       reinterpret_cast<const float2 *>(dm->getLoopDataArray(dm, CD_PROP_FLOAT2)),
       dm->getNumLoops(dm));
 
-  Array<blender::float4> pvtangent;
-
-  ListBase threads;
-  int i, tot_thread = bkr->threads > 0 ? bkr->threads : BLI_system_thread_count();
-
-  void *bake_data = nullptr;
+  Array<float4> pvtangent;
 
   Mesh *temp_mesh = BKE_mesh_new_nomain(
       dm->getNumVerts(dm), dm->getNumEdges(dm), dm->getNumPolys(dm), dm->getNumLoops(dm));
@@ -555,31 +549,35 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     pvtangent = std::move(tangent_data[0]);
   }
 
-  /* all threads shares the same custom bake data */
+  /* All threads share the same custom bake data. */
+  void *bake_data = nullptr;
   if (initBakeData) {
-    bake_data = initBakeData(bkr, ibuf);
+    bake_data = initBakeData(bake, ibuf);
   }
 
+  ListBase threads;
+  const int tot_thread = bake.threads > 0 ? bake.threads : BLI_system_thread_count();
   if (tot_thread > 1) {
     BLI_threadpool_init(&threads, do_multires_bake_thread, tot_thread);
   }
 
   Array<MultiresBakeThread> handles(tot_thread);
 
-  init_ccgdm_arrays(bkr->hires_dm);
+  init_ccgdm_arrays(bake.hires_dm);
 
-  /* faces queue */
+  /* Faces queue. */
+  MultiresBakeQueue queue;
   queue.cur_tri = 0;
   queue.tot_tri = corner_tris.size();
   BLI_spin_init(&queue.spin);
 
-  /* fill in threads handles */
-  for (i = 0; i < tot_thread; i++) {
+  /* Fill in threads handles. */
+  for (int i = 0; i < tot_thread; i++) {
     MultiresBakeThread *handle = &handles[i];
 
-    handle->bkr = bkr;
-    handle->image = ima;
-    handle->num_total_faces = queue.tot_tri * BLI_listbase_count(&ima->tiles);
+    handle->bake = &bake;
+    handle->image = image;
+    handle->num_total_faces = queue.tot_tri * BLI_listbase_count(&image->tiles);
     handle->queue = &queue;
 
     handle->data.vert_positions = positions;
@@ -594,11 +592,11 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     handle->data.sharp_faces = static_cast<const bool *>(
         CustomData_get_layer_named(&dm->polyData, CD_PROP_BOOL, "sharp_face"));
     handle->data.uv_map = uv_map;
-    BKE_image_get_tile_uv(ima, tile->tile_number, handle->data.uv_offset);
+    BKE_image_get_tile_uv(image, tile->tile_number, handle->data.uv_offset);
     handle->data.pvtangent = pvtangent;
     handle->data.w = ibuf->x;
     handle->data.h = ibuf->y;
-    handle->data.hires_dm = bkr->hires_dm;
+    handle->data.hires_dm = bake.hires_dm;
     handle->data.lvl = lvl;
     handle->data.pass_data = passKnownData;
     handle->data.thread_data = handle;
@@ -608,14 +606,14 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     handle->height_min = FLT_MAX;
     handle->height_max = -FLT_MAX;
 
-    init_bake_rast(&handle->bake_rast, ibuf, &handle->data, flush_pixel, bkr->do_update);
+    init_bake_rast(&handle->bake_rast, ibuf, &handle->data, flush_pixel, bake.do_update);
 
     if (tot_thread > 1) {
       BLI_threadpool_insert(&threads, handle);
     }
   }
 
-  /* run threads */
+  /* Run threads. */
   if (tot_thread > 1) {
     BLI_threadpool_end(&threads);
   }
@@ -623,14 +621,14 @@ static void do_multires_bake(MultiresBakeRender *bkr,
     do_multires_bake_thread(handles.data());
   }
 
-  for (i = 0; i < tot_thread; i++) {
-    result->height_min = min_ff(result->height_min, handles[i].height_min);
-    result->height_max = max_ff(result->height_max, handles[i].height_max);
+  for (int i = 0; i < tot_thread; i++) {
+    result.height_min = min_ff(result.height_min, handles[i].height_min);
+    result.height_max = max_ff(result.height_max, handles[i].height_max);
   }
 
   BLI_spin_end(&queue.spin);
 
-  /* finalize baking */
+  /* Finalize baking. */
   if (freeBakeData) {
     freeBakeData(bake_data);
   }
@@ -672,7 +670,7 @@ static void interp_bilinear_grid(
   interp_bilinear_quad_v3(data, u, v, res);
 }
 
-static void get_ccgdm_data(const blender::OffsetIndices<int> lores_polys,
+static void get_ccgdm_data(const OffsetIndices<int> lores_polys,
                            DerivedMesh *hidm,
                            const int *index_mp_to_orig,
                            const int lvl,
@@ -743,10 +741,10 @@ static void get_ccgdm_data(const blender::OffsetIndices<int> lores_polys,
 /* mode = 0: interpolate normals,
  * mode = 1: interpolate coord */
 
-static void interp_bilinear_mpoly(const blender::Span<blender::float3> vert_positions,
-                                  const blender::Span<blender::float3> vert_normals,
-                                  const blender::Span<int> corner_verts,
-                                  const blender::IndexRange face,
+static void interp_bilinear_mpoly(const Span<float3> vert_positions,
+                                  const Span<float3> vert_normals,
+                                  const Span<int> corner_verts,
+                                  const IndexRange face,
                                   const float u,
                                   const float v,
                                   const int mode,
@@ -770,10 +768,10 @@ static void interp_bilinear_mpoly(const blender::Span<blender::float3> vert_posi
   interp_bilinear_quad_v3(data, u, v, res);
 }
 
-static void interp_barycentric_corner_tri(const blender::Span<blender::float3> vert_positions,
-                                          const blender::Span<blender::float3> vert_normals,
-                                          const blender::Span<int> corner_verts,
-                                          const blender::int3 &corner_tri,
+static void interp_barycentric_corner_tri(const Span<float3> vert_positions,
+                                          const Span<float3> vert_normals,
+                                          const Span<int> corner_verts,
+                                          const int3 &corner_tri,
                                           const float u,
                                           const float v,
                                           const int mode,
@@ -797,10 +795,10 @@ static void interp_barycentric_corner_tri(const blender::Span<blender::float3> v
 
 /* **************** Displacement Baker **************** */
 
-static void *init_heights_data(MultiresBakeRender *bkr, ImBuf *ibuf)
+static void *init_heights_data(MultiresBakeRender &bake, ImBuf *ibuf)
 {
   MHeightBakeData *height_data;
-  DerivedMesh *lodm = bkr->lores_dm;
+  DerivedMesh *lodm = bake.lores_dm;
   BakeImBufuserData *userdata = static_cast<BakeImBufuserData *>(ibuf->userdata);
 
   if (userdata->displacement_buffer == nullptr) {
@@ -812,9 +810,9 @@ static void *init_heights_data(MultiresBakeRender *bkr, ImBuf *ibuf)
 
   height_data->heights = userdata->displacement_buffer;
 
-  if (!bkr->use_lores_mesh) {
+  if (!bake.use_lores_mesh) {
     SubsurfModifierData smd = {{nullptr}};
-    int ss_lvl = bkr->tot_lvl - bkr->lvl;
+    int ss_lvl = bake.tot_lvl - bake.lvl;
 
     CLAMP(ss_lvl, 0, 6);
 
@@ -824,7 +822,7 @@ static void *init_heights_data(MultiresBakeRender *bkr, ImBuf *ibuf)
       smd.quality = 3;
 
       height_data->ssdm = subsurf_make_derived_from_derived(
-          bkr->lores_dm, &smd, bkr->scene, nullptr, SubsurfFlags(0));
+          bake.lores_dm, &smd, bake.scene, nullptr, SubsurfFlags(0));
       init_ccgdm_arrays(height_data->ssdm);
     }
   }
@@ -852,13 +850,13 @@ static void free_heights_data(void *bake_data)
  *   - find coord of point and normal with specified UV in lo-res mesh (or subdivided lo-res
  *     mesh to make texture smoother) let's call this point p0 and n.
  *   - height wound be dot(n, p1-p0) */
-static void apply_heights_callback(const blender::Span<blender::float3> vert_positions,
-                                   const blender::Span<blender::float3> vert_normals,
-                                   const blender::OffsetIndices<int> faces,
-                                   const blender::Span<int> corner_verts,
-                                   const blender::Span<blender::int3> corner_tris,
-                                   const blender::Span<int> tri_faces,
-                                   const blender::Span<blender::float2> uv_map,
+static void apply_heights_callback(const Span<float3> vert_positions,
+                                   const Span<float3> vert_normals,
+                                   const OffsetIndices<int> faces,
+                                   const Span<int> corner_verts,
+                                   const Span<int3> corner_tris,
+                                   const Span<int> tri_faces,
+                                   const Span<float2> uv_map,
                                    DerivedMesh *hires_dm,
                                    void *thread_data_v,
                                    void *bake_data,
@@ -870,9 +868,9 @@ static void apply_heights_callback(const blender::Span<blender::float3> vert_pos
                                    const int x,
                                    const int y)
 {
-  const blender::int3 &tri = corner_tris[tri_index];
+  const int3 &tri = corner_tris[tri_index];
   const int face_i = tri_faces[tri_index];
-  const blender::IndexRange face = faces[face_i];
+  const IndexRange face = faces[face_i];
   MHeightBakeData *height_data = (MHeightBakeData *)bake_data;
   MultiresBakeThread *thread_data = (MultiresBakeThread *)thread_data_v;
   float uv[2];
@@ -947,10 +945,10 @@ static void apply_heights_callback(const blender::Span<blender::float3> vert_pos
 
 /* **************** Normal Maps Baker **************** */
 
-static void *init_normal_data(MultiresBakeRender *bkr, ImBuf * /*ibuf*/)
+static void *init_normal_data(MultiresBakeRender &bake, ImBuf * /*ibuf*/)
 {
   MNormalBakeData *normal_data;
-  DerivedMesh *lodm = bkr->lores_dm;
+  DerivedMesh *lodm = bake.lores_dm;
 
   normal_data = MEM_callocN<MNormalBakeData>("MultiresBake normalData");
 
@@ -975,13 +973,13 @@ static void free_normal_data(void *bake_data)
  * - Multiply it by tangmat.
  * - Vector in color space would be `norm(vec) / 2 + (0.5, 0.5, 0.5)`.
  */
-static void apply_tangmat_callback(const blender::Span<blender::float3> /*vert_positions*/,
-                                   const blender::Span<blender::float3> /*vert_normals*/,
-                                   const blender::OffsetIndices<int> faces,
-                                   const blender::Span<int> /*corner_verts*/,
-                                   const blender::Span<blender::int3> corner_tris,
-                                   const blender::Span<int> tri_faces,
-                                   const blender::Span<blender::float2> uv_map,
+static void apply_tangmat_callback(const Span<float3> /*vert_positions*/,
+                                   const Span<float3> /*vert_normals*/,
+                                   const OffsetIndices<int> faces,
+                                   const Span<int> /*corner_verts*/,
+                                   const Span<int3> corner_tris,
+                                   const Span<int> tri_faces,
+                                   const Span<float2> uv_map,
                                    DerivedMesh *hires_dm,
                                    void * /*thread_data*/,
                                    void *bake_data,
@@ -993,9 +991,9 @@ static void apply_tangmat_callback(const blender::Span<blender::float3> /*vert_p
                                    const int x,
                                    const int y)
 {
-  const blender::int3 &tri = corner_tris[tri_index];
+  const int3 &tri = corner_tris[tri_index];
   const int face_i = tri_faces[tri_index];
-  const blender::IndexRange face = faces[face_i];
+  const IndexRange face = faces[face_i];
   MNormalBakeData *normal_data = (MNormalBakeData *)bake_data;
   float uv[2];
   const float *st0, *st1, *st2, *st3;
@@ -1041,330 +1039,6 @@ static void apply_tangmat_callback(const blender::Span<blender::float3> /*vert_p
   }
 }
 
-/* TODO: restore ambient occlusion baking support, using BLI BVH? */
-#if 0
-/* **************** Ambient Occlusion Baker **************** */
-
-/* Must be a power of two. */
-#  define MAX_NUMBER_OF_AO_RAYS 1024
-
-static ushort ao_random_table_1[MAX_NUMBER_OF_AO_RAYS];
-static ushort ao_random_table_2[MAX_NUMBER_OF_AO_RAYS];
-
-static void init_ao_random()
-{
-  int i;
-
-  for (i = 0; i < MAX_NUMBER_OF_AO_RAYS; i++) {
-    ao_random_table_1[i] = rand() & 0xffff;
-    ao_random_table_2[i] = rand() & 0xffff;
-  }
-}
-
-static ushort get_ao_random1(const int i)
-{
-  return ao_random_table_1[i & (MAX_NUMBER_OF_AO_RAYS - 1)];
-}
-
-static ushort get_ao_random2(const int i)
-{
-  return ao_random_table_2[i & (MAX_NUMBER_OF_AO_RAYS - 1)];
-}
-
-static void build_permutation_table(ushort permutation[],
-                                    ushort temp_permutation[],
-                                    const int number_of_rays,
-                                    const int is_first_perm_table)
-{
-  int i, k;
-
-  for (i = 0; i < number_of_rays; i++) {
-    temp_permutation[i] = i;
-  }
-
-  for (i = 0; i < number_of_rays; i++) {
-    const uint nr_entries_left = number_of_rays - i;
-    ushort rnd = is_first_perm_table != false ? get_ao_random1(i) : get_ao_random2(i);
-    const ushort entry = rnd % nr_entries_left;
-
-    /* pull entry */
-    permutation[i] = temp_permutation[entry];
-
-    /* delete entry */
-    for (k = entry; k < nr_entries_left - 1; k++) {
-      temp_permutation[k] = temp_permutation[k + 1];
-    }
-  }
-
-  /* verify permutation table
-   * every entry must appear exactly once
-   */
-#  if 0
-  for (i = 0; i < number_of_rays; i++) {
-    temp_permutation[i] = 0;
-  }
-  for (i = 0; i < number_of_rays; i++) {
-    ++temp_permutation[permutation[i]];
-  }
-  for (i = 0; i < number_of_rays; i++) {
-    BLI_assert(temp_permutation[i] == 1);
-  }
-#  endif
-}
-
-static void create_ao_raytree(MultiresBakeRender *bkr, MAOBakeData *ao_data)
-{
-  DerivedMesh *hidm = bkr->hires_dm;
-  RayObject *raytree;
-  RayFace *face;
-  CCGElem **grid_data;
-  CCGKey key;
-  int grids_num, grid_size /*, face_side */, faces_num;
-  int i;
-
-  grids_num = hidm->getNumGrids(hidm);
-  grid_size = hidm->getGridSize(hidm);
-  grid_data = hidm->getGridData(hidm);
-  hidm->getGridKey(hidm, &key);
-
-  // face_side = (grid_size << 1) - 1; /* UNUSED */
-  faces_num = grids_num * (grid_size - 1) * (grid_size - 1);
-
-  raytree = ao_data->raytree = RE_rayobject_create(
-      bkr->raytrace_structure, faces_num, bkr->octree_resolution);
-  face = ao_data->rayfaces = MEM_calloc_arrayN<RayFace>(faces_num,
-                                                        "ObjectRen faces");
-
-  for (i = 0; i < grids_num; i++) {
-    int x, y;
-    for (x = 0; x < grid_size - 1; x++) {
-      for (y = 0; y < grid_size - 1; y++) {
-        float co[4][3];
-
-        copy_v3_v3(co[0], CCG_grid_elem_co(&key, grid_data[i], x, y));
-        copy_v3_v3(co[1], CCG_grid_elem_co(&key, grid_data[i], x, y + 1));
-        copy_v3_v3(co[2], CCG_grid_elem_co(&key, grid_data[i], x + 1, y + 1));
-        copy_v3_v3(co[3], CCG_grid_elem_co(&key, grid_data[i], x + 1, y));
-
-        RE_rayface_from_coords(face, ao_data, face, co[0], co[1], co[2], co[3]);
-        RE_rayobject_add(raytree, RE_rayobject_unalignRayFace(face));
-
-        face++;
-      }
-    }
-  }
-
-  RE_rayobject_done(raytree);
-}
-
-static void *init_ao_data(MultiresBakeRender *bkr, ImBuf * /*ibuf*/)
-{
-  MAOBakeData *ao_data;
-  DerivedMesh *lodm = bkr->lores_dm;
-  ushort *temp_permutation_table;
-
-  init_ao_random();
-
-  ao_data = MEM_callocN<MAOBakeData>("MultiresBake aoData");
-
-  ao_data->number_of_rays = bkr->number_of_rays;
-  ao_data->bias = bkr->bias;
-
-  ao_data->orig_index_mp_to_orig = lodm->getPolyDataArray(lodm, CD_ORIGINDEX);
-
-  create_ao_raytree(bkr, ao_data);
-
-  /* initialize permutation tables */
-  ao_data->permutation_table_1 = MEM_calloc_arrayN<ushort>(bkr->number_of_rays, "multires AO baker perm1");
-  ao_data->permutation_table_2 = MEM_calloc_arrayN<ushort>(bkr->number_of_rays, "multires AO baker perm2");
-  temp_permutation_table = MEM_calloc_arrayN<ushort>(bkr->number_of_rays, "multires AO baker temp perm");
-
-  build_permutation_table(
-      ao_data->permutation_table_1, temp_permutation_table, bkr->number_of_rays, 1);
-  build_permutation_table(
-      ao_data->permutation_table_2, temp_permutation_table, bkr->number_of_rays, 0);
-
-  MEM_freeN(temp_permutation_table);
-
-  return (void *)ao_data;
-}
-
-static void free_ao_data(void *bake_data)
-{
-  MAOBakeData *ao_data = (MAOBakeData *)bake_data;
-
-  RE_rayobject_free(ao_data->raytree);
-  MEM_freeN(ao_data->rayfaces);
-
-  MEM_freeN(ao_data->permutation_table_1);
-  MEM_freeN(ao_data->permutation_table_2);
-
-  MEM_freeN(ao_data);
-}
-
-/* builds an X and a Y axis from the given Z axis */
-static void build_coordinate_frame(float axisX[3], float axisY[3], const float axisZ[3])
-{
-  const float faX = fabsf(axisZ[0]);
-  const float faY = fabsf(axisZ[1]);
-  const float faZ = fabsf(axisZ[2]);
-
-  if (faX <= faY && faX <= faZ) {
-    const float len = sqrtf(axisZ[1] * axisZ[1] + axisZ[2] * axisZ[2]);
-    axisY[0] = 0;
-    axisY[1] = axisZ[2] / len;
-    axisY[2] = -axisZ[1] / len;
-    cross_v3_v3v3(axisX, axisY, axisZ);
-  }
-  else if (faY <= faZ) {
-    const float len = sqrtf(axisZ[0] * axisZ[0] + axisZ[2] * axisZ[2]);
-    axisX[0] = axisZ[2] / len;
-    axisX[1] = 0;
-    axisX[2] = -axisZ[0] / len;
-    cross_v3_v3v3(axisY, axisZ, axisX);
-  }
-  else {
-    const float len = sqrtf(axisZ[0] * axisZ[0] + axisZ[1] * axisZ[1]);
-    axisX[0] = axisZ[1] / len;
-    axisX[1] = -axisZ[0] / len;
-    axisX[2] = 0;
-    cross_v3_v3v3(axisY, axisZ, axisX);
-  }
-}
-
-/* return false if nothing was hit and true otherwise */
-static int trace_ao_ray(MAOBakeData *ao_data, float ray_start[3], float ray_direction[3])
-{
-  Isect isect = {{0}};
-
-  isect.dist = RE_RAYTRACE_MAXDIST;
-  copy_v3_v3(isect.start, ray_start);
-  copy_v3_v3(isect.dir, ray_direction);
-  isect.lay = -1;
-
-  normalize_v3(isect.dir);
-
-  return RE_rayobject_raycast(ao_data->raytree, &isect);
-}
-
-static void apply_ao_callback(DerivedMesh *lores_dm,
-                              DerivedMesh *hires_dm,
-                              void * /*thread_data*/,
-                              void *bake_data,
-                              ImBuf *ibuf,
-                              const int tri_index,
-                              const int lvl,
-                              const float st[2],
-                              float /*tangmat[3][3]*/,
-                              const int x,
-                              const int y)
-{
-  const blender::int3 &tri = lores_dm->getcorner_triArray(lores_dm) + tri_index;
-  float(*mloopuv)[2] = lores_dm->getLoopDataArray(lores_dm, CD_PROP_FLOAT2);
-  MAOBakeData *ao_data = (MAOBakeData *)bake_data;
-
-  int i, k, perm_ofs;
-  float pos[3], nrm[3];
-  float cen[3];
-  float axisX[3], axisY[3], axisZ[3];
-  float shadow = 0;
-  float value;
-  int pixel = ibuf->x * y + x;
-  float uv[2], *st0, *st1, *st2, *st3;
-
-  /* ideally we would work on triangles only, however, we rely on quads to get orthogonal
-   * coordinates for use in grid space (triangle barycentric is not orthogonal) */
-  if (face.size() == 4) {
-    st0 = mloopuv[face[0]];
-    st1 = mloopuv[face[1]];
-    st2 = mloopuv[face[2]];
-    st3 = mloopuv[face[3]];
-    resolve_quad_uv_v2(uv, st, st0, st1, st2, st3);
-  }
-  else {
-    st0 = mloopuv[tri[0]];
-    st1 = mloopuv[tri[1]];
-    st2 = mloopuv[tri[2]];
-    resolve_tri_uv_v2(uv, st, st0, st1, st2);
-  }
-
-  clamp_v2(uv, 0.0f, 1.0f);
-
-  get_ccgdm_data(
-      lores_dm, hires_dm, ao_data->orig_index_mp_to_orig, lvl, tri, uv[0], uv[1], pos, nrm);
-
-  /* offset ray origin by user bias along normal */
-  for (i = 0; i < 3; i++) {
-    cen[i] = pos[i] + ao_data->bias * nrm[i];
-  }
-
-  /* build tangent frame */
-  for (i = 0; i < 3; i++) {
-    axisZ[i] = nrm[i];
-  }
-
-  build_coordinate_frame(axisX, axisY, axisZ);
-
-  /* static noise */
-  perm_ofs = (get_ao_random2(get_ao_random1(x) + y)) & (MAX_NUMBER_OF_AO_RAYS - 1);
-
-  /* importance sample shadow rays (cosine weighted) */
-  for (i = 0; i < ao_data->number_of_rays; i++) {
-    int hit_something;
-
-    /* use N-Rooks to distribute our N ray samples across
-     * a multi-dimensional domain (2D)
-     */
-    const ushort I = ao_data->permutation_table_1[(i + perm_ofs) % ao_data->number_of_rays];
-    const ushort J = ao_data->permutation_table_2[i];
-
-    const float JitPh = (get_ao_random2(I + perm_ofs) & (MAX_NUMBER_OF_AO_RAYS - 1)) /
-                        float(MAX_NUMBER_OF_AO_RAYS);
-    const float JitTh = (get_ao_random1(J + perm_ofs) & (MAX_NUMBER_OF_AO_RAYS - 1)) /
-                        float(MAX_NUMBER_OF_AO_RAYS);
-    const float SiSqPhi = (I + JitPh) / ao_data->number_of_rays;
-    const float Theta = float(2 * M_PI) * ((J + JitTh) / ao_data->number_of_rays);
-
-    /* this gives results identical to the so-called cosine
-     * weighted distribution relative to the north pole.
-     */
-    float SiPhi = sqrtf(SiSqPhi);
-    float CoPhi = SiSqPhi < 1.0f ? sqrtf(1.0f - SiSqPhi) : 0;
-    float CoThe = cosf(Theta);
-    float SiThe = sinf(Theta);
-
-    const float dx = CoThe * CoPhi;
-    const float dy = SiThe * CoPhi;
-    const float dz = SiPhi;
-
-    /* transform ray direction out of tangent frame */
-    float dv[3];
-    for (k = 0; k < 3; k++) {
-      dv[k] = axisX[k] * dx + axisY[k] * dy + axisZ[k] * dz;
-    }
-
-    hit_something = trace_ao_ray(ao_data, cen, dv);
-
-    if (hit_something != 0) {
-      shadow += 1;
-    }
-  }
-
-  value = 1.0f - (shadow / ao_data->number_of_rays);
-
-  if (ibuf->rect_float) {
-    float *rrgbf = ibuf->rect_float + pixel * 4;
-    rrgbf[0] = rrgbf[1] = rrgbf[2] = value;
-    rrgbf[3] = 1.0f;
-  }
-  else {
-    uchar *rrgb = (uchar *)ibuf->rect + pixel * 4;
-    rrgb[0] = rrgb[1] = rrgb[2] = unit_float_to_uchar_clamp(value);
-    rrgb[3] = 255;
-  }
-}
-#endif
-
 /* ******$***************** Post processing ************************* */
 
 static void bake_ibuf_filter(ImBuf *ibuf,
@@ -1383,7 +1057,7 @@ static void bake_ibuf_filter(ImBuf *ibuf,
         RE_generate_texturemargin_adjacentfaces_dm(ibuf, mask, margin, dm, uv_offset);
         break;
       default:
-      /* fall through */
+        /* fall through */
       case R_BAKE_EXTEND:
         IMB_filter_extend(ibuf, mask, margin);
         break;
@@ -1447,53 +1121,30 @@ static void bake_ibuf_normalize_displacement(ImBuf *ibuf,
 
 /* **************** Common functions public API relates on **************** */
 
-static void count_images(MultiresBakeRender *bkr)
+static void count_images(MultiresBakeRender &bake)
 {
-  BLI_listbase_clear(&bkr->image);
-  bkr->tot_image = 0;
+  bake.images.clear();
 
-  for (int i = 0; i < bkr->ob_image.len; i++) {
-    Image *ima = bkr->ob_image.array[i];
-    if (ima) {
-      ima->id.tag &= ~ID_TAG_DOIT;
-    }
-  }
-
-  for (int i = 0; i < bkr->ob_image.len; i++) {
-    Image *ima = bkr->ob_image.array[i];
-    if (ima) {
-      if ((ima->id.tag & ID_TAG_DOIT) == 0) {
-        LinkData *data = BLI_genericNodeN(ima);
-        BLI_addtail(&bkr->image, data);
-        bkr->tot_image++;
-        ima->id.tag |= ID_TAG_DOIT;
-      }
-    }
-  }
-
-  for (int i = 0; i < bkr->ob_image.len; i++) {
-    Image *ima = bkr->ob_image.array[i];
-    if (ima) {
-      ima->id.tag &= ~ID_TAG_DOIT;
+  for (Image *image : bake.ob_image) {
+    if (image) {
+      bake.images.add(image);
     }
   }
 }
 
-static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
+static void bake_images(MultiresBakeRender &bake, MultiresBakeResult &result)
 {
   /* construct bake result */
-  result->height_min = FLT_MAX;
-  result->height_max = -FLT_MAX;
+  result.height_min = FLT_MAX;
+  result.height_max = -FLT_MAX;
 
-  LISTBASE_FOREACH (LinkData *, link, &bkr->image) {
-    Image *ima = (Image *)link->data;
-
-    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+  for (Image *image : bake.images) {
+    LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
       ImageUser iuser;
       BKE_imageuser_default(&iuser);
       iuser.tile = tile->tile_number;
 
-      ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
+      ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
 
       if (ibuf->x > 0 && ibuf->y > 0) {
         BakeImBufuserData *userdata = MEM_callocN<BakeImBufuserData>("MultiresBake userdata");
@@ -1501,10 +1152,10 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
                                                         "MultiresBake imbuf mask");
         ibuf->userdata = userdata;
 
-        switch (bkr->mode) {
+        switch (bake.mode) {
           case RE_BAKE_NORMALS:
-            do_multires_bake(bkr,
-                             ima,
+            do_multires_bake(bake,
+                             image,
                              tile,
                              ibuf,
                              true,
@@ -1514,8 +1165,8 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
                              result);
             break;
           case RE_BAKE_DISPLACEMENT:
-            do_multires_bake(bkr,
-                             ima,
+            do_multires_bake(bake,
+                             image,
                              tile,
                              ibuf,
                              false,
@@ -1524,43 +1175,27 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
                              free_heights_data,
                              result);
             break;
-            /* TODO: restore ambient occlusion baking support. */
-#if 0
-          case RE_BAKE_AO:
-            do_multires_bake(bkr,
-                             ima,
-                             tile,
-                             ibuf,
-                             false,
-                             apply_ao_callback,
-                             init_ao_data,
-                             free_ao_data,
-                             result);
-            break;
-#endif
         }
       }
 
-      BKE_image_release_ibuf(ima, ibuf, nullptr);
+      BKE_image_release_ibuf(image, ibuf, nullptr);
     }
 
-    ima->id.tag |= ID_TAG_DOIT;
+    image->id.tag |= ID_TAG_DOIT;
   }
 }
 
-static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
+static void finish_images(MultiresBakeRender &bake, MultiresBakeResult &result)
 {
-  bool use_displacement_buffer = bkr->mode == RE_BAKE_DISPLACEMENT;
+  const bool use_displacement_buffer = bake.mode == RE_BAKE_DISPLACEMENT;
 
-  LISTBASE_FOREACH (LinkData *, link, &bkr->image) {
-    Image *ima = (Image *)link->data;
-
-    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+  for (Image *image : bake.images) {
+    LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
       ImageUser iuser;
       BKE_imageuser_default(&iuser);
       iuser.tile = tile->tile_number;
 
-      ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
+      ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
       BakeImBufuserData *userdata = (BakeImBufuserData *)ibuf->userdata;
 
       if (ibuf->x <= 0 || ibuf->y <= 0) {
@@ -1571,22 +1206,22 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
         bake_ibuf_normalize_displacement(ibuf,
                                          userdata->displacement_buffer,
                                          userdata->mask_buffer,
-                                         result->height_min,
-                                         result->height_max);
+                                         result.height_min,
+                                         result.height_max);
       }
 
       float uv_offset[2];
-      BKE_image_get_tile_uv(ima, tile->tile_number, uv_offset);
+      BKE_image_get_tile_uv(image, tile->tile_number, uv_offset);
 
       bake_ibuf_filter(ibuf,
                        userdata->mask_buffer,
-                       bkr->bake_margin,
-                       bkr->bake_margin_type,
-                       bkr->lores_dm,
+                       bake.bake_margin,
+                       bake.bake_margin_type,
+                       bake.lores_dm,
                        uv_offset);
 
       ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-      BKE_image_mark_dirty(ima, ibuf);
+      BKE_image_mark_dirty(image, ibuf);
 
       if (ibuf->float_buffer.data) {
         ibuf->userflags |= IB_RECT_INVALID;
@@ -1602,17 +1237,20 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
         ibuf->userdata = nullptr;
       }
 
-      BKE_image_release_ibuf(ima, ibuf, nullptr);
-      DEG_id_tag_update(&ima->id, 0);
+      BKE_image_release_ibuf(image, ibuf, nullptr);
+      DEG_id_tag_update(&image->id, 0);
     }
   }
 }
 
+}  // namespace
+}  // namespace blender::render
+
 void RE_multires_bake_images(MultiresBakeRender *bkr)
 {
-  MultiresBakeResult result;
+  blender::render::MultiresBakeResult result;
 
-  count_images(bkr);
-  bake_images(bkr, &result);
-  finish_images(bkr, &result);
+  blender::render::count_images(*bkr);
+  blender::render::bake_images(*bkr, result);
+  blender::render::finish_images(*bkr, result);
 }
