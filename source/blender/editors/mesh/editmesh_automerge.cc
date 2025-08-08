@@ -33,7 +33,8 @@
  * Used after transform operations.
  * \{ */
 
-void EDBM_automerge(Object *obedit, bool update, const char hflag, const float dist)
+static void edbm_automerge_impl(
+    Object *obedit, bool update, const char hflag, const float dist, const bool use_connected)
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
@@ -46,9 +47,10 @@ void EDBM_automerge(Object *obedit, bool update, const char hflag, const float d
   BMO_op_initf(bm,
                &findop,
                BMO_FLAG_DEFAULTS,
-               "find_doubles verts=%av keep_verts=%Hv dist=%f",
+               "find_doubles verts=%av keep_verts=%Hv dist=%f use_connected=%b",
                hflag,
-               dist);
+               dist,
+               use_connected);
 
   BMO_op_exec(bm, &findop);
 
@@ -67,6 +69,16 @@ void EDBM_automerge(Object *obedit, bool update, const char hflag, const float d
   if ((totvert_prev != bm->totvert) && update) {
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
+}
+
+void EDBM_automerge(Object *obedit, bool update, const char hflag, const float dist)
+{
+  edbm_automerge_impl(obedit, update, hflag, dist, false);
+}
+
+void EDBM_automerge_connected(Object *obedit, bool update, const char hflag, const float dist)
+{
+  edbm_automerge_impl(obedit, update, hflag, dist, true);
 }
 
 /** \} */

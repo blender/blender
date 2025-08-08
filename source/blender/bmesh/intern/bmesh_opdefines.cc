@@ -453,6 +453,8 @@ static BMOpDefine bmo_find_doubles_def = {
         {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
         /* List of verts to keep. */
         {"keep_verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
+        /* Limit the search for doubles by connected geometry. */
+        {"use_connected", BMO_OP_SLOT_BOOL},
         /* Maximum distance. */
         {"dist", BMO_OP_SLOT_FLT},
         {{'\0'}},
@@ -481,7 +483,8 @@ static BMOpDefine bmo_remove_doubles_def = {
     {
         /* Input verts. */
         {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
-
+        /* Limit the search for doubles by connected geometry. */
+        {"use_connected", BMO_OP_SLOT_BOOL},
         /* Minimum distance. */
         {"dist", BMO_OP_SLOT_FLT},
         {{'\0'}},
