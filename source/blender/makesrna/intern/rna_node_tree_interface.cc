@@ -431,12 +431,6 @@ static bool is_socket_type_supported(blender::bke::bNodeTreeType *ntreetype,
     }
   }
 
-  if (!U.experimental.use_bundle_and_closure_nodes) {
-    if (ELEM(socket_type->type, SOCK_BUNDLE, SOCK_CLOSURE)) {
-      return false;
-    }
-  }
-
   return true;
 }
 

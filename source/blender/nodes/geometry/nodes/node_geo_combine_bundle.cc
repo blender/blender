@@ -105,11 +105,6 @@ static void node_operators()
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  if (!U.experimental.use_bundle_and_closure_nodes) {
-    params.set_default_remaining_outputs();
-    return;
-  }
-
   const bNode &node = params.node();
   const NodeCombineBundle &storage = node_storage(node);
 

@@ -592,9 +592,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
               user_data))
       {
-        const StringRefNull message = U.experimental.use_bundle_and_closure_nodes ?
-                                          TIP_("Simulation must not be in a loop or closure") :
-                                          TIP_("Simulation must not be in a loop");
+        const StringRefNull message = TIP_("Simulation must not be in a loop or closure");
         tree_logger->node_warnings.append(*tree_logger->allocator,
                                           {node_.identifier, {NodeWarningType::Error, message}});
       }
