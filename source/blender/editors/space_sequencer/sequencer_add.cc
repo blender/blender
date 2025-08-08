@@ -731,7 +731,7 @@ static wmOperatorStatus sequencer_add_scene_strip_new_exec(bContext *C, wmOperat
   load_data_init_from_operator(&load_data, C, op);
 
   int type = RNA_enum_get(op->ptr, "type");
-  Scene *scene_new = ED_scene_sequencer_add(bmain, C, eSceneCopyMethod(type), false);
+  Scene *scene_new = ED_scene_sequencer_add(bmain, C, nullptr, eSceneCopyMethod(type), false);
   if (scene_new == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -760,44 +760,6 @@ static wmOperatorStatus sequencer_add_scene_strip_new_invoke(bContext *C,
   return sequencer_add_scene_strip_new_exec(C, op);
 }
 
-static const EnumPropertyItem *strip_new_sequencer_enum_itemf(bContext *C,
-                                                              PointerRNA * /*ptr*/,
-                                                              PropertyRNA * /*prop*/,
-                                                              bool *r_free)
-{
-  EnumPropertyItem *item = nullptr;
-  int totitem = 0;
-  uint item_index;
-
-  item_index = RNA_enum_from_value(strip_new_scene_items, SCE_COPY_NEW);
-  RNA_enum_item_add(&item, &totitem, &strip_new_scene_items[item_index]);
-
-  bool has_scene_or_no_context = false;
-  if (C == nullptr) {
-    /* For documentation generation. */
-    has_scene_or_no_context = true;
-  }
-  else {
-    Scene *scene = CTX_data_sequencer_scene(C);
-    Strip *strip = seq::select_active_get(scene);
-    if (strip && (strip->type == STRIP_TYPE_SCENE) && (strip->scene != nullptr)) {
-      has_scene_or_no_context = true;
-    }
-  }
-
-  if (has_scene_or_no_context) {
-    int values[] = {SCE_COPY_EMPTY, SCE_COPY_LINK_COLLECTION, SCE_COPY_FULL};
-    for (int i = 0; i < ARRAY_SIZE(values); i++) {
-      item_index = RNA_enum_from_value(strip_new_scene_items, values[i]);
-      RNA_enum_item_add(&item, &totitem, &strip_new_scene_items[item_index]);
-    }
-  }
-
-  RNA_enum_item_end(&item, &totitem);
-  *r_free = true;
-  return item;
-}
-
 void SEQUENCER_OT_scene_strip_add_new(wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -816,7 +778,6 @@ void SEQUENCER_OT_scene_strip_add_new(wmOperatorType *ot)
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_MOVE);
 
   ot->prop = RNA_def_enum(ot->srna, "type", strip_new_scene_items, SCE_COPY_NEW, "Type", "");
-  RNA_def_enum_funcs(ot->prop, strip_new_sequencer_enum_itemf);
 }
 
 static wmOperatorStatus sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)

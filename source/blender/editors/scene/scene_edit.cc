@@ -65,29 +65,13 @@ static Scene *scene_add(Main *bmain, Scene *scene_old, eSceneCopyMethod method)
   return scene_new;
 }
 
-Scene *ED_scene_sequencer_add(Main *bmain,
-                              bContext *C,
-                              eSceneCopyMethod method,
-                              const bool assign_strip)
+Scene *ED_scene_sequencer_add(
+    Main *bmain, bContext *C, Strip *strip, eSceneCopyMethod method, const bool assign_strip)
 {
-  Strip *strip = nullptr;
-  Scene *scene_active = CTX_data_sequencer_scene(C);
-  Scene *scene_strip = nullptr;
-  /* Sequencer need to use as base the scene defined in the strip, not the main scene. */
-  Editing *ed = scene_active->ed;
-  if (ed) {
-    strip = ed->act_strip;
-    if (strip && strip->scene) {
-      scene_strip = strip->scene;
-    }
-  }
+  Scene *sequencer_scene = CTX_data_sequencer_scene(C);
+  Scene *active_scene = CTX_data_scene(C);
 
-  /* If no scene assigned to the strip, only NEW scene mode is logic. */
-  if (scene_strip == nullptr) {
-    method = SCE_COPY_NEW;
-  }
-
-  Scene *scene_new = scene_add(bmain, scene_strip, method);
+  Scene *scene_new = scene_add(bmain, active_scene, method);
 
   /* If don't need assign the scene to the strip, nothing else to do. */
   if (!assign_strip) {
@@ -100,13 +84,13 @@ Scene *ED_scene_sequencer_add(Main *bmain,
   if (scene_new && strip) {
     strip->scene = scene_new;
     /* Do a refresh of the sequencer data. */
-    blender::seq::relations_invalidate_cache_raw(scene_active, strip);
-    DEG_id_tag_update(&scene_active->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
+    blender::seq::relations_invalidate_cache_raw(sequencer_scene, strip);
+    DEG_id_tag_update(&sequencer_scene->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
     DEG_relations_tag_update(bmain);
   }
 
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene_active);
-  WM_event_add_notifier(C, NC_SCENE | ND_SCENEBROWSE, scene_active);
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, sequencer_scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_SCENEBROWSE, sequencer_scene);
 
   return scene_new;
 }
@@ -300,8 +284,11 @@ static wmOperatorStatus scene_new_sequencer_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   int type = RNA_enum_get(op->ptr, "type");
+  Scene *scene = CTX_data_sequencer_scene(C);
+  Strip *strip = blender::seq::select_active_get(scene);
+  BLI_assert(strip != nullptr);
 
-  if (ED_scene_sequencer_add(bmain, C, eSceneCopyMethod(type), true) == nullptr) {
+  if (ED_scene_sequencer_add(bmain, C, strip, eSceneCopyMethod(type), true) == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
