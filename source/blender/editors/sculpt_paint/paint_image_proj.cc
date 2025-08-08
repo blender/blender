@@ -486,7 +486,10 @@ struct ProjPixel {
 
   short x_px, y_px;
 
-  /** if anyone wants to paint onto more than 65535 images they can bite me. */
+  /**
+   * Use a short to reduce memory use.
+   * This limits the total number of supported images to 65535 which seems reasonable.
+   */
   ushort image_index;
   uchar bb_cell_index;
 

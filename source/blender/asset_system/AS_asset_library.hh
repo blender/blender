@@ -41,7 +41,7 @@ class AssetRepresentation;
 class AssetLibrary {
   eAssetLibraryType library_type_;
   /**
-   * The name this asset library will be displayed in the UI as. Will also be used as a weak way
+   * The name this asset library will be displayed as in the UI. Will also be used as a weak way
    * to identify an asset library (e.g. by #AssetWeakReference).
    */
   std::string name_;

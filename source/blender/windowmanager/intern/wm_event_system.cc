@@ -4046,7 +4046,7 @@ static eHandlerActionFlag wm_event_do_region_handlers(bContext *C, wmEvent *even
 
   CTX_wm_region_set(C, region);
 
-  /* Call even on non mouse events, since the. */
+  /* Call even on non mouse events, since the handlers may still use this value. */
   wm_region_mouse_co(C, event);
 
   const wmWindowManager *wm = CTX_wm_manager(C);
