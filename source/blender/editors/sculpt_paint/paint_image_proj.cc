@@ -5749,6 +5749,17 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
   return touch_any;
 }
 
+static bool has_data_projection_paint_image(const ProjPaintState &ps)
+{
+  for (int i = 0; i < ps.image_tot; i++) {
+    const ImBuf *ibuf = ps.projImages[i].ibuf;
+    if (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static void paint_proj_stroke_ps(const bContext * /*C*/,
                                  void *ps_handle_p,
                                  const float prev_pos[2],
@@ -5782,7 +5793,12 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
                           pressure,
                           nullptr,
                           ps->paint_color);
-    srgb_to_linearrgb_v3_v3(ps->paint_color_linear, ps->paint_color);
+    if (has_data_projection_paint_image(*ps)) {
+      copy_v3_v3(ps->paint_color_linear, ps->paint_color);
+    }
+    else {
+      srgb_to_linearrgb_v3_v3(ps->paint_color_linear, ps->paint_color);
+    }
   }
   else if (ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_MASK) {
     ps->stencil_value = brush->weight;
