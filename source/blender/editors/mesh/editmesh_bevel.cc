@@ -392,7 +392,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 
     if (opdata->use_automerge) {
       changed |= EDBM_automerge_connected(
-          obedit, true, BM_ELEM_SELECT, opdata->automerge_threshold);
+          obedit, false, BM_ELEM_SELECT, opdata->automerge_threshold);
     }
 
     changed |= EDBM_op_finish(em, &bmop, op, true);
