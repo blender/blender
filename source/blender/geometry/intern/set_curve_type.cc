@@ -527,8 +527,7 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
   };
 
   auto poly_to_nurbs = [&](const IndexMask &selection) {
-    index_mask::masked_fill<int8_t>(dst_curves.nurbs_orders_for_write(), 2, selection);
-    index_mask::masked_fill<int>(dst_curves.resolution_for_write(), 1, selection);
+    index_mask::masked_fill<int8_t>(dst_curves.nurbs_orders_for_write(), 4, selection);
     array_utils::copy_group_to_group(
         src_points_by_curve, dst_points_by_curve, selection, src_positions, dst_positions);
     fill_weights_if_necessary(selection);
