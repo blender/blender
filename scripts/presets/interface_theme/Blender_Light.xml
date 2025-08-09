@@ -383,6 +383,23 @@
         </wcol_tab>
       </ThemeUserInterface>
     </user_interface>
+    <common>
+      <ThemeCommon>
+        <anim>
+          <ThemeCommonAnim
+            playhead="#5680c2"
+            preview_range="#a14d0066"
+            time_marker="#00000060"
+            time_marker_selected="#ffffff60"
+            channel="#2e639924"
+            channel_sub="#7aa4cc24"
+            channel_group="#278c0e37"
+            channel_group_active="#4eb33555"
+            >
+          </ThemeCommonAnim>
+        </anim>
+      </ThemeCommon>
+    </common>
     <view_3d>
       <ThemeView3D
         grid="#00000033"
@@ -449,7 +466,6 @@
         bone_pose_active="#8cffff"
         bone_solid="#e6e6e6"
         bone_locked_weight="#ff000080"
-        frame_current="#60c040"
         before_current_frame="#f22e23"
         after_current_frame="#78f244"
         bundle_solid="#c8c8c8"
@@ -494,17 +510,9 @@
     <graph_editor>
       <ThemeGraphEditor
         grid="#5e5e5e"
-        frame_current="#5680c2"
         time_scrub_background="#808080e6"
-        time_marker_line="#00000060"
-        time_marker_line_selected="#ffffff60"
         window_sliders="#969696"
         channels_region="#999999"
-        dopesheet_channel="#2e6399"
-        dopesheet_subchannel="#7aa4cc"
-        channel_group="#278c0e"
-        active_channels_group="#4db135"
-        preview_range="#a14d0066"
         vertex="#000000"
         vertex_select="#ff8500"
         vertex_active="#ffffff"
@@ -586,12 +594,9 @@
       <ThemeNLAEditor
         grid="#5e5e5e"
         view_sliders="#969696"
-        dopesheet_channel="#5a85b2"
-        dopesheet_subchannel="#7d98b3"
         nla_track="#424242"
         active_action="#cc701a66"
         active_action_unset="#9987614d"
-        preview_range="#a14d0066"
         strips="#0c0a0a"
         strips_selected="#ff8c00"
         transition_strips="#1c2630"
@@ -604,10 +609,7 @@
         tweak_duplicate="#d90000"
         keyframe_border="#000000ff"
         keyframe_border_selected="#000000ff"
-        frame_current="#5680c2"
         time_scrub_background="#808080e6"
-        time_marker_line="#00000060"
-        time_marker_line_selected="#ffffff60"
         >
         <space>
           <ThemeSpaceGeneric
@@ -642,18 +644,11 @@
     <dopesheet_editor>
       <ThemeDopeSheet
         grid="#4d4d4d"
-        frame_current="#5680c2"
         time_scrub_background="#808080e6"
-        time_marker_line="#00000060"
-        time_marker_line_selected="#ffffff60"
         value_sliders="#000000"
         view_sliders="#969696"
-        dopesheet_channel="#2e639924"
-        dopesheet_subchannel="#7aa4cc24"
         channels="#707070ff"
         channels_selected="#60c04044"
-        channel_group="#278c0e37"
-        active_channels_group="#4eb33555"
         long_key="#1a151580"
         long_key_selected="#ff8c00cc"
         keyframe="#e8e8e8"
@@ -672,7 +667,6 @@
         keyframe_border_selected="#000000ff"
         keyframe_scale_factor="1"
         summary="#d3660066"
-        preview_range="#a14d0066"
         interpolation_line="#94e575cc"
         simulated_frames="#721e65ff"
         >
@@ -735,7 +729,6 @@
         preview_stitch_unstitchable="#ff0000ff"
         preview_stitch_active="#e1d2c323"
         uv_shadow="#707070ff"
-        frame_current="#5680c2"
         metadatabg="#000000"
         metadatatext="#ffffff"
         handle_free="#000000"
@@ -790,10 +783,7 @@
         text_strip="#824c8f"
         active_strip="#ffffff"
         selected_strip="#ff6a00"
-        frame_current="#5680c2"
         time_scrub_background="#292929e6"
-        time_marker_line="#00000060"
-        time_marker_line_selected="#ffffff60"
         keyframe="#ff8500"
         keyframe_selected="#ffbe33"
         keyframe_breakdown="#b3dbe8"
@@ -808,7 +798,6 @@
         preview_back="#000000"
         metadatabg="#000000"
         metadatatext="#ffffff"
-        preview_range="#a14d0066"
         row_alternate="#ffffff0d"
         text_strip_cursor="#71a8ffff"
         selected_text="#19191a4d"
@@ -1073,15 +1062,11 @@
         path_after="#0000ff"
         path_keyframe_before="#ffc4c4"
         path_keyframe_after="#c4c4ff"
-        frame_current="#5680c2"
         time_scrub_background="#292929e6"
-        time_marker_line="#00000060"
-        time_marker_line_selected="#ffffff60"
         strips="#0c0a0a"
         strips_selected="#ff8c00"
         metadatabg="#000000"
         metadatatext="#ffffff"
-        preview_range="#a14d0066"
         handle_free="#000000"
         handle_auto="#909000"
         handle_align="#803060"
