@@ -13,6 +13,7 @@ It demonstrates:
 
 import bpy
 
+
 class OBJECT_OT_simple_macro(bpy.types.Macro):
     bl_idname = "object.simple_macro"
     bl_label = "Simple Transform Macro"
@@ -21,6 +22,7 @@ class OBJECT_OT_simple_macro(bpy.types.Macro):
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
+
 
 def register():
     bpy.utils.register_class(OBJECT_OT_simple_macro)
@@ -39,6 +41,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(OBJECT_OT_simple_macro)
+
 
 if __name__ == "__main__":
     register()
