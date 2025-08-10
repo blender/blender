@@ -757,9 +757,21 @@ void BPy_init_modules(bContext *C)
 
   BPY_rna_gizmo_module(mod);
 
-  bpy_import_test("_bpy_types");
-  PyModule_AddObject(mod, "data", BPY_rna_module()); /* Imports `_bpy_types` by running this. */
-  bpy_import_test("_bpy_types");
+  /* Important to internalizes `_bpy_types` before creating RNA instances. */
+  {
+    /* Set a dummy module so the `_bpy_types.py` can access `bpy.types.ID`
+     * without a null pointer dereference when instancing types. */
+    PyObject *bpy_types_dict_dummy = PyDict_New();
+    BPY_rna_types_dict_set(bpy_types_dict_dummy);
+    PyObject *bpy_types_module_py = bpy_import_test("_bpy_types");
+    /* Something has gone wrong if this is ever populated. */
+    BLI_assert(PyDict_GET_SIZE(bpy_types_dict_dummy) == 0);
+    Py_DECREF(bpy_types_dict_dummy);
+
+    PyObject *bpy_types_module_py_dict = PyModule_GetDict(bpy_types_module_py);
+    BPY_rna_types_dict_set(bpy_types_module_py_dict);
+  }
+  PyModule_AddObject(mod, "data", BPY_rna_module());
   BPY_rna_types_finalize_external_types(bpy_types);
 
   PyModule_AddObject(mod, "props", BPY_rna_props());

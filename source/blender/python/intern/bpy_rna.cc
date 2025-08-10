@@ -8130,7 +8130,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 /**
  * \return borrowed reference.
  */
-static PyObject *pyrna_srna_PyBase(StructRNA *srna)  //, PyObject *bpy_types_dict)
+static PyObject *pyrna_srna_PyBase(StructRNA *srna)
 {
   /* Assume RNA_struct_py_type_get(srna) was already checked. */
   StructRNA *base;
@@ -8153,9 +8153,15 @@ static PyObject *pyrna_srna_PyBase(StructRNA *srna)  //, PyObject *bpy_types_dic
   return py_base;
 }
 
-/* Check if we have a native Python subclass, use it when it exists
- * return a borrowed reference. */
+/**
+ * Check if we have a native Python subclass, use it when it exists
+ * return a borrowed reference.
+ */
 static PyObject *bpy_types_dict = nullptr;
+void BPY_rna_types_dict_set(PyObject *dict)
+{
+  bpy_types_dict = dict; /* Borrow. */
+}
 
 /**
  * Return the #PyTypeObject or null,
@@ -8164,22 +8170,10 @@ static PyObject *bpy_types_dict = nullptr;
  */
 static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
 {
+  BLI_assert(bpy_types_dict);
+
   const char *idname = RNA_struct_identifier(srna);
-  PyObject *newclass;
-
-  if (bpy_types_dict == nullptr) {
-    PyObject *bpy_types = PyImport_ImportModuleLevel("_bpy_types", nullptr, nullptr, nullptr, 0);
-
-    if (bpy_types == nullptr) {
-      PyErr_Print();
-      CLOG_ERROR(BPY_LOG_RNA, "failed to find '_bpy_types' module");
-      return nullptr;
-    }
-    bpy_types_dict = PyModule_GetDict(bpy_types); /* Borrow. */
-    Py_DECREF(bpy_types);                         /* Fairly safe to assume the dict is kept. */
-  }
-
-  newclass = PyDict_GetItemString(bpy_types_dict, idname);
+  PyObject *newclass = PyDict_GetItemString(bpy_types_dict, idname);
 
   /* Sanity check, could skip this unless in debug mode. */
   if (newclass) {
