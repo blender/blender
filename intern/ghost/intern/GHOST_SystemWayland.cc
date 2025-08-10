@@ -2238,9 +2238,10 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
       GXMAP(gkey, XKB_KEY_KP_Separator, GHOST_kKeyNumpadPeriod);
       GXMAP(gkey, XKB_KEY_less, GHOST_kKeyGrLess);
 
-      default:
+      default: {
         /* Rely on #xkb_map_gkey_or_scan_code to report when no key can be found. */
         gkey = GHOST_kKeyUnknown;
+      }
     }
 #undef GXMAP
   }
@@ -3961,12 +3962,14 @@ static void pointer_handle_button(void *data,
 
   int button_release;
   switch (state) {
-    case WL_POINTER_BUTTON_STATE_RELEASED:
+    case WL_POINTER_BUTTON_STATE_RELEASED: {
       button_release = 1;
       break;
-    case WL_POINTER_BUTTON_STATE_PRESSED:
+    }
+    case WL_POINTER_BUTTON_STATE_PRESSED: {
       button_release = 0;
       break;
+    }
     default: {
       return;
     }
@@ -4989,12 +4992,14 @@ static void tablet_tool_handle_button(void *data,
 
   bool is_press = false;
   switch (state) {
-    case WL_POINTER_BUTTON_STATE_RELEASED:
+    case WL_POINTER_BUTTON_STATE_RELEASED: {
       is_press = false;
       break;
-    case WL_POINTER_BUTTON_STATE_PRESSED:
+    }
+    case WL_POINTER_BUTTON_STATE_PRESSED: {
       is_press = true;
       break;
+    }
   }
 
   seat->data_source_serial = serial;
@@ -5576,12 +5581,14 @@ static void keyboard_handle_key(void *data,
 
   GHOST_TEventType etype = GHOST_kEventUnknown;
   switch (state) {
-    case WL_KEYBOARD_KEY_STATE_RELEASED:
+    case WL_KEYBOARD_KEY_STATE_RELEASED: {
       etype = GHOST_kEventKeyUp;
       break;
-    case WL_KEYBOARD_KEY_STATE_PRESSED:
+    }
+    case WL_KEYBOARD_KEY_STATE_PRESSED: {
       etype = GHOST_kEventKeyDown;
       break;
+    }
   }
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
@@ -8631,9 +8638,10 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
     }
 #endif /* WITH_OPENGL_BACKEND */
 
-    default:
+    default: {
       /* Unsupported backend. */
       return nullptr;
+    }
   }
 }
 
