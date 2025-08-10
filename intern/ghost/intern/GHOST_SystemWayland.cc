@@ -1347,12 +1347,18 @@ static void gwl_seat_key_repeat_timer_fn(GHOST_ITimerTask *task, uint64_t time_m
 
 /**
  * \note Caller must lock `timer_mutex`.
+ *
+ * \note A `seat->key_repeat.rate` of zero indicates that client-side key repeat is disabled,
+ * the compositor may generate repeat events.
+ * The caller must ensure this function isn't called in that case.
  */
 static void gwl_seat_key_repeat_timer_add(GWL_Seat *seat,
                                           GHOST_TimerProcPtr key_repeat_fn,
                                           GHOST_TUserDataPtr payload,
                                           const bool use_delay)
 {
+  /* Caller is expected to ensure this. */
+  GHOST_ASSERT(seat->key_repeat.rate > 0, "invalid rate");
   GHOST_SystemWayland *system = seat->system;
   const uint64_t time_now = system->getMilliSeconds();
   const uint64_t time_step = 1000 / seat->key_repeat.rate;
@@ -5580,11 +5586,19 @@ static void keyboard_handle_key(void *data,
   CLOG_DEBUG(LOG, "key (code=%d, state=%u)", int(key_code), state);
 
   GHOST_TEventType etype = GHOST_kEventUnknown;
+  bool is_repeat = false;
   switch (state) {
     case WL_KEYBOARD_KEY_STATE_RELEASED: {
       etype = GHOST_kEventKeyUp;
       break;
     }
+#ifdef WL_KEYBOARD_KEY_STATE_REPEATED_SINCE_VERSION
+    case WL_KEYBOARD_KEY_STATE_REPEATED: {
+      /* Server side key repeat. */
+      is_repeat = true;
+      [[fallthrough]];
+    }
+#endif
     case WL_KEYBOARD_KEY_STATE_PRESSED: {
       etype = GHOST_kEventKeyDown;
       break;
@@ -5670,7 +5684,7 @@ static void keyboard_handle_key(void *data,
   if (wl_surface *wl_surface_focus = seat->keyboard.wl.surface_window) {
     GHOST_IWindow *win = ghost_wl_surface_user_data(wl_surface_focus);
     seat->system->pushEvent_maybe_pending(
-        new GHOST_EventKey(event_ms, etype, win, gkey, false, utf8_buf));
+        new GHOST_EventKey(event_ms, etype, win, gkey, is_repeat, utf8_buf));
   }
 
   /* An existing payload means the key repeat timer is reset and will be added again. */
@@ -5747,7 +5761,13 @@ static void keyboard_handle_repeat_info(void *data,
 #endif
     /* Unlikely possible this setting changes while repeating. */
     if (seat->key_repeat.timer) {
-      keyboard_handle_key_repeat_reset(seat, false);
+      if (rate > 0) {
+        keyboard_handle_key_repeat_reset(seat, false);
+      }
+      else {
+        /* A zero rate disables. */
+        keyboard_handle_key_repeat_cancel(seat);
+      }
     }
   }
 }
