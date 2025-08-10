@@ -745,21 +745,21 @@ void BPy_init_modules(bContext *C)
   PyDict_SetItemString(PyImport_GetModuleDict(), "_bpy", mod);
   Py_DECREF(mod);
 
-  /* needs to be first so bpy_types can run */
+  /* Needs to be first so `_bpy_types` can run. */
   PyObject *bpy_types = BPY_rna_types();
   PyModule_AddObject(bpy_types, "GeometrySet", BPyInit_geometry_set_type());
   PyModule_AddObject(mod, "types", bpy_types);
 
-  /* needs to be first so bpy_types can run */
+  /* Needs to be first so `_bpy_types` can run. */
   BPY_library_load_type_ready();
 
   BPY_rna_data_context_type_ready();
 
   BPY_rna_gizmo_module(mod);
 
-  bpy_import_test("bpy_types");
-  PyModule_AddObject(mod, "data", BPY_rna_module()); /* imports bpy_types by running this */
-  bpy_import_test("bpy_types");
+  bpy_import_test("_bpy_types");
+  PyModule_AddObject(mod, "data", BPY_rna_module()); /* Imports `_bpy_types` by running this. */
+  bpy_import_test("_bpy_types");
   BPY_rna_types_finalize_external_types(bpy_types);
 
   PyModule_AddObject(mod, "props", BPY_rna_props());
