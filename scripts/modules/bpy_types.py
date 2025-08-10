@@ -1019,9 +1019,7 @@ class Operator(_StructRNA, metaclass=_RNAMeta):
 
 
 class Macro(_StructRNA):
-    """
-    Strings multiple operators together and invokes them sequentially as a single operator.
-    """
+    # Chain multiple operators together and invokes them sequentially as a single operator.
 
     # _types is imported before ops is defined
     # so we have to do a local import on each run
