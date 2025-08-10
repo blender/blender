@@ -8765,8 +8765,10 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
           display_->wp.cursor_shape_manager, seat->wl.pointer);
     }
     if (seat->cursor.shape.device) {
-      wp_cursor_shape_device_v1_set_shape(
-          seat->cursor.shape.device, seat->pointer.serial, *wl_shape);
+      if (seat->cursor.is_hardware) {
+        wp_cursor_shape_device_v1_set_shape(
+            seat->cursor.shape.device, seat->pointer.serial, *wl_shape);
+      }
     }
     /* Set this to make sure we remember which shape we set when unhiding cursors. */
     seat->cursor.shape.enum_id = *wl_shape;
@@ -8785,8 +8787,10 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_shape_set(const GHOST_TStandardCursor
           display_->wp.cursor_shape_manager, zwp_tablet_tool_v2);
     }
     if (tablet_tool->shape.device) {
-      wp_cursor_shape_device_v1_set_shape(
-          tablet_tool->shape.device, tablet_tool->serial, *wl_shape);
+      if (seat->cursor.is_hardware) {
+        wp_cursor_shape_device_v1_set_shape(
+            tablet_tool->shape.device, tablet_tool->serial, *wl_shape);
+      }
     }
     /* Set this to make sure we remember which shape we set when unhiding cursors. */
     tablet_tool->shape.enum_id = *wl_shape;
