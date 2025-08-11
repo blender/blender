@@ -3053,6 +3053,7 @@ def km_sequencer(params):
          {"properties": [("adjust_length", True)]}),
         ("sequencer.offset_clear", {"type": 'O', "value": 'PRESS', "alt": True}, None),
         ("sequencer.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
+        ("sequencer.duplicate_move_linked", {"type": 'D', "value": 'PRESS', "alt": True}, None),
         ("sequencer.retiming_key_delete", {"type": 'X', "value": 'PRESS'}, None),
         ("sequencer.retiming_key_delete", {"type": 'DEL', "value": 'PRESS'}, None),
         ("sequencer.delete", {"type": 'X', "value": 'PRESS'}, None),
@@ -3232,6 +3233,7 @@ def km_sequencer_preview(params):
          {"properties": [("property", 'ROTATION')]}),
 
         ("sequencer.preview_duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
+        ("sequencer.preview_duplicate_move_linked", {"type": 'D', "value": 'PRESS', "alt": True}, None),
         ("sequencer.mute", {"type": 'H', "value": 'PRESS'},
          {"properties": [("unselected", False)]}),
         ("sequencer.mute", {"type": 'H', "value": 'PRESS', "shift": True},

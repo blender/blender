@@ -454,7 +454,8 @@ Strip *edit_strip_split(Main *bmain,
 
   /* Duplicate ListBase. */
   ListBase right_strips = {nullptr, nullptr};
-  seqbase_duplicate_recursive(scene, scene, &right_strips, &left_strips, StripDuplicate::All, 0);
+  seqbase_duplicate_recursive(
+      bmain, scene, scene, &right_strips, &left_strips, StripDuplicate::All, 0);
 
   Strip *left_strip = static_cast<Strip *>(left_strips.first);
   Strip *right_strip = static_cast<Strip *>(right_strips.first);
