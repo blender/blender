@@ -22,7 +22,7 @@
  * The Write Stencil, Stencil test, Depth test and Blend state options are mutual exclusive
  * therefore they aren't ordered as a bit mask.
  */
-typedef enum {
+typedef enum : uint32_t {
   /** To be used for compute passes. */
   DRW_STATE_NO_DRAW = 0,
   /** Write mask */
