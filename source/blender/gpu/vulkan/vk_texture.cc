@@ -294,6 +294,9 @@ void VKTexture::update_sub(int mip,
     extent.z = 1;
     offset.z = 0;
   }
+  BLI_assert(offset.x + extent.x <= width_get());
+  BLI_assert(offset.y + extent.y <= max_ii(height_get(), 1));
+  BLI_assert(offset.z + extent.z <= max_ii(depth_get(), 1));
 
   /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
   VKContext &context = *VKContext::get();
