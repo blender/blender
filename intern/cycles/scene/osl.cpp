@@ -1529,12 +1529,7 @@ void OSLCompiler::compile(Shader *shader)
   if (shader->is_modified()) {
     ShaderGraph *graph = shader->graph.get();
     ShaderNode *output = (graph) ? graph->output() : nullptr;
-
-    const bool has_bump = (shader->get_displacement_method() != DISPLACE_TRUE) &&
-                          output->input("Surface")->link && output->input("Displacement")->link;
-
-    /* finalize */
-    shader->graph->finalize(scene, has_bump, shader->get_displacement_method() == DISPLACE_BOTH);
+    const bool has_bump = shader->has_bump;
 
     current_shader = shader;
 
@@ -1542,8 +1537,6 @@ void OSLCompiler::compile(Shader *shader)
     shader->has_surface_transparent = false;
     shader->has_surface_raytrace = false;
     shader->has_surface_bssrdf = false;
-    shader->has_bump = has_bump;
-    shader->has_bssrdf_bump = has_bump;
     shader->has_volume = false;
     shader->has_displacement = false;
     shader->has_surface_spatial_varying = false;
