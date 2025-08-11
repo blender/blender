@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:25+0000\n"
 "Last-Translator: 32437w5k7 <32437w5k7@mozmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -4180,10 +4180,6 @@ msgid "Radius of head of bone (for Envelope deform only)"
 msgstr "Raggio della testa dell'osso (solo per Inviluppo deformazione)"
 
 
-msgid "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)"
-msgstr "L'osso non è visibile quando non si è in Modalità Modifica (es. in Modalità Oggetto o Posa)"
-
-
 msgid "Selectable"
 msgstr "Selezionabile"
 
@@ -4282,10 +4278,6 @@ msgstr "Quando l'osso ha un genitore, la testa dell'osso è attaccata alla coda 
 
 msgid "Cyclic Offset"
 msgstr "Offset Ciclico"
-
-
-msgid "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)"
-msgstr "Quando l'osso non ha un genitore, riceve effetti ciclici compensati"
 
 
 msgid "Deform"
@@ -6746,14 +6738,6 @@ msgstr "Elementi Rampa Colore"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Raccolta di Elementi Rampa Colore"
-
-
-msgid "File Output Slots"
-msgstr "Slots Uscita File"
-
-
-msgid "Collection of File Output node slots"
-msgstr "Raccolta di slot nodi Uscita File"
 
 
 msgid "Console Input"
@@ -9546,10 +9530,6 @@ msgid "Data Path"
 msgstr "Percorso Dati"
 
 
-msgid "The value to use if the data path can't be resolved"
-msgstr "Il valore da utilizzare se il percorso del dato non può essere risolto"
-
-
 msgid "Type of ID-block that can be used"
 msgstr "Tipo di blocco ID che può essere utilizzato"
 
@@ -10494,10 +10474,6 @@ msgstr "Utilizza i colori degli assi per le trasformazioni e le proprietà color
 
 msgid "Auto WXYZ to YRGB"
 msgstr "WXYZ a YRGB automatico"
-
-
-msgid "Use axis colors for XYZ parts of transform, and yellow for the 'W' channel"
-msgstr "Utilizza i colori degli assi per le porzioni XYZ della trasformazione, e il giallo per il canale 'W'"
 
 
 msgid "User Defined"
@@ -16683,48 +16659,24 @@ msgid "Format used for re-saving this file"
 msgstr "Formato utilizzato per risalvare questo file"
 
 
-msgid "Output image in bitmap format"
-msgstr "Immagine in formato bitmap"
+msgid "Output image in JPEG format"
+msgstr "Immagine in formato JPEG"
 
 
-msgid "Iris"
-msgstr "Iris"
-
-
-msgid "Output image in SGI IRIS format"
-msgstr "Immagine di output in formato SGI IRIS"
+msgid "Output image in OpenEXR format"
+msgstr "Immagine in formato OpenEXR"
 
 
 msgid "Output image in PNG format"
 msgstr "Immagine in formato PNG"
 
 
-msgid "Output image in JPEG format"
-msgstr "Immagine in formato JPEG"
+msgid "Output image in WebP format"
+msgstr "Immagine di output in formato WebP"
 
 
-msgid "Output image in JPEG 2000 format"
-msgstr "Immagine di output in formato JPEG 2000"
-
-
-msgid "Targa"
-msgstr "Targa"
-
-
-msgid "Output image in Targa format"
-msgstr "Immagine in formato Targa"
-
-
-msgid "Targa Raw"
-msgstr "Targa RAW"
-
-
-msgid "Output image in uncompressed Targa format"
-msgstr "Esporta l'immagine nel formato non compresso Targa"
-
-
-msgid "Cineon"
-msgstr "Cineon"
+msgid "Output image in bitmap format"
+msgstr "Immagine in formato bitmap"
 
 
 msgid "Output image in Cineon format"
@@ -16735,28 +16687,28 @@ msgid "Output image in DPX format"
 msgstr "Immagine in formato DPX"
 
 
-msgid "Output image in OpenEXR format"
-msgstr "Immagine in formato OpenEXR"
+msgid "Output image in SGI IRIS format"
+msgstr "Immagine di output in formato SGI IRIS"
 
 
-msgid "Radiance HDR"
-msgstr "Radiance HDR"
+msgid "Output image in JPEG 2000 format"
+msgstr "Immagine di output in formato JPEG 2000"
 
 
 msgid "Output image in Radiance HDR format"
 msgstr "Immagine in formato Radiance HDR"
 
 
+msgid "Output image in Targa format"
+msgstr "Immagine in formato Targa"
+
+
+msgid "Output image in uncompressed Targa format"
+msgstr "Esporta l'immagine nel formato non compresso Targa"
+
+
 msgid "Output image in TIFF format"
 msgstr "Immagine in formato TIFF"
-
-
-msgid "Output image in WebP format"
-msgstr "Immagine di output in formato WebP"
-
-
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR MultiLivello"
 
 
 msgid "Output image in multilayer OpenEXR format"
@@ -16877,10 +16829,6 @@ msgstr "Pixels"
 
 msgid "Render Slots"
 msgstr "Slot Render"
-
-
-msgid "Width and height of the image buffer in pixels, zero when image data can't be loaded"
-msgstr "Larghezza e altezza del buffer dell'immagine in pixel, zero quando non è possibile caricare i dati dell'immagine"
 
 
 msgctxt "Image"
@@ -17951,10 +17899,6 @@ msgstr "Nome del file del filmato o della sequenza"
 
 msgid "Frame Rate"
 msgstr "Freq. Fotogrammi"
-
-
-msgid "Width and height in pixels, zero when image data can't be loaded"
-msgstr "Larghezza e altezza in pixel, zero quando non è possibile caricare i dati dell'immagine"
 
 
 msgid "Movie File"
@@ -22077,10 +22021,6 @@ msgid "Identifier of operator to call on input event"
 msgstr "Identificativo dell'operatore da chiamare nell'evento di input"
 
 
-msgid "Is this keymap item user defined (doesn't just replace a builtin item)"
-msgstr "Questo oggetto mappa di tastiera è definito dall'utente (non sostituisce semplicemente un elemento incorporato)"
-
-
 msgid "User Modified"
 msgstr "Modificato da Utente"
 
@@ -24660,6 +24600,10 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Pivot Point"
+msgstr "Punto di Perno"
+
+
 msgid "Snap"
 msgstr "Aggancia"
 
@@ -24878,10 +24822,6 @@ msgstr "Testo"
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
-
-
-msgid "Pivot Point"
-msgstr "Punto di Perno"
 
 
 msgid "Keyframe Insert Pie"
@@ -31473,24 +31413,12 @@ msgid "File Output"
 msgstr "Uscita File"
 
 
-msgid "Active Input Index"
-msgstr "Indice Input Attivo"
+msgid "Active Item Index"
+msgstr "Indice Elemento Attivo"
 
 
-msgid "Base Path"
-msgstr "Percorso Base"
-
-
-msgid "Base output path for the image"
-msgstr "Percorso di output di base per l'immagine"
-
-
-msgid "File Slots"
-msgstr "File Slots"
-
-
-msgid "EXR Layer Slots"
-msgstr "Slots del Livello EXR"
+msgid "Index of the active item"
+msgstr "Indice dell'elemento attivo"
 
 
 msgid "Save as Render"
@@ -31767,14 +31695,6 @@ msgstr "Per Eccesso"
 msgctxt "NodeTree"
 msgid "Truncate"
 msgstr "Troncare"
-
-
-msgid "Active Item Index"
-msgstr "Indice Elemento Attivo"
-
-
-msgid "Index of the active item"
-msgstr "Indice dell'elemento attivo"
 
 
 msgid "Input value used for unconnected socket"
@@ -33270,10 +33190,6 @@ msgid "Collection of Node Links"
 msgstr "Raccolta di Collegamenti Nodo"
 
 
-msgid "Output File Slot"
-msgstr "Slot File Uscita"
-
-
 msgid "Node Outputs"
 msgstr "Uscite Nodo"
 
@@ -34419,10 +34335,6 @@ msgstr "Estrapolazione Lineare"
 
 msgid "Make Cyclic (F-Modifier)"
 msgstr "Rendi Ciclico (Modificatore-F)"
-
-
-msgid "Add Cycles F-Modifier if one doesn't exist already"
-msgstr "Aggiunge Cicli del Modificatore Funzione se non ne esiste già uno"
 
 
 msgid "Clear Cyclic (F-Modifier)"
@@ -42582,21 +42494,6 @@ msgstr "Attiva/disattiva Opzioni Nodo"
 
 msgid "Toggle option buttons display for selected nodes"
 msgstr "Attiva/disattiva la visualizzazione dei bottoni di opzione per i nodi selezionati"
-
-
-msgctxt "Operator"
-msgid "Add File Node Socket"
-msgstr "Aggiungi Connettore File Nodo"
-
-
-msgctxt "Operator"
-msgid "Move File Node Socket"
-msgstr "Muovi Connettore File Nodo"
-
-
-msgctxt "Operator"
-msgid "Remove File Node Socket"
-msgstr "Rimuovi Connettore File Nodo"
 
 
 msgid "Attach selected nodes"
@@ -54955,10 +54852,6 @@ msgid "Bake directly from multires object"
 msgstr "Effettua il precalcolo direttamente dal multires degli oggetti"
 
 
-msgid "User Scale"
-msgstr "Scala Utente"
-
-
 msgid "Render Region"
 msgstr "Regione Render"
 
@@ -58465,6 +58358,14 @@ msgid "Strips Selected"
 msgstr "Spezzoni Selezionati"
 
 
+msgid "Channel Group"
+msgstr "Gruppo Canale"
+
+
+msgid "Active Channel Group"
+msgstr "Gruppo Canale Attivo"
+
+
 msgid "Theme Console"
 msgstr "Tema Console"
 
@@ -58497,20 +58398,8 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "Impostazioni del tema per il DopeSheet"
 
 
-msgid "Active Channel Group"
-msgstr "Gruppo Canale Attivo"
-
-
-msgid "Channel Group"
-msgstr "Gruppo Canale"
-
-
 msgid "Channels Selected"
 msgstr "Canali Selezionati"
-
-
-msgid "Dope Sheet Channel"
-msgstr "Canale DopeSheet"
 
 
 msgid "Color of Keyframe"
@@ -58747,10 +58636,6 @@ msgstr "Il blocco-dati animazione ha una azione attiva"
 
 msgid "No Active Action"
 msgstr "Nessuna Azione Attiva"
-
-
-msgid "Animation data-block doesn't have active action"
-msgstr "Il blocco-dati animazione non ha una azione attiva"
 
 
 msgid "Meta Strips"
@@ -61535,16 +61420,6 @@ msgstr "Blocca Inverti Tutto"
 
 
 msgctxt "Operator"
-msgid "Delete All Shape Keys"
-msgstr "Cancella Tutti gli Shape Keys"
-
-
-msgctxt "Operator"
-msgid "Apply All Shape Keys"
-msgstr "Applica Tutti gli Shape Keys"
-
-
-msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "Ordina per Nome"
 
@@ -61580,23 +61455,8 @@ msgstr "Cancella Tutti i Gruppi"
 
 
 msgctxt "Operator"
-msgid "New Shape from Mix"
-msgstr "Nuova Forma dal Mix"
-
-
-msgctxt "Operator"
-msgid "Mirror Shape Key (Topology)"
-msgstr "Specchia Shape Key (Topologia)"
-
-
-msgctxt "Operator"
-msgid "Move to Top"
-msgstr "Muovi In Cima"
-
-
-msgctxt "Operator"
-msgid "Move to Bottom"
-msgstr "Muovi In Fondo"
+msgid "Flip"
+msgstr "Capovolgi"
 
 
 msgid "Auto Normalize"
@@ -62568,6 +62428,16 @@ msgstr "File di Testo"
 
 
 msgctxt "Operator"
+msgid "Move to Top"
+msgstr "Muovi In Cima"
+
+
+msgctxt "Operator"
+msgid "Move to Bottom"
+msgstr "Muovi In Fondo"
+
+
+msgctxt "Operator"
 msgid "Blend Offset"
 msgstr "Offset Fusione"
 
@@ -63040,6 +62910,11 @@ msgstr "Dissolvenza"
 msgctxt "Operator"
 msgid "Change Keying Set..."
 msgstr "Cambia Gruppo Chiavi..."
+
+
+msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "Cancella Keyframes..."
 
 
 msgctxt "Operator"
@@ -63951,11 +63826,6 @@ msgstr "Rendi Locale..."
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "Cancella Keyframes..."
-
-
-msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "Pulisci Keyframes..."
 
@@ -64194,11 +64064,6 @@ msgstr "Forte"
 
 
 msgctxt "Operator"
-msgid "Flip"
-msgstr "Capovolgi"
-
-
-msgctxt "Operator"
 msgid "Rotate..."
 msgstr "Ruota..."
 
@@ -64279,17 +64144,9 @@ msgid "Mesh Edit Mode Overlays"
 msgstr "Sovrapposizioni in Modalità Modifica Mesh"
 
 
-msgid "Creases"
-msgstr "Pieghe"
-
-
 msgctxt "Plural"
 msgid "Sharp"
 msgstr "Nitidi"
-
-
-msgid "Seams"
-msgstr "Cuciture"
 
 
 msgid "Vertex Group Weights"
@@ -66372,6 +66229,10 @@ msgid "Outer"
 msgstr "Esterno"
 
 
+msgid "Seams"
+msgstr "Cuciture"
+
+
 msgid "Intersection Type"
 msgstr "Tipo Intersezione"
 
@@ -66650,10 +66511,6 @@ msgstr "Nessun livello UV attivo trovato per l'oggetto \"%s\""
 
 msgid "Circular dependency for image \"%s\" from object \"%s\""
 msgstr "Riferimento circolare per l'immagine \"%s\" dall'oggetto \"%s\""
-
-
-msgid "Object \"%s\" is not a mesh or can't be converted to a mesh (Curve, Text, Surface or Metaball)"
-msgstr "L'Oggetto \"%s\" non è una mesh o non può essere convertito in mesh (Curva, Testo, Superfice o Metaball)"
 
 
 msgid "Overwrite existing bake data?"
@@ -67108,10 +66965,6 @@ msgid "Write error: cannot save %s"
 msgstr "Errore di scrittura: impossibile salvare %s"
 
 
-msgid "Can't bake light probe while rendering"
-msgstr "Impossibile precalcolare il Sensore di Luce durante il rendering"
-
-
 msgid "Unable to remove material slot in edit mode"
 msgstr "Impossibile rimuovere slot materiale in Modalità Modifica"
 
@@ -67521,10 +67374,6 @@ msgid "See Modifiers panel below"
 msgstr "Vedi il pannello Modificatori sotto"
 
 
-msgid "F-Curve doesn't have any keyframes as it only contains sampled points"
-msgstr "La Curva-Funzione non ha alcun keyframe, poichè contiene solo punti campionati"
-
-
 msgid "No active keyframe on F-Curve"
 msgstr "Nessun keyframe attivo sulla Curva-F"
 
@@ -67602,10 +67451,6 @@ msgid "Hard coded Non-Linear, Gamma:1.7"
 msgstr "Hard coded Non-Lineare, Gamma:1.7"
 
 
-msgid "Can't Load Image"
-msgstr "Impossibile Caricare Immagine"
-
-
 msgid " RGBA float"
 msgstr " RGBA float"
 
@@ -67644,10 +67489,6 @@ msgstr "%d immagini saranno salvate in %s"
 
 msgid "Saved %s"
 msgstr "Salvato %s"
-
-
-msgid "can't save image while rendering"
-msgstr "impossibile salvare l'immagine durante il rendering"
 
 
 msgid "No packed files to unpack"

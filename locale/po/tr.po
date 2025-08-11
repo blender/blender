@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:31+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -4161,10 +4161,6 @@ msgid "Radius of head of bone (for Envelope deform only)"
 msgstr "Kemik başının yarıçapı (sadece Zarf deformasyonu için)"
 
 
-msgid "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)"
-msgstr "Kemik Düzenleme kipinde olmadığında (yani Nesne veya Poz kiplerinde) görünmez"
-
-
 msgid "Selectable"
 msgstr "Seçilebilir"
 
@@ -4295,10 +4291,6 @@ msgstr "Kemiğin bir ebeveyni olduğunda, kemiğin başı ebeveynin kuyruğuna y
 
 msgid "Cyclic Offset"
 msgstr "Döngüsel Ofset"
-
-
-msgid "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)"
-msgstr "Kemiğin bir üst ögesi olmadığında, döngüsel ofset etkileri alır (Kullanım dışı)"
 
 
 msgid "Deform"
@@ -7039,14 +7031,6 @@ msgid "Collection of Color Ramp Elements"
 msgstr "Renk Rampası Elemanları Koleksiyonu"
 
 
-msgid "File Output Slots"
-msgstr "Dosya Çıkış Yuvaları"
-
-
-msgid "Collection of File Output node slots"
-msgstr "Dosya Çıktı düğüm yuvalarının toplanması"
-
-
 msgid "Input line for the interactive console"
 msgstr "Etkileşimli konsol için giriş satırı"
 
@@ -9352,10 +9336,6 @@ msgstr "RNA Yolu (ID bloğundan) kullanılan özelliğe"
 
 msgid "Fallback"
 msgstr "Geri çekilmek"
-
-
-msgid "The value to use if the data path can't be resolved"
-msgstr "Veri yolu çözülemiyorsa kullanılacak değer"
 
 
 msgid "Type of ID-block that can be used"
@@ -18994,104 +18974,56 @@ msgid "Format used for re-saving this file"
 msgstr "Bu dosyayı yeniden kaydetmek için kullanılan biçim"
 
 
-msgid "BMP"
-msgstr "BMP"
-
-
-msgid "Output image in bitmap format"
-msgstr "Çıktı görüntüsünü bitmap biçiminde al"
-
-
-msgid "Iris"
-msgstr "İris"
-
-
-msgid "Output image in SGI IRIS format"
-msgstr "SGI IRIS formatında çıktı görüntüsü"
-
-
-msgid "Output image in PNG format"
-msgstr "PNG formatında çıktı resmi"
-
-
-msgid "JPEG"
-msgstr "JPEG"
-
-
 msgid "Output image in JPEG format"
 msgstr "JPEG formatında çıktı görüntüsü"
-
-
-msgid "JPEG 2000"
-msgstr "JPEG2000"
-
-
-msgid "Output image in JPEG 2000 format"
-msgstr "JPEG 2000 formatında çıktı görüntüsü"
-
-
-msgid "Targa"
-msgstr "Targa"
-
-
-msgid "Output image in Targa format"
-msgstr "Targa formatında çıktı görüntüsü"
-
-
-msgid "Targa Raw"
-msgstr "Targa Ham"
-
-
-msgid "Output image in uncompressed Targa format"
-msgstr "Sıkıştırılmamış Targa biçiminde çıktı görüntüsü"
-
-
-msgid "Cineon"
-msgstr "Cineon"
-
-
-msgid "Output image in Cineon format"
-msgstr "Çıktı görüntüsünü Cineon formatında alın"
-
-
-msgid "DPX"
-msgstr "DPX"
-
-
-msgid "Output image in DPX format"
-msgstr "Çıktı görüntüsünü DPX formatında al"
 
 
 msgid "Output image in OpenEXR format"
 msgstr "Çıktı görüntüsünü OpenEXR formatında"
 
 
-msgid "Radiance HDR"
-msgstr "Parlaklık HDR"
-
-
-msgid "Output image in Radiance HDR format"
-msgstr "Görüntüyü Radiance HDR formatında çıktı olarak alın"
-
-
-msgid "TIFF"
-msgstr "TIFF"
-
-
-msgid "Output image in TIFF format"
-msgstr "Görüntüyü TIFF formatında çıktı olarak al"
-
-
-msgid "WebP"
-msgstr "WebP"
+msgid "Output image in PNG format"
+msgstr "PNG formatında çıktı resmi"
 
 
 msgid "Output image in WebP format"
 msgstr "Çıktı görüntüsünü WebP formatında"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR Çok Katmanlı"
+msgid "Output image in bitmap format"
+msgstr "Çıktı görüntüsünü bitmap biçiminde al"
+
+
+msgid "Output image in Cineon format"
+msgstr "Çıktı görüntüsünü Cineon formatında alın"
+
+
+msgid "Output image in DPX format"
+msgstr "Çıktı görüntüsünü DPX formatında al"
+
+
+msgid "Output image in SGI IRIS format"
+msgstr "SGI IRIS formatında çıktı görüntüsü"
+
+
+msgid "Output image in JPEG 2000 format"
+msgstr "JPEG 2000 formatında çıktı görüntüsü"
+
+
+msgid "Output image in Radiance HDR format"
+msgstr "Görüntüyü Radiance HDR formatında çıktı olarak alın"
+
+
+msgid "Output image in Targa format"
+msgstr "Targa formatında çıktı görüntüsü"
+
+
+msgid "Output image in uncompressed Targa format"
+msgstr "Sıkıştırılmamış Targa biçiminde çıktı görüntüsü"
+
+
+msgid "Output image in TIFF format"
+msgstr "Görüntüyü TIFF formatında çıktı olarak al"
 
 
 msgid "Output image in multilayer OpenEXR format"
@@ -29174,6 +29106,10 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
+
+
 msgid "Snap"
 msgstr "Yakala"
 
@@ -29400,10 +29336,6 @@ msgstr "Metin"
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
 
 
 msgid "Keyframe Insert Pie"
@@ -33259,10 +33191,6 @@ msgstr "Oluşturulan vuruşların atanacağı Yağlı Kalem katmanı"
 
 msgid "Grease Pencil material assigned to the generated strokes"
 msgstr "Oluşturulan vuruşlara atanan Grease Pencil malzemesi"
-
-
-msgid "The thickness for the generated strokes"
-msgstr "Oluşturulan vuruşların kalınlığı"
 
 
 msgid "Back Face Culling"
@@ -38274,6 +38202,10 @@ msgid "ITU 709"
 msgstr "İTÜ 709"
 
 
+msgid "JPEG"
+msgstr "JPEG"
+
+
 msgid "Combine Color"
 msgstr "Renkleri Birleştir"
 
@@ -38899,28 +38831,12 @@ msgid "Write image file to disk"
 msgstr "Görüntü dosyasını diske yaz"
 
 
-msgid "Active Input Index"
-msgstr "Aktif Giriş Endeksi"
+msgid "Active Item Index"
+msgstr "Etkin Öge İndeksi"
 
 
-msgid "Active input index in details view list"
-msgstr "Ayrıntılı görünüm listesindeki etkin giriş dizini"
-
-
-msgid "Base Path"
-msgstr "Temel Yol"
-
-
-msgid "Base output path for the image"
-msgstr "Görüntü için temel çıktı yolu"
-
-
-msgid "File Slots"
-msgstr "Dosya Yuvaları"
-
-
-msgid "EXR Layer Slots"
-msgstr "EXR Katman Yuvaları"
+msgid "Index of the active item"
+msgstr "Etkin ögenin indeksi"
 
 
 msgid "Save as Render"
@@ -39446,14 +39362,6 @@ msgstr "Yüzen sayıyı bir sonraki en büyük tam sayıya yuvarlayın"
 msgctxt "NodeTree"
 msgid "Truncate"
 msgstr "Kısaltmak"
-
-
-msgid "Active Item Index"
-msgstr "Etkin Öge İndeksi"
-
-
-msgid "Index of the active item"
-msgstr "Etkin ögenin indeksi"
 
 
 msgid "Hash Value"
@@ -43522,30 +43430,6 @@ msgid "Collection of items that make up an enum"
 msgstr "Bir enum'u oluşturan öğelerin koleksiyonu"
 
 
-msgid "Output File Slot"
-msgstr "Çıktı Dosyası Yuvası"
-
-
-msgid "Single layer file slot of the file output node"
-msgstr "Dosya çıkış düğümünün tek katmanlı dosya yuvası"
-
-
-msgid "Subpath used for this slot"
-msgstr "Bu yuva için kullanılan alt yol"
-
-
-msgid "Output File Layer Slot"
-msgstr "Çıktı Dosyası Katman Yuvası"
-
-
-msgid "Multilayer slot of the file output node"
-msgstr "Dosya çıkış düğümünün çok katmanlı yuvası"
-
-
-msgid "OpenEXR layer name used for this slot"
-msgstr "Bu yuva için kullanılan OpenEXR katman adı"
-
-
 msgid "Node Outputs"
 msgstr "Düğüm Çıktıları"
 
@@ -46952,10 +46836,6 @@ msgstr "Uç segmentlerin düz çizgi eğimi uç nokta anahtar karelerinin ötesi
 
 msgid "Make Cyclic (F-Modifier)"
 msgstr "Döngüsel Yap (F-Değiştirici)"
-
-
-msgid "Add Cycles F-Modifier if one doesn't exist already"
-msgstr "Eğer halihazırda yoksa Döngüler F-Değiştiricisini ekleyin"
 
 
 msgid "Clear Cyclic (F-Modifier)"
@@ -60810,10 +60690,6 @@ msgid "Add an existing node group to the current node editor"
 msgstr "Mevcut bir düğüm grubunu geçerli düğüm düzenleyicisine ekleyin"
 
 
-msgid "Show the datablock selector in the node"
-msgstr "Düğümde veri bloğu seçicisini göster"
-
-
 msgctxt "Operator"
 msgid "Add Node Group Asset"
 msgstr "Düğüm Grubu Varlığını Ekle"
@@ -61648,6 +61524,18 @@ msgid "Choose the file format to save to"
 msgstr "Kaydedilecek dosya biçimini seçin"
 
 
+msgid "BMP"
+msgstr "BMP"
+
+
+msgid "DPX"
+msgstr "DPX"
+
+
+msgid "TIFF"
+msgstr "TIFF"
+
+
 msgid "Select members of selected frame"
 msgstr "Seçili çerçevenin üyelerini seç"
 
@@ -61659,33 +61547,6 @@ msgstr "Düğüm Seçeneklerini Değiştir"
 
 msgid "Toggle option buttons display for selected nodes"
 msgstr "Seçili düğümler için seçenek düğmelerinin görüntülenmesini değiştir"
-
-
-msgctxt "Operator"
-msgid "Add File Node Socket"
-msgstr "Dosya Düğüm Soketi Ekle"
-
-
-msgid "Add a new input to a file output node"
-msgstr "Bir dosya çıktı düğümüne yeni bir girdi ekleyin"
-
-
-msgid "Subpath of the output file"
-msgstr "Çıktı dosyasının alt yolu"
-
-
-msgctxt "Operator"
-msgid "Move File Node Socket"
-msgstr "Dosya Düğüm Soketini Taşı"
-
-
-msgctxt "Operator"
-msgid "Remove File Node Socket"
-msgstr "Dosya Düğüm Soketini Kaldır"
-
-
-msgid "Remove the active input from a file output node"
-msgstr "Etkin girişi bir dosya çıkış düğümünden kaldırın"
 
 
 msgid "Attach selected nodes"
@@ -62262,10 +62123,6 @@ msgstr "Nesneyi tüm sahnelerden kaldır"
 msgctxt "Operator"
 msgid "Drop Geometry Node Group on Object"
 msgstr "Nesne Üzerindeki Geometri Düğüm Grubunu Bırak"
-
-
-msgid "Show the datablock selector in the modifier"
-msgstr "Değiştiricide veri bloğu seçicisini göster"
 
 
 msgctxt "Operator"
@@ -70321,10 +70178,6 @@ msgstr "Her karenin uzunluğu"
 msgctxt "Operator"
 msgid "Lock Strips"
 msgstr "Kilit Şeritleri"
-
-
-msgid "Lock strips so they can't be transformed"
-msgstr "Kilit şeritleri dönüştürülemeyecek şekilde"
 
 
 msgctxt "Operator"
@@ -82456,10 +82309,6 @@ msgid "Never None"
 msgstr "Asla Hiçbiri"
 
 
-msgid "True when this value can't be set to None"
-msgstr "Bu değer Hiçbiri olarak ayarlanamadığında Doğru"
-
-
 msgid "Return"
 msgstr "Return"
 
@@ -84794,10 +84643,6 @@ msgid "Vertical Split"
 msgstr "Dikey Bölme"
 
 
-msgid "Region floats on screen, doesn't use any fixed alignment"
-msgstr "Bölge ekranda yüzer, sabit bir hizalama kullanmaz"
-
-
 msgid "Quad Split"
 msgstr "Dörtlü Bölünme"
 
@@ -85592,14 +85437,6 @@ msgstr "Multires'ten pişirin"
 
 msgid "Bake directly from multires object"
 msgstr "Çoklu nesneden doğrudan pişirme"
-
-
-msgid "User Scale"
-msgstr "Kullanıcı Ölçeği"
-
-
-msgid "Use a user scale for the derivative map"
-msgstr "Türev haritası için bir kullanıcı ölçeği kullanın"
 
 
 msgid "Render Region"
@@ -87315,10 +87152,6 @@ msgstr "Şeritlerin üstündeki yeniden zamanlama tuşlarını görüntüleyin"
 
 msgid "Show Source"
 msgstr "Kaynak Göster"
-
-
-msgid "Display path to source file, or name of source datablock"
-msgstr "Kaynak dosyanın yolunu veya kaynak veri bloğunun adını görüntüle"
 
 
 msgid "Show Color Tags"
@@ -92737,14 +92570,6 @@ msgid "Strips Selected"
 msgstr "Seçilen Şeritler"
 
 
-msgid "Marker Line"
-msgstr "İşaret çizgisi"
-
-
-msgid "Marker Line Selected"
-msgstr "İşaretçi Çizgisi Seçildi"
-
-
 msgid "Scrubbing/Markers Region"
 msgstr "Fırçalama/İşaretleyiciler Bölgesi"
 
@@ -92761,12 +92586,32 @@ msgid "Collection Color Tag"
 msgstr "Koleksiyon Renk Etiketi"
 
 
+msgid "Channel Group"
+msgstr "Kanal Grubu"
+
+
+msgid "Active Channel Group"
+msgstr "Etkin Kanal Grubu"
+
+
+msgid "Sub-channel"
+msgstr "Alt kanal"
+
+
 msgid "Preview Range"
 msgstr "Önizleme Aralığı"
 
 
 msgid "Color of preview range overlay"
 msgstr "Önizleme aralığı kaplamasının rengi"
+
+
+msgid "Marker Line"
+msgstr "İşaret çizgisi"
+
+
+msgid "Marker Line Selected"
+msgstr "İşaretçi Çizgisi Seçildi"
 
 
 msgid "Theme Console"
@@ -92801,24 +92646,8 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "Döküm Kağıdı için tema ayarları"
 
 
-msgid "Active Channel Group"
-msgstr "Etkin Kanal Grubu"
-
-
-msgid "Channel Group"
-msgstr "Kanal Grubu"
-
-
 msgid "Channels Selected"
 msgstr "Seçilen Kanallar"
-
-
-msgid "Dope Sheet Channel"
-msgstr "Döküm Kağıdı Kanalı"
-
-
-msgid "Dope Sheet Sub-channel"
-msgstr "Döküm Kağıdı Alt Kanalı"
 
 
 msgid "Interpolation Line"
@@ -93335,18 +93164,6 @@ msgstr "Animasyon veri bloğunun etkin eylemi var"
 
 msgid "No Active Action"
 msgstr "Etkin Eylem Yok"
-
-
-msgid "Animation data-block doesn't have active action"
-msgstr "Animasyon veri bloğunun etkin eylemi yok"
-
-
-msgid "Nonlinear Animation Channel"
-msgstr "Doğrusal Olmayan Animasyon Kanalı"
-
-
-msgid "Sub-channel"
-msgstr "Alt kanal"
 
 
 msgid "Meta Strips"
@@ -100509,10 +100326,6 @@ msgid "OSL query failed to open %s"
 msgstr "OSL sorgusu %s açılamadı"
 
 
-msgid "Can't read OSO bytecode to store in node at %r"
-msgstr "%r düğümünde depolanacak OSO bayt kodu okunamıyor"
-
-
 msgid "Failed to write .oso file next to external .osl file at "
 msgstr "Harici .osl dosyasının yanına .oso dosyası yazılamadı "
 
@@ -102054,10 +101867,6 @@ msgid "Nothing to bake"
 msgstr "Pişirilecek bir şey yok"
 
 
-msgid "Complete report available on '{:s}' text datablock"
-msgstr "'{:s}' metin veri bloğunda tam rapor mevcuttur"
-
-
 msgid "No active bone to copy from"
 msgstr "Kopyalanacak aktif kemik yok"
 
@@ -103365,16 +103174,6 @@ msgstr "Kilit Ters Çevir Tümünü"
 
 
 msgctxt "Operator"
-msgid "Delete All Shape Keys"
-msgstr "Aktif Gruptan Kaldır"
-
-
-msgctxt "Operator"
-msgid "Apply All Shape Keys"
-msgstr "Tüm Şekil Anahtarlarını Uygula"
-
-
-msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "İsme Göre Sırala"
 
@@ -103410,23 +103209,8 @@ msgstr "Tüm Grupları Sil"
 
 
 msgctxt "Operator"
-msgid "New Shape from Mix"
-msgstr "Karışımdan Yeni Şekil"
-
-
-msgctxt "Operator"
-msgid "Mirror Shape Key (Topology)"
-msgstr "Ayna Şekil Anahtarı (Topoloji)"
-
-
-msgctxt "Operator"
-msgid "Move to Top"
-msgstr "Başa Dön"
-
-
-msgctxt "Operator"
-msgid "Move to Bottom"
-msgstr "Alt tarafa taşı"
+msgid "Flip"
+msgstr "Çevir"
 
 
 msgid "Auto Normalize"
@@ -105409,6 +105193,16 @@ msgstr "Blender Kimlikleri"
 
 
 msgctxt "Operator"
+msgid "Move to Top"
+msgstr "Başa Dön"
+
+
+msgctxt "Operator"
+msgid "Move to Bottom"
+msgstr "Alt tarafa taşı"
+
+
+msgctxt "Operator"
 msgid "Increase Number"
 msgstr "Sayıyı Artır"
 
@@ -106276,6 +106070,11 @@ msgstr "Ses Çapraz Geçişi"
 msgctxt "Operator"
 msgid "Change Keying Set..."
 msgstr "Anahtar Setini Değiştir..."
+
+
+msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "Anahtar Kareleri Sil..."
 
 
 msgctxt "Operator"
@@ -107837,11 +107636,6 @@ msgstr "Yerel Yap..."
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "Anahtar Kareleri Sil..."
-
-
-msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "Anahtar Kareleri Temizle..."
 
@@ -108436,11 +108230,6 @@ msgstr "Güçlü"
 
 
 msgctxt "Operator"
-msgid "Flip"
-msgstr "Çevir"
-
-
-msgctxt "Operator"
 msgid "Set from Faces"
 msgstr "Yüzlerden Ayarla"
 
@@ -108576,17 +108365,9 @@ msgid "Mesh Edit Mode Overlays"
 msgstr "Mesh Düzenleme Modu Kaplamaları"
 
 
-msgid "Creases"
-msgstr "Kırışıklıklar"
-
-
 msgctxt "Plural"
 msgid "Sharp"
 msgstr "Keskin"
-
-
-msgid "Seams"
-msgstr "Dikişler"
 
 
 msgid "Vertex Group Weights"
@@ -109824,10 +109605,6 @@ msgid "The attribute name must not be empty"
 msgstr "Öznitelik adı boş olamaz"
 
 
-msgid "Attribute is required and can't be removed"
-msgstr "Öznitelik gereklidir ve kaldırılamaz"
-
-
 msgid "Layer '%s' could not be created"
 msgstr "'%s' katmanı oluşturulamadı"
 
@@ -109910,10 +109687,6 @@ msgstr "'%s' yolu %s '%s' için göreceli yapılamaz"
 
 msgid "Path '%s' cannot be made absolute for %s '%s'"
 msgstr "'%s' yolu %s '%s' için mutlak hale getirilemez"
-
-
-msgid "Can't initialize cloth"
-msgstr "Kumaş başlatılamıyor"
 
 
 msgid "Null cloth object"
@@ -110223,10 +109996,6 @@ msgid "Conversion is not supported"
 msgstr "Dönüştürme desteklenmiyor"
 
 
-msgid "Can't find object data of %s lib %s"
-msgstr "%s lib %s'in nesne verileri bulunamadı"
-
-
 msgid "Object %s lost data"
 msgstr "Nesne %s veri kaybetti"
 
@@ -110365,14 +110134,6 @@ msgstr "Bellek Yetersiz Hatası"
 
 msgid "Undefined Type"
 msgstr "Tanımsız Tür"
-
-
-msgid "Can't add Rigid Body to non mesh object"
-msgstr "Örgü olmayan nesneye sert gövde eklenemez"
-
-
-msgid "Can't create Rigid Body world"
-msgstr "Sert gövde dünyası oluşturulamıyor"
 
 
 msgid "Compiled without Bullet physics engine"
@@ -111054,10 +110815,6 @@ msgstr "Kanallar sonuca katkıda bulunuyor mu (kanal sessizliğini değiştir)"
 
 msgid "Display action without any time remapping (when unpinned)"
 msgstr "Herhangi bir zaman yeniden eşlemesi olmadan eylemi görüntüle (sabitleme kaldırıldığında)"
-
-
-msgid "Can't edit this property from a linked data-block"
-msgstr "Bu özelliği bağlantılı bir veri bloğundan düzenleyemezsiniz"
 
 
 msgid "No active action to operate on"
@@ -112961,8 +112718,8 @@ msgid "Show in Info Log"
 msgstr "Bilgi Günlüğünde Göster"
 
 
-msgid "Can't edit external library data"
-msgstr "Harici kütüphane verileri düzenlenemiyor"
+msgid "Cannot edit external library data"
+msgstr "Harici kütüphane verileri düzenlenemez"
 
 
 msgid "Samples Transform"
@@ -113132,6 +112889,10 @@ msgstr "Sertleştirmek"
 
 msgid "Outer"
 msgstr "Dış"
+
+
+msgid "Seams"
+msgstr "Dikişler"
 
 
 msgid "Intersection Type"
@@ -113560,10 +113321,6 @@ msgid "This data does not support joining in edit mode"
 msgstr "Bu veri düzenleme modunda katılmayı desteklemiyor"
 
 
-msgid "Cannot edit external library data"
-msgstr "Harici kütüphane verileri düzenlenemez"
-
-
 msgid "Active object final transform has one or more zero scaled axes"
 msgstr "Etkin nesne son dönüşümü bir veya daha fazla sıfır ölçekli eksene sahiptir"
 
@@ -113912,10 +113669,6 @@ msgid "Clear motion paths of all objects"
 msgstr "Tüm nesnelerin hareket yollarını temizleyin"
 
 
-msgid "Can't edit linked mesh or curve data"
-msgstr "Bağlantılı ağ veya eğri verileri düzenlenemiyor"
-
-
 msgid "No collection selected"
 msgstr "Hiçbir koleksiyon seçilmedi"
 
@@ -114250,10 +114003,6 @@ msgstr "Geometri düğümleri değiştiricisi eklenemedi"
 
 msgid "Incorrect context for running object data unlink"
 msgstr "Nesne veri bağlantısını kaldırma işlemini çalıştırmak için yanlış bağlam"
-
-
-msgid "Can't unlink this object data"
-msgstr "Bu nesne verisinin bağlantısı kaldırılamıyor"
 
 
 msgid "Collection '%s' (instantiated by the active object) is not overridable"
@@ -116000,10 +115749,6 @@ msgid "See Modifiers panel below"
 msgstr "Aşağıdaki Değiştiriciler paneline bakın"
 
 
-msgid "F-Curve doesn't have any keyframes as it only contains sampled points"
-msgstr "F-Eğrisi yalnızca örneklenmiş noktalar içerdiğinden herhangi bir anahtar kareye sahip değildir"
-
-
 msgid "No active keyframe on F-Curve"
 msgstr "F-Eğrisinde etkin anahtar kare yok"
 
@@ -116189,10 +115934,6 @@ msgid "Hard coded Non-Linear, Gamma:1.7"
 msgstr "Sabit kodlu Doğrusal Olmayan, Gamma:1.7"
 
 
-msgid "Can't Load Image"
-msgstr "Resim yüklenemiyor"
-
-
 msgid "%d × %d, "
 msgstr "%d × %d, "
 
@@ -116303,26 +116044,6 @@ msgstr "%d görüntü %s'ye kaydedilecek"
 
 msgid "Saved %s"
 msgstr "%s kaydedildi"
-
-
-msgid "Packed library image can't be saved: \"%s\" from \"%s\""
-msgstr "Paketlenmiş kitaplık görüntüsü kaydedilemiyor: \"%s\" from \"%s\""
-
-
-msgid "Image can't be saved, use a different file format: \"%s\""
-msgstr "Resim kaydedilemiyor, farklı bir dosya biçimi kullanın: \"%s\""
-
-
-msgid "Multiple images can't be saved to an identical path: \"%s\""
-msgstr "Aynı yola birden fazla resim kaydedilemez: \"%s\""
-
-
-msgid "Image can't be saved, no valid file path: \"%s\""
-msgstr "Resim kaydedilemiyor, geçerli dosya yolu yok: \"%s\""
-
-
-msgid "can't save image while rendering"
-msgstr "render sırasında görüntü kaydedilemiyor"
 
 
 msgid "No images available"
@@ -116685,20 +116406,12 @@ msgid "More than one collection is selected"
 msgstr "Birden fazla koleksiyon seçildi"
 
 
-msgid "Can't add a new collection to linked/override scene"
-msgstr "Bağlantılı/geçersiz kılma sahnesine yeni bir koleksiyon eklenemiyor"
-
-
 msgid "No active collection"
 msgstr "Etkin koleksiyon yok"
 
 
 msgid "Cannot add a collection to a linked/override collection/scene"
 msgstr "Bağlantılı/geçersiz kılınan bir koleksiyona/sahneye koleksiyon eklenemez"
-
-
-msgid "Can't add a color tag to a linked collection"
-msgstr "Bağlantılı bir koleksiyona renk etiketi eklenemiyor"
 
 
 msgid "Reorder"
@@ -116757,10 +116470,6 @@ msgid "Move inside collection (Ctrl to link)"
 msgstr "Koleksiyon içinde hareket et (Bağlanmak için Ctrl)"
 
 
-msgid "Can't edit library linked or non-editable override object(s)"
-msgstr "Kütüphane bağlantılı veya düzenlenemeyen geçersiz kılma nesnelerini düzenleyemezsiniz"
-
-
 msgid "Use view layer for rendering"
 msgstr "İşleme için görünüm katmanını kullan"
 
@@ -116815,10 +116524,6 @@ msgstr "Kütüphane yolu '%s' mevcut değil, kaydetmeden önce bunu düzeltin"
 
 msgid "Library path '%s' is now valid, please reload the library"
 msgstr "Kütüphane yolu '%s' artık geçerli, lütfen kütüphaneyi yeniden yükleyin"
-
-
-msgid "Can't edit library or non-editable override data"
-msgstr "Kütüphane veya düzenlenemeyen geçersiz kılma verileri düzenlenemez"
 
 
 msgid "Remap Data ID"
@@ -116969,10 +116674,6 @@ msgid "Strip None"
 msgstr "Hiçbirini soyma"
 
 
-msgid "Can't reload with running modal operators"
-msgstr "Çalışan modal operatörlerle yeniden yükleme yapılamıyor"
-
-
 msgid "Add a color strip to the sequencer"
 msgstr "Sıralayıcıya bir renk şeridi ekleyin"
 
@@ -117041,24 +116742,12 @@ msgid "Please select two strips"
 msgstr "Lütfen iki şerit seçin"
 
 
-msgid "Can't create subtitle file"
-msgstr "Altyazı dosyası oluşturulamıyor"
-
-
-msgid "Can't overwrite export file"
-msgstr "Dışa aktarma dosyasının üzerine yazılamıyor"
-
-
 msgid "No subtitles (text strips) to export"
 msgstr "Dışa aktarılacak altyazı (metin şeritleri) yok"
 
 
 msgid "Select one or more strips"
 msgstr "Bir veya daha fazla şerit seçin"
-
-
-msgid "Can't set a negative range"
-msgstr "Negatif bir aralık ayarlanamıyor"
 
 
 msgid "Set Selected Strip Proxies"
@@ -117757,10 +117446,6 @@ msgid "Bone selection count error"
 msgstr "Kemik seçimi sayım hatası"
 
 
-msgid "Linked data can't text-space transform"
-msgstr "Bağlantılı veriler metin alanı dönüşümü yapamaz"
-
-
 msgid "Unsupported object type for text-space transform"
 msgstr "Metin alanı dönüşümü için desteklenmeyen nesne türü"
 
@@ -118228,10 +117913,6 @@ msgid "No valid formats found"
 msgstr "Geçerli format bulunamadı"
 
 
-msgid "Can't allocate FFmpeg format context"
-msgstr "FFmpeg biçim bağlamı tahsis edilemiyor"
-
-
 msgid "Render width has to be 720 pixels for DV!"
 msgstr "DV için render genişliği 720 piksel olmak zorunda!"
 
@@ -118376,32 +118057,12 @@ msgid "%s: Will not overwrite existing asset %s"
 msgstr "%s: Mevcut varlık %s üzerine yazılmayacak"
 
 
-msgid "%s: Can't resolve path %s"
-msgstr "%s: %s yolu çözülemiyor"
-
-
-msgid "%s: Can't resolve path %s for writing"
-msgstr "%s: Yazma için %s yolu çözülemiyor"
-
-
-msgid "%s: Can't write to asset %s: %s"
-msgstr "%s: Varlığa yazılamıyor %s: %s"
-
-
-msgid "%s: Can't open source asset %s"
-msgstr "%s: Kaynak varlığı %s açılamıyor"
-
-
 msgid "%s: Will not copy zero size source asset %s"
 msgstr "%s: Sıfır boyutlu kaynak varlığı %s kopyalanmayacak"
 
 
 msgid "%s: Null buffer for source asset %s"
 msgstr "%s: Kaynak varlık %s için boş arabellek"
-
-
-msgid "%s: Can't open destination asset %s for writing"
-msgstr "%s: Hedef varlık %s yazma için açılamıyor"
 
 
 msgid "%s: Error writing to destination asset %s"
@@ -118418,18 +118079,6 @@ msgstr "%s: Doku içe aktarma dizin yolu boş, %s içe aktarılamadı"
 
 msgid "%s: Couldn't create texture import directory %s"
 msgstr "%s: Doku içe aktarma dizini %s oluşturulamadı"
-
-
-msgid "Can't resolve path %s for writing"
-msgstr "Yazma için %s yolu çözülemiyor"
-
-
-msgid "Can't write to asset %s:  %s"
-msgstr "%s varlığına yazılamıyor: %s"
-
-
-msgid "Can't open destination asset %s for writing"
-msgstr "Yazma için hedef varlık %s açılamıyor"
 
 
 msgid "Error writing to destination asset %s"
@@ -118600,10 +118249,6 @@ msgid "Built-in fonts cannot be renamed"
 msgstr "Yerleşik yazı tipleri yeniden adlandırılamaz"
 
 
-msgid "Datablocks not in global Main data-base cannot be renamed"
-msgstr "Küresel Ana veritabanında olmayan veri blokları yeniden adlandırılamaz"
-
-
 msgid "%s is not compatible with the specified 'refresh' options"
 msgstr "%s belirtilen 'yenileme' seçenekleriyle uyumlu değil"
 
@@ -118652,18 +118297,6 @@ msgid "ID '%s' is linked, cannot edit its overrides"
 msgstr "Kimlik '%s' bağlantılıdır, geçersiz kılmalarını düzenleyemezsiniz"
 
 
-msgid "This property is for internal use only and can't be edited"
-msgstr "Bu özellik yalnızca dahili kullanım içindir ve düzenlenemez"
-
-
-msgid "Can't edit this property from an override data-block"
-msgstr "Bu özelliği geçersiz kılma veri bloğundan düzenleyemezsiniz"
-
-
-msgid "Can't edit this property from a system override data-block"
-msgstr "Bu özelliği bir sistem geçersiz kılma veri bloğundan düzenleyemezsiniz"
-
-
 msgid "Only boolean, int, float, and enum properties supported"
 msgstr "Yalnızca boolean, int, float ve enum özellikleri desteklenir"
 
@@ -118674,14 +118307,6 @@ msgstr "Yalnızca boolean, int, float ve enum özellikleri desteklenir"
 
 msgid "'%s' does not contain '%s' with prefix and suffix"
 msgstr "'%s' önek ve sonek ile '%s' içermiyor"
-
-
-msgid "'%s' doesn't have upper case alpha-numeric prefix"
-msgstr "'%s' büyük harfli alfa-nümerik önekine sahip değil"
-
-
-msgid "'%s' doesn't have an alpha-numeric suffix"
-msgstr "'%s' alfa-sayısal bir son eke sahip değil"
 
 
 msgid "%s: expected %s type, not %s"
@@ -118998,10 +118623,6 @@ msgid "Indices must be in range"
 msgstr "Endeksler aralıkta olmalıdır"
 
 
-msgid "Indices can't have duplicates"
-msgstr "Endekslerin kopyaları olamaz"
-
-
 msgid "Sizes must be greater than zero"
 msgstr "Boyutlar sıfırdan büyük olmalıdır"
 
@@ -119196,10 +118817,6 @@ msgstr "Parçacıklardan duman çıkarmak"
 
 msgid "Frame already exists on frame number %d"
 msgstr "Çerçeve zaten %d numaralı çerçevede mevcut"
-
-
-msgid "Frame doesn't exists on frame number %d"
-msgstr "Çerçeve %d numaralı çerçevede mevcut değil"
 
 
 msgid "Image not packed"
@@ -120983,10 +120600,6 @@ msgid "Streak fade-out factor"
 msgstr "Çizgi kaybolma faktörü"
 
 
-msgid "Viewport compositor setup not fully supported"
-msgstr "Viewport kompozitör kurulumu tam olarak desteklenmiyor"
-
-
 msgid "ID value"
 msgstr "Kimlik değeri"
 
@@ -122031,10 +121644,6 @@ msgid "Vertex Face Count Field"
 msgstr "Tepe Noktası Yüz Sayısı Alanı"
 
 
-msgid "Anonymous attributes can't be accessed by name"
-msgstr "İsimle anonim niteliklere erişilemez"
-
-
 msgid "End Vertex"
 msgstr "Son Tepe Noktası"
 
@@ -122702,10 +122311,6 @@ msgstr "Tüm geometri grupları ayrı örnekler olarak"
 
 msgid "The group ID of each group instance"
 msgstr "Her grup örneğinin grup kimliği"
-
-
-msgid "Anonymous attributes can't be created here"
-msgstr "Burada anonim öznitelikler oluşturulamaz"
 
 
 msgid "Strings"
@@ -123954,24 +123559,12 @@ msgid "Cannot save blend file, path \"%s\" is not writable"
 msgstr "Karışım dosyası kaydedilemiyor, \"%s\" yolu yazılabilir değil"
 
 
-msgid "Can't read alternative start-up file: \"%s\""
-msgstr "Can't read alternative start-up file: \"%s\""
-
-
 msgid "Not a library"
 msgstr "Kütüphane değil"
 
 
 msgid "Nothing indicated"
 msgstr "Hiçbir şey belirtilmedi"
-
-
-msgid "Can't append data-block '%s' of type '%s'"
-msgstr "'%s' türündeki '%s' veri bloğu eklenemiyor"
-
-
-msgid "Can't link data-block '%s' of type '%s'"
-msgstr "'%s' türündeki '%s' veri bloğuna bağlanılamıyor"
 
 
 msgid "'%s': cannot use current file as library"

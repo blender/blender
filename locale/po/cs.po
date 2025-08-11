@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 15:14+0000\n"
 "Last-Translator: Jan Vavřínek <janvavrinek1@gmail.com>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -4529,10 +4529,6 @@ msgstr "Prvky Rampy Barev"
 
 msgid "Collection of Color Ramp Elements"
 msgstr "Kolekce prvků rampy barev"
-
-
-msgid "File Output Slots"
-msgstr "Výstupní sloty souborů"
 
 
 msgid "Console Input"
@@ -9653,48 +9649,16 @@ msgid "Format used for re-saving this file"
 msgstr "Typ filtru"
 
 
-msgid "Iris"
-msgstr "Duhovka"
-
-
-msgid "Output image in SGI IRIS format"
-msgstr "Výstup obrázku v SGI IRIS formátu"
-
-
-msgid "Output image in PNG format"
-msgstr "Výstup obrázku v PNG formátu"
-
-
 msgid "Output image in JPEG format"
 msgstr "Výstup obrázku v JPEG formátu"
 
 
-msgid "JPEG 2000"
-msgstr "JPEG 2000"
+msgid "Output image in OpenEXR format"
+msgstr "Výstup obrázku v OpenEXR formátu"
 
 
-msgid "Output image in JPEG 2000 format"
-msgstr "Výstup obrázku v JPEG 2000 formáu"
-
-
-msgid "Targa"
-msgstr "Targa"
-
-
-msgid "Output image in Targa format"
-msgstr "Výstup obrázku v Targa formátu"
-
-
-msgid "Targa Raw"
-msgstr "Targa Raw"
-
-
-msgid "Output image in uncompressed Targa format"
-msgstr "Výstup obrázku v nekompresovaném formátu Targa"
-
-
-msgid "Cineon"
-msgstr "Uložit Cineon"
+msgid "Output image in PNG format"
+msgstr "Výstup obrázku v PNG formátu"
 
 
 msgid "Output image in Cineon format"
@@ -9705,24 +9669,28 @@ msgid "Output image in DPX format"
 msgstr "Výstup obrázku v DPX formátu"
 
 
-msgid "Output image in OpenEXR format"
-msgstr "Výstup obrázku v OpenEXR formátu"
+msgid "Output image in SGI IRIS format"
+msgstr "Výstup obrázku v SGI IRIS formátu"
 
 
-msgid "Radiance HDR"
-msgstr "Uložit Radiance HDR"
+msgid "Output image in JPEG 2000 format"
+msgstr "Výstup obrázku v JPEG 2000 formáu"
 
 
 msgid "Output image in Radiance HDR format"
 msgstr "Výsutp obrázku v Radiance HDR formátu"
 
 
+msgid "Output image in Targa format"
+msgstr "Výstup obrázku v Targa formátu"
+
+
+msgid "Output image in uncompressed Targa format"
+msgstr "Výstup obrázku v nekompresovaném formátu Targa"
+
+
 msgid "Output image in TIFF format"
 msgstr "Výstup obrázku v TIFF formátu"
-
-
-msgid "OpenEXR MultiLayer"
-msgstr "Multivrstva"
 
 
 msgid "Output image in multilayer OpenEXR format"
@@ -13914,6 +13882,10 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
+
+
 msgid "Snap"
 msgstr "Přichytit"
 
@@ -14028,10 +14000,6 @@ msgstr "Text"
 
 msgid "Bone Roll"
 msgstr "Kost"
-
-
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
 
 
 msgid "Basic"
@@ -17175,26 +17143,6 @@ msgid "File Output"
 msgstr "Výstup souboru"
 
 
-msgid "Active Input Index"
-msgstr "Přidat primitivum"
-
-
-msgid "Base Path"
-msgstr "Důležité cesty"
-
-
-msgid "Base output path for the image"
-msgstr "Základní výstupní cesta pro obrázek"
-
-
-msgid "File Slots"
-msgstr "Důležité cesty"
-
-
-msgid "EXR Layer Slots"
-msgstr "Materiál"
-
-
 msgid "Save as Render"
 msgstr "Uložit jako Render"
 
@@ -17990,18 +17938,6 @@ msgstr "Pózy kostí"
 
 msgid "To socket"
 msgstr "Na další"
-
-
-msgid "Output File Slot"
-msgstr "Výstup"
-
-
-msgid "Subpath used for this slot"
-msgstr "Faktor zvětšení textury"
-
-
-msgid "Output File Layer Slot"
-msgstr "Výstup"
 
 
 msgid "Node Socket"
@@ -24869,21 +24805,6 @@ msgstr "Možnosti Uzlu"
 
 msgid "Toggle option buttons display for selected nodes"
 msgstr "Na Vybraných Klíčích"
-
-
-msgctxt "Operator"
-msgid "Add File Node Socket"
-msgstr "Skrýt/odkrýt socket"
-
-
-msgctxt "Operator"
-msgid "Move File Node Socket"
-msgstr "Kopírovat atributy"
-
-
-msgctxt "Operator"
-msgid "Remove File Node Socket"
-msgstr "Kopírovat atributy"
 
 
 msgid "Attach selected nodes"
@@ -36246,6 +36167,14 @@ msgid "Strips Selected"
 msgstr "Skrýt označené"
 
 
+msgid "Channel Group"
+msgstr "Nelze vytvořit skupinu"
+
+
+msgid "Active Channel Group"
+msgstr "Akce"
+
+
 msgid "Theme Console"
 msgstr "Zobrazit kontrolery"
 
@@ -36268,14 +36197,6 @@ msgstr "Vstup"
 
 msgid "Line Output"
 msgstr "Výstup Řádku"
-
-
-msgid "Active Channel Group"
-msgstr "Akce"
-
-
-msgid "Channel Group"
-msgstr "Nelze vytvořit skupinu"
 
 
 msgid "Channels Selected"
@@ -38114,11 +38035,6 @@ msgstr "Převrátit osy"
 
 
 msgctxt "Operator"
-msgid "Delete All Shape Keys"
-msgstr "Odstranit Veškeré Tvarové Klíče"
-
-
-msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "Seřadit podle Názvu"
 
@@ -38149,13 +38065,8 @@ msgstr "Odstranit Všechny Skupiny"
 
 
 msgctxt "Operator"
-msgid "Move to Top"
-msgstr "Přesunout Nahoru"
-
-
-msgctxt "Operator"
-msgid "Move to Bottom"
-msgstr "Přesunout Dolů"
+msgid "Flip"
+msgstr "Flip"
 
 
 msgid "Auto Normalize"
@@ -39088,6 +38999,16 @@ msgstr "ID Blenderu"
 
 
 msgctxt "Operator"
+msgid "Move to Top"
+msgstr "Přesunout Nahoru"
+
+
+msgctxt "Operator"
+msgid "Move to Bottom"
+msgstr "Přesunout Dolů"
+
+
+msgctxt "Operator"
 msgid "Increase Number"
 msgstr "Zvýšit počet"
 
@@ -39425,6 +39346,11 @@ msgstr "Nejsou k dispozici žádné položky"
 msgctxt "Operator"
 msgid "Change Keying Set..."
 msgstr "Změnit klíčovací snímek..."
+
+
+msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "Odebrat klíčový snímek..."
 
 
 msgctxt "Operator"
@@ -40158,11 +40084,6 @@ msgstr "Vytvořit lokální..."
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "Odebrat klíčový snímek..."
-
-
-msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "Odstranit Klíčové Snímky..."
 
@@ -40466,11 +40387,6 @@ msgstr "Silné"
 
 
 msgctxt "Operator"
-msgid "Flip"
-msgstr "Flip"
-
-
-msgctxt "Operator"
 msgid "Set from Faces"
 msgstr "Sada z Ploch"
 
@@ -40545,17 +40461,9 @@ msgid "Origins (All)"
 msgstr "Původy (Všech)"
 
 
-msgid "Creases"
-msgstr "Záhyby"
-
-
 msgctxt "Plural"
 msgid "Sharp"
 msgstr "Ostré"
-
-
-msgid "Seams"
-msgstr "Švy"
 
 
 msgid "Face Angle"
@@ -41869,10 +41777,6 @@ msgid "Stop animation playback"
 msgstr "Zastavit přehrávání animace"
 
 
-msgid "Can't edit external library data"
-msgstr "Nelze upravovat data externí knihovny"
-
-
 msgid "Use Schema"
 msgstr "Použít schéma"
 
@@ -41948,6 +41852,10 @@ msgstr "IcoKoule"
 
 msgid "Outer"
 msgstr "Vnější"
+
+
+msgid "Seams"
+msgstr "Švy"
 
 
 msgid "Not a valid selection for extrude"
@@ -42230,10 +42138,6 @@ msgstr "Objekty, jejichž zásobník modifikátorů je editován"
 
 msgid "Cannot edit library data"
 msgstr "Nelze upravovat data knihovny"
-
-
-msgid "Can't edit linked mesh or curve data"
-msgstr "Nelze upravovat připojená data sítě nebo křivky"
 
 
 msgid "No collection selected"
@@ -42800,10 +42704,6 @@ msgid "Select Pass"
 msgstr "Vybrat méně"
 
 
-msgid "Can't Load Image"
-msgstr "Nelze načíst obrázek"
-
-
 msgid "unsupported image format"
 msgstr "nepodporovaný obrázkový typ souboru"
 
@@ -42882,10 +42782,6 @@ msgstr "Maska nebyla nalezena"
 
 msgid "Please select two strips"
 msgstr "Odstranit označené značky"
-
-
-msgid "Can't overwrite export file"
-msgstr "Nelze přepsat exportní soubor"
 
 
 msgid "Save to disk (ignore outside changes)"

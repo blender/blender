@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 5.0.0 Alpha (b'720cc7d08c9c')\n"
+"Project-Id-Version: Blender 5.0.0 Alpha (b'6dca66d606ed')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-04 09:08+0000\n"
+"POT-Creation-Date: 2025-08-11 08:28+0000\n"
 "PO-Revision-Date: 2025-07-23 14:59+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -4572,10 +4572,6 @@ msgid "Radius of head of bone (for Envelope deform only)"
 msgstr "Radius of head of bone (for Envelope deform only)"
 
 
-msgid "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)"
-msgstr "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)"
-
-
 msgid "Selectable"
 msgstr "Selectable"
 
@@ -4706,10 +4702,6 @@ msgstr "When bone has a parent, bone's head is stuck to the parent's tail"
 
 msgid "Cyclic Offset"
 msgstr "Cyclic Offset"
-
-
-msgid "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)"
-msgstr "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)"
 
 
 msgid "Deform"
@@ -7712,14 +7704,6 @@ msgid "Collection of Color Ramp Elements"
 msgstr "Collection of Colour Ramp Elements"
 
 
-msgid "File Output Slots"
-msgstr "File Output Slots"
-
-
-msgid "Collection of File Output node slots"
-msgstr "Collection of File Output node slots"
-
-
 msgid "Console Input"
 msgstr "Console Input"
 
@@ -9266,10 +9250,6 @@ msgstr "Lower Z angle bound"
 
 msgid "Legacy Behavior"
 msgstr "Legacy Behavior"
-
-
-msgid "Use the old semi-broken behavior that doesn't understand that rotations loop around"
-msgstr "Use the old semi-broken behavior that doesn't understand that rotations loop around"
 
 
 msgid "Limit X"
@@ -11305,10 +11285,6 @@ msgid "Fallback"
 msgstr "Fallback"
 
 
-msgid "The value to use if the data path can't be resolved"
-msgstr "The value to use if the data path can't be resolved"
-
-
 msgid "ID-block that the specific property used can be found from (id_type property must be set first)"
 msgstr "ID-block that the specific property used can be found from (id_type property must be set first)"
 
@@ -11367,10 +11343,6 @@ msgstr "Average Scale"
 
 msgid "Use Fallback"
 msgstr "Use Fallback"
-
-
-msgid "Use the fallback value if the data path can't be resolved, instead of failing to evaluate the driver"
-msgstr "Use the fallback value if the data path can't be resolved, instead of failing to evaluate the driver"
 
 
 msgid "Driver Variable"
@@ -12409,10 +12381,6 @@ msgstr "Use axis colours for transform and colour properties, and auto-rainbow f
 
 msgid "Auto WXYZ to YRGB"
 msgstr "Auto WXYZ to YRGB"
-
-
-msgid "Use axis colors for XYZ parts of transform, and yellow for the 'W' channel"
-msgstr "Use axis colours for XYZ parts of transform, and yellow for the 'W' channel"
 
 
 msgid "User Defined"
@@ -18043,10 +18011,6 @@ msgid "Editable"
 msgstr "Editable"
 
 
-msgid "This data-block is editable in the user interface. Linked datablocks are not editable, except if they were loaded as editable assets."
-msgstr "This data-block is editable in the user interface. Linked datablocks are not editable, except if they were loaded as editable assets."
-
-
 msgid "Embedded Data"
 msgstr "Embedded Data"
 
@@ -18262,10 +18226,6 @@ msgstr "The list of slots in this Action"
 
 msgid "Cyclic Animation"
 msgstr "Cyclic Animation"
-
-
-msgid "The action is intended to be used as a cycle looping over its manually set playback frame range (enabling this doesn't automatically make it loop)"
-msgstr "The action is intended to be used as a cycle looping over its manually set playback frame range (enabling this doesn't automatically make it loop)"
 
 
 msgid "Manual Frame Range"
@@ -21760,10 +21720,6 @@ msgid "Enable the curve to become a translation path"
 msgstr "Enable the curve to become a translation path"
 
 
-msgid "Clamp the curve path children so they can't travel past the start/end point of the curve"
-msgstr "Clamp the curve path children so they can't travel past the start/end point of the curve"
-
-
 msgid "Follow"
 msgstr "Follow"
 
@@ -21990,10 +21946,6 @@ msgstr "Vertical offset from the object origin"
 
 msgid "Textbox Overflow"
 msgstr "Textbox Overflow"
-
-
-msgid "Handle the text behavior when it doesn't fit in the text boxes"
-msgstr "Handle the text behavior when it doesn't fit in the text boxes"
 
 
 msgid "Overflow"
@@ -22898,104 +22850,56 @@ msgid "Format used for re-saving this file"
 msgstr "Format used for re-saving this file"
 
 
-msgid "BMP"
-msgstr "BMP"
-
-
-msgid "Output image in bitmap format"
-msgstr "Output image in bitmap format"
-
-
-msgid "Iris"
-msgstr "Iris"
-
-
-msgid "Output image in SGI IRIS format"
-msgstr "Output image in SGI IRIS format"
-
-
-msgid "Output image in PNG format"
-msgstr "Output image in PNG format"
-
-
-msgid "JPEG"
-msgstr "JPEG"
-
-
 msgid "Output image in JPEG format"
 msgstr "Output image in JPEG format"
-
-
-msgid "JPEG 2000"
-msgstr "JPEG 2000"
-
-
-msgid "Output image in JPEG 2000 format"
-msgstr "Output image in JPEG 2000 format"
-
-
-msgid "Targa"
-msgstr "Targa"
-
-
-msgid "Output image in Targa format"
-msgstr "Output image in Targa format"
-
-
-msgid "Targa Raw"
-msgstr "Targa Raw"
-
-
-msgid "Output image in uncompressed Targa format"
-msgstr "Output image in uncompressed Targa format"
-
-
-msgid "Cineon"
-msgstr "Cineon"
-
-
-msgid "Output image in Cineon format"
-msgstr "Output image in Cineon format"
-
-
-msgid "DPX"
-msgstr "DPX"
-
-
-msgid "Output image in DPX format"
-msgstr "Output image in DPX format"
 
 
 msgid "Output image in OpenEXR format"
 msgstr "Output image in OpenEXR format"
 
 
-msgid "Radiance HDR"
-msgstr "Radiance HDR"
-
-
-msgid "Output image in Radiance HDR format"
-msgstr "Output image in Radiance HDR format"
-
-
-msgid "TIFF"
-msgstr "TIFF"
-
-
-msgid "Output image in TIFF format"
-msgstr "Output image in TIFF format"
-
-
-msgid "WebP"
-msgstr "WebP"
+msgid "Output image in PNG format"
+msgstr "Output image in PNG format"
 
 
 msgid "Output image in WebP format"
 msgstr "Output image in WebP format"
 
 
-msgid "OpenEXR MultiLayer"
-msgstr "OpenEXR MultiLayer"
+msgid "Output image in bitmap format"
+msgstr "Output image in bitmap format"
+
+
+msgid "Output image in Cineon format"
+msgstr "Output image in Cineon format"
+
+
+msgid "Output image in DPX format"
+msgstr "Output image in DPX format"
+
+
+msgid "Output image in SGI IRIS format"
+msgstr "Output image in SGI IRIS format"
+
+
+msgid "Output image in JPEG 2000 format"
+msgstr "Output image in JPEG 2000 format"
+
+
+msgid "Output image in Radiance HDR format"
+msgstr "Output image in Radiance HDR format"
+
+
+msgid "Output image in Targa format"
+msgstr "Output image in Targa format"
+
+
+msgid "Output image in uncompressed Targa format"
+msgstr "Output image in uncompressed Targa format"
+
+
+msgid "Output image in TIFF format"
+msgstr "Output image in TIFF format"
 
 
 msgid "Output image in multilayer OpenEXR format"
@@ -23152,10 +23056,6 @@ msgstr "Seam Margin"
 
 msgid "Margin to take into account when fixing UV seams during painting. Higher number would improve seam-fixes for mipmaps, but decreases performance."
 msgstr "Margin to take into account when fixing UV seams during painting. Higher number would improve seam-fixes for mipmaps, but decreases performance."
-
-
-msgid "Width and height of the image buffer in pixels, zero when image data can't be loaded"
-msgstr "Width and height of the image buffer in pixels, zero when image data can't be loaded"
 
 
 msgctxt "Image"
@@ -23415,10 +23315,6 @@ msgstr "External .blend file from which data is linked"
 
 msgid "Path to the library .blend file"
 msgstr "Path to the library .blend file"
-
-
-msgid "Datablocks in this library are editable despite being linked. Used by brush assets and their dependencies."
-msgstr "Datablocks in this library are editable despite being linked. Used by brush assets and their dependencies."
 
 
 msgid "Library Overrides Need resync"
@@ -24926,10 +24822,6 @@ msgid "Global scene frame number at which this movie starts playing (affects all
 msgstr "Global scene frame number at which this movie starts playing (affects all data associated with a clip)"
 
 
-msgid "Width and height in pixels, zero when image data can't be loaded"
-msgstr "Width and height in pixels, zero when image data can't be loaded"
-
-
 msgid "Where the clip comes from"
 msgstr "Where the clip comes from"
 
@@ -25832,10 +25724,6 @@ msgstr "Euler Rotation"
 
 msgid "Rotation in Eulers"
 msgstr "Rotation in Eulers"
-
-
-msgid "The kind of rotation to apply, values from other rotation modes aren't used"
-msgstr "The kind of rotation to apply, values from other rotation modes aren't used"
 
 
 msgid "Quaternion (WXYZ)"
@@ -29404,10 +29292,6 @@ msgid "Is Interface Locked"
 msgstr "Is Interface Locked"
 
 
-msgid "If true, the interface is currently locked by a running job and data shouldn't be modified from application timers. Otherwise, the running job might conflict with the handler causing unexpected results or even crashes."
-msgstr "If true, the interface is currently locked by a running job and data shouldn't be modified from application timers. Otherwise, the running job might conflict with the handler causing unexpected results or even crashes."
-
-
 msgid "Key Configurations"
 msgstr "Key Configurations"
 
@@ -30690,10 +30574,6 @@ msgstr "ID of the item"
 
 msgid "Identifier of operator to call on input event"
 msgstr "Identifier of operator to call on input event"
-
-
-msgid "Is this keymap item user defined (doesn't just replace a builtin item)"
-msgstr "Is this keymap item user defined (doesn't just replace a builtin item)"
 
 
 msgid "User Modified"
@@ -34317,6 +34197,10 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
+msgid "Pivot Point"
+msgstr "Pivot Point"
+
+
 msgid "Snap"
 msgstr "Snap"
 
@@ -34543,10 +34427,6 @@ msgstr "Text"
 
 msgid "Bone Roll"
 msgstr "Bone Roll"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Point"
 
 
 msgid "Keyframe Insert Pie"
@@ -36910,10 +36790,6 @@ msgid "Index Based"
 msgstr "Index Based"
 
 
-msgid "Set the material on new faces based on the order of the material slot lists. If a material doesn't exist on the modifier object, the face will use the same material slot or the first if the object doesn't have enough slots."
-msgstr "Set the material on new faces based on the order of the material slot lists. If a material doesn't exist on the modifier object, the face will use the same material slot or the first if the object doesn't have enough slots."
-
-
 msgid "Transfer"
 msgstr "Transfer"
 
@@ -38894,10 +38770,6 @@ msgstr "Grease Pencil layer to which assign the generated strokes"
 
 msgid "Grease Pencil material assigned to the generated strokes"
 msgstr "Grease Pencil material assigned to the generated strokes"
-
-
-msgid "The thickness for the generated strokes"
-msgstr "The thickness for the generated strokes"
 
 
 msgid "Back Face Culling"
@@ -44485,6 +44357,10 @@ msgid "ITU 709"
 msgstr "ITU 709"
 
 
+msgid "JPEG"
+msgstr "JPEG"
+
+
 msgid "Combine Color"
 msgstr "Combine Color"
 
@@ -45202,10 +45078,6 @@ msgid "Map a texture using UV coordinates, to apply a texture to objects in comp
 msgstr "Map a texture using UV coordinates, to apply a texture to objects in compositing"
 
 
-msgid "Input mask from a mask datablock, created in the image editor"
-msgstr "Input mask from a mask datablock, created in the image editor"
-
-
 msgid "Size Source"
 msgstr "Size Source"
 
@@ -45228,10 +45100,6 @@ msgstr "Fixed/Scene"
 
 msgid "Pixel size scaled by scene percentage"
 msgstr "Pixel size scaled by scene percentage"
-
-
-msgid "Input image or movie from a movie clip datablock, typically used for motion tracking"
-msgstr "Input image or movie from a movie clip datablock, typically used for motion tracking"
 
 
 msgid "Movie Distortion"
@@ -45258,28 +45126,12 @@ msgid "Write image file to disk"
 msgstr "Write image file to disk"
 
 
-msgid "Active Input Index"
-msgstr "Active Input Index"
+msgid "Active Item Index"
+msgstr "Active Item Index"
 
 
-msgid "Active input index in details view list"
-msgstr "Active input index in details view list"
-
-
-msgid "Base Path"
-msgstr "Base Path"
-
-
-msgid "Base output path for the image"
-msgstr "Base output path for the image"
-
-
-msgid "File Slots"
-msgstr "File Slots"
-
-
-msgid "EXR Layer Slots"
-msgstr "EXR Layer Slots"
+msgid "Index of the active item"
+msgstr "Index of the active item"
 
 
 msgid "Save as Render"
@@ -45883,14 +45735,6 @@ msgid "Round the float to the closest integer in the direction of zero (floor if
 msgstr "Round the float to the closest integer in the direction of zero (floor if positive; ceiling if negative)"
 
 
-msgid "Active Item Index"
-msgstr "Active Item Index"
-
-
-msgid "Index of the active item"
-msgstr "Index of the active item"
-
-
 msgid "Hash Value"
 msgstr "Hash Value"
 
@@ -46408,10 +46252,6 @@ msgstr "Handle Type Selection"
 
 msgid "Provide a selection based on the handle types of Bézier control points"
 msgstr "Provide a selection based on the handle types of Bézier control points"
-
-
-msgid "The handle can be moved anywhere, and doesn't influence the point's other handle"
-msgstr "The handle can be moved anywhere, and doesn't influence the point's other handle"
 
 
 msgid "The location is automatically calculated to be smooth"
@@ -50554,10 +50394,6 @@ msgid "Reflect"
 msgstr "Reflect"
 
 
-msgid "Reflect A around the normal B. B doesn't need to be normalized."
-msgstr "Reflect A around the normal B. B doesn't need to be normalised."
-
-
 msgctxt "NodeTree"
 msgid "Refract"
 msgstr "Refract"
@@ -51088,30 +50924,6 @@ msgstr "Enum Definition Items"
 
 msgid "Collection of items that make up an enum"
 msgstr "Collection of items that make up an enum"
-
-
-msgid "Output File Slot"
-msgstr "Output File Slot"
-
-
-msgid "Single layer file slot of the file output node"
-msgstr "Single layer file slot of the file output node"
-
-
-msgid "Subpath used for this slot"
-msgstr "Subpath used for this slot"
-
-
-msgid "Output File Layer Slot"
-msgstr "Output File Layer Slot"
-
-
-msgid "Multilayer slot of the file output node"
-msgstr "Multilayer slot of the file output node"
-
-
-msgid "OpenEXR layer name used for this slot"
-msgstr "OpenEXR layer name used for this slot"
 
 
 msgid "Node Outputs"
@@ -55041,10 +54853,6 @@ msgstr "Straight-line slope of end segments are extended past the endpoint keyfr
 
 msgid "Make Cyclic (F-Modifier)"
 msgstr "Make Cyclic (F-Modifier)"
-
-
-msgid "Add Cycles F-Modifier if one doesn't exist already"
-msgstr "Add Cycles F-Modifier if one doesn't exist already"
 
 
 msgid "Clear Cyclic (F-Modifier)"
@@ -70540,10 +70348,6 @@ msgid "Add an existing node group to the current node editor"
 msgstr "Add an existing node group to the current node editor"
 
 
-msgid "Show the datablock selector in the node"
-msgstr "Show the datablock selector in the node"
-
-
 msgctxt "Operator"
 msgid "Add Node Group Asset"
 msgstr "Add Node Group Asset"
@@ -71659,6 +71463,10 @@ msgid "Choose the file format to save to"
 msgstr "Choose the file format to save to"
 
 
+msgid "BMP"
+msgstr "BMP"
+
+
 msgid "IRIS"
 msgstr "IRIS"
 
@@ -71675,8 +71483,16 @@ msgid "CINEON"
 msgstr "CINEON"
 
 
+msgid "DPX"
+msgstr "DPX"
+
+
 msgid "OPEN_EXR"
 msgstr "OPEN_EXR"
+
+
+msgid "TIFF"
+msgstr "TIFF"
 
 
 msgid "Select Parent Frame"
@@ -71698,37 +71514,6 @@ msgstr "Toggle Node Options"
 
 msgid "Toggle option buttons display for selected nodes"
 msgstr "Toggle option buttons display for selected nodes"
-
-
-msgctxt "Operator"
-msgid "Add File Node Socket"
-msgstr "Add File Node Socket"
-
-
-msgid "Add a new input to a file output node"
-msgstr "Add a new input to a file output node"
-
-
-msgid "Subpath of the output file"
-msgstr "Subpath of the output file"
-
-
-msgctxt "Operator"
-msgid "Move File Node Socket"
-msgstr "Move File Node Socket"
-
-
-msgid "Move the active input of a file output node up or down the list"
-msgstr "Move the active input of a file output node up or down the list"
-
-
-msgctxt "Operator"
-msgid "Remove File Node Socket"
-msgstr "Remove File Node Socket"
-
-
-msgid "Remove the active input from a file output node"
-msgstr "Remove the active input from a file output node"
 
 
 msgid "Attach selected nodes"
@@ -72431,10 +72216,6 @@ msgstr "Drop Geometry Node Group on Object"
 
 msgid "Session UID of the geometry node group being dropped"
 msgstr "Session UID of the geometry node group being dropped"
-
-
-msgid "Show the datablock selector in the modifier"
-msgstr "Show the datablock selector in the modifier"
 
 
 msgctxt "Operator"
@@ -81238,10 +81019,6 @@ msgstr "Length of each frame"
 msgctxt "Operator"
 msgid "Lock Strips"
 msgstr "Lock Strips"
-
-
-msgid "Lock strips so they can't be transformed"
-msgstr "Lock strips so they can't be transformed"
 
 
 msgctxt "Operator"
@@ -92885,14 +92662,6 @@ msgid "Disable the asset indexer, to force every asset library refresh to comple
 msgstr "Disable the asset indexer, to force every asset library refresh to completely reread assets from disk"
 
 
-msgid "Bundle and Closure Nodes"
-msgstr "Bundle and Closure Nodes"
-
-
-msgid "Enables bundle and closure nodes in Geometry Nodes"
-msgstr "Enables bundle and closure nodes in Geometry Nodes"
-
-
 msgid "Cycles Debug"
 msgstr "Cycles Debug"
 
@@ -94941,10 +94710,6 @@ msgstr "Property is editable from linked instances (changes not saved)"
 
 msgid "Never None"
 msgstr "Never None"
-
-
-msgid "True when this value can't be set to None"
-msgstr "True when this value can't be set to None"
 
 
 msgid "Return"
@@ -98142,10 +97907,6 @@ msgid "Vertical Split"
 msgstr "Vertical Split"
 
 
-msgid "Region floats on screen, doesn't use any fixed alignment"
-msgstr "Region floats on screen, doesn't use any fixed alignment"
-
-
 msgid "Quad Split"
 msgstr "Quad Split"
 
@@ -98501,10 +98262,6 @@ msgstr "Bake normals"
 
 msgid "Bake displacement"
 msgstr "Bake displacement"
-
-
-msgid "Instead of automatically normalizing to the range 0 to 1, apply a user scale to the derivative map"
-msgstr "Instead of automatically normalizing to the range 0 to 1, apply a user scale to the derivative map"
 
 
 msgid "Region Maximum X"
@@ -99016,14 +98773,6 @@ msgstr "Bake from Multires"
 
 msgid "Bake directly from multires object"
 msgstr "Bake directly from multires object"
-
-
-msgid "User Scale"
-msgstr "User Scale"
-
-
-msgid "Use a user scale for the derivative map"
-msgstr "Use a user scale for the derivative map"
 
 
 msgid "Render Region"
@@ -100987,10 +100736,6 @@ msgstr "Display retiming keys on top of strips"
 
 msgid "Show Source"
 msgstr "Show Source"
-
-
-msgid "Display path to source file, or name of source datablock"
-msgstr "Display path to source file, or name of source datablock"
 
 
 msgid "Show Color Tags"
@@ -106842,14 +106587,6 @@ msgid "Strips Selected"
 msgstr "Strips Selected"
 
 
-msgid "Marker Line"
-msgstr "Marker Line"
-
-
-msgid "Marker Line Selected"
-msgstr "Marker Line Selected"
-
-
 msgid "Scrubbing/Markers Region"
 msgstr "Scrubbing/Markers Region"
 
@@ -106866,12 +106603,32 @@ msgid "Collection Color Tag"
 msgstr "Collection Color Tag"
 
 
+msgid "Channel Group"
+msgstr "Channel Group"
+
+
+msgid "Active Channel Group"
+msgstr "Active Channel Group"
+
+
+msgid "Sub-channel"
+msgstr "Sub-channel"
+
+
 msgid "Preview Range"
 msgstr "Preview Range"
 
 
 msgid "Color of preview range overlay"
 msgstr "Color of preview range overlay"
+
+
+msgid "Marker Line"
+msgstr "Marker Line"
+
+
+msgid "Marker Line Selected"
+msgstr "Marker Line Selected"
 
 
 msgid "Theme Console"
@@ -106906,24 +106663,8 @@ msgid "Theme settings for the Dope Sheet"
 msgstr "Theme settings for the Dope Sheet"
 
 
-msgid "Active Channel Group"
-msgstr "Active Channel Group"
-
-
-msgid "Channel Group"
-msgstr "Channel Group"
-
-
 msgid "Channels Selected"
 msgstr "Channels Selected"
-
-
-msgid "Dope Sheet Channel"
-msgstr "Dope Sheet Channel"
-
-
-msgid "Dope Sheet Sub-channel"
-msgstr "Dope Sheet Sub-channel"
 
 
 msgid "Interpolation Line"
@@ -107448,18 +107189,6 @@ msgstr "Animation data-block has active action"
 
 msgid "No Active Action"
 msgstr "No Active Action"
-
-
-msgid "Animation data-block doesn't have active action"
-msgstr "Animation data-block doesn't have active action"
-
-
-msgid "Nonlinear Animation Channel"
-msgstr "Nonlinear Animation Channel"
-
-
-msgid "Sub-channel"
-msgstr "Sub-channel"
 
 
 msgid "Meta Strips"
@@ -109284,10 +109013,6 @@ msgstr "Tile label"
 
 msgid "Number of the position that this tile covers"
 msgstr "Number of the position that this tile covers"
-
-
-msgid "Width and height of the tile buffer in pixels, zero when image data can't be loaded"
-msgstr "Width and height of the tile buffer in pixels, zero when image data can't be loaded"
 
 
 msgid "Collection of UDIM tiles"
@@ -115545,10 +115270,6 @@ msgid "External shader script must have .osl or .oso extension, or be a module n
 msgstr "External shader script must have .osl or .oso extension, or be a module name"
 
 
-msgid "Can't read OSO bytecode to store in node at %r"
-msgstr "Can't read OSO bytecode to store in node at %r"
-
-
 msgid "Failed to write .oso file next to external .osl file at "
 msgstr "Failed to write .oso file next to external .osl file at "
 
@@ -117311,10 +117032,6 @@ msgid "Nothing to bake"
 msgstr "Nothing to bake"
 
 
-msgid "Complete report available on '{:s}' text datablock"
-msgstr "Complete report available on '{:s}' text datablock"
-
-
 msgid "No active bone to copy from"
 msgstr "No active bone to copy from"
 
@@ -117369,10 +117086,6 @@ msgstr "Could not find material or light using Shader Node Tree - {:s}"
 
 msgid "Could not find scene using Compositor Node Tree - {:s}"
 msgstr "Could not find scene using Compositor Node Tree - {:s}"
-
-
-msgid "Asset metadata from external asset libraries can't be edited, only assets stored in the current file can"
-msgstr "Asset metadata from external asset libraries can't be edited, only assets stored in the current file can"
 
 
 msgid "No asset selected"
@@ -118862,16 +118575,6 @@ msgstr "Lock Invert All"
 
 
 msgctxt "Operator"
-msgid "Delete All Shape Keys"
-msgstr "Delete All Shape Keys"
-
-
-msgctxt "Operator"
-msgid "Apply All Shape Keys"
-msgstr "Apply All Shape Keys"
-
-
-msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "Sort by Name"
 
@@ -118907,23 +118610,8 @@ msgstr "Delete All Groups"
 
 
 msgctxt "Operator"
-msgid "New Shape from Mix"
-msgstr "New Shape from Mix"
-
-
-msgctxt "Operator"
-msgid "Mirror Shape Key (Topology)"
-msgstr "Mirror Shape Key (Topology)"
-
-
-msgctxt "Operator"
-msgid "Move to Top"
-msgstr "Move to Top"
-
-
-msgctxt "Operator"
-msgid "Move to Bottom"
-msgstr "Move to Bottom"
+msgid "Flip"
+msgstr "Flip"
 
 
 msgid "Auto Normalize"
@@ -121000,6 +120688,16 @@ msgstr "Blender IDs"
 
 
 msgctxt "Operator"
+msgid "Move to Top"
+msgstr "Move to Top"
+
+
+msgctxt "Operator"
+msgid "Move to Bottom"
+msgstr "Move to Bottom"
+
+
+msgctxt "Operator"
 msgid "Increase Number"
 msgstr "Increase Number"
 
@@ -121939,6 +121637,11 @@ msgstr "Sound Crossfade"
 msgctxt "Operator"
 msgid "Change Keying Set..."
 msgstr "Change Keying Set..."
+
+
+msgctxt "Operator"
+msgid "Delete Keyframes..."
+msgstr "Delete Keyframes..."
 
 
 msgctxt "Operator"
@@ -123641,11 +123344,6 @@ msgstr "Make Local..."
 
 
 msgctxt "Operator"
-msgid "Delete Keyframes..."
-msgstr "Delete Keyframes..."
-
-
-msgctxt "Operator"
 msgid "Clear Keyframes..."
 msgstr "Clear Keyframes..."
 
@@ -124255,11 +123953,6 @@ msgstr "Strong"
 
 
 msgctxt "Operator"
-msgid "Flip"
-msgstr "Flip"
-
-
-msgctxt "Operator"
 msgid "Set from Faces"
 msgstr "Set from Faces"
 
@@ -124400,17 +124093,9 @@ msgid "Mesh Edit Mode Overlays"
 msgstr "Mesh Edit Mode Overlays"
 
 
-msgid "Creases"
-msgstr "Creases"
-
-
 msgctxt "Plural"
 msgid "Sharp"
 msgstr "Sharp"
-
-
-msgid "Seams"
-msgstr "Seams"
 
 
 msgid "Vertex Group Weights"
@@ -125770,10 +125455,6 @@ msgid "The attribute name must not be empty"
 msgstr "The attribute name must not be empty"
 
 
-msgid "Attribute is required and can't be removed"
-msgstr "Attribute is required and can't be removed"
-
-
 msgid "Domain unsupported for \"%s\" attribute"
 msgstr "Domain unsupported for \"%s\" attribute"
 
@@ -125916,10 +125597,6 @@ msgstr "cache_files"
 
 msgid "cameras"
 msgstr "cameras"
-
-
-msgid "Can't initialize cloth"
-msgstr "Can't initialize cloth"
 
 
 msgid "Null cloth object"
@@ -126389,10 +126066,6 @@ msgid "Conversion is not supported"
 msgstr "Conversion is not supported"
 
 
-msgid "Can't find object data of %s lib %s"
-msgstr "Can't find object data of %s lib %s"
-
-
 msgid "Object %s lost data"
 msgstr "Object %s lost data"
 
@@ -126551,14 +126224,6 @@ msgstr "Out Of Memory Error"
 
 msgid "Undefined Type"
 msgstr "Undefined Type"
-
-
-msgid "Can't add Rigid Body to non mesh object"
-msgstr "Can't add Rigid Body to non mesh object"
-
-
-msgid "Can't create Rigid Body world"
-msgstr "Can't create Rigid Body world"
 
 
 msgid "Compiled without Bullet physics engine"
@@ -127410,10 +127075,6 @@ msgid "Display action without any time remapping (when unpinned)"
 msgstr "Display action without any time remapping (when unpinned)"
 
 
-msgid "Can't edit this property from a linked data-block"
-msgstr "Can't edit this property from a linked data-block"
-
-
 msgid "CombinedAction"
 msgstr "CombinedAction"
 
@@ -127719,10 +127380,6 @@ msgstr "No keyframes removed from %d object(s)"
 
 msgid "\"%s\" property cannot be animated"
 msgstr "\"%s\" property cannot be animated"
-
-
-msgid "Button doesn't appear to have any property information attached (ptr.data = %p, prop = %p)"
-msgstr "Button doesn't appear to have any property information attached (ptr.data = %p, prop = %p)"
 
 
 msgid "Not deleting keyframe for locked F-Curve for NLA Strip influence on %s - %s '%s'"
@@ -129819,8 +129476,8 @@ msgid "This file is managed by the Blender asset system and cannot be overridden
 msgstr "This file is managed by the Blender asset system and cannot be overridden"
 
 
-msgid "Can't edit external library data"
-msgstr "Can't edit external library data"
+msgid "Cannot edit external library data"
+msgstr "Cannot edit external library data"
 
 
 msgid "Samples Transform"
@@ -130014,6 +129671,10 @@ msgstr "Outer"
 
 msgid "Miter Profile Shape"
 msgstr "Miter Profile Shape"
+
+
+msgid "Seams"
+msgstr "Seams"
 
 
 msgid "Intersection Type"
@@ -130525,10 +130186,6 @@ msgid "This data does not support joining in edit mode"
 msgstr "This data does not support joining in edit mode"
 
 
-msgid "Cannot edit external library data"
-msgstr "Cannot edit external library data"
-
-
 msgid "Active object final transform has one or more zero scaled axes"
 msgstr "Active object final transform has one or more zero scaled axes"
 
@@ -130689,10 +130346,6 @@ msgid "No active image found in material slot (%d) for object \"%s\""
 msgstr "No active image found in material slot (%d) for object \"%s\""
 
 
-msgid "Object \"%s\" is not a mesh or can't be converted to a mesh (Curve, Text, Surface or Metaball)"
-msgstr "Object \"%s\" is not a mesh or can't be converted to a mesh (Curve, Text, Surface or Metaball)"
-
-
 msgid "Uninitialized image %s"
 msgstr "Uninitialized image %s"
 
@@ -130743,10 +130396,6 @@ msgstr "Overwrite existing bake data?"
 
 msgid "Modifier containing the node is disabled"
 msgstr "Modifier containing the node is disabled"
-
-
-msgid "Can't determine bake location on disk. Falling back to packed bake."
-msgstr "Can't determine bake location on disk. Falling back to packed bake."
 
 
 msgid "Failed to remove metadata directory %s"
@@ -130963,10 +130612,6 @@ msgstr "Clear motion paths of selected objects"
 
 msgid "Clear motion paths of all objects"
 msgstr "Clear motion paths of all objects"
-
-
-msgid "Can't edit linked mesh or curve data"
-msgstr "Can't edit linked mesh or curve data"
 
 
 msgid "No collection selected"
@@ -131353,10 +130998,6 @@ msgid "Incorrect context for running object data unlink"
 msgstr "Incorrect context for running object data unlink"
 
 
-msgid "Can't unlink this object data"
-msgstr "Can't unlink this object data"
-
-
 msgid "Collection '%s' (instantiated by the active object) is not overridable"
 msgstr "Collection '%s' (instantiated by the active object) is not overridable"
 
@@ -131679,10 +131320,6 @@ msgstr "Bake failed: invalid canvas"
 
 msgid "Removed %d double particle(s)"
 msgstr "Removed %d double particle(s)"
-
-
-msgid "No hair connected (can't connect hair if particle system modifier is disabled)"
-msgstr "No hair connected (can't connect hair if particle system modifier is disabled)"
 
 
 msgid "Copy particle systems to selected: %d done, %d failed"
@@ -132023,10 +131660,6 @@ msgstr "Collection does not contain object types that can be rendered for the au
 
 msgid "Data-block type does not support automatic previews"
 msgstr "Data-block type does not support automatic previews"
-
-
-msgid "Can't bake light probe while rendering"
-msgstr "Can't bake light probe while rendering"
 
 
 msgid "No active lineset and associated line style to manipulate the modifier"
@@ -133302,10 +132935,6 @@ msgid "See Modifiers panel below"
 msgstr "See Modifiers panel below"
 
 
-msgid "F-Curve doesn't have any keyframes as it only contains sampled points"
-msgstr "F-Curve doesn't have any keyframes as it only contains sampled points"
-
-
 msgid "No active keyframe on F-Curve"
 msgstr "No active keyframe on F-Curve"
 
@@ -133543,10 +133172,6 @@ msgid "Hard coded Non-Linear, Gamma:1.7"
 msgstr "Hard coded Non-Linear, Gamma:1.7"
 
 
-msgid "Can't Load Image"
-msgstr "Can't Load Image"
-
-
 msgid "%d × %d, "
 msgstr "%d × %d, "
 
@@ -133661,26 +133286,6 @@ msgstr "%d image(s) will be saved in %s"
 
 msgid "Saved %s"
 msgstr "Saved %s"
-
-
-msgid "Packed library image can't be saved: \"%s\" from \"%s\""
-msgstr "Packed library image can't be saved: \"%s\" from \"%s\""
-
-
-msgid "Image can't be saved, use a different file format: \"%s\""
-msgstr "Image can't be saved, use a different file format: \"%s\""
-
-
-msgid "Multiple images can't be saved to an identical path: \"%s\""
-msgstr "Multiple images can't be saved to an identical path: \"%s\""
-
-
-msgid "Image can't be saved, no valid file path: \"%s\""
-msgstr "Image can't be saved, no valid file path: \"%s\""
-
-
-msgid "can't save image while rendering"
-msgstr "can't save image while rendering"
 
 
 msgid "No images available"
@@ -134179,20 +133784,12 @@ msgid "More than one collection is selected"
 msgstr "More than one collection is selected"
 
 
-msgid "Can't add a new collection to linked/override scene"
-msgstr "Can't add a new collection to linked/override scene"
-
-
 msgid "No active collection"
 msgstr "No active collection"
 
 
 msgid "Cannot add a collection to a linked/override collection/scene"
 msgstr "Cannot add a collection to a linked/override collection/scene"
-
-
-msgid "Can't add a color tag to a linked collection"
-msgstr "Can't add a color tag to a linked collection"
 
 
 msgid "Cannot delete collection '%s', it is either a linked one used by other linked scenes/collections, or a library override one"
@@ -134253,10 +133850,6 @@ msgstr "Move inside collection (Ctrl to link, Shift to parent)"
 
 msgid "Move inside collection (Ctrl to link)"
 msgstr "Move inside collection (Ctrl to link)"
-
-
-msgid "Can't edit library linked or non-editable override object(s)"
-msgstr "Can't edit library linked or non-editable override object(s)"
 
 
 msgid "Use view layer for rendering"
@@ -134437,10 +134030,6 @@ msgstr "Library path '%s' does not exist, correct this before saving"
 
 msgid "Library path '%s' is now valid, please reload the library"
 msgstr "Library path '%s' is now valid, please reload the library"
-
-
-msgid "Can't edit library or non-editable override data"
-msgstr "Can't edit library or non-editable override data"
 
 
 msgid "Remap Data ID"
@@ -134667,10 +134256,6 @@ msgid "Strip None"
 msgstr "Strip None"
 
 
-msgid "Can't reload with running modal operators"
-msgstr "Can't reload with running modal operators"
-
-
 msgid "Add a crossfade transition strip for two selected strips with video content"
 msgstr "Add a crossfade transition strip for two selected strips with video content"
 
@@ -134807,24 +134392,12 @@ msgid "Please select two strips"
 msgstr "Please select two strips"
 
 
-msgid "Can't create subtitle file"
-msgstr "Can't create subtitle file"
-
-
-msgid "Can't overwrite export file"
-msgstr "Can't overwrite export file"
-
-
 msgid "No subtitles (text strips) to export"
 msgstr "No subtitles (text strips) to export"
 
 
 msgid "Select one or more strips"
 msgstr "Select one or more strips"
-
-
-msgid "Can't set a negative range"
-msgstr "Can't set a negative range"
 
 
 msgid "Set Selected Strip Proxies"
@@ -135602,10 +135175,6 @@ msgid "Bone selection count error"
 msgstr "Bone selection count error"
 
 
-msgid "Linked data can't text-space transform"
-msgstr "Linked data can't text-space transform"
-
-
 msgid "Unsupported object type for text-space transform"
 msgstr "Unsupported object type for text-space transform"
 
@@ -136179,10 +135748,6 @@ msgid "No valid formats found"
 msgstr "No valid formats found"
 
 
-msgid "Can't allocate FFmpeg format context"
-msgstr "Can't allocate FFmpeg format context"
-
-
 msgid "Render width has to be 720 pixels for DV!"
 msgstr "Render width has to be 720 pixels for DV!"
 
@@ -136379,36 +135944,12 @@ msgid "%s: Will not overwrite existing asset %s"
 msgstr "%s: Will not overwrite existing asset %s"
 
 
-msgid "%s: Can't resolve path %s"
-msgstr "%s: Can't resolve path %s"
-
-
-msgid "%s: Can't resolve path %s for writing"
-msgstr "%s: Can't resolve path %s for writing"
-
-
-msgid "%s: Can't copy %s. The source and destination paths are the same"
-msgstr "%s: Can't copy %s. The source and destination paths are the same"
-
-
-msgid "%s: Can't write to asset %s: %s"
-msgstr "%s: Can't write to asset %s: %s"
-
-
-msgid "%s: Can't open source asset %s"
-msgstr "%s: Can't open source asset %s"
-
-
 msgid "%s: Will not copy zero size source asset %s"
 msgstr "%s: Will not copy zero size source asset %s"
 
 
 msgid "%s: Null buffer for source asset %s"
 msgstr "%s: Null buffer for source asset %s"
-
-
-msgid "%s: Can't open destination asset %s for writing"
-msgstr "%s: Can't open destination asset %s for writing"
 
 
 msgid "%s: Error writing to destination asset %s"
@@ -136423,24 +135964,8 @@ msgid "%s: Texture import directory path empty, couldn't import %s"
 msgstr "%s: Texture import directory path empty, couldn't import %s"
 
 
-msgid "%s: import directory is relative but the blend file path is empty. Please save the blend file before importing the USD or provide an absolute import directory path. Can't import %s"
-msgstr "%s: import directory is relative but the blend file path is empty. Please save the blend file before importing the USD or provide an absolute import directory path. Can't import %s"
-
-
 msgid "%s: Couldn't create texture import directory %s"
 msgstr "%s: Couldn't create texture import directory %s"
-
-
-msgid "Can't resolve path %s for writing"
-msgstr "Can't resolve path %s for writing"
-
-
-msgid "Can't write to asset %s:  %s"
-msgstr "Can't write to asset %s:  %s"
-
-
-msgid "Can't open destination asset %s for writing"
-msgstr "Can't open destination asset %s for writing"
 
 
 msgid "Error writing to destination asset %s"
@@ -136519,16 +136044,8 @@ msgid "%s: Couldn't get world bind transforms for skeleton %s"
 msgstr "%s: Couldn't get world bind transforms for skeleton %s"
 
 
-msgid "%s: Number of bind transforms doesn't match the number of joints for skeleton %s"
-msgstr "%s: Number of bind transforms doesn't match the number of joints for skeleton %s"
-
-
 msgid "%s: Couldn't get blendshape targets for prim %s"
 msgstr "%s: Couldn't get blendshape targets for prim %s"
-
-
-msgid "%s: Number of blendshapes doesn't match number of blendshape targets for prim %s"
-msgstr "%s: Number of blendshapes doesn't match number of blendshape targets for prim %s"
 
 
 msgid "%s: Couldn't get stage for prim %s"
@@ -136565,10 +136082,6 @@ msgstr "%s: Mismatch in bone and joint counts for skeleton %s"
 
 msgid "%s: Mismatch in bind xforms and joint counts for skeleton %s"
 msgstr "%s: Mismatch in bind xforms and joint counts for skeleton %s"
-
-
-msgid "USD Skeleton Import: bone matrices with negative determinants detected in prim %s. Such matrices may indicate negative scales, possibly due to mirroring operations, and can't currently be converted to Blender's bone representation. The skeletal animation won't be imported"
-msgstr "USD Skeleton Import: bone matrices with negative determinants detected in prim %s. Such matrices may indicate negative scales, possibly due to mirroring operations, and can't currently be converted to Blender's bone representation. The skeletal animation won't be imported"
 
 
 msgid "%s: Joint weights and joint indices element size mismatch for prim %s"
@@ -136679,10 +136192,6 @@ msgid "Built-in fonts cannot be renamed"
 msgstr "Built-in fonts cannot be renamed"
 
 
-msgid "Datablocks not in global Main data-base cannot be renamed"
-msgstr "Datablocks not in global Main data-base cannot be renamed"
-
-
 msgid "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition always runtime"
 msgstr "Cannot edit 'runtime' status of non-blendfile data-blocks, as they are by definition always runtime"
 
@@ -136747,18 +136256,6 @@ msgid "Data-block '%s' is not a library override, or not part of a library overr
 msgstr "Data-block '%s' is not a library override, or not part of a library override hierarchy"
 
 
-msgid "This property is for internal use only and can't be edited"
-msgstr "This property is for internal use only and can't be edited"
-
-
-msgid "Can't edit this property from an override data-block"
-msgstr "Can't edit this property from an override data-block"
-
-
-msgid "Can't edit this property from a system override data-block"
-msgstr "Can't edit this property from a system override data-block"
-
-
 msgid "Only boolean, int, float, and enum properties supported"
 msgstr "Only boolean, int, float, and enum properties supported"
 
@@ -136769,14 +136266,6 @@ msgstr "Only boolean, int, float and enum properties supported"
 
 msgid "'%s' does not contain '%s' with prefix and suffix"
 msgstr "'%s' does not contain '%s' with prefix and suffix"
-
-
-msgid "'%s' doesn't have upper case alpha-numeric prefix"
-msgstr "'%s' doesn't have upper case alpha-numeric prefix"
-
-
-msgid "'%s' doesn't have an alpha-numeric suffix"
-msgstr "'%s' doesn't have an alpha-numeric suffix"
 
 
 msgid "%s: expected %s type, not %s"
@@ -136837,10 +136326,6 @@ msgstr "Slot cannot be None"
 
 msgid "F-Curve data path empty, invalid argument"
 msgstr "F-Curve data path empty, invalid argument"
-
-
-msgid "Could not remove the F-Curve Group from the collection because it doesn't exist in the collection"
-msgstr "Could not remove the F-Curve Group from the collection because it doesn't exist in the collection"
 
 
 msgid "Cannot return channelbag when slot is None"
@@ -137145,10 +136630,6 @@ msgid "Indices must be sorted in ascending order"
 msgstr "Indices must be sorted in ascending order"
 
 
-msgid "Indices can't have duplicates"
-msgstr "Indices can't have duplicates"
-
-
 msgid "Sizes must be greater than zero"
 msgstr "Sizes must be greater than zero"
 
@@ -137363,10 +136844,6 @@ msgstr "Emit smoke from particles"
 
 msgid "Frame already exists on frame number %d"
 msgstr "Frame already exists on frame number %d"
-
-
-msgid "Frame doesn't exists on frame number %d"
-msgstr "Frame doesn't exists on frame number %d"
 
 
 msgid "Image not packed"
@@ -137703,10 +137180,6 @@ msgid "Unable to locate socket '%s' in node"
 msgstr "Unable to locate socket '%s' in node"
 
 
-msgid "Can't pair zone input node %s with %s because it does not have the same zone type"
-msgstr "Can't pair zone input node %s with %s because it does not have the same zone type"
-
-
 msgid "The output node %s is already paired with %s"
 msgstr "The output node %s is already paired with %s"
 
@@ -137801,14 +137274,6 @@ msgstr "Bad assignment mode"
 
 msgid "Bad vertex index in list"
 msgstr "Bad vertex index in list"
-
-
-msgid "Object '%s' can't be selected because it is not in View Layer '%s'!"
-msgstr "Object '%s' can't be selected because it is not in View Layer '%s'!"
-
-
-msgid "Object '%s' can't be hidden because it is not in View Layer '%s'!"
-msgstr "Object '%s' can't be hidden because it is not in View Layer '%s'!"
 
 
 msgid "Object %s not in view layer %s"
@@ -139606,10 +139071,6 @@ msgid "Align the star diagonally"
 msgstr "Align the star diagonally"
 
 
-msgid "Viewport compositor setup not fully supported"
-msgstr "Viewport compositor setup not fully supported"
-
-
 msgid "ID value"
 msgstr "ID value"
 
@@ -140024,10 +139485,6 @@ msgstr "Orthographic camera scale (similar to zoom)"
 
 msgid "Collection contains current object"
 msgstr "Collection contains current object"
-
-
-msgid "Can't access collections geometry because it's not evaluated yet. This can happen when there is a dependency cycle"
-msgstr "Can't access collections geometry because it's not evaluated yet. This can happen when there is a dependency cycle"
 
 
 msgid "Separate Children"
@@ -140995,10 +140452,6 @@ msgid "Vertex Face Count Field"
 msgstr "Vertex Face Count Field"
 
 
-msgid "Anonymous attributes can't be accessed by name"
-msgstr "Anonymous attributes can't be accessed by name"
-
-
 msgid "For meshes, outputs normals without custom normal attributes taken into account"
 msgstr "For meshes, outputs normals without custom normal attributes taken into account"
 
@@ -141544,20 +140997,12 @@ msgid "The total Y size of the region in pixels"
 msgstr "The total Y size of the region in pixels"
 
 
-msgid "Can't access object's transforms because it's not evaluated yet. This can happen when there is a dependency cycle"
-msgstr "Can't access object's transforms because it's not evaluated yet. This can happen when there is a dependency cycle"
-
-
 msgid "Geometry cannot be retrieved from the edited object itself"
 msgstr "Geometry cannot be retrieved from the edited object itself"
 
 
 msgid "Geometry cannot be retrieved from the modifier object"
 msgstr "Geometry cannot be retrieved from the modifier object"
-
-
-msgid "Can't access object's geometry because it's not evaluated yet. This can happen when there is a dependency cycle"
-msgstr "Can't access object's geometry because it's not evaluated yet. This can happen when there is a dependency cycle"
 
 
 msgid "As Instance"
@@ -141862,10 +141307,6 @@ msgstr "All geometry groups as separate instances"
 
 msgid "The group ID of each group instance"
 msgstr "The group ID of each group instance"
-
-
-msgid "Anonymous attributes can't be created here"
-msgstr "Anonymous attributes can't be created here"
 
 
 msgid "Failed to write to attribute \"{}\" with domain \"{}\" and type \"{}\""
@@ -143589,10 +143030,6 @@ msgid "Cannot save blend file, path \"%s\" is a directory"
 msgstr "Cannot save blend file, path \"%s\" is a directory"
 
 
-msgid "Can't read alternative start-up file: \"%s\""
-msgstr "Can't read alternative start-up file: \"%s\""
-
-
 msgid "Saved incremental as \"%s\""
 msgstr "Saved incremental as \"%s\""
 
@@ -143611,14 +143048,6 @@ msgstr "Not a library"
 
 msgid "Nothing indicated"
 msgstr "Nothing indicated"
-
-
-msgid "Can't append data-block '%s' of type '%s'"
-msgstr "Can't append data-block '%s' of type '%s'"
-
-
-msgid "Can't link data-block '%s' of type '%s'"
-msgstr "Can't link data-block '%s' of type '%s'"
 
 
 msgid "'%s': cannot use current file as library"
@@ -143683,10 +143112,6 @@ msgstr "KeyMaps are equal"
 
 msgid "KeyMap item result may be incorrect since an update is pending, call `context.window_manager.keyconfigs.update()` to ensure matches can be found."
 msgstr "KeyMap item result may be incorrect since an update is pending, call `context.window_manager.keyconfigs.update()` to ensure matches can be found."
-
-
-msgid "KeyMap \"%s\" doesn't match \"%s\""
-msgstr "KeyMap \"%s\" doesn't match \"%s\""
 
 
 msgid "KeyMap \"%s\" (base) must be a user keymap"
