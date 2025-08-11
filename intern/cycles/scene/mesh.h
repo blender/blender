@@ -212,7 +212,7 @@ class Mesh : public Geometry {
   void add_vertex_normals();
   void add_undisplaced(Scene *scene);
   void update_generated(Scene *scene);
-  void update_tangents(Scene *scene);
+  void update_tangents(Scene *scene, bool undisplaced);
 
   void get_uv_tiles(ustring map, unordered_set<int> &tiles) override;
 

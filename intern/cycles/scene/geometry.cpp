@@ -798,7 +798,10 @@ void GeometryManager::device_update(Device *device,
     /* Apply generated attribute if needed or remove if not needed */
     mesh->update_generated(scene);
     /* Apply tangents for generated and UVs (if any need them) or remove if not needed */
-    mesh->update_tangents(scene);
+    mesh->update_tangents(scene, true);
+    if (!mesh->has_true_displacement()) {
+      mesh->update_tangents(scene, false);
+    }
 
     if (progress.get_cancel()) {
       return;

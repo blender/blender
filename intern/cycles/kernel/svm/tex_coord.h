@@ -361,7 +361,15 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     float3 normal;
 
     if (sd->shader & SHADER_SMOOTH_NORMAL) {
-      normal = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
+      const AttributeDescriptor attr_undisplaced_normal = find_attribute(
+          kg, sd->object, sd->prim, ATTR_STD_NORMAL_UNDISPLACED);
+      if (attr_undisplaced_normal.offset != ATTR_STD_NOT_FOUND) {
+        normal =
+            primitive_surface_attribute<float3>(kg, sd, attr_undisplaced_normal, false, false).val;
+      }
+      else {
+        normal = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
+      }
     }
     else {
       normal = sd->Ng;

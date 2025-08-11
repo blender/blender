@@ -320,6 +320,10 @@ const char *Attribute::standard_name(AttributeStandard std)
       return "tangent";
     case ATTR_STD_UV_TANGENT_SIGN:
       return "tangent_sign";
+    case ATTR_STD_UV_TANGENT_UNDISPLACED:
+      return "undisplaced_tangent";
+    case ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED:
+      return "undisplaced_tangent_sign";
     case ATTR_STD_VERTEX_COLOR:
       return "vertex_color";
     case ATTR_STD_POSITION_UNDEFORMED:
@@ -520,9 +524,11 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CORNER);
         break;
       case ATTR_STD_UV_TANGENT:
+      case ATTR_STD_UV_TANGENT_UNDISPLACED:
         attr = add(name, TypeVector, ATTR_ELEMENT_CORNER);
         break;
       case ATTR_STD_UV_TANGENT_SIGN:
+      case ATTR_STD_UV_TANGENT_SIGN_UNDISPLACED:
         attr = add(name, TypeFloat, ATTR_ELEMENT_CORNER);
         break;
       case ATTR_STD_VERTEX_COLOR:

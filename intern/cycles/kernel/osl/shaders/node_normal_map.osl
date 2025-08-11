@@ -7,8 +7,8 @@
 shader node_normal_map(float Strength = 1.0,
                        color Color = color(0.5, 0.5, 1.0),
                        string space = "tangent",
-                       string attr_name = "geom:tangent",
-                       string attr_sign_name = "geom:tangent_sign",
+                       string attr_name = "geom:undisplaced_tangent",
+                       string attr_sign_name = "geom:undisplaced_tangent_sign",
                        output normal Normal = N)
 {
   color mcolor = 2.0 * color(Color[0] - 0.5, Color[1] - 0.5, Color[2] - 0.5);
