@@ -161,13 +161,16 @@ template<typename T> inline const bke::bNodeSocketType *socket_type_info_by_stat
       BLI_assert(socket_type_info);
       return socket_type_info;
     }
-  }
-  const std::optional<eNodeSocketDatatype> socket_type =
-      bke::geo_nodes_base_cpp_type_to_socket_type(CPPType::get<T>());
-  if (!socket_type) {
     return nullptr;
   }
-  return bke::node_socket_type_find_static(*socket_type);
+  else {
+    const std::optional<eNodeSocketDatatype> socket_type =
+        bke::geo_nodes_base_cpp_type_to_socket_type(CPPType::get<T>());
+    if (!socket_type) {
+      return nullptr;
+    }
+    return bke::node_socket_type_find_static(*socket_type);
+  }
 }
 
 template<typename T> constexpr bool is_valid_internal_bundle_item_type()
@@ -197,7 +200,7 @@ template<typename T> inline std::optional<T> BundleItemValue::as() const
     sharing_info->add_user();
     return ImplicitSharingPtr<SharingInfoT>{converted_value};
   }
-  if constexpr (std::is_same_v<T, ListPtr>) {
+  else if constexpr (std::is_same_v<T, ListPtr>) {
     const BundleItemSocketValue *socket_value = std::get_if<BundleItemSocketValue>(&this->value);
     if (!socket_value) {
       return std::nullopt;
@@ -214,7 +217,7 @@ template<typename T> inline std::optional<T> BundleItemValue::as() const
     }
     return std::nullopt;
   }
-  if (const bke::bNodeSocketType *dst_socket_type = socket_type_info_by_static_type<T>()) {
+  else if (const bke::bNodeSocketType *dst_socket_type = socket_type_info_by_static_type<T>()) {
     return this->as_socket_value<T>(*dst_socket_type);
   }
   /* Can't lookup this type directly currently. */
