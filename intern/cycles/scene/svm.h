@@ -56,9 +56,6 @@ class SVMCompiler {
     /* Peak stack usage during shader evaluation. */
     int peak_stack_usage;
 
-    /* Time spent on surface graph finalization. */
-    double time_finalize;
-
     /* Time spent on generating SVM nodes for surface shader. */
     double time_generate_surface;
 

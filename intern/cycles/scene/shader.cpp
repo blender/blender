@@ -482,12 +482,13 @@ int ShaderManager::get_shader_id(Shader *shader, bool smooth)
   return id;
 }
 
-void ShaderManager::device_update_pre(Device *device,
-                                      DeviceScene *dscene,
+void ShaderManager::device_update_pre(Device * /*device*/,
+                                      DeviceScene * /*dscene*/,
                                       Scene *scene,
-                                      Progress &progress)
+                                      Progress & /*progress*/)
 {
-  /* This runs before kernels have been loaded, so can't copy to device yet. */
+  /* This optimizes the shader graphs, but does not update anything on the device yet.
+   * After this we'll know the kernel features actually used, to load the kernels. */
   if (!need_update()) {
     return;
   }
@@ -504,14 +505,27 @@ void ShaderManager::device_update_pre(Device *device,
   assert(scene->default_background->reference_count() != 0);
   assert(scene->default_empty->reference_count() != 0);
 
-  device_update_specific(device, dscene, scene, progress);
+  for (Shader *shader : scene->shaders) {
+    if (shader->is_modified()) {
+      ShaderNode *output = shader->graph->output();
+
+      shader->has_bump = (shader->get_displacement_method() != DISPLACE_TRUE) &&
+                         output->input("Surface")->link && output->input("Displacement")->link;
+      shader->has_bssrdf_bump = shader->has_bump;
+
+      shader->graph->finalize(
+          scene, shader->has_bump, shader->get_displacement_method() == DISPLACE_BOTH);
+    }
+  }
 }
 
-void ShaderManager::device_update_post(Device * /*device*/,
+void ShaderManager::device_update_post(Device *device,
                                        DeviceScene *dscene,
-                                       Scene * /*scene*/,
-                                       Progress & /*progress*/)
+                                       Scene *scene,
+                                       Progress &progress)
 {
+  device_update_specific(device, dscene, scene, progress);
+
   /* This runs after kernels have been loaded, so can copy to device. */
   dscene->shaders.copy_to_device_if_modified();
   dscene->svm_nodes.copy_to_device_if_modified();
