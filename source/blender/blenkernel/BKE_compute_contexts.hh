@@ -177,6 +177,12 @@ class EvaluateClosureComputeContext : public NodeComputeContext {
   {
     return closure_source_location_;
   }
+
+  /**
+   * True if there is a parent context that evaluates the same closure already. This can only be
+   * used when the #ClosureSourceLocation is available.
+   */
+  bool is_recursive() const;
 };
 
 class OperatorComputeContext : public ComputeContext {

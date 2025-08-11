@@ -147,6 +147,31 @@ EvaluateClosureComputeContext::EvaluateClosureComputeContext(
 {
 }
 
+bool EvaluateClosureComputeContext::is_recursive() const
+{
+  if (!closure_source_location_) {
+    /* Can't determine recursiveness in this case. */
+    return false;
+  }
+  for (const ComputeContext *parent = parent_; parent; parent = parent->parent()) {
+    if (const auto *evaluate_closure_compute_context =
+            dynamic_cast<const EvaluateClosureComputeContext *>(parent))
+    {
+      if (!evaluate_closure_compute_context->closure_source_location_) {
+        continue;
+      }
+      if (evaluate_closure_compute_context->closure_source_location_->tree ==
+              closure_source_location_->tree &&
+          evaluate_closure_compute_context->closure_source_location_->closure_output_node_id ==
+              closure_source_location_->closure_output_node_id)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 OperatorComputeContext::OperatorComputeContext() : OperatorComputeContext(nullptr) {}
 
 OperatorComputeContext::OperatorComputeContext(const ComputeContext *parent)
