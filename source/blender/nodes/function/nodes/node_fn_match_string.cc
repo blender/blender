@@ -45,8 +45,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
-  static auto fn = mf::build::SI3_SO<std::string, std::string, int, bool>(
-      "Starts With", [](const std::string &a, const std::string &b, const int mode) {
+  static auto fn = mf::build::SI3_SO<std::string, int, std::string, bool>(
+      "Starts With", [](const std::string &a, const int mode, const std::string &b) {
         const StringRef strref_a(a);
         const StringRef strref_b(b);
         switch (MatchStringOperation(mode)) {
