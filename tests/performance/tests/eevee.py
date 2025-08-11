@@ -49,6 +49,8 @@ def frame_change_handler(scene):
         screen = bpy.context.window_manager.windows[0].screen
         bpy.context.scene.sync_mode = 'NONE'
         frame_set_mode = False
+        # Overwrite animation FPS limit set by .blend files.
+        bpy.context.scene.render.fps = 1000
 
         for area in screen.areas:
             if area.type == 'VIEW_3D':
