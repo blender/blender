@@ -578,31 +578,31 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
     case SOCK_OBJECT: {
       ID *id = IDP_Id(&property);
       Object *object = (id && GS(id->name) == ID_OB) ? (Object *)id : nullptr;
-      *(Object **)r_value = object;
+      bke::SocketValueVariant::ConstructIn(r_value, object);
       break;
     }
     case SOCK_COLLECTION: {
       ID *id = IDP_Id(&property);
       Collection *collection = (id && GS(id->name) == ID_GR) ? (Collection *)id : nullptr;
-      *(Collection **)r_value = collection;
+      bke::SocketValueVariant::ConstructIn(r_value, collection);
       break;
     }
     case SOCK_TEXTURE: {
       ID *id = IDP_Id(&property);
       Tex *texture = (id && GS(id->name) == ID_TE) ? (Tex *)id : nullptr;
-      *(Tex **)r_value = texture;
+      bke::SocketValueVariant::ConstructIn(r_value, texture);
       break;
     }
     case SOCK_IMAGE: {
       ID *id = IDP_Id(&property);
       Image *image = (id && GS(id->name) == ID_IM) ? (Image *)id : nullptr;
-      *(Image **)r_value = image;
+      bke::SocketValueVariant::ConstructIn(r_value, image);
       break;
     }
     case SOCK_MATERIAL: {
       ID *id = IDP_Id(&property);
       Material *material = (id && GS(id->name) == ID_MA) ? (Material *)id : nullptr;
-      *(Material **)r_value = material;
+      bke::SocketValueVariant::ConstructIn(r_value, material);
       break;
     }
     default: {

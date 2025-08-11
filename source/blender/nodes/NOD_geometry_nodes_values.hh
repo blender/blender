@@ -54,7 +54,12 @@ static constexpr bool geo_nodes_type_stored_as_SocketValueVariant_v =
                   bke::GVolumeGrid,
                   nodes::BundlePtr,
                   nodes::ClosurePtr,
-                  nodes::ListPtr>;
+                  nodes::ListPtr,
+                  Object *,
+                  Collection *,
+                  Tex *,
+                  Image *,
+                  Material *>;
 
 /**
  * Executes a multi-function. If all inputs are single values, the results will also be single
