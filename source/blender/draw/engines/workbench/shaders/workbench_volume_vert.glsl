@@ -16,7 +16,7 @@ VERTEX_SHADER_CREATE_INFO(workbench_volume_smoke)
 
 void main()
 {
-  drw_ResourceID_iface.resource_index = drw_resource_id();
+  drw_ResourceID_iface.resource_index = drw_resource_id_raw();
 
 #ifdef VOLUME_SLICE
   if (slice_axis == 0) {
