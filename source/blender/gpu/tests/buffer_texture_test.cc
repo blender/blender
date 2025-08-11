@@ -19,7 +19,7 @@ namespace blender::gpu::tests {
 static void test_buffer_texture()
 {
   /* Build compute shader. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_buffer_texture_test");
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_buffer_texture_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 

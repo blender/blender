@@ -149,9 +149,9 @@ inline constexpr DataFormat to_data_format(VertAttrType format)
   return DataFormat(int(format));
 }
 
-}  // namespace blender::gpu
+class Shader;
 
-struct GPUShader;
+}  // namespace blender::gpu
 
 constexpr static int GPU_VERT_ATTR_MAX_LEN = 16;
 constexpr static int GPU_VERT_ATTR_MAX_NAMES = 6;
@@ -308,7 +308,7 @@ struct GPUVertFormat {
 
 void GPU_vertformat_clear(GPUVertFormat *);
 void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat &src);
-void GPU_vertformat_from_shader(GPUVertFormat *format, const GPUShader *shader);
+void GPU_vertformat_from_shader(GPUVertFormat *format, const blender::gpu::Shader *shader);
 
 uint GPU_vertformat_attr_add(GPUVertFormat *format,
                              blender::StringRef name,

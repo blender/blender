@@ -43,7 +43,7 @@ static bool effect_is_active(ShaderFxData *fx, bool is_edit, bool is_viewport)
 }
 
 PassSimple &Instance::vfx_pass_create(
-    const char *name, DRWState state, GPUShader *sh, tObject *tgp_ob, GPUSamplerState sampler)
+    const char *name, DRWState state, gpu::Shader *sh, tObject *tgp_ob, GPUSamplerState sampler)
 {
   UNUSED_VARS(name);
 
@@ -99,7 +99,7 @@ void Instance::vfx_blur_sync(BlurShaderFxData *fx, Object *ob, tObject *tgp_ob)
     mul_v2_fl(blur_size, distance_factor);
   }
 
-  GPUShader *sh = ShaderCache::get().fx_blur.get();
+  gpu::Shader *sh = ShaderCache::get().fx_blur.get();
 
   DRWState state = DRW_STATE_WRITE_COLOR;
   if (blur_size[0] > 0.0f) {
@@ -118,7 +118,7 @@ void Instance::vfx_blur_sync(BlurShaderFxData *fx, Object *ob, tObject *tgp_ob)
 
 void Instance::vfx_colorize_sync(ColorizeShaderFxData *fx, Object * /*ob*/, tObject *tgp_ob)
 {
-  GPUShader *sh = ShaderCache::get().fx_colorize.get();
+  gpu::Shader *sh = ShaderCache::get().fx_colorize.get();
 
   DRWState state = DRW_STATE_WRITE_COLOR;
   auto &grp = vfx_pass_create("Fx Colorize", state, sh, tgp_ob);
@@ -135,7 +135,7 @@ void Instance::vfx_flip_sync(FlipShaderFxData *fx, Object * /*ob*/, tObject *tgp
   axis_flip[0] = (fx->flag & FX_FLIP_HORIZONTAL) ? -1.0f : 1.0f;
   axis_flip[1] = (fx->flag & FX_FLIP_VERTICAL) ? -1.0f : 1.0f;
 
-  GPUShader *sh = ShaderCache::get().fx_transform.get();
+  gpu::Shader *sh = ShaderCache::get().fx_transform.get();
 
   DRWState state = DRW_STATE_WRITE_COLOR;
   auto &grp = vfx_pass_create("Fx Flip", state, sh, tgp_ob);
@@ -165,7 +165,7 @@ void Instance::vfx_rim_sync(RimShaderFxData *fx, Object *ob, tObject *tgp_ob)
   mul_v2_v2(offset, vp_size_inv);
   mul_v2_fl(blur_size, distance_factor);
 
-  GPUShader *sh = ShaderCache::get().fx_rim.get();
+  gpu::Shader *sh = ShaderCache::get().fx_rim.get();
 
   {
     DRWState state = DRW_STATE_WRITE_COLOR;
@@ -248,7 +248,7 @@ void Instance::vfx_pixelize_sync(PixelShaderFxData *fx, Object *ob, tObject *tgp
   /* Center to texel */
   madd_v2_v2fl(ob_center, pixel_size, -0.5f);
 
-  GPUShader *sh = ShaderCache::get().fx_pixelize.get();
+  gpu::Shader *sh = ShaderCache::get().fx_pixelize.get();
 
   DRWState state = DRW_STATE_WRITE_COLOR;
 
@@ -355,7 +355,7 @@ void Instance::vfx_shadow_sync(ShadowShaderFxData *fx, Object *ob, tObject *tgp_
     wave_phase = 0.0f;
   }
 
-  GPUShader *sh = ShaderCache::get().fx_shadow.get();
+  gpu::Shader *sh = ShaderCache::get().fx_shadow.get();
 
   copy_v2_fl2(blur_dir, blur_size[0] * vp_size_inv[0], 0.0f);
 
@@ -403,7 +403,7 @@ void Instance::vfx_glow_sync(GlowShaderFxData *fx, Object * /*ob*/, tObject *tgp
   const float s = sin(fx->rotation);
   const float c = cos(fx->rotation);
 
-  GPUShader *sh = ShaderCache::get().fx_glow.get();
+  gpu::Shader *sh = ShaderCache::get().fx_glow.get();
 
   float ref_col[4];
 
@@ -509,7 +509,7 @@ void Instance::vfx_wave_sync(WaveShaderFxData *fx, Object *ob, tObject *tgp_ob)
   /* Phase start at shadow center. */
   wave_phase = fx->phase - dot_v2v2(wave_center, wave_dir);
 
-  GPUShader *sh = ShaderCache::get().fx_transform.get();
+  gpu::Shader *sh = ShaderCache::get().fx_transform.get();
 
   DRWState state = DRW_STATE_WRITE_COLOR;
   auto &grp = vfx_pass_create("Fx Wave", state, sh, tgp_ob);
@@ -553,7 +553,7 @@ void Instance::vfx_swirl_sync(SwirlShaderFxData *fx, Object * /*ob*/, tObject *t
     return;
   }
 
-  GPUShader *sh = ShaderCache::get().fx_transform.get();
+  gpu::Shader *sh = ShaderCache::get().fx_transform.get();
 
   DRWState state = DRW_STATE_WRITE_COLOR;
   auto &grp = vfx_pass_create("Fx Flip", state, sh, tgp_ob);
@@ -620,7 +620,7 @@ void Instance::vfx_sync(Object *ob, tObject *tgp_ob)
     /* We need an extra pass to combine result to main buffer. */
     vfx_swapchain_.next().fb = &this->gpencil_fb;
 
-    GPUShader *sh = ShaderCache::get().fx_composite.get();
+    gpu::Shader *sh = ShaderCache::get().fx_composite.get();
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_MUL;
     auto &grp = vfx_pass_create("GPencil Object Compose", state, sh, tgp_ob);

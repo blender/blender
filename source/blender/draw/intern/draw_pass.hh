@@ -139,7 +139,7 @@ class PassBase {
   /** Reference to sub-pass commands buffer. Either own or from parent pass. */
   SubPassVector<PassBase<DrawCommandBufType>> &sub_passes_;
   /** Currently bound shader. Used for interface queries. */
-  GPUShader *shader_;
+  gpu::Shader *shader_;
 
   uint64_t manager_fingerprint_ = 0;
   uint64_t view_fingerprint_ = 0;
@@ -154,7 +154,7 @@ class PassBase {
   PassBase(const char *name,
            DrawCommandBufType &draw_command_buf,
            SubPassVector<PassBase<DrawCommandBufType>> &sub_passes,
-           GPUShader *shader = nullptr)
+           gpu::Shader *shader = nullptr)
       : draw_commands_buf_(draw_command_buf),
         sub_passes_(sub_passes),
         shader_(shader),
@@ -221,7 +221,7 @@ class PassBase {
   /**
    * Bind a shader. Any following bind() or push_constant() call will use its interface.
    */
-  void shader_set(GPUShader *shader);
+  void shader_set(gpu::Shader *shader);
 
   /**
    * Bind a framebuffer. This is equivalent to a deferred GPU_framebuffer_bind() call.
@@ -424,14 +424,14 @@ class PassBase {
    * IMPORTANT: Will keep a reference to the data and dereference it upon drawing. Make sure data
    * still alive until pass submission.
    */
-  void specialize_constant(GPUShader *shader, const char *name, const float &data);
-  void specialize_constant(GPUShader *shader, const char *name, const int &data);
-  void specialize_constant(GPUShader *shader, const char *name, const uint &data);
-  void specialize_constant(GPUShader *shader, const char *name, const bool &data);
-  void specialize_constant(GPUShader *shader, const char *name, const float *data);
-  void specialize_constant(GPUShader *shader, const char *name, const int *data);
-  void specialize_constant(GPUShader *shader, const char *name, const uint *data);
-  void specialize_constant(GPUShader *shader, const char *name, const bool *data);
+  void specialize_constant(gpu::Shader *shader, const char *name, const float &data);
+  void specialize_constant(gpu::Shader *shader, const char *name, const int &data);
+  void specialize_constant(gpu::Shader *shader, const char *name, const uint &data);
+  void specialize_constant(gpu::Shader *shader, const char *name, const bool &data);
+  void specialize_constant(gpu::Shader *shader, const char *name, const float *data);
+  void specialize_constant(gpu::Shader *shader, const char *name, const int *data);
+  void specialize_constant(gpu::Shader *shader, const char *name, const uint *data);
+  void specialize_constant(gpu::Shader *shader, const char *name, const bool *data);
 
   /**
    * Custom resource binding.
@@ -1095,7 +1095,7 @@ inline void PassBase<T>::state_stencil(uint8_t write_mask, uint8_t reference, ui
   create_command(Type::StencilSet).stencil_set = {write_mask, compare_mask, reference};
 }
 
-template<class T> inline void PassBase<T>::shader_set(GPUShader *shader)
+template<class T> inline void PassBase<T>::shader_set(gpu::Shader *shader)
 {
   shader_ = shader;
   create_command(Type::ShaderBind).shader_bind = {shader};
@@ -1531,7 +1531,7 @@ template<class T> inline void PassBase<T>::push_constant(const char *name, const
  * \{ */
 
 template<class T>
-inline void PassBase<T>::specialize_constant(GPUShader *shader,
+inline void PassBase<T>::specialize_constant(gpu::Shader *shader,
                                              const char *constant_name,
                                              const int &constant_value)
 {
@@ -1540,7 +1540,7 @@ inline void PassBase<T>::specialize_constant(GPUShader *shader,
 }
 
 template<class T>
-inline void PassBase<T>::specialize_constant(GPUShader *shader,
+inline void PassBase<T>::specialize_constant(gpu::Shader *shader,
                                              const char *constant_name,
                                              const uint &constant_value)
 {
@@ -1549,7 +1549,7 @@ inline void PassBase<T>::specialize_constant(GPUShader *shader,
 }
 
 template<class T>
-inline void PassBase<T>::specialize_constant(GPUShader *shader,
+inline void PassBase<T>::specialize_constant(gpu::Shader *shader,
                                              const char *constant_name,
                                              const float &constant_value)
 {
@@ -1558,7 +1558,7 @@ inline void PassBase<T>::specialize_constant(GPUShader *shader,
 }
 
 template<class T>
-inline void PassBase<T>::specialize_constant(GPUShader *shader,
+inline void PassBase<T>::specialize_constant(gpu::Shader *shader,
                                              const char *constant_name,
                                              const bool &constant_value)
 {
@@ -1567,7 +1567,7 @@ inline void PassBase<T>::specialize_constant(GPUShader *shader,
 }
 
 template<class T>
-inline void PassBase<T>::specialize_constant(GPUShader *shader,
+inline void PassBase<T>::specialize_constant(gpu::Shader *shader,
                                              const char *constant_name,
                                              const int *constant_value)
 {
@@ -1576,7 +1576,7 @@ inline void PassBase<T>::specialize_constant(GPUShader *shader,
 }
 
 template<class T>
-inline void PassBase<T>::specialize_constant(GPUShader *shader,
+inline void PassBase<T>::specialize_constant(gpu::Shader *shader,
                                              const char *constant_name,
                                              const uint *constant_value)
 {
@@ -1585,7 +1585,7 @@ inline void PassBase<T>::specialize_constant(GPUShader *shader,
 }
 
 template<class T>
-inline void PassBase<T>::specialize_constant(GPUShader *shader,
+inline void PassBase<T>::specialize_constant(gpu::Shader *shader,
                                              const char *constant_name,
                                              const float *constant_value)
 {
@@ -1594,7 +1594,7 @@ inline void PassBase<T>::specialize_constant(GPUShader *shader,
 }
 
 template<class T>
-inline void PassBase<T>::specialize_constant(GPUShader *shader,
+inline void PassBase<T>::specialize_constant(gpu::Shader *shader,
                                              const char *constant_name,
                                              const bool *constant_value)
 {

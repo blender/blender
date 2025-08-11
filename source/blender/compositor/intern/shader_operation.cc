@@ -60,7 +60,7 @@ void ShaderOperation::execute()
     result.allocate_texture(domain);
   }
 
-  GPUShader *shader = GPU_material_get_shader(material_);
+  gpu::Shader *shader = GPU_material_get_shader(material_);
   GPU_shader_bind(shader);
 
   bind_material_resources(shader);
@@ -76,7 +76,7 @@ void ShaderOperation::execute()
   GPU_debug_group_end();
 }
 
-void ShaderOperation::bind_material_resources(GPUShader *shader)
+void ShaderOperation::bind_material_resources(gpu::Shader *shader)
 {
   /* Bind the uniform buffer of the material if it exists. It may not exist if the GPU material has
    * no uniforms. */
@@ -95,7 +95,7 @@ void ShaderOperation::bind_material_resources(GPUShader *shader)
   }
 }
 
-void ShaderOperation::bind_inputs(GPUShader *shader)
+void ShaderOperation::bind_inputs(gpu::Shader *shader)
 {
   /* Attributes represents the inputs of the operation and their names match those of the inputs of
    * the operation as well as the corresponding texture samples in the shader. */
@@ -105,7 +105,7 @@ void ShaderOperation::bind_inputs(GPUShader *shader)
   }
 }
 
-void ShaderOperation::bind_outputs(GPUShader *shader)
+void ShaderOperation::bind_outputs(gpu::Shader *shader)
 {
   for (StringRefNull output_identifier : output_sockets_to_output_identifiers_map_.values()) {
     get_result(output_identifier).bind_as_image(shader, output_identifier.c_str());

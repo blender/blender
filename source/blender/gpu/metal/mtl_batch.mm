@@ -344,11 +344,11 @@ id<MTLRenderCommandEncoder> MTLBatch::bind()
 
   /* GPU debug markers. */
   if (G.debug & G_DEBUG_GPU) {
-    [rec pushDebugGroup:[NSString stringWithFormat:@"Draw Commands%@ (GPUShader: %s)",
+    [rec pushDebugGroup:[NSString stringWithFormat:@"Draw Commands%@ (Shader: %s)",
                                                    this->elem ? @"(indexed)" : @"",
                                                    active_shader_->get_interface()->get_name()]];
     [rec insertDebugSignpost:[NSString
-                                 stringWithFormat:@"Draw Commands %@ (GPUShader: %s)",
+                                 stringWithFormat:@"Draw Commands %@ (Shader: %s)",
                                                   this->elem ? @"(indexed)" : @"",
                                                   active_shader_->get_interface()->get_name()]];
   }

@@ -49,7 +49,7 @@ struct RecordingState {
   bool specialization_constants_in_use = false;
   /* True if the bound shader uses specialization. */
   bool shader_use_specialization = false;
-  GPUShader *shader = nullptr;
+  gpu::Shader *shader = nullptr;
   bool front_facing = true;
   bool inverted_view = false;
   DRWState pipeline_state = DRW_STATE_NO_DRAW;
@@ -137,7 +137,7 @@ struct Header {
 };
 
 struct ShaderBind {
-  GPUShader *shader;
+  gpu::Shader *shader;
 
   void execute(RecordingState &state) const;
   std::string serialize() const;
@@ -313,7 +313,7 @@ struct PushConstant {
 
 struct SpecializeConstant {
   /* Shader to set the constant in. */
-  GPUShader *shader;
+  gpu::Shader *shader;
   /* Value of the constant or a reference to it. */
   union {
     int int_value;
@@ -341,21 +341,21 @@ struct SpecializeConstant {
 
   SpecializeConstant() = default;
 
-  SpecializeConstant(GPUShader *sh, int loc, const float &val)
+  SpecializeConstant(gpu::Shader *sh, int loc, const float &val)
       : shader(sh), float_value(val), location(loc), type(Type::FloatValue){};
-  SpecializeConstant(GPUShader *sh, int loc, const int &val)
+  SpecializeConstant(gpu::Shader *sh, int loc, const int &val)
       : shader(sh), int_value(val), location(loc), type(Type::IntValue){};
-  SpecializeConstant(GPUShader *sh, int loc, const uint &val)
+  SpecializeConstant(gpu::Shader *sh, int loc, const uint &val)
       : shader(sh), uint_value(val), location(loc), type(Type::UintValue){};
-  SpecializeConstant(GPUShader *sh, int loc, const bool &val)
+  SpecializeConstant(gpu::Shader *sh, int loc, const bool &val)
       : shader(sh), bool_value(val), location(loc), type(Type::BoolValue){};
-  SpecializeConstant(GPUShader *sh, int loc, const float *val)
+  SpecializeConstant(gpu::Shader *sh, int loc, const float *val)
       : shader(sh), float_ref(val), location(loc), type(Type::FloatReference){};
-  SpecializeConstant(GPUShader *sh, int loc, const int *val)
+  SpecializeConstant(gpu::Shader *sh, int loc, const int *val)
       : shader(sh), int_ref(val), location(loc), type(Type::IntReference){};
-  SpecializeConstant(GPUShader *sh, int loc, const uint *val)
+  SpecializeConstant(gpu::Shader *sh, int loc, const uint *val)
       : shader(sh), uint_ref(val), location(loc), type(Type::UintReference){};
-  SpecializeConstant(GPUShader *sh, int loc, const bool *val)
+  SpecializeConstant(gpu::Shader *sh, int loc, const bool *val)
       : shader(sh), bool_ref(val), location(loc), type(Type::BoolReference){};
 
   void execute(RecordingState &state) const;

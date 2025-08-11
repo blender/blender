@@ -42,7 +42,7 @@ static void drw_hair_particle_cache_update_compute(ParticleHairCache *cache, con
   const int final_points_len = cache->final[subdiv].strands_res * strands_len;
   if (final_points_len > 0) {
     using namespace blender::draw;
-    GPUShader *shader = DRW_shader_hair_refine_get(PART_REFINE_CATMULL_ROM);
+    blender::gpu::Shader *shader = DRW_shader_hair_refine_get(PART_REFINE_CATMULL_ROM);
 
     /* TODO(fclem): Remove Global access. */
     PassSimple &pass = drw_get().data->curves_module->refine;

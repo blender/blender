@@ -1356,7 +1356,7 @@ class GPUComputeEvaluator {
                  OpenSubdiv::Osd::BufferDescriptor const &duDesc,
                  OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
                  int workGroupSize);
-    GPUShader *shader = nullptr;
+    blender::gpu::Shader *shader = nullptr;
     int uniformStart = 0;
     int uniformEnd = 0;
     int uniformSrcOffset = 0;
@@ -1373,7 +1373,7 @@ class GPUComputeEvaluator {
                  OpenSubdiv::Osd::BufferDescriptor const &duDesc,
                  OpenSubdiv::Osd::BufferDescriptor const &dvDesc,
                  int workGroupSize);
-    GPUShader *shader = nullptr;
+    blender::gpu::Shader *shader = nullptr;
     int uniformSrcOffset = 0;
     int uniformDstOffset = 0;
     int uniformDuDesc = 0;
@@ -1385,7 +1385,7 @@ class GPUComputeEvaluator {
 
   int GetDispatchSize(int count) const;
 
-  void DispatchCompute(GPUShader *shader, int totalDispatchSize) const;
+  void DispatchCompute(blender::gpu::Shader *shader, int totalDispatchSize) const;
 };
 
 }  // namespace blender::opensubdiv

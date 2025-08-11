@@ -62,7 +62,7 @@ void AmbientOcclusion::sync()
   }
 
   render_pass_ps_.init();
-  GPUShader *sh = inst_.shaders.static_shader_get(AMBIENT_OCCLUSION_PASS);
+  gpu::Shader *sh = inst_.shaders.static_shader_get(AMBIENT_OCCLUSION_PASS);
   render_pass_ps_.specialize_constant(sh, "ao_slice_count", ray_count_);
   render_pass_ps_.specialize_constant(sh, "ao_step_count", step_count_);
   render_pass_ps_.shader_set(sh);

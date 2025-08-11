@@ -126,7 +126,7 @@ void GPU_materials_free(Main *bmain);
 
 GPUPass *GPU_material_get_pass(GPUMaterial *material);
 /** Return the most optimal shader configuration for the given material. */
-GPUShader *GPU_material_get_shader(GPUMaterial *material);
+blender::gpu::Shader *GPU_material_get_shader(GPUMaterial *material);
 
 const char *GPU_material_get_name(GPUMaterial *material);
 

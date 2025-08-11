@@ -85,7 +85,7 @@ float2 RealizeOnDomainOperation::compute_corrective_translation()
 
 void RealizeOnDomainOperation::realize_on_domain_gpu(const float3x3 &inverse_transformation)
 {
-  GPUShader *shader = this->context().get_shader(this->get_realization_shader_name());
+  gpu::Shader *shader = this->context().get_shader(this->get_realization_shader_name());
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_mat3_as_mat4(shader, "inverse_transformation", inverse_transformation.ptr());

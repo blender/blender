@@ -24,7 +24,7 @@
 /* -------------------------------------------------------------------- */
 /** \name Submission critical section
  *
- * The usage of GPUShader objects is currently not thread safe. Since they are shared resources
+ * The usage of gpu::Shader objects is currently not thread safe. Since they are shared resources
  * between render engine instances, we cannot allow pass submissions in a concurrent manner.
  * \{ */
 

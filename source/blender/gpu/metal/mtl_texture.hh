@@ -446,7 +446,7 @@ class MTLTexture : public Texture {
    * use a compute shader to write to depth, so we must instead render to a depth target.
    * These processes use vertex/fragment shaders to render texture data from an intermediate
    * source, in order to prime the depth buffer. */
-  GPUShader *depth_2d_update_sh_get(DepthTextureUpdateRoutineSpecialisation specialization);
+  gpu::Shader *depth_2d_update_sh_get(DepthTextureUpdateRoutineSpecialisation specialization);
 
   void update_sub_depth_2d(
       int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data);
@@ -476,7 +476,7 @@ class MTLTexture : public Texture {
       eGPUTextureType texture_type);
 
   /* fullscreen blit utilities. */
-  GPUShader *fullscreen_blit_sh_get();
+  gpu::Shader *fullscreen_blit_sh_get();
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLTexture")
 };

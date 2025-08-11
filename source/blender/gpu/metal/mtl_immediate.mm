@@ -62,7 +62,7 @@ void MTLImmediate::end()
   /* Verify context is valid, vertex data is written and a valid shader is bound. */
   if (context_ && this->vertex_idx > 0 && this->shader) {
 
-    MTLShader *active_mtl_shader = static_cast<MTLShader *>(unwrap(shader));
+    MTLShader *active_mtl_shader = static_cast<MTLShader *>(shader);
 
     /* Skip draw if Metal shader is not valid. */
     if (active_mtl_shader == nullptr || !active_mtl_shader->is_valid() ||
@@ -213,7 +213,7 @@ void MTLImmediate::end()
       this->prim_type = GPU_PRIM_LINE_STRIP;
     }
 
-    if (unwrap(this->shader)->is_polyline) {
+    if (this->shader->is_polyline) {
       context_->get_scratchbuffer_manager().bind_as_ssbo(GPU_SSBO_POLYLINE_POS_BUF_SLOT);
       context_->get_scratchbuffer_manager().bind_as_ssbo(GPU_SSBO_POLYLINE_COL_BUF_SLOT);
       context_->get_scratchbuffer_manager().bind_as_ssbo(GPU_SSBO_INDEX_BUF_SLOT);
@@ -309,7 +309,7 @@ void MTLImmediate::end()
         /* Set depth stencil state (requires knowledge of primitive type). */
         context_->ensure_depth_stencil_state(primitive_type);
 
-        if (unwrap(this->shader)->is_polyline) {
+        if (this->shader->is_polyline) {
           this->polyline_draw_workaround(current_allocation_.buffer_offset);
         }
         else {
@@ -323,7 +323,7 @@ void MTLImmediate::end()
       [rec popDebugGroup];
     }
 
-    if (unwrap(this->shader)->is_polyline) {
+    if (this->shader->is_polyline) {
       context_->get_scratchbuffer_manager().unbind_as_ssbo();
 
       context_->pipeline_state.ssbo_bindings[GPU_SSBO_POLYLINE_POS_BUF_SLOT].ssbo = nil;

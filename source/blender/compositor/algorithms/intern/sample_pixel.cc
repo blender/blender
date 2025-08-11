@@ -38,7 +38,7 @@ static float4 sample_pixel_gpu(Context &context,
                                const ExtensionMode &extension_mode_y,
                                const float2 coordinates)
 {
-  GPUShader *shader = context.get_shader(get_pixel_sampler_shader_name(interpolation));
+  gpu::Shader *shader = context.get_shader(get_pixel_sampler_shader_name(interpolation));
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_2fv(shader, "coordinates_u", coordinates);

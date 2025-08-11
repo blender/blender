@@ -22,7 +22,9 @@
 #include "BLI_string_ref.hh"
 
 struct CurveMapping;
-struct GPUShader;
+namespace blender::gpu {
+class Shader;
+}  // namespace blender::gpu
 
 namespace blender::ocio {
 

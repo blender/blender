@@ -58,7 +58,7 @@ struct GPUSkyBuilder {
 };
 
 struct GPUMaterial {
-  /* Contains #GPUShader and source code for deferred compilation.
+  /* Contains #blender::gpu::Shader and source code for deferred compilation.
    * Can be shared between materials sharing same node-tree topology. */
   GPUPass *pass = nullptr;
   /* Optimized GPUPass, situationally compiled after initial pass for optimal realtime performance.
@@ -296,7 +296,7 @@ GPUPass *GPU_material_get_pass(GPUMaterial *material)
              material->pass;
 }
 
-GPUShader *GPU_material_get_shader(GPUMaterial *material)
+blender::gpu::Shader *GPU_material_get_shader(GPUMaterial *material)
 {
   return GPU_pass_shader_get(GPU_material_get_pass(material));
 }

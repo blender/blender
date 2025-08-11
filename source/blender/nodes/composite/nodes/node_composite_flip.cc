@@ -55,7 +55,7 @@ class FlipOperation : public NodeOperation {
 
   void execute_gpu()
   {
-    GPUShader *shader = context().get_shader("compositor_flip");
+    gpu::Shader *shader = context().get_shader("compositor_flip");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1b(shader, "flip_x", this->get_flip_x());

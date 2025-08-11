@@ -155,7 +155,8 @@ int GPUComputeEvaluator::GetDispatchSize(int count) const
   return (count + _workGroupSize - 1) / _workGroupSize;
 }
 
-void GPUComputeEvaluator::DispatchCompute(GPUShader *shader, int totalDispatchSize) const
+void GPUComputeEvaluator::DispatchCompute(blender::gpu::Shader *shader,
+                                          int totalDispatchSize) const
 {
   const int dispatchSize = GetDispatchSize(totalDispatchSize);
   int dispatchRX = dispatchSize;
@@ -326,11 +327,11 @@ GPUComputeEvaluator::_StencilKernel::~_StencilKernel()
     shader = nullptr;
   }
 }
-static GPUShader *compile_eval_stencil_shader(BufferDescriptor const &srcDesc,
-                                              BufferDescriptor const &dstDesc,
-                                              BufferDescriptor const &duDesc,
-                                              BufferDescriptor const &dvDesc,
-                                              int workGroupSize)
+static blender::gpu::Shader *compile_eval_stencil_shader(BufferDescriptor const &srcDesc,
+                                                         BufferDescriptor const &dstDesc,
+                                                         BufferDescriptor const &duDesc,
+                                                         BufferDescriptor const &dvDesc,
+                                                         int workGroupSize)
 {
   using namespace blender::gpu::shader;
   ShaderCreateInfo info("opensubdiv_compute_eval");
@@ -390,7 +391,7 @@ static GPUShader *compile_eval_stencil_shader(BufferDescriptor const &srcDesc,
   info.push_constant(Type::int_t, "batchEnd");
 
   info.compute_source("osd_eval_stencils_comp.glsl");
-  GPUShader *shader = GPU_shader_create_from_info(
+  blender::gpu::Shader *shader = GPU_shader_create_from_info(
       reinterpret_cast<const GPUShaderCreateInfo *>(&info));
   return shader;
 }
@@ -433,11 +434,11 @@ GPUComputeEvaluator::_PatchKernel::~_PatchKernel()
   }
 }
 
-static GPUShader *compile_eval_patches_shader(BufferDescriptor const &srcDesc,
-                                              BufferDescriptor const &dstDesc,
-                                              BufferDescriptor const &duDesc,
-                                              BufferDescriptor const &dvDesc,
-                                              int workGroupSize)
+static blender::gpu::Shader *compile_eval_patches_shader(BufferDescriptor const &srcDesc,
+                                                         BufferDescriptor const &dstDesc,
+                                                         BufferDescriptor const &duDesc,
+                                                         BufferDescriptor const &dvDesc,
+                                                         int workGroupSize)
 {
   using namespace blender::gpu::shader;
   ShaderCreateInfo info("opensubdiv_compute_eval");
@@ -493,7 +494,7 @@ static GPUShader *compile_eval_patches_shader(BufferDescriptor const &srcDesc,
       SHADER_PATCH_PARAM_BUFFER_BUF_SLOT, Qualifier::read, "OsdPatchParam", "patchParamBuffer[]");
 
   info.compute_source("osd_eval_patches_comp.glsl");
-  GPUShader *shader = GPU_shader_create_from_info(
+  blender::gpu::Shader *shader = GPU_shader_create_from_info(
       reinterpret_cast<const GPUShaderCreateInfo *>(&info));
   return shader;
 }

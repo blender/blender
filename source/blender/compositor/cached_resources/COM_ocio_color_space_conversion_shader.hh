@@ -11,7 +11,9 @@
 
 #include "COM_cached_resource.hh"
 
-struct GPUShader;
+namespace blender::gpu {
+class Shader;
+}  // namespace blender::gpu
 
 namespace blender::compositor {
 
@@ -50,7 +52,7 @@ class OCIOColorSpaceConversionShader : public CachedResource {
  public:
   OCIOColorSpaceConversionShader(Context &context, std::string source, std::string target);
 
-  GPUShader *bind_shader_and_resources();
+  gpu::Shader *bind_shader_and_resources();
 
   void unbind_shader_and_resources();
 

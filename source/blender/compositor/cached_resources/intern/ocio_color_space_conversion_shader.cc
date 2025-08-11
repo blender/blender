@@ -323,7 +323,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     shader_ = GPU_shader_create_from_info(info);
   }
 
-  GPUShader *bind_shader_and_resources()
+  gpu::Shader *bind_shader_and_resources()
   {
     if (!shader_) {
       return nullptr;
@@ -403,7 +403,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
  private:
   /* The processor shader and the ShaderCreateInfo used to construct it. Constructed and
    * initialized in the finalize() method. */
-  GPUShader *shader_ = nullptr;
+  gpu::Shader *shader_ = nullptr;
   ShaderCreateInfo shader_create_info_ = ShaderCreateInfo("OCIO Processor");
 
   /* Stores the generated OCIOMain function as well as a number of helper functions. Initialized in
@@ -458,7 +458,7 @@ class GPUShaderCreator {
     return std::make_shared<GPUShaderCreator>();
   }
 
-  GPUShader *bind_shader_and_resources()
+  gpu::Shader *bind_shader_and_resources()
   {
     return nullptr;
   }
@@ -507,7 +507,7 @@ OCIOColorSpaceConversionShader::OCIOColorSpaceConversionShader(Context &context,
 #endif
 }
 
-GPUShader *OCIOColorSpaceConversionShader::bind_shader_and_resources()
+gpu::Shader *OCIOColorSpaceConversionShader::bind_shader_and_resources()
 {
   return shader_creator_->bind_shader_and_resources();
 }

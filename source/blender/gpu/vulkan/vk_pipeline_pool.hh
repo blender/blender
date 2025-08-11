@@ -241,7 +241,7 @@ struct VKGraphicsInfo {
  * some platforms where the driver isn't been updated and doesn't implement this extension. In
  * that case shader modules should still be used.
  *
- * TODO: GPUMaterials (or any other large shader) should be unloaded when the GPUShader is
+ * TODO: GPUMaterials (or any other large shader) should be unloaded when the gpu::Shader is
  * destroyed. Exact details what the best approach is unclear as support for EEVEE is still
  * lacking.
  */

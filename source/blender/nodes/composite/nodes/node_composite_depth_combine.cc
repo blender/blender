@@ -141,7 +141,7 @@ class ZCombineOperation : public NodeOperation {
 
   void execute_simple_image_gpu()
   {
-    GPUShader *shader = this->context().get_shader("compositor_z_combine_simple_image");
+    gpu::Shader *shader = this->context().get_shader("compositor_z_combine_simple_image");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1b(shader, "use_alpha", this->use_alpha());
@@ -172,7 +172,7 @@ class ZCombineOperation : public NodeOperation {
 
   void execute_simple_depth_gpu()
   {
-    GPUShader *shader = this->context().get_shader("compositor_z_combine_simple_depth");
+    gpu::Shader *shader = this->context().get_shader("compositor_z_combine_simple_depth");
     GPU_shader_bind(shader);
 
     const Result &first_z = this->get_input("Depth A");
@@ -269,7 +269,7 @@ class ZCombineOperation : public NodeOperation {
 
   void execute_anti_aliased_image_gpu(const Result &mask)
   {
-    GPUShader *shader = this->context().get_shader("compositor_z_combine_from_mask_image");
+    gpu::Shader *shader = this->context().get_shader("compositor_z_combine_from_mask_image");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1b(shader, "use_alpha", this->use_alpha());
@@ -296,7 +296,7 @@ class ZCombineOperation : public NodeOperation {
 
   void execute_anti_aliased_depth_gpu()
   {
-    GPUShader *shader = this->context().get_shader("compositor_z_combine_from_mask_depth");
+    gpu::Shader *shader = this->context().get_shader("compositor_z_combine_from_mask_depth");
     GPU_shader_bind(shader);
 
     const Result &first_z = this->get_input("Depth A");
@@ -372,7 +372,7 @@ class ZCombineOperation : public NodeOperation {
 
   Result compute_mask_gpu()
   {
-    GPUShader *shader = context().get_shader("compositor_z_combine_compute_mask");
+    gpu::Shader *shader = context().get_shader("compositor_z_combine_compute_mask");
     GPU_shader_bind(shader);
 
     const Result &first_z = get_input("Depth A");

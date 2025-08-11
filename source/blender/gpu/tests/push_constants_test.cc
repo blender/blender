@@ -78,7 +78,7 @@ struct CallData {
 };
 
 struct Shader {
-  GPUShader *shader = nullptr;
+  gpu::Shader *shader = nullptr;
   Vector<CallData> call_datas;
 
   Shader()

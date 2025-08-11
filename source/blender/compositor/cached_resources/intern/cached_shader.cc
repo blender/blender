@@ -65,7 +65,7 @@ CachedShader::~CachedShader()
   GPU_shader_free(shader_);
 }
 
-GPUShader *CachedShader::shader() const
+gpu::Shader *CachedShader::shader() const
 {
   return shader_;
 }
@@ -86,7 +86,7 @@ void CachedShaderContainer::reset()
   }
 }
 
-GPUShader *CachedShaderContainer::get(const char *info_name, ResultPrecision precision)
+gpu::Shader *CachedShaderContainer::get(const char *info_name, ResultPrecision precision)
 {
   const CachedShaderKey key(info_name, precision);
 

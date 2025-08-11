@@ -23,7 +23,7 @@ struct GPUUniformBuf;
 GPUVertFormat *immVertexFormat();
 
 /** Every #immBegin must have a program bound first. */
-void immBindShader(GPUShader *shader);
+void immBindShader(blender::gpu::Shader *shader);
 /** Call after your last immEnd, or before binding another program. */
 void immUnbindProgram();
 /**

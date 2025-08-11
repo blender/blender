@@ -361,7 +361,7 @@ struct Instance final : public DrawEngine {
 
   PassSimple &vfx_pass_create(const char *name,
                               DRWState state,
-                              GPUShader *sh,
+                              gpu::Shader *sh,
                               tObject *tgp_ob,
                               GPUSamplerState sampler = GPUSamplerState::internal_sampler());
 

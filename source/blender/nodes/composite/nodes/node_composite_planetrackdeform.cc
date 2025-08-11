@@ -191,7 +191,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
                          GPUUniformBuf *homography_matrices_buffer,
                          Result &plane_mask)
   {
-    GPUShader *shader = context().get_shader("compositor_plane_deform_motion_blur");
+    gpu::Shader *shader = context().get_shader("compositor_plane_deform_motion_blur");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "number_of_motion_blur_samples", homography_matrices.size());
@@ -226,7 +226,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
   Result compute_plane_mask_gpu(const Array<float4x4> &homography_matrices,
                                 GPUUniformBuf *homography_matrices_buffer)
   {
-    GPUShader *shader = context().get_shader("compositor_plane_deform_motion_blur_mask");
+    gpu::Shader *shader = context().get_shader("compositor_plane_deform_motion_blur_mask");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "number_of_motion_blur_samples", homography_matrices.size());

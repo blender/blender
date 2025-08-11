@@ -209,7 +209,7 @@ struct ThumbsDrawBatch {
   StripsDrawBatch &strips_batch_;
   Array<SeqStripThumbData> thumbs_;
   GPUUniformBuf *ubo_thumbs_ = nullptr;
-  GPUShader *shader_ = nullptr;
+  gpu::Shader *shader_ = nullptr;
   gpu::Batch *batch_ = nullptr;
   blender::gpu::Texture *atlas_ = nullptr;
   int binding_context_ = 0;

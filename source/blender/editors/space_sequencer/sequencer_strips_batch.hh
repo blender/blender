@@ -12,7 +12,9 @@
 #include "BLI_math_vector_types.hh"
 #include "GPU_shader_shared.hh"
 
-struct GPUShader;
+namespace blender::gpu {
+class Shader;
+}  // namespace blender::gpu
 struct GPUUniformBuf;
 struct View2D;
 
@@ -32,7 +34,7 @@ class StripsDrawBatch {
   Array<SeqStripDrawData> strips_;
   GPUUniformBuf *ubo_context_ = nullptr;
   GPUUniformBuf *ubo_strips_ = nullptr;
-  GPUShader *shader_ = nullptr;
+  gpu::Shader *shader_ = nullptr;
   gpu::Batch *batch_ = nullptr;
   int binding_context_ = 0;
   int binding_strips_ = 0;

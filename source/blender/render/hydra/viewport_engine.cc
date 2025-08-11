@@ -198,7 +198,9 @@ void DrawTexture::create_from_buffer(pxr::HdRenderBuffer *buffer)
   buffer->Unmap();
 }
 
-void DrawTexture::draw(GPUShader *shader, const pxr::GfVec4d &viewport, blender::gpu::Texture *tex)
+void DrawTexture::draw(gpu::Shader *shader,
+                       const pxr::GfVec4d &viewport,
+                       blender::gpu::Texture *tex)
 {
   if (!tex) {
     tex = texture_;
@@ -247,7 +249,7 @@ void ViewportEngine::render()
   render_task_delegate_->unbind();
 
   GPU_framebuffer_bind(view_framebuffer);
-  GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE);
+  gpu::Shader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE);
   GPU_shader_bind(shader);
 
   pxr::GfVec4d draw_viewport(view_settings.border[0],

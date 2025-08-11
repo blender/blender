@@ -1568,7 +1568,7 @@ Shader *MTLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
 
 void MTLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
 {
-  MTLShader *shader = static_cast<MTLShader *>(unwrap(specialization.shader));
+  MTLShader *shader = static_cast<MTLShader *>(specialization.shader);
 
   BLI_assert_msg(shader->is_valid(),
                  "Shader must be finalized before precompiling specializations");

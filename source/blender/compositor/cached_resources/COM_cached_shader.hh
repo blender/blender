@@ -40,14 +40,14 @@ bool operator==(const CachedShaderKey &a, const CachedShaderKey &b);
  * output images' precision changed to the given precision. */
 class CachedShader : public CachedResource {
  private:
-  GPUShader *shader_ = nullptr;
+  gpu::Shader *shader_ = nullptr;
 
  public:
   CachedShader(const char *info_name, ResultPrecision precision);
 
   ~CachedShader();
 
-  GPUShader *shader() const;
+  gpu::Shader *shader() const;
 };
 
 /* ------------------------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ class CachedShaderContainer : public CachedResourceContainer {
    * container, if one exists, return its shader, otherwise, return the shader of a newly created
    * one and add it to the container. In both cases, tag the cached resource as needed to keep it
    * cached for the next evaluation. */
-  GPUShader *get(const char *info_name, ResultPrecision precision);
+  gpu::Shader *get(const char *info_name, ResultPrecision precision);
 };
 
 }  // namespace blender::compositor

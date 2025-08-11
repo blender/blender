@@ -95,7 +95,7 @@ static PyObject *pygpu_compute_dispatch(PyObject * /*self*/, PyObject *args, PyO
       return nullptr;
     }
 
-    GPUShader *shader = py_shader->shader;
+    blender::gpu::Shader *shader = py_shader->shader;
     GPU_compute_dispatch(shader, groups_x_len, groups_y_len, groups_z_len);
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }

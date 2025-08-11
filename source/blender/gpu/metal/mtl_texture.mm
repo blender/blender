@@ -374,7 +374,7 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
 {
   BLI_assert(this->type_get() == dst->type_get());
 
-  GPUShader *shader = fullscreen_blit_sh_get();
+  gpu::Shader *shader = fullscreen_blit_sh_get();
   BLI_assert(shader != nullptr);
   BLI_assert(MTLContext::get());
 

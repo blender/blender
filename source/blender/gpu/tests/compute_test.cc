@@ -20,7 +20,7 @@ static void test_compute_direct()
   static constexpr uint SIZE = 32;
 
   /* Build compute shader. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */
@@ -62,7 +62,7 @@ static void test_compute_indirect()
   static constexpr uint SIZE = 32;
 
   /* Build compute shader. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */

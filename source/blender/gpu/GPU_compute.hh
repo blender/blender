@@ -24,7 +24,7 @@
  * might be different in each of the 3 dimensions.
  */
 void GPU_compute_dispatch(
-    GPUShader *shader,
+    blender::gpu::Shader *shader,
     uint groups_x_len,
     uint groups_y_len,
     uint groups_z_len,
@@ -48,6 +48,6 @@ void GPU_compute_dispatch(
  * might be different in each of the 3 dimensions.
  */
 void GPU_compute_dispatch_indirect(
-    GPUShader *shader,
+    blender::gpu::Shader *shader,
     GPUStorageBuf *indirect_buf,
     const blender::gpu::shader::SpecializationConstants *constants_state = nullptr);

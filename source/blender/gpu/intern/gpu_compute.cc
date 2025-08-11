@@ -10,7 +10,7 @@
 
 #include "gpu_backend.hh"
 
-void GPU_compute_dispatch(GPUShader *shader,
+void GPU_compute_dispatch(blender::gpu::Shader *shader,
                           uint groups_x_len,
                           uint groups_y_len,
                           uint groups_z_len,
@@ -22,7 +22,7 @@ void GPU_compute_dispatch(GPUShader *shader,
 }
 
 void GPU_compute_dispatch_indirect(
-    GPUShader *shader,
+    blender::gpu::Shader *shader,
     GPUStorageBuf *indirect_buf_,
     const blender::gpu::shader::SpecializationConstants *constants_state)
 {

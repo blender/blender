@@ -234,7 +234,7 @@ void DebugDraw::display_lines(View &view)
   GPU_viewport_size_get_f(viewport_size);
 
   gpu::Batch *batch = GPU_batch_procedural_lines_get();
-  GPUShader *shader = DRW_shader_debug_draw_display_get();
+  gpu::Shader *shader = DRW_shader_debug_draw_display_get();
   GPU_batch_set_shader(batch, shader);
   GPU_shader_uniform_mat4(shader, "persmat", view.persmat().ptr());
   GPU_shader_uniform_2f(shader, "size_viewport", viewport_size[2], viewport_size[3]);

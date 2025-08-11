@@ -149,10 +149,10 @@ class Context {
   eCompositorDenoiseQaulity get_denoise_quality() const;
 
   /* Get a GPU shader with the given info name and precision. */
-  GPUShader *get_shader(const char *info_name, ResultPrecision precision);
+  gpu::Shader *get_shader(const char *info_name, ResultPrecision precision);
 
   /* Get a GPU shader with the given info name and context's precision. */
-  GPUShader *get_shader(const char *info_name);
+  gpu::Shader *get_shader(const char *info_name);
 
   /* Create a result of the given type and precision. */
   Result create_result(ResultType type, ResultPrecision precision);

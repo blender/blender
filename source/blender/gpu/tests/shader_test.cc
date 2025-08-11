@@ -37,7 +37,7 @@ static void test_shader_compute_2d()
   static constexpr uint SIZE = 512;
 
   /* Build compute shader. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_2d_test");
   EXPECT_NE(shader, nullptr);
 
   /* Create texture to store result and attach to shader. */
@@ -81,7 +81,7 @@ static void test_shader_compute_1d()
   static constexpr uint SIZE = 10;
 
   /* Build compute shader. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_1d_test");
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_1d_test");
   EXPECT_NE(shader, nullptr);
 
   /* Construct Texture. */
@@ -127,7 +127,7 @@ static void test_shader_compute_vbo()
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_vbo_test");
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_vbo_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
@@ -167,7 +167,7 @@ static void test_shader_compute_ibo()
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ibo_test");
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_ibo_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
@@ -201,7 +201,7 @@ static void test_shader_compute_ssbo()
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ssbo_test");
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_ssbo_test");
   EXPECT_NE(shader, nullptr);
   GPU_shader_bind(shader);
 
@@ -234,7 +234,7 @@ GPU_TEST(shader_compute_ssbo)
 static void test_shader_ssbo_binding()
 {
   /* Build compute shader. */
-  GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ssbo_binding_test");
+  gpu::Shader *shader = GPU_shader_create_from_info_name("gpu_compute_ssbo_binding_test");
   EXPECT_NE(shader, nullptr);
 
   /* Perform tests. */
@@ -353,7 +353,7 @@ static void gpu_shader_lib_test(const char *test_src_name, const char *additiona
 
   StringRefNull test_src = gpu_shader_dependency_get_source(test_src_name);
 
-  GPUShader *shader = GPU_shader_create_from_info(
+  gpu::Shader *shader = GPU_shader_create_from_info(
       reinterpret_cast<GPUShaderCreateInfo *>(&create_info));
 
   int test_count = 0;

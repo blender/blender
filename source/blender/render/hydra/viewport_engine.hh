@@ -24,7 +24,9 @@ class DrawTexture {
   ~DrawTexture();
 
   void create_from_buffer(pxr::HdRenderBuffer *buffer);
-  void draw(GPUShader *shader, const pxr::GfVec4d &viewport, blender::gpu::Texture *tex = nullptr);
+  void draw(gpu::Shader *shader,
+            const pxr::GfVec4d &viewport,
+            blender::gpu::Texture *tex = nullptr);
   blender::gpu::Texture *texture() const;
 
  private:

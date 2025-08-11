@@ -56,8 +56,8 @@ static void compute_incomplete_prologues(Context &context,
                                          Result &incomplete_x_prologues,
                                          Result &incomplete_y_prologues)
 {
-  GPUShader *shader = context.get_shader(get_compute_incomplete_prologues_shader(operation),
-                                         ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader(get_compute_incomplete_prologues_shader(operation),
+                                           ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   input.bind_as_texture(shader, "input_tx");
@@ -93,7 +93,7 @@ static void compute_complete_x_prologues(Context &context,
                                          Result &complete_x_prologues,
                                          Result &complete_x_prologues_sum)
 {
-  GPUShader *shader = context.get_shader(
+  gpu::Shader *shader = context.get_shader(
       "compositor_summed_area_table_compute_complete_x_prologues", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
@@ -128,7 +128,7 @@ static void compute_complete_y_prologues(Context &context,
                                          Result &complete_x_prologues_sum,
                                          Result &complete_y_prologues)
 {
-  GPUShader *shader = context.get_shader(
+  gpu::Shader *shader = context.get_shader(
       "compositor_summed_area_table_compute_complete_y_prologues", ResultPrecision::Full);
   GPU_shader_bind(shader);
 
@@ -174,8 +174,8 @@ static void compute_complete_blocks(Context &context,
                                     SummedAreaTableOperation operation,
                                     Result &output)
 {
-  GPUShader *shader = context.get_shader(get_compute_complete_blocks_shader(operation),
-                                         ResultPrecision::Full);
+  gpu::Shader *shader = context.get_shader(get_compute_complete_blocks_shader(operation),
+                                           ResultPrecision::Full);
   GPU_shader_bind(shader);
 
   input.bind_as_texture(shader, "input_tx");

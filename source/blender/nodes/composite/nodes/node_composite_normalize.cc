@@ -60,7 +60,7 @@ class NormalizeOperation : public NodeOperation {
 
   void execute_gpu(const float minimum, const float scale)
   {
-    GPUShader *shader = this->context().get_shader("compositor_normalize");
+    gpu::Shader *shader = this->context().get_shader("compositor_normalize");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(shader, "minimum", minimum);

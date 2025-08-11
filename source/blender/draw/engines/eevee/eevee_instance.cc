@@ -538,7 +538,7 @@ void Instance::render_sample()
   DebugScope debug_scope(debug_scope_render_sample, "EEVEE.render_sample");
 
   {
-    /* Critical section. Potential GPUShader concurrent usage. */
+    /* Critical section. Potential gpu::Shader concurrent usage. */
     DRW_submission_start();
 
     sampling.step();
@@ -897,7 +897,7 @@ void Instance::light_bake_irradiance(
     sampling.step();
 
     {
-      /* Critical section. Potential GPUShader concurrent usage. */
+      /* Critical section. Potential gpu::Shader concurrent usage. */
       DRW_submission_start();
 
       DebugScope debug_scope(debug_scope_irradiance_setup, "EEVEE.irradiance_setup");
@@ -935,7 +935,7 @@ void Instance::light_bake_irradiance(
       for (int i = 0; i < 16 && !sampling.finished(); i++) {
         sampling.step();
         {
-          /* Critical section. Potential GPUShader concurrent usage. */
+          /* Critical section. Potential gpu::Shader concurrent usage. */
           DRW_submission_start();
 
           volume_probes.bake.raylists_build();

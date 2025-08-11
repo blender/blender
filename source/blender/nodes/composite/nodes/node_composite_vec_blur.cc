@@ -536,7 +536,7 @@ class VectorBlurOperation : public NodeOperation {
    * Each of the previous and next velocities are reduces independently. */
   Result compute_max_tile_velocity()
   {
-    GPUShader *shader = context().get_shader("compositor_max_velocity");
+    gpu::Shader *shader = context().get_shader("compositor_max_velocity");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1b(shader, "is_initial_reduction", true);
@@ -566,7 +566,7 @@ class VectorBlurOperation : public NodeOperation {
    * more information. */
   GPUStorageBuf *dilate_max_velocity(Result &max_tile_velocity)
   {
-    GPUShader *shader = context().get_shader("compositor_motion_blur_max_velocity_dilate");
+    gpu::Shader *shader = context().get_shader("compositor_motion_blur_max_velocity_dilate");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(shader, "shutter_speed", this->get_shutter());
@@ -594,7 +594,7 @@ class VectorBlurOperation : public NodeOperation {
 
   void compute_motion_blur(Result &max_tile_velocity, GPUStorageBuf *tile_indirection_buffer)
   {
-    GPUShader *shader = context().get_shader("compositor_motion_blur");
+    gpu::Shader *shader = context().get_shader("compositor_motion_blur");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "samples_count", this->get_samples_count());

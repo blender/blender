@@ -71,7 +71,7 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket);
  * default local size of 16x16 is assumed, which is the optimal local size for many image
  * processing shaders.
  */
-void compute_dispatch_threads_at_least(GPUShader *shader,
+void compute_dispatch_threads_at_least(gpu::Shader *shader,
                                        int2 threads_range,
                                        int2 local_size = int2(16));
 

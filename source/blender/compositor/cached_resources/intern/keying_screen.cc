@@ -157,7 +157,7 @@ void KeyingScreen::compute_gpu(Context &context,
                                Vector<float2> &marker_positions,
                                const Vector<float4> &marker_colors)
 {
-  GPUShader *shader = context.get_shader("compositor_keying_screen");
+  gpu::Shader *shader = context.get_shader("compositor_keying_screen");
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_1f(shader, "smoothness", smoothness);

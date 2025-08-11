@@ -259,7 +259,7 @@ struct MaterialKey {
  * Should only include pipeline options that are not baked in the shader itself.
  */
 struct ShaderKey {
-  GPUShader *shader;
+  gpu::Shader *shader;
   uint64_t options;
 
   ShaderKey(GPUMaterial *gpumat, ::Material *blender_mat, eMaterialProbe probe_capture)

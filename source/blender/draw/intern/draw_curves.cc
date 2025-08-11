@@ -95,7 +95,7 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache,
 {
   BLI_assert(input_buf != nullptr);
   BLI_assert(output_buf != nullptr);
-  GPUShader *shader = DRW_shader_curves_refine_get(CURVES_EVAL_CATMULL_ROM);
+  gpu::Shader *shader = DRW_shader_curves_refine_get(CURVES_EVAL_CATMULL_ROM);
 
   /* TODO(fclem): Remove Global access. */
   PassSimple &pass = drw_get().data->curves_module->refine;

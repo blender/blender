@@ -35,7 +35,7 @@ static void apply_morphological_operator_gpu(Context &context,
                                              Result &blurred_input,
                                              const MorphologicalBlurOperation operation)
 {
-  GPUShader *shader = context.get_shader(get_shader(operation));
+  gpu::Shader *shader = context.get_shader(get_shader(operation));
   GPU_shader_bind(shader);
 
   input.bind_as_texture(shader, "input_tx");

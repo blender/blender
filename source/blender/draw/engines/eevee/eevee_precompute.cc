@@ -20,7 +20,7 @@ Precompute::Precompute(draw::Manager &manager, PrecomputeType type, int3 table_e
   Texture table_tx = {"Precompute"};
   table_tx.ensure_3d(gpu::TextureFormat::SFLOAT_32_32_32_32, table_extent, usage);
 
-  GPUShader *shader = GPU_shader_create_from_info_name("eevee_lut");
+  gpu::Shader *shader = GPU_shader_create_from_info_name("eevee_lut");
 
   PassSimple lut_ps = {"Precompute"};
   lut_ps.shader_set(shader);

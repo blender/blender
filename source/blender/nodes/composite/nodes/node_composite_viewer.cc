@@ -102,7 +102,8 @@ class ViewerOperation : public NodeOperation {
     Result output = this->context().get_viewer_output(
         domain, image.meta_data.is_non_color_data, image.precision());
 
-    GPUShader *shader = this->context().get_shader("compositor_write_output", output.precision());
+    gpu::Shader *shader = this->context().get_shader("compositor_write_output",
+                                                     output.precision());
     GPU_shader_bind(shader);
 
     const Bounds<int2> bounds = this->get_output_bounds();

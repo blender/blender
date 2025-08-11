@@ -26,7 +26,9 @@
 #include "GPU_storage_buffer.hh"
 #include "GPU_vertex_buffer.hh"
 
-struct GPUShader;
+namespace blender::gpu {
+class Shader;
+}  // namespace blender::gpu
 
 constexpr static int GPU_BATCH_VBO_MAX_LEN = 16;
 constexpr static int GPU_BATCH_INST_VBO_MAX_LEN = 2;
@@ -91,7 +93,7 @@ class Batch {
   /** Type of geometry to draw. */
   GPUPrimType prim_type;
   /** Current assigned shader. DEPRECATED. Here only for uniform binding. */
-  GPUShader *shader;
+  gpu::Shader *shader;
 
   virtual ~Batch() = default;
 
@@ -273,7 +275,7 @@ void GPU_batch_resource_id_buf_set(blender::gpu::Batch *batch, GPUStorageBuf *re
  *
  * TODO(fclem): This whole section should be removed. See the other `TODO`s in this section.
  * This is because we want to remove #blender::gpu::Batch.shader to avoid usage mistakes.
- * Interacting directly with the #GPUShader provide a clearer interface and less error-prone.
+ * Interacting directly with the #gpu::Shader provide a clearer interface and less error-prone.
  * \{ */
 
 /**
@@ -283,7 +285,7 @@ void GPU_batch_resource_id_buf_set(blender::gpu::Batch *batch, GPUStorageBuf *re
 /* TODO(fclem): These should be removed and replaced by `GPU_shader_bind()`. */
 void GPU_batch_set_shader(
     blender::gpu::Batch *batch,
-    GPUShader *shader,
+    blender::gpu::Shader *shader,
     const blender::gpu::shader::SpecializationConstants *constants_state = nullptr);
 void GPU_batch_program_set_builtin(blender::gpu::Batch *batch, eGPUBuiltinShader shader_id);
 void GPU_batch_program_set_builtin_with_config(blender::gpu::Batch *batch,
@@ -328,7 +330,7 @@ void GPU_batch_program_set_imm_shader(blender::gpu::Batch *batch);
  */
 void GPU_batch_bind_as_resources(
     blender::gpu::Batch *batch,
-    GPUShader *shader,
+    blender::gpu::Shader *shader,
     const blender::gpu::shader::SpecializationConstants *constants = nullptr);
 
 /** \} */

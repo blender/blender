@@ -75,7 +75,7 @@ class SunBeamsOperation : public NodeOperation {
 
   void execute_gpu(const int max_steps)
   {
-    GPUShader *shader = context().get_shader("compositor_sun_beams");
+    gpu::Shader *shader = context().get_shader("compositor_sun_beams");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_2fv(shader, "source", this->get_source());
