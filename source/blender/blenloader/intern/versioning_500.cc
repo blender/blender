@@ -35,6 +35,7 @@
 #include "BLI_sys_types.h"
 
 #include "BKE_animsys.h"
+#include "BKE_armature.hh"
 #include "BKE_attribute_legacy_convert.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"
@@ -1588,9 +1589,10 @@ void do_versions_after_linking_500(FileData *fd, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 500, 54)) {
     LISTBASE_FOREACH (Object *, object, &bmain->objects) {
-      if (object->type != OB_ARMATURE) {
+      if (object->type != OB_ARMATURE || !object->data) {
         continue;
       }
+      BKE_pose_rebuild(nullptr, object, static_cast<bArmature *>(object->data), false);
       LISTBASE_FOREACH (bPoseChannel *, pose_bone, &object->pose->chanbase) {
         if (pose_bone->bone->flag & BONE_HIDDEN_P) {
           pose_bone->drawflag |= PCHAN_DRAW_HIDDEN;
