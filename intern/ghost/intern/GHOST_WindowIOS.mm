@@ -37,16 +37,16 @@
 
 // #define IOS_INPUT_LOGGING
 #if defined(IOS_INPUT_LOGGING)
-#  define IOS_INPUT_LOG(format, ...) NSLog(format, __VA_ARGS__)
+#  define IOS_INPUT_LOG(...) NSLog(__VA_ARGS__)
 #else
-#  define IOS_INPUT_LOG(format, ...)
+#  define IOS_INPUT_LOG(...)
 #endif
 
 // #define IOS_WINDOW_LOGGING
 #if defined(IOS_WINDOW_LOGGING)
-#  define IOS_WINDOW_LOG(format, ...) NSLog(format, __VA_ARGS__)
+#  define IOS_WINDOW_LOG(...) NSLog(__VA_ARGS__)
 #else
-#  define IOS_WINDOW_LOG(format, ...)
+#  define IOS_WINDOW_LOG(...)
 #endif
 
 extern "C" {
@@ -1186,7 +1186,7 @@ typedef struct UserInputEvent {
 - (void)externalKeyboardChange:(NSNotification *)notification
 {
   external_keyboard_connected = [GCKeyboard coalescedKeyboard] != nil;
-  IOS_INPUT_LOG(@"External Keyboard %@",
+  IOS_INPUT_LOG(@"External Keyboard %s",
                 external_keyboard_connected ? "Connected" : "Disconnected");
 }
 
