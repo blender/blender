@@ -184,7 +184,7 @@ void main()
   vert_out[0] = vertex_main(vert_in[0]);
   vert_out[1] = vertex_main(vert_in[1]);
 
-  drw_ResourceID_iface.resource_index = drw_resource_id();
+  drw_ResourceID_iface.resource_index = drw_resource_id_raw();
 
   /* Discard by default. */
   gl_Position = float4(NAN_FLT);

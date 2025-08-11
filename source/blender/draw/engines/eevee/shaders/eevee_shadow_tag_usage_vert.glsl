@@ -44,7 +44,7 @@ void inflate_bounds(float3 ls_center, inout float3 P, inout float3 lP)
 
 void main()
 {
-  drw_ResourceID_iface.resource_index = drw_resource_id();
+  drw_ResourceID_iface.resource_index = drw_resource_id_raw();
 
   ObjectBounds bounds = bounds_buf[drw_resource_id()];
   if (!drw_bounds_are_valid(bounds)) {
