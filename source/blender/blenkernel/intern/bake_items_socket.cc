@@ -47,7 +47,8 @@ static std::unique_ptr<BakeItem> move_common_socket_value_to_bake_item(
 {
   switch (stype.type) {
     case SOCK_GEOMETRY: {
-      GeometrySet &geometry = *static_cast<GeometrySet *>(socket_value);
+      GeometrySet geometry =
+          static_cast<SocketValueVariant *>(socket_value)->extract<GeometrySet>();
       auto item = std::make_unique<GeometryBakeItem>(std::move(geometry));
       r_geometry_bake_items.append(item.get());
       return item;
@@ -141,7 +142,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
       continue;
     }
     void *socket_value = socket_values[i];
-    GeometrySet &geometry = *static_cast<GeometrySet *>(socket_value);
+    GeometrySet geometry = static_cast<SocketValueVariant *>(socket_value)->extract<GeometrySet>();
     auto geometry_item = std::make_unique<GeometryBakeItem>(std::move(geometry));
     geometry_bake_items.append(geometry_item.get());
     bake_items[i] = std::move(geometry_item);
@@ -227,8 +228,9 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
   switch (socket_type) {
     case SOCK_GEOMETRY: {
       if (const auto *item = dynamic_cast<const GeometryBakeItem *>(&bake_item)) {
-        GeometrySet *geometry = new (r_value) GeometrySet(item->geometry);
-        GeometryBakeItem::try_restore_data_blocks(*geometry, data_block_map);
+        bke::GeometrySet geometry = item->geometry;
+        GeometryBakeItem::try_restore_data_blocks(geometry, data_block_map);
+        SocketValueVariant::ConstructIn(r_value, std::move(geometry));
         return true;
       }
       return false;
@@ -409,7 +411,8 @@ void move_bake_items_to_socket_values(
     if (socket_type == SOCK_GEOMETRY) {
       auto &item = *static_cast<GeometryBakeItem *>(bake_item);
       item.geometry.clear();
-      geometries.append(static_cast<GeometrySet *>(r_socket_value));
+      geometries.append(
+          static_cast<SocketValueVariant *>(r_socket_value)->get_single_ptr().get<GeometrySet>());
     }
   }
 
@@ -446,7 +449,8 @@ void copy_bake_items_to_socket_values(
       continue;
     }
     if (socket_type == SOCK_GEOMETRY) {
-      geometries.append(static_cast<GeometrySet *>(r_socket_value));
+      geometries.append(
+          static_cast<SocketValueVariant *>(r_socket_value)->get_single_ptr().get<GeometrySet>());
     }
   }
 

@@ -18,10 +18,12 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Vector<GeometrySet> geometries = params.extract_input<Vector<GeometrySet>>("Geometry");
+  Vector<SocketValueVariant> input_values = params.extract_input<Vector<SocketValueVariant>>(
+      "Geometry");
   std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
 
-  for (GeometrySet &geometry : geometries) {
+  for (bke::SocketValueVariant &value : input_values) {
+    bke::GeometrySet geometry = value.extract<bke::GeometrySet>();
     geometry.ensure_owns_direct_data();
     const int handle = instances->add_reference(std::move(geometry));
     instances->add_instance(handle, float4x4::identity());

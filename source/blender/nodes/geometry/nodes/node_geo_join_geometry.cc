@@ -20,7 +20,12 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Vector<GeometrySet> geometry_sets = params.extract_input<Vector<GeometrySet>>("Geometry");
+  Vector<SocketValueVariant> input_values = params.extract_input<Vector<SocketValueVariant>>(
+      "Geometry");
+  Vector<GeometrySet> geometry_sets;
+  for (SocketValueVariant &value : input_values) {
+    geometry_sets.append(value.extract<GeometrySet>());
+  }
 
   const NodeAttributeFilter &attribute_filter = params.get_attribute_filter("Geometry");
 

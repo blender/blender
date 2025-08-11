@@ -140,7 +140,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  Vector<GeometrySet> geometry_sets = params.extract_input<Vector<GeometrySet>>("Mesh 2");
+  Vector<SocketValueVariant> values = params.extract_input<Vector<SocketValueVariant>>("Mesh 2");
+  Vector<GeometrySet> geometry_sets;
+  for (SocketValueVariant &value : values) {
+    geometry_sets.append(value.extract<GeometrySet>());
+  }
 
   for (const GeometrySet &geometry : geometry_sets) {
     if (const Mesh *mesh = geometry.get_mesh()) {

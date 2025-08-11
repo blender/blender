@@ -905,7 +905,10 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
     const bke::bNodeSocketType *typeinfo = interface_socket.socket_typeinfo();
     const eNodeSocketDatatype socket_type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
     if (socket_type == SOCK_GEOMETRY && i == 0) {
-      param_inputs[function.inputs.main[0]] = &input_geometry;
+      bke::SocketValueVariant *value = allocator.construct<bke::SocketValueVariant>().release();
+      value->set(input_geometry);
+      param_inputs[function.inputs.main[0]] = value;
+      inputs_to_destruct.append(value);
       continue;
     }
 
@@ -957,7 +960,8 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
     ptr.destruct();
   }
 
-  bke::GeometrySet output_geometry = std::move(*param_outputs[0].get<bke::GeometrySet>());
+  bke::GeometrySet output_geometry =
+      param_outputs[0].get<bke::SocketValueVariant>()->extract<bke::GeometrySet>();
   store_output_attributes(output_geometry, btree, properties_set, param_outputs);
 
   for (const int i : IndexRange(num_outputs)) {
