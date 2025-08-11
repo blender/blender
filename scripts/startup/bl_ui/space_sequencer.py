@@ -1146,6 +1146,8 @@ class SEQUENCER_MT_strip(Menu):
         if has_preview:
             layout.separator()
             layout.operator("sequencer.preview_duplicate_move", text="Duplicate")
+            layout.operator("sequencer.copy", text="Copy")
+            layout.operator("sequencer.paste", text="Paste")
             layout.separator()
             layout.menu("SEQUENCER_MT_strip_animation")
             layout.separator()
