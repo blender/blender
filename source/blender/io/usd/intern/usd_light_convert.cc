@@ -32,6 +32,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_image_types.h"
@@ -210,8 +211,8 @@ void world_material_to_dome_light(const USDExportParams &params,
     }
     else {
       BLI_path_join(dest_path, FILE_MAX, ".", "textures", file_path);
-      image_filepath = dest_path;
-      dome_light.CreateTextureFileAttr().Set(pxr::SdfAssetPath(image_filepath));
+      BLI_string_replace_char(dest_path, '\\', '/');
+      dome_light.CreateTextureFileAttr().Set(pxr::SdfAssetPath(dest_path));
     }
   }
 }
