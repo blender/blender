@@ -107,11 +107,11 @@ void GLVertArray::update_bindings(const GLuint vao,
   }
 
   if (batch->resource_id_buf) {
-    const ShaderInput *input = interface->attr_get("drw_ResourceID");
+    const ShaderInput *input = interface->attr_get("in_resource_id");
     int component_len = 1;
     if (input == nullptr) {
       /* Uses Custom IDs */
-      input = interface->attr_get("vertex_in_drw_ResourceID");
+      input = interface->attr_get("in_resource_id_custom_id");
       component_len = 2;
     }
     if (input) {
@@ -119,7 +119,7 @@ void GLVertArray::update_bindings(const GLuint vao,
       glEnableVertexAttribArray(input->location);
       glVertexAttribDivisor(input->location, 1);
       glVertexAttribIPointer(
-          input->location, component_len, to_gl(GPU_COMP_I32), 0, (GLvoid *)nullptr);
+          input->location, component_len, to_gl(GPU_COMP_U32), 0, (GLvoid *)nullptr);
       attr_mask &= ~(1 << input->location);
     }
   }
