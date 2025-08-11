@@ -1529,7 +1529,7 @@ void ui_draw_but_UNITVEC(uiBut *but,
   SimpleLightingData simple_lighting_data;
   copy_v4_fl4(simple_lighting_data.l_color, diffuse[0], diffuse[1], diffuse[2], 1.0f);
   copy_v3_v3(simple_lighting_data.light, light);
-  GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
+  blender::gpu::UniformBuf *ubo = GPU_uniformbuf_create_ex(
       sizeof(SimpleLightingData), &simple_lighting_data, __func__);
 
   GPU_batch_program_set_builtin(sphere, GPU_SHADER_SIMPLE_LIGHTING);

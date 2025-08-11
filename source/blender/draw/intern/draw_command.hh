@@ -179,8 +179,8 @@ struct ResourceBind {
   union {
     /** TODO: Use draw::Texture|StorageBuffer|UniformBuffer as resources as they will give more
      * debug info. */
-    GPUUniformBuf *uniform_buf;
-    GPUUniformBuf **uniform_buf_ref;
+    gpu::UniformBuf *uniform_buf;
+    gpu::UniformBuf **uniform_buf_ref;
     GPUStorageBuf *storage_buf;
     GPUStorageBuf **storage_buf_ref;
     /** NOTE: Texture is used for both Sampler and Image binds. */
@@ -194,17 +194,17 @@ struct ResourceBind {
 
   ResourceBind() = default;
 
-  ResourceBind(int slot_, GPUUniformBuf *res)
+  ResourceBind(int slot_, gpu::UniformBuf *res)
       : slot(slot_), is_reference(false), type(Type::UniformBuf), uniform_buf(res){};
-  ResourceBind(int slot_, GPUUniformBuf **res)
+  ResourceBind(int slot_, gpu::UniformBuf **res)
       : slot(slot_), is_reference(true), type(Type::UniformBuf), uniform_buf_ref(res){};
   ResourceBind(int slot_, GPUStorageBuf *res)
       : slot(slot_), is_reference(false), type(Type::StorageBuf), storage_buf(res){};
   ResourceBind(int slot_, GPUStorageBuf **res)
       : slot(slot_), is_reference(true), type(Type::StorageBuf), storage_buf_ref(res){};
-  ResourceBind(int slot_, GPUUniformBuf *res, Type /*type*/)
+  ResourceBind(int slot_, gpu::UniformBuf *res, Type /*type*/)
       : slot(slot_), is_reference(false), type(Type::UniformAsStorageBuf), uniform_buf(res){};
-  ResourceBind(int slot_, GPUUniformBuf **res, Type /*type*/)
+  ResourceBind(int slot_, gpu::UniformBuf **res, Type /*type*/)
       : slot(slot_), is_reference(true), type(Type::UniformAsStorageBuf), uniform_buf_ref(res){};
   ResourceBind(int slot_, gpu::VertBuf *res, Type /*type*/)
       : slot(slot_), is_reference(false), type(Type::VertexAsStorageBuf), vertex_buf(res){};

@@ -2018,7 +2018,8 @@ static void nodelink_batch_draw(const SpaceNode &snode)
   node_link_data.aspect = snode.runtime->aspect;
   node_link_data.arrowSize = ARROW_SIZE;
 
-  GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(sizeof(node_link_data), &node_link_data, __func__);
+  gpu::UniformBuf *ubo = GPU_uniformbuf_create_ex(
+      sizeof(node_link_data), &node_link_data, __func__);
 
   GPU_vertbuf_data_len_set(*g_batch_link.inst_vbo, g_batch_link.count);
   GPU_vertbuf_use(g_batch_link.inst_vbo); /* force update. */
@@ -2285,7 +2286,8 @@ static void node_draw_link_bezier_ex(const SpaceNode &snode,
     node_link_data.arrowSize = ARROW_SIZE;
 
     gpu::Batch *batch = g_batch_link.batch_single;
-    GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(sizeof(NodeLinkData), &node_link_data, __func__);
+    gpu::UniformBuf *ubo = GPU_uniformbuf_create_ex(
+        sizeof(NodeLinkData), &node_link_data, __func__);
 
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);
     GPU_batch_uniformbuf_bind(batch, "node_link_data", ubo);

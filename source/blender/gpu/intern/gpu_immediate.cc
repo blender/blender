@@ -640,7 +640,7 @@ void immBindTextureSampler(const char *name, blender::gpu::Texture *tex, GPUSamp
   GPU_texture_bind_ex(tex, state, binding);
 }
 
-void immBindUniformBuf(const char *name, GPUUniformBuf *ubo)
+void immBindUniformBuf(const char *name, blender::gpu::UniformBuf *ubo)
 {
   int binding = GPU_shader_get_ubo_binding(imm->shader, name);
   GPU_uniformbuf_bind(ubo, binding);

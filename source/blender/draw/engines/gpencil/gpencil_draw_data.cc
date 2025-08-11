@@ -304,7 +304,7 @@ void gpencil_material_resources_get(MaterialPool *first_pool,
                                     int mat_id,
                                     gpu::Texture **r_tex_stroke,
                                     gpu::Texture **r_tex_fill,
-                                    GPUUniformBuf **r_ubo_mat)
+                                    gpu::UniformBuf **r_ubo_mat)
 {
   MaterialPool *matpool = first_pool;
   BLI_assert(mat_id >= 0);

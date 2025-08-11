@@ -167,7 +167,7 @@ class DataBuffer {
 template<typename T, int64_t len, bool device_only>
 class UniformCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable {
  protected:
-  GPUUniformBuf *ubo_;
+  gpu::UniformBuf *ubo_;
 
 #ifndef NDEBUG
   const char *name_ = typeid(T).name();
@@ -195,13 +195,13 @@ class UniformCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
   }
 
   /* To be able to use it with DRW_shgroup_*_ref(). */
-  operator GPUUniformBuf *() const
+  operator gpu::UniformBuf *() const
   {
     return ubo_;
   }
 
   /* To be able to use it with DRW_shgroup_*_ref(). */
-  GPUUniformBuf **operator&()
+  gpu::UniformBuf **operator&()
   {
     return &ubo_;
   }

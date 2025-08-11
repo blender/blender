@@ -80,7 +80,7 @@ void ShaderOperation::bind_material_resources(gpu::Shader *shader)
 {
   /* Bind the uniform buffer of the material if it exists. It may not exist if the GPU material has
    * no uniforms. */
-  GPUUniformBuf *ubo = GPU_material_uniform_buffer_get(material_);
+  gpu::UniformBuf *ubo = GPU_material_uniform_buffer_get(material_);
   if (ubo) {
     GPU_uniformbuf_bind(ubo, GPU_shader_get_ubo_binding(shader, GPU_UBO_BLOCK_NAME));
   }

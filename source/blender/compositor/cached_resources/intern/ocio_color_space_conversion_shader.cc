@@ -344,7 +344,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     }
 
     for (auto item : float_buffers_.items()) {
-      GPUUniformBuf *buffer = GPU_uniformbuf_create_ex(
+      gpu::UniformBuf *buffer = GPU_uniformbuf_create_ex(
           buffers_sizes_.lookup(item.key)(), item.value(), item.key.c_str());
       const int ubo_location = GPU_shader_get_ubo_binding(shader_, item.key.c_str());
       GPU_uniformbuf_bind(buffer, ubo_location);
@@ -352,7 +352,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
     }
 
     for (auto item : int_buffers_.items()) {
-      GPUUniformBuf *buffer = GPU_uniformbuf_create_ex(
+      gpu::UniformBuf *buffer = GPU_uniformbuf_create_ex(
           buffers_sizes_.lookup(item.key)(), item.value(), item.key.c_str());
       const int ubo_location = GPU_shader_get_ubo_binding(shader_, item.key.c_str());
       GPU_uniformbuf_bind(buffer, ubo_location);
@@ -369,7 +369,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   void unbind_shader_and_resources()
   {
-    for (GPUUniformBuf *buffer : uniform_buffers_) {
+    for (gpu::UniformBuf *buffer : uniform_buffers_) {
       GPU_uniformbuf_unbind(buffer);
       GPU_uniformbuf_free(buffer);
     }
@@ -437,7 +437,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   /* A vectors that stores the created uniform buffers when bind_shader_and_resources() is called,
    * so that they can be properly unbound and freed in the unbind_shader_and_resources() method. */
-  Vector<GPUUniformBuf *> uniform_buffers_;
+  Vector<gpu::UniformBuf *> uniform_buffers_;
 
 #  if OCIO_VERSION_HEX >= 0x02030000
   /* Allow creating 1D textures, or only use 2D textures. */

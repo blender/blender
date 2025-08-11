@@ -24,8 +24,8 @@ struct GPUNodeStack;
 struct GPUPass;
 namespace blender::gpu {
 class Texture;
-}
-struct GPUUniformBuf;
+class UniformBuf;
+}  // namespace blender::gpu
 struct Image;
 struct ImageUser;
 struct ListBase;
@@ -146,7 +146,7 @@ eGPUMaterialOptimizationStatus GPU_material_optimization_status(GPUMaterial *mat
 
 uint64_t GPU_material_compilation_timestamp(GPUMaterial *mat);
 
-GPUUniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
+blender::gpu::UniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
 /**
  * Create dynamic UBO from parameters
  *

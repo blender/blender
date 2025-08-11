@@ -320,8 +320,7 @@ MTLContext::~MTLContext()
     if (this->pipeline_state.ubo_bindings[i].bound &&
         this->pipeline_state.ubo_bindings[i].ubo != nullptr)
     {
-      GPUUniformBuf *ubo = wrap(
-          static_cast<UniformBuf *>(this->pipeline_state.ubo_bindings[i].ubo));
+      gpu::UniformBuf *ubo = this->pipeline_state.ubo_bindings[i].ubo;
       GPU_uniformbuf_unbind(ubo);
     }
   }

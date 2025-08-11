@@ -25,9 +25,9 @@
 #endif
 
 struct CurveMapping;
-struct GPUUniformBuf;
 namespace blender::gpu {
 class Shader;
+class UniformBuf;
 class Texture;
 }  // namespace blender::gpu
 
@@ -81,7 +81,7 @@ class GPUTextures : NonCopyable, NonMovable {
 
   /* Uniforms */
   Vector<GPUUniform> uniforms;
-  GPUUniformBuf *uniforms_buffer = nullptr;
+  gpu::UniformBuf *uniforms_buffer = nullptr;
 
   ~GPUTextures();
 
@@ -99,7 +99,7 @@ class GPUCurveMappping : NonCopyable, NonMovable {
   int lut_size = 0;
   float *lut = nullptr;
 
-  GPUUniformBuf *buffer = nullptr;
+  gpu::UniformBuf *buffer = nullptr;
   blender::gpu::Texture *texture = nullptr;
   size_t cache_id = 0;
 
@@ -139,7 +139,7 @@ class GPUDisplayShader : NonCopyable, NonMovable {
 
   /* Uniform parameters. */
   OCIO_GPUParameters parameters = {};
-  GPUUniformBuf *parameters_buffer = nullptr;
+  gpu::UniformBuf *parameters_buffer = nullptr;
 
   GPUTextures textures;
   GPUCurveMappping curve_mapping;

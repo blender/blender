@@ -14,8 +14,8 @@
 
 namespace blender::gpu {
 class Shader;
+class UniformBuf;
 }  // namespace blender::gpu
-struct GPUUniformBuf;
 struct View2D;
 
 namespace blender::gpu {
@@ -32,8 +32,8 @@ namespace blender::ed::vse {
 class StripsDrawBatch {
   SeqContextDrawData context_;
   Array<SeqStripDrawData> strips_;
-  GPUUniformBuf *ubo_context_ = nullptr;
-  GPUUniformBuf *ubo_strips_ = nullptr;
+  gpu::UniformBuf *ubo_context_ = nullptr;
+  gpu::UniformBuf *ubo_strips_ = nullptr;
   gpu::Shader *shader_ = nullptr;
   gpu::Batch *batch_ = nullptr;
   int binding_context_ = 0;
@@ -76,7 +76,7 @@ class StripsDrawBatch {
     return x * view_cur_inv_size_.x * view_mask_size_.x;
   }
 
-  GPUUniformBuf *get_ubo_context() const
+  gpu::UniformBuf *get_ubo_context() const
   {
     return ubo_context_;
   }
